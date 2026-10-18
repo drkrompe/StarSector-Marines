@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Rebuild, verify and review every state; compose the cross-state sheets.
-#   ./finalize.sh [--skip-geom] [--turn N] [--samples S] [states...]
+#   ./finalize.sh [--skip-geom] [--turn N (default 0: stills only)] [--samples S] [states...]
 # Raw renders go to ../../second-wind-surface/build/final/<state>/ (ignored);
 # committed review images go to <state>/review/ and review/.
 set -euo pipefail
 cd "$(dirname "$0")"
 . ../../../blender.sh
 FINAL=$(cd ../../second-wind-surface && pwd)/build/final
-SKIP=; TURN=96; SAMPLES=32; STATES=()
+SKIP=; TURN=0; SAMPLES=32; STATES=()
 while [ $# -gt 0 ]; do case $1 in
   --skip-geom) SKIP=--skip-geom;; --turn) TURN=$2; shift;; --samples) SAMPLES=$2; shift;;
   *) STATES+=("$1");; esac; shift; done

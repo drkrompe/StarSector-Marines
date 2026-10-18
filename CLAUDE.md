@@ -865,6 +865,29 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   no art, so a scenario overrides `annotations()` to box what it built. Rendering takes turns
   across the side-by-side fights and costs about 20-30s a recording.
   A new scenario implements `MatchupScenario` and joins `MatchupScenarios.all()`.
+- `gradlew.bat armorMatchup` → machines against machines, the sibling of `loadoutMatchup` with its conventions
+  (`-Pattacker`/`-Pdefender`, `;` for every pairing, `-Pseeds` (default 2), `-Pscenarios`, `-Pparallelism`,
+  `-Pgifs`/`-PgifSeeds`, `-Dbattle.*` forwarded, the control replayed twice side by side for the determinism
+  header). Writes `armor-matchups.md`, `armor-matchups.csv` and `runs.csv` under `build/reports/armor-matchups/`.
+  A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`, `bulwark:refit`,
+  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,cooler=auxiliary,role=assault`: pattern ids with
+  or without their `component.mech-`/`internal.` prefix, `none` empties a mount, `refit` fills the best buildable
+  internals around the fitted weapons, an over-budget fit runs and is labelled so) or a `VehicleType` in kebab case
+  (`breakthrough-tank`; `technical`, `scout`, `dozer`). Scenarios: `open-ground`; `hull-down` (berms hide the
+  defenders' legs and hulls, ruins in the middle ground); `street` (between solid blocks, defenders behind the last
+  two corners). Attackers are moved as a player would move them, to a cell at about 70% of their longest reach that
+  sees the nearest enemy (`-Pstandoff=0.7`), and closer if they stand in range without firing; inside range it is
+  production doctrine and turrets. A mech is steered only while out of reach or out of sight, and its lance
+  carries no mission order of its own, so doctrine (and its duel range against armor) decides where it fights;
+  `-PmechOrder=attack-move` restores the old attack-move onto the defenders' ground and the old steering, which
+  together walked every attacking mech into contact. The Range column is the median distance between the nearest
+  opposing machines from the first hit. The default ladder (`-Pladder=control,mech,mixed,vehicle`): stock Hound vs
+  stock Hound (the control), every chassis at stock and refit against every other both ways, each stock chassis
+  against each armed vehicle line both ways, every armed line against every other (the unarmed scout car only when
+  named); about 800 fights in well under a minute. Rows report wins, TTK from first hit, machines and integrity
+  left, hit rate, mounts lost, legs crippled, heat-limited seconds and damage by weapon (the side's dealt damage
+  apportioned by hits x nominal damage); `runs.csv` adds each survivor's sections.
+  One machine a side, no cost or lift parity: read rows against each other, not as balance acceptance.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

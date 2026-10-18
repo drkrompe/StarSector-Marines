@@ -1,13 +1,13 @@
 # Scar continuity across states
 
-78 ids; 40 with cast sites, 58 with a footprint in at least one state.
+78 ids; 41 with cast sites, 58 with a footprint in at least one state.
 Recorded sites move at most 0.0 units between states (0.0 px on screen); site counts consistent: True.
 
 | # | id | derelict | patched | refit | restored | sites | site move | footprint spread (units) |
 |---|---|---|---|---|---|---|---|---|
 | 1 | ship-power | open | gone | gone | gone | 0 | 0.0 | 0.0 (1 states) |
 | 2 | fb-port-sponson-cowl-strike | open | patched | replaced | faded | 1 | 0.0 | 0.53 (4 states) |
-| 3 | fb-port-bow-cheek-strike | open | patched | patched | faded | 1 | 0.0 | 0.94 (4 states) |
+| 3 | fb-port-bow-cheek-strike | open | patched | replaced | faded | 1 | 0.0 | 0.94 (4 states) |
 | 4 | fb-port-bow-flank-strike | open | open | open | faded | 1 | 0.0 | 0.82 (4 states) |
 | 5 | fb-bow-glacis-strike | open | open | open | faded | 1 | 0.0 | 0.83 (4 states) |
 | 6 | fb-stbd-forebody-deck-dent | open | open | open | faded | 1 | 0.0 | 0.0 (0 states) |
@@ -16,17 +16,17 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 9 | fb-stbd-bay-door-strike | open | open | open | faded | 1 | 0.0 | 0.0 (0 states) |
 | 10 | fb-port-forward-flank-cluster | open | open | open | faded | 24 | 0.0 | 0.0 (0 states) |
 | 11 | fb-port-bow-deck-cluster | open | open | open | faded | 14 | 0.0 | 0.0 (0 states) |
-| 12 | fb-stbd-bow-deck-cluster | open | patched | patched | faded | 6 | 0.0 | 0.0 (0 states) |
+| 12 | fb-stbd-bow-deck-cluster | open | patched | replaced | faded | 6 | 0.0 | 0.0 (0 states) |
 | 13 | fb-stbd-flank-module-tear | open | open | open | faded | 1 | 0.0 | 0.91 (4 states) |
 | 14 | fb-port-citadel-wall-spall | open | open | open | faded | 1 | 0.0 | 5.31 (4 states) |
 | 15 | fb-stbd-bow-cheek-spall | open | open | open | faded | 1 | 0.0 | 0.0 (3 states) |
 | 16 | fb-port-nose-block-spall | open | open | open | faded | 1 | 0.0 | 0.31 (4 states) |
 | 17 | fb-port-sponson-scrape | open | open | open | faded | 9 | 0.0 | 0.0 (0 states) |
 | 18 | fb-port-glacis-gouge | open | open | open | faded | 9 | 0.0 | 0.0 (0 states) |
-| 19 | fb-port-deck-plate-fwd-torn | open | open | open | faded | 0 | 0.0 | 0.38 (4 states) |
+| 19 | fb-port-deck-plate-fwd-torn | open | open | replaced | faded | 0 | 0.0 | 0.38 (4 states) |
 | 20 | fb-port-deck-plate-aft-torn | open | open | open | faded | 0 | 0.0 | 0.38 (4 states) |
-| 21 | fb-stbd-deck-plate-unbolted | open | open | open | faded | 0 | 0.0 | 0.28 (4 states) |
-| 22 | fb-port-deck-plate-buckle | open | open | open | faded | 0 | 0.0 | 0.26 (4 states) |
+| 21 | fb-stbd-deck-plate-unbolted | open | open | replaced | faded | 0 | 0.0 | 0.28 (4 states) |
+| 22 | fb-port-deck-plate-buckle | open | open | replaced | faded | 0 | 0.0 | 0.26 (4 states) |
 | 23 | fb-bow-tether-padeye | open | open | open | faded | 1 | 0.0 | 1.05 (4 states) |
 | 24 | fb-stbd-bay-jamb | open | patched | patched | faded | 0 | 0.0 | 0.95 (4 states) |
 | 25 | fb-stbd-bay-door | open | patched | patched | faded | 0 | 0.0 | 0.4 (3 states) |
@@ -37,7 +37,7 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 30 | pod-port-can-feeds | open | open | open | gone | 0 | 0.0 | 0.0 (3 states) |
 | 31 | pod-casing-access-panels | open | open | open | gone | 0 | 0.0 | 0.0 (3 states) |
 | 32 | pod-port-outer-can | open | open | open | gone | 1 | 0.0 | 0.0 (3 states) |
-| 33 | pod-port-fins | open | open | open | gone | 0 | 0.0 | 0.0 (3 states) |
+| 33 | pod-port-engine-bay | open | open | open | gone | 1 | 0.0 | 0.0 (3 states) |
 | 34 | pod-port-aft-shoulder | open | open | open | faded | 1 | 0.0 | 0.0 (3 states) |
 | 35 | pod-port-lower-casing | open | open | open | faded | 1 | 0.0 | 0.0 (3 states) |
 | 36 | pod-port-intake-cap | open | open | open | faded | 1 | 0.0 | 0.0 (3 states) |
@@ -78,7 +78,7 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 71 | rcs-stern-stbd | open | gone | gone | gone | 0 | 0.0 | 0.0 (0 states) |
 | 72 | rcs-dorsal | open | patched | replaced | gone | 0 | 0.0 | 0.0 (2 states) |
 | 73 | rcs-ventral | open | gone | gone | gone | 0 | 0.0 | 0.0 (0 states) |
-| 74 | ds-port-waist-rip | open | open | open | faded | 1 | 0.0 | 1.12 (4 states) |
+| 74 | ds-port-waist-rip | open | open | replaced | faded | 1 | 0.0 | 1.12 (4 states) |
 | 75 | ds-stbd-waist-rip | open | open | replaced | faded | 1 | 0.0 | 1.03 (4 states) |
 | 76 | ds-fwd-deck-rip | open | patched | replaced | faded | 1 | 0.0 | 1.21 (4 states) |
 | 77 | ds-port-shoulder-peel | open | open | open | faded | 1 | 0.0 | 0.45 (4 states) |

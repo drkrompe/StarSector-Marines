@@ -785,7 +785,7 @@
    "lit": false,
    "at": [
     -32.8,
-    36.2,
+    36.23,
     7.9
    ]
   },
@@ -855,7 +855,7 @@
    "lit": false,
    "at": [
     6.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -865,7 +865,7 @@
    "lit": false,
    "at": [
     22.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -1052,8 +1052,8 @@
    "status": "open"
   },
   {
-   "id": "pod-port-fins",
-   "kind": "bent_fins",
+   "id": "pod-port-engine-bay",
+   "kind": "engine_bay",
    "status": "open"
   },
   {
@@ -2855,6 +2855,20 @@
     "r": 0.04
    }
   ],
+  "pod-port-engine-bay": [
+   {
+    "p": [
+     -24.0,
+     37.472,
+     11.289
+    ],
+    "n": [
+     0.0,
+     0.966,
+     0.259
+    ]
+   }
+  ],
   "pod-port-flank-cluster": [
    {
     "p": [
@@ -4226,18 +4240,18 @@
    ],
    "objects": 9
   },
-  "pod-port-fins": {
+  "pod-port-engine-bay": {
    "centre": [
-    -21.675,
+    -25.862,
     27.0,
-    3.2
+    4.1
    ],
    "extent": [
-    3.19,
-    22.6,
-    22.4
+    17.724,
+    24.0,
+    24.8
    ],
-   "objects": 4
+   "objects": 31
   },
   "pod-port-intake-cap": {
    "centre": [
@@ -4606,6 +4620,7 @@
   "Crosstree signal light.001": "sp-mast",
   "Drive casing armour plate": "pod-port-casing-plate",
   "Drive casing armour plate.005": "pod-starboard-casing-plate",
+  "Fin bank tie bar.003": "pod-port-engine-bay",
   "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
   "Forward access trunk seal ring": "sp-trunk-fwd-port",
   "Forward access trunk seal ring.001": "sp-trunk-fwd-stbd",
@@ -4639,10 +4654,10 @@
   "Turret 3 optics lens": "sp-turret-3",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 147,
- "objects": 956,
- "polygons": 188579,
- "baked_meshes": 850,
+ "left_out_objects": 148,
+ "objects": 971,
+ "polygons": 197114,
+ "baked_meshes": 865,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4728,7 +4743,7 @@
    "Scar salvaged sensor window",
    "Starboard running light"
   ],
-  "scorch_sites": 135,
+  "scorch_sites": 136,
   "soot_engines": 2,
   "base": "second-wind-surface/wear.py, wear.json",
   "params": "second-wind-surface/overlay/patched.json",
@@ -4768,7 +4783,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-patched.blend",
-  "geometry_json_sha256": "ee0ec53e7cb5362442ac56631cc1e6511d0034be4d0cac9c8aa26b2ec0404987",
+  "geometry_json_sha256": "25486ad553c8a0d8a4167fe6aed9d37f6b05ea08adf3023da439c83a74842bc5",
   "wear_params_sha256": "c7be319d59ae4a855bee19129b0226cbd57d8b20a99cde28f88bfa9e60cff162"
  },
  "conventions": {
@@ -4779,5 +4794,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "c24c58ca40fc51fe3c0d655344bb2bb8064973f07e5078260f72aa649264f7b9"
+ "asset_sha256": "1f112ffce98d92fa74cfd51990411408f5bdc6db566951d0a909b2311cfa754b"
 }

@@ -103,10 +103,15 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     }
 
     private void tickSourceControl(BattleView sim) {
+        // The zone graph is rebuilt when topology changes (a wall or a furnishing destroyed), and
+        // rebuilding renumbers zones, so the source's zone is read where it stands now. Comparing
+        // against the id frozen at setup left every escort in "another" zone for the whole battle.
+        int zone = sim.getZoneGraph().zoneIdAt(sourceCellX(), sourceCellY());
+        int sourceZone = zone >= 0 ? zone : sourceZoneId;
         Escort escort = nearestMarineEscort(sim, sourceCellX(), sourceCellY(),
-                SOURCE_RADIUS, sourceZoneId);
+                SOURCE_RADIUS, sourceZone);
         boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
-                sourceCellX(), sourceCellY(), SOURCE_RADIUS, sourceZoneId);
+                sourceCellX(), sourceCellY(), SOURCE_RADIUS, sourceZone);
         contested = defenderPresent;
         escortPresent = escort.present() && !defenderPresent;
         controllingSquadId = escortPresent ? escort.squadId() : -1;
