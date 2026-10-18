@@ -1,7 +1,7 @@
 {
  "summary": {
   "ids": 78,
-  "ids_with_sites": 40,
+  "ids_with_sites": 41,
   "ids_with_footprint": 58,
   "site_max_move_units": 0.0,
   "site_max_move_px": 0.0,
@@ -66,7 +66,7 @@
    "status": {
     "derelict": "open",
     "patched": "patched",
-    "refit": "patched",
+    "refit": "replaced",
     "restored": "faded"
    },
    "site_states": [
@@ -279,7 +279,7 @@
    "status": {
     "derelict": "open",
     "patched": "patched",
-    "refit": "patched",
+    "refit": "replaced",
     "restored": "faded"
    },
    "site_states": [
@@ -452,7 +452,7 @@
    "status": {
     "derelict": "open",
     "patched": "open",
-    "refit": "open",
+    "refit": "replaced",
     "restored": "faded"
    },
    "site_states": [],
@@ -496,7 +496,7 @@
    "status": {
     "derelict": "open",
     "patched": "open",
-    "refit": "open",
+    "refit": "replaced",
     "restored": "faded"
    },
    "site_states": [],
@@ -518,7 +518,7 @@
    "status": {
     "derelict": "open",
     "patched": "open",
-    "refit": "open",
+    "refit": "replaced",
     "restored": "faded"
    },
    "site_states": [],
@@ -759,15 +759,19 @@
   },
   {
    "row": 33,
-   "id": "pod-port-fins",
+   "id": "pod-port-engine-bay",
    "status": {
     "derelict": "open",
     "patched": "open",
     "refit": "open",
     "restored": "gone"
    },
-   "site_states": [],
-   "site_points": 0,
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "site_points": 1,
    "site_count_same": true,
    "site_max_move_units": 0.0,
    "site_max_move_px": 0.0,
@@ -1669,7 +1673,7 @@
    "status": {
     "derelict": "open",
     "patched": "open",
-    "refit": "open",
+    "refit": "replaced",
     "restored": "faded"
    },
    "site_states": [
