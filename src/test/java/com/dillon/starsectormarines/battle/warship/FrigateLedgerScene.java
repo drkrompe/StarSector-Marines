@@ -38,7 +38,8 @@ public final class FrigateLedgerScene implements BehaviorScene {
 
     private static final int WIDTH = 140;
     private static final int HEIGHT = 68;
-    private static final int TICKS = 2700;
+    /** The window grows with the hull fight's durability, as the fight it watches does. */
+    private static final int TICKS = Math.round(2700 * WarshipScale.HULL_DURABILITY);
     private static final int FRAME_EVERY = 8;
     private static final int CLIMB_TICK = 30;
 
@@ -67,8 +68,9 @@ public final class FrigateLedgerScene implements BehaviorScene {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         List<String> keys = new ArrayList<>();
         if (ground) {
-            // Unarmed ground units spread under the whole fight, where misses and wrecks come down.
-            for (int gx = 10; gx <= 100; gx += 6) {
+            // Unarmed ground units spread under the whole fight, where misses and wrecks come down: out to the rig's
+            // station too, since a fight that lasts lets the battered Hound fall back beside its charge.
+            for (int gx = 10; gx <= 124; gx += 6) {
                 for (int gy = 14; gy <= 54; gy += 5) {
                     String key = "g" + gx + "-" + gy;
                     builder.unit(key, gx < 40 ? Faction.MARINE : Faction.DEFENDER, UnitType.MARINE, gx, gy);

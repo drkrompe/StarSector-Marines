@@ -45,6 +45,44 @@ class WarshipPlatingTest {
     }
 
     @Test
+    void durabilityDividesTheWearAndLeavesTheArmourRuleAlone() {
+        WarshipPlating plain = box();
+        WarshipPlating durable = box();
+        int side = cell(plain, 0, 10);
+        // A round heavy enough to strip and pass on, landed on the same cell of two fresh hulls.
+        float a = 0f;
+        float b = 0f;
+        for (int i = 0; i < 6; i++) {
+            a += plain.hit(side, 6000f, 1f, i);
+            b += durable.hit(side, 6000f, 1f, i, 3f);
+        }
+        assertTrue(b < a, "a durable hull loses less to the same rounds: " + b + " against " + a);
+        assertTrue(durable.localArmour(side) > plain.localArmour(side), "and its plate wears slower");
+        // One fresh hit: the plate takes a third of what it takes from the same round on a plain hull.
+        WarshipPlating once = box();
+        WarshipPlating plainOnce = box();
+        once.hit(side, 1500f, 1f, 0f, 3f);
+        plainOnce.hit(side, 1500f, 1f, 0f);
+        float spentDurable = 1f - once.plate(0, 10);
+        float spentPlain = 1f - plainOnce.plate(0, 10);
+        assertTrue(spentDurable > 0f, "a durable plate still wears");
+        assertEquals(spentPlain / 3f, spentDurable, 1e-3f, "by a third as much");
+        // The glance is read at the round's full strength, so a weak round glances on either.
+        assertEquals(0f, box().hit(side, 100f, 1f, 0f, 3f), 0f);
+        assertEquals(0f, box().hit(side, 100f, 1f, 0f, 1f), 0f);
+    }
+
+    @Test
+    void underADurabilityOfOneAHitIsTheOrdinaryHit() {
+        WarshipPlating a = box();
+        WarshipPlating b = box();
+        int side = cell(a, 0, 10);
+        for (int i = 0; i < 10; i++) {
+            assertEquals(a.hit(side, 900f, 2f, i), b.hit(side, 900f, 2f, i, 1f), 1e-4f);
+        }
+    }
+
+    @Test
     void aFreshPlateSoaksAHitAndTheHullTakesItOnceThePlateIsGone() {
         WarshipPlating p = box();
         float flat = Warship.effectiveDamage(600f, 12f, RATING);
