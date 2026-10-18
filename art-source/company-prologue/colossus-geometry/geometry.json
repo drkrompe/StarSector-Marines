@@ -478,7 +478,7 @@
   ],
   "silhouette": {
     "iou": 0.9628,
-    "sprite_uncovered": 0.0175,
+    "sprite_uncovered": 0.0174,
     "model_outside_sprite": 0.0205,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 5.65 px per unit"
   }

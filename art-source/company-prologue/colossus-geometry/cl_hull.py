@@ -1,11 +1,10 @@
-"""Colossus hull: the forward cargo body, its longerons, the waist and the aft machinery body.
+"""Colossus hull: the forward cargo body and its longerons (the waist and aft body are cl_aft).
 
 The hull is broken into named modules along the joints the sprite draws, so a
 later condition state can tear them apart cleanly: the central cargo hold, two
 pale longerons, four side cargo modules (fore and aft, port and starboard, split
-at the seam the sprite shows at X 33), the hold's hatch cover, the keel spine
-through the waist, the aft machinery body under the bridge, and the open
-lattice frames that tie the side modules and drive pods to the spine.
+at the seam the sprite shows at X 33), the hold's hatch cover. cl_aft holds the keel spine through the waist, the aft machinery body
+under the bridge, and the open lattice frames.
 
 Planform is read off colossus.png; heights are proposed art. The sprite sits
 1.5 units to port of the .ship centre (its engines are at +49..64 and
@@ -73,12 +72,3 @@ def build(kit):
                     plan([(SIDE_SPLIT-.6, a), (SIDE_SPLIT-.6, b), (-12, b), (-20, b-9), (-20, a)], s),
                     section(SIDE_KEEL, SIDE_DECK, 4, 3), kit.maroon)
         kit.hull += [fore, aft]
-        # Waist truss: open lattice tying the aft side module to the spine and pod.
-        kit.box(f'Frame {side} waist truss', (-27, y(34, s), 0), (16, 28, 10), kit.dark, bevel=.3)
-        kit.box(f'Frame {side} pod truss', (-52, y(40, s), 0), (40, 10, 14), kit.dark, bevel=.3)
-        kit.box(f'Frame {side} pod collar truss', (-24, y(56, s), -1), (10, 12, 8), kit.dark, bevel=.3)
-    spine = prism(kit, 'Hull keel spine', plan([(-12, 20), (-46, 20)]), section(-15, 12, 4, 3), kit.red)
-    aft = prism(kit, 'Hull aft machinery body',
-                plan([(-30, 34), (-80, 35), (-84, 27), (-87, 16), (-90, 9), (-92, 5)]),
-                section(AFT_KEEL, AFT_DECK, 5, 4), kit.red)
-    kit.hull += [spine, aft]

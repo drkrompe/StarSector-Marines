@@ -7,8 +7,8 @@ one unit about the .ship centre (93, 128), so slot and engine locations from
 colossus.ship are model XY unchanged. Heights are proposed art.
 
 One module per area so later passes do not collide: cl_hull (central cargo
-hold, longerons, four side cargo modules, keel spine, aft machinery body,
-lattice frames), cl_bridge (deckhouse, glazing, mast), cl_engines (two drive
+hold, hatch cover, longerons, four side cargo modules), cl_aft (keel spine,
+aft machinery body, lattice frames), cl_bridge (deckhouse, glazing, mast), cl_engines (two drive
 pods, six drives), cl_mounts (four turrets, four flare launchers); cl_kit holds
 the shared helpers, copied rather than imported from any other hull.
 
@@ -45,8 +45,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import cl_kit, cl_hull, cl_bridge, cl_engines, cl_mounts
-MODULES = (ship_scale, cl_kit, cl_hull, cl_bridge, cl_engines, cl_mounts)
+import cl_kit, cl_hull, cl_aft, cl_bridge, cl_engines, cl_mounts
+MODULES = (ship_scale, cl_kit, cl_hull, cl_aft, cl_bridge, cl_engines, cl_mounts)
 for module in MODULES:
     importlib.reload(module)
 
@@ -103,6 +103,7 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = cl_kit.Kit()
 cl_hull.build(kit)
+cl_aft.build(kit)
 cl_bridge.build(kit)
 cl_engines.build(kit)
 cl_mounts.build(kit)
