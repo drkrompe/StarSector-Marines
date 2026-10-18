@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
 Written: 2026-10-18
-Updated: 2026-10-18 — Kilo Nine is Nessa's private yard at the port edge; C4 now ends low and tight on it, wide reveal kept for C5.
+Updated: 2026-10-18 — C4 now ends over Kilo Nine at about 480 m, the ship sinking onto a larger pad; wide reveal kept for C5.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -62,8 +62,9 @@ ship at the ramp; the families pass them on the way to the workshop.
 
 Decided 2026-10-18 by the owner. C4 does not end on the wide port. Over its
 last seconds the sky camera drifts east and comes down to end straight over
-Kilo Nine, low (about 330 m) and tight on Nessa's yard, with Second Wind still
-about 95 m up and descending onto its pad. C5 opens on the same straight-down
+Kilo Nine, about 480 m up, with Nessa's whole yard, its fence line and the
+jungle edge in frame. Second Wind has braked into a hover over its pad (96 m
+across, room to spare around the hull) and is still sinking, about 18 m up. C5 opens on the same straight-down
 view a step closer, and the cut reads as one continuous move. The wide reveal
 (the yard as a small corner of a big working port, the ship one patched hull
 among the freighters) is kept for C5's pull-out under the title, so it is seen
