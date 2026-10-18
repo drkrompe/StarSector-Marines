@@ -2,9 +2,9 @@
 
 Run from the repository root:  python -I art-source/hq-command-deck/pack.py
 
-The banner shows a wide band of the 3:1 plate. The band is chosen so the plotting table
-sits wholly above the caption strip the screen lays over the banner's foot, and the
-heads on the rear tier sit below its top. Figures are packed as separate sprites, each
+The banner shows a wide band of the 3:1 plate, with nothing laid over it. The band is
+chosen to keep every head (the quartermaster's, at guide row 206, is highest) inside
+its top and to reach as far down the deck as that allows. Figures are packed as separate sprites, each
 already cut by its stand's matte, so the screen can light one station's people without
 redrawing the scene. Station rectangles and overlay anchors come from the Blender layout
 and the placed cards, never from measuring the painting, so a repaint registered on the
@@ -29,9 +29,9 @@ import compose  # noqa: E402  (beside this script; run with -I)
 REPO = HERE.parent.parent
 SPRITES = "graphics/ui/hq-command-deck"
 OUT_JSON = REPO / "mod/data/ui/hq-command-deck.json"
-# Rows of the guide frame the banner shows: the caption covers the bottom 72 of 300
-# banner pixels, which must start below the plot table's near rim (row 487).
-BAND_TOP, BAND_BOTTOM = 154, 592
+# Rows of the guide frame the banner shows, about 5:1 at full width: the commander's
+# feet (row 583) fall inside it; Sabine, nearest the camera, is cut at the shin.
+BAND_TOP, BAND_BOTTOM = 180, 618
 PACKED_WIDTH = 2048
 
 # Stations in screen order. Later stations draw over earlier ones where they overlap,

@@ -150,7 +150,7 @@ final class CompanyIntelTerminal {
             case "castle" -> {
                 UiElement guide = instance.requireElement("company-hq-opening-guide");
                 if (!guide.hasClass("opening-guide-hidden")) focusFirst(guide);
-                pulse("company-hq-deck-caption");
+                pulse("company-hq-board-heading");
             }
             case "finance" -> pulse("company-hq-finance");
             case "force" -> openForce.run();
