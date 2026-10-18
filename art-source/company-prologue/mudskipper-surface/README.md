@@ -1,7 +1,8 @@
 # Mudskipper: surfacing
 
-Status: ACTIVE. Pass 6 (texturing): skin applied to the clean build and reviewed; waiting on the owner's review of the textured look.
+Status: ACTIVE. Pass 6 (texturing): accepted by the owner. The skin now also covers the landing legs, cargo doors and freight ramps; the export is `../mudskipper-cinematic/`.
 Written: 2026-10-18
+Updated: 2026-10-18 — landing legs and freight ramps skinned; the door frame keeps its swatch
 
 The Mudskipper's package for the shared surfacing harness
 (`../second-wind-surface/`, see its README "Other hulls" and `hull.py`). This
@@ -45,6 +46,15 @@ three decks and the bow face are single large polygons, which caps them.
 was worse; the first generation is the master, the retry is kept as
 `generated/sheet-drives-a-try2.png`).
 
+The landing kit added after acceptance (`../mudskipper-geometry/` README,
+Landing) is swatch only: leg housings, sleeves and feet and the ramp decks take
+the steel and dark classes, the rubber soles and toe plates dark. The rams and
+guide rods stay polished chrome with no class, like the glazing. The
+`bay-doors-port` / `-stbd` rows list the door frame in `apply_skip`
+(`../second-wind-surface/README.md`): it still frames their tiles, but takes
+the dark swatch, so an open door shows the dark frame rather than the painted
+leaves. The leaves keep their skins exactly; the parts' texel density is unchanged.
+
 Known: `pod-outer-port` and `pod-top-port` carry thin white edge streaks where
 the generation moved the casing's forward edge about 10 px (boundary p95 88 and
 69 px); to judge on the model. Small fittings, glazing, lamps, the junction
@@ -52,8 +62,8 @@ structure, turret, bells and throats are swatch by design.
 
 ## Coverage
 
-`apply_skin.py --hull .` puts part skins on 436 base faces and class swatches
-on the other 9,449 (`skin-manifest.json`). Share of the ship's pixels at
+`apply_skin.py --hull .` puts part skins on 434 base faces and class swatches
+on the other 10,015 (`skin-manifest.json`; 436 and 9,449 before the landing kit). Share of the ship's pixels at
 1920x1080 (`review.py`, `compose_review.py`; sheets in the ignored `review/`):
 
 | View | Part skin | Swatch | Textured |

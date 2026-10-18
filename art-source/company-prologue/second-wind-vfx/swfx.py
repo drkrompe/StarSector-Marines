@@ -11,8 +11,10 @@ one lighting rig preset. Re-running replaces the kit's own objects only.
 Animate through the knobs on the 'SWFX controls' empty (see README.md).
 """
 import importlib
+import os
 import bpy
 
+import swfx_hull
 import swfx_core
 import swfx_anchors
 
@@ -46,11 +48,19 @@ def clear():
                 store.remove(block)
 
 
-def apply(state='patched', groups=GROUPS, preset=None, scene=None, **options):
+def apply(state='patched', groups=GROUPS, preset=None, scene=None, hull=None, **options):
     """Build the kit for one condition state. options go to each group's
-    build(ctx, **options) where it accepts them (e.g. preset for lighting)."""
+    build(ctx, **options) where it accepts them (e.g. preset for lighting).
+    hull: a folder holding another hull's vfx_hull.py profile (swfx_hull);
+    omitted, the SWFX_HULL environment variable decides, else the Second Wind;
+    '' clears it."""
     scene = scene or bpy.context.scene
     clear()
+    if hull:
+        os.environ[swfx_hull.ENV] = str(hull)
+    elif hull is not None:          # hull='' returns to the Second Wind in the same process
+        os.environ.pop(swfx_hull.ENV, None)
+    importlib.reload(swfx_hull)
     importlib.reload(swfx_core)
     importlib.reload(swfx_anchors)
     # An exported asset carries its own scale on its root (the Second Wind's
