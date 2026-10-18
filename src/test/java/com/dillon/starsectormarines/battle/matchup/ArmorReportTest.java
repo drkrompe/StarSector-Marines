@@ -94,7 +94,7 @@ class ArmorReportTest {
 
     private static ArmorPlay.Result fight(String winner, int ticks, int firstDamage,
                                           ArmorPlay.SideStats a, ArmorPlay.SideStats d) {
-        return new ArmorPlay.Result("open-ground", a.label(), d.label(), 1L, winner, ticks, firstDamage, a, d);
+        return new ArmorPlay.Result("open-ground", a.label(), d.label(), 1L, winner, ticks, firstDamage, 20f, a, d);
     }
 
     private static ArmorPlay.SideStats side(int start, int left, float integrity, int shots, int hits,
