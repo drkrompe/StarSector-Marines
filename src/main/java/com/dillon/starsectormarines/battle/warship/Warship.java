@@ -136,6 +136,11 @@ public final class Warship {
     public static final int UNLIMITED = -1;
     /** The longest a ship takes to leave the map once it has begun to depart before it is removed anyway. */
     public static final float DEPARTURE_LIMIT_SECONDS = 180f;
+    /**
+     * The outer limit for a hull flying out across its side's edge ({@link #leaveAcrossEdge}): long enough for the
+     * slowest hull to cross the widest map, so it is a safety net and never the way such a hull leaves.
+     */
+    public static final float EDGE_EXIT_LIMIT_SECONDS = 900f;
 
     public final String hullId;
     public final String spritePath;
@@ -1420,6 +1425,126 @@ public final class Warship {
         throughDeck = true;
     }
 
+    private MapEdge entryEdge;
+    private boolean enteringAcrossEdge;
+    private float edgeEntrySeconds;
+    private float entryMapWidth;
+    private float entryMapHeight;
+    private MapEdge exitEdge;
+    private boolean edgeEscape;
+    /** A hull flying in across an edge stops counting as entering after this long, wherever it has got to. */
+    static final float EDGE_ENTRY_LIMIT_SECONDS = 90f;
+
+    /**
+     * Brings the ship on by flying in across {@code edge}: its hull placed just off the map, {@code along} cells along
+     * the edge ({@link MapEdge#point}), already pointed on {@code headingDegrees} and moving at its top speed, with a
+     * station ahead on that heading well inside its edge margin. Nothing about it is a descent: it is a ship flying
+     * in, seen crossing the edge. Until its hull has cleared its edge margin ({@link WarshipEdgeHelm#margin}) it is
+     * {@link #enteringAcrossEdge entering}, and the edge pressure leaves it alone. It can fight as it comes.
+     *
+     * @throws IllegalArgumentException when the heading does not carry the ship onto the map
+     */
+    public void enterAcrossEdge(MapEdge edge, float along, float headingDegrees, float mapWidth, float mapHeight) {
+        if (departing || departed || destroyed() || berthed) {
+            throw new IllegalStateException("Only a ship in flight that is not leaving can fly in");
+        }
+        double nose = Math.toRadians(headingDegrees + 90f);
+        float nx = (float) Math.cos(nose);
+        float ny = (float) Math.sin(nose);
+        if (nx * edge.outX + ny * edge.outY > -0.25f) {
+            throw new IllegalArgumentException("a heading of " + headingDegrees + " does not fly in across " + edge);
+        }
+        facingDegrees = headingDegrees;
+        desiredHeading = headingDegrees;
+        previousDesiredHeading = Float.NaN;
+        turnVelocity = 0f;
+        float[] centre = edge.point(along, 0.5f * lengthCells + 1f, mapWidth, mapHeight);
+        x = centre[0] - (centerX() - x);
+        y = centre[1] - (centerY() - y);
+        velocityX = nx * maxSpeed;
+        velocityY = ny * maxSpeed;
+        float in = lengthCells + new WarshipEdgeHelm(mapWidth, mapHeight).margin(this) + lengthCells;
+        stationTo(x + nx * in, y + ny * in);
+        entryEdge = edge;
+        entryMapWidth = mapWidth;
+        entryMapHeight = mapHeight;
+        enteringAcrossEdge = true;
+        edgeEntrySeconds = 0f;
+    }
+
+    /** Whether the ship is flying in across its edge and has not yet cleared its margin ({@link #enterAcrossEdge}). */
+    public boolean enteringAcrossEdge() {
+        return enteringAcrossEdge;
+    }
+
+    /**
+     * Whether the ship is flying in across its edge with its centre still off the map: not yet over the battle,
+     * so it neither is fought nor fights a hull. At hull-fight ranges guns reach past the edge, and a hull there would
+     * otherwise trade fire before it had crossed into sight.
+     */
+    public boolean offMapInbound() {
+        if (!enteringAcrossEdge) return false;
+        float cx = centerX();
+        float cy = centerY();
+        return cx < 0f || cy < 0f || cx > entryMapWidth || cy > entryMapHeight;
+    }
+
+    /** The edge the ship flew in across, or {@code null} for one that did not come on that way. */
+    public MapEdge entryEdge() {
+        return entryEdge;
+    }
+
+    /** Ends an edge entry once the hull has cleared its margin, has begun to leave, or has been at it too long. */
+    void tickEdgeEntry(float dt, WarshipEdgeHelm edges) {
+        if (!enteringAcrossEdge) return;
+        edgeEntrySeconds += dt;
+        if (departing || destroyed() || edgeEntrySeconds >= EDGE_ENTRY_LIMIT_SECONDS
+                || edges.clearance(this, entryEdge) >= edges.margin(this)) {
+            enteringAcrossEdge = false;
+        }
+    }
+
+    /**
+     * Leaves the battle by flying out across {@code edge} as an escape: a departure (no order, nothing new on the
+     * ground) flown straight for the nearest point of the edge and on past it, so the hull is gone only once its own
+     * propulsion has carried it off the map ({@link #physicallyDeparted}). It is drawn at its hover the whole way,
+     * never climbing into the deck. Until it is gone it can be hit, it fires at hostile hulls in reach as it goes, and
+     * its escorts keep it as their lead. From a berth, the lift run turns toward the edge first.
+     */
+    public void leaveAcrossEdge(MapEdge edge, float mapWidth, float mapHeight) {
+        leaveAcross(edge, mapWidth, mapHeight, true);
+    }
+
+    /** {@link #leaveAcrossEdge}, counted as an escape only when {@code escape}; any other leaving is a departure. */
+    void leaveAcross(MapEdge edge, float mapWidth, float mapHeight, boolean escape) {
+        if (departing || departed || destroyed()) return;
+        float along = edge.along(x, y);
+        // One far point straight out past the edge: the hull flies for it at its own speed, keeping clear of other
+        // hulls on the way, and is gone once its whole hull is off the map.
+        float[] past = edge.point(along, (float) Math.hypot(mapWidth, mapHeight) + lengthCells, mapWidth, mapHeight);
+        lift(past[0], past[1]);
+        beginDeparture();
+        exitEdge = edge;
+        edgeEscape = escape;
+        enteringAcrossEdge = false;
+        flyRoute(new float[][]{past}, false);
+    }
+
+    /** Whether the ship is flying out across an edge and has not yet gone ({@link #leaveAcrossEdge}). */
+    public boolean leavingAcrossEdge() {
+        return exitEdge != null && !departed;
+    }
+
+    /** The edge the ship is leaving, or left, across; {@code null} for any other way of leaving. */
+    public MapEdge exitEdge() {
+        return exitEdge;
+    }
+
+    /** Whether the ship is leaving across an edge as an escape rather than an ordinary departure. */
+    public boolean escapingAcrossEdge() {
+        return exitEdge != null && edgeEscape;
+    }
+
     /** Whether the ship left, or is leaving, up through the cloud deck ({@link #climbThroughDeck}). */
     public boolean throughDeck() {
         return throughDeck;
@@ -1435,6 +1560,8 @@ public final class Warship {
      * the share of its route flown, as seconds of {@link WarshipAtmosphere#CLIMB_SECONDS}.
      */
     public float climbSeconds() {
+        // Flying out across an edge, the hull is a ship in level flight all the way off the map.
+        if (exitEdge != null) return 0f;
         if (!climbingOut || route == null || throughDeck) return departingSeconds;
         float left = 0f;
         float px = x;
@@ -1959,6 +2086,21 @@ public final class Warship {
             }
         }
     }
+
+    /**
+     * Sets the flux pair for what the ship is doing: fighting a hull it spends its pool as the hull table allows
+     * ({@link WarshipFlux#SOFT_LIMIT} and {@link WarshipFlux#RESUME_LEVEL}), whatever its posture would keep back for
+     * the air or the ground; otherwise its posture's pair. A duel between warships fought on half a pool is a duel of
+     * shields that never give.
+     */
+    void fluxFooting(boolean fightingHull) {
+        if (fightingHull && HULL_FIGHT_FOOTING) flux.thresholds(WarshipFlux.SOFT_LIMIT, WarshipFlux.RESUME_LEVEL);
+        else flux.thresholds(profile.softLimit(), profile.resumeLevel());
+    }
+
+    /** {@code -Dbattle.warship.hullFightFooting=false} is the control: a hull fight keeps the posture's flux pair. */
+    static final boolean HULL_FIGHT_FOOTING =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.hullFightFooting"));
 
     /** Takes {@code next}, with the sentence that explains it. A change restarts the clock and counts as a transition. */
     void setPosture(WarshipPosture next, String reason) {

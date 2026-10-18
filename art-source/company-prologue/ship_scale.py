@@ -165,10 +165,10 @@ HULLS = {
     'Legion (XIV)': dict(units3=1678689, crew_max=1500, cargo=300, fuel=300, cls='capital',
                          wings=[('broadsword', 3)]*2+[('hoplon', 2)]*2, length_units=294.9, sprite_px=308,
                          fittings_units={'personnel door h': [3.4*.61/.99], 'rail h': [1.8*.61/.99], 'transfer door w x h': [34, 10]}),
-    'Onslaught': dict(units3=2480916, crew_max=1500, cargo=300, fuel=400, cls='capital',
+    'Onslaught': dict(units3=2538239, crew_max=1500, cargo=300, fuel=400, cls='capital',
                       length_units=351.7, sprite_px=384,
-                      fittings_units={'bridge glazing band h': [1.63], 'bridge pane w': [1.28],
-                                      'crown hatch d': [2.09], 'service hatch w x l': [1.05, 1.63]}),
+                      fittings_units={'bridge glazing band h': [1.65], 'bridge pane w': [1.29],
+                                      'crown hatch d': [2.12], 'service hatch w x l': [1.06, 1.65]}),
     'Lasher': dict(units3=32793, crew_max=50, cargo=40, fuel=25, cls='frigate',
                    length_units=94.7, sprite_px=96,
                    fittings_units={'viewport w x h': [1.05, .84], 'bridge glazing band h': [1.05]}),
@@ -186,7 +186,7 @@ HULLS = {
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)'}
-PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
+PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .85,
              'Shepherd': .78}
 FRIGATES = ('Hound (A)', 'Lasher')
 

@@ -135,12 +135,16 @@ class WarshipEscortTest {
     @Test
     void theEscortKeepsStationAtTheLeadAndRevertsWhenTheLeadIsLost() throws Exception {
         prime();
-        SceneWorld w = world();
+        // Room round the lead for its whole screen ring, clear of every edge's margin.
+        SceneWorld w = SceneBuilder.openGround(480, 320).missionCompletion(false)
+                .unit("d", Faction.DEFENDER, UnitType.MARINE, 470, 160)
+                .unit("m", Faction.MARINE, UnitType.MARINE, 10, 160)
+                .build();
         BattleSimulation sim = w.sim();
-        Warship lead = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE, 110f, 30f, 0f);
-        lead.stationTo(110f, 30f);
-        Warship escort = Warship.fit("enforcer", "enforcer_Balanced", Faction.MARINE, 20f, 10f, 0f);
-        escort.stationTo(20f, 10f);
+        Warship lead = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE, 240f, 160f, 0f);
+        lead.stationTo(240f, 160f);
+        Warship escort = Warship.fit("enforcer", "enforcer_Balanced", Faction.MARINE, 150f, 140f, 0f);
+        escort.stationTo(150f, 140f);
         sim.addWarship(lead);
         sim.addWarship(escort);
         escort.escort(lead);
@@ -157,7 +161,7 @@ class WarshipEscortTest {
         for (int i = 0; i < 120; i++) sim.advance(BattleSimulation.TICK_DT);
         assertFalse(escort.escorting());
         assertNull(escort.escortLead(), "a lost lead ends the relation");
-        assertEquals(20f, escort.stationX(), 1e-3f, "the escort goes back to the station the mission gave");
-        assertEquals(10f, escort.stationY(), 1e-3f);
+        assertEquals(150f, escort.stationX(), 1e-3f, "the escort goes back to the station the mission gave");
+        assertEquals(140f, escort.stationY(), 1e-3f);
     }
 }

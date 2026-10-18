@@ -39,8 +39,8 @@ import java.util.Random;
  * <p>Dispatch's berths lie south, below a broken ridge, where Greyhook's ships sit at true landed scale
  * ({@code landed-ships-true-scale.md}): a concrete cradle for the Venture with a Hound berth either side, on a pad
  * field among rock hills. The ridge and the rock massif west of the pads have no way through; the only way down is
- * out of the berth gate and along the berth road down the east side. The duel is fought over that southern ground
- * ({@link #AIRSPACE_TOP}), in sight of the fight and off it.
+ * out of the berth gate and along the berth road down the east side ({@link #SOUTH_GROUND_TOP}). The duel overhead
+ * lifts from those pads and goes where its fighting takes it.
  */
 public final class BlackSluice {
     public static final int WIDTH = 300, HEIGHT = 232;
@@ -84,10 +84,10 @@ public final class BlackSluice {
     /** The walled berth yard east of the dispatch apron, walls included; it runs to the band's north edge. */
     public static final int DOCK_LEFT = 202, DOCK_BOTTOM = 106, DOCK_RIGHT = 265, DOCK_TOP = HEIGHT - 1;
     /**
-     * The southern ground the duel is fought over: every row below this, across the whole width, is ridge, rock and
-     * pad field, with nobody of the ground fight under it.
+     * The top of the southern ground: every row below this, across the whole width, is ridge, rock and pad field, with
+     * nobody of the ground fight on it.
      */
-    public static final int AIRSPACE_TOP = 88;
+    public static final int SOUTH_GROUND_TOP = 88;
     /**
      * A landed ship's berth: a concrete pad ({@code left..right, bottom..top}), open to sight and closed to feet, and
      * where the hull's drawn centre sits on it, nose toward its climb-out ({@code facing}, in warship degrees).
@@ -331,7 +331,7 @@ public final class BlackSluice {
         for (int y = DOCK_BOTTOM; y <= DOCK_TOP; y++) for (int x = DOCK_LEFT; x <= DOCK_RIGHT; x++)
             if (x == DOCK_LEFT || x == DOCK_RIGHT || y == DOCK_BOTTOM || y == DOCK_TOP) solid(c, x, y, masonry);
         for (int x = DOCK_RIGHT - 1; x <= DOCK_RIGHT; x++)
-            for (int y = DOCK_BOTTOM - 1; y > AIRSPACE_TOP && c.grid.isWalkable(x, y); y--) solid(c, x, y, masonry);
+            for (int y = DOCK_BOTTOM - 1; y > SOUTH_GROUND_TOP && c.grid.isWalkable(x, y); y--) solid(c, x, y, masonry);
         // The service road ends at a vehicle pressure lock under the yard: its frame and its closed inner door.
         for (int x = 190; x < DOCK_LEFT; x++) { solid(c, x, 121, masonry); solid(c, x, 133, masonry); }
         for (int y = 122; y <= 132; y++) for (int x = 197; x < DOCK_LEFT; x++) solid(c, x, y, masonry);

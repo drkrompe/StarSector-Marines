@@ -60,7 +60,7 @@ public final class WarshipTactics {
     /** An extend lasts at least this long. */
     static final float EXTEND_MIN_SECONDS = 6f;
     /** And at most this long. */
-    static final float EXTEND_MAX_SECONDS = 25f;
+    static final float EXTEND_MAX_SECONDS = 25f * WarshipScale.HULL_RANGE;
     /** A come-about ends once the nose is this close to where its next run wants it. */
     static final float COME_ABOUT_DONE_DEGREES = 20f;
     /** And never lasts longer than this. */
@@ -122,7 +122,7 @@ public final class WarshipTactics {
     private float nextPlan;
 
     /** Groups and assigns, once a second. */
-    void plan(float now, List<Warship> ships, boolean held, HullAirspace airspace) {
+    void plan(float now, List<Warship> ships, boolean held) {
         if (!ENABLED || now < nextPlan) return;
         nextPlan = now + PLAN_SECONDS;
         for (int side = 0; side < 2; side++) {
@@ -306,19 +306,19 @@ public final class WarshipTactics {
      * next, and returns the station the helm should fly to (the ship's heading is left in {@link
      * WarshipManoeuvre#heading}). {@code null} when the ship has no manoeuvre, so the single-ship duel helm stands.
      */
-    float[] fly(Warship ship, Warship target, float now, HullAirspace airspace, List<Warship> ships) {
+    float[] fly(Warship ship, Warship target, float now, WarshipEdgeHelm edges, List<Warship> ships) {
         WarshipManoeuvre m = ship.manoeuvre();
         m.heading = Float.NaN;
         m.speedShare = 1f;
         if (!ENABLED || m.role == Role.NONE || m.target != target) return null;
-        float reach = Math.max(1f, WarshipShipFire.longestReach(ship));
+        // A ship fights where its battery bears, not only its longest gun; it clears the target's longest gun.
+        float reach = Math.max(1f, WarshipDuelHelm.batteryReach(ship));
         float theirs = WarshipShipFire.longestReach(target);
         float range = (float) Math.hypot(target.centerX() - ship.centerX(), target.centerY() - ship.centerY());
-        float standoff = WarshipDuelHelm.preferredRange(WarshipDuelHelm.reach(ship), WarshipDuelHelm.reach(target),
+        float standoff = WarshipDuelHelm.preferredRange(reach, WarshipDuelHelm.batteryReach(target),
                 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
         boolean bow = WarshipDuelHelm.bowFighter(ship);
         float toTarget = WarshipFacing.bearing(ship.centerX(), ship.centerY(), target.centerX(), target.centerY());
-        float margin = WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells;
 
         if (m.role == Role.SECOND && m.leader != null && !m.leader.destroyed() && !m.leader.departed()) {
             if (m.kind != Kind.LINE_AHEAD) m.begin(Kind.LINE_AHEAD, now, Float.NaN);
@@ -405,7 +405,7 @@ public final class WarshipTactics {
             default -> { }
         }
         if (m.role == Role.LEAD) m.speedShare = lineClosedUp(ship, ships) ? LEAD_SPEED_SHARE : LEAD_WAIT_SPEED_SHARE;
-        return execute(ship, target, m, toTarget, range, standoff, reach, bow, airspace, margin);
+        return execute(ship, target, m, toTarget, range, standoff, reach, bow, edges);
     }
 
     /** Whether every ship following {@code lead} in its line is within half an interval of its place. */
@@ -434,15 +434,14 @@ public final class WarshipTactics {
 
     /** The station for this tick of the manoeuvre, with the heading left on {@code m}. */
     private static float[] execute(Warship ship, Warship target, WarshipManoeuvre m, float toTarget, float range,
-                                   float standoff, float reach, boolean bow, HullAirspace airspace, float margin) {
+                                   float standoff, float reach, boolean bow, WarshipEdgeHelm edges) {
         float cruise = CRUISE_LENGTHS * ship.lengthCells;
         switch (m.kind) {
             case APPROACH -> {
                 // Oblique: toward a point on the target's side the ship works, at its standoff.
                 float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
                 float at = round + m.side * APPROACH_OBLIQUE_DEGREES;
-                float[] p = airspace.settle(target.centerX() + nx(at) * standoff, target.centerY() + ny(at) * standoff,
-                        margin);
+                float[] p = edges.settle(ship, target.centerX() + nx(at) * standoff, target.centerY() + ny(at) * standoff);
                 m.heading = bow ? Float.NaN : WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]);
                 return cog(ship, p);
             }
@@ -452,13 +451,13 @@ public final class WarshipTactics {
                 float step = Math.max(-FLANK_STEP_DEGREES, Math.min(FLANK_STEP_DEGREES, WarshipFacing.wrap(goal - round)));
                 float radius = Math.max(reach * FLANK_RADIUS_REACH_SHARE, range);
                 float at = round + step;
-                float[] p = airspace.settle(target.centerX() + nx(at) * radius, target.centerY() + ny(at) * radius, margin);
+                float[] p = edges.settle(ship, target.centerX() + nx(at) * radius, target.centerY() + ny(at) * radius);
                 m.heading = WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]);
                 return cog(ship, p);
             }
             case ATTACK_RUN -> {
                 // Nose and guns on the target, closing to the standoff on the quiet side it works.
-                float[] p = WarshipDuelHelm.bowStation(ship, target, standoff, airspace);
+                float[] p = WarshipDuelHelm.bowStation(ship, target, standoff, edges);
                 m.heading = Float.NaN;
                 return cog(ship, p);
             }
@@ -469,11 +468,11 @@ public final class WarshipTactics {
                         (range - standoff) / Math.max(1f, standoff) * 60f));
                 c = WarshipFacing.wrap(c + bendToward(c, toTarget) * bend);
                 m.heading = c;
-                return ahead(ship, c, cruise, airspace, margin);
+                return ahead(ship, c, cruise, edges);
             }
             case EXTEND -> {
                 m.heading = m.course;
-                return ahead(ship, m.course, cruise, airspace, margin);
+                return ahead(ship, m.course, cruise, edges);
             }
             case STANDOFF -> {
                 // Astern and to one side, round the target, the nose left to the guns: a drift, not a turn away.
@@ -483,7 +482,7 @@ public final class WarshipTactics {
                         WarshipShipFire.longestReach(target) * VENT_CLEAR_SHARE) : standoffRange(standoff, reach);
                 float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
                 float at = round + m.side * (clear ? VENT_SLIDE_DEGREES : STANDOFF_SLIDE_DEGREES);
-                float[] p = airspace.settle(target.centerX() + nx(at) * open, target.centerY() + ny(at) * open, margin);
+                float[] p = edges.settle(ship, target.centerX() + nx(at) * open, target.centerY() + ny(at) * open);
                 m.heading = Float.NaN;
                 return cog(ship, p);
             }
@@ -494,7 +493,7 @@ public final class WarshipTactics {
                 float through = m.side > 0 ? (left < 0f ? left + 360f : left) : (left > 0f ? left - 360f : left);
                 float lead = Math.signum(through) * Math.min(TURN_LEAD_DEGREES, Math.abs(through));
                 m.heading = WarshipFacing.wrap(ship.facingDegrees + lead);
-                return ahead(ship, m.heading, 0.5f * cruise, airspace, margin);
+                return ahead(ship, m.heading, 0.5f * cruise, edges);
             }
             default -> {
                 return null;
@@ -597,10 +596,9 @@ public final class WarshipTactics {
         return cog(ship, new float[]{sx, sy});
     }
 
-    /** A station {@code distance} ahead along {@code course}, kept inside the airspace. */
-    private static float[] ahead(Warship ship, float course, float distance, HullAirspace airspace, float margin) {
-        float[] p = airspace.settle(ship.centerX() + nx(course) * distance, ship.centerY() + ny(course) * distance,
-                margin);
+    /** A station {@code distance} ahead along {@code course}, kept off the map's edges. */
+    private static float[] ahead(Warship ship, float course, float distance, WarshipEdgeHelm edges) {
+        float[] p = edges.settle(ship, ship.centerX() + nx(course) * distance, ship.centerY() + ny(course) * distance);
         return cog(ship, p);
     }
 

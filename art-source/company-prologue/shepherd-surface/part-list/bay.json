@@ -1,0 +1,248 @@
+{
+ "bay-back-wall": {
+  "what": "drone bay inboard back wall seen from inside the bay (its armour panels keep their swatch)",
+  "sheet": "bay",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drone bay inboard back wall",
+    "seed": [
+     10.0,
+     12.4,
+     0.0
+    ],
+    "faces": [
+     3,
+     4
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 488.25,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   35.7,
+   13.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -12.650000095367432,
+    1.25
+   ],
+   "ortho_width": 41.51162768519202
+  },
+  "native_texels_per_unit": 19.1
+ },
+ "bay-aft-end": {
+  "what": "drone bay aft end on the crossbeam face, seen from ahead inside the bay",
+  "sheet": "bay",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drone bay rim wall",
+    "seed": [
+     -8.7,
+     19.0,
+     0.0
+    ],
+    "faces": [
+     21,
+     26,
+     27,
+     31,
+     32,
+     36,
+     37,
+     41,
+     42,
+     46,
+     47,
+     51,
+     52,
+     56,
+     57,
+     61,
+     62,
+     66,
+     67,
+     71,
+     72,
+     76,
+     77,
+     81,
+     82,
+     86,
+     87,
+     91,
+     92,
+     96,
+     97,
+     101,
+     102,
+     106,
+     107,
+     111,
+     112,
+     116,
+     117,
+     121,
+     122,
+     126,
+     127,
+     131,
+     132,
+     136,
+     137,
+     141
+    ]
+   }
+  ],
+  "face_count": 48,
+  "area_units2": 159.25,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   11.38,
+   13.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    18.619670391082764,
+    1.25
+   ],
+   "ortho_width": 27.906976744186046
+  },
+  "native_texels_per_unit": 28.5
+ },
+ "bay-pod-port": {
+  "what": "hangar pods exterior below the kerb, from port",
+  "sheet": "bay",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drone bay aft hangar pod",
+    "seed": [
+     -3.0,
+     25.7,
+     -6.0
+    ],
+    "faces": [
+     14,
+     15,
+     16,
+     24,
+     25,
+     26,
+     33,
+     34
+    ]
+   },
+   {
+    "object": "Drone bay forward hangar pod",
+    "seed": [
+     16.0,
+     25.7,
+     -6.0
+    ],
+    "faces": [
+     9,
+     10,
+     16,
+     17,
+     18
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 447.68,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   41.0,
+   20.28
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -7.0,
+    -2.500000238418579
+   ],
+   "ortho_width": 47.674418604651166
+  },
+  "native_texels_per_unit": 16.7
+ },
+ "bay-block-port": {
+  "what": "forward service block outboard face",
+  "sheet": "bay",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drone bay forward service block",
+    "seed": [
+     31.0,
+     26.5,
+     0.0
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 111.21,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   7.5,
+   20.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -30.75,
+    -2.0
+   ],
+   "ortho_width": 41.343669250645995
+  },
+  "native_texels_per_unit": 19.2
+ }
+}

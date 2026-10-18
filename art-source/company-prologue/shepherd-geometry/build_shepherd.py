@@ -127,6 +127,20 @@ sh_mounts.build(kit)
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
+# --factory-startup leaves Cycles on the CPU (minutes per still); take the GPU when there is one.
+_prefs = bpy.context.preferences.addons['cycles'].preferences
+for _kind in ('OPTIX', 'CUDA', 'HIP', 'METAL', 'ONEAPI'):
+    try:
+        _prefs.compute_device_type = _kind
+    except TypeError:
+        continue
+    _prefs.get_devices()
+    if any(d.type == _kind for d in _prefs.devices):
+        for d in _prefs.devices:
+            d.use = d.type == _kind
+        scene.cycles.device = 'GPU'
+        print('render device', _kind)
+        break
 scene.cycles.samples = args.samples
 scene.cycles.use_denoising = True
 scene.render.resolution_x, scene.render.resolution_y = map(int, args.res.split('x'))

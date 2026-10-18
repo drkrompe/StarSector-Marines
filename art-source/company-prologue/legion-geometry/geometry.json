@@ -2201,7 +2201,7 @@
       "location": [
         13,
         107,
-        2.33
+        6.33
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -2224,7 +2224,7 @@
       "location": [
         13,
         -107,
-        2.33
+        6.33
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -2247,7 +2247,7 @@
       "location": [
         80,
         34,
-        16.59
+        14.09
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -2293,7 +2293,7 @@
       "location": [
         80,
         -34,
-        16.59
+        14.09
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -2316,7 +2316,7 @@
       "location": [
         -58,
         130,
-        2.36
+        1.26
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -2339,7 +2339,7 @@
       "location": [
         -58,
         -130,
-        2.36
+        1.26
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -2454,7 +2454,7 @@
       "location": [
         76,
         60,
-        17.52
+        16.82
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -2477,7 +2477,7 @@
       "location": [
         76,
         -60,
-        17.52
+        16.82
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -3389,52 +3389,5 @@
       "orthographic_scale": 330,
       "rotation": "looks at [0.0, 0.0, 0.0]"
     }
-  ],
-  "silhouette": {
-    "iou": 0.9741,
-    "sprite_uncovered": 0.0084,
-    "model_outside_sprite": 0.018,
-    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.31 px per unit"
-  },
-  "c2_frame": {
-    "c2-entry": {
-      "bbox_px": [
-        0,
-        92,
-        636,
-        630
-      ],
-      "size_px": [
-        637,
-        539
-      ],
-      "touches_frame_edge": true
-    },
-    "c2-abeam": {
-      "bbox_px": [
-        0,
-        92,
-        1905,
-        777
-      ],
-      "size_px": [
-        1906,
-        686
-      ],
-      "touches_frame_edge": true
-    },
-    "c2-exit": {
-      "bbox_px": [
-        1008,
-        0,
-        1919,
-        586
-      ],
-      "size_px": [
-        912,
-        587
-      ],
-      "touches_frame_edge": true
-    }
-  }
+  ]
 }
