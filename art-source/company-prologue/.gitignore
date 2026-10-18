@@ -56,3 +56,8 @@ hound-surface/skin-manifest.json
 hound-export/**/*.blend
 hound-export/**/*.blend1
 hound-export/**/review/
+
+# Onslaught: the .blend is a build output of build_onslaught.py; the appendable
+# export goes to Drive (starsector/builds/onslaught/<commit>/), never git.
+onslaught-geometry/**/*.blend
+onslaught-geometry/**/*.blend1

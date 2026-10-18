@@ -22,6 +22,7 @@ Legend: **done** = merged to main; **review** = merged, waiting on the owner;
 | Hermes (the company's boat) | `hermes-geometry/` | done (IoU 0.969) | done (IoU 0.966; ramp, gear, troop bay, side hatches as pivoted parts) | review | done, 0.11 m/u (9.0 m); fits the Second Wind's open port bay with 4 cm each side, not with a door closed | reserved: wrecked, patched (`Scar H<nn>`) | — | — | Owner review of pass 2: ramp exit clearance and the Second Wind bay depth |
 | Legion (XIV) battlecarrier | `legion-geometry/` | done (reworked after first review) | done: every module detailed; level fly-through hangars with transfer to the central hold, detailed belly (IoU 0.974) | — | done, 0.61 m/u (180 m long, 54 m deep) | not needed (damage-free patrol) | — | Flight-deck, launch-point and engine anchors exported for C2 | Owner review of pass 2 (pass 3) |
 | Shepherd (Morrow) | `shepherd-geometry/` | done (IoU 0.932; thickened per owner) | done: open drone workbay, every module detailed (IoU 0.935) | — | done, 0.78 m/u (67 m long, 31.5 m tall) | named, not built (grounded/damaged, recovered) | — | Drone-bay launch stations, mouths and launch points exported | Owner review of pass 2 (pass 3) |
+| Onslaught (XIV), Hegemony picket flagship for C1 v2 | `onslaught-geometry/` | done (IoU 0.964; thick, deep curved hull per owner; stern machinery wells) | wip | — | — | not needed (undamaged) | — | — | Pass 2 detail at mid-distance, pass 4 scale, appendable export to Drive |
 
 ## Fighters
 
