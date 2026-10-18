@@ -33,8 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A Venture and two Hound (P) landed at true scale on the production Black Sluice southern pads, below the ridge
- * from the ground fight, and the same three hulls flying their lift runs into flight scale
+ * A Venture and two Hound (P) landed at true scale on the production Black Sluice southern pads (the Venture in her
+ * cradle, a Hound on each of the side pads the chapter leaves empty), below the ridge from the ground fight, and the
+ * same three hulls flying their lift runs into flight scale
  * ({@code landed-ships-true-scale.md}). Art and scale evidence at 1920x1080 / 100%: the chapter is built without
  * its duel and the three hulls are placed here, so the hull shown does not depend on which ship the duel flies. Not
  * a played mission; the ground fight is left running only for the half-minute of the lift.
@@ -59,7 +60,7 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
             var cradle = BlackSluice.VENTURE_CRADLE;
             var ships = new ArrayList<Warship>();
             ships.add(berth(sim, "venture", "venture_Balanced", cradle));
-            for (var berth : BlackSluice.HOUND_BERTHS) ships.add(berth(sim, "hound_d_pirates", "hound_d_pirates_Standard", berth));
+            for (var berth : BlackSluice.SIDE_PADS) ships.add(berth(sim, "hound_d_pirates", "hound_d_pirates_Standard", berth));
             float factor = LandedScale.berthFactor();
             for (Warship ship : ships) {
                 assertTrue(ship.berthed(), ship.hullId + " sits in its berth");
@@ -73,8 +74,8 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
 
             var marks = ReviewAnnotations.builder()
                     .box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
-            for (var berth : BlackSluice.HOUND_BERTHS)
-                marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "HOUND BERTH", ReviewStyle.OBJECTIVE);
+            for (var berth : BlackSluice.SIDE_PADS)
+                marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "HOUND ON SIDE PAD", ReviewStyle.OBJECTIVE);
             marks.arrow(BlackSluice.BERTH_ROAD_X, 100, BlackSluice.BERTH_ROAD_X, 74, "BERTH ROAD FROM THE GATE", ReviewStyle.APPROACH)
                     .label(BlackSluice.APPROACH + 150, 84, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
                     .label(BlackSluice.APPROACH + 60, 40, "ROCK MASSIF", ReviewStyle.NOTE);
@@ -85,9 +86,9 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
             frames.add(frame(context, "landed-venture-stern-crew.png", sim, BlackSluice.APPROACH + 222, 36, 56,
                     "LANDED SHIPS / VENTURE STERN, CONCRETE PAD, SCORCH AND TIE-DOWNS / 56 cells across", ReviewAnnotations.builder().build()));
             frames.add(frame(context, "landed-venture-whole.png", sim, BlackSluice.APPROACH + 196, 34, 104,
-                    "LANDED SHIPS / VENTURE IN HER CRADLE, BERTHS EITHER SIDE / 104 cells across", ReviewAnnotations.builder().build()));
+                    "LANDED SHIPS / VENTURE IN HER CRADLE, SIDE PADS EITHER SIDE / 104 cells across", ReviewAnnotations.builder().build()));
             frames.add(frame(context, "landed-hound-berth.png", sim, BlackSluice.APPROACH + 142, 34, 44,
-                    "LANDED SHIPS / WEST HOUND BERTH, GANTRY ARMS AND KERB / 44 cells across", ReviewAnnotations.builder().build()));
+                    "LANDED SHIPS / HOUND ON THE WEST PAD, GANTRY ARMS AND KERB / 44 cells across", ReviewAnnotations.builder().build()));
 
             // The lift: every hull flies its lift run at once, ahead off the pad and round toward the west, its body
             // easing to flight scale with the share of the run it has flown rather than where it sits.

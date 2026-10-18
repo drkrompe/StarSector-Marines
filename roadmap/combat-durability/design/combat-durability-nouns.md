@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — direct rounds wear the environment they stop in, by penetration against a material rating.
+Updated: 2026-10-18 — the heavy cannon's contact hit is fixed; it is balanced on carriage cost.
 
 ## Purpose
 
@@ -321,7 +321,9 @@ Hound. Penetration was left alone: at 18 it already defeats every mech rating
 (the Sirocco's arms gun) took 83 and 136 s, as slow under the whole-body
 control. It now lands a contact hit of 100 on the body it strikes, over its
 unchanged 45 splash, as the Hephaestus turret cannon does, and takes 37 and
-51 s. Against hard targets (`hard-target-time-to-kill`, four seeds) both now
+51 s. That contact hit is fixed: the cannon is equipment any 3x2 arms socket
+takes, so it is balanced by what carrying it costs (mass, heat), never by its
+damage (`heavy-equipment-progression.md`, the heavy cannon). Against hard targets (`hard-target-time-to-kill`, four seeds) both now
 need about one magazine or a few rounds per emplacement or drone hub, and the
 AMR still needs about eight magazines for a tank. Rockets remain the fastest
 answer to every hard target. The specials stay off soft targets because the AI

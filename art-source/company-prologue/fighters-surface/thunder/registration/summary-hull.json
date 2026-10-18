@@ -1,82 +1,82 @@
 {
  "fuselage-top": {
-  "raw_iou": 0.9803,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9887,
-  "scale": [
-   1.00305,
-   1.0
-  ],
-  "boundary_p95_px": 35.31
- },
- "wing-top": {
-  "raw_iou": 0.9906,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9972,
-  "scale": [
-   1.00355,
-   1.0
-  ],
-  "boundary_p95_px": 1.0
- },
- "pod-top-port": {
-  "raw_iou": 0.9931,
+  "raw_iou": 0.9815,
   "best_fit": "identity",
-  "fitted_iou": 0.9931,
+  "fitted_iou": 0.9815,
   "scale": [
    1.0,
    1.0
   ],
-  "boundary_p95_px": 1.0
+  "boundary_p95_px": 35.74
+ },
+ "wing-top": {
+  "raw_iou": 0.9905,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9932,
+  "scale": [
+   1.00455,
+   1.00757
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9919,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.992,
+  "scale": [
+   1.0031,
+   1.01033
+  ],
+  "boundary_p95_px": 1.41
  },
  "guns-top": {
-  "raw_iou": 0.983,
+  "raw_iou": 0.979,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9947,
+  "fitted_iou": 0.9862,
   "scale": [
-   1.00295,
-   1.00454
+   1.00107,
+   1.0038
   ],
-  "boundary_p95_px": 1.0
+  "boundary_p95_px": 2.0
  },
  "pod-side-port": {
-  "raw_iou": 0.9799,
+  "raw_iou": 0.9575,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9969,
+  "fitted_iou": 0.9845,
   "scale": [
-   1.0028,
-   1.01449
+   1.00383,
+   1.0391
   ],
   "boundary_p95_px": 1.0
  },
  "gunblock-side-port": {
-  "raw_iou": 0.9662,
+  "raw_iou": 0.9513,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9954,
+  "fitted_iou": 0.9815,
   "scale": [
-   1.0036,
-   1.03129
+   1.00233,
+   1.06407
   ],
   "boundary_p95_px": 1.0
  },
  "lance-side-stbd": {
-  "raw_iou": 0.9491,
+  "raw_iou": 0.9531,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9802,
+  "fitted_iou": 0.9813,
   "scale": [
-   1.00383,
-   1.05112
+   1.0051,
+   1.04478
   ],
   "boundary_p95_px": 1.0
  },
  "underside": {
-  "raw_iou": 0.9811,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9913,
+  "raw_iou": 0.9743,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9865,
   "scale": [
-   1.00651,
-   1.00932
+   1.0013,
+   1.01587
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 3.0
  }
 }

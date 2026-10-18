@@ -363,19 +363,19 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     .label(70, 40, "RIM COUNTRY", ReviewStyle.NOTE);
             var cradle = BlackSluice.VENTURE_CRADLE;
             marks.box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
-            for (var berth : BlackSluice.HOUND_BERTHS)
-                marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "HOUND BERTH", ReviewStyle.OBJECTIVE);
+            for (var berth : BlackSluice.SIDE_PADS)
+                marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "EMPTY PAD", ReviewStyle.OBJECTIVE);
             frames.add(new SnapshotArtifact("black-sluice-overview.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080)
                     .render(sim, "A SMALL WAR / BLACK SLUICE / seed 15305 / roofs omitted / observer annotations", marks.build())));
             frames.add(new SnapshotArtifact("black-sluice-detail-fuel-control.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 134, 174, 88)
                     .render(sim, "BLACK SLUICE / FUEL CONTROL, GUN AND TANK YARD / 88 cells across")));
-            // Greyhook's ships landed at true scale on the southern pads, below the ridge from the ground fight.
+            // The Greyhook landed at true scale on the southern pads, below the ridge from the ground fight.
             frames.add(new SnapshotArtifact("black-sluice-detail-dock.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 196, 44, 192)
-                    .withUnitShadows().render(sim, "BLACK SLUICE / SOUTHERN BERTHS / Venture and two Hound (P) landed at true scale / 192 cells across")));
+                    .withUnitShadows().render(sim, "BLACK SLUICE / SOUTHERN BERTHS / Venture landed alone at true scale, side pads empty / 192 cells across")));
             frames.add(new SnapshotArtifact("black-sluice-detail-venture-stern.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 222, 36, 64)
                     .withUnitShadows().render(sim, "BLACK SLUICE / VENTURE STERN, CONCRETE PAD AND GANTRY ARMS / 64 cells across")));
-            frames.add(new SnapshotArtifact("black-sluice-detail-hound-berth.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 142, 34, 48)
-                    .withUnitShadows().render(sim, "BLACK SLUICE / WEST HOUND BERTH, GANTRY ARMS AND KERB / 48 cells across")));
+            frames.add(new SnapshotArtifact("black-sluice-detail-west-pad.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 142, 34, 48)
+                    .withUnitShadows().render(sim, "BLACK SLUICE / WEST PAD (EMPTY), GANTRY ARMS AND KERB / 48 cells across")));
             frames.add(new SnapshotArtifact("black-sluice-detail-berth-gate.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 262, 124, 112)
                     .withUnitShadows().render(sim, "BLACK SLUICE / BERTH YARD, BERTH GATE, BERTH ROAD AND RIDGE / 112 cells across")));
             frames.add(new SnapshotArtifact("black-sluice-detail-basin-edge.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 72, 44, 144)
@@ -430,7 +430,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
     private static String duelCaption(BlackSluiceDuel duel) {
         var s = new StringBuilder();
         for (Warship hull : duel.hulls()) {
-            String name = switch (hull.hullId) { case "venture" -> "Greyhook"; case "hound" -> "Hound"; default -> "Wolf"; };
+            String name = "venture".equals(hull.hullId) ? "Greyhook" : "Wolf";
             s.append(name).append(' ').append(hull.destroyed() ? "down"
                     : Math.round(hull.hullFraction() * 100) + "%").append("  ");
         }

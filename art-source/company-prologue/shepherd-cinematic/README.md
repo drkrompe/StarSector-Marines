@@ -1,13 +1,15 @@
 # Shepherd (Morrow): cinematic asset
 
-Status: ACTIVE — pass 7 (appendable export and effects) is with the owner for review.
+Status: DONE (pass 7 accepted 2026-10-18: shipped for now, until the other states are needed).
 Written: 2026-10-18
 
 Source art for cinematics; nothing here ships in the mod. This folder packs
 the textured Shepherd (`../shepherd-surface/`) as one appendable Blender
 collection. It carries the moving turret, the anchors a shot needs, and an
 optional effects collection from the shared VFX kit. Pass 5 is deferred, so
-there is one condition, clean, and one asset. The Hermes's export
+there is one condition, clean, and one asset. The grounded/damaged and
+recovered states wait for a cinematic that needs them: the likely trigger is
+the battle over the planet where the Shepherd and the Colossus went down. The Hermes's export
 (`../hermes-cinematic/`) is the pattern. The Shepherd has no gear or doors,
 so there is no control empty.
 
@@ -51,7 +53,8 @@ and `validation.json` are tracked.
   opening <i> mouth` at the rim and a `launch point <i>` on the floor. A
   drone lifts out along +Z, then turns forward. The manifest records the
   clear radius of each.
-- **Lights** are the ship's own emissive lamps: running lamps, masthead,
+- **Lights** are the ship's own emissive lamps: running lamps (red to
+  port, green to starboard), masthead,
   boom nav lamp, the bay's floodlights and glow strips, and the lit
   viewports. Nothing adds a light object unless the effects collection is
   appended.
@@ -81,7 +84,8 @@ The meshes are baked (bevels applied), and every mesh carries `hull_rest`
    generations);
 2. `export_ship.py`, `export_effects.py` and `verify_ship.py`;
 3. `review_ship.py`: whole-ship stills, the turret at rest and trained, the
-   drone bay, effects, studio-off, and a 96-frame turn;
+   drone bay, effects and studio-off; `--turn 96` adds a 96-frame turn (opt-in,
+   because it is most of the run time);
 4. `compose_review.py`.
 
 `--skip-surface` reuses the current skin. Renders go to
@@ -103,8 +107,5 @@ both are ignored.
 
 ## Known limits
 
-- The running lenses follow the sprite: green to port, red to starboard. That
-  is the reverse of the navigation convention, and the effects lights match
-  the lenses (`vfx_hull.LAMPS`).
 - The drone bay has no drones. A shot that launches one supplies it at a
   launch point.

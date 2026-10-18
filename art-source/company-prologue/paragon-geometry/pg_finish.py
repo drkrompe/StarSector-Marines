@@ -173,6 +173,9 @@ def apply(kit):
     plain(kit.slate, (.10, .12, .15), .0, .5)
     plain(kit.steel, (.62, .65, .68), .0, .5)
     kit.substrate = K.material('Tri-Tachyon substrate', (.15, .18, .22), .35, .42)
+    # The bore's exposed machinery plating, in the sprite's mid and light greys.
+    kit.bore_mid = K.material('Bore plating mid grey', (.20, .22, .25), .45, .45)
+    kit.bore_light = K.material('Bore plating light grey', (.40, .42, .45), .35, .45)
     kit.hatch = K.material('Tri-Tachyon hatch ceramic', (.72, .74, .77), .0, .32, coat=.3)
 
 

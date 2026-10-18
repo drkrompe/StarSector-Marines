@@ -161,11 +161,16 @@ def select_faces(part, objects=None):
         me, mw = ob.data, ob.matrix_world
         n3 = mw.to_3x3().inverted().transposed()
         verts = [mw @ v.co for v in me.vertices]
-        polys = [list(p.vertices) for p in me.polygons]
-        bvh = BVHTree.FromPolygons(verts, polys)
         # Visibility is sampled at triangle centroids, not the polygon centre:
         # an L-shaped n-gon's centre can fall in its own hole.
         me.calc_loop_triangles()
+        # A hull bent per vertex after it was built (SHEARED_FACES: the
+        # fighters' folds) has faces out of plane. The tree then takes the
+        # sampled triangles themselves: triangulated along the other diagonal,
+        # the surface a ray hits lies off the centroid and a whole wing reads
+        # as hidden. Planar hulls keep the polygon tree (byte-identical).
+        tris = me.loop_triangles if H.SHEARED_FACES else me.polygons
+        bvh = BVHTree.FromPolygons(verts, [list(t.vertices) for t in tris])
         seen, total = {}, {}
         for t in me.loop_triangles:
             c = sum((verts[v] for v in t.vertices), Vector()) / 3

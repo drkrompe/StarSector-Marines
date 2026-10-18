@@ -68,3 +68,4 @@ REVIEW_CLOSE = CONFIG.REVIEW_CLOSE
 REVIEW_EXTRA = get('REVIEW_EXTRA', {})          # name -> (azimuth, elevation, ortho scale, target)
 REVIEW_PAGES = get('REVIEW_PAGES', [])
 CAPTION = get('CAPTION', NAME)
+SHEARED_FACES = get('SHEARED_FACES', False)  # bent per vertex after build: faces may be out of plane (parts.py)
