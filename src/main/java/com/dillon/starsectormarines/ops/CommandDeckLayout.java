@@ -21,10 +21,14 @@ import java.util.List;
  * in deck metres, so live overlays that stand in the room (the holo board) can be
  * projected into the painting rather than placed by eye. Both are optional; a layout
  * without them has no projectable volume and {@link #projects()} answers false.
+ *
+ * <p>The lit monitor faces ({@link Display}) are the exception to "never measured": they
+ * are measured off the plate into {@code art-source/hq-command-deck/displays.json} and
+ * carried through the pack. A layout without them simply has no live screens.
  */
 record CommandDeckLayout(float width, float height, String plate, List<Figure> figures,
                          List<Station> stations, float[] plot, float[] screens,
-                         Camera camera, float[] table) {
+                         Camera camera, float[] table, List<Display> displays) {
 
     static final String PATH = "data/ui/hq-command-deck.json";
 
@@ -43,6 +47,29 @@ record CommandDeckLayout(float width, float height, String plate, List<Figure> f
     }
 
     record Figure(String id, String sprite, float x, float y, float w, float h) { }
+
+    /**
+     * A lit monitor face painted into the plate, which live readouts are drawn into.
+     * {@code quad} holds its four corners clockwise from top-left in packed-plate pixels,
+     * as {@code x0, y0, x1, y1, x2, y2, x3, y3}; {@code kind} names what it shows.
+     * Unlike stations, displays are measured off the painting, because the painted
+     * screens do not sit exactly where the guide put them.
+     */
+    record Display(String id, String kind, float[] quad) {
+        Display {
+            if (quad == null || quad.length != 8) throw new IllegalArgumentException("display quad needs four corners");
+            quad = quad.clone();
+        }
+
+        @Override
+        public float[] quad() { return quad.clone(); }
+
+        /** Corner {@code i} (0 top-left, clockwise) x. */
+        float x(int corner) { return quad[corner * 2]; }
+
+        /** Corner {@code i} (0 top-left, clockwise) y. */
+        float y(int corner) { return quad[corner * 2 + 1]; }
+    }
 
     /** A place on deck and the panel it points at; {@code label} names the i18n suffix. */
     record Station(String id, String label, List<String> figures, float fx, float fy, float fw, float fh) {
@@ -92,10 +119,23 @@ record CommandDeckLayout(float width, float height, String plate, List<Figure> f
             return new CommandDeckLayout((float) size.getDouble(0), (float) size.getDouble(1), root.getString("plate"),
                     List.copyOf(figures), List.copyOf(stations),
                     points(overlays.getJSONArray("plot")), points(overlays.getJSONArray("screens")),
-                    camera(root.optJSONObject("camera")), table(root.optJSONArray("table")));
+                    camera(root.optJSONObject("camera")), table(root.optJSONArray("table")),
+                    displays(root.optJSONArray("displays")));
         } catch (JSONException failure) {
             throw new IllegalArgumentException("Malformed command deck layout", failure);
         }
+    }
+
+    private static List<Display> displays(JSONArray array) throws JSONException {
+        if (array == null) return List.of();
+        List<Display> out = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject d = array.getJSONObject(i);
+            JSONArray corners = d.getJSONArray("quad");
+            if (corners.length() != 4) throw new JSONException("display " + d.optString("id") + " needs four corners");
+            out.add(new Display(d.getString("id"), d.getString("kind"), points(corners)));
+        }
+        return List.copyOf(out);
     }
 
     private static Camera camera(JSONObject camera) throws JSONException {

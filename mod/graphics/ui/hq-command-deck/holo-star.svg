@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Holo board sector core: a small star with four diffraction spikes. Tinted by the board. -->
+  <polygon points="32,2 34,30 62,32 34,34 32,62 30,34 2,32 30,30" fill="#ffffff" fill-opacity="0.7"/>
+  <circle cx="32" cy="32" r="9" fill="#ffffff" fill-opacity="0.35"/>
+  <circle cx="32" cy="32" r="5" fill="#ffffff"/>
+</svg>

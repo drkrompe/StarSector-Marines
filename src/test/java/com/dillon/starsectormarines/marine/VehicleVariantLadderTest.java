@@ -1,13 +1,17 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.air.LiftClass;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -105,6 +109,45 @@ class VehicleVariantLadderTest {
                 assertFalse(dominates(a, b), a + " strictly beats " + b);
             }
         }
+    }
+
+    /**
+     * The direction says a vehicle costs less material for the armor it brings than the mech of its weight class.
+     * Priced at the game's base commodity prices (supplies 100, heavy machinery 150, metals 30, rare metals 200,
+     * from {@code commodities.csv}), every hull brings at least as much structure plus armor per credit as its
+     * class's mech. A role hull is bought for its job rather than its plate (the fire-support APC's mortar, the
+     * scout car's sight, the supply truck's stock), so it is held only to costing less than the mech.
+     */
+    @Test
+    void everyHullBringsAtLeastTheMechsArmorPerCredit() {
+        for (VehicleType type : VehicleType.values()) {
+            if (MechFabricationCatalog.vehicle(type) == null) continue;
+            MechVariant mech = mechOf(type.liftClass());
+            float mechCredits = credits(MechFabricationCatalog.chassis(mech).cost());
+            float vehicleCredits = credits(MechFabricationCatalog.vehicle(type).cost());
+            if (ROLE_HULLS.contains(type)) {
+                assertTrue(vehicleCredits < mechCredits, type + " costs " + vehicleCredits + " against " + mech);
+                continue;
+            }
+            float vehicle = (type.maxStructure + type.maxArmor) / vehicleCredits;
+            float walker = (mech.maxStructure + mech.armorCapacity) / mechCredits;
+            assertTrue(vehicle >= walker, type + " " + vehicle + " armor/credit against " + mech + " " + walker);
+        }
+    }
+
+    private static final Set<VehicleType> ROLE_HULLS =
+            EnumSet.of(VehicleType.FIRE_SUPPORT_APC, VehicleType.SCOUT_CAR, VehicleType.SUPPLY_TRUCK);
+
+    private static MechVariant mechOf(LiftClass lift) {
+        for (MechVariant variant : MechVariant.values()) if (variant.liftClass() == lift) return variant;
+        throw new IllegalArgumentException(lift.name());
+    }
+
+    private static float credits(FabricationCost cost) {
+        Map<String, Integer> price = Map.of("supplies", 100, "heavy_machinery", 150, "metals", 30, "rare_metals", 200);
+        float total = 0f;
+        for (FabricationCost.Line line : cost.lines()) total += line.quantity() * price.get(line.commodityId());
+        return total;
     }
 
     private static boolean dominates(VehicleType a, VehicleType b) {

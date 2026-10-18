@@ -63,6 +63,9 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.HEAVY_GUN_TANK, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
+        // The light roles: lines of their own, one hull each.
+        VEHICLE_TIERS.put(VehicleType.SUPPLY_TRUCK, EquipmentAccessTier.COMMON);
+        VEHICLE_TIERS.put(VehicleType.SCOUT_CAR, EquipmentAccessTier.ADVANCED);
     }
 
     /**
@@ -138,14 +141,17 @@ public record MechPattern(Kind kind, String definitionId) {
         }
     }
 
-    /** A vehicle's weight class mirrors its access band; null for a hull with no pattern. */
+    /**
+     * A vehicle's weight class is the lift it asks for, so the card says what the drop will need; null for a hull
+     * with no pattern. Rarity is the access tier's business: a scout car is hard to come by and still rides a Light
+     * cradle.
+     */
     public static WeightClass weightClass(VehicleType type) {
-        EquipmentAccessTier tier = type != null ? VEHICLE_TIERS.get(type) : null;
-        if (tier == null) return null;
-        return switch (tier) {
-            case COMMON -> WeightClass.LIGHT;
-            case ADVANCED -> WeightClass.MEDIUM;
-            default -> WeightClass.HEAVY;
+        if (type == null || !VEHICLE_TIERS.containsKey(type) || type.liftClass() == null) return null;
+        return switch (type.liftClass()) {
+            case LIGHT -> WeightClass.LIGHT;
+            case MEDIUM -> WeightClass.MEDIUM;
+            case HEAVY -> WeightClass.HEAVY;
         };
     }
 

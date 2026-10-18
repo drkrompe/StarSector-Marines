@@ -46,15 +46,19 @@ public final class MechBodyPlan {
             0.35f, 0.40f, 0.17f, 0.08f, 0.30f,
             new float[] {0.22f, 0.50f, 0.10f, 0.06f, 0.06f, 0.06f}, true);
 
+    // A head holds about the share of hits its band takes (the Hound's 0.06 against 0.08 of hits):
+    // a bigger head pool is armor and structure no fire reaches before the torso goes, which only
+    // makes the machine die further below its whole-body time. MechTimeToKillScene measures it.
+
     /** Heavy support: twin arm chainguns out wide, a pod on each shoulder. */
     public static final MechBodyPlan BULWARK = new MechBodyPlan("bulwark",
             0.35f, 0.40f, 0.18f, 0.07f, 0.40f,
-            new float[] {0.22f, 0.44f, 0.12f, 0.07f, 0.07f, 0.08f}, false);
+            new float[] {0.22f, 0.46f, 0.12f, 0.07f, 0.07f, 0.06f}, false);
 
     /** Long-range support: one heavy cannon, an LRM rack on each shoulder. */
     public static final MechBodyPlan SIROCCO = new MechBodyPlan("sirocco",
             0.33f, 0.40f, 0.20f, 0.07f, 0.25f,
-            new float[] {0.20f, 0.46f, 0.10f, 0.08f, 0.08f, 0.08f}, false);
+            new float[] {0.20f, 0.48f, 0.10f, 0.08f, 0.08f, 0.06f}, false);
 
     private final String id;
     private final BodyPlan bodyPlan;

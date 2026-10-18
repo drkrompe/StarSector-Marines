@@ -45,7 +45,7 @@ class VehicleDurabilityIntegrationTest {
                 case HEAVY_APC, ESCORT_APC, UP_ARMORED_APC, FIRE_SUPPORT_APC ->
                         .55f * type.visualLengthCells / 2.4f;
                 case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> 1.1f;
-                case MILITIA_TECHNICAL -> .9875f;
+                case MILITIA_TECHNICAL, SUPPLY_TRUCK, SCOUT_CAR -> .9875f;
                 case CARGO_CARRIER -> .75f;
             };
             assertEquals(12 + rearOffset, engine.x, .001f);

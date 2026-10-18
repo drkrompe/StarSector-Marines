@@ -58,7 +58,7 @@ args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv
 # derives from it; nothing hard-codes metres. Derivation: scale_record below
 # and README (Scale).
 METRES_PER_UNIT = 0.11
-STATUS = 'Passes 1-4 built; pass 3 owner rework (shape, stance, boarding doors) refitted with detail. Clean state only; no damage states or textures.'
+STATUS = 'Passes 1-4 done; pass 3 accepted by the owner. Clean state only; no damage states or textures.'
 PASSES = {'1 blockout': 'built; v1-blockout renders regenerate from commit 624cd3ea8',
           '2 plausible detailing': 'built: one Opus agent per module (hull, cockpit, engines, turrets, ventral)',
           '3 owner review': 'stubby legs and a flat stance; ventral ramp replaced by side boarding doors; spine fairing '
