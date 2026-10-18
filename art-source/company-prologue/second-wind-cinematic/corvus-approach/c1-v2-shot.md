@@ -69,7 +69,11 @@ Hound (A) escorts in formation, each hull at its own range and attitude, all
 drifting on one heading. Hulls are appended once and instanced. On order from
 the ship pipeline (2026-10-18), to take over slots in that formation:
 
-1. **Onslaught**: the picket's capital and flagship.
+1. **Onslaught**: the picket's capital and flagship. Use the round 9 build,
+   Drive `starsector/builds/onslaught/6ac30ff4b/onslaught.blend`, or any later
+   build. Earlier builds, 11509aacf included, are superseded. It appends as
+   collection `ONSLAUGHT | clean` with root `ONSLAUGHT | clean | root`, at
+   0.86 m per unit (about 302 m).
 2. **Lasher**: frigate escorts, instanced several times.
 
 Still painted imposters: the station and the distant freighter traffic.
