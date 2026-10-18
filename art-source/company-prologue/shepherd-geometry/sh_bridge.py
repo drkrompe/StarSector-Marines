@@ -275,10 +275,33 @@ def _hull_mesh(kit):
 
 
 def build(kit):
-    glass = material('Bridge tinted glass', (.012, .02, .03), 0, .3, emission=(.9, .72, .42), strength=.04)
-    bsdf = glass.node_tree.nodes['Principled BSDF']
+    # Tinted glazing: near-black blue, a soft (not mirror) sheen, and two cool
+    # diagonal highlight streaks across each window - the read of tinted glass.
+    # It keeps this shader through surfacing (owner: a swatch read as steel; a
+    # mirror finish only picked up the tan hull and read as taupe).
+    glass = material('Bridge tinted glass', (.004, .008, .014), 0, .18)
+    nt = glass.node_tree
+    bsdf = nt.nodes['Principled BSDF']
     if 'Specular IOR Level' in bsdf.inputs:
-        bsdf.inputs['Specular IOR Level'].default_value = .2  # dark tint, not a sky mirror
+        bsdf.inputs['Specular IOR Level'].default_value = .35
+    tc, sep = nt.nodes.new('ShaderNodeTexCoord'), nt.nodes.new('ShaderNodeSeparateXYZ')
+    diag = nt.nodes.new('ShaderNodeMath')
+    diag.operation = 'MULTIPLY_ADD'                          # across the window, rising
+    diag.inputs[1].default_value = .55
+    ramp = nt.nodes.new('ShaderNodeValToRGB')
+    els = ramp.color_ramp.elements
+    els[0].position, els[0].color = 0.0, (.012, .016, .022, 1)
+    els[1].position, els[1].color = 1.0, (.012, .016, .022, 1)
+    for pos, c in ((.38, (.012, .016, .022)), (.45, (.30, .38, .46)), (.5, (.012, .016, .022)),
+                   (.56, (.012, .016, .022)), (.585, (.16, .20, .25)), (.61, (.012, .016, .022))):
+        e = els.new(pos)
+        e.color = (*c, 1)
+    nt.links.new(tc.outputs['Generated'], sep.inputs[0])
+    nt.links.new(sep.outputs['Y'], diag.inputs[0])
+    nt.links.new(sep.outputs['Z'], diag.inputs[2])
+    nt.links.new(diag.outputs[0], ramp.inputs['Fac'])
+    nt.links.new(ramp.outputs['Color'], bsdf.inputs['Emission Color'])
+    bsdf.inputs['Emission Strength'].default_value = 1.0
     red = material('Running lamp red', (.3, .02, .02), 0, .3, emission=(1, .08, .05), strength=8)
     green = material('Running lamp green', (.02, .3, .08), 0, .3, emission=(.1, 1, .3), strength=8)
     white = material('Running lamp white', (.6, .6, .55), 0, .3, emission=(1, .95, .85), strength=8)
