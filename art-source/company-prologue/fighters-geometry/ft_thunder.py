@@ -15,6 +15,7 @@ delta, the wingtip plates and the two engine pods are near-symmetric. The
 pods and bells sit at +-6.75 and +-6.5, the mean of the integer slots,
 while the slot anchors keep the .ship coordinates exactly.
 """
+import math
 import bpy
 import fg_kit as K
 from fg_kit import prism, section, section_loft, mirror_y
@@ -71,6 +72,7 @@ NOTES = [
     'delta. Each engine pod has a forward intake grille, an aft vent, two collar ribs and a centre body with stator '
     'vanes; the tip plates the master\'s two slots on their outer faces. Panel lines split lance, block, fuselage, '
     'delta and pods.',
+    'Pass 3 rework (owner, 2026-10-18, the fighters read flat): the lance nose droops, a dorsal spine rises behind the canopy, and the delta folds 5 degrees down outboard of the fuselage, so the pods cant outward. It is the fighter that rolls: tricycle gear with a long nose leg and a twin-wheel main bogie under each pod, standing level. The plan view is unchanged.',
 ]
 
 # Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
@@ -95,14 +97,15 @@ def build(kit):
     wing = prism(kit, 'Hull delta wing', plan, section(-.35, .85, .25, .35), A)
     fus = section_loft(kit, 'Hull central fuselage', [
         (17.6, 1.0, .0, 1.2, .5, .4), (15.0, 2.3, -.5, 1.7, .8, .6), (9.0, 2.7, -.9, 1.9, 1.0, .8),
-        (2.0, 2.6, -.9, 1.9, 1.0, .8), (-3.0, 1.9, -.6, 1.5, .8, .6), (-5.2, 1.1, -.3, .9, .4, .3)], A)
+        (2.0, 2.6, -.95, 2.0, 1.0, .85), (-.6, 2.4, -1.0, 2.3, 1.05, .85), (-3.0, 1.9, -.7, 1.7, .85, .65),
+        (-5.2, 1.1, -.3, .9, .4, .3)], A)
     # Port gun block: Y 0..8 from the wing root to X 20, carrying the two prongs.
     block = section_loft(kit, 'Hull port gun block', [
         (20.1, 3.8, -.3, 1.05, .45, .45), (17.0, 3.9, -.4, 1.3, .55, .5), (12.5, 3.9, -.4, 1.3, .55, .5),
         (10.5, 3.0, -.3, 1.0, .45, .4)], A, cy=4.0)
     # Starboard lance: Y -1..-4 to the nose; its root is widened to Y -5 by the MG housing.
     lance = section_loft(kit, 'Hull starboard lance', [
-        (29.2, .5, .5, 1.0, .2, .2), (28.4, 1.1, .3, 1.35, .4, .3), (25.0, 1.4, .1, 1.5, .5, .4),
+        (29.2, .5, -.15, .35, .2, .2), (28.4, 1.1, -.2, .9, .4, .3), (25.0, 1.4, -.1, 1.3, .5, .4),
         (19.0, 1.5, .0, 1.75, .6, .5), (12.0, 1.5, -.1, 1.85, .6, .5)], A, cy=-2.5)
     mg = section_loft(kit, 'Hull starboard gun housing', [
         (20.4, .7, -.2, .95, .3, .3), (19.6, .85, -.25, 1.05, .35, .3), (14.0, .85, -.3, 1.1, .35, .3),
@@ -147,6 +150,67 @@ def build(kit):
             kit.slot_anchor(slot, (x, y, ZB), muzzle=(21.2, -4.15, ZB))
     if kit.detail:
         detail(kit)
+    fold_wing()
+    tricycle_gear(kit)
+
+
+# Bends and landing (owner, 2026-10-18: the fighters read flat). The lance's
+# nose droops, a dorsal spine rises behind the canopy, and the whole delta
+# folds down a little outboard of the fuselage, so the wing, gun block, tip
+# plates and pods droop and the pods cant outward. The Thunder is the one
+# fighter that rolls: conventional tricycle gear, a long steerable nose leg
+# under the fuselage and a twin-wheel main bogie under each pod's inner
+# belly. The plan view is unchanged.
+FOLD_Y = 2.7               # the fuselage's half width: the delta folds outboard of it
+FOLD_DEG = 5.0
+DECK_Z = -4.2              # parked deck, level in the hull frame
+# (name, x, y, z where the strut enters the hull, wheel radius, drag brace run)
+GEAR = [('Hull nose gear', 13.0, 0.0, -.6, .7, 1.8),
+        ('Hull port main gear', -3.6, 5.0, -2.3, .9, 2.2),
+        ('Hull starboard main gear', -3.6, -5.0, -2.3, .9, 2.2)]
+FEET = [f'{g[0]} wheel {w}' for g in GEAR for w in ('inner', 'outer')]
+LEG_PARTS = tuple(g[0] for g in GEAR)
+
+
+def fold_drop(y):
+    return math.tan(math.radians(FOLD_DEG))*max(0.0, abs(y)-FOLD_Y)
+
+
+def fold_wing():
+    """Shear every part (and every anchor) down outboard of the fuselage."""
+    bpy.context.view_layer.update()
+    for ob in list(bpy.data.objects):
+        if ob.type == 'EMPTY':
+            ob.location.z -= fold_drop(ob.location.y)
+            continue
+        if ob.type != 'MESH':
+            continue
+        if ob.data.users > 1:
+            ob.data = ob.data.copy()
+        mw = ob.matrix_world.copy()
+        inv = mw.inverted()
+        for v in ob.data.vertices:
+            p = mw @ v.co
+            p.z -= fold_drop(p.y)
+            v.co = inv @ p
+        ob.data.update()
+
+
+def tricycle_gear(kit):
+    """Each leg: an oleo strut and piston, a drag brace, an axle and two wheels either side of the strut."""
+    S, B, D = kit.steel, kit.bright, kit.dark
+    for name, x, y, top, r, brace in GEAR:
+        axle = DECK_Z+r
+        w = r*.55
+        kit.rod(f'{name} strut', (x, y, top+.3), (x, y, axle+r*1.2), .22, S, 12)
+        kit.rod(f'{name} piston', (x, y, axle+r*1.4), (x, y, axle), .13, B, 12)
+        kit.rod(f'{name} drag brace', (x+brace, y, top+.25), (x, y, axle+r*1.3), .08, S, 8)
+        kit.rod(f'{name} axle', (x, y-w-.35, axle), (x, y+w+.35, axle), .07, B, 8)
+        inboard = -1 if y >= 0 else 1
+        for side, s in (('inner', inboard), ('outer', -inboard)):
+            wy = y+s*(w/2+.25)
+            kit.cylinder(f'{name} wheel {side}', (x, wy, axle), r, w, D, 'Y', 24, .06)
+            kit.cylinder(f'{name} wheel {side} hub', (x, wy, axle), r*.45, w+.08, B, 'Y', 12, .02)
 
 
 def detail(kit):
