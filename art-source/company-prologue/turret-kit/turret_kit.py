@@ -796,6 +796,9 @@ def _sprite_gun(g, f, s, r, t, ex):
                 steps[-1][1] = x+.5*k
             else:
                 steps.append([x-.5*k, x+.5*k, rr])
+        if ex.get('barrel_end'):                  # the builder draws the muzzle itself
+            steps = [st for st in steps if st[0] < ex['barrel_end']*k]
+            steps[-1][1] = min(steps[-1][1], ex['barrel_end']*k)
         if ex.get('barrel_root'):
             steps.insert(0, [steps[0][0]-ex['barrel_root']*k, steps[0][0], steps[0][2]])
         x0 = steps[0][0]
@@ -1274,29 +1277,42 @@ def _house_hurricane(g, f, s, r, z0):
         gg.mats = dict(gg.mats, missile=_missile_mat(s.get('mcol', (.1, .13, .14))))
         for sy in (1, -1):
             y = sy*6.6*k
-            gg['paint'].box((6.0*k, y, za-1.6*k), (10.0*k, 2.0*k, 3.4*k), .25*k)          # rail roots
-            gg['steel'].box((17.0*k, y, za-1.2*k), (14.0*k, 1.4*k, 1.8*k), .12*k)        # rails
-            f.bolt_row(gg['steel'], (11.5*k, y+sy*.71*k, za-1.2*k), (23.0*k, y+sy*.71*k, za-1.2*k),
+            gg['paint'].box((10.0*k, y, za+.2*k), (4.0*k, 2.0*k, 3.4*k), .25*k)          # rail roots
+            gg['steel'].box((17.0*k, y, za+.4*k), (14.0*k, 1.4*k, 1.8*k), .12*k)        # rails
+            f.bolt_row(gg['steel'], (11.5*k, y+sy*.71*k, za+.4*k), (23.0*k, y+sy*.71*k, za+.4*k),
                        axis='Y', spacing=1.4)
             gg['steel'].cyl((1.0*k, sy*8.0*k, zt), 1.5*k, 1.4*k, 'Y', n=20, bevel=.1*k)   # trunnions
             gg['paint'].box((3.0*k, sy*7.4*k, (za-1.6*k+zt)/2), (3.0*k, 1.4*k, za-zt+1.6*k), .15*k)
             # Prong tip, flared outward off the head.
-            gg['steel'].box((31.5*k, sy*6.9*k, za-.6*k), (4.4*k, 1.4*k, 2.0*k), .15*k,
+            gg['steel'].box((31.5*k, sy*6.9*k, za+2.4*k), (4.4*k, 1.4*k, 2.0*k), .15*k,
                             rot=Matrix.Rotation(sy*.12, 4, 'Z'))
-        gg['paint'].box((6.0*k, 0, za-3.0*k), (6.0*k, 12.0*k, 1.2*k), .2*k)             # fork crossmember
         # Crossbar head: a block across the rails, its cream band aft, a mouth for the nose.
-        gg['paint'].box((27.0*k, 0, za-.6*k), (5.0*k, 17.0*k, 3.4*k), .35*k)
-        gg['accent'].box((24.6*k, 0, za-.6*k), (.8*k, 17.2*k, 3.5*k), .1*k)
-        gg['dark'].box((27.0*k, 0, za+1.12*k), (3.4*k, 6.0*k, .06*k))
-        f.bolt_row(gg['steel'], (25.5*k, -7.0*k, za+1.15*k), (25.5*k, 7.0*k, za+1.15*k), axis='X')
-        # Launcher bed: a solid cradle between the rails, troughed to the MIRV's belly.
-        gg['paint'].box((15.5*k, 0, za-4.0*k), (17.0*k, 11.8*k, 1.8*k), .3*k)
+        gg['paint'].box((27.0*k, 0, za+2.6*k), (5.0*k, 17.0*k, 2.6*k), .35*k)
+        gg['accent'].box((24.6*k, 0, za+2.6*k), (.8*k, 17.2*k, 2.7*k), .1*k)
+        gg['dark'].box((27.0*k, 0, za+3.92*k), (3.4*k, 6.0*k, .06*k))
+        f.bolt_row(gg['steel'], (25.5*k, -7.0*k, za+3.95*k), (25.5*k, 7.0*k, za+3.95*k), axis='X')
+        for sy in (1, -1):                                                              # head cheeks
+            gg['paint'].box((27.0*k, sy*7.0*k, za+.6*k), (5.0*k, 3.0*k, 2.4*k), .3*k)
+        # Breech housing: the turret body the MIRV's tail sits in, rounded over.
+        _dome_loft(gg['paint'], [(-9.0, 4.8, 5.8), (-8.2, 6.6, 7.8), (-6.4, 7.4, 8.8), (6.0, 7.4, 8.8),
+                                 (7.8, 7.0, 8.4), (8.8, 6.4, 7.8)], za-4.6*k, k, .45)
+        gg['dark'].cyl((8.85*k, 0, za+.4*k), 4.1*k, .1*k, 'X', n=32)                         # throat
+        gg['accent'].box((1.5*k, 0, za+4.12*k), (8.0*k, 7.0*k, .2*k), .1*k)                   # cream band
         for sy in (1, -1):
-            gg['paint'].box((15.5*k, sy*4.6*k, za-2.6*k), (17.0*k, 2.6*k, 1.6*k), .3*k,
-                            rot=Matrix.Rotation(-sy*.5, 4, 'X'))
-            f.bolt_row(gg['steel'], (8.0*k, sy*5.92*k, za-3.2*k), (23.0*k, sy*5.92*k, za-3.2*k), axis='Y')
-        for x in (10.0, 15.5, 21.0):
-            gg['steel'].box((x*k, 0, za-3.05*k), (1.0*k, 7.0*k, .3*k), .05*k)                # cradle straps
+            gg['mark'].box((-1.5*k, sy*2.6*k, za+4.2*k), (2.2*k, 1.2*k, .1*k))
+            gg['dark'].box((-4.5*k, sy*6.9*k, za+.2*k), (5.0*k, .2*k, 2.4*k))                # side seams
+        gg['steel'].box((-9.4*k, 0, za-1.0*k), (.8*k, 6.0*k, 3.0*k), .1*k)                    # rear vent plate
+        for z in (-2.0, -1.0, 0.0):
+            gg['dark'].box((-9.82*k, 0, za+z*k), (.1*k, 4.8*k, .35*k))
+        # Hoops over the MIRV from rail to rail: the frame holds it from above.
+        R = 4.3*k
+        for x in (12.0, 17.5, 23.0):
+            for i in range(9):
+                a = math.pi*i/8
+                gg['steel'].box((x*k, R*math.cos(a), za+.4*k+R*math.sin(a)), (1.0*k, 1.8*k, .5*k), .05*k,
+                                rot=Matrix.Rotation(a+math.pi/2, 4, 'X'))
+            for sy in (1, -1):
+                gg['steel'].box((x*k, sy*5.4*k, za+.4*k), (1.0*k, 2.6*k, .6*k), .05*k)        # hoop feet
         _missile(gg.sub('missile 1', (7.0*k, 0, za+.4*k), .1*r), f, 7.0*k, 0, za+.4*k, 21.0*k, 3.6*k, f.near,
                  roll=math.pi/4)                                                               # the MIRV
     return (1.0*k, 0.0, zt), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
@@ -1344,34 +1360,31 @@ def _house_heavyac2(g, f, s, r, z0):
     fairings in three ranks; a darker rim band."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    H = 6.0
-    plan = [(-11.2, 5.0, H-1.8), (-10.8, 6.6, H-1.2), (-10.0, 8.0, H-.7), (-9.0, 9.0, H-.4), (-8.0, 9.8, H-.15),
-            (-7.0, 10.6, H), (1.5, 10.9, H), (2.5, 10.4, H), (3.5, 9.6, H-.15), (4.6, 8.8, H-.3),
-            (5.6, 8.0, H-.6), (6.2, 7.2, H-.9)]
-    _plan_loft(g['paint'], plan, z0+.7*k, k, 1.3, .1, .6)
+    H = 3.4
+    plan = [(-11.2, 5.0, H-1.4), (-10.8, 6.6, H-.9), (-10.0, 8.0, H-.5), (-9.0, 9.0, H-.3), (-8.0, 9.8, H-.1),
+            (-7.0, 10.6, H), (1.5, 10.9, H), (2.5, 10.4, H), (3.5, 9.6, H-.1), (4.6, 8.8, H-.25),
+            (5.6, 8.0, H-.45), (6.2, 7.2, H-.7)]
+    _plan_loft(g['paint'], plan, z0+.7*k, k, 1.0, .1, .5)
     _plan_loft(g['steel'], [(x, w-.25, .9) for x, w, h in plan], z0, k, .2, .05, 0)     # rim band
     zt = z0+(H+.7)*k
     za = z0+3.4*k
+    rb = 1.7                                                                          # rib radius
     for y in (5.0, 0.0, -5.0):
-        # Sleeve housing: a rounded lobe forward, merged into the house front.
+        # Sleeve housing: a rounded lobe forward, the rib's front end.
         st = []
-        for x, w, h in ((3.0, 2.4, H), (6.5, 2.4, H-.5), (8.6, 2.2, H-1.1), (9.6 if y == 0 else 9.2, 1.6, H-1.8)):
-            st.append((x*k, [(y*k+yy, zz) for yy, zz in section(w*k, z0+.7*k, z0+(.7+h)*k, 1.0*k, .1*k, .8*k)]))
+        for x, w, h in ((3.0, 2.3, 4.4), (6.5, 2.3, 4.3), (8.6, 2.1, 4.1), (9.6 if y == 0 else 9.2, 1.6, 3.8)):
+            st.append((x*k, [(y*k+yy, zz) for yy, zz in section(w*k, z0+.7*k, z0+(.7+h)*k, 1.0*k, .1*k, .9*k)]))
         g['plate'].loft_x(st)
-        g['dark'].cyl(((9.62 if y == 0 else 9.22)*k, y*k, za), 1.25*k, .06*k, 'X', n=24)  # sleeve port
-        # Shaft fairing: the cannon's shaft carried on back into the turret.
+        g['dark'].cyl(((9.62 if y == 0 else 9.22)*k, y*k, za), 1.1*k, .06*k, 'X', n=24)   # sleeve port
+        # Rib: the cannon's shaft carried back into the turret, proud of the roof,
+        # the track the gun presses back along when it fires.
         x0, x1 = -9.0 if y == 0 else -8.2, 3.5
-        g['plate'].lathe([(0, 0), (1.0*k, .15*k), (1.35*k, .9*k), (1.35*k, (x1-x0)*k), (0, (x1-x0)*k)], 24,
-                         (x0*k, y*k, zt-.45*k), 'X')
+        g['plate'].lathe([(0, 0), (1.2*k, .2*k), (rb*k, .9*k), (rb*k, (x1-x0)*k), (0, (x1-x0)*k)], 24,
+                         (x0*k, y*k, za), 'X')
         for sy in (1, -1):                                                              # the dimple round it
-            g['dark'].box(((x0+x1)/2*k, (y+sy*1.5)*k, zt-.02*k), ((x1-x0-.6)*k, .3*k, .1*k))
-    # Vent streaks: grooves across the rear between the fairings.
-    for x in (-3.5, -5.5, -7.5):
-        for y0, y1 in ((1.8, 3.2), (6.8, 8.4)):
-            if x < -7 and y0 > 6:
-                y1 = 7.6
-            for sy in (1, -1):
-                g['dark'].box((x*k, sy*(y0+y1)/2*k, zt-.25*k), (.7*k, (y1-y0)*k, .6*k))
+            g['dark'].box(((x0+x1)/2*k, (y+sy*1.75)*k, zt), ((x1-x0-.6)*k, .35*k, .12*k))
+        for x in (-2.5, -4.0, -5.5, -7.0):                                              # vents across the rib
+            g['dark'].box((x*k, y*k, za+1.56*k), (.45*k, 1.7*k, .34*k))
 
     def gun_parts(gg, za):
         pass
@@ -1661,12 +1674,17 @@ def _house_devastator(g, f, s, r, z0):
             y = b['y']*k
             for x in (10.6, 12.2, 13.8, 15.4):                                                # coil rings
                 gg['mark'].cyl((x*k, y, za), 2.7*k, 1.1*k, 'X', n=24, bevel=.1*k)
-            # Forked clamp: two jaws either side of a centre slot, on a back plate.
-            gg['steel'].box((19.0*k, y, za), (1.2*k, 6.4*k, 6.4*k), .2*k)
-            for dy in (-2.2, 2.2):
-                gg['steel'].box((21.0*k, y+dy*k, za), (3.2*k, 2.0*k, 6.4*k), .3*k)
+            gg['steel'].cyl((18.6*k, y, za), 2.0*k, 1.4*k, 'X', n=24, bevel=.1*k)           # neck
+            # Muzzle collar: a short round sleeve, its bore open at the front.
+            gg['steel'].lathe([(1.7*k, 0), (3.5*k, 0), (3.8*k, .5*k), (3.8*k, 3.1*k), (3.4*k, 3.5*k),
+                               (1.7*k, 3.5*k)], 32, (19.3*k, y, za), 'X', loop=True)
+            gg['dark'].cyl((21.4*k, y, za), 1.72*k, .12*k, 'X', n=24)                      # bore
+            for a in range(4):                                                                # gas ports
+                b = a*math.pi/2+math.pi/4
+                gg['dark'].box((21.2*k, y+3.72*k*math.cos(b), za+3.72*k*math.sin(b)), (1.6*k, .5*k, .5*k),
+                               rot=Matrix.Rotation(b, 4, 'X'))
     return (6.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
-                              'barrel_root': 3.0}
+                              'barrel_root': 3.0, 'barrel_end': 19.6}
 
 
 def _house_heavymauler(g, f, s, r, z0):
