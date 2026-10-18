@@ -41,8 +41,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import pg_kit, pg_outline, pg_hull, pg_detail, pg_engines, pg_turrets, pg_shield, pg_arcs
-MODULES = [pg_kit, pg_outline, pg_hull, pg_detail, pg_engines, pg_turrets, pg_shield, pg_arcs]
+import pg_kit, pg_outline, pg_hull, pg_detail, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs
+MODULES = [pg_kit, pg_outline, pg_hull, pg_detail, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs]
 for module in MODULES:
     importlib.reload(module)
 
@@ -84,6 +84,7 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--hangar-open', action='store_true', help='pose the hangar door open (review renders)')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -122,6 +123,7 @@ kit = pg_kit.Kit()
 kit.mpu = METRES_PER_UNIT
 hull = pg_hull.build(kit)
 pg_detail.build(kit, hull)
+pg_hangar.build(kit, args.hangar_open)
 pg_engines.build(kit)
 pg_turrets.build(kit)
 pg_shield.build(kit, METRES_PER_UNIT)
@@ -192,6 +194,7 @@ CLOSEUPS = [
     ('core-detail', (60, -200, 170), (-90, 0, 15), 150),
     ('turret-detail', (140, -160, 140), (3, -99, 10), 80),
     ('engine-detail', (-330, -260, 90), (-165, -95, 0), 140),
+    ('hangar-detail', (-20, -25, 20), (55, 0, 2), 50),
     ('stern-detail', (-420, -120, 70), (-170, 0, 0), 300),
 ]
 for spec in args.cam:
@@ -201,7 +204,7 @@ for spec in args.cam:
 wanted = []
 for v in [v for v in args.views.split(',') if v]:
     if v == 'details':
-        wanted += [c[0] for c in CLOSEUPS[:6]]
+        wanted += [c[0] for c in CLOSEUPS[:7]]
     else:
         wanted.append(v)
 wanted += [spec.split(':')[0] for spec in args.cam]
@@ -346,7 +349,8 @@ def union_volume(names, step=2.0):
 
 SOLIDS = ('Hull belt', 'Hull main ring', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
           'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe', 'Hull aft body', 'Hull command deck',
-          'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')
+          'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod',
+          'Hull forward hangar')
 
 
 def scale_record():
@@ -395,6 +399,7 @@ if not args.no_save:
                        'size': [round(b-a, 2) for a, b in zip(LO, HI)]},
         'bore': {'centre': list(pg_hull.BORE_C), 'radius': pg_hull.BORE_R, 'lining_radius': pg_hull.LINING_R},
         'shield': dict(pg_shield.RECORDS),
+        'hangar': dict(pg_hangar.RECORD),
         'weapon_slots': pg_turrets.records(),
         'firing_lines': {'method': 'pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg '
                                    'depressed) from a mount sitting low in its dimpled well',
