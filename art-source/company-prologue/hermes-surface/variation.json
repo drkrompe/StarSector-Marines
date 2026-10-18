@@ -1,0 +1,146 @@
+{
+ "aft-arm-port": {
+  "unit_offset_L_a_b": [
+   -0.843,
+   0.035,
+   0.318
+  ],
+  "note": "hash default; edit freely"
+ },
+ "aft-arm-stbd": {
+  "unit_offset_L_a_b": [
+   0.145,
+   -0.827,
+   0.286
+  ],
+  "note": "hash default; edit freely"
+ },
+ "aft-side-port": {
+  "unit_offset_L_a_b": [
+   -0.553,
+   1.0,
+   -0.027
+  ],
+  "note": "hash default; edit freely"
+ },
+ "aft-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.169,
+   -0.89,
+   0.153
+  ],
+  "note": "hash default; edit freely"
+ },
+ "aft-stern": {
+  "unit_offset_L_a_b": [
+   0.263,
+   0.976,
+   -0.773
+  ],
+  "note": "hash default; edit freely"
+ },
+ "aft-top": {
+  "unit_offset_L_a_b": [
+   -0.012,
+   -0.906,
+   0.31
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-nose": {
+  "unit_offset_L_a_b": [
+   0.239,
+   -0.553,
+   -0.733
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-side-port": {
+  "unit_offset_L_a_b": [
+   -0.239,
+   -0.906,
+   0.514
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.545,
+   0.616,
+   0.741
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-top": {
+  "unit_offset_L_a_b": [
+   0.224,
+   0.624,
+   -0.914
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-under": {
+  "unit_offset_L_a_b": [
+   -0.02,
+   0.38,
+   -0.616
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-front-port": {
+  "unit_offset_L_a_b": [
+   0.733,
+   -0.349,
+   -0.702
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-front-stbd": {
+  "unit_offset_L_a_b": [
+   0.224,
+   0.286,
+   0.114
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-top-port": {
+  "unit_offset_L_a_b": [
+   -0.929,
+   -0.576,
+   -0.216
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-top-stbd": {
+  "unit_offset_L_a_b": [
+   0.647,
+   0.773,
+   -0.851
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-under": {
+  "unit_offset_L_a_b": [
+   -0.867,
+   -0.373,
+   0.827
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-wall-port": {
+  "unit_offset_L_a_b": [
+   0.678,
+   0.859,
+   0.561
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-wall-stbd": {
+  "unit_offset_L_a_b": [
+   0.616,
+   -0.529,
+   0.122
+  ],
+  "note": "hash default; edit freely"
+ }
+}

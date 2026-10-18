@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15038-9831-7a32-b225-0ed34b7cb109",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15038-9831-7a32-b225-0ed34b7cb109\\exec-4d62801b-8b2c-4a11-a0f4-605b8eb18076.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-sponsons.png",
+    "sha256": "16a295535f32ddae369bc4838a4caca68e21e6c71d2fe4a3cbc256c2769075c4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-sponsons.prompt.txt",
+  "promptSha256": "bab6bc5208d5cf2fc6f4b3369759a757a3a0821db18b58e2f808443340febe2a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a clean, working civilian Hermes-class shuttle, a small courier and troop boat), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: a gun sponson's outboard wall seen from the side: a light grey armour wall, raked, with one small dark grey square (a fitting) and a thin slot that is background blue;\ntop-right: the same sponson's flat deck seen from directly above: a large light grey deck plate with a chamfered corner;\nbottom-left: the sponson's raked forward face seen square-on: a tall light grey armour face, slightly tapered, with a notch on its right edge that is background blue;\nbottom-right: the whole underside of the wing body seen from directly below: a long light grey belly plate with chamfered ends, and two small separate light grey service covers below it.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its clean working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that clean, working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, a very light even film of service grime and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: light grey areas are a light cool grey enamel; the small dark grey areas stay dark gunmetal steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is clean and in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-sponsons-guide.png",
+      "sha256": "de3523b0336468eed0cfd286109f1c0eb419360ac93dc6e07988ec2effdae821",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "cb6611f52f21ea858692410d875400e61bbed44e5c6bac0b47a6009f8e57bdc7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the sheet, preserving its layout and matching the reference’s surface finish."
+  ],
+  "usage": {
+    "input_tokens": 87585,
+    "cached_input_tokens": 66432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 825,
+    "reasoning_output_tokens": 41
+  },
+  "elapsedSeconds": 53.5
+}

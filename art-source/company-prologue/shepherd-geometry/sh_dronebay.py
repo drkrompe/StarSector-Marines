@@ -18,7 +18,9 @@ one continuous open deck (pass 3, owner: the bay is open, not boxed in).
 Nothing roofs it and nothing walls its outboard side: the deck (WELL_FLOOR)
 runs from the tall panelled inboard back wall, whose top chamfer carries the
 sprite's cyan glow, out to a low kerb (COAMING_Z) and a handrail, and the
-port outrigger stays below that kerb. The pods survive below the kerb as the
+port outrigger stays below that kerb. A rim sweeps the back wall round the
+bay's rounded aft corners onto the crossbeam's face and into the kerb, with
+a cove fillet at the deck and a tan bullnose lip (the sprite's rounding). The pods survive below the kerb as the
 bay's hull, with armour plates and frame hoops; there are no arch ribs and
 no bulkhead between the tubs. The forward end runs into the service block,
 whose aft face is the workshop front.
@@ -66,6 +68,16 @@ COAMING_Y, COAMING_Z = 24.4, WELL_FLOOR+1.2   # outboard coaming: a low kerb, th
 RIBS = {'aft': (), 'forward': ()}   # no arch ribs: the bay is open to the sky
 RIB_W = .7
 DECK = WELL_FLOOR+.12              # top of the deck plating
+# The rim (pass 3 round 3, owner: the hangar lacks the sprite's rounding and lip):
+# the back wall carries round a rounded aft-inboard corner (the sprite's cyan
+# sweep), across the aft end and round a smaller outboard corner into the kerb,
+# one swept wall with a cove fillet at the deck and a tan bullnose lip on top.
+R_INBOARD, R_OUTBOARD = 3.5, 2.0   # plan radii of the bay's aft corners
+RIM_X0 = -8.7                      # the bay's aft end: a lining just proud of the aft crossbeam's face (X -9, sh_hull)
+WALL_T = 1.6                       # rim wall thickness, out of the bay
+KERB_H = COAMING_Z+.8              # rim height along the outboard kerb
+COVE_R = .8                        # deck-to-wall fillet radius
+LIP_R = .45                        # bullnose lip radius
 
 
 # --- private mesh helpers -------------------------------------------------
@@ -141,6 +153,82 @@ def _facet(st, k, x0, x1, d_in, d_out, s0=0.0, s1=1.0):
             p(x0, s0, d_out), p(x1, s0, d_out), p(x1, s1, d_out), p(x0, s1, d_out)]
 
 
+def _rim_path(step=.5):
+    """The bay's rim in plan, from the back wall's aft run round to the kerb's forward
+    end: (x, y, outward unit normal, height). Heading -X along the back wall, +Y across
+    the aft end, +X along the kerb; outward is the tangent turned +90 deg."""
+    x0, x1 = RIM_X0, BAYS['forward'][1]
+    ri, ro = R_INBOARD, R_OUTBOARD
+
+    def line(a, b):
+        n = max(1, round(((b[0]-a[0])**2+(b[1]-a[1])**2)**.5/step))
+        return [(a[0]+(b[0]-a[0])*k/n, a[1]+(b[1]-a[1])*k/n) for k in range(n)]
+
+    def arc(c, r, a0, a1, n=10):
+        return [(c[0]+r*math.cos(a0+(a1-a0)*k/n), c[1]+r*math.sin(a0+(a1-a0)*k/n)) for k in range(n)]
+    pts = arc((x0+ri, WALL_Y+ri), ri, -math.pi/2, -math.pi)
+    pts += line((x0, WALL_Y+ri), (x0, COAMING_Y-ro))
+    pts += arc((x0+ro, COAMING_Y-ro), ro, math.pi, math.pi/2)
+    pts += line((x0+ro, COAMING_Y), (x1, COAMING_Y))+[(x1, COAMING_Y)]
+    out, s, prev = [], 0.0, None
+    for i, (x, y) in enumerate(pts):
+        a, b = pts[max(0, i-1)], pts[min(len(pts)-1, i+1)]
+        tx, ty = b[0]-a[0], b[1]-a[1]
+        L = math.hypot(tx, ty)
+        if prev:
+            s += math.hypot(x-prev[0], y-prev[1])
+        prev = (x, y)
+        out.append([x, y, -ty/L, tx/L, s])
+    # Height: the back wall's full height round both aft corners and across the
+    # aft end (a coaming just proud of the crossbeam's deck), sweeping down to the
+    # kerb over the first few units forward of the outboard corner.
+    s_drop = next(p[4] for p in out if p[1] >= COAMING_Y-1e-6)
+    drop = 5.0
+    for p in out:
+        u = min(1.0, max(0.0, (p[4]-s_drop)/drop))
+        p[4] = KERB_H+(WALL_TOP-KERB_H)*.5*(1+math.cos(math.pi*u))
+    return [tuple(p) for p in out]
+
+
+def _sweep(kit, name, path, section, mat, bevel=0):
+    """A solid swept along a plan path [(x, y, nx, ny, h)]: section(h) gives its
+    closed outline as (d outward, z) pairs, the same count at every station."""
+    verts, faces = [], []
+    m = 0
+    for x, y, nx, ny, h in path:
+        sec = section(h)
+        m = len(sec)
+        verts += [(x+nx*d, y+ny*d, z) for d, z in sec]
+    n = len(path)
+    for i in range(n-1):
+        faces += [(i*m+j, i*m+(j+1) % m, (i+1)*m+(j+1) % m, (i+1)*m+j) for j in range(m)]
+    faces += [tuple(range(m)), tuple(range((n-1)*m, n*m))]
+    return kit.mesh(name, verts, faces, mat, bevel)
+
+
+def _chamfer_k(h):
+    return min(1.0, max(0.0, (h-WELL_FLOOR)/(WALL_TOP-WELL_FLOOR)))
+
+
+def _wall_section(h):
+    k = _chamfer_k(h)
+    return [(WALL_T, WELL_FLOOR-.5), (0, WELL_FLOOR-.5), (0, h-1.3*k), (.7*k, h), (WALL_T, h)]
+
+
+def _cove_section(_h):
+    pts = [(0, DECK-.05), (0, DECK+COVE_R)]
+    pts += [(-COVE_R+COVE_R*math.cos(-math.pi/2*k/6), DECK+COVE_R+COVE_R*math.sin(-math.pi/2*k/6))
+            for k in range(1, 7)]
+    return pts+[(-COVE_R, DECK-.05)]
+
+
+def _lip_section(h):
+    k = _chamfer_k(h)
+    c = (.7*k+WALL_T)/2
+    r = min(LIP_R, (WALL_T-.7*k)/2+.12)
+    return [(c+r*math.cos(math.pi*j/8), h-.1+r*math.sin(math.pi*j/8)) for j in range(9)]
+
+
 def _surface(objs, x, y, top=60):
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
@@ -183,14 +271,26 @@ def build(kit):
     wall_poly = [(10.8, WELL_FLOOR-.5), (WALL_Y, WELL_FLOOR-.5), (WALL_Y, WALL_TOP-1.3), (WALL_Y-.7, WALL_TOP),
                  (10.8, WALL_TOP)]
     x0w, x1w = BAYS['aft'][0], BAYS['forward'][1]
-    _prism_x(kit, 'Drone bay inboard back wall', wall_poly, x0w, x1w, kit.steel, .06)
+    _prism_x(kit, 'Drone bay inboard back wall', wall_poly, RIM_X0+R_INBOARD, x1w, kit.steel, .06)
+    # The rim: the back wall swept on round both aft corners into the outboard kerb,
+    # its deck fillet and its tan bullnose lip (which also caps the straight back wall).
+    rim_path = _rim_path()
+    rim = _sweep(kit, 'Drone bay rim wall', rim_path, _wall_section, kit.steel, .03)
+    back = [(x1w, WALL_Y, 0.0, -1.0, WALL_TOP)]
+    _sweep(kit, 'Drone bay rim cove fillet', back+rim_path, _cove_section, kit.steel)
+    _sweep(kit, 'Drone bay rim lip', back+rim_path, _lip_section, kit.tan, .02)
     panels = []
-    for x0, x1 in BAYS.values():
+    for x0, x1 in ((RIM_X0+R_INBOARD, BAYS['aft'][1]), BAYS['forward']):
         n = round((x1-x0)/3.4)
         for j in range(n):
             a, b = x0+(x1-x0)*j/n+.08, x0+(x1-x0)*(j+1)/n-.08
-            for z0, z1 in ((WELL_FLOOR+.2, -.4), (-.25, 3.0), (3.15, WALL_TOP-1.5)):
+            for z0, z1 in ((DECK+COVE_R+.15, -.4), (-.25, 3.0), (3.15, WALL_TOP-1.5)):
                 panels.append(_box(((a+b)/2, WALL_Y+.08, (z0+z1)/2), (b-a, .16, z1-z0)))
+    ya, yb = WALL_Y+R_INBOARD, COAMING_Y-R_OUTBOARD          # the aft end's straight run
+    for j in range(2):
+        a, b = ya+(yb-ya)*j/2+.08, ya+(yb-ya)*(j+1)/2-.08
+        for z0, z1 in ((DECK+COVE_R+.15, -.4), (-.25, 3.0), (3.15, WALL_TOP-1.5)):
+            panels.append(_box((RIM_X0+.08, (a+b)/2, (z0+z1)/2), (.16, b-a, z1-z0)))
     _hexes(kit, 'Drone bay back wall armour panels', panels, armour)
     # Chamfer glow: the normal of the chamfer face points into the bay and up.
     ny, nz = 1.3/math.hypot(.7, 1.3), .7/math.hypot(.7, 1.3)
@@ -201,7 +301,7 @@ def build(kit):
         return [p(x0, s0, d0), p(x1, s0, d0), p(x1, s1, d0), p(x0, s1, d0),
                 p(x0, s0, d1), p(x1, s0, d1), p(x1, s1, d1), p(x0, s1, d1)]
     glow, bezel = [], []
-    for x0, x1 in ((-11.0, -7.0), (1.5, 4.8), (11.0, 23.6)):
+    for x0, x1 in ((-4.8, -1.2), (1.5, 4.8), (11.0, 23.6)):
         glow.append(on_chamfer(x0, x1, .2, .8, -.02, .1))
         glow.append(_box(((x0+x1)/2, WALL_Y+.2, WALL_TOP-2.2), (x1-x0, .1, .45)))      # bay-facing light band
         bezel += [on_chamfer(x0-.2, x1+.2, .06, .2, -.02, .2), on_chamfer(x0-.2, x1+.2, .8, .94, -.02, .2)]
@@ -210,16 +310,18 @@ def build(kit):
     _hexes(kit, 'Drone bay inboard glow strip', glow, kit.bay_glow)
     _hexes(kit, 'Drone bay inboard glow channel bezel', bezel, kit.dark)
     # Tool and cable runs on the back wall; a crane rail along its top.
+    x0w = RIM_X0+R_INBOARD                     # fittings start where the corner's sweep ends
     tray = [_box(((x0w+x1w)/2, WALL_Y+.35, 3.1), (x1w-x0w-.4, .7, .15)),
             _box(((x0w+x1w)/2, WALL_Y+.66, 3.3), (x1w-x0w-.4, .08, .5))]
     _hexes(kit, 'Drone bay back wall cable tray', tray, kit.steel)
     for j, z in enumerate((3.33, 3.6)):
         kit.cylinder(f'Drone bay back wall cable run {j+1}', ((x0w+x1w)/2, WALL_Y+.3+.12*j, z), .14,
                      x1w-x0w-.6, kit.orange if j == 0 else kit.dark, 'X', 6, 0)
-    kit.box('Drone bay overhead crane rail', ((x0w+x1w)/2, WALL_Y-.6, WALL_TOP+.3), (x1w-x0w, .6, .6), kit.grey, .05)
-    kit.box('Drone bay overhead crane trolley', (-9.4, WALL_Y-.2, WALL_TOP+.55), (1.8, 1.6, .9), kit.orange, .08)
+    # Crane rail along the wall's bay face under the glow band (the lip owns the wall top).
+    kit.box('Drone bay overhead crane rail', ((x0w+x1w)/2, WALL_Y+.4, 4.9), (x1w-x0w-.4, .8, .5), kit.grey, .05)
+    kit.box('Drone bay overhead crane trolley', (-4.0, WALL_Y+1.0, 4.7), (1.8, .9, 1.1), kit.orange, .08)
     racks = []
-    for tx in (-9.4, 19.15):
+    for tx in (3.4, 19.15):
         racks.append(_box((tx, WALL_Y+.1, -1.6), (2.2, .2, 3.4)))
         racks += [_box((tx, WALL_Y+.45, z), (2.2, .7, .1)) for z in (-2.9, -1.7, -.5)]
         racks += [_box((tx-.6+.6*k, WALL_Y+.45, -2.6+1.2*m), (.35, .5, .5)) for k in range(3) for m in range(2)]
@@ -259,23 +361,17 @@ def build(kit):
     _hexes(kit, 'Drone bay hangar pod armour plates', plates, armour)
     _hexes(kit, 'Drone bay hangar pod frame hoops', hoops, kit.steel)
 
-    # Outboard coaming cap with hazard bars and a handrail.
-    cap, bars, rail = [], [], []
-    for x0, x1 in BAYS.values():
-        x1c = min(x1, 27.4)
-        cap.append(_box(((x0+x1c)/2, 25.0, COAMING_Z+.3), (x1c-x0, 1.5, 1.0)))
-        n = int((x1c-x0)/1.2)
-        bars += [_box((x0+.6+1.2*j, 24.85, COAMING_Z+.82), (.6, 1.1, .06)) for j in range(n)]
-        sx = [x0+.5+(x1c-x0-1.0)*j/max(1, round((x1c-x0)/2.4)) for j in range(round((x1c-x0)/2.4)+1)]
-        rail += [_beam((x, 25.5, COAMING_Z+.8), (x, 25.5, COAMING_Z+2.0), .14) for x in sx]
-        rail += [_beam((x0+.5, 25.5, z), (x1c-.5, 25.5, z), .12) for z in (COAMING_Z+1.4, COAMING_Z+2.0)]
-    _hexes(kit, 'Drone bay outboard coaming', cap, kit.grey, .04)
-    _hexes(kit, 'Drone bay outboard coaming hazard bars', bars, hazard)
+    # Outboard handrail on the kerb's lip, forward of the outboard corner's sweep.
+    xr0, xr1 = RIM_X0+R_OUTBOARD+5.6, 27.4
+    yr, zr = COAMING_Y+WALL_T/2, KERB_H+LIP_R
+    nr = round((xr1-xr0)/2.4)
+    rail = [_beam((xr0+(xr1-xr0)*j/nr, yr, zr-.1), (xr0+(xr1-xr0)*j/nr, yr, zr+1.2), .14) for j in range(nr+1)]
+    rail += [_beam((xr0, yr, z), (xr1, yr, z), .12) for z in (zr+.6, zr+1.2)]
     _hexes(kit, 'Drone bay outboard handrail', rail, kit.grey)
 
     # Amber lamps at the workshop end, seated on whatever is uppermost there.
-    seat = [aft, fore, block, bpy.data.objects['Drone bay inboard back wall'],
-            bpy.data.objects['Drone bay outboard coaming']]
+    seat = [aft, fore, block, bpy.data.objects['Drone bay inboard back wall'], rim,
+            bpy.data.objects['Drone bay rim lip']]
     for i, (x, y) in enumerate(((27, 25), (27, 12.0)), 1):
         z = _surface(seat, x, y)
         kit.box(f'Drone bay join lamp {i} housing', (x, y, z+.15), (1.1, 1.1, .5), kit.steel, .08)
