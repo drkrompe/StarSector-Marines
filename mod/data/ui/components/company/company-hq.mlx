@@ -1,66 +1,8 @@
-<template props="auxiliary,handover,firstRefitClasses,wingsClasses,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,deckForce,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,deckForce,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
-    <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">{i18n.openingUiCompanyHqAProperIssueChooseOneFreeWayline}</button>
-    <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">{i18n.openingUiCompanyHqSecondhandWingsCastleHasALeadOn}</button>
-    <button id="company-hq-auxiliary" class="{auxiliary.resumeClasses}" onclick="{auxiliary.open}">{auxiliary.resumeLabel}</button>
-    <button id="company-hq-handover" class="{handover.resumeClasses}" onclick="{handover.open}">{handover.resumeLabel}</button>
-
     <div id="company-hq-main" class="company-hq-main">
-      <div id="company-hq-sidebar" class="company-hq-sidebar">
-        <div id="company-hq-force" class="panel console-section sidebar-section force-section">
-          <div id="company-hq-force-header" class="label heading tone-edge section-header">{statusHeader}</div>
-          <div id="company-hq-stat-grid" class="stat-grid">
-            <div each="card in statusCards" key="{card.id}" id="{card.id}" class="{card.classes}">
-              <div id="{card.valueId}" class="label stat-value tone-accent">{card.value}</div>
-              <div id="{card.labelId}" class="label heading tone-edge">{card.label}</div>
-              <div id="{card.detailId}" class="label tone-muted stat-detail">{card.detail}</div>
-            </div>
-          </div>
-          <div id="company-hq-ship-actions" class="hq-ship-actions">
-          <button id="company-hq-ship" class="hq-ship-button console-action" onclick="{shipAction}">
-            <div id="company-hq-ship-label" class="label heading hq-ship-label">{shipLabel}</div>
-          </button>
-          <button id="company-hq-ship-view" class="{shipView.classes}" onclick="{shipViewAction}">
-            <div id="company-hq-ship-view-label" class="{shipView.labelClasses}">{shipView.label}</div>
-            <div id="company-hq-ship-view-track" class="{shipView.trackClasses}">
-              <div id="company-hq-ship-view-fill" class="hq-ship-fill" style="{shipView.fillStyle}" />
-            </div>
-          </button>
-        </div>
-        </div>
-
-        <div id="company-hq-finance" class="panel console-section sidebar-section finance-section">
-          <div id="company-hq-finance-header" class="label heading tone-edge section-header">{financeHeader}</div>
-          <div id="company-hq-runway" class="runway-block console-well">
-            <div id="company-hq-runway-value" class="{runwayClasses}">{runway}</div>
-            <div id="company-hq-runway-caption" class="label tone-muted">{runwayCaption}</div>
-          </div>
-          <div id="company-hq-finance-rows" class="info-list">
-            <div each="row in financeRows" key="{row.id}" id="{row.id}" class="info-row">
-              <div id="{row.labelId}" class="label tone-muted info-label">{row.label}</div>
-              <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-            </div>
-          </div>
-        </div>
-
-        <div id="company-hq-standing" class="panel console-section sidebar-section standing-section">
-          <div id="company-hq-standing-header" class="label heading tone-edge section-header">{standingHeader}</div>
-          <div id="company-hq-employers" class="employer-list">
-            <div each="employer in employers" key="{employer.id}" id="{employer.id}" class="employer-row">
-              <img id="{employer.crestId}" class="{employer.crestClasses}" src="{employer.crest}" />
-              <div id="{employer.copyId}" class="employer-copy">
-                <div id="{employer.nameId}" class="label employer-name">{employer.name}</div>
-                <div id="{employer.recordId}" class="label tone-muted employer-record">{employer.record}</div>
-              </div>
-              <div id="{employer.scoreId}" class="{employer.scoreClasses}">{employer.score}</div>
-            </div>
-          </div>
-          <div id="company-hq-employer-empty" class="label tone-muted empty-copy">{employerEmpty}</div>
-        </div>
-      </div>
-
       <div id="company-hq-board" class="panel console-section company-hq-board">
         <div id="company-hq-deck" class="command-deck">
           <canvas id="company-hq-deck-canvas" class="deck-canvas" width="1486" height="300" />
@@ -97,6 +39,19 @@
           <div id="company-hq-board-intro" class="label tone-muted">{boardIntro}</div>
         </div>
         <div id="company-hq-board-columns" class="board-columns">
+          <div id="company-hq-finance" class="board-column finance-column">
+            <div id="company-hq-finance-header" class="label heading tone-accent column-header">{financeHeader}</div>
+            <div id="company-hq-runway" class="runway-block console-well">
+              <div id="company-hq-runway-value" class="{runwayClasses}">{runway}</div>
+              <div id="company-hq-runway-caption" class="label tone-muted">{runwayCaption}</div>
+            </div>
+            <div id="company-hq-finance-rows" class="info-list">
+              <div each="row in financeRows" key="{row.id}" id="{row.id}" class="info-row">
+                <div id="{row.labelId}" class="label tone-muted info-label">{row.label}</div>
+                <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+              </div>
+            </div>
+          </div>
           <div id="company-hq-obligations" class="board-column obligations-column">
             <div id="company-hq-opening-guide" class="{openingGuide.classes}">
               <div id="company-hq-opening-heading" class="opening-heading">
@@ -121,6 +76,10 @@
               </button>
             </div>
             <div id="company-hq-obligations-header" class="label heading tone-accent column-header">{obligationsHeader}</div>
+            <div id="company-hq-letters" class="hq-letters">
+              <button id="company-hq-auxiliary" class="{auxiliary.resumeClasses}" onclick="{auxiliary.open}">{auxiliary.resumeLabel}</button>
+              <button id="company-hq-handover" class="{handover.resumeClasses}" onclick="{handover.open}">{handover.resumeLabel}</button>
+            </div>
             <div id="company-hq-obligation-list" class="post-list">
               <div each="post in obligations" key="{post.id}" id="{post.id}" class="{post.classes}">
                 <div id="{post.bodyId}" class="post-body">
@@ -270,15 +229,15 @@
   .handover-letter { width: 1120px; height: 500px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
   .handover-tab-current { border-color: #e6d28c; background-color: #34402f; }
   .aux-action { width: 0px; flex-grow: 1; height: 26px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
-  .hq-wings { height: 30px; width: 100%; text-align: left; padding: 4px 12px; font-family: heading; }
+  .hq-wings { height: 52px; width: 100%; flex-grow: 0; text-align: left; padding: 4px 8px; font-family: heading; white-space: normal; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
 .hq-debug-hidden { width: 0px; height: 0px; opacity: 0; pointer-events: none; }
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .command-deck { height: 300px; flex-grow: 0; overflow: hidden; border-width: 1px; border-color: #3a3424; background-color: #0b0c0a; }
+  .command-deck { height: 372px; flex-grow: 0; overflow: hidden; border-width: 1px; border-color: #3a3424; background-color: #0b0c0a; }
   .deck-canvas { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
-  .deck-caption { position: absolute; left: 0px; top: 228px; width: 100%; height: 72px; flex-direction: row; align-items: center; padding: 6px 14px; gap: 18px; background-color: #07090ad0; border-width: 0px; pointer-events: none; }
+  .deck-caption { position: absolute; left: 0px; top: 300px; width: 100%; height: 72px; flex-direction: row; align-items: center; padding: 6px 14px; gap: 18px; background-color: #07090ad0; border-width: 0px; pointer-events: none; }
   .deck-caption .hq-debug { pointer-events: auto; }
   .rating-block { flex-direction: column; width: 200px; gap: 3px; }
   .rating-value { height: 25px; font-family: title; }
@@ -290,35 +249,21 @@
   #company-hq-deck .deck-station:focus-visible .deck-station-label { opacity: 1; }
   .deck-pulse { border-color: #e6d28c; background-color: #2c2a1c; }
   .company-hq-main { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .company-hq-sidebar { flex-direction: column; width: 406px; gap: 10px; overflow: scroll; }
-  .sidebar-section { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; }
   .section-header { height: 18px; }
-  .force-section { height: 254px; }
-  .stat-grid { display: grid; flex-grow: 0; gap: 6px; overflow: hidden; height: 178px; }
-  .stat-card { flex-direction: column; width: 166px; height: 68px; padding: 8px; gap: 4px; border-width: 1px; background-color: #20282d; border-color: #526065; }
-  .stat-value { height: 22px; font-family: title; }
-  .stat-detail { height: 20px; white-space: normal; }
-  .finance-section { height: 230px; }
   .runway-block { flex-direction: column; height: 64px; padding: 6px 8px; gap: 2px; border-width: 2px; }
   .runway-value { height: 24px; font-family: title; overflow: hidden; }
   .info-list { flex-direction: column; flex-grow: 1; overflow: scroll; display: grid; gap: 8px; }
   .info-row { flex-direction: column; height: 42px; padding: 6px; border-width: 0px; border-color: #263b51; width: 174px; gap: 5px; }
   .info-label { flex-grow: 0; height: 18px; }
   .info-value { width: 100%; text-align: left; height: 22px; white-space: normal; }
-  .standing-section { height: 222px; }
-  .employer-list { flex-direction: column; flex-grow: 1; overflow: scroll; }
-  .employer-row { flex-direction: row; align-items: center; height: 40px; padding: 6px; gap: 8px; border-width: 0px; border-color: #263b51; }
-  .employer-name { width: 100%; flex-grow: 0; height: auto; white-space: normal; }
-  .employer-score { width: 38px; text-align: left; }
   .warrant-score { width: 70px; }
-  .employer-record { width: 100%; text-align: left; flex-grow: 0; height: auto; white-space: normal; }
   .company-hq-board { flex-direction: column; flex-grow: 1; padding: 9px; gap: 9px; border-width: 2px; overflow: hidden; }
   .board-heading { flex-direction: column; height: 38px; padding: 7px 9px; gap: 5px; border-width: 2px; }
   .board-columns { flex-direction: row; flex-grow: 1; gap: 10px; overflow: hidden; height: 0px; }
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
   .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #8c815d; height: 286px; flex-grow: 0; }
   .opening-unavailable { height: 320px; }
-  .opening-guide-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+  .opening-guide-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; overflow: hidden; opacity: 0; pointer-events: none; }
   .opening-contact { flex-direction: row; height: 64px; gap: 9px; align-items: center; }
   .opening-portrait { width: 64px; height: 64px; }
   .opening-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
@@ -329,6 +274,11 @@
   .opening-mission { font-family: title; height: auto; white-space: normal; }
   .opening-copy { height: auto; white-space: normal; }
   .obligations-column { width: 260px; }
+  .finance-column { width: 260px; }
+  .finance-column .info-row { width: 118px; }
+  .finance-column .runway-block { height: auto; }
+  .finance-column .runway-block .label { height: auto; white-space: normal; }
+  .hq-letters { flex-direction: column; height: auto; flex-grow: 0; gap: 6px; }
   .news-column { flex-grow: 1; width: 0px; gap: 10px; }
   .column-header { height: 20px; padding: 2px 3px; }
   .post-list { flex-direction: column; flex-grow: 1; gap: 10px; overflow: scroll; }
@@ -341,20 +291,7 @@
   .warning-surface { background-color: #332b1c; border-color: #ffd464; }
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
   .empty-copy { height: 22px; padding: 3px; }
-  .hq-ship-button { width: 100%; height: 30px; padding: 3px; border-width: 3px; border-color: #31485f; }
-  .hq-ship-waiting { border-color: #2d4250; background-color: #101a22; }
-  .hq-ship-waiting-label { color: #6f8797; }
-  .hq-ship-label { width: 100%; height: auto; text-align: center; white-space: normal; }
-  .hq-ship-track-idle { width: 100%; height: 4px; flex-direction: row; }
-  .hq-ship-track { width: 100%; height: 4px; flex-direction: row; background-color: #0c1620; }
-  .hq-ship-fill { height: 100%; background-color: #4d7ea0; }
-  .stat-card .heading { height: auto; white-space: normal; }
   #company-hq-board-intro { height: auto; white-space: normal; }
-  .hq-ship-actions { flex-direction: row; height: 42px; gap: 6px; }
-  .hq-ship-actions button { width: 0px; flex-grow: 1; }
-  .employer-crest { width: 40px; height: 40px; pointer-events: none; }
-  .employer-crest.crest-absent { width: 0px; height: 0px; }
-  .employer-copy { flex-direction: column; height: 40px; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
   .source-windows { flex-direction: row; height: 96px; gap: 7px; }
   .source-window { flex-direction: column; width: 0px; flex-grow: 1; height: 76px; padding: 6px; gap: 3px; border-width: 2px; overflow: hidden; }
   .source-label { height: 16px; width: 0px; flex-grow: 1; }
