@@ -62,6 +62,10 @@ hermes-surface/textures/
 hermes-surface/grading/
 hermes-surface/skin-manifest.json
 hound-surface/skin-manifest.json
+shepherd-surface/review/
+shepherd-surface/textures/
+shepherd-surface/grading/
+shepherd-surface/skin-manifest.json
 hound-export/**/*.blend
 hound-export/**/*.blend1
 hound-export/**/review/

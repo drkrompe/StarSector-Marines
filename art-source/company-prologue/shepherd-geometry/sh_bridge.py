@@ -201,9 +201,19 @@ def _pt(x, t, d=0.0):
     return Vector((x, y, z))
 
 
-def _strip(acc, xs, ts, d0, d1):
-    """A thin solid on the hull surface over stations xs and angles ts, d0..d1 off the skin."""
-    rows = [[_pt(x, t, d0) for t in ts] for x in xs]+[[_pt(x, t, d1) for t in ts] for x in xs]
+def _ty(x, y):
+    """Section angle at station x whose skin point lies at plan offset y."""
+    a = _profile(x)[0]
+    q = max(-1.0, min(1.0, (y-BRIDGE_CY)/a))
+    return math.acos(math.copysign(abs(q)**(SECTION_N/2), q))
+
+
+def _strip(acc, xs, ts, d0, d1, by_y=False):
+    """A thin solid on the hull surface over stations xs and angles ts, d0..d1 off the skin
+    (with by_y, ts are plan offsets: the solid's edges then run at constant Y)."""
+    def pt(x, t, d):
+        return _pt(x, _ty(x, t) if by_y else t, d)
+    rows = [[pt(x, t, d0) for t in ts] for x in xs]+[[pt(x, t, d1) for t in ts] for x in xs]
     nx, nt = len(xs), len(ts)
     verts = [p for row in rows for p in row]
 
@@ -275,29 +285,40 @@ def build(kit):
     _strip(seams, [x/2 for x in range(16, 50)], [deg(88.8), deg(91.2)], .06, .14)
     seams.build(kit, 'Bridge hull plating seams', kit.dark, 0)
 
-    # Bridge windscreen: framed panes on the raked forward face, wrapping round
-    # its shoulders - the dark band the sprite shows at X 27..28.5 and forward.
-    xs = [GLAZE_X[0]+(GLAZE_X[1]-GLAZE_X[0])*k/6 for k in range(7)]
-    bounds = [36, 52, 68, 84, 96, 112, 128, 144]
+    # Bridge windscreen: six flat panes across the raked forward face - the dark
+    # band the sprite shows at X 27..28.5 and forward. Pass 6 (owner: the windows
+    # looked wonky with the ribbon angling): panes and mullions are laid out at
+    # constant plan Y rather than constant section angle, so every mullion reads
+    # vertical from ahead and straight from above, and each pane is one flat
+    # facet. The glass stops at the shoulders (the wing windows carry the flanks)
+    # instead of wrapping down them.
+    xs = [GLAZE_X[0]+(GLAZE_X[1]-GLAZE_X[0])*k/2 for k in range(3)]
+    half = 4.5
+    bounds = [BRIDGE_CY-half+2*half*k/6 for k in range(7)]
+    mw = .13                                                 # mullion half-width
     panes, frame = _Acc(), _Acc()
-    for a0, a1 in zip(bounds, bounds[1:]):
-        _strip(panes, xs, [deg(a0+1.4+(a1-a0-2.8)*k/4) for k in range(5)], -.02, .06)
-    fx = [GLAZE_X[0]-.18+(GLAZE_X[1]-GLAZE_X[0]+.36)*k/6 for k in range(7)]
-    for a in bounds:                                         # mullions, the end ones the jambs
-        _strip(frame, fx, [deg(a-1.4), deg(a+1.4)], 0, .18)
+    for y0, y1 in zip(bounds, bounds[1:]):
+        _strip(panes, xs, [y0+mw, y1-mw], .04, .11, by_y=True)
+    fx = [GLAZE_X[0]-.18+(GLAZE_X[1]-GLAZE_X[0]+.36)*k/2 for k in range(3)]
+    for y in bounds:                                         # mullions, the end ones the jambs
+        w = mw*(1.6 if y in (bounds[0], bounds[-1]) else 1)
+        _strip(frame, fx, [y-w, y+w], 0, .18, by_y=True)
+    rail = [bounds[0]-mw*1.6+(2*half+mw*3.2)*k/14 for k in range(15)]
     for x in (GLAZE_X[0]-.12, GLAZE_X[1]+.1):                # head and sill rails
-        _strip(frame, [x-.14, x+.14], [deg(bounds[0]-1.4+k*(bounds[-1]-bounds[0]+2.8)/14) for k in range(15)], 0, .2)
+        _strip(frame, [x-.14, x+.14], rail, 0, .2, by_y=True)
     panes.build(kit, 'Bridge glazing band', glass, 0)
     frame.build(kit, 'Bridge glazing frame', kit.grey, .02)
     # Brow visor: an eyebrow of hull plating standing out over the head of the
-    # windscreen, its lip carried a little forward to shade the glass.
+    # windscreen, its lip carried a little forward to shade the glass; it runs
+    # a little past the jambs, square-ended at constant Y like the glazing.
     brow = _Acc()
-    _strip(brow, [RAKE_X[0]-.7, RAKE_X[0]-.15], [deg(38+k*104/16) for k in range(17)], 0, .22)
-    _strip(brow, [RAKE_X[0]-.15, RAKE_X[0]+.3], [deg(40+k*100/16) for k in range(17)], .1, .32)
+    by = [BRIDGE_CY-half-.6+(2*half+1.2)*k/16 for k in range(17)]
+    _strip(brow, [RAKE_X[0]-.7, RAKE_X[0]-.15], by, 0, .22, by_y=True)
+    _strip(brow, [RAKE_X[0]-.15, RAKE_X[0]+.3], by[1:-1], .1, .32, by_y=True)
     brow.build(kit, 'Bridge brow visor', kit.tan, .03)
     # Wiper park and washer rail along the sill.
     sill = _Acc()
-    _strip(sill, [RAKE_X[1]+.05, RAKE_X[1]+.35], [deg(38+k*104/12) for k in range(13)], 0, .14)
+    _strip(sill, [RAKE_X[1]+.05, RAKE_X[1]+.35], rail, 0, .14, by_y=True)
     sill.build(kit, 'Bridge windscreen sill rail', kit.steel, 0)
     # Bridge wing windows on each flank just aft of the windscreen.
     side, sframe = _Acc(), _Acc()
