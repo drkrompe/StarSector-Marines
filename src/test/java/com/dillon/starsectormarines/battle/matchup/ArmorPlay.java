@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngagement;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
@@ -33,9 +34,9 @@ import java.util.TreeMap;
  *
  * <p>Every attacking machine is brought into range the way a player brings it: every {@link #STEER_EVERY_TICKS} it is
  * given a move order to a standoff point at 70% of its longest gun's reach off the nearest living enemy, and left
- * alone once it is inside 85% of that reach (a mech: anywhere inside its reach), unless it then stands a whole pass
- * without firing, when it is brought closer. A mech is brought closer only when it has no line of sight to the enemy:
- * one in sight may be cooling, turning, or holding a duel band on purpose. A lone mech would otherwise sit out the fight under its own doctrine (an
+ * alone once it is inside 85% of that reach (a mech, or a hull that engages on its own: anywhere inside its reach),
+ * unless it then stands a whole pass without firing, when it is brought closer. Such a machine is brought closer only
+ * when it has no line of sight to the enemy: one in sight may be cooling, turning, or holding a duel band on purpose. A lone mech would otherwise sit out the fight under its own doctrine (an
  * armored-support Bulwark with nobody to pace holds where it lands), and a hull has no tactical brain at all. Inside
  * range everything is the production game: mech doctrine and targeting, vehicle turrets acquiring on their own.
  * Attacking lances carry no mission of their own ({@link #MECH_ORDER}): once the steering has brought one into reach,
@@ -404,7 +405,9 @@ public final class ArmorPlay {
                 float dy = at[1] - target[1];
                 float distance = (float) Math.hypot(dx, dy);
                 // A mech is left to its doctrine anywhere inside its reach; a hull, which has none, inside 85% of it.
-                boolean steeredLikeAHull = b.vehicle || LEGACY_MECH_ORDER;
+                // A hull fights armor on its own once in reach (VehicleEngagement); with that off it has no brain
+                // and is steered all the way in, as before.
+                boolean steeredLikeAHull = b.vehicle && !VehicleEngagement.isEnabled() || LEGACY_MECH_ORDER;
                 float leaveAlone = steeredLikeAHull ? reach * CLOSE_ENOUGH * closer(b) : reach * closer(b);
                 if (reach > 0f && distance <= leaveAlone) {
                     // In range: leave it to its doctrine and turret, unless it has stood there a whole pass without

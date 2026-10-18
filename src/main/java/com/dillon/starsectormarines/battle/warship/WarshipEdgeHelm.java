@@ -20,7 +20,9 @@ package com.dillon.starsectormarines.battle.warship;
  * </ul>
  * A centre that crosses the edge anyway is held on it ({@link #contain}); that is the backstop, not the behaviour.
  *
- * <p>A ship deliberately crossing an edge is exempt: one flying in across its side's approved edge
+ * <p>It is a rule of the hull fight: it applies to a ship its own helm is flying against hulls, never to one holding a
+ * station someone chose for it (a mission's, a power's, a remote order's, an escort's place in the screen line), which
+ * keeps the place it was given. A ship deliberately crossing an edge is exempt: one flying in across its side's approved edge
  * ({@link Warship#enteringAcrossEdge}) until it has cleared its margin, and one leaving; an escort whose charge is
  * leaving screens it to the margin and follows it out once it has gone. So is everything placed
  * rather than flown: a route or lift run, a low pass or low hover, a berthed hull, a pilot's helm, and every craft of
@@ -75,7 +77,16 @@ public record WarshipEdgeHelm(float width, float height) {
     public static boolean applies(Warship ship) {
         return ENABLED && !ship.fighterSize() && !ship.destroyed() && !ship.departing() && !ship.berthed()
                 && !ship.enteringAcrossEdge() && !ship.piloted() && !ship.isPassingThrough()
-                && ship.lowPass() == null && !ship.lowHovering();
+                && ship.lowPass() == null && !ship.lowHovering() && fightingHulls(ship);
+    }
+
+    /**
+     * Whether the ship's own helm has it: fighting a hull with its duel helm, or flying a manoeuvre. A ship holding a
+     * station its mission or a power gave it, an escort keeping its place in the screen, a remote order: those are
+     * places someone chose, and the pressure does not move a ship off them.
+     */
+    private static boolean fightingHulls(Warship ship) {
+        return (ship.hullTarget() != null && ship.duelHelm()) || ship.manoeuvring();
     }
 
     /**

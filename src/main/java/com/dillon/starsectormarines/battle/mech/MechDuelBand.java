@@ -120,6 +120,14 @@ public final class MechDuelBand {
      * band: nothing is gained by walking up to it.
      */
     public static Band choose(List<Weapon> own, List<Weapon> threat, MechRole role) {
+        return choose(own, threat, closeBias(role));
+    }
+
+    /**
+     * The same choice for a machine without a mech role, such as a vehicle's turret: {@code closeBias} is how
+     * much better a shorter band's trade must be before it closes ({@link #closeBias(MechRole)}).
+     */
+    public static Band choose(List<Weapon> own, List<Weapon> threat, float closeBias) {
         float reach = reach(own);
         if (reach <= 0f) return null;
         float threatReach = reach(threat);
@@ -131,7 +139,7 @@ public final class MechDuelBand {
 
         float longSample = reach * SAMPLE_FRACTION;
         float longTrade = trade(own, threat, longSample);
-        float bias = closeBias(role);
+        float bias = closeBias;
         float bestSample = -1f;
         float bestTrade = longTrade * bias;
         for (Weapon w : own) {

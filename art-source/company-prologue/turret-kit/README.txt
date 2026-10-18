@@ -19,8 +19,9 @@ What a turret gives a shot
   - Train: rotate the pivot (the hull's own empty) about its local Z.
   - Elevate: rotate '<prefix> elevation' about its local Y (negative lifts).
   - Recoil: slide '<prefix> recoil <k>' along its local -X (one per barrel,
-    as the game's separate recoil sprite layer). A gatling's barrels spin on
-    '<prefix> rotor' about its local X.
+    as the game's separate recoil sprite layer). The Vulcan's two barrels
+    recoil alternately, as vulcan.wpn fires them (ALTERNATING). A gatling
+    (gun='gatling', no catalogue entry uses it now) spins on '<prefix> rotor'.
   - '<prefix> muzzle anchor <k>' at each bore or launcher cell, +X along the
     line of fire, for muzzle flash and projectile VFX.
   - One object per material per moving group: about 7-8 objects and
@@ -46,17 +47,27 @@ Scale
   vents, bolts. detail='mid' drops everything under about 0.4 m, for shots
   from a kilometre or more.
 
-Catalogue (WEAPONS)
-  dome mounts  vulcan (six-barrel rotary), lightac, lightmg, none (plain gun)
-  gunhouses    heavyac, heavymauler, hveldriver, devastator, mark9, hellbore,
-               hephaestus, needler (six-barrel block)
-  flak         flak, dualflak (low house with sight frames)
-  launchers    squall, harpoonpod, sabotpod, salamanderpod (open rails),
-               pilum, typhoon, annihilatorpod (tubes), hurricane (fork).
-               Built from the game's layered sprites: the rack is drawn with
-               its loaded missiles (RENDER_LOADED_MISSILES), so the missiles
-               lie on rails along the line of fire, behind a magazine housing,
-               on a yoke with elevation rams.
+Built from the game's sprites (house='hand')
+  Fifteen turrets are hand-built from their own sprites: vulcan, lightac,
+  lightmg, heavyac, heavymauler, hveldriver, devastator, mark9, hellbore,
+  hephaestus, needler, flak, dualflak, squall, hurricane. Each builder in
+  HANDS reads the sprite's measurements (sprite_outlines.json) and works in
+  sprite pixels times k = ring / nominal ring (SMALL 5.5, MEDIUM 9.5, LARGE
+  12.5), so at the nominal ring one pixel is one hull unit and the model
+  covers its sprite from above. The sprite's dark pixels are gaps and shadow
+  between parts, so they are built as depth (slots, recesses, louvres), never
+  painted on. Paints come from the sprite's colours, with per-entry `paints`
+  overrides where the measured colour is wrong. Barrels are lathed from the
+  recoil sprite's width profile, its dark rows as grooves (barrel_scale and
+  muzzle_ring per house); a builder may build its own gun group instead.
+  derive_sprites.py (system Python + PIL) rewrites sprite_outlines.json from
+  the installed game's .wpn files and sprites: outlines, barrels, colours,
+  offsets, render hints.
+
+Other catalogue entries (WEAPONS)
+  none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open
+  rails), pilum, typhoon, annihilatorpod (tubes): the rack is drawn with its
+  loaded missiles (RENDER_LOADED_MISSILES), on a yoke with elevation rams.
   Not yet: hardpoints (fixed mounts) and energy weapons; the Onslaught's
   built-in TPCs stay in os_turrets.
 
@@ -64,6 +75,17 @@ Review
   blender --background --factory-startup --python catalog.py -- --out DIR
   renders catalog-overview.png and a close three-quarter per weapon, studio
   lit, 1920x1080 (--only a,b to pick, --mpu, --detail).
+
+The gauntlet (each turret, against its sprite)
+  catalog.py ... --top adds an orthographic top view and a starboard side
+  view of each turret alone on transparent film, trained dead ahead.
+  python review_sheet.py DIR [--only a,b] then writes DIR/<w>-sheet.png
+  (1920x1080: the sprite composited as the game layers it, the top view at
+  the same scale with its silhouette IoU against the sprite's alpha, the side
+  view, the three-quarter) and iou.json. An independent reviewer judges each
+  sheet on silhouette (IoU 0.85 or better), parts, barrels, paint, form (no
+  floating parts, no painted-on detail) and finish, and lists the geometric
+  fixes; apply them and render again until it passes.
 
 Users
   legion-geometry (lg_turrets). Lasher, Onslaught, Hermes, Hound and Second

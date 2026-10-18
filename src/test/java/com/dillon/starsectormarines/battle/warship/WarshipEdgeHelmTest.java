@@ -24,10 +24,24 @@ class WarshipEdgeHelmTest {
         InstalledVanillaData.install();
     }
 
+    /** A Hound fighting a hull with its duel helm: the edge pressure is a rule of the hull fight. */
     private static Warship hound(float x, float y) throws Exception {
         Warship ship = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, x, y, 0f);
         ship.stationTo(x, y);
+        fighting(ship);
         return ship;
+    }
+
+    private static void fighting(Warship ship) throws Exception {
+        ship.duelHelm(true);
+        ship.hullTarget(Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, 0f, 0f, 0f));
+    }
+
+    @Test
+    void aShipHoldingAStationItWasGivenIsLeftOnIt() throws Exception {
+        Warship placed = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, 5f, 116f, 0f);
+        placed.stationTo(5f, 116f);
+        assertFalse(WarshipEdgeHelm.applies(placed), "a mission's station near the edge is the mission's");
     }
 
     @Test
@@ -87,6 +101,7 @@ class WarshipEdgeHelmTest {
         wolf.x += 0.5f * wolf.lengthCells + MAP.margin(wolf) + 1f - wolf.centerX();
         wolf.tickEdgeEntry(1f / 30f, MAP);
         assertFalse(wolf.enteringAcrossEdge(), "clear of its margin");
+        fighting(wolf);
         assertTrue(WarshipEdgeHelm.applies(wolf));
         assertThrows(IllegalArgumentException.class, () -> Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk",
                 Faction.ALLY, 0f, 0f, 0f).enterAcrossEdge(MapEdge.WEST, 90f, 90f, 300f, 232f));

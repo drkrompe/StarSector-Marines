@@ -1749,17 +1749,20 @@ for one mission:
 - **A fight between ships goes where the fighting takes it, and is kept off the map's
   edges by a soft pressure** (owner, 2026-10-18). No mission declares an area for it: the
   fight may drift over the ground battle as readily as over open ground. Every hull frigate-
-  sized and up wants a band of clear air between its hull and each edge, its **edge
+  sized and up that its own helm is flying against hulls (on its duel helm or a manoeuvre),
+  in every mission, wants a band of clear air between its hull and each edge, its **edge
   margin**: the larger of its tightest turning circle and one and a half of its own lengths,
   never more than a fifth of the map's shorter side, so a small map keeps a middle. The
-  stations a ship fighting hulls or screening chooses are kept out of the band, and its
+  duel, bow, manoeuvre and interposing-escort stations it chooses are kept out of the band, and its
   course is pressed away from an edge as it nears one (`WarshipEdgeHelm`): the pressure
   starts at the margin and grows to the edge, reads where the hull will be once it has
   stopped closing the edge at its own acceleration (so a heavy hull coming in fast turns
   away early), sheds the way toward the edge before pushing back in (so a ship running
   along the band keeps its way along it), and comes after keeping clear of other hulls,
   since an edge cannot be shouldered aside as a hull can; a manoeuvre's bow comes round
-  onto the course it leaves. A centre that crosses an edge anyway is held on it. Exempt:
+  onto the course it leaves. A centre that crosses an edge anyway is held on it. A ship
+  holding a station someone chose (a mission's, a called ship's, a remote order's, an
+  escort's place in the screen line) keeps it: those are places, not a fight. Exempt too:
   a hull deliberately crossing its side's edge (flying in until it has cleared its margin,
   or leaving), and everything placed rather than flown (a route or lift run, a low pass or
   low hover, a berthed hull, a pilot's helm, every craft of fighter size).

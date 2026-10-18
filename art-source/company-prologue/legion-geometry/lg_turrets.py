@@ -110,21 +110,23 @@ def build(kit):
         sid = slot['id']
         x, y = slot['location']
         r = RING[slot['size']]
-        # Seat on the highest surface under the ring, not only at its centre: the
-        # sprite puts several small mounts on the orange belts, and seating them
-        # on the deck beside a belt made the clash check lift them 5-7 units.
+        # Seat on the highest surface under the ring: the sprite puts several small
+        # mounts on the orange belts, whose barrels lie across the belt at rest, so
+        # seating them on the deck only made the clash test lift them back up. The
+        # part of the barbette below the seat is a belt-coloured bastion (plinth),
+        # so the belt carries the mount instead of a tall grey stalk.
         hits = [kit.surface(x+.6*r*math.cos(k*math.pi/4), y+.6*r*math.sin(k*math.pi/4), top=120) for k in range(8)]
         hits = [h for h in hits+[kit.surface(x, y, top=120)] if h]
         seat = max(h[0].z for h in hits) if hits else 10.0
         # The foot runs down to the lowest surface under the whole flange, so a
         # mount seated on a belt still stands on the deck beside it, never floats.
         under = [kit.surface(x+f*r*math.cos(k*math.pi/8), y+f*r*math.sin(k*math.pi/8), top=120)
-                 for f in (.6, .9, 1.12) for k in range(16)]
+                 for f in (.6, .9, 1.12, 1.4, 1.68) for k in range(16)]
         low = min([h[0].z for h in under if h] or [seat])
         foot = max(2+.35*r, seat-low+.6)
         # Where the ring overhangs the hull's edge (rays that meet nothing), the
         # barbette stands on a sponson tub that tapers into the side wall.
-        edge = [(k, h) for k, h in enumerate(under[16:]) if not h]
+        edge = [(k, h) for k, h in enumerate(under[16:48]) if not h]
         sponson, sponson_dir = 0.0, 0.0
         if edge:
             sponson = 1.1*r
@@ -143,7 +145,7 @@ def build(kit):
         reach = 3.2*r
         others = {n: v for n, v in cache.items() if not n.startswith(mine)
                   and v[1].x <= x+reach and v[2].x >= x-reach and v[1].y <= y+reach and v[2].y >= y-reach}
-        for _ in range(10):
+        for _ in range(40):
             barbette = _barbette(kit, f'Weapon {sid} barbette', x, y, seat, lift, r, foot, sponson, sponson_dir)
             pivot = kit.empty(f'Weapon {sid} pivot', (x, y, seat+lift), slot['angle'])
             parts, extras = _trainable(kit, slot, pivot, r)
@@ -152,9 +154,9 @@ def build(kit):
             if not bad:
                 break
             print(f'turret {sid}: lift {lift:.2f} clashes {bad}')
-            for ob in [barbette, pivot] + parts + extras:   # clash: lift the barbette, never move the slot
+            for ob in [barbette, pivot] + list(barbette.children) + parts + extras:   # clash: lift the barbette, never move the slot
                 bpy.data.objects.remove(ob, do_unlink=True)
-            lift += 1.5
+            lift += .4
         # Arc sweep (report only): which trained angles would put the turret into something.
         a0 = slot['angle']-slot['arc']/2
         sweep = [a0+slot['arc']*i/16 for i in range(17)]
@@ -164,6 +166,7 @@ def build(kit):
         bpy.context.view_layer.update()
         PIVOT_Z[sid] = seat+lift
         kit.hull.append(barbette)
+        kit.hull.extend(ch for ch in barbette.children if ch.type == 'MESH')
         print(f"turret {sid}: seat {seat:.2f} lift {lift:.2f} foot {foot:.2f} sponson {sponson:.2f} parts {len(parts)} "
               f"arc clashes {ARC_REPORT[sid]['clash_angles']}")
 

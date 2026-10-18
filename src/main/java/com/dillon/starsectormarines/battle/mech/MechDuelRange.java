@@ -260,7 +260,7 @@ public final class MechDuelRange {
     }
 
     /** Installed weapons that can still fire. */
-    static List<Weapon> ownWeapons(MechLoadoutComponent loadout) {
+    public static List<Weapon> ownWeapons(MechLoadoutComponent loadout) {
         List<Weapon> out = new ArrayList<>(3);
         for (MechWeaponMount mount : loadout.mounts()) {
             if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) {
