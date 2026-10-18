@@ -1,0 +1,59 @@
+{
+ "part": "lance-side-stbd",
+ "sheet": "hull-low",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.99,
+ "raw_iou": 0.9491,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9802,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9491
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00383,
+    1.04762
+   ],
+   "offset_px": [
+    -1.24,
+    -12.71
+   ],
+   "iou": 0.9717
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00383,
+    1.05112
+   ],
+   "offset_px": [
+    -1.24,
+    -12.71
+   ],
+   "iou": 0.9802
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.05,
+  "p95_px": 2.0,
+  "max_px": 3.16
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.39,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

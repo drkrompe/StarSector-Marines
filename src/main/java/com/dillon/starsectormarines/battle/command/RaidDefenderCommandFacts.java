@@ -19,7 +19,7 @@ public record RaidDefenderCommandFacts(
         RaidObjective.TargetAlarm alarm = objective.defenderAlarm();
         return new RaidDefenderCommandFacts(objective.targetId(),
                 objective.targetName(), objective.targetCellX(),
-                objective.targetCellY(), objective.targetZoneId(),
+                objective.targetCellY(), objective.targetZoneId(sim),
                 objective.targetSecured(), alarm.active(), alarm.raisedTick());
     }
 }

@@ -1,0 +1,59 @@
+{
+ "part": "bay-block-port",
+ "sheet": "bay",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 1.0,
+ "raw_iou": 0.988,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9995,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.988
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00602,
+    1.00454
+   ],
+   "offset_px": [
+    -2.25,
+    -1.16
+   ],
+   "iou": 0.9967
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00602,
+    1.00454
+   ],
+   "offset_px": [
+    -1.75,
+    -0.66
+   ],
+   "iou": 0.9995
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.54,
+  "p95_px": 1.0,
+  "max_px": 1.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.02,
+  "p95_px": 0.0,
+  "max_px": 1.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

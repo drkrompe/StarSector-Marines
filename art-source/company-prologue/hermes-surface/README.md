@@ -1,6 +1,6 @@
 # Hermes: surfacing
 
-Status: ACTIVE — round 1 (base skin on every face, light service wear) is with the owner for review.
+Status: SHIPPED — round 1 (base skin on every face, light service wear) accepted by the owner 2026-10-18. The cinematic export is `hermes-cinematic/`.
 Written: 2026-10-18
 
 The Hermes's folder for the shared surfacing harness
