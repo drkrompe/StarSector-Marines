@@ -144,6 +144,8 @@ import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
+import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
+import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
@@ -492,6 +494,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.logistics.ResupplyService resupply =
             new com.dillon.starsectormarines.battle.logistics.ResupplyService();
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
+    private final SupplyTruckSystem supplyTrucks;
+    private final ScoutSight scoutSight = new ScoutSight();
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
     /** Opt-in battle-long perspective/referee diagnostic stream. */
@@ -1141,8 +1145,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 for (long nest : fort.nestIds()) sink.accept(nest);
             }
         });
+        this.commanderInfluence.setSightingWatch(scoutSight::forEachSighting);
         this.resupplySystem = new com.dillon.starsectormarines.battle.logistics.ResupplySystem(
                 resupply, rosterService);
+        this.supplyTrucks = new SupplyTruckSystem(resupply);
         // The entity world + component registrations are owned by the roster
         // service (allocate is the spawn seam that adopts ids into the world); the
         // sim aliases them for its tick barrier + getters.
@@ -1857,6 +1863,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
+
+    /** What this battle's scout cars saw on the last tick. */
+    public ScoutSight scoutSight() { return scoutSight; }
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
@@ -2816,6 +2825,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
         navigation.rebuildSpatialIndices(rosterService);
+        // A scout car's mast reports against the index just rebuilt: to the fog's next vision pass and to the
+        // commander's next capture.
+        scoutSight.tick(convoy(), rosterService, unitIndex, grid, fogOfWar);
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
@@ -3206,6 +3218,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
+        // A supply truck's stock is a cache that rides it: move it to where the truck stands before service.
+        supplyTrucks.tick(convoy());
         resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
         rescuePickupSupport.tick(TICK_DT, this);

@@ -45,11 +45,21 @@ public final class CommanderInfluenceService implements AutoCloseable {
         void forEachGun(LongConsumer sink);
     }
 
+    /**
+     * Hostile bodies a side's observers that belong to no squad have in sight this tick — a scout car's mast. They
+     * reach the commander as direct contacts reported by nobody's squad, as a fort gun's target does.
+     */
+    @FunctionalInterface
+    public interface SightingWatch {
+        void forEachSighting(Faction side, LongConsumer sink);
+    }
+
     private final NavigationGrid grid;
     private final UnitRosterService roster;
     private final LongSupplier topologyRevision;
     private final CasualtyMemory casualties;
     private GunWatch gunWatch = sink -> { };
+    private SightingWatch sightingWatch = (side, sink) -> { };
     private int captureTick;
     private InfluenceTopology cachedTopology;
     private long cachedTopologyRevision = Long.MIN_VALUE;
@@ -311,6 +321,11 @@ public final class CommanderInfluenceService implements AutoCloseable {
         this.gunWatch = Objects.requireNonNull(watch, "watch");
     }
 
+    /** Installs the squadless observers whose sightings are reported; the simulation hands over its scout cars. */
+    public void setSightingWatch(SightingWatch watch) {
+        this.sightingWatch = Objects.requireNonNull(watch, "watch");
+    }
+
     public Metrics metrics() {
         return new Metrics(worker != null, submitted, completed.get(), published,
                 discarded, failed, workerNanos.get(), maxWorkerNanos.get(),
@@ -381,6 +396,18 @@ public final class CommanderInfluenceService implements AutoCloseable {
             }
             CommanderContact candidate = new CommanderContact(target, world.cellX(target), world.cellY(target),
                     captureTick, 1f, commandStrength(identity.type(target)), BeliefSource.DIRECT, -1);
+            CommanderContact old = merged.get(target);
+            if (old == null || prefer(candidate, old)) merged.put(target, candidate);
+        });
+        // A scout's mast sees what it sees whether or not any squad does; that is what it is for.
+        sightingWatch.forEachSighting(faction, target -> {
+            if (!roster.isLive(target) || !faction.hostileTo(identity.faction(target))
+                    || !identity.type(target).combatant) {
+                return;
+            }
+            CommanderContact candidate = new CommanderContact(target, world.cellX(target), world.cellY(target),
+                    captureTick, 1f, commandStrength(identity.type(target)), BeliefSource.DIRECT, -1,
+                    identity.type(target).isTurret());
             CommanderContact old = merged.get(target);
             if (old == null || prefer(candidate, old)) merged.put(target, candidate);
         });

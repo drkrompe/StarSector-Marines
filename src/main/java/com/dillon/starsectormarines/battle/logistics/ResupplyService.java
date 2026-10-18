@@ -13,6 +13,14 @@ public final class ResupplyService {
         if (cache != null) caches.add(cache);
     }
 
+    /** The cache riding {@code carrierId}, or {@code null} if that vehicle carries none. */
+    public ResupplyCache carriedBy(long carrierId) {
+        for (ResupplyCache cache : caches) {
+            if (cache.carrierId == carrierId) return cache;
+        }
+        return null;
+    }
+
     public List<ResupplyCache> caches() {
         return Collections.unmodifiableList(caches);
     }
