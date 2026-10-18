@@ -425,8 +425,9 @@ def build(kit):
     lamp.cyl((mx, my, roof+5.1), (0, 0, 1), .2, .12, 8)
     lamp.build(kit, 'Mast bridge masthead lamp', white, 0)
 
-    # Navigation lamps either side of the nose, under the brow.
-    for side, t, mat in (('port green', deg(52), green), ('starboard red', deg(128), red)):
+    # Navigation lamps either side of the nose, under the brow: red to port, green
+    # to starboard (owner: the navigation convention, not the sprite's swap).
+    for side, t, mat in (('port red', deg(52), red), ('starboard green', deg(128), green)):
         c = _pt(RAKE_X[1]+.75, t, 0)
         nrm = (_pt(RAKE_X[1]+.75, t, 1)-c).normalized()
         house = _Acc()

@@ -2,6 +2,7 @@
 
 Status: ACTIVE — all five fighters surfaced (service livery), waiting on owner review.
 Written: 2026-10-18
+Updated: 2026-10-18 — Dagger, Talon, Longbow and Thunder re-surfaced on the pass-3 rework (bent wings, landing gear).
 
 One folder per fighter for the shared surfacing harness
 (`../second-wind-surface/`, run with `--hull <folder>`; its README holds the
@@ -23,6 +24,14 @@ Shared here:
   claims only the panel it lands in; each part's members are a grid of seeds
   over the object's face toward the view (`groups/hull.py`, `_grid`). Groove
   floors are claimed with their panels and Codex paints them as fine seams.
+- **Bent after build.** The pass-3 rework bends wings and folds per vertex
+  after detail, so a face that crosses a bend is out of plane. Its fighter
+  sets `SHEARED_FACES` in `surface_hull.py`, and part selection then tests
+  visibility against the very triangles it samples; along the other diagonal a
+  whole folded Longbow arm read as hidden. Planar hulls keep the old test.
+- **Landing gear takes swatches.** Legs, runners, wheels and pads are built in
+  the kit's steel, bright and dark materials and belong to no part, so they
+  take the graded class swatches.
 - **Glass keeps its own material.** The swatch grader scales a coloured
   class's chroma about its source square, and no square is cyan, so a graded
   glass swatch came back neutral grey. Canopies, sensor windows and lamps keep
@@ -34,16 +43,17 @@ Livery off `fighter-upres/talon/master-v3.png`: red enamel armour over mid grey
 worn steel structure, polished steel rings and lips, near-black recesses and
 grilles. Light `service` wear (`wear.json`), heavier soot at the drive drums.
 
-- **Finish reference**: one Codex reskin of the three-quarter camera,
-  registered at IoU 0.993. Red and steel are measured off it; the steel's
+- **Finish reference**: one Codex reskin of the three-quarter camera (the
+  reshaped hull on its sled runners), registered at IoU 0.995. Red and steel are measured off it; the steel's
   spread is owned (the measured one is shading across the drums), bright and
   dark are owned (63 and 938 px on the reference, edge-contaminated).
 - **Parts**: one group, two sheets, 8 sources and 1 reuse (the starboard wing
   mirrors the port wing; the model is symmetric about Y = 1 there). Fitted
-  IoU 0.986-1.000; every declared region held its family (red 99%+, the stern
-  steel 100% neutral). 18-75 texels per unit.
+  IoU 0.981-1.000; the red held its family at 99%+ and the stern steel at
+  100%. One 763 px dark strip on the belly read 58% in family and was graded
+  back to its class. 18-72 texels per unit.
 - **Swatches**: one sheet of four squares (red, steel, bright, dark), graded
-  within 0.6 dE, 4 hull units (2.2 m) per image.
+  within 0.5 dE, 4 hull units (2.2 m) per image.
 - 4 Codex generations in all, no retries.
 
 Coverage at 1920x1080 (part skin / swatch / textured):
@@ -75,9 +85,14 @@ model is symmetric (arms, cans, pods, prongs, tip fins, flanks).
 | Fighter | Livery (master) | Reference IoU | Sources / reuses | Tile IoU | Lowest family share | Min texels/unit |
 |---|---|---|---|---|---|---|
 | Wasp | grey-blue over dark gunmetal (`master-v2`) | 0.944 | 8 / 5 | 0.970-0.997 | 0.92 | 24.4 (belly) |
-| Dagger | pale blue-grey, cream torpedo (`master-v2`) | 0.987 | 8 / 2 | 0.956-0.999 | 0.82 | 16.2 (belly) |
-| Longbow | light blue-grey over dark webs (`master-v2`) | 0.987 | 8 / 4 | 0.959-0.999 | 0.95 | 12.2 (belly) |
-| Thunder | sand khaki over dark steel (`master-v1`) | 0.984 | 8 / 2 | 0.980-0.997 | 0.89 | 16.3 (belly) |
+| Dagger | pale blue-grey, cream torpedo (`master-v2`) | 0.986 | 8 / 2 | 0.928-0.999 | 0.74 | 16.2 (belly) |
+| Longbow | light blue-grey over dark webs (`master-v2`) | 0.994 | 8 / 4 | 0.969-0.998 | 0.94 | 12.0 (belly) |
+| Thunder | sand khaki over dark steel (`master-v1`) | 0.991 | 8 / 2 | 0.981-0.993 | 0.84 | 16.3 (belly) |
+
+The Dagger, Longbow and Thunder rows are the pass-3 rework (re-surfaced
+2026-10-18); the Wasp's shape did not change. The Dagger's lowest share is the
+dark grilles on its drive block (74%); its armour held 93%+. Its two flank
+tiles are thin strips Codex drew slightly fuller, fitted at 0.928.
 
 The Wasp's reference registered lower because Codex framed the drone slightly
 larger; the measured blue and steel are taken from eroded masks and held.
@@ -89,10 +104,11 @@ Coverage at 1920x1080 (part skin / swatch / textured), quick review pass:
 
 | View | Wasp | Dagger | Longbow | Thunder |
 |---|---|---|---|---|
-| three-quarter | 42 / 56 / 98% | 51 / 46 / 97% | 40 / 57 / 98% | 49 / 47 / 96% |
-| starboard-quarter | 44 / 54 / 98% | 53 / 44 / 97% | 42 / 55 / 98% | 53 / 44 / 97% |
-| port-aft-quarter | 40 / 58 / 98% | 49 / 48 / 97% | 40 / 57 / 98% | 47 / 50 / 97% |
-| top | 51 / 47 / 98% | 64 / 33 / 97% | 57 / 41 / 97% | 62 / 35 / 97% |
+| three-quarter | 42 / 56 / 98% | 49 / 48 / 97% | 41 / 57 / 98% | 48 / 48 / 96% |
+| starboard-quarter | 44 / 54 / 98% | 53 / 44 / 97% | 41 / 56 / 98% | 52 / 44 / 97% |
+| port-aft-quarter | 40 / 58 / 98% | 48 / 49 / 97% | 40 / 57 / 98% | 45 / 51 / 97% |
+| top | 51 / 47 / 98% | 63 / 34 / 97% | 57 / 41 / 97% | 62 / 35 / 97% |
+| under-quarter | | 66 / 34 / 99% | 42 / 57 / 99% | 65 / 34 / 99% |
 
 The untextured remainder is glass (canopies, lamps, sensor windows), which
 keeps its own material.

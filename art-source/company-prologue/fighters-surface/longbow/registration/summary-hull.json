@@ -1,82 +1,82 @@
 {
  "fuselage-top": {
-  "raw_iou": 0.972,
+  "raw_iou": 0.961,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.981,
+  "fitted_iou": 0.9724,
   "scale": [
-   1.00328,
-   1.00248
+   1.00655,
+   1.00343
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 3.0
  },
  "arm-fore-top-port": {
-  "raw_iou": 0.9832,
+  "raw_iou": 0.9722,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9901,
+  "fitted_iou": 0.9884,
   "scale": [
-   1.00267,
-   1.00427
+   1.00652,
+   1.01107
   ],
   "boundary_p95_px": 1.41
  },
  "arm-aft-top-port": {
-  "raw_iou": 0.9807,
+  "raw_iou": 0.9701,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9917,
+  "fitted_iou": 0.9904,
   "scale": [
-   1.00446,
-   1.00704
+   1.01016,
+   1.01611
   ],
   "boundary_p95_px": 1.41
  },
  "pod-top-port": {
-  "raw_iou": 0.9908,
+  "raw_iou": 0.9827,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9994,
+  "fitted_iou": 0.998,
   "scale": [
-   1.00194,
+   1.0052,
    1.0068
   ],
   "boundary_p95_px": 1.0
  },
  "housing-top": {
-  "raw_iou": 0.9756,
+  "raw_iou": 0.9869,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9872,
+  "fitted_iou": 0.9923,
   "scale": [
-   1.0041,
-   1.01246
+   1.00328,
+   1.004
   ],
-  "boundary_p95_px": 3.0
+  "boundary_p95_px": 1.41
  },
  "rack-top": {
-  "raw_iou": 0.9712,
+  "raw_iou": 0.9781,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9844,
+  "fitted_iou": 0.9886,
   "scale": [
-   1.01429,
-   1.00354
+   1.00763,
+   1.00127
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 1.41
  },
  "fuselage-side-port": {
-  "raw_iou": 0.9673,
+  "raw_iou": 0.9858,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.991,
+  "fitted_iou": 0.9928,
   "scale": [
-   1.00638,
-   1.0361
+   1.0041,
+   1.00802
   ],
   "boundary_p95_px": 1.0
  },
  "underside": {
-  "raw_iou": 0.9464,
+  "raw_iou": 0.9627,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9588,
+  "fitted_iou": 0.9686,
   "scale": [
-   1.00495,
-   1.0078
+   1.00758,
+   1.00066
   ],
-  "boundary_p95_px": 3.0
+  "boundary_p95_px": 2.24
  }
 }

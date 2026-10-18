@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — the Greyhook no longer breaks off: she and her Hounds fight the Wolfs until one side is destroyed, and nobody leaves the map (owner); new radio lines for her loss and the Wolfs' (draft, text only).
+Updated: 2026-10-18 — the Greyhook fights the Wolfs alone (her Hounds removed, owner) and Rusk's Wolfs carry a mission refit to their flux and shields; Voss's and Castle's lines that assumed a screen revised (draft, text only).
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -411,30 +411,31 @@ a seizure target, not an invitation to destroy the district's usable supply.
    elsewhere in the system do not block resolution.
 
 **The duel overhead.** When Voss orders the withdrawal, the *Greyhook*, Voss's own
-Venture with Voss aboard, lifts from her cradle on the pads south of the ridge and
-turns to fight with two Hound (P) frigates as her screen: the Wolfs are faster than
-she is, so she does not run. The pair of Wolf
+Venture with Voss aboard, lifts alone from her cradle on the pads south of the ridge
+and turns to fight: the Wolfs are faster than she is, so she does not run. The pair of Wolf
 (H) frigates Rusk's family has lent from Citadel Arcadia flies in across the west edge
 to stop her. What follows is a slugging match in atmosphere that goes wherever the
 fighting takes it, over the basin and the company's fight alike, in full view of it:
 plating torn away, hulls crippled and driven down.
 
-The matchup is the drama. The Wolfs are fast, shielded high-tech hunters with
-light armour and the longer guns; the Hounds are tough, unshielded low-tech
-brawlers that have to close; the Greyhook is a heavy, slow broadside ship that
-fights broadside and turns slowly. Pack tactics give the fight a shape: one Wolf
-pins the escorts while the other goes round for the Greyhook, and the Hounds put
-themselves between their charge and the Wolfs. Her fitting carries no wing and a warship over a
+The matchup is the drama: two frigates against a cruiser. The Wolfs are fast,
+shielded high-tech hunters with light armour that live on their flux and their
+shields; the Greyhook is a heavy, slow broadside ship with a cruiser's plate and
+pool that turns slowly. Rusk's Wolfs are refitted for her (`BlackSluiceDuel.RUSK_REFIT`:
+a larger pool, a cheaper and wider shield, nothing to their guns or plate), the one
+thing the mission tunes. The owner removed her two Hound (P) escorts on
+2026-10-18 ("we plainly have a bad matchup"): with them the fight was a rout every
+seed; the frigate pads either side of her cradle now stand empty. Her fitting carries no wing and a warship over a
 ground battle never launches one, so the fight stays gun against gun.
 
 - The player's fleet stays out of the sky. The company has no air role in the
   duel and cannot order the Wolfs; they are the family's ships, not a support power.
-- The Wolfs fight the Hounds and the rig, not Black Sluice's ground garrison. They
+- The Wolfs fight the Greyhook, not Black Sluice's ground garrison. They
   answer no calls for fire and make no ground objective easier by existing. Stray
   fire and falling wreckage are real on the ground in both directions.
 - Nothing about the duel is scripted, and nobody breaks off (owner, 2026-10-18:
-  "she stays and fights with her Hounds until one side is dead"). The fight ends only
-  when one side's hulls are all shot down onto the basin; the winners stay overhead,
+  "she stays and fights ... until one side is dead"). The fight ends only
+  when the Greyhook or both Wolfs are shot down onto the basin; the winners stay overhead,
   and nobody leaves the map. The Greyhook can hold the sky or be shot down; if she
   is, Voss walks out of the wreck, so her last line stands on either ending. The
   debrief reports what actually happened, and ground victory never depends on it.
@@ -727,16 +728,23 @@ Still open inside this story:
   160 cells of approach ground west of the apron so the Wolfs cross the edge about
   85 cells outside their reach of Greyhook's pads. Since the owner dropped her
   break-off (2026-10-18) every hull holds the field and the fight runs to destruction.
-  Over the five `greyhook-duel` seeds the first hull hit comes 66 seconds after the
-  order, the flanking Wolf falls at about 115, the western Hound at about 133 and
-  the second Wolf at 204 to 303: Greyhook's side wins every seed with one Hound
-  left, and the Greyhook loses at most three hit points of structure (no breach, no
-  mount lost). That is a one-sided fight on every seed and an open balance question
-  for the owner, not something the chapter hides. In the chapter the ground fight
-  ends first: on the three ordinary `black-sluice` fixtures the handover completes
-  111 to 136 seconds after Voss's order, while all five hulls (15305) or four
-  (16205, 16206) are still flying, so the battle ends with the duel undecided and
-  Castle's debrief says the Greyhook was still fighting when we finished. The radio
+  With her two Hounds the Greyhook's side won every seed untouched, so the owner
+  removed them; she now fights both Wolfs alone, and the Wolfs carry Rusk's refit
+  (pool and dissipation a quarter larger, shield upkeep a quarter less, a fifth less
+  flux per absorbed point, twenty degrees more arc). Over the five `greyhook-duel`
+  seeds the first hit comes 67 to 68 seconds after the order, the first Wolf falls at
+  349 to 503 seconds and the second at 555 to 838: the Greyhook wins every seed after
+  8 to 13 minutes of fighting, ending at 67 to 95 percent of her hull with no plating
+  breached and no mount lost. No flux or shield figure lets the Wolfs win (measured
+  up to three times the pool at under half the flux per absorbed point: neither Wolf
+  dies, and she still ends above 65 percent), because their offence and not their
+  pool is the limit: the Antimatter Blaster, their heavy gun, fired 20 times in nine
+  minutes between the two of them. Making the fight mixed is a tactics question
+  (`warship-behaviours.md`, the Greyhook fights alone), open for the owner. In the
+  chapter the ground fight still ends first: the handover completes 111 to 136
+  seconds after Voss's order, minutes before either Wolf falls, so the battle ends
+  with the duel undecided and Castle's debrief says the Greyhook was still fighting
+  when we finished. The radio
   lines for her loss and the Wolfs' (`small_war.greyhook_down`,
   `small_war.wolves_down`) and Voss's revised closing line are drafts, text only.
   If she is shot down Voss walks out of the wreck, so her last line stands. On the

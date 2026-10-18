@@ -140,6 +140,13 @@ public enum MechWeaponComponent {
         };
     }
 
+    /**
+     * Hot enough that the cannon competes with its carrier's launchers for the reservoir
+     * (heavy-equipment-progression.md); {@code -Dbattle.mech.heavyCannonHeat=26} is the control.
+     */
+    private static final float HEAVY_CANNON_HEAT = Float.parseFloat(
+            System.getProperty("battle.mech.heavyCannonHeat", "34"));
+
     /** Whole-packet thermal reservation: scheduled rounds cannot stall halfway through a salvo. */
     public float heatPerTrigger() {
         return switch (this) {
@@ -150,7 +157,8 @@ public enum MechWeaponComponent {
             case LRM_5 -> 22f;
             case LRM_15 -> 40f;
             case DUAL_LINEAR_CANNONS, DUAL_BASTION_AUTOCANNONS -> 24f;
-            case SINGLE_HEAVY_CANNON, DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
+            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_HEAT;
+            case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
             case DUAL_PULSE_LASERS -> 38f;
             case DUAL_MUSTER_AUTOGUNS -> 22f;
             case NOSE_MUSTER_AUTOGUN -> 14f;
