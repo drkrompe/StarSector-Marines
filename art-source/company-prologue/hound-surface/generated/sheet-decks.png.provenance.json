@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f38-e3ab-7e31-a135-e1b7b530faf5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f38-e3ab-7e31-a135-e1b7b530faf5\\exec-a81cc0d5-a2c5-4cc3-b0ae-a6a070c7cd2c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\hound-surface\\generated\\sheet-decks.png",
+    "sha256": "26ac648798cc9246c94834c23ba955bf1518354b464316df58db04a0a20ccaae",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\hound-surface\\prompts\\sheet-decks.prompt.txt",
+  "promptSha256": "443d455e39b4fd62cc940eef14240486c9e91ab185300553c2ffe9f6c2e8856e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a clean, well maintained Hegemony auxiliary freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background. All four shapes are the same muted brown-grey (taupe) painted structural plate:\ntop-left: the port wall of the bridge deckhouse, a long taupe wall with a rectangular window opening (the opening is background grey and must stay empty), its upper corner chamfered;\ntop-right: the front of the bridge deckhouse, a long low taupe wall with a raked upper band containing a long window-band opening (background grey, must stay empty) and a thin visor-brow strip along the very top;\nbottom-left: the deckhouse roof seen from directly above, a large taupe roof plate with a narrow visor-brow strip across its top edge and short chamfered corner pieces at its four corners;\nbottom-right: the outboard side of a stern landing skid, a taupe plate split into two separate shapes by a narrow vertical gap (the gap is background grey and must stay empty).\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its taupe structural paint colour, its light clean service finish, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that clean, maintained painted hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and every opening or gap in a shape stays plain background grey.\n- Each shape is a flat painted steel plate surface. Add painted surface detail inside its outline only: thin plate seams and welded joints, neat rows of fasteners and rivets, a few flush access panels, very light even service wear. Nothing may stand out from the surface or cross the outline.\n- Keep every shape the same muted brown-grey taupe paint across its whole area. Do not repaint any part another colour: no orange, cream, white, yellow or grey patches, no repair plates, no hazard stripes.\n- The ship is clean and well maintained: no rust, no soot, no scorch marks, no dents, no holes, no impact damage, no large stains, no chipped or bare-metal areas, and no concentrated area of wear anywhere. No lettering, numbers, logos, markings or decals.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\guide\\sheet-decks-guide.png",
+      "sha256": "7e76944627d76cabd59dc7bc4e0c4898da116815354131b2128133c76d25d84c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\reference\\finish-reference.png",
+      "sha256": "37d8565694195d141c321a39d1927b744b8cea5984dde5b7fc09f8fe7c6b338f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture sheet using the first image’s exact layout and the second image’s taupe surface finish."
+  ],
+  "usage": {
+    "input_tokens": 46165,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 609,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.1
+}

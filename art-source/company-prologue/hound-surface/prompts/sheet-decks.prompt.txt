@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a clean, well maintained Hegemony auxiliary freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background. All four shapes are the same muted brown-grey (taupe) painted structural plate:
+top-left: the port wall of the bridge deckhouse, a long taupe wall with a rectangular window opening (the opening is background grey and must stay empty), its upper corner chamfered;
+top-right: the front of the bridge deckhouse, a long low taupe wall with a raked upper band containing a long window-band opening (background grey, must stay empty) and a thin visor-brow strip along the very top;
+bottom-left: the deckhouse roof seen from directly above, a large taupe roof plate with a narrow visor-brow strip across its top edge and short chamfered corner pieces at its four corners;
+bottom-right: the outboard side of a stern landing skid, a taupe plate split into two separate shapes by a narrow vertical gap (the gap is background grey and must stay empty).
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its taupe structural paint colour, its light clean service finish, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four faces in INPUT 1 as that clean, maintained painted hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and every opening or gap in a shape stays plain background grey.
+- Each shape is a flat painted steel plate surface. Add painted surface detail inside its outline only: thin plate seams and welded joints, neat rows of fasteners and rivets, a few flush access panels, very light even service wear. Nothing may stand out from the surface or cross the outline.
+- Keep every shape the same muted brown-grey taupe paint across its whole area. Do not repaint any part another colour: no orange, cream, white, yellow or grey patches, no repair plates, no hazard stripes.
+- The ship is clean and well maintained: no rust, no soot, no scorch marks, no dents, no holes, no impact damage, no large stains, no chipped or bare-metal areas, and no concentrated area of wear anywhere. No lettering, numbers, logos, markings or decals.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

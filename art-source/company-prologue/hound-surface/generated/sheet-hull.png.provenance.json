@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f3b-c8bd-75f2-b5b3-d7d54257e912",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f3b-c8bd-75f2-b5b3-d7d54257e912\\exec-4f7ad750-8408-4b91-9fb2-f7f50b779dcc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\hound-surface\\generated\\sheet-hull.png",
+    "sha256": "9d7a3657bfb0bb5eed9f6179e53bed6f8f34c6bb5576f416c86ec12035adff68",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\hound-surface\\prompts\\sheet-hull.prompt.txt",
+  "promptSha256": "4bf9eff2126508d68a14c75c7a5b287de66e3e48a0b51647ce0f75402721a2fb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a clean, well maintained Hegemony auxiliary freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: the main cargo hull's port side wall, seen from port, bow to the right: a long Hegemony-orange armour wall with chamfered top and bottom edges; its thin straight slots and small rectangular cut-outs are background grey and must stay empty;\ntop-right: the main cargo hull's dorsal deck seen from directly above, bow to the right: a large Hegemony-orange armour deck with two raised orange armour straps running across it (the narrow bands near each end) and four slightly lighter orange spar armour plates on it;\nbottom-left: the main cargo hull's flat stern face, seen from astern: a wide Hegemony-orange armour face with a large rectangular opening in the middle that is background grey and must stay empty;\nbottom-right: the main cargo hull's underside seen from directly below: a large flat Hegemony-orange armour plate with chamfered edges and a square opening that is background grey and must stay empty.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its clean maintained finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that clean, well maintained hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole or slot in a shape stays plain background grey.\n- Each shape is a flat steel armour surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of fasteners and rivets, flush access panels, a very light even film of service grime and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: every shape is warm saturated Hegemony orange enamel paint (the lighter orange plates on the deck stay a slightly lighter orange). Do not repaint any part of a shape another colour: no grey, brown, cream, white or black areas, no stripes, no differently coloured patches and no repair plates.\n- The ship is clean and maintained, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\guide\\sheet-hull-guide.png",
+      "sha256": "b3f7c3fd4114f25a38660606842b114cab289493ef26d400f67bec65dfcd8c04",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\reference\\finish-reference.png",
+      "sha256": "37d8565694195d141c321a39d1927b744b8cea5984dde5b7fc09f8fe7c6b338f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to generate one reskinned sheet, preserving Image 1’s layout and matching Image 2’s orange finish."
+  ],
+  "usage": {
+    "input_tokens": 70880,
+    "cached_input_tokens": 60800,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 883,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 65.4
+}
