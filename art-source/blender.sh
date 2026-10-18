@@ -15,6 +15,12 @@ if [ -z "${BLENDER:-}" ]; then
     *) BLENDER=blender ;;
   esac
 fi
+# The harnesses that source this also run plain Python between Blender steps, and the
+# Mac has only `python3` where Windows has only `python`: $PYTHON if set, else the first
+# of the two that actually runs (so the Windows Store's python3 stub is passed over).
+if [ -z "${PYTHON:-}" ]; then
+  if python3 -c '' >/dev/null 2>&1; then PYTHON=python3; else PYTHON=python; fi
+fi
 case "$0" in
   *blender.sh) exec "$BLENDER" "$@" ;;
 esac

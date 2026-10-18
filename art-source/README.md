@@ -150,7 +150,9 @@ one rule: `$BLENDER` if set, else the platform default (Windows: Blender 5.2
 under Program Files; macOS: `/Applications/Blender.app`; otherwise `blender` on
 PATH). A shell script sources `blender.sh` and runs `"$BLENDER"`; a Python
 launcher puts this folder on `sys.path` and does `from blender_path import
-BLENDER`. By hand, from any shell with `sh` on PATH (Git Bash, PowerShell with
+BLENDER`. Sourcing `blender.sh` also sets `$PYTHON` (`$PYTHON` if set, else
+`python3` where it runs, as on the Mac, else `python`, as on Windows); a harness
+runs its plain-Python steps as `"$PYTHON" script.py`. By hand, from any shell with `sh` on PATH (Git Bash, PowerShell with
 Git for Windows, macOS):
 
 ```sh
