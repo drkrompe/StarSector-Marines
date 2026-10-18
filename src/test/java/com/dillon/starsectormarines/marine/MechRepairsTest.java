@@ -29,13 +29,13 @@ class MechRepairsTest {
     }
 
     @Test void billAndClockScaleWithWear() {
-        // Torso armor stripped: wear = torso share 0.44 x armor weight 0.25 = 0.11.
+        // Torso armor stripped: wear = torso share 0.46 x armor weight 0.25 = 0.115.
         MechDamage stripped = MechDamage.of(MechDamageTest.ReportFixture.whole()
                 .section(MechSection.TORSO, 1f, 0f).build());
         MechRepairs.Estimate estimate = MechRepairs.estimate(MechVariant.BULWARK, stripped);
 
-        assertEquals(0.11f, estimate.wear(), 1e-5f);
-        assertEquals(0.11f * MechRepairs.HEAVY_DAYS_AT_FULL_WEAR, estimate.days(), 1e-4f);
+        assertEquals(0.115f, estimate.wear(), 1e-5f);
+        assertEquals(0.115f * MechRepairs.HEAVY_DAYS_AT_FULL_WEAR, estimate.days(), 1e-4f);
         assertEquals((int) Math.ceil(140 * 0.5f * estimate.wear()), quantity(estimate.bill(), Commodities.SUPPLIES));
         assertEquals((int) Math.ceil(36 * 0.5f * estimate.wear()), quantity(estimate.bill(), Commodities.RARE_METALS));
     }

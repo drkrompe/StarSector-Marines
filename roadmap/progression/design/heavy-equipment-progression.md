@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-16 — the drop choice shipped (a per-call pick from the bay, a cooldown, a mission lift budget); internals shipped.
+Updated: 2026-10-18 — tuned on headless readings: engines carry mass, call cooldown 30 s, heavy cradle three lifts, APC bills cut; mech section TTK read against its control.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -119,11 +119,11 @@ durability order (Bulwark, Hound, Sirocco) and each chassis's weapon bands hold.
 
 Plating restores capacity, engines restore speed, heat sinks and coolers restore
 cooling, each along the chassis's own band (`mechs-nouns.md`, internal and engine
-budget). The ladder, untuned and awaiting a mission read:
+budget). The ladder, tuned on headless readings (below):
 
 | Role | Common (stock) | Advanced | Prestige |
 | --- | --- | --- | --- |
-| Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2 | Military, x1.50, full band, 2x2, -0.5 cooling |
+| Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2, mass 1 | Military, x1.50, full band, 2x2, mass 3, -0.5 cooling |
 | Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
 | Heat sink (AMMO_RESERVE) | Factory: 100 heat, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 140, 8/s, 3x1, mass 5 |
 | Cooler (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
@@ -135,6 +135,45 @@ and roughly the old cooling: Bulwark 950 / 1.15 / 140 heat at 8.5/s, Sirocco 400
 reserve cannot take the military sink and it has no utility socket, a faster loader
 displaces the cooler, and a full plate and engine leave little output for the top
 weapons.
+
+**Why engines carry mass.** Every authored doll's CORE socket is 2x2, so an
+engine's footprint never costs room; mass is the only price an engine can pay.
+With both upgraded engines massless, the military engine cost nothing over the
+uprated one and the best of everything fitted on the Hound (28.5 of 30) and the
+Bulwark (68 of 69), breaking *tier costs room*. At mass 1 and 3 it fits on no
+chassis (Hound 31.5 / 30, Sirocco 62 / 51, Bulwark 71 / 69), while a full
+internal refit around the factory weapons still fits all three (29.5 / 30,
+48 / 51, 65 / 69). Heavy plate plus the military engine leave 19.5, 38 and 51
+for weapons and the rest. `MechFitLawsTest` pins these laws; the whole fit space
+is `generatedSpaceEvidence --tests '*MechFitSpaceEvidence'`.
+
+**What the frames buy, measured.** `sceneEvidence -Pscene=mech-frame-endurance`
+plants each chassis with its factory weapons in a stock, a best-buildable refit
+and the pre-cut frame under fixed fire (ten rifles with one AMR; a stock
+Bulwark), eight seeds, with `-Dbattle.mech.locationalDamage=false` as the
+whole-body control. Mean seconds survived, rifles / Bulwark:
+
+| | Stock | Refit | Pre-cut |
+| --- | --- | --- | --- |
+| Bulwark | 91 / 115 | 122 / 149 | 125 / 146 |
+| Hound | 44 / 55 | 51 / 71 | 59 / 74 |
+| Sirocco | 18 / 25 | 21 / 37 | 21 / 37 |
+
+Bulwark > Hound > Sirocco holds at every equal tier, under both fires and both
+damage models, and a refit Hound stays far below a stock Bulwark. A stock Hound
+keeps about three quarters of its pre-cut endurance and 72-82% of its damage
+output, so the starter fit still earns its gantry. A full refit restores the
+Bulwark and Sirocco to pre-cut endurance and the Hound to 0.85-0.97 of it, inside
+a seed spread of ±10-20 s — use eight seeds for any call near 10%.
+
+**The Hound's cooling ceiling stays below the old 8/s.** Its weapons draw about
+43 heat/s against 6-8/s of cooling, so sustained fire scales almost linearly
+with cooling (a stock Hound firing for 60 s: 971 damage at 6/s, 1080 at 7/s,
+1180 at 8/s). The uprated-engine Hound (composite plate, double sink, 120 heat at
+7.5/s, 23 of 25 mass) already matches pre-cut damage per minute; the military
+refit gives up 7-18% of that for full armor and speed. That trade is the one the
+laws ask for, so the ceiling is 7.5/s on the uprated engine and 7/s on the
+military one.
 
 ## Lift classes
 
@@ -150,6 +189,32 @@ never both at full count. Small boats (Hermes, Kite, Aeroshuttle) never lift a
 machine. The progression is that a company reaches Light drops through its own
 boats early, and Heavy only through a Valkyrie or a ship refit — the expensive,
 late step.
+
+**Lift per mission and the call cooldown.** A light-cradled company boat flies
+two machine lifts a mission, a heavy-cradled one three, and the synthetic heavy
+carrier lifts the whole bay. The heavy cradle used to fly two as well, which made
+it a worse buy than the light one: it costs about 2.3 times the bill, and a
+Sirocco brings less armor (550 structure plus capacity) than a Hound (725), so
+the better cradle put less on the ground. Best bay per tier, structure plus
+armor capacity:
+
+| Tier | Machines | Armor on the ground |
+| --- | --- | --- |
+| Starter, light cradle | 2 | 1450 (two Hounds) |
+| Mid, heavy cradle | 3 | 3120 (three escort APCs); 2175 mechs only |
+| Late, Valkyrie | 4 | 9600 (four dozers); 5040 (four Bulwarks) |
+
+The late tier is capped by the four gantries, not by lift. Calls are spaced
+30 s apart (`-Dbattle.power.armorDropCooldownSeconds=N` is the control). The
+pace is set by `sceneEvidence -Pscene=armor-drop-pace`, which calls as soon as the
+picker allows. A carrier's round trip is about 10.7 s plus 0.27 s per cell of
+landing depth: 18 s at 30 cells, 35 s at 80, 58 s at 150. Decided zero-input
+missions run 55-193 s. At 45 s, a second split call landed mid-fight and a third
+only at the end, and a Valkyrie fed one machine at a time had three of four down
+by 120 s. At 30 s, all four are down by 98-116 s. A cradled boat landing deeper
+than about 80 cells is paced by its own round trip at either setting, so the
+cooldown matters only for shallow drops and a heavy carrier fed piecemeal.
+Better boats still mean more armor on the ground, never faster calls.
 
 ## Vehicles: variants, not fittings
 
@@ -177,6 +242,25 @@ one. Lines and their first variants:
 | Supply | Supply truck — a carried resupply cache, served while halted (Light lift) |
 | Scout | Scout car — a sight mast that reports to fog and commander (Light lift) |
 
+**A vehicle brings at least its class mech's armor per credit.** At base
+commodity prices (`gradlew.bat armorEconomyEvidence`), structure plus armor
+capacity per thousand credits against the class mech: heavy APC 1.00x the Hound;
+technical 2.56x, escort 2.38x, up-armored 1.99x and fire-support 1.23x the
+Sirocco; breakthrough 1.80x, heavy-gun 1.63x and dozer 2.04x the Bulwark. The
+heavy APC was 0.73x, a worse buy than the mech it shares a lift class with, and
+was cut to 38/28/88/3 (supplies, machinery, metals, rare metals). Its variants
+followed: up-armored 52/40/140/8 (1.51x the base bill for 1.63x the armor) and
+fire-support 52/40/115/11 (the base hull plus a mortar-class weapon's price).
+Per lift, every vehicle ties or beats its class mech except the heavy APC (380
+against the Hound's 725) and the fire-support APC (380 against the Sirocco's
+550). Those two pay in plate for their seats and their mortar. A role hull
+bought for its job rather than its plate (the fire-support APC's mortar, the
+scout car's sight, the supply truck's stock) is held only to costing less than
+its class mech. The measure is
+bulk only and ignores armor rating, so it is not effective durability. The
+dozer is the best armor per credit in the game, and raising its bill past the
+Bulwark's would break this rule, so it stays as it is.
+
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.
 
@@ -203,10 +287,19 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
 
 ## Open questions
 
-- The internal ladder is untuned. A mission read should settle masses, outputs and
-  the Hound's lower cooling ceiling; Castle's introduction of each internal waits on
-  that, and needs no recorded dialogue until the rules settle.
-- Should an over-budget fit be refused, or allowed at a speed penalty? Refusal is
-  the recommendation: it is legible in the lab and needs no new movement rule.
+- The Bulwark's full refit overshoots its pre-cut firepower by 13-31% at equal
+  endurance, because the military sink's 140 reservoir lets both SRM-15 salvos
+  through. 130 or 120 is the candidate; the reservoir study was too noisy to pick
+  one, so a mission read decides.
+- A full internal refit leaves a Sirocco 33 output for weapons, so an LRM-15
+  needs composite plate or no cooler. If long-range support should carry LRM-15s
+  on a full frame, rated output 34 → 36 does it.
+- A planted Sirocco under direct fire barely shoots back (0-9 rounds before it
+  dies), so its heat and damage output are unread. That may be a doctrine
+  question for an unscreened long-range support mech.
+- Engine speed bands are reported, not measured: every endurance reading so far
+  is a planted mech.
+- Castle's introduction of each internal needs no recorded dialogue until a live
+  pass confirms the ladder.
 - Vehicle fitting (turret swaps) is out of scope until a vehicle doll exists;
   `mech-lab-data-authored-dolls.md` is the shared seam.

@@ -95,15 +95,21 @@ coll.objects.link(fit)
 for ob in hermes:
     if ob.parent is None:
         ob.parent = fit
+# The starboard bay's sealed sectional door shows where a closed door stands
+# inside the mouth; the port bay mirrors it.
+door = bpy.data.objects.get('Starboard bay sealed sectional door')
+door_y = -bounds([door])[1].y if door else None   # its inner face
+inner = door_y if door_y else mouth   # stowed behind a closed door when the bay has one
 lo, hi = bounds(hermes)            # Hermes units, at the origin
 cx, cy = (lo.x + hi.x)/2, (lo.y + hi.y)/2
 # Standing on its lowest point: the pad soles (GROUND) with the gear down.
 fit.scale = (K, K, K)
-fit.location = ((x_aft + x_fore)/2 - cx*K, (wall + mouth)/2 - cy*K, floor_top - lo.z*K)
+fit.location = ((x_aft + x_fore)/2 - cx*K, (wall + inner)/2 - cy*K, floor_top - lo.z*K)
 hlo, hhi = bounds(hermes)
 margins_m = {'fore_and_aft_each_end': round(((x_fore - x_aft) - (hhi.x - hlo.x))/2*SW_MPU, 2),
              'inboard_wall': round((hlo.y - wall)*SW_MPU, 2),
              'outboard_mouth': round((mouth - hhi.y)*SW_MPU, 2),
+             'door_line': round((inner - hhi.y)*SW_MPU, 2),
              'overhead': round((ceiling - hhi.z)*SW_MPU, 2),
              'under_lintel': round((lintel - hhi.z)*SW_MPU, 2)}
 hermes_m = {'length': round((hhi.x - hlo.x)*SW_MPU, 2), 'beam': round((hhi.y - hlo.y)*SW_MPU, 2),
@@ -111,10 +117,6 @@ hermes_m = {'length': round((hhi.x - hlo.x)*SW_MPU, 2), 'beam': round((hhi.y - h
 cradles = sorted((b for b in (bounds([o]) for o in bpy.data.objects if o.name.startswith('Empty maintenance cradle')) if b[0].y > 0),
                  key=lambda b: b[0].x)
 between = [round(c[1].x, 2) for c in cradles[:1]] + [round(c[0].x, 2) for c in cradles[1:]]
-# The starboard bay's sealed sectional door shows where a closed door stands
-# inside the mouth; the port bay mirrors it.
-door = bpy.data.objects.get('Starboard bay sealed sectional door')
-door_y = -bounds([door])[1].y if door else None   # its inner face
 record = {
     'metres_per_unit': {'hermes': H_MPU, 'second_wind': SW_MPU, 'hermes_units_per_sw_unit': round(K, 4)},
     'bay_clear_sw_units': bay,

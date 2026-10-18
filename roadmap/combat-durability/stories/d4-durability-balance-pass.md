@@ -4,6 +4,7 @@
 
 Status: PLANNED
 Written: 2026-08-23
+Updated: 2026-10-18 — mech time-to-kill harness exists (`sceneEvidence -Pscene=mech-time-to-kill`, control `-Dbattle.mech.locationalDamage=false`); first readings in `combat-durability-nouns.md`, Platform identities. AMR per magazine is the open mech answer.
 
 Read `combat-durability-nouns.md` before implementing this story.
 
