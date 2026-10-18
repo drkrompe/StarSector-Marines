@@ -72,10 +72,11 @@ public final class RaidObjective implements Objective {
     public void tick(BattleView sim) {
         if (complete) return;
         if (!targetSecured) {
+            int zone = targetZoneId(sim);
             boolean marinePresent = combatantPresent(sim, Faction.MARINE,
-                    targetCellX, targetCellY, TARGET_RADIUS, targetZoneId, true);
+                    targetCellX, targetCellY, TARGET_RADIUS, zone, true);
             boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
-                    targetCellX, targetCellY, TARGET_RADIUS, targetZoneId, false);
+                    targetCellX, targetCellY, TARGET_RADIUS, zone, false);
             marineServicing = marinePresent && !defenderPresent;
             if (!marineServicing) {
                 serviceProgress = 0f;
@@ -118,7 +119,18 @@ public final class RaidObjective implements Objective {
     public String targetName() { return targetName; }
     public int targetCellX() { return targetCellX; }
     public int targetCellY() { return targetCellY; }
+    /** The zone id frozen at setup; it goes stale once the zone graph is rebuilt. */
     public int targetZoneId() { return targetZoneId; }
+
+    /**
+     * The target's zone as the zone graph numbers it now. The graph is rebuilt when topology
+     * changes (a wall or a furnishing destroyed), and rebuilding renumbers zones, so the id frozen
+     * at setup can name another room; it is the fallback only when the target cell has no zone.
+     */
+    public int targetZoneId(BattleView sim) {
+        int zone = sim.getZoneGraph().zoneIdAt(targetCellX, targetCellY);
+        return zone >= 0 ? zone : targetZoneId;
+    }
     public int egressCellX() { return egressCellX; }
     public int egressCellY() { return egressCellY; }
     public float serviceProgress() { return serviceProgress; }
