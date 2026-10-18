@@ -159,10 +159,40 @@ Do not run builds or leave generated task files there.
 Rendered output and other large regenerable files that should reach the other
 machine (or the owner's phone) go to the shared Google Drive folder, never into
 git: `G:\My Drive\starsector` on Windows and
-`~/Library/CloudStorage/GoogleDrive-*/My Drive/starsector` on the Mac. It syncs
-in about half a minute. It is a transfer and viewing area, not version control:
-each machine writes only its own outputs (two writers to one file produce
-conflict copies), and a build copies what it needs local before reading it.
+`~/Library/CloudStorage/GoogleDrive-kromp08@gmail.com/My Drive/starsector` on
+the Mac. It syncs in about half a minute. It is a transfer and viewing area,
+not version control, and a build copies what it needs local before reading it.
+
+#### Review sets for the owner
+
+Every set of images or video put in front of the owner for a decision goes
+under `starsector/review/`, laid out **by asset, then by run**:
+
+```
+review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
+    NOTES.md
+    01-<view>.png  02-<view>.png  ...
+    <subfolder>/   (only when a run has natural groups: states, close-ups)
+```
+
+- `<asset>` is the package's slug without its suffix: `second-wind`, `hound`,
+  `mudskipper`, `legion`, `hermes`, `shepherd`, `fighters`, `cinematic-<shot>`.
+  One folder per thing the owner reviews, whichever session or machine made it.
+- `<what>` names the pass or question in a few hyphenated words
+  (`pass2-detail`, `pass6-texture`, `damage-round3`, `c2-composites`).
+  `<machine>` is `windows` or `mac`. The date sorts runs oldest first, so the
+  newest run is the last folder.
+- **One run, one writer.** A session creates a new run folder and writes only
+  into it; it never adds to, renames or deletes another run's folder, and a
+  re-render after feedback is a new run, not an overwrite. That is what keeps
+  sessions on two machines from producing Drive conflict copies.
+- `NOTES.md` is short: the commit the renders were built from, what changed
+  since the last run, what the owner should look at and decide, and any
+  measured numbers (IoU, scale, coverage). Image names start with a two-digit
+  order so the folder reads in the order the notes describe.
+- Images obey the preview rule (1920x1080, 100% scale). Copy finished images
+  only, never frame sequences or scratch.
+- Tell the owner the run folder's path when the set is ready.
 
 ## Build & deploy
 
