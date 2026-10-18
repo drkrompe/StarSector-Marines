@@ -249,6 +249,15 @@ SOLIDS = {
                     'Hull aft body', 'Hull command deck', 'Hull command deck upper',
                     'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod',
                     'Hull forward hangar')},
+    # The Colossus's cargo body (central hold and the four side modules), keel
+    # spine, aft machinery body and bridge deckhouse. The longerons are structural
+    # girders, the waist and pod trusses open lattice, the drive pods drives:
+    # all excluded.
+    'colossus': {'blend': 'colossus-geometry/colossus-geometry.blend', 'step': 1.0,
+                 'include': lambda n: n in (
+                     'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
+                     'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
+                     'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
