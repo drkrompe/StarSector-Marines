@@ -205,7 +205,7 @@ def parent_keep_world(child, part, world):
 
 def shared_knobs(ctx):
     ctx.prop('thr_throttle', 1.0, 0, 1, 'Master drive throttle (shared by every group)')
-    for i in (1, 2, 3, 4):
+    for i in swfx_core.ENGINE_INDICES:
         ctx.prop(f'thr_throttle_e{i}', 1.0, 0, 1, f'Engine {i} throttle, multiplies thr_throttle')
     ctx.prop('smk_atmosphere', 1.0, 0, 1, '0 vacuum (haze barely exists, disperses fast), 1 in atmosphere (it hangs, drifts, rises)')
     for ax in 'xyz':

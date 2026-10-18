@@ -16,13 +16,60 @@ import java.util.List;
  * the same guide only needs the pack re-run. All positions are in packed-plate pixels
  * except station rectangles, which are fractions of the plate so they survive a
  * different pack width.
+ *
+ * <p>The pack also carries the guide's {@link Camera} and the plotting table's footprint
+ * in deck metres, so live overlays that stand in the room (the holo board) can be
+ * projected into the painting rather than placed by eye. Both are optional; a layout
+ * without them has no projectable volume and {@link #projects()} answers false.
+ *
+ * <p>The lit monitor faces ({@link Display}) are the exception to "never measured": they
+ * are measured off the plate into {@code art-source/hq-command-deck/displays.json} and
+ * carried through the pack. A layout without them simply has no live screens.
  */
 record CommandDeckLayout(float width, float height, String plate, List<Figure> figures,
-                         List<Station> stations, float[] plot, float[] screens) {
+                         List<Station> stations, float[] plot, float[] screens,
+                         Camera camera, float[] table, List<Display> displays) {
 
     static final String PATH = "data/ui/hq-command-deck.json";
 
+    /** Height of the plotting table's top above the deck, in metres. */
+    static final float TABLE_TOP = 0.97f;
+
+    /**
+     * The guide camera in packed-plate pixels: a pinhole at {@code height} metres over the
+     * deck, looking along +z. A deck point (x right, y up from the deck, z away) lands at
+     * {@code u = cx + focal * x / z}, {@code v = cy - focal * (y - height) / z}.
+     */
+    record Camera(float focal, float cx, float cy, float height) {
+        float u(float x, float z) { return cx + focal * x / z; }
+
+        float v(float y, float z) { return cy - focal * (y - height) / z; }
+    }
+
     record Figure(String id, String sprite, float x, float y, float w, float h) { }
+
+    /**
+     * A lit monitor face painted into the plate, which live readouts are drawn into.
+     * {@code quad} holds its four corners clockwise from top-left in packed-plate pixels,
+     * as {@code x0, y0, x1, y1, x2, y2, x3, y3}; {@code kind} names what it shows.
+     * Unlike stations, displays are measured off the painting, because the painted
+     * screens do not sit exactly where the guide put them.
+     */
+    record Display(String id, String kind, float[] quad) {
+        Display {
+            if (quad == null || quad.length != 8) throw new IllegalArgumentException("display quad needs four corners");
+            quad = quad.clone();
+        }
+
+        @Override
+        public float[] quad() { return quad.clone(); }
+
+        /** Corner {@code i} (0 top-left, clockwise) x. */
+        float x(int corner) { return quad[corner * 2]; }
+
+        /** Corner {@code i} (0 top-left, clockwise) y. */
+        float y(int corner) { return quad[corner * 2 + 1]; }
+    }
 
     /** A place on deck and the panel it points at; {@code label} names the i18n suffix. */
     record Station(String id, String label, List<String> figures, float fx, float fy, float fw, float fh) {
@@ -71,10 +118,59 @@ record CommandDeckLayout(float width, float height, String plate, List<Figure> f
             JSONObject overlays = root.getJSONObject("overlays");
             return new CommandDeckLayout((float) size.getDouble(0), (float) size.getDouble(1), root.getString("plate"),
                     List.copyOf(figures), List.copyOf(stations),
-                    points(overlays.getJSONArray("plot")), points(overlays.getJSONArray("screens")));
+                    points(overlays.getJSONArray("plot")), points(overlays.getJSONArray("screens")),
+                    camera(root.optJSONObject("camera")), table(root.optJSONArray("table")),
+                    displays(root.optJSONArray("displays")));
         } catch (JSONException failure) {
             throw new IllegalArgumentException("Malformed command deck layout", failure);
         }
+    }
+
+    private static List<Display> displays(JSONArray array) throws JSONException {
+        if (array == null) return List.of();
+        List<Display> out = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject d = array.getJSONObject(i);
+            JSONArray corners = d.getJSONArray("quad");
+            if (corners.length() != 4) throw new JSONException("display " + d.optString("id") + " needs four corners");
+            out.add(new Display(d.getString("id"), d.getString("kind"), points(corners)));
+        }
+        return List.copyOf(out);
+    }
+
+    private static Camera camera(JSONObject camera) throws JSONException {
+        if (camera == null) return null;
+        return new Camera((float) camera.getDouble("focal"), (float) camera.getDouble("cx"),
+                (float) camera.getDouble("cy"), (float) camera.getDouble("height"));
+    }
+
+    private static float[] table(JSONArray table) throws JSONException {
+        if (table == null) return null;
+        if (table.length() != 4) throw new JSONException("table needs [x0, x1, z0, z1]");
+        float[] out = new float[4];
+        for (int i = 0; i < 4; i++) out[i] = (float) table.getDouble(i);
+        return out;
+    }
+
+    /** True when the layout carries the camera and table a projected overlay needs. */
+    boolean projects() { return camera != null && table != null; }
+
+    /**
+     * A deck point in metres projected to packed-plate pixels, as {@code {u, v}}.
+     *
+     * @throws IllegalStateException when the layout carries no camera
+     * @throws IllegalArgumentException when the point is not in front of the camera
+     */
+    float[] project(float x, float y, float z) {
+        if (camera == null) throw new IllegalStateException("Command deck layout has no camera");
+        if (!(z > 0f)) throw new IllegalArgumentException("Deck point is behind the camera: z=" + z);
+        return new float[]{camera.u(x, z), camera.v(y, z)};
+    }
+
+    /** Centre of the table top in deck metres, as {@code {x, y, z}}. */
+    float[] tableCentre() {
+        if (table == null) throw new IllegalStateException("Command deck layout has no table");
+        return new float[]{(table[0] + table[1]) * 0.5f, TABLE_TOP, (table[2] + table[3]) * 0.5f};
     }
 
     private static float[] points(JSONArray array) throws JSONException {

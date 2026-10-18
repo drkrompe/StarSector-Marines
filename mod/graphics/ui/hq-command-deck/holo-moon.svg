@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Holo board body shading for a small moon or derelict: the lit sphere with a few
+       craters picked out on its day side. Tinted by the board. -->
+  <circle cx="32" cy="32" r="30" fill="#ffffff" fill-opacity="0.23"/>
+  <circle cx="29" cy="29" r="25" fill="#ffffff" fill-opacity="0.23"/>
+  <circle cx="26" cy="26" r="18" fill="#ffffff" fill-opacity="0.27"/>
+  <circle cx="23" cy="23" r="10" fill="#ffffff" fill-opacity="0.34"/>
+  <circle cx="22" cy="31" r="6" fill="none" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1.8"/>
+  <circle cx="35" cy="18" r="4" fill="none" stroke="#ffffff" stroke-opacity="0.65" stroke-width="1.6"/>
+  <circle cx="38" cy="38" r="7.5" fill="none" stroke="#ffffff" stroke-opacity="0.39" stroke-width="1.6"/>
+  <circle cx="32" cy="32" r="30.2" fill="none" stroke="#ffffff" stroke-opacity="0.52" stroke-width="1.4"/>
+  <path d="M 9 44 A 27 27 0 0 1 44 9" fill="none" stroke="#ffffff" stroke-opacity="0.91" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

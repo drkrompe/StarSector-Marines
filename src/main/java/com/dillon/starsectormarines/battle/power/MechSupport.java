@@ -41,8 +41,12 @@ public final class MechSupport extends AirDeliveryPower {
 
     public static final String ID = "mech_support";
     public static final int LANCE_SIZE = 4;
-    /** Seconds between calls. */
-    public static final float CALL_COOLDOWN_SECONDS = 45f;
+    /**
+     * Seconds between calls. {@code -Dbattle.power.armorDropCooldownSeconds=N} replaces the default for a control run;
+     * this is the only place it is read.
+     */
+    public static final float CALL_COOLDOWN_SECONDS = Math.max(0f,
+            Float.parseFloat(System.getProperty("battle.power.armorDropCooldownSeconds", "30")));
 
     private final List<MechDeploymentSpec> deployments;
     private final List<VehicleDeploymentSpec> vehicles;

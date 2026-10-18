@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — hail locked; C1 rebuilt as painted ImageGen layers, a 3D planet and Second Wind's entrance.
+Updated: 2026-10-18 — dialogue arc revised for the C5 v2 closing (`c5-v2-closing.md`): line 9 is now relief, C4 is one line, Nessa's memory returns to P6.
 
 ## What changed from v2
 
@@ -45,7 +45,7 @@ are new work.
 | P3 | WHAT WE LEFT BEHIND | Image + dialog | Abandoned. Castle's chit. | *existing* `last-carrier` |
 | P4 | RAISING HER | Image + dialog | Four days left on the chalk. | *existing* `raising-her` |
 | P5 | THE DEPARTURE ROSTER | Image + dialog | Nobody voted on the command chair. | *existing* `departure-roster` |
-| P6 | SOMEWHERE TO DOCK | Image + dialog | Castle writes to Nessa after years. Hegemony patrols on the display. | *existing* `somewhere-to-dock` (Nessa memory moves to C4, see below) |
+| P6 | SOMEWHERE TO DOCK | Image + dialog | Castle writes to Nessa after years. Hegemony patrols on the display. | *existing* `somewhere-to-dock` (Nessa memory stays here, see Decisions) |
 | P7 | A WAY TO EARN | Image + dialog | Sabine's twelve asleep beside their rifles. No licence. | *existing* `cargo-billets` |
 | P8 | THE FIRST STEP | Image + dialog | The estimate on top of the old shift roster. | *existing* `yard-estimate` |
 | — | *Campaign travel to Jangala* | — | The player flies there. | — |
@@ -161,10 +161,14 @@ and sky.
 **Motion.** One continuous sideways pan across the panorama, with no cuts inside
 the shot.
 
-**Audio.** Castle's Nessa memory
-(`openingCompanyPrologueNessaVennWeRanOreTogetherBefore`), *moved* here from P6
-rather than played twice. Her last sentence, "Let me talk first.", lands as the
-port fills the window.
+**Audio.** One line from Castle over the fields, overheard through the open
+intercom:
+
+> Like the travel reels they ran in the canteen... except this one doesn't loop.
+
+Optionally, as the ship drops behind the cranes: "Greywater's past the cranes.
+Let me do the talking." Her Nessa memory no longer plays here (see Decisions):
+the shot is too short to carry it, and Y1 introduces Nessa anyway.
 
 **Payoff.** The futuristic world on the ground, and a quiet setup: the haulers
 are Wayline's kind of drivers, on the kind of road the company will defend in
@@ -205,7 +209,7 @@ Following owner call 6, no line names money or a contract figure.
 | 4 | Castle | Nothing to declare, Approach. Ore dust and tired people. | C1 |
 | 7 | Jangala Approach | Second Wind, you're cleared to Greywater Down on civilian corridor four. Keep your mounts cold and stay in the corridor. Patrol has your signature. | C2 |
 | 8 | Castle | Corridor four, mounts cold. Thank you, Approach. | C2 |
-| 9 | Castle (off channel) | Well. Somebody knows we're here. | Into the entry transition |
+| 9 | Castle (off channel, to the cabin) | Cleared. Everybody breathe. | Into the entry transition |
 
 Line IDs stay stable, so the numbering skips 5 and 6.
 
@@ -276,7 +280,7 @@ treatment is applied afterwards):
 | 6 | Castle | `[calm, plain]`: no joke in it; it is the truth. |
 | 7 | Approach | `[procedural, final]`: back to routine, the decision made. |
 | 8 | Castle | `[relieved, quiet]` |
-| 9 | Castle | `[quiet, half to herself, a breath of a laugh]` |
+| 9 | Castle | `[relieved, warm, the first line meant for the passengers]` |
 
 **The Approach treatment, `orbital_comms`.** This is in the audio pipeline
 (`ProcessAudioTask`) and awaits the owner's audition. The exact recipe and its
@@ -380,17 +384,10 @@ people, steam. Each one has to be chosen against how its shot's camera moves.
 - **Trigger (decided).** The arrival plays the first time the player docks at
   Jangala after the prologue, before the yard panel. The player has flown there
   themselves, and the arrival is the reward.
-- **P6 edit (decided).** On Jangala starts, Castle's Nessa memory leaves P6 and
-  plays over C4. P6 keeps its narration, and Castle's line there becomes a short
-  promise that sets up C4:
-
-  > An old friend. I owe her more than she'll let me say. I'll tell you on the
-  > way down, Commander.
-
-  This swap lands **together with the arrival's runtime integration**, not
-  before it. Done earlier, the memory would vanish from the game until the
-  arrival ships. Fallback-port starts keep their existing P6 line. A player who
-  skips the arrival does not hear the memory. Y1 stands on its own without it.
+- **P6 edit (revised 2026-10-18).** Castle's Nessa memory stays in P6, as it
+  was before the arrival. C4 is now a single line (`c5-v2-closing.md`), so the P6
+  promise "I'll tell you on the way down" would be left unpaid. Where that swap
+  has already shipped, undo it at the same time as the new C4 and line 9 lines.
 - **Approach casting (decided).** `lh03wW2cCRf05ksqPizq`, heavily masked by
   `orbital_comms` (above).
 - **Runtime.** The arrival should play as layered images in the game's own

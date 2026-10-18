@@ -1,23 +1,27 @@
-"""Hermes pressure hull: the spine (cockpit and troop bay), the wing body
-with the forward gun sponsons, and the aft drive block.
+"""Hermes pressure hull: the spine (cockpit and troop bay) with its cream
+fairing, the forward gun sponsons and the aft drive block.
 
 Planform is measured off the vanilla sprite (graphics/ships/hermes/
 hermes_base.png, 56x82, .ship centre at sprite pixel 28,39 from the
 bottom-left), so sprite pixel (c, r), counted from the top-left, covers hull
-X 42-r..43-r and Y 27-c..28-c. Three stacked strata read in the sprite:
+X 42-r..43-r and Y 27-c..28-c. Read in the sprite:
 
 - the spine, +-11 from the nose (X 42) back to the aft turret (X -24): the
   pressure hull proper, with the cockpit forward and the troop bay amidships;
-- the wing body, +-26 over X -17.5..22: thinner shoulder blocks carrying the
-  forward gun sponsons (WS 001/002 at X 12) and, aft of the notch at X 4,
-  the main landing gear;
-- the aft block, +-21 over X -37..-17.5: the drive block behind the troop
+- the gun sponsons, the grey octagonal wing corners over X 6.5..22 carrying
+  WS 001/002 at X 12 on flat decks over raked walls;
+- the spine fairing: aft of X 10 the spine's cream top flares out as one
+  crowned deck rolling down to the wing edge (+-26) over a raked flank, back
+  to X -17.5. It is part of the spine's plate, not a separate block, and the
+  boarding doors are recessed into its flanks;
+- the aft block, +-21 over X -37..-16.5: the drive block behind the troop
   bay, with three drive units on its stern face.
 
-Sections are one keel chamfer, one vertical wall and one shoulder chamfer.
+The boat sits flat: every block shares the spine's keel (owner, pass 3).
 Heights are art interpretation: the sprite supplies only the plan.
 """
 import math
+import os
 import bmesh
 import bpy
 from hm_kit import (prism, section, boolean, facet, plane_cut, crisp, mirror, material, bx, blocks,
@@ -25,8 +29,23 @@ from hm_kit import (prism, section, boolean, facet, plane_cut, crisp, mirror, ma
 
 KEEL = -10.0          # spine keel (troop-bay floor structure below it)
 SPINE_DECK = 10.0     # spine roof
-WING_KEEL, WING_DECK = -5.5, 5.5
-AFT_KEEL, AFT_DECK = -8.0, 8.0
+# Pass 3 (owner): the boat sits flat, so every block shares the spine's
+# keel; the wing pods' walls rake inward and their tops slope down outboard.
+WING_KEEL, WING_DECK = -10.0, 5.0
+AFT_KEEL, AFT_DECK = -10.0, 8.0
+# Forward pods are the gun sponsons: the sprite's octagonal wing corners, a
+# short vertical skirt, a raked wall and a flat deck the turret ring stands on.
+POD_SECTION = [(1.0, WING_KEEL), (0.0, WING_KEEL + 1.0), (0.0, -5.0), (2.2, 3.8), (3.0, WING_DECK + .2)]
+# Behind the side guns the spine flares (owner, pass 3, read off the
+# sprite): its cream top runs out from the roof edge as one broad, crowned
+# deck rolling down outboard, over a raked flank down to a short skirt at the
+# wing edge. The fairing is swept along X from this half-section, raked into
+# the gun sponsons at its forward edge, and is part of the spine's plate.
+FAIRING_X = (11.0, -17.5)
+FAIRING_HALF = [(8.0, SPINE_DECK), (12.0, 9.7), (16.0, 8.8), (19.5, 7.5), (22.5, 5.8), (25.9, -7.0), (25.9, -9.0),
+                (24.9, KEEL)]   # skirt a hair inside the sponson's, never coplanar
+FAIRING_LEAD = ((10.5, 11.0), (3.0, 24.5))     # forward edge in plan, port
+FAIRING_VENT, FAIRING_VENT_FLOOR = (-3.2, 1.6), 8.0   # the sprite's grey-blue vents
 SPINE_AFT = -24.0
 
 # Port half-plans, bow to stern, closed with their starboard mirrors.
@@ -37,12 +56,17 @@ COLLAR_PLAN = mirror([(28.5, 0), (28.5, 12), (27.5, 13), (26, 13), (25.5, 11.5),
 WING_PLAN = mirror([(22, 0), (22, 19), (20.5, 21), (18, 23), (16, 25), (14, 26), (5.5, 26),
                     (4.5, 24.5), (3, 24), (2, 23), (-2, 23), (-3, 24.5), (-5, 26),
                     (-15, 26), (-16, 25), (-17.5, 23.5), (-17.5, 0)])
+# The pods are swept from the plan with the notch filled (a deep inset would
+# fold over its re-entrant corners); the boarding-door bay recuts it.
+POD_PLAN = mirror([(22, 0), (22, 19), (20.5, 21), (18, 23), (16, 25), (14, 26),
+                   (6.5, 26), (6.5, 0)])
 AFT_PLAN = mirror([(-16.5, 0), (-16.5, 22), (-19, 22), (-21, 20.5), (-23.5, 20.5),
                    (-25, 21), (-27, 21), (-28.5, 20), (-30, 21), (-34, 21), (-35, 20),
                    (-36, 18), (-37, 17), (-37, 0)])
 
 # Plateaus aft to fore for the manifest: (x0, x1, top z).
-DECKS = [(-37, -16.5, AFT_DECK), (-17.5, 22, WING_DECK), (SPINE_AFT, 34, SPINE_DECK)]
+DECKS = [(-37, -16.5, AFT_DECK), (-17.5, 10.5, SPINE_DECK), (6.5, 22, WING_DECK),
+         (SPINE_AFT, 34, SPINE_DECK)]
 
 
 def build_shell(kit):
@@ -59,9 +83,35 @@ def build_shell(kit):
     return hull
 
 
+def sweep_x(kit, name, x0, x1, half, mat):
+    """A port half-section (y, z) closed with its mirror and swept along X."""
+    ring = list(half) + [(-y, z) for y, z in reversed(half)]
+    n = len(ring)
+    verts = [(x, y, z) for x in (x0, x1) for y, z in ring]
+    faces = [tuple(range(n)), tuple(reversed(range(n, 2*n)))]
+    faces += [(i, n+i, n+(i+1) % n, (i+1) % n) for i in range(n)]
+    ob = kit.mesh(name, verts, faces, mat)
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(ob.data)
+    bm.free()
+    return ob
+
+
 def build_wing_body(kit):
-    wing = prism(kit, 'Wing body', WING_PLAN, section(WING_KEEL, 2.5, WING_DECK, 2, 2), kit.panel)
+    wing = prism(kit, 'Wing body', POD_PLAN, POD_SECTION, kit.panel)
     crisp(wing, .2)
+    fairing = sweep_x(kit, 'Temporary spine fairing', FAIRING_X[1], FAIRING_X[0], FAIRING_HALF, kit.cream)
+    (ax, ay), (bx_, by) = FAIRING_LEAD
+    for s in (1, -1):
+        # Forward edge: a 45 deg ramp down onto the sponson deck.
+        plane_cut(fairing, *facet('Fairing lead', ((ax+bx_)/2, s*(ay+by)/2, WING_DECK + .2),
+                                  (by - ay, -s*(bx_ - ax)), 45))
+        plane_cut(fairing, *facet('Fairing aft corner', (-16.25, s*24.75, KEEL), (-1, s), 75))
+    # Aft edge: eased down onto the drive block's deck.
+    plane_cut(fairing, *facet('Fairing aft fall', (-16.5, 0, AFT_DECK), (-1, 0), 50))
+    boolean(kit.hull, fairing, 'UNION')
     aft = prism(kit, 'Aft drive block', AFT_PLAN, section(AFT_KEEL, 4, AFT_DECK, 1.5, 1.5), kit.panel)
     crisp(aft, .2)
     collar = prism(kit, 'Nose collar', COLLAR_PLAN, section(-7, 4, 8, .6, .6), kit.steel)
@@ -71,7 +121,8 @@ def build_wing_body(kit):
 
 
 # ---------------------------------------------------------------------------
-# Pass 2: plate modules, seams, louvres, the horseshoe arms, side hatches.
+# Pass 2 (refit to the pass-3 shape): plate modules, seams, louvres, the
+# horseshoe arms, the fairing's vents.
 #
 # Everything below is added on top of the pass-1 solids and stays inside
 # their plan, so the silhouette is unchanged. Walls get shallow boolean
@@ -94,10 +145,6 @@ WELL_COURSES = [(-10.15, -5.9), (-5.6, 0.0)]
 ARM_PATH = [(1.0, 8.6), (-6.0, 9.2), (-12.0, 10.4), (-18.0, 12.4), (-24.0, 14.4), (-30.0, 16.0), (-35.3, 16.6)]
 ARM_SEGMENTS = [(1.0, -7.8), (-8.2, -16.0), (-16.4, -25.3), (-25.7, -35.3)]
 ARM_HALF, ARM_BOTTOM = 1.5, 5.0
-SIDE_HATCH = (-1.9, 1.9, -3.25, 2.25)   # x0, x1, z0, z1 of the recess in the notch wall (Y +-23)
-NOTCH_Y = 23.0
-SHOULDER_PLAN = [(-3.8, 15.0), (-3.8, 23.6), (-5.2, 25.25), (-14.4, 25.25), (-14.4, 15.0)]
-SHOULDER_TOP = 7.1
 SIDES = ((1, 'port'), (-1, 'starboard'))
 
 
@@ -346,107 +393,48 @@ def aft_well(kit):
 
 # --- wing body and aft block ----------------------------------------------
 
-def side_hatch(kit, s, side):
-    """A gull-hinged access hatch in the notch wall: recess, frame, red
-    panel, handle and a hinge along its top edge. The panel and handle are
-    parented to 'Hull <side> side hatch hinge'; rotating that empty about
-    its local X by open_sign * angle swings the panel up and out."""
-    x0, x1, z0, z1 = SIDE_HATCH
-    Y = NOTCH_Y
-    yi, yo = sorted((s*(Y-.5), s*(Y+.12)))
-    frame = [(x0-.1, x1+.1, z0-.1, z0+.3), (x0-.1, x1+.1, z1-.3, z1+.1), (x0-.1, x0+.3, z0+.3, z1-.3), (x1-.3, x1+.1, z0+.3, z1-.3)]
-    blocks(kit, f'Hull {side} side hatch frame', [(a, b, yi, yo, c, d) for a, b, c, d in frame], kit.steel, .04)
-    wy0, wy1 = sorted((s*(Y-.5), s*(Y-.42)))
-    bx(kit, f'Hull {side} side hatch well', x0+.25, x1-.25, wy0, wy1, z0+.25, z1-.25, kit.dark, 0)
-    hinge = pivot(f'Hull {side} side hatch hinge', (0, s*(Y+.02), z1-.32),
-                  {'open_axis': 'X', 'open_sign': s, 'open_angle_deg': 105.0, 'built': 'closed',
-                   'note': 'rotate about local X by open_sign*angle: the panel swings up and outboard'})
-    py0, py1 = sorted((s*(Y-.38), s*(Y-.06)))
-    panel = bx(kit, f'Hull {side} side hatch', x0+.34, x1-.34, py0, py1, z0+.34, z1-.36, kit.red, .06)
-    hy = s*(Y-.06)
-    handle = blocks(kit, f'Hull {side} side hatch handle',
-                    [ybolt(x, hy, z0+1.0, .16, s*.3) for x in (-.55, .55)] +
-                    [(-.65, .65, min(hy+s*.22, hy+s*.36), max(hy+s*.22, hy+s*.36), z0+.9, z0+1.1)] +
-                    [(-.08, .08, min(hy, hy+s*.12), max(hy, hy+s*.12), z0+1.6, z1-.9)], kit.steel)
-    parent_to([panel, handle], hinge)
-    kit.cylinder(f'Hull {side} side hatch hinge barrel', (0, s*(Y+.02), z1-.32), .17, x1-x0-.4, kit.steel, 'X', 12, 0)
-    # Grab rail on the deck edge above.
-    ry0, ry1 = sorted((s*20.45, s*20.75))
-    blocks(kit, f'Hull {side} side hatch grab rail',
-           [(x-.15, x+.15, ry0, ry1, WING_DECK-.05, WING_DECK+.85) for x in (-1.5, 1.5)] +
-           [(-1.65, 1.65, ry0, ry1, WING_DECK+.7, WING_DECK+1.0)], kit.steel)
-
-
 def wing_body(kit, wing):
+    """Pass 3 refit: the gun sponsons keep plate seams, a wall service cover
+    and a deck cover; the spine fairing behind them takes the sprite's
+    grey-blue vents (X -3..2) in recessed pockets and two plate seams."""
+    skirt = (-8.6, -5.4)                         # the sponson wall's vertical band
     grooves, cores = [], []
-    covers = [(6.4, 8.9), (-13.6, -11.0)]
     for s, side in SIDES:
-        for x0, x1, z0, z1 in [(9.43, 9.77, -3.2, 2.3), (-8.17, -7.83, -3.2, 2.3),          # vertical seams
-                               (9.1, 13.7, -.6, -.25), (-10.8, -5.4, -.6, -.25), (-14.6, -13.8, -.6, -.25)]:
+        for x0, x1, z0, z1 in [(9.43, 9.77, *skirt), (16.6, 20.4, -6.6, -6.25)]:
             g, c = wall_groove(s, x0, x1, 26.0, z0, z1)
             grooves.append(g)
             cores.append(c)
         # Leading-edge face strake.
         y0, y1 = sorted((s*11.3, s*18.6))
-        grooves.append((21.55, 22.6, y0, y1, -.6, -.25))
-        cores.append((21.55, 21.65, y0, y1, -.58, -.27))
-        for x0, x1 in covers:
-            grooves.append(wall_groove(s, x0-.12, x1+.12, 26.0, -2.72, 1.52, .3)[0])
-        hx0, hx1, hz0, hz1 = SIDE_HATCH
-        grooves.append(wall_groove(s, hx0, hx1, NOTCH_Y, hz0, hz1, .5)[0])
+        grooves.append((21.55, 22.6, y0, y1, -6.6, -6.25))
+        cores.append((21.55, 21.65, y0, y1, -6.58, -6.27))
+        grooves.append(wall_groove(s, 11.38, 14.62, 26.0, -8.42, -5.48, .3)[0])
     cut(kit, wing, grooves)
     blocks(kit, 'Hull wing seam cores', cores, kit.dark)
-    items = [(p, 9.45, 9.75) for p in both(band([(23.8, WING_DECK), (24.0, WING_DECK), (26.0, 2.5)], -.06, .05))]
-    extrude_many(kit, 'Hull wing shoulder seams', items, kit.dark)
-    k = 0
+    deck = WING_DECK + .2
     for s, side in SIDES:
-        for x0, x1 in covers:
-            k += 1
-            y0, y1 = sorted((s*25.7, s*25.92))
-            bx(kit, f'Hull wing service cover {k} {side}', x0, x1, y0, y1, -2.6, 1.4, kit.steel, .05)
-            blocks(kit, f'Hull wing service cover {k} {side} bolts',
-                   [ybolt(x, s*25.92, z, .22, s*.1) for x in (x0+.3, x1-.3) for z in (-2.3, 1.1)], kit.steel)
-        side_hatch(kit, s, side)
-        # Deck louvre between the spine and the hatch notch (the sprite's grey-blue vents).
-        y0, y1 = sorted((s*13.0, s*17.2))
-        louvre(kit, f'Hull wing deck vent {side}', -2.9, 1.9, y0, y1, WING_DECK+.05, 6)
+        y0, y1 = sorted((s*25.7, s*25.92))
+        bx(kit, f'Hull wing service cover {side}', 11.5, 14.5, y0, y1, -8.3, -5.6, kit.steel, .05)
+        blocks(kit, f'Hull wing service cover {side} bolts',
+               [ybolt(x, s*25.92, z, .22, s*.1) for x in (11.8, 14.2) for z in (-8.0, -5.9)], kit.steel)
         # Bolted octagonal service cover forward of the sponson ring.
         x, y = 18.3, s*14.0
-        kit.cylinder(f'Hull wing deck service cover {side}', (x, y, WING_DECK+.08), 1.2, .16, kit.steel, 'Z', 8, .04)
+        kit.cylinder(f'Hull wing deck service cover {side}', (x, y, deck+.08), 1.2, .16, kit.steel, 'Z', 8, .04)
         blocks(kit, f'Hull wing deck service cover {side} bolts',
-               [bolt(x+.9*math.cos(a), y+.9*math.sin(a), WING_DECK+.16, .16, .08)
+               [bolt(x+.9*math.cos(a), y+.9*math.sin(a), deck+.16, .16, .08)
                 for a in (j*math.tau/8+math.pi/8 for j in range(8))], kit.steel)
-        shoulder_block(kit, s, side)
-
-
-def shoulder_block(kit, s, side):
-    """The sprite's chamfered grey-blue side block aft of the hatch notch: a
-    raised stratum on the wing deck, with wall louvres, a red deck hatch
-    cover and two vent banks on top."""
-    plan = [(x, s*y) for x, y in SHOULDER_PLAN]
-    blk = prism(kit, f'Hull {side} shoulder block', plan, [(0, 2.6), (0, SHOULDER_TOP-1.1), (1.1, SHOULDER_TOP)], kit.blue)
-    slots, cores = [], []
-    for x in (-6.6, -8.0, -9.4, -10.8, -12.2):
-        g, c = wall_groove(s, x-.16, x+.16, 25.25, 3.5, 5.6, .35)
-        slots.append(g)
-        cores.append(c)
-    crisp(blk, .12)
-    cut(kit, blk, slots)
-    blocks(kit, f'Hull {side} shoulder block slot cores', cores, kit.dark)
-    z = SHOULDER_TOP
-    # Red deck hatch cover (the sprite's reddish panel), framed and dogged.
-    x0, x1 = -10.6, -7.0
-    y0, y1 = sorted((s*17.6, s*21.6))
-    f = [(x0, x1, y0, y0+.3), (x0, x1, y1-.3, y1), (x0, x0+.3, y0+.3, y1-.3), (x1-.3, x1, y0+.3, y1-.3)]
-    blocks(kit, f'Hull {side} shoulder hatch cover frame', [(a, b, c, d, z-.05, z+.25) for a, b, c, d in f], kit.steel, .03)
-    bx(kit, f'Hull {side} shoulder hatch cover', x0+.4, x1-.4, y0+.4, y1-.4, z-.05, z+.18, kit.red, .05)
-    blocks(kit, f'Hull {side} shoulder hatch cover dogs',
-           [bolt(x, y, z+.18, .3, .12) for x in (x0+.75, x1-.75) for y in (y0+.75, y1-.75)], kit.steel)
-    for label, a, b in (('fore', -6.6, -4.9), ('aft', -13.3, -11.2)):
-        vy0, vy1 = sorted((s*16.4, s*23.6))
-        louvre(kit, f'Hull {side} shoulder vent {label}', a, b, vy0, vy1, z, 3, .22)
-    blocks(kit, f'Hull {side} shoulder block bolts',
-           [bolt(x, s*y, z, .22, .1) for x in (-5.4, -7.6, -10.0, -12.6) for y in (15.55, 24.0)], kit.steel)
+    # Spine fairing: a flat-floored vent pocket each side of the crown, and
+    # transverse plate seams down its deck and flank.
+    pockets = []
+    for s, side in SIDES:
+        y0, y1 = sorted((s*12.2, s*16.8))
+        pockets.append((FAIRING_VENT[0], FAIRING_VENT[1], y0, y1, FAIRING_VENT_FLOOR, SPINE_DECK + 2))
+        for xs in (-8.5, -14.4):
+            pockets.append((xs - .1, xs + .1, *sorted((s*11.6, s*27.0)), -3.0, SPINE_DECK + 2))
+    cut(kit, kit.hull, pockets)
+    for s, side in SIDES:
+        y0, y1 = sorted((s*12.2, s*16.8))
+        louvre(kit, f'Hull fairing vent {side}', *FAIRING_VENT, y0, y1, FAIRING_VENT_FLOOR, 6)
 
 
 def aft_block(kit, aft):
@@ -481,7 +469,7 @@ def aft_block(kit, aft):
 def tie_downs(kit):
     """Padeyes for cargo straps and handling lines."""
     pads, verts, faces = [], [], []
-    spots = [(19.0, 12.6, WING_DECK), (-18.6, 18.4, AFT_DECK), (-29.5, 18.7, AFT_DECK)]
+    spots = [(19.0, 12.6, WING_DECK + .2), (-18.6, 18.4, AFT_DECK), (-29.5, 18.7, AFT_DECK)]
     for s, _ in SIDES:
         for x, y, z in spots:
             pads.append((x-.45, x+.45, s*y-.45, s*y+.45, z-.02, z+.12))
@@ -501,7 +489,6 @@ def tie_downs(kit):
 
 
 def build_details(kit):
-    kit.red = material('Hull hatch red', (.40, .17, .13), .25, .55)
     kit.blue = material('Hull grey-blue side block', (.36, .40, .47), .35, .5)
     spine_top(kit)
     spine_sides(kit)
@@ -516,4 +503,6 @@ def build_details(kit):
 def build(kit):
     build_shell(kit)
     build_wing_body(kit)
+    if os.environ.get('HERMES_HULL_DETAILS', '1') == '0':   # shape-only review renders
+        return
     build_details(kit)

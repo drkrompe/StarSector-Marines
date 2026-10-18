@@ -1,0 +1,30 @@
+{
+  "_note": "Lit monitor faces on deck-plate-v5, corners clockwise from top-left in guide pixels (the master's frame). Measured off the packed band: each face's amber pixels were flood-filled and a line fitted to each of its four edges, the corners being where the lines meet; pack.py maps them into packed pixels. Faces a painted operator or foreground monitor covers are left out; main-left stops above the situation board's top edge.",
+  "skipped": {"west-desk-1": "lower half hidden by a foreground monitor", "west-desk-2": "operator's head", "west-desk-3": "operator's head", "east-desk-1": "operator's head", "east-desk-3": "operator's head", "east-desk-5": "lower half hidden by a foreground monitor"},
+  "displays": [
+    {"id": "west-wall-1", "kind": "telemetry", "quad": [[20.2, 180.0], [115.9, 180.0], [114.2, 247.2], [20.2, 256.1]]},
+    {"id": "west-wall-2", "kind": "bars", "quad": [[182.4, 180.0], [248.2, 180.0], [248.2, 235.0], [182.4, 240.7]]},
+    {"id": "west-wall-3", "kind": "waveform", "quad": [[300.1, 180.0], [348.5, 180.0], [347.6, 225.9], [300.1, 230.9]]},
+    {"id": "west-bank-1", "kind": "sector", "quad": [[0.0, 325.3], [50.9, 317.6], [50.9, 374.3], [0.0, 385.2]]},
+    {"id": "west-bank-2", "kind": "sweep", "quad": [[99.7, 309.9], [182.1, 296.8], [176.6, 347.9], [99.7, 363.8]]},
+    {"id": "west-bank-3", "kind": "schematic", "quad": [[259.8, 286.2], [316.7, 277.5], [315.4, 320.0], [259.8, 331.7]]},
+    {"id": "west-bank-4", "kind": "bars", "quad": [[344.4, 273.0], [389.2, 266.0], [389.2, 303.3], [343.0, 313.1]]},
+    {"id": "west-desk-4", "kind": "telemetry", "quad": [[380.7, 335.6], [405.4, 329.3], [404.8, 356.5], [380.7, 363.6]]},
+    {"id": "comms-upper-left", "kind": "comms", "quad": [[526.0, 206.5], [579.5, 206.5], [578.4, 237.3], [526.0, 237.3]]},
+    {"id": "comms-upper-right", "kind": "comms", "quad": [[660.7, 206.5], [713.7, 206.5], [713.7, 237.3], [660.7, 237.3]]},
+    {"id": "comms-desk-left", "kind": "waveform", "quad": [[526.0, 259.5], [554.7, 259.5], [554.7, 280.4], [526.0, 279.9]]},
+    {"id": "comms-desk-right", "kind": "telemetry", "quad": [[662.3, 259.4], [692.9, 258.2], [692.4, 279.9], [663.8, 279.8]]},
+    {"id": "main-left", "kind": "sweep", "quad": [[879.2, 180.0], [1000.1, 180.0], [1000.1, 216.1], [879.2, 216.1]]},
+    {"id": "main-centre", "kind": "sector", "quad": [[1025.5, 180.0], [1144.3, 180.0], [1144.3, 234.1], [1025.5, 234.1]]},
+    {"id": "main-right", "kind": "schematic", "quad": [[1169.1, 180.0], [1292.5, 180.0], [1290.3, 234.1], [1170.8, 234.1]]},
+    {"id": "ledger", "kind": "ledger", "quad": [[1391.4, 259.5], [1421.1, 259.5], [1421.1, 279.9], [1391.4, 279.7]]},
+    {"id": "east-wall-1", "kind": "waveform", "quad": [[1823.5, 180.0], [1876.1, 180.0], [1876.1, 230.7], [1825.2, 226.7]]},
+    {"id": "east-wall-2", "kind": "telemetry", "quad": [[1924.9, 180.0], [1992.8, 180.0], [1992.8, 241.4], [1924.9, 235.0]]},
+    {"id": "east-wall-3", "kind": "bars", "quad": [[2057.5, 180.0], [2152.5, 180.0], [2150.7, 254.8], [2057.5, 246.9]]},
+    {"id": "east-bank-1", "kind": "bars", "quad": [[1781.0, 265.7], [1828.7, 272.9], [1829.9, 313.3], [1783.1, 303.7]]},
+    {"id": "east-bank-2", "kind": "sector", "quad": [[1856.0, 277.7], [1911.1, 286.4], [1911.1, 331.0], [1856.0, 320.0]]},
+    {"id": "east-bank-3", "kind": "sweep", "quad": [[1988.5, 295.5], [2071.2, 308.5], [2071.2, 362.5], [1994.6, 346.6]]},
+    {"id": "east-bank-4", "kind": "telemetry", "quad": [[2120.1, 315.8], [2170.9, 323.4], [2170.9, 384.6], [2119.8, 373.4]]},
+    {"id": "east-desk-2", "kind": "waveform", "quad": [[1839.7, 348.1], [1868.7, 355.3], [1868.7, 386.1], [1840.4, 377.4]]}
+  ]
+}

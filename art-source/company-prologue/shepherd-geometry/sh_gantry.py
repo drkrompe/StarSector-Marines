@@ -9,15 +9,27 @@ lattice deck (X -14..7) carries the round mount of turret WS 007 at
 gantry's forward end. Outboard of both (Y -27..-32) the sprite shows a
 tan lattice rail, the starboard outrigger, with a dark fender at its bow end.
 
-Pass 2 reading of the repair_gantry as working repair plant:
+Pass 3 (owner review: "steel square caging on the front right"): the
+sprite's starboard bow is no cage. Read pixel by pixel it is one long rounded
+machinery drum lying fore and aft (Y -12..-24, X 9..34, lit along its crown
+at Y -17..-20 and rounding off at the bow, X 31..34), the burnt-orange rails
+outboard of it and the outrigger beyond. So the lattice columns, girders and
+travelling crane are gone, and so is the top-deck plant they served; the
+core is that drum, on cradle saddles over the base deck, with the WS 008 bed
+as a round pedestal on its forward crown. The rails, the operator cab, the
+turret deck and the outrigger stand as pass 2 left them.
+
+Pass 2 reading of the repair_gantry as working repair plant (superseded for
+the frame, crane, floodlights and top-deck plant):
   * four lattice columns and lattice box girders: the frame is open
     structure, not solid bars; the two long top girders are the crane
     runways;
   * a double-girder travelling bridge crane on those runways, with a
     trolley, a hoist drum, two cable falls, a sheave block and a hook,
     parked over the work bed;
-  * the machinery core (kept as the pass-1 volume, which the hardpoint
-    seats on) carries the plant on its top deck: a fabricator at the aft
+  * the machinery core (pass 3: a chamfered pod, flat-topped, whose nose
+    rounds down in steps the way the sprite's starboard bow curves, in
+    place of the pass-1 box) carries the plant on its top deck: a fabricator at the aft
     end feeding a dark work bed with clamp jaws, two folding manipulator /
     welding arms at its corners, a compressor pair, a tool rack, cable
     reels either side of the hardpoint bed, pipe runs and an aft manifold;
@@ -33,14 +45,25 @@ stays under the barrels' sweep (nothing in barrel reach above deck top +2.5).
 Names: 'Gantry ...' and 'Frame starboard ...'.
 """
 import math
+import bpy
 from mathutils import Vector
-from sh_kit import prism, section, material
+from sh_kit import prism, section, material, loft_x, octagon, pod, ngon, boolean
 
-X0, X1, Y0, Y1 = 8.0, 32.5, -12.0, -26.0   # gantry frame extents (column centres)
-Z0, Z1 = -12.0, 15.0                       # bottom and top girder heights (ENVELOPE.md)
-CORE_BOT, CORE_TOP = -10.0, 6.0            # 'Gantry machinery core'
-CZ = (CORE_BOT+CORE_TOP)/2
-BED_BOT, BED_TOP = -4.0, 8.0               # 'Gantry forward hardpoint bed' (WS 008 seats on its top)
+Z0 = -12.0                                 # base deck height (ENVELOPE.md)
+CORE_BOT, CORE_TOP = -10.0, 6.0            # rail heights (the pass-1 core envelope)
+# The machinery drum (pass 3): a 12-sided body lying along X, flats top and
+# bottom, rounding off at the bow; stations (x, half-width, half-height).
+DRUM_Y, DRUM_Z = -18.5, -1.6
+DRUM_ST = [(8.6, 4.8, 6.6), (9.6, 6.0, 8.0), (27.0, 6.0, 8.0), (30.2, 5.3, 7.0), (32.6, 4.0, 5.2),
+           (34.0, 2.2, 2.8)]
+DRUM_N = 12
+SADDLE_X = (12.0, 20.0, 27.0)
+# WS 008 sits recessed in a well cut into the drum's forward crown (owner, pass 3),
+# with a trough running forward for the barrel. Sized for the hardpoint's 20 deg arc.
+WELL = (24.0, 30.6, -19.0, 2.6, 2.6)       # x0, x1, centre y, half-width, floor z
+TROUGH = (30.4, 35.5, 1.85, 2.95)          # x0, x1, half-width, floor z
+
+BED_BOT, BED_TOP = 1.4, 2.62               # 'Gantry forward hardpoint bed' (WS 008 seats on its top)
 DECK_BOT, DECK_TOP = -6.0, 3.0             # 'Frame starboard turret deck' (WS 007 seats on its top)
 OUT_BOT, OUT_TOP = -9.0, 5.0               # starboard outrigger envelope
 UP_BOT, UP_TOP = OUT_TOP-2.5, OUT_TOP-.5   # outrigger upper truss; walkway plate OUT_TOP-.5..OUT_TOP
@@ -48,10 +71,7 @@ LOW_Z = OUT_BOT+1.0                        # outrigger lower rail centre (1.6 de
 FENDER_Z, FENDER_H = -2.0, 8.0
 RAIL_UP = (CORE_TOP-1.5, CORE_TOP)         # orange outboard rails
 RAIL_LO = (CORE_BOT+2.0, CORE_BOT+3.5)
-FAB_H = 4.4                                # fabricator housing height above the core top
 TURRET = (-3.0, -23.0)                     # WS 007; keep r 5 clear and nothing tall in its sweep
-BED_X = 17.5                               # crane parked over the work bed centre
-BED_Y = -19.0
 
 
 class _Parts:
@@ -141,302 +161,156 @@ def _inside(poly, x, y):
     return c
 
 
-def _frame(kit):
-    # Columns: lattice towers on the corner nodes.
-    for i, (x, y) in enumerate(((X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)), 1):
-        p = _Parts()
-        p.truss((x, y, Z0-.8), (x, y, Z1+.8), (1, 0, 0), 1.6, 1.6, .34, .17, 1.7)
-        p.box((x, y, Z0+.75), (2.2, 2.2, .3))           # base plate on the deck
-        p.make(kit, f'Gantry column {i}', kit.steel)
-    # Long girders: the top pair are the crane runways.
-    for z, tag in ((Z1, 'top'), (Z0, 'bottom')):
-        for y, side in ((Y0, 'inboard'), (Y1, 'outboard')):
-            p = _Parts()
-            p.truss((X0, y, z), (X1, y, z), (0, 1, 0), 1.6, 1.6, .32, .16, 1.75)
-            p.make(kit, f'Gantry {tag} {side} girder', kit.steel)
-    for i, x in enumerate((X0, (X0+X1)/2, X1), 1):
-        p = _Parts()
-        p.truss((x, Y0, Z1), (x, Y1, Z1), (1, 0, 0), 1.6, 1.6, .32, .16, 1.75)
-        p.make(kit, f'Gantry top cross girder {i}', kit.steel)
-    # Gusset plates at the nodes where girders meet the columns.
-    p = _Parts()
-    for x in (X0, X1):
-        for y in (Y0, Y1):
-            for z in (Z1, Z0):
-                for dx in (-.86, .86):
-                    p.box((x+dx, y, z), (.1, 1.9, 1.9))
-                for dy in (-.86, .86):
-                    p.box((x, y+dy, z), (1.9, .1, 1.9))
-    for y in (Y0, Y1):                                   # mid cross girder seats
-        p.box(((X0+X1)/2, y, Z1-.86), (2.0, 1.9, .1))
-    p.make(kit, 'Gantry node gusset plates', kit.grey)
-    # Runway rails on the top girders.
-    for y, side in ((Y0, 'inboard'), (Y1, 'outboard')):
-        kit.box(f'Gantry crane runway rail {side}', ((X0+X1)/2, y, Z1+.92), (X1-X0+1.2, .5, .25), kit.dark, .04)
+def _drum_top(x):
+    """Crown height of the drum at x (the flat top face)."""
+    for (xa, _, za), (xb, _, zb) in zip(DRUM_ST, DRUM_ST[1:]):
+        if xa <= x <= xb:
+            rz = za+(zb-za)*(x-xa)/(xb-xa)
+            return DRUM_Z+rz*math.sin(math.radians(75))
+    return DRUM_Z
 
 
-def _crane(kit):
-    zr = Z1+1.05                                   # runway rail top
-    gx = (BED_X-.75, BED_X+.75)
-    # End trucks riding the runways, with wheels on the rails.
-    p = _Parts()
-    for y in (Y0, Y1):
-        p.box((BED_X, y, zr+.45), (4.6, 1.4, .8))
-        p.box((BED_X+2.45, y, zr+.45), (.3, 1.6, .9))       # buffers
-        p.box((BED_X-2.45, y, zr+.45), (.3, 1.6, .9))
-    p.make(kit, 'Gantry crane end trucks', kit.orange, .05)
-    p = _Parts()
-    for y in (Y0, Y1):
-        for x in (BED_X-1.6, BED_X+1.6):
-            p.cyl((x, y, zr+.25), .32, 1.0, 'Y', 10)
-    p.make(kit, 'Gantry crane truck wheels', kit.dark)
-    # Bridge: two plate girders with stiffeners, spanning the runways.
-    p = _Parts()
-    for x in gx:
-        p.box((x, (Y0+Y1)/2, zr+.75), (.34, Y0-Y1-.4, 1.0))
-        p.box((x, (Y0+Y1)/2, zr+1.28), (.7, Y0-Y1-.4, .12))    # top flange
-        p.box((x, (Y0+Y1)/2, zr+.22), (.7, Y0-Y1-.4, .12))     # bottom flange
-        for k in range(1, 7):
-            y = Y0+(Y1-Y0)*k/7
-            p.box((x, y, zr+.75), (.6, .1, .9))                 # web stiffeners
-    p.make(kit, 'Gantry crane bridge girders', kit.orange, .03)
-    p = _Parts()
-    for x in gx:
-        p.box((x, (Y0+Y1)/2, zr+1.4), (.2, Y0-Y1-1.0, .14))
-    p.make(kit, 'Gantry crane trolley rails', kit.dark)
-    zt = zr+1.47
-    # Trolley frame, hoist drum and motor.
-    kit.box('Gantry crane trolley', (BED_X, BED_Y, zt+.3), (2.6, 2.8, .6), kit.orange, .08)
-    p = _Parts()
-    p.cyl((BED_X, BED_Y, zt+1.15), .62, 2.0, 'Y', 12)                  # drum
-    p.cyl((BED_X, BED_Y-1.15, zt+1.15), .75, .14, 'Y', 12)             # flanges
-    p.cyl((BED_X, BED_Y+1.15, zt+1.15), .75, .14, 'Y', 12)
-    p.box((BED_X+.95, BED_Y+.9, zt+1.0), (.7, 1.2, .9))                # motor and gearbox
-    p.box((BED_X-.95, BED_Y-.9, zt+.9), (.6, 1.0, .7))                 # brake housing
-    p.make(kit, 'Gantry crane hoist', kit.dark, .03)
-    # Two cable falls down between the bridge girders to the sheave block.
-    zb = CORE_TOP+3.2
-    p = _Parts()
-    for dx in (-.22, .22):
-        p.strut((BED_X+dx, BED_Y, zt+.9), (BED_X+dx, BED_Y, zb+.45), .09)
-    p.make(kit, 'Gantry crane hoist cable', kit.dark)
-    p = _Parts()
-    p.box((BED_X, BED_Y, zb), (.9, .7, .9))
-    p.cyl((BED_X, BED_Y, zb+.25), .42, .8, 'Y', 10)
-    p.make(kit, 'Gantry crane sheave block', kit.orange, .04)
-    # Hook: shank, swivel and a J of short bars.
-    p = _Parts()
-    p.strut((BED_X, BED_Y, zb-.45), (BED_X, BED_Y, zb-1.0), .2)
-    p.cyl((BED_X, BED_Y, zb-1.05), .22, .18, 'Z', 8)
-    pts = [(0, 0)]
+def _skin(core, x, y):
+    """Height of the drum's outer skin at (x, y), by a downward ray (None off the drum)."""
+    bpy.context.view_layer.update()
+    ev = core.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    hit, p, _, _ = ev.ray_cast(Vector((x, y, 40)), Vector((0, 0, -1)))
+    return p.z if hit else None
+
+
+def _rim(kit, name, core, edges, w, h, mat, step=.25):
+    """One continuous coaming band laid on the skin along each edge [(a, b), ...]:
+    w wide, standing h proud, its foot sunk a little so it never floats."""
+    verts, faces = [], []
+    for (ax, ay), (bx, by) in edges:
+        L = math.hypot(bx-ax, by-ay)
+        dx, dy = (bx-ax)/L, (by-ay)/L
+        ax, ay, bx, by = ax-dx*w/2, ay-dy*w/2, bx+dx*w/2, by+dy*w/2   # overlap at the corners
+        nx, ny = -dy*w/2, dx*w/2
+        n = max(1, round((L+w)/step))
+        base = len(verts)
+        rows = 0
+        for k in range(n+1):
+            x, y = ax+(bx-ax)*k/n, ay+(by-ay)*k/n
+            zi, zo = _skin(core, x-nx, y-ny), _skin(core, x+nx, y+ny)
+            if zi is None or zo is None:
+                continue
+            verts += [(x-nx, y-ny, zi-.2), (x+nx, y+ny, zo-.2), (x+nx, y+ny, zo+h), (x-nx, y-ny, zi+h)]
+            rows += 1
+        for r in range(rows-1):
+            a, b = base+4*r, base+4*(r+1)
+            faces += [(a+q, a+(q+1) % 4, b+(q+1) % 4, b+q) for q in range(4)]
+        if rows > 1:
+            faces += [(base, base+1, base+2, base+3), tuple(base+4*(rows-1)+q for q in (3, 2, 1, 0))]
+    return kit.mesh(name, verts, faces, mat, .02)
+
+
+def _well(kit, core):
+    """The WS 008 well, finished the way a recessed weapon pocket would be: a flush
+    bolted armour coaming round the cut edge (following the drum's skin, not a
+    level frame), a lined barrel trough with a ribbed blast plate under the muzzle,
+    and drain grilles either side of the cradle. No hazard paint: nobody works on
+    the drum's crown, and a hardpoint that traverses +-10 deg has no crush zone."""
+    x0, x1, wy, hw, fz = WELL
+    tx0, tx1, thw, tz = TROUGH
+    bolts = _Parts()
+    e = .3                                                     # coaming centreline outside the cut
+    edge = [(x1, wy-thw-e), (x1, wy-hw-e), (x0-e, wy-hw-e), (x0-e, wy+hw+e), (x1, wy+hw+e), (x1, wy+thw+e)]
+    runs = list(zip(edge, edge[1:]))+[((x1, wy+sg*(thw+e)), (34.0, wy+sg*(thw+e))) for sg in (-1, 1)]
+    _rim(kit, 'Gantry hardpoint well coaming', core, runs, .55, .14, kit.steel)
+    for (ax, ay), (bx, by) in zip(edge, edge[1:]):
+        n = max(1, round(math.hypot(bx-ax, by-ay)/1.1))
+        for k in range(n+1):
+            x, y = ax+(bx-ax)*k/n, ay+(by-ay)*k/n
+            z = _skin(core, x, y)
+            if z is not None:
+                bolts.box((x, y, z+.17), (.16, .16, .08))
+    bolts.make(kit, 'Gantry hardpoint well coaming bolts', kit.dark)
+    # Trough liner plates and the ribbed blast plate under the muzzle.
+    lin, rib = _Parts(), _Parts()
+    lin.box(((tx0+tx1)/2, wy, tz+.05), (tx1-tx0, 2*thw-.2, .1))
     for k in range(7):
-        a = math.radians(180+k*35)
-        pts.append((.45+.45*math.cos(a), -.5+.45*math.sin(a)))
-    for (ax_, az), (bx, bz) in zip(pts, pts[1:]):
-        p.strut((BED_X+ax_, BED_Y, zb-1.1+az), (BED_X+bx, BED_Y, zb-1.1+bz), .18, .14)
-    p.make(kit, 'Gantry crane hook', kit.steel)
+        rib.box((32.2+k*.36, wy, tz+.16), (.14, 2*thw-.5, .12))
+    lin.make(kit, 'Gantry hardpoint trough liner', kit.steel, .02)
+    rib.make(kit, 'Gantry hardpoint trough blast plate ribs', kit.dark)
+    # Drain grilles in the well floor, on the side strips clear of the cradle.
+    g, sl = _Parts(), _Parts()
+    for gy in (wy-hw+.38, wy+hw-.38):
+        g.box(((x0+x1)/2, gy, BED_TOP+.02), (x1-x0-1.0, .5, .06))
+        for k in range(10):
+            sl.box((x0+.7+k*(x1-x0-1.4)/9, gy, BED_TOP+.06), (.12, .42, .06))
+    g.make(kit, 'Gantry hardpoint well drain grilles', kit.dark)
+    sl.make(kit, 'Gantry hardpoint well drain grille slats', kit.steel)
 
 
-def _core_plant(kit):
-    t = CORE_TOP
-    # Work bed: dark grated table with clamp jaws, where a Borer is serviced.
-    kit.box('Gantry work bed', (BED_X, BED_Y, t+.15), (8.0, 7.0, .3), kit.dark, .05)
+def _drum_plant(kit):
+    """Frame bands, the crown plate and hatches, outboard covers and grilles, cradle saddles."""
+    s75, c15 = math.sin(math.radians(75)), math.cos(math.radians(15))
+    # Frame bands round the drum (dark rings a hair proud of the skin).
+    for k, x in enumerate((12.0, 16.0, 20.0, 23.3), 1):
+        pod(kit, f'Gantry drum frame band {k}', [(x-.13, 6.12, 8.12), (x+.13, 6.12, 8.12)], DRUM_Y, DRUM_Z,
+            kit.dark, DRUM_N, 0)
+    crown = DRUM_Z+8.0*s75
+    # The lit crown the sprite shows (Y -17..-20): a pale plate down the flat top.
     p = _Parts()
-    for k in range(9):
-        p.box((BED_X-3.6+k*.9, BED_Y, t+.33), (.12, 6.6, .08))
-    p.make(kit, 'Gantry work bed grating', kit.steel)
+    p.box((16.6, DRUM_Y, crown+.06), (13.2, 3.0, .12))
+    p.make(kit, 'Gantry drum crown plate', kit.cream, .03)
     p = _Parts()
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            cx, cy = BED_X+sx*2.6, BED_Y+sy*2.2
-            p.box((cx, cy, t+.55), (.9, .9, .5))
-            p.box((cx-sx*.55, cy-sy*.55, t+.85), (.5, .5, .35))   # jaw
-    p.make(kit, 'Gantry work bed clamp jaws', kit.orange, .04)
-
-    # Fabricator at the aft end of the deck, its output port facing the bed.
-    fx0, fx1 = 8.8, 13.2
-    kit.box('Gantry fabricator housing', ((fx0+fx1)/2, -18.5, t+FAB_H/2), (fx1-fx0, 10.0, FAB_H), kit.grey, .18)
+    for x in (11.2, 21.6):
+        p.box((x, DRUM_Y, crown+.1), (1.8, 2.2, .2))
+    p.make(kit, 'Gantry drum crown hatches', kit.dark, .03)
+    # Outboard vertical facet (Y = DRUM_Y - 6 cos 15): bolted covers and grilles.
+    yo = DRUM_Y-6.0*c15
+    fz = DRUM_Z
     p = _Parts()
-    p.box((fx1+.02, -18.5, t+1.6), (.12, 4.6, 2.4))                    # output port
-    for k in range(6):
-        p.box((10.0+k*.42, -15.4, t+FAB_H+.03), (.2, 2.8, .06))         # roof vent slats
-    for k in range(6):
-        p.box((10.0+k*.42, -21.6, t+FAB_H+.03), (.2, 2.8, .06))
-    p.make(kit, 'Gantry fabricator port and vents', kit.dark)
-    p = _Parts()
-    p.box((fx1+.18, -18.5, t+FAB_H-.4), (.4, 5.4, .3))                 # print-head beam
-    p.box((fx1+.45, -18.0, t+FAB_H-.8), (.5, .7, .6))                   # head carriage
-    p.strut((fx1+.45, -18.0, t+FAB_H-1.1), (fx1+.45, -18.0, t+1.3), .18)  # nozzle
-    p.box((fx1+.06, -13.9, t+FAB_H/2), (.12, 1.2, FAB_H-.9))           # bolted service cover
-    p.box((fx1+.06, -23.1, t+FAB_H/2), (.12, 1.2, FAB_H-.9))
-    p.make(kit, 'Gantry fabricator print head', kit.steel, .02)
-
-    # Folding manipulator / welding arms at two corners of the bed.
-    for i, (bx, by, yaw_to, fold) in enumerate(((14.2, -13.7, (16.2, -16.6), 1), (21.0, -23.8, (19.0, -21.2), -1)), 1):
-        yaw = math.atan2(yaw_to[1]-by, yaw_to[0]-bx)
-        d = Vector((math.cos(yaw), math.sin(yaw), 0))
-        side = Vector((-d.y, d.x, 0))
-        base = Vector((bx, by, t))
-        sh = base+Vector((0, 0, 1.0))
-        el = sh+d*(2.6*math.cos(math.radians(62)))+Vector((0, 0, 2.6*math.sin(math.radians(62))))
-        wr = el+d*(2.3*math.cos(math.radians(38)))-Vector((0, 0, 2.3*math.sin(math.radians(38))))
-        tip = wr+Vector((0, 0, -1.0))+d*.2
-        p = _Parts()
-        p.cyl(base+Vector((0, 0, .2)), .7, .4, 'Z', 12)
-        p.cyl(base+Vector((0, 0, .6)), .5, .45, 'Z', 10)
-        p.box(sh, (.7, .7, .6))
-        p.make(kit, f'Gantry manipulator arm {i} base', kit.steel, .03)
-        p = _Parts()
-        p.strut(sh, el, .5, .4)
-        p.strut(sh+d*.35-Vector((0, 0, .1))+side*.33, el-d*.9+side*.33, .16)   # hydraulic ram
-        p.make(kit, f'Gantry manipulator arm {i} upper arm', kit.cream, .02)
-        p = _Parts()
-        p.cyl(el, .34, .75, 'X' if abs(side.x) > abs(side.y) else 'Y', 10)
-        p.cyl(wr, .25, .55, 'X' if abs(side.x) > abs(side.y) else 'Y', 10)
-        p.make(kit, f'Gantry manipulator arm {i} joints', kit.dark)
-        p = _Parts()
-        p.strut(el, wr, .38, .32)
-        p.make(kit, f'Gantry manipulator arm {i} forearm', kit.cream, .02)
-        p = _Parts()
-        p.box(wr+Vector((0, 0, -.25)), (.45, .45, .5))
-        p.strut(wr+Vector((0, 0, -.5)), tip, .16)
-        p.strut(tip, tip+Vector((0, 0, -.25))+d*.1, .1)
-        p.make(kit, f'Gantry manipulator arm {i} welding head', kit.steel, .01)
-
-    # Compressor pair forward of the bed: finned cylinders on saddles.
-    for i, x in enumerate((22.6, 24.2), 1):
-        p = _Parts()
-        p.cyl((x, -20.9, t+.95), .68, 5.0, 'Y', 12)
-        for k in range(7):
-            p.cyl((x, -22.9+k*.62, t+.95), .82, .12, 'Y', 12)
-        p.box((x, -23.1, t+.3), (1.3, .5, .6))
-        p.box((x, -18.7, t+.3), (1.3, .5, .6))
-        p.make(kit, f'Gantry compressor {i}', kit.steel, .02)
-    p = _Parts()
-    p.cyl((23.4, -18.0, t+.95), .3, .6, 'Y', 8)                         # discharge header
-    p.strut((22.6, -18.0, t+.95), (24.2, -18.0, t+.95), .42)
-    p.strut((23.4, -17.7, t+.95), (23.4, -16.2, t+.95), .3)
-    p.make(kit, 'Gantry compressor header', kit.dark)
-
-    # Tool rack on the inboard strip forward of the bed.
-    p = _Parts()
-    for x in (22.0, 24.8):
-        p.box((x, -14.4, t+1.2), (.2, .2, 2.4))
-    p.box((23.4, -14.4, t+2.35), (3.0, .2, .2))
-    p.box((23.4, -14.4, t+1.2), (3.0, .16, .14))
-    p.box((23.4, -14.4, t+.12), (3.2, 1.4, .24))
-    p.make(kit, 'Gantry tool rack frame', kit.steel)
-    p = _Parts()
-    for k, (dx, ln) in enumerate(((-1.0, 1.0), (-.5, .7), (0, 1.1), (.5, .8), (1.0, .9))):
-        p.strut((23.4+dx, -14.55, t+2.25), (23.4+dx, -14.55, t+2.25-ln), .14)
-        p.box((23.4+dx, -14.55, t+2.25-ln-.1), (.3, .12, .22))
-    p.box((22.9, -14.25, t+.45), (.9, .6, .45))                         # tool chest
-    p.box((24.0, -14.25, t+.45), (.9, .6, .45))
-    p.make(kit, 'Gantry tool rack tools', kit.cream, .02)
-
-    # Cable reels either side of the hardpoint bed.
-    for i, (y, r) in enumerate(((-14.0, 1.15), (-23.5, .9)), 1):
-        p = _Parts()
-        p.cyl((28.5, y, t+r+.1), r*.62, 1.7, 'X', 12)
-        for dx in (-.9, .9):
-            p.cyl((28.5+dx, y, t+r+.1), r, .14, 'X', 14)
-        p.box((28.5, y, t+.15), (2.0, .6, .3))
-        p.make(kit, f'Gantry cable reel {i}', kit.steel, .02)
-    p = _Parts()
-    for y, r in ((-14.0, 1.15), (-23.5, .9)):
-        p.cyl((28.5, y, t+r+.1), r*.72, 1.5, 'X', 12)
-    p.make(kit, 'Gantry cable reel windings', kit.dark)
-
-    # Pipe runs along the deck edges and down the aft face to a manifold.
-    p = _Parts()
-    pr = .24
-    p.strut((9.0, -12.95, t+.3), (32.0, -12.95, t+.3), pr*2)
-    p.strut((9.0, -24.15, t+.3), (26.5, -24.15, t+.3), pr*2)
-    p.strut((9.0, -12.95, t+.3), (8.2, -12.95, t+.3), pr*2)
-    p.strut((8.2, -12.95, t+.3), (8.2, -14.0, CZ-1.0), pr*2)
-    p.strut((9.0, -24.15, t+.3), (8.2, -24.15, t+.3), pr*2)
-    p.strut((8.2, -24.15, t+.3), (8.2, -23.0, CZ-1.0), pr*2)
-    for x in (12, 17, 22, 27, 31):
-        p.box((x, -12.95, t+.12), (.3, .7, .24))                        # pipe saddles
-    for x in (12, 17, 22):
-        p.box((x, -24.15, t+.12), (.3, .7, .24))
-    p.strut((24.2, -23.2, t+.95), (24.2, -24.15, t+.5), .32)
-    p.make(kit, 'Gantry core piping', kit.dark)
-    p = _Parts()
-    p.box((8.25, -18.5, CZ-1.2), (.5, 9.6, 1.6))                        # aft manifold
-    for y in (-21.5, -18.5, -15.5):
-        p.strut((8.0, y, CZ-1.2), (7.6, y, CZ-1.2), .2)
-        p.cyl((7.5, y, CZ-1.2), .45, .1, 'X', 10)                          # valve wheels
-    p.make(kit, 'Gantry core aft manifold', kit.orange, .03)
-
-    # Core faces: plating seams, bolted service covers and grilles. The faces
-    # run CORE_BOT..CORE_TOP; two strata bands split them into three courses.
-    ch = CORE_TOP-CORE_BOT
-    bands = (CORE_BOT+ch/3, CORE_BOT+2*ch/3)
-    p = _Parts()
-    for x in (12.5, 16.5, 20.5, 24.5, 28.5):
-        p.box((x, -24.53, CZ), (.16, .1, ch-.4))
-    for y in (-15.5, -18.5, -21.5):
-        p.box((32.53, y, CZ), (.1, .16, ch-.4))
-    for y in (-15.0, -22.0):
-        p.box((8.47, y, CZ), (.1, .16, ch-.4))
-    for z in bands:
-        p.box((20.5, -24.53, z), (23.6, .1, .14))
-        p.box((32.53, -18.5, z), (.1, 11.6, .14))
-        p.box((8.47, -18.5, z), (.1, 11.6, .14))
-    p.make(kit, 'Gantry core plating seams', kit.dark)
-    covers = []                                   # (face, x or y, centre z, w, h)
-    p = _Parts()
-    for x in (14.5, 22.5):
-        for z in (bands[0]-2.6, bands[1]-2.6):
-            p.box((x, -24.56, z), (3.0, .14, 2.6))                     # outboard covers
-            covers.append(('o', x, z, 3.0, 2.6))
-    door = (CORE_BOT+.6, bands[0]-.4)
-    p.box((32.56, -18.5, sum(door)/2), (.14, 5.4, door[1]-door[0]))    # forward access door
-    for y in (-14.0, -23.0):
-        p.box((32.56, y, bands[1]-2.0), (.14, 2.4, 2.6))
-        covers.append(('f', y, bands[1]-2.0, 2.4, 2.6))
+    for x in (14.8, 22.8):
+        p.box((x, yo-.06, fz), (3.0, .14, 3.2))
     p.make(kit, 'Gantry core service covers', kit.grey)
     p = _Parts()
-    for face, u, z, w, h in covers:
-        for du in (-w/2+.3, w/2-.3):
-            for dz in (-h/2+.3, h/2-.3):
-                if face == 'o':
-                    p.box((u+du, -24.65, z+dz), (.18, .08, .18))
-                else:
-                    p.box((32.65, u+du, z+dz), (.08, .18, .18))
-    for y in (-20.9, -16.1):
-        for z in (door[0]+.3, door[1]-.3):
-            p.box((32.65, y, z), (.08, .18, .18))
+    for x in (14.8, 22.8):
+        for du in (-1.2, 1.2):
+            for dz in (-1.3, 1.3):
+                p.box((x+du, yo-.15, fz+dz), (.18, .08, .18))
     p.make(kit, 'Gantry core bolt heads', kit.steel)
-    gz = bands[1]+1.6
     p = _Parts()
-    for x in (18.5, 26.5):
-        for z in (bands[0]-1.6, gz):
-            p.box((x, -24.52, z), (2.6, .1, 2.4))
-    p.box((32.52, -18.5, gz), (.1, 4.0, 1.4))
+    for x in (18.8, 26.0):
+        p.box((x, yo-.02, fz), (2.6, .1, 2.8))
     p.make(kit, 'Gantry core grille recesses', kit.dark)
     p = _Parts()
-    for x in (18.5, 26.5):
-        for z in (bands[0]-1.6, gz):
-            for k in range(5):
-                p.box((x, -24.6, z-.9+k*.45), (2.4, .1, .14))
-    for k in range(3):
-        p.box((32.6, -18.5, gz-.45+k*.45), (.1, 3.8, .14))
+    for x in (18.8, 26.0):
+        for k in range(5):
+            p.box((x, yo-.1, fz-1.0+k*.5), (2.4, .1, .14))
     p.make(kit, 'Gantry core grille slats', kit.steel)
-
-
-def _lights_and_cab(kit):
-    lamp = material('Gantry work floodlight lens', (.9, .86, .74), 0, .3, emission=(1.0, .9, .72), strength=6.0)
+    # Forward access hatch on the nose's last face.
+    xn, ry, rz = DRUM_ST[-1]
     p = _Parts()
-    q = _Parts()
-    for x, y in ((10.2, -13.5), (10.2, -24.5), (30.3, -13.5), (30.3, -24.5), ((X0+X1)/2-1.6, -24.5)):
-        p.strut((x, y, Z1-.7), (x, y, Z1-1.05), .2)
-        p.box((x, y, Z1-1.35), (1.0, .9, .6))
-        q.box((x, y, Z1-1.68), (.8, .7, .06))
-    p.make(kit, 'Gantry work floodlight housings', kit.dark, .03)
-    q.make(kit, 'Gantry work floodlight lenses', lamp)
+    p.box((xn+.06, DRUM_Y, DRUM_Z), (.14, 2.4, 2.6))
+    p.make(kit, 'Gantry core forward access door', kit.grey)
+    # Aft manifold and valve wheels on the aft cap.
+    p = _Parts()
+    p.box((8.35, DRUM_Y, DRUM_Z-1.2), (.5, 7.0, 1.6))
+    for y in (-21.0, -18.5, -16.0):
+        p.strut((8.1, y, DRUM_Z-1.2), (7.6, y, DRUM_Z-1.2), .2)
+        p.cyl((7.5, y, DRUM_Z-1.2), .45, .1, 'X', 10)
+    p.make(kit, 'Gantry core aft manifold', kit.orange, .03)
+    # Pipe runs along the inboard flank to the manifold.
+    yi = DRUM_Y+6.0*c15+.35
+    p = _Parts()
+    for z in (DRUM_Z+1.0, DRUM_Z-2.2):
+        p.strut((8.4, yi, z), (29.0, yi, z), .44)
+    for x in (12, 17, 22, 27):
+        p.box((x, yi-.2, DRUM_Z-.6), (.3, .4, 3.8))
+    p.make(kit, 'Gantry core piping', kit.dark)
+    # Cradle saddles carrying the drum on the base deck.
+    floor = Z0+.6
+    for k, x in enumerate(SADDLE_X, 1):
+        under = DRUM_Z-8.0*s75
+        sec = [(DRUM_Y-4.6, floor), (DRUM_Y+4.6, floor), (DRUM_Y+4.6, under+1.4), (DRUM_Y+2.1, under+.3),
+               (DRUM_Y-2.1, under+.3), (DRUM_Y-4.6, under+1.4)]
+        loft_x(kit, f'Gantry drum cradle saddle {k}', [(x-.8, sec), (x+.8, sec)], kit.steel, .06)
 
+
+def _cab(kit):
     # Operator cab cantilevered outboard over the outrigger walkway.
     cx0, cx1, cy0, cy1 = 9.2, 12.8, -29.6, -26.9
     cz0 = OUT_TOP+1.2
@@ -573,22 +447,18 @@ def _outrigger(kit):
         p = _Parts()
         p.truss((x, -28.5, lo_top), (x, -28.5, up_bot), (1, 0, 0), 1.4, 1.4, .28, .14, 1.4)
         p.make(kit, f'Frame starboard outrigger post {i}', kit.steel)
-    # Vertical bracing on the outboard face between the rails, two tiers.
-    p = _Parts()
+    # Outboard skirt between the rails: dark armour plates, the solid dark band
+    # the sprite shows outboard of the drum (pass 3: no open bracing here).
+    p, q = _Parts(), _Parts()
     zl, zh = lo_top-.15, up_bot+.15
-    zm = (zl+zh)/2
-    xs = [7.0+k*3.0 for k in range(8)]
-    for z0, z1 in ((zl, zm), (zm, zh)):
-        for k in range(len(xs)-1):
-            a, b = xs[k], xs[k+1]
-            if k % 2:
-                p.strut((a, -30.5, z1), (b, -30.5, z0), .2)
-            else:
-                p.strut((a, -30.5, z0), (b, -30.5, z1), .2)
-    p.strut((xs[0], -30.5, zm), (xs[-1], -30.5, zm), .2)
-    for x in xs:
-        p.strut((x, -30.5, zl), (x, -30.5, zh), .18)
-    p.make(kit, 'Frame starboard outrigger side bracing', kit.steel)
+    edges = [7.0+k*3.0 for k in range(9)]
+    for a, b in zip(edges, edges[1:]):
+        p.box(((a+b)/2, -30.55, (zl+zh)/2), (b-a-.16, .4, zh-zl))
+        for x in (a+.4, b-.4):
+            for z in (zl+.4, zh-.4):
+                q.box((x, -30.8, z), (.18, .1, .18))
+    p.make(kit, 'Frame starboard outrigger side plating', kit.dark, .04)
+    q.make(kit, 'Frame starboard outrigger side plating bolts', kit.steel)
     # Bow fender: a dark bumper on a bracket, with steel bands.
     fz, fh = FENDER_Z, FENDER_H
     kit.cylinder('Frame starboard bow fender', (22, -31.2, fz), 2.4, fh, kit.dark, 'Z', 12, .15)
@@ -603,21 +473,24 @@ def _outrigger(kit):
 
 
 def build(kit):
-    core = kit.box('Gantry machinery core', (20.5, -18.5, CZ), (24, 12, CORE_TOP-CORE_BOT), kit.grey, .3)
-    base = prism(kit, 'Gantry base deck', [(7, -29.5), (33, -29.5), (33, -11), (7, -11)],
+    core = pod(kit, 'Gantry machinery core', DRUM_ST, DRUM_Y, DRUM_Z, kit.grey, DRUM_N, .2)
+    # The base deck's forward corners round off with the drum and the bow.
+    base = prism(kit, 'Gantry base deck', [(7, -29.5), (29.5, -29.5), (33, -25.5), (33, -15.0),
+                                           (30.0, -11), (7, -11)],
                  section(Z0-1.2, Z0+.6, .4, .3), kit.steel)
-    # The bed is a seat: WS 008 ray-casts onto its top (ENVELOPE.md: hardpoint on bed top +8).
-    bed = kit.box('Gantry forward hardpoint bed', (28.5, -19, (BED_BOT+BED_TOP)/2), (7, 7, BED_TOP-BED_BOT),
-                  kit.steel, .2)
+    # The hardpoint well and the barrel trough, cut out of the drum (dark walls).
+    x0, x1, wy, hw, fz = WELL
+    for name, (cx0, cx1, chw, cz) in (('well', (x0, x1, hw, fz)), ('trough', TROUGH)):
+        cutter = kit.box(f'Temporary hardpoint {name} cutter', ((cx0+cx1)/2, wy, cz+10), (cx1-cx0, 2*chw, 20),
+                         kit.dark, 0)
+        boolean(core, cutter)
+    # The bed is a seat: WS 008 ray-casts onto its top, the well floor plate.
+    bed = kit.box('Gantry forward hardpoint bed', ((x0+x1)/2, wy, (BED_BOT+BED_TOP)/2),
+                  (x1-x0-.3, 2*hw-.3, BED_TOP-BED_BOT), kit.steel, .04)
     kit.hull += [core, base, bed]
-    p = _Parts()
-    for y in (-15.4, -22.6):
-        p.box((28.5, y, BED_TOP+.12), (6.6, .2, .24))                 # bed coaming
-    p.make(kit, 'Gantry forward hardpoint bed coaming', kit.dark)
-    _frame(kit)
-    _crane(kit)
-    _core_plant(kit)
-    _lights_and_cab(kit)
+    _well(kit, core)
+    _drum_plant(kit)
+    _cab(kit)
     _rails(kit)
     _turret_deck(kit)
     _outrigger(kit)

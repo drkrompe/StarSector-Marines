@@ -1,5 +1,5 @@
-"""Hermes underside: the troop bay, the troop ramp, the landing gear and the
-belly.
+"""Hermes underside: the troop bay, the boarding doors, the landing gear and
+the belly.
 
 The Hermes lands marines, so the design needs all three. None is in the
 sprite (a top view cannot show them); they are inferred from the boat's
@@ -14,15 +14,13 @@ the hatch forward to the flight deck, a casualty litter is stowed flat
 against the roof and a lamp strip runs down the middle. The wing body
 passes through the spine there, so the bay void is cut out of it too.
 
-Troop ramp. The wing body and drive block cover the spine's flanks and
-stern, so the way out is down. The ramp is the bay's aisle floor, hinged on
-the opening's AFT edge, and lowers its FORWARD end: marines walk down and
-forward. Every ramp part is parented to 'Hull ventral ramp hinge'. Rotating
-that empty about its local Y opens it: positive angles lower the toe. The
-custom properties on the empty give the axis, sign and the ground-contact
-angle. The rams are split into a hull-anchored cylinder and a rod on the
-ramp, each aimed at the other with a damped-track constraint, so they
-telescope at any opening angle without being driven.
+Boarding doors (owner, pass 3, replacing the ventral ramp). The boat sits
+flat on short legs and people walk in at the side: one door each flank at
+the sprite's notch amidships (X -3..4), each in a shallow recess cut into
+the spine fairing's raked flank (back wall at |Y| 21.6), with a short passage
+inboard to the troop bay's aft end. Each leaf is parented to
+'Hull <side> boarding door hinge' on the aft jamb and swings outward about
+its local Z.
 
 Landing gear. Tricycle: a nose leg under the neck (folds aft) and two main
 legs under the wing body (fold forward). Each leg's parts are parented to
@@ -32,7 +30,7 @@ well. Each well has two doors on their own pivots ('Gear <leg> port door
 hinge' / 'starboard door hinge'), built open. A Blender driver ties each
 door's angle to its leg's: open with the leg down, closed flush with the
 keel at the leg's retract angle. The retraction actuators telescope the
-same way as the ramp rams.
+by damped-track constraints.
 """
 import math
 import bmesh
@@ -41,32 +39,46 @@ from mathutils import Matrix, Vector
 from hm_kit import bx, blocks, pivot, parent_to, material
 from hm_hull import KEEL, WING_KEEL, AFT_KEEL
 
-GROUND = KEEL - 8.0                      # pad soles, gear extended
-RAMP_OPENING = (-1.0, 19.0, 5.0)         # x0, x1, half width
-RAMP_WELL_TOP = -8.5                     # the bay floor the opening breaks into
-RAMP_HINGE = (-1.0, 0.0, KEEL)
-RAMP_HALF = 4.85
-RAMP_TOP = -8.4                          # closed ramp's walking surface
+GROUND = KEEL - 3.0                      # pad soles, gear extended: short, stubby legs, sitting flat (owner, pass 3)
 BAY_X = (-3.0, 20.0)
 BAY_FLOOR, BAY_ROOF, BAY_WALL = -8.5, 9.0, 10.0
 # Spine section (y, z) offset 1 u inward: floor, keel chamfer, wall, shoulder.
 BAY_SECTION = [(8.09, BAY_FLOOR), (BAY_WALL, -6.59), (BAY_WALL, 3.76), (7.38, BAY_ROOF)]
-SEAT_X = (4.5, 11.5)                     # seat centres, 7 u pitch, both sides
+SEAT_X = (8.0, 15.0)                     # seat centres, 7 u pitch, both sides; aft of them is the boarding landing
+# Boarding doors (owner, pass 3): one each flank at the sprite's notch, a
+# passage inboard to the bay's aft end. (x0, x1) of the clear opening, its
+# sill and head, and the recess's vertical back wall.
+DOOR_X = (-2.9, 4.1)
+DOOR_SILL, DOOR_HEAD = BAY_FLOOR, 5.6
+DOOR_FACE = 21.6                         # back of the recess in the raked flank
+RECESS_PAD = 1.7                         # recess margin round the opening
 DOOR_T = .25                             # gear door plate thickness
-WELL_HALF = 1.8
+WELL_HALF = 2.3
 # Legs: name, hinge (x, y, z), retract angle about Y (deg).
 GEAR = [('nose', (32.0, 0.0, KEEL + 2.1), 90.0),
         ('port main', (-12.0, 16.0, WING_KEEL + 2.0), -90.0),
         ('starboard main', (-12.0, -16.0, WING_KEEL + 2.0), -90.0)]
 
 
-def ramp_contact_angle():
-    """Opening angle at which the closed ramp's lower toe edge meets GROUND."""
-    x0, x1, _ = RAMP_OPENING
-    return math.degrees(math.asin(min(1.0, (RAMP_HINGE[2] - GROUND)/(x1 - .15 - x0))))
-
-
 # ---------------------------------------------------------------- helpers
+
+def overlapping_hull_parts(cutter):
+    """Hull-module detail meshes whose bounds overlap the cutter's: pass-2
+    seams and arms buried in the fairing that a passage must also clear."""
+    bpy.context.view_layer.update()
+    def box(ob):
+        pts = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        return [min(p[i] for p in pts) for i in range(3)], [max(p[i] for p in pts) for i in range(3)]
+    (a0, a1) = box(cutter)
+    out = []
+    for ob in bpy.data.objects:
+        if ob.type != 'MESH' or ob.get('module') != 'hm_hull' or ob.name.startswith('Main hull'):
+            continue
+        b0, b1 = box(ob)
+        if all(a0[i] < b1[i] and b0[i] < a1[i] for i in range(3)):
+            out.append(ob)
+    return out
+
 
 def cut(obj, cutter):
     """Boolean difference that keeps the cutter's material on the cut faces."""
@@ -173,35 +185,28 @@ def build_bay(kit, mats):
                and 'bolts' not in o.name]:
         cut(ob, void)
     bpy.data.objects.remove(void, do_unlink=True)
-    rx0, rx1, h = RAMP_OPENING
-
-    # Deck: plates either side of the opening, the aft landing and the head.
+    # Deck: a full floor of plates (no ramp), with tie-down rails.
     blocks(kit, 'Hull troop bay deck plates',
-           [(x0+.05, rx0-.05, -8.0, 8.0, BAY_FLOOR, BAY_FLOOR+.12),
-            (rx1+.05, x1-.05, -8.0, 8.0, BAY_FLOOR, BAY_FLOOR+.12)]
-           + [(xa+.05, xb-.05, *sorted((s*(h+.75), s*8.0)), BAY_FLOOR, BAY_FLOOR+.12)
-              for s in (1, -1) for xa, xb in ((rx0, 6.0), (6.0, 13.0), (13.0, rx1))], mats['liner'])
-    # Opening coaming on the bay floor, inside the deck plates.
-    blocks(kit, 'Hull troop bay opening coaming',
-           [(rx0, rx1, *sorted((s*h, s*(h+.7))), BAY_FLOOR, BAY_FLOOR+.2) for s in (1, -1)]
-           + [(rx0-.6, rx0, -h-.7, h+.7, BAY_FLOOR, BAY_FLOOR+.2),
-              (rx1, rx1+.6, -h-.7, h+.7, BAY_FLOOR, BAY_FLOOR+.2)], kit.steel)
-    # Tie-down rails along the deck strips.
+           [(xa+.05, xb-.05, -8.0, 8.0, BAY_FLOOR, BAY_FLOOR+.12) for xa, xb in ((x0, 4.5), (4.5, 11.5), (11.5, x1))],
+           mats['liner'])
     blocks(kit, 'Hull troop bay tie-down rails',
-           [(rx0+.5, rx1-.5, *sorted((s*7.2, s*7.5)), BAY_FLOOR+.12, BAY_FLOOR+.22) for s in (1, -1)], kit.steel)
+           [(x0+.5, x1-.5, *sorted((s*1.2, s*1.5)), BAY_FLOOR+.12, BAY_FLOOR+.22) for s in (1, -1)], kit.steel)
 
     # Frames: transverse ribs on the walls and roof, a liner panel between each.
-    ribs = [-2.0, 1.0, 8.0, 15.0, 19.4]
+    # The walls are open to the boarding passages aft of X 4.5.
+    ribs = [-2.0, 1.0, 4.5, 11.5, 19.4]
     rib_boxes = []
     for x in ribs:
         for s in (1, -1):
-            rib_boxes.append((x-.25, x+.25, *sorted((s*9.45, s*BAY_WALL)), -6.6, 3.8))
+            if x >= 4.5:
+                rib_boxes.append((x-.25, x+.25, *sorted((s*9.45, s*BAY_WALL)), -6.6, 3.8))
         rib_boxes.append((x-.25, x+.25, -7.4, 7.4, BAY_ROOF-.45, BAY_ROOF))
     blocks(kit, 'Hull troop bay frames', rib_boxes, kit.steel)
     panels = []
     for xa, xb in zip(ribs, ribs[1:]):
         for s in (1, -1):
-            panels.append((xa+.3, xb-.3, *sorted((s*9.7, s*BAY_WALL)), -6.3, 3.5))
+            if xa >= 4.5:
+                panels.append((xa+.3, xb-.3, *sorted((s*9.7, s*BAY_WALL)), -6.3, 3.5))
         panels.append((xa+.3, xb-.3, -7.2, 7.2, BAY_ROOF-.2, BAY_ROOF))
     blocks(kit, 'Hull troop bay liner panels', panels, mats['liner'], .03)
     # Aft bulkhead: a liner face with conduit runs.
@@ -214,7 +219,7 @@ def build_bay(kit, mats):
     # Overhead lamp strip and its housing (a faint interior glow only).
     bx(kit, 'Hull troop bay lamp housing', 0.0, 16.0, -.8, .8, BAY_ROOF-.75, BAY_ROOF-.2, kit.steel, .05)
     bx(kit, 'Hull troop bay lamp strip', .3, 15.7, -.55, .55, BAY_ROOF-.85, BAY_ROOF-.74, mats['bay lamp'], 0)
-    # The strip's light, so the bay reads through the open ramp. It is
+    # The strip's light, so the bay reads through the open boarding doors. It is
     # inside the pressure hull, so no exterior view or lights layer sees it.
     light = bpy.data.lights.new('Hull troop bay lamp light', 'AREA')
     light.shape = 'RECTANGLE'
@@ -254,14 +259,8 @@ def build_bay(kit, mats):
         blocks(kit, f'Hull troop bay {side} seat pads', pads + backs, mats['pad'], .08)
         blocks(kit, f'Hull troop bay {side} harness straps', straps, mats['strap'])
         blocks(kit, f'Hull troop bay {side} harness buckles', buckles, kit.steel)
-        # Kit locker at the bay head, and a stowage shelf with kit bags over it.
-        la, lb = sorted((s*3.9, s*9.4))
-        bx(kit, f'Hull troop bay {side} kit locker', 15.7, 19.8, la, lb, BAY_FLOOR+.12, 3.4, mats['liner'], .06)
-        blocks(kit, f'Hull troop bay {side} kit locker doors',
-               [(15.55, 15.7, *sorted((s*a, s*b)), BAY_FLOOR+.4, 3.1) for a, b in ((4.15, 6.55), (6.75, 9.15))], kit.steel)
-        blocks(kit, f'Hull troop bay {side} kit locker handles',
-               [(15.35, 15.55, *sorted((s*a, s*(a+.3))), -1.8, .2) for a in (6.1, 6.95)], kit.dark)
-        bx(kit, f'Hull troop bay {side} stowage shelf', 15.2, 19.8, *sorted((s*3.9, s*8.4)), 4.6, 4.85, kit.steel, .03)
+        # Kit rides on a stowage shelf over the forward bench.
+        bx(kit, f'Hull troop bay {side} stowage shelf', 13.2, 19.8, *sorted((s*3.9, s*8.4)), 4.6, 4.85, kit.steel, .03)
         blocks(kit, f'Hull troop bay {side} kit bags',
                [(15.6, 19.4, *sorted((s*4.2, s*6.0)), 4.85, 6.6), (16.2, 19.4, *sorted((s*6.2, s*7.9)), 4.85, 6.0)],
                mats['canvas'], .25)
@@ -273,70 +272,71 @@ def build_bay(kit, mats):
            + [(19.05, 19.35, -1.6, 1.6, -.3, .3)], kit.steel)
 
 
-# ---------------------------------------------------------------- ramp
+# ---------------------------------------------------------------- boarding
 
-def build_ramp(kit, mats):
-    x0, x1, h = RAMP_OPENING
-    well = bx(kit, 'Temporary ramp well', x0, x1, -h, h, KEEL - 1, BAY_FLOOR + .3, kit.dark, 0)
-    cut(kit.hull, well)
-    bpy.data.objects.remove(well, do_unlink=True)
-    # Jamb liner round the opening (the floor structure's thickness).
-    blocks(kit, 'Hull troop bay well liner',
-           [(x0+.02, x1-.02, -h+.02, -h+.12, KEEL+.02, BAY_FLOOR), (x0+.02, x1-.02, h-.12, h-.02, KEEL+.02, BAY_FLOOR),
-            (x0+.02, x0+.12, -h+.02, h-.02, KEEL+.02, BAY_FLOOR), (x1-.12, x1-.02, -h+.02, h-.02, KEEL+.02, BAY_FLOOR)],
-           kit.dark)
-    # Frame round the opening on the keel, hazard bars on it, jamb lamps
-    # (unlit: the lights layer shows no underside lamps).
-    w = .7
-    fr = [(x0-w, x1+w, -h-w, -h), (x0-w, x1+w, h, h+w), (x0-w, x0, -h, h), (x1, x1+w, -h, h)]
-    blocks(kit, 'Hull ventral ramp frame', [(a, b, c, d, KEEL-.22, KEEL+.05) for a, b, c, d in fr], kit.steel, .03)
-    bars = [(x-.25, x+.25, *sorted((s*(h+.1), s*(h+.6))), KEEL-.26, KEEL-.2)
-            for s in (1, -1) for x in [x0+1.0+i*1.6 for i in range(12)]]
-    bars += [(x1+.1, x1+.6, y-.25, y+.25, KEEL-.26, KEEL-.2) for y in [-h+.8+i*1.4 for i in range(7)]]
-    blocks(kit, 'Hull ventral ramp hazard bars', bars, mats['hazard'])
-    corners = [(x0-.35, h+.35), (x0-.35, -h-.35), (x1+.35, h+.35), (x1+.35, -h-.35)]
-    blocks(kit, 'Hull ventral ramp jamb lamp housings',
-           [(x-.32, x+.32, y-.32, y+.32, KEEL-.42, KEEL-.2) for x, y in corners], kit.steel)
-    blocks(kit, 'Hull ventral ramp jamb lamp lenses',
-           [(x-.2, x+.2, y-.2, y+.2, KEEL-.5, KEEL-.42) for x, y in corners], mats['lens'])
+def build_boarding(kit, mats):
+    """A boarding door on each flank amidships (owner, pass 3), replacing
+    the ventral ramp: the boat sits flat and people walk in at the side.
 
-    hx, hy, hz = RAMP_HINGE
-    xa, xb = hx + .1, x1 - .15
-    parts = [bx(kit, 'Hull ventral ramp', xa, xb, -RAMP_HALF, RAMP_HALF, KEEL + .02, RAMP_TOP - .12, kit.panel, .05),
-             bx(kit, 'Hull ventral ramp hinge barrel', hx - .3, hx + .3, -RAMP_HALF + .4, RAMP_HALF - .4, hz - .3, hz + .3, kit.dark, .05)]
-    # Walking face: a deck plate with cross treads, curbs along both edges.
-    parts.append(bx(kit, 'Hull ventral ramp deck plate', xa+.2, xb-.2, -4.25, 4.25, RAMP_TOP-.12, RAMP_TOP, kit.steel, .03))
-    parts.append(blocks(kit, 'Hull ventral ramp treads',
-                        [(x-.14, x+.14, -4.05, 4.05, RAMP_TOP, RAMP_TOP+.14) for x in [xa+.9+i*1.5 for i in range(13)]],
-                        mats['tread']))
-    parts.append(blocks(kit, 'Hull ventral ramp curbs',
-                        [(xa, xb, *sorted((s*4.25, s*RAMP_HALF)), RAMP_TOP-.12, RAMP_TOP+.45) for s in (1, -1)], kit.steel, .04))
-    parts.append(blocks(kit, 'Hull ventral ramp curb hazard bars',
-                        [(x-.3, x+.3, *sorted((s*4.5, s*4.8)), RAMP_TOP+.45, RAMP_TOP+.5)
-                         for s in (1, -1) for x in [xa+1.2+i*2.4 for i in range(8)]], mats['hazard']))
-    # Toe plate: a chamfered steel lip that bears on the ground.
-    parts.append(bx(kit, 'Hull ventral ramp toe plate', xb-1.0, xb, -RAMP_HALF+.15, RAMP_HALF-.15, KEEL+.02, RAMP_TOP-.2, kit.steel, .25))
-    # Outer face (the belly when closed): two stiffener seams and a bolt line.
-    out = [(xa+.4, xb-1.2, y-.12, y+.12, KEEL-.03, KEEL+.03) for y in (-2.2, 2.2)]
-    out += [(x-.12, x+.12, -RAMP_HALF+.3, RAMP_HALF-.3, KEEL-.03, KEEL+.03) for x in (5.5, 12.0)]
-    parts.append(blocks(kit, 'Hull ventral ramp outer seams', out, kit.dark))
-    bolts = []
-    for y in (-4.3, 4.3):
-        bolts += bolt_row((xa+.6, y), (xb-1.4, y), 12, KEEL, .28, .08)
-    parts.append(blocks(kit, 'Hull ventral ramp outer bolts', bolts, kit.steel))
-    hinge = pivot('Hull ventral ramp hinge', RAMP_HINGE,
-                  {'open_axis': 'Y', 'open_sign': 1, 'contact_angle_deg': round(ramp_contact_angle(), 1),
-                   'note': 'positive rotation about local Y lowers the forward toe'})
-    parent_to(parts, hinge)
-    # Rams: from brackets on the aft bulkhead to lugs on the curbs.
+    Each door stands in a shallow recess cut square into the spine fairing's
+    raked flank at the sprite's notch (X -3..4), its back wall vertical at
+    |Y| DOOR_FACE, and a passage runs inboard to the troop bay's aft end. The
+    door leaf is parented to 'Hull <side> boarding door hinge' on the
+    opening's aft edge; rotating that empty about its local Z by open_sign x
+    open_angle_deg swings the leaf outward into the recess and beyond. The
+    skirt below the sill stays whole, so the recess floor is a step 0.44 m
+    up from the ground.
+    """
+    x0, x1 = DOOR_X
     for s, side in ((1, 'port'), (-1, 'starboard')):
-        y = s*4.55
-        bx(kit, f'Hull ventral ramp {side} ram bracket', BAY_X[0], BAY_X[0]+1.0, y-.5, y+.5, -6.6, -5.4, kit.steel, .05)
-        telescoping_ram(kit, f'Hull ventral ramp {side} ram', (BAY_X[0]+.6, y, -6.0), (6.0, y, RAMP_TOP+.75),
-                        hinge, .32, kit.steel, mats['chrome'])
-        lug = bx(kit, f'Hull ventral ramp {side} ram lug', 5.4, 6.6, y-.35, y+.35, RAMP_TOP+.3, RAMP_TOP+.95, kit.steel, .05)
-        parent_to([lug], hinge)
-    return hinge
+        face = s*DOOR_FACE
+        # The recess stops at the sill: below it the skirt stays whole and its
+        # floor is a ledge halfway up from the ground.
+        recess = bx(kit, 'Temporary door recess', x0 - RECESS_PAD, x1 + RECESS_PAD, *sorted((face, s*30.0)),
+                    DOOR_SILL - .5, DOOR_HEAD + .3, kit.panel, 0)
+        cut(kit.hull, recess)                 # stops short of the gun sponson (X 6.5)
+        bpy.data.objects.remove(recess, do_unlink=True)
+        # Passage: from the door to the bay, through the fairing and spine wall.
+        void = bx(kit, 'Temporary boarding passage', x0, x1, *sorted((s*(BAY_WALL - .6), s*(DOOR_FACE + 1.0))),
+                  DOOR_SILL, DOOR_HEAD, mats['liner'], 0)
+        for host in [kit.hull] + overlapping_hull_parts(void):
+            cut(host, void)
+        bpy.data.objects.remove(void, do_unlink=True)
+        ya, yb = sorted((s*(BAY_WALL - .5), s*(DOOR_FACE - .35)))
+        blocks(kit, f'Hull {side} boarding passage floor', [(x0+.05, x1-.05, ya, yb, DOOR_SILL, DOOR_SILL+.12)], mats['liner'])
+        blocks(kit, f'Hull {side} boarding passage liner',
+               [(x0, x0+.15, ya, yb, DOOR_SILL+.12, DOOR_HEAD), (x1-.15, x1, ya, yb, DOOR_SILL+.12, DOOR_HEAD),
+                (x0, x1, ya, yb, DOOR_HEAD-.15, DOOR_HEAD)], mats['liner'])
+        # Frame proud of the recess wall, round the opening.
+        fo = sorted((face, face + s*.3))
+        w = .55
+        blocks(kit, f'Hull {side} boarding door frame',
+               [(x0-w, x0, *fo, DOOR_SILL-.5, DOOR_HEAD+.3), (x1, x1+w, *fo, DOOR_SILL-.5, DOOR_HEAD+.3),
+                (x0-w, x1+w, *fo, DOOR_HEAD, DOOR_HEAD+.3), (x0-w, x1+w, *fo, DOOR_SILL-.5, DOOR_SILL)], kit.steel, .04)
+        blocks(kit, f'Hull {side} boarding door sill hazard bars',
+               [(x-.25, x+.25, *sorted((face + s*.3, face + s*.34)), DOOR_SILL-.45, DOOR_SILL-.05)
+                for x in [x0+.4+i*1.0 for i in range(7)]], mats['hazard'])
+        # The leaf, closed in the opening, on a hinge at the aft jamb.
+        leaf_y = sorted((face - s*.35, face + s*.05))
+        hinge = pivot(f'Hull {side} boarding door hinge', (x0, face + s*.05, (DOOR_SILL + DOOR_HEAD)/2),
+                      {'open_axis': 'Z', 'open_sign': s, 'open_angle_deg': 100.0, 'built': 'closed',
+                       'note': 'rotate about local Z by open_sign x open_angle_deg to swing the leaf out and aft'})
+        hinge['module'] = 'hm_ventral'
+        leaf = [bx(kit, f'Hull {side} boarding door', x0+.05, x1-.05, *leaf_y, DOOR_SILL+.05, DOOR_HEAD-.05, kit.panel, .08),
+                blocks(kit, f'Hull {side} boarding door stiffeners',
+                       [(x0+.5, x1-.5, *sorted((face + s*.05, face + s*.2)), z-.15, z+.15) for z in (-5.0, -1.4, 2.2)],
+                       kit.steel),
+                blocks(kit, f'Hull {side} boarding door handle',
+                       [(x1-1.4, x1-.6, *sorted((face + s*.2, face + s*.5)), -2.1, -1.7),
+                        (x1-1.4, x1-1.1, *sorted((face + s*.05, face + s*.5)), -2.1, -.9)], kit.dark),
+                blocks(kit, f'Hull {side} boarding door hinge knuckles',
+                       [(x0-.35, x0+.25, *sorted((face, face + s*.45)), z-.6, z+.6) for z in (-6.0, 3.0)], kit.steel)]
+        parent_to(leaf, hinge)
+        # Grab handles either side of the frame.
+        for k, xg in enumerate((x0-1.15, x1+1.15), 1):
+            kit.cylinder(f'Hull {side} boarding grab handle {k}', (xg, face + s*.55, -2.0), .18, 6.0, kit.steel, 'Z', 8, .02)
+            blocks(kit, f'Hull {side} boarding grab handle {k} standoffs',
+                   [(xg-.15, xg+.15, *sorted((face, face + s*.6)), z-.15, z+.15) for z in (-4.6, .6)], kit.steel)
 
 
 # ---------------------------------------------------------------- gear
@@ -361,7 +361,7 @@ def build_leg(kit, mats, name, x, y, z, retract):
     f = -1 if retract > 0 else 1                 # fold direction along X
     outboard = 1 if y >= 0 else -1                # torque links side (nose: port)
     H = z - GROUND                                # hinge to sole
-    host = kit.hull if name == 'nose' else bpy.data.objects['Wing body']
+    host = kit.hull                      # the main wells sit under the spine fairing
     base = KEEL if name == 'nose' else WING_KEEL
     top = z + 2.45
     wx0, wx1 = sorted((x - f*1.7, x + f*(H + .45)))
@@ -379,29 +379,31 @@ def build_leg(kit, mats, name, x, y, z, retract):
     sole = GROUND
     ankle = GROUND + 1.25
     parts = [
-        kit.cylinder(f'Gear {name} trunnion', (x, y, z), .9, 2.6, kit.steel, 'Y', 16, .05),
-        kit.cylinder(f'Gear {name} strut', (x, y, (z + strut_bot)/2), .6, z - strut_bot, kit.steel, 'Z', 16, .05),
-        kit.cylinder(f'Gear {name} oleo', (x, y, (ankle + strut_bot + .9)/2), .38, strut_bot + .9 - ankle, mats['chrome'], 'Z', 16, .03),
-        kit.cylinder(f'Gear {name} oleo gland', (x, y, strut_bot), .74, .35, kit.steel, 'Z', 16, .03),
-        kit.cylinder(f'Gear {name} ankle pivot', (x, y, ankle), .45, 1.5, kit.steel, 'Y', 12, .03),
-        bx(kit, f'Gear {name} ankle yoke', x - .5, x + .5, y - .6, y + .6, ankle, ankle + .7, kit.steel, .08),
-        bx(kit, f'Gear {name} pad', x - 1.35, x + 1.35, y - 1.2, y + 1.2, sole + .25, sole + .85, kit.steel, .12),
-        bx(kit, f'Gear {name} sole plate', x - 1.45, x + 1.45, y - 1.3, y + 1.3, sole, sole + .25, mats['rubber'], .06),
+        kit.cylinder(f'Gear {name} trunnion', (x, y, z), 1.2, 3.6, kit.steel, 'Y', 16, .06),
+        # Short and stubby (owner, pass 3): a thick barrel strut, a fat
+        # oleo and a broad, heavy foot, sized to stow in a wider well.
+        kit.cylinder(f'Gear {name} strut', (x, y, (z + strut_bot)/2), 1.05, z - strut_bot, kit.steel, 'Z', 16, .08),
+        kit.cylinder(f'Gear {name} oleo', (x, y, (ankle + strut_bot + .9)/2), .72, strut_bot + .9 - ankle, mats['chrome'], 'Z', 16, .04),
+        kit.cylinder(f'Gear {name} oleo gland', (x, y, strut_bot), 1.25, .55, kit.steel, 'Z', 16, .05),
+        kit.cylinder(f'Gear {name} ankle pivot', (x, y, ankle), .6, 2.6, kit.steel, 'Y', 12, .04),
+        bx(kit, f'Gear {name} ankle yoke', x - .75, x + .75, y - 1.0, y + 1.0, ankle - .2, ankle + .8, kit.steel, .1),
+        bx(kit, f'Gear {name} pad', x - 1.4, x + 1.4, y - 1.95, y + 1.95, sole + .3, sole + 1.1, kit.steel, .15),
+        bx(kit, f'Gear {name} sole plate', x - 1.5, x + 1.5, y - 2.05, y + 2.05, sole, sole + .3, mats['rubber'], .08),
         blocks(kit, f'Gear {name} pad ribs',
-               [(x-1.2, x+1.2, y+dy-.1, y+dy+.1, sole+.85, sole+1.2) for dy in (-.75, .75)]
-               + [(x+dx-.1, x+dx+.1, y-1.0, y+1.0, sole+.85, sole+1.05) for dx in (-.9, .9)], kit.steel),
+               [(x-1.25, x+1.25, y+dy-.15, y+dy+.15, sole+1.1, sole+1.5) for dy in (-1.4, 0, 1.4)]
+               + [(x+dx-.15, x+dx+.15, y-1.7, y+1.7, sole+1.1, sole+1.35) for dx in (-1.05, 1.05)], kit.steel),
     ]
     # Torque links: a scissor on the outboard face between gland and ankle.
-    knee = Vector((x, y + outboard*1.45, (strut_bot + ankle)/2 + .2))
-    up = Vector((x, y + outboard*.55, strut_bot - .25))
-    dn = Vector((x, y + outboard*.5, ankle + .55))
-    parts.append(rod(kit, f'Gear {name} upper torque link', up, knee, .17, kit.steel, 6))
-    parts.append(rod(kit, f'Gear {name} lower torque link', knee, dn, .17, kit.steel, 6))
+    knee = Vector((x, y + outboard*1.85, (strut_bot + ankle)/2 + .1))
+    up = Vector((x, y + outboard*.9, strut_bot - .3))
+    dn = Vector((x, y + outboard*.8, ankle + .6))
+    parts.append(rod(kit, f'Gear {name} upper torque link', up, knee, .26, kit.steel, 6))
+    parts.append(rod(kit, f'Gear {name} lower torque link', knee, dn, .26, kit.steel, 6))
     parts.append(kit.cylinder(f'Gear {name} torque link knee', tuple(knee), .22, .4, kit.steel, 'X', 8, .02))
     # Drag brace: a yoke off the trunnion toward the fold, braced to the strut.
     yoke_end = Vector((x + f*1.8, y, z - .3))
-    parts.append(rod(kit, f'Gear {name} trunnion yoke', (x, y, z), yoke_end, .26, kit.steel, 8))
-    parts.append(rod(kit, f'Gear {name} drag brace', yoke_end, (x, y, z - .45*H), .24, kit.steel, 8))
+    parts.append(rod(kit, f'Gear {name} trunnion yoke', (x, y, z), yoke_end, .4, kit.steel, 8))
+    parts.append(rod(kit, f'Gear {name} drag brace', yoke_end, (x, y, z - .45*H), .38, kit.steel, 8))
     parts.append(kit.cylinder(f'Gear {name} drag brace knuckle', tuple(yoke_end), .3, .7, kit.steel, 'Y', 8, .02))
     # Retraction crank on the inboard side of the trunnion.
     inboard = -outboard
@@ -449,7 +451,7 @@ def build_gear(kit, mats):
 
 def build_belly(kit, mats):
     k = KEEL
-    # Keel strakes either side of the ramp, a short centre strake aft of it.
+    # Keel strakes either side of the bay, a short centre strake aft of it.
     blocks(kit, 'Hull belly keel strakes',
            [(-22.5, 31.0, *sorted((s*6.6, s*7.3)), k - .55, k + .05) for s in (1, -1)]
            + [(-22.5, -17.0, -.35, .35, k - .45, k + .05)], kit.steel, .06)
@@ -476,7 +478,7 @@ def build_belly(kit, mats):
               ('drive block starboard', (-27.0, -11.0, AFT_KEEL))]
     for label, (x, y, z) in blades:
         verts, faces = [], []
-        prof = [(x + 1.6, z), (x - 1.6, z), (x - 2.3, z - 2.0), (x - 1.3, z - 2.0)]
+        prof = [(x + 1.6, z), (x - 1.6, z), (x - 2.1, z - 1.2), (x - 1.4, z - 1.2)]   # short: 0.2 m clear of the ground
         for yy in (y - .12, y + .12):
             verts += [(px, yy, pz) for px, pz in prof]
         faces = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
@@ -518,11 +520,10 @@ def build(kit):
         'bay lamp': material('Troop bay lamp lens', (.75, .74, .68), 0, .3, emission=(1.0, .95, .85), strength=6.0),
         'hazard': material('Ventral hazard yellow', (.62, .48, .08), .3, .5),
         'lens': material('Ventral jamb lamp lens (unlit)', (.55, .42, .2), 0, .25),
-        'tread': material('Ventral ramp tread', (.09, .09, .09), .2, .85),
         'chrome': material('Gear oleo chrome', (.6, .62, .64), .9, .25),
         'rubber': material('Gear sole rubber', (.05, .05, .05), 0, .9),
     }
     build_bay(kit, mats)
-    build_ramp(kit, mats)
+    build_boarding(kit, mats)
     build_gear(kit, mats)
     build_belly(kit, mats)

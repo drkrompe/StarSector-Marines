@@ -115,8 +115,9 @@ Only a launch with no bay sets down an unowned `HEAVY_APC`.
 
 What comes off the ramp is not a squad. It is a chassis in the `DEPLOYED` state
 with nothing to do, which is exactly the thing the rest of this document was
-built to command. Other chassis and the campaign gating that decides who gets
-one belong to `vehicle-variants.md`.
+built to command. Which chassis a company can field and how it learns them
+belong to `mechs-nouns.md` (vehicle patterns); what the supply truck and scout
+car do once they are down is `convoy-nouns.md` (the light roles).
 
 ## Sequence
 

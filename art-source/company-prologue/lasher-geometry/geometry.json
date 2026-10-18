@@ -1,0 +1,711 @@
+{
+  "status": "Pass 2 (light) + pass 4 scale: silhouette, sections, slots, drives, anchors, glazing, vents and running lights; one Hegemony base material with light procedural wear. Built for distant formation shots (C1 v2); no interiors, damage or articulation beyond turrets.",
+  "hull": {
+    "name": "Lasher",
+    "hullId": "lasher",
+    "size": "FRIGATE",
+    "style": "LOW_TECH",
+    "tech": "Low Tech",
+    "designation": "Frigate",
+    "livery": "Hegemony (the base hull and sprite; Hegemony fleets fly it unskinned, data/world/factions/hegemony.faction)",
+    "source": {
+      "ship": "data/hulls/lasher.ship",
+      "sprite": "graphics/ships/lasher/lasher_base.png",
+      "lights": "graphics/ships/lasher/lasher_lights.png",
+      "ship_data": "data/hulls/ship_data.csv (row id lasher)",
+      "variants": "data/variants/lasher/lasher_*.variant (slots only; loadouts not modelled)"
+    },
+    "built_in_mods": [
+      "ballistic_rangefinder"
+    ],
+    "built_in_weapons": [],
+    "ship_system": "ammofeed",
+    "shield": "FRONT 210 deg (not modelled)",
+    "crew": [
+      25,
+      50
+    ],
+    "cargo": 40,
+    "fuel": 25
+  },
+  "provenance": "verified against the installed data/hulls/lasher.ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.95,
+  "scale": {
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 32793,
+      "crew_max": 50,
+      "cargo": 40,
+      "fuel": 25,
+      "cls": "frigate",
+      "length_units": 94.7,
+      "sprite_px": 96,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.0,
+        "hangar_box_factor": 2.5,
+        "shares": {
+          "armour": 0.06,
+          "drive": 0.22,
+          "weapons": 0.06,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 15000,
+      "cargo": 80,
+      "fuel": 38,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 15118,
+    "machinery_share": 0.46,
+    "enclosed_m3": 27995,
+    "solved_metres_per_unit": 0.949,
+    "range": {
+      "habitable_273": 0.92,
+      "habitable_328": 0.977
+    },
+    "enclosed_m3_per_person_at_max_crew": 560,
+    "length_m": 89.8,
+    "fittings_m": {
+      "viewport w x h": [
+        1.0,
+        0.8
+      ],
+      "bridge glazing band h": [
+        1.0
+      ]
+    },
+    "published_metres_per_unit": 0.95,
+    "measured_this_build": {
+      "enclosed_units3": 32793,
+      "solids": [
+        "Hull bow head",
+        "Hull nose cap",
+        "Hull spine",
+        "Hull wing body",
+        "Hull ventral keel"
+      ],
+      "all_hull_solids_units3_incl_nacelles": 38754
+    },
+    "size_m": [
+      90.0,
+      64.9,
+      19.2
+    ],
+    "person_1_8_m_in_units": 1.89,
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
+  },
+  "sprite": {
+    "size": [
+      68,
+      96
+    ],
+    "center": [
+      34,
+      35
+    ],
+    "pixel_to_model": "col c, row r (from the top) covers X 60-r..61-r, Y 33-c..34-c"
+  },
+  "dimensions": {
+    "min": [
+      -34.24,
+      -34.14,
+      -9.5
+    ],
+    "max": [
+      60.5,
+      34.14,
+      10.75
+    ],
+    "size": [
+      94.74,
+      68.28,
+      20.25
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        11,
+        27,
+        1.4
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 001 anchor",
+      "muzzles": [
+        "Weapon WS 001 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        24,
+        16,
+        1.2
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 002 anchor",
+      "muzzles": [
+        "Weapon WS 002 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 003",
+      "location": [
+        24,
+        -15,
+        1.2
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 003 anchor",
+      "muzzles": [
+        "Weapon WS 003 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 004",
+      "location": [
+        11,
+        -27,
+        1.4
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 004 anchor",
+      "muzzles": [
+        "Weapon WS 004 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 005",
+      "location": [
+        4,
+        10,
+        6.15
+      ],
+      "angle": 60,
+      "arc": 270,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 005 anchor",
+      "muzzles": [
+        "Turret 1 barrel 1 muzzle anchor",
+        "Turret 1 barrel 2 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 006",
+      "location": [
+        4,
+        -10,
+        6.15
+      ],
+      "angle": -60,
+      "arc": 270,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 006 anchor",
+      "muzzles": [
+        "Turret 2 barrel 1 muzzle anchor",
+        "Turret 2 barrel 2 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 007",
+      "location": [
+        37,
+        0,
+        8.95
+      ],
+      "angle": 0,
+      "arc": 270,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 007 anchor",
+      "muzzles": [
+        "Turret 3 barrel 1 muzzle anchor",
+        "Turret 3 barrel 2 muzzle anchor"
+      ]
+    },
+    {
+      "id": "WS 008",
+      "location": [
+        -15,
+        29,
+        0.0
+      ],
+      "angle": 160,
+      "arc": 60,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "anchor": "Weapon WS 008 anchor",
+      "muzzles": []
+    },
+    {
+      "id": "WS 009",
+      "location": [
+        -15,
+        -29,
+        0.0
+      ],
+      "angle": 200,
+      "arc": 60,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "anchor": "Weapon WS 009 anchor",
+      "muzzles": []
+    }
+  ],
+  "turrets": [
+    {
+      "index": 1,
+      "slot": "WS 005",
+      "pivot": "Turret 1 pivot",
+      "location": [
+        4,
+        10,
+        6.15
+      ],
+      "rest_angle_deg": 60,
+      "arc_deg": 270,
+      "fixed": [
+        "Turret 1 barbette",
+        "Turret 1 traverse gap"
+      ],
+      "trained": [
+        "Turret 1 gunhouse",
+        "Turret 1 mantlet",
+        "Turret 1 barrel 1",
+        "Turret 1 barrel 1 muzzle anchor",
+        "Turret 1 barrel 2",
+        "Turret 1 barrel 2 muzzle anchor"
+      ],
+      "muzzles": [
+        "Turret 1 barrel 1 muzzle anchor",
+        "Turret 1 barrel 2 muzzle anchor"
+      ]
+    },
+    {
+      "index": 2,
+      "slot": "WS 006",
+      "pivot": "Turret 2 pivot",
+      "location": [
+        4,
+        -10,
+        6.15
+      ],
+      "rest_angle_deg": -60,
+      "arc_deg": 270,
+      "fixed": [
+        "Turret 2 barbette",
+        "Turret 2 traverse gap"
+      ],
+      "trained": [
+        "Turret 2 gunhouse",
+        "Turret 2 mantlet",
+        "Turret 2 barrel 1",
+        "Turret 2 barrel 1 muzzle anchor",
+        "Turret 2 barrel 2",
+        "Turret 2 barrel 2 muzzle anchor"
+      ],
+      "muzzles": [
+        "Turret 2 barrel 1 muzzle anchor",
+        "Turret 2 barrel 2 muzzle anchor"
+      ]
+    },
+    {
+      "index": 3,
+      "slot": "WS 007",
+      "pivot": "Turret 3 pivot",
+      "location": [
+        37,
+        0,
+        8.95
+      ],
+      "rest_angle_deg": 0,
+      "arc_deg": 270,
+      "fixed": [
+        "Turret 3 barbette",
+        "Turret 3 traverse gap"
+      ],
+      "trained": [
+        "Turret 3 gunhouse",
+        "Turret 3 mantlet",
+        "Turret 3 barrel 1",
+        "Turret 3 barrel 1 muzzle anchor",
+        "Turret 3 barrel 2",
+        "Turret 3 barrel 2 muzzle anchor"
+      ],
+      "muzzles": [
+        "Turret 3 barrel 1 muzzle anchor",
+        "Turret 3 barrel 2 muzzle anchor"
+      ]
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot": 0,
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "glow_anchor": "Engine 1 drive glow anchor",
+      "location": [
+        -34,
+        0,
+        0.0
+      ],
+      "width": 16,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 4.8,
+      "bell": "Engine 1 aft-facing bell",
+      "lip": "Engine 1 mouth lip",
+      "throat": "Engine 1 dark throat",
+      "can": "Engine 1 drive can"
+    },
+    {
+      "index": 2,
+      "slot": 1,
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "glow_anchor": "Engine 2 drive glow anchor",
+      "location": [
+        -28,
+        14,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 2 aft-facing bell",
+      "lip": "Engine 2 mouth lip",
+      "throat": "Engine 2 dark throat",
+      "can": "Engine 2 drive can"
+    },
+    {
+      "index": 3,
+      "slot": 2,
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "glow_anchor": "Engine 3 drive glow anchor",
+      "location": [
+        -26,
+        19,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 3 aft-facing bell",
+      "lip": "Engine 3 mouth lip",
+      "throat": "Engine 3 dark throat",
+      "can": "Engine 3 drive can"
+    },
+    {
+      "index": 4,
+      "slot": 3,
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "glow_anchor": "Engine 4 drive glow anchor",
+      "location": [
+        -28,
+        -13,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 4 aft-facing bell",
+      "lip": "Engine 4 mouth lip",
+      "throat": "Engine 4 dark throat",
+      "can": "Engine 4 drive can"
+    },
+    {
+      "index": 5,
+      "slot": 4,
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "glow_anchor": "Engine 5 drive glow anchor",
+      "location": [
+        -26,
+        -18,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 5 aft-facing bell",
+      "lip": "Engine 5 mouth lip",
+      "throat": "Engine 5 dark throat",
+      "can": "Engine 5 drive can"
+    }
+  ],
+  "running_lights": [
+    {
+      "name": "Light port wing tip 1",
+      "position": [
+        -11.5,
+        33.8,
+        0.4
+      ],
+      "colour": "red",
+      "role": "port side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard wing tip 1",
+      "position": [
+        -11.5,
+        -33.8,
+        0.4
+      ],
+      "colour": "green",
+      "role": "starboard side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre stern 1",
+      "position": [
+        -27,
+        0,
+        7.7
+      ],
+      "colour": "white",
+      "role": "stern light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre prow 1",
+      "position": [
+        57.5,
+        0,
+        3.59
+      ],
+      "colour": "white",
+      "role": "prow anti-collision strobe",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.4,
+        "duty": 0.18
+      }
+    }
+  ],
+  "asset": {
+    "file": "lasher.blend",
+    "collection": "LASHER",
+    "root": "LASHER | root",
+    "anchors_collection": "LASHER | anchors",
+    "baked": "every modifier applied; no live booleans or bevels",
+    "append": "bpy.data.libraries.load(path, link=True) and take collection 'LASHER'; instance it with a collection-instance empty scaled by metres_per_unit",
+    "triangles": 8928,
+    "objects": 128,
+    "materials": [
+      "Lasher Hegemony armour",
+      "Lasher bridge glazing",
+      "Lasher gunmetal machinery",
+      "Lasher heat vent glow",
+      "Lasher recess",
+      "Lasher running light green",
+      "Lasher running light red",
+      "Lasher running light white"
+    ]
+  },
+  "object_names": {
+    "Hull ...": "bow head, nose cap, spine, wing body, nacelles, glazing, vents, seams",
+    "Pod <side> gun|missile ...": "weapon pods round the hardpoints",
+    "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, drive glow anchor",
+    "Turret <i> ...": "barbette and traverse gap (fixed); gunhouse, mantlet, barrels and muzzle anchors under Turret <i> pivot",
+    "Weapon <slot id> ...": "hardpoint guns and launchers; anchor and muzzle anchor",
+    "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        13,
+        0,
+        150
+      ],
+      "orthographic_scale": 152,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        13,
+        180,
+        0
+      ],
+      "orthographic_scale": 112,
+      "rotation": "looks at [13.0, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        180,
+        0,
+        0
+      ],
+      "orthographic_scale": 100,
+      "rotation": "looks at [13.0, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        110,
+        130,
+        85
+      ],
+      "orthographic_scale": 136,
+      "rotation": "looks at [13.0, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -180,
+        0,
+        0
+      ],
+      "orthographic_scale": 100,
+      "rotation": "looks at [13.0, 0.0, 0.0]"
+    }
+  ],
+  "shot_checks": [
+    {
+      "name": "shot-1500m",
+      "distance_m": 1500.0,
+      "lens_mm": 50,
+      "sensor_mm": 36,
+      "view_direction": [
+        -0.35,
+        -0.9,
+        -0.26
+      ],
+      "sun_in_camera": [
+        -0.6592760682106018,
+        0.5316742658615112,
+        0.5316742658615112
+      ]
+    },
+    {
+      "name": "shot-3000m",
+      "distance_m": 3000.0,
+      "lens_mm": 50,
+      "sensor_mm": 36,
+      "view_direction": [
+        -0.35,
+        -0.9,
+        -0.26
+      ],
+      "sun_in_camera": [
+        -0.6592760682106018,
+        0.5316742658615112,
+        0.5316742658615112
+      ]
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9535,
+    "sprite_uncovered": 0.0086,
+    "model_outside_sprite": 0.0398,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit"
+  },
+  "shot_extent_px": {
+    "shot-1500m": {
+      "width_px": 155,
+      "height_px": 47
+    },
+    "shot-3000m": {
+      "width_px": 79,
+      "height_px": 24
+    }
+  }
+}

@@ -170,59 +170,46 @@ Each hull gets exactly one `metres_per_unit` value, published in
 it: VFX sizes and speeds, lamp falloff, cameras, depth of field, flight
 speeds, plate framing and texel density. Nothing hard-codes metres.
 
-Derive it from what the ship has to carry, not from the sprite (the Second
-Wind method in `second-wind-pipeline.md`, Scale):
-1. Take the deck area the mod's own deck program
-   (`DeckSizing.programFor` with the `RoomRecipe` shapes; one cell is a
-   metre) requires for the hull's class, minimum and maximum crew, and
-   cargo. The role comes from the designation (`HullRole.fromDesignation`:
-   "Civilian Transport" is `LINER`). Sum `RoomRecipe.area()`, multiply by
-   the program's own circulation factor (`DeckSizing.CIRCULATION`, 1.40;
-   this is what reproduces the Second Wind's 0.64), and multiply by about
-   3.2 m of deck height. `DeckProgramProbe.java` beside this skill prints
-   all of it with no game process (usage in its Javadoc: class, designation,
-   min crew, max crew, cargo, run against compiled `build/classes`). The
-   class argument is the `HullClass` name (`CAPITAL`, not ship_data's
-   `CAPITAL_SHIP`).
-2. Measure the model's main pressure-hull volume in Blender
-   (`bmesh.calc_volume` on the main hull object, in cubic units). Take about
-   55% of it as usable. Where the hull is several objects, sum the
-   habitable ones by name, and measure their union, not the sum of their
-   volumes: overlapping sections double-count (the Legion's driver
-   integrates vertical ray intervals per column). Count drive pods' outer casings, as the Second
-   Wind's unioned hull did, but not their dark cores or overlapping bands.
-   Report the pods-excluded solution as the top of the range. Have the
-   driver re-measure this on every build and record the solved value
-   beside the published one (the Hound's `scale_record`), so a geometry
-   change that moves the answer is visible.
-3. Solve `usable_units³ × s³ = required m³` for `s`, the scale in metres per
-   unit. Cross-check it against a fitting with a known real size (the boat
-   bay against `RoomRecipe.BOAT_BAY`/`SHUTTLE_BAY`, hatch heights, a 1.8 m
-   person).
+Derive it from what the ship holds, never from the sprite, with the one
+shared basis every hull uses: `art-source/company-prologue/ship_scale.py`
+(constants and their real-ship justification in `ship-scale.md`). Sprite
+pixels are not enough to size a ship; two hulls sized by different methods
+cannot be compared, which is how a 180 m carrier once read smaller than a
+61 m freighter beside it.
+1. Measure the model's enclosed volume one way: the union of the pressure
+   hull with its holds, hangars and boat bays, never drive pods, engine
+   cans, armour laid over the hull or open structure. Name the solids in
+   `ship_scale.SOLIDS` and run
+   `blender --background <model>.blend --python ship_scale_measure.py -- <key>`;
+   it measures their union by vertical ray intervals, so overlapping solids
+   are not counted twice. Have the driver re-measure on every build, so a
+   geometry change that moves the answer is visible.
+2. Add the hull to `ship_scale.HULLS`: max crew, cargo and fuel from
+   `ship_data.csv`, class from `ship_scale.hull_class(hullSize,
+   designation)`, fighter complement as `(fighter id, craft per wing)` from
+   its variant, carried boat bays, sprite length and modelled fittings in
+   units. `ship_scale.record(name)` returns the contents, the class's
+   machinery share, the solved `metres_per_unit`, its range and the fittings
+   in metres; store it under `scale` in `geometry.json`. Crew room (300 m3 a
+   person times the class's habitable factor; capitals 1.45) is the
+   dominant term; never adjust a constant for one hull. Change it in `ship_scale.py`
+   and `ship-scale.md` for all of them, and run `python ship_scale.py` to see
+   every hull move together. It flags a capital under about 4x a frigate's
+   length or its own sprite ratio.
+3. Publish the solved value as `metres_per_unit` (rounded) and cross-check it
+   against fittings with a known real size: a 1.8 m person at doors, hatches
+   and rails, boat bays against the boats they hold, and, for a carrier,
+   every fighter in its complement at its own scale against the bay mouths,
+   lanes and doors converted into the carrier's units. Person-scale fittings
+   are true metres: when the scale moves, scale their authored sizes by
+   old/new (the Legion's `lg_kit.PERSON`). Report the range. A
+   shot re-frames to the hull rather than the hull bending to the shot.
 
-Report the plausible range. **Every hull gets its own scale, derived from
-what it is** (owner, 2026-10-16); hulls do not share one value, and a shot
-re-frames to the hull rather than the hull bending to the shot.
-
-55% usable is a freighter's or liner's share. For a warship, do the warship
-form (the Legion's `scale_record` is the worked example):
-- Drop the program's notional `HANGAR` rooms and size the fighter
-  complement instead: craft footprint x servicing room x overhead, a spare
-  per wing, ordnance handling. Fighters have their own scales, from their
-  cockpits (`fighters-geometry`), so size the stowage in metres and take
-  it as a share of the pressure hull at the published scale. Check that
-  the bay mouths clear the largest craft's span and height converted into
-  the carrier's units.
-- Budget the rest of the non-habitable share explicitly (armour, reactors
-  and flux plant, barbettes and magazines, tanks and structure) and solve
-  at the resulting habitable share, about 30-35% for a battlecarrier.
-- Check the answer against real ships (crew, length, enclosed volume per
-  person) and against a 1.8 m person at doors, hatches and rails.
-The geometry sets the answer: a deeper hull lowers the solved scale, so
-report how a shape change moved it. Note that the battle-map
-landed-ship convention
-(`landed-ships-true-scale.md`) is about readability on the tactical map and
-is a different number.
+Report a new or changed scale before rewriting a tracked `metres_per_unit`:
+cinematics rescale their instances from it. The geometry sets the answer (a
+deeper hull lowers the solved scale), so report how a shape change moved it.
+The battle-map landed-ship convention (`landed-ships-true-scale.md`) is about
+readability on the tactical map and is a different number.
 
 ## Pass 5: condition states
 
@@ -312,6 +299,16 @@ muzzles found by name and slot table. The Second Wind's kit is
 forking them. Each state exports one appendable Blender collection
 (`second-wind-pipeline.md`, Cinematic output). Cinematics follow the
 `cinematic-production` skill.
+
+Another hull reaches the kit in one of two ways (`second-wind-vfx/README.md`,
+Other hulls). With no profile, it falls back to the export's own declared
+engine and muzzle empties (`hound-export/`). A `vfx_hull.py` profile sets the
+engine table, states, mounts, lamps and plume colours
+(`mudskipper-cinematic/`). The export and its verify script are per hull: one
+collection, a root carrying `metres_per_unit`, packed images, and the anchors
+a shot needs. Anything that moves (legs, doors, ramps) is driven from custom
+properties on one control empty, and the verify script exercises those knobs
+after an append.
 
 ## Rules for every pass
 

@@ -7,8 +7,13 @@ gantry down the starboard side, and one wide crossbeam across the stern that
 carries both drive pods. The central body is where the crew lives ("internal
 volume given to crew comfort"), so it is the deepest section.
 
+Pass 3 (owner review): the bow read too boxy for the sprite's rounded
+capsule, so the nose is a superellipse in plan with tangent facets over and
+under it, the section has two facets at each shoulder, and the bow fittings
+are seated on the rounded nose by horizontal ray-casts.
+
 Pass 2 detail, read off the sprite and the hull's yard life:
-  - the dorsal deck aft of the habitat shell (X -9..+4) is laid in bolted
+  - the dorsal deck aft of the bridge hull (X -9..+4) is laid in bolted
     armour modules over a dark seam underlay, with the two small dark
     hatches the sprite shows near X -5.5 and an access trunk up to the spine
     walkway at its forward port corner (the dark notch at X 3..4);
@@ -25,7 +30,7 @@ Pass 2 detail, read off the sprite and the hull's yard life:
     louvred intakes and piping between the stern lamp housings (red to
     starboard, green to port, where the sprite has them);
   - two crew airlocks: a vestibule onto the turret deck, and a door on the
-    starboard bow chamfer stepping down to the gantry base deck;
+    starboard bow quarter stepping down to the gantry base deck;
   - ventral: she rests on her keel on a yard service cradle, so the keel
     carries two skids and eight load-bearing cradle shoes, a ventral cargo
     hatch (cargo 100), the surveying sensor blister and bolted covers.
@@ -37,15 +42,36 @@ that list so other modules keep seating on the pass-1 envelopes.
 """
 import math
 import bmesh
+import bpy
 from mathutils import Vector
 from sh_kit import prism, section, boolean, plane_cut, loft_x, material
 
 # Planform of the central body (CCW, +X bow, +Y port), read off the sprite:
 # the tan body is Y -10..+5 forward of the crossbeam, widening aft into the
-# machinery between the pods; the bow tapers to the bridge cab.
-BODY_PLAN = [(-31, -11), (-12, -11), (6, -11), (31, -11), (34.5, -7.5), (34.5, 5),
-             (27, 6), (6, 6), (-12, 9), (-31, 9)]
+# machinery between the pods; the long bridge hull rides on it (sh_bridge).
+# Pass 3 (owner: the bow read too boxy): the sprite's bow is a rounded capsule,
+# so the nose is a superellipse in plan (BOW_*) and a run of tangent facets in
+# elevation (BOW_FACETS), and the section carries two facets at each shoulder.
+BOW_C, BOW_A, BOW_N = (26.0, -2.5), (9.5, 8.5), 2.6    # plan centre, semi-axes, superellipse exponent
+BOW_EL_C, BOW_EL_A = (25.0, -2.0), (10.5, 13.0)        # elevation ellipse (x, z) centre and semi-axes
+BOW_FACETS = (22, -22, 48, -46, -68)                   # tangent facet angles on it, deg
+
+
+def _bow_plan(steps=12):
+    (cx, cy), (ax, ay), e = BOW_C, BOW_A, 2/BOW_N
+    out = []
+    for k in range(steps+1):
+        t = math.pi*(-.5+k/steps)
+        c, s = math.cos(t), math.sin(t)
+        out.append((round(cx+ax*math.copysign(abs(c)**e, c), 3), round(cy+ay*math.copysign(abs(s)**e, s), 3)))
+    return out
+
+
+BODY_PLAN = [(-31, -11), (-12, -11), (6, -11)]+_bow_plan()+[(6, 6), (-12, 9), (-31, 9)]
 BODY_KEEL, BODY_DECK = -15.0, 11.0
+# Keel chamfer, a second keel facet, the wall, and two shoulder facets (inset, z).
+BODY_SECTION = [(4.0, BODY_KEEL), (1.2, BODY_KEEL+2.2), (0, BODY_KEEL+4.6), (0, BODY_DECK-3.6),
+                (1.0, BODY_DECK-1.3), (3.0, BODY_DECK)]
 SPINE_PLAN = [(-14, 5), (36, 5), (37, 6.5), (37, 11), (-14, 11)]
 # Its outer ends run aft past the pods to carry the jet clusters (sprite X -24..-29).
 CROSSBEAM_PLAN = [(-29, -30.5), (-23, -31.5), (-9, -31.5), (-9, 31.5), (-23, 31.5), (-29, 30.5)]
@@ -243,45 +269,73 @@ def _deck(kit, mats):
     welds.emit(kit, 'Hull dorsal weld beads', mats['weld'])
 
 
+def _bow_hit(y, z, d=(-1.0, 0.0, 0.0)):
+    """Where a horizontal ray at height z meets the rounded bow: (point, plan normal (nx, ny)).
+    The default ray runs aft along Y = y; any other direction d is aimed at the nose centre."""
+    bpy.context.view_layer.update()
+    body = bpy.data.objects['Hull central body']
+    ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    d = Vector(d).normalized()
+    o = Vector((60.0, y, z)) if d.x == -1 else Vector((BOW_C[0], BOW_C[1], z))-d*40
+    hit, p, n, _ = ev.ray_cast(o, d)
+    assert hit, (y, z)
+    h = math.hypot(n.x, n.y)
+    return p, (n.x/h, n.y/h)
+
+
 def _flanks(kit, mats):
-    """Seams and strata on the visible starboard flank, the bow face and the airlocks."""
+    """Seams and strata on the visible starboard flank, the bow and the airlocks."""
     seams = _Parts()
     y = -11.02
-    seams.box((11.0, y, 6.0), (40.0, .12, .12))      # strata lines, X -9..31
-    seams.box((11.0, y, 0.0), (40.0, .12, .12))
-    seams.box((11.0, y, -6.5), (40.0, .12, .12))
-    for x in (-2.0, 4.5, 13.0, 22.0, 29.5):
-        seams.box((x, y, -1.5), (.12, .12, 19.0))
-    # Bow face below the cab (X 34.5, z -6..7).
-    seams.box((34.52, -1.25, 0.5), (.12, 12.4, .12))
-    for yy in (-3.2, 1.6):
-        seams.box((34.52, yy, 0.5), (.12, .12, 12.4))
+    for z in (6.0, 0.0, -6.5):
+        seams.box((8.5, y, z), (35.0, .12, .12))     # strata lines, X -9..26 (the flank, aft of the bow's turn)
+    for x in (-2.0, 4.5, 13.0, 22.0):
+        seams.box((x, y, -1.6), (.12, .12, 17.2))
     seams.emit(kit, 'Hull flank seam gaps', mats['dark'])
-    weld = _Parts().box((11.0, -11.03, 7.85), (40.0, .1, .1))
+    weld = _Parts().box((8.5, -11.03, 7.2), (35.0, .1, .1))
     weld.emit(kit, 'Hull flank weld bead', mats['weld'])
+    # Bow fittings, each set on the rounded nose where a ray finds it and turned to its face.
     cover, cb = _Parts(), _Parts()
-    cover.box((34.58, -5.4, -2.6), (.18, 2.0, 2.0))
-    cover.box((34.58, 3.4, -2.6), (.18, 1.6, 1.6))
-    cover.emit(kit, 'Hull bow service covers', mats['steel'], .03)
-    for yy, s in ((-5.4, 2.0), (3.4, 1.6)):
+    for yy, zz, sz in ((-5.4, -2.6, 2.0), (3.4, -2.6, 1.6)):
+        p, (nx, ny) = _bow_hit(yy, zz)
+        rz = math.atan2(ny, nx)
+        cover.box((p.x+nx*.06, p.y+ny*.06, zz), (.18, sz, sz), rz)
+        tx, ty = -ny, nx
         for dy, dz in ((-1, -1), (-1, 1), (1, -1), (1, 1)):
-            cb.box((34.7, yy+dy*(s/2-.25), -2.6+dz*(s/2-.25)), (.1, .2, .2))
+            u = dy*(sz/2-.25)
+            cb.box((p.x+nx*.18+tx*u, p.y+ny*.18+ty*u, zz+dz*(sz/2-.25)), (.1, .2, .2), rz)
+    cover.emit(kit, 'Hull bow service covers', mats['steel'], .03)
     cb.emit(kit, 'Hull bow service cover bolts', mats['cream'])
-    kit.box('Hull bow mooring fairlead', (34.7, -1.0, -3.0), (.6, 1.6, 1.0), mats['dark'], .1)
-    kit.cylinder('Hull bow mooring fairlead bollard', (34.95, -1.0, -3.0), .35, .7, mats['steel'], 'X', 10, .04)
+    p, (nx, ny) = _bow_hit(-1.0, -3.0)
+    fair = _Parts().box((p.x+nx*.2, p.y+ny*.2, -3.0), (.6, 1.6, 1.0), math.atan2(ny, nx))
+    fair.emit(kit, 'Hull bow mooring fairlead', mats['dark'], .1)
+    kit.cylinder('Hull bow mooring fairlead bollard', (p.x+nx*.45, p.y+ny*.45, -3.0), .35, .7, mats['steel'],
+                 'X', 10, .04)
+    # Plating strakes round the nose: the rounded bow is plated in horizontal courses.
+    strakes = _Parts()
+    for zz in (-8.0, 0.6, 5.0):
+        for k in range(15):
+            a = math.radians(-80+k*(160/14))
+            try:
+                p, (nx, ny) = _bow_hit(0, zz, d=(-math.cos(a), -math.sin(a), 0))
+            except AssertionError:
+                continue
+            if p.x > 26.5:
+                strakes.box((p.x+nx*.02, p.y+ny*.02, zz), (.12, 1.3, .12), math.atan2(ny, nx))
+    strakes.emit(kit, 'Hull bow plating strakes', mats['dark'])
 
     # Airlock 1: a vestibule on the starboard flank opening onto the turret deck.
     kit.box('Hull starboard airlock vestibule', (-5.0, -11.55, 4.65), (3.2, 1.7, 3.3), mats['tan'], .15)
     kit.box('Hull starboard airlock vestibule roof', (-5.0, -11.6, 6.35), (3.4, 1.9, .2), mats['steel'], .05)
     _door_panel(kit, 'Hull starboard airlock door', (-5.0, -12.4), (0, -1), 1.3, 3.15, 5.45, mats, mats['cream'])
-    # Airlock 2: on the starboard bow chamfer, stepping down to the gantry base deck.
-    n = (1/math.sqrt(2), -1/math.sqrt(2))
-    _door_panel(kit, 'Hull starboard bow airlock door', (32.75, -9.25), n, 1.3, -7.5, -5.2, mats, mats['cream'])
+    # Airlock 2: on the starboard bow quarter, stepping down to the gantry base deck.
+    p, n = _bow_hit(0, -6.35, d=(-1, 1, 0))
+    _door_panel(kit, 'Hull starboard bow airlock door', (p.x, p.y), n, 1.3, -7.5, -5.2, mats, mats['cream'])
     rz = math.atan2(n[1], n[0])
-    step = _Parts().box((32.75+n[0]*.8, -9.25+n[1]*.8, -7.85), (1.6, 1.7, .2), rz)
+    step = _Parts().box((p.x+n[0]*.8, p.y+n[1]*.8, -7.85), (1.6, 1.7, .2), rz)
     step.emit(kit, 'Hull starboard bow airlock step', mats['steel'], .03)
     # A ladder down from the step to the gantry base deck (top about -11.4).
-    lad, (lx, ly) = _Parts(), (32.75+n[0]*1.55, -9.25+n[1]*1.55)
+    lad, (lx, ly) = _Parts(), (p.x+n[0]*1.55, p.y+n[1]*1.55)
     for t in (-.55, .55):
         lad.box((lx-n[1]*t, ly+n[0]*t, -9.65), (.12, .12, 3.7), rz)
     for k in range(5):
@@ -309,7 +363,7 @@ def _spine(kit, mats):
         rails.box((10.25, y, z+1.2), (46.5, .14, .14))
         rails.box((10.25, y, z+.62), (46.5, .1, .1))
     rails.emit(kit, 'Hull port spine handrails', mats['cream'])
-    # Conduits along the inboard wall, on brackets; they end at the cab.
+    # Conduits along the inboard wall, on brackets; they end at the bow.
     pipes, brackets = _Parts(), _Parts()
     for zz, yy, r in ((BODY_DECK+.45, 4.72, .28), (BODY_DECK+1.05, 5.05, .22)):
         pipes.cyl((5.25, yy, zz), r, 37.5, axis=(1, 0, 0), n=8)
@@ -511,10 +565,14 @@ def _ventral(kit, mats):
 
 
 def build(kit):
-    body = prism(kit, 'Hull central body', BODY_PLAN, section(BODY_KEEL, BODY_DECK, 4.0, 3.0), kit.tan)
-    # Bounded bow facets: the cab's forward faces rake down to the keel.
+    body = prism(kit, 'Hull central body', BODY_PLAN, BODY_SECTION, kit.tan)
+    # Bow facets: tangent planes to an XZ ellipse, so the nose rounds over and under.
     plane_cut(body, 'bow brow', (30.5, 0, 11), (1, 0, 1))
-    plane_cut(body, 'bow chin', (34.5, 0, -6), (9, 0, -6))
+    (ex, ez), (ax, az) = BOW_EL_C, BOW_EL_A
+    for a in BOW_FACETS:
+        t = math.radians(a)
+        plane_cut(body, f'bow facet {a}', (ex+ax*math.cos(t), 0, ez+az*math.sin(t)),
+                  (math.cos(t)/ax, 0, math.sin(t)/az))
     kit.hull.append(body)
 
     spine = prism(kit, 'Hull port spine', SPINE_PLAN, section(-8, 13, 2.0, 1.5), kit.tan)

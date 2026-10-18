@@ -41,6 +41,7 @@ import bpy
 from mathutils import Vector
 
 import swfx_core
+import swfx_hull
 from swfx_core import math_node
 
 GROUP = 'Thrusters'
@@ -57,6 +58,8 @@ COLOURS = {
     'salvaged': dict(core=(.80, .82, 1.0), plume=(.42, .50, .95), warm=(1.0, .50, .25),
                      glow=(1.0, .86, .78), light=(.95, .84, .80)),
 }
+# A hull profile (swfx_hull) may recolour a mode: a LOW_TECH drive burns orange.
+COLOURS = {**COLOURS, **swfx_hull.get('COLOURS', {})}
 
 # RCS sizes, from physical metres so a ship rescale is one edit in swfx_core:
 # a ~0.25 m cold-gas nozzle, a puff reaching ~4 m before it is gone.
@@ -65,7 +68,7 @@ RCS_PUFF_LEN = swfx_core.units(4.0)
 
 # RCS quads: name -> (hull-local seed position, outward thrust direction).
 # Positions are pushed onto the nearest ship surface at build time.
-RCS_QUADS = {
+_SW_RCS_QUADS = {
     'bow_port':       ((50, 18, 4), (0, 1, 0)),
     'bow_starboard':  ((50, -18, 4), (0, -1, 0)),
     'stern_port':     ((-30, 38, 4), (0, 1, 0)),
@@ -75,6 +78,7 @@ RCS_QUADS = {
     'ventral_fore':   ((35, 0, -12), (0, 0, -1)),
     'ventral_aft':    ((-20, 0, -12), (0, 0, -1)),
 }
+RCS_QUADS = swfx_hull.get('RCS_QUADS', _SW_RCS_QUADS)
 
 
 # --- expressions -----------------------------------------------------------
@@ -314,7 +318,7 @@ def _disc(name, coll, radius, material, segments=32):
 
 def _make_props(ctx):
     ctx.prop('thr_throttle', 1.0, 0, 1, 'Master drive throttle (shared)')
-    for i in range(1, 5):
+    for i in swfx_core.ENGINE_INDICES:
         ctx.prop(f'thr_throttle_e{i}', 1.0, 0, 1, f'Engine {i} throttle (shared)')
     ctx.prop('thr_instability', .5, 0, 1, 'Salvaged coil flicker/sputter depth')
     ctx.prop('thr_plume_length', 1.0, 0, 3, 'Plume length multiplier')
