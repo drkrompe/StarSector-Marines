@@ -20,23 +20,25 @@ import numpy as np
 import imgops as I
 import parts as P
 import sheets
+import hull as H
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE / 'registration'
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
+OUT = DATA / 'registration'
 OUT.mkdir(exist_ok=True)
 GROUPS = P.group_arg(sys.argv)
 NAMES = P.sheets_in(GROUPS)
 
 for name in NAMES:
-    sheets.split(name, HERE / 'generated' / f'sheet-{name}.png')
+    sheets.split(name, DATA / 'generated' / f'sheet-{name}.png')
 
 summary = {}
 for name in NAMES:
     members = P.SHEETS[name]
     for part in members:
         TILES = P.tiles_dir(part)
-        guide = I.load_rgb(HERE / 'guide' / f'{part}-guide.png')
-        gmask = I.load_rgb(HERE / 'guide' / f'{part}-mask.png')[..., 0] > 127
+        guide = I.load_rgb(DATA / 'guide' / f'{part}-guide.png')
+        gmask = I.load_rgb(DATA / 'guide' / f'{part}-mask.png')[..., 0] > 127
         gen = I.load_rgb(TILES / f'{part}-gen.png')
         seg_check = I.iou(I.segment(guide)[0], gmask)
         nmask, bg = I.segment(gen)

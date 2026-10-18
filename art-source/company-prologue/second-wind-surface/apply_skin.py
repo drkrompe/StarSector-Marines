@@ -50,17 +50,19 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import parts as P
 import variation as V
+import hull as H
 
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 def arg(name, default):
     return argv[argv.index(name) + 1] if name in argv else default
-BLEND = HERE / Path(arg('--blend', HERE / 'build' / 'geom' / 'second-wind-geometry.blend'))
-OUT = HERE / Path(arg('--out', HERE / 'build' / 'skinned.blend'))
+BLEND = DATA / Path(arg('--blend', H.BLEND))
+OUT = DATA / Path(arg('--out', DATA / 'build' / 'skinned.blend'))
 FALLBACK = arg('--fallback', 'swatch')
 GROUPS = P.group_arg(argv)
 WEAR = arg('--wear', 'none')  # a wear.json state (wear.py), or none for the bare base skin
-MANIFEST = HERE / Path(arg('--manifest', HERE / 'skin-manifest.json'))
-PAL = json.loads((HERE / 'palette.json').read_text())['classes']
+MANIFEST = DATA / Path(arg('--manifest', DATA / 'skin-manifest.json'))
+PAL = json.loads((DATA / 'palette.json').read_text())['classes']
 VAR = V.load()
 
 bpy.ops.wm.open_mainfile(filepath=str(BLEND))
@@ -98,7 +100,7 @@ def swatch_group(cls):
     g = bpy.data.node_groups.new(name, 'ShaderNodeTree')
     g.interface.new_socket('Color', in_out='OUTPUT', socket_type='NodeSocketColor')
     out = g.nodes.new('NodeGroupOutput')
-    path = HERE / 'textures' / f'swatch-{cls}.png'
+    path = DATA / 'textures' / f'swatch-{cls}.png'
     if path.exists():
         tc = g.nodes.new('ShaderNodeTexCoord')
         mp = g.nodes.new('ShaderNodeMapping')
@@ -137,7 +139,7 @@ def skin_material(part, base):
     uv.uv_map = 'skin'
     tex = nt.nodes.new('ShaderNodeTexImage')
     tex.name = 'SKIN image'
-    tex.image = load_image(HERE / 'textures' / f'{P.source_part(part)}.png', f'Skin {P.source_part(part)}')
+    tex.image = load_image(DATA / 'textures' / f'{P.source_part(part)}.png', f'Skin {P.source_part(part)}')
     tex.extension = 'EXTEND'
     tex.interpolation = 'Cubic'
     nt.links.new(uv.outputs['UV'], tex.inputs['Vector'])
@@ -218,7 +220,7 @@ cams = {}
 face_part = {}
 for part, per in selection.items():
     src = P.source_part(part)
-    if not (HERE / 'textures' / f'{src}.png').exists():
+    if not (DATA / 'textures' / f'{src}.png').exists():
         print('SURF no texture for', part)
         continue
     # Each part's own fitted camera: the same tile framing its guide used,
@@ -316,7 +318,7 @@ if WEAR != 'none':
 
 total = sum(len(v) for v in skinned_faces.values())
 counts['skin'] = total
-manifest['swatches'] = {c: (HERE / 'textures' / f'swatch-{c}.png').exists() for c in PAL}
+manifest['swatches'] = {c: (DATA / 'textures' / f'swatch-{c}.png').exists() for c in PAL}
 manifest['face_counts'] = counts
 manifest['skinned_objects'] = {n: len(v) for n, v in sorted(skinned_faces.items())}
 manifest['skinned_face_count'] = total

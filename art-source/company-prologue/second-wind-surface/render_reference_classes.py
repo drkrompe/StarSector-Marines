@@ -7,7 +7,11 @@ port-side reskin) was made from build_reference.py's own 'port-side' camera.
 This renders that camera's view of build/geom with every base material
 replaced by its flat CLASS_ID colour, so palette.py can read the reference's
 cream / oxide / gunmetal / dark paint off the plates the geometry says carry it.
-Writes build/reference-classes.png (1920x1080).
+Writes build/reference-classes.png (1920x1080), and first build/reference-guide-rgba.png:
+the same camera lit by the build's own lamps on a transparent film, which
+register_reference.py lays on parts.BACKGROUND as the guide a new hull's
+finish reference is painted over (the Second Wind's came from the projection
+spike instead).
 """
 from pathlib import Path
 import sys
@@ -16,9 +20,21 @@ import bpy
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import parts as P
+import hull as H
 
-bpy.ops.wm.open_mainfile(filepath=str(HERE / 'build' / 'geom' / 'second-wind-geometry.blend'))
+bpy.ops.wm.open_mainfile(filepath=str(H.BLEND))
+DATA = H.DIR
 scene = bpy.context.scene
+scene.camera = bpy.data.objects['Camera ' + H.REFERENCE_CAMERA]
+scene.render.engine = 'CYCLES'
+scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
+scene.render.resolution_percentage = 100
+scene.render.film_transparent = True
+scene.cycles.samples = 64
+scene.render.image_settings.file_format = 'PNG'
+scene.render.image_settings.color_mode = 'RGBA'
+scene.render.filepath = str(DATA / 'build' / 'reference-guide-rgba.png')
+bpy.ops.render.render(write_still=True)
 for ob in [o for o in scene.objects if o.type == 'LIGHT']:
     bpy.data.objects.remove(ob)
 mats = {}
@@ -38,7 +54,7 @@ for ob in scene.objects:
         cls = P.MATERIAL_CLASS.get(slot.material.name.split('.')[0], 'other') if slot.material else 'other'
         slot.link = 'OBJECT'
         slot.material = mats[cls]
-scene.camera = bpy.data.objects['Camera port-side']
+scene.camera = bpy.data.objects['Camera ' + H.REFERENCE_CAMERA]
 scene.render.engine = 'CYCLES'
 scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
 scene.render.resolution_percentage = 100
@@ -49,5 +65,5 @@ scene.cycles.samples = 1
 scene.cycles.use_denoising = False
 scene.cycles.filter_width = .01
 scene.render.image_settings.color_mode = 'RGB'
-scene.render.filepath = str(HERE / 'build' / 'reference-classes.png')
+scene.render.filepath = str(DATA / 'build' / 'reference-classes.png')
 bpy.ops.render.render(write_still=True)
