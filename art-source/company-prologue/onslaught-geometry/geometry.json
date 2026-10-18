@@ -50,7 +50,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2454733,
+      "units3": 2455934,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -88,7 +88,7 @@
     "enclosed_m3": 1556429,
     "solved_metres_per_unit": 0.859,
     "range": {
-      "habitable_273": 0.833,
+      "habitable_273": 0.832,
       "habitable_328": 0.885
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
@@ -104,7 +104,7 @@
     },
     "published_metres_per_unit": 0.86,
     "measured_this_build": {
-      "enclosed_units3": 2454733,
+      "enclosed_units3": 2455934,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
@@ -126,7 +126,7 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2457459
+      "with_drive_pods_units3": 2458660
     },
     "size_m": [
       299.9,
@@ -889,8 +889,8 @@
       "name": "Light port arm edge 1",
       "position": [
         180.04,
-        81.36,
-        -10.39
+        77.76,
+        -9.42
       ],
       "colour": "white",
       "rgb": [
@@ -908,9 +908,9 @@
     {
       "name": "Light port arm edge 2",
       "position": [
-        140.05,
-        84.95,
-        -5.62
+        140.06,
+        84.94,
+        -5.49
       ],
       "colour": "white",
       "rgb": [
@@ -928,9 +928,9 @@
     {
       "name": "Light port arm edge 3",
       "position": [
-        100.05,
-        95.8,
-        -2.99
+        100.04,
+        104.42,
+        -7.18
       ],
       "colour": "white",
       "rgb": [
@@ -1069,8 +1069,8 @@
       "name": "Light starboard arm edge 1",
       "position": [
         180.04,
-        -81.36,
-        -10.39
+        -77.76,
+        -9.42
       ],
       "colour": "white",
       "rgb": [
@@ -1088,9 +1088,9 @@
     {
       "name": "Light starboard arm edge 2",
       "position": [
-        140.05,
-        -84.95,
-        -5.62
+        140.06,
+        -84.94,
+        -5.49
       ],
       "colour": "white",
       "rgb": [
@@ -1108,9 +1108,9 @@
     {
       "name": "Light starboard arm edge 3",
       "position": [
-        100.05,
-        -96.21,
-        -3.27
+        100.04,
+        -104.42,
+        -7.18
       ],
       "colour": "white",
       "rgb": [
@@ -1344,7 +1344,7 @@
     "formation-abeam-1.5km": {
       "size_px": [
         267,
-        109
+        108
       ]
     },
     "formation-bow-1.5km": {
@@ -1355,38 +1355,38 @@
     },
     "formation-high-1.5km": {
       "size_px": [
-        220,
+        219,
         197
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
-        241,
+        240,
         134
       ]
     },
     "formation-abeam-3km": {
       "size_px": [
-        132,
-        54
+        131,
+        53
       ]
     },
     "formation-bow-3km": {
       "size_px": [
         109,
-        51
+        50
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        111,
+        110,
         98
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        120,
-        67
+        119,
+        66
       ]
     }
   }

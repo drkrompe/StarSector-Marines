@@ -203,10 +203,11 @@ def build_side(kit, s, mats):
     P = lambda x, y, z: (x, s*y, z)
     pipes_dark, pipes_pale, pipes_bronze = Acc(), Acc(), Acc()
     fittings, frames, headers, pumps, valves = Acc(), Acc(), Acc(), Acc(), Acc()
+    tops, bands, wheels = Acc(), Acc(), Acc()   # round 8: the sunlit top layer, header bands, pale wheels
 
     # ---- the header under the core's aft face, feeding both wells ----------
     headers.add(*tube(P(HDR_X, ROOT_Y-1.0, HDR_LO), P(HDR_X, 101.0, HDR_LO), 2.5, n=10))
-    headers.add(*tube(P(HDR_X, ROOT_Y-1.0, HDR_HI), P(HDR_X, 97.0, HDR_HI), 1.9, n=10))
+    tops.add(*tube(P(HDR_X, ROOT_Y-1.0, HDR_HI), P(HDR_X, 97.0, HDR_HI), 1.9, n=10))
     for y in range(53, 100, 9):
         fittings.add(*ring(P(HDR_X, y, HDR_LO), (0, 1, 0), 2.3, 3.15, .55))
         if y < 96:
@@ -258,7 +259,7 @@ def build_side(kit, s, mats):
     # Collector along the after wall, every bundle ending in it.
     for a, b in zip(COLLECTOR, COLLECTOR[1:]):
         headers.add(*obox((a[0], s*a[1]), (b[0], s*b[1]), COLLECTOR_W, F, F+8.6))
-        frames.add(*obox((a[0], s*a[1]), (b[0], s*b[1]), COLLECTOR_W+1.0, F+8.6, F+9.6))
+        bands.add(*obox((a[0], s*a[1]), (b[0], s*b[1]), COLLECTOR_W+1.0, F+8.6, F+9.6))
     for c in COLLECTOR[1:-1]:
         headers.add(*tube(P(c[0], c[1], F), P(c[0], c[1], F+10.2), 2.9, n=8))   # junction drums at the corners
     # Stand-pipes on the collector, rising over the outer quarter's after sill so the
@@ -269,11 +270,11 @@ def build_side(kit, s, mats):
             stands.append((ax+(bx-ax)*f, ay+(by-ay)*f))
     for k, (cx, cy) in enumerate(stands):
         top = F+16.5-1.2*(k % 2)
-        pipes_dark.add(*tube(P(cx, cy, F+8.6), P(cx, cy, top), 1.15, n=10))
+        tops.add(*tube(P(cx, cy, F+8.6), P(cx, cy, top), 1.15, n=10))
         for z in (F+11.0, top-.2):
             fittings.add(*ring(P(cx, cy, z), (0, 0, 1), 1.0, 1.85, .4, n=12))
         valves.add(*tube(P(cx, cy, top-1.6), P(cx-1.9, cy, top-1.6), .3, n=6))
-        valves.add(*ring(P(cx-2.0, cy, top-1.6), (1, 0, 0), 1.0, 1.55, .2, n=12))
+        wheels.add(*ring(P(cx-2.0, cy, top-1.6), (1, 0, 0), 1.0, 1.75, .3, n=12))
     for a, b in zip(stands, stands[1:]):
         pipe(pipes_bronze, [P(a[0], a[1], F+13.6), P(b[0], b[1], F+13.6)], .7, n=8)
 
@@ -304,7 +305,7 @@ def build_side(kit, s, mats):
         pumps.add(*box(px-1.9, px+1.9, s*(py-1.9), s*(py+1.9), F+9.0, F+12.4))      # motor
         pumps.add(*tube(P(px, py, F+12.4), P(px, py, F+13.4), 1.3, n=10))
         valves.add(*tube(P(px+pr*.7, py, F+9.0), P(px+pr*.7, py, F+11.4), .3, n=6))
-        valves.add(*ring(P(px+pr*.7, py, F+11.6), (0, 0, 1), 1.0, 1.55, .2, n=12))
+        wheels.add(*ring(P(px+pr*.7, py, F+11.6), (0, 0, 1), 1.0, 1.75, .3, n=12))
         p0 = (px+d[0]*(pr-.4), py+d[1]*(pr-.4))
         t = march(p0, d, lambda x, y: _outer_ok(1.75)(x, y) or math.hypot(x-px, y-py) < pr+.4)
         pipe(pipes_dark, [P(*p0, F+4.6), P(p0[0]+d[0]*(t+1.2), p0[1]+d[1]*(t+1.2), F+4.6)], 1.75, n=10)
@@ -344,20 +345,20 @@ def build_side(kit, s, mats):
     for k, y in enumerate([24.4+1.8*i for i in range(10)]):
         bank(pipes_pale, y, (.7, .55)[k % 2], F+6.2)
     for y, r in ((25.2, 1.45), (28.8, 1.45), (31.2, 1.6)):      # trunk mains riding on top
-        bank(pipes_dark, y, r, F+9.4, n=10)
+        bank(tops, y, r, F+9.4, n=10)
     # Aft header at the open after end: the face astern sees, with flanged ports and wheels.
     headers.add(*box(AFT_HDR[0], AFT_HDR[1], s*AFT_HDR[2], s*AFT_HDR[3], F-1.0, F+10.5))
-    frames.add(*box(AFT_HDR[0]-.6, AFT_HDR[1]+.6, s*(AFT_HDR[2]-.2), s*(AFT_HDR[3]+.4), F+10.5, F+11.6))
+    bands.add(*box(AFT_HDR[0]-.6, AFT_HDR[1]+.6, s*(AFT_HDR[2]-.2), s*(AFT_HDR[3]+.4), F+10.5, F+11.6))
     for yy, zz in ((24.9, F+2.6), (29.6, F+2.6), (27.2, F+7.6)):
         pipe(pipes_dark, [P(AFT_HDR[0]+.5, yy, zz), P(AFT_HDR[0]-2.2, yy, zz)], 1.5, n=10)
         fittings.add(*ring(P(AFT_HDR[0]-2.0, yy, zz), (1, 0, 0), 1.3, 2.25, .45, n=12))
         frames.add(*box(AFT_HDR[0]-2.6, AFT_HDR[0]-2.3, s*(yy-1.7), s*(yy+1.7), zz-1.7, zz+1.7))   # blank flange
     for yy in (25.6, 30.4):
         valves.add(*tube(P(AFT_HDR[0], yy, F+10.0), P(AFT_HDR[0]-1.6, yy, F+10.0), .3, n=6))
-        valves.add(*ring(P(AFT_HDR[0]-1.7, yy, F+10.0), (1, 0, 0), 1.0, 1.55, .2, n=12))
+        wheels.add(*ring(P(AFT_HDR[0]-1.7, yy, F+10.0), (1, 0, 0), 1.0, 1.75, .3, n=12))
     # Feed manifold on the drive housing's forward end, and its riser into the housing.
     headers.add(*box(FEED[0], FEED[1], s*FEED[2], s*FEED[3], F, F+9.0))
-    frames.add(*box(FEED[0]-.5, FEED[1]+.5, s*(FEED[2]-.5), s*(FEED[3]+.3), F+9.0, F+10.0))
+    bands.add(*box(FEED[0]-.5, FEED[1]+.5, s*(FEED[2]-.5), s*(FEED[3]+.3), F+9.0, F+10.0))
     pipe(pipes_dark, [P(FEED[0]+1.0, 34.0, F+10.0), P(FEED[0]+1.0, 34.0, F+12.6), P(FEED[0]-3.5, 34.0, F+12.6),
                       P(FEED[0]-3.5, 34.0, F+10.4)], 1.2, n=10, fittings=fittings)
     # Portal frames across the banks.
@@ -381,7 +382,7 @@ def build_side(kit, s, mats):
         pumps.add(*box(px+4.2, px+7.2, s*(py-1.7), s*(py+1.7), F+11.8, F+15.2))   # drive motor
         pipe(pipes_bronze, [P(px-5.4, py, F+13.6), P(px-8.0, py, F+13.6), P(px-8.0, py, F+9.5)], .9, fittings=fittings)
         valves.add(*tube(P(px, py, F+16.0), P(px, py, F+17.4), .3, n=6))
-        valves.add(*ring(P(px, py, F+17.5), (0, 0, 1), 1.0, 1.55, .2, n=12))
+        wheels.add(*ring(P(px, py, F+17.5), (0, 0, 1), 1.0, 1.75, .3, n=12))
     pumps.add(*tube(P(-91.0, 27.2, F+9.4), P(-91.0, 27.2, F+15.0), 2.4, n=12))
     for z in (F+10.6, F+14.0):
         fittings.add(*ring(P(-91.0, 27.2, z), (0, 0, 1), 2.2, 3.0, .4, n=12))
@@ -390,16 +391,19 @@ def build_side(kit, s, mats):
     for y in (56.0, 74.0, 93.0):
         valves.add(*box(HDR_X-3.6, HDR_X-1.8, s*(y-1.2), s*(y+1.2), HDR_LO-1.2, HDR_LO+1.2))
         valves.add(*tube(P(HDR_X-3.6, y, HDR_LO), P(HDR_X-5.4, y, HDR_LO), .3, n=6))
-        valves.add(*ring(P(HDR_X-5.5, y, HDR_LO), (1, 0, 0), 1.1, 1.65, .2, n=12))
+        wheels.add(*ring(P(HDR_X-5.5, y, HDR_LO), (1, 0, 0), 1.1, 1.85, .3, n=12))
     side = 'port' if s > 0 else 'starboard'
     pipes_dark.build(kit, f'Machinery {side} pipe runs', kit.steel)
     pipes_pale.build(kit, f'Machinery {side} pale pipe banks', mats['pale'])
     pipes_bronze.build(kit, f'Machinery {side} conduits and risers', mats['bronze'])
     fittings.build(kit, f'Machinery {side} flanges and elbows', kit.grey)
     frames.build(kit, f'Machinery {side} well frames', kit.dark)
-    headers.build(kit, f'Machinery {side} headers', kit.steel, bevel=.2)
-    pumps.build(kit, f'Machinery {side} pumps and valves', kit.grey, bevel=.15)
+    headers.build(kit, f'Machinery {side} headers', mats['header'], bevel=.2)
+    pumps.build(kit, f'Machinery {side} pumps and valves', mats['top'], bevel=.15)
     valves.build(kit, f'Machinery {side} valve blocks and wheels', mats['pale'])
+    tops.build(kit, f'Machinery {side} top runs', mats['top'])
+    bands.build(kit, f'Machinery {side} header bands', mats['band'], bevel=.15)
+    wheels.build(kit, f'Machinery {side} hand wheels', mats['wheel'])
 
 
 # ---- tail radiator ------------------------------------------------------------
@@ -458,7 +462,17 @@ def materials(kit):
     # Round 6 (critic A5): the pale banks were the brightest thing in the wells and broke the
     # stern quarter into speckle; a darker steel keeps the pipes legible close up while the
     # wells read as dark recesses between the plates at formation distance.
-    return {'pale': get('Pale pipe steel', (.2, .185, .17), .65, .42),
+    # Round 8 (owner: the pipes and machinery in the recessed stern must be noticed): at
+    # 1.5 km with one hard sun and no fill the wells were black voids. Without lighting the
+    # wells, the sunlit top layer is lifted a value step: pale banks .2 -> .27 and less
+    # metallic (a metal under a black sky reflects black), the headers and pumps a lighter
+    # plate steel, the stand-pipes and trunk mains the same, a pale band capping the
+    # collector and the aft header, and pale hand wheels.
+    return {'pale': get('Pale pipe steel', (.27, .25, .23), .45, .45),
+            'top': get('Top run plate steel', (.24, .225, .21), .4, .5),
+            'header': get('Header plate steel', (.21, .2, .19), .4, .5),
+            'band': get('Header band pale', (.46, .44, .40), .1, .55),
+            'wheel': get('Valve wheel pale', (.55, .52, .46), .15, .5),
             'bronze': get('Conduit bronze', (.22, .12, .07), .7, .45),
             'radiator': get('Radiator fin red-brown', (.13, .045, .03), .55, .5)}
 

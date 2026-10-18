@@ -412,13 +412,13 @@ def gallery_section(x):
 WAIST_IN = [(106, 38), (60, 53), (2, 77)]
 WAIST_OUT = [(106, 58), (40, 72), (2, 89)]
 WAIST_DECK = 1.6
+WAIST_EDGE = [(106, 62.5), (2, 87.0)]   # the deck's straight outer edge (round 8), under the arm
 WAIST_RAKE = 58.0                 # deg from horizontal: the waist's raked forward end (round 7)
 WAIST_RAKE_X = 97.0               # where that rake leaves the waist's lowest line (z -28)
 
 
 def waist_section(x):
     yin, yout, w = _table(WAIST_IN, x), _table(WAIST_OUT, x), fore(x)['w']
-    ym = min(w+8.0, yout-4.0)
     # The outer edge runs down into the lowered arm (os_arms: its inner top edge
     # lies near z -15 here), so the valley floor meets the arm with no slot.
     # Round 7 (seam audit: the waist's bottom hung about 20 below the core's lower
@@ -428,7 +428,15 @@ def waist_section(x):
     # side face as one deadrise falling outboard into the arm.
     f = fore(x)
     yc, zc = f['w']-f['fl']-.4, f['zl']+.4
-    return [(yc, zc), (yout-4.0, -28.0), (yout+1.0, -19.0), (ym, WAIST_DECK), (yin, WAIST_DECK)]
+    # Round 8 (critic: the waist's outer edge read as a ragged line of 3-5 unit steps in
+    # the quarter view): the deck no longer falls into a narrow trench against the arm's
+    # faceted inner flank - a V whose bottom wandered with every facet. It runs on flat
+    # and level out to one straight edge (WAIST_EDGE) lying under the arm's inner gallery,
+    # so the valley floor meets the arm in a single clean line: flush forward, where the
+    # gallery lies level with it, and under the arm's one raised edge aft.
+    ye = _table(WAIST_EDGE, x)
+    return [(yc, zc), (yout-4.0, -28.0), (yout+1.0, -19.0), (ye, WAIST_DECK-1.2), (ye-1.0, WAIST_DECK),
+            (yin, WAIST_DECK)]
 
 
 def build(kit):

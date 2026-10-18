@@ -222,8 +222,9 @@ def keel_strakes(kit):
 # seams and ends so neighbouring segments read as one band with seams. The grey
 # legs stand thicker than the orange outboard of them: a terraced step down.
 
-def _skin_section(x, ya, yb, t, wrap, lip=.8, skirt=None):
+def _skin_section(x, ya, yb, t, wrap, lip=.8, skirt=None, lip_t=None):
     f = fore(x)
+    lt = t if lip_t is None else lip_t
     ya, yb = max(ya, 0.0), min(yb, f['w'])
     yk = min(max(f['yi'], ya+.2), yb-.2)
     top = [(ya, fore_top(x, ya)+t), (yk, fore_top(x, yk)+t)]
@@ -231,9 +232,9 @@ def _skin_section(x, ya, yb, t, wrap, lip=.8, skirt=None):
     if wrap and skirt is not None:
         # Over the waist the lip comes down as a skirt onto the valley deck, so the
         # band's edge meets the deck instead of overhanging it.
-        out = [(f['w']+lip, f['zk']+t*.7), (f['w']+lip, skirt), (fore_side_y(x, skirt)-.3, skirt)]
+        out = [(f['w']+lip, f['zk']+lt*.7), (f['w']+lip, skirt), (fore_side_y(x, skirt)-.3, skirt)]
     elif wrap:
-        out = [(f['w']+lip, f['zk']+t*.7), (fore_side_y(x, f['zk']-3.0)-.3, f['zk']-3.0)]
+        out = [(f['w']+lip, f['zk']+lt*.7), (fore_side_y(x, f['zk']-3.0)-.3, f['zk']-3.0)]
     else:
         out = [(yb, fore_top(x, yb)+t), (yb, fore_top(x, yb)-.8)]
     return top+out+bot
@@ -254,7 +255,9 @@ def skin(kit, name, x0, x1, inner, outer, t, mat, s, wrap=False, seams=(), lip=.
             continue
         groove = abs(x-x0) < .01 or abs(x-x1) < .01 or any(abs(x-sx) < .01 for sx in seams)
         yb = outer(x) if outer else fore(x)['w']
-        sec = _skin_section(x, inner(x), yb, thin if groove else t, outer is None or wrap, lip, skirt)
+        # Round 8: the seams groove the top face only; the lip over the chine keeps one
+        # height end to end, so the band's outer edge is one straight line, not notched.
+        sec = _skin_section(x, inner(x), yb, thin if groove else t, outer is None or wrap, lip, skirt, lip_t=t)
         if s < 0:
             sec = [(-y, z) for y, z in reversed(sec)]
         stations.append((x, sec))
@@ -287,9 +290,48 @@ def prow_lip(kit):
                  kit.grey, bevel=.2)
 
 
+# The prow gallery's glacis flanks (round 8, critic: top steps of 17-21 where the glacis
+# crest (X 114..89, up to z 40) stood as a sheer plate wall over the band ends at
+# (101, +-25)). Nothing stood in air there - the bands run on under the gallery - but the
+# wall read as an unfinished edge. Each flank is now a deliberate tier: a dark grey
+# armour cheek, the glacis leg climbing the gallery's flank, its foot bedded in the bands
+# a few units outboard of the wall and its face battered up to just under the crest
+# chamfer, so the skyline steps band -> sloped grey face -> crest.
+CHEEK_X = (115.0, 91.0)
+CHEEK_FOOT = 7.0             # how far outboard of the gallery wall the cheek's foot lands
+CHEEK_DROP = 2.6             # its top edge below the gallery's crest
+
+
+def gallery_cheek(kit, side, s):
+    from os_hull import GALLERY_Z
+    xs = sorted({CHEEK_X[0], CHEEK_X[1], 104.0} | {x for x, _ in GALLERY_W if CHEEK_X[1] < x < CHEEK_X[0]}
+                | {x for x, _ in GALLERY_Z if CHEEK_X[1] < x < CHEEK_X[0]}, reverse=True)
+    stations = []
+    for x in xs:
+        gw, zg = _table(GALLERY_W, x), _table(GALLERY_Z, x)
+        # its forward end grows out of the needler deck's flank as the glacis rises (no
+        # splayed foot over the shoulder band), full width from the crest's foot aft
+        k = min(max((CHEEK_X[0]-x)/(CHEEK_X[0]-104.0), 0.0), 1.0)
+        yf = gw+1.5+(CHEEK_FOOT-1.5)*k
+        zf = fore_top(x, yf)+.5            # bedded: under the bands' top (orange 1.4, grey 2.8)
+        zt = max(zg-CHEEK_DROP, zf+2.0)
+        zb = zf-2.5
+        sec = [(gw-2.0, zb), (yf, zb), (yf, zf), (gw+1.4, zt-.8), (gw+.7, zt), (gw-2.0, zt)]
+        if s < 0:
+            sec = [(-y, z) for y, z in reversed(sec)]
+        stations.append((x, sec))
+    ob = loft_x(kit, f'Armour {side} prow gallery cheek', stations, kit.grey, bevel=.2)
+    # the forward end raked back 60 deg from its foot, an armour nose, not a square end
+    zf0 = min(z for _, z in stations[0][1])+2.5
+    plane_cut(ob, 'cheek nose rake', (CHEEK_X[0]-.5, 0.0, zf0), (math.sin(math.radians(60)), 0.0,
+                                                                 math.cos(math.radians(60))))
+    return ob
+
+
 def build(kit):
     prow_lip(kit)
     for side, s in (('port', 1), ('starboard', -1)):
+        gallery_cheek(kit, side, s)
         # Prow shoulders: the orange band from the gallery's foot over the upper chine.
         gal = lambda x: _table(GALLERY_W, x)+.6
         for k, (xa, xb, seam) in enumerate(((STEM_X-.4, 175.3, 191.0), (174.7, 140.3, 157.0), (139.7, 111.0, 125.0)), 1):
