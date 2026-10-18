@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -279,8 +280,8 @@ public final class WarshipSystem {
 
     private final List<HullFireHold> hullFireHolds = new ArrayList<>();
 
-    /** The ground the mission keeps the hull fight over, or {@code null} for the whole map. */
-    private HullAirspace hullAirspace;
+    /** Each side's approved edge, the one way its warships come on and go off; a side absent has none. */
+    private final EnumMap<Faction, MapEdge> sideEdges = new EnumMap<>(Faction.class);
 
     /**
      * Holds hull fire for this battle until {@code hold} is released: no ship under {@link ShipFireOrder#AUTO} fires
@@ -293,16 +294,48 @@ public final class WarshipSystem {
     }
 
     /**
-     * Keeps this battle's hull fight over {@code airspace}: ships fighting hulls choose their stations inside it
-     * ({@link HullAirspace}). {@code null} gives the whole map back.
+     * Gives {@code side} an approved map edge: from now on its warships come on by flying in across it
+     * ({@link #enterAcrossEdge}) and every way they leave (a mission's withdrawal, a visit's end, spent station time,
+     * an escort following its lead out) flies out across it ({@link #leaveAcrossEdge}). Nothing of that side warps in
+     * or out. {@code null} takes the edge away again, and its ships leave as ships with no edge do.
      */
-    public void keepHullFightOver(HullAirspace airspace) {
-        this.hullAirspace = airspace;
+    public void assignEdge(Faction side, MapEdge edge) {
+        if (side == null) throw new IllegalArgumentException("an edge belongs to a side");
+        if (edge == null) sideEdges.remove(side);
+        else sideEdges.put(side, edge);
     }
 
-    /** The airspace the hull fight is kept over on a {@code width} by {@code height} map: the mission's, or the map. */
-    public HullAirspace hullAirspace(float width, float height) {
-        return hullAirspace == null ? HullAirspace.wholeMap(width, height) : hullAirspace.within(width, height);
+    /** The approved edge of {@code side}, or {@code null} when the mission gave it none. */
+    public MapEdge edgeFor(Faction side) {
+        return side == null ? null : sideEdges.get(side);
+    }
+
+    /**
+     * Brings {@code ship} on across its side's approved edge, {@code along} cells along it and already moving on
+     * {@code headingDegrees}, which must carry it onto the map ({@link Warship#enterAcrossEdge}). The caller adds the
+     * ship to the battle.
+     *
+     * @throws IllegalStateException when the ship's side has no approved edge
+     */
+    public void enterAcrossEdge(BattleSimulation sim, Warship ship, float along, float headingDegrees) {
+        MapEdge edge = requiredEdge(ship);
+        ship.enterAcrossEdge(edge, along, headingDegrees, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+    }
+
+    /**
+     * Sends {@code ship} out across its side's approved edge as an escape: it flies straight for the edge and off the
+     * map, a hull that can be hit and fires at hulls in reach until it is gone ({@link Warship#leaveAcrossEdge}).
+     *
+     * @throws IllegalStateException when the ship's side has no approved edge
+     */
+    public void leaveAcrossEdge(BattleSimulation sim, Warship ship) {
+        ship.leaveAcrossEdge(requiredEdge(ship), sim.getGrid().getWidth(), sim.getGrid().getHeight());
+    }
+
+    private MapEdge requiredEdge(Warship ship) {
+        MapEdge edge = edgeFor(ship.faction);
+        if (edge == null) throw new IllegalStateException(ship.faction + " has no approved map edge");
+        return edge;
     }
 
     /** Releases every pending hold named {@code name}; a name nothing holds by is ignored. */
@@ -398,7 +431,8 @@ public final class WarshipSystem {
         ships.removeIf(Warship::destroyed);
         tickWrecks(dt, sim);
         shipFire.held(hullFireHeld(sim));
-        tactics.plan(clock, ships, shipFire.held(), hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight()));
+        tactics.plan(clock, ships, shipFire.held());
+        WarshipEdgeHelm edges = new WarshipEdgeHelm(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         for (Warship ship : ships) {
             // A ship fighting hulls spends on the hull fight's clock (D1).
             float fightDt = ship.hullTarget() != null ? dt / WarshipScale.HULL_TEMPO : dt;
@@ -406,7 +440,8 @@ public final class WarshipSystem {
             ship.tickMountRepairs(clock);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
-            duelHelm(sim, ship, tactics, clock);
+            ship.tickEdgeEntry(dt, edges);
+            duelHelm(sim, ship, tactics, clock, edges);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
             ship.addLiftSeconds(dt, 0.5f * sim.getGrid().getWidth(), 0.5f * sim.getGrid().getHeight());
@@ -416,16 +451,18 @@ public final class WarshipSystem {
                 ship.stayFor(0f);
             }
             float departingBefore = ship.departing() ? ship.departingSeconds() : -1f;
-            depart(dt, sim, ship);
+            depart(dt, sim, ship, edgeFor(ship.faction));
             if (ship.departing()) {
-                ledger.leaving(ship, ship.posture() == WarshipPosture.WITHDRAW, ship.climbingOut());
+                ledger.leaving(ship, ship.posture() == WarshipPosture.WITHDRAW,
+                        ship.climbingOut() || ship.escapingAcrossEdge());
             }
             if (ship.departed()) ledger.gone(ship, clock, ship.physicallyDeparted());
             departureCues(ship, departingBefore);
             direct(dt, sim, ship);
             tickShield(fightDt, sim, ship);
             ship.fluxPool().update(fightDt);
-            if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship);
+            if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship, edges);
+            edges.contain(ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.knockedOut()) continue;
@@ -460,10 +497,14 @@ public final class WarshipSystem {
      * away: it hovers off the map along the line from the map's centre through
      * where it stands (its nose direction if it is at the centre) at its own speed,
      * and is removed once it has cleared the edge or, failing that, after
-     * {@link Warship#DEPARTURE_LIMIT_SECONDS}.
+     * {@link Warship#DEPARTURE_LIMIT_SECONDS}. A ship whose side has an approved edge ({@code edge}) flies out across
+     * that instead, and is never timed off the map short of {@link Warship#EDGE_EXIT_LIMIT_SECONDS}.
      */
-    private static void depart(float dt, BattleSimulation sim, Warship ship) {
-        if (ship.spendStationTime(dt) && !ship.departing()) {
+    private static void depart(float dt, BattleSimulation sim, Warship ship, MapEdge edge) {
+        boolean due = ship.spendStationTime(dt) && !ship.departing();
+        if (due && edge != null) {
+            ship.leaveAcross(edge, sim.getGrid().getWidth(), sim.getGrid().getHeight(), false);
+        } else if (due) {
             ship.beginDeparture();
             float w = sim.getGrid().getWidth();
             float h = sim.getGrid().getHeight();
@@ -490,7 +531,10 @@ public final class WarshipSystem {
         boolean offMap = ship.x < -margin || ship.y < -margin
                 || ship.x > sim.getGrid().getWidth() + margin || ship.y > sim.getGrid().getHeight() + margin;
         if (offMap) ship.markPhysicallyDeparted();
-        else if (ship.departingSeconds() > Warship.DEPARTURE_LIMIT_SECONDS) ship.markDeparted();
+        else if (ship.departingSeconds() > (ship.leavingAcrossEdge() ? Warship.EDGE_EXIT_LIMIT_SECONDS
+                : Warship.DEPARTURE_LIMIT_SECONDS)) {
+            ship.markDeparted();
+        }
     }
 
     /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
@@ -688,7 +732,10 @@ public final class WarshipSystem {
         if (escaped != null && escaped.physicallyDeparted() && !ship.departing()
                 && ship.remoteOrder() == Warship.RemoteOrder.NONE) {
             // The lead it was escorting has escaped: the escort follows it out the way it went.
-            if (escaped.throughDeck()) ship.climbThroughDeck(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            MapEdge own = edgeFor(ship.faction);
+            MapEdge out = own != null ? own : escaped.exitEdge();
+            if (out != null) ship.leaveAcross(out, sim.getGrid().getWidth(), sim.getGrid().getHeight(), true);
+            else if (escaped.throughDeck()) ship.climbThroughDeck(sim.getGrid().getWidth(), sim.getGrid().getHeight());
             else ship.climbOut(new float[][]{{escaped.x, escaped.y}}, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         }
         if (ship.remoteOrder() == Warship.RemoteOrder.NONE) escortUpkeep(ship);
@@ -759,10 +806,9 @@ public final class WarshipSystem {
         float[] station = WarshipEscort.station(lead.centerX(), lead.centerY(), WarshipEscort.noseBearingDegrees(lead),
                 WarshipEscort.ringRadius(lead, ship), ship.escortAngle(), slot, Math.max(1, mates.size()),
                 WarshipEscort.lineSpacing(ship));
-        // The screen stays over the battle: a lead flying off the edge is followed out only once it has gone.
-        float margin = 0.5f * ship.lengthCells + WarshipDuelHelm.EDGE_MARGIN_CELLS;
-        ship.escortTo(Math.max(margin, Math.min(mapWidth - margin, station[0])),
-                Math.max(margin, Math.min(mapHeight - margin, station[1])));
+        // The screen stays over the battle, off its edges: a lead flying off the edge is followed out only once it has gone.
+        float[] kept = new WarshipEdgeHelm(mapWidth, mapHeight).settle(ship, station[0], station[1]);
+        ship.escortTo(kept[0], kept[1]);
     }
 
     private boolean autoEscort;
@@ -945,9 +991,10 @@ public final class WarshipSystem {
 
     /**
      * Hovers the hull toward its station at its own speed: it accelerates, cruises
-     * and brakes in time to stop on the spot rather than drifting through it.
+     * and brakes in time to stop on the spot rather than drifting through it. Near a map edge its wanted course
+     * carries the edge pressure ({@link WarshipEdgeHelm#steer}).
      */
-    private static void moveHull(float dt, BattleSimulation sim, Warship ship) {
+    private static void moveHull(float dt, BattleSimulation sim, Warship ship, WarshipEdgeHelm edges) {
         float beforeX = ship.x, beforeY = ship.y;
         if (ship.piloted()) {
             WarshipHelm.drive(ship, dt, sim.getGrid().getWidth(), sim.getGrid().getHeight());
@@ -1013,6 +1060,18 @@ public final class WarshipSystem {
             }
             wantX = bent[0];
             wantY = bent[1];
+        }
+        // The map's edges come last: an edge is not something a hull is shouldered past, as another hull may be.
+        float[] pressed = edges.steer(ship, wantX, wantY);
+        if (pressed[0] != wantX || pressed[1] != wantY) {
+            // A manoeuvre's bow comes round onto the course the pressure leaves, so the ship turns away from the edge
+            // rather than crabbing along it.
+            if (flying && !Float.isNaN(ship.manoeuvre().heading)
+                    && Math.hypot(pressed[0], pressed[1]) > 0.2f * ship.maxSpeed) {
+                ship.manoeuvre().heading = WarshipFacing.bearing(0f, 0f, pressed[0], pressed[1]);
+            }
+            wantX = pressed[0];
+            wantY = pressed[1];
         }
         float ax = wantX - ship.velocityX;
         float ay = wantY - ship.velocityY;
@@ -1107,6 +1166,11 @@ public final class WarshipSystem {
     private static void chooseHeading(Warship ship) {
         if (ship.liftRunning() && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
             // Off the berth and round the climbing turn, the nose follows the run before anything else claims it.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
+            return;
+        }
+        if (ship.leavingAcrossEdge() && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Flying out across its edge, a ship goes nose first; what bears on a pursuer from there still fires.
             ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
             return;
         }
@@ -1308,7 +1372,8 @@ public final class WarshipSystem {
      * ({@link WarshipDuelHelm}). The mission's station is kept and given back when the fight ends (no hull
      * to fight, the order withdrawn) or the ship is taken over (piloted, departing, on a route or a low pass).
      */
-    private static void duelHelm(BattleSimulation sim, Warship ship, WarshipTactics tactics, float now) {
+    private static void duelHelm(BattleSimulation sim, Warship ship, WarshipTactics tactics, float now,
+                                 WarshipEdgeHelm edges) {
         ship.manoeuvre().heading = Float.NaN;
         ship.manoeuvre().speedShare = 1f;
         Warship target = ship.hullTarget();
@@ -1320,7 +1385,7 @@ public final class WarshipSystem {
             // An escort screens by fighting: with a hull to fight it takes its own duel station, held on a leash to
             // its charge; with none, its place in the screen line (kept by the posture tick) stands.
             if (target != null && ship.duelHelm() && free) {
-                float[] at = duelStation(sim, ship, target, lead);
+                float[] at = duelStation(sim, ship, target, lead, edges);
                 ship.stationTo(at[0], at[1]);
             }
             return;
@@ -1338,32 +1403,30 @@ public final class WarshipSystem {
                     : new float[]{Float.NaN, Float.NaN});
         }
         // A hunter flies its group's manoeuvre; a ship with none flies the single-ship duel station.
-        float[] at = tactics.fly(ship, target, now,
-                sim.warships().hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight()), sim.warships().ships());
-        if (at == null) at = duelStation(sim, ship, target, null);
+        float[] at = tactics.fly(ship, target, now, edges, sim.warships().ships());
+        if (at == null) at = duelStation(sim, ship, target, null, edges);
         ship.stationTo(at[0], at[1]);
     }
 
     /** The duel station: a bow ship's quiet quarter or a broadside ship's beam, at the standoff law's range. */
-    private static float[] duelStation(BattleSimulation sim, Warship ship, Warship target, Warship lead) {
+    private static float[] duelStation(BattleSimulation sim, Warship ship, Warship target, Warship lead,
+                                       WarshipEdgeHelm edges) {
         float mine = WarshipDuelHelm.reach(ship);
         float theirs = WarshipDuelHelm.reach(target);
         float range = WarshipDuelHelm.preferredRange(mine, theirs, 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
-        HullAirspace airspace = sim.warships().hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         // Which beam a ship dead ahead or astern takes is the hull's own, by its serial, so a pair does not mirror.
         float[] at = WarshipDuelHelm.bowFighter(ship)
-                ? WarshipDuelHelm.bowStation(ship, target, range, airspace)
+                ? WarshipDuelHelm.bowStation(ship, target, range, edges)
                 : WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(),
-                        WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
-                        0.5f * ship.lengthCells, airspace);
+                        WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0, ship, edges);
         if (lead == null) return at;
         if (WarshipTactics.ENABLED) {
             // A screen interposes: in line between its charge and what it is fighting.
             float[] p = WarshipTactics.interpose(ship, lead, target, WarshipEscort.escortsOf(lead, sim.warships().ships()));
-            return airspace.settle(p[0], p[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
+            return edges.settle(ship, p[0], p[1]);
         }
         float[] held = WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine * WarshipDuelHelm.ESCORT_LEASH_REACH_SHARE);
-        return airspace.settle(held[0], held[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
+        return edges.settle(ship, held[0], held[1]);
     }
 
     /** Whether a hostile hull is over the battle for {@code ship}: alive and not yet gone, a climbing one included. */

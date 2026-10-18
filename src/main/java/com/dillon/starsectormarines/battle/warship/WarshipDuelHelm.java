@@ -50,7 +50,7 @@ public final class WarshipDuelHelm {
     static final float BOW_SHIELD_WEIGHT = 0.5f;
     /** How far ahead of the target's beam the station sits, as a share of the range: the lines converge. */
     static final float CONVERGE_SHARE = 0.25f;
-    /** The station is kept this many cells plus half the hull inside the map edge. */
+    /** With the edge pressure off ({@link WarshipEdgeHelm}), a station is kept this many cells plus half the hull inside the map edge. */
     static final float EDGE_MARGIN_CELLS = 3f;
     /**
      * How far beyond its charge's hull an escort fighting a hull may stand, as a share of its own reach. A screen
@@ -106,18 +106,17 @@ public final class WarshipDuelHelm {
      * A bow ship's station: of {@link #BOW_BEARINGS} points round the target at {@code range}, the one where the
      * target's own anti-ship guns bear least, less {@link #BOW_TRAVEL_WEIGHT} for each range's worth of flying to get
      * there, and {@link #BOW_SHIELD_WEIGHT} dearer where the target's front shield covers it; kept inside
-     * {@code airspace}.
+     * the map's edge margin ({@link WarshipEdgeHelm#settle}).
      */
-    public static float[] bowStation(Warship ship, Warship target, float range, HullAirspace airspace) {
+    public static float[] bowStation(Warship ship, Warship target, float range, WarshipEdgeHelm edges) {
         float tx = target.centerX();
         float ty = target.centerY();
         float most = 0f;
         float[] threat = new float[BOW_BEARINGS];
         float[][] at = new float[BOW_BEARINGS][];
-        float margin = EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells;
         for (int i = 0; i < BOW_BEARINGS; i++) {
             double a = 2.0 * Math.PI * i / BOW_BEARINGS;
-            at[i] = airspace.settle(tx + (float) Math.cos(a) * range, ty + (float) Math.sin(a) * range, margin);
+            at[i] = edges.settle(ship, tx + (float) Math.cos(a) * range, ty + (float) Math.sin(a) * range);
             float x = at[i][0];
             float y = at[i][1];
             threat[i] = WarshipShipRules.firepowerAt(target, target.facingDegrees, x, y);
@@ -161,14 +160,14 @@ public final class WarshipDuelHelm {
 
     /**
      * Where the ship should be now: {@code range} out on the target's beam, on the side the ship is on, and
-     * {@link #CONVERGE_SHARE} of the range ahead along the target's course; kept inside {@code airspace}. {@code targetNose}
-     * is the bearing of the target's nose in the {@code atan2} convention. A ship dead ahead or astern of its target
-     * takes the beam {@code preferPort} names. Kept inside {@code airspace}.
+     * {@link #CONVERGE_SHARE} of the range ahead along the target's course, kept off the map's edges
+     * ({@link WarshipEdgeHelm#settle}). {@code targetNose} is the bearing of the target's nose in the {@code atan2}
+     * convention. A ship dead ahead or astern of its target takes the beam {@code preferPort} names.
      *
      * @return {@code [x, y]}
      */
     public static float[] station(float shipX, float shipY, float targetX, float targetY, float targetNose,
-                                  float range, boolean preferPort, float halfLength, HullAirspace airspace) {
+                                  float range, boolean preferPort, Warship ship, WarshipEdgeHelm edges) {
         double nose = Math.toRadians(targetNose);
         float ax = (float) Math.cos(nose);
         float ay = (float) Math.sin(nose);
@@ -181,6 +180,6 @@ public final class WarshipDuelHelm {
         }
         float x = targetX + bx * range + ax * range * CONVERGE_SHARE;
         float y = targetY + by * range + ay * range * CONVERGE_SHARE;
-        return airspace.settle(x, y, EDGE_MARGIN_CELLS + halfLength);
+        return edges.settle(ship, x, y);
     }
 }
