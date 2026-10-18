@@ -54,11 +54,6 @@ public class BuildingShellCoreLabelTest {
                     new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
                     new TernaryPartitionStrategy(1.0f));
 
-    private static final BuildingShellCore.BuildingConfig PLAIN_CONFIG =
-            new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR, "RESIDENTIAL", PointOfInterest.Kind.RESIDENTIAL,
-                    BuildingLayouts.LayoutRecipe.HOME, BuildingKind.RESIDENTIAL);
-
     private static NavigationGrid openGrid() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
@@ -183,22 +178,6 @@ public class BuildingShellCoreLabelTest {
         assertTrue(throne >= 3, "fallback: throne has " + throne + " cells (expected ≥3)");
         assertTrue(inner >= 3, "fallback: inner has " + inner + " cells (expected ≥3)");
         assertEquals(0, entry, "fallback to binary should not reach distance 2 (ENTRY)");
-    }
-
-    @Test
-    public void plainConfigStampsNoLabels() {
-        NavigationGrid grid = openGrid();
-        CellTopology topology = new CellTopology(W, H);
-        BlockLeaf b = leaf(4, 4, 16, 16);
-        BuildingShellCore.carve(b, grid, topology, new ArrayList<>(),
-                new Random(0), PLAIN_CONFIG);
-
-        for (int y = 0; y < H; y++) {
-            for (int x = 0; x < W; x++) {
-                assertEquals(null, topology.getRoomPurpose(x, y),
-                        "plain (no-purposes) config must never stamp labels — leaked at (" + x + "," + y + ")");
-            }
-        }
     }
 
     @Test

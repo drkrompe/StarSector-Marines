@@ -60,6 +60,11 @@ def apply(state='patched', groups=GROUPS, preset=None, scene=None, hull=None, **
     importlib.reload(swfx_hull)
     importlib.reload(swfx_core)
     importlib.reload(swfx_anchors)
+    # An exported asset carries its own scale on its root (the Second Wind's
+    # equals geometry.json's); a bare build keeps geometry.json's.
+    root = swfx_anchors.export_root()
+    if root is not None:
+        swfx_core.METRES_PER_UNIT = float(root['metres_per_unit'])
     anchors = swfx_anchors.find(scene)
     ctx = swfx_core.Context(scene, state, anchors)
     ctx.records['anchors'] = anchors.record()

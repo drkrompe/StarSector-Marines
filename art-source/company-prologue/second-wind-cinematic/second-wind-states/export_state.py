@@ -69,6 +69,11 @@ ROOT = f'SECOND WIND | {STATE} | root'
 RUNNING = {'running', 'jury'}
 PORT_ENGINES, STBD_ENGINES = (1, 2), (3, 4)   # sw_engines.ENGINES order: +Y is port
 FIXED_TURRET_PARTS = ('barbette foot', 'armoured collar', 'traverse gap')
+# Scar parts that sit on the collar (stripped studs, a refitted adapter ring):
+# they do not make a mount seized.
+COLLAR_SCAR_PARTS = ('bare stud', 'adapter ring', 'adapter bolts')
+MOUTH_KEYS = ('mouth_deformed', 'mouth_minor_m', 'mouth_major_m', 'mouth_round_m', 'mouth_minor_dir',
+              'mouth_axis_dir', 'mouth_tilt_deg', 'mouth_centre_offset_m')
 
 geom = json.loads(GEOM_JSON.read_text())
 MPU = geom['metres_per_unit']
@@ -223,10 +228,22 @@ for i, (x, y, angle, scale, heavy) in enumerate(MOUNTS, 1):
     z = bbox(gap)[1].z if gap else (max(bbox(o)[0].z for o in parts) if parts else 0.0)
     pivot = empty(f'Turret {i} pivot', anchors_coll, 3 * scale, 'SINGLE_ARROW', root,
                   Matrix.Translation((x, y, z)))
+    # A jammed mount (collar tagged jammed / jam_deg, its slew already baked)
+    # or a wrecked one (its own `Scar sp-turret-<i> ...` parts, which do not
+    # ride the pivot) is seized: it rests jam_deg off its slot, and nothing
+    # trains or fires from it.
+    collar = next((o for o in parts if o.name.endswith('armoured collar')), None)
+    jam = float(collar.get('jam_deg', 0.)) if collar is not None and collar.get('jammed') else 0.
+    wreck = [o.name for o in ship if o.name.startswith(f'Scar sp-turret-{i} ')
+             and not o.name.endswith(COLLAR_SCAR_PARTS)]
+    seized = bool(jam or wreck)
+    angle = angle + jam
     pivot['rest_angle_deg'] = angle
     pivot['slot'] = f'WS 00{i}'
     pivot['train_axis'] = 'hull +Z'
-    trained = [o for o in parts if not o.name.endswith(FIXED_TURRET_PARTS)]
+    pivot['seized'] = seized
+    pivot['jam_deg'] = jam
+    trained = [] if seized else [o for o in parts if not o.name.endswith(FIXED_TURRET_PARTS)]
     for o in trained:
         w = o.matrix_world.copy()
         o.parent = pivot
@@ -234,7 +251,7 @@ for i, (x, y, angle, scale, heavy) in enumerate(MOUNTS, 1):
         o.matrix_world = w
     bpy.context.view_layer.update()
     muzzles = []
-    for brake in [o for o in parts if o.name.endswith('muzzle brake')]:
+    for brake in [] if seized else [o for o in parts if o.name.endswith('muzzle brake')]:
         tag = brake.name[len(f'Turret {i} '):-len(' muzzle brake')]
         mw = brake.matrix_world
         lo = Vector(map(min, *[Vector(c) for c in brake.bound_box]))
@@ -248,7 +265,9 @@ for i, (x, y, angle, scale, heavy) in enumerate(MOUNTS, 1):
     turrets.append({'index': i, 'slot': f'WS 00{i}', 'size': 'MEDIUM' if heavy else 'SMALL',
                     'pivot': pivot.name, 'pivot_at': [x, y, round(z, 3)], 'rest_angle_deg': angle,
                     'trained_parts': len(trained), 'fixed_parts': len(parts) - len(trained),
-                    'status': status.get(f'sp-turret-{i}'), 'present': bool(trained), 'muzzles': muzzles})
+                    'status': status.get(f'sp-turret-{i}'), 'present': bool(trained) or seized,
+                    'trainable': bool(trained), 'seized': seized, 'jammed': bool(jam), 'jam_deg': jam,
+                    'wreck_parts': len(wreck), 'muzzles': muzzles})
 
 # 5. Engine and RCS anchors: the geometry's own (geometry.json engine_anchors,
 # rcs_anchors), with this state's running / working flags written onto them.
@@ -262,12 +281,18 @@ for rec in geom.get('engine_anchors', []):
     a = bpy.data.objects.get(rec['name'])
     assert a is not None and a in set(coll.all_objects), rec['name']
     a['running'] = running
+    # A crushed bell (Engine 1 in the damaged states) carries its mouth's
+    # measured shape on the anchor; it rides into the manifest as recorded.
+    tags = {k: rec[k] for k in MOUTH_KEYS if k in rec}
+    for k, v in tags.items():
+        a[k] = v
+    assert (a.matrix_world.translation - Vector(rec['position'])).length < 1e-3, rec['name']
     mouth = a.matrix_world.translation
     w = next(wd for k, (_, _, wd) in enumerate(ENGINES, 1) if k == i)
     engines.append({'index': i, 'side': side, 'slot_width': w, 'radius': rec['radius'], 'anchor': a.name,
                     'mouth': [round(c, 3) for c in mouth],
                     'axis': [round(c, 3) for c in a.matrix_world.to_3x3() @ Vector((1, 0, 0))],
-                    'drive_status': drive[side], 'running': running})
+                    'drive_status': drive[side], 'running': running, **tags})
 assert len(engines) == 4, 'geometry.json has no engine_anchors'
 rcs = []
 for rec in geom.get('rcs_anchors', []):
@@ -279,6 +304,19 @@ for rec in geom.get('rcs_anchors', []):
                 'at': [round(c, 3) for c in a.matrix_world.translation],
                 'exhaust_dir': rec['exhaust_dir'], 'radius_units': round(rec['radius_m'] / MPU, 3),
                 'working': bool(rec.get('working'))})
+# Spark anchors (geometry.json spark_anchors): `Scar <id> spark anchor`,
+# +X along the spray, `sparking` live in this state and `radius_m`.
+sparks = []
+for rec in geom.get('spark_anchors', []):
+    a = bpy.data.objects.get(rec['name'])
+    assert a is not None and a in set(coll.all_objects), rec['name']
+    assert (a.matrix_world.translation - Vector(rec['position'])).length < 1e-3, rec['name']
+    a['sparking'] = bool(rec.get('sparking'))
+    if 'radius_m' in rec:
+        a['radius_m'] = rec['radius_m']
+    sparks.append({'anchor': a.name, 'scar': rec['scar'], 'at': [round(c, 3) for c in a.matrix_world.translation],
+                   'spray_dir': rec['spray_dir'], 'radius_m': rec.get('radius_m'),
+                   'sparking': bool(rec.get('sparking'))})
 root['state'] = STATE
 root['metres_per_unit'] = MPU
 root['engines_running'] = [e['index'] for e in engines if e['running']]
@@ -337,6 +375,8 @@ manifest = {
     'rcs': rcs,
     'rcs_working': sum(r['working'] for r in rcs),
     'turrets': turrets,
+    'sparks': sparks,
+    'sparking': [s['anchor'] for s in sparks if s['sparking']],
     'lamps_lit': sum(l['lit'] for l in lamps),
     'lamps': lamps,
     'scars': [{'id': r['id'], 'kind': r['kind'], 'status': r['status']} for r in damage['scars']],
@@ -355,7 +395,9 @@ manifest = {
     'conventions': {
         'root': 'Every ship part and anchor descends from the root; move, rotate or scale the root only.',
         'anchors': 'Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.',
-        'turrets': 'Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle.',
+        'turrets': 'Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle '
+                   '(plus jam_deg when jammed). A seized mount (jammed or wrecked) carries nothing and has no muzzle.',
+        'sparks': 'Scar <id> spark anchor: +X along the spray; emit only where sparking is true.',
         'wear': 'Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).',
         'metric': 'Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres.',
     },

@@ -32,7 +32,7 @@ public final class CompanyHqScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
     private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
-            CommandDeckLayout.parse(loadText(CommandDeckLayout.PATH)), this::onBarracks);
+            CommandDeckLayout.parse(loadText(CommandDeckLayout.PATH)));
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
@@ -130,7 +130,7 @@ public final class CompanyHqScreen implements Screen {
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "company-hq-deck", "company-hq-deck-caption",
+                "company-hq-deck", "company-hq-board-heading",
                 "company-hq-main", "company-hq-finance", "company-hq-board",
                 "company-hq-obligation-list", "company-hq-news-list")) {
             component.requireElement(id);

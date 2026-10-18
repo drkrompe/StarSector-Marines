@@ -89,6 +89,11 @@ haze per metre, and lamp watts (`swfx_lighting.watts`, because Blender's
 light falloff treats a scene unit as a metre). Nothing hard-codes metres, so
 a rescale is one edit to `geometry.json` and a re-render.
 
+An exported asset carries its own scale: `swfx.apply` reads `metres_per_unit`
+off the asset's root empty (`<ASSET> | <state> | root`) when one is in the
+scene. For the Second Wind's exports that is the same 0.65; for another hull
+(the Hound's 0.88) it is that hull's.
+
 ## Condition states
 
 `swfx_core.STATES` decides what each state allows. The campaign decides which
@@ -133,6 +138,18 @@ Engines are numbered 1 port outer, 2 port inner, 3 starboard inner, 4
 starboard outer (`sw_engines.ENGINES` order; +Y is port). The tables only
 supply sizes, and serve as a fallback when a part is missing. A part that
 doesn't exist yields no anchor, and its group builds nothing for it.
+
+**Other hulls.** When the file holds no Second Wind engine (`Engine 1 exhaust
+anchor` or `Engine 1 mouth lip`), the kit takes the hull's own declared engine
+empties instead, `Engine <i> <side> exhaust anchor` (radius from `radius_m`,
+else `bell_radius`; side from which side of the centreline it sits). When no
+Second Wind turret brake is found, it takes declared muzzles, `Anchor weapon
+WS 00<i> muzzle` (+X the line of fire, `scale` on the empty). The state's
+engine modes and switches still come from `STATES`; a hull with no RCS quads or
+landing dust passes `rcs=False, dust=False`, and the lamp table is the Second
+Wind's, so another hull leaves out `lighting`. `hound-export/export_hound.py`
+is the worked case. A Second Wind file never reaches either path: its records
+are byte-identical with and without them.
 
 ## Controls
 

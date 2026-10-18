@@ -4,6 +4,7 @@
 # the guides they were generated from, finish references and story stills.
 *-geometry/**/*.png
 second-wind-vfx/**/*.png
+second-wind-vfx/**/*.mp4
 second-wind-surface/review/
 second-wind-surface/textures/
 second-wind-projection-spike/review-sheet*.png
@@ -55,3 +56,8 @@ mudskipper-surface/textures/
 mudskipper-cinematic/*.blend
 mudskipper-cinematic/*.blend1
 mudskipper-cinematic/review/
+hound-surface/grading/
+hound-surface/skin-manifest.json
+hound-export/**/*.blend
+hound-export/**/*.blend1
+hound-export/**/review/

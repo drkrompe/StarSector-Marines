@@ -206,9 +206,27 @@ def find(scene=None, coll=None):
         a.bounds = (Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))),
                     Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts))))
     a.hull = bpy.data.objects.get('Main hull') or bpy.data.objects.get('Hull')
+    root = export_root()
+    if a.hull is None and root is not None:
+        a.hull = bpy.data.objects.get(root.get('hull_object', ''))
 
     # --- engines: bell mouth centre and aft axis -------------------------
-    for i, (x, y, w) in enumerate(ENGINES, 1):
+    # Another hull's export declares its own (`Engine <i> <side> exhaust
+    # anchor`); the Second Wind tables below apply only when it does not.
+    sw_engines = any(bpy.data.objects.get(f'Engine 1 {n}') for n in ('exhaust anchor', 'mouth lip'))
+    for declared in ([] if sw_engines else sorted(bpy.data.objects, key=lambda o: o.name)):
+        m = OTHER_ENGINE.match(declared.name)
+        if not m or declared.type != 'EMPTY':
+            continue
+        i, mw = int(m.group(1)), declared.matrix_world
+        radius = (float(declared['radius_m']) / swfx_core.METRES_PER_UNIT if 'radius_m' in declared.keys()
+                  else float(declared.get('bell_radius', 2.6)))
+        ob = place(f'SWFX anchor engine {i}', coll, declared, mw.translation.copy(),
+                   mw.to_3x3() @ Vector((1, 0, 0)), radius)
+        e = EngineAnchor(i, ob, radius, int(declared.get('slot_width', 8)))
+        e.side = 'port' if mw.translation.y > 0 else 'starboard'
+        a.engines.append(e)
+    for i, (x, y, w) in enumerate([] if a.engines else ENGINES, 1):
         lip = bpy.data.objects.get(f'Engine {i} mouth lip')
         throat = bpy.data.objects.get(f'Engine {i} dark throat')
         declared = bpy.data.objects.get(f'Engine {i} exhaust anchor')
@@ -255,6 +273,16 @@ def find(scene=None, coll=None):
             muzzle = brake.matrix_world.translation + axis * half
             ob = place(f'SWFX anchor turret {i} {tag}', coll, brake, muzzle, axis, .8 * s)
             a.guns.append(GunAnchor(i, tag, ob, s, heavy))
+    # Another hull's export declares its muzzles (`Anchor weapon WS 00<i> muzzle`,
+    # +X the line of fire); used only when no Second Wind turret was found.
+    for declared in ([] if a.guns else sorted(bpy.data.objects, key=lambda o: o.name)):
+        m = OTHER_MUZZLE.match(declared.name)
+        if not m or declared.type != 'EMPTY':
+            continue
+        mw, s = declared.matrix_world, float(declared.get('scale', 1.0))
+        ob = place(f'SWFX anchor turret {m.group(1)} gun', coll, declared, mw.translation.copy(),
+                   mw.to_3x3() @ Vector((1, 0, 0)), .8 * s)
+        a.guns.append(GunAnchor(int(m.group(1)), 'gun', ob, s, False))
 
     # --- lamps -----------------------------------------------------------
     for prefix, role, color in LAMPS:
@@ -281,6 +309,18 @@ def find(scene=None, coll=None):
         a.sparks.append(SparkAnchor(declared.name, scar, label, ob, radius,
                                     bool(declared.get('sparking', False)), declared))
     return a
+
+
+# Another hull's declared anchors: 'Engine 1 port exhaust anchor', 'Anchor weapon WS 001 muzzle'.
+OTHER_ENGINE = re.compile(r'^Engine (\d+) \S.* exhaust anchor(\.\d+)?$')
+OTHER_MUZZLE = re.compile(r'^Anchor weapon WS 0*(\d+) muzzle(\.\d+)?$')
+
+
+def export_root():
+    """An exported asset's root empty (`<ASSET> | <state> | root`, carrying
+    metres_per_unit), or None for a bare geometry build."""
+    return next((o for o in sorted(bpy.data.objects, key=lambda o: o.name)
+                 if o.type == 'EMPTY' and o.name.endswith(' | root') and 'metres_per_unit' in o.keys()), None)
 
 
 GEOMETRY_ANCHOR = re.compile(r'^(Engine |RCS |Scar ).+ anchor(\.\d+)?$')
