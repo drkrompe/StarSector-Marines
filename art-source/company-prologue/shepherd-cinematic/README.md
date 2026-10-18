@@ -1,13 +1,15 @@
 # Shepherd (Morrow): cinematic asset
 
-Status: ACTIVE — pass 7 (appendable export and effects) is with the owner for review.
+Status: DONE (pass 7 accepted 2026-10-18: shipped for now, until the other states are needed).
 Written: 2026-10-18
 
 Source art for cinematics; nothing here ships in the mod. This folder packs
 the textured Shepherd (`../shepherd-surface/`) as one appendable Blender
 collection. It carries the moving turret, the anchors a shot needs, and an
 optional effects collection from the shared VFX kit. Pass 5 is deferred, so
-there is one condition, clean, and one asset. The Hermes's export
+there is one condition, clean, and one asset. The grounded/damaged and
+recovered states wait for a cinematic that needs them: the likely trigger is
+the battle over the planet where the Shepherd and the Colossus went down. The Hermes's export
 (`../hermes-cinematic/`) is the pattern. The Shepherd has no gear or doors,
 so there is no control empty.
 

@@ -17,15 +17,16 @@ canopy frame) and the drive bells keep their swatches.
 """
 from parts_common import PORT, STARBOARD, UP_Z, DOWN_Z
 
-# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1).
+# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1), measured
+# on the pass-3 rework (bent wings and landing gear, 2026-10-18).
 BOX = {
-    'Hull central fuselage': (-5.2, 17.6, -2.7, 2.7, -0.9, 1.9),
-    'Hull delta wing': (-3.9, 20.0, -12.0, 12.0, -0.35, 0.85),
-    'Engine 1 port pod': (-11.9, 2.4, 3.6, 9.9, -2.1, 1.4),
-    'Engine 2 starboard pod': (-11.9, 2.4, -9.9, -3.6, -2.1, 1.4),
-    'Hull port gun block': (10.5, 20.1, 0.1, 7.9, -0.4, 1.3),
-    'Hull starboard gun housing': (13.0, 20.4, -5.0, -3.3, -0.3, 1.1),
-    'Hull starboard lance': (12.0, 29.2, -4.0, -1.0, -0.1, 1.85),
+    'Hull central fuselage': (-5.2, 17.6, -2.7, 2.7, -1.0, 2.3),
+    'Hull delta wing': (-3.9, 20.0, -12.0, 12.0, -1.14, 0.85),
+    'Engine 1 port pod': (-11.9, 2.4, 3.6, 9.9, -2.62, 1.22),
+    'Engine 2 starboard pod': (-11.9, 2.4, -9.9, -3.6, -2.62, 1.22),
+    'Hull port gun block': (10.5, 20.1, 0.1, 7.9, -0.81, 1.3),
+    'Hull starboard gun housing': (13.0, 20.4, -5.0, -3.3, -0.47, 1.01),
+    'Hull starboard lance': (12.0, 29.2, -4.0, -1.0, -0.25, 1.85),
 }
 STEP = 0.6
 
