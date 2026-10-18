@@ -52,3 +52,6 @@ mudskipper-surface/review/
 mudskipper-surface/textures/
 hound-surface/grading/
 hound-surface/skin-manifest.json
+hound-export/**/*.blend
+hound-export/**/*.blend1
+hound-export/**/review/
