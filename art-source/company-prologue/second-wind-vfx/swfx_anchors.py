@@ -26,6 +26,7 @@ if str(GEOMETRY) not in sys.path:
     sys.path.insert(0, str(GEOMETRY))
 
 import swfx_core  # noqa: E402
+import swfx_hull  # noqa: E402
 
 try:  # tables only; importing them builds nothing
     from sw_engines import ENGINES, BELL_R  # noqa: E402
@@ -35,6 +36,14 @@ except Exception:  # pragma: no cover - a renamed table must not stop a shot
     BELL_R = {12: 3.9, 8: 2.6}
     MOUNTS = [(-11, 20, 90, 1.0, False), (-11, -20, -90, 1.0, False),
               (41, 11, 30, 1.0, False), (36, -16, -30, 1.3, True)]
+
+# Another hull's profile (swfx_hull) replaces any of these tables.
+ENGINES = swfx_hull.get('ENGINES', ENGINES)
+BELL_R = swfx_hull.get('BELL_R', BELL_R)
+MOUNTS = swfx_hull.get('MOUNTS', MOUNTS)
+DECLARED_MUZZLES = swfx_hull.get('DECLARED_MUZZLES', False)
+# 'Anchor turret <i> <tag> muzzle', the cinematic export's own muzzle empties.
+DECLARED_MUZZLE = re.compile(r'^Anchor turret (\d+) (.+) muzzle(\.\d+)?$')
 
 ANCHORS = 'Anchors'
 
@@ -50,6 +59,7 @@ LAMPS = [
     ('Davit position light', 'davit', (.25, 1.0, .35)),
     ('Drive warning light', 'drive-warning', (1.0, .08, .04)),
 ]
+LAMPS = swfx_hull.get('LAMPS', LAMPS)
 RED, GREEN = (1.0, .08, .04), (.1, 1.0, .3)
 
 
@@ -59,7 +69,8 @@ class EngineAnchor:
         self.empty = empty            # at the bell mouth centre, +X aft
         self.radius = radius          # bell mouth radius (hull units)
         self.width = width            # vanilla slot width (12 outer, 8 inner)
-        self.side = 'port' if index in swfx_core.PORT_ENGINES else 'starboard'
+        self.side = ('port' if index in swfx_core.PORT_ENGINES else
+                     'starboard' if index in swfx_core.STARBOARD_ENGINES or not swfx_hull.PROFILE else 'centre')
 
     def __repr__(self):
         return f'<engine {self.index} {self.side} r={self.radius:.2f}>'
@@ -238,7 +249,18 @@ def find(scene=None, coll=None):
         a.engines.append(EngineAnchor(i, ob, BELL_R[w], w))
 
     # --- guns: muzzle brake mouth and barrel axis ------------------------
-    for i, (x, y, angle, s, heavy) in enumerate(MOUNTS, 1):
+    if DECLARED_MUZZLES:
+        for declared in sorted(bpy.data.objects, key=lambda o: o.name):
+            m = DECLARED_MUZZLE.match(declared.name)
+            if not m or declared.type != 'EMPTY' or int(m.group(1)) > len(MOUNTS):
+                continue
+            i, tag = int(m.group(1)), m.group(2)
+            s, heavy = MOUNTS[i - 1][3], MOUNTS[i - 1][4]
+            mw = declared.matrix_world
+            ob = place(f'SWFX anchor turret {i} {tag}', coll, declared, mw.translation.copy(),
+                       mw.to_3x3() @ Vector((1, 0, 0)), .8 * s)
+            a.guns.append(GunAnchor(i, tag, ob, s, heavy))
+    for i, (x, y, angle, s, heavy) in enumerate(() if DECLARED_MUZZLES else MOUNTS, 1):
         tags = ('port gun', 'starboard gun') if heavy else ('gun',)
         for tag in tags:
             brake = bpy.data.objects.get(f'Turret {i} {tag} muzzle brake')

@@ -1,6 +1,6 @@
 # C1 v2 — CORVUS, the turn-around
 
-Status: DRAFT — shot design for owner review; nothing built yet.
+Status: DRAFT — layout animatic in progress (`c1v2_scene.py`); sun decided.
 Written: 2026-10-18
 
 C1 v1 is a locked-off parallax plate: the whole system laid out at once, Second
@@ -27,7 +27,7 @@ Times are the shipped hail takes (`c1.json`); the shot stays about 38 s.
 
 | t (s) | Audio | Picture | Camera |
 |---|---|---|---|
-| 0.0 – 3.1 | Cabin bed, then squelch | Black space, a few stars. A point of light grows: Second Wind's two working engines, seen bow-on, coming at us. | Locked, facing back up the lane. |
+| 0.0 – 3.1 | Cabin bed, then squelch | Black space and stars. Second Wind, small and bow-on, comes at us out of the dark, its deck catching the sun and its running lights on. Its engines face away; they are not seen until it has passed. | Locked, facing back up the lane. |
 | 3.1 – 12.3 | **Hail 01** — "Cerberus on the inbound lane… a decommissioned mining escort. State your business." | The ship closes and fills the frame: dorsal rips, the crushed port engine, the dead turrets, sparks at the conduit breaks, RCS correcting. It slides past the camera's left at close range. | Slow tilt and pan to hold it as it passes; slight shake is **not** used (vacuum). |
 | 12.6 – 23.6 | **Hail 02** — "This is Second Wind. Civilian. Crew and families aboard… Greywater Down, private cradle Kilo Nine." | The turn completes. Jangala swings into frame beyond the ship's stern; the station and lanes come with it. The ship's two engines now point at us as it pulls away toward the planet. | The 180-degree pan, eased, peaking near 15 s so **the planet lands on "Civilian. Crew and families"**. |
 | 23.8 – 32.2 | **Hail 03** — customs: "AI cores… heavy armaments." | Scrutiny. A Hegemony Hound crosses close, between camera and ship; the Legion and escorts hold station mid-distance. | Small follow on the Hound, then back to the ship. |
@@ -64,33 +64,29 @@ Blender scene** with the camera at the centre:
 
 ## Ship orders
 
-The ship pipeline can take orders, so the close traffic need not be limited to
-what exists. In priority order for this shot:
+The Hegemony picket is 3D, not v1's painted flotilla cards: the Legion leads
+Hound (A) escorts in formation, each hull at its own range and attitude, all
+drifting on one heading. Hulls are appended once and instanced. On order from
+the ship pipeline (2026-10-18), to take over slots in that formation:
 
-1. **Dominator** — v1's hero Hegemony warship (`assets/heg-hero-v*.png`). It is
-   the fleet the hail speaks for, and it is the hull the camera would pass
-   nearest after Second Wind. Hegemony livery, undamaged.
-2. **A working freighter: Atlas or Colossus.** The "riches" side of the
-   contrast — a ship in good order doing ordinary business, close enough to
-   compare with Second Wind. Light service wear.
-3. **Textures for the Legion and Hermes**, if either comes closer than
-   mid-distance.
+1. **Onslaught**: the picket's capital and flagship.
+2. **Lasher**: frigate escorts, instanced several times.
 
-Everything else (Buffalo, Mule, Tarsus, Ox, Mercury, Nebula, Valkyrie, the
-Lasher picket) stays a painted imposter.
+Still painted imposters: the station and the distant freighter traffic.
+Textures for the Legion are wanted if it is ever framed closer than the
+picket's 2–3 km.
 
 ## Light
 
-v1's sun is upper left and behind the v1 camera. Turned 180 degrees, the
-opening view therefore looks **toward** the sun. That is the dramatic choice:
-the ship arrives out of the glare as a rim-lit silhouette, and as it passes the
-sun rakes across its flank — raking light is what makes dents, rips and patches
-read — before the turn puts the sun behind us and the planet in full light.
-The cost is that the first few seconds read as silhouette, not damage.
+**Decided: the sun stands to the side of the lane, high, leaning slightly toward
+the opening view** (`SUN_DIR` in `c1v2_scene.py`). The opening exists to make
+the damage read, so the hero's dorsal deck and near flank are lit from the first
+frame, and the pass is from above so the dorsal rips face the camera. Jangala is
+about half lit: day side left, a hard terminator, city lights on the night side.
 
-The alternative is to move the sun to the side of the lane: damage reads from
-the first frame, and the planet shows a half phase with a hard terminator and
-city lights on its night side. Less glare drama, more planet drama.
+The rejected alternative kept v1's sun, which a 180-degree turn puts in front of
+the opening camera: the ship would arrive out of the glare as a rim-lit
+silhouette. More drama, but the first seconds would show no damage at all.
 
 ## Production order
 

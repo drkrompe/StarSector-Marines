@@ -10,6 +10,7 @@ Heights are art interpretation: the sprite supplies only the plan.
 The cockpit is ms_bridge; dorsal fittings on the decks are ms_deck.
 """
 import math
+import bpy
 from ms_kit import prism, section, boolean, facet, plane_cut, crisp, material
 
 SIDES = ((1, 'Port'), (-1, 'Starboard'))
@@ -138,10 +139,12 @@ def build_bay_doors(kit):
     cargo door hung from an overhead track, between plate jambs on a steel
     coaming, with a crew hatch aft of it, work lights on the track, and the
     sprite's dark slots (y +-21) as skylights in the shoulder above."""
+    kit.bay_door_leaves = {}      # (side sign, leaf) -> its parts; ms_freight hangs them on slides
     for s, label in SIDES:
         w = _wall(kit, s, 22.5)
         w(f'{label} cargo bay door frame', 10, -.55, 16.8, 8.4, .25, kit.dark, out=-.1)
         for x, leaf, handle in ((6.175,'aft',9.35),(13.825,'forward',10.65)):
+            before = set(bpy.data.objects)
             w(f'{label} cargo bay door {leaf} leaf', x, -.55, 7.35, 7.7, .3, kit.plate, out=.15, bevel=.08)
             for z in (-2.4, 1.1):
                 w(f'{label} cargo bay door stiffener', x, z, 6.7, .4, .12, kit.plate, out=.45, bevel=.04)
@@ -149,10 +152,11 @@ def build_bay_doors(kit):
             for dx in (-2.6, 2.6):
                 kit.cylinder(f'{label} cargo bay door roller', (x+dx, s*23.05, 3.35), .36, .2,
                              kit.steel, axis='Y', vertices=12, bevel=0)
+            kit.bay_door_leaves[(s, leaf)] = [o for o in bpy.data.objects if o not in before]
         for x in (1.95, 18.05):
             w(f'{label} cargo bay door jamb', x, -.5, .9, 9.6, .65, kit.plate, bevel=.1)
         w(f'{label} cargo bay door sill', 10, -4.85, 17.0, .9, .65, kit.steel, bevel=.08)
-        w(f'{label} cargo bay sill hazard', 10, -4.85, 15.2, .45, .04, kit.hull_hazard, out=.65)
+        # The sill hazard tread is the freight ramp's end face (ms_freight).
         w(f'{label} cargo bay door track', 9.15, 3.85, 19.3, .8, .65, kit.steel, bevel=.06)
         for x in (2.2, 17.0):
             w(f'{label} bay work light housing', x, 4.55, 1.0, .6, .55, kit.steel, out=.05, bevel=.05)
@@ -235,8 +239,8 @@ def build_sponson_detail(kit):
 
 
 def build_underside(kit):
-    """Keel plating over dark seams, a spine, four landing pads for a ferry
-    that sets down on backwater fields, drain grilles and the bow chin."""
+    """Keel plating over dark seams, a spine, drain grilles and the bow chin.
+    The landing legs a backwater ferry sets down on are ms_legs."""
     for x0, x1, ymax, n in ((-13.2,-4.3,25.0,2), (.9,16.6,19.4,3), (21.4,35.6,19.4,3)):
         cx = (x0+x1)/2
         kit.box('Keel plate seam backing', (cx,0,KEEL-.04), (x1-x0,2*ymax,.08), kit.dark, 0)
@@ -249,11 +253,7 @@ def build_underside(kit):
                 for s in (1,-1):
                     kit.box('Keel armour plate', (px,s*(ya+yb)/2,KEEL-.17),
                             (step-.35,yb-ya-.35,.18), kit.plate, .05)
-    for x, y in ((29,12),(29,-12),(-9,17),(-9,-17)):
-        kit.box('Ventral landing pad well', (x,y,KEEL-.32), (4.2,4.2,.1), kit.dark, 0)
-        kit.box('Ventral landing pad housing', (x,y,KEEL-.75), (2.6,2.6,.9), kit.steel, .1)
-        kit.cylinder('Ventral landing pad strut', (x,y,KEEL-1.5), .6, .8, kit.steel, vertices=12, bevel=0)
-        kit.box('Ventral landing pad foot', (x,y,KEEL-2.15), (4.4,3.6,.5), kit.steel, .15)
+    # The four landing legs at the old pad stations are ms_legs.
     for x, y in ((8.5,6),(8.5,-6),(-6.5,8),(-6.5,-8),(25,6),(25,-6)):
         kit.box('Ventral drain grille', (x,y,KEEL-.32), (3.0,1.4,.12), kit.dark, 0)
         for dy in (-.4, 0, .4):

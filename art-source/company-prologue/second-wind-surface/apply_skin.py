@@ -226,7 +226,14 @@ for part, per in selection.items():
     # Each part's own fitted camera: the same tile framing its guide used,
     # or for a skin_from part the source framing applied to its own extent.
     cam = cams[part] = P.tile_camera(part, P.group_extent(part, per))
+    # A member a hull lists in `apply_skip` frames the tile (its guide showed
+    # it) but takes its class swatch, not the painted part: a surface the
+    # painting covers that a moving part can uncover (the Mudskipper's door
+    # frame behind its cargo-door leaves).
+    skip = set(P.PARTS[part].get('apply_skip', ()))
     for name, idx in per.items():
+        if name in skip:
+            continue
         ob = bpy.data.objects[name]
         me, mw = ob.data, ob.matrix_world
         layer = me.uv_layers.get('skin') or me.uv_layers.new(name='skin')
@@ -244,7 +251,7 @@ for part, per in selection.items():
             face_part[(name, i)] = part
     manifest['parts'][part] = {'group': P.PART_GROUP[part], 'source_texture': f'textures/{src}.png',
                                'mirror_u': bool(P.PARTS[part].get('mirror_u')),
-                               'objects': {n: len(i) for n, i in per.items()},
+                               'objects': {n: len(i) for n, i in per.items() if n not in skip},
                                'texels_per_unit_stored': round(P.TILE[0] / cam[2], 1),
                                'variation_unit_offset': VAR.get(part, {}).get('unit_offset_L_a_b') or V.offset(part)}
 

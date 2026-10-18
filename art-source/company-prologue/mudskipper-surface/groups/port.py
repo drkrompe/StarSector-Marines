@@ -73,7 +73,9 @@ PARTS = {
                            what='main hull port aft flank with the armour modules, keel strake and the tan flank locker'),
     'sponson-port': dict(members=SPONSON, dir=PORT, up=UP_Z, cone=.6,
                          what='port forebody sponson outer side (grey-green) with its armour modules, belt and keel strake'),
-    'bay-doors-port': dict(members=DOORS, dir=PORT, up=UP_Z, cone=.6,
+    # The frame behind the leaves frames the tile but keeps its dark swatch:
+    # the painted doors must not stay on it once the leaves slide away (ms_freight).
+    'bay-doors-port': dict(members=DOORS, dir=PORT, up=UP_Z, cone=.6, apply_skip=['Port cargo bay door frame'],
                            what='port cargo bay doors: two leaves with stiffeners, dark frame, jambs, sill and track'),
     'waist-stbd': dict(members=_stbd(WAIST), dir=STARBOARD, up=UP_Z, cone=.6, skin_from='waist-port', mirror_u=True,
                        what='starboard waist wall (mirror of waist-port)'),
@@ -82,6 +84,7 @@ PARTS = {
     'sponson-stbd': dict(members=_stbd(SPONSON), dir=STARBOARD, up=UP_Z, cone=.6, skin_from='sponson-port', mirror_u=True,
                          what='starboard sponson outer side (mirror of sponson-port)'),
     'bay-doors-stbd': dict(members=_stbd(DOORS), dir=STARBOARD, up=UP_Z, cone=.6, skin_from='bay-doors-port', mirror_u=True,
+                           apply_skip=['Starboard cargo bay door frame'],
                            what='starboard cargo bay doors (mirror of bay-doors-port)'),
 }
 
