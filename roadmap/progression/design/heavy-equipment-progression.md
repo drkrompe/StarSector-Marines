@@ -253,7 +253,10 @@ followed: up-armored 52/40/140/8 (1.51x the base bill for 1.63x the armor) and
 fire-support 52/40/115/11 (the base hull plus a mortar-class weapon's price).
 Per lift, every vehicle ties or beats its class mech except the heavy APC (380
 against the Hound's 725) and the fire-support APC (380 against the Sirocco's
-550). Those two pay in plate for their seats and their mortar. The measure is
+550). Those two pay in plate for their seats and their mortar. A role hull
+bought for its job rather than its plate (the fire-support APC's mortar, the
+scout car's sight, the supply truck's stock) is held only to costing less than
+its class mech. The measure is
 bulk only and ignores armor rating, so it is not effective durability. The
 dozer is the best armor per credit in the game, and raising its bill past the
 Bulwark's would break this rule, so it stays as it is.
