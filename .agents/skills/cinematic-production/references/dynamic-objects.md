@@ -50,8 +50,8 @@ material tiles, and guide-camera UVs stored on near-side mesh faces. It is a
 bounded side-view study. Its camera paint does not establish hidden-side coverage.
 The original four-view skins remain concept sheets, not coherent UV atlases.
 
-For free rotation, the [all-face surface asset](../../../../art-source/company-prologue/second-wind-cinematic/second-wind-full-surface/README.md)
-replaces the layered camera RGB chains with neutral tile albedo on explicit
+For free rotation, the [per-state Second Wind assets](../../../../art-source/company-prologue/second-wind-cinematic/second-wind-states/README.md)
+replace the layered camera RGB chains with neutral tile albedo on explicit
 mesh-corner UVs and stored rest-coordinate wear masks. Roughness, exposed metal
 and fine normal relief respond to scene lighting. Append its single complete
 collection, including the packed images; appending just the parent object is not

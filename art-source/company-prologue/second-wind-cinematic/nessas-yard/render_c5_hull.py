@@ -10,12 +10,10 @@ stand in front of it (guides/c5-occluders.glb), so the card drops onto the paint
 
 The camera only scales in C5 and the hull does not move, so one still is the whole layer.
 
-Model convention (the swap contract, shared with corvus-approach/render_ship_sequence.py):
-+X bow, +Y port, +Z up, origin anywhere. The hull is scaled so its X extent is
-c1_ship.SW_LENGTH_M (from `metres_per_unit` in second-wind-geometry's patched geometry.json),
-and it is centred where the landing scene's settled hull stands, shrunk to that scale, with its
-keel down on the cradle's pad tops. A new model needs only SHIP_BLEND / SHIP_ROOT / THROAT_PATTERN (or the flags); a model
-without a root object gets one.
+Model convention (shared with corvus-approach/render_ship_sequence.py): the packaged patched
+state in hull units, +X bow, +Y port, +Z up, scaled by its root's metres_per_unit (0.65, so
+65.6 m long). It is centred where the landing scene's settled hull stands, shrunk to that
+scale, with its keel down on the cradle's pad tops.
 
 Light is the shared sun of landing-wreck-pass.blend (read from that file, never retyped), its
 world colour and its AgX exposure, so C5 is lit like C4 and the landing. The yard ground is
@@ -37,13 +35,12 @@ LANDING_BLEND = BASE.parent / "landing-wreck-pass" / "landing-wreck-pass.blend"
 SUN_NAME = "Shared sun | all shots"
 
 # ---------------------------------------------------------------- the swappable model
-# The surfaced patched state, a gitignored build output of ../../second-wind-surface
-# (`rebuild.sh`, or build_reference.py --state patched then apply_skin.py; see its README).
-# It has no root object: with SHIP_ROOT None every object is parented to a new empty.
-# The older full-surface master is SHIP_BLEND = second-wind-full-surface.blend with
-# SHIP_ROOT = "SECOND WIND | flight root".
-SHIP_BLEND = BASE.parents[1] / "second-wind-surface" / "build" / "skinned-patched.blend"
-SHIP_ROOT = None
+# The packaged patched state (../second-wind-states/README.md): one appendable collection, one root,
+# in hull units (+X bow, +Y port, +Z dorsal) with the root's metres_per_unit scaling it to metres.
+SHIP_BLEND = BASE.parent / "second-wind-states" / "patched" / "second-wind-patched.blend"
+SHIP_COLLECTION = "SECOND WIND | patched"
+SHIP_ROOT = "SECOND WIND | patched | root"
+METRES_PER_UNIT = 0.65        # the manifest's metres_per_unit; checked against the root's property
 # Arrival is the patched state: only the starboard pod (engines 3 and 4) ran on the way in.
 # In the yard after landing all four are cold, so no throat glows (a regex here would light them).
 THROAT_PATTERN = None
@@ -118,23 +115,17 @@ def blender_main(argv):
                 exposure=sc0.view_settings.exposure, gamma=sc0.view_settings.gamma)
 
     if not Path(plan["blend"]).exists():
-        raise RuntimeError("Missing ship master %s (build it: second-wind-surface/README.md)" % plan["blend"])
-    bpy.ops.wm.open_mainfile(filepath=plan["blend"], load_ui=False)
+        raise RuntimeError("Missing ship asset %s (second-wind-states/README.md)" % plan["blend"])
+    bpy.ops.wm.read_factory_settings(use_empty=True)      # a clean scene in metres; the landing scene is done with
     scene = bpy.context.scene
-    if plan["root"]:
-        root = bpy.data.objects.get(plan["root"])
-        if root is None:
-            raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
-    else:
-        for obj in [o for o in bpy.data.objects if o.type in ("CAMERA", "LIGHT")]:
-            bpy.data.objects.remove(obj, do_unlink=True)
-        root = bpy.data.objects.new("C5 | ship root", None)
-        scene.collection.objects.link(root)
-        for obj in bpy.data.objects:
-            if obj is not root and obj.parent is None:
-                mw = obj.matrix_world.copy()
-                obj.parent = root
-                obj.matrix_world = mw
+    with bpy.data.libraries.load(plan["blend"], link=False) as (src, dst):
+        dst.collections = [SHIP_COLLECTION]
+    scene.collection.children.link(dst.collections[0])
+    root = bpy.data.objects.get(plan["root"])
+    if root is None:
+        raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
+    if abs(root.get("metres_per_unit", METRES_PER_UNIT) - METRES_PER_UNIT) > 1e-9:
+        raise RuntimeError("%s is %s m per unit, not %s" % (plan["blend"], root.get("metres_per_unit"), METRES_PER_UNIT))
     ship = {root, *root.children_recursive}
     for obj in list(bpy.data.objects):
         if obj not in ship:
@@ -148,7 +139,7 @@ def blender_main(argv):
     pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
     lo = Vector([min(p[i] for p in pts) for i in range(3)])
     hi = Vector([max(p[i] for p in pts) for i in range(3)])
-    s = plan["length_m"] / (hi.x - lo.x)
+    s = METRES_PER_UNIT
     lo.z = min((o.matrix_world @ v.co).z for o in meshes if not re.search(KEEL_IGNORE, o.name) for v in o.data.vertices)
     tlo, thi = Vector(plan["hull_box"]["lo"]), Vector(plan["hull_box"]["hi"])
     # centred where the landing hull stands, keel down on the cradle's pad tops

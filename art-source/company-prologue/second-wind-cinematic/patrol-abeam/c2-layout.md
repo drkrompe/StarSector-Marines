@@ -176,7 +176,7 @@ window frame, joining C2 to C3. It lasts 2–3 s and is not a shot in its own ri
 | `corvus-approach/assets/planet-albedo-detail-v1.png`, `planet-clouds-detail-v1.png` (read only) | Jangala's surface and clouds, for continuity with C1's globe. The blockout drapes them over the 200 km view. At about 18 texels per degree they are far too coarse for a near-orbit plate, so they serve as the layout guide for a new regional plate. |
 | `c1_core.SUN_IN_CAMERA` | Source of `c2_core.SUN` |
 | `forest-reveal-realism/forest-reveal-realism.blend` | Confirms the camera model: 26 mm, 19.3° down, parented to `SECOND WIND \| flight root`. That parenting gives the cabin's position in ship coordinates if C2 shows a glimpse of Second Wind's own hull (see the open questions). |
-| `second-wind-full-surface/` | Not in C2 as planned. It becomes the source of that glimpse if the owner wants one. |
+| `second-wind-states/` (was the full-surface asset) | Not in C2 as planned. It becomes the source of that glimpse if the owner wants one. |
 | Vanilla `dominator_hegemony.png` and `dominator.ship` (install, read only) | Hull plan for the proxy, weapon slots for the turret domes, engine slots for the glow. Read at build time and never copied. |
 
 ## Guides and blockout in this package
