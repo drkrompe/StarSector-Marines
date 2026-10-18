@@ -54,6 +54,7 @@ HULLS = [
     dict(key='legion', name='Legion (XIV)', kind='ship', scale_key='Legion (XIV)', vanilla='legion',
          geometry=('legion-geometry/legion-geometry.blend', None), json='legion-geometry/geometry.json'),
     dict(key='lasher', name='Lasher', kind='ship', scale_key='Lasher', vanilla='lasher',
+         drive_build=('lasher', 'lasher.blend', 'LASHER', 'LASHER | root'),
          geometry=('lasher-geometry/lasher-geometry.blend', None), json='lasher-geometry/geometry.json'),
     dict(key='hound', name='Hound (A)', kind='ship', scale_key='Hound (A)',
          export=('hound-export/clean/hound-a-clean.blend', 'HOUND (A) | clean', 'HOUND (A) | clean | root'),
@@ -79,8 +80,7 @@ HULLS = [
 
 
 def scale_solution(key):
-    h = ship_scale.HULLS.get(key) if key else None
-    return ship_scale.record(**h) if h else None
+    return ship_scale.record(key) if key in ship_scale.HULLS else None
 
 
 def resolve(h, basis):
@@ -97,6 +97,10 @@ def resolve(h, basis):
     elif geo_blend.exists() and gjson.exists():
         out['source'] = dict(blend=str(geo_blend), collection=h['geometry'][1], root=None)
         out['source_label'] = h['geometry'][0]
+    elif h.get('drive_build') and gjson.exists() and drive_build(h['drive_build'], gjson.parent):
+        blend, label = drive_build(h['drive_build'], gjson.parent)
+        out['source'] = dict(blend=str(blend), collection=h['drive_build'][2], root=h['drive_build'][3])
+        out['source_label'] = label
     else:
         out['source'] = None
         out['source_label'] = 'no package yet: estimate box'
@@ -122,6 +126,27 @@ def resolve(h, basis):
         out['box_units'] = [reg['length_units'], width_units, reg['units3']/area]
         out['sprite'] = spec['sprite'] if spec else None
     return out
+
+
+def drive_build(spec, package):
+    """A package whose built .blend is not tracked publishes it to the shared Drive under
+    builds/<hull>/<short commit>/. Prefer the build of the package's latest commit; else the newest."""
+    root = drive_root()
+    hull, blend = spec[0], spec[1]
+    if not root or not (root/'builds'/hull).is_dir():
+        return None
+    builds = [d for d in (root/'builds'/hull).iterdir() if (d/blend).exists()]
+    if not builds:
+        return None
+    try:
+        head = subprocess.check_output(['git', '-C', str(REPO), 'log', '-1', '--format=%h', '--', str(package)],
+                                       text=True).strip()
+    except Exception:
+        head = ''
+    match = [d for d in builds if head and (head.startswith(d.name) or d.name.startswith(head))]
+    pick = match[0] if match else max(builds, key=lambda d: (d/blend).stat().st_mtime)
+    note = '' if match else f' (not the package head {head})'
+    return pick/blend, f'Drive builds/{hull}/{pick.name}/{blend}{note}'
 
 
 def vanilla_spec(ship_id):
@@ -308,6 +333,80 @@ def blender_main(cfg):
         bpy.data.images.remove(img)
         return o
 
+    ref_mat = principled('Fleet scale reference', (.6, .58, .54), rough=.8)
+
+    def build_references():
+        """Real-world objects at their real size, as simple primitives in one neutral grey: the
+        silhouette at the right size is what matters. Added to the end of the lineup rows."""
+        def part(name, size, loc, kind='box', rot=None):
+            if kind == 'box':
+                bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
+            elif kind == 'cyl':
+                bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=1, depth=1, location=loc,
+                                                    rotation=(0, math.radians(90), 0))
+            elif kind == 'frustum':                 # lying along X: base size[1] square, top size[3]
+                L, b, t = size[0], size[1]/2, size[3]/2
+                vs = [(-L/2, y, z) for y, z in ((-b, -b), (b, -b), (b, b), (-b, b))] + \
+                     [(L/2, y, z) for y, z in ((-t, -t), (t, -t), (t, t), (-t, t))]
+                fs = [(0, 1, 2, 3), (7, 6, 5, 4), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+                me = bpy.data.meshes.new(name)
+                me.from_pydata([(x + loc[0], y + loc[1], z + loc[2]) for x, y, z in vs], [], fs)
+                o = bpy.data.objects.new(name, me)
+                scene.collection.objects.link(o)
+                o.data.materials.append(ref_mat)
+                return o
+            o = bpy.context.object
+            o.name = name
+            o.scale = size if kind == 'box' else (size[2]/2, size[1]/2, size[0])
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+            o.data.materials.append(ref_mat)
+            return o
+
+        specs = [
+            ('ref-container', '20 ft container', '6.1 x 2.4 x 2.6 m', lambda: [
+                part('container', (6.1, 2.4, 2.6), (0, 0, 1.3))]),
+            ('ref-747', 'Boeing 747', '70.7 m long, 64.4 m span', lambda: [
+                part('747 fuselage', (70.7, 6.5, 6.5), (0, 0, 5.6), 'cyl'),
+                part('747 wing', (13, 64.4, .9), (2, 0, 4.2)),
+                part('747 tailplane', (7, 22, .6), (-31, 0, 8)),
+                part('747 fin', (9, .7, 10.5), (-30.5, 0, 14.15))] + [
+                part(f'747 engine {i}', (6, 2.8, 2.8), (6 - abs(y)*.25, y, 2.6), 'cyl') for i, y in
+                enumerate((-21, -11, 11, 21))]),
+            ('ref-iss', 'ISS', '109 m truss', lambda: [
+                part('ISS truss', (109, 5, 4), (0, 0, 2))] + [
+                part(f'ISS array {i}', (12, 35, .2), (x, y, 2)) for i, (x, y) in
+                enumerate((x, y) for x in (-46, -32, 32, 46) for y in (-20, 20))]),
+            ('ref-eiffel', 'Eiffel Tower, lying flat', '330 m', lambda: [
+                part('Eiffel', (330, 125, 0, 8), (0, 0, 62.5), 'frustum')]),
+            ('ref-nimitz', 'Nimitz-class carrier', '333 m, 77 m flight deck', lambda: [
+                part('Nimitz hull', (317, 41, 18), (0, 0, 9)),
+                part('Nimitz flight deck', (333, 77, 1.5), (0, 6, 18.75)),
+                part('Nimitz island', (28, 10, 22), (25, -28, 30.5))]),
+            ('ref-pitch', 'Football pitch', '105 x 68 m', lambda: [
+                part('pitch', (105, 68, .1), (0, 0, .05))]),
+        ]
+        keys = []
+        for key, name, desc, make in specs:
+            col = collection(f'FLEET | {key}')
+            root = bpy.data.objects.new(f'FLEET | {key} | root', None)
+            col.objects.link(root)
+            meshes = make()
+            for o in meshes:
+                for c in o.users_collection:
+                    c.objects.unlink(o)
+                col.objects.link(o)
+                o.parent = root
+            bpy.context.view_layer.update()
+            pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
+            mn = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
+            mx = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
+            sz = mx - mn
+            hulls[key] = dict(cfg=dict(key=key, name=name, desc=desc, reference=True, estimate=False,
+                                       size_m=[round(sz.x, 2), round(sz.y, 2), round(sz.z, 2)]),
+                              col=col, root=root, objs=meshes, mn=mn, mx=mx)
+            keys.append(key)
+        return keys
+
     # ---- hulls
     def collection(name, parent=None):
         c = bpy.data.collections.new(name)
@@ -385,11 +484,25 @@ def blender_main(cfg):
                 w = o.matrix_world @ Vector(c)
                 mn = Vector(map(min, mn, w))
                 mx = Vector(map(max, mx, w))
-        hulls[h['key']] = dict(cfg=h, col=col, root=root, objs=meshes, mn=mn.copy(), mx=mx.copy())
         size = mx - mn
+        # A pending basis (--pending) names a length the owner chose that has not been published yet.
+        # It scales the hull to that length until its geometry.json lands within tolerance of it,
+        # after which the published value is used and the hull drops its 'pending' label.
+        target = h.get('pending_length_m')
+        h['pending'] = bool(target) and abs(size.x/target - 1) > cfg.get('pending_tolerance', .05)
+        if h['pending']:
+            h['published_length_m'] = round(size.x, 2)
+            f = target/size.x
+            h['mpu'] = round(h['mpu']*f, 4)
+            h['mpu_from'] = f"{cfg['basis_label']}: {target:g} m by hand until published"
+            root.scale = (h['mpu'],)*3
+            mn, mx = mn*f, mx*f
+            size = mx - mn
+        hulls[h['key']] = dict(cfg=h, col=col, root=root, objs=meshes, mn=mn.copy(), mx=mx.copy())
         h['size_m'] = [round(size.x, 2), round(size.y, 2), round(size.z, 2)]
         print(f"[fleet] {h['name']:24} {h['mpu']:.3f} m/u  {size.x:6.1f} x {size.y:6.1f} x {size.z:5.1f} m"
-              f"  {'ESTIMATE' if h['estimate'] else h['source_label']}", flush=True)
+              f"  {'ESTIMATE' if h['estimate'] else h['source_label']}{'  (PENDING ' + cfg['basis_label'] + ')' if h['pending'] else ''}",
+              flush=True)
 
     def place(key, at, ref='min'):
         """Move a hull so its bbox (min corner, or centre) lands at `at`."""
@@ -459,26 +572,35 @@ def blender_main(cfg):
 
     order = sorted(hulls, key=lambda k: -(hulls[k]['mx'].x - hulls[k]['mn'].x))
     ships = [k for k in order]
+    refs = build_references() if cfg.get('references') else []
+    lineup = ships + refs
 
     def tag(k):
         h = hulls[k]['cfg']
+        if h.get('reference'):
+            return [h['name'], h['desc']], False
         lines = [h['name'], f"{h['size_m'][0]:.1f} m  ·  {h['mpu']:.3f} m/u"]
         if h['estimate']:
             lines.append('ESTIMATE')
+        if h.get('pending'):
+            lines.append(f"{cfg['basis_label'].split(' ')[0]}, pending publish")
         return lines, h['estimate']
 
     # ---- lineup layout (shared by broadside and top-down): longest first, left to right
     x = 0.0
     figs = []
-    for k in ships:
+    for k in lineup:
         lx = hulls[k]['mx'].x - hulls[k]['mn'].x
+        if k == refs[0] if refs else False:
+            x += 3*GAP_M                    # a wider gap between the fleet and the references
         place(k, (x, -(hulls[k]['mn'].y + hulls[k]['mx'].y)/2 + hulls[k]['mn'].y, 0))
         lo, hi = world_bbox(k)
-        figs.append(figure(f'Figure {k}', (lo.x - 3.0, lo.y - 4.0, 0)))
+        if k in ships:
+            figs.append(figure(f'Figure {k}', (lo.x - 3.0, lo.y - 4.0, 0)))
         x += lx + GAP_M
     span = x - GAP_M
-    max_beam = max(world_bbox(k)[1].y - world_bbox(k)[0].y for k in ships)
-    max_h = max(world_bbox(k)[1].z for k in ships)
+    max_beam = max(world_bbox(k)[1].y - world_bbox(k)[0].y for k in lineup)
+    max_h = max(world_bbox(k)[1].z for k in lineup)
 
     ground = None
     bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
@@ -517,22 +639,33 @@ def blender_main(cfg):
     lineup_visible(True)
     aim_sun((.35, .75, -.55))
 
-    def broadside(keys, x0, x1, ground_row):
+    def broadside(keys, x0, x1, ground_row, group_below=0.0):
+        """Labels for `keys`; hulls shorter than group_below share one label (the magnified
+        panel names them one by one)."""
         ortho = (x1 - x0)*1.04
         m = ortho/W
         cz = (ground_row - H/2)*m
         look(((x0 + x1)/2, -5000, cz), ((x0 + x1)/2, 0, cz), ortho=ortho)
         labs = []
+        tiny = [k for k in keys if k in ships and hulls[k]['mx'].x - hulls[k]['mn'].x < group_below]
+        if tiny:
+            lo = min(world_bbox(k)[0].x for k in tiny)
+            hi = max(world_bbox(k)[1].x for k in tiny)
+            labs.append(dict(lines=['Fighters and Hermes', f'{len(tiny)} craft, named in the panel below'],
+                             estimate=False, anchor=px(((lo + hi)/2, -20, 5)), place='above'))
         for k in keys:
+            if k in tiny:
+                continue
             lo, hi = world_bbox(k)
             lines, est = tag(k)
             labs.append(dict(lines=lines, estimate=est, anchor=px(((lo.x + hi.x)/2, lo.y, hi.z)), place='above'))
         return m, labs
 
     gy = int(H*.8)
-    mpp, labels = broadside(ships, 0, span, gy)
+    mpp, labels = broadside([k for k in lineup if k != 'ref-pitch'], 0, span, gy, group_below=25.0)
     shoot(1, '01a-broadside-fleet.png')
     small = ships[ships.index('hound'):] if 'hound' in ships else ships[len(ships)//2:]
+    small += [k for k in refs if k == 'ref-container']
     zx0 = world_bbox(small[0])[0].x - 8
     zx1 = world_bbox(small[-1])[1].x + 4
     mppz, zlabels = broadside(small, zx0, zx1, gy)
@@ -541,21 +674,22 @@ def blender_main(cfg):
     shoot(1, '01b-broadside-small-end.png')
     frames.append(dict(
         n=1, file='01-broadside.png', title='Fleet scale lineup: broadside',
-        subtitle=f'Orthographic from starboard, longest first. Grid 10 m, majors 50 m. '
-                 f'Orange figure 1.8 m beside each hull.',
+        subtitle=f'Orthographic from starboard, longest first{", then real-world references" if refs else ""}. '
+                 f'Grid 10 m, majors 50 m. Orange figure 1.8 m beside each hull.',
         parts=[dict(file='01a-broadside-fleet.png', crop=[gy - 370, gy + 60], dest=90, labels=labels, rects=[],
                     caption=f'Whole fleet, 1 px = {mpp:.2f} m'),
                dict(file='01b-broadside-small-end.png', crop=[gy - 400, gy + 60], dest=574, labels=zlabels,
                     rects=[], caption=f'{hulls[small[0]]["cfg"]["name"]} and smaller, magnified '
                                       f'{mpp/mppz:.1f}x: 1 px = {mppz:.2f} m')]))
 
-    # 02 top-down, orthographic
+    # 02 top-down, orthographic (the height wall would only cast a band of shadow here)
+    wall.hide_render = True
     aim_sun((.3, .45, -.84))
     ortho = span*1.08
     look((span/2, 0, 5000), (span/2, 0, 0), ortho=ortho)
     cam.rotation_euler = (0, 0, 0)
     labels = []
-    for k in ships:
+    for k in lineup:
         lo, hi = world_bbox(k)
         lines, est = tag(k)
         labels.append(dict(lines=lines, estimate=est, anchor=px(((lo.x + hi.x)/2, lo.y, hi.z)), place='below'))
@@ -566,10 +700,12 @@ def blender_main(cfg):
 
     # ---- the Legion frames: Legion at its own scale at the origin, in space
     if 'legion' not in hulls or 'hound' not in hulls:
-        json.dump(dict(frames=frames, hulls=cfg['hulls']), open(out/'layout.json', 'w'), indent=1)
+        json.dump(dict(frames=frames, hulls=cfg['hulls'], basis_label=cfg.get('basis_label'),
+                       references=[hulls[k]['cfg'] for k in refs]), open(out/'layout.json', 'w'), indent=1)
         return
     L = hulls['legion']
     L['root'].location = (0, 0, 0)
+    basis_suffix = f" — {cfg['basis_label']}" if cfg.get('basis_label') else ''
     lg = json.load(open(PROLOGUE/'legion-geometry/geometry.json'))
     sL = L['cfg']['mpu']
     deck = next(d for d in lg['flight_decks'] if d['slot'] == 'WS 010')
@@ -598,11 +734,12 @@ def blender_main(cfg):
     f3 = figure('Figure frame 3', (hhi.x - 8, hc.y, hhi.z))
     aim_sun((.45, -.55, -.7))
     tgt = Vector((mouth.x + 10, mouth.y - 45, mouth.z))
-    look(tgt + Vector((-330, 260, 150)), tgt, lens=50)
+    reach = (L['mx'].x - L['mn'].x)/180.0      # frame the Legion whatever its length
+    look(tgt + Vector((-330, 260, 150))*reach, tgt, lens=50)
     fits = 'fits' if hs.y + 3 <= mouth_w and hs.z + 2 <= mouth_h else 'does not fit'
-    render(3, 'hound-at-hangar-mouth', f'{hound_name} holding off a Legion hangar mouth',
+    render(3, 'hound-at-hangar-mouth', f'{hound_name} holding off a Legion hangar mouth' + basis_suffix,
            f'Aft port mouth (WS 010) clear {mouth_w:.1f} x {mouth_h:.1f} m; the Hound is '
-           f'{hs.x:.1f} x {hs.y:.1f} x {hs.z:.1f} m, so it {fits} through it. 50 mm lens from about 450 m.',
+           f'{hs.x:.1f} x {hs.y:.1f} x {hs.z:.1f} m, so it {fits} through it. 50 mm lens from about {450*reach:.0f} m.',
            [name_px('legion', ((hx[0] + hx[1])/2, hy[1], floor + lane_h + 10)),
             name_px('hound', (hc.x, hc.y, hhi.z)),
             dict(lines=['hangar mouth'], estimate=False, anchor=px(mouth), place='callout')])
@@ -615,14 +752,14 @@ def blender_main(cfg):
     hlo, hhi = world_bbox('hound')
     f4 = figure('Figure frame 4', (cut + .5, lane_y + lane_w/2 - 2, floor))
     aim_sun((.85, -.3, -.45))                   # low, from astern: into the cut
-    sec_w = 150.0
-    cz = floor + 22
+    sec_w = 150.0*max(1.0, (L['mx'].x - L['mn'].x)/180.0)
+    cz = floor + sec_w*.15
     look((cut - 500, lane_y - 30, cz), (cut, lane_y - 30, cz), ortho=sec_w)
     cam_data.clip_start = 500
     cutaway('legion', True)
     fit = 'it fits' if hs.y + 3 <= lane_w and hs.z <= lane_h else 'it does not fit'
     corners = [px((cut, lane_y + sy*lane_w/2, floor + sz*lane_h)) for sy, sz in ((1, 0), (-1, 0), (-1, 1), (1, 1))]
-    render(4, 'hound-in-hangar-lane', f'{hound_name} in a Legion hangar lane',
+    render(4, 'hound-in-hangar-lane', f'{hound_name} in a Legion hangar lane' + basis_suffix,
            f'Section from astern, cut just inside the aft port mouth; port to the left. Lane clear {lane_w:.1f} m '
            f'wide x {lane_h:.1f} m high at {sL:.2f} m/u; the Hound is {hs.y:.1f} m wide x {hs.z:.1f} m high: {fit}.',
            [name_px('hound', ((hlo.x + hhi.x)/2, (hlo.y + hhi.y)/2, hhi.z)),
@@ -658,7 +795,7 @@ def blender_main(cfg):
     aim_sun((.25, .6, -.75))
     look(eye, aim, lens=14)
     gap = Lmn.y - world_bbox('hound')[1].y
-    render(5, 'walkway-eye-level', f'Eye level on the {hound_name} walkway, the Legion alongside',
+    render(5, 'walkway-eye-level', f'Eye level on the {hound_name} walkway, the Legion alongside' + basis_suffix,
            f'Camera at {EYE_M} m above the walkway deck, 14 mm lens. The Legion is {gap:.0f} m off the '
            f"Hound's port side; the camera is a 1.8 m person's eye.",
            [name_px('legion', ((Lmn.x + Lmx.x)/2, Lmn.y, (Lmn.z + Lmx.z)/2))])
@@ -698,7 +835,7 @@ def blender_main(cfg):
         labels.append(dict(lines=['1.8 m figure'], estimate=False,
                            anchor=px(f6.location + Vector((0, 0, FIGURE_M))), place='above'))
         lane_rect = [px((x, cut_y, floor + z*lane_h)) for x, z in ((hx[0], 0), (hx[1], 0), (hx[1], 1), (hx[0], 1))]
-        render(6, 'fighters-in-hangar-lane', 'Legion fighters in the same hangar lane',
+        render(6, 'fighters-in-hangar-lane', 'Legion fighters in the same hangar lane' + basis_suffix,
                f'Section from outboard, cut just inside the port lane wall (no shadows); bow left, aft mouth right. '
                f'Two abreast; lane clear {lane_w:.1f} x {lane_h:.1f} m at {sL:.2f} m/u.', labels,
                rects=[dict(pts=lane_rect, text=f'lane clear height {lane_h:.1f} m')])
@@ -707,7 +844,8 @@ def blender_main(cfg):
         cutaway('legion', False)
 
     hound_lane = dict(lane_w=lane_w, lane_h=lane_h, mouth_w=mouth_w, mouth_h=mouth_h)
-    json.dump(dict(frames=frames, hulls=cfg['hulls'], legion_lane=hound_lane),
+    json.dump(dict(frames=frames, hulls=cfg['hulls'], legion_lane=hound_lane, basis_label=cfg.get('basis_label'),
+                   references=[hulls[k]['cfg'] for k in refs]),
               open(out/'layout.json', 'w'), indent=1)
 
 
@@ -797,7 +935,10 @@ def sizes_table(run, hulls):
             length_x_hound=round(l/hnd['size_m'][0], 3) if hnd else '',
             volume_x_legion=round(box(h)/box(leg), 4) if leg else '',
             volume_x_hound=round(box(h)/box(hnd), 3) if hnd else '',
-            value='estimate' if h['estimate'] else ('published' if h['mpu'] == h['published_mpu'] else 'preview'),
+            value='estimate' if h['estimate'] else
+                  (f"{h['mpu_from'].split(' ')[0]}, pending publish" if h.get('pending') else
+                   'published' if h['mpu'] == h['published_mpu'] else 'preview'),
+            published_metres_per_unit=h['published_mpu'] or '',
             ship_scale_solution=h['solved_mpu'] or '', scale_source=h['mpu_from'], model=h['source_label']))
     import csv
     with open(run/'sizes.csv', 'w', newline='') as f:
@@ -805,7 +946,8 @@ def sizes_table(run, hulls):
         w.writeheader()
         w.writerows(rows)
     cols = ['hull', 'metres_per_unit', 'length_m', 'beam_m', 'height_m', 'box_volume_m3', 'enclosed_volume_m3',
-            'length_x_legion', 'length_x_hound', 'volume_x_legion', 'volume_x_hound', 'value', 'ship_scale_solution']
+            'length_x_legion', 'length_x_hound', 'volume_x_legion', 'volume_x_hound', 'value',
+            'published_metres_per_unit', 'ship_scale_solution']
     md = ['| ' + ' | '.join(cols) + ' |', '|' + '---|'*len(cols)]
     for r in rows:
         md.append('| ' + ' | '.join(f'{r[c]:,}' if isinstance(r[c], int) else str(r[c]) for c in cols) + ' |')
@@ -813,7 +955,8 @@ def sizes_table(run, hulls):
            'metres_per_unit. box_volume is their product, for comparison between every hull; '
            'enclosed_volume is ship_scale.py\'s crew-usable volume (its units3 x m/u^3) where the hull is '
            'registered there. Volume ratios use the box. `value`: published = geometry.json; estimate = '
-           'no model yet, ship_scale.py solution; preview = --basis solved.']
+           'no model yet, ship_scale.py solution; preview = --basis solved; pending publish = scaled by hand to the '
+           'chosen length (--pending) until the hull publishes it.']
     (run/'sizes.md').write_text('\n'.join(md) + '\n')
     return rows
 
@@ -839,6 +982,7 @@ def write_notes(run, rows, layout, basis, commit, what):
     pub = [r for r in rows if r['value'] == 'published']
     est = [r for r in rows if r['value'] == 'estimate']
     pre = [r for r in rows if r['value'] == 'preview']
+    pen = [r for r in rows if 'pending' in r['value']]
     lane = layout.get('legion_lane', {})
     leg = next((r for r in rows if r['hull'].startswith('Legion')), None)
     hnd = next((r for r in rows if r['hull'].startswith('Hound')), None)
@@ -853,7 +997,26 @@ def write_notes(run, rows, layout, basis, commit, what):
                  + (f"; ship_scale.py solves {r['ship_scale_solution']}" if r['ship_scale_solution'] else ''))
     n += ['', f'Published: {len(pub)}. Estimates (neutral box, labelled ESTIMATE): '
           + (', '.join(r['hull'] for r in est) or 'none') + '.'
-          + (f" Preview values: {', '.join(r['hull'] for r in pre)}." if pre else ''), '']
+          + (f" Preview values: {', '.join(r['hull'] for r in pre)}." if pre else '')
+          + (f" Scaled by hand to {layout.get('basis_label')} until published: "
+             f"{', '.join(r['hull'] + ' (published ' + str(r['published_metres_per_unit']) + ' m/u)' for r in pen)}."
+             if pen else ''), '']
+    by = {r['hull'].split(' ')[0]: r for r in rows}
+    refs = {r['name']: r for r in layout.get('references', [])}
+    nim = next((r['size_m'][0] for r in layout.get('references', []) if r['name'].startswith('Nimitz')), None)
+    if 'Hound' in by and 'Lasher' in by:
+        n += ['## Ratios at this run\'s sizes', '',
+              '| hull | length m | x Hound | x Lasher' + (' | x Nimitz |' if nim else ' |'),
+              '|---|---|---|---' + ('|---|' if nim else '|')]
+        for k in ('Legion', 'Onslaught', 'Lasher', 'Hound'):
+            if k in by:
+                L_ = by[k]['length_m']
+                n.append(f"| {by[k]['hull']} | {L_:.1f} | {L_/by['Hound']['length_m']:.2f} | "
+                         f"{L_/by['Lasher']['length_m']:.2f}" + (f' | {L_/nim:.2f} |' if nim else ' |'))
+        n.append('')
+    if refs:
+        n += ['References (solid grey, at the end of the rows): '
+              + '; '.join(f"{k} {v['desc']}" for k, v in refs.items()) + '.', '']
     if leg and hnd:
         n += [f"Legion to Hound: {leg['length_m']/hnd['length_m']:.2f}x the length, "
               f"{leg['box_volume_m3']/hnd['box_volume_m3']:.0f}x the box volume.", '']
@@ -864,6 +1027,9 @@ def write_notes(run, rows, layout, basis, commit, what):
     for fr in layout['frames']:
         n.append(f"- `{fr['file']}` — {fr['title']}. {fr['subtitle']}")
     n += ['', '## What to judge', '',
+          *(([f"- This run shows the {layout['basis_label']} capital sizes. Hulls labelled 'pending publish' "
+              'are scaled by hand; a rerun after their sessions publish uses the real values.']
+             ) if layout.get('basis_label') else []),
           '- 01/02: does the size ladder read right — fighters, Hermes, frigates and freighters, capitals?',
           '- 03-05: does the Hound feel like a trivial insect beside the Legion? If not, which one is off: '
           'the Legion too small, or the Hound too big?',
@@ -905,6 +1071,9 @@ def driver(argv):
     ap.add_argument('--what', default=None, help="the run folder's <what> (default lineup / lineup-solved)")
     ap.add_argument('--skip-render', action='store_true', help='relabel and retable an existing run')
     ap.add_argument('--frames', default='', help='render only these frame numbers (e.g. 3,5); others keep their raw')
+    ap.add_argument('--pending', default=None, metavar='JSON',
+                    help='a chosen basis not yet published (e.g. pending-c.json): scales those hulls by hand')
+    ap.add_argument('--no-references', action='store_true', help='leave out the real-world references')
     a = ap.parse_args(argv)
     what = a.what or ('lineup' if a.basis == 'published' else 'lineup-solved')
     today = date.today().isoformat()
@@ -912,7 +1081,14 @@ def driver(argv):
     (run/'raw').mkdir(parents=True, exist_ok=True)
     hulls = [r for r in (resolve(h, a.basis) for h in HULLS) if r]
     cfg = dict(hulls=hulls, raw_dir=str(run/'raw'), samples=a.samples,
-               frames=[int(f) for f in a.frames.split(',') if f])
+               frames=[int(f) for f in a.frames.split(',') if f], references=not a.no_references)
+    if a.pending:
+        pend = json.load(open(Path(a.pending) if Path(a.pending).exists() else HERE/a.pending))
+        cfg['basis_label'] = pend['basis_label']
+        cfg['pending_tolerance'] = pend.get('tolerance', .05)
+        for h in hulls:
+            if h['key'] in pend['lengths_m']:
+                h['pending_length_m'] = pend['lengths_m'][h['key']]
     cfg_path = run/'config.json'
     cfg_path.write_text(json.dumps(cfg, indent=1))
     if not a.skip_render:
@@ -921,7 +1097,8 @@ def driver(argv):
                                '--', '--blender', str(cfg_path)])
     layout = json.load(open(run/'raw'/'layout.json'))
     commit = git_commit()
-    layout['footer'] = (f'fleet_lineup.py @ {commit}  ·  basis: {a.basis}  ·  '
+    layout['footer'] = (f'fleet_lineup.py @ {commit}  ·  basis: {a.basis}'
+                        + (f" + {layout['basis_label']} pending" if layout.get('basis_label') else '') + '  ·  '
                         'sizes from each package\'s geometry.json; ESTIMATE = no model yet (ship_scale.py)')
     label_frames(run, layout)
     rows = sizes_table(run, layout['hulls'])

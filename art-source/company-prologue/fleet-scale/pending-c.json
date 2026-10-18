@@ -1,0 +1,6 @@
+{
+  "basis_label": "C (chosen)",
+  "note": "Owner's capital sizing choice of 2026-10-18 (option C). Hulls here are scaled by hand to these lengths until their own geometry.json publishes a length within tolerance of it; then the published value is used and the entry has no effect. Delete an entry once its hull has published.",
+  "tolerance": 0.05,
+  "lengths_m": {"legion": 293, "lasher": 81, "onslaught": 270}
+}

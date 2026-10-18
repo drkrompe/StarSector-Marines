@@ -13,6 +13,8 @@ thing that differs. It renders six 1920x1080 frames and writes a sizes table.
 python3 fleet_lineup.py                 # build, render, label, write the table
 python3 fleet_lineup.py --post mac      # ... and post the run to the Drive review folder
 python3 fleet_lineup.py --basis solved  # preview ship_scale.py's solution instead of published values
+python3 fleet_lineup.py --pending pending-c.json   # a chosen basis not yet published: scale those hulls by hand
+python3 fleet_lineup.py --no-references # leave out the real-world references
 python3 fleet_lineup.py --frames 3,5    # rerender some frames; the others keep their raw renders
 python3 fleet_lineup.py --skip-render   # relabel and rewrite the table from the last raw renders
 ```
@@ -35,6 +37,20 @@ Nothing here holds a size.
   the Second Wind's `SECOND WIND | patched`. Otherwise it appends the
   package's tracked geometry `.blend`. Every part is scaled to metres from its
   root.
+- **Drive builds.** A package whose built `.blend` is not tracked, such as the
+  Lasher's, publishes it to the shared Drive under
+  `starsector/builds/<hull>/<short commit>/`. The script uses the build of the
+  package's latest commit, or the newest one, and says which. A package with a
+  documented build and no build anywhere (the Onslaught today) needs its build
+  run once on the machine first:
+  `sh ../../blender.sh --background --factory-startup --python build_onslaught.py -- --views top`.
+- **Pending basis.** `--pending pending-c.json` scales the hulls it names to
+  the lengths the owner chose (option C: Legion 293 m, Lasher 81 m,
+  Onslaught 270 m), labelled "C, pending publish". Each override applies only
+  while the hull's published length differs from its target by more than 5%.
+  Once a hull's session publishes its C scale to `geometry.json`, a rerun uses
+  the real value with no hand scaling. Delete an entry once its hull has
+  published. The Legion frames carry the basis in their titles.
 - **Estimates.** A hull with no package yet goes in as a neutral slab and is
   labelled ESTIMATE. The Onslaught and the Lasher are estimates today. The slab
   is the game sprite's silhouette, extruded to the mean thickness that gives
@@ -48,6 +64,17 @@ Nothing here holds a size.
 new package, and a newly built export. `sizes.md` lists, for every hull, the
 `metres_per_unit` it used, where that came from, and the `ship_scale.py`
 solution beside it. The run's `NOTES.md` repeats this.
+
+## References
+
+Real-world objects in one neutral grey, at the end of both lineup rows: a
+20 ft container (6.1 x 2.4 x 2.6 m, the cargo unit), a Boeing 747 (70.7 m,
+64.4 m span), the ISS truss (109 m), the Eiffel Tower lying flat (330 m), a
+Nimitz-class carrier (333 m, 77 m flight deck) and a football pitch
+(105 x 68 m, visible from above). They are simple primitives: only the
+silhouette at the right size matters. The 1.8 m person stands beside every
+hull. In the whole-fleet broadside strip, craft under 25 m share one label;
+the magnified panel names each of them.
 
 ## Frames
 
