@@ -154,7 +154,7 @@
       "type": "MISSILE",
       "anchor": "Weapon WS 001 anchor",
       "muzzles": [
-        "Weapon WS 001 muzzle anchor"
+        "Anchor weapon WS 001 muzzle"
       ]
     },
     {
@@ -171,7 +171,7 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 002 anchor",
       "muzzles": [
-        "Weapon WS 002 muzzle anchor"
+        "Anchor weapon WS 002 muzzle"
       ]
     },
     {
@@ -188,7 +188,7 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 003 anchor",
       "muzzles": [
-        "Weapon WS 003 muzzle anchor"
+        "Anchor weapon WS 003 muzzle"
       ]
     },
     {
@@ -205,7 +205,7 @@
       "type": "MISSILE",
       "anchor": "Weapon WS 004 anchor",
       "muzzles": [
-        "Weapon WS 004 muzzle anchor"
+        "Anchor weapon WS 004 muzzle"
       ]
     },
     {
@@ -222,8 +222,8 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 005 anchor",
       "muzzles": [
-        "Turret 1 barrel 1 muzzle anchor",
-        "Turret 1 barrel 2 muzzle anchor"
+        "Anchor turret 1 barrel 1 muzzle",
+        "Anchor turret 1 barrel 2 muzzle"
       ]
     },
     {
@@ -240,8 +240,8 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 006 anchor",
       "muzzles": [
-        "Turret 2 barrel 1 muzzle anchor",
-        "Turret 2 barrel 2 muzzle anchor"
+        "Anchor turret 2 barrel 1 muzzle",
+        "Anchor turret 2 barrel 2 muzzle"
       ]
     },
     {
@@ -258,8 +258,8 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 007 anchor",
       "muzzles": [
-        "Turret 3 barrel 1 muzzle anchor",
-        "Turret 3 barrel 2 muzzle anchor"
+        "Anchor turret 3 barrel 1 muzzle",
+        "Anchor turret 3 barrel 2 muzzle"
       ]
     },
     {
@@ -313,13 +313,13 @@
         "Turret 1 gunhouse",
         "Turret 1 mantlet",
         "Turret 1 barrel 1",
-        "Turret 1 barrel 1 muzzle anchor",
+        "Anchor turret 1 barrel 1 muzzle",
         "Turret 1 barrel 2",
-        "Turret 1 barrel 2 muzzle anchor"
+        "Anchor turret 1 barrel 2 muzzle"
       ],
       "muzzles": [
-        "Turret 1 barrel 1 muzzle anchor",
-        "Turret 1 barrel 2 muzzle anchor"
+        "Anchor turret 1 barrel 1 muzzle",
+        "Anchor turret 1 barrel 2 muzzle"
       ]
     },
     {
@@ -341,13 +341,13 @@
         "Turret 2 gunhouse",
         "Turret 2 mantlet",
         "Turret 2 barrel 1",
-        "Turret 2 barrel 1 muzzle anchor",
+        "Anchor turret 2 barrel 1 muzzle",
         "Turret 2 barrel 2",
-        "Turret 2 barrel 2 muzzle anchor"
+        "Anchor turret 2 barrel 2 muzzle"
       ],
       "muzzles": [
-        "Turret 2 barrel 1 muzzle anchor",
-        "Turret 2 barrel 2 muzzle anchor"
+        "Anchor turret 2 barrel 1 muzzle",
+        "Anchor turret 2 barrel 2 muzzle"
       ]
     },
     {
@@ -369,13 +369,13 @@
         "Turret 3 gunhouse",
         "Turret 3 mantlet",
         "Turret 3 barrel 1",
-        "Turret 3 barrel 1 muzzle anchor",
+        "Anchor turret 3 barrel 1 muzzle",
         "Turret 3 barrel 2",
-        "Turret 3 barrel 2 muzzle anchor"
+        "Anchor turret 3 barrel 2 muzzle"
       ],
       "muzzles": [
-        "Turret 3 barrel 1 muzzle anchor",
-        "Turret 3 barrel 2 muzzle anchor"
+        "Anchor turret 3 barrel 1 muzzle",
+        "Anchor turret 3 barrel 2 muzzle"
       ]
     }
   ],
@@ -602,8 +602,8 @@
     "Hull ...": "bow head, nose cap, spine, wing body, nacelles, glazing, vents, seams",
     "Pod <side> gun|missile ...": "weapon pods round the hardpoints",
     "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, drive glow anchor",
-    "Turret <i> ...": "barbette and traverse gap (fixed); gunhouse, mantlet, barrels and muzzle anchors under Turret <i> pivot",
-    "Weapon <slot id> ...": "hardpoint guns and launchers; anchor and muzzle anchor",
+    "Turret <i> ...": "barbette and traverse gap (fixed); gunhouse, mantlet, barrels and Anchor turret <i> barrel <k> muzzle under Turret <i> pivot",
+    "Weapon <slot id> ...": "hardpoint guns and launchers; anchor, and Anchor weapon <slot id> muzzle",
     "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
   },
   "cameras": [

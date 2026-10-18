@@ -267,11 +267,11 @@ one. Lines and their first variants:
 
 | Line | Variants (light → heavy, or sidegrade) |
 | --- | --- |
-| Technical | Militia technical — Common filler for a small lift budget |
+| Technical (field rig) | Militia technical — Common filler for a small lift budget |
 | APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar or autocannon instead of seats) |
 | Tank | Breakthrough tank → heavy-gun tank, or a dozer-blade breaching sidegrade |
-| Supply | Supply truck — a carried resupply cache, served while halted (Light lift) |
-| Scout | Scout car — a sight mast that reports to fog and commander (Light lift) |
+| Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
+| Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 
 **A vehicle brings at least its class mech's armor per credit.** At base
 commodity prices (`gradlew.bat armorEconomyEvidence`), structure plus armor
@@ -286,7 +286,7 @@ Per lift, every vehicle ties or beats its class mech except the heavy APC (380
 against the Hound's 725) and the fire-support APC (380 against the Sirocco's
 550). Those two pay in plate for their seats and their mortar. A role hull
 bought for its job rather than its plate (the fire-support APC's mortar, the
-scout car's sight, the supply truck's stock) is held only to costing less than
+spotter pickup's sight, the supply pickup's stock) is held only to costing less than
 its class mech. The measure is
 bulk only and ignores armor rating, so it is not effective durability. The
 dozer is the best armor per credit in the game, and raising its bill past the
@@ -294,6 +294,13 @@ Bulwark's would break this rule, so it stays as it is.
 
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.
+
+**Anything built on a truck is a field rig, not military issue.** A pickup hull
+is what a company or an outfit welds together from a civilian chassis; pirates
+and independents weight those cards up and no navy does, and their fabrication
+provenance says field rig. A military faction is known for purpose-built hulls:
+Hegemony's are heavy plate, and Tri-Tachyon's should be hover and drone coded
+(none exists yet).
 
 One later, optional depth step: a single **overhaul** per vehicle (an up-armor
 or engine kit bought with materials, one decision, no socket grid), reusing the
@@ -311,7 +318,7 @@ internals vocabulary without the doll.
 | Vehicle variant ladder (shipped; `mechs-nouns.md`) | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
 | Tank variant art (shipped; `convoy-nouns.md`) | Art for the heavy-gun tank and dozer breacher; both offered. |
 | Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade clears ground other vehicles can follow. |
-| Light roles (shipped; `convoy-nouns.md`, light roles) | Supply truck through the resupply authority; scout car through fog and commander contacts. |
+| Light roles (shipped; `convoy-nouns.md`, light roles) | Supply pickup through the resupply authority; spotter pickup through fog and commander contacts; both field rigs. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.

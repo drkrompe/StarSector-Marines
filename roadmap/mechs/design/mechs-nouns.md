@@ -99,14 +99,19 @@ increasing an encounter's total armored threat.
   heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
-  what the drop will need; the two usually agree, and where they do not (a scout car
-  is Advanced and rides a Light cradle) the lift is what is printed.
-  Two light **roles** are lines of their own, one hull each, Light lift: the
-  **supply truck** (Common; Hegemony weights it) and the **scout car** (Advanced;
-  Tri-Tachyon weights it). Each pays for its one job with the gun, the seats and
-  the plate: the truck hands out a finite stock through the battle's resupply
-  authority while halted, and the scout reports what its mast sees to the fog and
-  the commander (`convoy-nouns.md`, the light roles).
+  what the drop will need; the two usually agree, and where they do not (the
+  spotter pickup is Advanced and rides a Light cradle) the lift is what is printed.
+  **Anything built on a truck is a field rig, not military issue**: the militia
+  technical, the **supply pickup** (`SUPPLY_TRUCK`, Common) and the **spotter
+  pickup** (`SCOUT_CAR`, Advanced) are jerry-rigged civilian pickups. Their cards
+  carry a field-rig provenance and are weighted up by the outfits that weld them
+  (pirates, independents), never by a navy; a military faction is known for
+  purpose-built hulls. The two light roles are lines of their own, one hull each,
+  Light lift, and each pays for its one job with the gun, the seats and the plate:
+  the supply pickup hands out a finite stock through the battle's resupply
+  authority while halted, and the spotter reports what its mast sees to the fog
+  and the commander (`convoy-nouns.md`, the light roles). Tri-Tachyon's vehicles,
+  when they come, are hover and drone coded; none exists yet.
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
