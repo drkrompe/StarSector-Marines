@@ -15,7 +15,6 @@ implementation subtracks of this one noun, not separate domains.
 | `slice-4-tuning-feel.md` | **Partially shipped; playtest-led.** Speed-scaled lookahead and the corner governor landed. Tune controller and cost/clearance knobs together from real runs; cumulative avoidance is correctness substrate, not a conditional feel fix. |
 | `multi-truck-convoys.md` | **Queued.** LZ separation is shipped; add one dispatch's staggered same-route vehicles and following distance after the single-vehicle route/control behavior passes playtest. Extend planner-budget evidence to simultaneous vehicles. |
 | `slice-5-perf-budget.md` | **In progress.** Attribute remaining bounded recovery slices and fleet-wide work; distinguish physical overlap from padding-only planner refusal before changing escape behavior. |
-| `tri-tachyon-hover-line.md` | **In progress.** Tri-Tachyon's hover scout and drone skimmer: water/rubble crossing, no repulsion, tethered drones; TT stops weighting the heavy-gun tank. |
 | `truck-infantry-interaction.md` | **Partial.** Hulls repel bodies (contact + bow wave, `VehicleRepulsionSystem`). Remaining: hull footprint as an infantry path cost, crushing, and chassis-level yielding for non-story vehicles. |
 
 The completed routing and controller slices are listed in `shipped.md`.
