@@ -733,7 +733,7 @@
    "lit": false,
    "at": [
     -32.8,
-    36.2,
+    36.23,
     7.9
    ]
   },
@@ -803,7 +803,7 @@
    "lit": false,
    "at": [
     6.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -813,7 +813,7 @@
    "lit": false,
    "at": [
     22.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -1000,8 +1000,8 @@
    "status": "open"
   },
   {
-   "id": "pod-port-fins",
-   "kind": "bent_fins",
+   "id": "pod-port-engine-bay",
+   "kind": "engine_bay",
    "status": "open"
   },
   {
@@ -2803,6 +2803,20 @@
     "r": 0.04
    }
   ],
+  "pod-port-engine-bay": [
+   {
+    "p": [
+     -24.0,
+     37.472,
+     11.289
+    ],
+    "n": [
+     0.0,
+     0.966,
+     0.259
+    ]
+   }
+  ],
   "pod-port-flank-cluster": [
    {
     "p": [
@@ -4148,18 +4162,18 @@
    ],
    "objects": 7
   },
-  "pod-port-fins": {
+  "pod-port-engine-bay": {
    "centre": [
-    -21.675,
+    -25.862,
     27.0,
-    3.2
+    4.1
    ],
    "extent": [
-    3.19,
-    22.6,
-    22.4
+    17.724,
+    24.0,
+    24.8
    ],
-   "objects": 4
+   "objects": 31
   },
   "pod-port-intake-cap": {
    "centre": [
@@ -4515,6 +4529,7 @@
   "Crosstree signal light.001": "sp-mast",
   "Drive casing armour plate": "pod-port-casing-plate",
   "Drive casing armour plate.005": "pod-starboard-casing-plate",
+  "Fin bank tie bar.003": "pod-port-engine-bay",
   "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
   "Forward access trunk seal ring": "sp-trunk-fwd-port",
   "Forward access trunk seal ring.001": "sp-trunk-fwd-stbd",
@@ -4595,10 +4610,10 @@
   "Turret 4 starboard optics blister": "sp-turret-4",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 194,
- "objects": 836,
- "polygons": 169926,
- "baked_meshes": 740,
+ "left_out_objects": 195,
+ "objects": 851,
+ "polygons": 178461,
+ "baked_meshes": 755,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4674,7 +4689,7 @@
    "Scar plate back primer",
    "Scar unlit glazing"
   ],
-  "scorch_sites": 135,
+  "scorch_sites": 136,
   "soot_engines": 0,
   "base": "second-wind-surface/wear.py, wear.json",
   "params": "second-wind-surface/overlay/derelict.json",
@@ -4714,7 +4729,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-derelict.blend",
-  "geometry_json_sha256": "a892bdaffa2308e8fe09c37f5e2babcfc4799d1a925e5d303ef4a2578ac9d821",
+  "geometry_json_sha256": "345070d6bc216595705a0037f6fcbca730dec3806eeb89e99d687d771621d228",
   "wear_params_sha256": "5572966dbb3381782a6f7f9896a7c3605eddff06edb65ef3a103ba9d1c128bc0"
  },
  "conventions": {
@@ -4725,5 +4740,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "8ab1170c91cc469b7bbc2c90dd604c36888661354ac007bdc09b168b3d57e8fa"
+ "asset_sha256": "8937be96526363cebbd8a9a209158f9e9ba32e6d1d86e55a405bb8fdf69c1114"
 }

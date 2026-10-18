@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15065-4c11-78d0-8c78-3841a7f3485c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15065-4c11-78d0-8c78-3841a7f3485c\\exec-0452900d-9432-4d1e-b3bf-7cb5c4bf71a3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\longbow\\generated\\sheet-swatch.png",
+    "sha256": "73aee22921c18e7d8d98edcadfd309a9ff9f0d133373c3b9709f4356c5d294b3",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\longbow\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "0b4ec16d0956cdd9d625a2e6b96ef156e26fe8fe8d9ab2486f1bbc6d52fac8d8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout sheet of squares (layout authority)\nImage 2: INPUT 2: the same craft already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of 4 flat-coloured squares in two rows of two on a plain light grey background. Each square is one material of one single-seat space bomber (a Longbow, about 15 metres long), in good front-line order, to be painted as a flat, square-on texture sample of that material:\ntop-left square: the light cool blue-grey armour enamel;\ntop-right square: dark gunmetal grey steel structure;\nbottom-left square: brighter polished steel, as on rings and nozzle lips;\nbottom-right square: the recess and machinery material, near-black dull steel;\nINPUT 2 is the SAME craft, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly as named. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\longbow\\guide\\sheet-swatch-guide.png",
+      "sha256": "95f17034e3fef40ce99147f0eaed6916742708560039e6c02e636ad4518c18c4",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout sheet of squares (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\longbow\\reference\\finish-reference.png",
+      "sha256": "bf8c4709172a5241713ad49bd628e6a83c7ba1bec8bc3104567460bd03186876",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same craft already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one swatch sheet, preserving Image 1’s layout and matching Image 2’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 107375,
+    "cached_input_tokens": 88320,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 873,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 50.6
+}

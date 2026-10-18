@@ -1,0 +1,42 @@
+{
+ "pod-top-port": {
+  "raw_iou": 0.9918,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9975,
+  "scale": [
+   1.0036,
+   1.00327
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "pod-side-port": {
+  "raw_iou": 0.9887,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9944,
+  "scale": [
+   1.00533,
+   1.00227
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "mach-top": {
+  "raw_iou": 0.9952,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9993,
+  "scale": [
+   1.00103,
+   1.00327
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "mach-stern": {
+  "raw_iou": 0.9948,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9997,
+  "scale": [
+   1.0,
+   1.00227
+  ],
+  "boundary_p95_px": 0.0
+ }
+}

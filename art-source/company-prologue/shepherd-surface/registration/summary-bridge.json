@@ -1,0 +1,42 @@
+{
+ "bridge-crown": {
+  "raw_iou": 0.9965,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9986,
+  "scale": [
+   1.0,
+   1.00254
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bridge-side-port": {
+  "raw_iou": 0.9953,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9995,
+  "scale": [
+   1.00128,
+   1.0056
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bridge-side-stbd": {
+  "raw_iou": 0.9971,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.999,
+  "scale": [
+   1.00028,
+   1.0018
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bridge-nose": {
+  "raw_iou": 0.9948,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9951,
+  "scale": [
+   1.0,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

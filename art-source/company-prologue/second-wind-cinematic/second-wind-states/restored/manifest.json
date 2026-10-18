@@ -827,7 +827,7 @@
    "lit": false,
    "at": [
     6.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -837,7 +837,7 @@
    "lit": false,
    "at": [
     22.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -1024,8 +1024,8 @@
    "status": "gone"
   },
   {
-   "id": "pod-port-fins",
-   "kind": "bent_fins",
+   "id": "pod-port-engine-bay",
+   "kind": "engine_bay",
    "status": "gone"
   },
   {
@@ -4416,7 +4416,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
-  "geometry_json_sha256": "7fd7606b6b4196249ef2ecd296844f32b43246e4c2057659271f5470e0947094",
+  "geometry_json_sha256": "07140e6a2923b8ac847c407b59727a70f33e7064e0de60f61e3d21788783dd6c",
   "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
  },
  "conventions": {
@@ -4427,5 +4427,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "f73308214553a91a28de2e3c63e0e5f06d275a75ca60435eb9995950af1cd02c"
+ "asset_sha256": "da4b9316f852cd33536f5c39d8f30cc50db0a51bc655fa98caf50f694ecaa124"
 }

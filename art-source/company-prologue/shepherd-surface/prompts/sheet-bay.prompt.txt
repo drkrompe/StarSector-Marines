@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a working Ko Combine Shepherd-class drone tender, a frigate-sized low-tech utility ship with an open drone work bay), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:
+top-left: the drone bay's inboard back wall seen square-on from inside the bay: a wide mid grey gunmetal wall;
+top-right: the drone bay's aft end wall seen from directly ahead: a mid grey gunmetal wall with a flared top lip;
+bottom-left: the hangar pods' exterior seen from port: a long dark grey armour band with a V notch in the middle and a short upright tab at its right end, with a gap in its lower edge that is background blue;
+bottom-right: the forward workshop block's outboard face seen from port: a dark grey L-shaped face.
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.
+- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.
+- Keep each region's colour: sand-tan areas are a warm dusty sand-tan enamel; pale cream areas are a chalky pale cream enamel; light grey areas are a light neutral grey paint; burnt orange areas are a burnt orange enamel; mid grey areas are dark grey gunmetal steel; dark grey areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.
+- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

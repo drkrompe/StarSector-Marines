@@ -1,0 +1,16 @@
+Use case: texture map generation / material swatch sheet for a 3D model.
+INPUT 1 is a layout sheet of 4 flat-coloured squares in two rows of two on a plain light grey background. Each square is one material of one small unmanned space fighter drone (a Wasp, about 10 metres long), in good front-line order, to be painted as a flat, square-on texture sample of that material:
+top-left square: the cool grey-blue armour enamel;
+top-right square: dark gunmetal grey steel structure;
+bottom-left square: brighter polished steel, as on rings and nozzle lips;
+bottom-right square: the recess and machinery material, near-black dull steel;
+INPUT 2 is the SAME craft, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.
+
+Paint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:
+- Keep the squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.
+- Each square is a flat, seen-square-on sample of well kept plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.
+- Keep each square's colour exactly as named. No colour changes, no repair patches, no different-coloured plates.
+- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.
+- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.
