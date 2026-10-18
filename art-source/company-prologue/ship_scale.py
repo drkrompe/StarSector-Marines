@@ -79,6 +79,9 @@ FIGHTERS_M = {
     'broadsword': (15.5, 14.1, 3.3), 'hoplon': (18.0, 19.0, 4.0), 'piranha': (17.0, 15.0, 3.3),
     'longbow': (15.0, 14.4, 2.6), 'thunder': (18.5, 10.8, 2.6), 'dagger': (16.4, 12.1, 2.3),
     'talon': (12.1, 12.1, 2.5), 'wasp': (9.8, 8.1, 2.4),
+    # The Shepherd's Borer drones: an assumption (4.4 m long, 4.0 m across the arms,
+    # 1.8 m high) until a Borer is modelled.
+    'borer': (4.4, 4.0, 1.8),
 }
 
 # Plan-area estimate before a model exists: volume = k x (sprite alpha area)^1.5,
@@ -171,13 +174,20 @@ HULLS = {
                    fittings_units={'viewport w x h': [1.05, .84], 'bridge glazing band h': [1.05]}),
     'Hound (A)': dict(units3=13720, crew_max=40, cargo=75, fuel=30, cls='freighter', length_units=69.1, sprite_px=72,
                       fittings_units={'aft door w x h': [1.59, 2.27], 'airlock w x h': [1.93, 2.39]}),
+    # The Shepherd's four Borers live in an open work bay (open to space above and
+    # outboard), which is open structure and outside SOLIDS, so no hangar term is
+    # charged against the enclosed volume; the bay is sized from the Borers in her
+    # own geometry.json (scale.drone_bay).
+    'Shepherd': dict(units3=42356, crew_max=30, cargo=100, fuel=40, cls='frigate', length_units=86.0,
+                     sprite_px=92, fittings_units={'crew door w x h': [1.35, 2.4]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
-                 'Lasher': 'measured (SOLIDS)'}
-PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86}
+                 'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)'}
+PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
+             'Shepherd': .78}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -210,6 +220,14 @@ SOLIDS = {
                       'Bridge spine', 'Bridge command dome', 'Bridge aft dome', 'Hull port arm gallery',
                       'Hull starboard arm gallery', 'Hull prow gallery', 'Hull core terrace',
                       'Hull core inner terrace', 'Hull belly')},
+    # The Shepherd's port drone bay is an open work bay (owner, pass 3): open to
+    # space above and outboard, so its air is open structure, never enclosed. Its
+    # tubs below the deck and the forward workshop block are counted; the gantry
+    # drum, outriggers and drive pods are not.
+    'shepherd': {'blend': 'shepherd-geometry/shepherd-geometry.blend', 'step': .5,
+                 'include': lambda n: n in ('Hull central body', 'Hull port spine', 'Hull aft machinery block',
+                                            'Bridge hull', 'Drone bay aft hangar pod',
+                                            'Drone bay forward hangar pod', 'Drone bay forward service block')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},

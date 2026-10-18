@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — armor drop: the bay is a frozen manifest, each call picks from it, a cooldown paces calls and mission lift caps what lands; internals under an engine budget.
+Updated: 2026-10-18 — headless tuning: section shares read against the whole-body control (head 0.06 on Bulwark and Sirocco), engines carry mass, call cooldown 30 s, heavy cradle three lifts.
 
 ## Purpose
 
@@ -154,10 +154,11 @@ increasing an encounter's total armored threat.
   which manifest entries come down this time (the picker starts on every machine
   aboard that lift allows, up to a lance), then clicks the landing ground. Only
   the picked machines fly; the rest stay aboard for a later call. A cooldown
-  spaces the calls in place of one charge per lance, and the card counts the
+  (30 s) spaces the calls in place of one charge per lance, and the card counts the
   machines still aboard, reading spent when none are.
 - The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
-  company boat flies two machine lifts at its rating, and the synthetic heavy
+  company boat flies two machine lifts at its rating on a light cradle and three
+  on a heavy one, and the synthetic heavy
   carrier a hull, ship, employer or story arranges lifts the whole bay. Each
   picked machine spends one lift from the lowest-rated carrier that admits it
   (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
@@ -187,7 +188,9 @@ increasing an encounter's total armored threat.
 - The **engine budget** is the engine's output against the fitted mass of every
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
-  its access tier, plating's scales with the frame it covers. A refit is refused
+  its access tier, plating's scales with the frame it covers, and an upgraded
+  engine carries its own, since every CORE socket already takes the largest
+  engine and its footprint costs nothing. A refit is refused
   when the result is over budget, unless it is no further over than the current
   fit, so a fit from before the budget existed can be stripped down but never
   loaded further.
@@ -228,6 +231,25 @@ increasing an encounter's total armored threat.
   sections' totals, so whole-chassis readers see one body. Plating may later
   shift capacity between sections; that is the fitting decision sections make
   possible.
+  **Shares are tuned against the whole-body control.** Sections are allowed to
+  move a mech's time to kill, not reinvent it. `sceneEvidence -Pscene=mech-time-to-kill`
+  stands each stock chassis under one fire team (field rifles, pulse, DMR, two
+  AMRs, two rocket tubes, one heavy cannon) in the open and hull-down. Run it
+  again with `-Dbattle.mech.locationalDamage=false` for the control. Kill time
+  runs 0.70-1.15 of the control, mean 0.88; every death is a torso kill and
+  the durability order holds in every row. The ratio sits under 1 by structure:
+  fire from one side never reaches the far shoulder, and the head and arms are
+  often still standing when the torso dies. Raising the torso share costs mount
+  life almost one for one, and a Bulwark at 0.95 would lose its main gun at 0.61
+  of its life instead of 0.77. So the head is kept small (0.06 on Bulwark and
+  Sirocco, its hit rate rather than its silhouette) and the rest stays as the
+  capability a mech gives up before it dies: the first mount goes at 0.14-0.70
+  of the time to kill, the main gun at 0.63-0.97, and a two-mount Hound is
+  disarmed only in the last 15-20% of its life. A Sirocco under rockets in the
+  open dies at 0.70 of the control because a 0.48 torso is two rockets, not
+  because damage spills: spill meets the torso's armor before its structure, so
+  heavy, slow rounds spread about 1.5-2 times the control's spread rather than
+  the tenfold swing they had before.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: no walking speed, autonomous or manual, while it still
   pivots its hips onto its target, turns its torso and fires. A mount at zero

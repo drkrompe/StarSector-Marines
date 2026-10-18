@@ -87,9 +87,10 @@ F/A-18's box. Servicing in space and ordnance handling add to it.
 | Lasher | 0.65 published (solves 0.95) | 62 m (90 m solved) | measured | published before option C; re-publish at 0.95 owed by the Lasher session |
 | Legion (XIV) | 0.99 (solves 0.995) | 292 m | measured | published |
 | Onslaught (XIV) | 0.86 (solves 0.856) | 301 m | measured (2.49 M units3) | published, final: a capital like the Legion, no override (owner) |
+| Shepherd (Morrow) | 0.78 (solves 0.74) | 67 m | measured | published, kept (owner, 2026-10-18); the drone bay is open, so no hangar term |
 
-The Hound and the Second Wind keep their published values by the owner's
-decision. Their fittings were modelled at those scales.
+The Hound, the Second Wind and the Shepherd keep their published values by
+the owner's decision. Their fittings were modelled at those scales.
 
 ## Frigate-to-capital length
 

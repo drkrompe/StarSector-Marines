@@ -1,0 +1,42 @@
+{
+ "spine-side-port": {
+  "raw_iou": 0.9729,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9907,
+  "scale": [
+   1.00186,
+   0.998
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-top": {
+  "raw_iou": 0.9382,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9451,
+  "scale": [
+   0.99811,
+   1.00327
+  ],
+  "boundary_p95_px": 46.31
+ },
+ "spine-nose": {
+  "raw_iou": 0.991,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9975,
+  "scale": [
+   1.00043,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-under": {
+  "raw_iou": 0.94,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9494,
+  "scale": [
+   1.00904,
+   1.00254
+  ],
+  "boundary_p95_px": 49.49
+ }
+}

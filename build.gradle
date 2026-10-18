@@ -164,7 +164,7 @@ test {
                 'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
-                'loadout-card-sheet', 'loadout-matchup'
+                'loadout-card-sheet', 'loadout-matchup', 'armor-economy-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -321,6 +321,25 @@ tasks.register('loadoutCardSheet', Test) {
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'loadoutCardSheet.dir', layout.buildDirectory.dir('reports/loadout-cards').get().asFile.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// Every mech chassis and vehicle variant priced and lifted side by side, and the best bay each lift tier can drop.
+// Opt-in and excluded from `test`; it asserts nothing. Pace (cooldown against carrier) is `sceneEvidence -Pscene=armor-drop-pace`.
+tasks.register('armorEconomyEvidence', Test) {
+    group = 'verification'
+    description = 'Write the armor economy table (bills, armor, lift, firepower, best bay per lift tier); opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'armor-economy-evidence'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'armorEconomy.dir', layout.buildDirectory.dir('reports/armor-economy').get().asFile.absolutePath
     testLogging {
         showStandardStreams = true
     }

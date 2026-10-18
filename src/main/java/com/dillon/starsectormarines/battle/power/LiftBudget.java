@@ -17,9 +17,9 @@ import java.util.List;
  * How much armor the company can still put on the ground this mission, carrier by carrier.
  *
  * <p>Each carrier brings a number of machine lifts at its {@link LiftRating}: a cradled
- * company boat {@link #LIFTS_PER_COMPANY_BOAT}, the synthetic heavy carrier a hull, ship or
- * employer supplies enough for the whole bay. A machine spends one lift from a carrier
- * whose rating admits it ({@link LiftAdmission}), so a Heavy machine spends Heavy lift and
+ * company boat {@link #liftsPerCompanyBoat} (two on a light cradle, three on a heavy one),
+ * the synthetic heavy carrier a hull, ship or employer supplies enough for the whole bay.
+ * A machine spends one lift from a carrier whose rating admits it ({@link LiftAdmission}), so a Heavy machine spends Heavy lift and
  * a budget with none refuses it. Spent lift stays spent for the mission whether or not
  * the carrier came home: better boats mean more armor on the ground, not faster calls.
  *
@@ -29,8 +29,21 @@ import java.util.List;
  */
 public final class LiftBudget {
 
-    /** Machine lifts one cradled company boat flies per mission: a trip each. */
-    public static final int LIFTS_PER_COMPANY_BOAT = 2;
+    /** Machine lifts a light-cradled company boat flies per mission: a trip each. */
+    public static final int LIGHT_CRADLE_LIFTS = 2;
+
+    /**
+     * Machine lifts a heavy-cradled company boat flies per mission. One more than the light cradle: a Medium
+     * mech (Sirocco) carries less structure and armor than the Light one (Hound), so a better cradle that
+     * only changed the class would not put more armor on the ground, and the heavy cradle costs about twice
+     * the light one's bill.
+     */
+    public static final int MEDIUM_CRADLE_LIFTS = 3;
+
+    /** Machine lifts a cradled company boat of {@code rating} flies per mission. */
+    public static int liftsPerCompanyBoat(LiftRating rating) {
+        return rating == LiftRating.LIGHT ? LIGHT_CRADLE_LIFTS : MEDIUM_CRADLE_LIFTS;
+    }
 
     /** Why a machine cannot be added to a call. */
     public enum Refusal {
@@ -76,7 +89,7 @@ public final class LiftBudget {
                                         ShuttleType synthetic, int manifestSize) {
         List<Carrier> carriers = new ArrayList<>(2);
         if (companyBoat != null && companyBoat.liftRating() != LiftRating.NONE) {
-            carriers.add(new Carrier(companyBoat, true, LIFTS_PER_COMPANY_BOAT));
+            carriers.add(new Carrier(companyBoat, true, liftsPerCompanyBoat(companyBoat.liftRating())));
         }
         if (syntheticLift && synthetic != null) {
             carriers.add(new Carrier(synthetic, false,

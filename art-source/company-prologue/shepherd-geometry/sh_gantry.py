@@ -45,6 +45,7 @@ stays under the barrels' sweep (nothing in barrel reach above deck top +2.5).
 Names: 'Gantry ...' and 'Frame starboard ...'.
 """
 import math
+import bpy
 from mathutils import Vector
 from sh_kit import prism, section, material, loft_x, octagon, pod, ngon, boolean
 
@@ -169,29 +170,77 @@ def _drum_top(x):
     return DRUM_Z
 
 
-def _well(kit):
-    """The WS 008 well: a raised lip with hazard bars round its rim, drain grilles in its floor."""
+def _skin(core, x, y):
+    """Height of the drum's outer skin at (x, y), by a downward ray (None off the drum)."""
+    bpy.context.view_layer.update()
+    ev = core.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    hit, p, _, _ = ev.ray_cast(Vector((x, y, 40)), Vector((0, 0, -1)))
+    return p.z if hit else None
+
+
+def _rim(kit, name, core, edges, w, h, mat, step=.25):
+    """One continuous coaming band laid on the skin along each edge [(a, b), ...]:
+    w wide, standing h proud, its foot sunk a little so it never floats."""
+    verts, faces = [], []
+    for (ax, ay), (bx, by) in edges:
+        L = math.hypot(bx-ax, by-ay)
+        dx, dy = (bx-ax)/L, (by-ay)/L
+        ax, ay, bx, by = ax-dx*w/2, ay-dy*w/2, bx+dx*w/2, by+dy*w/2   # overlap at the corners
+        nx, ny = -dy*w/2, dx*w/2
+        n = max(1, round((L+w)/step))
+        base = len(verts)
+        rows = 0
+        for k in range(n+1):
+            x, y = ax+(bx-ax)*k/n, ay+(by-ay)*k/n
+            zi, zo = _skin(core, x-nx, y-ny), _skin(core, x+nx, y+ny)
+            if zi is None or zo is None:
+                continue
+            verts += [(x-nx, y-ny, zi-.2), (x+nx, y+ny, zo-.2), (x+nx, y+ny, zo+h), (x-nx, y-ny, zi+h)]
+            rows += 1
+        for r in range(rows-1):
+            a, b = base+4*r, base+4*(r+1)
+            faces += [(a+q, a+(q+1) % 4, b+(q+1) % 4, b+q) for q in range(4)]
+        if rows > 1:
+            faces += [(base, base+1, base+2, base+3), tuple(base+4*(rows-1)+q for q in (3, 2, 1, 0))]
+    return kit.mesh(name, verts, faces, mat, .02)
+
+
+def _well(kit, core):
+    """The WS 008 well, finished the way a recessed weapon pocket would be: a flush
+    bolted armour coaming round the cut edge (following the drum's skin, not a
+    level frame), a lined barrel trough with a ribbed blast plate under the muzzle,
+    and drain grilles either side of the cradle. No hazard paint: nobody works on
+    the drum's crown, and a hardpoint that traverses +-10 deg has no crush zone."""
     x0, x1, wy, hw, fz = WELL
-    crown = _drum_top(27.0)
-    hazard = material('Gantry hazard yellow', (.62, .44, .04), .15, .5)
-    lip, bars, bolts = _Parts(), _Parts(), _Parts()
-    for y in (wy-hw-.3, wy+hw+.3):                             # long sides
-        lip.box(((x0+x1)/2, y, crown+.1), (x1-x0+.6, .6, .3))
-        for k in range(8):
-            bars.box((x0+.5+k*(x1-x0-1.0)/7, y, crown+.27), (.4, .62, .04))
-        for k in range(6):
-            bolts.box((x0+.3+k*(x1-x0-.6)/5, y+(.18 if y > wy else -.18), crown+.29), (.14, .14, .06))
-    lip.box((x0-.3, wy, crown+.1), (.6, 2*hw+1.2, .3))         # aft side
-    lip.make(kit, 'Gantry hardpoint well lip', kit.steel, .03)
-    bars.make(kit, 'Gantry hardpoint well hazard bars', hazard)
-    bolts.make(kit, 'Gantry hardpoint well lip bolts', kit.dark)
-    g, s = _Parts(), _Parts()
-    for gy in (wy-hw+.38, wy+hw-.38):                         # side strips, clear of the cradle
+    tx0, tx1, thw, tz = TROUGH
+    bolts = _Parts()
+    e = .3                                                     # coaming centreline outside the cut
+    edge = [(x1, wy-thw-e), (x1, wy-hw-e), (x0-e, wy-hw-e), (x0-e, wy+hw+e), (x1, wy+hw+e), (x1, wy+thw+e)]
+    runs = list(zip(edge, edge[1:]))+[((x1, wy+sg*(thw+e)), (34.0, wy+sg*(thw+e))) for sg in (-1, 1)]
+    _rim(kit, 'Gantry hardpoint well coaming', core, runs, .55, .14, kit.steel)
+    for (ax, ay), (bx, by) in zip(edge, edge[1:]):
+        n = max(1, round(math.hypot(bx-ax, by-ay)/1.1))
+        for k in range(n+1):
+            x, y = ax+(bx-ax)*k/n, ay+(by-ay)*k/n
+            z = _skin(core, x, y)
+            if z is not None:
+                bolts.box((x, y, z+.17), (.16, .16, .08))
+    bolts.make(kit, 'Gantry hardpoint well coaming bolts', kit.dark)
+    # Trough liner plates and the ribbed blast plate under the muzzle.
+    lin, rib = _Parts(), _Parts()
+    lin.box(((tx0+tx1)/2, wy, tz+.05), (tx1-tx0, 2*thw-.2, .1))
+    for k in range(7):
+        rib.box((32.2+k*.36, wy, tz+.16), (.14, 2*thw-.5, .12))
+    lin.make(kit, 'Gantry hardpoint trough liner', kit.steel, .02)
+    rib.make(kit, 'Gantry hardpoint trough blast plate ribs', kit.dark)
+    # Drain grilles in the well floor, on the side strips clear of the cradle.
+    g, sl = _Parts(), _Parts()
+    for gy in (wy-hw+.38, wy+hw-.38):
         g.box(((x0+x1)/2, gy, BED_TOP+.02), (x1-x0-1.0, .5, .06))
         for k in range(10):
-            s.box((x0+.7+k*(x1-x0-1.4)/9, gy, BED_TOP+.06), (.12, .42, .06))
+            sl.box((x0+.7+k*(x1-x0-1.4)/9, gy, BED_TOP+.06), (.12, .42, .06))
     g.make(kit, 'Gantry hardpoint well drain grilles', kit.dark)
-    s.make(kit, 'Gantry hardpoint well drain grille slats', kit.steel)
+    sl.make(kit, 'Gantry hardpoint well drain grille slats', kit.steel)
 
 
 def _drum_plant(kit):
@@ -439,7 +488,7 @@ def build(kit):
     bed = kit.box('Gantry forward hardpoint bed', ((x0+x1)/2, wy, (BED_BOT+BED_TOP)/2),
                   (x1-x0-.3, 2*hw-.3, BED_TOP-BED_BOT), kit.steel, .04)
     kit.hull += [core, base, bed]
-    _well(kit)
+    _well(kit, core)
     _drum_plant(kit)
     _cab(kit)
     _rails(kit)
