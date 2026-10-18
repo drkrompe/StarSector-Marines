@@ -87,6 +87,7 @@ F/A-18's box. Servicing in space and ordnance handling add to it.
 | Lasher | 0.65 published (solves 0.95) | 62 m (90 m solved) | measured | published before option C; re-publish at 0.95 owed by the Lasher session |
 | Legion (XIV) | 0.99 (solves 0.995) | 292 m | measured | published |
 | Onslaught | 0.93 | 326 m | estimate | waiting on a measured model |
+| Shepherd (Morrow) | 0.78 published (solves 0.74) | 67 m (64 m solved) | measured | published before joining the basis (own deck-program solve); the drone bay is open, so no hangar term; owner to choose 0.78 or 0.74 |
 
 The Hound and the Second Wind keep their published values by the owner's
 decision. Their fittings were modelled at those scales.
