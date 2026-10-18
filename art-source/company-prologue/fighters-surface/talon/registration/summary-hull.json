@@ -1,81 +1,81 @@
 {
  "pod-top": {
-  "raw_iou": 0.9881,
+  "raw_iou": 0.9868,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9985,
+  "fitted_iou": 0.9957,
   "scale": [
    1.0031,
-   1.01266
+   1.00644
   ],
   "boundary_p95_px": 1.0
  },
  "nacelle-top": {
-  "raw_iou": 0.983,
+  "raw_iou": 0.9758,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9933,
+  "fitted_iou": 0.9893,
   "scale": [
-   1.0056,
-   1.01282
+   1.00483,
+   1.00722
   ],
-  "boundary_p95_px": 1.0
+  "boundary_p95_px": 32.86
  },
  "aft-top": {
-  "raw_iou": 0.9884,
+  "raw_iou": 0.9886,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9996,
+  "fitted_iou": 0.9999,
   "scale": [
-   1.00971,
+   1.00714,
    1.00354
   ],
   "boundary_p95_px": 0.0
  },
  "wing-top-port": {
-  "raw_iou": 0.9942,
+  "raw_iou": 0.9932,
   "best_fit": "iou_refined_affine",
   "fitted_iou": 0.997,
   "scale": [
-   1.0011,
-   1.00575
+   1.00345,
+   1.00539
   ],
   "boundary_p95_px": 1.0
  },
  "stern-top": {
-  "raw_iou": 0.9712,
+  "raw_iou": 0.9703,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9855,
+  "fitted_iou": 0.9807,
   "scale": [
-   1.00995,
-   1.00227
+   1.00663,
+   1.0028
   ],
   "boundary_p95_px": 2.0
  },
  "side-stbd": {
-  "raw_iou": 0.9761,
+  "raw_iou": 0.9675,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9935,
+  "fitted_iou": 0.9911,
   "scale": [
-   1.00283,
-   1.02397
+   1.0041,
+   1.01839
   ],
   "boundary_p95_px": 1.0
  },
  "side-port": {
-  "raw_iou": 0.9737,
+  "raw_iou": 0.961,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9914,
+  "fitted_iou": 0.9857,
   "scale": [
-   1.00233,
-   1.0142
+   1.00255,
+   1.03983
   ],
-  "boundary_p95_px": 1.41
+  "boundary_p95_px": 1.0
  },
  "underside": {
-  "raw_iou": 0.9795,
+  "raw_iou": 0.9772,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9904,
+  "fitted_iou": 0.9892,
   "scale": [
-   1.00693,
-   1.0078
+   1.00495,
+   1.00957
   ],
   "boundary_p95_px": 2.0
  }

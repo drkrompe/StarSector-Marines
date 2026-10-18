@@ -59,6 +59,7 @@ WEAR_RESPONSE = {'red': (1.0, 1.0, 1.0), 'steel': (0.0, 0.35, 0.7), 'bright': (0
 ENGINES = [(-9.0, 6.0, -0.5), (-9.0, -4.0, -0.5)]   # drive mouths, hull units (geometry.json engines)
 STERN_SOOT = (-5.0, -9.0)   # hull X where stern soot starts and where it is full
 HULL_OBJECT = 'Hull aft body'
+SHEARED_FACES = True   # wings bent per vertex after build (pass-3 rework): out-of-plane faces
 
 # Review: the build's own cameras plus the sides it does not have.
 REVIEW_WHOLE = ['three-quarter', 'top', 'port-side', 'front',

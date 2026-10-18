@@ -1,0 +1,826 @@
+{
+ "asset": "shepherd.blend",
+ "append_collection": "SHEPHERD",
+ "root": "SHEPHERD | root",
+ "anchors_collection": "SHEPHERD | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.78,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -40.79,
+   -34.28,
+   -16.76
+  ],
+  [
+   45.2,
+   36.28,
+   23.45
+  ]
+ ],
+ "size_metres_rest": [
+  67.1,
+  55.0,
+  31.4
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "main drive",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -40.5,
+    20.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.7,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "role": "main drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -40.5,
+    -19.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.7,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2
+ ],
+ "rcs": [
+  {
+   "anchor": "RCS port forward jet anchor",
+   "engine_slot": 3,
+   "at": [
+    -22.152999877929688,
+    35.12900161743164,
+    -1.0
+   ],
+   "exhaust_dir": [
+    -0.765999972820282,
+    0.642799973487854,
+    0.0
+   ],
+   "radius_units": 1.2,
+   "working": true
+  },
+  {
+   "anchor": "RCS port aft jet anchor",
+   "engine_slot": 4,
+   "at": [
+    -30.163999557495117,
+    33.1150016784668,
+    -1.0
+   ],
+   "exhaust_dir": [
+    -0.8191999793052673,
+    0.5735999941825867,
+    0.0
+   ],
+   "radius_units": 1.55,
+   "working": true
+  },
+  {
+   "anchor": "RCS starboard forward jet anchor",
+   "engine_slot": 5,
+   "at": [
+    -22.152999877929688,
+    -33.12900161743164,
+    -1.0
+   ],
+   "exhaust_dir": [
+    -0.765999972820282,
+    -0.642799973487854,
+    0.0
+   ],
+   "radius_units": 1.2,
+   "working": true
+  },
+  {
+   "anchor": "RCS starboard aft jet anchor",
+   "engine_slot": 6,
+   "at": [
+    -30.163999557495117,
+    -32.1150016784668,
+    -1.0
+   ],
+   "exhaust_dir": [
+    -0.8191999793052673,
+    -0.5735999941825867,
+    0.0
+   ],
+   "radius_units": 1.55,
+   "working": true
+  }
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 007",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    -3.0,
+    -23.0,
+    6.35
+   ],
+   "rest_angle_deg": -75,
+   "arc_deg": 200,
+   "trained_parts": 43,
+   "fixed_parts": 40,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "brake": "Turret 1 WS 007 muzzle brake 1",
+     "anchor": "Anchor turret 1 port gun muzzle",
+     "at": [
+      -0.22,
+      -31.055,
+      7.65
+     ],
+     "axis": [
+      0.259,
+      -0.966,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 1 WS 007 muzzle brake 2",
+     "anchor": "Anchor turret 1 starboard gun muzzle",
+     "at": [
+      -1.38,
+      -31.366,
+      7.65
+     ],
+     "axis": [
+      0.259,
+      -0.966,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "hardpoints": [
+  {
+   "slot": "WS 008",
+   "mount": "HARDPOINT",
+   "fixed": true,
+   "angle_deg": 0,
+   "arc_deg": 20,
+   "anchor": "Anchor turret 2 gun muzzle",
+   "at": [
+    33.5,
+    -19.0,
+    3.62
+   ],
+   "axis": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "note": "the kit numbers every declared muzzle as a turret: this is gun rig 2, which never trains"
+  }
+ ],
+ "drone_bay": {
+  "slot": "WS 003",
+  "wing": "borer_wing (4 drones)",
+  "launch_direction": [
+   0,
+   0,
+   1
+  ],
+  "departure_heading": [
+   1,
+   0,
+   0
+  ],
+  "note": "three dorsal openings, one per .ship launch location; a drone lifts out along +Z, then turns onto the slot angle (0 deg, forward)",
+  "openings": [
+   {
+    "index": 1,
+    "mouth": "Drone bay WS 003 opening 1 mouth",
+    "launch_point": "Drone bay WS 003 launch point 1",
+    "mouth_at": [
+     -3.0,
+     19.0,
+     7.642
+    ],
+    "launch_point_at": [
+     -3.0,
+     19.0,
+     -4.07
+    ],
+    "clear_radius": 6.6,
+    "host": "Drone bay aft hangar pod"
+   },
+   {
+    "index": 2,
+    "mouth": "Drone bay WS 003 opening 2 mouth",
+    "launch_point": "Drone bay WS 003 launch point 2",
+    "mouth_at": [
+     12.0,
+     19.0,
+     7.642
+    ],
+    "launch_point_at": [
+     12.0,
+     19.0,
+     -4.07
+    ],
+    "clear_radius": 6.6,
+    "host": "Drone bay forward hangar pod"
+   },
+   {
+    "index": 3,
+    "mouth": "Drone bay WS 003 opening 3 mouth",
+    "launch_point": "Drone bay WS 003 launch point 3",
+    "mouth_at": [
+     26.0,
+     19.0,
+     7.642
+    ],
+    "launch_point_at": [
+     26.0,
+     19.0,
+     -4.07
+    ],
+    "clear_radius": 4.5,
+    "host": "Drone bay forward service block"
+   }
+  ]
+ },
+ "lamps_lit": 30,
+ "lamps": [
+  {
+   "object": "Bridge running lamp port red",
+   "material": "Running lamp red.001",
+   "lit": true,
+   "at": [
+    30.75,
+    2.68,
+    10.61
+   ]
+  },
+  {
+   "object": "Bridge running lamp starboard green",
+   "material": "Running lamp green.001",
+   "lit": true,
+   "at": [
+    30.75,
+    -7.68,
+    10.61
+   ]
+  },
+  {
+   "object": "Drone bay forward bay blue ring",
+   "material": "Drone bay turntable ring blue",
+   "lit": true,
+   "at": [
+    19.0,
+    19.0,
+    -4.8
+   ]
+  },
+  {
+   "object": "Drone bay inboard glow strip",
+   "material": "Drone bay cyan glow",
+   "lit": true,
+   "at": [
+    9.4,
+    12.24,
+    6.68
+   ]
+  },
+  {
+   "object": "Drone bay join lamp 1",
+   "material": "Drone bay amber lamp",
+   "lit": true,
+   "at": [
+    27.0,
+    25.0,
+    -2.19
+   ]
+  },
+  {
+   "object": "Drone bay join lamp 2",
+   "material": "Drone bay amber lamp",
+   "lit": true,
+   "at": [
+    27.0,
+    12.0,
+    8.25
+   ]
+  },
+  {
+   "object": "Drone bay service block charging cabinet status lamps",
+   "material": "Drone bay cyan glow",
+   "lit": true,
+   "at": [
+    34.12,
+    22.3,
+    8.6
+   ]
+  },
+  {
+   "object": "Drone bay service block floodlight 1",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    34.85,
+    14.2,
+    2.1
+   ]
+  },
+  {
+   "object": "Drone bay service block floodlight 2",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    34.85,
+    23.3,
+    2.1
+   ]
+  },
+  {
+   "object": "Drone bay service block workshop door lamp",
+   "material": "Drone bay amber lamp",
+   "lit": true,
+   "at": [
+    33.0,
+    26.85,
+    -2.1
+   ]
+  },
+  {
+   "object": "Drone bay workshop front door lamp",
+   "material": "Drone bay amber lamp",
+   "lit": true,
+   "at": [
+    30.25,
+    23.2,
+    -2.3
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 1 charging contact",
+   "material": "Drone bay cyan glow",
+   "lit": true,
+   "at": [
+    -3.0,
+    19.0,
+    -4.03
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 1 jamb light 1",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    0.75,
+    22.45,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 1 jamb light 2",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    -6.75,
+    22.45,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 1 jamb light 3",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    -6.75,
+    15.55,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 1 jamb light 4",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    0.75,
+    15.55,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 2 charging contact",
+   "material": "Drone bay cyan glow",
+   "lit": true,
+   "at": [
+    12.0,
+    19.0,
+    -4.03
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 2 jamb light 1",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    15.75,
+    22.45,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 2 jamb light 2",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    8.25,
+    22.45,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 2 jamb light 3",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    8.25,
+    15.55,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 2 jamb light 4",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    15.75,
+    15.55,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 3 charging contact",
+   "material": "Drone bay cyan glow",
+   "lit": true,
+   "at": [
+    26.0,
+    19.0,
+    -4.03
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 3 jamb light 1",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    29.75,
+    22.45,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 3 jamb light 2",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    22.25,
+    22.45,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 3 jamb light 3",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    22.25,
+    15.55,
+    -4.52
+   ]
+  },
+  {
+   "object": "Drone bay WS 003 opening 3 jamb light 4",
+   "material": "Drone bay deck light",
+   "lit": true,
+   "at": [
+    29.75,
+    15.55,
+    -4.52
+   ]
+  },
+  {
+   "object": "Hull stern lamp lens port red",
+   "material": "Running lamp red",
+   "lit": true,
+   "at": [
+    -33.12,
+    8.5,
+    4.25
+   ]
+  },
+  {
+   "object": "Hull stern lamp lens starboard green",
+   "material": "Running lamp green",
+   "lit": true,
+   "at": [
+    -33.12,
+    -9.5,
+    4.25
+   ]
+  },
+  {
+   "object": "Mast bridge masthead lamp",
+   "material": "Running lamp white",
+   "lit": true,
+   "at": [
+    20.6,
+    -0.7,
+    21.95
+   ]
+  },
+  {
+   "object": "Mast forward sensor boom nav lamp",
+   "material": "Running lamp white",
+   "lit": true,
+   "at": [
+    44.0,
+    9.5,
+    14.35
+   ]
+  }
+ ],
+ "objects": 752,
+ "polygons": 50013,
+ "baked_meshes": 331,
+ "images": [
+  "Skin bay-aft-end",
+  "Skin bay-back-wall",
+  "Skin bay-block-port",
+  "Skin bay-pod-port",
+  "Skin beam-front",
+  "Skin beam-side-port",
+  "Skin beam-top",
+  "Skin body-bow",
+  "Skin body-side-stbd",
+  "Skin body-top",
+  "Skin bridge-crown",
+  "Skin bridge-nose",
+  "Skin bridge-side-port",
+  "Skin bridge-side-stbd",
+  "Skin drum-nose",
+  "Skin drum-side-stbd",
+  "Skin drum-top",
+  "Skin mach-stern",
+  "Skin mach-top",
+  "Skin pod-side-port",
+  "Skin pod-top-port",
+  "Skin spine-side-port",
+  "Skin spine-top",
+  "Skin turret-deck-top",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch grey",
+  "Swatch gunmetal",
+  "Swatch orange",
+  "Swatch sand"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile shepherd-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 45,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 4.7,
+     "mouth": [
+      -40.5,
+      20.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "starboard",
+     "radius": 4.7,
+     "mouth": [
+      -40.5,
+      -19.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "port gun",
+     "muzzle": [
+      -0.22,
+      -31.055,
+      7.65
+     ],
+     "axis": [
+      0.259,
+      -0.966,
+      0.0
+     ]
+    },
+    {
+     "turret": 1,
+     "tag": "starboard gun",
+     "muzzle": [
+      -1.38,
+      -31.366,
+      7.65
+     ],
+     "axis": [
+      0.259,
+      -0.966,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "gun",
+     "muzzle": [
+      33.5,
+      -19.0,
+      3.62
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Bridge running lamp port red",
+     "role": "running-port",
+     "at": [
+      30.75,
+      2.678,
+      10.615
+     ]
+    },
+    {
+     "name": "Bridge running lamp starboard green",
+     "role": "running-starboard",
+     "at": [
+      30.75,
+      -7.678,
+      10.615
+     ]
+    },
+    {
+     "name": "Hull stern lamp lens port red",
+     "role": "running-port",
+     "at": [
+      -33.12,
+      8.5,
+      4.25
+     ]
+    },
+    {
+     "name": "Hull stern lamp lens starboard green",
+     "role": "running-starboard",
+     "at": [
+      -33.12,
+      -9.5,
+      4.25
+     ]
+    },
+    {
+     "name": "Mast bridge masthead lamp",
+     "role": "masthead",
+     "at": [
+      20.6,
+      -0.7,
+      21.948
+     ]
+    },
+    {
+     "name": "Mast forward sensor boom nav lamp",
+     "role": "beacon",
+     "at": [
+      44.0,
+      9.5,
+      14.35
+     ]
+    },
+    {
+     "name": "Drone bay service block floodlight 1",
+     "role": "work",
+     "at": [
+      34.85,
+      14.2,
+      2.1
+     ]
+    },
+    {
+     "name": "Drone bay service block floodlight 2",
+     "role": "work",
+     "at": [
+      34.85,
+      23.3,
+      2.1
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -40.79,
+     -34.28,
+     -16.76
+    ],
+    [
+     45.2,
+     36.28,
+     23.45
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 2,
+    "rcs": 4,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 2,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 3,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'SHEPHERD' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "shepherd-surface/build/skinned.blend",
+  "geometry_json_sha256": "a23ff8c286b30943084e5943bb245d5b64aa67d507d07ba71789c5f6c76d2ae5",
+  "skin_manifest_sha256": "dc85ce091d1f13ccb72adaba00d99ba68af6cb743b17e51ff2ba5e896e82f5bf"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; launch up for drone-bay anchors); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate Turret 1 pivot about its local Z to train (arc 200 deg about the slot angle); the rest pose is the slot angle. The WS 008 hardpoint is fixed.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "f28ad9e2d6aa28e73401c2cf7ae93f50b00e427a3c40681c498beef9b0d49590"
+}

@@ -84,6 +84,30 @@ Finish: hex ablative ceramic (pg_finish; owner's pick, pass 3)
   point takes its dominant projection plane's plates (no blended fragments).
   Machinery is blue-black ceramic with pale ceramic caps. Procedural, triplanar.
 
+Bridge and under-bridge (pg_bridge; owner, pass 3)
+  Read off the sprite's command core at 7x: the nose's sensor slot and crossbar,
+  longitudinal ribs and a centreline boss on the forward tier, the bridge tower's
+  wraparound glazing, vent cluster, comms mast and sensor dish, chevron fins on
+  the neck and a vent array on the spine. Under it, the gantry stops at the bore's
+  edge (pg_hull.GANTRY_FRONT_X, on the lining's flat top) so the deck's nose
+  cantilevers clear over the bore, raised above the loop: keel beam, transverse
+  frames, pipe runs, downlights and a glazed observation blister looking down
+  into the bore. The gantry's bulkhead stands on the lining up to the deck's
+  underside: full-height ribs carrying the deck, plating panels between them, an
+  observation gallery's window band and an airlock at its foot; its flanks carry
+  struts leaning aft, a pipe bundle and machinery units. Windows sit flush on the
+  vertical walls at the foot of each tier in dark frames (never on a chamfer), and
+  the tower's glazing is one band round its vertical wall with dark mullions.
+
+Bore machinery (pg_bore; owner, pass 3)
+  The bore is the soft, exposed part of the ship. Read off the sprite's lining
+  band at 8x: courses of curved plate segments in light, mid and dark greys
+  (some with raised sub-panels, a seeded share missing to show pumps and junction
+  boxes behind), pipe runs between the courses, conduits dropping over the lip
+  every 22.5 degrees, a rim conduit on the flat top, capacitor drums and pump
+  boxes on the top between the emitter nodes, and blue-white status lights. All
+  detail; none of it counts as enclosed volume. The hangar mouth is cut through it.
+
 Service fields (pg_service; owner, pass 3)
   Where the plating is left off: shallow recesses following the plate (floor
   parallel to the fitted surface plane, walls showing the substrate) with
@@ -131,6 +155,8 @@ Modules (one per area)
   pg_hangar    the forward hangar in the bore wall, its door and anchors
   pg_finish    the hex ablative ceramic finish, machinery finish, substrate, plate sizes
   pg_service   service fields: uncovered plating with hatches and machinery
+  pg_bore      the bore's exposed machinery: plate courses, pipes, conduits, units, lights
+  pg_bridge    the bridge's detail and the under-bridge: nose underside, gantry face and flanks
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -146,6 +172,10 @@ Names (identifiers: later passes key off them)
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)
   Detail ... (pass 2 parts), Hull <side> reactor glow k, Hull main ring seam light
+  Bridge ... (nose sensor, ribs, boss, glazing, vents, mast, dish, chevrons, spine vents),
+    Under bridge ... (keel beam, frames, downlights, pipes, blister), Gantry face ..., Gantry <side> ...
+  Bore plate <course> <k> (+ panel), Bore pipe <k>, Bore conduit <k>, Bore rim conduit, Bore drum/pump <k>,
+    Bore gap <course> <k> pump/box/light, Bore light <course> <k>
   Service <side> <field> ... (floor, hatch seam/plate/split/status light, iris, vents, fins)
   Hangar ... (floor, roof, walls, lights, frame, door leaves and slides, mouth, launch point),
     Hull forward hangar (the bay's air, unrendered; counted volume)
