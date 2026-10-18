@@ -227,21 +227,8 @@ def build(kit):
     belly = mass(kit, 'Hull belly', full(BELLY_HALF), BELLY, kit.plate)
     belly_cuts(belly)
 
-    aft = mass(kit, 'Hull aft body', full(AFT_OUTER + [(-102, 21)]), AFT, kit.plate)
-    aft_cuts(aft)
-    for s in (1, -1):
-        plan = ccw(WELL_PORT) if s > 0 else mirror_y(ccw(WELL_PORT))
-        cutter = prism(kit, 'Temporary machinery well cutter', plan, [(0.0, WELL_FLOOR), (0.0, 30.0)], kit.dark, bevel=0)
-        boolean(aft, cutter)
-    tail = mass(kit, 'Hull tail', full(TAIL_HALF), TAIL, kit.plate)
-    tail_cuts(tail)
-
-    legs, waists = {}, {}
+    waists = {}
     for side, s in (('port', 1), ('starboard', -1)):
-        plan = ccw(LEG_PORT) if s > 0 else mirror_y(ccw(LEG_PORT))
-        leg = mass(kit, f'Hull {side} aft leg', plan, LEG, kit.plate)
-        leg_cuts(leg)
-        legs[side] = leg
         waists[side] = mass(kit, f'Hull {side} waist', ccw(WAIST_PORT) if s > 0 else mirror_y(ccw(WAIST_PORT)),
                             WAIST, kit.plate)
 
@@ -264,6 +251,6 @@ def build(kit):
                              TERRACE_TOP-1, INNER_TOP, tumble_in=6.0, tumble_h=4.5, crown=1.0, crown_w=8.0,
                              mat=kit.plate, step=2.0))
 
-    kit.hull += [prow, core, belly, aft, tail, *legs.values(), *waists.values(), *tiers]
+    kit.hull += [prow, core, belly, *waists.values(), *tiers]
 
-    return {'prow': prow, 'core': core, 'belly': belly, 'aft': aft, 'tail': tail, 'legs': legs}
+    return {'prow': prow, 'core': core, 'belly': belly}

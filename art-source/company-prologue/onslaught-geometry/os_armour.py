@@ -126,7 +126,7 @@ def shell_strip(kit, name, src, axis, c, w, drop, mat, span=None, xr=None):
 
 def keel_strakes(kit):
     # Bars following each underside's curve: three strakes and two frames on the
-    # belly, a centre strake under the bow, two under the aft body, one under the tail.
+    # belly and a centre strake under the bow (the stern's are os_stern's).
     ob = bpy.data.objects
     for k, y in enumerate((0, 22, -22), 1):
         shell_strip(kit, f'Armour core keel strake {k}', ob['Hull belly'], 1, y, 2.6, 1.6 if y else 2.4, kit.grey,
@@ -134,12 +134,6 @@ def keel_strakes(kit):
     for k, x in enumerate((22, 50), 1):
         shell_strip(kit, f'Armour core keel frame {k}', ob['Hull belly'], 0, x, 2.2, 1.2, kit.grey, span=40.0)
     shell_strip(kit, 'Armour prow keel strake', ob['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
-    for k, y in enumerate((34, 64, -34, -64), 1):
-        if abs(y) > 50:             # the outer pair hung as fins below the stern; dropped
-            continue
-        shell_strip(kit, f'Armour aft keel strake {k}', ob['Hull aft body'], 1, y, 2.6, 2.4, kit.grey,
-                    xr=(-98, -8))
-    shell_strip(kit, 'Armour tail keel strake', ob['Hull tail'], 1, 0, 2.6, 2.4, kit.grey, xr=(-110, -12))
 
 
 def build(kit):
@@ -160,9 +154,6 @@ def build(kit):
         prism(kit, f'Armour {side} prow collar', _side(collar, s), [(0.0, 0.0), (0.0, 15.0), (1.4, 16.4)],
               kit.orange, bevel=.25)
         # Leg stripe.
-        leg_inner = [(-36, 52), (-60, 47), (-104, 46), (-112, 47), (-121, 48.5)]
-        st = band(kit, f'Armour {side} leg stripe', leg_inner, -6.5, 5.0, slab(8.0, 15.0), kit.orange, s)
-        plane_cut(st, 'stripe aft', (-104, 0, 15.0), facet_normal((-1, 0), 20))
         # Waist bay: a dark frame on the valley deck carrying three amber bay lamps.
         kit.box(f'Armour {side} waist bay frame', (101.5, s*50.5, 2.4), (6.0, 11.0, 1.6), kit.dark, bevel=.2)
         for k, y in enumerate((47.0, 50.5, 54.0), 1):
