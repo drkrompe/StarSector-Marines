@@ -20,6 +20,7 @@ Legend: **done** = merged to main; **review** = merged, waiting on the owner;
 | Hound (A) | `hound-geometry/` | done | done | review (round 1: glazed bridge, aft cargo ramp) | done, 0.88 m/u (61 m) | — | — | — | Owner review of round 1 |
 | Mudskipper | `mudskipper-geometry/` | done | done | review (round 1: waist junction broken up; IoU 0.943) | done, 0.85 m/u (67 m) | — | — | — | Owner review of round 1 |
 | Legion (XIV) battlecarrier | `legion-geometry/` | done (reworked after first review) | done: every module detailed, fly-through wing hangars (IoU 0.974) | — | done, 0.61 m/u (180 m long, 46 m deep) | not needed (damage-free patrol) | — | Flight-deck, launch-point and engine anchors exported for C2 | Owner review of pass 2 (pass 3) |
+| Shepherd (Morrow) | `shepherd-geometry/` | done (IoU 0.932) | wip | — | wip | named, not built (grounded/damaged, recovered) | — | Drone-bay openings and launch points exported | Pass 2 detail, then pass 4 scale |
 
 ## Fighters
 
