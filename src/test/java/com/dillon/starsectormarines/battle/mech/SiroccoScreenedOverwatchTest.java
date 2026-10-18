@@ -271,8 +271,11 @@ class SiroccoScreenedOverwatchTest {
     void rushedSupportMayOpenDistanceIntoTheBoundedZonePerimeter() {
         // The 1.2-cell-wide Bulwark cannot cross the one-cell Sirocco doorway.
         // This test asks about the permitted retreat perimeter, not refusal of
-        // a physically impossible passage, so give it a two-cell opening.
-        BattleSimulation sim = twoRoomSimulation(2);
+        // a physically impossible passage, so give it a two-cell opening. The
+        // east side is a corridor: an open room would offer an in-zone oblique
+        // that keeps the threat in the torso envelope, which the escape prefers
+        // (OverwatchKillZone.KEEPS_ARC) over walking straight back.
+        BattleSimulation sim = twoRoomSimulation(2, 2);
         assertTrue(ManualTerrainMotion.canStand(sim.getGrid(), 40.5f, 31f,
                 MechVariant.BULWARK.radius), "the actual chassis fits the doorway centerline");
         long bulwark = spawnMech(sim, Faction.MARINE,
@@ -607,12 +610,20 @@ class SiroccoScreenedOverwatchTest {
     }
 
     private static BattleSimulation twoRoomSimulation(int doorwayHeight) {
+        return twoRoomSimulation(doorwayHeight, 0);
+    }
+
+    /** {@code corridorRows > 0} narrows the east side's first twelve columns to rows 30 +/- that many. */
+    private static BattleSimulation twoRoomSimulation(int doorwayHeight, int corridorRows) {
         int width = 96;
         int height = 64;
         NavigationGrid grid = new NavigationGrid(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (x != 40) grid.setWalkableFloor(x, y);
+                if (x == 40) continue;
+                if (corridorRows > 0 && x > 40 && x <= 52
+                        && Math.abs(y - 30) > corridorRows) continue;
+                grid.setWalkableFloor(x, y);
             }
         }
         for (int y = 30; y < 30 + doorwayHeight; y++) {

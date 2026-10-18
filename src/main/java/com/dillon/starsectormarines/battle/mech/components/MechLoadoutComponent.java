@@ -162,6 +162,12 @@ public final class MechLoadoutComponent {
      */
     public boolean overwatchLongRangeBand;
     /**
+     * True when the cached overwatch cell is a fighting-withdrawal step rather than a perch: the
+     * threat was already in reach and every perch in the band lay behind the torso envelope, so
+     * the mech opens distance obliquely, still firing, and re-picks on the unscreened cadence.
+     */
+    public boolean overwatchWithdrawing;
+    /**
      * True after LR Support has exhausted every LRM rack and entered its
      * direct-fire rearm cycle. A newly constructed loadout starts false so a
      * partly spent but never-exhausted rack immediately supports long-range
@@ -286,6 +292,7 @@ public final class MechLoadoutComponent {
         overwatchAxisY = -1;
         overwatchScreenId = 0L;
         overwatchLongRangeBand = false;
+        overwatchWithdrawing = false;
         assignedSquadId = -1;
         frontlineThreatX = -1;
         frontlineThreatY = -1;
