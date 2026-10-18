@@ -35,6 +35,13 @@ import java.util.Map;
 public final class DroneSkimmerSystem {
 
     private static final float DESTROY = 1.0e6f;
+    /**
+     * A skimmer's drone is the hull's whole armament, not a hub's disposable screen: it flies on a composite airframe
+     * with a light plate, so a lone rifle has to work at it. Hub and tender drones keep {@link Drone#DRONE_MAX_HP}.
+     */
+    static final float SKIMMER_DRONE_HP = 30f;
+    static final float SKIMMER_DRONE_ARMOR = 20f;
+    static final float SKIMMER_DRONE_ARMOR_RATING = 4f;
     /** Ticks between scans for the hostile nearest each hull. */
     static final int SCAN_TICKS = 6;
 
@@ -96,7 +103,9 @@ public final class DroneSkimmerSystem {
         }
         int[] cell = openCell(sim.getGrid(), body.x, body.y);
         EntitySpec spec = Drone.create("skimmer-drone-" + nextDrone++, side, cell[0], cell[1], 0L,
-                DroneLook.STANDARD).squad(wing.squadId);
+                DroneLook.STANDARD).squad(wing.squadId)
+                .health(SKIMMER_DRONE_HP)
+                .armor(SKIMMER_DRONE_ARMOR, SKIMMER_DRONE_ARMOR_RATING);
         long id = sim.spawn(spec);
         if (id == 0L) return;
         AirBody air = sim.world().kinematics(id);
