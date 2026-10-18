@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasMesh;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
@@ -222,6 +223,30 @@ public final class HeadlessUiRenderer {
         canvas.surfaceColumns = width;
         canvas.surfaceRows = height;
         canvas.hostPass(pass);
+        graphics.dispose();
+        return output;
+    }
+
+    /**
+     * Render one canvas producer straight to an image at a one-to-one surface, with no
+     * document around it: the way to look at a producer such as a banner at the pixel
+     * size it has on a page.
+     */
+    public BufferedImage renderCanvas(CanvasProducer producer, int width, int height) {
+        if (producer == null) throw new IllegalArgumentException("canvas producer is required");
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("canvas dimensions must be positive");
+        }
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = output.createGraphics();
+        configure(graphics);
+        Rect surface = new Rect(0f, 0f, width, height);
+        CanvasMetrics metrics = new CanvasMetrics(surface, width, height, 1f);
+        RasterCanvasContext canvas = new RasterCanvasContext(graphics, resources, metrics, surface, 1f,
+                hostPassRenderer);
+        canvas.surfaceColumns = width;
+        canvas.surfaceRows = height;
+        producer.draw(canvas);
         graphics.dispose();
         return output;
     }

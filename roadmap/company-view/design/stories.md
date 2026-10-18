@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 21 open stories
 Written: 2026-08-23
-Updated: 2026-10-16 — HQ command-deck banner planned.
+Updated: 2026-10-18 — HQ action board implemented.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
@@ -18,7 +18,7 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `boat-condition-and-repairs.md` | Implemented; live acceptance open | Grounded recovery within two campaign days, scene health/countdown markers, paid acceleration and resumable Castle guidance; verify campaign wait/expedite/redeploy. |
 | `barracks-turnaround.md` | In progress | Alpha pickup: replenishment, preparation navigation and castellan guidance; WIA keep billets and heal in a day. |
 | `hq-command-deck.md` | In progress | Painted operations-deck banner with Castle, Sabine and the watch replaces the HQ intel drawing; four station hotspots live. Edge-case evidence and alert plate remain. |
-| `hq-action-board.md` | Planned | HQ's lower half becomes an urgency-ordered action board (story, contracts, other) with one action per item, drawn as a holographic board above the deck's plot table. Design for review. |
+| `hq-action-board.md` | Implemented; live acceptance open | HQ's lower half is an urgency-ordered action board (story, contracts, other) with one action per item, also drawn as a holographic board above the deck's plot table. |
 | `c2-formation-model.md` | Planned | Defines the shared read model required by C3 and C4. |
 | `c3-company-card-stack.md` | Planned | Depends on C2; expands the shipped HQ roster area. |
 | `c4-whereabouts-and-deployed-state.md` | Planned | Depends on C2 and C3; derives whereabouts rather than persisting them. |

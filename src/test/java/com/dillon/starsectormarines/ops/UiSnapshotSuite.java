@@ -1516,8 +1516,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         throw new IllegalStateException("Opening guidance exceeds its panel: " + id);
                     }
                 }
-                if (instance.requireElement("company-hq-obligations-header").box().borderBox().y() < panel.bottom()) {
-                    throw new IllegalStateException("Opening guidance overlaps obligations");
+                if (panel.bottom() > instance.requireElement("company-hq-detail").box().borderBox().bottom()) {
+                    throw new IllegalStateException("Opening guidance exceeds the detail pane");
                 }
             }
             return frame;

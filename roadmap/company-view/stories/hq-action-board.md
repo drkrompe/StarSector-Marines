@@ -1,7 +1,8 @@
 # HQ action board
 
-Status: PLANNED — design for review; nothing implemented
+Status: IN PROGRESS — implemented in all four steps; live campaign acceptance open
 Written: 2026-10-18
+Updated: 2026-10-18 — implemented; open questions decided below.
 
 Read `company-view-nouns.md` (Campaign-map home) and `hq-command-deck.md` first.
 The board's offers half depends on `c11-the-contract-board.md`.
@@ -42,7 +43,9 @@ needs attention:
   - **Letter**: correspondence awaiting a decision (auxiliary warrant, Latchkey
     custody). Answered by Open.
   - **Side job**: an open intel event with a place to go (distress call, dead letter,
-    defector asylum), and later a contract-board offer. Answered by Plot course.
+    defector asylum), and later a contract-board offer. Answered by Plot course; its
+    commit or refuse choice stays in its intel entry. With no resolvable market the
+    course is unavailable and says why. Capped at four, soonest deadline first.
 - **Filter**: All, Story, Contracts (obligations and, later, offers) and Other (letters
   and side jobs). Each tab shows its count.
 - **Holo board**: the projection of the action items above the plot table.
@@ -146,15 +149,19 @@ Each station puts something in the detail pane instead of only pulsing a panel:
 3. Holo board projection and drawing (static).
 4. Holo motion and marker buttons.
 
-## Open questions
+## Decisions
 
-- **Castle inside the volume.** She stands behind the table, where the board will hang.
-  Should the board be translucent enough to show her through it, or should she move to
-  the table's far-left corner?
-- **Which side events have a destination?** Distress calls and defector asylum name a
-  place; dead letters and last testaments may not. A side job with no place could be
-  answered by Open (the intel entry) rather than left out.
+- **Castle** moved to the table's far-left end, clear of the board's volume.
+- **Side jobs** are answered by Plot course to their market; the commit or refuse
+  choice stays in the intel entry, which Starsector's own screen already owns.
+- **Board scale** is true hyperspace position (about ±25,000 units to the rim,
+  clamped inside it); items without a place sit along the near rim in board order.
 - **Contract offers** join Contracts once the contract board exists. Until then the
   filter holds obligations only.
-- **Board scale:** whether the sector plot shows true positions or a schematic ring by
-  urgency. True positions read as a map; a ring reads faster.
+
+## Remaining
+
+- Live campaign acceptance (acceptance 2): Respond, Plot course and Open from a real
+  save, and several arcs live at once.
+- Keyboard traversal across the holo marker buttons in a live session.
+- Obligations past the cap of six are dropped without a hidden count; side jobs state theirs.

@@ -1,19 +1,24 @@
 # Ship scale: one sizing basis for every cinematic hull
 
-Status: DRAFT. Constants are proposed; no tracked `metres_per_unit` has moved to them yet.
+Status: ACTIVE. Owner's choice 2026-10-18: option C (300 m3 a person, capital factor 1.45).
 Written: 2026-10-18
 
 A hull's size comes from what it holds, not from its sprite. `ship_scale.py`
 sizes every hull the same way:
 
-    contents  = max crew x habitable m3 per person (by class)
-              + cargo x the cargo-unit volume + fuel x the fuel-unit volume
-              + hangars (from the fighters' own sizes) + boat bays
+    contents  = max crew x 300 m3 x the class's habitable factor
+              + cargo x 2.0 m3 + fuel x 1.5 m3
+              + hangars (from the fighters' own sizes) + boat bays x 960 m3
     enclosed  = contents / (1 - machinery share of the hull's class)
     metres per unit = cube root(enclosed m3 / the model's measured enclosed units3)
 
+Each model's pass 4 calls `ship_scale.record(<hull>)` and stores the block in
+its geometry.json. The published `metres_per_unit` is the solved value,
+rounded. A hull is not given its own constants; change a constant here and in
+the module together, and every hull moves with it.
+
 Before this, each hull was sized from a share of its pressure hull taken as
-usable: 55% for freighters and 33% for the Legion. Those shares cannot be
+usable: 55% for freighters and 33% for the Legion. Those shares could not be
 compared between hulls, and they gave a carrier less hull per person than a
 freighter.
 
@@ -23,60 +28,68 @@ Enclosed volume is the union of the pressure hull with its holds, hangars and
 boat bays. It never includes drive pods, engine cans, armour laid over the
 hull, or open structure. `SOLIDS` in the module names each model's solids, and
 `ship_scale_measure.py` measures their union inside the hull's .blend. Before a
-model exists, `estimate_units3` takes k x (sprite alpha area)^1.5. k is
-measured on the built models: Hound 0.090, Second Wind 0.172, Legion 0.117.
-Treat an estimate as about +-8% in metres per unit.
+model exists, `estimate_units3` takes k x (sprite alpha area)^1.5, with k by
+class (frigate 0.131, capital 0.117). Treat an estimate as about +-8% in metres
+per unit, and replace it with a measurement as soon as the model exists.
 
-## The calibrated constant: one cargo unit
+## Crew room: the dominant term
 
-**The Hound (A) is the anchor.** Its 0.88 m/unit is fixed by modelled
-human-scale fittings: a 1.4 x 2.0 m aft door, a 1.7 x 2.1 m airlock,
-0.9 x 1.0 m viewports, walkway rails and a 1.8 m mannequin. 0.83 is the
-cramped floor. For a freighter, cargo is the dominant term, so the cargo unit's
-volume is the one constant solved, not chosen. It is whatever fills the
-Hound's measured hull once crew, fuel and machinery have their real-world
-shares: **50.6 m3 per unit** (37 m3 if the Hound sat at 0.83).
+**300 m3 a person at max crew, for every crew size.** The mod's deck program
+(`DeckSizing.programFor`, the program the game's deck maps are drawn from)
+gives a 40-crew frigate 2,427 m2 of rooms: about 61 m2 a person, x1.40 for
+circulation, x3.2 m decks = 273 m3. The Hound (A)'s modelled fittings (doors,
+airlock, viewports, rails, a 1.8 m mannequin) were built at 0.88 m per unit,
+which needed 328. 300 lies between them; the range 273-328 is reported for
+every hull. There is no economy of scale.
 
-Physical check: a twenty-foot container is 38.5 m3 outside. 50.6 m3 is one
-such container with about 30% for hold access, cell guides and handling, a
-reasonable meaning for one Starsector cargo unit. The old 2.0 m3 per unit made
-the Hound's 75-unit hold about four delivery vans, which is why it solved to
-half its fitted size.
+That is far above naval norms (15-30 m3) and the ISS (about 55). A Starsector
+crew lives aboard for months, and the deck program is what the game draws.
 
-## Real-world constants
+**Capitals feel like capital ships** (owner). A capital's crew room takes a
+factor of 1.45, which brings the capitals to about 3.3-4.3x a frigate's length.
+The owner chose this from lineup renders of four options.
 
-**Habitable volume per person**, compared against real habitable figures:
-naval warships give their crews 15-30 m3 each for voyages of weeks, and the
-ISS gives its crew of 7 about 55 m3 each. The range is 40 (a cramped warship)
-to 70 (a roomy long-haul ship).
-
-**Fuel: 32 m3 per unit.** One unit is one tank-container load: an ISO tank
-holds about 26 m3, plus 25% for tankage, insulation and plumbing.
-
-**Hangars:** each craft's bare length x span x height box, at the fighter's own
-size, times the class's hangar factor, with one spare per wing. A Nimitz's
-210 x 33 x 8 m hangar (about 55,000 m3) holds 25-30 aircraft, about 1.8x each
-F/A-18's box. Servicing in space and ordnance handling add to it.
-
-**Boat bays: 960 m3 each.** That is the mod's deck program's 16 x 10 m boat bay
-at 6 m clear height. The Second Wind has two.
-
-**Capitals feel like capital ships** (owner). Where a range is left, a capital
-takes the generous end and a small hull the lean end:
-
-| class | habitable m3 per person | armour | drive, reactor, flux | weapons, magazines | structure, tanks, stores, life support | machinery total | hangar factor |
+| class | habitable factor | armour | drive, reactor, flux | weapons, magazines | structure, tanks, stores, life support | machinery total | hangar factor |
 |---|---|---|---|---|---|---|---|
-| frigate | 40 | .06 | .22 | .06 | .12 | .46 | 2.5 |
-| destroyer | 50 | .08 | .20 | .07 | .12 | .47 | 2.6 |
-| cruiser | 60 | .11 | .18 | .09 | .12 | .50 | 2.8 |
-| capital | 70 | .18 | .16 | .12 | .12 | .58 | 3.0 |
-| freighter | 40 | .03 | .15 | .02 | .12 | .32 | 2.5 |
+| frigate | 1.0 | .06 | .22 | .06 | .12 | .46 | 2.5 |
+| destroyer | 1.05 | .08 | .20 | .07 | .12 | .47 | 2.6 |
+| cruiser | 1.1 | .11 | .18 | .09 | .12 | .50 | 2.8 |
+| capital | 1.45 | .18 | .16 | .12 | .12 | .58 | 3.0 |
+| freighter | 1.0 | .03 | .15 | .02 | .12 | .32 | 2.5 |
 
 Real warships give machinery spaces about 20-25% of their internal volume. The
 drive plant's share shrinks with size, while armour and weapons grow with
 class. A freighter carries little of either. The class comes from `hullSize`,
 except that a designation naming a freighter, transport, tanker or liner makes
 the hull a freighter.
+
+## The other real-world constants
+
+**Cargo: 2.0 m3 a unit.** One unit is taken as one tonne of goods: about
+1.5 m3 a tonne for mixed palletised cargo, plus 30% for hold access.
+
+**Fuel: 1.5 m3 a unit.** One tonne at about 0.8 t/m3, plus 20% tankage.
+
+**Hangars:** each craft's bare length x span x height box, at the fighter's own
+size, times the class's hangar factor, with one spare per wing. A Nimitz's
+210 x 33 x 8 m hangar (about 55,000 m3) holds 25-30 aircraft, about 1.8x each
+F/A-18's box. Servicing in space and ordnance handling add to it.
+
+**Boat bays: 960 m3 each.** That is the deck program's 16 x 10 m boat bay at
+6 m clear height. The Second Wind has two.
+
+## The hulls today
+
+| hull | metres per unit | length | volume | state |
+|---|---|---|---|---|
+| Hound (A) | 0.88 (solves 1.09) | 61 m | measured | published, kept: the anchor for person-scale fittings |
+| Second Wind | 0.65 (solves 0.69) | 66 m | measured | published, kept |
+| Lasher | 0.65 published (solves 0.95) | 62 m (90 m solved) | measured | published before option C; re-publish at 0.95 owed by the Lasher session |
+| Legion (XIV) | 0.99 (solves 0.995) | 292 m | measured | published |
+| Onslaught | 0.93 | 326 m | estimate | waiting on a measured model |
+
+The Hound and the Second Wind keep their published values by the owner's
+decision. Their fittings were modelled at those scales.
 
 ## Frigate-to-capital length
 
@@ -85,6 +98,19 @@ and Onslaught 384 px. They are a floor on the ratio, not the method. The module
 reports each capital's length against both the Hound and the Lasher, and flags
 any capital under about 4x a frigate, or under its own sprite ratio. A flagged
 capital is never published silently.
+
+Under option C both capitals are flagged against the Lasher's solved length
+(3.3x and 3.6x; measured volume, 90 m). The owner chose C with that shown.
+Against the Lasher's pre-C published 62 m the Legion would be 4.7x; that
+number is stale until the Lasher is re-published on this basis.
+
+## Person-scale fittings
+
+Doors, hatches, rails, ladders and catwalks are true metres at the published
+scale: a 2.1 m door is 2.1 m whatever `metres_per_unit` is. A model that drew
+them at an earlier scale scales those authored sizes by old/new, as the Legion
+does with `lg_kit.PERSON`. Hangar mouths, bays and fighters are sized from
+contents and do not rescale.
 
 ## Whole hull against whole hull
 
