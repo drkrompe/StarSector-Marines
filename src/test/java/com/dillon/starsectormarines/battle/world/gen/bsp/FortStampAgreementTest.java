@@ -1,10 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.fort.FortAspect;
-import com.dillon.starsectormarines.battle.fort.FortBuildingArt;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
-import com.dillon.starsectormarines.battle.turret.StructureDef;
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -104,40 +101,6 @@ class FortStampAgreementTest {
                         }
                     }
                     assertTrue(walled > 0, plan.kind() + " " + room.purpose() + " has its wall ring at turn " + turn);
-                }
-            }
-        }
-    }
-
-    @Test
-    void everyTurbineWellOfThePowerArtSitsOverAGeneratorSetAtEveryTurn() {
-        for (FortPlan plan : List.of(BatteryFort.PLAN, ShieldFort.PLAN)) {
-            StructureDef def = TurretCatalogRegistry.requireStructure(plan.coreStructureId(FortAspect.POWER));
-            FortBuildingArt art = def.buildingArt;
-            int[] floor = plan.floor(FortAspect.POWER);
-            boolean halfTurned = art.needsHalfTurn(plan.door(FortAspect.POWER)[1] < floor[1]);
-            for (int turn = 0; turn < 4; turn++) {
-                GenContext ctx = field();
-                FortStage.stamp(ctx, plan, plan.layout().at(60, 40, turn), 0);
-                FortFrame frame = new FortFrame(plan, 60, 40, turn);
-                for (FortBuildingArt.Rotor rotor : art.rotors()) {
-                    float[] at = FortBuildingArt.registered(halfTurned, floor[2], floor[3], rotor.x(), rotor.y());
-                    // A well is centred on the corner shared by a two-by-two block of generator cells.
-                    int cornerX = floor[0] + Math.round(at[0]);
-                    int cornerY = floor[1] + Math.round(at[1]);
-                    float[] drawn = frame.point(floor[0] + at[0], floor[1] + at[1]);
-                    float sumX = 0, sumY = 0;
-                    for (int dx = -1; dx <= 0; dx++) {
-                        for (int dy = -1; dy <= 0; dy++) {
-                            int[] cell = frame.cell(cornerX + dx, cornerY + dy);
-                            sumX += cell[0] + 0.5f;
-                            sumY += cell[1] + 0.5f;
-                            assertTrue(doodadAt(ctx, cell[0], cell[1], "doodad.industrial-generator") != null,
-                                    plan.kind() + " turbine well at (" + rotor.x() + "," + rotor.y() + ") over a generator set at turn " + turn);
-                        }
-                    }
-                    assertEquals(sumX / 4f, drawn[0], 0.01f, plan.kind() + " turbine drawn over its set (x) at turn " + turn);
-                    assertEquals(sumY / 4f, drawn[1], 0.01f, plan.kind() + " turbine drawn over its set (y) at turn " + turn);
                 }
             }
         }

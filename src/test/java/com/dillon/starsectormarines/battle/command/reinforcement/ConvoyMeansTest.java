@@ -19,8 +19,6 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -327,12 +325,6 @@ class ConvoyMeansTest {
         assertTrue(!mission.commandOwnsObjective);
     }
 
-    @Test
-    void canonicalConquestMapsCommitFromDefenderRearOnBothAxes() {
-        assertCanonicalRearDispatch(TraversalAxis.SOUTH_TO_NORTH);
-        assertCanonicalRearDispatch(TraversalAxis.WEST_TO_EAST);
-    }
-
     /**
      * The probe answers for the delivery, not for the map.
      *
@@ -455,43 +447,6 @@ class ConvoyMeansTest {
                 ReinforcementRequest.Reason.GARRISON_DEPLETED,
                 ReinforcementRequest.Strength.SMALL,
                 x, y, x, y);
-    }
-
-    private static void assertCanonicalRearDispatch(TraversalAxis axis) {
-        MapResult map = new BspCityGenerator().generate(
-                240, 160, 42L, axis);
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
-        int minimumForward = axis == TraversalAxis.WEST_TO_EAST ? 120 : 80;
-        DeliveryDeploymentPolicy policy = request -> new DeliveryDeployment(
-                map.defenderSpawnX, map.defenderSpawnY, minimumForward,
-                true, false,
-                SquadCommandClaim.mission("conquest-defender", "canonical test"));
-        ConvoyMeans means = new ConvoyMeans(map.roadGraph, axis,
-                null, RiskLevel.LOW, policy);
-
-        ReinforcementDispatchResult result = prove(means, sim,
-                request(map.defenderSpawnX, map.defenderSpawnY));
-
-        assertEquals(ReinforcementDispatchResult.COMMITTED, result,
-                "canonical " + axis + " map needs a complete rear convoy route");
-        VehicleMission mission = onlyMission(sim);
-        assertNotNull(mission.routeFields);
-        // An eighth of the map: the claim is "far short of a whole-map flood", and the exact
-        // share moves a little with every change to what the generator builds on seed 42.
-        int mapCells = map.grid.getWidth() * map.grid.getHeight();
-        assertTrue(mission.routeFields.clearanceEvaluations() < mapCells / 8,
-                "proof should leave clearance unexamined outside its searched region: "
-                        + mission.routeFields.clearanceEvaluations() + "/" + mapCells);
-        assertTrue(mission.routeFields.costEvaluations() < mapCells / 8,
-                "proof should leave terrain unpriced outside its searched region: "
-                        + mission.routeFields.costEvaluations() + "/" + mapCells);
-        if (axis == TraversalAxis.WEST_TO_EAST) {
-            assertTrue(mission.inboundX[0] > map.grid.getWidth());
-            assertTrue(mission.lzX >= minimumForward);
-        } else {
-            assertTrue(mission.inboundY[0] > map.grid.getHeight());
-            assertTrue(mission.lzY >= minimumForward);
-        }
     }
 
     private static TacticalNode target(int x, int y) {

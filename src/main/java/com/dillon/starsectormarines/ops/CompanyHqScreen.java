@@ -130,7 +130,7 @@ public final class CompanyHqScreen implements Screen {
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "company-hq-deck", "company-hq-deck-caption",
+                "company-hq-deck", "company-hq-board-heading",
                 "company-hq-main", "company-hq-finance", "company-hq-board",
                 "company-hq-obligation-list", "company-hq-news-list")) {
             component.requireElement(id);
