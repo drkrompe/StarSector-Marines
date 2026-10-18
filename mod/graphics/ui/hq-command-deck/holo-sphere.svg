@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Holo board body shading: a lit sphere seen from the room. Layered translucent discs
+       stacked towards the upper left give the lit side, a limb and a soft terminator; the
+       board tints it and draws latitude lines, rings and moons over it in projection. -->
+  <circle cx="32" cy="32" r="30" fill="#ffffff" fill-opacity="0.27"/>
+  <circle cx="29.5" cy="29.5" r="26.5" fill="#ffffff" fill-opacity="0.23"/>
+  <circle cx="27" cy="27" r="21.5" fill="#ffffff" fill-opacity="0.27"/>
+  <circle cx="24.5" cy="24.5" r="15.5" fill="#ffffff" fill-opacity="0.30"/>
+  <circle cx="22" cy="22" r="9" fill="#ffffff" fill-opacity="0.42"/>
+  <circle cx="20.5" cy="20.5" r="4" fill="#ffffff" fill-opacity="0.66"/>
+  <circle cx="32" cy="32" r="30.2" fill="none" stroke="#ffffff" stroke-opacity="0.59" stroke-width="1.4"/>
+  <path d="M 9 44 A 27 27 0 0 1 44 9" fill="none" stroke="#ffffff" stroke-opacity="0.98" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

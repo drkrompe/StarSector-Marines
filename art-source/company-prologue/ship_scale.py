@@ -165,10 +165,10 @@ HULLS = {
     'Legion (XIV)': dict(units3=1678689, crew_max=1500, cargo=300, fuel=300, cls='capital',
                          wings=[('broadsword', 3)]*2+[('hoplon', 2)]*2, length_units=294.9, sprite_px=308,
                          fittings_units={'personnel door h': [3.4*.61/.99], 'rail h': [1.8*.61/.99], 'transfer door w x h': [34, 10]}),
-    'Onslaught': dict(units3=3419861, crew_max=1500, cargo=300, fuel=400, cls='capital',
+    'Onslaught': dict(units3=2601876, crew_max=1500, cargo=300, fuel=400, cls='capital',
                       length_units=351.7, sprite_px=384,
-                      fittings_units={'bridge glazing band h': [1.82], 'bridge pane w': [1.43],
-                                      'crown hatch d': [2.34], 'service hatch w x l': [1.17, 1.82]}),
+                      fittings_units={'bridge glazing band h': [1.67], 'bridge pane w': [1.31],
+                                      'crown hatch d': [2.14], 'service hatch w x l': [1.07, 1.67]}),
     'Lasher': dict(units3=32793, crew_max=50, cargo=40, fuel=25, cls='frigate',
                    length_units=94.7, sprite_px=96,
                    fittings_units={'viewport w x h': [1.05, .84], 'bridge glazing band h': [1.05]}),
@@ -186,7 +186,7 @@ HULLS = {
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)'}
-PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .77,
+PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .84,
              'Shepherd': .78}
 FRIGATES = ('Hound (A)', 'Lasher')
 
@@ -217,7 +217,9 @@ SOLIDS = {
                   'include': lambda n: n in (
                       'Hull prow', 'Hull core', 'Hull port arm', 'Hull starboard arm', 'Hull aft body', 'Hull tail',
                       'Hull port aft leg', 'Hull starboard aft leg', 'Hull port waist', 'Hull starboard waist',
-                      'Bridge spine', 'Bridge command dome', 'Bridge aft dome')},
+                      'Bridge spine', 'Bridge command dome', 'Bridge aft dome', 'Hull port arm gallery',
+                      'Hull starboard arm gallery', 'Hull prow gallery', 'Hull core terrace',
+                      'Hull core inner terrace')},
     # The Shepherd's port drone bay is an open work bay (owner, pass 3): open to
     # space above and outboard, so its air is open structure, never enclosed. Its
     # tubs below the deck and the forward workshop block are counted; the gantry

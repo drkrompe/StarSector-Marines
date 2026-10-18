@@ -13,8 +13,8 @@ Optional, after a literal "--":
   --no-save        skip the .blend and geometry.json
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho camera (repeatable)
   --gear up|down   pose the landing gear (default down; the .blend saves down)
-  --ramp-open DEG  lower the troop ramp by DEG; 'contact' uses the ground angle
-  --figure         add a 1.8 m scale figure beside the ramp toe (renders only)
+  --doors-open DEG swing both boarding doors open by DEG ('full' = their open angle)
+  --figure         add a 1.8 m scale figure at the port boarding door (renders only)
   --state NAME     condition state; only 'clean' exists yet. 'wrecked' and
                    'patched' are reserved (see README, Condition states)
 Then: python compose_review.py  (sprite overlay, IoU, sheets)
@@ -48,7 +48,7 @@ parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--out')
 parser.add_argument('--cam', action='append', default=[])
 parser.add_argument('--gear', choices=('up', 'down'), default='down')
-parser.add_argument('--ramp-open', default='0')
+parser.add_argument('--doors-open', default='0')
 parser.add_argument('--figure', action='store_true')
 parser.add_argument('--state', default='clean', choices=('clean',))
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
@@ -58,9 +58,11 @@ args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv
 # derives from it; nothing hard-codes metres. Derivation: scale_record below
 # and README (Scale).
 METRES_PER_UNIT = 0.11
-STATUS = 'Passes 1, 2 and 4 built; awaiting owner review (pass 3). Clean state only; no damage states or textures.'
+STATUS = 'Passes 1-4 done; pass 3 accepted by the owner. Clean state only; no damage states or textures.'
 PASSES = {'1 blockout': 'built; v1-blockout renders regenerate from commit 624cd3ea8',
           '2 plausible detailing': 'built: one Opus agent per module (hull, cockpit, engines, turrets, ventral)',
+          '3 owner review': 'stubby legs and a flat stance; ventral ramp replaced by side boarding doors; spine fairing '
+                            'and gun sponsons reshaped from the sprite; pass-2 detail refitted',
           '4 real-world scale': 'metres_per_unit published; derivation in scale_record'}
 RENDERS = Path(args.out).resolve() if args.out else HERE/'renders'
 SAVE_DIR = Path(args.out).resolve() if args.out else HERE
@@ -144,7 +146,7 @@ for module in (hm_cockpit, hm_engines, hm_turrets, hm_ventral):
 
 required = sum(CREWED_PROGRAM_M3.values())
 solve = lambda share: (required/(share*envelope_u3))**(1/3)
-x0, x1, h = hm_ventral.RAMP_OPENING
+x0, x1 = hm_ventral.DOOR_X
 scale_record = {
     'published': METRES_PER_UNIT,
     'crewed_program_m3': CREWED_PROGRAM_M3,
@@ -158,7 +160,9 @@ scale_record = {
         'note': 'spine interior less 1.5 u floor/roof structure and 1 u walls; '
                 '1.9 m headroom and 2.0 m between benches set the scale from the section',
     },
-    'ramp_opening_m': [round((x1 - x0)*METRES_PER_UNIT, 2), round(2*h*METRES_PER_UNIT, 2)],
+    'boarding_door_clear_m': [round((x1 - x0)*METRES_PER_UNIT, 2),
+                              round((hm_ventral.DOOR_HEAD - hm_ventral.DOOR_SILL)*METRES_PER_UNIT, 2)],
+    'boarding_sill_above_ground_m': round((hm_ventral.DOOR_SILL - hm_ventral.GROUND)*METRES_PER_UNIT, 2),
     'person_1_8m_units': round(1.8/METRES_PER_UNIT, 1),
 }
 sec = scale_record['section_check']
@@ -170,13 +174,15 @@ if args.gear == 'up':
     for name, _, _ in hm_ventral.GEAR:
         e = bpy.data.objects[f'Gear {name} hinge']
         e.rotation_euler[1] = math.radians(e['retract_angle_deg'])
-ramp = bpy.data.objects['Hull ventral ramp hinge']
-ramp_deg = ramp['contact_angle_deg'] if args.ramp_open == 'contact' else float(args.ramp_open)
-ramp.rotation_euler[1] = math.radians(ramp_deg)
+doors_deg = 0.0
+for side in ('port', 'starboard'):
+    e = bpy.data.objects[f'Hull {side} boarding door hinge']
+    doors_deg = e['open_angle_deg'] if args.doors_open == 'full' else float(args.doors_open)
+    e.rotation_euler[2] = e['open_sign']*math.radians(doors_deg)
 if args.figure:
     skin = hm_kit.material('Scale figure', (.85, .75, .2), 0, .6)
     u = 1/METRES_PER_UNIT
-    fx, fy, fz = 23.0, 12.5, hm_ventral.GROUND   # clear of the spine and wing, beside the ramp toe
+    fx, fy, fz = 6.5, 32.0, hm_ventral.GROUND   # on the ground outside the port boarding door
     hm_kit.bx(kit, 'Scale figure legs', fx-.16*u, fx+.16*u, fy-.21*u, fy+.21*u, fz, fz+.94*u, skin, .05*u)
     hm_kit.bx(kit, 'Scale figure torso', fx-.18*u, fx+.18*u, fy-.28*u, fy+.28*u, fz+.94*u, fz+1.66*u, skin, .06*u)
     kit.cylinder('Scale figure head', (fx, fy, fz+1.8*u-.15*u), .13*u, .3*u, skin, 'Z', 12, .04*u)
@@ -240,7 +246,7 @@ for name in [v for v in args.views.split(',') if v] + [c.split(':')[0] for c in 
     bpy.ops.render.render(write_still=True)
 scene.render.film_transparent = False
 
-if not args.no_save and not args.figure and args.gear == 'down' and ramp_deg == 0:
+if not args.no_save and not args.figure and args.gear == 'down' and doors_deg == 0:
     scene.camera = bpy.data.objects['Camera port-quarter']
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=str(SAVE_DIR/'hermes-geometry.blend'))
@@ -284,13 +290,14 @@ if not args.no_save and not args.figure and args.gear == 'down' and ramp_deg == 
                      'anchor': f'Engine {i} exhaust anchor', 'role': hm_engines.ROLES[i-1]}
                     for i, (x, y, a, w) in enumerate(hm_engines.ENGINES, 1)],
         'moving_parts': {
-            'ramp': {'pivot': 'Hull ventral ramp hinge', 'axis': 'Y', 'open_sign': 1,
-                     'contact_angle_deg': ramp['contact_angle_deg'], 'built': 'closed',
-                     'opening_units': [x1 - x0, 2*h]},
+            'boarding_doors': [{'pivot': f'Hull {side} boarding door hinge', 'axis': 'Z', 'open_sign': s,
+                                'open_angle_deg': 100.0, 'built': 'closed',
+                                'opening_units': [x1 - x0, hm_ventral.DOOR_HEAD - hm_ventral.DOOR_SILL]}
+                               for s, side in ((1, 'port'), (-1, 'starboard'))],
             'gear': [{'pivot': f'Gear {n} hinge', 'axis': 'Y', 'retract_angle_deg': a, 'built': 'extended'}
                      for n, _, a in hm_ventral.GEAR],
             # Every pivot empty in the build with its custom properties
-            # (side hatches, gear doors and the rest), so nothing that moves
+            # (boarding doors, gear doors and the rest), so nothing that moves
             # is missing from the manifest.
             'pivots': {ob.name: {k: (v if isinstance(v, (int, float, str)) else str(v)) for k, v in ob.items() if k != 'module'}
                        for ob in sorted(bpy.data.objects, key=lambda o: o.name)

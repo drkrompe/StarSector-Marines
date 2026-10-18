@@ -109,6 +109,12 @@ public final class FogOfWarService {
      */
     private final TemporarySources carried = new TemporarySources();
 
+    /**
+     * Sources the simulation replaces each tick for a hull whose job is to look: a scout car's mast. Its own channel
+     * for the reason {@link #carried} has one — a different owner clears it at a different point in the tick.
+     */
+    private final TemporarySources vehicleSight = new TemporarySources();
+
     public Buildings getBuildings() { return buildings; }
     public PlayerVisionState getVisionState() { return visionState; }
 
@@ -384,6 +390,19 @@ public final class FogOfWarService {
         add(carried, cellX, cellY, range, wallReadRadius);
     }
 
+    /** Clears the vehicle sight sources; called by the system that republishes them, once per tick. */
+    public void clearVehicleSightSources() {
+        vehicleSight.clear();
+    }
+
+    /**
+     * Registers a sight-carrying hull as a temporary observer for this tick: ordinary ground-level shadowcast from
+     * its cell, walls block. The same seam every temporary observer uses, never a second reveal path.
+     */
+    public void addVehicleSightSource(int cellX, int cellY, int range) {
+        add(vehicleSight, cellX, cellY, range, 0f);
+    }
+
     private void add(TemporarySources sources, int cellX, int cellY,
                      int range, float airLosRadius) {
         if (!initialized) return;
@@ -404,6 +423,7 @@ public final class FogOfWarService {
 
         int total = castInto(projected, 0);
         total = castInto(carried, total);
+        total = castInto(vehicleSight, total);
         ephemeralPrevCount = total;
 
         for (int i = 0; i < total; i++) {
@@ -547,6 +567,7 @@ public final class FogOfWarService {
         }
         addClearAirFootprints(projected);
         addClearAirFootprints(carried);
+        addClearAirFootprints(vehicleSight);
         adoptClearAir();
     }
 

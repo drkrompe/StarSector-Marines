@@ -136,6 +136,34 @@ public enum VehicleType {
             return new BicycleBody(1.65f, 30f, 180f, accel, brakingAccel, maxSpeed);
         }
     },
+    /**
+     * The technical's pickup with its pintle gone and its bed full of ammunition crates. It carries a finite stock of
+     * resupply and hands it out, one round at a time through the battle's ordinary {@code ResupplySystem}, to friendly
+     * squads standing near it — but only while it is halted: crates come off a parked truck. It pays for that with
+     * everything else: no gun, no seats, and none of the technical's welded plate (art-source/vehicles/light-roles).
+     */
+    SUPPLY_TRUCK("graphics/battle/vehicles/supply-truck.png", 0, 4, -90f,
+            0, 3.0f, 1.5f, 3.4f, 2.0f, 3.6f, .8f, 2.4f,
+            -1, 0, 0, 0, 0, 0, 0, null, 360f, 60f, 4f, 1.3f, .65f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.65f, 30f, 170f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public int supplyStock() { return 24; }
+    },
+    /**
+     * The pickup cut short on a shorter wheelbase, painted dust grey, with a sensor mast where the gun stood. Its job
+     * is information: it sees farther than a marine and reports what it sees to its side's fog and its commander
+     * ({@link ScoutSight}). The fastest hull in the bay, and the thinnest: no gun, no seats, almost no plate, and its
+     * sight is ordinary line of sight, so it has to be driven somewhere it can look.
+     */
+    SCOUT_CAR("graphics/battle/vehicles/scout-car.png", 0, 4, -90f,
+            0, 2.5f, 1.5f, 5.2f, 3.0f, 4.5f, .8f, 2.2f,
+            -1, 0, 0, 0, 0, 0, 0, null, 200f, 30f, 3f, 1.15f, .6f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.35f, 32f, 200f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public float sightCells() { return 48f; }
+    },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
             0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
@@ -145,6 +173,15 @@ public enum VehicleType {
         }
     };
 
+    /**
+     * Rounds of resupply this hull carries into battle and hands out through the battle's resupply authority, or 0
+     * for every hull that carries none.
+     */
+    public int supplyStock() { return 0; }
+
+    /** How far this hull reports what it sees to its side, in cells; 0 for a hull that is not a sight source. */
+    public float sightCells() { return 0f; }
+
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 
@@ -153,6 +190,11 @@ public enum VehicleType {
 
     public boolean isApc() {
         return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC;
+    }
+
+    /** The technical's pickup and the light roles built on it: the supply truck and the scout car. */
+    public boolean isPickup() {
+        return this == MILITIA_TECHNICAL || this == SUPPLY_TRUCK || this == SCOUT_CAR;
     }
 
     /** The breakthrough hull and the variants built on it. */
@@ -321,7 +363,7 @@ public enum VehicleType {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HEAVY_APC -> LiftClass.LIGHT;
+            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR -> LiftClass.LIGHT;
             case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC -> LiftClass.MEDIUM;
             case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;

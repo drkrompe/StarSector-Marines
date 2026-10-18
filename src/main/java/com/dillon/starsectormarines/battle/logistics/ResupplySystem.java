@@ -5,8 +5,9 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 /**
- * Transfers one finite munition unit at a time to a friendly unit physically
- * holding near a cache. Nearby enemies contest the cache and pause service.
+ * The battle's resupply authority. Transfers one finite munition unit at a time — a special's use, or a mech rack's
+ * round — to a friendly unit physically holding near a cache. Nearby enemies contest the cache and pause service.
+ * A cache dropped from the air and one riding a supply truck are served by these same rules.
  */
 public final class ResupplySystem {
 
@@ -22,7 +23,10 @@ public final class ResupplySystem {
 
     public void tick(float dt) {
         for (ResupplyCache cache : service.caches()) {
-            if (cache.depleted()) continue;
+            if (!cache.serving()) {
+                cache.contested = false;
+                continue;
+            }
             cache.contested = enemyWithin(cache);
             if (cache.contested) continue;
             cache.transferCooldown -= dt;
@@ -45,8 +49,8 @@ public final class ResupplySystem {
             // friendly faction standing over it is not shutting it, and a
             // civilian never was.
             if (!cache.faction.hostileTo(roster.identity().faction(unit))) continue;
-            float dx = world.x(unit) - (cache.cellX + 0.5f);
-            float dy = world.y(unit) - (cache.cellY + 0.5f);
+            float dx = world.x(unit) - cache.centerX();
+            float dy = world.y(unit) - cache.centerY();
             if (dx * dx + dy * dy <= r2) return true;
         }
         return false;
@@ -60,8 +64,8 @@ public final class ResupplySystem {
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
             if (roster.identity().faction(unit) != cache.faction || !needsSupply(unit)) continue;
-            float dx = world.x(unit) - (cache.cellX + 0.5f);
-            float dy = world.y(unit) - (cache.cellY + 0.5f);
+            float dx = world.x(unit) - cache.centerX();
+            float dy = world.y(unit) - cache.centerY();
             float dist2 = dx * dx + dy * dy;
             if (dist2 <= r2 && dist2 < bestDist2) {
                 bestDist2 = dist2;

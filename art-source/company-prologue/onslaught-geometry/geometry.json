@@ -46,11 +46,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.77,
+  "metres_per_unit": 0.84,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 3419861,
+      "units3": 2601876,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -86,13 +86,13 @@
     "contents_total_m3": 653700,
     "machinery_share": 0.58,
     "enclosed_m3": 1556429,
-    "solved_metres_per_unit": 0.769,
+    "solved_metres_per_unit": 0.843,
     "range": {
-      "habitable_273": 0.745,
-      "habitable_328": 0.792
+      "habitable_273": 0.817,
+      "habitable_328": 0.868
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 270.5,
+    "length_m": 296.3,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -102,32 +102,37 @@
         1.4
       ]
     },
-    "published_metres_per_unit": 0.77,
+    "published_metres_per_unit": 0.84,
     "measured_this_build": {
-      "enclosed_units3": 3419861,
+      "enclosed_units3": 2601876,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
         "Bridge spine",
         "Hull aft body",
         "Hull core",
+        "Hull core inner terrace",
+        "Hull core terrace",
         "Hull port aft leg",
         "Hull port arm",
+        "Hull port arm gallery",
         "Hull port waist",
         "Hull prow",
+        "Hull prow gallery",
         "Hull starboard aft leg",
         "Hull starboard arm",
+        "Hull starboard arm gallery",
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 3421498
+      "with_drive_pods_units3": 2603602
     },
     "size_m": [
-      270.8,
-      207.1,
-      89.7
+      292.5,
+      226.0,
+      97.8
     ],
-    "person_1_8_m_in_units": 2.34,
+    "person_1_8_m_in_units": 2.14,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -148,12 +153,12 @@
       -65.2
     ],
     "max": [
-      225.74,
+      222.22,
       134.5,
       51.28
     ],
     "size": [
-      351.74,
+      348.22,
       269.0,
       116.48
     ]
@@ -165,7 +170,7 @@
       "location": [
         158,
         71,
-        16.24
+        20.29
       ],
       "angle": 70,
       "arc": 150,
@@ -183,7 +188,7 @@
       "location": [
         134,
         74,
-        15.34
+        20.48
       ],
       "angle": 65,
       "arc": 120,
@@ -201,7 +206,7 @@
       "location": [
         158,
         -71,
-        16.24
+        20.29
       ],
       "angle": -70,
       "arc": 150,
@@ -219,7 +224,7 @@
       "location": [
         134,
         -74,
-        15.34
+        20.48
       ],
       "angle": -65,
       "arc": 120,
@@ -237,7 +242,7 @@
       "location": [
         114,
         78,
-        15.34
+        21.53
       ],
       "angle": 75,
       "arc": 120,
@@ -255,7 +260,7 @@
       "location": [
         114,
         -78,
-        15.34
+        21.53
       ],
       "angle": -75,
       "arc": 120,
@@ -273,7 +278,7 @@
       "location": [
         187,
         0,
-        17.69
+        19.14
       ],
       "angle": 0,
       "arc": 150,
@@ -291,7 +296,7 @@
       "location": [
         150,
         -12,
-        18.14
+        20.6
       ],
       "angle": -20,
       "arc": 90,
@@ -309,7 +314,7 @@
       "location": [
         150,
         12,
-        18.14
+        20.6
       ],
       "angle": 20,
       "arc": 90,
@@ -327,7 +332,7 @@
       "location": [
         -3,
         -112,
-        20.24
+        23.6
       ],
       "angle": 250,
       "arc": 180,
@@ -345,7 +350,7 @@
       "location": [
         -3,
         112,
-        20.24
+        23.61
       ],
       "angle": 110,
       "arc": 180,
@@ -435,7 +440,7 @@
       "location": [
         77,
         88,
-        17.52
+        25.22
       ],
       "angle": 80,
       "arc": 135,
@@ -453,7 +458,7 @@
       "location": [
         126,
         0,
-        20.32
+        24.87
       ],
       "angle": 0,
       "arc": 150,
@@ -471,7 +476,7 @@
       "location": [
         77,
         -87,
-        17.52
+        25.22
       ],
       "angle": -80,
       "arc": 135,
@@ -489,7 +494,7 @@
       "location": [
         -9,
         65,
-        28.74
+        15.44
       ],
       "angle": 30,
       "arc": 120,
@@ -507,7 +512,7 @@
       "location": [
         8,
         40,
-        24.24
+        25.91
       ],
       "angle": 20,
       "arc": 120,
@@ -525,7 +530,7 @@
       "location": [
         8,
         -40,
-        24.24
+        25.91
       ],
       "angle": -20,
       "arc": 120,
@@ -543,7 +548,7 @@
       "location": [
         -9,
         -65,
-        28.74
+        15.44
       ],
       "angle": -30,
       "arc": 120,
@@ -561,7 +566,7 @@
       "location": [
         198,
         70,
-        11.0
+        13.92
       ],
       "angle": 0,
       "arc": 5,
@@ -578,7 +583,7 @@
       "location": [
         198,
         -70,
-        11.0
+        13.92
       ],
       "angle": 0,
       "arc": 5,
@@ -760,9 +765,9 @@
     {
       "name": "Light stem 1",
       "position": [
-        225.25,
-        -0.0,
-        2.0
+        215.98,
+        0.0,
+        2.17
       ],
       "colour": "red",
       "rgb": [
@@ -802,7 +807,7 @@
       "position": [
         -122.0,
         56.0,
-        5.7
+        5.69
       ],
       "colour": "red",
       "rgb": [
@@ -822,7 +827,7 @@
       "position": [
         -66.0,
         100.0,
-        7.77
+        -4.87
       ],
       "colour": "red",
       "rgb": [
@@ -842,7 +847,7 @@
       "position": [
         180.0,
         89.5,
-        18.25
+        5.65
       ],
       "colour": "white",
       "rgb": [
@@ -862,7 +867,7 @@
       "position": [
         140.0,
         101.5,
-        18.25
+        4.84
       ],
       "colour": "white",
       "rgb": [
@@ -882,7 +887,7 @@
       "position": [
         100.0,
         121.5,
-        18.25
+        9.03
       ],
       "colour": "white",
       "rgb": [
@@ -902,7 +907,7 @@
       "position": [
         60.0,
         123.5,
-        21.45
+        9.15
       ],
       "colour": "white",
       "rgb": [
@@ -922,7 +927,7 @@
       "position": [
         20.0,
         127.5,
-        18.25
+        9.62
       ],
       "colour": "white",
       "rgb": [
@@ -942,7 +947,7 @@
       "position": [
         -10.0,
         117.5,
-        17.59
+        19.96
       ],
       "colour": "white",
       "rgb": [
@@ -962,7 +967,7 @@
       "position": [
         -122.0,
         -56.0,
-        5.7
+        5.69
       ],
       "colour": "red",
       "rgb": [
@@ -982,7 +987,7 @@
       "position": [
         -66.0,
         -100.0,
-        7.77
+        -4.95
       ],
       "colour": "red",
       "rgb": [
@@ -1002,7 +1007,7 @@
       "position": [
         180.0,
         -89.5,
-        18.25
+        5.65
       ],
       "colour": "white",
       "rgb": [
@@ -1022,7 +1027,7 @@
       "position": [
         140.0,
         -101.5,
-        18.25
+        4.84
       ],
       "colour": "white",
       "rgb": [
@@ -1042,7 +1047,7 @@
       "position": [
         100.0,
         -121.5,
-        18.25
+        9.03
       ],
       "colour": "white",
       "rgb": [
@@ -1062,7 +1067,7 @@
       "position": [
         60.0,
         -123.5,
-        21.45
+        9.15
       ],
       "colour": "white",
       "rgb": [
@@ -1082,7 +1087,7 @@
       "position": [
         20.0,
         -127.5,
-        18.25
+        9.48
       ],
       "colour": "white",
       "rgb": [
@@ -1102,7 +1107,7 @@
       "position": [
         -10.0,
         -117.5,
-        17.59
+        19.94
       ],
       "colour": "white",
       "rgb": [
@@ -1120,9 +1125,9 @@
     {
       "name": "Light stern 1",
       "position": [
-        -113.75,
+        -109.91,
         0.0,
-        8.0
+        8.06
       ],
       "colour": "white",
       "rgb": [
@@ -1153,44 +1158,44 @@
     "sensor_mm": 36.0,
     "cameras": {
       "formation-quarter-1.5km": [
-        1469.1,
-        -1190.9,
-        595.0
+        1349.1,
+        -1091.7,
+        544.9
       ],
       "formation-abeam-1.5km": [
-        49.9,
-        -1929.1,
-        264.2
+        48.1,
+        -1768.3,
+        241.6
       ],
       "formation-bow-1.5km": [
-        -1600.3,
-        -952.7,
-        398.1
+        -1464.6,
+        -873.3,
+        364.3
       ],
       "formation-high-1.5km": [
-        1342.2,
-        746.1,
-        1245.2
+        1232.8,
+        684.0,
+        1140.9
       ],
       "formation-quarter-3km": [
-        2888.4,
-        -2381.8,
-        1197.0
+        2650.1,
+        -2183.3,
+        1096.7
       ],
       "formation-abeam-3km": [
-        49.9,
-        -3858.2,
-        535.3
+        48.1,
+        -3536.7,
+        490.1
       ],
       "formation-bow-3km": [
-        -3250.5,
-        -1905.5,
-        803.1
+        -2977.3,
+        -1746.7,
+        735.6
       ],
       "formation-high-3km": [
-        2634.6,
-        1492.3,
-        2497.4
+        2417.4,
+        1367.9,
+        2288.7
       ]
     }
   },
@@ -1267,34 +1272,34 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9636,
-    "sprite_uncovered": 0.0143,
-    "model_outside_sprite": 0.0229,
+    "iou": 0.9623,
+    "sprite_uncovered": 0.0162,
+    "model_outside_sprite": 0.0224,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
     "formation-abeam-1.5km": {
       "size_px": [
-        236,
-        79
+        258,
+        84
       ]
     },
     "formation-bow-1.5km": {
       "size_px": [
-        194,
-        83
+        209,
+        92
       ]
     },
     "formation-high-1.5km": {
       "size_px": [
-        199,
-        160
+        216,
+        172
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
-        215,
-        98
+        235,
+        92
       ]
     },
     "formation-sheet": {
@@ -1305,26 +1310,26 @@
     },
     "formation-abeam-3km": {
       "size_px": [
-        117,
-        39
+        127,
+        41
       ]
     },
     "formation-bow-3km": {
       "size_px": [
-        98,
-        41
+        106,
+        46
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        98,
-        80
+        109,
+        86
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        107,
-        48
+        117,
+        47
       ]
     }
   }
