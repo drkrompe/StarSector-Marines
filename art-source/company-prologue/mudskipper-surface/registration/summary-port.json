@@ -1,0 +1,42 @@
+{
+ "waist-port": {
+  "raw_iou": 0.99,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.995,
+  "scale": [
+   0.9989,
+   1.00183
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "aft-flank-port": {
+  "raw_iou": 0.9947,
+  "best_fit": "identity",
+  "fitted_iou": 0.9947,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "sponson-port": {
+  "raw_iou": 0.9934,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9991,
+  "scale": [
+   0.99742,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bay-doors-port": {
+  "raw_iou": 0.9995,
+  "best_fit": "identity",
+  "fitted_iou": 0.9995,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

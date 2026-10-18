@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f3b-2464-73e0-a408-cef786bd8ef4",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f3b-2464-73e0-a408-cef786bd8ef4\\exec-b01eec2d-7cf7-412a-913e-f95d2ff1d80c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-bow-a.png",
+    "sha256": "23b654ee2ab76be842671df3fa97d3c9ddc7611961dae076109aadbb11e56d94",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-bow-a.prompt.txt",
+  "promptSha256": "57eda68d717279d3ce6a84ac603e48c31a1fb532e64d40f9756b3cd0e37f9c7d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of faces of one 3D spacecraft (a small civilian interplanetary ferry and cargo lander, a working transport kept in service for years) around its bow, each seen square-on and drawn as flat-coloured shapes on a plain flat mid-blue background:\ntop-left: the whole bow face seen from dead ahead: a wide off-white bow plate; at its centre the off-white cockpit block stands proud, with a small tan plate on each of its angled corners; either side of it, two pairs of off-white armour panels along the top divided by thin near-black recess seams, and below them two pairs of square tan fender blocks, each framed by a thin dark grey-brown steel backing plate; at both outer ends a narrow grey-green sponson front;\ntop-right: the bow top rake seen along its own slope: a long off-white rake band across the width, the off-white cockpit block rake as a trapezoid below its middle (the small hole in it stays plain background blue), and above it the off-white bridge cab windscreen rake with its visor brow and sill, cut by two thin vertical background-blue gaps;\nbottom-left: the cockpit block crown and the bridge cab roof from directly above: off-white plates, the cab's three roof sections side by side in the lower half with narrow shaded gaps between them;\nbottom-right: the rounded forward-quarter face of a grey-green sponson, one tall plate with chamfered corners.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, wear density, fine chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each face in INPUT 1 as that ship's painted industrial hull surface: industrial enamel paint over steel. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain mid-blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and every hole or gap in a shape stays plain background blue.\n- Each shape is a flat painted steel surface. Add painted surface detail inside its outline only: fine plate seams, small flush fasteners, a few small flush access covers, light even scuffing, faint edge chipping showing grey primer, a thin even film of grime. Nothing may stand out from the surface or cross an outline.\n- Keep each shape's colour: off-white plate stays off-white enamel, tan fender blocks and tan plates stay tan, grey-green sponson plate stays grey-green, the dark grey-brown steel backing plates stay dark grey-brown drive steel, the thin near-black recess seams stay near-black. Do not repaint any shape another colour, and do not add white, red, orange or different-coloured patches, stripes or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains, hazard stripes, stencils, text, numbers or markings, and no single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening (the soft shading in INPUT 1's gaps is not paint: paint those areas the plain colour of their shape), no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same PLAIN FLAT uniform MID BLUE as INPUT 1, everywhere outside the shapes, with no floor, shadow, vignette, texture, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-bow-a-guide.png",
+      "sha256": "afa8107f6cd6fb0171921330c080ad1e8ca47774f5acaeda2410c50a0f73b31c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "a7eccb0bda3f90268244cdaa2dac3ab7e7a038a66a94b87e6fd5ab0b15e7855e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed layout and Image 2 only as the material reference, generating one painted sheet."
+  ],
+  "usage": {
+    "input_tokens": 45094,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 915,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.2
+}

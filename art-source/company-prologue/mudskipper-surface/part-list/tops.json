@@ -1,0 +1,454 @@
+{
+ "tops-waist-deck": {
+  "what": "waist deck top from above: off-white deck plate, two straight signal-red stripe panels along its edges, tan dorsal cargo hatch and its six leaves",
+  "sheet": "tops-a",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     2.0,
+     15.0,
+     8.5
+    ],
+    "faces": [
+     32
+    ]
+   },
+   {
+    "object": "Red stripe panel",
+    "seed": [
+     11.0,
+     17.7,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Red stripe panel.002",
+    "seed": [
+     11.0,
+     -17.7,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch",
+    "seed": [
+     0.5,
+     6.8,
+     9.0
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch leaf",
+    "seed": [
+     2.0,
+     -4.3,
+     8.9
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch leaf.001",
+    "seed": [
+     2.0,
+     0.0,
+     8.9
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch leaf.002",
+    "seed": [
+     2.0,
+     4.3,
+     8.9
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch leaf.003",
+    "seed": [
+     4.2,
+     -4.3,
+     8.9
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch leaf.004",
+    "seed": [
+     4.2,
+     0.0,
+     8.9
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Dorsal cargo hatch leaf.005",
+    "seed": [
+     4.2,
+     4.3,
+     8.9
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   }
+  ],
+  "face_count": 17,
+  "area_units2": 869.47,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.95,
+  "extent_units": [
+   41.0,
+   19.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    9.5
+   ],
+   "ortho_width": 47.674418604651166
+  },
+  "native_texels_per_unit": 16.7
+ },
+ "tops-fore-deck": {
+  "what": "fore deck top from above: off-white deck plate round the cockpit block, straight and angled signal-red chevron panels, off-white vent grille frames",
+  "sheet": "tops-a",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     22.0,
+     18.0,
+     9.0
+    ],
+    "faces": [
+     46
+    ]
+   },
+   {
+    "object": "Red stripe panel.001",
+    "seed": [
+     23.5,
+     17.7,
+     9.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Red stripe panel.003",
+    "seed": [
+     23.5,
+     -17.7,
+     9.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Red stripe panel angled",
+    "seed": [
+     31.5,
+     14.0,
+     9.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Red stripe panel angled.001",
+    "seed": [
+     31.5,
+     -14.0,
+     9.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Fore deck vent grille frame",
+    "seed": [
+     30.3,
+     19.6,
+     9.3
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   },
+   {
+    "object": "Fore deck vent grille frame.001",
+    "seed": [
+     30.3,
+     -19.6,
+     9.3
+    ],
+    "faces": [
+     6,
+     7
+    ]
+   }
+  ],
+  "face_count": 9,
+  "area_units2": 950.74,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.95,
+  "extent_units": [
+   45.0,
+   18.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    27.75
+   ],
+   "ortho_width": 52.32558139534884
+  },
+  "native_texels_per_unit": 15.2
+ },
+ "tops-aft-deck": {
+  "what": "aft deck top from above: off-white deck plate, two off-white aft dorsal hatch panels, tan turret well coaming round the (swatched) turret",
+  "sheet": "tops-a",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     -8.0,
+     22.0,
+     9.5
+    ],
+    "faces": [
+     20
+    ]
+   },
+   {
+    "object": "Aft dorsal hatch panel",
+    "seed": [
+     -12.0,
+     15.0,
+     9.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Aft dorsal hatch panel.001",
+    "seed": [
+     -12.0,
+     -15.0,
+     9.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Turret well coaming",
+    "seed": [
+     -8.5,
+     6.1,
+     10.0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Turret well coaming.001",
+    "seed": [
+     -8.5,
+     -6.1,
+     10.0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Turret well coaming.002",
+    "seed": [
+     -4.4,
+     0.0,
+     10.0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Turret well coaming.003",
+    "seed": [
+     -13.1,
+     0.0,
+     10.0
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 725.17,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.95,
+  "extent_units": [
+   52.0,
+   10.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -8.5
+   ],
+   "ortho_width": 60.46511627906977
+  },
+  "native_texels_per_unit": 13.1
+ },
+ "tops-hood": {
+  "what": "dorsal cabin hood from above: off-white crown with its side and aft slopes, two roof plates and the arched brow rim top",
+  "sheet": "tops-a",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Dorsal cabin hood",
+    "seed": [
+     17.0,
+     0.0,
+     13.0
+    ],
+    "faces": [
+     5,
+     6,
+     7,
+     8
+    ]
+   },
+   {
+    "object": "Hood roof plate",
+    "seed": [
+     9.3,
+     0.0,
+     13.2
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hood roof plate.001",
+    "seed": [
+     12.3,
+     0.0,
+     13.2
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hood arched brow rim",
+    "seed": [
+     17.7,
+     0.0,
+     13.5
+    ],
+    "faces": [
+     61
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 378.19,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.78,
+  "extent_units": [
+   17.5,
+   17.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    14.749998092651367,
+    0.0
+   ],
+   "ortho_width": 35.14211886304909
+  },
+  "native_texels_per_unit": 22.6
+ }
+}

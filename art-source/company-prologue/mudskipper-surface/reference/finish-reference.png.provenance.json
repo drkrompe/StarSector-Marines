@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f2c-f4fb-76d1-b64a-8690750f2551",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f2c-f4fb-76d1-b64a-8690750f2551\\exec-95b90e48-1e65-4b14-86e3-8855b2eed53c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "reference\\finish-reference.png",
+    "sha256": "a7eccb0bda3f90268244cdaa2dac3ab7e7a038a66a94b87e6fd5ab0b15e7855e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\finish-reference.prompt.txt",
+  "promptSha256": "f9ce27e8f9b6bdd42134e0381fc5db4b3f71738a2f400e46cf59c2fb50f03ab8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout and geometry authority)\nImage 2: INPUT 2: the vanilla sprite, livery colours only\n\nUse case: precise-object-edit / texture reskin of a technical render.\nINPUT 1 is an orthographic three-quarter render (from above, port side and bow toward the viewer at lower left, engines at upper right) of a 3D model of a small civilian interplanetary ferry and cargo lander, on a flat light grey background. Its flat colours already say which plates are which: white hull plate, grey-green sponson plates, red chevron stripes, tan hatches and modules, dark steel drive casings, near-black recesses, pinkish burnished drive bands.\nINPUT 2 is the in-game top-down pixel sprite of the same ship type: use it only for the livery's colours and character (off-white and light grey hull, deep red chevrons angling in toward the bridge, tan modules, dark steel drives). Never copy INPUT 2's view, composition or shapes.\n\nRepaint INPUT 1 as the SAME ship with a realistic painted hull surface: a working civilian transport kept in service for years, maintained but never pristine. This image will be projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the exact outline, size, position and framing of the ship in the canvas. Do not zoom, crop, shift, rotate, enlarge or shrink it. The ship occupies exactly the same pixels as in INPUT 1.\n- Keep every feature at its exact pixel position and size: every panel edge, seam, step, chamfer, hatch, window, vent grille, stripe, the turret, the drive casings and bands. Do not add, remove, merge or move any part. No new antennas, greebles or protrusions beyond the outline.\n- Keep the colour layout of INPUT 1 exactly: white plates stay off-white painted plate, grey-green stays grey-green, red stripes stay deep signal red, tan stays tan, dark steel stays dark steel. Do not repaint any plate another colour.\n- Surface: industrial enamel paint over steel plate. Fine plate seams and welded joints, rows of flush fasteners, small access covers, light even scuffing, a thin even film of grime, faint chipping along plate edges showing grey primer, slightly faded paint. Wear is light and spread evenly; no soot, scorch, rust streaks, dents, holes, repair patches, stencils, text or markings.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no directional light, no gradients across large plates.\n- Background: the same plain flat uniform light grey as INPUT 1, edge to edge, with no floor, shadow, vignette, text, labels or border.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "reference\\finish-guide.png",
+      "sha256": "90ed3b5fc237681932bd68c119b0c124157349fa27366011cf9ea8a5b1b20f33",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 1: the render to repaint (layout and geometry authority)"
+    },
+    {
+      "path": "reference\\sprite-livery.png",
+      "sha256": "1b26228c7365040dc09a28401229b85148166800fce624b0da9fa4011c9b9076",
+      "dimensions": [
+        640,
+        840
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the vanilla sprite, livery colours only"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to repaint the first reference, preserving its geometry, framing, and colour layout as closely as possible."
+  ],
+  "usage": {
+    "input_tokens": 44260,
+    "cached_input_tokens": 33920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 597,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.5
+}

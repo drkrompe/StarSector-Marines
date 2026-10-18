@@ -1,0 +1,130 @@
+{
+ "part": "waist-port",
+ "regions": {
+  "white": {
+   "pixels": 240840,
+   "share_as_declared": 0.962,
+   "share_in_declared_family": 0.962,
+   "came_back_as": {
+    "white": 0.962,
+    "grey": 0.028
+   },
+   "swap": false,
+   "before_mean_lab": [
+    84.92,
+    0.3,
+    6.69
+   ],
+   "after_mean_lab": [
+    81.73,
+    0.67,
+    5.4
+   ],
+   "gain_L_a_b": [
+    1.265,
+    1.095,
+    0.709
+   ],
+   "dE_to_palette_before": 3.33,
+   "forced_back_to_declared": false
+  },
+  "steel": {
+   "pixels": 9649,
+   "share_as_declared": 0.495,
+   "share_in_declared_family": 0.969,
+   "came_back_as": {
+    "white": 0.03,
+    "grey": 0.448,
+    "steel": 0.495,
+    "dark": 0.025
+   },
+   "swap": false,
+   "before_mean_lab": [
+    44.63,
+    0.95,
+    3.68
+   ],
+   "after_mean_lab": [
+    34.21,
+    2.23,
+    4.35
+   ],
+   "gain_L_a_b": [
+    1.073,
+    0.919,
+    0.6
+   ],
+   "dE_to_palette_before": 14.05,
+   "forced_back_to_declared": false
+  },
+  "dark": {
+   "pixels": 576,
+   "share_as_declared": 0.427,
+   "share_in_declared_family": 0.667,
+   "came_back_as": {
+    "white": 0.333,
+    "grey": 0.115,
+    "steel": 0.122,
+    "dark": 0.427
+   },
+   "swap": false,
+   "before_mean_lab": [
+    44.09,
+    0.53,
+    4.48
+   ],
+   "after_mean_lab": [
+    19.02,
+    1.51,
+    3.24
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.6,
+    0.6
+   ],
+   "dE_to_palette_before": 24.92,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 30272,
+   "ramp_span_L_removed": 18.15,
+   "ramp_dL_per_100px": [
+    -2.35,
+    3.05
+   ],
+   "edge_band_dL_after": -4.68
+  },
+  {
+   "pixels": 6084,
+   "ramp_span_L_removed": 16.09,
+   "ramp_dL_per_100px": [
+    -1.85,
+    -25.82
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 189984,
+   "ramp_span_L_removed": 0.56,
+   "ramp_dL_per_100px": [
+    0.03,
+    0.12
+   ],
+   "edge_band_dL_after": -7.42
+  },
+  {
+   "pixels": 28286,
+   "ramp_span_L_removed": 0.88,
+   "ramp_dL_per_100px": [
+    0.23,
+    0.04
+   ],
+   "edge_band_dL_after": -15.5
+  }
+ ],
+ "ramp_span_L_removed_max": 18.15,
+ "edge_band_dL_after_mean": -9.2
+}

@@ -1,0 +1,72 @@
+{
+ "part": "bow-cockpit-top",
+ "regions": {
+  "white": {
+   "pixels": 235024,
+   "share_as_declared": 0.955,
+   "share_in_declared_family": 0.955,
+   "came_back_as": {
+    "white": 0.955,
+    "grey": 0.036
+   },
+   "swap": false,
+   "before_mean_lab": [
+    83.27,
+    0.45,
+    4.47
+   ],
+   "after_mean_lab": [
+    81.73,
+    0.67,
+    5.4
+   ],
+   "gain_L_a_b": [
+    1.322,
+    1.007,
+    1.139
+   ],
+   "dE_to_palette_before": 1.81,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 23176,
+   "ramp_span_L_removed": 0.79,
+   "ramp_dL_per_100px": [
+    -0.05,
+    0.44
+   ],
+   "edge_band_dL_after": -8.01
+  },
+  {
+   "pixels": 6689,
+   "ramp_span_L_removed": 0.44,
+   "ramp_dL_per_100px": [
+    -0.11,
+    0.09
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 31961,
+   "ramp_span_L_removed": 0.54,
+   "ramp_dL_per_100px": [
+    -0.13,
+    0.11
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 175936,
+   "ramp_span_L_removed": 2.84,
+   "ramp_dL_per_100px": [
+    -0.11,
+    -0.54
+   ],
+   "edge_band_dL_after": -17.8
+  }
+ ],
+ "ramp_span_L_removed_max": 2.84,
+ "edge_band_dL_after_mean": -12.91
+}

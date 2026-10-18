@@ -1,0 +1,42 @@
+{
+ "pod-outer-port": {
+  "raw_iou": 0.9843,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9895,
+  "scale": [
+   1.00237,
+   1.00027
+  ],
+  "boundary_p95_px": 88.39
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9792,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9845,
+  "scale": [
+   1.00312,
+   1.00227
+  ],
+  "boundary_p95_px": 69.0
+ },
+ "pod-aft-port": {
+  "raw_iou": 0.9952,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9973,
+  "scale": [
+   1.0,
+   1.0068
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "drive-casing-top": {
+  "raw_iou": 0.9938,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9955,
+  "scale": [
+   1.001,
+   1.00254
+  ],
+  "boundary_p95_px": 1.0
+ }
+}
