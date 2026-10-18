@@ -3,7 +3,8 @@
   blender --background --factory-startup --python check_kit.py -- --blend build/_ships/patched.blend --state patched
 
 Prints one JSON line: anchors found, objects per SWFX collection, running
-plumes, lights, and every driver that is invalid or not a simple expression
+plumes, seal wisps, conduit spark emitters (one per sparking scar anchor),
+lights, and every driver that is invalid or not a simple expression
 (those would need Python auto-run, which a cinematic file must not depend
 on). Exits non-zero if any driver is invalid, a state rule is broken, or a
 build is not repeatable (a second apply must give the same counts).
@@ -73,10 +74,17 @@ for i in (1, 2, 3, 4):
 wisps = len(ctx.records.get('smoke', {}).get('seal_wisps', []))
 if bool(wisps) != swfx_core.STATES[args.state]['seal_wisps']:
     problems.append(f'seal wisps: {wisps} built, state allows {swfx_core.STATES[args.state]["seal_wisps"]}')
+# Conduit sparks: exactly one emitter per scar spark anchor that is sparking.
+spark_anchors = ctx.records['anchors'].get('sparks', [])
+live = sorted(s['name'] for s in spark_anchors if s['sparking'])
+built = sorted(s['anchor'] for s in ctx.records.get('smoke', {}).get('sparks', []))
+if built != live:
+    problems.append(f'conduit sparks built at {built}, but sparking anchors are {live}')
 lit = [o.name for o in bpy.data.objects if o.type == 'LIGHT' and o.name.startswith('SWFX lighting')
        and 'rig' not in o.name.lower() and o.data.energy > 0]
 print('CHECK ' + json.dumps({
     'state': args.state, 'anchors': {k: len(v) for k, v in ctx.records['anchors'].items() if isinstance(v, list)},
-    'collections': second, 'plumes': plumes, 'seal_wisps': wisps, 'ship_lamps_energised': len(lit),
+    'collections': second, 'plumes': plumes, 'seal_wisps': wisps,
+    'spark_anchors': len(spark_anchors), 'spark_emitters': len(built), 'ship_lamps_energised': len(lit),
     'drivers': total, 'problems': problems}))
 sys.exit(1 if problems else 0)
