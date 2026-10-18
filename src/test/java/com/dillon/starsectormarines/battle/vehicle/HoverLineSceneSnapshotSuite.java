@@ -36,15 +36,20 @@ public final class HoverLineSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
 
     @Override protected ReviewAnnotations annotations(BattleSimulation simulation) {
         List<ReviewAnnotation.Cell> water = new ArrayList<>();
+        List<ReviewAnnotation.Cell> wall = new ArrayList<>();
         for (int y = 0; y < HoverLineScene.HEIGHT; y++) {
             for (int x = 0; x < HoverLineScene.WIDTH; x++) {
                 if (simulation.getTopology().getGroundKind(x, y) == GroundKind.WATER) {
                     water.add(new ReviewAnnotation.Cell(x, y));
+                } else if (x < HoverLineScene.HOLDOUT_X0 && !simulation.getGrid().isWalkable(x, y)) {
+                    wall.add(new ReviewAnnotation.Cell(x, y));
                 }
             }
         }
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         if (!water.isEmpty()) marks.cells(water, "RIVER", ReviewStyle.ROUTE);
+        // A scene's wall has no art: mark the one the sensor pair looks past.
+        if (!wall.isEmpty()) marks.cells(wall, "WALL", ReviewStyle.NOTE);
         for (long id : simulation.getConvoyVehicleIds()) {
             GroundBody body = simulation.convoy().body(id);
             VehicleType type = simulation.convoy().vehicleType(id);

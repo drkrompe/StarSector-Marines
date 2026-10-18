@@ -77,6 +77,8 @@ public final class HoverLineScene implements BehaviorScene {
     static final int SKIMMER_LOSS_TICK = 300;
     static final int SKIMMER_Y_CELL = 24;
     static final int SENSOR_WALL_X = 21;
+    /** West edge of the sealed holdout box; nothing west of it is wall except the sensors loop's own. */
+    static final int HOLDOUT_X0 = 54;
     static final int LURKER_X = 32;
     static final int HALO_BARRAGE_TICK = 240;
 
@@ -135,7 +137,7 @@ public final class HoverLineScene implements BehaviorScene {
     /** A sealed box in the far corner holding the one defender that keeps the battle ticking. */
     private static SceneBuilder holdout(SceneBuilder builder) {
         return builder.missionCompletion(false)
-                .wall(54, 40, 62, 40).wall(54, 47, 62, 47).wall(54, 40, 54, 47).wall(62, 40, 62, 47)
+                .wall(HOLDOUT_X0, 40, 62, 40).wall(HOLDOUT_X0, 47, 62, 47).wall(HOLDOUT_X0, 40, HOLDOUT_X0, 47).wall(62, 40, 62, 47)
                 .unit("holdout", Faction.DEFENDER, UnitType.MARINE, 58, 44);
     }
 
