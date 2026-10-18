@@ -14,7 +14,7 @@ wraps. The panes are cut through the nose into a shallow flight-deck tub
 abreast, the instrument console under the windscreen and a centre
 pedestal; the glazing is part-transparent so the deck reads through it.
 Above the seats a roof escape hatch with grab rails is the crew's own way
-in and out; the fire team uses the ventral ramp.
+in and out; the fire team uses the side boarding doors.
 
 The sprite's rounded nose dome is read as faceted plate: a brow facet
 between the glacis and the bow face and a lower cheek facet either side,
