@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — armor drop: the bay is a frozen manifest, each call picks from it, a cooldown paces calls and mission lift caps what lands; internals under an engine budget.
+Updated: 2026-10-18 — headless tuning: section shares read against the whole-body control (head 0.06 on Bulwark and Sirocco), engines carry mass, call cooldown 30 s, heavy cradle three lifts.
 
 ## Purpose
 
@@ -222,6 +222,25 @@ increasing an encounter's total armored threat.
   sections' totals, so whole-chassis readers see one body. Plating may later
   shift capacity between sections; that is the fitting decision sections make
   possible.
+  **Shares are tuned against the whole-body control.** Sections are allowed to
+  move a mech's time to kill, not reinvent it. `sceneEvidence -Pscene=mech-time-to-kill`
+  stands each stock chassis under one fire team (field rifles, pulse, DMR, two
+  AMRs, two rocket tubes, one heavy cannon) in the open and hull-down. Run it
+  again with `-Dbattle.mech.locationalDamage=false` for the control. Kill time
+  runs 0.70-1.15 of the control, mean 0.88; every death is a torso kill and
+  the durability order holds in every row. The ratio sits under 1 by structure:
+  fire from one side never reaches the far shoulder, and the head and arms are
+  often still standing when the torso dies. Raising the torso share costs mount
+  life almost one for one, and a Bulwark at 0.95 would lose its main gun at 0.61
+  of its life instead of 0.77. So the head is kept small (0.06 on Bulwark and
+  Sirocco, its hit rate rather than its silhouette) and the rest stays as the
+  capability a mech gives up before it dies: the first mount goes at 0.14-0.70
+  of the time to kill, the main gun at 0.63-0.97, and a two-mount Hound is
+  disarmed only in the last 15-20% of its life. A Sirocco under rockets in the
+  open dies at 0.70 of the control because a 0.48 torso is two rockets, not
+  because damage spills: spill meets the torso's armor before its structure, so
+  heavy, slow rounds spread about 1.5-2 times the control's spread rather than
+  the tenfold swing they had before.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: no walking speed, autonomous or manual, while it still
   pivots its hips onto its target, turns its torso and fires. A mount at zero
