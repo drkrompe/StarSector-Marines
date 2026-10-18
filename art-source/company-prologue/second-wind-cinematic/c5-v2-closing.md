@@ -2,6 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
 Written: 2026-10-18
+Updated: 2026-10-18 — Kilo Nine is Nessa's private yard at the port edge; customs car added.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -40,14 +41,31 @@ The camera's listening position is already the passenger cabin's open intercom
 squelch. Approach does not speak again. The Hegemony stays cold, and the last
 word belongs to our people.
 
+## Where it lands: Kilo Nine
+
+Kilo Nine is not a public cradle. It is Nessa's private yard, fenced, on the
+east edge of Greywater Down's port with the jungle beyond its back fence: one
+cradle between two repair scaffolds, a derrick over a salvage pile, a hangar,
+fuel, stacked modules and steel, and the workshop the families walk into. The
+Hegemony's public cradles lie west of it, each turned to face its own lead-in
+lane, with freighters unloading from the stern down cargo lanes to the
+container yard. C4's sky shot ends over this layout
+(`industrial-exterior/c4x_scene.py`), and C5 must match it.
+
+On the ground: Nessa's tug, bowser and crew carrier roll out from the hangar
+and workshop. A Hegemony customs car, white with a blue roof band and lights
+going, comes over from the port office and turns in at her gate as the ship
+settles. That pays off the customs mention in the hail. The officers meet the
+ship at the ramp; the families pass them on the way to the workshop.
+
 ## Beats (about 30 s)
 
 | t (s) | Picture | Sound |
 |---|---|---|
-| 0–5 | Overhead, looking straight down. Second Wind settles into cradle Kilo Nine. A tug, a fuel bowser and a yard crew carrier converge. | Drive spool-down, hull ticks, yard bed. |
+| 0–5 | Overhead, looking straight down. Second Wind settles into Kilo Nine between the repair scaffolds. Nessa's tug, bowser and crew carrier converge; the customs car pulls up. | Drive spool-down, hull ticks, yard bed. |
 | 5–8 | Engines dark. Steam vents. Crew in biofilter masks walk out; one figure with folded arms (Nessa, unreadable). | Intercom click. Castle begins. |
-| 8–18 | The ramp drops. A thin stream of figures carrying bags crosses the apron. One stops at the ramp's foot and looks up. | Castle's middle lines. |
-| 18–26 | The camera rises straight up. The cradle shrinks into the port grid, and the ship becomes one hull among working ships. | Castle's last line, then the bed opens up. |
+| 8–18 | The ramp drops. A thin stream of figures carrying bags crosses the yard, past the customs officers, toward Nessa's workshop. One stops at the ramp's foot and looks up. | Castle's middle lines. |
+| 18–26 | The camera rises straight up. Nessa's yard shrinks to a small fenced corner of a big working port, and the ship becomes one patched hull among the freighters. | Castle's last line, then the bed opens up. |
 | 26–32 | High over the port and the jungle edge. Title: **STARSECTOR: MARINES**. | Music swells and resolves; the yard sound fades out. |
 
 The title comes before the yard dialogues (Y1 onward) in the usual cold-open

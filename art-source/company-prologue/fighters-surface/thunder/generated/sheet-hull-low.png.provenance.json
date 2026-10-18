@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15065-4bed-79a3-b55b-e34d8bb1eb65",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15065-4bed-79a3-b55b-e34d8bb1eb65\\exec-e7f4de5b-4aed-4ab8-b580-c623267a724a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\thunder\\generated\\sheet-hull-low.png",
+    "sha256": "dab75d46d4864182963031147e14d202d77b3032e17258479b5a13ea6fa52557",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\thunder\\prompts\\sheet-hull-low.prompt.txt",
+  "promptSha256": "b2d025824ad03555aeec1f60d4d114331a1c66b027e1a1be1085a5d3694a8062",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four tiles to paint (layout authority)\nImage 2: INPUT 2: the same craft already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one single-seat heavy space fighter (a Thunder, about 18 metres long), each tile seen square-on and drawn alone as flat-coloured shapes on a plain light grey background (khaki shapes are armour, dark grey shapes are steel structure):\ntop-left: port drive pod outboard side;\ntop-right: the gun block port side;\nbottom-left: the lance and gun housing starboard side;\nbottom-right: the whole belly from below;\nINPUT 2 is the SAME craft already painted: it is the finish to match. Use its paint colours, its clean semi-matte finish, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four tiles in INPUT 1 as that surface of a front-line craft in good order. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and the background between and around shapes stays plain grey. A tile may hold several separate shapes: keep every one where it is.\n- Each shape is a flat armour or steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners along plate edges, flush access-panel outlines, faint even scuffing. The thin darker lines already drawn on the shapes are engraved panel lines: keep them exactly where they are as fine dark seams. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour exactly: khaki shapes stay the warm sand khaki armour enamel of INPUT 2, dark grey shapes stay dark gunmetal grey steel, and small near-black slits stay near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes, no lettering, numbers, markings, insignia or decals.\n- Wear is light and even across each whole shape: faint scuffs at edges, a thin film of grime in seams. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\thunder\\guide\\sheet-hull-low-guide.png",
+      "sha256": "cec0edced1694055f49bad7141a908123cd189fa2f00fffa6e2009909f0c4757",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four tiles to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\thunder\\reference\\finish-reference.png",
+      "sha256": "29e5ea913da62caf8fdc167b84810a5ec5dd19b368e615dd88a8d8558a559f9f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same craft already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the four-tile layout and outlines."
+  ],
+  "usage": {
+    "input_tokens": 73371,
+    "cached_input_tokens": 62080,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 826,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 81.2
+}
