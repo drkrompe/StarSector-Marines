@@ -1,0 +1,566 @@
+{
+ "bow-face": {
+  "what": "whole bow face from dead ahead: white bow plate, cockpit block stem, tan fender blocks on steel backing plates, white armour modules, grey-green sponson fronts",
+  "sheet": "bow-a",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     39.5,
+     15.0,
+     -3.0
+    ],
+    "faces": [
+     35,
+     36,
+     37,
+     41,
+     42,
+     43
+    ]
+   },
+   {
+    "object": "Bow cockpit block",
+    "seed": [
+     42.5,
+     0.8,
+     3.2
+    ],
+    "faces": [
+     8,
+     9,
+     10,
+     11,
+     12,
+     13
+    ]
+   },
+   {
+    "object": "Bow cockpit block",
+    "seed": [
+     42.5,
+     0.0,
+     7.0
+    ],
+    "faces": [
+     8,
+     9,
+     10,
+     11,
+     12,
+     13
+    ]
+   },
+   {
+    "object": "Port forebody sponson",
+    "seed": [
+     39.6,
+     22.7,
+     0.2
+    ],
+    "faces": [
+     6,
+     12
+    ]
+   },
+   {
+    "object": "Starboard forebody sponson",
+    "seed": [
+     39.6,
+     -22.7,
+     0.2
+    ],
+    "faces": [
+     10,
+     16
+    ]
+   },
+   {
+    "object": "Bow fender block",
+    "seed": [
+     40.8,
+     6.3,
+     3.0
+    ],
+    "faces": [
+     1,
+     2
+    ]
+   },
+   {
+    "object": "Bow fender block.001",
+    "seed": [
+     40.8,
+     -6.3,
+     3.0
+    ],
+    "faces": [
+     2,
+     3
+    ]
+   },
+   {
+    "object": "Bow fender block.002",
+    "seed": [
+     41.8,
+     12.2,
+     0.0
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender block.003",
+    "seed": [
+     41.8,
+     -12.2,
+     0.0
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender block.004",
+    "seed": [
+     41.8,
+     19.2,
+     0.0
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender block.005",
+    "seed": [
+     41.8,
+     -19.2,
+     0.0
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender backing plate",
+    "seed": [
+     40.1,
+     12.2,
+     2.8
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender backing plate.001",
+    "seed": [
+     40.1,
+     -12.2,
+     2.8
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender backing plate.002",
+    "seed": [
+     40.1,
+     19.2,
+     2.8
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Bow fender backing plate.003",
+    "seed": [
+     40.1,
+     -19.2,
+     2.8
+    ],
+    "faces": [
+     2
+    ]
+   },
+   {
+    "object": "Port bow face armour module",
+    "seed": [
+     39.7,
+     17.4,
+     5.1
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port bow face armour module.001",
+    "seed": [
+     39.7,
+     10.9,
+     5.1
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard bow face armour module",
+    "seed": [
+     39.7,
+     -17.4,
+     5.1
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard bow face armour module.001",
+    "seed": [
+     39.7,
+     -10.9,
+     5.1
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port bow face seam backing",
+    "seed": [
+     39.5,
+     14.0,
+     3.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard bow face seam backing",
+    "seed": [
+     39.5,
+     -14.0,
+     3.3
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1290.26,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   48.33,
+   15.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    1.0489873886108398
+   ],
+   "ortho_width": 56.19316544643668
+  },
+  "native_texels_per_unit": 14.1
+ },
+ "bow-rake": {
+  "what": "bow top rake: main hull rake, cockpit block rake, bridge cab windscreen rake, visor and sill",
+  "sheet": "bow-a",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     38.6,
+     12.0,
+     8.1
+    ],
+    "faces": [
+     47
+    ]
+   },
+   {
+    "object": "Bow cockpit block",
+    "seed": [
+     40.2,
+     0.0,
+     8.9
+    ],
+    "faces": [
+     24,
+     25
+    ]
+   },
+   {
+    "object": "Bridge cab centre section",
+    "seed": [
+     34.9,
+     0.0,
+     11.5
+    ],
+    "faces": [
+     12
+    ]
+   },
+   {
+    "object": "Bridge cab port section",
+    "seed": [
+     34.9,
+     6.3,
+     11.5
+    ],
+    "faces": [
+     12
+    ]
+   },
+   {
+    "object": "Bridge cab starboard section",
+    "seed": [
+     34.9,
+     -6.3,
+     11.5
+    ],
+    "faces": [
+     12
+    ]
+   },
+   {
+    "object": "Bridge visor brow",
+    "seed": [
+     34.1,
+     0.0,
+     12.7
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Bridge windscreen sill",
+    "seed": [
+     37.4,
+     0.0,
+     10.2
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 281.21,
+  "view_dir": [
+   0.5,
+   0.0,
+   0.8660254037844386
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   45.0,
+   10.68
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -27.609955072402954
+   ],
+   "ortho_width": 52.32558139534884
+  },
+  "native_texels_per_unit": 15.2
+ },
+ "bow-cockpit-top": {
+  "what": "cockpit block crown and bridge cab roof from above",
+  "sheet": "bow-a",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bow cockpit block",
+    "seed": [
+     34.8,
+     0.0,
+     9.6
+    ],
+    "faces": [
+     23
+    ]
+   },
+   {
+    "object": "Bridge cab centre section",
+    "seed": [
+     31.8,
+     0.0,
+     12.6
+    ],
+    "faces": [
+     11,
+     13
+    ]
+   },
+   {
+    "object": "Bridge cab port section",
+    "seed": [
+     31.8,
+     6.3,
+     12.6
+    ],
+    "faces": [
+     11,
+     13
+    ]
+   },
+   {
+    "object": "Bridge cab starboard section",
+    "seed": [
+     31.8,
+     -6.3,
+     12.6
+    ],
+    "faces": [
+     11,
+     13
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 271.91,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   15.4,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    32.79999923706055
+   ],
+   "ortho_width": 24.806201550387595
+  },
+  "native_texels_per_unit": 32.0
+ },
+ "bow-sponson-port": {
+  "what": "port forebody sponson, rounded bow-quarter face",
+  "sheet": "bow-a",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Port forebody sponson",
+    "seed": [
+     36.6,
+     26.2,
+     -1.1
+    ],
+    "faces": [
+     7,
+     13
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 98.57,
+  "view_dir": [
+   0.6,
+   0.8,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.78,
+  "extent_units": [
+   7.74,
+   12.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -13.057085990905762,
+    0.75
+   ],
+   "ortho_width": 25.839793281653748
+  },
+  "native_texels_per_unit": 30.7
+ },
+ "bow-sponson-stbd": {
+  "what": "starboard forebody sponson bow-quarter face (mirror of port)",
+  "sheet": "bow-a",
+  "tile": 3,
+  "skin_from": "bow-sponson-port",
+  "members": [
+   {
+    "object": "Starboard forebody sponson",
+    "seed": [
+     36.6,
+     -26.2,
+     -1.1
+    ],
+    "faces": [
+     9,
+     15
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 98.57,
+  "view_dir": [
+   0.6,
+   -0.8,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.78,
+  "extent_units": [
+   7.74,
+   12.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    13.057085990905762,
+    0.75
+   ],
+   "ortho_width": 25.839793281653748
+  },
+  "native_texels_per_unit": 30.7
+ }
+}

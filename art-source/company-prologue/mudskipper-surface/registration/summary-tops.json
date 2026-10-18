@@ -1,0 +1,42 @@
+{
+ "tops-waist-deck": {
+  "raw_iou": 0.9956,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9964,
+  "scale": [
+   1.00183,
+   1.00426
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "tops-fore-deck": {
+  "raw_iou": 0.995,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9995,
+  "scale": [
+   1.00255,
+   1.00619
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "tops-aft-deck": {
+  "raw_iou": 0.9953,
+  "best_fit": "identity",
+  "fitted_iou": 0.9953,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "tops-hood": {
+  "raw_iou": 0.9923,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9981,
+  "scale": [
+   1.0087,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

@@ -1,0 +1,1072 @@
+{
+ "pod-outer-port": {
+  "what": "port engine pod outer flank: steel drive casing with two flush panels, tan thrust collar, steel thrust housing",
+  "sheet": "drives-a",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Engine 2 port pod drive casing",
+    "seed": [
+     -21,
+     28.5,
+     5
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     20,
+     21,
+     22,
+     23,
+     35,
+     36,
+     37
+    ]
+   },
+   {
+    "object": "Engine 2 pod thrust collar",
+    "seed": [
+     -27.5,
+     28.7,
+     0
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     20,
+     21,
+     22,
+     34,
+     35,
+     36
+    ]
+   },
+   {
+    "object": "Engine 2 pod thrust housing",
+    "seed": [
+     -32,
+     28.5,
+     -5
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     20,
+     21,
+     22,
+     23,
+     34,
+     35,
+     36
+    ]
+   },
+   {
+    "object": "Engine 2 pod flank panel",
+    "seed": [
+     -18.2,
+     28.8,
+     0.3
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Engine 2 pod flank panel.001",
+    "seed": [
+     -22.6,
+     28.8,
+     0.3
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Engine 2 pod flank panel frame",
+    "seed": [
+     -16.5,
+     28.7,
+     0.3
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Engine 2 pod flank panel frame.001",
+    "seed": [
+     -20.9,
+     28.7,
+     0.3
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 319.23,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   18.6,
+   15.32
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    25.700000762939453,
+    0.5735633373260498
+   ],
+   "ortho_width": 31.66299765732245
+  },
+  "native_texels_per_unit": 25.1
+ },
+ "pod-top-port": {
+  "what": "port engine pod top: casing top, machinery deck, strake, tan access hatch, tan collar top",
+  "sheet": "drives-a",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Engine 2 port pod drive casing",
+    "seed": [
+     -23,
+     23,
+     8.5
+    ],
+    "faces": [
+     10,
+     11,
+     12,
+     24,
+     25,
+     26,
+     27,
+     28,
+     39,
+     40,
+     41,
+     48
+    ]
+   },
+   {
+    "object": "Engine 2 pod thrust collar",
+    "seed": [
+     -27.5,
+     20,
+     8.2
+    ],
+    "faces": [
+     10,
+     11,
+     12,
+     23,
+     24,
+     25,
+     26,
+     27
+    ]
+   },
+   {
+    "object": "Engine 2 pod machinery deck",
+    "seed": [
+     -21,
+     16,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 2 pod deck strake",
+    "seed": [
+     -21,
+     20.2,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 2 pod access hatch",
+    "seed": [
+     -18.8,
+     23,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 2 pod access hatch frame",
+    "seed": [
+     -20.4,
+     23,
+     8.7
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 2 radiator bay floor",
+    "seed": [
+     -22,
+     26.5,
+     7.6
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 25,
+  "area_units2": 270.4,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   15.81,
+   10.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -20.513397693634033,
+    -21.949999809265137
+   ],
+   "ortho_width": 22.532298953034157
+  },
+  "native_texels_per_unit": 35.2
+ },
+ "pod-aft-port": {
+  "what": "port engine pod aft face: steel thrust housing below, tan thrust collar above",
+  "sheet": "drives-a",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Engine 2 pod thrust housing",
+    "seed": [
+     -35,
+     15,
+     -4
+    ],
+    "faces": [
+     1,
+     16,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43
+    ]
+   },
+   {
+    "object": "Engine 2 pod thrust collar",
+    "seed": [
+     -29,
+     20,
+     6
+    ],
+    "faces": [
+     1,
+     37,
+     38,
+     39,
+     40,
+     41
+    ]
+   }
+  ],
+  "face_count": 22,
+  "area_units2": 408.54,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   16.4,
+   15.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -20.500000476837158,
+    0.25
+   ],
+   "ortho_width": 32.86821626569565
+  },
+  "native_texels_per_unit": 24.2
+ },
+ "drive-casing-top": {
+  "what": "main drive casing top: faceted steel barrel with three pinkish burnished bands, flange and two dark cover frames",
+  "sheet": "drives-a",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Engine 1 main drive casing",
+    "seed": [
+     -23,
+     0,
+     7.7
+    ],
+    "faces": [
+     3,
+     4,
+     5,
+     15,
+     16,
+     17
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 1",
+    "seed": [
+     -19.5,
+     0,
+     8.3
+    ],
+    "faces": [
+     4,
+     15,
+     16,
+     17,
+     28
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 2",
+    "seed": [
+     -24.5,
+     0,
+     8.3
+    ],
+    "faces": [
+     4,
+     15,
+     16,
+     17,
+     28
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 3",
+    "seed": [
+     -29.5,
+     0,
+     8.3
+    ],
+    "faces": [
+     4,
+     15,
+     16,
+     17,
+     28
+    ]
+   },
+   {
+    "object": "Engine 1 thrust frame flange",
+    "seed": [
+     -16.3,
+     0,
+     8.3
+    ],
+    "faces": [
+     3,
+     4,
+     5,
+     16
+    ]
+   },
+   {
+    "object": "Engine 1 casing cover frame",
+    "seed": [
+     -22,
+     0,
+     7.9
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 1 casing cover frame.003",
+    "seed": [
+     -27,
+     0,
+     7.9
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 27,
+  "area_units2": 267.14,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.16,
+   14.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -22.949999809265137
+   ],
+   "ortho_width": 30.801032803163356
+  },
+  "native_texels_per_unit": 25.8
+ },
+ "pod-outer-stbd": {
+  "what": "starboard pod outer flank (mirror of pod-outer-port)",
+  "sheet": "drives-a",
+  "tile": 0,
+  "skin_from": "pod-outer-port",
+  "members": [
+   {
+    "object": "Engine 3 starboard pod drive casing",
+    "seed": [
+     -21,
+     -28.5,
+     5
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     20,
+     21,
+     22,
+     23,
+     35,
+     36,
+     37
+    ]
+   },
+   {
+    "object": "Engine 3 pod thrust collar",
+    "seed": [
+     -27.5,
+     -28.7,
+     0
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     20,
+     21,
+     22,
+     34,
+     35,
+     36
+    ]
+   },
+   {
+    "object": "Engine 3 pod thrust housing",
+    "seed": [
+     -32,
+     -28.5,
+     -5
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     20,
+     21,
+     22,
+     23,
+     34,
+     35,
+     36
+    ]
+   },
+   {
+    "object": "Engine 3 pod flank panel",
+    "seed": [
+     -18.2,
+     -28.8,
+     0.3
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Engine 3 pod flank panel.001",
+    "seed": [
+     -22.6,
+     -28.8,
+     0.3
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Engine 3 pod flank panel frame",
+    "seed": [
+     -16.5,
+     -28.7,
+     0.3
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Engine 3 pod flank panel frame.001",
+    "seed": [
+     -20.9,
+     -28.7,
+     0.3
+    ],
+    "faces": [
+     3
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 319.23,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   18.6,
+   15.32
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -25.700000762939453,
+    0.5735633373260498
+   ],
+   "ortho_width": 31.66299765732245
+  },
+  "native_texels_per_unit": 25.1
+ },
+ "pod-top-stbd": {
+  "what": "starboard pod top (mirror of pod-top-port)",
+  "sheet": "drives-a",
+  "tile": 1,
+  "skin_from": "pod-top-port",
+  "members": [
+   {
+    "object": "Engine 3 starboard pod drive casing",
+    "seed": [
+     -23,
+     -23,
+     8.5
+    ],
+    "faces": [
+     10,
+     11,
+     12,
+     24,
+     25,
+     26,
+     27,
+     28,
+     39,
+     40,
+     41,
+     48
+    ]
+   },
+   {
+    "object": "Engine 3 pod thrust collar",
+    "seed": [
+     -27.5,
+     -20,
+     8.2
+    ],
+    "faces": [
+     10,
+     11,
+     12,
+     23,
+     24,
+     25,
+     26,
+     27
+    ]
+   },
+   {
+    "object": "Engine 3 pod machinery deck",
+    "seed": [
+     -21,
+     -16,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 3 pod deck strake",
+    "seed": [
+     -21,
+     -20.2,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 3 pod access hatch",
+    "seed": [
+     -18.8,
+     -23,
+     8.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 3 pod access hatch frame",
+    "seed": [
+     -20.4,
+     -23,
+     8.7
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 3 radiator bay floor",
+    "seed": [
+     -22,
+     -26.5,
+     7.6
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 25,
+  "area_units2": 270.4,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   15.81,
+   10.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    20.513397693634033,
+    -21.949999809265137
+   ],
+   "ortho_width": 22.532298953034157
+  },
+  "native_texels_per_unit": 35.2
+ },
+ "pod-aft-stbd": {
+  "what": "starboard pod aft face (mirror of pod-aft-port)",
+  "sheet": "drives-a",
+  "tile": 2,
+  "skin_from": "pod-aft-port",
+  "members": [
+   {
+    "object": "Engine 3 pod thrust housing",
+    "seed": [
+     -35,
+     -15,
+     -4
+    ],
+    "faces": [
+     1,
+     16,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43
+    ]
+   },
+   {
+    "object": "Engine 3 pod thrust collar",
+    "seed": [
+     -29,
+     -20,
+     6
+    ],
+    "faces": [
+     1,
+     37,
+     38,
+     39,
+     40,
+     41
+    ]
+   }
+  ],
+  "face_count": 22,
+  "area_units2": 408.54,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   16.4,
+   15.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    20.500000476837158,
+    0.25
+   ],
+   "ortho_width": 32.86821626569565
+  },
+  "native_texels_per_unit": 24.2
+ },
+ "drive-casing-port": {
+  "what": "main drive casing port flank (reuses drive-casing-top)",
+  "sheet": "drives-a",
+  "tile": 3,
+  "skin_from": "drive-casing-top",
+  "members": [
+   {
+    "object": "Engine 1 main drive casing",
+    "seed": [
+     -23,
+     7.7,
+     0
+    ],
+    "faces": [
+     2,
+     12,
+     13,
+     14,
+     24,
+     25
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 1",
+    "seed": [
+     -19.5,
+     8.3,
+     0
+    ],
+    "faces": [
+     13,
+     14,
+     24,
+     25,
+     37
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 2",
+    "seed": [
+     -24.5,
+     8.3,
+     0
+    ],
+    "faces": [
+     13,
+     14,
+     24,
+     25,
+     37
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 3",
+    "seed": [
+     -29.5,
+     8.3,
+     0
+    ],
+    "faces": [
+     13,
+     14,
+     24,
+     25,
+     37
+    ]
+   },
+   {
+    "object": "Engine 1 thrust frame flange",
+    "seed": [
+     -16.3,
+     8.3,
+     0
+    ],
+    "faces": [
+     2,
+     12,
+     13,
+     25
+    ]
+   },
+   {
+    "object": "Engine 1 casing cover frame.001",
+    "seed": [
+     -22,
+     7.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 1 casing cover frame.004",
+    "seed": [
+     -27,
+     7.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 27,
+  "area_units2": 267.14,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.16,
+   14.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -22.949999809265137
+   ],
+   "ortho_width": 30.801032803163356
+  },
+  "native_texels_per_unit": 25.8
+ },
+ "drive-casing-stbd": {
+  "what": "main drive casing starboard flank (reuses drive-casing-top: a rotation of the barrel, not a reflection)",
+  "sheet": "drives-a",
+  "tile": 3,
+  "skin_from": "drive-casing-top",
+  "members": [
+   {
+    "object": "Engine 1 main drive casing",
+    "seed": [
+     -23,
+     -7.7,
+     0
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     18,
+     19,
+     20
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 1",
+    "seed": [
+     -19.5,
+     -8.3,
+     0
+    ],
+    "faces": [
+     7,
+     18,
+     19,
+     20,
+     31
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 2",
+    "seed": [
+     -24.5,
+     -8.3,
+     0
+    ],
+    "faces": [
+     7,
+     18,
+     19,
+     20,
+     31
+    ]
+   },
+   {
+    "object": "Engine 1 barrel band 3",
+    "seed": [
+     -29.5,
+     -8.3,
+     0
+    ],
+    "faces": [
+     7,
+     18,
+     19,
+     20,
+     31
+    ]
+   },
+   {
+    "object": "Engine 1 thrust frame flange",
+    "seed": [
+     -16.3,
+     -8.3,
+     0
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     19
+    ]
+   },
+   {
+    "object": "Engine 1 casing cover frame.002",
+    "seed": [
+     -22,
+     -7.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Engine 1 casing cover frame.005",
+    "seed": [
+     -27,
+     -7.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 27,
+  "area_units2": 267.14,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.16,
+   14.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -22.949999809265137
+   ],
+   "ortho_width": 30.801032803163356
+  },
+  "native_texels_per_unit": 25.8
+ }
+}

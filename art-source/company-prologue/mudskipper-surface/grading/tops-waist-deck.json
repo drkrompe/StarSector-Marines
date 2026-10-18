@@ -1,0 +1,99 @@
+{
+ "part": "tops-waist-deck",
+ "regions": {
+  "white": {
+   "pixels": 206272,
+   "share_as_declared": 0.954,
+   "share_in_declared_family": 0.954,
+   "came_back_as": {
+    "white": 0.954
+   },
+   "swap": false,
+   "before_mean_lab": [
+    85.95,
+    0.34,
+    4.81
+   ],
+   "after_mean_lab": [
+    81.73,
+    0.67,
+    5.4
+   ],
+   "gain_L_a_b": [
+    1.184,
+    0.6,
+    0.6
+   ],
+   "dE_to_palette_before": 4.27,
+   "forced_back_to_declared": false
+  },
+  "red": {
+   "pixels": 40512,
+   "share_as_declared": 0.947,
+   "share_in_declared_family": 0.947,
+   "came_back_as": {
+    "red": 0.947,
+    "steel": 0.027
+   },
+   "swap": false,
+   "before_mean_lab": [
+    39.56,
+    50.81,
+    33.64
+   ],
+   "after_mean_lab": [
+    33.83,
+    49.93,
+    36.61
+   ],
+   "gain_L_a_b": [
+    0.846,
+    0.983,
+    1.088
+   ],
+   "dE_to_palette_before": 6.35,
+   "forced_back_to_declared": false
+  },
+  "tan": {
+   "pixels": 14924,
+   "share_as_declared": 0.661,
+   "share_in_declared_family": 0.661,
+   "came_back_as": {
+    "white": 0.158,
+    "tan": 0.661,
+    "grey": 0.142
+   },
+   "swap": false,
+   "before_mean_lab": [
+    67.34,
+    2.97,
+    18.26
+   ],
+   "after_mean_lab": [
+    63.31,
+    4.65,
+    24.48
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.565,
+    1.34
+   ],
+   "dE_to_palette_before": 7.89,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 266392,
+   "ramp_span_L_removed": 2.02,
+   "ramp_dL_per_100px": [
+    0.04,
+    -0.49
+   ],
+   "edge_band_dL_after": -1.4
+  }
+ ],
+ "ramp_span_L_removed_max": 2.02,
+ "edge_band_dL_after_mean": -1.4
+}
