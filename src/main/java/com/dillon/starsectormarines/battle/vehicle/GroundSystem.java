@@ -81,6 +81,8 @@ public class GroundSystem {
     private final VehicleMoveOrderService moveOrders = new VehicleMoveOrderService();
     private final VehicleMoveOrderSystem moveOrderSystem;
     private final GroundVehicleTurretSystem turrets;
+    /** A deployed hull fighting armor from a duel band between orders. */
+    private final VehicleEngagement engagement;
 
     /** The backbone: world entity ids of live convoy vehicles. The {@link VehicleMission} bags
      *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#mission},
@@ -105,6 +107,7 @@ public class GroundSystem {
                 moveOrders, convoy, navigation, controlSystem, transport);
         this.turrets = new GroundVehicleTurretSystem(convoy, roster, tacticalScoring,
                 navigation.getGrid(), world, fireSink);
+        this.engagement = new VehicleEngagement(convoy, roster, navigation, controlSystem);
     }
 
     /** Gives bladed hulls the blade that opens ground ahead of them. */
@@ -169,6 +172,7 @@ public class GroundSystem {
             if (id == controlledId && m.state == VehicleState.DEPLOYED
                     && convoy.isTargetable(id) && convoy.faction(id) == Faction.MARINE) {
                 // Key axes represent throttle and steering for this carrier.
+                engagement.yieldTo(id);
                 controlSystem.tickManual(id, dt, input.moveY(), -input.moveX());
                 m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
                 continue;
@@ -180,6 +184,7 @@ public class GroundSystem {
             boolean orderActive = moveOrderSystem.executeIfActive(id, dt);
             VehicleWorkProfile.finish(Bucket.GROUND_ORDER_EXECUTION, stageStart);
             if (orderActive) {
+                engagement.yieldTo(id);
                 if (m.isVisible()) {
                     m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
                 }
@@ -256,6 +261,9 @@ public class GroundSystem {
                             m.authoredRouteX = null; m.authoredRouteY = null;
                             convoy.body(id).speed = 0f;
                         }
+                    } else {
+                        // Between orders a deployed hull fights armor from a duel band.
+                        engagement.tick(id, dt);
                     }
                     break;
 

@@ -78,6 +78,16 @@ class MechDuelBandTest {
     }
 
     @Test
+    void aSingleGunHullStandsOffAShorterReachAndDuelsAnEqualOne() {
+        Weapon tankGun = new Weapon(0f, 36f, 25f, 0.65f, 0f);
+        Band onHound = MechDuelBand.choose(List.of(tankGun), HOUND, 1.15f);
+        assertEquals(Stance.STANDOFF, onHound.stance());
+        assertTrue(onHound.min() > 30f && onHound.max() < 36f, onHound.toString());
+        // One gun has no shorter band to close to, whatever the bias.
+        assertEquals(Stance.DUEL, MechDuelBand.choose(List.of(tankGun), List.of(tankGun), 0.5f).stance());
+    }
+
+    @Test
     void unarmedTargetIsFoughtFromTheDuelBand() {
         assertEquals(Stance.DUEL, MechDuelBand.choose(HOUND, List.of(), MechRole.ASSAULT).stance());
     }
