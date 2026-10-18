@@ -119,6 +119,8 @@ os_machinery.build(kit)
 os_engines.build(kit, hull)
 os_turrets.build(kit)
 os_fittings.build(kit)
+for name, d in os_kit.INSET_FAULTS:
+    print(f'INSET FAULT: {name} folds over at inset {d:.1f}')
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
