@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 STATE=$1; shift
-BLENDER=${BLENDER:-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe"}
+. ../../../blender.sh
 SURF=$(cd ../../second-wind-surface && pwd)
 EXTRA=(); SKIP_GEOM=0
 for a in "$@"; do case $a in --skip-geom) SKIP_GEOM=1;; *) EXTRA+=("$a");; esac; done

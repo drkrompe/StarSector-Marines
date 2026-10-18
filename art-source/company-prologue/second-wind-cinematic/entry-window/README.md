@@ -32,9 +32,9 @@ and checks image paths. scene-manifest.json retains source hash and sample map.
 Run from this directory:
 
 ```powershell
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python build_scene.py -- --preview
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python verify_scene.py
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python render_scene.py
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python build_scene.py -- --preview
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python verify_scene.py
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python render_scene.py
 ```
 
 Visual review inspected output0,20,48,95 at full1080p: clear sealed cabin rims,

@@ -1,6 +1,6 @@
 """Geometry-first guides for C4's depth layers (c4-layout.md).
 
-"C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background --factory-startup --python build_c4_guides.py [-- --layers L4-near,L3-mid --samples 16 --scale 0.5]
+sh ../../../blender.sh --background --factory-startup --python build_c4_guides.py [-- --layers L4-near,L3-mid --samples 16 --scale 0.5]
 
 Builds the c4_world.py massing as clay, one layer at a time, and renders each layer as a
 pushbroom panorama at its representative depth: every vertex's X is scaled about the

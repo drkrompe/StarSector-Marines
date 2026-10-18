@@ -217,7 +217,7 @@ flank locker). Repeated small fittings (stripes, fenders, hatch panels)
 carry Blender's .001 suffixes and are not keys.
 
 Rebuild from this folder
-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_reference.py
+sh ../../blender.sh --background --factory-startup --python build_reference.py
   options after "--": --views top,bow  --samples N  --no-save  --out DIR
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE; close-ups render only when named
   (bow-detail, bridge-detail, turret-detail, waist-detail, stern-detail,

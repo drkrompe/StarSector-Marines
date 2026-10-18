@@ -19,7 +19,7 @@ No .ship file other than legion.ship exists for this hull; there is no
 lights layer for it. The build fails if the installed slots stop matching.
 
 Build
-  "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background ^
+  sh ../../blender.sh --background ^
       --factory-startup --python build_legion.py -- [--views ...] [--samples N]
   python compose_review.py
 build_legion.py writes the renders, legion-geometry.blend and geometry.json;

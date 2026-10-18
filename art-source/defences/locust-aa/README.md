@@ -72,7 +72,7 @@ From the repository root in PowerShell:
 To regenerate the input guide first:
 
 ```powershell
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python art-source/defences/locust-aa/render-reskin-guide.py
+sh art-source/blender.sh --background --factory-startup --python art-source/defences/locust-aa/render-reskin-guide.py
 ```
 
 The exporter retains both complete master frames and downsamples them without

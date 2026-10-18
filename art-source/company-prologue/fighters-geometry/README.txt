@@ -190,13 +190,13 @@ For review
   layer (the Talon's glow files are drive glows).
 
 Rebuild (from this folder; one Blender at a time)
-  "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_fighter.py -- --fighter talon
+  sh ../../blender.sh --background --factory-startup --python build_fighter.py -- --fighter talon
   python compose_fighter.py --fighter talon
-  ".../blender.exe" --background talon/talon-geometry.blend --python check_clashes.py
-  ".../blender.exe" --background --factory-startup --python lineup.py
+  sh ../../blender.sh --background talon/talon-geometry.blend --python check_clashes.py
+  sh ../../blender.sh --background --factory-startup --python lineup.py
   python compose_lineup.py
 Blockout before-shots for new close-up cameras:
-  ".../blender.exe" --background --factory-startup --python build_fighter.py -- --fighter talon --blockout --out talon/reference-history/v1-blockout --no-save --views details
+  sh ../../blender.sh --background --factory-startup --python build_fighter.py -- --fighter talon --blockout --out talon/reference-history/v1-blockout --no-save --views details
 Options: --views (top, port-side, front, three-quarter, cockpit-check,
 parked, details or a close-up's name), --cam, --samples, --no-save,
 --blockout (see the driver's docstring).
