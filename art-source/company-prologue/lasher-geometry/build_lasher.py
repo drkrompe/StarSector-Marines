@@ -53,6 +53,8 @@ import ls_kit, ls_hull, ls_pods, ls_engines, ls_mounts, ls_lights
 for module in (ls_kit, ls_hull, ls_pods, ls_engines, ls_mounts, ls_lights):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
+sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
+import ship_scale
 
 SHIP = 'data/hulls/lasher.ship'
 SPRITE = 'graphics/ships/lasher/lasher_base.png'
@@ -60,26 +62,20 @@ LIGHTS_SPRITE = 'graphics/ships/lasher/lasher_lights.png'
 COLL = 'LASHER'
 ROOT = 'LASHER | root'
 
-# Real-world scale (pipeline pass 4), solved in the warship form. The mod's
-# deck program for a FRIGATE "Frigate" (role WARSHIP) with 25-50 crew and 40
-# cargo (DeckProgramProbe) is 2,317 m2 of rooms; the Lasher has no fighter
-# bays, so its notional 160 m2 HANGAR is dropped: 2,157 m2 x1.40 circulation
-# x3.2 m deck height = 9,663 m3. The habitable share of the pressure hull
-# (head, nose cap, spine, wing body and nacelles; the weapon pods are
-# magazines and gun housings) is budgeted explicitly in HABITABLE below and
-# the driver re-measures the hull's union volume on every build.
-METRES_PER_UNIT = 0.85
-REQUIRED_M3 = 9663
-NON_HABITABLE = {  # share of the pressure hull, warship form
-    'armour belt and plating': .12,
-    'reactor, flux capacitors and dissipation plant': .14,
-    'drive machinery and fuel (25 units)': .12,
-    'magazines and ammo feed (Ammo Feeder system)': .08,
-    'structure, tanks and voids': .12,
-}
-HABITABLE = round(1-sum(NON_HABITABLE.values()), 2)
-PRESSURE_HULL = ['Hull bow head', 'Hull nose cap', 'Hull spine', 'Hull wing body',
-                 'Hull port engine nacelle', 'Hull starboard engine nacelle']
+# Real-world scale (pipeline pass 4), from the shared sizing basis
+# (../ship_scale.py, owner 2026-10-18): contents (50 crew, 40 cargo, 25 fuel)
+# over the frigate machinery share, against the measured enclosed volume, the
+# union of ship_scale.SOLIDS['lasher'] (head, nose cap, spine, wing body,
+# ventral keel; never the drive nacelles or weapon pods). The driver re-measures
+# that union on every build and fails if it drifts from ship_scale.HULLS, so a
+# shape change has to be carried into the shared table, where it moves the
+# solved scale for every reader at once.
+SCALE = ship_scale.record('Lasher')
+METRES_PER_UNIT = ship_scale.PUBLISHED['Lasher']
+assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
+SOLIDS = [n for n in ('Hull bow head', 'Hull nose cap', 'Hull spine', 'Hull wing body', 'Hull ventral keel',
+                      'Hull port engine nacelle', 'Hull starboard engine nacelle', 'Pod port gun body')
+          if ship_scale.SOLIDS['lasher']['include'](n)]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
@@ -126,6 +122,7 @@ provenance = check_against_install()
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = ls_kit.Kit()
+kit.mpu = METRES_PER_UNIT
 ls_hull.build(kit)
 ls_pods.build(kit)
 ls_engines.build(kit)
@@ -218,28 +215,18 @@ def union_volume(names, step=.5):
 
 
 def scale_record():
-    volume = union_volume(PRESSURE_HULL)
-    solve = lambda share: (REQUIRED_M3/(share*volume))**(1/3)
+    measured = union_volume(SOLIDS)
+    table = ship_scale.HULLS['Lasher']['units3']
+    if abs(measured/table-1) > .02:
+        raise RuntimeError(f'enclosed volume {measured:.0f} units3 differs from ship_scale.HULLS '
+                           f"Lasher units3 {table}: update the shared table")
     size = [round((b-a)*METRES_PER_UNIT, 1) for a, b in zip(LO, HI)]
-    return {
-        'method': 'deck program (DeckProgramProbe FRIGATE "Frigate" 25 50 40 -> WARSHIP): 2317 m2 rooms, '
-                  'notional 160 m2 HANGAR dropped (no fighter bays) = 2157 m2, x1.40 circulation x3.2 m deck '
-                  'height = required m3; solved against the habitable share of the pressure hull (union volume)',
-        'required_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL,
-        'pressure_hull_units3': round(volume), 'non_habitable_budget': NON_HABITABLE,
-        'habitable_share': HABITABLE, 'solved_metres_per_unit': round(solve(HABITABLE), 3),
-        'range': {'roomy_55pct_freighter_share': round(solve(.55), 2),
-                  'cramped_30pct_share': round(solve(.30), 2)},
-        'size_m': size,
-        'cross_checks_m': {'bow turret barbette diameter': round(2*ls_mounts.BARBETTE_R*METRES_PER_UNIT, 1),
-                           'main bell mouth diameter': round(2*ls_engines.mouth_r(16)*METRES_PER_UNIT, 1),
-                           'spine keel to deck (about four 3.2 m decks)': round((ls_hull.SPINE_DECK+6.5)*METRES_PER_UNIT, 1),
-                           'person 1.8 m in units': round(1.8/METRES_PER_UNIT, 2)},
-        'real_ship_check': f'{size[0]} m long, {size[1]} m across the wings, for 25-50 crew: a modern corvette '
-                           '(about 80-90 m, 60-100 crew) in length; enclosed pressure-hull volume per person '
-                           f'{round(volume*METRES_PER_UNIT**3/50)} m3 at full crew',
-        'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
-    }
+    return {**SCALE, 'published_metres_per_unit': METRES_PER_UNIT,
+            'measured_this_build': {'enclosed_units3': round(measured), 'solids': SOLIDS,
+                                    'all_hull_solids_units3_incl_nacelles': round(union_volume(
+                                        SOLIDS+['Hull port engine nacelle', 'Hull starboard engine nacelle']))},
+            'size_m': size, 'person_1_8_m_in_units': round(1.8/METRES_PER_UNIT, 2),
+            'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number'}
 
 
 # --- Review scene: studio lamps and cameras (never saved into the asset). ---

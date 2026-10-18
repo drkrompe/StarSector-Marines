@@ -35,7 +35,10 @@ WING = sym([(16.5, 4), (16.5, 20), (14, 21), (6, 21.5), (5, 32.3), (-1, 32.3), (
             (-13.5, 31.6), (-18, 28), (-19, 24), (-12, 17), (-10, 4)])
 NACELLE = [(-6, 8.5), (-29.2, 8.5), (-29.2, 14), (-27, 17.5), (-24.5, 22.5), (-21, 25),
            (-16, 29.5), (-11, 31), (-7, 22)]
-WING_SLOPE = (12.0, .15)  # the wing's upper surface falls outboard of |Y| 12 at 0.15 per unit
+WING_SLOPE = (12.0, .15)
+# Human fittings in true metres, converted with the hull's scale (kit.mpu).
+VIEWPORT_M = (1.0, .8)       # one viewport pane, fore-aft x athwartships
+BRIDGE_BAND_M = 1.0          # the bridge viewport arc's glazed band  # the wing's upper surface falls outboard of |Y| 12 at 0.15 per unit
 
 HEAD_DECK = 6.5
 RING_TOP = 7.8
@@ -122,6 +125,7 @@ def build(kit):
     kit.hull += [head, nose, spine, wing, ring, *nac.values()]
 
     # --- Pass 2: plates, pads, glazing, vents. ---
+    vp = [m/kit.mpu for m in VIEWPORT_M]
     for side, s in (('port', 1), ('starboard', -1)):
         pad = ccw([(45, s*10.5), (44.5, s*15), (40, s*16), (34, s*15.2), (33, s*11.5), (38, s*10)])
         kit.hull.append(prism(kit, f'Hull bow {side} machinery pad', pad, section(HEAD_DECK-4.5, HEAD_DECK-.2, .3, .6),
@@ -140,9 +144,9 @@ def build(kit):
         # Shoulder viewports on the machinery pads (lights layer r17/20/23).
         for k, (x, y) in enumerate(((44, 8.5), (41, 10.5), (38, 12.5)), 1):
             z = seat(kit, x, s*y, HEAD_DECK)
-            kit.box(f'Hull bow {side} viewport {k}', (x, s*y, z), (.9, .7, .25), kit.glass, 0)
+            kit.box(f'Hull bow {side} viewport {k}', (x, s*y, z), (*vp, .25), kit.glass, 0)
         # Spine flank viewports (lights layer rows 36-37, cols 28/38).
-        kit.box(f'Hull spine {side} viewport', (24.5, s*5.2, SPINE_DECK+.02), (1.1, .7, .2), kit.glass, 0)
+        kit.box(f'Hull spine {side} viewport', (24.5, s*5.2, SPINE_DECK+.02), (*vp, .2), kit.glass, 0)
         # Aft heat-vent grille: dark well with two glowing slats (lights rows 72-82).
         kit.box(f'Hull spine {side} heat vent well', (-16, s*2.6, SPINE_DECK-.1), (10.5, 2.6, .5), kit.dark, 0)
         for k, y in enumerate((1.9, 3.3), 1):
@@ -153,7 +157,7 @@ def build(kit):
         kit.box(f'Hull spine seam {x:+.1f}', (x, 0, SPINE_DECK+.05), (.4, 9, .2), kit.dark, 0)
     # Bridge viewport arc across the head, forward of the bow turret (lights rows 12-15).
     arc = [(44.0+5.3*math.cos(a), 5.3*math.sin(a)) for a in [math.radians(d) for d in range(-70, 71, 14)]]
-    strip(kit, 'Hull bridge viewport arc', arc, .75, HEAD_DECK-.15, .45, kit.glass)
+    strip(kit, 'Hull bridge viewport arc', arc, BRIDGE_BAND_M/kit.mpu, HEAD_DECK-.15, .45, kit.glass)
     strip(kit, 'Hull bridge visor brow', [(x+.7, y*1.1) for x, y in arc], .5, HEAD_DECK, .8, kit.steel)
     # Nose sensor wells (rows 5-6, cols 29-32 and 36-39).
     for s in (1, -1):
