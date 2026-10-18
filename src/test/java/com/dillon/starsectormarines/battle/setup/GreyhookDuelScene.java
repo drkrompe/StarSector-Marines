@@ -61,7 +61,11 @@ public final class GreyhookDuelScene implements BehaviorScene {
      * longer or shorter.
      */
     private static final int TICKS = Integer.getInteger("battle.scene.greyhookDuel.ticks", 27000);
-    private static final int FRAME_EVERY = 30;
+    /**
+     * Ticks between recorded frames outside the duel camera's dense stretches; {@code
+     * -Dbattle.scene.greyhookDuel.frameEvery} raises it so a whole fifteen-minute fight fits a review GIF's size.
+     */
+    private static final int FRAME_EVERY = Math.max(1, Integer.getInteger("battle.scene.greyhookDuel.frameEvery", 30));
     private static final long[] SEEDS = {15305L, 16205L, 16206L, 20261016L, 31337L};
     /**
      * How far, as a share of its own margin, a hull the edge pressure holds may still be found inside that margin: the
