@@ -40,6 +40,7 @@ public final class MirrorDuelScene implements BehaviorScene {
     private static final int FRAME_EVERY = 60;
     private static final float TICK_SECONDS = 1f / 30f;
     private static final long[] SEEDS = {11L, 23L, 37L};
+    private static final boolean DIAG = Boolean.getBoolean("battle.scene.warshipMirrors.trace");
     /** A decision may come no faster than this many of the loser's own ninety-degree turns from the first hit. */
     private static final float MIN_TURNS = 3f;
     /** A front-shield ship on a standoff keeps its target inside its arc at least this share of the time. */
@@ -114,6 +115,18 @@ public final class MirrorDuelScene implements BehaviorScene {
                 midY + (rng.nextFloat() - 0.5f) * 0.6f * reach);
         sim.addWarship(west);
         sim.addWarship(east);
+        if (DIAG) {
+            StringBuilder p = new StringBuilder();
+            float d = 1000f;
+            for (int a = 0; a <= 180; a += 15) {
+                double r = Math.toRadians(a);
+                p.append(String.format(Locale.ROOT, " %d:%.0f", a, WarshipShipRules.firepowerAt(west, 0f,
+                        west.x - (float) Math.sin(r) * d, west.y + (float) Math.cos(r) * d)));
+            }
+            System.out.printf(Locale.ROOT, "DIAG %s speed %.2f c/s turn %.2f d/s len %.1f battery %.1f longest %.1f arc %.0f %s fp%s%n",
+                    loop, west.maxSpeed, west.maxTurnDegPerSec, west.lengthCells, WarshipDuelHelm.batteryReach(west),
+                    WarshipShipFire.longestReach(west), west.shieldArcDegrees(), west.shieldType(), p);
+        }
         Trace trace = new Trace(west, east);
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, FRAME_EVERY, tick -> trace.caption(loop, tick))
@@ -282,6 +295,19 @@ public final class MirrorDuelScene implements BehaviorScene {
                 }
             }
             if (out(west) || out(east)) return;
+            if (DIAG && tick % 30 == 0) {
+                StringBuilder b = new StringBuilder();
+                for (Warship s : List.of(west, east)) {
+                    Warship o = s == west ? east : west;
+                    float aspect = WarshipFacing.wrap(WarshipFacing.bearing(s.centerX(), s.centerY(), o.centerX(), o.centerY())
+                            - s.facingDegrees);
+                    b.append(String.format(Locale.ROOT, " | %s %-10s asp %4.0f spd %.2f hp %3.0f fx %2.0f%s",
+                            s == west ? "W" : "E", kind(s), aspect, Math.hypot(s.velocityX, s.velocityY),
+                            100f * s.hullFraction(), 100f * s.fluxFraction(), s.shieldUp() ? "S" : " "));
+                }
+                System.out.printf(Locale.ROOT, "T %4d rng %5.1f%s%n", tick / 30,
+                        Math.hypot(west.centerX() - east.centerX(), west.centerY() - east.centerY()), b);
+            }
             for (Warship s : List.of(west, east)) {
                 maxFlux.merge(s, s.fluxFraction(), Math::max);
                 Warship o = s == west ? east : west;

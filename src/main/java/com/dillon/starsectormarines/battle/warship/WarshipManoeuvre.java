@@ -46,7 +46,23 @@ public final class WarshipManoeuvre {
         /** Swinging wide round a charge's escorts to the charge's far side. */
         FLANK,
         /** In the wake of the line's lead, matching its course. */
-        LINE_AHEAD
+        LINE_AHEAD,
+        /**
+         * Circling its target with way on, the target held off the bow at the widest angle that keeps it inside the
+         * ship's own cover (its front shield's arc, or the beam), working round toward the target's quarter while what
+         * bears off the bow keeps firing: two ships jockeying for position rather than parked nose to nose.
+         */
+        ORBIT,
+        /**
+         * Turning in across a target that has turned its cover away (its shield arc or its guns off this ship): crossing
+         * its T, nose and guns on its flank or stern for as long as it takes the target to turn back.
+         */
+        CROSS,
+        /**
+         * Breaking away on a course well off the target to open the range at full way while venting a full pool,
+         * rather than backing off at a crawl: the turn is the cost, paid on a quarter the target may cross.
+         */
+        BREAK
     }
 
     Role role = Role.NONE;
@@ -70,6 +86,10 @@ public final class WarshipManoeuvre {
     float speedShare = 1f;
     /** For a standoff: the ship is venting a full pool, and opens past its target's reach until it has. */
     boolean venting;
+    /** For an orbit: how far off the bow the target is held, in degrees, chosen when the orbit began. */
+    float orbitAngle = Float.NaN;
+    /** For a cross: the battle clock when the target was last seen with its cover turned away; NaN for none. */
+    float offArcAt = Float.NaN;
     /** Manoeuvres begun, for evidence. */
     int begun;
 
@@ -107,6 +127,7 @@ public final class WarshipManoeuvre {
         kind = next;
         startedAt = now;
         venting = false;
+        offArcAt = Float.NaN;
         course = fixedCourse;
         begun++;
     }
