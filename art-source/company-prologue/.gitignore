@@ -82,3 +82,7 @@ fighters-surface/*/review/
 fighters-surface/*/textures/
 fighters-surface/*/grading/
 fighters-surface/*/skin-manifest.json
+
+# Paragon: the .blend is a build output of build_paragon.py, rebuilt from the scripts.
+paragon-geometry/**/*.blend
+paragon-geometry/**/*.blend1
