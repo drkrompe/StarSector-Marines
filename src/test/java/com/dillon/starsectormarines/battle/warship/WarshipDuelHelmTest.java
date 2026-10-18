@@ -76,8 +76,8 @@ class WarshipDuelHelmTest {
 
     @Test
     void noShipHoldsOffFartherThanAFewShipLengths() {
-        // Guns that reach 200 against 50 would hold off at 125; two hulls 20 cells long stand off at STANDOFF_LENGTHS of their length.
-        assertEquals(WarshipDuelHelm.STANDOFF_LENGTHS * 20f, WarshipDuelHelm.preferredRange(200f, 50f, 10f, 10f), 1e-4f);
+        // Guns that reach 600 against 50 would hold off at 325; two hulls 20 cells long stand off at STANDOFF_LENGTHS of their length.
+        assertEquals(WarshipDuelHelm.STANDOFF_LENGTHS * 20f, WarshipDuelHelm.preferredRange(600f, 50f, 10f, 10f), 1e-4f);
         // Inside the cap the guns decide.
         assertEquals(0.5f * (60f + 40f), WarshipDuelHelm.preferredRange(60f, 40f, 15f, 15f), 1e-4f);
     }

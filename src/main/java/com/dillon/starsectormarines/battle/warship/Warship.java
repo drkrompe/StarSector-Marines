@@ -1960,6 +1960,21 @@ public final class Warship {
         }
     }
 
+    /**
+     * Sets the flux pair for what the ship is doing: fighting a hull it spends its pool as the hull table allows
+     * ({@link WarshipFlux#SOFT_LIMIT} and {@link WarshipFlux#RESUME_LEVEL}), whatever its posture would keep back for
+     * the air or the ground; otherwise its posture's pair. A duel between warships fought on half a pool is a duel of
+     * shields that never give.
+     */
+    void fluxFooting(boolean fightingHull) {
+        if (fightingHull && HULL_FIGHT_FOOTING) flux.thresholds(WarshipFlux.SOFT_LIMIT, WarshipFlux.RESUME_LEVEL);
+        else flux.thresholds(profile.softLimit(), profile.resumeLevel());
+    }
+
+    /** {@code -Dbattle.warship.hullFightFooting=false} is the control: a hull fight keeps the posture's flux pair. */
+    static final boolean HULL_FIGHT_FOOTING =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.hullFightFooting"));
+
     /** Takes {@code next}, with the sentence that explains it. A change restarts the clock and counts as a transition. */
     void setPosture(WarshipPosture next, String reason) {
         postureReason = reason;

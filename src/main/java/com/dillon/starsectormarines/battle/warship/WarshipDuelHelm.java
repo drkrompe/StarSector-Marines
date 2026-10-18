@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.warship;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 /**
  * The duel helm: where a ship fighting a hostile hull puts itself, as pure functions of the two hulls' own guns and
  * of where the target is going.
@@ -38,7 +42,8 @@ public final class WarshipDuelHelm {
     static final float CLEARANCE_CELLS = 6f;
     /** The farthest a duelling ship stands from its target, in the two hulls' mean lengths, centre to centre. */
     static final float STANDOFF_LENGTHS =
-            Float.parseFloat(System.getProperty("battle.warship.standoffLengths", "3"));
+            Float.parseFloat(System.getProperty("battle.warship.standoffLengths",
+                    Float.toString(3f * WarshipScale.HULL_RANGE)));
     /** Bearings round the target a bow ship weighs for its station. */
     static final int BOW_BEARINGS = 24;
     /** How much flying the whole range round to a quiet quarter costs against the target's full battery bearing. */
@@ -65,6 +70,33 @@ public final class WarshipDuelHelm {
         Warship.Mount m = WarshipShipRules.strongest(ship);
         return m == null ? 0f : WarshipScale.hullReach(m.weapon.rangePx());
     }
+
+    /**
+     * The reach, in cells, inside which most of the ship's anti-ship battery bears: the longest range at which guns
+     * holding {@link #BATTERY_SHARE} of its firepower all reach. A ship whose strongest gun outranges the rest of its
+     * battery (an Eagle's graviton beams over its heavy needlers) fights where the battery can join in, not where only
+     * the one gun can; zero when it has no gun at a hull.
+     */
+    public static float batteryReach(Warship ship) {
+        List<Warship.Mount> guns = new ArrayList<>();
+        float total = 0f;
+        for (Warship.Mount m : ship.mounts()) {
+            if (!WarshipShipRules.gunAtHull(m.weapon) || m.knockedOut()) continue;
+            guns.add(m);
+            total += WarshipShipRules.firepower(m.weapon);
+        }
+        if (guns.isEmpty() || total <= 0f) return reach(ship);
+        guns.sort(Comparator.comparingDouble((Warship.Mount m) -> -m.weapon.rangePx()));
+        float held = 0f;
+        for (Warship.Mount m : guns) {
+            held += WarshipShipRules.firepower(m.weapon);
+            if (held >= BATTERY_SHARE * total) return WarshipScale.hullReach(m.weapon.rangePx());
+        }
+        return WarshipScale.hullReach(guns.get(guns.size() - 1).weapon.rangePx());
+    }
+
+    /** The share of its anti-ship firepower a ship wants bearing at its fighting range. */
+    static final float BATTERY_SHARE = 0.6f;
 
     /** Whether a ship with {@code mine} reach holds off a target with {@code theirs}, rather than closing. */
     public static boolean holdsOff(float mine, float theirs) {

@@ -120,10 +120,20 @@ public final class MissilePath {
      * {@link #landX()} and {@link #landY()} for where.
      */
     public static MissilePath plan(MissileFlightSpec spec, float fromX, float fromY, float toX, float toY, long seed) {
-        float vMax = WarshipScale.cells(spec.maxSpeedPx());
-        float v0 = WarshipScale.cells(spec.launchSpeedPx());
-        float acc = WarshipScale.cells(spec.accelerationPx());
-        float dec = WarshipScale.cells(spec.decelerationPx());
+        return plan(spec, fromX, fromY, toX, toY, seed, 1f);
+    }
+
+    /**
+     * {@link #plan}, for a missile whose speeds are all {@code speedScale} times its spec's: a missile at a hull, which
+     * flies {@link WarshipScale#HULL_RANGE} times as far in the same seconds, so its motor's burn, its coast and its
+     * flight time are the spec's at hull-fight range.
+     */
+    public static MissilePath plan(MissileFlightSpec spec, float fromX, float fromY, float toX, float toY, long seed,
+                                   float speedScale) {
+        float vMax = WarshipScale.cells(spec.maxSpeedPx()) * speedScale;
+        float v0 = WarshipScale.cells(spec.launchSpeedPx()) * speedScale;
+        float acc = WarshipScale.cells(spec.accelerationPx()) * speedScale;
+        float dec = WarshipScale.cells(spec.decelerationPx()) * speedScale;
         float tau = dec > 0f ? Math.max(0.4f, Math.min(3f, vMax / dec)) : DEFAULT_COAST_TAU;
         float dx = toX - fromX;
         float dy = toY - fromY;

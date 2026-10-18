@@ -67,6 +67,14 @@ public final class WarshipShipFire {
     private final Map<Warship.Mount, Engagement> engagements = new IdentityHashMap<>();
     private final Map<String, Integer> roundsByWeapon = new TreeMap<>();
     private final List<WarshipShell> shells;
+    /**
+     * A missile at a hull flies its spec's flight magnified {@link WarshipScale#HULL_RANGE} times, as a gun's round
+     * does ({@link WarshipScale#hullRoundSpeed}): its speeds, its split range and its warheads' speed are all that many
+     * times the spec's, so at hull-fight range its motor's burn and coast, its split and its flight time are the
+     * spec's seconds, and point defence has the spec's time to answer it.
+     */
+    static final float HULL_MISSILE_SCALE = WarshipScale.HULL_RANGE;
+
     private final WarshipPointDefence tracers;
     private int engagementsStarted;
     private int roundsFired;
@@ -217,7 +225,10 @@ public final class WarshipShipFire {
 
     /** Whether {@code target} is a hull {@code ship} may fight. */
     static boolean hostileHull(Warship ship, Warship target) {
-        return target != ship && !target.destroyed() && !target.departed() && ship.faction.hostileTo(target.faction);
+        // A hull still coming down through the cloud deck is not yet seen: at hull-fight ranges it would otherwise be
+        // under fire before it was out of the cloud.
+        return target != ship && !target.destroyed() && !target.departed() && !target.descending()
+                && ship.faction.hostileTo(target.faction);
     }
 
     /**
@@ -502,7 +513,7 @@ public final class WarshipShipFire {
     static float[] aimFor(float mx, float my, Warship target, VanillaWeapon w) {
         if (!w.missile() || w.flight() == null) {
             return WarshipAirRules.leadPoint(mx, my, target.centerX(), target.centerY(),
-                    target.velocityX, target.velocityY, w);
+                    target.velocityX, target.velocityY, w, WarshipScale.HULL_RANGE);
         }
         float tx = target.centerX();
         float ty = target.centerY();
@@ -519,13 +530,16 @@ public final class WarshipShipFire {
     /** How long a missile takes from the muzzle to {@code (ax, ay)}: for a carrier, its flight to the split and its warheads' after. */
     static float missileSeconds(MissileFlightSpec flight, float mx, float my, float ax, float ay) {
         MissileFlightSpec.Mirv mirv = flight.mirv();
-        if (mirv == null) return MissilePath.plan(flight, mx, my, ax, ay, 0L).totalSeconds();
+        if (mirv == null) {
+            return MissilePath.plan(flight, mx, my, ax, ay, 0L, HULL_MISSILE_SCALE).totalSeconds();
+        }
         float dist = (float) Math.hypot(ax - mx, ay - my);
         float along = splitAlong(flight, mirv, mx, my, ax, ay, 0L);
         float ux = dist > 0f ? (ax - mx) / dist : 0f;
         float uy = dist > 0f ? (ay - my) / dist : 0f;
-        float carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, 0L).totalSeconds();
-        return carrier + (dist - along) / Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()));
+        float carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, 0L,
+                HULL_MISSILE_SCALE).totalSeconds();
+        return carrier + (dist - along) / Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()) * HULL_MISSILE_SCALE);
     }
 
     /** How far along its line to {@code (ax, ay)} a carrier splits, by the spec (vanilla's reading, {@link MirvSplit}). */
@@ -534,9 +548,9 @@ public final class WarshipShipFire {
         float dist = (float) Math.hypot(ax - mx, ay - my);
         float ux = dist > 0f ? (ax - mx) / dist : 0f;
         float uy = dist > 0f ? (ay - my) / dist : 0f;
-        return MirvSplit.along(dist, WarshipScale.cells(mirv.splitRangePx()), mirv.minTimeToSplit(),
+        return MirvSplit.along(dist, WarshipScale.cells(mirv.splitRangePx()) * HULL_MISSILE_SCALE, mirv.minTimeToSplit(),
                 mirv.canSplitEarly(), a -> MissilePath.plan(flight, mx, my, mx + ux * (float) a,
-                        my + uy * (float) a, seed).totalSeconds());
+                        my + uy * (float) a, seed, HULL_MISSILE_SCALE).totalSeconds());
     }
 
     /** The ship's chosen hull if this mount can reach it, else the nearest hostile hull it can; ties by add order. */
@@ -595,7 +609,7 @@ public final class WarshipShipFire {
         float reach = WarshipScale.hullReach(w.rangePx());
         float[] stray = WarshipShipRules.strayLanding(mx, my, lx, ly, reach, WarshipAirRules.unit(seed, 1));
         float visual = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
-        float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));
+        float speed = Math.max(1f, WarshipScale.hullRoundSpeed(w.projectileSpeedPx()));
         MissilePath path = MissilePath.straight(mx, my, lx, ly, speed);
         shells.add(new WarshipShell(w, ship.faction, ship, mx, my, lx, ly, path, visual, w.damagePerShot(),
                 penetration, blast, null, null, 0f, null, 0f).atHull(target, stray[0], stray[1], true));
@@ -613,7 +627,8 @@ public final class WarshipShipFire {
             float along = splitAlong(flight, mirv, mx, my, aim[0], aim[1], seed);
             float ux = dist > 0f ? (aim[0] - mx) / dist : 0f;
             float uy = dist > 0f ? (aim[1] - my) / dist : 0f;
-            MissilePath carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed);
+            MissilePath carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed,
+                    HULL_MISSILE_SCALE);
             // Placeholder warheads at where the hull is expected: the split re-aims them at where it actually is.
             List<WarshipShell.Warhead> heads = warheads(ship.faction, mirv, carrier.landX(), carrier.landY(),
                     aim[0], aim[1], seed);
@@ -632,7 +647,7 @@ public final class WarshipShipFire {
             lx += dist > 0f ? -(aim[1] - my) / dist * miss : 0f;
             ly += dist > 0f ? (aim[0] - mx) / dist * miss : 0f;
         }
-        MissilePath path = MissilePath.plan(flight, mx, my, lx, ly, seed);
+        MissilePath path = MissilePath.plan(flight, mx, my, lx, ly, seed, HULL_MISSILE_SCALE);
         float[] stray = WarshipShipRules.strayLanding(mx, my, path.landX(), path.landY(),
                 WarshipScale.cells(w.rangePx()), WarshipAirRules.unit(seed, 1));
         shells.add(new WarshipShell(w, ship.faction, ship, mx, my, path.landX(), path.landY(), path, visual,
@@ -642,24 +657,32 @@ public final class WarshipShipFire {
 
     /**
      * A carrier's warheads from its split point {@code (rx, ry)} toward {@code (ax, ay)}: spread evenly across the
-     * spec's arc, each jittered by a hash of the seed by up to half the gap between them, flying straight at the
-     * warhead speed to as far as the aim point is.
+     * spec's arc, each jittered by a hash of the seed by up to half the gap between them (less the jitter's mean, so
+     * the fan stays centred on the aim), flying straight at the warhead speed to as far as the aim point is.
      */
     static List<WarshipShell.Warhead> warheads(Faction faction, MissileFlightSpec.Mirv mirv, float rx, float ry,
                                                float ax, float ay, long seed) {
         int n = Math.max(1, mirv.count());
         float blast = Math.max(1f, WarshipScale.cells(mirv.damageRadiusPx()));
         float visual = Math.max(1f, WarshipScale.cells(mirv.visualRadiusPx()));
-        float speed = Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()));
+        float speed = Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()) * HULL_MISSILE_SCALE);
         float chord = Math.max(1f, (float) Math.hypot(ax - rx, ay - ry));
         double forward = Math.atan2(ay - ry, ax - rx);
         double arc = Math.toRadians(mirv.arcDegrees());
         float penetration = WarshipSystem.penetration(mirv.damageType());
         List<WarshipShell.Warhead> out = new ArrayList<>(n);
+        // Each warhead is jittered off its even share of the arc, but the pattern stays centred on the aim: the jitter
+        // shuffles warheads within the fan rather than walking the whole fan off the hull it was aimed at.
+        double[] jitter = new double[n];
+        double meanJitter = 0.0;
+        for (int i = 0; i < n; i++) {
+            jitter[i] = (WarshipAirRules.unit(seed, 10 + i) - 0.5) * (n == 1 ? arc : arc / (n - 1));
+            meanJitter += jitter[i] / n;
+        }
+        if (n == 1) meanJitter = 0.0;
         for (int i = 0; i < n; i++) {
             double even = n == 1 ? 0.0 : arc * ((double) i / (n - 1) - 0.5);
-            double jitter = (WarshipAirRules.unit(seed, 10 + i) - 0.5) * (n == 1 ? arc : arc / (n - 1));
-            double a = forward + even + jitter;
+            double a = forward + even + jitter[i] - meanJitter;
             float tx = rx + (float) Math.cos(a) * chord;
             float ty = ry + (float) Math.sin(a) * chord;
             float seconds = chord / speed;
@@ -683,7 +706,7 @@ public final class WarshipShipFire {
                 shell.faction.ordinal());
         List<WarshipShell.Warhead> heads = shell.warheads();
         if (!target.destroyed() && !target.departed() && shell.faction.hostileTo(target.faction)) {
-            float speed = Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()));
+            float speed = Math.max(1f, WarshipScale.cells(mirv.warheadSpeedPx()) * HULL_MISSILE_SCALE);
             float ax = target.centerX();
             float ay = target.centerY();
             for (int pass = 0; pass < 2; pass++) {

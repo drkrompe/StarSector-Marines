@@ -1709,13 +1709,22 @@ for one mission:
   guns bear least, weighed against the flying to get there, and holds its nose on the
   target, so it makes passes and works round to a quiet quarter rather than trading
   broadsides.
+- **Hulls fight at a distance.** A gun firing at a hull reaches its base-game range
+  times the hull presence, times the reach share, times the **hull range** (two and a
+  half): hulls trade fire across several of their own lengths, never nose to nose. A
+  round or missile at a hull flies the hull range times as fast, so its flight takes the
+  base game's seconds at that distance and point defence has the base game's time to
+  answer a missile; a carrier splits at its split range times the hull range. Fighters
+  and point defence against craft keep their own close-in reach and clocks.
 - **The standoff law.** A duelling ship's range comes from its guns and both hulls'
   size, by one rule for every hull: a ship that outranges its target holds off between
   the two reaches, one that does not closes well inside its own, and neither stands off
-  farther than three of the two hulls' mean length, nor nearer than the two hulls
-  and a clearance. Range advantage matters (the outranged ship has to close under fire)
-  but nobody holds off untouchable across the map: a ship's guns reach only a few of its
-  lengths, and the law will not let it stand farther off than that.
+  farther than the hull range times three of the two hulls' mean length, nor nearer
+  than the two hulls and a clearance. The reach the law reads is the ship's **battery
+  reach** — the range at which three fifths of its anti-ship firepower bears — not its
+  longest gun, so a ship with one long gun does not hold its main battery out of reach.
+  Range advantage matters (the outranged ship has to close under fire) but nobody holds
+  off untouchable across the map.
 - **Escorts screen by fighting, on a leash.** With no hull to fight, an escort holds its
   place in the screen line abreast of its charge. With one, it takes its own duel
   station by the same laws, pulled in to within its charge's half-length and its own
@@ -1728,9 +1737,12 @@ for one mission:
   is followed by the next after the weapon's charge-up and charge-down, not at the floor
   of the tick, and that whole cycle, the missile ripple, and on the duel footing flux
   dissipation, shield upkeep and overload run at one over the **hull-fight tempo**. The
-  tempo is derived, not tuned: a round between hulls flies three times the base game's
-  distance at its speed, so at a tempo of three the rounds in the air and the share of a
-  fight spent crossing are the base game's. Damage, armour, shields and hit points are
+  tempo is derived, not tuned: it is the hull presence times the reach share (three),
+  and the hull range does not enter it, because a round's speed carries that factor, so
+  the rounds in the air and the share of a fight spent crossing are the base game's at
+  any hull range. While it fights a hull a ship's flux runs on the duel footing's
+  thresholds whatever its posture, so air superiority's sparing flux pair never holds a
+  hull fight's guns silent. Damage, armour, shields and hit points are
   untouched, so every matchup keeps the base game's balance and only takes longer; a
   weapon built for alpha (an Antimatter Blaster, a Harpoon) still kills a frigate in one
   or two blows. Ground fire, air fire and point defence keep their own clocks.
@@ -2179,10 +2191,13 @@ reaches an entry level and left only after it has stayed under half of it for
 a dwell, so a pause between sorties is not the end of the fight; while it lasts
 the ship spends flux on shots of opportunity from its secondary battery only,
 and keeps clear of any declared capital hazard. Withdraw is for the rest of the
-battle and leaves through the ordinary departure; besides a hull worn low, a ship
-**losing the exchange** (under three quarters of its hull while the hull it fights
-has a fifth more left) withdraws, so two equals decide a duel by one breaking off
-rather than trading to the last plate. What the ship is trying to do
+battle and leaves through the ordinary departure, for a hull worn low or a ship
+threatened past what it can answer. **A ship fighting a hull fights it to the end**:
+while it has a live hostile hull to fight, the doctrine never withdraws it, however
+worn, so a duel between warships is decided by a kill and never by a voluntary
+break-off. A withdrawal a mission orders (the *Greyhook*'s lift-off at Black Sluice)
+is the mission's, not the doctrine's, and stands. A hull still coming down through
+the cloud deck is not yet a target. What the ship is trying to do
 about the objective is a **mission stance** (attack, defend, hold), a value a
 mission sets and changes at any time, never derived from the ship's side; a
 hostile loaded shuttle is never a threat to a ship but an inbound drop. A

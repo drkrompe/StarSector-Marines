@@ -704,6 +704,7 @@ public final class WarshipSystem {
                     picture.ownAir(), ship.stance(), foeHull(ship));
             WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
             ship.setPosture(decision.posture(), decision.reason());
+            ship.fluxFooting(foeHull(ship) >= 0f);
         }
         if (ship.remoteOrder() != Warship.RemoteOrder.NONE) return;
         if (lead != null) {
@@ -1346,8 +1347,8 @@ public final class WarshipSystem {
 
     /** The duel station: a bow ship's quiet quarter or a broadside ship's beam, at the standoff law's range. */
     private static float[] duelStation(BattleSimulation sim, Warship ship, Warship target, Warship lead) {
-        float mine = WarshipDuelHelm.reach(ship);
-        float theirs = WarshipDuelHelm.reach(target);
+        float mine = WarshipDuelHelm.batteryReach(ship);
+        float theirs = WarshipDuelHelm.batteryReach(target);
         float range = WarshipDuelHelm.preferredRange(mine, theirs, 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
         HullAirspace airspace = sim.warships().hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         // Which beam a ship dead ahead or astern takes is the hull's own, by its serial, so a pair does not mirror.
@@ -1600,7 +1601,9 @@ public final class WarshipSystem {
     /** The hull share left to the hull {@code ship} is fighting, or {@link PostureInputs#NO_FOE}. */
     private static float foeHull(Warship ship) {
         Warship foe = ship.hullTarget();
-        return foe == null || foe.destroyed() ? PostureInputs.NO_FOE : Math.max(0f, foe.hullFraction());
+        // An overloaded ship holds no fire target, but it is still in the fight its manoeuvre is about.
+        if (foe == null || foe.destroyed()) foe = ship.manoeuvre().target();
+        return foe == null || foe.destroyed() || foe.departed() ? PostureInputs.NO_FOE : Math.max(0f, foe.hullFraction());
     }
 
     private void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {
