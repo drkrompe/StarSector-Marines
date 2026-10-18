@@ -177,7 +177,9 @@ if not args.no_save:
                 'position_m':[round(c*METRES_PER_UNIT,4) for c in p],
                 'exhaust_dir':[round(c,5) for c in e]}
     manifest['engine_anchors']=[dict(anchor(ob),engine=int(ob['engine']),radius=round(float(ob['radius']),4),
-                                     radius_m=round(float(ob['radius'])*METRES_PER_UNIT,4),running=bool(ob.get('running',True)))
+                                     radius_m=round(float(ob['radius'])*METRES_PER_UNIT,4),running=bool(ob.get('running',True)),
+                                     **{k:(round(float(v),4) if isinstance(v,float) else bool(v) if isinstance(v,bool) else [round(float(c),4) for c in v])
+                                        for k,v in ob.items() if k.startswith('mouth_')})
                                 for ob in sorted(bpy.data.objects,key=lambda o:o.name)
                                 if ob.name.startswith('Engine ') and ob.name.endswith(' exhaust anchor')]
     manifest['rcs_anchors']=[dict(anchor(ob),cluster=ob['cluster'],axis=ob['axis'],

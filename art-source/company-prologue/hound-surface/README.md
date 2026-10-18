@@ -77,7 +77,7 @@ Hounds are the pirate Hound (P) (`hound_d_pirates`) escorts of A Small War
 chapter 5, which can be crippled or lost: a cinematic of that needs a `pirate`
 livery (its own finish reference and wear row) plus damaged and wrecked
 states. Names reserved: `--state clean|battle-damaged|wrecked` in
-`build_hound.py`, `Scar H<nn> ...` objects, a `pirate` row in `wear.json`.
+`build_hound.py`, `Scar HD<nn> ...` objects (the Hermes holds `Scar H<nn>`), a `pirate` row in `wear.json`.
 
 ## Known problems
 

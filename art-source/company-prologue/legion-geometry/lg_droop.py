@@ -1,4 +1,4 @@
-"""Anhedral: the wing arms angle down outboard of the torso wall.
+"""Anhedral: the wing arms angle down outboard of the torso wall; the hangars under them stay level.
 
 Owner review: "taper those wings so they angle down as well". The arms
 already thin outboard (lg_wings' underside taper); this lowers them as well.
@@ -10,10 +10,16 @@ belt step pieces and shared seam underlays cross the torso wall onto the arms;
 the torso itself lies inboard of the wall and is untouched (the aft body's
 notch edge, out to |Y| 86, dips by at most a unit). A shear rather
 than a rotation keeps the plan view, and so the sprite silhouette, exactly as
-it was, and keeps vertical walls vertical. The hangar pods, their decks and
-lights, and the outer belt's arm run go down with the arm. The anchors
-(mouths, launch points) move by the same function, and the exported hangar
-records are corrected with droop().
+it was, and keeps vertical walls vertical. The arm, its armour, its deck
+fittings, the well coamings and the outer belt's arm run go down with it.
+
+Pass 2b: the hangars do NOT. Nothing parks, rolls or is towed on a 10-degree
+cant, so lg_wings builds every hangar part (pod, lane gear, gallery, anchors,
+keyable empties and their children) in its final, level position and flags it
+'lg_level'; this leaves flagged parts and all parented children alone. Only
+the pod's top, sunk into the arm, follows the droop, and lg_wings applies that
+itself. The exported records are therefore level too: correct() leaves launch
+points and mouths where lg_wings put them and only notes the anhedral.
 """
 import math
 import bpy
@@ -31,6 +37,8 @@ def apply(kit):
     bpy.context.view_layer.update()
     for ob in list(bpy.context.scene.objects):
         if ob.parent is not None:     # children follow their parent
+            continue
+        if ob.get('lg_level'):        # built level in its final position (the hangars)
             continue
         if ob.type not in ('MESH', 'EMPTY') or ob.name.startswith('Camera'):
             continue
@@ -54,10 +62,10 @@ def apply(kit):
 
 
 def correct(record):
-    """A lg_wings.deck_record with its heights carried down by the anhedral."""
-    record['launch_points'] = [[x, y, round(z+droop(y), 3)] for x, y, z in record['launch_points']]
-    c = record['mouth']['centre']
-    record['mouth']['centre'] = [c[0], c[1], round(c[2]+droop(c[1]), 3)]
-    record['anhedral'] = {'angle_deg': ANGLE, 'root_abs_y': ROOT,
-                          'note': 'the hangar floor and roof slope down outboard with the arm; heights given at the point'}
+    """A lg_wings.deck_record, annotated with the anhedral (its hangar parts are built level, so no heights move)."""
+    record['anhedral'] = {'angle_deg': ANGLE, 'root_abs_y': ROOT, 'hangar_level': True,
+                          'note': 'the arm above (deck, armour, wells, turrets) slopes down outboard; the hangar '
+                                  'under it is level: floor, launch points, mouths, doors and gallery heights are '
+                                  'final as given. Arm deck at the outboard lane wall is z %.2f.'
+                                  % (4.0+droop(128.0))}
     return record

@@ -43,10 +43,9 @@ Thrusters and ground dust use bounded procedural volumes. They are visual effect
 Run from this directory with Blender 5.2, ordinary Python with Pillow, and FFmpeg/FFprobe on PATH. The retained source blends and referenced sibling assets must remain available. These commands intentionally rebuild derived outputs; do not run them against an unsaved interactive Blender scene.
 
 ```powershell
-$blender = 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe'
-& $blender -b --factory-startup --python build_scene.py -- --yard-finish --preview
-& $blender -b --factory-startup --python verify_scene.py
-& $blender -b --factory-startup --python render_motion.py
+sh ../../../blender.sh -b --factory-startup --python build_scene.py -- --yard-finish --preview
+sh ../../../blender.sh -b --factory-startup --python verify_scene.py
+sh ../../../blender.sh -b --factory-startup --python render_motion.py
 python encode_review.py
 ```
 

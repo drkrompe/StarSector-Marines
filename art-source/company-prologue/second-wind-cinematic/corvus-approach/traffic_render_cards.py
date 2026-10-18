@@ -1,6 +1,6 @@
 """C1 lane traffic cards: vanilla hull plans as lit 3D heightfields, one sun, no ambient.
 
-"C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background
+sh ../../../blender.sh --background
     --factory-startup --python traffic_render_cards.py
 
 The far and mid lane traffic is 6-60 px on screen, where a painted card's detail is

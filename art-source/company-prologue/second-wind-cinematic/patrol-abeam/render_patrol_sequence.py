@@ -44,7 +44,8 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 ROOT = BASE.parents[3]
 OUT = ROOT / "build" / "cinematic" / "c2-patrol" / "legion-seq"
-BLENDER = Path(r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")
+sys.path.insert(0, str(BASE.parents[2]))  # art-source/, home of the shared Blender rule
+from blender_path import BLENDER  # noqa: E402
 
 SUN_STRENGTH = 4.5             # C1's key (render_ship_sequence.py), so the two shots agree
 SUN_COLOR = (1.0, 0.97, 0.9)
