@@ -195,7 +195,7 @@ window frame, joining C2 to C3. It lasts 2–3 s and is not a shot in its own ri
 
 ```bash
 python make_guides.py
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python patrol_guide.py
+sh ../../../blender.sh --background --factory-startup --python patrol_guide.py
 python compose_blockout.py
 ```
 
@@ -234,7 +234,7 @@ things:
 | Entry frames | `compose_entry.py` | `build/cinematic/entry/{frames,entry.mp4,timeline.json,contact-sheet.png}`; cards `assets/c2-entry-glow-v1.png`, `c2-entry-cloud-v1.png` |
 
 ```bash
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python-exit-code 1 --python c2_cabin_render.py
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python c2_cabin_render.py
 python c2_planet.py
 python render_patrol_sequence.py            # GPU; C1_CYCLES_CPU=1 for CPU; --resume, --only A:B
 python compose_c2.py

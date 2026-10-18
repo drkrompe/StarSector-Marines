@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 HS=$(pwd -W 2>/dev/null || pwd)
-BLENDER=${BLENDER:-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe"}
+. ../../blender.sh
 blend() { "$BLENDER" --background --factory-startup --python "$@" 2>&1 | grep -E "SURF|Error|Traceback" || true; }
 GEOM=../hound-geometry
 cd ../second-wind-surface

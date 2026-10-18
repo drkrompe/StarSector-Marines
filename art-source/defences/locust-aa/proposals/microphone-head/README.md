@@ -43,6 +43,6 @@ approved; the rounded platform is user-requested and its painted finish remains
 for review.
 
 ```powershell
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python art-source/defences/locust-aa/proposals/microphone-head/build.py
+sh art-source/blender.sh --background --factory-startup --python art-source/defences/locust-aa/proposals/microphone-head/build.py
 ./art-source/defences/locust-aa/proposals/microphone-head/review.ps1
 ```

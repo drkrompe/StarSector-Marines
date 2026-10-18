@@ -39,9 +39,9 @@ The scripts retain paths to the installed runtime; no open Blender UI is changed
 From this directory in PowerShell:
 
 ```powershell
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python build_scene.py -- --preview
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python build_scene.py -- --render
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python verify_scene.py
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python build_scene.py -- --preview
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python build_scene.py -- --render
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python verify_scene.py
 & 'C:/Users/Dillon/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' assemble_review.py
 ```
 

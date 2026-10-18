@@ -5,7 +5,7 @@
 # committed review images go to <state>/review/ and review/.
 set -euo pipefail
 cd "$(dirname "$0")"
-BLENDER=${BLENDER:-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe"}
+. ../../../blender.sh
 FINAL=$(cd ../../second-wind-surface && pwd)/build/final
 SKIP=; TURN=96; SAMPLES=32; STATES=()
 while [ $# -gt 0 ]; do case $1 in

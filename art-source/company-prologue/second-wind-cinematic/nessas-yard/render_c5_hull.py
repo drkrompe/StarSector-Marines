@@ -30,7 +30,8 @@ from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 OUT = BASE / "layers"
-BLENDER = Path(r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")
+sys.path.insert(0, str(BASE.parents[2]))  # art-source/, home of the shared Blender rule
+from blender_path import BLENDER  # noqa: E402
 LANDING_BLEND = BASE.parent / "landing-wreck-pass" / "landing-wreck-pass.blend"
 SUN_NAME = "Shared sun | all shots"
 
