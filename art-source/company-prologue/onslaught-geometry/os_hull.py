@@ -1,4 +1,4 @@
-"""The Onslaught's hull: base masses, the gun tiers on them, and an emplacement under every turret.
+"""The Onslaught's hull: base masses and the gun tiers on them.
 
 Plans are read off onslaught_hegemony.png (identical silhouette to
 onslaught_base.png) in model units: X = 244 - row, Y = 144 - col about the
@@ -20,9 +20,10 @@ sprite's shading stacks it:
                 and 022/023 all stand on one round raised terrace centred near
                 X 14, with an inner tier under the domes; the orange and grey
                 glacis is a ridge rising round it (os_armour).
-  emplacements  every turret stands in a round, stepped, curve-shouldered
-                housing (the sprite's ring housings), seated on its tier, so
-                the barbettes rise out of the deck instead of sitting on it.
+  turrets       stand straight on whatever surface their slot falls on, at
+                that height and tilted with it (os_turrets); owner, round 2:
+                "hull turrets and their mounts are against the hull. They don't
+                need to be flat, and they don't need to be on the same plane".
 
 The masses:
   prow      X 96..225;  core  X -18..104;  arms  X -16..214 (the TPC
@@ -197,29 +198,11 @@ def disc(cx, cy, r, n=28, x_min=None):
     return ccw(pts)
 
 
-def emplacement(kit, name, x, y, r, z0, mat):
-    """The round, stepped housing a turret stands in: a curve-shouldered pad 1.55 r
-    across, a step, and a raised ring 1.17 r, its top at z0 + 3.2."""
-    pad = arched_mass(kit, name, disc(x, y, 1.55*r, 24), z0-3.0, z0+1.6, tumble_in=.3*r, tumble_h=2.0,
-                      mat=mat, step=max(.8, r*.25))
-    ring = arched_mass(kit, name+' ring', disc(x, y, 1.18*r, 24), z0+1.0, z0+3.2, tumble_in=.1*r, tumble_h=.8,
-                       mat=mat, step=max(.8, r*.25))
-    return pad, ring
-
-
 def build(kit):
-    import os_turrets   # the slot table only
     prow = mass(kit, 'Hull prow', full(PROW_HALF), PROW, kit.plate)
     prow_cuts(prow)
     core = mass(kit, 'Hull core', full(CORE_HALF), CORE, kit.plate)
     core_cuts(core)
-
-    arms = {}
-    for side, s in (('port', 1), ('starboard', -1)):
-        plan = port_plan(ARM_OUTER, ARM_INNER)
-        arm = mass(kit, f'Hull {side} arm', plan if s > 0 else mirror_y(plan), ARM, kit.plate)
-        arm_cuts(arm)
-        arms[side] = arm
 
     aft = mass(kit, 'Hull aft body', full(AFT_OUTER + [(-102, 21)]), AFT, kit.plate)
     aft_cuts(aft)
@@ -241,13 +224,6 @@ def build(kit):
 
     # --- the tiers ---------------------------------------------------------
     tiers = []
-    for side, s in (('port', 1), ('starboard', -1)):
-        g = arched_mass(kit, f'Hull {side} arm gallery', gallery_plan(ARM_GALLERY, s < 0), DECK['arm']-6,
-                        GALLERY_TOP, tumble_in=6.0, tumble_h=7.0, crown=1.5, crown_w=6.0, mat=kit.plate, step=2.0)
-        # The gallery climbs aft toward the core: 12 at the nose turrets, full height at the Devastator.
-        plane_cut(g, 'gallery rise', (80, 0, GALLERY_TOP+1.5), facet_normal((1, 0), 3.0))
-        plane_cut(g, 'gallery nose', (192, 0, GALLERY_TOP-4.0), facet_normal((1, 0), 24))
-        tiers.append(g)
     pg = arched_mass(kit, 'Hull prow gallery', gallery_plan(PROW_GALLERY), DECK['prow']-6, GALLERY_TOP,
                      tumble_in=6.0, tumble_h=7.0, crown=1.5, crown_w=8.0, mat=kit.plate, step=2.0)
     # The prow gallery climbs aft from the bow to the core terrace.
@@ -261,16 +237,6 @@ def build(kit):
                              TERRACE_TOP-1, INNER_TOP, tumble_in=4.0, tumble_h=4.0, crown=1.0, crown_w=8.0,
                              mat=kit.plate, step=2.0))
 
-    kit.hull += [prow, core, *arms.values(), aft, tail, *legs.values(), *waists.values(), *tiers]
+    kit.hull += [prow, core, aft, tail, *legs.values(), *waists.values(), *tiers]
 
-    # --- emplacements: a stepped round housing under every turret ------------
-    for sid, (x, y), _, _, size, _, _ in os_turrets.SLOTS:
-        r = os_turrets.RING[size]
-        best = None
-        for k in range(9):
-            px, py = (x, y) if k == 8 else (x+1.2*r*math.cos(k*math.pi/4), y+1.2*r*math.sin(k*math.pi/4))
-            h = kit.surface(px, py, top=150)
-            if h and (best is None or h[0].z > best):
-                best = h[0].z
-        emplacement(kit, f'Hull emplacement {sid}', x, y, r, best if best is not None else GALLERY_TOP, kit.plate)
-    return {'prow': prow, 'core': core, 'arms': arms, 'aft': aft, 'tail': tail, 'legs': legs}
+    return {'prow': prow, 'core': core, 'aft': aft, 'tail': tail, 'legs': legs}

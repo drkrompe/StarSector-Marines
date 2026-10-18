@@ -135,40 +135,6 @@ def build(kit):
              kit.orange, s)
         band(kit, f'Armour {side} glacis grey band', clip_x(CORE_HALF, 100, 8), 17.0, 9.0, ridge(0.0, 8.0, 15.0, 9.0),
              kit.grey, s)
-        # Arm belts: sloped plates from the gallery down to the outer edge.
-        for k, (xa, xb, mat) in enumerate(((210, 151, kit.orange), (149, 106, kit.grey), (104, 72, kit.orange),
-                                           (70, 22, kit.grey), (20, -14, kit.grey)), 1):
-            b = band(kit, f'Armour {side} arm belt {k}', clip_x(ARM_OUTER, xa, xb), 1.5, 13.0,
-                     ridge(-9.0, -2.0, 12.0, 13.0), mat, s)
-            plane_cut(b, 'belt nose', (192, 0, 12.0), facet_normal((1, 0), 18))
-        # Arm steps: grey blocks stepping down outboard of the aft belt, tops falling forward.
-        for k, poly in enumerate(([(100, 110), (100, 122), (87, 123), (86, 111)],
-                                  [(62, 113), (62, 124.5), (44, 124.5), (44, 114)],
-                                  [(40, 115), (40, 125), (24, 129), (24, 117)],
-                                  [(19, 114), (19, 127), (6, 121), (6, 113)]), 1):
-            top = 10.0-.5*k
-            b = prism(kit, f'Armour {side} arm step {k}', _side(poly, s), [(0.0, -8.0), (0.0, top-1.0), (1.0, top)],
-                      kit.grey, bevel=.25)
-            plane_cut(b, 'step tooth', (poly[0][0], 0, top-.5), facet_normal((1, 0), 28))
-        # Inner coaming facing the notch (an edge listed bow to stern on the arm's
-        # inner side is a right-hand edge, so it is offset to the right).
-        inner = [p for p in reversed(ARM_INNER) if p[0] >= 104]
-        c = band(kit, f'Armour {side} arm coaming', clip_x(inner, 206, 106), -10.0, 9.0, ridge(-9.0, -2.0, 10.0, 9.0),
-                 kit.orange, s)
-        plane_cut(c, 'coaming nose', (192, 0, 10.0), facet_normal((1, 0), 18))
-        # TPC nose cheeks either side of the barrel.
-        for k, poly in enumerate(([(213.5, 64.8), (213.5, 66.4), (205.5, 66.2), (205.5, 63.6)],
-                                  [(213.5, 73.6), (213.5, 78.6), (205.5, 80.6), (205.5, 74.2)]), 1):
-            ch = prism(kit, f'Armour {side} nose cheek {k}', _side(poly, s), [(0.0, -2.0), (0.0, 9.0), (.8, 9.8)],
-                       kit.grey, bevel=.25)
-            plane_cut(ch, 'cheek nose', (190, 0, 12.0), facet_normal((1, 0), 16))
-        # Broadside fin, two tiers.
-        fin = [(48, 78), (30, 97), (-8, 106), (-14, 92), (-6, 68), (20, 72)]
-        prism(kit, f'Armour {side} broadside fin', _side(fin, s), [(0.0, 2.0), (0.0, 12.0), (2.0, 14.0)],
-              kit.orange, bevel=.2)
-        crest = [(38, 83), (26, 95), (-2, 101), (-7, 91), (0, 75), (18, 78)]
-        prism(kit, f'Armour {side} broadside fin crest', _side(crest, s), [(0.0, 13.0), (0.0, 16.4), (1.6, 18.0)],
-              kit.orange, bevel=.2)
         # Prow collar: the orange blocks where the prow meets the core.
         collar = [(113, 27.5), (113, 39.0), (106, 40.6), (98, 41.2), (98, 27.5)]
         prism(kit, f'Armour {side} prow collar', _side(collar, s), [(0.0, 0.0), (0.0, 15.0), (1.4, 16.4)],

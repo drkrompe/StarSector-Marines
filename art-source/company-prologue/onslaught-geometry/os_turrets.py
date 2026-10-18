@@ -294,17 +294,94 @@ def _hardpoint(kit, slot):
     PIVOT_Z[sid] = z
 
 
+MAX_TILT = 25.0      # deg: the steepest a mount leans with the hull under it
+
+
+def _hit(origin, direction, far=400.0):
+    """Nearest hit of a ray against the deck objects: (point, normal) or None."""
+    o, d = Vector(origin), Vector(direction).normalized()
+    best = None
+    for ev, lo, hi in _DECK:
+        inv = ev.matrix_world.inverted()
+        ok, p, n, _ = ev.ray_cast(inv @ o, (inv.to_3x3() @ d).normalized(), distance=far)
+        if ok:
+            p = ev.matrix_world @ p
+            dist = (p-o).length
+            if best is None or dist < best[0]:
+                n = (ev.matrix_world.to_3x3().inverted().transposed() @ n).normalized()
+                best = (dist, p, n if n.dot(d) < 0 else -n)
+    return best
+
+
+def _mount_frame(x, y, angle, r):
+    """Where a turret meets the hull: the surface point under its slot, the normal
+    there (leaning at most MAX_TILT), and how far its collar must reach down so no
+    rim point floats and none is buried. Returns (origin, basis 3x3, depth)."""
+    from mathutils import Matrix
+    h = _hit((x, y, 150), (0, 0, -1))
+    if h is None:
+        p, n = Vector((x, y, 10.0)), Vector((0, 0, 1))
+    else:
+        _, p, n = h
+    up = Vector((0, 0, 1))
+    tilt = math.degrees(n.angle(up))
+    if tilt > MAX_TILT:
+        n = up.slerp(n, MAX_TILT/tilt).normalized()
+    xa = Vector((1, 0, 0))
+    xa = (xa-n*xa.dot(n)).normalized()
+    ya = n.cross(xa)
+    basis = Matrix((xa, ya, n)).transposed()
+    # Surface height above the mount plane under the collar's rim.
+    rim = []
+    for k in range(12):
+        a = 2*math.pi*k/12
+        q = p+(xa*math.cos(a)+ya*math.sin(a))*1.05*r
+        hh = _hit(q+n*30, -n, 80)
+        rim.append(30-hh[0] if hh else -6.0)
+    lift = max(0.0, max(rim))+.15
+    depth = lift-min(rim)+.8
+    return p+n*lift, basis, depth
+
+
+def _collar(kit, sid, mount, r, depth):
+    """The fixed barbette: a low collar against the hull, reaching down into it."""
+    prof = [(1.06*r, -depth), (1.06*r, .05*r), (1.0*r, .12*r), (.93*r, .16*r)]
+    n = 18
+    verts, faces = [], []
+    for rad, z in prof:
+        verts += [(rad*math.cos(2*math.pi*(i+.5)/n), rad*math.sin(2*math.pi*(i+.5)/n), z) for i in range(n)]
+    faces.append(tuple(reversed(range(n))))
+    for j in range(len(prof)-1):
+        faces += [(j*n+i, j*n+(i+1) % n, (j+1)*n+(i+1) % n, (j+1)*n+i) for i in range(n)]
+    faces.append(tuple(range((len(prof)-1)*n, len(prof)*n)))
+    ob = kit.mesh(f'Weapon {sid} barbette', verts, faces, kit.plate)
+    ob.parent = mount
+    return .16*r
+
+
 def build(kit):
     _deck_objects()
     for slot in SLOTS:
         sid, (x, y), angle, arc, size = slot[:5]
         r = RING[size]
-        deck, low = _footing(x, y, r)
-        top = _barbette(kit, sid, x, y, r, max(deck, seat(kit, x, y, r)), low)
-        PIVOT_Z[sid] = top
-        pivot = kit.empty(f'Weapon {sid} pivot', (x, y, top), angle)
+        origin, basis, depth = _mount_frame(x, y, angle, r)
+        mount = bpy.data.objects.new(f'Weapon {sid} mount', None)
+        mount.empty_display_type, mount.empty_display_size = 'PLAIN_AXES', 2
+        bpy.context.collection.objects.link(mount)
+        mount.matrix_world = basis.to_4x4()
+        mount.location = origin
+        mount['surface_normal'] = [round(v, 4) for v in basis.col[2]]
+        top = _collar(kit, sid, mount, r, depth)
+        pivot = bpy.data.objects.new(f'Weapon {sid} pivot', None)
+        pivot.empty_display_type, pivot.empty_display_size = 'ARROWS', 3
+        bpy.context.collection.objects.link(pivot)
+        pivot.parent = mount
+        pivot.location = (0, 0, top)
+        pivot.rotation_euler = (0, 0, math.radians(angle))
         pivot['slot_angle'] = angle
         pivot['arc'] = arc
+        bpy.context.view_layer.update()
+        PIVOT_Z[sid] = pivot.matrix_world.translation.z
         weapon = slot[6]
         if weapon == 'typhoon':
             _launcher(kit, slot, pivot, r)
@@ -323,8 +400,8 @@ def records():
     for sid, loc, angle, arc, size, typ, weapon in SLOTS:
         out.append({'id': sid, 'mount': 'TURRET', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'ring_radius': RING[size],
-                    'pivot': f'Weapon {sid} pivot', 'objects': f'Weapon {sid} ...',
-                    'trains': 'rotate the pivot about its local Z; rest is the slot angle'})
+                    'pivot': f'Weapon {sid} pivot', 'mount_empty': f'Weapon {sid} mount', 'objects': f'Weapon {sid} ...',
+                    'trains': 'rotate the pivot about its local Z (the hull normal under it); rest is the slot angle'})
     for sid, loc, angle, arc, size, typ, weapon in HARDPOINTS:
         out.append({'id': sid, 'mount': 'HARDPOINT', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'objects': f'Weapon {sid} ...',
