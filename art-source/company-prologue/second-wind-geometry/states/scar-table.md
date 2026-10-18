@@ -64,9 +64,9 @@ One row per scar id; the same id is the same scar in every state.
 | sp-trunk-aft-port | spine | trunk | open | patched | replaced | gone |
 | sp-trunk-aft-stbd | spine | trunk | open | patched | replaced | faded |
 | sp-mast | spine | mast | open | patched | replaced | faded |
-| sp-turret-1 | spine | turret | open | patched | patched | faded |
+| sp-turret-1 | spine | turret | open | open | open | faded |
 | sp-turret-2 | spine | turret | open | patched | patched | faded |
-| sp-turret-3 | spine | turret | open | patched | patched | faded |
+| sp-turret-3 | spine | turret | open | open | open | faded |
 | sp-turret-4 | spine | turret | open | patched | patched | faded |
 | sp-waist-line-cut | spine | torch | open | patched | patched | faded |
 | sp-waist-trunk-cut | spine | torch | open | patched | replaced | faded |
@@ -78,3 +78,8 @@ One row per scar id; the same id is the same scar in every state.
 | rcs-stern-stbd | rcs | rcs | open | gone | gone | gone |
 | rcs-dorsal | rcs | rcs | open | patched | replaced | gone |
 | rcs-ventral | rcs | rcs | open | gone | gone | gone |
+| ds-port-waist-rip | dorsal | rip | open | open | open | faded |
+| ds-stbd-waist-rip | dorsal | rip | open | open | replaced | faded |
+| ds-fwd-deck-rip | dorsal | rip | open | patched | replaced | faded |
+| ds-port-shoulder-peel | dorsal | rip | open | open | open | faded |
+| ds-stbd-shoulder-peel | dorsal | rip | open | open | open | faded |

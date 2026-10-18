@@ -18,8 +18,8 @@ every layer was painted to.
 ## Build
 
 ```bash
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python render_ship_card.py -- --view entrance
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python render_planet.py
+sh ../../../blender.sh --background --factory-startup --python render_ship_card.py -- --view entrance
+sh ../../../blender.sh --background --factory-startup --python render_planet.py
 python render_ship_sequence.py     # Second Wind's sequence (re-run after any c1_ship.py SW_* change)
 python compose_c1.py --stills      # review/ stills only
 python compose_c1.py               # frames and build/cinematic/c1-corvus/c1-corvus.mp4

@@ -25,8 +25,8 @@ Every Codex master has its brief in `prompts/` and a provenance record beside it
 From this directory (the Blender steps only when the guides change):
 
 ```powershell
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python c3_cabin_guide.py -- --pitch -9
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python c3_cabin_render.py -- --pitch -9
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python c3_cabin_guide.py -- --pitch -9
+sh ../../../blender.sh --background --factory-startup --python-exit-code 1 --python c3_cabin_render.py -- --pitch -9
 python c3_bands.py
 python c3_plates.py prep        # edit targets (only to regenerate tiles)
 python c3_plates.py check       # registration of the tile completions

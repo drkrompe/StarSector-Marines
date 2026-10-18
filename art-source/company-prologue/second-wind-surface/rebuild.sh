@@ -3,7 +3,7 @@
 # Needs Blender 5.2 and Python with numpy + Pillow. Bulky output goes to build/.
 set -euo pipefail
 cd "$(dirname "$0")"
-BLENDER=${BLENDER:-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe"}
+. ../../blender.sh
 blend() { "$BLENDER" --background --factory-startup --python "$@" 2>&1 | grep -E "SURF|Error|Traceback" || true; }
 
 # 1. Clean model into build/geom, patched damage state into build/patched-geom

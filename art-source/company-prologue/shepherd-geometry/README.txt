@@ -87,7 +87,7 @@ The driver reserves '--state'; geometry.json 'condition_states' records
 what is planned and that nothing is built.
 
 Build
-  "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background \
+  sh ../../blender.sh --background \
       --factory-startup --python build_shepherd.py -- [--out DIR] [--views ...]
   python compose_review.py [--dir DIR]
 The first writes the renders, shepherd-geometry.blend and geometry.json; the

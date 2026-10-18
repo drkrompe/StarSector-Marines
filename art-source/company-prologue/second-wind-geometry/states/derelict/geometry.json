@@ -175,7 +175,27 @@
       "engine": 1,
       "radius": 3.9,
       "radius_m": 2.535,
-      "running": false
+      "running": false,
+      "mouth_deformed": true,
+      "mouth_minor_m": 4.077,
+      "mouth_major_m": 5.33,
+      "mouth_axis_dir": [
+        -0.9962,
+        0.0755,
+        0.0436
+      ],
+      "mouth_tilt_deg": 5.0,
+      "mouth_round_m": 5.07,
+      "mouth_minor_dir": [
+        0.0858,
+        0.7624,
+        0.6414
+      ],
+      "mouth_centre_offset_m": [
+        -0.011,
+        -0.026,
+        -0.061
+      ]
     },
     {
       "name": "Engine 2 exhaust anchor",
@@ -774,6 +794,92 @@
       "working": false
     }
   ],
+  "spark_anchors": [
+    {
+      "name": "Scar ds-port-waist-rip spark anchor",
+      "position": [
+        6.1715,
+        16.1694,
+        11.4372
+      ],
+      "position_m": [
+        4.0114,
+        10.5101,
+        7.4342
+      ],
+      "spray_dir": [
+        0.26978,
+        0.01358,
+        0.96283
+      ],
+      "scar": "ds-port-waist-rip",
+      "sparking": false,
+      "radius_m": 1.4
+    },
+    {
+      "name": "Scar ds-port-waist-rip spark-2 anchor",
+      "position": [
+        7.6302,
+        17.14,
+        11.3382
+      ],
+      "position_m": [
+        4.9596,
+        11.141,
+        7.3698
+      ],
+      "spray_dir": [
+        0.25995,
+        -0.06061,
+        0.96372
+      ],
+      "scar": "ds-port-waist-rip",
+      "sparking": false,
+      "radius_m": 1.0
+    },
+    {
+      "name": "Scar ds-stbd-waist-rip spark anchor",
+      "position": [
+        6.0173,
+        -16.8429,
+        11.3889
+      ],
+      "position_m": [
+        3.9112,
+        -10.9479,
+        7.4028
+      ],
+      "spray_dir": [
+        -0.25321,
+        -0.07684,
+        0.96435
+      ],
+      "scar": "ds-stbd-waist-rip",
+      "sparking": false,
+      "radius_m": 1.2
+    },
+    {
+      "name": "Scar sp-turret-3 spark anchor",
+      "position": [
+        38.31,
+        12.5228,
+        19.5156
+      ],
+      "position_m": [
+        24.9015,
+        8.1398,
+        12.6852
+      ],
+      "spray_dir": [
+        -0.37155,
+        0.64355,
+        -0.66917
+      ],
+      "scar": "sp-turret-3",
+      "sparking": false,
+      "radius_m": 0.8
+    }
+  ],
   "damage": {
     "state": "derelict",
     "scars": [
@@ -999,7 +1105,7 @@
         "kind": "crushed_can",
         "area": "sw_scars_pods",
         "status": "open",
-        "note": "Engine 1 can crushed against the anchor rock; nozzle ring stays round. A replacement can when the port pod is restored."
+        "note": "Engine 1 can stove in and torn, bell mouth crushed out of round, top ram snapped, collar torn: crushed against the anchor rock; a new can and nozzle at restoration."
       },
       {
         "id": "pod-port-fins",
@@ -1195,28 +1301,28 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Gun house stripped; reinstalled in another owner's primer; repainted to near match."
+        "note": "Drift strike bent the barrel at the chase and slewed the house 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new house on an adapter ring in restoration."
       },
       {
         "id": "sp-turret-2",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Gun house stripped; reinstalled on an adapter ring; ring painted over."
+        "note": "Gun house stripped; a gantry house from another hull bolted back in its owner's primer; repainted to near match."
       },
       {
         "id": "sp-turret-3",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Gun house stripped; reinstalled in another owner's primer; repainted to near match."
+        "note": "House holed through the roof and the barrel snapped on the chase: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new house in restoration."
       },
       {
         "id": "sp-turret-4",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Gun house stripped; reinstalled on an adapter ring; ring painted over."
+        "note": "Gun house stripped; its own house recovered from the gantry and reinstalled on an adapter ring; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1287,8 +1393,213 @@
         "area": "sw_scars_rcs",
         "status": "open",
         "note": "Dead while unpowered; working as built from the escape on."
+      },
+      {
+        "id": "ds-port-waist-rip",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "open",
+        "note": "Windward port waist deck: a tumbling rock tore five deck panels away along their seams, folding one back over the deck and breaking the frame under the strike; the waist service runs broke in the void. Not pressure, thrust or navigation: left open through the escape (the bus conduit arcing where nobody could reach it in vacuum) and the refit (live ends booted); re-plated and painted when restored."
+      },
+      {
+        "id": "ds-stbd-waist-rip",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "open",
+        "note": "Starboard waist deck: four panels torn off in the same tumble, one folded back over the inboard seam, a coolant line crushed and the starboard bus conduit severed. Left open for the escape (arcing); the refit ran the new berthing services through this void and closed it with a proper plate."
+      },
+      {
+        "id": "ds-fwd-deck-rip",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "open",
+        "note": "Forward deck over the command deck's forward end: deck armour panels torn off down to the frames, one folded back along its seam. Over occupied space, so the escape crew welded a salvage pressure plate across it, strongbacked, the torn surround and the folded panel left as they were; a proper plate in the refit."
+      },
+      {
+        "id": "ds-port-shoulder-peel",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "open",
+        "note": "Port forebody outboard deck: a glancing contact along the deck edge caught one long deck plate at its forward end and rolled it back up and over along its outboard seam, the cable tray beneath torn. Outside the pressure hull: left; re-plated when restored."
+      },
+      {
+        "id": "ds-stbd-shoulder-peel",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "open",
+        "note": "Starboard forebody outboard deck: the same tumble dragged along the starboard deck edge and rolled one long deck plate up and outboard on its seam, a conduit run snapped beneath. Outside the pressure hull: left; re-plated when restored."
       }
     ],
+    "hidden": {
+      "Aft access trunk hinge.001": "sp-trunk-aft-stbd",
+      "Aft access trunk seal ring": "sp-trunk-aft-port",
+      "Aft access trunk seal ring.001": "sp-trunk-aft-stbd",
+      "Aft deck armour plate.003": "aft-deck-plate",
+      "Can feed pipe": "pod-port-can-feeds",
+      "Can feed pipe.001": "pod-port-can-feeds",
+      "Casing access panel": "pod-casing-access-panels",
+      "Casing access panel.001": "pod-casing-access-panels",
+      "Casing access panel.002": "pod-casing-access-panels",
+      "Casing access panel.003": "pod-casing-access-panels",
+      "Crosstree signal light": "sp-mast",
+      "Crosstree signal light.001": "sp-mast",
+      "Drive casing armour plate": "pod-port-casing-plate",
+      "Drive casing armour plate.005": "pod-starboard-casing-plate",
+      "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
+      "Forward access trunk seal ring": "sp-trunk-fwd-port",
+      "Forward access trunk seal ring.001": "sp-trunk-fwd-stbd",
+      "Mast crosstree": "sp-mast",
+      "Masthead light": "sp-mast",
+      "Panel grab strap": "pod-casing-access-panels",
+      "Panel grab strap.001": "pod-casing-access-panels",
+      "Panel grab strap.002": "pod-casing-access-panels",
+      "Panel grab strap.003": "pod-casing-access-panels",
+      "Pump drive drum": "pod-port-pumps",
+      "Pump drive drum.001": "pod-port-pumps",
+      "Pump drive drum.002": "pod-starboard-pumps",
+      "Pump drive drum.003": "pod-starboard-pumps",
+      "RCS bow-stbd stbd nozzle": "rcs-bow-stbd",
+      "RCS dorsal up-2 nozzle": "rcs-dorsal",
+      "RCS pod-port down nozzle": "rcs-pod-port",
+      "RCS pod-port fore nozzle": "rcs-pod-port",
+      "RCS pod-port port nozzle": "rcs-pod-port",
+      "RCS pod-port up nozzle": "rcs-pod-port",
+      "RCS stern-port down nozzle": "rcs-stern-port",
+      "RCS stern-port housing": "rcs-stern-port",
+      "RCS stern-port port nozzle": "rcs-stern-port",
+      "RCS stern-port up nozzle": "rcs-stern-port",
+      "Scanner turntable": "sp-mast",
+      "Search radar scanner bar": "sp-mast",
+      "Turbopump housing": "pod-port-pumps",
+      "Turbopump housing.001": "pod-starboard-pumps",
+      "Turbopump vent slot": "pod-port-pumps",
+      "Turbopump vent slot.001": "pod-starboard-pumps",
+      "Turret 2 ammunition feed trunk": "sp-turret-2",
+      "Turret 2 bustle vent slat": "sp-turret-2",
+      "Turret 2 bustle vent slat.001": "sp-turret-2",
+      "Turret 2 bustle vent slat.002": "sp-turret-2",
+      "Turret 2 gun barrel chase": "sp-turret-2",
+      "Turret 2 gun barrel tube": "sp-turret-2",
+      "Turret 2 gun breech band": "sp-turret-2",
+      "Turret 2 gun house": "sp-turret-2",
+      "Turret 2 gun muzzle brake": "sp-turret-2",
+      "Turret 2 gun muzzle brake port": "sp-turret-2",
+      "Turret 2 gun recoil sleeve": "sp-turret-2",
+      "Turret 2 mantlet drum": "sp-turret-2",
+      "Turret 2 mantlet face": "sp-turret-2",
+      "Turret 2 optics blister": "sp-turret-2",
+      "Turret 2 optics lens": "sp-turret-2",
+      "Turret 2 rear bustle": "sp-turret-2",
+      "Turret 2 roof hatch": "sp-turret-2",
+      "Turret 3 gun barrel tube": "sp-turret-3",
+      "Turret 3 gun muzzle brake": "sp-turret-3",
+      "Turret 3 gun muzzle brake port": "sp-turret-3",
+      "Turret 3 optics blister": "sp-turret-3",
+      "Turret 3 optics lens": "sp-turret-3",
+      "Turret 4 ammunition feed trunk": "sp-turret-4",
+      "Turret 4 bustle vent slat": "sp-turret-4",
+      "Turret 4 bustle vent slat.001": "sp-turret-4",
+      "Turret 4 bustle vent slat.002": "sp-turret-4",
+      "Turret 4 gun house": "sp-turret-4",
+      "Turret 4 mantlet drum": "sp-turret-4",
+      "Turret 4 mantlet face": "sp-turret-4",
+      "Turret 4 optics blister": "sp-turret-4",
+      "Turret 4 optics lens": "sp-turret-4",
+      "Turret 4 port gun barrel chase": "sp-turret-4",
+      "Turret 4 port gun barrel tube": "sp-turret-4",
+      "Turret 4 port gun breech band": "sp-turret-4",
+      "Turret 4 port gun muzzle brake": "sp-turret-4",
+      "Turret 4 port gun muzzle brake port": "sp-turret-4",
+      "Turret 4 port gun recoil sleeve": "sp-turret-4",
+      "Turret 4 rangefinder arm": "sp-turret-4",
+      "Turret 4 rangefinder window": "sp-turret-4",
+      "Turret 4 rangefinder window.001": "sp-turret-4",
+      "Turret 4 rear bustle": "sp-turret-4",
+      "Turret 4 roof hatch": "sp-turret-4",
+      "Turret 4 starboard gun barrel chase": "sp-turret-4",
+      "Turret 4 starboard gun barrel tube": "sp-turret-4",
+      "Turret 4 starboard gun breech band": "sp-turret-4",
+      "Turret 4 starboard gun muzzle brake": "sp-turret-4",
+      "Turret 4 starboard gun muzzle brake port": "sp-turret-4",
+      "Turret 4 starboard gun recoil sleeve": "sp-turret-4",
+      "Turret 4 starboard optics blister": "sp-turret-4",
+      "Whip antenna.001": "sp-mast"
+    },
+    "shape_keys": [
+      "Forebody replaceable armor: Scar fb-port-deck-plate-buckle",
+      "Thrust bay engine can: Scar pod-port-outer-can",
+      "Engine 1 actuator gland: Scar pod-port-outer-can",
+      "Engine 1 actuator gland.001: Scar pod-port-outer-can",
+      "Engine 1 actuator hydraulic line: Scar pod-port-outer-can",
+      "Engine 1 actuator hydraulic line.001: Scar pod-port-outer-can",
+      "Engine 1 actuator rod.001: Scar pod-port-outer-can",
+      "Engine 1 aft-facing bell: Scar pod-port-outer-can",
+      "Engine 1 bell outer skin: Scar pod-port-outer-can",
+      "Engine 1 gimbal actuator: Scar pod-port-outer-can",
+      "Engine 1 gimbal actuator.001: Scar pod-port-outer-can",
+      "Engine 1 gimbal lever ear: Scar pod-port-outer-can",
+      "Engine 1 gimbal lever ear.001: Scar pod-port-outer-can",
+      "Engine 1 gimbal ring: Scar pod-port-outer-can",
+      "Engine 1 gimbal trunnion: Scar pod-port-outer-can",
+      "Engine 1 gimbal trunnion.001: Scar pod-port-outer-can",
+      "Engine 1 heat-shield band: Scar pod-port-outer-can",
+      "Engine 1 mouth lip: Scar pod-port-outer-can",
+      "Engine 1 shroud collar: Scar pod-port-outer-can",
+      "Engine 1 trunnion pin cap: Scar pod-port-outer-can",
+      "Engine 1 trunnion pin cap.001: Scar pod-port-outer-can",
+      "Heat-sink fin.001: Scar pod-port-fins",
+      "Heat-sink fin.002: Scar pod-port-fins",
+      "Heat-sink fin.003: Scar pod-port-fins",
+      "Heat-sink fin.004: Scar pod-port-fins",
+      "Drive casing armour plate.003: Scar pod-starboard-casing-buckle",
+      "Turret 1 ammunition feed trunk: Scar sp-turret-1",
+      "Turret 1 bustle vent slat: Scar sp-turret-1",
+      "Turret 1 bustle vent slat.001: Scar sp-turret-1",
+      "Turret 1 bustle vent slat.002: Scar sp-turret-1",
+      "Turret 1 gun barrel chase: Scar sp-turret-1",
+      "Turret 1 gun barrel tube: Scar sp-turret-1",
+      "Turret 1 gun breech band: Scar sp-turret-1",
+      "Turret 1 gun house: Scar sp-turret-1",
+      "Turret 1 gun muzzle brake: Scar sp-turret-1",
+      "Turret 1 gun muzzle brake port: Scar sp-turret-1",
+      "Turret 1 gun recoil sleeve: Scar sp-turret-1",
+      "Turret 1 mantlet drum: Scar sp-turret-1",
+      "Turret 1 mantlet face: Scar sp-turret-1",
+      "Turret 1 optics blister: Scar sp-turret-1",
+      "Turret 1 optics lens: Scar sp-turret-1",
+      "Turret 1 rear bustle: Scar sp-turret-1",
+      "Turret 1 roof hatch: Scar sp-turret-1"
+    ],
+    "overrides": [
+      "Command deck running light: Scar dead lamp (ship-power)",
+      "Command deck running light.001: Scar dead lamp (ship-power)",
+      "Command deck viewport slits: Scar unlit glazing (ship-power)",
+      "Crosstree signal light: Scar dead lamp (ship-power)",
+      "Crosstree signal light.001: Scar dead lamp (ship-power)",
+      "Davit position light: Scar dead lamp (ship-power)",
+      "Drive warning light: Scar dead lamp (ship-power)",
+      "Drive warning light.001: Scar dead lamp (ship-power)",
+      "Drive warning light.002: Scar dead lamp (ship-power)",
+      "Drive warning light.003: Scar dead lamp (ship-power)",
+      "Grapple sponson work light: Scar dead lamp (ship-power)",
+      "Grapple sponson work light.001: Scar dead lamp (ship-power)",
+      "Grapple sponson work light.002: Scar dead lamp (ship-power)",
+      "Masthead light: Scar dead lamp (ship-power)",
+      "Roof beacon: Scar dead lamp (ship-power)",
+      "Sponson bow work light: Scar dead lamp (ship-power)",
+      "Trunk nose sensor window: Scar unlit glazing (ship-power)",
+      "Turret 1 optics lens: Scar unlit glazing (ship-power)",
+      "Turret 2 optics lens: Scar unlit glazing (ship-power)",
+      "Turret 3 optics lens: Scar unlit glazing (ship-power)",
+      "Turret 4 optics lens: Scar unlit glazing (ship-power)",
+      "Turret 4 rangefinder window: Scar unlit glazing (ship-power)",
+      "Turret 4 rangefinder window.001: Scar unlit glazing (ship-power)",
+      "Engine 1 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
+      "Engine 2 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
+      "Engine 3 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)",
+      "Engine 4 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)"
+    ],
+    "cut_objects": 101,
     "sites": {
       "aft-deck-cluster": [
         {
@@ -1556,6 +1867,76 @@
             -29.017,
             15.127,
             8.6
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-fwd-deck-rip": [
+        {
+          "p": [
+            35.397,
+            -0.928,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-port-shoulder-peel": [
+        {
+          "p": [
+            22.297,
+            20.972,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-port-waist-rip": [
+        {
+          "p": [
+            6.67,
+            16.753,
+            10.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-stbd-shoulder-peel": [
+        {
+          "p": [
+            24.097,
+            -21.528,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-stbd-waist-rip": [
+        {
+          "p": [
+            5.47,
+            -16.448,
+            10.5
           ],
           "n": [
             0.0,
@@ -3784,169 +4165,6 @@
           "r": 0.284
         }
       ]
-    },
-    "hidden": {
-      "Aft access trunk hinge.001": "sp-trunk-aft-stbd",
-      "Aft access trunk seal ring": "sp-trunk-aft-port",
-      "Aft access trunk seal ring.001": "sp-trunk-aft-stbd",
-      "Aft deck armour plate.003": "aft-deck-plate",
-      "Can feed pipe": "pod-port-can-feeds",
-      "Can feed pipe.001": "pod-port-can-feeds",
-      "Casing access panel": "pod-casing-access-panels",
-      "Casing access panel.001": "pod-casing-access-panels",
-      "Casing access panel.002": "pod-casing-access-panels",
-      "Casing access panel.003": "pod-casing-access-panels",
-      "Crosstree signal light": "sp-mast",
-      "Crosstree signal light.001": "sp-mast",
-      "Drive casing armour plate": "pod-port-casing-plate",
-      "Drive casing armour plate.005": "pod-starboard-casing-plate",
-      "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
-      "Forward access trunk seal ring": "sp-trunk-fwd-port",
-      "Forward access trunk seal ring.001": "sp-trunk-fwd-stbd",
-      "Mast crosstree": "sp-mast",
-      "Masthead light": "sp-mast",
-      "Panel grab strap": "pod-casing-access-panels",
-      "Panel grab strap.001": "pod-casing-access-panels",
-      "Panel grab strap.002": "pod-casing-access-panels",
-      "Panel grab strap.003": "pod-casing-access-panels",
-      "Pump drive drum": "pod-port-pumps",
-      "Pump drive drum.001": "pod-port-pumps",
-      "Pump drive drum.002": "pod-starboard-pumps",
-      "Pump drive drum.003": "pod-starboard-pumps",
-      "RCS bow-stbd stbd nozzle": "rcs-bow-stbd",
-      "RCS dorsal up-2 nozzle": "rcs-dorsal",
-      "RCS pod-port down nozzle": "rcs-pod-port",
-      "RCS pod-port fore nozzle": "rcs-pod-port",
-      "RCS pod-port port nozzle": "rcs-pod-port",
-      "RCS pod-port up nozzle": "rcs-pod-port",
-      "RCS stern-port down nozzle": "rcs-stern-port",
-      "RCS stern-port housing": "rcs-stern-port",
-      "RCS stern-port port nozzle": "rcs-stern-port",
-      "RCS stern-port up nozzle": "rcs-stern-port",
-      "Scanner turntable": "sp-mast",
-      "Search radar scanner bar": "sp-mast",
-      "Turbopump housing": "pod-port-pumps",
-      "Turbopump housing.001": "pod-starboard-pumps",
-      "Turbopump vent slot": "pod-port-pumps",
-      "Turbopump vent slot.001": "pod-starboard-pumps",
-      "Turret 1 ammunition feed trunk": "sp-turret-1",
-      "Turret 1 bustle vent slat": "sp-turret-1",
-      "Turret 1 bustle vent slat.001": "sp-turret-1",
-      "Turret 1 bustle vent slat.002": "sp-turret-1",
-      "Turret 1 gun barrel chase": "sp-turret-1",
-      "Turret 1 gun barrel tube": "sp-turret-1",
-      "Turret 1 gun breech band": "sp-turret-1",
-      "Turret 1 gun house": "sp-turret-1",
-      "Turret 1 gun muzzle brake": "sp-turret-1",
-      "Turret 1 gun muzzle brake port": "sp-turret-1",
-      "Turret 1 gun recoil sleeve": "sp-turret-1",
-      "Turret 1 mantlet drum": "sp-turret-1",
-      "Turret 1 mantlet face": "sp-turret-1",
-      "Turret 1 optics blister": "sp-turret-1",
-      "Turret 1 optics lens": "sp-turret-1",
-      "Turret 1 rear bustle": "sp-turret-1",
-      "Turret 1 roof hatch": "sp-turret-1",
-      "Turret 2 ammunition feed trunk": "sp-turret-2",
-      "Turret 2 bustle vent slat": "sp-turret-2",
-      "Turret 2 bustle vent slat.001": "sp-turret-2",
-      "Turret 2 bustle vent slat.002": "sp-turret-2",
-      "Turret 2 gun barrel chase": "sp-turret-2",
-      "Turret 2 gun barrel tube": "sp-turret-2",
-      "Turret 2 gun breech band": "sp-turret-2",
-      "Turret 2 gun house": "sp-turret-2",
-      "Turret 2 gun muzzle brake": "sp-turret-2",
-      "Turret 2 gun muzzle brake port": "sp-turret-2",
-      "Turret 2 gun recoil sleeve": "sp-turret-2",
-      "Turret 2 mantlet drum": "sp-turret-2",
-      "Turret 2 mantlet face": "sp-turret-2",
-      "Turret 2 optics blister": "sp-turret-2",
-      "Turret 2 optics lens": "sp-turret-2",
-      "Turret 2 rear bustle": "sp-turret-2",
-      "Turret 2 roof hatch": "sp-turret-2",
-      "Turret 3 ammunition feed trunk": "sp-turret-3",
-      "Turret 3 bustle vent slat": "sp-turret-3",
-      "Turret 3 bustle vent slat.001": "sp-turret-3",
-      "Turret 3 bustle vent slat.002": "sp-turret-3",
-      "Turret 3 gun barrel chase": "sp-turret-3",
-      "Turret 3 gun barrel tube": "sp-turret-3",
-      "Turret 3 gun breech band": "sp-turret-3",
-      "Turret 3 gun house": "sp-turret-3",
-      "Turret 3 gun muzzle brake": "sp-turret-3",
-      "Turret 3 gun muzzle brake port": "sp-turret-3",
-      "Turret 3 gun recoil sleeve": "sp-turret-3",
-      "Turret 3 mantlet drum": "sp-turret-3",
-      "Turret 3 mantlet face": "sp-turret-3",
-      "Turret 3 optics blister": "sp-turret-3",
-      "Turret 3 optics lens": "sp-turret-3",
-      "Turret 3 rear bustle": "sp-turret-3",
-      "Turret 3 roof hatch": "sp-turret-3",
-      "Turret 4 ammunition feed trunk": "sp-turret-4",
-      "Turret 4 bustle vent slat": "sp-turret-4",
-      "Turret 4 bustle vent slat.001": "sp-turret-4",
-      "Turret 4 bustle vent slat.002": "sp-turret-4",
-      "Turret 4 gun house": "sp-turret-4",
-      "Turret 4 mantlet drum": "sp-turret-4",
-      "Turret 4 mantlet face": "sp-turret-4",
-      "Turret 4 optics blister": "sp-turret-4",
-      "Turret 4 optics lens": "sp-turret-4",
-      "Turret 4 port gun barrel chase": "sp-turret-4",
-      "Turret 4 port gun barrel tube": "sp-turret-4",
-      "Turret 4 port gun breech band": "sp-turret-4",
-      "Turret 4 port gun muzzle brake": "sp-turret-4",
-      "Turret 4 port gun muzzle brake port": "sp-turret-4",
-      "Turret 4 port gun recoil sleeve": "sp-turret-4",
-      "Turret 4 rangefinder arm": "sp-turret-4",
-      "Turret 4 rangefinder window": "sp-turret-4",
-      "Turret 4 rangefinder window.001": "sp-turret-4",
-      "Turret 4 rear bustle": "sp-turret-4",
-      "Turret 4 roof hatch": "sp-turret-4",
-      "Turret 4 starboard gun barrel chase": "sp-turret-4",
-      "Turret 4 starboard gun barrel tube": "sp-turret-4",
-      "Turret 4 starboard gun breech band": "sp-turret-4",
-      "Turret 4 starboard gun muzzle brake": "sp-turret-4",
-      "Turret 4 starboard gun muzzle brake port": "sp-turret-4",
-      "Turret 4 starboard gun recoil sleeve": "sp-turret-4",
-      "Turret 4 starboard optics blister": "sp-turret-4",
-      "Whip antenna.001": "sp-mast"
-    },
-    "shape_keys": [
-      "Forebody replaceable armor: Scar fb-port-deck-plate-buckle",
-      "Thrust bay engine can: Scar pod-port-outer-can",
-      "Heat-sink fin.001: Scar pod-port-fins",
-      "Heat-sink fin.002: Scar pod-port-fins",
-      "Heat-sink fin.003: Scar pod-port-fins",
-      "Heat-sink fin.004: Scar pod-port-fins",
-      "Drive casing armour plate.003: Scar pod-starboard-casing-buckle"
-    ],
-    "overrides": [
-      "Command deck running light: Scar dead lamp (ship-power)",
-      "Command deck running light.001: Scar dead lamp (ship-power)",
-      "Command deck viewport slits: Scar unlit glazing (ship-power)",
-      "Crosstree signal light: Scar dead lamp (ship-power)",
-      "Crosstree signal light.001: Scar dead lamp (ship-power)",
-      "Davit position light: Scar dead lamp (ship-power)",
-      "Drive warning light: Scar dead lamp (ship-power)",
-      "Drive warning light.001: Scar dead lamp (ship-power)",
-      "Drive warning light.002: Scar dead lamp (ship-power)",
-      "Drive warning light.003: Scar dead lamp (ship-power)",
-      "Grapple sponson work light: Scar dead lamp (ship-power)",
-      "Grapple sponson work light.001: Scar dead lamp (ship-power)",
-      "Grapple sponson work light.002: Scar dead lamp (ship-power)",
-      "Masthead light: Scar dead lamp (ship-power)",
-      "Roof beacon: Scar dead lamp (ship-power)",
-      "Sponson bow work light: Scar dead lamp (ship-power)",
-      "Trunk nose sensor window: Scar unlit glazing (ship-power)",
-      "Turret 1 optics lens: Scar unlit glazing (ship-power)",
-      "Turret 2 optics lens: Scar unlit glazing (ship-power)",
-      "Turret 3 optics lens: Scar unlit glazing (ship-power)",
-      "Turret 4 optics lens: Scar unlit glazing (ship-power)",
-      "Turret 4 rangefinder window: Scar unlit glazing (ship-power)",
-      "Turret 4 rangefinder window.001: Scar unlit glazing (ship-power)",
-      "Engine 1 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
-      "Engine 2 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
-      "Engine 3 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)",
-      "Engine 4 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)"
-    ],
-    "cut_objects": 96
+    }
   }
 }
