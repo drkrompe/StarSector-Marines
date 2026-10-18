@@ -369,8 +369,8 @@ if not args.no_save:
                          'Engine <i> ...': 'drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, '
                                            'drive glow anchor',
                          'Turret <i> ...': 'barbette and traverse gap (fixed); gunhouse, mantlet, barrels and '
-                                           'muzzle anchors under Turret <i> pivot',
-                         'Weapon <slot id> ...': 'hardpoint guns and launchers; anchor and muzzle anchor',
+                                           'Anchor turret <i> barrel <k> muzzle under Turret <i> pivot',
+                         'Weapon <slot id> ...': 'hardpoint guns and launchers; anchor, and Anchor weapon <slot id> muzzle',
                          'Light <side> <where> <k>': 'running lights; positions, colours and blink in running_lights'},
         'cameras': [{'name': n, 'position': list(p), 'orthographic_scale': s,
                      'rotation': 'bow left, port below' if n == 'top' else 'looks at '+str(list(TARGET))}

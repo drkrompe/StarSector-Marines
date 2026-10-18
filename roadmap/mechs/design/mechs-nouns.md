@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — headless tuning: section shares read against the whole-body control (head 0.06 on Bulwark and Sirocco), engines carry mass, call cooldown 30 s, heavy cradle three lifts.
+Updated: 2026-10-18 — headless tuning: section shares read against the whole-body control, long-range support keeps a threat in its arc while withdrawing, engines carry mass, call cooldown 30 s, heavy cradle three lifts.
 
 ## Purpose
 
@@ -99,14 +99,19 @@ increasing an encounter's total armored threat.
   heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
-  what the drop will need; the two usually agree, and where they do not (a scout car
-  is Advanced and rides a Light cradle) the lift is what is printed.
-  Two light **roles** are lines of their own, one hull each, Light lift: the
-  **supply truck** (Common; Hegemony weights it) and the **scout car** (Advanced;
-  Tri-Tachyon weights it). Each pays for its one job with the gun, the seats and
-  the plate: the truck hands out a finite stock through the battle's resupply
-  authority while halted, and the scout reports what its mast sees to the fog and
-  the commander (`convoy-nouns.md`, the light roles).
+  what the drop will need; the two usually agree, and where they do not (the
+  spotter pickup is Advanced and rides a Light cradle) the lift is what is printed.
+  **Anything built on a truck is a field rig, not military issue**: the militia
+  technical, the **supply pickup** (`SUPPLY_TRUCK`, Common) and the **spotter
+  pickup** (`SCOUT_CAR`, Advanced) are jerry-rigged civilian pickups. Their cards
+  carry a field-rig provenance and are weighted up by the outfits that weld them
+  (pirates, independents), never by a navy; a military faction is known for
+  purpose-built hulls. The two light roles are lines of their own, one hull each,
+  Light lift, and each pays for its one job with the gun, the seats and the plate:
+  the supply pickup hands out a finite stock through the battle's resupply
+  authority while halted, and the spotter reports what its mast sees to the fog
+  and the commander (`convoy-nouns.md`, the light roles). Tri-Tachyon's vehicles,
+  when they come, are hover and drone coded; none exists yet.
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
@@ -428,7 +433,19 @@ hardware identities; any deployed chassis may receive any of these doctrines:
   A screen is a broad threat-facing front, not an ally placed in the direct
   projectile ray, so the selected perch keeps every friendly body clear of its
   rear-oblique firing lane. If a threat closes, the mech fights while opening
-  distance rather than treating the old perch as sacred.
+  distance rather than treating the old perch as sacred. It never opens that
+  distance with its back turned. While a threat is in reach with a clear line
+  of fire, an unscreened perch whose walk puts the threat more than 120° off
+  the walk ranks behind every perch that keeps it in arc. If no unscreened
+  perch keeps it in arc, the mech takes a fighting-withdrawal step instead,
+  farther from the threat but within the band and keeping it in arc, and a
+  rushed escape tries both obliques before going straight back. Otherwise the
+  torso's 145° twist loses the target while the hips follow the route, and a
+  mech that cannot reach its perch never fires at all: a planted Sirocco under
+  rifle fire fired 2.4 rounds before it died. Keeping the arc, it fires 10.6,
+  deals twice the damage and lasts 29 s instead of 18
+  (`-Dbattle.mech.overwatchKeepsArc=false` is the control). A screened perch,
+  and a stand-off with the threat out of reach, are unchanged.
 - **Balanced** serves its assignment from the middle or outer portion of its
   installed direct-fire band. It accepts a close threat already upon it, then
   resumes the assignment, and has no special ally-geometry dependency.
