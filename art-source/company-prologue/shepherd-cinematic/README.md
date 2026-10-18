@@ -82,7 +82,8 @@ The meshes are baked (bevels applied), and every mesh carries `hull_rest`
    generations);
 2. `export_ship.py`, `export_effects.py` and `verify_ship.py`;
 3. `review_ship.py`: whole-ship stills, the turret at rest and trained, the
-   drone bay, effects, studio-off, and a 96-frame turn;
+   drone bay, effects and studio-off; `--turn 96` adds a 96-frame turn (opt-in,
+   because it is most of the run time);
 4. `compose_review.py`.
 
 `--skip-surface` reuses the current skin. Renders go to
