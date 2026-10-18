@@ -159,7 +159,7 @@ Do not run builds or leave generated task files there.
 Rendered output and other large regenerable files that should reach the other
 machine (or the owner's phone) go to the shared Google Drive folder, never into
 git: `G:\My Drive\starsector` on Windows and
-`~/Library/CloudStorage/GoogleDrive-kromp08@gmail.com/My Drive/starsector` on
+`~/Library/CloudStorage/GoogleDrive-<account>/My Drive/starsector` on
 the Mac. It syncs in about half a minute. It is a transfer and viewing area,
 not version control, and a build copies what it needs local before reading it.
 
