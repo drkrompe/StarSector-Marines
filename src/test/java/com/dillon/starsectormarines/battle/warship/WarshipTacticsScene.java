@@ -42,7 +42,9 @@ import java.util.Map;
  */
 public final class WarshipTacticsScene implements BehaviorScene {
 
-    private static final int TICKS = 9000;
+    /** The window grows with the hull fight's durability, as the fights it watches do. */
+    private static final int TICKS = Integer.getInteger("battle.scene.warshipTactics.ticks",
+            Math.round(9000 * WarshipScale.HULL_DURABILITY));
     private static final int FRAME_EVERY = 30;
     private static final float TICK_SECONDS = 1f / 30f;
     /** At least this many manoeuvres finished in a loop, and on average lasting at least this long. */

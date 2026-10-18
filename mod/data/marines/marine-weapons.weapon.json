@@ -236,6 +236,41 @@
       "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
+      "id": "weapon.drone-ion",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponDroneIonDisplayName",
+        "modelName": "@gearCatalogWeaponDroneIonModelName",
+        "designation": "DION",
+        "designationTiered": true,
+        "role": "@gearCatalogWeaponDroneIonRole",
+        "factionLogo": "graphics/factions/tritachyon.png",
+        "description": "@gearCatalogWeaponDroneIonDescription"
+      },
+      "sim": {
+        "range": 18.0,
+        "damage": 3.5,
+        "accuracy": 0.45,
+        "cooldown": 1.4,
+        "penetration": 7.0,
+        "accuracyFalloff": 0.35,
+        "hitSpread": 0.5,
+        "roundVelocity": 55.0
+      },
+      "render": {
+        "heldSpriteFamily": "LASER_GUN",
+        "tracerColor": "8FE6FF",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.22, "lifetime": 0.10, "color": "BFF2FF" }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
+    },
+    {
       "id": "weapon.mech-chaingun",
       "mount": "mech-mount",
       "catalog": {

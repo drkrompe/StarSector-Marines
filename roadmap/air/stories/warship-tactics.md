@@ -1,9 +1,9 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing) and slice 5 (fights at range, to the death) built
+Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death) and slice 6 (one-on-one duels flown for position) built
 
 Written: 2026-10-16
-Updated: 2026-10-18 — slice 5: hulls fight at 2.5x the range, duels end in a kill (no voluntary withdrawal); measured
+Updated: 2026-10-18 — slice 6: one-on-one duels orbit, cross the T, counter and break; measured against the control
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -385,6 +385,102 @@ second Wolf dies before it has cleared its entry band. The surviving Hound scree
 It then drifts away from its screen station onto the south edge, where the backstop holds it, until its charge leaves.
 That drift belongs to the escort helm, not to this slice.
 
+## Slice 6: one-on-one duels flown for position
+
+After slice 5 every equal mirror ended in a kill, but it read as a static mirror-image standoff: two ships nose to nose,
+shields up, trading. The share of time under fire from outside the front-shield arc was 0% in every one-on-one, and
+nobody ever got round anybody. The owner wants ships getting onto the beam, a defender's counter, ships that circle and
+jockey, and hulls that each fly to their strengths.
+
+**Why nobody gets round by speed.** At the slice 5 ranges a defender can always pivot faster than an equal can circle
+it. A Wolf circling at 150 cells moves round its target at about half a degree a second, while it turns at nine. An
+Onslaught at 300 cells moves round at a tenth of a degree against two and a half. Momentum and turn rate are respected,
+so no honest orbit outruns a nose. Position is therefore won by choices, read off the two hulls: when a ship turns its
+cover or its battery away, and who turns in first.
+
+**What a duel flies.** A duel is one hunter against one hull. A pack, a line and an escorted charge keep their own
+choreography, and Black Sluice is not a duel.
+
+- **Approach for the quarter.** A bow ship steers for its target's quiet quarter on its own course
+  (`WarshipDuelHelm.bowStation`), rather than at its nose. Two such ships work round one another before either fires.
+- **Orbit.** Between runs a front-shielded ship circles under way. It holds its target off the bow at the widest angle
+  its shield still covers (a margin inside the arc) at which at least three tenths of its bow battery still bears. The
+  angle bends out when the ship is short of the range (never past its cover) and in when it is long. A Wolf holds its
+  target at about sixty degrees, where its turret still reaches; an Onslaught holds it where its side batteries do. An
+  Eagle's battery is almost entirely in its bow, so circling would silence it: it keeps its nose on in the standoff
+  drift instead. Its 270-degree shield is its strength, and almost nothing gets round it.
+- **Crossing the T.** A ship is across its target's T when its main battery bears and the target's does not. From an
+  orbit it turns in first when it is ahead of the target on flux and hull (`WarshipTactics.advantage`). On any target
+  that has turned its cover or its battery away, it holds its run (a **cross**, flown as a run).
+- **The counter.** An orbiting ship that has been turned in on, with the target's battery on it and its own not, turns
+  in to answer within its own turn rate.
+- **The flux race and the break.** Two ships equally full hold their shields on each other and the race decides. A ship
+  at its limit that is not losing circles off to vent with its shield still on. The ship whose shield is going
+  (overloaded, or 92% full and ten points deeper than its target) **breaks**: it holds a fixed course well off its
+  target and opens at full way rather than backing at a quarter of it. The course is as far round as its shield arc
+  covers, from 110 to 150 degrees. It comes about the short way once it has vented, is out of reach, or is run down with
+  its pool half empty. Its quarter is what the other ship crosses.
+- **An overload does not end the duel.** An overloaded ship's guns hold no target, but it keeps its manoeuvre and the
+  doctrine still counts it as duelling. Before this change an overload dropped the hull target and the duel with it, and
+  the doctrine withdrew the ship as "overloaded under threat".
+- **Shieldless passes.** A bow ship without a front shield keeps run, extend and come-about. In a duel it comes back
+  early and the short way: to answer a target that has turned in on it, or, when ahead, to cross it.
+
+`-Dbattle.warship.duelManoeuvres=false` is the control. `FrigateDuelHelmScene`'s strongest-gun verdict skips ticks on
+which a manoeuvre holds its own course (an extend, a break, an orbit, a come-about). The manoeuvre layer owns the heading
+on those ticks, so they say nothing about whether the helm lays the strongest gun.
+
+**`warship-mirrors` verdicts added.** These are mechanics, read against the control:
+
+- **A ship gets round.** At least one side holds a crossing position for 2% of the ticks the two are in reach. A
+  crossing position is guns bearing from outside the other's shield arc, or main battery on the other while the other's
+  is not on it. The control fails this on nine of twelve loops; its Eagle standoff passes at 2.6-2.8%.
+- **Ships keep way on.** Mean speed while in reach is at least 30% of top speed. This does not discriminate: the
+  control's standoff drift moves at 35-55%. It stands as a floor against parked hulls.
+- **An orbit keeps the shield on the target** for 85% of orbit ticks.
+
+Both sides getting round is a reading, not a verdict. Between equals the first ship to get round usually keeps the
+advantage, and that is the fight's own doing.
+
+Readings. A crossing position is off cover or across the T. Distance flown is counted while the ships are in reach.
+Exposed is the slice 4 reading: time targeted in reach with the shooter outside the front-shield arc.
+
+| loop | kill after first hit (s) | control (s) | exposed W/E % | crossing position W/E % | crossings W/E | flown W/E (cells) | least gap (cells) | hit share |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| wolf-11 | 116.6 | 85.4 | 0 / 0 | 21.1 / 10.9 | 4 / 4 | 96 / 102 | 32.9 | 97% |
+| wolf-23 | 127.6 | 85.4 | 13 / 0 | 16.8 / 23.0 | 3 / 6 | 115 / 110 | 55.0 | 96% |
+| wolf-37 | 128.7 | 85.3 | 0 / 0 | 1.1 / 13.7 | 1 / 1 | 150 / 130 | 10.6 | 96% |
+| hound-11 | 149.8 | 214.6 | - | 3.3 / 0.4 | 4 / 1 | 167 / 174 | 29.7 | 98% |
+| hound-23 | 145.8 | 222.7 | - | 1.9 / 9.6 | 2 / 3 | 179 / 178 | 14.0 | 99% |
+| hound-37 | 215.0 | 222.8 | - | 5.6 / 0.4 | 1 / 2 | 273 / 251 | 12.8 | 98% |
+| eagle-11 | 872.3 | 768.9 | 0 / 1 | 10.0 / 2.4 | 2 / 1 | 276 / 292 | 74.3 | 100% |
+| eagle-23 | 835.5 | 828.6 | 1 / 0 | 2.6 / 10.4 | 1 / 2 | 291 / 265 | 69.1 | 100% |
+| eagle-37 | 945.0 | 814.2 | 2 / 1 | 9.6 / 16.0 | 2 / 3 | 341 / 337 | 45.5 | 100% |
+| onslaught-11 | 757.4 | 401.3 | 0 / 0 | 7.6 / 12.6 | 12 / 23 | 356 / 354 | 1.8 | 96% |
+| onslaught-23 | 427.5 | 390.3 | 0 / 0 | 12.7 / 14.6 | 11 / 8 | 211 / 218 | 4.5 | 95% |
+| onslaught-37 | 532.6 | 392.7 | 0 / 0 | 15.5 / 18.8 | 16 / 16 | 257 / 254 | 2.1 | 96% |
+
+In the control every Wolf, Hound and Onslaught loop reads 0-0.6% crossing position each way, and the Onslaughts fly
+about 95 cells in reach against 211-356. The Wolf and Onslaught fights take longer, because turn-ins and breaks are time
+not spent nose to nose; an Onslaught mirror runs up to twice the control. The Hound fights are shorter. Every loop is
+still decided by a kill inside the window, with the three-turn floor kept.
+
+Exposure on the shield-arc reading stays near zero: the defender's counter works, and what gets crossed is the battery,
+not the shield, except once a shield has gone. The Onslaughts now jockey close: their least gap is 2-5 cells against the
+control's 110, inside the contact tolerance and never overlapping. The warship scene set (85 loops, including
+`warship-tactics`, `hull-durability`, the frigate scenes, `greyhook-duel`, `hostile-ship-support`, `ship-escort` and
+`hull-broadside`) stays green.
+
+**What the review GIFs show** (1920x1080, through the duel camera):
+
+- **Wolf mirror.** It no longer parks. The two ships come in offset, circle, turn in and break, and the bearing between
+  them swings through the fight.
+- **Onslaught mirror.** It moves and offsets more than it did, but at a capital's pace, and through the camera it still
+  reads largely as two ships facing off at close range.
+- **Eagle mirror.** It is still a standoff: nose on and sliding, as its battery and shield dictate.
+
+Getting round an equal at these ranges is real but brief, and is mostly a matter of who turns in first.
+
 ## Slices
 
 1. **Spacing and hull contact.** Contact separation between hulls, friendly clearance in the helm. Evidence: the
@@ -399,6 +495,8 @@ That drift belongs to the escort helm, not to this slice.
 4. **Equal fights resolve.** Standoff, pressing, hardpoint sight; `warship-mirrors`.
 5. **Fights at range, to the death.** Hull range, battery reach, hull-fight flux footing, no voluntary withdrawal in a
    hull fight.
+6. **One-on-one duels flown for position.** Approach for the quarter, orbit, cross the T, counter, break;
+   `warship-mirrors`, with `-Dbattle.warship.duelManoeuvres=false` as the control.
 
 Each slice re-runs the warship scene set and `greyhook-duel` and keeps their verdicts green.
 

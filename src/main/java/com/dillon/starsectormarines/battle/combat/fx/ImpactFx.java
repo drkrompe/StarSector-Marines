@@ -226,6 +226,38 @@ public final class ImpactFx {
         particles.add(p);
     }
 
+    private static final Color WHEEL_DUST_COLOR = new Color(0xA8, 0x94, 0x6C);
+    private static final Color SKIRT_DUST_COLOR = new Color(0xBC, 0xAE, 0x8C);
+    private static final Color SPRAY_COLOR      = new Color(0xDC, 0xEC, 0xF2);
+
+    /**
+     * One soft puff of ground dust drifting at ({@code vx},{@code vy}) cells per second and slowing as it goes: the
+     * dust a wheel or track throws off loose ground, the haze a hover skirt blows out, or the spray it blows off
+     * water ({@code kind}, as {@code EffectsService.DUST_*}). It billows and thins rather than streaking, and stays
+     * faint, because a hull raises dust continuously and twenty overlapping puffs must still read as dust.
+     */
+    public void spawnGroundDust(float x, float y, float vx, float vy, float radiusCells, int kind) {
+        if (glowSprite == null) return;
+        Particle p = new Particle();
+        p.x = x;
+        p.y = y;
+        p.vx = vx;
+        p.vy = vy;
+        p.dragPerSecond = 1.6f;
+        boolean spray = kind == EffectsService.DUST_SPRAY;
+        float lifetime = spray ? .7f : kind == EffectsService.DUST_SKIRT ? 1.1f : 1.4f;
+        p.lifetimeRemaining = lifetime;
+        p.lifetimeMax = lifetime;
+        p.radiusCells = radiusCells;
+        p.radiusGrowthPerSec = radiusCells * (spray ? 1.1f : .9f);
+        p.color = spray ? SPRAY_COLOR : kind == EffectsService.DUST_SKIRT ? SKIRT_DUST_COLOR : WHEEL_DUST_COLOR;
+        p.alpha = spray ? .5f : kind == EffectsService.DUST_SKIRT ? .4f : .34f;
+        p.sprite = glowSprite;
+        p.angleDeg = rng.nextFloat() * 360f;
+        p.additive = false;
+        particles.add(p);
+    }
+
     /**
      * Spawns a single smoke puff at (x, y). For driving continuous emitters
      * (smoking wrecks, smoldering rubble) where the caller picks the cadence
@@ -448,7 +480,7 @@ public final class ImpactFx {
         if (s == null) return;
         s.setSize(radiusPx * 2f * p.aspectRatio, radiusPx * 2f);
         s.setAngle(p.angleDeg);
-        s.setAlphaMult(alphaMult * lifeFrac);
+        s.setAlphaMult(alphaMult * lifeFrac * p.alpha);
         s.setColor(p.color);
         if (p.additive) s.setAdditiveBlend(); else s.setNormalBlend();
         if (p.frameCount > 0) {

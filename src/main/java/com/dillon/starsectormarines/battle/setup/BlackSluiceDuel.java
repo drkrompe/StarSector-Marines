@@ -75,11 +75,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** The Wolfs' entry heading: due east, in the hull-facing convention. */
     static final float WOLF_HEADING = 270f;
     /**
-     * The Greyhook's climbing circuit, flown whenever no Wolf is hers to fight: an ellipse over the middle of the map,
-     * clear of her edge margin, flown so that from the cradle she first heads west along its southern side, toward the
-     * Wolfs. Its northern side passes over the ground fight.
+     * The Greyhook's climbing circuit, flown whenever no Wolf is hers to fight: an ellipse over the middle of the
+     * station (east of the approach ground the Wolfs cross), clear of her edge margin, flown so that from the cradle she
+     * first heads west along its southern side, toward the Wolfs. Its northern side passes over the ground fight.
      */
-    static final float CIRCUIT_X = 0.5f * BlackSluice.WIDTH, CIRCUIT_Y = 98f,
+    static final float CIRCUIT_X = BlackSluice.APPROACH + 150f, CIRCUIT_Y = 98f,
             CIRCUIT_RX = 60f, CIRCUIT_RY = 22f;
     /** How far round the circuit, in degrees, her station is kept ahead of her. */
     static final float CIRCUIT_LEAD_DEGREES = 35f;

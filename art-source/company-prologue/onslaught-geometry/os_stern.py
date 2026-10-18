@@ -39,7 +39,7 @@ below are the stern's, and os_machinery and os_engines read them from here.
 import math
 import bpy
 from os_kit import _edge_distance, arched_mass, boolean, ccw, facet_normal, mirror_y, plane_cut, prism
-from os_hull import full
+from os_hull import full, fore_top
 from os_armour import shell_strip
 
 # --- plans (port halves) ------------------------------------------------------
@@ -72,7 +72,9 @@ WELL_PORT = [(-18, ROOT_Y+.5), (-18, 104), (-40, 101), (-64, 94), (-71, 81), (-8
 WELL_INNER = [(ROOT_X, 21.0), (-101, 21.0), (-101, blade_inner_y(-101)), (ROOT_X, blade_inner_y(ROOT_X))]
 WELL_FLOOR = -10.0
 # The raked after-face cut, port: the outer quarter aft of the outer well's forward part.
-RAKE_REGION = [(-14, 130), (-14, ROOT_Y+1.5), (-60, 56), (-84, 66.5), (-100, 72.5), (-130, 72.5), (-130, 130)]
+# Round 9: its inboard edge follows the outer well's after wall (-84, 63.8) instead of standing
+# 2.7 outboard of it, which left a folded sliver of deck between the two (seam audit 6.6).
+RAKE_REGION = [(-14, 130), (-14, ROOT_Y+1.5), (-60, 56), (-84, 63.6), (-100, 71.8), (-130, 71.8), (-130, 130)]
 RAKE_DEG = 13.0                   # the outer quarters' deck falls aft at this slope
 SILL_Z = -6.0                     # where the raked after-face cut crosses the outer well's after wall
 MAINS_FACE_X = -105.0             # the tail's after face; the main bells stand proud aft of it
@@ -81,10 +83,10 @@ FLARE_Z, FLARE_DEG = -2.0, 30.0   # the outer quarters' lower side leans inboard
 # --- sections: (keel, deck, bilge_in, bilge_h, tumble_in, tumble_h, crown, crown_w), chined.
 AFT = (-32.0, 10.0, 12.0, 12.0, 7.0, 13.0, 0.0, 0.0)
 TAIL = (-34.0, 17.0, 12.0, 16.0, 4.0, 9.0, 1.0, 6.0)
-LEG = (-26.0, 15.5, 5.0, 10.0, 3.0, 4.0, 0.0, 0.0)
+LEG = (-26.0, 36.0, 5.0, 10.0, 3.0, 4.0, 0.0, 0.0)
 # The blade's crest: CREST_Z0 at CREST_X0 (the root deck's height plus the blade's
 # step), climbing CREST_DEG aft to the deck height LEG[1] at the spur.
-CREST_X0, CREST_Z0, CREST_DEG = -50.0, 13.0, 2.5
+CREST_X0, CREST_Z0, CREST_DEG = -58.0, 14.5, 9.0   # 9 deg: the spurs read astern without rising over the stepped-down tail
 KNUCKLE_DEG = 22.0                # the blade's keel rises aft from X -62, meeting the floor at the after face
 SPUR_X, SPUR_DEG = -102.0, 47.0   # the second keel knuckle, clear of the aft body
 # Keel strake fairings: (x, z, deg) of a plane rising aft that takes each strake into the hull
@@ -92,6 +94,18 @@ SPUR_X, SPUR_DEG = -102.0, 47.0   # the second keel knuckle, clear of the aft bo
 AFT_STRAKE_FAIR = (-56.0, -32.0-2.4, 40.0)
 TAIL_STRAKE_FAIR = (-66.0, -34.0-2.4, 42.0)
 AFT_FACE_UNDERCUT = 8.0           # the after faces lean aft this much at the top
+# The aft glacis against the core's aft face (critic E): rake from vertical, foot on the root
+# deck, the step height and how far the upper plate laps proud of the lower; plan span |Y|.
+RAKE_FACE_DEG, GLACIS_FOOT_X, GLACIS_STEP_Z, GLACIS_LAP = 20.0, -23.0, 18.5, 2.4
+GLACIS_Y = (15.0, 44.0)
+# The blade's outboard glacis falls this steeply from the crest (round 6, critic A5: it was 28
+# deg over a tall outer wall, two plates of two values on the quarter; at 60 deg it runs nearly
+# to the bilge chine as ONE large sloped plate).
+BLADE_GLACIS_DEG = 60.0
+# Round 7: the broad top plate between the crest and the side plate (see _blade).
+BLADE_TOP_DEG, BLADE_TOP_W = 18.0, 17.0
+BLADE_INNER_DEG = 45.0          # round 9: the inner chamfer from the crest down to the stripe
+BLADE_RAKE_PIVOT_Z, BLADE_AFTER_RAKE = -12.0, 8.0   # round 9: the after face leans forward at the top
 
 
 def chined_mass(kit, name, plan, spec, mat, step=3.0):
@@ -173,17 +187,30 @@ def _blade(kit, side, s):
     plane_cut(leg, 'blade root ramp', (-44.0, 0, 9.5), facet_normal((1, 0), 24))
     # The crest rises aft: one plane through the root's crest line, climbing CREST_DEG.
     plane_cut(leg, 'blade crest rise', (CREST_X0, 0, CREST_Z0), facet_normal((1, 0), CREST_DEG))
-    # Glacis: from the crest 6 outboard of the inner chine the top falls outboard at 28 deg; the
-    # plane holds the rising crest line, so the glacis climbs aft with it.
-    a = (-30.0, s*(blade_inner_y(-30.0)+6.0), _crest_z(-30.0))
-    b = (-130.0, s*(blade_inner_y(-130.0)+6.0), CREST_Z0+(CREST_X0+130.0)*math.tan(math.radians(CREST_DEG)))
-    dx, dy = -100.0, s*(blade_inner_y(-130.0)-blade_inner_y(-30.0))
-    length = math.hypot(dx, dy)
-    out = (-dy/length, dx/length, 0)                                  # horizontal, outboard
-    if out[1]*s < 0:
-        out = (dy/length, -dx/length, 0)
-    g = math.radians(28)
-    _plane_through(leg, 'blade glacis', a, b, (out[0]*math.cos(g), out[1]*math.cos(g), -math.sin(g)))
+    # Round 7 (critic: from above and on the quarters the 60 deg glacis left each blade a
+    # knife standing up out of the open wells - "fins", two of the "five fingers"; the
+    # sprite's leg is a BROAD bright top plate with the orange stripe on its inner edge):
+    # from the crest 6 outboard of the inner chine the top falls outboard as one wide plate
+    # at BLADE_TOP_DEG to a hard chine BLADE_TOP_W outboard of the inner chine, then the
+    # side plate falls at BLADE_GLACIS_DEG to the bilge. Both planes hold the rising crest
+    # line, so the plates climb aft with it.
+    def outboard_plane(name, d, dz, deg):
+        a = (-30.0, s*(blade_inner_y(-30.0)+d), _crest_z(-30.0)-dz)
+        b = (-130.0, s*(blade_inner_y(-130.0)+d),
+             CREST_Z0+(CREST_X0+130.0)*math.tan(math.radians(CREST_DEG))-dz)
+        dx, dy = -100.0, s*(blade_inner_y(-130.0)-blade_inner_y(-30.0))
+        length = math.hypot(dx, dy)
+        out = (-dy/length, dx/length, 0)                              # horizontal, outboard
+        if out[1]*s < 0:
+            out = (dy/length, -dx/length, 0)
+        g = math.radians(deg)
+        _plane_through(leg, name, a, b, (out[0]*math.cos(g), out[1]*math.cos(g), -math.sin(g)))
+    t = math.tan(math.radians(BLADE_TOP_DEG))
+    outboard_plane('blade top plate', 6.0, 0.0, BLADE_TOP_DEG)
+    # Round 9: the inner face falls from the crest as a chamfer at BLADE_INNER_DEG, so the
+    # risen spur reads as a wedge with the stripe on its inner plate, not a wall over the well.
+    outboard_plane('blade inner chamfer', 6.0, 0.0, -BLADE_INNER_DEG)
+    outboard_plane('blade glacis', BLADE_TOP_W, (BLADE_TOP_W-6.0)*t, BLADE_GLACIS_DEG)
     # The keel: a straight knuckle rising aft, then, clear of the aft body's after face, a
     # steeper one sweeping up into the spur.
     k = math.radians(KNUCKLE_DEG)
@@ -194,8 +221,14 @@ def _blade(kit, side, s):
     # blade sits down on the deck there with no slot under it; the one beyond the hull leans a
     # little aft at the top (pivot on the crest), so the spur's top is its aftmost edge. Both
     # keep the plan outline of the point.
-    for (p, q), lean in (((LEG_PORT[4], LEG_PORT[6]), 0.0), ((LEG_PORT[6], LEG_PORT[8]), AFT_FACE_UNDERCUT)):
-        line_cut(leg, 'blade after rake', p, q, s, keep_left=(s > 0), z=LEG[1], tilt=lean)
+    # Round 6 (critic A5: the stern quarter broke into small shards of one value): ONE after
+    # face from the outboard corner to the point, leaning a little aft at the top, so on the
+    # quarter each blade ends in a single large plate instead of two facets of two values.
+    # Round 9: the spur now rises well above the aft body, so a face leaning aft at the top
+    # undercut it into a slot over the aft body's quarter (seam audit 15.6). The face rakes the
+    # other way: pivoted at the keel, its top leans forward, a raked transom under the spur.
+    line_cut(leg, 'blade after rake', LEG_PORT[4], LEG_PORT[8], s, keep_left=(s > 0), z=BLADE_RAKE_PIVOT_Z,
+             tilt=-BLADE_AFTER_RAKE)
     inner = lambda x, d: (x, blade_inner_y(x)+d)
     # The stripe: a skin lifted off the blade's own top, clipped to the inner chamfer and crest.
     st = leg.copy()
@@ -210,6 +243,58 @@ def _blade(kit, side, s):
     st.data.materials.clear()
     kit.finish(st, f'Armour {side} leg stripe', kit.orange)
     return leg
+
+
+def _aft_glacis(kit, s, side):
+    """Round 6 (critic E: straight astern the core's aft face above the engine row was a broad
+    flat wall with one thin lintel): an armoured glacis laid against it on the root deck, raked
+    RAKE_FACE_DEG (top forward) in two plates. The upper plate laps over the lower one, so its
+    lower edge stands proud and throws a transverse shadow line across the stern at formation
+    distance. Its top tucks under the core's aft lintel (os_armour); its inboard end is buried in
+    the tail and the bridge spine's flank, its outboard end is chamfered over the root deck's
+    sloped edge."""
+    t = math.tan(math.radians(RAKE_FACE_DEG))
+    zb, zs, zt = 4.0, GLACIS_STEP_Z, fore_top(-18.0, GLACIS_Y[1])-1.6
+    x_lo = lambda z: GLACIS_FOOT_X+(z-AFT[1])*t                    # lower plate face
+    x_lap = x_lo(zs)-GLACIS_LAP                                       # the lap's proud edge
+    x_up = lambda z: x_lap+(z-zs)*t                                   # upper plate face
+    # Round 9 (seam audit: the lap's flat underside overhung the lower plate by a 5-unit slot):
+    # the lap's proud edge drops as a vertical face to where it meets the lower plate, so the
+    # step still throws its transverse shadow line but nothing overhangs daylight.
+    z_meet = zs-GLACIS_LAP/t
+    prof = [(-17.0, zb), (x_lo(zb), zb), (x_lap, z_meet), (x_lap, zs), (x_up(zt), zt), (-17.0, zt)]
+    n = len(prof)
+    y0, y1 = GLACIS_Y
+    verts = [(x, s*y0, z) for x, z in prof]+[(x, s*y1, z) for x, z in prof]
+    faces = [tuple(range(n)), tuple(range(n, 2*n))]+[(k, (k+1) % n, n+(k+1) % n, n+k) for k in range(n)]
+    g = kit.mesh(f'Armour {side} aft glacis', verts, faces, kit.plate, bevel=.25)
+    # The outboard end: a chamfer falling outboard, so the plate's end reads as cut armour.
+    plane_cut(g, 'glacis end', (0, s*(y1-5.0), zt), (0, s*math.sin(math.radians(45)), math.cos(math.radians(45))))
+    # Round 7 (seam audit: its outboard after corner overhung the outer well by a 14-unit
+    # slot): the end is cut in plan along the root deck's diagonal edge over the well.
+    line_cut(g, 'glacis plan end', (ROOT_X, 20.0), (-18.0, ROOT_Y), s, keep_left=(s < 0))
+    return g
+
+
+def _dark_wells(kit, ob):
+    """Round 6 (critic A5): the wells' floors and walls take the recess material, so on the
+    quarters the wells read as dark voids between a few large plates of one tone."""
+    ob.data.materials.append(kit.dark)
+    dark = len(ob.data.materials)-1
+    plans = [_side(WELL_CUT, s) for s in (1, -1)]
+
+    def inside(px, py, poly):
+        c = False
+        for i in range(len(poly)):
+            (ax, ay), (bx, by) = poly[i-1], poly[i]
+            if (ay > py) != (by > py) and px < ax+(py-ay)*(bx-ax)/(by-ay):
+                c = not c
+        return c
+    for f in ob.data.polygons:
+        c = f.center
+        if WELL_FLOOR-.5 < c.z < AFT[1]-1.5 and any(inside(c.x+dx, c.y+dy, pl) for pl in plans
+                                     for dx, dy in ((0, 0), (.6, 0), (-.6, 0), (0, .6), (0, -.6))):
+            f.material_index = dark
 
 
 def build(kit):
@@ -239,6 +324,7 @@ def build(kit):
         sloped_cut(kit, aft, _side([(-17, ROOT_Y-9), (-17, ROOT_Y+6), (ROOT_X-6, ROOT_Y+6), (ROOT_X-6, ROOT_Y-9)], s),
                    lambda x, y: AFT[1]-(abs(y)-ROOT_Y+9.0)*math.tan(math.radians(40)))
 
+    _dark_wells(kit, aft)
     tail = chined_mass(kit, 'Hull tail', full(TAIL_HALF), TAIL, kit.plate)
     # The tail steps down aft of the spine's end to the mains' face, and its keel sweeps up.
     plane_cut(tail, 'tail upper', (-92.0, 0, TAIL[1]), facet_normal((-1, 0), 16))
@@ -250,7 +336,8 @@ def build(kit):
     legs = {}
     for side, s in (('port', 1), ('starboard', -1)):
         legs[side] = _blade(kit, side, s)
-    kit.hull += [aft, tail, *legs.values()]
+    glacis = [_aft_glacis(kit, s, side) for side, s in (('port', 1), ('starboard', -1))]
+    kit.hull += [aft, tail, *legs.values(), *glacis]
     # Keel strakes along the flat keels. Each fairs into the hull where the keel knuckles up
     # (a plane rising aft faster than the knuckle takes its bottom into the plating): run up
     # the counter they read from astern as bars hanging under the stern.

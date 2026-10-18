@@ -226,6 +226,32 @@ def _housing(kit, i, y):
                      step=1.5)
     # Its forward top falls to the well floor, so the pipe banks run onto it.
     plane_cut(ob, 'housing fore', (x1+2.0, 0, 1.5), facet_normal((1, 0), 40))
+    _housing_keel(kit, i, s)
+    return ob
+
+
+# Round 9 (critic: the stern and front silhouettes were the same W, the drives never broke the
+# stern outline): under each drive 2/3 housing the drive's machinery bay stands proud BELOW the
+# aft body's swept-up keel as a chined ventral sponson, so from astern, low astern and on the
+# stern quarters two drive keels hang between the arm lobes and the tail. Its top is buried in
+# the aft body and the blade's keel; its forward end fairs up into the hull, its after face
+# rakes forward as it falls, so abeam it is a raked skeg under the drive, not a box.
+KEEL_PLAN = (-102.0, -74.0, 30.0, 54.0)       # x0, x1, y0, y1 (port)
+KEEL_SPEC = (-38.0, -9.0, 10.0, 13.0, 0.0, 0.0, 0.0, 0.0)
+KEEL_FAIR = (-80.0, 32.0)                     # the bottom rises forward from here at this slope
+KEEL_AFT_RAKE = 24.0                          # the after face leans forward this much as it falls
+
+
+def _housing_keel(kit, i, s):
+    x0, x1, y0, y1 = KEEL_PLAN
+    plan = [(x0, y0), (x0, y1), (x1, y1), (x1, y0)]
+    plan = ccw(plan) if s > 0 else mirror_y(ccw(plan))
+    ob = chined_mass(kit, f"Engine {i} drive keel", plan, KEEL_SPEC, kit.plate, step=1.5)
+    fx, fdeg = KEEL_FAIR
+    t = math.tan(math.radians(fdeg))
+    plane_cut(ob, 'keel fairing', (fx, 0, KEEL_SPEC[0]), (t, 0, -1))
+    r = math.tan(math.radians(KEEL_AFT_RAKE))
+    plane_cut(ob, 'keel after rake', (x0, 0, KEEL_SPEC[1]), (-1, 0, -r))
     return ob
 
 
@@ -240,7 +266,10 @@ def build(kit, hull):
         rt = .45*rm
         wall = .45
         if i in MAINS:     # bore the tail round the bell's root, behind its thrust collar
-            boolean(hosts[i], well_cutter(kit, x, y, z, angle, _bell_r(rm, L, MAINS_FACE_X-x)+.3, L+.5))
+            # Round 9 (seam audit: the bore left the tail folded over an 11-unit void just inside
+            # its after face): no bore. The bell's root runs into the solid tail and the shroud
+            # and thrust collar close the face round it.
+            pass
         elif i in hosts:   # sink the bell in a well in its host's after face
             boolean(hosts[i], well_cutter(kit, x, y, z, angle, rm+.9, L+.5))
         outer = [(L*(1-t), rt+wall+(rm-rt-wall)*(.6*(1-(1-t)**2)+.4*t)) for t in (k/8 for k in range(9))]
