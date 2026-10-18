@@ -257,7 +257,9 @@ def add_hero(scene):
     root = bpy.data.objects[manifest['root']]
     root.scale = (manifest['metres_per_unit'],) * 3
     root.rotation_mode = 'XYZ'
-    # Stand-in drive glow at the running engines until the VFX kit is wired in.
+    # Stand-in drive glow at the running engines until the VFX kit is wired in. The exhaust anchors
+    # are the root's children in a collection that never reaches the scene, so they are not moved
+    # with the ship: read each one's place relative to the root and hang the light on the root.
     for i in manifest['engines_running']:
         anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
         if anchor is None:
@@ -266,8 +268,8 @@ def add_hero(scene):
         light.data.energy = 2.5e5
         light.data.color = (0.55, 0.75, 1.0)
         light.data.shadow_soft_size = 1.5
-        light.parent = anchor
-        light.location = (2.0, 0, 0)
+        light.parent = root
+        light.matrix_basis = anchor.matrix_parent_inverse @ anchor.matrix_basis @ Matrix.Translation((2.0, 0, 0))
         scene.collection.objects.link(light)
     for f in range(FRAMES):
         loc, rot = hero_pose(f / FPS)

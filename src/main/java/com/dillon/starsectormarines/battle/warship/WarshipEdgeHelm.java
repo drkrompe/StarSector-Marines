@@ -20,7 +20,9 @@ package com.dillon.starsectormarines.battle.warship;
  * </ul>
  * A centre that crosses the edge anyway is held on it ({@link #contain}); that is the backstop, not the behaviour.
  *
- * <p>A ship deliberately crossing an edge is exempt: one flying in across its side's approved edge
+ * <p>It is a rule of the hull fight: it applies to a ship its own helm is flying against hulls, never to one holding a
+ * station someone chose for it (a mission's, a power's, a remote order's, an escort's place in the screen line), which
+ * keeps the place it was given. A ship deliberately crossing an edge is exempt: one flying in across its side's approved edge
  * ({@link Warship#enteringAcrossEdge}) until it has cleared its margin, and one leaving; an escort whose charge is
  * leaving screens it to the margin and follows it out once it has gone. So is everything placed
  * rather than flown: a route or lift run, a low pass or low hover, a berthed hull, a pilot's helm, and every craft of
@@ -73,9 +75,27 @@ public record WarshipEdgeHelm(float width, float height) {
 
     /** Whether the edge pressure applies to {@code ship} now (see the class comment for who is exempt). */
     public static boolean applies(Warship ship) {
+        return flown(ship) && fightingHulls(ship);
+    }
+
+    /**
+     * Whether {@code ship} is a hull flown over the map rather than placed or deliberately crossing an edge: the
+     * class comment's exemptions, without the hull-fight condition. The backstop ({@link #contain}) holds every such
+     * hull on the map, whatever its helm is doing, since only its own edge is a way off it.
+     */
+    private static boolean flown(Warship ship) {
         return ENABLED && !ship.fighterSize() && !ship.destroyed() && !ship.departing() && !ship.berthed()
                 && !ship.enteringAcrossEdge() && !ship.piloted() && !ship.isPassingThrough()
                 && ship.lowPass() == null && !ship.lowHovering();
+    }
+
+    /**
+     * Whether the ship's own helm has it: fighting a hull with its duel helm, or flying a manoeuvre. A ship holding a
+     * station its mission or a power gave it, an escort keeping its place in the screen, a remote order: those are
+     * places someone chose, and the pressure does not move a ship off them.
+     */
+    private static boolean fightingHulls(Warship ship) {
+        return (ship.hullTarget() != null && ship.duelHelm()) || ship.manoeuvring();
     }
 
     /**
@@ -131,17 +151,29 @@ public record WarshipEdgeHelm(float width, float height) {
         return new float[]{clampAxis(x, width, keep), clampAxis(y, height, keep)};
     }
 
-    /** Holds a hull the pressure applies to on the map: a centre past an edge is put back on it and its way off cut. */
+    /**
+     * Holds a flown hull on the map, whether or not the pressure applies to it (an escort keeping its screen place is
+     * held too): a centre past an edge is put back on it and its way off cut. A hull leaving across its edge is held
+     * off the other three, since its own edge is its only way off.
+     */
     public void contain(Warship ship) {
-        if (!applies(ship)) return;
+        MapEdge free;
+        if (flown(ship)) {
+            free = null;
+        } else if (ENABLED && ship.leavingAcrossEdge() && ship.exitEdge() != null && !ship.destroyed()
+                && !ship.fighterSize()) {
+            free = ship.exitEdge();
+        } else {
+            return;
+        }
         float dx = ship.centerX() - ship.x;
         float dy = ship.centerY() - ship.y;
         float cx = ship.centerX();
         float cy = ship.centerY();
-        if (cx < 0f) { ship.x = -dx; ship.velocityX = Math.max(0f, ship.velocityX); }
-        if (cx > width) { ship.x = width - dx; ship.velocityX = Math.min(0f, ship.velocityX); }
-        if (cy < 0f) { ship.y = -dy; ship.velocityY = Math.max(0f, ship.velocityY); }
-        if (cy > height) { ship.y = height - dy; ship.velocityY = Math.min(0f, ship.velocityY); }
+        if (cx < 0f && free != MapEdge.WEST) { ship.x = -dx; ship.velocityX = Math.max(0f, ship.velocityX); }
+        if (cx > width && free != MapEdge.EAST) { ship.x = width - dx; ship.velocityX = Math.min(0f, ship.velocityX); }
+        if (cy < 0f && free != MapEdge.SOUTH) { ship.y = -dy; ship.velocityY = Math.max(0f, ship.velocityY); }
+        if (cy > height && free != MapEdge.NORTH) { ship.y = height - dy; ship.velocityY = Math.min(0f, ship.velocityY); }
     }
 
     private static float clampAxis(float v, float size, float keep) {

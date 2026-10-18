@@ -317,7 +317,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             case ESCAPED -> "the Greyhook got away, " + state(rig) + ".";
             case DESTROYED -> "the Greyhook was shot down onto the basin.";
             case BROKE_OFF, DEPARTED -> "the Greyhook left the field, " + state(rig) + ".";
-            case OVER_THE_BATTLE -> "the Greyhook was still over the berths when we finished.";
+            case OVER_THE_BATTLE -> "the Greyhook was still overhead when we finished.";
         };
     }
 
