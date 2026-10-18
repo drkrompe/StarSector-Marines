@@ -1,0 +1,106 @@
+{
+ "arm-aft-top-port": {
+  "unit_offset_L_a_b": [
+   -0.765,
+   -0.631,
+   0.788
+  ],
+  "note": "hash default; edit freely"
+ },
+ "arm-aft-top-stbd": {
+  "unit_offset_L_a_b": [
+   -0.718,
+   -0.741,
+   -0.545
+  ],
+  "note": "hash default; edit freely"
+ },
+ "arm-fore-top-port": {
+  "unit_offset_L_a_b": [
+   -0.302,
+   -0.608,
+   0.373
+  ],
+  "note": "hash default; edit freely"
+ },
+ "arm-fore-top-stbd": {
+  "unit_offset_L_a_b": [
+   -0.71,
+   -0.42,
+   -0.796
+  ],
+  "note": "hash default; edit freely"
+ },
+ "can-side-port": {
+  "unit_offset_L_a_b": [
+   -0.553,
+   0.71,
+   0.694
+  ],
+  "note": "hash default; edit freely"
+ },
+ "can-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.992,
+   0.827,
+   0.655
+  ],
+  "note": "hash default; edit freely"
+ },
+ "can-top-port": {
+  "unit_offset_L_a_b": [
+   -0.184,
+   -0.882,
+   -0.192
+  ],
+  "note": "hash default; edit freely"
+ },
+ "can-top-stbd": {
+  "unit_offset_L_a_b": [
+   -0.961,
+   -0.506,
+   -0.671
+  ],
+  "note": "hash default; edit freely"
+ },
+ "hub-top": {
+  "unit_offset_L_a_b": [
+   -0.749,
+   -0.576,
+   -0.482
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-side-port": {
+  "unit_offset_L_a_b": [
+   -0.239,
+   -0.906,
+   0.514
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.545,
+   0.616,
+   0.741
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-top": {
+  "unit_offset_L_a_b": [
+   0.224,
+   0.624,
+   -0.914
+  ],
+  "note": "hash default; edit freely"
+ },
+ "underside": {
+  "unit_offset_L_a_b": [
+   0.914,
+   -0.576,
+   0.678
+  ],
+  "note": "hash default; edit freely"
+ }
+}

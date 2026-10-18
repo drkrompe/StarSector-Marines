@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1505d-8e82-7e22-aa25-7f5894e0b411",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1505d-8e82-7e22-aa25-7f5894e0b411\\exec-d5072004-9690-4292-aba7-ab0532816bdd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\longbow\\reference\\finish-reference.png",
+    "sha256": "bf8c4709172a5241713ad49bd628e6a83c7ba1bec8bc3104567460bd03186876",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\longbow\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "cab8c4a640ada6b3590fcf44332f81d5b53286c9251cea8e1eead06fbc5e52b2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the craft's livery (colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one single-seat space bomber, a Longbow, about 15 metres long, an X of four swept arms round a long fuselage, with two drive pods at the stern, an emitter housing on the port side and a missile rack on the starboard side, seen from above its port bow quarter on a plain light grey background. Its flat colours mark which material each surface is: light blue-grey armour (the fuselage, the four arms, the two drive pods, the forward prongs, the emitter housing and the missile rack plates), dark grey steel (the webs between the arms, the canopy frame, collars and the rack), bright steel rims and lips, near-black recesses, tube bores and grilles, and a cyan-tinted canopy.\nINPUT 2 is a painted top-down illustration of this exact craft in its livery: use it ONLY for the paint scheme and colours. Never copy its view, composition, shapes or illustration style.\n\nRepaint the craft in INPUT 1 as a real, photographed spacecraft in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the craft exactly where it is, the same size, same silhouette and outline, same camera, every plate, vent, grille, ring and window in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Keep every surface's material: light blue-grey armour becomes the cool light blue-grey enamel of INPUT 2, the dark grey steel stays dark gunmetal grey, bright rims stay brighter polished steel, recesses, bores and grilles stay near black, the canopy stays a dark cyan-tinted glass. Do not swap or invent colours, stripes, patches or markings.\n- Finish: a front-line military craft in good order. Crisp semi-matte enamel with fine plate seams, flush fastener rows and small access panels, subtle plate-to-plate tone differences. Light, even service wear only: faint edge scuffs on exposed corners and leading edges, a thin film of grime in seams, soot on the two drive pods at the stern. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\longbow\\guide\\reference-guide.png",
+      "sha256": "5454ad9a2087a3831196e0d888a50c452ae37e1cc87e30f0c46acb35a861a67d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "art-source\\aircraft\\fighter-upres\\longbow\\master-v2.png",
+      "sha256": "e8f1f860138a0cedffe4b87ab0a8033368c3c0358772005f12160318c2bf43c7",
+      "dimensions": [
+        1153,
+        1364
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 2: the craft's livery (colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint Image 1, preserving its composition and using Image 2 only for the livery colours."
+  ],
+  "usage": {
+    "input_tokens": 86697,
+    "cached_input_tokens": 66048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 771,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 59.1
+}

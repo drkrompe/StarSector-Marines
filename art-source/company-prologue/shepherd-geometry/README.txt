@@ -1,4 +1,4 @@
-SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASS 3 REVIEW FIXES, ROUND 3; PASS 4; OWNER REVIEW NEXT)
+SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASSES 1-4 DONE; PASS 3 ACCEPTED 2026-10-18; PASS 5 DEFERRED; PASS 6 IN REVIEW)
 
 Purpose
 An editable Blender model of the vanilla Shepherd drone tender, built for the
@@ -183,3 +183,15 @@ blocks 24 x 20 cells (landed-ships-true-scale.md, shepherd-recovery.md),
 
 Silhouette: top-view IoU 0.936 against drone_tender.png (0.932 at pass 1,
 0.935 at pass 2).
+
+PASS 6 (2026-10-18)
+Pass 5 (condition states) is deferred by the owner: texture first. Surfacing
+lives in ../shepherd-surface/ (see its README). Owner, on the round 1 renders:
+the command deck windows looked wonky with the ribbon angling. The windscreen
+was laid out at constant section angle, so on a nose that narrows forward its
+mullions fanned and twisted and the band wrapped down the shoulders. It is now
+six flat panes and their mullions at constant plan Y (sh_bridge._ty), vertical
+from ahead and straight from above, stopping at the shoulders; the brow visor
+and sill rail are square-ended to match. The wing windows carry the flanks.
+build_shepherd.py renders on the GPU when there is one (--factory-startup
+leaves Cycles on the CPU).

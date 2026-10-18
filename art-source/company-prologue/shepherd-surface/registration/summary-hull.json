@@ -1,0 +1,82 @@
+{
+ "body-top": {
+  "raw_iou": 0.9786,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9923,
+  "scale": [
+   1.00758,
+   0.99973
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "body-side-stbd": {
+  "raw_iou": 0.9938,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.995,
+  "scale": [
+   1.00383,
+   1.00589
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "body-bow": {
+  "raw_iou": 0.9876,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9986,
+  "scale": [
+   1.00758,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-top": {
+  "raw_iou": 0.9587,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9999,
+  "scale": [
+   1.03796,
+   1.00454
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "beam-top": {
+  "raw_iou": 0.9819,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9949,
+  "scale": [
+   1.00255,
+   1.00502
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "beam-front": {
+  "raw_iou": 0.9864,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9999,
+  "scale": [
+   1.00103,
+   1.01117
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "beam-side-port": {
+  "raw_iou": 0.9922,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9984,
+  "scale": [
+   1.00295,
+   1.0058
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-side-port": {
+  "raw_iou": 0.9891,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9999,
+  "scale": [
+   1.00128,
+   1.00903
+  ],
+  "boundary_p95_px": 0.0
+ }
+}

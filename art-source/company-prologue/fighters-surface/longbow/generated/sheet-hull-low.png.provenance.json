@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15064-13c2-74e0-970e-51b18563da9a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15064-13c2-74e0-970e-51b18563da9a\\exec-dd913287-7dc5-4718-9d98-9345b3787c6f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\longbow\\generated\\sheet-hull-low.png",
+    "sha256": "d27c38aebd42d1dcb89dcedc2ffd45b411d133ce3185cdd3246638297871725d",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\longbow\\prompts\\sheet-hull-low.prompt.txt",
+  "promptSha256": "1c90690653fb602fb69203e9c9aa820a5462b99065c8b551ff2c425aa4006c06",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four tiles to paint (layout authority)\nImage 2: INPUT 2: the same craft already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one single-seat space bomber (a Longbow, about 15 metres long), each tile seen square-on and drawn alone as flat-coloured shapes on a plain light grey background (light blue-grey shapes are armour, dark grey shapes are steel structure):\ntop-left: emitter housing and its fin from above;\ntop-right: the missile rack side plates from above;\nbottom-left: fuselage port flank;\nbottom-right: the whole belly from below;\nINPUT 2 is the SAME craft already painted: it is the finish to match. Use its paint colours, its clean semi-matte finish, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four tiles in INPUT 1 as that surface of a front-line craft in good order. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and the background between and around shapes stays plain grey. A tile may hold several separate shapes: keep every one where it is.\n- Each shape is a flat armour or steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners along plate edges, flush access-panel outlines, faint even scuffing. The thin darker lines already drawn on the shapes are engraved panel lines: keep them exactly where they are as fine dark seams. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour exactly: light blue-grey shapes stay the light cool blue-grey armour enamel of INPUT 2, dark grey shapes stay dark gunmetal grey steel, and small near-black slits stay near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes, no lettering, numbers, markings, insignia or decals.\n- Wear is light and even across each whole shape: faint scuffs at edges, a thin film of grime in seams. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\longbow\\guide\\sheet-hull-low-guide.png",
+      "sha256": "d5c791f8700a80fd56b7377e54750692ae82f9f04b003826581f18d740357db5",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four tiles to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\longbow\\reference\\finish-reference.png",
+      "sha256": "bf8c4709172a5241713ad49bd628e6a83c7ba1bec8bc3104567460bd03186876",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same craft already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture reskin, preserving Image 1’s layout and using Image 2 only for the surface finish."
+  ],
+  "usage": {
+    "input_tokens": 46967,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 653,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.6
+}
