@@ -2,8 +2,8 @@
 
   blender --background --factory-startup --python render_parts.py [-- --group g[,g]] [--only part,part]
 
-Needs build/geom/second-wind-geometry.blend (rebuild.sh step 1: the clean
-geometry build, imported, never edited). Selection runs over every group's
+Needs the hull's clean geometry build (hull.py BLEND; the Second Wind's is
+build/geom/second-wind-geometry.blend, rebuild.sh step 1, imported, never edited). Selection runs over every group's
 parts, so overlaps resolve the same way they will in the integrated build;
 only the named groups' parts are listed and rendered. Writes:
   part-list/<group>.json    every part: members, face indices per object, area,
@@ -27,16 +27,18 @@ from mathutils import Matrix, Vector
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import parts as P
+import hull as H
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 ONLY = argv[argv.index('--only') + 1].split(',') if '--only' in argv else None
 GROUPS = P.group_arg(argv)
 MINE = P.parts_in(GROUPS)
-GUIDE = HERE / 'guide'
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
+GUIDE = DATA / 'guide'
 GUIDE.mkdir(exist_ok=True)
-(HERE / 'part-list').mkdir(exist_ok=True)
+(DATA / 'part-list').mkdir(exist_ok=True)
 
-bpy.ops.wm.open_mainfile(filepath=str(HERE / 'build' / 'geom' / 'second-wind-geometry.blend'))
+bpy.ops.wm.open_mainfile(filepath=str(H.BLEND))
 scene = bpy.context.scene
 for ob in [o for o in scene.objects if o.type == 'LIGHT']:
     bpy.data.objects.remove(ob)
@@ -63,7 +65,7 @@ for part in MINE:
     }
 for g in sorted({P.PART_GROUP[p] for p in listing}):
     rows = {p: v for p, v in listing.items() if P.PART_GROUP[p] == g}
-    path = HERE / 'part-list' / f'{g}.json'
+    path = DATA / 'part-list' / f'{g}.json'
     if ONLY and path.exists():  # a partial run keeps the group's other rows
         rows = json.loads(path.read_text()) | rows
     path.write_text(json.dumps(rows, indent=1) + '\n')

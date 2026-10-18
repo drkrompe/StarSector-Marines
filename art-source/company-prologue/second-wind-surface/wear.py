@@ -39,15 +39,17 @@ import hashlib
 import json
 import bpy
 import variation as V
-from parts_common import HULL
+import hull as H
 
 HERE = Path(__file__).resolve().parent
-STATES = json.loads((HERE / 'wear.json').read_text())
-WEAR_LAB = json.loads((HERE / 'palette.json').read_text())['wear']
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
+HULL = H.HULL_OBJECT
+STATES = json.loads((DATA / 'wear.json').read_text())
+WEAR_LAB = json.loads((DATA / 'palette.json').read_text())['wear']
 # Paint response per palette class: (paint, fade, metal-reveal)
-CLASS_RESPONSE = {'cream': (1.0, 1.0, 1.0), 'oxide': (1.0, 1.0, 1.0), 'pale': (1.0, 0.8, 1.0),
-                  'gunmetal': (0.0, 0.35, 0.7), 'dark': (0.0, 0.0, 0.25)}
-ENGINES = [(-39.5, 31.0, 0.0), (-38.5, 24.0, 0.0), (-38.5, -24.0, 0.0), (-39.5, -31.0, 0.0)]  # drive bell centres, hull units
+CLASS_RESPONSE = H.WEAR_RESPONSE
+ENGINES = H.ENGINES  # drive bell centres, hull units (surface_hull.py)
+STERN_SOOT = H.get('STERN_SOOT', (-22.0, -40.0))  # hull X where stern soot starts and is full
 
 
 def colour(name):
@@ -283,7 +285,7 @@ def group(state):
         d.inputs[1].default_value = e
         n = g.math('SUBTRACT', 1.0, g.smooth(d.outputs['Value'], 4.0, 16.0))
         near = n if near is None else g.math('MAXIMUM', near, n)
-    aft = g.smooth(px, -22.0, -40.0)
+    aft = g.smooth(px, *STERN_SOOT)
     sn = g.noise(P, 0.35, 6.0, 0.65)
     sm = g.math('MULTIPLY', g.math('MAXIMUM', g.math('MULTIPLY', aft, 0.55), near), g.math('MULTIPLY_ADD', sn, 1.2, 0.1))
     sm = g.math('MULTIPLY', sm, w['soot'], clamp=True)

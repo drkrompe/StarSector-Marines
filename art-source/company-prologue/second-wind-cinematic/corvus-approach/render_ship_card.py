@@ -6,7 +6,7 @@ Views: `dorsal` (starboard three-quarter from above, bow right) and `entrance`
 (rear three-quarter from above and astern, so the ship reads as heading away
 from camera toward Jangala, engines toward the viewer).
 
-Opens the damaged full-surface master read-only and writes
+Appends the packaged patched Second Wind (second-wind-states) and writes
 layers/second-wind.png (RGBA). The camera looks down across the orbital plane
 the way the whole C1 plate does, bow toward screen right (toward Jangala). Light
 is a hard sun from the upper left, matching the planet plate, plus a faint blue
@@ -19,7 +19,9 @@ import bpy
 from mathutils import Matrix, Vector
 
 BASE = Path(__file__).resolve().parent
-ASSET = BASE.parent / 'second-wind-full-surface' / 'second-wind-full-surface.blend'
+ASSET = BASE.parent / 'second-wind-states' / 'patched' / 'second-wind-patched.blend'
+COLLECTION = 'SECOND WIND | patched'
+ROOT = 'SECOND WIND | patched | root'
 VIEWS = {'dorsal': Vector((0.18, -0.75, 1.0)),      # from above, starboard side, slightly ahead
          'entrance': Vector((-1.0, -0.55, 0.62))}   # astern, starboard, above: heading away
 SUN = Vector((-0.6, -0.35, 0.75))      # upper left of frame, as on the planet plate
@@ -37,11 +39,13 @@ def main():
     VIEW = VIEWS[view]
     if not bpy.app.background:
         raise RuntimeError('Use background Blender')
-    bpy.ops.wm.open_mainfile(filepath=str(ASSET))
     scene = bpy.context.scene
-    root = bpy.data.objects.get('SECOND WIND | flight root')
+    with bpy.data.libraries.load(str(ASSET), link=False) as (src, dst):
+        dst.collections = [COLLECTION]
+    scene.collection.children.link(dst.collections[0])
+    root = bpy.data.objects.get(ROOT)
     if root is None:
-        raise RuntimeError('Missing SECOND WIND | flight root')
+        raise RuntimeError('Missing ' + ROOT)
     ship = {root, *root.children_recursive}
     for obj in list(bpy.data.objects):
         if obj not in ship:

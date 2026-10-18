@@ -33,10 +33,9 @@ Options:
   --only A:B         render only samples A..B-1 (for timing and spot checks)
   --resume           keep frames already written for the same plan key
 
-Model convention (the swap contract): +X bow, +Y port, +Z up, origin anywhere. The hull is
-scaled so its X extent is c1_ship.SW_LENGTH_M metres and rotated about its bounding-box
-centre. A new model needs only SHIP_BLEND / SHIP_ROOT / NOZZLE_PATTERN / THROAT_PATTERN
-(or the flags); with no nozzle matches the sequence renders without glows.
+Model convention: the packaged state in hull units, +X bow, +Y port, +Z up, scaled by the
+root's metres_per_unit (0.65, so 65.6 m long) and rotated about its bounding-box centre.
+Nozzle anchors carry their radius (hull units) as a custom property.
 """
 import json
 import math
@@ -52,10 +51,14 @@ OUT = BASE / "layers" / "second-wind-seq"
 BLENDER = Path(r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")
 
 # ---------------------------------------------------------------- the swappable model
-# The surfaced patched state (second-wind-surface/README.md builds it; a gitignored output).
-SHIP_BLEND = BASE.parents[1] / "second-wind-surface" / "build" / "skinned-patched.blend"
-SHIP_ROOT = ""                # none: the geometry models are unparented; a root is made at load
-NOZZLE_PATTERN = r"^Engine \d+ mouth lip$"
+# The packaged patched state (../second-wind-states/README.md): one appendable collection, one root.
+# Hull units (+X bow, +Y port, +Z dorsal); the root's metres_per_unit (0.65) scales it to metres.
+SHIP_BLEND = BASE.parent / "second-wind-states" / "patched" / "second-wind-patched.blend"
+SHIP_COLLECTION = "SECOND WIND | patched"
+SHIP_ROOT = "SECOND WIND | patched | root"
+METRES_PER_UNIT = 0.65        # the manifest's metres_per_unit; checked against the root's property
+# The exhaust anchors sit at each bell mouth, +X down the exhaust (the ship's -X); their `radius` is in hull units.
+NOZZLE_PATTERN = r"^Engine \d+ exhaust anchor$"
 # Arrival is the patched state (second-wind-pipeline.md): only the starboard pod, engines 3 and 4,
 # runs on the salvaged drive coil. The port pod (1 and 2) is dead and stays cold.
 THROAT_PATTERN = r"^Engine [34] dark throat$"
@@ -120,22 +123,16 @@ def blender_main(argv):
     focal = plan["focal_px"]
     ss = float(plan["supersample"])
 
-    bpy.ops.wm.open_mainfile(filepath=plan["blend"])
+    # Append the state's collection (not the file), in the factory scene, which is in metres.
     scene = bpy.context.scene
-    root = bpy.data.objects.get(plan["root"]) if plan["root"] else None
-    if root is None and plan["root"]:
-        raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
+    with bpy.data.libraries.load(plan["blend"], link=False) as (src, dst):
+        dst.collections = [SHIP_COLLECTION]
+    scene.collection.children.link(dst.collections[0])
+    root = bpy.data.objects.get(plan["root"])
     if root is None:
-        # Models from second-wind-geometry have no root: every part sits unparented in the
-        # scene. Gather them under one empty so the ship moves and scales as a body; cameras
-        # and lights belong to the model's review rig, not to the ship.
-        root = bpy.data.objects.new("C1 | ship root", None)
-        bpy.context.scene.collection.objects.link(root)
-        for obj in list(bpy.data.objects):
-            if obj is not root and obj.parent is None and obj.type not in {"CAMERA", "LIGHT"}:
-                mw = obj.matrix_world.copy()
-                obj.parent = root
-                obj.matrix_world = mw
+        raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
+    if abs(root.get("metres_per_unit", METRES_PER_UNIT) - METRES_PER_UNIT) > 1e-9:
+        raise RuntimeError("%s is %s m per unit, not %s" % (plan["blend"], root.get("metres_per_unit"), METRES_PER_UNIT))
     ship = {root, *root.children_recursive}
     for obj in list(bpy.data.objects):
         if obj not in ship:
@@ -151,14 +148,14 @@ def blender_main(argv):
     lo = Vector([min(p[i] for p in pts) for i in range(3)])
     hi = Vector([max(p[i] for p in pts) for i in range(3)])
     centre = (lo + hi) / 2
-    scale = plan["length_m"] / (hi.x - lo.x)
+    scale = METRES_PER_UNIT
+    print("hull %.2f m at %.2f m per unit (plan length %.2f m)" % ((hi.x - lo.x) * scale, scale, plan["length_m"]))
     corners = [Vector((x, y, z)) - centre for x in (lo.x, hi.x) for y in (lo.y, hi.y) for z in (lo.z, hi.z)]
 
     nozzles = sorted((o for o in ship if re.search(plan["nozzles"], o.name)), key=lambda o: o.name)
     nozzle_local = []
     for o in nozzles:
-        r = NOZZLE_RADIUS_M / scale if NOZZLE_RADIUS_M else \
-            max(o.dimensions) * max(o.matrix_world.to_scale()) / max(o.scale) / 2
+        r = NOZZLE_RADIUS_M / scale if NOZZLE_RADIUS_M else o["radius"]
         nozzle_local.append((o.matrix_world.translation - centre, r, o))
     engine_of = {}
     for o in ship:

@@ -16,6 +16,17 @@ The skin goes onto the **clean** build and serves every condition state; the
 ![starboard views](review/views-starboard.png)
 ![coverage](review/coverage.png)
 
+## The harness serves every hull
+
+These scripts are shared by every cinematic hull; nothing hull-specific is
+hard-coded in them any more. `hull.py` picks the hull: `--hull <folder>` in a
+script's arguments (after `--` for Blender) or `SURF_HULL`, defaulting to this
+folder. A hull's folder holds `surface_hull.py` (its constants: this folder's
+copy is the Second Wind's), its `groups/`, and all of its data and output; the
+Hound (A)'s is `../hound-surface/`. `register_reference.py` registers a new
+hull's finish reference (the Second Wind's came from the projection spike).
+`wear_overlay.py` and `compose_wear.py` remain Second Wind state tooling.
+
 ## Where it stands
 
 Share of the ship's on-screen pixels at 1920×1080 (`review/review.json`; the pilot had 13–37% part skin on port views and flat grey elsewhere):
@@ -265,4 +276,6 @@ never adds grime, fade or chips to a skin or swatch.
 | `apply_skin.py`, `skin-manifest.json` | the surfacing phase (clean build manifest) |
 | `review.py`, `compose_review.py`, `review/` | renders, coverage and seams, sheets (1920×1080) |
 | `imgops.py` | shared numpy/Pillow helpers |
+| `hull.py`, `surface_hull.py` | hull selection (`--hull`); the Second Wind's per-hull constants |
+| `register_reference.py` | a new hull's finish-reference guide and registration |
 | `build/` (ignored) | builds, tiles, `skinned.blend`, `skinned-patched.blend`, renders |

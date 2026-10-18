@@ -1,0 +1,590 @@
+{
+  "status": "Pass 1 blockout built; pass 2 in progress. Clean state only; no damage states or textures.",
+  "passes": {
+    "1 blockout": "built; snapshot in reference-history/v1-blockout",
+    "4 real-world scale": "provisional; derivation in scale_record"
+  },
+  "hull": {
+    "hullId": "hermes",
+    "hullName": "Hermes",
+    "hullSize": "FRIGATE",
+    "style": "MIDLINE",
+    "designation": "Shuttle",
+    "builtInMods": [
+      "civgrade"
+    ],
+    "builtInWeapons": [],
+    "system": "maneuveringjets",
+    "crew": [
+      2,
+      10
+    ],
+    "cargo": 50,
+    "fuel": 15,
+    "source": "starsector-core/data/hulls/hermes.ship, ship_data.csv",
+    "sprite": "starsector-core/graphics/ships/hermes/hermes_base.png (56x82, centre 28,39 from bottom-left)",
+    "lights": "starsector-core/graphics/ships/hermes/hermes_lights.png",
+    "mod_role": "ShuttleType.HERMES: one fire team, 4 seats, 1 hardpoint in battle; the gig of ShipsBoats and the Second Wind's original wrecked boats (Boat Deck: patched courier, four seats at standard fit, no upgrade path)"
+  },
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "Vanilla hull units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.11,
+  "scale_record": {
+    "published": 0.11,
+    "crewed_program_m3": {
+      "flight deck, two seats abreast (2.0 x 2.0 m, 1.6 m)": 6.4,
+      "troop bay, four armoured seats on facing benches (2.0 x 2.4 m, 1.9 m)": 9.1,
+      "kit and casualty-litter stowage at the bay head": 1.2,
+      "passage flight deck to bay (0.8 x 1.2 m, 1.9 m)": 1.8
+    },
+    "crewed_required_m3": 18.5,
+    "envelope_union_units3": 46905,
+    "envelope_objects": [
+      "Main hull - spine",
+      "Wing body",
+      "Aft drive block"
+    ],
+    "solved_by_share": {
+      "cramped": 0.116,
+      "nominal": 0.125,
+      "roomy": 0.138
+    },
+    "section_check": {
+      "troop_bay_clear_height_units": 17.0,
+      "troop_bay_clear_width_units": 20.0,
+      "note": "spine interior less 1.5 u floor/roof structure and 1 u walls; 1.9 m headroom and 2.0 m between benches set the scale from the section",
+      "scale_from_headroom": 0.112,
+      "scale_from_width": 0.1
+    },
+    "ramp_opening_m": [
+      1.76,
+      1.32
+    ],
+    "person_1_8m_units": 16.4
+  },
+  "dimensions": {
+    "min": [
+      -39.32,
+      -26.0,
+      -18.0
+    ],
+    "max": [
+      42.0,
+      26.0,
+      14.0
+    ],
+    "size": [
+      81.32,
+      52.0,
+      32.0
+    ],
+    "size_metres": [
+      8.95,
+      5.72,
+      3.52
+    ],
+    "ground_z_gear_down": -18.0,
+    "game_bounds_polygon": [
+      [
+        42,
+        5
+      ],
+      [
+        21,
+        10
+      ],
+      [
+        14,
+        24
+      ],
+      [
+        -22,
+        17
+      ],
+      [
+        -37,
+        16
+      ],
+      [
+        -37,
+        -15
+      ],
+      [
+        -21,
+        -18
+      ],
+      [
+        14,
+        -25
+      ],
+      [
+        21,
+        -10
+      ],
+      [
+        42,
+        -4
+      ]
+    ],
+    "collisionRadius": 60
+  },
+  "decks": [
+    {
+      "x0": -37,
+      "x1": -16.5,
+      "z": 8.0
+    },
+    {
+      "x0": -17.5,
+      "x1": 22,
+      "z": 5.5
+    },
+    {
+      "x0": -24.0,
+      "x1": 34,
+      "z": 10.0
+    }
+  ],
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "location": [
+        12,
+        18
+      ],
+      "angle": 45,
+      "arc": 150,
+      "seat_z": 5.5
+    },
+    {
+      "id": "WS 002",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "location": [
+        12,
+        -18
+      ],
+      "angle": -45,
+      "arc": 150,
+      "seat_z": 5.5
+    },
+    {
+      "id": "WS 003",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "location": [
+        -18,
+        0
+      ],
+      "angle": 180,
+      "arc": 210,
+      "seat_z": 10.0
+    },
+    {
+      "id": "WS 004",
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "location": [
+        -40,
+        0
+      ],
+      "angle": 180,
+      "arc": 30
+    }
+  ],
+  "engines": [
+    {
+      "object_prefix": "Engine 1",
+      "location": [
+        -39,
+        10
+      ],
+      "z": 0.0,
+      "angle": 180,
+      "width": 8,
+      "bell_mouth_radius": 3.6,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 1 exhaust anchor",
+      "role": "port main drive"
+    },
+    {
+      "object_prefix": "Engine 2",
+      "location": [
+        -39,
+        0
+      ],
+      "z": 0.0,
+      "angle": 180,
+      "width": 8,
+      "bell_mouth_radius": 3.6,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 2 exhaust anchor",
+      "role": "centre main drive"
+    },
+    {
+      "object_prefix": "Engine 3",
+      "location": [
+        -39,
+        -10
+      ],
+      "z": 0.0,
+      "angle": 180,
+      "width": 8,
+      "bell_mouth_radius": 3.6,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 3 exhaust anchor",
+      "role": "starboard main drive"
+    },
+    {
+      "object_prefix": "Engine 4",
+      "location": [
+        -19,
+        23
+      ],
+      "z": 0.0,
+      "angle": 150,
+      "width": 6,
+      "bell_mouth_radius": 2.4,
+      "exhaust_direction": [
+        -0.866,
+        0.5,
+        0
+      ],
+      "anchor": "Engine 4 exhaust anchor",
+      "role": "port maneuvering jet"
+    },
+    {
+      "object_prefix": "Engine 5",
+      "location": [
+        -19,
+        -23
+      ],
+      "z": 0.0,
+      "angle": 210,
+      "width": 6,
+      "bell_mouth_radius": 2.4,
+      "exhaust_direction": [
+        -0.866,
+        -0.5,
+        0
+      ],
+      "anchor": "Engine 5 exhaust anchor",
+      "role": "starboard maneuvering jet"
+    }
+  ],
+  "moving_parts": {
+    "ramp": {
+      "pivot": "Hull ventral ramp hinge",
+      "axis": "Y",
+      "open_sign": 1,
+      "contact_angle_deg": 30.0,
+      "built": "closed",
+      "opening_units": [
+        16.0,
+        12.0
+      ]
+    },
+    "gear": [
+      {
+        "pivot": "Gear nose hinge",
+        "axis": "Y",
+        "retract_angle_deg": 90.0,
+        "built": "extended"
+      },
+      {
+        "pivot": "Gear port main hinge",
+        "axis": "Y",
+        "retract_angle_deg": -90.0,
+        "built": "extended"
+      },
+      {
+        "pivot": "Gear starboard main hinge",
+        "axis": "Y",
+        "retract_angle_deg": -90.0,
+        "built": "extended"
+      }
+    ]
+  },
+  "condition_states": {
+    "built": [
+      "clean"
+    ],
+    "reserved": [
+      "wrecked",
+      "patched"
+    ],
+    "scar_prefix": "Scar H<nn>",
+    "contract": "second-wind-pipeline.md (Condition states): damage adds Scar objects and never renames, replaces or deletes base objects; each state builds with --state"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        1,
+        0,
+        100
+      ],
+      "target": null,
+      "orthographic_scale": 120,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "port-side",
+      "position": [
+        1,
+        150,
+        -2
+      ],
+      "target": [
+        1,
+        0,
+        -2
+      ],
+      "orthographic_scale": 100,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "bow",
+      "position": [
+        150,
+        0,
+        -2
+      ],
+      "target": [
+        1,
+        0,
+        -2
+      ],
+      "orthographic_scale": 70,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern",
+      "position": [
+        -150,
+        0,
+        -2
+      ],
+      "target": [
+        1,
+        0,
+        -2
+      ],
+      "orthographic_scale": 70,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "port-quarter",
+      "position": [
+        95,
+        110,
+        75
+      ],
+      "target": [
+        1,
+        0,
+        -3
+      ],
+      "orthographic_scale": 110,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern-quarter",
+      "position": [
+        -100,
+        85,
+        60
+      ],
+      "target": [
+        -3,
+        0,
+        -3
+      ],
+      "orthographic_scale": 110,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "underside",
+      "position": [
+        40,
+        70,
+        -80
+      ],
+      "target": [
+        1,
+        0,
+        -8
+      ],
+      "orthographic_scale": 110,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "bow-detail",
+      "position": [
+        85,
+        50,
+        40
+      ],
+      "target": [
+        32,
+        0,
+        0
+      ],
+      "orthographic_scale": 40,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "cockpit-detail",
+      "position": [
+        70,
+        30,
+        50
+      ],
+      "target": [
+        36,
+        0,
+        4
+      ],
+      "orthographic_scale": 26,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "turret-detail",
+      "position": [
+        40,
+        60,
+        45
+      ],
+      "target": [
+        12,
+        18,
+        7
+      ],
+      "orthographic_scale": 26,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "aft-turret-detail",
+      "position": [
+        -10,
+        50,
+        50
+      ],
+      "target": [
+        -18,
+        0,
+        11
+      ],
+      "orthographic_scale": 26,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern-detail",
+      "position": [
+        -90,
+        55,
+        30
+      ],
+      "target": [
+        -32,
+        0,
+        0
+      ],
+      "orthographic_scale": 50,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "underside-detail",
+      "position": [
+        45,
+        55,
+        -45
+      ],
+      "target": [
+        10,
+        0,
+        -12
+      ],
+      "orthographic_scale": 50,
+      "resolution": [
+        1920,
+        1080
+      ]
+    }
+  ],
+  "top_view_mapping": {
+    "pixels_per_unit": 16.0,
+    "centre": [
+      1,
+      0
+    ],
+    "bow": "left",
+    "port": "down"
+  },
+  "mesh_authority": "All views render the same objects; later surface art is subordinate to this geometry.",
+  "silhouette": {
+    "iou": 0.9685,
+    "pixels_per_unit": 16,
+    "alpha_threshold": 128,
+    "model_only_area_units2": 92.3,
+    "sprite_only_area_units2": 9.5
+  }
+}
