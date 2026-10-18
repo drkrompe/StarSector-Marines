@@ -3164,6 +3164,8 @@
 		"vehicleTypeNameFIRE_SUPPORT_APC": "Fire-support APC",
 		"vehicleTypeNameHEAVY_GUN_TANK": "Heavy-gun Tank",
 		"vehicleTypeNameDOZER_BREACHER": "Dozer Breacher",
+		"vehicleTypeNameSUPPLY_TRUCK": "Supply Truck",
+		"vehicleTypeNameSCOUT_CAR": "Scout Car",
 		"gearFabricationLightVehicleStandardFit": "LIGHT VEHICLE / STANDARD FIT",
 		"gearFabricationMediumVehicleStandardFit": "MEDIUM VEHICLE / STANDARD FIT",
 		"gearFabricationHeavyVehicleStandardFit": "HEAVY VEHICLE / STANDARD FIT",
