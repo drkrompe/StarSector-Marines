@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.ui.retained.UiSounds;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotAPI;
@@ -80,6 +81,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // too. Silent process deaths have no stack to catch; see
         // ProcessExitWatchdog for how to read the log tail after one.
         ProcessExitWatchdog.install(DevConfig.PROCESS_HEARTBEAT_SECONDS);
+        // Every retained page's press, disabled-press and hover cues, played through the
+        // game's own sound player with the base game's UI sound ids.
+        UiSounds.install(new UiSounds(id -> Global.getSoundPlayer().playUISound(id, 1f, 1f), System::nanoTime));
         MarineCatalogManifest marineCatalogs = MarineCatalogManifest.discoverEnabled();
         // Tile definitions and generation mappings use the same enabled-provider
         // manifest as equipment. Mappings follow tiles so every referenced visual
