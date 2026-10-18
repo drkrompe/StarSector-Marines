@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.AirDefenceYard;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -640,7 +641,8 @@ public final class FortAirDefenceScene implements BehaviorScene {
         private long guidedMount(BattleSimulation sim) {
             if (guided == 0L) {
                 for (long id : fort.airMountIds()) {
-                    if (sim.world().isAlive(id) && sim.turretState().structure(id).mount.weapon.guidance != null) {
+                    WeaponDef weapon = sim.turretState().structure(id).mount.weapon;
+                    if (sim.world().isAlive(id) && (weapon.guidance != null || weapon.airMissile != null)) {
                         guided = id;
                         guidedRange = sim.turretState().structure(id).mount.weapon.range;
                     }
