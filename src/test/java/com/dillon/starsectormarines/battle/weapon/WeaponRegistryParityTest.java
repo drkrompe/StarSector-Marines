@@ -101,6 +101,9 @@ class WeaponRegistryParityTest {
                 1f, 140, 1.1f, false, false, 1f,
                 new Color(0xFF, 0xD0, 0x88), ImpactKind.CANNON_HE,
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
+        WeaponDef heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
+        assertEquals(100f, heavyCannon.contactDamage, EPS);
+        assertEquals(18f, heavyCannon.contactPenetration, EPS);
         WeaponDef demolition = WeaponRegistry.require(
                 WeaponRegistry.MECH_DEMOLITION_CANNON_ID);
         assertMech(demolition,
@@ -188,7 +191,8 @@ class WeaponRegistryParityTest {
     void antiMaterielRifleIsPreciseRegistryOwnedHeavyFire() {
         SpecialEquipmentDef amr = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
         assertEquals("weapon.anti-materiel-rifle", amr.weaponDef().id);
-        assertEquals(4, amr.startingAmmo());
+        assertEquals(5, amr.startingAmmo());
+        assertEquals(70f, amr.damage(), EPS);
         assertTrue(amr.range() > WeaponRegistry.require(WeaponRegistry.DMR_ID).range());
         assertEquals(18f, amr.penetration(), EPS);
         assertEquals(0f, amr.aoeRadius(), EPS);
