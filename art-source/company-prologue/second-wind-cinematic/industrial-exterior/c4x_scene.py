@@ -2,11 +2,14 @@
 
     blender --background --factory-startup --python c4x_scene.py -- [--still t,...] [--frames a:b] [--step n] [--save]
 
-Layout pass (EEVEE, block geometry). The camera hangs about 700 m up, looking nearly straight
+While sketching, render one frame per second (--step 24, nine frames, about two minutes) and
+play it as a slideshow; the full motion pass (--step 2) takes about twenty minutes.
+
+Layout pass (EEVEE, block geometry). The camera starts about 820 m up, looking nearly straight
 down, and pans toward the port: it starts over the farmland and crosses the edge of the
 industrial belt (hedges and fence, freight road, rail sidings, warehouses, container yard) to
-then, over the last few seconds, drifts east and comes down to end straight over Kilo Nine, low
-and tight, with Second Wind still descending onto its pad (C5 lands it; the wide reveal of the
+then, over the last few seconds, drifts east and comes down to end straight over Kilo Nine at
+about 480 m, with Second Wind hovering and sinking onto its pad (C5 lands it; the wide reveal of the
 port is saved for C5's title pull-out). Second Wind is under the camera from the first second,
 pulls ahead and sinks toward Kilo Nine, its shadow closing on it as it descends. The two speeds
 keep the ground, the ship and the shadow all moving against each other.
@@ -45,10 +48,10 @@ FPS = 24
 DURATION = 8.0
 FRAMES = round(DURATION * FPS)
 W, H = 1920, 1080
-LENS_MM, SENSOR_MM = 24.0, 36.0
-CAM_POS = Vector((0.0, 150.0, 700.0))   # where haze distances are measured from (mid-pan)
+LENS_MM, SENSOR_MM = 18.0, 36.0
+CAM_POS = Vector((0.0, 150.0, 820.0))   # where haze distances are measured from (mid-pan)
 CAM_Y0 = -400.0                         # pan along +Y from over the fields...
-CAM_END = Vector((395.0, 462.0, 330.0))  # ...and down to end straight over Kilo Nine, low and tight
+CAM_END = Vector((400.0, 465.0, 480.0))  # ...and down to end straight over Kilo Nine, the yard and its edges
 CAM_PITCH = math.radians(-85.0)          # nearly straight down, a touch toward the port
 SUN_DIR = Vector((-0.45, -0.20, 0.87)).normalized()   # toward the sun: high, left, behind
 SUN_RGB = (1.0, 0.95, 0.88)
@@ -561,13 +564,21 @@ def smoothstep(a, b, x):
 # In under the camera from the lower left, crossing toward the port and sinking: about 330 m up
 # at the start, 70 m at the end, slowing as it goes.
 P0 = Vector((-220.0, -470.0, 330.0))   # in frame, lower left, from the first second
-P1 = Vector((395.0, 462.0, 95.0))     # 95 m over Kilo Nine and still coming down: C5 lands it
+P1 = Vector((400.0, 465.0, 18.0))     # 18 m over Kilo Nine and still sinking: C5 touches it down
+
+
+ARRIVE = 6.6                          # seconds: over the pad, then hover and sink
+HOVER_Z = 60.0
 
 
 def ship_path(t):
-    k = t / DURATION
-    p = P0.lerp(P1, 1 - (1 - k) ** 1.4)
-    p.z = P0.z + (P1.z - P0.z) * (k ** 1.3)
+    k = min(1.0, t / ARRIVE)
+    p = P0.lerp(P1, 1 - (1 - k) ** 2)                  # braking into the hover
+    if t < ARRIVE:
+        p.z = P0.z + (HOVER_Z - P0.z) * (k ** 1.3)
+    else:
+        s = smoothstep(ARRIVE, DURATION + 1.2, t)      # still sinking when the shot ends
+        p.z = HOVER_Z + (P1.z - HOVER_Z) * s / smoothstep(ARRIVE, DURATION + 1.2, DURATION)
     return p
 
 
@@ -604,12 +615,13 @@ def add_ship():
         t = f / FPS
         p = ship_path(t)
         v = ship_path(min(DURATION, t + dt)) - ship_path(max(0.0, t - dt))
-        heading = math.atan2(v.y, v.x)
-        descent = math.atan2(v.z, v.xy.length)
+        if v.xy.length > 0.5:                                  # hovering: keep the last heading
+            course = math.atan2(v.y, v.x)
+        descent = math.atan2(v.z, max(v.xy.length, 30.0))
         pitch = 0.45 * descent + math.radians(1.0) * math.sin(2 * math.pi * t / 5.0)
         roll = math.radians(-6.0) + math.radians(2.0) * math.sin(2 * math.pi * t / 7.0)
         level = smoothstep(DURATION - 2.0, DURATION, t)          # settling level over the pad
-        heading += math.radians(25.0) * level                     # and turning onto the pad's line
+        heading = course + math.radians(25.0) * level             # and turning onto the pad's line
         pitch *= 1.0 - level
         roll *= 1.0 - level
         root.location = p
@@ -644,8 +656,9 @@ OFFICE = (240.0, 415.0)                   # arrivals: customs and decontaminatio
 # half round so its stern, where the cargo comes out, points back down its lane.
 STERN_FIRST = math.pi
 # Kilo Nine, Nessa's private cradle, faces the way Second Wind comes in.
-K9 = (395.0, 462.0)
-YARD = (300.0, 470.0, 380.0, 560.0)       # Nessa's yard: x0, x1, y0, y1
+K9 = (400.0, 465.0)
+K9_R = 48.0                               # a 96 m pad: Second Wind sits inside its ring
+YARD = (290.0, 495.0, 370.0, 575.0)       # Nessa's yard: x0, x1, y0, y1
 GATE = (392.0, 410.0)                     # the gap in its west fence, onto the port road
 MODULE_RGB = [(0.70, 0.70, 0.66), (0.30, 0.42, 0.30), (0.72, 0.40, 0.12), (0.25, 0.32, 0.45)]
 
@@ -827,14 +840,14 @@ def add_port():
     plane('Gate stub', x0 - 12, x0 + 14, GATE[0], GATE[1], asphalt, 0.18)
     kx, ky = K9
     kh = k9_heading()
-    pad(kx, ky, kh, 38, 3)
+    pad(kx, ky, kh, K9_R, 3)
     ring = bmesh.new()
     for a in range(64):
         ang = 2 * math.pi * a / 64
-        box(ring, (4.0, 2.2, 0.12), (kx + 40 * math.cos(ang), ky + 40 * math.sin(ang), 0.3), ang + math.pi / 2)
+        box(ring, (4.0, 2.2, 0.12), (kx + (K9_R + 2) * math.cos(ang), ky + (K9_R + 2) * math.sin(ang), 0.3), ang + math.pi / 2)
     mesh('Kilo Nine ring', ring, material('Kilo Nine ring', (0.95, 0.80, 0.20), 0.5))
     for side in (-1, 1):                                                   # repair scaffold either side
-        lattice_tower(towers, at(kx, ky, kh, 0, side * 46), kh, (14, 3), 28, deck=deckb)
+        lattice_tower(towers, at(kx, ky, kh, 0, side * (K9_R + 10)), kh, (14, 3), 28, deck=deckb)
     # A derrick over the salvage, a hangar, and the workshop the families walk into.
     strut(towers, (455, 545, 0), (455, 545, 46), 2.0)
     strut(towers, (455, 545, 38), (420, 512, 50), 2.0)
@@ -848,7 +861,7 @@ def add_port():
             r.uniform(0, math.pi))
     mesh('Salvage plates', hb, hull)
     hang = bmesh.new()
-    box(hang, (34, 42, 18), (328, 532, 9))
+    box(hang, (34, 42, 18), (314, 540, 9))
     mesh('Nessa hangar', hang, bpy.data.materials['Roof rust'])
     shop = bmesh.new()
     box(shop, (28, 18, 7), (325, 398, 3.5))
@@ -856,7 +869,7 @@ def add_port():
     mesh('Nessa workshop', shop, bpy.data.materials['Roof grey'])
     for k in (0, 1):
         cylinder(tankb, 4, 8, (455, 395 + k * 11, 0), 18)
-    supplies((mods, stockb, crateb), r, kx, ky, kh, -44, 60)
+    supplies((mods, stockb, crateb), r, kx, ky, kh, -50, 68)
     life = bmesh.new()
     box(life, (12, 7, 0.2), (325, 411, 3.2))                            # tarp awning at the door
     mesh('Workshop awning', life, material('Tarp orange', (0.85, 0.42, 0.12), 0.8))
@@ -884,7 +897,7 @@ def add_port():
     people = material('People', (0.12, 0.12, 0.13), 0.9)
     pb = bmesh.new()
     for x, y in ((321, 414), (327, 416), (330, 413), (370, 430), (373, 433), (448, 418), (352, 487),
-                 (356, 490), (433, 444), (380, 545)):
+                 (356, 490), (472, 440), (380, 545)):
         box(pb, (0.9, 0.9, 1.8), (x, y, 0.9))
     mesh('Yard people', pb, people)
 
@@ -1016,9 +1029,9 @@ def add_k9_vehicles():
     kh = k9_heading()
     t0, t1 = round(3.0 * FPS), FRAMES - 1
     for name, parts, (xa, ya), (u, v) in (
-            ('Tug', [((8, 4, 2.4), (0, 0, 1.4), yellow)], (330, 506), (-46, 10)),
-            ('Fuel bowser', [((3, 3, 3), (5, 0, 2), white), ((9, 3, 3), (-1.5, 0, 2), white)], (450, 412), (-24, -44)),
-            ('Crew carrier', [((10, 3, 3.2), (0, 0, 2), cream)], (325, 412), (-42, 26))):
+            ('Tug', [((8, 4, 2.4), (0, 0, 1.4), yellow)], (330, 512), (-58, 10)),
+            ('Fuel bowser', [((3, 3, 3), (5, 0, 2), white), ((9, 3, 3), (-1.5, 0, 2), white)], (470, 405), (-30, -52)),
+            ('Crew carrier', [((10, 3, 3.2), (0, 0, 2), cream)], (325, 412), (-52, 30))):
         xb, yb, _ = at(kx, ky, kh, u, v)
         vehicle(name, parts, [(0, xa, ya), (t0, xa, ya), (t1, xb, yb)], [(0, math.atan2(yb - ya, xb - xa))])
     lights = material('Customs lights', (1.0, 0.6, 0.2))
