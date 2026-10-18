@@ -199,18 +199,26 @@ def section(x):
     # further than that), so arm deck and valley floor meet; forward, at the open notch, it
     # drops to a chine under the coaming.
     za = d+2.0-3.0*max(0.0, min(1.0, (x-104)/10))
+    # Round 9 (critique: from below and on the quarters the arm's underside read as a rounded,
+    # ballooned lobe - D, E and F were three soft chines). The underside is now one hard chine and
+    # two flat planes: the max-beam chine D, a flat lower glacis from it straight to the keel chine
+    # F, and the flat inboard bottom. E stays only as a station on that glacis (the courses and
+    # cheeks address their edges by it), so it puts no knuckle in the plate.
+    D = (yo-a, d-D_FRAC*h)
+    F = (yi+.6*w, k)
     return {
         'A': (yi+ci, za),                      # inboard top chine (inside the coaming forward)
         'B': (yg, d+2.5),                      # low crown under the gallery
         'C': (yo-.3*w-.5*a, d-.5),             # outboard shoulder chine
-        'D': (yo-a, d-.34*h),                  # max-beam chine: the upper face falls ~45 deg to it
-        'E': (yo-.13*w-.8*a, d-.74*h),         # lower outboard chine
-        'F': (yi+.6*w, k),                     # keel, under the heavy outboard side
+        'D': D,                                # max-beam chine: the one hard chine of the underside
+        'E': (D[0]+(F[0]-D[0])*E_FRAC, D[1]+(F[1]-D[1])*E_FRAC),   # a station on the flat glacis
+        'F': F,                                # keel chine, under the heavy outboard side
         'G': (yi+.16*w-t, d-.66*h),            # inboard bilge chine
         'H': (yi-t, d-.24*h),                  # inboard lower chine (under the waist)
     }
 
 
+D_FRAC, E_FRAC = .40, .45   # round 9: max-beam chine depth; E's place on the lower glacis
 ORDER = 'ABCDEFGH'
 OUTBOARD = 'BCDEF'      # the path the outboard courses follow, u = 0 at B .. 4 at F
 INBOARD = 'BAHG'        # the inboard strake's path
@@ -570,7 +578,7 @@ def build(kit):
         steps = []
         for k, (xa, xf, u0, u1, ta, tf, ch) in enumerate(((101, 144, 1.75, 3.25, 4.0, 2.8, 4.0),
                                                           (61, 93, 1.5, 3.3, 3.8, 3.0, 4.0),
-                                                          (19, 52, 1.95, 3.25, 3.4, 2.6, 3.0)), 1):
+                                                          (20, 52, 1.95, 3.25, 3.4, 2.6, 3.0)), 1):
             steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
                                 kit.grey, chamfer=ch, lip=2.6))
         for k, (xa, xf, u0, u1, ta, tf) in ((4, (116, 138, 2.3, 3.2, 5.0, 4.6)), (5, (66, 82, 2.05, 3.15, 4.7, 4.2)),
@@ -728,16 +736,46 @@ def sponson(kit, side, s):
     return ob
 
 
+def _aft_floor(sp):
+    """A floor 1.2 under the lowest point of the aft body's deck beneath the sponson's plan."""
+    import bpy
+    from mathutils import Vector
+    bpy.context.view_layer.update()
+    ab = bpy.data.objects['Hull aft body'].evaluated_get(bpy.context.evaluated_depsgraph_get())
+    inv = ab.matrix_world.inverted()
+    xs = [v.co.x for v in sp.data.vertices]
+    ys = [v.co.y for v in sp.data.vertices]
+    low = None
+    for i in range(9):
+        for j in range(9):
+            x = min(xs)+(max(xs)-min(xs))*i/8
+            y = min(ys)+(max(ys)-min(ys))*j/8
+            if x > _after_x(0.0):
+                continue
+            ok, p, _, _ = ab.ray_cast(inv @ Vector((x, y, 150)), (inv.to_3x3() @ Vector((0, 0, -1))).normalized())
+            if ok:
+                z = (ab.matrix_world @ p).z
+                low = z if low is None else min(low, z)
+    return (low if low is not None else 0.0)-1.2
+
+
 def after_planes(kit, side, s):
     import bpy
     # the sponson is cut with the arm: its underside ends on the same raked face, so it never
     # hangs below the hull it stands on
-    ARM_PARTS[side].append(sponson(kit, side, s))
+    sp = sponson(kit, side, s)
+    ARM_PARTS[side].append(sp)
     prof = [(_after_x(-90.0), -90.0), (_after_x(70.0), 70.0), (-160.0, 70.0), (-160.0, -90.0)]
+    # Round 9 (seam audit: the sponson's after part, cut on the raked face, hung 2-4 units over
+    # the aft body's deck with a slot of daylight under it). Aft of the face the sponson is cut
+    # only below a floor under the aft body's deck, so it stands on that deck, sunk into it.
+    floor = _aft_floor(sp)
+    low = [(_after_x(-90.0), -90.0), (_after_x(floor), floor), (-160.0, floor), (-160.0, -90.0)]
     n = len(prof)
     for ob in list(ARM_PARTS[side]):
         if ob.type != 'MESH':
             continue
+        prof = low if ob is sp else prof
         verts = [(x, s*y, z) for y in (30.0, 180.0) for x, z in prof]
         faces = [tuple(range(n)), tuple(range(n, 2*n))]+[(i, (i+1) % n, n+(i+1) % n, n+i) for i in range(n)]
         # the cut faces take the part's own material (a cutter's would paint the face dark)
@@ -756,7 +794,7 @@ def _on(p, q, z):
     return (p[0]+(q[0]-p[0])*f, p[1]+(q[1]-p[1])*f)
 
 
-def _cheek(kit, name, s, x0, x1, inner, path, t, brow, chin, mat):
+def _cheek(kit, name, s, x0, x1, inner, path, t, brow, chin, mat, plumb=False, u3=3):
     """A nose plate from x0 to its point at x1: its inner side flat against the casemate (y =
     inner), its outer side the arm's own faces along `path` (chines at u = 1, 2, 3) offset t
     outward, between a brow line and a chin line (functions of x). Aft of the nose face it is a
@@ -766,7 +804,7 @@ def _cheek(kit, name, s, x0, x1, inner, path, t, brow, chin, mat):
         sec = section(x)
         p1, p2, p3 = [(lambda u: (_path_point(sec, path, u)[0]+_path_normal(sec, path, u)[0]*t,
                                   _path_point(sec, path, u)[1]+_path_normal(sec, path, u)[1]*t))(u)
-                      for u in (1, 2, 3)]
+                      for u in (1, 2, u3)]
         zt = min(brow(x), p1[1])
         zb = max(chin(x), p3[1])
         zt, zb = max(zt, zb+1.0), min(zb, zt-1.0)
@@ -775,7 +813,13 @@ def _cheek(kit, name, s, x0, x1, inner, path, t, brow, chin, mat):
         mid = p2 if zb < p2[1] < zt else ((top[0]+bot[0])/2, (zt+zb)/2)
         f = 1.0-.55*max(0.0, (x-(x1-9.0))/9.0)          # the point narrows in plan
         pull = lambda p: (inner+(p[0]-inner)*f, p[1])
-        st.append((x, _y([(inner, zt), pull(top), pull(mid), pull(bot), (inner, zb)], s)))
+        # plumb: the casemate side is rolled with the arm (its top outboard), so a cheek inboard
+        # of it lying flat against it hung its edge over the casemate's roof chamfer and its face
+        # leaned out over the hull's nose below (seam audit: an 8-11 unit slot at the nose under
+        # cheek 1). Its inner face is set plumb in the WORLD instead, touching the casemate's side
+        # at the brow and running into it below, so nothing of it stands over the casemate.
+        ib = inner+(math.tan(math.radians(ROLL))*(zt-zb) if plumb else 0.0)
+        st.append((x, _y([(inner, zt), pull(top), pull(mid), pull(bot), (ib, zb)], s)))
     return loft_x(kit, name, st, mat, bevel=.25)
 
 
@@ -792,9 +836,10 @@ def nose_cheeks(kit, side, s):
     def line(x0, z0, x1, z1):
         return lambda x: z0+(z1-z0)*(x-x0)/(x1-x0)
     _cheek(kit, f'Armour {side} nose cheek 1', s, 184.0, 206.5, yc-hw, INBOARD, 1.6,
-           line(184.0, DECK_Z+4.0, 206.5, zc+4.0), line(184.0, keel_z(184.0), 206.5, zc-4.0), kit.grey)
+           line(184.0, DECK_Z+4.0, 206.5, zc+4.0), line(184.0, keel_z(184.0), 206.5, zc-4.0), kit.grey, plumb=True)
     _cheek(kit, f'Armour {side} nose cheek 2', s, 180.0, 212.5, yc+hw, OUTBOARD, 1.6,
-           line(180.0, DECK_Z+3.0, 212.5, zc+3.0), line(180.0, keel_z(180.0), 212.5, zc-2.5), kit.grey)
+           line(180.0, DECK_Z+3.0, 212.5, zc+3.0), line(180.0, keel_z(180.0), 212.5, zc-2.5), kit.grey,
+           u3=4)      # round 9: down the flat lower glacis to the keel chine, over the forefoot's edge
 
 
 def _cap(kit, name, plan, sources, lift, floor, mat, s=1):
