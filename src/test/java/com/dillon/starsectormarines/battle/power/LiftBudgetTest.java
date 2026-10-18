@@ -58,4 +58,13 @@ class LiftBudgetTest {
         assertSame(ShuttleType.VALKYRIE, allocation.get(2).frame(),
                 "a Light cradle cannot take a Medium machine");
     }
+
+    @Test
+    void aHeavyCradleLiftsOneMoreMachineThanALightOne() {
+        FittedBoat heavyCradle = new FittedBoat(ShuttleType.BUFFALO, BoatFitting.STANDARD_PLATING,
+                BoatFitting.STANDARD_DRIVE, BoatFitting.HEAVY_CRADLE, "buffalo-2");
+
+        assertEquals(2, LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 4).remaining());
+        assertEquals(3, LiftBudget.forMission(heavyCradle, false, ShuttleType.VALKYRIE, 4).remaining());
+    }
 }

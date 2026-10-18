@@ -49,15 +49,20 @@ public final class MechFabricationCatalog {
             internal(MechInternal.MILITARY_HEAT_SINK, "@gearFabricationMilitaryPattern", 18, 10, 24, 8),
             internal(MechInternal.AUXILIARY_COOLER, "@gearFabricationStandardIssue", 10, 5, 14, 3));
 
-    /** Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker. */
+    /**
+     * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
+     * prices brings at least as much structure plus armor per credit as the class's mech (see
+     * {@code armorEconomyEvidence}). The fire-support APC is the one deliberate exception per lift: it carries a
+     * mortar instead of plate, so its armor per Medium lift is below the Sirocco's.
+     */
     private static final List<Recipe> VEHICLES = List.of(
-            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 50, 40, 110, 6),
+            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 38, 28, 88, 3),
             vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationMediumVehicleStandardFit", 45, 35, 90, 8),
             vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 75, 60, 150, 14),
             vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 120, 95, 240, 28),
             // Variants cost more than the hull they improve on: plate in metals, guns in rare metals.
-            vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 65, 50, 170, 10),
-            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 60, 50, 125, 16),
+            vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 52, 40, 140, 8),
+            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 52, 40, 115, 11),
             vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 130, 100, 255, 38),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 125, 110, 290, 24));
 

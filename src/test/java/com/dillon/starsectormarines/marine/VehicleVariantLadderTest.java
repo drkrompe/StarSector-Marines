@@ -1,12 +1,14 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.air.LiftClass;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -105,6 +107,37 @@ class VehicleVariantLadderTest {
                 assertFalse(dominates(a, b), a + " strictly beats " + b);
             }
         }
+    }
+
+    /**
+     * The direction says a vehicle costs less material for the armor it brings than the mech of its weight class.
+     * Priced at the game's base commodity prices (supplies 100, heavy machinery 150, metals 30, rare metals 200,
+     * from {@code commodities.csv}), every hull brings at least as much structure plus armor per credit as its
+     * class's mech. The fire-support APC trades plate for a mortar, so it is held only to the mech's cost.
+     */
+    @Test
+    void everyHullBringsAtLeastTheMechsArmorPerCredit() {
+        for (VehicleType type : VehicleType.values()) {
+            if (MechFabricationCatalog.vehicle(type) == null || type == VehicleType.FIRE_SUPPORT_APC) continue;
+            MechVariant mech = mechOf(type.liftClass());
+            float vehicle = (type.maxStructure + type.maxArmor) / credits(MechFabricationCatalog.vehicle(type).cost());
+            float walker = (mech.maxStructure + mech.armorCapacity) / credits(MechFabricationCatalog.chassis(mech).cost());
+            assertTrue(vehicle >= walker, type + " " + vehicle + " armor/credit against " + mech + " " + walker);
+        }
+        assertTrue(credits(MechFabricationCatalog.vehicle(VehicleType.FIRE_SUPPORT_APC).cost())
+                < credits(MechFabricationCatalog.chassis(MechVariant.SIROCCO).cost()));
+    }
+
+    private static MechVariant mechOf(LiftClass lift) {
+        for (MechVariant variant : MechVariant.values()) if (variant.liftClass() == lift) return variant;
+        throw new IllegalArgumentException(lift.name());
+    }
+
+    private static float credits(FabricationCost cost) {
+        Map<String, Integer> price = Map.of("supplies", 100, "heavy_machinery", 150, "metals", 30, "rare_metals", 200);
+        float total = 0f;
+        for (FabricationCost.Line line : cost.lines()) total += line.quantity() * price.get(line.commodityId());
+        return total;
     }
 
     private static boolean dominates(VehicleType a, VehicleType b) {

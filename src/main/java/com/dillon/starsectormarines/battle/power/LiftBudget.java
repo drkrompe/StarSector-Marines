@@ -29,8 +29,21 @@ import java.util.List;
  */
 public final class LiftBudget {
 
-    /** Machine lifts one cradled company boat flies per mission: a trip each. */
-    public static final int LIFTS_PER_COMPANY_BOAT = 2;
+    /** Machine lifts a light-cradled company boat flies per mission: a trip each. */
+    public static final int LIGHT_CRADLE_LIFTS = 2;
+
+    /**
+     * Machine lifts a heavy-cradled company boat flies per mission. One more than the light cradle: a Medium
+     * mech (Sirocco) carries less structure and armor than the Light one (Hound), so a better cradle that
+     * only changed the class would not put more armor on the ground, and the heavy cradle costs about twice
+     * the light one's bill.
+     */
+    public static final int MEDIUM_CRADLE_LIFTS = 3;
+
+    /** Machine lifts a cradled company boat of {@code rating} flies per mission. */
+    public static int liftsPerCompanyBoat(LiftRating rating) {
+        return rating == LiftRating.LIGHT ? LIGHT_CRADLE_LIFTS : MEDIUM_CRADLE_LIFTS;
+    }
 
     /** Why a machine cannot be added to a call. */
     public enum Refusal {
@@ -76,7 +89,7 @@ public final class LiftBudget {
                                         ShuttleType synthetic, int manifestSize) {
         List<Carrier> carriers = new ArrayList<>(2);
         if (companyBoat != null && companyBoat.liftRating() != LiftRating.NONE) {
-            carriers.add(new Carrier(companyBoat, true, LIFTS_PER_COMPANY_BOAT));
+            carriers.add(new Carrier(companyBoat, true, liftsPerCompanyBoat(companyBoat.liftRating())));
         }
         if (syntheticLift && synthetic != null) {
             carriers.add(new Carrier(synthetic, false,
