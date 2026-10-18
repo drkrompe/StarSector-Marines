@@ -1,0 +1,148 @@
+{
+ "parts": {
+  "tops-waist-deck": {
+   "white": {
+    "share_as_declared": 0.954,
+    "share_in_declared_family": 0.954,
+    "swap": false,
+    "before_mean_lab": [
+     85.95,
+     0.34,
+     4.81
+    ],
+    "after_mean_lab": [
+     81.73,
+     0.67,
+     5.4
+    ],
+    "dE_to_palette_before": 4.27
+   },
+   "red": {
+    "share_as_declared": 0.947,
+    "share_in_declared_family": 0.947,
+    "swap": false,
+    "before_mean_lab": [
+     39.56,
+     50.81,
+     33.64
+    ],
+    "after_mean_lab": [
+     33.83,
+     49.93,
+     36.61
+    ],
+    "dE_to_palette_before": 6.35
+   },
+   "tan": {
+    "share_as_declared": 0.661,
+    "share_in_declared_family": 0.661,
+    "swap": false,
+    "before_mean_lab": [
+     67.34,
+     2.97,
+     18.26
+    ],
+    "after_mean_lab": [
+     63.31,
+     4.65,
+     24.48
+    ],
+    "dE_to_palette_before": 7.89
+   },
+   "ramp_span_L_removed_max": 2.02,
+   "edge_band_dL_after_mean": -1.4
+  },
+  "tops-fore-deck": {
+   "white": {
+    "share_as_declared": 0.973,
+    "share_in_declared_family": 0.973,
+    "swap": false,
+    "before_mean_lab": [
+     87.2,
+     0.45,
+     4.69
+    ],
+    "after_mean_lab": [
+     81.73,
+     0.67,
+     5.4
+    ],
+    "dE_to_palette_before": 5.52
+   },
+   "red": {
+    "share_as_declared": 0.927,
+    "share_in_declared_family": 0.927,
+    "swap": false,
+    "before_mean_lab": [
+     38.99,
+     49.2,
+     32.65
+    ],
+    "after_mean_lab": [
+     33.83,
+     49.93,
+     36.61
+    ],
+    "dE_to_palette_before": 6.54
+   },
+   "ramp_span_L_removed_max": 0.35,
+   "edge_band_dL_after_mean": 2.21
+  },
+  "tops-aft-deck": {
+   "white": {
+    "share_as_declared": 0.956,
+    "share_in_declared_family": 0.956,
+    "swap": false,
+    "before_mean_lab": [
+     86.15,
+     0.15,
+     4.55
+    ],
+    "after_mean_lab": [
+     81.73,
+     0.67,
+     5.4
+    ],
+    "dE_to_palette_before": 4.53
+   },
+   "tan": {
+    "share_as_declared": 0.894,
+    "share_in_declared_family": 0.894,
+    "swap": false,
+    "before_mean_lab": [
+     69.32,
+     3.48,
+     22.59
+    ],
+    "after_mean_lab": [
+     63.31,
+     4.65,
+     24.48
+    ],
+    "dE_to_palette_before": 6.41
+   },
+   "ramp_span_L_removed_max": 0.16,
+   "edge_band_dL_after_mean": -9.93
+  },
+  "tops-hood": {
+   "white": {
+    "share_as_declared": 0.961,
+    "share_in_declared_family": 0.961,
+    "swap": false,
+    "before_mean_lab": [
+     86.6,
+     0.09,
+     4.51
+    ],
+    "after_mean_lab": [
+     81.73,
+     0.67,
+     5.4
+    ],
+    "dE_to_palette_before": 4.99
+   },
+   "ramp_span_L_removed_max": 22.04,
+   "edge_band_dL_after_mean": -2.63
+  }
+ }
+}

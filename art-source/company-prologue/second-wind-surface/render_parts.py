@@ -105,7 +105,7 @@ def emission(name, rgb, socket=None):
         nt.links.new(g.outputs['True Normal'], vm.inputs[0])
         nt.links.new(vm.outputs[0], e.inputs['Color'])
     else:
-        e.inputs['Color'].default_value = (*[c / 255 for c in rgb], 1)
+        e.inputs['Color'].default_value = (*P.id_linear(rgb), 1)
     nt.links.new(e.outputs[0], o.inputs['Surface'])
     return m
 

@@ -1,0 +1,42 @@
+{
+ "engine-side-port": {
+  "raw_iou": 0.9159,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9357,
+  "scale": [
+   1.00255,
+   1.05255
+  ],
+  "boundary_p95_px": 19.18
+ },
+ "engine-top-port": {
+  "raw_iou": 0.9119,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9368,
+  "scale": [
+   1.00483,
+   1.03332
+  ],
+  "boundary_p95_px": 50.05
+ },
+ "engine-chamfer-port": {
+  "raw_iou": 0.9188,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9372,
+  "scale": [
+   0.99983,
+   1.04498
+  ],
+  "boundary_p95_px": 27.07
+ },
+ "engine-front-port": {
+  "raw_iou": 0.9872,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9965,
+  "scale": [
+   1.00626,
+   1.01134
+  ],
+  "boundary_p95_px": 1.41
+ }
+}

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f3b-32c0-70e1-ae63-2652b3cb1cec",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f3b-32c0-70e1-ae63-2652b3cb1cec\\exec-e4cc34f4-cc17-4ddf-9b61-bc35ae4259a5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-port-a.png",
+    "sha256": "1d1771dc9a9d6d12955e60ff256f3e7410548793a9ee46d1b5ae6669d6ca03fb",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-port-a.prompt.txt",
+  "promptSha256": "3dedcb1eef1dbcdbc2ac81ea3b3a5cf5f1a3d2a9791e18c34d47bc11e1480df1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of the port side of one 3D spacecraft (a small civilian interplanetary ferry and cargo lander, a working transport kept in service for years), each seen square-on and drawn alone as flat-coloured shapes on a plain flat mid blue background:\ntop-left: the long side wall of the main hull, one wide off-white plate with chamfered corners and a notch near its middle; along its top-left edge a thin off-white deck-edge lip, near its right end a small dark-outlined crew hatch (off-white door in a thin near-black frame), and along its lower right a grey steel keel strake bar;\ntop-right: the aft flank of the hull, an off-white plate with chamfered upper and lower corners, carrying a tan double-door locker (two tan door leaves split by thin near-black seams, on a slightly paler tan box), below it two off-white armour plates outlined by thin near-black seams, and along the bottom a grey steel keel strake bar;\nbottom-left: the outer side of the forebody sponson, a grey-green painted box side with a raked upper right corner, carrying a row of four small dark grey square window frames, a grey steel belt bar across its middle, three grey-green armour plates outlined by thin near-black seams below that, and a grey steel keel strake bar along the bottom;\nbottom-right: the cargo bay doors: two large off-white door leaves split by a thin near-black seam, each with two thin off-white horizontal stiffener ribs, inside a thin near-black frame line, with off-white jamb posts at the sides, a grey steel door track bar along the top (running past the right jamb) and a grey steel sill bar along the bottom; the four small black squares at the frame corners stay black.\nINPUT 2 is a finished paint study of this ship's hull: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as industrial enamel paint over steel. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain flat mid blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any gap between shapes stays plain flat mid blue.\n- Add painted surface detail inside each outline only: fine plate seams, rows of small flush fasteners, small flush access covers, light even scuffing, faint edge chipping to grey primer, a thin even film of grime. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: off-white plates stay off-white, the tan locker stays tan, the grey-green sponson stays grey-green, steel bars stay dark grey-brown drive steel, near-black seams, frames and recesses stay near-black. Do not repaint any shape another colour, and do not add signal red, white, orange or different-coloured patches.\n- Weathering is light and even across each whole shape. No soot, scorch marks, rust streaks, dents, repair patches, stencils, text, numbers, markings, hazard stripes or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: PLAIN FLAT MID BLUE exactly as in INPUT 1, uniform, with no texture, floor, shadow, vignette, text, labels or borders. The blue must stay blue.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-port-a-guide.png",
+      "sha256": "cc9d688ec2a91dd1a826f127e2e52911e87255a5d1676e0723d20eead6d3d0d0",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "a7eccb0bda3f90268244cdaa2dac3ab7e7a038a66a94b87e6fd5ab0b15e7855e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the material finish while preserving the sheet’s layout and blue background."
+  ],
+  "usage": {
+    "input_tokens": 86752,
+    "cached_input_tokens": 39040,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 885,
+    "reasoning_output_tokens": 15
+  },
+  "elapsedSeconds": 80.7
+}

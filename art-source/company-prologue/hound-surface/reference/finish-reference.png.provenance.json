@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f2c-5547-7172-a638-b890a9531d31",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f2c-5547-7172-a638-b890a9531d31\\exec-411c15d7-5515-4e15-81b4-f6fc53fb006f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\hound-surface\\reference\\finish-reference.png",
+    "sha256": "37d8565694195d141c321a39d1927b744b8cea5984dde5b7fc09f8fe7c6b338f",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\hound-surface\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "27fbc92bc2ceb2174458fb5a7d7842af9657ea216ff4d596c9c91d626e1aad20",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout and geometry authority)\nImage 2: INPUT 2: the game sprite, Hegemony auxiliary livery (paint scheme and colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one small spacecraft, a Hound-class light freighter, seen from above its port bow quarter on a plain light grey background. Its flat colours mark which material each surface is: orange armour panels, brown-grey structural plating, mid-grey gunmetal machinery, near-black recesses and seams, a cream-white nose capsule and fittings, small lit windows.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its Hegemony auxiliary livery: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that Hegemony auxiliary livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, ring, rail, turret and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Keep every surface's material: orange panels stay a warm saturated Hegemony orange paint (as INPUT 2), brown-grey plating stays a muted taupe brown-grey paint, gunmetal stays dark grey bare-ish steel, recesses stay near black, the nose capsule and cream fittings stay a warm off-white enamel, windows stay windows. Do not swap or invent colours, stripes or patches.\n- Finish: a clean, well maintained military auxiliary. Crisp semi-matte industrial enamel with fine plate seams, flush fastener rows, small access panels and subtle panel-to-panel tone differences. Light, even service wear only: faint edge scuffs on exposed corners, a thin film of grime in seams, a little soot near the two aft engine nozzles. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\guide\\reference-guide.png",
+      "sha256": "13f31ebdbb25ab2126b49a6c7cd5735f53a86bd701fc30870b5585e1acc7751f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout and geometry authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\build\\hound_hegemony-12x.png",
+      "sha256": "6d4c4754b81351fe74caebc1b8cb3b9164386a5301f1c7e8d46482882caa4223",
+      "dimensions": [
+        744,
+        864
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the game sprite, Hegemony auxiliary livery (paint scheme and colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to repaint the first render, preserving its geometry and composition and using the sprite only for the livery colours."
+  ],
+  "usage": {
+    "input_tokens": 44443,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 684,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.6
+}

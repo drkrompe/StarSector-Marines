@@ -944,12 +944,13 @@ hull that cannot hold a mech bay never will, and a hull still being laid out has
 one or does not and nobody knows yet. Shown as absence, the second would tell
 somebody their own capital had no bay and they would have no reason to doubt
 it. So the shell has three answers rather than two, and it carries them
-wherever a way aboard appears - the navigation buttons and headquarters' own
-way onto the ship alike, since a tile that looked ordinary and did nothing
-would read as a broken button rather than as a wait.
+wherever a way aboard appears - today the navigation buttons - since a button
+that looked ordinary and did nothing would read as broken rather than as a wait.
 
-Where there is room for words, the wait says what it is: which half of the work
-she is in, how long it has been, and a bar that moves. **The bar sweeps rather
+No page currently describes the wait in words; headquarters' own ship tile,
+which did, was removed with its sidebar. A way aboard with room for words should
+say which half of the work she is in, how long it has been, and show a bar that
+moves. **The bar sweeps rather
 than filling to a percentage, because there is no honest percentage to show.**
 Half of laying a deck out is a circulation pass that runs until no further cut
 earns itself, so there is nothing to count against; a bar that guessed would be

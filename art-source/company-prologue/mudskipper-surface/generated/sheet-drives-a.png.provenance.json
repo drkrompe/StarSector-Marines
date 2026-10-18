@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f38-15fa-7e00-8cf1-a9080f07d2fa",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f38-15fa-7e00-8cf1-a9080f07d2fa\\exec-448d2478-e765-4deb-a2e5-d7aa9587d8c7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-drives-a.png",
+    "sha256": "8f2866dabd8dd49e39f2c495d41086329644ac791caa083e4be726c828255ac4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-drives-a.prompt.txt",
+  "promptSha256": "398725e95cce708c5144097066db597e69c9dea16112b7c2b25c201b0d4f291f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single faces of one 3D spacecraft (a small civilian interplanetary ferry and cargo lander, a working transport kept in service for years) around its aft drive block, each seen square-on and drawn alone as flat-coloured shapes on a plain flat mid-blue background:\ntop-left: the outer side of an engine pod: a large dark grey-brown drive steel casing block on the left with two tall flush access panels (lighter grey steel) each inside a thin near-black recessed frame, then a tall narrow tan thrust collar band with a raked top corner, then a smaller dark grey-brown steel thrust housing block on the right;\ntop-right: the top of the same engine pod: dark grey-brown drive steel casing top, a square tan access hatch inside a thin near-black frame, a narrow lighter grey steel deck strake and a large lighter grey steel machinery deck plate on the right, a thin near-black recess strip at the far left edge, and a long tan thrust collar top along the bottom;\nbottom-left: the aft face of the same pod: a wide tan thrust collar frame with chamfered corners wrapping round a large dark grey-brown steel thrust housing face in its lower part;\nbottom-right: the top of the main drive barrel: a dark grey-brown drive steel casing with a slightly wider steel flange cap along the top, three pinkish burnished metal bands crossing it, and two near-black square recessed cover openings between the bands.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, wear density, fine chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that working industrial hull surface: industrial enamel paint over steel. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain mid-blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline.\n- Each shape is a flat painted steel surface. Add surface detail inside its outline only: fine plate seams, flush fasteners, small flush access covers, light even scuffing, faint edge chipping to grey primer, a thin even film of grime. The machinery deck and casing tops may carry fine flush tread or seam grids; the burnished bands may carry fine circumferential brushing. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: the drive casing, thrust housing and casing tops stay dark grey-brown drive steel; the flush panels, deck strake and machinery deck stay lighter grey steel; the collar and hatch stay tan; the frames, recess strip and cover openings stay near-black recess; the bands stay pinkish burnished metal. Do not repaint any shape another colour, and do not add off-white, red or different-coloured patches or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, repair patches, large stains, hazard stripes, stencils, text, markings or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: PLAIN FLAT uniform MID BLUE exactly as in INPUT 1, and they must stay so: no texture, floor, shadow, vignette, text, labels or borders on the blue.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-drives-a-guide.png",
+      "sha256": "34265885a3067521b44000a7e5cda537ab42e75d0fc16db5a58b7997a4223782",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "a7eccb0bda3f90268244cdaa2dac3ab7e7a038a66a94b87e6fd5ab0b15e7855e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned sheet, preserving Image 1’s layout and using Image 2 only for the surface finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 46652,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 817,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 86.1
+}

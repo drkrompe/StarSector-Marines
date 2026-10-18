@@ -1,0 +1,73 @@
+{
+ "part": "tops-aft-deck",
+ "regions": {
+  "white": {
+   "pixels": 101500,
+   "share_as_declared": 0.956,
+   "share_in_declared_family": 0.956,
+   "came_back_as": {
+    "white": 0.956,
+    "grey": 0.028
+   },
+   "swap": false,
+   "before_mean_lab": [
+    86.15,
+    0.15,
+    4.55
+   ],
+   "after_mean_lab": [
+    81.73,
+    0.67,
+    5.4
+   ],
+   "gain_L_a_b": [
+    1.182,
+    1.089,
+    0.981
+   ],
+   "dE_to_palette_before": 4.53,
+   "forced_back_to_declared": false
+  },
+  "tan": {
+   "pixels": 13032,
+   "share_as_declared": 0.894,
+   "share_in_declared_family": 0.894,
+   "came_back_as": {
+    "white": 0.029,
+    "tan": 0.894,
+    "grey": 0.067
+   },
+   "swap": false,
+   "before_mean_lab": [
+    69.32,
+    3.48,
+    22.59
+   ],
+   "after_mean_lab": [
+    63.31,
+    4.65,
+    24.48
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.336,
+    1.084
+   ],
+   "dE_to_palette_before": 6.41,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 118256,
+   "ramp_span_L_removed": 0.16,
+   "ramp_dL_per_100px": [
+    0.01,
+    0.04
+   ],
+   "edge_band_dL_after": -9.93
+  }
+ ],
+ "ramp_span_L_removed_max": 0.16,
+ "edge_band_dL_after_mean": -9.93
+}

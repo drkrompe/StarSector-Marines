@@ -1,0 +1,42 @@
+{
+ "bow-face": {
+  "raw_iou": 0.9799,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9962,
+  "scale": [
+   1.00028,
+   0.998
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bow-rake": {
+  "raw_iou": 0.9616,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9737,
+  "scale": [
+   0.99922,
+   0.99865
+  ],
+  "boundary_p95_px": 43.0
+ },
+ "bow-cockpit-top": {
+  "raw_iou": 0.9949,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9958,
+  "scale": [
+   1.00153,
+   1.00554
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "bow-sponson-port": {
+  "raw_iou": 0.9911,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9992,
+  "scale": [
+   1.0,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

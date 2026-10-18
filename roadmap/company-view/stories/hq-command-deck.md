@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — banner, caption and station hotspots shipped on HQ; edge-case evidence and the alert plate remain
 Written: 2026-10-16
-Updated: 2026-10-16 — plate v5 with six figures (Sabine added) packed and wired; stations live.
+Updated: 2026-10-18 — sidebar and notice rows removed; banner full width, finance moved under the scene.
 
 Read `company-view-nouns.md` (Company HQ) first.
 
@@ -48,33 +48,33 @@ where things live without becoming the only way to reach them.
 
 ## Layout at 1920x1080 / 100%
 
-Today the HQ is: page nav, a 94px assessment strip, then a 406px sidebar (force,
-finance, standing) beside the situation board (obligations column and the news
-column, whose top 300px is the intel network canvas).
-
-Proposed:
+The HQ has no sidebar. Under the page nav, one full-width board holds the command
+deck banner (372px) and, below its heading, three columns: company finance,
+active obligations, and the news column.
 
 ```
 +--------------------------------------------------------------------------------+
 | page nav                                                                        |
-+---------------------+----------------------------------------------------------+
-| SIDEBAR 406px       | COMMAND DECK BANNER  (board width ~1486 x 300)            |
-|  force status       |  [comms]  [chart table + commander]  [Castle] [ledger] [hatch]
-|  finance            |  +-----------------------------------------------------+ |
-|  standing           |  | RATING  B+  | CASTLE // BRIDGE ADJUTANT  "Assessment"| |  <- 72px caption
-|                     |  +-----------------------------------------------------+ |
-|                     +----------------------------------------------------------+
-|                     | situation board heading                                  |
-|                     | obligations | source windows / dossier / rundown         |
-+---------------------+----------------------------------------------------------+
++--------------------------------------------------------------------------------+
+| COMMAND DECK BANNER (full width x 372)                                          |
+|  [comms]  [plot table + commander]  [Castle]  [quartermaster]  [Sabine]         |
+|  +--------------------------------------------------------------------------+   |
+|  | RATING | BRIDGE ADJUTANT // DAILY ASSESSMENT                              |   |  <- 72px caption
+|  +--------------------------------------------------------------------------+   |
++--------------------------------------------------------------------------------+
+| board heading                                                                   |
+| FINANCE 260 | OBLIGATIONS 260      | source windows / dossier / archive         |
+|             |  waiting letters     |                                            |
++--------------------------------------------------------------------------------+
 ```
 
-- The banner sits inside the board column, above the board heading, so the sidebar
-  keeps its full height. Dropping the 94px assessment strip gives that height to
-  the whole main area; the banner then takes the 300px the network canvas had, so
-  the sidebar and news column each come out about 100px taller and only the
-  obligations column gets shorter (about 200px). It normally holds a handful of
-  clocks.
+- Removed with the sidebar: force status, the change-ship and ship-view tiles
+  (Engineering stays on the page nav), and client standing, including its
+  military-warrant rows. The long notice rows under the nav are gone too; first
+  refit and secondhand wings remain nav notices on Barracks and Boats.
+- Letters awaiting an answer (the auxiliary warrant, the Latchkey custody
+  agreements) sit at the head of the obligations column, since they are
+  decisions owed.
 - **Caption strip:** the bottom 72px of the banner, over a flat dark scrim. The
   packed band is chosen so the plotting table's near rim sits above it. Left: `ratingHeader` / rating / score.
   Right: Castle's name plate and the daily `assessment` text. The plate's
@@ -98,8 +98,8 @@ panel when used.
 | Comms bank, two officers | COMMS // INTEL | Focuses the transmission archive and pulses the source windows. |
 | Chart table, commander | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
 | Castle | CASTLE // ADJUTANT | Pulses the assessment caption; where the opening guide is active, focuses its next control. |
-| Quartermaster's ledger | FINANCE & STANDING | Scrolls the sidebar to finance and pulses it. |
-| Sabine Hale | FORCE STATUS | Scrolls the sidebar to force status and pulses it; the existing Barracks route stays on that panel. |
+| Quartermaster's ledger | FINANCE & STANDING | Pulses the finance column. |
+| Sabine Hale | FORCE // BARRACKS | Opens Barracks, where the force is. |
 
 The theme dresses every button and is the cascade's final layer, so stations are
 cleared with inline style and their hover/focus outline is drawn by the banner
@@ -138,7 +138,7 @@ and panel pulses; snapshot evidence; optional alert plate.
 
 - Before the company has a ship, HQ shows the founding flow. Does it keep this deck
   (a borrowed office) or a different dockside plate?
-- Sabine stands on deck as herself (FORCE STATUS); the commander stays the
+- Sabine stands on deck as herself (FORCE // BARRACKS); the commander stays the
   player's faceless stand-in.
 
 ## Remaining

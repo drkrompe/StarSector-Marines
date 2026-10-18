@@ -1,0 +1,1086 @@
+{
+ "waist-port": {
+  "what": "main hull port waist and fore flank wall, one plane from the junction to the bow (the fore half sits behind the sponson; the strip above it shows), crew hatch, keel strake, deck-edge lip",
+  "sheet": "port-a",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     8,
+     22.5,
+     0
+    ],
+    "faces": [
+     24,
+     27,
+     30,
+     38,
+     44
+    ]
+   },
+   {
+    "object": "Port crew hatch",
+    "seed": [
+     0.2,
+     22.9,
+     -3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port crew hatch frame",
+    "seed": [
+     0.2,
+     22.6,
+     -4.5
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port waist keel strake",
+    "seed": [
+     9,
+     22.0,
+     -7.3
+    ],
+    "faces": [
+     3,
+     5
+    ]
+   },
+   {
+    "object": "Port forebody deck-edge lip",
+    "seed": [
+     28,
+     23.0,
+     9
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 783.75,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   40.69,
+   17.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -18.84375,
+    0.40000009536743164
+   ],
+   "ortho_width": 47.31104651162791
+  },
+  "native_texels_per_unit": 16.8
+ },
+ "aft-flank-port": {
+  "what": "main hull port aft flank with the armour modules, keel strake and the tan flank locker",
+  "sheet": "port-a",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     -10,
+     28.5,
+     0
+    ],
+    "faces": [
+     4,
+     5,
+     11,
+     12,
+     17,
+     18
+    ]
+   },
+   {
+    "object": "Port aft flank armour module",
+    "seed": [
+     -12.6,
+     28.8,
+     -4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port aft flank armour module.001",
+    "seed": [
+     -7,
+     28.8,
+     -4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port aft flank seam backing",
+    "seed": [
+     -9.8,
+     28.6,
+     -2.2
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port aft keel strake",
+    "seed": [
+     -10,
+     28.0,
+     -7.3
+    ],
+    "faces": [
+     3,
+     5
+    ]
+   },
+   {
+    "object": "Port flank locker",
+    "seed": [
+     -9,
+     29.0,
+     5.8
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Port flank locker door seam",
+    "seed": [
+     -9,
+     29.1,
+     5.6
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port flank locker door",
+    "seed": [
+     -11,
+     29.2,
+     2
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port flank locker door.001",
+    "seed": [
+     -7,
+     29.2,
+     2
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 572.45,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   15.0,
+   18.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    8.5,
+    0.5
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "sponson-port": {
+  "what": "port forebody sponson outer side (grey-green) with its armour modules, belt and keel strake",
+  "sheet": "port-a",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Port forebody sponson",
+    "seed": [
+     27,
+     28.4,
+     3
+    ],
+    "faces": [
+     2,
+     8,
+     14
+    ]
+   },
+   {
+    "object": "Port sponson armour module",
+    "seed": [
+     23.4,
+     28.3,
+     -2.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson armour module.001",
+    "seed": [
+     27.1,
+     28.6,
+     -2.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson armour module.002",
+    "seed": [
+     30.7,
+     29.0,
+     -2.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson seam backing",
+    "seed": [
+     27,
+     28.8,
+     0.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson belt",
+    "seed": [
+     27,
+     29.0,
+     0.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson keel strake",
+    "seed": [
+     27,
+     28.7,
+     -6.3
+    ],
+    "faces": [
+     3,
+     5
+    ]
+   },
+   {
+    "object": "Port sponson passenger port frame",
+    "seed": [
+     23.6,
+     28.2,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson passenger port frame.001",
+    "seed": [
+     26,
+     28.4,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson passenger port frame.002",
+    "seed": [
+     28.4,
+     28.6,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port sponson passenger port frame.003",
+    "seed": [
+     30.8,
+     28.8,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 331.12,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.3,
+   14.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -26.93727397918701,
+    0.0
+   ],
+   "ortho_width": 28.940568475452192
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "bay-doors-port": {
+  "what": "port cargo bay doors: two leaves with stiffeners, dark frame, jambs, sill and track",
+  "sheet": "port-a",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Port cargo bay door aft leaf",
+    "seed": [
+     6,
+     22.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door forward leaf",
+    "seed": [
+     14,
+     22.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door frame",
+    "seed": [
+     10,
+     22.6,
+     -4.6
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door jamb",
+    "seed": [
+     2,
+     23.2,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door jamb.001",
+    "seed": [
+     18,
+     23.2,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door sill",
+    "seed": [
+     10,
+     23.2,
+     -4.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door track",
+    "seed": [
+     9,
+     23.2,
+     3.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door stiffener",
+    "seed": [
+     6,
+     23.1,
+     -2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door stiffener.001",
+    "seed": [
+     6,
+     23.1,
+     1.1
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door stiffener.002",
+    "seed": [
+     14,
+     23.1,
+     -2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Port cargo bay door stiffener.003",
+    "seed": [
+     14,
+     23.1,
+     1.1
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 11,
+  "area_units2": 313.05,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.3,
+   9.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -9.149999618530273,
+    -0.5
+   ],
+   "ortho_width": 22.44185957797738
+  },
+  "native_texels_per_unit": 35.4
+ },
+ "waist-stbd": {
+  "what": "starboard waist wall (mirror of waist-port)",
+  "sheet": "port-a",
+  "tile": 0,
+  "skin_from": "waist-port",
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     8,
+     -22.5,
+     0
+    ],
+    "faces": [
+     22,
+     26,
+     28,
+     34,
+     40
+    ]
+   },
+   {
+    "object": "Starboard crew hatch",
+    "seed": [
+     0.2,
+     -22.9,
+     -3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard crew hatch frame",
+    "seed": [
+     0.2,
+     -22.6,
+     -4.5
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard waist keel strake",
+    "seed": [
+     9,
+     -22.0,
+     -7.3
+    ],
+    "faces": [
+     3,
+     5
+    ]
+   },
+   {
+    "object": "Starboard forebody deck-edge lip",
+    "seed": [
+     28,
+     -23.0,
+     9
+    ],
+    "faces": [
+     3
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 783.75,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   40.69,
+   17.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    18.84375,
+    0.40000009536743164
+   ],
+   "ortho_width": 47.31104651162791
+  },
+  "native_texels_per_unit": 16.8
+ },
+ "aft-flank-stbd": {
+  "what": "starboard aft flank (mirror of aft-flank-port)",
+  "sheet": "port-a",
+  "tile": 1,
+  "skin_from": "aft-flank-port",
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     -10,
+     -28.5,
+     0
+    ],
+    "faces": [
+     1,
+     2,
+     7,
+     8,
+     14,
+     15
+    ]
+   },
+   {
+    "object": "Starboard aft flank armour module",
+    "seed": [
+     -12.6,
+     -28.8,
+     -4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard aft flank armour module.001",
+    "seed": [
+     -7,
+     -28.8,
+     -4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard aft flank seam backing",
+    "seed": [
+     -9.8,
+     -28.6,
+     -2.2
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard aft keel strake",
+    "seed": [
+     -10,
+     -28.0,
+     -7.3
+    ],
+    "faces": [
+     3,
+     5
+    ]
+   },
+   {
+    "object": "Starboard flank locker",
+    "seed": [
+     -9,
+     -29.0,
+     5.8
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Starboard flank locker door seam",
+    "seed": [
+     -9,
+     -29.1,
+     5.6
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard flank locker door",
+    "seed": [
+     -11,
+     -29.2,
+     2
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard flank locker door.001",
+    "seed": [
+     -7,
+     -29.2,
+     2
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 572.45,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   15.0,
+   18.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -8.5,
+    0.5
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "sponson-stbd": {
+  "what": "starboard sponson outer side (mirror of sponson-port)",
+  "sheet": "port-a",
+  "tile": 2,
+  "skin_from": "sponson-port",
+  "members": [
+   {
+    "object": "Starboard forebody sponson",
+    "seed": [
+     27,
+     -28.4,
+     3
+    ],
+    "faces": [
+     3,
+     8,
+     14
+    ]
+   },
+   {
+    "object": "Starboard sponson armour module",
+    "seed": [
+     23.4,
+     -28.3,
+     -2.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson armour module.001",
+    "seed": [
+     27.1,
+     -28.6,
+     -2.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson armour module.002",
+    "seed": [
+     30.7,
+     -29.0,
+     -2.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson seam backing",
+    "seed": [
+     27,
+     -28.8,
+     0.3
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson belt",
+    "seed": [
+     27,
+     -29.0,
+     0.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson keel strake",
+    "seed": [
+     27,
+     -28.7,
+     -6.3
+    ],
+    "faces": [
+     3,
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson passenger port frame",
+    "seed": [
+     23.6,
+     -28.2,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson passenger port frame.001",
+    "seed": [
+     26,
+     -28.4,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson passenger port frame.002",
+    "seed": [
+     28.4,
+     -28.6,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard sponson passenger port frame.003",
+    "seed": [
+     30.8,
+     -28.8,
+     2.4
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 331.12,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.3,
+   14.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    26.93727397918701,
+    0.0
+   ],
+   "ortho_width": 28.940568475452192
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "bay-doors-stbd": {
+  "what": "starboard cargo bay doors (mirror of bay-doors-port)",
+  "sheet": "port-a",
+  "tile": 3,
+  "skin_from": "bay-doors-port",
+  "members": [
+   {
+    "object": "Starboard cargo bay door aft leaf",
+    "seed": [
+     6,
+     -22.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door forward leaf",
+    "seed": [
+     14,
+     -22.9,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door frame",
+    "seed": [
+     10,
+     -22.6,
+     -4.6
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door jamb",
+    "seed": [
+     2,
+     -23.2,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door jamb.001",
+    "seed": [
+     18,
+     -23.2,
+     0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door sill",
+    "seed": [
+     10,
+     -23.2,
+     -4.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door track",
+    "seed": [
+     9,
+     -23.2,
+     3.8
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door stiffener",
+    "seed": [
+     6,
+     -23.1,
+     -2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door stiffener.001",
+    "seed": [
+     6,
+     -23.1,
+     1.1
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door stiffener.002",
+    "seed": [
+     14,
+     -23.1,
+     -2.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Starboard cargo bay door stiffener.003",
+    "seed": [
+     14,
+     -23.1,
+     1.1
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 11,
+  "area_units2": 313.05,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.3,
+   9.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.149999618530273,
+    -0.5
+   ],
+   "ortho_width": 22.44185957797738
+  },
+  "native_texels_per_unit": 35.4
+ }
+}

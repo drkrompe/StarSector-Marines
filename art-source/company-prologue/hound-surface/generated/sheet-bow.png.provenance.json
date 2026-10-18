@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f3a-d952-7ab0-b9b7-1e17daf63edc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f3a-d952-7ab0-b9b7-1e17daf63edc\\exec-66475b00-6830-4b1a-941b-2051c0f15f96.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\hound-surface\\generated\\sheet-bow.png",
+    "sha256": "a6133a08539662809bd2f3ddb8ec3b9a553ec9b3e61a895bf05f1db6d895ab19",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\hound-surface\\prompts\\sheet-bow.prompt.txt",
+  "promptSha256": "0eac3f4c277be41b2c49b5f00b104e7128c0ad194d5bee171d22a823f7fbd137",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a clean, well maintained Hegemony auxiliary combat freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: the outboard side wall of one tine of the bow gun fork, a long tapered plate of muted brown-grey (taupe) painted structural armour, its pointed end to the right;\ntop-right: the nose dome of the bridge capsule seen from straight ahead, a twelve-sided rounded shell in warm off-white cream enamel (the slightly different inner twelve-gon is just the next ring of facets of the same cream shell);\nbottom-left: the forward face of one crash-cage ring around the bridge capsule, an elliptical ring frame of dark gunmetal grey steel; the hole in the middle stays plain background grey;\nbottom-right: the side wall of the gun-fork base, warm saturated Hegemony orange enamel armour plate, with a rectangular hole (plain background grey, stays empty) and a vertical near-black recess strip near its right end that stays near-black.\nINPUT 2 is the SAME ship already painted: it is the finish to match. Use its paint colours, the clean even finish, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that clean, maintained hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole in a shape stays plain background grey.\n- Each shape is a flat steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners and rivets along the edges, flush access-panel outlines, faint even scuffing. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour exactly: the taupe shape stays muted brown-grey painted plate, the cream shape stays warm off-white cream enamel, the gunmetal shape stays dark grey steel, the orange shape stays warm saturated Hegemony orange enamel, and the near-black strip stays near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes, no lettering, numbers, markings or decals.\n- The ship is clean and well kept: wear is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape (the cream dome is painted as one flat even colour, not shaded as a sphere).\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\guide\\sheet-bow-guide.png",
+      "sha256": "430f4be37fa40949131ca4c8b6b81b97c0b2f99a12f814e5dff48c5a626887e3",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\reference\\finish-reference.png",
+      "sha256": "37d8565694195d141c321a39d1927b744b8cea5984dde5b7fc09f8fe7c6b338f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the finish while preserving the four shapes, holes, and layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 83848,
+    "cached_input_tokens": 64256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 801,
+    "reasoning_output_tokens": 20
+  },
+  "elapsedSeconds": 62.6
+}

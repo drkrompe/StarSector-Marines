@@ -1,0 +1,16 @@
+Use case: texture map generation / material swatch sheet for a 3D model.
+INPUT 1 is a layout sheet of FOUR flat-coloured squares on a plain flat mid-blue background. Each square is one hull material of a single 3D spacecraft (a small civilian interplanetary ferry and cargo lander, a working transport kept in service for years), to be painted as a flat, square-on texture sample of that material:
+top-left square: off-white industrial enamel hull paint;
+top-right square: deep signal-red enamel stripe paint;
+bottom-left square: tan enamel paint on hatch and module plate;
+bottom-right square: dark grey-brown drive casing steel.
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, wear density, fine chipping, grime and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:
+- Keep the four squares exactly where they are, the same size, with the same plain mid-blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.
+- Each square is a flat, seen-square-on sample of painted steel plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered flush fasteners, light even scuffing and fine chipping showing grey primer, a thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.
+- Keep each square's colour: off-white stays off-white, red stays deep signal red, tan stays tan, dark steel stays dark grey-brown steel. No colour changes, no repair patches, no different-coloured plates.
+- Weathering is light and even across each whole square. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any concentrated area of wear.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.
