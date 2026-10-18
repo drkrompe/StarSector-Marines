@@ -9,10 +9,10 @@
       "id": "castle",
       "sprite": "graphics/ui/hq-command-deck/castle.png",
       "rect": [
-        1090.9,
-        107.5,
-        65,
-        90
+        637.4,
+        125.4,
+        77,
+        231
       ]
     },
     {
@@ -91,10 +91,10 @@
         "castle"
       ],
       "rect": [
-        0.529,
-        0.2419,
-        0.0392,
-        0.2535
+        0.3076,
+        0.2855,
+        0.0451,
+        0.5959
       ]
     },
     {
@@ -165,6 +165,18 @@
       ]
     ]
   },
+  "camera": {
+    "focal": 990.055,
+    "cx": 1024.0,
+    "cy": -9.429,
+    "height": 2.7
+  },
+  "table": [
+    -1.9,
+    1.9,
+    5.8,
+    8.2
+  ],
   "source": {
     "plate": "deck-plate-v5.master.png",
     "layout": "deck-guide-v8.layout.json",

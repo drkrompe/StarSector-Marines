@@ -48,7 +48,7 @@ TABLE = (-1.9, 1.9, 5.8, 8.2)                   # x0, x1, z0, z1 of the plotting
 # centre; seated figures are measured to the top of the head, and so is a leaning one:
 # Sabine leans on the plot table's right rim, so her head is lower than her standing height.
 PEOPLE = {
-    "castle": (0.9, 8.45, 1.68, 0.0),
+    "castle": (-2.55, 7.35, 1.68, 0.0),
     "comms-left": (-6.35, 11.45, 1.30, TIER["height"]),
     "comms-right": (-4.75, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),

@@ -164,8 +164,9 @@ HULLS = {
                          fittings_units={'personnel door h': [3.4*.61/.99], 'rail h': [1.8*.61/.99], 'transfer door w x h': [34, 10]}),
     'Onslaught': dict(units3=estimate_units3(65541, 'capital'), crew_max=1500, cargo=300, fuel=400, cls='capital',
                       length_units=352, sprite_px=384),
-    'Lasher': dict(units3=estimate_units3(3924, 'frigate'), crew_max=50, cargo=40, fuel=25, cls='frigate',
-                   length_units=94, sprite_px=96),
+    'Lasher': dict(units3=32793, crew_max=50, cargo=40, fuel=25, cls='frigate',
+                   length_units=94.7, sprite_px=96,
+                   fittings_units={'viewport w x h': [1.54, 1.23], 'bridge glazing band h': [1.54]}),
     'Hound (A)': dict(units3=13720, crew_max=40, cargo=75, fuel=30, cls='freighter', length_units=69.1, sprite_px=72,
                       fittings_units={'aft door w x h': [1.59, 2.27], 'airlock w x h': [1.93, 2.39]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
@@ -173,8 +174,8 @@ HULLS = {
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'estimate, no model',
-                 'Lasher': 'estimate, no model'}
-PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65}
+                 'Lasher': 'measured (SOLIDS)'}
+PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .65}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -190,6 +191,12 @@ SOLIDS = {
     'hound': {'blend': 'hound-geometry/hound-geometry.blend', 'step': .5,
               'include': lambda n: n in ('Hull cargo body', 'Hull shielded hold deckhouse', 'Hull engine spar',
                                          'Bridge capsule hull', 'Bridge capsule nose')},
+    # The Lasher's .blend is a build output (build/lasher/lasher.blend), never tracked;
+    # its driver re-measures these solids on every build. The engine nacelles are
+    # drive pods and the gun and missile pods are weapons: both excluded.
+    'lasher': {'blend': '../../build/lasher/lasher.blend', 'step': .5,
+               'include': lambda n: n in ('Hull bow head', 'Hull nose cap', 'Hull spine', 'Hull wing body',
+                                          'Hull ventral keel')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},

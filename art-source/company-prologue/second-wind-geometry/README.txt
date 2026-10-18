@@ -149,10 +149,15 @@ occupied space, no fire, no new engines.
 derelict: ~8 years tethered in the belt as an unpowered parts bin, port side
   and deck to the drift. Lipped basins and strike clusters on that windward
   face, shallow dents on the lee, scrapes and gouges from glancing contact,
-  spalls, torn and unbolted deck plates, buckles, bent port fins, tether
-  padeyes. Engine 1 (port outer) stove in: can dented and torn open, mouth
-  flattened about 40% and the bell cocked 5 degrees toward the strike, top
-  ram snapped, shroud collar torn. Five dorsal rips (ds-) where whole deck
+  spalls, torn and unbolted deck plates, buckles, tether padeyes. The anchor
+  rock that crushed Engine 1 (port outer) stove in the whole upper-outboard
+  quarter of the port engine bay: the drum's aft band and the fin cage
+  pressed flat over five fin rings (fins crushed together, the cage rail
+  bent and torn), the housing corner knocked in with an L-shaped breach (one
+  casing plate folded back, one gone) showing the bay's broken frame,
+  manifold, severed feeds and sheared pump brackets. Engine 1 itself: can
+  dented and torn open, mouth flattened about 40% and the bell cocked 5
+  degrees toward the strike, top ram snapped, shroud collar torn. Five dorsal rips (ds-) where whole deck
   panels tore away along their seams: torn fastener rows, a panel folded back,
   the frame and stringers broken and pushed in at the strike, crushed and
   severed pipe and conduit. Salvagers took the pumps, coils, access panels,
@@ -173,12 +178,19 @@ patched: the escape, only what the flight needed. Collar patch on the
   Starboard pod on a jury-rigged salvaged coil and feed pump, its power run
   clipped across the aft deck to the engine-room hatch; port pod cold with
   its feed lines blind-flanged, nozzles open.
-refit: the limited berthing/command conversion. The collar, the spine and
-  command-deck patches, the dogged trunk, the trunk seals, the mast, one
-  waist run and two plates are done properly (shop primer, fresh seams).
-  Heavy craters, the dead port pod, the crushed Engine 1 and the jury coil
-  remain; the live conduit ends are booted (no sparks) and the starboard waist
-  rip is plated.
+refit: the limited berthing/command conversion. More is done properly (shop
+  primer, fresh seams): the collar, the bow-cheek doubler, the spine and
+  command-deck patches and cluster, the dogged trunk, the trunk seals, the
+  mast, one waist run, the torn, unbolted and buckled forebody deck plates and
+  the three deck rips over the new berthing (both waists and the forward one).
+  It is still beaten up: heavy craters, dents, spalls and gouges, the
+  shoulder peels, the dead port pod with its stove-in engine bay and crushed
+  Engine 1, the wrecked turrets
+  1 and 3 and the jury coil remain, and nothing is repainted. Turret 3's live
+  feed is booted (no sparks).
+  Paint: patched and refit keep the derelict's sun-faded paint exactly
+  (../second-wind-surface/wear.json); only their own plates, welds and primer
+  are new. The restoration is the first repaint.
 restored: structurally whole, both pods running (Engine 1 a new can and
   nozzle), stripped parts reinstalled and turrets 1 and 3 given new houses.
   Replacement plates repainted near (never exactly) the hull colour with

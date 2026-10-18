@@ -84,7 +84,7 @@ F/A-18's box. Servicing in space and ordnance handling add to it.
 |---|---|---|---|---|
 | Hound (A) | 0.88 (solves 1.09) | 61 m | measured | published, kept: the anchor for person-scale fittings |
 | Second Wind | 0.65 (solves 0.69) | 66 m | measured | published, kept |
-| Lasher | 0.95 | 90 m | estimate | waiting on a measured model |
+| Lasher | 0.65 published (solves 0.95) | 62 m (90 m solved) | measured | published before option C; re-publish at 0.95 owed by the Lasher session |
 | Legion (XIV) | 0.99 (solves 0.995) | 292 m | measured | published |
 | Onslaught | 0.93 | 326 m | estimate | waiting on a measured model |
 
@@ -99,9 +99,10 @@ reports each capital's length against both the Hound and the Lasher, and flags
 any capital under about 4x a frigate, or under its own sprite ratio. A flagged
 capital is never published silently.
 
-Under option C both capitals are flagged against the Lasher estimate (3.3x and
-3.6x). The owner chose C with that shown. A measured Lasher can move the flag;
-read it again when that measurement arrives.
+Under option C both capitals are flagged against the Lasher's solved length
+(3.3x and 3.6x; measured volume, 90 m). The owner chose C with that shown.
+Against the Lasher's pre-C published 62 m the Legion would be 4.7x; that
+number is stale until the Lasher is re-published on this basis.
 
 ## Person-scale fittings
 

@@ -59,6 +59,10 @@ class CompanyHqNewsDeskTest {
         CompanyHqNewsDesk desk = new CompanyHqNewsDesk(reactor);
         Map<String, Object> props = CompanyHqViewModel.preview().props();
         desk.put(props);
+        // The archive sits behind the comms station in the action desk's detail pane.
+        HqActionDesk actions = new HqActionDesk(reactor, desk);
+        actions.put(props);
+        actions.show(HqActionDesk.View.COMMS);
         Path mod = Path.of("mod");
         SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(mod.resolve(path)));
         try {

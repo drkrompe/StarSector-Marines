@@ -28,24 +28,23 @@ centre, so slot and engine XY from lasher.ship are used unchanged. Sprite
 column c, row r (from the top) covers X 60-r..61-r and Y 33-c..34-c. Heights
 are proposed art; the game gives none.
 
-Scale (pass 4): 0.85 m per unit
-One number, METRES_PER_UNIT in build_lasher.py and metres_per_unit in
-geometry.json (also a custom property on the asset's root). She is about
-80 m long, 58 m across the wings and 17 m keel to turret top; a 1.8 m person
-is 2.1 units. Solved in the warship form: the mod's deck program for a
-FRIGATE "Frigate" (WARSHIP) with 25-50 crew and 40 cargo
-(DeckProgramProbe) is 2,317 m2 of rooms; the Lasher has no fighter bays, so
-the notional 160 m2 hangar is dropped: 2,157 m2 x1.40 circulation x3.2 m
-deck height = 9,663 m3. The pressure hull (bow head, nose cap, spine, wing
-body, nacelles; the weapon pods are magazines and gun housings) measures
-about 37,000 cubic units as a union, re-measured on every build. The
-non-habitable budget is armour 12%, reactor and flux plant 14%, drives and
-fuel 12%, magazines and ammo feed 8%, structure and tanks 12%, leaving 42%
-habitable: 0.853 m per unit, published as 0.85. Range 0.78 (a freighter's
-55% habitable) to 0.95 (30%). Cross-checks: spine keel to deck 12.8 m (four
-3.2 m decks), main bell mouth 8.2 m, bow barbette 7.8 m across. It comes out
-a little longer than the Hound (A) (61 m) and shorter than a modern frigate,
-about a corvette's length, which suits a 5-FP frigate.
+Scale (pass 4): 0.65 m per unit
+Published through the shared sizing basis, ../ship_scale.py (owner,
+2026-10-18), never set here: METRES_PER_UNIT in build_lasher.py reads
+ship_scale.PUBLISHED and geometry.json's 'scale' is ship_scale.record('Lasher').
+Contents: 50 crew at the frigate's 40 m3 a person, 40 cargo at the cargo unit
+calibrated on the Hound (A), 25 fuel at 32 m3, over the frigate machinery
+share (46%): about 8,900 m3 enclosed. Enclosed volume is the union of
+ship_scale.SOLIDS['lasher']: bow head, nose cap, spine, wing body and ventral
+keel (the engine nacelles are drive pods and the gun and missile pods are
+weapons, so neither counts): 32,793 units3. That solves to 0.648, published
+as 0.65; the cramped anchor gives 0.62. She is about 62 m long, 44 m across
+the wings and 13 m keel to turret top, the Hound (A)'s length (61 m), and a
+1.8 m person is 2.8 units. The driver re-measures the union on every build and
+fails if it drifts more than 2% from ship_scale.HULLS, so a shape change is
+carried into the shared table rather than absorbed here.
+Human fittings are sized in true metres at that scale (ls_hull VIEWPORT_M,
+BRIDGE_BAND_M): viewport panes 1.0 x 0.8 m, the bridge glazing band 1.0 m.
 
 Reading of the sprite (ls_hull, ls_pods)
 - Nose cap (rows 1-12): gunmetal prow with raked top, chin and cheeks, and
@@ -124,8 +123,8 @@ draw, and chamfer overhang at the pod corners).
 
 Shot check (C1 v2)
 c1_core's camera (50 mm on a 36 mm sensor) at 1920x1080 under its sun
-(SUN_IN_CAMERA, no fill), the hull abeam and a little above: 139 x 42 px at
-1.5 km, 71 x 22 px at 3 km. The brief's 20-40 px corresponds to a wider
+(SUN_IN_CAMERA, no fill), the hull abeam and a little above: 107 x 33 px at
+1.5 km, 54 x 17 px at 3 km. The brief's 20-40 px corresponds to a wider
 lens or a longer range than this camera; the numbers scale linearly.
 
 Rebuild from this folder (outputs go to build/lasher/, never tracked)
