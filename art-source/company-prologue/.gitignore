@@ -57,6 +57,10 @@ mudskipper-cinematic/*.blend
 mudskipper-cinematic/*.blend1
 mudskipper-cinematic/review/
 hound-surface/grading/
+hermes-surface/review/
+hermes-surface/textures/
+hermes-surface/grading/
+hermes-surface/skin-manifest.json
 hound-surface/skin-manifest.json
 hound-export/**/*.blend
 hound-export/**/*.blend1

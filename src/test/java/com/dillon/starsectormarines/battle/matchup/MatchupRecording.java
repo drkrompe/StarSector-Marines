@@ -149,6 +149,14 @@ public final class MatchupRecording {
         float[] ys = new float[bodies.length];
         int n = 0;
         for (long id : bodies) {
+            if (sim.convoy().isVehicle(id)) {
+                // A hull is not a unit: it is framed while it is whole, at its body's position.
+                if (!sim.convoy().isPresent(id)) continue;
+                xs[n] = sim.convoy().body(id).x;
+                ys[n] = sim.convoy().body(id).y;
+                n++;
+                continue;
+            }
             if (sim.resolveUnit(id) == 0L) continue;
             xs[n] = sim.world().cellX(id) + 0.5f;
             ys[n] = sim.world().cellY(id) + 0.5f;

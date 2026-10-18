@@ -54,7 +54,7 @@ class MechInternalsTest {
         MechFrameBudget.Fit fit = bay.mechById(id).fit();
         assertEquals(950f, fit.armorCapacity(), 1e-4f);
         assertEquals(1.15f, fit.moveSpeed(), 1e-4f);
-        assertEquals(140f, fit.heatCapacity(), 1e-4f);
+        assertEquals(120f, fit.heatCapacity(), 1e-4f);
         assertEquals(8.5f, fit.coolingPerSecond(), 1e-4f);
         assertFalse(fit.overBudget());
         assertEquals(fit.frame(), bay.mechById(id).freezeForDeployment().frame());

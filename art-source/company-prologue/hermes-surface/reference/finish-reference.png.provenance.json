@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15034-11e0-7a81-ad7f-8d71133c42a2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15034-11e0-7a81-ad7f-8d71133c42a2\\exec-4da645f4-d409-4a00-9623-be64638d3f5d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "reference\\finish-reference.png",
+    "sha256": "cb6611f52f21ea858692410d875400e61bbed44e5c6bac0b47a6009f8e57bdc7",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\finish-reference.prompt.txt",
+  "promptSha256": "2243e5dbd9cba017f8a56256522f5da3e2df9d62e24009c227c6921519923b82",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the game sprite (paint scheme and colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one small spacecraft, a Hermes-class shuttle (a small courier and troop boat), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: ivory-cream hull plate on the spine, nose and fairing, light cool grey hull panels on the gun sponsons, drive block and deck plates, mid-grey gunmetal machinery (turrets, vents, frames, fittings), near-black recesses and seams, small dark cockpit windows.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, turret, vent, door and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: cream plate stays a warm ivory-cream enamel (as INPUT 2's pale spine), light grey panels stay a light cool grey paint, gunmetal stays dark grey bare-ish steel, recesses stay near black, windows stay dark tinted glass. Do not swap or invent colours, stripes or patches.\n- Finish: a clean, working civilian courier. Crisp semi-matte industrial enamel with fine plate seams, flush fastener rows, small access panels and subtle panel-to-panel tone differences. Light, even service wear only: faint edge scuffs on exposed corners, a thin film of grime in seams, a little soot near the aft drives. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\reference-guide.png",
+      "sha256": "97c2ebc74695b2004cccffd6449e72abc458fd3b44d8fcbe40bc4258481d5395",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "reference\\sprite-livery.png",
+      "sha256": "e4801f9a9d8fe38fe14f01aa36e65b72d3478bdf29e6a805a2db66b7e2630bb8",
+      "dimensions": [
+        448,
+        656
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 2: the game sprite (paint scheme and colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the render, preserving its composition, geometry, and material colours.\n"
+  ],
+  "usage": {
+    "input_tokens": 81963,
+    "cached_input_tokens": 62848,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 684,
+    "reasoning_output_tokens": 41
+  },
+  "elapsedSeconds": 48.5
+}

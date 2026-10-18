@@ -1,0 +1,42 @@
+{
+ "aft-side-port": {
+  "raw_iou": 0.9484,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9526,
+  "scale": [
+   0.998,
+   0.99673
+  ],
+  "boundary_p95_px": 29.0
+ },
+ "aft-top": {
+  "raw_iou": 0.9899,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9925,
+  "scale": [
+   0.99861,
+   0.99873
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "aft-stern": {
+  "raw_iou": 0.9957,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9981,
+  "scale": [
+   1.00172,
+   0.998
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "aft-arm-port": {
+  "raw_iou": 0.9616,
+  "best_fit": "identity",
+  "fitted_iou": 0.9616,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ }
+}
