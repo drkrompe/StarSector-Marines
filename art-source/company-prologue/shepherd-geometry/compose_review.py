@@ -25,7 +25,8 @@ parser.add_argument('--sprite', default=str(GAME_SPRITE))
 parser.add_argument('--before', default='reference-history/v1-blockout',
                     help='snapshot folder (relative to this one) for the before/after sheet')
 parser.add_argument('--compare', default='pass2-before-after.png')
-parser.add_argument('--title', default='SHEPHERD (MORROW) / GEOMETRY PASS 2 - PLAUSIBLE DETAIL')
+parser.add_argument('--pairs', help='comma-separated views for the before/after sheet (default: the close-ups)')
+parser.add_argument('--title', default='SHEPHERD (MORROW) / GEOMETRY PASS 3 - REVIEW FIXES ON PASS 2')
 args = parser.parse_args()
 src = Path(args.dir)
 manifest = json.loads((src/'geometry.json').read_text(encoding='utf-8'))
@@ -115,6 +116,8 @@ sheet.save(src/'shepherd-geometry.reference.png', optimize=True)
 before = HERE/args.before
 DETAILS = ['bow-detail', 'bridge-detail', 'dronebay-detail', 'gantry-detail', 'turret-detail', 'engine-detail',
            'stern-detail', 'underside']
+if args.pairs:
+    DETAILS = args.pairs.split(',')
 pairs = [n for n in DETAILS if (before/(n+'.png')).exists() and (src/(n+'.png')).exists()]
 if pairs:
     cmp = Image.new('RGB', (1920, 1080), BG)
