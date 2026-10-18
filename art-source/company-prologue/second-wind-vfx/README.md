@@ -52,7 +52,7 @@ group's review into `build/<group>/`.
 | `swfx_core.py` | the state table, `Context` (knobs, drivers, collections), scale (`METRES_PER_UNIT`, `units()`), builders, render setup |
 | `swfx_anchors.py` | finds the effect anchors on the built ship |
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
-| `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks |
+| `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
@@ -105,6 +105,12 @@ as possible.
 | RCS puffs | `RCS <cluster> <axis> anchor` empties (skipped when `working` is false) | see Thrusters |
 | `SWFX anchor turret {i} {tag}` | `Turret {i} {tag} muzzle brake` | brake mouth; +X along the barrel at the slot's resting angle. `tag` is `gun`, or `port gun` / `starboard gun` on the medium twin turret 4 |
 | `SWFX anchor lamp <part>` | lamp parts by name (`LAMPS` in the module) | lamp centre; the role is running-port/starboard (by side), masthead, beacon, work, davit or drive-warning |
+| `SWFX anchor spark <id> <label>` | `Scar <id> spark anchor`, `Scar <id> spark-2 anchor`, ... (the damage layer's `d.anchor`) | the broken end of a live run; +X is the spray direction. Spray size comes from the anchor's `radius_m` (via `units()`, 0.5 m if absent); `sparking` is that state's flag |
+
+Every scar spark anchor is found and recorded (`ctx.records['anchors']['sparks']`)
+whether or not it is sparking, so its id persists across states. The
+geometry's anchor empties are unparented; `make_ship_root()` takes them along
+with the ship.
 
 Engines are numbered 1 port outer, 2 port inner, 3 starboard inner, 4
 starboard outer (`sw_engines.ENGINES` order; +Y is port). The tables only
@@ -207,6 +213,35 @@ the derelict.
   wisp, and a geometry-nodes spark shower. The sparks arc under drag and
   gravity in air and fly straight in vacuum. You can also pass
   `build(ctx, welds=[...])`. Neither is added by default.
+- **Conduit sparks**: broken live conduit that the patched crew left live
+  because nobody could reach it to splice it. One emitter per scar spark
+  anchor whose `sparking` is true. By the state convention that is patched
+  only: derelict is unpowered, refit isolated the live breaks, and restored
+  has none. Anchors that are not sparking get nothing. These are on by
+  default; `build(ctx, sparks=False)` (or `swfx.apply(..., sparks=False)`)
+  leaves them out, and `add_conduit_sparks(ctx, anchor)` builds one by hand.
+  Each emitter has three parts:
+  - **bursts** of 3-12 small, bright sparks (the weld spark machinery: the
+    same streaks, drag and gravity), white-yellow cooling to orange, living
+    5-13 frames. In air they arc down; in vacuum they fly straight. They
+    travel roughly `radius_m`;
+  - a **flash light** (a 120 W point at the break, flickering) that is lit
+    only for the burst's 2-5 frames and gone about 2 frames after;
+  - a white-hot **bead** at the break, visible only while it shorts.
+
+  Timing is procedural on `frame`, so there is no keyed horizon and no
+  cache. Time is cut into 30-frame cells. Each cell holds at most one burst,
+  at a seeded offset in its first 18 frames, and about a quarter of the cells
+  stay quiet. Burst to burst is therefore 0.5-2 s, about 1.75-3.2 s across a
+  quiet cell, and longer only rarely. The seed is `zlib.crc32` of the
+  anchor's name, so anchors never fire in sync and a rebuild repeats exactly.
+  The schedule is computed once per frame by simple drivers on the
+  emitter's root empty (`swfx_s0/d0/h0` for this cell, `.._1` for the last
+  one), and the sparks, the light and the bead all read it, so they cannot
+  disagree. `spark_bursts(seed, first, last)` is the Python mirror: it lists
+  `(start_frame, frames, sparks)` for choosing shot frames. An emitter's seed
+  is in its record and on its root (`swfx_spark_seed`).
+  There is no sustained arc, fire or venting.
 
 | Knob | Range | Default | Meaning |
 |---|---|---|---|
@@ -217,6 +252,7 @@ the derelict.
 | `smk_ground_z` | ±2000 | -1000 | World Z of the ground (-1000 = no ground, no dust) |
 | `smk_seal_wisp` | 0-1 | 0.3 | Seal-leak strength; keep it low (canon) |
 | `smk_weld` | 0-1 | 1 | Weld intensity (made by `add_weld`) |
+| `smk_sparks` | 0-1 | 1 | Conduit spark intensity: spark brightness, flash light and bead. 0 = off |
 
 ### Guns (`swfx_guns`)
 
@@ -396,6 +432,8 @@ auto-run off. `check_kit.py` fails on any invalid or non-simple driver.
 - that a second apply gives identical counts;
 - that plumes exist exactly for the running engines;
 - that seal leaks appear only where the state allows them;
+- that there is exactly one conduit-spark emitter per scar spark anchor
+  whose `sparking` is true;
 - that every driver is valid and a simple expression.
 
 At writing it passes on `derelict`, `patched`, `refit` and `restored`:
@@ -426,6 +464,11 @@ kept under the ignored `build/`.
     `thr_rcs_gain` 6). The bank's pod-stbd up puffs read clearly. The stern
     yaw puffs face the camera in the pod's shadow and barely show; frame a
     yaw shot from aft.
+  - `kit-patched-sparks-burst.png` and `kit-patched-sparks-quiet.png`
+    (`review_kit.py --shot sparks`): the first live scar spark anchor during
+    its biggest burst in 10 s and in a quiet frame, in air, with the key
+    dimmed. The camera is placed from the anchor. The shot needs a patched
+    ship built with spark anchors.
 - `review/thrusters/`:
   - patched and restored stern quarters;
   - starboard close-up;
