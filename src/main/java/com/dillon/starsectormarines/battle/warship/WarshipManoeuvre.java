@@ -23,7 +23,17 @@ public final class WarshipManoeuvre {
         /** The leading ship of a line of broadside ships on one target. */
         LEAD,
         /** A ship sailing in the wake of its line's lead. */
-        SECOND
+        SECOND,
+        /**
+         * A pack relay's aggro holder: the nearest and most threatening hull on the target's battery, drawing its fire
+         * with its shield on it, firing only as its flux allows ({@link WarshipTactics}, pack relay).
+         */
+        TANK,
+        /**
+         * A pack relay's striker: working the target from its quarter, off its shield arc where it can, at full fire
+         * while the tank holds the target's attention; or, venting, out of the fight until its pool is low.
+         */
+        STRIKER
     }
 
     /** The manoeuvres a ship flies against a hull. */
@@ -62,7 +72,20 @@ public final class WarshipManoeuvre {
          * Breaking away on a course well off the target to open the range at full way while venting a full pool,
          * rather than backing off at a crawl: the turn is the cost, paid on a quarter the target may cross.
          */
-        BREAK
+        BREAK,
+        /**
+         * A pack relay's tank holding the target's attention: on the bearing round the target where its battery bears
+         * most, nearer than its partners, nose and shield on the target.
+         */
+        HOLD_AGGRO,
+        /** A pack relay's striker on the target's quarter, away from the tank, guns on at full fire. */
+        STRIKE,
+        /**
+         * A pack relay ship venting after its turn as tank: backing off nose-on while the target still has it in its
+         * sights, then, once the target's attention is on the new tank, turning away at full way to past the target's
+         * reach and holding there, shield down, until its pool is low.
+         */
+        VENT
     }
 
     Role role = Role.NONE;
@@ -95,6 +118,16 @@ public final class WarshipManoeuvre {
     float orbitAngle = Float.NaN;
     /** Manoeuvres begun, for evidence. */
     int begun;
+    /** For a pack relay ship: it is out of the fight venting, holding its fire, until its pool is low. */
+    boolean relayVenting;
+    /** For a relay striker or venting ship: the tank holding the target for it, or {@code null}. */
+    Warship relayPartner;
+    /** The battle clock, in seconds, when this ship took its current relay role. */
+    float relaySince = Float.NaN;
+    /** Times this ship has taken over as a relay's tank from a partner, for evidence. */
+    int relaySwaps;
+    /** Times this ship has broken off to vent in a relay, for evidence. */
+    int relayVents;
 
     /** The role the ship's group gave it. */
     public Role role() {
@@ -121,6 +154,29 @@ public final class WarshipManoeuvre {
         return begun;
     }
 
+    /** Whether this ship is out of its pack relay venting, holding its fire. */
+    public boolean relayVenting() {
+        return relayVenting;
+    }
+
+    /**
+     * Whether this ship is venting but still handing the target over: backing off nose-on, holding its fire, until its
+     * partner is in place to take the target's eye. Its vent proper begins when it turns away.
+     */
+    public boolean relayHandingOver() {
+        return relayVenting && kind == Kind.VENT && Float.isNaN(course);
+    }
+
+    /** Times this ship has taken over as its relay's tank from a partner. */
+    public int relaySwaps() {
+        return relaySwaps;
+    }
+
+    /** Times this ship has broken off to vent in a relay. */
+    public int relayVents() {
+        return relayVents;
+    }
+
     /** The line lead this ship follows, or {@code null}. */
     public Warship leader() {
         return leader;
@@ -143,5 +199,8 @@ public final class WarshipManoeuvre {
         kind = null;
         course = Float.NaN;
         heading = Float.NaN;
+        relayVenting = false;
+        relaySince = Float.NaN;
+        relayPartner = null;
     }
 }

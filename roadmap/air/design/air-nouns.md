@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-18 — two or more bow ships on one hull fight it as a relay (a tank holds the target's attention while strikers work its quarter, swapping to vent), and a ship set upon by several hulls answers the one that threatens it. Earlier the same day: the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1817,6 +1817,32 @@ for one mission:
   on while its target is near its flux limit. On a manoeuvre a ship travels along its
   nose, so range opens and closes as a ship's course does rather than a hover holding a
   ring.
+- **A ship set upon by several hulls answers the one that threatens it** (`warship-tactics.md`,
+  slice 7). A ship chooses its hull by range over its reach, keeping the one it has. When two
+  or more hostile hulls are fighting it and the one it has stops being a threat (less than half
+  of its battery laid on the chooser, or out of its own reach), it chooses again with threat
+  weighed: a hull is the cheaper the more of its battery it has laid on the chooser from inside
+  its reach (a hull closing from just outside it counts for up to half), and the less the
+  chooser must turn to answer it, and the one it had keeps only half its keeping bonus. A hull
+  that turns its guns away, or opens the range, lets the chooser's attention go to the one in
+  front of it. A ship in an even fight never drops the hull it is wearing down for another.
+  `-Dbattle.warship.threatTargeting=false` is the control.
+- **Two or more bow ships on one hull fight it as a relay** (`warship-tactics.md`, slice 7).
+  One is the **tank**: it holds the target's attention from nearest and nose-on, on the
+  target's battery side, its shield on the target, and fires only while its pool stays low
+  enough for that shield. The others are **strikers**: they work the target's quarter, round
+  from the tank and off its shield arc where they can, at full fire, since nothing is
+  shooting at them. The ship with the most flux to spare holds the target. When the tank's
+  pool runs high and a partner inside its reach is fresh, they **swap**: the partner closes to
+  catch the target's eye while the old tank backs off nose-on, holding its fire; once the
+  partner is nearer and has its battery on, the old tank turns away (this is the one place a
+  front-shielded ship turns its stern in reach, under its partner's cover), opens past the
+  target's reach, lets its shield drop and **vents**, and comes back as a striker. A tank
+  whose shield is going with nobody fresh breaks off all the same; a striker running high
+  vents while the tank holds. Catching and shedding the target's attention is nothing but
+  the target's own choice of whom to fight, above. A line of broadside ships keeps its line,
+  an escorted charge keeps its flank and pin, and a one-on-one is a duel.
+  `-Dbattle.warship.packRelay=false` is the control.
 - **One ship against one is a duel, flown for position** (`warship-tactics.md`, slice 6).
   At hull range a defender can always pivot faster than an equal can circle it, so
   nobody is got round by speed alone: position is won by choices, read off the two
