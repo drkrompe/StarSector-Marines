@@ -519,19 +519,41 @@ def _spine_detail(kit):
     decks = _Decks()
     # Few stations aft of the glacis, so the plate is two flat faces with one crease where
     # it turns in along the well's diagonal lip, not a crumpled curtain.
-    xs = [-20.0, -21.0, -22.0, -23.0, -24.0, -34.0, -46.0]
+    # Round 11 (critic d: over X -44..-23 the plate fell away under the spine's shoulder,
+    # its top dragged down toward its narrow after end, leaving a 17.5 step of bare spine
+    # flank above it): the plate now starts at the foot of the spine's shoulder chamfer the
+    # whole way aft, so no flank shows above it, and its face keeps one rake (SKIRT_RAKE) down to
+    # the root deck; aft of X -34 it turns in along the well's diagonal lip as one plate to
+    # the shoulder's sloped face (_aft_shoulders) at the root deck's after face.
+    xs = [-20.0, -21.0, -22.0, -23.0, -24.0, -30.0, -34.0, -40.0, SKIRT_END_X]
+    turn = (-34.0, SKIRT_END_X)       # where the foot runs in a straight line along the lip
+    run = 1.0/math.tan(math.radians(SKIRT_RAKE))
     for side, s in (('port', 1), ('starboard', -1)):
         st = []
         for x in xs:
             half = _half_at(x)
-            yi = half-.8
-            # (on the tail, aft of the root deck, the ledge narrows to the tail's chamfer so the
-            # plate's last station is the shoulder's outer face: one face, no slot between)
-            yo = max(min(SKIRT_REACH, decks.lip(x, s, yi)-(SKIRT_LEDGE if x > ROOT_X else 2.4)), yi+1.0)
+            yi = half-.3
+            zt = _spine_top(x)-SPINE[-1][0]+.3
+
+            if x <= SKIRT_END_X+1e-6:
+                # the last station is the shoulder's sloped face (_aft_shoulders), so the two
+                # read as one plate turning aft along the tail's edge
+                yo = SHOULDER_FOOT_Y
+            elif x < turn[0]:
+                yo = None                    # filled in below: a straight foot line
+            else:
+                deck = decks.z(x, s*(yi+4.0)) or SKIRT_FOOT_Z
+                cap = decks.lip(x, s, yi)-(SKIRT_LEDGE if x > ROOT_X else 2.4)
+                yo = max(min(SKIRT_REACH, cap, yi+(zt+LIFT-deck)*run), yi+1.0)
+            st.append([x, yi, zt, yo])
+        y0 = next(yo for x, _, _, yo in st if x == turn[0])
+        for row in st:
+            if row[3] is None:
+                row[3] = y0+(SHOULDER_FOOT_Y-y0)*(turn[0]-row[0])/(turn[0]-turn[1])
+        for i, (x, yi, zt, yo) in enumerate(st):
             foot = (decks.z(x, s*yo) or SKIRT_FOOT_Z)+.4-LIFT
-            zt = _spine_top(x)-2.2
             sec = [(yi, zt), (yi, -2.0), (yo, -2.0), (yo, foot), (yo-.9, foot+.9)]
-            st.append((x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]))
+            st[i] = (x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)])
         loft_x(kit, f'Bridge spine side step {side} aft', st, kit.grey, bevel=.2)
     _aft_shoulders(kit, decks)
     # Transverse ribs across the upper aft terrace, behind the helmet, with dark vents
@@ -550,11 +572,17 @@ def _spine_detail(kit):
 # out of the spine's flank under the aft dome, level at the after terrace, raked down to the
 # tail's top at the after end. (x, top, outer foot |Y|, chine |Y|), final heights.
 SHOULDER_IN = 14.0
-# The outer foot stands two units inboard of the tail's edge (os_stern: |Y| 20.5), on its
-# chamfer, so the chamfer shows as a ledge and the block never stands on the wells' lip; the
-# forward station meets the skirt plate's last station, which is the same near-vertical face.
-SHOULDER = [(-45.6, 25.5, 18.6, 17.8), (-50.0, 25.5, 18.8, 18.0), (-76.0, 25.5, 18.8, 18.0),
-            (-85.0, 18.7, 18.5, 17.4)]
+# Round 11 (critic d: each shoulder's outer face stood as a 23-unit sheer wall over the
+# tail's edge and the wells, X -77..-49): the face is one sloped armour plate from the
+# shoulder's top chine (|Y| yc) down to its foot on the tail's edge (|Y| SHOULDER_FOOT_Y),
+# lying just proud of the tail's own sloped flank, so shoulder and tail read as one raked
+# face falling to the well rather than a block standing on a ledge. (x, top, foot |Y|,
+# chine |Y|), final heights.
+SKIRT_RAKE = 62.0     # deg from horizontal: the skirt plates' face where the deck allows it
+SHOULDER_FOOT_Y = 20.0
+SKIRT_END_X = -47.0   # the skirt plate laps a unit past the spine's grey cap (SPINE_CAP_X)
+SHOULDER = [(-45.6, 25.5, SHOULDER_FOOT_Y, 15.6), (-50.0, 25.5, SHOULDER_FOOT_Y, 15.6),
+            (-76.0, 25.5, SHOULDER_FOOT_Y, 15.6), (-85.0, 18.7, SHOULDER_FOOT_Y, 15.6)]
 
 
 def _aft_shoulders(kit, decks):

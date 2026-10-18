@@ -283,8 +283,11 @@ FORE_ZK = [(225, STEM_HEAD_Z-6.0*(STEM_DECK_Z-1.0)/(17.7-5.4)), (205, 1.0), (200
            (0, 1.5), (-18, 1)]
 FORE_ZL = [(225, -12.5), (205, -14.1), (200, -15), (172, -17), (104, -18), (60, -18), (0, -16), (-18, -15)]
 FORE_FL = [(225, .6), (205, 3.3), (196, 4), (150, 6), (104, 8), (60, 10), (0, 12), (-18, 12)]
-FORE_KW = [(225, 2), (205, 3.2), (104, 5), (-18, 5)]
-FORE_KEEL = [(225, -15.6), (205, -20.5), (104, -34), (60, -34), (0, -30), (-18, -28)]
+# Round 11: forward of the forefoot (X 168) the forebody's keel flat is the ship's keel; aft
+# of it the belly (below) carries the underside, so the forebody's own keel rises out of
+# sight inside it.
+FORE_KW = [(225, 2), (205, 3.2), (168, 4.0), (104, 5), (-18, 5)]
+FORE_KEEL = [(225, -15.6), (205, -20.5), (168, -26.0), (160, -24.0), (-18, -22.0)]
 # Stations at every table breakpoint, so each face between two is one flat plate
 # and the armour skins (os_armour), sampled on the same planes, lie flush on it.
 FORE_STATIONS = sorted({x for t in (FORE_W, FORE_YI, FORE_ZI, FORE_ZK, FORE_ZL, FORE_FL, FORE_KW, FORE_KEEL)
@@ -319,13 +322,9 @@ def fore_section(x):
     return [(-y, z) for y, z in reversed(half)]+half
 
 
-# The belly: a deep armoured wedge under the core, not a pod. Its top is buried
-# in the forebody; below the forebody's lower chine it shows as two more chines
-# stepping in to a keel flat, deepest under the citadel, and its keel line
-# carries on from the prow's forefoot in straight runs: down from X 170, level
-# under the citadel, up to the stern. From ahead it is the wedge between the arms.
-BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 60), (0, 63), (-22, 62), (-40, 52),
-           (-52, 46), (-64, 38)]
+# The belly: a deep armoured wedge under the core, not a pod. Its keel line carries on
+# from the prow's forefoot in straight runs: down from X 168, level under the citadel, up
+# to the stern.
 # Round 5 (owner: "the central body doesn't need to be as strangely elongated down
 # under the ship"; critic: the belly's after face was a blank V wall under the stern
 # with strakes hanging off it). The keel line is four straight runs meeting on hard
@@ -336,29 +335,43 @@ BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 6
 # KNUCKLE at X -40, where the belly's after end sweeps up steeply (about 30 deg)
 # into the aft body's keel (-32, os_stern) and ends buried in it, so from astern
 # the belly is a short sloped counter running into the stern, not a hanging wall.
+#
+# Round 11 (critic a: from below and low ahead the belly, prow and core underside were a
+# shapeless brown lump of fine facets - two chines per side on a narrow keel, twisted from
+# station to station, with the forebody's own deadrise and the waists' troughs showing
+# between them). The underside is now three big planes and three chines a side:
+#   keel band   one flat plate BELLY_KB either side of the centreline (30 wide from the
+#               chest aft), following the knuckled keel line, so its edges - the keel
+#               chines - run parallel to X;
+#   bilge plane one straight plate each side from the keel chine up to the forebody's
+#               lower chine (the bilge chine), steep under the narrow chest, flatter under
+#               the broad core;
+#   side        the forebody's side face from there up to the upper chine.
+# The forebody's own deadrise is buried inside the belly, and the waists run on level from
+# the bilge chine into the arms (waist_section), so the bilge chine is the crest of the
+# underside rather than the lip of a trough.
 BELLY_KNUCKLE_X = -40.0
 BELLY_KEEL = [(168, -26.0), (128, -50.0), (88, -50.0), (BELLY_KNUCKLE_X, -40.0), (-64, -29.0)]
-BELLY_STATIONS = [170, 168, 150, 128, 104, 88, 80, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, BELLY_KNUCKLE_X,
-                  -52, -64]
+BELLY_KB = [(168, 4.0), (128, 12.0), (104, 15.0), (BELLY_KNUCKLE_X, 15.0), (-64, 8.0)]
+# Aft of the core (X -18) the bilge chine runs inboard and under the aft body to the
+# belly's end, buried below its deck: (X, |Y|, z).
+BELLY_W = [(-18, 72.0), (-30, 62.0), (BELLY_KNUCKLE_X, 54.0), (-52, 46.0), (-64, 38.0)]
+BELLY_AFT_Z = [(-18, -15.0), (BELLY_KNUCKLE_X, -17.0), (-64, -18.0)]
+BELLY_STATIONS = [168, 160, 150, 148, 128, 120, 104, 88, 74, 60, 40, 20, 0, -18, -30, BELLY_KNUCKLE_X, -52, -64]
 
 
 def belly_section(x):
-    bw, zb = _table(BELLY_W, x), _table(BELLY_KEEL, x)
+    """Port half (top, bilge chine, keel chine) mirrored: the keel band, the bilge planes and
+    a top buried in the forebody (or, aft of it, under the wells' floor)."""
+    k, kb = _table(BELLY_KEEL, x), _table(BELLY_KB, x)
     if x >= -18:
-        # Under the forebody the belly's upper chine lies on the forebody's own
-        # bottom (its lower chine, or on the deadrise where the belly is narrower),
-        # so the belly carries the hull's underside on down with no undercut slot.
         f = fore(x)
-        yc = min(bw, f['w']-f['fl']-.3)
-        y0, z0, y1, z1 = f['w']-f['fl'], f['zl'], f['kw'], f['keel']
-        zc = z0+(z1-z0)*(y0-yc)/(y0-y1)+.3
-        top = (yc*.8, zc+5.0)
+        c3 = (f['w']-f['fl'], f['zl'])          # on the forebody's lower chine exactly
+        top = (c3[0]*.7, min(f['zl']+6.0, WELL_FLOOR-1.0))
     else:
-        # Aft of the core it stays under the machinery wells' floor (WELL_FLOOR).
-        yc, zc = bw, -17.0-(-18-x)*.05
-        top = (bw*.85, -12.0)
-    mid = (zc+zb)/2-2.0
-    half = [top, (yc, zc), (yc*.5, mid), (min(5.0, yc*.4), zb)]
+        c3 = (_table(BELLY_W, x), _table(BELLY_AFT_Z, x))
+        top = (c3[0]*.85, WELL_FLOOR-2.0)
+    half = [top, c3, (kb, k)]
     return [(-y, z) for y, z in reversed(half)]+half
 
 
@@ -414,6 +427,7 @@ WAIST_OUT = [(106, 58), (40, 72), (2, 89)]
 WAIST_DECK = 1.6
 WAIST_EDGE = [(106, 62.5), (2, 87.0)]   # the deck's straight outer edge (round 8), under the arm
 WAIST_RAKE = 58.0                 # deg from horizontal: the waist's raked forward end (round 7)
+WAIST_FLOOR = -19.0              # the waist's underside where it meets the arm (round 11)
 WAIST_RAKE_X = 97.0               # where that rake leaves the waist's lowest line (z -28)
 
 
@@ -427,16 +441,19 @@ def waist_section(x):
     # the belly's upper chine also lies), so the underside runs on from the core's
     # side face as one deadrise falling outboard into the arm.
     f = fore(x)
-    yc, zc = f['w']-f['fl']-.4, f['zl']+.4
     # Round 8 (critic: the waist's outer edge read as a ragged line of 3-5 unit steps in
     # the quarter view): the deck no longer falls into a narrow trench against the arm's
     # faceted inner flank - a V whose bottom wandered with every facet. It runs on flat
     # and level out to one straight edge (WAIST_EDGE) lying under the arm's inner gallery,
     # so the valley floor meets the arm in a single clean line: flush forward, where the
     # gallery lies level with it, and under the arm's one raised edge aft.
+    # Round 11 (critic a: from below the waist hung a trough of its own, 10 under the bilge
+    # chine, so the underside read as a V between belly and arm): its underside now runs on
+    # from the bilge chine (where the belly's bilge plane meets the core's side) level into
+    # the arm's inner flank, so the bilge chine is the underside's crest.
+    yc, zc = f['w']-f['fl']-.1, f['zl']+.05
     ye = _table(WAIST_EDGE, x)
-    return [(yc, zc), (yout-4.0, -28.0), (yout+1.0, -19.0), (ye, WAIST_DECK-1.2), (ye-1.0, WAIST_DECK),
-            (yin, WAIST_DECK)]
+    return [(yc, zc), (yout+1.0, WAIST_FLOOR), (ye, WAIST_DECK-1.2), (ye-1.0, WAIST_DECK), (yin, WAIST_DECK)]
 
 
 def build(kit):

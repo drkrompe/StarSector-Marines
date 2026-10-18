@@ -378,9 +378,137 @@ def _plate(x, us, t, sink):
         if abs(ny*vy+nz*vz) > .35 and abs(det) > 1e-3:
             ry, rz = outer[k][0]-inner[k][0], outer[k][1]-inner[k][1]
             mu = (vy*rz-vz*ry)/det
-            if abs(mu) <= 2.5*t:
+            if abs(mu) <= 4.5*t:      # round 11: the rail's edge on the steep forward face needs more
                 outer[k] = (outer[k][0]+dy*mu, outer[k][1]+dz*mu)
     return inner+list(reversed(outer))
+
+
+def _plate_t(x, us, ts, sink, path=OUTBOARD):
+    """_plate with a thickness per u (a plate whose outer face bulges across the section)."""
+    sec = section(x)
+    inner, outer = [], []
+    for u, t in zip(us, ts):
+        (py, pz) = _path_point(sec, path, u)
+        ui = int(round(u))
+        (ny, nz) = _path_normal(sec, path, ui if abs(u-ui) < .02 else u)
+        inner.append((py-ny*sink, pz-nz*sink))
+        outer.append((py+ny*t, pz+nz*t))
+    return inner+list(reversed(outer))
+
+
+# --- round 11: the arm armour as the sprite draws it --------------------------
+# Owner note 3 ("look closely at the pixel art to infer the armoring on the curved arms") and
+# critique b. Read off onslaught_hegemony.png at 6-8x the port arm is, from the gun line out:
+# the brown gun deck with dark recessed channels running between its turret rings; ONE
+# continuous orange rail capping the deck's outboard edge from the arm root to the nose, about
+# 8-10 px wide in plan, narrowing and kinking inboard in a stepped notch where it meets the nose
+# plate (X ~160-172); and outboard of it, between X ~68 and ~148, one dark bulged sponson that
+# makes the outline there, with a row of vent slots along its top. The round-6 checker of orange
+# scale segments and grey blocks (belts 2-4 and 6, steps 1, 2, 4, 5 and 7, rim block 4) became
+# stripes at 150 px; the rail, the sponson and the channels replace it.
+
+def rail_u1(x):
+    """The rail's lower edge (u on OUTBOARD): broader aft (the sprite's orange chevron at the arm
+    root), narrow beside the sponson, a little broader forward of it."""
+    if x <= 50.0:
+        return 2.0
+    if x < 66.0:
+        return 2.0+(1.32-2.0)*(x-50.0)/16.0
+    if x <= 146.0:
+        return 1.32
+    if x < 154.0:
+        return 1.32+(1.7-1.32)*(x-146.0)/8.0
+    return 1.7
+
+
+RAIL = (22.0, 171.0)           # the rail's aft end and its forward step (the kink)
+RAIL_T, RAIL_KICK = 3.2, 4.6
+
+
+def rail(kit, side, s):
+    """The orange rail: one continuous plate course capping the arm deck's outboard edge, from the
+    shoulder chine C (under the gallery's shoulder plate forward, under the terrace lip aft) down
+    the sloped upper face. Its forward end kicks up into a raked step lapping over the nose plate
+    (belt 1): the sprite's stepped inboard kink."""
+    x0, x1 = RAIL
+    kick = 8.0
+    st = []
+    for x in _stations(x0, x1, 2.0, [x0+3.0, x1-kick]+list(range(50, 67))+list(range(146, 155))+list(SHOULDER_X)):
+        if x <= x0+3.0:
+            t = 1.2+(RAIL_T-1.2)*(x-x0)/3.0
+        elif x < x1-kick:
+            t = RAIL_T
+        else:
+            f = (x-(x1-kick))/kick
+            t = RAIL_T+(RAIL_KICK-RAIL_T)*(f*(2-f))
+        u0, u1 = min(shoulder_u0(x), .95), rail_u1(x)
+        # (u1 never passes D, so C is the only chine the rail wraps: one more vertex near its lower
+        # edge folded the plumb-cut edge back over itself into an overhanging knife edge)
+        us = [u0, 1.0, u1]
+        st.append((x, _y(_plate(x, us, t, .6 if x > x0+.5 else .3), s)))
+    ob = loft_x(kit, f'Armour {side} arm belt rail', st, kit.orange, bevel=.2)
+    sec = section(x1)
+    py, pz = _path_point(sec, OUTBOARD, rail_u1(x1))
+    r = math.radians(ROLL)
+    tp = math.tan(math.radians(40.0))
+    n = (1.0, -tp, (.3-tp*math.sin(r))/math.cos(r))
+    plane_cut(ob, 'rail step', (x1, s*(py+RAIL_KICK), pz), (n[0], s*n[1], n[2]))
+    return ob
+
+
+SPONSON_X = (68.0, 148.0)
+# (u on OUTBOARD, thickness): its top edge tucks under the rail's lower edge, it is thickest
+# below the max-beam chine D (so the bulge reads abeam and from below without widening the plan
+# much past the sprite's outline), and it chamfers in to the lower glacis above the keel bar.
+SPONSON_SEC = ((1.25, 1.6), (1.5, 3.9), (1.75, 5.3), (2.0, 6.0), (2.5, 7.8), (3.0, 7.2), (3.3, 4.6), (3.45, 1.2))
+
+
+def side_sponson(kit, side, s):
+    """The dark bulged sponson on the outboard flank (the sprite's grey bulge, X ~68-148), with a
+    row of vent slots cut along its top."""
+    xa, xf = SPONSON_X
+    us = [u for u, _ in SPONSON_SEC]
+    st = []
+    for x in _stations(xa, xf, 2.0, [xa+6.0, xf-9.0]):
+        # chamfered ends: the bulge rises over 6 units aft and falls over 9 forward
+        e = min(1.0, (x-xa)/6.0, .3+.7*(xf-x)/9.0)
+        ts = [max(.8, t*e) for _, t in SPONSON_SEC]
+        st.append((x, _y(_plate_t(x, us, ts, .6), s)))
+    ob = loft_x(kit, f'Armour {side} arm side sponson', st, kit.grey, bevel=.2)
+    # Vent grille: slots across the sponson's upper face, recessed dark.
+    for k, xc in enumerate((84.0, 91.0, 98.0, 105.0, 112.0, 119.0)):
+        cs = []
+        for x in (xc-1.1, xc+1.1):
+            pts = []
+            for u, t in ((1.48, 3.8), (1.8, 5.4)):
+                sec = section(x)
+                (py, pz), (ny, nz) = _path_point(sec, OUTBOARD, u), _path_normal(sec, OUTBOARD, u)
+                pts.append(((py+ny*(t-1.1), pz+nz*(t-1.1)), (py+ny*(t+3.0), pz+nz*(t+3.0))))
+            cs.append((x, _y([pts[0][0], pts[1][0], pts[1][1], pts[0][1]], s)))
+        cut = loft_x(kit, 'Temporary sponson vent', cs, kit.dark, bevel=0)
+        boolean(ob, cut)
+    return ob
+
+
+def deck_channels(kit, side, s, g):
+    """Recessed dark channels in the gun deck linking the turret rings (the sprite's dark lines
+    between WS 001, 002, 005 and the Devastator ring): cut 1.2 deep into the gallery's flat top
+    with a dark-surfaced cutter, so the walls and floor of each channel read as a recess."""
+    rings = [(158, 71, 8.0), (134, 74, 5.4), (114, 78, 5.4), (77, 88, 15.0)]
+    pts = [(arm_xy(x, y, gallery_top(x))+(r,)) for x, y, r in rings]
+    for k, ((ax, ay, ar), (bx, by, br)) in enumerate(zip(pts, pts[1:]), 1):
+        dx, dy = bx-ax, by-ay
+        L = (dx*dx+dy*dy)**.5
+        ux, uy = dx/L, dy/L
+        p0 = (ax+ux*ar, ay+uy*ar)
+        p1 = (bx-ux*br, by-uy*br)
+        hw = 1.9
+        nx, ny = -uy*hw, ux*hw
+        plan = [(p0[0]-nx, p0[1]-ny), (p1[0]-nx, p1[1]-ny), (p1[0]+nx, p1[1]+ny), (p0[0]+nx, p0[1]+ny)]
+        top = min(gallery_top(p0[0]), gallery_top(p1[0]))
+        cut = prism(kit, 'Temporary deck channel', _side(plan, s), [(0.0, top-1.2), (0.0, top+30.0)], kit.dark,
+                    bevel=0)
+        boolean(g, cut)
 
 
 # --- the solids --------------------------------------------------------------
@@ -523,25 +651,28 @@ def arm_xy(x, y, z):
 
 
 def housings(kit, side, s):
-    """Lozenge plinths under the arm's turrets and the Devastator's drum and aft fairing."""
+    """Lozenge plates under the arm's turrets and the Devastator's ring plate and aft fairing.
+    Round 11 (owner: turrets set against the hull, not on pucks; critique c): each is one plate
+    course 0.4 proud of the gun deck with a chamfered edge, no raised plinth or stepped drum, so
+    the turrets' flush rings (os_turrets ray-casts them) read as set into the hull."""
     for k, (x, y, r) in enumerate(((158, 71, 7.0), (134, 74, 4.2), (114, 78, 4.2)), 1):
         top = gallery_top(x)
         x, y = arm_xy(x, y, top)
         L, W = r+4.5, r+1.8
         poly = [(x+L, y+.6), (x+.35*L, y+W), (x-.6*L, y+W+.8), (x-L, y+1.4), (x-.6*L, y-W+1.0), (x+.35*L, y-W)]
         prism(kit, f'Armour {side} arm turret housing {k}', _side(poly, s),
-              [(0.0, DECK_Z-1.0), (0.0, top+.3), (1.2, top+1.3)], kit.plate, bevel=.2)
+              [(0.0, DECK_Z-1.0), (0.0, top-.1), (.5, top+.4)], kit.plate, bevel=.2)
     # Devastator (WS 018 at 77, 88; ring r 11): a raised drum with a sloped batter, and the
     # fairing that runs aft from it into the gallery (the sprite's converging struts).
     top = gallery_top(77.0)
     x, y = arm_xy(77.0, 88.0, top)
     drum = [(x+15.5*math.cos(2*math.pi*(k+.5)/16), y+15.5*math.sin(2*math.pi*(k+.5)/16)) for k in range(16)]
     prism(kit, f'Armour {side} arm devastator housing', _side(drum, s),
-          [(0.0, DECK_Z-3.0), (0.0, top-4.0), (3.4, top+1.4), (4.6, top+2.6)], kit.plate, bevel=.2)
+          [(0.0, DECK_Z-3.0), (0.0, top-.6), (.6, top+.4)], kit.plate, bevel=.2)
     fair = [(x-11, y-7), (x-13, y+8), (x-29, y+7), (x-33, y+3)]
     f = prism(kit, f'Armour {side} arm devastator fairing', _side(fair, s),
-              [(0.0, DECK_Z-1.0), (0.0, top+1.6), (1.4, top+2.4)], kit.grey, bevel=.2)
-    plane_cut(f, 'fairing aft', (x-13, 0, top+2.4), facet_normal((-1, 0), 6.0))
+              [(0.0, DECK_Z-1.0), (0.0, top+.3), (.6, top+.9)], kit.grey, bevel=.2)
+    plane_cut(f, 'fairing aft', (x-13, 0, top+.9), facet_normal((-1, 0), 6.0))
 
 
 def build(kit):
@@ -551,46 +682,24 @@ def build(kit):
         arm = arm_mass(kit, f'Hull {side} arm', s)
         g = gallery(kit, f'Hull {side} arm gallery', s)
         kit.hull += [arm, g]
-        # Upper course (orange). Round 6 (owner note 3; critique C, the sprite at 6x): the course is
-        # not one strip but overlapping plate segments laid like scales pointing at the bow - the
-        # nose plate, then four segments whose forward ends stand at the sprite's breaks (X ~166,
-        # 142, 100 and 60, each just ahead of or aft of a turret housing), every one thin at its aft
-        # end, where the next segment's forward end laps over it, and kicked up and out at its
-        # forward end into a step whose face is a forward-pointing chevron. The lower edge is
-        # irregular (each segment reaches a different depth), as the sprite's orange is.
-        course(kit, f'Armour {side} arm belt 1', s, 157, 192, OUTBOARD, 1.0, 2.9, 2.8, 2.2, kit.orange)
-        for k, (xa, xf, u0, u1) in ((2, (135, 169, shoulder_u0, 2.05)), (3, (88, 147, shoulder_u0, 1.95)),
-                                    (4, (48, 100, shoulder_u0, 2.15)), (6, (22, 60, .62, 2.3))):
-            scale_course(kit, f'Armour {side} arm belt {k}', s, xa, xf, u0, u1, kit.orange)
-        # Each block is centred on its housing as the pose carries it (arm_xy), as long as the
-        # housing's lozenge (the Devastator: its drum): the turret's own armour interrupts the
-        # course's inner half as the sprite's grey rims break the orange.
-        for k, (wx, wy, half, u1) in ((4, (77, 88, 11.5, 1.6)),):
-            xc = arm_xy(wx, wy, gallery_top(wx))[0]
-            xa, xf = xc-half, xc+half
-            course(kit, f'Armour {side} arm rim block {k}', s, xa, xf, OUTBOARD, .45, u1, 4.6, 4.4, kit.grey,
-                   chamfer=1.6, lip=1.6)
+        # Round 11 (owner note 3, critique b): the sprite's arm armour is one orange rail on the
+        # deck edge, one dark bulged sponson outboard of it and dark channels in the deck, not the
+        # round-6 checker of orange scales and grey blocks. Belt 1 is the nose plate the rail's
+        # forward step laps over; belt 5 and step 3 (the dark block under the rail's broad aft
+        # end) are kept from the old courses.
+        course(kit, f'Armour {side} arm belt 1', s, 163, 192, OUTBOARD, 1.0, 2.9, 2.8, 2.2, kit.orange)
+        rl = rail(kit, side, s)
         belt5 = course(kit, f'Armour {side} arm belt 5', s, 0, 20, OUTBOARD, .9, 2.1, 2.4, 2.0, kit.grey)
-        # Lower course (dark grey). Round 6 (critique C: abeam, five evenly spaced blocks read as the
-        # teeth of a comb): the sprite has three large grey blocks on the outboard rim (X 100-150,
-        # 62-98, 18-58), of unequal length and depth, each with a doubler of its own at a different
-        # place, so the rim reads as a few irregular plates rather than a row of teeth.
-        steps = []
-        for k, (xa, xf, u0, u1, ta, tf, ch) in enumerate(((101, 144, 1.75, 3.25, 4.0, 2.8, 4.0),
-                                                          (61, 93, 1.5, 3.3, 3.8, 3.0, 4.0),
-                                                          (20, 52, 1.95, 3.25, 3.4, 2.6, 3.0)), 1):
-            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
-                                kit.grey, chamfer=ch, lip=2.6))
-        for k, (xa, xf, u0, u1, ta, tf) in ((4, (116, 138, 2.3, 3.2, 5.0, 4.6)), (5, (66, 82, 2.05, 3.15, 4.7, 4.2)),
-                                            (7, (33, 49, 2.45, 3.2, 4.4, 4.0))):
-            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
-                                kit.grey, chamfer=3.0, lip=2.6))
+        step3 = course(kit, f'Armour {side} arm step 3', s, 20, 52, OUTBOARD, 1.95, 3.25, 3.4, 2.6, kit.grey,
+                       chamfer=3.0, lip=2.6)
+        side_sponson(kit, side, s)
+        deck_channels(kit, side, s, g)
         # Inboard strake on the top chine facing the notch.
         course(kit, f'Armour {side} arm coaming', s, 106, 198, INBOARD, .85, 1.7, 1.8, 1.6, kit.grey)
         # Keel bar: a grey strake along the chined keel, heel to chin, so the keel reads as a line.
         keel = course(kit, f'Armour {side} arm keel bar', s, X_HEEL+4, X_CHIN-1, 'EFG', .62, 1.38, 1.7, 1.5,
                       kit.grey, chamfer=5.0)
-        after_end(kit, side, s, arm, [belt5, keel, steps[2], steps[5]])
+        after_end(kit, side, s, arm, [belt5, keel, step3, rl])
         housings(kit, side, s)
         nose_cheeks(kit, side, s)
         shoulder(kit, side, s, arm, g)
@@ -610,8 +719,9 @@ PLATE_ANGLE = 18.0
 
 def plates(side):
     for ob in ARM_PARTS[side]:
-        if ob.type != 'MESH' or not (ob.name in (f'Hull {side} arm', f'Hull {side} arm gallery')
-                                     or ob.name.startswith(f'Armour {side} arm belt')):
+        if ob.type != 'MESH' or not (ob.name in (f'Hull {side} arm', f'Hull {side} arm gallery',
+                                                 f'Armour {side} arm side sponson', f'Armour {side} arm keel bar')
+                                     or ob.name.startswith((f'Armour {side} arm belt', f'Armour {side} nose cheek'))):
             continue
         for p in ob.data.polygons:
             p.use_smooth = True
@@ -723,17 +833,33 @@ def _deck_top(x, y, r):
     return best
 
 
+# Round 11 (critique d: arm belt 5 sat 24-27 under the flak sponson's crown at (4, +-117), a plumb
+# wall standing on the arm's falling flank). The sponson's forward and outboard walls are battered:
+# they flare out going down (SPONSON_FLARE, per plan vertex, at the foot 40 under the crown), so
+# they run into the arm's flank and belt 5 as sloped plates instead of standing over them. The
+# inboard and after walls stay plumb (buried in the fin and cut by the after planes).
+SPONSON_FLARE = [(8.0, 0.0), (8.0, 6.0), (4.0, 7.0), (0.0, 5.0), (0.0, 1.5), (0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
+
+
 def sponson(kit, side, s):
+    from os_kit import inset
     cx, cy = SPONSON[0], s*SPONSON[1]
     top = _deck_top(cx, cy, 8.4)+.2
     plan = [(cx+dx, cy+s*dy) for dx, dy in SPONSON_PLAN]
+    foot = [(x+fx, y+s*fy) for (x, y), (fx, fy) in zip(plan, SPONSON_FLARE)]
     if s < 0:
-        plan = list(reversed(plan))
-    # Plumb sides with a chamfered crown, carried down until the arm's raked after face cuts them
-    # off (after_planes), so its outboard side stands into the arm's rolled face, not over it.
-    ob = prism(kit, f'Armour {side} arm flak sponson', plan, [(0.0, top-40.0), (0.0, top-1.0), (1.0, top)],
-               kit.plate, bevel=.2)
-    return ob
+        plan, foot = list(reversed(plan)), list(reversed(foot))
+    # A battered foot ring, the crown's edge and the chamfered crown, carried down until the arm's
+    # raked after face cuts them off (after_planes), so its outboard side runs into the arm's
+    # rolled face, not over it.
+    rings = [(foot, top-40.0), (plan, top-1.0), (inset(plan, 1.0), top)]
+    n = len(plan)
+    verts = [(x, y, z) for ring, z in rings for x, y in ring]
+    faces = [tuple(reversed(range(n)))]
+    for r in range(len(rings)-1):
+        faces += [(r*n+i, r*n+(i+1) % n, (r+1)*n+(i+1) % n, (r+1)*n+i) for i in range(n)]
+    faces.append(tuple(range((len(rings)-1)*n, len(rings)*n)))
+    return kit.mesh(f'Armour {side} arm flak sponson', verts, faces, kit.plate, .2)
 
 
 def _aft_floor(sp):
@@ -800,7 +926,11 @@ def _cheek(kit, name, s, x0, x1, inner, path, t, brow, chin, mat, plumb=False, u
     outward, between a brow line and a chin line (functions of x). Aft of the nose face it is a
     plate lying on the hull; ahead of it, a solid wedge flanking the gun."""
     st = []
-    for x in _stations(x0, x1, 2.0):
+    # Round 11 (critique a: from ahead and below the cheeks were fans of thin twisted facets).
+    # Few stations, at the knots of the brow, chin and point lines and of the arm's plan, so each
+    # face of the cheek is one ruled plate between them, shaded smooth within PLATE_ANGLE (plates).
+    knots = [x1-9.0]+[p[0] for p in ARM_OUTER+ARM_INNER]
+    for x in _stations(x0, x1, 12.0, knots):
         sec = section(x)
         p1, p2, p3 = [(lambda u: (_path_point(sec, path, u)[0]+_path_normal(sec, path, u)[0]*t,
                                   _path_point(sec, path, u)[1]+_path_normal(sec, path, u)[1]*t))(u)
