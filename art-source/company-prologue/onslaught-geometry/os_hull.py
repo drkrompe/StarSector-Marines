@@ -9,27 +9,28 @@ read with curvature and terracing; the arms were "super tall, for what?"; the
 flanks showed only plating. So the hull is built in tiers, the way the
 sprite's shading stacks it:
 
-  base masses   rounded hulls, low at their edges, over one rounded belly
-                (under prow root, core and aft body) that carries the deep,
-                curving depth the owner asked for ("thick") as a single heavy
-                hull rather than a block hanging under the core; the arms are
-                shallow gun platforms hanging off it, not walls.
-  gun galleries the raised spine of each arm along its turret line (WS 001,
-                002, 005 and the Devastator WS 018), and the prow's central
-                gallery carrying WS 007, 008/009 and the multineedler WS 019;
-                crowned and chamfered, so their tops curve.
-  core terrace  the sprite's ring round the command dome: WS 012/013, 014/015
-                and 022/023 all stand on one round raised citadel centred near
-                X 14, its sides a sloped batter outboard of the gun ring, with
-                an inner tier under the domes; the orange and grey glacis is a
-                ridge rising toward it (os_armour); the bridge sits on top.
+  base masses   round 3: the prow and core are one hard-chined forebody lofted
+                along X (fore_section): a centre deck, the sloped shoulder/glacis
+                plane to the upper chine at the plan edge, a side falling inboard
+                to a lower chine, and a deadrise to the keel; a low ram bow with
+                the stem raked back. Under it the belly is a deep armoured wedge
+                (two more chines and a keel flat) whose keel line runs on from
+                the forefoot in straight runs. The waists are flat valley decks
+                tucked under the core's chine, falling outboard into the arms.
+  gun galleries the prow gun deck climbs aft in three raked steps (WS 007, WS
+                008/009, the multineedler WS 019) to the core's centre deck; the
+                arm galleries are os_arms'.
+  core terrace  the citadel: a twenty-sided armoured drum with a straight batter
+                (TERRACE_R about X 14) carrying WS 012-015 and 022/023, its back
+                raked toward the machinery wells; an inner tier centred under the
+                command tower (os_bridge), the high point of the skyline.
   turrets       stand straight on whatever surface their slot falls on, at
                 that height and tilted with it (os_turrets); owner, round 2:
                 "hull turrets and their mounts are against the hull. They don't
                 need to be flat, and they don't need to be on the same plane".
 
 The masses:
-  prow      X 96..225;  core  X -18..104;  belly X -82..162 under them;  arms  X -16..214 (the TPC
+  prow      X 104..225;  core  X -18..104 (one shared station);  belly X -84..170 under them;  arms  X -16..214 (the TPC
   hardpoints at the tip); aft body with the stern machinery wells cut into
   it (os_machinery fills them); tail X -10..-113; legs either side of the
   tail notch; waists, the low valley between glacis and arm.
@@ -107,12 +108,14 @@ TERRACE_C = (14.0, 0.0)           # centre of the round core terrace (the sprite
 TERRACE_R = 52.0                  # its batter (R 44..52) lies outboard of the gun ring (R 32..40)
 INNER_R = 27.0
 GALLERY_TOP = 17.0                # the arm galleries (os_arms)
-PROW_GALLERY_TOP = 19.0           # the prow gallery, climbing aft to the citadel
-TERRACE_TOP = 23.0
-INNER_TOP = 26.0
+PROW_GALLERY_TOP = 27.5           # the prow gallery, climbing aft to the citadel
+TERRACE_TOP = 36.0
+INNER_TOP = 40.0
+INNER_C = (24.0, 0.0)            # the inner tier is centred under the command tower
+INNER_R2 = 25.0
 
 
-DECK = {'prow': 6.0, 'core': 10.0, 'arm': 8.0, 'aft': 10.0, 'tail': 18.0, 'leg': 12.0, 'waist': 2.0,
+DECK = {'prow': 8.0, 'core': 28.0, 'arm': 8.0, 'aft': 10.0, 'tail': 18.0, 'leg': 12.0, 'waist': 2.0,
         'gallery': GALLERY_TOP, 'prow gallery': PROW_GALLERY_TOP, 'terrace': TERRACE_TOP, 'inner': INNER_TOP}
 
 
@@ -219,37 +222,176 @@ def disc(cx, cy, r, n=28, x_min=None):
     return ccw(pts)
 
 
+# --- the forebody: prow and core as hard-chined lofts -------------------------
+# Owner, round 3: "this still needs a lot of silhouette work"; the side view was
+# a featureless lozenge and the front three balloons. So the prow, the core and
+# the belly under them are lofted along X from straight-sided sections rather
+# than rounded heightfields: every station is the same eight-point armoured
+# section, so the two masses meet on one shared station (X 104) with nothing to
+# line up, and the faces between stations are flat sloped plates.
+#
+#   (-yi, zi) ------- (yi, zi)            centre deck under the gallery/citadel
+#   /                          \           shoulder / glacis plane (the orange)
+# (-w, zk)                    (w, zk)      upper chine: the plan edge
+#   \                          /           side, falling inboard
+#  (-w+fl, zl)          (w-fl, zl)         lower chine
+#        \                /                deadrise
+#     (-kw, zkeel)--(kw, zkeel)            keel flat
+#
+# All tables are (X, value), bow to stern, interpolated linearly. The skyline
+# they draw in side view: a low ram bow, the stem raked back to the prow deck,
+# the gun deck climbing to the glacis ridge, then (os_hull tiers, os_bridge)
+# the citadel, the command tower as the high point, and a step down aft.
+
+def _table(tbl, x):
+    if x >= tbl[0][0]:
+        return tbl[0][1]
+    for (xa, va), (xb, vb) in zip(tbl, tbl[1:]):
+        if xb <= x <= xa:
+            return va+(vb-va)*(x-xa)/(xb-xa)
+    return tbl[-1][1]
+
+
+FORE_W = [(225, 7.5), (220, 10.5), (216, 14.5), (212, 16.5), (200, 18.5), (196, 22.5), (192, 25.5), (172, 29.5),
+          (148, 34.5), (120, 39.5), (104, 41.5), (60, 58), (20, 74), (0, 82), (-18, 84)]
+FORE_YI = [(225, 2.5), (216, 4), (200, 6), (186, 8), (150, 12), (126, 13), (104, 12), (80, 22), (60, 30), (40, 40),
+           (20, 50), (0, 56), (-18, 58)]
+FORE_ZI = [(225, -3), (218, 6), (214, 7), (200, 7.5), (172, 8.5), (150, 11), (126, 16), (110, 23),
+           (104, 27), (80, 28), (60, 29), (30, 28), (0, 26), (-18, 25)]
+FORE_ZK = [(225, -4), (216, 0), (200, 1.5), (172, 2.5), (148, 3.5), (120, 4), (104, 4), (60, 3.5), (20, 2.5),
+           (0, 1.5), (-18, 1)]
+FORE_ZL = [(225, -8), (216, -12), (200, -15), (172, -17), (104, -18), (60, -18), (0, -16), (-18, -15)]
+FORE_FL = [(225, 1), (216, 2.5), (196, 4), (150, 6), (104, 8), (60, 10), (0, 12), (-18, 12)]
+FORE_KW = [(225, 2), (216, 3), (104, 5), (-18, 5)]
+FORE_KEEL = [(225, -10), (216, -19), (104, -34), (60, -34), (0, -30), (-18, -28)]
+# Stations at every table breakpoint, so each face between two is one flat plate
+# and the armour skins (os_armour), sampled on the same planes, lie flush on it.
+FORE_STATIONS = sorted({x for t in (FORE_W, FORE_YI, FORE_ZI, FORE_ZK, FORE_ZL, FORE_FL, FORE_KW, FORE_KEEL)
+                        for x, _ in t}, reverse=True)
+
+
+def fore(x):
+    """The forebody's section numbers at X: dict of w, yi, zi, zk, zl, fl, kw, keel."""
+    return {k: _table(t, x) for k, t in (('w', FORE_W), ('yi', FORE_YI), ('zi', FORE_ZI), ('zk', FORE_ZK),
+                                         ('zl', FORE_ZL), ('fl', FORE_FL), ('kw', FORE_KW), ('keel', FORE_KEEL))}
+
+
+def fore_top(x, y):
+    """Height of the forebody's top surface (centre deck or shoulder plane) at (x, y)."""
+    f = fore(x)
+    y = abs(y)
+    if y <= f['yi']:
+        return f['zi']
+    return f['zi']+(min(y, f['w'])-f['yi'])/(f['w']-f['yi'])*(f['zk']-f['zi'])
+
+
+def fore_side_y(x, z):
+    """|Y| of the forebody's side face at height z (between its two chines)."""
+    f = fore(x)
+    t = min(max((f['zk']-z)/(f['zk']-f['zl']), 0.0), 1.0)
+    return f['w']-f['fl']*t
+
+
+def fore_section(x):
+    f = fore(x)
+    half = [(f['yi'], f['zi']), (f['w'], f['zk']), (f['w']-f['fl'], f['zl']), (f['kw'], f['keel'])]
+    return [(-y, z) for y, z in reversed(half)]+half
+
+
+# The belly: a deep armoured wedge under the core, not a pod. Its top is buried
+# in the forebody; below the forebody's lower chine it shows as two more chines
+# stepping in to a keel flat, deepest under the citadel, and its keel line
+# carries on from the prow's forefoot in straight runs: down from X 170, level
+# under the citadel, up to the stern. From ahead it is the wedge between the arms.
+BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 60), (0, 63), (-22, 62), (-40, 52),
+           (-58, 42), (-72, 33), (-80, 20), (-84, 6)]
+BELLY_KEEL = [(170, -25.5), (104, -50), (66, -55), (6, -55), (-30, -48), (-60, -36), (-84, -22)]
+BELLY_STATIONS = [170, 150, 128, 104, 80, 66, 52, 24, 6, 0, -12, -18, -20, -22, -30, -40, -58, -60, -72, -80, -84]
+
+
+def belly_section(x):
+    bw, zb = _table(BELLY_W, x), _table(BELLY_KEEL, x)
+    if x >= -18:
+        # Under the forebody the belly's upper chine lies on the forebody's own
+        # bottom (its lower chine, or on the deadrise where the belly is narrower),
+        # so the belly carries the hull's underside on down with no undercut slot.
+        f = fore(x)
+        yc = min(bw, f['w']-f['fl']-.3)
+        y0, z0, y1, z1 = f['w']-f['fl'], f['zl'], f['kw'], f['keel']
+        zc = z0+(z1-z0)*(y0-yc)/(y0-y1)+.3
+        top = (yc*.8, zc+5.0)
+    else:
+        # Aft of the core it stays under the machinery wells' floor (WELL_FLOOR).
+        yc, zc = bw, -17.0-(-18-x)*.05
+        top = (bw*.85, -12.0)
+    mid = (zc+zb)/2-2.0
+    half = [top, (yc, zc), (yc*.5, mid), (min(5.0, yc*.4), zb)]
+    return [(-y, z) for y, z in reversed(half)]+half
+
+
+# The prow gun deck: three stepped tiers climbing aft (WS 007, WS 008/009, the
+# multineedler WS 019), each riser a raked armour step, the last level with the
+# core's centre deck so it runs on into the glacis ridge and the spine.
+GALLERY_W = [(216, 5.0), (214, 5.5), (200, 9.0), (186, 11.0), (150, 17.0), (126, 18.5), (104, 20.0)]
+GALLERY_Z = [(216, 8.0), (212, 11.0), (175, 12.0), (170, 18.5), (144, 19.0), (139, 26.5), (110, 27.0), (104, 27.5)]
+GALLERY_STATIONS = [216, 214, 212, 200, 186, 175, 170, 150, 144, 139, 126, 110, 104]
+
+
+def gallery_section(x):
+    gw, zg, f = _table(GALLERY_W, x), _table(GALLERY_Z, x), fore(x)
+    c = 1.2
+    base = f['zk']-1.0
+    half = [(gw-c, zg), (gw, zg-c), (gw+2.5, base)]
+    return [(-y, z) for y, z in reversed(half)]+half
+
+
+# The waist: the low valley between the glacis and the arm; a flat deck tucked
+# under the core's upper chine, falling outboard in one plate to meet the
+# lowered arm's inner edge (os_arms).
+WAIST_IN = [(106, 38), (60, 53), (2, 77)]
+WAIST_OUT = [(106, 58), (40, 72), (2, 89)]
+WAIST_DECK = 1.6
+
+
+def waist_section(x):
+    yin, yout, w = _table(WAIST_IN, x), _table(WAIST_OUT, x), fore(x)['w']
+    ym = min(w+8.0, yout-4.0)
+    # The outer edge runs down into the lowered arm (os_arms: its inner top edge
+    # lies near z -15 here), so the valley floor meets the arm with no slot.
+    return [(yin, -24.0), (yout-4.0, -28.0), (yout+1.0, -19.0), (ym, WAIST_DECK), (yin, WAIST_DECK)]
+
+
 def build(kit):
-    prow = mass(kit, 'Hull prow', full(PROW_HALF), PROW, kit.plate)
-    prow_cuts(prow)
-    core = mass(kit, 'Hull core', full(CORE_HALF), CORE, kit.plate)
-    core_cuts(core)
-    belly = mass(kit, 'Hull belly', full(BELLY_HALF), BELLY, kit.plate)
-    belly_cuts(belly)
+    from os_kit import loft_x
+    prow = loft_x(kit, 'Hull prow', [(x, fore_section(x)) for x in FORE_STATIONS if x >= 104], kit.plate, bevel=.2)
+    core = loft_x(kit, 'Hull core', [(x, fore_section(x)) for x in FORE_STATIONS if x <= 104], kit.plate, bevel=.2)
+    belly = loft_x(kit, 'Hull belly', [(x, belly_section(x)) for x in BELLY_STATIONS], kit.plate, bevel=.2)
 
     waists = {}
+    stations = [106, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 2]
     for side, s in (('port', 1), ('starboard', -1)):
-        waists[side] = mass(kit, f'Hull {side} waist', ccw(WAIST_PORT) if s > 0 else mirror_y(ccw(WAIST_PORT)),
-                            WAIST, kit.plate)
+        st = []
+        for x in stations:
+            sec = waist_section(x)
+            st.append((x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]))
+        waists[side] = loft_x(kit, f'Hull {side} waist', st, kit.plate, bevel=.2)
 
     # --- the tiers ---------------------------------------------------------
     tiers = []
-    pg = arched_mass(kit, 'Hull prow gallery', gallery_plan(PROW_GALLERY), DECK['prow']-6, PROW_GALLERY_TOP,
-                     tumble_in=7.0, tumble_h=9.0, crown=1.5, crown_w=8.0, mat=kit.plate, step=2.0)
-    # The prow gallery climbs aft from the bow to the core terrace.
-    plane_cut(pg, 'gallery rise', (110, 0, PROW_GALLERY_TOP+1.5), facet_normal((1, 0), 5.0))
-    plane_cut(pg, 'gallery bow', (190, 0, PROW_GALLERY_TOP-7.0), facet_normal((1, 0), 16))
-    tiers.append(pg)
+    tiers.append(loft_x(kit, 'Hull prow gallery', [(x, gallery_section(x)) for x in GALLERY_STATIONS], kit.plate,
+                        bevel=.2))
     cx, cy = TERRACE_C
-    # The citadel: the terrace is a raised armoured drum whose sides slope in a
-    # long rounded batter (not a pancake disc), with the inner tier stepping up
-    # again under the domes, so the top climbs in curved terraces to the bridge.
-    tiers.append(arched_mass(kit, 'Hull core terrace', disc(cx, cy, TERRACE_R, 40, x_min=-18.0), DECK['core']-8,
-                             TERRACE_TOP, tumble_in=8.0, tumble_h=11.0, crown=1.5, crown_w=12.0, mat=kit.plate,
-                             step=2.5))
-    tiers.append(arched_mass(kit, 'Hull core inner terrace', disc(cx, cy, INNER_R, 32, x_min=-17.0),
-                             TERRACE_TOP-1, INNER_TOP, tumble_in=6.0, tumble_h=4.5, crown=1.0, crown_w=8.0,
-                             mat=kit.plate, step=2.0))
+    # The citadel: a many-sided armoured drum with a straight sloped batter (its
+    # foot buried in the core's centre deck), the inner tier stepping up again
+    # under the command tower; the gun ring stands on the drum's flat top.
+    tiers.append(prism(kit, 'Hull core terrace', disc(cx, cy, TERRACE_R, 20, x_min=-18.0),
+                       [(0.0, 18.0), (0.0, 24.0), (6.5, TERRACE_TOP-1.0), (7.5, TERRACE_TOP)], kit.plate, bevel=.2))
+    # Its back is raked down toward the core's aft face over the machinery wells,
+    # a sloped armour step rather than a sheer wall.
+    plane_cut(tiers[-1], 'citadel aft rake', (-14.0, 0, TERRACE_TOP), facet_normal((-1, 0), 55))
+    tiers.append(prism(kit, 'Hull core inner terrace', disc(*INNER_C, INNER_R2, 16),
+                       [(0.0, TERRACE_TOP-2.0), (0.0, TERRACE_TOP), (2.5, INNER_TOP-.8), (3.3, INNER_TOP)],
+                       kit.plate, bevel=.2))
 
     kit.hull += [prow, core, belly, *waists.values(), *tiers]
 
