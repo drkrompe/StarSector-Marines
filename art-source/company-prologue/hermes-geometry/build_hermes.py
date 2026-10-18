@@ -14,7 +14,7 @@ Optional, after a literal "--":
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho camera (repeatable)
   --gear up|down   pose the landing gear (default down; the .blend saves down)
   --ramp-open DEG  lower the troop ramp by DEG; 'contact' uses the ground angle
-  --figure         add a 1.8 m scale figure at the ramp toe (renders only)
+  --figure         add a 1.8 m scale figure beside the ramp toe (renders only)
   --state NAME     condition state; only 'clean' exists yet. 'wrecked' and
                    'patched' are reserved (see README, Condition states)
 Then: python compose_review.py  (sprite overlay, IoU, sheets)
@@ -58,9 +58,10 @@ args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv
 # derives from it; nothing hard-codes metres. Derivation: scale_record below
 # and README (Scale).
 METRES_PER_UNIT = 0.11
-STATUS = 'Pass 1 blockout built; pass 2 in progress. Clean state only; no damage states or textures.'
-PASSES = {'1 blockout': 'built; snapshot in reference-history/v1-blockout',
-          '4 real-world scale': 'provisional; derivation in scale_record'}
+STATUS = 'Passes 1, 2 and 4 built; awaiting owner review (pass 3). Clean state only; no damage states or textures.'
+PASSES = {'1 blockout': 'built; v1-blockout renders regenerate from commit 624cd3ea8',
+          '2 plausible detailing': 'built: one Opus agent per module (hull, cockpit, engines, turrets, ventral)',
+          '4 real-world scale': 'metres_per_unit published; derivation in scale_record'}
 RENDERS = Path(args.out).resolve() if args.out else HERE/'renders'
 SAVE_DIR = Path(args.out).resolve() if args.out else HERE
 RENDERS.mkdir(parents=True, exist_ok=True)
@@ -175,7 +176,7 @@ ramp.rotation_euler[1] = math.radians(ramp_deg)
 if args.figure:
     skin = hm_kit.material('Scale figure', (.85, .75, .2), 0, .6)
     u = 1/METRES_PER_UNIT
-    fx, fy, fz = 24.0, 8.0, hm_ventral.GROUND
+    fx, fy, fz = 23.0, 12.5, hm_ventral.GROUND   # clear of the spine and wing, beside the ramp toe
     hm_kit.bx(kit, 'Scale figure legs', fx-.16*u, fx+.16*u, fy-.21*u, fy+.21*u, fz, fz+.94*u, skin, .05*u)
     hm_kit.bx(kit, 'Scale figure torso', fx-.18*u, fx+.18*u, fy-.28*u, fy+.28*u, fz+.94*u, fz+1.66*u, skin, .06*u)
     kit.cylinder('Scale figure head', (fx, fy, fz+1.8*u-.15*u), .13*u, .3*u, skin, 'Z', 12, .04*u)
@@ -288,6 +289,12 @@ if not args.no_save and not args.figure and args.gear == 'down' and ramp_deg == 
                      'opening_units': [x1 - x0, 2*h]},
             'gear': [{'pivot': f'Gear {n} hinge', 'axis': 'Y', 'retract_angle_deg': a, 'built': 'extended'}
                      for n, _, a in hm_ventral.GEAR],
+            # Every pivot empty in the build with its custom properties
+            # (side hatches, gear doors and the rest), so nothing that moves
+            # is missing from the manifest.
+            'pivots': {ob.name: {k: (v if isinstance(v, (int, float, str)) else str(v)) for k, v in ob.items() if k != 'module'}
+                       for ob in sorted(bpy.data.objects, key=lambda o: o.name)
+                       if ob.type == 'EMPTY' and ob.name.endswith('hinge')},
         },
         'condition_states': {
             'built': ['clean'],

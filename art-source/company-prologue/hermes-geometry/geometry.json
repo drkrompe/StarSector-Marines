@@ -1,8 +1,9 @@
 {
-  "status": "Pass 1 blockout built; pass 2 in progress. Clean state only; no damage states or textures.",
+  "status": "Passes 1, 2 and 4 built; awaiting owner review (pass 3). Clean state only; no damage states or textures.",
   "passes": {
-    "1 blockout": "built; snapshot in reference-history/v1-blockout",
-    "4 real-world scale": "provisional; derivation in scale_record"
+    "1 blockout": "built; v1-blockout renders regenerate from commit 624cd3ea8",
+    "2 plausible detailing": "built: one Opus agent per module (hull, cockpit, engines, turrets, ventral)",
+    "4 real-world scale": "metres_per_unit published; derivation in scale_record"
   },
   "hull": {
     "hullId": "hermes",
@@ -42,7 +43,7 @@
       "passage flight deck to bay (0.8 x 1.2 m, 1.9 m)": 1.8
     },
     "crewed_required_m3": 18.5,
-    "envelope_union_units3": 46905,
+    "envelope_union_units3": 46834,
     "envelope_objects": [
       "Main hull - spine",
       "Wing body",
@@ -61,31 +62,31 @@
       "scale_from_width": 0.1
     },
     "ramp_opening_m": [
-      1.76,
-      1.32
+      2.2,
+      1.1
     ],
     "person_1_8m_units": 16.4
   },
   "dimensions": {
     "min": [
-      -39.32,
-      -26.0,
+      -39.15,
+      -26.04,
       -18.0
     ],
     "max": [
-      42.0,
-      26.0,
-      14.0
+      42.95,
+      26.04,
+      14.36
     ],
     "size": [
-      81.32,
-      52.0,
-      32.0
+      82.1,
+      52.08,
+      32.36
     ],
     "size_metres": [
-      8.95,
-      5.72,
-      3.52
+      9.03,
+      5.73,
+      3.56
     ],
     "ground_z_gear_down": -18.0,
     "game_bounds_polygon": [
@@ -299,11 +300,11 @@
       "pivot": "Hull ventral ramp hinge",
       "axis": "Y",
       "open_sign": 1,
-      "contact_angle_deg": 30.0,
+      "contact_angle_deg": 23.8,
       "built": "closed",
       "opening_units": [
-        16.0,
-        12.0
+        20.0,
+        10.0
       ]
     },
     "gear": [
@@ -325,7 +326,89 @@
         "retract_angle_deg": -90.0,
         "built": "extended"
       }
-    ]
+    ],
+    "pivots": {
+      "Gear nose hinge": {
+        "retract_axis": "Y",
+        "retract_angle_deg": 90.0,
+        "extended_angle_deg": 0.0,
+        "note": "built extended; rotate about local Y by retract_angle_deg to stow"
+      },
+      "Gear nose port door hinge": {
+        "close_axis": "X",
+        "open_angle_deg": 90.0,
+        "closed_angle_deg": 0.0,
+        "follows": "Gear nose hinge",
+        "note": "built open; a driver closes it (0 deg) as the leg reaches its retract angle"
+      },
+      "Gear nose starboard door hinge": {
+        "close_axis": "X",
+        "open_angle_deg": -90.0,
+        "closed_angle_deg": 0.0,
+        "follows": "Gear nose hinge",
+        "note": "built open; a driver closes it (0 deg) as the leg reaches its retract angle"
+      },
+      "Gear port main hinge": {
+        "retract_axis": "Y",
+        "retract_angle_deg": -90.0,
+        "extended_angle_deg": 0.0,
+        "note": "built extended; rotate about local Y by retract_angle_deg to stow"
+      },
+      "Gear port main port door hinge": {
+        "close_axis": "X",
+        "open_angle_deg": 90.0,
+        "closed_angle_deg": 0.0,
+        "follows": "Gear port main hinge",
+        "note": "built open; a driver closes it (0 deg) as the leg reaches its retract angle"
+      },
+      "Gear port main starboard door hinge": {
+        "close_axis": "X",
+        "open_angle_deg": -90.0,
+        "closed_angle_deg": 0.0,
+        "follows": "Gear port main hinge",
+        "note": "built open; a driver closes it (0 deg) as the leg reaches its retract angle"
+      },
+      "Gear starboard main hinge": {
+        "retract_axis": "Y",
+        "retract_angle_deg": -90.0,
+        "extended_angle_deg": 0.0,
+        "note": "built extended; rotate about local Y by retract_angle_deg to stow"
+      },
+      "Gear starboard main port door hinge": {
+        "close_axis": "X",
+        "open_angle_deg": 90.0,
+        "closed_angle_deg": 0.0,
+        "follows": "Gear starboard main hinge",
+        "note": "built open; a driver closes it (0 deg) as the leg reaches its retract angle"
+      },
+      "Gear starboard main starboard door hinge": {
+        "close_axis": "X",
+        "open_angle_deg": -90.0,
+        "closed_angle_deg": 0.0,
+        "follows": "Gear starboard main hinge",
+        "note": "built open; a driver closes it (0 deg) as the leg reaches its retract angle"
+      },
+      "Hull port side hatch hinge": {
+        "open_axis": "X",
+        "open_sign": 1,
+        "open_angle_deg": 105.0,
+        "built": "closed",
+        "note": "rotate about local X by open_sign*angle: the panel swings up and outboard"
+      },
+      "Hull starboard side hatch hinge": {
+        "open_axis": "X",
+        "open_sign": -1,
+        "open_angle_deg": 105.0,
+        "built": "closed",
+        "note": "rotate about local X by open_sign*angle: the panel swings up and outboard"
+      },
+      "Hull ventral ramp hinge": {
+        "open_axis": "Y",
+        "open_sign": 1,
+        "contact_angle_deg": 23.8,
+        "note": "positive rotation about local Y lowers the forward toe"
+      }
+    }
   },
   "condition_states": {
     "built": [
@@ -581,10 +664,54 @@
   },
   "mesh_authority": "All views render the same objects; later surface art is subordinate to this geometry.",
   "silhouette": {
-    "iou": 0.9685,
+    "iou": 0.9657,
     "pixels_per_unit": 16,
     "alpha_threshold": 128,
-    "model_only_area_units2": 92.3,
-    "sprite_only_area_units2": 9.5
+    "model_only_area_units2": 103.3,
+    "sprite_only_area_units2": 8.2
+  },
+  "second_wind_bay_fit": {
+    "metres_per_unit": {
+      "hermes": 0.11,
+      "second_wind": 0.65,
+      "hermes_units_per_sw_unit": 0.1692
+    },
+    "bay_clear_sw_units": {
+      "x": [
+        2.6,
+        25.4
+      ],
+      "y_wall": 15.55,
+      "y_mouth": 24.5,
+      "z_floor": -4.75,
+      "z_ceiling": 3.85,
+      "z_sill": -5.0,
+      "z_lintel": 4.1
+    },
+    "bay_clear_m": {
+      "length": 14.82,
+      "depth": 5.82,
+      "clear_height": 5.59,
+      "mouth_height": 5.75
+    },
+    "hermes_m": {
+      "length": 9.03,
+      "beam": 5.73,
+      "height_gear_down": 3.56
+    },
+    "margins_m": {
+      "fore_and_aft_each_end": 2.89,
+      "inboard_wall": 0.04,
+      "outboard_mouth": 0.04,
+      "overhead": 2.03,
+      "under_lintel": 2.19
+    },
+    "fits": true,
+    "stance": "on its own gear on the bay floor, bow forward, between the two cradle beams (their inner faces at SW x [6.6, 21.4])",
+    "door_line_sw_y": 22.6,
+    "depth_with_door_closed_m": 4.58,
+    "fits_with_door_closed": false,
+    "overhang_past_door_line_m": 1.19,
+    "clear_of_cradles": true
   }
 }

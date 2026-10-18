@@ -71,12 +71,17 @@ Modules (one per area, so parallel agents never share a file)
   hm_ventral.py  troop ramp, troop bay, tricycle gear, underside
 
 Moving parts (built closed / extended; poses by rotating the named empty)
-  Troop ramp      'Hull ventral ramp hinge'   (custom props: open_axis,
-                  open_sign, contact_angle_deg)
+  Troop ramp      'Hull ventral ramp hinge' (open_axis, open_sign,
+                  contact_angle_deg 23.8); its rams track it by constraints
   Landing gear    'Gear nose hinge', 'Gear port main hinge',
                   'Gear starboard main hinge' (retract_axis,
-                  retract_angle_deg); --gear up stows them
-  Others are listed in geometry.json under moving_parts.
+                  retract_angle_deg); --gear up stows them, and each well's
+                  two doors ('Gear <leg> port/starboard door hinge') close
+                  by Blender drivers on the leg's rotation
+  Side hatches    'Hull port/starboard side hatch hinge' (open_axis X,
+                  open_sign, open_angle_deg 105): gull-hinged service hatches
+  Every hinge empty and its properties are listed in geometry.json
+  (moving_parts.pivots).
 
 Scale (pass 4)
 One real-world scale: 0.11 m per unit (METRES_PER_UNIT in build_hermes.py,
@@ -96,12 +101,12 @@ program):
   total                                                        18.5 m3
 Three checks, all re-measured by the driver on every build (scale_record):
   - volume: the union of spine, wing body and aft block measures about
-    46,000 cubic units; at a 25% / 20% / 15% crewed share (cramped / nominal
+    46,800 cubic units; at a 25% / 20% / 15% crewed share (cramped / nominal
     / roomy small craft; the rest is drives, tanks, gear wells, magazines and
-    armour) the solved scale is 0.117 / 0.126 / 0.139;
+    armour) the solved scale is 0.116 / 0.125 / 0.138;
   - section: the spine's interior gives the troop bay 17 units of headroom
     and 20 units between the benches' backs; 1.9 m and 2.0 m need 0.112 and
-    0.10;
+    0.10 (the modelled bay has 17.5 units, 1.93 m);
   - the Second Wind's port bay (below) caps it at about 0.112.
 0.11 satisfies the section and the bay. At 0.11 the crew space is about 30%
 of the envelope: a cramped boat, which the codex's "robust" facilities
@@ -109,9 +114,32 @@ suggests anyway. Plausible range 0.10 (width-limited) to 0.112 (bay-limited).
 
 Second Wind bay fit
 bay_fit.py stands the Hermes in the Second Wind's port bay at both hulls'
-own scales (0.11 and 0.65 m/u) and measures the bay from her named bay
-objects. Results are in geometry.json (second_wind_bay_fit) and
-hermes-bay-fit.reference.png. See the sheet for the current numbers.
+own scales (0.11 and 0.65 m/u), measuring the bay from her named bay
+objects; it never saves her blend. Numbers in geometry.json
+(second_wind_bay_fit) and on hermes-bay-fit.reference.png:
+  bay clear 14.8 m long x 5.8 m deep x 5.6 m high; Hermes 9.0 x 5.7 x 3.6 m
+  on her gear. She fits the open bay broadside, bow forward, standing on her
+  own gear between the two empty cradle beams: 2.9 m clear at each end and
+  2.0 m overhead, but only 4 cm at the inboard wall and 4 cm at the mouth.
+  The beam is the binding dimension: no scale above about 0.112 fits at all.
+  The starboard bay's sealed sectional door stands inside the mouth (inner
+  face at SW y 22.6). A door in the same place on the port bay would leave
+  4.6 m of depth and the Hermes would overhang its line by 1.2 m, so she
+  does not fit with a door closed. The Second Wind's own deck program asks
+  for a 16 x 10 m boat bay (RoomRecipe.BOAT_BAY); her modelled bay is about
+  4 m shallower than that. Deepening the bay inboard is a Second Wind change,
+  not a reason to shrink the boat below its troop bay's headroom.
+
+Owner decisions open
+  - Ramp exit: the ramp lowers to 23.8 deg (1.10 m wide, 0.94 m between the
+    curbs), but anything forward of the opening is only 0.88 m above the
+    ground (1.38 m under the wing). Marines duck-walk about 1.4 m to stand
+    clear. A walk-out ramp needs about 1.8 m of keel clearance (much taller
+    gear). Proposed: accept the crouched exit as the codex's "robust".
+  - Bay fit: deepen the Second Wind's port bay, or accept an open bay.
+  - The troop bay's forward hatch (X ~19.5) meets solid hull; the flight
+    deck's aft bulkhead is at X 30.7. A crawl passage between them, over the
+    nose-gear well, is not modelled yet.
 
 Condition states (reserved, not built)
 The campaign needs the Hermes wrecked (as found below decks) and patched
@@ -120,11 +148,32 @@ contract: --state wrecked|patched builds the clean model plus a scar table
 of 'Scar H<nn> ...' objects with stable ids and per-state status; damage
 never renames, replaces or deletes base objects. Only 'clean' builds today.
 
-Review images (1920x1080)
+Review images (1920x1080; outputs, never committed - regenerate them)
   hermes-geometry.reference.png   top over sprite with IoU, port side, bow,
-                                  port quarter
+                                  port quarter (compose_review.py)
   hermes-bay-fit.reference.png    size and fit against the Second Wind's bay
-  renders/                        every standard view, close-ups, the ramp
-                                  and gear poses, a 1.8 m figure
-  pass2-before-after.png          close-ups, blockout against detailed
-  reference-history/v1-blockout/  the accepted blockout
+                                  (bay_fit.py, then compose_review.py)
+  pass2-before-after.png          six close-ups, blockout against detailed
+  renders/                        standard views and close-ups;
+                                  renders/gear-up/ (--gear up),
+                                  renders/ramp-open/ (--ramp-open contact --figure)
+  reference-history/v1-blockout/  the accepted blockout: rebuild commit
+                                  624cd3ea8 with --out to regenerate it
+
+Pass 2 summary (IoU 0.969 -> 0.966; each module within its 0.002 budget)
+  hull     plate modules and seams, louvres, the sprite's cream horseshoe
+           arms round the aft turret, grey-blue shoulder blocks, red side
+           hatches, service covers, tie-downs
+  cockpit  six-pane framed windscreen on the lights layer's crescent, a
+           flight deck with two seats and a console, roof escape hatch,
+           radome, pitots, nose cap
+  engines  whole drive units on a bolted stern thrust plate: shroud cans,
+           gimbals, actuators, banded bells; canted jet blocks in pockets
+  turrets  naval small mounts in dark ring wells (barbette, collar, gun
+           house, mantlet, twin jacketed guns, feed boxes, sight)
+  ventral  lined troop bay with four harnessed seats, lockers and a litter;
+           longer ramp with curbs, treads and rams; detailed tricycle gear
+           with doors; belly strakes, vents and antennas
+  check_clashes.py: every cross-module hit is a part sunk into a base hull
+  solid, the jet housings buried in the shoulder blocks, or the aft arms'
+  roots trimmed flush to the troop-bay lining.

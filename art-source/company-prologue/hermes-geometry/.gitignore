@@ -1,1 +1,3 @@
 __pycache__/
+# Review outputs (renders and the bay-fit record) are regenerated, never committed.
+renders/
