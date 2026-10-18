@@ -41,8 +41,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import pg_kit, pg_outline, pg_hull, pg_engines, pg_turrets, pg_shield
-MODULES = [pg_kit, pg_outline, pg_hull, pg_engines, pg_turrets, pg_shield]
+import pg_kit, pg_outline, pg_hull, pg_engines, pg_turrets, pg_shield, pg_arcs
+MODULES = [pg_kit, pg_outline, pg_hull, pg_engines, pg_turrets, pg_shield, pg_arcs]
 for module in MODULES:
     importlib.reload(module)
 
@@ -119,6 +119,18 @@ hull = pg_hull.build(kit)
 pg_engines.build(kit)
 pg_turrets.build(kit)
 pg_shield.build(kit, METRES_PER_UNIT)
+# Firing lines: report each turret's clear share of its arc (pg_arcs).
+ARCS = pg_arcs.check(kit)
+for row in ARCS:
+    print(f"ARC {row['id']} {row['size']:6} arc {row['arc_deg']:3} clear {row['clear_share']:.0%} "
+          f"blocked by {', '.join(row['blocked_by']) or '-'}")
+
+if os.environ.get('PG_ARC_DEBUG'):
+    for row in ARCS:
+        if row['id'] in os.environ['PG_ARC_DEBUG'].split(','):
+            for b in row['blocked']:
+                print('  ARCDBG', row['id'], b)
+
 for name, d in pg_kit.INSET_FAULTS:
     print(f'INSET FAULT: {name} folds over at inset {d:.1f}')
 
@@ -327,7 +339,7 @@ def union_volume(names, step=2.0):
 
 
 SOLIDS = ('Hull belt', 'Hull main ring', 'Hull bore lining', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
-          'Hull starboard bow horn', 'Hull core trench', 'Hull aft body', 'Hull command deck',
+          'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe', 'Hull core trench', 'Hull aft body', 'Hull command deck',
           'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')
 
 
@@ -377,6 +389,11 @@ if not args.no_save:
         'bore': {'centre': list(pg_hull.BORE_C), 'radius': pg_hull.BORE_R, 'lining_radius': pg_hull.LINING_R},
         'shield': dict(pg_shield.RECORDS),
         'weapon_slots': pg_turrets.records(),
+        'firing_lines': {'method': 'pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg '
+                                   'depressed) from a mount sitting low in its dimpled well',
+                         'barrel_line_above_rim': pg_arcs.BARREL_H,
+                         'clear_share': {r['id']: r['clear_share'] for r in ARCS},
+                         'still_blocked_by': {r['id']: r['blocked_by'] for r in ARCS if r['blocked_by']}},
         'engines': pg_engines.records(),
         'object_names': {'Hull ...': 'belt, main ring, bore lining, prow (grille block with the capital-mount bays), '
                                      'bow module, port/starboard bow horn, command deck (+ upper), core trench '
