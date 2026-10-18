@@ -57,7 +57,7 @@ SCAR_STATUSES = ('open', 'patched', 'replaced', 'faded', 'gone')
 # A drive pod's life: stripped and dead, cold with its lines capped, running
 # on jury-rigged salvage, running properly.
 ENGINE_STATUSES = ('dead', 'capped', 'jury', 'running')
-AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine', 'sw_scars_rcs')
+AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine', 'sw_scars_rcs', 'sw_scars_dorsal')
 
 # Nothing a strike or cut may land on or reach into.
 UNCUT = ('Turret', 'Scar', 'RCS ', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
