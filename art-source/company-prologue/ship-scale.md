@@ -15,47 +15,62 @@ usable: 55% for freighters (the Hound, the Second Wind, the Mudskipper) and
 33% for the Legion as a warship. On top of the mod's deck program, those
 shares gave the Hound about 490 m3 of hull per person and the Legion about 260.
 That is backwards for a carrier, and those shares cannot be compared between
-hulls. One set of contents and one set of class shares can.
+hulls. One set of contents and one set of class factors can.
 
 ## The constants and where they come from
 
-**Habitable volume per person at max crew: 55 m3** (range 40-70). Habitable
-means berths, messes, work stations, medical and recreation, with the passages
-between them. The ISS gives its crew of 7 about 388 m3 of habitable volume, 55
-each. Naval warships give their crews about 15-30 m3 each, but sail for weeks
-between port calls; a Starsector crew lives aboard for months. 40 is a cramped
-warship standard and 70 a roomy long-haul one. This constant is the biggest
-lever: every hull's metres per unit moves with its cube root.
+**Habitable volume per person at max crew: 300 m3** (range 273-328). The mod's
+own deck program, which the game's deck maps are drawn from, gives a 40-crew
+frigate 2,427 m2 of rooms, about 61 m2 a person. At x1.40 circulation and 3.2 m
+decks that is 273 m3. The Hound (A) is the calibration anchor: its doors,
+airlock, viewports, rails and mannequin were built to a person at 0.88 m/unit,
+which needs 328. The Second Wind, built to its own fittings at 0.65, solves to
+0.663 on the same constant, which is a second, independent check. The figure
+holds for every crew size, with no economy of scale. The deck program gives
+the Legion only 21 m2 a person, and that is how a carrier came to read smaller
+than a freighter beside it. 300 m3 is far above naval norms (15-30 m3) and the
+ISS (55 m3). A Starsector crew lives aboard for months, and the models'
+fittings were built to this.
+
+**Capitals feel like capital ships** (owner). Where a real-world input leaves
+a range, a capital takes the generous end and small hulls take the lean end.
+That means crew room x1.2, hangars at 3.0x each craft's box, deep armour and
+big magazines.
 
 **Cargo: 2.0 m3 per unit.** One unit is taken as one tonne of goods. Mixed
 palletised cargo stows at about 1.5 m3 per tonne, plus 30% for hold access and
 handling.
 
-**Fuel: 1.5 m3 per unit.** One unit is taken as one tonne, at about 0.8 t/m3,
+**Fuel: 1.5 m3 per unit.** One unit is taken as one tonne at about 0.8 t/m3,
 plus 20% for tankage.
 
-**Hangars: 2.5 times each craft's bare length x span x height box, with one
-spare per wing.** Craft sizes are the fighters' own, at their own scales. A
-Nimitz's hangar is 210 x 33 x 8 m (about 55,000 m3) and holds 25-30 aircraft,
-roughly 2,000 m3 each against an F/A-18's 1,090 m3 box. That is about 1.8x.
-Servicing in space and fighter ordnance handling add to it.
+**Hangars:** each craft's bare length x span x height box (the fighter's own
+size), times the class's hangar factor, with one spare per wing. A Nimitz's
+hangar is 210 x 33 x 8 m (about 55,000 m3) and holds 25-30 aircraft, roughly
+2,000 m3 each against an F/A-18's 1,090 m3 box, about 1.8x. Servicing in space
+and ordnance handling add to it.
 
-**Machinery shares by class.** Each share is part of the enclosed volume that
-no crew, cargo, fuel or fighter can use:
+**Per class** (shares are of the enclosed volume no crew, cargo, fuel or
+fighter can use):
 
-| class | armour | drive, reactor, flux | weapons, magazines | structure, tanks, stores, life support | total |
-|---|---|---|---|---|---|
-| frigate | .06 | .22 | .06 | .12 | .46 |
-| destroyer | .08 | .20 | .07 | .12 | .47 |
-| cruiser | .10 | .18 | .08 | .12 | .48 |
-| capital | .14 | .16 | .09 | .12 | .51 |
-| freighter | .03 | .15 | .02 | .12 | .32 |
+| class | armour | drive, reactor, flux | weapons, magazines | structure, tanks, stores, life support | total | habitable factor | hangar factor |
+|---|---|---|---|---|---|---|---|
+| frigate | .06 | .22 | .06 | .12 | .46 | 1.0 | 2.5 |
+| destroyer | .08 | .20 | .07 | .12 | .47 | 1.05 | 2.6 |
+| cruiser | .11 | .18 | .09 | .12 | .50 | 1.1 | 2.8 |
+| capital | .18 | .16 | .12 | .12 | .58 | 1.2 | 3.0 |
+| freighter | .03 | .15 | .02 | .12 | .32 | 1.0 | 2.5 |
 
 Real warships give machinery spaces about 20-25% of their internal volume. The
 drive plant's share shrinks with size, while armour and weapons grow with
 class. A freighter carries little of either. The class comes from `hullSize`,
 except that a designation naming a freighter, transport, tanker or liner makes
 the hull a freighter.
+
+**The game's sprite lengths are a floor on the frigate-to-capital ratio, not
+the method.** The sprites are Hound 72, Lasher 96, Dominator 180, Legion 308
+and Onslaught 384 px. The module reports each length against the Lasher's and
+flags a capital that comes out under its sprite ratio or well under about 4x.
 
 ## Checks against real ships
 
@@ -73,11 +88,11 @@ These are approximate public figures.
 
 Compare volume per person, not length per crew. A naval hull is long and
 slender (length about 7-10 times beam) for seakeeping and speed. A Starsector
-hull is nearly square in plan (the Legion is as wide as it is long), so the
-same volume gives a far shorter ship: a 50-crew frigate that would be 70-90 m
-at sea comes out under 50 m here. This basis gives about 90-160 m3 of enclosed
-hull per person, more than any warship, because crews live aboard for months.
-The ISS's 130 is the closest real figure.
+hull is nearly square in plan, so the same volume gives a far shorter ship.
+This basis gives about 450-900 m3 of enclosed hull per person: several times
+any warship's and the ISS's 130 m3 pressurised. That is the cost of honouring
+the deck program and the fittings the models were built to, and it is stated
+here rather than hidden.
 
 ## Measured and estimated volumes
 
