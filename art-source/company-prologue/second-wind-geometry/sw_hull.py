@@ -284,20 +284,27 @@ def build_flank(kit):
     return modules
 
 
+# Back wall inner face |y| of each bay. The port bay is deepened so the
+# company's Hermes (5.7 m beam) stands inside a door on the starboard bay's
+# line (y 22.6) with about 0.4 m either side (owner, 2026-10-18).
+BAY_WALL = {1: 12.4, -1: 15.55}
+
+
 def build_bays(kit):
     # Two distinct bays, not a through tunnel. Port open, starboard sealed.
     hull=kit.hull
     for side in (1,-1):
-        cutter=kit.box('Temporary bay cutter',(14,side*25,-.5),(23,20,9),kit.dark,0)
+        wall=BAY_WALL[side]
+        cutter=kit.box('Temporary bay cutter',(14,side*(wall-.55+35)/2,-.5),(23,35-wall+.55,9),kit.dark,0)
         bpy.context.view_layer.objects.active=hull
         mod=hull.modifiers.new('Lateral shuttle aperture','BOOLEAN')
         mod.operation='DIFFERENCE'
         mod.object=cutter
         bpy.ops.object.modifier_apply(modifier=mod.name)
         bpy.data.objects.remove(cutter,do_unlink=True)
-        kit.box(('Port' if side==1 else 'Starboard')+' bay interior',(14,side*15.3,-.5),(22,.5,8.6),kit.dark,.1)
-        kit.box('Bay level floor',(14,side*20,-5),(23,10,.5),kit.steel,.1)
-        kit.box('Bay ceiling',(14,side*20,4.1),(23,10,.5),kit.dark,.1)
+        kit.box(('Port' if side==1 else 'Starboard')+' bay interior',(14,side*(wall-.25),-.5),(22,.5,8.6),kit.dark,.1)
+        kit.box('Bay level floor',(14,side*(wall-.55+25)/2,-5),(23,25-wall+.55,.5),kit.steel,.1)
+        kit.box('Bay ceiling',(14,side*(wall-.55+25)/2,4.1),(23,25-wall+.55,.5),kit.dark,.1)
         for x in (2,26):
             kit.box('Bay jamb',(x,side*23,-.5),(1.2,3,10),kit.cream,.2)
         for z in (-5.5,4.6):
@@ -308,7 +315,7 @@ def build_bays(kit):
                 kit.box('Closed door stiffener',(x,-23.6,-.4),(.25,.3,8),kit.orange,.05)
         else:
             for x in (6,22):
-                kit.box('Port bay interior lamp',(x,16,3.2),(2,.4,.5),kit.lightmat,.05)
+                kit.box('Port bay interior lamp',(x,wall+.45,3.2),(2,.4,.5),kit.lightmat,.05)
                 kit.box('Empty maintenance cradle',(x,19,-4.4),(1.2,6,.7),kit.steel,.1)
     # Flat shading: smooth normals across a chine read as an inflated skin.
     for poly in hull.data.polygons:

@@ -1,0 +1,59 @@
+{
+ "part": "aft-stern",
+ "sheet": "aft",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9975,
+ "raw_iou": 0.9957,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9981,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9957
+  },
+  "bounds_affine": {
+   "scale": [
+    0.99872,
+    1.0
+   ],
+   "offset_px": [
+    0.08,
+    0.0
+   ],
+   "iou": 0.9943
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00172,
+    0.998
+   ],
+   "offset_px": [
+    0.08,
+    0.0
+   ],
+   "iou": 0.9981
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.46,
+  "p95_px": 2.0,
+  "max_px": 4.12
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.2,
+  "p95_px": 1.0,
+  "max_px": 3.16
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
