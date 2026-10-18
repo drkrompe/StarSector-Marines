@@ -105,7 +105,7 @@
     "override": "owner: larger than the Onslaught (2026-10-18)",
     "length_m_published": 315.1,
     "measured_this_build": {
-      "enclosed_units3": 2484882,
+      "enclosed_units3": 2491183,
       "solids": [
         "Hull belt",
         "Hull main ring",
@@ -129,7 +129,7 @@
     "size_m": [
       315.1,
       277.5,
-      83.0
+      86.5
     ],
     "person_1_8_m_in_units": 2.07,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -154,12 +154,12 @@
     "max": [
       174.07,
       159.5,
-      75.45
+      79.45
     ],
     "size": [
       362.17,
       319.0,
-      95.45
+      99.45
     ]
   },
   "bore": {
@@ -374,9 +374,9 @@
         5.0
       ],
       "normal": [
-        -0.473,
-        -0.0,
-        0.881
+        -0.27,
+        0.0,
+        0.963
       ],
       "contents": [
         "iris",
@@ -1679,11 +1679,11 @@
         14.0
       ],
       "target": [
-        -45.0,
+        -50.0,
         0.0,
-        36.0
+        32.0
       ],
-      "orthographic_scale": 58.0
+      "orthographic_scale": 62.0
     },
     {
       "name": "under-below",
@@ -1714,6 +1714,20 @@
       "orthographic_scale": 62.0
     },
     {
+      "name": "bridge-side",
+      "position": [
+        -60.0,
+        -120.0,
+        60.0
+      ],
+      "target": [
+        -62.0,
+        0.0,
+        52.0
+      ],
+      "orthographic_scale": 45.0
+    },
+    {
       "name": "hangar-wide",
       "position": [
         -40.0,
@@ -1735,10 +1749,10 @@
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.615,
-    "white": 0.517,
-    "dark": 0.433,
-    "agreement": 0.685,
+    "skin": 0.618,
+    "white": 0.555,
+    "dark": 0.441,
+    "agreement": 0.691,
     "silhouette": 0.962,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
