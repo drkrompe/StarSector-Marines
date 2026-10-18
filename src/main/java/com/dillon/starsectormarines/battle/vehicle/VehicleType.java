@@ -137,7 +137,8 @@ public enum VehicleType {
         }
     },
     /**
-     * The technical's pickup with its pintle gone and its bed full of ammunition crates. It carries a finite stock of
+     * The supply pickup, a field rig: the technical's pickup with its pintle gone and its bed full of ammunition
+     * crates — what a company welds together, not anybody's issue hull. It carries a finite stock of
      * resupply and hands it out, one round at a time through the battle's ordinary {@code ResupplySystem}, to friendly
      * squads standing near it — but only while it is halted: crates come off a parked truck. It pays for that with
      * everything else: no gun, no seats, and none of the technical's welded plate (art-source/vehicles/light-roles).
@@ -151,7 +152,8 @@ public enum VehicleType {
         @Override public int supplyStock() { return 24; }
     },
     /**
-     * The pickup cut short on a shorter wheelbase, painted dust grey, with a sensor mast where the gun stood. Its job
+     * The spotter pickup, a field rig: the pickup cut short on a shorter wheelbase, painted dust grey, with a
+     * salvaged sensor mast where the gun stood. Its job
      * is information: it sees farther than a marine and reports what it sees to its side's fog and its commander
      * ({@link ScoutSight}). The fastest hull in the bay, and the thinnest: no gun, no seats, almost no plate, and its
      * sight is ordinary line of sight, so it has to be driven somewhere it can look.
@@ -192,7 +194,10 @@ public enum VehicleType {
         return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC;
     }
 
-    /** The technical's pickup and the light roles built on it: the supply truck and the scout car. */
+    /**
+     * The technical's pickup and the light roles built on it. Every pickup is a <em>field rig</em> — jerry-rigged
+     * from a civilian chassis, never a military faction's issue — which is how pattern channels weight it.
+     */
     public boolean isPickup() {
         return this == MILITIA_TECHNICAL || this == SUPPLY_TRUCK || this == SCOUT_CAR;
     }
