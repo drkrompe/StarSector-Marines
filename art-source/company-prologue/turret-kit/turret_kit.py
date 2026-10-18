@@ -1299,9 +1299,19 @@ def _house_hurricane(g, f, s, r, z0):
         # Breech housing: the turret body the MIRV's tail sits in, rounded over.
         # It is waisted ahead of the hub - an inset - and widens again into the MIRV's mount.
         _dome_loft(gg['paint'], [(-9.0, 4.8, 5.8), (-8.2, 6.6, 7.8), (-6.4, 7.4, 8.8), (.8, 7.4, 8.8),
-                                 (2.0, 6.0, 8.1), (4.4, 6.0, 8.1), (5.6, 7.4, 8.8), (7.8, 7.0, 8.4),
-                                 (8.8, 6.4, 7.8)], za-4.6*k, k, .45)
-        gg['dark'].cyl((8.85*k, 0, za+.4*k), 4.1*k, .1*k, 'X', n=32)                         # throat
+                                 (2.0, 6.0, 8.1), (4.4, 6.0, 8.1), (5.6, 7.4, 8.8)], za-4.6*k, k, .45)
+        # The mount forward is an arch over the MIRV, open at the front so it goes through.
+        zb, zm, ri = za-4.6*k, za+.4*k, 4.2*k
+        arch = []
+        for x, hw, h in ((5.6, 7.4, 8.8), (7.8, 7.0, 8.4), (8.8, 6.4, 7.8)):
+            loop = _dome_section(hw*k, zb, h*k, .45)
+            loop += [(-ri, zb), (-ri, zm)]
+            loop += [(-ri*math.cos(math.pi*i/12), zm+ri*math.sin(math.pi*i/12)) for i in range(1, 12)]
+            loop += [(ri, zm), (ri, zb)]
+            arch.append((x*k, loop))
+        gg['paint'].loft_x(arch)
+        gg['dark'].cyl((5.62*k, 0, za+.4*k), 4.15*k, .06*k, 'X', n=32)                       # throat
+        gg['steel'].cyl((6.4*k, 0, za+.4*k), 2.2*k, 1.6*k, 'X', n=20, bevel=.1*k)           # launch socket
         # Orange vent lights let into the hull top, a file down each side.
         def lit(x, y):
             gg['mark'].box((x*k, y*k, za-4.6*k+_dome_z(y, 7.4, 8.8, .45)*k-.02*k), (.75*k, .75*k, .14*k))
