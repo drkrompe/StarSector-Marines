@@ -8,9 +8,7 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -41,33 +39,25 @@ import java.util.function.Consumer;
  */
 public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
 
-    /** Looping intel-screen track declared in mod/data/config/sounds.json. */
-    private static final String MUSIC_INTEL = "marines_intel_music";
-    /** Crossfade duration (seconds, whole numbers required) for the intel track. */
-    private static final int MUSIC_FADE_SECS = 2;
-    /**
-     * Screens that share the intel track. While the active screen stays inside
-     * this set, the music is left alone so MissionSelect → Briefing (and back)
-     * is a seamless continue rather than a stop/restart click.
-     * {@link ScreenId#BATTLE} is intentionally absent — BattleScreen owns its
-     * own crossfade to the battle track via {@code playCustomMusic}.
-     */
-    private static final Set<ScreenId> INTEL_MUSIC_SCREENS =
-            EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.BARRACKS,
-                    ScreenId.SHIP_TRANSFER, ScreenId.UI_WORKBENCH,
-                    ScreenId.MISSION_SELECT, ScreenId.DEBUG_MISSIONS,
-                    ScreenId.FLEET_ARMORY,
-                    ScreenId.MECH_LAB, ScreenId.BOAT_DECK,
-                    ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING,
-                    ScreenId.POLITY_DOCTRINE);
-
     private final MarineOpsContext ctx;
     private final EnumMap<ScreenId, Screen> screens = new EnumMap<>(ScreenId.class);
 
     private PositionAPI position;
     private Runnable dismissDialog;
     private ScreenId lastScreenId;
-    private boolean intelAudioActive;
+    private final OpsMusic music = new OpsMusic(new OpsMusic.Player() {
+        @Override public void suspendDefaultMusic(boolean suspended) {
+            Global.getSoundPlayer().setSuspendDefaultMusicPlayback(suspended);
+        }
+
+        @Override public void play(String track, int fadeOutSecs, int fadeInSecs, boolean loop) {
+            Global.getSoundPlayer().playCustomMusic(fadeOutSecs, fadeInSecs, track, loop);
+        }
+
+        @Override public void stop(int fadeOutSecs) {
+            Global.getSoundPlayer().playCustomMusic(fadeOutSecs, 0, null);
+        }
+    });
 
     public MarineOpsPanelPlugin(PlanetAPI planet) {
         this(planet, null);
@@ -123,7 +113,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         ScreenId id = ctx.getCurrentScreen();
         lastScreenId = id;
         screens.get(id).attach(position, ctx, dismissDialog);
-        updateIntelAudio(id);
+        music.entered(id);
     }
 
     @Override
@@ -138,7 +128,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
             if (lastScreenId != null) screens.get(lastScreenId).detach();
             lastScreenId = id;
             screens.get(id).attach(position, ctx, dismissDialog);
-            updateIntelAudio(id);
+            music.entered(id);
         }
         // The ship runs before the page does, and regardless of which page it
         // is. Time aboard belongs to the ship: leave the berthing screen for
@@ -182,37 +172,6 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         ctx.setBattleSimulation(null);
         CompanyDeck ship = ctx.companyDeck();
         if (ship != null) ship.dismiss();
-        stopIntelAudio();
-    }
-
-    /**
-     * Drive the intel-track lifecycle from screen transitions. Called after
-     * the new screen has attached, so when Battle is entering it has already
-     * called {@code playCustomMusic} for the battle track and the engine is
-     * crossfading; here we just clear our flag so the next return to an
-     * intel screen restarts the intel track.
-     */
-    private void updateIntelAudio(ScreenId id) {
-        if (INTEL_MUSIC_SCREENS.contains(id)) {
-            startIntelAudio();
-        } else if (id == ScreenId.BATTLE) {
-            intelAudioActive = false;
-        } else {
-            stopIntelAudio();
-        }
-    }
-
-    private void startIntelAudio() {
-        if (intelAudioActive) return;
-        intelAudioActive = true;
-        Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
-        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, MUSIC_INTEL, true);
-    }
-
-    private void stopIntelAudio() {
-        if (!intelAudioActive) return;
-        intelAudioActive = false;
-        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, 0, null);
-        Global.getSoundPlayer().setSuspendDefaultMusicPlayback(false);
+        music.closed();
     }
 }
