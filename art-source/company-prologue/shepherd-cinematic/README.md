@@ -51,7 +51,8 @@ and `validation.json` are tracked.
   opening <i> mouth` at the rim and a `launch point <i>` on the floor. A
   drone lifts out along +Z, then turns forward. The manifest records the
   clear radius of each.
-- **Lights** are the ship's own emissive lamps: running lamps, masthead,
+- **Lights** are the ship's own emissive lamps: running lamps (red to
+  port, green to starboard), masthead,
   boom nav lamp, the bay's floodlights and glow strips, and the lit
   viewports. Nothing adds a light object unless the effects collection is
   appended.
@@ -103,8 +104,5 @@ both are ignored.
 
 ## Known limits
 
-- The running lenses follow the sprite: green to port, red to starboard. That
-  is the reverse of the navigation convention, and the effects lights match
-  the lenses (`vfx_hull.LAMPS`).
 - The drone bay has no drones. A shot that launches one supplies it at a
   launch point.

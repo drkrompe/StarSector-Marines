@@ -279,8 +279,8 @@
  "lamps_lit": 30,
  "lamps": [
   {
-   "object": "Bridge running lamp port green",
-   "material": "Running lamp green.001",
+   "object": "Bridge running lamp port red",
+   "material": "Running lamp red.001",
    "lit": true,
    "at": [
     30.75,
@@ -289,8 +289,8 @@
    ]
   },
   {
-   "object": "Bridge running lamp starboard red",
-   "material": "Running lamp red.001",
+   "object": "Bridge running lamp starboard green",
+   "material": "Running lamp green.001",
    "lit": true,
    "at": [
     30.75,
@@ -539,8 +539,8 @@
    ]
   },
   {
-   "object": "Hull stern lamp lens port green",
-   "material": "Running lamp green",
+   "object": "Hull stern lamp lens port red",
+   "material": "Running lamp red",
    "lit": true,
    "at": [
     -33.12,
@@ -549,8 +549,8 @@
    ]
   },
   {
-   "object": "Hull stern lamp lens starboard red",
-   "material": "Running lamp red",
+   "object": "Hull stern lamp lens starboard green",
+   "material": "Running lamp green",
    "lit": true,
    "at": [
     -33.12,
@@ -697,7 +697,7 @@
    ],
    "lamps": [
     {
-     "name": "Bridge running lamp port green",
+     "name": "Bridge running lamp port red",
      "role": "running-port",
      "at": [
       30.75,
@@ -706,7 +706,7 @@
      ]
     },
     {
-     "name": "Bridge running lamp starboard red",
+     "name": "Bridge running lamp starboard green",
      "role": "running-starboard",
      "at": [
       30.75,
@@ -715,7 +715,7 @@
      ]
     },
     {
-     "name": "Hull stern lamp lens port green",
+     "name": "Hull stern lamp lens port red",
      "role": "running-port",
      "at": [
       -33.12,
@@ -724,7 +724,7 @@
      ]
     },
     {
-     "name": "Hull stern lamp lens starboard red",
+     "name": "Hull stern lamp lens starboard green",
      "role": "running-starboard",
      "at": [
       -33.12,
@@ -822,5 +822,5 @@
   "turrets": "Rotate Turret 1 pivot about its local Z to train (arc 200 deg about the slot angle); the rest pose is the slot angle. The WS 008 hardpoint is fixed.",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "0e7de094c03f95f5af9de6a68ec2844e3ded1a61d2fc5165fec7a7fc8d62eb86"
+ "asset_sha256": "f28ad9e2d6aa28e73401c2cf7ae93f50b00e427a3c40681c498beef9b0d49590"
 }
