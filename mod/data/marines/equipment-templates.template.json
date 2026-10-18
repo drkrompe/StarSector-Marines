@@ -107,6 +107,11 @@
       "kind": "primary",
       "equipmentId": "weapon.drone-pulse",
       "reason": "Integrated drone armament is not compatible with human infantry issue."
+    },
+    {
+      "kind": "primary",
+      "equipmentId": "weapon.drone-ion",
+      "reason": "Integrated drone armament is not compatible with human infantry issue."
     }
   ]
 }

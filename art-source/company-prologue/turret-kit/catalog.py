@@ -134,7 +134,18 @@ if args.top:
     scene.collection.objects.link(side_fill)
     side_fill.rotation_euler = (math.radians(70), 0, math.radians(-20))
     side_fill.hide_render = True
+    meshes = [ob for ob in scene.objects if ob.type == 'MESH' and not ob.hide_render]
+
+    def centre(ob):
+        c = sum((ob.matrix_world @ Vector(v) for v in ob.bound_box), Vector()) / 8
+        return c
+    centres = {ob.name: centre(ob) for ob in meshes}
     for w, p, r, t in placed:
+        # This turret only: a neighbour in the catalogue grid would otherwise
+        # reach into the frame and into the silhouette score.
+        for ob in meshes:
+            c = centres[ob.name]
+            ob.hide_render = math.hypot(c.x-p.x, c.y-p.y) > 2.6*r
         cam_data = bpy.data.cameras.new(w+'-top')
         cam_data.type = 'ORTHO'
         cam_data.ortho_scale = 2*r*3.2/1.0

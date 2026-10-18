@@ -36,7 +36,11 @@ import java.util.Random;
  */
 public final class MirrorDuelScene implements BehaviorScene {
 
-    private static final int TICKS = 18000;
+    /**
+     * Thirty minutes: the hull fight's durability ({@link WarshipScale#HULL_DURABILITY}) makes a capital mirror a fight
+     * of many minutes, and the window has to hold the slowest class's kill, not cut it off.
+     */
+    private static final int TICKS = Integer.getInteger("battle.scene.warshipMirrors.ticks", 54000);
     private static final int FRAME_EVERY = 60;
     private static final float TICK_SECONDS = 1f / 30f;
     private static final long[] SEEDS = {11L, 23L, 37L};
@@ -181,6 +185,13 @@ public final class MirrorDuelScene implements BehaviorScene {
             metrics.put(n + "HullPercent", Math.round(100f * Math.max(0f, s.hullFraction())));
             metrics.put(n + "Overloads", s.overloadCount());
             metrics.put(n + "MountsOut", s.mountsKnockedOut());
+            metrics.put(n + "MountSilencings", t.silencings.getOrDefault(s, 0));
+            metrics.put(n + "MountsLost", s.mountsLost());
+            WarshipPlating p = s.plating();
+            metrics.put(n + "Breaches", p == null ? 0 : p.breachCount());
+            metrics.put(n + "FirstBreachSeconds", p == null || Float.isNaN(p.firstBreachAt()) || t.firstHitTick < 0 ? -1f
+                    : round1(p.firstBreachAt() - t.firstHitTick * TICK_SECONDS));
+            metrics.put(n + "HullCells", p == null ? 0 : p.hullCellCount());
             metrics.put(n + "MaxFluxPercent", Math.round(100f * t.maxFlux.getOrDefault(s, 0f)));
             int[] f = t.underFire.get(s);
             metrics.put(n + "UnderFireTicks", f[1]);
@@ -225,6 +236,9 @@ public final class MirrorDuelScene implements BehaviorScene {
         final Map<Warship, int[]> standoffArc = new IdentityHashMap<>();
         final Map<Warship, float[]> rangeSpan = new IdentityHashMap<>();
         final Map<Warship, Float> maxFlux = new IdentityHashMap<>();
+        /** Per ship: mounts silenced by a breach while it still flew. */
+        final Map<Warship, Integer> silencings = new IdentityHashMap<>();
+        final Map<Warship, Integer> lastOut = new IdentityHashMap<>();
         float minGap = Float.MAX_VALUE;
         float worstExcess = Float.NEGATIVE_INFINITY;
 
@@ -280,6 +294,13 @@ public final class MirrorDuelScene implements BehaviorScene {
                         break;
                     }
                 }
+            }
+            for (Warship s : List.of(west, east)) {
+                if (s.destroyed()) continue;
+                int o = s.mountsKnockedOut();
+                int was = lastOut.getOrDefault(s, 0);
+                if (o > was) silencings.merge(s, o - was, Integer::sum);
+                lastOut.put(s, o);
             }
             if (out(west) || out(east)) return;
             for (Warship s : List.of(west, east)) {

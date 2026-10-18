@@ -161,7 +161,7 @@ public final class DroneSwarmAction implements Action {
         float[] sep = escort ? separation(id, body, anchor) : NO_PUSH;
         if (sortie != null) {
             AirSteeringSystem.steer(body, sortie[0] + sep[0], sortie[1] + sep[1], SteeringMode.CRUISE,
-                    Drone.HANDLING, dt);
+                    anchor.handling(id), dt);
         } else if (s.target != 0L) {
             tickEngage(member, body, s, slotIdx, slotCount, sim, droneState, sep, dt);
         } else if (droneState.pursuitTimer(id) > 0f) {
@@ -176,7 +176,7 @@ public final class DroneSwarmAction implements Action {
         // continuous center-based) so shots/queries see the drone's real position.
         sim.world().setPos(id, body.x, body.y);
 
-        if (s.fireThisTick && s.target != 0L) {
+        if (s.fireThisTick && s.target != 0L && (anchor == null || anchor.mayFire(id))) {
             sim.fireShot(member, s.target, FireStance.STANCED);
             sim.combat().beginBurst(member, s.target);
         }
