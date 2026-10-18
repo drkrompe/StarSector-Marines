@@ -1258,7 +1258,10 @@ def _house_hurricane(g, f, s, r, z0):
         g['steel'].cyl((xc-5.5*k, sy*14.3*k, z0+2.0*k), .45*k, .4*k, 'Y', n=10)
     g['plate'].cyl((-2.0*k, 0, z0+hd+1.7*k), 3.0*k, .5*k, 'Z', n=32, bevel=.12*k)
     f.hatch(g, (-2.0*k, 0, z0+hd+1.95*k), size=min(.9, .2*r/f.u))
-    g['accent'].box((-11.0*k, 0, z0+hd-.25*k), (2.4*k, 9.0*k, .4*k), .1*k)              # rear marks
+    g['dark'].box((-11.0*k, 0, z0+hd-.3*k), (3.4*k, 10.0*k, .5*k), .1*k)                # vent recess
+    for x, n in ((-10.2, 7), (-11.8, 5)):                                                 # vent lights
+        for i in range(n):
+            g['mark'].box((x*k, (i-(n-1)/2)*1.35*k, z0+hd-.04*k), (.7*k, .7*k, .1*k))
     g['plate'].box((8.0*k, 9.6*k, z0+hd+.6*k), (3.2*k, 3.2*k, 2.0*k), .25*k)            # square housing
     g['dark'].box((8.0*k, 9.6*k, z0+hd+1.62*k), (2.0*k, 2.0*k, .06*k))
     g['steel'].box((6.0*k, -10.4*k, z0+hd+.4*k), (6.0*k, 2.6*k, 1.6*k), .2*k)           # ladder unit
@@ -1294,12 +1297,28 @@ def _house_hurricane(g, f, s, r, z0):
         for sy in (1, -1):                                                              # head cheeks
             gg['paint'].box((27.0*k, sy*7.0*k, za+.6*k), (5.0*k, 3.0*k, 2.4*k), .3*k)
         # Breech housing: the turret body the MIRV's tail sits in, rounded over.
-        _dome_loft(gg['paint'], [(-9.0, 4.8, 5.8), (-8.2, 6.6, 7.8), (-6.4, 7.4, 8.8), (6.0, 7.4, 8.8),
-                                 (7.8, 7.0, 8.4), (8.8, 6.4, 7.8)], za-4.6*k, k, .45)
-        gg['dark'].cyl((8.85*k, 0, za+.4*k), 4.1*k, .1*k, 'X', n=32)                         # throat
-        gg['accent'].box((1.5*k, 0, za+4.12*k), (8.0*k, 7.0*k, .2*k), .1*k)                   # cream band
+        # It is waisted ahead of the hub - an inset - and widens again into the MIRV's mount.
+        _dome_loft(gg['paint'], [(-9.0, 4.8, 5.8), (-8.2, 6.6, 7.8), (-6.4, 7.4, 8.8), (.8, 7.4, 8.8),
+                                 (2.0, 6.0, 8.1), (4.4, 6.0, 8.1), (5.6, 7.4, 8.8)], za-4.6*k, k, .45)
+        # The mount forward is an arch over the MIRV, open at the front so it goes through.
+        zb, zm, ri = za-4.6*k, za+.4*k, 4.2*k
+        arch = []
+        for x, hw, h in ((5.6, 7.4, 8.8), (7.8, 7.0, 8.4), (8.8, 6.4, 7.8)):
+            loop = _dome_section(hw*k, zb, h*k, .45)
+            loop += [(-ri, zb), (-ri, zm)]
+            loop += [(-ri*math.cos(math.pi*i/12), zm+ri*math.sin(math.pi*i/12)) for i in range(1, 12)]
+            loop += [(ri, zm), (ri, zb)]
+            arch.append((x*k, loop))
+        gg['paint'].loft_x(arch)
+        gg['dark'].cyl((5.62*k, 0, za+.4*k), 4.15*k, .06*k, 'X', n=32)                       # throat
+        gg['steel'].cyl((6.4*k, 0, za+.4*k), 2.2*k, 1.6*k, 'X', n=20, bevel=.1*k)           # launch socket
+        # Orange vent lights let into the hull top, a file down each side.
+        def lit(x, y):
+            gg['mark'].box((x*k, y*k, za-4.6*k+_dome_z(y, 7.4, 8.8, .45)*k-.02*k), (.75*k, .75*k, .14*k))
         for sy in (1, -1):
-            gg['mark'].box((-1.5*k, sy*2.6*k, za+4.2*k), (2.2*k, 1.2*k, .1*k))
+            for x in (-.6, -2.0, -3.4, -4.8):
+                lit(x, sy*4.2)
+        for sy in (1, -1):
             gg['dark'].box((-4.5*k, sy*6.9*k, za+.2*k), (5.0*k, .2*k, 2.4*k))                # side seams
         gg['steel'].box((-9.4*k, 0, za-1.0*k), (.8*k, 6.0*k, 3.0*k), .1*k)                    # rear vent plate
         for z in (-2.0, -1.0, 0.0):
@@ -1642,18 +1661,19 @@ def _house_devastator(g, f, s, r, z0):
     H = 7.0
     P = .4
     plan = [(-11.8, 9.6, H*.7), (-11.2, 11.6, H*.86), (-10.2, 12.6, H*.95), (-8.6, 13.0, H), (5.0, 13.0, H),
-            (6.8, 12.6, H*.94), (8.0, 11.8, H*.84), (8.8, 10.6, H*.7)]
+            (6.4, 12.8, H*.95), (7.6, 12.2, H*.82), (8.6, 11.2, H*.64), (9.4, 9.8, H*.42),
+            (9.9, 8.0, H*.2)]
     zb = z0+1.4*k
     _dome_loft(g['paint'], plan, zb, k, P)
     _plan_loft(g['accent'], [(x, w+.15, 1.6) for x, w, h in plan], z0, k, .3, .05, .1)     # skirt
     for y in (9.0, 0.0, -9.0):                                                              # fairings
         zs = zb+_dome_z(y, 13.0, H, P)*k
-        g['plate'].lathe([(0, 0), (1.4*k, .2*k), (1.9*k, 1.2*k), (1.9*k, 17.0*k), (1.4*k, 18.0*k), (0, 18.4*k)],
+        g['plate'].lathe([(0, 0), (1.4*k, .2*k), (1.9*k, 1.2*k), (1.9*k, 13.0*k), (1.4*k, 14.0*k), (0, 14.4*k)],
                          24, (-10.0*k, y*k, zs-1.0*k), 'X')
-        g['dark'].box((-1.0*k, y*k, zs+.88*k), (14.0*k, .8*k, .06*k))
+        g['dark'].box((-3.2*k, y*k, zs+.88*k), (11.6*k, .8*k, .06*k))
     for y in (4.5, -4.5):                                                                   # channels
         zs = zb+_dome_z(y, 13.0, H, P)*k
-        g['dark'].box((-1.0*k, y*k, zs-.15*k), (17.0*k, 3.4*k, .5*k), .1*k)
+        g['dark'].box((-3.0*k, y*k, zs-.15*k), (13.0*k, 3.4*k, .5*k), .1*k)
     for sy in (1, -1):
         # Toothed bracket, low on the flank, webbed into the hull.
         g['accent'].box((-3.8*k, sy*13.8*k, z0+1.8*k), (8.6*k, 3.0*k, 3.6*k), .3*k)
@@ -1669,7 +1689,6 @@ def _house_devastator(g, f, s, r, z0):
     za = z0+5.0*k
 
     def gun_parts(gg, za):
-        gg['steel'].box((8.4*k, 0, za), (1.6*k, 27.0*k, 6.0*k), .4*k)                         # mantlet
         for b in sp['barrels']:
             y = b['y']*k
             for x in (10.6, 12.2, 13.8, 15.4):                                                # coil rings
