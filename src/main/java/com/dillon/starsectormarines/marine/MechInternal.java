@@ -36,8 +36,15 @@ public enum MechInternal {
             EquipmentAccessTier.COMMON, 1, 1, 0f, 0f, 0f, 0f, 100f, 6f),
     DOUBLE_HEAT_SINK("internal.heat-sink-double", "@gearInternalDoubleHeatSink", Role.HEAT_SINK,
             EquipmentAccessTier.ADVANCED, 2, 1, 3f, 0f, 0f, 0f, 120f, 7.5f),
+    // The military sink keeps the double's reservoir and adds cooling. Above about 126 a bigger
+    // reservoir changes which weapon gets the heat, not how much heat there is. When a cooled
+    // reservoir of size C releases, the dual chainguns (30 heat) fire first. A 42-heat SRM-15
+    // then clears the 0.9C gate before the chainguns cycle again only if
+    // C > 2 * (72 - 1.05 * cooling). That is about 126 on the refit Bulwark (8.5/s). Past it the
+    // refit fires mostly SRMs and out-guns its pre-cut frame by a further ~4%. 120 stays below
+    // the threshold for any cooling up to 11.4/s.
     MILITARY_HEAT_SINK("internal.heat-sink-military", "@gearInternalMilitaryHeatSink", Role.HEAT_SINK,
-            EquipmentAccessTier.PRESTIGE, 3, 1, 5f, 0f, 0f, 0f, 140f, 8f),
+            EquipmentAccessTier.PRESTIGE, 3, 1, 5f, 0f, 0f, 0f, 120f, 8f),
 
     AUXILIARY_COOLER("internal.cooler-auxiliary", "@gearInternalAuxiliaryCooler", Role.COOLER,
             EquipmentAccessTier.ADVANCED, 1, 1, 2f, 0f, 0f, 0f, 0f, 1f);

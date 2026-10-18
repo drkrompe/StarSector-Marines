@@ -129,7 +129,7 @@
       },
       "resource": {
         "mode": "ammunition",
-        "startingAmmo": 4
+        "startingAmmo": 5
       },
       "ai": {
         "policy": "hardened-direct-fire"

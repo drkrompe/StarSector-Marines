@@ -13,8 +13,9 @@ The hardpoints are fixed: the ballistic pair WS 002 / WS 003 sit in the gun
 pods' forward gaps, the missile pair WS 001 / WS 004 in the missile pods'.
 WS 008 / WS 009 are HIDDEN SYSTEM slots (the ammo-feed system) and carry
 only an anchor. Every slot has `Weapon <id> anchor` (+X along the slot
-angle); every gun has `Weapon <id> muzzle anchor` at its muzzle, +X along
-the line of fire. Guns are generic placeholders sized by slot: nothing
+angle); every gun has a muzzle empty, +X along the line of fire: `Anchor
+turret <i> barrel <k> muzzle` on the turrets and `Anchor weapon <id> muzzle` on
+the hardpoints, the names the shared VFX kit (../second-wind-vfx) looks for. Guns are generic placeholders sized by slot: nothing
 smaller reads at the distances this hull is seen from.
 """
 import math
@@ -60,7 +61,8 @@ def turret(kit, i, slot):
     muzzles = []
     for k, dy in enumerate((.75, -.75), 1):
         parts.append(kit.cylinder(f'Turret {i} barrel {k}', (x+6.4, y+dy, top+1.0), .32, 5.0, kit.steel, 'X', 8, 0))
-        m = kit.empty(f'Turret {i} barrel {k} muzzle anchor', (x+8.9, y+dy, top+1.0), 0, size=1)
+        # Named for the shared VFX kit's declared-muzzle rule ('Anchor turret <i> <tag> muzzle').
+        m = kit.empty(f'Anchor turret {i} barrel {k} muzzle', (x+8.9, y+dy, top+1.0), 0, size=1)
         parts.append(m)
         muzzles.append(m.name)
     for ob in parts:
@@ -87,13 +89,13 @@ def hardpoint(kit, slot):
         kit.box(f'Weapon {sid} breech', (x+2.5, y, z), (5, 2.0, 1.8), kit.steel, .1)
         kit.cylinder(f'Weapon {sid} barrel', (x+6.5, y, z), .4, 6.0, kit.steel, 'X', 8, 0)
         kit.cylinder(f'Weapon {sid} muzzle brake', (x+9.3, y, z), .55, .9, kit.dark, 'X', 8, 0)
-        m = kit.empty(f'Weapon {sid} muzzle anchor', (x+9.8, y, z), 0, size=1)
+        m = kit.empty(f'Anchor weapon {sid} muzzle', (x+9.8, y, z), 0, size=1)
     else:
         z = 1.4
         kit.box(f'Weapon {sid} launcher', (x+1.6, y, z), (5.6, 2.8, 2.6), kit.steel, .1)
         for k, (dy, dz) in enumerate(((.65, .6), (-.65, .6), (.65, -.6), (-.65, -.6)), 1):
             kit.cylinder(f'Weapon {sid} tube {k}', (x+4.45, y+dy, z+dz), .42, .2, kit.dark, 'X', 8, 0)
-        m = kit.empty(f'Weapon {sid} muzzle anchor', (x+4.6, y, z), 0, size=1)
+        m = kit.empty(f'Anchor weapon {sid} muzzle', (x+4.6, y, z), 0, size=1)
     kit.empty(f'Weapon {sid} anchor', (x, y, z), slot['angle'], size=2)
     ANCHOR_Z[sid] = z
     MUZZLES[sid] = [m.name]
