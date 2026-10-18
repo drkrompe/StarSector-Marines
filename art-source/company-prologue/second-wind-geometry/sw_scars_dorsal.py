@@ -608,13 +608,13 @@ def pressure_plate(d, scar, F, M, inner, P):
 KINDS = {'rip': kind_rip}
 
 SCARS = [
-    Scar('ds-port-waist-rip', 'rip', 'open open open faded',
+    Scar('ds-port-waist-rip', 'rip', 'open open replaced faded',
          'Windward port waist deck: a tumbling rock tore five deck panels away '
          'along their seams, folding one back over the deck and breaking the frame '
          'under the strike; the waist service runs broke in the void. Not '
          'pressure, thrust or navigation: left open through the escape (the bus '
-         'conduit arcing where nobody could reach it in vacuum) and the refit '
-         '(live ends booted); re-plated and painted when restored.',
+         'conduit arcing where nobody could reach it in vacuum); the refit ran the '
+         'new berthing services through it and plated it; painted when restored.',
          centre=(6.6, 16.7), angle=-6, a=4.8, b=3.2, depth=1.6,
          shape=[(-4.8, -3.2), (4.8, -3.2), (4.8, 0), (1.6, 0), (1.6, 3.2), (-4.8, 3.2)],
          jags={0: 3, 1: 1}, strike=(.4, -1.3),
