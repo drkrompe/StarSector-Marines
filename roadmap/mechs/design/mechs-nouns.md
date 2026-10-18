@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — headless tuning: section shares read against the whole-body control, long-range support keeps a threat in its arc while withdrawing, engines carry mass, call cooldown 30 s, heavy cradle three lifts.
+Updated: 2026-10-18 — duel range against armor (stand off, close, or duel from the outer band); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -110,8 +110,11 @@ increasing an encounter's total armored threat.
   Light lift, and each pays for its one job with the gun, the seats and the plate:
   the supply pickup hands out a finite stock through the battle's resupply
   authority while halted, and the spotter reports what its mast sees to the fog
-  and the commander (`convoy-nouns.md`, the light roles). Tri-Tachyon's vehicles,
-  when they come, are hover and drone coded; none exists yet.
+  and the commander (`convoy-nouns.md`, the light roles). Tri-Tachyon's vehicles are
+  hover and drone coded: the **hover scout** (`HOVER_SCOUT`, Advanced, Light lift) and
+  the **drone skimmer** (`DRONE_SKIMMER`, Prestige, Medium lift) carry a Tri-Tachyon
+  pattern provenance and are weighted up by Tri-Tachyon alone (`convoy-nouns.md`, the
+  hover line).
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
@@ -120,7 +123,8 @@ increasing an encounter's total armored threat.
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
   the variant it is known for (Hegemony the up-armored APC, the Lion's Guard the
-  fire-support APC, Tri-Tachyon the heavy-gun tank, the Luddic Path the dozer).
+  fire-support APC, the Luddic Path the dozer). Tri-Tachyon weights its own hover line,
+  not anybody's tank.
   Every variant now has its own hull and turret art and is offered. The dozer
   trades the cannon and speed for the line's heaviest plate and a blade that
   pushes through barricades and ordinary walls, opening a route other vehicles
@@ -449,6 +453,40 @@ hardware identities; any deployed chassis may receive any of these doctrines:
 - **Balanced** serves its assignment from the middle or outer portion of its
   installed direct-fire band. It accepts a close threat already upon it, then
   resumes the assignment, and has no special ally-geometry dependency.
+
+**Duel range.** Against armor — another mech or a ground vehicle — every
+doctrine fights from a **duel band** chosen from the mech's own installed,
+loaded weapons read against the target's (`MechDuelBand`): expected damage per
+second at a distance, given against received. A mech that out-reaches its
+target by four cells or more **stands off**, holding just outside the target's
+reach and inside its own, whatever its role. Otherwise it **closes** to a
+shorter band of its own only when that band trades clearly better than its
+longest one — a Brawler on a small edge, Balanced and Frontline Support on a
+clear one, Long-Range Support never — and nobody closes on a tie. Failing
+both, it **duels** from the outer part of its longest band (about 72–92% of
+reach) rather than walking inside it for no reason: two equal machines meet
+there, not at contact. In band with a clear shot it holds and fires, stepping
+once into cover facing the target when a covered in-band cell is a few cells
+off (hull-down, by the section cover rows). Out of band it looks a short way
+for an in-band firing cell or a cell nearer the band; while the target can
+reach it, it never takes a walk that turns its back on the target, and too
+close with nowhere legal to go it holds and fights. An armored contact
+shelling it from beyond its own reach is a duel too: the band decides whether
+it closes on where that contact was last seen. The rule sits below the
+reflexes — a player's move order still owns the chassis, a crippled one is
+still a turret — and never leaves command ground: every cell must be legal
+under the active assignment, and a mech outside its command (an exact cell not
+yet reached) is left to its doctrine. A Frontline Support mech with a legal
+anchor keeps pacing it; withdrawal, rescue and survival goals do not run
+doctrine and so never meet the rule. Infantry targets are unchanged. A ground
+vehicle is both a duel target, read by its turret, and a duelist: a deployed
+armed hull between orders takes the same band against armor
+(`convoy-nouns.md`, deployed vehicles). A player's move order still wins over
+any band, for a hull as for a mech. Pressure
+leaves out penetration, heat and ammunition depth on purpose: they scale both
+sides of a trade alike far more often than they reverse it.
+`-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the
+acceptance.
 
 The role changes how a mech serves an assignment; it never supplies an
 assignment, hidden contact, or permission to leave mission-command bounds.

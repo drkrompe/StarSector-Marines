@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1505f-74ca-79a1-9d47-b99a6fd90303",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1505f-74ca-79a1-9d47-b99a6fd90303\\exec-ad2efba2-9020-45b5-b077-2bf8e86603a7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-gantry.png",
+    "sha256": "1c4fcddc7100b5c538487ac36ea1f96e95373ad34a97f52d8d9941244a741b0c",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-gantry.prompt.txt",
+  "promptSha256": "04cd759549c7d45349867236bab5b95f4906b40644fd63c0090ddc242b8d29b2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a working Ko Combine Shepherd-class drone tender, a frigate-sized low-tech utility ship with an open drone work bay), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the large machinery drum's crown seen from directly above, bow at the top: a long light grey plate with a small dark gunmetal cap at the bow and one square opening that is background blue;\ntop-right: the machinery drum's outboard flank seen from starboard, bow to the right: a long light grey side with a tapered bow end;\nbottom-left: the machinery drum's nose seen from directly ahead: a light grey octagon;\nbottom-right: the starboard turret deck seen from directly above, bow at the top: a square mid grey gunmetal deck with one small light grey plate set in it.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: sand-tan areas are a warm dusty sand-tan enamel; pale cream areas are a chalky pale cream enamel; light grey areas are a light neutral grey paint; burnt orange areas are a burnt orange enamel; mid grey areas are dark grey gunmetal steel; dark grey areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-gantry-guide.png",
+      "sha256": "eaaea71b45808be1b3aff55fd48042b9b0d83dbfd1df8f2729457dfd909e6663",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of faces to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "49f10a0f959ff2a6066824a4e96cd4c91340c98b5112e7e8cece9e473c9d112f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to paint the four faces, preserving the guide’s layout, outlines, openings, and base colours."
+  ],
+  "usage": {
+    "input_tokens": 47070,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 614,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.2
+}

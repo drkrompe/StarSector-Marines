@@ -1,0 +1,42 @@
+{
+ "drum-top": {
+  "raw_iou": 0.9758,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9935,
+  "scale": [
+   1.01299,
+   1.00177
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "drum-side-stbd": {
+  "raw_iou": 0.9934,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9994,
+  "scale": [
+   1.00255,
+   1.00458
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "drum-nose": {
+  "raw_iou": 0.9913,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9948,
+  "scale": [
+   1.00287,
+   1.0
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "turret-deck-top": {
+  "raw_iou": 0.9962,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9992,
+  "scale": [
+   1.00221,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

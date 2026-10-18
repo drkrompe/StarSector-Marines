@@ -33,7 +33,8 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  *       a column's path before it reaches them.</li>
  * </ul>
  * Mechs take part with a reduced share ({@link #MECH_SHARE}); emplacements,
- * aircraft, drones and other vehicles do not. Every displacement goes through
+ * aircraft, drones and other vehicles do not. A hover hull pushes nobody: its
+ * skirt has no purchase on a body ({@link VehicleType#repelsBodies()}). Every displacement goes through
  * the same topology guard separation uses (full move, then either axis slide),
  * so a push can never put somebody inside a wall; a body pinned against one is
  * left where it is. Faction does not matter: a hull is physical.
@@ -97,7 +98,8 @@ public final class VehicleRepulsionSystem {
             GroundBody body = convoy.body(vehicle);
             VehicleType type = convoy.vehicleType(vehicle);
             if (mission == null || body == null || type == null || !mission.isVisible()
-                    || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE) continue;
+                    || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE
+                    || !type.repelsBodies()) continue;
             repel(vehicle, body, type, dt);
         }
     }

@@ -205,8 +205,10 @@ com.dillon.starsectormarines.battle.world.gen.bsp.DefencePostSnapshotSuite
 com.dillon.starsectormarines.battle.setup.GreyhookDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
+com.dillon.starsectormarines.battle.mech.MechDuelRangeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.SupplyTruckSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.ScoutCarSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.DozerBreachSceneSnapshotSuite
 com.dillon.starsectormarines.ops.TankVariantsSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.HoverLineSceneSnapshotSuite

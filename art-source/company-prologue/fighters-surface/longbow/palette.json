@@ -1,0 +1,127 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.987)",
+ "space": "CIELAB D65",
+ "classes": {
+  "blue": {
+   "pixels": 358591,
+   "mean": [
+    64.69,
+    -1.9,
+    -7.73
+   ],
+   "std": [
+    13.13,
+    0.92,
+    2.56
+   ],
+   "L_p10_p50_p90": [
+    45.29,
+    69.29,
+    77.4
+   ],
+   "mean_srgb": [
+    146.0,
+    158.5,
+    170.5
+   ]
+  },
+  "steel": {
+   "pixels": 62780,
+   "mean": [
+    38.86,
+    0.1,
+    0.65
+   ],
+   "std": [
+    8.0,
+    1.0,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    18.4,
+    44.85,
+    55.32
+   ],
+   "mean_srgb": [
+    92.2,
+    91.4,
+    90.4
+   ],
+   "std_measured": [
+    15.9,
+    0.65,
+    0.93
+   ],
+   "note": "spread owned: the measured one is shading"
+  },
+  "bright": {
+   "derived": "owned: polished steel rings, lips and pins, brighter than the structure",
+   "mean": [
+    62.0,
+    -0.3,
+    1.5
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ]
+  },
+  "dark": {
+   "derived": "owned: near-black recesses, vents and grilles",
+   "mean": [
+    13.0,
+    0.4,
+    1.0
+   ],
+   "std": [
+    3.5,
+    0.5,
+    0.7
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what worn paint reveals and what the belt deposits.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    5.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    30.0,
+    4.0,
+    10.0
+   ],
+   "what": "packed ore dust, brown-grey"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    80.0,
+    4.0,
+    14.0
+   ],
+   "what": "chalked, UV-bleached paint: faded orange goes to dusty tan, not pink"
+  }
+ }
+}

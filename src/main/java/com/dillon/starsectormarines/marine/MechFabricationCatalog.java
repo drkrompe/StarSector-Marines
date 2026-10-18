@@ -68,7 +68,11 @@ public final class MechFabricationCatalog {
             // Field rigs are workshop pickups, not issue hulls: the supply pickup's bill is mostly the supplies it is
             // stocked with, the spotter's the rare metals in its salvaged sensor mast.
             vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 55, 25, 70, 4),
-            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 25, 35, 55, 12));
+            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 25, 35, 55, 12),
+            // Tri-Tachyon's hover line is a corporate pattern, not a rig: lift fans, sensor clusters and drone
+            // control are rare metals, and the composite skirt is light on plate.
+            vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 28, 40, 50, 24),
+            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 48, 55, 85, 42));
 
     private MechFabricationCatalog() {
     }

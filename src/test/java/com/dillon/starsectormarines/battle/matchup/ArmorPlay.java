@@ -14,10 +14,12 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngagement;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,12 +34,16 @@ import java.util.TreeMap;
  *
  * <p>Every attacking machine is brought into range the way a player brings it: every {@link #STEER_EVERY_TICKS} it is
  * given a move order to a standoff point at 70% of its longest gun's reach off the nearest living enemy, and left
- * alone once it is inside 85% of that reach, unless it then stands a whole pass without firing, when it is brought
- * closer. A lone mech would otherwise sit out the fight under its own doctrine (an
+ * alone once it is inside 85% of that reach (a mech, or a hull that engages on its own: anywhere inside its reach),
+ * unless it then stands a whole pass without firing, when it is brought closer. Such a machine is brought closer only
+ * when it has no line of sight to the enemy: one in sight may be cooling, turning, or holding a duel band on purpose. A lone mech would otherwise sit out the fight under its own doctrine (an
  * armored-support Bulwark with nobody to pace holds where it lands), and a hull has no tactical brain at all. Inside
  * range everything is the production game: mech doctrine and targeting, vehicle turrets acquiring on their own.
- * Attacking lances also carry an attack-move onto the defenders' ground; defending lances hold an area defence of
- * their slot, and defending hulls hold where they were set down.
+ * Attacking lances carry no mission of their own ({@link #MECH_ORDER}): once the steering has brought one into reach,
+ * nothing but its doctrine decides where it fights. An attack-move onto the defenders' ground used to ride along, and
+ * walked every attacking mech into contact whatever its doctrine wanted ({@code -PmechOrder=attack-move} restores it,
+ * and the old steering of mechs with it).
+ * Defending lances hold an area defence of their slot, and defending hulls hold where they were set down.
  */
 public final class ArmorPlay {
 
@@ -61,6 +67,14 @@ public final class ArmorPlay {
     private static final float CLOSE_IN_FACTOR = 0.6f;
     private static final int MAX_CLOSE_IN = 4;
     private static final boolean DEBUG = Boolean.getBoolean("armorMatchup.debug");
+    /**
+     * What an attacking lance is ordered to do besides the steering ({@code -PmechOrder}): {@code engage} (default)
+     * gives it nothing more, so inside reach its doctrine alone fights; {@code attack-move} restores the old
+     * attack-move onto the defenders' ground.
+     */
+    static final String MECH_ORDER = System.getProperty("armorMatchup.mechOrder", "engage");
+    /** {@code attack-move} also restores the old steering of mechs: brought closer like a hull, in sight or not. */
+    private static final boolean LEGACY_MECH_ORDER = MECH_ORDER.equals("attack-move");
 
     static final String ATTACKERS = "attackers";
     static final String DEFENDERS = "defenders";
@@ -96,10 +110,12 @@ public final class ArmorPlay {
 
     /**
      * What one fight came to. {@code winner} is ATTACKERS, DEFENDERS, BOTH_DESTROYED, STALEMATE or UNRESOLVED
-     * (the tick limit). {@code firstDamageTick} is -1 when nobody was ever hit.
+     * (the tick limit). {@code firstDamageTick} is -1 when nobody was ever hit. {@code fightRange} is the median,
+     * over the ticks from the first hit, of the distance between the nearest two opposing machines: the range the
+     * fight was actually fought at, -1 when nobody was hit.
      */
     public record Result(String scenario, String attacker, String defender, long seed, String winner,
-                         int ticks, int firstDamageTick, SideStats attackers, SideStats defenders) {
+                         int ticks, int firstDamageTick, float fightRange, SideStats attackers, SideStats defenders) {
 
         public boolean decided() {
             return winner.equals("ATTACKERS") || winner.equals("DEFENDERS") || winner.equals("BOTH_DESTROYED");
@@ -136,6 +152,7 @@ public final class ArmorPlay {
             int lastDamage = -1;
             float damageSoFar = 0f;
             boolean stalemate = false;
+            List<Float> ranges = new ArrayList<>();
             while (ticks < scenario.maxTicks() && a.alive(sim) > 0 && d.alive(sim) > 0) {
                 if (recording != null) {
                     recording.observe(sim, ticks, firstDamage >= 0, status(sim, a, d), both);
@@ -146,6 +163,10 @@ public final class ArmorPlay {
                 if (recording != null) recording.advanced(sim);
                 a.observe(sim);
                 d.observe(sim);
+                if (firstDamage >= 0) {
+                    float range = a.closestTo(sim, d);
+                    if (range >= 0f) ranges.add(range);
+                }
                 float damage = a.integrityLost() + d.integrityLost();
                 if (damage > damageSoFar + 1e-3f) {
                     damageSoFar = damage;
@@ -165,6 +186,7 @@ public final class ArmorPlay {
             else if (aLeft == 0) winner = "DEFENDERS";
             else winner = stalemate ? "STALEMATE" : "UNRESOLVED";
             return new Result(scenario.id(), attacker.label(), defender.label(), seed, winner, ticks, firstDamage,
+                    median(ranges),
                     a.stats(sim, d.integrityLost()), d.stats(sim, a.integrityLost()));
         } finally {
             sim.close();
@@ -193,8 +215,10 @@ public final class ArmorPlay {
                             spec.atPosition(cell[0] + 0.5f, cell[1] + 0.5f);
                         });
                 if (attacking) {
-                    squad.assigned(id -> ObjectiveAssignment.attackMove(id, ArmorScenarios.DEFENDER_X,
-                            ArmorScenarios.MID_Y));
+                    if (LEGACY_MECH_ORDER) {
+                        squad.assigned(id -> ObjectiveAssignment.attackMove(id, ArmorScenarios.DEFENDER_X,
+                                ArmorScenarios.MID_Y));
+                    }
                 } else {
                     squad.assigned(id -> ObjectiveAssignment.defendArea(id, firstCell[0], firstCell[1]));
                 }
@@ -204,6 +228,14 @@ public final class ArmorPlay {
             slot += unit.count();
         }
         return keys;
+    }
+
+    static float median(List<Float> values) {
+        if (values.isEmpty()) return -1f;
+        float[] sorted = new float[values.size()];
+        for (int i = 0; i < sorted.length; i++) sorted[i] = values.get(i);
+        Arrays.sort(sorted);
+        return sorted[sorted.length / 2];
     }
 
     private static String status(BattleSimulation sim, Side a, Side d) {
@@ -372,10 +404,20 @@ public final class ArmorPlay {
                 float dx = at[0] - target[0];
                 float dy = at[1] - target[1];
                 float distance = (float) Math.hypot(dx, dy);
-                if (reach > 0f && distance <= reach * CLOSE_ENOUGH * closer(b)) {
+                // A mech is left to its doctrine anywhere inside its reach; a hull, which has none, inside 85% of it.
+                // A hull fights armor on its own once in reach (VehicleEngagement); with that off it has no brain
+                // and is steered all the way in, as before.
+                boolean steeredLikeAHull = b.vehicle && !VehicleEngagement.isEnabled() || LEGACY_MECH_ORDER;
+                float leaveAlone = steeredLikeAHull ? reach * CLOSE_ENOUGH * closer(b) : reach * closer(b);
+                if (reach > 0f && distance <= leaveAlone) {
                     // In range: leave it to its doctrine and turret, unless it has stood there a whole pass without
                     // firing (a wall or a corner between it and the enemy), when a player would bring it closer.
-                    if (!silent || hasOrder(sim, b) || b.closeIn >= MAX_CLOSE_IN) continue;
+                    // A mech with the enemy in sight is left to its doctrine even when it is quiet: it may be
+                    // cooling, turning, or holding a duel band on purpose, and bringing it closer every pass
+                    // walked every mech into contact whatever its doctrine wanted.
+                    if (!silent || hasOrder(sim, b) || b.closeIn >= MAX_CLOSE_IN
+                            || !steeredLikeAHull && sim.getGrid().hasLineOfSight((int) at[0], (int) at[1],
+                            (int) target[0], (int) target[1])) continue;
                     b.closeIn++;
                 }
                 float standoff = reach > 0f ? reach * STANDOFF * closer(b) : UNARMED_STANDOFF_CELLS;
@@ -468,6 +510,18 @@ public final class ArmorPlay {
 
         private static int clamp(int v, int size) {
             return Math.max(1, Math.min(size - 2, v));
+        }
+
+        /** Distance between this side's and {@code enemy}'s nearest living machines, or -1 when a side is gone. */
+        float closestTo(BattleSimulation sim, Side enemy) {
+            float best = Float.MAX_VALUE;
+            for (Body b : ids) {
+                if (b.dead || !isAlive(sim, b)) continue;
+                float[] at = position(sim, b);
+                float[] other = enemy.nearest(sim, at[0], at[1]);
+                if (other != null) best = Math.min(best, (float) Math.hypot(at[0] - other[0], at[1] - other[1]));
+            }
+            return best == Float.MAX_VALUE ? -1f : best;
         }
 
         /** Position of the living enemy nearest (x, y), or null when none stands. */

@@ -1,0 +1,82 @@
+{
+ "fuselage-top": {
+  "raw_iou": 0.972,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.981,
+  "scale": [
+   1.00328,
+   1.00248
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "arm-fore-top-port": {
+  "raw_iou": 0.9832,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9901,
+  "scale": [
+   1.00267,
+   1.00427
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "arm-aft-top-port": {
+  "raw_iou": 0.9807,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9917,
+  "scale": [
+   1.00446,
+   1.00704
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9908,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9994,
+  "scale": [
+   1.00194,
+   1.0068
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "housing-top": {
+  "raw_iou": 0.9756,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9872,
+  "scale": [
+   1.0041,
+   1.01246
+  ],
+  "boundary_p95_px": 3.0
+ },
+ "rack-top": {
+  "raw_iou": 0.9712,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9844,
+  "scale": [
+   1.01429,
+   1.00354
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "fuselage-side-port": {
+  "raw_iou": 0.9673,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.991,
+  "scale": [
+   1.00638,
+   1.0361
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "underside": {
+  "raw_iou": 0.9464,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9588,
+  "scale": [
+   1.00495,
+   1.0078
+  ],
+  "boundary_p95_px": 3.0
+ }
+}

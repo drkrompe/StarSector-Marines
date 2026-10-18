@@ -46,11 +46,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.86,
+  "metres_per_unit": 0.85,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2485038,
+      "units3": 2538239,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -86,13 +86,13 @@
     "contents_total_m3": 653700,
     "machinery_share": 0.58,
     "enclosed_m3": 1556429,
-    "solved_metres_per_unit": 0.856,
+    "solved_metres_per_unit": 0.85,
     "range": {
-      "habitable_273": 0.829,
-      "habitable_328": 0.881
+      "habitable_273": 0.823,
+      "habitable_328": 0.875
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 300.9,
+    "length_m": 298.8,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -102,9 +102,9 @@
         1.4
       ]
     },
-    "published_metres_per_unit": 0.86,
+    "published_metres_per_unit": 0.85,
     "measured_this_build": {
-      "enclosed_units3": 2485038,
+      "enclosed_units3": 2538239,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
@@ -126,14 +126,14 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2486789
+      "with_drive_pods_units3": 2540887
     },
     "size_m": [
-      302.7,
-      229.9,
-      100.7
+      298.9,
+      228.9,
+      121.5
     ],
-    "person_1_8_m_in_units": 2.09,
+    "person_1_8_m_in_units": 2.12,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -149,19 +149,19 @@
   },
   "dimensions": {
     "min": [
-      -126.0,
-      -133.67,
-      -61.81
+      -123.76,
+      -134.67,
+      -65.4
     ],
     "max": [
-      226.0,
-      133.67,
-      55.28
+      227.9,
+      134.67,
+      77.6
     ],
     "size": [
-      352.0,
-      267.33,
-      117.08
+      351.66,
+      269.34,
+      143.0
     ]
   },
   "weapon_slots": [
@@ -171,7 +171,7 @@
       "location": [
         158,
         71,
-        -5.93
+        -2.0
       ],
       "angle": 70,
       "arc": 150,
@@ -190,7 +190,7 @@
       "location": [
         134,
         74,
-        -2.22
+        0.37
       ],
       "angle": 65,
       "arc": 120,
@@ -209,7 +209,7 @@
       "location": [
         158,
         -71,
-        -5.93
+        -2.0
       ],
       "angle": -70,
       "arc": 150,
@@ -228,7 +228,7 @@
       "location": [
         134,
         -74,
-        -2.22
+        0.37
       ],
       "angle": -65,
       "arc": 120,
@@ -247,7 +247,7 @@
       "location": [
         114,
         78,
-        0.82
+        2.3
       ],
       "angle": 75,
       "arc": 120,
@@ -266,7 +266,7 @@
       "location": [
         114,
         -78,
-        0.82
+        2.3
       ],
       "angle": -75,
       "arc": 120,
@@ -285,7 +285,7 @@
       "location": [
         187,
         0,
-        14.08
+        14.48
       ],
       "angle": 0,
       "arc": 150,
@@ -304,7 +304,7 @@
       "location": [
         150,
         -12,
-        17.82
+        23.23
       ],
       "angle": -20,
       "arc": 90,
@@ -323,7 +323,7 @@
       "location": [
         150,
         12,
-        17.82
+        23.23
       ],
       "angle": 20,
       "arc": 90,
@@ -342,7 +342,7 @@
       "location": [
         -3,
         -112,
-        9.71
+        14.86
       ],
       "angle": 250,
       "arc": 180,
@@ -361,7 +361,7 @@
       "location": [
         -3,
         112,
-        9.71
+        14.86
       ],
       "angle": 110,
       "arc": 180,
@@ -380,7 +380,7 @@
       "location": [
         49,
         18,
-        29.66
+        38.82
       ],
       "angle": 60,
       "arc": 140,
@@ -399,7 +399,7 @@
       "location": [
         49,
         -18,
-        29.66
+        38.82
       ],
       "angle": -60,
       "arc": 140,
@@ -418,7 +418,7 @@
       "location": [
         -9,
         22,
-        30.89
+        37.27
       ],
       "angle": 170,
       "arc": 120,
@@ -437,7 +437,7 @@
       "location": [
         -9,
         -22,
-        30.89
+        37.27
       ],
       "angle": 190,
       "arc": 120,
@@ -456,7 +456,7 @@
       "location": [
         77,
         88,
-        5.24
+        7.73
       ],
       "angle": 80,
       "arc": 135,
@@ -475,7 +475,7 @@
       "location": [
         126,
         0,
-        21.0
+        33.13
       ],
       "angle": 0,
       "arc": 150,
@@ -494,7 +494,7 @@
       "location": [
         77,
         -87,
-        5.15
+        8.0
       ],
       "angle": -80,
       "arc": 135,
@@ -513,7 +513,7 @@
       "location": [
         -9,
         65,
-        22.8
+        21.48
       ],
       "angle": 30,
       "arc": 120,
@@ -532,7 +532,7 @@
       "location": [
         8,
         40,
-        24.85
+        37.27
       ],
       "angle": 20,
       "arc": 120,
@@ -551,7 +551,7 @@
       "location": [
         8,
         -40,
-        24.85
+        37.27
       ],
       "angle": -20,
       "arc": 120,
@@ -570,7 +570,7 @@
       "location": [
         -9,
         -65,
-        22.8
+        21.43
       ],
       "angle": -30,
       "arc": 120,
@@ -589,7 +589,7 @@
       "location": [
         198,
         70,
-        -11.59
+        -26.0
       ],
       "angle": 0,
       "arc": 5,
@@ -606,7 +606,7 @@
       "location": [
         198,
         -70,
-        -12.18
+        -26.0
       ],
       "angle": 0,
       "arc": 5,
@@ -652,7 +652,7 @@
         0.342,
         0.0
       ],
-      "mouth_radius": 5.6,
+      "mouth_radius": 4.6,
       "bell": "Engine 1 aft-facing bell",
       "lip": "Engine 1 mouth lip",
       "throat": "Engine 1 dark throat",
@@ -677,7 +677,7 @@
         0.0,
         0.0
       ],
-      "mouth_radius": 5.6,
+      "mouth_radius": 4.6,
       "bell": "Engine 2 aft-facing bell",
       "lip": "Engine 2 mouth lip",
       "throat": "Engine 2 dark throat",
@@ -702,7 +702,7 @@
         0.0,
         0.0
       ],
-      "mouth_radius": 5.6,
+      "mouth_radius": 4.6,
       "bell": "Engine 3 aft-facing bell",
       "lip": "Engine 3 mouth lip",
       "throat": "Engine 3 dark throat",
@@ -727,7 +727,7 @@
         -0.342,
         0.0
       ],
-      "mouth_radius": 5.6,
+      "mouth_radius": 4.6,
       "bell": "Engine 4 aft-facing bell",
       "lip": "Engine 4 mouth lip",
       "throat": "Engine 4 dark throat",
@@ -752,7 +752,7 @@
         0.0,
         0.0
       ],
-      "mouth_radius": 5.8,
+      "mouth_radius": 7.0,
       "bell": "Engine 5 aft-facing bell",
       "lip": "Engine 5 mouth lip",
       "throat": "Engine 5 dark throat",
@@ -777,7 +777,7 @@
         0.0,
         0.0
       ],
-      "mouth_radius": 5.8,
+      "mouth_radius": 7.0,
       "bell": "Engine 6 aft-facing bell",
       "lip": "Engine 6 mouth lip",
       "throat": "Engine 6 dark throat",
@@ -788,9 +788,9 @@
     {
       "name": "Light stem 1",
       "position": [
-        215.66,
-        -0.04,
-        2.17
+        221.31,
+        0.0,
+        2.15
       ],
       "colour": "red",
       "rgb": [
@@ -810,7 +810,7 @@
       "position": [
         17.0,
         0.0,
-        54.73
+        77.05
       ],
       "colour": "red",
       "rgb": [
@@ -828,9 +828,9 @@
     {
       "name": "Light port arm nose 1",
       "position": [
-        212.4,
-        77.56,
-        -26.0
+        213.17,
+        77.04,
+        -25.69
       ],
       "colour": "red",
       "rgb": [
@@ -848,9 +848,9 @@
     {
       "name": "Light port leg tip 1",
       "position": [
-        -122.97,
-        56.17,
-        2.16
+        -121.92,
+        56.16,
+        13.94
       ],
       "colour": "red",
       "rgb": [
@@ -868,9 +868,9 @@
     {
       "name": "Light port quarter 1",
       "position": [
-        -66.07,
-        100.53,
-        -5.9
+        -66.06,
+        98.3,
+        -4.83
       ],
       "colour": "red",
       "rgb": [
@@ -888,9 +888,9 @@
     {
       "name": "Light port arm edge 1",
       "position": [
-        180.08,
-        90.7,
-        -18.39
+        180.04,
+        81.36,
+        -10.39
       ],
       "colour": "white",
       "rgb": [
@@ -908,9 +908,9 @@
     {
       "name": "Light port arm edge 2",
       "position": [
-        140.05,
-        88.56,
-        -7.91
+        140.04,
+        91.17,
+        -9.58
       ],
       "colour": "white",
       "rgb": [
@@ -928,9 +928,9 @@
     {
       "name": "Light port arm edge 3",
       "position": [
-        100.04,
-        125.06,
-        -17.29
+        100.05,
+        101.35,
+        -6.37
       ],
       "colour": "white",
       "rgb": [
@@ -948,9 +948,9 @@
     {
       "name": "Light port arm edge 4",
       "position": [
-        60.02,
-        126.21,
-        -11.35
+        60.05,
+        110.26,
+        -1.5
       ],
       "colour": "white",
       "rgb": [
@@ -969,8 +969,8 @@
       "name": "Light port arm edge 5",
       "position": [
         20.05,
-        115.16,
-        3.75
+        111.44,
+        8.85
       ],
       "colour": "white",
       "rgb": [
@@ -988,9 +988,9 @@
     {
       "name": "Light port arm edge 6",
       "position": [
-        -10.21,
-        115.98,
-        10.8
+        -4.01,
+        112.53,
+        10.6
       ],
       "colour": "white",
       "rgb": [
@@ -1008,9 +1008,9 @@
     {
       "name": "Light starboard arm nose 1",
       "position": [
-        212.4,
-        -77.56,
-        -26.0
+        213.17,
+        -77.04,
+        -25.69
       ],
       "colour": "red",
       "rgb": [
@@ -1028,9 +1028,9 @@
     {
       "name": "Light starboard leg tip 1",
       "position": [
-        -122.97,
-        -56.17,
-        2.16
+        -121.92,
+        -56.16,
+        13.94
       ],
       "colour": "red",
       "rgb": [
@@ -1048,9 +1048,9 @@
     {
       "name": "Light starboard quarter 1",
       "position": [
-        -66.07,
-        -100.53,
-        -5.9
+        -66.06,
+        -98.3,
+        -4.83
       ],
       "colour": "red",
       "rgb": [
@@ -1068,9 +1068,9 @@
     {
       "name": "Light starboard arm edge 1",
       "position": [
-        180.08,
-        -90.7,
-        -18.39
+        180.04,
+        -81.36,
+        -10.39
       ],
       "colour": "white",
       "rgb": [
@@ -1088,9 +1088,9 @@
     {
       "name": "Light starboard arm edge 2",
       "position": [
-        140.05,
-        -88.56,
-        -7.91
+        140.04,
+        -91.17,
+        -9.58
       ],
       "colour": "white",
       "rgb": [
@@ -1108,9 +1108,9 @@
     {
       "name": "Light starboard arm edge 3",
       "position": [
-        100.06,
-        -125.09,
-        -17.41
+        100.05,
+        -101.35,
+        -6.37
       ],
       "colour": "white",
       "rgb": [
@@ -1128,9 +1128,9 @@
     {
       "name": "Light starboard arm edge 4",
       "position": [
-        60.02,
-        -126.21,
-        -11.35
+        60.05,
+        -110.26,
+        -1.5
       ],
       "colour": "white",
       "rgb": [
@@ -1149,8 +1149,8 @@
       "name": "Light starboard arm edge 5",
       "position": [
         20.05,
-        -115.16,
-        3.75
+        -111.44,
+        8.85
       ],
       "colour": "white",
       "rgb": [
@@ -1168,9 +1168,9 @@
     {
       "name": "Light starboard arm edge 6",
       "position": [
-        -10.21,
-        -115.98,
-        10.8
+        -4.01,
+        -112.53,
+        10.6
       ],
       "colour": "white",
       "rgb": [
@@ -1188,9 +1188,9 @@
     {
       "name": "Light stern 1",
       "position": [
-        -109.94,
+        -105.25,
         0.0,
-        8.06
+        8.0
       ],
       "colour": "white",
       "rgb": [
@@ -1221,44 +1221,44 @@
     "sensor_mm": 36.0,
     "cameras": {
       "formation-quarter-1.5km": [
-        1320.7,
-        -1066.3,
-        535.7
+        1337.8,
+        -1078.8,
+        551.4
       ],
       "formation-abeam-1.5km": [
-        50.0,
-        -1727.2,
-        239.5
+        52.1,
+        -1747.5,
+        251.7
       ],
       "formation-bow-1.5km": [
-        -1427.5,
-        -853.0,
-        359.4
+        -1442.8,
+        -863.1,
+        373.0
       ],
       "formation-high-1.5km": [
-        1207.1,
-        668.1,
-        1117.9
+        1222.8,
+        675.9,
+        1140.4
       ],
       "formation-quarter-3km": [
-        2591.5,
-        -2132.5,
-        1074.7
+        2623.4,
+        -2157.6,
+        1096.7
       ],
       "formation-abeam-3km": [
-        50.0,
-        -3454.4,
-        482.2
+        52.1,
+        -3495.1,
+        497.3
       ],
       "formation-bow-3km": [
-        -2905.0,
-        -1706.1,
-        722.0
+        -2937.7,
+        -1726.1,
+        739.9
       ],
       "formation-high-3km": [
-        2364.2,
-        1336.1,
-        2239.0
+        2393.5,
+        1351.8,
+        2274.8
       ]
     }
   },
@@ -1335,34 +1335,34 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9617,
-    "sprite_uncovered": 0.0186,
-    "model_outside_sprite": 0.0205,
+    "iou": 0.9595,
+    "sprite_uncovered": 0.0148,
+    "model_outside_sprite": 0.0268,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
     "formation-abeam-1.5km": {
       "size_px": [
-        268,
-        98
+        265,
+        108
       ]
     },
     "formation-bow-1.5km": {
       "size_px": [
-        214,
-        85
+        213,
+        100
       ]
     },
     "formation-high-1.5km": {
       "size_px": [
-        223,
-        196
+        218,
+        198
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
-        241,
-        123
+        238,
+        133
       ]
     },
     "formation-sheet": {
@@ -1373,26 +1373,26 @@
     },
     "formation-abeam-3km": {
       "size_px": [
-        131,
-        49
+        132,
+        53
       ]
     },
     "formation-bow-3km": {
       "size_px": [
-        107,
-        43
+        108,
+        50
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        111,
-        97
+        109,
+        99
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        120,
-        60
+        119,
+        67
       ]
     }
   }

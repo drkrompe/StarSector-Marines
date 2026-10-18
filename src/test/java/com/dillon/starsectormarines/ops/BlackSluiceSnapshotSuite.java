@@ -68,7 +68,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         Fixture(String id, long seed, Control control, AgreusYardAgreement route) { this(id, seed, control, route, true); }
     }
     /** Duel frames: every this many ticks from the order, for at most this many ticks. */
-    private static final int DUEL_FRAME_EVERY = 30, DUEL_FRAME_TICKS = 6600, DUEL_FRAME_TAIL = 300;
+    private static final int DUEL_FRAME_EVERY = 30, DUEL_FRAME_TICKS = 15000, DUEL_FRAME_TAIL = 300;
     private final Map<String, Boolean> victories = new HashMap<>();
     public String id() { return "black-sluice"; }
     public String label() { return "A Small War: Black Sluice handover with named company, owned tender and Greyhook's split"; }
@@ -196,9 +196,10 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     if (over && duelOverTick < 0) duelOverTick = sim.getSimTickIndex();
                     boolean tail = duelOverTick < 0 || sim.getSimTickIndex() - duelOverTick <= DUEL_FRAME_TAIL;
                     if (since <= DUEL_FRAME_TICKS && since % DUEL_FRAME_EVERY == 0 && tail)
-                        duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 150, 76, 300)
+                        // A little wider than the map, so a hull flying in or out across an edge is seen crossing it.
+                        duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 150, 96, 340)
                                 .withImpactEffects().withUnitShadows()
-                                .render(sim, "BLACK SLUICE / THE DUEL OVER THE SOUTHERN GROUND / " + since / 30 + "s after Voss's order / "
+                                .render(sim, "BLACK SLUICE / THE DUEL OVERHEAD / " + since / 30 + "s after Voss's order / "
                                         + duelCaption(duel), ReviewAnnotations.builder().build()));
                 }
                 if (recordDuel && splitSeen && (sim.getSimTickIndex() - splitTick) % 90 == 0
@@ -336,7 +337,8 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     .arrow(283, 150, 283, 74, "BERTH ROAD: THE ONLY WAY DOWN", ReviewStyle.ROUTE)
                     .label(150, 92, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
                     .label(56, 40, "BASIN RIM", ReviewStyle.NOTE)
-                    .box(0, 0, BlackSluice.WIDTH - 1, BlackSluice.AIRSPACE_TOP, "DUEL AIRSPACE", ReviewStyle.NOTE);
+                    .arrow(2, 76, 30, 76, "WOLFS' EDGE: IN AND OUT", ReviewStyle.APPROACH)
+                    .arrow(BlackSluice.WIDTH - 30, 76, BlackSluice.WIDTH - 2, 76, "GREYHOOK'S EDGE: OUT", ReviewStyle.ROUTE);
             var cradle = BlackSluice.VENTURE_CRADLE;
             marks.box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
             for (var berth : BlackSluice.HOUND_BERTHS)

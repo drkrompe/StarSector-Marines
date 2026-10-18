@@ -22,6 +22,8 @@ final class ArmorReport {
                int attackerWins, int defenderWins, int mutual, int stalemate, int unresolved,
                /** Mean seconds from first hit to decision over decided fights; -1 when none was decided. */
                float meanTtkSeconds,
+               /** Mean over fights of each fight's median range from the first hit; -1 when nobody was hit. */
+               float meanFightRange,
                float attackerLeft, float defenderLeft,
                float attackerIntegrity, float defenderIntegrity,
                float attackerHitRate, float defenderHitRate,
@@ -35,6 +37,8 @@ final class ArmorReport {
             if (fights.isEmpty()) throw new IllegalArgumentException("A row needs at least one fight");
             int aw = 0, dw = 0, both = 0, stale = 0, open = 0, decided = 0;
             float ttk = 0f;
+            float range = 0f;
+            int ranged = 0;
             float aLeft = 0, dLeft = 0, aInt = 0, dInt = 0, aShots = 0, dShots = 0, aHits = 0, dHits = 0;
             float aMounts = 0, dMounts = 0, aLegs = 0, dLegs = 0, aHeat = 0, dHeat = 0;
             Map<String, ArmorPlay.WeaponStats> aWeapons = new TreeMap<>();
@@ -50,6 +54,10 @@ final class ArmorReport {
                 if (r.timeToKillSeconds() >= 0f) {
                     ttk += r.timeToKillSeconds();
                     decided++;
+                }
+                if (r.fightRange() >= 0f) {
+                    range += r.fightRange();
+                    ranged++;
                 }
                 ArmorPlay.SideStats a = r.attackers();
                 ArmorPlay.SideStats d = r.defenders();
@@ -73,7 +81,7 @@ final class ArmorReport {
             int n = fights.size();
             ArmorPlay.Result first = fights.get(0);
             return new Row(pairing, first.scenario(), first.attacker(), first.defender(), n, aw, dw, both, stale,
-                    open, decided == 0 ? -1f : ttk / decided,
+                    open, decided == 0 ? -1f : ttk / decided, ranged == 0 ? -1f : range / ranged,
                     aLeft / n, dLeft / n, aInt / n, dInt / n,
                     aShots == 0 ? 0f : aHits / aShots, dShots == 0 ? 0f : dHits / dShots,
                     aShots / n, dShots / n, aMounts / n, dMounts / n, aLegs / n, dLegs / n, aHeat / n, dHeat / n,
@@ -106,16 +114,17 @@ final class ArmorReport {
     }
 
     static String markdownHeader() {
-        return "| Matchup | Att wins | Def wins | Both dead | Stalemate | Timeout | TTK s | Att left | Def left "
+        return "| Matchup | Att wins | Def wins | Both dead | Stalemate | Timeout | TTK s | Range | Att left | Def left "
                 + "| Att integrity | Def integrity | Att hit | Def hit | Mounts lost A/D | Legs crippled A/D "
                 + "| Heat-limited s A/D | Att damage by weapon | Def damage by weapon | Replay |\n"
-                + "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n";
+                + "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n";
     }
 
     static String markdownRow(Row r) {
         return "| " + r.pairing + " | " + r.attackerWins + "/" + r.fights + " | " + r.defenderWins + "/" + r.fights
                 + " | " + r.mutual + " | " + r.stalemate + " | " + r.unresolved
                 + " | " + (r.meanTtkSeconds < 0f ? "-" : f1(r.meanTtkSeconds))
+                + " | " + (r.meanFightRange < 0f ? "-" : f1(r.meanFightRange))
                 + " | " + f1(r.attackerLeft) + " | " + f1(r.defenderLeft)
                 + " | " + pct(r.attackerIntegrity) + " | " + pct(r.defenderIntegrity)
                 + " | " + pct(r.attackerHitRate) + " | " + pct(r.defenderHitRate)
@@ -127,7 +136,7 @@ final class ArmorReport {
     }
 
     static final String CSV_HEADER = "pairing,scenario,attacker,defender,fights,attacker_wins,defender_wins,"
-            + "both_destroyed,stalemate,timeout,mean_ttk_s,attacker_left,defender_left,attacker_integrity,"
+            + "both_destroyed,stalemate,timeout,mean_ttk_s,fight_range,attacker_left,defender_left,attacker_integrity,"
             + "defender_integrity,attacker_hit_rate,defender_hit_rate,attacker_shots,defender_shots,"
             + "attacker_mounts_lost,defender_mounts_lost,attacker_legs_crippled,defender_legs_crippled,"
             + "attacker_heat_limited_s,defender_heat_limited_s,attacker_weapons,defender_weapons\n";
@@ -135,7 +144,7 @@ final class ArmorReport {
     static String csvRow(Row r) {
         return q(r.pairing) + ',' + r.scenario + ',' + q(r.attacker) + ',' + q(r.defender) + ',' + r.fights + ','
                 + r.attackerWins + ',' + r.defenderWins + ',' + r.mutual + ',' + r.stalemate + ',' + r.unresolved + ','
-                + f1(r.meanTtkSeconds) + ',' + f1(r.attackerLeft) + ',' + f1(r.defenderLeft) + ','
+                + f1(r.meanTtkSeconds) + ',' + f1(r.meanFightRange) + ',' + f1(r.attackerLeft) + ',' + f1(r.defenderLeft) + ','
                 + f2(r.attackerIntegrity) + ',' + f2(r.defenderIntegrity) + ','
                 + f2(r.attackerHitRate) + ',' + f2(r.defenderHitRate) + ','
                 + f1(r.attackerShots) + ',' + f1(r.defenderShots) + ','
@@ -145,7 +154,7 @@ final class ArmorReport {
                 + q(r.attackerWeapons) + ',' + q(r.defenderWeapons) + '\n';
     }
 
-    static final String RUNS_HEADER = "scenario,attacker,defender,seed,winner,ticks,first_damage_tick,ttk_s,"
+    static final String RUNS_HEADER = "scenario,attacker,defender,seed,winner,ticks,first_damage_tick,ttk_s,fight_range,"
             + "attacker_left,defender_left,attacker_integrity,defender_integrity,attacker_damage_dealt,"
             + "defender_damage_dealt,attacker_shots,attacker_hits,defender_shots,defender_hits,"
             + "attacker_mounts_lost,defender_mounts_lost,attacker_legs_crippled,defender_legs_crippled,"
@@ -156,7 +165,7 @@ final class ArmorReport {
         ArmorPlay.SideStats a = r.attackers();
         ArmorPlay.SideStats d = r.defenders();
         return r.scenario() + ',' + q(r.attacker()) + ',' + q(r.defender()) + ',' + r.seed() + ',' + r.winner() + ','
-                + r.ticks() + ',' + r.firstDamageTick() + ',' + f1(r.timeToKillSeconds()) + ','
+                + r.ticks() + ',' + r.firstDamageTick() + ',' + f1(r.timeToKillSeconds()) + ',' + f1(r.fightRange()) + ','
                 + a.left() + ',' + d.left() + ',' + f2(a.integrityFraction()) + ',' + f2(d.integrityFraction()) + ','
                 + f1(a.damageDealt()) + ',' + f1(d.damageDealt()) + ','
                 + a.shots() + ',' + a.hits() + ',' + d.shots() + ',' + d.hits() + ','

@@ -44,12 +44,13 @@ public final class ColonyArchiveObjective implements ExtractionPayloadObjective 
     public void tick(BattleView sim) {
         if (recovered) return;
         boolean marinePresent = false;
+        int archiveZone = zoneId(sim);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE) continue;
             int unitZone = sim.getZoneGraph().zoneIdAt(
                     sim.world().cellX(unit), sim.world().cellY(unit));
-            if (unitZone == zoneId) {
+            if (unitZone == archiveZone) {
                 marinePresent = true;
                 break;
             }
@@ -74,8 +75,19 @@ public final class ColonyArchiveObjective implements ExtractionPayloadObjective 
         return cellY;
     }
 
+    /** The zone id frozen at setup; it goes stale once the zone graph is rebuilt. */
     public int zoneId() {
         return zoneId;
+    }
+
+    /**
+     * The archive's zone as the zone graph numbers it now. The graph is rebuilt when topology
+     * changes (a wall or a furnishing destroyed), and rebuilding renumbers zones, so the id frozen
+     * at setup can name another room; it is the fallback only when the archive cell has no zone.
+     */
+    public int zoneId(BattleView sim) {
+        int zone = sim.getZoneGraph().zoneIdAt(cellX, cellY);
+        return zone >= 0 ? zone : zoneId;
     }
 
     public float recoveryDuration() { return recoveryDuration; }
