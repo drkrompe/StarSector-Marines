@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — Chapter 5's duel has no fight area and no warp in or out (owner): Wolfs fly in and out across the west edge, Greyhook's ships leave across the east.
+Updated: 2026-10-18 — Black Sluice widened by 160 cells of open approach ground west of the apron so the Wolfs cross the edge outside their reach (owner); earlier the same day the duel lost its fight area and its warps (Wolfs in and out across the west edge, Greyhook's ships out across the east).
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -382,7 +382,9 @@ those sources when proposing the operation; he does not infer a hidden pirate ba
 from the map or announce an unseen force roster.
 
 The map has a causeway customs block, a sheltered fuel-control house and the
-dispatch pier. Service galleries provide infantry flanks around exposed road
+dispatch pier. West of the landing apron lies open approach ground, the basin's
+flats and rim country, which the Wolfs fly in across; nothing of the ground fight
+is out there, and the company's boats come in over the north edge. Service galleries provide infantry flanks around exposed road
 approaches. Fuel storage is an explicit preservation objective; its controls are
 a seizure target, not an invitation to destroy the district's usable supply.
 
@@ -721,13 +723,15 @@ Still open inside this story:
 - **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
   Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
   ground referee never reads it; a duel-off control wins the same seed. Since
-  2026-10-18 it has no fight area and edge entry and exit only; over the five
-  `greyhook-duel` seeds the Greyhook breaks for the east edge about 111 seconds after
-  the order and is off the map five and a half to six minutes after it, with 40 to
-  100 percent of her hull, one or both Hounds fall, and the Wolfs lose none (four
-  seeds) or both (`warship-behaviours.md`, Decided: ship against ship). Her run across the
-  basin at under a cell a second is long, and with the doctrine's withdrawal the
-  Wolfs often break off before she is clear.
+  2026-10-18 it has no fight area and edge entry and exit only, and the map has
+  160 cells of approach ground west of the apron so the Wolfs cross the edge about
+  85 cells outside their reach of Greyhook's pads. Over the five `greyhook-duel`
+  seeds they are sighted 10 seconds after the order, closing at 24, first fire at
+  62 and the first Hound down at about 93; the Greyhook makes her height at about
+  93 seconds, before a gun has reached her, and leaves across the east edge
+  untouched while both Hounds die screening; the Wolfs lose both on four seeds and
+  one on the fifth. Her free climb during the approach is the open question: the
+  eighty-second climb was set when contact came at the order.
 - **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
   than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
   reaches its pit, so counter-battery is unexercised, and House Custody's estate

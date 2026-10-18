@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.MapEdge;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipDuelHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.warship.WarshipEdgeHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipShipRules;
@@ -40,7 +41,8 @@ import java.util.Set;
  * <p>Five loops, one per seed. A seed moves when the order comes and where along the west edge each Wolf flies in by a
  * few cells, which is all the chapter's ground battle varies for the ships; everything after is the ships' own doing.
  * Verdicts assert mechanics (both sides put rounds on hulls, nobody fires on the ground, the Wolfs fly in on their
- * heading, the radio hears them sighted, closing and firing in that order, the Greyhook fights before she breaks, no
+ * heading and cross it outside their reach of every hull of Greyhook's, the radio hears them sighted, closing and
+ * firing in that order, the Greyhook fights before she breaks, no
  * wing launches, every hull arrives from its pad or across its side's edge and leaves across its side's edge, no hull
  * crosses an edge that is not its side's, and a hull the edge pressure holds stays out of its edge margin to within a
  * tolerance); who escapes, why and when she broke, how long it lasts, where over the map it was fought and what each
@@ -149,6 +151,9 @@ public final class GreyhookDuelScene implements BehaviorScene {
                         t.greyhookShotsBeforeBreak, t.wolvesInReachBeforeBreak)));
         verdicts.add(Verdict.of("the-wolfs-fly-in-on-their-heading", t.wolfEntryHeadingError <= 1f,
                 String.format(Locale.ROOT, "in across the west edge at most %.1f degrees off east", t.wolfEntryHeadingError)));
+        verdicts.add(Verdict.of("the-wolfs-cross-the-edge-outside-their-reach", t.entryGap > 0f,
+                String.format(Locale.ROOT, "as the first Wolf crossed the edge the nearest of Greyhook's hulls was %.0f cells "
+                        + "beyond its %.0f-cell reach", t.entryGap, t.entryReach)));
         verdicts.add(Verdict.of("hulls-arrive-only-from-a-pad-or-across-their-edge", t.badArrivals.isEmpty(),
                 t.badArrivals.isEmpty() ? t.hullsSeen + " hulls: Greyhook's on their pads, the Wolfs off the west edge"
                         : String.join("; ", t.badArrivals)));
@@ -189,6 +194,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("shieldDamageToWolves", Math.round(t.shieldTaken(duel.wolves())));
         metrics.put("shieldDamageToGreyhook", Math.round(greyhook.shieldAbsorbedDamage()));
         metrics.put("greyhookShotsBeforeBreak", t.greyhookShotsBeforeBreak);
+        metrics.put("entryGapBeyondReachCells", Math.round(t.entryGap));
         metrics.put("sightedSeconds", t.seconds(sighted));
         metrics.put("closingSeconds", t.seconds(closing));
         metrics.put("firstHullFireSeconds", t.seconds(fired));
@@ -307,6 +313,12 @@ public final class GreyhookDuelScene implements BehaviorScene {
         int greyhookShotsBeforeBreak;
         int wolvesInReachBeforeBreak;
         float wolfEntryHeadingError;
+        /**
+         * On the tick the first Wolf's centre crossed the edge: how far the nearest of Greyhook's hulls lay beyond that
+         * Wolf's reach (negative is inside it), and the reach.
+         */
+        float entryGap = Float.NaN;
+        float entryReach;
         int lastTick;
         /** The centroid of the live duel hulls every thirty seconds after the order, while any fight is over the basin. */
         final List<float[]> centroids = new ArrayList<>();
@@ -528,6 +540,19 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 }
             }
             edges(sim, tick, all);
+            if (Float.isNaN(entryGap)) {
+                for (Warship wolf : duel.wolves()) {
+                    float x = wolf.centerX();
+                    if (wolf.destroyed() || x < 0f || x > WIDTH) continue;
+                    float near = Float.MAX_VALUE;
+                    for (Warship s : all) {
+                        if (s.faction != Faction.ALLY && !s.destroyed()) near = Math.min(near, s.distanceTo(wolf.centerX(), wolf.centerY()));
+                    }
+                    entryReach = WarshipDuelHelm.reach(wolf);
+                    entryGap = near - entryReach;
+                    break;
+                }
+            }
             if (duel.ordered() && tick > orderTick && (tick - orderTick) % 900 == 0) {
                 int slot = (tick - orderTick) / 900;
                 String[] names = {"greyhook", "hound1", "hound2", "wolf1", "wolf2"};
