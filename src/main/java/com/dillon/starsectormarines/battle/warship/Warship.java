@@ -1360,7 +1360,7 @@ public final class Warship {
     boolean tickVisit(float dt, boolean hostileHullOver) {
         if (!missionOwned() || departing) return false;
         visitQuietSeconds = hostileHullOver ? 0f : visitQuietSeconds + dt;
-        return visitQuietSeconds >= visitDwellSeconds;
+        return !holdsTheField && visitQuietSeconds >= visitDwellSeconds;
     }
 
     /** Whether the ship arrived through the cloud deck (see {@link #arriveFromAbove()}). */
@@ -2042,6 +2042,24 @@ public final class Warship {
      */
     public void useDoctrine() {
         if (doctrine == null) doctrine = new WarshipDoctrine();
+        if (holdsTheField) doctrine.holdTheField();
+    }
+
+    private boolean holdsTheField;
+
+    /**
+     * The mission keeps this ship over the battle until it is destroyed: its doctrine (now or later given) never
+     * withdraws it, and a visit it is on never ends, so it stays the mission's without leaving. Nothing else about how
+     * it fights changes, and a mission that sends it away itself (an edge exit, spent station time) still can.
+     */
+    public void holdTheField() {
+        holdsTheField = true;
+        if (doctrine != null) doctrine.holdTheField();
+    }
+
+    /** Whether the mission keeps this ship over the battle until it is destroyed. */
+    public boolean holdsTheField() {
+        return holdsTheField;
     }
 
     public boolean hasDoctrine() {

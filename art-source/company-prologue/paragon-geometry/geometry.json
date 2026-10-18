@@ -40,15 +40,16 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.66,
+  "metres_per_unit": 0.87,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 3615276,
+      "units3": 2486231,
       "crew_max": 1000,
       "cargo": 300,
       "fuel": 300,
       "cls": "capital",
+      "boat_bays": 2,
       "length_units": 362.2,
       "sprite_px": 364,
       "volume_source": "measured (SOLIDS)"
@@ -75,61 +76,62 @@
       "cargo": 600,
       "fuel": 450,
       "hangar": 0,
-      "boat_bays": 0
+      "boat_bays": 1920
     },
-    "contents_total_m3": 436050,
+    "contents_total_m3": 437970,
     "machinery_share": 0.58,
-    "enclosed_m3": 1038214,
-    "solved_metres_per_unit": 0.66,
+    "enclosed_m3": 1042786,
+    "solved_metres_per_unit": 0.749,
     "range": {
-      "habitable_273": 0.639,
-      "habitable_328": 0.68
+      "habitable_273": 0.726,
+      "habitable_328": 0.771
     },
-    "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 239.0,
+    "enclosed_m3_per_person_at_max_crew": 1043,
+    "length_m": 271.1,
     "fittings_m": {
       "deck window w x h": [
-        1.98,
-        0.73
+        1.72,
+        0.77
       ],
       "capital-mount bay w x h": [
-        13.85,
-        14.51
+        15.72,
+        16.47
       ],
       "bridge glazing band h": [
-        1.58
+        1.55
       ]
     },
-    "published_metres_per_unit": 0.66,
+    "published_metres_per_unit": 0.87,
+    "override": "owner: larger than the Onslaught (2026-10-18)",
+    "length_m_published": 315.1,
     "measured_this_build": {
-      "enclosed_units3": 3615276,
+      "enclosed_units3": 2486231,
       "solids": [
         "Hull belt",
         "Hull main ring",
-        "Hull bore lining",
         "Hull prow",
         "Hull bow module",
         "Hull port bow horn",
         "Hull starboard bow horn",
         "Hull port bow lobe",
         "Hull starboard bow lobe",
-        "Hull core trench",
         "Hull aft body",
         "Hull command deck",
         "Hull command deck upper",
         "Hull command spine",
         "Bridge tower",
         "Hull port pod",
-        "Hull starboard pod"
+        "Hull starboard pod",
+        "Hull forward hangar"
       ]
     },
     "length_units": 362.2,
     "size_m": [
-      239.0,
-      210.5,
-      66.0
+      315.1,
+      277.5,
+      73.1
     ],
-    "person_1_8_m_in_units": 2.73,
+    "person_1_8_m_in_units": 2.07,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -147,7 +149,7 @@
     "min": [
       -188.1,
       -159.5,
-      -36.0
+      -20.0
     ],
     "max": [
       174.07,
@@ -157,7 +159,7 @@
     "size": [
       362.17,
       319.0,
-      100.0
+      84.0
     ]
   },
   "bore": {
@@ -178,7 +180,7 @@
     "type": "OMNI",
     "arc_deg": 360,
     "radius_units": 270,
-    "radius_m": 178.2,
+    "radius_m": 234.9,
     "ship_system": "fortressshield",
     "source": "paragon.ship shieldCenter/shieldRadius, ship_data.csv shield type OMNI arc 360",
     "emitter_nodes": [
@@ -273,6 +275,28 @@
         "faces_deg": 165.0
       }
     ]
+  },
+  "hangar": {
+    "mouth": "Hangar mouth",
+    "launch_point": "Hangar launch point",
+    "door_slides": [
+      "Hangar door port leaf slide",
+      "Hangar door starboard leaf slide"
+    ],
+    "size_m": [
+      21.0,
+      14.0,
+      35.0
+    ],
+    "size_units": [
+      24.14,
+      16.09,
+      40.23
+    ],
+    "mouth_x": 52.2,
+    "floor_z": -6.0,
+    "door": "closed",
+    "face": "the bore's forward wall, opening aft across the bore at the command deck"
   },
   "weapon_slots": [
     {
@@ -1448,6 +1472,20 @@
       "orthographic_scale": 140
     },
     {
+      "name": "hangar-detail",
+      "position": [
+        -20,
+        -25,
+        20
+      ],
+      "target": [
+        55,
+        0,
+        2
+      ],
+      "orthographic_scale": 50
+    },
+    {
       "name": "stern-detail",
       "position": [
         -420,
@@ -1462,32 +1500,32 @@
       "orthographic_scale": 300
     },
     {
-      "name": "aft-quarter",
+      "name": "hangar-wide",
       "position": [
-        -20.0,
-        260.0,
-        150.0
+        -40.0,
+        -50.0,
+        60.0
       ],
       "target": [
-        -100.0,
-        90.0,
-        10.0
+        40.0,
+        0.0,
+        0.0
       ],
-      "orthographic_scale": 130.0
+      "orthographic_scale": 150.0
     }
   ],
   "silhouette": {
-    "iou": 0.9585,
-    "sprite_uncovered": 0.0265,
+    "iou": 0.9595,
+    "sprite_uncovered": 0.0255,
     "model_outside_sprite": 0.0156,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
     "skin": 0.618,
-    "white": 0.546,
+    "white": 0.549,
     "dark": 0.426,
     "agreement": 0.685,
-    "silhouette": 0.959,
+    "silhouette": 0.96,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
 }

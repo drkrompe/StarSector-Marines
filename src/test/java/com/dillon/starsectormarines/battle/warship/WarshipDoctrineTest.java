@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.warship;
 
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,6 +97,30 @@ class WarshipDoctrineTest {
         assertTrue(doctrine.withdrawn());
         assertEquals(WarshipPosture.WITHDRAW, doctrine.assess(PostureInputs.calm(), 1f).posture(),
                 "a repaired, unthreatened ship still leaves: the decision was made");
+    }
+
+    @Test
+    void aShipTheMissionKeepsOverTheBattleIsNeverWithdrawnByItsDoctrine() {
+        WarshipDoctrine doctrine = new WarshipDoctrine();
+        doctrine.holdTheField();
+        PostureInputs worn = new PostureInputs(0.1f, 0f, false, false, 0f, "", 0, MissionStance.HOLD);
+        PostureInputs wornOverloaded = new PostureInputs(0.2f, 1f, true, true, 3f, "x", 0, MissionStance.HOLD);
+        assertEquals(WarshipPosture.BOMBARD, doctrine.assess(worn, 1f).posture(), "no foe, worn: still stays");
+        assertEquals(WarshipPosture.AIR_SUPERIORITY, doctrine.assess(wornOverloaded, 1f).posture());
+        assertFalse(doctrine.withdrawn());
+    }
+
+    @Test
+    void aShipThatHoldsTheFieldKeepsItThroughALaterDoctrineAndAVisitThatNeverEnds() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        Warship ship = Warship.fit("hound", "hound_Assault", Faction.ALLY, 20f, 10f, 0f);
+        ship.visit(0f);
+        ship.holdTheField();
+        ship.useDoctrine();
+        assertTrue(ship.doctrine().holdsTheField());
+        assertTrue(ship.missionOwned(), "still the mission's, not the player's");
+        assertFalse(ship.tickVisit(60f, false), "a quiet minute does not end the visit");
     }
 
     @Test
