@@ -27,6 +27,13 @@ Hound (A)'s is `../hound-surface/`. `register_reference.py` registers a new
 hull's finish reference (the Second Wind's came from the projection spike).
 `wear_overlay.py` and `compose_wear.py` remain Second Wind state tooling.
 
+A part row may also list `apply_skip`: members that frame the part's tile (its
+guide showed them) but keep their class swatch instead of the painted part.
+It is for a surface the painting covers that a moving part can uncover: the
+Mudskipper's door frame lies behind its plug-door leaves, so with the leaves
+slid away the opening would otherwise still show painted doors. The tile and
+every other member's UVs are unchanged; a row without it behaves as before.
+
 ## Where it stands
 
 Share of the ship's on-screen pixels at 1920×1080 (`review/review.json`; the pilot had 13–37% part skin on port views and flat grey elsewhere):

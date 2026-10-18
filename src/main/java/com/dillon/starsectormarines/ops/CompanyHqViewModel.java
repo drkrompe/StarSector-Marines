@@ -51,7 +51,7 @@ final class CompanyHqViewModel {
     /** The page's props; the command-deck stations are inert until the screen's terminal binds them. */
     Map<String, Object> props() {
         Map<String, Object> out = new LinkedHashMap<>(props);
-        for (String station : List.of("deckSituation", "deckComms", "deckCastle", "deckFinance", "deckForce")) {
+        for (String station : List.of("deckSituation", "deckComms", "deckCastle", "deckFinance")) {
             out.putIfAbsent(station, (Runnable) () -> { });
         }
         return out;
@@ -221,8 +221,6 @@ final class CompanyHqViewModel {
         props.put("ratingScore", Strings.get("openingCompanyHqMrbCredibility2"));
         props.put("assessment", Strings.get("openingCompanyHqRecognizedOnTheMrbFileOfReady"));
         props.put("financeHeader", Strings.get("openingCompanyHqCompanyFinance"));
-        props.put("boardHeader", Strings.get("openingCompanyHqSignalsIntelligenceCompanyNet"));
-        props.put("boardIntro", Strings.get("openingCompanyHqFleetDispatchSectorRelaysAndOpenBand"));
         props.put("obligationsHeader", Strings.get("openingCompanyHqActiveObligations"));
         props.put("runway", Strings.get("openingCompanyHqMonths"));
         props.put("runwayCaption", Strings.get("openingCompanyHqPayrollRunwayAgainstLastMonthSUpkeep"));
@@ -251,8 +249,6 @@ final class CompanyHqViewModel {
         props.put("assessmentHeader", Strings.get("companyHqAssessmentHeader"));
         props.put("ratingHeader", Strings.get("companyHqRatingHeader"));
         props.put("financeHeader", Strings.get("companyHqFinanceHeader"));
-        props.put("boardHeader", Strings.get("companyHqBoardHeader"));
-        props.put("boardIntro", Strings.get("companyHqBoardIntro"));
         props.put("obligationsHeader", Strings.get("companyHqClocksHeader"));
         props.put("runwayCaption", Strings.get("companyHqRunwayCaption"));
         return props;

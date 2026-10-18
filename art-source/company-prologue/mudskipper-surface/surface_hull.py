@@ -21,7 +21,11 @@ MATERIAL_CLASS = {
     'Drive band burnished plate': 'burnished',
     'Recess and machinery': 'dark',
     'Drive bell heat-darkened steel': 'dark',
+    'Leg sole rubber': 'dark',
+    'Freight ramp toe rubber': 'dark',
 }
+# 'Leg ram chrome' (the landing legs' rams and guide rods) stays bright
+# polished metal, like the glazing and lamps: no class, no swatch.
 # Seven classes need more than the 0/255 corners: the class passes write ids
 # exactly (parts.id_linear), so 128 components are safe.
 CLASS_ID = {'white': (255, 0, 0), 'red': (0, 255, 0), 'grey': (0, 0, 255), 'dark': (255, 255, 0),

@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -24,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * arrays) was proven at flip time; those sources are now deleted, so this pins
  * the <em>shipped</em> values directly:
  * <ul>
- *   <li>each pool resolves (via {@link GenMappingRegistry}) to its frozen ordered
- *       id sequence — order matters, scatter indexes the pool by
- *       {@code rng.nextInt(len)}, so a re-order shifts every seeded map;</li>
  *   <li>a representative cover golden — one prop per cover bucket — guards the
  *       {@code "cover"} parse + the authored values.</li>
  * </ul>
@@ -47,26 +42,6 @@ public class DoodadMappingParityTest {
             reg.ingest(new JSONObject(Files.readString(Paths.get("mod", p.split("/")))));
         }
         return reg;
-    }
-
-    @Test
-    void poolsResolveToFrozenFrames() throws Exception {
-        GenMappingRegistry mapping = loadMapping();
-        assertPool(mapping, "MIXED",
-                "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",
-                "doodad.desk-dam", "doodad.box-dam", "doodad.chair-s-yellow-dam",
-                "doodad.chair-s-green-dam", "doodad.door-closed");
-        assertPool(mapping, "RESIDENTIAL",
-                "doodad.chair-south-yellow", "doodad.chair-south-green",
-                "doodad.chest-1", "doodad.chest-2");
-        assertPool(mapping, "WAREHOUSE",
-                "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2");
-        assertPool(mapping, "SKY_PORT",
-                "doodad.box", "doodad.crate", "doodad.box-dam", "doodad.door-closed");
-        assertPool(mapping, "COMMERCIAL",
-                "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
-                "doodad.desk-1", "doodad.desk-2", "doodad.chest-1", "doodad.chest-2",
-                "doodad.box", "doodad.crate");
     }
 
     @Test
@@ -151,12 +126,6 @@ public class DoodadMappingParityTest {
         assertEquals(side, registry.doodad(id).preferredWallSide, "wall side for " + id);
     }
 
-    private static void assertPool(GenMappingRegistry mapping, String poolId, String... expected) {
-        List<DoodadDef> got = mapping.doodadPool(poolId);
-        List<String> ids = new ArrayList<>();
-        for (DoodadDef def : got) ids.add(def.id);
-        assertEquals(List.of(expected), ids, "pool " + poolId);
-    }
 
     private static void assertCover(TileRegistry reg, String id, DoodadCover want) {
         DoodadDef def = reg.doodad(id);

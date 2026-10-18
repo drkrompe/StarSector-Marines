@@ -68,3 +68,25 @@ bin/
 # Generated C1 ship sequence (render_ship_sequence.py regenerates it)
 art-source/company-prologue/second-wind-cinematic/corvus-approach/layers/second-wind-seq/
 
+
+# Rendered review output is never committed (owner, 2026-10-18): each file
+# below is written by a createSnapshots suite or an art-source script, so it
+# is regenerated rather than tracked. Generations, prompts, guides and finish
+# references beside them stay tracked.
+/art-source/colony-furnishings/review/
+/art-source/console-bank/review/
+/art-source/console-bank/damage/review/
+/art-source/factory-machines/review/
+/art-source/power-plant/review/
+/art-source/structure-templates/review/
+/art-source/structure-templates/logistics/review/
+/art-source/structure-templates/neighborhood-lots/review/
+/art-source/aircraft/fighter-upres/runtime-review.png
+/art-source/aircraft/fighter-upres/parked-review.png
+/art-source/defences/locust-aa/composite.png
+/art-source/defences/locust-aa/composite-review.png
+/art-source/defences/locust-aa/depth-review.png
+/art-source/defences/missile-aa/family-review.png
+/art-source/defences/missile-aa/upres-review.png
+/art-source/defences/proximity-aa/composite.png
+/art-source/defences/swarmer-aa/composite.png

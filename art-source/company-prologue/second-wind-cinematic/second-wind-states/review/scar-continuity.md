@@ -1,6 +1,6 @@
 # Scar continuity across states
 
-73 ids; 35 with cast sites, 53 with a footprint in at least one state.
+78 ids; 40 with cast sites, 58 with a footprint in at least one state.
 Recorded sites move at most 0.0 units between states (0.0 px on screen); site counts consistent: True.
 
 | # | id | derelict | patched | refit | restored | sites | site move | footprint spread (units) |
@@ -64,9 +64,9 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 57 | sp-trunk-aft-port | open | patched | replaced | gone | 0 | 0.0 | 0.01 (2 states) |
 | 58 | sp-trunk-aft-stbd | open | patched | replaced | faded | 0 | 0.0 | 1.06 (4 states) |
 | 59 | sp-mast | open | patched | replaced | faded | 0 | 0.0 | 1.02 (4 states) |
-| 60 | sp-turret-1 | open | patched | patched | faded | 0 | 0.0 | 3.59 (4 states) |
-| 61 | sp-turret-2 | open | patched | patched | faded | 0 | 0.0 | 3.32 (4 states) |
-| 62 | sp-turret-3 | open | patched | patched | faded | 0 | 0.0 | 3.33 (4 states) |
+| 60 | sp-turret-1 | open | open | open | faded | 0 | 0.0 | 3.62 (4 states) |
+| 61 | sp-turret-2 | open | patched | patched | faded | 0 | 0.0 | 3.59 (4 states) |
+| 62 | sp-turret-3 | open | open | open | faded | 0 | 0.0 | 4.45 (4 states) |
 | 63 | sp-turret-4 | open | patched | patched | faded | 0 | 0.0 | 4.61 (4 states) |
 | 64 | sp-waist-line-cut | open | patched | patched | faded | 0 | 0.0 | 0.05 (4 states) |
 | 65 | sp-waist-trunk-cut | open | patched | replaced | faded | 0 | 0.0 | 0.05 (4 states) |
@@ -78,3 +78,8 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 71 | rcs-stern-stbd | open | gone | gone | gone | 0 | 0.0 | 0.0 (0 states) |
 | 72 | rcs-dorsal | open | patched | replaced | gone | 0 | 0.0 | 0.0 (2 states) |
 | 73 | rcs-ventral | open | gone | gone | gone | 0 | 0.0 | 0.0 (0 states) |
+| 74 | ds-port-waist-rip | open | open | open | faded | 1 | 0.0 | 1.12 (4 states) |
+| 75 | ds-stbd-waist-rip | open | open | replaced | faded | 1 | 0.0 | 1.03 (4 states) |
+| 76 | ds-fwd-deck-rip | open | patched | replaced | faded | 1 | 0.0 | 1.21 (4 states) |
+| 77 | ds-port-shoulder-peel | open | open | open | faded | 1 | 0.0 | 0.45 (4 states) |
+| 78 | ds-stbd-shoulder-peel | open | open | open | faded | 1 | 0.0 | 0.65 (4 states) |

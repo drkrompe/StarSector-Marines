@@ -474,4 +474,5 @@ def main():
     print('Wrote', out)
 
 
-main()
+if __name__ == '__main__':
+    main()

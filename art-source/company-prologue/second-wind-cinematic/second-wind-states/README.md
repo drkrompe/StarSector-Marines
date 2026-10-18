@@ -10,6 +10,12 @@ blend; the C1, C5 and entrance-card renders append the patched state. The old
 asset was built on the superseded landing-wreck geometry at a provisional 1.5 m
 per unit.
 
+The `.blend` files, review stills, sheets and turn videos are build output and
+are not tracked (`art-source/company-prologue/.gitignore`): `./finalize.sh`
+writes them here; the latest build's review set is copied to Google Drive
+(`starsector/review/second-wind/`, one dated folder per review). Tracked: the scripts, each state's
+`manifest.json` and `validation.json`, and `review/scar-continuity.{json,md}`.
+
 ![four states](review/states-port-quarter.png)
 ![starboard](review/states-starboard-quarter.png)
 
@@ -49,6 +55,11 @@ root = bpy.data.objects['SECOND WIND | patched | root']
   root's `engines_running` lists them: derelict none; patched and refit 3 and
   4 (the jury-rigged coil; the port pod is capped); restored all four. The
   drive glow is the geometry's own emissive throat, on only where a drive runs.
+  Engine 1's can is crushed in derelict, patched and refit (mouth flattened
+  about 40%, bell cocked 5 degrees): its anchor and manifest entry carry
+  `mouth_deformed`, `mouth_minor_m`, `mouth_major_m`, `mouth_round_m`,
+  `mouth_minor_dir`, `mouth_axis_dir`, `mouth_tilt_deg` and
+  `mouth_centre_offset_m`, so a plume can be shaped to the oval mouth.
 - **RCS.** `RCS <cluster> <axis> anchor` empties (24, in 8 clusters), +X down
   each thruster's exhaust, with `working` for this state (`manifest.json`
   `rcs`, `rcs_working`).
@@ -56,8 +67,20 @@ root = bpy.data.objects['SECOND WIND | patched | root']
   to train; the rest pose is the slot angle (`rest_angle_deg`). Gun house,
   mantlet and barrels ride the pivot; the barbette foot, collar and traverse
   gap stay. `Anchor turret <i> <gun> muzzle` rides with it, +X along the line
-  of fire (turret 4 has a port and a starboard gun). The derelict's guns are
-  stripped: its pivots exist and carry nothing.
+  of fire (turret 4 has a port and a starboard gun). A **seized** mount
+  (`seized` on the pivot and in the manifest) carries nothing and has no
+  muzzle anchor: turret 1 is jammed 24 degrees off its slot (`jam_deg`;
+  `rest_angle_deg` 114, the slew already in the mesh) with its barrel bent,
+  and turret 3 is holed with its barrel snapped, in derelict, patched and
+  refit. Their wreck parts (`Scar sp-turret-1/3 ...`) stay on the root. The
+  derelict's turrets 2 and 4 are stripped: their pivots carry nothing either.
+  Restored has all four guns back and trainable.
+- **Sparks.** `Scar <id> spark anchor` / `spark-2 anchor` empties at torn
+  conduits, +X along the spray, with `sparking` and `radius_m`
+  (`manifest.json` `sparks`, `sparking`). Live only in patched, where the crew
+  has powered the buses: the port waist rip (two), the starboard waist rip and
+  turret 3's feed. The VFX kit builds one intermittent emitter per live anchor
+  (its `smk_sparks` control).
 - **Lights** are the ship's own emissive lamps and viewports; nothing adds a
   light object. The derelict has none lit (`lamps_lit` 0, checked dark below).
 - **Wear.** Skins and swatches carry the base wear, group `SW wear <state>`
@@ -93,10 +116,10 @@ and `hull_normal` (face normal, hull space); the base wear also reads its own
 
 | State | Geometry (scar table) | Overlay |
 |---|---|---|
-| derelict | open craters, torn plates, stripped guns, sheared mast, smashed can; every lamp dead | old dark scorch at every open strike; torn metal and backing aged hardest; no running soot |
-| patched | salvage plates, welds, splints, cable runs, starboard jury coil, port pod capped | dark burns at the still-open strikes, heat-tint rings round patched welds; fresh soot on drives 3, 4; salvage plates and welds newly fitted (little grime) |
-| refit | a few proper replacement plates with fresh seams; the rest as patched | as patched, but replaced plates are clean shop primer: no scorch, no wear, smooth primer detail |
-| restored | structurally whole; scars faded under paint; both pods running | one coat over cream, oxide, pale and the gunmetal collars (heat enamel, 0.7 tone); old seams, dents and the belt wear read through it as tone; plates mismatched by about 7%; light working soot on all four drives |
+| derelict | open craters, five dorsal deck rips, torn plates, turrets 1 and 3 wrecked (1 jammed, 3 holed), 2 and 4 stripped, sheared mast, smashed can, Engine 1 crushed; every lamp dead | old dark scorch at every open strike; torn metal and backing aged hardest; no running soot |
+| patched | salvage plates, welds, splints, cable runs, forward deck rip pressure-plated, starboard jury coil, port pod capped, turrets 1 and 3 still wrecked; four live spark anchors | dark burns at the still-open strikes, heat-tint rings round patched welds; fresh soot on drives 3, 4; salvage plates and welds newly fitted (little grime) |
+| refit | a few proper replacement plates with fresh seams (the starboard waist rip among them); the rest as patched, sparks dead | as patched, but replaced plates are clean shop primer: no scorch, no wear, smooth primer detail |
+| restored | structurally whole; scars faded under paint; Engine 1's can renewed; all four guns back; both pods running | one coat over cream, oxide, pale and the gunmetal collars (heat enamel, 0.7 tone); old seams, dents and the belt wear read through it as tone; plates mismatched by about 7%; light working soot on all four drives |
 
 ## Build
 
@@ -121,8 +144,9 @@ packed; object and polygon counts match the manifest; the hull attributes
 exist and `hull_rest` is the rest position; base wear on every skin and
 swatch and the overlay on every family material; four engine anchors
 pointing aft with the manifest's running flags; turning a turret pivot 30
-degrees swings its muzzle anchors 30 degrees and leaves the barbette; moving
-the root moves the ship rigidly.
+degrees swings its muzzle anchors 30 degrees and leaves the barbette; seized
+mounts carry nothing and have no muzzle; spark anchors and crushed-mouth tags
+match the manifest; moving the root moves the ship rigidly.
 
 ### Scar continuity
 
@@ -132,16 +156,18 @@ state (`review/scar-continuity.md`, `.json`, and
 is ringed and each id's footprint numbered by scar-table row, coloured by its
 status in that state):
 
-- **Recorded sites: identical.** The 35 ids with cast sites (craters,
+- **Recorded sites: identical.** The 40 ids with cast sites (craters,
   clusters, spalls, gouges) put every site at the same hull position in all
   four states: 0.0 units, 0 px on screen, the same count everywhere. Sites
   are cast once on the clean ship, so this holds by construction, and the
-  check proves the states did not drift.
-- **Footprints: same place, different extent.** 53 ids touch something in at
+  check proves the states did not drift. `pod-port-outer-can` has its site in
+  the three damaged states and none in restored, where the can is renewed.
+- **Footprints: same place, different extent.** 58 ids touch something in at
   least one state (their own parts, or base parts they hide, dent or
   override). The footprint centre moves at most about 5 units between states,
   and 10 for the starboard drive, where the bolted-on jury coil enlarges what
-  the row touches. Turret rows move 3-5 units between stripped and reinstalled.
+  the row touches. Turret rows move 3-5 units between stripped, wrecked and
+  reinstalled; the dorsal rips about 1 unit.
 - Four RCS rows (`rcs-bow-port`, `rcs-pod-stbd`, `rcs-stern-stbd`,
   `rcs-ventral`) change only material and anchor flags, so they have no
   location to compare.

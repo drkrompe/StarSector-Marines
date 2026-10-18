@@ -4,6 +4,7 @@
 # the guides they were generated from, finish references and story stills.
 *-geometry/**/*.png
 second-wind-vfx/**/*.png
+second-wind-vfx/**/*.mp4
 second-wind-surface/review/
 second-wind-surface/textures/
 second-wind-projection-spike/review-sheet*.png
@@ -50,3 +51,13 @@ second-wind-cinematic/second-wind-surface-proof/projected-port-quarter.png
 second-wind-cinematic/second-wind-surface-proof/projected-port-side.png
 mudskipper-surface/review/
 mudskipper-surface/textures/
+# Mudskipper cinematic export: the .blend is rebuilt by finalize.sh; the
+# manifest and validation stay tracked.
+mudskipper-cinematic/*.blend
+mudskipper-cinematic/*.blend1
+mudskipper-cinematic/review/
+hound-surface/grading/
+hound-surface/skin-manifest.json
+hound-export/**/*.blend
+hound-export/**/*.blend1
+hound-export/**/review/

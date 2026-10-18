@@ -38,7 +38,21 @@
       "PowerShell(git worktree add *)",
       "PowerShell(git worktree remove *)",
       "PowerShell(git worktree prune)",
-      "PowerShell(git restore *)"
+      "PowerShell(git restore *)",
+      "Edit(//g/My Drive/starsector/review/**)",
+      "Edit(~/Library/CloudStorage/GoogleDrive-*/My Drive/starsector/review/**)",
+      "Write(//g/My Drive/starsector/review/**)",
+      "Write(~/Library/CloudStorage/GoogleDrive-*/My Drive/starsector/review/**)",
+      "Bash(cp * *My Drive/starsector/review/*)",
+      "Bash(cp -r * *My Drive/starsector/review/*)",
+      "Bash(cp -R * *My Drive/starsector/review/*)",
+      "Bash(mkdir -p *My Drive/starsector/review/*)",
+      "Bash(rsync * *My Drive/starsector/review/*)",
+      "PowerShell(Copy-Item * *My Drive\\starsector\review\\*)",
+      "PowerShell(New-Item * *My Drive\\starsector\review\\*)",
+      "Bash(python tools/review_prune.py *)",
+      "Bash(python3 tools/review_prune.py *)",
+      "PowerShell(python tools/review_prune.py *)"
     ],
     "deny": [
       "Bash(git push --force*)",

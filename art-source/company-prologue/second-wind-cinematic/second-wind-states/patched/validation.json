@@ -3,8 +3,8 @@
  "asset": "second-wind-patched.blend",
  "collection": "SECOND WIND | patched",
  "root": "SECOND WIND | patched | root",
- "objects": 924,
- "meshes": 886,
+ "objects": 996,
+ "meshes": 956,
  "images": 45,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    886,
-    886
+    956,
+    956
    ]
   },
   "polygon count": {
@@ -40,7 +40,7 @@
   },
   "hull_rest is rest position": {
    "ok": true,
-   "detail": 1e-06
+   "detail": 4e-06
   },
   "base wear on every skin and swatch": {
    "ok": true,
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 118,
+    "materials": 120,
     "missing": []
    }
   },
@@ -74,7 +74,35 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 5e-06
+   "detail": 4e-06
+  },
+  "seized turrets carry nothing": {
+   "ok": true,
+   "detail": {
+    "seized": [
+     1,
+     3
+    ],
+    "bad": []
+   }
+  },
+  "spark anchors": {
+   "ok": true,
+   "detail": {
+    "anchors": 4,
+    "sparking": [
+     "Scar ds-port-waist-rip spark anchor",
+     "Scar ds-port-waist-rip spark-2 anchor",
+     "Scar ds-stbd-waist-rip spark anchor",
+     "Scar sp-turret-3 spark anchor"
+    ]
+   }
+  },
+  "crushed mouth tags": {
+   "ok": true,
+   "detail": [
+    1
+   ]
   },
   "root moves the ship rigidly": {
    "ok": true,

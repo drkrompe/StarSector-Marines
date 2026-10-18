@@ -1,0 +1,73 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14fdf-7cd4-74e0-a50b-f07e41611873",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14fdf-7cd4-74e0-a50b-f07e41611873\\exec-0eda5459-6fb2-4149-affe-5717f93d8f9c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\sabine-v3.master.png",
+    "sha256": "1cb4116e366bc417dd457b3b1d8e09326d8d516a1aa6358df039701e3ddbc9e3",
+    "dimensions": [
+      1204,
+      1306
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\sabine-v3.brief.txt",
+  "promptSha256": "482f1acc3d8fe34ece3c255a0fad58adeb69af600304ddb979e35024816fd725",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Pose, silhouette, viewpoint and scale authority: paint the figure over this mannequin exactly; never move a limb\nImage 2: Identity only: face, hair, age and scar. Not pose, framing or background\nImage 3: Costume and figure-card finish only: jacket, kit, rendering and clean transparency. Not pose\nImage 4: Lighting direction, colour and painting style only. Not layout; include none of its background\n\nFull-length figure card of Lieutenant Sabine Hale for a layered illustration, filling in the grey mannequin given as reference 1.\n\nReference 1 is the exact pose, silhouette, viewpoint and scale: paint her over it and never move a limb. She stands at the right-hand edge of a waist-high plotting table that lies to the viewer's left (the table is not drawn). Weight on her back foot, legs apart, torso pitched forward over the table's edge, both arms reaching forward and down, palms flat on the table's rim where the mannequin's hands are. Her chin is raised: she looks up and ahead, toward the viewer's left, at a holographic sector display hanging in the air above the table, with a focused, intent expression, mid-thought, reading the situation. Her face is visible in three-quarter profile.\n\nShe is the same person as reference 2: a woman in her early thirties, the company's field commander and a former convoy escort, short dark auburn hair tucked behind one ear, a small old scar across one eyebrow, calm alert watchful eyes. Costume exactly as reference 3: worn slate-blue and charcoal military field jacket with a compact armoured shoulder and simple lieutenant rank tabs, a small radio earpiece, dark field trousers and boots. Sleeves pushed up a little. No helmet, no weapon.\n\nViewpoint as reference 1: a level camera about a metre above her head height and about six and a half metres away, so she is seen from slightly above; vertical lines stay vertical.\n\nLighting matches reference 4: low and moody. A cool pale green-cyan glow from the table below her and from the hologram above it lights her face, the underside of her jaw, her forearms and hands from the viewer's left; warm downlight from ceiling lamps; amber rim light from consoles behind her on the right. Same matte-painted brushwork and palette as reference 4, and the same figure-card finish as reference 3.\n\nTrue transparent background, including the negative spaces between her arms, torso and legs; no ground, floor, cast shadow slab, table, furniture, hologram, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\sabine-pose-guide.png",
+      "sha256": "c2aebeeda0d55dfac3a0d0ffecc33d5cddada019f6d22661c2a3f12315df8e17",
+      "dimensions": [
+        916,
+        993
+      ],
+      "mode": "RGBA",
+      "role": "Pose, silhouette, viewpoint and scale authority: paint the figure over this mannequin exactly; never move a limb"
+    },
+    {
+      "path": "art-source\\portraits\\sabine-hale.master.png",
+      "sha256": "008daeb37fe8bd34c80fa135130bfe7e1525edc485a5b0933f31cc42a5947dea",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: face, hair, age and scar. Not pose, framing or background"
+    },
+    {
+      "path": "art-source\\hq-command-deck\\sabine-v2.master.png",
+      "sha256": "bac871adc3c43f134b2434d40b57120aa4f469e2681694f71a13f1f13588785b",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Costume and figure-card finish only: jacket, kit, rendering and clean transparency. Not pose"
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v5.master.png",
+      "sha256": "e742cdab5058cbf568d99407f609613245bb339dd50852a5987fc3ff51e69fdb",
+      "dimensions": [
+        2171,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent figure card, using the mannequin as the exact pose guide and the other references for identity, costume, and lighting."
+  ],
+  "usage": {
+    "input_tokens": 51357,
+    "cached_input_tokens": 37504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 781,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.2
+}
