@@ -1,7 +1,8 @@
 # Mudskipper: surfacing
 
-Status: ACTIVE. Pass 6 (texturing): part skins and class swatches generated and graded; not yet applied or reviewed.
+Status: ACTIVE. Pass 6 (texturing): accepted by the owner. The skin now also covers the landing legs, cargo doors and freight ramps; the export is `../mudskipper-cinematic/`.
 Written: 2026-10-18
+Updated: 2026-10-18 — landing legs and freight ramps skinned; the door frame keeps its swatch
 
 The Mudskipper's package for the shared surfacing harness
 (`../second-wind-surface/`, see its README "Other hulls" and `hull.py`). This
@@ -45,10 +46,51 @@ three decks and the bow face are single large polygons, which caps them.
 was worse; the first generation is the master, the retry is kept as
 `generated/sheet-drives-a-try2.png`).
 
+The landing kit added after acceptance (`../mudskipper-geometry/` README,
+Landing) is swatch only: leg housings, sleeves and feet and the ramp decks take
+the steel and dark classes, the rubber soles and toe plates dark. The rams and
+guide rods stay polished chrome with no class, like the glazing. The
+`bay-doors-port` / `-stbd` rows list the door frame in `apply_skip`
+(`../second-wind-surface/README.md`): it still frames their tiles, but takes
+the dark swatch, so an open door shows the dark frame rather than the painted
+leaves. The leaves keep their skins exactly; the parts' texel density is unchanged.
+
 Known: `pod-outer-port` and `pod-top-port` carry thin white edge streaks where
 the generation moved the casing's forward edge about 10 px (boundary p95 88 and
 69 px); to judge on the model. Small fittings, glazing, lamps, the junction
 structure, turret, bells and throats are swatch by design.
+
+## Coverage
+
+`apply_skin.py --hull .` puts part skins on 434 base faces and class swatches
+on the other 10,015 (`skin-manifest.json`; 436 and 9,449 before the landing kit). Share of the ship's pixels at
+1920x1080 (`review.py`, `compose_review.py`; sheets in the ignored `review/`):
+
+| View | Part skin | Swatch | Textured |
+|---|---|---|---|
+| port-side | 71% | 27% | 98% |
+| port-quarter | 64% | 34% | 98% |
+| high-quarter | 61% | 37% | 98% |
+| top | 60% | 38% | 98% |
+| starboard-side | 71% | 27% | 98% |
+| starboard-quarter | 64% | 34% | 98% |
+| bow | 67% | 30% | 97% |
+| bow-quarter | 64% | 34% | 98% |
+| stern-quarter | 56% | 43% | 99% |
+| under-quarter | 29% | 71% | 99% |
+| bow-detail | 70% | 27% | 97% |
+| bridge-detail | 68% | 28% | 97% |
+| turret-detail | 46% | 53% | 99% |
+| waist-detail | 79% | 19% | 98% |
+| stern-detail | 45% | 54% | 100% |
+| engine-detail | 52% | 47% | 99% |
+| junction-detail | 70% | 28% | 98% |
+| junction-starboard | 72% | 26% | 98% |
+
+The untextured 1-3% is glazing, lamps and the bay sill hazard tread (its
+material has no class). The keel is swatch (no part looks up). The pod streaks
+do not read at these framings. The bay doors show small dark corner blocks
+where jambs overlap the track in the guide.
 
 ## Rebuild
 
@@ -62,6 +104,8 @@ From this folder (Blender 5.2; Python with numpy and Pillow):
     python ../second-wind-surface/register.py --hull .
     python ../second-wind-surface/grade.py --hull .
     python ../second-wind-surface/swatches.py --hull .
+
+Then `python ../second-wind-surface/variation.py --hull .`, `apply_skin.py -- --hull .` (writes build/skinned.blend), `review.py -- --hull . --samples 48` and `python ../second-wind-surface/compose_review.py --hull .`.
 
 `textures/` and `review/` are outputs (ignored). Re-running the above on the
 shared harness reproduced every guide, part list, palette class and all 23

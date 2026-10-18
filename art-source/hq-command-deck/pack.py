@@ -2,9 +2,9 @@
 
 Run from the repository root:  python -I art-source/hq-command-deck/pack.py
 
-The banner shows a wide band of the 3:1 plate. The band is chosen so the plotting table
-sits wholly above the caption strip the screen lays over the banner's foot, and the
-heads on the rear tier sit below its top. Figures are packed as separate sprites, each
+The banner shows a wide band of the 3:1 plate, with nothing laid over it. The band is
+chosen to keep every head (the quartermaster's, at guide row 206, is highest) inside
+its top and to reach as far down the deck as that allows. Figures are packed as separate sprites, each
 already cut by its stand's matte, so the screen can light one station's people without
 redrawing the scene. Station rectangles and overlay anchors come from the Blender layout
 and the placed cards, never from measuring the painting, so a repaint registered on the
@@ -29,19 +29,18 @@ import compose  # noqa: E402  (beside this script; run with -I)
 REPO = HERE.parent.parent
 SPRITES = "graphics/ui/hq-command-deck"
 OUT_JSON = REPO / "mod/data/ui/hq-command-deck.json"
-# Rows of the guide frame the banner shows: the caption covers the bottom 72 of 300
-# banner pixels, which must start below the plot table's near rim (row 487).
-BAND_TOP, BAND_BOTTOM = 154, 592
+# Rows of the guide frame the banner shows, about 5:1 at full width: the commander's
+# feet (row 583) fall inside it; Sabine, nearest the camera, is cut at the shin.
+BAND_TOP, BAND_BOTTOM = 180, 618
 PACKED_WIDTH = 2048
 
 # Stations in screen order. Later stations draw over earlier ones where they overlap,
 # so the table comes first and the people standing at it after.
 STATIONS = [
-    ("situation", "SITUATION_BOARD", ["commander"], ["plot", "commander"]),
+    ("situation", "SITUATION_BOARD", ["sabine"], ["plot", "sabine"]),
     ("comms", "COMMS_INTEL", ["comms-left", "comms-right"], ["comms-left", "comms-right", "comms-screens"]),
     ("castle", "CASTLE_ADJUTANT", ["castle"], ["castle"]),
     ("finance", "FINANCE_STANDING", ["quartermaster"], ["quartermaster", "ledger-screen"]),
-    ("force", "FORCE_STATUS", ["sabine"], ["sabine"]),
 ]
 PAD = 8  # guide pixels around a station's parts
 
@@ -120,6 +119,11 @@ def main():
             "plot": [to_packed(*p) for p in plot],
             "screens": [to_packed(*p) for p in screens + list(m["main-display"].values()) + [m["ledger-screen"]]],
         },
+        # The deck camera in packed pixels, so live overlays can project points in the room
+        # (metres; x right, y up from the deck, z away from the camera) onto the banner.
+        "camera": {"focal": round(layout["camera"]["focal"] * k, 3), "cx": round(layout["camera"]["cx"] * k, 3),
+                   "cy": round((layout["camera"]["cy"] - BAND_TOP) * k, 3), "height": layout["camera"]["height"]},
+        "table": layout["table"],
         "source": {"plate": compose.PLATE, "layout": compose.LAYOUT, "bandRows": [BAND_TOP, BAND_BOTTOM]},
     }
     OUT_JSON.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")

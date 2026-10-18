@@ -1,5 +1,5 @@
 {
-  "status": "Clean base geometry. No damage, condition states or textures.",
+  "status": "Pass 2 plausible detail and pass 4 scale on the clean base. No damage, condition states or textures.",
   "hull": {
     "name": "Shepherd",
     "campaign_name": "Morrow",
@@ -42,9 +42,9 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.8,
+  "metres_per_unit": 0.78,
   "scale": {
-    "method": "deck program (DeckProgramProbe FRIGATE \"Drone Tender\" 15 30 100 -> WARSHIP role): 2331 m2 rooms, less the notional 16x10 HANGAR (160 m2) because the drone bay is sized from the Borer wing instead, = 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the crew pressure hull (union of PRESSURE_HULL by vertical ray intervals)",
+    "method": "deck program (DeckProgramProbe FRIGATE \"Drone Tender\" 15 30 100 -> WARSHIP role): 2331 m2 rooms, less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, = 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the pressure hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry and outriggers hold no crew volume.",
     "required_m3": 9726,
     "pressure_hull": [
       "Hull central body",
@@ -53,12 +53,19 @@
       "Bridge cab",
       "Bridge habitat shell"
     ],
-    "pressure_hull_units3": 20536,
-    "usable_fraction": 0.55,
-    "solved_metres_per_unit": 0.951,
+    "drive_casings": [
+      "Engine 1 drive pod casing",
+      "Engine 2 drive pod casing"
+    ],
+    "pressure_hull_units3": 45858,
+    "crew_body_only_units3": 36106,
+    "usable_fraction": 0.45,
+    "solved_metres_per_unit": 0.778,
+    "usable_reason": "crew comfort (ship description): the roomy end, not the 55% freighter/liner share",
     "range": {
-      "roomy_45pct_usable": 1.02,
-      "cramped_65pct_usable": 0.9
+      "cramped_65pct_usable": 0.69,
+      "freighter_55pct_usable": 0.73,
+      "top_pods_not_crewed": 0.84
     },
     "drone_bay": {
       "hull": [
@@ -66,8 +73,13 @@
         "Drone bay forward hangar pod",
         "Drone bay forward service block"
       ],
-      "units3": 7171,
-      "m3_at_published_scale": 3672,
+      "tub_solid_units3": 6203,
+      "open_bay_m": {
+        "deck_length": 27.8,
+        "width": 9.4,
+        "deck_to_crown": 9.9
+      },
+      "open_bay_m3": 2570,
       "stowage_needed_m3": 570,
       "craft": "Borer (drone_borer)",
       "wing_size": 4,
@@ -77,22 +89,26 @@
         "height": 1.8
       },
       "craft_in_units": {
-        "length": 5.5,
-        "span": 5.0,
-        "height": 2.25
+        "length": 5.64,
+        "span": 5.13,
+        "height": 2.31
       },
-      "opening_clear_diameter_m": 6.72,
+      "opening_clear_diameter_m": 6.55,
       "opening_clears_borer_diagonal": true,
       "note": "no Borer cinematic model exists yet; its size is an assumption until one is built"
     },
     "size_m": [
-      68.9,
-      56.7,
-      16.2
+      67.1,
+      55.0,
+      31.5
     ],
     "cross_checks_m": {
-      "person 1.8 m in units": 2.25,
-      "central body keel to deck": 11.2
+      "person 1.8 m in units": 2.31,
+      "crew door 1.35 x 2.4 units": [
+        1.05,
+        1.87
+      ],
+      "central body keel to deck": 20.3
     },
     "battle_map": {
       "cells_long": 24,
@@ -114,19 +130,19 @@
   },
   "dimensions": {
     "min": [
-      -41.19,
-      -34.42,
-      -9.0
+      -40.79,
+      -34.28,
+      -16.76
     ],
     "max": [
-      44.9,
-      36.42,
-      11.2
+      45.2,
+      36.28,
+      23.6
     ],
     "size": [
-      86.09,
-      70.83,
-      20.2
+      85.99,
+      70.57,
+      40.36
     ]
   },
   "drone_bay": {
@@ -158,9 +174,9 @@
         ],
         "mouth_anchor": "Drone bay WS 003 opening 1 mouth",
         "launch_point_anchor": "Drone bay WS 003 launch point 1",
-        "rim_z": 7.844,
-        "floor_z": 1.2,
-        "clear_radius": 4.2,
+        "rim_z": 7.642,
+        "floor_z": -4.07,
+        "clear_radius": 4.45,
         "host": "Drone bay aft hangar pod"
       },
       {
@@ -171,9 +187,9 @@
         ],
         "mouth_anchor": "Drone bay WS 003 opening 2 mouth",
         "launch_point_anchor": "Drone bay WS 003 launch point 2",
-        "rim_z": 7.844,
-        "floor_z": 1.2,
-        "clear_radius": 4.2,
+        "rim_z": 7.642,
+        "floor_z": -4.07,
+        "clear_radius": 4.4,
         "host": "Drone bay forward hangar pod"
       },
       {
@@ -184,9 +200,9 @@
         ],
         "mouth_anchor": "Drone bay WS 003 opening 3 mouth",
         "launch_point_anchor": "Drone bay WS 003 launch point 3",
-        "rim_z": 7.844,
-        "floor_z": 1.2,
-        "clear_radius": 4.2,
+        "rim_z": 7.642,
+        "floor_z": -4.07,
+        "clear_radius": 4.35,
         "host": "Drone bay forward service block"
       }
     ],
@@ -194,17 +210,17 @@
       [
         -3,
         19,
-        1.2
+        -4.07
       ],
       [
         12,
         19,
-        1.2
+        -4.07
       ],
       [
         26,
         19,
-        1.2
+        -4.07
       ]
     ],
     "launch_point_anchors": [
@@ -219,7 +235,7 @@
       "location": [
         -3,
         -23,
-        3.35
+        6.35
       ],
       "angle": -75,
       "arc": 200,
@@ -230,9 +246,9 @@
       "pivot": "Turret 1 WS 007 pivot",
       "muzzle": "Turret 1 WS 007 muzzle",
       "muzzle_location": [
-        -0.904,
-        -30.824,
-        4.65
+        -0.8,
+        -31.21,
+        7.65
       ]
     },
     {
@@ -240,7 +256,7 @@
       "location": [
         27,
         -19,
-        5.5
+        9.0
       ],
       "angle": 0,
       "arc": 20,
@@ -251,9 +267,9 @@
       "pivot": "Hardpoint 1 WS 008 pivot",
       "muzzle": "Hardpoint 1 WS 008 muzzle",
       "muzzle_location": [
-        33.1,
+        33.5,
         -19,
-        5.5
+        9.0
       ]
     }
   ],
@@ -274,7 +290,7 @@
       "anchor_location": [
         -40.5,
         20.0,
-        0.0
+        -1.0
       ],
       "exhaust_direction": [
         -1.0,
@@ -298,7 +314,7 @@
       "anchor_location": [
         -40.5,
         -19.0,
-        0.0
+        -1.0
       ],
       "exhaust_direction": [
         -1.0,
@@ -322,7 +338,7 @@
       "anchor_location": [
         -22.153,
         35.129,
-        0.0
+        -1.0
       ],
       "exhaust_direction": [
         -0.766,
@@ -346,7 +362,7 @@
       "anchor_location": [
         -30.164,
         33.115,
-        0.0
+        -1.0
       ],
       "exhaust_direction": [
         -0.8192,
@@ -370,7 +386,7 @@
       "anchor_location": [
         -22.153,
         -33.129,
-        0.0
+        -1.0
       ],
       "exhaust_direction": [
         -0.766,
@@ -394,7 +410,7 @@
       "anchor_location": [
         -30.164,
         -32.115,
-        0.0
+        -1.0
       ],
       "exhaust_direction": [
         -0.8192,
@@ -441,7 +457,7 @@
         1
       ],
       "orthographic_scale": 104,
-      "rotation": "looks at [2.0, 0.0, 1.0]"
+      "rotation": "looks at [2.0, 0.0, 3.0]"
     },
     {
       "name": "front",
@@ -451,7 +467,7 @@
         1
       ],
       "orthographic_scale": 92,
-      "rotation": "looks at [2.0, 0.0, 1.0]"
+      "rotation": "looks at [2.0, 0.0, 3.0]"
     },
     {
       "name": "three-quarter",
@@ -461,7 +477,7 @@
         85
       ],
       "orthographic_scale": 128,
-      "rotation": "looks at [2.0, 0.0, 1.0]"
+      "rotation": "looks at [2.0, 0.0, 3.0]"
     },
     {
       "name": "stern",
@@ -471,7 +487,7 @@
         1
       ],
       "orthographic_scale": 92,
-      "rotation": "looks at [2.0, 0.0, 1.0]"
+      "rotation": "looks at [2.0, 0.0, 3.0]"
     },
     {
       "name": "starboard-quarter",
@@ -481,13 +497,13 @@
         80
       ],
       "orthographic_scale": 128,
-      "rotation": "looks at [2.0, 0.0, 1.0]"
+      "rotation": "looks at [2.0, 0.0, 3.0]"
     }
   ],
   "silhouette": {
-    "iou": 0.9319,
-    "sprite_uncovered": 0.024,
-    "model_outside_sprite": 0.0474,
+    "iou": 0.9347,
+    "sprite_uncovered": 0.0249,
+    "model_outside_sprite": 0.0432,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 13.71 px per unit"
   }
 }

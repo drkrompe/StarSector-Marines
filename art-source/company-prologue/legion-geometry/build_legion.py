@@ -31,6 +31,7 @@ import argparse
 import importlib
 import json
 import math
+import os
 import sys
 import bpy
 from mathutils import Vector
@@ -38,55 +39,41 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_engines, lg_fittings, lg_turrets
-for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_engines, lg_fittings, lg_turrets):
+import lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_ventral, lg_engines, lg_fittings, lg_turrets
+for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_ventral, lg_engines, lg_fittings, lg_turrets):
     importlib.reload(module)
 # C2's shared camera, sun and track model (read only; pure standard library).
 sys.path.insert(0, str(HERE.parent/'second-wind-cinematic'/'patrol-abeam'))
 import c2_core
 
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
+# The read-only install's core folder: $STARSECTOR_CORE if set, else the platform
+# default (macOS keeps it inside the app bundle).
+GAME = Path(os.environ.get('STARSECTOR_CORE') or (
+    '/Applications/Starsector.app/Contents/Resources/Java' if sys.platform == 'darwin'
+    else r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core'))
 SHIP = 'data/hulls/legion.ship'
 SKIN = 'data/hulls/skins/legion_xiv.skin'
 SPRITE = 'graphics/ships/legion/legion_xiv.png'
 SPRITE_PLAIN = 'graphics/ships/legion/legion.png'
 VARIANTS = ['data/variants/legion/legion_xiv_Elite.variant', 'data/variants/legion/legion_Strike.variant']
 
-# Real-world scale (pipeline pass 4, warship form). Each hull is scaled from
-# what it is; the Legion is a battlecarrier. Crew and ship spaces come from the
-# mod's deck program (DeckProgramProbe CAPITAL "Battlecarrier" 700 1500 300 ->
-# CARRIER): 30,827 m2 of rooms, less its three notional 3.2 m-high HANGAR rooms
-# (2,160 m2), which the fighter requirement below replaces, is 28,667 m2 x1.40
-# circulation x3.2 m = 128,428 m3 of habitable volume. A battlecarrier's hull is
-# mostly not habitable: fighter hangars, launch bays and their magazines, belt
-# armour (rating 1650), reactors and flux plant, fifteen barbettes with their
-# magazines, drive machinery, tanks and structure. The budget below puts the
-# habitable share at about a third (30-35%). Fighter stowage is sized in metres
-# from each fighter's own scale (fighters-geometry). The driver re-measures the pressure hull on every build and
-# records the solved value beside the published one (scale_record).
-METRES_PER_UNIT = 0.61
-REQUIRED_M3 = 128428
-USABLE = .33
-USABLE_RANGE = (.30, .35)
+# Real-world scale (pipeline pass 4): the shared sizing basis, ship_scale.py and
+# ship-scale.md. Contents (crew room at the capital factor, cargo, fuel, the
+# fighters' hangars) over the capital machinery share, against the measured
+# enclosed volume (ship_scale.SOLIDS). It solves 0.995 (0.967-1.024); 0.99 is
+# published in lg_kit. The driver records the solved block on every build.
+METRES_PER_UNIT = lg_kit.METRES_PER_UNIT   # published; ship_scale.py solves it
 # Fighter craft: installed .ship height x width in sprite px (length, span), an
 # assumed height in px, and each fighter's own metres per px. Fighters have
 # their own scales (fighters-geometry: Broadsword 0.50 from its cockpit); the
 # Hoplon and Piranha are outside that package and take its heavy-craft 0.50.
-# Stowed at 1.8x footprint for servicing under a 1.6x-height overhead, plus one
-# spare per wing and 25% for ordnance handling.
+# Kept for the cross-check table; ship_scale.py sizes their hangars.
 CRAFT = {'broadsword': (33, 30, 6.5, .50), 'hoplon': (36, 38, 8.0, .50), 'piranha': (34, 30, 6.5, .50)}
 WINGS = {'legion_xiv_Elite': [('broadsword', 3)]*2+[('hoplon', 2)]*2, 'legion_Strike': [('piranha', 3)]*4}
-NON_HABITABLE_BUDGET = {  # share of the pressure hull, judged; the hangar share is measured below
-    'fighter hangars, launch bays, fighter ordnance': None,
-    'belt and deck armour (rating 1650, about 1.5 m over the envelope)': .15,
-    'reactors, flux plant, drive machinery': .12,
-    'fifteen barbettes, gun and missile magazines': .05,
-    'fuel (300), supplies and water tanks, structure, trunks': .10,
-}
 PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull ventral keel', 'Hull dorsal spine', 'Hull tail spine', 'Bridge command dome',
                  'Wing port sponson', 'Wing starboard sponson'] + [
-    f'Wing {s} hangar' for s in ('port', 'starboard')]
-MACHINERY = ['Hull engine block', 'Hull port engine housing', 'Hull starboard engine housing']
+    f'Wing {s} hangar' for s in ('port', 'starboard')] + [
+    f'Wing {s} transfer gallery' for s in ('port', 'starboard')]   # pass 2b: the hangar-to-hold transfer trunks
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
@@ -141,6 +128,7 @@ lg_hull.build(kit)
 lg_bridge.build(kit)
 lg_wings.build(kit)
 lg_droop.apply(kit)   # anhedral, before anything seats itself by ray-cast
+lg_ventral.build(kit)  # the underside: belly fittings, pockets cut into the ventral keel
 lg_engines.build(kit)
 lg_fittings.build(kit)
 lg_turrets.build(kit)
@@ -319,61 +307,33 @@ def union_volume(names, step=2.0):
     return total*step*step
 
 
-def hangar_m3():
-    """Stowage volume the fighter complement needs, in cubic metres, per variant."""
-    out = {}
-    for variant, wings in WINGS.items():
-        total = 0.0
-        for craft, n in wings:
-            length, span, height, mpp = CRAFT[craft]
-            total += (n+1)*(length*mpp)*(span*mpp)*1.8*(height*mpp)*1.6
-        out[variant] = round(total*1.25)
-    return out
-
-
 def scale_record():
+    """The shared sizing basis's record (ship_scale.py) plus this build's own measurements."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    import ship_scale
+    importlib.reload(ship_scale)
     hull = union_volume(PRESSURE_HULL)
-    machinery = union_volume(MACHINERY)
-    solve = lambda usable, volume: (REQUIRED_M3/(usable*volume))**(1/3)
-    hangar = hangar_m3()
-    hangar_share = max(hangar.values())/(hull*METRES_PER_UNIT**3)
-    budget = dict(NON_HABITABLE_BUDGET)
-    budget['fighter hangars, launch bays, fighter ordnance'] = round(hangar_share, 3)
-    habitable = 1-sum(budget.values())
+    rec = ship_scale.record('Legion (XIV)')
     return {
-        'method': 'warship pass 4: deck program (DeckProgramProbe CAPITAL "Battlecarrier" 700 1500 300 -> CARRIER) '
-                  'less its notional HANGAR rooms: 28667 m2 x1.40 circulation x3.2 m = required habitable m3; '
-                  'solved against the habitable share of the pressure hull (union of its solids, measured on every '
-                  'build); fighter stowage sized in metres at each fighter scale',
-        'required_habitable_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL, 'pressure_hull_units3': round(hull),
-        'machinery_units3': round(machinery), 'usable_fraction': USABLE,
-        'non_habitable_budget': budget, 'habitable_share_from_budget': round(habitable, 3),
-        'fighter_stowage_m3': hangar, 'fighter_stowage_share_of_hull_at_published': round(hangar_share, 3),
-        'budget_note': 'with the fighters at their own scales (0.50 m/px) the itemised budget leaves more than a '
-                       'third habitable; 33% is the requested warship share, and budget_share in range is what '
-                       'the itemised budget alone solves to. Owner call if they differ much.',
-        'solved_metres_per_unit': round(solve(USABLE, hull), 3),
-        'range': {f'{int(USABLE_RANGE[1]*100)}pct_habitable': round(solve(USABLE_RANGE[1], hull), 3),
-                  f'{int(USABLE_RANGE[0]*100)}pct_habitable': round(solve(USABLE_RANGE[0], hull), 3),
-                  'budget_share': round(solve(habitable, hull), 3),
-                  'freighter_55pct_for_comparison': round(solve(.55, hull), 3)},
-        'published_vs_solved': round(METRES_PER_UNIT/solve(USABLE, hull), 3),
+        **rec,
+        'published_metres_per_unit': METRES_PER_UNIT,
+        'published_vs_solved': round(METRES_PER_UNIT/rec['solved_metres_per_unit'], 3),
+        'pressure_hull_this_build_units3': round(hull),
         'size_m': [round((b-a)*METRES_PER_UNIT, 1) for a, b in zip(LO, HI)],
-        'hull_volume_m3': round(hull*METRES_PER_UNIT**3),
         'real_world': {'Nimitz': '333 m, about 5,000 crew aboard, 76.8 m flight-deck beam',
-                       'fleet and light carriers': '200-260 m',
-                       'this hull': f'{round(300*METRES_PER_UNIT)} m long and {round(294*METRES_PER_UNIT)} m wide, '
-                                    f'{round(hull*METRES_PER_UNIT**3/1000)}k m3 enclosed for 700-1500 crew',
-                       'per crew at max crew m3': round(hull*METRES_PER_UNIT**3/1500)},
-        'cross_checks_m': {'forward hangar mouth w x h': [round(lg_wings.DECKS['forward']['mouth_width']*S, 1),
-                                                          round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
-                           'aft hangar mouth w x h': [round(lg_wings.DECKS['aft']['mouth_width']*S, 1),
-                                                      round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
+                       'this hull': f'{round((HI.x-LO.x)*METRES_PER_UNIT)} m long and '
+                                    f'{round((HI.y-LO.y)*METRES_PER_UNIT)} m wide for 700-1500 crew'},
+        'cross_checks_m': {'forward hangar mouth w x h': [round(lg_wings.clearances()['forward_mouth']['clear_width']*S, 1),
+                                                          round(lg_wings.clearances()['forward_mouth']['clear_height']*S, 1)],
+                           'aft hangar mouth w x h': [round(lg_wings.clearances()['aft_mouth']['clear_width']*S, 1),
+                                                      round(lg_wings.clearances()['aft_mouth']['clear_height']*S, 1)],
+                           'transfer door w x h': [round(lg_wings.clearances()['transfer_door']['clear_width']*S, 1),
+                                                   round(lg_wings.clearances()['transfer_door']['clear_height']*S, 1)],
                            'fighters (length x span) m, own scales': {k: [round(v[0]*v[3], 1), round(v[1]*v[3], 1)] for k, v in CRAFT.items()},
                            'fighters (length x span) in Legion units': {k: [round(v[0]*v[3]/S, 1), round(v[1]*v[3]/S, 1)] for k, v in CRAFT.items()},
                            'hull keel to crown': round((HI.z-LO.z)*S, 1),
                            'person 1.8 m in units': round(1.8/S, 2),
-                           'door 2.1 m / rail 1.1 m / hatch 2 m in units': [round(2.1/S, 1), round(1.1/S, 1), round(2/S, 1)],
+                           'door 2.1 m / rail 1.1 m / hatch 2 m in units (fittings use lg_kit.PERSON)': [round(2.1/S, 1), round(1.1/S, 1), round(2/S, 1)],
                            'C2 targets: hatch 2 m / small dome 8 m / engine bell 26 m in units':
                                [round(2/S, 1), round(8/S, 1), round(26/S, 1)]},
         'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
@@ -414,6 +374,7 @@ if not args.no_save:
         'dimensions': {'min': [round(v, 2) for v in LO], 'max': [round(v, 2) for v in HI],
                        'size': [round(b-a, 2) for a, b in zip(LO, HI)]},
         'flight_decks': [lg_droop.correct(lg_wings.deck_record(s)) for s in lg_wings.LAUNCH_BAYS],
+        'hangar_fit': lg_wings.fit_table(METRES_PER_UNIT),
         'weapon_slots': lg_turrets.records(),
         'engines': lg_engines.records(),
         'running_lights': lg_fittings.records(),
@@ -447,3 +408,4 @@ if not args.no_save:
                 manifest[key] = old[key]
     path.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
     print('scale', json.dumps(manifest['scale']))
+    lg_wings.print_fit_table(manifest['hangar_fit'])

@@ -1,0 +1,695 @@
+{
+ "blend_in": "mudskipper-geometry.blend",
+ "fallback": "swatch",
+ "uv_layer": "skin",
+ "parts": {
+  "waist-port": {
+   "group": "port",
+   "source_texture": "textures/waist-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 5,
+    "Port crew hatch": 1,
+    "Port crew hatch frame": 1,
+    "Port waist keel strake": 2,
+    "Port forebody deck-edge lip": 1
+   },
+   "texels_per_unit_stored": 19.3,
+   "variation_unit_offset": [
+    0.749,
+    0.678,
+    -0.851
+   ]
+  },
+  "aft-flank-port": {
+   "group": "port",
+   "source_texture": "textures/aft-flank-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 6,
+    "Port aft flank armour module": 1,
+    "Port aft flank armour module.001": 1,
+    "Port aft flank seam backing": 1,
+    "Port aft keel strake": 2,
+    "Port flank locker": 1,
+    "Port flank locker door seam": 1,
+    "Port flank locker door": 1,
+    "Port flank locker door.001": 1
+   },
+   "texels_per_unit_stored": 24.5,
+   "variation_unit_offset": [
+    0.49,
+    -0.592,
+    0.584
+   ]
+  },
+  "sponson-port": {
+   "group": "port",
+   "source_texture": "textures/sponson-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Port forebody sponson": 3,
+    "Port sponson armour module": 1,
+    "Port sponson armour module.001": 1,
+    "Port sponson armour module.002": 1,
+    "Port sponson seam backing": 1,
+    "Port sponson belt": 1,
+    "Port sponson keel strake": 2,
+    "Port sponson passenger port frame": 1,
+    "Port sponson passenger port frame.001": 1,
+    "Port sponson passenger port frame.002": 1,
+    "Port sponson passenger port frame.003": 1
+   },
+   "texels_per_unit_stored": 31.5,
+   "variation_unit_offset": [
+    -0.851,
+    0.757,
+    0.31
+   ]
+  },
+  "bay-doors-port": {
+   "group": "port",
+   "source_texture": "textures/bay-doors-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Port cargo bay door aft leaf": 1,
+    "Port cargo bay door forward leaf": 1,
+    "Port cargo bay door jamb": 1,
+    "Port cargo bay door jamb.001": 1,
+    "Port cargo bay door sill": 1,
+    "Port cargo bay door track": 1,
+    "Port cargo bay door stiffener": 1,
+    "Port cargo bay door stiffener.001": 1,
+    "Port cargo bay door stiffener.002": 1,
+    "Port cargo bay door stiffener.003": 1
+   },
+   "texels_per_unit_stored": 40.6,
+   "variation_unit_offset": [
+    0.184,
+    -0.561,
+    0.812
+   ]
+  },
+  "waist-stbd": {
+   "group": "port",
+   "source_texture": "textures/waist-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Main hull - level datum Z0": 5,
+    "Starboard crew hatch": 1,
+    "Starboard crew hatch frame": 1,
+    "Starboard waist keel strake": 2,
+    "Starboard forebody deck-edge lip": 1
+   },
+   "texels_per_unit_stored": 19.3,
+   "variation_unit_offset": [
+    0.49,
+    0.255,
+    -0.773
+   ]
+  },
+  "aft-flank-stbd": {
+   "group": "port",
+   "source_texture": "textures/aft-flank-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Main hull - level datum Z0": 6,
+    "Starboard aft flank armour module": 1,
+    "Starboard aft flank armour module.001": 1,
+    "Starboard aft flank seam backing": 1,
+    "Starboard aft keel strake": 2,
+    "Starboard flank locker": 1,
+    "Starboard flank locker door seam": 1,
+    "Starboard flank locker door": 1,
+    "Starboard flank locker door.001": 1
+   },
+   "texels_per_unit_stored": 24.5,
+   "variation_unit_offset": [
+    1.0,
+    -0.31,
+    0.482
+   ]
+  },
+  "sponson-stbd": {
+   "group": "port",
+   "source_texture": "textures/sponson-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Starboard forebody sponson": 3,
+    "Starboard sponson armour module": 1,
+    "Starboard sponson armour module.001": 1,
+    "Starboard sponson armour module.002": 1,
+    "Starboard sponson seam backing": 1,
+    "Starboard sponson belt": 1,
+    "Starboard sponson keel strake": 2,
+    "Starboard sponson passenger port frame": 1,
+    "Starboard sponson passenger port frame.001": 1,
+    "Starboard sponson passenger port frame.002": 1,
+    "Starboard sponson passenger port frame.003": 1
+   },
+   "texels_per_unit_stored": 31.5,
+   "variation_unit_offset": [
+    0.059,
+    -0.859,
+    -0.624
+   ]
+  },
+  "bay-doors-stbd": {
+   "group": "port",
+   "source_texture": "textures/bay-doors-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Starboard cargo bay door aft leaf": 1,
+    "Starboard cargo bay door forward leaf": 1,
+    "Starboard cargo bay door jamb": 1,
+    "Starboard cargo bay door jamb.001": 1,
+    "Starboard cargo bay door sill": 1,
+    "Starboard cargo bay door track": 1,
+    "Starboard cargo bay door stiffener": 1,
+    "Starboard cargo bay door stiffener.001": 1,
+    "Starboard cargo bay door stiffener.002": 1,
+    "Starboard cargo bay door stiffener.003": 1
+   },
+   "texels_per_unit_stored": 40.6,
+   "variation_unit_offset": [
+    -0.882,
+    0.859,
+    1.0
+   ]
+  },
+  "tops-waist-deck": {
+   "group": "tops",
+   "source_texture": "textures/tops-waist-deck.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 1,
+    "Red stripe panel": 1,
+    "Red stripe panel.002": 1,
+    "Dorsal cargo hatch": 2,
+    "Dorsal cargo hatch leaf": 2,
+    "Dorsal cargo hatch leaf.001": 2,
+    "Dorsal cargo hatch leaf.002": 2,
+    "Dorsal cargo hatch leaf.003": 2,
+    "Dorsal cargo hatch leaf.004": 2,
+    "Dorsal cargo hatch leaf.005": 2
+   },
+   "texels_per_unit_stored": 19.1,
+   "variation_unit_offset": [
+    -0.176,
+    -0.859,
+    -0.773
+   ]
+  },
+  "tops-fore-deck": {
+   "group": "tops",
+   "source_texture": "textures/tops-fore-deck.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 1,
+    "Red stripe panel.001": 1,
+    "Red stripe panel.003": 1,
+    "Red stripe panel angled": 1,
+    "Red stripe panel angled.001": 1,
+    "Fore deck vent grille frame": 2,
+    "Fore deck vent grille frame.001": 2
+   },
+   "texels_per_unit_stored": 17.4,
+   "variation_unit_offset": [
+    0.027,
+    -0.161,
+    -0.576
+   ]
+  },
+  "tops-aft-deck": {
+   "group": "tops",
+   "source_texture": "textures/tops-aft-deck.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 1,
+    "Aft dorsal hatch panel": 1,
+    "Aft dorsal hatch panel.001": 1,
+    "Turret well coaming": 1,
+    "Turret well coaming.001": 1,
+    "Turret well coaming.002": 1,
+    "Turret well coaming.003": 1
+   },
+   "texels_per_unit_stored": 15.1,
+   "variation_unit_offset": [
+    -0.506,
+    0.388,
+    -0.224
+   ]
+  },
+  "tops-hood": {
+   "group": "tops",
+   "source_texture": "textures/tops-hood.png",
+   "mirror_u": false,
+   "objects": {
+    "Dorsal cabin hood": 4,
+    "Hood roof plate": 1,
+    "Hood roof plate.001": 1,
+    "Hood arched brow rim": 1
+   },
+   "texels_per_unit_stored": 26.0,
+   "variation_unit_offset": [
+    -0.6,
+    -0.639,
+    0.459
+   ]
+  },
+  "bow-face": {
+   "group": "bow",
+   "source_texture": "textures/bow-face.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 6,
+    "Bow cockpit block": 6,
+    "Port forebody sponson": 2,
+    "Starboard forebody sponson": 2,
+    "Bow fender block": 2,
+    "Bow fender block.001": 2,
+    "Bow fender block.002": 1,
+    "Bow fender block.003": 1,
+    "Bow fender block.004": 1,
+    "Bow fender block.005": 1,
+    "Bow fender backing plate": 1,
+    "Bow fender backing plate.001": 1,
+    "Bow fender backing plate.002": 1,
+    "Bow fender backing plate.003": 1,
+    "Port bow face armour module": 1,
+    "Port bow face armour module.001": 1,
+    "Starboard bow face armour module": 1,
+    "Starboard bow face armour module.001": 1,
+    "Port bow face seam backing": 1,
+    "Starboard bow face seam backing": 1
+   },
+   "texels_per_unit_stored": 16.2,
+   "variation_unit_offset": [
+    0.984,
+    0.224,
+    -0.467
+   ]
+  },
+  "bow-rake": {
+   "group": "bow",
+   "source_texture": "textures/bow-rake.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 1,
+    "Bow cockpit block": 2,
+    "Bridge cab centre section": 1,
+    "Bridge cab port section": 1,
+    "Bridge cab starboard section": 1,
+    "Bridge visor brow": 1,
+    "Bridge windscreen sill": 1
+   },
+   "texels_per_unit_stored": 17.4,
+   "variation_unit_offset": [
+    0.718,
+    0.349,
+    0.6
+   ]
+  },
+  "bow-cockpit-top": {
+   "group": "bow",
+   "source_texture": "textures/bow-cockpit-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Bow cockpit block": 1,
+    "Bridge cab centre section": 2,
+    "Bridge cab port section": 2,
+    "Bridge cab starboard section": 2
+   },
+   "texels_per_unit_stored": 36.8,
+   "variation_unit_offset": [
+    0.584,
+    -0.224,
+    -0.976
+   ]
+  },
+  "bow-sponson-port": {
+   "group": "bow",
+   "source_texture": "textures/bow-sponson-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Port forebody sponson": 2
+   },
+   "texels_per_unit_stored": 35.3,
+   "variation_unit_offset": [
+    0.169,
+    0.043,
+    -0.38
+   ]
+  },
+  "bow-sponson-stbd": {
+   "group": "bow",
+   "source_texture": "textures/bow-sponson-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Starboard forebody sponson": 2
+   },
+   "texels_per_unit_stored": 35.3,
+   "variation_unit_offset": [
+    0.608,
+    0.631,
+    0.906
+   ]
+  },
+  "pod-outer-port": {
+   "group": "drives",
+   "source_texture": "textures/pod-outer-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Engine 2 port pod drive casing": 10,
+    "Engine 2 pod thrust collar": 9,
+    "Engine 2 pod thrust housing": 11,
+    "Engine 2 pod flank panel": 1,
+    "Engine 2 pod flank panel.001": 1,
+    "Engine 2 pod flank panel frame": 1,
+    "Engine 2 pod flank panel frame.001": 1
+   },
+   "texels_per_unit_stored": 28.8,
+   "variation_unit_offset": [
+    -0.6,
+    0.263,
+    0.075
+   ]
+  },
+  "pod-top-port": {
+   "group": "drives",
+   "source_texture": "textures/pod-top-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Engine 2 port pod drive casing": 12,
+    "Engine 2 pod thrust collar": 8,
+    "Engine 2 pod machinery deck": 1,
+    "Engine 2 pod deck strake": 1,
+    "Engine 2 pod access hatch": 1,
+    "Engine 2 pod access hatch frame": 1,
+    "Engine 2 radiator bay floor": 1
+   },
+   "texels_per_unit_stored": 40.5,
+   "variation_unit_offset": [
+    -0.827,
+    -0.451,
+    -0.294
+   ]
+  },
+  "pod-aft-port": {
+   "group": "drives",
+   "source_texture": "textures/pod-aft-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Engine 2 pod thrust housing": 16,
+    "Engine 2 pod thrust collar": 6
+   },
+   "texels_per_unit_stored": 27.7,
+   "variation_unit_offset": [
+    -0.827,
+    -0.106,
+    0.255
+   ]
+  },
+  "drive-casing-top": {
+   "group": "drives",
+   "source_texture": "textures/drive-casing-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Engine 1 main drive casing": 6,
+    "Engine 1 barrel band 1": 5,
+    "Engine 1 barrel band 2": 5,
+    "Engine 1 barrel band 3": 5,
+    "Engine 1 thrust frame flange": 4,
+    "Engine 1 casing cover frame": 1,
+    "Engine 1 casing cover frame.003": 1
+   },
+   "texels_per_unit_stored": 29.6,
+   "variation_unit_offset": [
+    -0.788,
+    0.357,
+    0.843
+   ]
+  },
+  "pod-outer-stbd": {
+   "group": "drives",
+   "source_texture": "textures/pod-outer-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Engine 3 starboard pod drive casing": 10,
+    "Engine 3 pod thrust collar": 9,
+    "Engine 3 pod thrust housing": 11,
+    "Engine 3 pod flank panel": 1,
+    "Engine 3 pod flank panel.001": 1,
+    "Engine 3 pod flank panel frame": 1,
+    "Engine 3 pod flank panel frame.001": 1
+   },
+   "texels_per_unit_stored": 28.8,
+   "variation_unit_offset": [
+    -0.576,
+    -0.969,
+    0.89
+   ]
+  },
+  "pod-top-stbd": {
+   "group": "drives",
+   "source_texture": "textures/pod-top-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Engine 3 starboard pod drive casing": 12,
+    "Engine 3 pod thrust collar": 8,
+    "Engine 3 pod machinery deck": 1,
+    "Engine 3 pod deck strake": 1,
+    "Engine 3 pod access hatch": 1,
+    "Engine 3 pod access hatch frame": 1,
+    "Engine 3 radiator bay floor": 1
+   },
+   "texels_per_unit_stored": 40.5,
+   "variation_unit_offset": [
+    0.506,
+    0.341,
+    -0.145
+   ]
+  },
+  "pod-aft-stbd": {
+   "group": "drives",
+   "source_texture": "textures/pod-aft-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Engine 3 pod thrust housing": 16,
+    "Engine 3 pod thrust collar": 6
+   },
+   "texels_per_unit_stored": 27.7,
+   "variation_unit_offset": [
+    -0.631,
+    0.843,
+    0.365
+   ]
+  },
+  "drive-casing-port": {
+   "group": "drives",
+   "source_texture": "textures/drive-casing-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Engine 1 main drive casing": 6,
+    "Engine 1 barrel band 1": 5,
+    "Engine 1 barrel band 2": 5,
+    "Engine 1 barrel band 3": 5,
+    "Engine 1 thrust frame flange": 4,
+    "Engine 1 casing cover frame.001": 1,
+    "Engine 1 casing cover frame.004": 1
+   },
+   "texels_per_unit_stored": 29.6,
+   "variation_unit_offset": [
+    -0.043,
+    -0.702,
+    0.451
+   ]
+  },
+  "drive-casing-stbd": {
+   "group": "drives",
+   "source_texture": "textures/drive-casing-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Engine 1 main drive casing": 6,
+    "Engine 1 barrel band 1": 5,
+    "Engine 1 barrel band 2": 5,
+    "Engine 1 barrel band 3": 5,
+    "Engine 1 thrust frame flange": 4,
+    "Engine 1 casing cover frame.002": 1,
+    "Engine 1 casing cover frame.005": 1
+   },
+   "texels_per_unit_stored": 29.6,
+   "variation_unit_offset": [
+    0.639,
+    -0.231,
+    0.898
+   ]
+  }
+ },
+ "swatches": {
+  "white": true,
+  "red": true,
+  "tan": true,
+  "grey": true,
+  "steel": true,
+  "dark": true,
+  "burnished": true
+ },
+ "face_counts": {
+  "skin": 434,
+  "swatch": 10015,
+  "neutral": 0
+ },
+ "skinned_objects": {
+  "Aft dorsal hatch panel": 1,
+  "Aft dorsal hatch panel.001": 1,
+  "Bow cockpit block": 9,
+  "Bow fender backing plate": 1,
+  "Bow fender backing plate.001": 1,
+  "Bow fender backing plate.002": 1,
+  "Bow fender backing plate.003": 1,
+  "Bow fender block": 2,
+  "Bow fender block.001": 2,
+  "Bow fender block.002": 1,
+  "Bow fender block.003": 1,
+  "Bow fender block.004": 1,
+  "Bow fender block.005": 1,
+  "Bridge cab centre section": 3,
+  "Bridge cab port section": 3,
+  "Bridge cab starboard section": 3,
+  "Bridge visor brow": 1,
+  "Bridge windscreen sill": 1,
+  "Dorsal cabin hood": 4,
+  "Dorsal cargo hatch": 2,
+  "Dorsal cargo hatch leaf": 2,
+  "Dorsal cargo hatch leaf.001": 2,
+  "Dorsal cargo hatch leaf.002": 2,
+  "Dorsal cargo hatch leaf.003": 2,
+  "Dorsal cargo hatch leaf.004": 2,
+  "Dorsal cargo hatch leaf.005": 2,
+  "Engine 1 barrel band 1": 15,
+  "Engine 1 barrel band 2": 15,
+  "Engine 1 barrel band 3": 15,
+  "Engine 1 casing cover frame": 1,
+  "Engine 1 casing cover frame.001": 1,
+  "Engine 1 casing cover frame.002": 1,
+  "Engine 1 casing cover frame.003": 1,
+  "Engine 1 casing cover frame.004": 1,
+  "Engine 1 casing cover frame.005": 1,
+  "Engine 1 main drive casing": 18,
+  "Engine 1 thrust frame flange": 12,
+  "Engine 2 pod access hatch": 1,
+  "Engine 2 pod access hatch frame": 1,
+  "Engine 2 pod deck strake": 1,
+  "Engine 2 pod flank panel": 1,
+  "Engine 2 pod flank panel frame": 1,
+  "Engine 2 pod flank panel frame.001": 1,
+  "Engine 2 pod flank panel.001": 1,
+  "Engine 2 pod machinery deck": 1,
+  "Engine 2 pod thrust collar": 23,
+  "Engine 2 pod thrust housing": 27,
+  "Engine 2 port pod drive casing": 22,
+  "Engine 2 radiator bay floor": 1,
+  "Engine 3 pod access hatch": 1,
+  "Engine 3 pod access hatch frame": 1,
+  "Engine 3 pod deck strake": 1,
+  "Engine 3 pod flank panel": 1,
+  "Engine 3 pod flank panel frame": 1,
+  "Engine 3 pod flank panel frame.001": 1,
+  "Engine 3 pod flank panel.001": 1,
+  "Engine 3 pod machinery deck": 1,
+  "Engine 3 pod thrust collar": 23,
+  "Engine 3 pod thrust housing": 27,
+  "Engine 3 radiator bay floor": 1,
+  "Engine 3 starboard pod drive casing": 22,
+  "Fore deck vent grille frame": 2,
+  "Fore deck vent grille frame.001": 2,
+  "Hood arched brow rim": 1,
+  "Hood roof plate": 1,
+  "Hood roof plate.001": 1,
+  "Main hull - level datum Z0": 32,
+  "Port aft flank armour module": 1,
+  "Port aft flank armour module.001": 1,
+  "Port aft flank seam backing": 1,
+  "Port aft keel strake": 2,
+  "Port bow face armour module": 1,
+  "Port bow face armour module.001": 1,
+  "Port bow face seam backing": 1,
+  "Port cargo bay door aft leaf": 1,
+  "Port cargo bay door forward leaf": 1,
+  "Port cargo bay door jamb": 1,
+  "Port cargo bay door jamb.001": 1,
+  "Port cargo bay door sill": 1,
+  "Port cargo bay door stiffener": 1,
+  "Port cargo bay door stiffener.001": 1,
+  "Port cargo bay door stiffener.002": 1,
+  "Port cargo bay door stiffener.003": 1,
+  "Port cargo bay door track": 1,
+  "Port crew hatch": 1,
+  "Port crew hatch frame": 1,
+  "Port flank locker": 1,
+  "Port flank locker door": 1,
+  "Port flank locker door seam": 1,
+  "Port flank locker door.001": 1,
+  "Port forebody deck-edge lip": 1,
+  "Port forebody sponson": 7,
+  "Port sponson armour module": 1,
+  "Port sponson armour module.001": 1,
+  "Port sponson armour module.002": 1,
+  "Port sponson belt": 1,
+  "Port sponson keel strake": 2,
+  "Port sponson passenger port frame": 1,
+  "Port sponson passenger port frame.001": 1,
+  "Port sponson passenger port frame.002": 1,
+  "Port sponson passenger port frame.003": 1,
+  "Port sponson seam backing": 1,
+  "Port waist keel strake": 2,
+  "Red stripe panel": 1,
+  "Red stripe panel angled": 1,
+  "Red stripe panel angled.001": 1,
+  "Red stripe panel.001": 1,
+  "Red stripe panel.002": 1,
+  "Red stripe panel.003": 1,
+  "Starboard aft flank armour module": 1,
+  "Starboard aft flank armour module.001": 1,
+  "Starboard aft flank seam backing": 1,
+  "Starboard aft keel strake": 2,
+  "Starboard bow face armour module": 1,
+  "Starboard bow face armour module.001": 1,
+  "Starboard bow face seam backing": 1,
+  "Starboard cargo bay door aft leaf": 1,
+  "Starboard cargo bay door forward leaf": 1,
+  "Starboard cargo bay door jamb": 1,
+  "Starboard cargo bay door jamb.001": 1,
+  "Starboard cargo bay door sill": 1,
+  "Starboard cargo bay door stiffener": 1,
+  "Starboard cargo bay door stiffener.001": 1,
+  "Starboard cargo bay door stiffener.002": 1,
+  "Starboard cargo bay door stiffener.003": 1,
+  "Starboard cargo bay door track": 1,
+  "Starboard crew hatch": 1,
+  "Starboard crew hatch frame": 1,
+  "Starboard flank locker": 1,
+  "Starboard flank locker door": 1,
+  "Starboard flank locker door seam": 1,
+  "Starboard flank locker door.001": 1,
+  "Starboard forebody deck-edge lip": 1,
+  "Starboard forebody sponson": 7,
+  "Starboard sponson armour module": 1,
+  "Starboard sponson armour module.001": 1,
+  "Starboard sponson armour module.002": 1,
+  "Starboard sponson belt": 1,
+  "Starboard sponson keel strake": 2,
+  "Starboard sponson passenger port frame": 1,
+  "Starboard sponson passenger port frame.001": 1,
+  "Starboard sponson passenger port frame.002": 1,
+  "Starboard sponson passenger port frame.003": 1,
+  "Starboard sponson seam backing": 1,
+  "Starboard waist keel strake": 2,
+  "Turret well coaming": 1,
+  "Turret well coaming.001": 1,
+  "Turret well coaming.002": 1,
+  "Turret well coaming.003": 1
+ },
+ "skinned_face_count": 434
+}

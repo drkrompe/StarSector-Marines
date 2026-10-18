@@ -52,67 +52,107 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.61,
+  "metres_per_unit": 0.99,
   "scale": {
-    "method": "warship pass 4: deck program (DeckProgramProbe CAPITAL \"Battlecarrier\" 700 1500 300 -> CARRIER) less its notional HANGAR rooms: 28667 m2 x1.40 circulation x3.2 m = required habitable m3; solved against the habitable share of the pressure hull (union of its solids, measured on every build); fighter stowage sized in metres at each fighter scale",
-    "required_habitable_m3": 128428,
-    "pressure_hull": [
-      "Hull fore body",
-      "Hull aft body",
-      "Hull ventral keel",
-      "Hull dorsal spine",
-      "Hull tail spine",
-      "Bridge command dome",
-      "Wing port sponson",
-      "Wing starboard sponson",
-      "Wing port hangar",
-      "Wing starboard hangar"
-    ],
-    "pressure_hull_units3": 1727297,
-    "machinery_units3": 43133,
-    "usable_fraction": 0.33,
-    "non_habitable_budget": {
-      "fighter hangars, launch bays, fighter ordnance": 0.134,
-      "belt and deck armour (rating 1650, about 1.5 m over the envelope)": 0.15,
-      "reactors, flux plant, drive machinery": 0.12,
-      "fifteen barbettes, gun and missile magazines": 0.05,
-      "fuel (300), supplies and water tanks, structure, trunks": 0.1
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 1678689,
+      "crew_max": 1500,
+      "cargo": 300,
+      "fuel": 300,
+      "cls": "capital",
+      "wings": [
+        [
+          "broadsword",
+          3
+        ],
+        [
+          "broadsword",
+          3
+        ],
+        [
+          "hoplon",
+          2
+        ],
+        [
+          "hoplon",
+          2
+        ]
+      ],
+      "length_units": 294.9,
+      "sprite_px": 308,
+      "volume_source": "measured (SOLIDS)"
     },
-    "habitable_share_from_budget": 0.446,
-    "fighter_stowage_m3": {
-      "legion_xiv_Elite": 52715,
-      "legion_Strike": 47736
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.45,
+        "hangar_box_factor": 3.0,
+        "shares": {
+          "armour": 0.18,
+          "drive": 0.16,
+          "weapons": 0.12,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
     },
-    "fighter_stowage_share_of_hull_at_published": 0.134,
-    "budget_note": "with the fighters at their own scales (0.50 m/px) the itemised budget leaves more than a third habitable; 33% is the requested warship share, and budget_share in range is what the itemised budget alone solves to. Owner call if they differ much.",
-    "solved_metres_per_unit": 0.608,
+    "contents_m3": {
+      "crew": 652500,
+      "cargo": 600,
+      "fuel": 450,
+      "hangar": 41933,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 695483,
+    "machinery_share": 0.58,
+    "enclosed_m3": 1655912,
+    "solved_metres_per_unit": 0.995,
     "range": {
-      "35pct_habitable": 0.597,
-      "30pct_habitable": 0.628,
-      "budget_share": 0.55,
-      "freighter_55pct_for_comparison": 0.513
+      "habitable_273": 0.967,
+      "habitable_328": 1.024
     },
-    "published_vs_solved": 1.002,
+    "enclosed_m3_per_person_at_max_crew": 1104,
+    "length_m": 293.6,
+    "fittings_m": {
+      "personnel door h": [
+        2.09
+      ],
+      "rail h": [
+        1.1
+      ],
+      "transfer door w x h": [
+        33.85,
+        9.95
+      ]
+    },
+    "published_metres_per_unit": 0.99,
+    "published_vs_solved": 0.995,
+    "pressure_hull_this_build_units3": 1678689,
     "size_m": [
-      179.9,
-      179.2,
-      47.4
+      292.0,
+      290.9,
+      87.4
     ],
-    "hull_volume_m3": 392064,
     "real_world": {
       "Nimitz": "333 m, about 5,000 crew aboard, 76.8 m flight-deck beam",
-      "fleet and light carriers": "200-260 m",
-      "this hull": "183 m long and 179 m wide, 392k m3 enclosed for 700-1500 crew",
-      "per crew at max crew m3": 261
+      "this hull": "292 m long and 291 m wide for 700-1500 crew"
     },
     "cross_checks_m": {
       "forward hangar mouth w x h": [
-        34.2,
-        7.9
+        41.6,
+        12.8
       ],
       "aft hangar mouth w x h": [
-        28.1,
-        7.9
+        41.1,
+        13.9
+      ],
+      "transfer door w x h": [
+        33.7,
+        9.9
       ],
       "fighters (length x span) m, own scales": {
         "broadsword": [
@@ -130,29 +170,29 @@
       },
       "fighters (length x span) in Legion units": {
         "broadsword": [
-          27.0,
-          24.6
+          16.7,
+          15.2
         ],
         "hoplon": [
-          29.5,
-          31.1
+          18.2,
+          19.2
         ],
         "piranha": [
-          27.9,
-          24.6
+          17.2,
+          15.2
         ]
       },
-      "hull keel to crown": 47.4,
-      "person 1.8 m in units": 2.95,
-      "door 2.1 m / rail 1.1 m / hatch 2 m in units": [
-        3.4,
-        1.8,
-        3.3
+      "hull keel to crown": 87.4,
+      "person 1.8 m in units": 1.82,
+      "door 2.1 m / rail 1.1 m / hatch 2 m in units (fittings use lg_kit.PERSON)": [
+        2.1,
+        1.1,
+        2.0
       ],
       "C2 targets: hatch 2 m / small dome 8 m / engine bell 26 m in units": [
-        3.3,
-        13.1,
-        42.6
+        2.0,
+        8.1,
+        26.3
       ]
     },
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -172,7 +212,7 @@
     "min": [
       -137.93,
       -146.9,
-      -46.3
+      -56.87
     ],
     "max": [
       157.0,
@@ -182,7 +222,7 @@
     "size": [
       294.93,
       293.81,
-      77.74
+      88.31
     ]
   },
   "flight_decks": [
@@ -203,26 +243,27 @@
         -0.1736,
         0.0
       ],
+      "role": "recovery station (aft mouth) and aft launches",
       "launch_points": [
         [
           -27,
           103,
-          -24.556
+          -26.0
         ],
         [
           -35,
           91,
-          -22.44
+          -26.0
         ],
         [
           -44,
           105,
-          -24.908
+          -26.0
         ],
         [
           -51,
           92,
-          -22.616
+          -26.0
         ]
       ],
       "launch_point_anchors": [
@@ -236,7 +277,7 @@
         "centre": [
           -64.0,
           105.0,
-          -18.908
+          -18.44
         ],
         "normal": [
           -1,
@@ -244,20 +285,30 @@
           0
         ],
         "width": 46.0,
-        "height": 13.0,
-        "clear_width": 46.0,
-        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
+        "height": 14.08,
+        "clear_width": 41.5,
+        "clear_height": 14.08,
+        "clear_y": [
+          86.5,
+          128.0
+        ],
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch; the aft mouth inboard jamb is widened to |Y| 86.5 to keep the aft body flare behind it"
       },
       "deck": {
-        "floor_z": -21.0,
-        "roof_z": -8.0,
+        "floor_z": -26.5,
+        "level": true,
+        "roof_z": {
+          "inboard": -8.742,
+          "outboard": -12.019,
+          "plane": "z = -8.6 + -0.0712 * (|y| - 80)"
+        },
         "x": [
           -64,
           40
         ],
         "y": [
-          82,
-          128
+          84.6,
+          125.4
         ],
         "under_wing": true,
         "elevator_well_x": [
@@ -267,7 +318,10 @@
         "elevator_well_y": [
           88,
           110
-        ]
+        ],
+        "elevator_lift": "Flight deck WS 010 well lift",
+        "control_booth": "Flight deck WS 010 control booth",
+        "blast_deflector": "Flight deck WS 010 blast deflector hinge"
       },
       "hangar": {
         "name": "Wing port hangar",
@@ -279,9 +333,21 @@
           81,
           128
         ],
-        "floor": -21.0,
-        "roof": -8.0,
+        "floor": -26.5,
+        "roof": {
+          "inboard": -8.671,
+          "outboard": -12.019
+        },
         "fly_through": true,
+        "lane_clearance": {
+          "clear_width_below_catwalk": 42,
+          "clear_width_full_height": 40.52121212121212,
+          "catwalk_underside_above_floor": 8.2,
+          "clear_height": 13.88,
+          "clear_height_inboard": 17.23,
+          "under_parked_crane_hook": 9.1,
+          "note": "narrowest section: width under the leading edge (Y 81-123), height at the outboard wall under the roof frames; the crane is mobile and parks near the inboard rail"
+        },
         "clear_sections": [
           {
             "x": [
@@ -304,12 +370,259 @@
             ]
           }
         ],
-        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
+        "note": "one launch and recovery lane per arm shared by both slots, open at both mouths, level floor; the roof carries transverse frames (0.6 deep), two longitudinal girders and two gantry crane rails (1.0 deep)"
       },
+      "transfer_doors": [
+        {
+          "k": 1,
+          "role": "recovery: aft station (WS 010/011) to the central hold",
+          "slide_empty": "Wing port transfer door 1 slide",
+          "leaf": "Wing port transfer door 1 leaf",
+          "inner_door": "Wing port transfer bay 1 inner door",
+          "centre": [
+            -39.0,
+            80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -56.0,
+            -22.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              44.0,
+              80.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 2,
+          "role": "crash and spares: barrier catches and crane lifts, clear of both stations",
+          "slide_empty": "Wing port transfer door 2 slide",
+          "leaf": "Wing port transfer door 2 leaf",
+          "inner_door": "Wing port transfer bay 2 inner door",
+          "centre": [
+            8.0,
+            80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -9.0,
+            25.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              44.0,
+              80.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 3,
+          "role": "launch: central hold to the forward station (WS 012/013)",
+          "slide_empty": "Wing port transfer door 3 slide",
+          "leaf": "Wing port transfer door 3 leaf",
+          "inner_door": "Wing port transfer bay 3 inner door",
+          "centre": [
+            54.0,
+            80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            37.0,
+            71.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              44.0,
+              80.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        }
+      ],
+      "traverser_rails": [
+        {
+          "door": 1,
+          "x": [
+            -49.0,
+            -39.0,
+            -29.0
+          ],
+          "y": [
+            44.5,
+            112.0
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing port traverser 1 slide",
+          "rest_y": 89.6,
+          "travel_local_y": {
+            "to_lock_centre": -27.6,
+            "to_launch_points": 12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 2,
+          "x": [
+            -2.0,
+            8.0,
+            18.0
+          ],
+          "y": [
+            44.5,
+            112.0
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing port traverser 2 slide",
+          "rest_y": 89.6,
+          "travel_local_y": {
+            "to_lock_centre": -27.6,
+            "to_launch_points": 12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 3,
+          "x": [
+            44.0,
+            54.0,
+            64.0
+          ],
+          "y": [
+            44.5,
+            112.0
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing port traverser 3 slide",
+          "rest_y": 88.6,
+          "travel_local_y": {
+            "to_lock_centre": -26.6,
+            "to_launch_points": 13.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        }
+      ],
+      "gallery": {
+        "name": "Wing port transfer gallery",
+        "x": [
+          -58.0,
+          72.5
+        ],
+        "y": [
+          58.0,
+          79.6
+        ],
+        "z": [
+          -29.5,
+          -15.0
+        ],
+        "floor_z": -26.5,
+        "locks": [
+          "Wing port transfer bay 1",
+          "Wing port transfer bay 2",
+          "Wing port transfer bay 3"
+        ],
+        "pressure_hull": true,
+        "note": "enclosed pressure trunk on the lower flank between the hangar inboard wall and the ventral keel; each transfer door opens into a lock that crosses it into the keel, whose inner door opens on the central hold (not modelled). Ribs, maintenance hatches and lit ports show from below."
+      },
+      "keyable": {
+        "transfer_doors": [
+          "Wing port transfer door 1 slide",
+          "Wing port transfer door 2 slide",
+          "Wing port transfer door 3 slide"
+        ],
+        "traversers": [
+          "Wing port traverser 1 slide",
+          "Wing port traverser 2 slide",
+          "Wing port traverser 3 slide"
+        ],
+        "recovery_barrier": {
+          "empty": "Wing port recovery barrier hinge",
+          "child": "Wing port recovery barrier",
+          "rest": "stowed flat",
+          "raise": "rotate about local Y by -90 deg"
+        },
+        "gantry_crane": {
+          "empty": "Wing port gantry crane slide",
+          "child": "Wing port gantry crane",
+          "rest_x": 8.0,
+          "travel_local_x": [
+            -70.0,
+            52.0
+          ]
+        },
+        "blast_deflectors": {
+          "WS 010": {
+            "empty": "Flight deck WS 010 blast deflector hinge",
+            "raise": "rotate about local Y by -50 deg"
+          },
+          "WS 012": {
+            "empty": "Flight deck WS 012 blast deflector hinge",
+            "raise": "rotate about local Y by +50 deg"
+          }
+        },
+        "note": "every keyable part is a mesh parented (identity parent inverse) to the named empty, which rests in the closed/stowed/parked state; key the empty"
+      },
+      "logistics": "recovery: overtake from astern into the AFT mouth, settle on the aft station (WS 010/011 launch points), recovery barrier at X -12 against overruns -> lane: tow dolly onto the aft traverser -> traverser: sideways, nose forward, to transfer door 1 -> door: into its lock across the transfer gallery (outer door closes, lock cycles) -> gallery: inner door into the central hold in the ventral keel/torso at the same deck height -> central hold: refit (rearm, refuel, repair) -> forward through the hold to door 3 -> traverser out to the forward station (WS 012/013), deflectors up -> launch out of the FORWARD mouth. Door 2 amidships is the crash and spares door (barrier catches, gantry-crane lifts). In-game the aft slots also launch aft through the aft mouth; the lane is fly-through when barrier and deflectors are stowed (their rest state).",
       "anhedral": {
         "angle_deg": 10.0,
         "root_abs_y": 80.0,
-        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
+        "hangar_level": true,
+        "note": "the arm above (deck, armour, wells, turrets) slopes down outboard; the hangar under it is level: floor, launch points, mouths, doors and gallery heights are final as given. Arm deck at the outboard lane wall is z -4.46."
       }
     },
     {
@@ -329,26 +642,27 @@
         0.1736,
         0.0
       ],
+      "role": "recovery station (aft mouth) and aft launches",
       "launch_points": [
         [
           -35,
           -90,
-          -22.263
+          -26.0
         ],
         [
           -26,
           -102,
-          -24.379
+          -26.0
         ],
         [
           -50,
           -92,
-          -22.616
+          -26.0
         ],
         [
           -40,
           -104,
-          -24.732
+          -26.0
         ]
       ],
       "launch_point_anchors": [
@@ -362,7 +676,7 @@
         "centre": [
           -64.0,
           -105.0,
-          -18.908
+          -18.44
         ],
         "normal": [
           -1,
@@ -370,20 +684,30 @@
           0
         ],
         "width": 46.0,
-        "height": 13.0,
-        "clear_width": 46.0,
-        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
+        "height": 14.08,
+        "clear_width": 41.5,
+        "clear_height": 14.08,
+        "clear_y": [
+          -128.0,
+          -86.5
+        ],
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch; the aft mouth inboard jamb is widened to |Y| 86.5 to keep the aft body flare behind it"
       },
       "deck": {
-        "floor_z": -21.0,
-        "roof_z": -8.0,
+        "floor_z": -26.5,
+        "level": true,
+        "roof_z": {
+          "inboard": -8.742,
+          "outboard": -12.019,
+          "plane": "z = -8.6 + -0.0712 * (|y| - 80)"
+        },
         "x": [
           -64,
           40
         ],
         "y": [
-          -128,
-          -82
+          -125.4,
+          -84.6
         ],
         "under_wing": true,
         "elevator_well_x": [
@@ -393,7 +717,10 @@
         "elevator_well_y": [
           -110,
           -88
-        ]
+        ],
+        "elevator_lift": "Flight deck WS 011 well lift",
+        "control_booth": "Flight deck WS 011 control booth",
+        "blast_deflector": "Flight deck WS 011 blast deflector hinge"
       },
       "hangar": {
         "name": "Wing starboard hangar",
@@ -405,9 +732,21 @@
           -128,
           -81
         ],
-        "floor": -21.0,
-        "roof": -8.0,
+        "floor": -26.5,
+        "roof": {
+          "inboard": -8.671,
+          "outboard": -12.019
+        },
         "fly_through": true,
+        "lane_clearance": {
+          "clear_width_below_catwalk": 42,
+          "clear_width_full_height": 40.52121212121212,
+          "catwalk_underside_above_floor": 8.2,
+          "clear_height": 13.88,
+          "clear_height_inboard": 17.23,
+          "under_parked_crane_hook": 9.1,
+          "note": "narrowest section: width under the leading edge (Y 81-123), height at the outboard wall under the roof frames; the crane is mobile and parks near the inboard rail"
+        },
         "clear_sections": [
           {
             "x": [
@@ -430,12 +769,259 @@
             ]
           }
         ],
-        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
+        "note": "one launch and recovery lane per arm shared by both slots, open at both mouths, level floor; the roof carries transverse frames (0.6 deep), two longitudinal girders and two gantry crane rails (1.0 deep)"
       },
+      "transfer_doors": [
+        {
+          "k": 1,
+          "role": "recovery: aft station (WS 010/011) to the central hold",
+          "slide_empty": "Wing starboard transfer door 1 slide",
+          "leaf": "Wing starboard transfer door 1 leaf",
+          "inner_door": "Wing starboard transfer bay 1 inner door",
+          "centre": [
+            -39.0,
+            -80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -56.0,
+            -22.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              -80.0,
+              -44.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 2,
+          "role": "crash and spares: barrier catches and crane lifts, clear of both stations",
+          "slide_empty": "Wing starboard transfer door 2 slide",
+          "leaf": "Wing starboard transfer door 2 leaf",
+          "inner_door": "Wing starboard transfer bay 2 inner door",
+          "centre": [
+            8.0,
+            -80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -9.0,
+            25.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              -80.0,
+              -44.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 3,
+          "role": "launch: central hold to the forward station (WS 012/013)",
+          "slide_empty": "Wing starboard transfer door 3 slide",
+          "leaf": "Wing starboard transfer door 3 leaf",
+          "inner_door": "Wing starboard transfer bay 3 inner door",
+          "centre": [
+            54.0,
+            -80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            37.0,
+            71.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              -80.0,
+              -44.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        }
+      ],
+      "traverser_rails": [
+        {
+          "door": 1,
+          "x": [
+            -49.0,
+            -39.0,
+            -29.0
+          ],
+          "y": [
+            -112.0,
+            -44.5
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing starboard traverser 1 slide",
+          "rest_y": -89.6,
+          "travel_local_y": {
+            "to_lock_centre": 27.6,
+            "to_launch_points": -12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 2,
+          "x": [
+            -2.0,
+            8.0,
+            18.0
+          ],
+          "y": [
+            -112.0,
+            -44.5
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing starboard traverser 2 slide",
+          "rest_y": -89.6,
+          "travel_local_y": {
+            "to_lock_centre": 27.6,
+            "to_launch_points": -12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 3,
+          "x": [
+            44.0,
+            54.0,
+            64.0
+          ],
+          "y": [
+            -112.0,
+            -44.5
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing starboard traverser 3 slide",
+          "rest_y": -88.6,
+          "travel_local_y": {
+            "to_lock_centre": 26.6,
+            "to_launch_points": -13.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        }
+      ],
+      "gallery": {
+        "name": "Wing starboard transfer gallery",
+        "x": [
+          -58.0,
+          72.5
+        ],
+        "y": [
+          -79.6,
+          -58.0
+        ],
+        "z": [
+          -29.5,
+          -15.0
+        ],
+        "floor_z": -26.5,
+        "locks": [
+          "Wing starboard transfer bay 1",
+          "Wing starboard transfer bay 2",
+          "Wing starboard transfer bay 3"
+        ],
+        "pressure_hull": true,
+        "note": "enclosed pressure trunk on the lower flank between the hangar inboard wall and the ventral keel; each transfer door opens into a lock that crosses it into the keel, whose inner door opens on the central hold (not modelled). Ribs, maintenance hatches and lit ports show from below."
+      },
+      "keyable": {
+        "transfer_doors": [
+          "Wing starboard transfer door 1 slide",
+          "Wing starboard transfer door 2 slide",
+          "Wing starboard transfer door 3 slide"
+        ],
+        "traversers": [
+          "Wing starboard traverser 1 slide",
+          "Wing starboard traverser 2 slide",
+          "Wing starboard traverser 3 slide"
+        ],
+        "recovery_barrier": {
+          "empty": "Wing starboard recovery barrier hinge",
+          "child": "Wing starboard recovery barrier",
+          "rest": "stowed flat",
+          "raise": "rotate about local Y by -90 deg"
+        },
+        "gantry_crane": {
+          "empty": "Wing starboard gantry crane slide",
+          "child": "Wing starboard gantry crane",
+          "rest_x": 8.0,
+          "travel_local_x": [
+            -70.0,
+            52.0
+          ]
+        },
+        "blast_deflectors": {
+          "WS 011": {
+            "empty": "Flight deck WS 011 blast deflector hinge",
+            "raise": "rotate about local Y by -50 deg"
+          },
+          "WS 013": {
+            "empty": "Flight deck WS 013 blast deflector hinge",
+            "raise": "rotate about local Y by +50 deg"
+          }
+        },
+        "note": "every keyable part is a mesh parented (identity parent inverse) to the named empty, which rests in the closed/stowed/parked state; key the empty"
+      },
+      "logistics": "recovery: overtake from astern into the AFT mouth, settle on the aft station (WS 010/011 launch points), recovery barrier at X -12 against overruns -> lane: tow dolly onto the aft traverser -> traverser: sideways, nose forward, to transfer door 1 -> door: into its lock across the transfer gallery (outer door closes, lock cycles) -> gallery: inner door into the central hold in the ventral keel/torso at the same deck height -> central hold: refit (rearm, refuel, repair) -> forward through the hold to door 3 -> traverser out to the forward station (WS 012/013), deflectors up -> launch out of the FORWARD mouth. Door 2 amidships is the crash and spares door (barrier catches, gantry-crane lifts). In-game the aft slots also launch aft through the aft mouth; the lane is fly-through when barrier and deflectors are stowed (their rest state).",
       "anhedral": {
         "angle_deg": 10.0,
         "root_abs_y": 80.0,
-        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
+        "hangar_level": true,
+        "note": "the arm above (deck, armour, wells, turrets) slopes down outboard; the hangar under it is level: floor, launch points, mouths, doors and gallery heights are final as given. Arm deck at the outboard lane wall is z -4.46."
       }
     },
     {
@@ -455,26 +1041,27 @@
         -0.1736,
         0.0
       ],
+      "role": "launch station (forward mouth)",
       "launch_points": [
         [
           47,
           104,
-          -24.732
+          -26.0
         ],
         [
           59,
           92,
-          -22.616
+          -26.0
         ],
         [
           63,
           105,
-          -24.908
+          -26.0
         ],
         [
           72,
           90,
-          -22.263
+          -26.0
         ]
       ],
       "launch_point_anchors": [
@@ -488,7 +1075,7 @@
         "centre": [
           82.0,
           101.5,
-          -18.291
+          -18.316
         ],
         "normal": [
           0.742,
@@ -496,20 +1083,30 @@
           0
         ],
         "width": 56.0,
-        "height": 13.0,
+        "height": 12.92,
         "clear_width": 42.0,
-        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
+        "clear_height": 12.92,
+        "clear_y": [
+          81.0,
+          123.0
+        ],
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch; the aft mouth inboard jamb is widened to |Y| 86.5 to keep the aft body flare behind it"
       },
       "deck": {
-        "floor_z": -21.0,
-        "roof_z": -8.0,
+        "floor_z": -26.5,
+        "level": true,
+        "roof_z": {
+          "inboard": -8.671,
+          "outboard": -11.663,
+          "plane": "z = -8.6 + -0.0712 * (|y| - 80)"
+        },
         "x": [
           40,
           118
         ],
         "y": [
-          81,
-          123
+          83.6,
+          120.4
         ],
         "under_wing": true,
         "elevator_well_x": [
@@ -519,7 +1116,10 @@
         "elevator_well_y": [
           88,
           110
-        ]
+        ],
+        "elevator_lift": "Flight deck WS 012 well lift",
+        "control_booth": "Flight deck WS 012 control booth",
+        "blast_deflector": "Flight deck WS 012 blast deflector hinge"
       },
       "hangar": {
         "name": "Wing port hangar",
@@ -531,9 +1131,21 @@
           81,
           128
         ],
-        "floor": -21.0,
-        "roof": -8.0,
+        "floor": -26.5,
+        "roof": {
+          "inboard": -8.671,
+          "outboard": -12.019
+        },
         "fly_through": true,
+        "lane_clearance": {
+          "clear_width_below_catwalk": 42,
+          "clear_width_full_height": 40.52121212121212,
+          "catwalk_underside_above_floor": 8.2,
+          "clear_height": 13.88,
+          "clear_height_inboard": 17.23,
+          "under_parked_crane_hook": 9.1,
+          "note": "narrowest section: width under the leading edge (Y 81-123), height at the outboard wall under the roof frames; the crane is mobile and parks near the inboard rail"
+        },
         "clear_sections": [
           {
             "x": [
@@ -556,12 +1168,259 @@
             ]
           }
         ],
-        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
+        "note": "one launch and recovery lane per arm shared by both slots, open at both mouths, level floor; the roof carries transverse frames (0.6 deep), two longitudinal girders and two gantry crane rails (1.0 deep)"
       },
+      "transfer_doors": [
+        {
+          "k": 1,
+          "role": "recovery: aft station (WS 010/011) to the central hold",
+          "slide_empty": "Wing port transfer door 1 slide",
+          "leaf": "Wing port transfer door 1 leaf",
+          "inner_door": "Wing port transfer bay 1 inner door",
+          "centre": [
+            -39.0,
+            80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -56.0,
+            -22.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              44.0,
+              80.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 2,
+          "role": "crash and spares: barrier catches and crane lifts, clear of both stations",
+          "slide_empty": "Wing port transfer door 2 slide",
+          "leaf": "Wing port transfer door 2 leaf",
+          "inner_door": "Wing port transfer bay 2 inner door",
+          "centre": [
+            8.0,
+            80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -9.0,
+            25.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              44.0,
+              80.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 3,
+          "role": "launch: central hold to the forward station (WS 012/013)",
+          "slide_empty": "Wing port transfer door 3 slide",
+          "leaf": "Wing port transfer door 3 leaf",
+          "inner_door": "Wing port transfer bay 3 inner door",
+          "centre": [
+            54.0,
+            80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            37.0,
+            71.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              44.0,
+              80.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        }
+      ],
+      "traverser_rails": [
+        {
+          "door": 1,
+          "x": [
+            -49.0,
+            -39.0,
+            -29.0
+          ],
+          "y": [
+            44.5,
+            112.0
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing port traverser 1 slide",
+          "rest_y": 89.6,
+          "travel_local_y": {
+            "to_lock_centre": -27.6,
+            "to_launch_points": 12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 2,
+          "x": [
+            -2.0,
+            8.0,
+            18.0
+          ],
+          "y": [
+            44.5,
+            112.0
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing port traverser 2 slide",
+          "rest_y": 89.6,
+          "travel_local_y": {
+            "to_lock_centre": -27.6,
+            "to_launch_points": 12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 3,
+          "x": [
+            44.0,
+            54.0,
+            64.0
+          ],
+          "y": [
+            44.5,
+            112.0
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing port traverser 3 slide",
+          "rest_y": 88.6,
+          "travel_local_y": {
+            "to_lock_centre": -26.6,
+            "to_launch_points": 13.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        }
+      ],
+      "gallery": {
+        "name": "Wing port transfer gallery",
+        "x": [
+          -58.0,
+          72.5
+        ],
+        "y": [
+          58.0,
+          79.6
+        ],
+        "z": [
+          -29.5,
+          -15.0
+        ],
+        "floor_z": -26.5,
+        "locks": [
+          "Wing port transfer bay 1",
+          "Wing port transfer bay 2",
+          "Wing port transfer bay 3"
+        ],
+        "pressure_hull": true,
+        "note": "enclosed pressure trunk on the lower flank between the hangar inboard wall and the ventral keel; each transfer door opens into a lock that crosses it into the keel, whose inner door opens on the central hold (not modelled). Ribs, maintenance hatches and lit ports show from below."
+      },
+      "keyable": {
+        "transfer_doors": [
+          "Wing port transfer door 1 slide",
+          "Wing port transfer door 2 slide",
+          "Wing port transfer door 3 slide"
+        ],
+        "traversers": [
+          "Wing port traverser 1 slide",
+          "Wing port traverser 2 slide",
+          "Wing port traverser 3 slide"
+        ],
+        "recovery_barrier": {
+          "empty": "Wing port recovery barrier hinge",
+          "child": "Wing port recovery barrier",
+          "rest": "stowed flat",
+          "raise": "rotate about local Y by -90 deg"
+        },
+        "gantry_crane": {
+          "empty": "Wing port gantry crane slide",
+          "child": "Wing port gantry crane",
+          "rest_x": 8.0,
+          "travel_local_x": [
+            -70.0,
+            52.0
+          ]
+        },
+        "blast_deflectors": {
+          "WS 010": {
+            "empty": "Flight deck WS 010 blast deflector hinge",
+            "raise": "rotate about local Y by -50 deg"
+          },
+          "WS 012": {
+            "empty": "Flight deck WS 012 blast deflector hinge",
+            "raise": "rotate about local Y by +50 deg"
+          }
+        },
+        "note": "every keyable part is a mesh parented (identity parent inverse) to the named empty, which rests in the closed/stowed/parked state; key the empty"
+      },
+      "logistics": "recovery: overtake from astern into the AFT mouth, settle on the aft station (WS 010/011 launch points), recovery barrier at X -12 against overruns -> lane: tow dolly onto the aft traverser -> traverser: sideways, nose forward, to transfer door 1 -> door: into its lock across the transfer gallery (outer door closes, lock cycles) -> gallery: inner door into the central hold in the ventral keel/torso at the same deck height -> central hold: refit (rearm, refuel, repair) -> forward through the hold to door 3 -> traverser out to the forward station (WS 012/013), deflectors up -> launch out of the FORWARD mouth. Door 2 amidships is the crash and spares door (barrier catches, gantry-crane lifts). In-game the aft slots also launch aft through the aft mouth; the lane is fly-through when barrier and deflectors are stowed (their rest state).",
       "anhedral": {
         "angle_deg": 10.0,
         "root_abs_y": 80.0,
-        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
+        "hangar_level": true,
+        "note": "the arm above (deck, armour, wells, turrets) slopes down outboard; the hangar under it is level: floor, launch points, mouths, doors and gallery heights are final as given. Arm deck at the outboard lane wall is z -4.46."
       }
     },
     {
@@ -581,26 +1440,27 @@
         0.1736,
         0.0
       ],
+      "role": "launch station (forward mouth)",
       "launch_points": [
         [
           59,
           -92,
-          -22.616
+          -26.0
         ],
         [
           48,
           -104,
-          -24.732
+          -26.0
         ],
         [
           72,
           -90,
-          -22.263
+          -26.0
         ],
         [
           64,
           -105,
-          -24.908
+          -26.0
         ]
       ],
       "launch_point_anchors": [
@@ -614,7 +1474,7 @@
         "centre": [
           82.0,
           -101.5,
-          -18.291
+          -18.316
         ],
         "normal": [
           0.742,
@@ -622,20 +1482,30 @@
           0
         ],
         "width": 56.0,
-        "height": 13.0,
+        "height": 12.92,
         "clear_width": 42.0,
-        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
+        "clear_height": 12.92,
+        "clear_y": [
+          -123.0,
+          -81.0
+        ],
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch; the aft mouth inboard jamb is widened to |Y| 86.5 to keep the aft body flare behind it"
       },
       "deck": {
-        "floor_z": -21.0,
-        "roof_z": -8.0,
+        "floor_z": -26.5,
+        "level": true,
+        "roof_z": {
+          "inboard": -8.671,
+          "outboard": -11.663,
+          "plane": "z = -8.6 + -0.0712 * (|y| - 80)"
+        },
         "x": [
           40,
           118
         ],
         "y": [
-          -123,
-          -81
+          -120.4,
+          -83.6
         ],
         "under_wing": true,
         "elevator_well_x": [
@@ -645,7 +1515,10 @@
         "elevator_well_y": [
           -110,
           -88
-        ]
+        ],
+        "elevator_lift": "Flight deck WS 013 well lift",
+        "control_booth": "Flight deck WS 013 control booth",
+        "blast_deflector": "Flight deck WS 013 blast deflector hinge"
       },
       "hangar": {
         "name": "Wing starboard hangar",
@@ -657,9 +1530,21 @@
           -128,
           -81
         ],
-        "floor": -21.0,
-        "roof": -8.0,
+        "floor": -26.5,
+        "roof": {
+          "inboard": -8.671,
+          "outboard": -12.019
+        },
         "fly_through": true,
+        "lane_clearance": {
+          "clear_width_below_catwalk": 42,
+          "clear_width_full_height": 40.52121212121212,
+          "catwalk_underside_above_floor": 8.2,
+          "clear_height": 13.88,
+          "clear_height_inboard": 17.23,
+          "under_parked_crane_hook": 9.1,
+          "note": "narrowest section: width under the leading edge (Y 81-123), height at the outboard wall under the roof frames; the crane is mobile and parks near the inboard rail"
+        },
         "clear_sections": [
           {
             "x": [
@@ -682,15 +1567,583 @@
             ]
           }
         ],
-        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
+        "note": "one launch and recovery lane per arm shared by both slots, open at both mouths, level floor; the roof carries transverse frames (0.6 deep), two longitudinal girders and two gantry crane rails (1.0 deep)"
       },
+      "transfer_doors": [
+        {
+          "k": 1,
+          "role": "recovery: aft station (WS 010/011) to the central hold",
+          "slide_empty": "Wing starboard transfer door 1 slide",
+          "leaf": "Wing starboard transfer door 1 leaf",
+          "inner_door": "Wing starboard transfer bay 1 inner door",
+          "centre": [
+            -39.0,
+            -80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -56.0,
+            -22.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              -80.0,
+              -44.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 2,
+          "role": "crash and spares: barrier catches and crane lifts, clear of both stations",
+          "slide_empty": "Wing starboard transfer door 2 slide",
+          "leaf": "Wing starboard transfer door 2 leaf",
+          "inner_door": "Wing starboard transfer bay 2 inner door",
+          "centre": [
+            8.0,
+            -80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            -9.0,
+            25.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              -80.0,
+              -44.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        },
+        {
+          "k": 3,
+          "role": "launch: central hold to the forward station (WS 012/013)",
+          "slide_empty": "Wing starboard transfer door 3 slide",
+          "leaf": "Wing starboard transfer door 3 leaf",
+          "inner_door": "Wing starboard transfer bay 3 inner door",
+          "centre": [
+            54.0,
+            -80.4,
+            -21.5
+          ],
+          "normal_into_torso": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "clear_width_x": 34.0,
+          "clear_height": 10.0,
+          "x": [
+            37.0,
+            71.0
+          ],
+          "sill_z": -26.5,
+          "lock": {
+            "y": [
+              -80.0,
+              -44.0
+            ],
+            "depth": 36.0
+          },
+          "open": {
+            "translate_local": [
+              0.0,
+              0.0,
+              10.6
+            ],
+            "rest": "closed",
+            "note": "the leaf rises into the inboard wall"
+          }
+        }
+      ],
+      "traverser_rails": [
+        {
+          "door": 1,
+          "x": [
+            -49.0,
+            -39.0,
+            -29.0
+          ],
+          "y": [
+            -112.0,
+            -44.5
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing starboard traverser 1 slide",
+          "rest_y": -89.6,
+          "travel_local_y": {
+            "to_lock_centre": 27.6,
+            "to_launch_points": -12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 2,
+          "x": [
+            -2.0,
+            8.0,
+            18.0
+          ],
+          "y": [
+            -112.0,
+            -44.5
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing starboard traverser 2 slide",
+          "rest_y": -89.6,
+          "travel_local_y": {
+            "to_lock_centre": 27.6,
+            "to_launch_points": -12.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        },
+        {
+          "door": 3,
+          "x": [
+            44.0,
+            54.0,
+            64.0
+          ],
+          "y": [
+            -112.0,
+            -44.5
+          ],
+          "z": -26.1,
+          "traverser_empty": "Wing starboard traverser 3 slide",
+          "rest_y": -88.6,
+          "travel_local_y": {
+            "to_lock_centre": 26.6,
+            "to_launch_points": -13.4
+          },
+          "note": "rails run from outboard of the launch points across the lane, through the door and the lock to its inner door; the traverser parks at its door (rest) and moves along local Y"
+        }
+      ],
+      "gallery": {
+        "name": "Wing starboard transfer gallery",
+        "x": [
+          -58.0,
+          72.5
+        ],
+        "y": [
+          -79.6,
+          -58.0
+        ],
+        "z": [
+          -29.5,
+          -15.0
+        ],
+        "floor_z": -26.5,
+        "locks": [
+          "Wing starboard transfer bay 1",
+          "Wing starboard transfer bay 2",
+          "Wing starboard transfer bay 3"
+        ],
+        "pressure_hull": true,
+        "note": "enclosed pressure trunk on the lower flank between the hangar inboard wall and the ventral keel; each transfer door opens into a lock that crosses it into the keel, whose inner door opens on the central hold (not modelled). Ribs, maintenance hatches and lit ports show from below."
+      },
+      "keyable": {
+        "transfer_doors": [
+          "Wing starboard transfer door 1 slide",
+          "Wing starboard transfer door 2 slide",
+          "Wing starboard transfer door 3 slide"
+        ],
+        "traversers": [
+          "Wing starboard traverser 1 slide",
+          "Wing starboard traverser 2 slide",
+          "Wing starboard traverser 3 slide"
+        ],
+        "recovery_barrier": {
+          "empty": "Wing starboard recovery barrier hinge",
+          "child": "Wing starboard recovery barrier",
+          "rest": "stowed flat",
+          "raise": "rotate about local Y by -90 deg"
+        },
+        "gantry_crane": {
+          "empty": "Wing starboard gantry crane slide",
+          "child": "Wing starboard gantry crane",
+          "rest_x": 8.0,
+          "travel_local_x": [
+            -70.0,
+            52.0
+          ]
+        },
+        "blast_deflectors": {
+          "WS 011": {
+            "empty": "Flight deck WS 011 blast deflector hinge",
+            "raise": "rotate about local Y by -50 deg"
+          },
+          "WS 013": {
+            "empty": "Flight deck WS 013 blast deflector hinge",
+            "raise": "rotate about local Y by +50 deg"
+          }
+        },
+        "note": "every keyable part is a mesh parented (identity parent inverse) to the named empty, which rests in the closed/stowed/parked state; key the empty"
+      },
+      "logistics": "recovery: overtake from astern into the AFT mouth, settle on the aft station (WS 010/011 launch points), recovery barrier at X -12 against overruns -> lane: tow dolly onto the aft traverser -> traverser: sideways, nose forward, to transfer door 1 -> door: into its lock across the transfer gallery (outer door closes, lock cycles) -> gallery: inner door into the central hold in the ventral keel/torso at the same deck height -> central hold: refit (rearm, refuel, repair) -> forward through the hold to door 3 -> traverser out to the forward station (WS 012/013), deflectors up -> launch out of the FORWARD mouth. Door 2 amidships is the crash and spares door (barrier catches, gantry-crane lifts). In-game the aft slots also launch aft through the aft mouth; the lane is fly-through when barrier and deflectors are stowed (their rest state).",
       "anhedral": {
         "angle_deg": 10.0,
         "root_abs_y": 80.0,
-        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
+        "hangar_level": true,
+        "note": "the arm above (deck, armour, wells, turrets) slopes down outboard; the hangar under it is level: floor, launch points, mouths, doors and gallery heights are final as given. Arm deck at the outboard lane wall is z -4.46."
       }
     }
   ],
+  "hangar_fit": {
+    "metres_per_unit": 0.99,
+    "clearances": {
+      "lane": {
+        "clear_width_below_catwalk": 42,
+        "clear_width_full_height": 40.52121212121212,
+        "catwalk_underside_above_floor": 8.2,
+        "clear_height": 13.88,
+        "clear_height_inboard": 17.23,
+        "under_parked_crane_hook": 9.1,
+        "note": "narrowest section: width under the leading edge (Y 81-123), height at the outboard wall under the roof frames; the crane is mobile and parks near the inboard rail"
+      },
+      "aft_mouth": {
+        "clear_width": 41.5,
+        "clear_height": 14.08,
+        "clear_y": [
+          86.5,
+          128.0
+        ]
+      },
+      "forward_mouth": {
+        "clear_width": 42.0,
+        "chord": 56.0,
+        "clear_height": 12.92,
+        "clear_y": [
+          81.0,
+          123.0
+        ],
+        "note": "the lintel under the leading edge falls with the anhedral; height is at the outboard jamb"
+      },
+      "transfer_door": {
+        "clear_width": 34.0,
+        "clear_height": 10.0,
+        "lock_depth": 36.0
+      }
+    },
+    "criteria": "lane: span+3 <= full-height width, height+dolly+1 <= height; mouths: span+3 and height+2; door (moved sideways, nose forward): length+2 <= width, height+dolly+1 <= height, span+2 <= lock depth. dolly = 1.2",
+    "fighters": [
+      {
+        "fighter": "Broadsword",
+        "metres": [
+          15.5,
+          14.1,
+          3.3
+        ],
+        "units": [
+          15.7,
+          14.2,
+          3.33
+        ],
+        "margins_units": {
+          "lane_width": 26.3,
+          "lane_height_on_dolly": 9.3,
+          "aft_mouth": [
+            27.3,
+            10.7
+          ],
+          "forward_mouth": [
+            27.8,
+            9.6
+          ],
+          "door_width_vs_length": 18.3,
+          "door_height_on_dolly": 5.5,
+          "lock_depth_vs_span": 21.8
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Hoplon",
+        "metres": [
+          18.0,
+          19.0,
+          4.0
+        ],
+        "units": [
+          18.2,
+          19.2,
+          4.04
+        ],
+        "margins_units": {
+          "lane_width": 21.3,
+          "lane_height_on_dolly": 8.6,
+          "aft_mouth": [
+            22.3,
+            10.0
+          ],
+          "forward_mouth": [
+            22.8,
+            8.9
+          ],
+          "door_width_vs_length": 15.8,
+          "door_height_on_dolly": 4.8,
+          "lock_depth_vs_span": 16.8
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Piranha",
+        "metres": [
+          17.0,
+          15.0,
+          3.3
+        ],
+        "units": [
+          17.2,
+          15.2,
+          3.33
+        ],
+        "margins_units": {
+          "lane_width": 25.4,
+          "lane_height_on_dolly": 9.3,
+          "aft_mouth": [
+            26.3,
+            10.7
+          ],
+          "forward_mouth": [
+            26.8,
+            9.6
+          ],
+          "door_width_vs_length": 16.8,
+          "door_height_on_dolly": 5.5,
+          "lock_depth_vs_span": 20.8
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Longbow",
+        "metres": [
+          15.0,
+          14.4,
+          2.6
+        ],
+        "units": [
+          15.2,
+          14.5,
+          2.63
+        ],
+        "margins_units": {
+          "lane_width": 26.0,
+          "lane_height_on_dolly": 10.1,
+          "aft_mouth": [
+            27.0,
+            11.5
+          ],
+          "forward_mouth": [
+            27.5,
+            10.3
+          ],
+          "door_width_vs_length": 18.8,
+          "door_height_on_dolly": 6.2,
+          "lock_depth_vs_span": 21.5
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Thunder",
+        "metres": [
+          18.5,
+          10.8,
+          2.6
+        ],
+        "units": [
+          18.7,
+          10.9,
+          2.63
+        ],
+        "margins_units": {
+          "lane_width": 29.6,
+          "lane_height_on_dolly": 10.1,
+          "aft_mouth": [
+            30.6,
+            11.5
+          ],
+          "forward_mouth": [
+            31.1,
+            10.3
+          ],
+          "door_width_vs_length": 15.3,
+          "door_height_on_dolly": 6.2,
+          "lock_depth_vs_span": 25.1
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Dagger",
+        "metres": [
+          16.4,
+          12.1,
+          2.3
+        ],
+        "units": [
+          16.6,
+          12.2,
+          2.32
+        ],
+        "margins_units": {
+          "lane_width": 28.3,
+          "lane_height_on_dolly": 10.4,
+          "aft_mouth": [
+            29.3,
+            11.8
+          ],
+          "forward_mouth": [
+            29.8,
+            10.6
+          ],
+          "door_width_vs_length": 17.4,
+          "door_height_on_dolly": 6.5,
+          "lock_depth_vs_span": 23.8
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Talon",
+        "metres": [
+          12.1,
+          12.1,
+          2.5
+        ],
+        "units": [
+          12.2,
+          12.2,
+          2.53
+        ],
+        "margins_units": {
+          "lane_width": 28.3,
+          "lane_height_on_dolly": 10.2,
+          "aft_mouth": [
+            29.3,
+            11.6
+          ],
+          "forward_mouth": [
+            29.8,
+            10.4
+          ],
+          "door_width_vs_length": 21.8,
+          "door_height_on_dolly": 6.3,
+          "lock_depth_vs_span": 23.8
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      },
+      {
+        "fighter": "Wasp",
+        "metres": [
+          9.8,
+          8.1,
+          2.4
+        ],
+        "units": [
+          9.9,
+          8.2,
+          2.42
+        ],
+        "margins_units": {
+          "lane_width": 32.3,
+          "lane_height_on_dolly": 10.3,
+          "aft_mouth": [
+            33.3,
+            11.7
+          ],
+          "forward_mouth": [
+            33.8,
+            10.5
+          ],
+          "door_width_vs_length": 24.1,
+          "door_height_on_dolly": 6.4,
+          "lock_depth_vs_span": 27.8
+        },
+        "fits": {
+          "lane": true,
+          "aft_mouth": true,
+          "forward_mouth": true,
+          "transfer_door": true
+        },
+        "pass": true
+      }
+    ],
+    "all_pass": true
+  },
   "weapon_slots": [
     {
       "id": "WS 000",
@@ -1776,31 +3229,31 @@
   "c2": {
     "layout": "second-wind-cinematic/patrol-abeam/c2-layout.md",
     "note": "Model axes are C2 world axes: the patrol flies bow first along +X with starboard toward the cabin.",
-    "patrol_centre_y_m": 194.61,
-    "model_origin_z_m": -22.18,
+    "patrol_centre_y_m": 250.43,
+    "model_origin_z_m": -34.13,
     "cameras": {
       "c2-entry": {
         "time_s": 3.0,
         "position_units": [
-          229.51,
-          -319.03,
-          36.36
+          132.71,
+          -252.96,
+          34.47
         ]
       },
       "c2-abeam": {
         "time_s": 8.0,
         "position_units": [
           -0.0,
-          -319.03,
-          36.36
+          -252.96,
+          34.47
         ]
       },
       "c2-exit": {
         "time_s": 11.4,
         "position_units": [
-          -156.07,
-          -319.03,
-          15.11
+          -90.25,
+          -252.96,
+          22.18
         ]
       }
     },
@@ -1887,39 +3340,39 @@
     "c2-entry": {
       "bbox_px": [
         0,
-        97,
-        639,
-        536
+        92,
+        1093,
+        756
       ],
       "size_px": [
-        640,
-        440
+        1094,
+        665
       ],
       "touches_frame_edge": true
     },
     "c2-abeam": {
       "bbox_px": [
-        227,
-        97,
-        1691,
-        590
+        0,
+        92,
+        1905,
+        777
       ],
       "size_px": [
-        1465,
-        494
+        1906,
+        686
       ],
-      "touches_frame_edge": false
+      "touches_frame_edge": true
     },
     "c2-exit": {
       "bbox_px": [
-        1041,
-        0,
+        662,
+        16,
         1919,
-        448
+        662
       ],
       "size_px": [
-        879,
-        449
+        1258,
+        647
       ],
       "touches_frame_edge": true
     }

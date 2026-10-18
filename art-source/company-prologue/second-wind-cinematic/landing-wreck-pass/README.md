@@ -47,10 +47,9 @@ The unstable recovery is evaluated inside that source clock. Each encoded frame 
 Run from this directory with Blender 5.2, Python with Pillow, and FFmpeg/FFprobe on PATH. Retain the sibling source scenes, textures, earlier registration metadata and preceding port movie.
 
 ```powershell
-$blender = 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe'
-& $blender -b --factory-startup --python build_scene.py -- --preview
-& $blender -b --factory-startup --python verify_scene.py
-& $blender -b --factory-startup --python render_motion.py
+sh ../../../blender.sh -b --factory-startup --python build_scene.py -- --preview
+sh ../../../blender.sh -b --factory-startup --python verify_scene.py
+sh ../../../blender.sh -b --factory-startup --python render_motion.py
 python encode_review.py
 ```
 

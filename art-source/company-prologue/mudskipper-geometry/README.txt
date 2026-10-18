@@ -6,10 +6,14 @@ second-wind-geometry/ serves the Second Wind. It follows the passes in the
 ship-model-pipeline skill (.claude/skills/ship-model-pipeline/SKILL.md):
   pass 1 blockout             accepted; snapshot in reference-history/v1-blockout/
   pass 2 plausible detailing  built here
-  pass 3 owner review         round 1 below; awaiting review
+  pass 3 owner review         accepted after round 1 (below)
   pass 4 real-world scale     0.85 m per unit (see Scale below)
-No damage states or texturing yet. This is source art only. It changes no
-runtime art or gameplay.
+  pass 5 condition states     not needed yet (clean only)
+  pass 6 texturing            ../mudskipper-surface/
+  pass 7 cinematic export     ../mudskipper-cinematic/
+Landing legs, plug cargo doors and freight ramps were added after pass 6
+(Landing, below). This is source art only. It changes no runtime art or
+gameplay.
 All views render the SAME mesh objects; only the active camera changes.
 
 Hull identity (read from the read-only game install, 0.98a-RC8)
@@ -97,7 +101,8 @@ integration was checked so that no agent changed another's file.
               leaves on an overhead track, jambs, hazard sill, work lights)
               with a crew hatch beside them; sponson armour modules, belts,
               passenger ports, vents and trim; flank locker doors; four
-              landing pads, drain grilles, chin armour, running lights.
+              landing pads (now ms_legs), drain grilles, chin armour,
+              running lights.
   ms_bridge   a segmented armoured command cab on an armoured base: a raked
               viewport band behind heavy mullions under a visor brow, side
               windows, a mast with yard and whips, comm dish, sensor blister,
@@ -157,6 +162,35 @@ aft hull's face counts against it, and the knees and bands were trimmed to
 keep that loss under 0.001.
 Pixel diff against pass 2: only the views that can see the junction changed.
 
+Landing (after pass 6, on the owner's ask)
+A backwater ferry sets down on unprepared fields, so the four pad stations
+under the keel are short telescoping legs, and each waist flank pairs its
+cargo door with a freight ramp. Everything moves by driver from custom
+properties (0..1) on one 'Landing control' empty; keyframe them to animate.
+  deploy   legs out: a sleeve (stage 1) and a chrome ram (stage 2) each slide
+           straight down out of the keel housing, 2.2 m together; the soles
+           then stand 4.25 m below the keel (ms_legs).
+  load     the ship's weight on the legs: each ram strokes up 0.5 m. A shot
+           lowers the ship by the same amount so the feet stay planted;
+           landed (deploy 1, load 1) the ground is at z -12.9 in hull space,
+           3.7 m below the keel.
+  door_port, door_starboard
+           the two leaves are plug doors: they move 0.7 m inboard behind the
+           dark frame, then run 6.5 m along the track into hull pockets.
+  ramp_port, ramp_starboard
+           a steel ramp stowed flat under the bay floor runs 15.3 m out
+           through a slot in the sill (its end face is the sill's yellow
+           hazard tread), then tips down at the lip. The tilt driver solves
+           the angle from deploy and load so the toe's underside meets the
+           ground wherever the legs put it: 26.5 degrees landed.
+Landed, the bay floor is 7.2 m above the ground (the keel is 3.5 m below the
+floor), which is why the doors alone cannot unload her. The saved .blend and
+every review render are the rest pose (all knobs 0); the stowed silhouette is
+the old pads' and the top-view IoU is unchanged. `--legs deployed` and
+`--pose KNOB=V` (repeatable) pose a build for review renders. geometry.json
+records it under "landing". The opening shows the dark door frame, not a
+modelled bay interior.
+
 Construction (lessons carried over from the Second Wind)
 Flat-shaded plate prisms, each section one keel chamfer, one vertical wall
 and one shoulder chamfer, with a one-segment crisp edge chamfer. Hull blocks
@@ -192,6 +226,8 @@ ms_bridge.py         command cab, viewport, mast and sensors, bow fenders
 ms_deck.py           cabin hood, skylights, stripes, hatches, turret-well coaming
 ms_engines.py        main drive, pod drives, maneuvering jets, nozzles
 ms_turrets.py        WS 003 turret and the WS 002 hidden marker
+ms_legs.py           telescoping landing legs and the 'Landing control' empty
+ms_freight.py        plug cargo doors and freight ramps on that control
 compose_review.py    sprite overlay, IoU and review sheet (Pillow)
 scale_check.py       pass 4: measures hull volume and derives metres_per_unit
 mudskipper-geometry.blend           saved Blender 5.2 scene with cameras
@@ -217,7 +253,7 @@ flank locker). Repeated small fittings (stripes, fenders, hatch panels)
 carry Blender's .001 suffixes and are not keys.
 
 Rebuild from this folder
-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_reference.py
+sh ../../blender.sh --background --factory-startup --python build_reference.py
   options after "--": --views top,bow  --samples N  --no-save  --out DIR
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE; close-ups render only when named
   (bow-detail, bridge-detail, turret-detail, waist-detail, stern-detail,

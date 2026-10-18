@@ -50,6 +50,7 @@ group's review into `build/<group>/`.
 |---|---|
 | `swfx.py` | `apply()` and `clear()`, the one call a shot makes |
 | `swfx_core.py` | the state table, `Context` (knobs, drivers, collections), scale (`METRES_PER_UNIT`, `units()`), builders, render setup |
+| `swfx_hull.py` | which hull the kit dresses: the Second Wind, or another hull's `vfx_hull.py` profile |
 | `swfx_anchors.py` | finds the effect anchors on the built ship |
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
@@ -58,6 +59,32 @@ group's review into `build/<group>/`.
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
 | `review_kit.py` | integrated beauty review, all groups together under the presets |
+
+## Other hulls
+
+The kit defaults to the Second Wind, and its output there is byte-identical
+(the same objects, transforms, drivers and knobs). Another hull reaches it in
+one of two ways (both under Anchors, Other hulls, below):
+
+- **Declared anchors, no profile.** The kit falls back to the hull's own
+  declared engine and muzzle empties, and reads the scale off the export's
+  root. This is enough for a few drives and guns: `hound-export/` is the
+  worked case.
+- **A hull profile.** A folder holding `vfx_hull.py`, chosen by `SWFX_HULL`
+  or `swfx.apply(hull=<folder>)`; `hull=''` clears it. `swfx_hull.py` lists
+  what a profile may set:
+  - its geometry.json (scale), the engine table, the bell radii and the
+    port/starboard split;
+  - the condition states and the turret mounts (`DECLARED_MUZZLES` takes the
+    export's `Anchor turret <i> <tag> muzzle` empties);
+  - its lamp list, so `lighting` works;
+  - plume colours per engine mode;
+  - the art-placed RCS quads.
+
+  Whatever a profile leaves out keeps the Second Wind's value. The
+  Mudskipper's profile is `../mudskipper-cinematic/vfx_hull.py`: three orange
+  LOW_TECH drives, her two maneuvering jets as geometry RCS anchors, a twin MG
+  and her lamps. Engine indices in neither side list read as `centre`.
 
 ## Scale
 
@@ -71,6 +98,11 @@ and brass speeds, gravity, muzzle velocity, tracer range, gantry heights,
 haze per metre, and lamp watts (`swfx_lighting.watts`, because Blender's
 light falloff treats a scene unit as a metre). Nothing hard-codes metres, so
 a rescale is one edit to `geometry.json` and a re-render.
+
+An exported asset carries its own scale: `swfx.apply` reads `metres_per_unit`
+off the asset's root empty (`<ASSET> | <state> | root`) when one is in the
+scene. For the Second Wind's exports that is the same 0.65; for another hull
+(the Hound's 0.88) it is that hull's.
 
 ## Condition states
 
@@ -116,6 +148,19 @@ Engines are numbered 1 port outer, 2 port inner, 3 starboard inner, 4
 starboard outer (`sw_engines.ENGINES` order; +Y is port). The tables only
 supply sizes, and serve as a fallback when a part is missing. A part that
 doesn't exist yields no anchor, and its group builds nothing for it.
+
+**Other hulls.** When the file holds no Second Wind engine (`Engine 1 exhaust
+anchor` or `Engine 1 mouth lip`), the kit takes the hull's own declared engine
+empties instead, `Engine <i> <side> exhaust anchor` (radius from `radius_m`,
+else `bell_radius`; side from which side of the centreline it sits). When no
+Second Wind turret brake is found, it takes declared muzzles, `Anchor weapon
+WS 00<i> muzzle` (+X the line of fire, `scale` on the empty). The state's
+engine modes and switches still come from `STATES`; a hull with no RCS quads or
+landing dust passes `rcs=False, dust=False`, and the lamp table is the Second
+Wind's unless a hull profile (Other hulls, above) supplies one, so a hull
+without a profile leaves out `lighting`. `hound-export/export_hound.py`
+is the worked case. A Second Wind file never reaches either path: its records
+are byte-identical with and without them.
 
 ## Controls
 

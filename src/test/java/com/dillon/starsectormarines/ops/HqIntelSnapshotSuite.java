@@ -38,8 +38,11 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
         CompanyHqNewsDesk desk = new CompanyHqNewsDesk(reactor);
         Map<String, Object> props = CompanyHqViewModel.preview().props();
         desk.put(props);
+        HqActionDesk actions = new HqActionDesk(reactor, desk);
+        actions.put(props);
         CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
-                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))), () -> { });
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
+        terminal.actions(actions);
         terminal.put(props);
         MarkupLoader loader = new MarkupLoader(
                 path -> Files.readString(context.modRoot().resolve(path)), COMPONENTS);
@@ -50,6 +53,8 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
         BufferedImage rumorView = null;
         BufferedImage arrivalView = null;
         BufferedImage stationView = null;
+        BufferedImage storyView = null;
+        BufferedImage financeView = null;
         try (MarkupInstance instance = loader.build(reactor, "company-hq", props)) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
@@ -63,6 +68,8 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
             // One enduring document and producer: selection and arrival happen
             // inside playback, and both clocks move forward between frames.
             for (int frame = 0; frame < FRAME_COUNT; frame++) {
+                if (frame == 16) click(document, instance, HqActionDesk.rowId(storyItem(actions)) + ":body");
+                if (frame == 22) terminal.use("comms");
                 if (frame == 24) {
                     click(document, instance, "hq-wire-tab-rumor");
                     requireHeadline(desk, "Reports of Compact action against House Umbra");
@@ -80,6 +87,7 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
                     var box = instance.requireElement(CompanyIntelTerminal.STATION_PREFIX + "situation").box().borderBox();
                     document.pointerMoved(box.x() + box.width() * 0.4f, box.y() + box.height() * 0.5f);
                 }
+                if (frame == 81) terminal.use("finance");
                 reactor.flush();
                 terminal.advance(FRAME_DELAY_MILLIS / 1000f);
                 document.advance(FRAME_DELAY_MILLIS / 1000f);
@@ -89,6 +97,8 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
                 if (frame == 36) rumorView = image;
                 if (frame == 72) arrivalView = image;
                 if (frame == 80) stationView = image;
+                if (frame == 20) storyView = image;
+                if (frame == 83) financeView = image;
             }
         }
         return List.of(
@@ -96,6 +106,8 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("company-hq-rumor-1920x1080.png", rumorView),
                 new SnapshotArtifact("company-hq-arrival-1920x1080.png", arrivalView),
                 new SnapshotArtifact("company-hq-station-1920x1080.png", stationView),
+                new SnapshotArtifact("company-hq-story-1920x1080.png", storyView),
+                new SnapshotArtifact("company-hq-finance-1920x1080.png", financeView),
                 SnapshotArtifact.animation("company-hq-intel-1920x1080.gif",
                         frames, FRAME_DELAY_MILLIS));
     }
@@ -118,6 +130,11 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
                 false, false));
         props.put("newsPosts", List.copyOf(reports));
         desk.put(props);
+    }
+
+    private static HqActionItem storyItem(HqActionDesk actions) {
+        return actions.board().items().stream().filter(item -> item.kind() == HqActionItem.Kind.STORY)
+                .findFirst().orElseThrow();
     }
 
     private static void click(UiDocument document, MarkupInstance instance, String id) {

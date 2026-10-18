@@ -2,7 +2,7 @@
 
 Run from the repository root (headless, under a minute):
 
-  "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup \
+  sh art-source/blender.sh --background --factory-startup \
       --python art-source/hq-command-deck/blender/deck_blockout.py
 
 The room is the company's CIC rather than an office. Its plan follows the ship's own
@@ -20,10 +20,12 @@ Coordinates in this file are deck metres: x right, y up, z ahead of the camera. 
 become Blender's (X, Y, Z) = (x, z, y) in one place, `V`.
 
 Writes beside the script's folder:
-  deck-guide-v7.png          grey guide for ImageGen: the room and its seated watch, no named figures
-  deck-guide-v7-people.png   the same with stand-ins at their stands, for proportions
-  deck-guide-v7.layout.json  camera, room, props and projected markers
+  deck-guide-v8.png          grey guide for ImageGen: the room and its seated watch, no named figures
+  deck-guide-v8-people.png   the same with stand-ins at their stands, for proportions
+  deck-guide-v8.layout.json  camera, room, props and projected markers
   masks/<stand>.occluder.png with `-- --masks`: what stands in front of each person
+  <stand>-pose-guide.png     with `-- --pose <stand>`: that stand's mannequin alone, grey on
+                             transparency at three times the frame, the pose authority for its card
 """
 import json
 import math
@@ -43,16 +45,19 @@ TIER = {"front": 10.5, "height": 0.45}          # the raised rear tier, full wid
 TABLE = (-1.9, 1.9, 5.8, 8.2)                   # x0, x1, z0, z1 of the plotting table
 
 # Feet (x, z), height above their own floor, and that floor. A seated stand is the chair's
-# centre; seated figures are
-# measured to the top of the head.
+# centre; seated figures are measured to the top of the head, and so is a leaning one:
+# Sabine leans on the plot table's right rim, so her head is lower than her standing height.
 PEOPLE = {
-    "castle": (0.9, 8.45, 1.68, 0.0),
-    "commander": (-2.4, 6.9, 1.82, 0.0),
+    "castle": (-2.55, 7.35, 1.68, 0.0),
     "comms-left": (-6.35, 11.45, 1.30, TIER["height"]),
     "comms-right": (-4.75, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),
-    "sabine": (2.4, 5.4, 1.72, 0.0),
+    "sabine": (2.38, 6.85, 1.66, 0.0),
 }
+# Stand-ins posed rather than drawn as a plain column: their builder, keyed by stand.
+POSED = {"sabine": "leaning"}
+# How far in front of a posed stand's feet its matte starts: the reach of its arms toward the camera.
+POSED_DEPTH = 0.4
 
 
 def V(x, y, z):
@@ -619,10 +624,45 @@ def roster_board():
                 b - 0.08, b - 0.07, M["paper"], 0.0)
 
 
+def leaning_figure(name, xf, zf):
+    """Standing at the plot table's right rim, facing it (-x): weight on the back foot, torso
+    pitched forward over the rim, both hands planted on its edge, head raised to the space
+    above the table where the board is projected. A painter's mannequin for the card's pose."""
+    m = M["person"]
+    rim, edge = 0.97, TABLE[1] + 0.02
+    hip = (xf + 0.08, 0.95, zf)
+    chest = (xf - 0.22, 1.38, zf)
+    for s in (-1, 1):
+        ankle = (xf + (0.06 if s < 0 else -0.06), 0.08, zf + s * 0.14)
+        knee = (xf + 0.02, 0.5, zf + s * 0.12)
+        limb(f"{name} thigh {s}", (hip[0], hip[1], zf + s * 0.1), knee, 0.075, m)
+        limb(f"{name} shin {s}", knee, ankle, 0.055, m)
+        box(f"{name} foot {s}", ankle[0] - 0.2, ankle[0] + 0.05, 0.0, 0.08, ankle[2] - 0.05, ankle[2] + 0.05, m, 0.02)
+    limb(f"{name} hips", (hip[0], hip[1] - 0.05, zf), hip, 0.17, m, 0.13)
+    limb(f"{name} torso", hip, chest, 0.19, m, 0.12)
+    limb(f"{name} shoulders", (chest[0], chest[1] - 0.02, zf - 0.21), (chest[0], chest[1] - 0.02, zf + 0.21), 0.06, m)
+    neck_top = (chest[0] - 0.09, chest[1] + 0.13, zf)
+    limb(f"{name} neck", (chest[0] - 0.02, chest[1], zf), neck_top, 0.05, m)
+    ball(f"{name} head", (neck_top[0] - 0.03, neck_top[1] + 0.085, zf), 0.105, m)
+    for s in (-1, 1):
+        shoulder = (chest[0], chest[1] - 0.03, zf + s * 0.22)
+        hand = (edge + 0.04, rim + 0.03, zf + s * 0.3)
+        elbow = ((shoulder[0] + hand[0]) / 2 + 0.06, (shoulder[1] + hand[1]) / 2, zf + s * 0.3)
+        limb(f"{name} upper arm {s}", shoulder, elbow, 0.05, m)
+        limb(f"{name} forearm {s}", elbow, hand, 0.04, m)
+        box(f"{name} hand {s}", hand[0] - 0.06, hand[0] + 0.04, rim, rim + 0.04, hand[2] - 0.04, hand[2] + 0.04, m, 0.01)
+
+
 def stand_ins():
     col = bpy.data.collections.new("stand-ins")
     bpy.context.scene.collection.children.link(col)
     for pid, (x, z, h, floor) in PEOPLE.items():
+        if POSED.get(pid) == "leaning":
+            for ob in made(leaning_figure, f"stand-in {pid}", x, z):
+                for c in ob.users_collection:
+                    c.objects.unlink(ob)
+                col.objects.link(ob)
+            continue
         head = 0.12 * h / 1.75
         cylinder(f"stand-in {pid} body", x, z, floor, floor + h - 2 * head - 0.03, 0.17 * h / 1.75, M["person"], 20,
                  collection=col)
@@ -731,7 +771,7 @@ def layout():
     doc = {"size": [W, H], "units": "metres; x right, y up, z ahead of the camera",
            "camera": CAM, "projection": "u = cx + focal*x/z, v = cy - focal*(y - height)/z",
            "room": ROOM, "tier": TIER, "table": TABLE, "props": props, "markers": markers, "people": people}
-    (OUT / "deck-guide-v7.layout.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    (OUT / "deck-guide-v8.layout.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     for k, v in people.items():
         print(k, "height px", round(v["feetPx"][1] - v["headPx"][1]))
 
@@ -763,7 +803,10 @@ def main():
         people.hide_render = True
         occluder_masks()
         return
-    for hidden, name in ((True, "deck-guide-v7.png"), (False, "deck-guide-v7-people.png")):
+    if "--pose" in sys.argv:
+        pose_guide(sys.argv[sys.argv.index("--pose") + 1])
+        return
+    for hidden, name in ((True, "deck-guide-v8.png"), (False, "deck-guide-v8-people.png")):
         people.hide_render = hidden
         sc.render.filepath = str(OUT / name)
         bpy.ops.render.render(write_still=True)
@@ -773,6 +816,30 @@ def main():
 # Room surfaces that never stand between the camera and a person.
 SURFACES = ("floor", "command island", "back wall", "left wall", "right wall", "ceiling", "stringer",
             "beam", "side ", "tier deck", "back ")
+
+
+def pose_guide(stand, scale=3, margin=0.15):
+    """The stand's mannequin alone, cropped round its own projected box and rendered at `scale`
+    times the frame: everything else is hidden, so ImageGen gets the pose and the viewpoint
+    without the table or room the card must not paint."""
+    sc = bpy.context.scene
+    for ob in bpy.data.objects:
+        if ob.type == "MESH":
+            ob.hide_render = not ob.name.startswith(f"stand-in {stand} ")
+    sh = sc.display.shading
+    sh.light, sh.color_type, sh.single_color = "STUDIO", "SINGLE", (0.7, 0.7, 0.7)
+    sc.render.film_transparent = True
+    x, z, h, floor = PEOPLE[stand]
+    feet, head = project(x, floor, z), project(x, floor + h, z)
+    tall = feet[1] - head[1]
+    left, right = feet[0] - tall * 0.75, feet[0] + tall * 0.45
+    top, bottom = head[1] - tall * margin, feet[1] + tall * margin
+    sc.render.resolution_percentage = 100 * scale
+    sc.render.use_border, sc.render.use_crop_to_border = True, True
+    sc.render.border_min_x, sc.render.border_max_x = left / W, right / W
+    sc.render.border_min_y, sc.render.border_max_y = 1 - bottom / H, 1 - top / H
+    sc.render.filepath = str(OUT / f"{stand}-pose-guide.png")
+    bpy.ops.render.render(write_still=True)
 
 
 def occluder_masks():
@@ -788,10 +855,21 @@ def occluder_masks():
     out = OUT / "masks"
     out.mkdir(exist_ok=True)
     meshes = [o for o in bpy.data.objects if o.type == "MESH" and not o.name.startswith("stand-in")]
+    cam = sc.camera.data
+    far = cam.clip_end
     for pid, (x, z, h, floor) in PEOPLE.items():
-        for ob in meshes:
-            near = min((ob.matrix_world @ Vector(c)).y for c in ob.bound_box)
-            ob.hide_render = near >= z or ob.name.startswith(SURFACES)
+        if pid in POSED:
+            # A posed figure touches furniture, so a whole object is not simply in front of it:
+            # her hands rest on the table top. Clip the camera just in front of her instead, so
+            # only geometry nearer than her own front renders into the matte.
+            cam.clip_end = z - POSED_DEPTH
+            for ob in meshes:
+                ob.hide_render = ob.name.startswith(SURFACES)
+        else:
+            cam.clip_end = far
+            for ob in meshes:
+                near = min((ob.matrix_world @ Vector(c)).y for c in ob.bound_box)
+                ob.hide_render = near >= z or ob.name.startswith(SURFACES)
         sc.render.filepath = str(out / f"{pid}.occluder.png")
         bpy.ops.render.render(write_still=True)
 

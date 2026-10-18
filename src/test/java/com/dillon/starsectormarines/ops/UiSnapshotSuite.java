@@ -1490,7 +1490,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         desk.put(hqProps);
         desk.choose(channel);
         CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
-                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))), () -> { });
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
         terminal.put(hqProps);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
@@ -1516,8 +1516,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         throw new IllegalStateException("Opening guidance exceeds its panel: " + id);
                     }
                 }
-                if (instance.requireElement("company-hq-obligations-header").box().borderBox().y() < panel.bottom()) {
-                    throw new IllegalStateException("Opening guidance overlaps obligations");
+                if (panel.bottom() > instance.requireElement("company-hq-detail").box().borderBox().bottom()) {
+                    throw new IllegalStateException("Opening guidance exceeds the detail pane");
                 }
             }
             return frame;

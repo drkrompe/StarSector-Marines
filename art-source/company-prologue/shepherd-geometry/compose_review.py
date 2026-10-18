@@ -114,7 +114,7 @@ sheet.save(src/'shepherd-geometry.reference.png', optimize=True)
 # close-up both sides have.
 before = HERE/args.before
 DETAILS = ['bow-detail', 'bridge-detail', 'dronebay-detail', 'gantry-detail', 'turret-detail', 'engine-detail',
-           'stern-detail']
+           'stern-detail', 'underside']
 pairs = [n for n in DETAILS if (before/(n+'.png')).exists() and (src/(n+'.png')).exists()]
 if pairs:
     cmp = Image.new('RGB', (1920, 1080), BG)

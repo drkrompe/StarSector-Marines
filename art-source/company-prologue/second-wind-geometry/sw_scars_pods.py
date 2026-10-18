@@ -16,9 +16,11 @@ reinstalls the machinery as built and lights both pods.
 import math
 import bpy
 import random
-from mathutils import Vector
+from mathutils import Matrix, Vector
 from sw_damage import Scar, ENGINE_STATUSES, Geo, basis, TAU
-from sw_engines import ENGINES, BELL_R, FIN_X
+from sw_engines import (ENGINES, BELL_R, FIN_X, BELL_L, BANDS_N, STEP, COLLAR_AFT,
+                        FACE_GAP, CAN, CAN_FACE_R, HOUSING, FIN, bell_curve, rr)
+from sw_scars_dorsal import mats as dorsal_mats, end_cap, tube
 
 V = Vector
 X, Y, Z = V((1,0,0)), V((0,1,0)), V((0,0,1))
@@ -238,32 +240,450 @@ def kind_pod_strip(d, scar, status):
 
 
 # ---- the crushed can and the bent fins --------------------------------------
+# Engine 1's crush: the strike came in from outboard and a little above, on
+# the can's upper outboard flats (STRIKE_DEG, in the engine's (outboard, up)
+# plane). Knots of every angular profile sit on multiples of 30 deg, which
+# land on vertices of both the 36-segment bell sheets and the 48-segment
+# lip and rings, so the folds come out as crisp creases, not swells.
+STRIKE_DEG = 30.0
+# Inward travel at the strike centre of the mouth: 40% of the 3.9 bell radius.
+MOUTH_CRUSH = 1.56
+# The struck side is pressed flat against a plane (tilted TILT_DEG off the
+# strike centre, the rock having come in glancing), so the flat is planar
+# and its edges are the crease lines; a shallow fold runs along the flat at
+# FOLD_DEG. The flanks bulge out (BULGE, by angle from the strike).
+TILT_DEG = 10.0
+FOLD_DEG, FOLD, FOLD_W = 10.0, .16, 35.0
+BULGE = [(-180,0), (-120,.07), (-90,.2), (-60,.09), (-30,0), (60,0), (90,.2), (120,.07), (180,0)]
+# Fraction of MOUTH_CRUSH by depth forward of the mouth plane: full over the
+# mouth, a circumferential buckle at .3 and 1.2, gone before the throat.
+CRUSH_DEPTH = [(-1,1), (.3,1), (1.4,.5), (2.7,0)]
+# The bell cocked off its axis toward the strike: no rotation at the throat
+# (it stays seated on the chamber), BEND_DEG from the gimbal plane aft.
+BEND_DEG = 5.0
+GIMBAL_A = .6
+# Gimbal ring dished aft on the struck side (units by angle from the strike).
+RING_DISH = [(-180,0), (-90,0), (-30,.2), (0,.36), (30,.3), (90,0), (180,0)]
+# Sprung film-cooling bands: band -> (shift, toward deg from the strike, aft tilt).
+SPRUNG = {2: (.36, 75, .14), 4: (.22, -50, .1)}
+
+
+def piecewise(knots, t):
+    for (t0, v0), (t1, v1) in zip(knots, knots[1:]):
+        if t <= t1:
+            return v0+(v1-v0)*(t-t0)/(t1-t0) if t >= t0 else v0
+    return knots[-1][1]
+
+
+def rel_deg(phi):
+    """Angle (deg) from the strike centre, in [-180, 180)."""
+    return (math.degrees(phi)-STRIKE_DEG+180) % 360-180
+
+
+class Crush:
+    """An engine's crush field, in world space around the engine axis.
+    Angles are in the engine's (away-from-partner u, up) plane, as in
+    sw_engines; depth a runs forward of the mouth plane."""
+    def __init__(self, engine):
+        self.x, self.y, w = ENGINES[engine]
+        self.w = w
+        self.r = BELL_R[w]
+        self.side = 1 if self.y > 0 else -1
+        self.u = self.side*(1 if w == 12 else -1)
+        a = math.radians(STRIKE_DEG)
+        self.s = V((0, self.u*math.cos(a), math.sin(a)))   # outward at the strike centre
+        self.L = BELL_L*self.r
+        self.rho = bell_curve(self.r)
+
+    def polar(self, w):
+        dy, dz = (w.y-self.y)*self.u, w.z
+        return math.hypot(dy, dz), math.atan2(dz, dy)
+
+    def radial(self, phi):
+        return V((0, self.u*math.cos(phi), math.sin(phi)))
+
+    def at(self, phi_deg, rho, a):
+        """World point at angle phi (deg), radius rho, depth a."""
+        return V((self.x+a, self.y, 0))+self.radial(math.radians(phi_deg))*rho
+
+    def offset(self, w):
+        """Displacement of a clean world point: each shell pressed flat
+        against a plane MOUTH_CRUSH (times depth falloff) inside its own
+        radius, folded along the flat, the flanks bulged."""
+        rho, phi = self.polar(w)
+        f = piecewise(CRUSH_DEPTH, w.x-self.x)
+        if not f or rho < 1e-6:
+            return V((0, 0, 0))
+        D = MOUTH_CRUSH*f
+        th = math.radians(rel_deg(phi)-TILT_DEG)
+        push = max(0, D-rho*(1-math.cos(th)))
+        rel = rel_deg(phi)
+        if push:
+            push += FOLD*f*max(0, 1-abs(rel-FOLD_DEG)/FOLD_W)
+        s = self.radial(math.radians(STRIKE_DEG+TILT_DEG))
+        bulge = piecewise(BULGE, rel)*f
+        return -s*push+self.radial(phi)*bulge
+    def bend(self, q, w):
+        """Cock a crushed point q (clean point w) about the throat, in the
+        plane of the engine axis and the strike: the mouth swings toward the
+        strike side, the throat stays where it is."""
+        a = w.x-self.x
+        t = min(1, max(0, (self.L-a)/(self.L-GIMBAL_A)))
+        if not t:
+            return q
+        th = math.radians(BEND_DEG)*t
+        pivot = V((self.x+self.L, self.y, 0))
+        v = q-pivot
+        px, ps = v.x, v.dot(self.s)
+        nx, ns = px*math.cos(th)+ps*math.sin(th), -px*math.sin(th)+ps*math.cos(th)
+        return q+X*(nx-px)+self.s*(ns-ps)
+
+    def full(self, w):
+        """Crushed and cocked: everything that hangs on the gimbal."""
+        return self.bend(self(w), w)
+
+    def exhaust_dir(self):
+        th = math.radians(BEND_DEG)
+        return -X*math.cos(th)+self.s*math.sin(th)
+
+    def dish(self, w):
+        _, phi = self.polar(w)
+        return V((-piecewise(RING_DISH, rel_deg(phi)), 0, 0))
+
+    def __call__(self, w):
+        return w+self.offset(w)
+
+
+def liner_band(c, w):
+    """Film-cooling band index of a clean liner point (joints carry two rings:
+    the deeper band's starts inset by the step)."""
+    a = w.x-c.x
+    pitch = c.L/BANDS_N
+    j = a/pitch
+    J = round(j)
+    if abs(j-J) < 1e-3 and 0 < J < BANDS_N:
+        rho, _ = c.polar(w)
+        return J if rho < c.rho(a)-STEP*c.r*.5 else J-1
+    return min(max(int(j), 0), BANDS_N)
+
+
+def collar_flap(d, scar, c, part, mat, phi0, phi1, r_in, r_out, x_fore, x_aft, peel):
+    """A torn span of an annular plate: stations every 7.5 deg from phi0
+    (still attached) to phi1 (free, jagged), peeled aft and out by
+    peel(fraction) = (aft, out)."""
+    geo = d.part(scar, part, mat, .02)
+    n = max(2, round(abs(phi1-phi0)/7.5))
+    rng = random.Random(scar.id+part)
+    rings = []
+    for k in range(n+1):
+        t = k/n
+        phi = phi0+(phi1-phi0)*t
+        aft, out = peel(t)
+        ro = r_out-(rng.uniform(.15, .45) if k == n else 0)
+        ri = r_in+(rng.uniform(0, .2) if k == n else 0)
+        pts = []
+        for rr, xx in ((ri, x_fore), (ro, x_fore), (ro, x_aft), (ri, x_aft)):
+            q = c.at(phi, rr, xx-c.x)
+            pts.append(c(q)+c.radial(math.radians(phi))*out-X*aft)
+        rings.append(pts)
+    geo.loft(rings)
+
+
+def snapped_rod(d, scar, c, ob):
+    """The top gimbal ram: the ring dished aft under it and the rod broke.
+    The span between the lever ear and the gland is cut out; a stub stays
+    in the gland and the ear keeps a bent stub, sprung up and outboard."""
+    lo, hi = d.box(ob)
+    py, pz = (lo.y+hi.y)/2, (lo.z+hi.z)/2
+    rr = (hi.y-lo.y)/2
+    x_aft, x_fore = lo.x, hi.x          # pinned in the ear, into the gland
+    cut = Geo()
+    a0, a1 = x_aft+.26, x_fore-.28
+    cut.obox(V(((a0+a1)/2, py, pz)), X, Y, Z, (a1-a0)/2, rr+.12, rr+.12)
+    d.cut(cut, [ob.name], d.backing)
+    chrome = d.m('Scar broken actuator rod chrome', (.5, .52, .53), .9, .22)
+    fracture = d.m('Scar fresh fracture', (.62, .6, .56), .85, .5)
+    rod = d.part(scar, 'snapped actuator rod', chrome, .01)
+    ends = d.part(scar, 'rod fracture face', fracture, 0)
+    # Gland stub: straight, broken off .45 aft of the gland.
+    g0, g1 = V((a1+.05, py, pz)), V((a1-.45, py, pz))
+    rod.tube([g0, g1], rr, 10)
+    ends.tube([g1, g1+V((-.07, .03, .05)), g1+V((-.12, -.02, .09))], rr*.75, 6)
+    # Ear stub: follows the ring's dish and crush, then kinks up/outboard.
+    e0 = V((a0-.05, py, pz))
+    e0 = c.bend(c(e0)+c.dish(e0), e0)
+    out = V((0, c.u*.35, .85)).normalized()
+    e1 = e0+X*.45
+    e2 = e1+(X*.7+out*.45).normalized()*.6
+    rod.tube([e0, e1, e2], rr, 10)
+    tip = (e2-e1).normalized()
+    ends.tube([e2, e2+tip*.08+V((0, .03, .04)), e2+tip*.13+V((0, -.03, .08))], rr*.75, 6)
+
+
+# The can's struck span is rebuilt as its own crumpled wall (the 12-sided
+# taper has no rings between its face and its band, too coarse to dent with
+# a shape key): columns of 7.5 deg across SPAN_DEG, SPAN_ROWS rows from the
+# face to the band, full wall thickness down to the bell well.
+SPAN_DEG = (-45.0, 75.0)
+SPAN_COLS, SPAN_ROWS = 48, 24
+# Torn through the wall at the aft rim: depth of the tear forward of the
+# face (units) by angle (deg).
+HOLE_DEPTH = [(0,0), (8,.45), (15,1.4), (22,1.95), (30,1.9), (37,1.5), (45,1.0), (52,.5), (58,0)]
+# The outer skin over the tear, folded out about a hinge FLAP_ROW rows in.
+FLAP_ROW = 9
+
+
+def can_radius(c, phi_deg, x):
+    """Outer surface radius of the clean 12-sided can taper at (phi, x)."""
+    xb, rb = CAN[c.w][-1]
+    xf, rf = c.x+FACE_GAP, CAN_FACE_R[c.w]
+    r = rf+(rb-rf)*(x-xf)/(xb-xf)
+    delta = ((phi_deg-15) % 30)-15
+    return r*math.cos(math.radians(15))/math.cos(math.radians(delta))
+
+
+def grid_solid(geo, outer, inner, present, truth=None):
+    """Closed solid between two node grids (lists of columns of points):
+    faces for present cells and side walls on every open edge. With
+    truth(i0, j0, i1, j1) (the true outer surface at the middle of a cell
+    diagonal), each cell is split along the diagonal that lies on the
+    surface, so a crease crossing the grid stays one straight fold rather
+    than a sawtooth."""
+    ni, nj = len(outer), len(outer[0])
+    base = len(geo.v)
+    idx = lambda g, i, j: base+g*ni*nj+i*nj+j
+    verts = [p for col in outer for p in col]+[p for col in inner for p in col]
+    faces = []
+    has = lambda i, j: 0 <= i < ni-1 and 0 <= j < nj-1 and present(i, j)
+    for i in range(ni-1):
+        for j in range(nj-1):
+            if not present(i, j):
+                continue
+            q = [(i, j), (i+1, j), (i+1, j+1), (i, j+1)]
+            if truth is None:
+                tris = [q]
+            else:
+                err = lambda a, b: (truth(*a, *b)-(outer[a[0]][a[1]]+outer[b[0]][b[1]])/2).length
+                if err(q[0], q[2]) <= err(q[1], q[3]):
+                    tris = [[q[0], q[1], q[2]], [q[0], q[2], q[3]]]
+                else:
+                    tris = [[q[0], q[1], q[3]], [q[1], q[2], q[3]]]
+            for t in tris:
+                faces.append(tuple(idx(0, a, b) for a, b in t))
+                faces.append(tuple(idx(1, a, b) for a, b in reversed(t)))
+            for (a, b), (e, f), nb in (((i, j), (i+1, j), (i, j-1)), ((i+1, j), (i+1, j+1), (i+1, j)),
+                                       ((i+1, j+1), (i, j+1), (i, j+1)), ((i, j+1), (i, j), (i-1, j))):
+                if not has(*nb):
+                    faces.append((idx(0, a, b), idx(1, a, b), idx(1, e, f), idx(0, e, f)))
+    geo.v += [tuple(p) for p in verts]
+    geo.f += faces
+
+
 def kind_crushed_can(d, scar, status):
-    """The port outer can, crushed from outboard against the anchor rock.
-    Only the can deforms (shape key); the nozzle ring, bell and lip stay round.
-    params: origin, target, r, depth, elong, crush_r, crush_d, engine.
-    open/patched: the crush and its basin. replaced/faded: a replacement can,
-    i.e. the can as built, only fitted (handled as 'gone' by the ladder)."""
+    """The port outer can and its nozzle, crushed from outboard against the
+    anchor rock as the hulk swung on its tether.
+    params: origin, target (the strike, for the site record), engine,
+            dent (centre deg, (aft, fore) x of the floor, depth,
+                  (fore, aft) slopes of the side plates).
+    open/patched: the can's struck span stove in: a flat floor between two
+    sloped plates, three planes meeting in straight creases across the
+    struck flats
+    and torn through by its aft rim, the skin folded out and a broken frame
+    showing in the void; the bell mouth pressed flat out of round on the
+    struck side (~24% of the radius) with crisp creases, two film-cooling
+    bands sprung off-axis, the heat-shield band slipped, the gimbal ring
+    dished aft, the top ram snapped, the shroud collar torn with a span
+    peeled aft. Shape keys on the Engine parts; nothing is capped. The
+    exhaust anchor (never moved) is tagged mouth_deformed with the
+    out-of-round mouth axes, so a cinematic does not plume it.
+    replaced/faded: a replacement can and nozzle, i.e. the drive as built
+    (handled as 'gone' by the ladder)."""
     if status not in ('open', 'patched'):
         return
     P = scar.params
-    site = d.site(scar, P['origin'], P['target'])
-    if site is None:
-        return
-    d.basin_cut(scar, site, P['r'], P['depth'], P.get('elong', 1.2), 8)
-    x, y, _ = ENGINES[P['engine']]
-    can = d.find('Thrust bay engine can', (x+5, y), 1 if y > 0 else -1)
+    d.site(scar, P['origin'], P['target'])
+    i = P['engine']+1
+    c = Crush(P['engine'])
+    x, y = c.x, c.y
+    k = c.r/3.9
+    can = d.find('Thrust bay engine can', (x+5, y), c.side)
     if can is None:
         return
-    p, n = site.p, site.n
-    R, depth = P['crush_r'], P['crush_d']
-    face = x+.6  # can face ring: held so the shroud collar stays seated and round
-    def crush(w):
-        dist = (w-p).length
-        if dist >= R or w.x < face+.3:
-            return w
-        return w-n*depth*(1-dist/R)
-    d.shape(can, scar, crush)
+    face = x+FACE_GAP
+    strike = math.radians(STRIKE_DEG)
+    dent_deg, (x_aft, x_fore), dent_d, (k_fore, k_aft) = P['dent']
+    dent_n = c.radial(math.radians(dent_deg))
+    xm = (x_aft+x_fore)/2
+    floor = c.at(dent_deg, can_radius(c, dent_deg, xm), xm-x)-dent_n*dent_d
+    # Every plane's normal lies in the (strike, X) plane, so every crease
+    # runs at constant x: along a row of the span's grid, never across it.
+    planes = [(floor, dent_n),
+              (floor+X*(x_fore-xm), (dent_n-X*k_fore).normalized()),
+              (floor+X*(x_aft-xm), (dent_n+X*k_aft).normalized())]
+
+    def dent(w):
+        """The flank's dent: the can's outer skin (at w's angle and x)
+        pushed in to the outermost of four planes through the pit's bottom,
+        so it comes out as flat plates with crisp creases. Outer skin and
+        bore move together."""
+        _, phi = c.polar(w)
+        pd = math.degrees(phi)
+        q = c.at(pd, can_radius(c, pd, w.x), w.x-x)
+        h = max(-(q-b).dot(n)/dent_n.dot(n) for b, n in planes)
+        return dent_n*min(0, h)
+
+    def field(w):
+        return w+c.offset(w)+dent(w)
+    d.shape(can, scar, field)
+
+    # The span: cut out of the can (a hair wider, so the tear reads as a
+    # dark seam) and rebuilt crumpled.
+    lo_deg, hi_deg = SPAN_DEG
+    back = CAN[c.w][-1][0]-.05
+    bore = c.r+.45
+    geo = Geo()
+    rings = []
+    for t in range(SPAN_COLS+1):
+        phi = lo_deg-.6+(hi_deg-lo_deg+1.2)*t/SPAN_COLS
+        rings.append([c.at(phi, rr, xx-x) for rr, xx in
+                      ((bore-.3, face-.3), (7.6, face-.3), (7.6, back), (bore-.3, back))])
+    geo.loft(rings)
+    d.cut(geo, [can.name], d.backing)
+    rng = random.Random(scar.id+' span')
+    row_h = (back+.05-face)/SPAN_ROWS
+    col_w = (hi_deg-lo_deg)/SPAN_COLS
+    def hole(a):
+        """Rows of column a torn away from the face."""
+        if not 0 <= a < SPAN_COLS:
+            return 0
+        depth = piecewise(HOLE_DEPTH, lo_deg+col_w*(a+.5))
+        return sum(1 for b in range(SPAN_ROWS) if (b+.5)*row_h < depth)
+    nodes = {}
+    for a in range(SPAN_COLS+1):
+        for b in range(SPAN_ROWS+1):
+            phi = lo_deg+(hi_deg-lo_deg)*a/SPAN_COLS
+            xx = face+(back+.05-face)*b/SPAN_ROWS
+            # Only the tear's edge is ragged; the dent keeps its clean facets.
+            torn = any(0 <= b+db < hole(a+da) for da in (-1, 0) for db in (-1, 0))
+            r1, r2 = rng.uniform(-1.4, 1.4), rng.uniform(-.09, .09)
+            if torn and 0 < a < SPAN_COLS:
+                phi += r1   # rows stay straight: the creases run along them
+            nodes[a, b] = (phi, xx)
+    outer = [[field(c.at(nodes[a, b][0], can_radius(c, *nodes[a, b]), nodes[a, b][1]-x))
+              for b in range(SPAN_ROWS+1)] for a in range(SPAN_COLS+1)]
+    inner = [[field(c.at(nodes[a, b][0], bore, nodes[a, b][1]-x))
+              for b in range(SPAN_ROWS+1)] for a in range(SPAN_COLS+1)]
+    metal = d.torn(d.base_mat(can))
+    def truth(a0, b0, a1, b1):
+        phi = (nodes[a0, b0][0]+nodes[a1, b1][0])/2
+        xx = (nodes[a0, b0][1]+nodes[a1, b1][1])/2
+        return field(c.at(phi, can_radius(c, phi, xx), xx-x))
+    grid_solid(d.part(scar, 'crumpled can span', metal, .02), outer, inner,
+               lambda a, b: b >= hole(a), truth)
+
+    # The skin over the tear, folded out about the hole's forward edge.
+    cols = [a for a in range(SPAN_COLS) if hole(a) > FLAP_ROW]
+    a0, a1 = cols[0], cols[-1]+1
+    fo, fi = [], []
+    for a in range(a0, a1+1):
+        hinge = outer[a][FLAP_ROW]
+        en = c.radial(math.radians(nodes[a, FLAP_ROW][0]))
+        v1 = -X*math.cos(math.radians(42))+en*math.sin(math.radians(42))
+        v2 = -X*math.cos(math.radians(84))+en*math.sin(math.radians(84))
+        col_o, col_i = [], []
+        for b in range(FLAP_ROW+1):
+            dist = nodes[a, FLAP_ROW][1]-nodes[a, b][1]
+            q = hinge+v1*min(dist, .55)+v2*max(0, dist-.55)
+            nrm = v1.cross(c.radial(math.radians(nodes[a, b][0]+90))).normalized()
+            if nrm.dot(en) < 0:
+                nrm = -nrm
+            col_o.append(q)
+            col_i.append(q-nrm*.18)
+        fo.append(col_o)
+        fi.append(col_i)
+    grid_solid(d.part(scar, 'torn can skin', metal, .02), fo, fi, lambda a, b: True)
+
+    # A frame ring inside the tear, broken over the strike and bent in.
+    frame = d.part(scar, 'broken can frame', d.steel, .02)
+    fx = face+.75
+    for lo, hi, bend in ((8.0, 27.0, 0), (29.0, 46.0, 1)):
+        rings = []
+        for t in range(5):
+            phi = lo+(hi-lo)*t/4
+            f = (t/4)*bend
+            ring = [c.at(phi, rr, xx-x) for rr, xx in
+                    ((bore+.1, fx-.07), (bore+.65, fx-.07), (bore+.65, fx+.07), (bore+.1, fx+.07))]
+            rings.append([field(q)-c.radial(math.radians(phi))*.45*f-X*.25*f for q in ring])
+        frame.loft(rings)
+
+    pre = f'Engine {i} '
+    for ob in d.named(pre):
+        name = ob.name[len(pre):]
+        if name.startswith('aft-facing bell'):
+            def liner(w):
+                q = c(w)
+                spec = SPRUNG.get(liner_band(c, w))
+                if spec:
+                    shift, toward, tilt = spec
+                    t = strike+math.radians(toward)
+                    _, phi = c.polar(w)
+                    q = q+c.radial(t)*shift-X*tilt*math.cos(phi-t)
+                return c.bend(q, w)
+            d.shape(ob, scar, liner)
+        elif name.startswith('heat-shield band'):
+            # Shaken loose on its seat: slipped aft and off the axis.
+            d.shape(ob, scar, lambda w: c.bend(c(w)-X*.22+c.radial(strike+math.pi)*.12, w))
+        elif name.startswith(('gimbal ring', 'gimbal trunnion', 'trunnion pin cap', 'gimbal lever ear')):
+            d.shape(ob, scar, lambda w: c.bend(c(w)+c.dish(w), w))
+        elif name.startswith('shroud collar'):
+            d.shape(ob, scar, c)   # fixed to the can face: crushed, not cocked
+        elif name.startswith('actuator rod') and d.box(ob)[0].z > 3:
+            snapped_rod(d, scar, c, ob)
+        elif not name.startswith(('dark throat', 'injector', 'throat ring')):
+            d.shape(ob, scar, c.full)
+
+    # Torn shroud collar: the struck span cut out, part of it peeled aft.
+    collar = d.find(pre+'shroud collar', None)
+    if collar is not None:
+        x0, x1 = face+.2, x+COLLAR_AFT*k
+        geo = Geo()
+        rings = []
+        for phi in (-28, -14, 0, 16, 32):
+            t = STRIKE_DEG+phi
+            rings.append([c.at(t, rr, xx-x) for rr, xx in
+                          ((3.2, x0+.3), (6.6, x0+.3), (6.6, x1-.3), (3.2, x1-.3))])
+        geo.loft(rings)
+        d.cut(geo, [collar.name], d.backing)
+        r_in = c.r+.45
+        r_out = CAN_FACE_R[c.w]*math.cos(math.pi/12)-.15
+        collar_flap(d, scar, c, 'torn collar span', d.torn(d.base_mat(collar)),
+                    STRIKE_DEG+30, STRIKE_DEG-8, r_in, r_out, x1, x0,
+                    lambda t: (piecewise([(0,0), (.4,.15), (.7,.5), (1,1.05)], t),
+                               piecewise([(0,0), (.4,.06), (.7,.3), (1,.6)], t)))
+
+    # The anchor: never moved; tag the cold, out-of-round mouth.
+    anchor = bpy.data.objects.get(f'Engine {i} exhaust anchor')
+    if anchor is not None:
+        mouth = [c.full(c.at(t, c.r, 0)) for t in range(0, 360, 2)]
+        ax = c.exhaust_dir()
+        flat = lambda v: (v-ax*v.dot(ax)).normalized()
+        span = lambda v: max(q.dot(v) for q in mouth)-min(q.dot(v) for q in mouth)
+        centre = sum(mouth, V((0, 0, 0)))/len(mouth)
+        m = .65
+        d.tag(anchor, 'mouth_deformed', True, scar)
+        # Minor and major: the narrowest and widest calipers across the
+        # mouth, square to the cocked exhaust axis.
+        dirs = [flat(c.radial(math.radians(t))) for t in range(0, 180, 2)]
+        minor = min(dirs, key=span)
+        major = max(dirs, key=span)
+        d.tag(anchor, 'mouth_minor_m', round(span(minor)*m, 3), scar)
+        d.tag(anchor, 'mouth_major_m', round(span(major)*m, 3), scar)
+        d.tag(anchor, 'mouth_axis_dir', [round(v, 4) for v in ax], scar)
+        d.tag(anchor, 'mouth_tilt_deg', BEND_DEG, scar)
+        d.tag(anchor, 'mouth_round_m', round(2*c.r*m, 3), scar)
+        d.tag(anchor, 'mouth_minor_dir', [round(v, 4) for v in minor], scar)
+        d.tag(anchor, 'mouth_centre_offset_m',
+              [round((centre[q]-anchor.location[q])*m, 3) for q in range(3)], scar)
 
 
 def kind_bent_fins(d, scar, status):
@@ -324,8 +744,375 @@ def kind_tether(d, scar, status):
             rope.tube([end, end+n*.5+u*du+v*dv], .07, 5)
 
 
+# ---- the engine bay around the crushed can -----------------------------------
+# The anchor-rock contact that crushed Engine 1 stove in the whole upper
+# outboard quarter of the port engine bay, from the can forward through the
+# cooling-fin cage to the forward barrel band. Two presses, each made of flat
+# plates so that every fold is a straight crease:
+#  - The drum (barrel bands, fin cage, sink, core) is pressed along the strike
+#    normal (BAY_STRIKE_DEG) down to a level h = position . normal that is
+#    constant across each station along the pod (BAY_LEVEL knots). The struck
+#    quarter of every ring comes out flat, the folds run square across the pod
+#    at the knots, and the press deepens aft toward the can.
+#  - The thrust housing's upper outboard corner is knocked in as a notch: a
+#    shelf in from the flank seam and a near-vertical wall down from the deck
+#    seam, meeting on a valley along the pod (NOTCH_U, NOTCH_DEPTH), and
+#    dying out at the can on an aft plate (NOTCH_AFT). The deck seam stays
+#    outboard of the stripped pump pads, and the flank seam stays above the
+#    stern RCS block. That span is cut out and rebuilt as its own plates.
+BAY_STRIKE_DEG = 35.0
+BAY_LEVEL = sorted([(-16.9, 38.7), (-18.6, 37.0), (-19.3, 36.8), (-20.25, 36.1),
+                    (-21.2, 35.0), (-22.0, 34.2), (-28.0, 34.2)])
+# Fins crushed together at the struck quarter (fin index: shift along X at
+# full depth). This absorbs the old bent-fins row (fins 1-4).
+FIN_SHIFT = {1: -.1, 2: .25, 3: -.2, 4: .3, 5: -.22, 6: .3}
+FIN_FULL = 2.5                 # press depth at which a fin takes its whole shift
+NOTCH_U = (6.3, 7.3, 8.25)     # flank seam, valley, deck seam (housing section index)
+NOTCH_DEPTH = 2.2              # valley depth along the corner bisector
+NOTCH_AFT = (-33.2, 2.0)       # aft plate: zero depth at x, k deeper per unit forward
+BAY_U = (6.15, 8.4)
+BAY_X = (-33.35, -27.65)
+# Panels torn out between seams (u, x). The hero is the whole shelf plate,
+# still hinged on its aft seam and folded back out of the hole. The second is
+# the wall plate, gone; the two share the valley over part of their length.
+BAY_HOLE = ((6.3, 7.3), (-32.1, -29.6))
+BAY_HOLE_2 = ((7.3, 8.25), (-30.6, -27.9))
+BAY_FLAP_CREASE = 1.0          # first fold, this far forward of the hinge
+POCKET = 4.6                   # depth of the void behind the clean skin
+FLOOR = 3.4                    # the void's dark floor, below the clean skin
+SKIN = .25
+
+
+class Housing:
+    """The clean thrust housing's faceted section as a surface (u, x): u is
+    the index along its section polygon (sw_engines.rr order), x along the
+    pod; the loft is linear between its rings, so this is exact."""
+    def __init__(self, side):
+        self.s = side
+        self.rings = [(x, rr(sec)) for x, sec in HOUSING]   # x descending
+
+    def ring(self, x):
+        rs = self.rings
+        x = min(rs[0][0], max(rs[-1][0], x))
+        for (x0, p0), (x1, p1) in zip(rs, rs[1:]):
+            if x1 <= x <= x0:
+                f = (x0-x)/(x0-x1) if x0 != x1 else 0
+                return [(a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f) for a, b in zip(p0, p1)]
+        return rs[-1][1]
+
+    def at(self, u, x, inset=0.):
+        pts = self.ring(x)
+        i = min(int(u), len(pts)-2)
+        f = u-i
+        y = pts[i][0]+(pts[i+1][0]-pts[i][0])*f
+        z = pts[i][1]+(pts[i+1][1]-pts[i][1])*f
+        return V((x, self.s*y, z))-self.normal(u, x)*inset
+
+    def normal(self, u, x):
+        pts = self.ring(x)
+        def seg(i):
+            (y0, z0), (y1, z1) = pts[i], pts[(i+1) % len(pts)]
+            return V((0, self.s*(z1-z0), -(y1-y0))).normalized()
+        i = min(int(u), len(pts)-2)
+        if abs(u-round(u)) < 1e-6 and 0 < round(u):
+            j = round(u)
+            return (seg(j-1)+seg(j)).normalized()
+        return seg(i)
+
+    def project(self, w):
+        """Nearest point on the clean section at w.x (for parts standing on it)."""
+        pts = [V((w.x, self.s*y, z)) for y, z in self.ring(w.x)]
+        best = None
+        for a, b in zip(pts, pts[1:]+pts[:1]):
+            ab = b-a
+            t = max(0, min(1, (w-a).dot(ab)/max(ab.length_squared, 1e-9)))
+            q = a+ab*t
+            if best is None or (q-w).length < (best-w).length:
+                best = q
+        return best
+
+
+def plane_pit(planes, n):
+    """Push along -n onto the outermost of planes [(point, normal)] where a
+    point lies above all of them: a pit of flat plates with straight creases."""
+    def push(q):
+        h = max(-(q-b).dot(m)/n.dot(m) for b, m in planes)
+        return n*min(0, h)
+    return push
+
+
+def rotate_about(p, a, axis, ang):
+    return a+Matrix.Rotation(ang, 3, axis) @ (p-a)
+
+
+def drum_press(s):
+    """(strike normal, level(x), push(w)) of the drum press on side s."""
+    a = math.radians(BAY_STRIKE_DEG)
+    n = V((0, s*math.cos(a), math.sin(a)))
+    level = lambda x: piecewise(BAY_LEVEL, x)
+    return n, level, lambda w: -n*max(0, w.dot(n)-level(w.x))
+
+
+def notch_press(hs, s):
+    """Push of the housing notch: the shelf and wall plates through the
+    seams and the valley, both containing X, and the aft plate."""
+    c = V((0, s, 1)).normalized()
+    xr = HOUSING[1][0]+1.0          # inside the housing's constant section
+    uf, uv, ud = NOTCH_U
+    F, D = hs.at(uf, xr), hs.at(ud, xr)
+    Vv = hs.at(uv, xr)-c*NOTCH_DEPTH
+    def through(a, b):
+        m = X.cross(b-a).normalized()
+        return (a, m if m.dot(c) > 0 else -m)
+    xa, k = NOTCH_AFT
+    return c, plane_pit([through(F, Vv), through(Vv, D),
+                         (hs.at(uv, xa), (c+X*k).normalized())], c)
+
+
+def kind_engine_bay(d, scar, status):
+    """The port engine bay around Engine 1, struck by the same rock that
+    crushed the can (the can is its worst point).
+    params: side.
+    open/patched: the upper outboard quarter of the whole bay stove in. The
+    barrel bands, the fin cage and the sink are pressed flat across the
+    struck quarter, deepest aft. Five fin rings are crushed together, and the
+    outboard cage rail is bent in with them and torn off at its aft end. The
+    thrust housing's corner is knocked in as a shelf and a wall on long
+    creases. The shelf panel is torn off its seams and folded back on its aft
+    hinge, and the wall panel is gone. Through the holes: a dark void, broken
+    frames, a stringer, the can feed manifold, three feed runs severed toward
+    Engine 1, and the sheared brackets the pumps hung on. Torn fastener rows
+    run along the seams the panels left. The aft band's hatch is racked and
+    the warning light knocked in. Nothing is patched: the pod stays cold to
+    the refit.
+    faded/gone: rebuilt with the new can (rows use 'gone')."""
+    if status not in ('open', 'patched'):
+        return
+    s = scar.params['side']
+    hs = Housing(s)
+    housing = d.find('Thrust housing', (-30, s*30), s)
+    if housing is None:
+        return
+    M = dorsal_mats(d)
+    n, level, dpush = drum_press(s)
+    c, push = notch_press(hs, s)
+    d.site(scar, (-24, s*62, 34), (-24, s*35, 9))   # where the drum took it, for the record
+
+    # ---- the drum ----
+    # Sink and core: cut down below the pressed level (they are dark, and a
+    # cut follows the level exactly where their long lofts could not).
+    t = X.cross(n)
+    rings = []
+    for xx in [-18.3]+[x for x, _ in reversed(BAY_LEVEL) if -28.2 < x < -18.4]+[-28.2]:
+        p0 = V((xx, 0, 0))+n*(level(xx)-.3)
+        rings.append([p0-t*28, p0+t*28, p0+t*28+n*9, p0-t*28+n*9])
+    rings.sort(key=lambda r: -r[0].x)
+    cutter = Geo()
+    cutter.loft(rings)
+    targets = [ob.name for name in ('Heat-sink section', 'Drive pod dark core') for ob in d.named(name, s)]
+    d.cut(cutter, targets, M['void'])
+    for ob in d.named('Drive reinforcing band', s):
+        d.shape(ob, scar, dpush)
+    for ob in d.named('Heat-sink fin', s):
+        lo, hi = d.box(ob)
+        idx = min(range(len(FIN_X)), key=lambda i: abs(FIN_X[i]-(lo.x+hi.x)/2))
+        dx = FIN_SHIFT.get(idx, 0.)
+        def crush_fin(w, dx=dx):
+            m = dpush(w)
+            return w+m+X*dx*min(1, m.length/FIN_FULL)
+        d.shape(ob, scar, crush_fin)
+    # The aft band's hatch and louvres: racked out of square, shoved inboard,
+    # and pressed with the band face they sit on.
+    hatch = [ob for name in ('Aft band hatch', 'Aft band louver') for ob in d.named(name, s)]
+    if hatch:
+        lo = V([min(d.box(o)[0][k] for o in hatch) for k in range(3)])
+        hi = V([max(d.box(o)[1][k] for o in hatch) for k in range(3)])
+        hc = (lo+hi)/2
+        def rack(w):
+            q = rotate_about(w, hc, X, s*math.radians(7))+V((-.08, -s*.35, -.12))
+            return q+dpush(q)-X*.3*max(0, (w.y*s-hc.y*s)/2.5)
+        for ob in hatch:
+            d.shape(ob, scar, rack)
+    # The outboard cage rail: bent in over the crushed fins, torn off aft.
+    for ob in d.named('Fin bank tie bar', s):
+        lo, hi = d.box(ob)
+        if lo.y*s < 37 or lo.z < 4:
+            continue
+        d.hide(ob, scar)
+        zc, hz = (lo.z+hi.z)/2, (hi.z-lo.z)/2
+        hy = (hi.y-lo.y)/2
+        y_fin, zb, zt = FIN[1], FIN[2]+FIN[5], FIN[3]-FIN[4][1]
+        def on_cage(x, extra=0.):
+            # The fin flank face (bottom corner to top corner, the top pressed).
+            a = V((x, s*y_fin, zb))
+            b = V((x, s*y_fin, zt))
+            b = b+dpush(b)
+            f = (zc-zb)/(zt-zb)
+            p = a+(b-a)*f
+            m = X.cross(b-a).normalized()
+            m = m if m.y*s > 0 else -m
+            return p+m*(hy-.02-extra), m
+        rail = d.part(scar, 'bent cage rail', M['steel'], .02)
+        def bent_bar(path):
+            # One continuous square bar through the path, its face on the cage.
+            rings = []
+            for p, m in path:
+                w = X.cross(m).normalized()
+                rings.append([p+w*a*hz+m*b*hy for a, b in ((-1, -1), (1, -1), (1, 1), (-1, 1))])
+            rail.loft(rings)
+        xs_ = [hi.x, -19.3, -20.25, -21.2, -22.0, -22.9, -23.75]
+        path = [on_cage(x, .35 if abs(x+22.9) < .01 else 0.) for x in xs_]
+        bent_bar(path)
+        end_cap(d, scar, M, path[-1][0], path[-1][0]-path[-2][0], .2, part='rail torn end')
+        # Its aft end: a short stub still on the aft fin, kinked out.
+        p, m = on_cage(lo.x)
+        q = on_cage(-24.6)[0]+m*.35
+        bent_bar([(p, m), (q, m)])
+        end_cap(d, scar, M, q, q-p, .2, part='rail torn end')
+
+    # ---- the housing ----
+    # Cut the struck span out down to the void's floor.
+    (u0, u1), (x0, x1) = BAY_U, BAY_X
+    cu = [u0-.03]+[u for u in (7, 8) if u0 < u < u1]+[u1+.03]
+    geo = Geo()
+    rings = []
+    for xx in (x1+.15, HOUSING[1][0], x0-.1):
+        xc = max(xx, -33.4)
+        ring = [hs.at(u, min(xc, -27.6), -.4) for u in cu]+[hs.at(u, min(xc, -27.6), POCKET) for u in reversed(cu)]
+        rings.append([V((xx, q.y, q.z)) for q in ring])
+    geo.loft(rings)
+    d.cut(geo, [housing.name], M['void'])
+
+    # The plates: a grid in (u, x) with nodes on every seam and crease.
+    (hu0, hu1), (hx0, hx1) = BAY_HOLE
+    (gu0, gu1), (gx0, gx1) = BAY_HOLE_2
+    crease = hx0+BAY_FLAP_CREASE
+    us = sorted({round(u, 4) for u in [u0, u1, 7, 8, hu0, hu1, gu0, gu1, *NOTCH_U]
+                 + [u0+k*.125 for k in range(int((u1-u0)/.125)+1)] if u0 <= u <= u1})
+    xs = sorted({round(x, 4) for x in [x0, x1, hx0, hx1, gx0, gx1, crease, -31.4]
+                 + [x0+k*.2 for k in range(int((x1-x0)/.2)+1)] if x0 <= x <= x1})
+    node = lambda x, u, inset=0.: hs.at(u, x, inset)+push(hs.at(u, x))
+    outer = [[node(x, u) for u in us] for x in xs]
+    inner = [[node(x, u, SKIN) for u in us] for x in xs]
+    def in_hole(i, j):
+        x, u = (xs[i]+xs[i+1])/2, (us[j]+us[j+1])/2
+        return (hx0 <= x <= hx1 and hu0 <= u <= hu1) or (gx0 <= x <= gx1 and gu0 <= u <= gu1)
+    def truth(i0, j0, i1, j1):
+        return node((xs[i0]+xs[i1])/2, (us[j0]+us[j1])/2)
+    metal = d.torn(d.base_mat(housing))
+    grid_solid(d.part(scar, 'pressed casing plates', metal, .02), outer, inner,
+               lambda i, j: not in_hole(i, j), truth)
+
+    # Torn fastener rows on the seams the panels tore off.
+    holes = d.part(scar, 'torn fastener holes', M['bore'], .002)
+    def surf_normal(x, u):
+        e = .05
+        tx = node(x+e, u)-node(x-e, u)
+        tu = node(x, u+e)-node(x, u-e)
+        m = tu.cross(tx).normalized()
+        return m if m.dot(hs.normal(u, x)) > 0 else -m
+    rows = [((hx1+.16, hx1+.16), (hu0+.08, hu1-.08)),     # hero: fore seam
+            ((hx0+.3, hx1-.1), (hu0-.06, hu0-.06)),       # hero: flank seam
+            ((hx0+.3, gx0-.12), (hu1+.06, hu1+.06)),      # hero: valley, aft of the wall hole
+            ((gx1+.16, gx1+.16), (gu0+.08, gu1-.08)),     # wall: fore seam
+            ((gx0-.16, gx0-.16), (gu0+.08, gu1-.08)),     # wall: aft seam
+            ((gx0+.1, gx1-.1), (gu1+.06, gu1+.06)),       # wall: deck seam
+            ((hx1+.12, gx1-.1), (gu0-.06, gu0-.06))]      # wall: valley, fore of the hero
+    for (xa, xb), (ua, ub) in rows:
+        L = max(abs(xb-xa), abs(ub-ua)*2.3)
+        steps = max(1, int(L/.42))
+        for k in range(steps+1):
+            x, u = xa+(xb-xa)*k/steps, ua+(ub-ua)*k/steps
+            m = surf_normal(x, u)
+            holes.disc(node(x, u)+m*.005, m, .07, .05, 6)
+
+    # The hero: the shelf panel, still hinged on its aft seam, folded back.
+    pi_ = [i for i, x in enumerate(xs) if hx0 <= x <= hx1]
+    pj = [j for j, u in enumerate(us) if hu0 <= u <= hu1]
+    h0, h1 = outer[pi_[0]][pj[0]], outer[pi_[0]][pj[-1]]
+    hinge_axis = (h1-h0).normalized()
+    ci = min(pi_, key=lambda i: abs(xs[i]-crease))
+    c0, c1 = outer[ci][pj[0]], outer[ci][pj[-1]]
+    out = hs.normal((hu0+hu1)/2, (hx0+hx1)/2)
+    def fold(p, x, ang1, ang2):
+        if x > crease+1e-6:
+            p = rotate_about(p, c0, (c1-c0).normalized(), ang2)
+        return rotate_about(p, h0, hinge_axis, ang1)
+    # Pick the folding sense that swings the skin out of the hole.
+    far = outer[pi_[-1]][pj[len(pj)//2]]
+    sg = 1 if (fold(far, xs[pi_[-1]], math.radians(80), 0)-far).dot(out) > 0 else -1
+    A1, A2 = sg*math.radians(118), sg*math.radians(38)
+    fo = [[fold(outer[i][j], xs[i], A1, A2) for j in pj] for i in pi_]
+    fi = [[fold(inner[i][j], xs[i], A1, A2) for j in pj] for i in pi_]
+    # Painted skin outside, its dark primed back showing where it folded open.
+    fm = [[(p+q)/2 for p, q in zip(co, ci_)] for co, ci_ in zip(fo, fi)]
+    grid_solid(d.part(scar, 'peeled casing panel', metal, .02), fo, fm, lambda i, j: True)
+    grid_solid(d.part(scar, 'peeled panel back', M['frame'], .01), fm, fi, lambda i, j: True)
+
+    # In the void: two frame rings (one broken across the shelf hole), a
+    # stringer cut either side, the can feed manifold with three runs severed
+    # toward Engine 1, and the sheared brackets the pumps hung on.
+    # Measured below the pressed skin, so nothing pokes through the plates.
+    below = lambda x, u, dd: node(x, u)-hs.normal(u, x)*dd
+    # The void's floor: a dark inner skin over the can shroud below the bay.
+    fu = [u for u in us if u <= u1-.05]
+    fx = [x for x in xs if x <= x1-.05]
+    floor = [[hs.at(u, x, FLOOR) for u in fu] for x in fx]
+    floor_in = [[hs.at(u, x, FLOOR+.15) for u in fu] for x in fx]
+    grid_solid(d.part(scar, 'bay void floor', M['floor'], .01), floor, floor_in, lambda i, j: True)
+    frame = d.part(scar, 'bay frame', M['frame'], .02)
+    for fxx, pieces in ((-31.0, ((6.32, 6.95, 1), (7.15, 8.2, -1))), (-28.75, ((6.32, 8.2, 0),))):
+        for ua, ub, bend in pieces:
+            rings = []
+            for k in range(7):
+                f = k/6
+                u = ua+(ub-ua)*f
+                sag = .35*(f if bend > 0 else 1-f) if bend else .25*math.sin(math.pi*f)
+                rings.append([below(fxx+dx, u, SKIN+.1+sag+dd)-X*sag*.3 for dx, dd in
+                              ((-.12, 0), (.12, 0), (.12, .45), (-.12, .45))])
+            frame.loft(rings)
+    stringer = d.part(scar, 'bay stringer', M['frame'], .02)
+    su = 6.85
+    for xa, xb in ((x0+.05, hx0-.2), (hx1+.45, x1-.05)):
+        rings = [[below(xx, su+du, SKIN+.12+dd) for du, dd in ((-.08, 0), (.08, 0), (.08, .4), (-.08, .4))]
+                 for xx in (xa, xb)]
+        stringer.loft(rings)
+    for xx, tt in ((hx0-.2, -X), (hx1+.45, X)):
+        end_cap(d, scar, M, below(xx, su, SKIN+.32), tt, .18, part='stringer cut end')
+    man = below(-30.3, 7.4, .85)
+    m7 = (hs.normal(7.35, -30.3)+c).normalized()
+    side7 = m7.cross(X).normalized()
+    d.part(scar, 'can feed manifold', M['steel'], .03).obox(man, X, side7, m7, .5, .8, .32)
+    pipes = d.part(scar, 'severed feed run', M['lagging'], .015)
+    rng = random.Random(scar.id+' feeds')
+    for k, (dv, xend, droop) in enumerate(((-.5, -32.3, .1), (0., -31.5, .6), (.5, -32.6, .3))):
+        p0 = man-X*.5+side7*dv
+        p1 = p0-X*1.0
+        p2 = V((xend, p1.y, p1.z))-m7*droop+side7*rng.uniform(-.15, .15)
+        tube(pipes, [p0+X*.3, p0, p1, p2], .21, 8)
+        end_cap(d, scar, M, p2, (p2-p1).normalized(), .21, part='feed cut end')
+    br = d.part(scar, 'sheared pump bracket', M['steel'], .01)
+    for xx in (-29.3, -28.45):
+        q = hs.at(7.75, xx, FLOOR)
+        m = hs.normal(7.75, xx)
+        side = m.cross(X).normalized()
+        br.obox(q+m*.35, X, side, m, .1, .45, .35)
+        br.obox(q+m*.06, X, side, m, .35, .45, .06)
+        d.part(scar, 'sheared bolt', M['cut'], .002).disc(q+m*.72, m, .08, .06, 6)
+
+    # The warning light on the housing's aft corner, carried in with it.
+    for ob in d.named('Drive warning light', s):
+        lo, hi = d.box(ob)
+        if abs(lo.y) < 34:
+            continue
+        cc = (lo+hi)/2
+        base = V((cc.x, cc.y, lo.z))
+        m = push(hs.project(base))
+        d.shape(ob, scar, lambda w, m=m, base=base: rotate_about(w+m, base+m, X, s*math.radians(-8)))
+
+
 KINDS = {'drive': kind_drive, 'pod_strip': kind_pod_strip, 'crushed_can': kind_crushed_can,
-         'bent_fins': kind_bent_fins, 'tether': kind_tether}
+         'bent_fins': kind_bent_fins, 'tether': kind_tether, 'engine_bay': kind_engine_bay}
 
 PUMPS = ('Turbopump housing', 'Turbopump vent slot', 'Pump drive drum')
 
@@ -355,13 +1142,17 @@ SCARS = [
          parts=[('Casing access panel', 0), ('Panel grab strap', 0)], keep=('frame',)),
     # The crushed can and the bent fins.
     Scar('pod-port-outer-can', 'crushed_can', 'open open open gone',
-         'Engine 1 can crushed against the anchor rock; nozzle ring stays round. A '
-         'replacement can when the port pod is restored.',
-         origin=(-38,60,5), target=(-38,33,2.5), r=2.4, depth=1.2, elong=1.2,
-         crush_r=5.0, crush_d=1.7, engine=0),
-    Scar('pod-port-fins', 'bent_fins', 'open open open gone',
-         'Top outboard fins of the windward bank bent; cold pod, left until restored.',
-         side=1, fins=[(1,.75), (2,-.55), (3,.9), (4,.5)]),
+         'Engine 1 can stove in and torn, bell mouth crushed out of round, top ram snapped, '
+         'collar torn: crushed against the anchor rock; a new can and nozzle at restoration.',
+         origin=(-38,60,5), target=(-38,33,2.5), engine=0, dent=(25, (-38.9, -37.9), 1.4, (.9, 1.3))),
+    Scar('pod-port-engine-bay', 'engine_bay', 'open open open gone',
+         'The rock that crushed Engine 1 stove in the upper outboard quarter of the whole '
+         'port engine bay: barrel bands and fin cage pressed flat (five fin rings crushed '
+         'together, the cage rail bent in and torn), the thrust housing corner knocked in, '
+         'one panel torn off and folded back and another gone over a void with broken '
+         'frames and feed runs cut toward the can. Absorbs the old bent-fins row. The pod '
+         'is cold, so it stays as it is until the bay is rebuilt with the new can.',
+         side=1),
     # Windward strikes (continuity scar 2 is the shoulder).
     Scar('pod-port-aft-shoulder', 'basin', 'open open open faded',
          'Heaviest strike on the ship, over the dead pod; never plated, painted over.',

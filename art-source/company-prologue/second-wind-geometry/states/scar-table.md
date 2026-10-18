@@ -7,7 +7,7 @@ One row per scar id; the same id is the same scar in every state.
 |---|---|---|---|---|---|---|
 | ship-power | core | power | open | gone | gone | gone |
 | fb-port-sponson-cowl-strike | forebody | fb-collar | open | patched | replaced | faded |
-| fb-port-bow-cheek-strike | forebody | fb-cheek | open | patched | patched | faded |
+| fb-port-bow-cheek-strike | forebody | fb-cheek | open | patched | replaced | faded |
 | fb-port-bow-flank-strike | forebody | fb-basin | open | open | open | faded |
 | fb-bow-glacis-strike | forebody | fb-basin | open | open | open | faded |
 | fb-stbd-forebody-deck-dent | forebody | fb-dent | open | open | open | faded |
@@ -16,17 +16,17 @@ One row per scar id; the same id is the same scar in every state.
 | fb-stbd-bay-door-strike | forebody | fb-crease | open | open | open | faded |
 | fb-port-forward-flank-cluster | forebody | cluster | open | open | open | faded |
 | fb-port-bow-deck-cluster | forebody | cluster | open | open | open | faded |
-| fb-stbd-bow-deck-cluster | forebody | cluster | open | patched | patched | faded |
+| fb-stbd-bow-deck-cluster | forebody | cluster | open | patched | replaced | faded |
 | fb-stbd-flank-module-tear | forebody | fb-spall | open | open | open | faded |
 | fb-port-citadel-wall-spall | forebody | fb-spall | open | open | open | faded |
 | fb-stbd-bow-cheek-spall | forebody | fb-spall | open | open | open | faded |
 | fb-port-nose-block-spall | forebody | fb-spall | open | open | open | faded |
 | fb-port-sponson-scrape | forebody | gouge | open | open | open | faded |
 | fb-port-glacis-gouge | forebody | gouge | open | open | open | faded |
-| fb-port-deck-plate-fwd-torn | forebody | plate | open | open | open | faded |
+| fb-port-deck-plate-fwd-torn | forebody | plate | open | open | replaced | faded |
 | fb-port-deck-plate-aft-torn | forebody | plate | open | open | open | faded |
-| fb-stbd-deck-plate-unbolted | forebody | plate | open | open | open | faded |
-| fb-port-deck-plate-buckle | forebody | buckle | open | open | open | faded |
+| fb-stbd-deck-plate-unbolted | forebody | plate | open | open | replaced | faded |
+| fb-port-deck-plate-buckle | forebody | buckle | open | open | replaced | faded |
 | fb-bow-tether-padeye | forebody | fb-tether | open | open | open | faded |
 | fb-stbd-bay-jamb | forebody | fb-jamb | open | patched | patched | faded |
 | fb-stbd-bay-door | forebody | fb-door | open | patched | patched | faded |
@@ -37,7 +37,7 @@ One row per scar id; the same id is the same scar in every state.
 | pod-port-can-feeds | pods | pod_strip | open | open | open | gone |
 | pod-casing-access-panels | pods | pod_strip | open | open | open | gone |
 | pod-port-outer-can | pods | crushed_can | open | open | open | gone |
-| pod-port-fins | pods | bent_fins | open | open | open | gone |
+| pod-port-engine-bay | pods | engine_bay | open | open | open | gone |
 | pod-port-aft-shoulder | pods | basin | open | open | open | faded |
 | pod-port-lower-casing | pods | basin | open | open | open | faded |
 | pod-port-intake-cap | pods | basin | open | open | open | faded |
@@ -64,9 +64,9 @@ One row per scar id; the same id is the same scar in every state.
 | sp-trunk-aft-port | spine | trunk | open | patched | replaced | gone |
 | sp-trunk-aft-stbd | spine | trunk | open | patched | replaced | faded |
 | sp-mast | spine | mast | open | patched | replaced | faded |
-| sp-turret-1 | spine | turret | open | patched | patched | faded |
+| sp-turret-1 | spine | turret | open | open | open | faded |
 | sp-turret-2 | spine | turret | open | patched | patched | faded |
-| sp-turret-3 | spine | turret | open | patched | patched | faded |
+| sp-turret-3 | spine | turret | open | open | open | faded |
 | sp-turret-4 | spine | turret | open | patched | patched | faded |
 | sp-waist-line-cut | spine | torch | open | patched | patched | faded |
 | sp-waist-trunk-cut | spine | torch | open | patched | replaced | faded |
@@ -78,3 +78,8 @@ One row per scar id; the same id is the same scar in every state.
 | rcs-stern-stbd | rcs | rcs | open | gone | gone | gone |
 | rcs-dorsal | rcs | rcs | open | patched | replaced | gone |
 | rcs-ventral | rcs | rcs | open | gone | gone | gone |
+| ds-port-waist-rip | dorsal | rip | open | open | replaced | faded |
+| ds-stbd-waist-rip | dorsal | rip | open | open | replaced | faded |
+| ds-fwd-deck-rip | dorsal | rip | open | patched | replaced | faded |
+| ds-port-shoulder-peel | dorsal | rip | open | open | open | faded |
+| ds-stbd-shoulder-peel | dorsal | rip | open | open | open | faded |
