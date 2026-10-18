@@ -293,8 +293,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 CompanyHqViewModel.preview(), CompanyHqNewsDesk.Channel.RUMOR)),
-                // The one state the shell can be in that nothing else draws:
-                // her deck is still being laid out, so the rooms aboard read as
+                // Her deck is still being laid out, so the rooms aboard read as
                 // pending rather than as places the hull does not have.
                 new SnapshotArtifact("company-hq-getting-ready-wide.png",
                         renderCompanyHq(context, renderer,
@@ -336,12 +335,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 CompanyHqViewModel.agreusHandoverPreview(AgreusHandoverDesk.Page.SIGNED, AgreusYardAgreement.YARD_COMPACT))),
-                // Military warrant obligations on the company record: an active warrant with
-                // its next service deadline beside a suspended one with what restores it.
-                new SnapshotArtifact("company-hq-warrants-wide.png",
-                        renderCompanyHq(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
-                                CompanyHqViewModel.warrantObligationsPreview())),
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -1497,7 +1490,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         desk.put(hqProps);
         desk.choose(channel);
         CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
-                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))), () -> { });
         terminal.put(hqProps);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
