@@ -1,5 +1,5 @@
-LONGBOW | geometry: 100 meshes, 72 pass-2 detail
-detail meeting detail within one fitting: 46 pairs (counted, not listed)
+LONGBOW | geometry: 116 meshes, 88 pass-2 detail
+detail meeting detail within one fitting: 62 pairs (counted, not listed)
 detail crossing detail across fittings: 2 pairs
     Canopy frame sill | Hull nose strip
     Hull nose lamp | Hull nose strip
@@ -103,7 +103,15 @@ detail bedded into body (part: body parts it meets):
     Hull dorsal antenna: Hull fuselage
     Hull dorsal sensor housing: Hull fuselage
     Hull nose strip: Hull fuselage
+    Hull port aft leg brace: Hull aft web, Wing port aft arm
+    Hull port aft leg strut: Hull aft web, Wing port aft arm
+    Hull port fore leg brace: Hull fuselage, Wing port fore arm
+    Hull port fore leg strut: Hull fore web, Wing port fore arm
     Hull port prong sensor fairing: Hull port prong
+    Hull starboard aft leg brace: Hull aft web, Wing starboard aft arm
+    Hull starboard aft leg strut: Hull aft web, Wing starboard aft arm
+    Hull starboard fore leg brace: Hull fuselage, Wing starboard fore arm
+    Hull starboard fore leg strut: Weapon WS 002 inner plate, Wing starboard fore arm
     Hull starboard prong sensor fairing: Hull starboard prong
     Weapon WS 001 emitter coil 1: Weapon WS 001 emitter
     Weapon WS 001 emitter coil 2: Weapon WS 001 emitter
