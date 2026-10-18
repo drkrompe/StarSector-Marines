@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch origin)",
+      "Bash(git fetch hub)",
+      "Bash(git fetch -q origin)",
+      "Bash(git fetch -q hub)",
+      "Bash(git merge main)",
+      "Bash(git merge origin/main)",
+      "Bash(git merge -q main)",
+      "Bash(git merge -q origin/main)",
+      "Bash(git merge --no-edit main)",
+      "Bash(git merge --no-edit origin/main)",
+      "Bash(git merge --ff-only *)",
+      "Bash(git push origin main)",
+      "Bash(git push hub main)",
+      "Bash(git push -q origin main)",
+      "Bash(git push -q hub main)",
+      "Bash(git worktree add *)",
+      "Bash(git worktree remove *)",
+      "Bash(git worktree prune)",
+      "Bash(git restore *)",
+      "PowerShell(git fetch origin)",
+      "PowerShell(git fetch hub)",
+      "PowerShell(git fetch -q origin)",
+      "PowerShell(git fetch -q hub)",
+      "PowerShell(git merge main)",
+      "PowerShell(git merge origin/main)",
+      "PowerShell(git merge -q main)",
+      "PowerShell(git merge -q origin/main)",
+      "PowerShell(git merge --no-edit main)",
+      "PowerShell(git merge --no-edit origin/main)",
+      "PowerShell(git merge --ff-only *)",
+      "PowerShell(git push origin main)",
+      "PowerShell(git push hub main)",
+      "PowerShell(git push -q origin main)",
+      "PowerShell(git push -q hub main)",
+      "PowerShell(git worktree add *)",
+      "PowerShell(git worktree remove *)",
+      "PowerShell(git worktree prune)",
+      "PowerShell(git restore *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "PowerShell(git push --force*)",
+      "Bash(git push -f*)",
+      "PowerShell(git push -f*)"
+    ]
+  }
+}
