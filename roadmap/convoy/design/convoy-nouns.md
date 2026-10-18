@@ -223,12 +223,15 @@ That walk is over *bodies*, not over convoys. It was a convoy loop with an
 aircraft loop bolted on beside it, which is how a blast sized itself against a
 chassis correctly and against every aircraft in the game identically.
 
-A vehicle is seen but never sees. It carries no perception components at all, so
+An ordinary vehicle is seen but never sees. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
 as separate roles: the seeing side of a line-of-sight pair reads the fail-loud
 sight accessor, and the seen side reads the tolerant one that answers with plain
 grid line-of-sight for an entity that has no vision. The same rule covers a
-remembered contact that has since become a corpse.
+remembered contact that has since become a corpse. The scout car is the one hull
+that looks, and it does so without becoming a perceiver: its mast is a squadless
+observer beside the body (the light roles, below), so the perception components
+stay off every chassis.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
 the shared durability law: low-penetration rifles chip armor slowly, while
@@ -576,8 +579,8 @@ retains the same existing cross-domain behavior as an autonomous hull.
   tick, outside on the next, arrival never firing, and the recovery ladder
   inheriting a problem that was never about the route. Authored tolerances are
   floors under that derivation, never the whole of it — the margin the shipped
-  `HEAVY_APC` enjoys is an accident of it being the only variant, and the
-  planned light scout is specified as faster. The same law holds on the air
+  `HEAVY_APC` enjoyed was an accident of it being the only variant, and the
+  scout car is nearly twice as fast. The same law holds on the air
   side, where a gate carrying a term it had no business carrying put a
   fighter's wheels down a runway's length from the numbers.
 - A vehicle moves under its own body or performs a bounded recovery. It never
@@ -697,6 +700,43 @@ separate cab and cargo burns, leaving finite smoke for up to 90 seconds.
 It is ordinary freight loss, with no secondary explosions, damage, cover,
 concealment or navigation changes.
 
+### The light roles: supply truck and scout car
+
+Two company hulls exist for a job rather than a fight. Both are the militia
+technical's pickup with the pintle gone (`art-source/vehicles/light-roles/`),
+both ride a Light cradle, and both pay for their job with the same three things:
+**no gun, no seats, and less plate than the technical**. Neither is ever a
+combat buff — nothing either does changes a hit roll, a weapon or a morale check.
+
+The **supply truck** carries its crates in the bed. Its stock is a **carried
+resupply cache**: the same `ResupplyCache` an emergency-resupply drop sets down,
+registered with the battle's one resupply authority (`ResupplySystem`) and
+served by its rules — one special use or mech rack round at a time, to the
+nearest friendly within reach that needs it, paused while a hostile stands over
+it, drawn from a finite stock. The truck adds only placement: the cache rides the
+hull, **opens only while the hull is halted**, and is **lost with the hull** when
+it is wrecked or leaves the map (`SupplyTruckSystem`). A truck is therefore a cache
+that can be driven, never a second supply rule; and because delivery is a cache
+rather than a deboard, it supplies whoever stands beside it, not a squad it
+brought. Its stock is twice an air-dropped cache's. Acceptance is the
+`supply-truck` scene: a spent squad beside the halted truck is resupplied while
+one out of reach is not, nothing passes while the truck is moving, and a wreck
+ends service.
+
+The **scout car** is the pickup cut short on a shorter wheelbase, the fastest
+hull in the bay and the thinnest, with a sensor mast where the gun stood. Its job
+is information. The mast is a **squadless observer** (`ScoutSight`): each tick it
+is a temporary ground-level fog source for its side when that side's sight is
+shown to the player — the same seam a sensor sweep or a recon ping uses — and it
+records every hostile combatant it has ordinary line of sight to within its
+range, which reaches the side's commander as direct contacts reported by no squad,
+as a fort gun's target does. No squad's beliefs are written: the scout tells
+command and the player, and a squad learns of what it saw by being sent toward
+it. Its sight is plain line of sight from the ground, so it has to be driven
+somewhere it can look. Acceptance is the `scout-car` scene: a position no marine
+can see is sighted, reaches the commander and is revealed to the player, and a
+scout parked behind a wall reports nothing.
+
 ## Adjacent domains and extension points
 
 The road graph is enduring generator data: road reservation, compound
@@ -713,6 +753,10 @@ airborne-specific targeting policy remains Air-owned.
 Future variants belong behind vehicle capabilities rather than another parallel
 convoy model: payload/deboard effect, chassis/body, clearance/handling profile,
 armed or unarmed parked behavior, and authority to affect reinforcement supply.
+The light roles are the pattern: a supply hull reaches munitions through the
+battle's resupply authority by carrying a cache, and a sight hull reaches the
+contact picture through the fog's temporary sources and the commander's
+sighting watch; neither owns a parallel rule.
 Additional controllable vehicle families need their own hardware and
 handling contracts; sharing the APC input session does not supply those contracts. A vehicle-spawned squad normally enters the reinforcement
 assignment flow. Conquest is the explicit exception: its defender policy carries

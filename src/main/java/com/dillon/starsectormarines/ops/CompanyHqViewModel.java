@@ -24,6 +24,10 @@ import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.dillon.starsectormarines.ops.HqActionItem.Action;
+import com.dillon.starsectormarines.ops.HqActionItem.Kind;
+import com.dillon.starsectormarines.ops.HqActionItem.Verb;
 
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -31,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /** Display-ready, read-only projection for the retained Company HQ dashboard. */
@@ -38,9 +43,6 @@ final class CompanyHqViewModel {
 
     private static final int EMPLOYER_LIMIT = 4;
     private static final int NEWS_LIMIT = 12;
-    private static final int OBLIGATION_LIMIT = 6;
-    private static final int URGENT_DAYS = 2;
-    private static final int SOON_DAYS = 7;
 
     private final Map<String, Object> props;
 
@@ -48,9 +50,15 @@ final class CompanyHqViewModel {
         this.props = Map.copyOf(props);
     }
 
-    /** The page's props; the command-deck stations are inert until the screen's terminal binds them. */
+    /**
+     * The page's props. The command-deck stations are inert and the action desk is still until
+     * the screen binds its terminal and desk over them.
+     */
+    @SuppressWarnings("unchecked")
     Map<String, Object> props() {
         Map<String, Object> out = new LinkedHashMap<>(props);
+        out.put("actions", HqActionDesk.still((List<HqActionItem>) out.getOrDefault("actionItems", List.of()),
+                (List<NewsPost>) out.getOrDefault("newsPosts", List.of())));
         for (String station : List.of("deckSituation", "deckComms", "deckCastle", "deckFinance")) {
             out.putIfAbsent(station, (Runnable) () -> { });
         }
@@ -65,7 +73,8 @@ final class CompanyHqViewModel {
             Runnable openBoatDeck,
             Runnable openShipView,
             Runnable close,
-            Function<CompanyClocks.Entry, Runnable> respond, Runnable openingCourse) {
+            Function<CompanyClocks.Entry, Runnable> respond, Consumer<SectorEntityToken> plotCourse,
+            AuxiliaryWarrantDesk.Row auxiliary, AgreusHandoverDesk.Row handover) {
         int day = CampaignClock.day();
         CompanyStanding standing = CompanyStanding.current(EMPLOYER_LIMIT);
         List<CompanyClocks.Entry> clocks = CompanyClocks.current();
@@ -73,14 +82,17 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, aboard,
+        MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        List<HqActionItem> items = HqActionGatherer.current(day, clocks, state,
+                rosterScript == null ? null : rosterScript.roster(), respond, plotCourse, auxiliary, handover);
+        return build(standing, items, news, day, aboard,
                 openBarracks, openArmory,
-                openMechLab, openBoatDeck, openShipView, close, respond, openingCourse);
+                openMechLab, openBoatDeck, openShipView, close);
     }
 
     private static CompanyHqViewModel build(
             CompanyStanding standing,
-            List<CompanyClocks.Entry> clocks,
+            List<HqActionItem> items,
             List<CompanyNews.Entry> news,
             int day,
             Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
@@ -89,8 +101,7 @@ final class CompanyHqViewModel {
             Runnable openMechLab,
             Runnable openBoatDeck,
             Runnable openShipView,
-            Runnable close,
-            Function<CompanyClocks.Entry, Runnable> respond, Runnable openingCourse) {
+            Runnable close) {
         Map<String, Object> props = baseLabels();
         NumberFormat credits = NumberFormat.getIntegerInstance();
         CompanyRating rating = CompanyRating.fromMrbCredibility(
@@ -106,19 +117,8 @@ final class CompanyHqViewModel {
         props.put("runway", runwayText(standing.finances.runwayMonths()));
         props.put("runwayClasses", runwayClasses(standing.finances.runwayMonths()));
         props.put("financeRows", financeRows(standing, credits));
-        int obligationCount = Math.min(clocks.size(), OBLIGATION_LIMIT);
-        List<ObligationPost> obligations = new ArrayList<>();
-        for (int index = 0; index < obligationCount; index++) {
-            CompanyClocks.Entry entry = clocks.get(index);
-            obligations.add(obligationPost(index, entry, day, respond.apply(entry)));
-        }
-        props.put("obligations", List.copyOf(obligations));
-        props.put("obligationEmpty", clocks.isEmpty()
-                ? Strings.get("companyHqClocksEmpty")
-                : clocks.size() > obligationCount
-                    ? MessageFormat.format(Strings.get("companyHqClocksMore"),
-                            clocks.size() - obligationCount)
-                    : "");
+        props.put("cash", Strings.format("openingCompanyHqCr5", credits.format((long) standing.finances.credits)));
+        props.put("actionItems", List.copyOf(items));
 
         List<NewsPost> newsPosts = new ArrayList<>();
         for (int index = 0; index < news.size(); index++) {
@@ -126,17 +126,7 @@ final class CompanyHqViewModel {
         }
         props.put("newsPosts", List.copyOf(newsPosts));
 
-        MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
-        props.put("openingGuide", OpeningWorkGuide.from(rosterScript == null ? null : rosterScript.roster(),
-                OpeningBroker.current(), openingCourse));
-        if (rosterScript != null && WaylineArc.stage(rosterScript.roster()) == WaylineArc.Stage.COMPLETE)
-            props.put("openingGuide", new SupplyRouteWorkGuide(SupplyRouteCampaign.current(), SupplyRouteCampaign.destination(), openingCourse));
-        if (CorvusWaylineCampaign.current() != null)
-            props.put("openingGuide", new CorvusWaylineWorkGuide(CorvusWaylineCampaign.current(), CorvusWaylineCampaign.destination(), openingCourse));
-        if(ShepherdRecoveryCampaign.current()!=null)
-            props.put("openingGuide",new ShepherdRecoveryWorkGuide(ShepherdRecoveryCampaign.current(),ShepherdRecoveryCampaign.destination(),openingCourse));
-        if (AgreusArcCampaign.current() != null)
-            props.put("openingGuide", new AgreusWorkGuide(AgreusArcCampaign.current(), AgreusArcCampaign.destination(), openingCourse));
+        props.put("openingGuide", OpeningWorkGuide.from(null));
         props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
         props.put("handover", AgreusHandoverDesk.hidden());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
@@ -158,13 +148,16 @@ final class CompanyHqViewModel {
 
     static CompanyHqViewModel supplyRoutePreview(BrokenSupplyRouteProgress progress, OpeningBroker.Destination destination) {
         Map<String, Object> props = openingPreview(new MarineRoster()).props();
-        props.put("openingGuide", new SupplyRouteWorkGuide(progress, destination, () -> { }));
+        SupplyRouteWorkGuide guide = new SupplyRouteWorkGuide(progress, destination, () -> { });
+        props.put("openingGuide", guide);
+        props.put("actionItems", List.of(storyFixture("story:supply-route", guide, destination != null)));
         return new CompanyHqViewModel(props);
     }
 
     static CompanyHqViewModel corvusPreview(MarineRoster roster, CorvusWaylineWorkGuide guide) {
         Map<String, Object> props = openingPreview(roster).props();
         props.put("openingGuide", guide);
+        props.put("actionItems", List.of(storyFixture("story:corvus", guide, guide.destination() != null)));
         return new CompanyHqViewModel(props);
     }
 
@@ -177,15 +170,17 @@ final class CompanyHqViewModel {
         Map<String, Object> props = preview().props();
         int squads = (int) roster.squads().stream().filter(squad -> !squad.reserve()).count();
         int ready = roster.squads().stream().filter(squad -> !squad.reserve()).mapToInt(roster::readyCount).sum();
-        props.put("openingGuide", OpeningWorkGuide.from(roster, destination, course));
+        OpeningWorkGuide guide = OpeningWorkGuide.from(roster, destination, course);
+        props.put("openingGuide", guide);
+        props.put("actionItems", guide.visible()
+                ? List.of(storyFixture("story:opening", guide, destination != null)) : List.of());
         props.put("rating", Strings.get("openingCompanyHqUnproven"));
         props.put("ratingScore", Strings.get("openingCompanyHqMrbCredibility"));
         props.put("assessment", squads == 0 ? Strings.get("openingCompanyHqNoLineSquadsOnTheCompanyRoll")
                 : Strings.format("openingCompanyHqMarinesReadyReviewEquipmentAndLiftBefore", ready));
         props.put("runway", Strings.get("openingCompanyHqNoRecord"));
         props.put("financeRows", List.of(new InfoRow("opening-cash", "", Strings.get("openingCompanyHqOnHand"), Strings.get("openingCompanyHqCr"))));
-        props.put("obligations", List.of());
-        props.put("obligationEmpty", Strings.get("openingCompanyHqNoActiveObligations"));
+        props.put("cash", Strings.get("openingCompanyHqCr"));
         props.put("newsPosts", List.of());
         return new CompanyHqViewModel(props);
     }
@@ -221,7 +216,6 @@ final class CompanyHqViewModel {
         props.put("ratingScore", Strings.get("openingCompanyHqMrbCredibility2"));
         props.put("assessment", Strings.get("openingCompanyHqRecognizedOnTheMrbFileOfReady"));
         props.put("financeHeader", Strings.get("openingCompanyHqCompanyFinance"));
-        props.put("obligationsHeader", Strings.get("openingCompanyHqActiveObligations"));
         props.put("runway", Strings.get("openingCompanyHqMonths"));
         props.put("runwayCaption", Strings.get("openingCompanyHqPayrollRunwayAgainstLastMonthSUpkeep"));
         props.put("runwayClasses", "runway-value tone-accent");
@@ -230,15 +224,42 @@ final class CompanyHqViewModel {
                 new InfoRow("preview-upkeep", "", Strings.get("openingCompanyHqLastUpkeep"), Strings.get("openingCompanyHqCr3")),
                 new InfoRow("preview-net", "tone-good", Strings.get("openingCompanyHqLastNet"), Strings.get("openingCompanyHqCr4")),
                 new InfoRow("preview-retainer", "tone-good", Strings.get("openingCompanyHqRetainers"), Strings.get("openingCompanyHqCrMo"))));
-        props.put("obligations", List.of(
-                new ObligationPost("preview-obligation-1", "post-card danger-surface", Strings.get("openingCompanyHqDueInDay"), Strings.get("openingCompanyHqGarrisonDefense"), Strings.get("openingCompanyHqSindriaHouseKardosFailsIfMissed"), Strings.get("openingCompanyHqRespond"), false, () -> { }),
-                new ObligationPost("preview-obligation-2", "post-card", Strings.get("openingCompanyHqDays"), Strings.get("openingCompanyHqStationingTermEnds"), Strings.get("openingCompanyHqKazeronCompactSecurityBoard"), Strings.get("openingCompanyHqTracking"), true, () -> { })));
-        props.put("obligationEmpty", "");
+        props.put("cash", Strings.get("openingCompanyHqCr2"));
+        props.put("actionItems", previewItems());
         props.put("newsPosts", List.of(
                 new NewsPost("preview-news-1", "news-card", Strings.get("openingCompanyHqConfirmedToday"), Strings.get("openingCompanyHqHouseCavorDisplacesHouseTobin"), Strings.get("openingCompanyHqEochuBresReceivedThroughCompanyChannels"), false, false, "graphics/factions/crest_persean_league.png", Strings.get("openingCompanyHqHouseCavor")),
                 new NewsPost("preview-news-2", "news-card rumor-surface", Strings.get("openingCompanyHqRumorDaysAgo"), Strings.get("openingCompanyHqReportsOfCompactActionAgainstHouseUmbra"), Strings.get("openingCompanyHqKazeronOutcomeRemainsUnconfirmed"), true, false, "graphics/factions/crest_persean_league.png", Strings.get("openingCompanyHqKazeronCompact")),
                 new NewsPost("preview-news-3", "news-card", Strings.get("openingCompanyHqConfirmedDaysAgo"), Strings.get("openingCompanyHqSilentColonyOperationConcluded"), Strings.get("openingCompanyHqOfSurvivorsRecoveredArchiveSecured"), false, true)));
         return new CompanyHqViewModel(props);
+    }
+
+    /** A story lead for previews: the guide as its brief, the course live when a destination exists. */
+    static HqActionItem storyFixture(String id, MarkupPropertySource guide, boolean reachable) {
+        Action action = reachable ? Action.of(Verb.PLOT_COURSE, (Runnable) guide.markupProperty("courseAction"))
+                : Action.unavailable(Verb.PLOT_COURSE, Strings.get("hqActionNoDestination"));
+        return new HqActionItem(id, Kind.STORY, String.valueOf(guide.markupProperty("heading")),
+                String.valueOf(guide.markupProperty("location")), HqActionItem.NO_DEADLINE, action, guide,
+                reachable ? new float[] {-3400f, 5200f} : null);
+    }
+
+    /** One item of every kind, for the review evidence: no campaign behind any of them. */
+    static List<HqActionItem> previewItems() {
+        SupplyRouteWorkGuide guide = new SupplyRouteWorkGuide(null,
+                new OpeningBroker.Destination("jangala", "Jangala", "Corvus", null), () -> { });
+        return List.of(
+                new HqActionItem("preview-due", Kind.OBLIGATION, Strings.get("openingCompanyHqGarrisonDefense"),
+                        Strings.get("openingCompanyHqSindriaHouseKardosFailsIfMissed"), 1,
+                        Action.of(Verb.RESPOND, () -> { }), null, new float[] {-6800f, -1400f}),
+                storyFixture("preview-story", guide, true),
+                new HqActionItem("preview-letter", Kind.LETTER, Strings.get("hqActionLetterAuxiliary"),
+                        Strings.get("hqActionLetterAuxiliaryPlace"), HqActionItem.NO_DEADLINE,
+                        Action.of(Verb.OPEN, () -> { }), null, null),
+                new HqActionItem("preview-side", Kind.SIDE_JOB, "Distress Net", "Eochu Bres", 9,
+                        Action.of(Verb.PLOT_COURSE, () -> { }), null, new float[] {9200f, 3100f}),
+                new HqActionItem("preview-term", Kind.OBLIGATION, Strings.get("openingCompanyHqStationingTermEnds"),
+                        Strings.get("openingCompanyHqKazeronCompactSecurityBoard"), 12,
+                        Action.unavailable(Verb.TRACKING, Strings.get("hqActionTracked")), null,
+                        new float[] {2600f, -8800f}));
     }
 
     private static Map<String, Object> baseLabels() {
@@ -249,7 +270,6 @@ final class CompanyHqViewModel {
         props.put("assessmentHeader", Strings.get("companyHqAssessmentHeader"));
         props.put("ratingHeader", Strings.get("companyHqRatingHeader"));
         props.put("financeHeader", Strings.get("companyHqFinanceHeader"));
-        props.put("obligationsHeader", Strings.get("companyHqClocksHeader"));
         props.put("runwayCaption", Strings.get("companyHqRunwayCaption"));
         return props;
     }
@@ -285,12 +305,8 @@ final class CompanyHqViewModel {
         return List.copyOf(rows);
     }
 
-    private static ObligationPost obligationPost(int index, CompanyClocks.Entry entry,
-                                                  int day, Runnable respond) {
-        int days = entry.daysRemaining(day);
-        String classes = days <= URGENT_DAYS ? "post-card danger-surface"
-                : days <= SOON_DAYS ? "post-card warning-surface" : "post-card";
-        String headline = entry.kind == CompanyClocks.Kind.TERM_ENDING
+    static String obligationHeadline(CompanyClocks.Entry entry) {
+        return entry.kind == CompanyClocks.Kind.TERM_ENDING
                 ? Strings.get("companyHqClockTerm")
                 : entry.kind == CompanyClocks.Kind.RECOVERY
                 ? Strings.get("companyHqClockRecovery")
@@ -298,17 +314,15 @@ final class CompanyHqViewModel {
                     && entry.notice.kind == PlayerEventNotice.Kind.CADRE_INCIDENT
                         ? Strings.get("companyHqClockCadre")
                         : Strings.get("companyHqClockGarrison");
-        String market = PlayerEventTarget.displayName(entry.marketId);
-        String detail = join(market, entry.patronName);
-        if (entry.failsOnExpiry) {
-            detail = join(detail, Strings.get("companyHqClockTermFailsShort"));
-        }
-        boolean actionable = entry.kind == CompanyClocks.Kind.RESPONSE && entry.notice != null;
-        return new ObligationPost("hq-obligation-" + index, classes,
-                daysText(days), headline, detail,
-                actionable ? Strings.get("companyHqClockRespond")
-                        : Strings.get("companyHqClockTracking"),
-                !actionable, respond);
+    }
+
+    static String obligationPlace(CompanyClocks.Entry entry) {
+        return join(PlayerEventTarget.displayName(entry.marketId), entry.patronName);
+    }
+
+    /** Whether an obligation has something to answer: a response clock with its notice. */
+    static boolean answerable(CompanyClocks.Entry entry) {
+        return entry.kind == CompanyClocks.Kind.RESPONSE && entry.notice != null;
     }
 
     private static NewsPost newsPost(CompanyNews.Entry entry, int day) {
@@ -415,7 +429,7 @@ final class CompanyHqViewModel {
         return "runway-value tone-good";
     }
 
-    private static String daysText(int days) {
+    static String daysText(int days) {
         if (days <= 0) return Strings.get("companyHqClockDue");
         if (days == 1) return Strings.get("companyHqClockOneDay");
         return MessageFormat.format(Strings.get("companyHqClockDays"), days);
@@ -454,23 +468,6 @@ final class CompanyHqViewModel {
                 case "labelId" -> id + ":label"; case "valueId" -> id + ":value";
                 case "valueClasses" -> "label info-value " + classes;
                 default -> throw new IllegalArgumentException("Unknown info-row property: " + property);
-            };
-        }
-    }
-
-    record ObligationPost(String id, String classes, String kicker, String headline,
-                          String detail, String actionLabel, boolean disabled,
-                          Runnable action) implements MarkupPropertySource {
-        @Override public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id; case "classes" -> classes; case "kicker" -> kicker;
-                case "headline" -> headline; case "detail" -> detail;
-                case "actionLabel" -> actionLabel; case "disabled" -> disabled;
-                case "action" -> action;
-                case "bodyId" -> id + ":body"; case "kickerId" -> id + ":kicker";
-                case "headlineId" -> id + ":headline"; case "detailId" -> id + ":detail";
-                case "actionId" -> id + ":action";
-                default -> throw new IllegalArgumentException("Unknown obligation property: " + property);
             };
         }
     }

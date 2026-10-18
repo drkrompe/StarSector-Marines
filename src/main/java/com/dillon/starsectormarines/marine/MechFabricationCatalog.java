@@ -64,7 +64,11 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 52, 40, 140, 8),
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 52, 40, 115, 11),
             vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 130, 100, 255, 38),
-            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 125, 110, 290, 24));
+            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 125, 110, 290, 24),
+            // The light roles are cheap pickups: the truck's bill is mostly the supplies it is stocked with, the
+            // scout's the rare metals in its sensor mast.
+            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationLightVehicleStandardFit", 55, 25, 70, 4),
+            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationLightVehicleStandardFit", 25, 35, 55, 12));
 
     private MechFabricationCatalog() {
     }

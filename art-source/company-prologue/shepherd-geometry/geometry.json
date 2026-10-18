@@ -44,27 +44,26 @@
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
   "metres_per_unit": 0.78,
   "scale": {
-    "method": "deck program (DeckProgramProbe FRIGATE \"Drone Tender\" 15 30 100 -> WARSHIP role): 2331 m2 rooms, less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, = 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the pressure hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry and outriggers hold no crew volume.",
+    "method": "deck program (DeckProgramProbe FRIGATE \"Drone Tender\" 15 30 100 -> WARSHIP role): 2331 m2 rooms, less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, = 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 45% of the pressure hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry and outriggers hold no crew volume.",
     "required_m3": 9726,
     "pressure_hull": [
       "Hull central body",
       "Hull port spine",
       "Hull aft machinery block",
-      "Bridge cab",
-      "Bridge habitat shell"
+      "Bridge hull"
     ],
     "drive_casings": [
       "Engine 1 drive pod casing",
       "Engine 2 drive pod casing"
     ],
-    "pressure_hull_units3": 45858,
-    "crew_body_only_units3": 36106,
+    "pressure_hull_units3": 46420,
+    "crew_body_only_units3": 36620,
     "usable_fraction": 0.45,
-    "solved_metres_per_unit": 0.778,
+    "solved_metres_per_unit": 0.775,
     "usable_reason": "crew comfort (ship description): the roomy end, not the 55% freighter/liner share",
     "range": {
       "cramped_65pct_usable": 0.69,
-      "freighter_55pct_usable": 0.73,
+      "freighter_55pct_usable": 0.72,
       "top_pods_not_crewed": 0.84
     },
     "drone_bay": {
@@ -73,13 +72,13 @@
         "Drone bay forward hangar pod",
         "Drone bay forward service block"
       ],
-      "tub_solid_units3": 6203,
+      "tub_solid_units3": 5378,
       "open_bay_m": {
-        "deck_length": 27.8,
+        "deck_length": 30.8,
         "width": 9.4,
         "deck_to_crown": 9.9
       },
-      "open_bay_m3": 2570,
+      "open_bay_m3": 2844,
       "stowage_needed_m3": 570,
       "craft": "Borer (drone_borer)",
       "wing_size": 4,
@@ -100,7 +99,7 @@
     "size_m": [
       67.1,
       55.0,
-      31.5
+      31.3
     ],
     "cross_checks_m": {
       "person 1.8 m in units": 2.31,
@@ -137,12 +136,12 @@
     "max": [
       45.2,
       36.28,
-      23.6
+      23.37
     ],
     "size": [
       85.99,
       70.57,
-      40.36
+      40.13
     ]
   },
   "drone_bay": {
@@ -176,7 +175,7 @@
         "launch_point_anchor": "Drone bay WS 003 launch point 1",
         "rim_z": 7.642,
         "floor_z": -4.07,
-        "clear_radius": 4.45,
+        "clear_radius": 6.6,
         "host": "Drone bay aft hangar pod"
       },
       {
@@ -189,7 +188,7 @@
         "launch_point_anchor": "Drone bay WS 003 launch point 2",
         "rim_z": 7.642,
         "floor_z": -4.07,
-        "clear_radius": 4.4,
+        "clear_radius": 6.6,
         "host": "Drone bay forward hangar pod"
       },
       {
@@ -202,7 +201,7 @@
         "launch_point_anchor": "Drone bay WS 003 launch point 3",
         "rim_z": 7.642,
         "floor_z": -4.07,
-        "clear_radius": 4.35,
+        "clear_radius": 4.5,
         "host": "Drone bay forward service block"
       }
     ],
@@ -256,7 +255,7 @@
       "location": [
         27,
         -19,
-        9.0
+        3.62
       ],
       "angle": 0,
       "arc": 20,
@@ -269,7 +268,7 @@
       "muzzle_location": [
         33.5,
         -19,
-        9.0
+        3.62
       ]
     }
   ],
@@ -421,10 +420,10 @@
   ],
   "object_names": {
     "Hull ...": "central crew body, port spine, aft crossbeam, aft machinery block",
-    "Bridge ...": "bridge cab, glazing, habitat shell",
+    "Bridge ...": "bridge hull, glazing, roof fittings",
     "Mast ...": "forward sensor boom, starboard sensor head",
     "Drone bay ...": "port hangar pods, service block, WS 003 openings and launch points",
-    "Gantry ...": "starboard repair gantry frame, core, crane",
+    "Gantry ...": "starboard repair gantry: machinery drum, hardpoint bed, rails, cab",
     "Frame ...": "port and starboard outriggers, starboard turret deck",
     "Engine <i> ...": "drive pods and jets; bell / mouth lip / dark throat / exhaust anchor",
     "Turret 1 WS 007 ... / Hardpoint 1 WS 008 ...": "weapon mounts; pivot and muzzle empties",
@@ -501,9 +500,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9347,
-    "sprite_uncovered": 0.0249,
-    "model_outside_sprite": 0.0432,
+    "iou": 0.9365,
+    "sprite_uncovered": 0.0253,
+    "model_outside_sprite": 0.0407,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 13.71 px per unit"
   }
 }

@@ -225,6 +225,15 @@ public final class CivilianRescueIntel extends BaseIntelPlugin {
                 String.valueOf(state.eventResolvedTick[row]));
     }
 
+    /** The open event, for Company HQ's action board, or null when none is open. */
+    public static SideJobLead openLead(CampaignState state, int day) {
+        int row = activeEventRow(state);
+        if (row < 0) return null;
+        MarketAPI market = market(state, row);
+        String place = market != null && market.getName() != null ? market.getName() : marketId(state, row);
+        return new SideJobLead(state.eventId[row], TITLE, place, market, daysRemaining(state, row, day));
+    }
+
     static int daysRemaining(CampaignState state, int row, int day) {
         if (state == null || row < 0 || row >= state.eventCount) return 0;
         return Math.max(0, state.eventDeadlineTick[row] - day);

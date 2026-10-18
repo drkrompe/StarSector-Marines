@@ -3,8 +3,8 @@
 A sprite says nothing about size. A hull's real size is the volume its contents
 need, divided among the space a ship of its class cannot give to them:
 
-    contents  = max crew x the class's habitable m3 per person
-              + cargo x the calibrated cargo m3 per unit + fuel x FUEL_M3_PER_UNIT
+    contents  = max crew x HABITABLE_M3_PER_PERSON x the class's habitable factor
+              + cargo x CARGO_M3_PER_UNIT + fuel x FUEL_M3_PER_UNIT
               + hangars (from the fighters' own sizes) + boat bays
     enclosed  = contents / (1 - machinery share of its class)
     metres per unit = cube root(enclosed m3 / measured enclosed units3)
@@ -15,9 +15,9 @@ armour laid over the hull or open structure (SOLIDS below, measured by
 ship_scale_measure.py inside the hull's .blend). Before a model exists,
 estimate_units3() gives a rough figure from the sprite's plan area.
 
-The cargo unit's volume is the calibrated constant: it is solved from the
-Hound (A), whose size is fixed by modelled human-scale fittings, and applied
-to every hull. The rest are real-world figures. All are justified in
+Crew room is the dominant term and comes from the mod's own deck program, the
+same for every crew size; capitals take the generous end (owner's choice,
+2026-10-18: option C, capital factor 1.45). All constants are justified in
 ship-scale.md; change them there and here together, never per hull.
 
 Run `python ship_scale.py` for the side-by-side table of the hulls in HULLS.
@@ -26,46 +26,52 @@ A driver calls record(name) and stores it under 'scale' in its geometry.json.
 import json
 import sys
 
-# Per class: habitable m3 per person at max crew (berths, messes, work
-# stations, medical, recreation and the passages between them), the share of
-# the enclosed volume no crew, cargo, fuel or craft can use (armour; drive,
-# reactor and flux plant; weapons and magazines; structure, tanks, stores,
-# life support and trunks), and the hangar volume per craft as a multiple of its
-# bare length x span x height box.
-# Habitable: naval warships give 15-30 m3 a person for voyages of weeks; the
-# ISS gives its crew of 7 about 55 m3 each (388 m3); 40-70 spans a cramped
-# warship to a roomy long-haul ship. Machinery: real warships give machinery
-# spaces 20-25% of their internal volume; drive plant shrinks as a share with
-# size, while armour and weapons grow with class. Hangar: a Nimitz's
-# 210 x 33 x 8 m hangar (about 55,000 m3) holds 25-30 aircraft, about 1.8x each
-# F/A-18's box; servicing in space and ordnance handling add to it.
-# "Capitals should feel like capital ships" (owner): where a range is left, a
-# capital takes the generous end and a small hull the lean end.
+# Habitable volume per person at max crew: berths, messes, work stations,
+# medical, recreation and the passages between them, gross of circulation.
+# The mod's deck program (DeckSizing.programFor, the program the game's deck
+# maps are drawn from) gives a 40-crew frigate 2,427 m2 of rooms, about 61 m2 a
+# person: x1.40 circulation x3.2 m decks = 273 m3. The Hound (A)'s fittings
+# (doors, airlock, viewports, rails, mannequin) were built at 0.88 m/unit,
+# which on its old pressure-hull figure needed 328. 300 is between them, for
+# every crew size: no economy of scale. Far above naval norms (15-30 m3) and
+# the ISS (55): a Starsector crew lives aboard for months.
+HABITABLE_M3_PER_PERSON = 300.0
+HABITABLE_RANGE = (273.0, 328.0)
+
+# Per class: the habitable factor on that figure, the share of the enclosed
+# volume no crew, cargo, fuel or craft can use (armour; drive, reactor and flux
+# plant; weapons and magazines; structure, tanks, stores, life support and
+# trunks), and the hangar volume per craft as a multiple of its bare
+# length x span x height box.
+# Machinery: real warships give machinery spaces 20-25% of their internal
+# volume; drive plant shrinks as a share with size, while armour and weapons
+# grow with class. Hangar: a Nimitz's 210 x 33 x 8 m hangar (about 55,000 m3)
+# holds 25-30 aircraft, about 1.8x each F/A-18's box; servicing in space and
+# ordnance handling add to it.
+# "Capitals should feel like capital ships" (owner): a capital takes the
+# generous end - crew room x1.45 (owner's choice, so capitals reach about 4x a
+# frigate's length), hangars 3.0x, deep armour, big magazines.
 CLASSES = {
-    'frigate':   {'habitable_m3_per_person': 40.0, 'hangar_box_factor': 2.5,
+    'frigate':   {'habitable_factor': 1.0, 'hangar_box_factor': 2.5,
                   'shares': {'armour': .06, 'drive': .22, 'weapons': .06, 'structure': .12}},
-    'destroyer': {'habitable_m3_per_person': 50.0, 'hangar_box_factor': 2.6,
+    'destroyer': {'habitable_factor': 1.05, 'hangar_box_factor': 2.6,
                   'shares': {'armour': .08, 'drive': .20, 'weapons': .07, 'structure': .12}},
-    'cruiser':   {'habitable_m3_per_person': 60.0, 'hangar_box_factor': 2.8,
+    'cruiser':   {'habitable_factor': 1.1, 'hangar_box_factor': 2.8,
                   'shares': {'armour': .11, 'drive': .18, 'weapons': .09, 'structure': .12}},
-    'capital':   {'habitable_m3_per_person': 70.0, 'hangar_box_factor': 3.0,
+    'capital':   {'habitable_factor': 1.45, 'hangar_box_factor': 3.0,
                   'shares': {'armour': .18, 'drive': .16, 'weapons': .12, 'structure': .12}},
-    'freighter': {'habitable_m3_per_person': 40.0, 'hangar_box_factor': 2.5,
+    'freighter': {'habitable_factor': 1.0, 'hangar_box_factor': 2.5,
                   'shares': {'armour': .03, 'drive': .15, 'weapons': .02, 'structure': .12}},
 }
-# One fuel unit is one tank-container load: an ISO tank holds about 26 m3, plus
-# 25% for tankage, insulation and plumbing.
-FUEL_M3_PER_UNIT = 32.0
+# One cargo unit is taken as one tonne of goods: a stowage factor of about
+# 1.5 m3/t for mixed palletised cargo, plus 30% for hold access and handling.
+CARGO_M3_PER_UNIT = 2.0
+# One fuel unit is taken as one tonne at about 0.8 t/m3, plus 20% tankage.
+FUEL_M3_PER_UNIT = 1.5
 SPARES_PER_WING = 1
-# A boat bay holds one carried boat: the mod's deck program's 16 x 10 m boat
-# bay at 6 m clear height.
+# A boat bay holds one carried boat: the deck program's 16 x 10 m boat bay at
+# 6 m clear height.
 BOAT_BAY_M3 = 960.0
-
-# Calibration anchor: the Hound (A)'s size is fixed by modelled human-scale
-# fittings (a 1.4 x 2.0 m aft door, a 1.7 x 2.1 m airlock, 0.9 x 1.0 m
-# viewports, walkway rails, a 1.8 m mannequin) at 0.88 m/unit, 0.83 cramped.
-# The cargo unit is solved so the Hound's contents fill its measured volume.
-ANCHOR = {'hull': 'Hound (A)', 'metres_per_unit': .88, 'cramped': .83}
 
 # Fighters in metres at their own scales (fighters-geometry, broadsword-geometry;
 # Hoplon and Piranha from their sprites at 0.50 m/px until they are modelled).
@@ -113,22 +119,9 @@ def machinery_share(cls):
     return sum(CLASSES[cls]['shares'].values())
 
 
-def _non_cargo(h):
-    return (h['crew_max']*CLASSES[h['cls']]['habitable_m3_per_person'] + h['fuel']*FUEL_M3_PER_UNIT
-            + hangar_m3(h.get('wings', ()), h['cls']) + h.get('boat_bays', 0)*BOAT_BAY_M3)
-
-
-def calibrated_cargo_m3(anchor_mpu=None):
-    """Cargo m3 per unit that makes the anchor hull's contents fill it at its fittings-fixed scale."""
-    h = HULLS[ANCHOR['hull']]
-    mpu = ANCHOR['metres_per_unit'] if anchor_mpu is None else anchor_mpu
-    contents = mpu**3*h['units3']*(1-machinery_share(h['cls']))
-    return (contents-_non_cargo(h))/h['cargo']
-
-
-def solve(h, cargo_m3):
+def solve(h, habitable=HABITABLE_M3_PER_PERSON):
     c = CLASSES[h['cls']]
-    parts = {'crew': h['crew_max']*c['habitable_m3_per_person'], 'cargo': h['cargo']*cargo_m3,
+    parts = {'crew': h['crew_max']*habitable*c['habitable_factor'], 'cargo': h['cargo']*CARGO_M3_PER_UNIT,
              'fuel': h['fuel']*FUEL_M3_PER_UNIT, 'hangar': hangar_m3(h.get('wings', ()), h['cls']),
              'boat_bays': h.get('boat_bays', 0)*BOAT_BAY_M3}
     contents = sum(parts.values())
@@ -141,21 +134,21 @@ def solve(h, cargo_m3):
 def record(name):
     """The 'scale' block a geometry.json stores: inputs, constants, result, range and fittings."""
     h = HULLS[name]
-    cargo_m3 = calibrated_cargo_m3()
-    mid = solve(h, cargo_m3)
+    mid = solve(h)
     mpu = mid['metres_per_unit']
-    lo = solve(h, calibrated_cargo_m3(ANCHOR['cramped']))['metres_per_unit']
+    lo, hi = (solve(h, x)['metres_per_unit'] for x in HABITABLE_RANGE)
     return {
         'method': 'ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery '
-                  'share, against the measured enclosed volume; cargo unit calibrated on the Hound (A)',
+                  'share, against the measured enclosed volume',
         'inputs': {**{k: (round(v) if k == 'units3' else v) for k, v in h.items() if k != 'fittings_units'},
                    'volume_source': VOLUME_SOURCE[name]},
-        'constants': {'class': CLASSES[h['cls']], 'cargo_m3_per_unit': round(cargo_m3, 1),
-                      'fuel_m3_per_unit': FUEL_M3_PER_UNIT, 'boat_bay_m3': BOAT_BAY_M3,
-                      'spares_per_wing': SPARES_PER_WING, 'anchor': ANCHOR},
+        'constants': {'habitable_m3_per_person': HABITABLE_M3_PER_PERSON, 'class': CLASSES[h['cls']],
+                      'cargo_m3_per_unit': CARGO_M3_PER_UNIT, 'fuel_m3_per_unit': FUEL_M3_PER_UNIT,
+                      'boat_bay_m3': BOAT_BAY_M3, 'spares_per_wing': SPARES_PER_WING},
         **{k: v for k, v in mid.items() if k != 'metres_per_unit'},
         'solved_metres_per_unit': round(mpu, 3),
-        'range': {'anchor_cramped': round(lo, 3), 'anchor_published': round(mpu, 3)},
+        'range': {f'habitable_{int(HABITABLE_RANGE[0])}': round(lo, 3),
+                  f'habitable_{int(HABITABLE_RANGE[1])}': round(hi, 3)},
         'enclosed_m3_per_person_at_max_crew': round(mid['enclosed_m3']/h['crew_max']),
         'length_m': round(h['length_units']*mpu, 1),
         'fittings_m': {k: [round(x*mpu, 2) for x in v] for k, v in h.get('fittings_units', {}).items()},
@@ -168,21 +161,23 @@ def record(name):
 HULLS = {
     'Legion (XIV)': dict(units3=1678689, crew_max=1500, cargo=300, fuel=300, cls='capital',
                          wings=[('broadsword', 3)]*2+[('hoplon', 2)]*2, length_units=294.9, sprite_px=308,
-                         fittings_units={'personnel door h': [3.4], 'rail h': [1.8], 'transfer door w x h': [34, 10]}),
-    'Onslaught': dict(units3=estimate_units3(65541, 'capital'), crew_max=1500, cargo=300, fuel=400, cls='capital',
-                      length_units=352, sprite_px=384),
+                         fittings_units={'personnel door h': [3.4*.61/.99], 'rail h': [1.8*.61/.99], 'transfer door w x h': [34, 10]}),
+    'Onslaught': dict(units3=3419861, crew_max=1500, cargo=300, fuel=400, cls='capital',
+                      length_units=351.7, sprite_px=384,
+                      fittings_units={'bridge glazing band h': [1.82], 'bridge pane w': [1.43],
+                                      'crown hatch d': [2.34], 'service hatch w x l': [1.17, 1.82]}),
     'Lasher': dict(units3=32793, crew_max=50, cargo=40, fuel=25, cls='frigate',
                    length_units=94.7, sprite_px=96,
-                   fittings_units={'viewport w x h': [1.54, 1.23], 'bridge glazing band h': [1.54]}),
+                   fittings_units={'viewport w x h': [1.05, .84], 'bridge glazing band h': [1.05]}),
     'Hound (A)': dict(units3=13720, crew_max=40, cargo=75, fuel=30, cls='freighter', length_units=69.1, sprite_px=72,
                       fittings_units={'aft door w x h': [1.59, 2.27], 'airlock w x h': [1.93, 2.39]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
-                 'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'estimate, no model',
+                 'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)'}
-PUBLISHED = {'Legion (XIV)': .61, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .65}
+PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .77}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -204,6 +199,15 @@ SOLIDS = {
     'lasher': {'blend': '../../build/lasher/lasher.blend', 'step': .5,
                'include': lambda n: n in ('Hull bow head', 'Hull nose cap', 'Hull spine', 'Hull wing body',
                                           'Hull ventral keel')},
+    # The Onslaught's .blend is a build output (onslaught-geometry/onslaught-geometry.blend,
+    # ignored); its driver re-measures these solids on every build. Armour bands and the
+    # plating laid over the flanks, the drive pods and engine cans are excluded; the
+    # stern machinery wells are open to space and already cut out of the aft body.
+    'onslaught': {'blend': 'onslaught-geometry/onslaught-geometry.blend', 'step': 2.0,
+                  'include': lambda n: n in (
+                      'Hull prow', 'Hull core', 'Hull port arm', 'Hull starboard arm', 'Hull aft body', 'Hull tail',
+                      'Hull port aft leg', 'Hull starboard aft leg', 'Hull port waist', 'Hull starboard waist',
+                      'Bridge spine', 'Bridge command dome', 'Bridge aft dome')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
@@ -227,14 +231,12 @@ if __name__ == '__main__':
     if '--json' in sys.argv:
         print(json.dumps({n: record(n) for n in HULLS}, indent=2))
         sys.exit()
-    print(f'cargo unit calibrated on the Hound: {calibrated_cargo_m3():.1f} m3 at 0.88, '
-          f'{calibrated_cargo_m3(ANCHOR["cramped"]):.1f} m3 at 0.83')
-    print(f"{'hull':24} {'m/u':>6} {'@0.83':>6} {'now':>5} {'length':>7} {'x Hound':>8} {'x Lasher':>8} "
+    print(f"{'hull':24} {'m/u':>6} {'range':>12} {'now':>5} {'length':>7} {'x Hound':>8} {'x Lasher':>8} "
           f"{'sprite H/L':>10} {'m3/pers':>7}  fittings")
     for n, r, ratios, sprite, flag in table():
         sp = '/'.join(f'{sprite[f]:.2f}' for f in FRIGATES) if sprite else ''
         fit = '; '.join(f"{k} {' x '.join(f'{v:.2f}' for v in vs)} m" for k, vs in r['fittings_m'].items())
-        print(f"{n:24} {r['solved_metres_per_unit']:6.3f} {r['range']['anchor_cramped']:6.3f} "
+        print(f"{n:24} {r['solved_metres_per_unit']:6.3f} {'-'.join(f'{v:.3f}' for v in r['range'].values()):>12} "
               f"{PUBLISHED.get(n, ''):>5} {r['length_m']:7.1f} {ratios['Hound (A)']:8.2f} {ratios['Lasher']:8.2f} "
               f"{sp:>10} {r['enclosed_m3_per_person_at_max_crew']:7}  {fit}"
               + ('  FLAG: capital under 4x a frigate or its sprite ratio' if flag else ''))

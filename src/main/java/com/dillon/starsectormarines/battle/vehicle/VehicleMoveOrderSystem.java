@@ -145,6 +145,11 @@ public final class VehicleMoveOrderSystem {
 
         controlSystem.tick(id, dt, order.routeXs(), order.routeYs(), VehicleLeg.MOVE_ORDER);
         if (controlSystem.consumeArrived(id)) {
+            // A move order does not snap onto its endpoint, so the distance gate can call arrival with the body
+            // still rolling. Nothing integrates a deployed hull once its order is done, so that speed would never
+            // decay: the hull stands still while reporting itself under way to everything that reads it (a supply
+            // truck stays shut, fire takes a moving penalty). Arriving is stopping.
+            convoy.body(id).speed = 0f;
             service.complete(id);
             return true;
         }

@@ -84,6 +84,8 @@ com.dillon.starsectormarines.battle.mech.MechLocationalDamageScene
 com.dillon.starsectormarines.battle.mech.MechHullDownScene
 com.dillon.starsectormarines.battle.mech.MechFrameEnduranceScene
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcScene
+com.dillon.starsectormarines.battle.vehicle.SupplyTruckScene
+com.dillon.starsectormarines.battle.vehicle.ScoutCarScene
 com.dillon.starsectormarines.battle.vehicle.DozerBreachScene
 com.dillon.starsectormarines.battle.power.ArmorDropPaceScene
 com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
