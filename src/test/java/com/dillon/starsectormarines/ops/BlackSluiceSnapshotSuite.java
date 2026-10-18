@@ -21,6 +21,9 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.tools.snapshot.CompressedFrameList;
+import com.dillon.starsectormarines.ops.battleview.WarshipFollowRecording;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
@@ -131,7 +134,13 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             else assertNull(sequence.duel(), "The no-duel control leaves the sky empty");
             var duel = (BlackSluiceDuel) sequence.duel();
             boolean recordDuel = fixture.duel() && fixture.id().equals("ordinary-15305");
-            var duelFrames = new ArrayList<BufferedImage>();
+            // Held compressed: the follow camera records densely while rounds fly, and 1920x1080 frames are 8 MB each.
+            List<BufferedImage> duelFrames = new CompressedFrameList();
+            boolean followDuel = WarshipFollowRecording.enabled();
+            var duelCamera = new WarshipFollowRecording(1920, 1080);
+            BattleReviewFrameRenderer duelRenderer = followDuel ? WarshipFollowRecording.mainRenderer(context.modRoot(), 1920, 1080) : null;
+            BattleReviewFrameRenderer duelInset = followDuel ? WarshipFollowRecording.insetRenderer(context.modRoot(), 1920, 1080) : null;
+            ReviewImpactFx duelFx = followDuel && recordDuel ? new ReviewImpactFx(context.modRoot()) : null;
             int duelOverTick = -1, dockContactTick = -1;
             assertTrue(sim.tenders().tenders().isEmpty(), "A Small War has no tender");
             var scheduled = new HashSet<String>(); int aircraft = 0;
@@ -195,13 +204,22 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     boolean over = duel.hulls().stream().allMatch(h -> h.destroyed() || h.departed());
                     if (over && duelOverTick < 0) duelOverTick = sim.getSimTickIndex();
                     boolean tail = duelOverTick < 0 || sim.getSimTickIndex() - duelOverTick <= DUEL_FRAME_TAIL;
-                    if (since <= DUEL_FRAME_TICKS && since % DUEL_FRAME_EVERY == 0 && tail)
+                    String duelTitle = "BLACK SLUICE / THE DUEL OVERHEAD / " + since / 30 + "s after Voss's order / " + duelCaption(duel);
+                    if (duelFx != null) duelFx.feed(sim);
+                    if (followDuel) {
+                        // The duel camera follows the engagement; it decides its own cadence and stops after the last pair breaks.
+                        if (duelCamera.records(sim, since, DUEL_FRAME_EVERY) && since <= DUEL_FRAME_TICKS && tail) {
+                            duelCamera.aim(duelRenderer, sim, since);
+                            BufferedImage image = duelRenderer.render(sim, duelTitle, ReviewAnnotations.builder().build(), duelFx);
+                            duelCamera.decorate(image, sim, since, duelInset, duelFx);
+                            duelFrames.add(image);
+                        }
+                    } else if (since <= DUEL_FRAME_TICKS && since % DUEL_FRAME_EVERY == 0 && tail)
                         // A little wider than the map (four pixels a cell), so a hull flying in or out across an edge is seen crossing it.
                         duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
                                 BlackSluice.WIDTH / 2, BlackSluice.HEIGHT / 2, BlackSluice.WIDTH + 20)
                                 .withImpactEffects().withUnitShadows()
-                                .render(sim, "BLACK SLUICE / THE DUEL OVERHEAD / " + since / 30 + "s after Voss's order / "
-                                        + duelCaption(duel), ReviewAnnotations.builder().build()));
+                                .render(sim, duelTitle, ReviewAnnotations.builder().build()));
                 }
                 if (recordDuel && splitSeen && (sim.getSimTickIndex() - splitTick) % 90 == 0
                         && sim.getSimTickIndex() - splitTick <= 990)
