@@ -1,6 +1,6 @@
 # Hound (A) cinematic export
 
-Status: ACTIVE. Pass 7 of the `ship-model-pipeline` skill for the Hound (A).
+Status: SHIPPED (owner accepted 2026-10-18). Pass 7 of the `ship-model-pipeline` skill for the Hound (A).
 It follows `second-wind-cinematic/second-wind-states/` conventions.
 Written: 2026-10-18
 

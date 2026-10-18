@@ -1,6 +1,6 @@
 # C5 v2 — WE'RE DOWN (closing beat and title)
 
-Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's lines not yet chosen or recorded.
+Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
 Written: 2026-10-18
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
@@ -53,40 +53,33 @@ word belongs to our people.
 The title comes before the yard dialogues (Y1 onward) in the usual cold-open
 way: cinematic, title, then play.
 
-## Castle's closing lines, three candidates
+## Castle's closing lines
 
-Each runs about 12–18 s spoken. The quoted callbacks are prologue strings.
-
-**A. "Go and see the sky"** (recommended)
+**Chosen 2026-10-18, provisionally.** The owner will judge it against the
+picture and may change it.
 
 > All hands, this is Castle. We're down.
 > Everyone we took aboard at the Claim is walking off this ship on their own feet.
 > Take your filters. The air's thick out there, but it's air, and nobody's metering it.
-> No more chalk on the wall.
 > Mind the ramp. Go and see the sky.
+> *(intercom clicks off; quieter, to the Commander)*
+> A new start, Commander. Let's not waste it.
 
-Callbacks: air, heat and power ending; the chalk count beside the airlock; C3's
-first sky. Its last line is an instruction, so the crowd moves on her words and
-the pull-out can start on "Go and see the sky."
+The announcement is public permission for the families. The last line is
+private, and the ear knows it because the intercom click is gone, as with line 9.
+"Let's not waste it" turns the hope into the task the campaign is about.
 
-**B. "That's a start"** (quieter, to the Commander rather than all hands)
+**Timing.** The ramp drops under the second line. The camera begins to rise on
+"Go and see the sky". The private line plays over the pull-out as the ship
+shrinks among the working hulls, and the title follows.
 
-> She held, Commander. Every patch.
-> The Claim told us the date our air would stop. Down here, nobody's selling it.
-> I don't know what we are yet. But we're somewhere.
-> That's a start.
+**Callbacks.** Air, heat and power ending; Entry's "Everybody breathe"; C3's
+first sky.
 
-It is more intimate and ends on the word the whole campaign is about. It reads
-as private, though, not as the announcement the people walking off would hear.
-
-**C. "Nobody's counting"** (shortest)
-
-> All hands. We're down.
-> Nine years somebody else counted our days on a wall.
-> Nobody's counting now.
-> Go on. Go home... or wherever this is going to be.
-
-The strongest single image, but "home" may claim too much this early.
+**Alternatives if it does not land:** "We got a new start, Commander. Most
+people don't." or "Call it a new start, Commander." Kept from the first round:
+a shorter all-hands, "Nine years somebody else counted our days on a wall.
+Nobody's counting now."
 
 ## Open questions
 

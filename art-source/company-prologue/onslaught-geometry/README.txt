@@ -32,10 +32,12 @@ Appendable asset (export_onslaught.py -> export/onslaught.blend + manifest.json)
 
 Modules (one per area)
   os_kit       materials, primitives, prisms, curved sections, booleans, surface()
-  os_hull      base masses (prow, core, two gun arms, aft body with the stern
-               machinery wells, tail, legs, waists) with arched, faceted tops and
-               bellies; the gun tiers (arm and prow galleries, the round core
-               terrace and its inner tier); a stepped emplacement under every turret
+  os_hull      base masses (prow, core, the rounded belly under them, aft body
+               with the stern machinery wells, tail, legs, waists) with arched,
+               faceted tops and bellies; the prow gallery and the core citadel
+  os_arms      the two gun arms: bulky rounded forearms, rolled 16 deg outboard
+               and pitched 6 deg nose-down below the core so more guns bear, with
+               their gallery, armour and the orange shoulder they hang from
   os_armour    the orange and grey Hegemony armour as sloped plates stepping down
                from the tiers, steps, fins, cheeks, keel bars
   os_bridge    spine, terraced command dome with the bridge glazing, aft dome
@@ -72,13 +74,14 @@ Scale (pass 4; geometry.json 'scale')
   From the shared ship_scale.py: contents (1,500 crew, 300 cargo, 400 fuel) over
   the capital machinery share against the measured enclosed volume (union of
   ship_scale.SOLIDS['onslaught'], 3.42 M units3, re-measured each build).
-  Published 0.84 m/unit (solved 0.843, range 0.817-0.868): about 296 m long,
-  226 m beam. ship_scale flags it, as it flags the Legion (3.3x the Lasher's
-  length; the sprites give 4.0x). Round 1's shallower arms took the enclosed
-  volume from 3.42 M to 2.60 M units3, which moved it from 270 m to 296 m.
+  Published 0.86 m/unit (solved 0.856, range 0.829-0.881): about 301 m long.
+  Final by the owner's rule (a capital like the Legion, shared rule, no
+  override); it moves only when the measured shape does. ship_scale flags it,
+  as it flags the Legion (3.35x the Lasher's length; the sprites give 4.0x).
   Fittings in true metres: bridge glazing band 1.4 m in 1.1 m panes, crown hatch
   1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 2.1 units.
 
 Status
-  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 round 1 (terraced,
-  curved, guns in emplacements, shallow arms; IoU 0.962). Awaiting owner review.
+  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 rounds 1-2 (terraced,
+  curved; a bulky brawler: tilted forearms, rounded belly, citadel; turrets
+  seated flush on the hull, tilted with it; IoU 0.962). Awaiting owner review.

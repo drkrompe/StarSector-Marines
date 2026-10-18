@@ -108,7 +108,7 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("company-hq-station-1920x1080.png", stationView),
                 new SnapshotArtifact("company-hq-story-1920x1080.png", storyView),
                 new SnapshotArtifact("company-hq-finance-1920x1080.png", financeView),
-                SnapshotArtifact.animation("company-hq-intel-1920x1080.gif",
+                SnapshotArtifact.colorAnimation("company-hq-intel-1920x1080.gif",
                         frames, FRAME_DELAY_MILLIS));
     }
 

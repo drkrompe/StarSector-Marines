@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — tuned on headless readings: engines carry mass, call cooldown 30 s, heavy cradle three lifts, APC bills cut; mech section TTK read against its control.
+Updated: 2026-10-18 — tuned on headless readings: engines carry mass, military sink 120, Sirocco rated 36, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -125,12 +125,12 @@ budget). The ladder, tuned on headless readings (below):
 | --- | --- | --- | --- |
 | Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2, mass 1 | Military, x1.50, full band, 2x2, mass 3, -0.5 cooling |
 | Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
-| Heat sink (AMMO_RESERVE) | Factory: 100 heat, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 140, 8/s, 3x1, mass 5 |
+| Heat sink (AMMO_RESERVE) | Factory: 100 heat, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
 | Cooler (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
 
-Rated output is Hound 20, Sirocco 34, Bulwark 46 (stock weapons weigh 16, 30 and
+Rated output is Hound 20, Sirocco 36, Bulwark 46 (stock weapons weigh 16, 30 and
 40); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
-and roughly the old cooling: Bulwark 950 / 1.15 / 140 heat at 8.5/s, Sirocco 400 /
+and roughly the old cooling: Bulwark 950 / 1.15 / 120 heat at 8.5/s, Sirocco 400 /
 1.45 at 8/s, Hound 500 / 1.70 at 7/s. The trade is room: the Hound's two-cell
 reserve cannot take the military sink and it has no utility socket, a faster loader
 displaces the cooler, and a full plate and engine leave little output for the top
@@ -141,9 +141,9 @@ engine's footprint never costs room; mass is the only price an engine can pay.
 With both upgraded engines massless, the military engine cost nothing over the
 uprated one and the best of everything fitted on the Hound (28.5 of 30) and the
 Bulwark (68 of 69), breaking *tier costs room*. At mass 1 and 3 it fits on no
-chassis (Hound 31.5 / 30, Sirocco 62 / 51, Bulwark 71 / 69), while a full
+chassis (Hound 31.5 / 30, Sirocco 62 / 54, Bulwark 71 / 69), while a full
 internal refit around the factory weapons still fits all three (29.5 / 30,
-48 / 51, 65 / 69). Heavy plate plus the military engine leave 19.5, 38 and 51
+48 / 54, 65 / 69). Heavy plate plus the military engine leave 19.5, 41 and 51
 for weapons and the rest. `MechFitLawsTest` pins these laws; the whole fit space
 is `generatedSpaceEvidence --tests '*MechFitSpaceEvidence'`.
 
@@ -158,6 +158,12 @@ whole-body control. Mean seconds survived, rifles / Bulwark:
 | Bulwark | 91 / 115 | 122 / 149 | 125 / 146 |
 | Hound | 44 / 55 | 51 / 71 | 59 / 74 |
 | Sirocco | 18 / 25 | 21 / 37 | 21 / 37 |
+
+The Sirocco rows were read while a planted long-range support mech still
+turned its back on a close threat (`mechs-nouns.md`, Long-Range Support). Now
+that it keeps the threat in its arc, it lasts 29 s stock and 43 s refit against
+rifles. The refit now sits just under a stock Hound's 44 s, so take more seeds
+before making a frame call there.
 
 Bulwark > Hound > Sirocco holds at every equal tier, under both fires and both
 damage models, and a refit Hound stays far below a stock Bulwark. A stock Hound
@@ -174,6 +180,31 @@ with cooling (a stock Hound firing for 60 s: 971 damage at 6/s, 1080 at 7/s,
 refit gives up 7-18% of that for full armor and speed. That trade is the one the
 laws ask for, so the ceiling is 7.5/s on the uprated engine and 7/s on the
 military one.
+
+**The military sink holds 120, and its edge is cooling.** The AI fires a weapon
+only while the reservoir stays under 90%, locks out at 75% and releases at 40%,
+and it tries the arms before the shoulders. So whether a released Bulwark fires
+an SRM-15 salvo (42 heat) before its chainguns' next cycle (30 heat every
+1.05 s) depends on whether the reservoir exceeds 2 x (72 - 1.05 x cooling),
+about 126 at 8.5/s. Above that line each release goes chaingun plus SRM, about
+5% more damage against a mech. Below it, it goes chaingun plus chaingun, the
+same mix the pre-cut frame fires. Readings are flat on either side of the line,
+which is why an eight-seed study of 130 against 140 looked non-monotonic. At 140
+a full-refit Bulwark out-gunned its pre-cut frame by 16-18%; at 120 it is 12-13%
+over, at equal endurance (192 seeds, standard error about 1%). 120 stays under
+the line for any cooling up to 11.4/s, and it is the floor below which the
+Prestige sink would hold less than the double sink. The remaining 12% is the
+Prestige premium: cooling 8.5 against the pre-cut 8.0, and a 120 reservoir
+against 100. It still beats the double-sink refit by about 9%. Cutting its
+cooling to 7.5 would make it buy nothing, and a harsher military-engine penalty
+would also hit the Hound.
+
+**The Sirocco is rated 36.** The LRM-15 is long-range support's Advanced rack,
+as the SRM-15 is the Bulwark's. At 34 the most fragile chassis had to give up its
+double sink or its heavy plate to carry one. At 36 the factory heavy cannon,
+LRM-5 and LRM-15 fit a full frame (400 armor, 8/s) with no headroom, so the tier
+still costs room. The best of everything still does not fit (62 of 54), and the
+refit frame is unchanged, so a refit Sirocco still out-plates no Hound.
 
 ## Lift classes
 
@@ -287,16 +318,12 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
 
 ## Open questions
 
-- The Bulwark's full refit overshoots its pre-cut firepower by 13-31% at equal
-  endurance, because the military sink's 140 reservoir lets both SRM-15 salvos
-  through. 130 or 120 is the candidate; the reservoir study was too noisy to pick
-  one, so a mission read decides.
-- A full internal refit leaves a Sirocco 33 output for weapons, so an LRM-15
-  needs composite plate or no cooler. If long-range support should carry LRM-15s
-  on a full frame, rated output 34 → 36 does it.
-- A planted Sirocco under direct fire barely shoots back (0-9 rounds before it
-  dies), so its heat and damage output are unread. That may be a doctrine
-  question for an unscreened long-range support mech.
+- A Sirocco now dies to one heavy cannon in about 11 s in the open (the
+  cannon's contact hit, `combat-durability-nouns.md`), so a Sirocco mirror fight
+  is short. Armor-vs-armor matchup scenes should read whether that is acceptable.
+- With the threat in reach, a long-range support mech's fighting withdrawal
+  still turns a little back and forth against a firing line whose members take
+  turns as its target.
 - Engine speed bands are reported, not measured: every endurance reading so far
   is a planted mech.
 - Castle's introduction of each internal needs no recorded dialogue until a live
