@@ -66,6 +66,9 @@ public record MechPattern(Kind kind, String definitionId) {
         // The light roles: lines of their own, one hull each.
         VEHICLE_TIERS.put(VehicleType.SUPPLY_TRUCK, EquipmentAccessTier.COMMON);
         VEHICLE_TIERS.put(VehicleType.SCOUT_CAR, EquipmentAccessTier.ADVANCED);
+        // Tri-Tachyon's hover line: a screen first, the drone carrier above it.
+        VEHICLE_TIERS.put(VehicleType.HOVER_SCOUT, EquipmentAccessTier.ADVANCED);
+        VEHICLE_TIERS.put(VehicleType.DRONE_SKIMMER, EquipmentAccessTier.PRESTIGE);
     }
 
     /**

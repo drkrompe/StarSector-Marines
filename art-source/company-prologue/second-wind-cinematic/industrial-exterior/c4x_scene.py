@@ -45,13 +45,13 @@ FRAMES = round(DURATION * FPS)
 W, H = 1920, 1080
 LENS_MM, SENSOR_MM = 24.0, 36.0
 CAM_POS = Vector((0.0, 150.0, 700.0))   # where haze distances are measured from (mid-pan)
-CAM_Y0, CAM_Y1 = -470.0, 400.0          # pan along +Y: over the fields, then over the port's edge
-CAM_X1 = 80.0                           # drifting east with the ship as it settles
+CAM_Y0, CAM_Y1 = -400.0, 460.0          # pan along +Y: over the fields, then over the port's edge
+CAM_X1 = 60.0                           # drifting east with the ship as it settles
 CAM_PITCH = math.radians(-85.0)          # nearly straight down, a touch toward the port
 SUN_DIR = Vector((-0.45, -0.20, 0.87)).normalized()   # toward the sun: high, left, behind
 SUN_RGB = (1.0, 0.95, 0.88)
 HAZE_RGB = (0.72, 0.80, 0.88)
-HAZE_STRENGTH = 0.6
+HAZE_STRENGTH = 0.35
 HAZE_DIST = 9000.0                       # metres for 1/e of a surface's own contrast
 
 rng = random.Random(7)
@@ -283,7 +283,7 @@ def add_farmland():
     mesh('Farm tracks', tb, track)
     mesh('Tree clumps', bt, trees)
     # The edge: a ditch, a strip of rough ground and the belt's perimeter fence on posts.
-    plane('Drainage ditch', -2000, 2000, -170, -160, material('Ditch water', (0.10, 0.14, 0.13), 0.2), 0.04)
+    plane('Drainage ditch', -2000, 2000, -170, -160, material('Ditch water', (0.10, 0.14, 0.13), 0.6), 0.04)
     plane('Rough verge', -2000, 2000, -160, -100, material('Rough verge', (0.32, 0.30, 0.20), 0.95), 0.03)
     fb = bmesh.new()
     for x in range(-1500, 1501, 12):
@@ -302,7 +302,8 @@ def add_yard():
     for y in (-40, -25, -10):
         plane('Siding %d' % y, -2000, 2000, y - 2, y + 2, ballast, 0.05)
     plane('Container yard', -600, 600, 215, 335, concrete, 0.05)
-    plane('Port apron', -2000, 2000, 360, 2500, material('Apron', (0.27, 0.27, 0.26), 0.9), 0.04)
+    plane('Loading strip', -600, 600, 336, 358, asphalt, 0.07)
+    plane('Port apron', -2000, 2000, 360, 2500, material('Apron', (0.18, 0.18, 0.17), 0.9), 0.04)
     for x in (-300, 0, 300):
         plane('Cross street %d' % x, x - 7, x + 7, -75, 360, asphalt, 0.06)
     roofs = [material('Roof rust', (0.42, 0.22, 0.12), 0.7, 0.3),
@@ -329,11 +330,14 @@ def add_yard():
     colours = [(0.62, 0.18, 0.10), (0.10, 0.28, 0.50), (0.15, 0.40, 0.20), (0.75, 0.55, 0.12),
                (0.55, 0.55, 0.52), (0.40, 0.12, 0.30)]
     cms = [bmesh.new() for _ in colours]
+    aisles = (-395.0, -305.0, -215.0, -125.0, -35.0)      # where the berths' cargo lanes arrive
+    for a in aisles:
+        plane('Yard aisle %d' % a, a - 8, a + 8, 215, 336, asphalt, 0.06)
     for row in range(6):
         y = 225 + row * 18
         x = -560
         while x < 560:
-            if rng.random() < 0.85:
+            if rng.random() < 0.85 and all(abs(x + 6 - a) > 13 for a in aisles):
                 for level in range(rng.randrange(1, 4)):
                     box(cms[rng.randrange(len(colours))], (12, 2.4, 2.6),
                         (x + 6, y + rng.choice((-2, 2)), 1.3 + 2.6 * level))
@@ -345,15 +349,16 @@ def add_yard():
         gantry_crane(bm, x, 280, 34, 44)
     mesh('Yard cranes', bm, crane)
     # Tank farm and plant at the west end; stacks.
-    bm, bt = bmesh.new(), bmesh.new()
+    bm, bt, sk = bmesh.new(), bmesh.new(), bmesh.new()
     for i in range(3):
         for j in range(2):
             cylinder(bt, 11, 16, (-760 + i * 28, 40 + j * 28, 0), 24)
     for x, y, h in ((-640, 150, 70), (520, 60, 85)):
-        stack(bm, x, y, h, 4)
+        stack(sk, x, y, h, 4)
         STACKS.append((x, y, h))
     box(bm, (30, 18, 42), (-660, 120, 21))
     mesh('Plant', bm, steel)
+    mesh('Stacks', sk, concrete)
     mesh('Tank farm', bt, tanks)
 
 
@@ -414,12 +419,12 @@ def add_detail():
                       (xa + (xb - xa) * u1 + dx, ya + (yb - ya) * u1, z - 6 * 4 * u1 * (1 - u1)), 0.35)
     mesh('Transmission line', lb, steel)
     # Harvest: a combine working down a field with its grain truck alongside.
-    green = material('Combine green', (0.45, 0.55, 0.10), 0.5)
+    green = material('Harvester orange', (0.78, 0.36, 0.08), 0.5)
     cream = material('Truck cream', (0.80, 0.76, 0.62), 0.5)
-    vehicle('Combine', [((9, 4.5, 4), (0, 0, 2.5), green), ((1.6, 12, 1.2), (5.5, 0, 0.9), green)],
-            [(0, 150, -1100), (FRAMES - 1, 150 + 3.0 * DURATION, -1100)])
+    vehicle('Robotic harvester', [((26, 14, 7), (0, 0, 4), green), ((3, 40, 2.4), (15, 0, 1.6), green)],
+            [(0, -60, -520), (FRAMES - 1, -60 + 3.0 * DURATION, -520)])
     vehicle('Grain truck', [((3, 3, 3), (2.5, 0, 2), cream), ((8, 3, 2.6), (-3.5, 0, 2), cream)],
-            [(0, 150, -1112), (FRAMES - 1, 150 + 3.0 * DURATION, -1112)])
+            [(0, -60, -548), (FRAMES - 1, -60 + 3.0 * DURATION, -548)])
     # The gate: a hauler comes up the farm track and waits at the perimeter checkpoint.
     orange = bpy.data.materials['Hauler cab']
     white = bpy.data.materials['Hauler load']
@@ -553,8 +558,8 @@ def smoothstep(a, b, x):
 
 # In under the camera from the lower left, crossing toward the port and sinking: about 330 m up
 # at the start, 70 m at the end, slowing as it goes.
-P0 = Vector((-420.0, -900.0, 340.0))
-P1 = Vector((405.0, 470.0, 70.0))     # over Kilo Nine (K9)
+P0 = Vector((-220.0, -470.0, 330.0))   # in frame, lower left, from the first second
+P1 = Vector((368.0, 458.0, 40.0))     # 40 m over Kilo Nine; offset toward the camera so it reads over the pad
 
 
 def ship_path(t):
@@ -568,27 +573,30 @@ def add_ship():
     manifest = json.loads((STATES / 'manifest.json').read_text())
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
+    # The exhaust anchors are the root's children in a collection that never reaches the scene, so
+    # they are not moved with the ship. Read each one's place relative to the root and hang the
+    # drive glows on the root itself.
     root.scale = (manifest['metres_per_unit'],) * 3
     root.rotation_mode = 'XYZ'
     glow = material('Drive plume', (0.6, 0.8, 1.0))
     glow.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value = (0.6, 0.8, 1.0, 1)
-    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 60.0
+    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 25.0
     for i in manifest['engines_running']:
         anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
         if anchor is None:
             continue
+        local = anchor.matrix_parent_inverse @ anchor.matrix_basis
         light = bpy.data.objects.new('Drive %d glow' % i, bpy.data.lights.new('Drive %d glow' % i, 'POINT'))
         light.data.energy = 6.0e5
         light.data.color = (0.55, 0.75, 1.0)
-        light.parent = anchor
-        light.location = (3.0, 0, 0)
+        light.parent = root
+        light.matrix_basis = local @ Matrix.Translation((3.0, 0, 0))
         link(light)
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=1.0)
         core = mesh('Drive %d core' % i, bm, glow)
-        core.parent = anchor
-        core.location = (2.5, 0, 0)
-        core.scale = (5.0, 2.2, 2.2)
+        core.parent = root
+        core.matrix_basis = local @ Matrix.Translation((2.5, 0, 0)) @ Matrix.Diagonal((5.0, 2.2, 2.2, 1.0))
     dt = 1.0 / FPS
     for f in range(FRAMES):
         t = f / FPS
@@ -598,6 +606,10 @@ def add_ship():
         descent = math.atan2(v.z, v.xy.length)
         pitch = 0.45 * descent + math.radians(1.0) * math.sin(2 * math.pi * t / 5.0)
         roll = math.radians(-6.0) + math.radians(2.0) * math.sin(2 * math.pi * t / 7.0)
+        level = smoothstep(DURATION - 2.0, DURATION, t)          # settling level over the pad
+        heading += math.radians(25.0) * level                     # and turning onto the pad's line
+        pitch *= 1.0 - level
+        roll *= 1.0 - level
         root.location = p
         root.rotation_euler = attitude(heading, pitch, roll)
         root.keyframe_insert('location', frame=f)
@@ -607,18 +619,31 @@ def add_ship():
 
 # ---------------------------------------------------------------- the port
 
-# Public cradles of the Hegemony port: (x, y, heading, radius, occupant). Each faces the way its
-# lane brings ships in, so no two sit at the same angle.
-PADS = [(-330.0, 490.0, 0.40, 36.0, 'hound'),
-        (-60.0, 600.0, 1.95, 36.0, 'hound'),
-        (170.0, 655.0, 1.25, 36.0, 'hound'),
-        (-420.0, 660.0, 2.70, 30.0, 'mudskipper')]
+# The public port, laid out in rows by size. Capital ships and cruisers never land; their cargo
+# comes down in lighters. Every berth in a row faces the same way, turned to the approach
+# corridor, and ships settle a few degrees off their markings.
+ROW_HEADING = math.radians(98.0)
+# Freighter berths: (x, settle offset in degrees, occupant). Sterns face the container yard. The
+# east berth is the passenger ferry's, beside the arrivals hall.
+BERTH_Y, BERTH_R = 530.0, 34.0
+BERTH_DY = {-400.0: 12.0, -310.0: -8.0, -220.0: 0.0, -130.0: 15.0, -40.0: -10.0, 50.0: 5.0, 140.0: 0.0}
+BERTHS = [(-400.0, 9.0, 'hound'), (-310.0, -11.0, 'unloading'), (-220.0, 4.0, 'empty'),
+          (-130.0, 12.0, 'lifting'), (-40.0, -7.0, 'fuelling'), (140.0, -4.0, 'ferry')]   # x 50: the heavy berth's road
+# Lighter pads, two in each gap between the freighters' cargo lanes beside the port road: Hermes
+# shuttles bringing cargo down from ships at Jangala Station and taking it up.
+LIGHTER_Y, LIGHTER_R = 412.0, 13.0
+LIGHTERS = [(-445.0, 'parked'), (-355.0, 'lifting'), (-265.0, 'parked'), (-175.0, 'landing'),
+            (-85.0, 'parked'), (5.0, 'parked'), (95.0, 'parked')]
+# The heavy berth: a walled bay with a gantry for the largest hull that lands. Empty, cargo staged
+# for an inbound.
+HEAVY = (-60.0, 70.0, 615.0, 715.0)       # x0, x1, y0, y1: behind the berths, its road down to the port road
+OFFICE = (240.0, 415.0)                   # arrivals: customs and decontamination, MuniSec's post
 # The skinned Hound and Mudskipper carry their engines on +X: a hull facing heading h is turned
 # half round so its stern, where the cargo comes out, points back down its lane.
 STERN_FIRST = math.pi
 # Kilo Nine, Nessa's private cradle, faces the way Second Wind comes in.
-K9 = (405.0, 470.0)
-YARD = (290.0, 530.0, 365.0, 590.0)       # Nessa's yard: x0, x1, y0, y1
+K9 = (395.0, 462.0)
+YARD = (300.0, 470.0, 380.0, 560.0)       # Nessa's yard: x0, x1, y0, y1
 GATE = (392.0, 410.0)                     # the gap in its west fence, onto the port road
 MODULE_RGB = [(0.70, 0.70, 0.66), (0.30, 0.42, 0.30), (0.72, 0.40, 0.12), (0.25, 0.32, 0.45)]
 
@@ -686,69 +711,180 @@ def add_port():
         for k in range(lane):                                              # lead-in dashes on the apron
             box(marks, (6, 1.2, 0.1), at(cx, cy, h, -(rad + 10 + k * 11), 0, 0.1), h)
 
-    # The public port: its road, the port office customs works from, and the cradles.
+    # The public port: its road, the port office customs works from, then the rows.
     plane('Port road', -700, YARD[0], 366, 378, asphalt, 0.08)
+    ox, oy = OFFICE
     office = bmesh.new()
-    box(office, (40, 20, 10), (-170, 398, 5))
-    box(office, (12, 10, 4), (-140, 396, 2))
-    mesh('Port office', office, material('Port office', (0.80, 0.80, 0.78), 0.5))
+    box(office, (40, 34, 10), (ox, oy, 5))
+    fx, fy, _ = at(140.0, BERTH_Y, ROW_HEADING, 0, -(BERTH_R + 4))       # the ferry's side door
+    box(office, (5, abs(fy - oy) - 10, 4), (fx, (fy + oy) / 2 + 8, 2))     # covered walk down to the hall
+    box(office, (abs(ox - fx) - 18, 5, 4), ((fx + ox) / 2 - 8, oy, 2))
+    mesh('Arrivals hall', office, material('Arrivals hall', (0.80, 0.80, 0.78), 0.5))
     band = bmesh.new()
-    box(band, (40, 3, 0.3), (-170, 398, 10.15))
-    mesh('Port office band', band, material('Hegemony blue', (0.10, 0.20, 0.55), 0.5))
-    strut(towers, (-145, 410, 0), (-145, 410, 24), 0.6)                    # the office's mast
-    for cx, cy, h, rad, who in PADS:
-        pad(cx, cy, h, rad, 5)
-        lattice_tower(towers, at(cx, cy, h, 8, rad + 14), h, (2.5, 2.5), 38)
-        strut(towers, at(cx, cy, h, 8, rad + 14, 37), at(cx, cy, h, 8, rad - 14, 37), 1.4)   # service arm
+    box(band, (40, 4, 0.3), (ox, oy, 10.15))
+    mesh('Arrivals band', band, material('Hegemony orange', (0.96, 0.59, 0.12), 0.5))
+    strut(towers, (ox + 14, oy + 14, 0), (ox + 14, oy + 14, 24), 0.6)      # the office's mast
+    lring = bmesh.new()
+    for x, who in LIGHTERS:
+        pad(x, LIGHTER_Y, math.pi / 2, LIGHTER_R, 0)
+        for a in range(32):
+            ang = 2 * math.pi * a / 32
+            box(lring, (2.8, 1.5, 0.12), (x + (LIGHTER_R + 1.5) * math.cos(ang), LIGHTER_Y + (LIGHTER_R + 1.5) * math.sin(ang), 0.3),
+                ang + math.pi / 2)
+        if who == 'parked':                                                 # stores and a crate or two
+            for k in range(r.randrange(2, 5)):
+                box(crateb, (2.2, 2.2, 2.0), (x + r.uniform(-6, 6), LIGHTER_Y - LIGHTER_R - 3 - k * 2.6, 1.0))
+    h = ROW_HEADING
+    for x, off, who in BERTHS:
+        y = BERTH_Y + BERTH_DY[x]
+        pad(x, y, h, BERTH_R, 0)
+        lattice_tower(towers, at(x, y, h, 4, BERTH_R + 10), h, (2.5, 2.5), 38)
+        strut(towers, at(x, y, h, 4, BERTH_R + 10, 37), at(x, y, h, 4, BERTH_R - 12, 37), 1.4)   # service arm
         for k in (0, 1):
-            cylinder(tankb, 4.5, 9, at(cx, cy, h, -6 + k * 11, -(rad + 12)), 18)
-        supplies((mods, stockb, crateb), r, cx, cy, h, 12, -(rad + 14))
+            cylinder(tankb, 4.5, 9, at(x, y, h, BERTH_R + 12, -18 - k * 11), 18)
+        supplies((mods, stockb, crateb), r, x, y, h, BERTH_R + 6, 4)
+    mesh('Lighter rings', lring, material('Lighter ring', (0.95, 0.80, 0.20), 0.5))
+    # Hegemony crest on the arrivals hall roof: an orange disc and a white bar.
+    crest = bmesh.new()
+    cylinder(crest, 12, 0.3, (OFFICE[0], OFFICE[1], 10.2), 32)
+    mesh('Hegemony crest', crest, bpy.data.materials['Hegemony orange'])
+    bar = bmesh.new()
+    box(bar, (17, 3.5, 0.2), (OFFICE[0], OFFICE[1], 10.6))
+    mesh('Hegemony crest bar', bar, material('Crest white', (0.92, 0.92, 0.90), 0.5))
+    # The heavy berth's service road, between the lighter pads, down to the port road; staging beside it.
+    plane('Heavy berth road', 43, 57, 378, HEAVY[2], asphalt, 0.085)
+    for i in range(6):
+        for j in range(5):
+            for lvl in range(r.randrange(1, 3)):
+                box(mods[r.randrange(len(mods))], (7, 5, 4), (100 + i * 9, 600 + j * 7, 2 + 4 * lvl))
+    for k in range(5):
+        for lvl in range(3):
+            box(stockb, (24, 0.9, 0.9), (180, 612 + k * 1.8, 0.5 + lvl * 0.95))
+    for i in range(4):                                                  # fuel farm, west of the heavy berth
+        for j in range(2):
+            cylinder(tankb, 7, 10, (-390 + i * 30, 660 + j * 30, 0), 24)
+    plane('Fuel farm bund', -405, -285, 645, 705, concrete, 0.09)
+    shed = bmesh.new()                                                  # freight terminal shed, east
+    box(shed, (80, 50, 12), (220, 670, 6))
+    mesh('Terminal shed', shed, bpy.data.materials['Roof grey'])
+    doors = bmesh.new()
+    for k in range(5):
+        box(doors, (7, 1.0, 6), (190 + k * 15, 644.6, 3))
+    mesh('Terminal doors', doors, bpy.data.materials['Steel'])
+    plane('Fuel farm road', -300, -285, 560, 645, asphalt, 0.085)
+    vehicle('Terminal truck', [((3.4, 3.0, 3.4), (0, 0, 2.1), bpy.data.materials['Hauler cab']),
+                               ((12.5, 3.0, 3.2), (-9, 0, 2.4), bpy.data.materials['Hauler load'])],
+            [(0, 205, 630)], [(0, -math.pi / 2)])
+    plane('Terminal road', 57, 180, 680, 692, asphalt, 0.085)
+    # The heavy berth: blast walls on three sides, gantry rails along them, a crane across.
+    hx0, hx1, hy0, hy1 = HEAVY
+    plane('Heavy berth deck', hx0, hx1, hy0, hy1, concrete, 0.2)
+    wall = bmesh.new()
+    box(wall, (2, hy1 - hy0, 6), (hx0, (hy0 + hy1) / 2, 3))
+    box(wall, (2, hy1 - hy0, 6), (hx1, (hy0 + hy1) / 2, 3))
+    box(wall, (hx1 - hx0, 2, 6), ((hx0 + hx1) / 2, hy1, 3))
+    for y in (hy0 + 12, hy1 - 12):                                          # deck markings: a big box
+        box(marks, (hx1 - hx0 - 30, 1.6, 0.1), ((hx0 + hx1) / 2, y, 0.3))
+    box(marks, (1.6, hy1 - hy0 - 24, 0.1), (hx0 + 15, (hy0 + hy1) / 2, 0.3))
+    box(marks, (1.6, hy1 - hy0 - 24, 0.1), (hx1 - 15, (hy0 + hy1) / 2, 0.3))
+    mesh('Heavy berth walls', wall, concrete)
+    gc = bmesh.new()
+    for x in (hx0 - 4, hx1 + 4):
+        box(gc, (2, hy1 - hy0, 0.8), (x, (hy0 + hy1) / 2, 0.4))             # rails
+        for y in (HEAVY[2] + 38, HEAVY[2] + 56):
+            strut(gc, (x, y, 0), (x, y, 46), 1.8)
+    for y in (HEAVY[2] + 38, HEAVY[2] + 56):
+        box(gc, (hx1 - hx0 + 14, 2.4, 3), ((hx0 + hx1) / 2, y, 46))
+    box(gc, (10, 22, 4), ((hx0 + hx1) / 2 - 20, HEAVY[2] + 47, 48))                  # trolley
+    mesh('Heavy berth gantry', gc, bpy.data.materials['Crane yellow'])
 
     # Kilo Nine: Nessa's yard, fenced, on the east edge with the jungle beyond.
     x0, x1, y0, y1 = YARD
-    plane('Nessa yard', x0, x1, y0, y1, material('Yard gravel', (0.40, 0.36, 0.30), 0.95), 0.15)
+    plane('Nessa yard', x0, x1, y0, y1, material('Yard gravel', (0.30, 0.27, 0.22), 0.95), 0.15)
     fence = bmesh.new()
     for x in range(int(x0), int(x1) + 1, 6):
         for y in (y0, y1):
-            box(fence, (0.3, 0.3, 3), (x, y, 1.5))
+            box(fence, (0.6, 0.6, 3), (x, y, 1.5))
     for y in range(int(y0), int(y1) + 1, 6):
         for x in (x0, x1):
             if x == x0 and GATE[0] < y < GATE[1]:
                 continue
-            box(fence, (0.3, 0.3, 3), (x, y, 1.5))
+            box(fence, (0.6, 0.6, 3), (x, y, 1.5))
     box(fence, (x1 - x0, 0.15, 0.15), ((x0 + x1) / 2, y0, 2.8))
     box(fence, (x1 - x0, 0.15, 0.15), ((x0 + x1) / 2, y1, 2.8))
     box(fence, (0.15, y1 - y0, 0.15), (x1, (y0 + y1) / 2, 2.8))
     box(fence, (0.15, GATE[0] - y0, 0.15), (x0, (y0 + GATE[0]) / 2, 2.8))
     box(fence, (0.15, y1 - GATE[1], 0.15), (x0, (GATE[1] + y1) / 2, 2.8))
     mesh('Nessa fence', fence, bpy.data.materials['Fence steel'])
+    edge = material('Fence line', (0.07, 0.07, 0.06), 0.9)
+    plane('Fence line S', x0, x1, y0 - 1, y0 + 1, edge, 0.17)
+    plane('Fence line N', x0, x1, y1 - 1, y1 + 1, edge, 0.17)
+    plane('Fence line E', x1 - 1, x1 + 1, y0, y1, edge, 0.17)
+    plane('Fence line W1', x0 - 1, x0 + 1, y0, GATE[0], edge, 0.17)
+    plane('Fence line W2', x0 - 1, x0 + 1, GATE[1], y1, edge, 0.17)
+    plane('Gate stub', x0 - 12, x0 + 14, GATE[0], GATE[1], asphalt, 0.18)
     kx, ky = K9
     kh = k9_heading()
     pad(kx, ky, kh, 38, 3)
+    ring = bmesh.new()
+    for a in range(64):
+        ang = 2 * math.pi * a / 64
+        box(ring, (4.0, 2.2, 0.12), (kx + 40 * math.cos(ang), ky + 40 * math.sin(ang), 0.3), ang + math.pi / 2)
+    mesh('Kilo Nine ring', ring, material('Kilo Nine ring', (0.95, 0.80, 0.20), 0.5))
     for side in (-1, 1):                                                   # repair scaffold either side
         lattice_tower(towers, at(kx, ky, kh, 0, side * 46), kh, (14, 3), 28, deck=deckb)
     # A derrick over the salvage, a hangar, and the workshop the families walk into.
-    strut(towers, (505, 560, 0), (505, 560, 46), 1.6)
-    strut(towers, (505, 560, 38), (462, 518, 50), 1.0)
-    strut(towers, (505, 560, 44), (520, 575, 40), 1.0)
-    strut(towers, (462, 518, 50), (462, 518, 18), 0.3)
-    box(towers, (5, 5, 3), (522, 577, 39))
+    strut(towers, (455, 545, 0), (455, 545, 46), 2.0)
+    strut(towers, (455, 545, 38), (420, 512, 50), 2.0)
+    strut(towers, (455, 545, 44), (463, 553, 40), 1.4)
+    strut(towers, (420, 512, 50), (420, 512, 18), 0.3)
+    box(towers, (5, 5, 3), (465, 555, 39))
     hull = material('Hull plate', (0.22, 0.23, 0.24), 0.5, 0.6)
     hb = bmesh.new()
     for _ in range(16):
-        box(hb, (r.uniform(6, 14), r.uniform(3, 6), 0.6), (r.uniform(440, 515), r.uniform(500, 545), r.uniform(0.5, 2.0)),
+        box(hb, (r.uniform(6, 14), r.uniform(3, 6), 0.6), (r.uniform(412, 462), r.uniform(514, 550), r.uniform(0.5, 2.0)),
             r.uniform(0, math.pi))
     mesh('Salvage plates', hb, hull)
     hang = bmesh.new()
-    box(hang, (40, 56, 20), (335, 548, 10))
+    box(hang, (34, 42, 18), (328, 532, 9))
     mesh('Nessa hangar', hang, bpy.data.materials['Roof rust'])
     shop = bmesh.new()
-    box(shop, (28, 18, 7), (322, 392, 3.5))
-    box(shop, (12, 10, 5), (345, 386, 2.5))
+    box(shop, (28, 18, 7), (325, 398, 3.5))
+    box(shop, (12, 10, 5), (348, 393, 2.5))
     mesh('Nessa workshop', shop, bpy.data.materials['Roof grey'])
     for k in (0, 1):
-        cylinder(tankb, 4, 8, (508, 388 + k * 11, 0), 18)
+        cylinder(tankb, 4, 8, (455, 395 + k * 11, 0), 18)
     supplies((mods, stockb, crateb), r, kx, ky, kh, -44, 60)
+    life = bmesh.new()
+    box(life, (12, 7, 0.2), (325, 411, 3.2))                            # tarp awning at the door
+    mesh('Workshop awning', life, material('Tarp orange', (0.85, 0.42, 0.12), 0.8))
+    wash = [material('Washing %d' % i, c, 0.9) for i, c in
+            enumerate(((0.97, 0.97, 0.95), (0.30, 0.45, 0.70), (0.75, 0.30, 0.25), (0.85, 0.75, 0.35)))]
+    wb = [bmesh.new() for _ in wash]
+    for line in (0, 1):                                                 # washing lines by the workshop
+        for k in range(9):
+            box(wb[0 if (k + line) % 3 else 1 + (k % 3)], (1.8, 0.7, 1.4), (342 + k * 2.1, 418 + line * 4, 1.9))
+    for bm, m in zip(wb, wash):
+        mesh(m.name + ' line', bm, m)
+    for y in (418, 422):
+        strut(towers, (340, y, 0), (340, y, 2.6), 0.15)
+        strut(towers, (361, y, 0), (361, y, 2.6), 0.15)
+    garden = material('Garden rows', (0.18, 0.40, 0.12), 0.9)
+    gb = bmesh.new()
+    for k in range(6):                                                  # vegetable rows against the back fence
+        box(gb, (16, 1.0, 0.5), (378, 548 - k * 1.8, 0.4))
+    mesh('Garden patch', gb, garden)
+    plane('Garden soil', 369, 387, 538, 552, material('Garden soil', (0.20, 0.13, 0.08), 0.95), 0.2)
+    chairs = bmesh.new()
+    for x, y in ((316, 413), (318, 416), (333, 414)):
+        box(chairs, (0.6, 0.6, 0.9), (x, y, 0.45))
+    mesh('Chairs', chairs, crate)
+    people = material('People', (0.12, 0.12, 0.13), 0.9)
+    pb = bmesh.new()
+    for x, y in ((321, 414), (327, 416), (330, 413), (370, 430), (373, 433), (448, 418), (352, 487),
+                 (356, 490), (433, 444), (380, 545)):
+        box(pb, (0.9, 0.9, 1.8), (x, y, 0.9))
+    mesh('Yard people', pb, people)
 
     mesh('Pads', pads, concrete)
     mesh('Pad markings', marks, paint)
@@ -761,14 +897,33 @@ def add_port():
         mesh(m.name + ' stacks', bm, m)
 
     # The jungle past Nessa's back fence.
+    burn = bmesh.new()
+    for _ in range(26):
+        box(burn, (r.uniform(8, 22), r.uniform(10, 40), 0.05), (x1 + r.uniform(6, 18), r.uniform(340, 1000), 0.14),
+            r.uniform(-0.4, 0.4))
+    mesh('Burn patches', burn, material('Burn scar', (0.16, 0.12, 0.07), 0.95))
     plane('Jungle floor', x1 + 6, 2000, 340, 2500, material('Jungle floor', (0.05, 0.11, 0.04), 0.95), 0.12)
     jb = bmesh.new()
     for _ in range(420):
-        cx, cy = r.uniform(x1 + 10, 1000), r.uniform(345, 1100)
+        cx, cy = r.uniform(x1 + 14, 1000), r.uniform(345, 1100)
         rad = r.uniform(6, 12)
         res = bmesh.ops.create_icosphere(jb, subdivisions=1, radius=rad)
         bmesh.ops.translate(jb, vec=(cx, cy, rad + 4), verts=res['verts'])
+    for _ in range(14):                                                 # over the back fence
+        rad = r.uniform(5, 9)
+        cx, cy = r.choice(((r.uniform(x1 - 6, x1 + 4), r.uniform(y0 + 20, y1)),
+                           (r.uniform(x0 + 80, x1), r.uniform(y1 - 4, y1 + 6))))
+        res = bmesh.ops.create_icosphere(jb, subdivisions=1, radius=rad)
+        bmesh.ops.translate(jb, vec=(cx, cy, rad + 3), verts=res['verts'])
     mesh('Jungle canopy', jb, material('Jungle canopy', (0.05, 0.14, 0.05), 0.9))
+    # The apron stops at a tree line, so nothing beyond reads as unused ground.
+    tb = bmesh.new()
+    for x in range(-700, int(x1), 9):
+        rad = r.uniform(5, 8)
+        res = bmesh.ops.create_icosphere(tb, subdivisions=1, radius=rad)
+        bmesh.ops.translate(tb, vec=(x + r.uniform(-3, 3), 770 + r.uniform(-4, 10), rad + 3), verts=res['verts'])
+    mesh('Port tree line', tb, bpy.data.materials['Jungle canopy'])
+    plane('Beyond the port', -2000, x1 + 6, 765, 2500, bpy.data.materials['Jungle floor'], 0.12)
 
     add_cargo_flow(r)
     add_k9_vehicles()
@@ -807,27 +962,44 @@ def add_cargo_flow(r):
     cmats = [bpy.data.materials['Container %d' % i] for i in range(6)]
     lay = [bmesh.new() for _ in cmats]
     n = 0
-    for cx, cy, h, rad, who in PADS:
-        if who != 'hound':
+    h = ROW_HEADING
+    for x, off, who in BERTHS:
+        cx, cy = x, BERTH_Y + BERTH_DY[x]
+        rad = BERTH_R
+        s0 = at(cx, cy, h, -(rad + 4), 0)
+        if who == 'ferry':
+            n += 1
+            continue
+        lane = bmesh.new()                                          # straight back to the container yard
+        box(lane, (16, s0[1] - 342.0, 0.02), (s0[0], (s0[1] + 342.0) / 2, 0.09))
+        mesh('Cargo lane %d' % n, lane, bpy.data.materials['Asphalt'])
+        if who not in ('hound', 'unloading', 'fuelling'):
+            n += 1
             continue
         for i in range(3):                                          # containers set down off the stern
             for j in (-1, 1):
                 box(lay[r.randrange(6)], (12, 2.4, 2.6), at(cx, cy, h, -(rad + 8), j * (10 + i * 3.2), 1.3), h)
-        s0 = at(cx, cy, h, -(rad + 4), 0)
-        s1 = (max(-540.0, min(540.0, cx)), 342.0)
-        lane = bmesh.new()
-        ln = math.hypot(s1[0] - s0[0], s1[1] - s0[1])
-        box(lane, (ln, 16, 0.02), ((s0[0] + s1[0]) / 2, (s0[1] + s1[1]) / 2, 0.09),
-            math.atan2(s1[1] - s0[1], s1[0] - s0[0]))
-        mesh('Cargo lane %d' % n, lane, bpy.data.materials['Asphalt'])
-        for k, lat in enumerate((-4.0, 0.0, 4.0)):
-            a = at(cx, cy, h, -(rad + 4), lat)
-            b = (s1[0] + lat, 342.0)
-            shuttle('Carrier %d' % n,
+        lats = (-5.0, 0.0, 5.0) if who == 'unloading' else (-4.0, 4.0)
+        if who == 'fuelling':
+            vehicle('Port bowser %d' % n, [((3, 3, 3), (5, 0, 2), bpy.data.materials['Hauler load']),
+                                           ((9, 3, 3), (-1.5, 0, 2), bpy.data.materials['Hauler load'])],
+                    [(0,) + at(cx, cy, h, 4, -(rad + 6))[:2]], [(0, h)])
+        for k, lat in enumerate(lats):
+            shuttle('Carrier %d %d' % (n, k),
                     [((12.5, 0.8, 1.0), (0, 2.4, 6.5), yellow), ((12.5, 0.8, 1.0), (0, -2.4, 6.5), yellow),
                      ((12, 2.4, 2.6), (0, 0, 1.6), cmats[r.randrange(6)])],
-                    a, b, 9.0, 2.5, k / 3 + 0.1 * n)
-            n += 1
+                    (s0[0] + lat, s0[1]), (s0[0] + lat, 345.0), 9.0, 2.5, k / len(lats) + 0.17 * n)
+        n += 1
+    # Containers staged on the heavy berth's apron for an inbound, carriers waiting in line.
+    hx0, hx1, hy0, hy1 = HEAVY
+    for i in range(4):
+        for j in range(3):
+            for lvl in range(r.randrange(1, 3)):
+                box(lay[r.randrange(6)], (12, 2.4, 2.6), (hx0 + 30 + i * 18, hy0 - 10 - j * 4, 1.3 + 2.6 * lvl))
+    for k in range(3):
+        vehicle('Waiting carrier %d' % k,
+                [((12.5, 0.8, 1.0), (0, 2.4, 6.5), yellow), ((12.5, 0.8, 1.0), (0, -2.4, 6.5), yellow)],
+                [(0, 64, hy0 - 10 - k * 16)], [(0, math.pi / 2)])
     for bm, m in zip(lay, cmats):
         mesh('Apron laydown ' + m.name, bm, m)
 
@@ -842,27 +1014,46 @@ def add_k9_vehicles():
     kh = k9_heading()
     t0, t1 = round(3.0 * FPS), FRAMES - 1
     for name, parts, (xa, ya), (u, v) in (
-            ('Tug', [((8, 4, 2.4), (0, 0, 1.4), yellow)], (330, 512), (-46, 10)),
-            ('Fuel bowser', [((3, 3, 3), (5, 0, 2), white), ((9, 3, 3), (-1.5, 0, 2), white)], (490, 405), (-24, -44)),
-            ('Crew carrier', [((10, 3, 3.2), (0, 0, 2), cream)], (322, 408), (-42, 26))):
+            ('Tug', [((8, 4, 2.4), (0, 0, 1.4), yellow)], (330, 506), (-46, 10)),
+            ('Fuel bowser', [((3, 3, 3), (5, 0, 2), white), ((9, 3, 3), (-1.5, 0, 2), white)], (450, 412), (-24, -44)),
+            ('Crew carrier', [((10, 3, 3.2), (0, 0, 2), cream)], (325, 412), (-42, 26))):
         xb, yb, _ = at(kx, ky, kh, u, v)
         vehicle(name, parts, [(0, xa, ya), (t0, xa, ya), (t1, xb, yb)], [(0, math.atan2(yb - ya, xb - xa))])
-    lights = material('Customs lights', (0.2, 0.4, 1.0))
+    lights = material('Customs lights', (1.0, 0.6, 0.2))
     lp = lights.node_tree.nodes['Principled BSDF']
-    lp.inputs['Emission Color'].default_value = (0.3, 0.5, 1.0, 1)
-    lp.inputs['Emission Strength'].default_value = 40.0
-    vehicle('Customs car', [((5.2, 2.3, 1.5), (0, 0, 1.0), material('Customs white', (0.88, 0.88, 0.86), 0.4)),
-                            ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony blue']),
-                            ((0.6, 1.9, 0.35), (-0.6, 0, 1.95), lights)],
-            [(0, 60, 372), (168, 270, 372), (FRAMES - 1, 300, 400)],
-            [(0, 0.0), (165, 0.0), (FRAMES - 1, 0.75)])
+    lp.inputs['Emission Color'].default_value = (1.0, 0.62, 0.25, 1)
+    for f in range(0, FRAMES, 6):                       # flashing
+        lp.inputs['Emission Strength'].default_value = 120.0 if (f // 6) % 2 else 15.0
+        lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
+    car = vehicle('Customs car', [((5.2, 2.3, 1.5), (0, 0, 1.0), material('Customs white', (0.88, 0.88, 0.86), 0.4)),
+                            ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange']),
+                            ((1.2, 2.2, 0.4), (-0.6, 0, 2.0), lights)],
+            [(0, OFFICE[0] - 8, 392), (110, OFFICE[0] - 8, 392), (128, 252, 372), (168, 280, 372), (FRAMES - 1, 300, 400)],
+            [(0, -0.9), (112, -0.9), (128, 0.0), (165, 0.0), (FRAMES - 1, 0.75)])
+    beacon = bpy.data.objects.new('Customs beacon', bpy.data.lights.new('Customs beacon', 'POINT'))
+    beacon.data.color = (1.0, 0.6, 0.2)
+    beacon.data.shadow_soft_size = 0.3
+    beacon.parent = car
+    beacon.location = (0, 0, 4.0)
+    link(beacon)
+    for f in range(0, FRAMES, 6):                       # flashing with the bar: a pool of amber on the road
+        beacon.data.energy = 2.0e5 if (f // 6) % 2 else 0.0
+        beacon.data.keyframe_insert('energy', frame=f)
+    vehicle('MuniSec car at the gate', [((5.2, 2.3, 1.5), (0, 0, 1.0), bpy.data.materials['Customs white']),
+                                        ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange'])],
+            [(0, -250, -104)], [(0, 0.3)])
 
 
 def add_port_traffic():
-    """Real 3D hulls at the port: Hounds working the public cradles, a Mudskipper lifting out."""
+    """Real 3D hulls at the port: Hounds working the freighter berths, the Mudskipper ferry by the
+    arrivals hall, Hermes lighters on their row, some lifting for orbit and some coming down."""
     def instancer(path, mpu):
         coll = append_collection(path, 'Collection')
         bpy.context.view_layer.layer_collection.children[coll.name].exclude = True
+        # The hull files' own lamps blow out from 700 m in daylight. The ship's drive lights are
+        # added after this, so at this point every lamp but the sun came from a hull file.
+        for o in [o for o in bpy.data.objects if o.type == 'LIGHT' and o.name != 'Sun']:
+            bpy.data.objects.remove(o)
 
         def place(label):
             e = link(bpy.data.objects.new(label, None))
@@ -873,19 +1064,80 @@ def add_port_traffic():
         return place
     mud = instancer(INPUTS / 'mudskipper-skinned.blend', 0.85)
     hound = instancer(INPUTS / 'hound-skinned.blend', 0.88)
-    for i, (cx, cy, h, rad, who) in enumerate(PADS):
-        if who == 'hound':
-            e = hound('Hound on pad %d' % i)
-            e.location = (cx, cy, 11)
-            e.rotation_euler = (0, 0, h + STERN_FIRST)
-        else:
-            e = mud('Mudskipper lifting off')
-            e.rotation_euler = (0, 0, h + STERN_FIRST)
-            for f, z in ((0, 11.0), (FRAMES - 1, 11.0 + 8.0 * DURATION)):
-                e.location = (cx, cy, z)
+    hermes = instancer(CINE.parent / 'hermes-geometry' / 'hermes-geometry.blend', 0.11)
+
+    def tinted(path, mpu, hue, sat, val):
+        """Another copy of a hull with every base colour shifted: a different operator's livery."""
+        before = set(bpy.data.materials)
+        place = instancer(path, mpu)
+        for m in set(bpy.data.materials) - before:
+            if not m.use_nodes:
+                continue
+            nt = m.node_tree
+            for n in [n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED']:
+                inp = n.inputs['Base Color']
+                hs = nt.nodes.new('ShaderNodeHueSaturation')
+                hs.inputs['Hue'].default_value = hue
+                hs.inputs['Saturation'].default_value = sat
+                hs.inputs['Value'].default_value = val
+                if inp.links:
+                    nt.links.new(inp.links[0].from_socket, hs.inputs['Color'])
+                else:
+                    hs.inputs['Color'].default_value = inp.default_value
+                nt.links.new(hs.outputs['Color'], inp)
+        return place
+    liveries = {'unloading': tinted(INPUTS / 'hound-skinned.blend', 0.88, 1.0, 0.55, 0.9),     # dull blue
+                'fuelling': tinted(INPUTS / 'hound-skinned.blend', 0.88, 0.5, 0.12, 1.15)}    # bare grey
+    for i, (x, off, who) in enumerate(BERTHS):
+        if who == 'empty':
+            continue
+        e = (mud if who == 'ferry' else liveries.get(who, hound))('%s at berth %d' % (who.title(), i))
+        e.location = (x, BERTH_Y + BERTH_DY[x], 11)
+        if who == 'lifting':
+            for f, z in ((0, 11.0), (FRAMES - 1, 11.0 + 4.0 * DURATION)):
+                e.location.z = z
                 e.keyframe_insert('location', frame=f)
+        e.rotation_euler = (0, 0, ROW_HEADING + math.radians(off) + STERN_FIRST)
+    for i, (x, who) in enumerate(LIGHTERS):
+        if who == 'empty':
+            continue
+        e = hermes('Lighter %d %s' % (i, who))
+        e.rotation_euler = (0, 0, math.pi / 2 + math.radians((i * 37) % 9 - 4))
+        z0, z1 = {'parked': (2.5, 2.5), 'lifting': (2.5, 2.5 + 9.0 * DURATION),
+                  'landing': (2.5 + 12.0 * DURATION, 2.5)}[who]
+        for f, z in ((0, z0), (FRAMES - 1, z1)):
+            e.location = (x, LIGHTER_Y, z)
+            e.keyframe_insert('location', frame=f)
 
 # ---------------------------------------------------------------- light, camera, render
+
+def add_cloud_shadows():
+    m = bpy.data.materials.new('Cloud shadow')
+    m.use_nodes = True
+    m.surface_render_method = 'DITHERED'
+    try:
+        m.use_transparent_shadow = True
+    except AttributeError:
+        pass
+    nt = m.node_tree
+    pr = nt.nodes['Principled BSDF']
+    coord = nt.nodes.new('ShaderNodeTexCoord')
+    noise = nt.nodes.new('ShaderNodeTexNoise')
+    noise.inputs['Scale'].default_value = 0.0022
+    noise.inputs['Detail'].default_value = 3.0
+    ramp = nt.nodes.new('ShaderNodeMapRange')
+    ramp.inputs['From Min'].default_value = 0.58
+    ramp.inputs['From Max'].default_value = 0.68
+    ramp.inputs['To Max'].default_value = 0.5                  # half-dark: soft cloud shade, not scorch
+    nt.links.new(coord.outputs['Object'], noise.inputs['Vector'])
+    nt.links.new(noise.outputs['Fac'], ramp.inputs['Value'])
+    nt.links.new(ramp.outputs['Result'], pr.inputs['Alpha'])
+    ob = plane('Cloud shadows', -3000, 3000, -3000, 3000, m, 0.0)
+    ob.visible_camera = False
+    for f, x in ((0, 0.0), (FRAMES - 1, 40.0)):
+        ob.location = (x, 0, 560.0)
+        ob.keyframe_insert('location', frame=f)
+
 
 def add_sun():
     sun = link(bpy.data.objects.new('Sun', bpy.data.lights.new('Sun', 'SUN')))
@@ -919,8 +1171,9 @@ def build():
     add_port()
     add_steam()
     add_port_traffic()
+    add_cloud_shadows()
     add_ship()
-    add_haze(skip={'Steam', 'Drive plume', 'Customs lights'})
+    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow'})
     add_camera(scene)
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness

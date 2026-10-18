@@ -190,8 +190,11 @@ lives in ../shepherd-surface/ (see its README). Owner, on the round 1 renders:
 the command deck windows looked wonky with the ribbon angling. The windscreen
 was laid out at constant section angle, so on a nose that narrows forward its
 mullions fanned and twisted and the band wrapped down the shoulders. It is now
-six flat panes and their mullions at constant plan Y (sh_bridge._ty), vertical
-from ahead and straight from above, stopping at the shoulders; the brow visor
-and sill rail are square-ended to match. The wing windows carry the flanks.
+six flat panes and their mullions at constant plan Y, vertical from ahead,
+stopping at the shoulders. Owner, second look: still a rainbow from the front;
+it must be horizontal. The head, sill, brow visor and sill rail are now level
+lines too: the glazing is laid out in height and plan Y and each point found
+on the rake (sh_bridge._yz), so from ahead the windscreen is a level rectangle
+and on the rounded nose its head simply sits further aft at the shoulders. The wing windows carry the flanks.
 build_shepherd.py renders on the GPU when there is one (--factory-startup
 leaves Cycles on the CPU).

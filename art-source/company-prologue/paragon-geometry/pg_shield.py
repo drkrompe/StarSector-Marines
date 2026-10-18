@@ -15,7 +15,7 @@ import pg_hull
 SHIELD_CENTER = (1, 0)
 SHIELD_RADIUS = 270
 SHIELD_ARC = 360
-NODE_R = 58.8
+NODE_R = 66.0
 NODE_ANGLES = [15+30*k for k in range(12)]
 RECORDS = {}
 
@@ -30,20 +30,20 @@ def build(kit, metres_per_unit):
     em['ship_system'] = 'fortressshield'
     em['colour'] = K.GLOW_BLUE
     nodes = []
-    top = 26.0  # lining top (pg_hull.lining)
+    top = pg_hull.LINING_TOP
     for k, a in enumerate(NODE_ANGLES, start=1):
         x = cx+NODE_R*math.cos(math.radians(a))
         y = cy+NODE_R*math.sin(math.radians(a))
         if x < -18 and abs(y) < 30:  # under the core's nose
             continue
         n = len(nodes)+1
-        K.revolve(kit, f'Shield emitter node {n} base', [(0, -1), (2.2, -1), (2.2, .5), (1.8, 1.1), (0, 1.1)],
-                  kit.steel, center=(x, y, top), segments=32)
-        K.revolve(kit, f'Shield emitter node {n} lens', [(0, 0), (1.5, 0), (1.3, .9), (.7, 1.4), (0, 1.6)],
-                  kit.glow, center=(x, y, top+1.0), segments=32)
+        K.revolve(kit, f'Shield emitter node {n} base', [(0, -1), (4.6, -1), (4.6, 1.2), (3.4, 2.4), (0, 2.4)],
+                  kit.pale, center=(x, y, top), segments=8, smooth=False)
+        K.revolve(kit, f'Shield emitter node {n} lens', [(0, 0), (2.2, 0), (1.9, 1.0), (0, 1.5)],
+                  kit.glow, center=(x, y, top+2.3), segments=16)
         face = math.degrees(math.atan2(cy-y, cx-x))
-        e = kit.empty(f'Shield emitter node {n}', (x, y, top+2.5), face, 'SINGLE_ARROW', 4)
-        nodes.append({'name': e.name, 'location': [round(x, 2), round(y, 2), round(top+2.5, 2)],
+        e = kit.empty(f'Shield emitter node {n}', (x, y, top+3.8), face, 'SINGLE_ARROW', 4)
+        nodes.append({'name': e.name, 'location': [round(x, 2), round(y, 2), round(top+3.8, 2)],
                       'faces_deg': round(face, 1)})
     RECORDS.update({'anchor': em.name, 'center': [*SHIELD_CENTER, 0.0], 'type': 'OMNI', 'arc_deg': SHIELD_ARC,
                     'radius_units': SHIELD_RADIUS, 'radius_m': em['radius_m'], 'ship_system': 'fortressshield',

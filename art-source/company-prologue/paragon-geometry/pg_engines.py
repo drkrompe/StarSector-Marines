@@ -52,7 +52,7 @@ def build(kit):
         stations = [(xs, [(y+py*f, z+pz*f) for py, pz in sec])
                     for xs, f in ((rear, .9), (rear+2, .98), (rear+10, 1.0), (POD_FRONT_X-6, .9), (POD_FRONT_X, .55))]
         stations.sort(key=lambda s: s[0])
-        K.loft_x(kit, f'Engine {i} drive pod', stations, kit.pale if w > 10 else kit.skin, bevel=0, smooth=40)
+        K.loft_x(kit, f'Engine {i} drive pod', stations, kit.slate, bevel=0, smooth=False)
         # Bell, lip and throat are revolved about local Z and laid along -X from the bell's
         # forward plane (rear), so local z runs aft.
         def lay(ob):

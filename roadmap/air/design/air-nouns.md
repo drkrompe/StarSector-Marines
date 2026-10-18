@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-18 — no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1709,13 +1709,22 @@ for one mission:
   guns bear least, weighed against the flying to get there, and holds its nose on the
   target, so it makes passes and works round to a quiet quarter rather than trading
   broadsides.
+- **Hulls fight at a distance.** A gun firing at a hull reaches its base-game range
+  times the hull presence, times the reach share, times the **hull range** (two and a
+  half): hulls trade fire across several of their own lengths, never nose to nose. A
+  round or missile at a hull flies the hull range times as fast, so its flight takes the
+  base game's seconds at that distance and point defence has the base game's time to
+  answer a missile; a carrier splits at its split range times the hull range. Fighters
+  and point defence against craft keep their own close-in reach and clocks.
 - **The standoff law.** A duelling ship's range comes from its guns and both hulls'
   size, by one rule for every hull: a ship that outranges its target holds off between
   the two reaches, one that does not closes well inside its own, and neither stands off
-  farther than three of the two hulls' mean length, nor nearer than the two hulls
-  and a clearance. Range advantage matters (the outranged ship has to close under fire)
-  but nobody holds off untouchable across the map: a ship's guns reach only a few of its
-  lengths, and the law will not let it stand farther off than that.
+  farther than the hull range times three of the two hulls' mean length, nor nearer
+  than the two hulls and a clearance. The reach the law reads is the ship's **battery
+  reach** — the range at which three fifths of its anti-ship firepower bears — not its
+  longest gun, so a ship with one long gun does not hold its main battery out of reach.
+  Range advantage matters (the outranged ship has to close under fire) but nobody holds
+  off untouchable across the map.
 - **Escorts screen by fighting, on a leash.** With no hull to fight, an escort holds its
   place in the screen line abreast of its charge. With one, it takes its own duel
   station by the same laws, pulled in to within its charge's half-length and its own
@@ -1728,18 +1737,38 @@ for one mission:
   is followed by the next after the weapon's charge-up and charge-down, not at the floor
   of the tick, and that whole cycle, the missile ripple, and on the duel footing flux
   dissipation, shield upkeep and overload run at one over the **hull-fight tempo**. The
-  tempo is derived, not tuned: a round between hulls flies three times the base game's
-  distance at its speed, so at a tempo of three the rounds in the air and the share of a
-  fight spent crossing are the base game's. Damage, armour, shields and hit points are
+  tempo is derived, not tuned: it is the hull presence times the reach share (three),
+  and the hull range does not enter it, because a round's speed carries that factor, so
+  the rounds in the air and the share of a fight spent crossing are the base game's at
+  any hull range. While it fights a hull a ship's flux runs on the duel footing's
+  thresholds whatever its posture, so air superiority's sparing flux pair never holds a
+  hull fight's guns silent. Damage, armour, shields and hit points are
   untouched, so every matchup keeps the base game's balance and only takes longer; a
   weapon built for alpha (an Antimatter Blaster, a Harpoon) still kills a frigate in one
   or two blows. Ground fire, air fire and point defence keep their own clocks.
-- **A mission may keep the hull fight over its own ground.** It declares an
-  **airspace** (`HullAirspace`), and ships fighting hulls choose their stations inside
-  it, in sight of the ground battle and not over it; entering, climbing out and routes
-  cross it freely. With none declared the whole map is the airspace. A station chosen near
-  an airspace edge is eased back toward the interior over a soft band, so a fight that
-  drifts toward an edge turns back over the middle rather than running along the boundary.
+- **A fight between ships goes where the fighting takes it, and is kept off the map's
+  edges by a soft pressure** (owner, 2026-10-18). No mission declares an area for it: the
+  fight may drift over the ground battle as readily as over open ground. Every hull frigate-
+  sized and up that its own helm is flying against hulls (on its duel helm or a manoeuvre),
+  in every mission, wants a band of clear air between its hull and each edge, its **edge
+  margin**: the larger of its tightest turning circle and one and a half of its own lengths,
+  never more than a fifth of the map's shorter side, so a small map keeps a middle. The
+  duel, bow, manoeuvre and interposing-escort stations it chooses are kept out of the band, and its
+  course is pressed away from an edge as it nears one (`WarshipEdgeHelm`): the pressure
+  starts at the margin and grows to the edge, reads where the hull will be once it has
+  stopped closing the edge at its own acceleration (so a heavy hull coming in fast turns
+  away early), sheds the way toward the edge before pushing back in (so a ship running
+  along the band keeps its way along it), and comes after keeping clear of other hulls,
+  since an edge cannot be shouldered aside as a hull can; a manoeuvre's bow comes round
+  onto the course it leaves. A centre that crosses an edge anyway is held on it, for every
+  flown hull whether or not the pressure applies to it, and a hull leaving across its edge
+  is held off the other three: only a side's own edge is a way on or off. A ship
+  holding a station someone chose (a mission's, a called ship's, a remote order's, an
+  escort's place in the screen line) keeps it: those are places, not a fight. Exempt too:
+  a hull deliberately crossing its side's edge (flying in until it has cleared its margin,
+  or leaving), and everything placed rather than flown (a route or lift run, a low pass or
+  low hover, a berthed hull, a pilot's helm, every craft of fighter size).
+  `-Dbattle.warship.edgePressure=false` is the control.
 - **An escort screens beside its charge.** Fighting a hull, an escort interposes: it
   stands in line between its charge and the threat, just clear of the charge's side that
   faces it, its fellow escorts spaced square to the threat, so a screen and the ship it
@@ -1830,6 +1859,19 @@ first objective, so it never has to come about after appearing; the descent's
 presentation follows that heading. While it is still coming down it fires nothing and
 takes no duel station. Then it closes under its own handling, so the approach is part
 of the fight.
+
+**A mission may give each side an approved map edge, and then nothing of that side warps in
+or out** (owner, 2026-10-18). Its ships come on by flying in across the edge: the hull is
+placed just off the map, already on its heading and under way at its top speed, with a
+station ahead well inside its margin, and is seen crossing the edge; it can fight as it
+comes, and the edge pressure leaves it alone until it has cleared its margin. Every way one
+of its ships leaves (a mission's withdrawal, a visit's end, spent station time, a doctrine's
+withdrawal, an escort following its lead out) flies straight out across the same edge,
+nose first and in level flight, and the hull is gone only once its own propulsion has
+carried it off the map; until then it can be hit, answers a hull in reach, and its escorts
+keep it as their lead. A hull already berthed on the map still lifts from its pad. The seam
+is general (`WarshipSystem.assignEdge`, `enterAcrossEdge`, `leaveAcrossEdge`); a side with
+no edge arrives and leaves as below.
 
 **A ship enters and leaves through the cloud deck, and that is presentation only.**
 A ship brought in from the map edge starts at the top of the deck and descends to its
@@ -2107,7 +2149,7 @@ authored route over the map edge at its own speed, climbing by how much of the w
 has flown, and it has escaped only when propulsion has carried the whole hull off the
 map. Until then it can be hit and it answers: a departing hull fires at hostile hulls in
 its guns' reach as it goes, though it takes on no new ground or air work, and its escorts keep it as their lead and follow it out
-once it has gone. Any other departure of a lead releases its escorts.
+once it has gone. A hull escaping across its side's edge is escorted out the same way. Any other departure of a lead releases its escorts.
 
 **A hull that has made its height may leave straight up through the deck.** That is
 the reverse of an arrival: the hull keeps way on along its heading, climbs, and is gone
@@ -2123,7 +2165,7 @@ cloud deck. A ground event (a wreck striking and skidding, an airframe going up)
 the ground and never a hull hovering over it.
 
 **The duel ledger** records, for a debrief, what became of every hull over the
-battle: escaped (climbed out and gone), broke off (withdrawn by its doctrine), departed
+battle: escaped (climbed out, or flew out across its side's edge as an escape, and gone), broke off (withdrawn by its doctrine), departed
 (any other leaving) or destroyed (when, where it burst and where its wreck struck). It
 also counts ground casualties by side, from stray rounds and from wreckage. Nothing in
 the battle reads it, and a ground objective never does.
@@ -2134,15 +2176,20 @@ hull-fire hold until the chapter's moment comes, the duel then runs on its own, 
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
 only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
 and two Hound (P) landed on the pads south of the ridge, two of Rusk's Wolfs arriving when
-Voss orders the withdrawal, coming down at the west edge on a heading east so their whole
-approach over the basin is in sight before a gun bears, the fight kept over the middle of
-that southern ground by its airspace. The *Greyhook* fights a withdrawal: she lifts onto a
-wide circuit over the basin, fights the Wolfs broadside with her Hounds screening, and
-climbs as she fights, slowly while a Wolf has her in reach and faster while a Hound still
-screens her. She breaks up through the deck only once she has made her height, is
-crippled, or has nobody left to stop her; her escape is the fight's outcome, not a clock.
-The approach reaches the radio as story beats (the Wolfs sighted, closing, the first hull
-fire). A
+Voss orders the withdrawal. Each side has one edge: the Wolfs' is the west, the side the
+company landed on and the far side of the basin, so they fly in across it heading east and
+their whole approach is in sight before a gun bears; Greyhook's is the east, her own ground
+(dispatch, the berth yard and gate, the berth road, the service road Drent's crews leave by)
+and away from the Wolfs. The south edge would be no withdrawal at all: the cradle lies a few
+cells off it, inside her own margin. No area is declared; the fight goes where it goes,
+held off the edges only by the standing pressure. The *Greyhook* fights a withdrawal: she
+lifts onto a wide circuit over the middle of the map, fights the Wolfs broadside with her
+Hounds screening, and climbs as she fights, slowly while a Wolf has her in reach and faster
+while a Hound still screens her. Once she has made her height, is crippled, or has nobody
+left to stop her she breaks for the east edge and fights her way off the map across it; her
+escape is the fight's outcome, not a clock. The Wolfs leave across the west when their visit
+ends, the Hounds across the east after their charge. The approach reaches the radio as story
+beats (the Wolfs sighted as they cross the edge, closing, the first hull fire). A
 warship over a ground battle never launches a wing from its bays (bays only classify the
 hull), and the Greyhook's fitting carries none, so it stays gun against gun.
 
@@ -2179,10 +2226,14 @@ reaches an entry level and left only after it has stayed under half of it for
 a dwell, so a pause between sorties is not the end of the fight; while it lasts
 the ship spends flux on shots of opportunity from its secondary battery only,
 and keeps clear of any declared capital hazard. Withdraw is for the rest of the
-battle and leaves through the ordinary departure; besides a hull worn low, a ship
-**losing the exchange** (under three quarters of its hull while the hull it fights
-has a fifth more left) withdraws, so two equals decide a duel by one breaking off
-rather than trading to the last plate. What the ship is trying to do
+battle and leaves through the ordinary departure, for a hull worn low or a ship
+threatened past what it can answer. **A ship fighting a hull fights it to the end**:
+while it has a live hostile hull to fight, the doctrine never withdraws it, however
+worn, so a duel between warships is decided by a kill and never by a voluntary
+break-off. A withdrawal a mission orders (the *Greyhook*'s lift-off at Black Sluice)
+is the mission's, not the doctrine's, and stands. A hull still coming down through
+the cloud deck, or flying in with its centre still past the map's edge, is not yet a
+target, and one still past the edge does not fire at hulls. What the ship is trying to do
 about the objective is a **mission stance** (attack, defend, hold), a value a
 mission sets and changes at any time, never derived from the ship's side; a
 hostile loaded shuttle is never a threat to a ship but an inbound drop. A

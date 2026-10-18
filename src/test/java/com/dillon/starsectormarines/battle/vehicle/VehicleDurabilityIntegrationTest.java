@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -47,6 +48,7 @@ class VehicleDurabilityIntegrationTest {
                 case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> 1.1f;
                 case MILITIA_TECHNICAL, SUPPLY_TRUCK, SCOUT_CAR -> .9875f;
                 case CARGO_CARRIER -> .75f;
+                case HOVER_SCOUT, DRONE_SKIMMER -> EffectsService.hoverFanAftCells(type.visualLengthCells);
             };
             assertEquals(12 + rearOffset, engine.x, .001f);
             assertEquals(7f, engine.y, .001f);

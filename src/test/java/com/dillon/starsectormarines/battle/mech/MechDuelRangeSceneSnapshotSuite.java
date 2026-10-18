@@ -26,7 +26,10 @@ public final class MechDuelRangeSceneSnapshotSuite extends BehaviorSceneSnapshot
 
     @Override
     protected int[] stillFrames(String loopId) {
-        // Frames every 15 ticks; the first round falls near tick 950-1150. First rounds, mid-fight, late.
+        // Frames every 15 ticks. The unordered tank meets its Hound early (first round near tick 265) and the
+        // ordered one near tick 630; the mech pairs near tick 950-1150. First rounds, mid-fight, late.
+        if (loopId.startsWith("tank-hound")) return new int[] {18, 28, 38};
+        if (loopId.equals("tank-ordered")) return new int[] {44, 58, 72};
         return new int[] {80, 110, 145};
     }
 }
