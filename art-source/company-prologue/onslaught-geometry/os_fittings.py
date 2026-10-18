@@ -127,12 +127,52 @@ def build(kit):
     _from(kit, 'Light stem 1', (260, 0, 2), (-1, 0, 0), RED, 'stem', 2.0, 0.0, mats)
     _drop(kit, 'Light mast head 1', 17, 0, RED, 'mast head', 2.0, 1.0, mats)
     for side, s in (('port', 1), ('starboard', -1)):
-        _drop(kit, f'Light {side} arm nose 1', 210, s*82, RED, 'arm nose', 2.0, 0.0 if s > 0 else .3, mats)
-        _drop(kit, f'Light {side} leg tip 1', -122, s*56, RED, 'leg tip', 2.0, 1.0, mats)
-        _drop(kit, f'Light {side} quarter 1', -66, s*100, RED, 'stern quarter', 2.0, 1.0, mats)
+        # Arm nose: the foremost deck point just outboard of the TPC's casemate.
+        _extreme(kit, f'Light {side} arm nose 1', (230, s*77.5), (-1, 0), 60, RED, 'arm nose', 2.0,
+                 0.0 if s > 0 else .3, mats)
+        _extreme(kit, f'Light {side} leg tip 1', (-150, s*56), (1, 0), 50, RED, 'leg tip', 2.0, 1.0, mats)
+        _extreme(kit, f'Light {side} quarter 1', (-66, s*125), (0, -s), 40, RED, 'stern quarter', 2.0, 1.0, mats)
         for k, (x, y) in enumerate(((180, 92), (140, 104), (100, 124), (60, 126), (20, 130), (-10, 120)), 1):
-            _drop(kit, f'Light {side} arm edge {k}', x, s*(y-2.5), WHITE, 'edge line', 3.0, .35*k, mats)
+            _edge(kit, f'Light {side} arm edge {k}', (x, s*(y-16)), (0, s), 30, WHITE, 'edge line', 3.0,
+                  .35*k, mats)
     _from(kit, 'Light stern 1', (-200, 0, 8), (1, 0, 0), WHITE, 'stern', 3.0, 1.5, mats)
+
+
+def _edge(kit, name, start, step_dir, reach, colour, role, period, phase, mats):
+    """A light on a deck's outer edge: walk outward from `start` (on the deck) off the hull,
+    and set the light on the outermost point that still faces up (not over the side, not on the
+    bilge below the deck edge). Survives the arm being tilted or reshaped."""
+    x, y = start
+    dx, dy = step_dir
+    hits = []
+    t = 0.0
+    while t <= reach:
+        hit = _cast((x+dx*t, y+dy*t, 150), (0, 0, -1))
+        if hit:
+            hits.append(hit)
+        t += .5
+    if not hits:
+        return
+    floor = max(h[1].z for h in hits)-6.0
+    up = [h for h in hits if h[2].z >= .45 and h[1].z >= floor]
+    best = up[-1] if up else hits[0]
+    _light(kit, name, best[1], best[2], colour, role, period, phase, mats)
+
+
+def _extreme(kit, name, start, step_dir, reach, colour, role, period, phase, mats, inset=1.2):
+    """A light at the hull's extremity: drop rays from `start` (off the hull) stepping along
+    `step_dir` until one lands on the hull, then set the light `inset` further in, on the deck
+    edge's top rather than over the side. Survives the arms or legs being moved or reshaped."""
+    x, y = start
+    dx, dy = step_dir
+    t = 0.0
+    while t <= reach:
+        if _cast((x+dx*t, y+dy*t, 150), (0, 0, -1)):
+            hit = _cast((x+dx*(t+inset), y+dy*(t+inset), 150), (0, 0, -1)) or \
+                _cast((x+dx*t, y+dy*t, 150), (0, 0, -1))
+            _light(kit, name, hit[1], hit[2], colour, role, period, phase, mats)
+            return
+        t += .5
 
 
 def records():
