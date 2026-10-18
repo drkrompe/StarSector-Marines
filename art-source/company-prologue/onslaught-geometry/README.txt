@@ -78,7 +78,7 @@ Scale (pass 4; geometry.json 'scale')
   From the shared ship_scale.py: contents (1,500 crew, 300 cargo, 400 fuel) over
   the capital machinery share against the measured enclosed volume (union of
   ship_scale.SOLIDS['onslaught'], 3.42 M units3, re-measured each build).
-  Published 0.85 m/unit (solved 0.850): about 299 m long.
+  Published 0.86 m/unit (solved 0.859): about 302 m long.
   Final by the owner's rule (a capital like the Legion, shared rule, no
   override); it moves only when the measured shape does. ship_scale flags it,
   as it flags the Legion (3.35x the Lasher's length; the sprites give 4.0x).

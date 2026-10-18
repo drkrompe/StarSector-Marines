@@ -34,6 +34,18 @@ How the hull reads (owner, pass 1 rounds 2-3)
   planes on curved plans, matte, not a moulded gloss skin. Turrets are
   placeholders (pucks on the named pivots) until real mounts are designed.
 
+Turret wells and firing lines (owner, pass 1 round 4)
+  Turrets are never lifted out of the hull; the hull is shaped round them. Each
+  well is cut along the plane fitted to the plate it stands in (so it leans with a
+  glacis), lined dark, with a dimple round it: a flat terrace at the well rim and
+  a chamfer back up to the plate, the sprite's concentric rings. The main ring's
+  outer course is a level gun shelf (r 99-130, z ~28) below its crown, carrying the
+  big beam turrets and the beam mediums; the bow horns are flat gun platforms and
+  the bow module sits below their barrel line; the bow-quarter lobes carry WS
+  011/017. pg_arcs checks every slot's arc at the barrel line (level and 1.5 deg
+  down) and the build prints the clear share; geometry.json keeps it under
+  firing_lines. Missile slots are exempt (missiles leave upward and steer).
+
 The shape gauntlet (run every iteration)
   build_paragon.py --views top-classes, then python3 gauntlet.py --dir DIR:
   scores each tone's IoU against the sprite (gauntlet.png) and draws the model's
@@ -50,6 +62,7 @@ Modules (one per area)
   pg_engines   the ten drive units
   pg_turrets   21 turrets (barbette + pivot) and the two bow hardpoints
   pg_shield    the shield emitter anchor and the emitter nodes on the lining
+  pg_arcs      firing-line check across every turret's arc
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -59,8 +72,8 @@ Names (identifiers: later passes key off them)
   Hull belt / Hull main ring / Hull bore lining / Hull prow (+ bay parts) /
   Hull bow module / Hull <side> bow horn / Hull core trench / Hull command deck
   (+ upper, spine) / Bridge tower / Bridge glazing / Hull aft body / Hull <side> pod /
-  Hull <side> reactor well / dome / Hull <side> aft rib / Hull <side> bow groove
-  Weapon WS nnn barbette, Weapon WS nnn placeholder (+ stub), Weapon WS nnn pivot (empty; rotate about local Z to train),
+  Hull <side> reactor well / dome / Hull <side> bow lobe / Hull <side> bow groove
+  Weapon WS nnn well (+ floor), barbette, placeholder (+ stub), Weapon WS nnn pivot (empty; rotate about local Z to train),
     Weapon WS nnn muzzle [k]; hardpoints: Weapon WS 00n hardpoint (anchor), housing,
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)
