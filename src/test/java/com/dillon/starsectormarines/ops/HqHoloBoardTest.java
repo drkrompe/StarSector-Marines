@@ -99,4 +99,86 @@ class HqHoloBoardTest {
                 "A very long story lead title that does not fit", "", HqActionItem.NO_DEADLINE,
                 Action.of(Verb.OPEN, () -> { }), null, null)).length() <= HqHoloBoard.TITLE_CHARS);
     }
+
+    @Test
+    void bodiesFloatAboveTheDiscAndProjectInsideTheBanner() {
+        CommandDeckLayout layout = CommandDeckLayout.parse(DOC);
+        CommandDeckLayout.Fit fit = CommandDeckLayout.Fit.cover(1872f, 372f, layout.width(), layout.height());
+        HoloSpace space = new HoloSpace(layout, fit);
+        HqActionBoard board = new HqActionBoard(List.of(
+                item("a", Kind.LETTER, null), item("b", Kind.STORY, new float[]{-3000f, 2000f}),
+                item("d", Kind.OBLIGATION, new float[]{8000f, -6000f})), 0);
+        Map<String, float[]> disc = HqHoloBoard.discPlacement(board);
+        for (HqActionItem it : board.items()) {
+            float[] l = disc.get(it.id());
+            float height = HqHoloBoard.bodyHeight(it);
+            assertTrue(height > 0f, "a body floats above its foot");
+            float[] foot = HqHoloBoard.discPoint(layout, l[0], l[1]);
+            float[] body = HqHoloBoard.bodyPoint(layout, l[0], l[1], height);
+            assertEquals(foot[0], body[0], 1e-6f);
+            assertEquals(foot[2], body[2], 1e-6f);
+            assertTrue(body[1] > foot[1] + 0.05f, "clear of the disc plane: " + it.id());
+            // On screen the body sits above its foot (y down), and inside the banner.
+            float[] s = space.screen(body);
+            float[] f = space.screen(foot);
+            assertTrue(s[1] < f[1]);
+            assertTrue(s[0] > 0f && s[0] < 1872f && s[1] > 0f && s[1] < 372f, "on the banner: " + it.id());
+        }
+        // Heights are stable per item: the same id floats at the same height every call.
+        assertEquals(HqHoloBoard.bodyHeight(board.items().get(1)), HqHoloBoard.bodyHeight(board.items().get(1)));
+    }
+
+    @Test
+    void holoSpaceMatchesTheDiscAndShrinksWithDistance() {
+        CommandDeckLayout layout = CommandDeckLayout.parse(DOC);
+        CommandDeckLayout.Fit fit = CommandDeckLayout.Fit.cover(1872f, 372f, layout.width(), layout.height());
+        HoloSpace space = new HoloSpace(layout, fit);
+        float[] viaSpace = space.deck(0.4f, -0.3f, 0f);
+        float[] viaBoard = HqHoloBoard.discPoint(layout, 0.4f, -0.3f);
+        for (int k = 0; k < 3; k++) assertEquals(viaBoard[k], viaSpace[k], 1e-5f);
+        // The dome's crown is above the disc's centre and in front of the camera.
+        float[] crown = space.deck(0f, 0f, HoloVolume.DOME);
+        assertTrue(crown[1] > HqHoloBoard.discPoint(layout, 0f, 0f)[1]);
+        assertTrue(crown[2] > 0f);
+        assertTrue(space.pixelsPerMetre(5f) > space.pixelsPerMetre(9f), "nearer is larger");
+        assertTrue(space.nearness(5f) > space.nearness(9f), "nearer is brighter");
+    }
+
+    @Test
+    void hitBoxesHoldTheBodyAndIgnoreTime() {
+        CommandDeckLayout layout = CommandDeckLayout.parse(DOC);
+        CommandDeckLayout.Fit fit = CommandDeckLayout.Fit.cover(1872f, 372f, layout.width(), layout.height());
+        HqActionBoard board = new HqActionBoard(List.of(
+                item("b", Kind.STORY, new float[]{-3000f, 2000f}), item("c", Kind.SIDE_JOB, null)), 0);
+        HoloSpace space = new HoloSpace(layout, fit);
+        Map<String, float[]> disc = HqHoloBoard.discPlacement(board);
+        Map<String, HqHoloBoard.Hit> hits = new HqHoloBoard(null).hits(layout, fit, board);
+        for (HqActionItem it : board.items()) {
+            float[] l = disc.get(it.id());
+            float[] body = HqHoloBoard.bodyPoint(layout, l[0], l[1], HqHoloBoard.bodyHeight(it));
+            float[] s = space.screen(body);
+            Rect m = hits.get(it.id()).marker();
+            float reach = HoloBodies.radius(it.kind()) * HoloBodies.reach(it.kind()) * space.pixelsPerMetre(body[2]);
+            assertTrue(m.x() <= s[0] - reach && m.x() + m.width() >= s[0] + reach, "covers the body: " + m);
+            assertTrue(m.y() <= s[1] - reach && m.y() + m.height() >= s[1] + reach, "covers the body: " + m);
+        }
+        // The dome turns but the bodies hold their plot positions, so a later board gives the same boxes.
+        assertEquals(hits.get("b").marker(), new HqHoloBoard(null).hits(layout, fit, board).get("b").marker());
+    }
+
+    @Test
+    void lanesJoinEveryBodyOnce() {
+        List<float[]> points = List.of(new float[]{0f, 0f, 0f}, new float[]{1f, 0f, 0f},
+                new float[]{0f, 0f, 3f}, new float[]{1.2f, 0f, 0.1f});
+        List<int[]> lanes = HoloVolume.network(points);
+        assertEquals(points.size() - 1, lanes.size());
+        boolean[] reached = new boolean[points.size()];
+        reached[0] = true;
+        for (int[] lane : lanes) {
+            assertTrue(reached[lane[0]], "grown from the tree");
+            reached[lane[1]] = true;
+        }
+        for (boolean r : reached) assertTrue(r);
+        assertTrue(HoloVolume.network(List.of(new float[]{0f, 0f, 0f})).isEmpty());
+    }
 }

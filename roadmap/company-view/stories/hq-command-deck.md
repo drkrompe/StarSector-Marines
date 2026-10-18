@@ -31,6 +31,11 @@ where things live without becoming the only way to reach them.
   out of scope.
 - **Live overlays.** Console screens and the chart-table top are painted blank so the
   game can draw over them: readouts, blinking lamps and a live plot on the table.
+  The lit monitor faces are the one thing measured off the painting rather than the
+  guide (ImageGen moved them): `displays.json` holds each face's corners and content
+  kind, the pack carries them, and `DeckDisplays` draws animated readouts in each
+  face's perspective. Faces a painted operator sits in front of stay as painted.
+  The readouts are scenery, not information: nothing on them is a fact.
   Stations sit in fixed bands so a station can later become its own layer (for
   example one that appears as the company grows) or carry motion.
 - **Remove** the `company-hq-network-canvas` intel drawing and the

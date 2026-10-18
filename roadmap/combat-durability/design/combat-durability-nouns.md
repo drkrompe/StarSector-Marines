@@ -308,7 +308,18 @@ and incoming-accuracy tradeoffs. `power-suit-infantry.md` owns the category dire
 Mech variants own distinct durability profiles. The Bulwark is the high-capacity,
 high-rating anchor; the Hound gives up armor endurance for mobility; the
 Sirocco has the least armor and structure and depends on range and screening.
-These relationships are laws, while exact values remain balance output.
+These relationships are laws, while exact values remain balance output. The
+first mech reading against them (`mech-time-to-kill`, six seeds, stock frames,
+one team at 20 cells) keeps that order in every row and puts each d4 answer to
+mech armor on a scale. Two rocket tubes kill a Hound in about 8 s and a Bulwark
+in 13 s. Six DMRs take 19 and 37 s, and six field rifles 90 s and, mostly, not
+at all. Two AMRs take 42 and 71 s: 4.7 and 7.5 carriers' four-round magazines,
+which makes the AMR the weakest of the answers, though changing it moves
+vehicles, turrets and drone hubs as well. One mech's heavy cannon takes 83 and
+136 s, slow under the whole-body control too. The specials stay off soft
+targets because the AI fires them only at turrets, hubs, vehicles and heavy
+mechs; an open-field matchup of AMR and rocket kits against the starter issue
+spent none.
 
 Turrets and drone hubs use the same resolution model but own their values as
 platforms. Biological aliens or other special actors may add armor only when

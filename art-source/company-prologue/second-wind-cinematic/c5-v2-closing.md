@@ -8,19 +8,28 @@ straight into the yard report. v2 makes it the cinematic's ending: the ship
 lands seen from overhead, the people walk off, the camera rises until Second
 Wind is one patched hull among many, and the title comes up over the port.
 
-## What the arrival has said by this point
+## The dialogue arc into it
 
-- **C1–C2:** scrutiny. Approach is cold and procedural; Castle is short and
-  careful ("Ore dust and tired people"). The ship is small against the fleet.
-- **Entry:** "Well. Somebody knows we're here." Dry relief.
-- **C3:** first open sky, silent. Miners from an asteroid see weather.
-- **C4:** Castle's Nessa memory, ending wry on "Let me talk first."
+Agreed 2026-10-18. Hope builds in three short lines, each with one job. Nobody
+makes a speech before the closing.
 
-Nobody has yet said anything hopeful, and that is the gap the closing fills. The
-prologue pages carry the wound the hope answers. Facility support ended in air,
-heat and power, the days were chalked beside the airlock, and the ration
+| Beat | Line (Castle) | Job |
+|---|---|---|
+| C1–C2 | The hail as recorded, ending "Corridor four, mounts cold. Thank you, Approach." | Scrutiny. The ship is small, Approach is cold, and Castle is careful. |
+| Entry | **"Cleared. Everybody breathe."** (replaces "Well. Somebody knows we're here.", which could be heard as a threat) | Relief. Her first words to the passengers rather than to Approach, which sets up the closing's "All hands". |
+| C3 | Silent. | Wonder, carried by the picture. |
+| C4 | **"Like the travel reels they ran in the canteen... except this one doesn't loop."** Optional half-line as the ship drops behind the cranes: "Greywater's past the cranes. Let me do the talking." | Recognition. Until now these people knew landscapes only from a screen on the Claim, and this one is real and goes on. |
+| C5 | The closing lines below. | Permission: go and live here. |
+
+The prologue pages carry the wound the hope answers. Facility support ended in
+air, heat and power, the days were chalked beside the airlock, and the ration
 counter stopped taking scrip. The hope should be small, concrete and earned. It
-should not promise riches, which belong to the campaign.
+should not promise riches, which belong to the campaign. Nessa's memory returns
+to P6 (`storyboard-v3.md`, Decisions); Y1 introduces her in the yard.
+
+The new Entry, C4 and C5 lines need recording in Castle's voice
+(`storyboard-v3.md`, Casting). Until then, the shipped `jangalaArrivalHail09`
+string and audio stay as they are, so caption and voice still match.
 
 ## Who speaks, and from where
 

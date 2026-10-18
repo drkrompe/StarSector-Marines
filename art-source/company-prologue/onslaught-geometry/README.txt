@@ -32,9 +32,12 @@ Appendable asset (export_onslaught.py -> export/onslaught.blend + manifest.json)
 
 Modules (one per area)
   os_kit       materials, primitives, prisms, curved sections, booleans, surface()
-  os_hull      prow, core, two gun arms, aft body with the stern machinery wells,
-               tail, aft legs, waists; plated flanks, keel bars
-  os_armour    the orange and grey Hegemony armour bands, steps, fins, cheeks
+  os_hull      base masses (prow, core, two gun arms, aft body with the stern
+               machinery wells, tail, legs, waists) with arched, faceted tops and
+               bellies; the gun tiers (arm and prow galleries, the round core
+               terrace and its inner tier); a stepped emplacement under every turret
+  os_armour    the orange and grey Hegemony armour as sloped plates stepping down
+               from the tiers, steps, fins, cheeks, keel bars
   os_bridge    spine, terraced command dome with the bridge glazing, aft dome
   os_machinery pipes, headers, pumps, valves and frames in the stern wells; the
                tail radiator
@@ -45,8 +48,12 @@ Modules (one per area)
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
   sprite col c, row r -> X 244-r, Y 144-c; slot locations are model XY unchanged.
-  The owner asked for the hull "thick with large curving hull depth": every mass
-  turns under on a rounded bilge and the keel line curves up fore and aft.
+  The owner asked for the hull "thick with large curving hull depth", then (round
+  1) for curvature and terracing round the gun emplacements, and shallower arms.
+  Every mass is a heightfield over its plan (os_kit.arched_mass): a rounded,
+  faceted belly and an arched, crowned top; the core keeps the deep belly; the
+  arms are shallow gun platforms; the galleries and the core terrace step the
+  guns up toward the bridge.
 
 Object names (stable identifiers)
   Hull ..., Armour ..., Bridge ..., Machinery ..., Fitting ...
@@ -65,15 +72,13 @@ Scale (pass 4; geometry.json 'scale')
   From the shared ship_scale.py: contents (1,500 crew, 300 cargo, 400 fuel) over
   the capital machinery share against the measured enclosed volume (union of
   ship_scale.SOLIDS['onslaught'], 3.42 M units3, re-measured each build).
-  Published 0.77 m/unit (solved 0.769, range 0.745-0.792): about 270 m long,
-  207 m beam, 89 m deep. ship_scale flags it, as it flags the Legion: a capital
-  under 4x a frigate's length (3.0x the Lasher; the sprites give 4.0x). The
-  thick hull the owner asked for holds more than the module's plan-area
-  estimate (3.42 M vs 1.96 M units3), which is why it solves under the 324 m
-  estimate. The geometry is in hull units, so a scale change moves only the root.
+  Published 0.84 m/unit (solved 0.843, range 0.817-0.868): about 296 m long,
+  226 m beam. ship_scale flags it, as it flags the Legion (3.3x the Lasher's
+  length; the sprites give 4.0x). Round 1's shallower arms took the enclosed
+  volume from 3.42 M to 2.60 M units3, which moved it from 270 m to 296 m.
   Fittings in true metres: bridge glazing band 1.4 m in 1.1 m panes, crown hatch
-  1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 2.3 units.
+  1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 2.1 units.
 
 Status
-  Pass 1 blockout (IoU 0.964), pass 2 mid-distance detail (IoU 0.9636), pass 4
-  scale. Awaiting owner review (pass 3).
+  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 round 1 (terraced,
+  curved, guns in emplacements, shallow arms; IoU 0.962). Awaiting owner review.

@@ -15,12 +15,15 @@ import com.dillon.starsectormarines.i18n.Strings;
  */
 public enum MechInternal {
 
+    // Every chassis's CORE socket holds a 2x2 engine, so an engine's footprint never costs room;
+    // its mass does. Without it the top engine cost nothing over the uprated one, and the best of
+    // everything fitted on the Hound and the Bulwark.
     INDUSTRIAL_ENGINE("internal.engine-industrial", "@gearInternalIndustrialEngine", Role.ENGINE,
             EquipmentAccessTier.COMMON, 2, 1, 0f, 1.00f, 0f, 0f, 0f, 0f),
     UPRATED_ENGINE("internal.engine-uprated", "@gearInternalUpratedEngine", Role.ENGINE,
-            EquipmentAccessTier.ADVANCED, 2, 2, 0f, 1.25f, 0.5f, 0f, 0f, 0f),
+            EquipmentAccessTier.ADVANCED, 2, 2, 1f, 1.25f, 0.5f, 0f, 0f, 0f),
     MILITARY_ENGINE("internal.engine-military", "@gearInternalMilitaryEngine", Role.ENGINE,
-            EquipmentAccessTier.PRESTIGE, 2, 2, 0f, 1.50f, 1.0f, 0f, 0f, -0.5f),
+            EquipmentAccessTier.PRESTIGE, 2, 2, 3f, 1.50f, 1.0f, 0f, 0f, -0.5f),
 
     FACTORY_PLATING("internal.plating-factory", "@gearInternalFactoryPlating", Role.PLATING,
             EquipmentAccessTier.COMMON, 0, 0, 0f, 0f, 0f, 0f, 0f, 0f),
