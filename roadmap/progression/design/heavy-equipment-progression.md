@@ -272,6 +272,7 @@ one. Lines and their first variants:
 | Tank | Breakthrough tank → heavy-gun tank, or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
+| Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |
 
 **A vehicle brings at least its class mech's armor per credit.** At base
 commodity prices (`gradlew.bat armorEconomyEvidence`), structure plus armor
@@ -299,8 +300,9 @@ Restricted cards weighted by faction, as faction mech weapons are.
 is what a company or an outfit welds together from a civilian chassis; pirates
 and independents weight those cards up and no navy does, and their fabrication
 provenance says field rig. A military faction is known for purpose-built hulls:
-Hegemony's are heavy plate, and Tri-Tachyon's should be hover and drone coded
-(none exists yet).
+Hegemony's are heavy plate, and Tri-Tachyon's are hover and drone coded: the hover
+scout and the drone skimmer. Both are role hulls held only to costing less than their
+class mech, and their bills lean on rare metals for fans, sensors and drone control.
 
 One later, optional depth step: a single **overhaul** per vehicle (an up-armor
 or engine kit bought with materials, one decision, no socket grid), reusing the

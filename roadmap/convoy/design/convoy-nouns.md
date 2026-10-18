@@ -753,6 +753,46 @@ somewhere it can look. Acceptance is the `scout-car` scene: a position no marine
 can see is sighted, reaches the commander and is revealed to the player, and a
 scout parked behind a wall reports nothing.
 
+### The hover line: hover scout and drone skimmer
+
+Tri-Tachyon's company hulls are purpose-built corporate issue, not field rigs: a
+lift-fan skirt under a composite shell (`art-source/vehicles/tt-hover/`). The lore
+anchor is the Sector's own "mechs, tanks, and hovercraft" and the company's security
+drones; its ground drones are remote-controlled from a crewed hull, never free hunters,
+which is the line the Sector's AI law draws.
+
+**Hover** is a capability of the hull (`VehicleType.isHover`), and it is a trade. The
+skirt floats over open water and rides rubble and low crash debris at full speed
+(`HoverSkirt`): its **hover view** is a routing copy of the grid with water open and the
+debris tag cleared, and a hover hull's move-order proof, rolling planner, recovery and
+physical sweep all read it, because the hull really does cross that water. That differs
+from the dozer's breach view, which only route proof reads while the sweep holds the
+hull against a standing wall. Nothing else opens: walls, natural obstructions, low cover
+and a closed shore edge still stop it, and nobody else gains the cells. Its route cost
+prices water and rubble as open ground. What the skirt gives up is **purchase**: a hover
+hull repels nobody (`VehicleType.repelsBodies`), so it cannot clear a road by driving
+into people, and it pays in plate, thinner than the technical's. Kinematics stay the
+shared bounded-curvature bicycle (a tighter turn, a faster slew); a drifting or
+holonomic body would break the curvature contract every planner shares. Its tread-UV
+presentation is off, and a wreck burns in the lift fans aft.
+
+The **hover scout** (`HOVER_SCOUT`, Light lift) is a sight hull on the spotter pickup's
+terms (`ScoutSight`) that also carries a light twin pulse emitter of the drone-pulse
+family, so it can screen. The stripped pickup stays the fastest hull in the bay.
+
+The **drone skimmer** (`DRONE_SKIMMER`, Medium lift) is the scout's hull stretched over a
+drone bay, with no gun. Its weapon is a **tethered flight** (`SkimmerWing`,
+`DroneSkimmerSystem`): once the hull is on the field its bay launches a fixed complement
+one at a time, and the drones are ordinary `battle.drone` units flown by the shared
+escort swarm action, round the hull, engaging what comes into its reach and held by a
+leash. A drone lost stays lost. When the hull is wrecked or leaves, the anchor dies and
+every drone still out is destroyed where it flies and falls through the ordinary drone
+crash. Its drones carry a sturdier airframe than a hub's disposable screen, because they
+are the hull's whole armament. Acceptance is the `hover-line` scene: the scout crosses
+a river a wheeled APC is refused at, drives over standing marines and shoves none
+against the spotter pickup's control, and the skimmer's drones launch, stay on the leash
+and fight, and fall with the hull.
+
 ## Adjacent domains and extension points
 
 The road graph is enduring generator data: road reservation, compound

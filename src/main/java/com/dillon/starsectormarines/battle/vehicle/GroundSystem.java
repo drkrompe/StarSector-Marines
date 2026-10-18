@@ -336,6 +336,8 @@ public class GroundSystem {
             effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
         } else if (type.isPickup()) {
             effects.spawnTechnicalWreck(body.x, body.y, body.facingDegrees);
+        } else if (type.isHover()) {
+            effects.spawnHoverWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
         } else if (type == VehicleType.CARGO_CARRIER) {
             effects.spawnHaulerWreck(body.x, body.y, body.facingDegrees);
         } else {

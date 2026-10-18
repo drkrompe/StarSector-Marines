@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
+import java.util.function.ToDoubleFunction;
+
 /**
  * Per-cell traversal cost for vehicle routing, baked from
  * {@link CellTopology.GroundKind}. The cost-field router (slice 1) multiplies
@@ -50,12 +52,22 @@ public final class TerrainCostField {
 
     /** Bake a cost field from the map's ground kinds. */
     public static TerrainCostField from(CellTopology topology) {
+        return from(topology, TerrainCostField::costFor);
+    }
+
+    /**
+     * Bake a cost field with a hull's own price per ground kind (a hover skirt's, {@link HoverSkirt#costField}).
+     * Prices below {@link #COST_ROAD} would break the router's admissible heuristic and are refused.
+     */
+    static TerrainCostField from(CellTopology topology, ToDoubleFunction<GroundKind> price) {
         int w = topology.getWidth();
         int h = topology.getHeight();
         float[] cost = new float[w * h];
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                cost[y * w + x] = costFor(topology.getGroundKind(x, y));
+                float c = (float) price.applyAsDouble(topology.getGroundKind(x, y));
+                if (!(c >= COST_ROAD)) throw new IllegalArgumentException("Route cost below the road baseline: " + c);
+                cost[y * w + x] = c;
             }
         }
         return new TerrainCostField(w, h, cost);

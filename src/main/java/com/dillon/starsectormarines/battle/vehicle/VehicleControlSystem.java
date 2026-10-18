@@ -53,6 +53,7 @@ public final class VehicleControlSystem {
     private final int recoveryExpansionsPerTick;
     /** The dozer blade, or {@code null} where no map editor is wired (bare control tests). */
     private DozerBlade blade;
+    private HoverSkirt skirt;
 
     public VehicleControlSystem(ConvoyService convoy, NavigationService navigation) {
         this(convoy, navigation, Boolean.parseBoolean(System.getProperty(
@@ -71,9 +72,28 @@ public final class VehicleControlSystem {
     /** Gives bladed hulls their blade. Without one a dozer drives as the cannonless tank it looks like. */
     public void setBlade(DozerBlade blade) { this.blade = blade; }
 
-    /** The grid a hull's own planning reads: the blade's breach view for a bladed hull, else the live grid. */
+    /**
+     * The grid a hull's own planning reads: the blade's breach view for a bladed hull, the skirt's hover view for a
+     * hover hull, else the live grid.
+     */
     NavigationGrid planningGrid(VehicleType type) {
-        return blade != null && type.hasBlade() ? blade.planningGrid() : navigation.getGrid();
+        return blade != null && type.hasBlade() ? blade.planningGrid() : motionGrid(type);
+    }
+
+    /**
+     * The grid a hull physically moves over: the skirt's hover view for a hover hull, which really does float over
+     * the water it opens ({@link HoverSkirt}), else the live grid — a dozer's wall is there until it is pushed down.
+     */
+    NavigationGrid motionGrid(VehicleType type) {
+        if (!type.isHover()) return navigation.getGrid();
+        if (skirt == null) skirt = new HoverSkirt(navigation);
+        return skirt.motionGrid();
+    }
+
+    /** The route cost a hull's own move-order proof pays. */
+    TerrainCostField costField(VehicleType type) {
+        return type.isHover() ? HoverSkirt.costField(navigation.getTopology())
+                : TerrainCostField.from(navigation.getTopology());
     }
 
     /**
@@ -265,7 +285,7 @@ public final class VehicleControlSystem {
             if (leg.snapsToEndpoint()) {
                 Pose from = new Pose(body.x, body.y, body.facingDegrees);
                 var step = VehicleTerrainMotion.sweep(from, new Pose(xs[lastIdx], ys[lastIdx], body.facingDegrees),
-                        type.visualLengthCells, type.visualWidthCells, navigation.getGrid(), false);
+                        type.visualLengthCells, type.visualWidthCells, motionGrid(type), false);
                 applyPose(body, step.pose());
                 body.speed = 0f;
                 if (step.blocked()) {
@@ -392,7 +412,7 @@ public final class VehicleControlSystem {
         float remaining = s.corridor.remainingLength(body.x, body.y);
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
         float curveCap = VehicleController.curvatureSpeedCap(px, py, startIdx, body.x, body.y, type.maxSpeed);
-        float terrainSpeed = type.maxSpeed * navigation.getGrid().groundSpeedMultiplier(body.x, body.y);
+        float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
         float targetSpeed = Math.min(Math.min(Math.min(terrainSpeed, taper), curveCap), Math.max(0f, mission.speedCap));
         body.speed = Math.copySign(Math.min(Math.abs(body.speed), terrainSpeed), body.speed);
 
@@ -410,8 +430,8 @@ public final class VehicleControlSystem {
         // Only delivery entry/exit tails may cross the map bounds; their
         // on-map terrain and edges still receive the same physical sweep.
         boolean deliveryTail = leg != VehicleLeg.MOVE_ORDER && (!VehicleFootprint.isPoseWithinGrid(
-                prevX, prevY, prevFacing, type.visualLengthCells, type.visualWidthCells, navigation.getGrid())
-                || !navigation.getGrid().inBounds((int) Math.floor(carrot.x), (int) Math.floor(carrot.y)));
+                prevX, prevY, prevFacing, type.visualLengthCells, type.visualWidthCells, motionGrid(type))
+                || !motionGrid(type).inBounds((int) Math.floor(carrot.x), (int) Math.floor(carrot.y)));
         wallStuckRecovery(body, type, s, prevX, prevY, prevFacing, dt, deliveryTail, pushing);
         if (s.trajectory != null) s.trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
 
@@ -503,7 +523,7 @@ public final class VehicleControlSystem {
     private boolean beginReverseRecovery(GroundBody body, VehicleType type, VehicleControlComponent s) {
         if (s.recoveryAttempts >= VehicleController.MAX_RECOVERY_ATTEMPTS) return false;
         float achievable = VehicleController.maxReverseDistance(body.x, body.y, body.facingDegrees,
-                type, navigation.getGrid());
+                type, motionGrid(type));
         s.recoveryAttempts++;
         if (achievable < VehicleController.MIN_USEFUL_REVERSE_CELLS) return false; // boxed in — can't gain room
         cancelPending(s);
@@ -521,7 +541,7 @@ public final class VehicleControlSystem {
      * body backs into something, then forces a forward replan from the new pose.
      */
     private void advanceReverse(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
-        NavigationGrid grid = navigation.getGrid();
+        NavigationGrid grid = motionGrid(type);
 
         float horizon = Math.max(VehicleController.MIN_LOOKAHEAD_CELLS, type.lookAheadCells);
         Pose ahead = s.corridor.targetAhead(body.x, body.y, horizon);
@@ -769,7 +789,7 @@ public final class VehicleControlSystem {
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
         ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
         if (path == null) return;
-        if (!VehicleController.isPathFeasible(start, path, turnRadius, type, navigation.getGrid())) return;
+        if (!VehicleController.isPathFeasible(start, path, turnRadius, type, motionGrid(type))) return;
 
         s.dockingPath = path;
         s.dockingStartPose = start;
@@ -816,7 +836,7 @@ public final class VehicleControlSystem {
             if (path == null) continue;
             if (path.lengthCells(turnRadius) < VehicleController.MIN_TURNAROUND_CELLS) return false;
             if (!VehicleController.isPathFeasible(start, path, turnRadius, type,
-                    navigation.getGrid())) continue;
+                    motionGrid(type))) continue;
 
             s.dockingPath = path;
             s.dockingStartPose = start;
@@ -841,10 +861,10 @@ public final class VehicleControlSystem {
         cancelPending(s);
         float total = s.dockingPath.lengthCells(s.dockingTurnRadius);
         float next = Math.min(total, s.dockingProgressCells + VehicleController.DOCKING_SPEED * dt
-                * navigation.getGrid().groundSpeedMultiplier(body.x, body.y));
+                * motionGrid(type).groundSpeedMultiplier(body.x, body.y));
         var step = VehicleTerrainMotion.sweepReedsShepp(s.dockingStartPose, s.dockingPath,
                 s.dockingTurnRadius, s.dockingProgressCells, next,
-                type.visualLengthCells, type.visualWidthCells, navigation.getGrid());
+                type.visualLengthCells, type.visualWidthCells, motionGrid(type));
         applyPose(body, step.pose());
         s.dockingProgressCells += (next - s.dockingProgressCells) * step.fraction();
         if (step.blocked()) {
@@ -874,7 +894,7 @@ public final class VehicleControlSystem {
                                boolean allowOffMap) {
         var step = VehicleTerrainMotion.sweep(new Pose(x, y, facing),
                 new Pose(body.x, body.y, body.facingDegrees), type.visualLengthCells,
-                type.visualWidthCells, navigation.getGrid(), allowOffMap);
+                type.visualWidthCells, motionGrid(type), allowOffMap);
         applyPose(body, step.pose());
         if (step.blocked()) body.speed = 0f;
         return step.blocked();

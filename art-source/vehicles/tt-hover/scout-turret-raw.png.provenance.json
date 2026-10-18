@@ -1,0 +1,63 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15077-1ac4-7991-8420-627cfcc57373",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15077-1ac4-7991-8420-627cfcc57373\\exec-f20ba639-3c21-48b6-8875-dcea6e4f7e2b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tt-hover\\scout-turret-raw.png",
+    "sha256": "c9df8ee63b491636632a0657046d0b6ad4ce20517fe5b8239a249fcbd65d6393",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tt-hover\\scout-turret-prompt.txt",
+  "promptSha256": "5a62811665530db79c7429cf3f50fe58430c93f8e2afe8235d33c5d62fec38f3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouette, layout, placement, scale and heading; flat colours are placeholders, not material\nImage 2: Tri-Tachyon livery and high-tech material reference only; not layout, pose or scale\nImage 3: Rendering style and detail level only; not layout, palette or subject\n\nPaint image 1, a flat-colour geometry guide, as a finished top-down game sprite of a small vehicle-mounted TWIN PULSE-LASER EMITTER TURRET seen from directly above, for a Tri-Tachyon hovercraft: a low, rounded composite turret housing in clean off-white and pearl grey with graphite seams, carrying two slim parallel emitter barrels pointing LEFT, each ending in a recessed cyan-tinted emitter lens. Keep the guide's housing circle, barrel lengths and spacing exactly; it is small and must stay exactly the guide's size and position on the large canvas. Tri-Tachyon high-tech style (image 2 is material and livery reference only, not layout); rendering scale and detail level of image 3, an approved top-down vehicle sprite from this game (style only): grounded, subtly weathered, not glossy.\nThe right panel is the same turret wrecked: scorched black housing, both emitters snapped short as the guide shows, lenses dark and cracked, no glow.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Every object faces LEFT (nose toward the left edge), exactly where the guide puts it, at exactly the guide's size, position and outline; never move, rotate, rescale or recompose anything. True transparent background with genuine alpha outside the silhouettes, including every gap; no ground, scene, cast-shadow slab, labels, text, border or checkerboard. Same canvas size and 2:1 aspect as the guide. The left panel is the live vehicle; the right panel is the same vehicle destroyed.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tt-hover\\scout-turret-guide.png",
+      "sha256": "7a71dd8f632d3979f3b84ddd12843e94fa47b16fedccd8ab72a4180caafa5fb9",
+      "dimensions": [
+        1792,
+        896
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouette, layout, placement, scale and heading; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\medusa.png",
+      "sha256": "148d851409d0ed723f2438b3435e1dd54e830445b1ee87c42b5885d39176254d",
+      "dimensions": [
+        134,
+        138
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\scout-car.png",
+      "sha256": "120609c498f180b013a83791fa9bbfb4fcdbbd0c743b11dbd97190e6c17f5156",
+      "dimensions": [
+        2560,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, preserving the guide’s geometry and transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 81528,
+    "cached_input_tokens": 55168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 690,
+    "reasoning_output_tokens": 18
+  },
+  "elapsedSeconds": 61.1
+}
