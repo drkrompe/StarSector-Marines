@@ -446,9 +446,19 @@ def gallery(kit, name, s):
         def mix(face_t, p):
             q = (yo+(y0-yo)*face_t, bo+(top-2.5-bo)*face_t)
             return (q[0]+(p[0]-q[0])*f, q[1]+(p[1]-q[1])*f)
+        # Round 7 (critique 1.1: from the C1 shot's high view each arm still split lengthwise into
+        # gallery and forearm, the gallery's inboard glacis falling into a valley in shadow beside
+        # the coaming - "five parallel fingers"). The gallery's inboard side is now the arm's own
+        # deck: from the gun deck's shoulder it falls in one plane to the inboard top chine and ends
+        # flush with the coaming's top (aft of the coaming, a plate's lip over the waist's deck),
+        # so from above the arm reads as one mass edged by the coaming, with no channel in it.
+        sa = section(x)['A']
+        lip = 1.9 if x > 104.0 else .6+1.3*max(0.0, min(1.0, (x-92.0)/12.0))
+        yi = sa[0]+2.6
+        bi = min(base, hull_top(x, yi)-1.0)
         sec = [(yi, bi), (yo, bo), mix(.25, (yl, zt-.9)), mix(.4, (yl-.9, zt)), mix(.75, (yr, zt)),
                mix(1.0, (yt, top-2.5)), (max(yc-.45*w+1.0, min(yc+.35*w, mix(1.0, (yt, 0))[0]-.5)), top),
-               (yc-.45*w, top), (yc-w+2.0, top-2.6)]
+               (yc-.45*w, top), (yc-w+1.0, top-1.5), (yi, sa[1]+lip)]
         st.append((x, _y(sec, s)))
     ob = loft_x(kit, name, st, kit.plate, bevel=0)
     nose_face(ob)
@@ -543,6 +553,7 @@ def build(kit):
         shoulder(kit, side, s, arm, g)
         ARM_PARTS[side] = [o for o in bpy.data.objects if o not in before]
         tilt(kit, side, s)
+        after_planes(kit, side, s)
 
 
 # The after end (round 5; critic: from astern and on the stern quarters the arms' after ends
@@ -600,6 +611,87 @@ def after_end(kit, side, s, arm, courses):
     # plate's outer skin never runs forward of its root (no lip hanging over daylight).
     keep = _after_cutter(kit, s, COLLAR_W, steep_only=True, rake=84.0)
     boolean(col, keep, 'INTERSECT')
+
+
+# Round 7 (critique 1.3: from astern and on the stern quarter the arm's after end still read as
+# a crumpled lobe - the loft's octagonal end cap, the ramp, the collar and the sponson glacis
+# each at their own angle). The posed after end is now two flat planes cut square across the arm
+# in the WORLD: one raked face from the keel's after knuckle up to the gun deck, square across the
+# arm and leaning aft AFTER_LEAN deg from the vertical at the top (so the deck runs aft over it to
+# carry the flak sponson), and one step - the sponson standing on the deck at its top. Every arm
+# part (hull, gallery, courses, collar, fin) is cut by the same plane, so the plates end flush on
+# the face. (A second, set-back face hung the upper hull over a ledge with air under it: a floating
+# edge in the seam audit; the sponson is the step instead.)
+AFTER_LEAN, AFTER_FOOT = 35.0, (19.0, -38.0)
+
+
+def _after_x(z):
+    """World X of the posed after end's raked face at height z."""
+    return AFTER_FOOT[0]-(z-AFTER_FOOT[1])*math.tan(math.radians(AFTER_LEAN))
+
+
+# The flak sponson (WS 010/011 at (-3, +-112)): the turret stood where the arm's heel, the fin
+# crest and the aft body's quarter meet, so its glacis was laid over four surfaces at once and
+# crumpled into a lobe. It now stands on one flat-topped armoured sponson, level with the highest
+# deck under its ring, its sides plumb planes with a chamfered crown, so the barbette sits flush and the sponson is the after end's one step, standing on the deck at
+# the top of the raked face.
+SPONSON = (-3.0, 112.0)
+SPONSON_PLAN = [(10.5, -5.0), (10.5, 3.5), (3.0, 7.8), (-6.0, 7.8), (-11.0, 2.5), (-11.0, -6.0), (-8.0, -10.5),
+                (5.0, -10.5)]
+
+
+def _deck_top(x, y, r):
+    """Highest built surface (not weapons/lights/fittings) under a ring of radius r at (x, y)."""
+    import bpy
+    from mathutils import Vector
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    best = None
+    pts = [(x, y)]+[(x+r*math.cos(k*math.pi/6), y+r*math.sin(k*math.pi/6)) for k in range(12)]
+    for ob in bpy.context.scene.objects:
+        if ob.type != 'MESH' or ob.name.split(' ')[0] in ('Weapon', 'Light', 'Fitting', 'Temporary'):
+            continue
+        ev = ob.evaluated_get(dg)
+        inv = ev.matrix_world.inverted()
+        for px, py in pts:
+            ok, p, _, _ = ev.ray_cast(inv @ Vector((px, py, 150)), (inv.to_3x3() @ Vector((0, 0, -1))).normalized())
+            if ok:
+                z = (ev.matrix_world @ p).z
+                best = z if best is None else max(best, z)
+    return best
+
+
+def sponson(kit, side, s):
+    cx, cy = SPONSON[0], s*SPONSON[1]
+    top = _deck_top(cx, cy, 8.4)+.2
+    plan = [(cx+dx, cy+s*dy) for dx, dy in SPONSON_PLAN]
+    if s < 0:
+        plan = list(reversed(plan))
+    # Plumb sides with a chamfered crown, carried down until the arm's raked after face cuts them
+    # off (after_planes), so its outboard side stands into the arm's rolled face, not over it.
+    ob = prism(kit, f'Armour {side} arm flak sponson', plan, [(0.0, top-40.0), (0.0, top-1.0), (1.0, top)],
+               kit.plate, bevel=.2)
+    return ob
+
+
+def after_planes(kit, side, s):
+    import bpy
+    # the sponson is cut with the arm: its underside ends on the same raked face, so it never
+    # hangs below the hull it stands on
+    ARM_PARTS[side].append(sponson(kit, side, s))
+    prof = [(_after_x(-90.0), -90.0), (_after_x(70.0), 70.0), (-160.0, 70.0), (-160.0, -90.0)]
+    n = len(prof)
+    for ob in list(ARM_PARTS[side]):
+        if ob.type != 'MESH':
+            continue
+        verts = [(x, s*y, z) for y in (30.0, 180.0) for x, z in prof]
+        faces = [tuple(range(n)), tuple(range(n, 2*n))]+[(i, (i+1) % n, n+(i+1) % n, n+i) for i in range(n)]
+        # the cut faces take the part's own material (a cutter's would paint the face dark)
+        cutter = kit.mesh('Temporary arm after planes', verts, faces, ob.active_material or kit.plate)
+        boolean(ob, cutter)
+        if not ob.data.polygons:
+            ARM_PARTS[side].remove(ob)
+            bpy.data.objects.remove(ob, do_unlink=True)
 
 
 def _on(p, q, z):

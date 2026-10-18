@@ -50,7 +50,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2424048,
+      "units3": 2454733,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -86,13 +86,13 @@
     "contents_total_m3": 653700,
     "machinery_share": 0.58,
     "enclosed_m3": 1556429,
-    "solved_metres_per_unit": 0.863,
+    "solved_metres_per_unit": 0.859,
     "range": {
-      "habitable_273": 0.836,
-      "habitable_328": 0.889
+      "habitable_273": 0.833,
+      "habitable_328": 0.885
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 303.4,
+    "length_m": 302.1,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -104,7 +104,7 @@
     },
     "published_metres_per_unit": 0.86,
     "measured_this_build": {
-      "enclosed_units3": 2424048,
+      "enclosed_units3": 2454733,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
@@ -126,10 +126,10 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2426881
+      "with_drive_pods_units3": 2457459
     },
     "size_m": [
-      302.4,
+      299.9,
       231.0,
       116.0
     ],
@@ -149,7 +149,7 @@
   },
   "dimensions": {
     "min": [
-      -123.76,
+      -120.77,
       -134.31,
       -57.34
     ],
@@ -159,7 +159,7 @@
       77.6
     ],
     "size": [
-      351.66,
+      348.67,
       268.62,
       134.94
     ]
@@ -342,7 +342,7 @@
       "location": [
         -3,
         -112,
-        14.86
+        17.16
       ],
       "angle": 250,
       "arc": 180,
@@ -361,7 +361,7 @@
       "location": [
         -3,
         112,
-        14.86
+        17.16
       ],
       "angle": 110,
       "arc": 180,
@@ -513,7 +513,7 @@
       "location": [
         -9,
         65,
-        21.43
+        21.39
       ],
       "angle": 30,
       "arc": 120,
@@ -570,7 +570,7 @@
       "location": [
         -9,
         -65,
-        21.35
+        21.32
       ],
       "angle": -30,
       "arc": 120,
@@ -788,9 +788,9 @@
     {
       "name": "Light stem 1",
       "position": [
-        221.31,
-        0.0,
-        2.15
+        212.43,
+        -0.0,
+        2.2
       ],
       "colour": "red",
       "rgb": [
@@ -848,9 +848,9 @@
     {
       "name": "Light port leg tip 1",
       "position": [
-        -121.92,
-        56.16,
-        13.94
+        -118.79,
+        56.08,
+        10.01
       ],
       "colour": "red",
       "rgb": [
@@ -988,9 +988,9 @@
     {
       "name": "Light port arm edge 6",
       "position": [
-        -14.25,
-        113.42,
-        -0.46
+        -6.01,
+        111.95,
+        10.64
       ],
       "colour": "white",
       "rgb": [
@@ -1028,9 +1028,9 @@
     {
       "name": "Light starboard leg tip 1",
       "position": [
-        -121.92,
-        -56.16,
-        13.94
+        -118.79,
+        -56.08,
+        10.01
       ],
       "colour": "red",
       "rgb": [
@@ -1168,9 +1168,9 @@
     {
       "name": "Light starboard arm edge 6",
       "position": [
-        -14.25,
-        -113.42,
-        -0.46
+        -6.01,
+        -111.95,
+        10.64
       ],
       "colour": "white",
       "rgb": [
@@ -1221,42 +1221,42 @@
     "sensor_mm": 36.0,
     "cameras": {
       "formation-quarter-1.5km": [
-        1322.8,
+        1324.3,
         -1066.3,
         549.1
       ],
       "formation-abeam-1.5km": [
-        52.1,
+        53.6,
         -1727.2,
         252.9
       ],
       "formation-bow-1.5km": [
-        -1425.4,
+        -1423.9,
         -853.0,
         372.8
       ],
       "formation-high-1.5km": [
-        1209.2,
+        1210.7,
         668.1,
         1131.3
       ],
       "formation-quarter-3km": [
-        2593.5,
+        2595.0,
         -2132.5,
         1088.1
       ],
       "formation-abeam-3km": [
-        52.1,
+        53.6,
         -3454.4,
         495.6
       ],
       "formation-bow-3km": [
-        -2902.9,
+        -2901.4,
         -1706.1,
         735.4
       ],
       "formation-high-3km": [
-        2366.3,
+        2367.8,
         1336.1,
         2252.4
       ]
@@ -1335,57 +1335,57 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9573,
-    "sprite_uncovered": 0.0163,
-    "model_outside_sprite": 0.0276,
+    "iou": 0.957,
+    "sprite_uncovered": 0.0169,
+    "model_outside_sprite": 0.0273,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
     "formation-abeam-1.5km": {
       "size_px": [
-        269,
+        267,
         109
       ]
     },
     "formation-bow-1.5km": {
       "size_px": [
-        216,
+        215,
         102
       ]
     },
     "formation-high-1.5km": {
       "size_px": [
         220,
-        201
+        197
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
         241,
-        136
+        134
       ]
     },
     "formation-abeam-3km": {
       "size_px": [
-        133,
+        132,
         54
       ]
     },
     "formation-bow-3km": {
       "size_px": [
-        110,
-        50
+        109,
+        51
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        110,
-        100
+        111,
+        98
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        121,
+        120,
         67
       ]
     }

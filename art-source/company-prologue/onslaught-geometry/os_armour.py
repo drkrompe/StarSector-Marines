@@ -32,7 +32,7 @@ from os_kit import arched_mass, ccw, clip_rect, facet_normal, loft_x, mirror_y, 
 from os_hull import (AFT, AFT_OUTER, ARM, ARM_INNER, ARM_OUTER, CORE, CORE_HALF, FORE_STATIONS, FORE_W, FORE_YI, GALLERY_W, LEG_PORT,
                      PROW, PROW_HALF, TAIL, TAIL_HALF, WAIST_DECK, WELL_FLOOR, _table, fore, fore_side_y, fore_top, full,
                      keel_curve, BELLY_KNUCKLE_X, BELLY_STATIONS, belly_section, GALLERY_FLARE, GALLERY_GUN_DECK,
-                     GALLERY_V_APEX, gallery_v)
+                     GALLERY_V_APEX, gallery_v, STEM_X)
 
 
 def offset(points, d):
@@ -176,31 +176,39 @@ def keel_strakes(kit):
     below, and hung off its after face as bars): three heavy strakes only, each riding one
     of the belly's knuckles - the keel bar along the keel flat and a chine bar along each
     lower chine - lofted on the belly's own stations so they follow every knuckle of the
-    keel line exactly, from the forefoot to the aft knuckle (os_hull.BELLY_KNUCKLE_X),
-    where each tapers into the plating as the belly sweeps up into the stern."""
-    x0, x1 = 158.0, BELLY_KNUCKLE_X
-    xs = sorted({x for x in BELLY_STATIONS if x1 < x < x0} | {x0, x0-4.0, x1, x1-3.0}, reverse=True)
+    keel line exactly.
 
-    def proud(x, full):
-        if x >= x0-.01 or x <= x1-2.99:
-            return -.3                      # the ends lie inside the plating: a tapered run-out
-        return full
+    Round 7 (critic: three long parallel bars from the forefoot to the stern read as
+    stripes): each strake is two armour bars ending square on the keel line's knuckles.
+    The fore bar runs from the forefoot knuckle (X 168) over the chest to the chest's after
+    knuckle (X 88), where the keel line turns from its flat run into the rise aft; the aft
+    bar runs from there to the aft knuckle (os_hull.BELLY_KNUCKLE_X). At the knuckle the two
+    lap: the fore bar stands prouder and runs a few units past the aft bar's blunt forward
+    end, so the break is an offset lap joint, not a groove in one long stripe."""
+    runs = ((165.0, 85.5, 2.8, 2.2), (90.0, BELLY_KNUCKLE_X+.5, 1.7, 1.3))
+    for r, (x0, x1, tk, tc) in enumerate(runs):
+        xs = sorted({x for x in BELLY_STATIONS if x1 < x < x0} | {x0, x0-1.2, x1, x1+1.2}, reverse=True)
 
-    keel, chines = [], []
-    for x in xs:
-        sec = _belly_at(x)
-        n = len(sec)//2
-        top, chine, mid, kp = sec[n:]       # port half: top, upper chine, lower chine, keel
-        t = proud(x, 2.6)
-        kw = min(3.0, kp[0]-.2)
-        zb = kp[1]
-        keel.append((x, [(-kw-.2, zb+1.4), (-kw, zb-t+.8), (-kw+.9, zb-t), (kw-.9, zb-t), (kw, zb-t+.8),
-                         (kw+.2, zb+1.4)]))
-        chines.append((x, _chine_bar(mid, chine, kp, proud(x, 2.0))))
-    loft_x(kit, 'Armour core keel strake 1', keel, kit.grey, bevel=.2)
-    for name, s in (('Armour core keel strake 2', 1), ('Armour core keel strake 3', -1)):
-        st = [(x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]) for x, sec in chines]
-        loft_x(kit, name, st, kit.grey, bevel=.2)
+        def proud(x, full):
+            # a short chamfer at each end (1.2 long, down to a third), not a run-out
+            return full*.35 if x >= x0-.01 or x <= x1+.01 else full
+
+        keel, chines = [], []
+        for x in xs:
+            sec = _belly_at(x)
+            n = len(sec)//2
+            top, chine, mid, kp = sec[n:]       # port half: top, upper chine, lower chine, keel
+            t = proud(x, tk)
+            kw = min(3.0, kp[0]-.2)+(.0 if r == 0 else .6)
+            zb = kp[1]
+            keel.append((x, [(-kw-.2, zb+1.4), (-kw, zb-t+.8), (-kw+.9, zb-t), (kw-.9, zb-t), (kw, zb-t+.8),
+                             (kw+.2, zb+1.4)]))
+            chines.append((x, _chine_bar(mid, chine, kp, proud(x, tc), w=3.4 if r == 0 else 4.0)))
+        tag = '' if r == 0 else ' aft'
+        loft_x(kit, f'Armour core keel strake 1{tag}', keel, kit.grey, bevel=.2)
+        for name, s in ((f'Armour core keel strake 2{tag}', 1), (f'Armour core keel strake 3{tag}', -1)):
+            st = [(x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]) for x, sec in chines]
+            loft_x(kit, name, st, kit.grey, bevel=.2)
     shell_strip(kit, 'Armour prow keel strake', bpy.data.objects['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
 
 
@@ -284,7 +292,7 @@ def build(kit):
     for side, s in (('port', 1), ('starboard', -1)):
         # Prow shoulders: the orange band from the gallery's foot over the upper chine.
         gal = lambda x: _table(GALLERY_W, x)+.6
-        for k, (xa, xb, seam) in enumerate(((213.0, 175.3, 194.0), (174.7, 140.3, 157.0), (139.7, 111.0, 125.0)), 1):
+        for k, (xa, xb, seam) in enumerate(((STEM_X-.4, 175.3, 191.0), (174.7, 140.3, 157.0), (139.7, 111.0, 125.0)), 1):
             skin(kit, f'Armour {side} prow shoulder {k}', xa, xb, gal, None, 1.4, kit.orange, s, seams=(seam,))
         # Prow collar: a heavier strap across the band where the prow meets the core.
         skin(kit, f'Armour {side} prow collar', 111.0, 103.4,
@@ -309,7 +317,10 @@ def build(kit):
         # Core aft face above the machinery well: buttresses standing on the well
         # floor, raked aft, their tops following the deck, and a coaming capping
         # the face's top edge.
-        for k, y in enumerate((30, 50, 72), 1):
+        # Round 7 (seam audit): buttress 1 stood at |Y| 30, buried in the aft glacis
+        # (os_stern, |Y| 15-44); it is now the glacis' outboard end-stop at |Y| 46, and
+        # buttress 2 moves out to keep the three evenly spaced to the third.
+        for k, y in enumerate((46.5, 59, 72), 1):
             top = fore_top(-18.0, y)+1.0
             b = prism(kit, f'Armour {side} core aft buttress {k}', _side([(-17.0, y-2.25), (-17.0, y+2.25),
                                                                          (-23.5, y+2.25), (-23.5, y-2.25)], s),
@@ -318,10 +329,16 @@ def build(kit):
             f = fore(-18.0)
             dz = (f['zk']-f['zi'])/(f['w']-f['yi']) if y > f['yi'] else 0.0
             plane_cut(b, 'buttress top', (-18.0, s*y, top), (0, -s*dz, 1.0))
+        # The lintel caps the centre deck's aft edge only. Round 7 (seam audit): it ran out
+        # over the shoulder to |Y| 82 and stood 0.8 proud of the aft face, a slot of daylight
+        # 18-29 deep over the outer well; now it ends on the deck's edge (|Y| yi) with its
+        # aft face flush on the core's, and its outboard end is battered down the shoulder.
         f = fore(-18.0)
-        ys = [22.0, f['yi'], f['w']-1.5]
-        sec = [(y, fore_top(-18.0, y)+1.4) for y in ys]+[(y, fore_top(-18.0, y)-2.0) for y in reversed(ys)]
+        ys = [22.0, f['yi']-3.0, f['yi']]
+        sec = [(ys[0], fore_top(-18.0, ys[0])+1.4), (ys[1], fore_top(-18.0, ys[1])+1.4),
+               (ys[2], fore_top(-18.0, ys[2])-1.0), (ys[2], fore_top(-18.0, ys[2])-2.0),
+               (ys[0], fore_top(-18.0, ys[0])-2.0)]
         if s < 0:
             sec = [(-y, z) for y, z in reversed(sec)]
-        loft_x(kit, f'Armour {side} core aft lintel', [(-13.5, sec), (-18.8, sec)], kit.grey, bevel=.3)
+        loft_x(kit, f'Armour {side} core aft lintel', [(-13.5, sec), (-18.15, sec)], kit.grey, bevel=.3)
     keel_strakes(kit)

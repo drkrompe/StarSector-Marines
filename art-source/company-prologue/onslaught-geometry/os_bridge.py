@@ -375,11 +375,37 @@ def _spine_top(x):
     return SPINE_TOP-math.tan(math.radians(SPINE_FALL))*(-50.0-x)
 
 
+# Round 7 (critic 1.4: in the stern quarter the bone spine trailed down to the tail as the
+# brightest shard in the view, so the white read as a streak, not as one bridge mass): aft
+# of the aft dome the spine is capped in the dark grey armour course, its fall, flanks and
+# after end, and its side steps there become grey skirt plates down to the root deck; the
+# bone stays on the citadel, the neck and the aft dome, one white mass.
+SPINE_CAP_X = -46.0
+
+
 def _spine(kit):
     xs = sorted({x for x, _ in SPINE_HALF} | {GLACIS[1][0], 40.0, 36.0, -50.0}, reverse=True)
     st = [(x, octagon(-_half_at(x), _half_at(x), SPINE[0][1], _spine_top(x), SPINE[-1][0], SPINE[0][0]))
           for x in xs]
-    return loft_x(kit, 'Bridge spine', st, kit.bone, bevel=.12)
+    spine = loft_x(kit, 'Bridge spine', st, kit.bone, bevel=.12)
+    spine.data.materials.append(kit.grey)
+    cap = len(spine.data.materials)-1
+    for poly in spine.data.polygons:
+        if poly.center.x < SPINE_CAP_X:
+            poly.material_index = cap
+    return spine
+
+
+# The aft skirt's foot (final z on the root deck, os_stern) and its outboard reach:
+# never past the machinery well's lip, which runs in diagonally from |Y| 32 at X -36
+# to the tail's edge (|Y| 21) at X -47.
+SKIRT_FOOT_Z = 10.6
+SKIRT_REACH = 30.0
+
+
+def _skirt_y(x, half):
+    edge = 32.0+(x+36.0) if x < -36.0 else 99.0
+    return max(min(SKIRT_REACH, edge-1.6), 19.6, half+1.5)
 
 
 def _lay_on_glacis(obs, pivot_x=65.0):
@@ -425,22 +451,34 @@ def _forward_spine(kit):
 
 def _spine_detail(kit):
     # Side steps from the spine shoulder down to the core deck, fore and aft of the domes.
-    for xa, xb, tag in ((94.0, 60.0, 'fore'), (-20.0, -64.0, 'aft')):
-        edge = [(x, _half_at(x)+.6) for x in [xa+(xb-xa)*i/8 for i in range(9)]]
-        for side, s in (('port', 1), ('starboard', -1)):
-            pts = [(x, s*y) for x, y in edge]
-            # Round 6: the forward steps stand higher, halfway up the spine raised over the
-            # gallery's glacis crest, so the spine keeps a terrace at its foot.
-            top = 26.4 if tag == 'fore' else 23.4
-            st = prism(kit, f'Bridge spine side step {side} {tag}', ccw(strip_plan(pts, 2.6)),
-                       [(0, -LIFT), (0, top-.6), (.6, top)], kit.bone, bevel=0)
-            if tag == 'aft':
-                plane_cut(st, 'step aft fall', (-50.0, 0, 23.4), facet_normal((-1, 0), SPINE_FALL))
+    xa, xb = 94.0, 60.0
+    edge = [(x, _half_at(x)+.6) for x in [xa+(xb-xa)*i/8 for i in range(9)]]
+    for side, s in (('port', 1), ('starboard', -1)):
+        pts = [(x, s*y) for x, y in edge]
+        # Round 6: the forward steps stand higher, halfway up the spine raised over the
+        # gallery's glacis crest, so the spine keeps a terrace at its foot.
+        prism(kit, f'Bridge spine side step {side} fore', ccw(strip_plan(pts, 2.6)),
+              [(0, -LIFT), (0, 26.4-.6), (.6, 26.4)], kit.bone, bevel=0)
+    # Aft of the domes the steps were walls 20-41 high standing at the tail's edge over the
+    # wells (round 7 seam audit: a spine on stilts). Each is now a grey skirt plate falling
+    # from under the spine's shoulder outboard to the root deck (os_stern: z 10, and the
+    # aft glacis' top at 23.4 at its forward end), stopping short of the well's lip.
+    foot = SKIRT_FOOT_Z-LIFT
+    xs = [-20.0, -24.0, -28.0, -32.0, -36.0, -40.0, -44.0, -46.0, -48.0, -50.0, -54.0, -58.0, -62.0, -64.0]
+    for side, s in (('port', 1), ('starboard', -1)):
+        st = []
+        for x in xs:
+            half = _half_at(x)
+            yi, yo = half-.8, _skirt_y(x, half)
+            zt = _spine_top(x)-2.2
+            sec = [(yi, zt), (yi, -2.0), (yo, -2.0), (yo, foot), (yo-.9, foot+.9)]
+            st.append((x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]))
+        loft_x(kit, f'Bridge spine side step {side} aft', st, kit.grey, bevel=.2)
     # Transverse ribs across the aft spine, behind the helmet, with dark vents between.
     fall = lambda x: SPINE_TOP-math.tan(math.radians(SPINE_FALL))*max(0.0, -50.0-x)
     for k, x in enumerate((-52.0, -57.0, -62.0), 1):
         w = _half_at(x)-2.8          # inside the spine's shoulder chamfer, so no end floats
-        ob = kit.box(f'Bridge spine aft rib {k}', (x, 0, fall(x)+.35), (1.6, 2*w, 1.3), kit.bone, bevel=.2)
+        ob = kit.box(f'Bridge spine aft rib {k}', (x, 0, fall(x)+.35), (1.6, 2*w, 1.3), kit.steel, bevel=.2)
         ob.rotation_euler[1] = -math.radians(SPINE_FALL)
     for k, x in enumerate((-54.5, -59.5), 1):
         for side, s in (('port', 1), ('starboard', -1)):
