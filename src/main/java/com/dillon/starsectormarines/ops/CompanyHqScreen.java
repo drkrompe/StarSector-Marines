@@ -32,7 +32,7 @@ public final class CompanyHqScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
     private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
-            CommandDeckLayout.parse(loadText(CommandDeckLayout.PATH)), this::onBarracks);
+            CommandDeckLayout.parse(loadText(CommandDeckLayout.PATH)));
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 

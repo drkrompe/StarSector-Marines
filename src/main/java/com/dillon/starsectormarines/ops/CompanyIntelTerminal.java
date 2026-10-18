@@ -18,7 +18,7 @@ import java.util.Map;
  * <p>Stations are real buttons, positioned after layout from the same cover-fit the
  * banner paints with, so a station stays over its people at any banner size. Using
  * one moves focus to the panel that already holds that information and briefly marks
- * it, or, for the force, opens Barracks; the picture never holds a fact of its own.
+ * it; the picture never holds a fact of its own.
  */
 final class CompanyIntelTerminal {
     static final String STATION_PREFIX = "company-hq-station-";
@@ -32,7 +32,6 @@ final class CompanyIntelTerminal {
             + "border-width: 0px; opacity: 1;";
 
     private final CommandDeckBanner banner;
-    private final Runnable openForce;
     private final Map<String, UiElement> stations = new LinkedHashMap<>();
     private UiDocument document;
     private MarkupInstance instance;
@@ -44,10 +43,8 @@ final class CompanyIntelTerminal {
     private UiElement pulsed;
     private float pulseLeft;
 
-    /** {@code openForce} is where the force station sends the player: the roster lives in Barracks. */
-    CompanyIntelTerminal(CompanyHqNewsDesk desk, CommandDeckLayout layout, Runnable openForce) {
+    CompanyIntelTerminal(CompanyHqNewsDesk desk, CommandDeckLayout layout) {
         banner = new CommandDeckBanner(desk, layout);
-        this.openForce = openForce;
     }
 
     /** The station actions the markup binds, before the document exists. */
@@ -153,7 +150,6 @@ final class CompanyIntelTerminal {
                 pulse("company-hq-board-heading");
             }
             case "finance" -> pulse("company-hq-finance");
-            case "force" -> openForce.run();
             default -> { }
         }
     }

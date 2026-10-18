@@ -51,7 +51,7 @@ final class CompanyHqViewModel {
     /** The page's props; the command-deck stations are inert until the screen's terminal binds them. */
     Map<String, Object> props() {
         Map<String, Object> out = new LinkedHashMap<>(props);
-        for (String station : List.of("deckSituation", "deckComms", "deckCastle", "deckFinance", "deckForce")) {
+        for (String station : List.of("deckSituation", "deckComms", "deckCastle", "deckFinance")) {
             out.putIfAbsent(station, (Runnable) () -> { });
         }
         return out;

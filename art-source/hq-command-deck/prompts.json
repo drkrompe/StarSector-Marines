@@ -164,6 +164,20 @@
         "art-source/hq-command-deck/castle-v2.master.png": "Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume."
       },
       "placement": "compose.py scales the card to the sabine stand in deck-guide-v7.layout.json and cuts it with masks/sabine.occluder.png"
+    },
+    {
+      "id": "sabine-v3",
+      "order": 3,
+      "prompt": "Full-length figure card of Lieutenant Sabine Hale for a layered illustration, filling in the grey mannequin given as reference 1.\n\nReference 1 is the exact pose, silhouette, viewpoint and scale: paint her over it and never move a limb. She stands at the right-hand edge of a waist-high plotting table that lies to the viewer's left (the table is not drawn). Weight on her back foot, legs apart, torso pitched forward over the table's edge, both arms reaching forward and down, palms flat on the table's rim where the mannequin's hands are. Her chin is raised: she looks up and ahead, toward the viewer's left, at a holographic sector display hanging in the air above the table, with a focused, intent expression, mid-thought, reading the situation. Her face is visible in three-quarter profile.\n\nShe is the same person as reference 2: a woman in her early thirties, the company's field commander and a former convoy escort, short dark auburn hair tucked behind one ear, a small old scar across one eyebrow, calm alert watchful eyes. Costume exactly as reference 3: worn slate-blue and charcoal military field jacket with a compact armoured shoulder and simple lieutenant rank tabs, a small radio earpiece, dark field trousers and boots. Sleeves pushed up a little. No helmet, no weapon.\n\nViewpoint as reference 1: a level camera about a metre above her head height and about six and a half metres away, so she is seen from slightly above; vertical lines stay vertical.\n\nLighting matches reference 4: low and moody. A cool pale green-cyan glow from the table below her and from the hologram above it lights her face, the underside of her jaw, her forearms and hands from the viewer's left; warm downlight from ceiling lamps; amber rim light from consoles behind her on the right. Same matte-painted brushwork and palette as reference 4, and the same figure-card finish as reference 3.\n\nTrue transparent background, including the negative spaces between her arms, torso and legs; no ground, floor, cast shadow slab, table, furniture, hologram, border, text or other people.",
+      "references": {
+        "art-source/hq-command-deck/sabine-pose-guide.png": "Pose, silhouette, viewpoint and scale authority: paint the figure over this mannequin exactly; never move a limb",
+        "art-source/portraits/sabine-hale.master.png": "Identity only: face, hair, age and scar. Not pose, framing or background",
+        "art-source/hq-command-deck/sabine-v2.master.png": "Costume and figure-card finish only: jacket, kit, rendering and clean transparency. Not pose",
+        "art-source/hq-command-deck/deck-plate-v5.master.png": "Lighting direction, colour and painting style only. Not layout; include none of its background"
+      },
+      "guide": "blender/deck_blockout.py -- --pose sabine renders the leaning mannequin alone from the deck camera at three times the frame",
+      "placement": "compose.py scales the card to the sabine stand in deck-guide-v8.layout.json and cuts it with masks/sabine.occluder.png, a depth-clipped matte so her hands stay on the table top",
+      "supersedes": "sabine-v2 (standing idle, arms folded)"
     }
   ],
   "liveOverlays": "Screens and the chart-table top are painted blank so SVG/live effects (readouts, blinking lamps, a live plot, motion) can be drawn over them; stations stay in fixed bands so they can later become their own layers.",
