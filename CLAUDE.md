@@ -149,7 +149,10 @@ frame sequences and graded textures are written under ignored paths
 shown to the owner from disk. What stays tracked is what cannot be rebuilt
 from the repository: scripts, data, Codex/ImageGen generations with their
 prompts and the guides they were generated from, finish references, and
-hand-made or story art. An ignored path refuses `git add`; never force it.
+hand-made or story art. An ignored path refuses `git add`; never force it. Untracking a file (`git rm --cached`) deletes it from every
+other checkout that merges the commit, the main workspace included: restore
+it there with `git restore --source=<commit before the untrack> --worktree --
+<paths>`, since the file is ignored from then on and nothing is staged.
 
 The main workspace is for brief integration and worktree administration only.
 Do not run builds or leave generated task files there.
@@ -193,6 +196,10 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
 - Images obey the preview rule (1920x1080, 100% scale). Copy finished images
   only, never frame sequences or scratch.
 - Tell the owner the run folder's path when the set is ready.
+- Drive keeps two folders that two machines created under the same name and
+  shows the second as `name (1)`. It happened once, to `review` itself. Create
+  only your own run folder (the asset folder only if it is missing), and if a
+  `(1)` twin appears, move its contents into the original and remove the twin.
 - **Cleanup is automatic.** After posting a run, prune its asset:
   `python3 tools/review_prune.py --asset <asset> --apply` (`python` on Windows).
   Each asset keeps its three newest runs plus any the owner marked, either
