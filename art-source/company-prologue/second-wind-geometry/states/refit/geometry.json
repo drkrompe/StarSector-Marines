@@ -796,48 +796,6 @@
   ],
   "spark_anchors": [
     {
-      "name": "Scar ds-port-waist-rip spark anchor",
-      "position": [
-        6.1715,
-        16.1694,
-        11.4372
-      ],
-      "position_m": [
-        4.0114,
-        10.5101,
-        7.4342
-      ],
-      "spray_dir": [
-        0.26978,
-        0.01358,
-        0.96283
-      ],
-      "scar": "ds-port-waist-rip",
-      "sparking": false,
-      "radius_m": 1.4
-    },
-    {
-      "name": "Scar ds-port-waist-rip spark-2 anchor",
-      "position": [
-        7.6302,
-        17.14,
-        11.3382
-      ],
-      "position_m": [
-        4.9596,
-        11.141,
-        7.3698
-      ],
-      "spray_dir": [
-        0.25995,
-        -0.06061,
-        0.96372
-      ],
-      "scar": "ds-port-waist-rip",
-      "sparking": false,
-      "radius_m": 1.0
-    },
-    {
       "name": "Scar sp-turret-3 spark anchor",
       "position": [
         38.31,
@@ -880,7 +838,7 @@
         "id": "fb-port-bow-cheek-strike",
         "kind": "fb-cheek",
         "area": "sw_scars_forebody",
-        "status": "patched",
+        "status": "replaced",
         "note": "On the cheek facet above the sponson, over occupied space: a welded doubler for the flight; untouched by the refit; re-plated in the restoration. Sized to the facet."
       },
       {
@@ -943,7 +901,7 @@
         "id": "fb-stbd-bow-deck-cluster",
         "kind": "cluster",
         "area": "sw_scars_forebody",
-        "status": "patched",
+        "status": "replaced",
         "note": "Only strikes over the command deck got pressure patches."
       },
       {
@@ -992,8 +950,8 @@
         "id": "fb-port-deck-plate-fwd-torn",
         "kind": "plate",
         "area": "sw_scars_forebody",
-        "status": "open",
-        "note": "Torn by a strike; deck armour, not flight-critical; replaced when restored."
+        "status": "replaced",
+        "note": "Torn by a strike; deck armour, not flight-critical; plated in the refit over the new berthing."
       },
       {
         "id": "fb-port-deck-plate-aft-torn",
@@ -1006,15 +964,15 @@
         "id": "fb-stbd-deck-plate-unbolted",
         "kind": "plate",
         "area": "sw_scars_forebody",
-        "status": "open",
-        "note": "Unbolted by salvagers; replaced when restored."
+        "status": "replaced",
+        "note": "Unbolted by salvagers; a proper plate fitted in the refit."
       },
       {
         "id": "fb-port-deck-plate-buckle",
         "kind": "buckle",
         "area": "sw_scars_forebody",
-        "status": "open",
-        "note": "Slow heavy contact; left buckled, replaced when restored."
+        "status": "replaced",
+        "note": "Slow heavy contact; left buckled for the escape, cut out and re-plated in the refit."
       },
       {
         "id": "fb-bow-tether-padeye",
@@ -1087,11 +1045,11 @@
         "note": "Engine 1 can stove in and torn, bell mouth crushed out of round, top ram snapped, collar torn: crushed against the anchor rock; a new can and nozzle at restoration."
       },
       {
-        "id": "pod-port-fins",
-        "kind": "bent_fins",
+        "id": "pod-port-engine-bay",
+        "kind": "engine_bay",
         "area": "sw_scars_pods",
         "status": "open",
-        "note": "Top outboard fins of the windward bank bent; cold pod, left until restored."
+        "note": "The rock that crushed Engine 1 stove in the upper outboard quarter of the whole port engine bay: barrel bands and fin cage pressed flat (five fin rings crushed together, the cage rail bent in and torn), the thrust housing corner knocked in, one panel torn off and folded back and another gone over a void with broken frames and feed runs cut toward the can. Absorbs the old bent-fins row. The pod is cold, so it stays as it is until the bay is rebuilt with the new can."
       },
       {
         "id": "pod-port-aft-shoulder",
@@ -1377,8 +1335,8 @@
         "id": "ds-port-waist-rip",
         "kind": "rip",
         "area": "sw_scars_dorsal",
-        "status": "open",
-        "note": "Windward port waist deck: a tumbling rock tore five deck panels away along their seams, folding one back over the deck and breaking the frame under the strike; the waist service runs broke in the void. Not pressure, thrust or navigation: left open through the escape (the bus conduit arcing where nobody could reach it in vacuum) and the refit (live ends booted); re-plated and painted when restored."
+        "status": "replaced",
+        "note": "Windward port waist deck: a tumbling rock tore five deck panels away along their seams, folding one back over the deck and breaking the frame under the strike; the waist service runs broke in the void. Not pressure, thrust or navigation: left open through the escape (the bus conduit arcing where nobody could reach it in vacuum); the refit ran the new berthing services through it and plated it; painted when restored."
       },
       {
         "id": "ds-stbd-waist-rip",
@@ -1419,7 +1377,10 @@
       "Casing access panel.003": "pod-casing-access-panels",
       "Drive casing armour plate": "pod-port-casing-plate",
       "Drive casing armour plate.005": "pod-starboard-casing-plate",
+      "Fin bank tie bar.003": "pod-port-engine-bay",
+      "Forebody replaceable armor": "fb-port-deck-plate-buckle",
       "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
+      "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn",
       "Panel grab strap": "pod-casing-access-panels",
       "Panel grab strap.001": "pod-casing-access-panels",
       "Panel grab strap.002": "pod-casing-access-panels",
@@ -1445,7 +1406,6 @@
       "Turret 3 optics lens": "sp-turret-3"
     },
     "shape_keys": [
-      "Forebody replaceable armor: Scar fb-port-deck-plate-buckle",
       "Thrust bay engine can: Scar pod-port-outer-can",
       "Engine 1 actuator gland: Scar pod-port-outer-can",
       "Engine 1 actuator gland.001: Scar pod-port-outer-can",
@@ -1466,10 +1426,20 @@
       "Engine 1 shroud collar: Scar pod-port-outer-can",
       "Engine 1 trunnion pin cap: Scar pod-port-outer-can",
       "Engine 1 trunnion pin cap.001: Scar pod-port-outer-can",
-      "Heat-sink fin.001: Scar pod-port-fins",
-      "Heat-sink fin.002: Scar pod-port-fins",
-      "Heat-sink fin.003: Scar pod-port-fins",
-      "Heat-sink fin.004: Scar pod-port-fins",
+      "Drive reinforcing band: Scar pod-port-engine-bay",
+      "Drive reinforcing band.001: Scar pod-port-engine-bay",
+      "Heat-sink fin: Scar pod-port-engine-bay",
+      "Heat-sink fin.001: Scar pod-port-engine-bay",
+      "Heat-sink fin.002: Scar pod-port-engine-bay",
+      "Heat-sink fin.003: Scar pod-port-engine-bay",
+      "Heat-sink fin.004: Scar pod-port-engine-bay",
+      "Heat-sink fin.005: Scar pod-port-engine-bay",
+      "Heat-sink fin.006: Scar pod-port-engine-bay",
+      "Aft band hatch: Scar pod-port-engine-bay",
+      "Aft band louver: Scar pod-port-engine-bay",
+      "Aft band louver.001: Scar pod-port-engine-bay",
+      "Aft band louver.002: Scar pod-port-engine-bay",
+      "Drive warning light: Scar pod-port-engine-bay",
       "Drive casing armour plate.003: Scar pod-starboard-casing-buckle",
       "Turret 1 ammunition feed trunk: Scar sp-turret-1",
       "Turret 1 bustle vent slat: Scar sp-turret-1",
@@ -1512,7 +1482,7 @@
       "RCS pod-port down nozzle: Salvage plate bare steel (rcs-pod-port)",
       "RCS pod-port up nozzle: Salvage plate bare steel (rcs-pod-port)"
     ],
-    "cut_objects": 82,
+    "cut_objects": 81,
     "sites": {
       "aft-deck-cluster": [
         {
@@ -3084,6 +3054,20 @@
             0.966
           ],
           "r": 0.04
+        }
+      ],
+      "pod-port-engine-bay": [
+        {
+          "p": [
+            -24.0,
+            37.472,
+            11.289
+          ],
+          "n": [
+            0.0,
+            0.966,
+            0.259
+          ]
         }
       ],
       "pod-port-flank-cluster": [

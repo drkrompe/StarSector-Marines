@@ -1,6 +1,6 @@
 # Mudskipper: cinematic asset
 
-Status: ACTIVE. Source art for cinematics; nothing here ships in the mod.
+Status: DONE (pass 7 accepted 2026-10-18). Source art for cinematics; nothing here ships in the mod.
 Written: 2026-10-18
 
 The textured Mudskipper (`../mudskipper-surface/`) as one appendable Blender
