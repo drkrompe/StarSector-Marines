@@ -1,0 +1,493 @@
+{
+  "status": "Clean base geometry. No damage, condition states or textures.",
+  "hull": {
+    "name": "Shepherd",
+    "campaign_name": "Morrow",
+    "hullId": "shepherd",
+    "size": "FRIGATE",
+    "style": "LOW_TECH",
+    "tech": "Low Tech",
+    "manufacturer": "Ko Combine r450",
+    "designation": "Drone Tender",
+    "source": {
+      "ship": "data/hulls/shepherd.ship",
+      "sprite": "graphics/ships/drone_tender.png",
+      "ship_data": "data/hulls/ship_data.csv (row id shepherd)",
+      "lights_layer": "none in the install"
+    },
+    "ship_data": {
+      "min_crew": 15,
+      "max_crew": 30,
+      "cargo": 100,
+      "fuel": 40,
+      "mass": 200,
+      "hitpoints": 1200,
+      "armor": 200
+    },
+    "built_in_mods": [
+      "civgrade",
+      "surveying_equipment",
+      "repair_gantry"
+    ],
+    "built_in_wings": [
+      "borer_wing"
+    ],
+    "ship_system": "maneuveringjets",
+    "shield": "OMNI (radius 70)"
+  },
+  "provenance": "verified against the installed shepherd.ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.8,
+  "scale": {
+    "method": "deck program (DeckProgramProbe FRIGATE \"Drone Tender\" 15 30 100 -> WARSHIP role): 2331 m2 rooms, less the notional 16x10 HANGAR (160 m2) because the drone bay is sized from the Borer wing instead, = 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the crew pressure hull (union of PRESSURE_HULL by vertical ray intervals)",
+    "required_m3": 9726,
+    "pressure_hull": [
+      "Hull central body",
+      "Hull port spine",
+      "Hull aft machinery block",
+      "Bridge cab",
+      "Bridge habitat shell"
+    ],
+    "pressure_hull_units3": 20536,
+    "usable_fraction": 0.55,
+    "solved_metres_per_unit": 0.951,
+    "range": {
+      "roomy_45pct_usable": 1.02,
+      "cramped_65pct_usable": 0.9
+    },
+    "drone_bay": {
+      "hull": [
+        "Drone bay aft hangar pod",
+        "Drone bay forward hangar pod",
+        "Drone bay forward service block"
+      ],
+      "units3": 7171,
+      "m3_at_published_scale": 3672,
+      "stowage_needed_m3": 570,
+      "craft": "Borer (drone_borer)",
+      "wing_size": 4,
+      "craft_assumed_m": {
+        "length": 4.4,
+        "span": 4.0,
+        "height": 1.8
+      },
+      "craft_in_units": {
+        "length": 5.5,
+        "span": 5.0,
+        "height": 2.25
+      },
+      "opening_clear_diameter_m": 6.72,
+      "opening_clears_borer_diagonal": true,
+      "note": "no Borer cinematic model exists yet; its size is an assumption until one is built"
+    },
+    "size_m": [
+      68.9,
+      56.7,
+      16.2
+    ],
+    "cross_checks_m": {
+      "person 1.8 m in units": 2.25,
+      "central body keel to deck": 11.2
+    },
+    "battle_map": {
+      "cells_long": 24,
+      "cells_wide": 20,
+      "metres_per_unit_equivalent": 0.261,
+      "note": "landed-ships-true-scale.md / shepherd-recovery.md: tactical-readability footprint (one cell is one metre), not the cinematic scale"
+    }
+  },
+  "sprite": {
+    "size": [
+      78,
+      92
+    ],
+    "center": [
+      39,
+      45
+    ],
+    "pixel_to_model": "col c, row r covers X 46-r..47-r, Y 38-c..39-c"
+  },
+  "dimensions": {
+    "min": [
+      -41.19,
+      -34.42,
+      -9.0
+    ],
+    "max": [
+      44.9,
+      36.42,
+      11.2
+    ],
+    "size": [
+      86.09,
+      70.83,
+      20.2
+    ]
+  },
+  "drone_bay": {
+    "slot": "WS 003",
+    "mount": "HIDDEN",
+    "type": "LAUNCH_BAY",
+    "side": "port",
+    "slot_angle": 0,
+    "arc": 5,
+    "wing": "borer_wing (4 drones)",
+    "objects": "Drone bay ...",
+    "launch_direction": [
+      0,
+      0,
+      1
+    ],
+    "departure_heading": [
+      1,
+      0,
+      0
+    ],
+    "note": "three dorsal openings, one per .ship launch location; a drone lifts out along +Z, then turns onto the slot angle (0 deg, forward)",
+    "openings": [
+      {
+        "index": 1,
+        "slot_location": [
+          -3,
+          19
+        ],
+        "mouth_anchor": "Drone bay WS 003 opening 1 mouth",
+        "launch_point_anchor": "Drone bay WS 003 launch point 1",
+        "rim_z": 7.844,
+        "floor_z": 1.2,
+        "clear_radius": 4.2,
+        "host": "Drone bay aft hangar pod"
+      },
+      {
+        "index": 2,
+        "slot_location": [
+          12,
+          19
+        ],
+        "mouth_anchor": "Drone bay WS 003 opening 2 mouth",
+        "launch_point_anchor": "Drone bay WS 003 launch point 2",
+        "rim_z": 7.844,
+        "floor_z": 1.2,
+        "clear_radius": 4.2,
+        "host": "Drone bay forward hangar pod"
+      },
+      {
+        "index": 3,
+        "slot_location": [
+          26,
+          19
+        ],
+        "mouth_anchor": "Drone bay WS 003 opening 3 mouth",
+        "launch_point_anchor": "Drone bay WS 003 launch point 3",
+        "rim_z": 7.844,
+        "floor_z": 1.2,
+        "clear_radius": 4.2,
+        "host": "Drone bay forward service block"
+      }
+    ],
+    "launch_points": [
+      [
+        -3,
+        19,
+        1.2
+      ],
+      [
+        12,
+        19,
+        1.2
+      ],
+      [
+        26,
+        19,
+        1.2
+      ]
+    ],
+    "launch_point_anchors": [
+      "Drone bay WS 003 launch point 1",
+      "Drone bay WS 003 launch point 2",
+      "Drone bay WS 003 launch point 3"
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 007",
+      "location": [
+        -3,
+        -23,
+        3.35
+      ],
+      "angle": -75,
+      "arc": 200,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "objects": "Turret 1 WS 007 ...",
+      "pivot": "Turret 1 WS 007 pivot",
+      "muzzle": "Turret 1 WS 007 muzzle",
+      "muzzle_location": [
+        -0.904,
+        -30.824,
+        4.65
+      ]
+    },
+    {
+      "id": "WS 008",
+      "location": [
+        27,
+        -19,
+        5.5
+      ],
+      "angle": 0,
+      "arc": 20,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "UNIVERSAL",
+      "objects": "Hardpoint 1 WS 008 ...",
+      "pivot": "Hardpoint 1 WS 008 pivot",
+      "muzzle": "Hardpoint 1 WS 008 muzzle",
+      "muzzle_location": [
+        33.1,
+        -19,
+        5.5
+      ]
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "role": "main drive",
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "location": [
+        -40,
+        20,
+        0
+      ],
+      "width": 16,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -40.5,
+        20.0,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 2,
+      "role": "main drive",
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "location": [
+        -40,
+        -19,
+        0
+      ],
+      "width": 16,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -40.5,
+        -19.0,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 3,
+      "role": "maneuvering jet",
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "location": [
+        -22,
+        35,
+        0
+      ],
+      "width": 2,
+      "angle": 140,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -22.153,
+        35.129,
+        0.0
+      ],
+      "exhaust_direction": [
+        -0.766,
+        0.6428,
+        0.0
+      ]
+    },
+    {
+      "index": 4,
+      "role": "maneuvering jet",
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "location": [
+        -30,
+        33,
+        0
+      ],
+      "width": 3,
+      "angle": 145,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -30.164,
+        33.115,
+        0.0
+      ],
+      "exhaust_direction": [
+        -0.8192,
+        0.5736,
+        0.0
+      ]
+    },
+    {
+      "index": 5,
+      "role": "maneuvering jet",
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "location": [
+        -22,
+        -33,
+        0
+      ],
+      "width": 2,
+      "angle": 220,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -22.153,
+        -33.129,
+        0.0
+      ],
+      "exhaust_direction": [
+        -0.766,
+        -0.6428,
+        0.0
+      ]
+    },
+    {
+      "index": 6,
+      "role": "maneuvering jet",
+      "objects": "Engine 6 ...",
+      "anchor": "Engine 6 exhaust anchor",
+      "location": [
+        -30,
+        -32,
+        0
+      ],
+      "width": 3,
+      "angle": 215,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -30.164,
+        -32.115,
+        0.0
+      ],
+      "exhaust_direction": [
+        -0.8192,
+        -0.5736,
+        0.0
+      ]
+    }
+  ],
+  "object_names": {
+    "Hull ...": "central crew body, port spine, aft crossbeam, aft machinery block",
+    "Bridge ...": "bridge cab, glazing, habitat shell",
+    "Mast ...": "forward sensor boom, starboard sensor head",
+    "Drone bay ...": "port hangar pods, service block, WS 003 openings and launch points",
+    "Gantry ...": "starboard repair gantry frame, core, crane",
+    "Frame ...": "port and starboard outriggers, starboard turret deck",
+    "Engine <i> ...": "drive pods and jets; bell / mouth lip / dark throat / exhaust anchor",
+    "Turret 1 WS 007 ... / Hardpoint 1 WS 008 ...": "weapon mounts; pivot and muzzle empties",
+    "Scar <id> ...": "reserved for condition states (grounded/damaged, recovered); not built"
+  },
+  "condition_states": {
+    "planned": [
+      "grounded",
+      "recovered"
+    ],
+    "contract": "second-wind-pipeline.md layers: clean base + scar table with stable ids (open -> patched -> replaced -> faded/gone) + wear masks",
+    "built": []
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        2,
+        0,
+        140
+      ],
+      "orthographic_scale": 140,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        2,
+        180,
+        1
+      ],
+      "orthographic_scale": 104,
+      "rotation": "looks at [2.0, 0.0, 1.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        180,
+        0,
+        1
+      ],
+      "orthographic_scale": 92,
+      "rotation": "looks at [2.0, 0.0, 1.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        120,
+        130,
+        85
+      ],
+      "orthographic_scale": 128,
+      "rotation": "looks at [2.0, 0.0, 1.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -180,
+        0,
+        1
+      ],
+      "orthographic_scale": 92,
+      "rotation": "looks at [2.0, 0.0, 1.0]"
+    },
+    {
+      "name": "starboard-quarter",
+      "position": [
+        110,
+        -130,
+        80
+      ],
+      "orthographic_scale": 128,
+      "rotation": "looks at [2.0, 0.0, 1.0]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9319,
+    "sprite_uncovered": 0.024,
+    "model_outside_sprite": 0.0474,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 13.71 px per unit"
+  }
+}

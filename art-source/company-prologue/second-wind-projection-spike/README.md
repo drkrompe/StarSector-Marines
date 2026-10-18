@@ -299,8 +299,8 @@ gunmetal, soot-stained steel) at plate scale:
 - **The orange is too saturated** for the hull family (mean sRGB 187/102/54);
   it needs grading toward the faded oxide.
 - **Usable after light work:** an offset-and-heal pass and a colour grade.
-  These are exactly the inputs the existing all-face surface asset
-  (`second-wind-full-surface`) consumes: neutral tile albedo on mesh UVs, lit
+  These are exactly the inputs the all-face surface assets
+  (the Second Wind skin build) consume: neutral tile albedo on mesh UVs, lit
   by the scene.
 
 ## Recommendation

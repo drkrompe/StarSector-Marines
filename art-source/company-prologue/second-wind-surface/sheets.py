@@ -13,8 +13,10 @@ from pathlib import Path
 import sys
 from PIL import Image
 import parts as P
+import hull as H
 
 HERE = Path(__file__).resolve().parent
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
 
 
 def compose(groups=None):
@@ -23,8 +25,8 @@ def compose(groups=None):
         for kind, bg in (('guide', P.BACKGROUND), ('class', (0, 0, 0))):
             sheet = Image.new('RGB', P.SHEET, bg)
             for k, part in enumerate(members):
-                sheet.paste(Image.open(HERE / 'guide' / f'{part}-{kind}.png').convert('RGB'), P.tile_box(k)[:2])
-            sheet.save(HERE / 'guide' / f'sheet-{name}-{kind}.png')
+                sheet.paste(Image.open(DATA / 'guide' / f'{part}-{kind}.png').convert('RGB'), P.tile_box(k)[:2])
+            sheet.save(DATA / 'guide' / f'sheet-{name}-{kind}.png')
         print('composed', name)
 
 

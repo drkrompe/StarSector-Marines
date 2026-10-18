@@ -40,19 +40,32 @@ worktree.
 4. Stage only paths owned by the session and commit all intended changes on the
    session branch. Do not use `git stash`, and do not modify, remove, or reuse
    another session's branch or worktree.
-5. Before integration, merge the latest local `main` into the session branch
-   inside the worktree and resolve conflicts there. Re-run relevant verification.
+5. Before integration, fetch the shared remote and merge **both** the latest
+   local `main` and `hub/main` into the session branch inside the worktree,
+   resolving conflicts there. Re-run relevant verification.
+
+   ```powershell
+   git fetch hub
+   git merge main
+   git merge hub/main
+   ```
+
 6. Return to the main workspace, verify that it is still on `main` and clean,
-   then integrate with a fast-forward-only merge:
+   then integrate with a fast-forward-only merge and publish `main` to
+   `hub` with an ordinary (fast-forward) push:
 
    ```powershell
    git merge --ff-only session/<unique-name>
+   git push hub main
    ```
 
-   If `main` advanced and the fast-forward fails, go back to the session
-   worktree, merge `main` again, verify, and retry. If the main workspace has
-   uncommitted changes, do not absorb, discard, or overwrite them; leave the
-   worktree intact and report the integration blocker.
+   If `main` advanced and the fast-forward fails, or the push is rejected
+   because `hub/main` moved, go back to the session worktree, fetch and
+   merge `main` and `hub/main` again, verify, fast-forward local `main` and
+   push again. **Never force-push**, and never push session branches. If the
+   main workspace has uncommitted changes, do not absorb, discard, or
+   overwrite them; leave the worktree intact and report the integration
+   blocker.
 7. Only after confirming that the session commit is reachable from `main`,
    remove the linked worktree and delete its merged branch from the main
    workspace:
@@ -67,15 +80,16 @@ worktree.
 For any task in which the user has authorized repository changes, the repository
 owner gives standing authorization to complete the entire local Git workflow:
 stage the session's owned paths, commit the verified change, merge the latest
-local `main` into the session branch, fast-forward local `main`, and clean up the
-merged session worktree and branch. **Do not pause to ask for a separate
+local `main` and `hub/main` into the session branch, fast-forward local
+`main`, push `main` to `hub` (fast-forward only), and clean up the merged
+session worktree and branch. **Do not pause to ask for a separate
 "merge it?" confirmation. Always merge a green, self-contained change into
 local `main` when the workflow above permits it.**
 
 This standing authorization does not turn a read-only diagnosis, explanation,
 review, or status request into permission to edit files. It also does not
-authorize pushing remotes, deploying the mod, publishing artifacts, or
-discarding unrelated work. Those actions still require scope from the user's
+authorize force-pushing, pushing any branch other than `main`, deploying the
+mod, publishing artifacts, or discarding unrelated work. Those actions still require scope from the user's
 request or another explicit project instruction.
 
 Integrate at every coherent commit chain, not once at the end of a session.
@@ -83,6 +97,35 @@ A session that has reached a green, self-contained state should merge to `main`
 before starting the next chunk, then keep working in the same worktree. Banking
 several chains and merging them together only widens the window in which a
 sibling session's merge turns into a conflict.
+
+### More than one machine
+
+The project is worked on from more than one machine (this Windows workstation
+and a MacBook Pro reached over SSH as `dillmac.local`), each with its own clone
+and its own local `main`. The meeting point is the bare repository
+`/Users/dillon/git/starsectormarines.git` on the Mac, the remote `hub` in every
+clone. It is not GitHub: the history holds gigabytes of binary art, which is
+past what GitHub accepts in a push, so `origin` is not pushed.
+
+- On Windows, `hub` is `ssh://dillmac.local/Users/dillon/git/starsectormarines.git`
+  and the clone sets `core.sshCommand` to `C:/Windows/System32/OpenSSH/ssh.exe`:
+  Git for Windows' bundled ssh cannot resolve `.local` names.
+- On the Mac, `hub` is the local path `/Users/dillon/git/starsectormarines.git`.
+- At the start of a session, `git fetch hub` and fast-forward local `main` to
+  `hub/main` from the main workspace when it is behind, before cutting a
+  worktree. When the Mac is unreachable, integrate locally and push when it
+  is back; never point `hub` anywhere else.
+
+### Never commit rendered output
+
+A render is an output of a script, not a source: regenerate it, never commit
+it (owner, 2026-10-18). Review renders, contact and review sheets, overlays,
+frame sequences and graded textures are written under ignored paths
+(`build/`, or the patterns in `art-source/company-prologue/.gitignore`) and
+shown to the owner from disk. What stays tracked is what cannot be rebuilt
+from the repository: scripts, data, Codex/ImageGen generations with their
+prompts and the guides they were generated from, finish references, and
+hand-made or story art. An ignored path refuses `git add`; never force it.
 
 The main workspace is for brief integration and worktree administration only.
 Do not run builds or leave generated task files there.

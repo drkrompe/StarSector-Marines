@@ -33,19 +33,21 @@ import numpy as np
 from PIL import Image, ImageFilter
 import imgops as I
 import parts as P
+import hull as H
 
 HERE = Path(__file__).resolve().parent
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
 GROUPS = P.group_arg(sys.argv)
-(HERE / 'textures').mkdir(exist_ok=True)
-(HERE / 'grading').mkdir(exist_ok=True)
-PAL = json.loads((HERE / 'palette.json').read_text())['classes']
-CLASSES = ['cream', 'oxide', 'gunmetal', 'dark', 'pale']
+(DATA / 'textures').mkdir(exist_ok=True)
+(DATA / 'grading').mkdir(exist_ok=True)
+PAL = json.loads((DATA / 'palette.json').read_text())['classes']
+CLASSES = H.CLASSES
 SWAP_SHARE = 0.6
 EDGE_TRIM = 3  # px of the outline refilled from inside (see 4. Pad)
 # A swap is a change of paint family (grey painted orange), not a lighter or
 # darker grey: gunmetal and dark recess are one neutral family for the check,
 # and the L drift between them is reported as tone instead.
-FAMILY = {'cream': 'cream', 'oxide': 'oxide', 'gunmetal': 'neutral', 'dark': 'neutral', 'pale': 'neutral'}
+FAMILY = H.FAMILY
 pal_mean = np.array([PAL[c]['mean'] for c in CLASSES])
 
 
@@ -81,9 +83,9 @@ for sheet in P.sheets_in(GROUPS):
     for part in P.SHEETS[sheet]:
         TILES = P.tiles_dir(part)
         reg = I.load_rgb(TILES / f'{part}-reg.png')
-        mask = I.load_rgb(HERE / 'guide' / f'{part}-mask.png')[..., 0] > 127
+        mask = I.load_rgb(DATA / 'guide' / f'{part}-mask.png')[..., 0] > 127
         inner = I.erode(mask, 2)
-        regions = {c: m & mask for c, m in I.class_masks(I.load_rgb(HERE / 'guide' / f'{part}-class.png')).items()}
+        regions = {c: m & mask for c, m in I.class_masks(I.load_rgb(DATA / 'guide' / f'{part}-class.png')).items()}
         lab = I.rgb_to_lab(reg)
         rep = {'part': part, 'regions': {}, 'planes': []}
 
@@ -157,13 +159,13 @@ for sheet in P.sheets_in(GROUPS):
                                           'forced_back_to_declared': rep['regions'][c]['swap']})
         rgb = I.lab_to_rgb(out)
         rgb[~mask] = reg[~mask]
-        I.save_rgb(pad(rgb, I.erode(mask, EDGE_TRIM)), HERE / 'textures' / f'{part}.png')
+        I.save_rgb(pad(rgb, I.erode(mask, EDGE_TRIM)), DATA / 'textures' / f'{part}.png')
         I.save_rgb(np.concatenate([reg, rgb], 1), TILES / f'{part}-graded-compare.png')
         spans = [p['ramp_span_L_removed'] for p in rep['planes']]
         edges = [p['edge_band_dL_after'] for p in rep['planes'] if p['edge_band_dL_after'] is not None]
         rep['ramp_span_L_removed_max'] = max(spans) if spans else None
         rep['edge_band_dL_after_mean'] = round(float(np.mean(edges)), 2) if edges else None
-        (HERE / 'grading' / f'{part}.json').write_text(json.dumps(rep, indent=1) + '\n')
+        (DATA / 'grading' / f'{part}.json').write_text(json.dumps(rep, indent=1) + '\n')
         summary[part] = {c: {k: v for k, v in r.items() if k in ('share_as_declared', 'share_in_declared_family', 'swap', 'before_mean_lab', 'after_mean_lab', 'dE_to_palette_before')}
                          for c, r in rep['regions'].items()} | {'ramp_span_L_removed_max': rep['ramp_span_L_removed_max'],
                                                                  'edge_band_dL_after_mean': rep['edge_band_dL_after_mean']}
@@ -186,6 +188,6 @@ for c in CLASSES:
 print(json.dumps(spread, indent=1))
 for g in sorted({P.PART_GROUP[p] for p in summary}):
     rows = {p: v for p, v in summary.items() if P.PART_GROUP[p] == g}
-    (HERE / 'grading' / f'summary-{g}.json').write_text(json.dumps({'parts': rows}, indent=1) + '\n')
+    (DATA / 'grading' / f'summary-{g}.json').write_text(json.dumps({'parts': rows}, indent=1) + '\n')
 if GROUPS is None:
-    (HERE / 'grading' / 'tone-spread.json').write_text(json.dumps(spread, indent=1) + '\n')
+    (DATA / 'grading' / 'tone-spread.json').write_text(json.dumps(spread, indent=1) + '\n')

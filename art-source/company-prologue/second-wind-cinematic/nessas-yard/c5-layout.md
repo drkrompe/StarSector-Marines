@@ -74,18 +74,17 @@ re-spaced by the generator; they touch nothing that registers, so they stand as 
 The near ground and the props share the yard layer, so nothing slides against its own
 shadow under the push.
 
-**Hull card.** `render_c5_hull.py` renders the surfaced patched Second Wind
-(`second-wind-surface/build/skinned-patched.blend`, a gitignored build output; build it per
-that folder's README) from the C5 camera at 3840x2160. The model has no root object, so the
-script parents everything to a new empty; it is scaled so its X extent is `SW_LENGTH_M`
-(exactly `metres_per_unit` for this model), centred where the shrunk landing hull stands,
+**Hull card.** `render_c5_hull.py` renders the packaged patched Second Wind
+(`second-wind-states/patched/second-wind-patched.blend`; the script appends the collection
+`SECOND WIND | patched` and moves only its root) from the C5 camera at 3840x2160. The root
+is scaled by the manifest's `metres_per_unit` (0.65, so 65.6 m long), centred where the shrunk landing hull stands,
 with the hull's underside on the cradle's pad tops (the ventral RCS pod hangs below and is
 left out of that seat). The engine and RCS parts are shade-smoothed (sharp above 35°), since
 the model is flat-shaded and the bells read as faceted at this range. Everything in the near set that can stand in front
 of it (`guides/c5-occluders.glb`) holds it out. All four engines are cold in the yard, so no
 throat glows; bell liners and throats take a sooty matte finish (seen nearly head-on, the
 glossy liner caught the open sky and read as a blue lens). Swap contract as C1:
-`SHIP_BLEND`, `SHIP_ROOT` (None for a rootless model), `THROAT_PATTERN`.
+`SHIP_BLEND`, `SHIP_COLLECTION`, `SHIP_ROOT`, `THROAT_PATTERN`.
 
 ## Moving elements
 
@@ -115,7 +114,7 @@ the same cues for listening; the player schedules them for real.
 
 ```bash
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py -- --samples 16
-python render_c5_hull.py --samples 96         # layers/c5-hull.png, layers/c5-hull-shadow.png (needs skinned-patched.blend)
+python render_c5_hull.py --samples 96         # layers/c5-hull.png, layers/c5-hull-shadow.png (appends second-wind-states/patched)
 python compose_c5.py                          # review/c5-t*.png and review/c5-contact.png
 python compose_c5.py --frames --mp4           # build/cinematic/c5-nessas-yard/{frames,c5-nessas-yard.mp4,timeline.json}
 python ../../../../asset-pipeline/src/tool/resources/audio/jangala-yard/generate.py   # then :asset-pipeline:processAudio
