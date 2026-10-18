@@ -45,12 +45,14 @@ class Kit:
         # near-white command core and prow, a darker slate for recessed
         # bands, dark technical lining round the ring, and blue-white glow.
         # Flat base materials until a texturing pass.
-        self.skin = material('Tri-Tachyon blue-grey skin', (.30, .36, .42), .45, .32, coat=.4)
-        self.pale = material('Tri-Tachyon pale skin', (.52, .57, .62), .4, .3, coat=.4)
-        self.white = material('Tri-Tachyon white core', (.72, .74, .76), .3, .28, coat=.5)
-        self.slate = material('Tri-Tachyon slate band', (.10, .12, .15), .6, .35)
-        self.tech = material('Technical lining', (.035, .04, .05), .7, .4)
-        self.steel = material('Emitter metal', (.20, .22, .25), .85, .25)
+        # Matte painted armour, not gloss (owner, pass 1): a warship's paint is
+        # flat and a little rough; only the emitters and glazing shine.
+        self.skin = material('Tri-Tachyon blue-grey skin', (.30, .36, .42), .25, .62)
+        self.pale = material('Tri-Tachyon pale skin', (.46, .51, .56), .25, .6)
+        self.white = material('Tri-Tachyon white core', (.66, .68, .70), .15, .58)
+        self.slate = material('Tri-Tachyon slate band', (.08, .095, .115), .45, .55)
+        self.tech = material('Technical lining', (.03, .035, .045), .55, .55)
+        self.steel = material('Emitter metal', (.20, .22, .25), .75, .4)
         self.glow = material('Tri-Tachyon blue glow', (.05, .1, .2), .0, .4, emission=GLOW_BLUE, strength=12.0)
         self.glow_white = material('Tri-Tachyon white glow', (.2, .2, .2), .0, .4, emission=GLOW_WHITE, strength=10.0)
         self.glass = material('Bridge glazing', (.02, .04, .06), .2, .08, emission=(.55, .8, 1.0), strength=2.5)
@@ -618,3 +620,96 @@ def revolve_loop(kit, name, loop, mat, center=(0, 0, 0), segments=48, smooth=40)
         a, b = k*n, ((k+1) % segments)*n
         faces += [(a+i, a+(i+1) % n, b+(i+1) % n, b+i) for i in range(n)]
     return kit.mesh(name, verts, faces, mat, 0, smooth)
+
+
+def profile_mass(kit, name, plan, top, bot, holes=(), mat=None, step=2.5, smooth=False):
+    """A plan (with holes) whose top and belly are piecewise-linear in edge distance.
+
+    top and bot are [(d, z), ...] with d rising from 0 (the edge): the surface
+    is z at distance d from the nearest edge of the plan or a hole, held at the
+    last z beyond the last d. Flat-shaded, each segment of a profile is one
+    facet band running round the plan: a steep first step is an armour bevel,
+    a shallow one a glacis. The wall joins top[0] to bot[0] at the edge."""
+    import numpy as np
+    from mathutils.geometry import delaunay_2d_cdt
+    outer = ccw(plan)
+    hl = [cw(h) for h in holes]
+    loops = [_resample(outer, step)]+[_resample(h, step) for h in hl]
+    rawloops = [outer]+hl
+    dists = sorted({round(d, 3) for d, _ in list(top)+list(bot) if d > 0})
+
+    def interp(prof, d):
+        if d <= prof[0][0]:
+            return prof[0][1]
+        for (d0, z0), (d1, z1) in zip(prof, prof[1:]):
+            if d <= d1:
+                return z0+(z1-z0)*(d-d0)/(d1-d0)
+        return prof[-1][1]
+
+    pts = [p for loop in loops for p in loop]
+    nbs = [len(l) for l in loops]
+    inner, last = [], 0.0
+    for d in dists:
+        cand = []
+        for loop in loops:
+            m = len(loop)
+            for i, (x, y) in enumerate(loop):
+                ax, ay = loop[i-1]
+                bx, by = loop[(i+1) % m]
+                l0, l1 = _left(x-ax, y-ay), _left(bx-x, by-y)
+                nx, ny = l0[0]+l1[0], l0[1]+l1[1]
+                nl = (nx*nx+ny*ny)**.5 or 1.0
+                cand.append((x+nx/nl*d, y+ny/nl*d))
+        ed = edge_distance(cand, rawloops)
+        ok = np.abs(ed-d) < .25*min(step, max(d, .3))
+        row = []
+        for q, good in zip(cand, ok):
+            if good and (not row or (q[0]-row[-1][0])**2+(q[1]-row[-1][1])**2 > (.55*step)**2):
+                row.append(q)
+        if not row:
+            break
+        inner += row
+        last = d
+    xs = [p[0] for p in loops[0]]
+    ys = [p[1] for p in loops[0]]
+    g = step*1.6
+    grid = [(x, y) for y in np.arange(min(ys)+g/2, max(ys), g) for x in np.arange(min(xs)+g/2, max(xs), g)]
+    if grid:
+        gd = edge_distance(grid, rawloops)
+        inner += [p for p, d in zip(grid, gd) if d > last+.45*g]
+    if inner:
+        ins = inside(inner, outer)
+        for h in hl:
+            ins &= ~inside(inner, h)
+        inner = [p for p, i in zip(inner, ins) if i]
+    vin = [Vector((x, y)) for x, y in pts+inner]
+    cons, s = [], 0
+    for n in nbs:
+        cons.append(list(range(s, s+n)))
+        s += n
+    res = delaunay_2d_cdt(vin, [], cons, 2, 1e-5)
+    vco, faces = res[0], res[2]
+    dist = edge_distance([(v.x, v.y) for v in vco], rawloops)
+    m = len(vco)
+    verts = [(v.x, v.y, interp(top, d)) for v, d in zip(vco, dist)]+[(v.x, v.y, interp(bot, d)) for v, d in zip(vco, dist)]
+    fs = [tuple(f) for f in faces]+[tuple(m+i for i in reversed(f)) for f in faces]
+    vmap = {}
+    for j, origs in enumerate(res[3]):
+        for o in origs:
+            vmap[o] = j
+    s = 0
+    for n in nbs:
+        b = [vmap[i] for i in range(s, s+n)]
+        for i in range(n):
+            a, c = b[i], b[(i+1) % n]
+            if a != c:
+                fs.append((a+m, c+m, c, a))
+        s += n
+    ob = kit.mesh(name, verts, fs, mat, 0, smooth)
+    # Merge the coplanar triangles of each facet band so the flat faces read as plates.
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(1.0), verts=bm.verts, edges=bm.edges)
+    bm.to_mesh(ob.data)
+    bm.free()
+    return ob

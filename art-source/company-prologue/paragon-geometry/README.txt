@@ -18,23 +18,35 @@ Build (Blender 5.2; renders and the .blend are ignored)
   python3 compose_review.py [--dir DIR] [--title T] [--before DIR]   (Pillow + numpy)
   python3 trace_sprite.py      re-reads the sprite's outline into pg_outline.py (committed)
 
-How the hull reads (owner, pass 1)
-  Nested rings round an open bore, read off the sprite: the dark bore lining
-  (r 57-71, the shield emitter ring), the deep main ring (r 61-115, the hull's
-  backbone), and the lower armour belt out to the circular outer edge (r 136),
-  with the groove between ring and belt at r 113 on the bow quarters. The prow is
-  the heaviest armoured block and carries the two capital mounts (WS 001/002)
-  recessed in bays in its face. The white command core is an arch: it springs
-  from the stern behind the ring, crosses over the ring's aft band with clear
-  space beneath, and lands its nose foot on the bore lining. Depth follows
-  function: ring deepest, belt and pods lower, bridge arch tallest.
+How the hull reads (owner, pass 1 rounds 2-3)
+  Each part has a job, laid out by the sprite's three tones (skin = armour, white
+  = command deck / bow module / reactor domes, dark = lining, wells, machinery,
+  steep faces). Nested rings round the open bore: the dark bore lining (the
+  shield emitter ring, r 56.5-76), the deep main ring (r 74-124, the backbone),
+  and the armour belt out to the circular outer edge (r 136), whose sloped outer
+  face is the sprite's dark rim. A groove parts ring and belt on the bow quarters.
+  The prow is armour round two big recessed bays for the capital mounts (WS
+  001/002), with the white bow module behind and skin horns either side. The
+  command deck stands raised above the ring and the bore on a dark gantry, in
+  white tiers up to the bridge, with the skin aft body behind it between the
+  pods; the pods carry white reactor domes in dark wells. Depth follows function:
+  ring deepest, belt and pods lower, deck tallest. Forms are faceted armour
+  planes on curved plans, matte, not a moulded gloss skin. Turrets are
+  placeholders (pucks on the named pivots) until real mounts are designed.
+
+The shape gauntlet (run every iteration)
+  build_paragon.py --views top-classes, then python3 gauntlet.py --dir DIR:
+  scores each tone's IoU against the sprite (gauntlet.png) and draws the model's
+  part edges over the sprite (gauntlet-edges.png). Silhouette IoU alone says
+  nothing about the parts inside the outline.
 
 Modules (one per area)
   pg_kit       materials (Tri-Tachyon palette, glow), primitives, smooth_mass
                (heightfield masses with holes), revolves, booleans, surface()
   pg_outline   the sprite's outline as half-widths (generated)
-  pg_hull      belt (Hull ring), main ring (Hull bore ring), bore lining, prow with
-               its two hardpoint bays, command core (bridge arch), aft pods
+  pg_hull      belt, main ring, bore lining, prow with its two bays, bow module,
+               horns, command deck tiers on their gantry, aft body, pods, reactor
+               domes, aft ribs, bow-quarter grooves
   pg_engines   the ten drive units
   pg_turrets   21 turrets (barbette + pivot) and the two bow hardpoints
   pg_shield    the shield emitter anchor and the emitter nodes on the lining
@@ -44,9 +56,11 @@ Axes and units
   sprite col c, row r -> X 174-r, Y 164-c; slot locations are model XY unchanged.
 
 Names (identifiers: later passes key off them)
-  Hull ring / Hull bore ring / Hull bore lining / Hull prow / Hull core /
-  Hull port pod / Hull starboard pod
-  Weapon WS nnn barbette, Weapon WS nnn pivot (empty; rotate about local Z to train),
+  Hull belt / Hull main ring / Hull bore lining / Hull prow (+ bay parts) /
+  Hull bow module / Hull <side> bow horn / Hull core trench / Hull command deck
+  (+ upper, spine) / Bridge tower / Bridge glazing / Hull aft body / Hull <side> pod /
+  Hull <side> reactor well / dome / Hull <side> aft rib / Hull <side> bow groove
+  Weapon WS nnn barbette, Weapon WS nnn placeholder (+ stub), Weapon WS nnn pivot (empty; rotate about local Z to train),
     Weapon WS nnn muzzle [k]; hardpoints: Weapon WS 00n hardpoint (anchor), housing,
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)

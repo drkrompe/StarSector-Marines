@@ -16,8 +16,9 @@ the sprite (trace_sprite.py).
 Options after a literal "--":
   --out DIR      write renders, .blend and geometry.json to DIR (default: here;
                  renders and the .blend are ignored)
-  --views a,b    render only these cameras: top, starboard-side, port-side,
-                 front, stern, three-quarter, belly; 'details' names the close-ups
+  --views a,b    render only these cameras: top, top-classes (the part-class
+                 render gauntlet.py scores), starboard-side, port-side, front,
+                 stern, three-quarter, belly; 'details' names the close-ups
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
   --samples N    Cycles samples (default 24)
   --res WxH      render size (default 1920x1080)
@@ -59,8 +60,9 @@ NAME = 'Paragon'
 # Real-world scale (pipeline pass 4), from the shared sizing basis
 # (../ship_scale.py, option C): contents (1,000 crew, 300 cargo, 300 fuel) over
 # the capital machinery share, against the measured enclosed volume, the union of
-# ship_scale.SOLIDS['paragon'] (ring, bore ring and its lining, prow, core and the
-# two aft pods; never the drive pods, turrets or the emitter array). The driver
+# ship_scale.SOLIDS['paragon'] (belt, main ring and lining, prow, bow module and horns,
+# command deck, gantry, aft body and pods; never the drive pods, turrets, reactor
+# domes or the emitter array). The driver
 # re-measures that union on every build and fails if it drifts from
 # ship_scale.HULLS, so a shape change is carried into the shared table.
 if NAME in ship_scale.PUBLISHED:
@@ -72,7 +74,7 @@ else:
     METRES_PER_UNIT = 1.0  # unscaled blockout: pass 4 publishes the real value
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
-parser.add_argument('--views', default='top,starboard-side,port-side,front,stern,three-quarter,belly')
+parser.add_argument('--views', default='top,top-classes,starboard-side,port-side,front,stern,three-quarter,belly')
 parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
@@ -205,7 +207,76 @@ for name, pos, scale in CAMERAS:
     else:
         cam.rotation_euler = (TARGET-cam.location).to_track_quat('-Z', 'Y').to_euler()
 
+# Part classes for the shape gauntlet (gauntlet.py): each object's class comes
+# from its material, the way the sprite's tones do: skin (blue-grey armour),
+# white (command deck, bow module, reactor domes), dark (lining, wells,
+# machinery). Faces steeper than ~57 deg render dark too, as the sprite shades them.
+CLASS_OF = {'Tri-Tachyon blue-grey skin': 1, 'Tri-Tachyon pale skin': 1, 'Tri-Tachyon blue glow': 1,
+            'Tri-Tachyon white core': 2, 'Tri-Tachyon white glow': 2}
+
+
+def class_material():
+    m = bpy.data.materials.new('Gauntlet classes')
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new('ShaderNodeOutputMaterial')
+    em = nt.nodes.new('ShaderNodeEmission')
+    attr = nt.nodes.new('ShaderNodeAttribute')
+    attr.attribute_type, attr.attribute_name = 'OBJECT', 'pg_class'
+    geo = nt.nodes.new('ShaderNodeNewGeometry')
+    sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+    nt.links.new(geo.outputs['Normal'], sep.inputs[0])
+    def math(op, a, b, c=None):
+        n = nt.nodes.new('ShaderNodeMath')
+        n.operation = op
+        for i, v in enumerate((a, b, c)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                n.inputs[i].default_value = v
+            else:
+                nt.links.new(v, n.inputs[i])
+        return n.outputs[0]
+    is_white = math('COMPARE', attr.outputs['Fac'], 2.0, .5)
+    is_dark = math('MAXIMUM', math('COMPARE', attr.outputs['Fac'], 3.0, .5), math('LESS_THAN', sep.outputs['Z'], .55))
+    mix1 = nt.nodes.new('ShaderNodeMix')
+    mix1.data_type = 'RGBA'
+    nt.links.new(is_white, mix1.inputs['Factor'])
+    mix1.inputs['A'].default_value = (0, 0, 1, 1)
+    mix1.inputs['B'].default_value = (1, 1, 1, 1)
+    mix2 = nt.nodes.new('ShaderNodeMix')
+    mix2.data_type = 'RGBA'
+    nt.links.new(is_dark, mix2.inputs['Factor'])
+    nt.links.new(mix1.outputs['Result'], mix2.inputs['A'])
+    mix2.inputs['B'].default_value = (1, 0, 0, 1)
+    nt.links.new(mix2.outputs['Result'], em.inputs['Color'])
+    nt.links.new(em.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def render_classes(path):
+    for ob in scene.objects:
+        if ob.type == 'MESH':
+            mats = [s.material.name for s in ob.material_slots if s.material]
+            ob['pg_class'] = CLASS_OF.get(mats[0], 3) if mats else 3
+    vl = bpy.context.view_layer
+    vl.material_override = class_material()
+    keep = (scene.view_settings.view_transform, scene.cycles.samples, scene.cycles.use_denoising)
+    scene.view_settings.view_transform = 'Standard'
+    scene.cycles.samples, scene.cycles.use_denoising = 4, False
+    scene.camera = bpy.data.objects['Camera top']
+    scene.render.film_transparent = True
+    scene.render.filepath = str(path)
+    bpy.ops.render.render(write_still=True)
+    vl.material_override = None
+    scene.view_settings.view_transform, scene.cycles.samples, scene.cycles.use_denoising = keep
+
+
 for name in wanted:
+    if name == 'top-classes':
+        render_classes(OUT/'top-classes.png')
+        continue
     scene.camera = bpy.data.objects['Camera '+name]
     bg.inputs[0].default_value = (.74, .76, .78, 1)
     bg.inputs[1].default_value = .4
@@ -255,8 +326,9 @@ def union_volume(names, step=2.0):
     return total*step*step
 
 
-SOLIDS = ('Hull ring', 'Hull bore ring', 'Hull bore lining', 'Hull prow', 'Hull core', 'Hull port pod',
-          'Hull starboard pod')
+SOLIDS = ('Hull belt', 'Hull main ring', 'Hull bore lining', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
+          'Hull starboard bow horn', 'Hull core trench', 'Hull aft body', 'Hull command deck',
+          'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')
 
 
 def scale_record():
@@ -306,7 +378,10 @@ if not args.no_save:
         'shield': dict(pg_shield.RECORDS),
         'weapon_slots': pg_turrets.records(),
         'engines': pg_engines.records(),
-        'object_names': {'Hull ...': 'ring, prow, core, port pod, starboard pod, bore lining',
+        'object_names': {'Hull ...': 'belt, main ring, bore lining, prow (grille block with the capital-mount bays), '
+                                     'bow module, port/starboard bow horn, command deck (+ upper), core trench '
+                                     '(the deck gantry), aft body, port/starboard pod, reactor well and dome',
+                         'Bridge ...': 'tower and glazing on the command deck',
                          'Engine <i> ...': 'drive pod, aft-facing bell, mouth lip, dark throat; '
                                            'exhaust anchor (empty, +X along the exhaust)',
                          'Weapon <slot> ...': 'turrets: barbette (fixed) and pivot (empty) parenting the housing, '
