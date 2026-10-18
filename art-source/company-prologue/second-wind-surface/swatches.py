@@ -215,7 +215,7 @@ def run(sheet_path):
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    if args and args[0] == 'guide':
+    if 'guide' in args:
         make_guide()
     else:
         run(DATA / (args[args.index('--sheet') + 1] if '--sheet' in args else 'generated/sheet-swatch.png'))

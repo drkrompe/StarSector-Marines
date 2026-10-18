@@ -44,7 +44,7 @@ for c, rgb in P.CLASS_ID.items():
     nt = m.node_tree
     nt.nodes.clear()
     e, o = nt.nodes.new('ShaderNodeEmission'), nt.nodes.new('ShaderNodeOutputMaterial')
-    e.inputs['Color'].default_value = (*[v / 255 for v in rgb], 1)
+    e.inputs['Color'].default_value = (*P.id_linear(rgb), 1)
     nt.links.new(e.outputs[0], o.inputs['Surface'])
     mats[c] = m
 for ob in scene.objects:

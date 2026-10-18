@@ -100,12 +100,24 @@ def tiles_dir(part):
 
 SHEET, TILE, GX, GY = (1920, 1080), (912, 513), 32, 18
 MARGIN = 0.07           # share of each tile left clear round the part, so segmentation sees background
-BACKGROUND = (214, 214, 214)
+# Tile background. It must sit far from every paint class: a light plate within
+# ~22 of it is segmented as background (imgops.segment), so a near-white hull
+# sets its own (the Mudskipper's is mid blue).
+BACKGROUND = tuple(H.get('BACKGROUND', (214, 214, 214)))
 SQUARE, SQUARE_BAND = 0.86, 0.10   # see `square` above: 30 deg off square-on is pure skin, 45 deg pure swatch
 SWATCH_UNITS = H.SWATCH_UNITS              # hull units one swatch image spans (per hull: surface_hull.py)
 # Base materials -> palette class. Anything unlisted is not graded.
 MATERIAL_CLASS = H.MATERIAL_CLASS
 CLASS_ID = H.CLASS_ID
+
+
+
+def id_linear(rgb):
+    """Emission colour a Standard (sRGB) view writes back as `rgb` in the flat
+    class passes: an id component of 128 would otherwise come out 188 and be
+    read as another class. 0 and 255 are unchanged. (Blender 5.2 offers no Raw
+    view transform, so those passes run Standard.)"""
+    return [(c / 255 / 12.92) if c / 255 <= 0.04045 else ((c / 255 + 0.055) / 1.055) ** 2.4 for c in rgb]
 
 
 def sheet_of(part):
