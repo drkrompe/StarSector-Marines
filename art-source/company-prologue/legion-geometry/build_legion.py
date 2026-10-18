@@ -273,7 +273,7 @@ for name in wanted:
     bg.inputs[1].default_value = 0 if c2 else .65
     # Top and C2 views keep a transparent film: the top alpha is the silhouette
     # compose_review.py measures; the C2 alpha is laid over Jangala there.
-    scene.render.film_transparent = name == 'top' or c2
+    scene.render.film_transparent = name == 'top' or c2 or name.startswith('sil-')
     scene.render.filepath = str(OUT/(name+'.png'))
     bpy.ops.render.render(write_still=True)
 
