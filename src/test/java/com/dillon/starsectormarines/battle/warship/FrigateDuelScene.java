@@ -37,13 +37,18 @@ import java.util.Map;
  */
 public final class FrigateDuelScene implements BehaviorScene {
 
-    static final int WIDTH = 120;
-    static final int HEIGHT = 68;
+    /**
+     * The lines stand apart by forty cells times {@link WarshipScale#HULL_RANGE}, so a round's flight across them, and
+     * with it what a crossing Hound's turns do to the Wolfs' lead, is the same at any hull range.
+     */
+    private static final float R = WarshipScale.HULL_RANGE;
     private static final float WOLF_X = 36f;
-    private static final float HOUND_X = 76f;
+    private static final float HOUND_X = WOLF_X + 40f * R;
+    private static final float CROSS_X = WOLF_X + 44f * R;
+    static final int WIDTH = Math.round(CROSS_X + 40f);
+    static final int HEIGHT = 68;
     private static final float NORTH_Y = 22f;
     private static final float SOUTH_Y = 46f;
-    private static final float CROSS_X = 80f;
     private static final String WOLF_HULL = "wolf_hegemony";
     private static final String WOLF_VARIANT = "wolf_hegemony_Assault";
     private static final String HOUND_HULL = "hound_d_pirates";
@@ -81,7 +86,7 @@ public final class FrigateDuelScene implements BehaviorScene {
         // Bystanders under each line: they fight nobody, so whatever hurts them came down from the duel.
         builder.squad("west-ground").faction(Faction.MARINE).size(6).at(36, 34).unarmed().stationary().done();
         builder.squad("east-ground").faction(Faction.DEFENDER).size(6)
-                .at(wreck ? (int) HOUND_X : 76, wreck ? (int) NORTH_Y : 34).unarmed().stationary().done();
+                .at((int) HOUND_X, wreck ? (int) NORTH_Y : 34).unarmed().stationary().done();
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261016L);

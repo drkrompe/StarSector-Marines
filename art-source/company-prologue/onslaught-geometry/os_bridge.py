@@ -236,7 +236,8 @@ def _citadel(kit):
     # Armour plates on the drum, one per flat, with a seam at every corner.
     for k in range(CIT_SIDES):
         c = step*k
-        sec = [(a-_wall_in(40.0)-.4, 40.0), (a-_wall_in(40.0)+.6, 40.0), (a-_wall_in(48.5)+.6, 48.5),
+        # (foot sunk to 38.8, into the inner tier's batter, so no plate edge overhangs it)
+        sec = [(a-_wall_in(40.0)-.4, 38.8), (a-_wall_in(40.0)+.6, 38.8), (a-_wall_in(48.5)+.6, 48.5),
                (a-_wall_in(49.2)+.05, 49.2), (a-_wall_in(49.2)-.4, 49.2)]
         _arc(kit, f'Bridge citadel drum plate {k+1}', c-step/2+2.2, c+step/2-2.2, sec, kit.bone, bevel=.15)
     # Cheek armour: a battered slab on each flank, from the inner tier up under the
@@ -285,7 +286,10 @@ def _citadel(kit):
     lo, hi = CIT_PROFILE[-5], CIT_PROFILE[-4]
     for k in range(CIT_SIDES):
         b = step*(k+.5)
-        p0, p1 = Vector(_cit_pt(a-lo[0], b, lo[1])), Vector(_cit_pt(a-hi[0], b, hi[1]))
+        # Each strap starts a fifth of the way up the tier, so its foot never overhangs
+        # the brow's top edge (round 4: a slot of air under it over the glazing recess).
+        q0, p1 = Vector(_cit_pt(a-lo[0], b, lo[1])), Vector(_cit_pt(a-hi[0], b, hi[1]))
+        p0 = q0+(p1-q0)*.22
         along = (p1-p0).normalized()
         side = Vector((-math.sin(math.radians(b)), math.cos(math.radians(b)), 0))
         out = side.cross(along)
@@ -308,9 +312,11 @@ def _citadel(kit):
     kit.cylinder('Bridge command dome hatch rim', (27.5, 0, z+.15), hr+.7, .9, kit.bone, vertices=16, bevel=.08)
     kit.cylinder('Bridge command dome hatch', (27.5, 0, z+.45), hr, .5, kit.dark, vertices=16, bevel=0)
     # The bustle: a sloped armour block tapering aft from the drum into the neck.
-    st = [(12.0, octagon(-14.0, 14.0, _z(37.0), _z(55.0), 3.0, 0)),
-          (2.0, octagon(-12.5, 12.5, _z(37.0), _z(52.5), 3.0, 0)),
-          (-3.0, octagon(-10.0, 10.0, _z(37.0), _z(46.0), 2.6, 0))]
+    # Its foot is buried a unit into the citadel's top (os_hull: TERRACE_TOP 36), so
+    # no slot of daylight shows under its after end.
+    st = [(12.0, octagon(-14.0, 14.0, _z(35.0), _z(55.0), 3.0, 0)),
+          (2.0, octagon(-12.5, 12.5, _z(35.0), _z(52.5), 3.0, 0)),
+          (-3.0, octagon(-10.0, 10.0, _z(35.0), _z(46.0), 2.6, 0))]
     loft_x(kit, 'Bridge command citadel bustle', st, kit.bone, bevel=.2)
     return cmd, crown
 

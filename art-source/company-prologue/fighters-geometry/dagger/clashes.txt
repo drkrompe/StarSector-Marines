@@ -1,5 +1,5 @@
-DAGGER | geometry: 80 meshes, 64 pass-2 detail
-detail meeting detail within one fitting: 40 pairs (counted, not listed)
+DAGGER | geometry: 95 meshes, 79 pass-2 detail
+detail meeting detail within one fitting: 60 pairs (counted, not listed)
 detail crossing detail across fittings: 0 pairs
 floating detail (touches nothing): 0
 body crossing body (pass 1): 18 pairs
@@ -48,6 +48,8 @@ detail bedded into body (part: body parts it meets):
     Hull port flank intake slat 3: Hull cockpit body
     Hull port flank intake slat 4: Hull cockpit body
     Hull port flank intake well: Hull cockpit body
+    Hull port main gear drag brace: Hull port prong
+    Hull port main gear strut: Hull port prong
     Hull port prong sensor fairing: Hull port prong
     Hull port prong tip vent slat 1: Hull port prong
     Hull port prong tip vent slat 2: Hull port prong
@@ -58,11 +60,15 @@ detail bedded into body (part: body parts it meets):
     Hull starboard flank intake slat 3: Hull cockpit body
     Hull starboard flank intake slat 4: Hull cockpit body
     Hull starboard flank intake well: Hull cockpit body
+    Hull starboard main gear drag brace: Hull starboard prong
+    Hull starboard main gear strut: Hull starboard prong
     Hull starboard prong sensor fairing: Hull starboard prong
     Hull starboard prong tip vent slat 1: Hull starboard prong
     Hull starboard prong tip vent slat 2: Hull starboard prong
     Hull starboard prong tip vent slat 3: Hull starboard prong
     Hull starboard prong tip vent well: Hull starboard prong
+    Hull tail gear drag brace: Engine 1 drive block
+    Hull tail gear strut: Engine 1 drive block
     Weapon WS 001 aperture iris: Hull cockpit body
     Weapon WS 001 aperture ring: Hull cockpit body
     Weapon WS 002 store joint band 1: Weapon WS 002 port torpedo store, Wing port torpedo pod

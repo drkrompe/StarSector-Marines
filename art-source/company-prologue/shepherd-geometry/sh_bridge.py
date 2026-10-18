@@ -42,7 +42,6 @@ TAIL_LEN = 7.0                # aft taper length
 PLAN_FRONT = 24.0             # plan width starts rounding off here
 RAKE_X = (27.4, 30.0)         # brow and sill stations: the sprite's dark band at X 27..28.5 and on
 SILL_H = 10.6                 # sill height above BASE_Z (deck +1.6)
-GLAZE_X = (RAKE_X[0]+.25, RAKE_X[1]-.2)
 # The chin (pass 3 round 3, owner: the bridge's bottom lip does not cleanly meet
 # the hull): forward of the sill the hull is drawn down onto the bow's own skin,
 # tangent where it lands at BRIDGE_X[1], so the bridge flows into the bow rather
@@ -208,11 +207,28 @@ def _ty(x, y):
     return math.acos(math.copysign(abs(q)**(SECTION_N/2), q))
 
 
-def _strip(acc, xs, ts, d0, d1, by_y=False):
+def _yz(z, y, d=0.0):
+    """Point on the windscreen face at height z and plan offset y, pushed d outward: the
+    station is found by bisection down the brow, rake and upper chin, where the skin's
+    height falls monotonically with x at fixed Y."""
+    lo, hi = RAKE_X[0]-.6, RAKE_X[1]+1.5
+    for _ in range(40):
+        x = (lo+hi)/2
+        if _pt(x, _ty(x, y)).z > z:
+            lo = x
+        else:
+            hi = x
+    x = (lo+hi)/2
+    return _pt(x, _ty(x, y), d)
+
+
+def _strip(acc, xs, ts, d0, d1, by_y=False, pt=None):
     """A thin solid on the hull surface over stations xs and angles ts, d0..d1 off the skin
-    (with by_y, ts are plan offsets: the solid's edges then run at constant Y)."""
-    def pt(x, t, d):
-        return _pt(x, _ty(x, t) if by_y else t, d)
+    (with by_y, ts are plan offsets: the solid's edges then run at constant Y; with pt,
+    pt(x, t, d) places each point instead)."""
+    if pt is None:
+        def pt(x, t, d):
+            return _pt(x, _ty(x, t) if by_y else t, d)
     rows = [[pt(x, t, d0) for t in ts] for x in xs]+[[pt(x, t, d1) for t in ts] for x in xs]
     nx, nt = len(xs), len(ts)
     verts = [p for row in rows for p in row]
@@ -259,10 +275,33 @@ def _hull_mesh(kit):
 
 
 def build(kit):
-    glass = material('Bridge tinted glass', (.012, .02, .03), 0, .3, emission=(.9, .72, .42), strength=.04)
-    bsdf = glass.node_tree.nodes['Principled BSDF']
+    # Tinted glazing: near-black blue, a soft (not mirror) sheen, and two cool
+    # diagonal highlight streaks across each window - the read of tinted glass.
+    # It keeps this shader through surfacing (owner: a swatch read as steel; a
+    # mirror finish only picked up the tan hull and read as taupe).
+    glass = material('Bridge tinted glass', (.004, .008, .014), 0, .18)
+    nt = glass.node_tree
+    bsdf = nt.nodes['Principled BSDF']
     if 'Specular IOR Level' in bsdf.inputs:
-        bsdf.inputs['Specular IOR Level'].default_value = .2  # dark tint, not a sky mirror
+        bsdf.inputs['Specular IOR Level'].default_value = .35
+    tc, sep = nt.nodes.new('ShaderNodeTexCoord'), nt.nodes.new('ShaderNodeSeparateXYZ')
+    diag = nt.nodes.new('ShaderNodeMath')
+    diag.operation = 'MULTIPLY_ADD'                          # across the window, rising
+    diag.inputs[1].default_value = .55
+    ramp = nt.nodes.new('ShaderNodeValToRGB')
+    els = ramp.color_ramp.elements
+    els[0].position, els[0].color = 0.0, (.012, .016, .022, 1)
+    els[1].position, els[1].color = 1.0, (.012, .016, .022, 1)
+    for pos, c in ((.38, (.012, .016, .022)), (.45, (.30, .38, .46)), (.5, (.012, .016, .022)),
+                   (.56, (.012, .016, .022)), (.585, (.16, .20, .25)), (.61, (.012, .016, .022))):
+        e = els.new(pos)
+        e.color = (*c, 1)
+    nt.links.new(tc.outputs['Generated'], sep.inputs[0])
+    nt.links.new(sep.outputs['Y'], diag.inputs[0])
+    nt.links.new(sep.outputs['Z'], diag.inputs[2])
+    nt.links.new(diag.outputs[0], ramp.inputs['Fac'])
+    nt.links.new(ramp.outputs['Color'], bsdf.inputs['Emission Color'])
+    bsdf.inputs['Emission Strength'].default_value = 1.0
     red = material('Running lamp red', (.3, .02, .02), 0, .3, emission=(1, .08, .05), strength=8)
     green = material('Running lamp green', (.02, .3, .08), 0, .3, emission=(.1, 1, .3), strength=8)
     white = material('Running lamp white', (.6, .6, .55), 0, .3, emission=(1, .95, .85), strength=8)
@@ -286,39 +325,40 @@ def build(kit):
     seams.build(kit, 'Bridge hull plating seams', kit.dark, 0)
 
     # Bridge windscreen: six flat panes across the raked forward face - the dark
-    # band the sprite shows at X 27..28.5 and forward. Pass 6 (owner: the windows
-    # looked wonky with the ribbon angling): panes and mullions are laid out at
-    # constant plan Y rather than constant section angle, so every mullion reads
-    # vertical from ahead and straight from above, and each pane is one flat
-    # facet. The glass stops at the shoulders (the wing windows carry the flanks)
-    # instead of wrapping down them.
-    xs = [GLAZE_X[0]+(GLAZE_X[1]-GLAZE_X[0])*k/2 for k in range(3)]
-    half = 4.5
-    bounds = [BRIDGE_CY-half+2*half*k/6 for k in range(7)]
+    # band the sprite shows at X 27..28.5 and forward. Pass 6 (owner, twice: the
+    # windows looked wonky with the ribbon angling; they must be horizontal seen
+    # from ahead): the glazing is laid out in height and plan Y, not in station
+    # and section angle. Head, sill, brow and sill rail are level lines (constant
+    # Z), mullions are vertical (constant Y), and every point is found on the
+    # rake by _yz, so on a rounded nose the head simply sits a little further aft
+    # at the shoulders instead of dropping into an arc.
+    half = 4.0
+    zh, zs = BASE_Z+13.0, BASE_Z+10.7                       # head and sill heights
+    bounds = [BRIDGE_CY+half-2*half*k/6 for k in range(7)]   # port to starboard
     mw = .13                                                 # mullion half-width
+    rows = [zh-(zh-zs)*k/2 for k in range(3)]                # top down
     panes, frame = _Acc(), _Acc()
     for y0, y1 in zip(bounds, bounds[1:]):
-        _strip(panes, xs, [y0+mw, y1-mw], .04, .11, by_y=True)
-    fx = [GLAZE_X[0]-.18+(GLAZE_X[1]-GLAZE_X[0]+.36)*k/2 for k in range(3)]
+        _strip(panes, rows, [y0-mw, y1+mw], .04, .11, pt=_yz)
     for y in bounds:                                         # mullions, the end ones the jambs
         w = mw*(1.6 if y in (bounds[0], bounds[-1]) else 1)
-        _strip(frame, fx, [y-w, y+w], 0, .18, by_y=True)
-    rail = [bounds[0]-mw*1.6+(2*half+mw*3.2)*k/14 for k in range(15)]
-    for x in (GLAZE_X[0]-.12, GLAZE_X[1]+.1):                # head and sill rails
-        _strip(frame, [x-.14, x+.14], rail, 0, .2, by_y=True)
+        _strip(frame, [zh+.26, (zh+zs)/2, zs-.26], [y+w, y-w], 0, .18, pt=_yz)
+    rail = [bounds[0]+mw*1.6-(2*half+mw*3.2)*k/14 for k in range(15)]
+    for z in (zh+.12, zs-.12):                               # head and sill rails
+        _strip(frame, [z+.14, z-.14], rail, 0, .2, pt=_yz)
     panes.build(kit, 'Bridge glazing band', glass, 0)
     frame.build(kit, 'Bridge glazing frame', kit.grey, .02)
     # Brow visor: an eyebrow of hull plating standing out over the head of the
-    # windscreen, its lip carried a little forward to shade the glass; it runs
-    # a little past the jambs, square-ended at constant Y like the glazing.
+    # windscreen, its lip carried a little forward to shade the glass; level,
+    # and a little past the jambs.
     brow = _Acc()
-    by = [BRIDGE_CY-half-.6+(2*half+1.2)*k/16 for k in range(17)]
-    _strip(brow, [RAKE_X[0]-.7, RAKE_X[0]-.15], by, 0, .22, by_y=True)
-    _strip(brow, [RAKE_X[0]-.15, RAKE_X[0]+.3], by[1:-1], .1, .32, by_y=True)
+    by = [BRIDGE_CY+half+.6-(2*half+1.2)*k/16 for k in range(17)]
+    _strip(brow, [zh+.95, zh+.55], by, 0, .22, pt=_yz)
+    _strip(brow, [zh+.55, zh+.3], by[1:-1], .1, .32, pt=_yz)
     brow.build(kit, 'Bridge brow visor', kit.tan, .03)
-    # Wiper park and washer rail along the sill.
+    # Wiper park and washer rail along the sill, level beneath it.
     sill = _Acc()
-    _strip(sill, [RAKE_X[1]+.05, RAKE_X[1]+.35], rail, 0, .14, by_y=True)
+    _strip(sill, [zs-.3, zs-.6], rail, 0, .14, pt=_yz)
     sill.build(kit, 'Bridge windscreen sill rail', kit.steel, 0)
     # Bridge wing windows on each flank just aft of the windscreen.
     side, sframe = _Acc(), _Acc()

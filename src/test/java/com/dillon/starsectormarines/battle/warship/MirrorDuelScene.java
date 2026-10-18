@@ -25,10 +25,10 @@ import java.util.Random;
 /**
  * Equal ships against each other ({@code warship-tactics.md}, pressure between passes). One duel per hull class and
  * seed on open ground: the same hull and fit on both sides, duel helms, automatic shields, ship fire on every hull and
- * doctrine on, so a ship that is losing badly may withdraw. The seed moves each ship's start independently (its
- * place and up to twenty degrees of heading) and every roll, nothing else.
+ * doctrine on; a warship fighting a hull fights it to the end, so a withdrawal is a failure, not a decision. The seed
+ * moves each ship's start independently (its place and up to twenty degrees of heading) and every roll, nothing else.
  *
- * <p>The question is whether a fight between equals is decided, by a kill or a withdrawal, inside the window, and
+ * <p>The question is whether a fight between equals is decided, by a kill, inside the window, and
  * whether it is decided by manoeuvre rather than by a standoff: no faster than three of the loser's own ninety-degree
  * turns. Its mechanics are verdicts: the fight is decided; it takes at least three of the loser's turns; a front-shield
  * ship on a standoff keeps its target inside its shield arc; the range opens and closes; no two hulls lie in each
@@ -93,7 +93,7 @@ public final class MirrorDuelScene implements BehaviorScene {
                 90f + (rng.nextFloat() - 0.5f) * 40f);
         float reach = WarshipShipFire.longestReach(west);
         float length = Math.max(west.lengthCells, west.widthCells);
-        float start = 1.4f * reach + length;
+        float start = 1.15f * reach + length;
         int width = Math.round(start + 6f * length + 40f);
         int height = Math.round(Math.max(1.8f * reach + 4f * length, 180f));
         SceneBuilder builder = SceneBuilder.openGround(width, height).missionCompletion(false);
@@ -136,10 +136,10 @@ public final class MirrorDuelScene implements BehaviorScene {
         Warship loser = t.loser();
         float decided = t.decisionTick < 0 || t.firstHitTick < 0 ? -1f : (t.decisionTick - t.firstHitTick) * TICK_SECONDS;
         float floor = loser == null ? 0f : MIN_TURNS * HullDurabilityScene.turnSeconds(loser, 90f);
-        verdicts.add(Verdict.of("the-fight-is-decided", t.decisionTick >= 0,
-                t.decisionTick < 0 ? "no kill and no withdrawal in " + TICKS / 30 + "s"
+        verdicts.add(Verdict.of("the-fight-is-decided", t.decisionTick >= 0 && !t.withdrawn,
+                t.decisionTick < 0 ? "no kill in " + TICKS / 30 + "s"
                         : String.format(Locale.ROOT, "%s %s %.1fs after the first hit", loser == t.west ? "west" : "east",
-                        t.withdrawn ? "withdrew" : "was destroyed", decided)));
+                        t.withdrawn ? "withdrew (" + loser.postureReason() + ")" : "was destroyed", decided)));
         if (t.decisionTick >= 0) {
             verdicts.add(Verdict.of("decided-by-manoeuvre-not-a-blow", decided >= floor,
                     String.format(Locale.ROOT, "%.1fs against %.0f turns of the loser's (%.1fs)", decided, MIN_TURNS, floor)));
@@ -180,6 +180,7 @@ public final class MirrorDuelScene implements BehaviorScene {
             metrics.put(n + "DamageTaken", Math.round(t.damage.getOrDefault(s, 0f)));
             metrics.put(n + "HullPercent", Math.round(100f * Math.max(0f, s.hullFraction())));
             metrics.put(n + "Overloads", s.overloadCount());
+            metrics.put(n + "MountsOut", s.mountsKnockedOut());
             metrics.put(n + "MaxFluxPercent", Math.round(100f * t.maxFlux.getOrDefault(s, 0f)));
             int[] f = t.underFire.get(s);
             metrics.put(n + "UnderFireTicks", f[1]);
@@ -269,7 +270,9 @@ public final class MirrorDuelScene implements BehaviorScene {
                 }
             }
             if (decisionTick < 0) {
-                for (Warship s : List.of(west, east)) {
+                // A kill on the same tick outranks the survivor leaving an empty sky.
+                List<Warship> order = east.destroyed() && !west.destroyed() ? List.of(east, west) : List.of(west, east);
+                for (Warship s : order) {
                     if (out(s)) {
                         decisionTick = tick;
                         decidedAgainst = s;
