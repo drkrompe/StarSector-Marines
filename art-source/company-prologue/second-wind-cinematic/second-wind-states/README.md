@@ -10,7 +10,7 @@ blend; the C1, C5 and entrance-card renders append the patched state. The old
 asset was built on the superseded landing-wreck geometry at a provisional 1.5 m
 per unit.
 
-The `.blend` files, review stills, sheets and turn videos are build output and
+The `.blend` files, review stills and sheets are build output and
 are not tracked (`art-source/company-prologue/.gitignore`): `./finalize.sh`
 writes them here; the latest build's review set is copied to Google Drive
 (`starsector/review/second-wind/`, one dated folder per review). Tracked: the scripts, each state's
@@ -20,9 +20,10 @@ writes them here; the latest build's review set is copied to Google Drive
 ![starboard](review/states-starboard-quarter.png)
 
 Per state: `<state>/review/views.png` (four views), `close.png` (bow, port
-flank, stern, and a studio-off still showing only the ship's own lights),
-`turn.mp4` (1920x1080, 96 frames, 24 fps: the root yawed 360 degrees under a
-fixed camera) and `turn-sheet.png`.
+flank, stern, and a studio-off still showing only the ship's own lights).
+Review is stills only; `./finalize.sh --turn 96` adds an optional turntable
+video (`turn.mp4`, the root yawed 360 degrees under a fixed camera), which
+nothing reads.
 
 ## Use
 
@@ -116,20 +117,20 @@ and `hull_normal` (face normal, hull space); the base wear also reads its own
 
 | State | Geometry (scar table) | Overlay |
 |---|---|---|
-| derelict | open craters, five dorsal deck rips, torn plates, turrets 1 and 3 wrecked (1 jammed, 3 holed), 2 and 4 stripped, sheared mast, smashed can, Engine 1 crushed; every lamp dead | old dark scorch at every open strike; torn metal and backing aged hardest; no running soot |
-| patched | salvage plates, welds, splints, cable runs, forward deck rip pressure-plated, starboard jury coil, port pod capped, turrets 1 and 3 still wrecked; four live spark anchors | dark burns at the still-open strikes, heat-tint rings round patched welds; fresh soot on drives 3, 4; salvage plates and welds newly fitted (little grime) |
-| refit | a few proper replacement plates with fresh seams (the starboard waist rip among them); the rest as patched, sparks dead | as patched, but replaced plates are clean shop primer: no scorch, no wear, smooth primer detail |
+| derelict | open craters, five dorsal deck rips, torn plates, turrets 1 and 3 wrecked (1 jammed, 3 holed), 2 and 4 stripped, sheared mast, smashed can, Engine 1 crushed, port engine bay smashed (aft drum band and fins flattened, heat sink cut, housing corner torn); every lamp dead | old dark scorch at every open strike; torn metal and backing aged hardest; no running soot |
+| patched | salvage plates, welds, splints, cable runs, forward deck rip pressure-plated, starboard jury coil, port pod capped, turrets 1 and 3 still wrecked; four live spark anchors | the derelict's paint wear unchanged (nobody repaints before the restoration); dark burns at the still-open strikes, heat-tint rings round patched welds; fresh soot on drives 3, 4; salvage plates and welds newly fitted (little grime) |
+| refit | proper replacement plates with fresh seams: both waist rips, the forward deck rip, the port bow cheek, the starboard bow deck cluster and three torn or loose deck plates; the rest as patched, sparks dead | as patched (grime 0.9), but replaced plates are clean shop primer: no scorch, no wear, smooth primer detail |
 | restored | structurally whole; scars faded under paint; Engine 1's can renewed; all four guns back; both pods running | one coat over cream, oxide, pale and the gunmetal collars (heat enamel, 0.7 tone); old seams, dents and the belt wear read through it as tone; plates mismatched by about 7%; light working soot on all four drives |
 
 ## Build
 
 `./finalize.sh` replays everything for all four states: `build_state.sh`
 (geometry `--state S`, `apply_skin.py --wear S`, `export_state.py`),
-`verify_state.py`, `review_state.py` (stills with projected scar sites, a
-lights-off still and a 96-frame turn), `encode_turn.py`, then
-`review_sheet.py`. `export_effects.py` adds the kit's `SWFX` collection after
-each build. One state is about 2 min to build and about 20 min to
-review on an RTX 3080. No Codex calls: the base skin is the one generated
+`verify_state.py`, `review_state.py` (stills with projected scar sites and a
+lights-off still), then `review_sheet.py`. `export_effects.py` adds the kit's `SWFX` collection after
+each build. One state is about 2 min to build and 1-2 min to
+render its stills on an RTX 3080 (a turn adds 15 min or more, longer while
+other renders share the GPU). No Codex calls: the base skin is the one generated
 set, and repair surfacing, wear and overlay are ours.
 
 `review_state.py --effects` appends the `SWFX` collection too,
@@ -156,12 +157,13 @@ state (`review/scar-continuity.md`, `.json`, and
 is ringed and each id's footprint numbered by scar-table row, coloured by its
 status in that state):
 
-- **Recorded sites: identical.** The 40 ids with cast sites (craters,
+- **Recorded sites: identical.** The 41 ids with cast sites (craters,
   clusters, spalls, gouges) put every site at the same hull position in all
   four states: 0.0 units, 0 px on screen, the same count everywhere. Sites
   are cast once on the clean ship, so this holds by construction, and the
-  check proves the states did not drift. `pod-port-outer-can` has its site in
-  the three damaged states and none in restored, where the can is renewed.
+  check proves the states did not drift. `pod-port-outer-can` and
+  `pod-port-engine-bay` have their sites in the three damaged states and none
+  in restored, where the pod is renewed.
 - **Footprints: same place, different extent.** 58 ids touch something in at
   least one state (their own parts, or base parts they hide, dent or
   override). The footprint centre moves at most about 5 units between states,
