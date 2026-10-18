@@ -141,6 +141,25 @@ final class MechAssignmentBoundary {
     }
 
     /**
+     * The post of a hold order the mech has settled on (defend area, hold
+     * node: an exact cell with a leash), or null for every other command,
+     * including one not yet reached. Attack-move, rush and withdrawal have no
+     * post to sortie from.
+     */
+    static int[] heldPost(long member, Squad squad, BattleView sim) {
+        if (squad == null) return null;
+        observeAssignment(member, squad, sim);
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
+        if (assignment == null) return null;
+        AssignmentKind kind = assignment.kind();
+        if (kind == AssignmentKind.WITHDRAW || kind == AssignmentKind.ATTACK_MOVE
+                || kind == AssignmentKind.RUSH_OBJECTIVE) return null;
+        int[] exact = exactDestination(assignment, sim.getGrid());
+        if (exact == null || !hasReachedExactCell(member, assignment, exact[0], exact[1], sim)) return null;
+        return exact;
+    }
+
+    /**
      * LR Support may use a bounded perimeter around a combat-zone assignment
      * while its perceived threat remains inside that exact mission zone. This
      * changes only the firing posture: the enemy and zone are still the
