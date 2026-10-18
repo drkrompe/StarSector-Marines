@@ -1,0 +1,42 @@
+{
+ "sponson-wall-port": {
+  "raw_iou": 0.9804,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9863,
+  "scale": [
+   1.00342,
+   1.00427
+  ],
+  "boundary_p95_px": 64.0
+ },
+ "sponson-top-port": {
+  "raw_iou": 0.9917,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9974,
+  "scale": [
+   0.99938,
+   1.00173
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "sponson-front-port": {
+  "raw_iou": 0.9916,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9973,
+  "scale": [
+   1.00499,
+   1.0038
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "sponson-under": {
+  "raw_iou": 0.9895,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9951,
+  "scale": [
+   1.00045,
+   1.00242
+  ],
+  "boundary_p95_px": 1.0
+ }
+}
