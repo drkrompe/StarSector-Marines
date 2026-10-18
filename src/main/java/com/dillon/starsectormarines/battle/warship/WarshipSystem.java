@@ -749,10 +749,10 @@ public final class WarshipSystem {
         if (ship.pinnedPosture() == null && doctrine != null) {
             PostureInputs inputs = new PostureInputs(ship.hullFraction(), ship.fluxFraction(), ship.overloaded(),
                     ship.hasShield() && !ship.shieldUp(), picture.score(), picture.describe(),
-                    picture.ownAir(), ship.stance(), foeHull(ship));
+                    picture.ownAir(), ship.stance(), foeHull(ship, ships));
             WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
             ship.setPosture(decision.posture(), decision.reason());
-            ship.fluxFooting(foeHull(ship) >= 0f);
+            ship.fluxFooting(foeHull(ship, ships) >= 0f);
         }
         if (ship.remoteOrder() != Warship.RemoteOrder.NONE) return;
         if (lead != null) {
@@ -1111,8 +1111,8 @@ public final class WarshipSystem {
                 || ship.lowHovering()) {
             return false;
         }
-        return (ship.hullTarget() != null && ship.duelHelm()) || WarshipEscort.liveLead(ship) != null
-                || ship.departing();
+        return ((ship.hullTarget() != null || WarshipTactics.overloadedInFight(ship)) && ship.duelHelm())
+                || WarshipEscort.liveLead(ship) != null || ship.departing();
     }
 
     private static void enforceLowHoverClearance(BattleSimulation sim, Warship ship, float x, float y) {
@@ -1180,6 +1180,7 @@ public final class WarshipSystem {
         List<Warship.Held> held = ship.held();
         boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
         Warship hull = ship.hullTarget();
+        if (hull == null && WarshipTactics.overloadedInFight(ship)) hull = ship.manoeuvre().target();
         if (hull != null && !bring) {
             // Fighting a hull: the manoeuvre's course where it sets one, else the heading that brings the guns to bear.
             float course = ship.manoeuvre().heading;
@@ -1278,7 +1279,7 @@ public final class WarshipSystem {
             int cell = ship.entryCell(fromX, fromY, det.endpointX, det.endpointY);
             int breachesBefore = ship.plating() == null ? 0 : ship.plating().breachCount();
             if (damageType == null) ship.takeHit(cell, det.damage, det.penetration, clock);
-            else ship.takeHit(cell, det.damage * armourMultiplier(damageType), 1f, clock);
+            else ship.takeHullFightHit(cell, det.damage * armourMultiplier(damageType), clock);
             // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
             if (ship.plating() != null && ship.plating().breachCount() != breachesBefore) ship.knockOutBreachedMounts(clock);
             if (Float.isNaN(strikeX) && cell >= 0) {
@@ -1380,6 +1381,8 @@ public final class WarshipSystem {
         ship.manoeuvre().heading = Float.NaN;
         ship.manoeuvre().speedShare = 1f;
         Warship target = ship.hullTarget();
+        // Overloaded, a ship holds no fire target, but it still flies the fight it is in.
+        if (target == null && WarshipTactics.overloadedInFight(ship)) target = ship.manoeuvre().target();
         Warship lead = WarshipEscort.liveLead(ship);
         boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
                 && !ship.descending()
@@ -1664,11 +1667,34 @@ public final class WarshipSystem {
     }
 
     /** The hull share left to the hull {@code ship} is fighting, or {@link PostureInputs#NO_FOE}. */
-    private static float foeHull(Warship ship) {
+    static float foeHull(Warship ship, List<Warship> ships) {
         Warship foe = ship.hullTarget();
+        boolean fighting = foe != null || ship.manoeuvre().target() != null;
         // An overloaded ship holds no fire target, but it is still in the fight its manoeuvre is about.
         if (foe == null || foe.destroyed()) foe = ship.manoeuvre().target();
+        // The hull it was fighting has just gone down, before it has chosen the next one; or its anti-ship guns are all
+        // silenced under repair, so it holds no target (a silenced mount is not a lost one); or it is overloaded, which
+        // drops its target and its manoeuvre with it. Either way it is still in the fight while a hostile hull lives,
+        // and the nearest is its foe.
+        if ((foe == null || foe.destroyed() || foe.departed())
+                && (fighting || ship.awaitingAntiShipRepair() || ship.overloaded())) {
+            foe = nearestHostileHull(ship, ships);
+        }
         return foe == null || foe.destroyed() || foe.departed() ? PostureInputs.NO_FOE : Math.max(0f, foe.hullFraction());
+    }
+
+    private static Warship nearestHostileHull(Warship ship, List<Warship> ships) {
+        Warship best = null;
+        float bestD = Float.MAX_VALUE;
+        for (Warship o : ships) {
+            if (!WarshipShipFire.hostileHull(ship, o)) continue;
+            float d = (float) Math.hypot(o.centerX() - ship.centerX(), o.centerY() - ship.centerY());
+            if (d < bestD) {
+                bestD = d;
+                best = o;
+            }
+        }
+        return best;
     }
 
     private void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {

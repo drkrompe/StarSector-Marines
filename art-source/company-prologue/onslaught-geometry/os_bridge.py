@@ -68,11 +68,12 @@ SPINE = section(0.0-LIFT, 25.0, 2.0, 2.5)    # keel buried deep: it seats on wha
 AFT = {'x': -31.0, 'y': 0.0, 'r': 16.5, 'z0': 24.0, 'z1': 36.0}    # aft dome
 SPINE_TOP = 25.0
 SPINE_FALL = 22.0   # deg: the spine's fall toward the tail aft of X -50
-# The forward spine's glacis (pre-lift z): 24 at the nose (X 100, just over the
-# gun deck's last tier) rising to 34 (42 after the lift, two over the inner tier)
+# The forward spine's glacis (pre-lift z): 32 at the nose (X 100; round 6: 40 after
+# the lift, level with the prow gallery's glacis crest, os_hull, so the spine is the
+# landing at the top of the gallery's steep glacis, not a long ramp) rising to 35 (43 after the lift, three over the inner tier)
 # where it runs into the citadel's drum at X 46; inside the drum it steps back
 # down to SPINE_TOP.
-GLACIS = ((100.0, 24.0), (46.0, 34.0))
+GLACIS = ((100.0, 32.0), (46.0, 35.0))
 # Human fittings in true metres, converted with the hull's scale (kit.mpu, set by
 # the driver from ship_scale): the bridge windows are a 1.4 m band of 1.1 m panes,
 # the crown hatch a 1.8 m access hatch, the aft dome's ledge hatches 0.9 x 1.4 m.
@@ -415,11 +416,11 @@ def _forward_spine(kit):
               bevel=0)
     _lay_on_glacis(set(bpy.data.objects)-before)
     # The arch over the spine's nose: two legs at Y +-8.2 (the sprite's pale circles) and
-    # a crossbeam bedded on the spine's nose and the gun deck's last tier (os_hull, 31.5
-    # after the lift), so there is no daylight under it.
+    # a crossbeam bedded on the spine's nose and the prow gallery's glacis crest (os_hull,
+    # 40 after the lift at X 98), so there is no daylight under it.
     for side, s in (('port', 1), ('starboard', -1)):
-        kit.box(f'Bridge spine arch leg {side}', (98.0, s*8.2, 16.95), (3.6, 4.4, 18.9), kit.bone, bevel=.3)
-    kit.box('Bridge spine arch', (98.0, 0, 24.9), (2.8, 21.0, 3.0), kit.bone, bevel=.3)
+        kit.box(f'Bridge spine arch leg {side}', (98.0, s*8.2, 20.25), (3.6, 4.4, 25.5), kit.bone, bevel=.3)
+    kit.box('Bridge spine arch', (98.0, 0, 32.6), (2.8, 21.0, 3.0), kit.bone, bevel=.3)
 
 
 def _spine_detail(kit):
@@ -428,8 +429,11 @@ def _spine_detail(kit):
         edge = [(x, _half_at(x)+.6) for x in [xa+(xb-xa)*i/8 for i in range(9)]]
         for side, s in (('port', 1), ('starboard', -1)):
             pts = [(x, s*y) for x, y in edge]
+            # Round 6: the forward steps stand higher, halfway up the spine raised over the
+            # gallery's glacis crest, so the spine keeps a terrace at its foot.
+            top = 26.4 if tag == 'fore' else 23.4
             st = prism(kit, f'Bridge spine side step {side} {tag}', ccw(strip_plan(pts, 2.6)),
-                       [(0, -LIFT), (0, 22.8), (.6, 23.4)], kit.bone, bevel=0)
+                       [(0, -LIFT), (0, top-.6), (.6, top)], kit.bone, bevel=0)
             if tag == 'aft':
                 plane_cut(st, 'step aft fall', (-50.0, 0, 23.4), facet_normal((-1, 0), SPINE_FALL))
     # Transverse ribs across the aft spine, behind the helmet, with dark vents between.

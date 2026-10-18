@@ -24,6 +24,15 @@ public interface FrameSink {
      */
     default void advanced(String loopId, BattleSimulation sim, int tick) { }
 
+    /**
+     * Whether to record a frame of {@code tick}, asked every tick before {@link #frame}. The default keeps the scene's
+     * own cadence; a sink that follows the action (a duel camera recording densely while rounds are flying) may ask for
+     * more or fewer. It must answer from the simulation and its own history only, so a recording stays deterministic.
+     */
+    default boolean records(String loopId, BattleSimulation sim, int tick, int sceneEveryTicks) {
+        return tick % sceneEveryTicks == 0;
+    }
+
     /** Discards every frame — the evidence path. */
     FrameSink NONE = (loopId, sim, tick, caption) -> { };
 }

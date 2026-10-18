@@ -53,7 +53,8 @@ public final class FrigateDuelScene implements BehaviorScene {
     private static final String WOLF_VARIANT = "wolf_hegemony_Assault";
     private static final String HOUND_HULL = "hound_d_pirates";
     private static final String HOUND_VARIANT = "hound_d_pirates_Standard";
-    private static final int TICKS = 1500;
+    /** The window grows with the hull fight's durability, as the fight it watches does. */
+    private static final int TICKS = Math.round(1500 * WarshipScale.HULL_DURABILITY);
     private static final int FRAME_EVERY = 6;
 
     @Override public String id() { return "frigate-duel"; }

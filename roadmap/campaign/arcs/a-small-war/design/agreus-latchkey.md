@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — Black Sluice's ships moved to a southern pad field below a ridge, reached only through the berth gate, with the duel flown over it. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
+Updated: 2026-10-18 — Black Sluice gained open approach ground west of the apron, sized by the hull fight. Earlier 2026-10-16: Black Sluice's ships moved to a southern pad field below a ridge, reached only through the berth gate, with the duel flown over it. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
 
 ## Scope and provenance
 
@@ -192,9 +192,18 @@ at their true size (`landed-ships-true-scale.md`): a concrete cradle for the
 Venture with a Hound berth either side, kerbs, painted borders, tie-downs, floor
 drains, deck hatches and engine-wash scorch, gantry arms out to the hulls, a pad
 shed and a pad-control house. The only way down is out of the berth gate and
-along the berth road down the east side. The ships' fight after Voss's order is
-flown over that southern ground: in sight of the people on the causeway, never on
-top of them.
+along the berth road down the east side. The ships' fight after Voss's order goes
+where its fighting takes it, in sight of the people on the causeway.
+
+West of the landing apron the outer basin runs on as **open approach ground**, the
+ground the Wolfs cross. North of the ridge it is silt flats under regolith drifts:
+the transfer road runs on inland from the causeway's landward end, past the first
+settling beds, silted full and abandoned with their walls fallen in stretches, to a
+low broken rim off the north edge. South of it the ridge runs on to the map's edge
+over rim country, a massif with its lobes, spurs and gullies reaching onto a second
+floor under the basin's west rim. Nothing of the ground fight is out there. It is
+there because the ships fight at their own reach: without it the Wolfs crossing the
+edge had Greyhook's pads in range at once.
 
 Open yards are airless and cold. Exterior workers and combatants use appropriate
 pressure protection; occupied interiors have life support. Tactical art, equipment

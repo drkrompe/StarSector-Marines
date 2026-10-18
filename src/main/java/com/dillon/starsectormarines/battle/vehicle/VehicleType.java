@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.LiftClass;
+import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+
+import java.util.List;
 
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
@@ -183,11 +186,13 @@ public enum VehicleType {
             return new BicycleBody(1.3f, 38f, 260f, accel, brakingAccel, maxSpeed);
         }
         @Override public float sightCells() { return 40f; }
+        @Override public List<DroneRole> droneBay() { return List.of(DroneRole.SENSOR, DroneRole.SENSOR); }
     },
     /**
      * The hover scout's hull stretched over a drone bay: a Tri-Tachyon carrier whose drones are its weapon. It
-     * carries no gun of its own; it launches a tethered flight of drone-pulse drones that escort it, crewed
-     * remote control rather than free autonomy, and they fall when the carrier is wrecked. Drones lost stay lost.
+     * carries no gun of its own; it launches a tethered flight, crewed remote control rather than free autonomy:
+     * two escorts, two point-defence halo drones and a strike drone the bay rebuilds. They fall when the carrier
+     * is wrecked, and other drones lost stay lost.
      * Its sheet has no turret frames (art-source/vehicles/tt-hover).
      */
     DRONE_SKIMMER("graphics/battle/vehicles/tt-drone-skimmer.png", 0, 4, -90f,
@@ -196,7 +201,9 @@ public enum VehicleType {
         @Override public GroundBody createBody() {
             return new BicycleBody(1.7f, 34f, 220f, accel, brakingAccel, maxSpeed);
         }
-        @Override public int droneComplement() { return 4; }
+        @Override public List<DroneRole> droneBay() {
+            return List.of(DroneRole.ESCORT, DroneRole.ESCORT, DroneRole.HALO, DroneRole.HALO, DroneRole.STRIKE);
+        }
     },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
@@ -213,8 +220,11 @@ public enum VehicleType {
      */
     public int supplyStock() { return 0; }
 
+    /** The roles of the drones this hull launches and tethers to itself, in launch order; empty for most hulls. */
+    public List<DroneRole> droneBay() { return List.of(); }
+
     /** Drones this hull launches and tethers to itself, or 0 for every hull that carries none. */
-    public int droneComplement() { return 0; }
+    public int droneComplement() { return droneBay().size(); }
 
     /** How far this hull reports what it sees to its side, in cells; 0 for a hull that is not a sight source. */
     public float sightCells() { return 0f; }

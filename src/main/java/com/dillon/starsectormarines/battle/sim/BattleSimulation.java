@@ -36,7 +36,7 @@ import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
-import com.dillon.starsectormarines.battle.drone.DroneSkimmerSystem;
+import com.dillon.starsectormarines.battle.drone.DroneBaySystem;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -146,6 +146,7 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -497,7 +498,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     private final SupplyTruckSystem supplyTrucks;
     private final ScoutSight scoutSight = new ScoutSight();
-    private final DroneSkimmerSystem droneSkimmers = new DroneSkimmerSystem();
+    private final DroneBaySystem droneBays = new DroneBaySystem();
+    private final VehicleDustEmitter vehicleDust = new VehicleDustEmitter();
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
     /** Opt-in battle-long perspective/referee diagnostic stream. */
@@ -1754,6 +1756,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void addDecal(Decal d) { effects.addDecal(d); }
     /** Smoke-puff events emitted by smoking wrecks during the last advance. Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getSmokePuffsThisFrame() { return effects.getSmokePuffsThisFrame(); }
+    /** Ground dust and hover haze queued this tick; see {@code EffectsService.emitGroundDust}. */
+    public List<float[]> getGroundDustThisFrame() { return effects.getGroundDustThisFrame(); }
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getFireBurstsThisFrame() { return effects.getFireBurstsThisFrame(); }
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
@@ -1870,7 +1874,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public ScoutSight scoutSight() { return scoutSight; }
 
     /** The drone skimmers' tethered flights. */
-    public DroneSkimmerSystem droneSkimmers() { return droneSkimmers; }
+    public DroneBaySystem droneBays() { return droneBays; }
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
@@ -2832,7 +2836,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.rebuildSpatialIndices(rosterService);
         // A scout car's mast reports against the index just rebuilt: to the fog's next vision pass and to the
         // commander's next capture.
-        scoutSight.tick(convoy(), rosterService, unitIndex, grid, fogOfWar);
+        scoutSight.tick(convoy(), rosterService, unitIndex, grid, fogOfWar,
+                sink -> droneBays.forEachSensor(this, sink::observe));
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
@@ -3056,7 +3061,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         shipCommands.drain(warships.ships(), tenders.tenders(), Faction.MARINE, grid,
                 (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
-        droneSkimmers.tick(TICK_DT, this);
+        droneBays.tick(TICK_DT, this);
+        vehicleDust.tick(simTickIndex, convoy(), topology, effects);
         closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);

@@ -397,7 +397,7 @@ def build_side(kit, s, mats):
     pipes_bronze.build(kit, f'Machinery {side} conduits and risers', mats['bronze'])
     fittings.build(kit, f'Machinery {side} flanges and elbows', kit.grey)
     frames.build(kit, f'Machinery {side} well frames', kit.dark)
-    headers.build(kit, f'Machinery {side} headers', kit.plate, bevel=.2)
+    headers.build(kit, f'Machinery {side} headers', kit.steel, bevel=.2)
     pumps.build(kit, f'Machinery {side} pumps and valves', kit.grey, bevel=.15)
     valves.build(kit, f'Machinery {side} valve blocks and wheels', mats['pale'])
 
@@ -446,14 +446,19 @@ def build_tail_radiator(kit, mats):
         ties.add(*box(x-.7, x+.7, -COAMING_Y, COAMING_Y, z-.3, z+3.0))
     bed.build(kit, 'Machinery tail radiator bed', kit.dark)
     fins.build(kit, 'Machinery tail radiator fins', mats['radiator'])
-    edges.build(kit, 'Machinery tail radiator coamings', kit.bone, bevel=.2)
+    # Round 6 (critic A5): dark grey armour, not bone, so on the quarters the tail is one tone
+    # with the blades instead of a bright shard between the wells.
+    edges.build(kit, 'Machinery tail radiator coamings', kit.grey, bevel=.2)
     ties.build(kit, 'Machinery tail radiator tie bars', kit.dark)
 
 
 def materials(kit):
     from os_kit import material
     get = lambda name, *a: bpy.data.materials.get(name) or material(name, *a)
-    return {'pale': get('Pale pipe steel', (.34, .31, .29), .65, .42),
+    # Round 6 (critic A5): the pale banks were the brightest thing in the wells and broke the
+    # stern quarter into speckle; a darker steel keeps the pipes legible close up while the
+    # wells read as dark recesses between the plates at formation distance.
+    return {'pale': get('Pale pipe steel', (.2, .185, .17), .65, .42),
             'bronze': get('Conduit bronze', (.22, .12, .07), .7, .45),
             'radiator': get('Radiator fin red-brown', (.13, .045, .03), .55, .5)}
 

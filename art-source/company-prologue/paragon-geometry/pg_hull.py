@@ -63,6 +63,7 @@ POD_FRONT_X = -108.0
 POD_REAR_X = -173.0
 RING_AFT_X = -124.0
 REACTOR = (-118.0, 88.0)
+REACTOR_TOP = {}  # the reactor well's top face height per side, set at build
 
 # The two capital mounts (WS 001/002) sit recessed in bays in the grille face.
 BAY = dict(y=16.5, z=2.0, w=21.0, h=22.0, back=128.0)
@@ -178,6 +179,7 @@ def build(kit):
     for side, label in ((1, 'port'), (-1, 'starboard')):
         x, y = REACTOR[0], REACTOR[1]*side
         z = kit.surface(x, y)[0].z
+        REACTOR_TOP[label] = z+.6
         K.revolve(kit, f'Hull {label} reactor well', [(0, -6), (15, -6), (15, .6), (0, .6)], kit.tech,
                   center=(x, y, z), segments=48, smooth=False)
         K.revolve(kit, f'Hull {label} reactor dome', [(0, -1.5), (8.5, -1.5), (8, 1.2), (6, 3.2), (3, 4.3), (0, 4.6)],

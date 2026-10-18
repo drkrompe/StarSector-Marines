@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.drone.SkimmerWing;
+import com.dillon.starsectormarines.battle.drone.DroneRole;
+import com.dillon.starsectormarines.battle.drone.DroneWing;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -36,9 +38,14 @@ import java.util.Set;
  *       aside. The verdict needs the hull to have actually overlapped somebody, and says so when it did not.</li>
  *   <li>{@code skimmer}: a {@link VehicleType#DRONE_SKIMMER} parked within reach of a three-rifle picket. Its bay
  *       launches its complement one at a time, the drones stay on their leash and fight, and the hull itself fires
- *       nothing. Who wins the exchange is a reading, not a verdict.</li>
+ *       nothing. The strike drone goes at the picket, detonates, and the bay rebuilds it. Who wins the exchange is a
+ *       reading, not a verdict.</li>
  *   <li>{@code skimmer-loss}: the same hull with nobody to fight, destroyed once its drones are out: every drone
  *       still flying comes down with it, and none launches afterwards.</li>
+ *   <li>{@code sensors}: a hover scout parked behind a wall with a defender beyond it. Its sensor pair holds station
+ *       ahead of the hull, over the wall, and the side's picture records the defender the hull cannot see.</li>
+ *   <li>{@code halo}: a drone skimmer under a stream of rockets with no shooter to answer. Its halo drones orbit
+ *       tight round it and their point-defence lasers take rounds out of the air.</li>
  * </ul>
  */
 public final class HoverLineScene implements BehaviorScene {
@@ -48,6 +55,8 @@ public final class HoverLineScene implements BehaviorScene {
     public static final String CROWD_WHEELS = "crowd-wheels";
     public static final String SKIMMER = "skimmer";
     public static final String SKIMMER_LOSS = "skimmer-loss";
+    public static final String SENSORS = "sensors";
+    public static final String HALO = "halo";
 
     static final int WIDTH = 64;
     static final int HEIGHT = 48;
@@ -66,6 +75,12 @@ public final class HoverLineScene implements BehaviorScene {
     static final float SKIMMER_X = 16.5f, SKIMMER_Y = 24.5f;
     static final int PICKET_X = 34, PICKET_Y = 23;
     static final int SKIMMER_LOSS_TICK = 300;
+    static final int SKIMMER_Y_CELL = 24;
+    static final int SENSOR_WALL_X = 21;
+    /** West edge of the sealed holdout box; nothing west of it is wall except the sensors loop's own. */
+    static final int HOLDOUT_X0 = 54;
+    static final int LURKER_X = 32;
+    static final int HALO_BARRAGE_TICK = 240;
 
     private static final String RIFLE = "weapon.field-rifle";
     private static final int TICKS = 1500;
@@ -94,6 +109,8 @@ public final class HoverLineScene implements BehaviorScene {
         reports.add(crowd(CROWD_WHEELS, VehicleType.SCOUT_CAR, frames));
         reports.add(skimmer(SKIMMER, true, -1, frames));
         reports.add(skimmer(SKIMMER_LOSS, false, SKIMMER_LOSS_TICK, frames));
+        reports.add(sensors(frames));
+        reports.add(halo(frames));
         return reports;
     }
 
@@ -108,10 +125,19 @@ public final class HoverLineScene implements BehaviorScene {
         }
     }
 
+    /** Open ground is dirt, as a generated map's is, so a hull raises dust and a skirt its haze; water stays water. */
+    static void dirt(CellTopology topology) {
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                if (topology.getGroundKind(x, y) == GroundKind.VOID) topology.setGroundKind(x, y, GroundKind.DIRT);
+            }
+        }
+    }
+
     /** A sealed box in the far corner holding the one defender that keeps the battle ticking. */
     private static SceneBuilder holdout(SceneBuilder builder) {
         return builder.missionCompletion(false)
-                .wall(54, 40, 62, 40).wall(54, 47, 62, 47).wall(54, 40, 54, 47).wall(62, 40, 62, 47)
+                .wall(HOLDOUT_X0, 40, 62, 40).wall(HOLDOUT_X0, 47, 62, 47).wall(HOLDOUT_X0, 40, HOLDOUT_X0, 47).wall(62, 40, 62, 47)
                 .unit("holdout", Faction.DEFENDER, UnitType.MARINE, 58, 44);
     }
 
@@ -121,6 +147,7 @@ public final class HoverLineScene implements BehaviorScene {
         for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) field.setWalkableFloor(x, y);
         stampRiver(field, ground);
         SceneWorld world = holdout(SceneBuilder.over(field, ground)).build();
+        dirt(world.sim().getTopology());
         BattleSimulation sim = world.sim();
         NavigationGrid grid = sim.getGrid();
         NavigationGrid skirtView = HoverSkirt.hoverView(grid, sim.getTopology());
@@ -143,6 +170,7 @@ public final class HoverLineScene implements BehaviorScene {
         float apcMaxY = apcBody.y;
         for (int tick = 0; tick < TICKS; tick++) {
             sim.advance(BattleSimulation.TICK_DT);
+            frames.advanced(RIVER, sim, tick);
             int cx = (int) Math.floor(scoutBody.x), cy = (int) Math.floor(scoutBody.y);
             if (grid.inBounds(cx, cy) && sim.getTopology().getGroundKind(cx, cy) == GroundKind.WATER) waterTicks++;
             if (throughTick < 0 && scoutBody.y > THROUGH_Y) throughTick = tick;
@@ -185,6 +213,7 @@ public final class HoverLineScene implements BehaviorScene {
         SceneWorld world = holdout(SceneBuilder.openGround(WIDTH, HEIGHT))
                 .squad("crowd").size(4).inFile(CROWD_X0, (int) ROAD_Y, 4, 0).primary(RIFLE).stationary().done()
                 .build();
+        dirt(world.sim().getTopology());
         BattleSimulation sim = world.sim();
         long[] crowd = world.members("crowd");
         long hull = spawn(sim, type, CROWD_START_X, ROAD_Y);
@@ -197,6 +226,7 @@ public final class HoverLineScene implements BehaviorScene {
         int overlapTicks = 0;
         for (int tick = 0; tick < TICKS / 2; tick++) {
             sim.advance(BattleSimulation.TICK_DT);
+            frames.advanced(loop, sim, tick);
             for (long id : crowd) {
                 if (!sim.world().isAlive(id)) continue;
                 if (inside(body, type, sim.world().x(id), sim.world().y(id))) {
@@ -241,6 +271,7 @@ public final class HoverLineScene implements BehaviorScene {
                     .primary(RIFLE).stationary().done();
         }
         SceneWorld world = builder.build();
+        dirt(world.sim().getTopology());
         BattleSimulation sim = world.sim();
         long hull = spawn(sim, VehicleType.DRONE_SKIMMER, SKIMMER_X, SKIMMER_Y);
         sim.convoy().body(hull).teleport(SKIMMER_X, SKIMMER_Y, -90f);
@@ -248,11 +279,16 @@ public final class HoverLineScene implements BehaviorScene {
         float[] picketFull = new float[picket.length];
         for (int i = 0; i < picket.length; i++) picketFull[i] = durability(sim, picket[i]);
         int complement = VehicleType.DRONE_SKIMMER.droneComplement();
+        // With nobody in reach the strike drone has no target, so it stays in the bay.
+        int held = picketed ? 0 : (int) VehicleType.DRONE_SKIMMER.droneBay().stream()
+                .filter(r -> r == DroneRole.STRIKE).count();
         int ticks = lossTick > 0 ? lossTick + 120 : TICKS;
 
         Set<Long> drones = new HashSet<>();
         int allOutTick = -1, droneShots = 0, hullShots = 0, aliveAfterLoss = -1, flyingAtLoss = 0, dronesAtLoss = 0;
         int firstLossTick = -1;
+        int strikeLaunchTick = -1, strikeSpentTick = -1, rebuiltTick = -1;
+        Set<Long> strikers = new HashSet<>();
         float maxStray = 0f;
         GroundBody body = sim.convoy().body(hull);
         for (int tick = 0; tick < ticks; tick++) {
@@ -262,10 +298,17 @@ public final class HoverLineScene implements BehaviorScene {
                 sim.applyDamage(hull, 1.0e6f, 1.0e6f);
             }
             sim.advance(BattleSimulation.TICK_DT);
-            SkimmerWing wing = sim.droneSkimmers().wing(hull);
+            frames.advanced(loop, sim, tick);
+            DroneWing wing = sim.droneBays().wing(hull);
             if (wing != null) {
                 drones.addAll(wing.drones());
-                if (allOutTick < 0 && wing.inBay() == 0) allOutTick = tick;
+                if (allOutTick < 0 && wing.inBay() <= held) allOutTick = tick;
+                long striker = wing.strikeDrone();
+                if (striker != 0L && strikers.add(striker) && strikers.size() == 1) strikeLaunchTick = tick;
+                if (strikeSpentTick >= 0 && rebuiltTick < 0 && (wing.strikesReady() > 0 || strikers.size() > 1)) {
+                    rebuiltTick = tick;
+                }
+                if (strikeSpentTick < 0 && sim.droneBays().strikesDetonated() > 0) strikeSpentTick = tick;
             }
             for (ShotEvent shot : sim.getShotsThisFrame()) {
                 if (drones.contains(shot.shooterId)) droneShots++;
@@ -276,7 +319,7 @@ public final class HoverLineScene implements BehaviorScene {
             for (long id : drones) {
                 if (!sim.world().isAlive(id)) continue;
                 alive++;
-                if (hullAlive) {
+                if (hullAlive && !strikers.contains(id)) {
                     maxStray = Math.max(maxStray, (float) Math.hypot(sim.world().x(id) - body.x,
                             sim.world().y(id) - body.y));
                 }
@@ -291,9 +334,10 @@ public final class HoverLineScene implements BehaviorScene {
         }
 
         List<Verdict> verdicts = new ArrayList<>();
-        verdicts.add(Verdict.of("complement-launched", drones.size() >= complement && allOutTick >= 0,
-                drones.size() + " of " + complement + " drones launched, the bay empty at tick " + allOutTick
-                        + " (one every " + SkimmerWing.LAUNCH_INTERVAL + " s)"));
+        verdicts.add(Verdict.of("complement-launched", drones.size() >= complement - held && allOutTick >= 0,
+                drones.size() + " of " + complement + " drones launched (" + held + " strike held for want of a"
+                        + " target), the bay done at tick " + allOutTick
+                        + " (one every " + DroneWing.LAUNCH_INTERVAL + " s)"));
         verdicts.add(Verdict.of("hull-unarmed", hullShots == 0, "the hull itself fired " + hullShots + " shots"));
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("dronesLaunched", drones.size());
@@ -309,9 +353,21 @@ public final class HoverLineScene implements BehaviorScene {
                 if (!sim.world().isAlive(picket[i])) dead++;
                 damage += picketFull[i] - (sim.world().isAlive(picket[i]) ? durability(sim, picket[i]) : 0f);
             }
-            verdicts.add(Verdict.of("drones-tethered", maxStray <= SkimmerWing.LEASH_CELLS + 4f,
-                    "while the hull lived no drone strayed beyond " + String.format(Locale.ROOT, "%.1f", maxStray)
-                            + " cells of it (leash " + SkimmerWing.LEASH_CELLS + ")"));
+            int detonations = sim.droneBays().strikesDetonated();
+            verdicts.add(Verdict.of("strike-launched", strikeLaunchTick >= 0,
+                    "the strike drone left the bay at tick " + strikeLaunchTick + " with the picket in reach"));
+            verdicts.add(Verdict.of("strike-detonated", detonations > 0,
+                    detonations + " strike drones detonated on their target, the first at tick " + strikeSpentTick));
+            float expected = DroneWing.STRIKE_REBUILD_SECONDS / BattleSimulation.TICK_DT;
+            verdicts.add(Verdict.of("strike-rebuilt", strikeSpentTick >= 0 && rebuiltTick >= 0
+                            && Math.abs(rebuiltTick - strikeSpentTick - expected) <= 3f,
+                    "spent at tick " + strikeSpentTick + ", a new strike drone ready or away at tick " + rebuiltTick
+                            + " (rebuild " + DroneWing.STRIKE_REBUILD_SECONDS + " s)"));
+            metrics.put("strikeLaunchTick", strikeLaunchTick);
+            metrics.put("strikesDetonated", detonations);
+            verdicts.add(Verdict.of("drones-tethered", maxStray <= DroneWing.LEASH_CELLS + 4f,
+                    "while the hull lived no drone but the striker strayed beyond " + String.format(Locale.ROOT, "%.1f", maxStray)
+                            + " cells of it (leash " + DroneWing.LEASH_CELLS + ")"));
             verdicts.add(Verdict.of("drones-fight", droneShots > 0,
                     "the drones fired " + droneShots + " shots at the picket"));
             metrics.put("dronesLost", dronesLost);
@@ -327,6 +383,113 @@ public final class HoverLineScene implements BehaviorScene {
         }
         sim.close();
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
+    }
+
+    private SceneReport sensors(FrameSink frames) {
+        SceneWorld world = holdout(SceneBuilder.openGround(WIDTH, HEIGHT))
+                .wall(SENSOR_WALL_X, SKIMMER_Y_CELL - 6, SENSOR_WALL_X, SKIMMER_Y_CELL + 6)
+                .unit("lurker", Faction.DEFENDER, UnitType.MARINE, LURKER_X, SKIMMER_Y_CELL)
+                .build();
+        dirt(world.sim().getTopology());
+        BattleSimulation sim = world.sim();
+        long hull = spawn(sim, VehicleType.HOVER_SCOUT, SKIMMER_X, SKIMMER_Y);
+        sim.convoy().body(hull).teleport(SKIMMER_X, SKIMMER_Y, -90f);
+        long lurker = world.unit("lurker");
+        GroundBody body = sim.convoy().body(hull);
+        float halfLength = VehicleType.HOVER_SCOUT.visualLengthCells * .5f;
+        int ticks = 600, hiddenSightings = 0, firstHiddenSighting = -1, aheadSamples = 0, stationed = 0;
+        Set<Long> sensors = new HashSet<>();
+        for (int tick = 0; tick < ticks; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            frames.advanced(SENSORS, sim, tick);
+            DroneWing wing = sim.droneBays().wing(hull);
+            if (wing != null) sensors.addAll(wing.drones());
+            boolean lurking = sim.world().isAlive(lurker);
+            boolean hullSees = lurking && ScoutSight.sees(sim.getGrid(), body.x, body.y, sim.world().x(lurker),
+                    sim.world().y(lurker), VehicleType.HOVER_SCOUT.sightCells());
+            boolean sighted = lurking && sim.scoutSight().sighted(Faction.MARINE, lurker);
+            if (sighted && !hullSees) {
+                hiddenSightings++;
+                if (firstHiddenSighting < 0) firstHiddenSighting = tick;
+            }
+            if (tick >= ticks - 300) {
+                for (long id : sensors) {
+                    if (!sim.world().isAlive(id)) continue;
+                    aheadSamples++;
+                    // The hull faces +X: how far beyond its bow the sensor flies.
+                    if (sim.world().x(id) - body.x >= halfLength + DroneWing.SENSOR_AHEAD_CELLS - 3f) stationed++;
+                }
+            }
+            if (tick % frameEvery == 0) {
+                frames.frame(SENSORS, sim, tick, String.format(Locale.ROOT,
+                        "%s / tick %d / sensors out %d / hull sees the lurker: %s / side's picture: %s", SENSORS,
+                        tick, sensors.size(), hullSees ? "yes" : "no", sighted ? "sighted" : "-"));
+            }
+        }
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("sensor-pair-launched", sensors.size() == 2,
+                sensors.size() + " sensor drones left the scout's bay"));
+        verdicts.add(Verdict.of("sensors-hold-ahead", aheadSamples > 0 && stationed >= aheadSamples * .8f,
+                stationed + " of " + aheadSamples + " sensor samples over the last 300 ticks were at least "
+                        + (DroneWing.SENSOR_AHEAD_CELLS - 3f) + " cells beyond the bow"));
+        verdicts.add(Verdict.of("sensors-see-past-the-wall", hiddenSightings > 0,
+                "the side's picture held the lurker the hull could not see on " + hiddenSightings
+                        + " ticks, the first at tick " + firstHiddenSighting));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("hiddenSightingTicks", hiddenSightings);
+        metrics.put("firstHiddenSighting", firstHiddenSighting);
+        metrics.put("lurkerAlive", sim.world().isAlive(lurker) ? 1 : 0);
+        sim.close();
+        return new SceneReport(id(), SENSORS, ticks, verdicts, metrics);
+    }
+
+    private SceneReport halo(FrameSink frames) {
+        SceneWorld world = holdout(SceneBuilder.openGround(WIDTH, HEIGHT)).build();
+        dirt(world.sim().getTopology());
+        BattleSimulation sim = world.sim();
+        long hull = spawn(sim, VehicleType.DRONE_SKIMMER, SKIMMER_X, SKIMMER_Y);
+        sim.convoy().body(hull).teleport(SKIMMER_X, SKIMMER_Y, -90f);
+        int ticks = 900, fired = 0, intercepted = 0, haloShots = 0;
+        List<Projectile> rounds = new ArrayList<>();
+        Set<Long> halos = new HashSet<>();
+        for (int tick = 0; tick < ticks; tick++) {
+            if (tick >= HALO_BARRAGE_TICK && tick % 15 == 0) {
+                float spread = ((tick / 15) % 5 - 2) * .6f;
+                Projectile round = new Projectile(SKIMMER_X + 16f, SKIMMER_Y + 8f + spread, SKIMMER_X + spread,
+                        SKIMMER_Y, false, 1.5f, Faction.DEFENDER, false, 1.6f, null,
+                        "weapon.mech-pioneer-rocket", true);
+                sim.queueProjectile(round);
+                rounds.add(round);
+                fired++;
+            }
+            sim.advance(BattleSimulation.TICK_DT);
+            frames.advanced(HALO, sim, tick);
+            DroneWing wing = sim.droneBays().wing(hull);
+            if (wing != null) {
+                for (long id : wing.drones()) if (wing.role(id) == DroneRole.HALO) halos.add(id);
+            }
+            for (ShotEvent shot : sim.getShotsThisFrame()) if (halos.contains(shot.shooterId)) haloShots++;
+            if (tick % frameEvery == 0) {
+                int stopped = 0;
+                for (Projectile r : rounds) if (r.intercepted) stopped++;
+                frames.frame(HALO, sim, tick, String.format(Locale.ROOT,
+                        "%s / tick %d / halo drones %d / rockets in %d / taken out of the air %d", HALO, tick,
+                        halos.size(), fired, stopped));
+            }
+        }
+        for (Projectile r : rounds) if (r.intercepted) intercepted++;
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("halo-launched", halos.size() == 2, halos.size() + " halo drones left the bay"));
+        verdicts.add(Verdict.of("halo-engages", haloShots > 0,
+                "the halo lasers fired " + haloShots + " point-defence bursts at incoming rockets"));
+        verdicts.add(Verdict.of("halo-intercepts", intercepted > 0,
+                intercepted + " of " + fired + " rockets were taken out of the air"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("rocketsFired", fired);
+        metrics.put("rocketsIntercepted", intercepted);
+        metrics.put("haloShots", haloShots);
+        sim.close();
+        return new SceneReport(id(), HALO, ticks, verdicts, metrics);
     }
 
     private static float durability(BattleSimulation sim, long id) {

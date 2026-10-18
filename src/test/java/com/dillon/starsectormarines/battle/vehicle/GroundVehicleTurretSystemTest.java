@@ -111,6 +111,24 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
+    void anIdleTurretSettlesBackOntoTheHullHeadingAtHalfItsTraverse() {
+        float rate = 60f;
+        // Half rate: 30 degrees a second, along the short way round, and it stops on the heading.
+        assertEquals(87f, GroundVehicleTurretSystem.idleFacing(90f, 0f, rate, 0.1f), 0.0001f);
+        assertEquals(-177.5f, GroundVehicleTurretSystem.idleFacing(-170f, 170f, rate, 0.25f), 0.0001f);
+        assertEquals(0f, GroundVehicleTurretSystem.idleFacing(1f, 0f, rate, 1f), 0.0001f);
+
+        // An autonomous turret with nothing left to fire takes the same path back toward the hull.
+        Fixture f = new Fixture();
+        f.turret.ammo = 0;
+        f.turret.facingDeg = 90f;
+        f.body.facingDegrees = 0f;
+        f.system.tick(DT, 0L, null, false);
+        assertEquals(90f - f.mount.mount.turnRateDegPerSec * GroundVehicleTurretSystem.IDLE_RETURN_RATE_SHARE * DT,
+                f.turret.facingDeg, 0.0001f);
+    }
+
+    @Test
     void pausedOrInvalidTickDoesNothingAndIndirectMountCannotPointFire() {
         Fixture f = new Fixture();
         f.turret.cooldownTimer = 0.5f;

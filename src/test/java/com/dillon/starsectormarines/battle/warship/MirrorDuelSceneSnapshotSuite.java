@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.warship;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 
 /**
- * The equal-hull duels (1920x1080, whole ground), from the same run that produced their verdicts and readings.
+ * The equal-hull duels (1920x1080, following the hulls), from the same run that produced their verdicts and readings.
  * {@code -Dbattle.scene.warshipMirrors.only=eagle-37,wolf} records only the named loops or classes.
  */
 public final class MirrorDuelSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
@@ -15,4 +15,7 @@ public final class MirrorDuelSceneSnapshotSuite extends BehaviorSceneSnapshotSui
     @Override protected boolean showImpactEffects() { return true; }
 
     @Override protected boolean showUnitShadows() { return true; }
+
+    /** Follows the hulls rather than framing the whole map; {@code -Dsnapshot.duelCamera=false} restores the map. */
+    @Override protected boolean followWarships() { return true; }
 }

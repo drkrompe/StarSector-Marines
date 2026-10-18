@@ -13,6 +13,9 @@ public final class FrigateDuelSceneSnapshotSuite extends BehaviorSceneSnapshotSu
 
     @Override protected boolean showUnitShadows() { return true; }
 
+    /** Follows the hulls rather than framing the whole map; {@code -Dsnapshot.duelCamera=false} restores the map. */
+    @Override protected boolean followWarships() { return true; }
+
     /** The close view is shown to people, so it is recorded at the full 1920x1080 too. */
     @Override protected float closeViewScale() { return 1f; }
 
