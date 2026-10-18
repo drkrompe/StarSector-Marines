@@ -1,4 +1,4 @@
-SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASSES 1-4 DONE; PASS 3 ACCEPTED 2026-10-18; PASS 5 DEFERRED; PASS 6 ACCEPTED; PASS 7 IN REVIEW)
+SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASSES 1-4 DONE; PASS 3 ACCEPTED 2026-10-18; PASS 5 DEFERRED; PASS 6 AND 7 ACCEPTED)
 
 Purpose
 An editable Blender model of the vanilla Shepherd drone tender, built for the
@@ -199,3 +199,6 @@ and on the rounded nose its head simply sits further aft at the shoulders. The w
 build_shepherd.py renders on the GPU when there is one (--factory-startup
 leaves Cycles on the CPU).
 Pass 6 accepted 2026-10-18. Pass 7 (appendable export, effects) is ../shepherd-cinematic/.
+Pass 7 accepted 2026-10-18 (shipped for now). Pass 5 (grounded/damaged, recovered)
+stays deferred until a cinematic needs it: the battle over the planet where the
+Shepherd and the Colossus went down.

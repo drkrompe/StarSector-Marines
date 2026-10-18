@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-18 — the Greyhook fights Black Sluice's Wolfs alone, and a mission may refit a hull's flux and shield for one fight (`HullRefit`; Rusk's Wolfs carry one). Earlier the same day: the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2214,8 +2214,8 @@ stage a duel through an optional seam on its referee: hulls stand quiet under a
 hull-fire hold until the chapter's moment comes, the duel then runs on its own, and the debrief reads its
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
 only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
-and two Hound (P) landed on the pads south of the ridge, two of Rusk's Wolfs arriving when
-Voss orders the withdrawal. The Wolfs' edge is the west, the side the company landed on and
+landed alone in her cradle south of the ridge (the frigate pads beside her empty), two of
+Rusk's Wolfs arriving when Voss orders the withdrawal. The Wolfs' edge is the west, the side the company landed on and
 the far side of the basin, so they fly in across it heading east and their whole approach
 is in sight before a gun bears; Greyhook's side has no edge, since its hulls lift from their
 pads and never leave. No area is declared; the fight goes where it goes, held off the edges
@@ -2223,11 +2223,19 @@ only by the standing pressure. The map is sized for the fight, not only for the 
 approach ground west of the station puts Greyhook's pads well outside a Wolf's reach as it
 crosses the edge, so the Wolfs close for most of a minute in sight before a gun bears, and
 the standoff fits along the map with the edge margins clear. The *Greyhook* does not run:
-the Wolfs are faster than she is (owner, 2026-10-18: she stays and fights with her Hounds
-until one side is dead). She lifts and fights under the ordinary doctrine and tactics, her
-Hounds screening her as her escorts, and every hull of the duel holds the field, so nobody
-withdraws, nobody leaves the map, and the fight ends only when one side's hulls are all
-destroyed; the winners stay overhead. The fight reaches the radio as story beats (the Wolfs
+the Wolfs are faster than she is (owner, 2026-10-18: she stays and fights until one side is
+dead). She lifts and fights alone under the ordinary doctrine and tactics, and every hull of
+the duel holds the field, so nobody withdraws, nobody leaves the map, and the fight ends only
+when she or both Wolfs are destroyed; the winners stay overhead. A cruiser against two
+frigates is not even by the hull table, so the mission refits the Wolfs.
+
+**A mission may refit a hull for one fight.** A **refit** (`HullRefit`) is named, given to
+one hull by the mission that fits it, and touches only what a shielded hull fights on: its
+flux pool's capacity and dissipation (the variant's capacitors and vents included), its
+shield's arc, upkeep, and the flux each absorbed point costs. It never touches a gun, the
+plate or the hull, never the hull table or a variant another fight reads, and never the
+rules every hull fight shares, so the balance law still holds everywhere a mission has not
+named a refit. Rusk's Wolfs at Black Sluice are the first (`BlackSluiceDuel.RUSK_REFIT`). The fight reaches the radio as story beats (the Wolfs
 sighted as they cross the edge, closing, the first hull fire, the Greyhook down, both Wolfs
 down). A ground battle that finishes first ends the duel where it stands, and the debrief
 says it was still being fought. A

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
+import com.dillon.starsectormarines.battle.warship.HullRefit;
 import com.dillon.starsectormarines.battle.warship.MapEdge;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelHelm;
@@ -17,12 +18,12 @@ import java.util.Locale;
 
 /**
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
- * sits landed on the berths south of the ridge with her two Hound (P) escorts from the start, quiet: they fire at
- * nothing on the ground, and the battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}).
- * When Voss orders the site abandoned, the <i>Greyhook</i> lifts and turns to fight: the Wolfs are faster than she is,
- * so she does not run. She and her Hounds fight under the ordinary warship doctrine and tactics, the Hounds screening
- * her as her escorts, and two of Rusk's Wolf (H) fly in across the west edge, already under way on a heading east, on
- * a visit nobody can command. Every hull of the duel holds the field ({@link Warship#holdTheField}): no doctrine
+ * sits landed alone in the cradle south of the ridge from the start, quiet: she fires at nothing on the ground, and the
+ * battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the site
+ * abandoned, the <i>Greyhook</i> lifts and turns to fight: the Wolfs are faster than she is, so she does not run. She
+ * fights under the ordinary warship doctrine and tactics, and two of Rusk's Wolf (H) fly in across the west edge,
+ * already under way on a heading east, on a visit nobody can command. Rusk's Wolfs carry his refit
+ * ({@link #RUSK_REFIT}): a frigate's flux and shield against a cruiser's broadside, the one thing this mission tunes. Every hull of the duel holds the field ({@link Warship#holdTheField}): no doctrine
  * withdraws it and no visit ends, so the fight is over only when one side's hulls are all destroyed, and the winners
  * stay over the battle. Nobody leaves the map. The Wolfs' edge ({@link #WOLF_EDGE}) is how they arrive; nothing warps
  * in or out, and no area is declared for the fight, which goes where the fighting takes it, over the ground battle
@@ -43,18 +44,24 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** Rusk's Wolfs and their fitting. */
     static final String WOLF_HULL = "wolf_hegemony", WOLF_VARIANT = "wolf_hegemony_Rusk";
     /**
-     * Where the Greyhook and her escorts sit: landed on the southern pad field at true scale
-     * ({@code landed-ships-true-scale.md}), the Greyhook in the cradle and a Hound in each berth beside it, noses
-     * west. They lift when Voss orders the withdrawal and fly their lift runs, their bodies easing to flight scale as
-     * they go, turning toward {@link #LIFT_TOWARD_X}, {@link #LIFT_TOWARD_Y}.
+     * Rusk's refit for this fight, on both Wolfs and nowhere else: a frigate fights a cruiser on its flux and its
+     * shield, so that is what it tunes. Capacity and dissipation are raised together (the guns and the shield draw on
+     * the one pool) by a quarter, the shield's upkeep is cut by a quarter and each absorbed point costs a fifth less
+     * flux, and the arc is widened by twenty degrees. No gun, plate or hull figure changes. Modest by intent: measured,
+     * no flux or shield figure lets the Wolfs win (their offence is the limit, not their pool), so the refit buys a
+     * longer fight rather than a different winner ({@code warship-behaviours.md}, the Greyhook fights alone).
+     */
+    public static final HullRefit RUSK_REFIT = new HullRefit("Rusk's hunter refit", 1.25f, 1.25f, 20f, 0.75f, 0.8f);
+    /**
+     * Where the Greyhook sits: landed in the cradle on the southern pad field at true scale
+     * ({@code landed-ships-true-scale.md}), nose west, the frigate pads either side of her empty. She lifts when Voss
+     * orders the withdrawal and flies her lift run, her body easing to flight scale as she goes, turning toward
+     * {@link #LIFT_TOWARD_X}, {@link #LIFT_TOWARD_Y}.
      */
     static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
-    static final List<BlackSluice.Berth> HOUND_BERTHS = BlackSluice.HOUND_BERTHS;
     /**
      * The Wolfs' edge: west, the side the company landed on and the far side of the basin from the pads, so their
-     * whole approach is in sight before a gun bears. At flight presence a pulse laser reaches about eighty cells;
-     * dropped seventy-five cells east of the pads they were on the eastern Hound as it lifted, and both Hounds fell
-     * within fifteen seconds of the order.
+     * whole approach is in sight before a gun bears.
      */
     public static final MapEdge WOLF_EDGE = MapEdge.WEST;
     /**
@@ -65,7 +72,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** The Wolfs' entry heading: due east, in the hull-facing convention. */
     static final float WOLF_HEADING = 270f;
     /**
-     * Where the Greyhook's and her Hounds' lift runs turn toward: over the middle of the station, north-west of the
+     * Where the Greyhook's lift run turns toward: over the middle of the station, north-west of the
      * cradle and toward the Wolfs' side, clear of the south edge's margin. Where they go from there is their doctrine's.
      */
     static final float LIFT_TOWARD_X = BlackSluice.APPROACH + 150f, LIFT_TOWARD_Y = 98f;
@@ -80,14 +87,13 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             WOLVES_DOWN_BEAT = "small_war.wolves_down";
 
     private Warship rig;
-    private final List<Warship> hounds = new ArrayList<>();
     private final List<Warship> wolves = new ArrayList<>();
     private WarshipDuelLedger ledger;
     private boolean ordered;
     private int decidedTick = -1;
     private boolean sighted, closing, fired, greyhookDown, wolvesDown;
 
-    /** Puts the rig and its escorts on their pads, quiet, before the first tick. */
+    /** Puts the rig in its cradle, quiet, before the first tick. */
     public void stage(BattleSimulation sim) {
         if (rig != null) throw new IllegalStateException("The duel is staged once");
         try {
@@ -96,23 +102,13 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             rig.berth(RIG_X, RIG_Y);
             rig.limitFlux();
             rig.groundFire(Warship.GroundFire.HOLD);
-            for (BlackSluice.Berth berth : HOUND_BERTHS) {
-                Warship hound = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER,
-                        berth.x(), berth.y(), berth.facing());
-                hound.berth(berth.x(), berth.y());
-                hound.limitFlux();
-                hound.groundFire(Warship.GroundFire.HOLD);
-                hounds.add(hound);
-            }
         } catch (Exception e) {
             // A hull table that cannot be read leaves the chapter without a duel, never without its ground fight.
-            LOG.warn("Black Sluice duel could not fit Greyhook's hulls; no duel overhead", e);
+            LOG.warn("Black Sluice duel could not fit the Greyhook; no duel overhead", e);
             rig = null;
-            hounds.clear();
             return;
         }
         sim.addWarship(rig);
-        for (Warship hound : hounds) sim.addWarship(hound);
         sim.warships().holdHullFire(HullFireHold.untilBeat(SmallWarSequence.VOSS_ABANDON_BEAT));
         sim.warships().assignEdge(Faction.ALLY, WOLF_EDGE);
         ledger = sim.warships().duelLedger();
@@ -132,15 +128,12 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void withdrawalOrdered(BattleSimulation sim) {
         if (ordered || rig == null) return;
         ordered = true;
-        // She lifts and fights under her doctrine; her escorts lift out of their berths to screen her.
+        // She lifts and fights under her doctrine.
         quiet(rig).lift(LIFT_TOWARD_X, LIFT_TOWARD_Y);
-        for (Warship hound : hounds) {
-            quiet(hound).lift(LIFT_TOWARD_X, LIFT_TOWARD_Y);
-            hound.escort(rig);
-        }
         try {
             for (float along : WOLF_ENTRY_ALONG) {
                 Warship wolf = quiet(Warship.fit(WOLF_HULL, WOLF_VARIANT, Faction.ALLY, 0f, along, WOLF_HEADING));
+                wolf.refit(RUSK_REFIT);
                 // In across the west edge already under way on its heading over the basin, closing on its own handling.
                 sim.warships().enterAcrossEdge(sim, wolf, along, WOLF_HEADING);
                 // The mission's, not the player's. Holding the field, its visit never ends.
@@ -158,7 +151,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void advance(BattleSimulation sim) {
         if (!ordered || rig == null) return;
         radio(sim);
-        if (decidedTick < 0 && !wolves.isEmpty() && (allDown(wolves) || allDown(greyhookSide()))) {
+        if (decidedTick < 0 && !wolves.isEmpty() && (allDown(wolves) || rig.destroyed())) {
             decidedTick = sim.getSimTickIndex();
         }
     }
@@ -191,9 +184,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             for (Warship wolf : wolves) {
                 if (!over(wolf) || !onMap(wolf)) continue;
                 float near = WarshipDuelHelm.reach(wolf) * CLOSING_REACH_SHARE;
-                for (Warship ours : greyhookSide()) {
-                    closing |= over(ours) && ours.distanceTo(wolf.centerX(), wolf.centerY()) <= near;
-                }
+                closing |= over(rig) && rig.distanceTo(wolf.centerX(), wolf.centerY()) <= near;
             }
             if (closing) sim.emitStoryBeat(WOLVES_CLOSING_BEAT);
         }
@@ -213,24 +204,16 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         }
     }
 
-    private List<Warship> greyhookSide() {
-        List<Warship> out = new ArrayList<>(hounds);
-        out.add(rig);
-        return out;
-    }
-
-    /** The tick one side's hulls were all destroyed, or -1 while both sides still fly (or no Wolf came). */
+    /** The tick the Greyhook or both Wolfs were destroyed, or -1 while both sides still fly (or no Wolf came). */
     public int decidedTick() { return decidedTick; }
 
     /** The Greyhook, Voss's Venture, or {@code null} when none could be fitted. */
     public Warship greyhook() { return rig; }
-    public List<Warship> hounds() { return List.copyOf(hounds); }
     public List<Warship> wolves() { return List.copyOf(wolves); }
-    /** Every hull of the duel: the Greyhook, her escorts, and the Wolfs once they have come. */
+    /** Every hull of the duel: the Greyhook, and the Wolfs once they have come. */
     public List<Warship> hulls() {
         List<Warship> out = new ArrayList<>();
         if (rig != null) out.add(rig);
-        out.addAll(hounds);
         out.addAll(wolves);
         return out;
     }
@@ -241,7 +224,6 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         if (!ordered || ledger == null) return null;
         StringBuilder s = new StringBuilder("Overhead: ");
         s.append(rigLine()).append(' ');
-        s.append(group("Greyhook's two Hounds", hounds)).append(' ');
         s.append(wolves.isEmpty() ? "The Wolfs never came." : group("The two Wolfs Rusk lent", wolves));
         String ground = groundLine();
         if (ground != null) s.append(' ').append(ground);

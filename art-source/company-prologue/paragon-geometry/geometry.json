@@ -1672,32 +1672,32 @@
       "orthographic_scale": 300
     },
     {
-      "name": "field-closeup",
+      "name": "bore-inner",
       "position": [
-        150.0,
-        110.0,
-        100.0
+        -3.0,
+        -40.0,
+        10.0
       ],
       "target": [
-        75.0,
-        12.0,
-        36.0
-      ],
-      "orthographic_scale": 60.0
-    },
-    {
-      "name": "pod-field",
-      "position": [
-        -120.0,
-        180.0,
-        110.0
-      ],
-      "target": [
-        -156.0,
-        92.0,
-        22.0
+        -3.0,
+        60.0,
+        5.0
       ],
       "orthographic_scale": 55.0
+    },
+    {
+      "name": "bore-lip",
+      "position": [
+        20.0,
+        -120.0,
+        60.0
+      ],
+      "target": [
+        -3.0,
+        40.0,
+        5.0
+      ],
+      "orthographic_scale": 110.0
     },
     {
       "name": "hangar-wide",
@@ -1714,31 +1714,31 @@
       "orthographic_scale": 150.0
     },
     {
-      "name": "bore-lip",
+      "name": "bore-below",
       "position": [
-        20.0,
-        -120.0,
-        60.0
+        120.0,
+        -140.0,
+        -120.0
       ],
       "target": [
         -3.0,
-        40.0,
-        5.0
+        0.0,
+        0.0
       ],
-      "orthographic_scale": 110.0
+      "orthographic_scale": 200.0
     }
   ],
   "silhouette": {
     "iou": 0.9595,
-    "sprite_uncovered": 0.0255,
-    "model_outside_sprite": 0.0156,
+    "sprite_uncovered": 0.0238,
+    "model_outside_sprite": 0.0174,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.616,
-    "white": 0.544,
-    "dark": 0.429,
-    "agreement": 0.685,
+    "skin": 0.617,
+    "white": 0.543,
+    "dark": 0.431,
+    "agreement": 0.686,
     "silhouette": 0.96,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
