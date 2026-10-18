@@ -142,6 +142,21 @@ Run scripts from the repository root, for example:
 python art-source/doodads/stitch_atlas.py
 ```
 
+### Launching Blender
+
+The art is built on Windows and on a Mac, so no script names a Blender install.
+`blender.sh` and its Python twin `blender_path.py`, both in this folder, own the
+one rule: `$BLENDER` if set, else the platform default (Windows: Blender 5.2
+under Program Files; macOS: `/Applications/Blender.app`; otherwise `blender` on
+PATH). A shell script sources `blender.sh` and runs `"$BLENDER"`; a Python
+launcher puts this folder on `sys.path` and does `from blender_path import
+BLENDER`. By hand, from any shell with `sh` on PATH (Git Bash, PowerShell with
+Git for Windows, macOS):
+
+```sh
+sh art-source/blender.sh --background --factory-startup --python <script> -- <args>
+```
+
 ## What stays in `mod/`
 
 Documentation of the **shipped art** stays beside it — the `README.md` in each

@@ -31,8 +31,13 @@ One package per hull: `art-source/<area>/<hull>-geometry/`. `<area>` is
 - Copy kit helpers into the new package. Never import another hull's modules:
   other sessions are editing them.
 
-Run Blender headless:
-`"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python <driver> -- <args>`.
+Run Blender headless, from the package folder, the same way on Windows and macOS:
+`sh ../../blender.sh --background --factory-startup --python <driver> -- <args>`.
+`art-source/blender.sh` (and its Python twin `art-source/blender_path.py`) is the one
+rule for finding Blender: `$BLENDER` if set, else Blender 5.2 under Program Files on
+Windows, `/Applications/Blender.app` on macOS, `blender` on PATH elsewhere. A shell
+script sources it (`. ../../blender.sh`, then `"$BLENDER"`); a Python launcher does
+`from blender_path import BLENDER`. Never hard-code an install path.
 
 ## Pass 1: blockout
 

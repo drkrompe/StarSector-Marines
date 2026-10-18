@@ -2,7 +2,7 @@
 
 Run from the repository root (headless, under a minute):
 
-  "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup \
+  sh art-source/blender.sh --background --factory-startup \
       --python art-source/hq-command-deck/blender/deck_blockout.py
 
 The room is the company's CIC rather than an office. Its plan follows the ship's own

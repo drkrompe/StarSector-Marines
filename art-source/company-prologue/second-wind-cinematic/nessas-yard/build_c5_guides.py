@@ -1,6 +1,6 @@
 """Geometry-first guides for C5 NESSA'S YARD (c5-layout.md).
 
-"C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py [-- --samples 16 --scale 1.0 --test]
+sh ../../../blender.sh --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py [-- --samples 16 --scale 1.0 --test]
 
 Opens ../landing-wreck-pass/landing-wreck-pass.blend read-only at its settled frame (774):
 the damaged Second Wind standing in its cradle, the cradle's contact pads and rails, and the
