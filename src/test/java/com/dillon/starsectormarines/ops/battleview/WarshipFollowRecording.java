@@ -35,8 +35,8 @@ import java.util.Map;
  * approach and between passes, the scene's own cadence applies, so a long approach plays fast; after the last hostile
  * pair is broken it
  * records a short tail, and then nothing until another pair meets, so a duel decided early does not record minutes
- * of empty sky. A long fight halves its rate after every {@link #FRAMES_PER_DOUBLING} frames (twice at most), except
- * while a kill is being framed.
+ * of empty sky. A long fight halves its rate after every {@link #FRAMES_PER_DOUBLING} frames, down to the scene's own
+ * cadence, except while a kill is being framed.
  *
  * <p><b>Close-up:</b> a hull whose structure has just dropped is shown about twice as close in an inset for a couple
  * of seconds (the dying hull for longer), so breaches, lost mounts and fires can be read; when the main view already
@@ -65,8 +65,8 @@ public final class WarshipFollowRecording {
     static final float CLUSTER_SHARE = 0.5f;
     /** The focus pair is kept while its separation is within this multiple of the closest hostile pair's. */
     static final float PAIR_SWITCH_SHARE = 1.25f;
-    /** Frames recorded before the dense interval doubles (two minutes of a fight at the default cadence). */
-    static final int FRAMES_PER_DOUBLING = 600;
+    /** Frames recorded before the dense interval doubles (48 seconds of a fight at the default cadence). */
+    static final int FRAMES_PER_DOUBLING = 240;
     /** {@code -Dsnapshot.duelCamera.trace=true} prints every frame's view, for reading the camera's motion. */
     private static final boolean TRACE = Boolean.getBoolean("snapshot.duelCamera.trace");
     private static final float TICK_SECONDS = 1f / 30f;
@@ -106,6 +106,8 @@ public final class WarshipFollowRecording {
     private boolean everContested;
     private int engagedUntil = -1;
     private Warship insetHull;
+    private Warship insetCenterHull;
+    private float[] insetCenter;
     private Warship focusA;
     private Warship focusB;
     private int insetSince;
@@ -154,19 +156,20 @@ public final class WarshipFollowRecording {
         if (shooting) engagedUntil = tick + ENGAGED_HOLD_TICKS;
         boolean dense = (contested && tick <= engagedUntil) || (everContested && !contested && tick - contestEndedTick <= TAIL_TICKS);
         int since = lastFrameTick < 0 ? Integer.MAX_VALUE : tick - lastFrameTick;
-        if (dense) return since >= interval(tick);
+        if (dense) return since >= interval(tick, sceneEveryTicks);
         if (everContested && !contested) return false;
         return since >= sceneEveryTicks;
     }
 
     /**
      * The dense interval for a frame at {@code tick}: {@link #denseTicks()}, doubled after every
-     * {@link #FRAMES_PER_DOUBLING} frames (at most twice) so a long fight stays a GIF of reasonable size, but always
+     * {@link #FRAMES_PER_DOUBLING} frames, up to the scene's own cadence, so a long fight stays a GIF of reasonable size, but always
      * the dense interval while a kill is being framed, so the moment that decides the fight is never sampled coarsely.
      */
-    private int interval(int tick) {
+    private int interval(int tick, int sceneEveryTicks) {
         for (Warship s : destroyedAt.keySet()) if (killHeld(s, tick)) return denseTicks;
-        return denseTicks << Math.min(2, frames / FRAMES_PER_DOUBLING);
+        int doublings = Math.min(8, frames / FRAMES_PER_DOUBLING);
+        return Math.max(denseTicks, Math.min(Math.max(denseTicks, sceneEveryTicks), denseTicks << doublings));
     }
 
     /** Moves the camera for a frame of {@code tick} and points {@code renderer} at it. */
@@ -210,7 +213,15 @@ public final class WarshipFollowRecording {
                 float across = Math.max(Math.max(INSET_MIN_ACROSS_CELLS, INSET_TIGHTEST_HULLS * length),
                         Math.min(INSET_ACROSS_HULLS * length, twice));
                 if (across <= twice * INSET_ZOOM / INSET_MIN_ZOOM) {
-                    inset.refocus(at[0], at[1], across);
+                    // A locked-off close-up: it re-centres only when the hull drifts out of its middle half, so the
+                    // inset is not a scrolling background (which is also most of what a GIF frame costs).
+                    if (insetCenter == null || insetCenterHull != insetHull
+                            || Math.abs(at[0] - insetCenter[0]) > across * 0.25f
+                            || Math.abs(at[1] - insetCenter[1]) > across * 0.25f * inset.height() / inset.width()) {
+                        insetCenter = new float[]{at[0], at[1]};
+                        insetCenterHull = insetHull;
+                    }
+                    inset.refocus(insetCenter[0], insetCenter[1], across);
                     BufferedImage close = inset.render(sim, "", ReviewAnnotations.NONE, fx);
                     paintInset(image, close, insetLabel(tick));
                 }

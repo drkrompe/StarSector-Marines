@@ -114,9 +114,9 @@ close view:
 - **Cadence.** A frame every 6 ticks (five a simulated second, played at 100 ms: twice real time) while two hostile
   hulls are up and rounds are flying or have flown in the last five seconds; the scene's own cadence on the approach
   and between passes; a five-second tail after the last hostile pair breaks, then nothing. A long fight halves its
-  rate after 600 frames, twice at most, but never while a kill is framed.
-- **Insets.** A close-up, about twice the main view's scale, of the hull whose structure just dropped (two seconds)
-  or that was just destroyed (five seconds), labelled `HIT` or `KILL`, in a corner no framed hull is in; none when
+  rate after every 240 frames, down to the scene's own cadence, but never while a kill is framed.
+- **Insets.** A locked-off close-up, about twice the main view's scale, of the hull whose structure just dropped (two
+  seconds) or that was just destroyed (five seconds), labelled `HIT` or `KILL`, in a corner no framed hull is in; none when
   the main view already draws that hull nearly as large. A locator map in the lower right shows every hull and the
   view's rectangle.
 
@@ -125,7 +125,16 @@ scene's own cadence, which is the way to get the whole-map review of any of thes
 sets the dense cadence (3 is real time); `-Dsnapshot.duelCamera.inset=false` drops the close-up;
 `-Dsnapshot.duelCamera.trace=true` prints each frame's view.
 
-What it costs: the frames are no slower to draw than whole-map ones, but there are more of them and a close view of
-grass compresses far worse than a whole-map one. On a Wolf mirror (`wolf-11`) the whole-map recording was 300 frames
-and 0.4 MB in 30 s; the duel camera records about 430 frames and 13 MB in about 22 s, because it stops after the kill.
-A long Eagle duel runs to several thousand ticks of fighting and is the expensive case; the rate halving bounds it.
+What it costs: a frame is no slower to draw than a whole-map one, but there are more of them, and a moving close
+view defeats the GIF's frame-to-frame delta, so files are far larger. Measured on 2026-10-18 (hull wear at a
+durability of three, so duels run long), whole map against duel camera:
+
+| Loop | Whole map (scene cadence) | Duel camera |
+|------|---------------------------|-------------|
+| `wolf-11` (decided at about 2 minutes) | 300 frames, 0.4 MB, 30 s | 356 frames, 27 MB, about 35 s |
+| `eagle-11` (decided at about 15 minutes) | 900 frames, 2.7 MB, 205 s | 1028 frames, 144 MB, about 85 s |
+| `greyhook-duel` seed 15305 | not measured | 509 frames, 55 MB, about 39 s |
+
+The duel camera is quicker overall because it stops recording once the fight is decided. A long duel is the
+expensive case: `-Dsnapshot.duelCamera.everyTicks=12` halves it, and `-Dsnapshot.duelCamera=false` gives the old
+whole-map recording.

@@ -46,9 +46,9 @@ public final class DuelCamera {
     /** Either way it settles this much wider than the tightest fit, so it does not sit on a band's edge. */
     static final float ZOOM_SLACK = 0.08f;
     /** The pan target moves when the box centre leaves a dead zone of this share of the view width. */
-    static final float DEAD_ZONE_SHARE = 0.06f;
+    static final float DEAD_ZONE_SHARE = 0.14f;
     /** Seconds the spring takes to cover most of a step (its time constant). */
-    static final float RESPONSE_SECONDS = 1.1f;
+    static final float RESPONSE_SECONDS = 0.8f;
     /** A body this close to the frame's edge (share of the view) is treated as leaving it. */
     static final float EDGE_SAFETY_SHARE = 0.04f;
 
