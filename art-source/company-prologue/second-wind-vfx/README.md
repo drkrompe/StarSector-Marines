@@ -50,6 +50,7 @@ group's review into `build/<group>/`.
 |---|---|
 | `swfx.py` | `apply()` and `clear()`, the one call a shot makes |
 | `swfx_core.py` | the state table, `Context` (knobs, drivers, collections), scale (`METRES_PER_UNIT`, `units()`), builders, render setup |
+| `swfx_hull.py` | which hull the kit dresses: the Second Wind, or another hull's `vfx_hull.py` profile |
 | `swfx_anchors.py` | finds the effect anchors on the built ship |
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
@@ -58,6 +59,22 @@ group's review into `build/<group>/`.
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
 | `review_kit.py` | integrated beauty review, all groups together under the presets |
+
+## Other hulls
+
+The kit defaults to the Second Wind and is unchanged for it (the same
+objects, transforms, drivers and knobs byte for byte). Another hull reuses it
+through a profile: a folder holding `vfx_hull.py`, chosen by `SWFX_HULL` or
+`swfx.apply(hull=<folder>)`. `swfx_hull.py` lists what a profile may set:
+its geometry.json (scale), the engine table, bell radii and port/starboard
+split, the condition states, the turret mounts, the lamp list, plume colours
+per engine mode, and the art-placed RCS quads. A profile may also set
+`DECLARED_MUZZLES`, so guns come from the ship's own `Anchor turret <i> <tag>
+muzzle` empties (the cinematic export's) rather than the Second Wind's
+muzzle-brake parts. Anything a profile leaves out keeps the Second Wind's
+value. The Mudskipper's profile is `../mudskipper-cinematic/vfx_hull.py`:
+three orange LOW_TECH drives, two maneuvering jets as geometry RCS anchors,
+a twin MG. Engine indices outside both side lists read as `centre`.
 
 ## Scale
 

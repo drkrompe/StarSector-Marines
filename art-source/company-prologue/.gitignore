@@ -50,3 +50,8 @@ second-wind-cinematic/second-wind-surface-proof/projected-port-quarter.png
 second-wind-cinematic/second-wind-surface-proof/projected-port-side.png
 mudskipper-surface/review/
 mudskipper-surface/textures/
+# Mudskipper cinematic export: the .blend is rebuilt by finalize.sh; the
+# manifest and validation stay tracked.
+mudskipper-cinematic/*.blend
+mudskipper-cinematic/*.blend1
+mudskipper-cinematic/review/
