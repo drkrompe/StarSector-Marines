@@ -71,3 +71,9 @@ hound-export/**/review/
 onslaught-geometry/**/*.blend
 onslaught-geometry/**/*.blend1
 onslaught-geometry/export/
+
+# Fighters surfacing (fighters-surface/<id>/): the same split as the Hound's.
+fighters-surface/*/review/
+fighters-surface/*/textures/
+fighters-surface/*/grading/
+fighters-surface/*/skin-manifest.json
