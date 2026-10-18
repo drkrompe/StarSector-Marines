@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Holo board glyph: side job. A ringed contact; tinted by the board. -->
+  <circle cx="16" cy="16" r="12" fill="#ffffff" fill-opacity="0.22" stroke="#ffffff" stroke-width="2.4"/>
+  <circle cx="16" cy="16" r="4" fill="#ffffff"/>
+</svg>

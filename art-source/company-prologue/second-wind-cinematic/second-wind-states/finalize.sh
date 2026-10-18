@@ -22,9 +22,9 @@ for s in "${STATES[@]}"; do
   run review_state.py -- --state "$s" --out "$FINAL/$s" --samples 16 --lights-off --views port-quarter 2>&1 | grep -E "Error|Traceback" || true
   if [ "$TURN" -gt 0 ]; then
     run review_state.py -- --state "$s" --out "$FINAL/$s" --samples "$SAMPLES" --views= --turn "$TURN" 2>&1 | grep -E "REVIEW turn|Error|Traceback" || true
-    python encode_turn.py "$s"
+    "$PYTHON" encode_turn.py "$s"
   fi
-  python - "$s" "$FINAL/$s" <<'EOF'
+  "$PYTHON" - "$s" "$FINAL/$s" <<'EOF'
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -42,4 +42,4 @@ for name, views in (('views', ['port-quarter', 'starboard-quarter', 'top', 'ster
 print('SHEETS', s)
 EOF
 done
-if [ ${#STATES[@]} -eq 4 ]; then python review_sheet.py --renders "$FINAL"; fi
+if [ ${#STATES[@]} -eq 4 ]; then "$PYTHON" review_sheet.py --renders "$FINAL"; fi

@@ -12,13 +12,16 @@ same cameras, it also writes pass2-before-after.png (close-ups) and
 pass2-before-after-views.png (the four standard views).
 """
 from pathlib import Path
+import sys
 import argparse
 import json
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
+sys.path.insert(0, str(HERE.parents[1]))
+from starsector_path import GAME_CORE as GAME
+from review_font import review_font
 BG = (222, 223, 223)
 INK, SOFT = (39, 49, 55), (72, 81, 88)
 
@@ -29,7 +32,7 @@ parser.add_argument('--sprite', help='override the sprite the IoU is measured ag
 args = parser.parse_args()
 src = Path(args.dir or HERE/args.fighter)
 manifest = json.loads((src/'geometry.json').read_text(encoding='utf-8'))
-font = lambda s: ImageFont.truetype('C:/Windows/Fonts/arial.ttf', s)
+font = review_font
 name = manifest['hull']['name']
 STAGE = 'PASS 2 DETAIL' if manifest.get('pass') == 2 else 'BLOCKOUT'
 cam = manifest['cameras']['top']

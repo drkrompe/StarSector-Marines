@@ -17,8 +17,8 @@ import java.util.Map;
  *
  * <p>Stations are real buttons, positioned after layout from the same cover-fit the
  * banner paints with, so a station stays over its people at any banner size. Using
- * one moves focus to the panel that already holds that information and briefly marks
- * it, or, for the force, opens Barracks; the picture never holds a fact of its own.
+ * one shows what that station stands for in the action desk's detail pane and briefly marks
+ * it; the picture never holds a fact of its own.
  */
 final class CompanyIntelTerminal {
     static final String STATION_PREFIX = "company-hq-station-";
@@ -32,7 +32,6 @@ final class CompanyIntelTerminal {
             + "border-width: 0px; opacity: 1;";
 
     private final CommandDeckBanner banner;
-    private final Runnable openForce;
     private final Map<String, UiElement> stations = new LinkedHashMap<>();
     private UiDocument document;
     private MarkupInstance instance;
@@ -42,12 +41,19 @@ final class CompanyIntelTerminal {
     private float placedWidth = -1f;
     private float placedHeight = -1f;
     private UiElement pulsed;
+    private HqActionDesk actions;
+    private UiElement markersElement;
+    private HqActionBoard placedBoard;
+    private int placedMarkers = -1;
     private float pulseLeft;
 
-    /** {@code openForce} is where the force station sends the player: the roster lives in Barracks. */
-    CompanyIntelTerminal(CompanyHqNewsDesk desk, CommandDeckLayout layout, Runnable openForce) {
+    CompanyIntelTerminal(CompanyHqNewsDesk desk, CommandDeckLayout layout) {
         banner = new CommandDeckBanner(desk, layout);
-        this.openForce = openForce;
+    }
+
+    /** The action desk the stations answer into; without one they only mark their panel. */
+    void actions(HqActionDesk desk) {
+        actions = desk;
     }
 
     /** The station actions the markup binds, before the document exists. */
@@ -64,6 +70,9 @@ final class CompanyIntelTerminal {
         deckElement = instance.requireElement("company-hq-deck");
         canvasElement = instance.requireElement("company-hq-deck-canvas");
         scanElement = instance.requireElement("company-hq-dossier-scan");
+        markersElement = instance.requireElement("company-hq-holo-markers");
+        placedBoard = null;
+        placedMarkers = -1;
         stations.clear();
         for (CommandDeckLayout.Station station : banner.layout().stations()) {
             stations.put(station.id(), instance.requireElement(STATION_PREFIX + station.id()));
@@ -86,7 +95,9 @@ final class CompanyIntelTerminal {
         float width = box.width();
         float height = box.height();
         if (width <= 0f || height <= 0f) return false;
-        if (Math.abs(width - placedWidth) < 0.5f && Math.abs(height - placedHeight) < 0.5f) return false;
+        boolean resized = Math.abs(width - placedWidth) >= 0.5f || Math.abs(height - placedHeight) >= 0.5f;
+        boolean markersMoved = placeMarkers(width, height, resized);
+        if (!resized) return markersMoved;
         placedWidth = width;
         placedHeight = height;
         canvasElement.canvasSize(Math.max(1, Math.round(width)), Math.max(1, Math.round(height)));
@@ -99,6 +110,36 @@ final class CompanyIntelTerminal {
                     rect.x(), rect.y(), rect.width(), rect.height()));
         }
         return true;
+    }
+
+    /**
+     * Lay a real button over each holo marker and its label, from the banner's own projection,
+     * whenever the banner, the board or the set of marker buttons changes.
+     */
+    private boolean placeMarkers(float width, float height, boolean resized) {
+        if (actions == null || markersElement == null) return false;
+        HqActionBoard board = actions.board();
+        int count = markersElement.children().size();
+        if (!resized && board == placedBoard && count == placedMarkers) return false;
+        placedBoard = board;
+        placedMarkers = count;
+        banner.board(board);
+        Map<String, HqHoloBoard.Hit> hits = banner.holoHits(width, height);
+        for (HqActionItem item : board.items()) {
+            HqHoloBoard.Hit hit = hits.get(item.id());
+            UiElement button = child(markersElement, HqActionDesk.markerId(item));
+            if (button == null) continue;
+            Rect rect = hit == null ? new Rect(0f, 0f, 0f, 0f) : hit.bounds();
+            button.style(String.format(Locale.ROOT,
+                    "left: %.0fpx; top: %.0fpx; width: %.0fpx; height: %.0fpx; " + CLEAR,
+                    rect.x(), rect.y(), rect.width(), rect.height()));
+        }
+        return true;
+    }
+
+    private static UiElement child(UiElement parent, String id) {
+        for (UiElement candidate : parent.children()) if (candidate.id().equals(id)) return candidate;
+        return null;
     }
 
     /** A station's rectangle in banner pixels, clipped to the banner. */
@@ -119,6 +160,19 @@ final class CompanyIntelTerminal {
             if (button.hovered() || button.focusVisible()) hot = entry.getKey();
         }
         banner.hot(hot);
+        if (actions != null) {
+            banner.board(actions.board());
+            HqActionItem selected = actions.view() == HqActionDesk.View.ITEM ? actions.selected() : null;
+            banner.holoSelected(selected == null ? null : selected.id());
+            String hovered = null;
+            if (markersElement != null) {
+                for (HqActionItem item : actions.board().items()) {
+                    UiElement button = child(markersElement, HqActionDesk.markerId(item));
+                    if (button != null && (button.hovered() || button.focusVisible())) hovered = item.id();
+                }
+            }
+            banner.holoHovered(hovered);
+        }
         if (pulsed != null && Float.isFinite(dt) && dt > 0f) {
             pulseLeft -= dt;
             if (pulseLeft <= 0f) {
@@ -132,28 +186,28 @@ final class CompanyIntelTerminal {
         }
     }
 
-    /** Point at the panel a station stands for. */
+    /** Show what a station stands for: the most urgent item, the archive, Castle or the books. */
     void use(String stationId) {
         if (instance == null) return;
         switch (stationId) {
-            case "comms" -> {
-                focusFirst(instance.requireElement("company-hq-channel-tabs"));
-                pulse("company-hq-source-windows");
-            }
             case "situation" -> {
-                if (!focusFirst(instance.requireElement("company-hq-obligation-list"))) {
-                    pulse("company-hq-board-heading");
-                } else {
-                    pulse("company-hq-obligations");
-                }
+                if (actions != null) actions.selectMostUrgent();
+                focusFirst(instance.requireElement("company-hq-action-list"));
+                pulse("company-hq-actions");
+            }
+            case "comms" -> {
+                if (actions != null) actions.show(HqActionDesk.View.COMMS);
+                focusFirst(instance.requireElement("company-hq-channel-tabs"));
+                pulse("company-hq-detail");
             }
             case "castle" -> {
-                UiElement guide = instance.requireElement("company-hq-opening-guide");
-                if (!guide.hasClass("opening-guide-hidden")) focusFirst(guide);
-                pulse("company-hq-deck-caption");
+                if (actions != null) actions.show(HqActionDesk.View.CASTLE);
+                pulse("company-hq-detail");
             }
-            case "finance" -> pulse("company-hq-finance");
-            case "force" -> openForce.run();
+            case "finance" -> {
+                if (actions != null) actions.show(HqActionDesk.View.FINANCE);
+                pulse("company-hq-detail");
+            }
             default -> { }
         }
     }
