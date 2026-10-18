@@ -156,12 +156,10 @@ the four-strong pier prize crew, which round one stood at the Venture's stern,
 now holds the **berth gate**, eight cells inside the yard's east lock; it still
 holds after Voss's order, so a company that clears the band walks the yard to it.
 
-**The duel.** The ships fight over the southern ground (`BlackSluice.AIRSPACE_TOP`,
-every row below 88). The rig climbs out west over the basin rim and the Hounds lift
-toward the same first waypoint; the Wolfs enter east of the pads at the tuned
-seventy-seven cells. The ships-of-the-line pass owns the duel's tuning and is
-adding a mission airspace clamp (`HullAirspace`) that Black Sluice will set to
-that rectangle.
+**The duel.** The ships lift from the southern ground (`BlackSluice.SOUTH_GROUND_TOP`,
+every row below 88). The ships-of-the-line pass owns the duel's tuning; since
+2026-10-18 no area is declared for the fight (`air-nouns.md`, Overhead ships: the
+edge pressure and each side's approved edge).
 
 **Round 3 (owner review).** *Wrecks:* a hull shot down kept its flight size all the
 way to the ground. It now eases back to true landed scale as it falls, the lift run
@@ -209,8 +207,8 @@ Built: the berth body, the remastered Venture and Hound (P), round two's concret
 pads, lift run and southern pad field, the duel's staging and climb-out moved
 south, and both suites' evidence. Waiting on the ships-of-the-line pass: the
 production duel still fits the salvage rig in the cradle until its Venture swap
-lands; it takes the map, berths, lift run and `AIRSPACE_TOP` from here, and owns
-the Wolf entries, the climb-out tuning at presence 6 and the airspace clamp.
+lands; it takes the map, berths, lift run and `SOUTH_GROUND_TOP` from here, and owns
+the Wolf entries and the withdrawal's tuning at presence 6.
 
 ## Plan
 

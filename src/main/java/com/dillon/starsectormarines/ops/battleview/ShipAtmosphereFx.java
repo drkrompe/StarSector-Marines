@@ -39,7 +39,9 @@ final class ShipAtmosphereFx {
 
     /** Whether the ship has any atmosphere to draw this frame. */
     static boolean active(Warship ship) {
-        return ship.arrivedFromAbove() || ship.departing() || ship.lowPass() != null || lifting(ship);
+        // A hull flying out across a map edge is in level flight: nothing about it climbs or blows dust.
+        boolean climbing = ship.departing() && ship.exitEdge() == null;
+        return ship.arrivedFromAbove() || climbing || ship.lowPass() != null || lifting(ship);
     }
 
     /** A hull rising out of its berth, before the lift is through. */
@@ -58,8 +60,8 @@ final class ShipAtmosphereFx {
         SpriteAPI soft = soft();
         if (soft == null) return;
         float entry = ship.entrySeconds();
-        float departing = ship.departingSeconds();
-        boolean leaving = ship.departing();
+        boolean leaving = ship.departing() && ship.exitEdge() == null;
+        float departing = leaving ? ship.departingSeconds() : 0f;
         float wash = WarshipAtmosphere.groundWash(entry, departing, leaving);
         // Lifting off a cradle blows the berth's grit out from under the hull, fading as it climbs.
         if (lifting(ship)) wash = Math.max(wash, 1f - ship.liftProgress());

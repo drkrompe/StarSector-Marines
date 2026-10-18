@@ -64,7 +64,8 @@ class VehicleVariantLadderTest {
         MechPattern upArmored = MechPattern.of(VehicleType.UP_ARMORED_APC);
         assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT, MechPatternPicker.weight("hegemony", upArmored));
         assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight("independent", upArmored));
-        assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT,
+        // Tri-Tachyon is known for its hover line, not for anybody's tank.
+        assertEquals(MechPatternPicker.BASE_WEIGHT,
                 MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.HEAVY_GUN_TANK)));
     }
 
@@ -136,7 +137,8 @@ class VehicleVariantLadderTest {
     }
 
     private static final Set<VehicleType> ROLE_HULLS =
-            EnumSet.of(VehicleType.FIRE_SUPPORT_APC, VehicleType.SCOUT_CAR, VehicleType.SUPPLY_TRUCK);
+            EnumSet.of(VehicleType.FIRE_SUPPORT_APC, VehicleType.SCOUT_CAR, VehicleType.SUPPLY_TRUCK,
+                    VehicleType.HOVER_SCOUT, VehicleType.DRONE_SKIMMER);
 
     private static MechVariant mechOf(LiftClass lift) {
         for (MechVariant variant : MechVariant.values()) if (variant.liftClass() == lift) return variant;

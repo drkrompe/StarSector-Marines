@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -356,6 +357,12 @@ final class HeadlessBattleSprites extends BattleSprites {
     /** Already loaded in the constructor, off the resource roots rather than through the game. */
     @Override public void ensureEngineFxSprites() { }
     @Override public void ensureShadowSprite() { }
+    /**
+     * The shipped drone's vanilla sprite, off the same disk roots as every other headless sprite. The base class loads
+     * it through the game, which is a stub here, so every drone in headless evidence drew as its bare marker.
+     */
+    @Override public ShuttleSpriteCache droneSprite() { return spriteByPath(Drone.SPRITE_PATH); }
+    @Override public void ensureDroneSprite() { }
     @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
 
     /** Same resource lookup as the live catalog; evidence must not silently omit shells. */
