@@ -44,7 +44,7 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
     /** Ticks between liftoff frames (two seconds), and the most frames the strip takes before the lift must be through. */
     private static final int LIFT_FRAME_EVERY = 60, LIFT_FRAMES = 32;
     /** Where the lift runs turn toward: west over the rock massif, the way Black Sluice's rig climbs out. */
-    private static final float TURN_X = 126f, TURN_Y = 20f;
+    private static final float TURN_X = BlackSluice.APPROACH + 126f, TURN_Y = 20f;
 
     public String id() { return "landed-ships"; }
     public String label() { return "Landed ships: Venture and Hounds at true scale on the Black Sluice pads, and their lift run"; }
@@ -75,18 +75,18 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
                     .box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
             for (var berth : BlackSluice.HOUND_BERTHS)
                 marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "HOUND BERTH", ReviewStyle.OBJECTIVE);
-            marks.arrow(283, 100, 283, 74, "BERTH ROAD FROM THE GATE", ReviewStyle.APPROACH)
-                    .label(150, 84, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
-                    .label(60, 40, "ROCK MASSIF", ReviewStyle.NOTE);
-            frames.add(frame(context, "landed-dock-annotated.png", sim, 196, 44, 192,
+            marks.arrow(BlackSluice.BERTH_ROAD_X, 100, BlackSluice.BERTH_ROAD_X, 74, "BERTH ROAD FROM THE GATE", ReviewStyle.APPROACH)
+                    .label(BlackSluice.APPROACH + 150, 84, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
+                    .label(BlackSluice.APPROACH + 60, 40, "ROCK MASSIF", ReviewStyle.NOTE);
+            frames.add(frame(context, "landed-dock-annotated.png", sim, BlackSluice.APPROACH + 196, 44, 192,
                     "LANDED SHIPS / BLACK SLUICE SOUTHERN BERTHS / " + scale + " / observer annotations", marks.build()));
-            frames.add(frame(context, "landed-dock.png", sim, 196, 44, 192,
+            frames.add(frame(context, "landed-dock.png", sim, BlackSluice.APPROACH + 196, 44, 192,
                     "LANDED SHIPS / BLACK SLUICE SOUTHERN BERTHS / " + scale, ReviewAnnotations.builder().build()));
-            frames.add(frame(context, "landed-venture-stern-crew.png", sim, 222, 36, 56,
+            frames.add(frame(context, "landed-venture-stern-crew.png", sim, BlackSluice.APPROACH + 222, 36, 56,
                     "LANDED SHIPS / VENTURE STERN, CONCRETE PAD, SCORCH AND TIE-DOWNS / 56 cells across", ReviewAnnotations.builder().build()));
-            frames.add(frame(context, "landed-venture-whole.png", sim, 196, 34, 104,
+            frames.add(frame(context, "landed-venture-whole.png", sim, BlackSluice.APPROACH + 196, 34, 104,
                     "LANDED SHIPS / VENTURE IN HER CRADLE, BERTHS EITHER SIDE / 104 cells across", ReviewAnnotations.builder().build()));
-            frames.add(frame(context, "landed-hound-berth.png", sim, 142, 34, 44,
+            frames.add(frame(context, "landed-hound-berth.png", sim, BlackSluice.APPROACH + 142, 34, 44,
                     "LANDED SHIPS / WEST HOUND BERTH, GANTRY ARMS AND KERB / 44 cells across", ReviewAnnotations.builder().build()));
 
             // The lift: every hull flies its lift run at once, ahead off the pad and round toward the west, its body
@@ -105,7 +105,7 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
                 String caption = String.format(Locale.ROOT,
                         "LANDED SHIPS / LIFT RUN / %.0fs / %.0f%% of the run / body %.2fx flight scale / %.0f cells off the pad",
                         frame * LIFT_FRAME_EVERY / 30f, progress * 100f, body, moved);
-                var image = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 176, 40, 200).withUnitShadows()
+                var image = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.APPROACH + 176, 40, 200).withUnitShadows()
                         .withImpactEffects().render(sim, caption, ReviewAnnotations.builder().build());
                 frames.add(new SnapshotArtifact(String.format(Locale.ROOT, "landed-lift-%02d.png", frame), image));
                 strip.add(image);
