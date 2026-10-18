@@ -298,6 +298,16 @@ forking them. Each state exports one appendable Blender collection
 (`second-wind-pipeline.md`, Cinematic output). Cinematics follow the
 `cinematic-production` skill.
 
+Another hull reaches the kit in one of two ways (`second-wind-vfx/README.md`,
+Other hulls). With no profile, it falls back to the export's own declared
+engine and muzzle empties (`hound-export/`). A `vfx_hull.py` profile sets the
+engine table, states, mounts, lamps and plume colours
+(`mudskipper-cinematic/`). The export and its verify script are per hull: one
+collection, a root carrying `metres_per_unit`, packed images, and the anchors
+a shot needs. Anything that moves (legs, doors, ramps) is driven from custom
+properties on one control empty, and the verify script exercises those knobs
+after an append.
+
 ## Rules for every pass
 
 - Every preview shown to the owner is 1920x1080. **Never commit rendered

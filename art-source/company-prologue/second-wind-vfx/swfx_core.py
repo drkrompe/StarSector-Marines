@@ -18,7 +18,9 @@ from mathutils import Vector
 import json
 from pathlib import Path
 
-GEOMETRY_JSON = Path(__file__).resolve().parent.parent / 'second-wind-geometry' / 'geometry.json'
+import swfx_hull
+
+GEOMETRY_JSON = Path(swfx_hull.get('GEOMETRY_JSON', Path(__file__).resolve().parent.parent / 'second-wind-geometry' / 'geometry.json'))
 
 
 def metres_per_unit():
@@ -45,8 +47,9 @@ FPS = 24
 
 # Engines: 1 port outer, 2 port inner, 3 starboard inner, 4 starboard outer
 # (sw_engines.ENGINES order; +Y is port).
-PORT_ENGINES = (1, 2)
-STARBOARD_ENGINES = (3, 4)
+# Another hull's profile (swfx_hull) may renumber them; any other index is 'centre'.
+PORT_ENGINES = tuple(swfx_hull.get('PORT_ENGINES', (1, 2)))
+STARBOARD_ENGINES = tuple(swfx_hull.get('STARBOARD_ENGINES', (3, 4)))
 
 # What each condition state allows. Engine modes:
 #   'dead'     cold, unpowered (derelict hulk; nothing burns)
@@ -71,6 +74,9 @@ STATES = {
                      guns=True, seal_wisps=False, geometry='clean'),
 }
 # 'geometry' is the build_reference.py --state that builds that condition.
+STATES = swfx_hull.get('STATES', STATES)
+# Engine indices the throttle knobs cover (the Second Wind's four, or a profile's).
+ENGINE_INDICES = tuple(swfx_hull.get('ENGINE_INDICES', range(1, len(swfx_hull.get('ENGINES', ((),) * 4)) + 1)))
 
 
 class Context:
