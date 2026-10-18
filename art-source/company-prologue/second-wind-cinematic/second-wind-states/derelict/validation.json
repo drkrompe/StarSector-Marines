@@ -3,8 +3,8 @@
  "asset": "second-wind-derelict.blend",
  "collection": "SECOND WIND | derelict",
  "root": "SECOND WIND | derelict | root",
- "objects": 757,
- "meshes": 724,
+ "objects": 873,
+ "meshes": 836,
  "images": 45,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    724,
-    724
+    836,
+    836
    ]
   },
   "polygon count": {
@@ -45,7 +45,7 @@
   "base wear on every skin and swatch": {
    "ok": true,
    "detail": {
-    "materials": 92,
+    "materials": 94,
     "missing": []
    }
   },
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 108,
+    "materials": 112,
     "missing": []
    }
   },
@@ -72,6 +72,29 @@
   "turret pivots train": {
    "ok": true,
    "detail": 0.0
+  },
+  "seized turrets carry nothing": {
+   "ok": true,
+   "detail": {
+    "seized": [
+     1,
+     3
+    ],
+    "bad": []
+   }
+  },
+  "spark anchors": {
+   "ok": true,
+   "detail": {
+    "anchors": 4,
+    "sparking": []
+   }
+  },
+  "crushed mouth tags": {
+   "ok": true,
+   "detail": [
+    1
+   ]
   },
   "root moves the ship rigidly": {
    "ok": true,

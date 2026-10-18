@@ -1,0 +1,494 @@
+{
+ "asset": "hound-a-clean.blend",
+ "hull": "Hound (A)",
+ "skin_hull_id": "hound_hegemony",
+ "state": "clean",
+ "append_collection": "HOUND (A) | clean",
+ "root": "HOUND (A) | clean | root",
+ "anchors_collection": "HOUND (A) | clean | anchors",
+ "metres_per_unit": 0.88,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units": [
+  [
+   -26.0,
+   -30.01,
+   -7.43
+  ],
+  [
+   43.1,
+   30.01,
+   16.4
+  ]
+ ],
+ "size_metres": [
+  60.8,
+  52.8,
+  21.0
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "side": "port",
+   "anchor": "Engine 1 port exhaust anchor",
+   "slot_width": 16,
+   "radius": 5.2,
+   "radius_m": 4.576,
+   "mouth": [
+    -25.0,
+    22.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "side": "starboard",
+   "anchor": "Engine 2 starboard exhaust anchor",
+   "slot_width": 16,
+   "radius": 5.2,
+   "radius_m": 4.576,
+   "mouth": [
+    -25.0,
+    -22.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2
+ ],
+ "weapons": [
+  {
+   "slot": "WS 001",
+   "mount": "HARDPOINT",
+   "size": "MEDIUM",
+   "type": "BALLISTIC",
+   "slot_anchor": "Weapon WS 001 anchor",
+   "at": [
+    35.0,
+    -6.0,
+    0.4
+   ],
+   "angle_deg": 0,
+   "arc_deg": 5,
+   "parts": 22,
+   "pivot": null,
+   "muzzle": {
+    "anchor": "Anchor weapon WS 001 muzzle",
+    "at": [
+     40.4,
+     -6.0,
+     0.4
+    ],
+    "axis": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "scale": 1.3
+   }
+  },
+  {
+   "slot": "WS 002",
+   "mount": "TURRET",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "slot_anchor": "Weapon WS 002 anchor",
+   "at": [
+    -4.0,
+    4.0,
+    9.8
+   ],
+   "angle_deg": 145,
+   "arc_deg": 290,
+   "parts": 36,
+   "pivot": {
+    "name": "Weapon WS 002 pivot",
+    "at": [
+     -4.0,
+     4.0,
+     8.6
+    ],
+    "rest_angle_deg": 145,
+    "trained_parts": 22,
+    "fixed_parts": 14
+   },
+   "muzzle": {
+    "anchor": "Anchor weapon WS 002 muzzle",
+    "at": [
+     -11.168,
+     9.019,
+     9.8
+    ],
+    "axis": [
+     -0.819,
+     0.574,
+     0.0
+    ],
+    "scale": 1.0
+   }
+  },
+  {
+   "slot": "WS 003",
+   "mount": "HIDDEN",
+   "size": "SMALL",
+   "type": "SYSTEM",
+   "slot_anchor": "Weapon WS 003 anchor",
+   "at": [
+    -19.0,
+    0.0,
+    -0.5
+   ],
+   "angle_deg": 180,
+   "arc_deg": 90,
+   "parts": 20,
+   "pivot": null,
+   "muzzle": null
+  }
+ ],
+ "turrets": [
+  {
+   "slot": "WS 002",
+   "mount": "TURRET",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "slot_anchor": "Weapon WS 002 anchor",
+   "at": [
+    -4.0,
+    4.0,
+    9.8
+   ],
+   "angle_deg": 145,
+   "arc_deg": 290,
+   "parts": 36,
+   "pivot": {
+    "name": "Weapon WS 002 pivot",
+    "at": [
+     -4.0,
+     4.0,
+     8.6
+    ],
+    "rest_angle_deg": 145,
+    "trained_parts": 22,
+    "fixed_parts": 14
+   },
+   "muzzle": {
+    "anchor": "Anchor weapon WS 002 muzzle",
+    "at": [
+     -11.168,
+     9.019,
+     9.8
+    ],
+    "axis": [
+     -0.819,
+     0.574,
+     0.0
+    ],
+    "scale": 1.0
+   }
+  }
+ ],
+ "ramp": {
+  "hinge": "Hull aft ventral ramp hinge",
+  "at": [
+   -8.7,
+   0.0,
+   -5.38
+  ],
+  "open_axis": "local Y; negative angles lower the aft end",
+  "ground_contact_deg": 6.4,
+  "rides_hinge": [
+   "Hull aft ventral ramp",
+   "Hull aft ventral ramp treads",
+   "Hull aft ventral ramp stiffeners",
+   "Hull aft ventral ramp toe"
+  ],
+  "note": "Rotate the hinge about local Y; 0 is closed, -ground_contact_deg puts the toe on the ground the landing pads stand on. Actuators stay with the hull (they do not extend)."
+ },
+ "lamps_lit": 10,
+ "lamps": [
+  {
+   "object": "Hull aft cargo well light",
+   "material": "Hull ramp work light",
+   "lit": true,
+   "at": [
+    -12.7,
+    0.0,
+    -2.14
+   ]
+  },
+  {
+   "object": "Hull aft ventral ramp jamb light 1",
+   "material": "Hull ramp work light",
+   "lit": true,
+   "at": [
+    -17.12,
+    4.92,
+    -5.56
+   ]
+  },
+  {
+   "object": "Hull aft ventral ramp jamb light 2",
+   "material": "Hull ramp work light",
+   "lit": true,
+   "at": [
+    -17.12,
+    -4.92,
+    -5.56
+   ]
+  },
+  {
+   "object": "Hull aft ventral ramp jamb light 3",
+   "material": "Hull ramp work light",
+   "lit": true,
+   "at": [
+    -8.28,
+    4.92,
+    -5.56
+   ]
+  },
+  {
+   "object": "Hull aft ventral ramp jamb light 4",
+   "material": "Hull ramp work light",
+   "lit": true,
+   "at": [
+    -8.28,
+    -4.92,
+    -5.56
+   ]
+  },
+  {
+   "object": "Hull hold lamp 1 lens",
+   "material": "Hull amber lamp",
+   "lit": true,
+   "at": [
+    12.5,
+    9.5,
+    10.02
+   ]
+  },
+  {
+   "object": "Hull hold lamp 2 lens",
+   "material": "Hull amber lamp",
+   "lit": true,
+   "at": [
+    10.5,
+    9.5,
+    10.02
+   ]
+  },
+  {
+   "object": "Hull hold lamp 3 lens",
+   "material": "Hull amber lamp",
+   "lit": true,
+   "at": [
+    7.5,
+    9.5,
+    10.03
+   ]
+  },
+  {
+   "object": "Weapon WS 001 barrel",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    35.6,
+    -6.0,
+    0.4
+   ]
+  },
+  {
+   "object": "Weapon WS 001 breech rammer",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    25.3,
+    -6.0,
+    2.15
+   ]
+  },
+  {
+   "object": "Weapon WS 001 breech ring",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    28.9,
+    -6.0,
+    0.6
+   ]
+  },
+  {
+   "object": "Weapon WS 001 feed chute band 1",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    22.2,
+    -6.0,
+    6.27
+   ]
+  },
+  {
+   "object": "Weapon WS 001 feed chute band 2",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    24.3,
+    -6.0,
+    4.14
+   ]
+  },
+  {
+   "object": "Weapon WS 001 feed chute elbow",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    20.4,
+    -6.0,
+    8.1
+   ]
+  },
+  {
+   "object": "Weapon WS 001 recoil cylinder lower",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    32.0,
+    -6.0,
+    -0.75
+   ]
+  },
+  {
+   "object": "Weapon WS 001 recoil cylinder upper",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    30.8,
+    -6.0,
+    1.65
+   ]
+  },
+  {
+   "object": "Weapon WS 001 recoil slide",
+   "material": "Worn light gunmetal",
+   "lit": false,
+   "at": [
+    26.4,
+    -6.0,
+    0.04
+   ]
+  },
+  {
+   "object": "Wheelhouse mast yard lamp port",
+   "material": "Wheelhouse nav lamp",
+   "lit": true,
+   "at": [
+    15.9,
+    3.05,
+    13.15
+   ]
+  },
+  {
+   "object": "Wheelhouse mast yard lamp starboard",
+   "material": "Wheelhouse nav lamp",
+   "lit": true,
+   "at": [
+    15.9,
+    -0.65,
+    13.15
+   ]
+  }
+ ],
+ "objects": 752,
+ "polygons": 26660,
+ "baked_meshes": 419,
+ "left_out_objects": [],
+ "images": [
+  "Skin bow-cage-ring-fore",
+  "Skin bow-capsule-nose",
+  "Skin bow-fork-base-side",
+  "Skin bow-fork-tine-side",
+  "Skin deckhouse-front",
+  "Skin deckhouse-roof",
+  "Skin deckhouse-wall-port",
+  "Skin engine-chamfer-port",
+  "Skin engine-front-port",
+  "Skin engine-side-port",
+  "Skin engine-top-port",
+  "Skin hull-side-port",
+  "Skin hull-stern",
+  "Skin hull-top",
+  "Skin hull-under",
+  "Skin skid-side-port",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch glass",
+  "Swatch gunmetal",
+  "Swatch orange",
+  "Swatch taupe"
+ ],
+ "wear": "hound-surface/wear.json row `service` (wear.py group `SW wear service`), on skins and swatches",
+ "effects": {
+  "collection": "SWFX",
+  "objects": 21,
+  "kit": "second-wind-vfx (swfx.apply state 'clean', groups thrusters, smoke, guns; rcs and landing dust off: the Hound has no RCS quads and the dust is the Second Wind's; no rig preset)",
+  "metres_per_unit_used": 0.88,
+  "anchors": {
+   "engines": 2,
+   "guns": 2
+  },
+  "groups": {
+   "thrusters": {
+    "engines": 2,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 2,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 2,
+    "shots": 0,
+    "built": true
+   }
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "append": "load both 'HOUND (A) | clean' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "hound-surface/build/skinned.blend",
+  "geometry_json_sha256": "a8db1d44dfeefa4fd8fb6ba3c48970970dc97a42e59645866d914f50004e9912"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate `Weapon WS 002 pivot` about its local Z to train (rest pose is the slot angle, 145 deg; arc 290). Its muzzle anchor and slot anchor ride it.",
+  "ramp": "Rotate the hinge about its local Y; negative lowers the aft end.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "19df33727c6ee2cb03fcf5f9d9d8c4a90251641a12cdcc1568c48e922b3ec655"
+}

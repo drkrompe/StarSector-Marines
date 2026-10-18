@@ -1,6 +1,6 @@
 # Hound (A): surfacing
 
-Status: REVIEW — base skin on every face, light service wear; waiting on the owner's look approval.
+Status: SHIPPED — base skin on every face, light service wear; look approved by the owner 2026-10-18. The cinematic export is `hound-export/`.
 Written: 2026-10-18
 
 The Hound (A)'s folder for the shared surfacing harness
