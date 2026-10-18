@@ -95,9 +95,18 @@ increasing an encounter's total armored threat.
   an unrestricted workshop knows every chassis and weapon pattern but only the
   stock internals, which did not exist when it was written. Weight class is the
   access ladder: Hound (light) Common, Sirocco (medium) Advanced, Bulwark (heavy)
-  Prestige; weapons and internals carry their own authored tier. Vehicle patterns follow the same ladder — heavy APC light/Common,
-  escort APC and militia technical medium/Advanced, breakthrough tank
-  heavy/Prestige — and no vehicle is a starter: a company earns its first hull.
+  Prestige; weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
+  heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
+  Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
+  card's weight class is the lift its hull asks for, not its tier, so the card says
+  what the drop will need; the two usually agree, and where they do not (a scout car
+  is Advanced and rides a Light cradle) the lift is what is printed.
+  Two light **roles** are lines of their own, one hull each, Light lift: the
+  **supply truck** (Common; Hegemony weights it) and the **scout car** (Advanced;
+  Tri-Tachyon weights it). Each pays for its one job with the gun, the seats and
+  the plate: the truck hands out a finite stock through the battle's resupply
+  authority while halted, and the scout reports what its mast sees to the fog and
+  the commander (`convoy-nouns.md`, the light roles).
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
