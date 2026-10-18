@@ -62,6 +62,9 @@ DECK_AFT_X = -104.0       # the white command deck runs from the nose to here
 SPINE = [(-96, 0.0), (-96, 14), (-124, 14), (-130, 8), (-131, 0.0)]  # the white spine running aft onto the aft body
 DECK_Z = 40.0             # its underside: above the main ring's top (36), clear of the bore
 TRENCH_PAD = 6.0          # the gantry shows this far beyond the deck on each side
+# The gantry stops at the bore's edge: forward of it the deck's nose cantilevers
+# clear over the bore, raised above the loop, with its underside detailed (pg_bridge).
+GANTRY_FRONT_X = -60.0
 
 # The prow, port halves.
 GRILLE = [(171, 0.0), (171, 29), (136, 29), (136, 0.0)]
@@ -168,7 +171,7 @@ def build(kit):
     # Command deck, gantry and aft body.
     # The gantry the deck stands on: dark machinery under and just outside the
     # deck, standing on the main ring; the sprite's dark band round the white.
-    parts['trench'] = K.profile_mass(kit, 'Hull core trench', symmetric(half_between(CORE, -30, DECK_AFT_X-4, TRENCH_PAD)),
+    parts['trench'] = K.profile_mass(kit, 'Hull core trench', symmetric(half_between(CORE, GANTRY_FRONT_X, DECK_AFT_X-4, TRENCH_PAD)),
                                      [(0, 26), (5, DECK_Z+1)], [(0, 10)], mat=kit.tech, step=2.0)
     # The aft body between the pods: its steep armoured flanks are the sprite's
     # dark ring round the skin "egg", its top a low faceted dome.

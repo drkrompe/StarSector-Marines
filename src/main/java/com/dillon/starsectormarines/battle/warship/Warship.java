@@ -375,6 +375,7 @@ public final class Warship {
     private final WarshipFlux flux;
     private final WarshipShield shield;
     private boolean fluxConfigured;
+    private HullRefit refit = HullRefit.NONE;
     private MissilePreset missilePreset = MissilePreset.FLAVOURED;
 
     /**
@@ -611,6 +612,27 @@ public final class Warship {
     /** How many times the shield has gone down under load. */
     public int shieldCollapses() {
         return shield.collapses();
+    }
+
+    /**
+     * Gives the hull a mission's refit ({@link HullRefit}): its flux pool and shield emitter tuned for one fight. The
+     * last refit given stands; {@link HullRefit#NONE} restores the hull as its variant fits it.
+     */
+    public void refit(HullRefit next) {
+        HullRefit r = next == null ? HullRefit.NONE : next;
+        flux.refit(r.capacityScale(), r.dissipationScale());
+        shield.refit(r.shieldArcBonus(), r.shieldUpkeepScale(), r.shieldEfficiencyScale());
+        refit = r;
+    }
+
+    /** The refit the hull carries, {@link HullRefit#NONE} unless a mission gave it one. */
+    public HullRefit refit() {
+        return refit;
+    }
+
+    /** Flux dissipation per second now, on the pool's own scale. */
+    public float fluxDissipation() {
+        return flux.dissipation();
     }
 
     /** Holds the shield up or down as commanded, leaving automatic mode. It has no effect on a ship that is not on flux. */
