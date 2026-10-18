@@ -77,6 +77,8 @@ final class WarshipFlux {
     private float fittedCapacity;
     private float fittedDissipation;
     private boolean fittingsApplied;
+    private float refitCapacity = 1f;
+    private float refitDissipation = 1f;
 
     WarshipFlux(float baseCapacity, float baseDissipation) {
         this.baseCapacity = baseCapacity;
@@ -138,17 +140,25 @@ final class WarshipFlux {
     }
 
     float capacity() {
-        return (baseCapacity + (fittingsApplied ? fittedCapacity : 0f)) * scale;
+        return (baseCapacity + (fittingsApplied ? fittedCapacity : 0f)) * scale * refitCapacity;
     }
 
     float dissipation() {
-        return (baseDissipation + (fittingsApplied ? fittedDissipation : 0f)) * scale;
+        return (baseDissipation + (fittingsApplied ? fittedDissipation : 0f)) * scale * refitDissipation;
     }
 
     /** What the variant's capacitors and vents add to capacity and dissipation, applied only while {@link #applyFittings} says so. */
     void fittings(float capacity, float dissipation) {
         this.fittedCapacity = Math.max(0f, capacity);
         this.fittedDissipation = Math.max(0f, dissipation);
+    }
+
+    /** A refit's multipliers on capacity and dissipation ({@link HullRefit}); 1 and 1 is the hull as fitted. */
+    void refit(float capacity, float dissipation) {
+        if (!(capacity > 0f && dissipation > 0f)) throw new IllegalArgumentException("refit multipliers must be positive");
+        this.refitCapacity = capacity;
+        this.refitDissipation = dissipation;
+        flux = Math.min(flux, capacity());
     }
 
     /** Whether the variant's capacitors and vents count: the base game's figures, for a ship fighting ships. */

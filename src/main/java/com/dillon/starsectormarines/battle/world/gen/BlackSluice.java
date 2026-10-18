@@ -37,7 +37,7 @@ import java.util.Random;
  * mains, sealed galleries and pressure vestibules) ends in the berth gate.
  *
  * <p>Dispatch's berths lie south, below a broken ridge, where Greyhook's ships sit at true landed scale
- * ({@code landed-ships-true-scale.md}): a concrete cradle for the Venture with a Hound berth either side, on a pad
+ * ({@code landed-ships-true-scale.md}): a concrete cradle for the Venture with an empty frigate pad either side, on a pad
  * field among rock hills. The ridge and the rock massif west of the pads have no way through; the only way down is
  * out of the berth gate and along the berth road down the east side ({@link #SOUTH_GROUND_TOP}). The duel overhead
  * lifts from those pads and goes where its fighting takes it.
@@ -110,10 +110,13 @@ public final class BlackSluice {
     }
     /** The Venture's cradle: fifty by fifty-one cells of hull at true scale, nose west, with a cell or two of clearance. */
     public static final Berth VENTURE_CRADLE = new Berth("venture-cradle", "Venture cradle", 356.5f, 33.5f, 90f, 330, 6, 382, 60);
-    /** The two Hound berths flanking the cradle, each nineteen by sixteen cells of hull. */
-    public static final List<Berth> HOUND_BERTHS = List.of(
-            new Berth("hound-west", "West Hound berth", 302.5f, 34f, 90f, 291, 25, 313, 42),
-            new Berth("hound-east", "East Hound berth", 410.5f, 34f, 90f, 399, 25, 421, 42));
+    /**
+     * The two frigate pads flanking the cradle, each sized for nineteen by sixteen cells of hull. They stand empty: the
+     * <i>Greyhook</i> sits on the field alone, and the side pads are open ground with their gantry arms.
+     */
+    public static final List<Berth> SIDE_PADS = List.of(
+            new Berth("pad-west", "West pad", 302.5f, 34f, 90f, 291, 25, 313, 42),
+            new Berth("pad-east", "East pad", 410.5f, 34f, 90f, 399, 25, 421, 42));
     /**
      * Gantry arms: walkable boarding catwalks reaching from the kerb over each pad to its hull's beam, as
      * {@code left, bottom, right, top, rootX, rootY} where the root is the kerb cell the arm is boarded from.
@@ -175,11 +178,11 @@ public final class BlackSluice {
             boolean berthRoad = x >= 438 && x <= 448 && y >= 64 && y <= 166;
             boolean taxiway = x >= 268 && x <= 448 && y >= 64 && y <= 71;
             boolean ventureApron = x >= 324 && x <= 388 && y >= 2 && y <= 63;
-            boolean houndAprons = (x >= 285 && x <= 319 || x >= 393 && x <= 427) && y >= 19 && y <= 63;
+            boolean sidePadAprons = (x >= 285 && x <= 319 || x >= 393 && x <= 427) && y >= 19 && y <= 63;
             boolean shedYard = x >= 268 && x <= 284 && y >= 42 && y <= 63;
             boolean controlYard = x >= 428 && x <= 448 && y >= 28 && y <= 63;
             if (apron || causeway || pier || serviceRoad || rear || dock || gateSpur || berthRoad || taxiway
-                    || ventureApron || houndAprons || shedYard || controlYard) {
+                    || ventureApron || sidePadAprons || shedYard || controlYard) {
                 c.topology.setGroundKind(x, y, GroundKind.COURTYARD);
                 // Worn as it was before the approach was added: the wear pattern is keyed to the station, not the map.
                 c.topology.setSurface(x, y, c.topology.surfaceIndex(Material.CONCRETE.block(RoadRasterizer.age(.75, 18535, x - APPROACH, y))));
@@ -524,12 +527,12 @@ public final class BlackSluice {
     }
 
     /**
-     * The pad field south of the ridge: the Venture cradle and the two Hound berths, their gantry arms, a pad shed at
+     * The pad field south of the ridge: the Venture cradle and the two empty frigate pads, their gantry arms, a pad shed at
      * the west end of the taxiway and a pad-control house by the berth road.
      */
     private static void berths(GenContext c) {
         pad(c, VENTURE_CRADLE);
-        for (Berth berth : HOUND_BERTHS) pad(c, berth);
+        for (Berth berth : SIDE_PADS) pad(c, berth);
         int deck = c.topology.surfaceIndex("colony.concrete");
         for (int[] arm : GANTRY_ARMS)
             for (int y = arm[1]; y <= arm[3]; y++) for (int x = arm[0]; x <= arm[2]; x++) {
@@ -539,7 +542,7 @@ public final class BlackSluice {
                 c.topology.setSurface(x, y, deck);
             }
         padAccents(c, VENTURE_CRADLE);
-        for (Berth berth : HOUND_BERTHS) padAccents(c, berth);
+        for (Berth berth : SIDE_PADS) padAccents(c, berth);
         BuildingStamp.T_WORKSHOP.place(c, 270, 47, 0);
         BuildingStamp.OFFSET_DEPOT.place(c, 433, 36, 0);
         var yard = new StoryServiceYard(c);

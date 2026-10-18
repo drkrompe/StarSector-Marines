@@ -36,6 +36,12 @@ BORE_R = 56.5
 LINING_R = 76.0
 LINING_TOP = 24.0
 LINING_BOT = 12.0
+# The bore is a rounded doughnut hole, not a straight cut (owner, pass 3): the
+# lining's inner face rolls over a lip of LIP_RH units into the bore, reaches the
+# bore radius at mid-height, and rolls back under; its flat top runs from the lip
+# to the main ring.
+LIP_RH = 11.0
+LIP_TOP_R = BORE_R+LIP_RH
 # Main ring section (r, z), closed: inner face above the lining, flat top,
 # outer glacis down into the belt; mirrored below.
 MAIN_RING = [(74, -14), (80, -18), (100, -18), (130, -8), (130, 24), (127, 27.5), (99, 28.5), (96, 36), (78, 36),
@@ -113,7 +119,19 @@ def pod_plan(side):
     return K.ccw([(x, y*side) for x, y in plan])
 
 
-def revolve_loop(kit, name, loop, center, mat, segments=72):
+def lining_section(steps=14):
+    """Closed (r, z) loop of the bore lining: flat underside, the rounded lip, flat top."""
+    zc = (LINING_TOP-LINING_BOT)/2
+    rv = (LINING_TOP+LINING_BOT)/2
+    loop = [(LINING_R, -LINING_BOT)]
+    for k in range(steps+1):
+        t = math.radians(-90+180*k/steps)
+        loop.append((BORE_R+LIP_RH*(1-math.cos(t)), zc+rv*math.sin(t)))
+    loop.append((LINING_R, LINING_TOP))
+    return loop
+
+
+def revolve_loop(kit, name, loop, center, mat, segments=72, smooth=False):
     """A closed (r, z) section revolved about a vertical axis, flat-shaded: one plate per segment."""
     cx, cy, cz = center
     n = len(loop)
@@ -123,7 +141,7 @@ def revolve_loop(kit, name, loop, center, mat, segments=72):
     for k in range(segments):
         a, b = k*n, ((k+1) % segments)*n
         faces += [(a+i, a+(i+1) % n, b+(i+1) % n, b+i) for i in range(n)]
-    return kit.mesh(name, verts, faces, mat, 0, False)
+    return kit.mesh(name, verts, faces, mat, 0, smooth)
 
 
 def build(kit):
@@ -131,9 +149,8 @@ def build(kit):
     parts['belt'] = K.profile_mass(kit, 'Hull belt', outline_between(166.5, RING_AFT_X), BELT_TOP, BELT_BOT,
                                    holes=[K.circle(*BORE_C, BELT_HOLE_R, 144)], mat=kit.skin)
     parts['main ring'] = revolve_loop(kit, 'Hull main ring', MAIN_RING, (*BORE_C, 0), kit.skin)
-    parts['lining'] = revolve_loop(kit, 'Hull bore lining', [(BORE_R, -LINING_BOT), (LINING_R, -LINING_BOT),
-                                                             (LINING_R, LINING_TOP), (BORE_R, LINING_TOP)],
-                                   (*BORE_C, 0), kit.tech, segments=96)
+    parts['lining'] = revolve_loop(kit, 'Hull bore lining', lining_section(), (*BORE_C, 0), kit.tech, segments=144,
+                                   smooth=40)
     # Prow.
     parts['prow'] = K.profile_mass(kit, 'Hull prow', symmetric(GRILLE), [(0, 8), (3, 20), (10, 23)],
                                    [(0, -5), (3, -12), (10, -14)], mat=kit.pale, step=2.0)

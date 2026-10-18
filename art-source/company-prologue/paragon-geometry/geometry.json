@@ -105,7 +105,7 @@
     "override": "owner: larger than the Onslaught (2026-10-18)",
     "length_m_published": 315.1,
     "measured_this_build": {
-      "enclosed_units3": 2486231,
+      "enclosed_units3": 2484882,
       "solids": [
         "Hull belt",
         "Hull main ring",
@@ -187,8 +187,8 @@
       {
         "name": "Shield emitter node 1",
         "location": [
-          60.75,
-          17.08,
+          66.16,
+          18.53,
           27.8
         ],
         "faces_deg": -165.0
@@ -196,8 +196,8 @@
       {
         "name": "Shield emitter node 2",
         "location": [
-          43.67,
-          46.67,
+          47.63,
+          50.63,
           27.8
         ],
         "faces_deg": -135.0
@@ -205,8 +205,8 @@
       {
         "name": "Shield emitter node 3",
         "location": [
-          14.08,
-          63.75,
+          15.53,
+          69.16,
           27.8
         ],
         "faces_deg": -105.0
@@ -214,8 +214,8 @@
       {
         "name": "Shield emitter node 4",
         "location": [
-          -20.08,
-          63.75,
+          -21.53,
+          69.16,
           27.8
         ],
         "faces_deg": -75.0
@@ -223,8 +223,8 @@
       {
         "name": "Shield emitter node 5",
         "location": [
-          -49.67,
-          46.67,
+          -53.63,
+          50.63,
           27.8
         ],
         "faces_deg": -45.0
@@ -232,8 +232,8 @@
       {
         "name": "Shield emitter node 6",
         "location": [
-          -49.67,
-          -46.67,
+          -53.63,
+          -50.63,
           27.8
         ],
         "faces_deg": 45.0
@@ -241,8 +241,8 @@
       {
         "name": "Shield emitter node 7",
         "location": [
-          -20.08,
-          -63.75,
+          -21.53,
+          -69.16,
           27.8
         ],
         "faces_deg": 75.0
@@ -250,8 +250,8 @@
       {
         "name": "Shield emitter node 8",
         "location": [
-          14.08,
-          -63.75,
+          15.53,
+          -69.16,
           27.8
         ],
         "faces_deg": 105.0
@@ -259,8 +259,8 @@
       {
         "name": "Shield emitter node 9",
         "location": [
-          43.67,
-          -46.67,
+          47.63,
+          -50.63,
           27.8
         ],
         "faces_deg": 135.0
@@ -268,8 +268,8 @@
       {
         "name": "Shield emitter node 10",
         "location": [
-          60.75,
-          -17.08,
+          66.16,
+          -18.53,
           27.8
         ],
         "faces_deg": 165.0
@@ -297,6 +297,178 @@
     "floor_z": -6.0,
     "door": "closed",
     "face": "the bore's forward wall, opening aft across the bore at the command deck"
+  },
+  "service_fields": [
+    {
+      "name": "Service port ring crown fore",
+      "centre": [
+        82.2,
+        12.0
+      ],
+      "size_m": [
+        13.0,
+        7.0
+      ],
+      "normal": [
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "contents": [
+        "hatch",
+        "vents",
+        "hatch"
+      ]
+    },
+    {
+      "name": "Service port ring crown aft quarter",
+      "centre": [
+        -77.5,
+        43.0
+      ],
+      "size_m": [
+        13.0,
+        7.0
+      ],
+      "normal": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "contents": [
+        "hatch",
+        "fins",
+        "vents"
+      ]
+    },
+    {
+      "name": "Service port pod top",
+      "centre": [
+        -156,
+        92
+      ],
+      "size_m": [
+        18.0,
+        9.0
+      ],
+      "normal": [
+        -0.41,
+        -0.0,
+        0.912
+      ],
+      "contents": [
+        "hatch",
+        "vents",
+        "fins",
+        "hatch"
+      ]
+    },
+    {
+      "name": "Service port deck aft",
+      "centre": [
+        -92,
+        0
+      ],
+      "size_m": [
+        9.0,
+        5.0
+      ],
+      "normal": [
+        -0.473,
+        -0.0,
+        0.881
+      ],
+      "contents": [
+        "iris",
+        "hatch"
+      ]
+    },
+    {
+      "name": "Service starboard ring crown fore",
+      "centre": [
+        82.2,
+        -12.0
+      ],
+      "size_m": [
+        13.0,
+        7.0
+      ],
+      "normal": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "contents": [
+        "hatch",
+        "vents",
+        "hatch"
+      ]
+    },
+    {
+      "name": "Service starboard ring crown aft quarter",
+      "centre": [
+        -77.5,
+        -43.0
+      ],
+      "size_m": [
+        13.0,
+        7.0
+      ],
+      "normal": [
+        -0.0,
+        0.0,
+        1.0
+      ],
+      "contents": [
+        "hatch",
+        "fins",
+        "vents"
+      ]
+    },
+    {
+      "name": "Service starboard pod top",
+      "centre": [
+        -156,
+        -92
+      ],
+      "size_m": [
+        18.0,
+        9.0
+      ],
+      "normal": [
+        -0.409,
+        -0.0,
+        0.912
+      ],
+      "contents": [
+        "hatch",
+        "vents",
+        "fins",
+        "hatch"
+      ]
+    }
+  ],
+  "finish": {
+    "armour": "hex ablative ceramic (owner pick, study option B)",
+    "plate_m": {
+      "Hull main ring": 4.0,
+      "Hull aft body": 3.6,
+      "Hull belt": 3.0,
+      "Hull port pod": 3.0,
+      "Hull starboard pod": 3.0,
+      "Hull bow module": 2.6,
+      "Hull prow": 2.2,
+      "Hull port bow horn": 2.4,
+      "Hull starboard bow horn": 2.4,
+      "Hull port bow lobe": 2.4,
+      "Hull starboard bow lobe": 2.4,
+      "Hull command deck": 2.2,
+      "Hull command deck upper": 2.0,
+      "Hull command spine": 2.0,
+      "Bridge tower": 1.8
+    },
+    "default_plate_m": 2.6,
+    "steep_face_factor": 0.6
   },
   "weapon_slots": [
     {
@@ -564,7 +736,7 @@
       ],
       "train_axis": [
         -0.014,
-        0.0515,
+        0.0516,
         0.9986
       ],
       "well_depth": 3.8,
@@ -745,7 +917,7 @@
         22.4
       ],
       "train_axis": [
-        -0.0,
+        0.0,
         0.0,
         1.0
       ],
@@ -928,7 +1100,7 @@
       ],
       "train_axis": [
         -0.0008,
-        0.0,
+        0.0002,
         1.0
       ],
       "well_depth": 3.2,
@@ -958,7 +1130,7 @@
       ],
       "train_axis": [
         -0.1353,
-        0.0048,
+        0.0047,
         0.9908
       ],
       "well_depth": 3.2,
@@ -1500,6 +1672,34 @@
       "orthographic_scale": 300
     },
     {
+      "name": "bore-inner",
+      "position": [
+        -3.0,
+        -40.0,
+        10.0
+      ],
+      "target": [
+        -3.0,
+        60.0,
+        5.0
+      ],
+      "orthographic_scale": 55.0
+    },
+    {
+      "name": "bore-lip",
+      "position": [
+        20.0,
+        -120.0,
+        60.0
+      ],
+      "target": [
+        -3.0,
+        40.0,
+        5.0
+      ],
+      "orthographic_scale": 110.0
+    },
+    {
       "name": "hangar-wide",
       "position": [
         -40.0,
@@ -1512,19 +1712,33 @@
         0.0
       ],
       "orthographic_scale": 150.0
+    },
+    {
+      "name": "bore-below",
+      "position": [
+        120.0,
+        -140.0,
+        -120.0
+      ],
+      "target": [
+        -3.0,
+        0.0,
+        0.0
+      ],
+      "orthographic_scale": 200.0
     }
   ],
   "silhouette": {
     "iou": 0.9595,
-    "sprite_uncovered": 0.0255,
-    "model_outside_sprite": 0.0156,
+    "sprite_uncovered": 0.0238,
+    "model_outside_sprite": 0.0174,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.618,
-    "white": 0.549,
-    "dark": 0.426,
-    "agreement": 0.685,
+    "skin": 0.617,
+    "white": 0.543,
+    "dark": 0.431,
+    "agreement": 0.686,
     "silhouette": 0.96,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }

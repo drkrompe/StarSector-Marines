@@ -1839,8 +1839,8 @@ public final class BattleSetup {
      * Black Sluice, the chapter-five foothold. Greyhook's groups are the finite authored table in
      * {@link SmallWarForces}; holders and the custody party are the employer's. {@code houseCustody}
      * names who walks the handover (Rusk's custodians or the joint party); it changes no strength.
-     * The duel overhead ({@link BlackSluiceDuel}) is installed: Greyhook's rig and escorts on their berths
-     * south of the ridge from the start, and two lent Wolf (H) once Voss orders the withdrawal.
+     * The duel overhead ({@link BlackSluiceDuel}) is installed: the Greyhook alone in her cradle
+     * south of the ridge from the start, and two lent Wolf (H) in Rusk's refit once Voss orders the withdrawal.
      */
     public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean houseCustody) {
         return createSmallWar(seed, manifest, profile, houseCustody, true);

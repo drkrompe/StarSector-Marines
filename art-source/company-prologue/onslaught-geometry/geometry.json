@@ -1335,9 +1335,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9555,
-    "sprite_uncovered": 0.0162,
-    "model_outside_sprite": 0.0296,
+    "iou": 0.9556,
+    "sprite_uncovered": 0.0159,
+    "model_outside_sprite": 0.0298,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
@@ -1373,8 +1373,8 @@
     },
     "formation-bow-3km": {
       "size_px": [
-        109,
-        49
+        108,
+        50
       ]
     },
     "formation-high-3km": {
