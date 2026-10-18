@@ -761,24 +761,58 @@ hull repels nobody (`VehicleType.repelsBodies`), so it cannot clear a road by dr
 into people, and it pays in plate, thinner than the technical's. Kinematics stay the
 shared bounded-curvature bicycle (a tighter turn, a faster slew); a drifting or
 holonomic body would break the curvature contract every planner shares. Its tread-UV
-presentation is off, and a wreck burns in the lift fans aft.
+presentation is off, its shadow lies apart from it because it rides clear of the ground,
+and a wreck burns in the lift fans aft.
+
+A hull with a **drone bay** (`VehicleType.droneBay`) carries a **tethered flight**
+(`DroneWing`, `DroneBaySystem`). Once the hull is on the field its bay launches the
+drones one at a time. Each is an ordinary `battle.drone` unit flown by the shared swarm
+action, remote-controlled from the hull rather than a free hunter. A drone's **role**
+(`DroneRole`) decides only where the wing sends it, how it flies, whether it fires, and
+what ordinary machinery it carries. The roles are the Sector's own drone systems at
+ground scale:
+
+- An **escort** flies the loose formation round the hull, engages what comes into its
+  reach, and is held by a leash.
+- A **sensor** holds station ahead of the bow. It is a sight source on the scout's terms,
+  so it looks round the corner the hull cannot see past, and it carries only a light ion
+  sting.
+- A **halo** drone orbits tight round the hull wearing a carried point-defence mount
+  (`PointDefenseService`), so it takes rockets and shells out of the air near the hull.
+  The mount ends when the drone falls.
+- A **strike** drone waits in the bay for a hostile to threaten the hull. It then flies
+  fast into it and detonates as an ordinary blast credited to itself. It is the only
+  role the bay rebuilds, slowly, as a Terminator's mini-fac does.
+
+Any other drone lost stays lost. When the hull is wrecked or leaves, the anchor dies, and
+every drone still out is destroyed where it flies and falls through the ordinary drone
+crash. Bay drones carry a sturdier airframe than a hub's disposable screen, because they
+are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Tachyon
+drone (`DroneLook`; `art-source/drones/tt-drones/`).
 
 The **hover scout** (`HOVER_SCOUT`, Light lift) is a sight hull on the spotter pickup's
-terms (`ScoutSight`) that also carries a light twin pulse emitter of the drone-pulse
-family, so it can screen. The stripped pickup stays the fastest hull in the bay.
+terms (`ScoutSight`). It also carries a light twin pulse emitter of the drone-pulse family,
+so it can screen, and a sensor pair. The stripped pickup stays the fastest hull in the
+bay.
 
 The **drone skimmer** (`DRONE_SKIMMER`, Medium lift) is the scout's hull stretched over a
-drone bay, with no gun. Its weapon is a **tethered flight** (`SkimmerWing`,
-`DroneSkimmerSystem`): once the hull is on the field its bay launches a fixed complement
-one at a time, and the drones are ordinary `battle.drone` units flown by the shared
-escort swarm action, round the hull, engaging what comes into its reach and held by a
-leash. A drone lost stays lost. When the hull is wrecked or leaves, the anchor dies and
-every drone still out is destroyed where it flies and falls through the ordinary drone
-crash. Its drones carry a sturdier airframe than a hub's disposable screen, because they
-are the hull's whole armament. Acceptance is the `hover-line` scene: the scout crosses
-a river a wheeled APC is refused at, drives over standing marines and shoves none
-against the spotter pickup's control, and the skimmer's drones launch, stay on the leash
-and fight, and fall with the hull.
+drone bay, with no gun. Its bay holds two escorts, two halo drones and a strike drone.
+
+Acceptance is the `hover-line` scene:
+- The scout crosses a river at which a wheeled APC is refused.
+- It drives over standing marines and shoves none, against the spotter pickup's control.
+- Its sensor pair holds station ahead and puts a defender the hull cannot see into the
+  side's picture.
+- The skimmer's drones launch, stay on the leash and fight. Its strike drone detonates on
+  a picket and is rebuilt. Its halo takes incoming rockets out of the air, and the flight
+  falls with the hull.
+
+**Ground dust** is simulation presentation, like a wreck's smoke (`VehicleDustEmitter`).
+A wheeled or tracked hull moving over loose ground throws soft puffs off its trailing
+corners, and raises nothing on pavement. A hover skirt blows a low ring of haze, and
+spray over water, whether or not it moves. The puffs are queued as events that every host
+draws through its particle system, and they draw nothing from the simulation's random
+stream.
 
 ## Adjacent domains and extension points
 

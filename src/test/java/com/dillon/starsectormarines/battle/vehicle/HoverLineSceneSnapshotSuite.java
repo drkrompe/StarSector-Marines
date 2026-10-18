@@ -26,7 +26,8 @@ public final class HoverLineSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
     @Override protected float[] closeView(String loopId) {
         return switch (loopId) {
             case HoverLineScene.RIVER -> new float[] {31f, (HoverLineScene.RIVER_Y0 + HoverLineScene.RIVER_Y1) / 2f, 44f};
-            case HoverLineScene.SKIMMER, HoverLineScene.SKIMMER_LOSS -> new float[] {25f, HoverLineScene.SKIMMER_Y, 36f};
+            case HoverLineScene.SKIMMER, HoverLineScene.SKIMMER_LOSS, HoverLineScene.SENSORS, HoverLineScene.HALO ->
+                    new float[] {25f, HoverLineScene.SKIMMER_Y, 36f};
             default -> new float[] {32f, HoverLineScene.ROAD_Y, 36f};
         };
     }
@@ -60,6 +61,6 @@ public final class HoverLineSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
 
     @Override protected int[] stillFrames(String loopId) {
         if (!loopId.endsWith("-close")) return new int[0];
-        return new int[] {0, 6, 8, 10, 20, 30, 45, 60, 79, 82, 90};
+        return new int[] {0, 6, 8, 10, 12, 14, 15, 20, 30, 45, 60, 79, 82, 90};
     }
 }

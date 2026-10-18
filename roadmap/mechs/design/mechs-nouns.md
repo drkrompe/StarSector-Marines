@@ -112,7 +112,7 @@ increasing an encounter's total armored threat.
   authority while halted, and the spotter reports what its mast sees to the fog
   and the commander (`convoy-nouns.md`, the light roles). Tri-Tachyon's vehicles are
   hover and drone coded: the **hover scout** (`HOVER_SCOUT`, Advanced, Light lift) and
-  the **drone skimmer** (`DRONE_SKIMMER`, Prestige, Medium lift) carry a Tri-Tachyon
+  the **drone skimmer** (`DRONE_SKIMMER`, Prestige, Medium lift), each with a drone bay, carry a Tri-Tachyon
   pattern provenance and are weighted up by Tri-Tachyon alone (`convoy-nouns.md`, the
   hover line).
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
