@@ -107,9 +107,17 @@ and its own local `main`. The meeting point is the bare repository
 clone. It is not GitHub: the history holds gigabytes of binary art, which is
 past what GitHub accepts in a push, so `origin` is not pushed.
 
-- On Windows, `hub` is `ssh://dillmac.local/Users/dillon/git/starsectormarines.git`
-  and the clone sets `core.sshCommand` to `C:/Windows/System32/OpenSSH/ssh.exe`:
-  Git for Windows' bundled ssh cannot resolve `.local` names.
+- On Windows, `hub` is `ssh://dillon@192.168.1.97/Users/dillon/git/starsectormarines.git`
+  and the clone sets `core.sshCommand` to
+  `C:/Windows/System32/OpenSSH/ssh.exe -o HostKeyAlias=dillmac.local`. The
+  `dillmac.local` name resolves only intermittently from this machine, so the
+  remote names the Mac's address and the alias keeps the host-key check on the
+  Mac's own key. If the address changes, update the URL; never drop the alias.
+- History was rewritten on 2026-10-18 to drop rendered output (every commit id
+  changed; trees did not). A branch or worktree cut before that is on the old
+  history: never merge it into `main`, which would bring every purged render
+  back. Reset it onto `main` once it holds no commits of its own, or
+  cherry-pick the commits it does hold.
 - On the Mac, `hub` is the local path `/Users/dillon/git/starsectormarines.git`.
 - At the start of a session, `git fetch hub` and fast-forward local `main` to
   `hub/main` from the main workspace when it is behind, before cutting a
@@ -129,6 +137,16 @@ hand-made or story art. An ignored path refuses `git add`; never force it.
 
 The main workspace is for brief integration and worktree administration only.
 Do not run builds or leave generated task files there.
+
+### Large files: Google Drive
+
+Rendered output and other large regenerable files that should reach the other
+machine (or the owner's phone) go to the shared Google Drive folder, never into
+git: `G:\My Drive\starsector` on Windows and
+`~/Library/CloudStorage/GoogleDrive-*/My Drive/starsector` on the Mac. It syncs
+in about half a minute. It is a transfer and viewing area, not version control:
+each machine writes only its own outputs (two writers to one file produce
+conflict copies), and a build copies what it needs local before reading it.
 
 ## Build & deploy
 
