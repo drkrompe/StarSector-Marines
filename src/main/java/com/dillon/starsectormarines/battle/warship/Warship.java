@@ -1428,6 +1428,8 @@ public final class Warship {
     private MapEdge entryEdge;
     private boolean enteringAcrossEdge;
     private float edgeEntrySeconds;
+    private float entryMapWidth;
+    private float entryMapHeight;
     private MapEdge exitEdge;
     private boolean edgeEscape;
     /** A hull flying in across an edge stops counting as entering after this long, wherever it has got to. */
@@ -1464,6 +1466,8 @@ public final class Warship {
         float in = lengthCells + new WarshipEdgeHelm(mapWidth, mapHeight).margin(this) + lengthCells;
         stationTo(x + nx * in, y + ny * in);
         entryEdge = edge;
+        entryMapWidth = mapWidth;
+        entryMapHeight = mapHeight;
         enteringAcrossEdge = true;
         edgeEntrySeconds = 0f;
     }
@@ -1471,6 +1475,18 @@ public final class Warship {
     /** Whether the ship is flying in across its edge and has not yet cleared its margin ({@link #enterAcrossEdge}). */
     public boolean enteringAcrossEdge() {
         return enteringAcrossEdge;
+    }
+
+    /**
+     * Whether the ship is flying in across its edge with its centre still off the map: not yet over the battle,
+     * so it neither is fought nor fights a hull. At hull-fight ranges guns reach past the edge, and a hull there would
+     * otherwise trade fire before it had crossed into sight.
+     */
+    public boolean offMapInbound() {
+        if (!enteringAcrossEdge) return false;
+        float cx = centerX();
+        float cy = centerY();
+        return cx < 0f || cy < 0f || cx > entryMapWidth || cy > entryMapHeight;
     }
 
     /** The edge the ship flew in across, or {@code null} for one that did not come on that way. */

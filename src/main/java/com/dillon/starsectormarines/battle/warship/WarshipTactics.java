@@ -74,7 +74,7 @@ public final class WarshipTactics {
     /** How far round the charge a flank waypoint is taken each step, in degrees. */
     static final float FLANK_STEP_DEGREES = 50f;
     /** And no flank lasts longer than this. */
-    static final float FLANK_MAX_SECONDS = 90f * WarshipScale.HULL_RANGE;
+    static final float FLANK_MAX_SECONDS = 90f;
     /** A flank swings round at this share of the ship's reach from the charge, at the least. */
     static final float FLANK_RADIUS_REACH_SHARE = 1.15f;
     /** How many hull-lengths ahead a fixed-course manoeuvre puts the station, so the hull cruises rather than arrives. */

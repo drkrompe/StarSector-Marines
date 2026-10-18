@@ -2227,7 +2227,8 @@ while it has a live hostile hull to fight, the doctrine never withdraws it, howe
 worn, so a duel between warships is decided by a kill and never by a voluntary
 break-off. A withdrawal a mission orders (the *Greyhook*'s lift-off at Black Sluice)
 is the mission's, not the doctrine's, and stands. A hull still coming down through
-the cloud deck is not yet a target. What the ship is trying to do
+the cloud deck, or flying in with its centre still past the map's edge, is not yet a
+target, and one still past the edge does not fire at hulls. What the ship is trying to do
 about the objective is a **mission stance** (attack, defend, hold), a value a
 mission sets and changes at any time, never derived from the ship's side; a
 hostile loaded shuttle is never a threat to a ship but an inbound drop. A

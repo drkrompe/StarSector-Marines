@@ -225,10 +225,11 @@ public final class WarshipShipFire {
 
     /** Whether {@code target} is a hull {@code ship} may fight. */
     static boolean hostileHull(Warship ship, Warship target) {
-        // A hull still coming down through the cloud deck is not yet seen: at hull-fight ranges it would otherwise be
-        // under fire before it was out of the cloud.
+        // A hull still coming down through the cloud deck, or flying in with its centre still past the map's edge, is
+        // not yet seen: at hull-fight ranges it would otherwise be under fire before it was out of the cloud or across
+        // the edge.
         return target != ship && !target.destroyed() && !target.departed() && !target.descending()
-                && ship.faction.hostileTo(target.faction);
+                && !target.offMapInbound() && ship.faction.hostileTo(target.faction);
     }
 
     /**
@@ -237,7 +238,8 @@ public final class WarshipShipFire {
      * reach; kept while it is still a hostile hull in that range. Ties go to the earlier-added hull.
      */
     void chooseTarget(Warship ship, List<Warship> ships) {
-        if (!looksAtHulls(ship, held)) {
+        // A ship still flying in from past the edge is not over the battle yet: it neither is fought nor fights.
+        if (!looksAtHulls(ship, held) || ship.offMapInbound()) {
             ship.hullTarget(null);
             return;
         }
@@ -360,7 +362,7 @@ public final class WarshipShipFire {
      * mount's cooldown is this method's whenever it returns {@code true}.
      */
     boolean tickMount(float dt, WarshipSystem system, Warship ship, Warship.Mount m, List<Warship> ships) {
-        if (!looksAtHulls(ship, held) || !WarshipShipRules.mayFireAtHull(m.weapon)) {
+        if (!looksAtHulls(ship, held) || !WarshipShipRules.mayFireAtHull(m.weapon) || ship.offMapInbound()) {
             engagements.remove(m);
             return false;
         }

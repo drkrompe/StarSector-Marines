@@ -344,8 +344,12 @@ one ship leaving. Two changes, each with a control:
   neither hull-limit nor threat withdrawal applies (`-Dbattle.warship.hullFightWithdrawal=true` is the control).
   Mission-ordered withdrawals are separate and still apply. The *Greyhook*'s lift-off belongs to the mission, not
   the doctrine.
-- **Hulls coming down are unseen.** At the new range a hull still descending through the cloud deck was under fire
-  before it was out of the cloud, so it is not a hostile hull until it has come down.
+- **Hulls coming down or flying in are unseen.** At the new range a hull still descending through the cloud deck, or
+  flying in with its centre still past the map's edge, could be fired on before it was in sight. It is not a hostile
+  hull until it has come down or crossed the edge, and a ship still past the edge does not fire at hulls either.
+- **An extend runs longer.** An extend may last the hull range times its old cap, because opening a range 2.5x longer
+  takes that much longer at the same speed. A flank keeps its old cap: a longer one held a flanker on a fixed radius
+  for most of a fight.
 
 The `warship-mirrors` verdict is now "decided by a kill", with the three-turn floor kept. Start separations grew with
 reach in `warship-mirrors`, `warship-tactics` and `hull-durability`. `frigate-duel` lays its lines forty cells times
