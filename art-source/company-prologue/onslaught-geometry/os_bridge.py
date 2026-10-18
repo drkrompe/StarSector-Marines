@@ -42,6 +42,13 @@ SPINE = section(16.0, 25.0, 2.0, 2.5)
 CMD = {'x': 24.0, 'y': 0.0, 'r': 21.0, 'z0': 24.0, 'z1': 38.0}     # command dome
 AFT = {'x': -31.0, 'y': 0.0, 'r': 16.5, 'z0': 24.0, 'z1': 33.0}    # aft dome
 SPINE_TOP = 25.0
+# Human fittings in true metres, converted with the hull's scale (kit.mpu, set by
+# the driver from ship_scale): the bridge windows are a 1.4 m band of 1.1 m panes,
+# the crown hatch a 1.8 m access hatch, the aft dome's ledge hatches 0.9 x 1.4 m.
+GLAZING_M = 1.4
+PANE_M = 1.1
+CROWN_HATCH_M = 1.8
+SERVICE_HATCH_M = (.9, 1.4)
 
 # (radius fraction, height fraction) keel to crown. Repeated heights are
 # horizontal steps: the sill under the glazing and the brow's soffit over it.
@@ -156,11 +163,17 @@ def _half_at(x):
 
 def _command_dome_detail(kit, cmd):
     # The glazing: a horseshoe of glass round the forward half of the riser,
-    # framed into panes, with a sill and a head rail.
-    h0, h1 = CMD_GLAZE
+    # framed into panes, with a sill and a head rail; a band GLAZING_M tall,
+    # centred on the riser, with mullions every PANE_M.
+    centre = sum(CMD_GLAZE)/2
+    half = GLAZING_M/kit.mpu/(CMD['z1']-CMD['z0'])/2
+    h0, h1 = max(centre-half, .14), min(centre+half, .39)
+    arc = CMD['r']*CMD_RISER*math.radians(156)
+    panes = max(8, round(arc/(PANE_M/kit.mpu)))
     _glazing(kit, 'Bridge glazing', CMD, -78, 78, h0, h1)
+    step = 156/panes
     _sweep(kit, 'Bridge glazing frame', CMD,
-           [(b, [(CMD_RISER, .13), (CMD_RISER, .40)], .55, .32) for b in range(-78, 79, 12)], kit.steel)
+           [(-78+step*k, [(CMD_RISER, h0-.02), (CMD_RISER, h1+.02)], .3, .25) for k in range(panes+1)], kit.steel)
     _band(kit, 'Bridge glazing sill', CMD, CMD_RISER, h0-.012, -80, 80, .18, -.3, .35, kit.steel)
     _band(kit, 'Bridge glazing head rail', CMD, CMD_RISER, h1+.012, -80, 80, .18, -.3, .35, kit.steel)
     # Segment ribs on the cap, clear of the mast drum on the aft crown.
@@ -168,8 +181,9 @@ def _command_dome_detail(kit, cmd):
     # The crown: a dark hatch forward of the mast (the sprite's dark disc).
     hit = _ray_top([cmd], 27.5, 0)
     z = hit[0].z if hit else CMD['z1']
-    kit.cylinder('Bridge command dome hatch rim', (27.5, 0, z+.15), 2.6, .9, kit.bone, vertices=16, bevel=.08)
-    kit.cylinder('Bridge command dome hatch', (27.5, 0, z+.45), 1.9, .5, kit.dark, vertices=16, bevel=0)
+    hr = CROWN_HATCH_M/kit.mpu/2
+    kit.cylinder('Bridge command dome hatch rim', (27.5, 0, z+.15), hr+.7, .9, kit.bone, vertices=16, bevel=.08)
+    kit.cylinder('Bridge command dome hatch', (27.5, 0, z+.45), hr, .5, kit.dark, vertices=16, bevel=0)
 
 
 def _aft_dome_detail(kit):
@@ -180,7 +194,8 @@ def _aft_dome_detail(kit):
     for k in range(10):
         a = 2*math.pi*(k+.5)/10
         x, y, _ = _ring_pt(AFT, .90, .28, a, 1.15)
-        ob = kit.box(f'Bridge aft dome ledge hatch {k+1}', (x, y, zl+.05), (1.6, 2.4, .5), kit.dark, bevel=0)
+        ob = kit.box(f'Bridge aft dome ledge hatch {k+1}', (x, y, zl+.05),
+                     (SERVICE_HATCH_M[0]/kit.mpu, SERVICE_HATCH_M[1]/kit.mpu, .5), kit.dark, bevel=0)
         ob.rotation_euler[2] = math.atan2(math.sin(a), 1.15*math.cos(a))
 
 

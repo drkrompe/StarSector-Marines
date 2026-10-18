@@ -169,8 +169,10 @@ HULLS = {
     'Legion (XIV)': dict(units3=1678689, crew_max=1500, cargo=300, fuel=300, cls='capital',
                          wings=[('broadsword', 3)]*2+[('hoplon', 2)]*2, length_units=294.9, sprite_px=308,
                          fittings_units={'personnel door h': [3.4], 'rail h': [1.8], 'transfer door w x h': [34, 10]}),
-    'Onslaught': dict(units3=estimate_units3(65541, 'capital'), crew_max=1500, cargo=300, fuel=400, cls='capital',
-                      length_units=352, sprite_px=384),
+    'Onslaught': dict(units3=3419861, crew_max=1500, cargo=300, fuel=400, cls='capital',
+                      length_units=351.7, sprite_px=384,
+                      fittings_units={'bridge glazing band h': [3.11], 'bridge pane w': [2.44],
+                                      'crown hatch d': [4.00], 'service hatch w x l': [2.00, 3.11]}),
     'Lasher': dict(units3=32793, crew_max=50, cargo=40, fuel=25, cls='frigate',
                    length_units=94.7, sprite_px=96,
                    fittings_units={'viewport w x h': [1.54, 1.23], 'bridge glazing band h': [1.54]}),
@@ -180,9 +182,9 @@ HULLS = {
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
-                 'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'estimate, no model',
+                 'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)'}
-PUBLISHED = {'Legion (XIV)': .61, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .65}
+PUBLISHED = {'Legion (XIV)': .61, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .65, 'Onslaught': .45}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -204,6 +206,15 @@ SOLIDS = {
     'lasher': {'blend': '../../build/lasher/lasher.blend', 'step': .5,
                'include': lambda n: n in ('Hull bow head', 'Hull nose cap', 'Hull spine', 'Hull wing body',
                                           'Hull ventral keel')},
+    # The Onslaught's .blend is a build output (onslaught-geometry/onslaught-geometry.blend,
+    # ignored); its driver re-measures these solids on every build. Armour bands and the
+    # plating laid over the flanks, the drive pods and engine cans are excluded; the
+    # stern machinery wells are open to space and already cut out of the aft body.
+    'onslaught': {'blend': 'onslaught-geometry/onslaught-geometry.blend', 'step': 2.0,
+                  'include': lambda n: n in (
+                      'Hull prow', 'Hull core', 'Hull port arm', 'Hull starboard arm', 'Hull aft body', 'Hull tail',
+                      'Hull port aft leg', 'Hull starboard aft leg', 'Hull port waist', 'Hull starboard waist',
+                      'Bridge spine', 'Bridge command dome', 'Bridge aft dome')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},

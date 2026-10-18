@@ -40,6 +40,8 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
+import ship_scale
 import os_kit, os_hull, os_armour, os_bridge, os_machinery, os_engines, os_turrets, os_fittings
 for module in (os_kit, os_hull, os_armour, os_bridge, os_machinery, os_engines, os_turrets, os_fittings):
     importlib.reload(module)
@@ -55,26 +57,18 @@ SPRITE = 'graphics/ships/onslaught/onslaught_hegemony.png'
 SPRITE_PLAIN = 'graphics/ships/onslaught/onslaught_base.png'
 VARIANTS = ['data/variants/onslaught/onslaught_xiv_Elite.variant', 'data/variants/onslaught/onslaught_Standard.variant']
 
-# Real-world scale (pipeline pass 4, warship form). Crew and ship spaces from the
-# mod's deck program: DeckProgramProbe CAPITAL "Battleship" 750 1500 300 -> WARSHIP,
-# 30,875 m2 of rooms. The Onslaught carries no fighters, so the program's three
-# notional 3.2 m-high HANGAR rooms (2,160 m2) are dropped: 28,715 m2 x1.40
-# circulation x3.2 m = 128,643 m3 of habitable volume. The rest of the hull is
-# budgeted explicitly below; the driver re-measures the pressure hull on every
-# build and records the solved value beside the published one (scale_record).
-METRES_PER_UNIT = 0.65
-REQUIRED_M3 = 128643
-NON_HABITABLE_BUDGET = {   # share of the pressure hull, judged
-    'armour (rating 1750, the heaviest in the game; a thick, deep hull)': .20,
-    'reactors, flux plant (17,000 capacity, 600 dissipation), drive machinery': .14,
-    'twenty-four barbettes, two TPC hardpoints, magazines and hoists': .10,
-    'fuel (400), supplies and water tanks, structure, trunks': .12,
-}
-USABLE = round(1-sum(NON_HABITABLE_BUDGET.values()), 3)
-USABLE_RANGE = (.40, .48)
-PRESSURE_HULL = ['Hull prow', 'Hull core', 'Hull port arm', 'Hull starboard arm', 'Hull aft body', 'Hull tail',
-                 'Hull port aft leg', 'Hull starboard aft leg', 'Bridge spine', 'Bridge command dome', 'Bridge aft dome']
-
+# Real-world scale (pipeline pass 4), from the shared sizing basis
+# (../ship_scale.py, owner 2026-10-18): contents (1,500 crew, 300 cargo, 400 fuel)
+# over the capital machinery share, against the measured enclosed volume, the
+# union of ship_scale.SOLIDS['onslaught'] (prow, core, arms, aft body, tail,
+# legs, waists, spine and domes; never the armour and plating laid over them,
+# the drive pods or the engine cans). The driver re-measures that union on every
+# build and fails if it drifts from ship_scale.HULLS, so a shape change is
+# carried into the shared table, where it moves the solved scale for every
+# reader at once. Human fittings are sized in metres and converted (kit.mpu).
+SCALE = ship_scale.record('Onslaught')
+METRES_PER_UNIT = ship_scale.PUBLISHED['Onslaught']
+assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
 parser.add_argument('--views', default='top,starboard-side,port-side,front,stern,three-quarter,belly')
@@ -117,6 +111,7 @@ provenance = check_against_install()
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = os_kit.Kit()
+kit.mpu = METRES_PER_UNIT
 hull = os_hull.build(kit)
 os_armour.build(kit)
 os_bridge.build(kit)
@@ -295,36 +290,21 @@ def union_volume(names, step=2.0):
 
 
 def scale_record():
-    hull_u3 = union_volume(PRESSURE_HULL)
-    solve = lambda usable: (REQUIRED_M3/(usable*hull_u3))**(1/3)
+    solids = [o.name for o in scene.objects if o.type == 'MESH' and ship_scale.SOLIDS['onslaught']['include'](o.name)]
+    measured = union_volume(solids)
+    table = ship_scale.HULLS['Onslaught']['units3']
+    if abs(measured/table-1) > .02:
+        raise RuntimeError(f'enclosed volume {measured:.0f} units3 differs from ship_scale.HULLS '
+                           f"Onslaught units3 {table}: update the shared table")
     size = [round((b-a)*S, 1) for a, b in zip(LO, HI)]
-    return {
-        'method': 'warship pass 4: deck program (DeckProgramProbe CAPITAL "Battleship" 750 1500 300 -> WARSHIP, '
-                  '30875 m2) less its notional HANGAR rooms (no fighter bays): 28715 m2 x1.40 circulation x3.2 m '
-                  '= required habitable m3; solved against the habitable share of the pressure hull (union of its '
-                  'solids, measured on every build) after an explicit non-habitable budget',
-        'required_habitable_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL, 'pressure_hull_units3': round(hull_u3),
-        'non_habitable_budget': NON_HABITABLE_BUDGET, 'usable_fraction': USABLE,
-        'solved_metres_per_unit': round(solve(USABLE), 3),
-        'range': {f'{int(USABLE_RANGE[1]*100)}pct_habitable': round(solve(USABLE_RANGE[1]), 3),
-                  f'{int(USABLE_RANGE[0]*100)}pct_habitable': round(solve(USABLE_RANGE[0]), 3),
-                  'battlecarrier_33pct_for_comparison': round(solve(.33), 3),
-                  'freighter_55pct_for_comparison': round(solve(.55), 3)},
-        'published_vs_solved': round(S/solve(USABLE), 3),
-        'size_m': size, 'hull_volume_m3': round(hull_u3*S**3),
-        'real_world': {'Iowa-class battleship': '270 m, 33 m beam, about 2,700 crew in wartime',
-                       'Yamato': '263 m, 38.9 m beam, about 2,800 crew',
-                       'this hull': f'{size[0]} m long, {size[1]} m beam, {size[2]} m keel to mast, '
-                                    f'{round(hull_u3*S**3/1000)}k m3 enclosed for 750-1500 crew',
-                       'per crew at max crew m3': round(hull_u3*S**3/1500)},
-        'cross_checks_m': {'person 1.8 m in units': round(1.8/S, 2),
-                           'door 2.1 m / rail 1.1 m / hatch 2 m in units': [round(2.1/S, 1), round(1.1/S, 1), round(2/S, 1)],
-                           'main bell mouth diameter': round(2*os_engines.MOUTH_R[30]*S, 1),
-                           'large turret ring diameter': round(2*os_turrets.RING['LARGE']*S, 1),
-                           'medium turret ring diameter': round(2*os_turrets.RING['MEDIUM']*S, 1),
-                           'keel to deck at the core': round((os_hull.DECK['core']+50)*S, 1)},
-        'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
-    }
+    return {**SCALE, 'published_metres_per_unit': METRES_PER_UNIT,
+            'measured_this_build': {'enclosed_units3': round(measured), 'solids': sorted(solids),
+                                    'with_drive_pods_units3': round(union_volume(
+                                        solids+['Engine 1 drive pod', 'Engine 4 drive pod']))},
+            'size_m': size, 'person_1_8_m_in_units': round(1.8/S, 2),
+            'fittings_m': {'bridge glazing band h': os_bridge.GLAZING_M, 'bridge pane w': os_bridge.PANE_M,
+                           'crown hatch d': os_bridge.CROWN_HATCH_M, 'service hatch w x l': list(os_bridge.SERVICE_HATCH_M)},
+            'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number'}
 
 
 if not args.no_save:
@@ -338,8 +318,9 @@ if not args.no_save:
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'onslaught-geometry.blend'))
     manifest = {
-        'status': 'Pass 1 blockout: silhouette, deep curved sections, mass, slots, drives, turrets, stern machinery '
-                  'wells. Undamaged Hegemony (XIV) battleship; flat Hegemony base materials.',
+        'status': 'Pass 2 detail at mid-distance and pass 4 scale: plated deep curved hull, Hegemony armour bands, '
+                  'stern machinery wells, terraced command dome, 24 turrets on pivots, two TPC hardpoints, six '
+                  'drive units. Undamaged Hegemony (XIV) battleship; flat Hegemony base materials.',
         'hull': {
             'name': 'Onslaught (XIV)', 'skinHullId': 'onslaught_xiv', 'baseHullId': 'onslaught', 'size': 'CAPITAL_SHIP',
             'style': 'LOW_TECH', 'tech': 'XIV Battlegroup', 'designation': 'Battleship',
