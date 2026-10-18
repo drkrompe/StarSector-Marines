@@ -32,10 +32,10 @@ Each fighter at its own scale, sized from the cockpit; all six are at pass 2 det
 | Asset | Package | 1 | 2 | 3 | 4 scale | 6 texture | Next |
 |---|---|---|---|---|---|---|---|
 | Broadsword | `broadsword-geometry/` | done | done | review | done, 0.50 m/u (15.5 m) | — | Owner review |
-| Talon | `fighters-geometry/talon/` | done (signed off for now: rescaled below the Broadsword, smaller canopy) | done (IoU 0.977, unchanged) | review: pass 2 | done, 0.55 m/u (12.1 m) | — | Owner review of pass 2 (pass 3) |
-| Wasp (drone) | `fighters-geometry/wasp/` | done (signed off for now: straight arm edges, hooked claws, nose-down crouch) | done: arm-hinge and claw articulation (IoU 0.908, unchanged) | review: pass 2 | done, 0.50 m/u (9.8 m) | — | Owner review of pass 2 (pass 3) |
-| Dagger | `fighters-geometry/dagger/` | done | done (IoU 0.959, unchanged) | review: pass 2 | done, 0.50 m/u (16.4 m) | — | Owner review of pass 2 (pass 3) |
-| Longbow | `fighters-geometry/longbow/` | done | done (IoU 0.951, unchanged) | review: pass 2 | done, 0.45 m/u (15.0 m) | — | Owner review of pass 2 (pass 3) |
+| Talon | `fighters-geometry/talon/` | done (signed off for now: rescaled below the Broadsword, smaller canopy) | done (IoU 0.977, unchanged) | done (pass 2 accepted by the owner, 2026-10-18) | done, 0.55 m/u (12.1 m) | — | Texturing (pass 6) when a shot needs it |
+| Wasp (drone) | `fighters-geometry/wasp/` | done (signed off for now: straight arm edges, hooked claws, nose-down crouch) | done: arm-hinge and claw articulation (IoU 0.908, unchanged) | done (pass 2 accepted by the owner, 2026-10-18) | done, 0.50 m/u (9.8 m) | — | Texturing (pass 6) when a shot needs it |
+| Dagger | `fighters-geometry/dagger/` | done | done (IoU 0.959, unchanged) | done (pass 2 accepted by the owner, 2026-10-18) | done, 0.50 m/u (16.4 m) | — | Texturing (pass 6) when a shot needs it |
+| Longbow | `fighters-geometry/longbow/` | done | done (IoU 0.951, unchanged) | done (pass 2 accepted by the owner, 2026-10-18) | done, 0.45 m/u (15.0 m) | — | Texturing (pass 6) when a shot needs it |
 | Thunder | `fighters-geometry/thunder/` | done (signed off for now: follows the asymmetric sprite) | done (IoU 0.956, unchanged) | review: pass 2 | done, 0.45 m/u (18.5 m) | — | Owner review of pass 2 (pass 3) |
 
 The common-scale lineup is `fighters-geometry/lineup.png`. Hoplon is out of
