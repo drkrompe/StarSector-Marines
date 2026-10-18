@@ -1428,6 +1428,8 @@ public final class Warship {
     private MapEdge entryEdge;
     private boolean enteringAcrossEdge;
     private float edgeEntrySeconds;
+    private float entryMapWidth;
+    private float entryMapHeight;
     private MapEdge exitEdge;
     private boolean edgeEscape;
     /** A hull flying in across an edge stops counting as entering after this long, wherever it has got to. */
@@ -1464,6 +1466,8 @@ public final class Warship {
         float in = lengthCells + new WarshipEdgeHelm(mapWidth, mapHeight).margin(this) + lengthCells;
         stationTo(x + nx * in, y + ny * in);
         entryEdge = edge;
+        entryMapWidth = mapWidth;
+        entryMapHeight = mapHeight;
         enteringAcrossEdge = true;
         edgeEntrySeconds = 0f;
     }
@@ -1471,6 +1475,18 @@ public final class Warship {
     /** Whether the ship is flying in across its edge and has not yet cleared its margin ({@link #enterAcrossEdge}). */
     public boolean enteringAcrossEdge() {
         return enteringAcrossEdge;
+    }
+
+    /**
+     * Whether the ship is flying in across its edge with its centre still off the map: not yet over the battle,
+     * so it neither is fought nor fights a hull. At hull-fight ranges guns reach past the edge, and a hull there would
+     * otherwise trade fire before it had crossed into sight.
+     */
+    public boolean offMapInbound() {
+        if (!enteringAcrossEdge) return false;
+        float cx = centerX();
+        float cy = centerY();
+        return cx < 0f || cy < 0f || cx > entryMapWidth || cy > entryMapHeight;
     }
 
     /** The edge the ship flew in across, or {@code null} for one that did not come on that way. */
@@ -2070,6 +2086,21 @@ public final class Warship {
             }
         }
     }
+
+    /**
+     * Sets the flux pair for what the ship is doing: fighting a hull it spends its pool as the hull table allows
+     * ({@link WarshipFlux#SOFT_LIMIT} and {@link WarshipFlux#RESUME_LEVEL}), whatever its posture would keep back for
+     * the air or the ground; otherwise its posture's pair. A duel between warships fought on half a pool is a duel of
+     * shields that never give.
+     */
+    void fluxFooting(boolean fightingHull) {
+        if (fightingHull && HULL_FIGHT_FOOTING) flux.thresholds(WarshipFlux.SOFT_LIMIT, WarshipFlux.RESUME_LEVEL);
+        else flux.thresholds(profile.softLimit(), profile.resumeLevel());
+    }
+
+    /** {@code -Dbattle.warship.hullFightFooting=false} is the control: a hull fight keeps the posture's flux pair. */
+    static final boolean HULL_FIGHT_FOOTING =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.hullFightFooting"));
 
     /** Takes {@code next}, with the sentence that explains it. A change restarts the clock and counts as a transition. */
     void setPosture(WarshipPosture next, String reason) {

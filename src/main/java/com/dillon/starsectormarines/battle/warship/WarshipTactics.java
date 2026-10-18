@@ -60,7 +60,7 @@ public final class WarshipTactics {
     /** An extend lasts at least this long. */
     static final float EXTEND_MIN_SECONDS = 6f;
     /** And at most this long. */
-    static final float EXTEND_MAX_SECONDS = 25f;
+    static final float EXTEND_MAX_SECONDS = 25f * WarshipScale.HULL_RANGE;
     /** A come-about ends once the nose is this close to where its next run wants it. */
     static final float COME_ABOUT_DONE_DEGREES = 20f;
     /** And never lasts longer than this. */
@@ -311,10 +311,11 @@ public final class WarshipTactics {
         m.heading = Float.NaN;
         m.speedShare = 1f;
         if (!ENABLED || m.role == Role.NONE || m.target != target) return null;
-        float reach = Math.max(1f, WarshipShipFire.longestReach(ship));
+        // A ship fights where its battery bears, not only its longest gun; it clears the target's longest gun.
+        float reach = Math.max(1f, WarshipDuelHelm.batteryReach(ship));
         float theirs = WarshipShipFire.longestReach(target);
         float range = (float) Math.hypot(target.centerX() - ship.centerX(), target.centerY() - ship.centerY());
-        float standoff = WarshipDuelHelm.preferredRange(WarshipDuelHelm.reach(ship), WarshipDuelHelm.reach(target),
+        float standoff = WarshipDuelHelm.preferredRange(reach, WarshipDuelHelm.batteryReach(target),
                 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
         boolean bow = WarshipDuelHelm.bowFighter(ship);
         float toTarget = WarshipFacing.bearing(ship.centerX(), ship.centerY(), target.centerX(), target.centerY());

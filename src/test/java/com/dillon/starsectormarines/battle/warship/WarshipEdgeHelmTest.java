@@ -45,6 +45,18 @@ class WarshipEdgeHelmTest {
     }
 
     @Test
+    void aShipThePressureLeavesAloneIsStillHeldOnTheMap() throws Exception {
+        Warship placed = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, 150f, 0f, 0f);
+        placed.stationTo(150f, 116f);
+        placed.y -= placed.centerY() + 2f;
+        placed.velocityY = -placed.maxSpeed;
+        assertFalse(WarshipEdgeHelm.applies(placed), "not fighting a hull: no pressure");
+        MAP.contain(placed);
+        assertEquals(0f, placed.centerY(), 1e-4f, "held on the edge it does not own");
+        assertTrue(placed.velocityY >= 0f, "its way off cut");
+    }
+
+    @Test
     void theMarginIsATurningCircleOrAFewLengthsAndNeverMostOfTheMap() throws Exception {
         Warship hound = hound(150f, 116f);
         float margin = MAP.margin(hound);
@@ -119,6 +131,17 @@ class WarshipEdgeHelmTest {
         assertTrue(hound.stationX() > 300f, "for the east edge and past it: " + hound.stationX());
         assertEquals(116f, hound.stationY(), 1e-3f);
         assertFalse(WarshipEdgeHelm.applies(hound));
+    }
+
+    @Test
+    void aHullLeavingAcrossItsEdgeIsHeldOffTheOthers() throws Exception {
+        Warship hound = hound(290f, 116f);
+        hound.leaveAcrossEdge(MapEdge.EAST, 300f, 232f);
+        hound.y -= hound.centerY() + 2f;
+        hound.x += 320f - hound.centerX();
+        MAP.contain(hound);
+        assertEquals(0f, hound.centerY(), 1e-4f, "held off the south edge");
+        assertEquals(320f, hound.centerX(), 1e-4f, "free across its own");
     }
 
     @Test

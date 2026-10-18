@@ -434,6 +434,30 @@ def _mount_frame(x, y, angle, r):
         p, n = Vector((x, y, 10.0)), Vector((0, 0, 1))
     else:
         _, p, n = h
+        # Lean with the ground the ring covers, not the facet under its centre: a mount on a
+        # terrace's crest or shoulder tilts down the slope (a plane fitted through the hull
+        # under its rim), so it is not left level on the crest with the slope falling away
+        # under one side. A sponson (a cliff under part of the rim) is not refitted.
+        pts = []
+        for k in range(12):
+            a = 2*math.pi*k/12
+            q = _hit((x+1.05*r*math.cos(a), y+1.05*r*math.sin(a), 150), (0, 0, -1))
+            if q is not None and p.z-q[1].z < SKIRT_MAX*.6:
+                pts.append(q[1])
+        if len(pts) == 12:      # an edge mount (a cliff under part of its rim) keeps the centre's normal
+            sx = sum(q.x-x for q in pts); sy = sum(q.y-y for q in pts); sz = sum(q.z for q in pts)
+            xx = sum((q.x-x)**2 for q in pts); yy = sum((q.y-y)**2 for q in pts)
+            xy = sum((q.x-x)*(q.y-y) for q in pts)
+            xz = sum((q.x-x)*q.z for q in pts); yz = sum((q.y-y)*q.z for q in pts)
+            m = len(pts)
+            # Normal equations of z = a dx + b dy + c (centred, so the cross terms are small).
+            from mathutils import Matrix as _M
+            A = _M(((xx, xy, sx), (xy, yy, sy), (sx, sy, m)))
+            try:
+                a_, b_, _ = A.inverted() @ Vector((xz, yz, sz))
+                n = Vector((-a_, -b_, 1)).normalized()
+            except ValueError:
+                pass
     up = Vector((0, 0, 1))
     tilt = math.degrees(n.angle(up))
     if tilt > MAX_TILT:
@@ -454,16 +478,22 @@ def _mount_frame(x, y, angle, r):
     return p+n*lift, basis, depth
 
 
-SKIRT_FLARE = 1.0    # outward run of a skirt per unit of drop (45 deg from the deck)
-SKIRT_MAX = 14.0     # a deeper drop is a cliff (a well, a tier's face): the skirt drops straight
+SKIRT_MAX = 14.0     # a deeper drop is a cliff (a well, a tier's face): no glacis follows it down
+GLACIS_RUN = 1.35    # outward run of a glacis per unit of drop at the collar (about 36 deg)
+GLACIS_RINGS = 5     # rings across a glacis, each laid on the hull under it
+CLIFF = 1.2          # drop per unit run steeper than this (about 50 deg) is a cliff, not a slope
+GLACIS_T = .9        # glacis plate thickness standing over the hull at its toe
 
 
 def _skirt(origin, basis, r, n=16):
-    """Per-angle foot of a barbette's skirt, in the mount's frame: (radius, z). Where the hull
-    falls away from the rim the skirt flares down to it as a sloped armour apron, so a mount on
-    a tier's edge is carried by an emplacement rather than standing on a drum. The
-    flare is smoothed round the ring so neighbouring angles never alternate into spikes.
-    Where even the flare finds no hull (a cliff), the collar is undercut back into the hull."""
+    """Per-angle glacis of a barbette, in the mount's frame: a list of (radius, z) from the
+    collar's lip outward and down. A mount on a slope or a terrace edge must never stand on a
+    drum (the owner's "puck"): where the hull falls away from the rim the barbette runs out
+    and down to it as an armoured glacis LAID ON the surface, its thickness tapering from the
+    lip to nothing at its toe, so it follows a terrace's curve rather than standing over it.
+    The run is smoothed round the ring so neighbouring angles never alternate into spikes.
+    Where the hull falls away as a cliff (a well, a gallery's side) the glacis stops at the
+    edge and the collar tucks back under it as a sponson's bracket."""
     xa, ya, nz = basis.col[0], basis.col[1], basis.col[2]
     r0 = 1.06*r
 
@@ -475,40 +505,65 @@ def _skirt(origin, basis, r, n=16):
     angles = [2*math.pi*(k+.5)/n for k in range(n)]
     d0 = [drop(r0, a) for a in angles]
     ext = []
-    for a, d in zip(angles, d0):
-        if d is None or d > SKIRT_MAX or d <= 1.5:
-            ext.append(0.0)
-            continue
-        e = SKIRT_FLARE*d
-        d2 = drop(r0+e, a)                      # the hull may fall further under the flare
-        if d2 is not None and d2 <= SKIRT_MAX:
-            e = SKIRT_FLARE*max(d, d2)
-        ext.append(e)
-    w = (.1, .2, .4, .2, .1)                    # circular smoothing of the flare
+    for d in d0:
+        ext.append(0.0 if d is None or d > SKIRT_MAX or d <= .9 else min(1.25*r, max(.3*r, GLACIS_RUN*d)))
+    w = (.1, .2, .4, .2, .1)                    # circular smoothing of the run
     ext = [sum(w[j]*ext[(k+j-2) % n] for j in range(5)) for k in range(n)]
-    feet = []
+    prof = []
     for k, a in enumerate(angles):
-        rad = r0+ext[k]
-        d = drop(rad, a) if ext[k] > .3 else d0[k]
-        if d is None or d > SKIRT_MAX:
-            # Past the flare the hull falls away (a well, a gallery's side): undercut the
-            # collar back into the hull like a sponson's bracket instead of hanging a cup.
-            d = min(d0[k] if d0[k] is not None else SKIRT_MAX, SKIRT_MAX)
-            rad = .6*r if d > 1.5 else r0
-        feet.append((rad, -(d+.8)))
-    zs = [sum(w[j]*feet[(k+j-2) % n][1] for j in range(5)) for k in range(n)]
-    return [(rad, min(z, zk)) for (rad, z), zk in zip(feet, zs)]     # smoothed, never lifted off the hull
+        e = ext[k]
+        if e < .12*r:
+            # Flat under the rim: the collar is simply sunk into the deck.
+            d = d0[k] if d0[k] is not None and d0[k] <= SKIRT_MAX else (SKIRT_MAX if d0[k] is not None else 6.0)
+            prof.append([(r0, -(max(d, 0.0)+.8))]*GLACIS_RINGS)
+            continue
+        if d0[k] is None or d0[k] > CLIFF*r0:
+            # The hull falls away steeply right at the rim (a gallery's side, a tier's face): a
+            # sponson. A short lip, then the underside closes in to the hull as a bracket cone.
+            prof.append([(r0*(1-.08*i*i/2), -1.2-1.6*i) for i in range(GLACIS_RINGS)])
+            continue
+        ring, last = [], (r0, d0[k])
+        for j in range(GLACIS_RINGS):
+            u = (j+1)/GLACIS_RINGS
+            rad = r0+u*e
+            d = drop(rad, a)
+            if d is None or d > SKIRT_MAX or d > last[1]+CLIFF*(rad-last[0])+.5:
+                # Off the hull or over a cliff: the glacis ends on a short face at the edge
+                # (against the cliff, never out over it); the underside closes in as a bracket.
+                ring += [(last[0], -(max(last[1], 0.0)+1.2+.4*i)) for i in range(GLACIS_RINGS-j)]
+                break
+            # A plate laid on the hull: its top runs straight from the lip (z -.5) toward the
+            # surface but never closer to it than one plate's thickness, and its toe steps down
+            # into the hull, so the glacis ends on a clean armour edge, not a feathered seam.
+            z = (1-u)*-.5+u*(-d+GLACIS_T)
+            ring.append((rad, max(z, -d+GLACIS_T) if u < 1 else -d-1.2))
+            last = (rad, d)
+        prof.append(ring)
+    # Smooth each ring round the barbette (a glacis angle beside a sponson angle must not
+    # alternate into spikes); a smoothed point may sink, never rise off the hull.
+    out = []
+    for k in range(n):
+        ring = []
+        for j in range(GLACIS_RINGS):
+            nb = [prof[(k+i) % n][j] for i in (-1, 0, 1)]
+            rad = .25*nb[0][0]+.5*nb[1][0]+.25*nb[2][0]
+            z = min(nb[1][1], .25*nb[0][1]+.5*nb[1][1]+.25*nb[2][1])
+            ring.append((rad, z))
+        out.append(ring)
+    return out
 
 
-def _collar(kit, sid, mount, r, depth, feet=None):
-    """The fixed barbette: a low collar against the hull; where the hull falls away under its
-    rim the skirt runs down to it (see _skirt). Built in the mount's frame."""
-    n = len(feet) if feet else 18
-    if not feet:
-        feet = [(1.06*r, -depth)]*n
-    rings = [[(.25*r, min(z for _, z in feet)-1.0)]*n, feet, [(1.06*r, min(-.5, z+.3) if rad > 1.07*r else -.5)
-                                                             for rad, z in feet],
-             [(1.06*r, .05*r)]*n, [(1.0*r, .12*r)]*n, [(.93*r, .16*r)]*n]
+def _collar(kit, sid, mount, r, depth, prof=None):
+    """The fixed barbette: a low collar against the hull, and where the hull falls away under its
+    rim, the glacis laid down the slope to meet it (see _skirt). Built in the mount's frame."""
+    n = len(prof) if prof else 18
+    if not prof:
+        prof = [[(1.06*r, -depth)]*GLACIS_RINGS]*n
+    low = min(min(z for ring in prof for _, z in ring), -.6*SKIRT_MAX)   # deep enough to close a bracket
+    rings = [[(.25*r, low-1.0)]*n]
+    for j in reversed(range(GLACIS_RINGS)):
+        rings.append([prof[i][j] for i in range(n)])
+    rings += [[(1.06*r, -.5)]*n, [(1.06*r, .05*r)]*n, [(1.0*r, .12*r)]*n, [(.93*r, .16*r)]*n]
     verts, faces = [], []
     for ring in rings:
         verts += [(rad*math.cos(2*math.pi*(i+.5)/n), rad*math.sin(2*math.pi*(i+.5)/n), z)

@@ -114,10 +114,12 @@ Turrets (geometry.json 'weapon_slots')
   arc 160 about -20 deg, so it can lay on Second Wind at -90) is the one
   flagged keyable_for_c2. The geometry is the shared turret kit's
   (turret-kit/turret_kit.py): guns elevate on 'Weapon <slot> elevation',
-  barrels recoil on 'Weapon <slot> recoil <k>', the Vulcans' barrels spin on
-  'Weapon <slot> rotor', and 'Weapon <slot> muzzle anchor <k>' marks each
+  barrels recoil on 'Weapon <slot> recoil <k>' (the Vulcans' pair
+  alternately), and 'Weapon <slot> muzzle anchor <k>' marks each
   bore or missile. Each barbette's foot runs down to the lowest deck under
-  its ring (turret-kit/check_seating.py finds none floating).
+  its ring (turret-kit/check_seating.py finds none floating). A barbette is
+  seated on the deck at its slot's centre and lifted only as far as its own
+  clash test needs, so a mount beside a belt is not stood on a belt-high drum.
   The c2-lit views render the C2 cameras under studio light for review; the
   plain c2 views keep the shot's own dark lighting.
 

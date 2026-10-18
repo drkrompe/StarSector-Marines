@@ -143,7 +143,8 @@ def build(kit):
     _from(kit, 'Light stern 1', (-200, 0, 8), (1, 0, 0), WHITE, 'stern', 3.0, 1.5, mats)
 
 
-EDGE_X = (180, 140, 100, 60, 20, -4)     # stations of the white edge line along each arm
+EDGE_X = (180, 140, 100, 60, 20, -14)    # stations of the white edge line along each arm (the last
+                                        # aft of the WS 010/011 flak sponson, not under it)
 EDGE_DEG = 35.0                         # the deck edge is the arm's extreme point this far off vertical
 
 

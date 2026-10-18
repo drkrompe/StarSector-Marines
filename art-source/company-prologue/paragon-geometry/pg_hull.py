@@ -34,7 +34,12 @@ LINING_R = 76.0
 LINING_TOP = 24.0
 # Main ring section (r, z), closed: inner face above the lining, flat top,
 # outer glacis down into the belt; mirrored below.
-MAIN_RING = [(74, -30), (78, -36), (100, -36), (124, -16), (124, 16), (100, 36), (78, 36), (74, 31)]
+MAIN_RING = [(74, -30), (78, -36), (100, -36), (130, -14), (130, 24), (127, 27.5), (99, 28.5), (96, 36), (78, 36),
+             (74, 31)]
+# The gun shelf: the main ring's outer course (r 99-130) steps down to a level
+# shelf at z ~28 below the ring's crown (36). The big beam turrets and the beam
+# mediums sit level on it with the ring's crown behind them, outside their arcs,
+# and the shelf edge is the sprite's light arc round the ring.
 BELT_HOLE_R = 100.0
 BELT_TOP = [(0, 2), (5, 12), (24, 19), (50, 22)]
 BELT_BOT = [(0, -4), (5, -14), (24, -21), (50, -24)]
@@ -125,14 +130,18 @@ def build(kit):
                                                              (LINING_R, LINING_TOP), (BORE_R, LINING_TOP)],
                                    (*BORE_C, 0), kit.tech, segments=96)
     # Prow.
-    parts['prow'] = K.profile_mass(kit, 'Hull prow', symmetric(GRILLE), [(0, 8), (3, 22), (10, 26)],
+    parts['prow'] = K.profile_mass(kit, 'Hull prow', symmetric(GRILLE), [(0, 8), (3, 20), (10, 23)],
                                    [(0, -6), (3, -20), (10, -24)], mat=kit.pale, step=2.0)
     hardpoint_bays(kit, parts['prow'])
-    parts['bow module'] = K.profile_mass(kit, 'Hull bow module', symmetric(BOW_MODULE), [(0, 20), (3, 30), (8, 34)],
+    parts['bow module'] = K.profile_mass(kit, 'Hull bow module', symmetric(BOW_MODULE), [(0, 14), (3, 21), (8, 24)],
                                          [(0, -10), (8, -20)], mat=kit.white, step=2.0)
     for side, label in ((1, 'port'), (-1, 'starboard')):
         parts['horn '+label] = K.profile_mass(kit, f'Hull {label} bow horn', K.ccw([(x, y*side) for x, y in HORN]),
-                                              [(0, 6), (4, 22), (14, 30)], [(0, -6), (4, -18), (14, -24)],
+                                              [(0, 6), (4, 21), (7, 24)], [(0, -6), (4, -18), (14, -24)],
+                                              mat=kit.skin, step=2.0)
+        # The bow-quarter armour lobe outside the groove: a raised shell for WS 011/017.
+        parts['lobe '+label] = K.profile_mass(kit, f'Hull {label} bow lobe', lobe_plan(side),
+                                              [(0, 8), (4, 24), (6, 26)], [(0, -8), (4, -18), (10, -22)],
                                               mat=kit.skin, step=2.0)
     # Command deck, gantry and aft body.
     # The gantry the deck stands on: dark machinery under and just outside the
@@ -165,14 +174,13 @@ def build(kit):
                                              [(0, -6), (5, -20), (20, -28)], mat=kit.skin)
     kit.hull += [p for k, p in parts.items()]
     for side, label in ((1, 'port'), (-1, 'starboard')):
-        rib(kit, f'Hull {label} aft rib', [(x, y*side) for x, y in RIB], 5.0, 3.0)
         bow_groove(kit, [parts['belt'], parts['main ring']], side, label)
     for side, label in ((1, 'port'), (-1, 'starboard')):
         x, y = REACTOR[0], REACTOR[1]*side
         z = kit.surface(x, y)[0].z
         K.revolve(kit, f'Hull {label} reactor well', [(0, -6), (15, -6), (15, .6), (0, .6)], kit.tech,
                   center=(x, y, z), segments=48, smooth=False)
-        K.revolve(kit, f'Hull {label} reactor dome', [(0, 0), (8.5, 0), (8, 2.5), (6.5, 5), (4, 6.6), (0, 7.2)],
+        K.revolve(kit, f'Hull {label} reactor dome', [(0, -1.5), (8.5, -1.5), (8, 1.2), (6, 3.2), (3, 4.3), (0, 4.6)],
                   kit.white, center=(x, y, z+.6), segments=48, smooth=False)
     return parts
 
@@ -205,9 +213,6 @@ def hardpoint_bays(kit, prow):
             kit.box(f'Hull prow {side_name} bay {part}', loc, dims, kit.tech, 0)
 
 
-# The raised rib the sprite draws as a light arc, from the big beam turret's well
-# round to the pod: a structural tie between the main ring and the drive pod.
-RIB = [(-8, 96), (-26, 101), (-46, 105), (-66, 107), (-86, 106), (-100, 103)]
 # The groove between the main ring and the bow-quarter armour lobes (the sprite's
 # dark arc at r 114-122): angles from the bow, measured about the bore centre.
 GROOVE = dict(r0=114.0, r1=122.0, a0=16.0, a1=50.0, width=4.5, depth=6.0)
@@ -252,3 +257,25 @@ def bow_groove(kit, targets, side, label):
         K.boolean(t, cut)
     fl = [(x, y, floor+.4) for x, y in plan]+[(x, y, floor-2) for x, y in plan]
     kit.mesh(f'Hull {label} bow groove', fl, faces, kit.tech, 0, False)
+
+
+def lobe_plan(side):
+    """The bow-quarter lobe: from the groove's outer edge out to the hull outline, over the groove's angles."""
+    g = GROOVE
+    inner, outer = [], []
+    for k in range(13):
+        t = k/12
+        a = math.radians(g['a0']-2+(g['a1']+4-(g['a0']-2))*t)
+        r = g['r0']+(g['r1']-g['r0'])*t+g['width']/2+.5
+        x, y = BORE_C[0]+r*math.cos(a), BORE_C[1]+r*math.sin(a)
+        inner.append((x, y))
+        # March outward to the outline along the same bearing.
+        rr = r
+        while True:
+            xx, yy = BORE_C[0]+(rr+1)*math.cos(a), BORE_C[1]+(rr+1)*math.sin(a)
+            if abs(yy) > half_width(xx)-1.5:
+                break
+            rr += 1
+        outer.append((BORE_C[0]+rr*math.cos(a), BORE_C[1]+rr*math.sin(a)))
+    plan = inner+list(reversed(outer))
+    return K.ccw([(x, y*side) for x, y in plan])

@@ -54,7 +54,7 @@
     "size_m": [
       16.4,
       12.1,
-      2.3
+      3.1
     ],
     "canopy": {
       "length_m": 3.1,
@@ -71,6 +71,25 @@
       }
     ]
   },
+  "parked_check": {
+    "feet": [
+      "Hull port main gear pad",
+      "Hull starboard main gear pad",
+      "Hull tail gear pad"
+    ],
+    "deck_plane_units": {
+      "z0": -3.4,
+      "dz_dx": 0.0,
+      "dz_dy": 0.0
+    },
+    "stance_pitch_deg_nose_down": 0.0,
+    "stance_roll_deg": 0.0,
+    "foot_level_spread_m": 0.0,
+    "lowest_other_part": "Hull port main gear piston",
+    "deck_clearance_m": 0.1,
+    "lowest_body_part": "Wing port tip fin",
+    "body_clearance_m": 0.449
+  },
   "sprite": {
     "size": [
       26,
@@ -86,7 +105,7 @@
     "min": [
       -15.15,
       -10.05,
-      -1.7
+      -3.4
     ],
     "max": [
       17.7,
@@ -96,7 +115,7 @@
     "size": [
       32.85,
       24.1,
-      4.5
+      6.2
     ]
   },
   "root": {
@@ -185,14 +204,15 @@
     "Unequal wings as the sprite draws them: port pylon (Y 7..8) to a pod (Y 8..12) carrying the cream torpedo store, then a strut (Y 12..13) to a tip fin (Y 13..14); starboard a stub (Y -9..-6) to a tip fin (Y -10..-9).",
     "WS 001 (ENERGY, HIDDEN, unfitted on dagger_Bomber) anchors on the cockpit body's front face at the notch root (2, 0). WS 002 (MISSILE, HIDDEN, atropos_single) anchors in the open notch at (7, 0); no launcher is modelled there because the sprite draws none. The visible ordnance is the painted port store, modelled as Weapon WS 002 port torpedo store on the port pod: presentation only, the game launches from (7, 0).",
     "Engine slot (-13, 0), width 12: the 12-unit drive block (X -7..-15, |Y| <= 6) is the drive unit. Its bell sits on the block's aft face at X -15.15, 2.15 units aft of the slot, because the sprite closes the tail there; the Engine 1 centre exhaust anchor is at that mouth. No renderEngineOffsetsNativePx is listed for the Dagger.",
-    "Pass 2 (detail read off master-v2, sized in metres at 0.5 m/unit): each prong carries the master's slatted vent behind its tip, a small sensor blister ahead of it and seams at its tip cap and root. The unfitted WS 001 energy mount is a closed aperture (bright ring, dark iris) on the body's front face at the notch root. The canopy has a sill, windscreen arch and bow; the body the master's flank intakes and plate seams. The drive block carries the master's dorsal grille, a blade antenna, a collar rib ahead of the lip and a centre body with stator vanes in its bell. The cream store gets joint bands, cruciform tail fins, a seeker window and two sway braces to its pod; the fins and stub carry vents and seams."
+    "Pass 2 (detail read off master-v2, sized in metres at 0.5 m/unit): each prong carries the master's slatted vent behind its tip, a small sensor blister ahead of it and seams at its tip cap and root. The unfitted WS 001 energy mount is a closed aperture (bright ring, dark iris) on the body's front face at the notch root. The canopy has a sill, windscreen arch and bow; the body the master's flank intakes and plate seams. The drive block carries the master's dorsal grille, a blade antenna, a collar rib ahead of the lip and a centre body with stator vanes in its bell. The cream store gets joint bands, cruciform tail fins, a seeker window and two sway braces to its pod; the fins and stub carry vents and seams.",
+    "Pass 3 rework (owner, 2026-10-18: \"bend its wings\" and \"a 3 point landing gear, centralized in the hull\"): the wings are an inverted gull, dropping 30 degrees (port pylon and strut) and 25 (starboard stub) from the prongs' outer wall, with the port pod and store hanging level below the hull; the prongs droop at their tips and their decks fall 6 degrees outward; the drive block swells along its middle; the keel chamfers are deeper. It lands on three oleo legs inside the hull's plan, one under each prong root and one under the drive block, and stands level. The plan view is unchanged."
   ],
   "cameras": {
     "top": {
       "position": [
         1.0,
         2.0,
-        136.0
+        135.7009735107422
       ],
       "orthographic_scale": 51.768888888888895
     },
@@ -200,7 +220,7 @@
       "position": [
         1.0,
         138.0,
-        0.0
+        -0.2990255355834961
       ],
       "orthographic_scale": 44.06250047683716
     },
@@ -208,17 +228,25 @@
       "position": [
         137.0,
         2.0,
-        0.0
+        -0.2990255355834961
       ],
-      "orthographic_scale": 33.800000000000004
+      "orthographic_scale": 49.4
     },
     "three-quarter": {
       "position": [
         89.4000015258789,
         100.5999984741211,
-        68.0
+        67.70097351074219
       ],
-      "orthographic_scale": 49.3
+      "orthographic_scale": 57.8
+    },
+    "parked": {
+      "position": [
+        82.5999984741211,
+        117.5999984741211,
+        18.40097427368164
+      ],
+      "orthographic_scale": 68.0
     }
   },
   "closeup_cameras": {
@@ -276,9 +304,9 @@
     }
   },
   "object_count": {
-    "meshes": 80,
+    "meshes": 95,
     "empties": 4,
-    "pass2_detail_meshes": 64
+    "pass2_detail_meshes": 79
   },
   "silhouette": {
     "iou": 0.9589,

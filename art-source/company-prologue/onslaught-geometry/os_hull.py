@@ -111,6 +111,15 @@ GALLERY_TOP = 17.0                # the arm galleries (os_arms)
 PROW_GALLERY_TOP = 31.5           # the prow gallery top tier, climbing aft to the spine glacis
 TERRACE_TOP = 36.0
 INNER_TOP = 40.0
+# The citadel's gun shelves (port plans, mirrored): the aft shelf under WS 014/015 and
+# the beam shelves under WS 022/023, each cut down from TERRACE_TOP with a battered riser
+# (SHELF_BATTER in over SHELF_BATTER up). Plans are the risers' tops; their feet lie
+# SHELF_BATTER inside, clear of each mount's footing ring.
+SHELF_BATTER = 5.0
+AFT_SHELF = [(4.0, 9.0), (4.0, 80.0), (-40.0, 80.0), (-40.0, 9.0)]
+AFT_SHELF_Z = TERRACE_TOP-2.0
+BEAM_SHELF = [(25.0, 28.0), (25.0, 80.0), (-9.0, 80.0), (-9.0, 28.0)]
+BEAM_SHELF_Z = TERRACE_TOP-5.0
 INNER_C = (24.0, 0.0)            # the inner tier is centred under the command tower
 INNER_R2 = 25.0
 
@@ -304,15 +313,21 @@ def fore_section(x):
 # carries on from the prow's forefoot in straight runs: down from X 170, level
 # under the citadel, up to the stern. From ahead it is the wedge between the arms.
 BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 60), (0, 63), (-22, 62), (-40, 52),
-           (-58, 42), (-72, 33), (-80, 20), (-84, 6)]
-# Round 4 (owner: below the deck the side read as one long lozenge): the belly is
-# deepest forward, a CHEST under the glacis (X 124..80) whose face drops steeply
-# below the arms' keels (X 140..124) and whose forefoot runs on up to the prow; from the chest a straight keel line
-# rises gently aft and then, aft of the citadel, sweeps up to the stern.
-BELLY_KEEL = [(168, -26.0), (140, -46.0), (124, -60.0), (100, -62.0), (80, -62.0), (-24, -46.0), (-60, -33.0),
-              (-84, -22.0)]
-BELLY_STATIONS = [170, 168, 150, 140, 128, 124, 104, 100, 80, 66, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, -40, -58, -60, -72,
-                  -80, -84]
+           (-52, 46), (-64, 38)]
+# Round 5 (owner: "the central body doesn't need to be as strangely elongated down
+# under the ship"; critic: the belly's after face was a blank V wall under the stern
+# with strakes hanging off it). The keel line is four straight runs meeting on hard
+# knuckles, no deeper than the chest needs to be (-50, about a deck's depth under
+# the arms' keels): the FOREFOOT runs straight down and aft from the prow's keel
+# (X 168) to the chest knuckle (X 128), so the stem leads; the CHEST keel runs level
+# under the glacis to X 88; the keel then rises gently aft under the citadel to the AFT
+# KNUCKLE at X -40, where the belly's after end sweeps up steeply (about 30 deg)
+# into the aft body's keel (-32, os_stern) and ends buried in it, so from astern
+# the belly is a short sloped counter running into the stern, not a hanging wall.
+BELLY_KNUCKLE_X = -40.0
+BELLY_KEEL = [(168, -26.0), (128, -50.0), (88, -50.0), (BELLY_KNUCKLE_X, -40.0), (-64, -29.0)]
+BELLY_STATIONS = [170, 168, 150, 128, 104, 88, 80, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, BELLY_KNUCKLE_X,
+                  -52, -64]
 
 
 def belly_section(x):
@@ -397,6 +412,19 @@ def build(kit):
     # Its back is raked down toward the core's aft face over the machinery wells,
     # a sloped armour step rather than a sheer wall.
     plane_cut(tiers[-1], 'citadel aft rake', (-14.0, 0, TERRACE_TOP), facet_normal((-1, 0), 55))
+    # Round 5 (owner: "turrets against the hull ... not all on one plane"; critic: the
+    # tier turrets all sat on one height ring): the citadel's top is terraced where its
+    # guns fall, so each mount stands on its own shelf and the drum reads as stepped
+    # armour, not a plate. The drivers (WS 012/013) keep the forward top (36), the
+    # heavy autocannon (WS 014/015) stand on an aft shelf one step down, and the
+    # Typhoons (WS 022/023) on beam shelves let into the drum's flanks another step
+    # down. Every riser is a battered plate (45 deg), so the steps read as armour.
+    for s in (1, -1):
+        for tag, plan, floor in (('aft', AFT_SHELF, AFT_SHELF_Z), ('beam', BEAM_SHELF, BEAM_SHELF_Z)):
+            pl = ccw([(x, s*y) for x, y in plan])
+            cutter = prism(kit, f'Temporary citadel {tag} shelf cutter', pl,
+                           [(SHELF_BATTER, floor), (0.0, floor+SHELF_BATTER), (0.0, 60.0)], kit.plate, bevel=0)
+            boolean(tiers[1], cutter)
     tiers.append(prism(kit, 'Hull core inner terrace', disc(*INNER_C, INNER_R2, 16),
                        [(0.0, TERRACE_TOP-2.0), (0.0, TERRACE_TOP), (2.5, INNER_TOP-.8), (3.3, INNER_TOP)],
                        kit.plate, bevel=.2))
