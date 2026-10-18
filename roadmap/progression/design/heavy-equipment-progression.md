@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — tuned on headless readings: engines carry mass, military sink 120, Sirocco rated 36, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — the heavy cannon is balanced as equipment (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -128,7 +128,7 @@ budget). The ladder, tuned on headless readings (below):
 | Heat sink (AMMO_RESERVE) | Factory: 100 heat, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
 | Cooler (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
 
-Rated output is Hound 20, Sirocco 36, Bulwark 46 (stock weapons weigh 16, 30 and
+Rated output is Hound 20, Sirocco 39, Bulwark 46 (stock weapons weigh 16, 39 and
 40); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
 and roughly the old cooling: Bulwark 950 / 1.15 / 120 heat at 8.5/s, Sirocco 400 /
 1.45 at 8/s, Hound 500 / 1.70 at 7/s. The trade is room: the Hound's two-cell
@@ -199,12 +199,95 @@ against 100. It still beats the double-sink refit by about 9%. Cutting its
 cooling to 7.5 would make it buy nothing, and a harsher military-engine penalty
 would also hit the Hound.
 
-**The Sirocco is rated 36.** The LRM-15 is long-range support's Advanced rack,
+**The Sirocco is rated 39.** The LRM-15 is long-range support's Advanced rack,
 as the SRM-15 is the Bulwark's. At 34 the most fragile chassis had to give up its
 double sink or its heavy plate to carry one. At 36 the factory heavy cannon,
 LRM-5 and LRM-15 fit a full frame (400 armor, 8/s) with no headroom, so the tier
-still costs room. The best of everything still does not fit (62 of 54), and the
-refit frame is unchanged, so a refit Sirocco still out-plates no Hound.
+still costs room. The heavy cannon then gained 3 of build mass (below), and the
+rating rose by exactly that, so the Sirocco's own fit is where it was: the stock
+fit fills the industrial engine, and the full frame fits the military one with
+1.5 to spare, short of the cooler's 2. The best of everything still does not fit,
+and a refit Sirocco still out-plates no Hound.
+
+## The heavy cannon is equipment, not the Sirocco's gun
+
+The heavy cannon is the Sirocco's factory arm, but its 3x2 ballistic footprint
+fits any arms socket that takes 3x2, so it is balanced by what carrying it
+costs, never by the fragility of the chassis that ships with it. Today that is
+the Sirocco and the Bulwark, whose 3x2 omni arms take it; the Hound's 2x2 nose
+cannot, at any quarter-turn. Its contact hit (100 on the body struck, over a 45
+splash) was tuned against mech armor and is not a lever here.
+
+**A Sirocco dying in about 11 s to one heavy cannon in the open is accepted**
+(owner, 2026-10-18). The Sirocco is long-range support, not a front-liner: it is
+meant to be fragile under direct fire, and a Sirocco mirror fight is short
+(12-13 s in `armorMatchup`, both before and after the changes below).
+
+**The cannon cost its carrier nothing.** It weighed 14, two more than the
+factory chaingun, and a full refit Bulwark has exactly 2 to spare, so the best
+Bulwark frame carried it at no loss. It also runs cool: 26 heat per 2.5 s round
+is 10 heat/s, against the chaingun's 29. A cool arm leaves the reservoir to the
+SRM-15s, which did 60-78% of a cannon Bulwark's damage at the 17-18-cell range
+the duel band holds. So a cannon on a **stock** Bulwark beat a **fully refit**
+chaingun Bulwark 70% of the time: an Advanced weapon outweighing a whole internal
+refit.
+
+**What it costs now:**
+
+- **Build mass 3** (`MechFrameBudget`; mass 17). A full refit Bulwark with the
+  cannon and two SRM-15s gives up its cooler. The Sirocco's rating took the same
+  3, so the Sirocco pays nothing for its own gun. Mass alone did not move a fight:
+  at +3 and at +6 (cooler and sink tier given up) the refit cannon Bulwark still
+  beat a refit chaingun Bulwark 83-88%. Every authored doll's internals are cheap
+  next to the reservoir the cannon left free, which is why heat was needed too.
+  +6 was also rejected because the Sirocco's rating would have to rise by 6, and
+  the military engine would then hand it a free cooler.
+- **Heat 34 per round** (was 26; 13.6 heat/s at its cycle). The cannon now
+  competes with the SRM-15s for the reservoir. On a stock frame (100 heat, 6/s)
+  that is the cost that bites; on a 120 reservoir at 7.5/s less so. At 42 the
+  stock-frame cannon Bulwark lost to everything but a stock chaingun, a weapon
+  not worth carrying; 34 is where it trades even with the chaingun refit's
+  frame. A short Sirocco fight lives off its reservoir, so heat barely touches
+  the Sirocco (mirror 13 s either way).
+- **Range stays 26**, already the shortest mech arm (chaingun 30, pulse laser 32,
+  bastion 34). Cycle time is unchanged.
+
+Readings (`armorMatchup`, explicit fits, open / hull-down / street, eight seeds,
+both roles; win share, and mean open-ground seconds from first hit). Controls
+are `-Dbattle.mech.heavyCannonBuildMass=0 -Dbattle.mech.heavyCannonHeat=26`.
+
+| Fight | Before | After |
+| --- | --- | --- |
+| Cannon Bulwark (stock frame) vs refit chaingun Bulwark | 0.70, 69 s | 0.31, 83 s |
+| Cannon + SRM-15 + SRM-5 (stock frame) vs refit chaingun Bulwark | 0.48 | 0.21 |
+| Refit cannon vs refit chaingun Bulwark | 0.90, 56 s | 0.78, 71 s |
+| Refit cannon vs refit bastion Bulwark | 0.48 | 0.32 |
+| Refit cannon vs refit pulse-laser Bulwark | 0.73 | 0.73 |
+| Refit cannon vs stock chaingun Bulwark | 1.00, 44 s | 1.00, 59 s |
+| Refit cannon Bulwark vs breakthrough / heavy-gun tank | 0.00 / 0.00 | 0.00 / 0.01 |
+| Stock / refit Sirocco vs refit cannon Bulwark | 0.06 / 0.04 | 0.06 / 0.06 |
+| Sirocco mirror, stock and refit | 13 s / 13 s | 13 s / 13 s |
+| Overall across the eleven fits: refit cannon / refit bastion Bulwark | 0.67 / 0.65 | 0.65 / 0.69 |
+| Overall: stock-frame cannon Bulwark / refit chaingun Bulwark | 0.44 / 0.39 | 0.35 / 0.47 |
+
+The cannon is still a good Bulwark arm: refit around it, it beats the factory
+chaingun refit and the Prestige pulse laser. It is no longer the best one, it
+costs a cooler and a hotter reservoir to carry, and on a stock frame it no longer
+outweighs a refit. The heavy-cannon Sirocco is not a counter to anything heavy:
+it loses to every refit Bulwark and to both tanks, and beats only a stock
+chaingun Bulwark (stock Sirocco 0.39, refit 0.77; was 0.59 and 0.88).
+
+Still open from these readings, all outside the cannon:
+
+- **Every tank beats every Bulwark fit**, 93-95% overall, never losing to a
+  Bulwark in more than one fight in the 96 here.
+- **The chaingun Bulwark is the weakest Bulwark.** The chaingun's 29 heat/s
+  starves its own SRM-15s, and every Advanced or Prestige arm beats it 78-96%
+  refit against refit.
+- **The bastion autocannon now has the problem the cannon had.** It weighs 14
+  and runs at about 9 heat/s, and it is the best refit Bulwark (0.69). The same
+  levers apply, in the same order.
+- **The Prestige pulse laser loses to both Advanced arms** at equal budget.
 
 ## Lift classes
 
@@ -327,9 +410,6 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
 
 ## Open questions
 
-- A Sirocco now dies to one heavy cannon in about 11 s in the open (the
-  cannon's contact hit, `combat-durability-nouns.md`), so a Sirocco mirror fight
-  is short. Armor-vs-armor matchup scenes should read whether that is acceptable.
 - With the threat in reach, a long-range support mech's fighting withdrawal
   still turns a little back and forth against a firing line whose members take
   turns as its target.
