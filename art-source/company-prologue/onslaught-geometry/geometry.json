@@ -1,5 +1,5 @@
 {
-  "status": "Pass 1 blockout: silhouette, deep curved sections, mass, slots, drives, turrets, stern machinery wells. Undamaged Hegemony (XIV) battleship; flat Hegemony base materials.",
+  "status": "Pass 2 detail at mid-distance and pass 4 scale: plated deep curved hull, Hegemony armour bands, stern machinery wells, terraced command dome, 24 turrets on pivots, two TPC hardpoints, six drive units. Undamaged Hegemony (XIV) battleship; flat Hegemony base materials.",
   "hull": {
     "name": "Onslaught (XIV)",
     "skinHullId": "onslaught_xiv",
@@ -46,63 +46,88 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.65,
+  "metres_per_unit": 0.77,
   "scale": {
-    "method": "warship pass 4: deck program (DeckProgramProbe CAPITAL \"Battleship\" 750 1500 300 -> WARSHIP, 30875 m2) less its notional HANGAR rooms (no fighter bays): 28715 m2 x1.40 circulation x3.2 m = required habitable m3; solved against the habitable share of the pressure hull (union of its solids, measured on every build) after an explicit non-habitable budget",
-    "required_habitable_m3": 128643,
-    "pressure_hull": [
-      "Hull prow",
-      "Hull core",
-      "Hull port arm",
-      "Hull starboard arm",
-      "Hull aft body",
-      "Hull tail",
-      "Hull port aft leg",
-      "Hull starboard aft leg",
-      "Bridge spine",
-      "Bridge command dome",
-      "Bridge aft dome"
-    ],
-    "pressure_hull_units3": 3392580,
-    "non_habitable_budget": {
-      "armour (rating 1750, the heaviest in the game; a thick, deep hull)": 0.2,
-      "reactors, flux plant (17,000 capacity, 600 dissipation), drive machinery": 0.14,
-      "twenty-four barbettes, two TPC hardpoints, magazines and hoists": 0.1,
-      "fuel (400), supplies and water tanks, structure, trunks": 0.12
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 3419861,
+      "crew_max": 1500,
+      "cargo": 300,
+      "fuel": 400,
+      "cls": "capital",
+      "length_units": 351.7,
+      "sprite_px": 384,
+      "volume_source": "measured (SOLIDS)"
     },
-    "usable_fraction": 0.44,
-    "solved_metres_per_unit": 0.442,
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.45,
+        "hangar_box_factor": 3.0,
+        "shares": {
+          "armour": 0.18,
+          "drive": 0.16,
+          "weapons": 0.12,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 652500,
+      "cargo": 600,
+      "fuel": 600,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 653700,
+    "machinery_share": 0.58,
+    "enclosed_m3": 1556429,
+    "solved_metres_per_unit": 0.769,
     "range": {
-      "48pct_habitable": 0.429,
-      "40pct_habitable": 0.456,
-      "battlecarrier_33pct_for_comparison": 0.486,
-      "freighter_55pct_for_comparison": 0.41
+      "habitable_273": 0.745,
+      "habitable_328": 0.792
     },
-    "published_vs_solved": 1.472,
-    "size_m": [
-      228.6,
-      174.8,
-      73.5
-    ],
-    "hull_volume_m3": 931687,
-    "real_world": {
-      "Iowa-class battleship": "270 m, 33 m beam, about 2,700 crew in wartime",
-      "Yamato": "263 m, 38.9 m beam, about 2,800 crew",
-      "this hull": "228.6 m long, 174.8 m beam, 73.5 m keel to mast, 932k m3 enclosed for 750-1500 crew",
-      "per crew at max crew m3": 621
+    "enclosed_m3_per_person_at_max_crew": 1038,
+    "length_m": 270.5,
+    "fittings_m": {
+      "bridge glazing band h": 1.4,
+      "bridge pane w": 1.1,
+      "crown hatch d": 1.8,
+      "service hatch w x l": [
+        0.9,
+        1.4
+      ]
     },
-    "cross_checks_m": {
-      "person 1.8 m in units": 2.77,
-      "door 2.1 m / rail 1.1 m / hatch 2 m in units": [
-        3.2,
-        1.7,
-        3.1
+    "published_metres_per_unit": 0.77,
+    "measured_this_build": {
+      "enclosed_units3": 3419861,
+      "solids": [
+        "Bridge aft dome",
+        "Bridge command dome",
+        "Bridge spine",
+        "Hull aft body",
+        "Hull core",
+        "Hull port aft leg",
+        "Hull port arm",
+        "Hull port waist",
+        "Hull prow",
+        "Hull starboard aft leg",
+        "Hull starboard arm",
+        "Hull starboard waist",
+        "Hull tail"
       ],
-      "main bell mouth diameter": 7.5,
-      "large turret ring diameter": 14.3,
-      "medium turret ring diameter": 9.1,
-      "keel to deck at the core": 46.8
+      "with_drive_pods_units3": 3421498
     },
+    "size_m": [
+      270.8,
+      207.1,
+      89.7
+    ],
+    "person_1_8_m_in_units": 2.34,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -118,19 +143,19 @@
   },
   "dimensions": {
     "min": [
-      -125.95,
+      -126.0,
       -134.5,
-      -62.0
+      -65.2
     ],
     "max": [
       225.74,
       134.5,
-      51.1
+      51.28
     ],
     "size": [
-      351.69,
+      351.74,
       269.0,
-      113.1
+      116.48
     ]
   },
   "weapon_slots": [
@@ -248,7 +273,7 @@
       "location": [
         187,
         0,
-        16.79
+        17.69
       ],
       "angle": 0,
       "arc": 150,
@@ -266,7 +291,7 @@
       "location": [
         150,
         -12,
-        9.14
+        18.14
       ],
       "angle": -20,
       "arc": 90,
@@ -284,7 +309,7 @@
       "location": [
         150,
         12,
-        9.14
+        18.14
       ],
       "angle": 20,
       "arc": 90,
@@ -302,7 +327,7 @@
       "location": [
         -3,
         -112,
-        16.24
+        20.24
       ],
       "angle": 250,
       "arc": 180,
@@ -320,7 +345,7 @@
       "location": [
         -3,
         112,
-        16.24
+        20.24
       ],
       "angle": 110,
       "arc": 180,
@@ -338,7 +363,7 @@
       "location": [
         49,
         18,
-        26.92
+        27.21
       ],
       "angle": 60,
       "arc": 140,
@@ -356,7 +381,7 @@
       "location": [
         49,
         -18,
-        26.92
+        27.21
       ],
       "angle": -60,
       "arc": 140,
@@ -428,7 +453,7 @@
       "location": [
         126,
         0,
-        18.07
+        20.32
       ],
       "angle": 0,
       "arc": 150,
@@ -464,7 +489,7 @@
       "location": [
         -9,
         65,
-        24.24
+        28.74
       ],
       "angle": 30,
       "arc": 120,
@@ -518,7 +543,7 @@
       "location": [
         -9,
         -65,
-        24.24
+        28.74
       ],
       "angle": -30,
       "arc": 120,
@@ -757,7 +782,7 @@
       "position": [
         17.0,
         0.0,
-        50.55
+        50.73
       ],
       "colour": "red",
       "rgb": [
@@ -797,7 +822,7 @@
       "position": [
         -66.0,
         100.0,
-        8.52
+        7.77
       ],
       "colour": "red",
       "rgb": [
@@ -877,7 +902,7 @@
       "position": [
         60.0,
         123.5,
-        18.25
+        21.45
       ],
       "colour": "white",
       "rgb": [
@@ -957,7 +982,7 @@
       "position": [
         -66.0,
         -100.0,
-        8.52
+        7.77
       ],
       "colour": "red",
       "rgb": [
@@ -1037,7 +1062,7 @@
       "position": [
         60.0,
         -123.5,
-        18.25
+        21.45
       ],
       "colour": "white",
       "rgb": [
@@ -1096,7 +1121,7 @@
       "name": "Light stern 1",
       "position": [
         -113.75,
-        -0.0,
+        0.0,
         8.0
       ],
       "colour": "white",
@@ -1128,44 +1153,44 @@
     "sensor_mm": 36.0,
     "cameras": {
       "formation-quarter-1.5km": [
-        1731.2,
-        -1410.8,
-        707.7
+        1469.1,
+        -1190.9,
+        595.0
       ],
       "formation-abeam-1.5km": [
         49.9,
-        -2285.2,
-        315.7
+        -1929.1,
+        264.2
       ],
       "formation-bow-1.5km": [
-        -1905.0,
-        -1128.6,
-        474.3
+        -1600.3,
+        -952.7,
+        398.1
       ],
       "formation-high-1.5km": [
-        1580.9,
-        883.9,
-        1477.9
+        1342.2,
+        746.1,
+        1245.2
       ],
       "formation-quarter-3km": [
-        3412.4,
-        -2821.5,
-        1420.8
+        2888.4,
+        -2381.8,
+        1197.0
       ],
       "formation-abeam-3km": [
         49.9,
-        -4570.5,
-        636.9
+        -3858.2,
+        535.3
       ],
       "formation-bow-3km": [
-        -3859.8,
-        -2257.3,
-        954.1
+        -3250.5,
+        -1905.5,
+        803.1
       ],
       "formation-high-3km": [
-        3111.8,
-        1767.8,
-        2961.3
+        2634.6,
+        1492.3,
+        2497.4
       ]
     }
   },
@@ -1242,58 +1267,64 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9641,
-    "sprite_uncovered": 0.0152,
-    "model_outside_sprite": 0.0215,
+    "iou": 0.9636,
+    "sprite_uncovered": 0.0143,
+    "model_outside_sprite": 0.0229,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
     "formation-abeam-1.5km": {
       "size_px": [
-        199,
-        65
+        236,
+        79
       ]
     },
     "formation-bow-1.5km": {
       "size_px": [
-        164,
-        70
+        194,
+        83
       ]
     },
     "formation-high-1.5km": {
       "size_px": [
-        167,
-        135
+        199,
+        160
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
-        181,
-        81
+        215,
+        98
+      ]
+    },
+    "formation-sheet": {
+      "size_px": [
+        1920,
+        1080
       ]
     },
     "formation-abeam-3km": {
       "size_px": [
-        99,
-        33
+        117,
+        39
       ]
     },
     "formation-bow-3km": {
       "size_px": [
-        82,
-        35
+        98,
+        41
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        84,
-        68
+        98,
+        80
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        90,
-        40
+        107,
+        48
       ]
     }
   }

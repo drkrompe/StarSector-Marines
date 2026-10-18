@@ -41,6 +41,7 @@ class Kit:
         self.dark = material('Recess and machinery', (.03, .028, .03), .5)
         self.glass = material('Bridge glazing', (.04, .06, .07), .2, .15, emission=(.9, .75, .45), strength=3.0)
         self.lamp = material('Bay lamp amber', (.1, .07, .02), .0, .5, emission=(1.0, .7, .25), strength=6.0)
+        self.mpu = 1.0  # metres per unit; the driver sets it before building
         self.hull = []  # objects the downward ray-cast seats parts on
 
     def finish(self, obj, name, mat, bevel=0):
