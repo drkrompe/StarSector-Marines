@@ -180,12 +180,14 @@ HULLS = {
     # own geometry.json (scale.drone_bay).
     'Shepherd': dict(units3=42356, crew_max=30, cargo=100, fuel=40, cls='frigate', length_units=86.0,
                      sprite_px=92, fittings_units={'crew door w x h': [1.35, 2.4]}),
-    # The Paragon's open bore is not enclosed volume; its lining (the shield emitter
-    # ring) is. Fittings: the command deck's window slits, the capital-mount bays.
-    'Paragon': dict(units3=3615276, crew_max=1000, cargo=300, fuel=300, cls='capital', length_units=362.2,
-                    sprite_px=364, fittings_units={'deck window w x h': [3.0, 1.1],
+    # The Paragon's open bore and its lining (the shield emitter ring) are not enclosed
+    # volume. Published at 0.87 by owner override, larger than the Onslaught (2026-10-18):
+    # this table solves 0.748 (271 m). Fittings: deck window slits and glazing band
+    # (sized 2.0 x 0.9 m and 1.8 m at 0.87), the capital-mount bays.
+    'Paragon': dict(units3=2478771, crew_max=1000, cargo=300, fuel=300, cls='capital', length_units=362.2,
+                    sprite_px=364, fittings_units={'deck window w x h': [2.30, 1.03],
                                                    'capital-mount bay w x h': [21.0, 22.0],
-                                                   'bridge glazing band h': [2.4]}),
+                                                   'bridge glazing band h': [2.07]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
@@ -193,7 +195,7 @@ VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SO
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .66}
+             'Shepherd': .78, 'Paragon': .87}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -236,13 +238,14 @@ SOLIDS = {
                                             'Drone bay forward hangar pod', 'Drone bay forward service block')},
     # The Paragon's .blend is a build output (paragon-geometry/paragon-geometry.blend,
     # ignored); its driver re-measures these solids on every build. The open bore is
-    # outside every solid; the drive pods, turrets, reactor domes, emitter nodes and
-    # pass 2 detail are excluded.
+    # outside every solid; the bore lining (the shield emitter ring), the command deck's
+    # gantry (open support structure), the drive pods, turrets, reactor domes, emitter
+    # nodes and pass 2 detail are excluded.
     'paragon': {'blend': 'paragon-geometry/paragon-geometry.blend', 'step': 2.0,
                 'include': lambda n: n in (
-                    'Hull belt', 'Hull main ring', 'Hull bore lining', 'Hull prow', 'Hull bow module',
+                    'Hull belt', 'Hull main ring', 'Hull prow', 'Hull bow module',
                     'Hull port bow horn', 'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe',
-                    'Hull core trench', 'Hull aft body', 'Hull command deck', 'Hull command deck upper',
+                    'Hull aft body', 'Hull command deck', 'Hull command deck upper',
                     'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',

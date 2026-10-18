@@ -7,8 +7,11 @@ steep face. Read that way the hull is:
 
 - the bore lining (`Hull bore lining`): the shield emitter ring, a dark band
   r 56.5-76 round the open bore with emitter blocks on it (pg_shield);
-- the main ring (`Hull main ring`): the structural ring, r 74-124, the deepest
-  mass and the backbone the rest hangs on, plated in flat segments;
+- the main ring (`Hull main ring`): the structural ring, r 74-130, the deepest
+  mass and the backbone the rest hangs on, plated in flat segments. The hull
+  carries its depth above its waterline-like mid-plane: the belly is a shallow
+  armoured plane, so the ship's fullness over its plan matches the Onslaught's
+  and Legion's rather than 1.3-1.7x it (owner, scale review);
 - the armour belt (`Hull belt`): out to the circular outer edge (r 136) and the
   bow, a sloped armour face all round (the sprite's dark rim), rising inboard
   in a glacis to meet the main ring;
@@ -32,9 +35,10 @@ BORE_C = (-3.0, 0.0)
 BORE_R = 56.5
 LINING_R = 76.0
 LINING_TOP = 24.0
+LINING_BOT = 12.0
 # Main ring section (r, z), closed: inner face above the lining, flat top,
 # outer glacis down into the belt; mirrored below.
-MAIN_RING = [(74, -30), (78, -36), (100, -36), (130, -14), (130, 24), (127, 27.5), (99, 28.5), (96, 36), (78, 36),
+MAIN_RING = [(74, -14), (80, -18), (100, -18), (130, -8), (130, 24), (127, 27.5), (99, 28.5), (96, 36), (78, 36),
              (74, 31)]
 # The gun shelf: the main ring's outer course (r 99-130) steps down to a level
 # shelf at z ~28 below the ring's crown (36). The big beam turrets and the beam
@@ -42,7 +46,7 @@ MAIN_RING = [(74, -30), (78, -36), (100, -36), (130, -14), (130, 24), (127, 27.5
 # and the shelf edge is the sprite's light arc round the ring.
 BELT_HOLE_R = 100.0
 BELT_TOP = [(0, 2), (5, 12), (24, 19), (50, 22)]
-BELT_BOT = [(0, -4), (5, -14), (24, -21), (50, -24)]
+BELT_BOT = [(0, -3), (5, -8), (24, -11), (50, -12)]
 
 # The core's plan, port half, nose to stern (read off the sprite's white deck and skin aft body).
 CORE = [(-20.5, 0.0), (-23, 6), (-27, 11), (-32, 15), (-40, 19.5), (-50, 22), (-62, 23.5), (-80, 25),
@@ -127,22 +131,22 @@ def build(kit):
     parts['belt'] = K.profile_mass(kit, 'Hull belt', outline_between(166.5, RING_AFT_X), BELT_TOP, BELT_BOT,
                                    holes=[K.circle(*BORE_C, BELT_HOLE_R, 144)], mat=kit.skin)
     parts['main ring'] = revolve_loop(kit, 'Hull main ring', MAIN_RING, (*BORE_C, 0), kit.skin)
-    parts['lining'] = revolve_loop(kit, 'Hull bore lining', [(BORE_R, -LINING_TOP), (LINING_R, -LINING_TOP),
+    parts['lining'] = revolve_loop(kit, 'Hull bore lining', [(BORE_R, -LINING_BOT), (LINING_R, -LINING_BOT),
                                                              (LINING_R, LINING_TOP), (BORE_R, LINING_TOP)],
                                    (*BORE_C, 0), kit.tech, segments=96)
     # Prow.
     parts['prow'] = K.profile_mass(kit, 'Hull prow', symmetric(GRILLE), [(0, 8), (3, 20), (10, 23)],
-                                   [(0, -6), (3, -20), (10, -24)], mat=kit.pale, step=2.0)
+                                   [(0, -5), (3, -12), (10, -14)], mat=kit.pale, step=2.0)
     hardpoint_bays(kit, parts['prow'])
     parts['bow module'] = K.profile_mass(kit, 'Hull bow module', symmetric(BOW_MODULE), [(0, 14), (3, 21), (8, 24)],
-                                         [(0, -10), (8, -20)], mat=kit.white, step=2.0)
+                                         [(0, -6), (8, -10)], mat=kit.white, step=2.0)
     for side, label in ((1, 'port'), (-1, 'starboard')):
         parts['horn '+label] = K.profile_mass(kit, f'Hull {label} bow horn', K.ccw([(x, y*side) for x, y in HORN]),
-                                              [(0, 6), (4, 21), (7, 24)], [(0, -6), (4, -18), (14, -24)],
+                                              [(0, 6), (4, 21), (7, 24)], [(0, -5), (4, -10), (14, -12)],
                                               mat=kit.skin, step=2.0)
         # The bow-quarter armour lobe outside the groove: a raised shell for WS 011/017.
         parts['lobe '+label] = K.profile_mass(kit, f'Hull {label} bow lobe', lobe_plan(side),
-                                              [(0, 8), (4, 24), (6, 26)], [(0, -8), (4, -18), (10, -22)],
+                                              [(0, 8), (4, 24), (6, 26)], [(0, -5), (4, -10), (10, -12)],
                                               mat=kit.skin, step=2.0)
     # Command deck, gantry and aft body.
     # The gantry the deck stands on: dark machinery under and just outside the
@@ -152,7 +156,7 @@ def build(kit):
     # The aft body between the pods: its steep armoured flanks are the sprite's
     # dark ring round the skin "egg", its top a low faceted dome.
     parts['aft body'] = K.profile_mass(kit, 'Hull aft body', symmetric(half_between(CORE, -92, -176.5)),
-                                       [(0, 6), (4, 24), (12, 40), (24, 47)], [(0, -8), (4, -24), (16, -34)],
+                                       [(0, 6), (4, 24), (12, 40), (24, 47)], [(0, -6), (4, -14), (16, -20)],
                                        mat=kit.skin, step=2.0)
     # The command deck in white tiers, chamfered at 45 degrees so they read white from above.
     parts['deck'] = K.profile_mass(kit, 'Hull command deck', symmetric(half_between(CORE, -20.5, DECK_AFT_X)),
@@ -172,7 +176,7 @@ def build(kit):
     # Aft pods with their reactor domes.
     for side, label in ((1, 'port'), (-1, 'starboard')):
         parts['pod '+label] = K.profile_mass(kit, f'Hull {label} pod', pod_plan(side), [(0, 4), (5, 16), (20, 24)],
-                                             [(0, -6), (5, -20), (20, -28)], mat=kit.skin)
+                                             [(0, -5), (5, -13), (20, -18)], mat=kit.skin)
     kit.hull += [p for k, p in parts.items()]
     for side, label in ((1, 'port'), (-1, 'starboard')):
         bow_groove(kit, [parts['belt'], parts['main ring']], side, label)
@@ -187,10 +191,13 @@ def build(kit):
     return parts
 
 
+GLAZING_M = 1.8  # the bridge glazing band's height in true metres
+
+
 def glazing(kit):
     """The bridge's forward glazing: a band across the tower's raked front faces."""
     z0 = DECK_Z+19.5
-    kit.box('Bridge glazing', (-48.6, 0, z0), (1.6, 12.5, 2.4), kit.glass, 0)
+    kit.box('Bridge glazing', (-48.6, 0, z0), (1.6, 12.5, GLAZING_M/kit.mpu), kit.glass, 0)
 
 
 def hardpoint_bays(kit, prow):

@@ -64,13 +64,19 @@ Pass 2 detail (pg_detail; owner: machinery insets and dimples)
   in the belt flank; frames and pipe runs on the deck gantry. Insets stay 3 units
   inside the outline; the silhouette IoU held (0.959 before, 0.958 after).
 
-Scale (pass 4, ship_scale.py option C, no override)
-  Enclosed volume (SOLIDS: belt, main ring and lining, prow, bow module, horns,
-  lobes, deck tiers, gantry, aft body, pods; never the open bore, drives, turrets,
-  domes or detail) 3.62 M units3 against 1,000 crew, 300 cargo, 300 fuel: 0.66 m
-  per unit (range 0.64-0.68), 239 m long, 211 m across, 66 m deep. The driver
-  re-measures it every build and fails if it drifts from ship_scale.HULLS.
-  A 1.8 m person is 2.7 units. Shield radius 270 units = 178 m.
+Scale (pass 4; owner override, 2026-10-18)
+  Enclosed volume (SOLIDS: belt, main ring, prow, bow module, horns, lobes, deck
+  tiers, spine, bridge, aft body, pods; never the open bore, the shield emitter
+  lining, the deck gantry, drives, turrets, domes or detail) 2.48 M units3 against
+  1,000 crew, 300 cargo, 300 fuel: the rule solves 0.748 m per unit (271 m). The
+  owner wants it larger than the Onslaught (301 m), so 0.87 is published by
+  override: 315 m long, 277 m across, 73 m deep. The hull was first slimmed to the
+  Legion's and Onslaught's fullness (mean depth over plan 33.9 units against 28.4
+  and 37.4): the belly is a shallow armoured plane, the tops unchanged. The driver
+  re-measures the volume every build and fails if it drifts from ship_scale.HULLS;
+  OVERRIDE in build_paragon.py records why the published value differs from the
+  solve. Person-scale fittings are in true metres (window slits 2.0 x 0.9 m,
+  bridge glazing band 1.8 m). A 1.8 m person is 2.1 units; shield radius 235 m.
 
 Modules (one per area)
   pg_kit       materials (Tri-Tachyon palette, glow), primitives, smooth_mass

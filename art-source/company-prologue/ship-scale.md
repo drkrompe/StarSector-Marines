@@ -88,10 +88,10 @@ F/A-18's box. Servicing in space and ordnance handling add to it.
 | Legion (XIV) | 0.99 (solves 0.995) | 292 m | measured | published |
 | Onslaught (XIV) | 0.86 (solves 0.859) | 302 m | measured (2.45 M units3) | published, final: a capital like the Legion, no override (owner) |
 | Shepherd (Morrow) | 0.78 (solves 0.74) | 67 m | measured | published, kept (owner, 2026-10-18); the drone bay is open, so no hangar term |
-| Paragon | 0.66 (solves 0.660) | 239 m | measured (3.62 M units3) | published under option C, no override; 1,000 crew against the Onslaught's 1,500, and a deep hull round an open bore, so it solves smaller than the other two capitals |
+| Paragon | 0.87 (solves 0.748) | 315 m (271 m solved) | measured (2.48 M units3; open bore, shield emitter lining and deck gantry excluded) | published by owner override: larger than the Onslaught (owner, 2026-10-18). The rule gives 271 m: 1,000 crew against the Onslaught's 1,500. The blockout was first slimmed to the Legion's and Onslaught's fullness (mean depth over plan 33.9 units against 28.4 and 37.4) |
 
 The Hound, the Second Wind and the Shepherd keep their published values by
-the owner's decision. Their fittings were modelled at those scales.
+the owner's decision, and the Paragon is published above its solve by owner override. Their fittings were modelled at those scales.
 
 ## Frigate-to-capital length
 
