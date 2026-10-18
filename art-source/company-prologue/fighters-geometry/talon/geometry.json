@@ -40,12 +40,12 @@
     "size_m": [
       12.1,
       12.1,
-      2.5
+      2.9
     ],
     "canopy": {
       "length_m": 2.15,
       "width_m": 0.88,
-      "top_z_units": 2.1
+      "top_z_units": 2.11
     },
     "cockpit_fit": [
       {
@@ -53,9 +53,29 @@
           6.4,
           -3.0
         ],
-        "head_clearance_under_canopy_m": 0.08
+        "head_clearance_under_canopy_m": 0.09
       }
     ]
+  },
+  "parked_check": {
+    "feet": [
+      "Hull port runner fore pad",
+      "Hull port runner aft pad",
+      "Hull starboard runner fore pad",
+      "Hull starboard runner aft pad"
+    ],
+    "deck_plane_units": {
+      "z0": -3.1,
+      "dz_dx": 0.0,
+      "dz_dy": 0.0
+    },
+    "stance_pitch_deg_nose_down": 0.0,
+    "stance_roll_deg": 0.0,
+    "foot_level_spread_m": 0.0,
+    "lowest_other_part": "Hull port runner",
+    "deck_clearance_m": 0.044,
+    "lowest_body_part": "Engine 1 collar rib 1",
+    "body_clearance_m": 0.39
   },
   "sprite": {
     "size": [
@@ -72,17 +92,17 @@
     "min": [
       -9.0,
       -10.0,
-      -2.39
+      -3.1
     ],
     "max": [
       13.03,
       12.0,
-      2.13
+      2.16
     ],
     "size": [
       22.03,
       22.0,
-      4.52
+      5.26
     ]
   },
   "root": {
@@ -217,14 +237,15 @@
     "WS 001 (0, 4) is the vulcan. The sprite draws its barrel in column 9 (Y 3..4), so the barrel is modelled on Y = 3.5 and its muzzle empty sits at the barrel tip there, half a unit off the integer slot, as with a slot straddling a pixel centre line. The anchor itself is at the slot.",
     "WS 003 (6, 1) swarmers and WS 002 (-8, 2) system are HIDDEN with nothing drawn on the sprite or master: anchors only, on the gun nacelle's inboard wall and the spine's tail face.",
     "The forward asymmetry is the sprite's: the gun nacelle is 5 px wide and longer, the cockpit pod 6 px wide and shorter, with an open slot between them. The master is not registered closely enough forward to place the pods (its cockpit pod is 3 units short), so lengths come from the sprite and forms from the master.",
-    "Pass 2 (detail read off master-v3, sized in metres at 0.55 m/unit): the vulcan gets the master's red octagonal shroud collar, a banded barrel jacket and a six-barrel cluster in the muzzle ring, and a steel breech and feed housing on the nacelle behind the collar (the master's grey block). The hidden swarmer bay at WS 003 is a closed door outlined in the nacelle's inboard wall. The cockpit pod carries the master's grey nose strip with a sensor blister, a canopy sill, windscreen arch and bow, and a grey dorsal strip with a vent behind the glass. The armoured shoulders over the drums carry the master's intake grilles, the steel spine its slots, centre grille and a blade antenna, and the wings small outboard vents. Each drive drum has two collar ribs ahead of the lip and a centre body with stator vanes in the bell. Panel lines (5 cm wide, 2.5 cm deep) split the nose caps, shoulders, wings and underside into plates."
+    "Pass 2 (detail read off master-v3, sized in metres at 0.55 m/unit): the vulcan gets the master's red octagonal shroud collar, a banded barrel jacket and a six-barrel cluster in the muzzle ring, and a steel breech and feed housing on the nacelle behind the collar (the master's grey block). The hidden swarmer bay at WS 003 is a closed door outlined in the nacelle's inboard wall. The cockpit pod carries the master's grey nose strip with a sensor blister, a canopy sill, windscreen arch and bow, and a grey dorsal strip with a vent behind the glass. The armoured shoulders over the drums carry the master's intake grilles, the steel spine its slots, centre grille and a blade antenna, and the wings small outboard vents. Each drive drum has two collar ribs ahead of the lip and a centre body with stator vanes in the bell. Panel lines (5 cm wide, 2.5 cm deep) split the nose caps, shoulders, wings and underside into plates.",
+    "Pass 3 rework (owner, 2026-10-18, the fighters read flat): the cockpit pod and gun nacelle swell into a hump behind the cockpit and over the breech and their noses droop; the wing plates droop 12 degrees outboard of the aft body. It lands on two fixed sled runners, one under each pod line and its drum, on a faired fore strut and a short drum strut, and stands level. The plan view is unchanged."
   ],
   "cameras": {
     "top": {
       "position": [
         2.0,
         1.0,
-        96.0
+        95.52796936035156
       ],
       "orthographic_scale": 47.78666666666667
     },
@@ -232,7 +253,7 @@
       "position": [
         2.0,
         97.0,
-        0.0
+        -0.4720268249511719
       ],
       "orthographic_scale": 30.264772393486716
     },
@@ -240,17 +261,25 @@
       "position": [
         98.0,
         1.0,
-        0.0
+        -0.4720268249511719
       ],
-      "orthographic_scale": 31.200000000000003
+      "orthographic_scale": 45.599999999999994
     },
     "three-quarter": {
       "position": [
         64.4000015258789,
         70.5999984741211,
-        48.0
+        47.52797317504883
       ],
-      "orthographic_scale": 34.8
+      "orthographic_scale": 40.8
+    },
+    "parked": {
+      "position": [
+        59.599998474121094,
+        82.5999984741211,
+        12.727972984313965
+      ],
+      "orthographic_scale": 48.0
     }
   },
   "closeup_cameras": {
@@ -308,14 +337,14 @@
     }
   },
   "object_count": {
-    "meshes": 88,
+    "meshes": 102,
     "empties": 7,
-    "pass2_detail_meshes": 70
+    "pass2_detail_meshes": 84
   },
   "silhouette": {
-    "iou": 0.9765,
+    "iou": 0.9767,
     "sprite_uncovered": 0.0111,
-    "model_outside_sprite": 0.0127,
+    "model_outside_sprite": 0.0126,
     "sprite": "talon.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 40.18 px per unit"
   }

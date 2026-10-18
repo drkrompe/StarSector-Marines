@@ -73,6 +73,7 @@ NOTES = [
     'spine its slots, centre grille and a blade antenna, and the wings small outboard vents. Each drive drum has '
     'two collar ribs ahead of the lip and a centre body with stator vanes in the bell. Panel lines (5 cm wide, '
     '2.5 cm deep) split the nose caps, shoulders, wings and underside into plates.',
+    'Pass 3 rework (owner, 2026-10-18, the fighters read flat): the cockpit pod and gun nacelle swell into a hump behind the cockpit and over the breech and their noses droop; the wing plates droop 12 degrees outboard of the aft body. It lands on two fixed sled runners, one under each pod line and its drum, on a faired fore strut and a short drum strut, and stands level. The plan view is unchanged.',
 ]
 
 # Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
@@ -93,17 +94,20 @@ GUN_NACELLE = [
     (8.1, 2.0, 6.0, -1.05, 1.35, .6, .5),
     (7.9, 1.1, 6.0, -1.1, 1.4, .6, .5),
     (3.05, 1.1, 6.0, -1.1, 1.4, .6, .5),
-    (2.95, 1.1, 7.0, -1.1, 1.4, .6, .5),
+    (2.95, 1.1, 7.0, -1.2, 1.55, .65, .55),
+    (.5, 1.1, 7.0, -1.45, 1.85, .8, .7),
     (-5.4, 1.1, 7.0, -1.1, 1.4, .6, .5),
 ]
 # Cockpit pod: (x, half width, keel z, deck z, top chamfer, keel chamfer) about Y = POD_Y.
 COCKPIT_POD = [
-    (10.25, .35, -.15, .3, .12, .12),
-    (9.8, .95, -.5, .7, .35, .3),
-    (9.0, 1.6, -.9, 1.0, .55, .5),
-    (8.5, 2.1, -1.1, 1.15, .65, .55),
+    (10.25, .35, -.45, .05, .12, .12),
+    (9.8, .95, -.75, .5, .35, .3),
+    (9.0, 1.6, -1.0, .9, .55, .5),
+    (8.5, 2.1, -1.15, 1.1, .65, .55),
     (8.0, 2.7, -1.25, 1.22, .75, .6),
     (7.4, 3.0, -1.35, 1.25, .75, .6),
+    (4.0, 3.0, -1.45, 1.3, .8, .65),
+    (1.0, 3.0, -1.6, 1.7, .95, .8),
     (-5.4, 3.0, -1.35, 1.25, .75, .6),
 ]
 # Canopy: (x, half width, height above the pod deck), nose to tail.
@@ -116,6 +120,24 @@ DRUM = [
 ENGINE_Z = -.58
 LIP_R, BELL_R = 1.65, 1.38
 X_MOUTH = -9.0
+
+# Bends and landing (owner, 2026-10-18: the fighters read flat). The pod and
+# nacelle swell into a hump behind the cockpit and over the gun's breech and
+# their noses droop; the wing plates droop outboard of the shoulders. The
+# Talon lands on two fixed sled runners, low-tech and rugged: each runs under
+# one pod line and its drive drum, on a faired strut forward and a short one
+# under the drum, with a wear pad at each end of its sole. The plan view is
+# unchanged.
+WING_ANHEDRAL_DEG = 12.0
+WING_ROOT = 6.0            # |Y - 1| where the wing plates leave the aft body
+DECK_Z = -3.1              # parked deck, level in the hull frame
+RUNNER_Y = (1+4.5, 1-4.5)
+RUNNER_X = (8.6, -8.2)     # nose (upturned) to tail
+RUNNER_SOLE, RUNNER_T, RUNNER_W = DECK_Z+.08, .35, .7
+# (x, top z, name): struts from a pod's or nacelle's belly, and from the drum keel
+STRUTS = [(5.6, -1.0, 'fore'), (-5.8, -2.0, 'aft')]
+FEET = [f'Hull {side} runner {end} pad' for side in ('port', 'starboard') for end in ('fore', 'aft')]
+LEG_PARTS = ('Hull port runner', 'Hull starboard runner')
 
 
 def band_loft(kit, name, stations, mat, bevel=.05):
@@ -178,6 +200,47 @@ def build(kit):
         kit.engine(i, X_MOUTH, ey, ENGINE_Z, LIP_R, BELL_R)
     if kit.detail:
         detail(kit)
+    droop_wings()
+    runners(kit)
+
+
+def droop_wings():
+    """Anhedral: every wing part drops outboard of the aft body's edge."""
+    bpy.context.view_layer.update()
+    k = math.tan(math.radians(WING_ANHEDRAL_DEG))
+    for ob in list(bpy.data.objects):
+        if ob.type != 'MESH' or not ob.name.startswith(('Wing port', 'Wing starboard')):
+            continue
+        if ob.data.users > 1:
+            ob.data = ob.data.copy()
+        mw = ob.matrix_world.copy()
+        inv = mw.inverted()
+        for v in ob.data.vertices:
+            p = mw @ v.co
+            p.z -= k*max(0.0, abs(p.y-1)-WING_ROOT)
+            v.co = inv @ p
+        ob.data.update()
+
+
+def runners(kit):
+    """Two fixed sled runners, each on a faired fore strut and a short aft strut under its drum."""
+    S, D, B = kit.steel, kit.dark, kit.bright
+    x0, x1 = RUNNER_X
+    z0, t, w = RUNNER_SOLE, RUNNER_T, RUNNER_W
+    for side, y in zip(('port', 'starboard'), RUNNER_Y):
+        name = f'Hull {side} runner'
+        rows = [(x0, K.octagon(y-w*.35, y+w*.35, z0+.75, z0+.75+t*.7, .08)),
+                (x0-1.0, K.octagon(y-w/2, y+w/2, z0+.12, z0+t+.12, .1)),
+                (x0-2.0, K.octagon(y-w/2, y+w/2, z0, z0+t, .1)),
+                (x1+.6, K.octagon(y-w/2, y+w/2, z0, z0+t, .1)),
+                (x1, K.octagon(y-w*.4, y+w*.4, z0+.1, z0+t, .1))]
+        kit.hull.append(loft_x(kit, name, rows, S, .03))
+        for sx, top, end in STRUTS:
+            plan = [(sx+.7, y-.18), (sx+.7, y+.18), (sx-.7, y+.18), (sx-.7, y-.18)]
+            kit.slab(f'{name} {end} strut', plan, z0+t-.05, top+.3, S)
+            kit.box(f'{name} {end} strut clamp', (sx, y, z0+t+.12), (1.9, w+.1, .24), D, .04)
+        for px, end in ((x0-2.6, 'fore'), (x1+1.2, 'aft')):
+            kit.box(f'{name} {end} pad', (px, y, DECK_Z+.07), (1.4, w*.8, .14), D, .03)
 
 
 def detail(kit):

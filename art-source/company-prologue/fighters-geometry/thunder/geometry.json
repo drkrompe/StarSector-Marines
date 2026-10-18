@@ -42,7 +42,7 @@
     "size_m": [
       18.5,
       10.8,
-      2.6
+      3.4
     ],
     "canopy": {
       "length_m": 3.24,
@@ -55,9 +55,31 @@
           5.5,
           0
         ],
-        "head_clearance_under_canopy_m": 0.28
+        "head_clearance_under_canopy_m": 0.26
       }
     ]
+  },
+  "parked_check": {
+    "feet": [
+      "Hull nose gear wheel inner",
+      "Hull nose gear wheel outer",
+      "Hull port main gear wheel inner",
+      "Hull port main gear wheel outer",
+      "Hull starboard main gear wheel inner",
+      "Hull starboard main gear wheel outer"
+    ],
+    "deck_plane_units": {
+      "z0": -4.2,
+      "dz_dx": 0.0,
+      "dz_dy": 0.0
+    },
+    "stance_pitch_deg_nose_down": 0.0,
+    "stance_roll_deg": 0.0,
+    "foot_level_spread_m": 0.0,
+    "lowest_other_part": "Hull nose gear wheel outer hub",
+    "deck_clearance_m": 0.176,
+    "lowest_body_part": "Engine 1 mouth lip",
+    "body_clearance_m": 0.696
   },
   "sprite": {
     "size": [
@@ -74,7 +96,7 @@
     "min": [
       -12.0,
       -12.04,
-      -2.32
+      -4.2
     ],
     "max": [
       29.2,
@@ -84,7 +106,7 @@
     "size": [
       41.2,
       24.09,
-      5.75
+      7.63
     ]
   },
   "root": {
@@ -185,32 +207,32 @@
     "Engine 1 port exhaust anchor": [
       -12.0,
       6.5,
-      -0.32
+      -0.652
     ],
     "Engine 2 starboard exhaust anchor": [
       -12.0,
       -6.5,
-      -0.32
+      -0.652
     ],
     "Weapon WS 001 anchor": [
       20.0,
       6.0,
-      0.45
+      0.161
     ],
     "Weapon WS 001 muzzle": [
       23.4,
       6.0,
-      0.45
+      0.161
     ],
     "Weapon WS 002 anchor": [
       20.0,
       -5.0,
-      0.45
+      0.249
     ],
     "Weapon WS 002 muzzle": [
       21.2,
       -4.15,
-      0.45
+      0.323
     ],
     "Weapon WS 003 anchor": [
       15.0,
@@ -223,14 +245,15 @@
     "Asymmetric forward of X 12, as thunder.png draws it: a port gun block with two prongs, and a starboard lance offset to Y -2.5. Aft of that the engine slots straddle the centre line, so the bells sit at +-6.5 (the slot mean). Anchors keep the exact .ship XY.",
     "All three slots are HIDDEN. The ion cannon is the outer port prong (muzzle at WS 001, Y 6); the inner prong at Y 2 is drawn hull, not a weapon. The light dual MG is the short twin barrel on the starboard root of the lance (WS 002). The swarmer launcher is the dark bay on the fuselage nose at WS 003, with no visible gun.",
     "master-v1 is mirrored and does not match this plan; see source.sprite_choice.",
-    "Pass 2 (detail read off master-v1's parts, which survive its mirrored plan, sized in metres at 0.45 m/unit): the lance carries the master's long slatted dorsal grille, a slot near its tip and a radome seam. The ion cannon (outer prong) gets coil bands, a focus ring and a dark bore; the inner prong bands and a cap; the dual MG perforated barrel jackets, muzzle brakes and a breech cover on its housing; the gun block a capacitor vent. The swarmer bay at WS 003 shows three launch cells in its recess. The canopy has a sill and two bows; behind it runs the master's dark dorsal spine with a ribbed grille, flanked by the master's intakes on the delta. Each engine pod has a forward intake grille, an aft vent, two collar ribs and a centre body with stator vanes; the tip plates the master's two slots on their outer faces. Panel lines split lance, block, fuselage, delta and pods."
+    "Pass 2 (detail read off master-v1's parts, which survive its mirrored plan, sized in metres at 0.45 m/unit): the lance carries the master's long slatted dorsal grille, a slot near its tip and a radome seam. The ion cannon (outer prong) gets coil bands, a focus ring and a dark bore; the inner prong bands and a cap; the dual MG perforated barrel jackets, muzzle brakes and a breech cover on its housing; the gun block a capacitor vent. The swarmer bay at WS 003 shows three launch cells in its recess. The canopy has a sill and two bows; behind it runs the master's dark dorsal spine with a ribbed grille, flanked by the master's intakes on the delta. Each engine pod has a forward intake grille, an aft vent, two collar ribs and a centre body with stator vanes; the tip plates the master's two slots on their outer faces. Panel lines split lance, block, fuselage, delta and pods.",
+    "Pass 3 rework (owner, 2026-10-18, the fighters read flat): the lance nose droops, a dorsal spine rises behind the canopy, and the delta folds 5 degrees down outboard of the fuselage, so the pods cant outward. It is the fighter that rolls: tricycle gear with a long nose leg and a twin-wheel main bogie under each pod, standing level. The plan view is unchanged."
   ],
   "cameras": {
     "top": {
       "position": [
         8.5,
         0.0,
-        172.0
+        171.61563110351562
       ],
       "orthographic_scale": 51.768888888888895
     },
@@ -238,7 +261,7 @@
       "position": [
         8.5,
         172.0,
-        0.0
+        -0.3843725919723511
       ],
       "orthographic_scale": 54.83333428700766
     },
@@ -246,17 +269,25 @@
       "position": [
         180.5,
         0.0,
-        0.0
+        -0.3843725919723511
       ],
-      "orthographic_scale": 33.800000000000004
+      "orthographic_scale": 49.4
     },
     "three-quarter": {
       "position": [
         120.30000305175781,
         124.69999694824219,
-        86.0
+        85.61563110351562
       ],
-      "orthographic_scale": 62.35
+      "orthographic_scale": 73.1
+    },
+    "parked": {
+      "position": [
+        111.69999694824219,
+        146.1999969482422,
+        23.265626907348633
+      ],
+      "orthographic_scale": 86.0
     }
   },
   "closeup_cameras": {
@@ -327,14 +358,14 @@
     }
   },
   "object_count": {
-    "meshes": 125,
+    "meshes": 149,
     "empties": 8,
-    "pass2_detail_meshes": 102
+    "pass2_detail_meshes": 126
   },
   "silhouette": {
-    "iou": 0.9556,
-    "sprite_uncovered": 0.0207,
-    "model_outside_sprite": 0.0249,
+    "iou": 0.9555,
+    "sprite_uncovered": 0.0206,
+    "model_outside_sprite": 0.025,
     "sprite": "thunder.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 37.09 px per unit"
   }
