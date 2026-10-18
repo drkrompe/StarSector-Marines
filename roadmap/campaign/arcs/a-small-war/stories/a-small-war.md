@@ -727,11 +727,15 @@ Still open inside this story:
   160 cells of approach ground west of the apron so the Wolfs cross the edge about
   85 cells outside their reach of Greyhook's pads. Over the five `greyhook-duel`
   seeds they are sighted 10 seconds after the order, closing at 24, first fire at
-  62 and the first Hound down at about 93; the Greyhook makes her height at about
+  62 and the first Hound down at about 132; the Greyhook makes her height at about
   93 seconds, before a gun has reached her, and leaves across the east edge
-  untouched while both Hounds die screening; the Wolfs lose both on four seeds and
-  one on the fifth. Her free climb during the approach is the open question: the
-  eighty-second climb was set when contact came at the order.
+  untouched while her screen fights behind her; one Hound and both Wolfs fall on
+  every seed. Her free climb during the approach is the open question: the
+  eighty-second climb was set when contact came at the order. On the ground the
+  wider map changed timing, not outcome: every `black-sluice` fixture ends as it
+  did, but the company's boats now come in over the north edge, so on seed 15305
+  the last of the 36 lands about a minute later, Voss's split comes 35 seconds
+  later and the company loses 4 rather than 8.
 - **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
   than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
   reaches its pit, so counter-battery is unexercised, and House Custody's estate
