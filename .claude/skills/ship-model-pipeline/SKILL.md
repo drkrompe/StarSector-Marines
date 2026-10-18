@@ -176,25 +176,26 @@ shared basis every hull uses: `art-source/company-prologue/ship_scale.py`
 pixels are not enough to size a ship; two hulls sized by different methods
 cannot be compared, which is how a 180 m carrier once read smaller than a
 61 m freighter beside it.
-1. Measure the model's enclosed volume in Blender, in cubic units: the union
-   of the solids a crew could be inside (pressure hull, holds, hangars, boat
-   bays, transfer trunks), not the sum of their volumes, since overlapping
-   sections double-count (the Legion's driver integrates vertical ray
-   intervals per column). Count drive pods' outer casings, not their dark
-   cores or overlapping bands. Have the driver re-measure this on every
-   build, so a geometry change that moves the answer is visible.
-2. Call `ship_scale.record(units3, crew_max, cargo, fuel, cls, wings,
-   length_units, volume_source)` with the hull's max crew, cargo and fuel
-   from `ship_data.csv`, its class from `ship_scale.hull_class(hullSize,
-   designation)`, and its fighter complement as `(fighter id, craft per
-   wing)` from its variant. It returns the contents (crew habitable volume,
-   cargo, fuel, hangars from the fighters' own sizes), the class's machinery
-   share, the solved `metres_per_unit`, its range over the habitable
-   constant, and enclosed m3 per person. Store it under `scale` in
-   `geometry.json`. Never adjust a constant for one hull: change it in
-   `ship_scale.py` and `ship-scale.md` for all of them, and re-run
-   `python ship_scale.py` to see every registered hull move together (add
-   your hull to its `HULLS` table).
+1. Measure the model's enclosed volume one way: the union of the pressure
+   hull with its holds, hangars and boat bays, never drive pods, engine
+   cans, armour laid over the hull or open structure. Name the solids in
+   `ship_scale.SOLIDS` and run
+   `blender --background <model>.blend --python ship_scale_measure.py -- <key>`;
+   it measures their union by vertical ray intervals, so overlapping solids
+   are not counted twice. Have the driver re-measure on every build, so a
+   geometry change that moves the answer is visible.
+2. Add the hull to `ship_scale.HULLS`: max crew, cargo and fuel from
+   `ship_data.csv`, class from `ship_scale.hull_class(hullSize,
+   designation)`, fighter complement as `(fighter id, craft per wing)` from
+   its variant, carried boat bays, sprite length and modelled fittings in
+   units. `ship_scale.record(name)` returns the contents, the class's
+   machinery share, the solved `metres_per_unit`, its range and the fittings
+   in metres; store it under `scale` in `geometry.json`. The cargo-unit
+   volume is calibrated on the Hound (A), whose size its human-scale fittings
+   fix; never adjust a constant for one hull. Change it in `ship_scale.py`
+   and `ship-scale.md` for all of them, and run `python ship_scale.py` to see
+   every hull move together. It flags a capital under about 4x a frigate's
+   length or its own sprite ratio.
 3. Publish the solved value as `metres_per_unit` (rounded) and cross-check it
    against fittings with a known real size: a 1.8 m person at doors, hatches
    and rails, boat bays against the boats they hold, and, for a carrier,
@@ -296,6 +297,16 @@ muzzles found by name and slot table. The Second Wind's kit is
 forking them. Each state exports one appendable Blender collection
 (`second-wind-pipeline.md`, Cinematic output). Cinematics follow the
 `cinematic-production` skill.
+
+Another hull reaches the kit in one of two ways (`second-wind-vfx/README.md`,
+Other hulls). With no profile, it falls back to the export's own declared
+engine and muzzle empties (`hound-export/`). A `vfx_hull.py` profile sets the
+engine table, states, mounts, lamps and plume colours
+(`mudskipper-cinematic/`). The export and its verify script are per hull: one
+collection, a root carrying `metres_per_unit`, packed images, and the anchors
+a shot needs. Anything that moves (legs, doors, ramps) is driven from custom
+properties on one control empty, and the verify script exercises those knobs
+after an append.
 
 ## Rules for every pass
 

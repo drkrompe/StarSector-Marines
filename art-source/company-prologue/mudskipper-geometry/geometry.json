@@ -126,6 +126,96 @@
       "z": 12.0
     }
   ],
+  "landing": {
+    "control": "Landing control",
+    "knobs": {
+      "deploy": "legs 0 stowed .. 1 deployed",
+      "load": "0 .. 1 the ship's weight on the legs",
+      "door_port": "port cargo door 0 shut .. 1 open",
+      "door_starboard": "starboard cargo door",
+      "ramp_port": "port freight ramp 0 stowed .. 1 down",
+      "ramp_starboard": "starboard freight ramp"
+    },
+    "saved_pose": {
+      "deploy": 0.0,
+      "load": 0.0,
+      "door_port": 0.0,
+      "door_starboard": 0.0,
+      "ramp_port": 0.0,
+      "ramp_starboard": 0.0
+    },
+    "legs": [
+      {
+        "name": "fore port",
+        "at": [
+          29,
+          12
+        ],
+        "stage_1_slide": "Leg fore port stage 1 slide",
+        "stage_2_slide": "Leg fore port stage 2 slide"
+      },
+      {
+        "name": "fore starboard",
+        "at": [
+          29,
+          -12
+        ],
+        "stage_1_slide": "Leg fore starboard stage 1 slide",
+        "stage_2_slide": "Leg fore starboard stage 2 slide"
+      },
+      {
+        "name": "aft port",
+        "at": [
+          -9,
+          17
+        ],
+        "stage_1_slide": "Leg aft port stage 1 slide",
+        "stage_2_slide": "Leg aft port stage 2 slide"
+      },
+      {
+        "name": "aft starboard",
+        "at": [
+          -9,
+          -17
+        ],
+        "stage_1_slide": "Leg aft starboard stage 1 slide",
+        "stage_2_slide": "Leg aft starboard stage 2 slide"
+      }
+    ],
+    "leg_travel_units": [
+      1.4,
+      1.2
+    ],
+    "compress_units": 0.6,
+    "sole_z_stowed": -10.9,
+    "ground_z_deployed_unloaded": -13.5,
+    "ground_z_landed": -12.9,
+    "landed_note": "Landed (deploy 1, load 1) the ground is at ground_z_landed in hull space: a shot places the root that far above its ground plane, i.e. lowers the ship by compress_units.",
+    "keel_clearance_landed_m": 3.74,
+    "bay_floor_above_ground_landed_m": 7.18,
+    "doors": {
+      "Port aft": "Port cargo bay door aft leaf slide",
+      "Port forward": "Port cargo bay door forward leaf slide",
+      "Starboard aft": "Starboard cargo bay door aft leaf slide",
+      "Starboard forward": "Starboard cargo bay door forward leaf slide"
+    },
+    "door_travel_units": {
+      "plug": 0.8,
+      "slide": 7.6
+    },
+    "ramps": {
+      "Port": {
+        "tilt": "Port freight ramp tilt",
+        "slide": "Port freight ramp slide"
+      },
+      "Starboard": {
+        "tilt": "Starboard freight ramp tilt",
+        "slide": "Starboard freight ramp slide"
+      }
+    },
+    "ramp_out_units": 18.0,
+    "ramp_angle_landed_deg": 26.5
+  },
   "weapon_slots": [
     {
       "id": "WS 003",
@@ -471,6 +561,24 @@
         1920,
         1080
       ]
+    },
+    {
+      "name": "legs-detail",
+      "position": [
+        70,
+        80,
+        -6
+      ],
+      "target": [
+        24,
+        10,
+        -10
+      ],
+      "orthographic_scale": 36,
+      "resolution": [
+        1920,
+        1080
+      ]
     }
   ],
   "top_view_mapping": {
@@ -487,7 +595,7 @@
     "iou": 0.9426,
     "pixels_per_unit": 16,
     "alpha_threshold": 128,
-    "model_only_area_units2": 168.6,
+    "model_only_area_units2": 168.7,
     "sprite_only_area_units2": 69.3
   }
 }

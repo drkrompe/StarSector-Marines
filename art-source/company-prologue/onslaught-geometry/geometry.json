@@ -1,0 +1,1300 @@
+{
+  "status": "Pass 1 blockout: silhouette, deep curved sections, mass, slots, drives, turrets, stern machinery wells. Undamaged Hegemony (XIV) battleship; flat Hegemony base materials.",
+  "hull": {
+    "name": "Onslaught (XIV)",
+    "skinHullId": "onslaught_xiv",
+    "baseHullId": "onslaught",
+    "size": "CAPITAL_SHIP",
+    "style": "LOW_TECH",
+    "tech": "XIV Battlegroup",
+    "designation": "Battleship",
+    "source": {
+      "ship": "data/hulls/onslaught.ship",
+      "skin": "data/hulls/skins/onslaught_xiv.skin",
+      "sprite": "graphics/ships/onslaught/onslaught_hegemony.png",
+      "sprite_plain": "graphics/ships/onslaught/onslaught_base.png",
+      "variants": [
+        "data/variants/onslaught/onslaught_xiv_Elite.variant",
+        "data/variants/onslaught/onslaught_Standard.variant"
+      ],
+      "ship_data": "data/hulls/ship_data.csv (row id onslaught)"
+    },
+    "ship_data": {
+      "min_crew": 750,
+      "max_crew": 1500,
+      "cargo": 300,
+      "fuel": 400,
+      "fighter_bays": 0,
+      "armor": 1750,
+      "hitpoints": 20000
+    },
+    "built_in_mods": [
+      "hbi",
+      "fourteenth (XIV skin)"
+    ],
+    "built_in_weapons": {
+      "WS 016": "tpc",
+      "WS 017": "tpc"
+    },
+    "ship_system": "burndrive",
+    "shield": "FRONT 180"
+  },
+  "provenance": "verified against the installed onslaught.ship and onslaught_xiv.skin",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.65,
+  "scale": {
+    "method": "warship pass 4: deck program (DeckProgramProbe CAPITAL \"Battleship\" 750 1500 300 -> WARSHIP, 30875 m2) less its notional HANGAR rooms (no fighter bays): 28715 m2 x1.40 circulation x3.2 m = required habitable m3; solved against the habitable share of the pressure hull (union of its solids, measured on every build) after an explicit non-habitable budget",
+    "required_habitable_m3": 128643,
+    "pressure_hull": [
+      "Hull prow",
+      "Hull core",
+      "Hull port arm",
+      "Hull starboard arm",
+      "Hull aft body",
+      "Hull tail",
+      "Hull port aft leg",
+      "Hull starboard aft leg",
+      "Bridge spine",
+      "Bridge command dome",
+      "Bridge aft dome"
+    ],
+    "pressure_hull_units3": 3392580,
+    "non_habitable_budget": {
+      "armour (rating 1750, the heaviest in the game; a thick, deep hull)": 0.2,
+      "reactors, flux plant (17,000 capacity, 600 dissipation), drive machinery": 0.14,
+      "twenty-four barbettes, two TPC hardpoints, magazines and hoists": 0.1,
+      "fuel (400), supplies and water tanks, structure, trunks": 0.12
+    },
+    "usable_fraction": 0.44,
+    "solved_metres_per_unit": 0.442,
+    "range": {
+      "48pct_habitable": 0.429,
+      "40pct_habitable": 0.456,
+      "battlecarrier_33pct_for_comparison": 0.486,
+      "freighter_55pct_for_comparison": 0.41
+    },
+    "published_vs_solved": 1.472,
+    "size_m": [
+      228.6,
+      174.8,
+      73.5
+    ],
+    "hull_volume_m3": 931687,
+    "real_world": {
+      "Iowa-class battleship": "270 m, 33 m beam, about 2,700 crew in wartime",
+      "Yamato": "263 m, 38.9 m beam, about 2,800 crew",
+      "this hull": "228.6 m long, 174.8 m beam, 73.5 m keel to mast, 932k m3 enclosed for 750-1500 crew",
+      "per crew at max crew m3": 621
+    },
+    "cross_checks_m": {
+      "person 1.8 m in units": 2.77,
+      "door 2.1 m / rail 1.1 m / hatch 2 m in units": [
+        3.2,
+        1.7,
+        3.1
+      ],
+      "main bell mouth diameter": 7.5,
+      "large turret ring diameter": 14.3,
+      "medium turret ring diameter": 9.1,
+      "keel to deck at the core": 46.8
+    },
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
+  },
+  "sprite": {
+    "size": [
+      288,
+      384
+    ],
+    "center": [
+      144,
+      140
+    ],
+    "pixel_to_model": "col c, row r covers X 243-r..244-r, Y 143-c..144-c"
+  },
+  "dimensions": {
+    "min": [
+      -125.95,
+      -134.5,
+      -62.0
+    ],
+    "max": [
+      225.74,
+      134.5,
+      51.1
+    ],
+    "size": [
+      351.69,
+      269.0,
+      113.1
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "mount": "TURRET",
+      "location": [
+        158,
+        71,
+        16.24
+      ],
+      "angle": 70,
+      "arc": 150,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 001 pivot",
+      "objects": "Weapon WS 001 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 002",
+      "mount": "TURRET",
+      "location": [
+        134,
+        74,
+        15.34
+      ],
+      "angle": 65,
+      "arc": 120,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "ring_radius": 4.2,
+      "pivot": "Weapon WS 002 pivot",
+      "objects": "Weapon WS 002 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 003",
+      "mount": "TURRET",
+      "location": [
+        158,
+        -71,
+        16.24
+      ],
+      "angle": -70,
+      "arc": 150,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 003 pivot",
+      "objects": "Weapon WS 003 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 004",
+      "mount": "TURRET",
+      "location": [
+        134,
+        -74,
+        15.34
+      ],
+      "angle": -65,
+      "arc": 120,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "ring_radius": 4.2,
+      "pivot": "Weapon WS 004 pivot",
+      "objects": "Weapon WS 004 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 005",
+      "mount": "TURRET",
+      "location": [
+        114,
+        78,
+        15.34
+      ],
+      "angle": 75,
+      "arc": 120,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "ring_radius": 4.2,
+      "pivot": "Weapon WS 005 pivot",
+      "objects": "Weapon WS 005 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 006",
+      "mount": "TURRET",
+      "location": [
+        114,
+        -78,
+        15.34
+      ],
+      "angle": -75,
+      "arc": 120,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "ring_radius": 4.2,
+      "pivot": "Weapon WS 006 pivot",
+      "objects": "Weapon WS 006 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 007",
+      "mount": "TURRET",
+      "location": [
+        187,
+        0,
+        16.79
+      ],
+      "angle": 0,
+      "arc": 150,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "dualflak",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 007 pivot",
+      "objects": "Weapon WS 007 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 008",
+      "mount": "TURRET",
+      "location": [
+        150,
+        -12,
+        9.14
+      ],
+      "angle": -20,
+      "arc": 90,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "lightac",
+      "ring_radius": 4.2,
+      "pivot": "Weapon WS 008 pivot",
+      "objects": "Weapon WS 008 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 009",
+      "mount": "TURRET",
+      "location": [
+        150,
+        12,
+        9.14
+      ],
+      "angle": 20,
+      "arc": 90,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "lightac",
+      "ring_radius": 4.2,
+      "pivot": "Weapon WS 009 pivot",
+      "objects": "Weapon WS 009 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 010",
+      "mount": "TURRET",
+      "location": [
+        -3,
+        -112,
+        16.24
+      ],
+      "angle": 250,
+      "arc": 180,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "flak",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 010 pivot",
+      "objects": "Weapon WS 010 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 011",
+      "mount": "TURRET",
+      "location": [
+        -3,
+        112,
+        16.24
+      ],
+      "angle": 110,
+      "arc": 180,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "flak",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 011 pivot",
+      "objects": "Weapon WS 011 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 012",
+      "mount": "TURRET",
+      "location": [
+        49,
+        18,
+        26.92
+      ],
+      "angle": 60,
+      "arc": 140,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "hveldriver",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 012 pivot",
+      "objects": "Weapon WS 012 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 013",
+      "mount": "TURRET",
+      "location": [
+        49,
+        -18,
+        26.92
+      ],
+      "angle": -60,
+      "arc": 140,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "hveldriver",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 013 pivot",
+      "objects": "Weapon WS 013 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 014",
+      "mount": "TURRET",
+      "location": [
+        -9,
+        22,
+        27.24
+      ],
+      "angle": 170,
+      "arc": 120,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 014 pivot",
+      "objects": "Weapon WS 014 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 015",
+      "mount": "TURRET",
+      "location": [
+        -9,
+        -22,
+        27.24
+      ],
+      "angle": 190,
+      "arc": 120,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 015 pivot",
+      "objects": "Weapon WS 015 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 018",
+      "mount": "TURRET",
+      "location": [
+        77,
+        88,
+        17.52
+      ],
+      "angle": 80,
+      "arc": 135,
+      "size": "LARGE",
+      "type": "BALLISTIC",
+      "weapon": "devastator",
+      "ring_radius": 11.0,
+      "pivot": "Weapon WS 018 pivot",
+      "objects": "Weapon WS 018 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 019",
+      "mount": "TURRET",
+      "location": [
+        126,
+        0,
+        18.07
+      ],
+      "angle": 0,
+      "arc": 150,
+      "size": "LARGE",
+      "type": "BALLISTIC",
+      "weapon": "multineedler",
+      "ring_radius": 11.0,
+      "pivot": "Weapon WS 019 pivot",
+      "objects": "Weapon WS 019 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 020",
+      "mount": "TURRET",
+      "location": [
+        77,
+        -87,
+        17.52
+      ],
+      "angle": -80,
+      "arc": 135,
+      "size": "LARGE",
+      "type": "BALLISTIC",
+      "weapon": "devastator",
+      "ring_radius": 11.0,
+      "pivot": "Weapon WS 020 pivot",
+      "objects": "Weapon WS 020 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 021",
+      "mount": "TURRET",
+      "location": [
+        -9,
+        65,
+        24.24
+      ],
+      "angle": 30,
+      "arc": 120,
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "weapon": "typhoon",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 021 pivot",
+      "objects": "Weapon WS 021 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 022",
+      "mount": "TURRET",
+      "location": [
+        8,
+        40,
+        24.24
+      ],
+      "angle": 20,
+      "arc": 120,
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "weapon": "typhoon",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 022 pivot",
+      "objects": "Weapon WS 022 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 023",
+      "mount": "TURRET",
+      "location": [
+        8,
+        -40,
+        24.24
+      ],
+      "angle": -20,
+      "arc": 120,
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "weapon": "typhoon",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 023 pivot",
+      "objects": "Weapon WS 023 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 024",
+      "mount": "TURRET",
+      "location": [
+        -9,
+        -65,
+        24.24
+      ],
+      "angle": -30,
+      "arc": 120,
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "weapon": "typhoon",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 024 pivot",
+      "objects": "Weapon WS 024 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+    },
+    {
+      "id": "WS 016",
+      "mount": "HARDPOINT",
+      "location": [
+        198,
+        70,
+        11.0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "weapon": "tpc",
+      "objects": "Weapon WS 016 ...",
+      "muzzle": "Weapon WS 016 muzzle",
+      "trains": "fixed"
+    },
+    {
+      "id": "WS 017",
+      "mount": "HARDPOINT",
+      "location": [
+        198,
+        -70,
+        11.0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "weapon": "tpc",
+      "objects": "Weapon WS 017 ...",
+      "muzzle": "Weapon WS 017 muzzle",
+      "trains": "fixed"
+    },
+    {
+      "id": "WS 025",
+      "mount": "HARDPOINT",
+      "location": [
+        17,
+        0
+      ],
+      "angle": 0,
+      "arc": 120,
+      "size": "SMALL",
+      "type": "DECORATIVE",
+      "weapon": "sensor mast",
+      "objects": "Fitting command dome sensor mast"
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "location": [
+        -82,
+        70,
+        -8.0
+      ],
+      "width": 20,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 160,
+      "exhaust_direction": [
+        -0.9397,
+        0.342,
+        0.0
+      ],
+      "mouth_radius": 5.6,
+      "bell": "Engine 1 aft-facing bell",
+      "lip": "Engine 1 mouth lip",
+      "throat": "Engine 1 dark throat",
+      "drive_glow": "emit from the anchor along exhaust_direction"
+    },
+    {
+      "index": 2,
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "location": [
+        -103,
+        40,
+        -8.0
+      ],
+      "width": 20,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "mouth_radius": 5.6,
+      "bell": "Engine 2 aft-facing bell",
+      "lip": "Engine 2 mouth lip",
+      "throat": "Engine 2 dark throat",
+      "drive_glow": "emit from the anchor along exhaust_direction"
+    },
+    {
+      "index": 3,
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "location": [
+        -103,
+        -40,
+        -8.0
+      ],
+      "width": 20,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "mouth_radius": 5.6,
+      "bell": "Engine 3 aft-facing bell",
+      "lip": "Engine 3 mouth lip",
+      "throat": "Engine 3 dark throat",
+      "drive_glow": "emit from the anchor along exhaust_direction"
+    },
+    {
+      "index": 4,
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "location": [
+        -82,
+        -70,
+        -8.0
+      ],
+      "width": 20,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 200,
+      "exhaust_direction": [
+        -0.9397,
+        -0.342,
+        0.0
+      ],
+      "mouth_radius": 5.6,
+      "bell": "Engine 4 aft-facing bell",
+      "lip": "Engine 4 mouth lip",
+      "throat": "Engine 4 dark throat",
+      "drive_glow": "emit from the anchor along exhaust_direction"
+    },
+    {
+      "index": 5,
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "location": [
+        -113,
+        11,
+        -6.0
+      ],
+      "width": 30,
+      "length": 100,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "mouth_radius": 5.8,
+      "bell": "Engine 5 aft-facing bell",
+      "lip": "Engine 5 mouth lip",
+      "throat": "Engine 5 dark throat",
+      "drive_glow": "emit from the anchor along exhaust_direction"
+    },
+    {
+      "index": 6,
+      "objects": "Engine 6 ...",
+      "anchor": "Engine 6 exhaust anchor",
+      "location": [
+        -113,
+        -11,
+        -6.0
+      ],
+      "width": 30,
+      "length": 100,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "mouth_radius": 5.8,
+      "bell": "Engine 6 aft-facing bell",
+      "lip": "Engine 6 mouth lip",
+      "throat": "Engine 6 dark throat",
+      "drive_glow": "emit from the anchor along exhaust_direction"
+    }
+  ],
+  "running_lights": [
+    {
+      "name": "Light stem 1",
+      "position": [
+        225.25,
+        -0.0,
+        2.0
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "stem",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 0.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light mast head 1",
+      "position": [
+        17.0,
+        0.0,
+        50.55
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "mast head",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port leg tip 1",
+      "position": [
+        -122.0,
+        56.0,
+        5.7
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "leg tip",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port quarter 1",
+      "position": [
+        -66.0,
+        100.0,
+        8.52
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "stern quarter",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port arm edge 1",
+      "position": [
+        180.0,
+        89.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 0.35,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port arm edge 2",
+      "position": [
+        140.0,
+        101.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 0.7,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port arm edge 3",
+      "position": [
+        100.0,
+        121.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.05,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port arm edge 4",
+      "position": [
+        60.0,
+        123.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.4,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port arm edge 5",
+      "position": [
+        20.0,
+        127.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.75,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port arm edge 6",
+      "position": [
+        -10.0,
+        117.5,
+        17.59
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 2.1,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard leg tip 1",
+      "position": [
+        -122.0,
+        -56.0,
+        5.7
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "leg tip",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard quarter 1",
+      "position": [
+        -66.0,
+        -100.0,
+        8.52
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "stern quarter",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard arm edge 1",
+      "position": [
+        180.0,
+        -89.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 0.35,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard arm edge 2",
+      "position": [
+        140.0,
+        -101.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 0.7,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard arm edge 3",
+      "position": [
+        100.0,
+        -121.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.05,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard arm edge 4",
+      "position": [
+        60.0,
+        -123.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.4,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard arm edge 5",
+      "position": [
+        20.0,
+        -127.5,
+        18.25
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.75,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard arm edge 6",
+      "position": [
+        -10.0,
+        -117.5,
+        17.59
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "edge line",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 2.1,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light stern 1",
+      "position": [
+        -113.75,
+        -0.0,
+        8.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "stern",
+      "blink": {
+        "period_s": 3.0,
+        "phase_s": 1.5,
+        "duty": 0.18
+      }
+    }
+  ],
+  "object_names": {
+    "Hull ...": "prow, core, port/starboard arm, aft body, tail, port/starboard aft leg, waist",
+    "Bridge ...": "spine, command dome, aft dome, glazing",
+    "Machinery <side> ...": "pipe runs, well frames, headers, pumps and valves in the stern wells",
+    "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, shroud or drive pod; exhaust anchor (empty, +X along the exhaust)",
+    "Weapon <slot> ...": "barbette (fixed) and pivot (empty) with its trainable parts; WS 016/017 hardpoint housing, barrel and muzzle (empty)",
+    "Fitting ...": "sensor mast on WS 025, aft radome",
+    "Light <where> <k>": "running lights; positions, colours and blink in running_lights"
+  },
+  "formation": {
+    "shot": "second-wind-cinematic/corvus-approach/c1-v2-shot.md",
+    "lens_mm_stand_in": 24.0,
+    "sensor_mm": 36.0,
+    "cameras": {
+      "formation-quarter-1.5km": [
+        1731.2,
+        -1410.8,
+        707.7
+      ],
+      "formation-abeam-1.5km": [
+        49.9,
+        -2285.2,
+        315.7
+      ],
+      "formation-bow-1.5km": [
+        -1905.0,
+        -1128.6,
+        474.3
+      ],
+      "formation-high-1.5km": [
+        1580.9,
+        883.9,
+        1477.9
+      ],
+      "formation-quarter-3km": [
+        3412.4,
+        -2821.5,
+        1420.8
+      ],
+      "formation-abeam-3km": [
+        49.9,
+        -4570.5,
+        636.9
+      ],
+      "formation-bow-3km": [
+        -3859.8,
+        -2257.3,
+        954.1
+      ],
+      "formation-high-3km": [
+        3111.8,
+        1767.8,
+        2961.3
+      ]
+    }
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        50,
+        0,
+        300
+      ],
+      "orthographic_scale": 540,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "starboard-side",
+      "position": [
+        50,
+        -500,
+        0
+      ],
+      "orthographic_scale": 400,
+      "rotation": "looks at [50.0, 0.0, 0.0]"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        50,
+        500,
+        0
+      ],
+      "orthographic_scale": 400,
+      "rotation": "looks at [50.0, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        500,
+        0,
+        0
+      ],
+      "orthographic_scale": 330,
+      "rotation": "looks at [50.0, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        430,
+        -420,
+        300
+      ],
+      "orthographic_scale": 480,
+      "rotation": "looks at [50.0, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -500,
+        0,
+        0
+      ],
+      "orthographic_scale": 330,
+      "rotation": "looks at [50.0, 0.0, 0.0]"
+    },
+    {
+      "name": "belly",
+      "position": [
+        300,
+        -330,
+        -280
+      ],
+      "orthographic_scale": 480,
+      "rotation": "looks at [50.0, 0.0, 0.0]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9641,
+    "sprite_uncovered": 0.0152,
+    "model_outside_sprite": 0.0215,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
+  },
+  "formation_extent": {
+    "formation-abeam-1.5km": {
+      "size_px": [
+        199,
+        65
+      ]
+    },
+    "formation-bow-1.5km": {
+      "size_px": [
+        164,
+        70
+      ]
+    },
+    "formation-high-1.5km": {
+      "size_px": [
+        167,
+        135
+      ]
+    },
+    "formation-quarter-1.5km": {
+      "size_px": [
+        181,
+        81
+      ]
+    },
+    "formation-abeam-3km": {
+      "size_px": [
+        99,
+        33
+      ]
+    },
+    "formation-bow-3km": {
+      "size_px": [
+        82,
+        35
+      ]
+    },
+    "formation-high-3km": {
+      "size_px": [
+        84,
+        68
+      ]
+    },
+    "formation-quarter-3km": {
+      "size_px": [
+        90,
+        40
+      ]
+    }
+  }
+}
