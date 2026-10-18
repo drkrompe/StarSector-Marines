@@ -108,7 +108,7 @@ TERRACE_C = (14.0, 0.0)           # centre of the round core terrace (the sprite
 TERRACE_R = 52.0                  # its batter (R 44..52) lies outboard of the gun ring (R 32..40)
 INNER_R = 27.0
 GALLERY_TOP = 17.0                # the arm galleries (os_arms)
-PROW_GALLERY_TOP = 27.5           # the prow gallery, climbing aft to the citadel
+PROW_GALLERY_TOP = 31.5           # the prow gallery top tier, climbing aft to the spine glacis
 TERRACE_TOP = 36.0
 INNER_TOP = 40.0
 INNER_C = (24.0, 0.0)            # the inner tier is centred under the command tower
@@ -305,8 +305,14 @@ def fore_section(x):
 # under the citadel, up to the stern. From ahead it is the wedge between the arms.
 BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 60), (0, 63), (-22, 62), (-40, 52),
            (-58, 42), (-72, 33), (-80, 20), (-84, 6)]
-BELLY_KEEL = [(170, -25.5), (104, -50), (66, -55), (6, -55), (-30, -48), (-60, -36), (-84, -22)]
-BELLY_STATIONS = [170, 150, 128, 104, 80, 66, 52, 24, 6, 0, -12, -18, -20, -22, -30, -40, -58, -60, -72, -80, -84]
+# Round 4 (owner: below the deck the side read as one long lozenge): the belly is
+# deepest forward, a CHEST under the glacis (X 124..80) whose face drops steeply
+# below the arms' keels (X 140..124) and whose forefoot runs on up to the prow; from the chest a straight keel line
+# rises gently aft and then, aft of the citadel, sweeps up to the stern.
+BELLY_KEEL = [(168, -26.0), (140, -46.0), (124, -60.0), (100, -62.0), (80, -62.0), (-24, -46.0), (-60, -33.0),
+              (-84, -22.0)]
+BELLY_STATIONS = [170, 168, 150, 140, 128, 124, 104, 100, 80, 66, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, -40, -58, -60, -72,
+                  -80, -84]
 
 
 def belly_section(x):
@@ -330,11 +336,13 @@ def belly_section(x):
 
 
 # The prow gun deck: three stepped tiers climbing aft (WS 007, WS 008/009, the
-# multineedler WS 019), each riser a raked armour step, the last level with the
-# core's centre deck so it runs on into the glacis ridge and the spine.
-GALLERY_W = [(216, 5.0), (214, 5.5), (200, 9.0), (186, 11.0), (150, 17.0), (126, 18.5), (104, 20.0)]
-GALLERY_Z = [(216, 8.0), (212, 11.0), (175, 12.0), (170, 18.5), (144, 19.0), (139, 26.5), (110, 27.0), (104, 27.5)]
-GALLERY_STATIONS = [216, 214, 212, 200, 186, 175, 170, 150, 144, 139, 126, 110, 104]
+# multineedler WS 019), each riser a raked armour step of about nine units, the
+# last running on under the spine's arch (X 99) where the spine's glacis
+# (os_bridge) takes the climb on up to the citadel. Round 4 (owner: the deck line
+# must climb with purpose): bow deck 9, then 13.5, 22.5, 31.5.
+GALLERY_W = [(216, 5.0), (214, 5.5), (200, 9.0), (186, 11.0), (150, 17.0), (126, 18.5), (104, 20.0), (99, 20.0)]
+GALLERY_Z = [(216, 9.0), (212, 12.5), (177, 13.5), (171, 22.0), (145, 22.5), (139, 31.0), (110, 31.5), (99, 31.5)]
+GALLERY_STATIONS = [216, 214, 212, 200, 186, 177, 171, 150, 145, 139, 126, 110, 104, 99]
 
 
 def gallery_section(x):
