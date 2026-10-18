@@ -75,9 +75,18 @@ public record WarshipEdgeHelm(float width, float height) {
 
     /** Whether the edge pressure applies to {@code ship} now (see the class comment for who is exempt). */
     public static boolean applies(Warship ship) {
+        return flown(ship) && fightingHulls(ship);
+    }
+
+    /**
+     * Whether {@code ship} is a hull flown over the map rather than placed or deliberately crossing an edge: the
+     * class comment's exemptions, without the hull-fight condition. The backstop ({@link #contain}) holds every such
+     * hull on the map, whatever its helm is doing, since only its own edge is a way off it.
+     */
+    private static boolean flown(Warship ship) {
         return ENABLED && !ship.fighterSize() && !ship.destroyed() && !ship.departing() && !ship.berthed()
                 && !ship.enteringAcrossEdge() && !ship.piloted() && !ship.isPassingThrough()
-                && ship.lowPass() == null && !ship.lowHovering() && fightingHulls(ship);
+                && ship.lowPass() == null && !ship.lowHovering();
     }
 
     /**
@@ -142,17 +151,29 @@ public record WarshipEdgeHelm(float width, float height) {
         return new float[]{clampAxis(x, width, keep), clampAxis(y, height, keep)};
     }
 
-    /** Holds a hull the pressure applies to on the map: a centre past an edge is put back on it and its way off cut. */
+    /**
+     * Holds a flown hull on the map, whether or not the pressure applies to it (an escort keeping its screen place is
+     * held too): a centre past an edge is put back on it and its way off cut. A hull leaving across its edge is held
+     * off the other three, since its own edge is its only way off.
+     */
     public void contain(Warship ship) {
-        if (!applies(ship)) return;
+        MapEdge free;
+        if (flown(ship)) {
+            free = null;
+        } else if (ENABLED && ship.leavingAcrossEdge() && ship.exitEdge() != null && !ship.destroyed()
+                && !ship.fighterSize()) {
+            free = ship.exitEdge();
+        } else {
+            return;
+        }
         float dx = ship.centerX() - ship.x;
         float dy = ship.centerY() - ship.y;
         float cx = ship.centerX();
         float cy = ship.centerY();
-        if (cx < 0f) { ship.x = -dx; ship.velocityX = Math.max(0f, ship.velocityX); }
-        if (cx > width) { ship.x = width - dx; ship.velocityX = Math.min(0f, ship.velocityX); }
-        if (cy < 0f) { ship.y = -dy; ship.velocityY = Math.max(0f, ship.velocityY); }
-        if (cy > height) { ship.y = height - dy; ship.velocityY = Math.min(0f, ship.velocityY); }
+        if (cx < 0f && free != MapEdge.WEST) { ship.x = -dx; ship.velocityX = Math.max(0f, ship.velocityX); }
+        if (cx > width && free != MapEdge.EAST) { ship.x = width - dx; ship.velocityX = Math.min(0f, ship.velocityX); }
+        if (cy < 0f && free != MapEdge.SOUTH) { ship.y = -dy; ship.velocityY = Math.max(0f, ship.velocityY); }
+        if (cy > height && free != MapEdge.NORTH) { ship.y = height - dy; ship.velocityY = Math.min(0f, ship.velocityY); }
     }
 
     private static float clampAxis(float v, float size, float keep) {

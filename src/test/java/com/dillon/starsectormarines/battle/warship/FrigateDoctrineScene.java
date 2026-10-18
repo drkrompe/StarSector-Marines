@@ -26,10 +26,11 @@ import java.util.Map;
  * Slice 4 of the frigate duel ({@code warship-behaviours.md}, ship against ship): doctrine for duels. Two Wolf (H) hunt a Salvage Rig held on
  * station with its two Hound (P) escorts, over a hostile garrison. Every hull runs the ordinary warship doctrine.
  *
- * <p>Loops: {@code pack} (the Wolfs on ground-fire {@code HOLD}: the one nearer the rig runs it down, the other
+ * <p>Loops: {@code pack} (the Wolfs on ground-fire {@code HOLD}: one runs the rig down, the other
  * pins an escort, the escorts hold their ring on the Wolfs' side of the rig, and no Wolf fires at the ground),
- * {@code withdraw} (the same with every Hound already battered, so a hull under the doctrine's withdraw line is
- * seen breaking off through the ordinary departure and firing nothing after) and {@code ground-allowed} (the
+ * {@code withdraw} (the same with every Hound already battered: a hull under the doctrine's withdraw line while a
+ * hostile hull lives fights on rather than breaking off, since warship fights are to the death; a hull that does
+ * leave once no foe is left fires nothing at the ground as it goes) and {@code ground-allowed} (the
  * {@code pack} fight with the Wolfs' ground fire left at {@code ALL}: the garrison's exposure to them is a
  * reading). Verdicts are mechanics; who wins is a reading.
  */
@@ -42,14 +43,12 @@ public final class FrigateDoctrineScene implements BehaviorScene {
     private static final float MID_Y = 34f;
     private static final int TICKS = 1800;
     private static final int FRAME_EVERY = 6;
-    /** A hull under the withdraw line must be leaving within this many ticks (the doctrine runs once a second). */
-    private static final int WITHDRAW_GRACE_TICKS = 75;
 
     @Override public String id() { return "frigate-doctrine"; }
 
     @Override public String label() {
         return "Frigate doctrine: two Wolf (H) on ground-fire hold split on a Salvage Rig and its two Hound (P) "
-                + "escorts; crippled hulls break off through the ordinary departure";
+                + "escorts; crippled hulls fight on while a hostile hull lives";
     }
 
     @Override public int frameDelayMillis() { return 100; }
@@ -128,8 +127,9 @@ public final class FrigateDoctrineScene implements BehaviorScene {
             verdicts.add(Verdict.of("the-pack-splits-on-the-charge-and-an-escort",
                     t.packTicks > 0 && t.splitTicks == t.packTicks,
                     String.format(Locale.ROOT, "%d of %d ticks with both Wolfs hunting while the rig and an escort "
-                            + "lived had one on the rig (the nearer, within the switch margin) and one on an escort",
-                            t.splitTicks, t.packTicks)));
+                            + "lived had one on the rig and one on an escort%s",
+                            t.splitTicks, t.packTicks, WarshipTactics.ENABLED ? ""
+                                    : " (the runner the nearer, within the switch margin)")));
             verdicts.add(Verdict.of("escorts-hold-their-ring-on-the-threat-side",
                     t.ringTicks > 0 && t.share(t.threatSideTicks, t.ringTicks) >= 0.8f,
                     String.format(Locale.ROOT, "escorts on the Wolfs' side of the rig %.0f%% of %d escort-ticks",
@@ -141,10 +141,11 @@ public final class FrigateDoctrineScene implements BehaviorScene {
                             + Math.round(t.closestOverGarrison) + " cells"));
         }
         if (loop.equals("withdraw")) {
-            verdicts.add(Verdict.of("crippled-hulls-break-off-through-departure",
-                    t.crippled > 0 && t.lateWithdrawals == 0,
-                    String.format(Locale.ROOT, "%d hulls went under the withdraw line alive; %d were not leaving "
-                            + "within %d ticks", t.crippled, t.lateWithdrawals, WITHDRAW_GRACE_TICKS)));
+            verdicts.add(Verdict.of("crippled-hulls-fight-on-while-a-hostile-hull-lives",
+                    t.crippled > 0 && t.crippledFightTicks > 0 && t.leavingWhileFoe == 0,
+                    String.format(Locale.ROOT, "%d hulls went under the withdraw line alive; %d of their %d ticks "
+                            + "with a hostile hull alive were spent leaving", t.crippled, t.leavingWhileFoe,
+                            t.crippledFightTicks)));
             // A leaving hull answers hulls in its guns' reach as it goes, but takes on no ground work.
             verdicts.add(Verdict.of("a-leaving-hull-fires-nothing-at-the-ground", t.shotsWhileLeaving == 0,
                     t.shotsWhileLeaving + " ground shots from hulls already leaving"));
@@ -179,7 +180,8 @@ public final class FrigateDoctrineScene implements BehaviorScene {
         int ringTicks;
         int threatSideTicks;
         int crippled;
-        int lateWithdrawals;
+        int crippledFightTicks;
+        int leavingWhileFoe;
         int shotsWhileLeaving;
         int offMapUndeparted;
         int firstRigHitTick = -1;
@@ -203,6 +205,17 @@ public final class FrigateDoctrineScene implements BehaviorScene {
             return s.toString();
         }
 
+        /** Whether a hull hostile to {@code s} is still fighting over the battle. */
+        private boolean foeAlive(Warship s) {
+            List<Warship> foes = new ArrayList<>(wolves);
+            if (wolves.contains(s)) {
+                foes = new ArrayList<>(hounds);
+                foes.add(rig);
+            }
+            for (Warship f : foes) if (live(f)) return true;
+            return false;
+        }
+
         private static String describe(String name, Warship ship) {
             if (ship.destroyed()) return " / " + name + " down";
             if (ship.departing()) return " / " + name + " leaving";
@@ -223,10 +236,9 @@ public final class FrigateDoctrineScene implements BehaviorScene {
                     crippledAt.put(s, tick);
                     crippled++;
                 }
-                Integer at = crippledAt.get(s);
-                if (at != null && at >= 0 && tick - at > WITHDRAW_GRACE_TICKS) {
-                    if (!s.departing()) lateWithdrawals++;
-                    crippledAt.put(s, -1);
+                if (crippledAt.containsKey(s) && foeAlive(s)) {
+                    crippledFightTicks++;
+                    if (s.departing()) leavingWhileFoe++;
                 }
                 int shots = s.groundShots();
                 if (s.departing()) {
@@ -247,7 +259,9 @@ public final class FrigateDoctrineScene implements BehaviorScene {
                 Warship onRig = a.hullTarget() == rig ? a : b.hullTarget() == rig ? b : null;
                 Warship other = onRig == a ? b : a;
                 boolean split = onRig != null && other.hullTarget() != rig && hounds.contains(other.hullTarget());
-                if (split) {
+                // Under group tactics the runner is the flanker, chosen by where it stands round the charge (with
+                // its own hysteresis), not by nearness; the nearer-runner rule is the tactics-off pack division's.
+                if (split && !WarshipTactics.ENABLED) {
                     float mine = onRig.distanceTo(rig.centerX(), rig.centerY());
                     float theirs = other.distanceTo(rig.centerX(), rig.centerY());
                     split = mine <= theirs + WarshipShipFire.PACK_SWITCH_CELLS + 0.5f;

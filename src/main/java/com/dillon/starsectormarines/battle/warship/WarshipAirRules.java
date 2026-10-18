@@ -115,12 +115,18 @@ public final class WarshipAirRules {
      */
     public static float[] leadPoint(float fromX, float fromY, float x, float y, float vx, float vy,
                                     VanillaWeapon weapon) {
+        return leadPoint(fromX, fromY, x, y, vx, vy, weapon, 1f);
+    }
+
+    /** {@link #leadPoint}, for a round flying {@code speedScale} times its muzzle speed (a round at a hull). */
+    public static float[] leadPoint(float fromX, float fromY, float x, float y, float vx, float vy,
+                                    VanillaWeapon weapon, float speedScale) {
         if (weapon.beam()) return new float[]{x, y};
         float ax = x;
         float ay = y;
         for (int pass = 0; pass < 2; pass++) {
             float d = (float) Math.hypot(ax - fromX, ay - fromY);
-            float t = flightSeconds(weapon, d);
+            float t = flightSeconds(weapon, d) / speedScale;
             ax = x + vx * t;
             ay = y + vy * t;
         }
