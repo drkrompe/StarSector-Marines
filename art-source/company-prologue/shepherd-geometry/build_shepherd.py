@@ -68,8 +68,8 @@ SPRITE = 'graphics/ships/drone_tender.png'
 # 40 fuel; no hangar term, the drone bay being open) over the frigate
 # machinery share, against the enclosed volume of ship_scale.SOLIDS
 # ['shepherd'], re-measured below on every build. That solves 0.74 (range
-# 0.72-0.76). The published figure stays 0.78, from her pass-4 solve, until
-# the owner chooses: ship_scale.PUBLISHED carries it, as it does the Hound's.
+# 0.72-0.76). The published figure stays 0.78, from her pass-4 solve, by the
+# owner's choice (2026-10-18): ship_scale.PUBLISHED carries it, as it does the Hound's.
 SCALE = ship_scale.record('Shepherd')
 METRES_PER_UNIT = ship_scale.PUBLISHED['Shepherd']
 DRONE_BAY_HULL = ['Drone bay aft hangar pod', 'Drone bay forward hangar pod', 'Drone bay forward service block']
@@ -282,8 +282,8 @@ def scale_record(lo, hi):
     r = sh_dronebay.OPENING_R
     return {
         **SCALE, 'published_metres_per_unit': METRES_PER_UNIT,
-        'published_note': 'kept at the pass-4 figure (own deck-program solve, 45% usable) until the owner '
-                          'chooses between it and the shared-basis solve',
+        'published_note': "kept at the pass-4 figure (own deck-program solve, 45% usable) by the owner's "
+                          'choice, 2026-10-18, over the shared-basis solve',
         'measured_this_build': {'enclosed_units3': round(measured), 'solids': solids},
         'drone_bay': {
             'hull': DRONE_BAY_HULL, 'tub_solid_units3': round(bay),

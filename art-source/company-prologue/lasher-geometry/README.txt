@@ -1,4 +1,4 @@
-LASHER - CINEMATIC GEOMETRY (PASS 1 BLOCKOUT, LIGHT PASS 2, PASS 4 SCALE)
+LASHER - CINEMATIC GEOMETRY (PASS 1 BLOCKOUT, LIGHT PASS 2, PASS 4 SCALE; ACCEPTED)
 
 Purpose
 A light, scripted Blender model of the vanilla Lasher as a Hegemony escort
@@ -113,6 +113,10 @@ append the collection and instance it with a collection-instance empty
 scaled by metres_per_unit; verify_asset.py does exactly that three times
 and checks the contract. The built file is not tracked: it is copied to the
 shared Drive under starsector/builds/lasher/<short-commit>/.
+
+Owner review
+Accepted as built on 2026-10-18 at 0.95 m per unit (build f264ff7).
+reference-history/v2-accepted/geometry.json records the accepted state.
 
 Silhouette check
 compose_review.py lays the sprite into the top camera frame and compares

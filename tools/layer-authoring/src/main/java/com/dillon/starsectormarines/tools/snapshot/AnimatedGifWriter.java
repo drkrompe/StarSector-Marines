@@ -279,8 +279,14 @@ public final class AnimatedGifWriter implements AutoCloseable {
         return v << 2;
     }
 
-    private static int level(int channel) {
-        return Math.min(LEVELS - 1, channel * LEVELS / 256);
+    /**
+     * The nearest cube level. The palette's levels sit at {@code i * 255 / (LEVELS - 1)}, so a
+     * channel rounds to the closest of them; splitting 0..255 into six equal bins instead put
+     * the bin edges between the levels, sending 0..42 to black and tipping a neutral dark grey
+     * whose green was a few points higher into pure green.
+     */
+    static int level(int channel) {
+        return (channel * (LEVELS - 1) + 127) / 255;
     }
 
     /** Levels per channel in the shared colour cube. Six gives 216 entries and leaves room to spare in a 256-entry GIF palette. */
