@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1504f-a7cb-73c2-a9dc-60cc19995532",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1504f-a7cb-73c2-a9dc-60cc19995532\\exec-5c361426-ee96-47fb-a2ea-ed17e191762a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\talon\\generated\\sheet-swatch.png",
+    "sha256": "b14194bae025b02646b72d7c7d396dfd315b12839c094197f5f49d91f60cb052",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\talon\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "0a77a3abb70c8d4738e976c76954d9ab5deedf23b28b4108c28c1f061976d414",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the layout sheet of four squares (layout authority)\nImage 2: INPUT 2: the same fighter already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of FOUR flat-coloured squares in two rows of two on a plain light grey background. Each square is one material of a single 3D space fighter (a Talon interceptor in good front-line order), to be painted as a flat, square-on texture sample of that material:\ntop-left square: the slightly warm mid red armour enamel;\ntop-right square: mid grey worn bare-ish steel structure;\nbottom-left square: brighter polished steel, as on rings and nozzle lips;\nbottom-right square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME fighter, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the four squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: red stays the mid red enamel, grey steel stays mid grey, polished steel stays brighter steel, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\talon\\guide\\sheet-swatch-guide.png",
+      "sha256": "33a5284190fde0f42ba2de72f48193f351770099a3f9f874e3ad5f4cf412316d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the layout sheet of four squares (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\talon\\reference\\finish-reference.png",
+      "sha256": "8b2010c093b31ebac4ba82bbde445fef76668fa7bb901f679d8631bf80ee0560",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same fighter already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet using Image 1’s exact layout and Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 45866,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 543,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.3
+}
