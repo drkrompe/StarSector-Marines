@@ -1,36 +1,36 @@
 {
- "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.984)",
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.991)",
  "space": "CIELAB D65",
  "classes": {
   "khaki": {
-   "pixels": 192032,
+   "pixels": 137083,
    "mean": [
-    68.41,
-    -0.08,
-    20.54
+    70.93,
+    -1.22,
+    20.28
    ],
    "std": [
-    12.4,
-    0.83,
-    2.85
+    14.73,
+    0.84,
+    2.79
    ],
    "L_p10_p50_p90": [
-    50.41,
-    73.49,
-    79.77
+    45.83,
+    76.16,
+    83.9
    ],
    "mean_srgb": [
-    180.8,
-    165.6,
-    129.9
+    185.7,
+    173.0,
+    136.8
    ]
   },
   "steel": {
-   "pixels": 20334,
+   "pixels": 14125,
    "mean": [
-    30.0,
-    0.18,
-    -0.52
+    31.85,
+    0.04,
+    0.25
    ],
    "std": [
     8.0,
@@ -38,19 +38,19 @@
     1.4
    ],
    "L_p10_p50_p90": [
-    12.08,
-    24.67,
-    46.44
+    8.69,
+    29.17,
+    52.27
    ],
    "mean_srgb": [
-    70.5,
-    70.6,
-    71.4
+    75.2,
+    74.9,
+    74.5
    ],
    "std_measured": [
-    15.19,
-    0.62,
-    1.79
+    17.78,
+    0.67,
+    0.88
    ],
    "note": "spread owned: the measured one is shading"
   },

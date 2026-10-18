@@ -44,16 +44,14 @@ COLOURS = {
 
 RCS_QUADS = {}
 
-# (object name, role, colour or None). The running lenses follow the sprite,
-# which draws green to port and red to starboard (sh_hull), so their lights are
-# given those colours explicitly rather than the kit's red-to-port default.
+# (object name, role, colour or None). Running lights take red to port and green
+# to starboard by their side of the centreline, matching their lenses.
 WHITE = (1.0, .95, .85)
-RED, GREEN = (1.0, .12, .08), (.15, 1.0, .35)
 LAMPS = [
-    ('Bridge running lamp port green', 'running', GREEN),
-    ('Bridge running lamp starboard red', 'running', RED),
-    ('Hull stern lamp lens port green', 'running', GREEN),
-    ('Hull stern lamp lens starboard red', 'running', RED),
+    ('Bridge running lamp port red', 'running', None),
+    ('Bridge running lamp starboard green', 'running', None),
+    ('Hull stern lamp lens port red', 'running', None),
+    ('Hull stern lamp lens starboard green', 'running', None),
     ('Mast bridge masthead lamp', 'masthead', WHITE),
     ('Mast forward sensor boom nav lamp', 'beacon', WHITE),
     ('Drone bay service block floodlight 1', 'work', WHITE),

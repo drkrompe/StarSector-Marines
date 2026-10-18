@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Rebuild, verify and review the Shepherd cinematic asset end to end.
 #   ./finalize.sh [--skip-surface] [--turn N] [--samples S]
+# The turnaround (--turn N, e.g. 96) is opt-in: it is most of the run time.
 # Needs the surfacing package's Codex sources (committed); renders go to
 # ../shepherd-surface/build/final/ and review/ (both ignored).
 set -euo pipefail
 cd "$(dirname "$0")"
 . ../../blender.sh
 SURF=$(cd ../shepherd-surface && pwd)
-SKIP=0; TURN=96; SAMPLES=32
+SKIP=0; TURN=0; SAMPLES=32
 while [ $# -gt 0 ]; do case $1 in
   --skip-surface) SKIP=1;; --turn) TURN=$2; shift;; --samples) SAMPLES=$2; shift;; esac; shift; done
 run() { "$BLENDER" --background --factory-startup --python-exit-code 1 --python "$@"; }
