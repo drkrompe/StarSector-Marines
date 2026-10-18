@@ -165,7 +165,7 @@ HULLS = {
     'Legion (XIV)': dict(units3=1678689, crew_max=1500, cargo=300, fuel=300, cls='capital',
                          wings=[('broadsword', 3)]*2+[('hoplon', 2)]*2, length_units=294.9, sprite_px=308,
                          fittings_units={'personnel door h': [3.4*.61/.99], 'rail h': [1.8*.61/.99], 'transfer door w x h': [34, 10]}),
-    'Onslaught': dict(units3=2453487, crew_max=1500, cargo=300, fuel=400, cls='capital',
+    'Onslaught': dict(units3=2424048, crew_max=1500, cargo=300, fuel=400, cls='capital',
                       length_units=351.7, sprite_px=384,
                       fittings_units={'bridge glazing band h': [1.63], 'bridge pane w': [1.28],
                                       'crown hatch d': [2.09], 'service hatch w x l': [1.05, 1.63]}),
