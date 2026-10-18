@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-18 — deployed hulls engage armor from a duel band between orders; idle turrets settle onto the hull heading.
 
 ## Purpose and boundary
 
@@ -367,7 +367,10 @@ bearing drives its authored traverse, and a held primary trigger fires only
 when ordinary alignment, cooldown, ammunition, and burst gates permit. A burst
 retains its world point; later cursor movement applies to the next trigger.
 Manual ownership suppresses this hull's autonomous acquisition and trigger,
-while other vehicle turrets remain autonomous. Entry, exit, and input
+while other vehicle turrets remain autonomous. An autonomous turret with nothing
+to shoot, or nothing left to shoot with, settles back onto the hull's heading at
+half its traverse; its facing is a world bearing, so otherwise it keeps the
+bearing its last target left it on while the hull turns beneath it. Entry, exit, and input
 suspension discard queued rounds and targets without resetting ammunition or
 cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.

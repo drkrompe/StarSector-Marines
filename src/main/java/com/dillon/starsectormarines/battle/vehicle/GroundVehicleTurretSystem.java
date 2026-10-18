@@ -15,6 +15,13 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /** One aim, magazine, and cadence authority for autonomous and controlled vehicle turrets. */
 public final class GroundVehicleTurretSystem {
+    /**
+     * A turret with nothing to shoot comes back to the hull's heading at this share of its traverse rate, so it
+     * reads as settling rather than snapping. Facing is a world bearing, so without it a turret kept whatever
+     * bearing its last target left it on while the hull turned underneath.
+     */
+    static final float IDLE_RETURN_RATE_SHARE = 0.5f;
+
     private final ConvoyService convoy;
     private final UnitRosterService roster;
     private final TacticalScoring scoring;
@@ -125,11 +132,13 @@ public final class GroundVehicleTurretSystem {
 
     private void tickAutonomous(long id, GroundTurret turret, GroundBody body, StructureDef structure,
                                 float mountX, float mountY, float dt) {
+        TurretMountDef mount = structure.mount;
         if (turret.ammo <= 0) {
             turret.clearQueuedFire();
+            turret.targetId = 0L;
+            turret.facingDeg = idleFacing(turret.facingDeg, body.facingDegrees, mount.turnRateDegPerSec, dt);
             return;
         }
-        TurretMountDef mount = structure.mount;
         WeaponDef weapon = mount.weapon;
         long burstTarget = roster.isAliveById(turret.burstTargetId) ? turret.burstTargetId : 0L;
         // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst.
@@ -166,6 +175,10 @@ public final class GroundVehicleTurretSystem {
         turret.facingDeg = aim.facingDegrees;
         turret.cooldownTimer = aim.cooldownTimer;
         turret.targetId = aim.target;
+        if (aim.target == 0L) {
+            turret.facingDeg = idleFacing(turret.facingDeg, body.facingDegrees, mount.turnRateDegPerSec, dt);
+            return;
+        }
         if (aim.fireThisTick && aim.target != 0L) {
             if (!barrelClear(body, TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0))) {
                 turret.cooldownTimer = agedCooldown;
@@ -180,6 +193,11 @@ public final class GroundVehicleTurretSystem {
                 turret.burstTargetId = aim.target;
             }
         }
+    }
+
+    /** One idle tick: the turret slews back toward the hull's heading at {@link #IDLE_RETURN_RATE_SHARE} of its rate. */
+    static float idleFacing(float turretFacing, float hullFacing, float turnRateDegPerSec, float dt) {
+        return TurretAim.slewToward(turretFacing, hullFacing, turnRateDegPerSec * IDLE_RETURN_RATE_SHARE * dt);
     }
 
     private static void finishBurstRound(GroundTurret turret, WeaponDef weapon) {

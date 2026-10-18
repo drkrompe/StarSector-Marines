@@ -23,9 +23,9 @@ MATERIAL_CLASS = {
     'Drone bay pod armour': 'gunmetal',
     'Recess and machinery': 'dark',
     'Drone bay deck plate': 'dark',
-    'Bridge glazing': 'glass',
-    'Bridge tinted glass': 'glass',
 }
+# The glazing ('Bridge glazing', 'Bridge tinted glass') keeps its own glass
+# shader: a swatch is a painted plate, and on the panes it read as steel (owner).
 # Kept on their own materials (no class, no swatch): lamps and glows, the
 # drone bay's hazard yellow and turntable ring, drive bell liners and
 # heat-blued nozzles, chrome rods, fender rubber, weld beads, hazard placards.
