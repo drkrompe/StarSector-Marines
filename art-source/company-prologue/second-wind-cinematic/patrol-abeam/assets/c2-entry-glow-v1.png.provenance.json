@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1467c-82fc-7523-8249-b619200ee7c7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1467c-82fc-7523-8249-b619200ee7c7\\exec-d60cbea0-5a64-4aa4-bcbe-57a9abf2020b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\c2-entry-glow-v1.png",
+    "sha256": "eb5e73d674a9df6bb5c3502cc056bf7067acac019e610c3d1eb1241a9cc8d946",
+    "dimensions": [
+      1916,
+      821
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\c2-entry-glow-v1.txt",
+  "promptSha256": "2d96d5d296690d6dffa8b687d972512331e3623ace55932d84dcbfbe53b94370",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA plate of atmospheric-entry plasma seen through a spacecraft cabin window, as a texture card for compositing. Widest landscape canvas, the whole canvas filled edge to edge.\n\nContent: the glowing shock layer that wraps a ship's hull during re-entry, photographed from inside, flowing from right to left. Long horizontal hot filaments and torn ribbons of ionised air streaming right to left, slightly converging toward the left; bright yellow-white cores fading through deep orange into dark red-brown streaks; denser and hotter toward the right side and the bottom, thinner, cooler and more broken toward the left and the top; a faint dark sky barely visible through the thinnest gaps at the upper left. Motion-streaked like a long exposure, but with sharp filament detail. Realistic, cinematic, photographic, not cartoonish.\n\nNo window frame, no spacecraft parts, no planet surface, no sparks or debris, no text, no border, no vignette.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one wide plasma texture plate with edge-to-edge coverage and no framing elements.\n"
+  ],
+  "usage": {
+    "input_tokens": 36542,
+    "cached_input_tokens": 26624,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 298,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 34.3
+}

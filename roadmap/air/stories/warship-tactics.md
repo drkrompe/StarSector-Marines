@@ -1,9 +1,9 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slices 1 (spacing and soft hull contact) and 2 (group roles and manoeuvres) built; slice 3 (hull-fight tempo, D1) built; D2 deferred
+Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing, losing withdrawal) built
 
 Written: 2026-10-16
-Updated: 2026-10-16 — soft contact, group manoeuvres and the hull-fight tempo built and measured
+Updated: 2026-10-16 — equal-hull mirrors resolve: bow-on standoff, pressing, hardpoint sight, mount repair, losing withdrawal; measured
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -158,7 +158,8 @@ range and bearing to its target, its plate and its flux. No hull is named.
 | Manoeuvre | Who flies it | Course and guns | Ends when |
 | --- | --- | --- | --- |
 | Approach | anyone out of reach | toward the side of the target its role works, closing on a converging (oblique) course, in formation with its group | inside its reach by a margin |
-| Attack run | bow ship | a line that passes the target at its standoff on one side, nose and hardpoints on the target while closing | the target is abaft the beam or the clearance is reached |
+| Attack run | bow ship | a line that passes the target at its standoff on one side, nose and hardpoints on the target while closing | its own pool fills, or it is close and spent and its target is not near its limit, or a time cap: a standoff (front shield) or an extend (omni shield or none) |
+| Standoff | front-shielded bow ship | astern and to one side round the target, nose, guns and shield kept on it; past the target's reach while venting | vented, or (not venting) out at its open range, its target near its limit, or a time cap: another run |
 | Broadside run | broadside ship | parallel to the target's course at the standoff range, the engaged broadside laid abeam | a run's length has passed, or the engaged side's plate is worn |
 | Extend | anyone after a run | straight on, opening the range | out past the target's reach, or a time cap |
 | Come about | anyone after an extend | a slow turn back toward the target through the open side, the fresh broadside unmasking | the guns bear again: a new run |
@@ -252,9 +253,72 @@ that blow lands, not what it does. Mirrors of shielded equals do not resolve in 
 manoeuvres a ship fires only on its runs, extends and comes about on time, and an equal's shield dissipates between
 passes. That is the finding to take forward, not a reason to pad hit points.
 
-D2 (a mount silenced, not destroyed, by the first breach) is deferred: with slices 1 and 2 in place the Hound's bow
-gun survives long enough to fire (9 to 66 rounds per seed at tempo 3 against 0 to 84 before), and its loss is the
-alpha above, not the plating.
+D2 (a mount silenced, not destroyed, by the first breach) was deferred here and built with slice 4, when the
+Hound mirror showed both ships losing their one gun for good and standing off at 58% hull to the window's end.
+
+## Slice 4: equal fights resolve
+
+Measured before the change, every mirror of equal hulls ran to the window's end (above). Four faults were found, not
+one, and each was answered by a mechanic rather than a number on a hull:
+
+- **A front-shielded ship turned its back.** Extend and come about turned a Wolf's shield away from the Wolf it was
+  fighting. A front-shielded bow ship now ends a run in a **standoff**: a drift astern and to one side (thirty
+  degrees round the target, sixty while venting) with nose, guns and shield kept on the target, opening past the
+  target's reach only once its own pool has filled. An omni-shielded or shieldless bow ship still comes about
+  (`-Dbattle.warship.unshieldedComeAbout=false` is the control). `WarshipDuelHelm.bowStation` also prefers a station
+  outside the target's shield arc, so a ship that can get round it does; a defender's nose follows within its slow turn.
+- **Equal pools never broke.** A ship stopped starting fire at its soft limit while its equal did the same, so neither
+  shield ever dropped. Now a ship **presses** past its own order, up to 80% of its pool (under its own shield's 90%
+  drop), when its target is overloaded, or is shield-down and deeper in flux than the shooter, or is at least 60% full
+  and ten points deeper than the shooter. Two ships with their shields both locked out do not trade hull at the
+  limit: the one further gone breaks off to vent. `-Dbattle.warship.pressing=false` is the control.
+- **An Eagle fired one of its three hardpoints.** A hull is drawn twice as large against its guns' reach as in the base
+  game, so a hardpoint toward a beam saw a target dead ahead five to fifteen degrees off its line, and one set aft lost
+  reach to the hull's length; the heavy needlers never fired. A hardpoint now sights and measures its reach from its
+  mount pulled in toward the hull's origin by `HULL_REACH_SHARE`, which restores the base game's angles, and lays
+  within its own arc; the helm's heading choice uses the same point. `-Dbattle.warship.hardpointSight=false` is the
+  control.
+- **No one broke off when beaten.** Doctrine now withdraws a ship under 75% hull whose foe has twenty points more:
+  it is losing the exchange. Equal ships decide a duel by that withdrawal rather than trading to the last plate.
+
+D2 is built at the base game's ten seconds of repair, times the tempo; a repaired mount whose holed plate is hit again
+is lost. A hit on a hole now counts as a hit on that cell (it used to leave the cell's last-hit time unchanged, so a
+second hit over a hole was invisible).
+
+The `warship-mirrors` scene is the evidence: one-on-one duels of Wolf, Hound, Eagle and Onslaught at three seeds, each
+side's start drawn independently, doctrine and flux limits on, an observation window of 600 seconds. Its verdicts
+are mechanics: the fight is decided (a kill or a withdrawal), not by a single blow (no faster than three of the
+loser's ninety-degree turns from the first hit), a standoff keeps the shield on the target (85% of standoff ticks),
+the range breathes, and hulls never pass through each other. Readings, after the change:
+
+| Mirror | seed | decided after first hit | how | damage taken west / east | least gap (cells) | three-turn floor |
+| --- | --- | --- | --- | --- | --- | --- |
+| Wolf | 11 / 23 / 37 | 54.1s / 54.0s / 54.0s | east withdrew (losing) | 3692 / 2808, 3365 / 2808, 3899 / 2808 | 17.8 / 17.6 / 17.5 | 41.0s |
+| Hound | 11 / 23 / 37 | 78.6s / 79.8s / 78.5s | east withdrew | 2000 / 2000, 2000 / 2000, 1790 / 2000 | 11.4 / 11.5 / 11.9 | 35.7s |
+| Eagle | 11 / 23 / 37 | 391.1s / 327.6s / 391.9s | withdrawal (west, east, west) | 45441 / 47002, 38338 / 32802, 55134 / 38771 | -1.5 / -1.1 / 9.3 | 70.1s |
+| Onslaught | 11 / 23 / 37 | 136.4s / 133.8s / 133.8s | withdrawal (east, east, west) | 25057 / 25146, 23580 / 23871, 26028 / 24239 | 5.9 / 5.9 / 5.9 | 124.5s |
+
+Damage counts hull and shield. A negative gap is soft contact inside the pair's tolerance. Before the change none of
+the twelve was decided. The mirrors are still nearly even: a Hound mirror trades both hulls away and the withdrawal
+comes at the end of it, and a Wolf duel is decided the same way at all three seeds. In a one-on-one duel a front
+shield is never outflanked (the share of time under fire with the shooter outside the arc is 0% for every
+front-shielded ship), because the defender's nose follows its only attacker; in the `warship-tactics` pack the
+escorted Dominator spends all of its time under fire with a shooter outside its arc, which is the flank paying.
+
+Black Sluice, the same five seeds (before the change in brackets):
+
+| seed | first hit to end | damage Greyhook side / Wolfs | Hounds / Wolfs lost | first Hound down after the first hit |
+| --- | --- | --- | --- | --- |
+| 15305 | 165.3s (121.9s) | 6650 / 6980 (3650 / 8724) | 1 / 1 (1 / 1) | 12.2s (10.8s) |
+| 16205 | 154.3s (110.5s) | 5300 / 5375 (5712 / 5956) | 1 / 1 (1 / 1) | 9.2s (13.1s) |
+| 16206 | 171.1s (174.7s) | 6361 / 5126 (4750 / 3544) | 1 / 0 (1 / 0) | 8.2s (8.3s) |
+| 20261016 | 172.1s (173.7s) | 4622 / 3955 (4668 / 3394) | 1 / 0 (1 / 0) | 8.0s (10.3s) |
+| 31337 | 177.6s (162.7s) | 6000 / 4293 (3550 / 4675) | 1 / 0 (1 / 0) | 9.6s (9.8s) |
+
+Losses are unchanged at every seed and the fight runs longer. The first Hound still goes to the Rusk Wolf's alpha; it
+fell earlier at two seeds and later at one. The pressing and come-about controls leave the shipped run exactly as it
+is, and the hardpoint-sight control moves the first-Hound times by about a second either way, so the difference is
+mostly the Wolfs keeping their bows on in the standoff rather than turning away between runs.
 
 ## Slices
 
@@ -267,6 +331,7 @@ alpha above, not the plating.
    seconds and change, range breathes, the line keeps its interval); readings on outcomes. `-Dbattle.warship.tactics=false`
    is the control.
 3. **Durability calibration.** D1 and D2, with `hull-durability` and Black Sluice read against the targets above.
+4. **Equal fights resolve.** Standoff, pressing, hardpoint sight, losing withdrawal; `warship-mirrors`.
 
 Each slice re-runs the warship scene set and `greyhook-duel` and keeps their verdicts green.
 

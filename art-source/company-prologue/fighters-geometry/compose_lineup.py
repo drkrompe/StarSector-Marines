@@ -17,9 +17,9 @@ top = Image.open(HERE/'lineup-top.png').convert('RGBA')
 sheet = Image.new('RGBA', (1920, 1080), BG+(255,))
 sheet.alpha_composite(top)
 d = ImageDraw.Draw(sheet)
-d.text((28, 15), 'FIGHTER BLOCKOUTS / COMMON SCALE, METRES', font=font(32), fill=INK)
+d.text((28, 15), 'FIGHTERS (PASS 2 DETAIL) / COMMON SCALE, METRES', font=font(32), fill=INK)
 d.text((28, 55), 'Each hull at its own metres_per_unit (from its cockpit, guns and drives); nose up, longest first. '
-                 'Pass 1 geometry review only.', font=font(19), fill=SOFT)
+                 'Pass 2 geometry review only.', font=font(19), fill=SOFT)
 for f in rec['fighters']:
     x = f['centre_px'][0]
     y = f['bottom_px']+14

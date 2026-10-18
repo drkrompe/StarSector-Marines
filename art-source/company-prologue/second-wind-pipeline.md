@@ -110,9 +110,18 @@ base skin is generated once and serves every state.
 ## Cinematic output
 
 Each state exports one appendable Blender collection with packed images and
-a turn review, the way `second-wind-cinematic/second-wind-full-surface/`
-does today. That older package is built from the superseded landing-wreck
-geometry; the per-state exports replace it once they exist.
+a turn review (`second-wind-cinematic/second-wind-states/README.md`): the
+skinned, worn build with every modifier and dent baked, under one root empty,
+carrying the geometry's engine and RCS anchors, trainable turret pivots and
+muzzle anchors, and a manifest that says which engines run. They replace
+`second-wind-cinematic/second-wind-full-surface/`, which was built from the
+superseded landing-wreck geometry.
+
+Wear is two modules with disjoint jobs, never two layers on one material: the
+base wear (`second-wind-surface/wear.py`) is eight years in the belt on every
+part skin and swatch; the state overlay (`wear_overlay.py`) adds what only a
+state knows — the restored paint-over, scorch at scar sites by status, soot
+from the engines that ran, and wear on scar and repair materials.
 
 ## Ownership
 

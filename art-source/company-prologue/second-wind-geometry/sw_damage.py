@@ -48,6 +48,8 @@ from sw_hull import armor_patch, crisp
 from sw_turrets import MOUNTS
 
 TAU = math.tau
+# Cut material meaning 'repaint of whichever base part this cut opens'.
+REPAINT = 'repaint'
 
 STATES = ('derelict', 'patched', 'refit', 'restored')
 # A scar's life. A ladder never goes backwards; 'gone' is terminal.
@@ -55,10 +57,10 @@ SCAR_STATUSES = ('open', 'patched', 'replaced', 'faded', 'gone')
 # A drive pod's life: stripped and dead, cold with its lines capped, running
 # on jury-rigged salvage, running properly.
 ENGINE_STATUSES = ('dead', 'capped', 'jury', 'running')
-AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine')
+AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine', 'sw_scars_rcs')
 
 # Nothing a strike or cut may land on or reach into.
-UNCUT = ('Turret', 'Scar', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
+UNCUT = ('Turret', 'Scar', 'RCS ', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
          'Shoulder', 'Grapple head', 'Grapple jaw', 'Grapple clamp', 'Grapple wrist')
 NO_STRIKE = UNCUT + ('Mast', 'Whip', 'Scanner', 'radome', 'Radome', 'viewport', 'Viewport',
                      'glazing', 'light', 'Light', 'lamp', 'Bay ', 'bay ', 'cradle', 'Cradle',
@@ -194,6 +196,7 @@ class Damage:
         self.hides = {}     # base object name -> scar id
         self.shapes = []    # (object, scar id, {vertex index: local co})
         self.overrides = [] # (object, material, scar id)
+        self.tags = []      # (object, key, value, scar id)
         self.sites = {}     # scar id -> Site or None (resolved once)
         self.record = {'state': state, 'scars': [], 'hidden': {}, 'shape_keys': [],
                        'overrides': []}
@@ -356,6 +359,11 @@ class Damage:
                 moved[vert.index] = inv @ q
         if moved:
             self.shapes.append((ob, scar_id(scar), moved))
+
+    def tag(self, ob, key, value, scar):
+        """Set a custom property on a base object (an anchor's 'running' or
+        'working' for this state). Metadata only, applied at the end."""
+        self.tags.append((ob, key, value, scar_id(scar)))
 
     def override(self, ob, mat, scar):
         """Change a base part's look for this state without touching its mesh
@@ -552,7 +560,7 @@ def kind_basin(d, scar, status):
         k = P.get('panel', 1.5)
         d.panel(scar, site, r*k*el, r*k, status, hist)
     elif status == 'faded':
-        d.basin_cut(scar, site, r, depth*.3, el, P.get('sides', 8), d.repaint(d.base_mat(site.ob)))
+        d.basin_cut(scar, site, r, depth*.3, el, P.get('sides', 8), REPAINT)
 
 
 def cluster_sites(d, scar):
@@ -614,7 +622,7 @@ def kind_cluster(d, scar, status):
         elif status == 'replaced' or (status == 'faded' and mine and repaired(hist)):
             d.panel(key, site, r*1.4+.3, r*1.4+.3, status, hist, 'insert')
         elif status == 'faded':
-            d.basin_cut(key, site, r, depth*.3, el, 6, d.repaint(d.base_mat(site.ob)))
+            d.basin_cut(key, site, r, depth*.3, el, 6, REPAINT)
 
 
 def kind_spall(d, scar, status):
@@ -657,7 +665,7 @@ def kind_spall(d, scar, status):
     elif status == 'replaced' or (status == 'faded' and repaired(hist)):
         d.panel(scar, Site(p, n, u, v, ob), r*1.6, r*1.6, status, hist)
     elif status == 'faded':
-        d.basin_cut(scar, Site(p, n, u, v, ob), r*.8, P['depth']*.3, 1., 7, d.repaint(d.base_mat(ob)))
+        d.basin_cut(scar, Site(p, n, u, v, ob), r*.8, P['depth']*.3, 1., 7, REPAINT)
 
 
 def gouge_stations(d, scar):
@@ -687,17 +695,23 @@ def kind_gouge(d, scar, status):
     """A gouge or scrape from glancing contact.
     params: start, end (ray origins), cast_dir, w (half width), depth.
     open: the groove. patched: groove run full of weld. replaced: a fairing
-    strip along it. faded: strip repainted, or a painted shallow groove."""
+    strip along it. faded: strip repainted, or (never plated) filled and
+    faired to a wide shallow dish under the new paint."""
     st = gouge_stations(d, scar)
     if not st:
         return
     hist = scar.history(d.state)
     track = (st[-1][0]-st[0][0]).normalized()
-    def groove(scale, mat=None):
+    def groove(scale, mat=None, faired=False):
         rings = []
         for p, n, ww, dd, _ in st:
             side = n.cross(track).normalized()
-            rings.append([p+side*ww+n*.45, p-side*ww+n*.45, p-n*dd*scale])
+            if faired:
+                # Filled and faired under new paint: a wide, shallow dish
+                # with gentle sides, so no wall stands steep enough to shade.
+                rings.append([p+side*ww*2.6+n*.05, p-side*ww*2.6+n*.05, p-n*min(.09, dd*scale)])
+            else:
+                rings.append([p+side*ww+n*.45, p-side*ww+n*.45, p-n*dd*scale])
         geo = Geo()
         geo.loft(rings)
         d.cut(geo, None, mat)
@@ -719,7 +733,7 @@ def kind_gouge(d, scar, status):
         d.panel(scar, Site(hit, n, u, n.cross(u), mid[4]), half, max(s2[2] for s2 in st)+.45, status, hist,
                 'fairing strip')
     elif status == 'faded':
-        groove(.3, d.repaint(d.base_mat(st[0][4])))
+        groove(.25, REPAINT, faired=True)
 
 
 def kind_plate(d, scar, status):
@@ -949,12 +963,41 @@ def finish(d):
             slot.material = mat
         ob['scar_override'] = sid
         d.record['overrides'].append(f'{ob.name}: {mat.name} ({sid})')
+    for ob, key, value, sid in d.tags:
+        ob[key] = value
     for name, sid in d.hides.items():
         ob = bpy.data.objects[name]
         ob.hide_render = True
         ob.hide_viewport = True
         ob['scar_hidden'] = sid
     d.record['hidden'] = dict(sorted(d.hides.items()))
+    d.record['sites'] = site_record(d)
+
+
+def site_record(d):
+    """Every resolved scar site as points on the clean ship, keyed by scar id
+    (cluster strikes `<id>.<k>` fold into their id): position, surface normal
+    and, where the kind knows one, a radius. Sites are cast on the clean ship,
+    so a scar's sites are the same in every state; wear masks and the
+    cross-state review read them. Record only; changes no geometry."""
+    r3 = lambda v: [round(c, 3) for c in v]
+    out = {}
+    for key, val in d.sites.items():
+        sid = key.split('.')[0]
+        items = val if isinstance(val, list) else [val]
+        for it in items:
+            if it is None:
+                continue
+            if isinstance(it, Site):
+                pt = {'p': r3(it.p), 'n': r3(it.n)}
+            elif len(it) == 5 and isinstance(it[1], Site):   # cluster strike
+                pt = {'p': r3(it[1].p), 'n': r3(it[1].n), 'r': round(it[2], 3)}
+            else:                                              # gouge station
+                pt = {'p': r3(it[0]), 'n': r3(it[1]), 'r': round(it[2], 3)}
+            pts = out.setdefault(sid, [])
+            if pt not in pts:
+                pts.append(pt)
+    return dict(sorted(out.items()))
 
 
 def apply_cuts(d):
@@ -976,7 +1019,8 @@ def apply_cuts(d):
         for t in targets:
             if t in d.hides:
                 continue
-            groups.setdefault(t, []).append((verts, faces, mat))
+            m = d.repaint(d.base_mat(bpy.data.objects[t])) if mat == REPAINT else mat
+            groups.setdefault(t, []).append((verts, faces, m))
     for name, pieces in groups.items():
         target = bpy.data.objects[name]
         geo, idx, mats = Geo(), [], []

@@ -38,6 +38,9 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
         CompanyHqNewsDesk desk = new CompanyHqNewsDesk(reactor);
         Map<String, Object> props = CompanyHqViewModel.preview().props();
         desk.put(props);
+        CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
+        terminal.put(props);
         MarkupLoader loader = new MarkupLoader(
                 path -> Files.readString(context.modRoot().resolve(path)), COMPONENTS);
         loader.reload();
@@ -46,13 +49,16 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
         BufferedImage defaultView = null;
         BufferedImage rumorView = null;
         BufferedImage arrivalView = null;
+        BufferedImage stationView = null;
         try (MarkupInstance instance = loader.build(reactor, "company-hq", props)) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk);
             terminal.bind(document, instance);
             terminal.advance(0f);
+            // The first render lays the document out; the deck then sizes its canvas and stations to that box.
+            render(renderer, document);
+            terminal.place();
 
             // One enduring document and producer: selection and arrival happen
             // inside playback, and both clocks move forward between frames.
@@ -69,24 +75,34 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
                     receiveFixtureReport(props, desk);
                     desk.select("fixture-arrival");
                 }
+                if (frame == 76) {
+                    // Point at the plotting table: the station outlines, names itself and lights its people.
+                    var box = instance.requireElement(CompanyIntelTerminal.STATION_PREFIX + "situation").box().borderBox();
+                    document.pointerMoved(box.x() + box.width() * 0.4f, box.y() + box.height() * 0.5f);
+                }
                 reactor.flush();
                 terminal.advance(FRAME_DELAY_MILLIS / 1000f);
                 document.advance(FRAME_DELAY_MILLIS / 1000f);
-                BufferedImage image = renderer.renderRelative(document, WIDTH, HEIGHT, 1f,
-                        MarineOpsUiViewport.REFERENCE_WIDTH,
-                        MarineOpsUiViewport.REFERENCE_HEIGHT);
+                BufferedImage image = render(renderer, document);
                 frames.add(image);
                 if (frame == 12) defaultView = image;
                 if (frame == 36) rumorView = image;
                 if (frame == 72) arrivalView = image;
+                if (frame == 80) stationView = image;
             }
         }
         return List.of(
                 new SnapshotArtifact("company-hq-default-1920x1080.png", defaultView),
                 new SnapshotArtifact("company-hq-rumor-1920x1080.png", rumorView),
                 new SnapshotArtifact("company-hq-arrival-1920x1080.png", arrivalView),
+                new SnapshotArtifact("company-hq-station-1920x1080.png", stationView),
                 SnapshotArtifact.animation("company-hq-intel-1920x1080.gif",
                         frames, FRAME_DELAY_MILLIS));
+    }
+
+    private static BufferedImage render(HeadlessUiRenderer renderer, UiDocument document) {
+        return renderer.renderRelative(document, WIDTH, HEIGHT, 1f,
+                MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
     }
 
     @SuppressWarnings("unchecked")

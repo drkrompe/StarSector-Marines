@@ -6,13 +6,12 @@ cleanup remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — vehicles in the mech bay, mech internals, armor drop selection and the vehicle variant ladder shipped; its two tank variants wait on art.
+Updated: 2026-10-16 — vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
 
 Read `mechs-nouns.md` before changing the live story.
 
 | Story | State | Scope |
 | --- | --- | --- |
-| `tank-variant-art.md` | Planned — art gate | Hull and turret art for the heavy-gun tank and dozer breacher, and the dozer's breaching, so both become offerable. |
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |
 | `s1-specialist-striders.md` | Active manual tuning | Validate and tune the shipped Bulwark/Hound/Sirocco identities, formations, production encounters, and debug delivery feel without weakening their stated tradeoffs. |
 | `mech-lab-data-authored-dolls.md` | Proposed | Move maintenance facing, physical anchors, equipment docks, footprints, compatibility, and capacity into a validated asset catalog shared by mechs and future vehicles. |

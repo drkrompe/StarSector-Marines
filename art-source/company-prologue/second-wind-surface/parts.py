@@ -109,6 +109,9 @@ MATERIAL_CLASS = {
     'Engine collars': 'gunmetal',
     'Recess and machinery': 'dark',
     'Grapple arm pale grey': 'pale',
+    # Main-drive and RCS detail (sw_engines, sw_rcs): no part skins, class swatches only.
+    'Drive bell liner': 'dark',
+    'RCS housing gunmetal': 'gunmetal',
 }
 CLASS_ID = {'cream': (255, 0, 0), 'oxide': (0, 255, 0), 'gunmetal': (0, 0, 255), 'dark': (255, 255, 0),
             'pale': (0, 255, 255), 'other': (255, 0, 255)}

@@ -364,10 +364,11 @@ public final class WarshipShipFire {
         if (e == null) {
             if (m.burstRemaining > 0 || m.cooldown - dt > 0f) return false;
             if (!ship.hasHullOrdnance(m)) return false;
-            if (!ship.fluxPool().canStart(WarshipPointDefence.engagementFlux(w))) return false;
+            if (!ship.fluxPool().canPress(WarshipPointDefence.engagementFlux(w))) return false;
             if (w.missile() && !ship.missileVolleyReady()) return false;
             Warship target = pick(ship, m, mx, my, ships);
             if (target == null) return false;
+            if (!mayStart(ship, target, WarshipPointDefence.engagementFlux(w))) return false;
             if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return false;
             e = new Engagement(target, w.beam() ? 1 : Math.max(1, w.burstSize()));
             engagements.put(m, e);
@@ -381,8 +382,11 @@ public final class WarshipShipFire {
         float bearing = AirBody.facingToward(aim[0] - mx, aim[1] - my);
         WarshipSystem.traverse(dt, ship, m, bearing);
         // A guided missile turns onto the hull after launch: inside its launch cone it need not wait on the barrel.
-        boolean aligned = WarshipShipRules.guided(w)
-                || Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) <= ALIGNED_DEGREES;
+        // A hardpoint's barrel is fixed to the hull but lays within its own few degrees of arc, as in the base game.
+        boolean aligned = WarshipShipRules.guided(w) || (m.slot.hardpoint()
+                ? Math.abs(WarshipFacing.wrap(sightBearing(ship, mx, my, aim[0], aim[1]) - m.headingDegrees))
+                        <= WarshipShipRules.hullArcHalfDegrees(m)
+                : Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) <= ALIGNED_DEGREES);
         if (!aligned) {
             e.unaligned += dt;
             if (e.unaligned > ALIGN_PATIENCE_SECONDS) {
@@ -401,7 +405,7 @@ public final class WarshipShipFire {
         if (!e.paid) {
             // Paid for when the barrel is on the hull and about to fire, so a mount that never gets on spends nothing.
             float cost = WarshipPointDefence.engagementFlux(w);
-            if (!ship.fluxPool().canStart(cost)) {
+            if (!mayStart(ship, target, cost)) {
                 engagements.remove(m);
                 return true;
             }
@@ -421,6 +425,39 @@ public final class WarshipShipFire {
         return true;
     }
 
+    /**
+     * Whether a salvo costing {@code cost} may be started at {@code target}: within the ship's flux order, or past it
+     * when the target is open or losing the flux war. Open is an overloaded target, or a shielded one whose shield is
+     * down, pressed by a ship whose own shield is up or which is less deep in flux: it presses through that window
+     * rather than venting, so a shield that drops is punished before it can come back up. Losing is a target at least {@link #PRESS_TARGET_FLUX} full and {@link #PRESS_LEAD} fuller than the
+     * shooter: the leader keeps the pressure on until the target's shield gives. Either way only up to
+     * {@link #PRESS_CEILING} of its own pool, under the level at which its own shield would drop
+     * ({@link WarshipShield#DROP_LEVEL}), so pressing never overloads the presser.
+     */
+    static boolean mayStart(Warship ship, Warship target, float cost) {
+        if (ship.fluxPool().canStart(cost)) return true;
+        if (!PRESSING || !ship.fluxPool().canPress(cost) || ship.flux() + cost >= PRESS_CEILING * ship.fluxPool().capacity()) {
+            return false;
+        }
+        float own = ship.fluxFraction();
+        float theirs = target.fluxFraction();
+        if (target.overloaded()) return true;
+        // An open target is pressed by a ship that is not itself open, or is less deep in flux than it: two ships with
+        // their shields locked out do not trade hull at the limit, the one further gone breaks off to vent.
+        if (target.hasShield() && !target.shieldAbsorbing()
+                && (ship.shieldAbsorbing() || !ship.hasShield() || own < theirs)) return true;
+        return theirs >= PRESS_TARGET_FLUX && theirs >= own + PRESS_LEAD;
+    }
+
+    /** {@code -Dbattle.warship.pressing=false} is the control: no ship fires past its own flux order. */
+    static final boolean PRESSING = !"false".equalsIgnoreCase(System.getProperty("battle.warship.pressing"));
+    /** Flux share a target has to carry before a ship presses it past its own soft limit. */
+    static final float PRESS_TARGET_FLUX = 0.6f;
+    /** How much fuller than the shooter a target has to be for the shooter to press it. */
+    static final float PRESS_LEAD = 0.1f;
+    /** Share of its own pool a ship pressing a losing target stops at. */
+    static final float PRESS_CEILING = 0.8f;
+
     private static boolean inReach(Warship ship, Warship.Mount m, float mx, float my, Warship target) {
         float[] aim = aimFor(mx, my, target, m.weapon);
         // Gun or missile, a mount reaches a hull at the hull-to-hull reach, so the base game's ratio between a gun's
@@ -431,10 +468,34 @@ public final class WarshipShipFire {
         // long-range opener. A ship held on its station will never close, so it launches at the missile's own reach.
         float guns = m.weapon.missile() && ship.duelHelm() ? longestReach(ship) : 0f;
         if (guns > 0f) reach = Math.min(reach, guns);
-        if (Math.hypot(aim[0] - mx, aim[1] - my) > reach) return false;
-        float bearing = WarshipFacing.bearing(mx, my, aim[0], aim[1]);
+        float sx = m.slot.hardpoint() ? sightX(ship, mx) : mx;
+        float sy = m.slot.hardpoint() ? sightY(ship, my) : my;
+        if (Math.hypot(aim[0] - sx, aim[1] - sy) > reach) return false;
+        float bearing = WarshipFacing.bearing(sx, sy, aim[0], aim[1]);
         float off = Math.abs(WarshipFacing.wrap(bearing - (ship.facingDegrees + m.slot.angleDegrees())));
         return off <= WarshipShipRules.hullArcHalfDegrees(m);
+    }
+
+    /**
+     * The bearing a hardpoint sights {@code (ax, ay)} along, and the point its reach is measured from: its mount pulled
+     * in toward the hull's centre by
+     * {@link WarshipScale#HULL_REACH_SHARE}. A hull is drawn {@code 1 / HULL_REACH_SHARE} times larger against its
+     * guns' reach than in the base game, so a hardpoint set out toward a beam would see a hull its nose is laid on
+     * that many times further off its own line than the base game's toe-in allows for, and with a few degrees of arc
+     * never fire: an Eagle laid its nose on and fired one of its three hardpoints, its heavy needlers silent for the
+     * whole duel, and a hardpoint set well aft lost reach to the drawn hull's length the same way. Pulling the mount in
+     * restores the base game's angles and reach at the same share of reach. The round still flies from the muzzle.
+     */
+    static float sightBearing(Warship ship, float mx, float my, float ax, float ay) {
+        return WarshipFacing.bearing(sightX(ship, mx), sightY(ship, my), ax, ay);
+    }
+
+    private static float sightX(Warship ship, float mx) {
+        return WarshipShipRules.sight(ship.x, mx);
+    }
+
+    private static float sightY(Warship ship, float my) {
+        return WarshipShipRules.sight(ship.y, my);
     }
 
     /** Where a mount aims to hit {@code target}: a gun's lead point, or where a missile's own flight will meet the hull. */

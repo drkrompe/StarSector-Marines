@@ -1,0 +1,153 @@
+WASP | geometry: 153 meshes, 124 pass-2 detail
+detail meeting detail within one fitting: 78 pairs (counted, not listed)
+detail crossing detail across fittings: 0 pairs
+floating detail (touches nothing): 0
+body crossing body (pass 1): 51 pairs
+    Engine 1 aft-facing bell | Engine 1 dark throat
+    Engine 1 aft-facing bell | Engine 1 mouth lip
+    Engine 1 mouth lip | Engine 1 port drive can
+    Engine 1 port drive can | Hull hub
+    Engine 1 port drive can | Hull spine
+    Engine 1 port drive can | Wing port aft arm frame
+    Engine 1 port drive can | Wing port aft pivot housing
+    Engine 2 aft-facing bell | Engine 2 dark throat
+    Engine 2 aft-facing bell | Engine 2 mouth lip
+    Engine 2 mouth lip | Engine 2 starboard drive can
+    Engine 2 starboard drive can | Hull hub
+    Engine 2 starboard drive can | Hull spine
+    Engine 2 starboard drive can | Wing starboard aft arm frame
+    Engine 2 starboard drive can | Wing starboard aft pivot housing
+    Hull hub | Hull spine
+    Hull hub | Wing port aft arm blade
+    Hull hub | Wing port aft arm frame
+    Hull hub | Wing port aft pivot housing
+    Hull hub | Wing port fore arm blade
+    Hull hub | Wing port fore arm frame
+    Hull hub | Wing port fore pivot housing
+    Hull hub | Wing starboard aft arm blade
+    Hull hub | Wing starboard aft arm frame
+    Hull hub | Wing starboard aft pivot housing
+    Hull hub | Wing starboard fore arm blade
+    Hull hub | Wing starboard fore arm frame
+    Hull hub | Wing starboard fore pivot housing
+    Hull spine | Hull spine sensor window
+    Hull spine | Weapon WS 001 emitter barrel
+    Hull spine | Weapon WS 001 emitter housing
+    Weapon WS 001 emitter barrel | Weapon WS 001 emitter housing
+    Wing port aft arm blade | Wing port aft arm frame
+    Wing port aft arm blade | Wing port aft claw
+    Wing port aft arm blade | Wing port aft pivot housing
+    Wing port aft arm frame | Wing port aft claw
+    Wing port aft arm frame | Wing port aft pivot housing
+    Wing port fore arm blade | Wing port fore arm frame
+    Wing port fore arm blade | Wing port fore claw
+    Wing port fore arm blade | Wing port fore pivot housing
+    Wing port fore arm frame | Wing port fore claw
+    Wing port fore arm frame | Wing port fore pivot housing
+    Wing starboard aft arm blade | Wing starboard aft arm frame
+    Wing starboard aft arm blade | Wing starboard aft claw
+    Wing starboard aft arm blade | Wing starboard aft pivot housing
+    Wing starboard aft arm frame | Wing starboard aft claw
+    Wing starboard aft arm frame | Wing starboard aft pivot housing
+    Wing starboard fore arm blade | Wing starboard fore arm frame
+    Wing starboard fore arm blade | Wing starboard fore claw
+    Wing starboard fore arm blade | Wing starboard fore pivot housing
+    Wing starboard fore arm frame | Wing starboard fore claw
+    Wing starboard fore arm frame | Wing starboard fore pivot housing
+detail bedded into body (part: body parts it meets):
+    Engine 1 can top vent slat 1: Engine 1 port drive can
+    Engine 1 can top vent slat 2: Engine 1 port drive can
+    Engine 1 can top vent slat 3: Engine 1 port drive can
+    Engine 1 can top vent well: Engine 1 port drive can
+    Engine 1 centre body: Engine 1 dark throat
+    Engine 1 collar rib 1: Engine 1 port drive can, Wing port aft arm frame
+    Engine 1 collar rib 2: Engine 1 port drive can
+    Engine 1 stator vane 1: Engine 1 dark throat
+    Engine 1 stator vane 2: Engine 1 dark throat
+    Engine 1 stator vane 3: Engine 1 dark throat
+    Engine 1 stator vane 4: Engine 1 dark throat
+    Engine 1 stator vane 5: Engine 1 dark throat
+    Engine 1 stator vane 6: Engine 1 dark throat
+    Engine 2 can top vent slat 1: Engine 2 starboard drive can
+    Engine 2 can top vent slat 2: Engine 2 starboard drive can
+    Engine 2 can top vent slat 3: Engine 2 starboard drive can
+    Engine 2 can top vent well: Engine 2 starboard drive can
+    Engine 2 centre body: Engine 2 dark throat
+    Engine 2 collar rib 1: Engine 2 starboard drive can, Wing starboard aft arm frame
+    Engine 2 collar rib 2: Engine 2 starboard drive can
+    Engine 2 stator vane 1: Engine 2 dark throat
+    Engine 2 stator vane 2: Engine 2 dark throat
+    Engine 2 stator vane 3: Engine 2 dark throat
+    Engine 2 stator vane 4: Engine 2 dark throat
+    Engine 2 stator vane 5: Engine 2 dark throat
+    Engine 2 stator vane 6: Engine 2 dark throat
+    Hull spine port sensor window: Hull spine
+    Hull spine port shoulder vent slat 1: Hull spine
+    Hull spine port shoulder vent slat 2: Hull spine
+    Hull spine port shoulder vent slat 3: Hull spine
+    Hull spine port shoulder vent well: Hull spine
+    Hull spine starboard sensor window: Hull spine
+    Hull spine starboard shoulder vent slat 1: Hull spine
+    Hull spine starboard shoulder vent slat 2: Hull spine
+    Hull spine starboard shoulder vent slat 3: Hull spine
+    Hull spine starboard shoulder vent well: Hull spine
+    Hull spine tail grille slat 1: Hull spine
+    Hull spine tail grille slat 2: Hull spine
+    Hull spine tail grille slat 3: Hull spine
+    Hull spine tail grille slat 4: Hull spine
+    Hull spine tail grille well: Hull spine
+    Hull spine tail lamp: Hull spine
+    Weapon WS 001 emitter coil 1: Weapon WS 001 emitter barrel
+    Weapon WS 001 emitter coil 2: Weapon WS 001 emitter barrel
+    Weapon WS 001 emitter coil 3: Weapon WS 001 emitter barrel
+    Weapon WS 001 emitter fin port 1: Hull spine, Weapon WS 001 emitter housing
+    Weapon WS 001 emitter fin port 2: Hull spine, Weapon WS 001 emitter housing
+    Weapon WS 001 emitter fin port 3: Hull spine, Weapon WS 001 emitter housing
+    Weapon WS 001 emitter fin starboard 1: Hull spine, Weapon WS 001 emitter housing
+    Weapon WS 001 emitter fin starboard 2: Hull spine, Weapon WS 001 emitter housing
+    Weapon WS 001 emitter fin starboard 3: Hull spine, Weapon WS 001 emitter housing
+    Weapon WS 001 emitter lens: Weapon WS 001 emitter barrel
+    Wing port aft claw knuckle cheek 1: Wing port aft arm frame, Wing port aft claw
+    Wing port aft claw knuckle cheek 2: Wing port aft arm frame, Wing port aft claw
+    Wing port aft claw knuckle pin: Wing port aft arm frame, Wing port aft claw
+    Wing port aft claw tendon: Wing port aft arm frame, Wing port aft claw
+    Wing port aft droop actuator cylinder: Hull hub, Wing port aft arm frame, Wing port aft pivot housing
+    Wing port aft droop actuator rod: Wing port aft arm frame
+    Wing port aft hinge knuckle 1: Wing port aft arm blade
+    Wing port aft hinge knuckle 2: Wing port aft arm blade
+    Wing port aft hinge pin: Wing port aft arm blade
+    Wing port aft pivot slewing ring: Wing port aft pivot housing
+    Wing port aft tip sensor window: Wing port aft arm blade, Wing port aft arm frame, Wing port aft claw
+    Wing port fore claw knuckle cheek 1: Wing port fore arm blade, Wing port fore arm frame, Wing port fore claw
+    Wing port fore claw knuckle cheek 2: Wing port fore arm frame, Wing port fore claw
+    Wing port fore claw knuckle pin: Wing port fore arm frame, Wing port fore claw
+    Wing port fore claw tendon: Wing port fore arm frame, Wing port fore claw
+    Wing port fore droop actuator cylinder: Wing port fore arm frame, Wing port fore pivot housing
+    Wing port fore droop actuator rod: Wing port fore arm frame
+    Wing port fore hinge knuckle 1: Wing port fore arm blade
+    Wing port fore hinge knuckle 2: Wing port fore arm blade
+    Wing port fore hinge pin: Wing port fore arm blade
+    Wing port fore pivot slewing ring: Wing port fore pivot housing
+    Wing port fore tip sensor window: Wing port fore arm blade
+    Wing starboard aft claw knuckle cheek 1: Wing starboard aft arm frame, Wing starboard aft claw
+    Wing starboard aft claw knuckle cheek 2: Wing starboard aft arm frame, Wing starboard aft claw
+    Wing starboard aft claw knuckle pin: Wing starboard aft arm frame, Wing starboard aft claw
+    Wing starboard aft claw tendon: Wing starboard aft arm frame, Wing starboard aft claw
+    Wing starboard aft droop actuator cylinder: Hull hub, Wing starboard aft arm frame, Wing starboard aft pivot housing
+    Wing starboard aft droop actuator rod: Wing starboard aft arm frame
+    Wing starboard aft hinge knuckle 1: Wing starboard aft arm blade
+    Wing starboard aft hinge knuckle 2: Wing starboard aft arm blade
+    Wing starboard aft hinge pin: Wing starboard aft arm blade
+    Wing starboard aft pivot slewing ring: Wing starboard aft pivot housing
+    Wing starboard aft tip sensor window: Wing starboard aft arm blade
+    Wing starboard fore claw knuckle cheek 1: Wing starboard fore arm frame, Wing starboard fore claw
+    Wing starboard fore claw knuckle cheek 2: Wing starboard fore arm blade, Wing starboard fore arm frame, Wing starboard fore claw
+    Wing starboard fore claw knuckle pin: Wing starboard fore arm frame, Wing starboard fore claw
+    Wing starboard fore claw tendon: Wing starboard fore arm frame, Wing starboard fore claw
+    Wing starboard fore droop actuator cylinder: Wing starboard fore arm frame, Wing starboard fore pivot housing
+    Wing starboard fore droop actuator rod: Wing starboard fore arm frame
+    Wing starboard fore hinge knuckle 1: Wing starboard fore arm blade
+    Wing starboard fore hinge knuckle 2: Wing starboard fore arm blade
+    Wing starboard fore hinge pin: Wing starboard fore arm blade
+    Wing starboard fore pivot slewing ring: Wing starboard fore pivot housing
+    Wing starboard fore tip sensor window: Wing starboard fore arm blade, Wing starboard fore arm frame

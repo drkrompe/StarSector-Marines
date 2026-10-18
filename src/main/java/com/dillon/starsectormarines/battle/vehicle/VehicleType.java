@@ -97,10 +97,10 @@ public enum VehicleType {
     },
     /**
      * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
-     * more reach and penetration per round, a slower cycle and a slower hull. Its hull and
-     * turret art are not drawn yet, so it is not offered ({@link #presentationDeclared}).
+     * more reach and penetration per round, a slower cycle and a slower hull. The breakthrough
+     * hull art with its own long-gun turret frames (art-source/vehicles/tank-heavy-gun).
      */
-    HEAVY_GUN_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
+    HEAVY_GUN_TANK("graphics/battle/vehicles/army-tank-heavy-gun.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 2.6f, .85f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, 1050f, 900f, 40f, 1.4f, 1.1f) {
@@ -108,21 +108,21 @@ public enum VehicleType {
             return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed);
         }
         @Override public float turretRecoilCells() { return .24f; }
-        @Override public boolean presentationDeclared() { return false; }
     },
     /**
-     * Breaching sidegrade on the breakthrough hull: a dozer blade and a pintle MG instead of
-     * the cannons, the heaviest plate of the line and the slowest drive. Not offered until
-     * its bladed hull is drawn and the blade breaches ({@link #presentationDeclared}).
+     * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
+     * the cannons, the heaviest plate of the line and the slowest drive. Its sheet carries the
+     * breakthrough hull drawn at this longer frame's scale with the blade ahead of the nose, and
+     * the APC's twin-MG frames at their own 1.42-cell registration (art-source/vehicles/tank-dozer).
+     * The blade is real: it pushes through barricades and ordinary walls in its path ({@link DozerBlade}).
      */
-    DOZER_BREACHER("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
+    DOZER_BREACHER("graphics/battle/vehicles/army-tank-dozer.png", 0, 4, -90f,
             0, 4.6f, 3.9f, 2.4f, .9f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
+            1, 0f, 0f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1400f, 1000f, 38f, 1.45f, 1.1f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.8f, 30f, 80f, accel, brakingAccel, maxSpeed);
         }
-        @Override public boolean presentationDeclared() { return false; }
     },
     /**
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
@@ -159,6 +159,12 @@ public enum VehicleType {
     public boolean isTank() {
         return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == DOZER_BREACHER;
     }
+
+    /**
+     * Whether this hull carries a dozer blade that opens ground ahead of it ({@link DozerBlade}). Only the dozer
+     * breacher does; its route proof and its rolling planner read the blade's breach view instead of the live grid.
+     */
+    public boolean hasBlade() { return this == DOZER_BREACHER; }
 
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
     public boolean hasAnimatedTreads() { return isApc() || isTank(); }

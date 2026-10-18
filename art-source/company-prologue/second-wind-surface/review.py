@@ -49,6 +49,10 @@ EXTRA = {
     'bow-quarter': (70, 20, 150, (5, 0, 1)),
     'under-quarter': (35, -35, 165, (5, 0, 1)),
     'bay-detail': (8, 4, 34, (14, 22, 0)),
+    # The cinematics' framings at 1920x1080: C1's close starboard quarter (hull ~1,340 px
+    # long, 30 deg above the deck) and C5's yard view (starboard stern quarter, ~780 px).
+    'c1-starboard-quarter': (135, 30, 145, (5, 0, 1)),
+    'c5-starboard-stern': (230, 18, 250, (0, 0, 1)),
 }
 
 bpy.ops.wm.open_mainfile(filepath=str(BLEND))

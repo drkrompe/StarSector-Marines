@@ -315,6 +315,8 @@ public final class WarshipTacticsScene implements BehaviorScene {
             String n = (s.faction == Faction.ALLY ? "west" : "east") + (i % 4) + s.hullId;
             metrics.put(n + "HullPercent", Math.round(100f * Math.max(0f, s.hullFraction())));
             metrics.put(n + "Manoeuvres", t.kinds.getOrDefault(s, EnumSet.noneOf(WarshipManoeuvre.Kind.class)).size());
+            int[] e = t.exposed.get(s);
+            if (e != null && e[1] > 0) metrics.put(n + "ExposedPercent", Math.round(100f * e[0] / e[1]));
             float[] range = t.rangeSpan.get(s);
             if (range != null) {
                 metrics.put(n + "RangeMin", round1(range[0]));
@@ -369,6 +371,8 @@ public final class WarshipTacticsScene implements BehaviorScene {
         final Map<Warship, Float> lastShield = new IdentityHashMap<>();
         /** Per hull, the least and most range to its hull target once the fight has begun. */
         final Map<Warship, float[]> rangeSpan = new IdentityHashMap<>();
+        /** Per front-shielded hull: ticks under fire with a shooter outside its arc, and ticks under fire. */
+        final Map<Warship, int[]> exposed = new IdentityHashMap<>();
         /** Per hull, the manoeuvre it flew last tick, and the ticks each manoeuvre it finished lasted. */
         final Map<Warship, WarshipManoeuvre.Kind> lastKind = new IdentityHashMap<>();
         final Map<Warship, Integer> kindSince = new IdentityHashMap<>();
@@ -414,6 +418,24 @@ public final class WarshipTacticsScene implements BehaviorScene {
                 if (firstHitTick < 0) firstHitTick = tick;
                 if (s.faction == Faction.ALLY) damageToWest += d;
                 else damageToEast += d;
+            }
+            for (Warship s : all) {
+                // A front-shielded hull under fire: is any shooter on it outside its shield's arc?
+                if (!live(s) || !"front".equals(s.shieldType())) continue;
+                boolean fired = false;
+                boolean flanked = false;
+                for (Warship o : all) {
+                    if (o.faction == s.faction || !live(o) || o.hullTarget() != s) continue;
+                    if (Math.hypot(o.centerX() - s.centerX(), o.centerY() - s.centerY()) > WarshipShipFire.longestReach(o)) {
+                        continue;
+                    }
+                    fired = true;
+                    flanked |= !MirrorDuelScene.inArc(s, o);
+                }
+                if (!fired) continue;
+                int[] e = exposed.computeIfAbsent(s, k -> new int[2]);
+                e[1]++;
+                if (flanked) e[0]++;
             }
             boolean anyOverlap = false;
             boolean friendlyOverlap = false;

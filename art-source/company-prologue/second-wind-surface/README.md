@@ -2,7 +2,7 @@
 
 Status: ACTIVE. Base skin on every face of the hull; source art only, nothing here ships.
 Written: 2026-10-16
-Updated: 2026-10-16 — rolled out from the port-flank pilot to the whole hull (seven groups, swatches, patched state).
+Updated: 2026-10-16 — whole-hull rollout, then the state-driven wear layer (wear.py) for the cinematics.
 
 The base-skin package under `second-wind-pipeline.md` (Surfacing). Every base
 face of the Second Wind now renders either a **part skin** (a Codex reskin of
@@ -172,13 +172,59 @@ modifier, shape-keys, hides or overrides).
 
 ![patched](review/patched-views.png)
 
-## Wear: what the state-driven mask layer still needs
+## Wear: eight years in the belt
 
-Unchanged from the pilot: hull-space coordinates so soot and streaks run
-across part boundaries; engine anchors, scar ids, cavity/AO and gravity as
-inputs; per-state grime, soot, scorch, fade and chip density; and a
-paint-over channel for `restored`. Per-part variation is now in place
-(above); the mask layer adds on top of it.
+![wear](review/wear-c1.png)
+![wear close](review/wear-close.png)
+
+The wear layer (`wear.py`) sits on top of every part skin and class swatch of
+a state's build: `apply_skin.py --wear <state>`. It is procedural and placed by
+rules, never by Codex, and it never touches scar or repair materials, so the
+continuity scars keep their shape and the field repairs read as recent,
+improvised work against the worn paint round them.
+
+- **Abrasion.** Dust and micrometeorite sandblasting in bands stretched along
+  the direction of travel (+X), densest on bow-facing and dorsal plates and on
+  edges (Bevel-node edge mask). Paint wears to grey primer, then to bright
+  bare steel.
+- **Pitting.** Micrometeorite pits on exposed plates, and a few larger dings
+  with dark centres and bare rims, with bump.
+- **Fade.** UV and thermal chalking toward a dusty tan, strongest on sun-side
+  (dorsal) plates and different on every plate: a baked per-face random
+  (`panel_rand`) drives it, so the breakup follows the real plates. Each plate
+  also takes its own soiling gain, the tonal breakup that reads at C1 and C5
+  distances.
+- **Grime.** Ore dust packed into recesses (AO), broad blotchy staining, and
+  streaks trailing aft.
+- **Soot.** Round the four drive bells and over the stern.
+- **Neglect.** A few plates repainted in the wrong shade and a few
+  replacement panels left in bare primer (square 5.5-unit cells).
+
+Weights per state live in `wear.json` (owned; edit freely): `derelict` is the
+ceiling, `patched` and `refit` slightly lighter, `restored` light, `clean`
+none. The wear colours (primer, bare steel, ore dust, soot, chalk) are CIELAB
+rows in `palette.json`'s `wear` block, graded alongside the class palette so
+every shot that uses a state matches.
+
+Coordinates are the ship's: position is the main hull's object space and the
+face normal is a baked `hull_nrm` attribute, so the pattern holds when a
+cinematic parents, moves or scales the ship. (A first version baked position
+as a point attribute; the damage Booleans' new vertices read zero, which drew
+contour rings round every crater.) The Bevel and AO radii are in render space,
+sized for hull units: a cinematic that scales the ship scales them too.
+
+Not done: missing stencils and peeled markings (the base skin has no
+markings to peel) and vent-specific streak sources.
+
+**State overlay** (`wear_overlay.py`, `overlay/<state>.json`): what only a
+condition state knows, chained after this wear by the per-state export
+(`../second-wind-cinematic/second-wind-states/`): the `restored` paint-over
+(one coat over the worn surface, its chips, pits and seams reading through as
+tone), scorch at scar sites by status (dark burns at open strikes, heat-tint
+rings round patched welds, none on fresh replacement plate), soot from the
+engines that ran in that state, and swatch detail plus age-scaled fade, chips
+and grime on scar and repair materials, which this layer leaves alone. It
+never adds grime, fade or chips to a skin or swatch.
 
 ## Known problems
 

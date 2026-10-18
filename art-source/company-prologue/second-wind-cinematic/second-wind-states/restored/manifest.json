@@ -1,0 +1,4247 @@
+{
+ "state": "restored",
+ "asset": "second-wind-restored.blend",
+ "append_collection": "SECOND WIND | restored",
+ "root": "SECOND WIND | restored | root",
+ "anchors_collection": "SECOND WIND | restored | anchors",
+ "metres_per_unit": 0.65,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+ "bounds_units": [
+  [
+   -41.15,
+   -40.3,
+   -12.15
+  ],
+  [
+   59.6,
+   40.3,
+   23.95
+  ]
+ ],
+ "size_metres": [
+  65.5,
+  52.4,
+  23.5
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "side": "port",
+   "slot_width": 12,
+   "radius": 3.9,
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -41.0,
+    31.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "drive_status": "running",
+   "running": true
+  },
+  {
+   "index": 2,
+   "side": "port",
+   "slot_width": 8,
+   "radius": 2.6,
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -39.0,
+    24.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "drive_status": "running",
+   "running": true
+  },
+  {
+   "index": 3,
+   "side": "starboard",
+   "slot_width": 8,
+   "radius": 2.6,
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -39.0,
+    -24.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "drive_status": "running",
+   "running": true
+  },
+  {
+   "index": 4,
+   "side": "starboard",
+   "slot_width": 12,
+   "radius": 3.9,
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -41.0,
+    -31.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "drive_status": "running",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "rcs": [
+  {
+   "anchor": "RCS bow-port fore anchor",
+   "cluster": "bow-port",
+   "axis": "fore",
+   "at": [
+    57.77,
+    13.069,
+    3.947
+   ],
+   "exhaust_dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS bow-port port anchor",
+   "cluster": "bow-port",
+   "axis": "port",
+   "at": [
+    55.968,
+    14.849,
+    3.947
+   ],
+   "exhaust_dir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS bow-port up anchor",
+   "cluster": "bow-port",
+   "axis": "up",
+   "at": [
+    56.023,
+    13.102,
+    6.082
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS bow-stbd fore anchor",
+   "cluster": "bow-stbd",
+   "axis": "fore",
+   "at": [
+    57.77,
+    -13.069,
+    3.947
+   ],
+   "exhaust_dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS bow-stbd stbd anchor",
+   "cluster": "bow-stbd",
+   "axis": "stbd",
+   "at": [
+    55.968,
+    -14.849,
+    3.947
+   ],
+   "exhaust_dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS bow-stbd up anchor",
+   "cluster": "bow-stbd",
+   "axis": "up",
+   "at": [
+    56.023,
+    -13.102,
+    6.082
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS dorsal up-1 anchor",
+   "cluster": "dorsal",
+   "axis": "up-1",
+   "at": [
+    -28.4,
+    0.806,
+    17.512
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS dorsal up-2 anchor",
+   "cluster": "dorsal",
+   "axis": "up-2",
+   "at": [
+    -28.4,
+    -0.806,
+    17.512
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-port down anchor",
+   "cluster": "pod-port",
+   "axis": "down",
+   "at": [
+    -4.972,
+    38.407,
+    3.868
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-port fore anchor",
+   "cluster": "pod-port",
+   "axis": "fore",
+   "at": [
+    -3.275,
+    38.327,
+    6.2
+   ],
+   "exhaust_dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-port port anchor",
+   "cluster": "pod-port",
+   "axis": "port",
+   "at": [
+    -5.115,
+    40.06,
+    6.2
+   ],
+   "exhaust_dir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-port up anchor",
+   "cluster": "pod-port",
+   "axis": "up",
+   "at": [
+    -4.972,
+    38.407,
+    8.532
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-stbd down anchor",
+   "cluster": "pod-stbd",
+   "axis": "down",
+   "at": [
+    -4.972,
+    -38.407,
+    3.868
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-stbd fore anchor",
+   "cluster": "pod-stbd",
+   "axis": "fore",
+   "at": [
+    -3.275,
+    -38.327,
+    6.2
+   ],
+   "exhaust_dir": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-stbd stbd anchor",
+   "cluster": "pod-stbd",
+   "axis": "stbd",
+   "at": [
+    -5.115,
+    -40.06,
+    6.2
+   ],
+   "exhaust_dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS pod-stbd up anchor",
+   "cluster": "pod-stbd",
+   "axis": "up",
+   "at": [
+    -4.972,
+    -38.407,
+    8.532
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS stern-port down anchor",
+   "cluster": "stern-port",
+   "axis": "down",
+   "at": [
+    -28.5,
+    38.833,
+    1.311
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 0.415,
+   "working": true
+  },
+  {
+   "anchor": "RCS stern-port port anchor",
+   "cluster": "stern-port",
+   "axis": "port",
+   "at": [
+    -28.5,
+    40.299,
+    3.6
+   ],
+   "exhaust_dir": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "radius_units": 0.415,
+   "working": true
+  },
+  {
+   "anchor": "RCS stern-port up anchor",
+   "cluster": "stern-port",
+   "axis": "up",
+   "at": [
+    -28.5,
+    38.833,
+    5.889
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.415,
+   "working": true
+  },
+  {
+   "anchor": "RCS stern-stbd down anchor",
+   "cluster": "stern-stbd",
+   "axis": "down",
+   "at": [
+    -28.5,
+    -38.833,
+    1.311
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 0.415,
+   "working": true
+  },
+  {
+   "anchor": "RCS stern-stbd stbd anchor",
+   "cluster": "stern-stbd",
+   "axis": "stbd",
+   "at": [
+    -28.5,
+    -40.299,
+    3.6
+   ],
+   "exhaust_dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "radius_units": 0.415,
+   "working": true
+  },
+  {
+   "anchor": "RCS stern-stbd up anchor",
+   "cluster": "stern-stbd",
+   "axis": "up",
+   "at": [
+    -28.5,
+    -38.833,
+    5.889
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 0.415,
+   "working": true
+  },
+  {
+   "anchor": "RCS ventral down-1 anchor",
+   "cluster": "ventral",
+   "axis": "down-1",
+   "at": [
+    44.2,
+    0.75,
+    -12.152
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  },
+  {
+   "anchor": "RCS ventral down-2 anchor",
+   "cluster": "ventral",
+   "axis": "down-2",
+   "at": [
+    44.2,
+    -0.75,
+    -12.152
+   ],
+   "exhaust_dir": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 0.462,
+   "working": true
+  }
+ ],
+ "rcs_working": 24,
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    -11,
+    20,
+    18.3
+   ],
+   "rest_angle_deg": 90,
+   "trained_parts": 17,
+   "fixed_parts": 3,
+   "status": "faded",
+   "present": true,
+   "muzzles": [
+    {
+     "tag": "gun",
+     "anchor": "Anchor turret 1 gun muzzle",
+     "at": [
+      -11.0,
+      30.6,
+      19.2
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "size": "SMALL",
+   "pivot": "Turret 2 pivot",
+   "pivot_at": [
+    -11,
+    -20,
+    18.3
+   ],
+   "rest_angle_deg": -90,
+   "trained_parts": 17,
+   "fixed_parts": 3,
+   "status": "faded",
+   "present": true,
+   "muzzles": [
+    {
+     "tag": "gun",
+     "anchor": "Anchor turret 2 gun muzzle",
+     "at": [
+      -11.0,
+      -30.6,
+      19.2
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "size": "SMALL",
+   "pivot": "Turret 3 pivot",
+   "pivot_at": [
+    41,
+    11,
+    18.0
+   ],
+   "rest_angle_deg": 30,
+   "trained_parts": 17,
+   "fixed_parts": 3,
+   "status": "faded",
+   "present": true,
+   "muzzles": [
+    {
+     "tag": "gun",
+     "anchor": "Anchor turret 3 gun muzzle",
+     "at": [
+      50.18,
+      16.3,
+      18.9
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "slot": "WS 004",
+   "size": "MEDIUM",
+   "pivot": "Turret 4 pivot",
+   "pivot_at": [
+    36,
+    -16,
+    16.19
+   ],
+   "rest_angle_deg": -30,
+   "trained_parts": 27,
+   "fixed_parts": 3,
+   "status": "faded",
+   "present": true,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "anchor": "Anchor turret 4 port gun muzzle",
+     "at": [
+      49.865,
+      -22.729,
+      17.36
+     ],
+     "axis": [
+      0.866,
+      -0.5,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "anchor": "Anchor turret 4 starboard gun muzzle",
+     "at": [
+      48.76,
+      -24.643,
+      17.36
+     ],
+     "axis": [
+      0.866,
+      -0.5,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "lamps_lit": 15,
+ "lamps": [
+  {
+   "object": "Command deck running light",
+   "material": "Port running light",
+   "lit": true,
+   "at": [
+    15.6,
+    5.4,
+    19.8
+   ]
+  },
+  {
+   "object": "Command deck running light.001",
+   "material": "Starboard running light",
+   "lit": true,
+   "at": [
+    15.6,
+    -5.4,
+    19.8
+   ]
+  },
+  {
+   "object": "Crosstree signal light",
+   "material": "Port running light",
+   "lit": true,
+   "at": [
+    10.8,
+    2.2,
+    22.7
+   ]
+  },
+  {
+   "object": "Crosstree signal light.001",
+   "material": "Starboard running light",
+   "lit": true,
+   "at": [
+    10.8,
+    -2.2,
+    22.7
+   ]
+  },
+  {
+   "object": "Davit position light",
+   "material": "Davit position light green",
+   "lit": true,
+   "at": [
+    17.1,
+    29.25,
+    9.9
+   ]
+  },
+  {
+   "object": "Drive warning light",
+   "material": "Drive warning light",
+   "lit": true,
+   "at": [
+    -32.8,
+    36.2,
+    7.9
+   ]
+  },
+  {
+   "object": "Drive warning light.001",
+   "material": "Drive warning light",
+   "lit": true,
+   "at": [
+    -32.8,
+    21.4,
+    7.9
+   ]
+  },
+  {
+   "object": "Drive warning light.002",
+   "material": "Drive warning light",
+   "lit": true,
+   "at": [
+    -32.8,
+    -36.2,
+    7.9
+   ]
+  },
+  {
+   "object": "Drive warning light.003",
+   "material": "Drive warning light",
+   "lit": true,
+   "at": [
+    -32.8,
+    -21.4,
+    7.9
+   ]
+  },
+  {
+   "object": "Grapple sponson work light",
+   "material": "Port arm work light amber",
+   "lit": true,
+   "at": [
+    30.5,
+    34.12,
+    11.15
+   ]
+  },
+  {
+   "object": "Grapple sponson work light.001",
+   "material": "Port arm work light amber",
+   "lit": true,
+   "at": [
+    35.0,
+    34.12,
+    11.15
+   ]
+  },
+  {
+   "object": "Grapple sponson work light.002",
+   "material": "Port arm work light amber",
+   "lit": true,
+   "at": [
+    45.0,
+    34.12,
+    11.15
+   ]
+  },
+  {
+   "object": "Masthead light",
+   "material": "Masthead light",
+   "lit": true,
+   "at": [
+    10.8,
+    0.0,
+    23.8
+   ]
+  },
+  {
+   "object": "Port bay interior lamp",
+   "material": "Bay work lights",
+   "lit": false,
+   "at": [
+    6.0,
+    16.0,
+    3.2
+   ]
+  },
+  {
+   "object": "Port bay interior lamp.001",
+   "material": "Bay work lights",
+   "lit": false,
+   "at": [
+    22.0,
+    16.0,
+    3.2
+   ]
+  },
+  {
+   "object": "Roof beacon",
+   "material": "Mast beacon",
+   "lit": true,
+   "at": [
+    12.7,
+    2.6,
+    20.85
+   ]
+  },
+  {
+   "object": "Sponson bow work light",
+   "material": "Port arm work light amber",
+   "lit": true,
+   "at": [
+    48.12,
+    25.3,
+    9.4
+   ]
+  }
+ ],
+ "scars": [
+  {
+   "id": "ship-power",
+   "kind": "power",
+   "status": "gone"
+  },
+  {
+   "id": "fb-port-sponson-cowl-strike",
+   "kind": "fb-collar",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-bow-cheek-strike",
+   "kind": "fb-cheek",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-bow-flank-strike",
+   "kind": "fb-basin",
+   "status": "faded"
+  },
+  {
+   "id": "fb-bow-glacis-strike",
+   "kind": "fb-basin",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-forebody-deck-dent",
+   "kind": "fb-dent",
+   "status": "faded"
+  },
+  {
+   "id": "fb-forward-deck-dent",
+   "kind": "fb-dent",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-flank-dent",
+   "kind": "fb-dent",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-bay-door-strike",
+   "kind": "fb-crease",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-forward-flank-cluster",
+   "kind": "cluster",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-bow-deck-cluster",
+   "kind": "cluster",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-bow-deck-cluster",
+   "kind": "cluster",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-flank-module-tear",
+   "kind": "fb-spall",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-citadel-wall-spall",
+   "kind": "fb-spall",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-bow-cheek-spall",
+   "kind": "fb-spall",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-nose-block-spall",
+   "kind": "fb-spall",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-sponson-scrape",
+   "kind": "gouge",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-glacis-gouge",
+   "kind": "gouge",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-deck-plate-fwd-torn",
+   "kind": "plate",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-deck-plate-aft-torn",
+   "kind": "plate",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-deck-plate-unbolted",
+   "kind": "plate",
+   "status": "faded"
+  },
+  {
+   "id": "fb-port-deck-plate-buckle",
+   "kind": "buckle",
+   "status": "faded"
+  },
+  {
+   "id": "fb-bow-tether-padeye",
+   "kind": "fb-tether",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-bay-jamb",
+   "kind": "fb-jamb",
+   "status": "faded"
+  },
+  {
+   "id": "fb-stbd-bay-door",
+   "kind": "fb-door",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-drive",
+   "kind": "drive",
+   "status": "running"
+  },
+  {
+   "id": "pod-starboard-drive",
+   "kind": "drive",
+   "status": "running"
+  },
+  {
+   "id": "pod-port-pumps",
+   "kind": "pod_strip",
+   "status": "gone"
+  },
+  {
+   "id": "pod-starboard-pumps",
+   "kind": "pod_strip",
+   "status": "gone"
+  },
+  {
+   "id": "pod-port-can-feeds",
+   "kind": "pod_strip",
+   "status": "gone"
+  },
+  {
+   "id": "pod-casing-access-panels",
+   "kind": "pod_strip",
+   "status": "gone"
+  },
+  {
+   "id": "pod-port-outer-can",
+   "kind": "crushed_can",
+   "status": "gone"
+  },
+  {
+   "id": "pod-port-fins",
+   "kind": "bent_fins",
+   "status": "gone"
+  },
+  {
+   "id": "pod-port-aft-shoulder",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-lower-casing",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-intake-cap",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "pod-starboard-cowl-dent",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-shoulder-cluster",
+   "kind": "cluster",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-flank-cluster",
+   "kind": "cluster",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-contact-scrape",
+   "kind": "gouge",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-cowl-gouge",
+   "kind": "gouge",
+   "status": "faded"
+  },
+  {
+   "id": "pod-port-casing-plate",
+   "kind": "plate",
+   "status": "faded"
+  },
+  {
+   "id": "pod-starboard-casing-plate",
+   "kind": "plate",
+   "status": "faded"
+  },
+  {
+   "id": "pod-starboard-casing-buckle",
+   "kind": "buckle",
+   "status": "faded"
+  },
+  {
+   "id": "pod-tether-padeye",
+   "kind": "tether",
+   "status": "faded"
+  },
+  {
+   "id": "aft-deck-strike",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "aft-deck-cluster",
+   "kind": "cluster",
+   "status": "faded"
+  },
+  {
+   "id": "aft-deck-plate",
+   "kind": "plate",
+   "status": "faded"
+  },
+  {
+   "id": "aft-power-run",
+   "kind": "power_run",
+   "status": "gone"
+  },
+  {
+   "id": "aft-port-prong-strike",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "aft-girder-scrape",
+   "kind": "gouge",
+   "status": "faded"
+  },
+  {
+   "id": "sp-housing-strike",
+   "kind": "basin",
+   "status": "faded"
+  },
+  {
+   "id": "sp-spine-cluster",
+   "kind": "sealed_cluster",
+   "status": "faded"
+  },
+  {
+   "id": "sp-scattered",
+   "kind": "sealed_cluster",
+   "status": "faded"
+  },
+  {
+   "id": "sp-trunk-fwd-port",
+   "kind": "trunk",
+   "status": "gone"
+  },
+  {
+   "id": "sp-trunk-fwd-stbd",
+   "kind": "trunk",
+   "status": "gone"
+  },
+  {
+   "id": "sp-trunk-aft-port",
+   "kind": "trunk",
+   "status": "gone"
+  },
+  {
+   "id": "sp-trunk-aft-stbd",
+   "kind": "trunk",
+   "status": "faded"
+  },
+  {
+   "id": "sp-mast",
+   "kind": "mast",
+   "status": "faded"
+  },
+  {
+   "id": "sp-turret-1",
+   "kind": "turret",
+   "status": "faded"
+  },
+  {
+   "id": "sp-turret-2",
+   "kind": "turret",
+   "status": "faded"
+  },
+  {
+   "id": "sp-turret-3",
+   "kind": "turret",
+   "status": "faded"
+  },
+  {
+   "id": "sp-turret-4",
+   "kind": "turret",
+   "status": "faded"
+  },
+  {
+   "id": "sp-waist-line-cut",
+   "kind": "torch",
+   "status": "faded"
+  },
+  {
+   "id": "sp-waist-trunk-cut",
+   "kind": "torch",
+   "status": "faded"
+  },
+  {
+   "id": "rcs-bow-port",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-bow-stbd",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-pod-port",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-pod-stbd",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-stern-port",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-stern-stbd",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-dorsal",
+   "kind": "rcs",
+   "status": "gone"
+  },
+  {
+   "id": "rcs-ventral",
+   "kind": "rcs",
+   "status": "gone"
+  }
+ ],
+ "scar_sites": {
+  "aft-deck-cluster": [
+   {
+    "p": [
+     -16.356,
+     4.925,
+     15.588
+    ],
+    "n": [
+     -0.453,
+     0.453,
+     0.768
+    ]
+   },
+   {
+    "p": [
+     -9.65,
+     11.55,
+     9.774
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -17.03,
+     2.083,
+     14.58
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -18.005,
+     2.67,
+     12.35
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -15.912,
+     3.435,
+     16.075
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -16.356,
+     4.925,
+     15.588
+    ],
+    "n": [
+     -0.453,
+     0.453,
+     0.768
+    ],
+    "r": 0.581
+   },
+   {
+    "p": [
+     -9.65,
+     11.55,
+     9.774
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.452
+   },
+   {
+    "p": [
+     -17.03,
+     2.083,
+     14.58
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.367
+   },
+   {
+    "p": [
+     -18.005,
+     2.67,
+     12.35
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.421
+   },
+   {
+    "p": [
+     -15.912,
+     3.435,
+     16.075
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.548
+   }
+  ],
+  "aft-deck-strike": [
+   {
+    "p": [
+     -23.5,
+     9.3,
+     15.08
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "aft-girder-scrape": [
+   {
+    "p": [
+     -27.9,
+     10.6,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.04
+   },
+   {
+    "p": [
+     -28.013,
+     9.575,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.349
+   },
+   {
+    "p": [
+     -28.125,
+     8.55,
+     15.174
+    ],
+    "n": [
+     0.271,
+     0.0,
+     0.963
+    ],
+    "r": 0.46
+   },
+   {
+    "p": [
+     -28.237,
+     7.525,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.521
+   },
+   {
+    "p": [
+     -28.35,
+     6.5,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.54
+   },
+   {
+    "p": [
+     -28.462,
+     5.475,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.521
+   },
+   {
+    "p": [
+     -28.575,
+     4.45,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.46
+   },
+   {
+    "p": [
+     -28.687,
+     3.425,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.349
+   },
+   {
+    "p": [
+     -28.8,
+     2.4,
+     15.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.04
+   }
+  ],
+  "aft-port-prong-strike": [
+   {
+    "p": [
+     -29.017,
+     15.127,
+     8.6
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "fb-bow-glacis-strike": [
+   {
+    "p": [
+     53.862,
+     -3.0,
+     9.862
+    ],
+    "n": [
+     0.848,
+     0.0,
+     0.53
+    ]
+   }
+  ],
+  "fb-bow-tether-padeye": [
+   {
+    "p": [
+     39.5,
+     33.7,
+     -2.2
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  ],
+  "fb-forward-deck-dent": [
+   {
+    "p": [
+     46.385,
+     -6.385,
+     13.794
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ]
+   }
+  ],
+  "fb-port-bow-cheek-strike": [
+   {
+    "p": [
+     44.814,
+     21.538,
+     12.754
+    ],
+    "n": [
+     0.659,
+     0.753,
+     0.0
+    ]
+   }
+  ],
+  "fb-port-bow-deck-cluster": [
+   {
+    "p": [
+     45.401,
+     19.345,
+     14.296
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ]
+   },
+   {
+    "p": [
+     44.54,
+     21.909,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     42.721,
+     14.832,
+     15.17
+    ],
+    "n": [
+     -0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     39.047,
+     16.772,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     44.849,
+     21.072,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     40.702,
+     21.793,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     45.65,
+     20.491,
+     14.169
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ]
+   },
+   {
+    "p": [
+     45.401,
+     19.345,
+     14.296
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.53
+   },
+   {
+    "p": [
+     44.54,
+     21.909,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.417
+   },
+   {
+    "p": [
+     42.721,
+     14.832,
+     15.17
+    ],
+    "n": [
+     -0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.411
+   },
+   {
+    "p": [
+     39.047,
+     16.772,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ],
+    "r": 0.555
+   },
+   {
+    "p": [
+     44.849,
+     21.072,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.378
+   },
+   {
+    "p": [
+     40.702,
+     21.793,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.661
+   },
+   {
+    "p": [
+     45.65,
+     20.491,
+     14.169
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.333
+   }
+  ],
+  "fb-port-bow-flank-strike": [
+   {
+    "p": [
+     51.06,
+     21.153,
+     3.0
+    ],
+    "n": [
+     0.911,
+     0.412,
+     0.0
+    ]
+   }
+  ],
+  "fb-port-citadel-wall-spall": [
+   {
+    "p": [
+     21.0,
+     21.75,
+     12.4
+    ],
+    "n": [
+     -0.41,
+     0.912,
+     0.0
+    ]
+   }
+  ],
+  "fb-port-forward-flank-cluster": [
+   {
+    "p": [
+     33.163,
+     34.3,
+     4.078
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     42.62,
+     34.3,
+     5.835
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     35.82,
+     34.3,
+     3.98
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     39.013,
+     34.3,
+     6.887
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     40.709,
+     34.37,
+     2.016
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     32.978,
+     34.3,
+     6.166
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     39.594,
+     34.3,
+     -0.95
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     42.414,
+     34.3,
+     3.306
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     33.491,
+     34.37,
+     0.932
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     39.762,
+     34.3,
+     6.635
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     35.699,
+     33.7,
+     5.372
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     36.42,
+     34.3,
+     2.493
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     33.163,
+     34.3,
+     4.078
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.619
+   },
+   {
+    "p": [
+     42.62,
+     34.3,
+     5.835
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.617
+   },
+   {
+    "p": [
+     35.82,
+     34.3,
+     3.98
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.512
+   },
+   {
+    "p": [
+     39.013,
+     34.3,
+     6.887
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.645
+   },
+   {
+    "p": [
+     40.709,
+     34.37,
+     2.016
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.732
+   },
+   {
+    "p": [
+     32.978,
+     34.3,
+     6.166
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.582
+   },
+   {
+    "p": [
+     39.594,
+     34.3,
+     -0.95
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.789
+   },
+   {
+    "p": [
+     42.414,
+     34.3,
+     3.306
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.597
+   },
+   {
+    "p": [
+     33.491,
+     34.37,
+     0.932
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.639
+   },
+   {
+    "p": [
+     39.762,
+     34.3,
+     6.635
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.609
+   },
+   {
+    "p": [
+     35.699,
+     33.7,
+     5.372
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.658
+   },
+   {
+    "p": [
+     36.42,
+     34.3,
+     2.493
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.601
+   }
+  ],
+  "fb-port-glacis-gouge": [
+   {
+    "p": [
+     44.0,
+     4.0,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.04
+   },
+   {
+    "p": [
+     45.125,
+     4.688,
+     14.436
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.38
+   },
+   {
+    "p": [
+     46.25,
+     5.375,
+     13.863
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.502
+   },
+   {
+    "p": [
+     47.375,
+     6.062,
+     13.29
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.569
+   },
+   {
+    "p": [
+     48.5,
+     6.75,
+     13.109
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.59
+   },
+   {
+    "p": [
+     49.625,
+     7.438,
+     12.536
+    ],
+    "n": [
+     0.454,
+     0.0,
+     0.891
+    ],
+    "r": 0.569
+   },
+   {
+    "p": [
+     50.75,
+     8.125,
+     14.465
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.502
+   },
+   {
+    "p": [
+     51.875,
+     8.812,
+     14.365
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.38
+   },
+   {
+    "p": [
+     53.0,
+     9.5,
+     14.365
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.04
+   }
+  ],
+  "fb-port-nose-block-spall": [
+   {
+    "p": [
+     56.35,
+     3.054,
+     5.882
+    ],
+    "n": [
+     0.848,
+     -0.0,
+     0.53
+    ]
+   }
+  ],
+  "fb-port-sponson-cowl-strike": [
+   {
+    "p": [
+     33.0,
+     34.3,
+     7.427
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  ],
+  "fb-port-sponson-scrape": [
+   {
+    "p": [
+     29.5,
+     33.8,
+     -1.2
+    ],
+    "n": [
+     -0.707,
+     0.707,
+     0.0
+    ],
+    "r": 0.04
+   },
+   {
+    "p": [
+     31.688,
+     34.3,
+     -1.275
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.411
+   },
+   {
+    "p": [
+     33.875,
+     34.3,
+     -1.35
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.545
+   },
+   {
+    "p": [
+     36.062,
+     34.3,
+     -1.425
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.617
+   },
+   {
+    "p": [
+     38.25,
+     33.7,
+     -1.5
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.64
+   },
+   {
+    "p": [
+     40.438,
+     34.3,
+     -1.575
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.617
+   },
+   {
+    "p": [
+     42.625,
+     34.25,
+     -1.65
+    ],
+    "n": [
+     0.0,
+     0.707,
+     -0.707
+    ],
+    "r": 0.545
+   },
+   {
+    "p": [
+     44.812,
+     34.175,
+     -1.725
+    ],
+    "n": [
+     0.0,
+     0.707,
+     -0.707
+    ],
+    "r": 0.411
+   },
+   {
+    "p": [
+     47.0,
+     31.946,
+     -1.8
+    ],
+    "n": [
+     0.555,
+     0.438,
+     -0.707
+    ],
+    "r": 0.04
+   }
+  ],
+  "fb-stbd-bay-door-strike": [
+   {
+    "p": [
+     23.0,
+     -23.4,
+     -0.5
+    ],
+    "n": [
+     0.0,
+     -1.0,
+     0.0
+    ]
+   }
+  ],
+  "fb-stbd-bow-cheek-spall": [
+   {
+    "p": [
+     48.698,
+     -21.397,
+     12.728
+    ],
+    "n": [
+     0.501,
+     -0.358,
+     0.788
+    ]
+   }
+  ],
+  "fb-stbd-bow-deck-cluster": [
+   {
+    "p": [
+     27.41,
+     -10.3,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     27.6,
+     -11.17,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     31.387,
+     -9.883,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     27.41,
+     -10.3,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ],
+    "r": 0.339
+   },
+   {
+    "p": [
+     27.6,
+     -11.17,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ],
+    "r": 0.439
+   },
+   {
+    "p": [
+     31.387,
+     -9.883,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ],
+    "r": 0.395
+   }
+  ],
+  "fb-stbd-flank-dent": [
+   {
+    "p": [
+     43.0,
+     -29.1,
+     3.5
+    ],
+    "n": [
+     0.625,
+     -0.781,
+     0.0
+    ]
+   }
+  ],
+  "fb-stbd-flank-module-tear": [
+   {
+    "p": [
+     29.0,
+     -30.975,
+     5.5
+    ],
+    "n": [
+     -0.283,
+     -0.648,
+     0.707
+    ]
+   }
+  ],
+  "fb-stbd-forebody-deck-dent": [
+   {
+    "p": [
+     25.448,
+     -17.276,
+     15.17
+    ],
+    "n": [
+     0.0,
+     -0.0,
+     1.0
+    ]
+   }
+  ],
+  "pod-port-aft-shoulder": [
+   {
+    "p": [
+     -12.0,
+     36.704,
+     13.675
+    ],
+    "n": [
+     -0.0,
+     0.707,
+     0.707
+    ]
+   }
+  ],
+  "pod-port-contact-scrape": [
+   {
+    "p": [
+     -15.0,
+     37.527,
+     -3.2
+    ],
+    "n": [
+     -0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.04
+   },
+   {
+    "p": [
+     -17.0,
+     37.313,
+     -3.325
+    ],
+    "n": [
+     -0.924,
+     0.354,
+     -0.146
+    ],
+    "r": 0.38
+   },
+   {
+    "p": [
+     -19.0,
+     36.906,
+     -3.45
+    ],
+    "n": [
+     0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.502
+   },
+   {
+    "p": [
+     -21.0,
+     36.855,
+     -3.575
+    ],
+    "n": [
+     0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.569
+   },
+   {
+    "p": [
+     -23.0,
+     37.803,
+     -3.7
+    ],
+    "n": [
+     0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.59
+   },
+   {
+    "p": [
+     -25.0,
+     37.751,
+     -3.825
+    ],
+    "n": [
+     0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.569
+   },
+   {
+    "p": [
+     -27.0,
+     37.858,
+     -3.95
+    ],
+    "n": [
+     -0.974,
+     0.21,
+     -0.087
+    ],
+    "r": 0.502
+   },
+   {
+    "p": [
+     -29.0,
+     37.265,
+     -4.075
+    ],
+    "n": [
+     0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.38
+   },
+   {
+    "p": [
+     -31.0,
+     37.213,
+     -4.2
+    ],
+    "n": [
+     -0.0,
+     0.924,
+     -0.383
+    ],
+    "r": 0.04
+   }
+  ],
+  "pod-port-cowl-gouge": [
+   {
+    "p": [
+     -2.5,
+     27.0,
+     12.519
+    ],
+    "n": [
+     0.693,
+     0.0,
+     0.721
+    ],
+    "r": 0.04
+   },
+   {
+    "p": [
+     -3.062,
+     27.938,
+     14.036
+    ],
+    "n": [
+     0.496,
+     0.0,
+     0.868
+    ],
+    "r": 0.411
+   },
+   {
+    "p": [
+     -3.625,
+     28.875,
+     14.357
+    ],
+    "n": [
+     0.496,
+     0.0,
+     0.868
+    ],
+    "r": 0.545
+   },
+   {
+    "p": [
+     -4.188,
+     29.812,
+     14.679
+    ],
+    "n": [
+     0.496,
+     -0.0,
+     0.868
+    ],
+    "r": 0.617
+   },
+   {
+    "p": [
+     -4.75,
+     30.75,
+     15.0
+    ],
+    "n": [
+     0.496,
+     -0.0,
+     0.868
+    ],
+    "r": 0.64
+   },
+   {
+    "p": [
+     -5.312,
+     31.688,
+     15.314
+    ],
+    "n": [
+     0.531,
+     0.219,
+     0.819
+    ],
+    "r": 0.617
+   },
+   {
+    "p": [
+     -5.875,
+     32.625,
+     15.428
+    ],
+    "n": [
+     0.531,
+     0.219,
+     0.819
+    ],
+    "r": 0.545
+   },
+   {
+    "p": [
+     -6.438,
+     33.562,
+     15.541
+    ],
+    "n": [
+     0.531,
+     0.219,
+     0.819
+    ],
+    "r": 0.411
+   },
+   {
+    "p": [
+     -7.0,
+     34.5,
+     15.33
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ],
+    "r": 0.04
+   }
+  ],
+  "pod-port-flank-cluster": [
+   {
+    "p": [
+     -16.209,
+     38.248,
+     1.731
+    ],
+    "n": [
+     -0.258,
+     0.966,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -13.85,
+     38.95,
+     5.838
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -2.967,
+     34.513,
+     0.994
+    ],
+    "n": [
+     -0.359,
+     0.933,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -14.65,
+     37.9,
+     2.033
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -13.548,
+     37.9,
+     1.783
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -11.516,
+     38.5,
+     5.476
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -7.286,
+     38.05,
+     -0.482
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     -16.209,
+     38.248,
+     1.731
+    ],
+    "n": [
+     -0.258,
+     0.966,
+     0.0
+    ],
+    "r": 0.543
+   },
+   {
+    "p": [
+     -13.85,
+     38.95,
+     5.838
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.367
+   },
+   {
+    "p": [
+     -2.967,
+     34.513,
+     0.994
+    ],
+    "n": [
+     -0.359,
+     0.933,
+     0.0
+    ],
+    "r": 0.566
+   },
+   {
+    "p": [
+     -14.65,
+     37.9,
+     2.033
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.398
+   },
+   {
+    "p": [
+     -13.548,
+     37.9,
+     1.783
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.56
+   },
+   {
+    "p": [
+     -11.516,
+     38.5,
+     5.476
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.346
+   },
+   {
+    "p": [
+     -7.286,
+     38.05,
+     -0.482
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "r": 0.639
+   }
+  ],
+  "pod-port-intake-cap": [
+   {
+    "p": [
+     -1.0,
+     36.5,
+     5.0
+    ],
+    "n": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  ],
+  "pod-port-lower-casing": [
+   {
+    "p": [
+     -9.0,
+     37.824,
+     -2.484
+    ],
+    "n": [
+     0.0,
+     0.924,
+     -0.383
+    ]
+   }
+  ],
+  "pod-port-shoulder-cluster": [
+   {
+    "p": [
+     -18.176,
+     31.022,
+     16.494
+    ],
+    "n": [
+     -0.223,
+     0.0,
+     0.975
+    ]
+   },
+   {
+    "p": [
+     -13.341,
+     34.451,
+     15.343
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     -11.533,
+     31.25,
+     16.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -12.593,
+     33.149,
+     15.692
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     -15.277,
+     34.163,
+     15.42
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     -9.801,
+     31.893,
+     16.668
+    ],
+    "n": [
+     -0.0,
+     0.007,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -11.719,
+     30.611,
+     16.67
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -9.748,
+     34.33,
+     15.376
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     -15.278,
+     33.579,
+     15.577
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     -13.699,
+     25.637,
+     16.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -18.176,
+     31.022,
+     16.494
+    ],
+    "n": [
+     -0.223,
+     0.0,
+     0.975
+    ],
+    "r": 0.391
+   },
+   {
+    "p": [
+     -13.341,
+     34.451,
+     15.343
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ],
+    "r": 0.65
+   },
+   {
+    "p": [
+     -11.533,
+     31.25,
+     16.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.449
+   },
+   {
+    "p": [
+     -12.593,
+     33.149,
+     15.692
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ],
+    "r": 0.306
+   },
+   {
+    "p": [
+     -15.277,
+     34.163,
+     15.42
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ],
+    "r": 0.341
+   },
+   {
+    "p": [
+     -9.801,
+     31.893,
+     16.668
+    ],
+    "n": [
+     -0.0,
+     0.007,
+     1.0
+    ],
+    "r": 0.347
+   },
+   {
+    "p": [
+     -11.719,
+     30.611,
+     16.67
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.626
+   },
+   {
+    "p": [
+     -9.748,
+     34.33,
+     15.376
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ],
+    "r": 0.475
+   },
+   {
+    "p": [
+     -15.278,
+     33.579,
+     15.577
+    ],
+    "n": [
+     0.0,
+     0.259,
+     0.966
+    ],
+    "r": 0.643
+   },
+   {
+    "p": [
+     -13.699,
+     25.637,
+     16.0
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.333
+   }
+  ],
+  "pod-starboard-cowl-dent": [
+   {
+    "p": [
+     -14.13,
+     -33.296,
+     15.653
+    ],
+    "n": [
+     0.0,
+     -0.259,
+     0.966
+    ]
+   }
+  ],
+  "pod-tether-padeye": [
+   {
+    "p": [
+     -12.0,
+     36.947,
+     -4.6
+    ],
+    "n": [
+     -0.0,
+     0.924,
+     -0.383
+    ]
+   }
+  ],
+  "sp-housing-strike": [
+   {
+    "p": [
+     3.571,
+     5.716,
+     17.374
+    ],
+    "n": [
+     0.0,
+     0.371,
+     0.928
+    ]
+   }
+  ],
+  "sp-scattered": [
+   {
+    "p": [
+     34.935,
+     17.622,
+     15.17
+    ],
+    "n": [
+     -0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     31.585,
+     9.442,
+     15.17
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     0.736,
+     16.877,
+     10.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     15.562,
+     10.799,
+     14.462
+    ],
+    "n": [
+     -0.707,
+     0.0,
+     0.707
+    ]
+   },
+   {
+    "p": [
+     27.11,
+     1.535,
+     17.45
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -24.556,
+     22.821,
+     13.318
+    ],
+    "n": [
+     0.0,
+     -0.259,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     11.72,
+     4.255,
+     20.625
+    ],
+    "n": [
+     -0.0,
+     0.29,
+     0.957
+    ]
+   },
+   {
+    "p": [
+     4.46,
+     -8.95,
+     12.092
+    ],
+    "n": [
+     0.0,
+     0.556,
+     0.831
+    ]
+   },
+   {
+    "p": [
+     -14.272,
+     1.738,
+     15.9
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -5.496,
+     6.969,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     13.056,
+     1.011,
+     20.65
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     -12.284,
+     12.832,
+     8.432
+    ],
+    "n": [
+     0.0,
+     -0.831,
+     0.556
+    ]
+   },
+   {
+    "p": [
+     34.935,
+     17.622,
+     15.17
+    ],
+    "n": [
+     -0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.366
+   },
+   {
+    "p": [
+     31.585,
+     9.442,
+     15.17
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.472
+   },
+   {
+    "p": [
+     0.736,
+     16.877,
+     10.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.474
+   },
+   {
+    "p": [
+     15.562,
+     10.799,
+     14.462
+    ],
+    "n": [
+     -0.707,
+     0.0,
+     0.707
+    ],
+    "r": 0.461
+   },
+   {
+    "p": [
+     27.11,
+     1.535,
+     17.45
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.469
+   },
+   {
+    "p": [
+     -24.556,
+     22.821,
+     13.318
+    ],
+    "n": [
+     0.0,
+     -0.259,
+     0.966
+    ],
+    "r": 0.434
+   },
+   {
+    "p": [
+     11.72,
+     4.255,
+     20.625
+    ],
+    "n": [
+     -0.0,
+     0.29,
+     0.957
+    ],
+    "r": 0.349
+   },
+   {
+    "p": [
+     4.46,
+     -8.95,
+     12.092
+    ],
+    "n": [
+     0.0,
+     0.556,
+     0.831
+    ],
+    "r": 0.454
+   },
+   {
+    "p": [
+     -14.272,
+     1.738,
+     15.9
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.278
+   },
+   {
+    "p": [
+     -5.496,
+     6.969,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.319
+   },
+   {
+    "p": [
+     13.056,
+     1.011,
+     20.65
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.354
+   },
+   {
+    "p": [
+     -12.284,
+     12.832,
+     8.432
+    ],
+    "n": [
+     0.0,
+     -0.831,
+     0.556
+    ],
+    "r": 0.425
+   }
+  ],
+  "sp-spine-cluster": [
+   {
+    "p": [
+     16.015,
+     0.282,
+     20.65
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     27.46,
+     -1.282,
+     17.45
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     19.995,
+     -1.316,
+     17.45
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     19.664,
+     5.237,
+     16.921
+    ],
+    "n": [
+     0.0,
+     0.316,
+     0.949
+    ]
+   },
+   {
+    "p": [
+     13.067,
+     -1.634,
+     20.65
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
+     24.676,
+     0.549,
+     17.443
+    ],
+    "n": [
+     0.258,
+     0.0,
+     0.966
+    ]
+   },
+   {
+    "p": [
+     19.1,
+     -1.506,
+     16.94
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "p": [
+     16.015,
+     0.282,
+     20.65
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.32
+   },
+   {
+    "p": [
+     27.46,
+     -1.282,
+     17.45
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.38
+   },
+   {
+    "p": [
+     19.995,
+     -1.316,
+     17.45
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.296
+   },
+   {
+    "p": [
+     19.664,
+     5.237,
+     16.921
+    ],
+    "n": [
+     0.0,
+     0.316,
+     0.949
+    ],
+    "r": 0.385
+   },
+   {
+    "p": [
+     13.067,
+     -1.634,
+     20.65
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.4
+   },
+   {
+    "p": [
+     24.676,
+     0.549,
+     17.443
+    ],
+    "n": [
+     0.258,
+     0.0,
+     0.966
+    ],
+    "r": 0.438
+   },
+   {
+    "p": [
+     19.1,
+     -1.506,
+     16.94
+    ],
+    "n": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "r": 0.284
+   }
+  ]
+ },
+ "scar_footprints": {
+  "aft-deck-plate": {
+   "centre": [
+    -23.65,
+    -9.225,
+    14.868
+   ],
+   "extent": [
+    6.7,
+    3.25,
+    0.575
+   ],
+   "objects": 4
+  },
+  "fb-bow-glacis-strike": {
+   "centre": [
+    52.979,
+    -3.0,
+    9.297
+   ],
+   "extent": [
+    6.64,
+    6.7,
+    6.511
+   ],
+   "objects": 3
+  },
+  "fb-bow-tether-padeye": {
+   "centre": [
+    39.5,
+    33.583,
+    -2.2
+   ],
+   "extent": [
+    3.0,
+    1.514,
+    2.2
+   ],
+   "objects": 2
+  },
+  "fb-port-bow-cheek-strike": {
+   "centre": [
+    44.736,
+    21.63,
+    12.139
+   ],
+   "extent": [
+    2.971,
+    2.616,
+    2.325
+   ],
+   "objects": 3
+  },
+  "fb-port-bow-flank-strike": {
+   "centre": [
+    51.589,
+    21.317,
+    3.0
+   ],
+   "extent": [
+    3.642,
+    5.953,
+    5.16
+   ],
+   "objects": 3
+  },
+  "fb-port-citadel-wall-spall": {
+   "centre": [
+    22.995,
+    17.347,
+    12.4
+   ],
+   "extent": [
+    12.838,
+    21.624,
+    4.58
+   ],
+   "objects": 3
+  },
+  "fb-port-deck-plate-aft-torn": {
+   "centre": [
+    24.5,
+    16.75,
+    14.983
+   ],
+   "extent": [
+    7.0,
+    5.5,
+    0.525
+   ],
+   "objects": 4
+  },
+  "fb-port-deck-plate-buckle": {
+   "centre": [
+    24.5,
+    10.25,
+    14.983
+   ],
+   "extent": [
+    7.0,
+    5.5,
+    0.525
+   ],
+   "objects": 4
+  },
+  "fb-port-deck-plate-fwd-torn": {
+   "centre": [
+    32.5,
+    16.75,
+    14.983
+   ],
+   "extent": [
+    7.0,
+    5.5,
+    0.525
+   ],
+   "objects": 4
+  },
+  "fb-port-nose-block-spall": {
+   "centre": [
+    56.374,
+    3.054,
+    5.884
+   ],
+   "extent": [
+    2.477,
+    4.58,
+    3.889
+   ],
+   "objects": 3
+  },
+  "fb-port-sponson-cowl-strike": {
+   "centre": [
+    33.0,
+    33.783,
+    7.427
+   ],
+   "extent": [
+    8.35,
+    1.245,
+    6.7
+   ],
+   "objects": 3
+  },
+  "fb-stbd-bay-door": {
+   "centre": [
+    14.0,
+    -23.43,
+    -1.005
+   ],
+   "extent": [
+    23.04,
+    0.1,
+    7.63
+   ],
+   "objects": 1
+  },
+  "fb-stbd-bay-jamb": {
+   "centre": [
+    25.67,
+    -23.0,
+    -0.45
+   ],
+   "extent": [
+    0.78,
+    3.24,
+    8.942
+   ],
+   "objects": 2
+  },
+  "fb-stbd-deck-plate-unbolted": {
+   "centre": [
+    32.5,
+    -10.25,
+    14.983
+   ],
+   "extent": [
+    7.0,
+    5.5,
+    0.525
+   ],
+   "objects": 4
+  },
+  "fb-stbd-flank-module-tear": {
+   "centre": [
+    28.968,
+    -31.077,
+    5.594
+   ],
+   "extent": [
+    3.172,
+    1.45,
+    4.851
+   ],
+   "objects": 3
+  },
+  "pod-port-casing-plate": {
+   "centre": [
+    -11.85,
+    28.6,
+    16.482
+   ],
+   "extent": [
+    4.9,
+    4.6,
+    0.525
+   ],
+   "objects": 4
+  },
+  "pod-port-drive": {
+   "centre": [
+    -38.95,
+    28.15,
+    0.0
+   ],
+   "extent": [
+    4.1,
+    13.5,
+    7.8
+   ],
+   "objects": 4
+  },
+  "pod-starboard-casing-buckle": {
+   "centre": [
+    -11.85,
+    -28.6,
+    16.482
+   ],
+   "extent": [
+    4.9,
+    4.6,
+    0.525
+   ],
+   "objects": 4
+  },
+  "pod-starboard-casing-plate": {
+   "centre": [
+    -7.7,
+    -29.502,
+    16.398
+   ],
+   "extent": [
+    1.8,
+    6.403,
+    0.693
+   ],
+   "objects": 4
+  },
+  "pod-starboard-drive": {
+   "centre": [
+    -38.95,
+    -28.15,
+    0.0
+   ],
+   "extent": [
+    4.1,
+    13.5,
+    7.8
+   ],
+   "objects": 4
+  },
+  "pod-tether-padeye": {
+   "centre": [
+    -12.0,
+    36.98,
+    -4.613
+   ],
+   "extent": [
+    1.6,
+    0.505,
+    1.128
+   ],
+   "objects": 1
+  },
+  "sp-housing-strike": {
+   "centre": [
+    3.571,
+    5.411,
+    16.653
+   ],
+   "extent": [
+    4.908,
+    5.085,
+    1.909
+   ],
+   "objects": 3
+  },
+  "sp-mast": {
+   "centre": [
+    10.8,
+    0.0,
+    22.725
+   ],
+   "extent": [
+    1.306,
+    4.4,
+    1.85
+   ],
+   "objects": 7
+  },
+  "sp-scattered": {
+   "centre": [
+    10.912,
+    3.966,
+    17.678
+   ],
+   "extent": [
+    34.409,
+    7.601,
+    6.385
+   ],
+   "objects": 12
+  },
+  "sp-spine-cluster": {
+   "centre": [
+    20.369,
+    1.764,
+    18.41
+   ],
+   "extent": [
+    16.424,
+    8.618,
+    4.73
+   ],
+   "objects": 21
+  },
+  "sp-trunk-aft-stbd": {
+   "centre": [
+    -4.854,
+    -12.6,
+    15.25
+   ],
+   "extent": [
+    0.35,
+    1.19,
+    0.3
+   ],
+   "objects": 1
+  },
+  "sp-turret-1": {
+   "centre": [
+    -11.0,
+    19.54,
+    19.45
+   ],
+   "extent": [
+    5.963,
+    7.08,
+    2.8
+   ],
+   "objects": 8
+  },
+  "sp-turret-2": {
+   "centre": [
+    -11.0,
+    -20.0,
+    18.165
+   ],
+   "extent": [
+    5.963,
+    5.963,
+    0.23
+   ],
+   "objects": 2
+  },
+  "sp-turret-3": {
+   "centre": [
+    40.567,
+    10.8,
+    19.15
+   ],
+   "extent": [
+    7.362,
+    6.43,
+    2.8
+   ],
+   "objects": 8
+  },
+  "sp-turret-4": {
+   "centre": [
+    36.0,
+    -16.0,
+    15.98
+   ],
+   "extent": [
+    7.751,
+    7.751,
+    0.23
+   ],
+   "objects": 2
+  },
+  "sp-waist-line-cut": {
+   "centre": [
+    9.5,
+    24.2,
+    7.2
+   ],
+   "extent": [
+    4.42,
+    1.922,
+    1.922
+   ],
+   "objects": 3
+  },
+  "sp-waist-trunk-cut": {
+   "centre": [
+    4.0,
+    10.9,
+    11.5
+   ],
+   "extent": [
+    2.42,
+    1.922,
+    1.922
+   ],
+   "objects": 3
+  }
+ },
+ "hidden_base_parts": {
+  "Aft deck armour plate.003": "aft-deck-plate",
+  "Drive casing armour plate": "pod-port-casing-plate",
+  "Drive casing armour plate.003": "pod-starboard-casing-buckle",
+  "Drive casing armour plate.005": "pod-starboard-casing-plate",
+  "Forebody replaceable armor": "fb-port-deck-plate-buckle",
+  "Forebody replaceable armor.002": "fb-port-deck-plate-aft-torn",
+  "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
+  "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
+ },
+ "left_out_objects": 90,
+ "objects": 869,
+ "polygons": 138951,
+ "baked_meshes": 749,
+ "images": [
+  "Skin arm-boom-port",
+  "Skin arm-forearm-out",
+  "Skin arm-machinery-tops",
+  "Skin arm-tops",
+  "Skin bay-back-wall-port",
+  "Skin bay-davit-head-port",
+  "Skin bay-door-stbd",
+  "Skin bay-floor-port",
+  "Skin bay-frame-port",
+  "Skin belt-bow-port",
+  "Skin belt-bow-stbd",
+  "Skin belt-fore-stbd",
+  "Skin bow-cheek-port",
+  "Skin bow-nose-front",
+  "Skin bow-nose-rake",
+  "Skin bow-nose-side-port",
+  "Skin bow-nose-top",
+  "Skin bow-port-flank",
+  "Skin bow-stbd-flank",
+  "Skin deck-edge-lip-port",
+  "Skin deck-fore-top",
+  "Skin fore-module-1",
+  "Skin fore-module-2",
+  "Skin hull-waist-port",
+  "Skin keel-plate",
+  "Skin pod-bands-port",
+  "Skin pod-cowl-port",
+  "Skin pod-cowl-top",
+  "Skin pod-intake-cap-port",
+  "Skin pod-lower-casing-port",
+  "Skin pod-thrust-housing-port",
+  "Skin spine-side-port",
+  "Skin spine-top",
+  "Skin sponson-cowl",
+  "Skin sponson-cowl-tops",
+  "Skin sponson-lower",
+  "Skin turret-4-side",
+  "Skin turret-4-top",
+  "Skin turret-small-side",
+  "Skin turret-small-top",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch gunmetal",
+  "Swatch oxide",
+  "Swatch pale"
+ ],
+ "wear": {
+  "group": "SW overlay restored",
+  "materials": {
+   "base": 101,
+   "repaint": 4,
+   "steel": 1,
+   "torn": 1,
+   "weld": 1
+  },
+  "untouched": [
+   "Actuator rod chrome",
+   "Bay work lights",
+   "Bridge smoked viewport glazing",
+   "Bridge viewport glazing",
+   "Davit position light green",
+   "Drive bell heat",
+   "Drive throat glow",
+   "Drive warning light",
+   "Mast beacon",
+   "Masthead light",
+   "Port arm work light amber",
+   "Port running light",
+   "RCS bell heat-tinted steel",
+   "RCS housing gunmetal",
+   "Starboard running light"
+  ],
+  "scorch_sites": 0,
+  "soot_engines": 4,
+  "base": "second-wind-surface/wear.py, wear.json",
+  "params": "second-wind-surface/overlay/restored.json",
+  "note": "Repainted but not new: one coat over cream, oxide and pale, old seams and dents reading through it, neighbouring plates slightly mismatched; light chips and grime; working soot on both pods."
+ },
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 99,
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 4,
+    "rcs": 24,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "restored",
+    "haze": 4,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0
+   },
+   "guns": {
+    "state": "restored",
+    "guns": 5,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'SECOND WIND | restored' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "skinned-restored.blend",
+  "geometry_json_sha256": "1d3765131262395581ec917776998beee3dfa4da2935f2f3fcf359cd60e0b1b1",
+  "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle.",
+  "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "aed079d0cbee704463bb7c528173490ea5c2062270dda8486fcf36b1267e1d02"
+}

@@ -188,6 +188,18 @@ public final class DoodadService {
         return id;
     }
 
+    /**
+     * Whether the first destructible prop a structural hit on this cell reaches is a registered cover prop —
+     * a sandbag, fence or crate barricade — rather than a rock, a natural object or registered equipment. A cell
+     * holding none of them answers false. Read-only; the same dispatch order as {@link #damageablePropIdAt}.
+     */
+    public boolean barricadeAt(int x, int y, CellTopology topology) {
+        return rocks.standingIdAt(x, y, topology, TileRegistry.installed()) == null
+                && naturalProps.standingIdAt(x, y) == null
+                && destructibleProps.standingIdAt(x, y) == null
+                && destructibleCover.standingIdAt(x, y) != null;
+    }
+
     /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
     public void refreshBlockingCover(int x, int y, CellTopology topology) {
         for (Doodad prop : doodads) {
