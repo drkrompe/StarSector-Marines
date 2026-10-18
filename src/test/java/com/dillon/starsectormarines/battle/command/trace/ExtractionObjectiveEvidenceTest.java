@@ -88,6 +88,10 @@ class ExtractionObjectiveEvidenceTest {
             List<RunResult> replicas = results.subList(
                     index * repeat, (index + 1) * repeat);
             RunResult first = replicas.get(0);
+            // Published before the asserts, so a failing run leaves the trace that explains it.
+            Files.writeString(output.resolve("traces")
+                            .resolve(spec.id() + ".jsonl"),
+                    first.trace(), StandardCharsets.UTF_8);
             EvidenceFanOut.assertReplaysByteStable(spec.id(),
                     "command evidence",
                     replicas.stream().map(RunResult::trace).toList());
@@ -98,9 +102,6 @@ class ExtractionObjectiveEvidenceTest {
             canonicalSourceResponseActions += first.sourceResponseActions();
             canonicalInterdictionActions += first.interdictionActions();
 
-            Files.writeString(output.resolve("traces")
-                            .resolve(spec.id() + ".jsonl"),
-                    first.trace(), StandardCharsets.UTF_8);
             summaries.put(summary(spec, first));
             markdown.append('|').append(spec.id()).append('|')
                     .append(first.complete() ? "COMPLETE" : "TIMEOUT")

@@ -2,8 +2,11 @@ package com.dillon.starsectormarines.battle.scene;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
@@ -310,6 +313,7 @@ public final class SceneBuilder {
         private IntFunction<ObjectiveAssignment> assignment;
         private MechVariant mechVariant;
         private MechRole mechRole;
+        private MechDeploymentSpec mechDeployment;
         private long[] spawned = new long[0];
 
         private SquadSpec(SceneBuilder owner, String key) {
@@ -487,8 +491,28 @@ public final class SceneBuilder {
             return this;
         }
 
+        /**
+         * Makes this a mech lance fitted as {@code deployment} says: its weapons, frame and role, spawned the way
+         * {@code MechSupportPayload} spawns a dropped machine. Attack and vision range follow the fitted weapons, so a
+         * refit arm is not left with the factory gun's reach.
+         */
+        public SquadSpec mech(MechDeploymentSpec deployment) {
+            mech(deployment.variant(), deployment.role());
+            this.mechDeployment = deployment;
+            return this;
+        }
+
         public SceneBuilder done() {
             return owner;
+        }
+
+        private static float fittedRange(MechDeploymentSpec deployment) {
+            float reach = 0f;
+            for (MechWeaponComponent c : new MechWeaponComponent[] {
+                    deployment.arms(), deployment.leftShoulder(), deployment.rightShoulder()}) {
+                if (c != null) reach = Math.max(reach, c.weaponDef().range);
+            }
+            return reach;
         }
 
         /** Every seat carrying {@link #primaryWeaponId} and nothing else issued. */
@@ -523,6 +547,11 @@ public final class SceneBuilder {
                         : new EntitySpec(key + "-" + i, faction, type,
                                 atX - 2 + i % 4, atY + i / 4);
                 if (mechVariant != null) mechVariant.applyTo(spec);
+                if (mechDeployment != null) {
+                    mechDeployment.applyTo(spec);
+                    float reach = fittedRange(mechDeployment);
+                    spec.attackRange(reach).visionRange(Math.max(mechVariant.visionRange, reach));
+                }
                 if (kit != null) kit[i].seedInto(spec);
                 spec.squad(squadId);
                 if (stationary) spec.moveSpeed(0f);
@@ -530,7 +559,13 @@ public final class SceneBuilder {
                 if (armorCapacity > 0f) spec.armor(armorCapacity, armorRating);
                 each.accept(spec);
                 spawned[i] = sim.spawn(spec);
-                if (mechVariant != null) {
+                if (mechDeployment != null) {
+                    MechLoadoutComponent loadout = new MechLoadoutComponent(mechVariant, mechDeployment.arms(),
+                            mechDeployment.leftShoulder(), mechDeployment.rightShoulder(), mechDeployment.role());
+                    loadout.applyFrame(mechDeployment.frame());
+                    loadout.installMissileReplenisher(mechDeployment.missileReplenisher());
+                    sim.world().attachMechLoadout(spawned[i], loadout);
+                } else if (mechVariant != null) {
                     sim.world().attachMechLoadout(spawned[i],
                             mechVariant.createLoadout(mechRole));
                 }

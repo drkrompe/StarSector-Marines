@@ -78,10 +78,11 @@
               <div id="company-hq-opening-payment" class="label tone-accent opening-copy">{openingGuide.payment}</div>
               <div id="company-hq-opening-route" class="label opening-copy">{openingGuide.route}</div>
               <div id="company-hq-opening-preparation" class="label tone-muted opening-copy">{openingGuide.preparation}</div>
-              <button id="company-hq-opening-course" class="opening-course" disabled="{openingGuide.courseDisabled}" onclick="{openingGuide.courseAction}">
-                <div id="company-hq-opening-course-label" class="console-key-legend">{i18n.openingUiCompanyHqPlotCourse}</div>
-                <img id="company-hq-opening-course-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
-              </button>
+              <div id="company-hq-opening-course-row" class="opening-course-row">
+                <button id="company-hq-opening-course" class="opening-course" disabled="{openingGuide.courseDisabled}" onclick="{openingGuide.courseAction}">
+                  <div id="company-hq-opening-course-label" class="console-key-legend">{i18n.openingUiCompanyHqPlotCourse}</div>
+                  <img id="company-hq-opening-course-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+                </button>              </div>
             </div>
 
             <div id="company-hq-detail-item" class="{actions.plainClasses}">
@@ -299,7 +300,8 @@
   .opening-contact { flex-direction: row; height: 64px; gap: 9px; align-items: center; }
   .opening-portrait { width: 64px; height: 64px; }
   .opening-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
-  .opening-course { flex-direction: row; align-items: center; height: 28px; padding: 2px 6px; gap: 5px; border-width: 3px; }
+  .opening-course-row { flex-direction: row; height: 28px; flex-grow: 0; }
+  .opening-course { flex-direction: row; align-items: center; width: 180px; height: 28px; padding: 2px 6px; gap: 5px; border-width: 3px; }
   .opening-heading { flex-direction: row; align-items: center; height: 32px; gap: 8px; }
   .opening-crest { width: 32px; height: 32px; }
   .opening-label { height: auto; white-space: normal; width: 0px; flex-grow: 1; }

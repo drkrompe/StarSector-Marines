@@ -23,7 +23,7 @@ public final class MechFrameBudget {
     public static float ratedOutput(MechVariant variant) {
         return switch (variant) {
             case HOUND -> 20f;
-            case SIROCCO -> 34f;
+            case SIROCCO -> 36f;
             case BULWARK -> 46f;
         };
     }

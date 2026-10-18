@@ -419,6 +419,7 @@
         "accuracy": 0.76,
         "cooldown": 2.5,
         "penetration": 18.0,
+        "contact": { "damage": 100.0, "penetration": 18.0 },
         "hitSpread": 0.12,
         "roundVelocity": 86.666664,
         "flightSec": 0.30,
@@ -1023,7 +1024,7 @@
       },
       "sim": {
         "range": 38.0,
-        "damage": 42.0,
+        "damage": 70.0,
         "accuracy": 0.92,
         "cooldown": 3.4,
         "penetration": 18.0,
