@@ -150,12 +150,21 @@ final class HqActionDesk {
             wire.add(new CompanyHqNewsDesk.Report("hq-wire-" + post.id(), "wire-line console-toggle",
                     post.kicker(), post.headline(), "", () -> read.accept(post.id())));
         }
-        return new Desk(List.copyOf(tabs), List.copyOf(rows),
+        List<Marker> markers = new ArrayList<>();
+        for (HqActionItem item : board.items()) {
+            markers.add(new Marker(markerId(item), item.title(), () -> select.accept(item.id())));
+        }
+        return new Desk(List.copyOf(tabs), List.copyOf(rows), List.copyOf(markers),
                 hiddenShown > 0 ? Strings.format("hqActionHidden", hiddenShown) : "", empty,
                 view, view == View.ITEM && selected != null && selected.kind() != Kind.STORY ? selected : null,
                 List.copyOf(wire), board.items().isEmpty() ? Strings.get("hqActionEmpty")
                         : Strings.format("hqActionCastlePriority", board.items().get(0).title(),
                                 board.items().get(0).place()));
+    }
+
+    /** The holo marker button standing over an item's projected marker and label. */
+    static String markerId(HqActionItem item) {
+        return "hq-holo-" + item.id().replaceAll("[^A-Za-z0-9-]", "-");
     }
 
     static String rowId(HqActionItem item) {
@@ -210,12 +219,22 @@ final class HqActionDesk {
     }
 
     /** The list, the detail pane's mode and its plain-item fields, and the wire. */
-    record Desk(List<CompanyHqNewsDesk.Key> tabs, List<Row> rows, String hidden, String empty, View view,
+    /** A real button over one holo marker; choosing it selects the item, never acts on it. */
+    record Marker(String id, String title, Runnable select) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "title" -> title; case "select" -> select;
+                default -> throw new IllegalArgumentException("Unknown holo marker property: " + property);
+            };
+        }
+    }
+
+    record Desk(List<CompanyHqNewsDesk.Key> tabs, List<Row> rows, List<Marker> markers, String hidden, String empty, View view,
                 HqActionItem plain, List<CompanyHqNewsDesk.Report> wire, String priority)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
-                case "tabs" -> tabs; case "rows" -> rows; case "wire" -> wire;
+                case "tabs" -> tabs; case "rows" -> rows; case "wire" -> wire; case "markers" -> markers;
                 case "hidden" -> hidden; case "empty" -> empty; case "priority" -> priority;
                 case "hiddenClasses" -> hidden.isEmpty() ? "hq-gone" : "label tone-muted action-footnote";
                 case "emptyClasses" -> empty.isEmpty() ? "hq-gone" : "label tone-muted action-footnote";
