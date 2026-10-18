@@ -162,13 +162,13 @@ CAMERAS = [  # name, position, orthographic scale
 ]
 # Close-ups, rendered only when named: (name, position, target, ortho scale).
 CLOSEUPS = [
-    ('bow-detail', (230, 130, 140), (70, 20, 5), 120),
+    ('bow-detail', (300, 190, 170), (55, 15, 5), 190),
     ('cargo-detail', (120, 260, 150), (30, 60, 8), 110),
     ('bridge-detail', (40, 110, 110), (-56, 1.5, 18), 70),
     ('turret-detail', (110, 140, 90), (69, 75, 16), 34),
-    ('engine-detail', (-260, 170, 90), (-110, 50, 0), 110),
+    ('engine-detail', (-320, 230, 120), (-100, 45, 0), 150),
     ('stern-detail', (-260, -120, 120), (-80, 1.5, 0), 150),
-    ('underside', (-17, 150, -380), (-17, 1.5, -10), 260),
+    ('underside', (40, 1.5, -420), (-17, 1.5, -10), 420),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
