@@ -35,9 +35,9 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.65,
+  "metres_per_unit": 0.95,
   "scale": {
-    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume; cargo unit calibrated on the Hound (A)",
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
       "units3": 32793,
       "crew_max": 50,
@@ -49,8 +49,9 @@
       "volume_source": "measured (SOLIDS)"
     },
     "constants": {
+      "habitable_m3_per_person": 300.0,
       "class": {
-        "habitable_m3_per_person": 40.0,
+        "habitable_factor": 1.0,
         "hangar_box_factor": 2.5,
         "shares": {
           "armour": 0.06,
@@ -59,33 +60,28 @@
           "structure": 0.12
         }
       },
-      "cargo_m3_per_unit": 50.6,
-      "fuel_m3_per_unit": 32.0,
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
       "boat_bay_m3": 960.0,
-      "spares_per_wing": 1,
-      "anchor": {
-        "hull": "Hound (A)",
-        "metres_per_unit": 0.88,
-        "cramped": 0.83
-      }
+      "spares_per_wing": 1
     },
     "contents_m3": {
-      "crew": 2000,
-      "cargo": 2026,
-      "fuel": 800,
+      "crew": 15000,
+      "cargo": 80,
+      "fuel": 38,
       "hangar": 0,
       "boat_bays": 0
     },
-    "contents_total_m3": 4826,
+    "contents_total_m3": 15118,
     "machinery_share": 0.46,
-    "enclosed_m3": 8936,
-    "solved_metres_per_unit": 0.648,
+    "enclosed_m3": 27995,
+    "solved_metres_per_unit": 0.949,
     "range": {
-      "anchor_cramped": 0.623,
-      "anchor_published": 0.648
+      "habitable_273": 0.92,
+      "habitable_328": 0.977
     },
-    "enclosed_m3_per_person_at_max_crew": 179,
-    "length_m": 61.4,
+    "enclosed_m3_per_person_at_max_crew": 560,
+    "length_m": 89.8,
     "fittings_m": {
       "viewport w x h": [
         1.0,
@@ -95,7 +91,7 @@
         1.0
       ]
     },
-    "published_metres_per_unit": 0.65,
+    "published_metres_per_unit": 0.95,
     "measured_this_build": {
       "enclosed_units3": 32793,
       "solids": [
@@ -108,11 +104,11 @@
       "all_hull_solids_units3_incl_nacelles": 38754
     },
     "size_m": [
-      61.6,
-      44.4,
-      13.2
+      90.0,
+      64.9,
+      19.2
     ],
-    "person_1_8_m_in_units": 2.77,
+    "person_1_8_m_in_units": 1.89,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -704,12 +700,12 @@
   },
   "shot_extent_px": {
     "shot-1500m": {
-      "width_px": 107,
-      "height_px": 33
+      "width_px": 155,
+      "height_px": 47
     },
     "shot-3000m": {
-      "width_px": 54,
-      "height_px": 17
+      "width_px": 79,
+      "height_px": 24
     }
   }
 }
