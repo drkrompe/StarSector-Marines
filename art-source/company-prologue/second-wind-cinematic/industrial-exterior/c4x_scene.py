@@ -5,7 +5,9 @@
 Layout pass (EEVEE, block geometry). The camera hangs about 700 m up, looking nearly straight
 down, and pans toward the port: it starts over the farmland and crosses the edge of the
 industrial belt (hedges and fence, freight road, rail sidings, warehouses, container yard) to
-ease to a stop over the port. Second Wind comes in beneath it faster than the camera moves,
+then, over the last few seconds, drifts east and comes down to end straight over Kilo Nine, low
+and tight, with Second Wind still descending onto its pad (C5 lands it; the wide reveal of the
+port is saved for C5's title pull-out). Second Wind is under the camera from the first second,
 pulls ahead and sinks toward Kilo Nine, its shadow closing on it as it descends. The two speeds
 keep the ground, the ship and the shadow all moving against each other.
 
@@ -45,8 +47,8 @@ FRAMES = round(DURATION * FPS)
 W, H = 1920, 1080
 LENS_MM, SENSOR_MM = 24.0, 36.0
 CAM_POS = Vector((0.0, 150.0, 700.0))   # where haze distances are measured from (mid-pan)
-CAM_Y0, CAM_Y1 = -400.0, 460.0          # pan along +Y: over the fields, then over the port's edge
-CAM_X1 = 60.0                           # drifting east with the ship as it settles
+CAM_Y0 = -400.0                         # pan along +Y from over the fields...
+CAM_END = Vector((395.0, 462.0, 330.0))  # ...and down to end straight over Kilo Nine, low and tight
 CAM_PITCH = math.radians(-85.0)          # nearly straight down, a touch toward the port
 SUN_DIR = Vector((-0.45, -0.20, 0.87)).normalized()   # toward the sun: high, left, behind
 SUN_RGB = (1.0, 0.95, 0.88)
@@ -559,7 +561,7 @@ def smoothstep(a, b, x):
 # In under the camera from the lower left, crossing toward the port and sinking: about 330 m up
 # at the start, 70 m at the end, slowing as it goes.
 P0 = Vector((-220.0, -470.0, 330.0))   # in frame, lower left, from the first second
-P1 = Vector((368.0, 458.0, 40.0))     # 40 m over Kilo Nine; offset toward the camera so it reads over the pad
+P1 = Vector((395.0, 462.0, 95.0))     # 95 m over Kilo Nine and still coming down: C5 lands it
 
 
 def ship_path(t):
@@ -1151,12 +1153,16 @@ def add_camera(scene):
     cam = link(bpy.data.objects.new('C4x | sky camera', bpy.data.cameras.new('C4x | sky camera')))
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS_MM, SENSOR_MM, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 5.0, 60000.0
-    cam.rotation_euler = (math.pi / 2 + CAM_PITCH, 0, 0)
     for f in range(FRAMES):
-        k = smoothstep(0.0, 1.0, f / (FRAMES - 1))
-        k = 0.35 * (f / (FRAMES - 1)) + 0.65 * k     # under way from the first frame, easing out
-        cam.location = (CAM_X1 * k, CAM_Y0 + (CAM_Y1 - CAM_Y0) * k, CAM_POS.z)
+        u = f / (FRAMES - 1)
+        k = 0.35 * u + 0.65 * smoothstep(0.0, 1.0, u)   # under way from the first frame, easing out
+        drift = smoothstep(0.35, 1.0, u)               # east after the ship, over the second half
+        down = smoothstep(0.45, 1.0, u)                # and down toward the yard
+        cam.location = (CAM_END.x * drift, CAM_Y0 + (CAM_END.y - CAM_Y0) * k,
+                        CAM_POS.z + (CAM_END.z - CAM_POS.z) * down)
+        cam.rotation_euler = (math.pi / 2 + CAM_PITCH + (-math.pi / 2 - CAM_PITCH) * down, 0, 0)  # to straight down
         cam.keyframe_insert('location', frame=f)
+        cam.keyframe_insert('rotation_euler', frame=f)
     scene.camera = cam
 
 

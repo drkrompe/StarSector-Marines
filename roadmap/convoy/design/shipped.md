@@ -22,3 +22,4 @@ Written: 2026-08-23
 | `progressive-route-fields.md` | 2026-09-23 | `cbf40e820`, `c88417723` | `convoy-nouns.md` — local entrance feasibility, frozen on-demand clearance and cost, incremental reachability, and shared per-tick route expansion budget |
 | `vehicle-variants.md` | 2026-10-18 | `453d5c91f`; `supply-truck` and `scout-car` scenes | `convoy-nouns.md` — the light roles (carried resupply cache, squadless scout sight); `mechs-nouns.md` — vehicle patterns and lift-derived weight class |
 | `tri-tachyon-hover-line.md` | 2026-10-18 | `9c109351b`, `383a22368`; `hover-line` scene | `convoy-nouns.md` — the hover line (hover view, no purchase, tethered drone flight); `mechs-nouns.md` and `heavy-equipment-progression.md` — Tri-Tachyon's line and weighting |
+| `tri-tachyon-drone-roles.md` | 2026-10-18 | `7ba65be23`; `hover-line` scene (`sensors`, `halo`, strike verdicts in `skimmer`) | `convoy-nouns.md` — the hover line (drone bay roles, ground dust and skirt haze) |

@@ -957,14 +957,31 @@ public final class Warship {
      * land on, takes the flat rule ({@link #takeDamage}) or the floor armour respectively.
      */
     public float takeHit(int cell, float damage, float penetration, float nowSeconds) {
+        return takeHit(cell, damage, penetration, nowSeconds, 1f);
+    }
+
+    /**
+     * {@link #takeHit(int, float, float, float)} for a round another hull fired: what the armour rule lets through is
+     * divided by {@link WarshipScale#HULL_DURABILITY} on its way to the plate and the hull.
+     */
+    public float takeHullFightHit(int cell, float damage, float nowSeconds) {
+        return takeHit(cell, damage, 1f, nowSeconds, WarshipScale.HULL_DURABILITY);
+    }
+
+    private float takeHit(int cell, float damage, float penetration, float nowSeconds, float durability) {
         if (destroyed()) return 0f;
-        if (plating == null) return takeDamage(damage, penetration);
+        float wear = Math.max(1f, durability);
+        if (plating == null) {
+            float taken = Math.min(hitPoints, effectiveDamage(damage, penetration, armour) / wear);
+            hitPoints -= taken;
+            return taken;
+        }
         float through;
         if (cell >= 0) {
-            through = plating.hit(cell, damage, penetration, nowSeconds);
+            through = plating.hit(cell, damage, penetration, nowSeconds, wear);
         } else {
             through = damage * penetration < armour * GLANCE_SHARE ? 0f
-                    : effectiveDamage(damage, penetration, armour * WarshipPlating.MIN_ARMOUR_FRACTION);
+                    : effectiveDamage(damage, penetration, armour * WarshipPlating.MIN_ARMOUR_FRACTION) / wear;
         }
         float taken = Math.min(hitPoints, through);
         hitPoints -= taken;
@@ -1037,6 +1054,27 @@ public final class Warship {
      * by the first breach under it is out this long times {@link WarshipScale#HULL_TEMPO}.
      */
     static final float MOUNT_REPAIR_SECONDS = 10f;
+
+    /**
+     * Whether every mount that may fire at a ship is out of action and at least one of them is only silenced under
+     * repair, not lost: the ship is disarmed against hulls for now, and will not be once the repair is done.
+     */
+    public boolean awaitingAntiShipRepair() {
+        boolean repairing = false;
+        for (Mount m : mounts) {
+            if (!WarshipShipRules.mayFireAtHull(m.weapon)) continue;
+            if (!m.knockedOut) return false;
+            if (!m.lost) repairing = true;
+        }
+        return repairing;
+    }
+
+    /** Mounts lost for good: repaired once over holed plate and hit there again. */
+    public int mountsLost() {
+        int n = 0;
+        for (Mount m : mounts) if (m.lost) n++;
+        return n;
+    }
 
     /** Mounts out of action: silenced under repair, or lost with their plating. */
     public int mountsKnockedOut() {
@@ -1322,7 +1360,7 @@ public final class Warship {
     boolean tickVisit(float dt, boolean hostileHullOver) {
         if (!missionOwned() || departing) return false;
         visitQuietSeconds = hostileHullOver ? 0f : visitQuietSeconds + dt;
-        return visitQuietSeconds >= visitDwellSeconds;
+        return !holdsTheField && visitQuietSeconds >= visitDwellSeconds;
     }
 
     /** Whether the ship arrived through the cloud deck (see {@link #arriveFromAbove()}). */
@@ -2004,6 +2042,24 @@ public final class Warship {
      */
     public void useDoctrine() {
         if (doctrine == null) doctrine = new WarshipDoctrine();
+        if (holdsTheField) doctrine.holdTheField();
+    }
+
+    private boolean holdsTheField;
+
+    /**
+     * The mission keeps this ship over the battle until it is destroyed: its doctrine (now or later given) never
+     * withdraws it, and a visit it is on never ends, so it stays the mission's without leaving. Nothing else about how
+     * it fights changes, and a mission that sends it away itself (an edge exit, spent station time) still can.
+     */
+    public void holdTheField() {
+        holdsTheField = true;
+        if (doctrine != null) doctrine.holdTheField();
+    }
+
+    /** Whether the mission keeps this ship over the battle until it is destroyed. */
+    public boolean holdsTheField() {
+        return holdsTheField;
     }
 
     public boolean hasDoctrine() {

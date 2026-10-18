@@ -35,7 +35,7 @@ for name, el, az, _ in views:
     d = Vector((math.cos(e2)*math.cos(a), math.cos(e2)*math.sin(a), math.sin(e2)))
     cam.location = mid+d*600
     cam.rotation_euler = (-d).to_track_quat('-Z', 'Y').to_euler()
-    cam.data.ortho_scale = 420
+    cam.data.ortho_scale = 480 if el >= 30 else 420   # high views take the arms' full spread
     sc.camera = cam
     sc.render.filepath = f'{out}/{name}.png'
     bpy.ops.render.render(write_still=True)

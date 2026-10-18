@@ -1895,7 +1895,7 @@ public final class BattleSetup {
         List<Integer> holders = new ArrayList<>();
         for (int duty = 0; duty < 3; duty++) {
             int squad = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
-            for (int[] cell : pickSpawnCluster(map.grid, 34 + 4 * duty, BlackSluice.LANDING_Y - 7, 4))
+            for (int[] cell : pickSpawnCluster(map.grid, BlackSluice.LANDING_X + 10 + 4 * duty, BlackSluice.LANDING_Y - 7, 4))
                 sim.spawn(makeOpeningMilitia(houseCustody ? "Rusk estate guard" : "Black Sluice constable", Faction.ALLY, cell[0], cell[1], rng)
                         .squad(squad).role(UnitRole.PATROL));
             sim.getSquad(squad).originalSize = 4;
@@ -1903,7 +1903,7 @@ public final class BattleSetup {
             holders.add(squad);
         }
         int custody = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
-        for (int[] cell : pickSpawnCluster(map.grid, 28, BlackSluice.LANDING_Y - 7, SmallWarProgress.CUSTODIANS))
+        for (int[] cell : pickSpawnCluster(map.grid, BlackSluice.LANDING_X + 4, BlackSluice.LANDING_Y - 7, SmallWarProgress.CUSTODIANS))
             sim.spawn(new EntitySpec(houseCustody ? "House Rusk appointed custodian" : "Joint custody party member",
                     Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1]).squad(custody).role(UnitRole.PATROL));
         sim.getSquad(custody).originalSize = SmallWarProgress.CUSTODIANS;

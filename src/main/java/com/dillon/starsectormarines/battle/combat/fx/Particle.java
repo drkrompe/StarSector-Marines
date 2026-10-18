@@ -31,6 +31,8 @@ public final class Particle {
     public float angleDeg;
     /** Width/height ratio; one preserves existing square particles. */
     public float aspectRatio = 1f;
+    /** Peak opacity, faded by remaining life; one for everything but soft ground dust. */
+    public float alpha = 1f;
     public float angularVelocityDegPerSec;
     /** Flipbook frame index of the first frame this particle plays. */
     public int firstFrame;

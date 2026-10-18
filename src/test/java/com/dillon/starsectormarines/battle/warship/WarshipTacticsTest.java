@@ -12,7 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The tactics layer's pure pieces: travel along the nose, an escort's interposed station, and fighter exemption. */
+/**
+ * The tactics layer's pure pieces: travel along the nose, an escort's interposed station, fighter exemption, and the
+ * duel's orbit angle and cover.
+ */
 class WarshipTacticsTest {
 
     @BeforeAll
@@ -58,5 +61,29 @@ class WarshipTacticsTest {
         assertTrue(broadsword.fighterSize());
         assertFalse(wolf.fighterSize());
         assertFalse(WarshipSpacing.inContact(broadsword));
+    }
+
+    @Test
+    void anOrbitHoldsItsTargetWhereTheShieldCoversAndSideGunsBear() throws Exception {
+        // A Wolf (H): a 150-degree front shield, a turret that bears out to about sixty degrees off the bow.
+        Warship wolf = Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, 0f, 0f, 0f);
+        float angle = WarshipTactics.orbitAngle(wolf);
+        assertTrue(angle >= WarshipTactics.ORBIT_MIN_ANGLE_DEGREES && angle <= WarshipTactics.coverAngle(wolf),
+                "inside its own cover: " + angle);
+        // An Eagle's battery is nearly all in its bow: circling would silence it, so it does not orbit.
+        Warship eagle = Warship.fit("eagle", "eagle_Assault", Faction.ALLY, 0f, 0f, 0f);
+        assertTrue(Float.isNaN(WarshipTactics.orbitAngle(eagle)), "an Eagle holds its nose on instead");
+    }
+
+    @Test
+    void aShipOffTheShieldArcIsOffItsCover() throws Exception {
+        // Facing 0: the nose is along +y. A Wolf's shield covers 75 degrees either side of it.
+        Warship wolf = Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.DEFENDER, 0f, 0f, 0f);
+        Warship ahead = Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, 0f, 200f, 180f);
+        Warship astern = Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, 0f, -200f, 0f);
+        assertFalse(WarshipTactics.offArc(wolf, ahead), "ahead is inside the arc");
+        assertTrue(WarshipTactics.offArc(wolf, astern), "astern is outside it");
+        assertTrue(WarshipTactics.mainBears(wolf, ahead), "the bow battery bears ahead");
+        assertFalse(WarshipTactics.mainBears(wolf, astern), "and not astern");
     }
 }

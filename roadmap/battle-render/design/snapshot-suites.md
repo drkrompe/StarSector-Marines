@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
+Updated: 2026-10-18 — warship fights follow the hulls (duel camera)
+
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
 workflow). This table is not the catalog. Suites register through `META-INF/services`,
@@ -25,7 +27,7 @@ by name.
 | `agreus-maps` | Current production North Weir, Low Quay and Latchkey maps at their campaign seeds: labelled whole-map overviews and unlabelled interior detail at 1920x1080. Pre-combat observer views with roofs omitted; annotations are review aids, not added terrain. No battle or campaign acceptance claim. | `build/snapshots/agreus-maps/` |
 | `water-under-seal` | Production North Weir contract with named regular squads, fitted boats, physical cargo and technician work, an owned-source tender call and actual road-gun construction. Includes absent arrival, withheld construction, cargo/technician loss and withdrawal/replacement controls; 1920×1080/100%, detached evidence rather than live campaign travel/save acceptance. | `build/snapshots/water-under-seal/` |
 | `yard-owners` | Latchkey inspection: three regular-company seeds, Specter and earned mixed-roster comparisons, absent arrival, tooling/technician loss and retreat with replacements. Physical receipts feed once-only Arbalest settlement; explicit learning, fitting and roster serialization precede mixed combat. 1920x1080/100% frames; detached evidence, not live host acceptance. Report in `build/reports/yard-owners/playback.txt`. | `build/snapshots/yard-owners/` |
-| `black-sluice` | A Small War at Black Sluice with named regular squads and fitted boats: three ordinary seeds (both custody routes), absent arrival, fuel-infrastructure loss, custody-party loss and withdrawal with replacement attempts. Greyhook's Venture and two Hounds landed at true scale on the southern pad field below the ridge, lifting out on runs on Voss's order and fighting wherever the fight goes (the Wolfs flying in and out across the west edge, Greyhook's ships out across the east; `ordinary-15305-duel.gif` is framed a little wider than the map so the crossings show), the berth gate and berth road, Voss's split, Drent Haulage walking out the service road, Berth Four holding dispatch, the basin rim and once-only settlement; 1920x1080/100% frames. Detached evidence, not live host acceptance; report in `build/reports/black-sluice/playback.txt`. | `build/snapshots/black-sluice/` |
+| `black-sluice` | A Small War at Black Sluice with named regular squads and fitted boats: three ordinary seeds (both custody routes), absent arrival, fuel-infrastructure loss, custody-party loss and withdrawal with replacement attempts. Greyhook's Venture and two Hounds landed at true scale on the southern pad field below the ridge, lifting out on runs on Voss's order and fighting the Wolfs wherever the fight goes until one side is destroyed (the Wolfs flying in across the west edge, nobody leaving the map; `ordinary-15305-duel.gif` follows the engagement with the duel camera below until the ground battle ends, or with `-Dsnapshot.duelCamera=false` is framed a little wider than the map so the crossing shows), the open approach ground west of the apron (`black-sluice-detail-approach.png`: flats, the transfer road inland, abandoned beds, the ridge running on), the berth gate and berth road, Voss's split, Drent Haulage walking out the service road, Berth Four holding dispatch, the basin rim and once-only settlement; 1920x1080/100% frames. Detached evidence, not live host acceptance; report in `build/reports/black-sluice/playback.txt`. | `build/snapshots/black-sluice/` |
 | `landed-ships` | A Venture and two Hound (P) landed at true scale on the production Black Sluice concrete pads, then all three flying their lift runs, ahead and round a climbing turn, easing to flight scale with the share of the run flown (a frame every 2 s and a GIF; asserts the change was carried by travel). 1920x1080/100%, art and scale evidence with the hulls placed by the suite, not a played mission | `build/snapshots/landed-ships/` |
 | `limited-warrant` | Low Quay recovery with 24 named regular marines and fitted boats: three ordinary seeds, absent arrival, lost cargo/technician and withdrawal with replacement attempts. Physical recovery receipts feed once-only settlement; briefing, battle and debrief frames at 1920x1080/100%. Detached evidence, not live host save/reload; report in `build/reports/limited-warrant/playback.txt`. | `build/snapshots/limited-warrant/` |
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
@@ -83,10 +85,56 @@ by name.
 | `taxonomy-previews` | Tactical region kinds, cover/exposure heat and top overwatch corners on Conquest and legacy maps | `build/snapshots/taxonomy-previews/` |
 | `terms-of-protection` | Chapter 4 at Latchkey on both signed routes (House Custody, Yard Compact) at two seeds, plus absent arrival, technician loss, representative loss and retreat with replacement attempts; Pell's rigs and mortar, once-only settlement and the deferred Boarding Jack entitlement. 1920x1080/100%; detached evidence. Report in `build/reports/terms-of-protection/playback.txt` | `build/snapshots/terms-of-protection/` |
 | `district-escort` | The recurring District Escort on Low Quay's freight lane under both agreements, with no-show, lost load, lost party and withdrawal controls, contract boards and results screen. 1920x1080/100%; detached evidence | `build/snapshots/district-escort/` |
-| `frigate-duel` | Warships fighting hostile hulls with their real mounts: shields, armour, stray rounds landing on the ground, a crippled hull falling as wreckage, and a ship-fire-off control. Verdicts are `sceneEvidence`'s. Siblings `frigate-duel-helm`, `frigate-missiles`, `frigate-doctrine`, `frigate-climb-out`, `frigate-visit` and `frigate-ledger` cover helm, missiles, doctrine, climb-out, the finite visit and the duel ledger | `build/snapshots/frigate-duel/` |
-| `greyhook-duel` | The production Black Sluice duel on open ground the size of the map, five seeds: the Greyhook and two Hounds lifting from their pads, two Wolfs flying in across the west edge, every exit across the side's own edge, no fight area. GIF per seed from the same run as `sceneEvidence`'s verdicts (arrivals and exits across the side's edge, no foreign edge crossed, held hulls out of their edge margin); `-Dbattle.scene.greyhookDuel.seeds=15305` records one seed; 1920x1080/100% | `build/snapshots/greyhook-duel/` |
-| `warship-mirrors` | Equal hulls duelling one on one (Wolf, Hound, Eagle, Onslaught, three seeds each), recorded at a frame every two seconds: attack runs, bow-on standoffs, pressing a target deep in flux, and the kill that decides it (warship duels are fought to the death). Verdicts are `sceneEvidence`'s; `-Dbattle.scene.warshipMirrors.only=<loop or class>` records a subset | `build/snapshots/warship-mirrors/` |
+| `frigate-duel` | Warships fighting hostile hulls with their real mounts: shields, armour, stray rounds landing on the ground, a crippled hull falling as wreckage, and a ship-fire-off control. Duel camera, plus a fixed close view (`<loop>-close.gif`). Verdicts are `sceneEvidence`'s. Siblings `frigate-duel-helm`, `frigate-missiles`, `frigate-doctrine`, `frigate-climb-out`, `frigate-visit` and `frigate-ledger` cover helm, missiles, doctrine, climb-out, the finite visit and the duel ledger | `build/snapshots/frigate-duel/` |
+| `greyhook-duel` | The production Black Sluice duel on open ground the size of the map, five seeds: the Greyhook and two Hounds lifting from their pads and two Wolfs flying in across the west edge, fighting until one side's hulls are all destroyed, no fight area. GIF per seed from the same run as `sceneEvidence`'s verdicts (the Wolfs crossing the edge outside their reach of every Greyhook hull, arrivals only from a pad or across the Wolfs' edge, no hull leaving the map or withdrawing by doctrine, the duel decided by destruction, the radio hearing who goes down, held hulls out of their edge margin); winner, loss times, the Greyhook's hull over time, breaches and mounts lost are readings; `-Dbattle.scene.greyhookDuel.seeds=15305` records one seed; duel camera; 1920x1080/100% | `build/snapshots/greyhook-duel/` |
+| `warship-mirrors` | Equal hulls duelling one on one (Wolf, Hound, Eagle, Onslaught, three seeds each), through the duel camera: attack runs, bow-on standoffs, pressing a target deep in flux, and the kill that decides it (warship duels are fought to the death). Verdicts are `sceneEvidence`'s; `-Dbattle.scene.warshipMirrors.only=<loop or class>` records a subset | `build/snapshots/warship-mirrors/` |
+| `warship-tactics` | Fleet actions (`pack-vs-escorted`, `line-of-battle`, `mirror`, and a fighter loop) through the duel camera, which frames the closest engagement. Verdicts are `sceneEvidence`'s; `-Dbattle.scene.warshipTactics.only=<loop>` records a subset | `build/snapshots/warship-tactics/` |
 | `fire-support-apc` | A fire-support APC parked ~33 cells off shells a plated twelve-defender position with its roof heavy mortar while a troop heavy APC delivery sets four marines down beside it, against a no-mortar control; two spotters keep the position in the player's fog picture. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/fire-support-apc/` |
 | `supply-truck` | A supply truck's carried resupply cache: spent grenadiers beside the halted truck refilled while a squad out of reach is not (`parked`), nothing handed out while it drives up and service from the tick it halts (`driving`), stock lost with the wreck (`wrecked`), and a no-truck `control`. The service ring is drawn green when open, grey when shut. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/supply-truck/` |
 | `scout-car` | A scout car's mast sights a position no marine can see behind a long wall, reaching the commander as squadless contacts and the player's fog (`scouted`); a wall across its view blinds it (`walled-in`); a no-scout `control`. The review renderer draws no fog, so the caption carries sightings, commander contacts and revealed cells. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/scout-car/` |
-| `hover-line` | Tri-Tachyon's hover line: a hover scout floats across a river a wheeled APC is refused at (`river`), drives over standing marines and shoves none (`crowd`) against the spotter pickup's control (`crowd-wheels`), and a drone skimmer's tethered drones fight on their leash (`skimmer`) and fall with the hull (`skimmer-loss`). Water is marked cell by cell. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/hover-line/` |
+| `hover-line` | Tri-Tachyon's hover line: a hover scout floats across a river a wheeled APC is refused at (`river`), drives over standing marines and shoves none (`crowd`) against the spotter pickup's control (`crowd-wheels`), and a drone skimmer's tethered drones fight on their leash and its strike drone detonates and is rebuilt (`skimmer`), the flight falls with the hull (`skimmer-loss`), a scout's sensor pair sees past a wall (`sensors`), and halo drones shoot down rockets (`halo`). Wheel dust and skirt haze are drawn. Water is marked cell by cell. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/hover-line/` |
+
+## Warship fights: the duel camera
+
+Hulls fight at hull-fight range, a good part of a map apart, so a whole-map frame shows two specks. The warship
+suites above (`warship-mirrors`, `warship-tactics`, `frigate-duel`, `greyhook-duel`, and the duel GIF of
+`black-sluice`) record through `WarshipFollowRecording` instead, a camera over the same `BattleReviewFrameRenderer`
+close view:
+
+- **Framing.** The bounding box of the hulls in the fight, padded so the space between them and the rounds crossing
+  it stay in shot. With more than two hulls up it frames one engagement: the closest hostile pair and every hull near
+  them, kept until another pair is clearly closer. A destroyed hull stays framed for five seconds where its wreck
+  falls. The view is held between a closest width (five hull lengths, at least 70 cells) and the whole map, and stays
+  inside the map.
+- **Motion.** Pan and zoom follow a critically damped spring toward a target that moves only past a dead zone (pan)
+  or a hysteresis band (zoom out at 6%, in at 15%), so a hull yawing in place does not shake the frame; after the
+  spring, the view widens or shifts just enough to hold every framed hull, so a hull is never lost. Centres are
+  snapped to whole pixels at the drawn zoom (whole pixels per cell). It is a pure function of the simulation and the
+  recording's own history (`DuelCamera`).
+- **Cadence.** A frame every 6 ticks (five a simulated second, played at 100 ms: twice real time) while two hostile
+  hulls are up and rounds are flying or have flown in the last five seconds; the scene's own cadence on the approach
+  and between passes; a five-second tail after the last hostile pair breaks, then nothing. A long fight halves its
+  rate after every 240 frames, down to the scene's own cadence, but never while a kill is framed.
+- **Insets.** A locked-off close-up, about twice the main view's scale, of the hull whose structure just dropped (two
+  seconds) or that was just destroyed (five seconds), labelled `HIT` or `KILL`, in a corner no framed hull is in; none when
+  the main view already draws that hull nearly as large. A locator map in the lower right shows every hull and the
+  view's rectangle.
+
+Switches (forwarded `snapshot.*` properties): `-Dsnapshot.duelCamera=false` restores the whole-map frames at the
+scene's own cadence, which is the way to get the whole-map review of any of these suites; `-Dsnapshot.duelCamera.everyTicks=N`
+sets the dense cadence (3 is real time); `-Dsnapshot.duelCamera.inset=false` drops the close-up;
+`-Dsnapshot.duelCamera.trace=true` prints each frame's view.
+
+What it costs: a frame is no slower to draw than a whole-map one, but there are more of them, and a moving close
+view defeats the GIF's frame-to-frame delta, so files are far larger. Measured on 2026-10-18 (hull wear at a
+durability of three, so duels run long), whole map against duel camera:
+
+| Loop | Whole map (scene cadence) | Duel camera |
+|------|---------------------------|-------------|
+| `wolf-11` (decided at about 2 minutes) | 300 frames, 0.4 MB, 30 s | 356 frames, 27 MB, about 35 s |
+| `eagle-11` (decided at about 15 minutes) | 900 frames, 2.7 MB, 205 s | 1028 frames, 144 MB, about 85 s |
+| `greyhook-duel` seed 15305 (fought to the finish, decided about 4.4 minutes after the order) | not measured | 45 MB at `everyTicks=12`; 272 frames, 29 MB at `everyTicks=30`, about 20 s |
+
+The duel camera is quicker overall because it stops recording once the fight is decided. A long duel is the
+expensive case: `-Dsnapshot.duelCamera.everyTicks=12` halves it, and `-Dsnapshot.duelCamera=false` gives the old
+whole-map recording.

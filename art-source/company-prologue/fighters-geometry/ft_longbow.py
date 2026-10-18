@@ -88,6 +88,7 @@ NOTES = [
     'rims, dark bores) in its open mouth, with hold-down latches on top. Each pod has the master\'s top slot, a '
     'lamp, two collar ribs and a centre body with stator vanes. Panel lines split fuselage, arms, housing and '
     'plates.',
+    'Pass 3 rework (owner, 2026-10-18, the fighters read flat): the X-frame folds 8 degrees down outboard of the fuselage, so arms, webs, launchers and pods droop and the pods cant outward. It lands on four splayed lander legs at the arm roots beside the fuselage (three would tip under so narrow a body), each with a round pad and an inboard brace, and stands level. The plan view is unchanged.',
 ]
 
 # Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
@@ -226,6 +227,65 @@ def build(kit):
     kit.slot_anchor(a2, (*a2['location'], .05), muzzle=(13.13, -11.0, .05))
     if kit.detail:
         detail(kit)
+    fold_frame()
+    lander_legs(kit)
+
+
+# Bends and landing (owner, 2026-10-18: the fighters read flat). The X-frame
+# folds down along both sides of the fuselage, so arms, webs, launchers and
+# pods all droop outboard like a gull and the pods roll outward with them.
+# The bomber lands on four short splayed lander legs, one under each arm root
+# beside the fuselage, each with a round foot pad and an inboard brace: four
+# because three under so narrow a fuselage would tip with the arms' weight.
+# The arms and launchers carry no load. The plan view is unchanged.
+FOLD_Y = 3.6             # the fuselage's half width: the frame folds outboard of it
+FOLD_DEG = 8.0
+DECK_Z = -4.2            # parked deck, level in the hull frame
+PAD_R, PAD_T = 1.0, .3
+# (name, hip x, hip y, hip z on the arm's underside, foot splay outboard)
+LEGS = [('Hull port fore leg', 5.0, 5.4, -1.0, .9), ('Hull starboard fore leg', 5.0, -5.4, -1.0, .9),
+        ('Hull port aft leg', -4.6, 5.3, -1.0, .9), ('Hull starboard aft leg', -4.6, -5.3, -1.0, .9)]
+FEET = [f'{leg[0]} pad' for leg in LEGS]
+LEG_PARTS = tuple(leg[0] for leg in LEGS)
+
+
+def fold_drop(y):
+    return math.tan(math.radians(FOLD_DEG))*max(0.0, abs(y)-FOLD_Y)
+
+
+def fold_frame():
+    """Shear every part (and every anchor) down outboard of the fuselage."""
+    bpy.context.view_layer.update()
+    for ob in list(bpy.data.objects):
+        if ob.type == 'EMPTY':
+            ob.location.z -= fold_drop(ob.location.y)
+            continue
+        if ob.type != 'MESH':
+            continue
+        if ob.data.users > 1:
+            ob.data = ob.data.copy()
+        mw = ob.matrix_world.copy()
+        inv = mw.inverted()
+        for v in ob.data.vertices:
+            p = mw @ v.co
+            p.z -= fold_drop(p.y)
+            v.co = inv @ p
+        ob.data.update()
+
+
+def lander_legs(kit):
+    """Four splayed legs: a main strut with its piston, an inboard brace to the fuselage, a round pad."""
+    S, B, D = kit.steel, kit.bright, kit.dark
+    for name, x, y, top, splay in LEGS:
+        s = 1 if y > 0 else -1
+        hip = (x, y, top-fold_drop(y)+.3)
+        foot = (x, y+s*splay, DECK_Z+PAD_T)
+        knee = tuple(h+(f-h)*.5 for h, f in zip(hip, foot))
+        kit.rod(f'{name} strut', hip, knee, .2, S, 12)
+        kit.rod(f'{name} piston', tuple(h+(f-h)*.4 for h, f in zip(hip, foot)), (foot[0], foot[1], foot[2]-.1),
+                .12, B, 12)
+        kit.rod(f'{name} brace', (x, s*(FOLD_Y-.3), -1.2), knee, .07, S, 8)
+        kit.cylinder(f'{name} pad', (foot[0], foot[1], DECK_Z+PAD_T/2), PAD_R, PAD_T, D, 'Z', 16, .04)
 
 
 def detail(kit):

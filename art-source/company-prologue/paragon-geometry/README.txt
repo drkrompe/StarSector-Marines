@@ -52,6 +52,53 @@ The shape gauntlet (run every iteration)
   part edges over the sprite (gauntlet-edges.png). Silhouette IoU alone says
   nothing about the parts inside the outline.
 
+Pass 2 detail (pg_detail; owner: machinery insets and dimples)
+  Read off the sprite at 6x, each with a job: recessed machinery trays with pipe
+  runs, pumps and junction boxes (beside the bow module, its flanks, beside WS 013,
+  the pods' forward-outboard bays); rectangular vent and square dimples; arched
+  niches on the pods' aft slopes; the prow grille vanes; segmented reactor glow on
+  each reactor well; radial plate seams on the shelf and belt and transverse seams
+  on the aft body; the blue-white seam light along the gun shelf's riser; finned
+  machinery grilles in the pods' aft faces between the drives; glazed window slits
+  along the command deck tiers; machinery ribs on the bore lining; service panels
+  in the belt flank; frames and pipe runs on the deck gantry. Insets stay 3 units
+  inside the outline; the silhouette IoU held (0.959 before, 0.958 after).
+
+Forward hangar (pg_hangar; owner, pass 3)
+  A boat bay let into the bore's forward wall, opening aft across the bore at the
+  command deck: 21 m wide, 14 m high, 35 m deep (true metres), lined dark with
+  deck guide lights and roof light strips, a pale mouth frame with seam lights,
+  and a two-leaf door built closed. Each leaf slides sideways into the wall from
+  its own empty (Hangar door <side> leaf slide: open_axis, open_sign, travel);
+  --hangar-open poses it for review. Anchors: Hangar mouth (+X out into the
+  bore), Hangar launch point (the bore centre). Its air (Hull forward hangar,
+  unrendered) counts as enclosed volume, and ship_scale.py carries it as two boat
+  bays.
+
+Armour and machinery character study (study_armour.py, compose_study.py)
+  Three energy-resistant ceramic treatments on the built model, same cameras:
+  A thermal tiles (2.4 m grid; graphite and titanium machinery), B hex ablative
+  (3.5 m crowned hexagonal plates; blue-black ceramic machinery), C refractive
+  panels (8 x 4 m glazed thin-film ceramic with glowing seams; black-glass
+  machinery). Procedural and triplanar in true metres; the study never saves the
+  .blend. The owner's pick becomes pass 6's finish reference.
+    sh ../../blender.sh --background <built .blend> --python study_armour.py -- --out DIR
+    python3 compose_study.py --dir DIR
+
+Scale (pass 4; owner override, 2026-10-18)
+  Enclosed volume (SOLIDS: belt, main ring, prow, bow module, horns, lobes, deck
+  tiers, spine, bridge, aft body, pods; never the open bore, the shield emitter
+  lining, the deck gantry, drives, turrets, domes or detail) 2.48 M units3 against
+  1,000 crew, 300 cargo, 300 fuel: the rule solves 0.748 m per unit (271 m). The
+  owner wants it larger than the Onslaught (301 m), so 0.87 is published by
+  override: 315 m long, 277 m across, 73 m deep. The hull was first slimmed to the
+  Legion's and Onslaught's fullness (mean depth over plan 33.9 units against 28.4
+  and 37.4): the belly is a shallow armoured plane, the tops unchanged. The driver
+  re-measures the volume every build and fails if it drifts from ship_scale.HULLS;
+  OVERRIDE in build_paragon.py records why the published value differs from the
+  solve. Person-scale fittings are in true metres (window slits 2.0 x 0.9 m,
+  bridge glazing band 1.8 m). A 1.8 m person is 2.1 units; shield radius 235 m.
+
 Modules (one per area)
   pg_kit       materials (Tri-Tachyon palette, glow), primitives, smooth_mass
                (heightfield masses with holes), revolves, booleans, surface()
@@ -63,6 +110,8 @@ Modules (one per area)
   pg_turrets   21 turrets (barbette + pivot) and the two bow hardpoints
   pg_shield    the shield emitter anchor and the emitter nodes on the lining
   pg_arcs      firing-line check across every turret's arc
+  pg_detail    pass 2 detail: insets, dimples, niches, grille, glow, seams, windows
+  pg_hangar    the forward hangar in the bore wall, its door and anchors
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -77,5 +126,8 @@ Names (identifiers: later passes key off them)
     Weapon WS nnn muzzle [k]; hardpoints: Weapon WS 00n hardpoint (anchor), housing,
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)
+  Detail ... (pass 2 parts), Hull <side> reactor glow k, Hull main ring seam light
+  Hangar ... (floor, roof, walls, lights, frame, door leaves and slides, mouth, launch point),
+    Hull forward hangar (the bay's air, unrendered; counted volume)
   Shield emitter (empty at shieldCenter; radius, arc, type as custom properties),
     Shield emitter node k (empties facing the bore axis)

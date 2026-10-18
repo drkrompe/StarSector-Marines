@@ -26,7 +26,8 @@ public final class HoverLineSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
     @Override protected float[] closeView(String loopId) {
         return switch (loopId) {
             case HoverLineScene.RIVER -> new float[] {31f, (HoverLineScene.RIVER_Y0 + HoverLineScene.RIVER_Y1) / 2f, 44f};
-            case HoverLineScene.SKIMMER, HoverLineScene.SKIMMER_LOSS -> new float[] {25f, HoverLineScene.SKIMMER_Y, 36f};
+            case HoverLineScene.SKIMMER, HoverLineScene.SKIMMER_LOSS, HoverLineScene.SENSORS, HoverLineScene.HALO ->
+                    new float[] {25f, HoverLineScene.SKIMMER_Y, 36f};
             default -> new float[] {32f, HoverLineScene.ROAD_Y, 36f};
         };
     }
@@ -35,15 +36,20 @@ public final class HoverLineSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
 
     @Override protected ReviewAnnotations annotations(BattleSimulation simulation) {
         List<ReviewAnnotation.Cell> water = new ArrayList<>();
+        List<ReviewAnnotation.Cell> wall = new ArrayList<>();
         for (int y = 0; y < HoverLineScene.HEIGHT; y++) {
             for (int x = 0; x < HoverLineScene.WIDTH; x++) {
                 if (simulation.getTopology().getGroundKind(x, y) == GroundKind.WATER) {
                     water.add(new ReviewAnnotation.Cell(x, y));
+                } else if (x < HoverLineScene.HOLDOUT_X0 && !simulation.getGrid().isWalkable(x, y)) {
+                    wall.add(new ReviewAnnotation.Cell(x, y));
                 }
             }
         }
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         if (!water.isEmpty()) marks.cells(water, "RIVER", ReviewStyle.ROUTE);
+        // A scene's wall has no art: mark the one the sensor pair looks past.
+        if (!wall.isEmpty()) marks.cells(wall, "WALL", ReviewStyle.NOTE);
         for (long id : simulation.getConvoyVehicleIds()) {
             GroundBody body = simulation.convoy().body(id);
             VehicleType type = simulation.convoy().vehicleType(id);
@@ -60,6 +66,6 @@ public final class HoverLineSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
 
     @Override protected int[] stillFrames(String loopId) {
         if (!loopId.endsWith("-close")) return new int[0];
-        return new int[] {0, 6, 8, 10, 20, 30, 45, 60, 79, 82, 90};
+        return new int[] {0, 6, 8, 10, 12, 14, 15, 20, 30, 45, 60, 79, 82, 90};
     }
 }

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
+import com.dillon.starsectormarines.battle.air.AirHandling;
+
 /**
  * A point a drone squad screens that is not a hub: a carrier that moves.
  *
@@ -80,6 +82,16 @@ public interface DroneAnchor {
      */
     default float[] sortieGoal(long member) {
         return null;
+    }
+
+    /** How the drone flies while the anchor has it on a {@linkplain #sortieGoal sortie}. */
+    default AirHandling handling(long member) {
+        return Drone.HANDLING;
+    }
+
+    /** Whether the drone may shoot; a drone that is itself the munition never does. */
+    default boolean mayFire(long member) {
+        return true;
     }
 
     long[] NO_IDS = new long[0];

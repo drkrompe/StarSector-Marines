@@ -52,6 +52,8 @@ HULLS = [
          drive_build=('onslaught', 'onslaught.blend', 'ONSLAUGHT | clean', 'ONSLAUGHT | clean | root'),
          geometry=('onslaught-geometry/onslaught-geometry.blend', None),
          json='onslaught-geometry/geometry.json'),
+    dict(key='paragon', name='Paragon', kind='ship', scale_key='Paragon', vanilla='paragon',
+         geometry=('paragon-geometry/paragon-geometry.blend', None), json='paragon-geometry/geometry.json'),
     dict(key='legion', name='Legion (XIV)', kind='ship', scale_key='Legion (XIV)', vanilla='legion',
          geometry=('legion-geometry/legion-geometry.blend', None), json='legion-geometry/geometry.json'),
     dict(key='lasher', name='Lasher', kind='ship', scale_key='Lasher', vanilla='lasher',
@@ -857,10 +859,10 @@ def blender_main(cfg):
         sun_data.use_shadow = True
         cutaway('legion', False)
 
-    # 07 the two capitals side by side, broadside, with the Hound and a 747 in front for scale
-    caps = [k for k in ('legion', 'onslaught') if k in hulls]
+    # 07 the capitals side by side, broadside, with the Hound and a 747 in front for scale
+    caps = [k for k in ('legion', 'onslaught', 'paragon') if k in hulls]
     front = [k for k in ('hound', 'ref-747') if k in hulls]
-    if len(caps) == 2:
+    if len(caps) >= 2:
         show(set(caps) | set(front))
         lineup_visible(True)
         for f in figs:
@@ -1070,7 +1072,7 @@ def write_notes(run, rows, layout, basis, commit, what):
         n += ['## Ratios at this run\'s sizes', '',
               '| hull | length m | x Hound | x Lasher' + (' | x Nimitz |' if nim else ' |'),
               '|---|---|---|---' + ('|---|' if nim else '|')]
-        for k in ('Legion', 'Onslaught', 'Lasher', 'Hound'):
+        for k in ('Paragon', 'Legion', 'Onslaught', 'Lasher', 'Hound'):
             if k in by:
                 L_ = by[k]['length_m']
                 n.append(f"| {by[k]['hull']} | {L_:.1f} | {L_/by['Hound']['length_m']:.2f} | "
