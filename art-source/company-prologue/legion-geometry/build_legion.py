@@ -31,6 +31,7 @@ import argparse
 import importlib
 import json
 import math
+import os
 import sys
 import bpy
 from mathutils import Vector
@@ -45,7 +46,11 @@ for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_ventral, lg_en
 sys.path.insert(0, str(HERE.parent/'second-wind-cinematic'/'patrol-abeam'))
 import c2_core
 
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
+# The read-only install's core folder: $STARSECTOR_CORE if set, else the platform
+# default (macOS keeps it inside the app bundle).
+GAME = Path(os.environ.get('STARSECTOR_CORE') or (
+    '/Applications/Starsector.app/Contents/Resources/Java' if sys.platform == 'darwin'
+    else r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core'))
 SHIP = 'data/hulls/legion.ship'
 SKIN = 'data/hulls/skins/legion_xiv.skin'
 SPRITE = 'graphics/ships/legion/legion_xiv.png'

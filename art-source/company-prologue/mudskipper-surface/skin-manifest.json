@@ -74,7 +74,6 @@
    "objects": {
     "Port cargo bay door aft leaf": 1,
     "Port cargo bay door forward leaf": 1,
-    "Port cargo bay door frame": 1,
     "Port cargo bay door jamb": 1,
     "Port cargo bay door jamb.001": 1,
     "Port cargo bay door sill": 1,
@@ -162,7 +161,6 @@
    "objects": {
     "Starboard cargo bay door aft leaf": 1,
     "Starboard cargo bay door forward leaf": 1,
-    "Starboard cargo bay door frame": 1,
     "Starboard cargo bay door jamb": 1,
     "Starboard cargo bay door jamb.001": 1,
     "Starboard cargo bay door sill": 1,
@@ -538,8 +536,8 @@
   "burnished": true
  },
  "face_counts": {
-  "skin": 436,
-  "swatch": 9449,
+  "skin": 434,
+  "swatch": 10015,
   "neutral": 0
  },
  "skinned_objects": {
@@ -619,7 +617,6 @@
   "Port bow face seam backing": 1,
   "Port cargo bay door aft leaf": 1,
   "Port cargo bay door forward leaf": 1,
-  "Port cargo bay door frame": 1,
   "Port cargo bay door jamb": 1,
   "Port cargo bay door jamb.001": 1,
   "Port cargo bay door sill": 1,
@@ -662,7 +659,6 @@
   "Starboard bow face seam backing": 1,
   "Starboard cargo bay door aft leaf": 1,
   "Starboard cargo bay door forward leaf": 1,
-  "Starboard cargo bay door frame": 1,
   "Starboard cargo bay door jamb": 1,
   "Starboard cargo bay door jamb.001": 1,
   "Starboard cargo bay door sill": 1,
@@ -695,5 +691,5 @@
   "Turret well coaming.002": 1,
   "Turret well coaming.003": 1
  },
- "skinned_face_count": 436
+ "skinned_face_count": 434
 }

@@ -1,0 +1,946 @@
+{
+ "asset": "mudskipper.blend",
+ "append_collection": "MUDSKIPPER",
+ "root": "MUDSKIPPER | root",
+ "anchors_collection": "MUDSKIPPER | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.85,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "Vanilla hull units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -36.45,
+   -29.55,
+   -10.9
+  ],
+  [
+   42.63,
+   30.55,
+   18.5
+  ]
+ ],
+ "size_metres_rest": [
+  67.2,
+  51.1,
+  25.0
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "main drive",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -36.0,
+    0.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 7.44,
+   "width": 24,
+   "running": true
+  },
+  {
+   "index": 2,
+   "role": "port pod drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -36.0,
+    25.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.48,
+   "width": 8,
+   "running": true
+  },
+  {
+   "index": 3,
+   "role": "starboard pod drive",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -36.0,
+    -23.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.48,
+   "width": 8,
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3
+ ],
+ "rcs": [
+  {
+   "anchor": "RCS port maneuvering jet anchor",
+   "engine_slot": 4,
+   "at": [
+    19.0,
+    29.0,
+    2.0
+   ],
+   "exhaust_dir": [
+    -0.8659999966621399,
+    0.5,
+    0.0
+   ],
+   "radius_units": 1.6,
+   "working": true
+  },
+  {
+   "anchor": "RCS starboard maneuvering jet anchor",
+   "engine_slot": 5,
+   "at": [
+    19.0,
+    -28.0,
+    2.0
+   ],
+   "exhaust_dir": [
+    -0.8659999966621399,
+    -0.5,
+    0.0
+   ],
+   "radius_units": 1.6,
+   "working": true
+  }
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 003",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    -9,
+    0,
+    10.5
+   ],
+   "rest_angle_deg": 180,
+   "arc_deg": 120,
+   "trained_parts": 40,
+   "fixed_parts": 9,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "anchor": "Anchor turret 1 port gun muzzle",
+     "at": [
+      -15.32,
+      -0.5,
+      11.45
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "anchor": "Anchor turret 1 starboard gun muzzle",
+     "at": [
+      -15.32,
+      0.5,
+      11.45
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "bay_doors": [
+  {
+   "side": "port",
+   "door_anchor": "Anchor Port cargo bay door",
+   "opening_units": [
+    16.8,
+    8.4
+   ],
+   "opening_m": [
+    14.28,
+    7.14
+   ],
+   "door_knob": "door_port",
+   "ramp_knob": "ramp_port",
+   "leaf_slides": [
+    "Port cargo bay door aft leaf slide",
+    "Port cargo bay door forward leaf slide"
+   ],
+   "ramp_tilt": "Port freight ramp tilt",
+   "ramp_slide": "Port freight ramp slide",
+   "ramp_toe_anchor": "Anchor Port freight ramp toe"
+  },
+  {
+   "side": "starboard",
+   "door_anchor": "Anchor Starboard cargo bay door",
+   "opening_units": [
+    16.8,
+    8.4
+   ],
+   "opening_m": [
+    14.28,
+    7.14
+   ],
+   "door_knob": "door_starboard",
+   "ramp_knob": "ramp_starboard",
+   "leaf_slides": [
+    "Starboard cargo bay door aft leaf slide",
+    "Starboard cargo bay door forward leaf slide"
+   ],
+   "ramp_tilt": "Starboard freight ramp tilt",
+   "ramp_slide": "Starboard freight ramp slide",
+   "ramp_toe_anchor": "Anchor Starboard freight ramp toe"
+  }
+ ],
+ "landing": {
+  "control": "Landing control",
+  "knobs": {
+   "deploy": "legs 0 stowed .. 1 deployed",
+   "load": "0 .. 1 the ship's weight on the legs",
+   "door_port": "port cargo door 0 shut .. 1 open",
+   "door_starboard": "starboard cargo door",
+   "ramp_port": "port freight ramp 0 stowed .. 1 down",
+   "ramp_starboard": "starboard freight ramp"
+  },
+  "saved_pose": {
+   "deploy": 0.0,
+   "load": 0.0,
+   "door_port": 0.0,
+   "door_starboard": 0.0,
+   "ramp_port": 0.0,
+   "ramp_starboard": 0.0
+  },
+  "legs": [
+   {
+    "name": "fore port",
+    "at": [
+     29,
+     12
+    ],
+    "stage_1_slide": "Leg fore port stage 1 slide",
+    "stage_2_slide": "Leg fore port stage 2 slide"
+   },
+   {
+    "name": "fore starboard",
+    "at": [
+     29,
+     -12
+    ],
+    "stage_1_slide": "Leg fore starboard stage 1 slide",
+    "stage_2_slide": "Leg fore starboard stage 2 slide"
+   },
+   {
+    "name": "aft port",
+    "at": [
+     -9,
+     17
+    ],
+    "stage_1_slide": "Leg aft port stage 1 slide",
+    "stage_2_slide": "Leg aft port stage 2 slide"
+   },
+   {
+    "name": "aft starboard",
+    "at": [
+     -9,
+     -17
+    ],
+    "stage_1_slide": "Leg aft starboard stage 1 slide",
+    "stage_2_slide": "Leg aft starboard stage 2 slide"
+   }
+  ],
+  "leg_travel_units": [
+   1.4,
+   1.2
+  ],
+  "compress_units": 0.6,
+  "sole_z_stowed": -10.9,
+  "ground_z_deployed_unloaded": -13.5,
+  "ground_z_landed": -12.9,
+  "landed_note": "Landed (deploy 1, load 1) the ground is at ground_z_landed in hull space: a shot places the root that far above its ground plane, i.e. lowers the ship by compress_units.",
+  "keel_clearance_landed_m": 3.74,
+  "bay_floor_above_ground_landed_m": 7.18,
+  "doors": {
+   "Port aft": "Port cargo bay door aft leaf slide",
+   "Port forward": "Port cargo bay door forward leaf slide",
+   "Starboard aft": "Starboard cargo bay door aft leaf slide",
+   "Starboard forward": "Starboard cargo bay door forward leaf slide"
+  },
+  "door_travel_units": {
+   "plug": 0.8,
+   "slide": 7.6
+  },
+  "ramps": {
+   "Port": {
+    "tilt": "Port freight ramp tilt",
+    "slide": "Port freight ramp slide"
+   },
+   "Starboard": {
+    "tilt": "Starboard freight ramp tilt",
+    "slide": "Starboard freight ramp slide"
+   }
+  },
+  "ramp_out_units": 18.0,
+  "ramp_angle_landed_deg": 26.5,
+  "sole_anchors": [
+   "Anchor leg fore port sole",
+   "Anchor leg fore starboard sole",
+   "Anchor leg aft port sole",
+   "Anchor leg aft starboard sole"
+  ]
+ },
+ "lamps_lit": 31,
+ "lamps": [
+  {
+   "object": "Bow chin landing light",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    37.91,
+    13.0,
+    -7.5
+   ]
+  },
+  {
+   "object": "Bow chin landing light.001",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    37.91,
+    -13.0,
+    -7.5
+   ]
+  },
+  {
+   "object": "Bow running lamp",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    31.6,
+    4.0,
+    13.0
+   ]
+  },
+  {
+   "object": "Bow running lamp.001",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    31.6,
+    -4.0,
+    13.0
+   ]
+  },
+  {
+   "object": "Bow running lamp.002",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    40.63,
+    3.2,
+    9.0
+   ]
+  },
+  {
+   "object": "Bow running lamp.003",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    40.63,
+    -3.2,
+    9.0
+   ]
+  },
+  {
+   "object": "Bow running lamp.004",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    40.57,
+    6.07,
+    5.12
+   ]
+  },
+  {
+   "object": "Bow running lamp.005",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    40.57,
+    -6.07,
+    5.12
+   ]
+  },
+  {
+   "object": "Bow running lamp.006",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    40.4,
+    14.0,
+    2.95
+   ]
+  },
+  {
+   "object": "Bow running lamp.007",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    40.4,
+    -14.0,
+    2.95
+   ]
+  },
+  {
+   "object": "Bridge floodlight lens",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    38.52,
+    0.0,
+    9.9
+   ]
+  },
+  {
+   "object": "Bridge mast anticollision lamp",
+   "material": "Bridge anticollision lamp",
+   "lit": true,
+   "at": [
+    30.9,
+    0.0,
+    17.3
+   ]
+  },
+  {
+   "object": "Bridge navigation lamp port",
+   "material": "Bridge navigation lamp red",
+   "lit": true,
+   "at": [
+    34.2,
+    7.75,
+    12.55
+   ]
+  },
+  {
+   "object": "Bridge navigation lamp starboard",
+   "material": "Bridge navigation lamp green",
+   "lit": true,
+   "at": [
+    34.2,
+    -7.75,
+    12.55
+   ]
+  },
+  {
+   "object": "Engine 2 drive warning light",
+   "material": "Drive warning light",
+   "lit": true,
+   "at": [
+    -34.6,
+    27.4,
+    2.2
+   ]
+  },
+  {
+   "object": "Engine 3 drive warning light",
+   "material": "Drive warning light",
+   "lit": true,
+   "at": [
+    -34.6,
+    -27.4,
+    2.2
+   ]
+  },
+  {
+   "object": "Engine 4 jet status lamp",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    19.87,
+    28.5,
+    3.97
+   ]
+  },
+  {
+   "object": "Engine 5 jet status lamp",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    19.87,
+    -27.5,
+    3.97
+   ]
+  },
+  {
+   "object": "Hood deck floodlight lens",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    5.47,
+    6.6,
+    11.1
+   ]
+  },
+  {
+   "object": "Hood deck floodlight lens.001",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    5.47,
+    -6.6,
+    11.1
+   ]
+  },
+  {
+   "object": "Hood navigation beacon lamp",
+   "material": "Deck navigation beacon",
+   "lit": true,
+   "at": [
+    8.9,
+    -3.4,
+    14.0
+   ]
+  },
+  {
+   "object": "Port aft running light",
+   "material": "Hull port running light",
+   "lit": true,
+   "at": [
+    -2.41,
+    27.93,
+    2.0
+   ]
+  },
+  {
+   "object": "Port bay work light",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    2.2,
+    23.12,
+    4.5
+   ]
+  },
+  {
+   "object": "Port bay work light.001",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    17.0,
+    23.12,
+    4.5
+   ]
+  },
+  {
+   "object": "Port crew hatch lamp",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    0.25,
+    22.62,
+    -1.15
+   ]
+  },
+  {
+   "object": "Port sponson running light",
+   "material": "Hull port running light",
+   "lit": true,
+   "at": [
+    33.9,
+    28.45,
+    3.2
+   ]
+  },
+  {
+   "object": "Starboard aft running light",
+   "material": "Hull starboard running light",
+   "lit": true,
+   "at": [
+    -2.41,
+    -27.93,
+    2.0
+   ]
+  },
+  {
+   "object": "Starboard bay work light",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    2.2,
+    -23.12,
+    4.5
+   ]
+  },
+  {
+   "object": "Starboard bay work light.001",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    17.0,
+    -23.12,
+    4.5
+   ]
+  },
+  {
+   "object": "Starboard crew hatch lamp",
+   "material": "Bow running lamps",
+   "lit": true,
+   "at": [
+    0.25,
+    -22.62,
+    -1.15
+   ]
+  },
+  {
+   "object": "Starboard sponson running light",
+   "material": "Hull starboard running light",
+   "lit": true,
+   "at": [
+    33.9,
+    -28.45,
+    3.2
+   ]
+  }
+ ],
+ "objects": 969,
+ "polygons": 25190,
+ "baked_meshes": 496,
+ "images": [
+  "Skin aft-flank-port",
+  "Skin bay-doors-port",
+  "Skin bow-cockpit-top",
+  "Skin bow-face",
+  "Skin bow-rake",
+  "Skin bow-sponson-port",
+  "Skin drive-casing-top",
+  "Skin pod-aft-port",
+  "Skin pod-outer-port",
+  "Skin pod-top-port",
+  "Skin sponson-port",
+  "Skin tops-aft-deck",
+  "Skin tops-fore-deck",
+  "Skin tops-hood",
+  "Skin tops-waist-deck",
+  "Skin waist-port",
+  "Swatch burnished",
+  "Swatch dark",
+  "Swatch grey",
+  "Swatch red",
+  "Swatch steel",
+  "Swatch tan",
+  "Swatch white"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile mudskipper-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 65,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "centre",
+     "radius": 7.44,
+     "mouth": [
+      -36.0,
+      0.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 2.48,
+     "mouth": [
+      -36.0,
+      25.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "starboard",
+     "radius": 2.48,
+     "mouth": [
+      -36.0,
+      -23.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "port gun",
+     "muzzle": [
+      -15.32,
+      -0.5,
+      11.45
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 1,
+     "tag": "starboard gun",
+     "muzzle": [
+      -15.32,
+      0.5,
+      11.45
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Bridge navigation lamp port",
+     "role": "running-port",
+     "at": [
+      34.2,
+      7.75,
+      12.55
+     ]
+    },
+    {
+     "name": "Bridge navigation lamp starboard",
+     "role": "running-starboard",
+     "at": [
+      34.2,
+      -7.75,
+      12.55
+     ]
+    },
+    {
+     "name": "Port sponson running light",
+     "role": "running-port",
+     "at": [
+      33.903,
+      28.454,
+      3.2
+     ]
+    },
+    {
+     "name": "Starboard sponson running light",
+     "role": "running-starboard",
+     "at": [
+      33.903,
+      -28.454,
+      3.2
+     ]
+    },
+    {
+     "name": "Port aft running light",
+     "role": "running-port",
+     "at": [
+      -2.408,
+      27.933,
+      2.0
+     ]
+    },
+    {
+     "name": "Starboard aft running light",
+     "role": "running-starboard",
+     "at": [
+      -2.408,
+      -27.933,
+      2.0
+     ]
+    },
+    {
+     "name": "Bridge mast anticollision lamp",
+     "role": "beacon",
+     "at": [
+      30.9,
+      0.0,
+      17.3
+     ]
+    },
+    {
+     "name": "Hood navigation beacon lamp",
+     "role": "beacon",
+     "at": [
+      8.9,
+      -3.4,
+      14.0
+     ]
+    },
+    {
+     "name": "Bridge floodlight lens",
+     "role": "work",
+     "at": [
+      38.52,
+      0.0,
+      9.9
+     ]
+    },
+    {
+     "name": "Hood deck floodlight lens",
+     "role": "work",
+     "at": [
+      5.47,
+      6.6,
+      11.1
+     ]
+    },
+    {
+     "name": "Hood deck floodlight lens.001",
+     "role": "work",
+     "at": [
+      5.47,
+      -6.6,
+      11.1
+     ]
+    },
+    {
+     "name": "Port bay work light",
+     "role": "work",
+     "at": [
+      2.2,
+      23.125,
+      4.5
+     ]
+    },
+    {
+     "name": "Port bay work light.001",
+     "role": "work",
+     "at": [
+      17.0,
+      23.125,
+      4.5
+     ]
+    },
+    {
+     "name": "Starboard bay work light",
+     "role": "work",
+     "at": [
+      2.2,
+      -23.125,
+      4.5
+     ]
+    },
+    {
+     "name": "Starboard bay work light.001",
+     "role": "work",
+     "at": [
+      17.0,
+      -23.125,
+      4.5
+     ]
+    },
+    {
+     "name": "Engine 2 drive warning light",
+     "role": "drive-warning",
+     "at": [
+      -34.6,
+      27.4,
+      2.2
+     ]
+    },
+    {
+     "name": "Engine 3 drive warning light",
+     "role": "drive-warning",
+     "at": [
+      -34.6,
+      -27.4,
+      2.2
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -36.45,
+     -29.55,
+     -10.9
+    ],
+    [
+     42.63,
+     30.55,
+     18.5
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 3,
+    "rcs": 2,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 3,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 2,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'MUDSKIPPER' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "mudskipper-surface/build/skinned.blend",
+  "geometry_json_sha256": "aa9a97c1a86e675dd721b7f8fd3a224b84f973d875374f749a140352d3807458",
+  "skin_manifest_sha256": "57fec7101116bd144e8e7ef3b27aeaca178678f91446a553ba0f145501975aa9"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; outboard for doors and ramp toes; down for leg soles); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate Turret 1 pivot about its local Z to train; the rest pose is the slot angle (trained aft).",
+  "landing": "Animate the knobs on the 'Landing control' empty (deploy, load, door_<side>, ramp_<side>; 0..1). Landed (deploy 1, load 1) the ground is at landing.ground_z_landed in hull space: place the root that far above the ground plane. Ramps solve their own angle to that ground.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "893fba5fd391efd91bd898d6190017f34f2a101ad3662a335095448934075e05"
+}

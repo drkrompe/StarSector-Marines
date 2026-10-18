@@ -20,8 +20,8 @@ Options after a literal "--":
   --views a,b    render only these cameras (top, port-side, front,
                  three-quarter, stern, starboard-quarter, plus the close-ups
                  bow-detail, bridge-detail, dronebay-detail, gantry-detail,
-                 turret-detail, engine-detail, stern-detail; 'details' names
-                 all close-ups)
+                 turret-detail, engine-detail, stern-detail, underside;
+                 'details' names all close-ups)
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
                  (repeatable) and render it as NAME.png
   --samples N    Cycles samples (default 24)
@@ -59,12 +59,25 @@ GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-cor
 SHIP = 'data/hulls/shepherd.ship'
 SPRITE = 'graphics/ships/drone_tender.png'
 
-# Real-world scale (pipeline pass 4): see scale_record() and README.txt.
-METRES_PER_UNIT = 0.80
+# Real-world scale (pipeline pass 4). One number; every metric value - VFX
+# sizes and speeds, lamp falloff, cameras, depth of field, flight speeds,
+# texel density - reads it. Derived from what she carries, not the sprite:
+# the deck program for a FRIGATE "Drone Tender", 15-30 crew, 100 cargo
+# (DeckProgramProbe) is 2,331 m2 of rooms; less its notional 160 m2 HANGAR
+# (the open drone bay is sized from the Borer wing instead) that is
+# 2,171 m2 x1.40 circulation x3.2 m = 9,726 m3. The pressure hull (crew
+# body, spine, machinery, bridge cab, habitat shell and the drive pods'
+# casings, re-measured below on every build) is about 45,900 cubic units.
+# The r450 gives "internal volume to crew comfort", so she is solved at the
+# roomy 45% usable rather than a freighter's 55%: 0.78 m per unit (55%
+# gives 0.73, 65% 0.69; the pods-excluded top is 0.79). Fittings agree:
+# the 1.35 x 2.4-unit doors are 1.05 x 1.87 m, the open bay deck 27.8 x 9.4 m.
+METRES_PER_UNIT = 0.78
 REQUIRED_M3 = 9726      # crew deck program less its notional HANGAR (see scale_record)
-USABLE = .55
+USABLE = .45
 PRESSURE_HULL = ['Hull central body', 'Hull port spine', 'Hull aft machinery block',
                  'Bridge cab', 'Bridge habitat shell']
+DRIVE_CASINGS = ['Engine 1 drive pod casing', 'Engine 2 drive pod casing']  # outer casings count, per the skill
 DRONE_BAY_HULL = ['Drone bay aft hangar pod', 'Drone bay forward hangar pod', 'Drone bay forward service block']
 # The Borer has no cinematic model yet; its size is an assumption stated in
 # metres (an industrial cutting drone: 4.4 m long, 4.0 m across the arms,
@@ -141,7 +154,7 @@ for name, loc, energy, size in [('Key', (60, 70, 100), 150000, 80), ('Fill', (-5
     obj.rotation_euler = (-obj.location).to_track_quat('-Z', 'Y').to_euler()
 
 # Every view observes the same objects; only the active camera changes.
-TARGET = Vector((2, 0, 1))
+TARGET = Vector((2, 0, 3))
 CAMERAS = [  # name, position, orthographic scale
     ('top', (2, 0, 140), 140),
     ('port-side', (2, 180, 1), 104),
@@ -152,20 +165,21 @@ CAMERAS = [  # name, position, orthographic scale
 ]
 # Close-ups, rendered only when named: (name, position, target, ortho scale).
 CLOSEUPS = [
-    ('bow-detail', (90, 40, 45), (28, 0, 3), 46),
-    ('bridge-detail', (70, 30, 40), (24, -2, 6), 30),
-    ('dronebay-detail', (40, 80, 60), (10, 19, 2), 54),
-    ('gantry-detail', (70, -70, 50), (20, -19, 2), 44),
-    ('turret-detail', (25, -55, 40), (-3, -23, 3), 22),
-    ('engine-detail', (-70, 70, 30), (-30, 20, 0), 40),
-    ('stern-detail', (-90, -35, 35), (-26, 0, 0), 64),
+    ('bow-detail', (90, 40, 55), (28, 0, 8), 50),
+    ('bridge-detail', (70, 30, 52), (22, -3, 14), 34),
+    ('dronebay-detail', (40, 80, 60), (10, 19, 0), 56),
+    ('gantry-detail', (70, -70, 50), (20, -19, 2), 50),
+    ('turret-detail', (25, -55, 43), (-3, -23, 6), 22),
+    ('engine-detail', (-70, 70, 30), (-30, 20, -1), 44),
+    ('stern-detail', (-90, -35, 35), (-26, 0, -1), 70),
+    ('underside', (-5, 40, -120), (0, 0, -8), 100),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
     CLOSEUPS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
 wanted = []
 for v in [v for v in args.views.split(',') if v]:
-    wanted += [c[0] for c in CLOSEUPS[:7]] if v == 'details' else [v]
+    wanted += [c[0] for c in CLOSEUPS[:8]] if v == 'details' else [v]
 wanted += [spec.split(':')[0] for spec in args.cam]
 for name, pos, target, scale in CLOSEUPS:
     bpy.ops.object.camera_add(location=pos)
@@ -250,9 +264,17 @@ def union_volume(names, step=1.0):
 
 
 def scale_record(lo, hi):
-    volume = union_volume(PRESSURE_HULL)
+    crew = union_volume(PRESSURE_HULL)
+    volume = union_volume(PRESSURE_HULL+DRIVE_CASINGS)
     bay = union_volume(DRONE_BAY_HULL)
     solve = lambda usable, v=volume: (REQUIRED_M3/(usable*v))**(1/3)
+    # The open work bay itself (air, not the tub solids): deck from the
+    # crossbeam's forward face / join bulkhead to the forward block, back
+    # wall to outboard coaming, deck to the tub crown.
+    bays = sh_dronebay.BAYS
+    bay_len = (bays['aft'][1]-max(bays['aft'][0], -9.0)) + (bays['forward'][1]-bays['forward'][0])
+    bay_w = 24.4-sh_dronebay.WALL_Y
+    bay_h = sh_dronebay.OPENINGS[0]['rim_z']-sh_dronebay.WELL_FLOOR
     m = METRES_PER_UNIT
     d = DRONE_BAY['assumed_m']
     # Drone stowage: each Borer on a servicing cradle with walk-round room
@@ -262,16 +284,22 @@ def scale_record(lo, hi):
     r = sh_dronebay.OPENING_R
     return {
         'method': 'deck program (DeckProgramProbe FRIGATE "Drone Tender" 15 30 100 -> WARSHIP role): 2331 m2 rooms, '
-                  'less the notional 16x10 HANGAR (160 m2) because the drone bay is sized from the Borer wing instead, '
-                  '= 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the crew '
-                  'pressure hull (union of PRESSURE_HULL by vertical ray intervals)',
+                  'less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, '
+                  '= 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the pressure '
+                  'hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry '
+                  'and outriggers hold no crew volume.',
         'required_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL,
-        'pressure_hull_units3': round(volume), 'usable_fraction': USABLE,
+        'drive_casings': DRIVE_CASINGS,
+        'pressure_hull_units3': round(volume), 'crew_body_only_units3': round(crew), 'usable_fraction': USABLE,
         'solved_metres_per_unit': round(solve(USABLE), 3),
-        'range': {'roomy_45pct_usable': round(solve(.45), 2), 'cramped_65pct_usable': round(solve(.65), 2)},
+        'usable_reason': 'crew comfort (ship description): the roomy end, not the 55% freighter/liner share',
+        'range': {'cramped_65pct_usable': round(solve(.65), 2), 'freighter_55pct_usable': round(solve(.55), 2),
+                  'top_pods_not_crewed': round(solve(USABLE, crew), 2)},
         'drone_bay': {
-            'hull': DRONE_BAY_HULL, 'units3': round(bay), 'm3_at_published_scale': round(bay*m**3),
-            'stowage_needed_m3': round(stow_m3), 'craft': DRONE_BAY['craft'], 'wing_size': DRONE_BAY['wing_size'],
+            'hull': DRONE_BAY_HULL, 'tub_solid_units3': round(bay),
+            'open_bay_m': {'deck_length': round(bay_len*m, 1), 'width': round(bay_w*m, 1),
+                           'deck_to_crown': round(bay_h*m, 1)},
+            'open_bay_m3': round(bay_len*bay_w*bay_h*m**3), 'stowage_needed_m3': round(stow_m3), 'craft': DRONE_BAY['craft'], 'wing_size': DRONE_BAY['wing_size'],
             'craft_assumed_m': d, 'craft_in_units': {k: round(v/m, 2) for k, v in d.items()},
             'opening_clear_diameter_m': round(2*r*m, 2),
             'opening_clears_borer_diagonal': 2*r*m > (d['length']**2+d['span']**2)**.5,
@@ -279,6 +307,7 @@ def scale_record(lo, hi):
         },
         'size_m': [round((b-a)*m, 1) for a, b in zip(lo, hi)],
         'cross_checks_m': {'person 1.8 m in units': round(1.8/m, 2),
+                           'crew door 1.35 x 2.4 units': [round(1.35*m, 2), round(2.4*m, 2)],
                            'central body keel to deck': round((sh_hull.BODY_DECK-sh_hull.BODY_KEEL)*m, 1)},
         'battle_map': {'cells_long': 24, 'cells_wide': 20, 'metres_per_unit_equivalent': round(24/92, 3),
                        'note': 'landed-ships-true-scale.md / shepherd-recovery.md: tactical-readability footprint '
@@ -294,7 +323,7 @@ if not args.no_save:
     lo, hi = bounds()
     bay_slot = sh_dronebay.SLOT
     manifest = {
-        'status': 'Clean base geometry. No damage, condition states or textures.',
+        'status': 'Pass 2 plausible detail and pass 4 scale on the clean base. No damage, condition states or textures.',
         'hull': {
             'name': 'Shepherd', 'campaign_name': 'Morrow', 'hullId': 'shepherd', 'size': 'FRIGATE',
             'style': 'LOW_TECH', 'tech': 'Low Tech', 'manufacturer': 'Ko Combine r450',

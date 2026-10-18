@@ -11,6 +11,10 @@ Optional, after a literal "--":
                  junction-detail, junction-starboard
   --samples N    Cycles samples (default 32)
   --no-save      skip the .blend and geometry.json
+  --legs stowed|deployed   pose the landing legs (default stowed; the .blend
+                 in this folder always saves stowed, --out saves the pose)
+  --pose KNOB=V  set a 'Landing control' knob (deploy, load, door_port,
+                 door_starboard, ramp_port, ramp_starboard), repeatable
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho camera (repeatable)
 Then: python compose_review.py [--renders DIR]  (sprite overlay, IoU, sheet)
 
@@ -30,8 +34,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import ms_kit, ms_hull, ms_bridge, ms_deck, ms_engines, ms_turrets
-for module in (ms_kit, ms_hull, ms_bridge, ms_deck, ms_engines, ms_turrets):
+import ms_kit, ms_hull, ms_bridge, ms_deck, ms_engines, ms_turrets, ms_legs, ms_freight
+for module in (ms_kit, ms_hull, ms_bridge, ms_deck, ms_engines, ms_turrets, ms_legs, ms_freight):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -40,6 +44,8 @@ parser.add_argument('--samples', type=int, default=32)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--out')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--legs', choices=('stowed', 'deployed'), default='stowed')
+parser.add_argument('--pose', action='append', default=[], type=lambda t: (t.split('=')[0], float(t.split('=')[1])))
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 # Pass 4: the hull's one real-world scale. Every metric value (VFX sizes and
 # speeds, lamp falloff, cameras, depth of field, flight speeds, texel density)
@@ -57,6 +63,15 @@ ms_bridge.build(kit)
 ms_deck.build(kit)
 ms_engines.build(kit)
 ms_turrets.build(kit)
+legs = ms_legs.build(kit)
+ms_freight.build(kit, legs)
+for prop, value in args.pose:
+    legs[prop] = value
+if args.legs == 'deployed':
+    legs['deploy'] = 1.0
+legs.update_tag()
+ms_freight.revalidate()
+bpy.context.scene.frame_set(bpy.context.scene.frame_current)   # evaluate the leg drivers
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
@@ -98,7 +113,9 @@ CAMERAS = [('top', (TOP_CENTRE[0],TOP_CENTRE[1],100), None, TOP_SCALE),
            ('engine-detail', (-60,-75,55), (-26,-12,2), 64),
            # The waist / aft hull junction (pass 3 review), each flank.
            ('junction-detail', (30,70,45), (-2,18,2), 40),
-           ('junction-starboard', (30,-70,45), (-2,-18,2), 40)]
+           ('junction-starboard', (30,-70,45), (-2,-18,2), 40),
+           # The fore port landing leg from low on the port bow.
+           ('legs-detail', (70,80,-6), (24,10,-10), 36)]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
     CAMERAS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
@@ -119,16 +136,17 @@ for name in [v for v in args.views.split(',') if v] + [c.split(':')[0] for c in 
     bpy.ops.render.render(write_still=True)
 scene.render.film_transparent = False
 
-if not args.no_save:
+if not args.no_save and (args.out or (args.legs == 'stowed' and not args.pose)):
     scene.camera = bpy.data.objects['Camera port-quarter']
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=str(SAVE_DIR/'mudskipper-geometry.blend'))
     bpy.context.view_layer.update()
     lo = Vector((1e9,)*3); hi = Vector((-1e9,)*3)
+    dg = bpy.context.evaluated_depsgraph_get()     # posed: the leg drivers are evaluated
     for ob in bpy.data.objects:
         if ob.type == 'MESH':
             for c in ob.bound_box:
-                w = ob.matrix_world @ Vector(c)
+                w = ob.evaluated_get(dg).matrix_world @ Vector(c)
                 lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
     manifest = {
         'status': 'Pass 3 (owner review) round 1 awaiting review. No damage states or textures.',
@@ -170,6 +188,33 @@ if not args.no_save:
                        'game_bounds_polygon':[[-33,28],[34,23],[41,0],[35,-22],[-33,-28]],
                        'collisionRadius':71},
         'decks': [{'x0':a,'x1':b,'z':z} for a,b,z in ms_hull.DECKS],
+        'landing': {
+            'control': ms_legs.CONTROL,
+            'knobs': {'deploy': 'legs 0 stowed .. 1 deployed', 'load': "0 .. 1 the ship's weight on the legs",
+                      'door_port': 'port cargo door 0 shut .. 1 open', 'door_starboard': 'starboard cargo door',
+                      'ramp_port': 'port freight ramp 0 stowed .. 1 down', 'ramp_starboard': 'starboard freight ramp'},
+            'saved_pose': {k: float(legs[k]) for k in ('deploy','load','door_port','door_starboard','ramp_port','ramp_starboard')},
+            'legs': [{'name': n, 'at': [x, y], 'stage_1_slide': f'Leg {n} stage 1 slide',
+                      'stage_2_slide': f'Leg {n} stage 2 slide'} for n, x, y in ms_legs.LEGS],
+            'leg_travel_units': [ms_legs.STAGE_1, ms_legs.STAGE_2],
+            'compress_units': ms_legs.COMPRESS,
+            'sole_z_stowed': ms_legs.STOWED_SOLE,
+            'ground_z_deployed_unloaded': ms_legs.GROUND,
+            'ground_z_landed': round(ms_legs.GROUND + ms_legs.COMPRESS, 3),
+            'landed_note': 'Landed (deploy 1, load 1) the ground is at ground_z_landed in hull space: '
+                           'a shot places the root that far above its ground plane, i.e. lowers the ship by compress_units.',
+            'keel_clearance_landed_m': round((ms_hull.KEEL-ms_legs.GROUND-ms_legs.COMPRESS)*METRES_PER_UNIT, 2),
+            'bay_floor_above_ground_landed_m': round((ms_freight.LIP_Z-ms_legs.GROUND-ms_legs.COMPRESS)*METRES_PER_UNIT, 2),
+            'doors': {f'{side} {leaf}': f'{side} cargo bay door {leaf} leaf slide'
+                      for side in ('Port','Starboard') for leaf in ('aft','forward')},
+            'door_travel_units': {'plug': ms_freight.PLUG, 'slide': ms_freight.SLIDE},
+            'ramps': {side: {'tilt': f'{side} freight ramp tilt', 'slide': f'{side} freight ramp slide'}
+                      for side in ('Port','Starboard')},
+            'ramp_out_units': ms_freight.OUT,
+            'ramp_angle_landed_deg': round(math.degrees(math.asin((ms_freight.LIP_Z-ms_legs.GROUND-ms_legs.COMPRESS)
+                                     / math.hypot(ms_freight.OUT, ms_freight.TOE_DEPTH))
+                                     - math.atan2(ms_freight.TOE_DEPTH, ms_freight.OUT)), 1),
+        },
         'weapon_slots': ms_turrets.SLOTS,
         'engines': [{'object_prefix':f'Engine {i}','location':[x,y],'z':(2 if i >= 4 else 0),'angle':a,'width':w,
                      'bell_mouth_radius':round(ms_engines.bell_radius(i,w),2),
