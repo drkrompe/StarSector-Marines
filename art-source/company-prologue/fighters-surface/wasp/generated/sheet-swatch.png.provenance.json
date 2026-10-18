@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15065-4bf6-7763-8195-16db72718ceb",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15065-4bf6-7763-8195-16db72718ceb\\exec-e017535e-5435-4cd1-a2c2-87b68d446837.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\wasp\\generated\\sheet-swatch.png",
+    "sha256": "350b1eabe3cf1c6ad690c3886778d134fde3e03d71ca3168d21ac693760c6612",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\wasp\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "1be1cc6898b029a45c9cd2b1b4ddc54513490135717a076a7f34068573add6f7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout sheet of squares (layout authority)\nImage 2: INPUT 2: the same craft already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of 4 flat-coloured squares in two rows of two on a plain light grey background. Each square is one material of one small unmanned space fighter drone (a Wasp, about 10 metres long), in good front-line order, to be painted as a flat, square-on texture sample of that material:\ntop-left square: the cool grey-blue armour enamel;\ntop-right square: dark gunmetal grey steel structure;\nbottom-left square: brighter polished steel, as on rings and nozzle lips;\nbottom-right square: the recess and machinery material, near-black dull steel;\nINPUT 2 is the SAME craft, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly as named. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\wasp\\guide\\sheet-swatch-guide.png",
+      "sha256": "90a674c56b81ea81fb440408863c557b9aec6aead3e7c76b60d2ad76af4f1049",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout sheet of squares (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\wasp\\reference\\finish-reference.png",
+      "sha256": "ebf55c52091deba52fa3644acab88cc1ed48defbe0d561da068b60c83c54023a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same craft already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet, preserving Image 1’s layout and using Image 2 only as the material finish reference."
+  ],
+  "usage": {
+    "input_tokens": 46660,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 523,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 44.0
+}

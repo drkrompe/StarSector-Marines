@@ -1,0 +1,467 @@
+{
+ "body-top": {
+  "what": "central body open dorsal deck aft of the bridge hull",
+  "sheet": "hull-body",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": [
+     -2.0,
+     -3.0,
+     11.0
+    ],
+    "faces": [
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     120,
+     123,
+     125,
+     128,
+     130
+    ]
+   }
+  ],
+  "face_count": 17,
+  "area_units2": 879.36,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   18.0,
+   60.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.0,
+    0.0983572006225586
+   ],
+   "ortho_width": 124.43765250903382
+  },
+  "native_texels_per_unit": 6.4
+ },
+ "body-side-stbd": {
+  "what": "central body starboard flank above the gantry and turret deck",
+  "sheet": "hull-body",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": [
+     10.0,
+     -11.0,
+     6.0
+    ],
+    "faces": [
+     1,
+     2,
+     3,
+     4,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51
+    ]
+   }
+  ],
+  "face_count": 22,
+  "area_units2": 1677.35,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   64.28,
+   24.7
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.1385002136230469,
+    -2.6500000953674316
+   ],
+   "ortho_width": 74.7406981712164
+  },
+  "native_texels_per_unit": 10.6
+ },
+ "body-bow": {
+  "what": "the rounded bow nose seen from ahead, under the bridge chin",
+  "sheet": "hull-body",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": [
+     35.0,
+     -2.5,
+     -4.0
+    ],
+    "faces": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     72,
+     73,
+     74,
+     75
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 375.1,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.45,
+   24.11
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -2.5000007152557373,
+    -1.0533976554870605
+   ],
+   "ortho_width": 49.83316860149689
+  },
+  "native_texels_per_unit": 15.9
+ },
+ "spine-top": {
+  "what": "port spine top beside the walkway",
+  "sheet": "hull-body",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port spine",
+    "seed": [
+     10.0,
+     8.0,
+     13.0
+    ],
+    "faces": [
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 372.07,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   6.0,
+   51.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -8.0,
+    11.5
+   ],
+   "ortho_width": 105.42635658914728
+  },
+  "native_texels_per_unit": 7.5
+ },
+ "beam-top": {
+  "what": "aft crossbeam deck across the full beam",
+  "sheet": "hull-beam",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft crossbeam",
+    "seed": [
+     -19.0,
+     20.0,
+     7.0
+    ],
+    "faces": [
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     61,
+     62,
+     64,
+     65,
+     68
+    ]
+   }
+  ],
+  "face_count": 11,
+  "area_units2": 1239.38,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   63.0,
+   20.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -19.0
+   ],
+   "ortho_width": 73.25581395348837
+  },
+  "native_texels_per_unit": 10.8
+ },
+ "beam-front": {
+  "what": "crossbeam forward face across the beam (one face; the body hides its middle)",
+  "sheet": "hull-beam",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft crossbeam",
+    "seed": [
+     -9.0,
+     28.0,
+     0.0
+    ],
+    "faces": [
+     3,
+     9
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 865.53,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   63.0,
+   13.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -1.5
+   ],
+   "ortho_width": 73.25581395348837
+  },
+  "native_texels_per_unit": 10.8
+ },
+ "beam-side-port": {
+  "what": "crossbeam port outboard end face",
+  "sheet": "hull-beam",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft crossbeam",
+    "seed": [
+     -19.0,
+     31.5,
+     0.0
+    ],
+    "faces": [
+     4,
+     5,
+     10,
+     11
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 272.02,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   20.0,
+   13.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    19.0,
+    -1.5
+   ],
+   "ortho_width": 26.873385012919897
+  },
+  "native_texels_per_unit": 29.6
+ },
+ "beam-side-stbd": {
+  "what": "crossbeam starboard outboard end face (mirror of port)",
+  "sheet": "hull-beam",
+  "tile": 2,
+  "skin_from": "beam-side-port",
+  "members": [
+   {
+    "object": "Hull aft crossbeam",
+    "seed": [
+     -19.0,
+     -31.5,
+     0.0
+    ],
+    "faces": [
+     1,
+     2,
+     7,
+     8
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 272.02,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   20.0,
+   13.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -19.0,
+    -1.5
+   ],
+   "ortho_width": 26.873385012919897
+  },
+  "native_texels_per_unit": 29.6
+ },
+ "spine-side-port": {
+  "what": "port spine flank above the drone bay back wall",
+  "sheet": "hull-beam",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port spine",
+    "seed": [
+     10.0,
+     11.0,
+     10.5
+    ],
+    "faces": [
+     4,
+     9
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 1031.09,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   51.0,
+   19.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -11.5,
+    1.75
+   ],
+   "ortho_width": 59.30232558139535
+  },
+  "native_texels_per_unit": 13.4
+ }
+}

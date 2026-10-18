@@ -1,0 +1,1091 @@
+{
+  "status": "Pass 1 blockout: smooth ring hull round an open bore, prow spine, command core, two aft pods, bore lining as the shield emitter ring, 21 turrets on pivots, two bow hardpoints, ten drive units, shield emitter anchor. Tri-Tachyon base materials.",
+  "hull": {
+    "name": "Paragon",
+    "hullId": "paragon",
+    "size": "CAPITAL_SHIP",
+    "style": "HIGH_TECH",
+    "tech": "High Tech (Tri-Tachyon)",
+    "designation": "Battleship",
+    "source": {
+      "ship": "data/hulls/paragon.ship",
+      "sprite": "graphics/ships/paragon.png",
+      "variants": [
+        "data/variants/paragon/paragon_Elite.variant",
+        "data/variants/paragon/paragon_Escort.variant",
+        "data/variants/paragon/paragon_Raider.variant"
+      ],
+      "ship_data": "data/hulls/ship_data.csv (row id paragon)"
+    },
+    "ship_data": {
+      "min_crew": 400,
+      "max_crew": 1000,
+      "cargo": 300,
+      "fuel": 300,
+      "fighter_bays": 0,
+      "armor": 1500,
+      "hitpoints": 18000,
+      "mass": 3500
+    },
+    "built_in_mods": [
+      "advancedcore"
+    ],
+    "ship_system": "fortressshield",
+    "shield": "OMNI 360"
+  },
+  "provenance": "verified against the installed paragon.ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 1.0,
+  "scale": {
+    "measured_this_build": {
+      "enclosed_units3": 3872634,
+      "solids": [
+        "Hull ring",
+        "Hull bore ring",
+        "Hull bore lining",
+        "Hull prow",
+        "Hull core",
+        "Hull port pod",
+        "Hull starboard pod"
+      ]
+    },
+    "length_units": 362.2,
+    "status": "unscaled blockout (metres_per_unit 1.0 is a placeholder until pass 4)"
+  },
+  "sprite": {
+    "size": [
+      330,
+      364
+    ],
+    "center": [
+      164,
+      190
+    ],
+    "pixel_to_model": "col c, row r covers X 173-r..174-r, Y 163-c..164-c"
+  },
+  "dimensions": {
+    "min": [
+      -188.1,
+      -159.5,
+      -37.0
+    ],
+    "max": [
+      174.07,
+      159.5,
+      69.57
+    ],
+    "size": [
+      362.17,
+      319.0,
+      106.56
+    ]
+  },
+  "bore": {
+    "centre": [
+      -3.0,
+      0.0
+    ],
+    "radius": 56.5,
+    "lining_radius": 69.0
+  },
+  "shield": {
+    "anchor": "Shield emitter",
+    "center": [
+      1,
+      0,
+      0.0
+    ],
+    "type": "OMNI",
+    "arc_deg": 360,
+    "radius_units": 270,
+    "radius_m": 270.0,
+    "ship_system": "fortressshield",
+    "source": "paragon.ship shieldCenter/shieldRadius, ship_data.csv shield type OMNI arc 360",
+    "emitter_nodes": [
+      {
+        "name": "Shield emitter node 1",
+        "location": [
+          53.8,
+          15.22,
+          28.5
+        ],
+        "faces_deg": -165.0
+      },
+      {
+        "name": "Shield emitter node 2",
+        "location": [
+          38.58,
+          41.58,
+          28.5
+        ],
+        "faces_deg": -135.0
+      },
+      {
+        "name": "Shield emitter node 3",
+        "location": [
+          12.22,
+          56.8,
+          28.5
+        ],
+        "faces_deg": -105.0
+      },
+      {
+        "name": "Shield emitter node 4",
+        "location": [
+          -18.22,
+          56.8,
+          28.5
+        ],
+        "faces_deg": -75.0
+      },
+      {
+        "name": "Shield emitter node 5",
+        "location": [
+          -44.58,
+          41.58,
+          28.5
+        ],
+        "faces_deg": -45.0
+      },
+      {
+        "name": "Shield emitter node 6",
+        "location": [
+          -44.58,
+          -41.58,
+          28.5
+        ],
+        "faces_deg": 45.0
+      },
+      {
+        "name": "Shield emitter node 7",
+        "location": [
+          -18.22,
+          -56.8,
+          28.5
+        ],
+        "faces_deg": 75.0
+      },
+      {
+        "name": "Shield emitter node 8",
+        "location": [
+          12.22,
+          -56.8,
+          28.5
+        ],
+        "faces_deg": 105.0
+      },
+      {
+        "name": "Shield emitter node 9",
+        "location": [
+          38.58,
+          -41.58,
+          28.5
+        ],
+        "faces_deg": 135.0
+      },
+      {
+        "name": "Shield emitter node 10",
+        "location": [
+          53.8,
+          -15.22,
+          28.5
+        ],
+        "faces_deg": 165.0
+      }
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "mount": "HARDPOINT",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "location": [
+        163,
+        16
+      ],
+      "angle_deg": 0,
+      "arc_deg": 5,
+      "anchor": "Weapon WS 001 hardpoint",
+      "anchor_z": 0.0,
+      "muzzles": [
+        "Weapon WS 001 muzzle"
+      ],
+      "elite_variant": "autopulse"
+    },
+    {
+      "id": "WS 002",
+      "mount": "HARDPOINT",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "location": [
+        163,
+        -16
+      ],
+      "angle_deg": 0,
+      "arc_deg": 5,
+      "anchor": "Weapon WS 002 hardpoint",
+      "anchor_z": 0.0,
+      "muzzles": [
+        "Weapon WS 002 muzzle"
+      ],
+      "elite_variant": "autopulse"
+    },
+    {
+      "id": "WS 003",
+      "mount": "TURRET",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "location": [
+        3,
+        99
+      ],
+      "angle_deg": 80,
+      "arc_deg": 220,
+      "pivot": "Weapon WS 003 pivot",
+      "pivot_z": 37.12,
+      "barbette": "Weapon WS 003 barbette",
+      "muzzles": [
+        "Weapon WS 003 muzzle"
+      ],
+      "elite_variant": "tachyonlance"
+    },
+    {
+      "id": "WS 004",
+      "mount": "TURRET",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "location": [
+        3,
+        -99
+      ],
+      "angle_deg": -80,
+      "arc_deg": 220,
+      "pivot": "Weapon WS 004 pivot",
+      "pivot_z": 37.12,
+      "barbette": "Weapon WS 004 barbette",
+      "muzzles": [
+        "Weapon WS 004 muzzle"
+      ],
+      "elite_variant": "tachyonlance"
+    },
+    {
+      "id": "WS 005",
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "location": [
+        126,
+        40
+      ],
+      "angle_deg": 20,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 005 pivot",
+      "pivot_z": 21.72,
+      "barbette": "Weapon WS 005 barbette",
+      "muzzles": [
+        "Weapon WS 005 muzzle 1",
+        "Weapon WS 005 muzzle 2"
+      ],
+      "elite_variant": "gravitonbeam"
+    },
+    {
+      "id": "WS 006",
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "location": [
+        126,
+        -40
+      ],
+      "angle_deg": -20,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 006 pivot",
+      "pivot_z": 21.72,
+      "barbette": "Weapon WS 006 barbette",
+      "muzzles": [
+        "Weapon WS 006 muzzle 1",
+        "Weapon WS 006 muzzle 2"
+      ],
+      "elite_variant": "gravitonbeam"
+    },
+    {
+      "id": "WS 007",
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "UNIVERSAL",
+      "location": [
+        51,
+        90
+      ],
+      "angle_deg": 70,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 007 pivot",
+      "pivot_z": 33.49,
+      "barbette": "Weapon WS 007 barbette",
+      "muzzles": [
+        "Weapon WS 007 muzzle 1",
+        "Weapon WS 007 muzzle 2"
+      ],
+      "elite_variant": null
+    },
+    {
+      "id": "WS 008",
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "UNIVERSAL",
+      "location": [
+        51,
+        -90
+      ],
+      "angle_deg": -70,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 008 pivot",
+      "pivot_z": 33.49,
+      "barbette": "Weapon WS 008 barbette",
+      "muzzles": [
+        "Weapon WS 008 muzzle 1",
+        "Weapon WS 008 muzzle 2"
+      ],
+      "elite_variant": null
+    },
+    {
+      "id": "WS 009",
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "location": [
+        -143,
+        62
+      ],
+      "angle_deg": 170,
+      "arc_deg": 150,
+      "pivot": "Weapon WS 009 pivot",
+      "pivot_z": 30.9,
+      "barbette": "Weapon WS 009 barbette",
+      "muzzles": [
+        "Weapon WS 009 muzzle 1",
+        "Weapon WS 009 muzzle 2"
+      ],
+      "elite_variant": "gravitonbeam"
+    },
+    {
+      "id": "WS 010",
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "location": [
+        -143,
+        -62
+      ],
+      "angle_deg": 190,
+      "arc_deg": 150,
+      "pivot": "Weapon WS 010 pivot",
+      "pivot_z": 30.9,
+      "barbette": "Weapon WS 010 barbette",
+      "muzzles": [
+        "Weapon WS 010 muzzle 1",
+        "Weapon WS 010 muzzle 2"
+      ],
+      "elite_variant": "gravitonbeam"
+    },
+    {
+      "id": "WS 011",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        106,
+        69
+      ],
+      "angle_deg": 50,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 011 pivot",
+      "pivot_z": 17.34,
+      "barbette": "Weapon WS 011 barbette",
+      "muzzles": [
+        "Weapon WS 011 muzzle"
+      ],
+      "elite_variant": null
+    },
+    {
+      "id": "WS 012",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "location": [
+        78,
+        55
+      ],
+      "angle_deg": 50,
+      "arc_deg": 360,
+      "pivot": "Weapon WS 012 pivot",
+      "pivot_z": 36.47,
+      "barbette": "Weapon WS 012 barbette",
+      "muzzles": [
+        "Weapon WS 012 muzzle 1",
+        "Weapon WS 012 muzzle 2"
+      ],
+      "elite_variant": "reaper"
+    },
+    {
+      "id": "WS 013",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -40,
+        112
+      ],
+      "angle_deg": 100,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 013 pivot",
+      "pivot_z": 15.81,
+      "barbette": "Weapon WS 013 barbette",
+      "muzzles": [
+        "Weapon WS 013 muzzle"
+      ],
+      "elite_variant": "taclaser"
+    },
+    {
+      "id": "WS 014",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "location": [
+        -52,
+        81
+      ],
+      "angle_deg": 130,
+      "arc_deg": 360,
+      "pivot": "Weapon WS 014 pivot",
+      "pivot_z": 37.21,
+      "barbette": "Weapon WS 014 barbette",
+      "muzzles": [
+        "Weapon WS 014 muzzle 1",
+        "Weapon WS 014 muzzle 2"
+      ],
+      "elite_variant": "reaper"
+    },
+    {
+      "id": "WS 015",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -92,
+        104
+      ],
+      "angle_deg": 90,
+      "arc_deg": 150,
+      "pivot": "Weapon WS 015 pivot",
+      "pivot_z": 21.11,
+      "barbette": "Weapon WS 015 barbette",
+      "muzzles": [
+        "Weapon WS 015 muzzle"
+      ],
+      "elite_variant": "taclaser"
+    },
+    {
+      "id": "WS 016",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -145,
+        121
+      ],
+      "angle_deg": 120,
+      "arc_deg": 250,
+      "pivot": "Weapon WS 016 pivot",
+      "pivot_z": 30.27,
+      "barbette": "Weapon WS 016 barbette",
+      "muzzles": [
+        "Weapon WS 016 muzzle"
+      ],
+      "elite_variant": null
+    },
+    {
+      "id": "WS 017",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        106,
+        -69
+      ],
+      "angle_deg": -40,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 017 pivot",
+      "pivot_z": 17.33,
+      "barbette": "Weapon WS 017 barbette",
+      "muzzles": [
+        "Weapon WS 017 muzzle"
+      ],
+      "elite_variant": null
+    },
+    {
+      "id": "WS 018",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "location": [
+        78,
+        -55
+      ],
+      "angle_deg": -50,
+      "arc_deg": 360,
+      "pivot": "Weapon WS 018 pivot",
+      "pivot_z": 36.47,
+      "barbette": "Weapon WS 018 barbette",
+      "muzzles": [
+        "Weapon WS 018 muzzle 1",
+        "Weapon WS 018 muzzle 2"
+      ],
+      "elite_variant": "reaper"
+    },
+    {
+      "id": "WS 019",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -40,
+        -112
+      ],
+      "angle_deg": 260,
+      "arc_deg": 210,
+      "pivot": "Weapon WS 019 pivot",
+      "pivot_z": 15.81,
+      "barbette": "Weapon WS 019 barbette",
+      "muzzles": [
+        "Weapon WS 019 muzzle"
+      ],
+      "elite_variant": "taclaser"
+    },
+    {
+      "id": "WS 020",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "location": [
+        -52,
+        -81
+      ],
+      "angle_deg": 230,
+      "arc_deg": 360,
+      "pivot": "Weapon WS 020 pivot",
+      "pivot_z": 37.21,
+      "barbette": "Weapon WS 020 barbette",
+      "muzzles": [
+        "Weapon WS 020 muzzle 1",
+        "Weapon WS 020 muzzle 2"
+      ],
+      "elite_variant": "reaper"
+    },
+    {
+      "id": "WS 021",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -92,
+        -104
+      ],
+      "angle_deg": -90,
+      "arc_deg": 150,
+      "pivot": "Weapon WS 021 pivot",
+      "pivot_z": 21.12,
+      "barbette": "Weapon WS 021 barbette",
+      "muzzles": [
+        "Weapon WS 021 muzzle"
+      ],
+      "elite_variant": "taclaser"
+    },
+    {
+      "id": "WS 022",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -145,
+        -121
+      ],
+      "angle_deg": 240,
+      "arc_deg": 250,
+      "pivot": "Weapon WS 022 pivot",
+      "pivot_z": 30.24,
+      "barbette": "Weapon WS 022 barbette",
+      "muzzles": [
+        "Weapon WS 022 muzzle"
+      ],
+      "elite_variant": null
+    },
+    {
+      "id": "WS 023",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "location": [
+        -150,
+        0
+      ],
+      "angle_deg": 180,
+      "arc_deg": 150,
+      "pivot": "Weapon WS 023 pivot",
+      "pivot_z": 66.52,
+      "barbette": "Weapon WS 023 barbette",
+      "muzzles": [
+        "Weapon WS 023 muzzle"
+      ],
+      "elite_variant": null
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot_location": [
+        -179,
+        140
+      ],
+      "width": 12,
+      "length": 48,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -177.5,
+      "axis_z": -2.0,
+      "mouth_radius": 6.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 1 exhaust",
+      "parts": [
+        "Engine 1 drive pod",
+        "Engine 1 aft-facing bell",
+        "Engine 1 mouth lip",
+        "Engine 1 dark throat"
+      ]
+    },
+    {
+      "index": 2,
+      "slot_location": [
+        -187,
+        105
+      ],
+      "width": 12,
+      "length": 48,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -185.5,
+      "axis_z": -2.0,
+      "mouth_radius": 6.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 2 exhaust",
+      "parts": [
+        "Engine 2 drive pod",
+        "Engine 2 aft-facing bell",
+        "Engine 2 mouth lip",
+        "Engine 2 dark throat"
+      ]
+    },
+    {
+      "index": 3,
+      "slot_location": [
+        -189,
+        73
+      ],
+      "width": 8,
+      "length": 32,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -187.5,
+      "axis_z": -2.0,
+      "mouth_radius": 4.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 3 exhaust",
+      "parts": [
+        "Engine 3 drive pod",
+        "Engine 3 aft-facing bell",
+        "Engine 3 mouth lip",
+        "Engine 3 dark throat"
+      ]
+    },
+    {
+      "index": 4,
+      "slot_location": [
+        -189,
+        64
+      ],
+      "width": 8,
+      "length": 32,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -187.5,
+      "axis_z": -2.0,
+      "mouth_radius": 4.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 4 exhaust",
+      "parts": [
+        "Engine 4 drive pod",
+        "Engine 4 aft-facing bell",
+        "Engine 4 mouth lip",
+        "Engine 4 dark throat"
+      ]
+    },
+    {
+      "index": 5,
+      "slot_location": [
+        -187,
+        57
+      ],
+      "width": 8,
+      "length": 32,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -185.5,
+      "axis_z": -2.0,
+      "mouth_radius": 4.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 5 exhaust",
+      "parts": [
+        "Engine 5 drive pod",
+        "Engine 5 aft-facing bell",
+        "Engine 5 mouth lip",
+        "Engine 5 dark throat"
+      ]
+    },
+    {
+      "index": 6,
+      "slot_location": [
+        -187,
+        -56
+      ],
+      "width": 8,
+      "length": 32,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -185.5,
+      "axis_z": -2.0,
+      "mouth_radius": 4.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 6 exhaust",
+      "parts": [
+        "Engine 6 drive pod",
+        "Engine 6 aft-facing bell",
+        "Engine 6 mouth lip",
+        "Engine 6 dark throat"
+      ]
+    },
+    {
+      "index": 7,
+      "slot_location": [
+        -189,
+        -64
+      ],
+      "width": 8,
+      "length": 32,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -187.5,
+      "axis_z": -2.0,
+      "mouth_radius": 4.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 7 exhaust",
+      "parts": [
+        "Engine 7 drive pod",
+        "Engine 7 aft-facing bell",
+        "Engine 7 mouth lip",
+        "Engine 7 dark throat"
+      ]
+    },
+    {
+      "index": 8,
+      "slot_location": [
+        -189,
+        -72
+      ],
+      "width": 8,
+      "length": 32,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -187.5,
+      "axis_z": -2.0,
+      "mouth_radius": 4.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 8 exhaust",
+      "parts": [
+        "Engine 8 drive pod",
+        "Engine 8 aft-facing bell",
+        "Engine 8 mouth lip",
+        "Engine 8 dark throat"
+      ]
+    },
+    {
+      "index": 9,
+      "slot_location": [
+        -187,
+        -104
+      ],
+      "width": 12,
+      "length": 48,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -185.5,
+      "axis_z": -2.0,
+      "mouth_radius": 6.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 9 exhaust",
+      "parts": [
+        "Engine 9 drive pod",
+        "Engine 9 aft-facing bell",
+        "Engine 9 mouth lip",
+        "Engine 9 dark throat"
+      ]
+    },
+    {
+      "index": 10,
+      "slot_location": [
+        -179,
+        -139
+      ],
+      "width": 12,
+      "length": 48,
+      "contrail_size": 48,
+      "angle_deg": 180,
+      "style": "HIGH_TECH",
+      "mouth_x": -177.5,
+      "axis_z": -2.0,
+      "mouth_radius": 6.0,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "anchor": "Engine 10 exhaust",
+      "parts": [
+        "Engine 10 drive pod",
+        "Engine 10 aft-facing bell",
+        "Engine 10 mouth lip",
+        "Engine 10 dark throat"
+      ]
+    }
+  ],
+  "object_names": {
+    "Hull ...": "ring, prow, core, port pod, starboard pod, bore lining",
+    "Engine <i> ...": "drive pod, aft-facing bell, mouth lip, dark throat; exhaust anchor (empty, +X along the exhaust)",
+    "Weapon <slot> ...": "turrets: barbette (fixed) and pivot (empty) parenting the housing, emitters and muzzle empties; hardpoints: hardpoint anchor, housing, emitter and muzzle",
+    "Shield emitter ...": "the shield anchor at shieldCenter, emitter nodes on the bore lining"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        -9,
+        0,
+        300
+      ],
+      "orthographic_scale": 620,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "starboard-side",
+      "position": [
+        -8,
+        -600,
+        0
+      ],
+      "orthographic_scale": 420,
+      "rotation": "looks at [-8.0, 0.0, 0.0]"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        -8,
+        600,
+        0
+      ],
+      "orthographic_scale": 420,
+      "rotation": "looks at [-8.0, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        600,
+        0,
+        0
+      ],
+      "orthographic_scale": 380,
+      "rotation": "looks at [-8.0, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        430,
+        -460,
+        320
+      ],
+      "orthographic_scale": 560,
+      "rotation": "looks at [-8.0, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -600,
+        0,
+        0
+      ],
+      "orthographic_scale": 380,
+      "rotation": "looks at [-8.0, 0.0, 0.0]"
+    },
+    {
+      "name": "belly",
+      "position": [
+        330,
+        -380,
+        -300
+      ],
+      "orthographic_scale": 560,
+      "rotation": "looks at [-8.0, 0.0, 0.0]"
+    }
+  ],
+  "closeups": [
+    {
+      "name": "bow-detail",
+      "position": [
+        330,
+        -170,
+        150
+      ],
+      "target": [
+        140,
+        0,
+        5
+      ],
+      "orthographic_scale": 130
+    },
+    {
+      "name": "bore-detail",
+      "position": [
+        150,
+        -220,
+        210
+      ],
+      "target": [
+        -5,
+        0,
+        0
+      ],
+      "orthographic_scale": 190
+    },
+    {
+      "name": "core-detail",
+      "position": [
+        60,
+        -200,
+        170
+      ],
+      "target": [
+        -90,
+        0,
+        15
+      ],
+      "orthographic_scale": 150
+    },
+    {
+      "name": "turret-detail",
+      "position": [
+        140,
+        -160,
+        140
+      ],
+      "target": [
+        3,
+        -99,
+        10
+      ],
+      "orthographic_scale": 80
+    },
+    {
+      "name": "engine-detail",
+      "position": [
+        -330,
+        -260,
+        90
+      ],
+      "target": [
+        -165,
+        -95,
+        0
+      ],
+      "orthographic_scale": 140
+    },
+    {
+      "name": "stern-detail",
+      "position": [
+        -420,
+        -120,
+        70
+      ],
+      "target": [
+        -170,
+        0,
+        0
+      ],
+      "orthographic_scale": 300
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9627,
+    "sprite_uncovered": 0.0273,
+    "model_outside_sprite": 0.0104,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
+  }
+}

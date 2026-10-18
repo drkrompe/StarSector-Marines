@@ -1,0 +1,95 @@
+{
+ "asset": "hermes.blend",
+ "collection": "HERMES",
+ "root": "HERMES | root",
+ "objects": 672,
+ "meshes": 633,
+ "images": 17,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    633,
+    633
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 3e-06
+  },
+  "drive anchors": {
+   "ok": true
+  },
+  "drive anchors point aft": {
+   "ok": true
+  },
+  "jet anchors": {
+   "ok": true
+  },
+  "turret 1 pivot trains": {
+   "ok": true,
+   "detail": 2e-06
+  },
+  "turret 2 pivot trains": {
+   "ok": true,
+   "detail": 2e-06
+  },
+  "turret 3 pivot trains": {
+   "ok": true,
+   "detail": 1e-06
+  },
+  "gear stands on ground_z at rest": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "gear_up stows the gear and closes its doors": {
+   "ok": true,
+   "detail": {
+    "lowest_sole_z": -9.5,
+    "worst_gear_door_deg": 0.0
+   }
+  },
+  "boarding doors swing clear": {
+   "ok": true,
+   "detail": {
+    "port": 5.371,
+    "starboard": 5.371
+   }
+  },
+  "knobs at 0 restore the rest pose": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 3.1e-05
+  }
+ }
+}

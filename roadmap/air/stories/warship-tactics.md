@@ -7,7 +7,7 @@ Updated: 2026-10-18 — slice 5: hulls fight at 2.5x the range, duels end in a k
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
-ship, pack, charge, escort, screen line, airspace, duel footing, hull-fire hold, ledger) is theirs. This story adds a
+ship, pack, charge, escort, screen line, edge pressure, duel footing, hull-fire hold, ledger) is theirs. This story adds a
 layer above the single-ship duel helm, a rule that hulls do not pass through each other, and a calibration of how long
 a hull lasts.
 

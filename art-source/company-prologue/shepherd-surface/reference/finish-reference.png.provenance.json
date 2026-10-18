@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15056-81fa-76c0-a6df-abd47e55aa15",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15056-81fa-76c0-a6df-abd47e55aa15\\exec-73c35230-161b-410c-badd-37459f092e68.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "reference\\finish-reference.png",
+    "sha256": "49f10a0f959ff2a6066824a4e96cd4c91340c98b5112e7e8cece9e473c9d112f",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\finish-reference.prompt.txt",
+  "promptSha256": "d85e27d88ce57e74f08725c4ed0fb9b247b5425fc97cbb95f98a483f9ac4a070",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the game sprite (paint scheme and colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Shepherd-class drone tender (a frigate-sized Ko Combine utility ship with an open drone work bay), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: sand-tan hull plating on the main body, spine, bridge hull and engine blocks; chalky cream on the bridge's pale crown plates and small fittings; light grey on the large rounded machinery drum at the far bow and the sensor head; burnt orange on the drive pod casings and the outrigger chords; mid-grey gunmetal machinery (frames, trusses, turret, walkways, fittings, the bay's back wall); near-black recesses, the bay deck and the workshop block; small dark tinted bridge windows.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, turret, truss, bay, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: sand-tan plating stays a warm dusty sand-tan enamel (as INPUT 2's tan body), cream stays a chalky pale cream, light grey stays a light neutral grey paint, burnt orange stays a burnt orange enamel, gunmetal stays dark grey bare-ish steel, recesses and the bay deck stay near black, windows stay dark tinted glass. Do not swap or invent colours, stripes or patches.\n- Finish: a working Ko Combine utility tender in service, low-tech and solid. Semi-matte industrial enamel with crisp plate seams, rows of flush fasteners, small access panels and subtle panel-to-panel tone differences. Moderate, even service wear: faint edge scuffs on exposed corners, a thin film of dust and grime in seams, a little soot near the aft drives. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\reference-guide.png",
+      "sha256": "fcbba23697b51e729f85dd28c135b72aa9093453c488841ffa7bad38f22c508b",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "reference\\sprite-livery.png",
+      "sha256": "9e363460b650219be4ae652d6c412f090b14e05182b4d85a559d79d71bd4cd58",
+      "dimensions": [
+        624,
+        736
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 2: the game sprite (paint scheme and colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the render, preserving its geometry, composition, and material colours."
+  ],
+  "usage": {
+    "input_tokens": 81073,
+    "cached_input_tokens": 60160,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 732,
+    "reasoning_output_tokens": 17
+  },
+  "elapsedSeconds": 67.8
+}

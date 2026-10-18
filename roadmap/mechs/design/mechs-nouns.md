@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — headless tuning: section shares read against the whole-body control, long-range support keeps a threat in its arc while withdrawing, engines carry mass, call cooldown 30 s, heavy cradle three lifts.
+Updated: 2026-10-18 — duel range against armor (stand off, close, or duel from the outer band); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -449,6 +449,40 @@ hardware identities; any deployed chassis may receive any of these doctrines:
 - **Balanced** serves its assignment from the middle or outer portion of its
   installed direct-fire band. It accepts a close threat already upon it, then
   resumes the assignment, and has no special ally-geometry dependency.
+
+**Duel range.** Against armor — another mech or a ground vehicle — every
+doctrine fights from a **duel band** chosen from the mech's own installed,
+loaded weapons read against the target's (`MechDuelBand`): expected damage per
+second at a distance, given against received. A mech that out-reaches its
+target by four cells or more **stands off**, holding just outside the target's
+reach and inside its own, whatever its role. Otherwise it **closes** to a
+shorter band of its own only when that band trades clearly better than its
+longest one — a Brawler on a small edge, Balanced and Frontline Support on a
+clear one, Long-Range Support never — and nobody closes on a tie. Failing
+both, it **duels** from the outer part of its longest band (about 72–92% of
+reach) rather than walking inside it for no reason: two equal machines meet
+there, not at contact. In band with a clear shot it holds and fires, stepping
+once into cover facing the target when a covered in-band cell is a few cells
+off (hull-down, by the section cover rows). Out of band it looks a short way
+for an in-band firing cell or a cell nearer the band; while the target can
+reach it, it never takes a walk that turns its back on the target, and too
+close with nowhere legal to go it holds and fights. An armored contact
+shelling it from beyond its own reach is a duel too: the band decides whether
+it closes on where that contact was last seen. The rule sits below the
+reflexes — a player's move order still owns the chassis, a crippled one is
+still a turret — and never leaves command ground: every cell must be legal
+under the active assignment, and a mech outside its command (an exact cell not
+yet reached) is left to its doctrine. A Frontline Support mech with a legal
+anchor keeps pacing it; withdrawal, rescue and survival goals do not run
+doctrine and so never meet the rule. Infantry targets are unchanged. A ground
+vehicle is a duel target, read by its turret, but never a duelist: a hull has
+no engagement driver of its own — a deployed one holds where it was set down,
+a delivery follows its route — so the only way a vehicle closes on armor is a
+player's move order, and an explicit move wins over any band. Pressure
+leaves out penetration, heat and ammunition depth on purpose: they scale both
+sides of a trade alike far more often than they reverse it.
+`-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the
+acceptance.
 
 The role changes how a mech serves an assignment; it never supplies an
 assignment, hidden contact, or permission to leave mission-command bounds.

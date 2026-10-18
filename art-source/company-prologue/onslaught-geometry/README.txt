@@ -35,9 +35,13 @@ Modules (one per area)
   os_hull      base masses (prow, core, the rounded belly under them, aft body
                with the stern machinery wells, tail, legs, waists) with arched,
                faceted tops and bellies; the prow gallery and the core citadel
-  os_arms      the two gun arms: bulky rounded forearms, rolled 16 deg outboard
-               and pitched 6 deg nose-down below the core so more guns bear, with
-               their gallery, armour and the orange shoulder they hang from
+  os_arms      the two gun arms: angular chined forearms lofted along X, rolled 16
+               deg outboard and pitched 6 deg nose-down below the core so more
+               guns bear; armour read off the sprite (orange upper courses, grey
+               stepped rim blocks, turret housings, the Devastator drum), the
+               orange shoulder they hang from
+  os_stern     aft body with the machinery wells open astern, raked leg blades,
+               tail; chined plates
   os_armour    the orange and grey Hegemony armour as sloped plates stepping down
                from the tiers, steps, fins, cheeks, keel bars
   os_bridge    spine, terraced command dome with the bridge glazing, aft dome
@@ -82,6 +86,7 @@ Scale (pass 4; geometry.json 'scale')
   1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 2.1 units.
 
 Status
-  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 rounds 1-2 (terraced,
-  curved; a bulky brawler: tilted forearms, rounded belly, citadel; turrets
-  seated flush on the hull, tilted with it; IoU 0.962). Awaiting owner review.
+  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 rounds 1-3 (terraced,
+  curved; a bulky brawler: tilted chined forearms, V belly, stepped skyline to a
+  command tower, raked stern blades; turrets flush on the hull; joins audited;
+  IoU 0.960). In progress with the owner.

@@ -8,13 +8,16 @@ below the aft body's rim (os_hull cuts them down to WELL_FLOOR):
               centreline (structure tensor over rows 268-320, cols 62-92:
               29-33 deg), parallel to the leg, from the core's aft face to
               the well's after wall;
-  inner well  X -22..-100, between the leg and the tail: pale banks of
-              fore-and-aft pipes feeding the Engine 2/3 drives, with pumps
-              standing among them;
+  inner well  X -46..-101, between the blade and the tail, open astern: pale
+              banks of fore-and-aft pipes leaving the root deck's after face (or
+              the blade's flank through an elbow) for the aft header standing at
+              the open after end, or the feed manifold on the Engine 2/3 drive
+              housing, with turbopumps over them (plans: os_stern);
   tail        |Y| < 12, X -68..-109: a dark red-brown ribbed channel between
               pale edges, read as a bank of radiator fins between coamings.
-Every run starts and finishes somewhere: one long two-tier header under the
-core's aft face feeds both wells, the outer bundles end in a collector along
+Every run starts and finishes somewhere: a two-tier header under the core's
+aft face feeds the outer well (stand-pipes on its collector rise over the after
+sill, so the well reads from astern), the outer bundles end in a collector along
 the well's after wall (or in a pump), the inner banks in an aft header or the
 drive feed manifold ahead of the Engine 2/3 drive can. Pipes lie in three
 layers of mixed bore on portal frames with clamp straps, with elbows where
@@ -23,7 +26,7 @@ collector. Mid-distance detail only: nothing under ~0.5 unit radius.
 """
 import math
 import bpy
-from os_hull import WELL_FLOOR, WELL_PORT, LEG_PORT
+from os_stern import BLADE_X0, BLADE_Y0, BLADE_K, LEG_PORT, ROOT_X, ROOT_Y, WELL_FLOOR, WELL_PORT, blade_inner_y
 
 
 class Acc:
@@ -147,16 +150,17 @@ COLLECTOR = [(-26, 100.6), (-40, 98.6), (-62, 92.2), (-68.6, 80.6)]
 POD_MOUTH, POD_AXIS, POD_HALF = (-82.0, 70.0), (math.cos(math.radians(-20)), math.sin(math.radians(-20))), 11.0
 COLLECTOR_W = 4.2
 OUTER_PUMPS = [(-45.0, 84.5, 3.2), (-52.5, 76.5, 2.9)]          # x, y, drum radius
-INNER_PUMPS = [(-44.0, 31.0), (-60.0, 27.5)]                     # horizontal turbopumps over the banks
-FEED = (-77.5, -73.0, 30.6, 45.2)                                # Engine 2/3 drive feed manifold (x0, x1, y0, y1)
-AFT_HDR = (-99.6, -95.2, 23.4, 30.4)
+INNER_PUMPS = [(-62.0, 26.6), (-78.0, 26.6)]                     # horizontal turbopumps over the banks
+HOUSING_Y = 32.4                                                 # inboard face of the Engine 2/3 drive housing
+FEED = (-79.0, -75.4, 30.8, 37.6)                                # its feed manifold (x0, x1, y0, y1)
+AFT_HDR = (-101.6, -95.6, 22.6, 32.0)                            # aft header, at the inner well's open after end
 
 
 def _outer_ok(r):
     def ok(x, y):
         if not inside(WELL_PORT, x, y) or seg_dist(WELL_PORT, x, y) < r+.6:
             return False
-        if seg_dist(COLLECTOR, x, y, closed=False) < COLLECTOR_W/2+.2 or y < 50:
+        if seg_dist(COLLECTOR, x, y, closed=False) < COLLECTOR_W/2+.2 or y < ROOT_Y+1.0:
             return False
         if inside(LEG_PORT, x, y) or seg_dist(LEG_PORT, x, y) < r+1.0:
             return False
@@ -165,17 +169,6 @@ def _outer_ok(r):
             return False
         return all(math.hypot(x-px, y-py) > pr+.3 for px, py, pr in OUTER_PUMPS)
     return ok
-
-
-def _leg_y(x):
-    """Inboard face of the leg (LEG_PORT's inner edge) at X; open forward of the leg."""
-    pts = [(-36, 52), (-60, 47), (-104, 46)]
-    if x > -36:
-        return 100.0
-    for (ax, ay), (bx, by) in zip(pts, pts[1:]):
-        if bx <= x <= ax:
-            return ay+(by-ay)*(x-ax)/(bx-ax)
-    return 46.0
 
 
 _FACES = []
@@ -212,18 +205,18 @@ def build_side(kit, s, mats):
     fittings, frames, headers, pumps, valves = Acc(), Acc(), Acc(), Acc(), Acc()
 
     # ---- the header under the core's aft face, feeding both wells ----------
-    headers.add(*tube(P(HDR_X, 23.6, HDR_LO), P(HDR_X, 101.0, HDR_LO), 2.5, n=10))
-    headers.add(*tube(P(HDR_X, 25.0, HDR_HI), P(HDR_X, 97.0, HDR_HI), 1.9, n=10))
-    for y in range(28, 100, 9):
+    headers.add(*tube(P(HDR_X, ROOT_Y-1.0, HDR_LO), P(HDR_X, 101.0, HDR_LO), 2.5, n=10))
+    headers.add(*tube(P(HDR_X, ROOT_Y-1.0, HDR_HI), P(HDR_X, 97.0, HDR_HI), 1.9, n=10))
+    for y in range(53, 100, 9):
         fittings.add(*ring(P(HDR_X, y, HDR_LO), (0, 1, 0), 2.3, 3.15, .55))
         if y < 96:
             fittings.add(*ring(P(HDR_X, y+4.5, HDR_HI), (0, 1, 0), 1.7, 2.45, .45))
-    for y in (24.5, 46.0, 66.0, 86.0, 100.0):     # saddles to the floor and brackets to the face
+    for y in (52.0, 66.0, 86.0, 100.0):     # saddles to the floor and brackets to the face
         frames.add(*box(HDR_X-2.2, HDR_X+2.2, s*(y-1.2), s*(y+1.2), F, HDR_LO))
         frames.add(*box(-18.6, HDR_X+1.4, s*(y-.8), s*(y+.8), HDR_HI-1.2, HDR_HI+1.0))
     # Risers: up out of the upper tier and forward into the core's aft face, wherever that
     # face now stands (read by a ray, so a reshaped core still takes them).
-    for y in (30.0, 41.0, 58.0, 69.0, 79.0):
+    for y in (58.0, 69.0, 79.0, 90.0):
         top = F+17.0
         fx = _face_x(HDR_X, s*y, top)
         pipe(pipes_bronze, [P(HDR_X, y, HDR_HI), P(HDR_X, y, top), P(fx+.6, y, top)], 1.15, fittings=fittings)
@@ -234,7 +227,7 @@ def build_side(kit, s, mats):
     zA, zB, zC = F+3.4, F+6.6, HDR_HI
     turn = HDR_X-3.6             # elbow out of the header into the diagonal
     runs = []                    # (start, length) of every layer-A line, for the valve blocks
-    for k, y0 in enumerate([55.6+2.9*i for i in range(11)]):
+    for k, y0 in enumerate([52.7+2.9*i for i in range(12)]):
         r = (1.35, 1.0, 1.2, .8)[k % 4]
         t = march((turn, y0), d, _outer_ok(r))
         if t < 3:
@@ -243,7 +236,7 @@ def build_side(kit, s, mats):
         pipe(pipes_dark, [P(HDR_X, y0, zA), P(turn, y0, zA), P(end[0]+d[0]*1.2, end[1]+d[1]*1.2, zA)], r,
              fittings=fittings)
         runs.append(((turn, y0), t))
-    for k, y0 in enumerate([57.0+2.2*i for i in range(14)]):
+    for k, y0 in enumerate([53.0+2.2*i for i in range(16)]):
         r = (.8, .62, .7)[k % 3]
         p1 = (turn-2.4, y0)
         t = march(p1, d, _outer_ok(r))
@@ -252,7 +245,7 @@ def build_side(kit, s, mats):
         end = (p1[0]+d[0]*t, p1[1]+d[1]*t)
         pipe(pipes_pale, [P(HDR_X, y0, zC), P(turn, y0, zC), P(p1[0], p1[1], zB),
                           P(end[0]+d[0]*1.2, end[1]+d[1]*1.2, zB)], r, fittings=fittings)
-    for k, y0 in enumerate([61.2+1.45*i for i in range(7)]):     # small conduits riding on top
+    for k, y0 in enumerate([57.2+1.45*i for i in range(9)]):     # small conduits riding on top
         p1 = (turn-1.0, y0)
         t = march(p1, d, _outer_ok(1.0))
         if t < 3:
@@ -268,11 +261,26 @@ def build_side(kit, s, mats):
         frames.add(*obox((a[0], s*a[1]), (b[0], s*b[1]), COLLECTOR_W+1.0, F+8.6, F+9.6))
     for c in COLLECTOR[1:-1]:
         headers.add(*tube(P(c[0], c[1], F), P(c[0], c[1], F+10.2), 2.9, n=8))   # junction drums at the corners
+    # Stand-pipes on the collector, rising over the outer quarter's after sill so the
+    # well reads as machinery from astern: flanged columns, a cross-over and wheels aft.
+    stands = []
+    for (ax, ay), (bx, by) in zip(COLLECTOR, COLLECTOR[1:]):
+        for f in (.3, .75):
+            stands.append((ax+(bx-ax)*f, ay+(by-ay)*f))
+    for k, (cx, cy) in enumerate(stands):
+        top = F+16.5-1.2*(k % 2)
+        pipes_dark.add(*tube(P(cx, cy, F+8.6), P(cx, cy, top), 1.15, n=10))
+        for z in (F+11.0, top-.2):
+            fittings.add(*ring(P(cx, cy, z), (0, 0, 1), 1.0, 1.85, .4, n=12))
+        valves.add(*tube(P(cx, cy, top-1.6), P(cx-1.9, cy, top-1.6), .3, n=6))
+        valves.add(*ring(P(cx-2.0, cy, top-1.6), (1, 0, 0), 1.0, 1.55, .2, n=12))
+    for a, b in zip(stands, stands[1:]):
+        pipe(pipes_bronze, [P(a[0], a[1], F+13.6), P(b[0], b[1], F+13.6)], .7, n=8)
 
     # Portal frames across the bundles, with clamp straps over layers A and B.
     nrm = (-d[1], d[0])
     for tk in (6.0, 17.0, 29.0, 41.0):
-        base = (turn+d[0]*tk, 66.0+d[1]*tk)
+        base = (turn+d[0]*tk, 64.0+d[1]*tk)
         lo = march(base, (-nrm[0], -nrm[1]), _outer_ok(1.0), limit=60)
         hi = march(base, nrm, _outer_ok(1.0), limit=60)
         if lo+hi < 4:
@@ -309,38 +317,57 @@ def build_side(kit, s, mats):
         valves.add(*ring(P(x, y, zA+4.3), (0, 0, 1), .95, 1.5, .2, n=12))
 
     # ---- inner well: pale fore-and-aft banks ---------------------------------
-    def inner_end(y, r):
-        if y+r > FEED[2]-.3:
-            return FEED[1]+.8                     # into the drive feed manifold
-        return AFT_HDR[1]+.8                      # into the aft header
+    # The well runs from the root deck's after face (ROOT_X) aft between the tail and
+    # the blade's inner flank, and is open astern. Every bank leaves a wall through a
+    # flange - the root face, or the blade's flank through an elbow - and ends in the
+    # aft header (which stands at the open after end, facing astern) or, beside the
+    # drive housing, in the drive feed manifold on the housing's forward end.
+    def start(y, r):
+        """Where a bank at y can leave its wall: the root face, or the blade's flank."""
+        xs = BLADE_X0-(y+r+.6-BLADE_Y0)/BLADE_K
+        return min(ROOT_X, xs), xs < ROOT_X
 
-    def trimmed(y, r):
-        x1 = inner_end(y, r)
-        while x1 < -30 and y+r+.8 > min(_leg_y(xx) for xx in (x1, x1+3, x1+6)):
-            x1 += .5
-        return x1
+    def bank(acc, y, r, z, n=8, fit=True):
+        x0, flank = start(y, r)
+        x1 = FEED[1]+.6 if y+r > HOUSING_Y-.3 else AFT_HDR[1]+.6
+        if x0-x1 < 3:
+            return
+        if flank:       # an elbow out of the blade's flank
+            pts = [P(x0+1.2, blade_inner_y(x0+1.2)+1.2, z), P(x0-1.4, y, z), P(x1, y, z)]
+        else:
+            pts = [P(ROOT_X+1.0, y, z), P(x1, y, z)]
+            fittings.add(*ring(P(ROOT_X-.4, y, z), (1, 0, 0), r+.05, r+.75, .3, n=n))
+        pipe(acc, pts, r, n=n, fittings=fittings if fit else None)
 
-    for k, y in enumerate([24.9+2.25*i for i in range(9)]):
-        r = (.95, .8, 1.05)[k % 3]
-        pipe(pipes_pale, [P(HDR_X, y, HDR_LO), P(trimmed(y, r), y, HDR_LO)], r)
-    for k, y in enumerate([25.9+1.9*i for i in range(10)]):
-        r = (.7, .55)[k % 2]
-        pipe(pipes_pale, [P(HDR_X, y, HDR_HI), P(HDR_X-3.0, y, HDR_HI), P(HDR_X-5.4, y, F+6.2),
-                          P(trimmed(y, r), y, F+6.2)], r, fittings=fittings)
-    for y, x1 in ((27.6, AFT_HDR[1]+2.0), (34.0, FEED[1]+2.0), (40.6, FEED[1]+2.0)):   # trunk mains on top
-        pipe(pipes_dark, [P(HDR_X, y, HDR_HI), P(HDR_X-3.5, y, F+9.4), P(x1, y, F+9.4), P(x1-2.6, y, F+5.0)],
-             1.45 if y < 40 else 1.6, n=10, fittings=fittings)
-    headers.add(*box(AFT_HDR[0], AFT_HDR[1], s*AFT_HDR[2], s*AFT_HDR[3], F, F+10.0))
+    for k, y in enumerate([23.6+1.95*i for i in range(10)]):
+        bank(pipes_pale, y, (.95, .8, 1.05)[k % 3], F+3.4)
+    for k, y in enumerate([24.4+1.8*i for i in range(10)]):
+        bank(pipes_pale, y, (.7, .55)[k % 2], F+6.2)
+    for y, r in ((25.2, 1.45), (28.8, 1.45), (31.2, 1.6)):      # trunk mains riding on top
+        bank(pipes_dark, y, r, F+9.4, n=10)
+    # Aft header at the open after end: the face astern sees, with flanged ports and wheels.
+    headers.add(*box(AFT_HDR[0], AFT_HDR[1], s*AFT_HDR[2], s*AFT_HDR[3], F-1.0, F+10.5))
+    frames.add(*box(AFT_HDR[0]-.6, AFT_HDR[1]+.6, s*(AFT_HDR[2]-.2), s*(AFT_HDR[3]+.4), F+10.5, F+11.6))
+    for yy, zz in ((24.9, F+2.6), (29.6, F+2.6), (27.2, F+7.6)):
+        pipe(pipes_dark, [P(AFT_HDR[0]+.5, yy, zz), P(AFT_HDR[0]-2.2, yy, zz)], 1.5, n=10)
+        fittings.add(*ring(P(AFT_HDR[0]-2.0, yy, zz), (1, 0, 0), 1.3, 2.25, .45, n=12))
+        frames.add(*box(AFT_HDR[0]-2.6, AFT_HDR[0]-2.3, s*(yy-1.7), s*(yy+1.7), zz-1.7, zz+1.7))   # blank flange
+    for yy in (25.6, 30.4):
+        valves.add(*tube(P(AFT_HDR[0], yy, F+10.0), P(AFT_HDR[0]-1.6, yy, F+10.0), .3, n=6))
+        valves.add(*ring(P(AFT_HDR[0]-1.7, yy, F+10.0), (1, 0, 0), 1.0, 1.55, .2, n=12))
+    # Feed manifold on the drive housing's forward end, and its riser into the housing.
     headers.add(*box(FEED[0], FEED[1], s*FEED[2], s*FEED[3], F, F+9.0))
     frames.add(*box(FEED[0]-.5, FEED[1]+.5, s*(FEED[2]-.5), s*(FEED[3]+.3), F+9.0, F+10.0))
-    frames.add(*box(AFT_HDR[0]-.5, AFT_HDR[1]+.5, s*AFT_HDR[2], s*(AFT_HDR[3]+.5), F+10.0, F+11.0))
-    for x in (-33.0, -47.0, -61.0, -86.0):
-        y1 = min(_leg_y(x)-.6, FEED[2]-.4 if x < FEED[1] else 99)
-        frames.add(*box(x-.7, x+.7, s*23.3, s*y1, F, F+2.1))
-        frames.add(*box(x-.5, x+.5, s*23.3, s*y1, HDR_LO+1.15, HDR_LO+1.6))
-        frames.add(*box(x-.5, x+.5, s*23.3, s*y1, F+7.0, F+7.5))
-        frames.add(*box(x-.7, x+.7, s*23.3, s*y1, F+11.6, F+12.8))
-        for y in (23.9, y1-.6):
+    pipe(pipes_dark, [P(FEED[0]+1.0, 34.0, F+10.0), P(FEED[0]+1.0, 34.0, F+12.6), P(FEED[0]-3.5, 34.0, F+12.6),
+                      P(FEED[0]-3.5, 34.0, F+10.4)], 1.2, n=10, fittings=fittings)
+    # Portal frames across the banks.
+    for x in (-58.0, -69.0, -88.0):
+        y1 = min(blade_inner_y(x)-.6, HOUSING_Y-.4 if x < FEED[1] else 99)
+        frames.add(*box(x-.7, x+.7, s*22.4, s*y1, F, F+2.1))
+        frames.add(*box(x-.5, x+.5, s*22.4, s*y1, HDR_LO+1.15, HDR_LO+1.6))
+        frames.add(*box(x-.5, x+.5, s*22.4, s*y1, F+7.0, F+7.5))
+        frames.add(*box(x-.7, x+.7, s*22.4, s*y1, F+11.6, F+12.8))
+        for y in (23.0, y1-.6):
             frames.add(*box(x-.7, x+.7, s*(y-.7), s*(y+.7), F, F+12.8))
     # Turbopumps lying on saddles over the banks, and a vertical pump aft.
     for px, py in INNER_PUMPS:
@@ -355,16 +382,15 @@ def build_side(kit, s, mats):
         pipe(pipes_bronze, [P(px-5.4, py, F+13.6), P(px-8.0, py, F+13.6), P(px-8.0, py, F+9.5)], .9, fittings=fittings)
         valves.add(*tube(P(px, py, F+16.0), P(px, py, F+17.4), .3, n=6))
         valves.add(*ring(P(px, py, F+17.5), (0, 0, 1), 1.0, 1.55, .2, n=12))
-    pumps.add(*tube(P(-90.0, 27.0, F), P(-90.0, 27.0, F+6.4), 2.4, n=12))
-    for z in (F+2.2, F+5.6):
-        fittings.add(*ring(P(-90.0, 27.0, z), (0, 0, 1), 2.2, 3.0, .4, n=12))
-    pumps.add(*tube(P(-90.0, 27.0, F+6.4), P(-90.0, 27.0, F+7.6), 2.4, 1.4, n=12))
+    pumps.add(*tube(P(-91.0, 27.2, F+9.4), P(-91.0, 27.2, F+15.0), 2.4, n=12))
+    for z in (F+10.6, F+14.0):
+        fittings.add(*ring(P(-91.0, 27.2, z), (0, 0, 1), 2.2, 3.0, .4, n=12))
+    pumps.add(*tube(P(-91.0, 27.2, F+15.0), P(-91.0, 27.2, F+16.2), 2.4, 1.4, n=12))
     # Hand wheels on the lower header, facing aft.
-    for y in (35.0, 52.0, 74.0, 93.0):
+    for y in (56.0, 74.0, 93.0):
         valves.add(*box(HDR_X-3.6, HDR_X-1.8, s*(y-1.2), s*(y+1.2), HDR_LO-1.2, HDR_LO+1.2))
         valves.add(*tube(P(HDR_X-3.6, y, HDR_LO), P(HDR_X-5.4, y, HDR_LO), .3, n=6))
         valves.add(*ring(P(HDR_X-5.5, y, HDR_LO), (1, 0, 0), 1.1, 1.65, .2, n=12))
-
     side = 'port' if s > 0 else 'starboard'
     pipes_dark.build(kit, f'Machinery {side} pipe runs', kit.steel)
     pipes_pale.build(kit, f'Machinery {side} pale pipe banks', mats['pale'])
@@ -378,7 +404,7 @@ def build_side(kit, s, mats):
 
 # ---- tail radiator ------------------------------------------------------------
 
-TAIL_FINS = (-68.0, -109.0)      # X extent of the channel, aft of the bridge spine's end (X -66)
+TAIL_FINS = (-68.0, -103.0)      # X extent of the channel: the spine's end (X -66) to the mains' face
 FIN_Y = [-9.6+1.6*i for i in range(13)]
 COAMING_Y = 11.4
 

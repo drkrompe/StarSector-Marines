@@ -37,34 +37,20 @@ class WarshipDuelHelmTest {
     }
 
     @Test
-    void theStationIsAlongsideTheTargetOnItsBeamAndAheadSoTheLinesConverge() {
-        HullAirspace map = HullAirspace.wholeMap(200f, 100f);
-        // The target at (100, 50) heading east (bearing 0); the ship north of it takes the north beam.
-        float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, map);
-        assertArrayEquals(new float[]{100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 70f}, north, 1e-3f);
-        float[] south = WarshipDuelHelm.station(90f, 30f, 100f, 50f, 0f, 20f, true, 2f, map);
-        assertArrayEquals(new float[]{100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 30f}, south, 1e-3f);
+    void theStationIsAlongsideTheTargetOnItsBeamAndAheadSoTheLinesConverge() throws Exception {
+        Warship hound = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, 0f, 0f, 0f);
+        WarshipEdgeHelm map = new WarshipEdgeHelm(600f, 400f);
+        // The target at (300, 200) heading east (bearing 0); the ship north of it takes the north beam.
+        float[] north = WarshipDuelHelm.station(290f, 220f, 300f, 200f, 0f, 20f, true, hound, map);
+        assertArrayEquals(new float[]{300f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 220f}, north, 1e-3f);
+        float[] south = WarshipDuelHelm.station(290f, 180f, 300f, 200f, 0f, 20f, true, hound, map);
+        assertArrayEquals(new float[]{300f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 180f}, south, 1e-3f);
         // Dead ahead of the target: the beam the hull prefers, never a pass down its nose.
-        float[] ahead = WarshipDuelHelm.station(140f, 50f, 100f, 50f, 0f, 20f, false, 2f, map);
-        assertEquals(30f, ahead[1], 1e-3f);
-        float[] edge = WarshipDuelHelm.station(10f, 95f, 50f, 90f, 0f, 20f, true, 2f, map);
-        // Clamped inside the map edge, then eased off it by half the soft band (a quarter of the 90 cells of room).
-        float hard = 100f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f;
-        assertEquals(hard - 0.5f * 0.25f * 90f, edge[1], 1e-4f, "kept off the map edge");
-    }
-
-    @Test
-    void aDeclaredAirspaceKeepsTheStationOverItsGround() {
-        // The fight kept over the southern band y < 40: a station that would stand at y 70 comes down inside it.
-        HullAirspace south = new HullAirspace(0f, 0f, 200f, 40f);
-        float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, south);
-        // Inside the band's hard margin (35), eased half its soft band (a quarter of 30 cells of room) off the edge.
-        assertEquals(40f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f - 0.5f * 0.25f * 30f, north[1], 1e-4f);
-        assertEquals(100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, north[0], 1e-3f);
-        // A band too narrow for the hull's margin puts it on the middle line.
-        assertArrayEquals(new float[]{50f, 5f}, new HullAirspace(0f, 0f, 100f, 10f).clamp(50f, 80f, 6f), 1e-4f);
-        // An airspace off the map gives the whole map back.
-        assertEquals(HullAirspace.wholeMap(100f, 50f), new HullAirspace(150f, 0f, 200f, 50f).within(100f, 50f));
+        float[] ahead = WarshipDuelHelm.station(340f, 200f, 300f, 200f, 0f, 20f, false, hound, map);
+        assertEquals(180f, ahead[1], 1e-3f);
+        // Near the edge the station is kept out of the hull's edge margin.
+        float[] edge = WarshipDuelHelm.station(250f, 395f, 290f, 390f, 0f, 20f, true, hound, map);
+        assertEquals(400f - 0.5f * hound.lengthCells - map.margin(hound), edge[1], 1e-3f, "kept off the map edge");
     }
 
     @Test
