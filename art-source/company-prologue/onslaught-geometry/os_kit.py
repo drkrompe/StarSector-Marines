@@ -136,8 +136,32 @@ def section(keel, deck, keel_c, shoulder_c):
     return [(keel_c, keel), (0, keel+keel_c), (0, deck-shoulder_c), (shoulder_c, deck)]
 
 
+INSET_FAULTS = []   # (object name, inset) where an inset ring folded over; the driver reports them
+
+
+def _crossing(poly):
+    n = len(poly)
+    def hit(a, b, c, d):
+        def o(p, q, r):
+            return (q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0])
+        return o(a, b, c)*o(a, b, d) < 0 and o(c, d, a)*o(c, d, b) < 0
+    for i in range(n):
+        for j in range(i+2, n):
+            if i == 0 and j == n-1:
+                continue
+            if hit(poly[i], poly[(i+1) % n], poly[j], poly[(j+1) % n]):
+                return True
+    return False
+
+
 def prism(kit, name, plan, profile, mat, bevel=.12):
     n = len(plan)
+    for d, _ in profile:
+        ring = inset(plan, d)
+        area = sum(ring[i-1][0]*q[1]-q[0]*ring[i-1][1] for i, q in enumerate(ring))
+        if d and (area <= 0 or _crossing(ring)):
+            INSET_FAULTS.append((name, d))
+            break
     verts = [(x, y, z) for d, z in profile for x, y in inset(plan, d)]
     faces = [tuple(reversed(range(n)))]
     for r in range(len(profile)-1):
@@ -180,6 +204,8 @@ def boolean(target, cutter, op='DIFFERENCE', keep=False):
     mod.solver = 'MANIFOLD'
     bpy.ops.object.modifier_move_to_index(modifier=mod.name, index=0)
     bpy.ops.object.modifier_apply(modifier=mod.name)
+    if any(p.use_smooth for p in target.data.polygons):
+        target.data.set_sharp_from_angle(angle=math.radians(40))
     if not keep:
         bpy.data.objects.remove(cutter, do_unlink=True)
 
@@ -269,3 +295,177 @@ def curved(keel, deck, bilge_in, bilge_h, tumble_in, tumble_h, segs=4):
         a = math.pi/2*k/segs
         out.append((tumble_in*(1-math.cos(a)), deck-tumble_h+tumble_h*math.sin(a)))
     return out
+
+
+def rounded_prism(kit, name, plan, keel, deck, bilge_in=0.0, bilge_h=0.0, tumble_in=0.0, tumble_h=0.0,
+                  mat=None, segs=4, bevel=.12):
+    """A plan extruded keel to deck whose bottom edge turns under on a rounded bilge
+    (bilge_in inboard over bilge_h of height) and whose top edge rolls over on a
+    rounded shoulder (tumble_in over tumble_h).
+
+    Unlike prism()'s mitred insets, which fold over wherever an edge is shorter than
+    the inset, the rounding is Blender's bevel with overlap clamping, so a narrow
+    or concave plan rounds less where it must instead of turning inside out. Each
+    bevel runs in a Z-scaled space so its quarter-round becomes the bilge's or the
+    shoulder's own ellipse."""
+    plan = ccw(plan)
+    n = len(plan)
+    bm = bmesh.new()
+    lo = [bm.verts.new((x, y, keel)) for x, y in plan]
+    hi = [bm.verts.new((x, y, deck)) for x, y in plan]
+    bm.faces.new(list(reversed(lo)))
+    bm.faces.new(hi)
+    for i in range(n):
+        bm.faces.new((lo[i], lo[(i+1) % n], hi[(i+1) % n], hi[i]))
+    bm.normal_update()
+
+    def round_edges(z_level, inset_d, height):
+        if inset_d <= 0 or height <= 0:
+            return
+        f = inset_d/height
+        for v in bm.verts:
+            v.co.z *= f
+        target = z_level*f
+        edges = [e for e in bm.edges if all(abs(v.co.z-target) < 1e-4 for v in e.verts)
+                 and len(e.link_faces) == 2 and any(abs(fc.normal.z) < .5 for fc in e.link_faces)]
+        bmesh.ops.bevel(bm, geom=edges, offset=inset_d, offset_type='OFFSET', segments=segs, profile=.5,
+                        affect='EDGES', clamp_overlap=True)
+        for v in bm.verts:
+            v.co.z /= f
+        bm.normal_update()
+
+    round_edges(keel, bilge_in, bilge_h)
+    round_edges(deck, tumble_in, tumble_h)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(ob)
+    return kit.finish(ob, name, mat, bevel)
+
+
+def _edge_distance(p, plan):
+    best = 1e9
+    px, py = p
+    n = len(plan)
+    for i in range(n):
+        ax, ay = plan[i]
+        bx, by = plan[(i+1) % n]
+        dx, dy = bx-ax, by-ay
+        L = dx*dx+dy*dy
+        t = 0.0 if L == 0 else max(0.0, min(1.0, ((px-ax)*dx+(py-ay)*dy)/L))
+        qx, qy = ax+t*dx-px, ay+t*dy-py
+        best = min(best, qx*qx+qy*qy)
+    return best**.5
+
+
+def _resample(plan, step):
+    out = []
+    n = len(plan)
+    for i in range(n):
+        (ax, ay), (bx, by) = plan[i], plan[(i+1) % n]
+        L = ((bx-ax)**2+(by-ay)**2)**.5
+        k = max(1, int(math.ceil(L/step)))
+        out += [(ax+(bx-ax)*j/k, ay+(by-ay)*j/k) for j in range(k)]
+    return out
+
+
+def arched_mass(kit, name, plan, keel, deck, bilge_in=0.0, bilge_h=0.0, tumble_in=0.0, tumble_h=0.0,
+                crown=0.0, crown_w=20.0, mat=None, step=3.0, bevel=0.0):
+    """A plan extruded keel to deck whose belly and top are heightfields over the plan.
+
+    Each cap is the plan triangulated and lifted by its distance d from the plan
+    edge: the top rises from the wall's top (deck - tumble_h) on a quarter-ellipse
+    to the deck at d = tumble_in, then crowns up by `crown` over the next
+    `crown_w`; the belly falls from the wall's foot (keel + bilge_h) to the keel
+    at d = bilge_in. Narrow parts of a plan simply reach a lower crown, so
+    nothing folds over however concave or tapered the plan is."""
+    from mathutils.geometry import delaunay_2d_cdt
+    plan = ccw(plan)
+    ring = _resample(plan, step)
+    nb = len(ring)
+    # Rows following the edge (contour lines of the heightfield), then a grid
+    # in whatever interior is left: heights depend only on edge distance, so
+    # rows give clean shading where the profile curves.
+    # Rows at the facet breaks: three bands over the shoulder, two over the
+    # crown, three over the bilge. Flat-shaded, each band reads as a course of
+    # armour plate bent round the curve.
+    dists = sorted({round(v, 3) for v in
+                    [tumble_in*f for f in (1/3, 2/3, 1.0) if tumble_in > 0] +
+                    [tumble_in+crown_w*f for f in (.5, 1.0) if crown and crown_w > 0] +
+                    [bilge_in*f for f in (1/3, 2/3, 1.0) if bilge_in > 0]})
+    inner = []
+    last = 0.0
+    for d in dists:
+        row = []
+        for i, (x, y) in enumerate(ring):
+            ax, ay = ring[i-1]
+            bx, by = ring[(i+1) % nb]
+            l0 = _left(x-ax, y-ay) if (x, y) != (ax, ay) else _left(bx-x, by-y)
+            l1 = _left(bx-x, by-y) if (bx, by) != (x, y) else l0
+            nx, ny = l0[0]+l1[0], l0[1]+l1[1]
+            nl = (nx*nx+ny*ny)**.5 or 1.0
+            q = (x+nx/nl*d, y+ny/nl*d)
+            if abs(_edge_distance(q, plan)-d) < .25*min(step, d):
+                if not row or (q[0]-row[-1][0])**2+(q[1]-row[-1][1])**2 > (.6*step)**2:
+                    row.append(q)
+        if not row:
+            break
+        inner += row
+        last = d
+    k = 1
+    xs, ys = [p[0] for p in ring], [p[1] for p in ring]
+    g = step*1.4
+    y = min(ys)+g/2
+    while y < max(ys):
+        x = min(xs)+g/2
+        while x < max(xs):
+            if _edge_distance((x, y), plan) > last+.5*g:
+                inner.append((x, y))
+            x += g
+        y += g
+    pts = ring+inner
+    vin = [Vector((x, y)) for x, y in pts]
+    res = delaunay_2d_cdt(vin, [], [list(range(nb))], 1, 1e-5)
+    vco, faces = res[0], res[2]
+    dist = [_edge_distance((v.x, v.y), plan) for v in vco]
+    wall_hi, wall_lo = deck-tumble_h, keel+bilge_h
+
+    # A shoulder curve with a finite slope at the edge (a quarter sine), so the
+    # wall meets the cap on a crisp edge and the cap rolls over evenly.
+    def z_top(d):
+        if tumble_in > 0 and d < tumble_in:
+            return wall_hi+tumble_h*math.sin(d/tumble_in*math.pi/2)
+        if crown and crown_w > 0:
+            return deck+crown*math.sin(min(1.0, (d-tumble_in)/crown_w)*math.pi/2)
+        return deck
+
+    def z_bot(d):
+        if bilge_in > 0 and d < bilge_in:
+            return wall_lo-bilge_h*math.sin(d/bilge_in*math.pi/2)
+        return keel
+
+    m = len(vco)
+    verts = [(v.x, v.y, z_top(d)) for v, d in zip(vco, dist)]+[(v.x, v.y, z_bot(d)) for v, d in zip(vco, dist)]
+    fs = [tuple(f) for f in faces]+[tuple(m+i for i in reversed(f)) for f in faces]
+    # The wall joins the boundary ring, found through the CDT's map back to its input.
+    vmap = {}
+    for j, origs in enumerate(res[3]):
+        for o in origs:
+            vmap[o] = j
+    b = [vmap[i] for i in range(nb)]
+    for i in range(nb):
+        a, c = b[i], b[(i+1) % nb]
+        fs.append((a+m, c+m, c, a))
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], fs)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(ob)
+    return kit.finish(ob, name, mat, bevel)
