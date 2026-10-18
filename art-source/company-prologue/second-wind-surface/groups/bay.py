@@ -8,7 +8,7 @@ ever seen edge-on through the opening) and the frame's inner returns.
 from parts_common import PORT, UP_Z
 
 PARTS = {
-    'bay-back-wall-port': dict(members=[('Port bay interior', (14, 15.6, -0.5))], dir=PORT, up=UP_Z, cone=.6, ray=8,
+    'bay-back-wall-port': dict(members=[('Port bay interior', (14, 12.4, -0.5))], dir=PORT, up=UP_Z, cone=.6, ray=8,
                                what='port boat bay back wall, seen straight through the opening'),
     'bay-frame-port': dict(members=[('Bay coaming', (14, 24.5, -5.5)), ('Bay coaming.001', (14, 24.5, 4.6)),
                                     ('Bay jamb', (2, 24.5, -0.5)), ('Bay jamb.001', (26, 24.5, -0.5)),

@@ -218,7 +218,10 @@ vents, bay buttresses and flank maintenance housings supply structural depth
 for the surface interpretation. Detailed plating and hardware in the ImageGen
 finish remain conceptual, not a consistent UV map.
 
-Port bay is open with an empty cradle. Starboard bay is sealed. Their location,
+Port bay is open with an empty cradle. Starboard bay is sealed. The port bay
+is deepened inboard (back wall at y 12.4, 7.9 m to the mouth) so the Hermes
+stands in it behind a door on the starboard bay's line (y 22.6) with 0.45 m
+each side; the starboard bay keeps its wall at y 15.55. Their location,
 depth and one-bay-per-flank arrangement are proposed art, not a procedural deck
 layout change. The initial two Hermes remain wrecked. No boat is granted or
 repaired, and no runtime art or gameplay is changed by this source reference.

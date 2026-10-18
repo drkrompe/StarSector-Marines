@@ -29,12 +29,18 @@ from sh_kit import prism, section, revolve_x, material
 BRIDGE_X = (3.8, 35.6)        # aft and forward ends
 BRIDGE_CY = -2.5              # plan centreline (Y -10..+5)
 BRIDGE_HALF_W = 8.0
-BRIDGE_H = 15.5               # crown height above BASE_Z (crown about +17.5, deck +6.5)
+BRIDGE_H = 15.0               # crown height above BASE_Z (crown +17, deck +6)
 BASE_Z = 2.0                  # flat base, buried in the crew body
-BOW_P, TAIL_P = 2.2, 3.0      # plan superellipse exponents forward / aft of mid-length
-HEIGHT_K = 1.0                # crown falls off with the plan width
-SECTION_N = 2.4               # section superellipse exponent (2 = ellipse)
-GLAZE_X = (26.8, 28.6)        # the sprite's dark band
+SECTION_N = 3.0               # section superellipse exponent: a flat crown and full flanks
+# Long profile (pass 3 round 2, owner: the front windows and the bridge's shape
+# need work): a flat crown, a short aft taper, then at the front a steep raked
+# windscreen face from the brow (RAKE_X[0]) down to the sill (RAKE_X[1]), and a
+# rounded chin below the sill running down into the bow.
+TAIL_LEN = 7.0                # aft taper length
+PLAN_FRONT = 24.0             # plan width starts rounding off here
+RAKE_X = (27.4, 30.0)         # brow and sill stations: the sprite's dark band at X 27..28.5 and on
+SILL_H = 10.6                 # sill height above BASE_Z (deck +1.6)
+GLAZE_X = (RAKE_X[0]+.25, RAKE_X[1]-.2)
 
 
 # --- Private geometry accumulators: many small parts, one object each kind. ---
@@ -121,13 +127,30 @@ class _Acc:
 def _profile(x):
     """Bridge hull half-width and height above BASE_Z at x (0 outside its length)."""
     x0, x1 = BRIDGE_X
-    xc, half = (x0+x1)/2, (x1-x0)/2
-    u = (x-xc)/half
-    if abs(u) >= 1:
+    if not x0 < x < x1:
         return 0.0, 0.0
-    p = BOW_P if u > 0 else TAIL_P
-    f = (1-abs(u)**p)**(1/p)
-    return BRIDGE_HALF_W*f, BRIDGE_H*f**HEIGHT_K
+    # Plan: full width, rounding off aft over TAIL_LEN and forward from PLAN_FRONT.
+    if x < x0+TAIL_LEN:
+        fw = (1-((x0+TAIL_LEN-x)/TAIL_LEN)**2.6)**(1/2.6)
+    elif x > PLAN_FRONT:
+        fw = (1-((x-PLAN_FRONT)/(x1-PLAN_FRONT))**2.4)**(1/2.4)
+    else:
+        fw = 1.0
+    # Height: aft taper, flat crown, the raked windscreen face, the chin.
+    xb, xs = RAKE_X
+    if x < x0+TAIL_LEN:
+        h = BRIDGE_H*(1-((x0+TAIL_LEN-x)/TAIL_LEN)**2.2)**(1/2.2)
+    elif x <= xb-.6:
+        h = BRIDGE_H
+    elif x <= xb:                                   # the brow rounds over into the rake
+        t = (x-(xb-.6))/.6
+        h = BRIDGE_H-(BRIDGE_H-SILL_H)*.06*t*t
+    elif x <= xs:
+        h0 = BRIDGE_H-(BRIDGE_H-SILL_H)*.06
+        h = h0+(SILL_H-h0)*(x-xb)/(xs-xb)
+    else:
+        h = SILL_H*(1-((x-xs)/(x1-xs))**2.0)**.5
+    return BRIDGE_HALF_W*fw, h
 
 
 def _pt(x, t, d=0.0):
@@ -197,39 +220,55 @@ def build(kit):
 
     # Pale plating over the starboard crown: the sprite's cream half of the hull.
     pale = _Acc()
-    xs = [8.0+k*(26.0-8.0)/16 for k in range(17)]
-    _strip(pale, xs, [deg(a) for a in range(96, 166, 5)], -.02, .08)
+    xs = [8.0+k*(23.6-8.0)/16 for k in range(17)]
+    _strip(pale, xs, [deg(a) for a in range(96, 171, 5)], -.02, .08)
     pale.build(kit, 'Bridge hull pale crown plating', kit.pale, 0)
 
     # Plating seams: dark rings over the upper hull, and a crown seam fore and aft.
     seams = _Acc()
     for x in (9.0, 13.5, 18.0, 22.5):
         _strip(seams, [x-.07, x+.07], [deg(a) for a in range(20, 161, 10)], .06, .14)
-    _strip(seams, [x/2 for x in range(14, 53)], [deg(88.8), deg(91.2)], .06, .14)
+    _strip(seams, [x/2 for x in range(16, 50)], [deg(88.8), deg(91.2)], .06, .14)
     seams.build(kit, 'Bridge hull plating seams', kit.dark, 0)
 
-    # Bridge glazing: the dark band the sprite shows across the hull at X 27..28.5,
-    # a wraparound strip of panes over the crown with mullions between them.
-    gx = [GLAZE_X[0]+(GLAZE_X[1]-GLAZE_X[0])*k/4 for k in range(5)]
-    pane_a = [(48, 62), (66, 80), (84, 96), (100, 114), (118, 132)]
+    # Bridge windscreen: framed panes on the raked forward face, wrapping round
+    # its shoulders - the dark band the sprite shows at X 27..28.5 and forward.
+    xs = [GLAZE_X[0]+(GLAZE_X[1]-GLAZE_X[0])*k/6 for k in range(7)]
+    bounds = [36, 52, 68, 84, 96, 112, 128, 144]
     panes, frame = _Acc(), _Acc()
-    for a0, a1 in pane_a:
-        _strip(panes, gx, [deg(a0+(a1-a0)*k/4) for k in range(5)], -.02, .1)
-    for a in [46, 64, 82, 98, 116, 134]:
-        _strip(frame, [GLAZE_X[0]-.15+k*(GLAZE_X[1]-GLAZE_X[0]+.3)/4 for k in range(5)],
-               [deg(a-1.2), deg(a+1.2)], 0, .2)
-    for x in (GLAZE_X[0]-.1, GLAZE_X[1]+.1):
-        _strip(frame, [x-.12, x+.12], [deg(44+k*(136-44)/12) for k in range(13)], 0, .2)
+    for a0, a1 in zip(bounds, bounds[1:]):
+        _strip(panes, xs, [deg(a0+1.4+(a1-a0-2.8)*k/4) for k in range(5)], -.02, .06)
+    fx = [GLAZE_X[0]-.18+(GLAZE_X[1]-GLAZE_X[0]+.36)*k/6 for k in range(7)]
+    for a in bounds:                                         # mullions, the end ones the jambs
+        _strip(frame, fx, [deg(a-1.4), deg(a+1.4)], 0, .18)
+    for x in (GLAZE_X[0]-.12, GLAZE_X[1]+.1):                # head and sill rails
+        _strip(frame, [x-.14, x+.14], [deg(bounds[0]-1.4+k*(bounds[-1]-bounds[0]+2.8)/14) for k in range(15)], 0, .2)
     panes.build(kit, 'Bridge glazing band', glass, 0)
     frame.build(kit, 'Bridge glazing frame', kit.grey, .02)
-    # Brow: a raised lip of hull plating over the band's forward edge.
+    # Brow visor: an eyebrow of hull plating standing out over the head of the
+    # windscreen, its lip carried a little forward to shade the glass.
     brow = _Acc()
-    _strip(brow, [GLAZE_X[1]+.15, GLAZE_X[1]+.55], [deg(42+k*(138-42)/12) for k in range(13)], 0, .32)
+    _strip(brow, [RAKE_X[0]-.7, RAKE_X[0]-.15], [deg(38+k*104/16) for k in range(17)], 0, .22)
+    _strip(brow, [RAKE_X[0]-.15, RAKE_X[0]+.3], [deg(40+k*100/16) for k in range(17)], .1, .32)
     brow.build(kit, 'Bridge brow visor', kit.tan, .03)
+    # Wiper park and washer rail along the sill.
+    sill = _Acc()
+    _strip(sill, [RAKE_X[1]+.05, RAKE_X[1]+.35], [deg(38+k*104/12) for k in range(13)], 0, .14)
+    sill.build(kit, 'Bridge windscreen sill rail', kit.steel, 0)
+    # Bridge wing windows on each flank just aft of the windscreen.
+    side, sframe = _Acc(), _Acc()
+    for t0, t1 in ((22, 34), (146, 158)):
+        _strip(side, [24.6+k*.6 for k in range(5)], [deg(t0+(t1-t0)*k/3) for k in range(4)], -.02, .06)
+        for x in (24.45, 25.6, 27.15):
+            _strip(sframe, [x-.12, x+.12], [deg(t0-1.2+(t1-t0+2.4)*k/3) for k in range(4)], 0, .16)
+        for t in (t0-1.2, t1+1.2):
+            _strip(sframe, [24.35+k*.7 for k in range(5)], [deg(t-1.0), deg(t+1.0)], 0, .16)
+    side.build(kit, 'Bridge wing windows', glass, 0)
+    sframe.build(kit, 'Bridge wing window frames', kit.grey, .02)
 
     # Side viewports down the hull flanks: the crew spaces the description asks for.
     ports, rims = _Acc(), _Acc()
-    for x in (10.5, 13.0, 15.5, 20.0, 22.5):
+    for x in (10.5, 13.0, 15.5, 18.0, 20.5):
         for t in (deg(50), deg(130)):
             c = _pt(x, t, 0)
             nrm = (_pt(x, t, 1)-c).normalized()
@@ -239,7 +278,7 @@ def build(kit):
     ports.build(kit, 'Bridge hull viewports', glass, 0)
 
     # Nose crown: the roof hatch (the sprite's dark mark at X 30..31) and an air handler.
-    hx = 30.5
+    hx = 25.8
     top = _pt(hx, deg(90)).z
     hatch = _Acc()
     hatch.box((hx, BRIDGE_CY+.9, top-.05), (1.8, 1.8, .4))
@@ -251,7 +290,7 @@ def build(kit):
         for dy in (-.5, .5):
             lid.box((x, BRIDGE_CY+.9+dy, top+.3), (.14, .14, .06))
     lid.build(kit, 'Bridge roof hatch lid', kit.cream, .02)
-    ax = 24.6
+    ax = 22.4
     atop = _pt(ax, deg(90)).z
     hvac = _Acc()
     hvac.box((ax, BRIDGE_CY-1.6, atop+.25), (1.8, 1.6, .7))
@@ -262,7 +301,7 @@ def build(kit):
     grille.build(kit, 'Bridge roof air handler grille', kit.dark, 0)
 
     # Antenna mast on the crown aft of the glazing: tripod foot, pole, yard, whips.
-    mx, my = 24.6, BRIDGE_CY+1.8
+    mx, my = 20.6, BRIDGE_CY+1.8
     roof = _pt(mx, deg(80)).z
     mast = _Acc()
     for ang in (0, 120, 240):
@@ -280,8 +319,8 @@ def build(kit):
 
     # Navigation lamps either side of the nose, under the brow.
     for side, t, mat in (('port green', deg(52), green), ('starboard red', deg(128), red)):
-        c = _pt(GLAZE_X[1]+1.2, t, 0)
-        nrm = (_pt(GLAZE_X[1]+1.2, t, 1)-c).normalized()
+        c = _pt(RAKE_X[1]+1.0, t, 0)
+        nrm = (_pt(RAKE_X[1]+1.0, t, 1)-c).normalized()
         house = _Acc()
         house.cyl(c+nrm*.15, nrm, .38, .2, 8)
         house.build(kit, f'Bridge running lamp {side} housing', kit.steel, .02)
