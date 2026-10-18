@@ -1,8 +1,8 @@
 {
- "_doc": "Owned per-state wear weights (wear.py). 0 = none, 1 = the derelict ceiling. Edit freely; apply_skin.py --wear <state> reads them.",
+ "_doc": "Owned per-state wear weights (wear.py). 0 = none, 1 = the derelict ceiling. Edit freely; apply_skin.py --wear <state> reads them. Patched and refit keep the derelict paint (owner, 2026-10-18): nobody repaints until the restoration; repairs show only as their own plates, welds and primer.",
  "clean":    {"abrasion": 0.0,  "pitting": 0.0,  "fade": 0.0,  "grime": 0.0,  "soot": 0.0,  "neglect": 0.0},
  "derelict": {"abrasion": 1.0,  "pitting": 1.0,  "fade": 1.0,  "grime": 1.0,  "soot": 0.85, "neglect": 0.7},
- "patched":  {"abrasion": 0.85, "pitting": 0.85, "fade": 0.85, "grime": 0.85, "soot": 0.9,  "neglect": 0.7},
- "refit":    {"abrasion": 0.8,  "pitting": 0.8,  "fade": 0.75, "grime": 0.7,  "soot": 0.9,  "neglect": 0.6},
+ "patched":  {"abrasion": 1.0,  "pitting": 1.0,  "fade": 1.0,  "grime": 1.0,  "soot": 0.9,  "neglect": 0.7},
+ "refit":    {"abrasion": 1.0,  "pitting": 1.0,  "fade": 1.0,  "grime": 0.9,  "soot": 0.9,  "neglect": 0.6},
  "restored": {"abrasion": 0.25, "pitting": 0.5,  "fade": 0.15, "grime": 0.35, "soot": 0.6,  "neglect": 0.3}
 }
