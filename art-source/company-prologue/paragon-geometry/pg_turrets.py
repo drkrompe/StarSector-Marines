@@ -2,7 +2,8 @@
 
 Every slot is read from paragon.ship and placed at its location, resting at its
 slot angle; the build fails if the installed file disagrees. A turret is a
-fixed barbette (`Weapon <slot> barbette`) and a pivot empty (`Weapon <slot>
+well cut into the hull along the local surface normal (`Weapon <slot> well`,
+lined dark), a fixed barbette in it (`Weapon <slot> barbette`) and a pivot empty (`Weapon <slot>
 pivot`) at the traverse gap, parenting the trainable parts (housing, emitters)
 and a `Weapon <slot> muzzle` empty per barrel. Rotate the pivot about its
 local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint` (anchor),
@@ -14,7 +15,9 @@ The two capital mounts in the prow bays keep their housing and emitter. Barbette
 wells (large 14, medium 10.5, small 6.5 units).
 """
 import math
-from mathutils import Vector
+import bpy
+from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 import pg_kit as K
 import pg_hull
 
@@ -68,13 +71,94 @@ def housing_profile(hr, hh):
     return prof
 
 
-def barbette(kit, sid, x, y, spec):
-    hit = kit.surface(x, y)
-    z0 = hit[0].z if hit else 0.0
+def seat(kit, x, y, r):
+    """Where a turret sits: the plane fitted through the hull surface on a ring of radius r about (x, y).
+
+    Returns (centre, normal). The well is cut along that normal, so a turret on
+    a glacis or the belt's slope leans with the plate it stands in rather than
+    standing upright out of it (owner, pass 1)."""
+    pts = []
+    for k in range(10):
+        a = 2*math.pi*k/10
+        hit = kit.surface(x+r*math.cos(a), y+r*math.sin(a))
+        if hit:
+            pts.append(hit[0])
+    centre = kit.surface(x, y)[0]
+    if len(pts) < 3:
+        return centre, Vector((0, 0, 1))
+    # Least-squares plane z = a x + b y + c through the ring.
+    import numpy as np
+    A = np.array([[p.x, p.y, 1.0] for p in pts])
+    zz = np.array([p.z for p in pts])
+    (ga, gb, gc), *_ = np.linalg.lstsq(A, zz, rcond=None)
+    n = Vector((-ga, -gb, 1.0)).normalized()
+    return Vector((x, y, ga*x+gb*y+gc)), n
+
+
+def frame(centre, normal):
+    return Matrix.Translation(centre) @ Vector((0, 0, 1)).rotation_difference(normal).to_matrix().to_4x4()
+
+
+_TREES = {}
+
+
+def near_hull(kit, point, reach):
+    """Hull objects whose surface passes within reach of point."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    out = []
+    for ob in kit.hull+kit.detail:
+        if ob.name not in bpy.data.objects:
+            continue
+        key = (ob.name, len(ob.data.polygons))
+        if key not in _TREES:
+            _TREES.clear() if len(_TREES) > 64 else None
+            _TREES[key] = BVHTree.FromObject(ob, dg)
+        loc, _, _, d = _TREES[key].find_nearest(ob.matrix_world.inverted() @ point)
+        if loc is not None and d < reach:
+            out.append(ob)
+    return out
+
+
+# The dimple round each well (the sprite's concentric rings): a flat terrace at
+# the well rim out to DIMPLE x the well radius, then a chamfer back up to the
+# plate. It clears the gun's near field and keeps the mount low in the hull.
+DIMPLE = {'LARGE': 1.75, 'MEDIUM': 1.8, 'SMALL': 1.9}
+DIMPLE_CHAMFER_DEG = 32.0
+
+
+def _cut(kit, ob, profile, M):
+    cut = K.revolve(kit, 'Temporary well cutter', profile, ob.material_slots[0].material, segments=48, smooth=False)
+    cut.matrix_world = M
+    K.boolean(ob, cut)
+    _TREES.pop((ob.name, len(ob.data.polygons)), None)
+
+
+def well(kit, sid, spec, M, size):
+    """Dish the plate round the turret, then cut its well along the frame's Z and line it dark."""
+    R, D = spec['r']+1.0, spec['collar']+1.6
+    Rt = R*DIMPLE[size]
+    rise = math.tan(math.radians(DIMPLE_CHAMFER_DEG))
+    dish = [(0, 0), (Rt, 0), (Rt+30/rise, 30), (0, 30)]
+    centre = M.translation
+    for ob in near_hull(kit, centre, Rt+30/rise):
+        _cut(kit, ob, dish, M)
+    for ob in near_hull(kit, centre, R+4):
+        _cut(kit, ob, [(0, -D), (R, -D), (R, 30), (0, 30)], M)
+    liner = K.revolve_loop(kit, f'Weapon {sid} well', [(R-.6, -D-.6), (R, -D-.6), (R, .15), (R-.6, .15)], kit.tech,
+                           segments=48, smooth=False)
+    floor = K.revolve(kit, f'Weapon {sid} well floor', [(0, -D-.8), (R-.3, -D-.8), (R-.3, -D), (0, -D)], kit.tech,
+                      segments=48, smooth=False)
+    liner.matrix_world = M
+    floor.matrix_world = M
+    return D
+
+
+def barbette(kit, sid, spec, M, D):
     r, c = spec['r'], spec['collar']
-    prof = [(0, -3.0), (r, -3.0), (r, c*.55), (r*.93, c), (0, c)]
-    b = K.revolve(kit, f'Weapon {sid} barbette', prof, kit.tech, center=(x, y, z0), segments=48, smooth=False)
-    return b, z0+c
+    prof = [(0, 0), (r, 0), (r, c*.55), (r*.93, c), (0, c)]
+    b = K.revolve(kit, f'Weapon {sid} barbette', prof, kit.tech, segments=48, smooth=False)
+    b.matrix_world = M @ Matrix.Translation((0, 0, -D))
+    return -D+c
 
 
 def emitter(kit, name, start, length, radius, mat_tip):
@@ -100,35 +184,45 @@ def parent(objs, pivot):
 def turret(kit, sid, loc, angle, arc, size, typ):
     spec = SPEC[size]
     x, y = loc
-    base, ztop = barbette(kit, sid, x, y, spec)
-    # The pivot sits at the traverse gap on the barbette's top face; trainable
-    # parts are built facing +X about the slot centre, then turned to the slot
-    # angle with T(x,y) Rz(angle) T(-x,-y) by parenting them to the rotated pivot.
-    pivot = kit.empty(f'Weapon {sid} pivot', (x, y, ztop), 0, 'ARROWS', spec['r'])
+    centre, normal = seat(kit, x, y, spec['r']+1.0)
+    M = frame(centre, normal)
+    D = well(kit, sid, spec, M, size)
+    ztop = barbette(kit, sid, spec, M, D)
+    # The pivot sits at the traverse gap on the barbette's top face, its Z along
+    # the well's axis; rotate it about its local Z to train. Trainable parts are
+    # built facing +X about the origin and parented to it.
+    pivot = kit.empty(f'Weapon {sid} pivot', (0, 0, 0), 0, 'ARROWS', spec['r'])
     pivot['slot'] = sid
     pivot['angle_deg'] = angle
     pivot['arc_deg'] = arc
     pivot['size'] = size
     pivot['type'] = typ
     # Placeholder (owner, pass 1: the turrets are scrap): a dark puck showing the
-    # pivot, size and resting direction. Real mounts replace these parts; the
-    # pivot, muzzle anchors and their names stay.
+    # pivot, size and resting direction, sitting in its well. Real mounts replace
+    # these parts; the pivot, muzzle anchors and their names stay.
     hr = spec['hr']
     house = K.revolve(kit, f'Weapon {sid} placeholder', [(0, 0), (hr, 0), (hr*.8, 2.0), (0, 2.0)], kit.slate,
-                      center=(x, y, ztop+.05), segments=24, smooth=False)
-    stub = kit.box(f'Weapon {sid} placeholder stub', (x+hr*.9, y, ztop+1.0), (hr*.9, hr*.22, 1.2), kit.slate, 0)
+                      segments=24, smooth=False)
+    stub = kit.box(f'Weapon {sid} placeholder stub', (hr*.9, 0, 1.0), (hr*.9, hr*.22, 1.2), kit.slate, 0)
     parts = [house, stub]
-    muzzles = [(x+hr*1.35, y, ztop+1.0)] if typ != 'MISSILE' else [(x+hr*.5, y+j*hr*.3, ztop+2.0) for j in (-1, 1)]
-    mz = []
-    for j, p in enumerate(muzzles):
-        e = kit.empty(f'Weapon {sid} muzzle {j+1}' if len(muzzles) > 1 else f'Weapon {sid} muzzle', p, 0, 'SINGLE_ARROW', 3)
-        mz.append(e)
+    muzzles = [(hr*1.35, 0, 1.0)] if typ != 'MISSILE' else [(hr*.5, j*hr*.3, 2.0) for j in (-1, 1)]
+    mz = [kit.empty(f'Weapon {sid} muzzle {j+1}' if len(muzzles) > 1 else f'Weapon {sid} muzzle', p, 0,
+                    'SINGLE_ARROW', 3) for j, p in enumerate(muzzles)]
+    bpy.context.view_layer.update()
     parent(parts+mz, pivot)
-    pivot.rotation_euler = (0, 0, math.radians(angle))
+    pivot.matrix_world = M @ Matrix.Translation((0, 0, ztop)) @ Matrix.Rotation(math.radians(angle), 4, 'Z')
+    bpy.context.view_layer.update()
+    p = pivot.matrix_world.translation
     RECORDS.append({'id': sid, 'mount': 'TURRET', 'size': size, 'type': typ, 'location': [x, y],
-                    'angle_deg': angle, 'arc_deg': arc, 'pivot': pivot.name, 'pivot_z': round(ztop, 2),
-                    'barbette': base.name, 'muzzles': [e.name for e in mz], 'elite_variant': ELITE.get(sid)})
+                    'angle_deg': angle, 'arc_deg': arc, 'pivot': pivot.name,
+                    'pivot_location': [round(v, 2) for v in p], 'train_axis': [round(v, 4) for v in normal],
+                    'well_depth': round(D, 2), 'barbette': base_name(sid), 'muzzles': [e.name for e in mz],
+                    'placeholder': True, 'elite_variant': ELITE.get(sid)})
     return pivot
+
+
+def base_name(sid):
+    return f'Weapon {sid} barbette'
 
 
 def hardpoint(kit, sid, loc, angle, arc, size, typ):

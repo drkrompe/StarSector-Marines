@@ -56,8 +56,8 @@ WEAPONS = {
     # The game's Vulcan is not a rotary: vulcan.wpn draws two side-by-side barrels
     # (turretOffsets y -2/+2, ALTERNATING, a separate recoil layer) over a low
     # tan cowl, narrow at the muzzle end, with a dark vent slot at the rear.
-    'vulcan':    dict(house='hand', paints={'paint': (.2, .12, .05), 'accent': (.7, .55, .32), 'plate': (.25, .25, .26)}),
-    'lightac':   dict(house='hand', paints={'paint': (.17, .185, .155), 'plate': (.42, .45, .38)}),
+    'vulcan':    dict(house='hand', paints={'paint': (.22, .12, .03), 'accent': (.7, .52, .3), 'plate': (.2, .2, .21)}),
+    'lightac':   dict(house='hand', paints={'paint': (.134, .146, .122), 'plate': (.46, .48, .42)}),
     'lightmg':   dict(house='hand', paints={'paint': (.09, .095, .1), 'plate': (.45, .46, .47),
                                              'accent': (.8, .55, .08)}),
     'none':        dict(house='dome', gun='cannon', barrels=1, calibre=.07, length=1.15),
@@ -65,13 +65,18 @@ WEAPONS = {
     'flak':      dict(house='hand', paints={'paint': (.17, .1, .06), 'accent': (.25, .025, .02), 'mark': (.87, .5, .08)}),
     'dualflak':  dict(house='hand', paints={'paint': (.19, .115, .06), 'accent': (.75, .4, .09),
                                               'accent2': (.2, .06, .04), 'mark': (.45, .06, .04)}),
-    'heavymauler':dict(house='hand'),
-    'hveldriver':dict(house='hand'),
-    'devastator':dict(house='hand'),
-    'mark9':     dict(house='hand'),
-    'hellbore':    dict(house='hand', paints={'paint': (.2, .19, .17), 'plate': (.45, .42, .38),
-                                              'accent2': (.05, .05, .055)}),
-    'hephaestus':dict(house='hand'),
+    'heavymauler':dict(house='hand', paints={'paint': (.148, .143, .105), 'accent': (.05, .048, .03),
+                                              'plate': (.67, .65, .51)}),
+    'hveldriver':dict(house='hand', paints={'paint': (.157, .143, .136), 'accent': (.5, .41, .16),
+                                             'plate': (.49, .48, .48)}),
+    'devastator':dict(house='hand', paints={'paint': (.45, .43, .5), 'plate': (.62, .6, .66),
+                                             'accent': (.158, .143, .171), 'mark': (.4, .17, .07)}),
+    'mark9':     dict(house='hand', paints={'paint': (.385, .19, .1), 'accent': (.142, .106, .102),
+                                        'plate': (.687, .637, .572), 'mark': (.5, .05, .03)}),
+    'hellbore':  dict(house='hand', paints={'paint': (.36, .31, .28), 'plate': (.58, .49, .455),
+                                           'accent2': (.05, .05, .055)}),
+    'hephaestus':dict(house='hand', paints={'paint': (.33, .23, .084), 'plate': (.67, .57, .41),
+                                             'steel': (.164, .141, .108)}),
     'needler':   dict(house='hand', paints={'paint': (.32, .26, .13), 'accent': (.2, .19, .08),
                                              'plate': (.55, .52, .42)}),
     'squall':      dict(house='hand', mcol=(.18, .18, .18),
@@ -972,10 +977,10 @@ def _house_lightac(g, f, s, r, z0):
     side of the spine, and two dark feet aft with a notch between them."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    h = 2.2*k
-    g['paint'].loft_x([(-5.0*k, section(4.0*k, z0, z0+h-.2*k, .45*k, .1*k, .35*k)),
-                       (-4.6*k, section(4.9*k, z0, z0+h, .5*k, .1*k, .4*k)),
-                       (2.2*k, section(4.9*k, z0, z0+h, .5*k, .1*k, .4*k)),
+    h = 2.6*k
+    g['paint'].loft_x([(-5.0*k, section(4.0*k, z0, z0+h-.2*k, .3*k, .1*k, .15*k)),
+                       (-4.6*k, section(4.9*k, z0, z0+h, .3*k, .1*k, .15*k)),
+                       (2.2*k, section(4.9*k, z0, z0+h, .3*k, .1*k, .15*k)),
                        (3.0*k, section(4.0*k, z0, z0+h-.25*k, .45*k, .1*k, .35*k))])
     zt = z0+h
     g['plate'].box((-1.0*k, 0, zt+.15*k), (8.4*k, 1.8*k, .35*k), .12*k)                 # spine
@@ -983,17 +988,12 @@ def _house_lightac(g, f, s, r, z0):
         for y in (3.4, 1.6, -1.6, -3.4):
             if x < -4 and abs(y) < 2:
                 continue
-            g['dark'].box((x*k, y*k, zt-.25*k), (.8*k, 1.0*k, .6*k))
-        for sy in (1, -1):
-            g['dark'].box((x*k, sy*4.95*k, zt-.7*k), (.7*k, .12*k, .9*k))               # cut through the flank
-    for x in (1.5, -1.5, -3.5):                                                         # light bands between
-        for sy in (1, -1):
-            g['plate'].box((x*k, sy*2.6*k, zt+.03*k), (.7*k, 4.0*k, .1*k), .03*k)
+            g['dark'].box((x*k, y*k, zt-.5*k), (.8*k, 1.0*k, 1.1*k))
     for sy in (1, -1):                                                                  # rear feet
         g['steel'].box((-6.0*k, sy*2.1*k, z0+.7*k), (2.6*k, 1.6*k, 1.4*k), .15*k)
         f.bolt_row(g['steel'], (-4.0*k, sy*4.6*k, zt), (2.0*k, sy*4.6*k, zt))
     g['steel'].box((-5.3*k, 0, z0+.5*k), (1.2*k, 2.6*k, 1.0*k), .1*k)
-    za = z0+1.4*k
+    za = z0+1.6*k
 
     def gun_parts(gg, za):
         gg['steel'].box((3.3*k, 0, za), (.8*k, 4.6*k, 2.4*k), .12*k)                     # mantlet
@@ -1001,7 +1001,7 @@ def _house_lightac(g, f, s, r, z0):
         for sy in (1, -1):
             gg['steel'].cyl((2.6*k, sy*2.5*k, za), .6*k, .5*k, 'Y', n=14, bevel=.06*k)   # trunnions
     return (2.6*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
-                              'barrel_scale': .8, 'muzzle_ring': True}
+                              'barrel_scale': 1.0, 'muzzle_ring': True}
 
 
 def _house_lightmg(g, f, s, r, z0):
@@ -1023,6 +1023,9 @@ def _house_lightmg(g, f, s, r, z0):
     for x in (4.3, -1.2):
         g['paint'].box((x*k, 0, z0+1.1*k), (1.0*k, 5.6*k, 1.6*k), .15*k)
     g['dark'].box((1.5*k, 0, z0+.62*k), (4.6*k, 3.6*k, .1*k))
+    g['paint'].box((5.6*k, 0, z0+1.1*k), (1.8*k, 6.0*k, 1.6*k), .2*k)                  # neck
+    for sy in (1, -1):
+        g['steel'].box((-5.6*k, sy*2.4*k, z0+.6*k), (1.6*k, 1.8*k, 1.2*k), .12*k)       # rear feet
     f.bolt_row(g['steel'], (-4.4*k, 4.0*k, z0+.62*k), (4.4*k, 4.0*k, z0+.62*k))
     f.bolt_row(g['steel'], (-4.4*k, -4.0*k, z0+.62*k), (4.4*k, -4.0*k, z0+.62*k))
     za = z0+2.2*k
@@ -1032,17 +1035,15 @@ def _house_lightmg(g, f, s, r, z0):
         gg['steel'].box((1.6*k, 0, za), (3.4*k, 2.0*k, 1.3*k), .12*k)
         gg['steel'].box((-1.0*k, 0, za-1.0*k), (2.0*k, 1.4*k, 1.0*k), .1*k)            # pintle
         rg = gg.sub('recoil 1', (1.0*k, 0, za), .1*r)
-        rg['metal'].cyl((5.4*k, 0, za), .85*k, 6.4*k, 'X', n=18, bevel=.08*k)           # jacket
-        for x in (3.4, 4.6, 5.8, 7.0):
-            rg['dark'].cyl((x*k, 0, za), .88*k, .35*k, 'X', n=18)
-        rg['metal'].cyl((11.5*k, 0, za), .5*k, 6.0*k, 'X', n=14, bevel=.04*k)           # barrel
-        rg['steel'].box((9.0*k, 0, za+.6*k), (.6*k, .3*k, .5*k), .04*k)                 # front sight
-        rg['steel'].cyl((14.6*k, 0, za), .62*k, .9*k, 'X', n=14, bevel=.05*k)           # flash hider
+        rg['metal'].cyl((7.8*k, 0, za), .95*k, 13.4*k, 'X', n=20, bevel=.08*k)          # barrel
+        for x in (9.5, 11.0, 12.5):
+            rg['dark'].cyl((x*k, 0, za), .98*k, .3*k, 'X', n=20)
+        rg['steel'].box((9.0*k, 0, za+1.0*k), (.6*k, .3*k, .4*k), .04*k)                 # front sight
+        rg['steel'].cyl((14.6*k, 0, za), 1.1*k, .9*k, 'X', n=18, bevel=.05*k)           # flash hider
         rg['dark'].cyl((15.06*k, 0, za), .3*k, .04*k, 'X', n=10)
         for sy in (1, -1):                                                              # belt chutes
-            gg['steel'].box((4.4*k, sy*1.45*k, za-.2*k), (8.0*k, .55*k, .9*k), .06*k)
-            for i in range(9):
-                gg['accent'].cyl(((.8+.9*i)*k, sy*1.45*k, za+.32*k), .2*k, .5*k, 'Y', n=8)
+            gg['steel'].box((4.4*k, sy*1.5*k, za-.3*k), (8.0*k, .6*k, .9*k), .06*k)
+            gg['accent'].box((4.4*k, sy*1.5*k, za+.2*k), (7.6*k, .45*k, .25*k), .04*k)
     return (1.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
                               'muzzles': [(15.1*k, 0, za)]}
 
@@ -1058,12 +1059,9 @@ def _house_dualflak(g, f, s, r, z0):
                          (-5.5*k, section(3.6*k, z0, z0+4.8*k, .9*k, .1*k, .5*k)),
                          (6.5*k, section(3.6*k, z0, z0+4.8*k, .9*k, .1*k, .5*k)),
                          (7.6*k, section(2.8*k, z0, z0+4.2*k, .8*k, .1*k, .5*k))])        # red spine
-    for x in (-4.5, -2.5, -.5, 1.5, 3.5, 5.5):                                          # spine ribs
-        g['dark'].box((x*k, 0, z0+4.75*k), (.5*k, 4.6*k, .3*k))
-        g['plate'].box(((x+1.0)*k, 0, z0+4.85*k), (.8*k, 4.4*k, .2*k), .06*k)
     # Tail: a trapezoid, broader forward, notched at its rear corners.
-    _plan_loft(g['paint'], [(-14.6, 3.2, 2.4), (-13.6, 3.6, 2.8), (-12.4, 4.6, 3.2), (-10.0, 5.6, 3.6),
-                            (-7.0, 5.8, 3.8)], z0, k, .7, .1, .5)
+    _plan_loft(g['paint'], [(-14.6, 2.6, 2.4), (-13.6, 3.4, 2.8), (-12.0, 4.4, 3.2), (-9.5, 5.8, 3.6),
+                            (-7.0, 7.0, 3.8)], z0, k, .7, .1, .5)
     g['accent'].box((-14.4*k, 0, z0+1.4*k), (.6*k, 5.0*k, 2.2*k), .1*k)                  # end cap
     for x in (-8.5, -10.0, -11.5):
         g['dark'].box((x*k, 0, z0+3.6*k), (.5*k, 6.0*k, .4*k))
@@ -1076,8 +1074,6 @@ def _house_dualflak(g, f, s, r, z0):
         g['steel'].loft_x(st)
         g['steel'].box((0, sy*10.6*k, z0+1.4*k), (4.2*k, 2.0*k, 2.4*k), .2*k)           # pod root
         g['dark'].box((0, sy*14.82*k, z0+1.8*k), (2.4*k, .2*k, 1.0*k))
-        g['steel'].cyl((-8.5*k, sy*9.5*k, z0+1.2*k), .55*k, 2.4*k, 'Z', n=12, bevel=.06*k)  # tail posts
-        f.bolt_row(g['steel'], (-13.0*k, sy*5.4*k, z0+3.3*k), (-7.5*k, sy*5.7*k, z0+3.7*k))
     f.hatch(g, (-11.0*k, 0, z0+3.6*k), size=min(.9, .3*r/f.u))
     za = z0+3.4*k
 
@@ -1094,16 +1090,13 @@ def _house_dualflak(g, f, s, r, z0):
             # The amber chamber: a recess in the drum's top behind the barrel, lit inside.
             gg['steel'].box((5.2*k, y, zt+.06*k), (4.4*k, 3.4*k, .16*k), .08*k)
             gg['dark'].box((5.2*k, y, zt+.02*k), (3.8*k, 2.8*k, .3*k))
-            gg['glow'].box((5.2*k, y, zt-.18*k), (3.4*k, 2.4*k, .1*k))
-            for x in (4.2, 5.2, 6.2):
-                gg['steel'].box((x*k, y, zt+.05*k), (.18*k, 2.8*k, .1*k))
+            gg['glow'].box((5.2*k, y, zt+.02*k), (3.4*k, 2.4*k, .12*k))
             gg['plate'].box((-1.5*k, y, zt+.08*k), (5.0*k, 4.0*k, .16*k), .08*k)        # raised panel
-            f.bolt_row(gg['steel'], (-3.6*k, y+1.7*k, zt+.17*k), (.6*k, y+1.7*k, zt+.17*k))
             gg['mark'].box((-6.1*k, y, za+.2*k), (.6*k, 4.4*k, 4.6*k), .1*k)            # red band aft
             for dy in (-2.6, 2.6):                                                      # prongs
                 gg['steel'].box((11.0*k, y+dy*k, za+1.2*k), (4.4*k, .8*k, 1.0*k), .1*k)
                 gg['steel'].box((13.0*k, y+dy*k, za+1.9*k), (.8*k, .8*k, 1.8*k), .1*k)
-            gg['steel'].cyl((9.6*k, y, za), 1.7*k, 1.6*k, 'X', n=20, bevel=.12*k)        # collar
+            gg['dark'].cyl((9.4*k, y, za), 1.9*k, 1.2*k, 'X', n=20, bevel=.12*k)         # collar
     return (1.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
                               'barrel_scale': .85, 'muzzle_ring': True}
 
@@ -1116,40 +1109,39 @@ def _house_needler(g, f, s, r, z0):
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     H = 6.2
-    plan = [(-9.0, 9.0, H-1.6), (-8.0, 10.0, H-.9), (-7.0, 10.6, H-.4), (-1.0, 11.0, H), (2.0, 10.4, H),
+    plan = [(-9.0, 10.4, H-1.6), (-8.4, 11.4, H-.9), (-7.0, 11.8, H-.4), (-1.0, 11.6, H), (2.0, 10.6, H),
             (4.0, 9.6, H-.2), (6.0, 9.0, H-.5), (7.6, 8.6, H-.9)]
     _plan_loft(g['paint'], plan, z0, k, 1.4, .1, .9)
     zt = z0+H*k
-    for x in (6.0, 4.6, 3.2, 1.8, .4):                                                  # ribbed spine
-        g['plate'].box((x*k, 0, zt+.2*k), (.8*k, 7.4*k, .5*k), .15*k)
-    g['plate'].box((-3.5*k, 0, zt+.3*k), (5.0*k, 6.0*k, .7*k), .25*k)                  # receiver hump
-    g['steel'].box((-3.5*k, 0, zt+.7*k), (3.6*k, 3.2*k, .3*k), .12*k)
+    for i, x in enumerate((6.0, 4.4, 2.8, 1.2, -.4, -2.0, -3.6, -5.2)):                  # ribbed spine
+        g['plate'].box((x*k, 0, zt+.2*k), (.8*k, (7.4-.35*i)*k, .5*k), .15*k)
+    g['steel'].box((7.4*k, 0, zt+.25*k), (1.6*k, 4.0*k, .7*k), .2*k)                   # receiver hump
     for sy in (1, -1):
-        for x in (-2.0, -4.0):                                                          # flank vents
-            g['dark'].box((x*k, sy*6.4*k, zt-.15*k), (1.0*k, 3.0*k, .5*k))
-            g['steel'].box((x*k, sy*6.4*k, zt+.05*k), (.25*k, 3.0*k, .1*k))
+        st = []                                                                         # olive side armour
+        for x, w, h in ((-8.4, 1.4, H-1.6), (-7.0, 2.4, H-.6), (1.0, 2.6, H-.4), (2.6, 1.6, H-.9)):
+            loop = [(sy*9.4*k+yy, zz) for yy, zz in section(w*k, z0+.8*k, z0+h*k+.3*k, .6*k, .1*k, .5*k)]
+            st.append((x*k, loop if sy > 0 else loop[::-1]))
+        g['accent'].loft_x(st)
+        g['dark'].box((-2.8*k, sy*11.3*k, z0+1.0*k), (8.0*k, .5*k, 1.2*k), .1*k)
         # Ear lobe: a short rounded olive lobe at the front corner.
         st = []
         for x, w, h in ((6.0, 1.0, H-.8), (7.6, 1.6, H), (9.2, 1.4, H+.4), (10.6, .7, H+.2)):
             loop = [(sy*7.6*k+yy, zz) for yy, zz in section(w*k, z0, z0+h*k, .6*k, .1*k, .4*k)]
             st.append((x*k, loop if sy > 0 else loop[::-1]))
         g['accent'].loft_x(st)
-        f.seam(g['dark'], (0, sy*8.6*k, zt-.4*k), 12.0*k, 'X', 'Y')
-        f.bolt_row(g['steel'], (-7.0*k, sy*9.6*k, zt-.5*k), (4.0*k, sy*9.6*k, zt-.5*k))
     # Rear skirt: a near-black serrated band, full width.
-    g['dark'].box((-9.4*k, 0, z0+1.6*k), (2.4*k, 20.0*k, 3.2*k), .3*k)
-    for y in range(-9, 10, 2):
-        g['steel'].box((-10.7*k, y*k, z0+1.4*k), (.8*k, 1.0*k, 2.4*k), .1*k)
-    f.hatch(g, (-6.0*k, 0, zt), size=min(.9, .3*r/f.u))
+    g['dark'].box((-9.2*k, 0, z0+(H-1.8)/2*k), (1.4*k, 21.6*k, (H-1.8)*k), .3*k)
+    for y in range(-10, 11, 2):
+        g['dark'].box((-9.95*k, y*k, z0+.8*k), (.3*k, 1.0*k, 1.6*k))
     za = z0+3.6*k
 
     def gun_parts(gg, za):
-        gg['steel'].box((8.2*k, 0, za), (1.0*k, 9.0*k, 3.4*k), .15*k)                  # mantlet
         for b in sp['barrels']:
+            gg['dark'].box((8.0*k, b['y']*k, za), (1.6*k, 3.8*k, 3.8*k), .2*k)            # breech slot
             gg['plate'].cyl((9.6*k, b['y']*k, za), 1.6*k, 2.0*k, 'X', n=22, bevel=.12*k)  # breech collars
             gg['dark'].cyl((10.62*k, b['y']*k, za), 1.1*k, .05*k, 'X', n=20)
     return (6.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
-                              'muzzle_ring': True}
+                              'muzzle_ring': True, 'barrel_scale': .8}
 
 
 def _house_squall(g, f, s, r, z0):
@@ -1179,11 +1171,9 @@ def _house_squall(g, f, s, r, z0):
             f.bolt_row(g['steel'], ((x-1.5)*k, sy*16.4*k, z0+4.0*k), ((x+1.5)*k, sy*16.4*k, z0+4.0*k))
     # Rear housing: dark, louvred on top, a pale-blue band, four feet aft.
     g['paint'].box((-8.4*k, 0, z0+3.0*k), (8.4*k, 20.0*k, 3.6*k), .3*k)
-    for i, y in enumerate((-7.2, -2.4, 2.4, 7.2)):
-        g['dark'].box((-6.6*k, y*k, z0+4.82*k), (3.0*k, 3.6*k, .1*k))
-        for j in range(3):
-            g['steel'].box(((-7.6+j)*k, y*k, z0+4.9*k), (.25*k, 3.4*k, .12*k))
-    g['accent'].box((-11.2*k, 0, z0+3.6*k), (2.0*k, 22.0*k, 1.4*k), .2*k)               # pale-blue band
+    g['accent'].box((-10.2*k, 0, z0+4.9*k), (3.4*k, 20.4*k, .6*k), .2*k)               # pale-blue band
+    for y in (-7.2, -2.4, 2.4, 7.2):
+        g['dark'].box((-10.2*k, y*k, z0+5.2*k), (2.6*k, 1.2*k, .1*k))
     for y in (-7.5, -2.5, 2.5, 7.5):
         g['steel'].box((-13.4*k, y*k, z0+1.4*k), (1.6*k, 1.2*k, 2.8*k), .12*k)
     # Yoke cheeks carrying the trunnions.
@@ -1201,16 +1191,17 @@ def _house_squall(g, f, s, r, z0):
         zb, zt = za-2.9*k, za+2.9*k
         zr = za-.2*k                                                                        # rocket axis
         gg['paint'].box(((x0+x1)/2, 0, zb+.5*k), (x1-x0, 2*half, 1.0*k), .15*k)            # floor
-        gg['paint'].box(((x0+x1)/2, 0, zr-1.3*k), (x1-x0-.6*k, 2*half-1.0*k, .4*k))        # cell floors
+        gg['dark'].box(((x0+x1)/2, 0, zr-1.3*k), (x1-x0-.6*k, 2*half-1.0*k, .4*k))         # cell floors
         for sy in (1, -1):                                                                # side walls
             gg['paint'].box(((x0+x1)/2, sy*(half-.6*k), (zb+zt)/2), (x1-x0, 1.2*k, zt-zb), .2*k)
+            gg['accent'].box(((x0+x1)/2, sy*(half-.6*k), zt-.1*k), (x1-x0, 1.4*k, .4*k), .1*k)
             f.bolt_row(gg['steel'], (x0+1.0*k, sy*(half+.01*k), zt-.6*k), (x1-1.0*k, sy*(half+.01*k), zt-.6*k),
                        axis='Y', spacing=1.2)
         for y in (6.0, 2.0, -2.0, -6.0):                                                  # cell walls
             gg['accent'].box(((x0+x1)/2+.5*k, y*k, (zr-1.1*k+zt)/2), (x1-x0-1.0*k, .5*k, zt-zr+1.1*k), .06*k)
-            for x in (2.0, 9.0, 16.0):                                                    # retaining rails
-                gg['accent'].box((x*k, y*k, zt-.2*k), (.6*k, 4.0*k, .3*k), .05*k)
+
         gg['accent'].box((x1-1.4*k, 0, zt-.3*k), (2.8*k, 2*half-.4*k, .8*k), .15*k)       # front lip
+        gg['accent'].box((7.8*k, 0, zt-.2*k), (1.0*k, 2*half-.4*k, .5*k), .08*k)          # cross-rail
         gg['plate'].box((x0+1.6*k, 0, (zb+zt)/2+.3*k), (1.2*k, 2*half-2.0*k, zt-zb), .12*k)  # tail plate
         for y in (8.0, 4.0, 0.0, -4.0, -8.0):
             gg['steel'].box((x1-.1*k, y*k, zr), (.3*k, 3.6*k, 3.6*k), .1*k)               # muzzle cap
@@ -1263,6 +1254,11 @@ def _house_hurricane(g, f, s, r, z0):
     g['plate'].cyl((-2.0*k, 0, z0+hd+1.7*k), 3.0*k, .5*k, 'Z', n=32, bevel=.12*k)
     f.hatch(g, (-2.0*k, 0, z0+hd+1.95*k), size=min(.9, .2*r/f.u))
     g['accent'].box((-11.0*k, 0, z0+hd-.25*k), (2.4*k, 9.0*k, .4*k), .1*k)              # rear marks
+    g['plate'].box((8.0*k, 9.6*k, z0+hd+.6*k), (3.2*k, 3.2*k, 2.0*k), .25*k)            # square housing
+    g['dark'].box((8.0*k, 9.6*k, z0+hd+1.62*k), (2.0*k, 2.0*k, .06*k))
+    g['steel'].box((6.0*k, -10.4*k, z0+hd+.4*k), (6.0*k, 2.6*k, 1.6*k), .2*k)           # ladder unit
+    for x in (3.8, 5.0, 6.2, 7.4, 8.6):
+        g['dark'].box((x*k, -10.4*k, z0+hd+1.22*k), (.5*k, 2.2*k, .06*k))
     for sy in (1, -1):                                                                    # rear feet
         g['steel'].box((-14.4*k, sy*4.2*k, z0+.9*k), (1.6*k, 2.4*k, 1.8*k), .12*k)
     za = z0+hd+1.1*k+4.8*k                                    # the MIRV's axis, clear of the hub
@@ -1329,21 +1325,12 @@ def _house_heavyac2(g, f, s, r, z0):
         g['plate'].loft_x(st)
         g['dark'].cyl(((9.62 if y == 0 else 9.22)*k, y*k, za), 1.25*k, .06*k, 'X', n=24)  # sleeve port
         # Rib: seated in the roof, running aft from the housing.
-        g['plate'].box((-3.6*k, y*k, zt+.15*k), (12.8*k, 1.6*k, .7*k), .2*k)
+        g['plate'].box((-3.6*k, y*k, zt+.02*k), (12.8*k, 1.6*k, .5*k), .2*k)
         for x in (-3.5, -5.5, -7.5):                                                   # slots beside it
             for dy in (-1.9, 1.9):
                 if abs(y+dy) > 8.0:
                     continue
-                g['steel'].box((x*k, (y+dy)*k, zt+.04*k), (1.3*k, 1.3*k, .12*k), .04*k)
-                g['dark'].box((x*k, (y+dy)*k, zt+.02*k), (.95*k, .95*k, .3*k))
-    for x in (-9.6, .4):                                                                  # roof seams
-        f.seam(g['dark'], (x*k, 0, zt+.005*k), 18.0*k, 'Y', 'X')
-    if f.near:
-        for x, w, _ in plan[2:-2]:
-            for sy in (1, -1):
-                g['steel'].cyl((x*k, sy*(w-1.3)*k, zt-.02*k), .08*f.u, .06*f.u, 'Z', n=6)
-        for sy in (1, -1):
-            f.bolt_row(g['steel'], (-8.0*k, sy*8.0*k, zt), (1.0*k, sy*8.0*k, zt))
+                g['dark'].box((x*k, (y+dy)*k, zt-.4*k), (.95*k, .95*k, .9*k))
 
     def gun_parts(gg, za):
         pass
@@ -1390,21 +1377,18 @@ def _house_flak2(g, f, s, r, z0):
         gg['accent'].loft_x(st)
         # The aperture: a recess cut into the core's top and front face, lit yellow inside.
         gg['dark'].box((7.4*k, 0, zt-.1*k), (3.6*k, 3.8*k, .6*k))
-        gg['glow'].box((7.2*k, 0, zt-.5*k), (3.0*k, 3.2*k, .2*k))
+        gg['glow'].box((7.4*k, 0, zt-.05*k), (2.8*k, 3.0*k, .2*k))
         gg['dark'].box((9.15*k, 0, zt-1.1*k), (.3*k, 3.8*k, 1.6*k))
         gg['glow'].box((9.0*k, 0, zt-1.1*k), (.2*k, 3.2*k, 1.2*k))
-        for dy in (-1.0, 0.0, 1.0):
-            gg['accent'].box((7.4*k, dy*k, zt+.05*k), (3.6*k, .25*k, .2*k))
+        for dy in (-.8, .8):
+            gg['dark'].box((7.4*k, dy*k, zt+.1*k), (3.6*k, .2*k, .1*k))
         gg['dark'].box((-.95*k, 0, za+.6*k), (.3*k, 4.0*k, 2.6*k))                        # breech
-        for x in (1.0, 3.0, 5.0):
-            f.seam(gg['dark'], (x*k, 0, zt+.005*k), 8.0*k, 'Y', 'X')
         for sy in (1, -1):
-            f.bolt_row(gg['steel'], (.5*k, sy*4.62*k, zt-.5*k), (8.0*k, sy*4.62*k, zt-.5*k), axis='Y')
-            # Prong: a dark forked bracket off the core's front corner, flaring out.
-            rot = Matrix.Rotation(-sy*.26, 4, 'Z')
-            gg['steel'].box((11.0*k, sy*4.6*k, za+1.6*k), (4.0*k, 1.4*k, 1.2*k), .12*k, rot=rot)
-            gg['steel'].box((12.9*k, sy*5.2*k, za+2.6*k), (1.2*k, 1.2*k, 3.0*k), .12*k, rot=rot)
-            gg['dark'].box((12.9*k, sy*5.2*k, za+3.5*k), (.3*k, .6*k, 1.0*k), rot=rot)
+            # Prong: a dark forked bracket off the core's front face, flaring out.
+            rot = Matrix.Rotation(sy*.26, 4, 'Z')
+            gg['steel'].box((10.6*k, sy*3.4*k, za+1.6*k), (3.6*k, 1.4*k, 1.4*k), .12*k, rot=rot)
+            gg['steel'].box((12.2*k, sy*3.85*k, za+2.6*k), (1.3*k, 1.3*k, 3.2*k), .12*k, rot=rot)
+            gg['dark'].box((12.2*k, sy*3.85*k, za+3.7*k), (.35*k, .7*k, 1.0*k), rot=rot)
             gg['steel'].cyl((3.5*k, sy*4.85*k, za), .9*k, .5*k, 'Y', n=16, bevel=.08*k)   # trunnions
         gg['plate'].cyl((18.6*k, 0, za), 1.75*k, 2.0*k, 'X', n=24, bevel=.12*k)          # muzzle collar
     return (3.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True}
@@ -1419,12 +1403,11 @@ def _house_vulcan(g, f, s, r, z0):
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     H = 2.6
-    plan = [(-3.0, 3.6, H-.3), (-2.8, 4.9, H), (1.9, 4.9, H), (2.1, 4.1, H-.1), (3.0, 4.0, H-.15),
-            (3.2, 3.1, H-.3), (5.0, 2.8, H-.5)]
+    plan = [(-3.0, 3.6, H-.3), (-2.6, 4.6, H-.1), (-1.6, 5.0, H), (1.4, 5.0, H), (2.4, 4.4, H-.1),
+            (3.2, 3.6, H-.2), (4.2, 3.0, H-.35), (5.0, 2.4, H-.5)]
     _plan_loft(g['paint'], plan, z0, k, .5, .08, .4)
     zt = z0+H*k
     for sy in (1, -1):
-        g['plate'].box((-.45*k, sy*4.55*k, z0+(H-.2)/2*k), (4.6*k, .8*k, (H-.2)*k), .15*k)  # grey cheeks
         # Vent pocket: sunk into the roof, framed by a raised steel lip, louvred.
         g['steel'].box((-1.5*k, sy*3.0*k, zt+.06*k), (2.6*k, 2.0*k, .14*k), .05*k)
         g['dark'].box((-1.5*k, sy*3.0*k, zt+.02*k), (2.1*k, 1.5*k, .3*k))
@@ -1433,12 +1416,13 @@ def _house_vulcan(g, f, s, r, z0):
         f.bolt_row(g['steel'], (-2.4*k, sy*4.3*k, zt), (1.6*k, sy*4.3*k, zt))
         g['plate'].box((1.0*k, sy*2.6*k, zt+.3*k), (1.2*k, .9*k, .6*k), .1*k)            # sight housings
         g['glass'].box((1.62*k, sy*2.6*k, zt+.38*k), (.05*k, .55*k, .3*k))
-    g['accent'].box((1.0*k, 0, zt+.12*k), (7.6*k, 2.2*k, .3*k), .12*k)                 # light spine
+    _plan_loft(g['accent'], [(-2.6, 1.0, .3), (-1.0, 1.6, .55), (2.4, 1.7, .6), (4.4, 1.2, .4)], zt-.05*k, k,
+               .3, 0, .25)                                                                 # raised bright spine
     f.seam(g['dark'], (-.6*k, 0, zt+.005*k), 9.4*k, 'Y', 'X')
     # Rear block: grey, full width of the sprite's tail, tan tines either side of a notch.
-    g['plate'].box((-4.5*k, 0, z0+.95*k), (3.2*k, 6.0*k, 1.9*k), .2*k)
+    g['plate'].box((-4.4*k, 0, z0+.95*k), (3.0*k, 6.0*k, 1.9*k), .2*k)
     for sy in (1, -1):
-        g['paint'].box((-4.5*k, sy*1.5*k, z0+1.1*k), (3.4*k, 1.0*k, 2.0*k), .12*k)
+        g['paint'].box((-4.5*k, sy*1.5*k, z0+1.0*k), (3.2*k, 1.0*k, 2.0*k), .12*k)
     g['dark'].box((-4.45*k, 0, z0+1.2*k), (1.2*k, 1.8*k, 1.6*k))
     g['plate'].box((-5.6*k, 0, z0+.8*k), (.9*k, 2.2*k, 1.4*k), .1*k)
     za = z0+1.3*k
@@ -1453,46 +1437,55 @@ def _house_vulcan(g, f, s, r, z0):
                               'barrel_scale': .78, 'muzzle_ring': True}
 
 def _house_mark9(g, f, s, r, z0):
-    """heavy_assault_cannon_turret_base.png: a broad slab house, mauve side
-    cheeks, two orange roof plates split by a dark centre seam with red marks at
-    their front, a cream arched crown over the breeches, a recessed ladder up
-    the rear between orange blocks, and a thin post at each front corner."""
+    """heavy_assault_cannon_turret_base.png: a broad copper house; copper side
+    blocks forward and rounded mauve lobes aft down both flanks; a darker seam
+    down the roof's centre with red marks forward; a cream collar arching under
+    the barrel roots; a recessed ladder well aft of it; and a plain post at each
+    front corner."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    H = 6.4
-    plan = [(-17.5, 9.0, H-2.4), (-16.0, 17.6, H-1.4), (-12.0, 18.6, H-.6), (-9.5, 20.6, H-.2), (6.5, 20.6, H),
-            (8.6, 19.0, H-.6), (9.6, 17.6, H-1.2)]
-    _plan_loft(g['paint'], plan, z0, k, 1.0, .1, .6)
+    H = 8.0
+    _plan_loft(g['paint'], [(-17.5, 6.0, H-3.0), (-16.5, 9.0, H-2.0), (-15.0, 12.0, H-1.2), (-13.0, 13.4, H-.4),
+                            (5.0, 13.4, H), (7.0, 12.4, H-.6), (8.0, 11.0, H-1.2)], z0, k, 1.3, .1, .8)
     zt = z0+H*k
     for sy in (1, -1):
-        g['accent'].box((-4.0*k, sy*17.2*k, z0+(H-1.2)/2*k+.3*k), (24.0*k, 6.6*k, (H-1.0)*k), .5*k)   # cheeks
-        g['paint'].box((5.0*k, sy*7.6*k, zt+.3*k), (5.6*k, 8.8*k, .6*k), .2*k)                     # roof plates
-        g['mark'].box((7.4*k, sy*9.0*k, zt+.62*k), (.9*k, 2.0*k, .06*k))                           # red marks
-        g['steel'].box((3.4*k, sy*7.5*k, zt+.66*k), (.6*k, 7.4*k, .12*k))
-        g['paint'].box((-10.5*k, sy*7.6*k, zt+.4*k), (10.0*k, 7.4*k, .8*k), .25*k)                # ladder blocks
-        f.bolt_row(g['steel'], (-15.0*k, sy*14.0*k, zt-.1*k), (5.0*k, sy*14.0*k, zt-.1*k))
-        # Front corner post: a thin mast with a dark tip.
-        g['steel'].box((13.5*k, sy*15.4*k, zt-1.0*k), (8.0*k, 1.2*k, 1.0*k), .1*k)
-        g['steel'].cyl((17.2*k, sy*15.4*k, zt+.2*k), .5*k, 2.6*k, 'Z', n=12, bevel=.06*k)
-        g['dark'].cyl((17.2*k, sy*15.4*k, zt+1.55*k), .35*k, .2*k, 'Z', n=10)
-    f.seam(g['dark'], (5.0*k, 0, zt+.62*k), 5.6*k, 'X', 'Y')
-    # Crown: a cream arch over both breeches, dark mouth under it.
-    g['plate'].box((-2.0*k, 0, zt+.7*k), (5.4*k, 14.6*k, 1.4*k), .4*k)
-    g['dark'].box((-4.7*k, 0, zt+.5*k), (.4*k, 8.0*k, 1.0*k))
-    # Ladder: a recessed channel with rungs.
-    g['dark'].box((-11.0*k, 0, zt-.05*k), (11.0*k, 6.4*k, .3*k))
-    for i in range(6):
-        g['steel'].box(((-15.5+1.8*i)*k, 0, zt+.12*k), (.5*k, 6.0*k, .2*k))
+        st = []                                                                           # copper side block
+        for x, w, h in ((1.6, 1.6, H-2.2), (2.6, 2.6, H-1.2), (8.6, 2.6, H-1.4), (9.8, 1.6, H-2.4)):
+            loop = [(sy*17.4*k+yy, zz) for yy, zz in section((w+.8)*k, z0, z0+h*k, .9*k, .1*k, .7*k)]
+            st.append((x*k, loop if sy > 0 else loop[::-1]))
+        g['paint'].loft_x(st)
+        st = []                                                                           # mauve rear lobe
+        for x, w, h in ((-14.2, 1.4, H-3.4), (-12.5, 2.6, H-2.4), (-7.0, 3.2, H-1.8), (-1.5, 3.0, H-2.0),
+                        (.8, 1.8, H-2.8)):
+            loop = [(sy*17.8*k+yy, zz) for yy, zz in section((w+.9)*k, z0, z0+h*k, 1.2*k, .1*k, 1.0*k)]
+            st.append((x*k, loop if sy > 0 else loop[::-1]))
+        g['accent'].loft_x(st)
+        g['dark'].box((-3.0*k, sy*13.9*k, z0+(H-2.0)/2*k), (24.0*k, 1.6*k, (H-2.0)*k), .2*k)  # web to the hull
+        for x in (-4.5, -9.5):                                                            # plate overlaps
+            g['dark'].box((x*k, sy*17.6*k, z0+(H-1.9)*k), (.4*k, 5.8*k, .3*k))
+        g['mark'].box((6.6*k, sy*9.0*k, zt+.02*k), (1.0*k, 2.2*k, .08*k))                 # red marks
+        f.bolt_row(g['steel'], (-13.0*k, sy*12.6*k, zt-.3*k), (4.0*k, sy*12.6*k, zt-.3*k))
+        # Corner post: a plain upright stub on a footing.
+        g['steel'].box((13.0*k, sy*15.6*k, z0+1.4*k), (3.0*k, 2.4*k, 2.8*k), .3*k)
+        g['steel'].cyl((14.0*k, sy*15.6*k, z0+(H-2.0)/2*k+1.0*k), 2.0*k, (H-2.0)*k, 'Z', n=20, bevel=.2*k)
+        g['dark'].cyl((14.0*k, sy*15.6*k, z0+H*k-.0*k), 1.2*k, .2*k, 'Z', n=16)
+    g['accent'].box((1.0*k, 0, zt+.08*k), (12.0*k, 4.8*k, .2*k), .06*k)                  # centre seam
+    # Cream collar: arched under the barrel roots.
+    g['plate'].box((-3.0*k, 0, zt+.5*k), (3.2*k, 17.6*k, 1.0*k), .4*k)
+    g['plate'].box((-3.0*k, 0, zt+1.1*k), (2.4*k, 10.0*k, .6*k), .3*k)
+    # Ladder well: a recess with rungs.
+    g['dark'].box((-10.4*k, 0, zt-.1*k), (9.6*k, 8.0*k, .4*k))
+    for i in range(5):
+        g['steel'].box(((-14.2+1.9*i)*k, 0, zt+.02*k), (.5*k, 7.6*k, .2*k))
     for sy in (1, -1):
-        g['steel'].box((-11.0*k, sy*3.1*k, zt+.2*k), (11.0*k, .3*k, .4*k))
-    g['plate'].box((-17.0*k, 0, z0+(H-2.4)/2*k), (1.0*k, 12.0*k, (H-2.6)*k), .2*k)              # rear plate
-    za = z0+3.6*k
+        g['steel'].box((-10.4*k, sy*3.9*k, zt+.1*k), (9.6*k, .4*k, .4*k))
+    za = z0+4.6*k
 
     def gun_parts(gg, za):
-        gg['steel'].box((8.4*k, 0, za), (2.2*k, 20.0*k, 4.6*k), .25*k)                          # mantlet
-        for b in sp['barrels']:
-            gg['dark'].cyl((9.52*k, b['y']*k, za), 3.2*k, .05*k, 'X', n=24)
-    return (6.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True}
+        gg['steel'].box((8.6*k, 0, za), (2.0*k, 22.0*k, 5.0*k), .3*k)                      # mantlet
+    return (6.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
+                              'barrel_scale': 1.0, 'muzzle_ring': True}
+
 
 def _house_hellbore(g, f, s, r, z0):
     """hellbore_cannon_turret_base.png: an asymmetric heavy house - a square
@@ -1596,89 +1589,113 @@ def _house_hephaestus(g, f, s, r, z0):
     return (8.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True}
 
 def _house_devastator(g, f, s, r, z0):
-    """devastator_turret_base.png: a tall silver block with three raised cradle
-    ribs on the barrel lines and dark troughs between, bronze side brackets,
-    two sight posts forward between the barrels, and two rear lobes split by a
-    gap, each striped and marked yellow at its outer edge."""
+    """devastator_turret_base.png: a tall lavender-grey block with three raised
+    cradle ribs on the barrel lines and deep dark trenches between, toothed
+    blue-grey brackets low on both flanks, two rear lobes edged in orange with
+    a small dark centre lobe between them, and a blue-grey skirt; the three
+    barrels carry orange coil rings and forked muzzle clamps."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     H = 7.0
-    _plan_loft(g['paint'], [(-11.6, 12.0, H-.5), (-9.5, 13.0, H), (6.5, 13.0, H), (8.6, 12.2, H-.6)], z0, k,
-               1.0, .1, .7)
-    zt = z0+H*k
+    plan = [(-11.6, 12.0, H-.5), (-9.5, 13.0, H), (6.5, 13.0, H), (8.8, 12.4, H-.6)]
+    _plan_loft(g['paint'], plan, z0+1.4*k, k, 1.0, .1, .7)
+    _plan_loft(g['accent'], [(x, w+.15, 1.6) for x, w, h in plan], z0, k, .3, .05, .1)     # skirt
+    zt = z0+(H+1.4)*k
     for y in (9.0, 0.0, -9.0):                                                              # cradle ribs
-        g['plate'].box((-1.5*k, y*k, zt+.5*k), (19.0*k, 4.0*k, 1.0*k), .3*k)
-        g['dark'].box((-1.5*k, y*k, zt+1.02*k), (16.0*k, 1.2*k, .06*k))
-    for y in (4.5, -4.5):                                                                   # troughs
-        g['dark'].box((-1.5*k, y*k, zt-.1*k), (18.0*k, 4.6*k, .4*k))
-        g['steel'].box((11.6*k, y*k, zt-1.6*k), (6.0*k, 1.4*k, 1.2*k), .1*k)               # sight posts
-        g['steel'].box((14.2*k, y*k, zt-.4*k), (1.0*k, 1.0*k, 3.0*k), .1*k)
+        g['plate'].box((-1.0*k, y*k, zt+.5*k), (19.4*k, 4.0*k, 1.0*k), .3*k)
+        g['dark'].box((-1.0*k, y*k, zt+1.02*k), (16.0*k, 1.0*k, .06*k))
+    for y in (4.5, -4.5):                                                                   # trenches
+        g['dark'].box((-1.0*k, y*k, zt-.5*k), (18.6*k, 4.8*k, 1.2*k))
     for sy in (1, -1):
-        g['accent'].box((-4.5*k, sy*15.0*k, z0+3.0*k), (6.0*k, 4.2*k, 4.0*k), .4*k,
-                        rot=Matrix.Rotation(sy*.2, 4, 'Z'))                                 # bronze brackets
-        g['accent'].box((-1.0*k, sy*15.4*k, z0+4.2*k), (2.0*k, 2.4*k, 2.4*k), .3*k)
+        # Toothed bracket, low on the flank, webbed into the hull.
+        g['accent'].box((-3.8*k, sy*14.4*k, z0+1.8*k), (8.6*k, 3.0*k, 3.6*k), .3*k)
+        g['accent'].box((-3.8*k, sy*16.2*k, z0+1.4*k), (7.6*k, 1.6*k, 2.8*k), .3*k)
+        for x in (-6.8, -4.8, -2.8, -.8):
+            g['dark'].box((x*k, sy*17.0*k, z0+1.4*k), (.6*k, .2*k, 2.0*k))
+        g['mark'].box((-5.2*k, sy*15.2*k, z0+3.62*k), (2.0*k, 1.6*k, .1*k))
         # Rear lobe.
         st = []
-        for x, w, h in ((-21.4, 3.0, H-3.4), (-19.0, 4.4, H-2.4), (-15.0, 4.6, H-1.6), (-11.6, 4.4, H-1.4)):
+        for x, w, h in ((-21.4, 3.0, H-3.0), (-19.0, 4.4, H-2.0), (-15.0, 4.6, H-1.2), (-11.6, 4.4, H-1.0)):
             loop = [(sy*7.0*k+yy, zz) for yy, zz in section(w*k, z0, z0+h*k, 1.0*k, .1*k, .6*k)]
             st.append((x*k, loop if sy > 0 else loop[::-1]))
         g['paint'].loft_x(st)
-        g['plate'].box((-15.0*k, sy*7.0*k, z0+(H-1.5)*k), (1.0*k, 8.0*k, .3*k), .1*k)
-        g['mark'].box((-14.0*k, sy*10.4*k, z0+(H-2.4)*k), (2.6*k, 1.0*k, 1.4*k), .1*k)
-        f.bolt_row(g['steel'], (-9.0*k, sy*12.9*k, zt-.5*k), (6.0*k, sy*12.9*k, zt-.5*k), axis='Y')
-    za = z0+4.0*k
+        g['plate'].box((-15.0*k, sy*7.0*k, z0+(H-1.1)*k), (1.0*k, 8.0*k, .3*k), .1*k)
+        g['mark'].box((-15.5*k, sy*10.8*k, z0+(H-2.4)*k), (6.0*k, .8*k, 1.6*k), .1*k)       # orange edge
+        f.bolt_row(g['steel'], (-9.0*k, sy*13.05*k, zt-1.0*k), (6.0*k, sy*13.05*k, zt-1.0*k), axis='Y')
+    st = []                                                                                   # centre lobe
+    for x, w, h in ((-15.0, 1.6, H-3.4), (-14.0, 2.6, H-2.8), (-11.6, 2.8, H-2.4)):
+        st.append((x*k, section(w*k, z0, z0+h*k, .7*k, .1*k, .5*k)))
+    g['accent'].loft_x(st)
+    za = z0+5.0*k
 
     def gun_parts(gg, za):
-        gg['steel'].box((8.4*k, 0, za), (1.6*k, 26.0*k, 7.0*k), .3*k)                          # mantlet
+        gg['steel'].box((8.8*k, 0, za), (1.6*k, 28.0*k, 7.0*k), .3*k)                         # mantlet
         for b in sp['barrels']:
             y = b['y']*k
-            for x in (11.0, 13.5, 16.0):                                                       # orange bands
-                gg['mark'].cyl((x*k, y, za), 3.25*k, 1.0*k, 'X', n=24, bevel=.1*k)
-            gg['steel'].box((20.8*k, y, za), (3.6*k, 8.0*k, 8.0*k), .4*k)                     # square muzzle
-            gg['dark'].cyl((22.62*k, y, za), 1.6*k, .06*k, 'X', n=20)
+            for i, x in enumerate((10.6, 12.2, 13.8, 15.4)):                                  # coil rings
+                gg['mark'].cyl((x*k, y, za), 2.7*k, 1.1*k, 'X', n=24, bevel=.1*k)
+            # Forked clamp: two jaws either side of a centre slot, on a back plate.
+            gg['steel'].box((19.0*k, y, za), (1.2*k, 6.4*k, 6.4*k), .2*k)
+            for dy in (-2.2, 2.2):
+                gg['steel'].box((21.0*k, y+dy*k, za), (3.2*k, 2.0*k, 6.4*k), .3*k)
     return (6.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True}
 
+
 def _house_heavymauler(g, f, s, r, z0):
-    """assault_chaingun_turret_base.png (the heavy mauler's art): a broad cream
-    armoured mask, a bright shoulder band across its front, a dark receiver
-    window, a tapering chin aft, two grey stubs at the front corners, and the
-    long main barrel with its muzzle brake; the gun group above carries the two
-    jacketed side tubes and the coil-spring buffer drawn over the base."""
+    """assault_chaingun_turret_base.png (the heavy mauler's art): an olive-grey
+    egg-shaped house, a cream breech block across its front between dark
+    cheeks, small lugs at the front corners, raised dark-olive housings down
+    both flanks, and the fixed main barrel with its slotted muzzle brake; the
+    gun group carries two jacketed side tubes level with the main barrel and
+    the ribbed recoil spring lying in a well along the rear deck."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    H = 4.6
-    _plan_loft(g['paint'], [(-11.4, 3.2, H-2.0), (-9.5, 6.0, H-1.4), (-7.5, 8.4, H-.8), (-5.5, 10.2, H-.3),
-                            (3.5, 10.4, H), (4.6, 9.4, H-.4)], z0, k, .9, .1, .7)
+    H = 5.0
+    plan = [(-11.8, 5.6, H-2.0), (-11.0, 7.2, H-1.4), (-10.0, 8.4, H-.9), (-9.0, 9.4, H-.5), (-7.5, 10.2, H-.2),
+            (-5.5, 10.6, H), (2.0, 11.0, H), (3.5, 10.6, H-.2), (4.6, 9.8, H-.5), (5.2, 8.6, H-.9)]
+    _plan_loft(g['paint'], plan, z0, k, 1.2, .1, .8)
     zt = z0+H*k
-    g['plate'].box((3.0*k, 0, zt+.2*k), (3.2*k, 10.0*k, .8*k), .3*k)                         # shoulder band
-    g['dark'].box((-3.8*k, 0, zt-.05*k), (2.2*k, 3.0*k, .3*k))                               # receiver window
+    g['plate'].box((3.0*k, 0, zt+.3*k), (4.0*k, 9.4*k, .8*k), .3*k)                      # cream breech block
     for sy in (1, -1):
-        g['accent'].box((-1.0*k, sy*7.0*k, zt+.15*k), (8.0*k, 3.0*k, .4*k), .15*k)
-        g['dark'].box((1.2*k, sy*4.0*k, zt+.02*k), (1.6*k, 1.0*k, .1*k))
-        g['steel'].box((7.0*k, sy*7.0*k, z0+(H-1.0)*k), (3.4*k, 1.6*k, 1.4*k), .15*k)       # stubs
-        f.bolt_row(g['steel'], (-6.0*k, sy*8.6*k, zt-.4*k), (3.0*k, sy*9.4*k, zt-.4*k))
-    # The main barrel is part of the base sprite: fixed, with its muzzle brake.
-    g['metal'].cyl((10.5*k, 0, z0+2.6*k), 1.1*k, 13.0*k, 'X', n=20, bevel=.1*k)
-    g['metal'].box((16.2*k, 0, z0+2.6*k), (2.4*k, 6.6*k, 1.6*k), .2*k)
-    g['dark'].box((16.2*k, 0, z0+2.6*k), (.8*k, 6.8*k, .8*k))
-    za = zt+1.6*k
+        g['dark'].box((3.0*k, sy*6.6*k, zt-.05*k), (3.6*k, 2.4*k, .3*k))                 # dark cheeks
+        g['steel'].box((6.6*k, sy*6.6*k, z0+(H-1.6)*k), (3.0*k, 2.4*k, 2.0*k), .2*k)       # front lugs
+        # Flank housing: a raised dark-olive block down the flank.
+        st = []
+        for x, w, h in ((-10.0, 1.0, H-.6), (-8.5, 1.8, H+.4), (-1.0, 1.9, H+.5), (.8, 1.2, H)):
+            loop = [(sy*8.6*k+yy, zz) for yy, zz in section(w*k, z0+1.0*k, z0+h*k, .6*k, .1*k, .5*k)]
+            st.append((x*k, loop if sy > 0 else loop[::-1]))
+        g['accent'].loft_x(st)
+        for x in (-7.0, -5.0, -3.0):
+            g['dark'].box((x*k, sy*8.6*k, z0+(H+.5)*k), (.5*k, 2.4*k, .2*k))
+    g['dark'].box((-4.0*k, 0, zt-.2*k), (9.6*k, 5.2*k, .5*k))                          # the spring's well
+    zb = z0+3.0*k
+    g['steel'].box((6.6*k, 0, zb), (3.2*k, 6.8*k, 3.6*k), .3*k)                          # barrel collar
+    g['metal'].cyl((11.0*k, 0, zb), 1.0*k, 10.0*k, 'X', n=20, bevel=.1*k)               # fixed main barrel
+    g['metal'].box((16.2*k, 0, zb), (3.6*k, 7.2*k, 2.6*k), .3*k)                        # muzzle brake
+    for sy in (1, -1):
+        g['dark'].box((16.2*k, sy*1.6*k, zb), (2.2*k, .8*k, 2.8*k))
+    g['dark'].cyl((18.02*k, 0, zb), .7*k, .06*k, 'X', n=16)
+    za = zb
 
     def gun_parts(gg, za):
-        for sy in (1, -1):                                                                     # side tubes
-            rg = gg.sub(f'recoil {1 if sy > 0 else 2}', (2.0*k, sy*3.5*k, za), .1*r)
-            rg['steel'].cyl((8.0*k, sy*3.5*k, za), 1.5*k, 11.0*k, 'X', n=20, bevel=.12*k)
-            for x in (5.0, 8.0, 11.0):
-                rg['dark'].cyl((x*k, sy*3.5*k, za), 1.55*k, .4*k, 'X', n=20)
-            rg['dark'].cyl((13.55*k, sy*3.5*k, za), .8*k, .05*k, 'X', n=14)
-        gg['steel'].box((-4.5*k, 0, za-.4*k), (10.0*k, 2.0*k, 1.6*k), .15*k)                # buffer frame
-        for i in range(8):                                                                     # coil spring
-            gg['metal'].lathe([(1.2*k, -.3*k), (1.7*k, -.3*k), (1.7*k, .3*k), (1.2*k, .3*k)], 18,
-                              ((-9.0+1.15*i)*k, 0, za+.6*k), 'X', loop=True)
-        gg['steel'].cyl((-4.5*k, 0, za+.6*k), 1.1*k, 9.6*k, 'X', n=16)
-        gg['accent'].box((-10.0*k, 0, za+.2*k), (.8*k, 3.6*k, 2.4*k), .1*k)
-        gg['steel'].box((1.0*k, 0, za-.8*k), (3.0*k, 9.0*k, 1.0*k), .15*k)                  # yoke
-    return (1.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
-                              'muzzles': [(17.5*k, 0, z0+2.6*k)], 'skip_barrels': True}
+        for i, sy in enumerate((1, -1)):                                                  # side tubes
+            y = sy*3.3*k
+            rg = gg.sub(f'recoil {i+1}', (3.4*k, y, za), .1*r)
+            rg['steel'].cyl((8.2*k, y, za), 1.9*k, 9.6*k, 'X', n=24, bevel=.15*k)
+            for x in (5.0, 7.5, 10.0, 12.5):
+                rg['dark'].cyl((x*k, y, za), 1.95*k, .5*k, 'X', n=24)
+            rg['dark'].cyl((13.05*k, y, za), .9*k, .06*k, 'X', n=16)
+        zs = zt+.5*k                                                                       # recoil spring
+        gg['steel'].cyl((-4.0*k, 0, zs), 1.4*k, 9.0*k, 'X', n=20)
+        for i in range(8):
+            gg['plate'].lathe([(1.6*k, -.35*k), (2.5*k, -.35*k), (2.5*k, .35*k), (1.6*k, .35*k)], 24,
+                              ((-7.6+1.05*i)*k, 0, zs), 'X', loop=True)
+        for x in (-8.8, .8):
+            gg['dark'].box((x*k, 0, zs), (.8*k, 5.0*k, 3.2*k), .1*k)                         # spring caps
+        gg['steel'].box((1.6*k, 0, (zs+za)/2), (1.4*k, 3.0*k, zs-za+1.0*k), .1*k)            # link to the tubes
+    return (2.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
+                              'muzzles': [(18.0*k, 0, zb)]}
+
 
 def _house_hveldriver(g, f, s, r, z0):
     """hypervelocity_driver_turret_base.png: a grey bat-wing base - two ear
@@ -1698,9 +1715,9 @@ def _house_hveldriver(g, f, s, r, z0):
             loop = [(sy*8.2*k+yy, zz) for yy, zz in section(w*k, z0, z0+h*k, .4*k, .1*k, .3*k)]
             st.append((x*k, loop if sy > 0 else loop[::-1]))
         g['paint'].loft_x(st)
-        for x in (-2.5, -4.5, -6.5):                                                            # flank grilles
-            g['dark'].box((x*k, sy*9.2*k, z0+2.0*k), (.5*k, 1.6*k, 2.6*k))
-            g['steel'].box((x*k, sy*9.6*k, z0+2.0*k), (.7*k, .3*k, 2.8*k))
+        for x in (-1.0, -2.6, -4.2, -5.8, -7.4):                                                # ribbed pods
+            g['steel'].box((x*k, sy*8.9*k, z0+(H-.6)/2*k), (.7*k, 2.2*k, (H-.6)*k), .1*k)
+            g['dark'].box(((x-.8)*k, sy*9.0*k, z0+(H-1.0)/2*k), (.8*k, 1.8*k, (H-1.2)*k))
         g['dark'].box((.4*k, sy*4.6*k, zt+.02*k), (1.8*k, 3.4*k, .1*k))
         for j in range(3):
             g['steel'].box((.4*k, sy*(3.4+1.1*j)*k, zt+.1*k), (1.8*k, .25*k, .12*k))
@@ -1714,19 +1731,20 @@ def _house_hveldriver(g, f, s, r, z0):
     def gun_parts(gg, za):
         gg['steel'].box((3.0*k, 0, za-1.6*k), (4.0*k, 4.0*k, 1.6*k), .2*k)                      # head mount
         rg = gg.sub('recoil 1', (2.5*k, 2.5*k, za), .1*r)
-        pts = [(2.5*k, 5.5*k), (2.5*k, -.5*k), (17.5*k, -.5*k), (17.5*k, 5.5*k)]
+        pts = [(2.5*k, 4.6*k), (2.5*k, -1.6*k), (17.5*k, -1.6*k), (17.5*k, 4.6*k)]
         rg['accent'].prism(pts, za-2.2*k, za+1.6*k, .5*k, za+2.2*k)                           # driver head
+        rg['accent'].cyl((10.0*k, 4.6*k, za), 2.0*k, 15.0*k, 'X', n=24, bevel=.2*k)           # rounded port side
         for x in (5.0, 8.0, 11.0, 14.0):
-            rg['dark'].box((x*k, 2.5*k, za+2.22*k), (1.0*k, 4.4*k, .06*k))
-        rg['metal'].cyl((18.6*k, 0, za), 1.1*k, 2.2*k, 'X', n=18, bevel=.1*k)                  # bore
-        rg['dark'].cyl((19.72*k, 0, za), .6*k, .05*k, 'X', n=14)
-        for x0, y0, x1, y1 in ((11.5, -1.0, 11.5, -7.6), (11.5, -7.6, 17.5, -7.6), (17.5, -7.6, 17.5, -1.0)):
-            cx, cy = (x0+x1)/2*k, (y0+y1)/2*k
-            ln = math.hypot(x1-x0, y1-y0)*k+1.0*k
-            rot = Matrix.Rotation(math.atan2(y1-y0, x1-x0), 4, 'Z')
-            rg['metal'].box((cx, cy, za), (ln, 1.0*k, 1.0*k), .12*k, rot=rot)                 # coil loop
-        for x in (13.0, 14.5, 16.0):
-            rg['plate'].cyl((x*k, -7.6*k, za), .75*k, .5*k, 'X', n=14)
+            rg['dark'].box((x*k, 1.5*k, za+2.0*k), (1.0*k, 4.4*k, .5*k))
+        rg['steel'].box((18.6*k, 0, za), (2.4*k, 3.6*k, 3.0*k), .25*k)                         # muzzle block
+        rg['plate'].box((19.85*k, 0, za), (.1*k, 2.6*k, 2.0*k))
+        rg['dark'].cyl((19.92*k, 0, za), .8*k, .05*k, 'X', n=16)
+        # C-clamp: a solid steel frame off the starboard side.
+        rg['steel'].box((17.0*k, -4.9*k, za), (1.8*k, 6.6*k, 3.0*k), .25*k)
+        rg['steel'].box((11.8*k, -4.9*k, za), (1.8*k, 6.6*k, 3.0*k), .25*k)
+        rg['steel'].box((14.4*k, -7.6*k, za), (7.0*k, 1.8*k, 3.0*k), .25*k)
+        for x in (13.2, 15.6):
+            rg['dark'].box((x*k, -8.52*k, za), (.8*k, .06*k, 1.6*k))
     return (3.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
                               'muzzles': [(19.8*k, 0, za)], 'skip_barrels': True}
 
