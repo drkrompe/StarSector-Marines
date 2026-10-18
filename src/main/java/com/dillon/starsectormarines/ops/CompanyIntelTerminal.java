@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * <p>Stations are real buttons, positioned after layout from the same cover-fit the
  * banner paints with, so a station stays over its people at any banner size. Using
- * one moves focus to the panel that already holds that information and briefly marks
+ * one shows what that station stands for in the action desk's detail pane and briefly marks
  * it; the picture never holds a fact of its own.
  */
 final class CompanyIntelTerminal {
@@ -41,10 +41,16 @@ final class CompanyIntelTerminal {
     private float placedWidth = -1f;
     private float placedHeight = -1f;
     private UiElement pulsed;
+    private HqActionDesk actions;
     private float pulseLeft;
 
     CompanyIntelTerminal(CompanyHqNewsDesk desk, CommandDeckLayout layout) {
         banner = new CommandDeckBanner(desk, layout);
+    }
+
+    /** The action desk the stations answer into; without one they only mark their panel. */
+    void actions(HqActionDesk desk) {
+        actions = desk;
     }
 
     /** The station actions the markup binds, before the document exists. */
@@ -129,27 +135,28 @@ final class CompanyIntelTerminal {
         }
     }
 
-    /** Point at the panel a station stands for. */
+    /** Show what a station stands for: the most urgent item, the archive, Castle or the books. */
     void use(String stationId) {
         if (instance == null) return;
         switch (stationId) {
-            case "comms" -> {
-                focusFirst(instance.requireElement("company-hq-channel-tabs"));
-                pulse("company-hq-source-windows");
-            }
             case "situation" -> {
-                if (!focusFirst(instance.requireElement("company-hq-obligation-list"))) {
-                    pulse("company-hq-board-heading");
-                } else {
-                    pulse("company-hq-obligations");
-                }
+                if (actions != null) actions.selectMostUrgent();
+                focusFirst(instance.requireElement("company-hq-action-list"));
+                pulse("company-hq-actions");
+            }
+            case "comms" -> {
+                if (actions != null) actions.show(HqActionDesk.View.COMMS);
+                focusFirst(instance.requireElement("company-hq-channel-tabs"));
+                pulse("company-hq-detail");
             }
             case "castle" -> {
-                UiElement guide = instance.requireElement("company-hq-opening-guide");
-                if (!guide.hasClass("opening-guide-hidden")) focusFirst(guide);
-                pulse("company-hq-board-heading");
+                if (actions != null) actions.show(HqActionDesk.View.CASTLE);
+                pulse("company-hq-detail");
             }
-            case "finance" -> pulse("company-hq-finance");
+            case "finance" -> {
+                if (actions != null) actions.show(HqActionDesk.View.FINANCE);
+                pulse("company-hq-detail");
+            }
             default -> { }
         }
     }
