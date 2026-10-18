@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +29,9 @@ class BlackSluiceDuelWithdrawalTest {
         float[] p = at;
         for (int i = 0; i < 360 / (int) BlackSluiceDuel.CIRCUIT_LEAD_DEGREES + 1; i++) {
             p = BlackSluiceDuel.circuitStation(p[0], p[1]);
-            assertTrue(BlackSluiceDuel.AIRSPACE.contains(p[0], p[1]));
+            // Over the middle of the map, well off every edge: the circuit never asks the edge pressure to turn her.
+            assertTrue(p[0] > 60f && p[0] < BlackSluice.WIDTH - 60f && p[1] > 60f && p[1] < BlackSluice.HEIGHT - 60f,
+                    "off the edges: " + p[0] + ", " + p[1]);
         }
     }
 }
