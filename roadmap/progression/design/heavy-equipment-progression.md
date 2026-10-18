@@ -174,6 +174,8 @@ one. Lines and their first variants:
 | Technical | Militia technical — Common filler for a small lift budget |
 | APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar or autocannon instead of seats) |
 | Tank | Breakthrough tank → heavy-gun tank, or a dozer-blade breaching sidegrade |
+| Supply | Supply truck — a carried resupply cache, served while halted (Light lift) |
+| Scout | Scout car — a sight mast that reports to fog and commander (Light lift) |
 
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.
@@ -194,6 +196,7 @@ internals vocabulary without the doll.
 | Vehicle variant ladder (shipped; `mechs-nouns.md`) | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
 | Tank variant art (shipped; `convoy-nouns.md`) | Art for the heavy-gun tank and dozer breacher; both offered. |
 | Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade clears ground other vehicles can follow. |
+| Light roles (shipped; `convoy-nouns.md`, light roles) | Supply truck through the resupply authority; scout car through fog and commander contacts. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.

@@ -36,11 +36,13 @@ public final class MechPatternPicker {
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_PULSE_LASERS),
                     MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON),
-                    MechPattern.of(VehicleType.HEAVY_GUN_TANK)),
+                    MechPattern.of(VehicleType.HEAVY_GUN_TANK),
+                    MechPattern.of(VehicleType.SCOUT_CAR)),
             FactionMechLoadouts.HEGEMONY_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS),
-                    MechPattern.of(VehicleType.UP_ARMORED_APC)),
+                    MechPattern.of(VehicleType.UP_ARMORED_APC),
+                    MechPattern.of(VehicleType.SUPPLY_TRUCK)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
                     MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
                     MechPattern.of(VehicleType.DOZER_BREACHER)),

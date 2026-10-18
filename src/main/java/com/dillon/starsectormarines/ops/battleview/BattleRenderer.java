@@ -1008,12 +1008,12 @@ public class BattleRenderer {
         }
 
         for (ResupplyCache cache : sim.getResupplyCaches()) {
-            float cx = rc.camera.cellToScreenX(cache.cellX + 0.5f);
-            float cy = rc.camera.cellToScreenY(cache.cellY + 0.5f);
-            float pulse = cache.depleted() ? 0.8f
+            float cx = rc.camera.cellToScreenX(cache.centerX());
+            float cy = rc.camera.cellToScreenY(cache.centerY());
+            float pulse = !cache.serving() ? 0.8f
                     : 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
             Color tint = cache.contested ? RESUPPLY_CONTESTED : RESUPPLY_TINT;
-            float alpha = cache.depleted() ? alphaMult * 0.35f : alphaMult;
+            float alpha = !cache.serving() ? alphaMult * 0.35f : alphaMult;
             emitIcon(out, sprites.iconStar(), cx, cy,
                     cellPx * RESUPPLY_SIZE * pulse, tint, alpha);
             float barW = cellPx * 1.3f;

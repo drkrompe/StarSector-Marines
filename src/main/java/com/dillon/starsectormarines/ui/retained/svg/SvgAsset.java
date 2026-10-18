@@ -157,6 +157,19 @@ public final class SvgAsset {
         }
     }
 
+    /**
+     * The compiled triangles in viewBox user units, for a caller that maps them itself,
+     * such as into a perspective quad that {@link #draw} cannot express.
+     */
+    public CanvasMeshBatch geometry() {
+        return batch;
+    }
+
+    /** The viewBox as {@code {minX, minY, width, height}}. */
+    public float[] viewBox() {
+        return new float[]{(float) minX, (float) minY, (float) width, (float) height};
+    }
+
     /** Emits cached geometry, aspect-fitted and centered inside this canvas box. */
     public void draw(CanvasContext context, float x, float y, float boxWidth, float boxHeight, Color tint) {
         Objects.requireNonNull(context, "context");
