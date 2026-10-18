@@ -162,7 +162,7 @@ spine, machinery, bridge hull, the drone-bay tubs and the workshop block;
 shared table). The drone bay is open to space, so its air is not enclosed
 and no hangar term is charged. That solves 0.74 (range 0.72-0.76, 64 m).
 The published figure stays 0.78, her pass-4 solve from the deck program at
-45% usable for crew comfort, until the owner chooses between them;
+45% usable for crew comfort, by the owner's choice (2026-10-18);
 ship_scale.PUBLISHED carries it. Cross-checks at 0.78: a 1.8 m person is
 2.3 units; the 1.35 x 2.4-unit crew doors are 1.05 x 1.87 m; the open bay
 deck is 30.8 x 9.4 m with 9.9 m to the crown (about 2,840 m3 against the
