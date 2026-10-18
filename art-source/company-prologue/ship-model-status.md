@@ -45,7 +45,7 @@ scope unless the owner asks for it.
 
 | Asset | Package | State | Next |
 |---|---|---|---|
-| Fleet scale lineup | `fleet-scale/` | review: `fleet_lineup.py` renders every hull at its `geometry.json` scale, with real-world references (container, 747, ISS, Eiffel Tower, Nimitz, football pitch): broadside, top-down, the Hound at and in a Legion hangar lane, walkway eye level, fighters in the lane, plus a sizes table. `--pending pending-c.json` labels option C hulls that are still unsettled (Onslaught: measurement audit) | Owner judges relative size at C; rerun as hulls publish |
+| Fleet scale lineup | `fleet-scale/` | review: `fleet_lineup.py` renders every hull at its published option C scale, with real-world references (container, 747, ISS, Eiffel Tower, Nimitz, football pitch): broadside, top-down, the Hound at and in a Legion hangar lane, walkway eye level, fighters in the lane, Legion and Onslaught side by side, plus a sizes table | Owner judges the final C sizes; rerun after any rescale or new hull |
 
 ## Standing decisions
 
