@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
+import com.dillon.starsectormarines.ops.battleview.WarshipFollowRecording;
 import com.dillon.starsectormarines.tools.snapshot.CompressedFrameList;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -80,6 +81,15 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         return null;
     }
 
+    /**
+     * Opt-in: record each loop through a {@link WarshipFollowRecording}, a camera that follows the hulls in the fight
+     * rather than framing the whole map, densely while two hostile hulls are over the map, with a locator inset.
+     * {@code -Dsnapshot.duelCamera=false} records the whole map at the scene's cadence instead.
+     */
+    protected boolean followWarships() {
+        return false;
+    }
+
     /** Allow review suites to keep their close view at the requested output resolution. */
     protected float closeViewScale() { return 2f / 3f; }
 
@@ -110,15 +120,30 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         boolean shadows = showUnitShadows();
         if (impacts) renderer.withImpactEffects();
         if (shadows) renderer.withUnitShadows();
+        boolean follow = followWarships() && WarshipFollowRecording.enabled();
+        BattleReviewFrameRenderer mainRenderer = follow
+                ? WarshipFollowRecording.mainRenderer(context.modRoot(), width, height) : renderer;
+        BattleReviewFrameRenderer insetRenderer = follow
+                ? WarshipFollowRecording.insetRenderer(context.modRoot(), width, height) : null;
+        Map<String, WarshipFollowRecording> followByLoop = new LinkedHashMap<>();
         Map<String, ReviewImpactFx> fxByLoop = new LinkedHashMap<>();
         Map<String, List<BufferedImage>> byLoop = new LinkedHashMap<>();
         List<SceneReport> reports = scene.play(new FrameSink() {
             @Override
+            public boolean records(String loopId, BattleSimulation sim, int tick, int sceneEveryTicks) {
+                if (!follow) return FrameSink.super.records(loopId, sim, tick, sceneEveryTicks);
+                return followFor(loopId).records(sim, tick, sceneEveryTicks);
+            }
+
+            @Override
             public void frame(String loopId, BattleSimulation sim, int tick, String caption) {
                 try {
                     ReviewImpactFx fx = impacts ? fxFor(loopId) : null;
-                    byLoop.computeIfAbsent(loopId, id -> new CompressedFrameList())
-                            .add(renderer.render(sim, caption, annotations(sim), fx));
+                    WarshipFollowRecording following = follow ? followFor(loopId) : null;
+                    if (following != null) following.aim(mainRenderer, sim, tick);
+                    BufferedImage image = mainRenderer.render(sim, caption, annotations(sim), fx);
+                    if (following != null) following.decorate(image, sim, tick, insetRenderer, fx);
+                    byLoop.computeIfAbsent(loopId, id -> new CompressedFrameList()).add(image);
                     BattleReviewFrameRenderer closeRenderer = closeRenderers.computeIfAbsent(loopId, id -> {
                         float[] close = closeView(id);
                         if (close == null) return null;
@@ -139,6 +164,10 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
             @Override
             public void advanced(String loopId, BattleSimulation sim, int tick) {
                 if (impacts) fxFor(loopId).feed(sim);
+            }
+
+            private WarshipFollowRecording followFor(String loopId) {
+                return followByLoop.computeIfAbsent(loopId, id -> new WarshipFollowRecording(width, height));
             }
 
             private ReviewImpactFx fxFor(String loopId) {
