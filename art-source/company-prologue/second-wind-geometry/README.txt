@@ -3,8 +3,8 @@ SECOND WIND - CURRENT GEOMETRY REFERENCE (V3 DESIGN REVISION)
 This is the single accepted clean-hull geometry source. The old V2 model and
 build scripts were removed; reference-history/v2/ retains only their reference
 images. Historical prompt path mappings are in ../cleanup-record.json.
-The surfaced damaged cinematic master is a separate derivative under
-../second-wind-cinematic/second-wind-full-surface/.
+The per-state cinematic exports are separate derivatives under
+../second-wind-cinematic/second-wind-states/.
 
 Purpose
 A gritty industrial reading of the vanilla Cerberus sprite: planform, engine

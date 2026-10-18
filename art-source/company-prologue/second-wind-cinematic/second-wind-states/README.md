@@ -5,8 +5,10 @@ Written: 2026-10-16
 
 The Second Wind in each campaign condition, as one appendable Blender
 collection per state (`second-wind-pipeline.md`, Cinematic output). These
-replace `../second-wind-full-surface/`, which was built on the superseded
-landing-wreck geometry at a provisional 1.5 m per unit.
+replace the earlier full-surface asset and the hand-built skinned patched-state
+blend; the C1, C5 and entrance-card renders append the patched state. The old
+asset was built on the superseded landing-wreck geometry at a provisional 1.5 m
+per unit.
 
 ![four states](review/states-port-quarter.png)
 ![starboard](review/states-starboard-quarter.png)

@@ -49,5 +49,5 @@ The accepted geometry now has one stable directory: `second-wind-geometry/`.
 V3 is its design revision, not a second competing model folder. The obsolete V2
 model and build files were removed; only its reference images remain under
 `reference-history/v2/`. The cleanup record maps historical prompt paths to the
-current locations. The separately surfaced damaged cinematic ship remains in
-`second-wind-cinematic/second-wind-full-surface/`.
+current locations. The cinematic ship's per-state assets are in
+`second-wind-cinematic/second-wind-states/`.
