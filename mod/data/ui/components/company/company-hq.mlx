@@ -1,4 +1,4 @@
-<template props="auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,deckForce,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,obligationsHeader,obligations,obligationEmpty">
+<template props="auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,obligationsHeader,obligations,obligationEmpty">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -17,9 +17,6 @@
           </button>
           <button id="company-hq-station-finance" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckFinance}">
             <div id="company-hq-station-finance-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationFinance}</div>
-          </button>
-          <button id="company-hq-station-force" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckForce}">
-            <div id="company-hq-station-force-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationForce}</div>
           </button>
         </div>
         <div id="company-hq-board-heading" class="board-heading console-header">

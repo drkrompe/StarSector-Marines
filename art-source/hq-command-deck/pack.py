@@ -37,11 +37,10 @@ PACKED_WIDTH = 2048
 # Stations in screen order. Later stations draw over earlier ones where they overlap,
 # so the table comes first and the people standing at it after.
 STATIONS = [
-    ("situation", "SITUATION_BOARD", [], ["plot"]),
+    ("situation", "SITUATION_BOARD", ["sabine"], ["plot", "sabine"]),
     ("comms", "COMMS_INTEL", ["comms-left", "comms-right"], ["comms-left", "comms-right", "comms-screens"]),
     ("castle", "CASTLE_ADJUTANT", ["castle"], ["castle"]),
     ("finance", "FINANCE_STANDING", ["quartermaster"], ["quartermaster", "ledger-screen"]),
-    ("force", "FORCE_STATUS", ["sabine"], ["sabine"]),
 ]
 PAD = 8  # guide pixels around a station's parts
 

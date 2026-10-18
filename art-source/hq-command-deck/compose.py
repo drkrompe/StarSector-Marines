@@ -19,7 +19,7 @@ from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 PLATE = "deck-plate-v5.master.png"
-LAYOUT = "deck-guide-v7.layout.json"
+LAYOUT = "deck-guide-v8.layout.json"
 # card, and where its lowest painted pixels sit in metres above the stand's floor: 0 for
 # soles; a seated figure seen from behind shows no feet, so its bottom is the seat.
 CARDS = {
@@ -27,7 +27,7 @@ CARDS = {
     "comms-left": ("comms-left-v2.master.png", 0.45),
     "comms-right": ("comms-right-v2.master.png", 0.45),
     "quartermaster": ("quartermaster-v2.master.png", 0.0),
-    "sabine": ("sabine-v2.master.png", 0.0),
+    "sabine": ("sabine-v3.master.png", 0.0),
 }
 FOCAL, CY = 1050.0, 170.0
 

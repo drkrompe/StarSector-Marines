@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — banner, command strip and station hotspots shipped on HQ; edge-case evidence and the alert plate remain
 Written: 2026-10-16
-Updated: 2026-10-18 — sidebar, notice rows and scene caption removed; rating and assessment in a strip under the scene.
+Updated: 2026-10-18 — commander removed; Sabine repainted leaning at the plot table; four stations.
 
 Read `company-view-nouns.md` (Company HQ) first.
 
@@ -58,7 +58,7 @@ station hotspots, which are invisible until pointed at.
 | page nav                                                                        |
 +--------------------------------------------------------------------------------+
 | COMMAND DECK BANNER (full width x 372)                                          |
-|  [comms]  [plot table]  [Castle]  [quartermaster]  [Sabine]         |
+|  [comms]  [plot table + Sabine]  [Castle]  [quartermaster]               |
 +--------------------------------------------------------------------------------+
 | RATING  RECOGNIZED  +24 | BRIDGE ADJUTANT // DAILY ASSESSMENT        [debug]    |  <- command strip
 +--------------------------------------------------------------------------------+
@@ -97,10 +97,9 @@ panel when used.
 | Station on deck | Label | What using it does |
 | --- | --- | --- |
 | Comms bank, two officers | COMMS // INTEL | Focuses the transmission archive and pulses the source windows. |
-| Plot table | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
+| Plot table, Sabine | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
 | Castle | CASTLE // ADJUTANT | Pulses the command strip; where the opening guide is active, focuses its next control. |
 | Quartermaster's ledger | FINANCE & STANDING | Pulses the finance column. |
-| Sabine Hale | FORCE // BARRACKS | Opens Barracks, where the force is. |
 
 The theme dresses every button and is the cascade's final layer, so stations are
 cleared with inline style and their hover/focus outline is drawn by the banner
@@ -139,15 +138,15 @@ and panel pulses; snapshot evidence; optional alert plate.
 
 - Before the company has a ship, HQ shows the founding flow. Does it keep this deck
   (a borrowed office) or a different dockside plate?
-- Sabine stands on deck as herself (FORCE // BARRACKS). Her idle pose is to be
-  replaced; see Remaining.
+- Sabine stands on deck as herself, leaning on the plot table's right rim and reading
+  the space above it, where `hq-action-board.md` puts its holographic board. Her card
+  is painted over a Blender pose guide; a posed figure that touches furniture gets a
+  depth-clipped matte, so her hands stay on the table top.
 
 ## Remaining
 
-- A new Sabine card in a working pose (she currently stands idle looking off scene).
-- The bottom-half pass: what the board draws attention to, story versus other work,
-  and what each scene station does.
+- The bottom-half pass and the holographic board: `hq-action-board.md`.
 
 - Acceptance 4: render long assessment, no employers, no obligations and overdue
-  states; check keyboard traversal reaches all five stations.
+  states; check keyboard traversal reaches all four stations.
 - Optional alert plate.
