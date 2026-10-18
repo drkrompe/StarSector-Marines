@@ -96,8 +96,13 @@ public class MechMoraleTest {
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         long mech = sim.liveUnitAt(0);
 
-        // Damage straight to ~5% HP — crosses 0.75, 0.50, 0.25, 0.10 (4 thresholds).
-        sim.applyDamage(mech, sim.world().maxHp(mech) * 0.95f, 1f);
+        // Start just above 10% with no threshold drained yet, then one small hit takes it below
+        // 10% — crosses 0.75, 0.50, 0.25, 0.10 (4 thresholds) at once. A single 95% hit cannot be
+        // the setup: a mech is hit by section and only the torso kills, so that hit lands on one
+        // section's share of the pool and either spills into a dead torso or stops well short.
+        float maxHp = sim.world().maxHp(mech);
+        sim.world().setHp(mech, maxHp * 0.06f);
+        sim.applyDamage(mech, maxHp * 0.001f, 1f);
 
         assertEquals(4, loadout(sim, mech).hpThresholdsCrossed,
                 "5% HP should have crossed all four thresholds");
