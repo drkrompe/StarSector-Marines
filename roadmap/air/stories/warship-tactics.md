@@ -224,8 +224,8 @@ Measured with slices 1 and 2 (`warship-tactics`, `greyhook-duel`; `-Dbattle.wars
 The pack against the escorted Dominator holds different hulls on every escorted tick; manoeuvres last 20 to 57 seconds
 on average and each hunter's range to its target opens by a quarter or more and closes again. The line of battle keeps
 its second in the lead's wake. `fighter-over-capital` is the exemption's control: a Broadsword lies over the Onslaught
-for a hundred-odd ticks while a Wolf on the same course goes round it. The Greyhook's fighting withdrawal circuit is
-a manoeuvre of the same kind, owned by its mission rather than by the group.
+for a hundred-odd ticks while a Wolf on the same course goes round it. A circuit a mission flies for its own hull is
+a manoeuvre of the same kind, owned by its mission rather than by the group (the Greyhook flew one until she was made to fight to the finish).
 
 `frigate-climb-out` was re-laid: at flight presence six its Hounds were staged inside the rig and on a map too short
 to hold them abreast it. A hull on its lift run obstructs (its escorts keep clear of it) but does not yield: a Hound
@@ -342,8 +342,8 @@ one ship leaving. Two changes, each with a control:
   ship fights a hull its flux runs on the duel footing (`-Dbattle.warship.hullFightFooting=false` is the control).
 - **Fights to the death.** The losing-exchange withdrawal is gone, and while a ship has a live hostile hull to fight,
   neither hull-limit nor threat withdrawal applies (`-Dbattle.warship.hullFightWithdrawal=true` is the control).
-  Mission-ordered withdrawals are separate and still apply. The *Greyhook*'s lift-off belongs to the mission, not
-  the doctrine.
+  Mission-ordered withdrawals are separate and still apply; a hull that holds the field (the Black Sluice duel's) is
+  never withdrawn by its doctrine at all.
 - **Hulls coming down or flying in are unseen.** At the new range a hull still descending through the cloud deck, or
   flying in with its centre still past the map's edge, could be fired on before it was in sight. It is not a hostile
   hull until it has come down or crossed the edge, and a ship still past the edge does not fire at hulls either.
