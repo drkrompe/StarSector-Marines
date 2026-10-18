@@ -419,7 +419,7 @@ def add_detail():
                       (xa + (xb - xa) * u1 + dx, ya + (yb - ya) * u1, z - 6 * 4 * u1 * (1 - u1)), 0.35)
     mesh('Transmission line', lb, steel)
     # Harvest: a combine working down a field with its grain truck alongside.
-    green = material('Combine green', (0.45, 0.55, 0.10), 0.5)
+    green = material('Harvester orange', (0.78, 0.36, 0.08), 0.5)
     cream = material('Truck cream', (0.80, 0.76, 0.62), 0.5)
     vehicle('Robotic harvester', [((26, 14, 7), (0, 0, 4), green), ((3, 40, 2.4), (15, 0, 1.6), green)],
             [(0, -60, -520), (FRAMES - 1, -60 + 3.0 * DURATION, -520)])
@@ -580,7 +580,7 @@ def add_ship():
     root.rotation_mode = 'XYZ'
     glow = material('Drive plume', (0.6, 0.8, 1.0))
     glow.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value = (0.6, 0.8, 1.0, 1)
-    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 60.0
+    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 25.0
     for i in manifest['engines_running']:
         anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
         if anchor is None:
@@ -767,6 +767,14 @@ def add_port():
     shed = bmesh.new()                                                  # freight terminal shed, east
     box(shed, (80, 50, 12), (220, 670, 6))
     mesh('Terminal shed', shed, bpy.data.materials['Roof grey'])
+    doors = bmesh.new()
+    for k in range(5):
+        box(doors, (7, 1.0, 6), (190 + k * 15, 644.6, 3))
+    mesh('Terminal doors', doors, bpy.data.materials['Steel'])
+    plane('Fuel farm road', -300, -285, 560, 645, asphalt, 0.085)
+    vehicle('Terminal truck', [((3.4, 3.0, 3.4), (0, 0, 2.1), bpy.data.materials['Hauler cab']),
+                               ((12.5, 3.0, 3.2), (-9, 0, 2.4), bpy.data.materials['Hauler load'])],
+            [(0, 205, 630)], [(0, -math.pi / 2)])
     plane('Terminal road', 57, 180, 680, 692, asphalt, 0.085)
     # The heavy berth: blast walls on three sides, gantry rails along them, a crane across.
     hx0, hx1, hy0, hy1 = HEAVY
@@ -851,7 +859,7 @@ def add_port():
     box(life, (12, 7, 0.2), (325, 411, 3.2))                            # tarp awning at the door
     mesh('Workshop awning', life, material('Tarp orange', (0.85, 0.42, 0.12), 0.8))
     wash = [material('Washing %d' % i, c, 0.9) for i, c in
-            enumerate(((0.85, 0.85, 0.80), (0.30, 0.45, 0.70), (0.75, 0.30, 0.25), (0.85, 0.75, 0.35)))]
+            enumerate(((0.97, 0.97, 0.95), (0.30, 0.45, 0.70), (0.75, 0.30, 0.25), (0.85, 0.75, 0.35)))]
     wb = [bmesh.new() for _ in wash]
     for line in (0, 1):                                                 # washing lines by the workshop
         for k in range(9):
@@ -1029,7 +1037,7 @@ def add_k9_vehicles():
     beacon.location = (0, 0, 4.0)
     link(beacon)
     for f in range(0, FRAMES, 6):                       # flashing with the bar: a pool of amber on the road
-        beacon.data.energy = 6.0e4 if (f // 6) % 2 else 0.0
+        beacon.data.energy = 2.0e5 if (f // 6) % 2 else 0.0
         beacon.data.keyframe_insert('energy', frame=f)
     vehicle('MuniSec car at the gate', [((5.2, 2.3, 1.5), (0, 0, 1.0), bpy.data.materials['Customs white']),
                                         ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange'])],
@@ -1115,11 +1123,12 @@ def add_cloud_shadows():
     pr = nt.nodes['Principled BSDF']
     coord = nt.nodes.new('ShaderNodeTexCoord')
     noise = nt.nodes.new('ShaderNodeTexNoise')
-    noise.inputs['Scale'].default_value = 0.004
+    noise.inputs['Scale'].default_value = 0.0022
     noise.inputs['Detail'].default_value = 3.0
     ramp = nt.nodes.new('ShaderNodeMapRange')
-    ramp.inputs['From Min'].default_value = 0.56
-    ramp.inputs['From Max'].default_value = 0.62
+    ramp.inputs['From Min'].default_value = 0.58
+    ramp.inputs['From Max'].default_value = 0.68
+    ramp.inputs['To Max'].default_value = 0.5                  # half-dark: soft cloud shade, not scorch
     nt.links.new(coord.outputs['Object'], noise.inputs['Vector'])
     nt.links.new(noise.outputs['Fac'], ramp.inputs['Value'])
     nt.links.new(ramp.outputs['Result'], pr.inputs['Alpha'])
