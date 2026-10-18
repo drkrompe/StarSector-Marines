@@ -342,9 +342,9 @@ def lining_ribs(kit):
         a = 2*math.pi*k/48
         if k % 4 == 0:
             continue  # where the emitter nodes stand (every 30 deg, offset 15: pg_shield)
-        r = (pg_hull.BORE_R+pg_hull.LINING_R)/2
+        r = (pg_hull.LIP_TOP_R+pg_hull.LINING_R)/2
         b = kit.box(f'Detail bore lining rib {k+1}', (cx+r*math.cos(a), cy+r*math.sin(a), z+.5),
-                    (pg_hull.LINING_R-pg_hull.BORE_R-3.0, 1.4, 1.0), kit.slate, .1)
+                    (pg_hull.LINING_R-pg_hull.LIP_TOP_R-1.5, 1.4, 1.0), kit.slate, .1)
         b.rotation_euler = (0, 0, a)
         kit.detail.append(b)
 
