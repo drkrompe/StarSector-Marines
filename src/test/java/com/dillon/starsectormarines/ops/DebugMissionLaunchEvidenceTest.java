@@ -30,11 +30,18 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Opt-in production construction and roster-overlay evidence, never ordinary unit tests. */
 @Tag("counterattack-command-evidence")
 class DebugMissionLaunchEvidenceTest {
-    @BeforeAll static void catalogs() throws Exception { HeadlessArmoryPreviewRenderer.installCatalogs(Path.of("mod")); }
-    @Test void missileAaNativeLaunchLandsItsExactNamedCompanyAndStaysOpen() throws Exception {
+    /**
+     * Hull specs and vanilla data for every case, not only the one that asks: a mission with a warship or tender
+     * (Working Passage's Shepherd) reads its .ship spec at setup, and passed only when another case happened to
+     * install them first.
+     */
+    @BeforeAll static void catalogs() throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(Path.of("mod"));
         InstalledHullSpecs.install();
-        InstalledHullEngines.install();
         InstalledVanillaData.install();
+    }
+    @Test void missileAaNativeLaunchLandsItsExactNamedCompanyAndStaysOpen() throws Exception {
+        InstalledHullEngines.install();
         try (var strings = new HeadlessStrings(Path.of("mod"))) {
             var mission = DebugMissionCatalog.Scenario.MISSILE_AA.mission();
             assertEquals(Strings.get("missileAaTestTitle"), mission.name);

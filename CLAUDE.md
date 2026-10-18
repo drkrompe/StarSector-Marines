@@ -877,7 +877,11 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   defenders' legs and hulls, ruins in the middle ground); `street` (between solid blocks, defenders behind the last
   two corners). Attackers are moved as a player would move them, to a cell at about 70% of their longest reach that
   sees the nearest enemy (`-Pstandoff=0.7`), and closer if they stand in range without firing; inside range it is
-  production doctrine and turrets. The default ladder (`-Pladder=control,mech,mixed,vehicle`): stock Hound vs
+  production doctrine and turrets. A mech is steered only while out of reach or out of sight, and its lance
+  carries no mission order of its own, so doctrine (and its duel range against armor) decides where it fights;
+  `-PmechOrder=attack-move` restores the old attack-move onto the defenders' ground and the old steering, which
+  together walked every attacking mech into contact. The Range column is the median distance between the nearest
+  opposing machines from the first hit. The default ladder (`-Pladder=control,mech,mixed,vehicle`): stock Hound vs
   stock Hound (the control), every chassis at stock and refit against every other both ways, each stock chassis
   against each armed vehicle line both ways, every armed line against every other (the unarmed scout car only when
   named); about 800 fights in well under a minute. Rows report wins, TTK from first hit, machines and integrity

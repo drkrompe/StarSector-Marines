@@ -24,7 +24,7 @@ public record RaidCommandFacts(
         RaidObjective objective = objective(sim);
         return new RaidCommandFacts(objective.targetId(), objective.targetName(),
                 objective.targetCellX(), objective.targetCellY(),
-                objective.targetZoneId(), objective.egressCellX(),
+                objective.targetZoneId(sim), objective.egressCellX(),
                 objective.egressCellY(), objective.serviceProgress(),
                 objective.serviceDuration(), objective.marineServicing(),
                 objective.targetSecured(), objective.isComplete(),
