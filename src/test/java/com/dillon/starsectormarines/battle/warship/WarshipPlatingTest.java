@@ -50,14 +50,14 @@ class WarshipPlatingTest {
         WarshipPlating durable = box();
         int side = cell(plain, 0, 10);
         // A round heavy enough to strip and pass on, landed on the same cell of two fresh hulls.
-        float a = 0f;
-        float b = 0f;
-        for (int i = 0; i < 6; i++) {
+        float a = plain.hit(side, 6000f, 1f, 0f);
+        float b = durable.hit(side, 6000f, 1f, 0f, 3f);
+        assertTrue(durable.localArmour(side) > plain.localArmour(side), "its plate wears slower");
+        for (int i = 1; i < 6; i++) {
             a += plain.hit(side, 6000f, 1f, i);
             b += durable.hit(side, 6000f, 1f, i, 3f);
         }
-        assertTrue(b < a, "a durable hull loses less to the same rounds: " + b + " against " + a);
-        assertTrue(durable.localArmour(side) > plain.localArmour(side), "and its plate wears slower");
+        assertTrue(b < a, "and it loses less to the same rounds: " + b + " against " + a);
         // One fresh hit: the plate takes a third of what it takes from the same round on a plain hull.
         WarshipPlating once = box();
         WarshipPlating plainOnce = box();
