@@ -86,10 +86,13 @@ public final class WarshipManoeuvre {
     float speedShare = 1f;
     /** For a standoff: the ship is venting a full pool, and opens past its target's reach until it has. */
     boolean venting;
+    /**
+     * Whether this ship is in a one-on-one hull fight (its side's only hunter against the other side's only hull), and
+     * so flies a duel's manoeuvres: orbit, cross and break. Set by the group pass.
+     */
+    boolean duel;
     /** For an orbit: how far off the bow the target is held, in degrees, chosen when the orbit began. */
     float orbitAngle = Float.NaN;
-    /** For a cross: the battle clock when the target was last seen with its cover turned away; NaN for none. */
-    float offArcAt = Float.NaN;
     /** Manoeuvres begun, for evidence. */
     int begun;
 
@@ -127,13 +130,13 @@ public final class WarshipManoeuvre {
         kind = next;
         startedAt = now;
         venting = false;
-        offArcAt = Float.NaN;
         course = fixedCourse;
         begun++;
     }
 
     void clear() {
         role = Role.NONE;
+        duel = false;
         target = null;
         leader = null;
         flankGoal = Float.NaN;

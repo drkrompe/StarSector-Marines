@@ -136,8 +136,11 @@ public final class WarshipTactics {
      * holds its target where its turret still reaches rather than at its shield's very edge.
      */
     static final float ORBIT_GUN_GIVE_DEGREES = 20f;
-    /** The share of its bow firepower that counts as "something still bears" for an orbit's angle. */
-    static final float ORBIT_FIRE_SHARE = 0.1f;
+    /**
+     * The share of its bow firepower a ship must keep bearing to circle at all. A hull whose battery is almost all in
+     * its bow (an Eagle) gives up too much by circling, and holds its nose on, sliding sideways, instead: a standoff.
+     */
+    static final float ORBIT_FIRE_SHARE = 0.3f;
     /** An orbit lasts at least this long before it turns back in for a run. */
     static final float ORBIT_MIN_SECONDS = 10f;
     /** And at most this long. */
@@ -148,10 +151,10 @@ public final class WarshipTactics {
     static final float ORBIT_BEND_DEGREES = 25f;
     /** An orbit that finds its target's cover turned away turns in on it after at least this long. */
     static final float CROSS_AFTER_SECONDS = 2f;
-    /** A cross ends, becoming an ordinary run, once the target has covered this ship again for this long. */
-    static final float CROSS_COVERED_SECONDS = 3f;
-    /** A cross lasts at most this long. */
-    static final float CROSS_MAX_SECONDS = 30f;
+    /** An orbit turns in first on a target whose battery is off it after at least this long. */
+    static final float TURN_IN_AFTER_SECONDS = 4f;
+    /** And only with at least this much {@link #advantage} over the target. */
+    static final float TURN_IN_FLUX_LEAD = 0.02f;
     /** A hull without a front shield is covered from where it brings at least this share of its bow battery to bear. */
     static final float COVER_FIRE_SHARE = 0.5f;
     /** A break opens on a course at least this far off the bearing to its target, in degrees. */
@@ -193,13 +196,26 @@ public final class WarshipTactics {
                 continue;
             }
             assign(hunters, enemies, ships);
+            // One ship against one: the duel's own manoeuvres (orbit, cross, break) are flown. A pack, a line or an
+            // escorted charge is the group's choreography and keeps its own.
+            boolean duel = DUEL_MANOEUVRES && hunters.size() == 1 && enemies.size() == 1;
+            for (Warship h : hunters) h.manoeuvre().duel = duel;
         }
     }
 
     /** Whether a ship is one of its side's hunters: fighting hulls with its duel helm, free, not escorting. */
     static boolean hunter(Warship s, boolean held) {
-        return WarshipShipFire.looksAtHulls(s, held) && s.duelHelm() && !s.departing() && free(s)
-                && WarshipEscort.liveLead(s) == null;
+        return (WarshipShipFire.looksAtHulls(s, held) || overloadedInFight(s)) && s.duelHelm() && !s.departing()
+                && free(s) && WarshipEscort.liveLead(s) == null;
+    }
+
+    /**
+     * Whether {@code s} is overloaded in the middle of its hull fight: its guns hold no target while the overload
+     * lasts, but it is still flying the manoeuvre its fight gave it, and a collapsed shield is when a ship breaks away.
+     */
+    static boolean overloadedInFight(Warship s) {
+        Warship t = s.manoeuvre().target();
+        return s.manoeuvre().duel && s.overloaded() && t != null && !t.destroyed() && !t.departed();
     }
 
     /** Whether the ship's helm is its own: not piloted, leaving, on a route, a low pass, a remote order or in the deck. */
@@ -393,54 +409,66 @@ public final class WarshipTactics {
                     m.begin(next, now, next == Kind.BROADSIDE_RUN ? broadsideCourse(ship, toTarget, m) : Float.NaN);
                 }
             }
-            case ATTACK_RUN -> {
-                // A front-shielded ship never turns its back in reach: its run gives way to a standoff, shield and
-                // guns still on. It presses while its target is near its limit, and breaks off only for its own pool.
-                // A hull with no front to keep (an omni shield, or none) has nothing to lose by coming about, so it
-                // turns away across the target's bow, opens the range and comes back for another run.
+            case ATTACK_RUN, CROSS -> {
+                // A cross is a run begun on a target that has turned its cover or its battery away; it ends as a run
+                // does. A front-shielded ship never turns its back in reach while its shield holds: its run gives way to an
+                // orbit (or, as the control, a standoff), shield and guns still on. It presses while its target is near
+                // its limit or has turned its cover away. A hull with no front to keep (an omni shield, or none) has
+                // nothing to lose by coming about, so it turns away across the target's bow, opens the range and comes
+                // back for another run.
                 boolean front = frontShielded(ship) || !UNSHIELDED_COME_ABOUT;
                 boolean full = ship.fluxFraction() >= RUN_FLUX_LIMIT;
-                // A target that has turned its cover away from this ship is crossed, not let go.
-                boolean pressing = (pressed(target) || (DUEL_MANOEUVRES && offArc(target, ship))) && !full;
+                if (front && m.duel) {
+                    if (shieldGoing(ship, target)) {
+                        // The shield is going or gone: nothing left to keep the bow on for, so it breaks away at
+                        // full way, and its quarter is what the other ship crosses.
+                        beginBreak(ship, target, m, now, toTarget);
+                    } else {
+                        // It holds the run on a target whose cover is turned away or whose shield has gone, and on a
+                        // target near its limit while it has flux to spend or is ahead in the race. Equally full, it
+                        // circles off to vent with its shield still on, rather than parking nose to nose.
+                        boolean pressing = target.overloaded() || offArc(target, ship) || (pressed(target)
+                                && (!full || target.fluxFraction() >= ship.fluxFraction() + PRESS_LEAD));
+                        boolean close = range <= standoff * 1.1f && seconds >= RUN_MIN_SECONDS
+                                && ship.fluxFraction() >= STANDOFF_FLUX;
+                        if (!pressing && seconds >= RUN_MIN_SECONDS && (full || close || seconds >= RUN_MAX_SECONDS)) {
+                            beginOrbit(ship, target, m, now, toTarget);
+                        }
+                    }
+                    break;
+                }
+                boolean pressing = (pressed(target) || (m.duel && offArc(target, ship))) && !full;
                 boolean close = range <= standoff * 1.1f && seconds >= RUN_MIN_SECONDS
                         && (!front || ship.fluxFraction() >= STANDOFF_FLUX);
                 if (full || (!pressing && (close || seconds >= RUN_MAX_SECONDS))) {
-                    if (front && DUEL_MANOEUVRES) {
-                        // Venting, it breaks away at full way; otherwise it circles, shield and side guns still on.
-                        if (full) beginBreak(ship, target, m, now, toTarget);
-                        else beginOrbit(ship, target, m, now, toTarget);
-                    } else if (front) {
-                        m.side = -m.side;
+                    m.side = -m.side;
+                    if (front) {
                         m.begin(Kind.STANDOFF, now, Float.NaN);
                         m.venting = full;
                     } else {
-                        m.side = -m.side;
                         m.begin(Kind.EXTEND, now, WarshipFacing.wrap(toTarget + m.side * EXTEND_TURN_DEGREES));
                     }
                 }
             }
             case ORBIT -> {
-                if (ship.fluxFraction() >= RUN_FLUX_LIMIT) {
+                if (shieldGoing(ship, target)) {
                     beginBreak(ship, target, m, now, toTarget);
                 } else if (range > reach * IN_REACH_SHARE) {
                     m.begin(Kind.APPROACH, now, Float.NaN);
                 } else if (seconds >= CROSS_AFTER_SECONDS && offArc(target, ship)) {
                     // The target has let this ship off its cover: turn in across its T.
                     m.begin(Kind.CROSS, now, Float.NaN);
-                } else if (seconds >= ORBIT_MIN_SECONDS
-                        && (seconds >= ORBIT_MAX_SECONDS || range < standoff * ORBIT_CLOSE_SHARE)) {
+                } else if (seconds >= CROSS_AFTER_SECONDS && mainBears(target, ship) && !mainBears(ship, target)) {
+                    // The target has turned its battery in on this ship: turn in to answer it, the counter.
                     m.begin(Kind.ATTACK_RUN, now, Float.NaN);
-                }
-            }
-            case CROSS -> {
-                if (ship.fluxFraction() >= RUN_FLUX_LIMIT) {
-                    beginBreak(ship, target, m, now, toTarget);
-                } else {
-                    if (offArc(target, ship)) m.offArcAt = now;
-                    float covered = Float.isNaN(m.offArcAt) ? seconds : now - m.offArcAt;
-                    if (covered >= CROSS_COVERED_SECONDS || seconds >= CROSS_MAX_SECONDS) {
-                        m.begin(Kind.ATTACK_RUN, now, Float.NaN);
-                    }
+                } else if (seconds >= TURN_IN_AFTER_SECONDS && !mainBears(target, ship)
+                        && ship.fluxFraction() < RUN_FLUX_LIMIT && advantage(ship, target) >= TURN_IN_FLUX_LEAD) {
+                    // The target's battery is off this ship and this ship has the more flux to spend: turn in first,
+                    // laying its own battery on the target before the target can lay its own. Crossing the T.
+                    m.begin(Kind.CROSS, now, Float.NaN);
+                } else if (seconds >= ORBIT_MIN_SECONDS && (ship.fluxFraction() <= VENTED_FLUX
+                        || seconds >= ORBIT_MAX_SECONDS || range < standoff * ORBIT_CLOSE_SHARE)) {
+                    m.begin(Kind.ATTACK_RUN, now, Float.NaN);
                 }
             }
             case BREAK -> {
@@ -449,13 +477,22 @@ public final class WarshipTactics {
                 // Run down by a target whose guns bear, a ship that has vented enough turns to face it.
                 boolean counter = ship.fluxFraction() <= COUNTER_FLUX && offArc(ship, target)
                         && bearsOn(target, ship);
-                if ((seconds >= BREAK_MIN_SECONDS && (vented || clear || counter)) || seconds >= BREAK_MAX_SECONDS) {
+                if (!ship.overloaded()
+                        && ((seconds >= BREAK_MIN_SECONDS && (vented || clear || counter)) || seconds >= BREAK_MAX_SECONDS)) {
                     // Back the short way: through the side it broke from.
                     m.side = -m.side;
                     m.begin(Kind.COME_ABOUT, now, Float.NaN);
                 }
             }
             case STANDOFF -> {
+                if (m.duel && shieldGoing(ship, target)) {
+                    beginBreak(ship, target, m, now, toTarget);
+                    break;
+                }
+                if (m.duel && seconds >= CROSS_AFTER_SECONDS && offArc(target, ship)) {
+                    m.begin(Kind.CROSS, now, Float.NaN);
+                    break;
+                }
                 float open = standoffRange(standoff, reach);
                 // A pool that fills during the drift turns it into a vent: out past the target's reach until it is low.
                 if (ship.fluxFraction() >= RUN_FLUX_LIMIT) m.venting = true;
@@ -483,7 +520,16 @@ public final class WarshipTactics {
             }
             case EXTEND -> {
                 boolean open = range >= Math.max(theirs * IN_REACH_SHARE, reach * 0.9f) && seconds >= EXTEND_MIN_SECONDS;
-                if (open || seconds >= EXTEND_MAX_SECONDS) m.begin(Kind.COME_ABOUT, now, Float.NaN);
+                // A bow ship in a duel comes back early: to answer a target that has turned its battery in on it (the
+                // counter), or first, while the target's battery is off it and it has the advantage (crossing the T).
+                boolean early = m.duel && bow && seconds >= EXTEND_MIN_SECONDS
+                        && ship.fluxFraction() <= VENTED_FLUX
+                        && ((mainBears(target, ship) && !mainBears(ship, target))
+                        || (!mainBears(target, ship) && advantage(ship, target) >= TURN_IN_FLUX_LEAD));
+                if (open || early || seconds >= EXTEND_MAX_SECONDS) {
+                    if (m.duel && bow) m.side = shortSide(ship, toTarget);
+                    m.begin(Kind.COME_ABOUT, now, Float.NaN);
+                }
             }
             case COME_ABOUT -> {
                 float want = bow ? toTarget : broadsideCourse(ship, toTarget, m);
@@ -529,6 +575,14 @@ public final class WarshipTactics {
         float cruise = CRUISE_LENGTHS * ship.lengthCells;
         switch (m.kind) {
             case APPROACH -> {
+                if (bow && m.duel) {
+                    // A bow ship does not come in on the target's nose: it steers for the quarter where the target's
+                    // guns and shield cover least, along its own course, and turns its guns in once it is in reach.
+                    // Two such ships work round one another for the T before either fires.
+                    float[] p = WarshipDuelHelm.bowStation(ship, target, standoff, edges);
+                    m.heading = WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]);
+                    return cog(ship, p);
+                }
                 // Oblique: toward a point on the target's side the ship works, at its standoff.
                 float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
                 float at = round + m.side * APPROACH_OBLIQUE_DEGREES;
@@ -557,6 +611,7 @@ public final class WarshipTactics {
                 // short and in when it is long, never past the ship's own cover.
                 float bend = Math.max(-ORBIT_BEND_DEGREES, Math.min(ORBIT_BEND_DEGREES,
                         (standoff - range) / Math.max(1f, standoff) * 60f));
+                // Short of the range it bends out only as far as its cover still holds; long, it bends in.
                 float angle = Math.max(ORBIT_MIN_ANGLE_DEGREES - ORBIT_BEND_DEGREES,
                         Math.min(Math.max(m.orbitAngle, coverAngle(ship)), m.orbitAngle + bend));
                 float c = WarshipFacing.wrap(toTarget + m.side * angle);
@@ -627,6 +682,12 @@ public final class WarshipTactics {
      */
     private static void beginOrbit(Warship ship, Warship target, WarshipManoeuvre m, float now, float toTarget) {
         float angle = orbitAngle(ship);
+        if (Float.isNaN(angle)) {
+            // Nothing worth keeping bears off the bow: hold it on, drifting sideways and astern round the target.
+            m.side = -m.side;
+            m.begin(Kind.STANDOFF, now, Float.NaN);
+            return;
+        }
         float plus = aspectAfter(ship, target, WarshipFacing.wrap(toTarget + angle));
         float minus = aspectAfter(ship, target, WarshipFacing.wrap(toTarget - angle));
         m.side = minus > plus + 1f ? -1 : 1;
@@ -676,11 +737,11 @@ public final class WarshipTactics {
     static float orbitAngle(Warship ship) {
         float cover = coverAngle(ship);
         float bow = firepowerOff(ship, 0f);
-        if (bow <= 0f || firepowerOff(ship, cover) >= ORBIT_FIRE_SHARE * bow) return cover;
-        for (float a = cover - 5f; a >= Math.max(ORBIT_MIN_ANGLE_DEGREES, cover - ORBIT_GUN_GIVE_DEGREES); a -= 5f) {
+        if (bow <= 0f) return Float.NaN;
+        for (float a = cover; a >= Math.max(ORBIT_MIN_ANGLE_DEGREES, cover - ORBIT_GUN_GIVE_DEGREES); a -= 5f) {
             if (firepowerOff(ship, a) >= ORBIT_FIRE_SHARE * bow) return a;
         }
-        return cover;
+        return Float.NaN;
     }
 
     /** The anti-ship firepower bearing on a distant target {@code degrees} off the bow, the better side of the two. */
@@ -695,10 +756,11 @@ public final class WarshipTactics {
 
     /**
      * Whether {@code from} lies off {@code ship}'s cover: outside its front shield's arc, or, for a hull with no front
-     * shield, where it brings under {@link #COVER_FIRE_SHARE} of its bow battery to bear. A ship that has turned its
-     * cover away from its enemy is open to being crossed.
+     * shield, where it brings under {@link #COVER_FIRE_SHARE} of its bow battery to bear. A front shield overloaded
+     * covers nothing. A ship that has turned its cover away from its enemy, or lost it, is open to being crossed.
      */
     static boolean offArc(Warship ship, Warship from) {
+        if (frontShielded(ship) && ship.overloaded()) return true;
         if (frontShielded(ship)) {
             float rel = WarshipFacing.wrap(WarshipFacing.bearing(ship.centerX(), ship.centerY(), from.centerX(),
                     from.centerY()) - ship.facingDegrees);
@@ -710,10 +772,58 @@ public final class WarshipTactics {
                 < COVER_FIRE_SHARE * bow;
     }
 
+    /**
+     * Whether {@code ship}'s main battery bears on {@code target} at its present heading: at least {@link
+     * #COVER_FIRE_SHARE} of the firepower it brings to bear dead ahead.
+     */
+    static boolean mainBears(Warship ship, Warship target) {
+        float bow = firepowerOff(ship, 0f);
+        return bow > 0f && WarshipShipRules.firepowerAt(ship, ship.facingDegrees, target.centerX(), target.centerY())
+                >= COVER_FIRE_SHARE * bow;
+    }
+
+    /**
+     * How far {@code ship} is ahead of {@code target}: the target's pool less its own, plus its own hull share less the
+     * target's. The ship ahead is the one that turns in first; in a mirror the margin is whatever the fight has made.
+     */
+    static float advantage(Warship ship, Warship target) {
+        return target.fluxFraction() - ship.fluxFraction() + ship.hullFraction() - target.hullFraction();
+    }
+
+    /** The turn side ({@code +1} or {@code -1}) that brings the nose onto {@code toTarget} the short way round. */
+    private static int shortSide(Warship ship, float toTarget) {
+        return WarshipFacing.wrap(toTarget - ship.facingDegrees) >= 0f ? 1 : -1;
+    }
+
     /** Whether any of {@code ship}'s anti-ship guns bears on {@code target} at its present heading. */
     static boolean bearsOn(Warship ship, Warship target) {
         return WarshipShipRules.firepowerAt(ship, ship.facingDegrees, target.centerX(), target.centerY()) > 0f;
     }
+
+    /**
+     * Whether {@code ship}'s shield is going: overloaded, or {@link #SHIELD_GOING_FLUX} full and losing the flux race.
+     */
+    static boolean shieldGoing(Warship ship, Warship target) {
+        return ship.overloaded() || (ship.fluxFraction() >= SHIELD_GOING_FLUX && losingFlux(ship, target));
+    }
+
+    /** A pool this full, deeper than its target's, is a shield about to fail. */
+    static final float SHIELD_GOING_FLUX = 0.92f;
+
+    /**
+     * Whether {@code ship} is losing the flux race against {@code target}: overloaded, or its pool deeper than the
+     * target's by {@link #BREAK_FLUX_LEAD}. Two ships equally full hold their shields on each other; the one further
+     * gone breaks away, and its quarter is what the other crosses.
+     */
+    static boolean losingFlux(Warship ship, Warship target) {
+        return ship.overloaded() || (!target.overloaded() && ship.fluxFraction() >= target.fluxFraction() + BREAK_FLUX_LEAD);
+    }
+
+    /** How much deeper than its own a full ship needs its target's pool to be to hold its run on it. */
+    static final float PRESS_LEAD = 0.05f;
+
+    /** How much deeper than its target's a pool must be for the ship to be losing the flux race. */
+    static final float BREAK_FLUX_LEAD = 0.1f;
 
     /** Whether {@code target} is near its limit: overloaded, or its pool at least {@link #PRESS_FLUX} full. */
     static boolean pressed(Warship target) {

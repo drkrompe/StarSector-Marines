@@ -51,6 +51,21 @@ public final class MirrorDuelScene implements BehaviorScene {
     private static final float STANDOFF_ARC_SHARE = 0.85f;
     /** A ship's widest range to its target is at least this multiple of its closest once the fight has begun. */
     private static final float RANGE_BREATH = 1.25f;
+    /**
+     * At least one side holds a crossing position for this share of the ticks the two are in reach: its guns bearing
+     * from outside the other's cover ({@link WarshipTactics#offArc}), or its main battery on the other while the
+     * other's is not on it (across its T). A duel in which nobody ever gets round anybody is a standoff. Both sides
+     * are not required: between equals the first to get round usually keeps the advantage, and that is the fight's
+     * own doing; each side's share is a reading.
+     */
+    private static final float OFF_ARC_SHARE = 0.02f;
+    /**
+     * Each ship's mean speed while the two are in reach of each other is at least this share of its top speed: ships
+     * under way in the fight, not parked nose to nose once they have closed.
+     */
+    private static final float WAY_SHARE = 0.3f;
+    /** An off-arc position counts as a fresh crossing only after this many ticks without one. */
+    private static final int CROSSING_GAP_TICKS = 30;
 
     /** One class: its hull and fit. */
     private record Mirror(String id, String hull, String variant) {}
@@ -135,7 +150,7 @@ public final class MirrorDuelScene implements BehaviorScene {
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, FRAME_EVERY, tick -> trace.caption(loop, tick))
                 .run(TICKS);
-        return report(loop, trace);
+        return report(loop, trace, sim.warships().shipFire());
     }
 
     private static void place(Warship ship, float x, float y) {
@@ -148,7 +163,7 @@ public final class MirrorDuelScene implements BehaviorScene {
         ship.groundFire(Warship.GroundFire.HOLD);
     }
 
-    private SceneReport report(String loop, Trace t) {
+    private SceneReport report(String loop, Trace t, WarshipShipFire fire) {
         List<Verdict> verdicts = new ArrayList<>();
         Warship loser = t.loser();
         float decided = t.decisionTick < 0 || t.firstHitTick < 0 ? -1f : (t.decisionTick - t.firstHitTick) * TICK_SECONDS;
@@ -180,6 +195,38 @@ public final class MirrorDuelScene implements BehaviorScene {
                 flat.append(String.format(Locale.ROOT, " %s %.0f-%.0f", s == t.west ? "west" : "east", r[0], r[1]));
             }
         }
+        StringBuilder orbit = new StringBuilder();
+        boolean orbitHeld = true;
+        for (Warship s : List.of(t.west, t.east)) {
+            int[] st = t.orbitArc.get(s);
+            if (st == null || st[1] == 0) continue;
+            float share = (float) st[0] / st[1];
+            orbit.append(String.format(Locale.ROOT, " %s %.0f%% of %d ticks", s == t.west ? "west" : "east", 100f * share, st[1]));
+            orbitHeld &= share >= STANDOFF_ARC_SHARE;
+        }
+        if (orbit.length() > 0) {
+            verdicts.add(Verdict.of("an-orbit-keeps-the-shield-on-the-target", orbitHeld, "target in arc:" + orbit));
+        }
+        StringBuilder off = new StringBuilder();
+        boolean someoneGotRound = false;
+        for (Warship s : List.of(t.west, t.east)) {
+            int[] o = t.offArc.get(s);
+            float share = o[1] == 0 ? 0f : (float) t.position.getOrDefault(s, new int[1])[0] / o[1];
+            someoneGotRound |= share >= OFF_ARC_SHARE;
+            off.append(String.format(Locale.ROOT, " %s %.1f%% of %d in-reach ticks, %d crossings;",
+                    s == t.west ? "west" : "east", 100f * share, o[1], t.crossings.getOrDefault(s, 0)));
+        }
+        verdicts.add(Verdict.of("a-ship-gets-round", someoneGotRound,
+                "off the other's cover with guns bearing, or across its T:" + off));
+        StringBuilder way = new StringBuilder();
+        boolean underWay = true;
+        for (Warship s : List.of(t.west, t.east)) {
+            float share = t.wayShare(s);
+            underWay &= share >= WAY_SHARE;
+            way.append(String.format(Locale.ROOT, " %s %.0f cells, %.0f%% of top speed;", s == t.west ? "west" : "east",
+                    t.flown.getOrDefault(s, 0f), 100f * share));
+        }
+        verdicts.add(Verdict.of("ships-keep-way-on", underWay, "in reach:" + way));
         verdicts.add(Verdict.of("range-breathes", flat.length() == 0,
                 flat.length() == 0 ? "both opened the range by " + RANGE_BREATH + "x" : "held one range:" + flat));
         verdicts.add(Verdict.of("hulls-never-pass-through", t.worstExcess <= 0.05f,
@@ -212,12 +259,22 @@ public final class MirrorDuelScene implements BehaviorScene {
             int[] st = t.standoffArc.get(s);
             metrics.put(n + "StandoffInArcPercent", st == null || st[1] == 0 ? -1 : Math.round(100f * st[0] / st[1]));
             metrics.put(n + "Manoeuvres", s.manoeuvre().begun());
+            int[] o = t.offArc.get(s);
+            metrics.put(n + "OffArcPercent", o[1] == 0 ? -1 : round1(100f * o[0] / o[1]));
+            metrics.put(n + "TPercent", o[1] == 0 ? -1 : round1(100f * t.tShare.getOrDefault(s, new int[1])[0] / o[1]));
+            metrics.put(n + "PositionPercent",
+                    o[1] == 0 ? -1 : round1(100f * t.position.getOrDefault(s, new int[1])[0] / o[1]));
+            metrics.put(n + "Crossings", t.crossings.getOrDefault(s, 0));
+            metrics.put(n + "FlownCells", Math.round(t.flown.getOrDefault(s, 0f)));
+            metrics.put(n + "WayPercent", Math.round(100f * t.wayShare(s)));
             float[] r = t.rangeSpan.get(s);
             if (r != null) {
                 metrics.put(n + "RangeMin", round1(r[0]));
                 metrics.put(n + "RangeMax", round1(r[1]));
             }
         }
+        metrics.put("roundsAtHulls", fire.roundsFired());
+        metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
         metrics.put("shieldType", t.west.shieldType().equals("front") ? 1 : t.west.shieldType().equals("omni") ? 2 : 0);
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
@@ -247,6 +304,21 @@ public final class MirrorDuelScene implements BehaviorScene {
         final Map<Warship, int[]> underFire = new IdentityHashMap<>();
         /** Per front-shield ship: standoff ticks with its target in its arc, and standoff ticks. */
         final Map<Warship, int[]> standoffArc = new IdentityHashMap<>();
+        /** Per front-shield ship: orbit ticks with its target in its arc, and orbit ticks. */
+        final Map<Warship, int[]> orbitArc = new IdentityHashMap<>();
+        /**
+         * Per ship: in-reach ticks in an off-arc firing position (its guns bearing on the other from outside the other's
+         * cover, {@link WarshipTactics#offArc}), and in-reach ticks.
+         */
+        final Map<Warship, int[]> offArc = new IdentityHashMap<>();
+        final Map<Warship, Integer> crossings = new IdentityHashMap<>();
+        /** Per ship: in-reach ticks with its main battery on the other while the other's is not on it (its T crossed). */
+        final Map<Warship, int[]> tShare = new IdentityHashMap<>();
+        /** Per ship: in-reach ticks in either position, off the other's cover or across its T. */
+        final Map<Warship, int[]> position = new IdentityHashMap<>();
+        final Map<Warship, Integer> lastOffArcTick = new IdentityHashMap<>();
+        final Map<Warship, Float> flown = new IdentityHashMap<>();
+        final Map<Warship, float[]> lastPos = new IdentityHashMap<>();
         final Map<Warship, float[]> rangeSpan = new IdentityHashMap<>();
         final Map<Warship, Float> maxFlux = new IdentityHashMap<>();
         /** Per ship: mounts silenced by a breach while it still flew. */
@@ -260,6 +332,14 @@ public final class MirrorDuelScene implements BehaviorScene {
             this.east = east;
             underFire.put(west, new int[2]);
             underFire.put(east, new int[2]);
+            offArc.put(west, new int[2]);
+            offArc.put(east, new int[2]);
+        }
+
+        /** Mean speed while in reach of the other, as a share of top speed. */
+        float wayShare(Warship s) {
+            int ticks = offArc.get(s)[1];
+            return ticks == 0 ? 0f : flown.getOrDefault(s, 0f) / (s.maxSpeed * ticks * TICK_SECONDS);
         }
 
         Warship loser() {
@@ -338,6 +418,34 @@ public final class MirrorDuelScene implements BehaviorScene {
                     int[] f = underFire.get(s);
                     f[1]++;
                     if (!inArc(s, o)) f[0]++;
+                }
+                if ("front".equals(s.shieldType()) && s.manoeuvre().kind() == WarshipManoeuvre.Kind.ORBIT) {
+                    int[] st = orbitArc.computeIfAbsent(s, k -> new int[2]);
+                    st[1]++;
+                    if (inArc(s, o)) st[0]++;
+                }
+                if (firstHitTick >= 0) {
+                    float[] last = lastPos.get(s);
+                    float gap = (float) Math.hypot(o.centerX() - s.centerX(), o.centerY() - s.centerY());
+                    // The hull's own point, not its sprite centre, which swings with every turn.
+                    if (last != null && gap <= WarshipShipFire.longestReach(s)) {
+                        flown.merge(s, (float) Math.hypot(s.x - last[0], s.y - last[1]), Float::sum);
+                    }
+                    lastPos.put(s, new float[]{s.x, s.y});
+                    if (gap <= WarshipShipFire.longestReach(s)) {
+                        int[] oa = offArc.get(s);
+                        oa[1]++;
+                        boolean off = WarshipTactics.bearsOn(s, o) && WarshipTactics.offArc(o, s);
+                        boolean crossingT = WarshipTactics.mainBears(s, o) && !WarshipTactics.mainBears(o, s);
+                        if (off) oa[0]++;
+                        if (crossingT) tShare.computeIfAbsent(s, k -> new int[1])[0]++;
+                        if (off || crossingT) {
+                            position.computeIfAbsent(s, k -> new int[1])[0]++;
+                            Integer last2 = lastOffArcTick.get(s);
+                            if (last2 == null || tick - last2 > CROSSING_GAP_TICKS) crossings.merge(s, 1, Integer::sum);
+                            lastOffArcTick.put(s, tick);
+                        }
+                    }
                 }
                 if ("front".equals(s.shieldType()) && s.manoeuvre().kind() == WarshipManoeuvre.Kind.STANDOFF) {
                     int[] st = standoffArc.computeIfAbsent(s, k -> new int[2]);
