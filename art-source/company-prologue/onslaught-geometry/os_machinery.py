@@ -178,6 +178,34 @@ def _leg_y(x):
     return 46.0
 
 
+_FACES = []
+
+
+def _face_trees():
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    _FACES.clear()
+    for ob in bpy.context.scene.objects:
+        if ob.type == 'MESH' and ob.name.split(' ')[0] in ('Hull', 'Armour', 'Bridge'):
+            ev = ob.evaluated_get(dg)
+            me = ev.to_mesh()
+            _FACES.append(BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
+                                               [tuple(p.vertices) for p in me.polygons]))
+            ev.to_mesh_clear()
+
+
+def _face_x(x0, y, z, reach=12.0, default=-18.0):
+    """X of the first hull face forward of (x0, y, z), or `default` if none within reach."""
+    from mathutils import Vector
+    best = None
+    for t in _FACES:
+        p, _, _, d = t.ray_cast(Vector((x0, y, z)), Vector((1, 0, 0)), reach)
+        if p is not None and (best is None or d < best):
+            best = d
+    return default if best is None else x0+best
+
+
 def build_side(kit, s, mats):
     P = lambda x, y, z: (x, s*y, z)
     pipes_dark, pipes_pale, pipes_bronze = Acc(), Acc(), Acc()
@@ -193,11 +221,13 @@ def build_side(kit, s, mats):
     for y in (24.5, 46.0, 66.0, 86.0, 100.0):     # saddles to the floor and brackets to the face
         frames.add(*box(HDR_X-2.2, HDR_X+2.2, s*(y-1.2), s*(y+1.2), F, HDR_LO))
         frames.add(*box(-18.6, HDR_X+1.4, s*(y-.8), s*(y+.8), HDR_HI-1.2, HDR_HI+1.0))
-    # Risers: up out of the upper tier and forward into the core's aft face.
+    # Risers: up out of the upper tier and forward into the core's aft face, wherever that
+    # face now stands (read by a ray, so a reshaped core still takes them).
     for y in (30.0, 41.0, 58.0, 69.0, 79.0):
         top = F+17.0
-        pipe(pipes_bronze, [P(HDR_X, y, HDR_HI), P(HDR_X, y, top), P(-17.4, y, top)], 1.15, fittings=fittings)
-        frames.add(*box(-18.9, -17.6, s*(y-2.0), s*(y+2.0), top-2.0, top+2.0))   # wall flange
+        fx = _face_x(HDR_X, s*y, top)
+        pipe(pipes_bronze, [P(HDR_X, y, HDR_HI), P(HDR_X, y, top), P(fx+.6, y, top)], 1.15, fittings=fittings)
+        frames.add(*box(fx-.9, fx+.4, s*(y-2.0), s*(y+2.0), top-2.0, top+2.0))   # wall flange
 
     # ---- outer well: diagonal bundles, three layers ---------------------------
     d = OUT_DIR
@@ -404,6 +434,7 @@ def materials(kit):
 
 def build(kit):
     mats = materials(kit)
+    _face_trees()
     for s in (1, -1):
         build_side(kit, s, mats)
     build_tail_radiator(kit, mats)

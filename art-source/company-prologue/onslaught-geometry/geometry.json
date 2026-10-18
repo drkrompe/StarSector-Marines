@@ -46,11 +46,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.84,
+  "metres_per_unit": 0.86,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2601876,
+      "units3": 2485038,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -86,13 +86,13 @@
     "contents_total_m3": 653700,
     "machinery_share": 0.58,
     "enclosed_m3": 1556429,
-    "solved_metres_per_unit": 0.843,
+    "solved_metres_per_unit": 0.856,
     "range": {
-      "habitable_273": 0.817,
-      "habitable_328": 0.868
+      "habitable_273": 0.829,
+      "habitable_328": 0.881
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 296.3,
+    "length_m": 300.9,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -102,14 +102,15 @@
         1.4
       ]
     },
-    "published_metres_per_unit": 0.84,
+    "published_metres_per_unit": 0.86,
     "measured_this_build": {
-      "enclosed_units3": 2601876,
+      "enclosed_units3": 2485038,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
         "Bridge spine",
         "Hull aft body",
+        "Hull belly",
         "Hull core",
         "Hull core inner terrace",
         "Hull core terrace",
@@ -125,14 +126,14 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2603602
+      "with_drive_pods_units3": 2486789
     },
     "size_m": [
-      292.5,
-      226.0,
-      97.8
+      302.7,
+      229.9,
+      100.7
     ],
-    "person_1_8_m_in_units": 2.14,
+    "person_1_8_m_in_units": 2.09,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -149,18 +150,18 @@
   "dimensions": {
     "min": [
       -126.0,
-      -134.5,
-      -65.2
+      -133.67,
+      -61.81
     ],
     "max": [
-      222.22,
-      134.5,
-      51.28
+      226.0,
+      133.67,
+      55.28
     ],
     "size": [
-      348.22,
-      269.0,
-      116.48
+      352.0,
+      267.33,
+      117.08
     ]
   },
   "weapon_slots": [
@@ -170,7 +171,7 @@
       "location": [
         158,
         71,
-        20.29
+        -5.93
       ],
       "angle": 70,
       "arc": 150,
@@ -179,8 +180,9 @@
       "weapon": "heavyac",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 001 pivot",
+      "mount_empty": "Weapon WS 001 mount",
       "objects": "Weapon WS 001 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 002",
@@ -188,7 +190,7 @@
       "location": [
         134,
         74,
-        20.48
+        -2.22
       ],
       "angle": 65,
       "arc": 120,
@@ -197,8 +199,9 @@
       "weapon": "vulcan",
       "ring_radius": 4.2,
       "pivot": "Weapon WS 002 pivot",
+      "mount_empty": "Weapon WS 002 mount",
       "objects": "Weapon WS 002 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 003",
@@ -206,7 +209,7 @@
       "location": [
         158,
         -71,
-        20.29
+        -5.93
       ],
       "angle": -70,
       "arc": 150,
@@ -215,8 +218,9 @@
       "weapon": "heavyac",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 003 pivot",
+      "mount_empty": "Weapon WS 003 mount",
       "objects": "Weapon WS 003 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 004",
@@ -224,7 +228,7 @@
       "location": [
         134,
         -74,
-        20.48
+        -2.22
       ],
       "angle": -65,
       "arc": 120,
@@ -233,8 +237,9 @@
       "weapon": "vulcan",
       "ring_radius": 4.2,
       "pivot": "Weapon WS 004 pivot",
+      "mount_empty": "Weapon WS 004 mount",
       "objects": "Weapon WS 004 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 005",
@@ -242,7 +247,7 @@
       "location": [
         114,
         78,
-        21.53
+        0.82
       ],
       "angle": 75,
       "arc": 120,
@@ -251,8 +256,9 @@
       "weapon": "vulcan",
       "ring_radius": 4.2,
       "pivot": "Weapon WS 005 pivot",
+      "mount_empty": "Weapon WS 005 mount",
       "objects": "Weapon WS 005 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 006",
@@ -260,7 +266,7 @@
       "location": [
         114,
         -78,
-        21.53
+        0.82
       ],
       "angle": -75,
       "arc": 120,
@@ -269,8 +275,9 @@
       "weapon": "vulcan",
       "ring_radius": 4.2,
       "pivot": "Weapon WS 006 pivot",
+      "mount_empty": "Weapon WS 006 mount",
       "objects": "Weapon WS 006 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 007",
@@ -278,7 +285,7 @@
       "location": [
         187,
         0,
-        19.14
+        14.08
       ],
       "angle": 0,
       "arc": 150,
@@ -287,8 +294,9 @@
       "weapon": "dualflak",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 007 pivot",
+      "mount_empty": "Weapon WS 007 mount",
       "objects": "Weapon WS 007 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 008",
@@ -296,7 +304,7 @@
       "location": [
         150,
         -12,
-        20.6
+        17.82
       ],
       "angle": -20,
       "arc": 90,
@@ -305,8 +313,9 @@
       "weapon": "lightac",
       "ring_radius": 4.2,
       "pivot": "Weapon WS 008 pivot",
+      "mount_empty": "Weapon WS 008 mount",
       "objects": "Weapon WS 008 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 009",
@@ -314,7 +323,7 @@
       "location": [
         150,
         12,
-        20.6
+        17.82
       ],
       "angle": 20,
       "arc": 90,
@@ -323,8 +332,9 @@
       "weapon": "lightac",
       "ring_radius": 4.2,
       "pivot": "Weapon WS 009 pivot",
+      "mount_empty": "Weapon WS 009 mount",
       "objects": "Weapon WS 009 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 010",
@@ -332,7 +342,7 @@
       "location": [
         -3,
         -112,
-        23.6
+        9.71
       ],
       "angle": 250,
       "arc": 180,
@@ -341,8 +351,9 @@
       "weapon": "flak",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 010 pivot",
+      "mount_empty": "Weapon WS 010 mount",
       "objects": "Weapon WS 010 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 011",
@@ -350,7 +361,7 @@
       "location": [
         -3,
         112,
-        23.61
+        9.71
       ],
       "angle": 110,
       "arc": 180,
@@ -359,8 +370,9 @@
       "weapon": "flak",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 011 pivot",
+      "mount_empty": "Weapon WS 011 mount",
       "objects": "Weapon WS 011 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 012",
@@ -368,7 +380,7 @@
       "location": [
         49,
         18,
-        27.21
+        29.66
       ],
       "angle": 60,
       "arc": 140,
@@ -377,8 +389,9 @@
       "weapon": "hveldriver",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 012 pivot",
+      "mount_empty": "Weapon WS 012 mount",
       "objects": "Weapon WS 012 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 013",
@@ -386,7 +399,7 @@
       "location": [
         49,
         -18,
-        27.21
+        29.66
       ],
       "angle": -60,
       "arc": 140,
@@ -395,8 +408,9 @@
       "weapon": "hveldriver",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 013 pivot",
+      "mount_empty": "Weapon WS 013 mount",
       "objects": "Weapon WS 013 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 014",
@@ -404,7 +418,7 @@
       "location": [
         -9,
         22,
-        27.24
+        30.89
       ],
       "angle": 170,
       "arc": 120,
@@ -413,8 +427,9 @@
       "weapon": "heavyac",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 014 pivot",
+      "mount_empty": "Weapon WS 014 mount",
       "objects": "Weapon WS 014 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 015",
@@ -422,7 +437,7 @@
       "location": [
         -9,
         -22,
-        27.24
+        30.89
       ],
       "angle": 190,
       "arc": 120,
@@ -431,8 +446,9 @@
       "weapon": "heavyac",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 015 pivot",
+      "mount_empty": "Weapon WS 015 mount",
       "objects": "Weapon WS 015 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 018",
@@ -440,7 +456,7 @@
       "location": [
         77,
         88,
-        25.22
+        5.24
       ],
       "angle": 80,
       "arc": 135,
@@ -449,8 +465,9 @@
       "weapon": "devastator",
       "ring_radius": 11.0,
       "pivot": "Weapon WS 018 pivot",
+      "mount_empty": "Weapon WS 018 mount",
       "objects": "Weapon WS 018 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 019",
@@ -458,7 +475,7 @@
       "location": [
         126,
         0,
-        24.87
+        21.0
       ],
       "angle": 0,
       "arc": 150,
@@ -467,8 +484,9 @@
       "weapon": "multineedler",
       "ring_radius": 11.0,
       "pivot": "Weapon WS 019 pivot",
+      "mount_empty": "Weapon WS 019 mount",
       "objects": "Weapon WS 019 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 020",
@@ -476,7 +494,7 @@
       "location": [
         77,
         -87,
-        25.22
+        5.15
       ],
       "angle": -80,
       "arc": 135,
@@ -485,8 +503,9 @@
       "weapon": "devastator",
       "ring_radius": 11.0,
       "pivot": "Weapon WS 020 pivot",
+      "mount_empty": "Weapon WS 020 mount",
       "objects": "Weapon WS 020 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 021",
@@ -494,7 +513,7 @@
       "location": [
         -9,
         65,
-        15.44
+        22.8
       ],
       "angle": 30,
       "arc": 120,
@@ -503,8 +522,9 @@
       "weapon": "typhoon",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 021 pivot",
+      "mount_empty": "Weapon WS 021 mount",
       "objects": "Weapon WS 021 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 022",
@@ -512,7 +532,7 @@
       "location": [
         8,
         40,
-        25.91
+        24.85
       ],
       "angle": 20,
       "arc": 120,
@@ -521,8 +541,9 @@
       "weapon": "typhoon",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 022 pivot",
+      "mount_empty": "Weapon WS 022 mount",
       "objects": "Weapon WS 022 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 023",
@@ -530,7 +551,7 @@
       "location": [
         8,
         -40,
-        25.91
+        24.85
       ],
       "angle": -20,
       "arc": 120,
@@ -539,8 +560,9 @@
       "weapon": "typhoon",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 023 pivot",
+      "mount_empty": "Weapon WS 023 mount",
       "objects": "Weapon WS 023 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 024",
@@ -548,7 +570,7 @@
       "location": [
         -9,
         -65,
-        15.44
+        22.8
       ],
       "angle": -30,
       "arc": 120,
@@ -557,8 +579,9 @@
       "weapon": "typhoon",
       "ring_radius": 7.0,
       "pivot": "Weapon WS 024 pivot",
+      "mount_empty": "Weapon WS 024 mount",
       "objects": "Weapon WS 024 ...",
-      "trains": "rotate the pivot about its local Z; rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
     },
     {
       "id": "WS 016",
@@ -566,7 +589,7 @@
       "location": [
         198,
         70,
-        13.92
+        -11.59
       ],
       "angle": 0,
       "arc": 5,
@@ -583,7 +606,7 @@
       "location": [
         198,
         -70,
-        13.92
+        -12.18
       ],
       "angle": 0,
       "arc": 5,
@@ -765,8 +788,8 @@
     {
       "name": "Light stem 1",
       "position": [
-        215.98,
-        0.0,
+        215.66,
+        -0.04,
         2.17
       ],
       "colour": "red",
@@ -787,7 +810,7 @@
       "position": [
         17.0,
         0.0,
-        50.73
+        54.73
       ],
       "colour": "red",
       "rgb": [
@@ -803,11 +826,31 @@
       }
     },
     {
+      "name": "Light port arm nose 1",
+      "position": [
+        212.4,
+        77.56,
+        -26.0
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "arm nose",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 0.0,
+        "duty": 0.18
+      }
+    },
+    {
       "name": "Light port leg tip 1",
       "position": [
-        -122.0,
-        56.0,
-        5.69
+        -122.97,
+        56.17,
+        2.16
       ],
       "colour": "red",
       "rgb": [
@@ -825,9 +868,9 @@
     {
       "name": "Light port quarter 1",
       "position": [
-        -66.0,
-        100.0,
-        -4.87
+        -66.07,
+        100.53,
+        -5.9
       ],
       "colour": "red",
       "rgb": [
@@ -845,9 +888,9 @@
     {
       "name": "Light port arm edge 1",
       "position": [
-        180.0,
-        89.5,
-        5.65
+        180.08,
+        90.7,
+        -18.39
       ],
       "colour": "white",
       "rgb": [
@@ -865,9 +908,9 @@
     {
       "name": "Light port arm edge 2",
       "position": [
-        140.0,
-        101.5,
-        4.84
+        140.05,
+        88.56,
+        -7.91
       ],
       "colour": "white",
       "rgb": [
@@ -885,9 +928,9 @@
     {
       "name": "Light port arm edge 3",
       "position": [
-        100.0,
-        121.5,
-        9.03
+        100.04,
+        125.06,
+        -17.29
       ],
       "colour": "white",
       "rgb": [
@@ -905,9 +948,9 @@
     {
       "name": "Light port arm edge 4",
       "position": [
-        60.0,
-        123.5,
-        9.15
+        60.02,
+        126.21,
+        -11.35
       ],
       "colour": "white",
       "rgb": [
@@ -925,9 +968,9 @@
     {
       "name": "Light port arm edge 5",
       "position": [
-        20.0,
-        127.5,
-        9.62
+        20.05,
+        115.16,
+        3.75
       ],
       "colour": "white",
       "rgb": [
@@ -945,9 +988,9 @@
     {
       "name": "Light port arm edge 6",
       "position": [
-        -10.0,
-        117.5,
-        19.96
+        -10.21,
+        115.98,
+        10.8
       ],
       "colour": "white",
       "rgb": [
@@ -963,11 +1006,31 @@
       }
     },
     {
+      "name": "Light starboard arm nose 1",
+      "position": [
+        212.4,
+        -77.56,
+        -26.0
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "arm nose",
+      "blink": {
+        "period_s": 2.0,
+        "phase_s": 0.3,
+        "duty": 0.18
+      }
+    },
+    {
       "name": "Light starboard leg tip 1",
       "position": [
-        -122.0,
-        -56.0,
-        5.69
+        -122.97,
+        -56.17,
+        2.16
       ],
       "colour": "red",
       "rgb": [
@@ -985,9 +1048,9 @@
     {
       "name": "Light starboard quarter 1",
       "position": [
-        -66.0,
-        -100.0,
-        -4.95
+        -66.07,
+        -100.53,
+        -5.9
       ],
       "colour": "red",
       "rgb": [
@@ -1005,9 +1068,9 @@
     {
       "name": "Light starboard arm edge 1",
       "position": [
-        180.0,
-        -89.5,
-        5.65
+        180.08,
+        -90.7,
+        -18.39
       ],
       "colour": "white",
       "rgb": [
@@ -1025,9 +1088,9 @@
     {
       "name": "Light starboard arm edge 2",
       "position": [
-        140.0,
-        -101.5,
-        4.84
+        140.05,
+        -88.56,
+        -7.91
       ],
       "colour": "white",
       "rgb": [
@@ -1045,9 +1108,9 @@
     {
       "name": "Light starboard arm edge 3",
       "position": [
-        100.0,
-        -121.5,
-        9.03
+        100.06,
+        -125.09,
+        -17.41
       ],
       "colour": "white",
       "rgb": [
@@ -1065,9 +1128,9 @@
     {
       "name": "Light starboard arm edge 4",
       "position": [
-        60.0,
-        -123.5,
-        9.15
+        60.02,
+        -126.21,
+        -11.35
       ],
       "colour": "white",
       "rgb": [
@@ -1085,9 +1148,9 @@
     {
       "name": "Light starboard arm edge 5",
       "position": [
-        20.0,
-        -127.5,
-        9.48
+        20.05,
+        -115.16,
+        3.75
       ],
       "colour": "white",
       "rgb": [
@@ -1105,9 +1168,9 @@
     {
       "name": "Light starboard arm edge 6",
       "position": [
-        -10.0,
-        -117.5,
-        19.94
+        -10.21,
+        -115.98,
+        10.8
       ],
       "colour": "white",
       "rgb": [
@@ -1125,7 +1188,7 @@
     {
       "name": "Light stern 1",
       "position": [
-        -109.91,
+        -109.94,
         0.0,
         8.06
       ],
@@ -1158,44 +1221,44 @@
     "sensor_mm": 36.0,
     "cameras": {
       "formation-quarter-1.5km": [
-        1349.1,
-        -1091.7,
-        544.9
+        1320.7,
+        -1066.3,
+        535.7
       ],
       "formation-abeam-1.5km": [
-        48.1,
-        -1768.3,
-        241.6
+        50.0,
+        -1727.2,
+        239.5
       ],
       "formation-bow-1.5km": [
-        -1464.6,
-        -873.3,
-        364.3
+        -1427.5,
+        -853.0,
+        359.4
       ],
       "formation-high-1.5km": [
-        1232.8,
-        684.0,
-        1140.9
+        1207.1,
+        668.1,
+        1117.9
       ],
       "formation-quarter-3km": [
-        2650.1,
-        -2183.3,
-        1096.7
+        2591.5,
+        -2132.5,
+        1074.7
       ],
       "formation-abeam-3km": [
-        48.1,
-        -3536.7,
-        490.1
+        50.0,
+        -3454.4,
+        482.2
       ],
       "formation-bow-3km": [
-        -2977.3,
-        -1746.7,
-        735.6
+        -2905.0,
+        -1706.1,
+        722.0
       ],
       "formation-high-3km": [
-        2417.4,
-        1367.9,
-        2288.7
+        2364.2,
+        1336.1,
+        2239.0
       ]
     }
   },
@@ -1272,34 +1335,34 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9623,
-    "sprite_uncovered": 0.0162,
-    "model_outside_sprite": 0.0224,
+    "iou": 0.9617,
+    "sprite_uncovered": 0.0186,
+    "model_outside_sprite": 0.0205,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
     "formation-abeam-1.5km": {
       "size_px": [
-        258,
-        84
+        268,
+        98
       ]
     },
     "formation-bow-1.5km": {
       "size_px": [
-        209,
-        92
+        214,
+        85
       ]
     },
     "formation-high-1.5km": {
       "size_px": [
-        216,
-        172
+        223,
+        196
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
-        235,
-        92
+        241,
+        123
       ]
     },
     "formation-sheet": {
@@ -1310,26 +1373,26 @@
     },
     "formation-abeam-3km": {
       "size_px": [
-        127,
-        41
+        131,
+        49
       ]
     },
     "formation-bow-3km": {
       "size_px": [
-        106,
-        46
+        107,
+        43
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        109,
-        86
+        111,
+        97
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        117,
-        47
+        120,
+        60
       ]
     }
   }

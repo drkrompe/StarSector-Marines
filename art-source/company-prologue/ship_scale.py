@@ -162,10 +162,10 @@ HULLS = {
     'Legion (XIV)': dict(units3=1678689, crew_max=1500, cargo=300, fuel=300, cls='capital',
                          wings=[('broadsword', 3)]*2+[('hoplon', 2)]*2, length_units=294.9, sprite_px=308,
                          fittings_units={'personnel door h': [3.4*.61/.99], 'rail h': [1.8*.61/.99], 'transfer door w x h': [34, 10]}),
-    'Onslaught': dict(units3=2601876, crew_max=1500, cargo=300, fuel=400, cls='capital',
+    'Onslaught': dict(units3=2485038, crew_max=1500, cargo=300, fuel=400, cls='capital',
                       length_units=351.7, sprite_px=384,
-                      fittings_units={'bridge glazing band h': [1.67], 'bridge pane w': [1.31],
-                                      'crown hatch d': [2.14], 'service hatch w x l': [1.07, 1.67]}),
+                      fittings_units={'bridge glazing band h': [1.63], 'bridge pane w': [1.28],
+                                      'crown hatch d': [2.09], 'service hatch w x l': [1.05, 1.63]}),
     'Lasher': dict(units3=32793, crew_max=50, cargo=40, fuel=25, cls='frigate',
                    length_units=94.7, sprite_px=96,
                    fittings_units={'viewport w x h': [1.05, .84], 'bridge glazing band h': [1.05]}),
@@ -177,7 +177,7 @@ HULLS = {
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)'}
-PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .84}
+PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -209,7 +209,7 @@ SOLIDS = {
                       'Hull port aft leg', 'Hull starboard aft leg', 'Hull port waist', 'Hull starboard waist',
                       'Bridge spine', 'Bridge command dome', 'Bridge aft dome', 'Hull port arm gallery',
                       'Hull starboard arm gallery', 'Hull prow gallery', 'Hull core terrace',
-                      'Hull core inner terrace')},
+                      'Hull core inner terrace', 'Hull belly')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},

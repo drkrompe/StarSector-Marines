@@ -20,8 +20,9 @@ hull's edges (owner, pass 3: terracing, not flat deck and plating).
   leg stripes     orange along each aft leg's inner edge;
   waist bay       a dark bay frame and amber bay lamps in each waist valley;
   core aft face   buttresses and a lintel above the machinery wells;
-  keel strakes    bars under the core, prow, arms, aft body and tail following
-                  each keel curve, with frames across the core's flat bottom.
+  keel strakes    bars following the belly's rounded underside (three strakes and
+                  two frames), and under the prow, aft body and tail following
+                  each keel curve.
 """
 import math
 import bpy
@@ -93,33 +94,52 @@ def bottom(name):
     return [tuple((ob.matrix_world @ me.vertices[i].co)[:2]) for i in f.vertices][::-1], (ob.matrix_world @ f.center).z
 
 
+def shell_strip(kit, name, src, axis, c, w, drop, mat, span=None, xr=None):
+    """A bar following a hull's curved underside: a copy of `src` dropped by `drop`,
+    clipped to |axis - c| < w (axis 0 = X, 1 = Y) and, given `span`, to |other| < span.
+    Its top stays buried in the hull it copies."""
+    ob = src.copy()
+    ob.data = src.data.copy()
+    ob.modifiers.clear()
+    bpy.context.collection.objects.link(ob)
+    ob.location.z -= drop
+    # The cutters are 200-unit cubes: centre them on the source so they span it.
+    mid = [sum(v[i] for v in src.bound_box)/8 + src.location[i] for i in range(3)]
+
+    def cut(along, at, sign, tag):
+        p = list(mid)
+        p[along] = at
+        n = [0.0, 0.0, 0.0]
+        n[along] = sign
+        plane_cut(ob, name+' '+tag, tuple(p), tuple(n), size=600)
+    cut(axis, c+w, 1.0, 'side')
+    cut(axis, c-w, -1.0, 'side')
+    if span:
+        cut(1-axis, span, 1.0, 'end')
+        cut(1-axis, -span, -1.0, 'end')
+    if xr:                          # stop short of the mass's own end faces (no coplanar faces)
+        cut(0, xr[1], 1.0, 'end')
+        cut(0, xr[0], -1.0, 'end')
+    ob.data.materials.clear()
+    return kit.finish(ob, name, mat, .2)
+
+
 def keel_strakes(kit):
-    depth = 3.2
-    plan, kz = bottom('Hull core')
-    for k, y in enumerate((0, 15, -15), 1):
-        p = clip_rect(ccw(plan), -200, 300, y-2.6, y+2.6)
-        if len(p) > 2:
-            _bar(kit, f'Armour core keel strake {k}', p, kz-depth, kz+.5, kit.grey)
+    # Bars following each underside's curve: three strakes and two frames on the
+    # belly, a centre strake under the bow, two under the aft body, one under the tail.
+    ob = bpy.data.objects
+    for k, y in enumerate((0, 22, -22), 1):
+        shell_strip(kit, f'Armour core keel strake {k}', ob['Hull belly'], 1, y, 2.6, 1.6 if y else 2.4, kit.grey,
+                    xr=(-79, 159))
     for k, x in enumerate((22, 50), 1):
-        p = clip_rect(ccw(plan), x-2.2, x+2.2, -200, 200)
-        if len(p) > 2:
-            _bar(kit, f'Armour core keel frame {k}', p, kz-depth+1.2, kz+.5, kit.grey)
-    plan, kz = bottom('Hull prow')
-    p = clip_rect(ccw(plan), 90, 230, -2.6, 2.6)
-    if len(p) > 2:
-        bar = _bar(kit, 'Armour prow keel strake', p, kz-depth, kz+.5, kit.grey)
-        keel_curve(bar, 'prow strake keel', 96, 225, PROW[0]-depth, 30.0, (1, 0))
-    plan, kz = bottom('Hull aft body')
+        shell_strip(kit, f'Armour core keel frame {k}', ob['Hull belly'], 0, x, 2.2, 1.2, kit.grey, span=40.0)
+    shell_strip(kit, 'Armour prow keel strake', ob['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
     for k, y in enumerate((34, 64, -34, -64), 1):
-        p = clip_rect(ccw(plan), -200, 0, y-2.6, y+2.6)
-        if len(p) > 2:
-            bar = _bar(kit, f'Armour aft keel strake {k}', p, kz-depth, kz+.5, kit.grey)
-            keel_curve(bar, 'aft strake keel', -20, -102, AFT[0]-depth, 34.0, (-1, 0))
-    plan, kz = bottom('Hull tail')
-    p = clip_rect(ccw(plan), -200, 0, -2.6, 2.6)
-    if len(p) > 2:
-        bar = _bar(kit, 'Armour tail keel strake', p, kz-depth, kz+.5, kit.grey)
-        keel_curve(bar, 'tail strake keel', -40, -114, TAIL[0]-depth, 34.0, (-1, 0))
+        if abs(y) > 50:             # the outer pair hung as fins below the stern; dropped
+            continue
+        shell_strip(kit, f'Armour aft keel strake {k}', ob['Hull aft body'], 1, y, 2.6, 2.4, kit.grey,
+                    xr=(-98, -8))
+    shell_strip(kit, 'Armour tail keel strake', ob['Hull tail'], 1, 0, 2.6, 2.4, kit.grey, xr=(-110, -12))
 
 
 def build(kit):
@@ -131,9 +151,9 @@ def build(kit):
                       ridge(-10.0, -2.0, 12.0, 15.0), kit.orange, s)
             plane_cut(sh, 'shoulder bow', (190, 0, 12.0), facet_normal((1, 0), 16))
         # Glacis: the orange ridge and the grey band inboard of it.
-        band(kit, f'Armour {side} glacis band', clip_x(CORE_HALF, 106, -2), 3.0, 15.0, ridge(-14.0, 0.0, 17.0, 15.0),
+        band(kit, f'Armour {side} glacis band', clip_x(CORE_HALF, 106, -2), 3.0, 15.0, ridge(-14.0, 2.0, 19.0, 15.0),
              kit.orange, s)
-        band(kit, f'Armour {side} glacis grey band', clip_x(CORE_HALF, 100, 8), 17.0, 9.0, ridge(0.0, 8.0, 15.0, 9.0),
+        band(kit, f'Armour {side} glacis grey band', clip_x(CORE_HALF, 100, 8), 17.0, 9.0, ridge(0.0, 10.0, 20.0, 9.0),
              kit.grey, s)
         # Prow collar: the orange blocks where the prow meets the core.
         collar = [(113, 27.5), (113, 39.0), (106, 40.6), (98, 41.2), (98, 27.5)]
