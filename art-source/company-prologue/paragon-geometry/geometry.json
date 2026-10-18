@@ -40,10 +40,69 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 1.0,
+  "metres_per_unit": 0.66,
   "scale": {
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 3615276,
+      "crew_max": 1000,
+      "cargo": 300,
+      "fuel": 300,
+      "cls": "capital",
+      "length_units": 362.2,
+      "sprite_px": 364,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.45,
+        "hangar_box_factor": 3.0,
+        "shares": {
+          "armour": 0.18,
+          "drive": 0.16,
+          "weapons": 0.12,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 435000,
+      "cargo": 600,
+      "fuel": 450,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 436050,
+    "machinery_share": 0.58,
+    "enclosed_m3": 1038214,
+    "solved_metres_per_unit": 0.66,
+    "range": {
+      "habitable_273": 0.639,
+      "habitable_328": 0.68
+    },
+    "enclosed_m3_per_person_at_max_crew": 1038,
+    "length_m": 239.0,
+    "fittings_m": {
+      "deck window w x h": [
+        1.98,
+        0.73
+      ],
+      "capital-mount bay w x h": [
+        13.85,
+        14.51
+      ],
+      "bridge glazing band h": [
+        1.58
+      ]
+    },
+    "published_metres_per_unit": 0.66,
     "measured_this_build": {
-      "enclosed_units3": 3643649,
+      "enclosed_units3": 3615276,
       "solids": [
         "Hull belt",
         "Hull main ring",
@@ -65,7 +124,13 @@
       ]
     },
     "length_units": 362.2,
-    "status": "unscaled blockout (metres_per_unit 1.0 is a placeholder until pass 4)"
+    "size_m": [
+      239.0,
+      210.5,
+      66.0
+    ],
+    "person_1_8_m_in_units": 2.73,
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
     "size": [
@@ -113,7 +178,7 @@
     "type": "OMNI",
     "arc_deg": 360,
     "radius_units": 270,
-    "radius_m": 270.0,
+    "radius_m": 178.2,
     "ship_system": "fortressshield",
     "source": "paragon.ship shieldCenter/shieldRadius, ship_data.csv shield type OMNI arc 360",
     "emitter_nodes": [
@@ -474,8 +539,8 @@
         22.01
       ],
       "train_axis": [
-        -0.0139,
-        0.0517,
+        -0.014,
+        0.0515,
         0.9986
       ],
       "well_depth": 3.8,
@@ -657,7 +722,7 @@
       ],
       "train_axis": [
         -0.0,
-        -0.0,
+        0.0,
         1.0
       ],
       "well_depth": 3.2,
@@ -835,11 +900,11 @@
       "pivot_location": [
         -145.0,
         -121.0,
-        22.4
+        22.39
       ],
       "train_axis": [
         -0.0008,
-        -0.0,
+        0.0,
         1.0
       ],
       "well_depth": 3.2,
@@ -863,14 +928,14 @@
       "arc_deg": 150,
       "pivot": "Weapon WS 023 pivot",
       "pivot_location": [
-        -149.81,
+        -149.78,
         -0.01,
-        40.91
+        40.83
       ],
       "train_axis": [
-        -0.1168,
-        0.0041,
-        0.9931
+        -0.1353,
+        0.0048,
+        0.9908
       ],
       "well_depth": 3.2,
       "barbette": "Weapon WS 023 barbette",
@@ -1397,32 +1462,32 @@
       "orthographic_scale": 300
     },
     {
-      "name": "arc-port-bow",
+      "name": "aft-quarter",
       "position": [
-        200.0,
-        180.0,
-        140.0
+        -20.0,
+        260.0,
+        150.0
       ],
       "target": [
-        60.0,
-        60.0,
+        -100.0,
+        90.0,
         10.0
       ],
-      "orthographic_scale": 200.0
+      "orthographic_scale": 130.0
     }
   ],
   "silhouette": {
-    "iou": 0.959,
-    "sprite_uncovered": 0.0268,
-    "model_outside_sprite": 0.0148,
+    "iou": 0.9585,
+    "sprite_uncovered": 0.0265,
+    "model_outside_sprite": 0.0156,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.632,
-    "white": 0.557,
-    "dark": 0.416,
-    "agreement": 0.692,
-    "silhouette": 0.96,
+    "skin": 0.618,
+    "white": 0.546,
+    "dark": 0.426,
+    "agreement": 0.685,
+    "silhouette": 0.959,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
 }

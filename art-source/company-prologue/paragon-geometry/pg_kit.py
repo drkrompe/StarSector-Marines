@@ -58,6 +58,7 @@ class Kit:
         self.glass = material('Bridge glazing', (.02, .04, .06), .2, .08, emission=(.55, .8, 1.0), strength=2.5)
         self.mpu = 1.0  # metres per unit; the driver sets it before building
         self.hull = []  # objects the downward ray-cast seats parts on
+        self.detail = []  # pass 2 detail objects; turret wells cut through these too
 
     def finish(self, obj, name, mat, bevel=0, smooth=False):
         obj.name = name
