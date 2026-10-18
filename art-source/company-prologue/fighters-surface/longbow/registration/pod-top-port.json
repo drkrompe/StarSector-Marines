@@ -1,0 +1,59 @@
+{
+ "part": "pod-top-port",
+ "sheet": "hull-top",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.996,
+ "raw_iou": 0.9908,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9994,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9908
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00207,
+    1.0068
+   ],
+   "offset_px": [
+    -0.44,
+    -1.24
+   ],
+   "iou": 0.9994
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00194,
+    1.0068
+   ],
+   "offset_px": [
+    -0.44,
+    -1.24
+   ],
+   "iou": 0.9994
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.0,
+  "p95_px": 2.0,
+  "max_px": 2.83
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.06,
+  "p95_px": 1.0,
+  "max_px": 1.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

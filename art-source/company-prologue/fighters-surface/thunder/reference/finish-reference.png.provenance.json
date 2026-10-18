@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1505d-8ea0-7f62-a684-5b7c40dc4fb1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1505d-8ea0-7f62-a684-5b7c40dc4fb1\\exec-811a9d5f-33b9-42cc-b161-201a52f23b24.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\thunder\\reference\\finish-reference.png",
+    "sha256": "29e5ea913da62caf8fdc167b84810a5ec5dd19b368e615dd88a8d8558a559f9f",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\thunder\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "deaf404d7c509bfa727eac7ba27510719c9ff29e0da0c99718b200966e7bf5f2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the craft's livery (colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one single-seat heavy space fighter, a Thunder, about 18 metres long, a delta wing round a central fuselage with two drive pods, a long lance on the starboard side and a gun block on the port side, seen from above its port bow quarter on a plain light grey background. Its flat colours mark which material each surface is: khaki sand armour (the fuselage, the delta wing, the two drive pods, the gun block and housing and the lance), dark grey steel (the prongs, gun shroud, wing tip plates and canopy frame), bright steel barrels, coils and lips, near-black recesses, vents and grilles, and a cyan-tinted canopy.\nINPUT 2 is a painted top-down illustration of this exact craft in its livery: use it ONLY for the paint scheme and colours. Never copy its view, composition, shapes or illustration style.\n\nRepaint the craft in INPUT 1 as a real, photographed spacecraft in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the craft exactly where it is, the same size, same silhouette and outline, same camera, every plate, vent, grille, ring and window in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Keep every surface's material: khaki armour becomes the warm sand khaki enamel of INPUT 2, the dark grey steel stays dark gunmetal grey, bright barrels and lips stay brighter polished steel, recesses, vents and grilles stay near black, the canopy stays a dark cyan-tinted glass. Do not swap or invent colours, stripes, patches or markings.\n- Finish: a front-line military craft in good order. Crisp semi-matte enamel with fine plate seams, flush fastener rows and small access panels, subtle plate-to-plate tone differences. Light, even service wear only: faint edge scuffs on exposed corners and leading edges, a thin film of grime in seams, soot on the two drive pods at the stern. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\thunder\\guide\\reference-guide.png",
+      "sha256": "c497998135cc63886819dbae4bc5ee00578c4f6793a03a4356dac2763c221421",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "art-source\\aircraft\\fighter-upres\\thunder\\master-v1.png",
+      "sha256": "06be8905e12373cf8105fa5112db52d35269f28a234822772c8ce71f7db0f9c1",
+      "dimensions": [
+        975,
+        1613
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 2: the craft's livery (colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint Image 1, preserving its composition and using Image 2 only for livery colours.\n"
+  ],
+  "usage": {
+    "input_tokens": 158837,
+    "cached_input_tokens": 132736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 899,
+    "reasoning_output_tokens": 38
+  },
+  "elapsedSeconds": 66.6
+}
