@@ -14,6 +14,8 @@ Appends `SECOND WIND | <state>` into a factory-empty scene and checks, writing
 - engine anchors: four, +X aft, running flags as the manifest says;
 - turret pivots: four; turning a pivot 30 degrees about its Z swings its
   muzzle anchor by 30 degrees about the pivot and leaves the barbette fixed;
+  a seized mount (jammed or wrecked) has nothing parented and no muzzle;
+- spark anchors and crushed-mouth tags carry the manifest's values;
 - moving the root (translate, yaw, pitch, scale) moves every part rigidly and
   leaves hull_rest untouched (the wear masks ride the ship).
 """
@@ -117,6 +119,17 @@ for t in man['turrets']:
     piv.rotation_euler.z -= math.radians(30)
     bpy.context.view_layer.update()
 check('turret pivots train', turn_err < 1e-3 and len(man['turrets']) == 4, round(turn_err, 6))
+seized = [t for t in man['turrets'] if t.get('seized')]
+bad = [t['pivot'] for t in seized if t['muzzles'] or anchors[t['pivot']].children
+       or abs(anchors[t['pivot']].get('rest_angle_deg', 0) - t['rest_angle_deg']) > 1e-6]
+check('seized turrets carry nothing', not bad, {'seized': [t['index'] for t in seized], 'bad': bad})
+sp = [(anchors.get(s['anchor']), s) for s in man.get('sparks', [])]
+check('spark anchors', all(a is not None and bool(a.get('sparking')) == s['sparking'] for a, s in sp),
+      {'anchors': len(sp), 'sparking': man.get('sparking', [])})
+mouth = [(anchors.get(e['anchor']), e) for e in man['engines'] if e.get('mouth_deformed')]
+check('crushed mouth tags', all(a is not None and a.get('mouth_deformed')
+                                and abs(a.get('mouth_tilt_deg', 0) - e['mouth_tilt_deg']) < 1e-6 for a, e in mouth),
+      [e['index'] for _, e in mouth])
 
 ref = {o.name: o.matrix_world.copy() for o in meshes}
 M = Matrix.Translation((310, -45, 120)) @ Matrix.Rotation(.8, 4, 'Z') @ Matrix.Rotation(-.3, 4, 'Y') @ Matrix.Scale(1.7, 4)
