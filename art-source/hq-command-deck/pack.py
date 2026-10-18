@@ -12,7 +12,8 @@ same guide needs only a re-run.
 
 Writes:
   mod/graphics/ui/hq-command-deck/deck-plate.png and <figure>.png
-  mod/data/ui/hq-command-deck.json    sizes, figure rects, stations, overlay anchors
+  mod/data/ui/hq-command-deck.json    sizes, figure rects, stations, overlay anchors and
+                                       the lit monitor faces (from displays.json)
   pack-review.png                      the packed band with station rectangles drawn
 """
 import json
@@ -43,6 +44,9 @@ STATIONS = [
     ("finance", "FINANCE_STANDING", ["quartermaster"], ["quartermaster", "ledger-screen"]),
 ]
 PAD = 8  # guide pixels around a station's parts
+# Lit monitor faces measured on the plate, in guide pixels. Unlike the stations they
+# are measured off the painting, because ImageGen moved the screens off the guide's.
+DISPLAYS = HERE / "displays.json"
 
 
 def main():
@@ -110,6 +114,12 @@ def main():
         draw.rectangle([x0, y0, x1, y1], outline=(120, 230, 210, 255), width=2)
         draw.text((x0 + 4, y0 + 2), label, fill=(120, 230, 210, 255))
 
+    displays = []
+    for d in json.loads(DISPLAYS.read_text(encoding="utf-8"))["displays"]:
+        quad = [to_packed(*p) for p in d["quad"]]
+        displays.append({"id": d["id"], "kind": d["kind"], "quad": quad})
+        draw.polygon([tuple(p) for p in quad], outline=(255, 120, 40, 255))
+
     doc = {
         "size": [PACKED_WIDTH, packed_h],
         "plate": f"{SPRITES}/deck-plate.png",
@@ -121,6 +131,9 @@ def main():
         },
         # The deck camera in packed pixels, so live overlays can project points in the room
         # (metres; x right, y up from the deck, z away from the camera) onto the banner.
+        # Lit monitor faces, corners clockwise from top-left in packed pixels; live
+        # readouts are drawn into them in perspective.
+        "displays": displays,
         "camera": {"focal": round(layout["camera"]["focal"] * k, 3), "cx": round(layout["camera"]["cx"] * k, 3),
                    "cy": round((layout["camera"]["cy"] - BAND_TOP) * k, 3), "height": layout["camera"]["height"]},
         "table": layout["table"],

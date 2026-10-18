@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40">
+  <!-- Deck display: the flagship's plan view for the schematic screens. Tinted by the display; -->
+  <!-- the scan line and lit compartments are drawn over it live. -->
+  <path d="M6,20 L18,9 L46,6 L58,3 L84,4 L104,10 L116,20 L104,30 L84,36 L58,37 L46,34 L18,31 Z"
+        fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M30,8 L30,32 M46,6 L46,34 M64,4 L64,36 M84,4 L84,36 M98,8 L98,32 M18,20 L108,20"
+        fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="0.9"/>
+  <rect x="0" y="12" width="8" height="5" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="0" y="23" width="8" height="5" fill="#ffffff" fill-opacity="0.5"/>
+  <circle cx="74" cy="20" r="4.5" fill="none" stroke="#ffffff" stroke-width="1.1"/>
+  <rect x="50" y="12" width="9" height="5" fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="0.9"/>
+  <rect x="50" y="23" width="9" height="5" fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="0.9"/>
+</svg>

@@ -15,8 +15,9 @@ import java.util.Objects;
 /**
  * The command deck drawn live: the painted plate cover-fitted to the banner, each
  * figure as its own sprite, and the overlays the painting leaves blank for — the
- * action board's hologram over the plotting table ({@link HqHoloBoard}), and a faint
- * flicker on the console screens.
+ * action board's hologram over the plotting table ({@link HqHoloBoard}), and live
+ * readouts on the painted monitors ({@link DeckDisplays}), which a report arriving
+ * brightens on the comms bank.
  *
  * <p>A station a player is pointing at or has focused lights its own people, which is
  * why the figures are separate sprites rather than painted into the plate. A report
@@ -31,6 +32,7 @@ final class CommandDeckBanner implements CanvasProducer {
     private final CommandDeckLayout layout;
     private final CompanyIntelMotion motion = new CompanyIntelMotion();
     private final HqHoloBoard holo = new HqHoloBoard();
+    private final DeckDisplays displays = new DeckDisplays();
     private HqActionBoard board;
     private String holoSelected;
     private String holoHovered;
@@ -88,11 +90,11 @@ final class CommandDeckBanner implements CanvasProducer {
         CommandDeckLayout.Fit fit = CommandDeckLayout.Fit.cover(width, height, layout.width(), layout.height());
         context.sprite(layout.plate(), null, fit.x(layout.width() * 0.5f), fit.y(layout.height() * 0.5f),
                 layout.width() * fit.scale(), layout.height() * fit.scale(), 0f, Color.WHITE);
-        screens(context, fit);
-        holo.draw(context, layout, fit, board, holoSelected, holoHovered, motion.timeSeconds());
         float arrival = Math.max(motion.arrivalStrength(CompanyIntelMotion.COMPANY),
                 Math.max(motion.arrivalStrength(CompanyIntelMotion.CONFIRMED),
                         motion.arrivalStrength(CompanyIntelMotion.RUMOR)));
+        displays.draw(context, layout, fit, motion.timeSeconds(), arrival);
+        holo.draw(context, layout, fit, board, holoSelected, holoHovered, motion.timeSeconds());
         CommandDeckLayout.Station hot = hotStation == null ? null : layout.station(hotStation);
         if (hot != null) outline(context, fit, hot, width, height);
         CommandDeckLayout.Station comms = layout.station("comms");
@@ -129,18 +131,6 @@ final class CommandDeckBanner implements CanvasProducer {
         context.line(x0, y1, x0, y1 - arm, edge, 2f);
         context.line(x1, y1, x1 - arm, y1, edge, 2f);
         context.line(x1, y1, x1, y1 - arm, edge, 2f);
-    }
-
-    /** Barely-there scan flicker on the painted screens, each on its own beat. */
-    private void screens(CanvasContext context, CommandDeckLayout.Fit fit) {
-        float[] anchors = layout.screens();
-        float w = 34f * fit.scale();
-        float h = 22f * fit.scale();
-        for (int i = 0; i + 1 < anchors.length; i += 2) {
-            float beat = motion.phase(2.6f + (i % 5) * 0.7f, i * 0.137f);
-            int alpha = Math.round(6 + 16 * beat * beat);
-            context.fillRect(fit.x(anchors[i]) - w * 0.5f, fit.y(anchors[i + 1]) - h * 0.5f, w, h, alpha(WARM, alpha));
-        }
     }
 
     private static Color alpha(Color color, int alpha) {
