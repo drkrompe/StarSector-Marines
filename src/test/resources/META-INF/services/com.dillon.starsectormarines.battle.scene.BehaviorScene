@@ -82,5 +82,6 @@ com.dillon.starsectormarines.battle.warship.MirrorDuelScene
 com.dillon.starsectormarines.battle.warship.WarshipTacticsScene
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageScene
 com.dillon.starsectormarines.battle.mech.MechHullDownScene
+com.dillon.starsectormarines.battle.mech.MechFrameEnduranceScene
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcScene
 com.dillon.starsectormarines.battle.vehicle.DozerBreachScene
