@@ -72,6 +72,8 @@ public final class EffectsService {
     private final Set<SmokePlume> cannonPlumes = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
+    /** Ground dust kicked up by moving hulls this tick, as {@code {x, y, vx, vy, radius, kind}}; see {@link #emitGroundDust}. */
+    private final List<float[]> groundDustThisFrame = new ArrayList<>();
     private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
     private final List<float[]> wallDustsThisFrame = new ArrayList<>();
     private final List<float[]> heavyImpactsThisFrame = new ArrayList<>();
@@ -259,6 +261,22 @@ public final class EffectsService {
         smokePuffsThisFrame.add(new float[]{x, y, radius});
     }
 
+    /** Ground dust off a wheel or track on loose ground. */
+    public static final int DUST_WHEEL = 0;
+    /** The haze a hover skirt blows out over dry ground. */
+    public static final int DUST_SKIRT = 1;
+    /** The spray a hover skirt blows off water. */
+    public static final int DUST_SPRAY = 2;
+
+    /**
+     * Queues one puff of ground dust this frame, drifting at ({@code vx},{@code vy}) cells per second. Kind is one of
+     * {@link #DUST_WHEEL}, {@link #DUST_SKIRT} and {@link #DUST_SPRAY}. Presentation only: draws nothing from the
+     * simulation's random stream, so a battle replays the same with or without anybody drawing it.
+     */
+    public void emitGroundDust(float x, float y, float vx, float vy, float radius, int kind) {
+        groundDustThisFrame.add(new float[]{x, y, vx, vy, radius, kind});
+    }
+
     /** Queues one fire burst this frame; the fire counterpart of {@link #emitSmokePuff}. */
     public void emitFireBurst(float x, float y, float radius) {
         fireBurstsThisFrame.add(new float[]{x, y, radius});
@@ -311,6 +329,7 @@ public final class EffectsService {
     // ---- Per-frame event drains ----
 
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
+    public List<float[]> getGroundDustThisFrame() { return groundDustThisFrame; }
     public List<float[]> getFireBurstsThisFrame() { return fireBurstsThisFrame; }
     public List<float[]> getWallDustsThisFrame()  { return wallDustsThisFrame; }
     public List<float[]> getHeavyImpactsThisFrame() { return heavyImpactsThisFrame; }
@@ -323,6 +342,7 @@ public final class EffectsService {
      */
     public void beginFrame() {
         smokePuffsThisFrame.clear();
+        groundDustThisFrame.clear();
         fireBurstsThisFrame.clear();
         wallDustsThisFrame.clear();
         heavyImpactsThisFrame.clear();

@@ -46,6 +46,13 @@ plate that follow that section rather than bricks stuck on a pod:
               fairing (the sprite's ring and converging struts, X 44-92).
   nose        grey cheeks either side of the TPC barrel (os_turrets builds the
               casemate in the nose by ray casts).
+  terrace     (round 5) the gallery's outboard side steps down by a short riser to a
+              terrace shelf ending in a lip a plate's step above the orange, so from
+              above the arm reads gun deck | terrace | orange, not a split.
+  rim blocks  (round 5) grey blocks at each turret housing crossing the terrace and the
+              orange course's inner half, as the sprite's grey rims break the orange.
+  after end   (round 5) the keel runs level to a steep raked after face that breaks to a
+              ramp into the aft body, framed by a grey collar; the upper tier runs on aft.
   shoulder    the orange broadside fin, now a cap posed with the arm that
               follows the arm's and gallery's top a plate's thickness proud,
               with a crest tier, so it reads as a shoulder plate on the arm
@@ -64,7 +71,7 @@ DECK_Z = 8.0          # the arm's deck (inboard and shoulder chines sit just und
 KEEL_Z = -31.0        # the keel line amidships (arm frame)
 # The keel's knuckles (arm frame): the forefoot rakes straight up from X_KNUCKLE_FORE to the
 # chin under the casemate at X_CHIN; the heel rakes straight up aft of X_KNUCKLE_AFT.
-X_KNUCKLE_FORE, X_KNUCKLE_AFT = 166.0, 22.0
+X_KNUCKLE_FORE, X_KNUCKLE_AFT = 166.0, 9.0
 X_CHIN, CHIN_Z = 200.0, -6.5
 HEEL_Z = -14.0
 
@@ -278,20 +285,73 @@ def _course_section(x, path, u0, u1, t, sink=.6):
     return inner+list(reversed(outer))
 
 
-def course(kit, name, s, x_aft, x_fore, path, u0, u1, t_aft, t_fore, mat, chamfer=2.5):
+def course(kit, name, s, x_aft, x_fore, path, u0, u1, t_aft, t_fore, mat, chamfer=2.5, lip=1.2):
     """A plate course on the arm's faces from x_aft to x_fore, thickness t_aft at its aft end
     tapering to t_fore; its forward end is chamfered down to a thin edge (a sloped face)."""
     st = []
     span = x_fore-x_aft
     # The aft end is cut with a short lip leaning forward: under the arm the pose's 6 deg pitch
     # would otherwise lean a square aft end out over the face behind it (seam audit: steps).
-    lip = 1.2
     st.append((x_aft, _y(_course_section(x_aft, path, u0, u1, min(t_aft, .8)), s)))
     for x in _stations(x_aft+lip, x_fore-chamfer):
         t = t_aft+(t_fore-t_aft)*(x-x_aft)/span
         st.append((x, _y(_course_section(x, path, u0, u1, t), s)))
     st.append((x_fore, _y(_course_section(x_fore, path, u0, u1, .5), s)))
     return loft_x(kit, name, st, mat, bevel=.2)
+
+
+def scale_course(kit, name, s, x_aft, x_fore, u0, u1, mat, t_aft=1.2, t_body=2.6, t_fore=3.9, kick=8.0,
+                 rake=40.0, lean=.3):
+    """An orange course segment laid like a scale pointing at the bow (round 6, the sprite's
+    overlapping orange plates): thin at its aft end, where the next segment aft laps over it,
+    t_body along its run, and kicked up and out to t_fore over its last `kick` units. Its forward
+    end is a step angled toward the bow: one face, plumb in the world across the arm and leaning
+    back by `lean` along it, running aft `rake` deg off square from the course's outboard edge
+    to its inner edge, so the outboard (lowest) corner is the segment's point. (Two raked faces
+    meeting at a mid-course apex cut a sliver notch out of the plate where it wraps the max-beam
+    chine; plates converging on the faces hung ledges over daylight on the steep face.)"""
+    st = []
+    for x in _stations(x_aft, x_fore, 2.0, [x_aft+3.0, x_fore-kick]):
+        if x <= x_aft+3.0:
+            t = t_aft+(t_body-t_aft)*(x-x_aft)/3.0
+        elif x < x_fore-kick:
+            t = t_body
+        else:
+            f = (x-(x_fore-kick))/kick
+            t = t_body+(t_fore-t_body)*(f*(2-f))
+        st.append((x, _y(_course_section(x, OUTBOARD, u0, u1, t, .6 if x > x_aft+.5 else .3), s)))
+    ob = loft_x(kit, name, st, mat, bevel=.2)
+    sec = section(x_fore)
+    py, pz = _path_point(sec, OUTBOARD, u1)
+    r = math.radians(ROLL)
+    tp = math.tan(math.radians(rake))
+    n = (1.0, -tp, (lean-tp*math.sin(r))/math.cos(r))
+    plane_cut(ob, name+' step', (x_fore, s*(py+t_fore), pz), (n[0], s*n[1], n[2]))
+    return ob
+
+
+def _plate(x, us, t, sink):
+    """_course_section with an explicit u list (one vertex per entry), so a plate whose edges
+    move across the chines keeps one vertex count along its loft."""
+    sec = section(x)
+    inner, outer = [], []
+    for u in us:
+        (py, pz) = _path_point(sec, OUTBOARD, u)
+        ui = int(round(u))
+        (ny, nz) = _path_normal(sec, OUTBOARD, ui if abs(u-ui) < .02 else u)
+        inner.append((py-ny*sink, pz-nz*sink))
+        outer.append((py+ny*t, pz+nz*t))
+    vy, vz = -math.sin(math.radians(ROLL)), math.cos(math.radians(ROLL))
+    for k, u in ((0, us[0]), (-1, us[-1])):
+        ny, nz = _path_normal(sec, OUTBOARD, u)
+        dy, dz = -nz, ny
+        det = vy*(-dz)-vz*(-dy)
+        if abs(ny*vy+nz*vz) > .35 and abs(det) > 1e-3:
+            ry, rz = outer[k][0]-inner[k][0], outer[k][1]-inner[k][1]
+            mu = (vy*rz-vz*ry)/det
+            if abs(mu) <= 2.5*t:
+                outer[k] = (outer[k][0]+dy*mu, outer[k][1]+dz*mu)
+    return inner+list(reversed(outer))
 
 
 # --- the solids --------------------------------------------------------------
@@ -339,9 +399,20 @@ def hull_top(x, y):
     return _lerp([sec[c] for c in 'ABCD'], y)
 
 
+def terrace(x):
+    """(height, outboard edge y) of the gallery's outboard terrace at x (arm frame, port): one
+    step above the upper course's top at its inner edge, reaching 2 over that edge so the
+    course runs in under the lip."""
+    sec = section(x)
+    py, pz = _path_point(sec, OUTBOARD, .72)
+    ny, nz = _path_normal(sec, OUTBOARD, .72)
+    return pz+nz*2.6+1.1, py+ny*2.6+2.0
+
+
 def gallery(kit, name, s):
     """The gun gallery: a chamfered trapezoid along the turret line, its inboard side a long
-    glacis toward the valley, its outboard side a steeper face onto the upper course."""
+    glacis toward the valley, its outboard side a riser and terrace stepping down onto the
+    upper course."""
     xs = _stations(ARM_GALLERY[-1][0], ARM_GALLERY[0][0], 4.0, [g[0] for g in ARM_GALLERY])
     st = []
     for x in xs:
@@ -356,9 +427,27 @@ def gallery(kit, name, s):
         # the base follows the hull's top down at its edges, so the gallery never stands over
         # the arm's sloping upper face with daylight under it (seam audit: belt 1 / gallery)
         bi, bo = min(base, hull_top(x, yi)-1.0), min(base, hull_top(x, yo)-1.0)
-        # the outboard face leans inboard by more than the roll, so posed it never overhangs
-        yt = min(yc+w-1.0, yo-.48*(top-2.5-bo))
-        sec = [(yi, bi), (yo, bo), (yt, top-2.5), (max(yc-.45*w+1.0, min(yc+.35*w, yt-.5)), top),
+        # Round 5 (owner: the gallery/forearm seam read from above as a split down each arm):
+        # the outboard side is a stepped terrace, not one long dark face falling into the
+        # orange. The gun deck's outboard chamfer drops by a short riser to a terrace shelf that
+        # runs out level with the upper course's inner edge and ends in an armour lip a plate's
+        # step above the orange, so from above the arm reads gun deck | terrace | orange course.
+        # Every face leans inboard by more than the roll, so posed none overhangs.
+        zt, ylip = terrace(x)
+        y0 = min(yc+w-1.0, yo-.48*(top-2.5-bo))         # the plain outboard face's top edge
+        yt = min(y0, max(yc+.5*w, ylip-7.0))
+        yr = yt+.42*max(0.0, top-2.5-zt)
+        yl = min(ylip, yo-.48*(zt-bo)-.6)
+        # The terrace fades out where there is no room for it (over the nose, where the gallery
+        # falls below the course, and at the heel), blending into the plain sloped face, so the
+        # loft never jumps between two section shapes.
+        f = max(0.0, min(1.0, (yl-yr-2.0)/3.0))*max(0.0, min(1.0, (top-3.0-zt)/2.0))
+
+        def mix(face_t, p):
+            q = (yo+(y0-yo)*face_t, bo+(top-2.5-bo)*face_t)
+            return (q[0]+(p[0]-q[0])*f, q[1]+(p[1]-q[1])*f)
+        sec = [(yi, bi), (yo, bo), mix(.25, (yl, zt-.9)), mix(.4, (yl-.9, zt)), mix(.75, (yr, zt)),
+               mix(1.0, (yt, top-2.5)), (max(yc-.45*w+1.0, min(yc+.35*w, mix(1.0, (yt, 0))[0]-.5)), top),
                (yc-.45*w, top), (yc-w+2.0, top-2.6)]
         st.append((x, _y(sec, s)))
     ob = loft_x(kit, name, st, kit.plate, bevel=0)
@@ -408,28 +497,109 @@ def build(kit):
         arm = arm_mass(kit, f'Hull {side} arm', s)
         g = gallery(kit, f'Hull {side} arm gallery', s)
         kit.hull += [arm, g]
-        # Upper course (orange): along the shoulder and sloped upper face, segmented with seams.
-        for k, (xa, xf, u0, u1, ta, tf) in enumerate(((152, 192, .72, 2.9, 2.8, 2.2),
-                                                       (106, 150, .72, 2.05, 2.6, 2.0),
-                                                       (72, 104, .72, 2.05, 2.6, 2.0),
-                                                       (22, 70, .62, 2.25, 2.8, 2.0)), 1):
-            course(kit, f'Armour {side} arm belt {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf, kit.orange)
-        course(kit, f'Armour {side} arm belt 5', s, -12, 20, OUTBOARD, .9, 2.1, 2.4, 2.0, kit.grey)
-        # Lower course (dark grey): stepped blocks on the outboard rim lapping over the orange.
-        for k, (xa, xf, ta, tf) in enumerate(((98, 150, 4.0, 2.8), (76, 96, 3.8, 2.6), (56, 74, 3.8, 2.6),
-                                              (40, 54, 3.6, 2.5), (20, 38, 3.6, 2.5), (2, 18, 3.4, 2.4)), 1):
-            course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, 1.75, 3.25, ta, tf, kit.grey,
-                   chamfer=4.0)
+        # Upper course (orange). Round 6 (owner note 3; critique C, the sprite at 6x): the course is
+        # not one strip but overlapping plate segments laid like scales pointing at the bow - the
+        # nose plate, then four segments whose forward ends stand at the sprite's breaks (X ~166,
+        # 142, 100 and 60, each just ahead of or aft of a turret housing), every one thin at its aft
+        # end, where the next segment's forward end laps over it, and kicked up and out at its
+        # forward end into a step whose face is a forward-pointing chevron. The lower edge is
+        # irregular (each segment reaches a different depth), as the sprite's orange is.
+        course(kit, f'Armour {side} arm belt 1', s, 157, 192, OUTBOARD, .72, 2.9, 2.8, 2.2, kit.orange)
+        for k, (xa, xf, u0, u1) in ((2, (135, 169, .72, 2.05)), (3, (88, 147, .72, 1.95)),
+                                    (4, (48, 100, .72, 2.15)), (6, (22, 60, .62, 2.3))):
+            scale_course(kit, f'Armour {side} arm belt {k}', s, xa, xf, u0, u1, kit.orange)
+        # Each block is centred on its housing as the pose carries it (arm_xy), as long as the
+        # housing's lozenge (the Devastator: its drum): the turret's own armour interrupts the
+        # course's inner half as the sprite's grey rims break the orange.
+        for k, (wx, wy, half, u1) in enumerate(((158, 71, 7.5, 1.55), (134, 74, 5.8, 1.45), (114, 78, 5.8, 1.45),
+                                                (77, 88, 11.5, 1.6)), 1):
+            xc = arm_xy(wx, wy, gallery_top(wx))[0]
+            xa, xf = xc-half, xc+half
+            course(kit, f'Armour {side} arm rim block {k}', s, xa, xf, OUTBOARD, .45, u1, 4.6, 4.4, kit.grey,
+                   chamfer=1.6, lip=1.6)
+        belt5 = course(kit, f'Armour {side} arm belt 5', s, 0, 20, OUTBOARD, .9, 2.1, 2.4, 2.0, kit.grey)
+        # Lower course (dark grey). Round 6 (critique C: abeam, five evenly spaced blocks read as the
+        # teeth of a comb): the sprite has three large grey blocks on the outboard rim (X 100-150,
+        # 62-98, 18-58), of unequal length and depth, each with a doubler of its own at a different
+        # place, so the rim reads as a few irregular plates rather than a row of teeth.
+        steps = []
+        for k, (xa, xf, u0, u1, ta, tf, ch) in enumerate(((101, 144, 1.75, 3.25, 4.0, 2.8, 4.0),
+                                                          (61, 93, 1.5, 3.3, 3.8, 3.0, 4.0),
+                                                          (19, 52, 1.95, 3.25, 3.4, 2.6, 3.0)), 1):
+            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
+                                kit.grey, chamfer=ch, lip=2.6))
+        for k, (xa, xf, u0, u1, ta, tf) in ((4, (116, 138, 2.3, 3.2, 5.0, 4.6)), (5, (66, 82, 2.05, 3.15, 4.7, 4.2)),
+                                            (7, (33, 49, 2.45, 3.2, 4.4, 4.0))):
+            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
+                                kit.grey, chamfer=3.0, lip=2.6))
         # Inboard strake on the top chine facing the notch.
         course(kit, f'Armour {side} arm coaming', s, 106, 198, INBOARD, .85, 1.7, 1.8, 1.6, kit.grey)
         # Keel bar: a grey strake along the chined keel, heel to chin, so the keel reads as a line.
-        course(kit, f'Armour {side} arm keel bar', s, X_HEEL+4, X_CHIN-1, 'EFG', .62, 1.38, 1.7, 1.5, kit.grey,
-               chamfer=5.0)
+        keel = course(kit, f'Armour {side} arm keel bar', s, X_HEEL+4, X_CHIN-1, 'EFG', .62, 1.38, 1.7, 1.5,
+                      kit.grey, chamfer=5.0)
+        after_end(kit, side, s, arm, [belt5, keel, steps[2], steps[5]])
         housings(kit, side, s)
         nose_cheeks(kit, side, s)
         shoulder(kit, side, s, arm, g)
         ARM_PARTS[side] = [o for o in bpy.data.objects if o not in before]
         tilt(kit, side, s)
+
+
+# The after end (round 5; critic: from astern and on the stern quarters the arms' after ends
+# were lumpy sloped masses - the heel sweeping up under the aft body with the rim blocks and
+# keel bar trailing off it). Each arm now ends like a gun platform: the keel runs level to
+# AFTER_KEEL_X and the lower hull is cut off there by a steep raked after face (AFTER_RAKE deg
+# from horizontal), the full depth of the forearm, that breaks on a chine at AFTER_CHINE_Z to a
+# shallow ramp (RAMP_RAKE) rising aft into the aft body's flared quarter. A grey armour collar
+# runs round the hull just forward of the steep face, its after face flush with the hull's, so
+# it frames the face as a lip and the courses on the arm end against it. The upper tier - deck,
+# gallery terrace and broadside fin - carries on aft above the ramp into the aft body's deck, so
+# from astern the arm reads fin, deck, ramp, lip, face.
+AFTER_KEEL_X, AFTER_RAKE, AFTER_CHINE_Z, RAMP_RAKE, COLLAR_W = 12.0, 68.0, -13.0, 30.0, 4.0
+
+
+def _after_profile(shift=0.0):
+    """The after end's profile in the arm frame (x, z), keel to ramp, moved `shift` forward."""
+    k = (AFTER_KEEL_X+shift, KEEL_Z)
+    c = (k[0]-(AFTER_CHINE_Z-KEEL_Z)/math.tan(math.radians(AFTER_RAKE)), AFTER_CHINE_Z)
+    return k, c
+
+
+def _after_cutter(kit, s, shift=0.0, steep_only=False, rake=AFTER_RAKE):
+    """A solid filling everything aft of and under the after face (a convex wedge: aft of the
+    steep face and under the ramp), extruded right across the arm."""
+    (kx, kz), (cx, cz) = _after_profile(shift)
+    cx = kx-(cz-kz)/math.tan(math.radians(rake))
+    low = (kx+(kz+90.0)/math.tan(math.radians(rake)), -90.0)
+    if steep_only:
+        prof = [low, (cx, cz), (cx-80.0, cz), (-80.0, -90.0)]
+    else:
+        prof = [low, (cx, cz), (-80.0, cz+(cx+80.0)*math.tan(math.radians(RAMP_RAKE))), (-80.0, -90.0)]
+    verts = [(x, s*y, z) for y in (20.0, 170.0) for x, z in prof]
+    n = len(prof)
+    faces = [tuple(range(n)), tuple(range(n, 2*n))]+[(i, (i+1) % n, n+(i+1) % n, n+i) for i in range(n)]
+    return kit.mesh('Temporary arm after cutter', verts, faces, kit.dark)
+
+
+def after_end(kit, side, s, arm, courses):
+    import bpy
+    boolean(arm, _after_cutter(kit, s))
+    for c in courses:
+        boolean(c, _after_cutter(kit, s, COLLAR_W))
+        if not c.data.polygons:
+            bpy.data.objects.remove(c, do_unlink=True)
+    # The collar: one band round the hull below the deck (outboard faces and keel, into the
+    # inboard bilge, whose upper part the aft body buries), a plate thicker than the rim blocks
+    # it frames, trimmed to the steep face aft and
+    # to a parallel face COLLAR_W forward of it, and under the ramp's chine.
+    (kx, _), _ = _after_profile()
+    col = course(kit, f'Armour {side} arm after collar', s, kx-24.0, kx+COLLAR_W+14.0, 'CDEFG', 1.6, 3.35,
+                 3.9, 3.9, kit.grey, chamfer=.6)
+    boolean(col, _after_cutter(kit, s))
+    # Its forward edge stands nearer the vertical than the face, so on the arm's under-faces the
+    # plate's outer skin never runs forward of its root (no lip hanging over daylight).
+    keep = _after_cutter(kit, s, COLLAR_W, steep_only=True, rake=84.0)
+    boolean(col, keep, 'INTERSECT')
 
 
 def _on(p, q, z):

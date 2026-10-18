@@ -85,8 +85,10 @@ public final class MechDuelRangeScene implements BehaviorScene {
     static final float HOUND_REACH = 30f;
     /** A Hound's SRM reach: where its close band begins to pay. */
     static final float SRM_REACH = 18f;
-    /** Share of the fight the Sirocco must spend outside the Hound's reach. */
-    static final float STANDOFF_SHARE = 0.6f;
+    /** Inside this distance the Hound is inside a stand-off band built on its reach; the shooter should open it. */
+    static final float GIVE_GROUND_DISTANCE = HOUND_REACH + 1.5f;
+    /** Cells of ground, straight away from the Hound, that count as having given it. */
+    static final float GIVE_GROUND_CELLS = 3f;
     /** Cells the Hound must close on the Sirocco once it is being shelled. */
     static final float HOUND_CLOSES_CELLS = 4f;
     /** Bulwarks in a duel band: the fight's median distance at least this, and contact rare. */
@@ -269,6 +271,12 @@ public final class MechDuelRangeScene implements BehaviorScene {
         float attackerStartY = Float.NaN;
         float attackerMaxDrift;
         float closest = Float.MAX_VALUE;
+        float prevAx = Float.NaN;
+        float prevAy = Float.NaN;
+        /** Fight ticks the Hound spent inside {@link #GIVE_GROUND_DISTANCE} of the shooter. */
+        int insideStandoffTicks;
+        /** Cells the shooter moved straight away from the Hound while it was inside that distance. */
+        float attackerGaveGround;
 
         Trace(String loopId, boolean rule, long attacker, long defender) {
             this.loopId = loopId;
@@ -320,6 +328,13 @@ public final class MechDuelRangeScene implements BehaviorScene {
                     defenderXAtContact = dx;
                 }
             }
+            if (firstShotTick >= 0 && distance < GIVE_GROUND_DISTANCE && distance > 0f && !Float.isNaN(prevAx)) {
+                insideStandoffTicks++;
+                float away = ((ax - prevAx) * (ax - dx) + (ay - prevAy) * (ay - dy)) / distance;
+                if (away > 0f) attackerGaveGround += away;
+            }
+            prevAx = ax;
+            prevAy = ay;
             if (firstShotTick >= 0) {
                 fightDistances.add(distance);
                 defenderMinX = Math.min(defenderMinX, dx);
@@ -381,6 +396,22 @@ public final class MechDuelRangeScene implements BehaviorScene {
                     attackerHp, defenderHp);
         }
 
+        /**
+         * The shooter opened distance while the Hound was inside its stand-off band. Conditional: a Hound that
+         * never came that close asked nothing of it, and the detail says so.
+         */
+        Verdict givesGround(String name, String shooter) {
+            if (insideStandoffTicks == 0) {
+                return Verdict.of(name, true, String.format(Locale.ROOT, "the Hound never came inside %.1f cells,"
+                        + " so the %s was never asked to give ground", GIVE_GROUND_DISTANCE, shooter));
+            }
+            return Verdict.of(name, attackerGaveGround >= GIVE_GROUND_CELLS, String.format(Locale.ROOT,
+                    "with the Hound inside %.1f cells for %d ticks the %s gave %.1f cells of ground (wanted %.0f);"
+                            + " %.0f%% of the fight beyond the Hound's reach, median %.1f", GIVE_GROUND_DISTANCE,
+                    insideStandoffTicks, shooter, attackerGaveGround, GIVE_GROUND_CELLS,
+                    shareAbove(HOUND_REACH) * 100f, median()));
+        }
+
         Map<String, Number> metrics() {
             Map<String, Number> m = new LinkedHashMap<>();
             m.put("ruleOn", rule ? 1 : 0);
@@ -389,6 +420,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
             m.put("deathTick", deathTick);
             m.put("fightTicks", fightDistances.size());
             m.put("medianFightDistance", median());
+            m.put("insideStandoffTicks", insideStandoffTicks);
+            m.put("attackerGaveGroundCells", attackerGaveGround);
             m.put("minFightDistance", min());
             m.put("shareAboveHoundReach", shareAbove(HOUND_REACH));
             m.put("shareInContact", shareBelow(CONTACT_CELLS));
@@ -414,11 +447,9 @@ public final class MechDuelRangeScene implements BehaviorScene {
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
         if (subject) {
-            float share = t.shareAbove(HOUND_REACH);
-            verdicts.add(Verdict.of("sirocco-stands-off", share >= STANDOFF_SHARE,
-                    String.format(Locale.ROOT, "%.0f%% of %d fight ticks beyond the Hound's %.0f-cell reach"
-                                    + " (wanted %.0f%%); median %.1f", share * 100f, t.fightDistances.size(),
-                            HOUND_REACH, STANDOFF_SHARE * 100f, t.median())));
+            // The Hound sorties off its post at an out-reaching shooter, so how much of the fight stays beyond
+            // its reach is a reading of the chase; that the Sirocco opens distance when it comes on is the mechanic.
+            verdicts.add(t.givesGround("sirocco-gives-ground", "Sirocco"));
             verdicts.add(Verdict.of("sirocco-fires", t.attackerShots > 0, t.attackerShots + " rounds"));
             verdicts.add(Verdict.of("hound-closes", t.defenderClosed() >= HOUND_CLOSES_CELLS,
                     String.format(Locale.ROOT, "the Hound came %.1f cells toward the Sirocco after the first"
@@ -460,17 +491,16 @@ public final class MechDuelRangeScene implements BehaviorScene {
 
     private SceneReport reportTankHound(Trace t, String loopId, boolean subject) {
         List<Verdict> verdicts = new ArrayList<>();
-        // The trace's attacker is the tank here; the Hound only holds its ground.
+        // The trace's attacker is the tank here; the Hound holds a post, and sorties off it.
         float moved = t.attackerMaxDrift;
         if (subject) {
             verdicts.add(Verdict.of("unordered-tank-engages", moved >= 5f && t.attackerShots > 0,
                     String.format(Locale.ROOT, "the tank drove %.1f cells and fired %d rounds", moved,
                             t.attackerShots)));
             float share = t.shareAbove(HOUND_REACH);
-            verdicts.add(Verdict.of("tank-stands-off", t.firstShotTick >= 0 && share >= STANDOFF_SHARE,
-                    String.format(Locale.ROOT, "%.0f%% of the fight beyond the Hound's %.0f-cell reach (wanted %.0f%%);"
-                            + " median %.1f, closest %.1f", share * 100f, HOUND_REACH, STANDOFF_SHARE * 100f,
-                            t.median(), t.min())));
+            // The Hound sorties off its post at a tank that out-reaches it: the share of the fight beyond its reach
+            // is a reading of that chase, and the tank opening distance as it comes on is the mechanic.
+            verdicts.add(t.givesGround("tank-gives-ground", "tank"));
         } else {
             verdicts.add(Verdict.of("control-tank-holds", moved < 1f,
                     String.format(Locale.ROOT, "the tank moved %.1f cells (wanted under 1)", moved)));

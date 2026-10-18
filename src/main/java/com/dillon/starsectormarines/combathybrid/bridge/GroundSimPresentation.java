@@ -224,6 +224,9 @@ public final class GroundSimPresentation {
     /** Burning-wreck smoke + flame puffs the sim queued this tick. */
     private void spawnAmbientFx(ImpactFx fx, BattleSimulation sim) {
         for (float[] puff : sim.getSmokePuffsThisFrame()) fx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
+        for (float[] dust : sim.getGroundDustThisFrame()) {
+            fx.spawnGroundDust(dust[0], dust[1], dust[2], dust[3], dust[4], (int) dust[5]);
+        }
         for (float[] burst : sim.getFireBurstsThisFrame()) fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
     }
 

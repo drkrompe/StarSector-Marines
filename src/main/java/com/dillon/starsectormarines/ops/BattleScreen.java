@@ -628,6 +628,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (float[] puff : sim.getSmokePuffsThisFrame()) {
             renderer.getImpactFx().spawnAmbientSmoke(puff[0], puff[1], puff[2]);
         }
+        for (float[] dust : sim.getGroundDustThisFrame()) {
+            renderer.getImpactFx().spawnGroundDust(dust[0], dust[1], dust[2], dust[3], dust[4], (int) dust[5]);
+        }
         for (float[] burst : sim.getFireBurstsThisFrame()) {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);

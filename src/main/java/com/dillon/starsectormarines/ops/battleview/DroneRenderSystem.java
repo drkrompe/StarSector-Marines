@@ -76,7 +76,7 @@ public final class DroneRenderSystem implements RenderSystem {
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 CrashingComponent crash = (CrashingComponent) states[r];
                 AirBody body = crash.body;
-                ShuttleSpriteCache cache = cacheFor(body, standard, tender);
+                ShuttleSpriteCache cache = cacheFor(body, standard, tender, sprites);
                 if (cache == null) continue;
                 float pxH = heightCells(body, cache) * cellPx;
                 float pxW = pxH * cache.aspect;
@@ -100,7 +100,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             // The drone's body is a world KINEMATICS component now (read by id).
             AirBody body = world.kinematics(u);
-            ShuttleSpriteCache cache = cacheFor(body, standard, tender);
+            ShuttleSpriteCache cache = cacheFor(body, standard, tender, sprites);
             if (cache == null) continue;
             float pxH = heightCells(body, cache) * cellPx;
             float pxW = pxH * cache.aspect;
@@ -130,8 +130,14 @@ public final class DroneRenderSystem implements RenderSystem {
     }
 
     /** The sprite a body is drawn with: its look's own, or the shipped drone's when that look's art did not load. */
-    private static ShuttleSpriteCache cacheFor(AirBody body, ShuttleSpriteCache standard, ShuttleSpriteCache tender) {
-        if (DroneLook.of(body) == DroneLook.TENDER && tender != null) return tender;
+    private static ShuttleSpriteCache cacheFor(AirBody body, ShuttleSpriteCache standard, ShuttleSpriteCache tender,
+                                               BattleSprites sprites) {
+        DroneLook look = DroneLook.of(body);
+        if (look == DroneLook.TENDER && tender != null) return tender;
+        if (look != DroneLook.STANDARD && look.spritePath() != null) {
+            ShuttleSpriteCache own = sprites.spriteByPath(look.spritePath());
+            if (own != null) return own;
+        }
         return standard;
     }
 
@@ -141,7 +147,8 @@ public final class DroneRenderSystem implements RenderSystem {
      * beside its hull in fleet combat.
      */
     private static float heightCells(AirBody body, ShuttleSpriteCache cache) {
-        if (DroneLook.of(body) == DroneLook.TENDER && cache.pxH > 0) return TenderDroneArt.cells(cache.pxH);
-        return Drone.VISUAL_CELLS;
+        DroneLook look = DroneLook.of(body);
+        if (look == DroneLook.TENDER && cache.pxH > 0) return TenderDroneArt.cells(cache.pxH);
+        return look.heightCells() > 0f ? look.heightCells() : Drone.VISUAL_CELLS;
     }
 }

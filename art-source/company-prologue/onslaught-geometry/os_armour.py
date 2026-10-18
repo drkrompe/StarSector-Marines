@@ -2,6 +2,7 @@
 over the hull, built as sloped armour that steps down from the gun tiers to the
 hull's edges (owner, pass 3: terracing, not flat deck and plating).
 
+  prow lip        round 6: a grey chevron coaming on the needler deck's V riser;
   prow shoulders  round 3: one orange band skinned on the prow's shoulder plane
                   (os_hull.fore_top) from the gallery's foot over the upper chine,
                   in three segments V-grooved at their seams (not blocks), and a
@@ -21,16 +22,17 @@ hull's edges (owner, pass 3: terracing, not flat deck and plating).
   leg stripes     orange along each aft leg's inner edge;
   waist bay       a dark bay frame and amber bay lamps in each waist valley;
   core aft face   buttresses and a lintel above the machinery wells;
-  keel strakes    bars following the belly's rounded underside (three strakes and
-                  two frames), and under the prow, aft body and tail following
-                  each keel curve.
+  keel strakes    three heavy bars riding the belly's knuckles (keel flat and both
+                  lower chines) to the aft knuckle, and under the prow, aft body
+                  and tail following each keel curve.
 """
 import math
 import bpy
 from os_kit import arched_mass, ccw, clip_rect, facet_normal, loft_x, mirror_y, plane_cut, prism, strip_plan, _left
 from os_hull import (AFT, AFT_OUTER, ARM, ARM_INNER, ARM_OUTER, CORE, CORE_HALF, FORE_STATIONS, FORE_W, FORE_YI, GALLERY_W, LEG_PORT,
                      PROW, PROW_HALF, TAIL, TAIL_HALF, WAIST_DECK, WELL_FLOOR, _table, fore, fore_side_y, fore_top, full,
-                     keel_curve)
+                     keel_curve, BELLY_KNUCKLE_X, BELLY_STATIONS, belly_section, GALLERY_FLARE, GALLERY_GUN_DECK,
+                     GALLERY_V_APEX, gallery_v)
 
 
 def offset(points, d):
@@ -126,17 +128,80 @@ def shell_strip(kit, name, src, axis, c, w, drop, mat, span=None, xr=None):
     return kit.finish(ob, name, mat, .2)
 
 
+def _belly_at(x):
+    """The belly's lofted section at X: belly_section at its stations, linear between them
+    (exactly the loft's own surface), so a bar sampled here lies on its plates."""
+    st = sorted(BELLY_STATIONS, reverse=True)
+    for xa, xb in zip(st, st[1:]):
+        if xb <= x <= xa:
+            t = (xa-x)/(xa-xb)
+            return [(ya+(yb-ya)*t, za+(zb-za)*t) for (ya, za), (yb, zb) in zip(belly_section(xa), belly_section(xb))]
+    return belly_section(st[0] if x > st[0] else st[-1])
+
+
+def _unit(a, b):
+    d = ((b[0]-a[0])**2+(b[1]-a[1])**2)**.5
+    return ((b[0]-a[0])/d, (b[1]-a[1])/d)
+
+
+def _chine_bar(c, up, down, t, w=3.4, sink=.7):
+    """A bar section (port, YZ) riding the convex knuckle at c between the plate running to
+    `up` and the plate running to `down`: proud of both by t, `w` along each, its back sunk."""
+    u, l = _unit(c, up), _unit(c, down)
+    nu, nl = (-u[1], u[0]), (l[1], -l[0])
+    # outward: away from the section's inside (toward the hull's centreline above)
+    inside = (0.0, max(up[1], down[1])+10.0)
+    if (c[0]-inside[0])*nu[0]+(c[1]-inside[1])*nu[1] < 0:
+        nu = (-nu[0], -nu[1])
+    if (c[0]-inside[0])*nl[0]+(c[1]-inside[1])*nl[1] < 0:
+        nl = (-nl[0], -nl[1])
+    k = 1.0/(1.0+nu[0]*nl[0]+nu[1]*nl[1])
+    # Each end of the bar is a vertical face dropped from its sunk back edge to t (normal)
+    # under the plate, so no column sees air between the plate and the bar's end.
+    a = (c[0]+u[0]*w-nu[0]*sink, c[1]+u[1]*w-nu[1]*sink)
+    b = (c[0]+l[0]*w-nl[0]*sink, c[1]+l[1]*w-nl[1]*sink)
+
+    def under(p, d, n):
+        zf = c[1]+d[1]/d[0]*(p[0]-c[0]) if abs(d[0]) > 1e-6 else p[1]
+        return (p[0], zf-t/max(abs(n[1]), .3))
+    pts = [a, under(a, u, nu),
+           (c[0]+(nu[0]+nl[0])*k*t, c[1]+(nu[1]+nl[1])*k*t),
+           under(b, l, nl), b,
+           (c[0]-(nu[0]+nl[0])*k*sink*2, c[1]-(nu[1]+nl[1])*k*sink*2)]
+    return pts
+
+
 def keel_strakes(kit):
-    # Bars following each underside's curve: three strakes and two frames on the
-    # belly and a centre strake under the bow (the stern's are os_stern's).
-    ob = bpy.data.objects
-    # The centre strake is the keel bar (round 4: a clear keel line in side view).
-    for k, y in enumerate((0, 22, -22), 1):
-        shell_strip(kit, f'Armour core keel strake {k}', ob['Hull belly'], 1, y, 2.6 if y else 2.2,
-                    3.4 if not y else 1.6, kit.grey, xr=(-80, 166))
-    for k, x in enumerate((22, 50), 1):
-        shell_strip(kit, f'Armour core keel frame {k}', ob['Hull belly'], 0, x, 2.2, 1.2, kit.grey, span=40.0)
-    shell_strip(kit, 'Armour prow keel strake', ob['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
+    """Round 5 (critic: the belly's crossing strakes and frames read as a random grid from
+    below, and hung off its after face as bars): three heavy strakes only, each riding one
+    of the belly's knuckles - the keel bar along the keel flat and a chine bar along each
+    lower chine - lofted on the belly's own stations so they follow every knuckle of the
+    keel line exactly, from the forefoot to the aft knuckle (os_hull.BELLY_KNUCKLE_X),
+    where each tapers into the plating as the belly sweeps up into the stern."""
+    x0, x1 = 158.0, BELLY_KNUCKLE_X
+    xs = sorted({x for x in BELLY_STATIONS if x1 < x < x0} | {x0, x0-4.0, x1, x1-3.0}, reverse=True)
+
+    def proud(x, full):
+        if x >= x0-.01 or x <= x1-2.99:
+            return -.3                      # the ends lie inside the plating: a tapered run-out
+        return full
+
+    keel, chines = [], []
+    for x in xs:
+        sec = _belly_at(x)
+        n = len(sec)//2
+        top, chine, mid, kp = sec[n:]       # port half: top, upper chine, lower chine, keel
+        t = proud(x, 2.6)
+        kw = min(3.0, kp[0]-.2)
+        zb = kp[1]
+        keel.append((x, [(-kw-.2, zb+1.4), (-kw, zb-t+.8), (-kw+.9, zb-t), (kw-.9, zb-t), (kw, zb-t+.8),
+                         (kw+.2, zb+1.4)]))
+        chines.append((x, _chine_bar(mid, chine, kp, proud(x, 2.0))))
+    loft_x(kit, 'Armour core keel strake 1', keel, kit.grey, bevel=.2)
+    for name, s in (('Armour core keel strake 2', 1), ('Armour core keel strake 3', -1)):
+        st = [(x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]) for x, sec in chines]
+        loft_x(kit, name, st, kit.grey, bevel=.2)
+    shell_strip(kit, 'Armour prow keel strake', bpy.data.objects['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
 
 
 # --- forebody armour skins ------------------------------------------------------
@@ -194,7 +259,28 @@ def glacis_split(x):
     return f['yi']+.42*(f['w']-f['yi'])
 
 
+# The needler deck's armour lip (round 6, critic A1/C): a dark grey chevron coaming
+# along the crest of the V riser (os_hull.gallery_v), apex forward between WS 008
+# and 009 and its legs raking aft at the V's angle until the glacis rises past it
+# (X 112). Its outer face stands on the V wall's crest line and runs down into the
+# gallery, so it never overhangs the battered riser below.
+LIP_W = 2.4
+LIP_TOP = 27.6
+LIP_AFT = 112.0
+
+
+def prow_lip(kit):
+    t = math.tan(math.radians(GALLERY_FLARE))
+    back = LIP_W/math.sin(math.radians(GALLERY_FLARE))      # the inner V's apex, aft of the outer
+    yo, yi = gallery_v(LIP_AFT), (GALLERY_V_APEX-back-LIP_AFT)*t
+    plan = ccw([(GALLERY_V_APEX, 0.0), (LIP_AFT, -yo), (LIP_AFT, -yi), (GALLERY_V_APEX-back, 0.0), (LIP_AFT, yi),
+                (LIP_AFT, yo)])
+    return prism(kit, 'Armour prow gallery lip', plan, [(0.0, GALLERY_GUN_DECK-.6), (0.0, LIP_TOP-.8), (.8, LIP_TOP)],
+                 kit.grey, bevel=.2)
+
+
 def build(kit):
+    prow_lip(kit)
     for side, s in (('port', 1), ('starboard', -1)):
         # Prow shoulders: the orange band from the gallery's foot over the upper chine.
         gal = lambda x: _table(GALLERY_W, x)+.6
@@ -212,10 +298,13 @@ def build(kit):
              seams=(80, 56, 30), skirt=WAIST_DECK-.3)
         # Waist bay: a dark frame on the valley deck carrying three amber bay lamps.
         # (inboard of the deck's outer fall, so the frame stands on deck all round)
-        kit.box(f'Armour {side} waist bay frame', (101.5, s*46.6, WAIST_DECK+.7), (6.0, 6.4, 1.6), kit.dark,
+        # Round 5 (seam audit): it stood over the deck's outer fall at X 101; now it lies
+        # between the glacis band's skirt (|Y| 43.3) and the fall (|Y| 50.5) with its
+        # foot sunk into the deck.
+        kit.box(f'Armour {side} waist bay frame', (100.5, s*46.2, WAIST_DECK+.4), (6.0, 5.0, 2.2), kit.dark,
                 bevel=.2)
-        for k, y in enumerate((44.7, 46.6, 48.5), 1):
-            kit.box(f'Armour {side} waist bay lamp {k}', (100.5, s*y, WAIST_DECK+1.85), (1.6, 1.7, .9), kit.lamp,
+        for k, y in enumerate((44.8, 46.2, 47.6), 1):
+            kit.box(f'Armour {side} waist bay lamp {k}', (99.6, s*y, WAIST_DECK+1.75), (1.6, 1.1, .9), kit.lamp,
                     bevel=0)
         # Core aft face above the machinery well: buttresses standing on the well
         # floor, raked aft, their tops following the deck, and a coaming capping
