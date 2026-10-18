@@ -43,7 +43,7 @@ def build(kit):
     for i, (x, y, w, contrail, length, angle) in enumerate(ENGINES, start=1):
         r = w*.5                # mouth radius
         hw = r*1.0 if w < 10 else r*1.6
-        hh = r*3.0 if w < 10 else r*2.6
+        hh = r*2.5 if w < 10 else r*2.1
         z = Z_AXIS
         mouth = x+1.5
         sec = nacelle_section(hw, hh)
