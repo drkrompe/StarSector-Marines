@@ -86,3 +86,4 @@ com.dillon.starsectormarines.battle.mech.MechFrameEnduranceScene
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcScene
 com.dillon.starsectormarines.battle.vehicle.DozerBreachScene
 com.dillon.starsectormarines.battle.power.ArmorDropPaceScene
+com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
