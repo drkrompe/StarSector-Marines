@@ -1,4 +1,4 @@
-SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASSES 1-4 DONE; PASS 3 ACCEPTED 2026-10-18; PASS 5 DEFERRED; PASS 6 IN REVIEW)
+SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASSES 1-4 DONE; PASS 3 ACCEPTED 2026-10-18; PASS 5 DEFERRED; PASS 6 ACCEPTED; PASS 7 IN REVIEW)
 
 Purpose
 An editable Blender model of the vanilla Shepherd drone tender, built for the
@@ -198,3 +198,4 @@ on the rake (sh_bridge._yz), so from ahead the windscreen is a level rectangle
 and on the rounded nose its head simply sits further aft at the shoulders. The wing windows carry the flanks.
 build_shepherd.py renders on the GPU when there is one (--factory-startup
 leaves Cycles on the CPU).
+Pass 6 accepted 2026-10-18. Pass 7 (appendable export, effects) is ../shepherd-cinematic/.

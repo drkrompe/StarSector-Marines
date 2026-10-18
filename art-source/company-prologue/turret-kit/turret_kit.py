@@ -1279,7 +1279,7 @@ def _house_hurricane(g, f, s, r, z0):
     def gun_parts(gg, za):
         gg.mats = dict(gg.mats, missile=_missile_mat(s.get('mcol', (.1, .13, .14))))
         for sy in (1, -1):
-            y = sy*6.6*k
+            y = sy*7.1*k
             gg['paint'].box((10.0*k, y, za+.2*k), (4.0*k, 2.0*k, 3.4*k), .25*k)          # rail roots
             gg['steel'].box((17.0*k, y, za+.4*k), (14.0*k, 1.4*k, 1.8*k), .12*k)        # rails
             f.bolt_row(gg['steel'], (11.5*k, y+sy*.71*k, za+.4*k), (23.0*k, y+sy*.71*k, za+.4*k),
@@ -1291,10 +1291,10 @@ def _house_hurricane(g, f, s, r, z0):
                             rot=Matrix.Rotation(sy*.12, 4, 'Z'))
         # Head: the front bar rounded up into an arch over the MIRV, so it flies out
         # under it; the cream band on its aft face.
-        zb, zm, ri, ro, ho = za-1.0*k, za+.4*k, 4.2*k, 8.5*k, 5.4*k
+        zb, zm, ri, ro = za-1.0*k, za+.4*k, 6.4*k, 8.4*k                  # fins reach 6.1
         def head(x0, x1, grow, m):
             arc = [math.pi*i/12 for i in range(13)]
-            loop = [((ro+grow)*math.cos(a), zm+(ho+grow)*math.sin(a)) for a in arc]
+            loop = [((ro+grow)*math.cos(a), zm+(ro+grow)*math.sin(a)) for a in arc]
             loop += [(-ro-grow, zb), (-ri+grow, zb)]
             loop += [(-(ri-grow)*math.cos(a), zm+(ri-grow)*math.sin(a)) for a in arc]
             loop += [(ri-grow, zb), (ro+grow, zb)]
@@ -1319,14 +1319,14 @@ def _house_hurricane(g, f, s, r, z0):
         for z in (-2.0, -1.0, 0.0):
             gg['dark'].box((-9.82*k, 0, za+z*k), (.1*k, 4.8*k, .35*k))
         # Hoops over the MIRV from rail to rail: the frame holds it from above.
-        R = 4.3*k
+        R = 6.5*k
         for x in (12.0, 17.5, 23.0):
             for i in range(9):
                 a = math.pi*i/8
-                gg['steel'].box((x*k, R*math.cos(a), za+.4*k+R*math.sin(a)), (1.0*k, 1.8*k, .5*k), .05*k,
+                gg['steel'].box((x*k, R*math.cos(a), za+.4*k+R*math.sin(a)), (1.0*k, 2.7*k, .5*k), .05*k,
                                 rot=Matrix.Rotation(a+math.pi/2, 4, 'X'))
             for sy in (1, -1):
-                gg['steel'].box((x*k, sy*5.4*k, za+.4*k), (1.0*k, 2.6*k, .6*k), .05*k)        # hoop feet
+                gg['steel'].box((x*k, sy*6.8*k, za+.4*k), (1.0*k, 1.0*k, .8*k), .05*k)        # hoop feet
         _missile(gg.sub('missile 1', (7.0*k, 0, za+.4*k), .1*r), f, 7.0*k, 0, za+.4*k, 21.0*k, 3.6*k, f.near,
                  roll=math.pi/4)                                                               # the MIRV
     return (1.0*k, 0.0, zt), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
