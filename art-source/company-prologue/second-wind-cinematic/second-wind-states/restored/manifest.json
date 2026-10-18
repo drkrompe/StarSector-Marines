@@ -534,11 +534,16 @@
     20,
     18.3
    ],
-   "rest_angle_deg": 90,
+   "rest_angle_deg": 90.0,
    "trained_parts": 17,
    "fixed_parts": 3,
    "status": "faded",
    "present": true,
+   "trainable": true,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
    "muzzles": [
     {
      "tag": "gun",
@@ -566,11 +571,16 @@
     -20,
     18.3
    ],
-   "rest_angle_deg": -90,
+   "rest_angle_deg": -90.0,
    "trained_parts": 17,
    "fixed_parts": 3,
    "status": "faded",
    "present": true,
+   "trainable": true,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
    "muzzles": [
     {
      "tag": "gun",
@@ -598,11 +608,16 @@
     11,
     18.0
    ],
-   "rest_angle_deg": 30,
+   "rest_angle_deg": 30.0,
    "trained_parts": 17,
    "fixed_parts": 3,
    "status": "faded",
    "present": true,
+   "trainable": true,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
    "muzzles": [
     {
      "tag": "gun",
@@ -630,11 +645,16 @@
     -16,
     16.19
    ],
-   "rest_angle_deg": -30,
+   "rest_angle_deg": -30.0,
    "trained_parts": 27,
    "fixed_parts": 3,
    "status": "faded",
    "present": true,
+   "trainable": true,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
    "muzzles": [
     {
      "tag": "port gun",
@@ -667,6 +687,8 @@
    ]
   }
  ],
+ "sparks": [],
+ "sparking": [],
  "lamps_lit": 15,
  "lamps": [
   {
@@ -1205,6 +1227,31 @@
    "id": "rcs-ventral",
    "kind": "rcs",
    "status": "gone"
+  },
+  {
+   "id": "ds-port-waist-rip",
+   "kind": "rip",
+   "status": "faded"
+  },
+  {
+   "id": "ds-stbd-waist-rip",
+   "kind": "rip",
+   "status": "faded"
+  },
+  {
+   "id": "ds-fwd-deck-rip",
+   "kind": "rip",
+   "status": "faded"
+  },
+  {
+   "id": "ds-port-shoulder-peel",
+   "kind": "rip",
+   "status": "faded"
+  },
+  {
+   "id": "ds-stbd-shoulder-peel",
+   "kind": "rip",
+   "status": "faded"
   }
  ],
  "scar_sites": {
@@ -1474,6 +1521,76 @@
      -29.017,
      15.127,
      8.6
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "ds-fwd-deck-rip": [
+   {
+    "p": [
+     35.397,
+     -0.928,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "ds-port-shoulder-peel": [
+   {
+    "p": [
+     22.297,
+     20.972,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "ds-port-waist-rip": [
+   {
+    "p": [
+     6.67,
+     16.753,
+     10.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "ds-stbd-shoulder-peel": [
+   {
+    "p": [
+     24.097,
+     -21.528,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "ds-stbd-waist-rip": [
+   {
+    "p": [
+     5.47,
+     -16.448,
+     10.5
     ],
     "n": [
      0.0,
@@ -3703,6 +3820,71 @@
    ],
    "objects": 4
   },
+  "ds-fwd-deck-rip": {
+   "centre": [
+    35.203,
+    -1.22,
+    15.274
+   ],
+   "extent": [
+    7.614,
+    6.203,
+    1.577
+   ],
+   "objects": 3
+  },
+  "ds-port-shoulder-peel": {
+   "centre": [
+    22.65,
+    20.972,
+    14.555
+   ],
+   "extent": [
+    8.778,
+    3.005,
+    0.14
+   ],
+   "objects": 3
+  },
+  "ds-port-waist-rip": {
+   "centre": [
+    6.856,
+    16.435,
+    10.555
+   ],
+   "extent": [
+    11.06,
+    8.807,
+    0.14
+   ],
+   "objects": 3
+  },
+  "ds-stbd-shoulder-peel": {
+   "centre": [
+    23.544,
+    -21.548,
+    14.555
+   ],
+   "extent": [
+    9.914,
+    2.949,
+    0.14
+   ],
+   "objects": 3
+  },
+  "ds-stbd-waist-rip": {
+   "centre": [
+    5.036,
+    -16.792,
+    10.621
+   ],
+   "extent": [
+    9.941,
+    8.921,
+    0.272
+   ],
+   "objects": 3
+  },
   "fb-bow-glacis-strike": {
    "centre": [
     52.979,
@@ -4044,15 +4226,15 @@
   "sp-turret-2": {
    "centre": [
     -11.0,
-    -20.0,
-    18.165
+    -19.54,
+    19.45
    ],
    "extent": [
     5.963,
-    5.963,
-    0.23
+    7.08,
+    2.8
    ],
-   "objects": 2
+   "objects": 8
   },
   "sp-turret-3": {
    "centre": [
@@ -4118,9 +4300,9 @@
   "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
  },
  "left_out_objects": 90,
- "objects": 869,
- "polygons": 138951,
- "baked_meshes": 749,
+ "objects": 884,
+ "polygons": 150531,
+ "baked_meshes": 764,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4217,7 +4399,8 @@
     "haze": 4,
     "dust": 4,
     "seal_wisps": 0,
-    "welds": 0
+    "welds": 0,
+    "sparks": 0
    },
    "guns": {
     "state": "restored",
@@ -4233,15 +4416,16 @@
  },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
-  "geometry_json_sha256": "1d3765131262395581ec917776998beee3dfa4da2935f2f3fcf359cd60e0b1b1",
+  "geometry_json_sha256": "7fd7606b6b4196249ef2ecd296844f32b43246e4c2057659271f5470e0947094",
   "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
  },
  "conventions": {
   "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
   "anchors": "Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.",
-  "turrets": "Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle.",
+  "turrets": "Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle (plus jam_deg when jammed). A seized mount (jammed or wrecked) carries nothing and has no muzzle.",
+  "sparks": "Scar <id> spark anchor: +X along the spray; emit only where sparking is true.",
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "aed079d0cbee704463bb7c528173490ea5c2062270dda8486fcf36b1267e1d02"
+ "asset_sha256": "f73308214553a91a28de2e3c63e0e5f06d275a75ca60435eb9995950af1cd02c"
 }
