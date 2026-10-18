@@ -1490,7 +1490,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         desk.put(hqProps);
         desk.choose(channel);
         CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
-                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))), () -> { });
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
         terminal.put(hqProps);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);

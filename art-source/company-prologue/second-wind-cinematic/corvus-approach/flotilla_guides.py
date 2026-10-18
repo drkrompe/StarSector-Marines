@@ -1,6 +1,6 @@
 """C1 distant Hegemony flotilla: grey blockout guides for ImageGen sketch-to-render.
 
-"C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background
+sh ../../../blender.sh --background
     --factory-startup --python flotilla_guides.py
 
 Each hull is a heightfield built from its vanilla top-down sprite (read-only, from

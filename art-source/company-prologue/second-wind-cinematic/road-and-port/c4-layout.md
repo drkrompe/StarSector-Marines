@@ -218,8 +218,8 @@ From this directory. Blender opens the retained scenes read-only and never saves
 
 ```bash
 python c4_camera.py                     # scale table, guides/c4-camera.json
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python build_c4_guides.py -- --samples 16
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python c4_cabin_render.py
+sh ../../../blender.sh --background --factory-startup --python build_c4_guides.py -- --samples 16
+sh ../../../blender.sh --background --factory-startup --python c4_cabin_render.py
 python c4_sheets.py build               # guides/sheets/: the Codex edit targets
 python c4_sheets.py register            # assets/c4-sheet-N-v*.png -> plates/
 python c4_cards.py guides               # guides/cards/: hauler and air silhouettes

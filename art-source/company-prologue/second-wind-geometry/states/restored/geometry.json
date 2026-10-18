@@ -774,6 +774,7 @@
       "working": true
     }
   ],
+  "spark_anchors": [],
   "damage": {
     "state": "restored",
     "scars": [
@@ -999,7 +1000,7 @@
         "kind": "crushed_can",
         "area": "sw_scars_pods",
         "status": "gone",
-        "note": "Engine 1 can crushed against the anchor rock; nozzle ring stays round. A replacement can when the port pod is restored."
+        "note": "Engine 1 can stove in and torn, bell mouth crushed out of round, top ram snapped, collar torn: crushed against the anchor rock; a new can and nozzle at restoration."
       },
       {
         "id": "pod-port-fins",
@@ -1195,28 +1196,28 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Gun house stripped; reinstalled in another owner's primer; repainted to near match."
+        "note": "Drift strike bent the barrel at the chase and slewed the house 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new house on an adapter ring in restoration."
       },
       {
         "id": "sp-turret-2",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Gun house stripped; reinstalled on an adapter ring; ring painted over."
+        "note": "Gun house stripped; a gantry house from another hull bolted back in its owner's primer; repainted to near match."
       },
       {
         "id": "sp-turret-3",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Gun house stripped; reinstalled in another owner's primer; repainted to near match."
+        "note": "House holed through the roof and the barrel snapped on the chase: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new house in restoration."
       },
       {
         "id": "sp-turret-4",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Gun house stripped; reinstalled on an adapter ring; ring painted over."
+        "note": "Gun house stripped; its own house recovered from the gantry and reinstalled on an adapter ring; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1287,8 +1288,87 @@
         "area": "sw_scars_rcs",
         "status": "gone",
         "note": "Dead while unpowered; working as built from the escape on."
+      },
+      {
+        "id": "ds-port-waist-rip",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "faded",
+        "note": "Windward port waist deck: a tumbling rock tore five deck panels away along their seams, folding one back over the deck and breaking the frame under the strike; the waist service runs broke in the void. Not pressure, thrust or navigation: left open through the escape (the bus conduit arcing where nobody could reach it in vacuum) and the refit (live ends booted); re-plated and painted when restored."
+      },
+      {
+        "id": "ds-stbd-waist-rip",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "faded",
+        "note": "Starboard waist deck: four panels torn off in the same tumble, one folded back over the inboard seam, a coolant line crushed and the starboard bus conduit severed. Left open for the escape (arcing); the refit ran the new berthing services through this void and closed it with a proper plate."
+      },
+      {
+        "id": "ds-fwd-deck-rip",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "faded",
+        "note": "Forward deck over the command deck's forward end: deck armour panels torn off down to the frames, one folded back along its seam. Over occupied space, so the escape crew welded a salvage pressure plate across it, strongbacked, the torn surround and the folded panel left as they were; a proper plate in the refit."
+      },
+      {
+        "id": "ds-port-shoulder-peel",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "faded",
+        "note": "Port forebody outboard deck: a glancing contact along the deck edge caught one long deck plate at its forward end and rolled it back up and over along its outboard seam, the cable tray beneath torn. Outside the pressure hull: left; re-plated when restored."
+      },
+      {
+        "id": "ds-stbd-shoulder-peel",
+        "kind": "rip",
+        "area": "sw_scars_dorsal",
+        "status": "faded",
+        "note": "Starboard forebody outboard deck: the same tumble dragged along the starboard deck edge and rolled one long deck plate up and outboard on its seam, a conduit run snapped beneath. Outside the pressure hull: left; re-plated when restored."
       }
     ],
+    "hidden": {
+      "Aft deck armour plate.003": "aft-deck-plate",
+      "Drive casing armour plate": "pod-port-casing-plate",
+      "Drive casing armour plate.003": "pod-starboard-casing-buckle",
+      "Drive casing armour plate.005": "pod-starboard-casing-plate",
+      "Forebody replaceable armor": "fb-port-deck-plate-buckle",
+      "Forebody replaceable armor.002": "fb-port-deck-plate-aft-torn",
+      "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
+      "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
+    },
+    "shape_keys": [],
+    "overrides": [
+      "Engine 1 dark throat: Drive throat glow (pod-port-drive)",
+      "Engine 1 aft-facing bell: Drive bell heat (pod-port-drive)",
+      "Engine 2 dark throat: Drive throat glow (pod-port-drive)",
+      "Engine 2 aft-facing bell: Drive bell heat (pod-port-drive)",
+      "Engine 3 dark throat: Drive throat glow (pod-starboard-drive)",
+      "Engine 3 aft-facing bell: Drive bell heat (pod-starboard-drive)",
+      "Engine 4 dark throat: Drive throat glow (pod-starboard-drive)",
+      "Engine 4 aft-facing bell: Drive bell heat (pod-starboard-drive)",
+      "Aft access trunk hinge.001: Scar repaint over Recess and machinery (sp-trunk-aft-stbd)",
+      "Mast crosstree: Scar repaint over Engine collars (sp-mast)",
+      "Scanner turntable: Scar repaint over Engine collars (sp-mast)",
+      "Search radar scanner bar: Scar repaint over Recess and machinery (sp-mast)",
+      "Turret 1 gun house: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 mantlet drum: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 mantlet face: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 optics blister: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 rear bustle: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 roof hatch: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 2 gun house: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 mantlet drum: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 mantlet face: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 optics blister: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 rear bustle: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 roof hatch: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 3 gun house: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 mantlet drum: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 mantlet face: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 optics blister: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 rear bustle: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 roof hatch: Scar repaint over Engine collars (sp-turret-3)"
+    ],
+    "cut_objects": 82,
     "sites": {
       "aft-deck-cluster": [
         {
@@ -1556,6 +1636,76 @@
             -29.017,
             15.127,
             8.6
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-fwd-deck-rip": [
+        {
+          "p": [
+            35.397,
+            -0.928,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-port-shoulder-peel": [
+        {
+          "p": [
+            22.297,
+            20.972,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-port-waist-rip": [
+        {
+          "p": [
+            6.67,
+            16.753,
+            10.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-stbd-shoulder-peel": [
+        {
+          "p": [
+            24.097,
+            -21.528,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "ds-stbd-waist-rip": [
+        {
+          "p": [
+            5.47,
+            -16.448,
+            10.5
           ],
           "n": [
             0.0,
@@ -3770,44 +3920,6 @@
           "r": 0.284
         }
       ]
-    },
-    "hidden": {
-      "Aft deck armour plate.003": "aft-deck-plate",
-      "Drive casing armour plate": "pod-port-casing-plate",
-      "Drive casing armour plate.003": "pod-starboard-casing-buckle",
-      "Drive casing armour plate.005": "pod-starboard-casing-plate",
-      "Forebody replaceable armor": "fb-port-deck-plate-buckle",
-      "Forebody replaceable armor.002": "fb-port-deck-plate-aft-torn",
-      "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
-      "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
-    },
-    "shape_keys": [],
-    "overrides": [
-      "Engine 1 dark throat: Drive throat glow (pod-port-drive)",
-      "Engine 1 aft-facing bell: Drive bell heat (pod-port-drive)",
-      "Engine 2 dark throat: Drive throat glow (pod-port-drive)",
-      "Engine 2 aft-facing bell: Drive bell heat (pod-port-drive)",
-      "Engine 3 dark throat: Drive throat glow (pod-starboard-drive)",
-      "Engine 3 aft-facing bell: Drive bell heat (pod-starboard-drive)",
-      "Engine 4 dark throat: Drive throat glow (pod-starboard-drive)",
-      "Engine 4 aft-facing bell: Drive bell heat (pod-starboard-drive)",
-      "Aft access trunk hinge.001: Scar repaint over Recess and machinery (sp-trunk-aft-stbd)",
-      "Mast crosstree: Scar repaint over Engine collars (sp-mast)",
-      "Scanner turntable: Scar repaint over Engine collars (sp-mast)",
-      "Search radar scanner bar: Scar repaint over Recess and machinery (sp-mast)",
-      "Turret 1 gun house: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 mantlet drum: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 mantlet face: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 optics blister: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 rear bustle: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 roof hatch: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 3 gun house: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 mantlet drum: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 mantlet face: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 optics blister: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 rear bustle: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 roof hatch: Scar repaint over Engine collars (sp-turret-3)"
-    ],
-    "cut_objects": 82
+    }
   }
 }

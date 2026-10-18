@@ -6,12 +6,15 @@ span and metres_per_unit, a 10 m bar, and the three-quarter view inset.
 """
 from pathlib import Path
 import json
-from PIL import Image, ImageDraw, ImageFont
+import sys
+from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1]))
+from review_font import review_font
 BG = (222, 223, 223)
 INK, SOFT = (39, 49, 55), (72, 81, 88)
-font = lambda s: ImageFont.truetype('C:/Windows/Fonts/arial.ttf', s)
+font = review_font
 rec = json.loads((HERE/'lineup.json').read_text(encoding='utf-8'))
 top = Image.open(HERE/'lineup-top.png').convert('RGBA')
 sheet = Image.new('RGBA', (1920, 1080), BG+(255,))

@@ -48,7 +48,8 @@ from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 OUT = BASE / "layers" / "second-wind-seq"
-BLENDER = Path(r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")
+sys.path.insert(0, str(BASE.parents[2]))  # art-source/, home of the shared Blender rule
+from blender_path import BLENDER  # noqa: E402
 
 # ---------------------------------------------------------------- the swappable model
 # The packaged patched state (../second-wind-states/README.md): one appendable collection, one root.
