@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-18 — a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1742,10 +1742,21 @@ for one mission:
   the rounds in the air and the share of a fight spent crossing are the base game's at
   any hull range. While it fights a hull a ship's flux runs on the duel footing's
   thresholds whatever its posture, so air superiority's sparing flux pair never holds a
-  hull fight's guns silent. Damage, armour, shields and hit points are
-  untouched, so every matchup keeps the base game's balance and only takes longer; a
-  weapon built for alpha (an Antimatter Blaster, a Harpoon) still kills a frigate in one
-  or two blows. Ground fire, air fire and point defence keep their own clocks.
+  hull fight's guns silent. Damage, armour, shields and hit points are the base game's,
+  so every matchup keeps its balance and only takes longer. Ground fire, air fire and point
+  defence keep their own clocks.
+- **A hull lasts three times as long against another hull's guns** (owner, 2026-10-18:
+  "things are going down seemingly very fast"; `warship-behaviours.md`, Decided: hull-fight
+  durability). A round one warship lands on another meets the shield and the armour exactly
+  as the base game's does (damage type, armour reduction off the plate left where it entered,
+  glance), and then what the armour lets through is divided by the **hull-fight durability**
+  (`WarshipScale.HULL_DURABILITY`, three) on its way to the plate and to the hull alike. One
+  factor after the armour rule, so every ratio between hulls and weapons is the base game's;
+  only the wear is slower, so a hull is visibly chewed up (plate stripped, sections giving
+  way, breaches burning, mounts silenced) before it goes down, and no frigate dies to a
+  near-peer's first alpha. Shields and flux are untouched, so the flux war is the base
+  game's. Nothing else that hurts a hull is divided: a bomb, a battery, a ground round, an
+  orbital strike, a falling wreck. `-Dbattle.warship.hullDurability=1` is the control.
 - **A fight between ships goes where the fighting takes it, and is kept off the map's
   edges by a soft pressure** (owner, 2026-10-18). No mission declares an area for it: the
   fight may drift over the ground battle as readily as over open ground. Every hull frigate-
@@ -2230,7 +2241,9 @@ battle and leaves through the ordinary departure, for a hull worn low or a ship
 threatened past what it can answer. **A ship fighting a hull fights it to the end**:
 while it has a live hostile hull to fight, the doctrine never withdraws it, however
 worn, so a duel between warships is decided by a kill and never by a voluntary
-break-off. A withdrawal a mission orders (the *Greyhook*'s lift-off at Black Sluice)
+break-off. A ship stays in that fight in the moment between its foe going down and its
+choosing the next, and while its anti-ship guns are only silenced under repair: either
+way the nearest live hostile hull is its foe. A withdrawal a mission orders (the *Greyhook*'s lift-off at Black Sluice)
 is the mission's, not the doctrine's, and stands. A hull still coming down through
 the cloud deck, or flying in with its centre still past the map's edge, is not yet a
 target, and one still past the edge does not fire at hulls. What the ship is trying to do

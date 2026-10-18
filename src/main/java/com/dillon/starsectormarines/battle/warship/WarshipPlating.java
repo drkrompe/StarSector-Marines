@@ -350,11 +350,21 @@ public final class WarshipPlating {
      * both are breached at {@code nowSeconds} once their section has given way.
      */
     public float hit(int cell, float damage, float penetration, float nowSeconds) {
+        return hit(cell, damage, penetration, nowSeconds, 1f);
+    }
+
+    /**
+     * {@link #hit(int, float, float, float)} with what the armour rule lets through divided by {@code durability}
+     * (at least one) before it reaches the plate and the hull: the hull fight's durability
+     * ({@link WarshipScale#HULL_DURABILITY}). The glance and the armour reduction are read at the hit's full strength,
+     * so a weak round glances and a heavy one bites exactly as before; only the wear is slower.
+     */
+    public float hit(int cell, float damage, float penetration, float nowSeconds, float durability) {
         if (cell < 0 || damage <= 0f || penetration <= 0f) return 0f;
         float strength = damage * penetration;
         if (strength < rating * Warship.GLANCE_SHARE) return 0f;
         float armour = localArmour(cell);
-        float through = damage * strength / (armour + strength);
+        float through = damage * strength / (armour + strength) / Math.max(1f, durability);
         hitsBySection[section[cell].ordinal()]++;
         if (section[cell] == Section.CORE && Float.isNaN(firstCoreEntryAt)) firstCoreEntryAt = nowSeconds;
         float hull = strip(cell, through, nowSeconds);

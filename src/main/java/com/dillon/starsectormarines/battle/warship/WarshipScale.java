@@ -71,6 +71,21 @@ public final class WarshipScale {
     public static final float HULL_TEMPO = Math.max(1f, Float.parseFloat(
             System.getProperty("battle.warship.hullTempo", Float.toString(HULL_PRESENCE * HULL_REACH_SHARE))));
 
+    /**
+     * How much longer a hull lasts against another hull's guns: the hull fight's durability. A round one warship lands
+     * on another meets the shield and the armour exactly as the base game's does (its damage type, the armour
+     * reduction read off the plate left where it entered, the glance), and then whatever the armour lets through, to
+     * the plate and to the hull alike, is this many times smaller. One factor for every hull and every gun, applied
+     * after the armour rule, so every ratio the base game keeps (frigate to capital, kinetic to high explosive, alpha
+     * to sustained) is kept: a fight between hulls only takes longer to wear through, plate first, sections giving way
+     * and mounts going with the plate under them, rather than ending in a volley or two. Shields are untouched, so the
+     * flux war and its overloads are the base game's. Nothing else that hurts a hull is touched: a bomb, a battery, a
+     * ground round or an orbital strike lands at its own strength. {@code -Dbattle.warship.hullDurability=1} is the
+     * control.
+     */
+    public static final float HULL_DURABILITY = Math.max(1f, Float.parseFloat(
+            System.getProperty("battle.warship.hullDurability", "3")));
+
     /** Game units to cells, for reach, blasts and speeds. */
     public static float cells(float gameUnits) {
         return gameUnits * AirScale.METERS_PER_PX / AirScale.METERS_PER_CELL;
