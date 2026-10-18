@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngagement;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -46,11 +47,11 @@ import java.util.Map;
  *       short of their reach rather than at contact.</li>
  * </ul>
  *
- * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (rule on
- * and off): the tank has no engagement driver and holds where it was set down, so the reading is whether the Hound
- * fights it from a band. And the player's own tank is ordered once onto a holding Hound: an explicit move wins over
- * any band, so the tank goes there. Those are the only ways a vehicle meets armor; the rule has no vehicle
- * movement to govern.
+ * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (mech rule on
+ * and off, vehicle engagement off so the pair asks about the mech alone). The player's tank is set down fifty cells
+ * from a holding Hound with no order ({@link VehicleEngagement} on, and off as the control): it should drive to a
+ * band outside the Hound's reach. And the player's tank is ordered once onto the Hound: an explicit move wins over
+ * any band, so it goes there.
  *
  * <p>Verdicts assert distance mechanics, never who wins: wins, damage and deaths are readings. The
  * fight is the ticks from the first round either machine fires to the end of the window or a death.
@@ -63,7 +64,11 @@ public final class MechDuelRangeScene implements BehaviorScene {
     static final String HOUND_SIROCCO_CONTROL = "hound-sirocco-control";
     static final String HOUND_TANK = "hound-tank";
     static final String HOUND_TANK_CONTROL = "hound-tank-control";
+    static final String TANK_HOUND = "tank-hound";
+    static final String TANK_HOUND_CONTROL = "tank-hound-control";
     static final String TANK_ORDERED = "tank-ordered";
+    /** Where an unordered tank is set down: inside its awareness of the Hound, outside its gun's reach. */
+    private static final int TANK_UNORDERED_X = 50;
     static final String BULWARKS = "bulwarks";
     static final String BULWARKS_CONTROL = "bulwarks-control";
     static final int FRAME_EVERY_TICKS = 15;
@@ -107,6 +112,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) {
         boolean before = MechDuelRange.isEnabled();
+        boolean vehicleBefore = VehicleEngagement.isEnabled();
         try {
             Trace sh = playOnce(frames, SIROCCO_HOUND, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
                     MechVariant.HOUND, MechRole.ASSAULT, true);
@@ -120,9 +126,11 @@ public final class MechDuelRangeScene implements BehaviorScene {
                     MechVariant.BULWARK, MechRole.ASSAULT, true);
             Trace bbc = playOnce(frames, BULWARKS_CONTROL, MechVariant.BULWARK, MechRole.ASSAULT,
                     MechVariant.BULWARK, MechRole.ASSAULT, false);
-            Trace ht = playVehicle(frames, HOUND_TANK, false, true);
-            Trace htc = playVehicle(frames, HOUND_TANK_CONTROL, false, false);
-            Trace to = playVehicle(frames, TANK_ORDERED, true, true);
+            Trace ht = playVehicle(frames, HOUND_TANK, VehicleCase.HOUND_ATTACKS, true, false);
+            Trace htc = playVehicle(frames, HOUND_TANK_CONTROL, VehicleCase.HOUND_ATTACKS, false, false);
+            Trace th = playVehicle(frames, TANK_HOUND, VehicleCase.TANK_UNORDERED, true, true);
+            Trace thc = playVehicle(frames, TANK_HOUND_CONTROL, VehicleCase.TANK_UNORDERED, true, false);
+            Trace to = playVehicle(frames, TANK_ORDERED, VehicleCase.TANK_ORDERED, true, true);
             return List.of(reportSiroccoHound(sh, SIROCCO_HOUND, true),
                     reportSiroccoHound(shc, SIROCCO_HOUND_CONTROL, false),
                     reportHoundSirocco(hs, HOUND_SIROCCO, true),
@@ -131,9 +139,12 @@ public final class MechDuelRangeScene implements BehaviorScene {
                     reportBulwarks(bbc, BULWARKS_CONTROL, false),
                     reportHoundTank(ht, HOUND_TANK, true),
                     reportHoundTank(htc, HOUND_TANK_CONTROL, false),
+                    reportTankHound(th, TANK_HOUND, true),
+                    reportTankHound(thc, TANK_HOUND_CONTROL, false),
                     reportTankOrdered(to));
         } finally {
             MechDuelRange.setEnabledForEvidence(before);
+            VehicleEngagement.setEnabledForEvidence(vehicleBefore);
         }
     }
 
@@ -171,14 +182,21 @@ public final class MechDuelRangeScene implements BehaviorScene {
         return trace;
     }
 
-    /**
-     * A breakthrough tank and a Hound with no steering script. {@code tankOrdered} false: the Hound (Brawler)
-     * attack-moves at a defending tank that is simply deployed, as an armor drop leaves one. True: the tank is the
-     * player's, given one move order at tick zero onto the cell of a Hound holding its ground, which is the only way
-     * a vehicle is ever sent toward an enemy.
-     */
-    private Trace playVehicle(FrameSink frames, String loopId, boolean tankOrdered, boolean rule) {
+    /** Who moves in a tank-and-Hound loop. */
+    private enum VehicleCase {
+        /** The Hound (Brawler) attack-moves at a defending tank that is simply deployed. */
+        HOUND_ATTACKS,
+        /** The player's tank is set down fifty cells from a Hound holding its ground, and given no order. */
+        TANK_UNORDERED,
+        /** The player's tank is given one move order at tick zero onto the holding Hound's cell. */
+        TANK_ORDERED
+    }
+
+    /** A breakthrough tank and a Hound with no steering script. */
+    private Trace playVehicle(FrameSink frames, String loopId, VehicleCase kind, boolean rule, boolean vehicleRule) {
         MechDuelRange.setEnabledForEvidence(rule);
+        VehicleEngagement.setEnabledForEvidence(vehicleRule);
+        boolean tankOrdered = kind != VehicleCase.HOUND_ATTACKS;
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
@@ -200,7 +218,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
                 .done();
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
-        int tankX = tankOrdered ? ATTACKER_X : DEFENDER_X;
+        int tankX = kind == VehicleCase.HOUND_ATTACKS ? DEFENDER_X
+                : kind == VehicleCase.TANK_UNORDERED ? TANK_UNORDERED_X : ATTACKER_X;
         long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, tankOrdered ? Faction.MARINE : Faction.DEFENDER,
                 VehicleMission.deployed(tankX + 0.5f, MID_Y + 0.5f));
         sim.convoy().body(tank).teleport(tankX + 0.5f, MID_Y + 0.5f, tankOrdered ? 0f : 180f);
@@ -209,7 +228,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
         Trace trace = tankOrdered
                 ? new Trace(loopId, rule, tank, hound)
                 : new Trace(loopId, rule, hound, tank);
-        if (tankOrdered) sim.getVehicleMoveOrderService().requestMove(tank, DEFENDER_X, MID_Y);
+        if (kind == VehicleCase.TANK_ORDERED) sim.getVehicleMoveOrderService().requestMove(tank, DEFENDER_X, MID_Y);
         SceneRun run = SceneRun.of(world).observe(trace).frames(frames, loopId, FRAME_EVERY_TICKS, trace::caption);
         try {
             while (run.tick() < WINDOW_TICKS && trace.deathTick < 0) run.step();
@@ -246,6 +265,9 @@ public final class MechDuelRangeScene implements BehaviorScene {
         float defenderStartX = Float.NaN;
         float defenderStartY = Float.NaN;
         float defenderMaxDrift;
+        float attackerStartX = Float.NaN;
+        float attackerStartY = Float.NaN;
+        float attackerMaxDrift;
         float closest = Float.MAX_VALUE;
 
         Trace(String loopId, boolean rule, long attacker, long defender) {
@@ -282,6 +304,11 @@ public final class MechDuelRangeScene implements BehaviorScene {
                 defenderStartY = dy;
             }
             defenderMaxDrift = Math.max(defenderMaxDrift, (float) Math.hypot(dx - defenderStartX, dy - defenderStartY));
+            if (Float.isNaN(attackerStartX)) {
+                attackerStartX = ax;
+                attackerStartY = ay;
+            }
+            attackerMaxDrift = Math.max(attackerMaxDrift, (float) Math.hypot(ax - attackerStartX, ay - attackerStartY));
             closest = Math.min(closest, (float) Math.hypot(ax - dx, ay - dy));
             distance = (float) Math.hypot(ax - dx, ay - dy);
             for (ShotEvent shot : sim.getShotsThisFrame()) {
@@ -367,6 +394,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
             m.put("shareInContact", shareBelow(CONTACT_CELLS));
             m.put("defenderClosedCells", defenderClosed());
             m.put("defenderMaxDriftCells", defenderMaxDrift);
+            m.put("attackerMaxDriftCells", attackerMaxDrift);
+            m.put("finalDistance", distance);
             m.put("closestEver", closest == Float.MAX_VALUE ? -1f : closest);
             m.put("attackerShots", attackerShots);
             m.put("defenderShots", defenderShots);
@@ -417,14 +446,34 @@ public final class MechDuelRangeScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
-        // A deployed hull has no engagement driver: it holds where it was set down until a player orders it.
-        verdicts.add(Verdict.of("unordered-tank-holds", t.defenderMaxDrift < 1f,
+        // Vehicle engagement is off for this pair, so it asks about the mech rule alone: the tank holds.
+        verdicts.add(Verdict.of("tank-held-for-isolation", t.defenderMaxDrift < 1f,
                 String.format(Locale.ROOT, "the tank moved %.1f cells (wanted under 1)", t.defenderMaxDrift)));
         if (subject) {
             verdicts.add(Verdict.of("hound-uses-a-band", t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
                     String.format(Locale.ROOT, "%.0f%% of the fight inside %.0f cells (wanted at most %.0f%%);"
                                     + " median %.1f, closest %.1f", t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
                             CONTACT_SHARE_MAX * 100f, t.median(), t.min())));
+        }
+        return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
+    }
+
+    private SceneReport reportTankHound(Trace t, String loopId, boolean subject) {
+        List<Verdict> verdicts = new ArrayList<>();
+        // The trace's attacker is the tank here; the Hound only holds its ground.
+        float moved = t.attackerMaxDrift;
+        if (subject) {
+            verdicts.add(Verdict.of("unordered-tank-engages", moved >= 5f && t.attackerShots > 0,
+                    String.format(Locale.ROOT, "the tank drove %.1f cells and fired %d rounds", moved,
+                            t.attackerShots)));
+            float share = t.shareAbove(HOUND_REACH);
+            verdicts.add(Verdict.of("tank-stands-off", t.firstShotTick >= 0 && share >= STANDOFF_SHARE,
+                    String.format(Locale.ROOT, "%.0f%% of the fight beyond the Hound's %.0f-cell reach (wanted %.0f%%);"
+                            + " median %.1f, closest %.1f", share * 100f, HOUND_REACH, STANDOFF_SHARE * 100f,
+                            t.median(), t.min())));
+        } else {
+            verdicts.add(Verdict.of("control-tank-holds", moved < 1f,
+                    String.format(Locale.ROOT, "the tank moved %.1f cells (wanted under 1)", moved)));
         }
         return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
     }

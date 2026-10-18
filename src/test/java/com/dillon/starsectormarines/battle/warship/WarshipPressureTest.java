@@ -56,19 +56,14 @@ class WarshipPressureTest {
     }
 
     @Test
-    void aLosingShipBreaksOffAndAWinningOneDoesNot() {
-        PostureInputs losing = new PostureInputs(0.6f, 0.5f, false, false, 0f, "", 0, MissionStance.HOLD, 0.9f);
-        assertEquals(WarshipPosture.WITHDRAW, new WarshipDoctrine().assess(losing, 1f).posture());
+    void aShipFightingAHullFightsItToTheEnd() {
+        PostureInputs duelling = new PostureInputs(0.1f, 0.9f, true, true, 2f, "", 0, MissionStance.HOLD, 0.9f);
+        assertEquals(WarshipPosture.AIR_SUPERIORITY, new WarshipDoctrine().assess(duelling, 1f).posture(),
+                "worn, overloaded and threatened, it still does not break off a duel");
 
-        PostureInputs winning = new PostureInputs(0.9f, 0.5f, false, false, 0f, "", 0, MissionStance.HOLD, 0.6f);
-        assertEquals(WarshipPosture.BOMBARD, new WarshipDoctrine().assess(winning, 1f).posture());
-
-        PostureInputs even = new PostureInputs(0.5f, 0.5f, false, false, 0f, "", 0, MissionStance.HOLD, 0.6f);
-        assertEquals(WarshipPosture.BOMBARD, new WarshipDoctrine().assess(even, 1f).posture(),
-                "hurt, but no worse off than its foe");
-
-        PostureInputs alone = new PostureInputs(0.5f, 0.5f, false, false, 0f, "", 0, MissionStance.HOLD);
-        assertEquals(WarshipPosture.BOMBARD, new WarshipDoctrine().assess(alone, 1f).posture(), "no foe, no exchange");
+        PostureInputs alone = new PostureInputs(0.1f, 0.5f, false, false, 0f, "", 0, MissionStance.HOLD);
+        assertEquals(WarshipPosture.WITHDRAW, new WarshipDoctrine().assess(alone, 1f).posture(),
+                "with no hull to fight, a worn ship leaves");
     }
 
     @Test

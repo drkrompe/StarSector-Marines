@@ -1,13 +1,13 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing, losing withdrawal) built
+Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing) and slice 5 (fights at range, to the death) built
 
 Written: 2026-10-16
-Updated: 2026-10-16 — equal-hull mirrors resolve: bow-on standoff, pressing, hardpoint sight, mount repair, losing withdrawal; measured
+Updated: 2026-10-18 — slice 5: hulls fight at 2.5x the range, duels end in a kill (no voluntary withdrawal); measured
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
-ship, pack, charge, escort, screen line, airspace, duel footing, hull-fire hold, ledger) is theirs. This story adds a
+ship, pack, charge, escort, screen line, edge pressure, duel footing, hull-fire hold, ledger) is theirs. This story adds a
 layer above the single-ship duel helm, a rule that hulls do not pass through each other, and a calibration of how long
 a hull lasts.
 
@@ -278,8 +278,8 @@ one, and each was answered by a mechanic rather than a number on a hull:
   mount pulled in toward the hull's origin by `HULL_REACH_SHARE`, which restores the base game's angles, and lays
   within its own arc; the helm's heading choice uses the same point. `-Dbattle.warship.hardpointSight=false` is the
   control.
-- **No one broke off when beaten.** Doctrine now withdraws a ship under 75% hull whose foe has twenty points more:
-  it is losing the exchange. Equal ships decide a duel by that withdrawal rather than trading to the last plate.
+- **No one broke off when beaten.** Doctrine withdrew a ship under 75% hull whose foe had twenty points more. This
+  was withdrawn by slice 5: the owner wants duels fought to the death, not decided by a break-off.
 
 D2 is built at the base game's ten seconds of repair, times the tempo; a repaired mount whose holed plate is hit again
 is lost. A hit on a hole now counts as a hit on that cell (it used to leave the cell's last-hit time unchanged, so a
@@ -320,6 +320,71 @@ fell earlier at two seeds and later at one. The pressing and come-about controls
 is, and the hardpoint-sight control moves the first-Hound times by about a second either way, so the difference is
 mostly the Wolfs keeping their bows on in the standoff rather than turning away between runs.
 
+## Slice 5: fights at range, to the death
+
+The owner judged the slice 4 fights too close (hulls fighting nose to nose) and dull to watch: duels kept ending with
+one ship leaving. Two changes, each with a control:
+
+- **2.5x the fighting distance.** `WarshipScale.HULL_RANGE` (2.5, `-Dbattle.warship.hullRange`) multiplies hull reach,
+  so the reach multiplier is now 7.5. The standoff cap is three hull lengths times the hull range. The tempo is no
+  longer derived from the multiplier: it stays presence times share (three), because rounds at a hull fly
+  `hullRoundSpeed`, the hull range times their speed, so flight time and the share of a fight spent crossing do not
+  change. Missiles at a hull fly their spec magnified the same way (speeds, split range and warhead speed). Their
+  motors no longer give out short of a hull they can reach, and point defence gets the spec's seconds. A split's
+  warhead fan stays centred on its aim, so the jitter shuffles warheads within the fan instead of walking the whole
+  fan off the hull. Fighters, point defence against craft and boats are unchanged: hull reach applies only to fire
+  at hulls.
+- **Battery reach.** The standoff and the tactics range now key off the reach at which three fifths of a ship's
+  anti-ship firepower bears (`WarshipDuelHelm.batteryReach`), not its longest gun. At the new range an Eagle stood off
+  at its gravitons' reach with its needlers out of range, and stalemated. Hardpoint sight still pulls in by
+  `HULL_REACH_SHARE`, not by the hull range: pulling in by more broke the Eagle's hardpoints at the new range.
+- **Flux footing in a hull fight.** Air superiority's 50/30 flux pair held a fighting ship's guns silent. While a
+  ship fights a hull its flux runs on the duel footing (`-Dbattle.warship.hullFightFooting=false` is the control).
+- **Fights to the death.** The losing-exchange withdrawal is gone, and while a ship has a live hostile hull to fight,
+  neither hull-limit nor threat withdrawal applies (`-Dbattle.warship.hullFightWithdrawal=true` is the control).
+  Mission-ordered withdrawals are separate and still apply. The *Greyhook*'s lift-off belongs to the mission, not
+  the doctrine.
+- **Hulls coming down or flying in are unseen.** At the new range a hull still descending through the cloud deck, or
+  flying in with its centre still past the map's edge, could be fired on before it was in sight. It is not a hostile
+  hull until it has come down or crossed the edge, and a ship still past the edge does not fire at hulls either.
+- **An extend runs longer.** An extend may last the hull range times its old cap, because opening a range 2.5x longer
+  takes that much longer at the same speed. A flank keeps its old cap: a longer one held a flanker on a fixed radius
+  for most of a fight.
+
+The `warship-mirrors` verdict is now "decided by a kill", with the three-turn floor kept. Start separations grew with
+reach in `warship-mirrors`, `warship-tactics` and `hull-durability`. `frigate-duel` lays its lines forty cells times
+the hull range apart, so a crossing Hound still throws the Wolfs' lead off. In `frigate-doctrine`, the withdraw loop
+asserts that a crippled hull fights on while a hostile hull lives. The pack loop drops its nearer-runner clause:
+under group tactics the flanker is chosen by bearing, and the nearer-runner rule belongs to the tactics-off control.
+`warship-tactics` names, but does not judge, a ship shot down mid-fight on the range-breathes verdict.
+
+| Mirror | decided after first hit (seeds 11 / 23 / 37) | three-turn floor | range held on target (slice 4) | least gap (slice 4) |
+| --- | --- | --- | --- | --- |
+| Wolf | 49.0s / 49.3s / 49.4s, kill | 41.0s | 136-205 (44-84) | 110 (17.5) |
+| Hound | 69.2s / 65.6s / 65.5s, kill | 35.7s | 59-149 (40-83) | 26-28 (11.5) |
+| Eagle | 286.5s / 276.4s / 276.9s, kill | 70.1s | 180-245 (65-125) | 90 (-1.5 to 9.3) |
+| Onslaught | 141.9s / 141.5s / 130.6s, kill | 124.5s | 275-349 (110-147) | 171-175 (5.9) |
+
+Hit share is unchanged by the faster rounds. In Greyhook it is 93-96% (94-98% before); in `warship-tactics`,
+line-of-battle 90% (85%), mirror 100% (97%) and pack 89% (89%). In `hull-durability`, Eagle 1330/1355 rounds reach a
+hull (980/992) and Onslaught 533/594 (315/343).
+
+Black Sluice is a regression reading only. Its edges are now flown, with the declared airspace gone:
+
+| seed | first hit | first Hound down | first Wolf down | Hounds / Wolfs lost | Greyhook hull, off the map at |
+| --- | --- | --- | --- | --- | --- |
+| 15305 | 11.5s | 13.8s | 40.9s | 1 / 2 | 99%, 312.5s |
+| 16205 | 11.6s | 13.8s | 41.5s | 1 / 2 | 99%, 322.7s |
+| 16206 | 11.6s | 13.0s | 42.9s | 1 / 2 | 99%, 313.7s |
+| 20261016 | 11.5s | 14.4s | 40.8s | 1 / 2 | 99%, 312.3s |
+| 31337 | 11.5s | 14.4s | 40.9s | 1 / 2 | 99%, 312.3s |
+
+The 300x232 map is only about 1.5 Wolf reaches across, so it cannot hold the fight at the new range. Everything is in
+reach as soon as the Wolfs cross the edge: the first Hound falls two or three seconds after the first hit, and the
+second Wolf dies before it has cleared its entry band. The surviving Hound screens its charge with no hull to fight.
+It then drifts away from its screen station onto the south edge, where the backstop holds it, until its charge leaves.
+That drift belongs to the escort helm, not to this slice.
+
 ## Slices
 
 1. **Spacing and hull contact.** Contact separation between hulls, friendly clearance in the helm. Evidence: the
@@ -331,7 +396,9 @@ mostly the Wolfs keeping their bows on in the standoff rather than turning away 
    seconds and change, range breathes, the line keeps its interval); readings on outcomes. `-Dbattle.warship.tactics=false`
    is the control.
 3. **Durability calibration.** D1 and D2, with `hull-durability` and Black Sluice read against the targets above.
-4. **Equal fights resolve.** Standoff, pressing, hardpoint sight, losing withdrawal; `warship-mirrors`.
+4. **Equal fights resolve.** Standoff, pressing, hardpoint sight; `warship-mirrors`.
+5. **Fights at range, to the death.** Hull range, battery reach, hull-fight flux footing, no voluntary withdrawal in a
+   hull fight.
 
 Each slice re-runs the warship scene set and `greyhook-duel` and keeps their verdicts green.
 

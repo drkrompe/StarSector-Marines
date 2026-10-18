@@ -8,9 +8,9 @@ and a `Weapon <slot> muzzle` empty per barrel. Rotate the pivot about its
 local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint` (anchor),
 housing, emitter and muzzle.
 
-Tri-Tachyon mounts are energy weapons in smooth domed housings, the emitters
-long thin rods with a bright collar at the tip; the four small missile slots
-carry squat launcher pods. Barbette radii are read off the sprite's turret
+The turrets are placeholders (owner, pass 1): a dark well-sized barbette and a
+puck with a stub showing the resting direction, until real mounts are designed.
+The two capital mounts in the prow bays keep their housing and emitter. Barbette radii are read off the sprite's turret
 wells (large 14, medium 10.5, small 6.5 units).
 """
 import math
@@ -51,7 +51,7 @@ ELITE = {'WS 001': 'autopulse', 'WS 002': 'autopulse', 'WS 003': 'tachyonlance',
 
 # size: barbette radius, collar height, housing radius, housing height, emitter length, emitter radius, emitters
 SPEC = {
-    'LARGE':  dict(r=14.0, collar=2.6, hr=10.5, hh=6.0, length=34.0, er=1.5, n=1),
+    'LARGE':  dict(r=16.0, collar=2.6, hr=10.5, hh=6.0, length=34.0, er=1.5, n=1),
     'MEDIUM': dict(r=10.5, collar=2.2, hr=7.6, hh=4.6, length=22.0, er=1.1, n=2),
     'SMALL':  dict(r=6.5, collar=1.6, hr=4.6, hh=3.0, length=12.0, er=.7, n=1),
 }
@@ -73,7 +73,7 @@ def barbette(kit, sid, x, y, spec):
     z0 = hit[0].z if hit else 0.0
     r, c = spec['r'], spec['collar']
     prof = [(0, -3.0), (r, -3.0), (r, c*.55), (r*.93, c), (0, c)]
-    b = K.revolve(kit, f'Weapon {sid} barbette', prof, kit.slate, center=(x, y, z0), segments=48)
+    b = K.revolve(kit, f'Weapon {sid} barbette', prof, kit.tech, center=(x, y, z0), segments=48, smooth=False)
     return b, z0+c
 
 
@@ -110,29 +110,15 @@ def turret(kit, sid, loc, angle, arc, size, typ):
     pivot['arc_deg'] = arc
     pivot['size'] = size
     pivot['type'] = typ
-    hr, hh = spec['hr'], spec['hh']
-    parts = []
-    muzzles = []
-    if typ == 'MISSILE':
-        house = K.revolve(kit, f'Weapon {sid} housing', housing_profile(hr, hh*.7), kit.pale,
-                          center=(x, y, ztop+.05), segments=32)
-        pod = kit.box(f'Weapon {sid} launcher pod', (x+.6, y, ztop+hh*.7+1.6), (hr*1.6, hr*1.5, 3.2), kit.skin, .35)
-        face = kit.box(f'Weapon {sid} launcher face', (x+.6+hr*.8, y, ztop+hh*.7+1.6), (.3, hr*1.3, 2.6), kit.tech, 0)
-        parts += [house, pod, face]
-        for j in (-1, 1):
-            muzzles.append((x+.6+hr*.8+.2, y+j*hr*.35, ztop+hh*.7+1.6))
-    else:
-        house = K.revolve(kit, f'Weapon {sid} housing', housing_profile(hr, hh), kit.pale,
-                          center=(x, y, ztop+.05), segments=40)
-        parts.append(house)
-        n = spec['n']
-        gap = spec['er']*4.2
-        for j in range(n):
-            off = (j-(n-1)/2)*gap
-            objs, tip = emitter(kit, f'Weapon {sid} emitter {j+1}', (x+hr*.35, y+off, ztop+hh*.55),
-                                spec['length'], spec['er'], kit.glow_white)
-            parts += objs
-            muzzles.append(tip)
+    # Placeholder (owner, pass 1: the turrets are scrap): a dark puck showing the
+    # pivot, size and resting direction. Real mounts replace these parts; the
+    # pivot, muzzle anchors and their names stay.
+    hr = spec['hr']
+    house = K.revolve(kit, f'Weapon {sid} placeholder', [(0, 0), (hr, 0), (hr*.8, 2.0), (0, 2.0)], kit.slate,
+                      center=(x, y, ztop+.05), segments=24, smooth=False)
+    stub = kit.box(f'Weapon {sid} placeholder stub', (x+hr*.9, y, ztop+1.0), (hr*.9, hr*.22, 1.2), kit.slate, 0)
+    parts = [house, stub]
+    muzzles = [(x+hr*1.35, y, ztop+1.0)] if typ != 'MISSILE' else [(x+hr*.5, y+j*hr*.3, ztop+2.0) for j in (-1, 1)]
     mz = []
     for j, p in enumerate(muzzles):
         e = kit.empty(f'Weapon {sid} muzzle {j+1}' if len(muzzles) > 1 else f'Weapon {sid} muzzle', p, 0, 'SINGLE_ARROW', 3)

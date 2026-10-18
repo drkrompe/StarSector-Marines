@@ -121,7 +121,7 @@ public final class WarshipShipRules {
         Warship.Mount m = strongest(ship);
         if (m == null) return new float[]{target.centerX(), target.centerY()};
         return WarshipAirRules.leadPoint(ship.mountX(m), ship.mountY(m), target.centerX(), target.centerY(),
-                target.velocityX, target.velocityY, m.weapon);
+                target.velocityX, target.velocityY, m.weapon, WarshipScale.HULL_RANGE);
     }
 
     /** Roughly the damage per second a weapon puts into a hull: a beam's rating, or a gun's bursts over its cycle. */
@@ -288,8 +288,15 @@ public final class WarshipShipRules {
      * and are measured from the mount; the round always flies from the muzzle.
      */
     static float sight(float origin, float mount) {
-        return HARDPOINT_SIGHT ? origin + (mount - origin) * WarshipScale.HULL_REACH_SHARE : mount;
+        return HARDPOINT_SIGHT ? origin + (mount - origin) * SIGHT_SHARE : mount;
     }
+
+    /**
+     * How far out toward its mount a hardpoint's sight point lies: the reach share, never past the mount. It is not
+     * divided by {@link WarshipScale#HULL_RANGE}: the longer hull range puts more distance between hulls, so a hardpoint's
+     * angle to a target is already nearer the base game's; pulling it in further mislaid the Eagle's hardpoints.
+     */
+    static final float SIGHT_SHARE = Math.min(1f, WarshipScale.HULL_REACH_SHARE);
 
     /** {@code -Dbattle.warship.hardpointSight=false} is the control: hardpoints sight from the mount itself. */
     static final boolean HARDPOINT_SIGHT =

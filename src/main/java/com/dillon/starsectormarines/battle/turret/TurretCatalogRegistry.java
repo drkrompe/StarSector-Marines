@@ -50,6 +50,8 @@ public final class TurretCatalogRegistry {
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
     /** The heavy-gun tank's single long gun: more reach and penetration, a slower cycle. */
     public static final String TANK_HEAVY_GUN_STRUCTURE_ID = "structure.tank-heavy-gun";
+    /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */
+    public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
 
     private static volatile TurretCatalogRegistry installed;
 

@@ -65,10 +65,12 @@ class LightRoleVehiclesTest {
     }
 
     @Test
-    void onlyTheTruckCarriesSupplyAndOnlyTheScoutIsASightSource() {
+    void onlyTheTruckCarriesSupplyAndOnlyTheScoutsAreSightSources() {
         for (VehicleType type : VehicleType.values()) {
             assertEquals(type == VehicleType.SUPPLY_TRUCK, type.supplyStock() > 0, type.name());
-            assertEquals(type == VehicleType.SCOUT_CAR, type.sightCells() > 0f, type.name());
+            // The spotter pickup's mast, and Tri-Tachyon's hover scout's sensor cluster.
+            assertEquals(type == VehicleType.SCOUT_CAR || type == VehicleType.HOVER_SCOUT,
+                    type.sightCells() > 0f, type.name());
         }
     }
 

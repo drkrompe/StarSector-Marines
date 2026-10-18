@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
+import com.dillon.starsectormarines.battle.drone.DroneSkimmerSystem;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -496,6 +497,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     private final SupplyTruckSystem supplyTrucks;
     private final ScoutSight scoutSight = new ScoutSight();
+    private final DroneSkimmerSystem droneSkimmers = new DroneSkimmerSystem();
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
     /** Opt-in battle-long perspective/referee diagnostic stream. */
@@ -1866,6 +1868,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** What this battle's scout cars saw on the last tick. */
     public ScoutSight scoutSight() { return scoutSight; }
+
+    /** The drone skimmers' tethered flights. */
+    public DroneSkimmerSystem droneSkimmers() { return droneSkimmers; }
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
@@ -3051,6 +3056,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         shipCommands.drain(warships.ships(), tenders.tenders(), Faction.MARINE, grid,
                 (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
+        droneSkimmers.tick(TICK_DT, this);
         closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);

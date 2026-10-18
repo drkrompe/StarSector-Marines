@@ -30,15 +30,21 @@ def _scene_trees():
             continue
         ev = ob.evaluated_get(dg)
         me = ev.to_mesh()
-        _TREES.append(BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
-                                           [tuple(p.vertices) for p in me.polygons]))
+        _TREES.append((ob.name, BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
+                                                     [tuple(p.vertices) for p in me.polygons])))
         ev.to_mesh_clear()
 
 
-def _cast(origin, direction):
+def _cast(origin, direction, hull_only=False, only=None):
+    """Nearest hit along a ray: (distance, point, normal facing the ray). hull_only skips
+    trainable weapons and fittings, so a light is never seated on a barrel or a mast."""
     o, d = Vector(origin), Vector(direction).normalized()
     best = None
-    for t in _TREES:
+    for name, t in _TREES:
+        if hull_only and name.split(' ')[0] not in ('Hull', 'Armour', 'Bridge', 'Engine'):
+            continue
+        if only is not None and not only(name):
+            continue
         p, n, _, dist = t.ray_cast(o, d)
         if p is not None and (best is None or dist < best[0]):
             best = (dist, p, -n if n.dot(d) > 0 else n)
@@ -127,15 +133,68 @@ def build(kit):
     _from(kit, 'Light stem 1', (260, 0, 2), (-1, 0, 0), RED, 'stem', 2.0, 0.0, mats)
     _drop(kit, 'Light mast head 1', 17, 0, RED, 'mast head', 2.0, 1.0, mats)
     for side, s in (('port', 1), ('starboard', -1)):
-        # Arm nose: the foremost deck point just outboard of the TPC's casemate.
-        _extreme(kit, f'Light {side} arm nose 1', (230, s*77.5), (-1, 0), 60, RED, 'arm nose', 2.0,
-                 0.0 if s > 0 else .3, mats)
+        # Arm nose: the arm's foremost point (the TPC casemate's cheek, or the nose itself),
+        # found by horizontal casts aft over the nose on a grid mirrored port/starboard.
+        _foremost(kit, f'Light {side} arm nose 1', s, RED, 'arm nose', 2.0, 0.0 if s > 0 else .3, mats)
         _extreme(kit, f'Light {side} leg tip 1', (-150, s*56), (1, 0), 50, RED, 'leg tip', 2.0, 1.0, mats)
         _extreme(kit, f'Light {side} quarter 1', (-66, s*125), (0, -s), 40, RED, 'stern quarter', 2.0, 1.0, mats)
-        for k, (x, y) in enumerate(((180, 92), (140, 104), (100, 124), (60, 126), (20, 130), (-10, 120)), 1):
-            _edge(kit, f'Light {side} arm edge {k}', (x, s*(y-16)), (0, s), 30, WHITE, 'edge line', 3.0,
-                  .35*k, mats)
+        for k, x in enumerate(EDGE_X, 1):
+            _beam(kit, f'Light {side} arm edge {k}', x, s, WHITE, 'edge line', 3.0, .35*k, mats)
     _from(kit, 'Light stern 1', (-200, 0, 8), (1, 0, 0), WHITE, 'stern', 3.0, 1.5, mats)
+
+
+EDGE_X = (180, 140, 100, 60, 20, -4)     # stations of the white edge line along each arm
+EDGE_DEG = 35.0                         # the deck edge is the arm's extreme point this far off vertical
+
+
+def _support(u, c, span_a, span_b, step=.5, only=None):
+    """The hull's extreme point in direction u near c: rays cast along -u from a grid
+    (span_a x span_b, either may be 0) on a plane perpendicular to u, keeping the hit that
+    lies furthest along u. That point is on the silhouette seen from u, so a light seated
+    there shows from that side, from above and abeam."""
+    u = Vector(u).normalized()
+    e1 = u.cross(Vector((1, 0, 0)) if abs(u.x) < .9 else Vector((0, 0, 1))).normalized()
+    e2 = u.cross(e1).normalized()
+    best = None
+    na, nb = int(span_a/step), int(span_b/step)
+    for i in range(-na, na+1):
+        for j in range(-nb, nb+1):
+            o = Vector(c)+u*300.0+e1*(i*step)+e2*(j*step)
+            hit = _cast(o, -u, hull_only=True, only=only)
+            if hit and (best is None or hit[1].dot(u) > best[1].dot(u)+1e-3):
+                best = hit
+    return best
+
+
+def _beam(kit, name, x, s, colour, role, period, phase, mats):
+    """A light on the arm's outer deck edge at station x: the extreme point of the arm's own
+    section (its gallery, forearm and their belts; never the broadside fin, a turret or the
+    stern) outboard-and-up at EDGE_DEG from vertical, i.e. the chine where the gun deck meets
+    the outer side. One rule at every station, so the six lights make one clean line along
+    the arm whatever its roll."""
+    side = 'port' if s > 0 else 'starboard'
+    mine = lambda n: n in (f'Hull {side} arm gallery', f'Hull {side} arm') or n.startswith(f'Armour {side} arm belt')
+    a = math.radians(EDGE_DEG)
+    u = Vector((0, s*math.sin(a), math.cos(a)))
+    e1 = u.cross(Vector((1, 0, 0))).normalized()
+    best = None
+    for k in range(-160, 161):
+        o = Vector((x, s*95.0, -5.0))+u*300.0+e1*(k*.5)
+        hit = _cast(o, -u, only=mine)
+        if hit and (best is None or hit[1].dot(u) > best[1].dot(u)+1e-3):
+            best = hit
+    if best:
+        _light(kit, name, best[1], best[2], colour, role, period, phase, mats)
+
+
+def _foremost(kit, name, s, colour, role, period, phase, mats):
+    """A light at the arm's nose: the extreme point of the arm's own bodies forward-and-up
+    (from ahead, 30 deg above), so it marks the nose's top from ahead, abeam and above."""
+    side = 'port' if s > 0 else 'starboard'
+    mine = lambda n: n.startswith((f'Hull {side} arm', f'Armour {side} arm', f'Armour {side} nose'))
+    best = _support((1, 0, .58), (205, s*80.0, -5.0), 24, 24, step=1.0, only=mine)
+    if best:
+        _light(kit, name, best[1], best[2], colour, role, period, phase, mats)
 
 
 def _edge(kit, name, start, step_dir, reach, colour, role, period, phase, mats):

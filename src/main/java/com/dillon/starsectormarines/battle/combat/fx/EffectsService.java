@@ -153,6 +153,26 @@ public final class EffectsService {
                 12f, .12f, .22f, 2f));
     }
 
+    /**
+     * A hover hull: a small, sharp blast on its composite shell and a short burn in the lift fans aft, which is where
+     * the power is. Light plate holds little to burn, so it cools quickly. No damage.
+     */
+    public void spawnHoverWreck(float x, float y, float facingDeg, float hullFrameCells) {
+        double angle = Math.toRadians(facingDeg);
+        float sin = (float) Math.sin(angle), cos = (float) Math.cos(angle);
+        float aft = hoverFanAftCells(hullFrameCells);
+        float fanX = x + sin * aft, fanY = y - cos * aft;
+        spawnHeavyImpact(x, y, .5f + .1f * hullFrameCells);
+        fireBurstsThisFrame.add(new float[]{fanX, fanY, .26f});
+        smokingWrecks.add(new SmokingWreck(x, y, 14f, .05f, .3f, 2f));
+        smokingWrecks.add(new SmokingWreck(fanX, fanY, 40f, .12f, .5f, 7f));
+    }
+
+    /** How far aft of a hover hull's centre its lift fans burn, in cells: they sit in the rear quarters. */
+    public static float hoverFanAftCells(float hullFrameCells) {
+        return .35f * hullFrameCells;
+    }
+
     /** Freight loss: modest blast, cab fire and a longer contained cargo burn; no chain explosions. */
     public void spawnHaulerWreck(float x, float y, float facingDeg) {
         double angle = Math.toRadians(facingDeg);

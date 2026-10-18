@@ -180,6 +180,25 @@
       }
     },
     {
+      "id": "weapon.hover-pulse",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponHoverPulseDisplayName", "modelName": "@gearCatalogWeaponHoverPulseModelName", "designation": "DPLS", "designationTiered": false },
+      "sim": {
+        "range": 26.0, "damage": 8.0, "accuracy": 0.55, "cooldown": 1.4, "penetration": 6.0,
+        "burstCount": 4, "burstSpacing": 0.09, "accuracyFalloff": 0.35, "hitSpread": 0.5,
+        "roundVelocity": 55.0
+      },
+      "render": { "tracerColor": "60CFFF" },
+      "fx": {
+        "muzzle": [ { "kind": "glow", "radius": 0.34, "lifetime": 0.07, "color": "8FE0FF" } ],
+        "impact": [
+          { "kind": "glow", "radius": 0.30, "lifetime": 0.10, "color": "8FE0FF" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
+    },
+    {
       "id": "weapon.tank-heavy-gun",
       "mount": "turret-mount",
       "catalog": {
