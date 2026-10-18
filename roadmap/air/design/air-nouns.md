@@ -1808,14 +1808,35 @@ for one mission:
   seconds with its own end conditions: approach on an oblique course, an attack run
   (bow ships) or a broadside run (broadside ships) at the standoff, extend away, come
   about through a fixed side to unmask fresh guns, flank, line ahead. **A front-shielded
-  ship never turns its back in reach**: its run gives way to a **standoff**, a drift
-  astern and to one side round its target with nose, guns and shield still on it, out
-  past the target's reach only while it vents; an omni-shielded or shieldless ship comes
-  about instead. An attacker gains by getting outside a front shield's arc (a hunter's
-  station prefers it, and a flanker in a pack finds it); the defender's nose follows its
-  attacker within its slow turn. A run is held on while its target is near its flux
-  limit. On a manoeuvre a ship travels along its nose, so range opens and closes as a
-  ship's course does rather than a hover holding a ring. An escort fighting hulls **interposes** between its charge
+  ship never turns its back in reach while its shield holds**: in a pack or a line its
+  run gives way to a **standoff**, a drift astern and to one side round its target with
+  nose, guns and shield still on it, out past the target's reach only while it vents; an
+  omni-shielded or shieldless ship comes about instead. An attacker gains by getting
+  outside a front shield's arc (a hunter's station prefers it, and a flanker in a pack
+  finds it); the defender's nose follows its attacker within its slow turn. A run is held
+  on while its target is near its flux limit. On a manoeuvre a ship travels along its
+  nose, so range opens and closes as a ship's course does rather than a hover holding a
+  ring.
+- **One ship against one is a duel, flown for position** (`warship-tactics.md`, slice 6).
+  At hull range a defender can always pivot faster than an equal can circle it, so
+  nobody is got round by speed alone: position is won by choices, read off the two
+  hulls. A bow ship comes in for its target's quiet quarter on its own course rather
+  than at its nose. Between runs a front-shielded ship **orbits**: it circles under way,
+  its target held off the bow at the widest angle its shield still covers and its side
+  guns still bear on, so two ships jockey round each other with shields on; a hull whose
+  battery is nearly all in its bow (an Eagle) keeps its nose on in a standoff instead.
+  A ship **crosses the T** when its main battery bears and its target's does not: it
+  turns in first from an orbit when it is ahead on flux and hull, and on any target that
+  has turned its cover or its battery away it holds its run (a **cross**). The **counter**
+  is the defender's: turned in on, it turns in to answer, within its own turn rate. Two
+  ships equally full hold their shields on each other and the flux race decides; the one
+  whose shield is going (overloaded, or nearly full and losing the race) **breaks**:
+  it turns well off its target and opens at full way, shield or no, comes about the short
+  way once vented or run down, and its quarter is what the other crosses. A shieldless
+  bow ship makes passes (run, extend, come about) and comes back early, the short way,
+  to answer or to cross. An overloaded ship is still in the fight it is flying. Which ship
+  wins the position is the fight's own doing; faster and handier hulls turn in and come
+  about sooner. `-Dbattle.warship.duelManoeuvres=false` is the control. An escort fighting hulls **interposes** between its charge
   and the threat. A mission that flies its own circuit (the Greyhook's fighting
   withdrawal) is a manoeuvre of the same kind, owned by the mission.
 

@@ -31,8 +31,10 @@ import java.util.Random;
  * <p>The question is whether a fight between equals is decided, by a kill, inside the window, and
  * whether it is decided by manoeuvre rather than by a standoff: no faster than three of the loser's own ninety-degree
  * turns. Its mechanics are verdicts: the fight is decided; it takes at least three of the loser's turns; a front-shield
- * ship on a standoff keeps its target inside its shield arc; the range opens and closes; no two hulls lie in each
- * other. Who wins, the damage each way and how much of the time each ship took fire from outside its arc are readings.
+ * ship on a standoff or an orbit keeps its target inside its shield arc; a ship gets round (off the other's cover or
+ * across its T); ships keep way on in reach; the range opens and closes; no two hulls lie in each other. Who wins, the
+ * damage each way, each side's crossing share, crossings, distance flown and hit share are readings.
+ * {@code -Dbattle.scene.warshipMirrors.trace=true} prints each hull's firing arc and a once-a-second trace of both ships.
  */
 public final class MirrorDuelScene implements BehaviorScene {
 

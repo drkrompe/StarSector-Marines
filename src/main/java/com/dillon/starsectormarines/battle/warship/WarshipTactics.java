@@ -32,6 +32,12 @@ import java.util.Map;
  * guns bear (a bow or broadside ship), its shield, the range against both reaches, both pools, and the role. The
  * standoff law still sets how close a run goes. Outcomes are the fight's own.
  *
+ * <p><b>A duel</b> (one hunter against one hull) is flown for position: a bow ship approaches for its target's quarter,
+ * a front-shielded one orbits between runs with its shield and side guns still on the target, a ship ahead on flux and
+ * hull turns in first across the target's T, a ship turned in on turns in to answer, and the one whose shield is going
+ * breaks away at full way, its quarter crossed by the other. {@code -Dbattle.warship.duelManoeuvres=false} is the
+ * control.
+ *
  * <p>A ship flying a manoeuvre travels along its nose ({@link #alongNose}): it can drift sideways and astern only at
  * a fraction of its speed, so its motion reads as a course, not a hover. {@code -Dbattle.warship.tactics=false} is the
  * control: every hunter flies the single-ship duel helm, and the pack division is the old one.
