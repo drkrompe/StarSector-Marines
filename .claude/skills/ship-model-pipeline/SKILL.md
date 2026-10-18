@@ -26,7 +26,7 @@ One package per hull: `art-source/<area>/<hull>-geometry/`. `<area>` is
   `surface(x,y)` (a ray-cast onto the hull).
 - One module per area (`<prefix>_hull.py`, `_engines.py`, `_turrets.py`,
   `_bridge.py`, and so on), so parallel agents never edit the same file.
-- A committed `.blend`, `geometry.json` (the manifest), review PNGs and
+- A committed `.blend`, `geometry.json` (the manifest), review PNGs (rendered to ignored paths, never committed) and
   `README.txt`.
 - Copy kit helpers into the new package. Never import another hull's modules:
   other sessions are editing them.
@@ -310,8 +310,11 @@ forking them. Each state exports one appendable Blender collection
 
 ## Rules for every pass
 
-- Every preview shown to the owner is 1920x1080. Keep raw frames in an
-  ignored `build/` directory.
+- Every preview shown to the owner is 1920x1080. **Never commit rendered
+  output** (CLAUDE.md, Never commit rendered output): review renders, sheets,
+  overlays, frames and graded textures go to ignored paths and are shown
+  from disk. Commit the scripts that make them, and Codex generations with
+  their prompts and guides.
 - Pixel-diff renders across an integration to prove that nothing outside the
   change moved.
 - Stage explicit paths. Commit, merge the latest `main`, `--ff-only` into

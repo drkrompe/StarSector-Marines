@@ -41,27 +41,27 @@ worktree.
    session branch. Do not use `git stash`, and do not modify, remove, or reuse
    another session's branch or worktree.
 5. Before integration, fetch the shared remote and merge **both** the latest
-   local `main` and `origin/main` into the session branch inside the worktree,
+   local `main` and `hub/main` into the session branch inside the worktree,
    resolving conflicts there. Re-run relevant verification.
 
    ```powershell
-   git fetch origin
+   git fetch hub
    git merge main
-   git merge origin/main
+   git merge hub/main
    ```
 
 6. Return to the main workspace, verify that it is still on `main` and clean,
    then integrate with a fast-forward-only merge and publish `main` to
-   `origin` with an ordinary (fast-forward) push:
+   `hub` with an ordinary (fast-forward) push:
 
    ```powershell
    git merge --ff-only session/<unique-name>
-   git push origin main
+   git push hub main
    ```
 
    If `main` advanced and the fast-forward fails, or the push is rejected
-   because `origin/main` moved, go back to the session worktree, fetch and
-   merge `main` and `origin/main` again, verify, fast-forward local `main` and
+   because `hub/main` moved, go back to the session worktree, fetch and
+   merge `main` and `hub/main` again, verify, fast-forward local `main` and
    push again. **Never force-push**, and never push session branches. If the
    main workspace has uncommitted changes, do not absorb, discard, or
    overwrite them; leave the worktree intact and report the integration
@@ -80,8 +80,8 @@ worktree.
 For any task in which the user has authorized repository changes, the repository
 owner gives standing authorization to complete the entire local Git workflow:
 stage the session's owned paths, commit the verified change, merge the latest
-local `main` and `origin/main` into the session branch, fast-forward local
-`main`, push `main` to `origin` (fast-forward only), and clean up the merged
+local `main` and `hub/main` into the session branch, fast-forward local
+`main`, push `main` to `hub` (fast-forward only), and clean up the merged
 session worktree and branch. **Do not pause to ask for a separate
 "merge it?" confirmation. Always merge a green, self-contained change into
 local `main` when the workflow above permits it.**
@@ -102,11 +102,30 @@ sibling session's merge turns into a conflict.
 
 The project is worked on from more than one machine (this Windows workstation
 and a MacBook Pro reached over SSH as `dillmac.local`), each with its own clone
-and its own local `main`. `origin` (GitHub) is the meeting point: every
-integration pulls `origin/main` in first and pushes `main` straight after, so
-neither machine's `main` drifts from the other's. At the start of a session,
-`git fetch origin` and fast-forward local `main` to `origin/main` from the main
-workspace when it is behind before cutting a worktree.
+and its own local `main`. The meeting point is the bare repository
+`/Users/dillon/git/starsectormarines.git` on the Mac, the remote `hub` in every
+clone. It is not GitHub: the history holds gigabytes of binary art, which is
+past what GitHub accepts in a push, so `origin` is not pushed.
+
+- On Windows, `hub` is `ssh://dillmac.local/Users/dillon/git/starsectormarines.git`
+  and the clone sets `core.sshCommand` to `C:/Windows/System32/OpenSSH/ssh.exe`:
+  Git for Windows' bundled ssh cannot resolve `.local` names.
+- On the Mac, `hub` is the local path `/Users/dillon/git/starsectormarines.git`.
+- At the start of a session, `git fetch hub` and fast-forward local `main` to
+  `hub/main` from the main workspace when it is behind, before cutting a
+  worktree. When the Mac is unreachable, integrate locally and push when it
+  is back; never point `hub` anywhere else.
+
+### Never commit rendered output
+
+A render is an output of a script, not a source: regenerate it, never commit
+it (owner, 2026-10-18). Review renders, contact and review sheets, overlays,
+frame sequences and graded textures are written under ignored paths
+(`build/`, or the patterns in `art-source/company-prologue/.gitignore`) and
+shown to the owner from disk. What stays tracked is what cannot be rebuilt
+from the repository: scripts, data, Codex/ImageGen generations with their
+prompts and the guides they were generated from, finish references, and
+hand-made or story art. An ignored path refuses `git add`; never force it.
 
 The main workspace is for brief integration and worktree administration only.
 Do not run builds or leave generated task files there.

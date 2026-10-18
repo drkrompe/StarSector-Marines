@@ -21,6 +21,7 @@ Legend: **done** = merged to main; **review** = merged, waiting on the owner;
 | Mudskipper | `mudskipper-geometry/` | done | done | done (accepted after round 1: waist junction broken up; IoU 0.943) | done, 0.85 m/u (67 m) | — (survey under way) | wip | — | Pass 6 texturing on the shared surfacing harness, then owner review of the textured look |
 | Hermes (the company's boat) | `hermes-geometry/` | wip (IoU 0.969) | wip | — | provisional | reserved: wrecked, patched | — | — | Pass 2 detailing, then pass 4 scale and Second Wind bay fit |
 | Legion (XIV) battlecarrier | `legion-geometry/` | done (reworked after first review) | done: every module detailed, fly-through wing hangars (IoU 0.974) | — | done, 0.61 m/u (180 m long, 46 m deep) | not needed (damage-free patrol) | — | Flight-deck, launch-point and engine anchors exported for C2 | Owner review of pass 2 (pass 3) |
+| Shepherd (Morrow) | `shepherd-geometry/` | done (IoU 0.932) | wip | — | wip | named, not built (grounded/damaged, recovered) | — | Drone-bay openings and launch points exported | Pass 2 detail, then pass 4 scale |
 
 ## Fighters
 
