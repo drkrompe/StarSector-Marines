@@ -112,7 +112,14 @@ Turrets (geometry.json 'weapon_slots')
   Every turret trains by rotating 'Weapon <slot> pivot' about its local Z;
   it rests at the slot angle. WS 007 (starboard dorsal heavy autocannon,
   arc 160 about -20 deg, so it can lay on Second Wind at -90) is the one
-  flagged keyable_for_c2.
+  flagged keyable_for_c2. The geometry is the shared turret kit's
+  (turret-kit/turret_kit.py): guns elevate on 'Weapon <slot> elevation',
+  barrels recoil on 'Weapon <slot> recoil <k>', the Vulcans' barrels spin on
+  'Weapon <slot> rotor', and 'Weapon <slot> muzzle anchor <k>' marks each
+  bore or missile. Each barbette's foot runs down to the lowest deck under
+  its ring (turret-kit/check_seating.py finds none floating).
+  The c2-lit views render the C2 cameras under studio light for review; the
+  plain c2 views keep the shot's own dark lighting.
 
 C2 (geometry.json 'c2')
   The model's axes are C2's world axes. Closest approach puts the starboard

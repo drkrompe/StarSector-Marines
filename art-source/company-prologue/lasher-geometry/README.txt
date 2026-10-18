@@ -1,4 +1,4 @@
-LASHER - CINEMATIC GEOMETRY (PASS 1 BLOCKOUT, LIGHT PASS 2, PASS 4 SCALE)
+LASHER - CINEMATIC GEOMETRY (PASSES 1, 2 LIGHT, 4 SCALE ACCEPTED; PASS 7 EFFECTS)
 
 Purpose
 A light, scripted Blender model of the vanilla Lasher as a Hegemony escort
@@ -97,8 +97,10 @@ Stable object names
   Turret <i> barbette, traverse gap      fixed
   Turret <i> pivot               empty; turn about hull +Z to train; custom
                                  properties slot, rest_angle_deg, arc_deg
-  Turret <i> gunhouse, mantlet, barrel <k>, barrel <k> muzzle anchor   trained
-  Weapon <slot id> anchor / muzzle anchor / breech / barrel / launcher / tube <k>
+  Turret <i> gunhouse, mantlet, barrel <k>      trained
+  Anchor turret <i> barrel <k> muzzle            trained; the VFX kit's declared muzzle
+  Weapon <slot id> anchor / breech / barrel / launcher / tube <k>
+  Anchor weapon <slot id> muzzle                 hardpoint muzzle
   Light <side> <where> <k>       running lights; origin = lamp position
 
 The cinematic asset
@@ -113,6 +115,25 @@ append the collection and instance it with a collection-instance empty
 scaled by metres_per_unit; verify_asset.py does exactly that three times
 and checks the contract. The built file is not tracked: it is copied to the
 shared Drive under starsector/builds/lasher/<short-commit>/.
+
+Owner review
+Accepted as built on 2026-10-18 at 0.95 m per unit (build f264ff7).
+reference-history/v2-accepted/geometry.json records the accepted state.
+
+Effects (pass 7)
+The shared VFX kit (../second-wind-vfx) dresses the Lasher through this
+folder's hull profile, vfx_hull.py: the five LOW_TECH drives in vanilla
+orange on the `Engine <i> exhaust anchor` empties (1 centre, 2-3 port, 4-5
+starboard), the three twin turrets' declared muzzles (`Anchor turret <i>
+barrel <k> muzzle`), and the four running lights (red and green wing tips,
+white stern, white prow strobe). One state, clean. export_effects.py runs
+`swfx.apply(state='clean', groups=thrusters, smoke, guns, lighting)` on the
+built lasher.blend and saves the kit's `SWFX` collection beside `LASHER`;
+link or append `LASHER` alone for the bare ship, or both in one load for the
+effects, which ride the ship's anchors. A shot sets the lighting rig and
+fires the guns through the kit's knobs (second-wind-vfx/README.md, Controls).
+review_effects.py appends both into an empty scene under c1_core's sun and
+renders fx-stern-quarter, fx-port-side and fx-shot-1500m.
 
 Silhouette check
 compose_review.py lays the sprite into the top camera frame and compares
@@ -131,13 +152,17 @@ sh ../../blender.sh --background --factory-startup --python build_lasher.py -- \
     --views top,three-quarter,port-side,front,stern,details,shot --manifest
 python3 compose_review.py --manifest
 sh ../../blender.sh --background --factory-startup --python verify_asset.py
+sh ../../blender.sh --background --factory-startup --python export_effects.py
+sh ../../blender.sh --background --factory-startup --python review_effects.py
 (About a minute on the M5 at 24 samples.) --views none --manifest rebuilds
 only the asset and geometry.json. Options after "--": --out DIR, --views,
 --samples N, --res WxH, --no-save, --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE.
 
 Files
 build_lasher.py (driver), ls_kit.py, ls_hull.py, ls_pods.py, ls_engines.py,
-ls_mounts.py, ls_lights.py (one module per area), compose_review.py (IoU,
+ls_mounts.py, ls_lights.py (one module per area), vfx_hull.py and
+export_effects.py (the VFX kit profile and export), review_effects.py,
+compare_lineup.py (true-scale lineup against another hull), compose_review.py (IoU,
 shot extents, review set; python3 with Pillow + numpy), verify_asset.py,
 geometry.json (identity, slots, engines, turrets, lights, scale record,
 asset contract, IoU, shot extents).

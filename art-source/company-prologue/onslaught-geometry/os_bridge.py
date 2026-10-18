@@ -34,14 +34,20 @@ seat.
 import math
 import bpy
 from mathutils import Vector
-from os_kit import boolean, ccw, loft_x, octagon, prism, section, strip_plan
+from os_kit import boolean, ccw, facet_normal, loft_x, octagon, plane_cut, prism, section, strip_plan
 
 SPINE_HALF = [(98, 6), (88, 9), (60, 10), (46, 16), (40, 22), (10, 26), (-6, 22), (-16, 18), (-46, 18),
               (-58, 13), (-66, 8)]
-SPINE = section(16.0, 25.0, 2.0, 2.5)
-CMD = {'x': 24.0, 'y': 0.0, 'r': 21.0, 'z0': 24.0, 'z1': 38.0}     # command dome
-AFT = {'x': -31.0, 'y': 0.0, 'r': 16.5, 'z0': 24.0, 'z1': 33.0}    # aft dome
+# The bridge is drawn at its pass-2 heights below and then lifted LIFT as a whole
+# (build), so it sits ON the raised citadel (os_hull: terrace 23, inner tier 26)
+# like a brawler's head between its shoulders, not sunk into it. The spine's
+# keel is drawn LIFT deeper so it still beds into the core and tail decks (16).
+LIFT = 8.0
+SPINE = section(0.0-LIFT, 25.0, 2.0, 2.5)    # keel buried deep: it seats on whatever deck is under it
+CMD = {'x': 24.0, 'y': 0.0, 'r': 21.0, 'z0': 31.5, 'z1': 60.0}     # command tower, on the inner tier (40)
+AFT = {'x': -31.0, 'y': 0.0, 'r': 16.5, 'z0': 24.0, 'z1': 36.0}    # aft dome
 SPINE_TOP = 25.0
+SPINE_FALL = 22.0   # deg: the spine's fall toward the tail aft of X -50
 # Human fittings in true metres, converted with the hull's scale (kit.mpu, set by
 # the driver from ship_scale): the bridge windows are a 1.4 m band of 1.1 m panes,
 # the crown hatch a 1.8 m access hatch, the aft dome's ledge hatches 0.9 x 1.4 m.
@@ -52,11 +58,17 @@ SERVICE_HATCH_M = (.9, 1.4)
 
 # (radius fraction, height fraction) keel to crown. Repeated heights are
 # horizontal steps: the sill under the glazing and the brow's soffit over it.
-CMD_RINGS = [(1.00, 0.00), (1.00, .10), (.97, .13), (.89, .13),            # drum, ledge, sill
-             (.89, .40), (.97, .40), (.97, .47),                              # recessed riser, brow
-             (.90, .56), (.78, .70), (.60, .84), (.36, .95), (.12, 1.0)]     # ribbed cap
-CMD_RISER, CMD_GLAZE = .89, (.16, .37)
-CMD_CAP = [(.97, .47), (.90, .56), (.78, .70), (.60, .84), (.40, .935)]
+# Round 3 (owner: the bridge must be the clear high point of a stepped
+# skyline): the command dome becomes an armoured command tower stepped up on
+# the citadel: a base drum, a ledge, a battered tower wall, the glazing band in a
+# recess under an overhanging brow near the top, and a low faceted armoured cap.
+# Twenty-four sided, so its walls read as plate.
+CMD_RINGS = [(1.00, 0.00), (1.00, .12), (.84, .12), (.80, .60), (.75, .60),   # drum, ledge, tower wall, sill
+             (.75, .70), (.80, .70), (.80, .74),                               # recessed riser, brow
+             (.73, .82), (.54, .93), (.30, 1.0)]                               # armoured cap
+CMD_RISER, CMD_GLAZE = .75, (.60, .70)
+CMD_SIDES = 24
+CMD_CAP = [(.80, .74), (.73, .82), (.54, .93), (.40, .965)]
 AFT_RINGS = [(1.00, 0.00), (1.00, .18), (.95, .28), (.85, .28),            # skirt and ledge
              (.84, .40), (.78, .60), (.62, .80), (.38, .94), (.12, 1.0)]    # helmet cap
 AFT_CAP = [(.84, .40), (.78, .60), (.62, .80), (.42, .925)]
@@ -121,13 +133,22 @@ def _band(kit, name, d, rf, hf, a0, a1, half_h, out_in, out_out, mat, n=32):
 
 
 def _glazing(kit, name, d, a0, a1, h0, h1, n=32, proud=.15, depth=.35):
-    """Glass on the command dome's recessed riser between bearings a0..a1 (deg from the bow),
-    following the riser's true circle so it sits flush and even."""
+    """Glass on the command tower's recessed riser between bearings a0..a1 (deg from the bow),
+    following the riser's flats (CMD_SIDES) so it sits flush and even."""
+    step = 360.0/CMD_SIDES
+    bearings = sorted({a0, a1} | {step*(k+.5) for k in range(-CMD_SIDES, CMD_SIDES) if a0 < step*(k+.5) < a1})
+    r = d['r']*CMD_RISER
+
+    def pt(a, hf, out):
+        delta = (a+step/2) % step-step/2          # from the nearest flat's centre
+        poly = r*(math.cos(math.radians(step/2))/math.cos(math.radians(delta))-1)
+        return _ring_pt(d, CMD_RISER, hf, math.radians(a), 1.0, poly+out)
     verts, faces = [], []
     for out in (proud, -depth):
         for hf in (h0, h1):
-            verts += [_ring_pt(d, CMD_RISER, hf, math.radians(a0+(a1-a0)*i/n), 1.0, out) for i in range(n+1)]
-    m = n+1
+            verts += [pt(a, hf, out) for a in bearings]
+    m = len(bearings)
+    n = m-1
     ol, oh, il, ih = 0, m, 2*m, 3*m     # outer-low, outer-high, inner-low, inner-high
     for i in range(n):
         faces += [(ol+i, ol+i+1, oh+i+1, oh+i), (il+i, ih+i, ih+i+1, il+i+1),
@@ -167,7 +188,7 @@ def _command_dome_detail(kit, cmd):
     # centred on the riser, with mullions every PANE_M.
     centre = sum(CMD_GLAZE)/2
     half = GLAZING_M/kit.mpu/(CMD['z1']-CMD['z0'])/2
-    h0, h1 = max(centre-half, .14), min(centre+half, .39)
+    h0, h1 = max(centre-half, CMD_GLAZE[0]+.01), min(centre+half, CMD_GLAZE[1]-.01)
     arc = CMD['r']*CMD_RISER*math.radians(156)
     panes = max(8, round(arc/(PANE_M/kit.mpu)))
     _glazing(kit, 'Bridge glazing', CMD, -78, 78, h0, h1)
@@ -201,10 +222,10 @@ def _aft_dome_detail(kit):
 
 def _neck(kit):
     """The pinched ridge between the domes: a saddle with a crest and vents on its flanks."""
-    st = [(-14.0, octagon(-6.5, 6.5, 23.5, 28.0, 2.6, 0)),
-          (-6.0, octagon(-7.5, 7.5, 23.5, 29.2, 3.0, 0)),
-          (2.0, octagon(-6.5, 6.5, 23.5, 28.6, 2.8, 0)),
-          (6.0, octagon(-5.5, 5.5, 23.5, 27.0, 2.4, 0))]
+    st = [(-14.0, octagon(-6.5, 6.5, 20.0, 31.0, 2.6, 0)),
+          (-6.0, octagon(-7.5, 7.5, 20.0, 32.2, 3.0, 0)),
+          (2.0, octagon(-6.5, 6.5, 20.0, 31.6, 2.8, 0)),
+          (6.0, octagon(-5.5, 5.5, 20.0, 30.0, 2.4, 0))]
     loft_x(kit, 'Bridge neck saddle', st, kit.bone, bevel=.2)
     # The crest rides the saddle's ridge line.
     crest = [(x+(1.0 if i == 0 else -1.0 if i == len(st)-1 else 0), sec) for i, (x, sec) in enumerate(st)]
@@ -212,7 +233,7 @@ def _neck(kit):
                                                      .3, 0)) for x, sec in crest], kit.bone, bevel=.1)
     # A louvred vent on each flank chamfer.
     for side, s in (('port', 1), ('starboard', -1)):
-        ob = kit.box(f'Bridge neck vent {side}', (-5.5, s*5.95, 27.7), (8.0, .6, 2.2), kit.dark, bevel=0)
+        ob = kit.box(f'Bridge neck vent {side}', (-5.5, s*5.95, 30.7), (8.0, .6, 2.2), kit.dark, bevel=0)
         ob.rotation_euler[0] = s*math.radians(45)
 
 
@@ -236,8 +257,9 @@ def _forward_spine(kit):
               bevel=0)
     # The arch over the spine's nose: two legs at Y +-9.5 (the sprite's pale circles) and a crossbeam.
     for side, s in (('port', 1), ('starboard', -1)):
-        kit.box(f'Bridge spine arch leg {side}', (98.0, s*9.5, 25.8), (3.6, 3.6, 9.6), kit.bone, bevel=.3)
-    kit.box('Bridge spine arch', (98.0, 0, 30.0), (2.8, 22.0, 2.2), kit.bone, bevel=.3)
+        kit.box(f'Bridge spine arch leg {side}', (98.0, s*8.2, 17.0), (3.6, 4.4, 19.0), kit.bone, bevel=.3)
+    # The crossbeam rests on the spine's nose and the two legs (no daylight under it).
+    kit.box('Bridge spine arch', (98.0, 0, 25.4), (2.8, 21.0, 2.2), kit.bone, bevel=.3)
 
 
 def _spine_detail(kit):
@@ -246,28 +268,40 @@ def _spine_detail(kit):
         edge = [(x, _half_at(x)+.6) for x in [xa+(xb-xa)*i/8 for i in range(9)]]
         for side, s in (('port', 1), ('starboard', -1)):
             pts = [(x, s*y) for x, y in edge]
-            prism(kit, f'Bridge spine side step {side} {tag}', ccw(strip_plan(pts, 2.6)),
-                  [(0, 21.0), (0, 22.8), (.6, 23.4)], kit.bone, bevel=0)
+            st = prism(kit, f'Bridge spine side step {side} {tag}', ccw(strip_plan(pts, 2.6)),
+                       [(0, -LIFT), (0, 22.8), (.6, 23.4)], kit.bone, bevel=0)
+            if tag == 'aft':
+                plane_cut(st, 'step aft fall', (-50.0, 0, 23.4), facet_normal((-1, 0), SPINE_FALL))
     # Transverse ribs across the aft spine, behind the helmet, with dark vents between.
+    fall = lambda x: SPINE_TOP-math.tan(math.radians(SPINE_FALL))*max(0.0, -50.0-x)
     for k, x in enumerate((-52.0, -57.0, -62.0), 1):
         w = _half_at(x)-1.2
-        kit.box(f'Bridge spine aft rib {k}', (x, 0, SPINE_TOP+.35), (1.6, 2*w, 1.3), kit.bone, bevel=.2)
+        ob = kit.box(f'Bridge spine aft rib {k}', (x, 0, fall(x)+.35), (1.6, 2*w, 1.3), kit.bone, bevel=.2)
+        ob.rotation_euler[1] = -math.radians(SPINE_FALL)
     for k, x in enumerate((-54.5, -59.5), 1):
         for side, s in (('port', 1), ('starboard', -1)):
-            kit.box(f'Bridge spine aft vent {side} {k}', (x, s*4.0, SPINE_TOP+.05), (2.6, 4.2, .4), kit.dark,
-                    bevel=0)
+            ob = kit.box(f'Bridge spine aft vent {side} {k}', (x, s*4.0, fall(x)+.05), (2.6, 4.2, .4), kit.dark,
+                         bevel=0)
+            ob.rotation_euler[1] = -math.radians(SPINE_FALL)
 
 
 def build(kit):
+    before = set(bpy.data.objects)
     half = SPINE_HALF
     plan = ccw(list(half)+[(x, -y) for x, y in reversed(half)])
     spine = prism(kit, 'Bridge spine', plan, SPINE, kit.bone)
-    cmd = _dome(kit, 'Bridge command dome', CMD, kit.bone, CMD_RINGS)
+    # Aft of the aft dome the spine steps down toward the tail (round 3: a
+    # stepped skyline that falls away aft of the bridge, not a flat ridge).
+    plane_cut(spine, 'spine aft fall', (-50.0, 0, SPINE_TOP), facet_normal((-1, 0), SPINE_FALL))
+    cmd = _dome(kit, 'Bridge command dome', CMD, kit.bone, CMD_RINGS, n=CMD_SIDES)
     aft = _dome(kit, 'Bridge aft dome', AFT, kit.bone, AFT_RINGS, stretch=1.15)
     _command_dome_detail(kit, cmd)
     _aft_dome_detail(kit)
     _neck(kit)
     _forward_spine(kit)
     _spine_detail(kit)
+    for ob in set(bpy.data.objects)-before:
+        ob.location.z += LIFT
+    bpy.context.view_layer.update()
     kit.hull += [spine, cmd, aft]
     return {'spine': spine, 'command dome': cmd, 'aft dome': aft}

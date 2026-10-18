@@ -47,14 +47,21 @@ class LightRoleVehiclesTest {
         }
     }
 
+    /** A pickup is a field rig: the outfits that weld them weight them up, and no military faction does. */
     @Test
-    void aFactionWeightsUpEachRole() {
-        assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT,
-                MechPatternPicker.weight("hegemony", MechPattern.of(VehicleType.SUPPLY_TRUCK)));
-        assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT,
-                MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.SCOUT_CAR)));
+    void fieldRigsAreWeightedByWhoBuildsThemNotByANavy() {
+        for (VehicleType type : List.of(VehicleType.SUPPLY_TRUCK, VehicleType.SCOUT_CAR, VehicleType.MILITIA_TECHNICAL)) {
+            MechPattern pattern = MechPattern.of(type);
+            assertTrue(type.isPickup(), type.name());
+            assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT, MechPatternPicker.weight("pirates", pattern));
+            assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT, MechPatternPicker.weight("independent", pattern));
+            for (String navy : List.of("hegemony", "tritachyon", "lions_guard", "luddic_path")) {
+                assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight(navy, pattern), navy + " " + type);
+            }
+            assertTrue(MechFabricationCatalog.vehicle(type).provenance().startsWith("FIELD RIG"), type.name());
+        }
         assertEquals(MechPatternPicker.BASE_WEIGHT,
-                MechPatternPicker.weight("independent", MechPattern.of(VehicleType.SCOUT_CAR)));
+                MechPatternPicker.weight("pirates", MechPattern.of(VehicleType.HEAVY_APC)), "an issue hull is not a rig");
     }
 
     @Test

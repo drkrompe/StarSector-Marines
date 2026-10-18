@@ -36,13 +36,11 @@ public final class MechPatternPicker {
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_PULSE_LASERS),
                     MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON),
-                    MechPattern.of(VehicleType.HEAVY_GUN_TANK),
-                    MechPattern.of(VehicleType.SCOUT_CAR)),
+                    MechPattern.of(VehicleType.HEAVY_GUN_TANK)),
             FactionMechLoadouts.HEGEMONY_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS),
-                    MechPattern.of(VehicleType.UP_ARMORED_APC),
-                    MechPattern.of(VehicleType.SUPPLY_TRUCK)),
+                    MechPattern.of(VehicleType.UP_ARMORED_APC)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
                     MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
                     MechPattern.of(VehicleType.DOZER_BREACHER)),
@@ -50,6 +48,13 @@ public final class MechPatternPicker {
                     MechPattern.of(MechVariant.SIROCCO),
                     MechPattern.of(MechWeaponComponent.THERMAL_LANCE),
                     MechPattern.of(VehicleType.FIRE_SUPPORT_APC)));
+
+    /**
+     * Who weights up a field rig. A pickup-based hull ({@link VehicleType#isPickup()}) is a jerry-rig a workshop
+     * welds together, never a navy's issue: no military faction is known for one, and the outfits that build them
+     * out of what they have are.
+     */
+    static final Set<String> FIELD_RIG_FACTIONS = Set.of("pirates", "independent");
 
     private MechPatternPicker() {}
 
@@ -99,7 +104,9 @@ public final class MechPatternPicker {
     static int weight(String factionId, MechPattern pattern) {
         String key = factionId != null ? factionId.trim().toLowerCase(Locale.ROOT) : "";
         Set<MechPattern> issue = FACTION_ISSUE.getOrDefault(key, Set.of());
-        return issue.contains(pattern) ? FACTION_ISSUE_WEIGHT : BASE_WEIGHT;
+        if (issue.contains(pattern)) return FACTION_ISSUE_WEIGHT;
+        boolean fieldRig = pattern.kind() == MechPattern.Kind.VEHICLE && pattern.vehicleType().isPickup();
+        return fieldRig && FIELD_RIG_FACTIONS.contains(key) ? FACTION_ISSUE_WEIGHT : BASE_WEIGHT;
     }
 
     private record Candidate(String id, int weight) {}

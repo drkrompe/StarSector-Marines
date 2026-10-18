@@ -164,7 +164,7 @@ test {
                 'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
-                'loadout-card-sheet', 'loadout-matchup', 'armor-economy-evidence'
+                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -367,6 +367,34 @@ tasks.register('loadoutMatchup', Test) {
     ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'gifs', 'gifSeeds', 'fireMission'].each { name ->
         if (providers.gradleProperty(name).isPresent()) {
             systemProperty "loadoutMatchup.${name}", providers.gradleProperty(name).get()
+        }
+    }
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// Machines against machines: mech fits and vehicle lines fought headlessly in three
+// scenarios, side by side, reported as a table (sibling of loadoutMatchup).
+tasks.register('armorMatchup', Test) {
+    group = 'verification'
+    description = 'Fight mechs and vehicles against each other headlessly; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'armor-matchup'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    forwardBattleSwitches(delegate)
+    systemProperty 'armorMatchup.dir', layout.buildDirectory.dir('reports/armor-matchups').get().asFile.absolutePath
+    ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'ladder', 'gifs', 'gifSeeds', 'standoff', 'mechOrder', 'debug'].each { name ->
+        if (providers.gradleProperty(name).isPresent()) {
+            systemProperty "armorMatchup.${name}", providers.gradleProperty(name).get()
         }
     }
     testLogging {

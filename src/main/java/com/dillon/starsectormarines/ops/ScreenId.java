@@ -63,4 +63,12 @@ public enum ScreenId {
     public boolean aboard() {
         return aboard;
     }
+
+    /**
+     * Whether this screen plays its own music. Every other screen shares the dialog's intel
+     * track, so moving between them never restarts it; see {@link OpsMusic}.
+     */
+    public boolean ownsMusic() {
+        return this == BATTLE;
+    }
 }

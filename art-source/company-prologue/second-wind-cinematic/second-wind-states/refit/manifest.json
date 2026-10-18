@@ -677,38 +677,6 @@
  ],
  "sparks": [
   {
-   "anchor": "Scar ds-port-waist-rip spark anchor",
-   "scar": "ds-port-waist-rip",
-   "at": [
-    6.171,
-    16.169,
-    11.437
-   ],
-   "spray_dir": [
-    0.26978,
-    0.01358,
-    0.96283
-   ],
-   "radius_m": 1.4,
-   "sparking": false
-  },
-  {
-   "anchor": "Scar ds-port-waist-rip spark-2 anchor",
-   "scar": "ds-port-waist-rip",
-   "at": [
-    7.63,
-    17.14,
-    11.338
-   ],
-   "spray_dir": [
-    0.25995,
-    -0.06061,
-    0.96372
-   ],
-   "radius_m": 1.0,
-   "sparking": false
-  },
-  {
    "anchor": "Scar sp-turret-3 spark anchor",
    "scar": "sp-turret-3",
    "at": [
@@ -784,7 +752,7 @@
    "lit": false,
    "at": [
     -32.8,
-    36.2,
+    36.23,
     7.9
    ]
   },
@@ -864,7 +832,7 @@
    "lit": false,
    "at": [
     6.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -874,7 +842,7 @@
    "lit": false,
    "at": [
     22.0,
-    16.0,
+    12.85,
     3.2
    ]
   },
@@ -913,7 +881,7 @@
   {
    "id": "fb-port-bow-cheek-strike",
    "kind": "fb-cheek",
-   "status": "patched"
+   "status": "replaced"
   },
   {
    "id": "fb-port-bow-flank-strike",
@@ -958,7 +926,7 @@
   {
    "id": "fb-stbd-bow-deck-cluster",
    "kind": "cluster",
-   "status": "patched"
+   "status": "replaced"
   },
   {
    "id": "fb-stbd-flank-module-tear",
@@ -993,7 +961,7 @@
   {
    "id": "fb-port-deck-plate-fwd-torn",
    "kind": "plate",
-   "status": "open"
+   "status": "replaced"
   },
   {
    "id": "fb-port-deck-plate-aft-torn",
@@ -1003,12 +971,12 @@
   {
    "id": "fb-stbd-deck-plate-unbolted",
    "kind": "plate",
-   "status": "open"
+   "status": "replaced"
   },
   {
    "id": "fb-port-deck-plate-buckle",
    "kind": "buckle",
-   "status": "open"
+   "status": "replaced"
   },
   {
    "id": "fb-bow-tether-padeye",
@@ -1061,8 +1029,8 @@
    "status": "open"
   },
   {
-   "id": "pod-port-fins",
-   "kind": "bent_fins",
+   "id": "pod-port-engine-bay",
+   "kind": "engine_bay",
    "status": "open"
   },
   {
@@ -1268,7 +1236,7 @@
   {
    "id": "ds-port-waist-rip",
    "kind": "rip",
-   "status": "open"
+   "status": "replaced"
   },
   {
    "id": "ds-stbd-waist-rip",
@@ -2864,6 +2832,20 @@
     "r": 0.04
    }
   ],
+  "pod-port-engine-bay": [
+   {
+    "p": [
+     -24.0,
+     37.472,
+     11.289
+    ],
+    "n": [
+     0.0,
+     0.966,
+     0.259
+    ]
+   }
+  ],
   "pod-port-flank-cluster": [
    {
     "p": [
@@ -3938,16 +3920,16 @@
   },
   "ds-port-waist-rip": {
    "centre": [
-    6.658,
-    17.509,
-    10.286
+    6.856,
+    16.435,
+    10.555
    ],
    "extent": [
-    11.907,
-    10.101,
-    3.474
+    11.06,
+    8.807,
+    0.14
    ],
-   "objects": 19
+   "objects": 3
   },
   "ds-stbd-shoulder-peel": {
    "centre": [
@@ -4003,16 +3985,16 @@
   },
   "fb-port-bow-cheek-strike": {
    "centre": [
-    44.766,
-    21.66,
-    12.14
+    44.736,
+    21.63,
+    12.139
    ],
    "extent": [
-    3.062,
-    2.707,
-    2.463
+    2.971,
+    2.616,
+    2.325
    ],
-   "objects": 2
+   "objects": 3
   },
   "fb-port-bow-flank-strike": {
    "centre": [
@@ -4057,27 +4039,27 @@
    "centre": [
     24.5,
     10.25,
-    14.72
+    14.983
    ],
    "extent": [
     7.0,
     5.5,
-    0.0
+    0.525
    ],
-   "objects": 1
+   "objects": 4
   },
   "fb-port-deck-plate-fwd-torn": {
    "centre": [
     32.5,
     16.75,
-    14.6
+    14.983
    ],
    "extent": [
-    6.5,
-    5.0,
-    0.08
+    7.0,
+    5.5,
+    0.525
    ],
-   "objects": 3
+   "objects": 4
   },
   "fb-port-nose-block-spall": {
    "centre": [
@@ -4148,14 +4130,14 @@
    "centre": [
     32.5,
     -10.25,
-    14.7
+    14.983
    ],
    "extent": [
     7.0,
     5.5,
-    0.3
+    0.525
    ],
-   "objects": 5
+   "objects": 4
   },
   "fb-stbd-flank-module-tear": {
    "centre": [
@@ -4235,18 +4217,18 @@
    ],
    "objects": 9
   },
-  "pod-port-fins": {
+  "pod-port-engine-bay": {
    "centre": [
-    -21.675,
+    -25.862,
     27.0,
-    3.2
+    4.1
    ],
    "extent": [
-    3.19,
-    22.6,
-    22.4
+    17.724,
+    24.0,
+    24.8
    ],
-   "objects": 4
+   "objects": 31
   },
   "pod-port-intake-cap": {
    "centre": [
@@ -4558,7 +4540,10 @@
   "Casing access panel.003": "pod-casing-access-panels",
   "Drive casing armour plate": "pod-port-casing-plate",
   "Drive casing armour plate.005": "pod-starboard-casing-plate",
+  "Fin bank tie bar.003": "pod-port-engine-bay",
+  "Forebody replaceable armor": "fb-port-deck-plate-buckle",
   "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
+  "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn",
   "Panel grab strap": "pod-casing-access-panels",
   "Panel grab strap.001": "pod-casing-access-panels",
   "Panel grab strap.002": "pod-casing-access-panels",
@@ -4583,9 +4568,9 @@
   "Turret 3 optics blister": "sp-turret-3",
   "Turret 3 optics lens": "sp-turret-3"
  },
- "left_out_objects": 115,
+ "left_out_objects": 117,
  "objects": 942,
- "polygons": 180304,
+ "polygons": 174953,
  "baked_meshes": 832,
  "images": [
   "Skin arm-boom-port",
@@ -4672,7 +4657,7 @@
    "Scar plate back primer",
    "Starboard running light"
   ],
-  "scorch_sites": 112,
+  "scorch_sites": 108,
   "soot_engines": 2,
   "base": "second-wind-surface/wear.py, wear.json",
   "params": "second-wind-surface/overlay/refit.json",
@@ -4681,7 +4666,7 @@
  "effects": {
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
-  "objects": 82,
+  "objects": 80,
   "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
   "groups": {
    "thrusters": {
@@ -4712,7 +4697,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-refit.blend",
-  "geometry_json_sha256": "40606aa0601e41c54b013e9bd8311056c181d493e2e8dc3ce2554e7cb3fda30c",
+  "geometry_json_sha256": "a6d6dbd6dca8193bec6978d6eefdca282c9761639d7533e657c513a46c49c85a",
   "wear_params_sha256": "1a4439af1abaf1681aacba4e18301a4ec65196ee34825c38679b3f7475665a72"
  },
  "conventions": {
@@ -4723,5 +4708,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "b4072ae319e1899a18d655d0a987003819f89eb0deef809691db7ecfecce6197"
+ "asset_sha256": "774554db5168fb84007b72e6a3be63172abd4d3b78e3062280a1b1907e87c78e"
 }

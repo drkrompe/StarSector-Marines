@@ -3,10 +3,12 @@
   Engine 1/4  (-82, +-70), width 20, angled 160/200: an armoured drive pod on
               each stern quarter, lying along its exhaust line out of the
               aft body's stepped outer corner;
-  Engine 2/3  (-103, +-40), width 20: set into the aft body's after face,
-              firing aft down the notch between the tail and each leg;
-  Engine 5/6  (-113, +-11), width 30: the mains, side by side in the tail's
-              after face (the sprite's two pale bells at |Y| 4.5..17.5).
+  Engine 2/3  (-103, +-40), width 20: sunk in an armoured housing on the
+              inner well's floor, fused to each blade's inner flank;
+  Engine 5/6  (-113, +-11), width 30: the mains (the sprite's two pale bells at
+              |Y| 4.5..17.5), heavier and set apart: octagonal armoured sleeves
+              run aft out of the tail's square after face (X -105) with a bolted
+              thrust collar and gimbal actuators.
 
 Each is a whole drive unit, not a nozzle on a wall: a drive can running
 forward into the hull, a flaring bell sunk in a well, a thick mouth lip at
@@ -18,16 +20,23 @@ its slot angle about the mouth. Names are the standing identifiers:
 """
 import math
 import bpy
-from os_kit import boolean
+from os_kit import boolean, ccw, facet_normal, mirror_y, plane_cut
+from os_stern import MAINS_FACE_X, blade_inner_y, chined_mass
 from os_machinery import Acc, tube, ring
 
 # (x, y, width, contrailSize, length, angle) in onslaught.ship order; index i is position i+1.
 ENGINES = [(-82, 70, 20, 64, 64, 160), (-103, 40, 20, 64, 64, 180), (-103, -40, 20, 64, 64, 180),
            (-82, -70, 20, 64, 64, 200), (-113, 11, 30, 64, 100, 180), (-113, -11, 30, 64, 100, 180)]
 ENGINE_Z = {20: -8.0, 30: -6.0}
-MOUTH_R = {20: 5.6, 30: 5.8}       # read off the sprite: the mains' bells are 13 px across, not 30
-BELL_LEN = {20: 9.0, 30: 12.5}
-CAN_LEN = {20: 16.0, 30: 22.0}
+# Hierarchy (owner, round 3: the stern read as six identical rings in a row): the
+# mains are the sprite's two pale bells, 13 px across (r 6.5), standing proud of the
+# tail's after face on long ribbed bells with a heavy thrust collar; the 20-wide
+# drives are smaller (r 4.8) and sunk: 2/3 in armoured housings against the blades'
+# inner flanks, 1/4 in the quarter pods on the blades' outer glacis.
+MOUTH_R = {20: 4.6, 30: 7.0}
+BELL_LEN = {20: 8.0, 30: 14.0}
+CAN_LEN = {20: 14.0, 30: 22.0}
+MAINS = (5, 6)
 POD_LEN = 30.0                    # the quarter pods' housing, forward of the mouth
 
 
@@ -62,6 +71,13 @@ def well_cutter(kit, x, y, z, angle, r, depth):
     place(ob, x, y, z, angle)
     bpy.context.view_layer.update()
     return ob
+
+
+def _bell_r(rm, L, px):
+    """Outer radius of a bell (mouth rm, length L) at local px, as build() shapes it."""
+    rt, wall = .45*rm, .45
+    t = min(1.0, max(0.0, 1-px/L))
+    return rt+wall+(rm-rt-wall)*(.6*(1-(1-t)**2)+.4*t)
 
 
 def _r_at(profile, x):
@@ -100,14 +116,31 @@ def detail(kit, i, x, y, z, angle, rm, rt, wall, L, Lc, outer, hosted):
     rc = 1.45*rt+.6
     for px in (L+2.0, L+Lc*.55, L+Lc-.6):
         gimbal.add(*ring((px, 0, 0), (1, 0, 0), rc-.1, rc+.65, .5, n=16))
-    if hosted:
+    if hosted and i in MAINS:
+        # The mains stand proud of the tail: a heavy octagonal thrust collar against the
+        # tail's after face, bolted, and four gimbal actuators from it to the bell's mid hoop.
+        cx = MAINS_FACE_X-x
+        rb0 = _r_at(outer, cx)
+        collar.add(*ring((cx, 0, 0), (1, 0, 0), rb0-.3, rm+3.6, 1.4, n=8))
+        collar.add(*ring((cx-1.4, 0, 0), (1, 0, 0), rb0-.2, rb0+1.6, .9, n=16))
+        for k in range(8):
+            a = 2*math.pi*(k+.5)/8
+            rb = rm+2.6
+            collar.add(*tube((cx-1.3, rb*math.cos(a), rb*math.sin(a)), (cx-2.1, rb*math.cos(a), rb*math.sin(a)), .6, n=6))
+        for k in range(4):
+            a = 2*math.pi*(k+.5)/4
+            ca, sa = math.cos(a), math.sin(a)
+            r0, r1 = rb0+1.9, _r_at(outer, L*.22)+.7
+            extra.add(*tube((cx-1.6, r0*ca, r0*sa), (L*.22, r1*ca, r1*sa), .55, n=6))
+            extra.add(*tube((cx-1.6, r0*ca, r0*sa), ((cx-1.6+L*.22)/2, (r0+r1)/2*ca, (r0+r1)/2*sa), .85, n=6))
+    elif hosted:
         rs = (rm+.9)/math.cos(math.pi/8)
         collar.add(*ring((-.3, 0, 0), (1, 0, 0), rs+1.2, rs+3.4, 1.3, n=8))
         for k in range(8):
             a = 2*math.pi*k/8
             rb = rs+2.3
             collar.add(*tube((-1.6, rb*math.cos(a), rb*math.sin(a)), (-2.3, rb*math.cos(a), rb*math.sin(a)), .55, n=6))
-        if i in (2, 3):
+        if i in (2, 3) and not HOUSED:
             for side in (1, -1):      # turbopumps along the can, lying in the open well
                 c0 = (L+3.0, side*(rc+1.7), 1.6)
                 extra.add(*tube(c0, (L+11.5, c0[1], c0[2]), 1.6, n=10))
@@ -140,20 +173,75 @@ def detail(kit, i, x, y, z, angle, rm, rt, wall, L, Lc, outer, hosted):
             block(px, px+.6, -2.5, 2.5, R+1.8, R+2.6)
     for acc, label, mat in ((hoops, 'bell hoops and ribs', kit.steel), (gimbal, 'gimbal ring and can bands', kit.grey),
                             (collar, 'armoured collar' if hosted else 'pod armour bands', kit.grey),
-                            (extra, 'turbopumps' if hosted else 'intake vent', kit.plate)):
+                            (extra, ('gimbal actuators' if i in MAINS else 'turbopumps') if hosted else 'intake vent',
+                             kit.plate)):
         ob = acc.build(kit, f'Engine {i} {label}', mat)
         if ob:
             place(ob, x, y, z, angle)
 
 
+def _check_pod(i, x, y, z, angle, rp):
+    """Report a quarter pod that no longer meets the hull: from stations along its forward
+    half, look out radially past its skin for a hull or armour surface. A reshaped aft body
+    can leave a pod hanging; the build says so rather than shipping it."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    trees = []
+    for ob in bpy.context.scene.objects:
+        if ob.type == 'MESH' and ob.name.split(' ')[0] in ('Hull', 'Armour'):
+            ev = ob.evaluated_get(dg)
+            me = ev.to_mesh()
+            trees.append(BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
+                                              [tuple(p.vertices) for p in me.polygons]))
+            ev.to_mesh_clear()
+    a = math.radians(angle-180)
+    fwd = Vector((math.cos(a), math.sin(a), 0))
+    side = Vector((-fwd.y, fwd.x, 0))
+    met = 0
+    for f in (.5, .75, 1.0):
+        c = Vector((x, y, z))+fwd*(POD_LEN*f)
+        for k in range(8):
+            b = 2*math.pi*k/8
+            d = side*math.cos(b)+Vector((0, 0, 1))*math.sin(b)
+            if any(t.ray_cast(c, d, rp+3.0)[0] is not None for t in trees):
+                met += 1
+                break
+    if met < 2:
+        print(f'ENGINE POD CLEAR OF HULL: Engine {i} (met at {met} of 3 stations)')
+
+
+HOUSED = True     # drives 2/3 sit in armoured housings against the blades (their turbopumps are inside)
+
+
+def _housing(kit, i, y):
+    """The armoured housing of drive 2 or 3: a chined block on the inner well's floor,
+    fused into the blade's inner flank, its after face carrying the sunk bell."""
+    s = 1 if y > 0 else -1
+    x0, x1 = -103.5, -79.0
+    plan = [(x0, 32.4), (x0, blade_inner_y(x0)+3.0), (x1, blade_inner_y(x1)+3.0), (x1, 32.4)]
+    plan = ccw(plan) if s > 0 else mirror_y(ccw(plan))
+    ob = chined_mass(kit, f'Engine {i} drive housing', plan, (-17.0, 1.5, 3.0, 4.0, 2.5, 3.5, 0.0, 0.0), kit.grey,
+                     step=1.5)
+    # Its forward top falls to the well floor, so the pipe banks run onto it.
+    plane_cut(ob, 'housing fore', (x1+2.0, 0, 1.5), facet_normal((1, 0), 40))
+    return ob
+
+
 def build(kit, hull):
-    hosts = {2: hull['aft'], 3: hull['aft'], 5: hull['tail'], 6: hull['tail']}
+    hosts = {5: hull['tail'], 6: hull['tail']}
+    for i, (x, y, w, _, _, angle) in enumerate(ENGINES, 1):
+        if i in (2, 3):
+            hosts[i] = _housing(kit, i, y)
     for i, (x, y, w, _, _, angle) in enumerate(ENGINES, 1):
         z = ENGINE_Z[w]
         rm, L, Lc = MOUTH_R[w], BELL_LEN[w], CAN_LEN[w]
         rt = .45*rm
         wall = .45
-        if i in hosts:     # sink the bell in a well in its host's after face
+        if i in MAINS:     # bore the tail round the bell's root, behind its thrust collar
+            boolean(hosts[i], well_cutter(kit, x, y, z, angle, _bell_r(rm, L, MAINS_FACE_X-x)+.3, L+.5))
+        elif i in hosts:   # sink the bell in a well in its host's after face
             boolean(hosts[i], well_cutter(kit, x, y, z, angle, rm+.9, L+.5))
         outer = [(L*(1-t), rt+wall+(rm-rt-wall)*(.6*(1-(1-t)**2)+.4*t)) for t in (k/8 for k in range(9))]
         inner = [(px, pr-wall) for px, pr in reversed(outer)]
@@ -164,7 +252,13 @@ def build(kit, hull):
               x, y, z, angle)
         place(kit.mesh(f'Engine {i} drive can', *solid([(L-.5, rt+wall+.2), (L+1.5, 1.45*rt+.6),
                                                         (L+Lc, 1.45*rt+.6)], 16), kit.steel), x, y, z, angle)
-        if i in hosts:
+        if i in MAINS:
+            # A heavy octagonal armoured sleeve run aft out of the tail's face round the bell,
+            # so each main reads as a gun-barrel-heavy drive set apart from the sunk 20s.
+            rs, cx = rm+.5, MAINS_FACE_X-x+1.0
+            place(kit.mesh(f'Engine {i} shroud', *revolve([(-.5, rs), (-.5, rs+1.3), (.6, rs+2.2), (cx, rs+2.8),
+                                                           (cx, rs)], 8, phase=.5), kit.grey), x, y, z, angle)
+        elif i in hosts:
             # Armoured octagonal shroud round the well mouth.
             rs = (rm+.9)/math.cos(math.pi/8)
             place(kit.mesh(f'Engine {i} shroud', *revolve([(-.4, rs), (-.4, rs+1.6), (2.0, rs+1.6), (2.8, rs+.6),
@@ -181,6 +275,8 @@ def build(kit, hull):
             # bore the hull too, so the bell and its collar read as a whole mouth.
             boolean(hull['aft'], well_cutter(kit, x, y, z, angle, rm+.9, L+.5))
         detail(kit, i, x, y, z, angle, rm, rt, wall, L, Lc, outer, i in hosts)
+        if i not in hosts:
+            _check_pod(i, x, y, z, angle, rm+2.6)
         anchor = kit.empty(f'Engine {i} exhaust anchor', (x, y, z), angle)
         anchor['exhaust_direction'] = [round(math.cos(math.radians(angle)), 4), round(math.sin(math.radians(angle)), 4), 0.0]
         anchor['mouth_radius'] = rm

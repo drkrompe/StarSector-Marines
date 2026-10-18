@@ -3,7 +3,7 @@
  "asset": "second-wind-refit.blend",
  "collection": "SECOND WIND | refit",
  "root": "SECOND WIND | refit | root",
- "objects": 981,
+ "objects": 979,
  "meshes": 942,
  "images": 45,
  "passed": true,
@@ -89,7 +89,7 @@
   "spark anchors": {
    "ok": true,
    "detail": {
-    "anchors": 3,
+    "anchors": 1,
     "sparking": []
    }
   },

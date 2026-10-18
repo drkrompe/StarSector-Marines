@@ -1,4 +1,4 @@
-SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASS 3 REVIEW FIXES ON PASS 2 + PASS 4; OWNER REVIEW NEXT)
+SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASS 3 REVIEW FIXES, ROUND 3; PASS 4; OWNER REVIEW NEXT)
 
 Purpose
 An editable Blender model of the vanilla Shepherd drone tender, built for the
@@ -22,13 +22,22 @@ Pass 3 (owner review of pass 2) fixed what read wrong against the sprite:
     the outrigger's open bracing is now a dark armour skirt;
   - drone bay: one continuous open deck with no arch ribs, no bulkhead
     between the tubs and only a low kerb outboard; the port outrigger sits
-    under that kerb;
+    under that kerb. Round 3: the sprite's rounding and lip - the back wall
+    sweeps round a rounded aft-inboard corner (R 3.5), across the aft end
+    on the crossbeam's face and round a smaller outboard corner (R 2) into
+    the kerb, one swept rim with a cove fillet at the deck and a tan
+    bullnose lip on top; the grey kerb cap and its hazard bars are gone;
   - bridge: the sprite's centre is one long curved bridge hull (X 4..35.6,
     Y -10..+5), lit cream on its starboard crown; it replaces pass 2's
     invented cab and ribbed habitat pod. Round 2: a flat crown and full
     flanks, then a steep raked windscreen (X 27.4..30, the sprite's dark
     band) of framed forward-facing panes under a brow visor, wing windows
-    either side, and a chin rounding down into the bow;
+    either side, and a chin rounding down into the bow. Round 3: the chin
+    is drawn down onto the bow's own skin and lands on it on a tangent,
+    flanks first, so no flat underside or lip stands off the bow; the
+    survey head stands on a chamfered plinth whose foot follows the skin,
+    with a welded base flange and a gusset under its cantilever, in place
+    of a round column on a flat flange tilted on the curve;
   - WS 008: kept, recessed into a well in the drum's forward crown with a
     barrel trough, and given finer mount detail (traverse race, trunnions,
     elevation rams, blast boot, ported brake, sight head, feed conduit).

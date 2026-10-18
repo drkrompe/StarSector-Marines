@@ -175,4 +175,16 @@ class AnimatedGifWriterTest {
         graphics.dispose();
         return image;
     }
+
+    @Test
+    void aCubeChannelRoundsToItsNearestLevelSoGreyStaysGrey() {
+        // A neutral UI grey once split across the bin edge: red and blue to 0, green to 51.
+        assertEquals(1, AnimatedGifWriter.level(42));
+        assertEquals(1, AnimatedGifWriter.level(46));
+        assertEquals(0, AnimatedGifWriter.level(25));
+        assertEquals(5, AnimatedGifWriter.level(255));
+        for (int level = 0; level <= 5; level++) {
+            assertEquals(level, AnimatedGifWriter.level(level * 51), "a palette colour maps to itself");
+        }
+    }
 }

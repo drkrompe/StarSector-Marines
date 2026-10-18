@@ -57,6 +57,15 @@ mudskipper-cinematic/*.blend
 mudskipper-cinematic/*.blend1
 mudskipper-cinematic/review/
 hound-surface/grading/
+hermes-surface/review/
+# Hermes cinematic export: the .blend is rebuilt by finalize.sh; the manifest
+# and validation stay tracked.
+hermes-cinematic/*.blend
+hermes-cinematic/*.blend1
+hermes-cinematic/review/
+hermes-surface/textures/
+hermes-surface/grading/
+hermes-surface/skin-manifest.json
 hound-surface/skin-manifest.json
 hound-export/**/*.blend
 hound-export/**/*.blend1
@@ -67,3 +76,9 @@ hound-export/**/review/
 onslaught-geometry/**/*.blend
 onslaught-geometry/**/*.blend1
 onslaught-geometry/export/
+
+# Fighters surfacing (fighters-surface/<id>/): the same split as the Hound's.
+fighters-surface/*/review/
+fighters-surface/*/textures/
+fighters-surface/*/grading/
+fighters-surface/*/skin-manifest.json

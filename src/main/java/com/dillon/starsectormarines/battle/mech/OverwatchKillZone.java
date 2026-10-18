@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -42,6 +44,12 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * override can unlock SRM as a pressure-release valve; see
  * {@code ai-nouns.md}.
  *
+ * <p>A threat already inside weapon range with a clear line is kept inside the torso envelope
+ * while the mech repositions ({@link #KEEPS_ARC}): an unscreened perch reached by walking
+ * straight away loses to one reached obliquely, and when every perch in reach turns the back the
+ * mech takes a fighting-withdrawal step that opens distance obliquely and keeps firing. A
+ * screened perch is unaffected.
+ *
  * <p>Always returns {@link ActionStatus#RUNNING} — same lifecycle as
  * {@link EngageAtCurrentBand}; replan handles posture changes.
  */
@@ -73,6 +81,32 @@ public final class OverwatchKillZone implements Action {
     static final float RUSHED_DISTANCE = 12f;
     /** One emergency move attempts to buy this many cells of separation. */
     private static final float RUSH_ESCAPE_DISTANCE = 8f;
+
+    /**
+     * Whether a support mech already able to shoot its threat keeps that threat inside its torso
+     * envelope while it walks to a perch or opens distance. The hips face the route and the torso
+     * twists at most {@link com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance#MAX_TORSO_TWIST_DEGREES}
+     * off them, so a perch straight behind the mech puts the attacker in the rear blind wedge:
+     * targeting drops it and nothing fires for the whole walk (for ever, on a planted chassis).
+     * {@code -Dbattle.mech.overwatchKeepsArc=false} restores the straight-back choice.
+     */
+    static final boolean KEEPS_ARC = Boolean.parseBoolean(
+            System.getProperty("battle.mech.overwatchKeepsArc", "true"));
+    /**
+     * Widest angle between the walk and the threat that still leaves it in the torso envelope,
+     * with 25 degrees of margin for a grid route's bends.
+     */
+    static final float ARC_KEEPING_WALK_DEGREES = 120f;
+    private static final float ARC_KEEPING_WALK_COS =
+            (float) Math.cos(Math.toRadians(ARC_KEEPING_WALK_DEGREES));
+    /**
+     * Score per degree the hips must swing to take a withdrawal step: a full reversal weighs as
+     * much as nine cells of distance gained, so a mech switching targets along a firing line keeps
+     * withdrawing on one side instead of pivoting between the two obliques.
+     */
+    private static final float WITHDRAWAL_TURN_WEIGHT = 0.1f;
+    /** Ranks every arc-losing unscreened perch behind every arc-keeping one. */
+    private static final float TURNS_BACK_PENALTY = 10_000f;
 
     private static final WorldState PRE = WorldState.EMPTY;
     private static final WorldState EFF = WorldState.EMPTY
@@ -146,7 +180,7 @@ public final class OverwatchKillZone implements Action {
                 || m.overwatchAxisX != threatX
                 || m.overwatchAxisY != threatY
                 || m.overwatchLongRangeBand != band.longRange()
-                || !insideBand(m.overwatchCellX, m.overwatchCellY,
+                || !m.overwatchWithdrawing && !insideBand(m.overwatchCellX, m.overwatchCellY,
                 threatX, threatY, band)
                 || !MechAssignmentBoundary.permitsOverwatchCell(member, squad,
                 m.overwatchCellX, m.overwatchCellY, threatX, threatY, sim);
@@ -174,6 +208,7 @@ public final class OverwatchKillZone implements Action {
                 m.overwatchCellX = -1;
                 m.overwatchCellY = -1;
                 m.overwatchScreenId = 0L;
+                m.overwatchWithdrawing = false;
                 m.overwatchAxisX = threatX;
                 m.overwatchAxisY = threatY;
                 m.overwatchLongRangeBand = band.longRange();
@@ -185,6 +220,7 @@ public final class OverwatchKillZone implements Action {
             m.overwatchAxisX = threatX;
             m.overwatchAxisY = threatY;
             m.overwatchScreenId = position.screenId();
+            m.overwatchWithdrawing = position.withdrawing();
             m.overwatchLongRangeBand = band.longRange();
         }
 
@@ -253,8 +289,31 @@ public final class OverwatchKillZone implements Action {
         float dy = memberY - sim.world().y(target);
         float length = (float) Math.sqrt(dx * dx + dy * dy);
         if (length < 1e-3f) return null;
-        int idealX = (int) Math.floor(memberX + dx / length * RUSH_ESCAPE_DISTANCE);
-        int idealY = (int) Math.floor(memberY + dy / length * RUSH_ESCAPE_DISTANCE);
+        if (KEEPS_ARC) {
+            // Straight back is the rear blind wedge: try the two obliques that keep the
+            // attacker inside the torso envelope first.
+            float off = 180f - ARC_KEEPING_WALK_DEGREES;
+            int[] cell = openingCell(member, squad, target, dx / length, dy / length, off, sim);
+            if (cell == null) cell = openingCell(member, squad, target, dx / length, dy / length, -off, sim);
+            if (cell != null) return cell;
+        }
+        return openingCell(member, squad, target, dx / length, dy / length, 0f, sim);
+    }
+
+    private static int[] openingCell(long member, Squad squad, long target,
+                                     float awayX, float awayY, float rotateDegrees,
+                                     BattleControl sim) {
+        float memberX = sim.world().x(member);
+        float memberY = sim.world().y(member);
+        float dx = memberX - sim.world().x(target);
+        float dy = memberY - sim.world().y(target);
+        double radians = Math.toRadians(rotateDegrees);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        float dirX = awayX * cos - awayY * sin;
+        float dirY = awayX * sin + awayY * cos;
+        int idealX = (int) Math.floor(memberX + dirX * RUSH_ESCAPE_DISTANCE);
+        int idealY = (int) Math.floor(memberY + dirY * RUSH_ESCAPE_DISTANCE);
         float currentDistanceSq = dx * dx + dy * dy;
         int threatX = sim.world().cellX(target);
         int threatY = sim.world().cellY(target);
@@ -271,6 +330,8 @@ public final class OverwatchKillZone implements Action {
                     float targetDx = x + 0.5f - sim.world().x(target);
                     float targetDy = y + 0.5f - sim.world().y(target);
                     if (targetDx * targetDx + targetDy * targetDy <= currentDistanceSq) continue;
+                    if (rotateDegrees != 0f && turnsBack(memberX, memberY, x + 0.5f, y + 0.5f,
+                            sim.world().x(target), sim.world().y(target))) continue;
                     if (!grid.hasLineOfFire(x + 0.5f, y + 0.5f,
                             sim.world().x(target), sim.world().y(target))) continue;
                     if (MechRouteIntent.candidate(member, x, y, sim)) {
@@ -311,11 +372,20 @@ public final class OverwatchKillZone implements Action {
         MechReachability reachable = new MechReachability(grid, memberX, memberY);
         if (!reachable.contains(memberX, memberY)) return null;
         ScreeningAllies allies = gatherScreeningAllies(member, squad, tx, ty, sim);
+        // A threat the mech can already shoot stays in its torso envelope on the way out.
+        float mechX = sim.world().x(member);
+        float mechY = sim.world().y(member);
+        boolean keepArc = KEEPS_ARC && engagedFrom(mechX, mechY, tx + 0.5f, ty + 0.5f,
+                sim.world().attackRange(member), grid);
 
         OverwatchPosition bestScreened = null;
         OverwatchPosition bestUnscreened = null;
+        OverwatchPosition bestWithdrawal = null;
         float bestScreenedScore = Float.MAX_VALUE;
         float bestUnscreenedScore = Float.MAX_VALUE;
+        float bestWithdrawalScore = Float.MAX_VALUE;
+        float currentDistance = TacticalScoring.cellDistance(mechX, mechY, tx + 0.5f, ty + 0.5f);
+        float hipFacing = sim.world().mechHipFacingDegrees(member);
         for (int dy = -radius; dy <= radius; dy++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 int cx = tx + dx;
@@ -326,8 +396,16 @@ public final class OverwatchKillZone implements Action {
                         member, squad, cx, cy, tx, ty, sim)) continue;
                 if (!reachable.contains(cx, cy)) continue;
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distFromTarget < band.minDistance()
-                        || distFromTarget > band.maxDistance()) continue;
+                boolean inBand = distFromTarget >= band.minDistance()
+                        && distFromTarget <= band.maxDistance();
+                boolean turnsBack = keepArc && turnsBack(mechX, mechY, cx + 0.5f, cy + 0.5f,
+                        tx + 0.5f, ty + 0.5f);
+                // A fighting-withdrawal step: short of the band but farther out than the mech
+                // stands now, on a walk that keeps the threat inside the torso envelope.
+                boolean withdrawal = keepArc && !inBand && !turnsBack
+                        && distFromTarget > currentDistance + 1f
+                        && distFromTarget <= band.maxDistance();
+                if (!inBand && !withdrawal) continue;
                 if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
                         tx + 0.5f, ty + 0.5f)) continue;
                 // Cover lookup is directional against the threat axis (Story G
@@ -336,12 +414,27 @@ public final class OverwatchKillZone implements Action {
                 int fdy = ty - cy;
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
-                float walk = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), cx + 0.5f, cy + 0.5f);
+                float walk = TacticalScoring.cellDistance(mechX, mechY, cx + 0.5f, cy + 0.5f);
                 long screen = screeningAlly(cx, cy, tx, ty, allies);
                 if (screen == BLOCKED_FIRING_LANE) continue;
                 float score = walk
                         - OVERWATCH_COVER_WEIGHT * cover
                         - OVERWATCH_COVER_WEIGHT * doodadCover;
+                if (withdrawal) {
+                    // Distance gained counts double the walk that buys it.
+                    float turn = Math.abs(LayeredAppearance.wrapDegrees(AirBody.facingToward(
+                            cx + 0.5f - mechX, cy + 0.5f - mechY) - hipFacing));
+                    float withdrawalScore = score - 2f * distFromTarget
+                            + WITHDRAWAL_TURN_WEIGHT * turn;
+                    if (withdrawalScore < bestWithdrawalScore
+                            && MechRouteIntent.candidate(member, cx, cy, sim)) {
+                        bestWithdrawalScore = withdrawalScore;
+                        bestWithdrawal = new OverwatchPosition(cx, cy, 0L, true);
+                    }
+                    continue;
+                }
+                // Only an unscreened walk is ranked by the arc: behind a screen the walk is covered.
+                if (turnsBack && screen == 0L) score += TURNS_BACK_PENALTY;
                 if (screen != 0L) {
                     if (score < bestScreenedScore && MechRouteIntent.candidate(member, cx, cy, sim)) {
                         bestScreenedScore = score;
@@ -353,7 +446,42 @@ public final class OverwatchKillZone implements Action {
                 }
             }
         }
-        return bestScreened != null ? bestScreened : bestUnscreened;
+        OverwatchPosition perch = bestScreened != null ? bestScreened : bestUnscreened;
+        float perchScore = bestScreened != null ? bestScreenedScore : bestUnscreenedScore;
+        if (perch != null && perch.screenId() == 0L
+                && perchScore >= TURNS_BACK_PENALTY / 2f && bestWithdrawal != null) {
+            // Unscreened, and every perch in reach turns the mech's back on a threat it can
+            // already shoot: fight while opening distance instead of walking blind to the band.
+            // A screened perch still wins; the screen is what makes that walk safe.
+            return bestWithdrawal;
+        }
+        return perch;
+    }
+
+    /** The threat is inside weapon range and in the open from where the mech stands. */
+    static boolean engagedFrom(float mechX, float mechY, float threatX, float threatY,
+                               float attackRange, NavigationGrid grid) {
+        float dx = threatX - mechX;
+        float dy = threatY - mechY;
+        return dx * dx + dy * dy <= attackRange * attackRange
+                && grid.hasLineOfFire(mechX, mechY, threatX, threatY);
+    }
+
+    /**
+     * Walking from the mech to {@code (toX, toY)} would put the threat more than
+     * {@link #ARC_KEEPING_WALK_DEGREES} off the walk, toward the rear blind wedge. A walk of
+     * under a cell does not turn the hips and never turns the back.
+     */
+    static boolean turnsBack(float mechX, float mechY, float toX, float toY,
+                             float threatX, float threatY) {
+        float wx = toX - mechX;
+        float wy = toY - mechY;
+        float tx = threatX - mechX;
+        float ty = threatY - mechY;
+        float walkSq = wx * wx + wy * wy;
+        float threatSq = tx * tx + ty * ty;
+        if (walkSq < 1f || threatSq < 1e-6f) return false;
+        return wx * tx + wy * ty < ARC_KEEPING_WALK_COS * (float) Math.sqrt(walkSq * threatSq);
     }
 
     private static OverwatchBand overwatchBand(MechLoadoutComponent loadout) {
@@ -539,5 +667,9 @@ public final class OverwatchKillZone implements Action {
     private record OverwatchBand(float minDistance, float maxDistance,
                                  boolean longRange) {}
 
-    record OverwatchPosition(int x, int y, long screenId) {}
+    record OverwatchPosition(int x, int y, long screenId, boolean withdrawing) {
+        OverwatchPosition(int x, int y, long screenId) {
+            this(x, y, screenId, false);
+        }
+    }
 }

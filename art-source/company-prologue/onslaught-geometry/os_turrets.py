@@ -278,20 +278,248 @@ def _needler(kit, slot, pivot, r):
              kit.grey, .05)
 
 
+def _local(frame, t, w, h):
+    """World point of (t along the line of fire, w across, h up) in a hardpoint frame."""
+    p0, s, n = frame
+    return p0+Vector((t, 0, 0))+s*w+n*h
+
+
+def _deck_h(frame, t, w=0.0):
+    """Height of the deck above the frame's base line at (t, w), along the frame's up; None off the hull."""
+    p0, s, n = frame
+    q = _local(frame, t, w, 0.0)
+    h = _hit(q+n*150, -n, 300)
+    return None if h is None else (h[1]-q).dot(n)
+
+
+def _arm_frame(x, y):
+    """The arm's pose under a hardpoint, read off the hull: the line of fire stays +X (the slot's
+    angle 0); 'up' leans with the arm's roll, measured across the gallery behind the nose."""
+    rolls = []
+    for px in (x-48, x-40, x-32, x-24):
+        a, b = _hit((px, y+5, 150), (0, 0, -1)), _hit((px, y-5, 150), (0, 0, -1))
+        if a and b and abs(a[1].z-b[1].z) < 8:
+            rolls.append((a[1].z-b[1].z)/10)
+    rolls.sort()
+    c = rolls[len(rolls)//2] if rolls else 0.0
+    c = max(-.6, min(.6, c))
+    n = Vector((0, -c, 1)).normalized()
+    s = n.cross(Vector((1, 0, 0))).normalized()
+    return (Vector((0, y, 0)), s, n)
+
+
+def _section_solid(kit, name, frame, stations, mat, bevel=.2):
+    """A solid lofted along the line of fire through (t, bottom, top, half-width bottom, half-width top)
+    stations: a chamfered casing whose roof and keel follow the given heights."""
+    verts, faces = [], []
+    for t, zb, zt, wb, wt in stations:
+        ch = min(.7, .25*(zt-zb))
+        ring = [(-wb, zb), (wb, zb), (wb, zt-ch), (wt, zt), (-wt, zt), (-wb, zt-ch)]
+        verts += [tuple(_local(frame, t, w, h)) for w, h in ring]
+    m = 6
+    faces.append(tuple(reversed(range(m))))
+    for j in range(len(stations)-1):
+        faces += [(j*m+i, j*m+(i+1) % m, (j+1)*m+(i+1) % m, (j+1)*m+i) for i in range(m)]
+    faces.append(tuple(range((len(stations)-1)*m, len(stations)*m)))
+    return kit.mesh(name, verts, faces, mat, bevel)
+
+
+def _x_cyl(kit, name, frame, t0, t1, h, radius, mat, vertices=12):
+    """Cylinder along the line of fire from t0 to t1 at height h on the frame's centre line."""
+    p0, s, n = frame
+    ob = kit.cylinder(name, tuple(_local(frame, (t0+t1)/2, 0, h)), radius, abs(t1-t0), mat, axis='X',
+                      vertices=vertices)
+    return ob
+
+
 def _hardpoint(kit, slot):
-    """A Thermal Pulse Cannon run out through the arm's nose: a fixed armoured
-    housing and a long ribbed barrel with its muzzle at the arm's tip."""
+    """A Thermal Pulse Cannon built into the arm's nose, read off the hull by ray casts so it
+    follows the arm however it is posed or reshaped.
+
+    A low ribbed spine (the sprite's ladder of cooling ribs) runs down the gallery's centre line
+    from aft of the nose; where the nose falls away under the line of fire it swells into an
+    armoured casemate whose roof stays level with the gun and whose keel follows the deck down
+    into the hull, so the gun is carried in the arm, not set on it. The casemate's face is flush
+    with the nose tip, and the ribbed barrel runs out from a mantlet there; the muzzle stands a
+    barrel's length ahead of the tip, as the sprite's prongs do (X 196-216)."""
     sid, (x, y) = slot[0], slot[1]
-    top = seat(kit, x-10, y, 6)
-    z = top-3.0
-    kit.box(f'Weapon {sid} hardpoint housing', (x-8, y, z), (24, 13, 9), kit.grey, bevel=.4)
-    kit.box(f'Weapon {sid} hardpoint mantlet', (x+5, y, z), (3, 9, 7), kit.steel, bevel=.25)
-    kit.cylinder(f'Weapon {sid} barrel', (x+13, y, z), 1.9, 18, kit.steel, axis='X', vertices=12)
-    for k, bx in enumerate((x+9, x+14, x+19)):
-        kit.cylinder(f'Weapon {sid} barrel coil {k+1}', (bx, y, z), 2.6, 1.6, kit.steel, axis='X', vertices=12)
-    kit.cylinder(f'Weapon {sid} muzzle collar', (x+22.5, y, z), 2.4, 1.2, kit.plate, axis='X', vertices=12)
-    kit.empty(f'Weapon {sid} muzzle', (x+23.2, y, z), slot[2])
-    PIVOT_Z[sid] = z
+    frame = _arm_frame(x, y)
+    # The deck along the line of fire, every unit, until it runs off the nose.
+    deck = []
+    t = x-30.0
+    while t < x+40:
+        h = _deck_h(frame, t)
+        if h is None and deck and t > x:
+            break
+        if h is not None:
+            deck.append((t, h))
+        t += 1.0
+    tip = deck[-1][0]
+    for k in range(1, 5):                     # refine the tip to a quarter unit
+        if _deck_h(frame, tip+.25) is None:
+            break
+        tip += .25
+    # The casemate's roof runs level forward from the nose's crest (the highest deck within
+    # the last 30 units), so the nose's fall is filled by the gun rather than the gun lying on it.
+    at = dict(deck)
+    span = [(h, t) for t, h in deck if tip-30 <= t <= tip-8] or [(deck[-1][1], deck[-1][0])]
+    crest_h, crest_t = max(span)
+    h_tip = max(h for t, h in deck if t >= tip-5)
+    roof = max(h_tip+7.0, min(crest_h+1.0, h_tip+14.0))
+    hb = roof-3.8                                  # barrel axis, in the casemate's upper half
+    rb = 2.3
+    stations = []
+    for t, h in deck:
+        if t < crest_t-8 or t > tip-1.0:
+            continue
+        top = max(roof, h+1.0)
+        k = max(0.0, min(1.0, (t-crest_t+8)/8))   # swell from a spine into the full casemate
+        stations.append((t, min(h-2.5, hb-3.5), top, 3.4+2.6*k, 2.4+1.4*k))
+    keel = stations[-1][1]
+    stations.append((tip-.8, keel, roof, 6.0, 3.8))
+    stations.append((tip+.6, keel, roof-1.2, 5.4, 3.2))     # a sloped brow over the face
+    _section_solid(kit, f'Weapon {sid} hardpoint housing', frame, stations, kit.plate)
+    # Cooling ribs across the roof, aft to fore.
+    ribs_v, ribs_f = [], []
+    for t, zb, zt, wb, wt in stations[2:-2:2]:
+        o = len(ribs_v)
+        for dt in (-.3, .3):
+            for w, hh in ((-wt-.35, zt-.4), (wt+.35, zt-.4), (wt+.2, zt+.55), (-wt-.2, zt+.55)):
+                ribs_v.append(tuple(_local(frame, t+dt, w, hh)))
+        ribs_f += [(o, o+1, o+2, o+3), (o+7, o+6, o+5, o+4), (o, o+4, o+5, o+1), (o+1, o+5, o+6, o+2),
+                   (o+2, o+6, o+7, o+3), (o+3, o+7, o+4, o)]
+    kit.mesh(f'Weapon {sid} hardpoint cooling ribs', ribs_v, ribs_f, kit.steel)
+    # Mantlet on the casemate face, then the ribbed barrel and its muzzle.
+    mantlet = []
+    for t in (tip+.4, tip+1.9):
+        mantlet += [tuple(_local(frame, t, w, hb+h)) for w, h in ((-4.0, -3.3), (4.0, -3.3), (4.0, 2.8), (-4.0, 2.8))]
+    kit.mesh(f'Weapon {sid} hardpoint mantlet', mantlet,
+             [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)], kit.steel, .25)
+    L = 9.5
+    t0 = tip+1.9
+    _x_cyl(kit, f'Weapon {sid} barrel', frame, t0-3.0, t0+L, hb, rb, kit.steel)
+    for k, f in enumerate((.22, .5, .78)):
+        _x_cyl(kit, f'Weapon {sid} barrel coil {k+1}', frame, t0+f*L-.8, t0+f*L+.8, hb, 3.0, kit.steel)
+    _x_cyl(kit, f'Weapon {sid} muzzle collar', frame, t0+L-.6, t0+L+.6, hb, 2.9, kit.plate)
+    kit.empty(f'Weapon {sid} muzzle', tuple(_local(frame, t0+L+.7, 0, hb)), slot[2])
+    PIVOT_Z[sid] = _local(frame, t0+L+.7, 0, hb).z
+
+
+MAX_TILT = 25.0      # deg: the steepest a mount leans with the hull under it
+
+
+def _hit(origin, direction, far=400.0):
+    """Nearest hit of a ray against the deck objects: (point, normal) or None."""
+    o, d = Vector(origin), Vector(direction).normalized()
+    best = None
+    for ev, lo, hi in _DECK:
+        inv = ev.matrix_world.inverted()
+        ok, p, n, _ = ev.ray_cast(inv @ o, (inv.to_3x3() @ d).normalized(), distance=far)
+        if ok:
+            p = ev.matrix_world @ p
+            dist = (p-o).length
+            if best is None or dist < best[0]:
+                n = (ev.matrix_world.to_3x3().inverted().transposed() @ n).normalized()
+                best = (dist, p, n if n.dot(d) < 0 else -n)
+    return best
+
+
+def _mount_frame(x, y, angle, r):
+    """Where a turret meets the hull: the surface point under its slot, the normal
+    there (leaning at most MAX_TILT), and how far its collar must reach down so no
+    rim point floats and none is buried. Returns (origin, basis 3x3, depth)."""
+    from mathutils import Matrix
+    h = _hit((x, y, 150), (0, 0, -1))
+    if h is None:
+        p, n = Vector((x, y, 10.0)), Vector((0, 0, 1))
+    else:
+        _, p, n = h
+    up = Vector((0, 0, 1))
+    tilt = math.degrees(n.angle(up))
+    if tilt > MAX_TILT:
+        n = up.slerp(n, MAX_TILT/tilt).normalized()
+    xa = Vector((1, 0, 0))
+    xa = (xa-n*xa.dot(n)).normalized()
+    ya = n.cross(xa)
+    basis = Matrix((xa, ya, n)).transposed()
+    # Surface height above the mount plane under the collar's rim.
+    rim = []
+    for k in range(12):
+        a = 2*math.pi*k/12
+        q = p+(xa*math.cos(a)+ya*math.sin(a))*1.05*r
+        hh = _hit(q+n*30, -n, 80)
+        rim.append(30-hh[0] if hh else -6.0)
+    lift = max(0.0, max(rim))+.15
+    depth = lift-min(rim)+.8
+    return p+n*lift, basis, depth
+
+
+SKIRT_FLARE = 1.0    # outward run of a skirt per unit of drop (45 deg from the deck)
+SKIRT_MAX = 14.0     # a deeper drop is a cliff (a well, a tier's face): the skirt drops straight
+
+
+def _skirt(origin, basis, r, n=16):
+    """Per-angle foot of a barbette's skirt, in the mount's frame: (radius, z). Where the hull
+    falls away from the rim the skirt flares down to it as a sloped armour apron, so a mount on
+    a tier's edge is carried by an emplacement rather than standing on a drum. The
+    flare is smoothed round the ring so neighbouring angles never alternate into spikes.
+    Where even the flare finds no hull (a cliff), the collar is undercut back into the hull."""
+    xa, ya, nz = basis.col[0], basis.col[1], basis.col[2]
+    r0 = 1.06*r
+
+    def drop(rad, a):
+        q = origin+(xa*math.cos(a)+ya*math.sin(a))*rad
+        hh = _hit(q+nz*30, -nz, 30+SKIRT_MAX+6)
+        return None if hh is None else hh[0]-30
+
+    angles = [2*math.pi*(k+.5)/n for k in range(n)]
+    d0 = [drop(r0, a) for a in angles]
+    ext = []
+    for a, d in zip(angles, d0):
+        if d is None or d > SKIRT_MAX or d <= 1.5:
+            ext.append(0.0)
+            continue
+        e = SKIRT_FLARE*d
+        d2 = drop(r0+e, a)                      # the hull may fall further under the flare
+        if d2 is not None and d2 <= SKIRT_MAX:
+            e = SKIRT_FLARE*max(d, d2)
+        ext.append(e)
+    w = (.1, .2, .4, .2, .1)                    # circular smoothing of the flare
+    ext = [sum(w[j]*ext[(k+j-2) % n] for j in range(5)) for k in range(n)]
+    feet = []
+    for k, a in enumerate(angles):
+        rad = r0+ext[k]
+        d = drop(rad, a) if ext[k] > .3 else d0[k]
+        if d is None or d > SKIRT_MAX:
+            # Past the flare the hull falls away (a well, a gallery's side): undercut the
+            # collar back into the hull like a sponson's bracket instead of hanging a cup.
+            d = min(d0[k] if d0[k] is not None else SKIRT_MAX, SKIRT_MAX)
+            rad = .6*r if d > 1.5 else r0
+        feet.append((rad, -(d+.8)))
+    zs = [sum(w[j]*feet[(k+j-2) % n][1] for j in range(5)) for k in range(n)]
+    return [(rad, min(z, zk)) for (rad, z), zk in zip(feet, zs)]     # smoothed, never lifted off the hull
+
+
+def _collar(kit, sid, mount, r, depth, feet=None):
+    """The fixed barbette: a low collar against the hull; where the hull falls away under its
+    rim the skirt runs down to it (see _skirt). Built in the mount's frame."""
+    n = len(feet) if feet else 18
+    if not feet:
+        feet = [(1.06*r, -depth)]*n
+    rings = [[(.25*r, min(z for _, z in feet)-1.0)]*n, feet, [(1.06*r, min(-.5, z+.3) if rad > 1.07*r else -.5)
+                                                             for rad, z in feet],
+             [(1.06*r, .05*r)]*n, [(1.0*r, .12*r)]*n, [(.93*r, .16*r)]*n]
+    verts, faces = [], []
+    for ring in rings:
+        verts += [(rad*math.cos(2*math.pi*(i+.5)/n), rad*math.sin(2*math.pi*(i+.5)/n), z)
+                  for i, (rad, z) in enumerate(ring)]
+    faces.append(tuple(reversed(range(n))))
+    for j in range(len(rings)-1):
+        faces += [(j*n+i, j*n+(i+1) % n, (j+1)*n+(i+1) % n, (j+1)*n+i) for i in range(n)]
+    faces.append(tuple(range((len(rings)-1)*n, len(rings)*n)))
+    ob = kit.mesh(f'Weapon {sid} barbette', verts, faces, kit.plate)
+    ob.parent = mount
+    return .16*r
 
 
 def build(kit):
@@ -299,12 +527,24 @@ def build(kit):
     for slot in SLOTS:
         sid, (x, y), angle, arc, size = slot[:5]
         r = RING[size]
-        deck, low = _footing(x, y, r)
-        top = _barbette(kit, sid, x, y, r, max(deck, seat(kit, x, y, r)), low)
-        PIVOT_Z[sid] = top
-        pivot = kit.empty(f'Weapon {sid} pivot', (x, y, top), angle)
+        origin, basis, depth = _mount_frame(x, y, angle, r)
+        mount = bpy.data.objects.new(f'Weapon {sid} mount', None)
+        mount.empty_display_type, mount.empty_display_size = 'PLAIN_AXES', 2
+        bpy.context.collection.objects.link(mount)
+        mount.matrix_world = basis.to_4x4()
+        mount.location = origin
+        mount['surface_normal'] = [round(v, 4) for v in basis.col[2]]
+        top = _collar(kit, sid, mount, r, depth, _skirt(origin, basis, r))
+        pivot = bpy.data.objects.new(f'Weapon {sid} pivot', None)
+        pivot.empty_display_type, pivot.empty_display_size = 'ARROWS', 3
+        bpy.context.collection.objects.link(pivot)
+        pivot.parent = mount
+        pivot.location = (0, 0, top)
+        pivot.rotation_euler = (0, 0, math.radians(angle))
         pivot['slot_angle'] = angle
         pivot['arc'] = arc
+        bpy.context.view_layer.update()
+        PIVOT_Z[sid] = pivot.matrix_world.translation.z
         weapon = slot[6]
         if weapon == 'typhoon':
             _launcher(kit, slot, pivot, r)
@@ -323,8 +563,8 @@ def records():
     for sid, loc, angle, arc, size, typ, weapon in SLOTS:
         out.append({'id': sid, 'mount': 'TURRET', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'ring_radius': RING[size],
-                    'pivot': f'Weapon {sid} pivot', 'objects': f'Weapon {sid} ...',
-                    'trains': 'rotate the pivot about its local Z; rest is the slot angle'})
+                    'pivot': f'Weapon {sid} pivot', 'mount_empty': f'Weapon {sid} mount', 'objects': f'Weapon {sid} ...',
+                    'trains': 'rotate the pivot about its local Z (the hull normal under it); rest is the slot angle'})
     for sid, loc, angle, arc, size, typ, weapon in HARDPOINTS:
         out.append({'id': sid, 'mount': 'HARDPOINT', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'objects': f'Weapon {sid} ...',

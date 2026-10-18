@@ -31,6 +31,7 @@ public final class UiDocument {
     private UiElement pointerCapture;
     private UiElement focused;
     private UiElement spaceArmed;
+    private UiElement hoveredControl;
     private Runnable onCancel;
     private Supplier<UiElement> inputScope;
     private Supplier<List<UiElement>> inputRegions;
@@ -225,7 +226,10 @@ public final class UiDocument {
         requestFocus(nearestFocusable(target), false);
         if (pressed != null) pressed.armed(false);
         pressed = nearestClickable(target);
-        if (pressed == null) return target != null || activeRegions() != null;
+        if (pressed == null) {
+            if (nearestDisabledButton(target) != null) UiSounds.installed().disabledPressed();
+            return target != null || activeRegions() != null;
+        }
         pressed.armed(true);
         return true;
     }
@@ -250,7 +254,7 @@ public final class UiDocument {
                         && (wasPressed == captureAtRelease || isAncestor(captureAtRelease, wasPressed));
                 if ((event == null || !event.defaultPrevented())
                         && (releasedOver == wasPressed || capturedClick)) {
-                    wasPressed.click();
+                    activate(wasPressed);
                 }
             }
             pointerCapture = null;
@@ -348,7 +352,7 @@ public final class UiDocument {
             }
         }
         if (key == UiKey.ENTER && focused != null && focused.clickable()) {
-            if (!repeat) focused.click();
+            if (!repeat) activate(focused);
             return true;
         }
         if (key == UiKey.SPACE && focused != null && focused.clickable()) {
@@ -381,7 +385,7 @@ public final class UiDocument {
         UiElement armed = spaceArmed;
         spaceArmed = null;
         armed.armed(false);
-        if (armed == focused && armed.clickable()) armed.click();
+        if (armed == focused && armed.clickable()) activate(armed);
         return true;
     }
 
@@ -488,7 +492,19 @@ public final class UiDocument {
         pointerKnown = true;
     }
 
+    /** Press sound, then the control's action: the action may close the page that owns it. */
+    private static void activate(UiElement control) {
+        if (!control.clickable()) return;
+        UiSounds.installed().pressed(control);
+        control.click();
+    }
+
     private void updateHover(UiElement target) {
+        UiElement control = nearestClickable(target);
+        if (control != hoveredControl) {
+            hoveredControl = control;
+            if (control != null) UiSounds.installed().hovered();
+        }
         List<UiElement> path = pathToRoot(target);
         if (hovered.equals(path)) return;
         for (UiElement element : hovered) {
@@ -531,6 +547,16 @@ public final class UiDocument {
             if (event.propagationStopped() || element == boundary) break;
         }
         return event;
+    }
+
+    /** A disabled button under the pointer, so pressing it can say it did nothing. */
+    private UiElement nearestDisabledButton(UiElement target) {
+        UiElement boundary = eventRoot(target);
+        for (UiElement element = target; element != null; element = element.parent()) {
+            if (element.disabled() && element.tag() == UiTag.BUTTON) return element;
+            if (element == boundary) break;
+        }
+        return null;
     }
 
     private UiElement nearestClickable(UiElement target) {

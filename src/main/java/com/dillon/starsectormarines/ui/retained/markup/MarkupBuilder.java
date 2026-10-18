@@ -99,6 +99,10 @@ final class MarkupBuilder {
                     requireTag(tag, UiTag.BUTTON, attribute, frame);
                     target.onClick(handler(attribute, frame));
                 }
+                case "sound" -> {
+                    requireTag(tag, UiTag.BUTTON, attribute, frame);
+                    target.sound(valueOnce(attribute, frame));
+                }
                 case "value" -> {
                     requireTag(tag, UiTag.INPUT, attribute, frame);
                     if (attribute.isExpression()) {

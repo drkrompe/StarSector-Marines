@@ -77,7 +77,7 @@ PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull ventral keel', 'Hull d
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
-parser.add_argument('--views', default='top,starboard-side,port-side,front,stern,three-quarter,c2')
+parser.add_argument('--views', default='top,starboard-side,port-side,front,stern,three-quarter,c2,c2-lit')
 parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
@@ -220,7 +220,10 @@ for spec in args.cam:
     CLOSEUPS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
 wanted = []
 for v in [v for v in args.views.split(',') if v]:
-    wanted += [c[0] for c in CLOSEUPS[:8]] if v == 'details' else list(C2_TIMES) if v == 'c2' else [v]
+    # 'c2-lit' renders the same C2 cameras under the studio lights: the shot's own
+    # lighting (sun and planet-shine, no fill) is right for the film and too dark to review.
+    wanted += ([c[0] for c in CLOSEUPS[:8]] if v == 'details' else list(C2_TIMES) if v == 'c2'
+               else [n+'-lit' for n in C2_TIMES] if v == 'c2-lit' else [v])
 wanted += [spec.split(':')[0] for spec in args.cam]
 for name, pos, target, scale in CLOSEUPS:
     bpy.ops.object.camera_add(location=pos)
@@ -251,8 +254,9 @@ for name, t in C2_TIMES.items():
     cam.rotation_euler = Vector((0, math.cos(pitch), -math.sin(pitch))).to_track_quat('-Z', 'Y').to_euler()
 
 for name in wanted:
-    c2 = name.startswith('c2-')
-    scene.camera = bpy.data.objects['Camera '+name]
+    lit = name.endswith('-lit')
+    c2 = name.startswith('c2-') and not lit
+    scene.camera = bpy.data.objects['Camera '+name.removesuffix('-lit')]
     for ob in STUDIO:
         ob.hide_render = c2
     for ob in C2_LIGHTS:

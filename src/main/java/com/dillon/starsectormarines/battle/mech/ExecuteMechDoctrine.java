@@ -44,6 +44,8 @@ public final class ExecuteMechDoctrine implements Action {
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile == null ? 0L : System.nanoTime();
         try {
+            // Against armor the duel band outranks the doctrine's own geometry (MechDuelRange).
+            if (MechDuelRange.engage(member, squad, sim)) return ActionStatus.RUNNING;
             return actionFor(role).execute(member, squad, sim);
         } finally {
             if (profile != null) profile.record(bucketFor(role), System.nanoTime() - started);
