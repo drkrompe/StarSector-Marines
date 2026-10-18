@@ -1,12 +1,12 @@
 {
   "generator": "Codex CLI built-in image_gen",
   "codexVersion": "codex-cli 0.159.0",
-  "thread": "01a15064-13ad-75d3-b5e9-ae4b3018f350",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15064-13ad-75d3-b5e9-ae4b3018f350\\exec-a5cf8c0a-4665-47b6-92b0-69d43cdda939.png",
+  "thread": "01a15151-493f-7da3-add2-e512f8bb4ab2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15151-493f-7da3-add2-e512f8bb4ab2\\exec-6e458a16-a6b3-4dec-8aa5-8f5e3d415b61.png",
   "otherImagesInThread": [],
   "output": {
     "path": "art-source\\company-prologue\\fighters-surface\\longbow\\generated\\sheet-hull-top.png",
-    "sha256": "7d789714c2b09fbb1fd32f56dee39b0089a189472532428a824a4e0de684cee2",
+    "sha256": "3800e21103ffd0101631dd953131a807bf33cfb5ebfc16291966be39b1cce2a3",
     "dimensions": [
       1672,
       941
@@ -20,7 +20,7 @@
   "references": [
     {
       "path": "art-source\\company-prologue\\fighters-surface\\longbow\\guide\\sheet-hull-top-guide.png",
-      "sha256": "81c42749fee74f60cbfaa6363f3ee72a1e96bda2e32ca82d61866b2351abf2ba",
+      "sha256": "d2aaf5a99a7b657047ef4649603ca46c8621fa8cf50432e63baaf59db58719e5",
       "dimensions": [
         1920,
         1080
@@ -30,7 +30,7 @@
     },
     {
       "path": "art-source\\company-prologue\\fighters-surface\\longbow\\reference\\finish-reference.png",
-      "sha256": "bf8c4709172a5241713ad49bd628e6a83c7ba1bec8bc3104567460bd03186876",
+      "sha256": "c8a5a09cbfcea7d1c0e9fc15d258428f61ee10ac5def99348e8a628f51011af9",
       "dimensions": [
         1672,
         941
@@ -43,11 +43,11 @@
     "I’ll use the imagegen skill to apply the reference finish while preserving the sheet’s layout and outlines."
   ],
   "usage": {
-    "input_tokens": 87318,
-    "cached_input_tokens": 66304,
+    "input_tokens": 68144,
+    "cached_input_tokens": 52224,
     "cache_write_input_tokens": 0,
-    "output_tokens": 842,
-    "reasoning_output_tokens": 28
+    "output_tokens": 870,
+    "reasoning_output_tokens": 33
   },
-  "elapsedSeconds": 54.9
+  "elapsedSeconds": 51.7
 }

@@ -18,13 +18,14 @@ strips, the vulcan, canopy frame) and the drive bells keep their swatches.
 """
 from parts_common import PORT, STARBOARD, UP_Z, DOWN_Z
 
-# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1).
+# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1), measured
+# on the pass-3 rework (bent wings and landing gear, 2026-10-18).
 BOX = {
-    'Hull cockpit pod': (-5.4, 10.25, -6.0, 0.0, -1.35, 1.25),
-    'Hull gun nacelle': (-5.4, 12.0, 1.1, 7.0, -1.1, 1.4),
+    'Hull cockpit pod': (-5.4, 10.25, -6.0, 0.0, -1.6, 1.7),
+    'Hull gun nacelle': (-5.4, 12.0, 1.1, 7.0, -1.45, 1.85),
     'Hull aft body': (-8.0, 2.0, -6.6, 8.6, -1.5, 0.9),
-    'Wing port plate': (-8.0, 1.6, 7.0, 12.0, -0.7, 0.35),
-    'Wing starboard plate': (-8.0, 1.6, -10.0, -5.0, -0.7, 0.35),
+    'Wing port plate': (-8.0, 1.6, 7.0, 12.0, -1.7, 0.28),
+    'Wing starboard plate': (-8.0, 1.6, -10.0, -5.0, -1.7, 0.28),
     'Hull centre spine': (-9.0, 1.9, -0.9, 2.9, -1.2, 1.2),
     'Engine 1 port drive drum': (-8.95, -3.0, 4.0, 9.0, -2.3, 1.15),
     'Engine 2 starboard drive drum': (-8.95, -3.0, -7.0, -2.0, -2.3, 1.15),
