@@ -1,0 +1,59 @@
+{
+ "part": "nacelle-top",
+ "sheet": "hull-top",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9965,
+ "raw_iou": 0.983,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9933,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.983
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0051,
+    1.01382
+   ],
+   "offset_px": [
+    -2.33,
+    -4.05
+   ],
+   "iou": 0.9909
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0056,
+    1.01282
+   ],
+   "offset_px": [
+    -2.83,
+    -4.05
+   ],
+   "iou": 0.9933
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.06,
+  "p95_px": 2.0,
+  "max_px": 3.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.42,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

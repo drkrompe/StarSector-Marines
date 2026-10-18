@@ -57,7 +57,7 @@ public final class MechFabricationCatalog {
      */
     private static final List<Recipe> VEHICLES = List.of(
             vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 38, 28, 88, 3),
-            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationMediumVehicleStandardFit", 45, 35, 90, 8),
+            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 45, 35, 90, 8),
             vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 75, 60, 150, 14),
             vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 120, 95, 240, 28),
             // Variants cost more than the hull they improve on: plate in metals, guns in rare metals.
@@ -65,10 +65,10 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 52, 40, 115, 11),
             vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 130, 100, 255, 38),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 125, 110, 290, 24),
-            // The light roles are cheap pickups: the truck's bill is mostly the supplies it is stocked with, the
-            // scout's the rare metals in its sensor mast.
-            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationLightVehicleStandardFit", 55, 25, 70, 4),
-            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationLightVehicleStandardFit", 25, 35, 55, 12));
+            // Field rigs are workshop pickups, not issue hulls: the supply pickup's bill is mostly the supplies it is
+            // stocked with, the spotter's the rare metals in its salvaged sensor mast.
+            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 55, 25, 70, 4),
+            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 25, 35, 55, 12));
 
     private MechFabricationCatalog() {
     }

@@ -228,7 +228,7 @@ any code that reads a target's sight stats must treat "target" and "perceiver"
 as separate roles: the seeing side of a line-of-sight pair reads the fail-loud
 sight accessor, and the seen side reads the tolerant one that answers with plain
 grid line-of-sight for an entity that has no vision. The same rule covers a
-remembered contact that has since become a corpse. The scout car is the one hull
+remembered contact that has since become a corpse. The spotter pickup is the one hull
 that looks, and it does so without becoming a perceiver: its mast is a squadless
 observer beside the body (the light roles, below), so the perception components
 stay off every chassis.
@@ -580,7 +580,7 @@ retains the same existing cross-domain behavior as an autonomous hull.
   inheriting a problem that was never about the route. Authored tolerances are
   floors under that derivation, never the whole of it — the margin the shipped
   `HEAVY_APC` enjoyed was an accident of it being the only variant, and the
-  scout car is nearly twice as fast. The same law holds on the air
+  spotter pickup is nearly twice as fast. The same law holds on the air
   side, where a gate carrying a term it had no business carrying put a
   fighter's wheels down a runway's length from the numbers.
 - A vehicle moves under its own body or performs a bounded recovery. It never
@@ -700,15 +700,17 @@ separate cab and cargo burns, leaving finite smoke for up to 90 seconds.
 It is ordinary freight loss, with no secondary explosions, damage, cover,
 concealment or navigation changes.
 
-### The light roles: supply truck and scout car
+### The light roles: supply pickup and spotter pickup
 
 Two company hulls exist for a job rather than a fight. Both are the militia
 technical's pickup with the pintle gone (`art-source/vehicles/light-roles/`),
-both ride a Light cradle, and both pay for their job with the same three things:
-**no gun, no seats, and less plate than the technical**. Neither is ever a
-combat buff — nothing either does changes a hit roll, a weapon or a morale check.
+and like the technical they are **field rigs** — jerry-rigged civilian chassis,
+not any military's issue (`mechs-nouns.md`, vehicle patterns). Both ride a Light
+cradle, and both pay for their job with the same three things: **no gun, no
+seats, and less plate than the technical**. Neither is ever a combat buff —
+nothing either does changes a hit roll, a weapon or a morale check.
 
-The **supply truck** carries its crates in the bed. Its stock is a **carried
+The **supply pickup** (`SUPPLY_TRUCK`) carries its crates in the bed. Its stock is a **carried
 resupply cache**: the same `ResupplyCache` an emergency-resupply drop sets down,
 registered with the battle's one resupply authority (`ResupplySystem`) and
 served by its rules — one special use or mech rack round at a time, to the
@@ -723,8 +725,9 @@ brought. Its stock is twice an air-dropped cache's. Acceptance is the
 one out of reach is not, nothing passes while the truck is moving, and a wreck
 ends service.
 
-The **scout car** is the pickup cut short on a shorter wheelbase, the fastest
-hull in the bay and the thinnest, with a sensor mast where the gun stood. Its job
+The **spotter pickup** (`SCOUT_CAR`) is the pickup cut short on a shorter
+wheelbase, the fastest hull in the bay and the thinnest, with a salvaged sensor
+mast where the gun stood. Its job
 is information. The mast is a **squadless observer** (`ScoutSight`): each tick it
 is a temporary ground-level fog source for its side when that side's sight is
 shown to the player — the same seam a sensor sweep or a recon ping uses — and it

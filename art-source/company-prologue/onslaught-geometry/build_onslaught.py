@@ -42,8 +42,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import os_kit, os_hull, os_armour, os_bridge, os_machinery, os_engines, os_turrets, os_fittings
-for module in (os_kit, os_hull, os_armour, os_bridge, os_machinery, os_engines, os_turrets, os_fittings):
+import os_kit, os_hull, os_armour, os_arms, os_bridge, os_machinery, os_engines, os_turrets, os_fittings
+for module in (os_kit, os_hull, os_armour, os_arms, os_bridge, os_machinery, os_engines, os_turrets, os_fittings):
     importlib.reload(module)
 
 # The read-only install's core folder: $STARSECTOR_CORE if set, else the platform
@@ -114,6 +114,7 @@ kit = os_kit.Kit()
 kit.mpu = METRES_PER_UNIT
 hull = os_hull.build(kit)
 os_armour.build(kit)
+os_arms.build(kit)
 os_bridge.build(kit)
 os_machinery.build(kit)
 os_engines.build(kit, hull)

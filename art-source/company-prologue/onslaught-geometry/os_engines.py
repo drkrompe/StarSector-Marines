@@ -146,6 +146,38 @@ def detail(kit, i, x, y, z, angle, rm, rt, wall, L, Lc, outer, hosted):
             place(ob, x, y, z, angle)
 
 
+def _check_pod(i, x, y, z, angle, rp):
+    """Report a quarter pod that no longer meets the hull: from stations along its forward
+    half, look out radially past its skin for a hull or armour surface. A reshaped aft body
+    can leave a pod hanging; the build says so rather than shipping it."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    trees = []
+    for ob in bpy.context.scene.objects:
+        if ob.type == 'MESH' and ob.name.split(' ')[0] in ('Hull', 'Armour'):
+            ev = ob.evaluated_get(dg)
+            me = ev.to_mesh()
+            trees.append(BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
+                                              [tuple(p.vertices) for p in me.polygons]))
+            ev.to_mesh_clear()
+    a = math.radians(angle-180)
+    fwd = Vector((math.cos(a), math.sin(a), 0))
+    side = Vector((-fwd.y, fwd.x, 0))
+    met = 0
+    for f in (.5, .75, 1.0):
+        c = Vector((x, y, z))+fwd*(POD_LEN*f)
+        for k in range(8):
+            b = 2*math.pi*k/8
+            d = side*math.cos(b)+Vector((0, 0, 1))*math.sin(b)
+            if any(t.ray_cast(c, d, rp+3.0)[0] is not None for t in trees):
+                met += 1
+                break
+    if met < 2:
+        print(f'ENGINE POD CLEAR OF HULL: Engine {i} (met at {met} of 3 stations)')
+
+
 def build(kit, hull):
     hosts = {2: hull['aft'], 3: hull['aft'], 5: hull['tail'], 6: hull['tail']}
     for i, (x, y, w, _, _, angle) in enumerate(ENGINES, 1):
@@ -181,6 +213,8 @@ def build(kit, hull):
             # bore the hull too, so the bell and its collar read as a whole mouth.
             boolean(hull['aft'], well_cutter(kit, x, y, z, angle, rm+.9, L+.5))
         detail(kit, i, x, y, z, angle, rm, rt, wall, L, Lc, outer, i in hosts)
+        if i not in hosts:
+            _check_pod(i, x, y, z, angle, rm+2.6)
         anchor = kit.empty(f'Engine {i} exhaust anchor', (x, y, z), angle)
         anchor['exhaust_direction'] = [round(math.cos(math.radians(angle)), 4), round(math.sin(math.radians(angle)), 4), 0.0]
         anchor['mouth_radius'] = rm
