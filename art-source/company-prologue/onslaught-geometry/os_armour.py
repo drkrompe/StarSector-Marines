@@ -2,6 +2,7 @@
 over the hull, built as sloped armour that steps down from the gun tiers to the
 hull's edges (owner, pass 3: terracing, not flat deck and plating).
 
+  prow lip        round 6: a grey chevron coaming on the needler deck's V riser;
   prow shoulders  round 3: one orange band skinned on the prow's shoulder plane
                   (os_hull.fore_top) from the gallery's foot over the upper chine,
                   in three segments V-grooved at their seams (not blocks), and a
@@ -30,7 +31,8 @@ import bpy
 from os_kit import arched_mass, ccw, clip_rect, facet_normal, loft_x, mirror_y, plane_cut, prism, strip_plan, _left
 from os_hull import (AFT, AFT_OUTER, ARM, ARM_INNER, ARM_OUTER, CORE, CORE_HALF, FORE_STATIONS, FORE_W, FORE_YI, GALLERY_W, LEG_PORT,
                      PROW, PROW_HALF, TAIL, TAIL_HALF, WAIST_DECK, WELL_FLOOR, _table, fore, fore_side_y, fore_top, full,
-                     keel_curve, BELLY_KNUCKLE_X, BELLY_STATIONS, belly_section)
+                     keel_curve, BELLY_KNUCKLE_X, BELLY_STATIONS, belly_section, GALLERY_FLARE, GALLERY_GUN_DECK,
+                     GALLERY_V_APEX, gallery_v)
 
 
 def offset(points, d):
@@ -257,7 +259,28 @@ def glacis_split(x):
     return f['yi']+.42*(f['w']-f['yi'])
 
 
+# The needler deck's armour lip (round 6, critic A1/C): a dark grey chevron coaming
+# along the crest of the V riser (os_hull.gallery_v), apex forward between WS 008
+# and 009 and its legs raking aft at the V's angle until the glacis rises past it
+# (X 112). Its outer face stands on the V wall's crest line and runs down into the
+# gallery, so it never overhangs the battered riser below.
+LIP_W = 2.4
+LIP_TOP = 27.6
+LIP_AFT = 112.0
+
+
+def prow_lip(kit):
+    t = math.tan(math.radians(GALLERY_FLARE))
+    back = LIP_W/math.sin(math.radians(GALLERY_FLARE))      # the inner V's apex, aft of the outer
+    yo, yi = gallery_v(LIP_AFT), (GALLERY_V_APEX-back-LIP_AFT)*t
+    plan = ccw([(GALLERY_V_APEX, 0.0), (LIP_AFT, -yo), (LIP_AFT, -yi), (GALLERY_V_APEX-back, 0.0), (LIP_AFT, yi),
+                (LIP_AFT, yo)])
+    return prism(kit, 'Armour prow gallery lip', plan, [(0.0, GALLERY_GUN_DECK-.6), (0.0, LIP_TOP-.8), (.8, LIP_TOP)],
+                 kit.grey, bevel=.2)
+
+
 def build(kit):
+    prow_lip(kit)
     for side, s in (('port', 1), ('starboard', -1)):
         # Prow shoulders: the orange band from the gallery's foot over the upper chine.
         gal = lambda x: _table(GALLERY_W, x)+.6

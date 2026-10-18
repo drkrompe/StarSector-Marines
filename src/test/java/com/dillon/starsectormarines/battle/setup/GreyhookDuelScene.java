@@ -18,11 +18,13 @@ import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.warship.WarshipEdgeHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipShipRules;
 import com.dillon.starsectormarines.battle.warship.WarshipSpacing;
+import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -97,7 +99,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
     }
 
     private SceneReport playOne(long seed, FrameSink frames) throws Exception {
-        String loop = "seed-" + seed;
+        String base = "seed-" + seed;
         Random rng = new Random(seed);
         int orderTick = 60 + rng.nextInt(240);
         float[] jitter = {rng.nextFloat() * 12f - 6f, rng.nextFloat() * 12f - 6f,
@@ -113,6 +115,10 @@ public final class GreyhookDuelScene implements BehaviorScene {
         }
         BlackSluiceDuel duel = new BlackSluiceDuel();
         duel.stage(sim);
+        int hounds = Integer.getInteger("battle.scene.greyhookDuel.hounds", duel.hounds().size());
+        boolean fewer = hounds < duel.hounds().size();
+        if (fewer) withoutHounds(duel, sim, duel.hounds().size() - hounds);
+        String loop = fewer ? base + "-hounds" + hounds : base;
         Trace trace = new Trace(duel, sim, orderTick);
         TickObserver script = (s, tick) -> {
             if (tick == orderTick) {
@@ -264,6 +270,27 @@ public final class GreyhookDuelScene implements BehaviorScene {
             }
         }
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    /**
+     * A diagnostic fixture, never the chapter: takes the last {@code count} Hounds off their berths before the first
+     * tick ({@code -Dbattle.scene.greyhookDuel.hounds=N}), so the duel can be read with fewer escorts without the
+     * mission changing. Reflection, because the production duel has no seam for a smaller escort and should not grow
+     * one for evidence.
+     */
+    @SuppressWarnings("unchecked")
+    private static void withoutHounds(BlackSluiceDuel duel, BattleSimulation sim, int count) {
+        try {
+            Field houndsField = BlackSluiceDuel.class.getDeclaredField("hounds");
+            houndsField.setAccessible(true);
+            List<Warship> hounds = (List<Warship>) houndsField.get(duel);
+            Field shipsField = WarshipSystem.class.getDeclaredField("ships");
+            shipsField.setAccessible(true);
+            List<Warship> ships = (List<Warship>) shipsField.get(sim.warships());
+            for (int i = 0; i < count && !hounds.isEmpty(); i++) ships.remove(hounds.remove(hounds.size() - 1));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("the one-Hound fixture could not reach the duel's escorts", e);
+        }
     }
 
     private static int mountsLost(List<Warship> ships) {

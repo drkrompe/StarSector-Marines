@@ -50,7 +50,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2453487,
+      "units3": 2424048,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -86,13 +86,13 @@
     "contents_total_m3": 653700,
     "machinery_share": 0.58,
     "enclosed_m3": 1556429,
-    "solved_metres_per_unit": 0.859,
+    "solved_metres_per_unit": 0.863,
     "range": {
-      "habitable_273": 0.833,
-      "habitable_328": 0.885
+      "habitable_273": 0.836,
+      "habitable_328": 0.889
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 302.2,
+    "length_m": 303.4,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -104,7 +104,7 @@
     },
     "published_metres_per_unit": 0.86,
     "measured_this_build": {
-      "enclosed_units3": 2453487,
+      "enclosed_units3": 2424048,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
@@ -126,11 +126,11 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2456172
+      "with_drive_pods_units3": 2426881
     },
     "size_m": [
       302.4,
-      230.8,
+      231.0,
       116.0
     ],
     "person_1_8_m_in_units": 2.09,
@@ -150,17 +150,17 @@
   "dimensions": {
     "min": [
       -123.76,
-      -134.19,
+      -134.31,
       -57.34
     ],
     "max": [
       227.9,
-      134.19,
+      134.31,
       77.6
     ],
     "size": [
       351.66,
-      268.37,
+      268.62,
       134.94
     ]
   },
@@ -285,7 +285,7 @@
       "location": [
         187,
         0,
-        14.48
+        9.77
       ],
       "angle": 0,
       "arc": 150,
@@ -304,7 +304,7 @@
       "location": [
         150,
         -12,
-        23.33
+        18.36
       ],
       "angle": -20,
       "arc": 90,
@@ -323,7 +323,7 @@
       "location": [
         150,
         12,
-        23.33
+        18.36
       ],
       "angle": 20,
       "arc": 90,
@@ -475,7 +475,7 @@
       "location": [
         126,
         0,
-        33.13
+        27.41
       ],
       "angle": 0,
       "arc": 150,
@@ -1335,9 +1335,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9594,
-    "sprite_uncovered": 0.0152,
-    "model_outside_sprite": 0.0265,
+    "iou": 0.9573,
+    "sprite_uncovered": 0.0163,
+    "model_outside_sprite": 0.0276,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
@@ -1356,19 +1356,13 @@
     "formation-high-1.5km": {
       "size_px": [
         220,
-        200
+        201
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
         241,
         136
-      ]
-    },
-    "formation-sheet": {
-      "size_px": [
-        1920,
-        1080
       ]
     },
     "formation-abeam-3km": {

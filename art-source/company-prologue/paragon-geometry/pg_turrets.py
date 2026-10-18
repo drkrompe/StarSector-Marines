@@ -106,7 +106,9 @@ def near_hull(kit, point, reach):
     """Hull objects whose surface passes within reach of point."""
     dg = bpy.context.evaluated_depsgraph_get()
     out = []
-    for ob in kit.hull:
+    for ob in kit.hull+kit.detail:
+        if ob.name not in bpy.data.objects:
+            continue
         key = (ob.name, len(ob.data.polygons))
         if key not in _TREES:
             _TREES.clear() if len(_TREES) > 64 else None

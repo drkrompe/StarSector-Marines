@@ -300,6 +300,60 @@ def course(kit, name, s, x_aft, x_fore, path, u0, u1, t_aft, t_fore, mat, chamfe
     return loft_x(kit, name, st, mat, bevel=.2)
 
 
+def scale_course(kit, name, s, x_aft, x_fore, u0, u1, mat, t_aft=1.2, t_body=2.6, t_fore=3.9, kick=8.0,
+                 rake=40.0, lean=.3):
+    """An orange course segment laid like a scale pointing at the bow (round 6, the sprite's
+    overlapping orange plates): thin at its aft end, where the next segment aft laps over it,
+    t_body along its run, and kicked up and out to t_fore over its last `kick` units. Its forward
+    end is a step angled toward the bow: one face, plumb in the world across the arm and leaning
+    back by `lean` along it, running aft `rake` deg off square from the course's outboard edge
+    to its inner edge, so the outboard (lowest) corner is the segment's point. (Two raked faces
+    meeting at a mid-course apex cut a sliver notch out of the plate where it wraps the max-beam
+    chine; plates converging on the faces hung ledges over daylight on the steep face.)"""
+    st = []
+    for x in _stations(x_aft, x_fore, 2.0, [x_aft+3.0, x_fore-kick]):
+        if x <= x_aft+3.0:
+            t = t_aft+(t_body-t_aft)*(x-x_aft)/3.0
+        elif x < x_fore-kick:
+            t = t_body
+        else:
+            f = (x-(x_fore-kick))/kick
+            t = t_body+(t_fore-t_body)*(f*(2-f))
+        st.append((x, _y(_course_section(x, OUTBOARD, u0, u1, t, .6 if x > x_aft+.5 else .3), s)))
+    ob = loft_x(kit, name, st, mat, bevel=.2)
+    sec = section(x_fore)
+    py, pz = _path_point(sec, OUTBOARD, u1)
+    r = math.radians(ROLL)
+    tp = math.tan(math.radians(rake))
+    n = (1.0, -tp, (lean-tp*math.sin(r))/math.cos(r))
+    plane_cut(ob, name+' step', (x_fore, s*(py+t_fore), pz), (n[0], s*n[1], n[2]))
+    return ob
+
+
+def _plate(x, us, t, sink):
+    """_course_section with an explicit u list (one vertex per entry), so a plate whose edges
+    move across the chines keeps one vertex count along its loft."""
+    sec = section(x)
+    inner, outer = [], []
+    for u in us:
+        (py, pz) = _path_point(sec, OUTBOARD, u)
+        ui = int(round(u))
+        (ny, nz) = _path_normal(sec, OUTBOARD, ui if abs(u-ui) < .02 else u)
+        inner.append((py-ny*sink, pz-nz*sink))
+        outer.append((py+ny*t, pz+nz*t))
+    vy, vz = -math.sin(math.radians(ROLL)), math.cos(math.radians(ROLL))
+    for k, u in ((0, us[0]), (-1, us[-1])):
+        ny, nz = _path_normal(sec, OUTBOARD, u)
+        dy, dz = -nz, ny
+        det = vy*(-dz)-vz*(-dy)
+        if abs(ny*vy+nz*vz) > .35 and abs(det) > 1e-3:
+            ry, rz = outer[k][0]-inner[k][0], outer[k][1]-inner[k][1]
+            mu = (vy*rz-vz*ry)/det
+            if abs(mu) <= 2.5*t:
+                outer[k] = (outer[k][0]+dy*mu, outer[k][1]+dz*mu)
+    return inner+list(reversed(outer))
+
+
 # --- the solids --------------------------------------------------------------
 
 def nose_face(ob):
@@ -443,19 +497,20 @@ def build(kit):
         arm = arm_mass(kit, f'Hull {side} arm', s)
         g = gallery(kit, f'Hull {side} arm gallery', s)
         kit.hull += [arm, g]
-        # Upper course (orange): along the shoulder and sloped upper face, segmented with seams.
-        # Round 5 (the sprite at 8x): the run is not uniform - at every turret housing on the
-        # gallery (WS 001, 002, 005 and the Devastator) a grey rim block runs from the riser's foot
-        # across the terrace and the course's inner half, standing proud of both, so each gun's
-        # own armour breaks the course as the sprite's grey rims do and the orange carries on
-        # outboard of it: one system with the grey lower course.
-        for k, (xa, xf, u0, u1, ta, tf) in enumerate(((152, 192, .72, 2.9, 2.8, 2.2),
-                                                       (106, 150, .72, 2.05, 2.6, 2.0),
-                                                       (72, 104, .72, 2.05, 2.6, 2.0),
-                                                       (22, 70, .62, 2.25, 2.8, 2.0)), 1):
-            course(kit, f'Armour {side} arm belt {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf, kit.orange)
+        # Upper course (orange). Round 6 (owner note 3; critique C, the sprite at 6x): the course is
+        # not one strip but overlapping plate segments laid like scales pointing at the bow - the
+        # nose plate, then four segments whose forward ends stand at the sprite's breaks (X ~166,
+        # 142, 100 and 60, each just ahead of or aft of a turret housing), every one thin at its aft
+        # end, where the next segment's forward end laps over it, and kicked up and out at its
+        # forward end into a step whose face is a forward-pointing chevron. The lower edge is
+        # irregular (each segment reaches a different depth), as the sprite's orange is.
+        course(kit, f'Armour {side} arm belt 1', s, 157, 192, OUTBOARD, .72, 2.9, 2.8, 2.2, kit.orange)
+        for k, (xa, xf, u0, u1) in ((2, (135, 169, .72, 2.05)), (3, (88, 147, .72, 1.95)),
+                                    (4, (48, 100, .72, 2.15)), (6, (22, 60, .62, 2.3))):
+            scale_course(kit, f'Armour {side} arm belt {k}', s, xa, xf, u0, u1, kit.orange)
         # Each block is centred on its housing as the pose carries it (arm_xy), as long as the
-        # housing's lozenge (the Devastator: its drum).
+        # housing's lozenge (the Devastator: its drum): the turret's own armour interrupts the
+        # course's inner half as the sprite's grey rims break the orange.
         for k, (wx, wy, half, u1) in enumerate(((158, 71, 7.5, 1.55), (134, 74, 5.8, 1.45), (114, 78, 5.8, 1.45),
                                                 (77, 88, 11.5, 1.6)), 1):
             xc = arm_xy(wx, wy, gallery_top(wx))[0]
@@ -463,21 +518,26 @@ def build(kit):
             course(kit, f'Armour {side} arm rim block {k}', s, xa, xf, OUTBOARD, .45, u1, 4.6, 4.4, kit.grey,
                    chamfer=1.6, lip=1.6)
         belt5 = course(kit, f'Armour {side} arm belt 5', s, 0, 20, OUTBOARD, .9, 2.1, 2.4, 2.0, kit.grey)
-        # Lower course (dark grey): stepped blocks on the outboard rim lapping over the orange.
-        # (Round 5: the sixth block, X 2-18, went with the heel; the after collar takes its place.)
+        # Lower course (dark grey). Round 6 (critique C: abeam, five evenly spaced blocks read as the
+        # teeth of a comb): the sprite has three large grey blocks on the outboard rim (X 100-150,
+        # 62-98, 18-58), of unequal length and depth, each with a doubler of its own at a different
+        # place, so the rim reads as a few irregular plates rather than a row of teeth.
         steps = []
-        for k, (xa, xf, ta, tf) in enumerate(((98, 150, 4.0, 2.8), (76, 96, 3.8, 2.6), (56, 74, 3.8, 2.6),
-                                              (40, 54, 3.6, 2.5), (20, 38, 3.6, 2.5)), 1):
-            # (Round 5: each block's aft end is bevelled too, so from astern and on the stern
-            # quarters the rim reads as overlapping scales rather than a row of square teeth.)
-            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, 1.75, 3.25, ta, tf,
-                                kit.grey, chamfer=4.0, lip=2.6))
+        for k, (xa, xf, u0, u1, ta, tf, ch) in enumerate(((101, 144, 1.75, 3.25, 4.0, 2.8, 4.0),
+                                                          (61, 93, 1.5, 3.3, 3.8, 3.0, 4.0),
+                                                          (19, 52, 1.95, 3.25, 3.4, 2.6, 3.0)), 1):
+            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
+                                kit.grey, chamfer=ch, lip=2.6))
+        for k, (xa, xf, u0, u1, ta, tf) in ((4, (116, 138, 2.3, 3.2, 5.0, 4.6)), (5, (66, 82, 2.05, 3.15, 4.7, 4.2)),
+                                            (7, (33, 49, 2.45, 3.2, 4.4, 4.0))):
+            steps.append(course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, u0, u1, ta, tf,
+                                kit.grey, chamfer=3.0, lip=2.6))
         # Inboard strake on the top chine facing the notch.
         course(kit, f'Armour {side} arm coaming', s, 106, 198, INBOARD, .85, 1.7, 1.8, 1.6, kit.grey)
         # Keel bar: a grey strake along the chined keel, heel to chin, so the keel reads as a line.
         keel = course(kit, f'Armour {side} arm keel bar', s, X_HEEL+4, X_CHIN-1, 'EFG', .62, 1.38, 1.7, 1.5,
                       kit.grey, chamfer=5.0)
-        after_end(kit, side, s, arm, [belt5, keel]+steps[-2:])
+        after_end(kit, side, s, arm, [belt5, keel, steps[2], steps[5]])
         housings(kit, side, s)
         nose_cheeks(kit, side, s)
         shoulder(kit, side, s, arm, g)

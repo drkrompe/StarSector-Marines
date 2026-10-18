@@ -43,6 +43,8 @@ public final class WeaponRegistry {
     public static final String SQUAD_AUTOMATIC_ID = "weapon.squad-automatic";
     public static final String DMR_ID = "weapon.dmr";
     public static final String DRONE_PULSE_ID = "weapon.drone-pulse";
+    /** The sensor and halo drones' light ion sting. */
+    public static final String DRONE_ION_ID = "weapon.drone-ion";
     public static final String MECH_CHAINGUN_ID = "weapon.mech-chaingun";
     public static final String MECH_LINEAR_CANNON_ID = "weapon.mech-linear-cannon";
     public static final String MECH_HEAVY_CANNON_ID = "weapon.mech-heavy-cannon";
