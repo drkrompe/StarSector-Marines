@@ -52,6 +52,26 @@ The shape gauntlet (run every iteration)
   part edges over the sprite (gauntlet-edges.png). Silhouette IoU alone says
   nothing about the parts inside the outline.
 
+Pass 2 detail (pg_detail; owner: machinery insets and dimples)
+  Read off the sprite at 6x, each with a job: recessed machinery trays with pipe
+  runs, pumps and junction boxes (beside the bow module, its flanks, beside WS 013,
+  the pods' forward-outboard bays); rectangular vent and square dimples; arched
+  niches on the pods' aft slopes; the prow grille vanes; segmented reactor glow on
+  each reactor well; radial plate seams on the shelf and belt and transverse seams
+  on the aft body; the blue-white seam light along the gun shelf's riser; finned
+  machinery grilles in the pods' aft faces between the drives; glazed window slits
+  along the command deck tiers; machinery ribs on the bore lining; service panels
+  in the belt flank; frames and pipe runs on the deck gantry. Insets stay 3 units
+  inside the outline; the silhouette IoU held (0.959 before, 0.958 after).
+
+Scale (pass 4, ship_scale.py option C, no override)
+  Enclosed volume (SOLIDS: belt, main ring and lining, prow, bow module, horns,
+  lobes, deck tiers, gantry, aft body, pods; never the open bore, drives, turrets,
+  domes or detail) 3.62 M units3 against 1,000 crew, 300 cargo, 300 fuel: 0.66 m
+  per unit (range 0.64-0.68), 239 m long, 211 m across, 66 m deep. The driver
+  re-measures it every build and fails if it drifts from ship_scale.HULLS.
+  A 1.8 m person is 2.7 units. Shield radius 270 units = 178 m.
+
 Modules (one per area)
   pg_kit       materials (Tri-Tachyon palette, glow), primitives, smooth_mass
                (heightfield masses with holes), revolves, booleans, surface()
@@ -63,6 +83,7 @@ Modules (one per area)
   pg_turrets   21 turrets (barbette + pivot) and the two bow hardpoints
   pg_shield    the shield emitter anchor and the emitter nodes on the lining
   pg_arcs      firing-line check across every turret's arc
+  pg_detail    pass 2 detail: insets, dimples, niches, grille, glow, seams, windows
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -77,5 +98,6 @@ Names (identifiers: later passes key off them)
     Weapon WS nnn muzzle [k]; hardpoints: Weapon WS 00n hardpoint (anchor), housing,
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)
+  Detail ... (pass 2 parts), Hull <side> reactor glow k, Hull main ring seam light
   Shield emitter (empty at shieldCenter; radius, arc, type as custom properties),
     Shield emitter node k (empties facing the bore axis)
