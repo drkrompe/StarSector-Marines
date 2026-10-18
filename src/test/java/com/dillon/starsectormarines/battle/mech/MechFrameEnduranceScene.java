@@ -376,6 +376,8 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         m.put("survivedCap", survived);
         m.put("damageDealt.mean", dealt / group.size());
         m.put("damageDealtPerMinute.mean", dealtPerMin / group.size());
+        spread(m, "damageDealtPerMinute", group, p -> p.damageDealt / (p.ticks / 30.0) * 60.0);
+        spread(m, "enduranceS", group, p -> p.endurance() / 30.0);
         m.put("roundsFired.mean", rounds / group.size());
         m.put("aiCoolingShare.mean", cooling / group.size());
         List<Verdict> verdicts = List.of(
@@ -448,6 +450,26 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
 
     private interface TickOf {
         int of(Play p);
+    }
+
+    private interface ValueOf {
+        double of(Play p);
+    }
+
+    /** Sample standard deviation and standard error of the mean over every play in the group. */
+    private static void spread(Map<String, Number> m, String key, List<Play> group, ValueOf of) {
+        int n = group.size();
+        double sum = 0;
+        for (Play p : group) sum += of.of(p);
+        double mean = sum / n;
+        double sq = 0;
+        for (Play p : group) {
+            double d = of.of(p) - mean;
+            sq += d * d;
+        }
+        double sd = n > 1 ? Math.sqrt(sq / (n - 1)) : 0;
+        m.put(key + ".sd", sd);
+        m.put(key + ".se", sd / Math.sqrt(n));
     }
 
     /** Mean, min and max in seconds over the plays that reached the event; {@code .n} is how many did. */
