@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
@@ -31,6 +32,7 @@ public final class CompanyHqScreen implements Screen {
 
     private final Reactor reactor = new Reactor();
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
+    private final HqActionDesk actionDesk = new HqActionDesk(reactor, newsDesk);
     private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
             CommandDeckLayout.parse(loadText(CommandDeckLayout.PATH)));
     private final MarkupLoader markup = new MarkupLoader(
@@ -89,13 +91,15 @@ public final class CompanyHqScreen implements Screen {
                 this::onBoatDeck,
                 this::onShipView,
                 this::onClose,
-                this::responseAction, this::onOpeningCourse);
+                this::responseAction, this::plotCourse, auxiliary.row().get(), handover.row().get());
         Map<String, Object> props = viewModel.props();
         props.put("debugAction", (Runnable) () -> { if (DevConfig.DEBUG_CLIENT) context.goTo(ScreenId.DEBUG_MISSIONS); });
         props.put("debugClasses", DevConfig.DEBUG_CLIENT ? "hq-debug console-action" : "hq-debug-hidden");
         newsDesk.put(props);
+        actionDesk.put(props);
         auxiliary.put(props);
         handover.put(props);
+        intelTerminal.actions(actionDesk);
         intelTerminal.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
                 reactor, ROOT_COMPONENT, props);
@@ -132,7 +136,7 @@ public final class CompanyHqScreen implements Screen {
                 "page-nav-mech-lab", "page-nav-boats",
                 "company-hq-deck", "company-hq-board-heading",
                 "company-hq-main", "company-hq-finance", "company-hq-board",
-                "company-hq-obligation-list", "company-hq-news-list")) {
+                "company-hq-action-list", "company-hq-news-list")) {
             component.requireElement(id);
         }
     }
@@ -160,11 +164,10 @@ public final class CompanyHqScreen implements Screen {
         return script != null && HegemonyAuxiliaryWarrant.decline(script.state(), CampaignClock.day());
     }
 
-    private void onOpeningCourse() {
-        OpeningBroker.Destination destination = AgreusArcCampaign.current() != null ? AgreusArcCampaign.destination() : ShepherdRecoveryCampaign.current()!=null ? ShepherdRecoveryCampaign.destination() : CorvusWaylineCampaign.current() != null
-                ? CorvusWaylineCampaign.destination() : SupplyRouteCampaign.destination();
-        if (destination == null || destination.planet() == null) return;
-        Global.getSector().getCampaignUI().layInCourseForNextStep(destination.planet());
+    /** Plot course as the campaign does it: the ordinary navigation destination, then close HQ. */
+    private void plotCourse(SectorEntityToken destination) {
+        if (destination == null) return;
+        Global.getSector().getCampaignUI().layInCourseForNextStep(destination);
         onClose();
     }
 

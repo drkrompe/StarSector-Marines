@@ -7,6 +7,7 @@ com.dillon.starsectormarines.ops.TurretSnapshotSuite
 com.dillon.starsectormarines.ops.UiSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.PowerSuitSnapshotSuite
 com.dillon.starsectormarines.ops.HqIntelSnapshotSuite
+com.dillon.starsectormarines.ops.HqHoloSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DurabilityBarSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.FrontageSceneSnapshotSuite

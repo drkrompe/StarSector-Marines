@@ -65,13 +65,15 @@ Scale (pass 4; geometry.json 'scale')
   From the shared ship_scale.py: contents (1,500 crew, 300 cargo, 400 fuel) over
   the capital machinery share against the measured enclosed volume (union of
   ship_scale.SOLIDS['onslaught'], 3.42 M units3, re-measured each build).
-  Published 0.45 m/unit (solved 0.452): about 158 m long, 121 m beam, 52 m deep.
-  PROVISIONAL: ship_scale flags it (a capital under 4x a frigate's length); the
-  owner's capital crew factor (1.45) is due in ship_scale.py and will move it.
-  The geometry is in hull units, so only the root's scale changes.
+  Published 0.77 m/unit (solved 0.769, range 0.745-0.792): about 270 m long,
+  207 m beam, 89 m deep. ship_scale flags it, as it flags the Legion: a capital
+  under 4x a frigate's length (3.0x the Lasher; the sprites give 4.0x). The
+  thick hull the owner asked for holds more than the module's plan-area
+  estimate (3.42 M vs 1.96 M units3), which is why it solves under the 324 m
+  estimate. The geometry is in hull units, so a scale change moves only the root.
   Fittings in true metres: bridge glazing band 1.4 m in 1.1 m panes, crown hatch
-  1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 4.0 units.
+  1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 2.3 units.
 
 Status
   Pass 1 blockout (IoU 0.964), pass 2 mid-distance detail (IoU 0.9636), pass 4
-  scale (provisional). Awaiting owner review (pass 3).
+  scale. Awaiting owner review (pass 3).

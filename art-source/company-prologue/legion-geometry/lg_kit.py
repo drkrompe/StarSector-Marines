@@ -6,6 +6,14 @@ ray-cast); it deliberately imports no other hull's package, which other
 sessions are editing. Coordinates are hull-local, +X bow, +Y port, +Z dorsal, one
 sprite pixel per unit about the .ship centre.
 """
+
+# Real-world scale, from the shared sizing basis (ship_scale.py; owner's choice,
+# 2026-10-18: option C). One sprite pixel is one unit. Person-scale fittings
+# (doors, hatches, rails, ladders, catwalks) were first drawn at 0.61 m per unit;
+# PERSON scales those authored sizes so they stay true metres at this scale.
+METRES_PER_UNIT = 0.99
+PERSON = 0.61/METRES_PER_UNIT
+
 import math
 import bmesh
 import bpy

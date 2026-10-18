@@ -46,9 +46,9 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.45,
+  "metres_per_unit": 0.77,
   "scale": {
-    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume; cargo unit calibrated on the Hound (A)",
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
       "units3": 3419861,
       "crew_max": 1500,
@@ -60,8 +60,9 @@
       "volume_source": "measured (SOLIDS)"
     },
     "constants": {
+      "habitable_m3_per_person": 300.0,
       "class": {
-        "habitable_m3_per_person": 70.0,
+        "habitable_factor": 1.45,
         "hangar_box_factor": 3.0,
         "shares": {
           "armour": 0.18,
@@ -70,33 +71,28 @@
           "structure": 0.12
         }
       },
-      "cargo_m3_per_unit": 50.6,
-      "fuel_m3_per_unit": 32.0,
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
       "boat_bay_m3": 960.0,
-      "spares_per_wing": 1,
-      "anchor": {
-        "hull": "Hound (A)",
-        "metres_per_unit": 0.88,
-        "cramped": 0.83
-      }
+      "spares_per_wing": 1
     },
     "contents_m3": {
-      "crew": 105000,
-      "cargo": 15191,
-      "fuel": 12800,
+      "crew": 652500,
+      "cargo": 600,
+      "fuel": 600,
       "hangar": 0,
       "boat_bays": 0
     },
-    "contents_total_m3": 132991,
+    "contents_total_m3": 653700,
     "machinery_share": 0.58,
-    "enclosed_m3": 316646,
-    "solved_metres_per_unit": 0.452,
+    "enclosed_m3": 1556429,
+    "solved_metres_per_unit": 0.769,
     "range": {
-      "anchor_cramped": 0.448,
-      "anchor_published": 0.452
+      "habitable_273": 0.745,
+      "habitable_328": 0.792
     },
-    "enclosed_m3_per_person_at_max_crew": 211,
-    "length_m": 159.1,
+    "enclosed_m3_per_person_at_max_crew": 1038,
+    "length_m": 270.5,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -106,7 +102,7 @@
         1.4
       ]
     },
-    "published_metres_per_unit": 0.45,
+    "published_metres_per_unit": 0.77,
     "measured_this_build": {
       "enclosed_units3": 3419861,
       "solids": [
@@ -127,11 +123,11 @@
       "with_drive_pods_units3": 3421498
     },
     "size_m": [
-      158.3,
-      121.0,
-      52.4
+      270.8,
+      207.1,
+      89.7
     ],
-    "person_1_8_m_in_units": 4.0,
+    "person_1_8_m_in_units": 2.34,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -1157,44 +1153,44 @@
     "sensor_mm": 36.0,
     "cameras": {
       "formation-quarter-1.5km": [
-        2478.4,
-        -2037.8,
-        1023.1
+        1469.1,
+        -1190.9,
+        595.0
       ],
       "formation-abeam-1.5km": [
         49.9,
-        -3300.9,
-        456.9
+        -1929.1,
+        264.2
       ],
       "formation-bow-1.5km": [
-        -2773.8,
-        -1630.2,
-        686.1
+        -1600.3,
+        -952.7,
+        398.1
       ],
       "formation-high-1.5km": [
-        2261.3,
-        1276.7,
-        2135.7
+        1342.2,
+        746.1,
+        1245.2
       ],
       "formation-quarter-3km": [
-        4906.9,
-        -4075.5,
-        2053.2
+        2888.4,
+        -2381.8,
+        1197.0
       ],
       "formation-abeam-3km": [
         49.9,
-        -6601.8,
-        920.9
+        -3858.2,
+        535.3
       ],
       "formation-bow-3km": [
-        -5597.5,
-        -3260.5,
-        1379.1
+        -3250.5,
+        -1905.5,
+        803.1
       ],
       "formation-high-3km": [
-        4472.6,
-        2553.5,
-        4278.3
+        2634.6,
+        1492.3,
+        2497.4
       ]
     }
   },
@@ -1279,26 +1275,26 @@
   "formation_extent": {
     "formation-abeam-1.5km": {
       "size_px": [
-        138,
-        46
+        236,
+        79
       ]
     },
     "formation-bow-1.5km": {
       "size_px": [
-        115,
-        48
+        194,
+        83
       ]
     },
     "formation-high-1.5km": {
       "size_px": [
-        116,
-        94
+        199,
+        160
       ]
     },
     "formation-quarter-1.5km": {
       "size_px": [
-        125,
-        57
+        215,
+        98
       ]
     },
     "formation-sheet": {
@@ -1309,26 +1305,26 @@
     },
     "formation-abeam-3km": {
       "size_px": [
-        68,
-        21
+        117,
+        39
       ]
     },
     "formation-bow-3km": {
       "size_px": [
-        57,
-        25
+        98,
+        41
       ]
     },
     "formation-high-3km": {
       "size_px": [
-        58,
-        47
+        98,
+        80
       ]
     },
     "formation-quarter-3km": {
       "size_px": [
-        63,
-        28
+        107,
+        48
       ]
     }
   }
