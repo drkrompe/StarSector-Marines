@@ -12,17 +12,16 @@ facing 0 deg: those are the three launch stations, one Borer drone each out
 of the wing of four (the fourth is serviced on the turntable). The station
 sizes come from the Borer, not the sprite (see build_shepherd.DRONE_BAY).
 
-Shape (thick envelope, ENVELOPE.md): each bay is a tub, the closed solid
-'Drone bay aft|forward hangar pod' (an elliptic pod, z -13..+8) with a
-recess cut out of it, open dorsally and above a low outboard coaming. The
-recess floor is the bay deck (WELL_FLOOR); its inboard side is a tall
-panelled back wall whose top chamfer carries the sprite's cyan glow. The
-skin that was cut away survives as framing: arch ribs over the open top,
-carried on below the coaming as exterior frame hoops. Ribs stand only
-between stations, so the space above each station is clear to the sky.
-The join between the bays is a solid bulkhead (the pods' necks) with a
-bolted collar carrying the amber join lamps; the forward bay runs into the
-service block, whose aft face is the workshop front.
+Shape (thick envelope, ENVELOPE.md): the bay is cut out of two closed
+solids, 'Drone bay aft|forward hangar pod' (elliptic pods, z -13..+8), as
+one continuous open deck (pass 3, owner: the bay is open, not boxed in).
+Nothing roofs it and nothing walls its outboard side: the deck (WELL_FLOOR)
+runs from the tall panelled inboard back wall, whose top chamfer carries the
+sprite's cyan glow, out to a low kerb (COAMING_Z) and a handrail, and the
+port outrigger stays below that kerb. The pods survive below the kerb as the
+bay's hull, with armour plates and frame hoops; there are no arch ribs and
+no bulkhead between the tubs. The forward end runs into the service block,
+whose aft face is the workshop front.
 
 Each station 'Drone bay WS 003 opening <i> ...': a darker station deck
 plate ('well floor'), a low kerb round it with hazard bars ('coaming',
@@ -32,9 +31,9 @@ arm folded against the back wall and a charging umbilical. 'mouth' is an
 empty at the top of the bay opening above the station (normal +Z);
 'launch point' is on the cradle deck. OPENINGS records rim_z (mouth),
 floor_z (launch point) and clear_radius, the clear half-width above the
-station to the nearest rib, bulkhead or wall.
+station to the nearest end of the deck or the back wall.
 
-Port outrigger: a four-chord box truss read off the sprite's three lattice
+Port outrigger: a low four-chord box truss, under the open side, read off the sprite's three lattice
 frames (forward X 11..31 to Y 31, mid X -6..5 with its outboard chord at
 Y 29..31 behind a real gap, aft X -10..-6 at Y 28..29), joined by the two
 continuous inboard chords ('upper rail' and 'lower rail'), with rubber
@@ -58,11 +57,13 @@ OPENINGS = []        # filled by build(): one record per station for geometry.js
 N, PHASE = 12, math.pi/12          # pod facet count and phase (as sh_kit.pod)
 AFT_ST = [(-13.5, 5.0, 7.0), (-11.5, POD_R, POD_RZ), (4.5, POD_R, POD_RZ), (7.0, 6.2, 8.7)]
 FORE_ST = [(6.0, 6.2, 8.7), (8.5, POD_R, POD_RZ), (27.5, POD_R, POD_RZ)]
-BAYS = {'aft': (-11.2, 3.8), 'forward': (7.6, 30.5)}   # recess X extents
+# Recess X extents: one continuous open deck, aft tub into forward tub with no bulkhead
+# between them (owner, pass 3: the bay is open, not boxed in).
+BAYS = {'aft': (-11.2, 6.0), 'forward': (6.0, 30.5)}
 WALL_Y = 12.4        # bay face of the inboard back wall
 WALL_TOP = 8.0
-COAMING_Y, COAMING_Z = 24.4, 0.0   # outboard coaming: inner face and top of the cut
-RIBS = {'aft': (-10.8, -8.0, 1.8), 'forward': (17.0, 19.15, 21.3)}
+COAMING_Y, COAMING_Z = 24.4, WELL_FLOOR+1.2   # outboard coaming: a low kerb, the side open above it
+RIBS = {'aft': (), 'forward': ()}   # no arch ribs: the bay is open to the sky
 RIB_W = .7
 DECK = WELL_FLOOR+.12              # top of the deck plating
 
@@ -174,7 +175,7 @@ def build(kit):
     recess = [(WALL_Y, WELL_FLOOR), (COAMING_Y, WELL_FLOOR), (COAMING_Y, COAMING_Z), (28.5, COAMING_Z+1.4),
               (28.5, 20), (WALL_Y, 20)]
     for bay, (x0, x1) in BAYS.items():
-        for ob in ((aft,) if bay == 'aft' else (fore, block)):
+        for ob in (aft, fore, block):   # one deck: each cutter runs through both tubs' necks
             cut = _prism_x(kit, f'Temporary {bay} bay recess cutter', recess, x0, x1, kit.dark)
             boolean(ob, cut)
 
@@ -251,26 +252,12 @@ def build(kit):
     for st, (x0, x1), name in ((AFT_ST, BAYS['aft'], 'aft'), (FORE_ST, (BAYS['forward'][0], 27.5), 'forward')):
         edges = [x0+(x1-x0)*j/round((x1-x0)/3.2) for j in range(round((x1-x0)/3.2)+1)]
         for a, b in zip(edges, edges[1:]):
-            plates += [_facet(st, k, a+.13, b-.13, -.05, .15, .05, .95) for k in range(5, 12)]
+            plates += [_facet(st, k, a+.13, b-.13, -.05, .15, .05, .95) for k in range(5, 11)]   # below the kerb
         for x in RIBS[name]+((x0+.4,) if name == 'aft' else (x0+.4, 27.4)):
-            hoops += [_facet(st, k, x-RIB_W/2, x+RIB_W/2, -.2, .4) for k in range(5, 12)]
+            hoops += [_facet(st, k, x-RIB_W/2, x+RIB_W/2, -.2, .4) for k in range(5, 11)]
     plates += [_facet(AFT_ST, k, -13.37, -11.33, -.05, .15, .05, .95) for k in range(N)]   # aft end cap
     _hexes(kit, 'Drone bay hangar pod armour plates', plates, armour)
     _hexes(kit, 'Drone bay hangar pod frame hoops', hoops, kit.steel)
-
-    # Arch ribs over the open top, from the coaming up over the crown to the back wall.
-    arches, floods = [], []
-    for name, xs in RIBS.items():
-        st = AFT_ST if name == 'aft' else FORE_ST
-        for x in xs:
-            pts = [(x, 25.3, COAMING_Z+.8)]
-            pts += [(x, *_vert(st, x, math.radians(a), .25)) for a in (45, 75, 105)]
-            pts.append((x, WALL_Y-.3, WALL_TOP+.1))
-            arches += _path(pts, RIB_W, .6)
-            fy, fz = _vert(st, x, math.radians(75), -.2)
-            floods.append(_box((x, fy, fz-.1), (.5, .9, .25)))
-    _hexes(kit, 'Drone bay arch ribs', arches, kit.steel)
-    _hexes(kit, 'Drone bay rib floodlights', floods, lamp)
 
     # Outboard coaming cap with hazard bars and a handrail.
     cap, bars, rail = [], [], []
@@ -286,21 +273,10 @@ def build(kit):
     _hexes(kit, 'Drone bay outboard coaming hazard bars', bars, hazard)
     _hexes(kit, 'Drone bay outboard handrail', rail, kit.grey)
 
-    # Join: the bulkhead between the bays (the pods' necks), a bolted collar and a pass door.
-    cst = [(5.0, 7.3, 9.9), (6.6, 7.3, 9.9)]
-    collar = _hexes(kit, 'Drone bay pod join collar', [_facet(cst, k, 5.0, 6.6, -1.6, 0) for k in range(N)], kit.steel)
-    _hexes(kit, 'Drone bay pod join collar bolts',
-           [_facet(cst, k, x-.18, x+.18, -.05, .18, .42, .58) for k in range(N) for x in (5.35, 6.25)], kit.grey)
-    for side, fx, s in (('aft', BAYS['aft'][1], 1), ('forward', BAYS['forward'][0], -1)):
-        kit.box(f'Drone bay join bulkhead pass door frame {side}', (fx+s*.05, 22.3, WELL_FLOOR+1.35), (.3, 1.9, 2.9),
-                kit.steel, .04)
-        kit.box(f'Drone bay join bulkhead pass door {side}', (fx-s*.05, 22.3, WELL_FLOOR+1.25), (.2, 1.35, 2.4),
-                kit.grey, .03)
-
-    # Amber join lamps, seated on whatever is uppermost there.
-    seat = [aft, fore, block, collar, bpy.data.objects['Drone bay inboard back wall'],
+    # Amber lamps at the workshop end, seated on whatever is uppermost there.
+    seat = [aft, fore, block, bpy.data.objects['Drone bay inboard back wall'],
             bpy.data.objects['Drone bay outboard coaming']]
-    for i, (x, y) in enumerate(((7.5, 23.5), (7.5, 12.5), (27, 25), (27, 12.0)), 1):
+    for i, (x, y) in enumerate(((27, 25), (27, 12.0)), 1):
         z = _surface(seat, x, y)
         kit.box(f'Drone bay join lamp {i} housing', (x, y, z+.15), (1.1, 1.1, .5), kit.steel, .08)
         kit.cylinder(f'Drone bay join lamp {i}', (x, y, z+.55), .32, .4, amber, 'Z', 10, .05)
@@ -308,7 +284,7 @@ def build(kit):
                                                      _box((x, y, z+.95), (.12, 1.0, .12))], kit.steel)
 
     # --- the three WS 003 launch stations ---
-    walls_x = sorted([BAYS['aft'][0], BAYS['aft'][1], BAYS['forward'][0], BAYS['forward'][1]])
+    walls_x = [BAYS['aft'][0], BAYS['forward'][1]]   # the open deck's two ends
     rib_x = [x for xs in RIBS.values() for x in xs]
     OPENINGS.clear()
     for i, (x, y) in enumerate(SLOT['locations'], 1):
@@ -392,14 +368,15 @@ def build(kit):
         kit.box(f'Drone bay service block floodlight {j}', (fx+.35, y0, 2.1), (.4, .9, .45), lamp, .04)
 
     # --- port outrigger: a lattice box truss in three frames ---
-    TOP, BOT = 1.8, -8.4
+    # Kept low, under the open side, so it frames the bay without walling it in.
+    TOP, BOT = COAMING_Z-.6, -8.4
     YI = 26.9                                  # inboard chords
     kit.box('Frame port outrigger upper rail', (9.0, YI, TOP), (44.0, 1.2, 1.2), kit.orange, .1)
     kit.box('Frame port outrigger lower rail', (9.0, YI, BOT), (44.0, 1.2, 1.2), kit.steel, .1)
     stations = {1: (-22, 28.5), 2: (-8, 28.5), 3: (4.5, 30.0), 4: (20, 30.4), 5: (29, 30.4)}
     for i, (x, yo) in stations.items():
         kit.box(f'Frame port outrigger post {i}', (x, yo, (TOP+BOT)/2), (1.0, 1.0, TOP-BOT), kit.grey, .06)
-        kit.box(f'Frame port outrigger strut {i}', (x, (25.4+yo)/2, POD_Z), (.9, yo-25.4, .9), kit.steel, .06)
+        kit.box(f'Frame port outrigger strut {i}', (x, (25.4+yo)/2, (TOP+BOT)/2), (.9, yo-25.4, .9), kit.steel, .06)
 
     def frame(name, x0, x1, yo, nodes, chord_w, top_battens, deck=False):
         m = [_beam((x0, yo, TOP), (x1, yo, TOP), chord_w, 1.0), _beam((x0, yo, BOT), (x1, yo, BOT), 1.0, 1.0),
@@ -430,6 +407,6 @@ def build(kit):
     frame('forward', 11.0, 31.0, 30.4, [11.5, 15.75, 20, 24.5, 29, 30.8], 1.2, None, deck=True)
     frame('mid', -6.2, 5.0, 30.0, [-5.8, -0.65, 4.5], 1.6, (-5.8, 4.5))
     frame('aft', -11.0, -6.0, 28.5, [-10.5, -8, -6.4], 1.0, (-8, -6.4))
-    kit.cylinder('Frame port bow fender', (22, 31.2, -2), 2.4, 8, rubber, 'Z', 12, .15)
+    kit.cylinder('Frame port bow fender', (22, 31.2, (TOP+BOT)/2), 2.4, TOP-BOT, rubber, 'Z', 12, .15)
     for i, (x, y0, w, dy) in enumerate(((13.6, 31.0, 2.4, 1.0), (28.0, 31.0, 2.6, 1.1), (1.9, 30.8, 2.2, .8)), 1):
-        kit.box(f'Frame port outrigger bumper {i}', (x, y0+dy/2, -2.5), (w, dy, 3.4), rubber, .3)
+        kit.box(f'Frame port outrigger bumper {i}', (x, y0+dy/2, (TOP+BOT)/2), (w, dy, min(3.4, TOP-BOT-.4)), rubber, .3)

@@ -214,10 +214,41 @@ def _hardpoint(kit, s):
         kit.box(f'{p} shroud slot {i}', (x+4.35+.4*i, y, c+.4), (.18, .5, .1), kit.dark, 0)
     kit.cylinder(f'{p} barrel', (x+5.3, y, c), .24, 2.4, kit.dark, 'X', 12, .03)
     kit.cylinder(f'{p} muzzle ring', (x+6.4, y, c), .3, .2, kit.steel, 'X', 10, .02)
+    _hardpoint_detail(kit, p, x, y, z, c)
     kit.empty(f'{p} muzzle', (x+6.5, y, c), s['angle'])
     kit.empty(f'{p} pivot', (x, y, c), s['angle'])
     ANCHOR_Z[s['id']] = c
     MUZZLES[s['id']] = (x+6.5, y, round(c, 3))
+
+
+def _hardpoint_detail(kit, p, x, y, z, c):
+    """Pass 3 finer detail on the recessed WS 008 mount (owner: keep the mount, detail it)."""
+    # Traverse race under the cradle (the slot's 20 deg arc), with its bolt circle.
+    kit.cylinder(f'{p} traverse race', (x, y, z+.05), 2.3, .1, kit.dark, 'Z', 24, 0)
+    _ring(kit, f'{p} traverse race bolt', x, y, z+.08, 2.05, 16, .1, kit.steel)
+    # Trunnion blocks either side of the housing, with their pins.
+    for side, s in (('port', 1), ('starboard', -1)):
+        kit.box(f'{p} trunnion block {side}', (x+1.0, y+s*1.95, c-.15), (1.0, .35, 1.1), kit.steel, .04)
+        kit.cylinder(f'{p} trunnion pin {side}', (x+1.0, y+s*2.17, c-.05), .26, .14, kit.grey, 'Y', 10, .02)
+        # Elevation ram from the cradle to under the glacis.
+        kit.cylinder(f'{p} elevation ram {side}', (x+2.35, y+s*1.1, z+.62), .16, .7, kit.grey, 'Z', 8, 0)
+        kit.cylinder(f'{p} elevation ram rod {side}', (x+2.35, y+s*1.1, z+1.05), .08, .3, kit.cream, 'Z', 6, 0)
+    # Blast seal boot round the recoil sleeve, and a ported muzzle brake.
+    kit.cylinder(f'{p} blast seal boot', (x+3.0, y, c), .78, .22, kit.dark, 'X', 12, .03)
+    kit.box(f'{p} muzzle brake', (x+6.3, y, c), (.5, .62, .5), kit.steel, .04)
+    for side, s in (('port', 1), ('starboard', -1)):
+        kit.box(f'{p} muzzle brake port {side}', (x+6.3, y+s*.32, c), (.22, .04, .3), kit.dark, 0)
+    # Sight / fire-control head on the housing roof, its lens forward.
+    kit.box(f'{p} sight head', (x-.2, y+1.05, c+1.25), (.9, .55, .5), kit.steel, .04)
+    kit.box(f'{p} sight lens', (x+.27, y+1.05, c+1.28), (.04, .36, .26), kit.glass, 0)
+    # Lifting eyes and a row of armour bolts along the glacis.
+    for i, dy in enumerate((-1.0, 1.0), 1):
+        kit.box(f'{p} lifting eye {i}', (x+1.2, y+dy*.7, c+1.1), (.32, .1, .28), kit.grey, 0)
+    for i in range(5):
+        kit.cylinder(f'{p} glacis bolt {i+1}', (x+2.15, y-1.0+i*.5, c+.86), .06, .06, kit.dark, 'Z', 6, 0)
+    # Power and feed conduit from the module plate down to the well floor.
+    v, f = _chute(x-2.4, y-.9, c-.4, x-2.8, y-1.9, z+.2, .28, 5)
+    kit.mesh(f'{p} feed conduit', v, f, kit.orange, 0)
 
 
 def build(kit):
