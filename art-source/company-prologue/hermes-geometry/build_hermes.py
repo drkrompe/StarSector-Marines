@@ -125,13 +125,21 @@ def union_volume(names, step=.5):
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = hm_kit.Kit()
-hm_hull.build(kit)
+
+
+def build_module(module):
+    # Tag what each module adds, so check_clashes.py can tell modules apart.
+    before = set(bpy.data.objects)
+    module.build(kit)
+    for ob in set(bpy.data.objects) - before:
+        ob['module'] = module.__name__
+
+
+build_module(hm_hull)
 # Measured before the underside is cut, so wells do not count against it.
 envelope_u3 = union_volume(HABITABLE)
-hm_cockpit.build(kit)
-hm_engines.build(kit)
-hm_turrets.build(kit)
-hm_ventral.build(kit)
+for module in (hm_cockpit, hm_engines, hm_turrets, hm_ventral):
+    build_module(module)
 
 required = sum(CREWED_PROGRAM_M3.values())
 solve = lambda share: (required/(share*envelope_u3))**(1/3)

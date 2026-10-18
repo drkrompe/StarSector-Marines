@@ -77,3 +77,48 @@ if gj.exists():
     manifest = json.loads(gj.read_text(encoding='utf-8'))
     manifest['silhouette'] = stats
     gj.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
+
+# Second Wind bay fit sheet (bay_fit.py writes renders/bay-fit-*.png and bay-fit.json).
+fitj = R/'bay-fit.json'
+if fitj.exists():
+    fit = json.loads(fitj.read_text(encoding='utf-8'))
+    sheet = Image.new('RGB', (W, H), (222, 223, 223))
+    sd = ImageDraw.Draw(sheet)
+    panels = [('bay-fit-port', 'PORT BAY FROM OUTBOARD (TRUE RELATIVE SCALE)'), ('bay-fit-quarter', 'SECOND WIND, PORT QUARTER'),
+              ('bay-fit-plan', 'PLAN SECTION UNDER THE BAY CEILING (BOW RIGHT, MOUTH UP)'), ('bay-fit-section', 'SECTION AT THE FORWARD JAMB, LOOKING AFT')]
+    for (name, label), (x, y) in zip(panels, [(0, 0), (960, 0), (0, 540), (960, 540)]):
+        sheet.paste(Image.open(R/(name+'.png')).convert('RGB').resize((960, 540), Image.LANCZOS), (x, y))
+        sd.rectangle((x, y+500, x+960, y+540), fill=(222, 223, 223))
+        sd.text((x+16, y+508), label, font=font(20), fill=(30, 36, 40))
+    b, h, m = fit['bay_clear_m'], fit['hermes_m'], fit['margins_m']
+    hd = next(v for k, v in h.items() if k.startswith('height'))
+    lines = [f"Hermes {fit['metres_per_unit']['hermes']} m/u in Second Wind's port bay ({fit['metres_per_unit']['second_wind']} m/u)",
+             f"bay clear {b['length']} x {b['depth']} x {b['clear_height']} m (L x depth x H)",
+             f"Hermes {h['length']} x {h['beam']} x {hd} m (gear down)",
+             f"margins: {m['fore_and_aft_each_end']} m each end, {m['inboard_wall']} m wall, "
+             f"{m['outboard_mouth']} m mouth, {m['overhead']} m overhead",
+             f"door closed: depth {fit.get('depth_with_door_closed_m')} m, "
+             f"overhang {fit.get('overhang_past_door_line_m')} m -> {'fits' if fit.get('fits_with_door_closed') else 'DOES NOT fit'}"]
+    box_w = 700
+    sd.rectangle((W-box_w-20, 20, W-20, 20+30*len(lines)+20), fill=(245, 245, 240), outline=(30, 36, 40))
+    for i, t in enumerate(lines):
+        sd.text((W-box_w-8, 30+30*i), t, font=font(19), fill=(30, 36, 40))
+    sheet.save(HERE/'hermes-bay-fit.reference.png', optimize=True)
+    if gj.exists():
+        manifest = json.loads(gj.read_text(encoding='utf-8'))
+        manifest['second_wind_bay_fit'] = fit
+        gj.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
+
+# Pass 2 before/after: the shared close-up cameras, blockout against now.
+BEFORE = HERE/'reference-history'/'v1-blockout'
+CLOSE = ['bow-detail', 'cockpit-detail', 'turret-detail', 'aft-turret-detail', 'stern-detail', 'underside-detail']
+if all((BEFORE/(c+'.png')).exists() and (R/(c+'.png')).exists() for c in CLOSE):
+    sheet = Image.new('RGB', (W, H), (222, 223, 223))
+    sd = ImageDraw.Draw(sheet)
+    for i, c in enumerate(CLOSE):
+        row, pair = divmod(i, 2)
+        for k, (src, tag) in enumerate(((BEFORE, 'blockout'), (R, 'pass 2'))):
+            x, y = (pair*2+k)*480, row*360
+            sheet.paste(Image.open(src/(c+'.png')).convert('RGB').resize((480, 270), Image.LANCZOS), (x, y+45))
+            sd.text((x+10, y+12), f'{c.upper()}  {tag}', font=font(18), fill=(30, 36, 40))
+    sheet.save(HERE/'pass2-before-after.png', optimize=True)
