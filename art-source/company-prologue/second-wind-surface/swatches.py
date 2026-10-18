@@ -46,18 +46,29 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import imgops as I  # noqa: E402
 import parts as P  # noqa: E402
+import hull as H  # noqa: E402
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
 
-ORDER = ['cream', 'oxide', 'gunmetal', 'dark']
+ORDER = H.SWATCH_ORDER
 SQUARE_MARGIN = 20      # px clear round each guide square inside its tile
 CROP_INSET = 0.04       # share of the square cut away at each side (outline chipping)
 SIZE = 1024
 CHROMA_KNEE = 10.0      # neutral classes: chroma from the palette mean past this is halved
 FADE = 0.18             # cross-fade band, share of the square, at each wrap
-PAL = json.loads((HERE / 'palette.json').read_text())['classes']
+PAL = json.loads((DATA / 'palette.json').read_text())['classes']
+
+
+def tile_box(k):
+    """Up to four squares sit in the part sheets' 2x2 tiles; more take a 3x2 grid."""
+    if len(ORDER) <= 4:
+        return P.tile_box(k)
+    w, h = (P.SHEET[0] - 4 * P.GX) // 3, (P.SHEET[1] - 3 * P.GY) // 2
+    x, y = P.GX + (k % 3) * (w + P.GX), P.GY + (k // 3) * (h + P.GY)
+    return x, y, x + w, y + h
 
 
 def square_box(k):
-    x0, y0, x1, y1 = P.tile_box(k)
+    x0, y0, x1, y1 = tile_box(k)
     side = min(x1 - x0, y1 - y0) - 2 * SQUARE_MARGIN
     cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
     return cx - side // 2, cy - side // 2, cx - side // 2 + side, cy - side // 2 + side
@@ -68,9 +79,9 @@ def make_guide():
     for k, c in enumerate(ORDER):
         x0, y0, x1, y1 = square_box(k)
         a[y0:y1, x0:x1] = I.lab_to_rgb(np.array(PAL[c]['mean'], np.float32)[None, None])[0, 0]
-    out = HERE / 'guide' / 'sheet-swatch-guide.png'
+    out = DATA / 'guide' / 'sheet-swatch-guide.png'
     I.save_rgb(a, out)
-    print('guide ->', out, [square_box(k) for k in range(4)])
+    print('guide ->', out, [square_box(k) for k in range(len(ORDER))])
 
 
 def crop_square(sheet, k):
@@ -166,16 +177,16 @@ def seam_ratio(rgb):
 
 def run(sheet_path):
     sheet = I.load_rgb(sheet_path)
-    (HERE / 'textures').mkdir(exist_ok=True)
-    (HERE / 'grading').mkdir(exist_ok=True)
-    rep = {'sheet': str(Path(sheet_path).relative_to(HERE)).replace('\\', '/'), 'sheet_size': list(sheet.shape[1::-1]),
+    (DATA / 'textures').mkdir(exist_ok=True)
+    (DATA / 'grading').mkdir(exist_ok=True)
+    rep = {'sheet': str(Path(sheet_path).relative_to(DATA)).replace('\\', '/'), 'sheet_size': list(sheet.shape[1::-1]),
            'size': SIZE, 'tiling': f'offset cross-fade, band {FADE} of the square; periodic, so seamless under MIRROR too',
            'classes': {}}
     lab_squares = {}
     for k, c in enumerate(ORDER):
         sq, box = crop_square(sheet, k)
         lab_squares[c] = (I.rgb_to_lab(sq), box)
-    jobs = [(c, c) for c in ORDER] + [('pale', 'gunmetal')]
+    jobs = [(c, c) for c in ORDER] + list(H.SWATCH_DERIVED)
     for cls, src in jobs:
         lab, box = lab_squares[src]
         before = lab.reshape(-1, 3).mean(0)
@@ -188,7 +199,7 @@ def run(sheet_path):
         raw_seam = seam_ratio(big)
         out = np.clip(make_periodic(big), 0, 255)
         after = I.rgb_to_lab(out).reshape(-1, 3)
-        I.save_rgb(out, HERE / 'textures' / f'swatch-{cls}.png')
+        I.save_rgb(out, DATA / 'textures' / f'swatch-{cls}.png')
         rep['classes'][cls] = {'source_square': src, **box,
                                'before_mean_lab': before.round(2).tolist(), 'before_std_lab': lab.reshape(-1, 3).std(0).round(2).tolist(),
                                **ramp, 'gain_L_a_b': k.round(3).tolist(),
@@ -199,7 +210,7 @@ def run(sheet_path):
                                'wrap_step_over_interior_step': {'before_tiling': raw_seam, 'after': seam_ratio(out)}}
         print(cls, rep['classes'][cls]['before_mean_lab'], '->', rep['classes'][cls]['after_mean_lab'],
               'ramp', ramp['ramp_span_L_removed'], 'seam', raw_seam, '->', seam_ratio(out))
-    (HERE / 'grading' / 'swatches.json').write_text(json.dumps(rep, indent=1) + '\n')
+    (DATA / 'grading' / 'swatches.json').write_text(json.dumps(rep, indent=1) + '\n')
 
 
 if __name__ == '__main__':
@@ -207,4 +218,4 @@ if __name__ == '__main__':
     if args and args[0] == 'guide':
         make_guide()
     else:
-        run(HERE / (args[args.index('--sheet') + 1] if '--sheet' in args else 'generated/sheet-swatch.png'))
+        run(DATA / (args[args.index('--sheet') + 1] if '--sheet' in args else 'generated/sheet-swatch.png'))

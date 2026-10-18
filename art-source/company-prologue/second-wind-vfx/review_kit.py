@@ -5,7 +5,8 @@
 One shot per run (each opens its own state's cached ship build from
 build/_ships/, made by build_vfx.py --groups "" --save). Stills and the movie
 go to review/kit/ at 1920x1080, 100%; raw frames to build/kit/.
-Shots: approach, deep-space, derelict, berth, action and rcs (movies).
+Shots: approach, deep-space, derelict, berth, action and rcs (movies), and
+sparks (a burst and a quiet frame at the first live scar spark anchor).
 """
 import argparse
 import sys
@@ -44,6 +45,10 @@ SHOTS = {
     # geometry's RCS thrusters (patched: 18 of 24 working).
     'rcs': ('patched', 'deep-space', ((25, -95, 38), (-12, -36, 5), 32),
             dict(smk_atmosphere=0, thr_throttle=.6, thr_rcs_gain=6), None),
+    # Close-up: broken live conduit at the first sparking scar spark anchor,
+    # in air, the key dimmed; its biggest burst in 10 s and a quiet frame.
+    # The camera is placed from the anchor (None here).
+    'sparks': ('patched', 'deep-space', None, dict(smk_atmosphere=1, smk_sparks=1), None),
 }
 
 
@@ -53,13 +58,42 @@ def camera(loc, target, lens):
     return cam
 
 
+def sparks(ctx, scene, out, raw, quick):
+    import swfx_smoke
+    from mathutils import Vector
+    recs = ctx.records['smoke'].get('sparks', [])
+    if not recs:
+        raise SystemExit('sparks: the ship has no sparking scar spark anchor in this state')
+    r = recs[0]
+    at, axis = Vector(r['at']), Vector(r['axis'])
+    # From outboard and above, along the clearest line of sight (as the
+    # smoke review frames a seal wisp).
+    reach = 7 * r['radius_m'] / swfx_core.METRES_PER_UNIT
+    target = at + axis * reach * .08
+    eye = swfx_smoke.free_view(scene, target, reach, elevation=35.0,
+                               prefer=Vector((0, 1 if at.y >= 0 else -1, 0)))
+    camera(eye, target, 40)
+    if 'lit_sun' in ctx.controls.keys():
+        ctx.set('lit_sun', ctx.controls['lit_sun'] * .25)
+    burst = max(swfx_smoke.spark_bursts(r['seed'], 12, 228), key=lambda b: b[2])
+    every = [b for x in recs for b in swfx_smoke.spark_bursts(x['seed'], -40, 400)]
+    quiet = next(f for f in range(burst[0], 400) if all(not (s <= f < s + d + 15) for s, d, _ in every))
+    swfx_core.setup_render(scene, samples=16 if quick else 96)
+    swfx_core.refresh_drivers(scene)
+    for f, tag in ((burst[0] + 4, 'burst'), (quiet, 'quiet')):
+        scene.frame_set(f)
+        scene.render.filepath = str((raw if quick else out) / f'kit-patched-sparks-{tag}.png')
+        bpy.ops.render.render(write_still=True)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--shot', required=True, choices=sorted(SHOTS))
     p.add_argument('--quick', action='store_true')
     p.add_argument('--ships', default=str(HERE / 'build' / '_ships'), help='folder of cached ship builds')
     a = p.parse_args(sys.argv[sys.argv.index('--') + 1:])
-    state, preset, (loc, target, lens), knobs, frame = SHOTS[a.shot]
+    state, preset, cam, knobs, frame = SHOTS[a.shot]
+    loc, target, lens = cam or (None, None, None)
     bpy.ops.wm.open_mainfile(filepath=str(Path(a.ships) / f'{state}.blend'))
     scene = bpy.context.scene
     ctx = swfx.apply(state=state, preset=preset)
@@ -70,6 +104,9 @@ def main():
     raw = HERE / 'build' / 'kit' / a.shot
     out.mkdir(parents=True, exist_ok=True)
     raw.mkdir(parents=True, exist_ok=True)
+    if a.shot == 'sparks':
+        sparks(ctx, scene, out, raw, a.quick)
+        return
     camera(loc, target, lens)
     if frame is not None:
         swfx_core.setup_render(scene, samples=16 if a.quick else 96)

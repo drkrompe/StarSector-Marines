@@ -25,35 +25,23 @@ from mathutils import Vector
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import parts as P
+import hull as H
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 def arg(name, default):
     return argv[argv.index(name) + 1] if name in argv else default
 SAMPLES = int(arg('--samples', 48))
-BLEND = HERE / Path(arg('--blend', HERE / 'build' / 'skinned.blend'))
-OUT = HERE / Path(arg('--out', HERE / 'build' / 'review'))
+BLEND = DATA / Path(arg('--blend', DATA / 'build' / 'skinned.blend'))
+OUT = DATA / Path(arg('--out', DATA / 'build' / 'review'))
 OUT.mkdir(parents=True, exist_ok=True)
-# Whole-hull set: every side, above and below, then the close-ups.
-WHOLE = ['port-side', 'port-quarter', 'high-quarter', 'starboard-side', 'starboard-quarter', 'high-quarter-starboard',
-         'top', 'bow-quarter', 'stern', 'under-quarter']
-CLOSE = ['port-flank-detail', 'port-aft-detail', 'bow-detail', 'bridge-detail', 'turret-detail',
-         'starboard-aft-detail', 'stern-detail', 'bay-detail']
+# Whole-hull set, close-ups and extra cameras: per hull (surface_hull.py).
+WHOLE, CLOSE = H.REVIEW_WHOLE, H.REVIEW_CLOSE
 VIEWS = arg('--views', ','.join(WHOLE + CLOSE)).split(',')
 PART_ORDER = list(P.PARTS)
 SWATCH_COLOUR = (40, 40, 255)
 # (name, azimuth from +Y toward +X deg, elevation deg, ortho scale, target)
-EXTRA = {
-    'high-quarter': (45, 50, 170, (5, 0, 1)),
-    'starboard-side': (180, 0, 132, (5, 0, 1)),
-    'high-quarter-starboard': (135, 50, 170, (5, 0, 1)),
-    'bow-quarter': (70, 20, 150, (5, 0, 1)),
-    'under-quarter': (35, -35, 165, (5, 0, 1)),
-    'bay-detail': (8, 4, 34, (14, 22, 0)),
-    # The cinematics' framings at 1920x1080: C1's close starboard quarter (hull ~1,340 px
-    # long, 30 deg above the deck) and C5's yard view (starboard stern quarter, ~780 px).
-    'c1-starboard-quarter': (135, 30, 145, (5, 0, 1)),
-    'c5-starboard-stern': (230, 18, 250, (0, 0, 1)),
-}
+EXTRA = H.REVIEW_EXTRA
 
 bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 scene = bpy.context.scene

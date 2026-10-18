@@ -46,13 +46,14 @@ _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 from parts_common import *  # noqa: E402,F401,F403  direction constants
+import hull as H  # noqa: E402  which hull: its folder, part tables and constants (hull.py)
 
-# Each group owns one module, groups/<group>.py, defining PARTS and SHEETS.
+# Each group owns one module, groups/<group>.py in the hull's folder, defining PARTS and SHEETS.
 # The rollout fans out one session per group, so a group never edits another
 # group's rows; the aggregate below is what every script reads. A group that
 # fails to import (mid-edit by its owner) is skipped with a warning rather
 # than breaking every other group's run.
-GROUPS = ['port', 'starboard', 'bow', 'decks', 'turrets', 'arm', 'bay']
+GROUPS = H.GROUPS
 PARTS, SHEETS, PART_GROUP, SHEET_GROUP = {}, {}, {}, {}
 for _g in GROUPS:
     try:
@@ -92,7 +93,7 @@ def sheets_in(groups):
 
 def tiles_dir(part):
     """build/<group>/tiles: each group's scratch output is its own."""
-    d = _HERE / 'build' / PART_GROUP[part] / 'tiles'
+    d = H.DIR / 'build' / PART_GROUP[part] / 'tiles'
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -101,20 +102,10 @@ SHEET, TILE, GX, GY = (1920, 1080), (912, 513), 32, 18
 MARGIN = 0.07           # share of each tile left clear round the part, so segmentation sees background
 BACKGROUND = (214, 214, 214)
 SQUARE, SQUARE_BAND = 0.86, 0.10   # see `square` above: 30 deg off square-on is pure skin, 45 deg pure swatch
-SWATCH_UNITS = 8.0                  # hull units one swatch image spans (5.2 m at 0.65 m/unit)
+SWATCH_UNITS = H.SWATCH_UNITS              # hull units one swatch image spans (per hull: surface_hull.py)
 # Base materials -> palette class. Anything unlisted is not graded.
-MATERIAL_CLASS = {
-    'Chalked cream armor': 'cream',
-    'Oxide orange armor': 'oxide',
-    'Engine collars': 'gunmetal',
-    'Recess and machinery': 'dark',
-    'Grapple arm pale grey': 'pale',
-    # Main-drive and RCS detail (sw_engines, sw_rcs): no part skins, class swatches only.
-    'Drive bell liner': 'dark',
-    'RCS housing gunmetal': 'gunmetal',
-}
-CLASS_ID = {'cream': (255, 0, 0), 'oxide': (0, 255, 0), 'gunmetal': (0, 0, 255), 'dark': (255, 255, 0),
-            'pale': (0, 255, 255), 'other': (255, 0, 255)}
+MATERIAL_CLASS = H.MATERIAL_CLASS
+CLASS_ID = H.CLASS_ID
 
 
 def sheet_of(part):

@@ -29,23 +29,23 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import imgops as I
 import parts as P
+import hull as H
 
 HERE = Path(__file__).resolve().parent
-SRC = HERE / 'build' / 'review'
-OUT = HERE / 'review'
+DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
+SRC = DATA / 'build' / 'review'
+OUT = DATA / 'review'
 OUT.mkdir(exist_ok=True)
 PATCHED = Path(sys.argv[sys.argv.index('--patched') + 1]) if '--patched' in sys.argv else None
 if PATCHED is not None and not PATCHED.is_absolute():
-    PATCHED = HERE / PATCHED
-WHOLE = ['port-side', 'port-quarter', 'high-quarter', 'top', 'starboard-side', 'starboard-quarter',
-         'high-quarter-starboard', 'bow-quarter', 'stern', 'under-quarter']
-CLOSE = ['port-flank-detail', 'port-aft-detail', 'bow-detail', 'bridge-detail', 'turret-detail',
-         'starboard-aft-detail', 'stern-detail', 'bay-detail']
+    PATCHED = DATA / PATCHED
+WHOLE = H.get('REVIEW_SHEET_WHOLE', H.REVIEW_WHOLE)
+CLOSE = H.REVIEW_CLOSE
 PATCHED_VIEWS = ['port-quarter', 'starboard-quarter', 'port-flank-detail', 'stern-detail']
 PART_ORDER = list(P.PARTS)
 CLASS_OF = {}
 for part in P.PARTS:
-    path = HERE / 'guide' / f'{P.source_part(part)}-class.png'
+    path = DATA / 'guide' / f'{P.source_part(part)}-class.png'
     if path.exists():
         cls = I.class_masks(I.load_rgb(path))
         CLASS_OF[part] = max(cls, key=lambda c: cls[c].sum())
@@ -172,12 +172,8 @@ for v, r in results.items():
             seam_table[key] = dict(s, view=v, within_part_dE_4px=r['within_part_dE_4px'])
 
 cov = {v: r['coverage'] for v, r in results.items()}
-caption = 'Second Wind whole-hull surfacing, clean build: graded Codex part skins + graded class swatches on every other base face.'
-pages = [('views-port', ['port-side', 'port-quarter', 'high-quarter', 'top']),
-         ('views-starboard', ['starboard-side', 'starboard-quarter', 'high-quarter-starboard', 'bow-quarter']),
-         ('views-ends', ['stern', 'under-quarter', 'bow-detail', 'bridge-detail']),
-         ('views-close', ['port-flank-detail', 'port-aft-detail', 'turret-detail', 'starboard-aft-detail']),
-         ('views-close-2', ['stern-detail', 'bay-detail'])]
+caption = H.CAPTION
+pages = H.REVIEW_PAGES
 for name, views in pages:
     views = [v for v in views if v in cov]
     if views:
@@ -250,13 +246,13 @@ sheet.save(OUT / 'seams.png')
 
 # --- process: guide -> Codex -> graded, six sheets per page -------------------------
 reg, grade = {}, {}
-for f in sorted((HERE / 'registration').glob('summary-*.json')):
+for f in sorted((DATA / 'registration').glob('summary-*.json')):
     reg.update(json.loads(f.read_text()))
-for f in sorted((HERE / 'grading').glob('summary-*.json')):
+for f in sorted((DATA / 'grading').glob('summary-*.json')):
     grade.update(json.loads(f.read_text()).get('parts', {}))
-names = [n for n in P.SHEETS if (HERE / 'generated' / f'sheet-{n}.png').exists()]
+names = [n for n in P.SHEETS if (DATA / 'generated' / f'sheet-{n}.png').exists()]
 spread = {}
-for c in ('cream', 'oxide', 'gunmetal', 'dark', 'pale'):
+for c in H.CLASSES:
     before = [g[c]['before_mean_lab'] for g in grade.values() if c in g and 'after_mean_lab' in g[c]]
     after = [g[c]['after_mean_lab'] for g in grade.values() if c in g and 'after_mean_lab' in g[c]]
     if len(before) >= 2:
@@ -272,13 +268,13 @@ for page in range(0, len(names), 6):
         x0, y0 = (k % 2) * 960, (k // 2) * 330
         graded = Image.new('RGB', P.SHEET, P.BACKGROUND)
         for t, part in enumerate(P.SHEETS[name]):
-            tex = HERE / 'textures' / f'{part}.png'
+            tex = DATA / 'textures' / f'{part}.png'
             if not tex.exists():
                 continue
             tex = np.asarray(Image.open(tex).convert('RGB'), np.float32)
-            m = I.load_rgb(HERE / 'guide' / f'{part}-mask.png')[..., :1] / 255
+            m = I.load_rgb(DATA / 'guide' / f'{part}-mask.png')[..., :1] / 255
             graded.paste(Image.fromarray((tex * m + np.array(P.BACKGROUND) * (1 - m)).astype(np.uint8)), P.tile_box(t)[:2])
-        for j, im in enumerate([Image.open(HERE / 'guide' / f'sheet-{name}-guide.png'), Image.open(HERE / 'generated' / f'sheet-{name}.png'), graded]):
+        for j, im in enumerate([Image.open(DATA / 'guide' / f'sheet-{name}-guide.png'), Image.open(DATA / 'generated' / f'sheet-{name}.png'), graded]):
             sheet.paste(im.convert('RGB').resize((316, 178), Image.LANCZOS), (x0 + 4 + j * 318, y0 + 28))
         label(d, (x0 + 8, y0 + 4), f'sheet {name} ({P.SHEET_GROUP[name]}): guide / Codex / registered + graded', SMALL)
         yy = y0 + 210
@@ -288,7 +284,7 @@ for page in range(0, len(names), 6):
                 d.text((x0 + 8, yy), f'{part}: not registered', fill=(230, 120, 120), font=SMALL)
                 yy += 19
                 continue
-            held = ', '.join(f"{c} {g[c]['share_in_declared_family'] * 100:.0f}%" for c in ('cream', 'oxide', 'gunmetal', 'dark', 'pale') if c in g)
+            held = ', '.join(f"{c} {g[c]['share_in_declared_family'] * 100:.0f}%" for c in H.CLASSES if c in g)
             d.text((x0 + 8, yy), f"{part}: IoU {r['fitted_iou']:.3f}, scale {r['scale'][0]:.3f}/{r['scale'][1]:.3f}, held {held}, ramp {g['ramp_span_L_removed_max'] or 0:.1f}L",
                    fill=(230, 230, 230), font=SMALL)
             yy += 19

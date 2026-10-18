@@ -14,6 +14,7 @@ part is missing. A part missing in a state (the derelict's stripped guns)
 simply yields no anchor.
 """
 import math
+import re
 import sys
 from pathlib import Path
 import bpy
@@ -88,11 +89,36 @@ class LampAnchor:
         return f'<lamp {self.role} {self.name}>'
 
 
+class SparkAnchor:
+    def __init__(self, name, scar, label, empty, radius, sparking, source):
+        self.name = name              # the geometry's 'Scar <id> spark[-n] anchor'
+        self.scar = scar              # scar id ('test-conduit', 'D07', ...)
+        self.label = label            # 'spark', 'spark-2', ...
+        self.empty = empty            # at the broken run's end, +X the spray direction
+        self.radius = radius          # spray size (hull units, from radius_m)
+        self.sparking = sparking      # live in this state (the geometry's per-state prop)
+        self.source = source          # the declared empty
+
+    @property
+    def key(self):
+        """Name-safe key: 'Scar D07 spark-2 anchor' -> 'd07_spark_2'."""
+        return re.sub(r'[^a-z0-9]+', '_', f'{self.scar} {self.label}'.lower()).strip('_')
+
+    def __repr__(self):
+        return f'<spark {self.scar} {self.label} r={self.radius:.2f} {"live" if self.sparking else "dead"}>'
+
+
+# 'Scar <id> spark anchor', 'Scar <id> spark-2 anchor', ... (sw_damage d.anchor)
+SCAR_SPARK = re.compile(r'^Scar (.+) (spark(?:-\d+)?) anchor(\.\d+)?$')
+SPARK_RADIUS_M = 0.5    # spray size when an anchor declares no radius_m
+
+
 class Anchors:
     def __init__(self):
         self.engines = []
         self.guns = []
         self.lamps = []
+        self.sparks = []
         self.bounds = (Vector((-48, -40, -10)), Vector((52, 40, 24)))
         self.hull = None
 
@@ -108,6 +134,10 @@ class Anchors:
             'guns': [{'turret': g.turret, 'tag': g.tag, 'muzzle': w(g),
                       'axis': [round(v, 3) for v in g.empty.matrix_world.to_3x3().col[0]]} for g in self.guns],
             'lamps': [{'name': l.name, 'role': l.role, 'at': w(l)} for l in self.lamps],
+            'sparks': [{'name': s.name, 'scar': s.scar, 'label': s.label, 'sparking': s.sparking,
+                        'radius_m': round(s.radius * swfx_core.METRES_PER_UNIT, 3), 'at': w(s),
+                        'axis': [round(v, 3) for v in s.empty.matrix_world.to_3x3().col[0].normalized()]}
+                       for s in self.sparks],
             'bounds': [list(map(lambda v: round(v, 2), b)) for b in self.bounds],
         }
 
@@ -213,19 +243,40 @@ def find(scene=None, coll=None):
             r = f'{role}-{side}' if role == 'running' else role
             ob = place(f'SWFX anchor lamp {part.name}', coll, part, at, Vector((1, 0, 0)), .4)
             a.lamps.append(LampAnchor(part.name, r, ob, c, part))
+
+    # --- scar spark anchors: broken live conduit (the damage layer's) -----
+    # Every declared anchor is found, live or not, so the record shows the id
+    # persisting; only 'sparking' ones get an effect (swfx_smoke).
+    for declared in sorted(bpy.data.objects, key=lambda o: o.name):
+        m = SCAR_SPARK.match(declared.name)
+        if not m or declared.type != 'EMPTY':
+            continue
+        scar, label = m.group(1), m.group(2)
+        mw = declared.matrix_world
+        radius = swfx_core.units(float(declared.get('radius_m', SPARK_RADIUS_M)))
+        ob = place(f'SWFX anchor spark {scar} {label}', coll, declared, mw.translation.copy(),
+                   mw.to_3x3() @ Vector((1, 0, 0)), radius)
+        a.sparks.append(SparkAnchor(declared.name, scar, label, ob, radius,
+                                    bool(declared.get('sparking', False)), declared))
     return a
+
+
+GEOMETRY_ANCHOR = re.compile(r'^(Engine |RCS |Scar ).+ anchor(\.\d+)?$')
 
 
 def make_ship_root(name='SW ship root'):
     """Parent every unparented ship part to one empty at the hull origin, so a
-    shot can move the whole ship (and with it every anchored effect)."""
+    shot can move the whole ship (and with it every anchored effect). The
+    geometry's own anchor empties (engine exhaust, RCS, scar sparks) are
+    unparented in the build, so they are taken along too."""
     root = bpy.data.objects.get(name)
     if root is None:
         root = bpy.data.objects.new(name, None)
         bpy.context.scene.collection.objects.link(root)
         root.empty_display_type = 'PLAIN_AXES'
         root.empty_display_size = 20
-    for ob in ship_objects():
+    anchors = [o for o in bpy.data.objects if o.type == 'EMPTY' and GEOMETRY_ANCHOR.match(o.name)]
+    for ob in ship_objects() + anchors:
         if ob.parent is None:
             mw = ob.matrix_world.copy()
             ob.parent = root
