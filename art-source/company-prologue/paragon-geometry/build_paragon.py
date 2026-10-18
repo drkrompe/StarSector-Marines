@@ -60,15 +60,20 @@ NAME = 'Paragon'
 # Real-world scale (pipeline pass 4), from the shared sizing basis
 # (../ship_scale.py, option C): contents (1,000 crew, 300 cargo, 300 fuel) over
 # the capital machinery share, against the measured enclosed volume, the union of
-# ship_scale.SOLIDS['paragon'] (belt, main ring and lining, prow, bow module and horns,
-# command deck, gantry, aft body and pods; never the drive pods, turrets, reactor
-# domes or the emitter array). The driver
+# ship_scale.SOLIDS['paragon'] (belt, main ring, prow, bow module, horns and lobes,
+# command deck, aft body and pods; never the open bore, the shield emitter lining,
+# the deck gantry, the drive pods, turrets, reactor domes or the emitter array). The driver
 # re-measures that union on every build and fails if it drifts from
 # ship_scale.HULLS, so a shape change is carried into the shared table.
+# The published value is an owner override (2026-10-18): "It should be larger than
+# the Onslaught" (301 m). The rule solves 0.748 (271 m) after the hull was slimmed to
+# the Legion's and Onslaught's fullness; both numbers go into geometry.json.
+OVERRIDE = 'owner: larger than the Onslaught (2026-10-18)'
 if NAME in ship_scale.PUBLISHED:
     SCALE = ship_scale.record(NAME)
     METRES_PER_UNIT = ship_scale.PUBLISHED[NAME]
-    assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
+    if not OVERRIDE:
+        assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
 else:
     SCALE = None
     METRES_PER_UNIT = 1.0  # unscaled blockout: pass 4 publishes the real value
@@ -339,8 +344,8 @@ def union_volume(names, step=2.0):
     return total*step*step
 
 
-SOLIDS = ('Hull belt', 'Hull main ring', 'Hull bore lining', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
-          'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe', 'Hull core trench', 'Hull aft body', 'Hull command deck',
+SOLIDS = ('Hull belt', 'Hull main ring', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
+          'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe', 'Hull aft body', 'Hull command deck',
           'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')
 
 
@@ -355,7 +360,8 @@ def scale_record():
     if abs(measured/table-1) > .02:
         raise RuntimeError(f'enclosed volume {measured:.0f} units3 differs from ship_scale.HULLS '
                            f'{NAME} units3 {table}: update the shared table')
-    return {**SCALE, 'published_metres_per_unit': METRES_PER_UNIT, **base, 'size_m': size,
+    return {**SCALE, 'published_metres_per_unit': METRES_PER_UNIT, 'override': OVERRIDE,
+            'length_m_published': round((HI.x-LO.x)*S, 1), **base, 'size_m': size,
             'person_1_8_m_in_units': round(1.8/S, 2),
             'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number'}
 

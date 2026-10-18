@@ -40,11 +40,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.66,
+  "metres_per_unit": 0.87,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 3615276,
+      "units3": 2478771,
       "crew_max": 1000,
       "cargo": 300,
       "fuel": 300,
@@ -80,40 +80,40 @@
     "contents_total_m3": 436050,
     "machinery_share": 0.58,
     "enclosed_m3": 1038214,
-    "solved_metres_per_unit": 0.66,
+    "solved_metres_per_unit": 0.748,
     "range": {
-      "habitable_273": 0.639,
-      "habitable_328": 0.68
+      "habitable_273": 0.725,
+      "habitable_328": 0.771
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 239.0,
+    "length_m": 271.0,
     "fittings_m": {
       "deck window w x h": [
-        1.98,
-        0.73
+        1.72,
+        0.77
       ],
       "capital-mount bay w x h": [
-        13.85,
-        14.51
+        15.71,
+        16.46
       ],
       "bridge glazing band h": [
-        1.58
+        1.55
       ]
     },
-    "published_metres_per_unit": 0.66,
+    "published_metres_per_unit": 0.87,
+    "override": "owner: larger than the Onslaught (2026-10-18)",
+    "length_m_published": 315.1,
     "measured_this_build": {
-      "enclosed_units3": 3615276,
+      "enclosed_units3": 2478771,
       "solids": [
         "Hull belt",
         "Hull main ring",
-        "Hull bore lining",
         "Hull prow",
         "Hull bow module",
         "Hull port bow horn",
         "Hull starboard bow horn",
         "Hull port bow lobe",
         "Hull starboard bow lobe",
-        "Hull core trench",
         "Hull aft body",
         "Hull command deck",
         "Hull command deck upper",
@@ -125,11 +125,11 @@
     },
     "length_units": 362.2,
     "size_m": [
-      239.0,
-      210.5,
-      66.0
+      315.1,
+      277.5,
+      73.1
     ],
-    "person_1_8_m_in_units": 2.73,
+    "person_1_8_m_in_units": 2.07,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -147,7 +147,7 @@
     "min": [
       -188.1,
       -159.5,
-      -36.0
+      -20.0
     ],
     "max": [
       174.07,
@@ -157,7 +157,7 @@
     "size": [
       362.17,
       319.0,
-      100.0
+      84.0
     ]
   },
   "bore": {
@@ -178,7 +178,7 @@
     "type": "OMNI",
     "arc_deg": 360,
     "radius_units": 270,
-    "radius_m": 178.2,
+    "radius_m": 234.9,
     "ship_system": "fortressshield",
     "source": "paragon.ship shieldCenter/shieldRadius, ship_data.csv shield type OMNI arc 360",
     "emitter_nodes": [
@@ -1483,8 +1483,8 @@
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.618,
-    "white": 0.546,
+    "skin": 0.619,
+    "white": 0.549,
     "dark": 0.426,
     "agreement": 0.685,
     "silhouette": 0.959,
