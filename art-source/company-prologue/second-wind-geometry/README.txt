@@ -132,7 +132,8 @@ and every change to a base object is deferred to the end of the build, so
 each id lands in the same place in all four states. states/scar-table.md
 lists every id and its ladder. Rows live in one module per area, each owning
 its rows and any kinds of its own: sw_scars_forebody (fb-), sw_scars_pods
-(pod-), sw_scars_aft (aft-), sw_scars_spine (sp-), sw_scars_rcs (rcs-); sw_damage holds the
+(pod-), sw_scars_aft (aft-), sw_scars_spine (sp-), sw_scars_rcs (rcs-),
+sw_scars_dorsal (ds-); sw_damage holds the
 ladder, the schema, the generic kinds (basin, cluster, spall, gouge, plate,
 buckle, strip, power) and the ship-power row.
 Base objects are never renamed, replaced, deleted or re-materialled. Scars
@@ -148,16 +149,26 @@ occupied space, no fire, no new engines.
 derelict: ~8 years tethered in the belt as an unpowered parts bin, port side
   and deck to the drift. Lipped basins and strike clusters on that windward
   face, shallow dents on the lee, scrapes and gouges from glancing contact,
-  spalls, torn and unbolted deck plates, buckles, bent port fins, the port
-  outer can crushed (nozzle ring round), tether padeyes. Salvagers took the
-  pumps, coils, access panels, gun houses and hatch seals and torch-cut two
-  waist runs; the mast is sheared; the sealed starboard bay's jamb is bowed
+  spalls, torn and unbolted deck plates, buckles, bent port fins, tether
+  padeyes. Engine 1 (port outer) stove in: can dented and torn open, mouth
+  flattened about 40% and the bell cocked 5 degrees toward the strike, top
+  ram snapped, shroud collar torn. Five dorsal rips (ds-) where whole deck
+  panels tore away along their seams: torn fastener rows, a panel folded back,
+  the frame and stringers broken and pushed in at the strike, crushed and
+  severed pipe and conduit. Salvagers took the pumps, coils, access panels,
+  the two sound gun houses (turrets 2 and 4) and hatch seals and torch-cut two
+  waist runs; they left the wrecked mounts: turret 1 jammed 24 degrees off its
+  slot with a bent barrel, turret 3 holed through the roof, barrel snapped; the mast is sheared; the sealed starboard bay's jamb is bowed
   and its door creased. No power.
 patched: the escape, only what the flight needed. Collar patch on the
   sponson, welded doublers on the bow cheek and spine housing, pressure
   patches over strikes on occupied space, borrowed seals and one trunk dogged
-  shut, point defence back on adapter rings (two houses in another owner's
-  primer), the jamb shored with cargo rail and the starboard bay door welded,
+  shut, turrets 2 and 4 back on adapter rings (turret 2's house in another
+  owner's primer) while 1 and 3 fly wrecked and dead, the dorsal rips left
+  open except the forward one over the command deck (pressure plate welded
+  over it, the torn ledge showing). Re-powering the bus left four severed
+  conduits live, so they spark intermittently (the rips and turret 3's torn
+  feed), the jamb shored with cargo rail and the starboard bay door welded,
   clamp sleeves on the cut runs, jury whip and nav sensor on the mast stub.
   Starboard pod on a jury-rigged salvaged coil and feed pump, its power run
   clipped across the aft deck to the engine-room hatch; port pod cold with
@@ -165,8 +176,11 @@ patched: the escape, only what the flight needed. Collar patch on the
 refit: the limited berthing/command conversion. The collar, the spine and
   command-deck patches, the dogged trunk, the trunk seals, the mast, one
   waist run and two plates are done properly (shop primer, fresh seams).
-  Heavy craters, the dead port pod and the jury coil remain.
-restored: structurally whole, both pods running, stripped parts reinstalled.
+  Heavy craters, the dead port pod, the crushed Engine 1 and the jury coil
+  remain; the live conduit ends are booted (no sparks) and the starboard waist
+  rip is plated.
+restored: structurally whole, both pods running (Engine 1 a new can and
+  nozzle), stripped parts reinstalled and turrets 1 and 3 given new houses.
   Replacement plates repainted near (never exactly) the hull colour with
   seams visible; never-plated scars are painted-over shallow dents.
 Continuity scars from ../second-wind-skins/README.txt, remapped onto this
@@ -174,6 +188,15 @@ geometry (the old teal side pod no longer exists): the impact cluster on the
 forward port flank sits on the grapple sponson and the port bow cheek above
 it; the scarred port aft shoulder is the dead port pod's cowl; the scorched
 waist service covers are the waist service lines and port trunks.
+Effect anchors for damage: 'Scar <id> spark anchor' (and spark-2, ...)
+empties sit at severed live conduit, local +X along the spray, with sparking
+(true only in patched) and radius_m; geometry.json lists them as
+spark_anchors and the VFX kit builds an intermittent spark emitter for each
+live one. 'Engine 1 exhaust anchor' stays put, but while the can is crushed it
+carries mouth_deformed with the measured oval (mouth_minor_m, mouth_major_m,
+mouth_minor_dir), the cocked axis (mouth_axis_dir, mouth_tilt_deg) and the
+centre offset, exported in engine_anchors. Turret collars carry jammed and
+jam_deg (turret 1: 24 degrees, already baked into the mesh).
 Each state writes review renders, a .blend and geometry.json (with a damage
 record) to states/<state>/; compose_guide.py --state <state> writes the
 1920x1080 review sheet states/<state>/second-wind-<state>.reference.png.

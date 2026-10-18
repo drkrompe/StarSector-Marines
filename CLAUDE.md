@@ -40,29 +40,31 @@ worktree.
 4. Stage only paths owned by the session and commit all intended changes on the
    session branch. Do not use `git stash`, and do not modify, remove, or reuse
    another session's branch or worktree.
-5. Before integration, fetch the shared remote and merge **both** the latest
-   local `main` and `hub/main` into the session branch inside the worktree,
+5. Before integration, fetch GitHub and merge **both** the latest local
+   `main` and `origin/main` into the session branch inside the worktree,
    resolving conflicts there. Re-run relevant verification.
 
    ```powershell
-   git fetch hub
+   git fetch origin
    git merge main
-   git merge hub/main
+   git merge origin/main
    ```
 
 6. Return to the main workspace, verify that it is still on `main` and clean,
-   then integrate with a fast-forward-only merge and publish `main` to
-   `hub` with an ordinary (fast-forward) push:
+   then integrate with a fast-forward-only merge, publish `main` to GitHub
+   with an ordinary (fast-forward) push, and then mirror it to the Mac:
 
    ```powershell
    git merge --ff-only session/<unique-name>
+   git push origin main
    git push hub main
    ```
 
    If `main` advanced and the fast-forward fails, or the push is rejected
-   because `hub/main` moved, go back to the session worktree, fetch and
-   merge `main` and `hub/main` again, verify, fast-forward local `main` and
-   push again. **Never force-push**, and never push session branches. If the
+   because `origin/main` moved, go back to the session worktree, fetch and
+   merge `main` and `origin/main` again, verify, fast-forward local `main` and
+   push again. The `hub` push only follows a successful `origin` push; when
+   the Mac is unreachable, skip it. **Never force-push**, and never push session branches. If the
    main workspace has uncommitted changes, do not absorb, discard, or
    overwrite them; leave the worktree intact and report the integration
    blocker.
@@ -80,8 +82,8 @@ worktree.
 For any task in which the user has authorized repository changes, the repository
 owner gives standing authorization to complete the entire local Git workflow:
 stage the session's owned paths, commit the verified change, merge the latest
-local `main` and `hub/main` into the session branch, fast-forward local
-`main`, push `main` to `hub` (fast-forward only), and clean up the merged
+local `main` and `origin/main` into the session branch, fast-forward local
+`main`, push `main` to `origin` and then `hub` (fast-forward only), and clean up the merged
 session worktree and branch. **Do not pause to ask for a separate
 "merge it?" confirmation. Always merge a green, self-contained change into
 local `main` when the workflow above permits it.**
@@ -100,29 +102,43 @@ sibling session's merge turns into a conflict.
 
 ### More than one machine
 
-The project is worked on from more than one machine (this Windows workstation
-and a MacBook Pro reached over SSH as `dillmac.local`), each with its own clone
-and its own local `main`. The meeting point is the bare repository
-`/Users/dillon/git/starsectormarines.git` on the Mac, the remote `hub` in every
-clone. It is not GitHub: the history holds gigabytes of binary art, which is
-past what GitHub accepts in a push, so `origin` is not pushed.
+**GitHub (`origin`) is the source of truth** (owner, 2026-10-18). Every
+integration lands on `origin/main` first; a change that is not there is not
+integrated. The project is worked on from this Windows workstation and a
+MacBook Pro, each with its own clone and its own local `main`.
 
+The Mac also holds a bare mirror, `/Users/dillon/git/starsectormarines.git`,
+the remote `hub` in every clone. It is an accelerator, never an authority: a
+fast LAN copy for fetching and for setting up a clone or session quickly. It
+only ever receives `main` after `origin` has accepted it, so it equals
+`origin/main` or lags it. Never integrate against `hub/main`, never push to
+`hub` what `origin` has not taken, and when the two disagree `origin` wins.
+
+- Fetching: `git fetch hub` first is optional and makes the following
+  `git fetch origin` nearly free on a big catch-up; `origin/main` is what you
+  merge.
 - On Windows, `hub` is `ssh://dillon@192.168.1.97/Users/dillon/git/starsectormarines.git`
   and the clone sets `core.sshCommand` to
   `C:/Windows/System32/OpenSSH/ssh.exe -o HostKeyAlias=dillmac.local`. The
   `dillmac.local` name resolves only intermittently from this machine, so the
   remote names the Mac's address and the alias keeps the host-key check on the
   Mac's own key. If the address changes, update the URL; never drop the alias.
+- On the Mac, `hub` is the local path `/Users/dillon/git/starsectormarines.git`
+  and `origin` is GitHub over SSH.
+- At the start of a session, `git fetch origin` and fast-forward local `main`
+  to `origin/main` from the main workspace when it is behind, before cutting
+  a worktree.
 - History was rewritten on 2026-10-18 to drop rendered output (every commit id
   changed; trees did not). A branch or worktree cut before that is on the old
   history: never merge it into `main`, which would bring every purged render
-  back. Reset it onto `main` once it holds no commits of its own, or
-  cherry-pick the commits it does hold.
-- On the Mac, `hub` is the local path `/Users/dillon/git/starsectormarines.git`.
-- At the start of a session, `git fetch hub` and fast-forward local `main` to
-  `hub/main` from the main workspace when it is behind, before cutting a
-  worktree. When the Mac is unreachable, integrate locally and push when it
-  is back; never point `hub` anywhere else.
+  back. To move one onto `main` once it holds no commits of its own, first
+  list the files the reset would delete
+  (`git diff --name-only --diff-filter=D HEAD main | git check-ignore --stdin > list`),
+  then `git reset --hard main`, then
+  `git restore --source=<old HEAD> --worktree --pathspec-from-file=list`:
+  a reset deletes renders that were tracked at the old commit even though
+  they are ignored now. Never `git gc` or prune while old worktrees exist;
+  the old objects are their only recovery source.
 
 ### Never commit rendered output
 
@@ -143,10 +159,45 @@ Do not run builds or leave generated task files there.
 Rendered output and other large regenerable files that should reach the other
 machine (or the owner's phone) go to the shared Google Drive folder, never into
 git: `G:\My Drive\starsector` on Windows and
-`~/Library/CloudStorage/GoogleDrive-*/My Drive/starsector` on the Mac. It syncs
-in about half a minute. It is a transfer and viewing area, not version control:
-each machine writes only its own outputs (two writers to one file produce
-conflict copies), and a build copies what it needs local before reading it.
+`~/Library/CloudStorage/GoogleDrive-<account>/My Drive/starsector` on
+the Mac. It syncs in about half a minute. It is a transfer and viewing area,
+not version control, and a build copies what it needs local before reading it.
+
+#### Review sets for the owner
+
+Every set of images or video put in front of the owner for a decision goes
+under `starsector/review/`, laid out **by asset, then by run**:
+
+```
+review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
+    NOTES.md
+    01-<view>.png  02-<view>.png  ...
+    <subfolder>/   (only when a run has natural groups: states, close-ups)
+```
+
+- `<asset>` is the package's slug without its suffix: `second-wind`, `hound`,
+  `mudskipper`, `legion`, `hermes`, `shepherd`, `fighters`, `cinematic-<shot>`.
+  One folder per thing the owner reviews, whichever session or machine made it.
+- `<what>` names the pass or question in a few hyphenated words
+  (`pass2-detail`, `pass6-texture`, `damage-round3`, `c2-composites`).
+  `<machine>` is `windows` or `mac`. The date sorts runs oldest first, so the
+  newest run is the last folder.
+- **One run, one writer.** A session creates a new run folder and writes only
+  into it; it never adds to, renames or deletes another run's folder, and a
+  re-render after feedback is a new run, not an overwrite. That is what keeps
+  sessions on two machines from producing Drive conflict copies.
+- `NOTES.md` is short: the commit the renders were built from, what changed
+  since the last run, what the owner should look at and decide, and any
+  measured numbers (IoU, scale, coverage). Image names start with a two-digit
+  order so the folder reads in the order the notes describe.
+- Images obey the preview rule (1920x1080, 100% scale). Copy finished images
+  only, never frame sequences or scratch.
+- Tell the owner the run folder's path when the set is ready.
+- **Cleanup is automatic.** After posting a run, prune its asset:
+  `python3 tools/review_prune.py --asset <asset> --apply` (`python` on Windows).
+  Each asset keeps its three newest runs plus any the owner marked, either
+  with a folder name ending `_keep` or with a file named `KEEP` inside.
+  Deletes go to Drive's trash for 30 days. Without `--apply` it only reports.
 
 ## Build & deploy
 

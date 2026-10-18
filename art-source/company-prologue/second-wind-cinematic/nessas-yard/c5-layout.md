@@ -113,7 +113,7 @@ the same cues for listening; the player schedules them for real.
 ## Build
 
 ```bash
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py -- --samples 16
+sh ../../../blender.sh --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py -- --samples 16
 python render_c5_hull.py --samples 96         # layers/c5-hull.png, layers/c5-hull-shadow.png (appends second-wind-states/patched)
 python compose_c5.py                          # review/c5-t*.png and review/c5-contact.png
 python compose_c5.py --frames --mp4           # build/cinematic/c5-nessas-yard/{frames,c5-nessas-yard.mp4,timeline.json}

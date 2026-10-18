@@ -31,6 +31,7 @@ import argparse
 import importlib
 import json
 import math
+import os
 import sys
 import bpy
 from mathutils import Vector
@@ -38,14 +39,18 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_engines, lg_fittings, lg_turrets
-for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_engines, lg_fittings, lg_turrets):
+import lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_ventral, lg_engines, lg_fittings, lg_turrets
+for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_droop, lg_ventral, lg_engines, lg_fittings, lg_turrets):
     importlib.reload(module)
 # C2's shared camera, sun and track model (read only; pure standard library).
 sys.path.insert(0, str(HERE.parent/'second-wind-cinematic'/'patrol-abeam'))
 import c2_core
 
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
+# The read-only install's core folder: $STARSECTOR_CORE if set, else the platform
+# default (macOS keeps it inside the app bundle).
+GAME = Path(os.environ.get('STARSECTOR_CORE') or (
+    '/Applications/Starsector.app/Contents/Resources/Java' if sys.platform == 'darwin'
+    else r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core'))
 SHIP = 'data/hulls/legion.ship'
 SKIN = 'data/hulls/skins/legion_xiv.skin'
 SPRITE = 'graphics/ships/legion/legion_xiv.png'
@@ -85,7 +90,8 @@ NON_HABITABLE_BUDGET = {  # share of the pressure hull, judged; the hangar share
 }
 PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull ventral keel', 'Hull dorsal spine', 'Hull tail spine', 'Bridge command dome',
                  'Wing port sponson', 'Wing starboard sponson'] + [
-    f'Wing {s} hangar' for s in ('port', 'starboard')]
+    f'Wing {s} hangar' for s in ('port', 'starboard')] + [
+    f'Wing {s} transfer gallery' for s in ('port', 'starboard')]   # pass 2b: the hangar-to-hold transfer trunks
 MACHINERY = ['Hull engine block', 'Hull port engine housing', 'Hull starboard engine housing']
 
 parser = argparse.ArgumentParser()
@@ -141,6 +147,7 @@ lg_hull.build(kit)
 lg_bridge.build(kit)
 lg_wings.build(kit)
 lg_droop.apply(kit)   # anhedral, before anything seats itself by ray-cast
+lg_ventral.build(kit)  # the underside: belly fittings, pockets cut into the ventral keel
 lg_engines.build(kit)
 lg_fittings.build(kit)
 lg_turrets.build(kit)
@@ -365,10 +372,12 @@ def scale_record():
                        'this hull': f'{round(300*METRES_PER_UNIT)} m long and {round(294*METRES_PER_UNIT)} m wide, '
                                     f'{round(hull*METRES_PER_UNIT**3/1000)}k m3 enclosed for 700-1500 crew',
                        'per crew at max crew m3': round(hull*METRES_PER_UNIT**3/1500)},
-        'cross_checks_m': {'forward hangar mouth w x h': [round(lg_wings.DECKS['forward']['mouth_width']*S, 1),
-                                                          round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
-                           'aft hangar mouth w x h': [round(lg_wings.DECKS['aft']['mouth_width']*S, 1),
-                                                      round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
+        'cross_checks_m': {'forward hangar mouth w x h': [round(lg_wings.clearances()['forward_mouth']['clear_width']*S, 1),
+                                                          round(lg_wings.clearances()['forward_mouth']['clear_height']*S, 1)],
+                           'aft hangar mouth w x h': [round(lg_wings.clearances()['aft_mouth']['clear_width']*S, 1),
+                                                      round(lg_wings.clearances()['aft_mouth']['clear_height']*S, 1)],
+                           'transfer door w x h': [round(lg_wings.clearances()['transfer_door']['clear_width']*S, 1),
+                                                   round(lg_wings.clearances()['transfer_door']['clear_height']*S, 1)],
                            'fighters (length x span) m, own scales': {k: [round(v[0]*v[3], 1), round(v[1]*v[3], 1)] for k, v in CRAFT.items()},
                            'fighters (length x span) in Legion units': {k: [round(v[0]*v[3]/S, 1), round(v[1]*v[3]/S, 1)] for k, v in CRAFT.items()},
                            'hull keel to crown': round((HI.z-LO.z)*S, 1),
@@ -414,6 +423,7 @@ if not args.no_save:
         'dimensions': {'min': [round(v, 2) for v in LO], 'max': [round(v, 2) for v in HI],
                        'size': [round(b-a, 2) for a, b in zip(LO, HI)]},
         'flight_decks': [lg_droop.correct(lg_wings.deck_record(s)) for s in lg_wings.LAUNCH_BAYS],
+        'hangar_fit': lg_wings.fit_table(METRES_PER_UNIT),
         'weapon_slots': lg_turrets.records(),
         'engines': lg_engines.records(),
         'running_lights': lg_fittings.records(),
@@ -447,3 +457,4 @@ if not args.no_save:
                 manifest[key] = old[key]
     path.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
     print('scale', json.dumps(manifest['scale']))
+    lg_wings.print_fit_table(manifest['hangar_fit'])

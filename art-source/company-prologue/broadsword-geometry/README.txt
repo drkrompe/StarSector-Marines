@@ -107,7 +107,7 @@ sun from high aft, black space), nose-, cockpit-, gun- and engine-detail.png,
 broadsword-geometry.reference.png (sheet), pass2-before-after.png.
 
 Rebuild (from this folder; render processes one at a time)
-  "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_broadsword.py -- --views top,port-side,front,stern,three-quarter,space-sun,details
+  sh ../../blender.sh --background --factory-startup --python build_broadsword.py -- --views top,port-side,front,stern,three-quarter,space-sun,details
   python compose_review.py
 Blockout: add --blockout --out reference-history/v1-blockout, then
   python compose_review.py --dir reference-history/v1-blockout

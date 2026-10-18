@@ -204,7 +204,7 @@ top-alpha.png: the transparent top render the IoU is measured from.
 hound-geometry.reference.png: 1920x1080 review sheet.
 
 Rebuild from this folder
-"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_hound.py
+sh ../../blender.sh --background --factory-startup --python build_hound.py
 python compose_review.py
 Options after "--": --out DIR, --views a,b ('details' = all close-ups),
 --samples N, --res WxH, --no-save, --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE.

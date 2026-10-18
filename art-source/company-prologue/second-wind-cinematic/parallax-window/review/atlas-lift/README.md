@@ -18,7 +18,7 @@ to apparent screen speed. The next shot continues right by 50.28 pixels.
 Run these PowerShell commands from the `parallax-window` directory:
 
 ```powershell
-& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python-exit-code 1 --python lift_motion.py -- --render
+sh ../../../../../blender.sh --background --factory-startup --python-exit-code 1 --python lift_motion.py -- --render
 python assemble_lift.py
 ```
 

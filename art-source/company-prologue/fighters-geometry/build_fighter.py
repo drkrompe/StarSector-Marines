@@ -48,7 +48,8 @@ from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
+sys.path.insert(0, str(HERE.parents[1]))
+from starsector_path import GAME_CORE as GAME
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--fighter', required=True)

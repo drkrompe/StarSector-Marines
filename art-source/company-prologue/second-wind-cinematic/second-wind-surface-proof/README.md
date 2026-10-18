@@ -81,7 +81,7 @@ solid lift-placeholder cones remain obvious limitations.
 ## Regeneration
 
 Run in this folder using Blender 5.2 background mode and Python with Pillow.
-`B` below denotes `C:/Program Files/Blender Foundation/Blender 5.2/blender.exe`;
+`B` below denotes `sh ../../../blender.sh` (`$BLENDER` if set, else the platform's Blender 5.2);
 `P` denotes the configured bundled Python. FFmpeg and FFprobe must be on PATH.
 
 ```text

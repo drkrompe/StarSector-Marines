@@ -1,6 +1,6 @@
 """C2 PATROL ABEAM: the Hegemony Dominator's blockout on its planned track.
 
-"C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe" --background
+sh ../../../blender.sh --background
     --factory-startup --python patrol_guide.py [-- --blockout-only]
 
 The hull is a heightfield built from the vanilla top-down sprite (read-only, from the
