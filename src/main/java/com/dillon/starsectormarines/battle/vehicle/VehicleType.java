@@ -166,6 +166,38 @@ public enum VehicleType {
         }
         @Override public float sightCells() { return 48f; }
     },
+    /**
+     * Tri-Tachyon's hover scout, a purpose-built corporate hull and not a field rig: a lift-fan skirt under a
+     * sleek composite shell, a sensor cluster that reports to its side as the spotter pickup's mast does
+     * ({@link ScoutSight}), and a light twin pulse emitter of the Wisp family for screening. Hover is a real
+     * trade ({@link HoverSkirt}): it crosses water and rubble no wheel can, and it cannot shove a body aside.
+     * It pays in plate — thinner than the technical — and it is slower than the stripped pickup. Its sheet draws the
+     * emitter at the hull's own scale, so the turret frame spans the hull frame (art-source/vehicles/tt-hover).
+     */
+    HOVER_SCOUT("graphics/battle/vehicles/tt-hover-scout.png", 0, 4, -90f,
+            0, 2.625f, 1.45f, 4.6f, 3.2f, 4.2f, .8f, 2.2f,
+            1, 0f, -.15f, 0f, 0f, 2.625f, -90f,
+            TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID, 240f, 50f, 6f, 1.15f, .55f) {
+        @Override public GroundBody createBody() {
+            // A skirt slews faster than a steered axle; bounded curvature stays the planners' shared contract.
+            return new BicycleBody(1.3f, 38f, 260f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public float sightCells() { return 40f; }
+    },
+    /**
+     * The hover scout's hull stretched over a drone bay: a Tri-Tachyon carrier whose drones are its weapon. It
+     * carries no gun of its own; it launches a tethered flight of drone-pulse drones that escort it, crewed
+     * remote control rather than free autonomy, and they fall when the carrier is wrecked. Drones lost stay lost.
+     * Its sheet has no turret frames (art-source/vehicles/tt-hover).
+     */
+    DRONE_SKIMMER("graphics/battle/vehicles/tt-drone-skimmer.png", 0, 4, -90f,
+            0, 3.25f, 1.85f, 3.6f, 2.4f, 3.8f, .8f, 2.6f,
+            -1, 0, 0, 0, 0, 0, 0, null, 360f, 110f, 8f, 1.25f, .6f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.7f, 34f, 220f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public int droneComplement() { return 4; }
+    },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
             0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
@@ -180,6 +212,9 @@ public enum VehicleType {
      * for every hull that carries none.
      */
     public int supplyStock() { return 0; }
+
+    /** Drones this hull launches and tethers to itself, or 0 for every hull that carries none. */
+    public int droneComplement() { return 0; }
 
     /** How far this hull reports what it sees to its side, in cells; 0 for a hull that is not a sight source. */
     public float sightCells() { return 0f; }
@@ -201,6 +236,18 @@ public enum VehicleType {
     public boolean isPickup() {
         return this == MILITIA_TECHNICAL || this == SUPPLY_TRUCK || this == SCOUT_CAR;
     }
+
+    /**
+     * Tri-Tachyon's hover hulls. A skirt floats over water and rubble a wheel or a track cannot cross, and it has
+     * no purchase to shove a body with ({@link HoverSkirt}).
+     */
+    public boolean isHover() { return this == HOVER_SCOUT || this == DRONE_SKIMMER; }
+
+    /**
+     * Whether this hull shoves bodies out of its way, by contact and by bow wave. A hover skirt has nothing to shove
+     * with, so a hover hull cannot clear a road by driving into people; every wheeled and tracked hull does.
+     */
+    public boolean repelsBodies() { return !isHover(); }
 
     /** The breakthrough hull and the variants built on it. */
     public boolean isTank() {
@@ -368,8 +415,8 @@ public enum VehicleType {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR -> LiftClass.LIGHT;
-            case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC -> LiftClass.MEDIUM;
+            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT -> LiftClass.LIGHT;
+            case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER -> LiftClass.MEDIUM;
             case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
