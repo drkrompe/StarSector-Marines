@@ -15,7 +15,7 @@ import pg_hull
 SHIELD_CENTER = (1, 0)
 SHIELD_RADIUS = 270
 SHIELD_ARC = 360
-NODE_R = 66.0
+NODE_R = 71.6  # on the lining's flat top, behind the rounded lip
 NODE_ANGLES = [15+30*k for k in range(12)]
 RECORDS = {}
 
@@ -37,10 +37,10 @@ def build(kit, metres_per_unit):
         if x < -18 and abs(y) < 30:  # under the core's nose
             continue
         n = len(nodes)+1
-        K.revolve(kit, f'Shield emitter node {n} base', [(0, -1), (4.6, -1), (4.6, 1.2), (3.4, 2.4), (0, 2.4)],
+        K.revolve(kit, f'Shield emitter node {n} base', [(0, -1), (3.6, -1), (3.6, 1.2), (2.7, 2.2), (0, 2.2)],
                   kit.pale, center=(x, y, top), segments=8, smooth=False)
-        K.revolve(kit, f'Shield emitter node {n} lens', [(0, 0), (2.2, 0), (1.9, 1.0), (0, 1.5)],
-                  kit.glow, center=(x, y, top+2.3), segments=16)
+        K.revolve(kit, f'Shield emitter node {n} lens', [(0, 0), (1.8, 0), (1.5, .9), (0, 1.3)],
+                  kit.glow, center=(x, y, top+2.1), segments=16)
         face = math.degrees(math.atan2(cy-y, cx-x))
         e = kit.empty(f'Shield emitter node {n}', (x, y, top+3.8), face, 'SINGLE_ARROW', 4)
         nodes.append({'name': e.name, 'location': [round(x, 2), round(y, 2), round(top+3.8, 2)],
