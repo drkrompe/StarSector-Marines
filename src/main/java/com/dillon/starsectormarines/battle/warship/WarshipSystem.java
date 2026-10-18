@@ -806,9 +806,10 @@ public final class WarshipSystem {
         float[] station = WarshipEscort.station(lead.centerX(), lead.centerY(), WarshipEscort.noseBearingDegrees(lead),
                 WarshipEscort.ringRadius(lead, ship), ship.escortAngle(), slot, Math.max(1, mates.size()),
                 WarshipEscort.lineSpacing(ship));
-        // The screen stays over the battle, off its edges: a lead flying off the edge is followed out only once it has gone.
-        float[] kept = new WarshipEdgeHelm(mapWidth, mapHeight).settle(ship, station[0], station[1]);
-        ship.escortTo(kept[0], kept[1]);
+        // The screen stays over the battle: a lead flying off the edge is followed out only once it has gone.
+        float margin = 0.5f * ship.lengthCells + WarshipDuelHelm.EDGE_MARGIN_CELLS;
+        ship.escortTo(Math.max(margin, Math.min(mapWidth - margin, station[0])),
+                Math.max(margin, Math.min(mapHeight - margin, station[1])));
     }
 
     private boolean autoEscort;
