@@ -37,7 +37,8 @@ public final class FrigateVisitScene implements BehaviorScene {
     private static final int HEIGHT = 68;
     private static final float DWELL_SECONDS = 10f;
     private static final int OUTLAST_TICK = 900;
-    private static final int TICKS = 3600;
+    /** The window grows with the hull fight's durability, as the fight it watches does. */
+    private static final int TICKS = Math.round(3600 * WarshipScale.HULL_DURABILITY);
     private static final int FRAME_EVERY = 8;
     /** Ticks per second of simulation. */
     private static final float TICK_HZ = 30f;

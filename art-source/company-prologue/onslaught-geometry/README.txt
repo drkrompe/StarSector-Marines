@@ -78,7 +78,7 @@ Scale (pass 4; geometry.json 'scale')
   From the shared ship_scale.py: contents (1,500 crew, 300 cargo, 400 fuel) over
   the capital machinery share against the measured enclosed volume (union of
   ship_scale.SOLIDS['onslaught'], 3.42 M units3, re-measured each build).
-  Published 0.86 m/unit (solved 0.859): about 302 m long.
+  Published 0.86 m/unit (solved 0.856): about 301 m long.
   Final by the owner's rule (a capital like the Legion, shared rule, no
   override); it moves only when the measured shape does. ship_scale flags it,
   as it flags the Legion (3.35x the Lasher's length; the sprites give 4.0x).
@@ -86,7 +86,9 @@ Scale (pass 4; geometry.json 'scale')
   1.8 m, ledge service hatches 0.9 x 1.4 m; a 1.8 m person is 2.1 units.
 
 Status
-  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 rounds 1-3 (terraced,
-  curved; a bulky brawler: tilted chined forearms, V belly, stepped skyline to a
-  command tower, raked stern blades; turrets flush on the hull; joins audited;
-  IoU 0.960). In progress with the owner.
+  Pass 1 blockout, pass 2 detail, pass 4 scale; pass 3 rounds 1-11 with the owner:
+  thick curving brawler; tilted chined forearm arms with the sprite's armour (orange
+  edge rail, dark sponson, deck channels); planed V underside; stepped skyline up
+  to a faceted armoured citadel and down aft; gun noses leading; raked stern spurs;
+  turrets set into the hull in flush rings; joins audited. IoU 0.956. Awaiting the
+  owner's review.

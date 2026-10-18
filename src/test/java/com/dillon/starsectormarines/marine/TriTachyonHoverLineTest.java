@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.drone.DroneRole;
+
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -78,12 +80,13 @@ class TriTachyonHoverLineTest {
         assertEquals(TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID, scout.turretStructureId);
         assertTrue(scout.hasTurretWeapon());
         assertTrue(scout.sightCells() > 0f);
-        assertEquals(0, scout.droneComplement());
+        assertEquals(List.of(DroneRole.SENSOR, DroneRole.SENSOR), scout.droneBay(), "a sensor pair, nothing armed");
 
         VehicleType skimmer = VehicleType.DRONE_SKIMMER;
         assertNull(skimmer.turretStructureId);
         assertFalse(skimmer.hasTurretWeapon());
-        assertTrue(skimmer.droneComplement() > 0);
+        assertEquals(List.of(DroneRole.ESCORT, DroneRole.ESCORT, DroneRole.HALO, DroneRole.HALO, DroneRole.STRIKE),
+                skimmer.droneBay());
         assertEquals(0f, skimmer.sightCells());
 
         // Both pay in plate: thinner than the technical, and neither carries a squad.

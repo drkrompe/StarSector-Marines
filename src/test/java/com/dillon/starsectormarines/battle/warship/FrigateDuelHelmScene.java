@@ -216,6 +216,10 @@ public final class FrigateDuelHelmScene implements BehaviorScene {
                 closest = Math.min(closest, gap);
                 float reach = WarshipDuelHelm.reach(s);
                 if (gap > reach) continue;
+                // A manoeuvre holding a course of its own (an extend or a break opening the range, an orbit circling,
+                // a come-about turning back) turns the ship away on purpose: the manoeuvre layer, not the helm, owns
+                // its heading then, so its ticks say nothing about whether the helm lays the strongest gun.
+                if (!Float.isNaN(s.manoeuvre().heading)) continue;
                 boolean on = strongestBears(s, target);
                 if (wolves.contains(s)) {
                     wolfIn++;

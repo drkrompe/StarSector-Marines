@@ -36,6 +36,9 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  */
 public final class ConvoyRenderSystem implements RenderSystem {
 
+    /** How far a hover hull's shadow lies from it, down and to the right of a light from the upper left, in cells. */
+    static final float HOVER_SHADOW_CELLS = .35f;
+
     private final BattleSprites sprites;
 
     public ConvoyRenderSystem(BattleSprites sprites) {
@@ -75,19 +78,13 @@ public final class ConvoyRenderSystem implements RenderSystem {
             float chassisFacingDeg = body.facingDegrees + type.spriteFacingOffsetDeg;
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
-            boolean paved = ctx.sim.getTopology().isStreet((int) body.x, (int) body.y);
-            if (!wrecked && !paved && Math.abs(body.speed) > .3f && cellPx >= 4f) {
-                float bearing = (float) Math.toRadians(body.facingDegrees);
-                float fx = -(float) Math.sin(bearing), fy = (float) Math.cos(bearing);
-                float pulse = (ctx.sim.getSimTickIndex() % 12) / 12f;
-                for (int i = 0; i < 5; i++) {
-                    float trail = type.visualLengthCells * .5f + .1f + (i + pulse) * .55f;
-                    float spread = .4f + i * .14f;
-                    float x = body.x - fx * trail, y = body.y - fy * trail;
-                    out.addLine(RenderLayer.CONVOY, cam.cellToScreenX(x - fy * spread), cam.cellToScreenY(y + fx * spread),
-                            cam.cellToScreenX(x + fy * spread), cam.cellToScreenY(y - fx * spread), cellPx * .5f,
-                            .60f, .54f, .40f, alphaMult * .13f * (1f - i / 6f));
-                }
+            if (type.isHover() && !wrecked) {
+                // A hover hull rides clear of the ground, so its shadow lies apart from it, away from the light.
+                out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                        f.x, f.y, f.w, f.h,
+                        cam.cellToScreenX(body.x + HOVER_SHADOW_CELLS), cam.cellToScreenY(body.y - HOVER_SHADOW_CELLS),
+                        drawLong * 1.02f, drawShort * 1.02f, chassisFacingDeg,
+                        0f, 0f, 0f, alphaMult * .38f);
             }
             float[] tint = type.hullTint();
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,

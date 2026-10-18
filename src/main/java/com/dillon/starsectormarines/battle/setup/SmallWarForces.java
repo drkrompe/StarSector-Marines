@@ -25,17 +25,17 @@ public final class SmallWarForces {
 
     public static final List<Group> GROUPS = List.of(
             new Group("customs-watch", "Drent Haulage customs watch", Outfit.DRENT_HAULAGE, 4,
-                    58, 173, "customs block", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    BlackSluice.APPROACH + 58, 173, "customs block", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("road-crew", "Drent Haulage transfer-road crew", Outfit.DRENT_HAULAGE, 4,
-                    116, 164, "causeway at the support gun", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    BlackSluice.APPROACH + 116, 164, "causeway at the support gun", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("fuel-crew", "Drent Haulage fuel crew", Outfit.DRENT_HAULAGE, 4,
-                    123, 174, "fuel-control house", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    BlackSluice.APPROACH + 123, 174, "fuel-control house", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("service-picket", "Drent Haulage service-road picket", Outfit.DRENT_HAULAGE, 4,
-                    150, 127, "service road", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    BlackSluice.APPROACH + 150, 127, "service road", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("dispatch-hold", "Berth Four dispatch hold", Outfit.BERTH_FOUR, 6,
-                    166, 160, "dispatch house", Commitment.AT_START, -1, SplitSide.HOLDS),
+                    BlackSluice.APPROACH + 166, 160, "dispatch house", Commitment.AT_START, -1, SplitSide.HOLDS),
             new Group("prize-crew-gate", "Prize crew, dispatch gate", Outfit.PRIZE_CREW, 4,
-                    155, 164, "dispatch gate", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    BlackSluice.APPROACH + 155, 164, "dispatch gate", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             // The pier crew hold the berth gate at the end of the berth yard: the one way down to the prize ship.
             new Group("prize-crew-pier", "Prize crew, pier", Outfit.PRIZE_CREW, 4,
                     BlackSluice.GATE_X - 8, BlackSluice.GATE_Y, "berth gate", Commitment.AT_START, -1, SplitSide.HOLDS),

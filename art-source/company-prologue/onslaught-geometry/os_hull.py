@@ -108,7 +108,7 @@ TERRACE_C = (14.0, 0.0)           # centre of the round core terrace (the sprite
 TERRACE_R = 52.0                  # its batter (R 44..52) lies outboard of the gun ring (R 32..40)
 INNER_R = 27.0
 GALLERY_TOP = 17.0                # the arm galleries (os_arms)
-PROW_GALLERY_TOP = 31.5           # the prow gallery top tier, climbing aft to the spine glacis
+PROW_GALLERY_TOP = 40.0           # the prow gallery's glacis crest, under the spine (round 6)
 TERRACE_TOP = 36.0
 INNER_TOP = 40.0
 # The citadel's gun shelves (port plans, mirrored): the aft shelf under WS 014/015 and
@@ -261,18 +261,33 @@ def _table(tbl, x):
     return tbl[-1][1]
 
 
-FORE_W = [(225, 7.5), (220, 10.5), (216, 14.5), (212, 16.5), (200, 18.5), (196, 22.5), (192, 25.5), (172, 29.5),
+# Round 7 (critic 1.2: in bow-detail the stem read as a faceted ball - five short stations
+# between X 225 and 212 curled its top over and rounded its flanks): the stem is ONE ruled
+# span from the stem head (X 225) to STEM_X, so its faces are flat armour plates meeting on
+# hard chines: the top chamfer rises aft at STEM_TOP deg from the stem head to the bow deck
+# (it runs on up the bow gallery's nose to 8.5), the sides rake about 27 deg off the
+# centreline in plan between the upper and lower chines, and the forefoot runs straight
+# down and aft to the keel. Each chine runs parallel at both ends of the span, so every
+# face is one true plane. The shoulder skins (os_armour) end on the chamfer's chine.
+STEM_X = 205.0
+STEM_TOP = 35.0
+STEM_DECK_Z = 8.5-2.0*math.tan(math.radians(STEM_TOP))
+STEM_HEAD_Z = STEM_DECK_Z-(225.0-STEM_X)*math.tan(math.radians(STEM_TOP))
+FORE_W = [(225, 8.0), (205, 17.7), (200, 18.5), (196, 22.5), (192, 25.5), (172, 29.5),
           (148, 34.5), (120, 39.5), (104, 41.5), (60, 58), (20, 74), (0, 82), (-18, 84)]
-FORE_YI = [(225, 2.5), (216, 4), (200, 6), (186, 8), (150, 12), (126, 13), (104, 12), (80, 22), (60, 30), (40, 40),
+FORE_YI = [(225, 2.0), (205, 5.4), (200, 6), (186, 8), (150, 12), (126, 13), (104, 12), (80, 22), (60, 30), (40, 40),
            (20, 50), (0, 56), (-18, 58)]
-FORE_ZI = [(225, -3), (218, 6), (214, 7), (200, 7.5), (172, 8.5), (150, 11), (126, 16), (110, 23),
+FORE_ZI = [(225, STEM_HEAD_Z), (STEM_X, STEM_DECK_Z), (200, 7.5), (172, 8.5), (150, 11), (126, 16), (110, 23),
            (104, 27), (80, 28), (60, 29), (30, 28), (0, 26), (-18, 25)]
-FORE_ZK = [(225, -4), (216, 0), (200, 1.5), (172, 2.5), (148, 3.5), (120, 4), (104, 4), (60, 3.5), (20, 2.5),
+FORE_ZK = [(225, STEM_HEAD_Z-6.0*(STEM_DECK_Z-1.0)/(17.7-5.4)), (205, 1.0), (200, 1.5), (172, 2.5), (148, 3.5), (120, 4), (104, 4), (60, 3.5), (20, 2.5),
            (0, 1.5), (-18, 1)]
-FORE_ZL = [(225, -8), (216, -12), (200, -15), (172, -17), (104, -18), (60, -18), (0, -16), (-18, -15)]
-FORE_FL = [(225, 1), (216, 2.5), (196, 4), (150, 6), (104, 8), (60, 10), (0, 12), (-18, 12)]
-FORE_KW = [(225, 2), (216, 3), (104, 5), (-18, 5)]
-FORE_KEEL = [(225, -10), (216, -19), (104, -34), (60, -34), (0, -30), (-18, -28)]
+FORE_ZL = [(225, -12.5), (205, -14.1), (200, -15), (172, -17), (104, -18), (60, -18), (0, -16), (-18, -15)]
+FORE_FL = [(225, .6), (205, 3.3), (196, 4), (150, 6), (104, 8), (60, 10), (0, 12), (-18, 12)]
+# Round 11: forward of the forefoot (X 168) the forebody's keel flat is the ship's keel; aft
+# of it the belly (below) carries the underside, so the forebody's own keel rises out of
+# sight inside it.
+FORE_KW = [(225, 2), (205, 3.2), (168, 4.0), (104, 5), (-18, 5)]
+FORE_KEEL = [(225, -15.6), (205, -20.5), (168, -26.0), (160, -24.0), (-18, -22.0)]
 # Stations at every table breakpoint, so each face between two is one flat plate
 # and the armour skins (os_armour), sampled on the same planes, lie flush on it.
 FORE_STATIONS = sorted({x for t in (FORE_W, FORE_YI, FORE_ZI, FORE_ZK, FORE_ZL, FORE_FL, FORE_KW, FORE_KEEL)
@@ -307,13 +322,9 @@ def fore_section(x):
     return [(-y, z) for y, z in reversed(half)]+half
 
 
-# The belly: a deep armoured wedge under the core, not a pod. Its top is buried
-# in the forebody; below the forebody's lower chine it shows as two more chines
-# stepping in to a keel flat, deepest under the citadel, and its keel line
-# carries on from the prow's forefoot in straight runs: down from X 170, level
-# under the citadel, up to the stern. From ahead it is the wedge between the arms.
-BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 60), (0, 63), (-22, 62), (-40, 52),
-           (-52, 46), (-64, 38)]
+# The belly: a deep armoured wedge under the core, not a pod. Its keel line carries on
+# from the prow's forefoot in straight runs: down from X 168, level under the citadel, up
+# to the stern.
 # Round 5 (owner: "the central body doesn't need to be as strangely elongated down
 # under the ship"; critic: the belly's after face was a blank V wall under the stern
 # with strakes hanging off it). The keel line is four straight runs meeting on hard
@@ -324,40 +335,80 @@ BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 6
 # KNUCKLE at X -40, where the belly's after end sweeps up steeply (about 30 deg)
 # into the aft body's keel (-32, os_stern) and ends buried in it, so from astern
 # the belly is a short sloped counter running into the stern, not a hanging wall.
+#
+# Round 11 (critic a: from below and low ahead the belly, prow and core underside were a
+# shapeless brown lump of fine facets - two chines per side on a narrow keel, twisted from
+# station to station, with the forebody's own deadrise and the waists' troughs showing
+# between them). The underside is now three big planes and three chines a side:
+#   keel band   one flat plate BELLY_KB either side of the centreline (30 wide from the
+#               chest aft), following the knuckled keel line, so its edges - the keel
+#               chines - run parallel to X;
+#   bilge plane one straight plate each side from the keel chine up to the forebody's
+#               lower chine (the bilge chine), steep under the narrow chest, flatter under
+#               the broad core;
+#   side        the forebody's side face from there up to the upper chine.
+# The forebody's own deadrise is buried inside the belly, and the waists run on level from
+# the bilge chine into the arms (waist_section), so the bilge chine is the crest of the
+# underside rather than the lip of a trough.
 BELLY_KNUCKLE_X = -40.0
 BELLY_KEEL = [(168, -26.0), (128, -50.0), (88, -50.0), (BELLY_KNUCKLE_X, -40.0), (-64, -29.0)]
-BELLY_STATIONS = [170, 168, 150, 128, 104, 88, 80, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, BELLY_KNUCKLE_X,
-                  -52, -64]
+BELLY_KB = [(168, 4.0), (128, 12.0), (104, 15.0), (BELLY_KNUCKLE_X, 15.0), (-64, 8.0)]
+# Aft of the core (X -18) the bilge chine runs inboard and under the aft body to the
+# belly's end, buried below its deck: (X, |Y|, z).
+BELLY_W = [(-18, 72.0), (-30, 62.0), (BELLY_KNUCKLE_X, 54.0), (-52, 46.0), (-64, 38.0)]
+BELLY_AFT_Z = [(-18, -15.0), (BELLY_KNUCKLE_X, -17.0), (-64, -18.0)]
+BELLY_STATIONS = [168, 160, 150, 148, 128, 120, 104, 88, 74, 60, 40, 20, 0, -18, -30, BELLY_KNUCKLE_X, -52, -64]
 
 
 def belly_section(x):
-    bw, zb = _table(BELLY_W, x), _table(BELLY_KEEL, x)
+    """Port half (top, bilge chine, keel chine) mirrored: the keel band, the bilge planes and
+    a top buried in the forebody (or, aft of it, under the wells' floor)."""
+    k, kb = _table(BELLY_KEEL, x), _table(BELLY_KB, x)
     if x >= -18:
-        # Under the forebody the belly's upper chine lies on the forebody's own
-        # bottom (its lower chine, or on the deadrise where the belly is narrower),
-        # so the belly carries the hull's underside on down with no undercut slot.
         f = fore(x)
-        yc = min(bw, f['w']-f['fl']-.3)
-        y0, z0, y1, z1 = f['w']-f['fl'], f['zl'], f['kw'], f['keel']
-        zc = z0+(z1-z0)*(y0-yc)/(y0-y1)+.3
-        top = (yc*.8, zc+5.0)
+        c3 = (f['w']-f['fl'], f['zl'])          # on the forebody's lower chine exactly
+        top = (c3[0]*.7, min(f['zl']+6.0, WELL_FLOOR-1.0))
     else:
-        # Aft of the core it stays under the machinery wells' floor (WELL_FLOOR).
-        yc, zc = bw, -17.0-(-18-x)*.05
-        top = (bw*.85, -12.0)
-    mid = (zc+zb)/2-2.0
-    half = [top, (yc, zc), (yc*.5, mid), (min(5.0, yc*.4), zb)]
+        c3 = (_table(BELLY_W, x), _table(BELLY_AFT_Z, x))
+        top = (c3[0]*.85, WELL_FLOOR-2.0)
+    half = [top, c3, (kb, k)]
     return [(-y, z) for y, z in reversed(half)]+half
 
 
 # The prow gun deck: three stepped tiers climbing aft (WS 007, WS 008/009, the
-# multineedler WS 019), each riser a raked armour step of about nine units, the
-# last running on under the spine's arch (X 99) where the spine's glacis
-# (os_bridge) takes the climb on up to the citadel. Round 4 (owner: the deck line
-# must climb with purpose): bow deck 9, then 13.5, 22.5, 31.5.
-GALLERY_W = [(216, 5.0), (214, 5.5), (200, 9.0), (186, 11.0), (150, 17.0), (126, 18.5), (104, 20.0), (99, 20.0)]
-GALLERY_Z = [(216, 9.0), (212, 12.5), (177, 13.5), (171, 22.0), (145, 22.5), (139, 31.0), (110, 31.5), (99, 31.5)]
-GALLERY_STATIONS = [216, 214, 212, 200, 186, 177, 171, 150, 145, 139, 126, 110, 104, 99]
+# multineedler WS 019), then the glacis running up into the citadel.
+# Round 6 (critic A1: forward of the bridge the abeam profile read as one flat
+# barge-like shelf, the multineedler bridging the last tier to the spine at one
+# height): the skyline now climbs in hard steps from the stem, the lowest dorsal
+# point. The bow deck (WS 007) lies at 8.5 and the forward gun deck (WS 008/009) at
+# 17, each about five lower than round 5. The needler deck (25.5) stands on it as
+# a raised V (critic C: the sprite's prow bands form a forward-pointing V round
+# the needler, not straight strips): its nose rises between WS 008 and 009 at
+# X 160 and its battered walls run aft and outboard at GALLERY_FLARE from the
+# centreline, so the riser is one hard chevron step with an armour lip along its
+# crest (os_armour), and the forward gun deck runs on aft beside it as two dark
+# flanking decks until the V meets the gallery's edge at about X 108, where the
+# glacis legs (os_armour.glacis_split, diverging at about the same angle) carry
+# the V on aft to the citadel. Aft of the needler the glacis rises at about 45
+# deg (X 114..100) to a crest at 40, level with the spine (os_bridge), which runs
+# on level-ish to the citadel: a landing rather than one long ramp, so the abeam
+# skyline reads as a step there too. Aft of the crest the gallery narrows into the
+# spine and ends in a raked step down onto the core's centre deck, so the grey
+# glacis legs come out from under it at once.
+GALLERY_W = [(STEM_X, 7.6), (200, 9.0), (186, 11.0), (171, 14.0), (150, 16.8), (126, 21.0), (114, 24.4),
+             (104, 25.2), (100, 25.0), (93, 19.0), (89, 16.0)]
+GALLERY_Z = [(STEM_X, STEM_DECK_Z), (STEM_X-2.0, 8.5), (177, 8.5), (171, 17.0), (160, 17.0), (157, 25.5), (114, 25.5), (100, 40.0),
+             (93, 40.0), (89, 31.0)]
+GALLERY_STATIONS = sorted({x for x, _ in GALLERY_W} | {x for x, _ in GALLERY_Z}, reverse=True)
+GALLERY_GUN_DECK = 17.0           # the forward gun deck, and the flanking decks beside the V
+GALLERY_V_APEX = 160.0            # X of the needler deck's nose, on the centreline
+GALLERY_FLARE = 25.0              # deg from the centreline: the V's walls
+GALLERY_V_BATTER = 3.0
+
+
+def gallery_v(x):
+    """|Y| of the needler deck's V wall (its crest edge) at X."""
+    return max(0.0, (GALLERY_V_APEX-x)*math.tan(math.radians(GALLERY_FLARE)))
 
 
 def gallery_section(x):
@@ -374,14 +425,35 @@ def gallery_section(x):
 WAIST_IN = [(106, 38), (60, 53), (2, 77)]
 WAIST_OUT = [(106, 58), (40, 72), (2, 89)]
 WAIST_DECK = 1.6
+WAIST_EDGE = [(106, 62.5), (2, 87.0)]   # the deck's straight outer edge (round 8), under the arm
+WAIST_RAKE = 58.0                 # deg from horizontal: the waist's raked forward end (round 7)
+WAIST_FLOOR = -19.0              # the waist's underside where it meets the arm (round 11)
+WAIST_RAKE_X = 97.0               # where that rake leaves the waist's lowest line (z -28)
 
 
 def waist_section(x):
     yin, yout, w = _table(WAIST_IN, x), _table(WAIST_OUT, x), fore(x)['w']
-    ym = min(w+8.0, yout-4.0)
     # The outer edge runs down into the lowered arm (os_arms: its inner top edge
     # lies near z -15 here), so the valley floor meets the arm with no slot.
-    return [(yin, -24.0), (yout-4.0, -28.0), (yout+1.0, -19.0), (ym, WAIST_DECK), (yin, WAIST_DECK)]
+    # Round 7 (seam audit: the waist's bottom hung about 20 below the core's lower
+    # chine over X 7..103, a keel of its own beside the core's side): its inboard
+    # bottom edge now starts on the core's lower chine (buried just inside it, where
+    # the belly's upper chine also lies), so the underside runs on from the core's
+    # side face as one deadrise falling outboard into the arm.
+    f = fore(x)
+    # Round 8 (critic: the waist's outer edge read as a ragged line of 3-5 unit steps in
+    # the quarter view): the deck no longer falls into a narrow trench against the arm's
+    # faceted inner flank - a V whose bottom wandered with every facet. It runs on flat
+    # and level out to one straight edge (WAIST_EDGE) lying under the arm's inner gallery,
+    # so the valley floor meets the arm in a single clean line: flush forward, where the
+    # gallery lies level with it, and under the arm's one raised edge aft.
+    # Round 11 (critic a: from below the waist hung a trough of its own, 10 under the bilge
+    # chine, so the underside read as a V between belly and arm): its underside now runs on
+    # from the bilge chine (where the belly's bilge plane meets the core's side) level into
+    # the arm's inner flank, so the bilge chine is the underside's crest.
+    yc, zc = f['w']-f['fl']-.1, f['zl']+.05
+    ye = _table(WAIST_EDGE, x)
+    return [(yc, zc), (yout+1.0, WAIST_FLOOR), (ye, WAIST_DECK-1.2), (ye-1.0, WAIST_DECK), (yin, WAIST_DECK)]
 
 
 def build(kit):
@@ -398,11 +470,23 @@ def build(kit):
             sec = waist_section(x)
             st.append((x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]))
         waists[side] = loft_x(kit, f'Hull {side} waist', st, kit.plate, bevel=.2)
+        # Its forward end, open to the notch between prow and arm, is raked up and
+        # forward as one armour face rather than a square end hanging under the prow.
+        pad_cut(waists[side], 'waist fore rake', (WAIST_RAKE_X, 0.0, -28.0), (math.sin(math.radians(WAIST_RAKE)), 0.0,
+                                                                             -math.cos(math.radians(WAIST_RAKE))))
 
     # --- the tiers ---------------------------------------------------------
     tiers = []
     tiers.append(loft_x(kit, 'Hull prow gallery', [(x, gallery_section(x)) for x in GALLERY_STATIONS], kit.plate,
                         bevel=.2))
+    # The needler deck's V: everything outboard of its walls is cut down to the gun deck.
+    xa, xb = GALLERY_V_APEX+6.0, 100.0
+    for sgn in (1, -1):
+        plan = ccw([(xa, 0.0), (GALLERY_V_APEX, 0.0), (xb, sgn*gallery_v(xb)), (xb, sgn*50.0), (xa, sgn*50.0)])
+        cutter = prism(kit, 'Temporary prow gallery V cutter', plan,
+                       [(GALLERY_V_BATTER, GALLERY_GUN_DECK), (0.0, GALLERY_GUN_DECK+GALLERY_V_BATTER), (0.0, 70.0)],
+                       kit.plate, bevel=0)
+        boolean(tiers[0], cutter)
     cx, cy = TERRACE_C
     # The citadel: a many-sided armoured drum with a straight sloped batter (its
     # foot buried in the core's centre deck), the inner tier stepping up again
