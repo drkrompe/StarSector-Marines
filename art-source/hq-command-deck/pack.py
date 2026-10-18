@@ -119,6 +119,11 @@ def main():
             "plot": [to_packed(*p) for p in plot],
             "screens": [to_packed(*p) for p in screens + list(m["main-display"].values()) + [m["ledger-screen"]]],
         },
+        # The deck camera in packed pixels, so live overlays can project points in the room
+        # (metres; x right, y up from the deck, z away from the camera) onto the banner.
+        "camera": {"focal": round(layout["camera"]["focal"] * k, 3), "cx": round(layout["camera"]["cx"] * k, 3),
+                   "cy": round((layout["camera"]["cy"] - BAND_TOP) * k, 3), "height": layout["camera"]["height"]},
+        "table": layout["table"],
         "source": {"plate": compose.PLATE, "layout": compose.LAYOUT, "bandRows": [BAND_TOP, BAND_BOTTOM]},
     }
     OUT_JSON.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")

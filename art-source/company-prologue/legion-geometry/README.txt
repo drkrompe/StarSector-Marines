@@ -45,8 +45,8 @@ Modules (one per area; each later-pass agent edits only its own)
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship
   centre, so every slot location is model XY unchanged.
-  metres_per_unit = 0.61, derived for this hull (see Scale check): about
-  179.9 m long, 179.2 m beam, 53.9 m keel to crown (the belly's docking
+  metres_per_unit = 0.99, from the shared sizing basis (see Scale check):
+  about 292 m long, 291 m beam, 87 m keel to crown (the belly's docking
   clamps hang open lowest).
 
 Object names (stable identifiers; later passes key off them)
@@ -98,12 +98,12 @@ Hangars (geometry.json 'flight_decks', 'hangar_fit')
   nose forward) -> transfer door 1 -> lock across the transfer gallery into
   the keel -> central hold, refit at the same deck height -> door 3 ->
   forward station -> launch. Door 2 (amidships) is for barrier catches and
-  crane lifts. Doors 34 x 10 units (20.7 x 6.1 m), locks 36 deep. The
+  crane lifts. Doors 34 x 10 units (33.7 x 9.9 m), locks 36 deep. The
   'Wing <side> transfer gallery' runs X -58..72.5, |Y| 58..79.6 on the lower
   flank and counts as pressure hull.
   Every fighter the Legion can carry, at its own scale, clears the lane, both
   mouths and the doors: 'hangar_fit' in geometry.json, printed at build
-  (tightest: Hoplon, about 1.3 m of height on its dolly).
+  (tightest: Hoplon, about 4.8 m of height on its dolly).
   Keyable for later shots (rest closed, stowed, parked): the transfer doors,
   traversers, recovery barrier, gantry crane and blast deflectors, each on a
   named empty; the moves are in flight_decks[].keyable.
@@ -119,33 +119,26 @@ C2 (geometry.json 'c2')
   extreme 105 m from the glass (centre 200.6 m out) and the crown 3 m below
   eye level. The c2-* cameras are c2_core's cabin camera at C2 3.0 / 8.0 /
   11.4 s; c2-* renders use c2_core.SUN, planet-shine and no ambient.
+  At 0.99 m/unit the hull is 1.62x longer than when C2 was framed (0.61),
+  so it overfills all three frames (abeam about 1906 px wide against the
+  1636 px layout target). The shot re-frames to the hull; that is the
+  cinematic session's call (c2_core flank distance), not a model change.
 
-Scale check (pass 4, warship form; geometry.json 'scale')
-  Each hull gets its own scale from what it is (owner, 2026-10-16). Crew and
-  ship spaces: deck program CAPITAL "Battlecarrier" (CARRIER) crew 700-1500
-  cargo 300 is 30,827 m2 of rooms; less its notional 3.2 m HANGAR rooms
-  (2,160 m2), x1.40 circulation x3.2 m = 128,428 m3 habitable.
-  Habitable share: the requested warship share is 30-35%; 33% is
-  published. The itemised budget is looser. Fighter stowage for the Elite
-  complement (6 Broadswords, 4 Hoplons, a spare per wing, servicing room,
-  25% for ordnance handling) at the fighters' own 0.50 m/px scales
-  (fighters-geometry) is about 52,700 m3, 13.5% of the hull at 0.61; armour
-  15%, reactors/flux/drives 12%, barbettes and magazines 5%, tanks and
-  structure 10% are judged. That leaves 44.5% habitable, which alone would
-  solve to about 0.55. 0.61 stands on the warship share; whether the
-  Legion should read bigger or smaller than that is the owner's call.
-  Pressure hull (union of torso, spines, dome, arms, wing hangars and the
-  transfer galleries) about 1.68 M cubic units, re-measured on every build:
-  solves to 0.614 m/unit (0.602-0.634 for 35-30% habitable; a freighter's 55%
-  would give 0.514). Published 0.61.
-  Real-world check: 183 m long and 179 m wide, 391k m3 enclosed for 700-1500 crew; about 261 m3 per
-  person at max crew. A Nimitz is 333 m with about 5,000 crew; fleet and
-  light carriers run 200-260 m. The Legion is shorter than those but as wide
-  as it is long, so it encloses supercarrier-class volume for under a third
-  of a Nimitz's crew. The geometry sets the answer: a deeper torso lowers it.
-  Fittings at 0.61: a 1.8 m person is 2.95 units; doors and hatches 3.4,
-  rails 1.8. Fighters at their own scales are about 16-18 m (31 Legion
-  units of span for a Hoplon-sized craft), inside the hangar tunnels.
+Scale check (pass 4; geometry.json 'scale')
+  The shared sizing basis, ship_scale.py and ship-scale.md (owner's choice
+  2026-10-18, option C): contents over the capital machinery share, against
+  the measured enclosed volume. Contents: 1,500 crew x 300 m3 x the capital
+  factor 1.45, cargo 300 x 2.0 m3, fuel 300 x 1.5 m3, and hangars for the
+  Elite complement (Broadswords and Hoplons at their own sizes, a spare per
+  wing, x3.0 the bare box). Machinery share 0.58. Enclosed solids (torso,
+  spines, dome, arms, wing hangars, transfer galleries, ship_scale.SOLIDS)
+  about 1.68 M cubic units, re-measured on every build.
+  Solves 0.995 m/unit (0.967-1.024 for 273-328 m3 a person). Published 0.99
+  (lg_kit.METRES_PER_UNIT). 292 m long and 291 m wide: a Nimitz is 333 m.
+  Fittings are true metres at any scale (lg_kit.PERSON = 0.61/0.99, since
+  they were drawn at 0.61): a 2.1 m door is 2.1 units tall, a rail 1.1 m.
+  Hangar mouths, lanes and transfer doors are sized from the fighters and
+  do not rescale; every fighter fits with more room than before.
 
 Status
   Pass 2 detailing done on every module, then a hangar-logistics and belly

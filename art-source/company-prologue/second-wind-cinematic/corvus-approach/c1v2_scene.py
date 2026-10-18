@@ -338,7 +338,8 @@ def add_flotilla(scene, hulls):
 
 def add_traffic(scene):
     # Each hull file is appended once; every appearance of it is an instance of that copy.
-    hulls = {'legion': (hull_collection(INPUTS / 'legion-geometry.blend'), 0.61),
+    # Hull scales from ship_scale.py (option C, 2026-10-18).
+    hulls = {'legion': (hull_collection(INPUTS / 'legion-geometry.blend'), 0.99),
              'hound': (hull_collection(INPUTS / 'hound-skinned.blend'), 0.88)}
     add_flotilla(scene, hulls)
     # Local working traffic across the lane during the reveal, about a kilometre out.

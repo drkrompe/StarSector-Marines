@@ -190,9 +190,9 @@ cannot be compared, which is how a 180 m carrier once read smaller than a
    its variant, carried boat bays, sprite length and modelled fittings in
    units. `ship_scale.record(name)` returns the contents, the class's
    machinery share, the solved `metres_per_unit`, its range and the fittings
-   in metres; store it under `scale` in `geometry.json`. The cargo-unit
-   volume is calibrated on the Hound (A), whose size its human-scale fittings
-   fix; never adjust a constant for one hull. Change it in `ship_scale.py`
+   in metres; store it under `scale` in `geometry.json`. Crew room (300 m3 a
+   person times the class's habitable factor; capitals 1.45) is the
+   dominant term; never adjust a constant for one hull. Change it in `ship_scale.py`
    and `ship-scale.md` for all of them, and run `python ship_scale.py` to see
    every hull move together. It flags a capital under about 4x a frigate's
    length or its own sprite ratio.
@@ -200,7 +200,9 @@ cannot be compared, which is how a 180 m carrier once read smaller than a
    against fittings with a known real size: a 1.8 m person at doors, hatches
    and rails, boat bays against the boats they hold, and, for a carrier,
    every fighter in its complement at its own scale against the bay mouths,
-   lanes and doors converted into the carrier's units. Report the range. A
+   lanes and doors converted into the carrier's units. Person-scale fittings
+   are true metres: when the scale moves, scale their authored sizes by
+   old/new (the Legion's `lg_kit.PERSON`). Report the range. A
    shot re-frames to the hull rather than the hull bending to the shot.
 
 Report a new or changed scale before rewriting a tracked `metres_per_unit`:

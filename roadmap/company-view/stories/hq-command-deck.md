@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — banner, command strip and station hotspots shipped on HQ; edge-case evidence and the alert plate remain
 Written: 2026-10-16
-Updated: 2026-10-18 — commander removed; Sabine repainted leaning at the plot table; four stations.
+Updated: 2026-10-18 — lower half is now the action board (`hq-action-board.md`); stations answer into its detail pane.
 
 Read `company-view-nouns.md` (Company HQ) first.
 
@@ -49,9 +49,10 @@ where things live without becoming the only way to reach them.
 ## Layout at 1920x1080 / 100%
 
 The HQ has no sidebar. Under the page nav, one full-width board holds the command
-deck banner (372px), the command strip, and three columns: company finance,
-active obligations, and the news column. Nothing is laid over the scene except the
-station hotspots, which are invisible until pointed at.
+deck banner (372px), the command strip, and the action board from
+`hq-action-board.md`: the action list beside its detail pane. Nothing is laid over the
+scene except the holo board above the plot table, its marker buttons and the station
+hotspots, which are invisible until pointed at.
 
 ```
 +--------------------------------------------------------------------------------+
@@ -60,10 +61,10 @@ station hotspots, which are invisible until pointed at.
 | COMMAND DECK BANNER (full width x 372)                                          |
 |  [comms]  [plot table + Sabine]  [Castle]  [quartermaster]               |
 +--------------------------------------------------------------------------------+
-| RATING  RECOGNIZED  +24 | BRIDGE ADJUTANT // DAILY ASSESSMENT        [debug]    |  <- command strip
+| RATING  RECOGNIZED  +24 | BRIDGE ADJUTANT // DAILY ASSESSMENT | RUNWAY, CASH [debug]|  <- command strip
 +--------------------------------------------------------------------------------+
-| FINANCE 260 | OBLIGATIONS 260      | source windows / dossier / archive         |
-|             |  waiting letters     |                                            |
+| [All] [Story] [Contracts] [Other]           | detail pane (640)                  |
+| action rows, one action each                | wire: three headlines              |
 +--------------------------------------------------------------------------------+
 ```
 
@@ -72,8 +73,7 @@ station hotspots, which are invisible until pointed at.
   military-warrant rows. The long notice rows under the nav are gone too; first
   refit and secondhand wings remain nav notices on Barracks and Boats.
 - Letters awaiting an answer (the auxiliary warrant, the Latchkey custody
-  agreements) sit at the head of the obligations column, since they are
-  decisions owed.
+  agreements) are action items of their own, answered by Open.
 - **Command strip:** the row under the banner (`company-hq-board-heading`) holds the
   mercenary rating and Castle's daily assessment, with the debug-missions button at
   its end in debug builds. It replaced a caption laid over the scene's foot, which
@@ -91,15 +91,15 @@ station hotspots, which are invisible until pointed at.
 Hotspot rectangles are authored as fractions of the packed banner in a small
 layout file beside the art, so a regenerated plate only needs its rectangles
 re-measured. Hotspots are absolutely positioned buttons (`UiPosition.ABSOLUTE`):
-a faint outline and label chip on hover or focus, a short pulse on the target
-panel when used.
+a faint outline and label chip on hover or focus, a short pulse on the panel
+they answer into.
 
 | Station on deck | Label | What using it does |
 | --- | --- | --- |
-| Comms bank, two officers | COMMS // INTEL | Focuses the transmission archive and pulses the source windows. |
-| Plot table, Sabine | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
-| Castle | CASTLE // ADJUTANT | Pulses the command strip; where the opening guide is active, focuses its next control. |
-| Quartermaster's ledger | FINANCE & STANDING | Pulses the finance column. |
+| Comms bank, two officers | COMMS // INTEL | Shows the transmission archive in the detail pane and focuses its tabs. |
+| Plot table, Sabine | SITUATION BOARD | Selects the most urgent action item under All and focuses the action list. |
+| Castle | CASTLE // ADJUTANT | Shows her daily assessment and her first priority in the detail pane. |
+| Quartermaster's ledger | FINANCE & STANDING | Shows the full finances in the detail pane. |
 
 The theme dresses every button and is the cascade's final layer, so stations are
 cleared with inline style and their hover/focus outline is drawn by the banner

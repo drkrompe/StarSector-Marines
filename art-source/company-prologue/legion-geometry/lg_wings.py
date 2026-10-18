@@ -93,7 +93,7 @@ below. All of it stays inside the plan outline.
 """
 import math
 import bpy
-from lg_kit import boolean, ccw, clip_rect, inset, material, mirror_y, plane_cut, prism, section
+from lg_kit import METRES_PER_UNIT, PERSON, boolean, ccw, clip_rect, inset, material, mirror_y, plane_cut, prism, section
 from lg_droop import droop
 
 KEEL, DECK = -8.0, 4.0       # the arm: its deck is a 6-unit step below the torso's (z 10)
@@ -134,7 +134,7 @@ SKIRT = ([(3.4, -9.2), (3.4, -5.4), (4.4, -5.4), (4.4, -9.2)],
 HEADER = [(0.0, -6.0), (0.0, -5.4), (3.9, -5.4), (3.9, -6.0)]
 BUTTRESS = [(1.2, -10.2), (-.5, -7.6), (-.5, 4.0), (.4, 4.9), (2.6, 4.9), (2.6, -10.2)]
 BUTTRESS_W, BUTTRESS_STEP = 1.8, 7.5
-HATCH_W, HATCH_H = 2.4, 3.4  # 2.1 m doors at 0.61 m per unit
+HATCH_W, HATCH_H = 2.4*PERSON, 3.4*PERSON  # 1.46 x 2.07 m doors, true metres at any scale
 # Hatches and covers on the outboard chain: (segment start vertex, t along it).
 HATCHES = [(9, .55), (12, .3), (14, .6), (20, .5)]
 COVERS = [(7, .5), (10, .45), (12, .75), (13, .5), (16, .5), (21, .4)]
@@ -200,9 +200,8 @@ DEFLECT_LEN, DEFLECT_Y = 7.0, (87.0, 123.0)
 GANTRY_Y = (87.0, 117.0)     # crane rails under the roof (outside the wells, Y 88-110)
 GANTRY_DEPTH = 1.0
 CRANE_PARK_X = 8.0
-CATWALK_W, CATWALK_Z = 2.4, FLOOR+8.6   # deck top; it runs on the outboard wall
+CATWALK_W, CATWALK_Z = 2.4*PERSON, FLOOR+8.6   # 1.46 m wide; deck top; it runs on the outboard wall
 LIFT_Z = (-11.3, -10.5)      # the lift platforms, parked at the hangar roof
-METRES_PER_UNIT = .61        # must match build_legion.py (used by the fit table)
 # Fighters at their own scales, in metres: (name, length, span, height).
 FIGHTERS = [('Broadsword', 15.5, 14.1, 3.3), ('Hoplon', 18.0, 19.0, 4.0), ('Piranha', 17.0, 15.0, 3.3),
             ('Longbow', 15.0, 14.4, 2.6), ('Thunder', 18.5, 10.8, 2.6), ('Dagger', 16.4, 12.1, 2.3),
@@ -1109,38 +1108,39 @@ def lane_gear(kit, side, sy, plan, mats):
     xr2 = _edge_x(lead, 121.5)-7.0
     for x0, x1, yw in ((-60.0, 40.4, 128.0), (40.4, xr2, 123.0)):
         cw.box(x0, x1, yw-CATWALK_W, yw, zt-.4, zt)
+        P = PERSON
         x = x0+1.5
         while x < x1-.5:
-            rail.box(x-.12, x+.12, yw-CATWALK_W, yw-CATWALK_W+.24, zt, zt+1.8)    # stanchions
+            rail.box(x-.12, x+.12, yw-CATWALK_W, yw-CATWALK_W+.24*P, zt, zt+1.8*P)    # stanchions
             if (x-x0) % 6.0 < 3.0:
-                rail.box(x-.25, x+.25, yw-1.6, yw, zt-1.9, zt-.4)                  # brackets
+                rail.box(x-.25, x+.25, yw-1.6*P, yw, zt-1.9, zt-.4)                  # brackets
             x += 3.0
-        rail.box(x0, x1, yw-CATWALK_W, yw-CATWALK_W+.24, zt+1.65, zt+1.85)          # handrail
-        rail.box(x0, x1, yw-CATWALK_W, yw-CATWALK_W+.2, zt+.85, zt+1.0)             # mid rail
+        rail.box(x0, x1, yw-CATWALK_W, yw-CATWALK_W+.24*P, zt+1.65*P, zt+1.85*P)      # handrail, 1.1 m
+        rail.box(x0, x1, yw-CATWALK_W, yw-CATWALK_W+.2*P, zt+.85*P, zt+1.0*P)         # mid rail
     cw.box(38.0, 42.8, 123.0-CATWALK_W, 128.0, zt-.4, zt)                           # landing at the wall step
     for x, yw in ((-44.0, 128.0), (2.0, 128.0), (30.0, 128.0), (60.0, 123.0)):     # ladders, floor to catwalk
         if x > xr2-2:
             continue
         ye = yw-CATWALK_W
-        for xs in (x-.75, x+.75):
-            rail.box(xs-.12, xs+.12, ye-.5, ye-.25, FLOOR, zt+1.8)
-        z = FLOOR+.8
+        for xs in (x-.75*P, x+.75*P):
+            rail.box(xs-.12, xs+.12, ye-.5, ye-.25, FLOOR, zt+1.8*P)
+        z = FLOOR+.8*P
         while z < zt:
-            rail.box(x-.75, x+.75, ye-.45, ye-.3, z, z+.15)
-            z += 1.0
+            rail.box(x-.75*P, x+.75*P, ye-.45, ye-.3, z, z+.15)
+            z += P
     for x, yw in ((-52.0, 128.0), (-22.0, 128.0), (16.0, 128.0), (52.0, 123.0)):   # personnel hatches
         if x > xr2-3:
             continue
-        hatch.box(x-1.7, x-1.2, yw-.25, yw, zt, zt+3.9)
-        hatch.box(x+1.2, x+1.7, yw-.25, yw, zt, zt+3.9)
-        hatch.box(x-1.7, x+1.7, yw-.25, yw, zt+3.4, zt+3.9)
-        hdoor.box(x-1.2, x+1.2, yw-.12, yw, zt, zt+3.4)
+        hatch.box(x-1.7*P, x-1.2*P, yw-.25, yw, zt, zt+3.9*P)
+        hatch.box(x+1.2*P, x+1.7*P, yw-.25, yw, zt, zt+3.9*P)
+        hatch.box(x-1.7*P, x+1.7*P, yw-.25, yw, zt+3.4*P, zt+3.9*P)
+        hdoor.box(x-1.2*P, x+1.2*P, yw-.12, yw, zt, zt+3.4*P)
     for x in (-17.0, 31.0):                                                   # inboard hatches to the gallery
         wf = wall_face(x)
-        hatch.box(x-1.7, x+1.7, wf, wf+.25, FLOOR+3.4, FLOOR+3.9)
+        hatch.box(x-1.7*P, x+1.7*P, wf, wf+.25, FLOOR+3.4*P, FLOOR+3.9*P)
         for s in (-1, 1):
-            hatch.box(x+s*1.45-.25, x+s*1.45+.25, wf, wf+.25, FLOOR, FLOOR+3.9)
-        hdoor.box(x-1.2, x+1.2, wf, wf+.12, FLOOR, FLOOR+3.4)
+            hatch.box(x+s*1.45*P-.25*P, x+s*1.45*P+.25*P, wf, wf+.25, FLOOR, FLOOR+3.9*P)
+        hdoor.box(x-1.2*P, x+1.2*P, wf, wf+.12, FLOOR, FLOOR+3.4*P)
     cw.build(kit, f'Wing {side} catwalk', deck, sy, level=True)
     rail.build(kit, f'Wing {side} catwalk railings', steel, sy, level=True)
     hatch.build(kit, f'Wing {side} personnel hatch frames', steel, sy, level=True)
@@ -1165,11 +1165,12 @@ def lane_gear(kit, side, sy, plan, mats):
             for xm in range(int(wx0+4), int(wx1-10), 3):
                 lift.rod_x(xm, xm+2.4, yp-.5, z1+1.0, .45, n=6)
                 lift.rod_x(xm, xm+2.4, yp+.5, z1+1.0, .45, n=6)
-        cx0 = wx1-7.0                                                                    # crew cage
+        P = PERSON
+        cx0 = wx1-1.0-6.0*P                                                              # crew cage
         for xa in (cx0, wx1-1.0):
-            for ya in (wy1-6.0, wy1-1.0):
-                lift.box(xa-.15, xa+.15, ya-.15, ya+.15, z1, z1+3.6)
-        lift.box(cx0-.15, wx1-.85, wy1-6.15, wy1-.85, z1+3.4, z1+3.6)
+            for ya in (wy1-1.0-5.0*P, wy1-1.0):
+                lift.box(xa-.15, xa+.15, ya-.15, ya+.15, z1, z1+3.6*P)
+        lift.box(cx0-.15, wx1-.85, wy1-1.15-5.0*P, wy1-.85, z1+3.4*P, z1+3.6*P)
         for xa in (wx0+.1, wx1-.9):
             for ya in (wy0+.1, wy1-.9):
                 guides.box(xa, xa+.8, ya, ya+.8, z0, deck_z(ya+.4)-2.8)

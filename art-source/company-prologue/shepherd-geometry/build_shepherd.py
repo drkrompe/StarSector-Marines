@@ -76,7 +76,7 @@ METRES_PER_UNIT = 0.78
 REQUIRED_M3 = 9726      # crew deck program less its notional HANGAR (see scale_record)
 USABLE = .45
 PRESSURE_HULL = ['Hull central body', 'Hull port spine', 'Hull aft machinery block',
-                 'Bridge cab', 'Bridge habitat shell']
+                 'Bridge hull']
 DRIVE_CASINGS = ['Engine 1 drive pod casing', 'Engine 2 drive pod casing']  # outer casings count, per the skill
 DRONE_BAY_HULL = ['Drone bay aft hangar pod', 'Drone bay forward hangar pod', 'Drone bay forward service block']
 # The Borer has no cinematic model yet; its size is an assumption stated in
@@ -285,7 +285,7 @@ def scale_record(lo, hi):
     return {
         'method': 'deck program (DeckProgramProbe FRIGATE "Drone Tender" 15 30 100 -> WARSHIP role): 2331 m2 rooms, '
                   'less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, '
-                  '= 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 55% of the pressure '
+                  '= 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 45% of the pressure '
                   'hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry '
                   'and outriggers hold no crew volume.',
         'required_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL,
@@ -368,10 +368,10 @@ if not args.no_save:
                      'exhaust_direction': list(sh_engines.ANCHORS[i][1])}
                     for i, (x, y, w, a) in enumerate(sh_engines.ENGINES, 1)],
         'object_names': {'Hull ...': 'central crew body, port spine, aft crossbeam, aft machinery block',
-                         'Bridge ...': 'bridge cab, glazing, habitat shell',
+                         'Bridge ...': 'bridge hull, glazing, roof fittings',
                          'Mast ...': 'forward sensor boom, starboard sensor head',
                          'Drone bay ...': 'port hangar pods, service block, WS 003 openings and launch points',
-                         'Gantry ...': 'starboard repair gantry frame, core, crane',
+                         'Gantry ...': 'starboard repair gantry: machinery drum, hardpoint bed, rails, cab',
                          'Frame ...': 'port and starboard outriggers, starboard turret deck',
                          'Engine <i> ...': 'drive pods and jets; bell / mouth lip / dark throat / exhaust anchor',
                          'Turret 1 WS 007 ... / Hardpoint 1 WS 008 ...': 'weapon mounts; pivot and muzzle empties',
