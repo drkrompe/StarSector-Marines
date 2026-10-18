@@ -91,3 +91,12 @@ Users
   legion-geometry (lg_turrets). Lasher, Onslaught, Hermes, Hound and Second
   Wind still use their own turret modules; moving one onto the kit is that
   hull's session's call.
+
+Cinematics hooks
+----------------
+Each barrel hangs from its own 'recoil k' empty. A hand builder's 'barrel_root'
+carries the barrel's shaft back inside the house, so sliding that empty aft
+under fire pushes the barrel into the hull rather than out of a hole in it
+(space-combat cinematics). Loaded missiles (Squall's rockets, Hurricane's
+MIRV) are each their own 'missile k' empty and objects, so a shot can launch
+them; the game sprite draws them loaded, which is why they are modelled.

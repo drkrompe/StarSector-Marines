@@ -201,7 +201,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                                     .render(sim, "BLACK SLUICE / CLOSE / tick " + sim.getSimTickIndex(), ReviewAnnotations.builder().build())));
                 if (recordDuel && splitSeen) {
                     int since = sim.getSimTickIndex() - splitTick;
-                    boolean over = duel.hulls().stream().allMatch(h -> h.destroyed() || h.departed());
+                    boolean over = duel.decidedTick() >= 0;
                     if (over && duelOverTick < 0) duelOverTick = sim.getSimTickIndex();
                     boolean tail = duelOverTick < 0 || sim.getSimTickIndex() - duelOverTick <= DUEL_FRAME_TAIL;
                     String duelTitle = "BLACK SLUICE / THE DUEL OVERHEAD / " + since / 30 + "s after Voss's order / " + duelCaption(duel);
@@ -356,12 +356,11 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     .arrow(BlackSluice.BERTH_ROAD_X, 150, BlackSluice.BERTH_ROAD_X, 74, "BERTH ROAD: THE ONLY WAY DOWN", ReviewStyle.ROUTE)
                     .label(BlackSluice.APPROACH + 150, 92, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
                     .label(BlackSluice.APPROACH + 56, 40, "BASIN RIM", ReviewStyle.NOTE)
-                    .arrow(2, 76, 30, 76, "WOLFS' EDGE: IN AND OUT", ReviewStyle.APPROACH)
+                    .arrow(2, 76, 30, 76, "WOLFS' EDGE: IN", ReviewStyle.APPROACH)
                     .label(40, 116, "APPROACH: OPEN BASIN FLATS", ReviewStyle.NOTE)
                     .arrow(60, 156, 18, 156, "TRANSFER ROAD INLAND", ReviewStyle.NOTE)
                     .label(113, 226, "ABANDONED BEDS", ReviewStyle.NOTE)
-                    .label(70, 40, "RIM COUNTRY", ReviewStyle.NOTE)
-                    .arrow(BlackSluice.WIDTH - 30, 76, BlackSluice.WIDTH - 2, 76, "GREYHOOK'S EDGE: OUT", ReviewStyle.ROUTE);
+                    .label(70, 40, "RIM COUNTRY", ReviewStyle.NOTE);
             var cradle = BlackSluice.VENTURE_CRADLE;
             marks.box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
             for (var berth : BlackSluice.HOUND_BERTHS)
@@ -432,7 +431,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         var s = new StringBuilder();
         for (Warship hull : duel.hulls()) {
             String name = switch (hull.hullId) { case "venture" -> "Greyhook"; case "hound" -> "Hound"; default -> "Wolf"; };
-            s.append(name).append(' ').append(hull.destroyed() ? "down" : hull.departed() ? "gone" : hull.departing() ? "leaving"
+            s.append(name).append(' ').append(hull.destroyed() ? "down"
                     : Math.round(hull.hullFraction() * 100) + "%").append("  ");
         }
         return s.toString().trim();
