@@ -193,6 +193,11 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
 - Images obey the preview rule (1920x1080, 100% scale). Copy finished images
   only, never frame sequences or scratch.
 - Tell the owner the run folder's path when the set is ready.
+- **Cleanup is automatic.** After posting a run, prune its asset:
+  `python3 tools/review_prune.py --asset <asset> --apply` (`python` on Windows).
+  Each asset keeps its three newest runs plus any the owner marked, either
+  with a folder name ending `_keep` or with a file named `KEEP` inside.
+  Deletes go to Drive's trash for 30 days. Without `--apply` it only reports.
 
 ## Build & deploy
 
