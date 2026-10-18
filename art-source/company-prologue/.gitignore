@@ -8,3 +8,21 @@ second-wind-surface/review/
 second-wind-surface/textures/
 second-wind-projection-spike/review-sheet*.png
 second-wind-cinematic/second-wind-states/**/*.png
+hound-surface/review/
+hound-surface/textures/
+
+# Cinematic rendered outputs, as classified by the cinematic session
+# (2026-10-18). Only the images: review mp4s stay until the owner decides,
+# and review notes and metrics are small text that stays tracked.
+second-wind-cinematic/**/review/**/*.png
+second-wind-cinematic/**/review/**/*.jpg
+second-wind-cinematic/corvus-approach/layers/*.png
+second-wind-cinematic/nessas-yard/layers/*.png
+second-wind-cinematic/road-and-port/cards/*.png
+second-wind-cinematic/corvus-approach/assets/planet-height-v2.png
+second-wind-cinematic/corvus-approach/assets/planet-lights-v2.png
+second-wind-cinematic/corvus-approach/assets/planet-ocean-v2.png
+second-wind-cinematic/second-wind-surface-proof/daylight-contact-preview.png
+second-wind-cinematic/second-wind-surface-proof/projected-port-quarter.png
+second-wind-cinematic/second-wind-surface-proof/projected-port-side.png
+second-wind-cinematic/**/review/**/*.mp4
