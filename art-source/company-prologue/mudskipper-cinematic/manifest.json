@@ -942,5 +942,5 @@
   "landing": "Animate the knobs on the 'Landing control' empty (deploy, load, door_<side>, ramp_<side>; 0..1). Landed (deploy 1, load 1) the ground is at landing.ground_z_landed in hull space: place the root that far above the ground plane. Ramps solve their own angle to that ground.",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "2af81541642d4486d67f5634c819cae3b7482137b22a525ff9d35dfb8b072781"
+ "asset_sha256": "893fba5fd391efd91bd898d6190017f34f2a101ad3662a335095448934075e05"
 }
