@@ -217,6 +217,22 @@ the derelict.
   engine. It is grey with soot when salvaged and thin and pale when clean.
   It barely exists in vacuum, and in atmosphere it hangs and bends with the
   wind.
+  - Its container reaches two far-end haze radii past the fully drifted centre line.
+  - The density is also faded to exactly zero over the last 0.3 radius before each side face.
+  - So the haze ends in its own falloff, never at a box face.
+
+**Overlapping volume containers must not share a face plane.** Cycles (5.2)
+does not add two overlapping volumes when a ray enters both through coplanar
+faces. It renders one and cuts the other off at a straight line, even where
+both densities are smooth. Two constant-density boxes reproduce it in a bare
+scene. The kit's per-engine containers are identical boxes on parallel
+engines at one height, so their faces share planes. In turns, one engine's
+haze vanished inside the other's box (the Hound pass-7 turn, frames 2, 6, 11
+and 16, and the Second Wind the same). So `box_volume(..., pad=)` grows each
+engine's haze, plume and core box by its own `engine_pad(i)`: half a per cent
+of the span per engine index. The shaders work in physical units and are
+already zero at the unpadded faces, so the padding changes no density. A new
+volume that can overlap another needs the same treatment.
 - **Landing dust**: a shallow ring at `smk_ground_z` that follows the hull's
   XY. It rises within 45 units of the ground, scales with throttle, and is a
   damp warm grey-brown. It is authored downwash, because the hull has no

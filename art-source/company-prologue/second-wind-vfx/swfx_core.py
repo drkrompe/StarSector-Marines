@@ -223,10 +223,20 @@ def attach(child, anchor, local=(0, 0, 0), rotation=(0, 0, 0)):
     return child
 
 
-def box_volume(name, coll, x0, x1, half_y, half_z, material):
+def box_volume(name, coll, x0, x1, half_y, half_z, material, pad=0.0):
     """A closed box spanning x0..x1 along local X and +/-half in Y, Z: only a
     volume container (the material should have no surface output). Origin at
-    local x=0, so scaling X grows a plume away from an attached nozzle."""
+    local x=0, so scaling X grows a plume away from an attached nozzle.
+
+    pad grows every face outward by that fraction of the box's span. Cycles
+    does not add two overlapping volumes when a ray enters both through
+    coplanar faces: it renders one of them and cuts the other off at a
+    straight line. Identical boxes on parallel engines at one height share
+    face planes, so give each engine its own pad (engine_pad) on top of a
+    material that is already zero at the unpadded faces."""
+    span = x1 - x0
+    x0, x1 = x0 - pad * span, x1 + pad * span
+    half_y, half_z = half_y * (1 + pad), half_z * (1 + pad)
     verts = [(x, y, z) for x in (x0, x1) for y in (-half_y, half_y) for z in (-half_z, half_z)]
     faces = [(0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)]
     me = bpy.data.meshes.new(name)
@@ -236,6 +246,12 @@ def box_volume(name, coll, x0, x1, half_y, half_z, material):
     coll.objects.link(ob)
     me.materials.append(material)
     return ob
+
+
+def engine_pad(i):
+    """box_volume pad for engine i's containers: distinct per engine, so no
+    two engines' boxes share a face plane (half a per cent per index)."""
+    return .005 * i
 
 
 def node_material(name):

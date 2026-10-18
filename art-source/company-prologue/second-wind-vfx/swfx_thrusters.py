@@ -347,7 +347,7 @@ def build_engine(ctx, coll, anchor, mode):
     made = {'signals': sig.name}
 
     core = swfx_core.box_volume(f'{PREFIX} core e{i}', coll, -.5 * r, CORE_LEN * r, .62 * r, .62 * r,
-                                _jet_material(ctx, i, mode, r, 'core', env, sig))
+                                _jet_material(ctx, i, mode, r, 'core', env, sig), pad=swfx_core.engine_pad(i))
     swfx_core.attach(core, anchor.empty)
     # Cores shrink last: full size down to a quarter throttle.
     for ax in range(3):
@@ -356,7 +356,7 @@ def build_engine(ctx, coll, anchor, mode):
     made['core'] = core.name
 
     plume = swfx_core.box_volume(f'{PREFIX} plume e{i}', coll, -.35 * r, PLUME_LEN * r, 2.1 * r, 2.1 * r,
-                                 _jet_material(ctx, i, mode, r, 'plume', env, sig))
+                                 _jet_material(ctx, i, mode, r, 'plume', env, sig), pad=swfx_core.engine_pad(i))
     swfx_core.attach(plume, anchor.empty)
     _assert_simple(ctx.drive(plume, 'scale', 'thr_plume_length * (0.15 + 0.85 * eff)', ['thr_plume_length'],
                              index=0, extra=_sig_vars(sig, ('eff',))))

@@ -260,12 +260,20 @@ def build_haze(ctx, coll, anchor, mode):
     wy_expr = f'({ly.x:.4f}*smk_wind_x+{ly.y:.4f}*smk_wind_y+{ly.z:.4f}*smk_wind_z)'
     wz_expr = f'({lz.x:.4f}*smk_wind_x+{lz.y:.4f}*smk_wind_y+{lz.z:.4f}*smk_wind_z)'
     wind_props = ('smk_atmosphere', 'smk_wind_x', 'smk_wind_y', 'smk_wind_z')
-    width_expr = (f'({R:.3f}*1.6+{len_expr}*{spread_expr}'
+    # Half-width: the haze's own falloff must end it, never a box face. The
+    # radial gaussian exp(-2 (r/radius)^2) is widest at the far end
+    # (radius_far), so the box reaches 2 far radii past the fully drifted
+    # centre line. The window below fades the outer 0.3 far radius to exactly
+    # zero at each face; there (1.7+ radii out) the gaussian is already under
+    # 0.3% of its peak, so the plume itself does not change.
+    far_expr = f'({R:.3f}*0.85+{len_expr}*{spread_expr})'
+    width_expr = (f'(2.0*{far_expr}'
                   f'+0.35*{len_expr}*smk_atmosphere*max(abs({wy_expr}),abs({wz_expr})))')
 
     L = value_node(ctx, nodes, 'length', len_expr, ('smk_atmosphere',))
     W = value_node(ctx, nodes, 'width', width_expr, wind_props)
     spread = value_node(ctx, nodes, 'spread', spread_expr, ('smk_atmosphere',))
+    far = value_node(ctx, nodes, 'far radius', far_expr, ('smk_atmosphere',))
     atm = value_node(ctx, nodes, 'atmosphere', 'smk_atmosphere', ('smk_atmosphere',))
     amount = value_node(ctx, nodes, 'amount',
                         f'thr_throttle*thr_throttle_e{i}*smk_haze*(0.08+0.92*smk_atmosphere)', props_t)
@@ -283,6 +291,8 @@ def build_haze(ctx, coll, anchor, mode):
     rr = g.v('LENGTH', g.comb(ry, rz, 0.0))
     radius = g.m('MULTIPLY_ADD', x, spread, R * .85)
     radial = g.gauss(rr, radius, 2.0)
+    face = g.m('SUBTRACT', W, g.m('MAXIMUM', g.m('ABSOLUTE', y), g.m('ABSOLUTE', z)))
+    radial = g.m('MULTIPLY', radial, g.mr(face, 0.0, g.m('MULTIPLY', far, 0.3), smooth=True))
     axial = g.m('MULTIPLY', g.mr(u, 0.0, 0.12, smooth=True),
                 g.m('POWER', g.m('SUBTRACT', 1.0, u, clamp=True), 1.5))
 
@@ -307,7 +317,7 @@ def build_haze(ctx, coll, anchor, mode):
     glow = g.m('MULTIPLY', g.m('MULTIPLY', dens, g.m('POWER', g.m('SUBTRACT', 1.0, u, clamp=True), 18.0)), .5)
     volume_output(g, dens, color, absorption, .25, glow, (1.0, .52, .22, 1) if dirty else (.75, .82, 1.0, 1))
 
-    ob = swfx_core.box_volume(f'{PREFIX} haze e{i}', coll, 0.0, 1.0, 1.0, 1.0, mat)
+    ob = swfx_core.box_volume(f'{PREFIX} haze e{i}', coll, 0.0, 1.0, 1.0, 1.0, mat, pad=swfx_core.engine_pad(i))
     _no_shadow_catch(ob)
     attach(ob, anchor.empty)
     ctx.drive(ob, 'scale', len_expr, ('smk_atmosphere',), index=0)
