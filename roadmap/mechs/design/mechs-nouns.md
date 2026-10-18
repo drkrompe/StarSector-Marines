@@ -475,10 +475,10 @@ under the active assignment, and a mech outside its command (an exact cell not
 yet reached) is left to its doctrine. A Frontline Support mech with a legal
 anchor keeps pacing it; withdrawal, rescue and survival goals do not run
 doctrine and so never meet the rule. Infantry targets are unchanged. A ground
-vehicle is a duel target, read by its turret, but never a duelist: a hull has
-no engagement driver of its own — a deployed one holds where it was set down,
-a delivery follows its route — so the only way a vehicle closes on armor is a
-player's move order, and an explicit move wins over any band. Pressure
+vehicle is both a duel target, read by its turret, and a duelist: a deployed
+armed hull between orders takes the same band against armor
+(`convoy-nouns.md`, deployed vehicles). A player's move order still wins over
+any band, for a hull as for a mech. Pressure
 leaves out penetration, heat and ammunition depth on purpose: they scale both
 sides of a trade alike far more often than they reverse it.
 `-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the
