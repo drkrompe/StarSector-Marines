@@ -1,6 +1,9 @@
 {
   "basis_label": "C (chosen)",
-  "note": "Owner's capital sizing choice of 2026-10-18 (option C). Hulls here are scaled by hand to these lengths until their own geometry.json publishes a length within tolerance of it; then the published value is used and the entry has no effect. Delete an entry once its hull has published.",
+  "note": "Owner's capital sizing choice of 2026-10-18 (option C). Each entry scales its hull by hand to length_m, labelled with `label`, until the hull's own geometry.json publishes a length within tolerance of it; then the published value is used. `note` is shown on the hull's label either way, until the entry is deleted. Delete an entry once its hull has published and nothing is pending.",
   "tolerance": 0.05,
-  "lengths_m": {"legion": 293, "lasher": 81, "onslaught": 270}
+  "hulls": {
+    "lasher": {"length_m": 90, "label": "pending"},
+    "onslaught": {"length_m": 271, "label": "pending: measurement audit", "note": "pending: measurement audit"}
+  }
 }

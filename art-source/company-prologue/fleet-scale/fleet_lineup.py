@@ -494,7 +494,7 @@ def blender_main(cfg):
             h['published_length_m'] = round(size.x, 2)
             f = target/size.x
             h['mpu'] = round(h['mpu']*f, 4)
-            h['mpu_from'] = f"{cfg['basis_label']}: {target:g} m by hand until published"
+            h['mpu_from'] = f"{cfg['basis_label']}: {target:g} m by hand until published ({h['pending_label']})"
             root.scale = (h['mpu'],)*3
             mn, mx = mn*f, mx*f
             size = mx - mn
@@ -583,7 +583,9 @@ def blender_main(cfg):
         if h['estimate']:
             lines.append('ESTIMATE')
         if h.get('pending'):
-            lines.append(f"{cfg['basis_label'].split(' ')[0]}, pending publish")
+            lines.append(h['pending_label'])
+        elif h.get('pending_note'):
+            lines.append(h['pending_note'])
         return lines, h['estimate']
 
     # ---- lineup layout (shared by broadside and top-down): longest first, left to right
@@ -904,7 +906,8 @@ def label_frames(run, layout):
                 d.rectangle([x0, y0, x0 + tw, y0 + th], fill=(18, 20, 24))
                 for i, t in enumerate(lines):
                     d.text((x0 + 6, y0 + 4 + 20*i), t, font=f_lab_b if i == 0 else f_lab,
-                           fill=(255, 120, 90) if t == 'ESTIMATE' else col)
+                           fill=(255, 120, 90) if t == 'ESTIMATE' else
+                           (255, 190, 80) if 'pending' in t else col)
         d.rectangle([0, 0, W, 84], fill=(14, 16, 19))
         d.text((24, 12), f"{fr['n']:02d}  {fr['title']}", font=f_title, fill=(240, 240, 240))
         d.text((24, 52), fr['subtitle'], font=f_sub, fill=(190, 190, 190))
@@ -936,8 +939,9 @@ def sizes_table(run, hulls):
             volume_x_legion=round(box(h)/box(leg), 4) if leg else '',
             volume_x_hound=round(box(h)/box(hnd), 3) if hnd else '',
             value='estimate' if h['estimate'] else
-                  (f"{h['mpu_from'].split(' ')[0]}, pending publish" if h.get('pending') else
-                   'published' if h['mpu'] == h['published_mpu'] else 'preview'),
+                  (h['pending_label'] if h.get('pending') else
+                   ('published' if h['mpu'] == h['published_mpu'] else 'preview')
+                   + (f" ({h['pending_note']})" if h.get('pending_note') else '')),
             published_metres_per_unit=h['published_mpu'] or '',
             ship_scale_solution=h['solved_mpu'] or '', scale_source=h['mpu_from'], model=h['source_label']))
     import csv
@@ -979,10 +983,10 @@ def drive_root():
 
 
 def write_notes(run, rows, layout, basis, commit, what):
-    pub = [r for r in rows if r['value'] == 'published']
+    pub = [r for r in rows if r['value'].startswith('published')]
     est = [r for r in rows if r['value'] == 'estimate']
     pre = [r for r in rows if r['value'] == 'preview']
-    pen = [r for r in rows if 'pending' in r['value']]
+    pen = [r for r in rows if r['value'].startswith('pending')]
     lane = layout.get('legion_lane', {})
     leg = next((r for r in rows if r['hull'].startswith('Legion')), None)
     hnd = next((r for r in rows if r['hull'].startswith('Hound')), None)
@@ -1027,8 +1031,8 @@ def write_notes(run, rows, layout, basis, commit, what):
     for fr in layout['frames']:
         n.append(f"- `{fr['file']}` — {fr['title']}. {fr['subtitle']}")
     n += ['', '## What to judge', '',
-          *(([f"- This run shows the {layout['basis_label']} capital sizes. Hulls labelled 'pending publish' "
-              'are scaled by hand; a rerun after their sessions publish uses the real values.']
+          *(([f"- This run shows the {layout['basis_label']} capital sizes. Hulls labelled 'pending' "
+              'are scaled by hand or still under audit; a rerun after their sessions publish uses the real values.']
              ) if layout.get('basis_label') else []),
           '- 01/02: does the size ladder read right — fighters, Hermes, frigates and freighters, capitals?',
           '- 03-05: does the Hound feel like a trivial insect beside the Legion? If not, which one is off: '
@@ -1087,8 +1091,11 @@ def driver(argv):
         cfg['basis_label'] = pend['basis_label']
         cfg['pending_tolerance'] = pend.get('tolerance', .05)
         for h in hulls:
-            if h['key'] in pend['lengths_m']:
-                h['pending_length_m'] = pend['lengths_m'][h['key']]
+            e = pend.get('hulls', {}).get(h['key'])
+            if e:
+                h['pending_length_m'] = e['length_m']
+                h['pending_label'] = e.get('label', f"{pend['basis_label'].split(' ')[0]}, pending publish")
+                h['pending_note'] = e.get('note')
     cfg_path = run/'config.json'
     cfg_path.write_text(json.dumps(cfg, indent=1))
     if not a.skip_render:

@@ -44,13 +44,14 @@ Nothing here holds a size.
   documented build and no build anywhere (the Onslaught today) needs its build
   run once on the machine first:
   `sh ../../blender.sh --background --factory-startup --python build_onslaught.py -- --views top`.
-- **Pending basis.** `--pending pending-c.json` scales the hulls it names to
-  the lengths the owner chose (option C: Legion 293 m, Lasher 81 m,
-  Onslaught 270 m), labelled "C, pending publish". Each override applies only
-  while the hull's published length differs from its target by more than 5%.
-  Once a hull's session publishes its C scale to `geometry.json`, a rerun uses
-  the real value with no hand scaling. Delete an entry once its hull has
-  published. The Legion frames carry the basis in their titles.
+- **Pending basis.** `--pending pending-c.json` names hulls whose chosen
+  (option C) size is not settled yet. Each entry scales its hull by hand to
+  `length_m`, labelled with its `label` (for example "pending"), but only while
+  the hull's published length differs from it by more than 5%. Once the
+  hull's session publishes its C scale to `geometry.json`, a rerun uses the
+  real value with no hand scaling. An entry's `note` (for example "pending:
+  measurement audit") stays on the hull's label until the entry is deleted.
+  The Legion frames carry the basis in their titles.
 - **Estimates.** A hull with no package yet goes in as a neutral slab and is
   labelled ESTIMATE. The Onslaught and the Lasher are estimates today. The slab
   is the game sprite's silhouette, extruded to the mean thickness that gives
