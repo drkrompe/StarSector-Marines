@@ -118,21 +118,16 @@ bay_fit.py stands the Hermes in the Second Wind's port bay at both hulls'
 own scales (0.11 and 0.65 m/u), measuring the bay from her named bay
 objects; it never saves her blend. Numbers in geometry.json
 (second_wind_bay_fit) and on hermes-bay-fit.reference.png:
-  bay clear 14.8 m long x 5.8 m deep x 5.6 m high; Hermes 9.0 x 5.7 x 3.0 m
-  on her gear. She fits the open bay broadside, bow forward, standing on her
-  own gear between the two empty cradle beams: 2.9 m clear at each end and
-  2.6 m overhead, but only 5 cm at the inboard wall and 5 cm at the mouth.
-  The beam is the binding dimension: no scale above about 0.112 fits at all.
-  The starboard bay's sealed sectional door stands inside the mouth (inner
-  face at SW y 22.6). A door in the same place on the port bay would leave
-  4.6 m of depth and the Hermes would overhang its line by 1.2 m, so she
-  does not fit with a door closed. The Second Wind's own deck program asks
-  for a 16 x 10 m boat bay (RoomRecipe.BOAT_BAY); her modelled bay is about
-  4 m shallower than that. Deepening the bay inboard is a Second Wind change,
-  not a reason to shrink the boat below its troop bay's headroom.
+  bay clear 14.8 m long x 7.9 m deep x 5.6 m high; Hermes 9.0 x 5.7 x 3.0 m
+  on her gear. The Second Wind's port bay was deepened inboard for her (back
+  wall SW y 15.55 -> 12.4, 2026-10-18). She stands broadside, bow forward, on
+  her own gear between the two empty cradle beams, centred between the back
+  wall and the door line: 2.9 m clear at each end, 2.6 m overhead, 0.45 m at
+  the wall and 0.45 m inside a door on the starboard bay's line (inner face
+  SW y 22.6, 6.6 m of depth), so she fits with a door closed (1.1 m more to
+  the open mouth). The beam is still the binding dimension.
 
 Owner decisions open
-  - Bay fit: deepen the Second Wind's port bay, or accept an open bay.
   - The troop bay's forward hatch (X ~19.5) meets solid hull; the flight
     deck's aft bulkhead is at X 30.7. A crawl passage between them, over the
     nose-gear well, is not modelled yet.

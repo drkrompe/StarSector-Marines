@@ -44,27 +44,70 @@
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
   "metres_per_unit": 0.78,
   "scale": {
-    "method": "deck program (DeckProgramProbe FRIGATE \"Drone Tender\" 15 30 100 -> WARSHIP role): 2331 m2 rooms, less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, = 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 45% of the pressure hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry and outriggers hold no crew volume.",
-    "required_m3": 9726,
-    "pressure_hull": [
-      "Hull central body",
-      "Hull port spine",
-      "Hull aft machinery block",
-      "Bridge hull"
-    ],
-    "drive_casings": [
-      "Engine 1 drive pod casing",
-      "Engine 2 drive pod casing"
-    ],
-    "pressure_hull_units3": 46420,
-    "crew_body_only_units3": 36620,
-    "usable_fraction": 0.45,
-    "solved_metres_per_unit": 0.775,
-    "usable_reason": "crew comfort (ship description): the roomy end, not the 55% freighter/liner share",
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 42356,
+      "crew_max": 30,
+      "cargo": 100,
+      "fuel": 40,
+      "cls": "frigate",
+      "length_units": 86.0,
+      "sprite_px": 92,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.0,
+        "hangar_box_factor": 2.5,
+        "shares": {
+          "armour": 0.06,
+          "drive": 0.22,
+          "weapons": 0.06,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 9000,
+      "cargo": 200,
+      "fuel": 60,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 9260,
+    "machinery_share": 0.46,
+    "enclosed_m3": 17148,
+    "solved_metres_per_unit": 0.74,
     "range": {
-      "cramped_65pct_usable": 0.69,
-      "freighter_55pct_usable": 0.72,
-      "top_pods_not_crewed": 0.84
+      "habitable_273": 0.718,
+      "habitable_328": 0.762
+    },
+    "enclosed_m3_per_person_at_max_crew": 572,
+    "length_m": 63.6,
+    "fittings_m": {
+      "crew door w x h": [
+        1.0,
+        1.78
+      ]
+    },
+    "published_metres_per_unit": 0.78,
+    "published_note": "kept at the pass-4 figure (own deck-program solve, 45% usable) by the owner's choice, 2026-10-18, over the shared-basis solve",
+    "measured_this_build": {
+      "enclosed_units3": 42356,
+      "solids": [
+        "Bridge hull",
+        "Drone bay aft hangar pod",
+        "Drone bay forward hangar pod",
+        "Drone bay forward service block",
+        "Hull aft machinery block",
+        "Hull central body",
+        "Hull port spine"
+      ]
     },
     "drone_bay": {
       "hull": [
@@ -99,7 +142,7 @@
     "size_m": [
       67.1,
       55.0,
-      31.3
+      31.4
     ],
     "cross_checks_m": {
       "person 1.8 m in units": 2.31,
@@ -136,12 +179,12 @@
     "max": [
       45.2,
       36.28,
-      23.37
+      23.45
     ],
     "size": [
       85.99,
       70.57,
-      40.13
+      40.21
     ]
   },
   "drone_bay": {
@@ -500,9 +543,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9365,
+    "iou": 0.9355,
     "sprite_uncovered": 0.0253,
-    "model_outside_sprite": 0.0407,
+    "model_outside_sprite": 0.0418,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 13.71 px per unit"
   }
 }

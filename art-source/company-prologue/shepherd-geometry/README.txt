@@ -24,11 +24,18 @@ Pass 3 (owner review of pass 2) fixed what read wrong against the sprite:
     between the tubs and only a low kerb outboard; the port outrigger sits
     under that kerb;
   - bridge: the sprite's centre is one long curved bridge hull (X 4..35.6,
-    Y -10..+5), lit cream on its starboard crown, with the glazing band at
-    X 27..28.5; it replaces pass 2's invented cab and ribbed habitat pod;
+    Y -10..+5), lit cream on its starboard crown; it replaces pass 2's
+    invented cab and ribbed habitat pod. Round 2: a flat crown and full
+    flanks, then a steep raked windscreen (X 27.4..30, the sprite's dark
+    band) of framed forward-facing panes under a brow visor, wing windows
+    either side, and a chin rounding down into the bow;
   - WS 008: kept, recessed into a well in the drum's forward crown with a
     barrel trough, and given finer mount detail (traverse race, trunnions,
     elevation rams, blast boot, ported brake, sight head, feed conduit).
+    Round 2: the well is finished as a weapon pocket - a continuous bolted
+    armour coaming laid on the skin, a lined trough with a ribbed blast
+    plate under the muzzle - with no hazard paint (no crew on the crown,
+    no crush zone on a +-10 deg hardpoint).
 reference-history/v2-pass2-detail/ holds the pass-2 renders it started from.
 No damage, condition states or surfacing. Reference renders (ignored, kept
 on disk): reference-history/v1-blockout/ (the first, flat blockout) and
@@ -146,23 +153,24 @@ limits and every 10 deg; no clashes), both run inside Blender after a build:
 Scale (pass 4): 0.78 m per unit
 METRES_PER_UNIT in build_shepherd.py and metres_per_unit in geometry.json;
 every metric value reads it. About 67 m long, 55 m across, 31.5 m keel to
-mast (the hull 20 m keel to deck). Derived from what she carries: the mod's
-deck program for a FRIGATE "Drone Tender" with 15-30 crew and 100 cargo
-(DeckProgramProbe; the designation resolves to the WARSHIP role) is 2,331 m2
-of rooms; its notional 160 m2 HANGAR is dropped because the open bay is sized
-from the Borer wing instead, leaving 2,171 m2 x1.40 circulation x3.2 m =
-9,726 m3. The pressure hull (crew body, spine, machinery, the bridge hull
-and the two drive-pod casings, measured as a union on every build) is
-about 46,400 cubic units. The r450 gives "internal volume to crew comfort",
-so she is solved at the roomy 45% usable: 0.775, kept at 0.78. Range 0.69
-(65% usable), 0.72 (a freighter's 55%), 0.84 (pods hold no crew space). Cross-checks: a
-1.8 m person is 2.3 units; the 1.35 x 2.4-unit crew doors are 1.05 x 1.87 m;
-the open bay deck is 30.8 x 9.4 m with 9.9 m to the crown (about 2,840 m3
-against the ~570 m3 four Borers and a spare need on servicing cradles); each
-launch station clears 6.6 m against an assumed 4.4 x 4.0 x 1.8 m Borer (no
-Borer model exists yet). This is not the battle-map figure: there Morrow
+mast (the hull 20 m keel to deck). She is on the shared sizing basis
+(../ship_scale.py, option C, ../ship-scale.md): contents of 30 crew at
+300 m3, 100 cargo and 40 fuel over the frigate machinery share (46%),
+against the enclosed volume of ship_scale.SOLIDS['shepherd'] (crew body,
+spine, machinery, bridge hull, the drone-bay tubs and the workshop block;
+42,356 cubic units, re-measured on every build and checked against the
+shared table). The drone bay is open to space, so its air is not enclosed
+and no hangar term is charged. That solves 0.74 (range 0.72-0.76, 64 m).
+The published figure stays 0.78, her pass-4 solve from the deck program at
+45% usable for crew comfort, by the owner's choice (2026-10-18);
+ship_scale.PUBLISHED carries it. Cross-checks at 0.78: a 1.8 m person is
+2.3 units; the 1.35 x 2.4-unit crew doors are 1.05 x 1.87 m; the open bay
+deck is 30.8 x 9.4 m with 9.9 m to the crown (about 2,840 m3 against the
+~570 m3 four Borers and a spare need on servicing cradles); each launch
+station clears 6.6 m against an assumed 4.4 x 4.0 x 1.8 m Borer (no Borer
+model exists yet). This is not the battle-map figure: there Morrow
 blocks 24 x 20 cells (landed-ships-true-scale.md, shepherd-recovery.md),
 0.261 m per unit, a tactical-readability convention for one-cell infantry.
 
-Silhouette: top-view IoU 0.937 against drone_tender.png (0.932 at pass 1,
+Silhouette: top-view IoU 0.936 against drone_tender.png (0.932 at pass 1,
 0.935 at pass 2).

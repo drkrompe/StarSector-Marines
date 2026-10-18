@@ -49,6 +49,7 @@ ALONGSIDE_M = 25.0      # frame 5: the Legion's starboard side to the Hound's po
 #   vanilla:  the game's .ship id, for an estimate box's beam
 HULLS = [
     dict(key='onslaught', name='Onslaught', kind='ship', scale_key='Onslaught', vanilla='onslaught',
+         drive_build=('onslaught', 'onslaught.blend', 'ONSLAUGHT | clean', 'ONSLAUGHT | clean | root'),
          geometry=('onslaught-geometry/onslaught-geometry.blend', None),
          json='onslaught-geometry/geometry.json'),
     dict(key='legion', name='Legion (XIV)', kind='ship', scale_key='Legion (XIV)', vanilla='legion',
@@ -91,14 +92,18 @@ def resolve(h, basis):
     gjson = PROLOGUE/h['json']
     sol = scale_solution(h.get('scale_key'))
     out['solved_mpu'] = sol['solved_metres_per_unit'] if sol else None
+    head_build = drive_build(h['drive_build'], gjson.parent) if h.get('drive_build') and gjson.exists() else None
     if exp and (PROLOGUE/exp[0]).exists() and gjson.exists():
         out['source'] = dict(blend=str(PROLOGUE/exp[0]), collection=exp[1], root=exp[2])
         out['source_label'] = h['export'][0]
+    elif head_build and head_build[2]:          # the Drive build of the package's latest commit
+        out['source'] = dict(blend=str(head_build[0]), collection=h['drive_build'][2], root=h['drive_build'][3])
+        out['source_label'] = head_build[1]
     elif geo_blend.exists() and gjson.exists():
         out['source'] = dict(blend=str(geo_blend), collection=h['geometry'][1], root=None)
         out['source_label'] = h['geometry'][0]
-    elif h.get('drive_build') and gjson.exists() and drive_build(h['drive_build'], gjson.parent):
-        blend, label = drive_build(h['drive_build'], gjson.parent)
+    elif head_build:
+        blend, label, _ = head_build
         out['source'] = dict(blend=str(blend), collection=h['drive_build'][2], root=h['drive_build'][3])
         out['source_label'] = label
     else:
@@ -143,10 +148,17 @@ def drive_build(spec, package):
                                        text=True).strip()
     except Exception:
         head = ''
-    match = [d for d in builds if head and (head.startswith(d.name) or d.name.startswith(head))]
+    def current(d):
+        # the build's commit holds the same package files as HEAD (it may be a later merge)
+        if head and (head.startswith(d.name) or d.name.startswith(head)):
+            return True
+        return subprocess.call(['git', '-C', str(REPO), 'diff', '--quiet', d.name, 'HEAD', '--', str(package)],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+
+    match = [d for d in sorted(builds, key=lambda d: -(d/blend).stat().st_mtime) if current(d)]
     pick = match[0] if match else max(builds, key=lambda d: (d/blend).stat().st_mtime)
     note = '' if match else f' (not the package head {head})'
-    return pick/blend, f'Drive builds/{hull}/{pick.name}/{blend}{note}'
+    return pick/blend, f'Drive builds/{hull}/{pick.name}/{blend}{note}', bool(match)
 
 
 def vanilla_spec(ship_id):
@@ -845,6 +857,49 @@ def blender_main(cfg):
         sun_data.use_shadow = True
         cutaway('legion', False)
 
+    # 07 the two capitals side by side, broadside, with the Hound and a 747 in front for scale
+    caps = [k for k in ('legion', 'onslaught') if k in hulls]
+    front = [k for k in ('hound', 'ref-747') if k in hulls]
+    if len(caps) == 2:
+        show(set(caps) | set(front))
+        lineup_visible(True)
+        for f in figs:
+            f.hide_render = True
+        wall.hide_render = False
+        x = 0.0
+        for k in caps:
+            place(k, (x, -(hulls[k]['mx'].y - hulls[k]['mn'].y)/2, 0))
+            x += hulls[k]['mx'].x - hulls[k]['mn'].x + 40
+        x_end = x - 40
+        y_front = min(world_bbox(k)[0].y for k in caps) - 200   # a front row, well clear of the capitals
+        for k, c in zip(front, caps):
+            lo, hi = world_bbox(c)
+            r = hulls[k]
+            place(k, ((lo.x + hi.x)/2 - (r['mx'].x - r['mn'].x)/2, y_front - (r['mx'].y - r['mn'].y), 0))
+        f7 = figure('Figure frame 7', (world_bbox(front[0])[0].x - 6, y_front - 10, 0)) if front else None
+        aim_sun((.35, .75, -.55))
+        # orthographic (no perspective size cue) but looking 18 degrees down, so the front row
+        # sits below the capitals in the frame instead of across them
+        ortho = x_end*1.12
+        m = ortho/W
+        pitch = math.radians(18)
+        tgt = Vector((x_end/2, y_front/2, 30))
+        look(tgt + Vector((0, -math.cos(pitch), math.sin(pitch)))*5000, tgt, ortho=ortho)
+        labels = []
+        for k in caps + front:
+            lo, hi = world_bbox(k)
+            lines, est = tag(k)
+            labels.append(dict(lines=lines, estimate=est, anchor=px(((lo.x + hi.x)/2, lo.y, hi.z)), place='above'))
+        if f7:
+            labels.append(dict(lines=['1.8 m figure'], estimate=False,
+                               anchor=px(f7.location + Vector((0, 0, FIGURE_M))), place='above'))
+        names = ' and '.join(hulls[k]['cfg']['name'] for k in caps)
+        render(7, 'capitals-broadside', f'{names}, broadside' + basis_suffix,
+               f'Orthographic from starboard, 18 degrees above the beam, 1 px = {m:.2f} m across; '
+               + ' and '.join(hulls[k]['cfg']['name'] for k in front)
+               + ' in front for scale. Grid 10 m, majors 50 m.', labels)
+        lineup_visible(False)
+
     hound_lane = dict(lane_w=lane_w, lane_h=lane_h, mouth_w=mouth_w, mouth_h=mouth_h)
     json.dump(dict(frames=frames, hulls=cfg['hulls'], legion_lane=hound_lane, basis_label=cfg.get('basis_label'),
                    references=[hulls[k]['cfg'] for k in refs]),
@@ -859,6 +914,9 @@ def label_frames(run, layout):
     f_title, f_sub, f_lab = review_font(30, True), review_font(18), review_font(16)
     f_lab_b = review_font(16, True)
     for fr in layout['frames']:
+        if not all((run/'raw'/part['file']).exists() for part in fr['parts']):
+            print(f"[fleet] {fr['file']}: no raw render yet, not labelled")
+            continue
         img = Image.new('RGB', (W, H), (14, 16, 19))
         d = ImageDraw.Draw(img)
         boxes = []

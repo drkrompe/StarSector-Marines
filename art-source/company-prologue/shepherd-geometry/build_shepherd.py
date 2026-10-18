@@ -50,6 +50,8 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
+import ship_scale
 import sh_kit, sh_hull, sh_bridge, sh_dronebay, sh_gantry, sh_engines, sh_mounts
 MODULES = (sh_kit, sh_hull, sh_bridge, sh_dronebay, sh_gantry, sh_engines, sh_mounts)
 for module in MODULES:
@@ -61,23 +63,15 @@ SPRITE = 'graphics/ships/drone_tender.png'
 
 # Real-world scale (pipeline pass 4). One number; every metric value - VFX
 # sizes and speeds, lamp falloff, cameras, depth of field, flight speeds,
-# texel density - reads it. Derived from what she carries, not the sprite:
-# the deck program for a FRIGATE "Drone Tender", 15-30 crew, 100 cargo
-# (DeckProgramProbe) is 2,331 m2 of rooms; less its notional 160 m2 HANGAR
-# (the open drone bay is sized from the Borer wing instead) that is
-# 2,171 m2 x1.40 circulation x3.2 m = 9,726 m3. The pressure hull (crew
-# body, spine, machinery, bridge cab, habitat shell and the drive pods'
-# casings, re-measured below on every build) is about 45,900 cubic units.
-# The r450 gives "internal volume to crew comfort", so she is solved at the
-# roomy 45% usable rather than a freighter's 55%: 0.78 m per unit (55%
-# gives 0.73, 65% 0.69; the pods-excluded top is 0.79). Fittings agree:
-# the 1.35 x 2.4-unit doors are 1.05 x 1.87 m, the open bay deck 27.8 x 9.4 m.
-METRES_PER_UNIT = 0.78
-REQUIRED_M3 = 9726      # crew deck program less its notional HANGAR (see scale_record)
-USABLE = .45
-PRESSURE_HULL = ['Hull central body', 'Hull port spine', 'Hull aft machinery block',
-                 'Bridge hull']
-DRIVE_CASINGS = ['Engine 1 drive pod casing', 'Engine 2 drive pod casing']  # outer casings count, per the skill
+# texel density - reads it. Sized on the shared basis every hull uses
+# (../ship_scale.py, option C): contents (30 crew at 300 m3, 100 cargo,
+# 40 fuel; no hangar term, the drone bay being open) over the frigate
+# machinery share, against the enclosed volume of ship_scale.SOLIDS
+# ['shepherd'], re-measured below on every build. That solves 0.74 (range
+# 0.72-0.76). The published figure stays 0.78, from her pass-4 solve, by the
+# owner's choice (2026-10-18): ship_scale.PUBLISHED carries it, as it does the Hound's.
+SCALE = ship_scale.record('Shepherd')
+METRES_PER_UNIT = ship_scale.PUBLISHED['Shepherd']
 DRONE_BAY_HULL = ['Drone bay aft hangar pod', 'Drone bay forward hangar pod', 'Drone bay forward service block']
 # The Borer has no cinematic model yet; its size is an assumption stated in
 # metres (an industrial cutting drone: 4.4 m long, 4.0 m across the arms,
@@ -264,10 +258,14 @@ def union_volume(names, step=1.0):
 
 
 def scale_record(lo, hi):
-    crew = union_volume(PRESSURE_HULL)
-    volume = union_volume(PRESSURE_HULL+DRIVE_CASINGS)
+    spec = ship_scale.SOLIDS['shepherd']
+    solids = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and spec['include'](o.name))
+    measured = union_volume(solids, spec['step'])
+    table = ship_scale.HULLS['Shepherd']['units3']
+    if abs(measured/table-1) > .02:
+        raise RuntimeError(f'enclosed volume {measured:.0f} units3 differs from ship_scale.HULLS '
+                           f'Shepherd units3 {table}: update the shared table')
     bay = union_volume(DRONE_BAY_HULL)
-    solve = lambda usable, v=volume: (REQUIRED_M3/(usable*v))**(1/3)
     # The open work bay itself (air, not the tub solids): deck from the
     # crossbeam's forward face / join bulkhead to the forward block, back
     # wall to outboard coaming, deck to the tub crown.
@@ -283,18 +281,10 @@ def scale_record(lo, hi):
     stow_m3 = (DRONE_BAY['wing_size']+1)*d['length']*d['span']*1.8*d['height']*1.6*1.25
     r = sh_dronebay.OPENING_R
     return {
-        'method': 'deck program (DeckProgramProbe FRIGATE "Drone Tender" 15 30 100 -> WARSHIP role): 2331 m2 rooms, '
-                  'less the notional 16x10 HANGAR (160 m2) because the open drone bay is sized from the Borer wing instead, '
-                  '= 2171 m2 x1.40 circulation x3.2 m deck height = required m3; solved against 45% of the pressure '
-                  'hull (union of PRESSURE_HULL + DRIVE_CASINGS by vertical ray intervals). The open bay, gantry '
-                  'and outriggers hold no crew volume.',
-        'required_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL,
-        'drive_casings': DRIVE_CASINGS,
-        'pressure_hull_units3': round(volume), 'crew_body_only_units3': round(crew), 'usable_fraction': USABLE,
-        'solved_metres_per_unit': round(solve(USABLE), 3),
-        'usable_reason': 'crew comfort (ship description): the roomy end, not the 55% freighter/liner share',
-        'range': {'cramped_65pct_usable': round(solve(.65), 2), 'freighter_55pct_usable': round(solve(.55), 2),
-                  'top_pods_not_crewed': round(solve(USABLE, crew), 2)},
+        **SCALE, 'published_metres_per_unit': METRES_PER_UNIT,
+        'published_note': "kept at the pass-4 figure (own deck-program solve, 45% usable) by the owner's "
+                          'choice, 2026-10-18, over the shared-basis solve',
+        'measured_this_build': {'enclosed_units3': round(measured), 'solids': solids},
         'drone_bay': {
             'hull': DRONE_BAY_HULL, 'tub_solid_units3': round(bay),
             'open_bay_m': {'deck_length': round(bay_len*m, 1), 'width': round(bay_w*m, 1),

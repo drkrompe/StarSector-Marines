@@ -70,10 +70,11 @@ its root. It does this through a generalisation that is a no-op for the Second
 Wind: on its patched export, the kit's records and objects are byte-identical
 with and without the change (see the kit README, Anchors).
 
-Known issue: the haze is sometimes cut off at a straight edge in the turn.
-The kit's haze volume box is narrower than the haze's density falloff, and
-both are sized from the bell radius. So this is the kit's own sizing, not
-the Hound's.
+The haze used to end at a straight edge in the turn. The two engines' haze
+boxes were identical and shared face planes, and Cycles does not add
+overlapping volumes entered through coplanar faces. The kit now pads each
+engine's boxes differently, and sizes the haze box past its falloff (see the
+kit README, Smoke and atmosphere). Re-export to pick up the fix.
 
 ## Not built
 

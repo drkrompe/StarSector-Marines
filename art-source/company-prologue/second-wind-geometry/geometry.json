@@ -773,5 +773,6 @@
       "radius_m": 0.3,
       "working": true
     }
-  ]
+  ],
+  "spark_anchors": []
 }
