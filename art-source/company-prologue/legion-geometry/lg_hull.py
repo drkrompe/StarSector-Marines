@@ -44,14 +44,14 @@ so the detail is ledges, strakes, steps and real seam gaps rather than paint:
 - aft, the machinery bed is a recess with conduits, feed trunks and
   transverse ribs; the tail spine is vertebral: a channel of rungs X -17..-54,
   then collars over the bed and dorsal ribs down to the spike.
-Person-scale parts use 0.61 m per unit: doors 3.4 units tall.
+Person-scale parts are true metres at lg_kit.METRES_PER_UNIT (lg_kit.PERSON).
 """
 import math
 import bmesh
 import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-from lg_kit import boolean, facet_normal, mirror_y, plane_cut, prism, section, ccw, inset
+from lg_kit import PERSON, boolean, facet_normal, mirror_y, plane_cut, prism, section, ccw, inset
 
 KEEL, DECK = -20.0, 10.0
 
@@ -551,11 +551,12 @@ def build_shoulders(kit):
                     continue
                 seg = [(x, at(x)[0], 0.0) for x in (x1, x0)]
                 sweep(plates, seg, [(-.3, 4.4), (.55, 4.4), (.55, 7.2), (.25, 7.6), (-.3, 7.6)], sg)
-        # Hatches: 2.1 m doors, 3.4 units tall, in a frame.
+        # Hatches: 1.3 x 2.1 m doors in a frame, true metres at any scale.
+        P = PERSON
         for hx in SHOULDER_HATCH_X:
             hy = at(hx)[0]
-            hatch.add(*box(hx-1.7, hx+1.7, *sorted((hy-sy*.2, hy+sy*.45)), 4.1, 7.85))
-            door.add(*box(hx-1.05, hx+1.05, *sorted((hy+sy*.3, hy+sy*.6)), 4.3, 7.7))
+            hatch.add(*box(hx-1.7*P, hx+1.7*P, *sorted((hy-sy*.2, hy+sy*.45)), 4.1, 4.1+3.75*P))
+            door.add(*box(hx-1.05*P, hx+1.05*P, *sorted((hy+sy*.3, hy+sy*.6)), 4.3, 4.3+3.4*P))
     cope.build(kit, 'Hull torso shoulder coping', kit.plate)
     butt.build(kit, 'Hull torso shoulder buttresses', kit.plate)
     plates.build(kit, 'Hull torso shoulder wall plates', kit.plate)

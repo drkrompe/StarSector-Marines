@@ -1,4 +1,4 @@
-SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASS 2 DETAIL + PASS 4 SCALE; OWNER REVIEW NEXT)
+SHEPHERD (MORROW) - CINEMATIC GEOMETRY (PASS 3 REVIEW FIXES ON PASS 2 + PASS 4; OWNER REVIEW NEXT)
 
 Purpose
 An editable Blender model of the vanilla Shepherd drone tender, built for the
@@ -12,6 +12,24 @@ Pass 1 fixed the silhouette, sections, mass and slots. Pass 2 added the detail
 the sprite and lore imply, after two owner notes: the port drone bay is an
 open work bay exposed out of the hull, and the ship has real verticality
 (fairly thick: about 40 units keel to mast, 31.5 m). Pass 4 set the scale.
+Pass 3 (owner review of pass 2) fixed what read wrong against the sprite:
+  - bow: the central body's nose is a superellipse in plan with tangent
+    facets over and under it, and the section has two shoulder facets;
+  - repair gantry: the sprite's starboard bow is a long rounded machinery
+    drum, not a cage, so the lattice frame, travelling crane, floodlights and
+    top-deck plant are gone; the core is that drum on cradle saddles over a
+    rounded base deck, the WS 008 bed a round pedestal on its crown, and
+    the outrigger's open bracing is now a dark armour skirt;
+  - drone bay: one continuous open deck with no arch ribs, no bulkhead
+    between the tubs and only a low kerb outboard; the port outrigger sits
+    under that kerb;
+  - bridge: the sprite's centre is one long curved bridge hull (X 4..35.6,
+    Y -10..+5), lit cream on its starboard crown, with the glazing band at
+    X 27..28.5; it replaces pass 2's invented cab and ribbed habitat pod;
+  - WS 008: kept, recessed into a well in the drum's forward crown with a
+    barrel trough, and given finer mount detail (traverse race, trunnions,
+    elevation rams, blast boot, ported brake, sight head, feed conduit).
+reference-history/v2-pass2-detail/ holds the pass-2 renders it started from.
 No damage, condition states or surfacing. Reference renders (ignored, kept
 on disk): reference-history/v1-blockout/ (the first, flat blockout) and
 v1b-thick-blockout/ (the thickened blockout the detail pass started from,
@@ -53,25 +71,25 @@ Engines (shepherd.ship order; names as on the Second Wind)
   mouth; its +X is the exhaust direction, also in geometry.json).
 
 Drone bay
-The port third of the hull (Y 11..27) is an open work bay recessed into two
-hangar tubs end to end, closed forward by the workshop service block: a
-sunken deck (z -5) with transfer rails, a cyan-lit inboard back wall with
-servicing arms, cable trays and tool racks, arch ribs over the open top and
-an outboard coaming. Each WS 003 location is a launch station:
+The port third of the hull (Y 11..27) is an open work bay: one deck cut
+through two hangar tubs end to end, closed forward by the workshop service
+block and open above and outboard. It has a sunken deck (z -5) with
+transfer rails, a cyan-lit inboard back wall with servicing arms, cable
+trays and tool racks, and only a low kerb and handrail outboard. Each WS 003 location is a launch station:
 'Drone bay WS 003 opening <i> ...' is its deck plate, hazard kerb, launch
 cradle, charging contact and umbilical; 'Drone bay WS 003 opening <i> mouth'
 sits at the top of the bay above it (normal +Z) and 'Drone bay WS 003 launch
-point <i>' on the cradle. The aft bay's aft wall is the crossbeam. geometry.json
+point <i>' on the cradle. The deck's aft end is the crossbeam. geometry.json
 'drone_bay' exports the openings, the launch points and their anchors, the
 launch direction (+Z, out of the well) and the departure heading (the slot
 angle, forward), the way the Legion exports its flight decks.
 
 Object names (stable identifiers; damage, surfacing and VFX key off them)
   Hull ...       central crew body, port spine, aft crossbeam, machinery
-  Bridge ...     bridge cab, glazing band, habitat shell
+  Bridge ...     bridge hull, pale crown plating, glazing band, roof fittings
   Mast ...       forward sensor boom, starboard sensor head
   Drone bay ...  hangar pods, service block, WS 003 openings, launch points
-  Gantry ...     starboard repair gantry: frame, core, base deck, crane
+  Gantry ...     starboard repair gantry: drum core, base deck, hardpoint bed, rails, cab
   Frame ...      port and starboard outriggers, starboard turret deck
   Engine <i> ... drive pods, pylons, jet housings, bells
   Turret 1 WS 007 ... / Hardpoint 1 WS 008 ...
@@ -103,13 +121,14 @@ offered in this harness)
            reactor hatch, stern red/green lamps; ventral keel skids and eight
            'Hull keel cradle shoe <i>' she rests on when grounded, a ventral
            cargo hatch and a survey blister.
-  Bridge   raked framed glazing under a brow visor, side and aft windows,
-           roof hatch and rails, an antenna mast, running lamps; the habitat
-           shell with ribs, viewport rows and an observation strip; the
-           lattice sensor boom; the survey head (radome, lidar, dish).
-  Gantry   lattice towers and girders, a travelling bridge crane with hoist
-           and hook, two welding arms, fabricator, compressors, tool racks,
-           cable reels, floodlights, an operator cab; lattice turret deck
+  Bridge   (pass 3: one long curved bridge hull, see above) pale starboard
+           crown plating, plating seams, a wraparound glazing band with
+           mullions under a brow lip, flank viewports, roof hatch, air
+           handler, antenna mast, running lamps; the lattice sensor boom;
+           the survey head (radome, lidar, dish).
+  Gantry   (pass 3: replaced by the machinery drum, see above) frame
+           bands, crown plate and hatches, outboard covers and grilles, an
+           aft manifold and piping, an operator cab; lattice turret deck
            and starboard outrigger.
   Engines  banded drive pods with saddle bands, thrust yokes, radiator wells
            and the sprite's hatch, coolant trunk and hazard placards; bells
@@ -132,17 +151,18 @@ deck program for a FRIGATE "Drone Tender" with 15-30 crew and 100 cargo
 (DeckProgramProbe; the designation resolves to the WARSHIP role) is 2,331 m2
 of rooms; its notional 160 m2 HANGAR is dropped because the open bay is sized
 from the Borer wing instead, leaving 2,171 m2 x1.40 circulation x3.2 m =
-9,726 m3. The pressure hull (crew body, spine, machinery, bridge cab, habitat
-shell and the two drive-pod casings, measured as a union on every build) is
-about 45,900 cubic units. The r450 gives "internal volume to crew comfort",
-so she is solved at the roomy 45% usable: 0.78. Range 0.69 (65% usable),
-0.73 (a freighter's 55%), 0.84 (pods hold no crew space). Cross-checks: a
+9,726 m3. The pressure hull (crew body, spine, machinery, the bridge hull
+and the two drive-pod casings, measured as a union on every build) is
+about 46,400 cubic units. The r450 gives "internal volume to crew comfort",
+so she is solved at the roomy 45% usable: 0.775, kept at 0.78. Range 0.69
+(65% usable), 0.72 (a freighter's 55%), 0.84 (pods hold no crew space). Cross-checks: a
 1.8 m person is 2.3 units; the 1.35 x 2.4-unit crew doors are 1.05 x 1.87 m;
-the open bay deck is 27.8 x 9.4 m with 9.9 m to the crown (about 2,700 m3
+the open bay deck is 30.8 x 9.4 m with 9.9 m to the crown (about 2,840 m3
 against the ~570 m3 four Borers and a spare need on servicing cradles); each
 launch station clears 6.6 m against an assumed 4.4 x 4.0 x 1.8 m Borer (no
 Borer model exists yet). This is not the battle-map figure: there Morrow
 blocks 24 x 20 cells (landed-ships-true-scale.md, shepherd-recovery.md),
 0.261 m per unit, a tactical-readability convention for one-cell infantry.
 
-Silhouette: top-view IoU 0.935 against drone_tender.png (0.932 at pass 1).
+Silhouette: top-view IoU 0.937 against drone_tender.png (0.932 at pass 1,
+0.935 at pass 2).
