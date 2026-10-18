@@ -2,11 +2,14 @@
 
     blender --background --factory-startup --python c4x_scene.py -- [--still t,...] [--frames a:b] [--step n] [--save]
 
-Layout pass (EEVEE, block geometry). The camera hangs about 700 m up, looking nearly straight
+While sketching, render one frame per second (--step 24, nine frames, about two minutes) and
+play it as a slideshow; the full motion pass (--step 2) takes about twenty minutes.
+
+Layout pass (EEVEE, block geometry). The camera starts about 820 m up, looking nearly straight
 down, and pans toward the port: it starts over the farmland and crosses the edge of the
 industrial belt (hedges and fence, freight road, rail sidings, warehouses, container yard) to
-then, over the last few seconds, drifts east and comes down to end straight over Kilo Nine, low
-and tight, with Second Wind still descending onto its pad (C5 lands it; the wide reveal of the
+then, over the last few seconds, drifts east and comes down to end straight over Kilo Nine at
+about 480 m, with Second Wind hovering and sinking onto its pad (C5 lands it; the wide reveal of the
 port is saved for C5's title pull-out). Second Wind is under the camera from the first second,
 pulls ahead and sinks toward Kilo Nine, its shadow closing on it as it descends. The two speeds
 keep the ground, the ship and the shadow all moving against each other.
