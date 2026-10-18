@@ -369,18 +369,21 @@ Hit share is unchanged by the faster rounds. In Greyhook it is 93-96% (94-98% be
 line-of-battle 90% (85%), mirror 100% (97%) and pack 89% (89%). In `hull-durability`, Eagle 1330/1355 rounds reach a
 hull (980/992) and Onslaught 533/594 (315/343).
 
-Black Sluice is a regression reading only; its airspace and edges are being reworked separately:
+Black Sluice is a regression reading only. Its edges are now flown, with the declared airspace gone:
 
-| seed | first hit to end | Hounds / Wolfs lost | first Hound down after the first hit | Greyhook hull |
-| --- | --- | --- | --- | --- |
-| 15305 | 72.7s | 1 / 2 | 0.0s | 99% |
-| 16205 | 74.3s | 1 / 2 | 0.0s | 100% |
-| 16206 | 105.4s | 2 / 2 | 0.1s | 96% |
-| 20261016 | 79.2s | 2 / 2 | 0.1s | 99% |
-| 31337 | 79.0s | 2 / 2 | 0.0s | 99% |
+| seed | first hit | first Hound down | first Wolf down | Hounds / Wolfs lost | Greyhook hull, off the map at |
+| --- | --- | --- | --- | --- | --- |
+| 15305 | 11.5s | 13.8s | 40.9s | 1 / 2 | 99%, 312.5s |
+| 16205 | 11.6s | 13.8s | 41.5s | 1 / 2 | 99%, 322.7s |
+| 16206 | 11.6s | 13.0s | 42.9s | 1 / 2 | 99%, 313.7s |
+| 20261016 | 11.5s | 14.4s | 40.8s | 1 / 2 | 99%, 312.3s |
+| 31337 | 11.5s | 14.4s | 40.9s | 1 / 2 | 99%, 312.3s |
 
-The 300x232 map is only about 1.5 Wolf reaches across, so it cannot hold the fight at the new range. Every Hound in
-reach is under fire the moment it leaves the cloud, and the first one falls to the opening alpha.
+The 300x232 map is only about 1.5 Wolf reaches across, so it cannot hold the fight at the new range. Everything is in
+reach as soon as the Wolfs cross the edge: the first Hound falls two or three seconds after the first hit, and the
+second Wolf dies before it has cleared its entry band. The surviving Hound screens its charge with no hull to fight.
+It then drifts away from its screen station onto the south edge, where the backstop holds it, until its charge leaves.
+That drift belongs to the escort helm, not to this slice.
 
 ## Slices
 

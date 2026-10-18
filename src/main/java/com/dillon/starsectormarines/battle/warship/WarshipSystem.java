@@ -462,8 +462,9 @@ public final class WarshipSystem {
             tickShield(fightDt, sim, ship);
             ship.fluxPool().update(fightDt);
             if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship, edges);
-            edges.contain(ship);
             turnHull(dt, ship);
+            // After the turn as well as the move: a hull turning about its pivot swings its centre too.
+            edges.contain(ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.knockedOut()) continue;
                 if (ship.descending()) {

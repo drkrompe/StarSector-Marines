@@ -1760,7 +1760,9 @@ for one mission:
   away early), sheds the way toward the edge before pushing back in (so a ship running
   along the band keeps its way along it), and comes after keeping clear of other hulls,
   since an edge cannot be shouldered aside as a hull can; a manoeuvre's bow comes round
-  onto the course it leaves. A centre that crosses an edge anyway is held on it. A ship
+  onto the course it leaves. A centre that crosses an edge anyway is held on it, for every
+  flown hull whether or not the pressure applies to it, and a hull leaving across its edge
+  is held off the other three: only a side's own edge is a way on or off. A ship
   holding a station someone chose (a mission's, a called ship's, a remote order's, an
   escort's place in the screen line) keeps it: those are places, not a fight. Exempt too:
   a hull deliberately crossing its side's edge (flying in until it has cleared its margin,
