@@ -41,9 +41,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_service, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs
-MODULES = [pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_service, pg_hangar, pg_engines, pg_turrets, pg_shield,
-           pg_arcs]
+import pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_service, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs
+MODULES = [pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_service, pg_hangar, pg_engines, pg_turrets,
+           pg_shield, pg_arcs]
 for module in MODULES:
     importlib.reload(module)
 
@@ -125,6 +125,7 @@ kit.mpu = METRES_PER_UNIT
 pg_finish.apply(kit)
 hull = pg_hull.build(kit)
 pg_detail.build(kit, hull)
+pg_bore.build(kit)
 pg_service.build(kit)
 pg_hangar.build(kit, args.hangar_open)
 pg_engines.build(kit)
