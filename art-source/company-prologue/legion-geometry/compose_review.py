@@ -15,6 +15,7 @@ from pathlib import Path
 import argparse
 import json
 import math
+import os
 import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -22,8 +23,10 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent/'second-wind-cinematic'/'patrol-abeam'))
 import c2_core
-GAME_SPRITE = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core'
-                   r'\graphics\ships\legion\legion_xiv.png')
+GAME = Path(os.environ.get('STARSECTOR_CORE') or (
+    '/Applications/Starsector.app/Contents/Resources/Java' if sys.platform == 'darwin'
+    else r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core'))
+GAME_SPRITE = GAME/'graphics'/'ships'/'legion'/'legion_xiv.png'
 BG = (222, 223, 223)
 
 parser = argparse.ArgumentParser()
@@ -80,7 +83,8 @@ diff[sprite_mask & ~model_mask] = (220, 30, 30, 170)
 diff[model_mask & ~sprite_mask] = (20, 190, 220, 170)
 over = Image.alpha_composite(over, Image.fromarray(diff))
 d = ImageDraw.Draw(over)
-font = lambda s: ImageFont.truetype('C:/Windows/Fonts/arial.ttf', s)
+FONT = '/System/Library/Fonts/Supplemental/Arial.ttf' if sys.platform == 'darwin' else 'C:/Windows/Fonts/arial.ttf'
+font = lambda s: ImageFont.truetype(FONT, s)
 d.text((28, 20), 'LEGION (XIV) / TOP OVER legion_xiv.png (50%)', font=font(30), fill=(39, 49, 55))
 d.text((28, 60), f'Silhouette IoU {iou:.3f}   red: sprite not covered ({missing:.1%})   '
                  f'cyan: model outside sprite ({extra:.1%})   bow left, port below, 1 px = 1 unit',
