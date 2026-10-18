@@ -145,10 +145,11 @@ increasing an encounter's total armored threat.
   which manifest entries come down this time (the picker starts on every machine
   aboard that lift allows, up to a lance), then clicks the landing ground. Only
   the picked machines fly; the rest stay aboard for a later call. A cooldown
-  spaces the calls in place of one charge per lance, and the card counts the
+  (30 s) spaces the calls in place of one charge per lance, and the card counts the
   machines still aboard, reading spent when none are.
 - The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
-  company boat flies two machine lifts at its rating, and the synthetic heavy
+  company boat flies two machine lifts at its rating on a light cradle and three
+  on a heavy one, and the synthetic heavy
   carrier a hull, ship, employer or story arranges lifts the whole bay. Each
   picked machine spends one lift from the lowest-rated carrier that admits it
   (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
@@ -178,7 +179,9 @@ increasing an encounter's total armored threat.
 - The **engine budget** is the engine's output against the fitted mass of every
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
-  its access tier, plating's scales with the frame it covers. A refit is refused
+  its access tier, plating's scales with the frame it covers, and an upgraded
+  engine carries its own, since every CORE socket already takes the largest
+  engine and its footprint costs nothing. A refit is refused
   when the result is over budget, unless it is no further over than the current
   fit, so a fit from before the budget existed can be stripped down but never
   loaded further.

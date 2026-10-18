@@ -17,9 +17,9 @@ import java.util.List;
  * How much armor the company can still put on the ground this mission, carrier by carrier.
  *
  * <p>Each carrier brings a number of machine lifts at its {@link LiftRating}: a cradled
- * company boat {@link #LIFTS_PER_COMPANY_BOAT}, the synthetic heavy carrier a hull, ship or
- * employer supplies enough for the whole bay. A machine spends one lift from a carrier
- * whose rating admits it ({@link LiftAdmission}), so a Heavy machine spends Heavy lift and
+ * company boat {@link #liftsPerCompanyBoat} (two on a light cradle, three on a heavy one),
+ * the synthetic heavy carrier a hull, ship or employer supplies enough for the whole bay.
+ * A machine spends one lift from a carrier whose rating admits it ({@link LiftAdmission}), so a Heavy machine spends Heavy lift and
  * a budget with none refuses it. Spent lift stays spent for the mission whether or not
  * the carrier came home: better boats mean more armor on the ground, not faster calls.
  *
