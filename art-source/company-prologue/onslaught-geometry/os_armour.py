@@ -130,9 +130,10 @@ def keel_strakes(kit):
     # Bars following each underside's curve: three strakes and two frames on the
     # belly and a centre strake under the bow (the stern's are os_stern's).
     ob = bpy.data.objects
+    # The centre strake is the keel bar (round 4: a clear keel line in side view).
     for k, y in enumerate((0, 22, -22), 1):
-        shell_strip(kit, f'Armour core keel strake {k}', ob['Hull belly'], 1, y, 2.6, 1.6 if y else 2.4, kit.grey,
-                    xr=(-80, 166))
+        shell_strip(kit, f'Armour core keel strake {k}', ob['Hull belly'], 1, y, 2.6 if y else 2.2,
+                    3.4 if not y else 1.6, kit.grey, xr=(-80, 166))
     for k, x in enumerate((22, 50), 1):
         shell_strip(kit, f'Armour core keel frame {k}', ob['Hull belly'], 0, x, 2.2, 1.2, kit.grey, span=40.0)
     shell_strip(kit, 'Armour prow keel strake', ob['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
@@ -148,20 +149,24 @@ def keel_strakes(kit):
 # seams and ends so neighbouring segments read as one band with seams. The grey
 # legs stand thicker than the orange outboard of them: a terraced step down.
 
-def _skin_section(x, ya, yb, t, wrap, lip=.8):
+def _skin_section(x, ya, yb, t, wrap, lip=.8, skirt=None):
     f = fore(x)
     ya, yb = max(ya, 0.0), min(yb, f['w'])
     yk = min(max(f['yi'], ya+.2), yb-.2)
     top = [(ya, fore_top(x, ya)+t), (yk, fore_top(x, yk)+t)]
     bot = [(yk, fore_top(x, yk)-.8), (ya, fore_top(x, ya)-.8)]
-    if wrap:
+    if wrap and skirt is not None:
+        # Over the waist the lip comes down as a skirt onto the valley deck, so the
+        # band's edge meets the deck instead of overhanging it.
+        out = [(f['w']+lip, f['zk']+t*.7), (f['w']+lip, skirt), (fore_side_y(x, skirt)-.3, skirt)]
+    elif wrap:
         out = [(f['w']+lip, f['zk']+t*.7), (fore_side_y(x, f['zk']-3.0)-.3, f['zk']-3.0)]
     else:
         out = [(yb, fore_top(x, yb)+t), (yb, fore_top(x, yb)-.8)]
     return top+out+bot
 
 
-def skin(kit, name, x0, x1, inner, outer, t, mat, s, wrap=False, seams=(), lip=.8, thin=.6):
+def skin(kit, name, x0, x1, inner, outer, t, mat, s, wrap=False, seams=(), lip=.8, thin=.6, skirt=None):
     """An armour skin on the forebody's top between X x0 > x1, from |Y| inner(x) to outer(x)
     (outer=None: the plan edge, wrapped over the chine). Thin at its ends and at each seam."""
     xs = {x0, x1, x0-.6, x1+.6}
@@ -176,7 +181,7 @@ def skin(kit, name, x0, x1, inner, outer, t, mat, s, wrap=False, seams=(), lip=.
             continue
         groove = abs(x-x0) < .01 or abs(x-x1) < .01 or any(abs(x-sx) < .01 for sx in seams)
         yb = outer(x) if outer else fore(x)['w']
-        sec = _skin_section(x, inner(x), yb, thin if groove else t, outer is None or wrap, lip)
+        sec = _skin_section(x, inner(x), yb, thin if groove else t, outer is None or wrap, lip, skirt)
         if s < 0:
             sec = [(-y, z) for y, z in reversed(sec)]
         stations.append((x, sec))
@@ -198,17 +203,18 @@ def build(kit):
         # Prow collar: a heavier strap across the band where the prow meets the core.
         skin(kit, f'Armour {side} prow collar', 111.0, 103.4,
              lambda x: min(gal(x), glacis_split(x)-.3) if x >= 104 else glacis_split(x)-.3, None, 2.6, kit.orange, s,
-             lip=1.2)
+             lip=1.2, skirt=WAIST_DECK-.3)
         # Glacis: the dark grey leg (thicker, so the orange outboard steps down from
         # it) and the orange band carried on outboard of it to the citadel's flank.
         skin(kit, f'Armour {side} glacis grey band', 108.0, 24.0, lambda x: max(fore(x)['yi']-6.0, 9.0),
              glacis_split, 2.8, kit.grey, s, seams=(92, 76, 60, 44), thin=1.4)
         skin(kit, f'Armour {side} glacis band', 104.0, 4.0, lambda x: glacis_split(x)-.4, None, 1.4, kit.orange, s,
-             seams=(80, 56, 30))
+             seams=(80, 56, 30), skirt=WAIST_DECK-.3)
         # Waist bay: a dark frame on the valley deck carrying three amber bay lamps.
-        kit.box(f'Armour {side} waist bay frame', (101.5, s*48.5, WAIST_DECK+.7), (6.0, 7.0, 1.6), kit.dark,
+        # (inboard of the deck's outer fall, so the frame stands on deck all round)
+        kit.box(f'Armour {side} waist bay frame', (101.5, s*46.6, WAIST_DECK+.7), (6.0, 6.4, 1.6), kit.dark,
                 bevel=.2)
-        for k, y in enumerate((46.4, 48.5, 50.6), 1):
+        for k, y in enumerate((44.7, 46.6, 48.5), 1):
             kit.box(f'Armour {side} waist bay lamp {k}', (100.5, s*y, WAIST_DECK+1.85), (1.6, 1.7, .9), kit.lamp,
                     bevel=0)
         # Core aft face above the machinery well: buttresses standing on the well

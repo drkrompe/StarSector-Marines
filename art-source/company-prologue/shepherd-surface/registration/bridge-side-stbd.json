@@ -1,0 +1,59 @@
+{
+ "part": "bridge-side-stbd",
+ "sheet": "bridge",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9936,
+ "raw_iou": 0.9971,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.999,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9971
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00128,
+    1.0023
+   ],
+   "offset_px": [
+    -0.08,
+    -0.09
+   ],
+   "iou": 0.9986
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00028,
+    1.0018
+   ],
+   "offset_px": [
+    -0.08,
+    -0.09
+   ],
+   "iou": 0.999
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.37,
+  "p95_px": 1.0,
+  "max_px": 1.41
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.13,
+  "p95_px": 1.0,
+  "max_px": 1.41
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

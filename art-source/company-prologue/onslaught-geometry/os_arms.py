@@ -59,9 +59,28 @@ from os_armour import _side
 ARM_PARTS = {'port': [], 'starboard': []}
 
 # Kept for importers: (keel, deck, ...) in the arm's own frame.
-ARM = (-30.0, 8.0, 20.0, 24.0, 16.0, 18.0, 3.0, 10.0)
+ARM = (-31.0, 8.0, 20.0, 24.0, 16.0, 18.0, 3.0, 10.0)
 DECK_Z = 8.0          # the arm's deck (inboard and shoulder chines sit just under it)
-KEEL_Z = -30.0        # the keel line amidships
+KEEL_Z = -31.0        # the keel line amidships (arm frame)
+# The keel's knuckles (arm frame): the forefoot rakes straight up from X_KNUCKLE_FORE to the
+# chin under the casemate at X_CHIN; the heel rakes straight up aft of X_KNUCKLE_AFT.
+X_KNUCKLE_FORE, X_KNUCKLE_AFT = 166.0, 22.0
+X_CHIN, CHIN_Z = 200.0, -6.5
+HEEL_Z = -14.0
+
+# The gun nose (round 4, owner: forward aggression). The Thermal Pulse Cannon is the arm's
+# nose: os_turrets builds its casemate in WORLD space on the line of fire at TPC_AXIS_Z, from
+# TPC_AFT_X (buried in the arm) to its face at TPC_FACE_X (the sprite's ladder runs X 196-216),
+# with the barrel and prongs standing out ahead of it. The arm's hull ends in a raked nose face
+# (NOSE_FACE, leaning aft NOSE_RAKE deg from vertical) a few units behind the casemate's face,
+# its forefoot raking down and aft from the casemate's chin and its gallery and deck raking up
+# and aft from the casemate's roof, so the cannon leads the arm in every view. The axis is set
+# under the prow's keel so in side view the two gun noses jut out beneath and beside the ram.
+TPC_AXIS_Z = -26.0
+TPC_FACE_X, TPC_AFT_X = 216.5, 182.0
+TPC_HALF_W = 6.0
+NOSE_FACE = (200.5, -7.0)    # arm frame (x, z): the foot of the hull's nose face at the chin
+NOSE_RAKE = 30.0
 
 # The pose (owner notes 5, 8, 9). The arm guns' slot angles all point outboard
 # and forward (WS 001-006 at 65-75 deg, the Devastators at 80, WS 010/011 to the
@@ -115,13 +134,16 @@ def gallery_at(x):
 
 
 def keel_z(x):
-    """The keel line: level amidships, a raked forefoot sweeping up to the nose, a heel aft."""
-    if x > 104:
-        f = min(1.0, (x-104)/(X_NOSE-104))
-        return KEEL_Z+(DECK_Z-9.0-KEEL_Z)*f**1.5
-    if x < 14:
-        f = min(1.0, (14-x)/(14-X_HEEL))
-        return KEEL_Z+16.0*f**1.4
+    """The keel line: a chined keel of straight runs with hard knuckles, so in side view it reads
+    as the arm's own line rather than a continuation of the core's belly - level amidships, a
+    straight raked forefoot climbing to the chin under the TPC casemate, a steep heel aft."""
+    if x >= X_KNUCKLE_FORE:
+        if x <= X_CHIN:
+            return KEEL_Z+(CHIN_Z-KEEL_Z)*(x-X_KNUCKLE_FORE)/(X_CHIN-X_KNUCKLE_FORE)
+        return CHIN_Z+(x-X_CHIN)*.6           # ahead of the nose face: cut away
+    if x <= X_KNUCKLE_AFT:
+        f = min(1.0, (X_KNUCKLE_AFT-x)/(X_KNUCKLE_AFT-X_HEEL))
+        return KEEL_Z+(HEEL_Z-KEEL_Z)*f
     return KEEL_Z
 
 
@@ -239,6 +261,20 @@ def _course_section(x, path, u0, u1, t, sink=.6):
         (py, pz), (ny, nz) = _path_point(sec, path, u), _path_normal(sec, path, u)
         inner.append((py-ny*sink, pz-nz*sink))
         outer.append((py+ny*t, pz+nz*t))
+    # Square-cut edges overhang a sloping face: a plate's edge stands out over the face beside
+    # it with a wedge of daylight under it (seam audit: steps over the arm, the keel bar). So
+    # each long edge of a plate is cut along the world's vertical - which, in the arm's frame,
+    # leans inboard by the roll - by sliding its outer corner along the outer surface.
+    vy, vz = -math.sin(math.radians(ROLL)), math.cos(math.radians(ROLL))
+    for k, u in ((0, u0), (-1, u1)):
+        ny, nz = _path_normal(sec, path, u)
+        dy, dz = -nz, ny
+        det = vy*(-dz)-vz*(-dy)
+        if abs(ny*vy+nz*vz) > .35 and abs(det) > 1e-3:
+            ry, rz = outer[k][0]-inner[k][0], outer[k][1]-inner[k][1]
+            mu = (vy*rz-vz*ry)/det          # outer + d*mu lies on the vertical through inner
+            if abs(mu) <= 2.5*t:
+                outer[k] = (outer[k][0]+dy*mu, outer[k][1]+dz*mu)
     return inner+list(reversed(outer))
 
 
@@ -247,7 +283,11 @@ def course(kit, name, s, x_aft, x_fore, path, u0, u1, t_aft, t_fore, mat, chamfe
     tapering to t_fore; its forward end is chamfered down to a thin edge (a sloped face)."""
     st = []
     span = x_fore-x_aft
-    for x in _stations(x_aft, x_fore-chamfer):
+    # The aft end is cut with a short lip leaning forward: under the arm the pose's 6 deg pitch
+    # would otherwise lean a square aft end out over the face behind it (seam audit: steps).
+    lip = 1.2
+    st.append((x_aft, _y(_course_section(x_aft, path, u0, u1, min(t_aft, .8)), s)))
+    for x in _stations(x_aft+lip, x_fore-chamfer):
         t = t_aft+(t_fore-t_aft)*(x-x_aft)/span
         st.append((x, _y(_course_section(x, path, u0, u1, t), s)))
     st.append((x_fore, _y(_course_section(x_fore, path, u0, u1, .5), s)))
@@ -256,13 +296,28 @@ def course(kit, name, s, x_aft, x_fore, path, u0, u1, t_aft, t_fore, mat, chamfe
 
 # --- the solids --------------------------------------------------------------
 
+def nose_face(ob):
+    """The arm's raked nose face: everything ahead of a plane through the chin leaning aft
+    NOSE_RAKE deg, so the hull ends a few units behind the casemate's face at the chin and
+    further behind it up at the deck, and the casemate stands out of it."""
+    r = math.radians(NOSE_RAKE)
+    plane_cut(ob, 'arm nose face', (NOSE_FACE[0], 0, NOSE_FACE[1]), (math.cos(r), 0, math.sin(r)))
+
+
+def tpc_arm(s=1):
+    """The TPC's line of fire in the arm frame (before the pose): (y of its centre line, z of
+    its axis) at the nose, so the nose plates can be laid against the casemate's sides."""
+    from mathutils import Vector
+    p = pose(s).inverted() @ Vector((206.0, s*70.0, TPC_AXIS_Z))
+    return s*p.y, p.z
+
+
 def arm_mass(kit, name, s):
-    xs = _stations(X_HEEL, X_NOSE, 4.0, [p[0] for p in ARM_OUTER+ARM_INNER]+[g[0] for g in ARM_GALLERY])
+    xs = _stations(X_HEEL, X_NOSE, 4.0, [p[0] for p in ARM_OUTER+ARM_INNER]+[g[0] for g in ARM_GALLERY]
+                   + [X_KNUCKLE_AFT, X_KNUCKLE_FORE, X_CHIN])
     st = [(x, _y([section(x)[c] for c in ORDER], s)) for x in xs]
     ob = loft_x(kit, name, st, kit.plate, bevel=0)
-    # A raked face on the nose under the casemate, so the nose ends in a sloped prow.
-    plane_cut(ob, 'arm forefoot', (X_NOSE-2.0, 0, DECK_Z-6.0), (math.sin(math.radians(35)), 0,
-                                                                  -math.cos(math.radians(35))))
+    nose_face(ob)
     return ob
 
 
@@ -276,6 +331,12 @@ def gallery_top(x):
     if x < 4:
         z -= (4-x)*.25         # the heel eases down aft onto the aft body
     return z
+
+
+def hull_top(x, y):
+    """Height of the arm's top surface (section chines A-B-C-D) at y, arm frame, port."""
+    sec = section(x)
+    return _lerp([sec[c] for c in 'ABCD'], y)
 
 
 def gallery(kit, name, s):
@@ -292,10 +353,17 @@ def gallery(kit, name, s):
         base = DECK_Z-3.0
         yi = max(y_in(x)+1.0, yc-w-5.0)
         yo = max(yc+w-.5, min(yc+w+7.0, y_out(x)-armour_inset(x)-3.0))
-        sec = [(yi, base), (yo, base), (yc+w-1.0, top-2.5), (yc+.35*w, top),
+        # the base follows the hull's top down at its edges, so the gallery never stands over
+        # the arm's sloping upper face with daylight under it (seam audit: belt 1 / gallery)
+        bi, bo = min(base, hull_top(x, yi)-1.0), min(base, hull_top(x, yo)-1.0)
+        # the outboard face leans inboard by more than the roll, so posed it never overhangs
+        yt = min(yc+w-1.0, yo-.48*(top-2.5-bo))
+        sec = [(yi, bi), (yo, bo), (yt, top-2.5), (max(yc-.45*w+1.0, min(yc+.35*w, yt-.5)), top),
                (yc-.45*w, top), (yc-w+2.0, top-2.6)]
         st.append((x, _y(sec, s)))
-    return loft_x(kit, name, st, kit.plate, bevel=0)
+    ob = loft_x(kit, name, st, kit.plate, bevel=0)
+    nose_face(ob)
+    return ob
 
 
 def arm_xy(x, y, z):
@@ -353,21 +421,70 @@ def build(kit):
             course(kit, f'Armour {side} arm step {k}', s, xa, xf, OUTBOARD, 1.75, 3.25, ta, tf, kit.grey,
                    chamfer=4.0)
         # Inboard strake on the top chine facing the notch.
-        course(kit, f'Armour {side} arm coaming', s, 106, 204, INBOARD, .85, 1.7, 1.8, 1.6, kit.grey)
+        course(kit, f'Armour {side} arm coaming', s, 106, 198, INBOARD, .85, 1.7, 1.8, 1.6, kit.grey)
+        # Keel bar: a grey strake along the chined keel, heel to chin, so the keel reads as a line.
+        course(kit, f'Armour {side} arm keel bar', s, X_HEEL+4, X_CHIN-1, 'EFG', .62, 1.38, 1.7, 1.5, kit.grey,
+               chamfer=5.0)
         housings(kit, side, s)
-        # TPC nose cheeks either side of the barrel.
-        for k, poly in enumerate(([(213.5, 64.8), (213.5, 66.4), (205.5, 66.2), (205.5, 63.6)],
-                                  [(213.5, 73.6), (213.5, 78.6), (205.5, 80.6), (205.5, 74.2)]), 1):
-            ch = prism(kit, f'Armour {side} nose cheek {k}', _side(poly, s), [(0.0, -2.0), (0.0, 9.0), (.8, 9.8)],
-                       kit.grey, bevel=.25)
-            plane_cut(ch, 'cheek nose', (190, 0, 12.0), facet_normal((1, 0), 16))
+        nose_cheeks(kit, side, s)
         shoulder(kit, side, s, arm, g)
         ARM_PARTS[side] = [o for o in bpy.data.objects if o not in before]
         tilt(kit, side, s)
 
 
-def _cap(kit, name, plan, sources, lift, floor, mat):
-    """A plate following the top of `sources` `lift` proud, clipped to `plan`, from `floor` up."""
+def _on(p, q, z):
+    """The point on segment p-q at height z, clamped to the segment."""
+    if abs(q[1]-p[1]) < 1e-6:
+        return p
+    f = max(0.0, min(1.0, (z-p[1])/(q[1]-p[1])))
+    return (p[0]+(q[0]-p[0])*f, p[1]+(q[1]-p[1])*f)
+
+
+def _cheek(kit, name, s, x0, x1, inner, path, t, brow, chin, mat):
+    """A nose plate from x0 to its point at x1: its inner side flat against the casemate (y =
+    inner), its outer side the arm's own faces along `path` (chines at u = 1, 2, 3) offset t
+    outward, between a brow line and a chin line (functions of x). Aft of the nose face it is a
+    plate lying on the hull; ahead of it, a solid wedge flanking the gun."""
+    st = []
+    for x in _stations(x0, x1, 2.0):
+        sec = section(x)
+        p1, p2, p3 = [(lambda u: (_path_point(sec, path, u)[0]+_path_normal(sec, path, u)[0]*t,
+                                  _path_point(sec, path, u)[1]+_path_normal(sec, path, u)[1]*t))(u)
+                      for u in (1, 2, 3)]
+        zt = min(brow(x), p1[1])
+        zb = max(chin(x), p3[1])
+        zt, zb = max(zt, zb+1.0), min(zb, zt-1.0)
+        top = _on(p1, p2, zt) if zt < p1[1] else p1
+        bot = _on(p2, p3, zb) if zb > p3[1] else p3
+        mid = p2 if zb < p2[1] < zt else ((top[0]+bot[0])/2, (zt+zb)/2)
+        f = 1.0-.55*max(0.0, (x-(x1-9.0))/9.0)          # the point narrows in plan
+        pull = lambda p: (inner+(p[0]-inner)*f, p[1])
+        st.append((x, _y([(inner, zt), pull(top), pull(mid), pull(bot), (inner, zb)], s)))
+    return loft_x(kit, name, st, mat, bevel=.25)
+
+
+def nose_cheeks(kit, side, s):
+    """The sprite's stepped cheeks either side of the TPC ladder (X 184-212): nose plates laid
+    against the casemate's sides and over the arm's own faces, each an arrowhead pointing along
+    the line of fire - its brow raking up and aft to the deck, its chin raking down and aft to
+    the keel - so the nose reads as a wedge with the cannon at its point and the casemate
+    standing clear of it above and below. Cheek 2 (outboard) runs to a point at X 212 on the plan
+    edge; cheek 1 (inboard) to X 206 inboard of the casemate, as the sprite draws them."""
+    yc, zc = tpc_arm(s)
+    hw = TPC_HALF_W-.15
+
+    def line(x0, z0, x1, z1):
+        return lambda x: z0+(z1-z0)*(x-x0)/(x1-x0)
+    _cheek(kit, f'Armour {side} nose cheek 1', s, 184.0, 206.5, yc-hw, INBOARD, 1.6,
+           line(184.0, DECK_Z+4.0, 206.5, zc+4.0), line(184.0, keel_z(184.0), 206.5, zc-4.0), kit.grey)
+    _cheek(kit, f'Armour {side} nose cheek 2', s, 180.0, 212.5, yc+hw, OUTBOARD, 1.6,
+           line(180.0, DECK_Z+3.0, 212.5, zc+3.0), line(180.0, keel_z(180.0), 212.5, zc-2.5), kit.grey)
+
+
+def _cap(kit, name, plan, sources, lift, floor, mat, s=1):
+    """A plate following the top of `sources` `lift` proud, clipped to `plan`, from `floor` up.
+    The lift is along the WORLD vertical (in the arm frame it leans inboard by the roll), so the
+    posed plate stands straight over what it covers instead of leaning out over its edges."""
     import bpy
     copies = []
     for src in sources:
@@ -375,12 +492,15 @@ def _cap(kit, name, plan, sources, lift, floor, mat):
         c.data = src.data.copy()
         c.modifiers.clear()
         bpy.context.collection.objects.link(c)
-        c.location.z += lift
+        c.location.y -= s*math.sin(math.radians(ROLL))*lift
+        c.location.z += math.cos(math.radians(ROLL))*lift
         copies.append(c)
     base = copies[0]
     for c in copies[1:]:
         boolean(base, c, 'UNION')
     clip = prism(kit, 'Temporary cap clip', plan, [(0.0, floor), (0.0, 90.0)], mat, bevel=0)
+    for v in clip.data.vertices:          # walls plumb in the world, not in the rolled arm frame
+        v.co.y -= s*math.tan(math.radians(ROLL))*(v.co.z-GALLERY_TOP)
     boolean(base, clip, 'INTERSECT')
     base.data.materials.clear()
     return kit.finish(base, name, mat, .2)
@@ -390,9 +510,9 @@ def _cap(kit, name, plan, sources, lift, floor, mat):
 # the arm and gallery and posed with them, with a crest tier on its inboard part.
 def shoulder(kit, side, s, arm, g):
     fin = [(48, 78), (30, 97), (-8, 106), (-14, 92), (-6, 68), (20, 72)]
-    _cap(kit, f'Armour {side} broadside fin', _side(fin, s), [arm, g], 3.4, DECK_Z-6.0, kit.orange)
+    _cap(kit, f'Armour {side} broadside fin', _side(fin, s), [arm, g], 3.4, DECK_Z-6.0, kit.orange, s)
     crest = [(38, 83), (26, 95), (-2, 101), (-7, 91), (0, 75), (18, 78)]
-    _cap(kit, f'Armour {side} broadside fin crest', _side(crest, s), [arm, g], 6.2, DECK_Z-2.0, kit.orange)
+    _cap(kit, f'Armour {side} broadside fin crest', _side(crest, s), [arm, g], 6.2, DECK_Z-2.0, kit.orange, s)
 
 
 def pose(s):

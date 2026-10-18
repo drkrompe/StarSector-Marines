@@ -1,0 +1,436 @@
+{
+ "pod-top-port": {
+  "what": "port drive pod casing top",
+  "sheet": "engines",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Engine 1 drive pod casing",
+    "seed": [
+     -27.4,
+     20.0,
+     8.7
+    ],
+    "faces": [
+     64,
+     65,
+     66,
+     76,
+     77,
+     78,
+     124,
+     125,
+     126,
+     136,
+     137,
+     138
+    ]
+   },
+   {
+    "object": "Engine 1 drive pod casing",
+    "seed": [
+     -19.2,
+     20.0,
+     8.7
+    ],
+    "faces": [
+     64,
+     65,
+     66,
+     76,
+     77,
+     78,
+     124,
+     125,
+     126,
+     136,
+     137,
+     138
+    ]
+   }
+  ],
+  "face_count": 12,
+  "area_units2": 232.88,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.55,
+  "extent_units": [
+   11.31,
+   18.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -20.0,
+    -23.59999942779541
+   ],
+   "ortho_width": 37.20929838274184
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "pod-top-stbd": {
+  "what": "starboard drive pod casing top (mirror)",
+  "sheet": "engines",
+  "tile": 0,
+  "skin_from": "pod-top-port",
+  "members": [
+   {
+    "object": "Engine 2 drive pod casing",
+    "seed": [
+     -27.4,
+     -19.0,
+     8.7
+    ],
+    "faces": [
+     64,
+     65,
+     66,
+     76,
+     77,
+     78,
+     124,
+     125,
+     126,
+     136,
+     137,
+     138
+    ]
+   },
+   {
+    "object": "Engine 2 drive pod casing",
+    "seed": [
+     -19.2,
+     -19.0,
+     8.7
+    ],
+    "faces": [
+     64,
+     65,
+     66,
+     76,
+     77,
+     78,
+     124,
+     125,
+     126,
+     136,
+     137,
+     138
+    ]
+   }
+  ],
+  "face_count": 12,
+  "area_units2": 232.88,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.55,
+  "extent_units": [
+   11.31,
+   18.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    19.0,
+    -23.59999942779541
+   ],
+   "ortho_width": 37.20929838274184
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "pod-side-port": {
+  "what": "port drive pod casing outboard flank",
+  "sheet": "engines",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Engine 1 drive pod casing",
+    "seed": [
+     -27.4,
+     27.7,
+     -1.0
+    ],
+    "faces": [
+     63,
+     73,
+     74,
+     75,
+     84,
+     85,
+     86,
+     123,
+     132,
+     133,
+     134,
+     135,
+     145,
+     146
+    ]
+   },
+   {
+    "object": "Engine 1 drive pod casing",
+    "seed": [
+     -19.2,
+     27.7,
+     -1.0
+    ],
+    "faces": [
+     63,
+     73,
+     74,
+     75,
+     84,
+     85,
+     86,
+     123,
+     132,
+     133,
+     134,
+     135,
+     145,
+     146
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 329.07,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.55,
+  "extent_units": [
+   18.0,
+   16.73
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    23.59999942779541,
+    -2.294095039367676
+   ],
+   "ortho_width": 34.584652607447104
+  },
+  "native_texels_per_unit": 23.0
+ },
+ "pod-side-stbd": {
+  "what": "starboard pod outboard flank (mirror)",
+  "sheet": "engines",
+  "tile": 1,
+  "skin_from": "pod-side-port",
+  "members": [
+   {
+    "object": "Engine 2 drive pod casing",
+    "seed": [
+     -27.4,
+     -26.7,
+     -1.0
+    ],
+    "faces": [
+     67,
+     68,
+     69,
+     79,
+     80,
+     81,
+     82,
+     127,
+     128,
+     129,
+     130,
+     139,
+     140,
+     141
+    ]
+   },
+   {
+    "object": "Engine 2 drive pod casing",
+    "seed": [
+     -19.2,
+     -26.7,
+     -1.0
+    ],
+    "faces": [
+     67,
+     68,
+     69,
+     79,
+     80,
+     81,
+     82,
+     127,
+     128,
+     129,
+     130,
+     139,
+     140,
+     141
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 329.06,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.55,
+  "extent_units": [
+   18.0,
+   16.73
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -23.59999942779541,
+    -2.294095039367676
+   ],
+   "ortho_width": 34.584652607447104
+  },
+  "native_texels_per_unit": 23.0
+ },
+ "mach-top": {
+  "what": "aft machinery block top around the machinery well",
+  "sheet": "engines",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery block",
+    "seed": [
+     -22.0,
+     0.0,
+     6.0
+    ],
+    "faces": [
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72
+    ]
+   }
+  ],
+  "face_count": 30,
+  "area_units2": 490.82,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   26.0,
+   17.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -22.800000190734863
+   ],
+   "ortho_width": 36.38242972913638
+  },
+  "native_texels_per_unit": 21.8
+ },
+ "mach-stern": {
+  "what": "aft machinery block stern face",
+  "sheet": "engines",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery block",
+    "seed": [
+     -31.6,
+     0.0,
+     -4.0
+    ],
+    "faces": [
+     4,
+     8
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 487.58,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   26.0,
+   18.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -5.0
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ }
+}
