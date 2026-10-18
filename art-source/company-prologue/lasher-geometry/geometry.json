@@ -35,44 +35,84 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.85,
+  "metres_per_unit": 0.65,
   "scale": {
-    "method": "deck program (DeckProgramProbe FRIGATE \"Frigate\" 25 50 40 -> WARSHIP): 2317 m2 rooms, notional 160 m2 HANGAR dropped (no fighter bays) = 2157 m2, x1.40 circulation x3.2 m deck height = required m3; solved against the habitable share of the pressure hull (union volume)",
-    "required_m3": 9663,
-    "pressure_hull": [
-      "Hull bow head",
-      "Hull nose cap",
-      "Hull spine",
-      "Hull wing body",
-      "Hull port engine nacelle",
-      "Hull starboard engine nacelle"
-    ],
-    "pressure_hull_units3": 37043,
-    "non_habitable_budget": {
-      "armour belt and plating": 0.12,
-      "reactor, flux capacitors and dissipation plant": 0.14,
-      "drive machinery and fuel (25 units)": 0.12,
-      "magazines and ammo feed (Ammo Feeder system)": 0.08,
-      "structure, tanks and voids": 0.12
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume; cargo unit calibrated on the Hound (A)",
+    "inputs": {
+      "units3": 32793,
+      "crew_max": 50,
+      "cargo": 40,
+      "fuel": 25,
+      "cls": "frigate",
+      "length_units": 94.7,
+      "sprite_px": 96,
+      "volume_source": "measured (SOLIDS)"
     },
-    "habitable_share": 0.42,
-    "solved_metres_per_unit": 0.853,
+    "constants": {
+      "class": {
+        "habitable_m3_per_person": 40.0,
+        "hangar_box_factor": 2.5,
+        "shares": {
+          "armour": 0.06,
+          "drive": 0.22,
+          "weapons": 0.06,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 50.6,
+      "fuel_m3_per_unit": 32.0,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1,
+      "anchor": {
+        "hull": "Hound (A)",
+        "metres_per_unit": 0.88,
+        "cramped": 0.83
+      }
+    },
+    "contents_m3": {
+      "crew": 2000,
+      "cargo": 2026,
+      "fuel": 800,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 4826,
+    "machinery_share": 0.46,
+    "enclosed_m3": 8936,
+    "solved_metres_per_unit": 0.648,
     "range": {
-      "roomy_55pct_freighter_share": 0.78,
-      "cramped_30pct_share": 0.95
+      "anchor_cramped": 0.623,
+      "anchor_published": 0.648
+    },
+    "enclosed_m3_per_person_at_max_crew": 179,
+    "length_m": 61.4,
+    "fittings_m": {
+      "viewport w x h": [
+        1.0,
+        0.8
+      ],
+      "bridge glazing band h": [
+        1.0
+      ]
+    },
+    "published_metres_per_unit": 0.65,
+    "measured_this_build": {
+      "enclosed_units3": 32793,
+      "solids": [
+        "Hull bow head",
+        "Hull nose cap",
+        "Hull spine",
+        "Hull wing body",
+        "Hull ventral keel"
+      ],
+      "all_hull_solids_units3_incl_nacelles": 38754
     },
     "size_m": [
-      80.5,
-      58.0,
-      17.2
+      61.6,
+      44.4,
+      13.2
     ],
-    "cross_checks_m": {
-      "bow turret barbette diameter": 7.8,
-      "main bell mouth diameter": 8.2,
-      "spine keel to deck (about four 3.2 m decks)": 12.8,
-      "person 1.8 m in units": 2.12
-    },
-    "real_ship_check": "80.5 m long, 58.0 m across the wings, for 25-50 crew: a modern corvette (about 80-90 m, 60-100 crew) in length; enclosed pressure-hull volume per person 455 m3 at full crew",
+    "person_1_8_m_in_units": 2.77,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -664,12 +704,12 @@
   },
   "shot_extent_px": {
     "shot-1500m": {
-      "width_px": 139,
-      "height_px": 42
+      "width_px": 107,
+      "height_px": 33
     },
     "shot-3000m": {
-      "width_px": 71,
-      "height_px": 22
+      "width_px": 54,
+      "height_px": 17
     }
   }
 }

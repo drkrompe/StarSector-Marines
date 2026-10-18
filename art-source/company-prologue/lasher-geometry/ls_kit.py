@@ -69,6 +69,7 @@ class Kit:
         self.vent = material('Lasher heat vent glow', (.05, .03, .02), .3, .5,
                              emission=(1.0, .45, .12), strength=2.5)
         self.hull = []  # objects the downward ray-cast seats parts on
+        self.mpu = 1.0  # metres per unit; the driver sets it before building
 
     def finish(self, obj, name, mat, bevel=0):
         obj.name = name

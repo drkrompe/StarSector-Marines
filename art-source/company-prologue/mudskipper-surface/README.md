@@ -68,11 +68,11 @@ on the other 10,015 (`skin-manifest.json`; 436 and 9,449 before the landing kit)
 
 | View | Part skin | Swatch | Textured |
 |---|---|---|---|
-| port-side | 71% | 26% | 98% |
-| port-quarter | 64% | 33% | 98% |
+| port-side | 71% | 27% | 98% |
+| port-quarter | 64% | 34% | 98% |
 | high-quarter | 61% | 37% | 98% |
 | top | 60% | 38% | 98% |
-| starboard-side | 72% | 26% | 98% |
+| starboard-side | 71% | 27% | 98% |
 | starboard-quarter | 64% | 34% | 98% |
 | bow | 67% | 30% | 97% |
 | bow-quarter | 64% | 34% | 98% |
@@ -81,10 +81,10 @@ on the other 10,015 (`skin-manifest.json`; 436 and 9,449 before the landing kit)
 | bow-detail | 70% | 27% | 97% |
 | bridge-detail | 68% | 28% | 97% |
 | turret-detail | 46% | 53% | 99% |
-| waist-detail | 79% | 18% | 98% |
+| waist-detail | 79% | 19% | 98% |
 | stern-detail | 45% | 54% | 100% |
 | engine-detail | 52% | 47% | 99% |
-| junction-detail | 71% | 28% | 98% |
+| junction-detail | 70% | 28% | 98% |
 | junction-starboard | 72% | 26% | 98% |
 
 The untextured 1-3% is glazing, lamps and the bay sill hazard tread (its
