@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
 Written: 2026-10-18
-Updated: 2026-10-18 — C4 now ends over Kilo Nine at about 480 m, the ship sinking onto a larger pad; wide reveal kept for C5.
+Updated: 2026-10-18 — C4 now lingers through touchdown and the yard starting work; Kilo Nine grown north, with one gate on the port road.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -44,28 +44,41 @@ word belongs to our people.
 ## Where it lands: Kilo Nine
 
 Kilo Nine is not a public cradle. It is Nessa's private yard, fenced, on the
-east edge of Greywater Down's port with the jungle beyond its back fence: one
-cradle between two repair scaffolds, a derrick over a salvage pile, a hangar,
-fuel, stacked modules and steel, and the workshop the families walk into. The
+east edge of Greywater Down's port with the jungle beyond its east fence. Its
+south half holds one cradle between two repair scaffolds, a derrick over a
+salvage pile, a hangar, fuel, and the workshop the families walk into. Its north
+half holds the works where hulls are actually mended: a fabrication hall, an
+overhead crane over the plate stock and hull sections, a parts store of stacked
+modules, the yard's own generators, and a scrap heap.
+
+Ground traffic has one way in. The port road runs east along the container
+yard to a gate in the yard's south fence, with a gatehouse and a raised
+barrier. From the gate a haul road runs up the west fence to the works, with a
+branch across to the cradle. The
 Hegemony's public cradles lie west of it, each turned to face its own lead-in
 lane, with freighters unloading from the stern down cargo lanes to the
 container yard. C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 
 On the ground: Nessa's tug, bowser and crew carrier roll out from the hangar
-and workshop. A Hegemony customs car, white with a blue roof band and lights
-going, comes over from the port office and turns in at her gate as the ship
-settles. That pays off the customs mention in the hail. The officers meet the
+and workshop and wait clear of the downwash. A Hegemony customs car, white with
+an orange roof band and lights going, comes over from the port office and in
+through her gate as the ship touches down. That pays off the customs mention in the hail. The officers meet the
 ship at the ramp; the families pass them on the way to the workshop.
 
 ## The hand-off from C4
 
-Decided 2026-10-18 by the owner. C4 does not end on the wide port. Over its
-last seconds the sky camera drifts east and comes down to end straight over
-Kilo Nine, about 480 m up, with Nessa's whole yard, its fence line and the
-jungle edge in frame. Second Wind has braked into a hover over its pad (96 m
-across, room to spare around the hull) and is still sinking, about 18 m up. C5 opens on the same straight-down
-view a step closer, and the cut reads as one continuous move. The wide reveal
+Decided 2026-10-18 by the owner. C4 does not end on the wide port. After its
+8 s pan the sky camera comes down to about 480 m straight over Kilo Nine and
+lingers for 8 s more, drifting north over the yard. Second Wind braked into a
+hover over its pad (96 m across, room to spare around the hull) during the pan.
+Now it sinks and touches down at about 11 s in a ring of yard dust, and its
+drive spools down. Once the dust thins the yard goes to work. The tug, bowser
+and crew carrier move in from their stand-offs, and the scaffold arms swing in
+to the hull. Hands in hi-vis head out from the workshop. The customs car comes
+in through the gate behind them. C4 ends with the ship down and the yard
+moving. C5 opens on the same straight-down view a step closer, and the cut
+reads as one continuous move. The wide reveal
 (the yard as a small corner of a big working port, the ship one patched hull
 among the freighters) is kept for C5's pull-out under the title, so it is seen
 once and lands as the closing image. The public berths are seen passing
@@ -75,7 +88,7 @@ through frame during C4's pan; C4 just does not rest on them.
 
 | t (s) | Picture | Sound |
 |---|---|---|
-| 0–5 | Overhead, looking straight down. Second Wind settles into Kilo Nine between the repair scaffolds. Nessa's tug, bowser and crew carrier converge; the customs car pulls up. | Drive spool-down, hull ticks, yard bed. |
+| 0–5 | Overhead, looking straight down and a step closer than C4's last frame. Second Wind sits on its pad, the last of the dust drifting off. The tug, bowser and crew carrier pull up at the hull, and the customs car parks off the stern. | Hull ticks as it cools, the yard bed. |
 | 5–8 | Engines dark. Steam vents. Crew in biofilter masks walk out; one figure with folded arms (Nessa, unreadable). | Intercom click. Castle begins. |
 | 8–18 | The ramp drops. A thin stream of figures carrying bags crosses the yard, past the customs officers, toward Nessa's workshop. One stops at the ramp's foot and looks up. | Castle's middle lines. |
 | 18–26 | The camera rises straight up. Nessa's yard shrinks to a small fenced corner of a big working port, and the ship becomes one patched hull among the freighters. | Castle's last line, then the bed opens up. |
