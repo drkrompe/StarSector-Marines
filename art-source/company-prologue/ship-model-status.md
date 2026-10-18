@@ -39,6 +39,12 @@ Each fighter at its own scale, sized from the cockpit; all six are at pass 2 det
 The common-scale lineup is `fighters-geometry/lineup.png`. Hoplon is out of
 scope unless the owner asks for it.
 
+## Fleet scale
+
+| Asset | Package | State | Next |
+|---|---|---|---|
+| Fleet scale lineup | `fleet-scale/` | review: `fleet_lineup.py` renders every hull at its `geometry.json` scale (broadside, top-down, the Hound at and in a Legion hangar lane, walkway eye level, fighters in the lane) with a sizes table; Onslaught and Lasher are estimate slabs until their packages land | Owner judges relative size; rerun after the Legion's rebuild and each new package |
+
 ## Standing decisions
 
 - Every hull has its own real-life scale (`metres_per_unit` in its
