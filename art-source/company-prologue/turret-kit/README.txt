@@ -33,6 +33,31 @@ Look
   welded plates. Plate seams, weld beads, bolt rows, access panels and
   conduits break up every large face.
 
+Paint (texture pass)
+  Every sprite paint is a weathered material (turret_kit.paint_material):
+  low mottle, edge wear chipped through to dark steel on every hard edge (a
+  Bevel-node normal against the true normal finds them; noise breaks it up),
+  and grime in crevices from ambient occlusion. Gun metal gets the same tree
+  with a metallic base that rubs brighter at its edges. The hull's own plate
+  and steel on a turret are weathered the same way at the hull's colour.
+  A paint is named by its target, the colour the sprite shows. Its base colour
+  is solved by calibrate_paints.py so that a flat roof of it, under the review
+  studio (studio.py, shared with catalog.py), renders that colour from above;
+  the table is paint_calibration.json. Paint is matte (a low specular level):
+  at the default level the bright grey world and the overhead rim sun laid a
+  grey sheen over every roof, which is why the turrets read paler than their
+  sprites. Rerun the calibration after changing a paint, the studio or the
+  material. Lamps (the amber glow, the Hurricane's cyan) are emissive.
+  TURRET_PAINT_DEBUG=edge|wear renders the masks themselves.
+
+Depth, not paint
+  The sprites' dark pixels are gaps and shadow, so slots, vents, wells,
+  dimples and ports are cut into the parts they sit in (Mesh.cut(), an exact
+  boolean applied at emit), with a dark floor at the bottom, never laid on as
+  dark plates. A Group key may carry a '#tag' ('paint#body') to make a
+  separate object of that material, so a cut carves one part, not every part
+  of the same paint.
+
 Seating
   A barbette's foot runs down to the lowest hull surface under its whole
   flange (foot=), so a mount seated on a belt still stands on the deck
@@ -81,8 +106,9 @@ The gauntlet (each turret, against its sprite)
   view of each turret alone on transparent film, trained dead ahead.
   python review_sheet.py DIR [--only a,b] then writes DIR/<w>-sheet.png
   (1920x1080: the sprite composited as the game layers it, the top view at
-  the same scale with its silhouette IoU against the sprite's alpha, the side
-  view, the three-quarter) and iou.json. An independent reviewer judges each
+  the same scale with its silhouette IoU against the sprite's alpha and its
+  mean colour and luminance against the sprite's, the side view, the
+  three-quarter), iou.json and colour.json. An independent reviewer judges each
   sheet on silhouette (IoU 0.85 or better), parts, barrels, paint, form (no
   floating parts, no painted-on detail) and finish, and lists the geometric
   fixes; apply them and render again until it passes.
