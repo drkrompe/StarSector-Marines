@@ -45,7 +45,9 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
 import os_kit, os_hull, os_stern, os_armour, os_arms, os_bridge, os_machinery, os_engines, os_turrets, os_fittings
-for module in (os_kit, os_hull, os_stern, os_armour, os_arms, os_bridge, os_machinery, os_engines, os_turrets, os_fittings):
+import os_detail_arms, os_detail_top, os_detail_hull, os_detail_stern
+for module in (os_kit, os_hull, os_stern, os_armour, os_arms, os_bridge, os_machinery, os_engines, os_turrets, os_fittings,
+               os_detail_arms, os_detail_top, os_detail_hull, os_detail_stern):
     importlib.reload(module)
 
 # The read-only install's core folder: $STARSECTOR_CORE if set, else the platform
@@ -124,6 +126,10 @@ os_bridge.build(kit)
 os_machinery.build(kit)
 os_engines.build(kit, hull)
 os_turrets.build(kit)
+# Surface detail (owner: hull detail, exposed machinery, piping, hatches, armour), after the
+# turrets so their seats are settled, before the lights so they seat on the final surface.
+for detail in (os_detail_arms, os_detail_top, os_detail_hull, os_detail_stern):
+    detail.build(kit)
 os_fittings.build(kit)
 for name, d in os_kit.INSET_FAULTS:
     print(f'INSET FAULT: {name} folds over at inset {d:.1f}')
@@ -190,6 +196,10 @@ CLOSEUPS = [
     ('machinery-detail', (-150, -230, 260), (-55, -55, -5), 110),
     ('engine-detail', (-330, -200, 70), (-100, -40, -8), 110),
     ('stern-detail', (-330, 0, 40), (-110, 0, -8), 230),
+    ('flank-detail', (110, -330, 10), (110, -110, -15), 110),
+    ('belly-detail', (90, -200, -260), (60, -30, -40), 140),
+    ('waist-detail', (140, -170, 140), (60, -65, 5), 70),
+    ('deck-detail', (90, -60, 230), (40, -20, 25), 90),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
@@ -210,7 +220,7 @@ for km in (1.5, 3.0):
 wanted = []
 for v in [v for v in args.views.split(',') if v]:
     if v == 'details':
-        wanted += [c[0] for c in CLOSEUPS[:7]]
+        wanted += [c[0] for c in CLOSEUPS[:11]]
     elif v == 'formation':
         wanted += [c[0] for c in FORMATION]
     else:
