@@ -1,6 +1,6 @@
 # Hermes: cinematic asset
 
-Status: ACTIVE — pass 7 (VFX, lighting, appendable export) is with the owner for review.
+Status: DONE (pass 7 accepted 2026-10-18). Source art for cinematics; nothing here ships in the mod.
 Written: 2026-10-18
 
 The textured Hermes (`../hermes-surface/`) as one appendable Blender
