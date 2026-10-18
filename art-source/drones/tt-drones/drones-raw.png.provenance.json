@@ -1,0 +1,63 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a150a9-7a29-7be2-9c19-e076bc914976",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a150a9-7a29-7be2-9c19-e076bc914976\\exec-839b89e2-3977-418b-8f32-ca135481a9ac.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\tt-drones\\drones-raw.png",
+    "sha256": "9a26ee5a174f75fc4f1043d702c29202a192632416a989038714efae0f9c0277",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\drones\\tt-drones\\drones-prompt.txt",
+  "promptSha256": "5008aa90d437e16ca5b57220c92fce80fcab717c720c17f5a6a6914528a2fd80",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement, scale and heading; flat colours are placeholders, not material\nImage 2: Tri-Tachyon livery and high-tech material reference only; not layout, pose or scale\nImage 3: Rendering style and detail level only; not layout, palette or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of four finished top-down game sprites of small Tri-Tachyon corporate ground-support COMBAT DRONES seen from directly above. Each is a compact remote-controlled ducted-fan drone, about a metre across, that hovers low over a battlefield; not an aircraft with wings, not a spaceship. Keep each drone exactly where the guide puts it, at exactly its size and outline:\n- top-left, ESCORT drone: a slim pearl-white composite body with two shrouded lift fans side by side, a short pulse-laser emitter barrel at the nose ending in a cyan lens, a small dark sensor eye with a cyan pupil.\n- top-right, SENSOR drone: one large shrouded lift fan with a forward boom carrying a rounded sensor head with a large dark lens and a glowing cyan eye, two thin antenna whiskers at the rear.\n- bottom-left, POINT-DEFENCE drone: one shrouded lift fan with three small point-defence laser turrets on the shroud rim, each with a cyan emitter lens, a dark sensor dome at the hub.\n- bottom-right, STRIKE drone: a dart-shaped guided munition with a brass-coloured warhead nose, a cyan hazard band behind it, two swept canards, and a small shrouded lift-and-thrust fan at the tail.\nIn every guide the pale rings are smooth high-tech composite fan shrouds in clean off-white and pearl grey with fine graphite seams; the dark discs are ducts with visible fan blades behind fine grilles; cyan dots and lines are soft cyan status lights and lenses. Tri-Tachyon high-tech style: clean, precise, corporate, restrained, like the faction's starships (image 2 is livery and material reference only, not layout or subject). Match the rendering scale and level of detail of image 3, an approved top-down vehicle sprite from this game (rendering style only, not layout, palette or subject): grounded, believable, subtly weathered, crisp at small size, not glossy concept art.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Every drone faces LEFT (nose toward the left edge), exactly where the guide puts it, at exactly the guide's size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between the drones. True transparent background with genuine alpha outside the silhouettes, including every gap between fans and body; no ground, scene, cast-shadow slab, labels, text, border, grid or checkerboard. Same square canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\drones\\tt-drones\\drones-guide.png",
+      "sha256": "b9a60937fb8ce3cc816dab896ee9ed4dda63002cfc620bb1d4d564ff1c75bf50",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement, scale and heading; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\medusa.png",
+      "sha256": "148d851409d0ed723f2438b3435e1dd54e830445b1ee87c42b5885d39176254d",
+      "dimensions": [
+        134,
+        138
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3809076c4cb5654e3f6a554cd0a914c4a9047c09b5c33f49bcba746c7c4f795b",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the four drones, preserving the guide’s geometry and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 64372,
+    "cached_input_tokens": 56320,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 887,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 70.7
+}

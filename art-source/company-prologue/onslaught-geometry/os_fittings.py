@@ -19,6 +19,26 @@ LIGHTS = []
 DUTY = .18
 RED, WHITE = (1.0, .12, .06), (1.0, .95, .88)
 _TREES = []
+LIGHT_MATS = {'red': 'Running light red', 'white': 'Running light white'}
+STRENGTH = {'red': 40.0, 'white': 30.0}     # full (on-phase) emission, what the .blend and export carry
+# Review stills catch the lights at a random phase of an 18% duty blink; at full strength
+# every 1.5 km still is speckled with a dozen white dots per arm. 'dim' is a lamp seen in
+# its off phase still catching a little glow; 'off' is no emission at all.
+RENDER_FACTOR = {'on': 1.0, 'dim': .06, 'off': 0.0}
+
+
+def set_render_lights(mode):
+    """Set the running lights' emission for rendering only ('on', 'dim' or 'off');
+    returns a callable that restores full strength. LIGHTS records are untouched."""
+    f = RENDER_FACTOR[mode]
+    for key, name in LIGHT_MATS.items():
+        m = bpy.data.materials.get(name)
+        if m:
+            m.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = STRENGTH[key]*f
+
+    def restore():
+        set_render_lights('on')
+    return restore
 
 
 def _scene_trees():
@@ -83,8 +103,8 @@ def _strut(kit, name, p0, p1, radius):
 
 def build(kit):
     LIGHTS.clear()
-    mats = {'red': material('Running light red', RED, 0, .4, emission=RED, strength=40.0),
-            'white': material('Running light white', WHITE, 0, .4, emission=WHITE, strength=30.0)}
+    mats = {'red': material(LIGHT_MATS['red'], RED, 0, .4, emission=RED, strength=STRENGTH['red']),
+            'white': material(LIGHT_MATS['white'], WHITE, 0, .4, emission=WHITE, strength=STRENGTH['white'])}
     _scene_trees()
     # Sensor mast on WS 025: a drum, a tripod, a platform with the search
     # radar's flat array, the mast proper with its crossbar, and a cap that
@@ -143,7 +163,8 @@ def build(kit):
     _from(kit, 'Light stern 1', (-200, 0, 8), (1, 0, 0), WHITE, 'stern', 3.0, 1.5, mats)
 
 
-EDGE_X = (180, 140, 100, 60, 20, -4)     # stations of the white edge line along each arm
+EDGE_X = (180, 140, 100, 60, 20, -6)     # stations of the white edge line along each arm (the last
+                                        # aft of the WS 010/011 flak sponson, not under it)
 EDGE_DEG = 35.0                         # the deck edge is the arm's extreme point this far off vertical
 
 

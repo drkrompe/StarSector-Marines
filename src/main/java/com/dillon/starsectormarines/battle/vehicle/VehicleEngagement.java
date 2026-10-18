@@ -46,6 +46,11 @@ public final class VehicleEngagement {
     static final float CLOSE_BIAS = 1.15f;
     /** Cells either side of the band a stopped hull tolerates before it moves again. */
     static final float HOLD_SLACK = 1.5f;
+    /**
+     * Slack inside a stand-off band's near edge. That edge is already the threat's reach plus a margin, and the
+     * ordinary slack would spend the whole margin: a Hound parked at its reach would read as in band.
+     */
+    static final float STANDOFF_INNER_SLACK = 0.5f;
     /** Seconds between decisions, and the least time between two route proofs. */
     static final float DECIDE_SECONDS = 1f;
     static final float REPLAN_SECONDS = 2f;
@@ -167,6 +172,15 @@ public final class VehicleEngagement {
         }
     }
 
+    static float innerSlack(Band band) {
+        return band.stance() == MechDuelBand.Stance.STANDOFF ? STANDOFF_INNER_SLACK : HOLD_SLACK;
+    }
+
+    /** In band with this hull's slack: {@link #innerSlack} on the near side, {@link #HOLD_SLACK} on the far. */
+    static boolean inBand(Band band, float distance) {
+        return distance >= band.min() - innerSlack(band) && distance <= band.max() + HOLD_SLACK;
+    }
+
     /** Full lock beyond thirty degrees off, proportional inside it. */
     private static float steer(float degrees) {
         return Math.max(-1f, Math.min(1f, degrees / 30f));
@@ -211,7 +225,7 @@ public final class VehicleEngagement {
         Band band = MechDuelBand.choose(List.of(gun), threatOf(target), CLOSE_BIAS);
         if (band == null) return;
         float distance = (float) Math.hypot(at[0] - body.x, at[1] - body.y);
-        if (plan.retreating ? distance < band.min() : distance < band.min() - HOLD_SLACK) {
+        if (plan.retreating ? distance < band.min() : distance < band.min() - innerSlack(band)) {
             if (!plan.retreating && plan.routeX != null) controlSystem.clearRoute(id);
             plan.routeX = null;
             plan.routeY = null;
@@ -219,7 +233,7 @@ public final class VehicleEngagement {
             return;
         }
         plan.retreating = false;
-        if (band.contains(distance, HOLD_SLACK)) {
+        if (inBand(band, distance)) {
             if (plan.routeX != null) controlSystem.clearRoute(id);
             plan.routeX = null;
             plan.routeY = null;
@@ -229,8 +243,8 @@ public final class VehicleEngagement {
         // end of the route is no longer in band (a closing target has made it too near).
         boolean stale = plan.routeX == null
                 || Math.hypot(at[0] - plan.plannedTargetX, at[1] - plan.plannedTargetY) > TARGET_DRIFT_CELLS
-                || !band.contains((float) Math.hypot(plan.routeX[plan.routeX.length - 1] - at[0],
-                        plan.routeY[plan.routeY.length - 1] - at[1]), HOLD_SLACK);
+                || !inBand(band, (float) Math.hypot(plan.routeX[plan.routeX.length - 1] - at[0],
+                        plan.routeY[plan.routeY.length - 1] - at[1]));
         if (!stale || plan.replanIn > 0f || plan.restIn > 0f) return;
         plan.replanIn = REPLAN_SECONDS;
         float[][] route = planToBand(id, type, body, at, band);
@@ -269,7 +283,7 @@ public final class VehicleEngagement {
             if (to == null) continue;
             float d = (float) Math.hypot(to[0] + 0.5f - target[0], to[1] + 0.5f - target[1]);
             // Sight is read off the live grid: the planning grid is a navigation-only copy.
-            if (!band.contains(d, HOLD_SLACK) || !navigation.getGrid().hasLineOfSight(to[0], to[1], tx, ty)) continue;
+            if (!inBand(band, d) || !navigation.getGrid().hasLineOfSight(to[0], to[1], tx, ty)) continue;
             if (from[0] == to[0] && from[1] == to[1]) return new float[][] {new float[0], new float[0]};
             float[][] route = VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
                     grid, cost, clearance, type);

@@ -41,8 +41,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import pg_kit, pg_outline, pg_hull, pg_engines, pg_turrets, pg_shield
-MODULES = [pg_kit, pg_outline, pg_hull, pg_engines, pg_turrets, pg_shield]
+import pg_kit, pg_outline, pg_hull, pg_detail, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs
+MODULES = [pg_kit, pg_outline, pg_hull, pg_detail, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs]
 for module in MODULES:
     importlib.reload(module)
 
@@ -60,15 +60,20 @@ NAME = 'Paragon'
 # Real-world scale (pipeline pass 4), from the shared sizing basis
 # (../ship_scale.py, option C): contents (1,000 crew, 300 cargo, 300 fuel) over
 # the capital machinery share, against the measured enclosed volume, the union of
-# ship_scale.SOLIDS['paragon'] (belt, main ring and lining, prow, bow module and horns,
-# command deck, gantry, aft body and pods; never the drive pods, turrets, reactor
-# domes or the emitter array). The driver
+# ship_scale.SOLIDS['paragon'] (belt, main ring, prow, bow module, horns and lobes,
+# command deck, aft body and pods; never the open bore, the shield emitter lining,
+# the deck gantry, the drive pods, turrets, reactor domes or the emitter array). The driver
 # re-measures that union on every build and fails if it drifts from
 # ship_scale.HULLS, so a shape change is carried into the shared table.
+# The published value is an owner override (2026-10-18): "It should be larger than
+# the Onslaught" (301 m). The rule solves 0.748 (271 m) after the hull was slimmed to
+# the Legion's and Onslaught's fullness; both numbers go into geometry.json.
+OVERRIDE = 'owner: larger than the Onslaught (2026-10-18)'
 if NAME in ship_scale.PUBLISHED:
     SCALE = ship_scale.record(NAME)
     METRES_PER_UNIT = ship_scale.PUBLISHED[NAME]
-    assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
+    if not OVERRIDE:
+        assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
 else:
     SCALE = None
     METRES_PER_UNIT = 1.0  # unscaled blockout: pass 4 publishes the real value
@@ -79,6 +84,7 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--hangar-open', action='store_true', help='pose the hangar door open (review renders)')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -116,9 +122,23 @@ bpy.ops.object.delete(use_global=False)
 kit = pg_kit.Kit()
 kit.mpu = METRES_PER_UNIT
 hull = pg_hull.build(kit)
+pg_detail.build(kit, hull)
+pg_hangar.build(kit, args.hangar_open)
 pg_engines.build(kit)
 pg_turrets.build(kit)
 pg_shield.build(kit, METRES_PER_UNIT)
+# Firing lines: report each turret's clear share of its arc (pg_arcs).
+ARCS = pg_arcs.check(kit)
+for row in ARCS:
+    print(f"ARC {row['id']} {row['size']:6} arc {row['arc_deg']:3} clear {row['clear_share']:.0%} "
+          f"blocked by {', '.join(row['blocked_by']) or '-'}")
+
+if os.environ.get('PG_ARC_DEBUG'):
+    for row in ARCS:
+        if row['id'] in os.environ['PG_ARC_DEBUG'].split(','):
+            for b in row['blocked']:
+                print('  ARCDBG', row['id'], b)
+
 for name, d in pg_kit.INSET_FAULTS:
     print(f'INSET FAULT: {name} folds over at inset {d:.1f}')
 
@@ -174,6 +194,7 @@ CLOSEUPS = [
     ('core-detail', (60, -200, 170), (-90, 0, 15), 150),
     ('turret-detail', (140, -160, 140), (3, -99, 10), 80),
     ('engine-detail', (-330, -260, 90), (-165, -95, 0), 140),
+    ('hangar-detail', (-20, -25, 20), (55, 0, 2), 50),
     ('stern-detail', (-420, -120, 70), (-170, 0, 0), 300),
 ]
 for spec in args.cam:
@@ -183,7 +204,7 @@ for spec in args.cam:
 wanted = []
 for v in [v for v in args.views.split(',') if v]:
     if v == 'details':
-        wanted += [c[0] for c in CLOSEUPS[:6]]
+        wanted += [c[0] for c in CLOSEUPS[:7]]
     else:
         wanted.append(v)
 wanted += [spec.split(':')[0] for spec in args.cam]
@@ -326,9 +347,10 @@ def union_volume(names, step=2.0):
     return total*step*step
 
 
-SOLIDS = ('Hull belt', 'Hull main ring', 'Hull bore lining', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
-          'Hull starboard bow horn', 'Hull core trench', 'Hull aft body', 'Hull command deck',
-          'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')
+SOLIDS = ('Hull belt', 'Hull main ring', 'Hull prow', 'Hull bow module', 'Hull port bow horn',
+          'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe', 'Hull aft body', 'Hull command deck',
+          'Hull command deck upper', 'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod',
+          'Hull forward hangar')
 
 
 def scale_record():
@@ -342,7 +364,8 @@ def scale_record():
     if abs(measured/table-1) > .02:
         raise RuntimeError(f'enclosed volume {measured:.0f} units3 differs from ship_scale.HULLS '
                            f'{NAME} units3 {table}: update the shared table')
-    return {**SCALE, 'published_metres_per_unit': METRES_PER_UNIT, **base, 'size_m': size,
+    return {**SCALE, 'published_metres_per_unit': METRES_PER_UNIT, 'override': OVERRIDE,
+            'length_m_published': round((HI.x-LO.x)*S, 1), **base, 'size_m': size,
             'person_1_8_m_in_units': round(1.8/S, 2),
             'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number'}
 
@@ -376,7 +399,13 @@ if not args.no_save:
                        'size': [round(b-a, 2) for a, b in zip(LO, HI)]},
         'bore': {'centre': list(pg_hull.BORE_C), 'radius': pg_hull.BORE_R, 'lining_radius': pg_hull.LINING_R},
         'shield': dict(pg_shield.RECORDS),
+        'hangar': dict(pg_hangar.RECORD),
         'weapon_slots': pg_turrets.records(),
+        'firing_lines': {'method': 'pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg '
+                                   'depressed) from a mount sitting low in its dimpled well',
+                         'barrel_line_above_rim': pg_arcs.BARREL_H,
+                         'clear_share': {r['id']: r['clear_share'] for r in ARCS},
+                         'still_blocked_by': {r['id']: r['blocked_by'] for r in ARCS if r['blocked_by']}},
         'engines': pg_engines.records(),
         'object_names': {'Hull ...': 'belt, main ring, bore lining, prow (grille block with the capital-mount bays), '
                                      'bow module, port/starboard bow horn, command deck (+ upper), core trench '

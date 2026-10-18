@@ -84,7 +84,7 @@ public final class SceneRun {
         BattleSimulation sim = world.sim();
         if (player != null) player.tick(sim, tick);
         for (TickObserver observer : observers) observer.observe(sim, tick);
-        if (everyTicks > 0 && tick % everyTicks == 0) {
+        if (everyTicks > 0 && frames.records(loopId, sim, tick, everyTicks)) {
             frames.frame(loopId, sim, tick, caption == null ? "" : caption.apply(tick));
         }
         sim.advance(BattleSimulation.TICK_DT);

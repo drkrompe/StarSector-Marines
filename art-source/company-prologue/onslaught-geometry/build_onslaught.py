@@ -24,6 +24,8 @@ Options after a literal "--":
   --samples N    Cycles samples (default 24)
   --res WxH      render size (default 1920x1080)
   --no-save      skip the .blend and geometry.json
+  --lights MODE  running lights in these renders: on, dim (default) or off; the
+                 saved .blend, the export and the LIGHTS records stay at full strength
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
 sprite overlay, the silhouette IoU and the review sheets.
 """
@@ -76,6 +78,8 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--lights', choices=('on', 'dim', 'off'), default='dim',
+                    help='running-light emission in the review renders only; the .blend and export keep full strength')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -239,6 +243,7 @@ for name, pos in FORMATION:
     cam.data.clip_start, cam.data.clip_end = 10, 20000
     cam.rotation_euler = (MID-cam.location).to_track_quat('-Z', 'Y').to_euler()
 
+restore_lights = os_fittings.set_render_lights(args.lights)
 for name in wanted:
     space = name.startswith('formation-')
     scene.camera = bpy.data.objects['Camera '+name]
@@ -250,6 +255,7 @@ for name in wanted:
     scene.render.film_transparent = name == 'top'
     scene.render.filepath = str(OUT/(name+'.png'))
     bpy.ops.render.render(write_still=True)
+restore_lights()
 
 
 def union_volume(names, step=2.0):

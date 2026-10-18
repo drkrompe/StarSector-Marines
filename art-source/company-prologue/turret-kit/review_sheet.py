@@ -1,7 +1,7 @@
 """One 1920x1080 review sheet per turret: the game's sprite beside the model.
 
   blender --background --factory-startup --python catalog.py -- --out DIR --top [--only a,b]
-  python review_sheet.py DIR [--only a,b] [--game "C:/Program Files (x86)/Fractal Softworks/Starsector"]
+  python review_sheet.py DIR [--only a,b] [--contact] [--game "C:/Program Files (x86)/Fractal Softworks/Starsector"]
 
 Top row: the sprite composited the way the game draws it (gun below or above
 the base, as its renderHints say), the model's orthographic top view at the
@@ -14,7 +14,7 @@ import os
 import re
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 WPN = {'hephaestus': 'hephag', 'needler': 'heavyneedler'}
@@ -60,11 +60,57 @@ def silhouette_iou(spr, top, ring):
     return inter/union if union else 0.0
 
 
+NAMES = {'vulcan': 'Vulcan Cannon', 'lightac': 'Light Autocannon', 'lightmg': 'Light Machine Gun',
+         'heavyac': 'Heavy Autocannon', 'flak': 'Flak Cannon', 'dualflak': 'Dual Flak Cannon',
+         'needler': 'Heavy Needler', 'squall': 'Squall MLRS', 'hurricane': 'Hurricane MIRV',
+         'heavymauler': 'Heavy Mauler', 'hveldriver': 'Hypervelocity Driver', 'devastator': 'Devastator Cannon',
+         'mark9': 'Mark IX Autocannon', 'hellbore': 'Hellbore Cannon', 'hephaestus': 'Hephaestus Assault Gun'}
+
+
+def font(size):
+    for f in ('C:/Windows/Fonts/arialbd.ttf', '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
+              '/Library/Fonts/Arial Bold.ttf'):
+        if os.path.exists(f):
+            return ImageFont.truetype(f, size)
+    return ImageFont.load_default()
+
+
+def contact(core, d, names, scores):
+    """DIR/contact.png: every turret's three-quarter render in one 1920x1080
+    grid, numbered and named, its game sprite inset, for notes by number."""
+    cols = 5
+    rows = -(-len(names)//cols)
+    tw, th = 1920//cols, 1080//rows
+    sheet = Image.new('RGB', (1920, 1080), (30, 30, 34))
+    big, small = font(22), font(16)
+    for n, w in enumerate(names):
+        x0, y0 = (n % cols)*tw, (n//cols)*th
+        tq = Image.open(os.path.join(d, w+'.png')).convert('RGB')
+        ch = round(tq.height*.86)
+        cw = round(ch*tw/th)
+        tile = tq.crop(((tq.width-cw)//2, (tq.height-ch)//2+40, (tq.width+cw)//2, (tq.height+ch)//2+40))
+        sheet.paste(tile.resize((tw-4, th-4)), (x0+2, y0+2))
+        spr, _ = composite(core, WPN.get(w, w))
+        s = 84/max(spr.size)
+        inset = Image.new('RGBA', (92, 92), (165, 167, 170, 255))
+        im = spr.resize((max(1, round(spr.width*s)), max(1, round(spr.height*s))), Image.NEAREST)
+        inset.alpha_composite(im, ((92-im.width)//2, (92-im.height)//2))
+        sheet.paste(inset.convert('RGB'), (x0+tw-98, y0+th-98))
+        dr = ImageDraw.Draw(sheet)
+        dr.rectangle((x0+2, y0+2, x0+tw-3, y0+34), fill=(20, 20, 24))
+        dr.text((x0+10, y0+6), f'{n+1}  {NAMES.get(w, w)}', font=big, fill=(255, 255, 255))
+        if w in scores:
+            dr.text((x0+10, y0+th-26), f'{w}   IoU {scores[w]:.2f}', font=small, fill=(255, 255, 255))
+    sheet.save(os.path.join(d, 'contact.png'))
+    print('wrote', os.path.join(d, 'contact.png'))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('dir')
     ap.add_argument('--only', default='')
     ap.add_argument('--game', default='C:/Program Files (x86)/Fractal Softworks/Starsector')
+    ap.add_argument('--contact', action='store_true', help='also DIR/contact.png: all turrets numbered and named')
     a = ap.parse_args()
     core = os.path.join(a.game, 'starsector-core')
     names = [n for n in a.only.split(',') if n] or \
@@ -101,6 +147,9 @@ def main():
         print(f'wrote {os.path.join(a.dir, w+"-sheet.png")}  IoU {iou:.3f}')
     with open(os.path.join(a.dir, 'iou.json'), 'w') as fh:
         json.dump(scores, fh, indent=1)
+    if a.contact:
+        order = [w for w in NAMES if w in names]+[w for w in names if w not in NAMES]
+        contact(core, a.dir, order, scores)
 
 
 if __name__ == '__main__':

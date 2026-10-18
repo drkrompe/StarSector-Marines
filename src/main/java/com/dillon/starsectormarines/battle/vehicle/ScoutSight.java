@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.function.LongConsumer;
 
 /**
- * What the side's sight-carrying hulls — the scout car — see, published to the two pictures a side has.
+ * What the side's sight-carrying hulls — the scout car, the hover scout and its sensor drones — see, published to
+ * the two pictures a side has.
  *
  * <p>A hull with {@link VehicleType#sightCells()} is an observer that belongs to no squad. Each tick it publishes
  * itself to its side's fog as a temporary sight source (when that side's sight is shown to the player), and records
@@ -41,8 +42,26 @@ public final class ScoutSight {
                 (int) Math.floor(tx), (int) Math.floor(ty));
     }
 
+    /** A sight source that is not a hull: a side's observer at a point, with its range in cells. */
+    @FunctionalInterface
+    public interface Observer {
+        void observe(Faction side, float x, float y, float rangeCells);
+    }
+
+    /** Hands every extra observer (a hull's sensor drones) to the sink, once per tick. */
+    @FunctionalInterface
+    public interface Observers {
+        void forEach(Observer sink);
+    }
+
     public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
                      NavigationGrid grid, FogOfWarService fog) {
+        tick(convoy, roster, index, grid, fog, sink -> { });
+    }
+
+    /** As {@link #tick(ConvoyService, UnitRosterService, UnitSpatialIndex, NavigationGrid, FogOfWarService)}, adding {@code extra} observers on the same terms as a hull. */
+    public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
+                     NavigationGrid grid, FogOfWarService fog, Observers extra) {
         fog.clearVehicleSightSources();
         counts.clear();
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
@@ -50,21 +69,9 @@ public final class ScoutSight {
             VehicleType type = convoy.vehicleType(id);
             if (type == null || type.sightCells() <= 0f || !convoy.isPresent(id)) continue;
             GroundBody body = convoy.body(id);
-            Faction side = convoy.faction(id);
-            float range = type.sightCells();
-            if (fog.isInitialized() && fog.getVisionState().isContributor(side)) {
-                fog.addVehicleSightSource((int) Math.floor(body.x), (int) Math.floor(body.y), Math.round(range));
-            }
-            scratch.clear();
-            index.gatherHostileCombatants(body.x, body.y, range, side, scratch);
-            for (int k = 0; k < scratch.size; k++) {
-                long target = scratch.ids[k];
-                if (!roster.isLive(target)) continue;
-                if (sees(grid, body.x, body.y, roster.world().x(target), roster.world().y(target), range)) {
-                    record(side, target);
-                }
-            }
+            observe(convoy.faction(id), body.x, body.y, type.sightCells(), roster, index, grid, fog);
         }
+        extra.forEach((side, x, y, range) -> observe(side, x, y, range, roster, index, grid, fog));
         // Sorted and de-duplicated, so two scouts seeing one body report it once and the order never depends on
         // the spatial index's buckets.
         for (Map.Entry<Faction, Integer> entry : counts.entrySet()) {
@@ -76,6 +83,23 @@ public final class ScoutSight {
                 if (unique == 0 || ids[unique - 1] != ids[k]) ids[unique++] = ids[k];
             }
             entry.setValue(unique);
+        }
+    }
+
+    private void observe(Faction side, float x, float y, float range, UnitRosterService roster,
+                         UnitSpatialIndex index, NavigationGrid grid, FogOfWarService fog) {
+        if (side == null) return;
+        if (fog.isInitialized() && fog.getVisionState().isContributor(side)) {
+            fog.addVehicleSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
+        }
+        scratch.clear();
+        index.gatherHostileCombatants(x, y, range, side, scratch);
+        for (int k = 0; k < scratch.size; k++) {
+            long target = scratch.ids[k];
+            if (!roster.isLive(target)) continue;
+            if (sees(grid, x, y, roster.world().x(target), roster.world().y(target), range)) {
+                record(side, target);
+            }
         }
     }
 

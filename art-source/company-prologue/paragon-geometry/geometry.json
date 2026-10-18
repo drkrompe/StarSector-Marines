@@ -40,30 +40,99 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 1.0,
+  "metres_per_unit": 0.87,
   "scale": {
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 2486231,
+      "crew_max": 1000,
+      "cargo": 300,
+      "fuel": 300,
+      "cls": "capital",
+      "boat_bays": 2,
+      "length_units": 362.2,
+      "sprite_px": 364,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.45,
+        "hangar_box_factor": 3.0,
+        "shares": {
+          "armour": 0.18,
+          "drive": 0.16,
+          "weapons": 0.12,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 435000,
+      "cargo": 600,
+      "fuel": 450,
+      "hangar": 0,
+      "boat_bays": 1920
+    },
+    "contents_total_m3": 437970,
+    "machinery_share": 0.58,
+    "enclosed_m3": 1042786,
+    "solved_metres_per_unit": 0.749,
+    "range": {
+      "habitable_273": 0.726,
+      "habitable_328": 0.771
+    },
+    "enclosed_m3_per_person_at_max_crew": 1043,
+    "length_m": 271.1,
+    "fittings_m": {
+      "deck window w x h": [
+        1.72,
+        0.77
+      ],
+      "capital-mount bay w x h": [
+        15.72,
+        16.47
+      ],
+      "bridge glazing band h": [
+        1.55
+      ]
+    },
+    "published_metres_per_unit": 0.87,
+    "override": "owner: larger than the Onslaught (2026-10-18)",
+    "length_m_published": 315.1,
     "measured_this_build": {
-      "enclosed_units3": 3566285,
+      "enclosed_units3": 2486231,
       "solids": [
         "Hull belt",
         "Hull main ring",
-        "Hull bore lining",
         "Hull prow",
         "Hull bow module",
         "Hull port bow horn",
         "Hull starboard bow horn",
-        "Hull core trench",
+        "Hull port bow lobe",
+        "Hull starboard bow lobe",
         "Hull aft body",
         "Hull command deck",
         "Hull command deck upper",
         "Hull command spine",
         "Bridge tower",
         "Hull port pod",
-        "Hull starboard pod"
+        "Hull starboard pod",
+        "Hull forward hangar"
       ]
     },
     "length_units": 362.2,
-    "status": "unscaled blockout (metres_per_unit 1.0 is a placeholder until pass 4)"
+    "size_m": [
+      315.1,
+      277.5,
+      73.1
+    ],
+    "person_1_8_m_in_units": 2.07,
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
     "size": [
@@ -80,7 +149,7 @@
     "min": [
       -188.1,
       -159.5,
-      -36.0
+      -20.0
     ],
     "max": [
       174.07,
@@ -90,7 +159,7 @@
     "size": [
       362.17,
       319.0,
-      100.0
+      84.0
     ]
   },
   "bore": {
@@ -111,7 +180,7 @@
     "type": "OMNI",
     "arc_deg": 360,
     "radius_units": 270,
-    "radius_m": 270.0,
+    "radius_m": 234.9,
     "ship_system": "fortressshield",
     "source": "paragon.ship shieldCenter/shieldRadius, ship_data.csv shield type OMNI arc 360",
     "emitter_nodes": [
@@ -207,6 +276,28 @@
       }
     ]
   },
+  "hangar": {
+    "mouth": "Hangar mouth",
+    "launch_point": "Hangar launch point",
+    "door_slides": [
+      "Hangar door port leaf slide",
+      "Hangar door starboard leaf slide"
+    ],
+    "size_m": [
+      21.0,
+      14.0,
+      35.0
+    ],
+    "size_units": [
+      24.14,
+      16.09,
+      40.23
+    ],
+    "mouth_x": 52.2,
+    "floor_z": -6.0,
+    "door": "closed",
+    "face": "the bore's forward wall, opening aft across the bore at the command deck"
+  },
   "weapon_slots": [
     {
       "id": "WS 001",
@@ -256,11 +347,22 @@
       "angle_deg": 80,
       "arc_deg": 220,
       "pivot": "Weapon WS 003 pivot",
-      "pivot_z": 38.6,
+      "pivot_location": [
+        3.0,
+        98.55,
+        29.75
+      ],
+      "train_axis": [
+        0.0014,
+        0.2787,
+        0.9604
+      ],
+      "well_depth": 4.2,
       "barbette": "Weapon WS 003 barbette",
       "muzzles": [
         "Weapon WS 003 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "tachyonlance"
     },
     {
@@ -275,11 +377,22 @@
       "angle_deg": -80,
       "arc_deg": 220,
       "pivot": "Weapon WS 004 pivot",
-      "pivot_z": 38.6,
+      "pivot_location": [
+        3.0,
+        -98.55,
+        29.75
+      ],
+      "train_axis": [
+        0.0014,
+        -0.2787,
+        0.9604
+      ],
+      "well_depth": 4.2,
       "barbette": "Weapon WS 004 barbette",
       "muzzles": [
         "Weapon WS 004 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "tachyonlance"
     },
     {
@@ -294,11 +407,22 @@
       "angle_deg": 20,
       "arc_deg": 210,
       "pivot": "Weapon WS 005 pivot",
-      "pivot_z": 21.36,
+      "pivot_location": [
+        125.82,
+        40.13,
+        23.95
+      ],
+      "train_axis": [
+        0.1152,
+        -0.0801,
+        0.9901
+      ],
+      "well_depth": 3.8,
       "barbette": "Weapon WS 005 barbette",
       "muzzles": [
         "Weapon WS 005 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "gravitonbeam"
     },
     {
@@ -313,11 +437,22 @@
       "angle_deg": -20,
       "arc_deg": 210,
       "pivot": "Weapon WS 006 pivot",
-      "pivot_z": 21.36,
+      "pivot_location": [
+        125.82,
+        -40.13,
+        23.95
+      ],
+      "train_axis": [
+        0.1152,
+        0.08,
+        0.9901
+      ],
+      "well_depth": 3.8,
       "barbette": "Weapon WS 006 barbette",
       "muzzles": [
         "Weapon WS 006 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "gravitonbeam"
     },
     {
@@ -332,11 +467,22 @@
       "angle_deg": 70,
       "arc_deg": 210,
       "pivot": "Weapon WS 007 pivot",
-      "pivot_z": 34.02,
+      "pivot_location": [
+        50.78,
+        89.58,
+        28.49
+      ],
+      "train_axis": [
+        0.1393,
+        0.2611,
+        0.9552
+      ],
+      "well_depth": 3.8,
       "barbette": "Weapon WS 007 barbette",
       "muzzles": [
         "Weapon WS 007 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     },
     {
@@ -351,11 +497,22 @@
       "angle_deg": -70,
       "arc_deg": 210,
       "pivot": "Weapon WS 008 pivot",
-      "pivot_z": 34.02,
+      "pivot_location": [
+        50.78,
+        -89.58,
+        28.49
+      ],
+      "train_axis": [
+        0.1393,
+        -0.2611,
+        0.9552
+      ],
+      "well_depth": 3.8,
       "barbette": "Weapon WS 008 barbette",
       "muzzles": [
         "Weapon WS 008 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     },
     {
@@ -370,11 +527,22 @@
       "angle_deg": 170,
       "arc_deg": 150,
       "pivot": "Weapon WS 009 pivot",
-      "pivot_z": 26.2,
+      "pivot_location": [
+        -142.98,
+        62.08,
+        22.0
+      ],
+      "train_axis": [
+        -0.0149,
+        -0.0525,
+        0.9985
+      ],
+      "well_depth": 3.8,
       "barbette": "Weapon WS 009 barbette",
       "muzzles": [
         "Weapon WS 009 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "gravitonbeam"
     },
     {
@@ -389,11 +557,22 @@
       "angle_deg": 190,
       "arc_deg": 150,
       "pivot": "Weapon WS 010 pivot",
-      "pivot_z": 26.2,
+      "pivot_location": [
+        -142.98,
+        -62.08,
+        22.01
+      ],
+      "train_axis": [
+        -0.014,
+        0.0515,
+        0.9986
+      ],
+      "well_depth": 3.8,
       "barbette": "Weapon WS 010 barbette",
       "muzzles": [
         "Weapon WS 010 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "gravitonbeam"
     },
     {
@@ -408,11 +587,22 @@
       "angle_deg": 50,
       "arc_deg": 210,
       "pivot": "Weapon WS 011 pivot",
-      "pivot_z": 13.6,
+      "pivot_location": [
+        105.73,
+        68.77,
+        24.81
+      ],
+      "train_axis": [
+        0.1715,
+        0.1442,
+        0.9746
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 011 barbette",
       "muzzles": [
         "Weapon WS 011 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     },
     {
@@ -427,12 +617,23 @@
       "angle_deg": 50,
       "arc_deg": 360,
       "pivot": "Weapon WS 012 pivot",
-      "pivot_z": 37.6,
+      "pivot_location": [
+        77.28,
+        54.49,
+        30.82
+      ],
+      "train_axis": [
+        0.449,
+        0.3193,
+        0.8345
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 012 barbette",
       "muzzles": [
         "Weapon WS 012 muzzle 1",
         "Weapon WS 012 muzzle 2"
       ],
+      "placeholder": true,
       "elite_variant": "reaper"
     },
     {
@@ -447,11 +648,22 @@
       "angle_deg": 100,
       "arc_deg": 210,
       "pivot": "Weapon WS 013 pivot",
-      "pivot_z": 22.55,
+      "pivot_location": [
+        -39.98,
+        111.95,
+        26.22
+      ],
+      "train_axis": [
+        -0.0113,
+        0.0339,
+        0.9994
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 013 barbette",
       "muzzles": [
         "Weapon WS 013 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "taclaser"
     },
     {
@@ -466,12 +678,23 @@
       "angle_deg": 130,
       "arc_deg": 360,
       "pivot": "Weapon WS 014 pivot",
-      "pivot_z": 37.6,
+      "pivot_location": [
+        -51.52,
+        80.31,
+        31.67
+      ],
+      "train_axis": [
+        -0.2976,
+        0.429,
+        0.8529
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 014 barbette",
       "muzzles": [
         "Weapon WS 014 muzzle 1",
         "Weapon WS 014 muzzle 2"
       ],
+      "placeholder": true,
       "elite_variant": "reaper"
     },
     {
@@ -486,11 +709,22 @@
       "angle_deg": 90,
       "arc_deg": 150,
       "pivot": "Weapon WS 015 pivot",
-      "pivot_z": 20.45,
+      "pivot_location": [
+        -91.92,
+        103.51,
+        17.06
+      ],
+      "train_axis": [
+        -0.0531,
+        0.3035,
+        0.9513
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 015 barbette",
       "muzzles": [
         "Weapon WS 015 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "taclaser"
     },
     {
@@ -505,11 +739,22 @@
       "angle_deg": 120,
       "arc_deg": 250,
       "pivot": "Weapon WS 016 pivot",
-      "pivot_z": 25.6,
+      "pivot_location": [
+        -145.0,
+        121.0,
+        22.4
+      ],
+      "train_axis": [
+        -0.0,
+        0.0,
+        1.0
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 016 barbette",
       "muzzles": [
         "Weapon WS 016 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     },
     {
@@ -524,11 +769,22 @@
       "angle_deg": -40,
       "arc_deg": 210,
       "pivot": "Weapon WS 017 pivot",
-      "pivot_z": 13.6,
+      "pivot_location": [
+        105.73,
+        -68.77,
+        24.81
+      ],
+      "train_axis": [
+        0.1715,
+        -0.1442,
+        0.9746
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 017 barbette",
       "muzzles": [
         "Weapon WS 017 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     },
     {
@@ -543,12 +799,23 @@
       "angle_deg": -50,
       "arc_deg": 360,
       "pivot": "Weapon WS 018 pivot",
-      "pivot_z": 37.6,
+      "pivot_location": [
+        77.28,
+        -54.49,
+        30.82
+      ],
+      "train_axis": [
+        0.449,
+        -0.3193,
+        0.8345
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 018 barbette",
       "muzzles": [
         "Weapon WS 018 muzzle 1",
         "Weapon WS 018 muzzle 2"
       ],
+      "placeholder": true,
       "elite_variant": "reaper"
     },
     {
@@ -563,11 +830,22 @@
       "angle_deg": 260,
       "arc_deg": 210,
       "pivot": "Weapon WS 019 pivot",
-      "pivot_z": 22.55,
+      "pivot_location": [
+        -39.98,
+        -111.95,
+        26.22
+      ],
+      "train_axis": [
+        -0.0113,
+        -0.0339,
+        0.9994
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 019 barbette",
       "muzzles": [
         "Weapon WS 019 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "taclaser"
     },
     {
@@ -582,12 +860,23 @@
       "angle_deg": 230,
       "arc_deg": 360,
       "pivot": "Weapon WS 020 pivot",
-      "pivot_z": 37.6,
+      "pivot_location": [
+        -51.52,
+        -80.31,
+        31.67
+      ],
+      "train_axis": [
+        -0.2976,
+        -0.429,
+        0.8529
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 020 barbette",
       "muzzles": [
         "Weapon WS 020 muzzle 1",
         "Weapon WS 020 muzzle 2"
       ],
+      "placeholder": true,
       "elite_variant": "reaper"
     },
     {
@@ -602,11 +891,22 @@
       "angle_deg": -90,
       "arc_deg": 150,
       "pivot": "Weapon WS 021 pivot",
-      "pivot_z": 20.45,
+      "pivot_location": [
+        -91.91,
+        -103.52,
+        17.03
+      ],
+      "train_axis": [
+        -0.0536,
+        -0.3001,
+        0.9524
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 021 barbette",
       "muzzles": [
         "Weapon WS 021 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": "taclaser"
     },
     {
@@ -621,11 +921,22 @@
       "angle_deg": 240,
       "arc_deg": 250,
       "pivot": "Weapon WS 022 pivot",
-      "pivot_z": 25.6,
+      "pivot_location": [
+        -145.0,
+        -121.0,
+        22.39
+      ],
+      "train_axis": [
+        -0.0008,
+        0.0,
+        1.0
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 022 barbette",
       "muzzles": [
         "Weapon WS 022 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     },
     {
@@ -640,14 +951,104 @@
       "angle_deg": 180,
       "arc_deg": 150,
       "pivot": "Weapon WS 023 pivot",
-      "pivot_z": 47.49,
+      "pivot_location": [
+        -149.78,
+        -0.01,
+        40.83
+      ],
+      "train_axis": [
+        -0.1353,
+        0.0048,
+        0.9908
+      ],
+      "well_depth": 3.2,
       "barbette": "Weapon WS 023 barbette",
       "muzzles": [
         "Weapon WS 023 muzzle"
       ],
+      "placeholder": true,
       "elite_variant": null
     }
   ],
+  "firing_lines": {
+    "method": "pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg depressed) from a mount sitting low in its dimpled well",
+    "barrel_line_above_rim": {
+      "LARGE": 4.5,
+      "MEDIUM": 3.5,
+      "SMALL": 2.5
+    },
+    "clear_share": {
+      "WS 003": 0.978,
+      "WS 004": 0.978,
+      "WS 005": 1.0,
+      "WS 006": 1.0,
+      "WS 007": 0.988,
+      "WS 008": 0.988,
+      "WS 009": 1.0,
+      "WS 010": 1.0,
+      "WS 011": 0.965,
+      "WS 012": 0.569,
+      "WS 013": 1.0,
+      "WS 014": 0.528,
+      "WS 015": 0.742,
+      "WS 016": 0.961,
+      "WS 017": 0.988,
+      "WS 018": 0.569,
+      "WS 019": 1.0,
+      "WS 020": 0.528,
+      "WS 021": 0.742,
+      "WS 022": 0.961,
+      "WS 023": 1.0
+    },
+    "still_blocked_by": {
+      "WS 003": [
+        "Hull main ring"
+      ],
+      "WS 004": [
+        "Hull main ring"
+      ],
+      "WS 007": [
+        "Hull main ring"
+      ],
+      "WS 008": [
+        "Hull main ring"
+      ],
+      "WS 011": [
+        "Hull main ring"
+      ],
+      "WS 012": [
+        "Hull main ring"
+      ],
+      "WS 014": [
+        "Hull aft body",
+        "Hull main ring"
+      ],
+      "WS 015": [
+        "Hull main ring",
+        "Hull port pod"
+      ],
+      "WS 016": [
+        "Hull main ring"
+      ],
+      "WS 017": [
+        "Hull main ring"
+      ],
+      "WS 018": [
+        "Hull main ring"
+      ],
+      "WS 020": [
+        "Hull aft body",
+        "Hull main ring"
+      ],
+      "WS 021": [
+        "Hull main ring",
+        "Hull starboard pod"
+      ],
+      "WS 022": [
+        "Hull main ring"
+      ]
+    }
+  },
   "engines": [
     {
       "index": 1,
@@ -1071,6 +1472,20 @@
       "orthographic_scale": 140
     },
     {
+      "name": "hangar-detail",
+      "position": [
+        -20,
+        -25,
+        20
+      ],
+      "target": [
+        55,
+        0,
+        2
+      ],
+      "orthographic_scale": 50
+    },
+    {
       "name": "stern-detail",
       "position": [
         -420,
@@ -1083,19 +1498,33 @@
         0
       ],
       "orthographic_scale": 300
+    },
+    {
+      "name": "hangar-wide",
+      "position": [
+        -40.0,
+        -50.0,
+        60.0
+      ],
+      "target": [
+        40.0,
+        0.0,
+        0.0
+      ],
+      "orthographic_scale": 150.0
     }
   ],
   "silhouette": {
-    "iou": 0.9599,
-    "sprite_uncovered": 0.0271,
-    "model_outside_sprite": 0.0136,
+    "iou": 0.9595,
+    "sprite_uncovered": 0.0255,
+    "model_outside_sprite": 0.0156,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.662,
-    "white": 0.598,
-    "dark": 0.437,
-    "agreement": 0.714,
+    "skin": 0.618,
+    "white": 0.549,
+    "dark": 0.426,
+    "agreement": 0.685,
     "silhouette": 0.96,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }

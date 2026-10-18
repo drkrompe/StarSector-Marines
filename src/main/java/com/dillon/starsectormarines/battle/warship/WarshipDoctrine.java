@@ -54,6 +54,20 @@ public final class WarshipDoctrine {
     private boolean airActive;
     private float airQuietSeconds;
     private String withdrawReason;
+    private boolean holdsTheField;
+
+    /**
+     * The mission keeps this ship over the battle until it is destroyed: from now on the doctrine never withdraws it,
+     * however worn, with or without a hostile hull to fight. Every other posture is chosen as before.
+     */
+    public void holdTheField() {
+        holdsTheField = true;
+    }
+
+    /** Whether the mission keeps this ship over the battle, so its doctrine never withdraws it. */
+    public boolean holdsTheField() {
+        return holdsTheField;
+    }
 
     /** Whether the ship is currently in the air fight. */
     public boolean airActive() {
@@ -74,7 +88,8 @@ public final class WarshipDoctrine {
         if (withdrawReason != null) return new Decision(WarshipPosture.WITHDRAW, withdrawReason);
         // A ship fighting a hull fights it to the end: no doctrine breaks off a duel between warships. A mission may
         // still order a withdrawal; that is its order, not the ship's judgement.
-        boolean duelling = in.foeHullFraction() >= 0f && !HULL_FIGHT_WITHDRAWAL;
+        // A ship the mission keeps over the battle is never withdrawn by its doctrine, fight or no fight.
+        boolean duelling = holdsTheField || in.foeHullFraction() >= 0f && !HULL_FIGHT_WITHDRAWAL;
         float hullLimit = in.ownAir() > 0 ? WITHDRAW_HULL_WITH_COVER : WITHDRAW_HULL;
         if (!duelling && in.hullFraction() < hullLimit) {
             return withdraw(String.format(Locale.ROOT, "hull %d%% under %d%%",

@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
 Written: 2026-10-18
-Updated: 2026-10-18 — Kilo Nine is Nessa's private yard at the port edge; customs car added.
+Updated: 2026-10-18 — Kilo Nine is Nessa's private yard at the port edge; C4 now ends low and tight on it, wide reveal kept for C5.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -57,6 +57,18 @@ and workshop. A Hegemony customs car, white with a blue roof band and lights
 going, comes over from the port office and turns in at her gate as the ship
 settles. That pays off the customs mention in the hail. The officers meet the
 ship at the ramp; the families pass them on the way to the workshop.
+
+## The hand-off from C4
+
+Decided 2026-10-18 by the owner. C4 does not end on the wide port. Over its
+last seconds the sky camera drifts east and comes down to end straight over
+Kilo Nine, low (about 330 m) and tight on Nessa's yard, with Second Wind still
+about 95 m up and descending onto its pad. C5 opens on the same straight-down
+view a step closer, and the cut reads as one continuous move. The wide reveal
+(the yard as a small corner of a big working port, the ship one patched hull
+among the freighters) is kept for C5's pull-out under the title, so it is seen
+once and lands as the closing image. The public berths are seen passing
+through frame during C4's pan; C4 just does not rest on them.
 
 ## Beats (about 30 s)
 
