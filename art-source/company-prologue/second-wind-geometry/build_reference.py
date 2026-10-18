@@ -184,6 +184,10 @@ if not args.no_save:
                                   radius_m=round(float(ob['radius_m']),4),working=bool(ob.get('working',True)))
                              for ob in sorted(bpy.data.objects,key=lambda o:o.name)
                              if ob.name.startswith('RCS ') and ob.name.endswith(' anchor')]
+    manifest['spark_anchors']=[dict(((k if k!='exhaust_dir' else 'spray_dir'),v) for k,v in anchor(ob).items())|dict(scar=ob['scar'],sparking=bool(ob.get('sparking',False)),
+                                    **({'radius_m':round(float(ob['radius_m']),4)} if 'radius_m' in ob else {}))
+                               for ob in sorted(bpy.data.objects,key=lambda o:o.name)
+                               if ob.name.startswith('Scar ') and ' spark' in ob.name and ob.name.endswith(' anchor')]
     if damage:
         manifest['status']='Proposed damage-state review geometry; the committed guide remains the clean ship'
         manifest['damage']=damage

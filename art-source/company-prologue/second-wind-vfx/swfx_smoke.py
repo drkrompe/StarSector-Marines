@@ -27,9 +27,14 @@ Pieces (all under the 'SWFX | Smoke' collection):
   in atmosphere.
 * Welds (add_weld, only on request): arc light with flicker, a glowing arc
   point, a small rising smoke wisp and a deterministic spark shower.
+* Conduit sparks (on by default wherever a scar's spark anchor is sparking,
+  i.e. patched): short intermittent bursts of a few sparks from broken live
+  conduit, at seeded irregular intervals, with a brief light flicker per
+  burst. The same spark machinery as the welds; no arc, no fire, no venting.
 """
 import math
 import random
+import zlib
 
 import bpy
 from mathutils import Matrix, Vector
@@ -625,37 +630,29 @@ def _sock(node, name, out=False):
     return next(s for s in socks if s.name == name and s.enabled)
 
 
-def _spark_tree(ctx, name, normal, start, end, seed, count=150, life=14.0):
+def _spark_group(name):
+    """An empty geometry-nodes tree (Geometry in/out) and its G helper."""
     tree = bpy.data.node_groups.new(name, 'GeometryNodeTree')
     tree.interface.new_socket('Geometry', in_out='INPUT', socket_type='NodeSocketGeometry')
     tree.interface.new_socket('Geometry', in_out='OUTPUT', socket_type='NodeSocketGeometry')
     g = G(tree)
-    gin, gout = g.node('NodeGroupInput'), g.node('NodeGroupOutput')
+    g.node('NodeGroupInput')
+    return tree, g, g.node('NodeGroupOutput')
 
-    def rnd(kind, lo, hi, ident, s):
-        n = g.node('FunctionNodeRandomValue', data_type=kind)
-        g._in(_sock(n, 'Min'), lo)
-        g._in(_sock(n, 'Max'), hi)
-        g._in(_sock(n, 'ID'), ident)
-        _sock(n, 'Seed').default_value = s
-        return _sock(n, 'Value', out=True)
 
-    atm = value_node(ctx, g.nodes, 'atmosphere', 'smk_atmosphere', ('smk_atmosphere',))
-    amount = value_node(ctx, g.nodes, 'amount', 'smk_weld', ('smk_weld',))
-    idx = g.node('GeometryNodeInputIndex').outputs[0]
-    T = g.node('GeometryNodeInputSceneTime').outputs['Frame']
-    raw = g.m('SUBTRACT', g.m('SUBTRACT', T, float(start)), g.m('MULTIPLY', idx, life / count))
-    cyc = g.m('FLOOR', g.m('DIVIDE', raw, life))
-    age = g.m('SUBTRACT', raw, g.m('MULTIPLY', cyc, life))
-    ident = g.m('ADD', idx, g.m('MULTIPLY', cyc, float(count)))
-    life_i = g.m('MULTIPLY', rnd('FLOAT', .35, 1.0, ident, seed + 1), life)
-    alive = g.m('MULTIPLY', g.m('MULTIPLY', g.m('GREATER_THAN', raw, -.001), g.m('LESS_THAN', T, float(end))),
-                g.m('MULTIPLY', g.m('LESS_THAN', age, life_i), g.m('GREATER_THAN', amount, .001)))
-    secs = g.m('DIVIDE', age, float(FPS))
-    rv = rnd('FLOAT_VECTOR', (-1, -1, -1), (1, 1, 1), ident, seed)
-    direction = g.v('NORMALIZE', g.v('ADD', rv, tuple(Vector(normal).normalized() * 1.25)))
-    speed = g.m('MULTIPLY', rnd('FLOAT', units(1.5), units(7.0), ident, seed + 2),
-                g.m('POWER', rnd('FLOAT', 0.0, 1.0, ident, seed + 3), .6))
+def _rnd(g, kind, lo, hi, ident, s):
+    """A seeded Random Value field keyed by ident (one value per spark)."""
+    n = g.node('FunctionNodeRandomValue', data_type=kind)
+    g._in(_sock(n, 'Min'), lo)
+    g._in(_sock(n, 'Max'), hi)
+    g._in(_sock(n, 'ID'), ident)
+    _sock(n, 'Seed').default_value = s
+    return _sock(n, 'Value', out=True)
+
+
+def _ballistic(g, atm, direction, speed, secs):
+    """Spark flight in the sparks object's (world-aligned) frame: linear drag
+    and gravity in atmosphere, nearly straight in vacuum. -> (pos, vel)."""
     drag = g.m('MULTIPLY_ADD', atm, 2.4, .05)                     # 1/s
     decay = g.m('EXPONENT', g.m('MULTIPLY', g.m('MULTIPLY', drag, secs), -1.0))
     dist = g.m('DIVIDE', g.m('MULTIPLY', speed, g.m('SUBTRACT', 1.0, decay)), drag)
@@ -664,8 +661,12 @@ def _spark_tree(ctx, name, normal, start, end, seed, count=150, life=14.0):
               g.comb(0.0, 0.0, g.m('MULTIPLY', g.m('MULTIPLY', grav, .5), g.m('MULTIPLY', secs, secs))))
     vel = g.v('ADD', g.v('SCALE', direction, scale=g.m('MULTIPLY', speed, decay)),
               g.comb(0.0, 0.0, g.m('MULTIPLY', grav, secs)))
-    heat = g.m('SUBTRACT', 1.0, g.m('DIVIDE', age, life_i), clamp=True)
+    return pos, vel
 
+
+def _spark_streaks(g, gout, count, pos, vel, heat, alive, material, width=1.0):
+    """count points at pos; the live ones become small velocity-aligned
+    emissive streaks (heat 1 -> 0 drives the colour) with material."""
     pts = g.node('GeometryNodePoints')
     pts.inputs['Count'].default_value = count
     g.links.new(pos, pts.inputs['Position'])
@@ -698,19 +699,48 @@ def _spark_tree(ctx, name, normal, start, end, seed, count=150, life=14.0):
     h = named('swfx_heat', 'FLOAT')
     # Streak = about 1.2 frames of travel (stands in for motion blur).
     length = g.m('MULTIPLY_ADD', g.v('LENGTH', v), 2.0 / FPS, units(.02))
-    width = g.m('MULTIPLY_ADD', h, units(.005), units(.0025))
-    g.links.new(g.comb(length, width, width), inst.inputs['Scale'])
+    w = g.m('MULTIPLY_ADD', h, units(.005) * width, units(.0025) * width)
+    g.links.new(g.comb(length, w, w), inst.inputs['Scale'])
     real = g.node('GeometryNodeRealizeInstances')
     g.links.new(inst.outputs[0], real.inputs['Geometry'])
     sm = g.node('GeometryNodeSetMaterial')
     g.links.new(real.outputs[0], sm.inputs['Geometry'])
-    sm.inputs['Material'].default_value = _spark_material(ctx)
+    sm.inputs['Material'].default_value = material
     g.links.new(sm.outputs[0], gout.inputs[0])
+
+
+def _spark_tree(ctx, name, normal, start, end, seed, count=150, life=14.0):
+    tree, g, gout = _spark_group(name)
+
+    def rnd(kind, lo, hi, ident, s):
+        return _rnd(g, kind, lo, hi, ident, s)
+
+    atm = value_node(ctx, g.nodes, 'atmosphere', 'smk_atmosphere', ('smk_atmosphere',))
+    amount = value_node(ctx, g.nodes, 'amount', 'smk_weld', ('smk_weld',))
+    idx = g.node('GeometryNodeInputIndex').outputs[0]
+    T = g.node('GeometryNodeInputSceneTime').outputs['Frame']
+    raw = g.m('SUBTRACT', g.m('SUBTRACT', T, float(start)), g.m('MULTIPLY', idx, life / count))
+    cyc = g.m('FLOOR', g.m('DIVIDE', raw, life))
+    age = g.m('SUBTRACT', raw, g.m('MULTIPLY', cyc, life))
+    ident = g.m('ADD', idx, g.m('MULTIPLY', cyc, float(count)))
+    life_i = g.m('MULTIPLY', rnd('FLOAT', .35, 1.0, ident, seed + 1), life)
+    alive = g.m('MULTIPLY', g.m('MULTIPLY', g.m('GREATER_THAN', raw, -.001), g.m('LESS_THAN', T, float(end))),
+                g.m('MULTIPLY', g.m('LESS_THAN', age, life_i), g.m('GREATER_THAN', amount, .001)))
+    secs = g.m('DIVIDE', age, float(FPS))
+    rv = rnd('FLOAT_VECTOR', (-1, -1, -1), (1, 1, 1), ident, seed)
+    direction = g.v('NORMALIZE', g.v('ADD', rv, tuple(Vector(normal).normalized() * 1.25)))
+    speed = g.m('MULTIPLY', rnd('FLOAT', units(1.5), units(7.0), ident, seed + 2),
+                g.m('POWER', rnd('FLOAT', 0.0, 1.0, ident, seed + 3), .6))
+    pos, vel = _ballistic(g, atm, direction, speed, secs)
+    heat = g.m('SUBTRACT', 1.0, g.m('DIVIDE', age, life_i), clamp=True)
+    _spark_streaks(g, gout, count, pos, vel, heat, alive, _spark_material(ctx))
     return tree
 
 
-def _spark_material(ctx):
-    name = f'{PREFIX} weld spark'
+def _spark_material(ctx, knob='smk_weld', name=None, gain=60.0, cool=(1.0, .22, .03, 1), hot=(1.0, .82, .5, 1)):
+    """Emissive spark material: heat (a geometry attribute, 1 at birth) blends
+    cool -> hot and sets the strength; knob scales it live."""
+    name = name or f'{PREFIX} weld spark'
     m = bpy.data.materials.get(name)
     if m:
         return m
@@ -718,11 +748,11 @@ def _spark_material(ctx):
     g = G(m.node_tree)
     attr = g.node('ShaderNodeAttribute', attribute_name='swfx_heat', attribute_type='GEOMETRY')
     heat = attr.outputs['Fac']
-    color = g.mix(heat, (1.0, .22, .03, 1), (1.0, .82, .5, 1))
+    color = g.mix(heat, cool, hot)
     em = g.node('ShaderNodeEmission')
     g._in(em.inputs['Color'], color)
-    amt = value_node(ctx, nodes, 'amount', 'smk_weld', ('smk_weld',))
-    g._in(em.inputs['Strength'], g.m('MULTIPLY', g.m('MULTIPLY', g.m('POWER', heat, 1.5), 60.0), amt))
+    amt = value_node(ctx, nodes, 'amount', knob, (knob,))
+    g._in(em.inputs['Strength'], g.m('MULTIPLY', g.m('MULTIPLY', g.m('POWER', heat, 1.5), gain), amt))
     out = g.node('ShaderNodeOutputMaterial')
     g.links.new(em.outputs[0], out.inputs['Surface'])
     return m
@@ -793,13 +823,197 @@ def add_weld(ctx, location, normal, start_frame, end_frame, part=None, seed=0, l
 
 
 # ---------------------------------------------------------------------------
+# 5. conduit sparks (scar spark anchors)
+# ---------------------------------------------------------------------------
+# Broken live conduit the patched crew could not reach to splice: now and
+# then it shorts and throws a few sparks. Timing is procedural on `frame`:
+# time is cut into SPARK_CELL-frame cells, and each cell holds at most one
+# burst, at a seeded offset inside its first SPARK_SPAN frames, lasting
+# 2-5 frames and throwing 3-12 sparks; about a quarter of cells stay quiet.
+# Burst to burst is therefore 12-48 frames (0.5-2 s), 1.75-3.2 s across a
+# quiet cell, and longer only rarely. A spark lives 5-13 frames, so sparks of
+# the current and the previous cell are the only ones that can be alive.
+SPARK_CELL = 30          # frames per cell (1.25 s at 24 fps)
+SPARK_SPAN = 18          # a burst starts in the first SPARK_SPAN frames of its cell
+SPARK_MAX = 12           # sparks per burst at most
+SPARK_QUIET = .24        # count hash below this: no burst in the cell
+SPARK_LIFE = (5.0, 13.0)  # frames
+SPARK_LIGHT_W = 120.0    # real-world watts of the burst flash at smk_sparks 1
+# Schedule props, driven on each emitter's root empty; 0 is the current cell,
+# 1 the previous one: start frame, duration (frames) and the count hash.
+SPARK_PROPS = ('s0', 'd0', 'h0', 's1', 'd1', 'h1')
+
+
+def spark_seed(name):
+    """A stable per-anchor seed from its name (zlib.crc32; Python's hash()
+    is salted per process), so neighbouring anchors never fire in sync."""
+    return zlib.crc32(name.encode('utf-8')) % 9973
+
+
+def _cell_hash_offset(seed, salt):
+    return round(seed * .7919 + salt * 31.17, 4)
+
+
+def _cell_hash_expr(cell_expr, seed, salt):
+    """fract(sin(cell*12.9898+S)*43758.5453) as a simple driver expression."""
+    a = f'sin(({cell_expr})*12.9898+{_cell_hash_offset(seed, salt)})*43758.5453'
+    return f'({a}-floor({a}))'
+
+
+def _cell_hash(cell, seed, salt):
+    """Python mirror of _cell_hash_expr (review and checks find bursts with it)."""
+    a = math.sin(cell * 12.9898 + _cell_hash_offset(seed, salt)) * 43758.5453
+    return a - math.floor(a)
+
+
+def _spark_schedule_exprs(seed):
+    out = {}
+    for k in (0, 1):
+        cell = f'floor(frame/{SPARK_CELL})-{k}'
+        out[f's{k}'] = f'({cell})*{SPARK_CELL}+floor({SPARK_SPAN}*{_cell_hash_expr(cell, seed, 1)})'
+        out[f'd{k}'] = f'2+floor(4*{_cell_hash_expr(cell, seed, 2)})'
+        out[f'h{k}'] = _cell_hash_expr(cell, seed, 3)
+    return out
+
+
+def spark_bursts(seed, first, last):
+    """The bursts an emitter with this seed fires between frames first..last:
+    [(start_frame, duration_frames, sparks)], computed as the drivers do."""
+    out = []
+    for cell in range(math.floor(first / SPARK_CELL) - 1, math.floor(last / SPARK_CELL) + 1):
+        h = _cell_hash(cell, seed, 3)
+        n = math.floor(13 * h) if h > SPARK_QUIET else 0
+        start = cell * SPARK_CELL + math.floor(SPARK_SPAN * _cell_hash(cell, seed, 1))
+        dur = 2 + math.floor(4 * _cell_hash(cell, seed, 2))
+        if n and first <= start <= last:
+            out.append((start, dur, n))
+    return out
+
+
+def _conduit_spark_tree(ctx, name, axis, radius, seed, root):
+    """Geometry-nodes bursts for one anchor: 2*SPARK_MAX points (this cell's
+    burst and the last one's), each born inside its burst's frames, flying
+    ballistically (the welds' drag and gravity) and dying in 5-13 frames."""
+    tree, g, gout = _spark_group(name)
+
+    def sched(prop):
+        return value_node(ctx, g.nodes, prop, prop, extra={prop: (root, f'["swfx_{prop}"]')})
+
+    atm = value_node(ctx, g.nodes, 'atmosphere', 'smk_atmosphere', ('smk_atmosphere',))
+    amount = value_node(ctx, g.nodes, 'amount', 'smk_sparks', ('smk_sparks',))
+    idx = g.node('GeometryNodeInputIndex').outputs[0]
+    T = g.node('GeometryNodeInputSceneTime').outputs['Frame']
+    k = g.m('FLOOR', g.m('DIVIDE', idx, float(SPARK_MAX)))         # 0 this cell, 1 the last
+    j = g.m('SUBTRACT', idx, g.m('MULTIPLY', k, float(SPARK_MAX)))
+    s0, d0, h0, s1, d1, h1 = (sched(p) for p in SPARK_PROPS)
+    start, dur, h = (g.lerp(k, a, b) for a, b in ((s0, s1), (d0, d1), (h0, h1)))
+    n = g.m('MULTIPLY', g.m('FLOOR', g.m('MULTIPLY', h, 13.0)), g.m('GREATER_THAN', h, SPARK_QUIET))
+    cell = g.m('SUBTRACT', g.m('FLOOR', g.m('DIVIDE', T, float(SPARK_CELL))), k)
+    ident = g.m('MULTIPLY_ADD', cell, 16.0, j)                     # one id per spark per burst
+    birth = g.m('MULTIPLY_ADD', _rnd(g, 'FLOAT', 0.0, 1.0, ident, seed + 1), dur, start)
+    age = g.m('SUBTRACT', T, birth)
+    life = _rnd(g, 'FLOAT', SPARK_LIFE[0], SPARK_LIFE[1], ident, seed + 2)
+    alive = g.m('MULTIPLY', g.m('MULTIPLY', g.m('LESS_THAN', j, n), g.m('GREATER_THAN', age, -.001)),
+                g.m('MULTIPLY', g.m('LESS_THAN', age, life), g.m('GREATER_THAN', amount, .001)))
+    secs = g.m('DIVIDE', g.m('MAXIMUM', age, 0.0), float(FPS))
+    rv = _rnd(g, 'FLOAT_VECTOR', (-1, -1, -1), (1, 1, 1), ident, seed)
+    direction = g.v('NORMALIZE', g.v('ADD', rv, tuple(Vector(axis).normalized() * 1.8)))
+    # Spray size: radius is roughly how far the sparks get in air.
+    speed = g.m('MULTIPLY', _rnd(g, 'FLOAT', radius * 2.2, radius * 6.0, ident, seed + 3),
+                g.m('POWER', _rnd(g, 'FLOAT', .15, 1.0, ident, seed + 4), .5))
+    pos, vel = _ballistic(g, atm, direction, speed, secs)
+    heat = g.m('SUBTRACT', 1.0, g.m('DIVIDE', age, life), clamp=True)
+    mat = _spark_material(ctx, 'smk_sparks', f'{PREFIX} conduit spark', gain=45.0,
+                          cool=(1.0, .26, .03, 1), hot=(1.0, .72, .32, 1))
+    _spark_streaks(g, gout, 2 * SPARK_MAX, pos, vel, heat, alive, mat, width=.8)
+    return tree
+
+
+def add_conduit_sparks(ctx, anchor, coll=None):
+    """Intermittent sparks at one scar spark anchor (swfx_anchors.SparkAnchor):
+    seeded bursts, a brief flash light per burst and a hot bead at the break
+    while it shorts. Built for any anchor it is given; build() passes only
+    the ones whose 'sparking' is true. Returns a record."""
+    ctx.prop('smk_sparks', 1.0, 0, 1, 'Conduit spark intensity at live scar spark anchors (0 = off)')
+    shared_knobs(ctx)
+    coll = coll or ctx.collection(GROUP)
+    base = f'{PREFIX} sparks {anchor.key}'
+    seed = spark_seed(anchor.name)
+    mw = anchor.empty.matrix_world
+    location, axis = mw.translation.copy(), (mw.to_3x3() @ Vector((1, 0, 0))).normalized()
+
+    # Root: carries the burst schedule (driven props) and rides the anchor.
+    root = swfx_core.empty(base, coll, anchor.radius * .5, 'ARROWS')
+    attach(root, anchor.empty)
+    root['swfx_spark_seed'] = seed
+    for prop, expr in _spark_schedule_exprs(seed).items():
+        root[f'swfx_{prop}'] = 0.0
+        ctx.drive(root, f'["swfx_{prop}"]', expr)
+    sched = {p: (root, f'["swfx_{p}"]') for p in ('s0', 'd0', 'h0')}
+    # On for the burst's frames, then gone within ~2 frames; flickering inside.
+    env = f'(h0>{SPARK_QUIET})*(frame>=s0)*max(0,1-max(0,frame-s0-d0+1)/2.5)'
+    flick = f'(0.4+0.6*{_hash_expr(seed % 997 + 5)})'
+
+    light = swfx_core.point_light(f'{base} flash', coll, (1.0, .62, .32),
+                                  0.0, units(.03))
+    attach(light, root, (units(.08), 0, 0))
+    light.visible_camera = False
+    energy = SPARK_LIGHT_W / swfx_core.METRES_PER_UNIT ** 2       # = swfx_lighting.watts
+    ctx.drive(light.data, 'energy', f'smk_sparks*{energy:.1f}*{env}*{flick}', ('smk_sparks',), extra=sched)
+
+    # The break itself flashes white-hot while it shorts (no sustained arc).
+    import bmesh
+    me = bpy.data.meshes.new(f'{base} bead')
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=1, radius=units(.012))
+    bm.to_mesh(me)
+    bm.free()
+    bead = bpy.data.objects.new(f'{base} bead', me)
+    coll.objects.link(bead)
+    attach(bead, root, (units(.01), 0, 0))
+    bm_mat, nodes, links = node_material(f'{base} bead material')
+    g = G(bm_mat.node_tree)
+    em = g.node('ShaderNodeEmission')
+    em.inputs['Color'].default_value = (1.0, .9, .75, 1)
+    g._in(em.inputs['Strength'], value_node(ctx, nodes, 'strength', f'smk_sparks*300*{env}*{flick}',
+                                            ('smk_sparks',), extra=sched))
+    # Between bursts the bead is not there at all (a cold bead reads as a dot).
+    mix = g.node('ShaderNodeMixShader')
+    g._in(mix.inputs[0], value_node(ctx, nodes, 'on', f'min(1,smk_sparks*{env}*20)', ('smk_sparks',), extra=sched))
+    g.links.new(g.node('ShaderNodeBsdfTransparent').outputs[0], mix.inputs[1])
+    g.links.new(em.outputs[0], mix.inputs[2])
+    g.links.new(mix.outputs[0], g.node('ShaderNodeOutputMaterial').inputs['Surface'])
+    me.materials.append(bm_mat)
+    bead.visible_shadow = False
+
+    # Sparks: world-aligned (gravity is world -Z at build time, as for welds).
+    sm = bpy.data.meshes.new(f'{base} sparks')
+    sparks = bpy.data.objects.new(f'{base} sparks', sm)
+    coll.objects.link(sparks)
+    parent_keep_world(sparks, anchor.empty, Matrix.Translation(location + axis * units(.01)))
+    mod = sparks.modifiers.new('SWFX sparks', 'NODES')
+    mod.node_group = _conduit_spark_tree(ctx, f'{base} sparks', axis, anchor.radius, seed * 7 + 1, root)
+    sparks.visible_shadow = False
+    return {'anchor': anchor.name, 'scar': anchor.scar, 'key': anchor.key, 'seed': seed,
+            'radius_m': round(anchor.radius * swfx_core.METRES_PER_UNIT, 3),
+            'at': [round(v, 3) for v in location], 'axis': [round(v, 3) for v in axis],
+            'bursts_first_10s': spark_bursts(seed, 1, 10 * FPS),
+            'objects': [root.name, light.name, bead.name, sparks.name]}
+
+
+def build_sparks(ctx, coll):
+    """One emitter per scar spark anchor whose 'sparking' is true (patched);
+    anchors that are not sparking (derelict, refit, restored) get nothing."""
+    return [add_conduit_sparks(ctx, a, coll) for a in getattr(ctx.anchors, 'sparks', ()) if a.sparking]
+
+# ---------------------------------------------------------------------------
 # module contract
 # ---------------------------------------------------------------------------
-def build(ctx, haze=True, dust=True, seal_wisps=True, wisp_count=3, welds=(), **options):
+def build(ctx, haze=True, dust=True, seal_wisps=True, wisp_count=3, welds=(), sparks=True, **options):
     coll = ctx.collection(GROUP)
     shared_knobs(ctx)
     ctx.prop('smk_haze', 1.0, 0, 1, 'Exhaust haze amount behind running engines')
-    rec = {'state': ctx.state, 'haze': [], 'dust': None, 'seal_wisps': [], 'welds': []}
+    rec = {'state': ctx.state, 'haze': [], 'dust': None, 'seal_wisps': [], 'welds': [], 'sparks': []}
     powered = ctx.spec.get('powered', False)
     if haze and powered:
         for a in ctx.anchors.engines:
@@ -810,6 +1024,8 @@ def build(ctx, haze=True, dust=True, seal_wisps=True, wisp_count=3, welds=(), **
         rec['dust'] = build_dust(ctx, coll)
     if seal_wisps and ctx.spec.get('seal_wisps'):
         rec['seal_wisps'] = build_seal_wisps(ctx, coll, max(2, min(4, wisp_count)))
+    if sparks:
+        rec['sparks'] = build_sparks(ctx, coll)
     for w in welds or ():
         w = dict(w)
         part = w.pop('part', None)

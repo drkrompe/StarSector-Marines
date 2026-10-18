@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14f3c-a5ae-7741-8f6a-24d95def7a88",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14f3c-a5ae-7741-8f6a-24d95def7a88\\exec-2dbbda0d-996e-42b2-b160-229302a15ae5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\hound-surface\\generated\\sheet-engines.png",
+    "sha256": "84be6179996d07d644e4c674f625add6e46351730441013410efc031341449b3",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\hound-surface\\prompts\\sheet-engines.prompt.txt",
+  "promptSha256": "dd3f87654784ee73fcca44c30b440305927df5aad6b60f773cf89635651247dc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of one engine pod of a 3D spacecraft (a clean, well maintained Hegemony auxiliary freighter), each view seen square-on and drawn alone as flat-coloured shapes on a plain light grey background. The pod is a long octagonal drive nacelle built from a row of armoured sections:\ntop-left: the pod's outboard flank seen from the side, bow at the left: a grey gunmetal intake cap, a thin taupe clamp band, a taupe forward casing, the orange armour collar whose frame surrounds four inset taupe brown skirt plates, a taupe aft casing with a grey gunmetal reinforcing band and a rectangular radiator opening (the opening is background grey and must stay empty), and the orange thrust housing at the right;\ntop-right: the same pod seen from directly above, bow at the right: the orange thrust housing crossed by two grey gunmetal shroud bands, the taupe aft casing broken up by vent cut-outs (background grey, stay empty), the grey gunmetal reinforcing band, the orange collar top carrying lighter flat-coloured top plates (paint these as dark grey gunmetal steel plates) round a taupe octagonal vent ring, the taupe forward casing with a small top plate (also dark gunmetal steel), and the grey gunmetal intake cap top;\nbottom-left: the pod's long upper 45-degree bevel strip, bow at the left: grey gunmetal cap bevel, taupe band and forward casing bevels, the orange collar bevel in three segments, the taupe aft casing bevel with the grey gunmetal band across it, and the orange thrust housing bevel with two grey gunmetal shroud bands;\nbottom-right: the pod seen from straight ahead: a large grey gunmetal octagonal intake dome with a near-black intake bore in its centre, inside nested rims: a taupe ring (the clamp band and forward casing) and an orange outer rim (the armour collar's front edge).\nINPUT 2 is the SAME ship already painted: it is the finish to match. Use its paint colours, its clean maintained condition, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that clean, maintained Hegemony hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole or gap in a shape stays plain background grey.\n- Each shape is a flat armour or steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of fasteners and rivets, flush access panels, very light even service wear. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: orange shapes stay warm saturated Hegemony orange enamel, taupe shapes stay muted brown-grey painted structural plate, grey shapes stay dark grey gunmetal steel, the near-black bore stays near-black. Do not repaint any shape another colour.\n- No repair plates, patches, colour changes, rust, soot, scorch marks, burns, dents, holes, impact damage, stains, lettering, numbers, decals, stripes, or any single concentrated area of wear. Wear is light and even across each whole shape.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\guide\\sheet-engines-guide.png",
+      "sha256": "bca1275486360b96711ca51153e4062098f6232f4e3ffb63b2d884ad48c0fb61",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\hound-surface\\reference\\finish-reference.png",
+      "sha256": "37d8565694195d141c321a39d1927b744b8cea5984dde5b7fc09f8fe7c6b338f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to reskin the four-view sheet, preserving its layout and matching the ship’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 100830,
+    "cached_input_tokens": 75136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1015,
+    "reasoning_output_tokens": 46
+  },
+  "elapsedSeconds": 90.1
+}

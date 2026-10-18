@@ -1,0 +1,59 @@
+{
+ "part": "engine-top-port",
+ "sheet": "engines",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9789,
+ "raw_iou": 0.9119,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9368,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9119
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00383,
+    1.02732
+   ],
+   "offset_px": [
+    -2.24,
+    -8.51
+   ],
+   "iou": 0.9316
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00483,
+    1.03332
+   ],
+   "offset_px": [
+    -2.24,
+    -9.01
+   ],
+   "iou": 0.9368
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 8.84,
+  "p95_px": 52.09,
+  "max_px": 86.09
+ },
+ "boundary_fitted_px": {
+  "mean_px": 7.62,
+  "p95_px": 50.05,
+  "max_px": 84.05
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

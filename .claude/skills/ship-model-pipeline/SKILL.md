@@ -26,7 +26,7 @@ One package per hull: `art-source/<area>/<hull>-geometry/`. `<area>` is
   `surface(x,y)` (a ray-cast onto the hull).
 - One module per area (`<prefix>_hull.py`, `_engines.py`, `_turrets.py`,
   `_bridge.py`, and so on), so parallel agents never edit the same file.
-- A committed `.blend`, `geometry.json` (the manifest), review PNGs and
+- A committed `.blend`, `geometry.json` (the manifest), review PNGs (rendered to ignored paths, never committed) and
   `README.txt`.
 - Copy kit helpers into the new package. Never import another hull's modules:
   other sessions are editing them.
@@ -235,9 +235,25 @@ every scar id sits in the same place in every state.
 
 ## Pass 6: texturing
 
-The Second Wind's port-flank pilot (`second-wind-surface/README.md`) is the
-worked example. Its scripts are the template; copy them into the hull's own
-surfacing package beside the geometry, never inside it.
+The Second Wind's surfacing (`second-wind-surface/README.md`) is the worked
+example, and its scripts are the **shared harness**: never copy or fork them.
+A hull keeps only its inputs and data in its own surfacing folder beside the
+geometry (the Hound's `hound-surface/`): `surface_hull.py` (build path, groups,
+material-to-class map, classes and families, swatch layout, reference camera,
+owned palette derivations, variation spans, wear response, engine and stern
+soot, review views), `groups/<group>.py` part tables, `wear.json`, prompts,
+generations and every output. Every harness script takes `--hull <folder>`
+(after `--` for Blender) or `SURF_HULL`; with neither it runs the Second Wind.
+A harness change must keep the Second Wind byte-identical (re-run one group's
+`render_parts.py` and the swatches and diff). The hull's `rebuild.sh` is the
+sequence.
+
+- **Finish reference first.** One Codex reskin of the clean build from
+  `REFERENCE_CAMERA` in the hull's livery (the game sprite attached for the
+  colours only): `render_reference_classes.py`, `register_reference.py guide`,
+  Codex, `register_reference.py`, `palette.py`. Clamp a class's measured spread
+  in `derive_palette` when thin parts pick up their neighbours at the
+  registration edge (the Hound's gunmetal chroma std came back 7-10).
 
 - **Parts by geometry.** Each part is one or more (object, seed point) members
   plus a view direction and a normal cone. Its faces are the connected group
@@ -278,8 +294,9 @@ surfacing package beside the geometry, never inside it.
   offset table applied as a material gain. One `skin` UV layer per object
   (Blender caps meshes at eight layers). Fit de-light ramps with one intercept
   per material class on a plane.
-- **Swatches.** Small parts and all damage/repair surfacing still use graded
-  swatches. Never build a whole-ship six-view atlas. Wear placement stays in
+- **Swatches.** One sheet of up to six squares (2x2, or 3x2 past four), one
+  per class including glazing. Small parts and all damage/repair surfacing
+  still use graded swatches. Never build a whole-ship six-view atlas. Wear placement stays in
   our masks.
 
 ## Pass 7: VFX, lighting and cinematic export
@@ -293,8 +310,11 @@ forking them. Each state exports one appendable Blender collection
 
 ## Rules for every pass
 
-- Every preview shown to the owner is 1920x1080. Keep raw frames in an
-  ignored `build/` directory.
+- Every preview shown to the owner is 1920x1080. **Never commit rendered
+  output** (CLAUDE.md, Never commit rendered output): review renders, sheets,
+  overlays, frames and graded textures go to ignored paths and are shown
+  from disk. Commit the scripts that make them, and Codex generations with
+  their prompts and guides.
 - Pixel-diff renders across an integration to prove that nothing outside the
   change moved.
 - Stage explicit paths. Commit, merge the latest `main`, `--ff-only` into

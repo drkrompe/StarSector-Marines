@@ -39,7 +39,7 @@ public final class HqIntelSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = CompanyHqViewModel.preview().props();
         desk.put(props);
         CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
-                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))), () -> { });
         terminal.put(props);
         MarkupLoader loader = new MarkupLoader(
                 path -> Files.readString(context.modRoot().resolve(path)), COMPONENTS);

@@ -197,6 +197,7 @@ class Damage:
         self.shapes = []    # (object, scar id, {vertex index: local co})
         self.overrides = [] # (object, material, scar id)
         self.tags = []      # (object, key, value, scar id)
+        self.anchors = []   # (name, position, direction, props)
         self.sites = {}     # scar id -> Site or None (resolved once)
         self.record = {'state': state, 'scars': [], 'hidden': {}, 'shape_keys': [],
                        'overrides': []}
@@ -359,6 +360,15 @@ class Damage:
                 moved[vert.index] = inv @ q
         if moved:
             self.shapes.append((ob, scar_id(scar), moved))
+
+    def anchor(self, scar, label, position, direction, **props):
+        """An effect anchor owned by a scar: an empty 'Scar <id> <label>
+        anchor' at position, local +X along direction (a spark spray, say),
+        carrying props. Created at the end with the scar's other parts.
+        Spark anchors use label 'spark', 'spark-2', ... and a 'sparking'
+        prop for this state."""
+        self.anchors.append((f'Scar {scar_id(scar)} {label} anchor', V(position),
+                             V(direction).normalized(), dict(props, scar=scar_id(scar))))
 
     def tag(self, ob, key, value, scar):
         """Set a custom property on a base object (an anchor's 'running' or
@@ -949,6 +959,15 @@ def finish(d):
         if edge:
             crisp(ob, edge)
     apply_cuts(d)
+    for name, pos, axis, props in d.anchors:
+        ob = bpy.data.objects.new(name, None)
+        ob.empty_display_type, ob.empty_display_size = 'ARROWS', .8
+        ob.rotation_mode = 'QUATERNION'
+        ob.rotation_quaternion = V((1, 0, 0)).rotation_difference(axis)   # local +X = spray
+        ob.location = pos
+        for k, v in props.items():
+            ob[k] = v
+        bpy.context.collection.objects.link(ob)
     for ob, sid, moved in d.shapes:
         if ob.data.shape_keys is None:
             ob.shape_key_add(name='Basis', from_mix=False)

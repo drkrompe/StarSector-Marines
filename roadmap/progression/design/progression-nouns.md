@@ -720,10 +720,11 @@ template opened by a held warrant counts only while that warrant is active.
 The gate refuses new acquisition and revokes nothing. A save that learned an
 approved suit through the old open routes keeps it and fits it freely: no warrant
 names it, so no obligation can withhold it. That is the compatibility promise, not
-a loophole to close later. Held warrants stand on the Company HQ record beside the
-company's employers, each naming its issuer, how many approved suits it opens and
-how it was earned, and its standing under its obligations: the next service
-deadline while active, what restores it while suspended, and revocation. A Restricted card's own
+a loophole to close later. Held warrants are not currently listed on
+any company page. The Company HQ's client-standing panel named each warrant's
+issuer, the suits it opens, how it was earned and its standing under its
+obligations (next service deadline, what restores it, revocation); it was removed
+when the HQ was simplified, and that readout has no home yet. A Restricted card's own
 tooltip and spec sheet name the tradition that issues it, in place of the
 reputation and victory thresholds the other tiers show.
 
