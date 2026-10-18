@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.Locale;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,22 +18,27 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The HQ action board projected as a hologram over the command deck's plotting table: a
- * slightly tilted sector disc hovering above the table top, with one pinned marker per
- * action item. Every point is a deck point in metres pushed through the guide camera
- * ({@link CommandDeckLayout#project}), so the plot stands in the painted room in
- * perspective instead of being pasted over it.
+ * The HQ action board projected as a hologram standing over the command deck's plotting
+ * table: a slightly tilted sector disc hovering above the table top, a lat-long dome over
+ * it, and one body floating in that volume per action item. Every point is a deck point in
+ * metres pushed through the guide camera ({@link CommandDeckLayout#project}), vertex by
+ * vertex, so the plot stands in the painted room in perspective instead of being pasted
+ * over it.
  *
- * <p>An item with a hyperspace position sits where that position falls on the disc
- * (about {@value #SECTOR_SPAN} units to the rim, clamped inside it); one without sits on
- * the rim, in board order. Each marker has a stem down to the table, a glyph for its kind
- * (diamond story, triangle obligation, square letter, circle side job; small SVG assets
- * tinted here) and a short label. Obligations falling due within {@value #URGENT_DAYS}
- * days pulse warm; the selected item gets a beam from the table; a hovered one brightens.
+ * <p>An item with a hyperspace position floats over the point where that position falls
+ * on the disc (about {@value #SECTOR_SPAN} units to the rim, clamped inside it), with a
+ * dashed drop line to a ring on the disc and a faint stem on to the table; one without
+ * floats low over the rim, in board order. Each item is a body shaped by its kind
+ * ({@link HoloBodies}: ringed world, fortified planet, moon, data card) with a label plate
+ * carrying its kind glyph. Hyperspace lanes join the positioned bodies, and the volume
+ * ({@link HoloVolume}) supplies the light, the turning dome, motes and a rising scan
+ * plane. Obligations falling due within {@value #URGENT_DAYS} days pulse warm; the
+ * selected item gets a beam from the table and a bracket; a hovered one brightens.
  *
  * <p>The board holds no fact of its own: everything here is a row of the action list. All
  * motion is a pure function of the time argument, apart from the per-id first-seen times
- * that make a new marker rise in; those are view-local and never persisted.
+ * that make a new body rise in; those are view-local and never persisted. The dome turns,
+ * but the bodies hold their plot positions, so the hit boxes are time-independent.
  */
 final class HqHoloBoard {
     /** Height of the disc's centre above the table top, in metres. */
@@ -46,6 +51,11 @@ final class HqHoloBoard {
     static final float SECTOR_SPAN = 25000f;
     /** Positioned items stay inside this fraction of the radius, clear of the rim ring. */
     static final float SECTOR_LIMIT = 0.86f;
+    /** Bodies with a plot position float this high over their foot on the disc, in metres. */
+    static final float BODY_LOW = 0.15f;
+    static final float BODY_HIGH = 0.31f;
+    /** Rim items float lower, clear of the near rim's ticks. */
+    static final float RIM_HEIGHT = 0.14f;
     static final int URGENT_DAYS = 2;
     static final int TITLE_CHARS = 26;
 
@@ -60,6 +70,8 @@ final class HqHoloBoard {
     private static final float RING_FROM = (float) Math.toRadians(208);
     private static final float RING_TO = (float) Math.toRadians(332);
     private static final int SEGMENTS = 72;
+    /** Size of the kind glyph on a label plate, in pixels. */
+    private static final float GLYPH = 11f;
     private static final String[] KEEP_CLEAR = {"castle", "sabine"};
 
     /** A marker's clickable area and its label's, in banner pixels after the fit. */
@@ -74,14 +86,16 @@ final class HqHoloBoard {
         }
     }
 
-    /** One item's settled place: deck point, screen marker, table foot and label box. */
-    private record Placed(HqActionItem item, float[] deck, float mx, float my, float fx, float fy,
-                          float glyph, String text, Rect label) { }
+    /**
+     * One item's settled place: the body's deck point, its foot on the disc, its screen
+     * centre, its foot on the table, how far its drawing reaches (pixels) and its label box.
+     */
+    private record Placed(HqActionItem item, float[] deck, float[] foot, float mx, float my, float fx, float fy,
+                          float extent, String text, Rect label) { }
 
     private final BitmapFont font;
     private final Map<String, Float> firstSeen = new HashMap<>();
-    private Map<Kind, SvgAsset> glyphs;
-    private boolean glyphsFailed;
+    private final HoloSpace.Art art = new HoloSpace.Art();
 
     HqHoloBoard() {
         this(Fonts.INSIGNIA_15_AA);
@@ -133,14 +147,28 @@ final class HqHoloBoard {
         return out;
     }
 
+    /** Height of an item's body above its foot on the disc, in metres: varied per item, so the plot has depth. */
+    static float bodyHeight(HqActionItem item) {
+        float h = HoloSpace.hash(item.id().hashCode());
+        return item.sector() == null ? RIM_HEIGHT + 0.04f * h : BODY_LOW + (BODY_HIGH - BODY_LOW) * h;
+    }
+
+    /** Deck point of a body floating {@code height} metres straight above the disc point (a, b). */
+    static float[] bodyPoint(CommandDeckLayout layout, float a, float b, float height) {
+        float[] foot = discPoint(layout, a, b);
+        return new float[]{foot[0], foot[1] + height, foot[2]};
+    }
+
     /**
-     * Where each item's marker and label land on a banner with this fit, keyed by item id
-     * in board order. Settled positions: rise-in and pulse never move a hit box.
+     * Where each item's body and label land on a banner with this fit, keyed by item id
+     * in board order. Settled positions: rise-in, pulse and the dome's slow turn never
+     * move a hit box, because the bodies stay at their plot positions while the volume
+     * turns round them.
      */
     Map<String, Hit> hits(CommandDeckLayout layout, CommandDeckLayout.Fit fit, HqActionBoard board) {
         Map<String, Hit> out = new LinkedHashMap<>();
         for (Placed p : place(layout, fit, board)) {
-            float half = p.glyph() * 0.5f + 3f;
+            float half = p.extent() + 3f;
             out.put(p.item().id(), new Hit(new Rect(p.mx() - half, p.my() - half, half * 2f, half * 2f), p.label()));
         }
         return out;
@@ -149,22 +177,26 @@ final class HqHoloBoard {
     private List<Placed> place(CommandDeckLayout layout, CommandDeckLayout.Fit fit, HqActionBoard board) {
         List<Placed> placed = new ArrayList<>();
         if (board == null || layout == null || !layout.projects()) return placed;
+        HoloSpace space = new HoloSpace(layout, fit);
         Map<String, float[]> disc = discPlacement(board);
-        float glyph = Math.max(10f, 17f * fit.scale());
         float h = lineHeight() + 4f;
-        float gap = glyph * 0.5f + 6f;
-        // Every marker first, so a label can keep off the others' glyphs.
+        // Every body first, so a label can keep off the others.
         List<float[]> local = new ArrayList<>();
         List<float[]> decks = new ArrayList<>();
+        List<float[]> centres = new ArrayList<>();
+        List<Float> extents = new ArrayList<>();
         List<Rect> markers = new ArrayList<>();
         for (HqActionItem item : board.items()) {
             float[] l = disc.get(item.id());
-            float[] deck = discPoint(layout, l[0], l[1]);
-            float[] m = layout.project(deck[0], deck[1], deck[2]);
-            float half = glyph * 0.5f + 2f;
+            float[] deck = bodyPoint(layout, l[0], l[1], bodyHeight(item));
+            float[] m = space.screen(deck);
+            float extent = Math.max(7f, HoloBodies.radius(item.kind()) * HoloBodies.reach(item.kind())
+                    * space.pixelsPerMetre(deck[2]));
             local.add(l);
             decks.add(deck);
-            markers.add(new Rect(fit.x(m[0]) - half, fit.y(m[1]) - half, half * 2f, half * 2f));
+            centres.add(m);
+            extents.add(extent);
+            markers.add(new Rect(m[0] - extent, m[1] - extent, extent * 2f, extent * 2f));
         }
         List<Rect> blocked = new ArrayList<>(keepClear(layout, fit));
         blocked.addAll(markers);
@@ -172,10 +204,11 @@ final class HqHoloBoard {
             HqActionItem item = board.items().get(i);
             float[] deck = decks.get(i);
             Rect own = markers.get(i);
-            float mx = own.x() + own.width() * 0.5f, my = own.y() + own.height() * 0.5f;
-            float[] f = layout.project(deck[0], CommandDeckLayout.TABLE_TOP, deck[2]);
+            float mx = centres.get(i)[0], my = centres.get(i)[1];
+            float gap = extents.get(i) + 5f;
+            float[] f = space.screen(deck[0], CommandDeckLayout.TABLE_TOP, deck[2]);
             String text = labelText(item);
-            float w = textWidth(text) + 10f;
+            float w = textWidth(text) + 10f + GLYPH + 5f;
             Rect right = new Rect(mx + gap, my - h * 0.5f, w, h);
             Rect left = new Rect(mx - gap - w, my - h * 0.5f, w, h);
             Rect above = new Rect(mx - w * 0.5f, my - gap - h, w, h);
@@ -198,7 +231,8 @@ final class HqHoloBoard {
             }
             if (label == null) label = unstack(candidates.get(1), others);
             blocked.add(label);
-            placed.add(new Placed(item, deck, mx, my, fit.x(f[0]), fit.y(f[1]), glyph, text, label));
+            float[] foot = discPoint(layout, local.get(i)[0], local.get(i)[1]);
+            placed.add(new Placed(item, deck, foot, mx, my, f[0], f[1], extents.get(i), text, label));
         }
         return placed;
     }
@@ -264,21 +298,41 @@ final class HqHoloBoard {
 
     /**
      * Draws the hologram. {@code selectedId} and {@code hoveredId} may be null or name no
-     * item; {@code board} may be null or empty, which leaves the bare scanning disc.
+     * item; {@code board} may be null or empty, which leaves the bare scanning volume.
      */
     void draw(CanvasContext context, CommandDeckLayout layout, CommandDeckLayout.Fit fit, HqActionBoard board,
               String selectedId, String hoveredId, float time) {
         if (layout == null || !layout.projects()) return;
+        HoloSpace space = new HoloSpace(layout, fit);
         float flicker = 0.93f + 0.07f * (float) Math.sin(time * 7.3) * (float) Math.sin(time * 2.1 + 0.4);
-        disc(context, layout, fit, time, flicker);
         List<Placed> placed = place(layout, fit, board);
         observe(placed, time);
-        // Back to front: the far markers first, so near stems and labels sit over them.
+
+        HoloVolume.light(context, space, flicker);
+        emitter(context, space, flicker);
+        HoloVolume.globeBack(context, space, time, flicker);
+        disc(context, space, time, flicker);
+        HoloVolume.ticks(context, space, time, flicker);
+        HoloVolume.scan(context, space, time, flicker);
+        HoloVolume.motes(context, space, time, flicker);
+        HoloVolume.core(context, space, art.get("holo-star"), time, flicker);
+        List<float[]> positioned = new ArrayList<>();
+        for (Placed p : placed) {
+            if (p.item().sector() != null && rise(p.item().id(), time) >= 1f) positioned.add(p.deck());
+        }
+        HoloVolume.lanes(context, space, positioned, time, flicker);
+
+        // Back to front: far bodies first, so near drop lines and bodies pass over them.
         placed.sort((p, q) -> Float.compare(q.deck()[2], p.deck()[2]));
-        for (Placed p : placed) stem(context, layout, fit, p, p.item().id().equals(selectedId), time, flicker);
         for (Placed p : placed) {
             String id = p.item().id();
-            marker(context, p, id.equals(selectedId), id.equals(hoveredId), time, flicker);
+            body(context, space, p, id.equals(selectedId), id.equals(hoveredId), time, flicker);
+        }
+        HoloVolume.globeFront(context, space, time, flicker);
+        // Labels last, over everything in the volume, so they stay legible.
+        for (Placed p : placed) {
+            String id = p.item().id();
+            label(context, space, p, id.equals(selectedId), id.equals(hoveredId), time);
         }
     }
 
@@ -299,216 +353,197 @@ final class HqHoloBoard {
         return t * t * (3f - 2f * t);
     }
 
-    private void disc(CanvasContext context, CommandDeckLayout layout, CommandDeckLayout.Fit fit, float time,
-                      float flicker) {
+    /** Where a body is drawn at this moment: rising from the table, with a slight bob once up. */
+    private float[] liveDeck(Placed p, float time) {
+        float rise = rise(p.item().id(), time);
+        float lift = CommandDeckLayout.TABLE_TOP + (p.deck()[1] - CommandDeckLayout.TABLE_TOP) * rise;
+        float bob = 0.006f * rise * (float) Math.sin(time * 1.7 + HoloSpace.hash(p.item().id().hashCode()) * 6.3f);
+        return new float[]{p.deck()[0], lift + bob, p.deck()[2]};
+    }
+
+    /** The emitter on the table top: a small ring and a faint cone up to the disc's sides. */
+    private void emitter(CanvasContext context, HoloSpace space, float flicker) {
+        float[] tc = space.layout.tableCentre();
+        float[] emitter = space.screen(tc[0], CommandDeckLayout.TABLE_TOP, tc[2]);
+        for (int i = 0; i < 24; i++) {
+            double a0 = Math.PI * 2 * i / 24, a1 = Math.PI * 2 * (i + 1) / 24;
+            float[] p0 = space.screen(tc[0] + 0.16f * (float) Math.cos(a0), CommandDeckLayout.TABLE_TOP,
+                    tc[2] + 0.16f * (float) Math.sin(a0));
+            float[] p1 = space.screen(tc[0] + 0.16f * (float) Math.cos(a1), CommandDeckLayout.TABLE_TOP,
+                    tc[2] + 0.16f * (float) Math.sin(a1));
+            context.line(p0[0], p0[1], p1[0], p1[1], alpha(HOLO, 130 * flicker), 1.2f);
+        }
+        for (int i = 0; i < 4; i++) {
+            double angle = Math.PI * 0.5 * i;
+            float[] rim = space.disc(RADIUS * (float) Math.cos(angle), RADIUS * (float) Math.sin(angle), 0f);
+            context.line(emitter[0], emitter[1], rim[0], rim[1], alpha(HOLO_DEEP, 30 * flicker), 1f);
+        }
+    }
+
+    /** The plot's floor: the disc, its range rings, cross hairs and the scan sweep. */
+    private void disc(CanvasContext context, HoloSpace space, float time, float flicker) {
         float[][] rim = new float[SEGMENTS + 1][];
         for (int i = 0; i <= SEGMENTS; i++) {
             double angle = Math.PI * 2 * i / SEGMENTS;
-            rim[i] = screen(layout, fit, RADIUS * (float) Math.cos(angle), RADIUS * (float) Math.sin(angle));
+            rim[i] = space.disc(RADIUS * (float) Math.cos(angle), RADIUS * (float) Math.sin(angle), 0f);
         }
-        float[] centre = screen(layout, fit, 0f, 0f);
-        // The emitter: a small ring on the table and a faint cone up to the disc's sides.
-        float[] tc = layout.tableCentre();
-        float[] emitter = table(layout, fit, tc[0], tc[2]);
-        for (int i = 0; i < 24; i++) {
-            double a0 = Math.PI * 2 * i / 24, a1 = Math.PI * 2 * (i + 1) / 24;
-            float[] p0 = table(layout, fit, tc[0] + 0.16f * (float) Math.cos(a0), tc[2] + 0.16f * (float) Math.sin(a0));
-            float[] p1 = table(layout, fit, tc[0] + 0.16f * (float) Math.cos(a1), tc[2] + 0.16f * (float) Math.sin(a1));
-            context.line(p0[0], p0[1], p1[0], p1[1], alpha(HOLO, 120 * flicker), 1.2f);
-        }
-        for (int i : new int[]{0, SEGMENTS / 2, SEGMENTS * 3 / 4}) {
-            context.line(emitter[0], emitter[1], rim[i][0], rim[i][1], alpha(HOLO_DEEP, 34 * flicker), 1f);
-        }
-        // Faint body of the disc.
+        float[] centre = space.disc(0f, 0f, 0f);
+        float[] body = new float[SEGMENTS * 2];
         for (int i = 0; i < SEGMENTS; i++) {
-            context.fillQuad(centre[0], centre[1], rim[i][0], rim[i][1], rim[i + 1][0], rim[i + 1][1],
-                    rim[i + 1][0], rim[i + 1][1], alpha(HOLO_DEEP, 20 * flicker));
+            body[i * 2] = rim[i][0];
+            body[i * 2 + 1] = rim[i][1];
         }
-        // Range rings, the inner two dimmer.
+        HoloSpace.fill(context, body, alpha(HOLO_DEEP, 26 * flicker));
+        // Range rings, brighter on the near side.
         for (float fraction : new float[]{0.33f, 0.66f}) {
             float[] prev = null;
             for (int i = 0; i <= SEGMENTS; i++) {
                 double angle = Math.PI * 2 * i / SEGMENTS;
-                float[] p = screen(layout, fit, RADIUS * fraction * (float) Math.cos(angle),
-                        RADIUS * fraction * (float) Math.sin(angle));
-                if (prev != null) context.line(prev[0], prev[1], p[0], p[1], alpha(HOLO, 58 * flicker), 1f);
+                float s = (float) Math.sin(angle);
+                float[] p = space.disc(RADIUS * fraction * (float) Math.cos(angle), RADIUS * fraction * s, 0f);
+                if (prev != null) context.line(prev[0], prev[1], p[0], p[1], alpha(HOLO, (44 - 20 * s) * flicker), 1f);
                 prev = p;
             }
         }
         for (int i = 0; i < SEGMENTS; i++) {
-            context.line(rim[i][0], rim[i][1], rim[i + 1][0], rim[i + 1][1], alpha(HOLO, 150 * flicker), 1.4f);
-        }
-        // Rim ticks every ten degrees, longer at the quarters.
-        for (int i = 0; i < 36; i++) {
-            double angle = Math.PI * 2 * i / 36;
-            float inner = i % 9 == 0 ? 0.9f : 0.96f;
-            float[] p0 = screen(layout, fit, RADIUS * inner * (float) Math.cos(angle), RADIUS * inner * (float) Math.sin(angle));
-            float[] p1 = screen(layout, fit, RADIUS * (float) Math.cos(angle), RADIUS * (float) Math.sin(angle));
-            context.line(p0[0], p0[1], p1[0], p1[1], alpha(HOLO, (i % 9 == 0 ? 150 : 80) * flicker), 1f);
+            float s = (float) Math.sin(Math.PI * 2 * (i + 0.5) / SEGMENTS);
+            context.line(rim[i][0], rim[i][1], rim[i + 1][0], rim[i + 1][1], alpha(HOLO, (160 - 50 * s) * flicker),
+                    s < 0f ? 1.8f : 1.2f);
         }
         // Cross hairs through the core.
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 2; i++) {
             float[] a = rim[i * SEGMENTS / 4];
-            float[] b = rim[(i * SEGMENTS / 4 + SEGMENTS / 2) % SEGMENTS];
-            if (i < 2) context.line(a[0], a[1], b[0], b[1], alpha(HOLO, 34 * flicker), 1f);
+            float[] b = rim[i * SEGMENTS / 4 + SEGMENTS / 2];
+            context.line(a[0], a[1], b[0], b[1], alpha(HOLO, 30 * flicker), 1f);
         }
         // The scan sweep: a leading spoke over a fading wedge.
         double lead = Math.PI * 2 * fraction(time / SWEEP_SECONDS);
         int wedge = 14;
         for (int k = wedge; k >= 1; k--) {
             double a0 = lead - k * 0.04, a1 = lead - (k - 1) * 0.04;
-            float[] p0 = screen(layout, fit, RADIUS * (float) Math.cos(a0), RADIUS * (float) Math.sin(a0));
-            float[] p1 = screen(layout, fit, RADIUS * (float) Math.cos(a1), RADIUS * (float) Math.sin(a1));
+            float[] p0 = space.disc(RADIUS * (float) Math.cos(a0), RADIUS * (float) Math.sin(a0), 0f);
+            float[] p1 = space.disc(RADIUS * (float) Math.cos(a1), RADIUS * (float) Math.sin(a1), 0f);
             float fade = 1f - (k - 1) / (float) wedge;
-            context.fillQuad(centre[0], centre[1], p0[0], p0[1], p1[0], p1[1], p1[0], p1[1],
-                    alpha(HOLO, 46 * fade * fade * flicker));
+            HoloSpace.fill(context, new float[]{centre[0], centre[1], p0[0], p0[1], p1[0], p1[1]},
+                    alpha(HOLO, 34 * fade * fade * flicker));
         }
-        float[] tip = screen(layout, fit, RADIUS * (float) Math.cos(lead), RADIUS * (float) Math.sin(lead));
-        context.line(centre[0], centre[1], tip[0], tip[1], alpha(HOLO, 190 * flicker), 1.6f);
-        float core = 3f * fit.scale() + 1f;
-        context.fillRect(centre[0] - core, centre[1] - core, core * 2f, core * 2f, alpha(HOLO, 170 * flicker));
+        float[] tip = space.disc(RADIUS * (float) Math.cos(lead), RADIUS * (float) Math.sin(lead), 0f);
+        context.line(centre[0], centre[1], tip[0], tip[1], alpha(HOLO, 150 * flicker), 1.4f);
     }
 
-    private void stem(CanvasContext context, CommandDeckLayout layout, CommandDeckLayout.Fit fit, Placed p,
-                      boolean selected, float time, float flicker) {
-        float rise = rise(p.item().id(), time);
-        float my = p.fy() + (p.my() - p.fy()) * rise;
-        Color tone = tone(p.item(), time);
+    /**
+     * One item: its foot ring on the disc, the drop line up to the body, the faint stem
+     * on down to the table (or the selection's beam), the body itself, and its pulse.
+     */
+    private void body(CanvasContext context, HoloSpace space, Placed p, boolean selected, boolean hovered,
+                      float time, float flicker) {
+        HqActionItem item = p.item();
+        float rise = rise(item.id(), time);
+        Color tone = tone(item, time);
+        float[] foot = p.foot();
+        float[] deck = liveDeck(p, time);
+        float[] at = space.screen(deck);
+        float[] onDisc = space.screen(foot);
+        float[] onTable = {p.fx(), p.fy()};
+
+        // Where the body stands on the plot: a small ring on the disc beneath it.
+        if (rise > 0.5f) {
+            float r = 0.045f;
+            float[] prev = null;
+            for (int i = 0; i <= 16; i++) {
+                double angle = Math.PI * 2 * i / 16;
+                float[] q = space.screen(foot[0] + r * (float) Math.cos(angle), foot[1],
+                        foot[2] + r * (float) Math.sin(angle));
+                if (prev != null) context.line(prev[0], prev[1], q[0], q[1], alpha(tone, 130 * flicker * rise), 1f);
+                prev = q;
+            }
+        }
         if (selected) {
             float beat = 0.75f + 0.25f * (float) Math.sin(time * 4.0);
-            context.line(p.fx(), p.fy(), p.mx(), my, alpha(tone, 70 * beat), 7f * fit.scale() + 2f);
-            context.line(p.fx(), p.fy(), p.mx(), my, alpha(tone, 230 * beat), 2f);
-            // A footprint ring where the beam meets the table.
+            context.line(onTable[0], onTable[1], at[0], at[1], alpha(tone, 60 * beat), 7f * space.fit.scale() + 2f);
+            context.line(onTable[0], onTable[1], at[0], at[1], alpha(tone, 220 * beat), 2f);
             float[] prev = null;
             for (int i = 0; i <= 20; i++) {
                 double angle = Math.PI * 2 * i / 20;
-                float[] q = table(layout, fit, p.deck()[0] + 0.09f * (float) Math.cos(angle),
-                        p.deck()[2] + 0.09f * (float) Math.sin(angle));
+                float[] q = space.screen(deck[0] + 0.09f * (float) Math.cos(angle), CommandDeckLayout.TABLE_TOP,
+                        deck[2] + 0.09f * (float) Math.sin(angle));
                 if (prev != null) context.line(prev[0], prev[1], q[0], q[1], alpha(tone, 200 * beat), 1.4f);
                 prev = q;
             }
         } else {
-            context.line(p.fx(), p.fy(), p.mx(), my, alpha(tone, 95 * flicker * rise), 1f);
+            // The drop line from the body to its foot, dashed, and a fainter stem on to the table.
+            int dashes = 6;
+            for (int k = 0; k < dashes; k++) {
+                float t0 = k / (float) dashes, t1 = (k + 0.6f) / (float) dashes;
+                context.line(at[0] + (onDisc[0] - at[0]) * t0, at[1] + (onDisc[1] - at[1]) * t0,
+                        at[0] + (onDisc[0] - at[0]) * t1, at[1] + (onDisc[1] - at[1]) * t1,
+                        alpha(tone, 120 * flicker * rise), 1f);
+            }
+            context.line(onDisc[0], onDisc[1], onTable[0], onTable[1], alpha(tone, 34 * flicker * rise), 1f);
         }
-        float dot = 1.5f * fit.scale() + 0.6f;
-        context.fillRect(p.fx() - dot, p.fy() - dot * 0.6f, dot * 2f, dot * 1.2f, alpha(tone, 140 * flicker));
+        float dot = 1.5f * space.fit.scale() + 0.6f;
+        context.fillRect(onTable[0] - dot, onTable[1] - dot * 0.6f, dot * 2f, dot * 1.2f, alpha(tone, 120 * flicker));
+
+        float bright = (selected ? 1f : hovered ? 0.95f : 0.74f) * flicker;
+        float grow = (0.35f + 0.65f * rise) * (hovered || selected ? 1.15f : 1f);
+        HoloBodies.draw(context, space, art, item.kind(), deck, grow, tone, bright, time, item.id().hashCode());
+        if (urgent(item)) {
+            float wave = fraction(time / 1.4f);
+            ring(context, at[0], at[1], p.extent() * (0.8f + 0.9f * wave), alpha(tone, 170 * (1f - wave) * rise), 1.3f);
+        }
+        if (selected || hovered) {
+            float reach = HoloBodies.radius(item.kind()) * HoloBodies.reach(item.kind()) * 1.3f;
+            HoloBodies.bracket(context, space, deck, reach,
+                    alpha(selected ? Color.WHITE : tone, (selected ? 220 : 140) * rise), time);
+        }
     }
 
-    private void marker(CanvasContext context, Placed p, boolean selected, boolean hovered, float time,
-                        float flicker) {
+    private void label(CanvasContext context, HoloSpace space, Placed p, boolean selected, boolean hovered,
+                       float time) {
         HqActionItem item = p.item();
-        float rise = rise(item.id(), time);
-        float my = p.fy() + (p.my() - p.fy()) * rise;
+        float labelRise = clamp01(rise(item.id(), time) * 1.6f - 0.6f);
+        if (labelRise <= 0f) return;
         Color tone = tone(item, time);
         float bright = selected ? 1f : hovered ? 0.95f : 0.72f;
-        float size = p.glyph() * (hovered || selected ? 1.18f : 1f);
-        if (urgent(item)) {
-            // An expanding ring under an urgent obligation.
-            float wave = fraction(time / 1.4f);
-            float r = size * (0.6f + 1.1f * wave);
-            ring(context, p.mx(), my, r, alpha(tone, 170 * (1f - wave) * rise), 1.3f);
-        }
-        if (selected || hovered) ring(context, p.mx(), my, size * 0.95f, alpha(tone, (selected ? 200 : 120) * rise), 1f);
-        glyph(context, item.kind(), p.mx(), my, size, alpha(tone, 255 * bright * flicker * rise));
-
+        float[] at = space.screen(liveDeck(p, time));
         Rect l = p.label();
-        float labelRise = clamp01(rise * 1.6f - 0.6f);
-        if (labelRise <= 0f) return;
-        // A leader from the marker to the label's near edge.
-        float lx = l.x() > p.mx() ? l.x() : l.x() + l.width();
-        float ly = Math.max(l.y() + 2f, Math.min(l.y() + l.height() - 2f, my));
-        if (l.y() + l.height() < my - 1f || l.y() > my + 1f || Math.abs(lx - p.mx()) > size) {
-            context.line(p.mx(), my, lx, ly, alpha(tone, 90 * labelRise * bright), 1f);
+        // A leader from the body's edge to the nearest point of the label plate.
+        float lx = Math.max(l.x(), Math.min(l.x() + l.width(), at[0]));
+        float ly = Math.max(l.y(), Math.min(l.y() + l.height(), at[1]));
+        float dx = lx - at[0], dy = ly - at[1];
+        float length = (float) Math.hypot(dx, dy);
+        float start = p.extent() * 0.55f;
+        if (length > start + 2f) {
+            context.line(at[0] + dx / length * start, at[1] + dy / length * start, lx, ly,
+                    alpha(tone, 110 * labelRise * bright), 1f);
         }
-        context.fillRect(l.x(), l.y(), l.width(), l.height(), alpha(PLATE, (selected ? 150 : 115) * labelRise));
-        context.line(l.x(), l.y(), l.x(), l.y() + l.height(), alpha(tone, 200 * labelRise * bright), 2f);
+        context.fillRect(l.x(), l.y(), l.width(), l.height(), alpha(PLATE, (selected ? 165 : 130) * labelRise));
+        context.line(l.x(), l.y(), l.x(), l.y() + l.height(), alpha(tone, 210 * labelRise * bright), 2f);
+        SvgAsset glyph = art.get("holo-" + item.kind().name().toLowerCase(Locale.ROOT).replace('_', '-'));
+        float gx = l.x() + 5f, gy = l.y() + (l.height() - GLYPH) * 0.5f;
+        Color glyphTone = alpha(tone, 235 * labelRise * Math.max(bright, 0.85f));
+        if (glyph != null) context.svg(glyph, gx, gy, GLYPH, GLYPH, glyphTone);
+        else ring(context, gx + GLYPH * 0.5f, gy + GLYPH * 0.5f, GLYPH * 0.4f, glyphTone, 1.2f);
         if (font != null) {
-            context.text(font, p.text(), l.x() + 6f, l.y() + 2f, alpha(selected || hovered
-                    ? Color.WHITE : tone, 255 * (selected ? 1f : hovered ? 0.95f : 0.82f) * labelRise));
-        }
-    }
-
-    private void glyph(CanvasContext context, Kind kind, float cx, float cy, float size, Color tint) {
-        SvgAsset asset = asset(kind);
-        if (asset != null) {
-            context.svg(asset, cx - size * 0.5f, cy - size * 0.5f, size, size, tint);
-            return;
-        }
-        // Fallback outline when the SVG glyphs are unavailable (a headless caller with no asset source).
-        float h = size * 0.5f;
-        switch (kind) {
-            case STORY -> outline(context, tint, cx, cy - h, cx + h, cy, cx, cy + h, cx - h, cy);
-            case OBLIGATION -> outline(context, tint, cx, cy - h, cx + h, cy + h * 0.8f, cx - h, cy + h * 0.8f);
-            case LETTER -> outline(context, tint, cx - h, cy - h * 0.75f, cx + h, cy - h * 0.75f,
-                    cx + h, cy + h * 0.75f, cx - h, cy + h * 0.75f);
-            case SIDE_JOB -> ring(context, cx, cy, h * 0.8f, tint, 1.6f);
-        }
-    }
-
-    private SvgAsset asset(Kind kind) {
-        if (glyphsFailed) return null;
-        if (glyphs == null) {
-            try {
-                Map<Kind, SvgAsset> loaded = new EnumMap<>(Kind.class);
-                for (Kind k : Kind.values()) {
-                    loaded.put(k, SvgAsset.load("graphics/ui/hq-command-deck/holo-"
-                            + k.name().toLowerCase().replace('_', '-') + ".svg"));
-                }
-                glyphs = loaded;
-            } catch (RuntimeException unavailable) {
-                glyphsFailed = true;
-                return null;
-            }
-        }
-        return glyphs.get(kind);
-    }
-
-    private static void outline(CanvasContext context, Color color, float... xy) {
-        for (int i = 0; i < xy.length; i += 2) {
-            int j = (i + 2) % xy.length;
-            context.line(xy[i], xy[i + 1], xy[j], xy[j + 1], color, 1.6f);
+            context.text(font, p.text(), gx + GLYPH + 5f, l.y() + 2f, alpha(selected || hovered
+                    ? Color.WHITE : tone, 255 * (selected ? 1f : hovered ? 0.95f : 0.85f) * labelRise));
         }
     }
 
     private static void ring(CanvasContext context, float cx, float cy, float r, Color color, float width) {
-        if (color.getAlpha() == 0 || r <= 0f) return;
-        int n = 24;
-        for (int i = 0; i < n; i++) {
-            double a0 = Math.PI * 2 * i / n, a1 = Math.PI * 2 * (i + 1) / n;
-            context.line(cx + r * (float) Math.cos(a0), cy + r * (float) Math.sin(a0),
-                    cx + r * (float) Math.cos(a1), cy + r * (float) Math.sin(a1), color, width);
-        }
+        HoloSpace.ring(context, cx, cy, r, color, width);
     }
 
     /** The item's light: holo green, or a warm amber-to-red pulse for an obligation falling due. */
     private static Color tone(HqActionItem item, float time) {
         if (!urgent(item)) return HOLO;
         float beat = 0.5f + 0.5f * (float) Math.sin(time * Math.PI * 2 / 1.4f);
-        return mix(AMBER, ALARM, beat);
+        return HoloSpace.mix(AMBER, ALARM, beat);
     }
 
-    private static float[] screen(CommandDeckLayout layout, CommandDeckLayout.Fit fit, float a, float b) {
-        float[] deck = discPoint(layout, a, b);
-        float[] uv = layout.project(deck[0], deck[1], deck[2]);
-        return new float[]{fit.x(uv[0]), fit.y(uv[1])};
-    }
+    private static Color alpha(Color color, float alpha) { return HoloSpace.alpha(color, alpha); }
 
-    private static float[] table(CommandDeckLayout layout, CommandDeckLayout.Fit fit, float x, float z) {
-        float[] uv = layout.project(x, CommandDeckLayout.TABLE_TOP, z);
-        return new float[]{fit.x(uv[0]), fit.y(uv[1])};
-    }
+    private static float clamp01(float v) { return HoloSpace.clamp01(v); }
 
-    private static Color mix(Color a, Color b, float t) {
-        return new Color(Math.round(a.getRed() + (b.getRed() - a.getRed()) * t),
-                Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t),
-                Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t));
-    }
-
-    private static Color alpha(Color color, float alpha) {
-        return new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, Math.min(255, Math.round(alpha))));
-    }
-
-    private static float clamp01(float v) { return Math.max(0f, Math.min(1f, v)); }
-
-    private static float fraction(float value) { return value - (float) Math.floor(value); }
+    private static float fraction(float value) { return HoloSpace.fraction(value); }
 }
