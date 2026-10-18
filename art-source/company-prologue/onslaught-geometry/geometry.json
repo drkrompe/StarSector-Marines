@@ -50,7 +50,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2447554,
+      "units3": 2478105,
       "crew_max": 1500,
       "cargo": 300,
       "fuel": 400,
@@ -86,13 +86,13 @@
     "contents_total_m3": 653700,
     "machinery_share": 0.58,
     "enclosed_m3": 1556429,
-    "solved_metres_per_unit": 0.86,
+    "solved_metres_per_unit": 0.856,
     "range": {
-      "habitable_273": 0.833,
-      "habitable_328": 0.886
+      "habitable_273": 0.83,
+      "habitable_328": 0.882
     },
     "enclosed_m3_per_person_at_max_crew": 1038,
-    "length_m": 302.4,
+    "length_m": 301.2,
     "fittings_m": {
       "bridge glazing band h": 1.4,
       "bridge pane w": 1.1,
@@ -104,7 +104,7 @@
     },
     "published_metres_per_unit": 0.86,
     "measured_this_build": {
-      "enclosed_units3": 2447554,
+      "enclosed_units3": 2478105,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
@@ -126,7 +126,7 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2450193
+      "with_drive_pods_units3": 2480744
     },
     "size_m": [
       302.4,
@@ -171,7 +171,7 @@
       "location": [
         158,
         71,
-        -1.91
+        -5.09
       ],
       "angle": 70,
       "arc": 150,
@@ -190,7 +190,7 @@
       "location": [
         134,
         74,
-        0.43
+        -1.81
       ],
       "angle": 65,
       "arc": 120,
@@ -209,7 +209,7 @@
       "location": [
         158,
         -71,
-        -1.91
+        -5.09
       ],
       "angle": -70,
       "arc": 150,
@@ -228,7 +228,7 @@
       "location": [
         134,
         -74,
-        0.43
+        -1.81
       ],
       "angle": -65,
       "arc": 120,
@@ -247,7 +247,7 @@
       "location": [
         114,
         78,
-        2.36
+        0.12
       ],
       "angle": 75,
       "arc": 120,
@@ -266,7 +266,7 @@
       "location": [
         114,
         -78,
-        2.36
+        0.12
       ],
       "angle": -75,
       "arc": 120,
@@ -285,7 +285,7 @@
       "location": [
         187,
         0,
-        9.77
+        8.27
       ],
       "angle": 0,
       "arc": 150,
@@ -304,7 +304,7 @@
       "location": [
         150,
         -12,
-        18.36
+        16.6
       ],
       "angle": -20,
       "arc": 90,
@@ -323,7 +323,7 @@
       "location": [
         150,
         12,
-        18.36
+        16.6
       ],
       "angle": 20,
       "arc": 90,
@@ -342,7 +342,7 @@
       "location": [
         -3,
         -112,
-        17.16
+        14.59
       ],
       "angle": 250,
       "arc": 180,
@@ -361,7 +361,7 @@
       "location": [
         -3,
         112,
-        17.16
+        14.59
       ],
       "angle": 110,
       "arc": 180,
@@ -380,7 +380,7 @@
       "location": [
         49,
         18,
-        38.03
+        35.78
       ],
       "angle": 60,
       "arc": 140,
@@ -399,7 +399,7 @@
       "location": [
         49,
         -18,
-        38.03
+        35.83
       ],
       "angle": -60,
       "arc": 140,
@@ -418,7 +418,7 @@
       "location": [
         -9,
         22,
-        35.68
+        35.13
       ],
       "angle": 170,
       "arc": 120,
@@ -437,7 +437,7 @@
       "location": [
         -9,
         -22,
-        35.68
+        35.13
       ],
       "angle": 190,
       "arc": 120,
@@ -456,7 +456,7 @@
       "location": [
         77,
         88,
-        7.75
+        2.83
       ],
       "angle": 80,
       "arc": 135,
@@ -475,7 +475,7 @@
       "location": [
         126,
         0,
-        27.41
+        27.54
       ],
       "angle": 0,
       "arc": 150,
@@ -494,7 +494,7 @@
       "location": [
         77,
         -87,
-        8.05
+        3.09
       ],
       "angle": -80,
       "arc": 135,
@@ -513,7 +513,7 @@
       "location": [
         -9,
         65,
-        21.39
+        18.08
       ],
       "angle": 30,
       "arc": 120,
@@ -532,7 +532,7 @@
       "location": [
         8,
         40,
-        32.52
+        29.69
       ],
       "angle": 20,
       "arc": 120,
@@ -551,7 +551,7 @@
       "location": [
         8,
         -40,
-        32.52
+        29.69
       ],
       "angle": -20,
       "arc": 120,
@@ -570,7 +570,7 @@
       "location": [
         -9,
         -65,
-        21.32
+        17.99
       ],
       "angle": -30,
       "arc": 120,
@@ -789,7 +789,7 @@
       "name": "Light stem 1",
       "position": [
         212.43,
-        -0.0,
+        0.0,
         2.2
       ],
       "colour": "red",
@@ -828,7 +828,7 @@
     {
       "name": "Light port arm nose 1",
       "position": [
-        213.07,
+        213.08,
         77.14,
         -25.77
       ],
@@ -1008,7 +1008,7 @@
     {
       "name": "Light starboard arm nose 1",
       "position": [
-        213.07,
+        213.08,
         -77.14,
         -25.77
       ],
@@ -1335,9 +1335,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9569,
-    "sprite_uncovered": 0.0183,
-    "model_outside_sprite": 0.0259,
+    "iou": 0.9555,
+    "sprite_uncovered": 0.0162,
+    "model_outside_sprite": 0.0296,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {

@@ -171,22 +171,37 @@ def _chine_bar(c, up, down, t, w=3.4, sink=.7):
     return pts
 
 
+def _keel_chine_bar(c, up, t, w):
+    """A bar section (port, YZ) riding the keel chine c - the outboard edge of the flat keel
+    band - and wrapping onto the bilge plane running from c to `up`: its flat underside lies
+    t under the band, its outer face lies t proud of the bilge plane, and its back is sunk
+    into the hull, so every column through it meets solid hull above it."""
+    u = _unit(c, up)
+    n = (u[1], -u[0])                      # the bilge plane's outward normal (down, outboard)
+    a = (c[0]+u[0]*w+n[0]*t*.5, c[1]+u[1]*w+n[1]*t*.5)
+    back = (a[0], c[1]+(a[0]-c[0])*u[1]/max(u[0], 1e-3)+1.0)     # straight up into the hull
+    return [(c[0]-w, c[1]+1.2), (c[0]-w, c[1]-t+.4), (c[0]-w+.5, c[1]-t), (c[0]+n[0]*t, c[1]-t), a, back,
+            (c[0]-.4, c[1]+2.0)]
+
+
 def keel_strakes(kit):
     """Round 5 (critic: the belly's crossing strakes and frames read as a random grid from
-    below, and hung off its after face as bars): three heavy strakes only, each riding one
-    of the belly's knuckles - the keel bar along the keel flat and a chine bar along each
-    lower chine - lofted on the belly's own stations so they follow every knuckle of the
-    keel line exactly.
+    below, and hung off its after face as bars): three heavy strakes only, lofted on the
+    belly's own stations so they follow every knuckle of the keel line exactly.
 
     Round 7 (critic: three long parallel bars from the forefoot to the stern read as
     stripes): each strake is two armour bars ending square on the keel line's knuckles.
-    The fore bar runs from the forefoot knuckle (X 168) over the chest to the chest's after
-    knuckle (X 88), where the keel line turns from its flat run into the rise aft; the aft
+    The fore bar runs from the forefoot over the chest to its after knuckle (X 88); the aft
     bar runs from there to the aft knuckle (os_hull.BELLY_KNUCKLE_X). At the knuckle the two
     lap: the fore bar stands prouder and runs a few units past the aft bar's blunt forward
-    end, so the break is an offset lap joint, not a groove in one long stripe."""
-    runs = ((165.0, 85.5, 2.8, 2.2), (90.0, BELLY_KNUCKLE_X+.5, 1.7, 1.3))
-    for r, (x0, x1, tk, tc) in enumerate(runs):
+    end, so the break is an offset lap joint, not a groove in one long stripe.
+
+    Round 11 (critic a: run the strakes parallel to X along the underside's chines): strakes
+    2 and 3 ride the keel chines - the edges of the flat keel band, parallel to X from the
+    chest aft - and strake 1 is a low keel shoe let into the band's centre, so from below the
+    band reads as one plate edged by two heavy bars."""
+    runs = ((165.0, 85.5, 2.6, .5), (90.0, BELLY_KNUCKLE_X+.5, 1.8, .35))
+    for r, (x0, x1, tc, tk) in enumerate(runs):
         xs = sorted({x for x in BELLY_STATIONS if x1 < x < x0} | {x0, x0-1.2, x1, x1+1.2}, reverse=True)
 
         def proud(x, full):
@@ -197,19 +212,20 @@ def keel_strakes(kit):
         for x in xs:
             sec = _belly_at(x)
             n = len(sec)//2
-            top, chine, mid, kp = sec[n:]       # port half: top, upper chine, lower chine, keel
+            top, chine, kp = sec[n:]            # port half: top, bilge chine, keel chine
             t = proud(x, tk)
-            kw = min(3.0, kp[0]-.2)+(.0 if r == 0 else .6)
+            # the shoe: a broad, low plate let into the band, well inside its chines
+            kw = max(kp[0]-5.0, 1.5)
             zb = kp[1]
-            keel.append((x, [(-kw-.2, zb+1.4), (-kw, zb-t+.8), (-kw+.9, zb-t), (kw-.9, zb-t), (kw, zb-t+.8),
+            keel.append((x, [(-kw-.2, zb+1.4), (-kw, zb-t+.3), (-kw+.5, zb-t), (kw-.5, zb-t), (kw, zb-t+.3),
                              (kw+.2, zb+1.4)]))
-            chines.append((x, _chine_bar(mid, chine, kp, proud(x, tc), w=3.4 if r == 0 else 4.0)))
+            chines.append((x, _keel_chine_bar(kp, chine, proud(x, tc), 3.0 if r == 0 else 3.6)))
         tag = '' if r == 0 else ' aft'
         loft_x(kit, f'Armour core keel strake 1{tag}', keel, kit.grey, bevel=.2)
         for name, s in ((f'Armour core keel strake 2{tag}', 1), (f'Armour core keel strake 3{tag}', -1)):
             st = [(x, sec if s > 0 else [(-y, z) for y, z in reversed(sec)]) for x, sec in chines]
             loft_x(kit, name, st, kit.grey, bevel=.2)
-    shell_strip(kit, 'Armour prow keel strake', bpy.data.objects['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(100, 216))
+    shell_strip(kit, 'Armour prow keel strake', bpy.data.objects['Hull prow'], 1, 0, 2.6, 2.4, kit.grey, xr=(164, 216))
 
 
 # --- forebody armour skins ------------------------------------------------------
