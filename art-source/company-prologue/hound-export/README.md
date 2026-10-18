@@ -70,6 +70,11 @@ its root. It does this through a generalisation that is a no-op for the Second
 Wind: on its patched export, the kit's records and objects are byte-identical
 with and without the change (see the kit README, Anchors).
 
+Known issue: the haze is sometimes cut off at a straight edge in the turn.
+The kit's haze volume box is narrower than the haze's density falloff, and
+both are sized from the bell radius. So this is the kit's own sizing, not
+the Hound's.
+
 ## Not built
 
 Damaged states are reserved and not built: `--state battle-damaged|wrecked`,
