@@ -272,7 +272,7 @@ def build(kit, parts):
     # (the lining ribs are superseded by pg_bore's machinery)
     aft_body_seams(kit, parts)
     flank_panels(kit, parts)
-    gantry(kit, parts)
+    # (the gantry's frames and pipes are pg_bridge's now)
 
 
 # Stern machinery: dark finned grilles let into each pod's aft face between the drive blocks (port Y spans).
