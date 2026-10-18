@@ -24,7 +24,6 @@ Options after a literal "--":
   --samples N    Cycles samples (default 24)
   --res WxH      render size (default 1920x1080)
   --no-save      skip the .blend and geometry.json
-  --export       also write the appendable onslaught.blend (export_onslaught.py)
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
 sprite overlay, the silhouette IoU and the review sheets.
 """
@@ -82,7 +81,6 @@ parser.add_argument('--views', default='top,starboard-side,port-side,front,stern
 parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
-parser.add_argument('--export', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()

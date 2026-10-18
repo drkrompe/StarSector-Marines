@@ -22,6 +22,7 @@ sensor mast there.
 """
 import math
 import bpy
+from mathutils import Vector
 import os_kit
 
 SLOTS = [  # onslaught.ship (the XIV skin changes no slot), with the onslaught_xiv_Elite weapon
@@ -84,10 +85,53 @@ def seat(kit, x, y, r):
     return best if best is not None else 10.0
 
 
-def _barbette(kit, sid, x, y, r, top):
+_DECK = []
+
+
+def _deck_objects():
+    """Every mesh built before the turrets that a barbette could stand on or in:
+    hull, armour bands, bridge parts, machinery. Weapons, lights and fittings excluded."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    _DECK.clear()
+    for ob in bpy.context.scene.objects:
+        if ob.type != 'MESH' or ob.name.split(' ')[0] in ('Weapon', 'Light', 'Fitting'):
+            continue
+        ev = ob.evaluated_get(dg)
+        pts = [ev.matrix_world @ Vector(c) for c in ev.bound_box]
+        lo = [min(p[i] for p in pts) for i in range(2)]
+        hi = [max(p[i] for p in pts) for i in range(2)]
+        _DECK.append((ev, lo, hi))
+
+
+def _footing(x, y, r):
+    """(top, low): the highest and lowest deck points under a barbette's footprint, sampled at
+    the centre and round .8 of the ring radius (where seat() samples). The barbette stands on the highest, so an
+    armour band crossing the ring passes under it rather than through it, and its foot
+    reaches the lowest, so a lifted barbette does not float over the deck beside the band."""
+    top = low = None
+    for rr in (0.0, .8*r):
+        for k in range(1 if rr == 0 else 12):
+            px, py = x+rr*math.cos(k*math.pi/6), y+rr*math.sin(k*math.pi/6)
+            best = None
+            for ev, lo, hi in _DECK:
+                if not (lo[0] <= px <= hi[0] and lo[1] <= py <= hi[1]):
+                    continue
+                inv = ev.matrix_world.inverted()
+                ok, p, _, _ = ev.ray_cast(inv @ Vector((px, py, 150)), (inv.to_3x3() @ Vector((0, 0, -1))).normalized())
+                if ok:
+                    z = (ev.matrix_world @ p).z
+                    best = z if best is None else max(best, z)
+            if best is not None:
+                top = best if top is None else max(top, best)
+                low = best if low is None else min(low, best)
+    return (top, low) if top is not None else (10.0, 10.0)
+
+
+def _barbette(kit, sid, x, y, r, top, low=None):
     """Fixed barbette: a flared foot sunk into the deck, a drum and a chamfered lip."""
     h = .32*r
-    foot = top-2.0
+    foot = top-2.0 if low is None else max(min(top-2.0, low-.5), top-8.0)
     prof = [(1.18*r, foot), (1.18*r, top+.08*r), (1.02*r, top+.18*r), (1.0*r, top+h-.06*r), (.94*r, top+h)]
     verts, faces = [], []
     n = 16
@@ -134,9 +178,45 @@ def _gun(kit, slot, pivot, r):
              vertices=10)
         _box(kit, f'Weapon {sid} muzzle brake {k+1}', pivot, (x0+L+.04*r, y, bz), (.12*r, rad*2.6*r, rad*2.4*r),
              kit.steel, .05)
-    # Rangefinder across the rear roof.
-    _cyl(kit, f'Weapon {sid} rangefinder', pivot, (-.4*r, 0, (roof+.1)*r), .08*r, 1.7*r, kit.steel, axis='Y',
-         vertices=8)
+    if weapon == 'devastator':
+        _heavy_roof(kit, sid, pivot, r, roof, mat)
+        # Blast bags: canvas boots where each barrel enters the mantlet.
+        for k in range(n):
+            y = (k-(n-1)/2)*spacing*r
+            _cyl(kit, f'Weapon {sid} blast bag {k+1}', pivot, (face+.22*r, y, bz), .15*r, .18*r, _canvas(),
+                 vertices=12, bevel=.03)
+        # Rangefinder raised on a hood across the rear roof, with armoured ears at its ends.
+        rz = (roof+.2)*r
+        _box(kit, f'Weapon {sid} rangefinder hood', pivot, (-.4*r, 0, (roof+.13)*r), (.3*r, .7*r, .1*r), mat, .06)
+        _cyl(kit, f'Weapon {sid} rangefinder', pivot, (-.4*r, 0, rz), .08*r, 1.7*r, kit.steel, axis='Y',
+             vertices=8)
+        for side, s in (('port', 1), ('starboard', -1)):
+            _box(kit, f'Weapon {sid} rangefinder ear {side}', pivot, (-.4*r, s*.88*r, rz), (.3*r, .2*r, .26*r),
+                 kit.steel, .05)
+    else:
+        # Rangefinder across the rear roof.
+        _cyl(kit, f'Weapon {sid} rangefinder', pivot, (-.4*r, 0, (roof+.1)*r), .08*r, 1.7*r, kit.steel, axis='Y',
+             vertices=8)
+
+
+_CANVAS = []
+
+
+def _canvas():
+    """Matte dark canvas for blast bags (this module's own material)."""
+    if not _CANVAS:
+        _CANVAS.append(os_kit.material('Gun blast bag canvas', (.07, .06, .05), 0.0, .9))
+    return _CANVAS[0]
+
+
+def _heavy_roof(kit, sid, pivot, r, roof, mat):
+    """An extra roof plate over a large gunhouse: flat over the crown, sloping down the face,
+    a step narrower than the house so its edge reads as a second layer of armour."""
+    oc = os_kit.octagon
+    st = [(-.56*r, oc(-.66*r, .66*r, (roof-.03)*r, (roof+.11)*r, .07*r, 0)),
+          (.28*r, oc(-.66*r, .66*r, (roof-.03)*r, (roof+.11)*r, .07*r, 0)),
+          (.60*r, oc(-.5*r, .5*r, (roof-.16)*r, (roof-.04)*r, .05*r, 0))]
+    _place(os_kit.loft_x(kit, f'Weapon {sid} roof armour', st, mat, bevel=.08), pivot, (0, 0, 0))
 
 
 def _small(kit, slot, pivot, r):
@@ -190,6 +270,12 @@ def _needler(kit, slot, pivot, r):
         z = bz+(k//3-.5)*.17*r
         _cyl(kit, f'Weapon {sid} barrel {k+1}', pivot, (.76*r+L/2, y, z), .055*r, L, kit.steel, vertices=8)
     _box(kit, f'Weapon {sid} barrel clamp', pivot, (.76*r+.7*L, 0, bz), (.12*r, .72*r, .52*r), kit.steel, .05)
+    _heavy_roof(kit, sid, pivot, r, .5, kit.orange)
+    _box(kit, f'Weapon {sid} barrel shroud', pivot, (.76*r+.1*r, 0, bz), (.2*r, .78*r, .56*r), kit.steel, .05)
+    _box(kit, f'Weapon {sid} sensor head', pivot, (-.36*r, .34*r, .64*r), (.34*r, .26*r, .2*r), kit.steel, .05)
+    for side, s in (('port', 1), ('starboard', -1)):
+        _box(kit, f'Weapon {sid} magazine {side}', pivot, (-.22*r, s*.86*r, .26*r), (.62*r, .16*r, .3*r),
+             kit.grey, .05)
 
 
 def _hardpoint(kit, slot):
@@ -209,10 +295,12 @@ def _hardpoint(kit, slot):
 
 
 def build(kit):
+    _deck_objects()
     for slot in SLOTS:
         sid, (x, y), angle, arc, size = slot[:5]
         r = RING[size]
-        top = _barbette(kit, sid, x, y, r, seat(kit, x, y, r))
+        deck, low = _footing(x, y, r)
+        top = _barbette(kit, sid, x, y, r, max(deck, seat(kit, x, y, r)), low)
         PIVOT_Z[sid] = top
         pivot = kit.empty(f'Weapon {sid} pivot', (x, y, top), angle)
         pivot['slot_angle'] = angle
