@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — duel range against armor (stand off, close, or duel from the outer band); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-18 — duel range against armor (stand off, close, or duel from the outer band; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -472,17 +472,29 @@ for an in-band firing cell or a cell nearer the band; while the target can
 reach it, it never takes a walk that turns its back on the target, and too
 close with nowhere legal to go it holds and fights. An armored contact
 shelling it from beyond its own reach is a duel too: the band decides whether
-it closes on where that contact was last seen. The rule sits below the
+it closes on it. While its rounds are landing the mech takes the contact to
+stand where the fire comes from, not where it was last seen: a long-reach
+shooter is usually beyond sight, and its last-seen cell is wherever it stood
+before it stepped back. The rule sits below the
 reflexes — a player's move order still owns the chassis, a crippled one is
-still a turret — and never leaves command ground: every cell must be legal
+still a turret — and keeps to command ground: every cell must be legal
 under the active assignment, and a mech outside its command (an exact cell not
-yet reached) is left to its doctrine. A Frontline Support mech with a legal
+yet reached) is left to its doctrine. The one stretch is the **sortie**: a mech
+settled on a post (defend area, hold node) that an armored contact out-reaches
+from ground that can shell the leash, and that cannot reach the shooter from
+where it stands, may go out to the ground the shooter can shell the leash from
+(leash plus the shooter's reach). It stays out while the shooter can still
+shell the leash, and doctrine walks it home after. Asking instead whether some
+cell of the leash could answer strands the mech at the leash's edge, since a
+shooter that out-reaches it steps back as it arrives; a defender that only
+stands in the open and takes fire is not defending its post. Exact-cell moves,
+rushes, attack-moves and posts not yet reached stay strict. A Frontline Support mech with a legal
 anchor keeps pacing it; withdrawal, rescue and survival goals do not run
 doctrine and so never meet the rule. Infantry targets are unchanged. A ground
-vehicle is a duel target, read by its turret, but never a duelist: a hull has
-no engagement driver of its own — a deployed one holds where it was set down,
-a delivery follows its route — so the only way a vehicle closes on armor is a
-player's move order, and an explicit move wins over any band. Pressure
+vehicle is both a duel target, read by its turret, and a duelist: a deployed
+armed hull between orders takes the same band against armor
+(`convoy-nouns.md`, deployed vehicles). A player's move order still wins over
+any band, for a hull as for a mech. Pressure
 leaves out penetration, heat and ammunition depth on purpose: they scale both
 sides of a trade alike far more often than they reverse it.
 `-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the

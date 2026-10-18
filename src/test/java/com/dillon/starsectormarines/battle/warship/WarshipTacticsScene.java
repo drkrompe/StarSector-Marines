@@ -114,7 +114,7 @@ public final class WarshipTacticsScene implements BehaviorScene {
             reach = Math.max(reach, WarshipShipFire.longestReach(s));
             length = Math.max(length, s.lengthCells);
         }
-        float start = 2.0f * reach + 2f * length;
+        float start = 1.3f * reach + 2f * length;
         int width = Math.round(start + 6f * length + 60f);
         int height = Math.round(Math.max(2.2f * reach + 4f * length, 200f));
         SceneBuilder builder = SceneBuilder.openGround(width, height).missionCompletion(false);
@@ -267,18 +267,25 @@ public final class WarshipTacticsScene implements BehaviorScene {
         verdicts.add(Verdict.of("manoeuvres-are-held", t.finished.size() >= MIN_MANOEUVRES
                         && meanSeconds >= MIN_MANOEUVRE_SECONDS,
                 String.format(Locale.ROOT, "%d manoeuvres finished, %.1fs on average", t.finished.size(), meanSeconds)));
-        // Distance breathes: every ship that flew manoeuvres closed and opened the range on its target.
+        // Distance breathes: every ship that flew manoeuvres and lived through the window closed and opened the
+        // range on its target. A hull shot down mid-fight had its manoeuvres cut short, so it is named, not judged.
         StringBuilder flat = new StringBuilder();
+        StringBuilder sunk = new StringBuilder();
         for (Warship s : t.all) {
             float[] range = t.rangeSpan.get(s);
             if (range == null || s.manoeuvre().begun() < 2) continue;
+            if (s.destroyed()) {
+                sunk.append(' ').append(s.hullId);
+                continue;
+            }
             if (range[1] < RANGE_BREATH * range[0]) {
                 flat.append(String.format(Locale.ROOT, " %s %.0f-%.0f", s.hullId, range[0], range[1]));
             }
         }
         verdicts.add(Verdict.of("range-breathes", flat.length() == 0,
-                flat.length() == 0 ? "every manoeuvring ship opened its range by " + RANGE_BREATH + "x"
-                        : "held one range:" + flat));
+                (flat.length() == 0 ? "every manoeuvring ship opened its range by " + RANGE_BREATH + "x"
+                        : "held one range:" + flat)
+                        + (sunk.length() == 0 ? "" : "; not judged, shot down mid-fight:" + sunk)));
         if (t.splitSampleTicks > 0) {
             int split = Math.round(100f * t.splitTicks / t.splitSampleTicks);
             verdicts.add(Verdict.of("the-pack-splits-on-an-escorted-charge", split >= MIN_SPLIT_PERCENT,

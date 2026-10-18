@@ -108,9 +108,18 @@ TERRACE_C = (14.0, 0.0)           # centre of the round core terrace (the sprite
 TERRACE_R = 52.0                  # its batter (R 44..52) lies outboard of the gun ring (R 32..40)
 INNER_R = 27.0
 GALLERY_TOP = 17.0                # the arm galleries (os_arms)
-PROW_GALLERY_TOP = 31.5           # the prow gallery top tier, climbing aft to the spine glacis
+PROW_GALLERY_TOP = 40.0           # the prow gallery's glacis crest, under the spine (round 6)
 TERRACE_TOP = 36.0
 INNER_TOP = 40.0
+# The citadel's gun shelves (port plans, mirrored): the aft shelf under WS 014/015 and
+# the beam shelves under WS 022/023, each cut down from TERRACE_TOP with a battered riser
+# (SHELF_BATTER in over SHELF_BATTER up). Plans are the risers' tops; their feet lie
+# SHELF_BATTER inside, clear of each mount's footing ring.
+SHELF_BATTER = 5.0
+AFT_SHELF = [(4.0, 9.0), (4.0, 80.0), (-40.0, 80.0), (-40.0, 9.0)]
+AFT_SHELF_Z = TERRACE_TOP-2.0
+BEAM_SHELF = [(25.0, 28.0), (25.0, 80.0), (-9.0, 80.0), (-9.0, 28.0)]
+BEAM_SHELF_Z = TERRACE_TOP-5.0
 INNER_C = (24.0, 0.0)            # the inner tier is centred under the command tower
 INNER_R2 = 25.0
 
@@ -304,15 +313,21 @@ def fore_section(x):
 # carries on from the prow's forefoot in straight runs: down from X 170, level
 # under the citadel, up to the stern. From ahead it is the wedge between the arms.
 BELLY_W = [(170, 4), (150, 20), (128, 30), (104, 37), (80, 45), (52, 53), (24, 60), (0, 63), (-22, 62), (-40, 52),
-           (-58, 42), (-72, 33), (-80, 20), (-84, 6)]
-# Round 4 (owner: below the deck the side read as one long lozenge): the belly is
-# deepest forward, a CHEST under the glacis (X 124..80) whose face drops steeply
-# below the arms' keels (X 140..124) and whose forefoot runs on up to the prow; from the chest a straight keel line
-# rises gently aft and then, aft of the citadel, sweeps up to the stern.
-BELLY_KEEL = [(168, -26.0), (140, -46.0), (124, -60.0), (100, -62.0), (80, -62.0), (-24, -46.0), (-60, -33.0),
-              (-84, -22.0)]
-BELLY_STATIONS = [170, 168, 150, 140, 128, 124, 104, 100, 80, 66, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, -40, -58, -60, -72,
-                  -80, -84]
+           (-52, 46), (-64, 38)]
+# Round 5 (owner: "the central body doesn't need to be as strangely elongated down
+# under the ship"; critic: the belly's after face was a blank V wall under the stern
+# with strakes hanging off it). The keel line is four straight runs meeting on hard
+# knuckles, no deeper than the chest needs to be (-50, about a deck's depth under
+# the arms' keels): the FOREFOOT runs straight down and aft from the prow's keel
+# (X 168) to the chest knuckle (X 128), so the stem leads; the CHEST keel runs level
+# under the glacis to X 88; the keel then rises gently aft under the citadel to the AFT
+# KNUCKLE at X -40, where the belly's after end sweeps up steeply (about 30 deg)
+# into the aft body's keel (-32, os_stern) and ends buried in it, so from astern
+# the belly is a short sloped counter running into the stern, not a hanging wall.
+BELLY_KNUCKLE_X = -40.0
+BELLY_KEEL = [(168, -26.0), (128, -50.0), (88, -50.0), (BELLY_KNUCKLE_X, -40.0), (-64, -29.0)]
+BELLY_STATIONS = [170, 168, 150, 128, 104, 88, 80, 52, 24, 6, 0, -12, -18, -20, -22, -24, -30, BELLY_KNUCKLE_X,
+                  -52, -64]
 
 
 def belly_section(x):
@@ -336,13 +351,39 @@ def belly_section(x):
 
 
 # The prow gun deck: three stepped tiers climbing aft (WS 007, WS 008/009, the
-# multineedler WS 019), each riser a raked armour step of about nine units, the
-# last running on under the spine's arch (X 99) where the spine's glacis
-# (os_bridge) takes the climb on up to the citadel. Round 4 (owner: the deck line
-# must climb with purpose): bow deck 9, then 13.5, 22.5, 31.5.
-GALLERY_W = [(216, 5.0), (214, 5.5), (200, 9.0), (186, 11.0), (150, 17.0), (126, 18.5), (104, 20.0), (99, 20.0)]
-GALLERY_Z = [(216, 9.0), (212, 12.5), (177, 13.5), (171, 22.0), (145, 22.5), (139, 31.0), (110, 31.5), (99, 31.5)]
-GALLERY_STATIONS = [216, 214, 212, 200, 186, 177, 171, 150, 145, 139, 126, 110, 104, 99]
+# multineedler WS 019), then the glacis running up into the citadel.
+# Round 6 (critic A1: forward of the bridge the abeam profile read as one flat
+# barge-like shelf, the multineedler bridging the last tier to the spine at one
+# height): the skyline now climbs in hard steps from the stem, the lowest dorsal
+# point. The bow deck (WS 007) lies at 8.5 and the forward gun deck (WS 008/009) at
+# 17, each about five lower than round 5. The needler deck (25.5) stands on it as
+# a raised V (critic C: the sprite's prow bands form a forward-pointing V round
+# the needler, not straight strips): its nose rises between WS 008 and 009 at
+# X 160 and its battered walls run aft and outboard at GALLERY_FLARE from the
+# centreline, so the riser is one hard chevron step with an armour lip along its
+# crest (os_armour), and the forward gun deck runs on aft beside it as two dark
+# flanking decks until the V meets the gallery's edge at about X 108, where the
+# glacis legs (os_armour.glacis_split, diverging at about the same angle) carry
+# the V on aft to the citadel. Aft of the needler the glacis rises at about 45
+# deg (X 114..100) to a crest at 40, level with the spine (os_bridge), which runs
+# on level-ish to the citadel: a landing rather than one long ramp, so the abeam
+# skyline reads as a step there too. Aft of the crest the gallery narrows into the
+# spine and ends in a raked step down onto the core's centre deck, so the grey
+# glacis legs come out from under it at once.
+GALLERY_W = [(216, 5.0), (214, 5.5), (200, 9.0), (186, 11.0), (171, 14.0), (150, 16.8), (126, 21.0), (114, 24.4),
+             (104, 25.2), (100, 25.0), (93, 19.0), (89, 16.0)]
+GALLERY_Z = [(216, 6.5), (212, 8.5), (177, 8.5), (171, 17.0), (160, 17.0), (157, 25.5), (114, 25.5), (100, 40.0),
+             (93, 40.0), (89, 31.0)]
+GALLERY_STATIONS = sorted({x for x, _ in GALLERY_W} | {x for x, _ in GALLERY_Z}, reverse=True)
+GALLERY_GUN_DECK = 17.0           # the forward gun deck, and the flanking decks beside the V
+GALLERY_V_APEX = 160.0            # X of the needler deck's nose, on the centreline
+GALLERY_FLARE = 25.0              # deg from the centreline: the V's walls
+GALLERY_V_BATTER = 3.0
+
+
+def gallery_v(x):
+    """|Y| of the needler deck's V wall (its crest edge) at X."""
+    return max(0.0, (GALLERY_V_APEX-x)*math.tan(math.radians(GALLERY_FLARE)))
 
 
 def gallery_section(x):
@@ -388,6 +429,14 @@ def build(kit):
     tiers = []
     tiers.append(loft_x(kit, 'Hull prow gallery', [(x, gallery_section(x)) for x in GALLERY_STATIONS], kit.plate,
                         bevel=.2))
+    # The needler deck's V: everything outboard of its walls is cut down to the gun deck.
+    xa, xb = GALLERY_V_APEX+6.0, 100.0
+    for sgn in (1, -1):
+        plan = ccw([(xa, 0.0), (GALLERY_V_APEX, 0.0), (xb, sgn*gallery_v(xb)), (xb, sgn*50.0), (xa, sgn*50.0)])
+        cutter = prism(kit, 'Temporary prow gallery V cutter', plan,
+                       [(GALLERY_V_BATTER, GALLERY_GUN_DECK), (0.0, GALLERY_GUN_DECK+GALLERY_V_BATTER), (0.0, 70.0)],
+                       kit.plate, bevel=0)
+        boolean(tiers[0], cutter)
     cx, cy = TERRACE_C
     # The citadel: a many-sided armoured drum with a straight sloped batter (its
     # foot buried in the core's centre deck), the inner tier stepping up again
@@ -397,6 +446,19 @@ def build(kit):
     # Its back is raked down toward the core's aft face over the machinery wells,
     # a sloped armour step rather than a sheer wall.
     plane_cut(tiers[-1], 'citadel aft rake', (-14.0, 0, TERRACE_TOP), facet_normal((-1, 0), 55))
+    # Round 5 (owner: "turrets against the hull ... not all on one plane"; critic: the
+    # tier turrets all sat on one height ring): the citadel's top is terraced where its
+    # guns fall, so each mount stands on its own shelf and the drum reads as stepped
+    # armour, not a plate. The drivers (WS 012/013) keep the forward top (36), the
+    # heavy autocannon (WS 014/015) stand on an aft shelf one step down, and the
+    # Typhoons (WS 022/023) on beam shelves let into the drum's flanks another step
+    # down. Every riser is a battered plate (45 deg), so the steps read as armour.
+    for s in (1, -1):
+        for tag, plan, floor in (('aft', AFT_SHELF, AFT_SHELF_Z), ('beam', BEAM_SHELF, BEAM_SHELF_Z)):
+            pl = ccw([(x, s*y) for x, y in plan])
+            cutter = prism(kit, f'Temporary citadel {tag} shelf cutter', pl,
+                           [(SHELF_BATTER, floor), (0.0, floor+SHELF_BATTER), (0.0, 60.0)], kit.plate, bevel=0)
+            boolean(tiers[1], cutter)
     tiers.append(prism(kit, 'Hull core inner terrace', disc(*INNER_C, INNER_R2, 16),
                        [(0.0, TERRACE_TOP-2.0), (0.0, TERRACE_TOP), (2.5, INNER_TOP-.8), (3.3, INNER_TOP)],
                        kit.plate, bevel=.2))

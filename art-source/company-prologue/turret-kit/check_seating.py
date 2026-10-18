@@ -29,7 +29,8 @@ out = []
 for ob in sorted(bpy.data.objects, key=lambda o: o.name):
     if not (ob.name.startswith('Weapon ') and ob.name.endswith(' barbette')) or ob.type != 'MESH':
         continue
-    pts = [ob.matrix_world @ v.co for v in ob.data.vertices]
+    pts = [o.matrix_world @ v.co for o in [ob]+[ch for ch in ob.children if ch.type == 'MESH']
+           for v in o.data.vertices]
     c = ob.matrix_world.translation
     rad = max((Vector((p.x, p.y)) - Vector((c.x, c.y))).length for p in pts)
     bottom = min(p.z for p in pts)

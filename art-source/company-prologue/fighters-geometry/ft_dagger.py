@@ -17,6 +17,7 @@ read off the up-res master-v2. Where they disagree the sprite wins.
 """
 import math
 import bpy
+from mathutils import Vector
 import fg_kit as K
 from fg_kit import prism, section
 
@@ -86,6 +87,12 @@ NOTES = [
     'block carries the master\'s dorsal grille, a blade antenna, a collar rib ahead of the lip and a centre body '
     'with stator vanes in its bell. The cream store gets joint bands, cruciform tail fins, a seeker window and two '
     'sway braces to its pod; the fins and stub carry vents and seams.',
+    'Pass 3 rework (owner, 2026-10-18: "bend its wings" and "a 3 point landing gear, centralized in the hull"): '
+    'the wings are an inverted gull, dropping 30 degrees (port pylon and strut) and 25 (starboard stub) from the '
+    'prongs\' outer wall, with the port pod and store hanging level below the hull; the prongs droop at their tips '
+    'and their decks fall 6 degrees outward; the drive block swells along its middle; the keel chamfers are deeper. '
+    'It lands on three oleo legs inside the hull\'s plan, one under each prong root and one under the drive block, '
+    'and stands level. The plan view is unchanged.',
 ]
 
 # Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
@@ -118,35 +125,36 @@ def round_loft(kit, name, rows, y, mat, n=12, bevel=.03):
 # Port prong, nose to root: the tip narrows to Y 3.75..4.25, the inner wall
 # steps from Y 3 to Y 1 at X 12..10 and the outer wall from 6 to 7.
 PRONG = [
-    (17.7, 3.75, 4.25, .25, .85, .2, .2),
-    (16.6, 3.05, 4.95, -.35, 1.25, .5, .4),
-    (15.0, 3.0, 5.6, -.6, 1.45, .6, .5),
-    (12.4, 3.0, 6.0, -.75, 1.5, .65, .55),
-    (11.4, 2.0, 6.4, -.8, 1.5, .65, .55),
+    (17.7, 3.75, 4.25, -.15, .45, .2, .2),
+    (16.6, 3.05, 4.95, -.65, 1.0, .5, .4),
+    (15.0, 3.0, 5.6, -.8, 1.25, .6, .5),
+    (12.4, 3.0, 6.0, -.85, 1.42, .65, .55),
+    (11.4, 2.0, 6.4, -.85, 1.48, .65, .55),
     (10.3, 1.0, 7.0, -.85, 1.5, .7, .55),
     (-.9, 1.0, 7.0, -.85, 1.5, .7, .55),
 ]
 # Cockpit body and waist, symmetric: front face at the notch root X 2.
 BODY = [
-    (2.0, -6.0, 6.0, -1.0, 1.05, .6, .5),
-    (1.2, -6.8, 6.8, -1.3, 1.55, .9, .7),
-    (-.9, -6.8, 6.8, -1.35, 1.6, .9, .7),
-    (-1.3, -6.0, 6.0, -1.35, 1.6, .9, .7),
-    (-2.8, -6.0, 6.0, -1.35, 1.6, .9, .7),
-    (-3.3, -5.0, 5.0, -1.3, 1.6, .85, .65),
-    (-3.8, -5.0, 5.0, -1.3, 1.6, .85, .65),
-    (-4.3, -4.0, 4.0, -1.25, 1.6, .8, .6),
-    (-6.8, -4.0, 4.0, -1.25, 1.6, .8, .6),
-    (-7.6, -4.8, 4.8, -1.3, 1.6, .8, .6),
+    (2.0, -6.0, 6.0, -1.0, 1.05, .6, .95),
+    (1.2, -6.8, 6.8, -1.3, 1.55, .9, 1.15),
+    (-.9, -6.8, 6.8, -1.35, 1.6, .9, 1.15),
+    (-1.3, -6.0, 6.0, -1.35, 1.6, .9, 1.15),
+    (-2.8, -6.0, 6.0, -1.35, 1.6, .9, 1.15),
+    (-3.3, -5.0, 5.0, -1.3, 1.6, .85, 1.1),
+    (-3.8, -5.0, 5.0, -1.3, 1.6, .85, 1.1),
+    (-4.3, -4.0, 4.0, -1.25, 1.6, .8, 1.05),
+    (-6.8, -4.0, 4.0, -1.25, 1.6, .8, 1.05),
+    (-7.6, -4.8, 4.8, -1.3, 1.6, .8, 1.05),
 ]
 # Drive block: the 12-unit engine unit, closing on its aft face at X -15.
 DRIVE = [
-    (-7.1, -4.0, 4.0, -1.3, 1.5, .7, .6),
-    (-7.6, -5.0, 5.0, -1.5, 1.7, .8, .7),
-    (-8.1, -6.0, 6.0, -1.6, 1.85, .9, .75),
-    (-13.9, -6.0, 6.0, -1.6, 1.85, .9, .75),
-    (-14.4, -4.6, 4.6, -1.55, 1.85, .7, .6),
-    (-15.0, -4.2, 4.2, -1.5, 1.8, .5, .45),
+    (-7.1, -4.0, 4.0, -1.3, 1.5, .7, 1.05),
+    (-7.6, -5.0, 5.0, -1.5, 1.7, .8, 1.15),
+    (-8.1, -6.0, 6.0, -1.6, 1.85, .9, 1.2),
+    (-11.0, -6.0, 6.0, -1.95, 2.15, 1.05, 1.25),
+    (-13.9, -6.0, 6.0, -1.6, 1.85, .9, 1.2),
+    (-14.4, -4.6, 4.6, -1.55, 1.85, .7, 1.05),
+    (-15.0, -4.2, 4.2, -1.5, 1.8, .5, .9),
 ]
 # Canopy: (x, half width, height above the waist deck).
 CANOPY = [(-.4, .55, .35), (-1.2, 1.1, 1.0), (-3.0, 1.15, 1.18), (-5.0, 1.05, 1.05), (-6.6, .5, .4)]
@@ -154,6 +162,32 @@ DECK = 1.6
 ENGINE_Z = .15
 MOUTH_X = -15.15
 LIP_R = 1.6
+
+# Wings and landing (owner, 2026-10-18). The wings are an inverted gull:
+# each drops from the prong's outer wall, the port pod hangs level below the
+# hull with the store riding on it, and each tip fin is carried down with its
+# wing. The bends are applied after detail, so everything built on a wing
+# moves with it, and the plan view the sprite draws is unchanged.
+# The bomber lands on three legs kept inside the hull's own plan: a main leg
+# under each prong root and a tail leg under the drive block, each an oleo
+# strut with a drag brace on a foot pad. The wings carry no load.
+WING_ROOT_Y = 7.0          # the prongs' outer wall: every wing bends from here
+PRONG_ANHEDRAL_DEG = 6.0   # the prongs' decks fall toward their outer walls
+PYLON_DROOP_DEG = 30.0     # port pylon, prong to pod
+STRUT_DROOP_DEG = 30.0     # port strut, pod to tip fin
+STUB_DROOP_DEG = 25.0      # starboard stub, prong to tip fin
+FIN_KEEL, FIN_TOP = -1.0, 1.1
+_t = lambda d: math.tan(math.radians(d))
+POD_DROP = _t(PYLON_DROOP_DEG)*(8.2-WING_ROOT_Y)
+FIN_DROP = {'port': POD_DROP+_t(STRUT_DROOP_DEG)*(13.1-11.7), 'starboard': _t(STUB_DROOP_DEG)*(9.0-WING_ROOT_Y)}
+DECK_Z = -3.4              # parked deck, level in the hull frame
+PAD_T = .3
+# (name, x, y, z where the strut enters the hull, drag brace run fore (+) or aft (-))
+GEAR = [('Hull port main gear', 7.0, 3.9, -1.0, -2.2),
+        ('Hull starboard main gear', 7.0, -3.9, -1.0, -2.2),
+        ('Hull tail gear', -11.6, 0.0, -1.7, 2.2)]
+FEET = [f'{g[0]} pad' for g in GEAR]
+LEG_PARTS = tuple(g[0] for g in GEAR)
 
 
 def build(kit):
@@ -163,6 +197,8 @@ def build(kit):
     prong_p = loft(kit, 'Hull port prong', PRONG, a, .05)
     prong_s = loft(kit, 'Hull starboard prong', mirrored(PRONG), a, .05)
     kit.hull += [body, drive, prong_p, prong_s]
+    for prong in (prong_p, prong_s):  # anhedral: the deck falls toward the outer wall
+        warp(prong, lambda p: (p.x, p.y, p.z-_t(PRONG_ANHEDRAL_DEG)*max(0.0, abs(p.y)-1.0)))
 
     # Canopy glass on the waist deck.
     st = []
@@ -182,14 +218,14 @@ def build(kit):
                   section(-.25, .45, .12, .12), a, .03)
     fin_p = prism(kit, 'Wing port tip fin',
                   [(8.0, 13.5), (7.3, 14.05), (-.6, 14.05), (-1.0, 13.5), (-.6, 12.95), (7.3, 12.95)],
-                  section(-1.0, 1.1, .2, .2), a, .03)
+                  section(FIN_KEEL, FIN_TOP, .2, .2), a, .03)
     # Starboard wing: a short stub to its tip fin.
     stub = prism(kit, 'Wing starboard stub',
                  [(6.0, -6.6), (6.9, -7.1), (6.9, -8.0), (6.0, -9.1), (0.0, -9.1), (0.0, -6.6)],
                  section(-.5, .9, .25, .25), a, .04)
     fin_s = prism(kit, 'Wing starboard tip fin',
                   [(8.0, -9.5), (7.3, -8.95), (-.6, -8.95), (-1.0, -9.5), (-.6, -10.05), (7.3, -10.05)],
-                  section(-1.0, 1.1, .2, .2), a, .03)
+                  section(FIN_KEEL, FIN_TOP, .2, .2), a, .03)
     kit.hull += [pylon, pod, strut, fin_p, stub, fin_s]
 
     # The painted port store: a cream torpedo half sunk into the pod's deck,
@@ -212,6 +248,57 @@ def build(kit):
     kit.slot_anchor(SLOTS[1], (7.0, 0, .35))
     if kit.detail:
         detail(kit)
+    bend_wings()
+    landing_gear(kit)
+
+
+def warp(ob, fn):
+    """Move every vertex of ob through fn, in the hull frame."""
+    if ob.data.users > 1:
+        ob.data = ob.data.copy()
+    mw = ob.matrix_world.copy()
+    inv = mw.inverted()
+    for v in ob.data.vertices:
+        p = mw @ v.co
+        v.co = inv @ Vector(fn(p))
+    ob.data.update()
+
+
+def wing_bend(name, p):
+    """Where the inverted gull puts a point of the named wing part."""
+    x, y, z = p
+    if name.startswith('Wing port pylon'):
+        return x, y, z-_t(PYLON_DROOP_DEG)*max(0.0, y-WING_ROOT_Y)
+    if name.startswith(('Wing port torpedo pod', 'Weapon WS 002 ')):
+        return x, y, z-POD_DROP
+    if name.startswith('Wing port strut'):
+        return x, y, z-POD_DROP-_t(STRUT_DROOP_DEG)*max(0.0, y-11.7)
+    if name.startswith('Wing starboard stub'):
+        return x, y, z-_t(STUB_DROOP_DEG)*max(0.0, -WING_ROOT_Y-y)
+    for side in ('port', 'starboard'):
+        if name.startswith(f'Wing {side} tip fin'):
+            return x, y, z-FIN_DROP[side]
+    return None
+
+
+def bend_wings():
+    bpy.context.view_layer.update()
+    for ob in list(bpy.data.objects):
+        if ob.type == 'MESH' and wing_bend(ob.name, (0, 0, 0)) is not None:
+            warp(ob, lambda p, n=ob.name: wing_bend(n, p))
+
+
+def landing_gear(kit):
+    """Three oleo legs under the hull: a strut cylinder from the belly, its piston, a drag brace and a foot pad."""
+    S, B, D = kit.steel, kit.bright, kit.dark
+    for name, x, y, top, brace in GEAR:
+        sole = DECK_Z+PAD_T
+        knee = top+(sole-top)*.45
+        kit.rod(f'{name} strut', (x, y, top+.4), (x, y, knee), .24, S, 12)
+        kit.rod(f'{name} piston', (x, y, knee+.2), (x, y, sole-.1), .14, B, 12)
+        kit.rod(f'{name} gland', (x, y, knee+.12), (x, y, knee-.12), .29, D, 12)
+        kit.rod(f'{name} drag brace', (x+brace, y, top+.3), (x, y, knee+.1), .08, S, 8)
+        kit.box(f'{name} pad', (x, y, DECK_Z+PAD_T/2), (2.0, 1.5, PAD_T), D, .06)
 
 
 def detail(kit):

@@ -462,8 +462,9 @@ public final class WarshipSystem {
             tickShield(fightDt, sim, ship);
             ship.fluxPool().update(fightDt);
             if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship, edges);
-            edges.contain(ship);
             turnHull(dt, ship);
+            // After the turn as well as the move: a hull turning about its pivot swings its centre too.
+            edges.contain(ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.knockedOut()) continue;
                 if (ship.descending()) {
@@ -751,6 +752,7 @@ public final class WarshipSystem {
                     picture.ownAir(), ship.stance(), foeHull(ship));
             WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
             ship.setPosture(decision.posture(), decision.reason());
+            ship.fluxFooting(foeHull(ship) >= 0f);
         }
         if (ship.remoteOrder() != Warship.RemoteOrder.NONE) return;
         if (lead != null) {
@@ -806,9 +808,10 @@ public final class WarshipSystem {
         float[] station = WarshipEscort.station(lead.centerX(), lead.centerY(), WarshipEscort.noseBearingDegrees(lead),
                 WarshipEscort.ringRadius(lead, ship), ship.escortAngle(), slot, Math.max(1, mates.size()),
                 WarshipEscort.lineSpacing(ship));
-        // The screen stays over the battle, off its edges: a lead flying off the edge is followed out only once it has gone.
-        float[] kept = new WarshipEdgeHelm(mapWidth, mapHeight).settle(ship, station[0], station[1]);
-        ship.escortTo(kept[0], kept[1]);
+        // The screen stays over the battle: a lead flying off the edge is followed out only once it has gone.
+        float margin = 0.5f * ship.lengthCells + WarshipDuelHelm.EDGE_MARGIN_CELLS;
+        ship.escortTo(Math.max(margin, Math.min(mapWidth - margin, station[0])),
+                Math.max(margin, Math.min(mapHeight - margin, station[1])));
     }
 
     private boolean autoEscort;
@@ -1411,8 +1414,8 @@ public final class WarshipSystem {
     /** The duel station: a bow ship's quiet quarter or a broadside ship's beam, at the standoff law's range. */
     private static float[] duelStation(BattleSimulation sim, Warship ship, Warship target, Warship lead,
                                        WarshipEdgeHelm edges) {
-        float mine = WarshipDuelHelm.reach(ship);
-        float theirs = WarshipDuelHelm.reach(target);
+        float mine = WarshipDuelHelm.batteryReach(ship);
+        float theirs = WarshipDuelHelm.batteryReach(target);
         float range = WarshipDuelHelm.preferredRange(mine, theirs, 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
         // Which beam a ship dead ahead or astern takes is the hull's own, by its serial, so a pair does not mirror.
         float[] at = WarshipDuelHelm.bowFighter(ship)
@@ -1663,7 +1666,9 @@ public final class WarshipSystem {
     /** The hull share left to the hull {@code ship} is fighting, or {@link PostureInputs#NO_FOE}. */
     private static float foeHull(Warship ship) {
         Warship foe = ship.hullTarget();
-        return foe == null || foe.destroyed() ? PostureInputs.NO_FOE : Math.max(0f, foe.hullFraction());
+        // An overloaded ship holds no fire target, but it is still in the fight its manoeuvre is about.
+        if (foe == null || foe.destroyed()) foe = ship.manoeuvre().target();
+        return foe == null || foe.destroyed() || foe.departed() ? PostureInputs.NO_FOE : Math.max(0f, foe.hullFraction());
     }
 
     private void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {

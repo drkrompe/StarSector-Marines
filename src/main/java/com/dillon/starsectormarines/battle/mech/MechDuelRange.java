@@ -39,7 +39,18 @@ import java.util.List;
  * distance, it holds and fights; too far with nowhere legal to go, its
  * doctrine advances it as before. An armored contact shelling it from beyond
  * its own reach is a duel too: the band decides whether it closes on where
- * that contact was last seen.
+ * that contact was last seen, or, while its rounds are landing, on where they
+ * are coming from. A long-reach shooter is usually beyond sight as well, and
+ * the cell it was last seen in is wherever it stood before it backed off.
+ *
+ * <p>A mech holding a post (defend area, hold node) may <em>sortie</em>: when
+ * an armored contact out-reaches it from ground that can shell the leash, and
+ * it cannot reach the shooter from where it stands, its command stretches to
+ * the ground that attacker can reach the leash from. Driving the shooter off is
+ * defending the post; standing at the edge of the leash on open ground and
+ * taking fire it cannot return is not. Once the shooter is beyond reach of the
+ * leash the sortie ends and the mech's doctrine walks it home. Exact-cell
+ * moves, rushes, attack-moves and posts not yet reached stay strict.
  *
  * <p>{@code -Dbattle.mech.duelRange=false} is the control.
  */
@@ -61,6 +72,13 @@ public final class MechDuelRange {
     static final float COVER_WEIGHT = 2.5f;
     /** Widest angle between the walk and the target a threatened mech accepts: past this its back is turned. */
     static final float MAX_WALK_OFF_TARGET_DEGREES = 120f;
+
+    /** Incoming pressure (a round or so, decaying with a two-second half-life) that counts as being under fire. */
+    static final float UNDER_FIRE_PRESSURE = 0.5f;
+    /** A hit this recent (ten seconds, longer than a missile rack reloads) keeps the fire's origin fresh. */
+    static final int UNDER_FIRE_TICKS = 300;
+    /** Puts any last-seen contact behind every contact that explains incoming fire. */
+    private static final float FIRE_RANK_OFFSET = 10_000f;
 
     private MechDuelRange() {}
 
@@ -87,7 +105,9 @@ public final class MechDuelRange {
         }
         int cellX = sim.world().cellX(member);
         int cellY = sim.world().cellY(member);
-        if (!MechAssignmentBoundary.permitsCell(member, squad, cellX, cellY, sim)) return false;
+        boolean inCommand = MechAssignmentBoundary.permitsCell(member, squad, cellX, cellY, sim);
+        int[] post = MechAssignmentBoundary.heldPost(member, squad, sim);
+        if (!inCommand && post == null) return false;
 
         List<Weapon> own = ownWeapons(loadout);
         long target = MechTargeting.refreshTarget(member, sim);
@@ -98,16 +118,22 @@ public final class MechDuelRange {
             tx = sim.world().x(target);
             ty = sim.world().y(target);
         } else {
-            BelievedContact contact = outReachingContact(member, squad, own, sim);
-            if (contact == null) return false;
-            target = contact.unitId();
-            tx = contact.lastSeenCellX() + 0.5f;
-            ty = contact.lastSeenCellY() + 0.5f;
+            Threat threat = outReachingThreat(member, squad, own, sim);
+            if (threat == null) return false;
+            target = threat.id();
+            tx = threat.x();
+            ty = threat.y();
         }
         List<Weapon> threat = threatOf(target, sim);
         if (threat == null) return false;
         Band band = MechDuelBand.choose(own, threat, role);
         if (band == null) return false;
+        float sortie = post == null ? 0f
+                : sortieRadius(post, tx, ty, inCommand,
+                        TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), tx, ty),
+                        MechDuelBand.reach(own), MechDuelBand.reach(threat));
+        if (!inCommand && sortie <= 0f) return false;
+        Command command = new Command(squad, post, sortie);
 
         float distance = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), tx, ty);
         boolean visible = false;
@@ -141,7 +167,7 @@ public final class MechDuelRange {
                 return true;
             }
             if (coverAt(cellX, cellY, tx, ty, sim) <= 0 && sim.movement().mayRepath(member)) {
-                int[] hop = findBandCell(member, squad, target, tx, ty, band, 0f, COVER_HOP_RADIUS, true, sim);
+                int[] hop = findBandCell(member, command, target, tx, ty, band, 0f, COVER_HOP_RADIUS, true, sim);
                 if (hop != null && (hop[0] != cellX || hop[1] != cellY)) {
                     route.moveToward(member, hop[0], hop[1], sim);
                 }
@@ -152,7 +178,7 @@ public final class MechDuelRange {
         if (route.resume(member, sim)) return true;
         boolean progressing = walking && destinationError < error - 0.5f;
         if (!progressing && sim.movement().mayRepath(member)) {
-            int[] dest = findBandCell(member, squad, target, tx, ty, band, error, SEARCH_RADIUS, false, sim);
+            int[] dest = findBandCell(member, command, target, tx, ty, band, error, SEARCH_RADIUS, false, sim);
             if (dest != null) {
                 route.moveToward(member, dest[0], dest[1], sim);
                 return true;
@@ -169,33 +195,89 @@ public final class MechDuelRange {
         return true;
     }
 
+    /**
+     * How far from its post a holding mech may go to answer an attacker at
+     * {@code (tx, ty)}, or zero when it may not leave its leash: the attacker
+     * must out-reach it and be able to shell the leash, and a mech still
+     * inside its leash leaves only when it cannot reach the attacker from
+     * where it stands. Asking whether some cell of the leash could answer
+     * instead strands it at the leash's edge: a shooter that out-reaches it
+     * simply steps back as it arrives. Once out, it stays out while the
+     * attacker can still shell the leash. The answer is the ground the
+     * attacker can shell the leash from.
+     */
+    static float sortieRadius(int[] post, float tx, float ty, boolean inLeash, float distance,
+                              float ownReach, float threatReach) {
+        float leash = MechAssignmentBoundary.EXACT_CELL_LEASH;
+        if (threatReach < ownReach + HOLD_SLACK) return 0f;
+        float fromPost = TacticalScoring.cellDistance(post[0] + 0.5f, post[1] + 0.5f, tx, ty);
+        if (fromPost > leash + threatReach) return 0f;
+        if (inLeash && distance <= ownReach) return 0f;
+        return leash + threatReach;
+    }
+
+    /** Where this mech may stand this tick: its command, or a sortie around its post. */
+    record Command(Squad squad, int[] post, float sortie) {
+        boolean permits(long member, int x, int y, BattleView sim) {
+            if (sortie > 0f && TacticalScoring.cellDistance(x + 0.5f, y + 0.5f,
+                    post[0] + 0.5f, post[1] + 0.5f) <= sortie) return true;
+            return MechAssignmentBoundary.permitsCell(member, squad, x, y, sim);
+        }
+    }
+
     /** Cells outside the band, zero inside it. */
     static float bandError(Band band, float distance) {
         return Math.max(0f, band.min() - distance) + Math.max(0f, distance - band.max());
     }
 
+    /** A believed armored contact and where this mech should take it to be. */
+    record Threat(long id, float x, float y) { }
+
     /**
-     * The nearest believed armored contact that can reach this mech from
-     * where it was last seen while this mech cannot reach it back, or null.
+     * The armored contact that out-reaches this mech, or null: one that can
+     * reach it from where it is believed to stand while this mech cannot reach
+     * it back. While this mech is under fire it is believed to stand where the
+     * rounds come from, taken as the believed contact that could have fired
+     * them from there; otherwise the nearest such contact where it was last
+     * seen.
      */
-    static BelievedContact outReachingContact(long member, Squad squad, List<Weapon> own, BattleView sim) {
+    static Threat outReachingThreat(long member, Squad squad, List<Weapon> own, BattleView sim) {
         if (squad == null) return null;
         float reach = MechDuelBand.reach(own);
         float mx = sim.world().x(member);
         float my = sim.world().y(member);
-        BelievedContact best = null;
-        float bestDistance = Float.MAX_VALUE;
+        int tick = sim.getSimTickIndex();
+        boolean underFire = sim.combat().incomingPressure(member, tick) >= UNDER_FIRE_PRESSURE
+                && sim.combat().ticksSinceDamaged(member, tick) <= UNDER_FIRE_TICKS;
+        float fromX = sim.combat().incomingFromX(member) + 0.5f;
+        float fromY = sim.combat().incomingFromY(member) + 0.5f;
+        float fromDistance = TacticalScoring.cellDistance(mx, my, fromX, fromY);
+        Threat best = null;
+        float bestScore = Float.MAX_VALUE;
         for (BelievedContact contact : squad.believedContacts()) {
             long id = contact.unitId();
             if (id == 0L || !sim.canEngage(member, id)
                     || !sim.identity().faction(member).hostileTo(sim.identity().faction(id))) continue;
-            float d = TacticalScoring.cellDistance(mx, my,
-                    contact.lastSeenCellX() + 0.5f, contact.lastSeenCellY() + 0.5f);
-            if (d <= reach || d >= bestDistance) continue;
             List<Weapon> threat = threatOf(id, sim);
-            if (threat == null || MechDuelBand.reach(threat) < d - HOLD_SLACK) continue;
-            best = contact;
-            bestDistance = d;
+            if (threat == null) continue;
+            float threatReach = MechDuelBand.reach(threat);
+            float seenX = contact.lastSeenCellX() + 0.5f;
+            float seenY = contact.lastSeenCellY() + 0.5f;
+            if (underFire && fromDistance > reach && threatReach >= fromDistance - HOLD_SLACK) {
+                // The shooter is whichever such contact was last seen nearest the fire.
+                float score = TacticalScoring.cellDistance(seenX, seenY, fromX, fromY);
+                if (score < bestScore) {
+                    best = new Threat(id, fromX, fromY);
+                    bestScore = score;
+                }
+                continue;
+            }
+            if (underFire && best != null) continue;
+            float d = TacticalScoring.cellDistance(mx, my, seenX, seenY);
+            // Ranked behind every contact that explains the fire.
+            if (d <= reach || threatReach < d - HOLD_SLACK || d + FIRE_RANK_OFFSET >= bestScore) continue;
+            best = new Threat(id, seenX, seenY);
+            bestScore = d + FIRE_RANK_OFFSET;
         }
         return best;
     }
@@ -209,7 +291,7 @@ public final class MechDuelRange {
      * facing the target buys walk; {@code requireCover} keeps only covered
      * in-band cells.
      */
-    static int[] findBandCell(long member, Squad squad, long target, float tx, float ty, Band band,
+    static int[] findBandCell(long member, Command command, long target, float tx, float ty, Band band,
                               float currentError, int radius, boolean requireCover, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int memberX = sim.world().cellX(member);
@@ -244,7 +326,7 @@ public final class MechDuelRange {
                 if (score >= bestScore) continue;
                 if (!reachable.contains(x, y)
                         || error == 0f && !grid.hasLineOfFire(cx, cy, tx, ty)
-                        || !MechAssignmentBoundary.permitsCell(member, squad, x, y, sim)
+                        || !command.permits(member, x, y, sim)
                         || !MechRouteIntent.candidate(member, x, y, sim)) continue;
                 bestScore = score;
                 best = new int[]{x, y};
@@ -260,7 +342,7 @@ public final class MechDuelRange {
     }
 
     /** Installed weapons that can still fire. */
-    static List<Weapon> ownWeapons(MechLoadoutComponent loadout) {
+    public static List<Weapon> ownWeapons(MechLoadoutComponent loadout) {
         List<Weapon> out = new ArrayList<>(3);
         for (MechWeaponMount mount : loadout.mounts()) {
             if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) {

@@ -723,7 +723,7 @@ Still open inside this story:
   ground referee never reads it; a duel-off control wins the same seed. Since
   2026-10-18 it has no fight area and edge entry and exit only; over the five
   `greyhook-duel` seeds the Greyhook breaks for the east edge about 111 seconds after
-  the order and is off the map five and a half to six minutes after it, with 80 to
+  the order and is off the map five and a half to six minutes after it, with 40 to
   100 percent of her hull, one or both Hounds fall, and the Wolfs lose none (four
   seeds) or both (`warship-behaviours.md`, Decided: ship against ship). Her run across the
   basin at under a cell a second is long, and with the doctrine's withdrawal the

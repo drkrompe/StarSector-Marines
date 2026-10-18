@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — hulls repel infantry; story columns may drive reactively.
+Updated: 2026-10-18 — deployed hulls engage armor from a duel band between orders; idle turrets settle onto the hull heading.
 
 ## Purpose and boundary
 
@@ -367,7 +367,10 @@ bearing drives its authored traverse, and a held primary trigger fires only
 when ordinary alignment, cooldown, ammunition, and burst gates permit. A burst
 retains its world point; later cursor movement applies to the next trigger.
 Manual ownership suppresses this hull's autonomous acquisition and trigger,
-while other vehicle turrets remain autonomous. Entry, exit, and input
+while other vehicle turrets remain autonomous. An autonomous turret with nothing
+to shoot, or nothing left to shoot with, settles back onto the hull's heading at
+half its traverse; its facing is a world bearing, so otherwise it keeps the
+bearing its last target left it on while the hull turns beneath it. Entry, exit, and input
 suspension discard queued rounds and targets without resetting ammunition or
 cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.
@@ -535,9 +538,22 @@ retains the same existing cross-domain behavior as an autonomous hull.
   hands, and being carried is not that.
 - A chassis need not be on an errand at all. A **deployed** vehicle is one put
   on the field with no delivery to run: it holds where it was set down until it
-  is told to go somewhere. That is what a vehicle the player owns is doing
-  between orders, and it is what makes delivery one of the things a vehicle can
-  be doing rather than the whole of what a vehicle is. Its route arrays are
+  is told to go somewhere, or until armor comes into view. That is what a
+  vehicle the player owns is doing between orders, and it is what makes delivery
+  one of the things a vehicle can be doing rather than the whole of what a
+  vehicle is. An armed deployed hull with no order and no story route **engages
+  armor** on its own (`VehicleEngagement`): the nearest hostile mech or ground
+  vehicle it can see within one and a half times its gun's reach is fought from
+  the duel band the mechs use (`mechs-nouns.md`, Duel range), read from its
+  turret against that machine's weapons. It drives to the band and stops there
+  for the turret; a single gun has no shorter band, so it never closes into
+  contact. Too close, it backs off with its nose kept on the target through the
+  manual-drive physics, because a hull cannot reverse along a route and a
+  planned retreat would begin with a turnaround toward the enemy. A player
+  order owns the chassis while it lasts and an arrived one hands back to this;
+  allied story columns, delivery legs, unarmed hulls and empty magazines never
+  engage, and infantry is not a duel target. `-Dbattle.vehicle.duelRange=false`
+  is the control. Its route arrays are
   degenerate on purpose — fabricating a journey it never took would give it an
   errand to resume the moment an order was released.
 - Only the player's own chassis takes the player's orders. Orders are queued by

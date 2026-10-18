@@ -34,7 +34,22 @@ public final class WarshipScale {
     public static final float HULL_REACH_SHARE =
             Float.parseFloat(System.getProperty("battle.warship.hullReachShare", "0.5"));
 
+    /**
+     * How far apart hulls fight in atmosphere, against the base game's ranges read at {@link #HULL_REACH_SHARE}: every
+     * gun's reach at a hull, and so every standoff, run and station keyed off it, is this many times longer, and a
+     * round fired at a hull flies this many times faster ({@link #hullRoundSpeed}), so it crosses the longer range in
+     * the time it crossed the shorter one and the hull fight's clock ({@link #HULL_TEMPO}) keeps its meaning. Ships of
+     * the line fight at a distance with the ground between them, not nose to nose.
+     * {@code -Dbattle.warship.hullRange=1} is the control.
+     */
+    public static final float HULL_RANGE = Float.parseFloat(System.getProperty("battle.warship.hullRange", "2.5"));
+
     private WarshipScale() {}
+
+    /** Cells a second a round fired at a hull flies: the game's muzzle speed, times {@link #HULL_RANGE}. */
+    public static float hullRoundSpeed(float speedGameUnits) {
+        return cells(speedGameUnits) * HULL_RANGE;
+    }
 
     /** The reach, in cells, of a gun firing at a hull: the game's range at the hull's drawn scale, shortened. */
     public static float hullReach(float rangeGameUnits) {
@@ -42,18 +57,19 @@ public final class WarshipScale {
     }
 
     /** {@link #hullReach} over {@link #cells}: the range multiplier a gun firing at a hull reaches by. */
-    public static final float HULL_REACH_MULTIPLIER = HULL_PRESENCE * HULL_REACH_SHARE;
+    public static final float HULL_REACH_MULTIPLIER = HULL_PRESENCE * HULL_REACH_SHARE * HULL_RANGE;
 
     /**
      * The hull fight's clock (`warship-tactics.md`, D1): everything a fight between hulls spends per second (a gun's
      * cycle at a hull, the missile ripple, and on the duel footing flux dissipation, shield upkeep and overload)
      * runs at {@code 1 / HULL_TEMPO}. Derived, not tuned: a round between hulls flies {@link #HULL_REACH_MULTIPLIER}
-     * times as far as in the base game at the base game's speed, so at the same tempo the rounds in the air at once,
-     * and the share of a fight a round spends crossing, are the base game's. Damage, armour, shields and hit points
-     * are untouched. {@code -Dbattle.warship.hullTempo=1} is the control.
+     * times as far as in the base game at {@link #HULL_RANGE} times the base game's speed, so it spends
+     * {@code HULL_PRESENCE * HULL_REACH_SHARE} times as long in the air; at the same tempo the rounds in the air at
+     * once, and the share of a fight a round spends crossing, are the base game's. Damage, armour, shields and hit
+     * points are untouched. {@code -Dbattle.warship.hullTempo=1} is the control.
      */
     public static final float HULL_TEMPO = Math.max(1f, Float.parseFloat(
-            System.getProperty("battle.warship.hullTempo", Float.toString(HULL_REACH_MULTIPLIER))));
+            System.getProperty("battle.warship.hullTempo", Float.toString(HULL_PRESENCE * HULL_REACH_SHARE))));
 
     /** Game units to cells, for reach, blasts and speeds. */
     public static float cells(float gameUnits) {

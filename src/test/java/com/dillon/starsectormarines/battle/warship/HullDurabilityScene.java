@@ -80,7 +80,7 @@ public final class HullDurabilityScene implements BehaviorScene {
         Warship east = Warship.fit(matchup.eastHull(), matchup.eastVariant(), Faction.DEFENDER, 0f, 0f, 90f);
         float reach = Math.max(WarshipShipFire.longestReach(west), WarshipShipFire.longestReach(east));
         float length = Math.max(west.lengthCells, east.lengthCells);
-        float start = 2.2f * reach + length;
+        float start = 1.3f * reach + length;
         int width = Math.round(start + 6f * length + 40f);
         int height = Math.round(Math.max(1.6f * reach + 4f * length, 160f));
         SceneBuilder builder = SceneBuilder.openGround(width, height).missionCompletion(false);

@@ -88,7 +88,7 @@ if raw.exists():
     print(f'IoU {iou:.4f}  uncovered {missing:.3%}  outside {extra:.3%}')
 
 # Formation views: crop each 1080p render round the hull at 1:1.
-formation = sorted(src.glob('formation-*.png'))
+formation = sorted(p for p in src.glob('formation-*.png') if p.stem != 'formation-sheet')
 extent = {}
 if formation:
     sheet = Image.new('RGB', (1920, 1080), (8, 9, 12))
