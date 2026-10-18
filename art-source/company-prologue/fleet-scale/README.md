@@ -7,13 +7,13 @@ Written: 2026-10-18
 `fleet_lineup.py` puts every hull into one Blender scene in metres. Every hull
 gets the same grey material, there is one sun and a dim grey world, a 1.8 m
 orange figure, and a grid with 10 m lines and 50 m majors. Size is the only
-thing that differs. It renders six 1920x1080 frames and writes a sizes table.
+thing that differs. It renders seven 1920x1080 frames and writes a sizes table.
 
 ```sh
 python3 fleet_lineup.py                 # build, render, label, write the table
 python3 fleet_lineup.py --post mac      # ... and post the run to the Drive review folder
 python3 fleet_lineup.py --basis solved  # preview ship_scale.py's solution instead of published values
-python3 fleet_lineup.py --pending pending-c.json   # a chosen basis not yet published: scale those hulls by hand
+python3 fleet_lineup.py --pending sizes.json  # a chosen basis not yet published: scale those hulls by hand
 python3 fleet_lineup.py --no-references # leave out the real-world references
 python3 fleet_lineup.py --frames 3,5    # rerender some frames; the others keep their raw renders
 python3 fleet_lineup.py --skip-render   # relabel and rewrite the table from the last raw renders
@@ -44,14 +44,15 @@ Nothing here holds a size.
   documented build and no build anywhere (the Onslaught today) needs its build
   run once on the machine first:
   `sh ../../blender.sh --background --factory-startup --python build_onslaught.py -- --views top`.
-- **Pending basis.** `--pending pending-c.json` names hulls whose chosen
-  (option C) size is not settled yet. Each entry scales its hull by hand to
-  `length_m`, labelled with its `label` (for example "pending"), but only while
-  the hull's published length differs from it by more than 5%. Once the
-  hull's session publishes its C scale to `geometry.json`, a rerun uses the
-  real value with no hand scaling. An entry's `note` (for example "pending:
-  measurement audit") stays on the hull's label until the entry is deleted.
-  The Legion frames carry the basis in their titles.
+- **Pending basis.** `--pending <file.json>` covers a chosen size that a
+  hull has not published yet. The file looks like
+  `{"basis_label": "C (chosen)", "tolerance": 0.05, "hulls": {"lasher":
+  {"length_m": 90, "label": "pending", "note": "..."}}}`. Each entry scales
+  its hull by hand to `length_m`, labelled with `label`, but only while the
+  hull's published length differs from it by more than the tolerance. An
+  entry's `note` stays on the hull's label until the entry is deleted. It was
+  used for option C until every hull had published, then deleted (Git keeps
+  `pending-c.json`).
 - **Estimates.** A hull with no package yet goes in as a neutral slab and is
   labelled ESTIMATE. The Onslaught and the Lasher are estimates today. The slab
   is the game sprite's silhouette, extruded to the mean thickness that gives
@@ -87,6 +88,7 @@ the magnified panel names each of them.
 | 04 | The Hound in that hangar lane | Orthographic section from astern, cut just inside the mouth. The lane's clear section is outlined. The subtitle says whether it fits |
 | 05 | Eye level on the Hound's port walkway | 1.65 m above the deck, with the Legion alongside |
 | 06 | The Legion's fighters, two abreast in the same lane | Orthographic section from outboard. No shadows, because the clipped wall would still shade the lane |
+| 07 | The Legion and the Onslaught side by side, broadside | Orthographic, with the Hound and a 747 in front for scale |
 
 In the section views (04, 06) the Legion turns a darker grey and its faces seen
 from behind become transparent, so the cut reads as a cutaway.

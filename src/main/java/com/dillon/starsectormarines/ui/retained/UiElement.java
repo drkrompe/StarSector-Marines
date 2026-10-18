@@ -67,6 +67,7 @@ public final class UiElement {
     private String text;
     private Color textColor;
     private Runnable onClick;
+    private String sound;
     private Consumer<String> onInput;
     private Consumer<UiPointerEvent> onPointerMove;
     private Consumer<UiPointerEvent> onPointerDown;
@@ -642,6 +643,17 @@ public final class UiElement {
 
     public boolean clickable() {
         return onClick != null && !disabled;
+    }
+
+    /** The base-game sound id this control plays when pressed, instead of the ordinary press. */
+    public UiElement sound(String soundId) {
+        sound = soundId;
+        return this;
+    }
+
+    /** This control's own press sound, or null for the ordinary one. */
+    public String sound() {
+        return sound;
     }
 
     void click() {

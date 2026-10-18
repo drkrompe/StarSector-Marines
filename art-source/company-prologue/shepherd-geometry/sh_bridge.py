@@ -17,16 +17,18 @@ with mullions under a brow lip, flank viewports (crew comfort), the roof
 hatch and an air handler on the nose crown, an antenna mast, running lamps
 either side of the nose and a tail vent. A thin grey boom runs forward off
 the spine to X 44 (Y ~9.5); a grey-white sensor cluster stands at
-X 31..39, Y -6..-11, a radome over its pedestal and a scanner forward.
+X 31..39, Y -6..-11, a radome over its chassis on a plinth seated on the
+skin, and a scanner forward.
 
 Names: 'Bridge ...' and 'Mast ...'. Only the bridge hull joins kit.hull
 (the ray-cast seat); every detail part stays out of it.
 """
 import math
+import bpy
 from mathutils import Vector
 from sh_kit import prism, section, revolve_x, material
 
-BRIDGE_X = (3.8, 35.6)        # aft and forward ends
+BRIDGE_X = (3.8, 34.8)        # aft and forward ends (the chin lands on the bow here)
 BRIDGE_CY = -2.5              # plan centreline (Y -10..+5)
 BRIDGE_HALF_W = 8.0
 BRIDGE_H = 15.0               # crown height above BASE_Z (crown +17, deck +6)
@@ -41,6 +43,31 @@ PLAN_FRONT = 24.0             # plan width starts rounding off here
 RAKE_X = (27.4, 30.0)         # brow and sill stations: the sprite's dark band at X 27..28.5 and on
 SILL_H = 10.6                 # sill height above BASE_Z (deck +1.6)
 GLAZE_X = (RAKE_X[0]+.25, RAKE_X[1]-.2)
+# The chin (pass 3 round 3, owner: the bridge's bottom lip does not cleanly meet
+# the hull): forward of the sill the hull is drawn down onto the bow's own skin,
+# tangent where it lands at BRIDGE_X[1], so the bridge flows into the bow rather
+# than overhanging it with an exposed flat underside. _BOW holds the hull parts
+# the chin lands on, captured before the bridge hull itself joins kit.hull.
+_BOW = {'objs': None, 'cache': {}}
+
+
+def _bow_z(x, y):
+    """Top of the bow's skin at (x, y) (None off it), by a downward ray."""
+    key = (round(x, 3), round(y, 3))
+    if key in _BOW['cache']:
+        return _BOW['cache'][key]
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    best = None
+    for ob in _BOW['objs']:
+        ev = ob.evaluated_get(dg)
+        inv = ev.matrix_world.inverted()
+        hit, p, _, _ = ev.ray_cast(inv @ Vector((x, y, 60)), (inv.to_3x3() @ Vector((0, 0, -1))).normalized())
+        if hit:
+            z = (ev.matrix_world @ p).z
+            best = z if best is None or z > best else best
+    _BOW['cache'][key] = best
+    return best
 
 
 # --- Private geometry accumulators: many small parts, one object each kind. ---
@@ -160,7 +187,17 @@ def _pt(x, t, d=0.0):
     c, s = math.cos(t), math.sin(t)
     e = 2/SECTION_N
     y = BRIDGE_CY+(a+d)*math.copysign(abs(c)**e, c)
-    z = BASE_Z+(h+d)*abs(s)**e
+    z0 = BASE_Z+h*abs(s)**e
+    z = z0+d*abs(s)**e
+    xs, x1 = RAKE_X[1], BRIDGE_X[1]
+    if x > xs and _BOW['objs']:
+        zb = _bow_z(x, BRIDGE_CY+a*math.copysign(abs(c)**e, c))
+        if zb is not None:
+            # The flanks land first and the crown last, so the chin meets the bow
+            # on a tangent all round rather than folding at its feet.
+            xe = xs+(x1-xs)*(.4+.6*abs(s))
+            w = (1-min(1.0, (x-xs)/(xe-xs)))**2
+            z = zb-.06*(1-w)+(z0-zb)*w+(z-z0)
     return Vector((x, y, z))
 
 
@@ -194,7 +231,13 @@ def _hull_mesh(kit):
     ts = [math.pi*j/m for j in range(m+1)]
     verts, faces = [], []
     for x in xs:
-        verts += [tuple(_pt(x, t)) for t in ts]
+        for j, t in enumerate(ts):
+            p = _pt(x, t)
+            if j in (0, m) and x > RAKE_X[1]:          # the flank feet stay under the bow's skin
+                zb = _bow_z(x, p.y)
+                if zb is not None:
+                    p.z = min(p.z, zb-.8)
+            verts.append(tuple(p))
     w = len(ts)
     for i in range(len(xs)-1):
         for j in range(w-1):
@@ -214,6 +257,7 @@ def build(kit):
     green = material('Running lamp green', (.02, .3, .08), 0, .3, emission=(.1, 1, .3), strength=8)
     white = material('Running lamp white', (.6, .6, .55), 0, .3, emission=(1, .95, .85), strength=8)
 
+    _BOW['objs'], _BOW['cache'] = list(kit.hull), {}
     hull = _hull_mesh(kit)
     kit.hull.append(hull)
     deg = math.radians
@@ -319,8 +363,8 @@ def build(kit):
 
     # Navigation lamps either side of the nose, under the brow.
     for side, t, mat in (('port green', deg(52), green), ('starboard red', deg(128), red)):
-        c = _pt(RAKE_X[1]+1.0, t, 0)
-        nrm = (_pt(RAKE_X[1]+1.0, t, 1)-c).normalized()
+        c = _pt(RAKE_X[1]+.75, t, 0)
+        nrm = (_pt(RAKE_X[1]+.75, t, 1)-c).normalized()
         house = _Acc()
         house.cyl(c+nrm*.15, nrm, .38, .2, 8)
         house.build(kit, f'Bridge running lamp {side} housing', kit.steel, .02)
@@ -397,18 +441,58 @@ def _sensor_head(kit, glass):
     # drum on a yoke forward, a dish, and forward camera apertures.
     pz = kit.surface(30.5, -9)[0].z
     zb, zt = pz+3.6, pz+5.4                  # chassis underside and top
-    col = _Acc()
-    col.cyl((30.6, -8.6, pz+1.85), (0, 0, 1), 1.0, 1.85, 8)
-    col.build(kit, 'Mast starboard sensor pedestal', kit.steel, .05)
-    base = _Acc()
-    base.cyl((30.6, -8.6, pz+.15), (0, 0, 1), 1.55, .15, 12)
-    for i in range(8):
-        a = 2*math.pi*(i+.5)/8
-        base.cyl((30.6+1.3*math.cos(a), -8.6+1.3*math.sin(a), pz+.33), (0, 0, 1), .1, .05, 6)
-    for a in (0, 90, 180, 270):  # gussets
-        r = math.radians(a)
-        base.bar((30.6+1.45*math.cos(r), -8.6+1.45*math.sin(r), pz+.3), (30.6+.9*math.cos(r), -8.6+.9*math.sin(r), pz+1.5), .12, .5)
-    base.build(kit, 'Mast starboard sensor pedestal flange', kit.grey, 0)
+    # Plinth (pass 3 round 3, owner: the machinery is not cleanly attached): one
+    # chamfered block under the chassis, its foot sunk into the bridge flank and
+    # the bow shoulder it stands across, with a welded base flange laid on that
+    # skin by ray-cast - not a round column on a flat flange tilted on a curve.
+    PX, PY = (31.5, 33.0), (-8.9, -6.9)
+    ch = .45
+    plan = [(PX[0]+ch, PY[0]), (PX[1]-ch, PY[0]), (PX[1], PY[0]+ch), (PX[1], PY[1]-ch),
+            (PX[1]-ch, PY[1]), (PX[0]+ch, PY[1]), (PX[0], PY[1]-ch), (PX[0], PY[0]+ch)]
+    ring = []
+    for (ax, ay), (bx, by) in zip(plan, plan[1:]+plan[:1]):
+        n = max(1, round(math.hypot(bx-ax, by-ay)/.3))
+        ring += [(ax+(bx-ax)*k/n, ay+(by-ay)*k/n) for k in range(n)]
+    # Walls straight down from the collar to the skin, the foot following the skin
+    # point by point, so no flat underside is left standing off a curved hull.
+    m = len(ring)
+    skin = [kit.surface(x, y)[0].z for x, y in ring]
+    pv = [(x, y, z-.25) for (x, y), z in zip(ring, skin)]+[(x, y, zb+.15) for x, y in ring]
+    pf = [tuple(reversed(range(m))), tuple(range(m, 2*m))]+[(i, (i+1) % m, m+(i+1) % m, m+i) for i in range(m)]
+    kit.mesh('Mast starboard sensor plinth', pv, pf, kit.grey, .03)
+    # Base flange: a band round the plinth's foot, following the skin.
+    cx, cy = sum(PX)/2, sum(PY)/2
+    fv, ff = [], []
+    m = len(ring)
+    for x, y in ring:
+        dx, dy = x-cx, y-cy
+        L = math.hypot(dx, dy)
+        ox, oy = x+dx/L*.3, y+dy/L*.3
+        zi = kit.surface(x, y)[0].z
+        zo = (kit.surface(ox, oy) or (Vector((0, 0, zi-.3)),))[0].z
+        fv += [(x, y, zi-.15), (ox, oy, zo-.15), (ox, oy, zo+.12), (x, y, zi+.3)]
+    for i in range(m):
+        a0, a1 = 4*i, 4*((i+1) % m)
+        ff += [(a0+q, a0+(q+1) % 4, a1+(q+1) % 4, a1+q) for q in range(4)]
+    kit.mesh('Mast starboard sensor plinth base flange', fv, ff, kit.steel, 0)
+    fb = _Acc()
+    for x, y in ring[::3]:
+        dx, dy = x-cx, y-cy
+        L = math.hypot(dx, dy)
+        bx, by = x+dx/L*.22, y+dy/L*.22
+        fb.cyl((bx, by, kit.surface(bx, by)[0].z+.2), (0, 0, 1), .09, .07, 6)
+    fb.build(kit, 'Mast starboard sensor plinth flange bolts', kit.dark, 0)
+    # Plinth access panel and a cable gland on its outboard face, a collar under the chassis.
+    pan = _Acc()
+    pan.box((32.25, PY[0]-.05, (pz+zb)/2+.3), (1.1, .14, 1.5))
+    for x in (31.85, 32.65):
+        for z in ((pz+zb)/2-.3, (pz+zb)/2+.9):
+            pan.cyl((x, PY[0]-.12, z), (0, 1, 0), .07, .05, 6)
+    pan.cyl((31.85, PY[0]-.15, pz+.4), (0, 1, 0), .25, .15, 8)
+    pan.build(kit, 'Mast starboard sensor plinth access panel', kit.steel, 0)
+    collar = _Acc()
+    collar.box((cx, cy, zb-.12), (PX[1]-PX[0]+.3, PY[1]-PY[0]+.3, .24))
+    collar.build(kit, 'Mast starboard sensor plinth collar', kit.steel, .03)
 
     # Chassis: a chamfered prism over the column, running forward past the bow.
     plan = [(29.2, -10.6), (38.2, -10.2), (39.0, -9.4), (39.0, -7.2), (38.2, -6.5), (29.2, -6.6)]
@@ -425,12 +509,14 @@ def _sensor_head(kit, glass):
             covers.cyl((x, -10.6, z), (0, 1, 0), .08, .05, 6)
     covers.build(kit, 'Mast starboard sensor head service cover', kit.steel, 0)
 
-    # Under-strut from the body's bow to the chassis's forward end.
-    strut = _Acc()
-    strut.bar((32.8, -8.6, pz-3.0), (37.4, -8.6, zb+.1), .45, .6, up=(0, 1, 0))
-    strut.build(kit, 'Mast starboard sensor head strut', kit.steel, .04)
+    # Gusset: a web from the plinth's forward face out under the cantilevered chassis.
+    gv = []
+    for y in (-8.75, -8.45):
+        gv += [(PX[1]-.1, y, zb-2.6), (PX[1]-.1, y, zb+.05), (37.6, y, zb+.05)]
+    kit.mesh('Mast starboard sensor head gusset', gv, [(0, 1, 2), (3, 5, 4), (0, 3, 4, 1), (1, 4, 5, 2), (2, 5, 3, 0)],
+             kit.steel, 0)
 
-    # Radome over the column.
+    # Radome over the plinth.
     dome = _Acc()
     dome.cyl((31.2, -8.6, zt+.2), (0, 0, 1), 1.75, .2, 14)
     dome.build(kit, 'Mast starboard sensor radome ring', kit.steel, 0)

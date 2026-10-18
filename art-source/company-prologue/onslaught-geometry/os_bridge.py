@@ -38,7 +38,12 @@ from os_kit import boolean, ccw, loft_x, octagon, prism, section, strip_plan
 
 SPINE_HALF = [(98, 6), (88, 9), (60, 10), (46, 16), (40, 22), (10, 26), (-6, 22), (-16, 18), (-46, 18),
               (-58, 13), (-66, 8)]
-SPINE = section(16.0, 25.0, 2.0, 2.5)
+# The bridge is drawn at its pass-2 heights below and then lifted LIFT as a whole
+# (build), so it sits ON the raised citadel (os_hull: terrace 23, inner tier 26)
+# like a brawler's head between its shoulders, not sunk into it. The spine's
+# keel is drawn LIFT deeper so it still beds into the core and tail decks (16).
+LIFT = 4.0
+SPINE = section(16.0-LIFT, 25.0, 2.0, 2.5)
 CMD = {'x': 24.0, 'y': 0.0, 'r': 21.0, 'z0': 24.0, 'z1': 38.0}     # command dome
 AFT = {'x': -31.0, 'y': 0.0, 'r': 16.5, 'z0': 24.0, 'z1': 33.0}    # aft dome
 SPINE_TOP = 25.0
@@ -259,6 +264,7 @@ def _spine_detail(kit):
 
 
 def build(kit):
+    before = set(bpy.data.objects)
     half = SPINE_HALF
     plan = ccw(list(half)+[(x, -y) for x, y in reversed(half)])
     spine = prism(kit, 'Bridge spine', plan, SPINE, kit.bone)
@@ -269,5 +275,8 @@ def build(kit):
     _neck(kit)
     _forward_spine(kit)
     _spine_detail(kit)
+    for ob in set(bpy.data.objects)-before:
+        ob.location.z += LIFT
+    bpy.context.view_layer.update()
     kit.hull += [spine, cmd, aft]
     return {'spine': spine, 'command dome': cmd, 'aft dome': aft}

@@ -803,6 +803,14 @@ While held, pointer movement, hover, and release retarget to the captured elemen
 primary release dispatches before ending capture. Leaving a screen clears active
 input state, while a resize/position callback only relayouts the enduring document.
 
+Interaction sounds belong to the document, not to screens. Activating a control by
+pointer, Enter or Space plays a press; pressing a disabled button plays the
+disabled press; the pointer arriving over a new control plays a hover cue, with a
+minimum gap between hovers so sweeping a list does not chatter. The cues are the
+base game's own UI sound ids, played through one process-wide sink the mod installs
+at application load (`UiSounds`); headless documents keep the silent default. A
+button may name its own press sound with the MLX attribute `sound`.
+
 ## Procedural canvas
 
 A canvas has two independent sizes. Its integer surface width and height define the
