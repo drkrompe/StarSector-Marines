@@ -1,4 +1,4 @@
-HERMES - CINEMATIC GEOMETRY (PASSES 1-4; PASS 3 REWORK IN REVIEW)
+HERMES - CINEMATIC GEOMETRY (PASSES 1-4 DONE; PASS 3 ACCEPTED)
 
 Purpose
 The company's boat. In the campaign the Second Wind comes with two wrecked
@@ -11,7 +11,7 @@ Wind's bay, built by the ship-model-pipeline skill
 (.claude/skills/ship-model-pipeline/SKILL.md):
   pass 1 blockout             snapshot in reference-history/v1-blockout/
   pass 2 plausible detailing  built here (one Opus agent per module)
-  pass 3 owner review         stance, entrance and shape reworked (see Pass 3)
+  pass 3 owner review         accepted after the rework (see Pass 3)
   pass 4 real-world scale     0.11 m per unit (see Scale)
 Clean state only. No damage states, textures or VFX. Source art only; it
 changes no runtime art or gameplay.
@@ -132,8 +132,6 @@ objects; it never saves her blend. Numbers in geometry.json
   not a reason to shrink the boat below its troop bay's headroom.
 
 Owner decisions open
-  - Boarding doors: 0.77 m wide by 1.55 m clear, sill 0.49 m above the
-    ground. A 1.8 m marine ducks through, as through any small craft's hatch.
   - Bay fit: deepen the Second Wind's port bay, or accept an open bay.
   - The troop bay's forward hatch (X ~19.5) meets solid hull; the flight
     deck's aft bulkhead is at X 30.7. A crawl passage between them, over the
@@ -176,7 +174,7 @@ Pass 2 summary (IoU 0.969 -> 0.966; each module within its 0.002 budget)
   solid, the jet housings buried in the shoulder blocks, or the aft arms'
   roots trimmed flush to the troop-bay lining.
 
-Pass 3 (owner review, IoU 0.966 -> 0.956)
+Pass 3 (owner review, accepted 2026-10-18; IoU 0.966 -> 0.956)
   stance   short, stubby gear: the keel sits 0.33 m off the ground and every
            block shares the spine's keel, so the boat sits flat
   entrance the ventral ramp is gone; a boarding door on each flank amidships

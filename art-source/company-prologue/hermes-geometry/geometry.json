@@ -1,5 +1,5 @@
 {
-  "status": "Passes 1-4 built; pass 3 owner rework (shape, stance, boarding doors) refitted with detail. Clean state only; no damage states or textures.",
+  "status": "Passes 1-4 done; pass 3 accepted by the owner. Clean state only; no damage states or textures.",
   "passes": {
     "1 blockout": "built; v1-blockout renders regenerate from commit 624cd3ea8",
     "2 plausible detailing": "built: one Opus agent per module (hull, cockpit, engines, turrets, ventral)",
