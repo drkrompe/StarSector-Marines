@@ -11,18 +11,40 @@ second-wind-cinematic/second-wind-states/**/*.png
 hound-surface/review/
 hound-surface/textures/
 
-# Cinematic rendered outputs, as classified by the cinematic session
-# (2026-10-18). Only the images: review mp4s stay until the owner decides,
-# and review notes and metrics are small text that stays tracked.
+# Cinematic: anything a script of ours can regenerate (owner, 2026-10-18).
+# What stays tracked is the shipped video, scripts and text, Codex/ImageGen
+# plates and prompts, and anything no script writes. Text (.py .md .json
+# .txt) stays tracked even inside review/ and guides/.
 second-wind-cinematic/**/review/**/*.png
 second-wind-cinematic/**/review/**/*.jpg
+second-wind-cinematic/**/review/**/*.jpeg
+second-wind-cinematic/**/review/**/*.webp
+second-wind-cinematic/**/review/**/*.exr
+second-wind-cinematic/**/review/**/*.gif
+second-wind-cinematic/**/review/**/*.mp4
+second-wind-cinematic/**/review/**/*.mov
+second-wind-cinematic/**/review/**/*.glb
+second-wind-cinematic/**/review/**/*.blend
+second-wind-cinematic/**/guides/**/*.png
+second-wind-cinematic/**/guides/**/*.jpg
+second-wind-cinematic/**/guides/**/*.jpeg
+second-wind-cinematic/**/guides/**/*.webp
+second-wind-cinematic/**/guides/**/*.exr
+second-wind-cinematic/**/guides/**/*.gif
+second-wind-cinematic/**/guides/**/*.mp4
+second-wind-cinematic/**/guides/**/*.mov
+second-wind-cinematic/**/guides/**/*.glb
+second-wind-cinematic/**/guides/**/*.blend
+second-wind-cinematic/**/*.blend
+second-wind-cinematic/**/*.blend1
 second-wind-cinematic/corvus-approach/layers/*.png
 second-wind-cinematic/nessas-yard/layers/*.png
 second-wind-cinematic/road-and-port/cards/*.png
+second-wind-cinematic/corvus-approach/assets/traffic-lane-v1-*.png
 second-wind-cinematic/corvus-approach/assets/planet-height-v2.png
 second-wind-cinematic/corvus-approach/assets/planet-lights-v2.png
 second-wind-cinematic/corvus-approach/assets/planet-ocean-v2.png
+second-wind-cinematic/corvus-approach/assets/planet-clouds-v2-eyefix.png
 second-wind-cinematic/second-wind-surface-proof/daylight-contact-preview.png
 second-wind-cinematic/second-wind-surface-proof/projected-port-quarter.png
 second-wind-cinematic/second-wind-surface-proof/projected-port-side.png
-second-wind-cinematic/**/review/**/*.mp4
