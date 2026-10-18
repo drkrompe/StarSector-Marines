@@ -1,0 +1,82 @@
+{
+ "fuselage-top": {
+  "raw_iou": 0.9803,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9887,
+  "scale": [
+   1.00305,
+   1.0
+  ],
+  "boundary_p95_px": 35.31
+ },
+ "wing-top": {
+  "raw_iou": 0.9906,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9972,
+  "scale": [
+   1.00355,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9931,
+  "best_fit": "identity",
+  "fitted_iou": 0.9931,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "guns-top": {
+  "raw_iou": 0.983,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9947,
+  "scale": [
+   1.00295,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "pod-side-port": {
+  "raw_iou": 0.9799,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9969,
+  "scale": [
+   1.0028,
+   1.01449
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "gunblock-side-port": {
+  "raw_iou": 0.9662,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9954,
+  "scale": [
+   1.0036,
+   1.03129
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "lance-side-stbd": {
+  "raw_iou": 0.9491,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9802,
+  "scale": [
+   1.00383,
+   1.05112
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "underside": {
+  "raw_iou": 0.9811,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9913,
+  "scale": [
+   1.00651,
+   1.00932
+  ],
+  "boundary_p95_px": 2.0
+ }
+}

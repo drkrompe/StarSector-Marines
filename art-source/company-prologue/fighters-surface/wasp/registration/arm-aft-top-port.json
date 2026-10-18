@@ -1,0 +1,59 @@
+{
+ "part": "arm-aft-top-port",
+ "sheet": "hull-top",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.996,
+ "raw_iou": 0.9728,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9815,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9728
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0,
+    1.00487
+   ],
+   "offset_px": [
+    0.0,
+    0.75
+   ],
+   "iou": 0.9775
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.006,
+    1.00587
+   ],
+   "offset_px": [
+    -2.0,
+    0.75
+   ],
+   "iou": 0.9815
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.87,
+  "p95_px": 5.0,
+  "max_px": 6.4
+ },
+ "boundary_fitted_px": {
+  "mean_px": 1.23,
+  "p95_px": 3.61,
+  "max_px": 5.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

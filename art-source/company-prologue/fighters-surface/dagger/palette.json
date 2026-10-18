@@ -1,0 +1,140 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.987)",
+ "space": "CIELAB D65",
+ "classes": {
+  "blue": {
+   "pixels": 318403,
+   "mean": [
+    66.68,
+    -2.25,
+    -8.45
+   ],
+   "std": [
+    11.77,
+    0.69,
+    1.72
+   ],
+   "L_p10_p50_p90": [
+    50.26,
+    69.07,
+    80.29
+   ],
+   "mean_srgb": [
+    149.8,
+    164.0,
+    177.1
+   ]
+  },
+  "steel": {
+   "pixels": 3848,
+   "mean": [
+    30.07,
+    0.19,
+    -0.19
+   ],
+   "std": [
+    8.0,
+    1.0,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    16.96,
+    27.57,
+    51.59
+   ],
+   "mean_srgb": [
+    71.0,
+    70.7,
+    71.1
+   ],
+   "std_measured": [
+    12.8,
+    0.7,
+    0.79
+   ],
+   "note": "spread owned: the measured one is shading"
+  },
+  "bright": {
+   "derived": "owned: polished steel rings, lips and pins, brighter than the structure",
+   "mean": [
+    62.0,
+    -0.3,
+    1.5
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ]
+  },
+  "dark": {
+   "derived": "owned: near-black recesses, vents and grilles",
+   "mean": [
+    13.0,
+    0.4,
+    1.0
+   ],
+   "std": [
+    3.5,
+    0.5,
+    0.7
+   ]
+  },
+  "cream": {
+   "derived": "owned: the torpedo store off-white cream enamel",
+   "mean": [
+    82.0,
+    1.5,
+    12.0
+   ],
+   "std": [
+    3.0,
+    0.8,
+    1.5
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what worn paint reveals and what the belt deposits.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    5.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    30.0,
+    4.0,
+    10.0
+   ],
+   "what": "packed ore dust, brown-grey"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    80.0,
+    4.0,
+    14.0
+   ],
+   "what": "chalked, UV-bleached paint: faded orange goes to dusty tan, not pink"
+  }
+ }
+}

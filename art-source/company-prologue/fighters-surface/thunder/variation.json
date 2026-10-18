@@ -1,0 +1,82 @@
+{
+ "fuselage-top": {
+  "unit_offset_L_a_b": [
+   -1.0,
+   0.584,
+   0.106
+  ],
+  "note": "hash default; edit freely"
+ },
+ "gunblock-side-port": {
+  "unit_offset_L_a_b": [
+   0.325,
+   -0.686,
+   0.553
+  ],
+  "note": "hash default; edit freely"
+ },
+ "guns-top": {
+  "unit_offset_L_a_b": [
+   -0.835,
+   -0.176,
+   0.247
+  ],
+  "note": "hash default; edit freely"
+ },
+ "lance-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.035,
+   -0.537,
+   -1.0
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-side-port": {
+  "unit_offset_L_a_b": [
+   -0.373,
+   0.067,
+   0.78
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.545,
+   0.584,
+   -0.514
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-top-port": {
+  "unit_offset_L_a_b": [
+   -0.827,
+   -0.451,
+   -0.294
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-top-stbd": {
+  "unit_offset_L_a_b": [
+   0.506,
+   0.341,
+   -0.145
+  ],
+  "note": "hash default; edit freely"
+ },
+ "underside": {
+  "unit_offset_L_a_b": [
+   0.914,
+   -0.576,
+   0.678
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wing-top": {
+  "unit_offset_L_a_b": [
+   0.388,
+   0.529,
+   -0.569
+  ],
+  "note": "hash default; edit freely"
+ }
+}

@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one single-seat space torpedo bomber (a Dagger, about 16 metres long), each tile seen square-on and drawn alone as flat-coloured shapes on a plain light grey background (pale blue-grey shapes are armour, dark grey shapes are steel structure):
+top-left: port flank: prong, body and drive block side walls;
+top-right: starboard flank: prong, body and drive block side walls;
+bottom-left: port tip fin outboard face: pale blue-grey armour;
+bottom-right: the whole belly from below;
+INPUT 2 is the SAME craft already painted: it is the finish to match. Use its paint colours, its clean semi-matte finish, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four tiles in INPUT 1 as that surface of a front-line craft in good order. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and the background between and around shapes stays plain grey. A tile may hold several separate shapes: keep every one where it is.
+- Each shape is a flat armour or steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners along plate edges, flush access-panel outlines, faint even scuffing. The thin darker lines already drawn on the shapes are engraved panel lines: keep them exactly where they are as fine dark seams. Nothing may stand out from the surface or cross the outline.
+- Keep each shape's colour exactly: pale blue-grey shapes stay the pale cool blue-grey armour enamel of INPUT 2, dark grey shapes stay dark gunmetal grey steel, and small near-black slits stay near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes, no lettering, numbers, markings, insignia or decals.
+- Wear is light and even across each whole shape: faint scuffs at edges, a thin film of grime in seams. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape.
+- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.
