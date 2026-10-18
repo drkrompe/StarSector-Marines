@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — Chapter 5 drops its tender and rear-position build (owner): customs, fuel control, dispatch, handover.
+Updated: 2026-10-18 — Chapter 5's duel has no fight area and no warp in or out (owner): Wolfs fly in and out across the west edge, Greyhook's ships leave across the east.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -410,11 +410,11 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 **The duel overhead.** When Voss orders the withdrawal, the *Greyhook*, Voss's own
 Venture with Voss aboard, lifts from her cradle on the pads south of the ridge and
-tries to climb out with two Hound (P) frigates as her screen. The pair of Wolf (H)
-frigates Rusk's family has lent from Citadel Arcadia drops through the cloud deck to
-stop her. What follows is a slugging match of two to three minutes in atmosphere over
-that southern ground, in full view of the company's fight and off it: plating torn
-away, hulls crippled and driven down.
+tries to fight her way out with two Hound (P) frigates as her screen. The pair of Wolf
+(H) frigates Rusk's family has lent from Citadel Arcadia flies in across the west edge
+to stop her. What follows is a slugging match in atmosphere that goes wherever the
+fighting takes it, over the basin and the company's fight alike, in full view of it:
+plating torn away, hulls crippled and driven down.
 
 The matchup is the drama. The Wolfs are fast, shielded high-tech hunters with
 light armour and the longer guns; the Hounds are tough, unshielded low-tech
@@ -437,8 +437,17 @@ ground battle never launches one, so the fight stays gun against gun.
   arrival; they leave when the engagement ends. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
 - Ship-versus-ship fighting is built (`air-nouns.md`, Overhead ships): hull fire
-  is held until Voss's withdrawal beat, the fight is kept over the southern ground
-  by the chapter's airspace, and none of the duel's hulls fires at the ground.
+  is held until Voss's withdrawal beat, and none of the duel's hulls fires at the
+  ground. No area is declared for the fight (owner, 2026-10-18); every warship is
+  kept off the map's edges by the standing edge pressure.
+- Nothing warps in or out. Each side has one approved edge: the Wolfs' is the west,
+  the side the company landed on and the far side of the basin, which they fly in
+  across already under way and leave across when their visit ends; Greyhook's is the
+  east, her own ground (dispatch, the berth yard and gate, the berth road, Drent's
+  service road) and away from the Wolfs, which the Greyhook fights her way off once
+  she breaks and her Hounds follow her out across. The south edge was rejected: the
+  cradle lies a few cells off it, so leaving across it would be no withdrawal at all.
+  The landed ships still lift from their pads.
 
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
 boss avatar or mandatory escape is needed. Her last line on the channel tells the
@@ -711,10 +720,14 @@ Still open inside this story:
   company's issue stays rust-orange. Still to observe: the rigs and the card in the live game.
 - **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
   Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
-  ground referee never reads it; a duel-off control wins the same seed. Over five
-  seeds the Greyhook gets away about two and a half minutes after the order with 2
-  to 97 percent of her hull, one or both Hounds fall, and the Wolfs lose none, one
-  or both (`warship-behaviours.md`, Decided: ships in atmosphere, round two).
+  ground referee never reads it; a duel-off control wins the same seed. Since
+  2026-10-18 it has no fight area and edge entry and exit only; over the five
+  `greyhook-duel` seeds the Greyhook breaks for the east edge about 111 seconds after
+  the order and is off the map five and a half to six minutes after it, with 40 to
+  100 percent of her hull, one or both Hounds fall, and the Wolfs lose none (four
+  seeds) or both (`warship-behaviours.md`, Decided: ship against ship). Her run across the
+  basin at under a cell a second is long, and with the doctrine's withdrawal the
+  Wolfs often break off before she is clear.
 - **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
   than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
   reaches its pit, so counter-battery is unexercised, and House Custody's estate

@@ -332,77 +332,77 @@ def _x_cyl(kit, name, frame, t0, t1, h, radius, mat, vertices=12):
     return ob
 
 
-def _hardpoint(kit, slot):
-    """A Thermal Pulse Cannon built into the arm's nose, read off the hull by ray casts so it
-    follows the arm however it is posed or reshaped.
+def _box_strip(verts, faces, frame, t0, t1, w0, w1, h0, h1):
+    """Append a box (t0..t1 along the line of fire, w0..w1 across, h0..h1 up) to a mesh list."""
+    o = len(verts)
+    for t in (t0, t1):
+        verts += [tuple(_local(frame, t, w, h)) for w, h in ((w0, h0), (w1, h0), (w1, h1), (w0, h1))]
+    faces += [(o, o+3, o+2, o+1), (o+4, o+5, o+6, o+7), (o, o+1, o+5, o+4), (o+1, o+2, o+6, o+5),
+              (o+2, o+3, o+7, o+6), (o+3, o, o+4, o+7)]
 
-    A low ribbed spine (the sprite's ladder of cooling ribs) runs down the gallery's centre line
-    from aft of the nose; where the nose falls away under the line of fire it swells into an
-    armoured casemate whose roof stays level with the gun and whose keel follows the deck down
-    into the hull, so the gun is carried in the arm, not set on it. The casemate's face is flush
-    with the nose tip, and the ribbed barrel runs out from a mantlet there; the muzzle stands a
-    barrel's length ahead of the tip, as the sprite's prongs do (X 196-216)."""
+
+def _hardpoint(kit, slot):
+    """A Thermal Pulse Cannon that IS the arm's nose (round 4: the arm noses lead the silhouette).
+
+    The casemate is an armoured box on the line of fire, leaning with the arm's roll, its axis at
+    os_arms.TPC_AXIS_Z (under the prow's keel, so in side view the two gun noses jut out beneath
+    and beside the ram). It runs from inside the arm (TPC_AFT_X) out through the arm's raked nose
+    face to its own face at TPC_FACE_X, the sprite's ladder tip; os_arms rakes the forefoot down
+    and aft from its chin, the gallery and deck up and aft from its roof, and lays the stepped
+    cheeks against its sides. On the roof, the sprite's ladder: two rails with cooling ribs across
+    them. Ahead of the face, a mantlet, the ribbed barrel and the two prongs that flank it."""
+    import os_arms
     sid, (x, y) = slot[0], slot[1]
-    frame = _arm_frame(x, y)
-    # The deck along the line of fire, every unit, until it runs off the nose.
-    deck = []
-    t = x-30.0
-    while t < x+40:
-        h = _deck_h(frame, t)
-        if h is None and deck and t > x:
-            break
-        if h is not None:
-            deck.append((t, h))
-        t += 1.0
-    tip = deck[-1][0]
-    for k in range(1, 5):                     # refine the tip to a quarter unit
-        if _deck_h(frame, tip+.25) is None:
-            break
-        tip += .25
-    # The casemate's roof runs level forward from the nose's crest (the highest deck within
-    # the last 30 units), so the nose's fall is filled by the gun rather than the gun lying on it.
-    at = dict(deck)
-    span = [(h, t) for t, h in deck if tip-30 <= t <= tip-8] or [(deck[-1][1], deck[-1][0])]
-    crest_h, crest_t = max(span)
-    h_tip = max(h for t, h in deck if t >= tip-5)
-    roof = max(h_tip+7.0, min(crest_h+1.0, h_tip+14.0))
-    hb = roof-3.8                                  # barrel axis, in the casemate's upper half
-    rb = 2.3
-    stations = []
-    for t, h in deck:
-        if t < crest_t-8 or t > tip-1.0:
-            continue
-        top = max(roof, h+1.0)
-        k = max(0.0, min(1.0, (t-crest_t+8)/8))   # swell from a spine into the full casemate
-        stations.append((t, min(h-2.5, hb-3.5), top, 3.4+2.6*k, 2.4+1.4*k))
-    keel = stations[-1][1]
-    stations.append((tip-.8, keel, roof, 6.0, 3.8))
-    stations.append((tip+.6, keel, roof-1.2, 5.4, 3.2))     # a sloped brow over the face
-    _section_solid(kit, f'Weapon {sid} hardpoint housing', frame, stations, kit.plate)
-    # Cooling ribs across the roof, aft to fore.
+    s = 1 if y > 0 else -1
+    up = os_arms.pose(s).to_3x3() @ Vector((0, 0, 1))
+    up.x = 0.0
+    up.normalize()
+    side = up.cross(Vector((1, 0, 0))).normalized()
+    frame = (Vector((0.0, y, os_arms.TPC_AXIS_Z)), side, up)
+    face, aft, hw = os_arms.TPC_FACE_X, os_arms.TPC_AFT_X, os_arms.TPC_HALF_W
+    roof, chin = 8.0, -9.0
+    # (t, chin, roof, half-width low, half-width at the roof): a chamfered box, its face with a
+    # sloped brow and a chamfered chin.
+    stations = [(aft, chin+1.5, roof-2.0, hw-.6, hw-1.8), (aft+8, chin, roof, hw, hw-1.4),
+                (face-4.0, chin, roof, hw, hw-1.4), (face-1.4, chin+.3, roof-.9, hw-.1, hw-1.5),
+                (face, chin+1.6, roof-3.0, hw-.4, hw-1.8)]
+    verts, faces = [], []
+    for t, zb, zt, wb, wt in stations:
+        c, ch = 1.6, 1.3
+        ring = [(-wb+c, zb), (wb-c, zb), (wb, zb+c), (wb, zt-ch), (wt, zt), (-wt, zt), (-wb, zt-ch), (-wb, zb+c)]
+        verts += [tuple(_local(frame, t, w, h)) for w, h in ring]
+    m = 8
+    faces.append(tuple(reversed(range(m))))
+    for j in range(len(stations)-1):
+        faces += [(j*m+i, j*m+(i+1) % m, (j+1)*m+(i+1) % m, (j+1)*m+i) for i in range(m)]
+    faces.append(tuple(range((len(stations)-1)*m, len(stations)*m)))
+    kit.mesh(f'Weapon {sid} hardpoint housing', verts, faces, kit.plate, .2)
+    # The ladder on the roof: two rails and the cooling ribs across them, aft to fore.
     ribs_v, ribs_f = [], []
-    for t, zb, zt, wb, wt in stations[2:-2:2]:
-        o = len(ribs_v)
-        for dt in (-.3, .3):
-            for w, hh in ((-wt-.35, zt-.4), (wt+.35, zt-.4), (wt+.2, zt+.55), (-wt-.2, zt+.55)):
-                ribs_v.append(tuple(_local(frame, t+dt, w, hh)))
-        ribs_f += [(o, o+1, o+2, o+3), (o+7, o+6, o+5, o+4), (o, o+4, o+5, o+1), (o+1, o+5, o+6, o+2),
-                   (o+2, o+6, o+7, o+3), (o+3, o+7, o+4, o)]
+    wt = hw-1.4
+    for w in (-3.0, 3.0):
+        _box_strip(ribs_v, ribs_f, frame, 194.0, face-1.6, w-.5, w+.5, roof-.4, roof+1.2)
+    t = 196.0
+    while t < face-2.5:
+        _box_strip(ribs_v, ribs_f, frame, t-.35, t+.35, -wt-.3, wt+.3, roof-.4, roof+.7)
+        t += 2.2
     kit.mesh(f'Weapon {sid} hardpoint cooling ribs', ribs_v, ribs_f, kit.steel)
-    # Mantlet on the casemate face, then the ribbed barrel and its muzzle.
-    mantlet = []
-    for t in (tip+.4, tip+1.9):
-        mantlet += [tuple(_local(frame, t, w, hb+h)) for w, h in ((-4.0, -3.3), (4.0, -3.3), (4.0, 2.8), (-4.0, 2.8))]
-    kit.mesh(f'Weapon {sid} hardpoint mantlet', mantlet,
-             [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)], kit.steel, .25)
-    L = 9.5
-    t0 = tip+1.9
-    _x_cyl(kit, f'Weapon {sid} barrel', frame, t0-3.0, t0+L, hb, rb, kit.steel)
+    # Mantlet on the face, then the ribbed barrel between two prongs, and its muzzle.
+    mv, mf = [], []
+    _box_strip(mv, mf, frame, face-.4, face+1.8, -5.0, 5.0, -4.6, 4.0)
+    kit.mesh(f'Weapon {sid} hardpoint mantlet', mv, mf, kit.steel, .25)
+    pv, pf = [], []
+    for w in (-4.7, 4.7):
+        _box_strip(pv, pf, frame, face+1.0, face+8.5, w-.55, w+.55, -2.2, 2.2)
+    kit.mesh(f'Weapon {sid} hardpoint prongs', pv, pf, kit.steel, .15)
+    L = 9.0
+    t0 = face+1.8
+    _x_cyl(kit, f'Weapon {sid} barrel', frame, t0-3.0, t0+L, 0.0, 2.8, kit.steel)
     for k, f in enumerate((.22, .5, .78)):
-        _x_cyl(kit, f'Weapon {sid} barrel coil {k+1}', frame, t0+f*L-.8, t0+f*L+.8, hb, 3.0, kit.steel)
-    _x_cyl(kit, f'Weapon {sid} muzzle collar', frame, t0+L-.6, t0+L+.6, hb, 2.9, kit.plate)
-    kit.empty(f'Weapon {sid} muzzle', tuple(_local(frame, t0+L+.7, 0, hb)), slot[2])
-    PIVOT_Z[sid] = _local(frame, t0+L+.7, 0, hb).z
+        _x_cyl(kit, f'Weapon {sid} barrel coil {k+1}', frame, t0+f*L-.8, t0+f*L+.8, 0.0, 3.6, kit.steel)
+    _x_cyl(kit, f'Weapon {sid} muzzle collar', frame, t0+L-.6, t0+L+.6, 0.0, 3.5, kit.plate)
+    kit.empty(f'Weapon {sid} muzzle', tuple(_local(frame, t0+L+.7, 0, 0.0)), slot[2])
+    PIVOT_Z[sid] = _local(frame, t0+L+.7, 0, 0.0).z
 
 
 MAX_TILT = 25.0      # deg: the steepest a mount leans with the hull under it

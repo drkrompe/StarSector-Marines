@@ -1,0 +1,63 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15077-1738-7bd3-b1f6-99b7bdb4df2a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15077-1738-7bd3-b1f6-99b7bdb4df2a\\exec-8db6ebda-e74a-4daf-8e43-4d3c1154523a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tt-hover\\scout-hull-raw.png",
+    "sha256": "da500f2259aa4a84d1ea253f96e6edba42ad153ae92a4e4d4a2d9ae3758b623f",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tt-hover\\scout-hull-prompt.txt",
+  "promptSha256": "a3bfaec1e9a6a6373071395d20256322c670cc9f34f5ee3d81285acf6fa65a40",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouette, layout, placement, scale and heading; flat colours are placeholders, not material\nImage 2: Tri-Tachyon livery and high-tech material reference only; not layout, pose or scale\nImage 3: Rendering style and detail level only; not layout, palette or subject\n\nPaint image 1, a flat-colour geometry guide, as a finished top-down game sprite of a Tri-Tachyon corporate HOVERCRAFT scout seen from directly above: a small, low, sleek armored hover vehicle that floats on a lift-fan skirt, not a wheeled or tracked vehicle. Keep every region of the guide where it is: the dark band all round is a flexible black rubberised air-cushion skirt with segmented fingers; the pale lozenge inside it is a smooth high-tech composite ceramic shell in clean off-white and light pearl grey with fine graphite panel seams; the dark wedge at the nose is a tinted cockpit canopy; the two round dark rings at the rear are shrouded lift fans with visible fan blades under protective grilles; the small dome with a cyan dot is a sensor cluster; the thin cyan lines are soft cyan status light strips. Leave the plain area on the spine just aft of the centre empty, a turret ring goes there later. Tri-Tachyon high-tech style: clean, precise, corporate, restrained, like the faction's starships (image 2 is livery and material reference only, not layout). Match the rendering scale and level of detail of image 3, an approved top-down vehicle sprite from this game (rendering style only, not layout or palette): grounded, believable, subtly weathered, not glossy concept art.\nThe right panel is the same scout wrecked: scorched and blackened composite, a large burn-through hole where the guide shows it, cracked and shattered canopy, the skirt torn and deflated where the guide shows a gap, fans cold and dark, no glow, no lights.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Every object faces LEFT (nose toward the left edge), exactly where the guide puts it, at exactly the guide's size, position and outline; never move, rotate, rescale or recompose anything. True transparent background with genuine alpha outside the silhouettes, including every gap; no ground, scene, cast-shadow slab, labels, text, border or checkerboard. Same canvas size and 2:1 aspect as the guide. The left panel is the live vehicle; the right panel is the same vehicle destroyed.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tt-hover\\scout-hull-guide.png",
+      "sha256": "3c452eade0132a15e6d373c808cac6933a39606ed91048920444d3317ff6628e",
+      "dimensions": [
+        1792,
+        896
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouette, layout, placement, scale and heading; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\medusa.png",
+      "sha256": "148d851409d0ed723f2438b3435e1dd54e830445b1ee87c42b5885d39176254d",
+      "dimensions": [
+        134,
+        138
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\scout-car.png",
+      "sha256": "120609c498f180b013a83791fa9bbfb4fcdbbd0c743b11dbd97190e6c17f5156",
+      "dimensions": [
+        2560,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to render the guide as one transparent sprite sheet, preserving its geometry and two-panel layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 43265,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 673,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.3
+}
