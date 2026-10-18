@@ -42,6 +42,7 @@ TAIL_LEN = 7.0                # aft taper length
 PLAN_FRONT = 24.0             # plan width starts rounding off here
 RAKE_X = (27.4, 30.0)         # brow and sill stations: the sprite's dark band at X 27..28.5 and on
 SILL_H = 10.6                 # sill height above BASE_Z (deck +1.6)
+SEAM_X = (9.0, 13.5, 18.0, 22.5)    # plating seam rings round the upper hull
 # The chin (pass 3 round 3, owner: the bridge's bottom lip does not cleanly meet
 # the hull): forward of the sill the hull is drawn down onto the bow's own skin,
 # tangent where it lands at BRIDGE_X[1], so the bridge flows into the bow rather
@@ -319,7 +320,7 @@ def build(kit):
 
     # Plating seams: dark rings over the upper hull, and a crown seam fore and aft.
     seams = _Acc()
-    for x in (9.0, 13.5, 18.0, 22.5):
+    for x in SEAM_X:
         _strip(seams, [x-.07, x+.07], [deg(a) for a in range(20, 161, 10)], .06, .14)
     _strip(seams, [x/2 for x in range(16, 50)], [deg(88.8), deg(91.2)], .06, .14)
     seams.build(kit, 'Bridge hull plating seams', kit.dark, 0)
@@ -373,7 +374,9 @@ def build(kit):
 
     # Side viewports down the hull flanks: the crew spaces the description asks for.
     ports, rims = _Acc(), _Acc()
-    for x in (10.5, 13.0, 15.5, 18.0, 20.5):
+    # Two per plate, centred between the seam rings with clear plating either
+    # side (owner: ports set evenly down the flank clipped the ribbing).
+    for x in [(a+b)/2+k*1.1 for a, b in zip(SEAM_X, SEAM_X[1:]) for k in (-1, 1)]:
         for t in (deg(50), deg(130)):
             c = _pt(x, t, 0)
             nrm = (_pt(x, t, 1)-c).normalized()
