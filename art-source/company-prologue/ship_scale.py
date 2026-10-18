@@ -183,8 +183,9 @@ HULLS = {
     # The Paragon's open bore and its lining (the shield emitter ring) are not enclosed
     # volume. Published at 0.87 by owner override, larger than the Onslaught (2026-10-18):
     # this table solves 0.748 (271 m). Fittings: deck window slits and glazing band
-    # (sized 2.0 x 0.9 m and 1.8 m at 0.87), the capital-mount bays.
-    'Paragon': dict(units3=2478771, crew_max=1000, cargo=300, fuel=300, cls='capital', length_units=362.2,
+    # (sized 2.0 x 0.9 m and 1.8 m at 0.87), the capital-mount bays. The forward hangar in
+    # the bore wall (owner, pass 3; 21 x 14 x 35 m) holds two boats: boat_bays=2.
+    'Paragon': dict(units3=2486231, crew_max=1000, cargo=300, fuel=300, cls='capital', boat_bays=2, length_units=362.2,
                     sprite_px=364, fittings_units={'deck window w x h': [2.30, 1.03],
                                                    'capital-mount bay w x h': [21.0, 22.0],
                                                    'bridge glazing band h': [2.07]}),
@@ -246,7 +247,8 @@ SOLIDS = {
                     'Hull belt', 'Hull main ring', 'Hull prow', 'Hull bow module',
                     'Hull port bow horn', 'Hull starboard bow horn', 'Hull port bow lobe', 'Hull starboard bow lobe',
                     'Hull aft body', 'Hull command deck', 'Hull command deck upper',
-                    'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod')},
+                    'Hull command spine', 'Bridge tower', 'Hull port pod', 'Hull starboard pod',
+                    'Hull forward hangar')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
