@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — the Greyhook is Voss's Venture, with Voss aboard, against two Wolfs over the southern pads.
+Updated: 2026-10-18 — the Greyhook turns to fight the Wolfs to the finish rather than climbing out (owner).
 
 ## Premise, place and cast
 
@@ -71,7 +71,7 @@ Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
 **The family answers overhead.** As the *Greyhook*, Voss's Venture with Voss aboard,
-lifts from the pads south of the ridge and tries to climb out, escorted by two Hound
+lifts from the pads south of the ridge and turns to fight, escorted by two Hound
 (P) frigates, the pair of Wolf (H) frigates Rusk's
 family has lent from Citadel Arcadia comes in low over the basin. Two against two,
 they slug it out in atmosphere over the southern ground while the ground fight

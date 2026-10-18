@@ -1,0 +1,72 @@
+{
+ "asset": "shepherd.blend",
+ "collection": "SHEPHERD",
+ "root": "SHEPHERD | root",
+ "objects": 773,
+ "meshes": 752,
+ "images": 30,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    752,
+    752
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "drive anchors": {
+   "ok": true
+  },
+  "drive anchors point aft": {
+   "ok": true
+  },
+  "jet anchors": {
+   "ok": true
+  },
+  "turret 1 pivot trains": {
+   "ok": true,
+   "detail": 1e-06
+  },
+  "hardpoint WS 008 muzzle": {
+   "ok": true
+  },
+  "drone bay anchors": {
+   "ok": true,
+   "detail": []
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 3.1e-05
+  }
+ }
+}

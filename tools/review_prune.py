@@ -32,6 +32,21 @@ def default_root():
     return hits[0] if hits else ""
 
 
+def posted(path):
+    """When a run was posted: its newest file's modification time (the folder's own if it is empty)."""
+    times = [os.path.getmtime(os.path.join(path, f)) for f in os.listdir(path)]
+    return max(times) if times else os.path.getmtime(path)
+
+
+def order(adir, name):
+    """Runs sort by their YYYY-MM-DD prefix, then, among runs of one day, by when they were posted.
+
+    The name alone used to decide within a day, so a day's newest run could sort
+    first and be pruned (it happened: a run whose description began with 'h'
+    sorted before an older 'p' and 's' run of the same date)."""
+    return (name[:10], posted(os.path.join(adir, name)), name)
+
+
 def marked(run):
     return os.path.basename(run).endswith("_keep") or os.path.exists(os.path.join(run, "KEEP"))
 
@@ -53,7 +68,8 @@ def main():
         adir = os.path.join(review, asset)
         if not os.path.isdir(adir) or (args.asset and asset != args.asset):
             continue
-        runs = sorted(d for d in os.listdir(adir) if os.path.isdir(os.path.join(adir, d)))
+        runs = sorted((d for d in os.listdir(adir) if os.path.isdir(os.path.join(adir, d))),
+                      key=lambda d: order(adir, d))
         newest = set(runs[-args.keep:]) if args.keep > 0 else set()
         for r in runs:
             path = os.path.join(adir, r)

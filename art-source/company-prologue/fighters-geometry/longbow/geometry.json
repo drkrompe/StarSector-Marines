@@ -49,7 +49,7 @@
     "size_m": [
       15.0,
       14.4,
-      2.6
+      3.5
     ],
     "canopy": {
       "length_m": 2.66,
@@ -66,6 +66,26 @@
       }
     ]
   },
+  "parked_check": {
+    "feet": [
+      "Hull port fore leg pad",
+      "Hull starboard fore leg pad",
+      "Hull port aft leg pad",
+      "Hull starboard aft leg pad"
+    ],
+    "deck_plane_units": {
+      "z0": -4.2,
+      "dz_dx": -0.0,
+      "dz_dy": 0.0
+    },
+    "stance_pitch_deg_nose_down": -0.0,
+    "stance_roll_deg": 0.0,
+    "foot_level_spread_m": 0.0,
+    "lowest_other_part": "Hull port fore leg piston",
+    "deck_clearance_m": 0.057,
+    "lowest_body_part": "Engine 1 collar rib 2",
+    "body_clearance_m": 0.363
+  },
   "sprite": {
     "size": [
       34,
@@ -81,7 +101,7 @@
     "min": [
       -13.0,
       -16.0,
-      -2.21
+      -4.2
     ],
     "max": [
       20.4,
@@ -91,7 +111,7 @@
     "size": [
       33.4,
       32.0,
-      5.73
+      7.72
     ]
   },
   "root": {
@@ -179,32 +199,32 @@
     "Engine 1 port exhaust anchor": [
       -12.5,
       11.5,
-      -0.05
+      -1.16
     ],
     "Engine 2 starboard exhaust anchor": [
       -12.5,
       -11.0,
-      -0.05
+      -1.09
     ],
     "Weapon WS 001 anchor": [
       14.0,
       12.0,
-      0.25
+      -0.931
     ],
     "Weapon WS 001 muzzle": [
       20.4,
       11.3,
-      0.25
+      -0.832
     ],
     "Weapon WS 002 anchor": [
       9.0,
       -11.0,
-      0.05
+      -0.99
     ],
     "Weapon WS 002 muzzle": [
       13.13,
       -11.0,
-      0.05
+      -0.99
     ]
   },
   "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
@@ -215,14 +235,15 @@
     "Engine slots (-13, 9) and (-13, -8) straddle the even-width sprite's centre line; the drive pods are modelled symmetric on the sprite's pods at Y +-9 (8 units wide = slot width).",
     "The visible bells sit at the master's painted nozzles, slot + renderEngineOffsetsNativePx = (-12.5, 11.5) and (-12.5, -11), outboard in each pod and recessed 0.5 into its aft face (-13); exhaust anchors are at those bells.",
     "The master's long pointed nose and outboard pods are not followed: the sprite ends the fuselage at X 13 between two forward sensor prongs and centres its pods on Y +-9.",
-    "Pass 2 (detail read off master-v2, sized in metres at 0.45 m/unit): the forward prongs carry sensor blisters and the nose the master's dark centre strip and lamp; the canopy dome a sill, windscreen arch and bow. Behind it are the master's square dorsal sensor housing, a blade antenna and the slatted aft grille between the aft arms; the aft arms carry the master's small vents. The port emitter gets coil bands and a collar where it leaves the housing, and the housing the master's window. The starboard rack shows four sabot tubes (bright rims, dark bores) in its open mouth, with hold-down latches on top. Each pod has the master's top slot, a lamp, two collar ribs and a centre body with stator vanes. Panel lines split fuselage, arms, housing and plates."
+    "Pass 2 (detail read off master-v2, sized in metres at 0.45 m/unit): the forward prongs carry sensor blisters and the nose the master's dark centre strip and lamp; the canopy dome a sill, windscreen arch and bow. Behind it are the master's square dorsal sensor housing, a blade antenna and the slatted aft grille between the aft arms; the aft arms carry the master's small vents. The port emitter gets coil bands and a collar where it leaves the housing, and the housing the master's window. The starboard rack shows four sabot tubes (bright rims, dark bores) in its open mouth, with hold-down latches on top. Each pod has the master's top slot, a lamp, two collar ribs and a centre body with stator vanes. Panel lines split fuselage, arms, housing and plates.",
+    "Pass 3 rework (owner, 2026-10-18, the fighters read flat): the X-frame folds 8 degrees down outboard of the fuselage, so arms, webs, launchers and pods droop and the pods cant outward. It lands on four splayed lander legs at the arm roots beside the fuselage (three would tip under so narrow a body), each with a round pad and an inboard brace, and stands level. The plan view is unchanged."
   ],
   "cameras": {
     "top": {
       "position": [
         3.5,
         0.0,
-        140.0
+        139.65890502929688
       ],
       "orthographic_scale": 67.69777777777779
     },
@@ -230,7 +251,7 @@
       "position": [
         3.5,
         140.0,
-        0.0
+        -0.34109175205230713
       ],
       "orthographic_scale": 45.083332856496185
     },
@@ -238,17 +259,25 @@
       "position": [
         143.5,
         0.0,
-        0.0
+        -0.34109175205230713
       ],
-      "orthographic_scale": 44.2
+      "orthographic_scale": 64.6
     },
     "three-quarter": {
       "position": [
         94.5,
         101.5,
-        70.0
+        69.65890502929688
       ],
-      "orthographic_scale": 50.75
+      "orthographic_scale": 59.5
+    },
+    "parked": {
+      "position": [
+        87.5,
+        119.0,
+        18.90890884399414
+      ],
+      "orthographic_scale": 70.0
     }
   },
   "closeup_cameras": {
@@ -319,9 +348,9 @@
     }
   },
   "object_count": {
-    "meshes": 100,
+    "meshes": 116,
     "empties": 7,
-    "pass2_detail_meshes": 72
+    "pass2_detail_meshes": 88
   },
   "silhouette": {
     "iou": 0.9506,

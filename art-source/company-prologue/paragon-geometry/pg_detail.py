@@ -285,7 +285,7 @@ def aft_grilles(kit, parts):
         pod = parts['pod '+label]
         for i, (y0, y1) in enumerate(AFT_GRILLES, start=1):
             ya, yb = sorted((y0*side, y1*side))
-            z0, z1 = -18.0, 2.0  # below the pod's rear wall top, so the plate above stays whole
+            z0, z1 = -11.0, 2.0  # below the pod's rear wall top, so the plate above stays whole
             bpy.ops.mesh.primitive_cube_add(size=1, location=(x_face-2.0, (ya+yb)/2, (z0+z1)/2))
             cut = bpy.context.object
             cut.dimensions = (10.0, yb-ya, z1-z0)
@@ -313,6 +313,10 @@ def _flank_point(ob, x, y_dir, z):
     return (ev.matrix_world @ p, (ev.matrix_world.to_3x3() @ n).normalized()) if hit else None
 
 
+# Window slits sized in true metres (w, h): a person is 1.8 m.
+WINDOW_M = (2.0, 0.9)
+
+
 def deck_windows(kit, parts):
     """Rows of glazed slits along the command deck's tiers."""
     for tier, z, xs in (('deck', pg_hull.DECK_Z+6.5, range(-30, -100, -5)),
@@ -324,7 +328,8 @@ def deck_windows(kit, parts):
                 if not hit:
                     continue
                 p, n = hit
-                w = kit.box(f'Detail {label} {tier} window {i}', tuple(p), (3.0, .5, 1.1), kit.glass, 0)
+                w = kit.box(f'Detail {label} {tier} window {i}', tuple(p),
+                            (WINDOW_M[0]/kit.mpu, .5, WINDOW_M[1]/kit.mpu), kit.glass, 0)
                 w.rotation_euler = (0, 0, math.atan2(n.y, n.x)+math.pi/2)
                 kit.detail.append(w)
 
@@ -337,9 +342,9 @@ def lining_ribs(kit):
         a = 2*math.pi*k/48
         if k % 4 == 0:
             continue  # where the emitter nodes stand (every 30 deg, offset 15: pg_shield)
-        r = (pg_hull.BORE_R+pg_hull.LINING_R)/2
+        r = (pg_hull.LIP_TOP_R+pg_hull.LINING_R)/2
         b = kit.box(f'Detail bore lining rib {k+1}', (cx+r*math.cos(a), cy+r*math.sin(a), z+.5),
-                    (pg_hull.LINING_R-pg_hull.BORE_R-3.0, 1.4, 1.0), kit.slate, .1)
+                    (pg_hull.LINING_R-pg_hull.LIP_TOP_R-1.5, 1.4, 1.0), kit.slate, .1)
         b.rotation_euler = (0, 0, a)
         kit.detail.append(b)
 
