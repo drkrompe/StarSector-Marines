@@ -9,8 +9,8 @@ Read `company-view-nouns.md` (Company HQ) first.
 ## Outcome
 
 Company HQ stops being a wall of panels and becomes a place: a painted banner of
-the company's operations deck, with Castle, two comms officers, a commander at the
-chart table and a quartermaster on watch. The scene replaces the abstract intel
+the company's operations deck, with Castle, two comms officers, Sabine Hale and a
+quartermaster on watch. The scene replaces the abstract intel
 network drawing and the separate assessment strip. Each station on deck is a
 hotspot for the panel that already holds its information, so the picture shows
 where things live without becoming the only way to reach them.
@@ -21,8 +21,8 @@ where things live without becoming the only way to reach them.
   (`prompts.json`, masters, briefs, provenance). A Blender blockout
   (`blender/deck_blockout.py`) is the layout authority; the **deck plate**
   (`deck-plate-v5.master.png`, approved) is painted over its guide, and one
-  transparent **figure card** per person (Castle, the comms pair, the commander,
-  the quartermaster, Sabine Hale) is cut by its stand's occluder matte.
+  transparent **figure card** per person (Castle, the comms pair, the quartermaster,
+  Sabine Hale) is cut by its stand's occluder matte.
   `pack.py` writes the shipped band, figure sprites and
   `mod/data/ui/hq-command-deck.json`; a repaint registered on the same guide needs
   only a re-run. Layers let a station highlight its own figure, let an alert
@@ -40,8 +40,8 @@ where things live without becoming the only way to reach them.
 - **The picture never holds information on its own.** Hotspots point at panels that
   stay on screen. Every hotspot is a real, keyboard-focusable button with a
   label; nothing is reachable only by clicking a painted person.
-- **The commander is the player's stand-in** and is painted from behind, face
-  hidden, so it never contradicts who the player imagines the captain to be.
+- **No figure stands in for the player.** A faceless commander at the plot table
+  was tried and removed: it read as a stranger, not as the player.
 - **Castle on deck must read as the Castle of her portrait.** Generate with
   `castle-master.png` as a reference where the tool accepts one; reject a plate
   where she doesn't match.
@@ -58,7 +58,7 @@ station hotspots, which are invisible until pointed at.
 | page nav                                                                        |
 +--------------------------------------------------------------------------------+
 | COMMAND DECK BANNER (full width x 372)                                          |
-|  [comms]  [plot table + commander]  [Castle]  [quartermaster]  [Sabine]         |
+|  [comms]  [plot table]  [Castle]  [quartermaster]  [Sabine]         |
 +--------------------------------------------------------------------------------+
 | RATING  RECOGNIZED  +24 | BRIDGE ADJUTANT // DAILY ASSESSMENT        [debug]    |  <- command strip
 +--------------------------------------------------------------------------------+
@@ -97,7 +97,7 @@ panel when used.
 | Station on deck | Label | What using it does |
 | --- | --- | --- |
 | Comms bank, two officers | COMMS // INTEL | Focuses the transmission archive and pulses the source windows. |
-| Chart table, commander | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
+| Plot table | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
 | Castle | CASTLE // ADJUTANT | Pulses the command strip; where the opening guide is active, focuses its next control. |
 | Quartermaster's ledger | FINANCE & STANDING | Pulses the finance column. |
 | Sabine Hale | FORCE // BARRACKS | Opens Barracks, where the force is. |
@@ -139,10 +139,14 @@ and panel pulses; snapshot evidence; optional alert plate.
 
 - Before the company has a ship, HQ shows the founding flow. Does it keep this deck
   (a borrowed office) or a different dockside plate?
-- Sabine stands on deck as herself (FORCE // BARRACKS); the commander stays the
-  player's faceless stand-in.
+- Sabine stands on deck as herself (FORCE // BARRACKS). Her idle pose is to be
+  replaced; see Remaining.
 
 ## Remaining
+
+- A new Sabine card in a working pose (she currently stands idle looking off scene).
+- The bottom-half pass: what the board draws attention to, story versus other work,
+  and what each scene station does.
 
 - Acceptance 4: render long assessment, no employers, no obligations and overdue
   states; check keyboard traversal reaches all five stations.

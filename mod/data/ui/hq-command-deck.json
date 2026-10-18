@@ -16,16 +16,6 @@
       ]
     },
     {
-      "id": "commander",
-      "sprite": "graphics/ui/hq-command-deck/commander.png",
-      "rect": [
-        622.3,
-        114.1,
-        141,
-        266
-      ]
-    },
-    {
       "id": "comms-left",
       "sprite": "graphics/ui/hq-command-deck/comms-left.png",
       "rect": [
@@ -70,14 +60,12 @@
     {
       "id": "situation",
       "label": "SITUATION_BOARD",
-      "figures": [
-        "commander"
-      ],
+      "figures": [],
       "rect": [
-        0.3002,
-        0.2579,
-        0.3384,
-        0.6804
+        0.3614,
+        0.4763,
+        0.2771,
+        0.2048
       ]
     },
     {

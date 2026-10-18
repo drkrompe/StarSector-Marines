@@ -24,7 +24,6 @@ LAYOUT = "deck-guide-v7.layout.json"
 # soles; a seated figure seen from behind shows no feet, so its bottom is the seat.
 CARDS = {
     "castle": ("castle-v2.master.png", 0.0),
-    "commander": ("commander-v2.master.png", 0.0),
     "comms-left": ("comms-left-v2.master.png", 0.45),
     "comms-right": ("comms-right-v2.master.png", 0.45),
     "quartermaster": ("quartermaster-v2.master.png", 0.0),
