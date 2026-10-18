@@ -75,6 +75,32 @@ Forward hangar (pg_hangar; owner, pass 3)
   unrendered) counts as enclosed volume, and ship_scale.py carries it as two boat
   bays.
 
+Finish: hex ablative ceramic (pg_finish; owner's pick, pass 3)
+  The armour (skin, pale, white) is crowned hexagonal ceramic plates with dark
+  seams: it spalls plate by plate under beam fire and is re-plated. Plate size
+  differs by part (pg_finish.HEX_M, metres: main ring 4.0, aft body 3.6, belt and
+  pods 3.0, bow module 2.6, horns and lobes 2.4, prow and deck 2.2, bridge 1.8)
+  and shrinks to 0.6x on steep faces; each object carries it as `hex_u`. Each
+  point takes its dominant projection plane's plates (no blended fragments).
+  Machinery is blue-black ceramic with pale ceramic caps. Procedural, triplanar.
+
+Bore machinery (pg_bore; owner, pass 3)
+  The bore is the soft, exposed part of the ship. Read off the sprite's lining
+  band at 8x: courses of curved plate segments in light, mid and dark greys
+  (some with raised sub-panels, a seeded share missing to show pumps and junction
+  boxes behind), pipe runs between the courses, conduits dropping over the lip
+  every 22.5 degrees, a rim conduit on the flat top, capacitor drums and pump
+  boxes on the top between the emitter nodes, and blue-white status lights. All
+  detail; none of it counts as enclosed volume. The hangar mouth is cut through it.
+
+Service fields (pg_service; owner, pass 3)
+  Where the plating is left off: shallow recesses following the plate (floor
+  parallel to the fitted surface plane, walls showing the substrate) with
+  rounded-rectangle crew hatches (2.6 x 1.6 m, glowing seam, split line, status
+  light), iris hatches, vent banks and radiator fins. Fields on the main ring's
+  crown fore and aft, on each pod top and at the command deck's after end; a
+  field that would meet a turret's dimple is left out.
+
 Armour and machinery character study (study_armour.py, compose_study.py)
   Three energy-resistant ceramic treatments on the built model, same cameras:
   A thermal tiles (2.4 m grid; graphite and titanium machinery), B hex ablative
@@ -112,6 +138,9 @@ Modules (one per area)
   pg_arcs      firing-line check across every turret's arc
   pg_detail    pass 2 detail: insets, dimples, niches, grille, glow, seams, windows
   pg_hangar    the forward hangar in the bore wall, its door and anchors
+  pg_finish    the hex ablative ceramic finish, machinery finish, substrate, plate sizes
+  pg_service   service fields: uncovered plating with hatches and machinery
+  pg_bore      the bore's exposed machinery: plate courses, pipes, conduits, units, lights
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -127,6 +156,9 @@ Names (identifiers: later passes key off them)
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)
   Detail ... (pass 2 parts), Hull <side> reactor glow k, Hull main ring seam light
+  Bore plate <course> <k> (+ panel), Bore pipe <k>, Bore conduit <k>, Bore rim conduit, Bore drum/pump <k>,
+    Bore gap <course> <k> pump/box/light, Bore light <course> <k>
+  Service <side> <field> ... (floor, hatch seam/plate/split/status light, iris, vents, fins)
   Hangar ... (floor, roof, walls, lights, frame, door leaves and slides, mouth, launch point),
     Hull forward hangar (the bay's air, unrendered; counted volume)
   Shield emitter (empty at shieldCenter; radius, arc, type as custom properties),

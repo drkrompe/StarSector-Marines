@@ -1,6 +1,6 @@
 # Shepherd: surfacing
 
-Status: ACTIVE — round 1 (base skin on every face, light service wear) is with the owner for review.
+Status: DONE (pass 6 accepted 2026-10-18 after the windscreen, glass and porthole fixes). The cinematic export is `../shepherd-cinematic/`.
 Written: 2026-10-18
 
 The Shepherd's (Morrow's) folder for the shared surfacing harness

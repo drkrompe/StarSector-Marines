@@ -90,5 +90,12 @@ Status
   thick curving brawler; tilted chined forearm arms with the sprite's armour (orange
   edge rail, dark sponson, deck channels); planed V underside; stepped skyline up
   to a faceted armoured citadel and down aft; gun noses leading; raked stern spurs;
-  turrets set into the hull in flush rings; joins audited. IoU 0.956. Awaiting the
-  owner's review.
+  turrets set into the hull in flush rings; joins audited. IoU 0.956. Silhouette
+  accepted by the owner after round 11.
+  Detail pass 1 (owner: "detail on the hull, exposed machinery, piping, hatches,
+  and armor"): os_detail_arms / _top / _hull / _stern add `Detail ...` objects
+  only, seated by ray cast after the turrets and before the lights: plate seams
+  and bolt rows, hatches and an airlock a side, louvres and heat shields, conduit
+  runs from well to drive and along the chines, valve chests in the waist
+  valleys, gimbal rams on the drives. Silhouette locked: IoU, seam audit,
+  turret training and lights unchanged. Awaiting the owner's review.
