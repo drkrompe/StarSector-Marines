@@ -71,6 +71,11 @@ LINES = [
      "except this one doesn't loop."),
     ("c4_greywater", "comms", "Greywater's past the cranes. Let me do the talking.",
      "[calm, practical, quiet] Greywater's past the cranes. Let me do the talking."),
+    # Owner's pick 2026-10-19 of the Kilo Nine drafts (c5-v2-closing.md): "the most personable".
+    ("c4_kilo_nine", "comms", "Look for the fenced yard on the east side. Kilo Nine. "
+     "Mind your manners down there; it's a favour.",
+     "[warm, dry, a small smile in it, pointing something out to the passengers] Look for the fenced yard "
+     "on the east side. Kilo Nine. Mind your manners down there; it's a favour."),
     ("c5_allhands_flat", "comms", C5_ALL_HANDS,
      "[calm, tired, practical ship's announcement, unhurried] " + C5_ALL_HANDS),
     ("c5_allhands_warm", "comms", C5_ALL_HANDS,
