@@ -3,23 +3,43 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a155d5-a91f-7910-96f4-5d36468451d4",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155d5-a91f-7910-96f4-5d36468451d4\\exec-33d086cd-5ae4-4f66-8431-adadf70add39.png",
+  "thread": "01a1567d-5cdd-7951-a1d9-15e36fa05d28",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1567d-5cdd-7951-a1d9-15e36fa05d28\\exec-b9437533-2bb3-435d-94d2-2a3da1474cc2.png",
   "otherImagesInThread": [],
   "output": {
-    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v3.png",
-    "sha256": "e8ba317549f4332198aeaf238dd4fd23b15ba3d90fa857a15dd92374e0b487ee",
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v4.png",
+    "sha256": "112125ca2ea62d982cfb729aff0dc0375dce3be95a67f4e46951016fa73e02f2",
     "dimensions": [
       1536,
       1024
     ],
     "mode": "RGB"
   },
-  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v3.txt",
-  "promptSha256": "2390e5838334f25192566c2f33c980015537578981187f8043afbc7f9b48f46f",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Style and finish only: a page from the same set; not content\n\nUse case: illustration-story. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: Harker's Claim, an asteroid mine, is being quietly emptied by its operator. Every month the manifests said ore. They weren't failing; they were packing.\n\nScene: night shift on the cargo floor of the Claim's loading hall, inside the pressurized asteroid habitat. Centre of the frame: a big steel freight container stencilled with crude ore-hazard chevrons and mining-grade markings (no readable words), its doors half open. Inside, packed in foam and strapped down, is not ore but the colony clinic's medical scanner: a pale curved diagnostic ring and its padded bed, still with a faded red medical cross on its side panel. Beside it, more crates marked the same way, one with its lid askew showing reactor fuel canisters and coiled drill heads. Two company loaders in clean company overalls close and seal the doors without looking inside, a forklift waiting.\n\nForeground left, on a manifest clerk's standing desk at the edge of the floor: a thick open manifest ledger with columns of unreadable handwritten entries, a rubber stamp and ink pad, a lamp, and a weathered woman's hand in the cuff of a charcoal-olive duty jacket resting flat beside the ledger, as if she has just stopped writing. Only the hand; no face.\n\nBackground: cold rock walls, gantries, amber lamps, and through a heavy sealed observation window the dark hull of a waiting company carrier. Quiet, damning, no drama.\n",
+  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v4.txt",
+  "promptSha256": "1d2d32a6ac5ac4f39ba7ea31abc42757c15b7be986aebbac7fafa6d0fda501c1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the window and the real freighter through it; never reshape or move the ship\nImage 2: Identity only: Castle's face, hair and jacket; not layout or style\nImage 3: Style and finish only: a page from the same set; not content\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: the writing on the wall at Harker's Claim, an asteroid mine. Upper management already know the colony is finished. They are getting their own people out on the company freighter, and telling everyone else there will be another boat.\n\nReference 1 is the layout authority: keep its camera, the wide sealed observation window across the upper half (heavy bolted mullions, real glass with faint reflections), and the docked freighter seen through it, painted exactly as the render shows it: same silhouette, size, position and angle, a massive slab-sided rust-red cargo hull with pale grey trim and banded cargo doors, lit by the dock's floodlights against black space and rock. Do not reshape it. The dark band at the bottom is the gallery floor.\n\nPaint the departure gallery of the habitat, inside, in front of the window:\n- On the right, a guarded boarding gate with a short enclosed gangway leading off toward the freighter. Through it, hurried and well dressed, administrators and their families with matching hard-shell luggage, a child in a clean coat, a porter wheeling a trolley of sealed company cases. Two company security guards in grey uniforms and visored caps hold the gate.\n- Centre foreground: a company manager in a clean, well-cut charcoal overcoat with a company pin, mid-forties, open hands raised in a calm placating gesture and a practised reassuring smile, addressing the miners. He is the focus.\n- Left: a cluster of worried miners and their families in worn, patched coveralls, held back behind a waist-high barrier tape, listening, unconvinced. Among them, three-quarter to the camera, Castle (exactly the woman in Reference 2: her face, age, greying dark hair in a short bun, charcoal-olive high-collared duty jacket, earpiece), arms folded over a thick manifest ledger, watching the luggage go through the gate, not the manager.\n- A departures board on the wall as blank glowing panels, nothing readable.\n\nClean light and expensive luggage on the right; dim amber and worn clothes on the left. Quiet betrayal, no violence.\n",
   "adopted": false,
   "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p2-gallery-layout.png",
+      "sha256": "40094b603535a902aeb761a17498a515f8e697866bc31548ffce79d9d1cd38a9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the window and the real freighter through it; never reshape or move the ship"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Castle's face, hair and jacket; not layout or style"
+    },
     {
       "path": "art-source\\company-prologue\\story-stills\\second-wind.master.png",
       "sha256": "17d47861914a2ae8e5d08dd47c3ede4fc97dbac3b8c7d371af41666edc123bc9",
@@ -32,14 +52,14 @@
     }
   ],
   "agentMessages": [
-    "I’ll generate one image with the reference’s worn industrial finish and the quietly incriminating cargo scene."
+    "I’ll generate one image using the supplied layout, Castle identity, and finish references."
   ],
   "usage": {
-    "input_tokens": 41307,
-    "cached_input_tokens": 32640,
+    "input_tokens": 49919,
+    "cached_input_tokens": 36864,
     "cache_write_input_tokens": 0,
-    "output_tokens": 655,
+    "output_tokens": 969,
     "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 64.1
+  "elapsedSeconds": 66.8
 }
