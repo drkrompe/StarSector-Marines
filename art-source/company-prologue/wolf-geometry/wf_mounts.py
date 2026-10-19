@@ -60,6 +60,28 @@ AXIS_Z = {'WS 004': .4, 'WS 005': .2, 'WS 006': .2}         # the hardpoints' bo
 # outer tines; its breech is buried in the head. The pods' launchers are set into the
 # pods' faces without a bay: their rears are inside the pod.
 BAYS = {'WS 004': ((-2.2, 4.0), 5.3, (-2.8, 3.6), ('Hull bow fork base',))}
+# The base hull (the merchant variant): every wolf.ship slot, armed as the vanilla
+# wolf_Assault variant. The kit has no heavy blaster or Harpoon hardpoint yet: the
+# mining blaster and Annihilator pod forms stand in for them (recorded as built_as).
+PIRATE = dict(slots=SLOTS, removed=REMOVED, loadout=LOADOUT, order=MOUNT_ORDER, built_as={})
+MERCHANT = dict(
+    slots=sorted(SLOTS+REMOVED, key=lambda s: s['id']), removed=[],
+    loadout={'WS 001': 'ioncannon', 'WS 002': 'pdlaser', 'WS 003': 'pdlaser', 'WS 004': 'heavyblaster',
+             'WS 005': 'harpoon', 'WS 006': 'harpoon'},
+    order=['WS 001', 'WS 002', 'WS 003', 'WS 004', 'WS 005', 'WS 006'],
+    built_as={'WS 004': 'miningblaster', 'WS 005': 'annihilator', 'WS 006': 'annihilator'})
+TURRET_RING = {'WS 001': RING, 'WS 002': 4.4, 'WS 003': 4.4}
+HARDPOINT_K.update({})
+BUILT_AS = {}
+
+
+def configure(variant):
+    """Point the module's slot tables at the pirate skin or the base hull."""
+    global SLOTS, REMOVED, LOADOUT, MOUNT_ORDER, BUILT_AS
+    v = MERCHANT if variant == 'merchant' else PIRATE
+    SLOTS, REMOVED, LOADOUT, MOUNT_ORDER, BUILT_AS = v['slots'], v['removed'], v['loadout'], v['order'], v['built_as']
+
+
 ANCHOR_Z = {}
 TURRETS = []
 HARDPOINTS = []
@@ -83,10 +105,11 @@ def turret(kit, i, slot, mpu):
     x, y = slot['location']
     sid = slot['id']
     seat = kit.surface(x, y)[0].z
-    tk.barbette(f'Turret {i} barbette', RING, LIFT, mats(kit), mpu, foot=1.2, location=(x, y, seat))
+    ring = TURRET_RING[sid]
+    tk.barbette(f'Turret {i} barbette', ring, LIFT, mats(kit), mpu, foot=1.2, location=(x, y, seat))
     top = seat+LIFT
     pivot = kit.empty(f'Turret {i} pivot', (x, y, top), 0, size=2.5, kind='SINGLE_ARROW')
-    t = tk.build(LOADOUT[sid], f'Turret {i}', pivot, RING, mats(kit), mpu)
+    t = tk.build(LOADOUT[sid], f'Turret {i}', pivot, ring, mats(kit), mpu)
     muzzles = [vfx_anchor(f'Anchor turret {MOUNT_ORDER.index(sid)+1} barrel {k} muzzle', m).name
                for k, m in enumerate(t['muzzles'], 1)]
     pivot.rotation_euler = (0, 0, math.radians(slot['angle']))
@@ -100,7 +123,7 @@ def turret(kit, i, slot, mpu):
     MUZZLES[sid] = muzzles
     TURRETS.append({'index': i, 'slot': sid, 'weapon': LOADOUT[sid], 'pivot': pivot.name,
                     'elevation': t['elevation'].name, 'location': [x, y, round(top, 2)],
-                    'rest_angle_deg': slot['angle'], 'arc_deg': slot['arc'], 'ring': RING,
+                    'rest_angle_deg': slot['angle'], 'arc_deg': slot['arc'], 'ring': ring,
                     'fixed': [f'Turret {i} barbette'], 'trained': [o.name for o in t['parts']],
                     'kit_muzzles': [m.name for m in t['muzzles']], 'muzzles': muzzles})
 
@@ -115,14 +138,15 @@ def hardpoint(kit, slot, mpu):
                          (bx1-bx0, 2*hw, bz1-bz0), kit.dark, 0)
         boolean(bpy.data.objects[host], cutter)
     mount = kit.empty(f'Weapon {sid} mount', (x, y, z), slot['angle'], size=2)
-    hp = tk.build_hardpoint(LOADOUT[sid], f'Weapon {sid}', mount, mats(kit), mpu, k=HARDPOINT_K[sid])
+    built = BUILT_AS.get(sid, LOADOUT[sid])
+    hp = tk.build_hardpoint(built, f'Weapon {sid}', mount, mats(kit), mpu, k=HARDPOINT_K[sid])
     tag = 'tube' if slot['type'] == 'MISSILE' else 'barrel'
     i = MOUNT_ORDER.index(sid)+1
     muzzles = [vfx_anchor(f'Anchor turret {i} {tag} {k} muzzle', m).name for k, m in enumerate(hp['muzzles'], 1)]
     kit.empty(f'Weapon {sid} anchor', (x, y, z), slot['angle'], size=2)
     ANCHOR_Z[sid] = z
     MUZZLES[sid] = muzzles
-    HARDPOINTS.append({'slot': sid, 'weapon': LOADOUT[sid], 'mount': mount.name, 'location': [x, y, z],
+    HARDPOINTS.append({'slot': sid, 'weapon': LOADOUT[sid], 'built_as': built, 'mount': mount.name, 'location': [x, y, z],
                        'k': HARDPOINT_K[sid], 'bay': {'x': [x+bx0, x+bx1], 'half_width': hw,
                                                       'z': [z+bz0, z+bz1], 'cut_from': list(hosts)}
                        if hosts else None,

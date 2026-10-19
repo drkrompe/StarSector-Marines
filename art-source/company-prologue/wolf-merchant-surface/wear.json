@@ -1,0 +1,5 @@
+{
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale. The merchant Wolf is a working convoy escort: light service wear.",
+ "clean":   {"abrasion": 0.0,  "pitting": 0.0,  "fade": 0.0,  "grime": 0.0,  "soot": 0.0,  "neglect": 0.0},
+ "service": {"abrasion": 0.25, "pitting": 0.2,  "fade": 0.15, "grime": 0.3,  "soot": 0.45, "neglect": 0.0}
+}

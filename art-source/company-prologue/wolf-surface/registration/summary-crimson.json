@@ -40,42 +40,42 @@
   "boundary_p95_px": 1.0
  },
  "main-side-port": {
-  "raw_iou": 0.9846,
+  "raw_iou": 0.9918,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.997,
+  "fitted_iou": 0.9983,
   "scale": [
-   1.00564,
-   0.997
+   1.00541,
+   1.00227
   ],
   "boundary_p95_px": 1.0
  },
  "neck-side-port": {
-  "raw_iou": 0.9806,
+  "raw_iou": 0.9943,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9939,
+  "fitted_iou": 0.9964,
   "scale": [
-   1.0021,
-   1.00693
+   1.0004,
+   1.00118
   ],
   "boundary_p95_px": 1.0
  },
  "aft-side-port": {
-  "raw_iou": 0.9903,
+  "raw_iou": 0.9959,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.998,
+  "fitted_iou": 0.9965,
   "scale": [
-   1.00315,
-   1.00757
+   1.00246,
+   1.00554
   ],
   "boundary_p95_px": 1.0
  },
  "main-under": {
-  "raw_iou": 0.9901,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9972,
+  "raw_iou": 0.9961,
+  "best_fit": "identity",
+  "fitted_iou": 0.9961,
   "scale": [
-   1.0029,
-   1.00707
+   1.0,
+   1.0
   ],
   "boundary_p95_px": 1.0
  }
