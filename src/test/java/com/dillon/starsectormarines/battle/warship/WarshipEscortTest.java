@@ -34,6 +34,23 @@ class WarshipEscortTest {
     }
 
     @Test
+    void aScreenChangingSidesComesRoundItsChargeNotAcrossIt() {
+        float r = 50f;
+        // From dead astern (west) to dead ahead (east) of a charge at the origin: the straight way runs through it.
+        float[] w = WarshipEscort.rounding(-60f, 0f, 60f, 0f, r, true);
+        assertEquals(r, (float) Math.hypot(w[0], w[1]), 1e-3f, "the waypoint is on the clear radius");
+        assertEquals(180f - WarshipEscort.ROUND_STEP_DEGREES,
+                Math.abs((float) Math.toDegrees(Math.atan2(w[1], w[0]))), 1e-2f, "one step round, not across");
+        // The short way round: from the south-west quarter to the north, it goes by the west.
+        float[] n = WarshipEscort.rounding(-40f, -40f, 0f, 60f, r, true);
+        assertTrue(n[0] < 0f, "round by the near side");
+        // A station already in sight round the side is flown to directly.
+        assertNull(WarshipEscort.rounding(60f, 0f, 55f, 20f, r, true));
+        // A station inside the radius, reached without passing the charge, is flown to directly.
+        assertNull(WarshipEscort.rounding(80f, 0f, 45f, 0f, r, true));
+    }
+
+    @Test
     void onlyASmallerCombatHullMayEscortALargerOne() {
         ShipClass frigate = new ShipClass(ShipClass.HullSize.FRIGATE, ShipClass.Role.COMBAT, 0, ShipClass.Shield.NONE);
         ShipClass cruiser = new ShipClass(ShipClass.HullSize.CRUISER, ShipClass.Role.COMBAT, 0, ShipClass.Shield.NONE);
