@@ -154,7 +154,7 @@ def _vent_material(ctx, name, seed, length):
 
 
 def _fireball_material(ctx, name, seed, radius, delay):
-    """Blooms in ~0.3 s, burns white-yellow to orange, cools to dark smoke by ~2.5 s."""
+    """Blooms in ~0.3 s from a white flash, burns orange by ~0.5 s, cools to dark smoke by ~2 s."""
     m, nodes, links = node_material(name)
     g = G(m.node_tree)
     co = g.node('ShaderNodeTexCoord').outputs['Object']
@@ -172,10 +172,10 @@ def _fireball_material(ctx, name, seed, radius, delay):
     fade = g.m('EXPONENT', g.m('MULTIPLY', t, -.45))                             # smoke thins over ~5 s
     dens = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), fade),
                g.m('DIVIDE', 1.4, g.m('MULTIPLY', scale, units(1.0))))
-    temp = g.m('MULTIPLY_ADD', g.m('MULTIPLY', heat, g.mr(n, .3, .8)), 4800.0, 900.0)
-    em = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), g.m('POWER', heat, 2.5)),
-             g.m('DIVIDE', 8.0, g.m('MULTIPLY', scale, units(1.0))))
-    vol = volume_output(g, dens, (0.05, 0.045, 0.04, 1), (0.5, 0.5, 0.52, 1), .2, emission=em)
+    temp = g.m('MULTIPLY_ADD', g.m('MULTIPLY', heat, g.mr(n, .2, .8, .75, 1.0)), 6500.0, 1000.0)
+    em = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), g.m('POWER', heat, 3.5)),
+             g.m('DIVIDE', 16.0, g.m('MULTIPLY', scale, units(1.0))))
+    vol = volume_output(g, dens, (0.05, 0.045, 0.04, 1), (0.18, 0.18, 0.19, 1), .2, emission=em)
     _link_emission_color(g, vol, _blackbody(g, temp))
     return m
 
@@ -186,7 +186,7 @@ def _ring_material(ctx, name, delay):
     m, nodes, links = node_material(name)
     g = G(m.node_tree)
     te = f'((frame-fir_exp_frame)/{FPS}-{delay})'
-    strength = value_node(ctx, nodes, 'strength', f'fir_exp*({te}>0)*exp(-max({te},0)*3.2)*3',
+    strength = value_node(ctx, nodes, 'strength', f'fir_exp*({te}>0)*exp(-max({te},0)*3.2)*1.2',
                           ('fir_exp', 'fir_exp_frame'))
     r = g.v('LENGTH', g.node('ShaderNodeTexCoord').outputs['Object'])
     band = g.m('MULTIPLY', g.mr(r, .86, .965, smooth=True), g.m('SUBTRACT', 1.0, g.mr(r, .97, 1.0)))
@@ -240,7 +240,7 @@ def build_vent(ctx, coll, anchor):
     return {'anchor': anchor.name, 'length_units': round(L, 2), 'objects': [ob.name]}
 
 
-def _ember_tree(ctx, name, seed, delay, count=160):
+def _ember_tree(ctx, name, seed, delay, count=120):
     tree, g, gout = _spark_group(name)
     atm = value_node(ctx, g.nodes, 'atmosphere', 'smk_atmosphere', ('smk_atmosphere',))
     t0 = value_node(ctx, g.nodes, 'start', f'fir_exp_frame+{delay*FPS}', ('fir_exp_frame',))
@@ -258,7 +258,7 @@ def _ember_tree(ctx, name, seed, delay, count=160):
                 g.m('POWER', _rnd(g, 'FLOAT', 0.0, 1.0, idx, seed+3), .5))
     pos, vel = _ballistic(g, atm, direction, speed, g.m('MAXIMUM', secs, 0.0))
     heat = g.m('SUBTRACT', 1.0, g.m('DIVIDE', age, life), clamp=True)
-    mat = _spark_material(ctx, knob='fir_exp', name=f'{PREFIX} ember', gain=12.0)
+    mat = _spark_material(ctx, knob='fir_exp', name=f'{PREFIX} ember', gain=6.0)
     _spark_streaks(g, gout, count, pos, vel, heat, alive, mat, width=20.0)
     return tree
 
