@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -343,6 +343,30 @@ round. The pool stays one column, so whole-body readers still see one hull.
     line to it) makes only the backing turn: the forward turn drives it out from
     behind the berm before the nose comes round, and the berm is worth more than
     the plate. `-Dbattle.vehicle.faceInBand=false` is the control.
+  - **One front, for the worst threat it knows of.** A hull has one front
+    plate, so with several hostile machines about it turns onto the one that
+    can do it the most harm from where it stands, not merely the nearest. Harm
+    is each weapon's rounds a second, at its accuracy for the range and its
+    armor efficiency against the hull's plate; a gun out of its own reach does
+    none. The threat it faces keeps the front until another is a quarter
+    worse, and everything else takes the side or the rear: two machines from
+    two sides beat the turn. The band is still held against the duel target.
+    `-Dbattle.vehicle.faceWorstThreat=false` is the control (the duel target).
+  - **It turns only toward what it knows of**: a machine in its own sight, or
+    one its side's spotters report (`SideSpotting`). A flanker out of sight, or
+    come up behind cover, gets its shots on the side until it is seen. There is
+    no arc of vision and no reaction delay beyond the hull's one-second
+    decision. `-Dbattle.vehicle.faceKnownOnly=false` is the omniscient control.
+  - **A turn shakes the gun.** The turret rides the hull, so while the heading
+    turns the turret must traverse against it to stay on target. A hull's gun
+    loses accuracy in proportion to the share of its turret's traverse rate the
+    hull's yaw takes, up to a moving shooter's full penalty (half) once the hull
+    turns as fast as the turret can. A tank backing round at full lock (about
+    12° a second under a 40° turret) loses about a sixth, and a forward turn
+    at speed the full half. It is the body's own yaw, whatever turns it: a turn
+    onto a threat, a route's corner, a driver at the wheel. A hull driving
+    straight is not shaken. `-Dbattle.vehicle.pivotAccuracy=false` is the
+    control.
   - Backing off a too-close target uses the same 120° arc. Only a target further
     behind than that is driven away from, rear on: a forward turn toward it was
     tried and parked hulls out of each other's sight in the street.

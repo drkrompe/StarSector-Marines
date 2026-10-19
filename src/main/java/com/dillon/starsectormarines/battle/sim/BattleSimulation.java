@@ -145,6 +145,7 @@ import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
+import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -1312,6 +1313,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
+        // A gun on a turning hull shakes the way a moving shooter's does.
+        turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
                 (side, x, y) -> commsSees(side, x, y)));
@@ -2795,7 +2798,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     /**
-     * Counts every live unit into the zone it stands in, so the garrison's "is this room free of
+     * Counts every live unit on the ground into the zone it stands in, so the garrison's "is this room free of
      * enemies?" can be answered without a roster walk for each question. Valid until the unit update
      * ends; see {@link ZoneOccupancy} for what that does and does not promise.
      */
@@ -2803,6 +2806,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         zoneOccupancy.begin(zoneGraph);
         for (int i = 0, n = liveUnitCount(); i < n; i++) {
             long unit = liveUnitAt(i);
+            // A unit aboard a vehicle has no position of its own and stands in no room.
+            if (!world().hasPosition(unit)) continue;
             zoneOccupancy.add(identity().faction(unit),
                     zoneGraph.zoneIdAt(world().cellX(unit), world().cellY(unit)));
         }
