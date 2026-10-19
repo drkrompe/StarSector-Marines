@@ -1,7 +1,7 @@
 """Grey review renders of the bridge interior (sw_bridge_interior), 1920x1080, Workbench.
 
     blender --background --factory-startup <model>.blend --python bridge_interior_review.py --
-            --out DIR [--figures] [--views a,b] [--exterior-only] [--no-shadows]
+            --out DIR [--figures] [--views a,b] [--exterior-only] [--no-shadows] [--frame N]
 
 Interior views stand where C2's bridge camera stands (forward and port stations), plus an
 overview of the room, a cutaway from above with the roof lifted off, a plan, and close-ups
@@ -24,7 +24,7 @@ sys.path.insert(0, str(HERE))
 import sw_bridge_interior as BI  # noqa: E402
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-opts = {'out': None, 'figures': False, 'views': None, 'exterior_only': False, 'no_shadows': False}
+opts = {'out': None, 'figures': False, 'views': None, 'exterior_only': False, 'no_shadows': False, 'frame': None}
 i = 0
 while i < len(argv):
     k = argv[i].lstrip('-').replace('-', '_')
@@ -42,6 +42,8 @@ for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
 if opts['figures']:
     BI.figures(0.65)
+if opts['frame'] is not None:       # an animated figure's pose (the pilot leans in at C2's 9 s)
+    scene.frame_set(int(opts['frame']))
 
 scene.render.engine = 'BLENDER_WORKBENCH'
 sh = scene.display.shading

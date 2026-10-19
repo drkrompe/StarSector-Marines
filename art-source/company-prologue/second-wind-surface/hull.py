@@ -73,3 +73,10 @@ SHEARED_FACES = get('SHEARED_FACES', False)  # bent per vertex after build: face
 # another paint family (a neighbour's paint at a registration edge) takes its
 # class swatch instead. The share of declared-family paint a face needs; None is off.
 FACE_FAMILY_MIN = get('FACE_FAMILY_MIN', None)
+# Overlay hulls (the Paragon): the base material keeps its own procedural finish (its
+# plating pattern and relief) and the graded skin or swatch only modulates it. Class ->
+# strength: the texture divided by its class's palette mean, mixed toward 1 by
+# (1 - strength), multiplies the base colour. None (every other hull): the texture
+# replaces the base colour, as before.
+OVERLAY = get('OVERLAY', None)
+

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Distant river water rushing over rocks heard muffled from far away, soft steady flow",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "cac759e34da4d01e6e4e9540c20d0cb5f64b4cde0146bfeef44f15c07e4f1275",
+  "durationSeconds": 10.0,
+  "peakDb": -24.3,
+  "integratedLufs": -33.6
+}

@@ -39,7 +39,11 @@ of the dais, leaning over the console about 60 cm behind the forward glass, then
 down to Castle's station, 70 cm inboard of the port glass. The eye height is the same at both,
 since leaning on the dais and standing on the floor put it level with the slits. The pilot (an
 unnamed crewman, seated at the helm) and Castle are MakeHuman figures from `pilot-figure/` and
-`castle-figure/` once their .blends are built, and mannequins until then (`sw_bridge_interior.figures`).
+`castle-figure/` once their .blends are built, and mannequins until then (`sw_bridge_interior.figures`). The
+pilot flies with a yoke (owner, 2026-10-19). He sits back, forearms on the armrests, leans in
+to the yoke over 8.3–9.3 s, pushes it for the de-orbit's pitch-down (9.5–13.2 s, with a small
+turn to port in the middle) and sits back again over 13.5–14.7 s (his package's action, on
+C2's frames).
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
