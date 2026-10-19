@@ -26,6 +26,7 @@ HEX_M = {
     'Hull command deck upper': 2.0, 'Hull command spine': 2.0, 'Bridge tower': 1.8,
 }
 DEFAULT_M = 2.6
+WEAPON_M = 1.0   # the guns' housings take small plates
 STEEP_FACTOR = .6
 BASE = {'skin': (.40, .45, .50), 'pale': (.58, .62, .66), 'white': (.80, .81, .82)}
 
@@ -182,4 +183,5 @@ def apply(kit):
 def assign_sizes(kit):
     for ob in bpy.context.scene.objects:
         if ob.type == 'MESH':
-            ob['hex_u'] = HEX_M.get(ob.name, DEFAULT_M)/kit.mpu
+            m = HEX_M.get(ob.name, WEAPON_M if ob.name.startswith('Weapon ') else DEFAULT_M)
+            ob['hex_u'] = m/kit.mpu

@@ -714,3 +714,21 @@ def profile_mass(kit, name, plan, top, bot, holes=(), mat=None, step=2.5, smooth
     bm.to_mesh(ob.data)
     bm.free()
     return ob
+
+
+def surface_below(kit, x, y, bottom=-160):
+    """Lowest (point, normal) where a ray raised at (x, y) from below meets the hull parts."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    best = None
+    for ob in kit.hull:
+        ev = ob.evaluated_get(dg)
+        inv = ev.matrix_world.inverted()
+        o = inv @ Vector((x, y, bottom))
+        d = (inv.to_3x3() @ Vector((0, 0, 1))).normalized()
+        hit, p, n, _ = ev.ray_cast(o, d)
+        if hit:
+            p = ev.matrix_world @ p
+            if best is None or p.z < best[0].z:
+                best = (p, (ev.matrix_world.to_3x3() @ n).normalized())
+    return best

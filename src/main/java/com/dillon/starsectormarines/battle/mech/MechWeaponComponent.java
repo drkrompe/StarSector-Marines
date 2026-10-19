@@ -177,8 +177,7 @@ public enum MechWeaponComponent {
     private float authoredHeat() {
         return switch (this) {
             case NOSE_CHAINGUN -> 18f;
-            // Cool enough that the factory battery leaves its SRM-15s room (heavy-equipment-progression.md).
-            case DUAL_CHAINGUNS -> 24f;
+            case DUAL_CHAINGUNS -> 30f;
             case SRM_5 -> 28f;
             case SRM_15 -> 42f;
             case LRM_5 -> 22f;

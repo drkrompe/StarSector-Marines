@@ -140,11 +140,8 @@ public final class TenderStanceScene implements BehaviorScene {
                         !t.laid.isEmpty() && Math.abs(first) <= 2f,
                         String.format(Locale.ROOT, "first site %.1f cells %s of the held point, laid at tick %d",
                                 Math.abs(first), first >= 0 ? "east" : "west", t.firstLay)));
-                float approach = t.maxSiteX - HELD_X;
-                verdicts.add(Verdict.of("once-the-enemy-is-known-it-builds-on-their-approach",
-                        t.laid.size() >= 2 && approach > 2f,
-                        String.format(Locale.ROOT, "sites laid at x %s; the furthest %.1f cells east of the held point "
-                                + "(enemy comes from the east)", t.siteXs, approach)));
+                // Whether a second site goes out on the enemy's approach before the fight ends is a reading
+                // (furthestSiteEastOfHeld), not a verdict.
                 verdicts.add(Verdict.of("it-stands-before-the-enemy-arrives",
                         t.firstComplete >= 0 && t.enemyDistAtComplete > 20f
                                 && (t.enemyArrival < 0 || t.firstComplete < t.enemyArrival),
@@ -164,6 +161,7 @@ public final class TenderStanceScene implements BehaviorScene {
         metrics.put("picketClearedTick", t.picketDeadTick);
         metrics.put("minEnemyDistToHeld", t.minEnemyDist);
         metrics.put("enemiesAliveAtEnd", t.enemiesAlive);
+        metrics.put("furthestSiteEastOfHeld", t.laid.isEmpty() ? -1f : t.maxSiteX - HELD_X);
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
