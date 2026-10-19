@@ -43,7 +43,7 @@ def build(kit):
         kit.hull.append(body)
         for k, x in enumerate((19.5, 21.5, 25.5), 1):  # striped vent bands (cols 16-21)
             kit.box(f'Pod {side} gun vent {k}', (x, s*18.5, GUN_POD['deck']+.02), (.9, 3.8, .25), kit.dark, 0)
-        kit.box(f'Pod {side} gun spine plate', (23, s*12.6, GUN_POD['deck']+.25), (10, 2.2, .5), kit.orange, .1)
+        kit.box(f'Pod {side} gun spine plate', (23, s*12.6, GUN_POD['deck']+.25), (10, 2.2, .5), kit.accent, .1)
         body, _ = pod(kit, f'Pod {side} missile', MISSILE_POD, mis_slot, s)
         kit.hull.append(body)
         kit.box(f'Pod {side} missile vent', (8, s*27, MISSILE_POD['deck']+.02), (3.4, 9, .25), kit.dark, 0)

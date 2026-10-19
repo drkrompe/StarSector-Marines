@@ -1,7 +1,7 @@
 """Review the kit's shields on any hull: front arcs, colour schemes, strength.
 
   blender --background --factory-startup --python review_shields.py --
-      --hull DIR --blend PATH --collection NAME --set front|schemes|strength|flicker|paragon
+      --hull DIR --blend PATH --collection NAME --set front|tech|schemes|strength|flicker|paragon
       [--out DIR] [--samples 32] [--kit DIR] [--distance 1.02] [--device GPU|CPU]
 
 Appends one hull's ship collection (from its built cinematic .blend, without
@@ -12,7 +12,9 @@ world) from high on the port bow:
 
 - front:    the shield closed (just opening, shield_t .06), half (.5) and
             fully open, then fully open turned 40 degrees to port with two hits;
-- schemes:  fully open with one hit, once per colour scheme in SCHEMES_SHOWN;
+- tech:     fully open with one hit at strength 1, once per shield technology
+            (low tech, midline, high tech: TECH_SHOWN), so only the scheme differs;
+- schemes:  the same, once per scheme in SCHEMES_SHOWN (factions included);
 - strength: fully open with one hit at each strength in STRENGTHS;
 - flicker:  a weak shield (strength .3) on four frames a few apart, to show
             that the weakness moves;
@@ -36,7 +38,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--hull', required=True)
 ap.add_argument('--blend', required=True)
 ap.add_argument('--collection', required=True)
-ap.add_argument('--set', required=True, choices=('front', 'schemes', 'strength', 'flicker', 'paragon'))
+ap.add_argument('--set', required=True, choices=('front', 'tech', 'schemes', 'strength', 'flicker', 'paragon'))
 ap.add_argument('--out', default=None)
 ap.add_argument('--samples', type=int, default=32)
 ap.add_argument('--kit', default=str(HERE))
@@ -51,7 +53,8 @@ import swfx  # noqa: E402
 
 SCHEMES_SHOWN = ('low-tech', 'midline', 'high-tech', 'hegemony', 'tritachyon', 'independent',
                  'sindrian_diktat', 'luddic_church', 'pirates')
-STRENGTHS = (.25, .43, .6, 1.0, 1.25, 1.5)
+TECH_SHOWN = ('low-tech', 'midline', 'high-tech')
+STRENGTHS = (.3, .6, .8, 1.0, 1.25, 1.5)
 # Stills: (name, shield_t, facing, [(hit, azimuth, elevation, strength)], extra knobs, frame).
 FRONT = [
     ('closed', .06, 0.0, [], {}, 1),
@@ -162,10 +165,11 @@ if args.set in ('front', 'paragon'):
     for i, s in enumerate(FRONT if args.set == 'front' else PARAGON, 1):
         name = f'front-{i}-{s[0]}' if args.set == 'front' else s[0]
         still(ctrl, name, *s[1:])
-elif args.set == 'schemes':
-    for i, scheme in enumerate(SCHEMES_SHOWN, 1):
+elif args.set in ('tech', 'schemes'):
+    for i, scheme in enumerate(TECH_SHOWN if args.set == 'tech' else SCHEMES_SHOWN, 1):
         ctx, ctrl = build(shield_scheme=scheme)
-        still(ctrl, f'scheme-{i}-{scheme}', 1.0, 0.0, [(1, 15, 10, .8)], {}, 1)
+        still(ctrl, f'{args.set}-{i}-{scheme}', 1.0, 0.0, [(1, 15, 10, .8)],
+              {'shield_strength': 1.0} if args.set == 'tech' else {}, 1)
 elif args.set == 'strength':
     ctx, ctrl = build()
     for i, sig in enumerate(STRENGTHS, 1):

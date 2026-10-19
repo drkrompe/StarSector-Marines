@@ -1,0 +1,201 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.994)",
+ "space": "CIELAB D65",
+ "classes": {
+  "orange": {
+   "pixels": 130298,
+   "mean": [
+    61.86,
+    -0.09,
+    -1.74
+   ],
+   "std": [
+    11.0,
+    0.7,
+    1.5
+   ],
+   "L_p10_p50_p90": [
+    33.44,
+    70.06,
+    79.7
+   ],
+   "mean_srgb": [
+    147.8,
+    149.6,
+    152.5
+   ],
+   "std_measured": [
+    16.35,
+    0.68,
+    3.28
+   ],
+   "note": "spread owned: reference shading on a pale paint inflates it"
+  },
+  "taupe": {
+   "pixels": 59797,
+   "mean": [
+    38.4,
+    -1.5,
+    -8.0
+   ],
+   "std": [
+    11.84,
+    0.67,
+    2.49
+   ],
+   "L_p10_p50_p90": [
+    25.17,
+    35.11,
+    57.23
+   ],
+   "mean_srgb": [
+    86.1,
+    90.9,
+    96.8
+   ],
+   "mean_measured": [
+    38.4,
+    -0.58,
+    -4.05
+   ],
+   "note": "chroma owned toward the Lasher independent accent"
+  },
+  "gunmetal": {
+   "pixels": 117339,
+   "mean": [
+    45.09,
+    0.21,
+    -0.62
+   ],
+   "std": [
+    12.0,
+    1.8,
+    3.0
+   ],
+   "L_p10_p50_p90": [
+    30.16,
+    44.1,
+    62.11
+   ],
+   "mean_srgb": [
+    106.5,
+    106.6,
+    107.7
+   ],
+   "std_measured": [
+    12.35,
+    0.5,
+    0.86
+   ],
+   "note": "spread owned: edge contamination on the reference inflates it"
+  },
+  "dark": {
+   "pixels": 3048,
+   "mean": [
+    25.29,
+    0.07,
+    -0.0
+   ],
+   "std": [
+    6.5,
+    0.7,
+    1.0
+   ],
+   "L_p10_p50_p90": [
+    7.39,
+    22.28,
+    45.11
+   ],
+   "mean_srgb": [
+    60.0,
+    59.9,
+    59.9
+   ],
+   "std_measured": [
+    14.53,
+    0.55,
+    0.62
+   ],
+   "note": "spread owned: edge contamination on the reference inflates it"
+  },
+  "cream": {
+   "pixels": 23009,
+   "mean": [
+    68.56,
+    0.78,
+    6.82
+   ],
+   "std": [
+    6.69,
+    0.64,
+    1.27
+   ],
+   "L_p10_p50_p90": [
+    60.91,
+    68.35,
+    77.02
+   ],
+   "mean_srgb": [
+    174.0,
+    166.3,
+    155.0
+   ]
+  },
+  "glass": {
+   "derived": "owned: tinted armoured glazing, darker than recess paint is light, faint cool cast",
+   "mean": [
+    24.0,
+    -2.0,
+    -4.0
+   ],
+   "std": [
+    5.0,
+    0.8,
+    1.2
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the independent class palette: what worn paint reveals and what the belt deposits.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    5.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    34.0,
+    1.0,
+    4.0
+   ],
+   "what": "grime and dust, cool grey-brown"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    78.0,
+    0.0,
+    1.0
+   ],
+   "what": "chalked, UV-bleached paint: faded grey and slate blue go toward pale neutral"
+  }
+ }
+}

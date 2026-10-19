@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559d-9516-7182-9355-4b63a8a0d275",
+  "source": "/Users/dillon/.codex/generated_images/01a1559d-9516-7182-9355-4b63a8a0d275/exec-91aafa0a-1f90-4355-853f-cf9dcda627ad.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/hound-surface-independent/generated/sheet-engines.png",
+    "sha256": "67b86e580f0ce5ac67551044a046d913c7a6fa92f865d282285b00f07c886cf1",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/hound-surface-independent/prompts/sheet-engines.prompt.txt",
+  "promptSha256": "7ac05826c4afed810d50ead2af448d910e26932f18dc1ec1c0806aeaf415036b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of one engine pod of a 3D spacecraft (a clean, well maintained independent convoy escort freighter), each view seen square-on and drawn alone as flat-coloured shapes on a plain light grey background. The pod is a long octagonal drive nacelle built from a row of armoured sections:\ntop-left: the pod's outboard flank seen from the side, bow at the left: a grey gunmetal intake cap, a thin slate-blue clamp band, a slate-blue forward casing, the pale grey armour collar whose frame surrounds four inset slate-blue skirt plates, a slate-blue aft casing with a grey gunmetal reinforcing band and a rectangular radiator opening (the opening is background grey and must stay empty), and the pale grey thrust housing at the right;\ntop-right: the same pod seen from directly above, bow at the right: the pale grey thrust housing crossed by two grey gunmetal shroud bands, the slate-blue aft casing broken up by vent cut-outs (background grey, stay empty), the grey gunmetal reinforcing band, the pale grey collar top carrying lighter flat-coloured top plates (paint these as dark grey gunmetal steel plates) round a slate-blue octagonal vent ring, the slate-blue forward casing with a small top plate (also dark gunmetal steel), and the grey gunmetal intake cap top;\nbottom-left: the pod's long upper 45-degree bevel strip, bow at the left: grey gunmetal cap bevel, slate-blue band and forward casing bevels, the pale grey collar bevel in three segments, the slate-blue aft casing bevel with the grey gunmetal band across it, and the pale grey thrust housing bevel with two grey gunmetal shroud bands;\nbottom-right: the pod seen from straight ahead: a large grey gunmetal octagonal intake dome with a near-black intake bore in its centre, inside nested rims: a slate-blue ring (the clamp band and forward casing) and a pale grey outer rim (the armour collar's front edge).\nINPUT 1's flat colours are the model's OLD paint scheme and only mark the materials: its orange shapes are now the pale warm-grey armour (a light, slightly warm neutral grey, clearly lighter than gunmetal), its brown / taupe shapes are now the muted slate-blue structural paint (a dull, dark greyish blue). Paint the NEW colours; no orange or brown may remain.\nINPUT 2 is the SAME ship already painted: it is the finish to match. Use its paint colours, its clean maintained condition, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that clean, maintained independent escort hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole or gap in a shape stays plain background grey.\n- Each shape is a flat armour or steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of fasteners and rivets, flush access panels, very light even service wear. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: pale grey shapes stay pale warm-grey, slate-blue shapes stay slate-blue painted structural plate, grey shapes stay dark grey gunmetal steel, the near-black bore stays near-black. Do not repaint any shape another colour.\n- No repair plates, patches, colour changes, rust, soot, scorch marks, burns, dents, holes, impact damage, stains, lettering, numbers, decals, stripes, or any single concentrated area of wear. Wear is light and even across each whole shape.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/guide/sheet-engines-guide.png",
+      "sha256": "512c899bec028487ba495f7d95afb45b747e248371d2ff98e31bca66bbcea2af",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/reference/finish-reference.png",
+      "sha256": "6bbbbd8846c67a86d533804210ae13fc4416358686b3648ae37f657ab0d71235",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use imagegen to repaint the sheet, preserving its layout and matching the ship’s finish."
+  ],
+  "usage": {
+    "input_tokens": 45828,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 892,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.2
+}
