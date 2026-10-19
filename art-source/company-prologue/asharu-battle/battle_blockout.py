@@ -131,13 +131,14 @@ KEYFRAMES = {
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
                 'the boarders and a Wolf (P) covers them. The rest of the convoy runs on ahead without her.',
         camera=dict(loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
+        states={'tarsus': 'tarsus-boarded'},
         ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
                'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
                'wolf-p-b': (-420, 330, 120, -20, 3, -25, 1),
                'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
                'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)},
-        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-90, 0, 4)),
-            ('smoke', 'tarsus', (-90, 0, 4))],
+        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-40, 0, 6)),
+            ('smoke', 'tarsus', (-40, 0, 6))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
     'k4': dict(
         shot='S8-S9', title='She will not be taken',
@@ -160,6 +161,7 @@ KEYFRAMES = {
                 'still docked. Far below, the Colossus has lost her orbit, nose down, with Morrow still at her side. '
                 'A burning freighter heading into the atmosphere is not worth chasing.',
         camera=dict(loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
+        states={'tarsus': 'tarsus-boarded'},
         ships={'falcon-p': (-560, 120, 120, 25, -6, 8, .8),
                'colossus3': (-240, 470, 60, 30, -4, -6, .3), 'tarsus': (-300, 360, 0, 30, -4, -6, 0),
                'kite-p-a': (-330, 300, 25, 30, -2, -4, 0),
@@ -489,6 +491,8 @@ def blender_main(cfg):
             role = e.get('role', 'main drive')
             if any(w in role for w in ('lift', 'jet', 'rcs', 'manoeuv', 'maneuv')):    # glows are for the drives only
                 continue
+            if e.get('running') is False:    # a dead drive (a damaged state) shows no glow
+                continue
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
         return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'])
@@ -638,9 +642,10 @@ def blender_main(cfg):
              @ Quaternion((1, 0, 0), math.radians(roll)))
         return Matrix.Translation(Vector(loc)) @ q.to_matrix().to_4x4()
 
-    def place(key, spec):
+    def place(key, spec, state=None):
+        """state names another FINISHED build of the same hull (a condition state) for this frame."""
         x, y, z, hd, pt, rl, thr = spec
-        m = members[key]
+        m = {**members[key], 'finished': state} if state else members[key]
         lib = hull(m)
         e = bpy.data.objects.new('Ship | ' + key, None)
         e.instance_type = 'COLLECTION'
@@ -898,7 +903,7 @@ def blender_main(cfg):
         if kf in KEYFRAMES:
             spec = KEYFRAMES[kf]
             for key, sp in spec['ships'].items():
-                place(key, sp)
+                place(key, sp, spec.get('states', {}).get(key))
             extra3d = {}
             if spec.get('platform'):
                 platform(spec['platform'])

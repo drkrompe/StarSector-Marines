@@ -1,8 +1,8 @@
 # Asharu battle: the wreckfall
 
-Status: DRAFT — round 4 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
+Status: DRAFT — round 5 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
 Written: 2026-10-19
-Updated: 2026-10-19 — round 4: the Falcon (P) and the Wolf in both liveries replace their stand-ins (builds awaiting the owner's acceptance); the Wolf is 75 m, not 86.
+Updated: 2026-10-19 — round 5: the Tarsus is a finished build, clean until she is boarded and boarded from S7 on (awaiting the owner's review); she is 94 m, not 106.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -112,7 +112,7 @@ Colossus 108 m, Onslaught 301 m.
 |---|---|---|---|---|
 | Colossus | the heavy freighter that falls | 108 m | the reference | **finished** |
 | Shepherd "Morrow" | drone tender, the convoy's repair ship; falls with the Colossus | 67 m | a little longer than a Hound | **finished** (Ko Combine livery) |
-| Tarsus | freighter: boarded and taken, the pirates' prize | 106 m (est.) | as long as the Colossus, much slimmer | **ordered** (seen close in S7 and S10) |
+| Tarsus | freighter: boarded and taken, the pirates' prize | 94 m | 0.9 Colossus, much slimmer | **finished**, clean and boarded (drives dead) states |
 | Phaeton | the convoy's tanker, destroyed in the opening | 73 m (est.) | 1.2 Hounds, long and thin | **ordered** (mid-close in S6) |
 | Mule | armed freighter; gets away | 104 m (est.) | about a Colossus | stand-in |
 | Buffalo x2 | small freighters; get away | 58 m (est.) | a Hound | stand-in |
@@ -186,7 +186,8 @@ ordered from this blockout without the owner asking.
 roster sheets (from above and broadside, every hull at true relative size) and
 the orbit diagram. Hulls come from `build/asharu-battle/inputs/` (ignored): the
 finished Colossus and Shepherd builds (`colossus-cinematic`,
-`shepherd-cinematic`) and the Drive builds `falcon-p/0044413fc`, `wolf-p/cec776a`,
+`shepherd-cinematic`) and the Drive builds `tarsus/750fb3374` (clean in S1-S6,
+boarded in S7 and S10), `falcon-p/0044413fc`, `wolf-p/cec776a`,
 `wolf/cec776a`, `kite-p/a48f8757b`, `hound-p/33114de`,
 `lasher-independent/7805d3b` and `hound-independent/1e91821`, each placed
 through its manifest. A stand-in is the sprite's silhouette raised into a lens
