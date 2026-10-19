@@ -4,7 +4,7 @@
   "voiceName": "Company Officer B - British Matriarch",
   "modelId": "eleven_v4",
   "voiceSettings": {},
-  "direction": "Jangala arrival, shots C1-C2 of storyboard-v3.md. The passengers overhear the bridge on an open cabin intercom. Jangala Approach is a Hegemony traffic controller across orbit, heavily masked by orbital_comms; Castle is on the bridge microphone, heard through the intercom (comms). Record clean; the treatment is applied by the audio pipeline. Shot C4 (jangala_arrival_nessa): Castle is in the cabin with the passengers, so that line is close and unprocessed (dialogue), not intercom.",
+  "direction": "Jangala arrival (storyboard-v3.md). Shots C1-C2: the passengers overhear the bridge on an open cabin intercom. Jangala Approach is a Hegemony traffic controller across orbit, heavily masked by orbital_comms; Castle is on the bridge microphone, heard through the intercom (comms). Entry to C5 (jangala_arrival_castle_*, owner's script of 2026-10-19, arrival-audio/sfx-cues.md): Castle speaks to the Commander through the intercom (comms), once to the whole ship over the loudspeaker heard from the yard (ship_pa), and last beside the Commander, unprocessed (clean). Record clean; the treatment is applied by the audio pipeline.",
   "voices": {
     "Jangala Approach": {
       "voiceId": "lh03wW2cCRf05ksqPizq",
@@ -62,19 +62,41 @@
       "durationSeconds": 4.0
     },
     {
-      "id": "jangala_arrival_hail_09",
+      "id": "jangala_arrival_castle_planetside",
       "speaker": "Castle",
-      "text": "Well. Somebody knows we're here.",
-      "synthesisText": "[quiet, half to herself, softly amused] Well. Somebody knows we're here.",
-      "durationSeconds": 2.72
+      "text": "We've got a few days planetside before we'll need to move along, Commander.",
+      "synthesisText": "[calm, steady, dry, to the Commander beside her] We've got a few days planetside before we'll need to move along, Commander.",
+      "durationSeconds": 3.84
     },
     {
-      "id": "jangala_arrival_nessa",
+      "id": "jangala_arrival_castle_reels",
       "speaker": "Castle",
-      "processing": "dialogue",
-      "text": "Nessa Venn. We ran ore together before she settled into the yards on Jangala. Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy. Never did. She'll have opinions about this ship. Let me talk first.",
-      "synthesisText": "[warm, quiet, unhurried, a little rueful, fond of an old friend] Nessa Venn. We ran ore together before she settled into the yards on Jangala. Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy. Never did. She'll have opinions about this ship. Let me talk first.",
-      "durationSeconds": 15.84
+      "text": "So much greenery and life... it's like the travel reels from the canteen.",
+      "synthesisText": "[quiet, a little wonder under the words, looking out of the window] So much greenery and life... it's like the travel reels from the canteen.",
+      "durationSeconds": 5.2
+    },
+    {
+      "id": "jangala_arrival_castle_yard",
+      "speaker": "Castle",
+      "text": "Set us down in that fenced yard on the east side. Nessa called in a favour to get us a berth for refit. Best behaviour.",
+      "synthesisText": "[calm, practical, a small dry smile at the end] Set us down in that fenced yard on the east side. Nessa called in a favour to get us a berth for refit. Best behaviour.",
+      "durationSeconds": 7.2
+    },
+    {
+      "id": "jangala_arrival_castle_all_hands",
+      "speaker": "Castle",
+      "processing": "ship_pa",
+      "text": "All hands, get some rest, see the sights, but keep your identification on you. We regroup at the yard tomorrow.",
+      "synthesisText": "[calm, confident, warm ship's announcement, a captain in control] All hands, get some rest, see the sights, but keep your identification on you. We regroup at the yard tomorrow.",
+      "durationSeconds": 6.88
+    },
+    {
+      "id": "jangala_arrival_castle_own_way",
+      "speaker": "Castle",
+      "processing": "clean",
+      "text": "Hard part starts now, Commander. From here, we find our own way.",
+      "synthesisText": "[quiet, resolute, confident, looking ahead, to one person] Hard part starts now, Commander. From here, we find our own way.",
+      "durationSeconds": 4.4
     }
   ]
 }

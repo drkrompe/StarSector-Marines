@@ -20,17 +20,17 @@
   [
    57.98,
    26.183,
-   15.066
+   14.57
   ]
  ],
  "size_m": [
   73.6,
   39.3,
-  24.8
+  24.4
  ],
- "meshes": 171,
- "polygons": 16905,
- "images": 20,
+ "meshes": 166,
+ "polygons": 19009,
+ "images": 19,
  "engines": [
   {
    "index": 1,
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    10.6
+    10.44
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -158,7 +158,7 @@
    "location": [
     -13,
     12,
-    10.3
+    9.8
    ],
    "rest_angle_deg": 90,
    "arc_deg": 200,
@@ -196,7 +196,7 @@
    "location": [
     -13,
     -11,
-    10.3
+    9.8
    ],
    "rest_angle_deg": -90,
    "arc_deg": 200,
@@ -442,7 +442,7 @@
    "location": [
     11,
     0,
-    10.6
+    10.44
    ],
    "angle": 0,
    "arc": 150,
@@ -459,7 +459,7 @@
    "location": [
     -13,
     12,
-    10.3
+    9.8
    ],
    "angle": 90,
    "arc": 200,
@@ -476,7 +476,7 @@
    "location": [
     -13,
     -11,
-    10.3
+    9.8
    ],
    "angle": -90,
    "arc": 200,
@@ -568,7 +568,7 @@
    "position": [
     26,
     11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -583,7 +583,7 @@
    "position": [
     26,
     -11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -643,7 +643,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-merchant-surface (shared harness, service wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "f41a904c749bb4083b2e68f9207847186a53ed57d4419d6ab394a94cde63980a"
+  "vfx_hull_sha256": "76f0fc185258ef3bc3567c65a79a32d2b180ff54ed5bb09507f68ebed813622b"
  },
  "state": "clean",
  "engines_running": [
@@ -861,5 +861,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "a298b6bdaf90f2521177bce2dcea5f6aa368521dc88fc6c55dd1e70a3eabb6af"
+ "asset_sha256": "cfbc840363e01c5c0c73fdf7779829994fd9100e10261bbd4d8ffea433d34a82"
 }

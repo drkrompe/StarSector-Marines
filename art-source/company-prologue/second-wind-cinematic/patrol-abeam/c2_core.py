@@ -256,10 +256,9 @@ HAIL = {                                   # absolute seconds
     "line7_patrol": (45.20, 46.54),        # "Patrol has your signature."
     "squelch_close_7": (46.64, 46.86),
     "line8": (47.46, 51.46),
-    "line9": (52.86, 55.58),
-    "line9_well": (53.06, 53.47),          # "Well."
-    "line9_knows": (54.00, 55.27),         # "Somebody knows we're here."
 }
+# Castle to the Commander over the entry, off the hail (arrival-audio/castle_lines.py: entry 0.16-4.0).
+CASTLE_PLANETSIDE = (ENTRY_START + 0.16, ENTRY_START + 4.0)
 
 # Entry transition, seconds from ENTRY_START: a descent, not a wipe (owner, 2026-10-19).
 # Flames and smoke stream across the glass from bottom right to top left, the way the air

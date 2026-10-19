@@ -112,6 +112,14 @@ public final class ProcessAudioTask {
                     + "aeval='val(0)+0.003*(random(0)*2-1)|val(1)+0.003*(random(1)*2-1)':c=stereo,volume=3,"
                     + "highpass=f=500:p=2,lowpass=f=2200:p=2,alimiter=limit=0.85:level=false:latency=true"));
         }
+        if (processing == AudioManifest.Processing.SHIP_PA) {
+            // A ship's loudspeaker heard from outside the hull: narrower than the intercom, driven,
+            // with two short slap echoes, loudness-matched to the comms takes (about -19 LUFS).
+            options.addAll(List.of("-af", "highpass=f=450:p=2,lowpass=f=2600:p=2,equalizer=f=1600:t=q:w=1:g=6,"
+                    + "acompressor=threshold=0.06:ratio=6:attack=3:release=70:makeup=3,"
+                    + "asoftclip=type=tanh:threshold=0.35:oversample=4,lowpass=f=2800:p=2,"
+                    + "aecho=0.8:0.5:31|67:0.3|0.18,loudnorm=I=-19:TP=-1.5:LRA=7"));
+        }
         if (processing == AudioManifest.Processing.DIALOGUE) {
             // Match alternating speakers without modifying the retained clean generation takes.
             options.addAll(List.of("-af", "loudnorm=I=-20:TP=-2:LRA=7"));

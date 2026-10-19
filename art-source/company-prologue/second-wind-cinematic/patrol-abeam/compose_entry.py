@@ -31,7 +31,8 @@ window from space; from then on there is one window and one camera. In the white
 settles onto C3's frame 0 exactly (SETTLE), and C3 picks up one frame later on the same
 shake clock, so the cut is a continuation rather than a held frame.
 
-Line 9 ("Well." / "Somebody knows we're here.") plays early in the heat; no squelch.
+Castle's first line to the Commander ("We've got a few days planetside...", castle_lines.py)
+plays early in the heat, off the hail; no squelch.
 
 Writes build/cinematic/entry/frames/%05d.png, entry.mp4 (review), timeline.json and
 contact-sheet.png; review stills to review/entry-*.png.
@@ -54,6 +55,7 @@ sys.path.insert(1, str(BASE.parent / "first-open-sky"))
 import c2_core as C  # noqa: E402
 import c2_planet  # noqa: E402
 import compose_c2 as K  # noqa: E402
+import castle_lines  # noqa: E402  (arrival-audio, on the path through compose_c2)
 import c3_core as Q  # noqa: E402
 import compose_c3 as C3  # noqa: E402
 
@@ -72,7 +74,7 @@ def duration():
 
 
 def captions():
-    return K.takes_between(C.ENTRY_START, C.ENTRY_START + DURATION)
+    return castle_lines.captions("entry")
 
 
 def overlays():
@@ -80,15 +82,10 @@ def overlays():
 
 
 def audio_cues():
-    """Line 9, off channel (no squelch: the missing key-up is how the ear knows Castle has
-    closed the channel), and the wind rising with the heat, which C3 carries on. No bed:
+    """Castle to the Commander, off the hail (no squelch: the missing key-up is how the ear knows
+    the channel is closed), and the wind rising with the heat, which C3 carries on. No bed:
     C1's cabin bed runs through the entry."""
-    starts = {line["id"]: start for line, start, _ in K._hail()}
-    return [
-        {"t": round(starts["jangala_arrival_hail_09"] - C.ENTRY_START, 3), "sound": "jangala_arrival_hail_09",
-         "volume": 1.0},
-        {"t": 0.35, "sound": "jangala_arrival_wind", "volume": 0.45},
-    ]
+    return castle_lines.cues("entry") + [{"t": 0.35, "sound": "jangala_arrival_wind", "volume": 0.45}]
 
 
 # ---------------------------------------------------------------- the stream
@@ -352,7 +349,7 @@ def main():
         "phases": {"heat": C.HEAT, "smoke": C.SMOKE, "cloud_in": C.CLOUD_IN, "white": C.WHITE, "settle": C.SETTLE},
         "last_frame_vs_c3_frame0_mean_abs_8bit": round(seam, 3)}, indent=1), encoding="utf-8")
     K.contact_sheet(frames, n, OUT / "contact-sheet.png", cols=6, rows=4, label="ENTRY")
-    K.review_movie(frames, n, K.review_pages_between(C.ENTRY_START, C.ENTRY_START + DURATION), audio_cues(), DURATION,
+    K.review_movie(frames, n, castle_lines.review_pages("entry"), audio_cues(), DURATION,
                    OUT / (SHOT + ".mp4"), bed_from=C.ENTRY_START)
     print("Entry: last frame vs C3 frame 0, mean |diff| %.2f / 255" % seam)
 

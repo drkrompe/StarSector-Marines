@@ -6,7 +6,14 @@
  "height": 1080,
  "frames": 288,
  "duration": 12.0,
- "captions": [],
+ "captions": [
+  {
+   "t_in": 7.0,
+   "t_out": 12.2,
+   "speaker": "castle",
+   "key": "jangalaArrivalCastleReels"
+  }
+ ],
  "overlays": [],
  "cues": [
   {
@@ -19,6 +26,11 @@
    "t": 0.0,
    "sound": "jangala_arrival_wind",
    "volume": 0.8
+  },
+  {
+   "t": 7.0,
+   "sound": "jangala_arrival_castle_reels",
+   "volume": 1.0
   }
  ],
  "speakers": {
