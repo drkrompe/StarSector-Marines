@@ -436,12 +436,14 @@ public final class WarshipSystem {
         ships.removeIf(Warship::destroyed);
         tickWrecks(dt, sim);
         shipFire.held(hullFireHeld(sim));
+        shipFire.advance(dt);
         tactics.plan(clock, ships, shipFire.held());
         WarshipEdgeHelm edges = new WarshipEdgeHelm(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         for (Warship ship : ships) {
             // A ship fighting hulls spends on the hull fight's clock (D1).
             float fightDt = ship.hullTarget() != null ? dt / WarshipScale.HULL_TEMPO : dt;
             ship.tickMissileGate(fightDt);
+            ship.tickReloads(fightDt);
             ship.tickMountRepairs(clock);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
@@ -1580,7 +1582,10 @@ public final class WarshipSystem {
             if (landing == null) continue;
             if (shell.hullOnly()) {
                 boolean struck = strikeHulls(landing, shell.fromX, shell.fromY, hullDamageType(shell.weapon));
-                if (shell.hullTarget() != null) shipFire.noteLanding(struck);
+                if (shell.hullTarget() != null) {
+                    shipFire.noteLanding(struck);
+                    if (shell.weapon.missile()) shipFire.noteMissileLanding(struck);
+                }
                 if (!struck && shell.straysOnMiss()) {
                     // It passed the hull it was fired at: it carries on and comes down on the ground.
                     shells.add(shell.carryOn());

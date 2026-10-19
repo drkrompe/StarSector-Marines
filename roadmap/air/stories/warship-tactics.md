@@ -1,9 +1,9 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position) and slice 7 (the pack relay) built
+Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position), slice 7 (the pack relay) and slice 8 (missile behaviour) built
 
 Written: 2026-10-16
-Updated: 2026-10-18 — slice 7 integrated with its two fixes (tank ceiling on hard flux, vents inside the edge margin); Black Sluice now fought by two Enforcers
+Updated: 2026-10-19 — slice 8: missiles launched into windows by role, salvos, hull-run flight shape, point defence in the hull fight's geometry, magazine reloads
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -652,6 +652,76 @@ The control, with `packRelay=false`, takes 658 to 940 s and fails `friendly-hull
 threat targeting off as well, two seeds are unresolved at 1,500 s. The relay is what brings the fight inside minutes.
 The Greyhook never takes an Enforcer's hull: her kinetic Heavy Autocannons glance off its plate.
 
+## Slice 8: missile behaviour
+
+The owner wants missile exchanges between hulls to be tactical and fun to watch. Before this slice a missile
+launched the moment its target was inside the ship's gun reach, and the only choice in it was the finisher's hold for
+a worn or overloaded hull: every rack rippled off at first contact, into a raised shield as readily as into a hole.
+And point defence barely touched a missile fired at a hull (`warship-missile-exchange` control, before the point
+defence change: 1 to 7 engagements a fight, 95 to 100 percent of missiles and warheads landing), so a missile was free
+damage.
+
+**Windows by role (`MissileWindow`).** A launcher's role comes from the weapon table's `primaryRoleStr` and the spec:
+torpedo, finisher, anti-shield, saturation (a carrier, or a torpedo launcher with five or more rounds) or general. A
+window is read off the target at launch from where the launcher stands: overload, shield down or locked out, flank
+(outside the shield's arc), high flux (70 percent), worn (the finisher hull share), strike (a relay striker while the
+target's eye is on the tank) and salvo (a packmate launched into an opening at it in the last 2.5 hull-fight seconds);
+a hull with no shield, and a raised shield, are standing conditions rather than openings. Each role launches only into
+the windows it can use (`air-nouns.md`, Overhead ships). A launch into an opening opens a salvo for the side's other
+launchers on that target. `-Dbattle.warship.missileWindows=false` is the control.
+
+**Flight.** A hull missile leaves along the barrel's bearing in a launch arc (up to 40 degrees off its line for a guided
+missile), weaves, and flies its last quarter straight in; a heavy body is pointed (12 degrees), barely weaves and runs
+in straight over its last 45 percent. Timing and landing are unchanged. `-Dbattle.warship.missileFlight=false`.
+
+**Point defence in the hull fight's geometry.** A hull missile flies 7.5 times the base game's distance at 2.5 times
+its speed; point defence still reached at the shared density and cycled at the base game's rate, so its umbrella was a
+sliver of a hull a missile crossed in a tick or two. Against a missile or warhead aimed at a hull, a mount now reaches at
+its hull reach, judges the shot at the base game's distance and speed, and cycles on the hull fight's clock, so it has
+the base game's shots at a missile crossing it (`-Dbattle.warship.pdHullReach=false`). A round aimed at the mount's own
+hull is weighed as half as far off (`-Dbattle.warship.pdThreatFirst=false`). No flares or evasive turns were built: no
+fit flown carries a flare system, and a hull at atmospheric handling cannot move a meaningful share of its length in a
+missile's flight.
+
+**Magazines.** The duel footing's magazines now refill where the base game's do (`ammo/sec` in its `reload size`, on the
+hull fight's clock, never past the magazine); a Dominator's Pilums are the case in the scene.
+
+**Evidence: `warship-missile-exchange`.** Two matchups, each against its control: `fleet` (Enforcer Balanced, Shrike
+Attack, Vigilance Strike against Medusa Starting, Hammerhead Balanced, Vigilance Strike) and `pack` (two Enforcer
+Balanced flying the relay on a Dominator Support). Verdicts: every gated launch went into a window its role can use;
+torpedo, finisher and saturation launches go into an opening more often than the control's (or both all but always);
+the pack's launchers join salvos or strike while the tank holds aggro; point defence engages missiles where they were
+sent at a hull carrying it; and no magazine ever holds or spends more than it carries and has reloaded.
+
+Readings (500 seconds a loop; a launch is a volley; "openers" are torpedo, finisher and saturation launches; hit and
+intercepted are shares of single missiles and warheads that reached an end):
+
+| loop | launches by window | openers into an opening | joined a salvo or strike | PD engagements / kills | hit / intercepted | reloads | outcome at 500 s |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| fleet, control | shield-down 15, shield-up 9, worn 2, high-flux 1 | 89% of 18 | 7 | 75 / 24 | 35% / 65% | 0 | west all lost (488 s), east none |
+| fleet | shield-down 14, shield-up 5, high-flux 2, salvo 2 | 100% of 15 | 7 | 57 / 19 | 54% / 46% | 0 | west two lost, east none |
+| pack, control | shield-up 12, shield-down 7, high-flux 6 | 52% of 25 | 7 | 2 / 1 | 98% / 2% | 34 | none lost |
+| pack | shield-down 19, high-flux 10 | 100% of 29 | 17 | 11 / 3 | 96% / 4% | 34 | none lost |
+
+The shield-up launches are Sabots, which is their window. In the pack's control the Dominator rippled its Pilums into
+the Enforcers' raised shields from the start; with windows it waits for a shield to drop or a pool to run high, and the
+Enforcers' Harpoons and Reapers go in together (17 launches into a packmate's salvo or a striker's moment against 7).
+Before point defence took the hull geometry, the same control fights saw 1 to 7 engagements and 95 to 98 percent of
+missiles land; the Enforcers carry no point defence, so the Pilums still land on them. The pack against a Dominator is
+a slow fight that neither side decides in 500 seconds.
+
+**Elsewhere in the warship set.** Every other warship scene passes except two `warship-tactics` relay loops,
+`wolfs-vs-enforcer-north` and `wolfs-vs-enforcer`, which now fail `venting-ship-not-targeted` (100% of a 30.8 s vent
+and 54% of a 94.5 s one). Nothing in the relay changed. The changes shift a sensitive fight: with all four
+`battle.warship.*` switches off both loops pass, `pdHullReach=false` alone clears north, and `missileWindows=false`
+alone clears centre. On north the striker starts its vent about 210 cells from the Enforcer, inside its 270 reach.
+At hull tempo it covers about a cell a second toward its hold at 310, so its pool is drained before it is out. The
+Enforcer keeps the venting Wolf as its assigned target throughout, although its fresh tank closes to 200 cells.
+Whether a lone target should turn to the tank, or a striker should start its vent nearer reach's edge, is a
+relay question left open here. In `frigate-missiles` the Wolf's PD lasers stop
+all four Harpoons the Brawler sends at it. Black Sluice (`greyhook-duel`, five seeds) passes all its verdicts: the
+Greyhook falls 174 to 293 seconds after the first hit (221 to 334 before), neither Enforcer loses hull.
+
 ## Slices
 
 1. **Spacing and hull contact.** Contact separation between hulls, friendly clearance in the helm. Evidence: the
@@ -671,6 +741,9 @@ The Greyhook never takes an Enforcer's hull: her kinetic Heavy Autocannons glanc
 7. **The pack relay.** Tank, striker, swap and vent, and threat-aware target choice for a ship set upon;
    `warship-tactics`' Wolf-pair loops against their controls, `-Dbattle.warship.packRelay=false` and
    `-Dbattle.warship.threatTargeting=false`.
+8. **Missile behaviour.** Launch windows by role and salvos, the hull run's flight shape, point defence in the hull
+   fight's geometry and threat-first, magazine reloads; `warship-missile-exchange` against its controls,
+   `-Dbattle.warship.missileWindows=false`, `missileFlight`, `pdHullReach` and `pdThreatFirst`.
 
 Each slice re-runs the warship scene set and `greyhook-duel` and keeps their verdicts green.
 

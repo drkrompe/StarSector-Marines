@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -57,6 +58,10 @@ public final class WarshipShipFire {
         float timer;
         float unaligned;
         boolean paid;
+        /** For a missile: its role, the windows open when the volley was started and the one it launched into. */
+        MissileWindow.Role role;
+        Set<MissileWindow.Kind> open;
+        MissileWindow.Kind window;
 
         Engagement(Warship target, int rounds) {
             this.target = target;
@@ -90,6 +95,18 @@ public final class WarshipShipFire {
     private int warheadsStrayed;
     private float lastReleaseSpread = Float.NaN;
     private boolean held;
+    private boolean missileWindows = MissileWindow.ENABLED;
+    /** Open salvos: per target, per side (faction ordinal), the hull-fight seconds the salvo stays open. */
+    private final Map<Warship, float[]> salvos = new IdentityHashMap<>();
+    private final Map<String, Integer> launchesByWindow = new TreeMap<>();
+    private final Map<String, Integer> launchesByRole = new TreeMap<>();
+    private int gatedLaunches;
+    private int gatedIntoOpening;
+    private int gatedFittingRole;
+    private int openerLaunches;
+    private int openerIntoOpening;
+    private int coordinatedLaunches;
+    private int salvosOpened;
 
     WarshipShipFire(List<WarshipShell> shells, WarshipPointDefence tracers) {
         this.shells = shells;
@@ -169,6 +186,102 @@ public final class WarshipShipFire {
         return lastReleaseSpread;
     }
 
+    /** Whether missiles at hulls wait for a window their role can use ({@link MissileWindow}); the control is off. */
+    public boolean missileWindows() {
+        return missileWindows;
+    }
+
+    /** Turns launch windows on or off for this battle; a scene's control loop turns them off. */
+    public void missileWindows(boolean on) {
+        this.missileWindows = on;
+    }
+
+    /** Missile volleys launched at hulls by the window they went into (the first open window, for the control). */
+    public Map<String, Integer> launchesByWindow() {
+        return Collections.unmodifiableMap(launchesByWindow);
+    }
+
+    /** Missile volleys launched at hulls by their launcher's role. */
+    public Map<String, Integer> launchesByRole() {
+        return Collections.unmodifiableMap(launchesByRole);
+    }
+
+    /** Volleys launched by a launcher whose role waits for windows (anything but general-purpose). */
+    public int gatedLaunches() {
+        return gatedLaunches;
+    }
+
+    /** Of {@link #gatedLaunches}, those launched while an opening was open on the target. */
+    public int gatedIntoOpening() {
+        return gatedIntoOpening;
+    }
+
+    /** Of {@link #gatedLaunches}, those launched while a window the launcher's role can use was open. */
+    public int gatedFittingRole() {
+        return gatedFittingRole;
+    }
+
+    /**
+     * Volleys launched by a launcher that waits for an opening rather than a raised shield: a torpedo, a finisher or a
+     * saturation launcher (an anti-shield missile's window is the shield itself).
+     */
+    public int openerLaunches() {
+        return openerLaunches;
+    }
+
+    /** Of {@link #openerLaunches}, those launched while an opening was open on the target. */
+    public int openerIntoOpening() {
+        return openerIntoOpening;
+    }
+
+    /** Volleys launched while a packmate's salvo was open on the target, or by a striker while the tank held its eye. */
+    public int coordinatedLaunches() {
+        return coordinatedLaunches;
+    }
+
+    /** Salvos opened on a target by a launch into an opening, for packmates' launchers to join. */
+    public int salvosOpened() {
+        return salvosOpened;
+    }
+
+    /** Whether a salvo of {@code side}'s is open on {@code target} now. */
+    boolean salvoOpen(Faction side, Warship target) {
+        float[] open = salvos.get(target);
+        return open != null && open[side.ordinal()] > 0f;
+    }
+
+    /** Runs the open salvos down on the hull fight's clock and forgets those on hulls no longer over the battle. */
+    void advance(float dt) {
+        float hullDt = dt / WarshipScale.HULL_TEMPO;
+        salvos.entrySet().removeIf(e -> e.getKey().destroyed() || e.getKey().departed());
+        for (float[] open : salvos.values()) {
+            for (int i = 0; i < open.length; i++) open[i] = Math.max(0f, open[i] - hullDt);
+        }
+    }
+
+    private void noteLaunch(Warship ship, Engagement e) {
+        launchesByWindow.merge(e.window.label(), 1, Integer::sum);
+        launchesByRole.merge(e.role.label(), 1, Integer::sum);
+        if (e.role != MissileWindow.Role.GENERAL) {
+            gatedLaunches++;
+            if (MissileWindow.label(e.open).opening()) gatedIntoOpening++;
+            if (MissileWindow.launch(e.role, e.open) != null) gatedFittingRole++;
+            if (e.role != MissileWindow.Role.ANTI_SHIELD) {
+                openerLaunches++;
+                if (MissileWindow.label(e.open).opening()) openerIntoOpening++;
+            }
+            if (e.open.contains(MissileWindow.Kind.SALVO) || e.open.contains(MissileWindow.Kind.STRIKE)) {
+                coordinatedLaunches++;
+            }
+            if (e.window.opening() && e.window != MissileWindow.Kind.SALVO) {
+                // A launch into an opening calls the side's other launchers onto the same target.
+                salvos.computeIfAbsent(e.target, t -> new float[Faction.values().length])[ship.faction.ordinal()]
+                        = MissileWindow.SALVO_SECONDS;
+                salvosOpened++;
+            }
+        }
+    }
+
     void noteShotDown() {
         missilesShotDown++;
     }
@@ -180,6 +293,24 @@ public final class WarshipShipFire {
     void noteWarhead(boolean onHull) {
         if (onHull) warheadsOnHull++;
         else warheadsStrayed++;
+    }
+
+    private int missilesOnHull;
+    private int missilesStrayed;
+
+    /** Single missiles (not carriers) aimed at a hull that reached a hostile hull, shield or plate, for evidence. */
+    public int missilesOnHull() {
+        return missilesOnHull;
+    }
+
+    /** Single missiles aimed at a hull that reached none and came down on the ground, for evidence. */
+    public int missilesStrayed() {
+        return missilesStrayed;
+    }
+
+    void noteMissileLanding(boolean onHull) {
+        if (onHull) missilesOnHull++;
+        else missilesStrayed++;
     }
 
     void noteLanding(boolean onHull) {
@@ -382,8 +513,24 @@ public final class WarshipShipFire {
             Warship target = pick(ship, m, mx, my, ships);
             if (target == null) return false;
             if (!mayStart(ship, target, WarshipPointDefence.engagementFlux(w))) return false;
-            if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return false;
+            MissileWindow.Role role = null;
+            Set<MissileWindow.Kind> open = null;
+            MissileWindow.Kind window = null;
+            if (w.missile()) {
+                role = MissileWindow.role(w);
+                open = MissileWindow.read(ship, target, mx, my, salvoOpen(ship.faction, target));
+                if (missileWindows) {
+                    window = MissileWindow.launch(role, open);
+                    if (window == null) return false;
+                } else {
+                    if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return false;
+                    window = MissileWindow.label(open);
+                }
+            }
             e = new Engagement(target, w.beam() ? 1 : Math.max(1, w.burstSize()));
+            e.role = role;
+            e.open = open;
+            e.window = window;
             engagements.put(m, e);
             if (w.missile()) ship.missileVolleyStarted();
         }
@@ -425,6 +572,7 @@ public final class WarshipShipFire {
             ship.fluxPool().spend(cost);
             e.paid = true;
             engagementsStarted++;
+            if (e.window != null) noteLaunch(ship, e);
         }
         fireRound(system, ship, m, target, aim);
         e.roundsLeft--;
@@ -605,7 +753,7 @@ public final class WarshipShipFire {
         long seed = WarshipAirRules.roundSeed(m.slot.id(), m.shotsFired,
                 ((long) ship.serial() << 20) ^ target.serial(), ship.faction.ordinal());
         if (w.missile() && w.flight() != null) {
-            fireMissile(ship, w, mx, my, target, aim, seed, blast);
+            fireMissile(ship, w, mx, my, target, aim, seed, blast, m.headingDegrees);
             return;
         }
         if (w.beam()) {
@@ -637,7 +785,8 @@ public final class WarshipShipFire {
 
     /** A missile launched at a hull: a carrier whose warheads are aimed at the split, or one missile to the hull. */
     private void fireMissile(Warship ship, VanillaWeapon w, float mx, float my, Warship target, float[] aim,
-                             long seed, float blast) {
+                             long seed, float blast, float launchDegrees) {
+        boolean heavy = MissileArchetype.of(w) == MissileArchetype.HEAVY;
         missilesFired++;
         MissileFlightSpec flight = w.flight();
         float visual = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
@@ -647,8 +796,8 @@ public final class WarshipShipFire {
             float along = splitAlong(flight, mirv, mx, my, aim[0], aim[1], seed);
             float ux = dist > 0f ? (aim[0] - mx) / dist : 0f;
             float uy = dist > 0f ? (aim[1] - my) / dist : 0f;
-            MissilePath carrier = MissilePath.plan(flight, mx, my, mx + ux * along, my + uy * along, seed,
-                    HULL_MISSILE_SCALE);
+            MissilePath carrier = MissilePath.atHull(flight, mx, my, mx + ux * along, my + uy * along, seed,
+                    HULL_MISSILE_SCALE, launchDegrees, false);
             // Placeholder warheads at where the hull is expected: the split re-aims them at where it actually is.
             List<WarshipShell.Warhead> heads = warheads(ship.faction, mirv, carrier.landX(), carrier.landY(),
                     aim[0], aim[1], seed);
@@ -667,7 +816,7 @@ public final class WarshipShipFire {
             lx += dist > 0f ? -(aim[1] - my) / dist * miss : 0f;
             ly += dist > 0f ? (aim[0] - mx) / dist * miss : 0f;
         }
-        MissilePath path = MissilePath.plan(flight, mx, my, lx, ly, seed, HULL_MISSILE_SCALE);
+        MissilePath path = MissilePath.atHull(flight, mx, my, lx, ly, seed, HULL_MISSILE_SCALE, launchDegrees, heavy);
         float[] stray = WarshipShipRules.strayLanding(mx, my, path.landX(), path.landY(),
                 WarshipScale.cells(w.rangePx()), WarshipAirRules.unit(seed, 1));
         shells.add(new WarshipShell(w, ship.faction, ship, mx, my, path.landX(), path.landY(), path, visual,
