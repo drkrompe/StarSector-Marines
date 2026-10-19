@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "50",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Big heavy spaceship fly-by whoosh, a deep cinematic swish passing close and receding, rumbling",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "5389c4f3e2e4dc4b6f1c2009eb52026d90fc0151350d44f538c7ec1c981327dc",
+  "durationSeconds": 5.0,
+  "peakDb": -0.2,
+  "integratedLufs": -11.1
+}

@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-19 — C4 and C5 are one shot: C5 pushes in from C4's last view; the rise and the title follow.
+Updated: 2026-10-19 — C4 and C5 are one shot (C5 pushes in from C4's last view); the port around Kilo Nine is staffed (`port_people.py`).
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -232,6 +232,35 @@ apron between the ferry and the freight terminal. A Hermes lifts off in C4's
 last seconds. During C5's rise another comes down on that pad and a Hound lands
 on the empty berth, so a lifter is moving in each shot. All of it is outside
 Kilo Nine's fence and keyed through C5's last frame.
+
+**The port's people** (`industrial-exterior/port_people.py`). The rise would
+show a port of empty vehicles without them, so the ground is staffed site by
+site, thickest close to Kilo Nine and on the public apron west of it and
+thinner further out, but present everywhere the rise reveals. Each job is one
+that reads from above as a shape:
+
+- an arrivals queue along the terminal hall's faces, moved up by two officials;
+- porters unloading the baggage tug while it stands at the hall;
+- a road gang crouched along the kerb with a foreman pacing it;
+- gate guards, one of whom stops a courier;
+- a marshaller waving the returning lighter onto its pad, then hands
+  unloading it;
+- signallers and lashers at the two working cranes, standing clear while a
+  box comes down (the girder hides anything under it from above);
+- crates carried from Kilo Nine's stores to its hangar;
+- cutters and a slinger in the salvage pile;
+- a smoke-break ring;
+- mechanics;
+- welders on the scaffold arms;
+- crews on the berths, pads and fuel farm.
+
+People face each other, hand things over, wait for each other and walk in
+pairs. Poses (crouch, signal, carry, talk, arms folded, work) are blocks on
+the 3D figures and extra columns on the sprite sheet. Each site has its own
+small walk map, read from the built scene like the yard's. Every vehicle that
+moves during C5 is blocked along its whole path, so nobody stands in a lane
+or under a wheel. The run's report counts people inside anything and should
+read 0. `--no-port` leaves the port people out.
 
 ## Open questions
 
