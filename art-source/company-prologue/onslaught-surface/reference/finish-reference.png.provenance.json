@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a15458-97c0-7462-8946-fe349fbc4484",
+  "source": "/Users/dillon/.codex/generated_images/01a15458-97c0-7462-8946-fe349fbc4484/exec-f46edcb6-0b93-43f5-b238-d4c3a9a9ebc9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/onslaught-surface/reference/finish-reference.png",
+    "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/onslaught-surface/prompts/finish-reference.prompt.txt",
+  "promptSha256": "00f5f73200e8cb3af91d46e72164d7b482647609e2a2358ba83000733b687035",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the game sprite (paint scheme and colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one large warship, an Onslaught-class Hegemony battleship, seen from above one bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: Hegemony orange armour bands and plates, a warm brown-grey hull with armour plates in darker brown, lighter bone-brown and blue-grey steel tones, dark charcoal-grey armour blocks, a bone-white spine and armoured citadel, gunmetal and pale steel machinery, tanks and pipe runs, near-black recesses, trenches and plate seams, small lit windows and lamps.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its Hegemony livery, turned so the bow points right (four times its pixel size): use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed capital warship hull in that Hegemony livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every plate, band, turret, pipe, trench and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material and tone: orange stays a warm saturated Hegemony orange enamel (as INPUT 2), the brown-grey hull stays a muted warm brown-grey paint, darker and lighter brown plates stay darker and lighter, blue-grey steel plates stay blue-grey, the charcoal armour blocks stay dark grey, the spine and citadel stay a warm bone-white enamel, gunmetal stays dark steel and pale steel stays pale steel, recesses and seams stay near black, windows stay windows. Do not swap or invent colours, stripes or patches.\n- Finish: a heavy, low-tech military battleship long on picket duty but properly maintained. Thick semi-matte industrial enamel over heavy armour, with crisp plate seams, rows of large fasteners, weld lines and access panels, and visible panel-to-panel tone differences. Service wear: worn and scuffed exposed edges and corners showing a little darker primer, a film of grime packed into seams and trenches, faint dust streaking aft along the hull, light soot round the stern drives. No rust, no large chipped-away areas, no repair plates, no dents, no battle damage, no burns, no lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no environment reflections, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/onslaught-surface/guide/reference-guide.png",
+      "sha256": "01cbccda4de55b4febc722ed39d37ad2e49dd0265e5ab38ab0f99b8622be192f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/onslaught-surface/build/sprite-livery.png",
+      "sha256": "fc17059a7f090b0d4e993d32e03db5742ed80aa106bd7e1b67d07424e1c0e0f6",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the game sprite (paint scheme and colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the render, preserving its composition and using the sprite only for the livery colours."
+  ],
+  "usage": {
+    "input_tokens": 72655,
+    "cached_input_tokens": 48256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 866,
+    "reasoning_output_tokens": 68
+  },
+  "elapsedSeconds": 56.0
+}
