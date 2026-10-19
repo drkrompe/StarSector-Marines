@@ -20,7 +20,7 @@ import bpy
 from wf_kit import boolean, revolve_x
 
 ENGINES = [(-36, 12, 16, 64), (-40, 0, 16, 64), (-36, -11, 16, 64)]
-Z = 0.0
+Z = -2.5   # the drive axis, centred in the deepened engine block
 MOUTH = .20    # mouth radius / slot width
 THROAT = .62   # throat radius / mouth radius
 LENGTH = .45   # bell length / slot width

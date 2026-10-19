@@ -1,0 +1,98 @@
+{
+ "forward-top": {
+  "unit_offset_L_a_b": [
+   -0.153,
+   -0.584,
+   -0.984
+  ],
+  "note": "hash default; edit freely"
+ },
+ "fuselage-side-port": {
+  "unit_offset_L_a_b": [
+   -0.004,
+   0.106,
+   -0.357
+  ],
+  "note": "hash default; edit freely"
+ },
+ "fuselage-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.71,
+   0.082,
+   -0.804
+  ],
+  "note": "hash default; edit freely"
+ },
+ "nacelle-top-port": {
+  "unit_offset_L_a_b": [
+   -0.373,
+   -0.278,
+   0.624
+  ],
+  "note": "hash default; edit freely"
+ },
+ "nacelle-top-stbd": {
+  "unit_offset_L_a_b": [
+   0.02,
+   -0.302,
+   -0.122
+  ],
+  "note": "hash default; edit freely"
+ },
+ "nose-front": {
+  "unit_offset_L_a_b": [
+   -0.553,
+   -0.686,
+   0.388
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-top": {
+  "unit_offset_L_a_b": [
+   0.224,
+   0.624,
+   -0.914
+  ],
+  "note": "hash default; edit freely"
+ },
+ "underside": {
+  "unit_offset_L_a_b": [
+   0.914,
+   -0.576,
+   0.678
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wing-side-port": {
+  "unit_offset_L_a_b": [
+   0.945,
+   0.671,
+   0.498
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wing-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.427,
+   -0.263,
+   0.992
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wing-top-port": {
+  "unit_offset_L_a_b": [
+   -0.922,
+   -0.969,
+   0.137
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wing-top-stbd": {
+  "unit_offset_L_a_b": [
+   -0.875,
+   -0.867,
+   0.804
+  ],
+  "note": "hash default; edit freely"
+ }
+}

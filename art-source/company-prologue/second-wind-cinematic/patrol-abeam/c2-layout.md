@@ -155,8 +155,8 @@ the Legion a figure hides; how near the eye comes to any surface). What it found
 - The view is mostly bridge: 7-15% glass for the first 4.5 s, about 37% at the port glass, where
   the head's upward tilt spent a third of the frame on the visor brow.
 
-Refinements, each a separate switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA`
-for the lit render) so they can be compared one at a time; none is on until the owner picks:
+Refinements, each a switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA` for the
+lit render; `none` gives the reviewed move). **All six are the default (owner, 2026-10-19):**
 **walk** (the step down is a person walking on its own clock, 4.6-6.6 s: back off the console,
 down the dais step past the grab pole, four paces with a footfall in each), **duck** (leaning
 lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath** (a few tenths
@@ -169,10 +169,8 @@ and never turns onto the pilot or Castle; a glance to the pilot and a step back 
 into the frame edge were both tried and dropped. Castle is seen in passing instead: she works the
 forward panel of her bank (`sw_bridge_interior.CASTLE_AT`, x 14.4), and the walk passes behind her
 back on its way to the middle panel, so she crosses the frame left to right at 5.55-6.0 s, about
-half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. The blockout can also
-preview thinner window posts (`--posts 0.4`: the slit mullions at 40% of their 39 cm and 33 cm
-widths); the hull model itself is unchanged, so adopting it is a Second Wind model change that
-every shot of the ship would show. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. Thinner window posts were previewed (40%
+width: about 3 points more glass) and declined; the posts stay as modelled. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 

@@ -44,8 +44,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import bw_kit, bw_hull, bw_wings, bw_guns, bw_engines, bw_gear
-for module in (bw_kit, bw_hull, bw_wings, bw_guns, bw_engines, bw_gear):
+import bw_kit, bw_hull, bw_wings, bw_guns, bw_engines, bw_gear, bw_lights
+for module in (bw_kit, bw_hull, bw_wings, bw_guns, bw_engines, bw_gear, bw_lights):
     importlib.reload(module)
 
 GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
@@ -130,6 +130,7 @@ bw_engines.build(kit)
 bw_guns.build(kit)
 if not args.blockout:
     bw_gear.build(kit)
+    bw_lights.build(kit)
 
 root = bpy.data.objects.new(ROOT, None)
 root.empty_display_type = 'PLAIN_AXES'
@@ -383,6 +384,7 @@ if not args.no_save:
         'slot_symmetry_note': 'Integer .ship slots straddle the centre line of an even-width sprite (11/-10, 7/-6, '
                               '6/-5); the model and its anchors are symmetric at the mean (10.5, 6.5, 5.5).',
         'anchors': anchors,
+        'running_lights': [] if args.blockout else bw_lights.records(),
         **({} if args.blockout else {'landing_gear': {
             'legs': [{'name': f'Hull {l}', 'hinge': f'Hull {l} hinge', 'hinge_location': [x, y, z],
                       'wheel_radius': r, 'doors': [f'Hull {l} door {s} hinge' for s in ('port', 'starboard')]}
@@ -398,7 +400,9 @@ if not args.no_save:
                          'Canopy ...': 'glass and frame', 'Wing <side> ...': 'gun pod housings, blades, aft strakes',
                          'Weapon <slot id> ...': 'gun geometry and slot anchors',
                          'Engine <i> ...': 'nacelle, collar, mouth lip, aft-facing bell, dark throat',
-                         'Flare launcher WS 005 ...': 'the system launcher on the spine'},
+                         'Flare launcher WS 005 ...': 'the system launcher on the spine',
+                         'Hull <leg> ...': 'landing gear legs, wells and doors (nose gear, port/starboard main gear)',
+                         'Light <side> <where> <k>': 'running lights; positions, colours and blink in running_lights'},
         'cameras': [{'name': n, 'position': list(p), 'orthographic_scale': s,
                      'rotation': 'nose left, port below' if n == 'top' else 'looks at '+str(list(TARGET))}
                     for n, p, s in CAMERAS],
