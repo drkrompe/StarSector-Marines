@@ -44,7 +44,11 @@ pilot flies with a yoke on a telescoping column (owner, 2026-10-19). He sits bac
 the armrests, with it stowed; leans in and draws it out to him over 8.3–9.45 s and flies sat
 back; pushes it for the de-orbit's pitch-down (9.5–13.2 s, with a small turn to port in the
 middle); and lets go over 13.5–14.7 s, leaving it drawn out (his package's action, on C2's
-frames).
+frames). His head and eyes follow the fighters past to port, glance at the console and turn
+to the Legion as it comes abeam. Castle listens with her hands on her bank, looks out through
+the port slits at the Legion over 7.1–9.9 s, keys the bank with her hand at her earpiece for
+the read-back (9.76–13.76 s), braces a little as the deck tips, and lowers her hand by
+14.6 s. `second-wind-geometry/bridge_figures_clip.py` renders both side by side as a check.
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
