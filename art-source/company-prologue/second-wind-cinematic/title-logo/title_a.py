@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from compose_game_wordmark import WORDMARK, marines, scrim
+from compose_game_wordmark import WORDMARK, marines, scrim, system_font
 
 HERE = Path(__file__).resolve().parent
 W, H = 1920, 1080
@@ -121,7 +121,7 @@ def ramp(t, span):
 
 
 def label(im, text, size=40):
-    font = ImageFont.truetype(r'C:\Windows\Fonts\segoeuib.ttf', size)
+    font = ImageFont.truetype(str(system_font('segoeuib.ttf', 'Arial Bold.ttf')), size)
     d = ImageDraw.Draw(im)
     b = d.textbbox((0, 0), text, font=font)
     p = size // 2
@@ -169,7 +169,7 @@ def main():
         y = 140 + i * (tile.height + 160)
         cmp.paste(tile, ((W - tile.width) // 2, y))
         ImageDraw.Draw(cmp).text(((W - tile.width) // 2, y - 60), name, fill=(230, 230, 230),
-                                 font=ImageFont.truetype(r'C:\Windows\Fonts\segoeuib.ttf', 40))
+                                 font=ImageFont.truetype(str(system_font('segoeuib.ttf', 'Arial Bold.ttf')), 40))
     cmp.save(out / '02-sharpening.png')
 
     menu = Image.new('RGB', (W, H), (12, 14, 18))
