@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "gpt-6-astra",
+  "effort": "codex default",
+  "thread": "01a155be-3b0d-77f3-9e42-018f0585f3d4",
+  "source": "/Users/dillon/.codex/generated_images/01a155be-3b0d-77f3-9e42-018f0585f3d4/exec-db9a0d0e-1985-477b-bdc7-6f87dc297b38.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/enforcer-geometry/concept/concept-b.png",
+    "sha256": "f1ed7260954a0d4eda7677a3828476df9122161d0676f99cb7d59f7b51949044",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/enforcer-geometry/concept/concept-b.prompt.txt",
+  "promptSha256": "ef7e7753fcbddf5189e2938fb11fa041dbfdb40ff164474d30b3bd8108eaa302",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Hull plan authority only (top-down; bow at the top). Not the pose, not the camera, not the colours.\n\nConcept art for a film, a side-profile study: the Starsector \"Enforcer\" destroyer imagined as a real, solid 3D spaceship, seen in a view from the port side, slightly above, showing the full profile, against a plain mid-grey studio background. Clean, readable industrial hard-surface concept rendering, neutral studio light, no text, no labels, no other ships, no planet, no stars.\n\nReference 1 is the game's top-down sprite: it is the authority for the hull's PLAN only (bow at the top of the sprite). Keep that plan recognisable from above: the nearly square armoured body; the five ring-mounted twin gun turrets (one on the centreline forward, two on the bow shoulders, two on the aft quarters); the four missile pods jutting forward; the broad anvil-shaped ram prow on a narrow neck; the two dark diamond-shaped wells either side of the waist; the two pale tank bays aft either side of a central spine with an octagonal bridge; the two engine blocks either side of a notched stern.\n\nWhat the design must solve: the top surface must NOT be one flat deck with guns sitting on it. Give the ship a strong, interesting vertical silhouette, the way a real warship is built: a raised armoured citadel and command tower on the centreline that is the highest point; turrets on different tiers so they can fire over each other (the bow-shoulder turrets superfiring over the forward centreline turret); armour that falls away from the citadel in steep sloped glacis faces and stepped terraces; tall drive towers at the stern; the ram prow rising into a high brow. It should read as a ship from the side, with a clear profile, not as a slab or a table. Low-tech, heavily armoured, old, industrial: thick plate, seams, bolted panels, exposed structure, sloped armour. Pale warm-grey armour with slate-blue trim and dark gunmetal machinery.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/enforcer-geometry/concept/enforcer_base_8x.png",
+      "sha256": "f26bf78c900309a48d261efe251d80d5f15c93dd820b94e2d4a47bdebc5e3cee",
+      "dimensions": [
+        1088,
+        1088
+      ],
+      "mode": "RGBA",
+      "role": "Hull plan authority only (top-down; bow at the top). Not the pose, not the camera, not the colours."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one side-profile concept, using the reference for the hull plan and building a strongly tiered vertical silhouette."
+  ],
+  "usage": {
+    "input_tokens": 39968,
+    "cached_input_tokens": 31616,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 660,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.8
+}
