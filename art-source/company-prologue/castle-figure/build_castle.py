@@ -22,15 +22,19 @@ mannequin convention in `sw_bridge_interior.figures`):
 
 - collection 'Castle figure', holding everything below; append it, never link pieces of it;
 - 'Castle figure root', an empty at her feet: place and turn this, nothing else;
-- 'Castle rig', MPFB's default skeleton (MakeHuman 'default' rig with its weights), posed;
+- 'Castle rig', MPFB's default skeleton (MakeHuman 'default' rig with its weights), posed and
+  keyed through C2;
 - the body, eyes, eyebrows, hair and clothes MPFB fits to it, from MakeHuman's own CC0
   system-asset pack (`NOTES` in the review run lists them), each skinned to the rig;
 - what that pack has no piece for, modelled here and parented to bones: the bun, the
   jacket's stand collar, the earpiece and its boom.
 
-The pose is the C2 one: standing at the console, left hand resting on its top edge, right
-hand up at the earpiece as she speaks, a little weight on the right leg, the head bowed to the
-screens. It is solved here rather than keyed by hand, so it can be re-aimed: each arm is a
+She stands at the console with a little weight on the right leg, and plays her part in C2 as
+the action 'Castle reads back and braces' on C2's frames (frame = C2 seconds x 24): both hands
+on the bank and her head bowed to the screens while Approach talks; up and out through the
+port slits as the Legion comes abeam; her right hand at the earpiece and her left keying the
+bank for her read-back; a small brace as the deck pitches down; her hand down again after.
+Each state is solved here rather than keyed by hand, so it can be re-aimed: each arm is a
 two-bone solve from the shoulder to a wrist target with the elbow pushed toward a pole, and
 the hand is turned to a named finger direction and palm normal. Targets are given relative
 to measured landmarks of the built body (the ear, the console's top in front of her), so a
@@ -96,6 +100,31 @@ RIGHT_WRIST_FROM_EAR = (-0.045, -0.06, -0.12)
 RIGHT_POLE = (-0.6, -0.25, 1.0)               # elbow out to her right and forward
 RIGHT_FINGERS = (0.25, 0.25, 1.0)             # up, a little in and back toward the ear
 RIGHT_PALM = (1.0, 0.1, 0.0)                  # toward the head
+# Right hand at rest: on the console beside the left, mirrored.
+RIGHT_REST_WRIST = (-0.17, -(CONSOLE_FRONT + 0.03), CONSOLE_TOP + 0.085)
+RIGHT_REST_POLE = (-0.55, 0.25, 1.0)
+RIGHT_REST_FINGERS = (0.12, -1.0, 0.29)
+
+# ---------------------------------------------------------------- her part in C2 (owner, 2026-10-19)
+# Small and purposeful: she listens to Approach with both hands on the bank and her eyes on the
+# screens; looks up and out through the port slits as the Legion comes abeam (8.0 s, under
+# "Patrol has your signature"); brings her hand to the earpiece and keys the bank for her
+# read-back ("Corridor four, mounts cold. Thank you, Approach.", 9.76-13.76 s); braces a little
+# as the de-orbit pitches the ship nose-down (from 9.6 s); and lowers her hand when she is done.
+# Each state: lean (degrees forward from the lower back), head bow (positive: down) and turn
+# (positive: to her left), where the right hand is ('console' or 'ear'), and the curl of her
+# left and right fingers (the left presses the transmit key while she speaks, and grips as
+# the deck tips).
+LISTENING = dict(lean=LEAN_DEG, bow=HEAD_BOW_DEG, turn=HEAD_TURN_DEG, right="console", curl=(12, 14))
+LOOKING = dict(lean=3.0, bow=-4.0, turn=2.0, right="console", curl=(12, 14))
+SPEAKING = dict(lean=5.0, bow=5.0, turn=HEAD_TURN_DEG, right="ear", curl=(30, 28))
+BRACED = dict(SPEAKING, lean=-1.5, bow=7.0, curl=(48, 28))
+# When, in C2 seconds (frame = t x 24): each (rise, fall) span is eased.
+LOOK_SPAN = ((7.1, 7.8), (9.2, 9.9))
+SPEAK_SPAN = ((9.25, 9.75), (13.9, 14.6))
+BRACE_SPAN = ((9.7, 10.7), (12.8, 13.9))
+FPS, LAST_FRAME = 24, 18 * 24
+BREATH_S, BREATH_DEG = 3.8, 0.7
 
 # ---------------------------------------------------------------- groomed hair (--hair curves)
 # Blender's own procedural hair node groups (CC0, bundled with Blender) do the grooming; this
@@ -849,26 +878,38 @@ def blender_main(argv):
         # MakeHuman's rest pose hangs the arms with the palms toward the thighs.
         rest_palm[side] = Vector((-1.0, 0, 0)) if side == "L" else Vector((1.0, 0, 0))
 
-    rotate_world("spine04", (1, 0, 0), LEAN_DEG * 0.6)
-    rotate_world("spine02", (1, 0, 0), LEAN_DEG * 0.4)
-    rotate_world("neck01", (1, 0, 0), HEAD_BOW_DEG * 0.4)
-    rotate_world("head", (1, 0, 0), HEAD_BOW_DEG * 0.6)
-    rotate_world("head", (0, 0, 1), HEAD_TURN_DEG)
-    # Weight on the right leg: the left knee eases and the left hip drops a touch.
-    rotate_world("upperleg01.L", (1, 0, 0), -4)
-    rotate_world("lowerleg01.L", (1, 0, 0), 8)
-    rotate_world("foot.L", (1, 0, 0), -4)
+    def pose(spec):
+        """Pose her from the rest pose for one state; returns every pose bone's matrix_basis."""
+        for pb in pbs:
+            pb.matrix_basis = Matrix.Identity(4)
+        view.update()
+        rotate_world("spine04", (1, 0, 0), spec["lean"] * 0.6)
+        rotate_world("spine02", (1, 0, 0), spec["lean"] * 0.4)
+        rotate_world("neck01", (1, 0, 0), spec["bow"] * 0.4)
+        rotate_world("head", (1, 0, 0), spec["bow"] * 0.6)
+        rotate_world("head", (0, 0, 1), spec["turn"])
+        # Weight on the right leg: the left knee eases and the left hip drops a touch.
+        rotate_world("upperleg01.L", (1, 0, 0), -4)
+        rotate_world("lowerleg01.L", (1, 0, 0), 8)
+        rotate_world("foot.L", (1, 0, 0), -4)
+        # Landmarks move with the bent spine and bowed head; read them back posed.
+        head_pose = pbs["head"].matrix @ head_b.matrix_local.inverted()
+        if spec["right"] == "ear":
+            right = (head_pose @ ear_r + Vector(RIGHT_WRIST_FROM_EAR), RIGHT_POLE, RIGHT_FINGERS, RIGHT_PALM)
+        else:
+            right = (Vector(RIGHT_REST_WRIST), RIGHT_REST_POLE, RIGHT_REST_FINGERS, LEFT_PALM)
+        for side, (wrist, pole, fingers, palm), fdeg in (
+                ("L", (Vector(LEFT_WRIST), LEFT_POLE, LEFT_FINGERS, LEFT_PALM), spec["curl"][0]),
+                ("R", right, spec["curl"][1])):
+            two_bone(side, wrist, pole)
+            orient("wrist." + side, fingers, palm, rest_palm[side])
+            curl(side, fdeg, 10, palm)
+        return {pb.name: pb.matrix_basis.copy() for pb in pbs}
 
-    # Landmarks move with the bent spine and bowed head; read them back posed.
-    head_pose = pbs["head"].matrix @ head_b.matrix_local.inverted()
-    ear_posed = head_pose @ ear_r
-    right_wrist = ear_posed + Vector(RIGHT_WRIST_FROM_EAR)
-    for side, wrist, pole, fingers, palm, fdeg in (
-            ("L", LEFT_WRIST, LEFT_POLE, LEFT_FINGERS, LEFT_PALM, 12),
-            ("R", right_wrist, RIGHT_POLE, RIGHT_FINGERS, RIGHT_PALM, 28)):
-        two_bone(side, wrist, pole)
-        orient("wrist." + side, fingers, palm, rest_palm[side])
-        curl(side, fdeg, 10, palm)
+    states = [pose(st) for st in (LISTENING, LOOKING, SPEAKING, BRACED)]
+    for pb in pbs:
+        pb.matrix_basis = states[0][pb.name]
+    view.update()
 
     # Re-ground: the soles on z 0 after the leg change.
     dg = bpy.context.evaluated_depsgraph_get()
@@ -893,6 +934,61 @@ def blender_main(argv):
     rig.show_in_front = False
     rig.hide_render = True
     root["height_m"] = round(max(v.z for v in verts) - min(v.z for v in verts), 3)
+
+    # ---- her part in C2, keyed on every frame: the states chained (each blends from all before
+    # it), with a breath in the chest on top
+    def ease(x):
+        x = min(max(x, 0.0), 1.0)
+        return x * x * x * (x * (x * 6 - 15) + 10)
+
+    def ramp(sec, span):
+        (u0, u1), (d0, d1) = span
+        if sec <= u0 or sec >= d1:
+            return 0.0
+        if sec < u1:
+            return ease((sec - u0) / (u1 - u0))
+        if sec > d0:
+            return 1.0 - ease((sec - d0) / (d1 - d0))
+        return 1.0
+
+    moving = [pb for pb in pbs if any(not all(abs(states[0][pb.name][i][j] - st[pb.name][i][j]) < 1e-5
+                                              for i in range(4) for j in range(4)) for st in states[1:])]
+    if "spine04" in pbs and pbs["spine04"] not in moving:
+        moving.append(pbs["spine04"])
+    parts_ = {}
+    for pb in moving:
+        pb.rotation_mode = "QUATERNION"
+        locs, quats = [], []
+        for st in states:
+            loc, q, _ = st[pb.name].decompose()
+            if quats and quats[-1].dot(q) < 0:
+                q.negate()
+            locs.append(loc)
+            quats.append(q)
+        parts_[pb.name] = (locs, quats)
+    hidden = [o for o in scene.objects if o.type in ("MESH", "CURVES") and not o.hide_viewport]
+    for o in hidden:
+        o.hide_viewport = True
+    rig.animation_data_create()
+    rig.animation_data.action = bpy.data.actions.new("Castle reads back and braces")
+    for frame in range(0, LAST_FRAME + 1):
+        sec = frame / FPS
+        chain = (ramp(sec, LOOK_SPAN), ramp(sec, SPEAK_SPAN), ramp(sec, BRACE_SPAN))
+        for pb in moving:
+            locs, quats = parts_[pb.name]
+            loc, q = locs[0], quats[0]
+            for k, w in enumerate(chain, 1):
+                loc, q = loc.lerp(locs[k], w), q.slerp(quats[k], w)
+            pb.location, pb.rotation_quaternion = loc, q
+        view.update()
+        rotate_world("spine04", (1, 0, 0), BREATH_DEG * math.sin(2 * math.pi * (sec + 1.1) / BREATH_S))
+        for pb in moving:
+            pb.keyframe_insert("location", frame=frame)
+            pb.keyframe_insert("rotation_quaternion", frame=frame)
+    for o in hidden:
+        o.hide_viewport = False
+    scene.frame_set(0)
+    root["look_s"], root["speak_s"], root["brace_s"] = [list(map(list, x)) for x in (LOOK_SPAN, SPEAK_SPAN, BRACE_SPAN)]
     root["source"] = "art-source/company-prologue/castle-figure/build_castle.py"
     root["frame"] = "metres; z up from the soles; she faces +X"
 

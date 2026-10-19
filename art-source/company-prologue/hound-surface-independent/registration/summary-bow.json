@@ -1,0 +1,42 @@
+{
+ "bow-fork-tine-side": {
+  "raw_iou": 0.9934,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9965,
+  "scale": [
+   1.00137,
+   1.00507
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bow-capsule-nose": {
+  "raw_iou": 0.9905,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9966,
+  "scale": [
+   0.99271,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bow-cage-ring-fore": {
+  "raw_iou": 0.9652,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9821,
+  "scale": [
+   1.00498,
+   1.00907
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "bow-fork-base-side": {
+  "raw_iou": 0.9819,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9937,
+  "scale": [
+   1.0,
+   1.00807
+  ],
+  "boundary_p95_px": 3.0
+ }
+}

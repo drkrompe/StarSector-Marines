@@ -1,7 +1,8 @@
 # Asharu battle: the wreckfall
 
-Status: DRAFT — shot plan and first blockout (`battle_blockout.py`), waiting on the owner.
+Status: DRAFT — round 2 blockout (`battle_blockout.py`); hull builds 1-7 started by the owner.
 Written: 2026-10-19
+Updated: 2026-10-19 — round 2: a larger convoy, and the pirates take the Tarsus as their prize, so they do not follow.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -25,12 +26,11 @@ Read from `shepherd-recovery-arc.md`, `shepherd-recovery-dialogue.md`,
   description of Asharu: the Hegemony sends "patrols only to chase down pirates".
 - **Do not invent:** the Colossus's cargo, owner or buyer, Morrow's original
   crew, or any reason the convoy was carrying something special. The convoy is
-  ordinary traffic. The pirates want the cargo, and the cinematic never shows
-  what it is.
+  ordinary traffic. The pirates want cargo, and the cinematic never shows what
+  any of it is.
 - **Tone** (`shepherd-recovery-dialogue.md`): a small story, grounded and
-  low-tech. This is an ordinary raid on an ordinary convoy that went badly for
-  everyone, not a great battle. Nobody wins: the pirates lose their prize to
-  the atmosphere.
+  low-tech. This is an ordinary raid on an ordinary convoy that went badly, not
+  a great battle.
 
 ## The place
 
@@ -69,116 +69,115 @@ these hull sizes. Long views (S1, S12) show the planet's limb; close views put
 the ships against the desert below. `01-orbit-geometry.png` in each review run
 shows both scales.
 
-## How the convoy is broken
+## How the convoy is broken, and why the pirates do not follow
 
 1. **Caught slow.** The convoy is committed to its descent burn: slowed, low,
    with nowhere to run.
 2. **Ambush from behind and below.** The pirates light up inside the platform
    the convoy has just passed and climb out of it, closing from astern.
 3. **The screen goes first.** The Manticore (P) and the Falcon (P) open at long
-   range on the escorts. The Enforcer turns back to meet them and is shot up.
-   One Lasher is destroyed. The Hound, at the rear, breaks away.
-4. **The freighters run.** The Colossus throttles up and fires flares, and her
-   twin autocannons engage. Wolves (P) and Hounds (P) cut across the column,
-   and Kites (P) close with boarders.
-5. **They shoot out her drive.** The pirates want her whole. They take out her
-   port tug pod to stop her running. The Colossus Mk.III, an armed Colossus
-   like her, comes alongside to take her.
+   range. The Phaeton tanker, at the convoy's tail, goes up. A Lasher burns.
+   The Enforcer turns back into the fire and is shot up.
+4. **The tail is cut off.** The Tarsus, astern of the Colossus, has her drives
+   shot out and falls out of the column. Kites (P) lie alongside her with the
+   boarders. The rest of the convoy runs on ahead.
+5. **The Colossus will not be taken.** The Colossus Mk.III, an armed Colossus
+   like her, closes to take her too and shoots out her port tug pod. She fights
+   back with flares and both turrets and drives off a Kite. Morrow, under her
+   keel, holds her up with her own drives.
 6. **She falls.** A crippled, slowed freighter in a 250 km orbit does not stay
-   there. With one pod gone and the other failing, she loses her orbit. Morrow,
-   which has been under her keel holding her up with her own drives, stays with
-   her and goes down with her.
-7. **Nobody gets the prize.** The pirates break off above an empty sky. Two
-   plasma trails run north toward the canyon country.
+   there. With one pod gone and the other failing, she loses her orbit, and
+   Morrow goes down with her.
+7. **The pirates take what they have.** The captured Tarsus is clamped to the
+   Colossus Mk.III. A burning freighter heading into the atmosphere, with no
+   way to get her back up, is not worth chasing. The rest of the convoy (Mule,
+   Buffalos, Dram, the surviving escorts) gets away while the pirates are busy
+   with their prize. Two plasma trails run north toward the canyon country.
 
-Whether the Colossus's crew dive deliberately to deny the prize, or simply lose
-her, is left open (owner's call). The plan draws it as losing her, because the
-story never gives anyone a heroic choice.
+This is the owner's "they got their prize above the atmosphere". It keeps the
+story's facts: the Colossus's sealed hold is never reached, because she is the
+one ship the pirates fail to take. Whether her crew dive her deliberately or
+simply lose her is still open; the plan draws it as losing her.
 
 ## Fleets
 
-Sizes from the finished models where they exist. Unbuilt hulls are sized by
+Sizes come from the finished models where they exist. Unbuilt hulls are sized by
 `ship_scale.py` option C from the game sprite's plan area (`roster.py`, about
 +-8% in length until each is built and measured). For scale: Hound 61 m,
 Colossus 108 m, Onslaught 301 m.
 
-### Merchant convoy (7 hulls)
+### Merchant convoy (13 hulls: 8 freighters and tankers, 5 escorts)
 
 | Hull | Role | Length | Against known ships | Model |
 |---|---|---|---|---|
-| Colossus | the principal, heavy freighter | 108 m | the reference | **finished** |
-| Shepherd "Morrow" | drone tender, the convoy's repair ship | 67 m | a little longer than a Hound | **finished** (Ko Combine livery) |
-| Tarsus | second freighter | 106 m (est.) | as long as the Colossus, much slimmer | stand-in |
-| Enforcer | escort lead, destroyer | 95 m (est.) | 0.9 Colossus | stand-in |
-| Lasher x2 | escort frigates | 90 m | 1.5 Hounds | **finished** (Hegemony material is a placeholder; needs an independent livery) |
-| Hound | rear escort | 61 m | the reference | **finished** (Hegemony auxiliary livery; an independent repaint is a texture job) |
+| Colossus | the heavy freighter that falls | 108 m | the reference | **finished** |
+| Shepherd "Morrow" | drone tender, the convoy's repair ship; falls with the Colossus | 67 m | a little longer than a Hound | **finished** (Ko Combine livery) |
+| Tarsus | freighter: boarded and taken, the pirates' prize | 106 m (est.) | as long as the Colossus, much slimmer | **ordered** (seen close in S7 and S10) |
+| Phaeton | the convoy's tanker, destroyed in the opening | 73 m (est.) | 1.2 Hounds, long and thin | **ordered** (mid-close in S6) |
+| Mule | armed freighter; gets away | 104 m (est.) | about a Colossus | stand-in |
+| Buffalo x2 | small freighters; get away | 58 m (est.) | a Hound | stand-in |
+| Dram | small tanker; gets away | 48 m (est.) | 0.8 Hound | stand-in |
+| Enforcer | escort lead, destroyer | 95 m (est.) | 0.9 Colossus | ordered (with the pirate Enforcer) |
+| Lasher x2 | escort frigates | 90 m | 1.5 Hounds | **finished** (needs an independent livery) |
+| Wolf | point escort frigate | 86 m (est.) | 1.4 Hounds | from the Wolf (P) build, with a merchant livery |
+| Hound | rear escort | 61 m | the reference | **finished** (needs an independent livery) |
 
 ### Pirate raiders (12 hulls)
 
 | Hull | Role | Length | Against known ships | Model |
 |---|---|---|---|---|
-| Falcon (P) | flagship, light cruiser | 159 m (est.) | 1.5 Colossus; half an Onslaught | stand-in |
-| Colossus Mk.III | the prize ship: an armed Colossus come to take the cargo | 107 m (est.) | the Colossus's twin | stand-in; **build from the Colossus geometry** |
-| Manticore (P) | long-range destroyer that breaks the screen | 96 m (est.) | 0.9 Colossus | stand-in |
-| Enforcer (P) | destroyer | 95 m (est.) | 0.9 Colossus | stand-in; **one Enforcer build serves both fleets** |
+| Falcon (P) | flagship, light cruiser | 159 m (est.) | 1.5 Colossus; half an Onslaught | ordered |
+| Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 107 m (est.) | the Colossus's twin | ordered, from the Colossus geometry |
+| Manticore (P) | long-range destroyer that breaks the screen | 96 m (est.) | 0.9 Colossus | ordered |
+| Enforcer (P) | destroyer | 95 m (est.) | 0.9 Colossus | ordered; one Enforcer build serves both fleets |
 | Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
-| Wolf (P) x2 | fast frigates that cut the column | 86 m (est.) | 1.4 Hounds | stand-in |
-| Hound (P) x2 | frigates | 61 m | the reference | **finished Hound geometry**; pirate state not built (tinted in the blockout) |
-| Kite (P) x2 | boarding shuttles | 55 m (est.) | 0.9 Hound | stand-in |
+| Wolf (P) x2 | fast frigates that cut the column | 86 m (est.) | 1.4 Hounds | ordered |
+| Hound (P) x2 | frigates | 61 m | the reference | ordered: a pirate state of the finished Hound (tinted in the blockout) |
+| Kite (P) x2 | boarding shuttles | 55 m (est.) | 0.9 Hound | ordered |
 
 All the pirate hulls are vanilla `pirate_bp` skins or pirate hulls (Colossus
 Mk.III), plus the Buffalo Mk.II, which pirate fleets field. Left out on purpose: the
-phase frigates (Afflictor, Shade and Gremlin (P)), because a phase ambush is
-a different film from this one; and the Venture Mk.II and Atlas Mk.II, which
-would make the raid read as a pirate armada. Talons (finished) are available
-if the shot wants fighters.
+phase frigates (a phase ambush is a different film from this one), and the
+Venture Mk.II and Atlas Mk.II, which would make the raid read as a pirate
+armada.
 
 ## Shot list
 
-About 90 seconds. **K** marks a shot with a blockout key frame in the review run.
+About 95 seconds. **K** marks a shot with a blockout key frame in the review run.
 
 | Shot | Length | Picture | Ships seen closest | Camera |
 |---|---|---|---|---|
-| S1 **K** | 8 s | Establishing: the convoy in column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | Colossus, Morrow, Tarsus, Lasher | 35 mm, high behind the column, slow drift forward |
+| S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m |
 | S3 | 5 s | Long lens back down at the derelict platform below: dark, stripped. Then drive lights come on in its hangars. | the platform | 135 mm from the convoy's tail |
 | S4 **K** | 6 s | First contact: twelve hulls climbing out of the platform toward the column, drives lit, the desert behind them. | Falcon (P), Wolves, Hounds (P), Kites (P) | 35 mm, off their flank |
-| S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds cross 3-4 km of space. A Lasher is hit. | Manticore (P), Lasher | 85 mm along the line of fire |
-| S6 **K** | 8 s | The screen breaks: the Enforcer turns back into the fire and is hit; Lasher A goes up; the freighters keep running. | Enforcer, Lasher A, Colossus | 30 mm, looking aft along the convoy |
-| S7 | 8 s | The freighters run: the Colossus throttles up and fires flares, her turrets track; Wolves cut across, Kites close. | Colossus, Wolf (P), Kite (P) | 35 mm, handheld-feel follow |
+| S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire |
+| S6 **K** | 8 s | The screen breaks: the Phaeton tanker goes up, a Lasher burns, and the Enforcer turns back into the fire and is hit. | Enforcer, Phaeton, Lasher A | 30 mm, looking aft along the convoy |
+| S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), Wolf (P) | 35 mm, from behind the Tarsus |
 | S8 | 6 s | Close on the Colossus's aft: the port tug pod is shot out, the drives stutter, debris. | Colossus | 50 mm, close |
-| S9 **K** | 8 s | The prize: the Colossus Mk.III closes from above to take her; Kites (P) carry the boarders; Morrow is under her keel, drives lit, holding her up. | Colossus, Colossus Mk.III, Morrow, Kite (P) | 28 mm, 600 m off her port side |
-| S10 **K** | 10 s | The fall: over the Falcon (P)'s shoulder, the Colossus nose-down and losing her orbit, Morrow still with her, the pirates breaking off above. | Falcon (P), Colossus, Morrow, Colossus Mk.III | 35 mm, behind and above |
+| S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. | Colossus, Colossus Mk.III, Morrow | 28 mm, 600 m off her port side |
+| S10 **K** | 10 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above |
 | S11 | 10 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. | Colossus, Morrow | 50 mm, chase |
 | S12 **K** | 10 s | Two trails down the track toward the horizon and the canyon country. Hold. End. | (trails only) | 50 mm from the pirates' orbit |
 
 The crash against the canyon wall is a separate shot. It needs both ships'
 deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
 
-## Pirate hull build list (proposal; the owner decides)
+## Hull builds
 
-In priority order: ships seen closest and longest first. Each hull gets its own
-ship-model-pipeline session.
+Orders go to the coordinating session, one per hull (owner, 2026-10-19). The
+owner started orders 1-7: Colossus Mk.III, Kite (P), Wolf (P), Falcon (P),
+Hound (P) state, Manticore (P), Enforcer and Enforcer (P). The Buffalo Mk.II
+stays a stand-in. Round 2 adds two convoy hulls that are now seen close:
 
-1. **Colossus Mk.III**: seen closest of all the pirates (S9, S10), right beside
-   the finished Colossus. It is the same hull with pirate armour and guns, so it
-   starts from the Colossus geometry. This is the cheapest and most valuable
-   build.
-2. **Kite (P)**: the boarding shuttles, close in S7 and S9 and in frame for
-   long stretches. Small and simple.
-3. **Wolf (P)**: the fast frigates that cut the column, close in S6-S9.
-4. **Falcon (P)**: the flagship, framed large in the foreground of S10 and
-   mid-distance in S4.
-5. **Hound (P)**: a pirate state of the finished Hound (texture and damage),
-   not a new hull. Mid-distance in S4 and S7.
-6. **Manticore (P)**: opens the fight in S5, at mid-to-long range.
-7. **Enforcer / Enforcer (P)**: one build with two liveries. The merchant
-   Enforcer is close in S6, so this one serves both fleets.
-8. **Buffalo Mk.II**: background only; it can stay a stand-in.
+- **Tarsus**: the pirates' prize, close in S7 and S10. Detailed, textured and
+  with effects, plus a boarded condition (drives shot out, scorched).
+- **Phaeton**: the tanker destroyed in S6, at mid-close range. Detailed and
+  textured, plus a destroyed condition.
 
-Merchant side, not pirate but needed: the **Enforcer** (above), a **Tarsus**
-(background, can stay a stand-in), and independent liveries for the
-**Lashers** and the **Hound**.
+The Mule, Buffalo and Dram are distant and stay stand-ins. The merchant Wolf
+takes the Wolf (P) build with a merchant livery. Liveries for the finished
+Lashers and Hound are texture jobs on existing hulls.
 
 ## Blockout
 
@@ -193,13 +192,11 @@ and nothing more. Effects (tracers, blasts, drive plumes, entry plasma) are
 placeholders for the VFX kit.
 
 `python battle_blockout.py --check` prints where every ship lands in every key
-frame without rendering.
+frame without rendering; `--frames k3b,k5` renders some frames only.
 
 ## Open for the owner
 
-- Pirates as the attackers, and the two rosters above.
 - Asharu's size, the 250 km orbit and the low sun.
 - The Colossus lost or deliberately dived.
 - Whether one of the Lashers comes down too (the story says "several of her
   escorts" came down in the valley).
-- The build list order.

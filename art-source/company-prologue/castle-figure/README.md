@@ -1,11 +1,14 @@
 # Castle figure
 
-Status: ACTIVE — grey blockout, posed for C2
+Status: ACTIVE — grey blockout, animated for C2
 Written: 2026-10-19
 
 Castle as a 3D character for shots on Second Wind's bridge (C2, `c2-layout.md`): a
 MakeHuman body built in Blender by the MPFB extension, rigged with MakeHuman's default
-skeleton and posed at the port comms bank. A moving camera keeps a 3D figure consistent
+skeleton and posed at the port comms bank, where she plays her part in C2 (an action on C2's
+frames: listening with her hands on the bank, looking out at the Legion as it comes abeam at
+8.0 s, her hand to the earpiece and the bank keyed for her read-back at 9.76-13.76 s, a small
+brace as the deck pitches down from 9.6 s, and her hand down after). A moving camera keeps a 3D figure consistent
 from frame to frame; close shots are repainted over its frames with Codex ImageGen
 (`geometry-first-imagegen.md`), so the figure owns silhouette, proportion, pose and
 light, and the repaint owns face, hair and cloth finish. Her look is the portrait's
@@ -75,5 +78,5 @@ procedural hair node assets (CC0). No other assets are used.
   opens without MPFB; every material keeps a flat diffuse_color for Workbench.
 - The face is MakeHuman's, shaped toward the portrait: it carries her proportions and
   expression for the repaint, not a likeness.
-- The earpiece stays on her right ear, with her right hand at it, as C2 poses her, although the
+- The earpiece stays on her right ear, with her right hand at it while she speaks, although the
   portrait and cards wear it on her left (owner, 2026-10-19).
