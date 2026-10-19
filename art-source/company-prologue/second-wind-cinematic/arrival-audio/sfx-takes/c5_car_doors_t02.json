@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "30",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Car doors opening and closing, two doors, then boots stepping out on concrete",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "77759706c07404f42ccf549766d7888b73eecf9bc89fad1edb40414be2d3bbd1",
+  "durationSeconds": 3.0,
+  "peakDb": -0.1,
+  "integratedLufs": -15.1
+}

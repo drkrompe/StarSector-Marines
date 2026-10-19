@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "30",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Very heavy spacecraft landing gear touching down on concrete, deep thump, metal clank and groan",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "043134a09c24183654a9a399e329853d032039394ed4094c59d47194326e8584",
+  "durationSeconds": 3.0,
+  "peakDb": -4.1,
+  "integratedLufs": -16.0
+}

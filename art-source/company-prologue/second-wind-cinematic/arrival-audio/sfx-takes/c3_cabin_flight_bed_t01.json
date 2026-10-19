@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Inside an aircraft cabin in steady flight, smooth air rushing over the fuselage, soft ventilation, low engine drone, calm, no voices, no music",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "885da296d89248acaf6e46ad5e7e822407bfe1f7a8d6169ae2bbe69bb5bff14d",
+  "durationSeconds": 12.0,
+  "peakDb": -7.0,
+  "integratedLufs": -19.7
+}
