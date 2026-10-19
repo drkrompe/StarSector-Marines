@@ -46,11 +46,11 @@ SHEARED_FACES = True
 # Overlay (the harness's opt-in, hull.OVERLAY): how strongly each class's graded
 # texture modulates the base finish. The hex ceramic carries the plate pattern;
 # the swatch adds mottling and grime, the part tiles the staining of one place.
-# Round 2 (owner: stronger, more mottling, visible heat tint, more grime): the v2
-# swatches and the staining tiles carry the strength, so the overlay passes them at
-# about full departure.
-OVERLAY = {'skin': 1.0, 'pale': 1.0, 'white': 1.0, 'slate': .9, 'hatch': .9, 'substrate': .9,
-           'steel': 1.0, 'dark': .8, 'bore': .9, 'bore_light': .9}
+# Round 3 (owner: round 2 too dirty for a Tri-Tachyon flagship, pull it back partway):
+# the v2 swatches and staining tiles stay, passed at about halfway between round 1's
+# strength and round 2's full departure.
+OVERLAY = {'skin': .75, 'pale': .75, 'white': .7, 'slate': .7, 'hatch': .7, 'substrate': .7,
+           'steel': .75, 'dark': .6, 'bore': .7, 'bore_light': .7}
 
 
 def derive_palette(classes):
