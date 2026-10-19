@@ -35,23 +35,23 @@
      1.64,
      11.4
     ],
-    "dE_to_palette_before": 7.34
+    "dE_to_palette_before": 7.25
    },
    "oxide": {
-    "share_as_declared": 0.859,
-    "share_in_declared_family": 0.859,
+    "share_as_declared": 0.91,
+    "share_in_declared_family": 0.91,
     "swap": false,
     "before_mean_lab": [
-     51.77,
-     21.48,
-     29.9
+     53.81,
+     23.25,
+     32.31
     ],
     "after_mean_lab": [
      51.17,
      18.92,
      27.77
     ],
-    "dE_to_palette_before": 3.39
+    "dE_to_palette_before": 6.82
    },
    "gunmetal": {
     "share_as_declared": 0.921,
@@ -67,26 +67,26 @@
      1.05,
      1.83
     ],
-    "dE_to_palette_before": 1.72
+    "dE_to_palette_before": 1.64
    },
    "dark": {
-    "share_as_declared": 0.968,
-    "share_in_declared_family": 0.998,
+    "share_as_declared": 0.868,
+    "share_in_declared_family": 0.92,
     "swap": false,
     "before_mean_lab": [
-     25.19,
-     0.03,
-     0.13
+     27.38,
+     1.76,
+     2.55
     ],
     "after_mean_lab": [
      18.79,
      0.08,
      -0.29
     ],
-    "dE_to_palette_before": 6.69
+    "dE_to_palette_before": 9.59
    },
-   "ramp_span_L_removed_max": 11.44,
-   "edge_band_dL_after_mean": 3.14
+   "ramp_span_L_removed_max": 12.01,
+   "edge_band_dL_after_mean": 2.73
   },
   "spine-side-port": {
    "cream": {
