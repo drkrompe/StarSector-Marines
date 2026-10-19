@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155e4-c974-7ee0-8592-012ad0449b7b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155e4-c974-7ee0-8592-012ad0449b7b\\exec-89f64a4d-06b0-4dc4-bda3-7042ec8f089a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\tarsus-surface\\reference\\finish-reference.png",
+    "sha256": "3062830a125138c0ba86a762d67c5ee9d3dafdc1a51549b53f90be9c500ec755",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\tarsus-surface\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "0acb54f65fadb868133ebc9e123f2700651cda8c2cb18cc21aba8a752a2da1a3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: repaint this exact render, never move a pixel of its shapes\nImage 2: Livery and paint colours only; not layout, not view\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Tarsus-class freighter (a rugged, low-tech Domain-era hazard-duty cargo hauler about 94 m long: two forward cargo arms ending in round turret drums, a central body with two big white pressure tanks on its deck, a raised aft castle between two tall drum towers, and two copper drive cans at the stern), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: weathered ochre-tan plating on the two cargo arms, the aft body and the castle; pale cream deck plating on the central body; rust-brown castings on the four round turret drums and the drive housings; mid-grey structure and deck bands; white pressure tanks; signal orange panels and hazard frames; copper drive cans; dark gunmetal machinery (turrets, rails, pipes, frames, the command cab); near-black recesses and seams.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery: an independent merchant's freighter, not a navy or pirate ship. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, door, hatch, turret, tank, rail, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: ochre-tan stays a weathered warm ochre-tan industrial enamel (as INPUT 2's arms and hull), pale cream stays a dusty pale cream enamel, rust-brown stays a dark rust-brown painted casting, mid-grey stays a mid warm grey paint, white tanks stay off-white painted pressure vessels, signal orange stays a signal orange enamel, copper stays dull worn copper, gunmetal stays dark grey bare-ish steel, recesses stay near black, windows stay as they are. Do not swap or invent colours, stripes or patches.\n- Finish: a sturdy Domain-era hazard-duty freighter still in independent merchant service, low-tech, heavy and practical. Semi-matte industrial enamel with crisp plate seams, rows of heavy fasteners, small access panels and visible panel-to-panel tone differences. Even service wear of a hard-working hauler: dusty edges and corners from planetside lifts, a film of dust and grime in seams, faint scuffs on exposed corners, a little soot near the stern drives. No rust holes, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\tarsus-surface\\guide\\reference-guide.png",
+      "sha256": "f6ddc098e423e140af0f9064557bb192ad172e85c9c327c6dc3e41844968903c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: repaint this exact render, never move a pixel of its shapes"
+    },
+    {
+      "path": "art-source\\company-prologue\\tarsus-surface\\build\\sprite-livery.png",
+      "sha256": "898e96b97459b5d935cef50ff3bd5ecd8e565b19d19414f160f1120ee1221cf0",
+      "dimensions": [
+        1224,
+        636
+      ],
+      "mode": "RGB",
+      "role": "Livery and paint colours only; not layout, not view"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the specified finish, with Image 1 controlling geometry and Image 2 supplying only the livery colours."
+  ],
+  "usage": {
+    "input_tokens": 84445,
+    "cached_input_tokens": 64640,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 865,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 69.6
+}

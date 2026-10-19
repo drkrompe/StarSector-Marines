@@ -8,7 +8,8 @@ phaeton.ship are model XY unchanged. Heights are proposed art.
 
 One module per area so later passes do not collide: ph_hull (tank hull,
 the three spherical tanks, gallery block, sponsons, aft machinery spine),
-ph_bow (bridge cab, hose crane), ph_engines (stern drive block, six bells,
+ph_bow (bridge cab, hose crane), ph_deck (deck piping, manifolds,
+catwalks, lights), ph_engines (stern drive block, six bells,
 reaction drums, drive housings and guard arcs), ph_mounts (four turrets,
 two flare launchers); ph_kit holds the shared helpers, copied rather than
 imported from any other hull.
@@ -23,6 +24,7 @@ Options after a literal "--":
   --res WxH      render size (default 1920x1080)
   --figure       stand a 1.8 m figure at the bridge door (review only, never saved)
   --engine workbench   fast flat renders for internal checks only
+  --state S      clean (default) or destroyed (ph_damage: the S6 wreck)
   --no-save      skip the .blend and geometry.json
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
 sprite overlay, the silhouette IoU and the review sheet.
@@ -41,9 +43,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import ph_kit, ph_hull, ph_bow, ph_engines, ph_mounts
-MODULES = (ph_kit, ph_hull, ph_bow, ph_engines, ph_mounts)
-for module in MODULES:
+import ph_kit, ph_hull, ph_bow, ph_engines, ph_deck, ph_mounts, ph_damage
+MODULES = (ph_kit, ph_hull, ph_bow, ph_engines, ph_deck, ph_mounts)
+for module in MODULES+(ph_damage,):
     importlib.reload(module)
 
 GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
@@ -69,6 +71,10 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--figure', action='store_true')
+parser.add_argument('--state', default='clean', choices=ph_damage.STATES,
+                    help='condition state: clean (the base) or destroyed (the S6 wreck, ph_damage)')
+parser.add_argument('--device', default='gpu', choices=('gpu', 'cpu'),
+                    help='cpu: Cycles on the CPU when the shared GPU is full')
 parser.add_argument('--engine', default='cycles', choices=('cycles', 'workbench'),
                     help='workbench: fast flat renders for internal checks (IoU), never for the owner')
 parser.add_argument('--cam', action='append', default=[])
@@ -107,11 +113,12 @@ bpy.ops.object.delete(use_global=False)
 kit = ph_kit.Kit()
 for module in MODULES[1:]:
     module.build(kit)
+STATE_RECORD = ph_damage.apply(args.state)
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES' if args.engine == 'cycles' else 'BLENDER_WORKBENCH'
 _prefs = bpy.context.preferences.addons['cycles'].preferences
-for _kind in () if args.engine != 'cycles' else ('OPTIX', 'CUDA', 'HIP', 'METAL', 'ONEAPI'):
+for _kind in () if args.engine != 'cycles' or args.device == 'cpu' else ('OPTIX', 'CUDA', 'HIP', 'METAL', 'ONEAPI'):
     try:
         _prefs.compute_device_type = _kind
     except TypeError:
@@ -161,9 +168,9 @@ CAMERAS = [  # name, position, orthographic scale
     ('starboard-quarter', (-160, -230, 140), 260),
 ]
 CLOSEUPS = [
-    ('bow-detail', (190, 80, 90), (110, 0, 8), 70),
-    ('bridge-detail', (160, -90, 60), (110, -22, 12), 40),
-    ('crane-detail', (150, 120, 80), (105, 38, 15), 50),
+    ('bow-detail', (200, 90, 95), (108, 0, 8), 100),
+    ('bridge-detail', (170, -100, 70), (110, -26, 12), 62),
+    ('crane-detail', (160, 130, 90), (108, 38, 15), 64),
     ('tanks-detail', (60, 140, 110), (44, 0, 8), 120),
     ('turret-detail', (70, 90, 50), (38, 38, 8), 30),
     ('engine-detail', (-170, 90, 50), (-80, 20, 0), 80),
@@ -293,9 +300,10 @@ if not args.no_save:
     scene.render.film_transparent = False
     scene.camera = bpy.data.objects['Camera three-quarter']
     bpy.context.preferences.filepaths.save_version = 0
-    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'phaeton-geometry.blend'))
+    blend = 'phaeton-geometry.blend' if args.state == 'clean' else f'phaeton-geometry-{args.state}.blend'
+    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/blend))
     lo, hi = bounds()
-    if 'phaeton' not in ship_scale.SOLIDS:
+    if 'phaeton' not in ship_scale.SOLIDS and args.state == 'clean':
         print('ENCLOSED', round(union_volume(sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and (
             o.name.startswith(('Hull ', 'Tank ', 'Bridge cab')) and 'skirt' not in o.name and 'sponson' not in o.name
             and 'skylight' not in o.name)), 1.0)))
@@ -315,7 +323,7 @@ if not args.no_save:
         'axes': {'+X': 'bow', '+Y': 'port', '+Z': 'dorsal'},
         'units': 'One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres',
         'metres_per_unit': METRES_PER_UNIT,
-        'scale': scale_record(lo, hi),
+        'scale': scale_record(lo, hi) if args.state == 'clean' else 'the clean build carries it (geometry.json)',
         'sprite': {'size': [120, 234], 'center': [60, 94],
                    'pixel_to_model': 'col c, row r covers X 139-r..140-r, Y 59-c..60-c'},
         'dimensions': {'min': [round(v, 2) for v in lo], 'max': [round(v, 2) for v in hi],
@@ -335,6 +343,7 @@ if not args.no_save:
                          'Tank <i> ...': 'the three spherical cargo tanks (aft, mid, fore) and their skirts',
                          'Bridge ...': 'bridge cab and glazing on the starboard bow',
                          'Crane ...': 'port bow hose crane',
+                         'Deck ...': 'deck piping, manifolds, catwalks, ladders, deck lights and masts',
                          'Drive ...': 'stern drive block, reaction drums, drive housings',
                          'Frame ...': 'guard arcs and yokes',
                          'Engine <i> ...': 'bell / mouth lip / dark throat / exhaust anchor',
@@ -342,12 +351,13 @@ if not args.no_save:
                          'Scar <id> ...': 'reserved for the destroyed condition state'},
         'condition_states': {'planned': ['destroyed'],
                              'contract': 'second-wind-pipeline.md layers: clean base + scar table with stable ids',
-                             'built': []},
+                             'built': ['destroyed'], 'this_build': args.state,
+                             'record': STATE_RECORD},
         'cameras': [{'name': n, 'position': list(p), 'orthographic_scale': s,
                      'rotation': 'bow left, port below' if n == 'top' else 'looks at '+str(list(TARGET))}
                     for n, p, s in CAMERAS],
     }
-    path = OUT/'geometry.json'
+    path = OUT/('geometry.json' if args.state == 'clean' else f'geometry-{args.state}.json')
     if path.exists():  # keep the silhouette record compose_review.py wrote
         old = json.loads(path.read_text(encoding='utf-8'))
         if 'silhouette' in old:

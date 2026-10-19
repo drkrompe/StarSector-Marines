@@ -48,6 +48,13 @@ SW_BLEND = SW_DIR / "states" / "patched" / "second-wind-geometry.blend"   # C2 i
 LEGION_ASSET_DIR = BASE.parents[1] / "legion-cinematic"
 LEGION_ASSET = Path(os.environ.get("C2_LEGION_ASSET", LEGION_ASSET_DIR / "legion.blend"))
 LEGION_MANIFEST = LEGION_ASSET_DIR / "manifest.json"
+# The Broadswords are the finished asset too (broadsword-cinematic, final 2026-10-19): one append
+# of BROADSWORD (+ SWFX in the lit render) per fighter, moved by its root only, gear up. The .blend
+# is built, not committed: copy it from Drive builds/broadsword/<commit>/; plan() checks its hash
+# against the committed manifest.
+BROADSWORD_ASSET_DIR = BASE.parents[1] / "broadsword-cinematic"
+BROADSWORD_ASSET = Path(os.environ.get("C2_BROADSWORD_ASSET", BROADSWORD_ASSET_DIR / "broadsword.blend"))
+BROADSWORD_MANIFEST = BROADSWORD_ASSET_DIR / "manifest.json"
 
 # ---------------------------------------------------------------- the bridge (Second Wind units)
 SW_MPU = 0.65
@@ -266,10 +273,12 @@ def plan(times, res):
                         "cam_roll": h["roll"], "lens_mm": h["lens"],
                         "legion_centre_m": list(centre), "legion_mid_u": mid_u,
                         "fighters": fighter_positions(t), "ship_pitch": ship_pitch_deg(t)})
-    bw = json.loads((C.BROADSWORD_DIR / "geometry.json").read_text(encoding="utf-8"))
+    bw = json.loads(BROADSWORD_MANIFEST.read_text(encoding="utf-8"))
     return {"sw_blend": str(SW_BLEND), "legion_blend": str(LEGION_ASSET), "legion_root": man["root"],
             "legion_collection": man["append_collection"], "sw_mpu": SW_MPU,
-            "broadsword_blend": str(C.BROADSWORD_BLEND), "fighter_mpu": float(bw["metres_per_unit"]),
+            "broadsword_blend": str(BROADSWORD_ASSET), "broadsword_root": bw["root"],
+            "broadsword_collection": bw["append_collection"], "broadsword_sha256": bw["asset_sha256"],
+            "fighter_mpu": float(bw["metres_per_unit"]),
             "legion_mpu": LEGION_MPU, "yaw": YAW_DEG, "roll": ROLL_DEG, "lens_mm": LENS_MM,
             "sun": list(C.SUN), "res": res, "samples": samples, "out": str(OUT),
             "planet_radius_m": C.PLANET_RADIUS_M, "altitude_m": C.ALTITUDE_M,
@@ -319,6 +328,7 @@ def launch(argv):
     times = sorted(set(times) | set(burst))
     p = plan(times, list(res))
     p["pitched"], p["measure"], p["hull_fit"] = pitched, measure, hull_fit
+    check_broadsword(p["broadsword_blend"], p["broadsword_sha256"])
     if not LEGION_ASSET.exists():
         raise SystemExit("%s is not built: run legion-cinematic/finalize.sh" % LEGION_ASSET)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -331,6 +341,50 @@ def launch(argv):
 
 
 # ================================================================ Blender
+
+def check_broadsword(path, sha256):
+    """Refuse a built .blend (the Broadsword, or a Second Wind state) that is missing or is not
+    the build its committed manifest describes."""
+    import hashlib
+    if not Path(path).exists():
+        raise SystemExit("%s is missing: copy it from Drive builds/ (the asset's <commit> folder)" % path)
+    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    if digest != sha256:
+        raise SystemExit("%s is not the manifest's build (sha256 %s, manifest %s)" % (path, digest[:12], sha256[:12]))
+
+
+def append_broadswords(p, n, effects=False):
+    """n independent copies of the finished Broadsword, one append each, so every copy brings its
+    own SWFX controls and drivers; returns [(root, controls or None)]. Gear stays up (its saved
+    pose: they are flying). With effects the drives run at full throttle with no haze or dust,
+    since they are in vacuum."""
+    import bpy
+    out = []
+    for k in range(n):
+        before = set(bpy.data.objects)
+        with bpy.data.libraries.load(p["broadsword_blend"], link=False) as (src, dst):
+            dst.collections = [p["broadsword_collection"]] + (["SWFX"] if effects else [])
+        for c in dst.collections:
+            bpy.context.scene.collection.children.link(c)
+        root = next(o for o in dst.collections[0].all_objects
+                    if o.parent is None and o.name.startswith(p["broadsword_root"]))
+        root.name = "C2B | Broadsword %d" % k
+        root.scale = (p["fighter_mpu"],) * 3
+        fx = None
+        if effects:
+            for o in set(bpy.data.objects) - before:      # this load's own objects, whatever their names
+                if o.name.startswith("SWFX controls"):
+                    fx = o
+                elif o.name.startswith("SWFX smoke landing dust"):
+                    o.hide_render = o.hide_viewport = True
+            if fx is None:
+                raise RuntimeError("Broadsword copy %d brought no SWFX controls" % k)
+            fx["thr_throttle"] = 1.0
+            fx["smk_haze"] = fx["smk_dust"] = 0.0
+            fx.update_tag()
+        out.append((root, fx))
+    return out
+
 
 def blender_main(argv):
     import bpy
@@ -376,27 +430,10 @@ def blender_main(argv):
     lroot.scale = (p["legion_mpu"],) * 3
     lroot.rotation_euler = Euler((math.radians(p["roll"]), 0, math.radians(p["yaw"])), "XYZ")
 
-    # Fighters: the Broadsword model appended once, one copy of its root tree per fighter.
-    with bpy.data.libraries.load(p["broadsword_blend"], link=False) as (src, dst2):
-        dst2.collections = [c for c in src.collections if c == "BROADSWORD | geometry"]
-    proto_root = next(o for o in dst2.collections[0].objects if o.name.startswith("Broadsword root"))
-
-    def clone(obj, parent):
-        c = obj.copy()
-        scene.collection.objects.link(c)
-        c.parent = parent
-        c.matrix_parent_inverse = obj.matrix_parent_inverse.copy()
-        c.color = (0.80, 0.50, 0.22, 1)
-        for ch in obj.children:
-            clone(ch, c)
-        return c
-
-    fighters = []
-    for k in range(len(p["samples"][0]["fighters"])):
-        f = clone(proto_root, None)
-        f.name = "C2B | Broadsword %d" % k
-        f.scale = (p["fighter_mpu"],) * 3
-        fighters.append(f)
+    fighters = [root for root, _ in append_broadswords(p, len(p["samples"][0]["fighters"]))]
+    for f in fighters:
+        for ch in f.children_recursive:
+            ch.color = (0.80, 0.50, 0.22, 1)
 
     # Jangala, 200 km down. A sphere scaled about the eye by 1/2000 looks identical from it
     # and keeps the depth range sane (the preview renderer's depth buffer cannot span 6000 km).

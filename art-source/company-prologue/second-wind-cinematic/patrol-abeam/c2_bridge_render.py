@@ -21,7 +21,8 @@ and lights it:
   the optional SWFX effects in the same load), moved by its root only. Its ten drives idle on
   the kit's LOW_TECH plumes (the patrol coasts) with the exhaust haze off (vacuum); its 27
   running lights blink on their own data, lens and kit lamp together. The mounts stay cold.
-- The Broadswords keep their own materials, with flames added as in render_patrol_sequence.py.
+- The Broadswords are the finished asset (broadsword-cinematic: BROADSWORD plus its SWFX, one
+  load per fighter), gear up, drives at full throttle, guns cold, running lights on.
 - Jangala is a sphere scaled about the eye (it looks identical from there), shaded by its own
   normal against the sun so nothing nearby can shadow it, with C1's maps and a thin limb glow.
   It turns at the true orbital rate, aft.
@@ -55,7 +56,6 @@ C1_ASSETS = BASE.parent / "corvus-approach" / "assets"
 SUN_STRENGTH = 4.5                        # C1's key, as render_patrol_sequence.py
 SHINE_COLOR = (0.55, 0.75, 1.0)
 LEGION_IDLE = 0.2                          # SWFX master throttle: the patrol coasts (as its thrust marker)
-FIGHTER_FLAME = ((1.0, 0.70, 0.38), 40.0)
 PLANET_K = 1.0 / 2000.0                    # planet proxy scale about the eye
 MAP_SPAN_DEG = (100.0, 50.0)               # C1's detail maps cover this much arc
 STAR_SCALE = 300.0                         # Voronoi cells per unit of sky direction (a cell is about 4 px)
@@ -161,6 +161,13 @@ def plan(frames, fps, samples_n, state=SW_STATE):
     return base
 
 
+def check_state(path):
+    """Refuse a Second Wind state .blend that is missing or is not the build its committed
+    manifest describes (copy it from Drive builds/second-wind/<commit>/<state>/)."""
+    man = json.loads((Path(path).parent / "manifest.json").read_text(encoding="utf-8"))
+    BB.check_broadsword(path, man["asset_sha256"])
+
+
 def movie(out_dir):
     """Review mp4: the lit frames with captions burnt in and C2's own cues mixed (compose_c2)."""
     import tempfile
@@ -188,11 +195,16 @@ def launch(argv):
         movie(Path(argv[i + 1]) if i is not None else OUT)
         return
     fps, frames, samples_n, resume, only, out, state = 24.0, None, 64, False, None, OUT, SW_STATE
+    half = False
     i = 0
     while i < len(argv):
         a = argv[i]
         if a == "--resume":
             resume = True
+            i += 1
+            continue
+        if a == "--half":                           # 960x540 for a review pass, scaled up to view
+            half = True
             i += 1
             continue
         v = argv[i + 1]
@@ -221,7 +233,9 @@ def launch(argv):
             a, b = (int(x) for x in only.split(":"))
             frames = list(range(a, min(b + 1, n + 1)))
     p = plan(frames, fps, samples_n, state)
-    p["out"], p["resume"] = str(out), resume
+    BB.check_broadsword(p["broadsword_blend"], p["broadsword_sha256"])
+    check_state(p["sw_state_blend"])
+    p["out"], p["resume"], p["percentage"] = str(out), resume, 50 if half else 100
     p["render"] = render if render is not None else [f for f in frames if f < n]
     out.mkdir(parents=True, exist_ok=True)
     tag = "" if not only else "-" + only.replace(":", "-")
@@ -344,39 +358,10 @@ def blender_main(argv):
                           and o.name.split(".")[0] == "SWFX lighting " + lens.name]
         lights.append((lamps, lens["blink_period_s"], lens["blink_phase_s"], lens.get("blink_duty", 0.18)))
 
-    # ---- Broadswords, one copy of the model's root tree each, flames at full throttle.
-    with bpy.data.libraries.load(p["broadsword_blend"], link=False) as (src, dst3):
-        dst3.collections = [c for c in src.collections if c == "BROADSWORD | geometry"]
-    proto = next(o for o in dst3.collections[0].objects if o.name.startswith("Broadsword root"))
-    flame, _ = emission("C2B | Broadsword flame", *FIGHTER_FLAME)
-
-    def clone(obj, parent):
-        c = obj.copy()
-        scene.collection.objects.link(c)
-        c.parent = parent
-        c.matrix_parent_inverse = obj.matrix_parent_inverse.copy()
-        for ch in obj.children:
-            clone(ch, c)
-        return c
-
-    fighters = []
-    for k in range(len(p["samples"][0]["fighters"])):
-        f = clone(proto, None)
-        f.name = "C2B | Broadsword %d" % k
-        f.scale = (p["fighter_mpu"],) * 3
-        for ch in f.children_recursive:
-            if ch.type == "MESH" and "dark throat" in ch.name:
-                ch.data = ch.data.copy()
-                ch.data.materials.clear()
-                ch.data.materials.append(flame)
-            if ch.type == "EMPTY" and "exhaust anchor" in ch.name:
-                bpy.ops.mesh.primitive_uv_sphere_add(radius=1.6, segments=12, ring_count=6)
-                fl = bpy.context.active_object
-                fl.data.materials.append(flame)
-                fl.parent = ch
-                fl.location = (1.4, 0, 0)
-                fl.scale = (1.8, 0.8, 0.8)
-        fighters.append(f)
+    # ---- Broadswords: the finished asset with its effects, one append per fighter so each has its
+    # own SWFX (LOW_TECH drives at full throttle, both guns cold, running lights on the kit's own
+    # strobe). Gear stays up; no haze or landing dust in vacuum.
+    fighters = [root for root, _ in BB.append_broadswords(p, len(p["samples"][0]["fighters"]), effects=True)]
 
     # ---- Jangala: proxy sphere about the eye, self-shaded against the sun, C1's maps.
     eye = Vector(p["eye_m"])
@@ -550,7 +535,7 @@ def blender_main(argv):
     scene.render.use_motion_blur = True
     scene.render.motion_blur_shutter = 0.5
     scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
-    scene.render.resolution_percentage = 100
+    scene.render.resolution_percentage = int(p.get("percentage", 100))
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
     scene.view_settings.view_transform = "AgX"
