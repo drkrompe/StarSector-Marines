@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.TickObserver;
 import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.HullRefit;
@@ -48,19 +49,22 @@ import java.util.Set;
  * an edge, no doctrine withdraws a hull, the duel is decided only by one side's hulls all being destroyed, and a hull
  * the edge pressure holds stays out of its edge margin to within a tolerance); who wins, when each hull fell, how long
  * it lasts, the Greyhook's hull over time, breaches and mounts lost, where over the map it was fought and what each
- * side did to the other are readings. The fight's centroid is sampled every thirty seconds.
+ * side did to the other are readings. The fight's centroid is sampled every thirty seconds. Each Wolf's shield is
+ * traced ({@link ShieldTrace}): how long it was up, overall and under fire, where the Greyhook lay off its centre line,
+ * which rounds it blocked and which reached the hull with the shield down, rising or up but outside the arc, and what
+ * dropped it.
  */
 public final class GreyhookDuelScene implements BehaviorScene {
 
     private static final int WIDTH = BlackSluice.WIDTH;
     private static final int HEIGHT = BlackSluice.HEIGHT;
     /**
-     * Fifteen minutes after the start, the recording's bound: long enough for the Greyhook alone against Rusk's
-     * refitted Wolfs to be fought to the finish on the seeds measured (the longest took fourteen minutes); a fight still
-     * going at the end fails {@code the-duel-is-decided-by-destruction}. {@code -Dbattle.scene.greyhookDuel.ticks} plays
-     * longer or shorter.
+     * Twenty-five minutes after the start, the recording's bound: long enough for the Greyhook alone against Rusk's
+     * refitted Wolfs to be fought to the finish on the seeds measured (the longest took twenty-one minutes once the
+     * Wolfs' shields held hard flux only); a fight still going at the end fails {@code the-duel-is-decided-by-destruction}.
+     * {@code -Dbattle.scene.greyhookDuel.ticks} plays longer or shorter.
      */
-    private static final int TICKS = Integer.getInteger("battle.scene.greyhookDuel.ticks", 27000);
+    private static final int TICKS = Integer.getInteger("battle.scene.greyhookDuel.ticks", 45000);
     /**
      * Ticks between recorded frames outside the duel camera's dense stretches; {@code
      * -Dbattle.scene.greyhookDuel.frameEvery} raises it so a whole fifteen-minute fight fits a review GIF's size.
@@ -315,6 +319,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
             metrics.put("wolf" + (i + 1) + "ShieldCollapses", wolf.shieldCollapses());
             metrics.put("wolf" + (i + 1) + "ShieldAbsorbed", Math.round(wolf.shieldAbsorbedDamage()));
             metrics.put("wolf" + (i + 1) + "PeakFluxPercent", Math.round(100f * t.peakFlux.getOrDefault(wolf, 0f)));
+            ShieldTrace st = t.shieldTraces.get(wolf);
+            if (st != null) st.report("wolf" + (i + 1), metrics);
             int[] on = t.targetTicks.getOrDefault(wolf, new int[2]);
             int total = on[0] + on[1];
             String[] targets = {"Greyhook", "None"};
@@ -430,6 +436,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
         float fightMinX = Float.MAX_VALUE, fightMaxX = -Float.MAX_VALUE, fightMinY = Float.MAX_VALUE, fightMaxY = -Float.MAX_VALUE;
         int fightTicks;
         int fightNorthTicks;
+        /** Per Wolf, how its shield met the Greyhook's fire. */
+        final Map<Warship, ShieldTrace> shieldTraces = new LinkedHashMap<>();
         /** Where each hull was every thirty seconds after the order, while it was over the battle, by name. */
         final Map<String, List<float[]>> tracks = new LinkedHashMap<>();
 
@@ -543,6 +551,11 @@ public final class GreyhookDuelScene implements BehaviorScene {
             List<Warship> all = duel.hulls();
             for (Warship s : all) startHp.putIfAbsent(s, s.hitPoints());
             Warship greyhook = duel.greyhook();
+            if (duel.ordered()) {
+                for (Warship wolf : duel.wolves()) {
+                    shieldTraces.computeIfAbsent(wolf, w -> new ShieldTrace()).observe(wolf, greyhook);
+                }
+            }
             for (Warship s : all) {
                 float hp = Math.max(0f, s.hitPoints());
                 float sh = s.shieldAbsorbedDamage();
@@ -657,6 +670,193 @@ public final class GreyhookDuelScene implements BehaviorScene {
             for (Warship s : all) if (s.destroyed()) downTick.putIfAbsent(s, tick);
             for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.DEFENDER) defenderAircraft++;
             if (decidedTick < 0 && duel.decidedTick() >= 0) decidedTick = duel.decidedTick();
+        }
+    }
+
+    /**
+     * How one shielded hull's shield met its attacker's fire, tick by tick: how long it was up, overall and under fire,
+     * how the damage it took split between the shield, the hull with the shield down (or still rising) and the hull
+     * with the shield up but the attacker outside the arc, the attacker's bearing off the shield's centre line when a
+     * round reached the hull, and what dropped the shield each time it went down. A tick's damage is classed by the
+     * shield's state that tick; the attacker's bearing is taken from its hull centre.
+     */
+    static final class ShieldTrace {
+        /** Ticks counted as under fire after the last damage taken. */
+        static final int UNDER_FIRE_TICKS = 30;
+        int ticks, upTicks, absorbingTicks, underFireTicks, underFireUpTicks, attackerInArcTicks, inArcUpTicks;
+        int inArcUnderFireTicks, inArcUnderFireUpTicks;
+        float blocked, hullShieldDown, hullShieldRising, hullOutsideArc;
+        int blockedTicks, hullDownTicks, hullRisingTicks, hullOutsideTicks;
+        /** Hull-damage ticks by the attacker's bearing off the shield's centre line, 15 degrees a bin. */
+        final int[] hullBearing = new int[12];
+        /** Shield-down-under-fire ticks by why: overload, flux lockout, attacker outside the arc, none of those. */
+        int downOverload, downLockout, downOutsideArc, downNoTarget, downOther;
+        /** Drops of a raised shield by why. */
+        int dropOverload, dropLockout, dropQuiet;
+        float worstOffArcUnderFire;
+        float sumOffUnderFire;
+        int offSamples;
+        private float lastHp = Float.NaN, lastAbsorbed = Float.NaN;
+        private int lastShieldHits = -1, lastHullHits = -1;
+        /** Rounds the shield took, and rounds that reached the hull with the shield down, rising, or up with the attacker outside the arc. */
+        int roundsBlocked, roundsShieldDown, roundsShieldRising, roundsOutsideArc;
+        private boolean wasUp;
+        private int lastDamageTick = -100000, tick;
+        float capacity, dissipation, arc;
+        /** Crossings of the shield's drop level by what pushed the pool over it that tick. */
+        int crossBlaster, crossGun, crossHit, crossOther;
+        private float lastFlux, lastAbsorbedFlux;
+        private int lastShots, lastBlasterShots;
+
+        void observe(Warship wolf, Warship attacker) {
+            tick++;
+            if (wolf.destroyed() || wolf.departed() || wolf.descending() || attacker.destroyed()) return;
+            capacity = Math.max(capacity, wolf.fluxCapacity());
+            dissipation = Math.max(dissipation, wolf.fluxDissipation());
+            arc = wolf.shieldArcDegrees();
+            ticks++;
+            int shots = 0;
+            for (Warship.Mount m : wolf.mounts()) {
+                if (m.pointDefence()) continue;
+                shots += m.shotsFired;
+            }
+            int blasterNow = 0;
+            for (Warship.Mount m : wolf.mounts()) if (m.weapon.id().equals("amblaster")) blasterNow += m.shotsFired;
+            float absorbedFlux = wolf.shieldAbsorbedFlux();
+            float fluxNow = wolf.fluxFraction();
+            if (lastFlux < 0.9f && fluxNow >= 0.9f) {
+                if (blasterNow > lastBlasterShots) crossBlaster++;
+                else if (shots > lastShots) crossGun++;
+                else if (absorbedFlux > lastAbsorbedFlux) crossHit++;
+                else crossOther++;
+            }
+            lastFlux = fluxNow;
+            lastShots = shots;
+            lastBlasterShots = blasterNow;
+            lastAbsorbedFlux = absorbedFlux;
+            float hp = Math.max(0f, wolf.hitPoints());
+            float ab = wolf.shieldAbsorbedDamage();
+            float dh = Float.isNaN(lastHp) ? 0f : lastHp - hp;
+            float ds = Float.isNaN(lastAbsorbed) ? 0f : ab - lastAbsorbed;
+            lastHp = hp;
+            lastAbsorbed = ab;
+            int sh = wolf.shieldHits(), hh = wolf.hullHits();
+            int dsh = lastShieldHits < 0 ? 0 : sh - lastShieldHits;
+            int dhh = lastHullHits < 0 ? 0 : hh - lastHullHits;
+            lastShieldHits = sh;
+            lastHullHits = hh;
+            if (dh > 0f || ds > 0f || dsh > 0 || dhh > 0) lastDamageTick = tick;
+            boolean underFire = tick - lastDamageTick <= UNDER_FIRE_TICKS;
+            boolean up = wolf.shieldUp();
+            boolean absorbing = wolf.shieldAbsorbing();
+            float flux = wolf.fluxFraction();
+            boolean lockedOut = wolf.shieldLockedOut();
+            float bearing = AirBody.facingToward(attacker.centerX() - wolf.shieldCentreX(),
+                    attacker.centerY() - wolf.shieldCentreY());
+            float off = Math.abs(((bearing - wolf.shieldFacingDegrees()) % 360f + 540f) % 360f - 180f);
+            boolean inArc = off <= wolf.shieldArcDegrees() * 0.5f;
+            if (up) upTicks++;
+            if (absorbing) absorbingTicks++;
+            if (inArc) {
+                attackerInArcTicks++;
+                if (up) inArcUpTicks++;
+            }
+            if (underFire) {
+                underFireTicks++;
+                if (up) underFireUpTicks++;
+                if (inArc) {
+                    inArcUnderFireTicks++;
+                    if (up) inArcUnderFireUpTicks++;
+                }
+                worstOffArcUnderFire = Math.max(worstOffArcUnderFire, off);
+                sumOffUnderFire += off;
+                offSamples++;
+                if (!up) {
+                    if (wolf.overloaded()) downOverload++;
+                    else if (lockedOut) downLockout++;
+                    else if (!inArc) downOutsideArc++;
+                    else if (wolf.hullTarget() == null) downNoTarget++;
+                    else downOther++;
+                }
+            }
+            roundsBlocked += dsh;
+            if (dhh > 0) {
+                if (!up) roundsShieldDown += dhh;
+                else if (!absorbing) roundsShieldRising += dhh;
+                else roundsOutsideArc += dhh;
+            }
+            if (ds > 0f) {
+                blocked += ds;
+                blockedTicks++;
+            }
+            if (dh > 0f) {
+                hullBearing[Math.min(11, (int) (off / 15f))]++;
+                if (!up) {
+                    hullShieldDown += dh;
+                    hullDownTicks++;
+                } else if (!absorbing) {
+                    hullShieldRising += dh;
+                    hullRisingTicks++;
+                } else {
+                    hullOutsideArc += dh;
+                    hullOutsideTicks++;
+                }
+            }
+            if (wasUp && !up) {
+                if (wolf.overloaded()) dropOverload++;
+                else if (lockedOut) dropLockout++;
+                else dropQuiet++;
+            }
+            wasUp = up;
+        }
+
+        private static int pct(int a, int b) {
+            return b == 0 ? -1 : Math.round(100f * a / b);
+        }
+
+        void report(String who, Map<String, Number> m) {
+            float hull = hullShieldDown + hullShieldRising + hullOutsideArc;
+            float all = blocked + hull;
+            m.put(who + "ShieldUpPercent", pct(upTicks, ticks));
+            m.put(who + "ShieldUpUnderFirePercent", pct(underFireUpTicks, underFireTicks));
+            m.put(who + "AttackerInArcPercent", pct(attackerInArcTicks, ticks));
+            m.put(who + "AttackerInArcUnderFirePercent", pct(inArcUnderFireTicks, underFireTicks));
+            m.put(who + "ShieldUpWithAttackerInArcUnderFirePercent", pct(inArcUnderFireUpTicks, inArcUnderFireTicks));
+            int rounds = roundsBlocked + roundsShieldDown + roundsShieldRising + roundsOutsideArc;
+            m.put(who + "RoundBlockSharePercent", pct(roundsBlocked, rounds));
+            m.put(who + "RoundsBlocked", roundsBlocked);
+            m.put(who + "RoundsHullShieldDown", roundsShieldDown);
+            m.put(who + "RoundsHullShieldRising", roundsShieldRising);
+            m.put(who + "RoundsHullShieldUpOutsideArc", roundsOutsideArc);
+            m.put(who + "BlockSharePercent", all <= 0f ? -1 : Math.round(100f * blocked / all));
+            m.put(who + "DamageBlocked", Math.round(blocked));
+            m.put(who + "DamageHullShieldDown", Math.round(hullShieldDown));
+            m.put(who + "DamageHullShieldRising", Math.round(hullShieldRising));
+            m.put(who + "DamageHullShieldUpOutsideArc", Math.round(hullOutsideArc));
+            m.put(who + "TicksBlocked", blockedTicks);
+            m.put(who + "TicksHullShieldDown", hullDownTicks);
+            m.put(who + "TicksHullShieldRising", hullRisingTicks);
+            m.put(who + "TicksHullOutsideArc", hullOutsideTicks);
+            for (int i = 0; i < hullBearing.length; i++) {
+                if (hullBearing[i] > 0) m.put(who + "HullHitTicksOffArc" + (15 * i) + "to" + (15 * i + 15), hullBearing[i]);
+            }
+            m.put(who + "DownUnderFireOverloadTicks", downOverload);
+            m.put(who + "DownUnderFireLockoutTicks", downLockout);
+            m.put(who + "DownUnderFireAttackerOutsideArcTicks", downOutsideArc);
+            m.put(who + "DownUnderFireNoHullTargetTicks", downNoTarget);
+            m.put(who + "DownUnderFireOtherTicks", downOther);
+            m.put(who + "DropsOverload", dropOverload);
+            m.put(who + "DropsLockout", dropLockout);
+            m.put(who + "DropsQuiet", dropQuiet);
+            m.put(who + "MeanAttackerOffCentreUnderFireDeg", offSamples == 0 ? -1 : Math.round(sumOffUnderFire / offSamples));
+            m.put(who + "WorstAttackerOffCentreUnderFireDeg", Math.round(worstOffArcUnderFire));
+            m.put(who + "DropLevelCrossedByBlaster", crossBlaster);
+            m.put(who + "DropLevelCrossedByOtherGun", crossGun);
+            m.put(who + "DropLevelCrossedByAbsorbedHit", crossHit);
+            m.put(who + "DropLevelCrossedByUpkeep", crossOther);
+            m.put(who + "ShieldArcDeg", Math.round(arc));
+            m.put(who + "FluxCapacity", Math.round(capacity));
+            m.put(who + "FluxDissipation", Math.round(dissipation));
         }
     }
 }

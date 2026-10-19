@@ -38,6 +38,14 @@ package com.dillon.starsectormarines.battle.warship;
  *       pool is empty when the ship comes back.</li>
  * </ul>
  *
+ * <h2>Hard flux</h2>
+ * <p>Flux a raised shield takes on from the hits it absorbs is <em>hard</em>; everything else (the guns, point
+ * defence, the shield's own upkeep) is soft. As in the base game, a raised shield stops the pool venting its hard flux
+ * and nothing else: the soft share keeps draining at the hull's rate behind the shield, and the hard share drains only
+ * once the shield is down, after the soft. So a ship holding its shield is worn down by what it is hit with, not by its
+ * own guns. {@code -Dbattle.warship.hardFlux=false} is the control: no flux is hard, and a raised shield holds the
+ * whole pool from venting, as it did before hard flux was modelled.
+ *
  * <p>Disabled by default: a disabled pool never fills and every query says the
  * ship may fire.
  */
@@ -61,6 +69,8 @@ final class WarshipFlux {
     static final float OVERLOAD_MAX_SECONDS = 10f;
     /** Overshoot, as a share of capacity, that earns the longest overload. */
     static final float OVERLOAD_FULL_EXCESS = 0.1f;
+    /** Whether absorbed hits are hard flux; {@code -Dbattle.warship.hardFlux=false} is the control. */
+    static final boolean HARD_FLUX = !"false".equalsIgnoreCase(System.getProperty("battle.warship.hardFlux"));
 
     private final float baseCapacity;
     private final float baseDissipation;
@@ -70,6 +80,13 @@ final class WarshipFlux {
     private float softShare = SOFT_LIMIT;
     private float resumeShare = RESUME_LEVEL;
     private float flux;
+    /**
+     * The share of capacity no salvo may carry the pool to: the ship's automatic shield's drop level, set afresh every
+     * tick by the shield ({@link #shieldReserve}), or all of it for a ship with none.
+     */
+    private float ceilingShare = 1f;
+    /** The share of {@link #flux} a raised shield took on from absorbed hits, which it holds from venting. */
+    private float hard;
     private State state = State.FIRING;
     private float overloadSecondsRemaining;
     private int overloads;
@@ -93,6 +110,7 @@ final class WarshipFlux {
         this.enabled = on;
         if (!on) {
             flux = 0f;
+            hard = 0f;
             state = State.FIRING;
             overloadSecondsRemaining = 0f;
         }
@@ -106,6 +124,7 @@ final class WarshipFlux {
         if (!(next > 0f)) throw new IllegalArgumentException("flux scale must be positive");
         this.scale = next;
         flux = Math.min(flux, capacity());
+        hard = Math.min(hard, flux);
     }
 
     void softLimit(boolean on) {
@@ -159,6 +178,7 @@ final class WarshipFlux {
         this.refitCapacity = capacity;
         this.refitDissipation = dissipation;
         flux = Math.min(flux, capacity());
+        hard = Math.min(hard, flux);
     }
 
     /** Whether the variant's capacitors and vents count: the base game's figures, for a ship fighting ships. */
@@ -168,6 +188,11 @@ final class WarshipFlux {
 
     float flux() {
         return flux;
+    }
+
+    /** The hard share of the flux: what absorbed hits put there, which a raised shield holds from venting. */
+    float hard() {
+        return hard;
     }
 
     /** Flux as a share of capacity, 0 to 1; zero when disabled. */
@@ -197,12 +222,29 @@ final class WarshipFlux {
         return !enabled || state == State.FIRING;
     }
 
-    /** Whether a salvo costing {@code cost} may be started: the ship is firing and, under the soft limit, it fits. */
+    /**
+     * Whether a salvo costing {@code cost} may be started: the ship is firing and, under the soft limit, it fits, in
+     * what is left of the pool short of its own shield's drop level ({@link #shieldReserve}).
+     */
     boolean canStart(float cost) {
         if (!canStartFire()) return false;
         if (!enabled || !softLimit) return true;
-        return flux <= 0f || flux + cost < capacity();
+        return flux <= 0f || flux + cost < ceilingShare * capacity();
     }
+
+    /**
+     * Keeps the top of the pool for the shield: no salvo is started that would carry the pool to {@code share} of
+     * capacity, the level at which an automatic shield drops and stays down until the pool has vented. A ship's own
+     * guns never lock its shield out. Set afresh every tick by the shield; 1 (or the control,
+     * {@code -Dbattle.warship.shieldReserve=false}) leaves the whole pool to the guns.
+     */
+    void shieldReserve(float share) {
+        this.ceilingShare = SHIELD_RESERVE ? Math.max(0.01f, Math.min(1f, share)) : 1f;
+    }
+
+    /** {@code -Dbattle.warship.shieldReserve=false} is the control: a salvo may carry the pool past the shield's drop. */
+    static final boolean SHIELD_RESERVE =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.shieldReserve"));
 
     /**
      * Whether a salvo costing {@code cost} may be started by a ship pressing a target that has lost its shield: past
@@ -220,8 +262,9 @@ final class WarshipFlux {
     }
 
     /**
-     * Holds the pool's dissipation off: while a shield is raised the ship vents
-     * nothing. Set afresh every tick by whoever holds it (the shield); an
+     * Holds the pool's hard flux from venting: while a shield is raised the ship
+     * vents only its soft flux (with the control, {@link #HARD_FLUX} off, nothing
+     * at all). Set afresh every tick by whoever holds it (the shield); an
      * overload ignores it, because a ship that has overloaded has no shield up
      * and dissipates throughout.
      */
@@ -236,12 +279,21 @@ final class WarshipFlux {
     /** Drains the pool and moves between states. */
     void update(float dt) {
         if (!enabled) return;
-        if (!dissipationHeld()) flux = Math.max(0f, flux - dissipation() * dt);
+        float vent = dissipation() * dt;
+        if (!dissipationHeld()) {
+            // The soft flux first, then the hard.
+            flux = Math.max(0f, flux - vent);
+            hard = Math.min(hard, flux);
+        } else if (HARD_FLUX) {
+            // Behind a raised shield only the soft flux vents.
+            flux = Math.max(hard, flux - vent);
+        }
         if (state == State.OVERLOADED) {
             overloadSecondsRemaining -= dt;
             if (overloadSecondsRemaining <= 0f) {
                 overloadSecondsRemaining = 0f;
                 flux = 0f;
+                hard = 0f;
                 state = State.FIRING;
             }
             return;
@@ -254,16 +306,30 @@ final class WarshipFlux {
         }
     }
 
-    /** Adds {@code amount} of flux; reaching capacity overloads the ship. */
+    /** Adds {@code amount} of soft flux; reaching capacity overloads the ship. */
     void spend(float amount) {
+        add(amount, false);
+    }
+
+    /**
+     * Adds {@code amount} of hard flux, what a raised shield takes on from a hit it absorbs; reaching capacity
+     * overloads the ship. With the control ({@link #HARD_FLUX} off) it is soft flux like any other.
+     */
+    void spendHard(float amount) {
+        add(amount, HARD_FLUX);
+    }
+
+    private void add(float amount, boolean isHard) {
         if (!enabled || amount <= 0f || state == State.OVERLOADED) return;
         flux += amount;
+        if (isHard) hard += amount;
         float capacity = capacity();
         if (flux >= capacity) {
             float excess = (flux - capacity) / capacity;
             float t = Math.min(1f, excess / OVERLOAD_FULL_EXCESS);
             overloadSecondsRemaining = OVERLOAD_MIN_SECONDS + t * (OVERLOAD_MAX_SECONDS - OVERLOAD_MIN_SECONDS);
             flux = capacity;
+            hard = Math.min(hard, flux);
             state = State.OVERLOADED;
             overloads++;
         }
