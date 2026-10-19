@@ -63,7 +63,11 @@ class Site:
         return W('Port %s %d %s' % (self.name, self.n, role), role, **kw)
 
     def add(self, members, spawn, plan, t0=0.0, slots=None):
-        g = crowd.Group(members if isinstance(members, list) else [members], Vector(spawn), t0, plan, slots)
+        # A late start waits where it stands rather than appearing then: out in the open, somebody
+        # coming into being mid-shot is the one thing everybody sees.
+        if t0 > 0:
+            plan = [('until', t0)] + list(plan)
+        g = crowd.Group(members if isinstance(members, list) else [members], Vector(spawn), 0.0, plan, slots)
         self.groups.append(g)
         return g
 

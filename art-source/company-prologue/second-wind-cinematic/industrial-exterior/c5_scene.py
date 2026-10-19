@@ -79,6 +79,7 @@ def at(u, v):
 
 
 RAMP = at(-36.5, 0)                       # the foot of the stern ramp, between the engine pods
+ABOARD = at(-24.0, 0)                     # inside the hull, under its roof: where the families walk out from
 DOOR = Vector((334.0, 410.6))             # Nessa's workshop door, under the awning
 DOOR_FRONT = Vector((336.0, 415.0))
 IDLERS = ((330.0, 417.0), (336.0, 419.0), (339.0, 416.0), (448.0, 418.0))   # C4's 'Yard people' inside NAV_BOX
@@ -151,7 +152,9 @@ def cast(rng):
         look = ship if gi == 7 else None
         if look:
             members[0].look = look
-        groups.append(G(members, RAMP, t, special.get(gi, [('go', DOOR_FRONT, 2.5), ('enter', DOOR)])))
+        g = G(members, RAMP, t, special.get(gi, [('go', DOOR_FRONT, 2.5), ('enter', DOOR)]))
+        g.aboard = ABOARD                                        # they come down the ramp, not out of the air
+        groups.append(g)
         t += rng.uniform(1.0, 1.7)
     return groups
 
@@ -224,6 +227,7 @@ def setup(body):
     caught = set()
     run_over = crowd.mover_clips(walkers, crowd.moving_vehicles(C4_END, C4_END + FRAMES), C4_END, caught)
     print('C5_CROWD run-over=%d (walker-frames under a moving vehicle) %s' % (run_over, sorted(caught)[:6]), flush=True)
+    crowd.walk_out(groups)
     OUT.mkdir(parents=True, exist_ok=True)
     crowd.save_map(nav, walkers, OUT / 'walk-map.png')
     if body == 'sprite':
