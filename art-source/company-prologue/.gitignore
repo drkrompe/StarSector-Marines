@@ -151,3 +151,6 @@ colossus-cinematic/review/
 # Nessa figure: build output of build_nessa.py (needs MPFB)
 nessa-figure/*.blend
 nessa-figure/*.blend1
+# Kite (P): the .blend is a build output of build_kite.py, rebuilt from the scripts.
+kite-geometry/**/*.blend
+kite-geometry/**/*.blend1
