@@ -64,6 +64,17 @@ Pass 4 (scale): 0.50 m per unit from ship_scale.py option C (solves 0.502,
   bridge door 1.1 x 2.3 m, side cargo doors 7.5 x 7.0 m, bow door 20.6 x 11.6 m.
   --figure stands a 1.8 m mannequin on the bridge's aft door landing.
 
+Pass 3 round 1 (owner: "a thick cargo front with those engines almost like tug
+  boats to move the massive hulk"): the cargo block is deepened below the pass-2
+  deck (hold keel -22 -> -50, side modules -17 -> -46), so deck fittings keep
+  their seats; full-height bow cargo door, a lower row of side cargo doors, more
+  wall strata, deeper bow armour and aft end caps, keel seams and armour strakes.
+  The drive pods stay as built and read as tugs: steel thrust yokes (cl_aft,
+  'Frame <side> thrust yoke / pad') run from each pod's nose and keel into a
+  bolted thrust pad low on the side module's aft face. IoU 0.967.
+  Scale: the measured volume rose to 1.18 M units3, so option C now solves 0.426
+  (92 m); 0.50 (108 m) stays published until the owner chooses.
+
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]
   python compose_review.py
