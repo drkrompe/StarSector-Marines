@@ -60,7 +60,14 @@ barrier. From the gate a haul road runs up the west fence to the works, with a
 branch across to the cradle. The
 Hegemony's public cradles lie west of it, each turned to face its own lead-in
 lane, with freighters unloading from the stern down cargo lanes to the
-container yard. C4's sky shot ends over this layout
+container yard. The ships on them are a mix of the finished hull models at
+their own scale (`industrial-exterior/port_fleet.py`): a Hegemony Hound, two
+Shepherds in different operators' colours, two Mudskippers (Wayline's ferry
+and a teal-trimmed one lifting out), Hermes lighters on the pad row, and a
+Colossus in the walled heavy berth, the only bay large enough for it. Overhead,
+a Shepherd lets down over the belt in C4's first seconds, and a second Colossus
+lifts out low over the warehouses as C5's rise ends.
+C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 
 On the ground: Nessa's tug, bowser and crew carrier roll out from the hangar
