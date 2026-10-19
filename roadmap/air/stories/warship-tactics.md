@@ -552,6 +552,32 @@ as well as the tank's and vents between swaps (it ends at 98-99% hull every time
 changes, so they are readings: while the threat rule was being shaped, the centre opening's control was lost in 95
 seconds under one version of it and won in 512 under another.
 
+**In the Black Sluice duel the relay turns a lost fight into an unresolved one, and that fails its verdict.** Measured
+on `greyhook-duel` after the Black Sluice rebalance (Hounds gone, Rusk's Wolfs refit), five seeds, relay on against
+`-Dbattle.warship.packRelay=false`:
+
+| seed | control: decided, Greyhook hull, Wolfs down at | relay: at 897s, Greyhook / Wolf hull | damage to Greyhook side / to Wolfs (control; relay) | hull damage to Greyhook / to Wolfs (control; relay) |
+| --- | --- | --- | --- | --- |
+| 15305 | 838s, 67%, 503s and 838s | unresolved, 72% / 89%, 63% | 45,327 / 16,700; 51,643 / 28,916 | 3,252 / 3,000; 2,843 / 716 |
+| 16205 | 725s, 90%, 500s and 725s | unresolved, 96% / 90%, 62% | 36,282 / 15,500; 46,827 / 22,028 | 982 / 3,000; 427 / 728 |
+| 16206 | 676s, 93%, 349s and 676s | unresolved, 95% / 75%, 93% | 28,329 / 17,200; 49,537 / 23,485 | 654 / 3,000; 537 / 485 |
+| 20261016 | 662s, 95%, 490s and 662s | unresolved, 70% / 92%, 53% | 33,124 / 17,200; 44,059 / 34,415 | 524 / 3,000; 2,959 / 815 |
+| 31337 | 555s, 93%, 431s and 555s | unresolved, 97% / 91%, 93% | 25,953 / 16,000; 52,646 / 18,637 | 678 / 3,000; 346 / 237 |
+
+The control passes all fifteen verdicts on every seed: the Greyhook kills both Wolfs. With the relay no ship is lost
+on any seed and `the-duel-is-decided-by-destruction` fails on all five: both sides are flying at the end of the
+window. The pack does more damage than the control (44-53 thousand against 26-45), nearly all of it into the omni
+shield, and takes a fraction of the hull damage. The Greyhook's hull wears down only late and only on some seeds.
+Two levers were tried and dropped, because neither decided a seed:
+- a striker venting where it stands rather than breaking off. It also failed `venting-ship-not-targeted` on one
+  `warship-tactics` opening and `pack-flux-below-overload` on another;
+- a tank firing deeper into a target losing the flux war: to the ordinary ceiling, then to 0.7 of its pool. The
+  Greyhook ended lower (41-94%) and one seed lost a Wolf, but nothing was decided, and each version failed
+  `pack-flux-below-overload` on one `warship-tactics` opening.
+
+What the duel is for is a balance question that belongs to the mission, not the tactic: whether the Wolfs fighting
+as a relay should be able to outlast the Greyhook.
+
 ## Slices
 
 1. **Spacing and hull contact.** Contact separation between hulls, friendly clearance in the helm. Evidence: the
