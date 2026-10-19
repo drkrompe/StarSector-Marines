@@ -85,12 +85,17 @@ WEAPONS = {
     'hurricane': dict(house='hand', mcol=(.105, .136, .145),
                         paints={'paint': (.24, .19, .13), 'accent': (.67, .6, .52),
                                 'plate': (.4, .38, .34), 'mark': (.55, .08, .03)}),
-    # Tri-Tachyon, pale blue-white ceramic. A hull with its own finish passes
-    # hull_finish=True (build(..., hull_finish=True)) to dress them in its materials.
-    'tachyonlance': dict(house='hand'),
-    'gravitonbeam': dict(house='hand'),
-    'taclaser':     dict(house='hand'),
-    'reaper':       dict(house='hand', paints={'accent': (.55, .56, .58)}),
+    # Tri-Tachyon. The paints are halfway between the sprite's colour and the pale
+    # blue-white ceramic of Tri-Tachyon armour (owner, 2026-10-19: recognisable, not
+    # cartoonish), and they keep more of their colour than the kit's military
+    # livery does (chroma .7 against .35), since a Tri-Tachyon gun is known by its
+    # blue-white. A hull with its own finish passes hull_finish=True, and
+    # sprite_tint=0.5 to carry the same halfway mix into its materials.
+    'tachyonlance': dict(house='hand', chroma=.7, paints={'paint': (.41, .45, .51), 'accent': (.55, .57, .62)}),
+    'gravitonbeam': dict(house='hand', chroma=.7, paints={'paint': (.29, .47, .56)}),
+    'taclaser':     dict(house='hand', chroma=.7, paints={'paint': (.46, .52, .56), 'accent': (.6, .64, .68)}),
+    'reaper':       dict(house='hand', chroma=.7, paints={'paint': (.35, .38, .40), 'accent': (.55, .56, .58),
+                                               'accent2': (.16, .17, .28)}),
     'harpoonpod':  dict(house='box', rack='open', missiles=(1, 3), mlen=1.2, mrad=.09, mcol=(.5, .6, .5)),
     'sabotpod':    dict(house='box', rack='open', missiles=(1, 3), mlen=.85, mrad=.095, mcol=(.66, .66, .62)),
     'salamanderpod': dict(house='box', rack='open', missiles=(1, 2), mlen=.9, mrad=.11, mcol=(.6, .3, .2)),
@@ -843,13 +848,16 @@ def _lum(c):
     return .2126*c[0]+.7152*c[1]+.0722*c[2]
 
 
-def livery(rgb, key):
-    """A sprite paint (linear RGB) brought to military service colour (LIVERY)."""
+def livery(rgb, key, chroma=None):
+    """A sprite paint (linear RGB) brought to military service colour (LIVERY);
+    chroma, when given, replaces the share of the paint's colour that is kept."""
     if key in ('metal', 'steel'):
         g = _lum(GUNMETAL)
         tint = [c/max(_lum(rgb), 1e-4) for c in rgb]
         return tuple(round(g*((1-METAL_HINT)+METAL_HINT*t), 4) for t in tint)
     hint, scale, floor = LIVERY[key]
+    if chroma is not None:
+        hint = chroma
     L = _lum(rgb)
     L2 = floor+scale*L
     return tuple(round(min(1.0, L2*((1-hint)+hint*c/max(L, 1e-4))), 4) for c in rgb)
@@ -872,7 +880,8 @@ def paint_targets(s):
     for key in ('armour', 'plate', 'steel'):
         if key in over:
             out[key] = tuple(over[key])
-    return {key: livery(rgb, key) for key, rgb in out.items()}
+    return {key: livery(rgb, key, s.get('chroma') if key in ('paint', 'accent') else None)
+            for key, rgb in out.items()}
 
 
 def _sprite_mats(s, mats):
@@ -882,8 +891,14 @@ def _sprite_mats(s, mats):
     targets = paint_targets(s)
     if s.get('hull_finish'):
         # The hull dresses the turret in its own finish: its materials win wherever
-        # it supplies the key, and are used as they are, not re-weathered.
+        # it supplies the key, and are used as they are, not re-weathered, except
+        # that sprite_tint mixes the sprite's own colour into its paints.
         targets = {key: rgb for key, rgb in targets.items() if key not in mats}
+        if s.get('sprite_tint'):
+            raw = sprite(s.get('sprite', s['weapon']))['colours']
+            for key, src in (('paint', 'main'), ('accent', 'accent')):
+                if key in mats and src in raw:
+                    out[key] = tinted(mats[key], tuple(raw[src]), s['sprite_tint'])
     for key, rgb in targets.items():
         out[key] = paint_material(f"Turret {s['weapon']} {key} {_key(rgb)}", rgb, FINISH[key])
     for key in ('armour', 'plate', 'steel'):
@@ -911,7 +926,35 @@ def _sprite_mats(s, mats):
     # Energy weapons' lamps: emitter blue-white and status red (a hull may supply its own).
     out.setdefault('lamp_blue', lamp_material('Turret lamp blue-white', (.35, .62, 1.0), 2.0))
     out.setdefault('lamp_red', lamp_material('Turret lamp red', (1.0, .15, .1), 3.0))
+    out.setdefault('lamp_core', lamp_material('Turret lamp gold core', (.95, .85, .5), 1.6))
     return out
+
+
+def tinted(mat, rgb, f):
+    """A copy of `mat` whose base colour is mixed a fraction f toward linear `rgb`,
+    whatever drives it (a constant, or a procedural finish such as hex plating)."""
+    name = f'{mat.name} tint {_key(rgb)} {f:.2f}'
+    if name in bpy.data.materials:
+        return bpy.data.materials[name]
+    m = mat.copy()
+    m.name = name
+    nt = m.node_tree
+    b = next((n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED'), None) if nt else None
+    if b is None:
+        return mat
+    inp = b.inputs['Base Color']
+    mix = nt.nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    a_in = next(x for x in mix.inputs if x.identifier == 'A_Color')
+    b_in = next(x for x in mix.inputs if x.identifier == 'B_Color')
+    mix.inputs[0].default_value = f
+    b_in.default_value = (*rgb, 1)
+    if inp.links:
+        nt.links.new(inp.links[0].from_socket, a_in)
+    else:
+        a_in.default_value = inp.default_value
+    nt.links.new(next(x for x in mix.outputs if x.identifier == 'Result_Color'), inp)
+    return m
 
 
 def lamp_material(name, rgb, strength=1.4):
@@ -2196,34 +2239,45 @@ def _house_hveldriver(g, f, s, r, z0):
 
 # --- Tri-Tachyon energy weapons (the Paragon's Elite fit) ----------------------------
 # A beam has no gun sprite: the whole weapon trains, and the elevation empty
-# carries nothing but the muzzle anchors. Each stands on a base plate cut to its
-# sprite's outline (the body, plus the thin prongs the measurement opened off it),
-# with its raised parts built over that plate, so the sprite's dark gaps read as
-# the base showing between plates. Measurements are sprite pixels times k.
+# carries nothing but the muzzle anchors. Each stands on a thin deck cut to its
+# sprite's outline (the bodies and thin prongs), which holds the silhouette, and
+# is built up from it as solids read off the sprite's shading: a lit column is a
+# crest with faces falling away either side, a dark band beside it a steep wall
+# or a gap, a highlight running across a part says it lies across. Heights follow
+# the kit's sections (SECTION: roof 6.0 / 4.6 / 3.2 px), so a gun has a profile
+# from the side as well as a plan from above. Measurements are sprite pixels
+# times k; z is above the deck's foot z0.
 
 def _ccw(pts):
     a = sum(p[0]*q[1]-q[0]*p[1] for p, q in zip(pts, pts[1:]+pts[:1]))
     return list(pts) if a > 0 else list(reversed(pts))
 
 
-def _sym(half, k):
-    """A plan mirrored about the line of fire from its port half [(x, y >= 0), ...], scaled by k."""
-    pts = list(half)+[(x, -y) for x, y in reversed(half) if y > 0]
-    return _ccw([(x*k, y*k) for x, y in pts])
-
-
-def _tt_base(g, sp, k, z0, h, key='steel'):
-    """The base plate: the sprite's bodies and prongs stood up h pixels, bevelled in at the top."""
+def _tt_deck(g, sp, k, z0, h, key='steel'):
+    """The deck: the sprite's bodies and prongs stood up h pixels, the silhouette's floor."""
     for body in sp.get('bodies') or [sp['body']]:
-        g[key].prism([(x*k, y*k) for x, y in body], z0, z0+.7*h*k, .2*k, z0+h*k)
+        g[key].prism([(x*k, y*k) for x, y in body], z0, z0+h*k)
     for p in sp['prongs']:
-        g[key].prism([(x*k, y*k) for x, y in p], z0, z0+.8*h*k)
+        g[key].prism([(x*k, y*k) for x, y in p], z0, z0+h*k)
 
 
-def _blade(m, x0, x1, y, w0, w1, z0, z1):
-    """A tapered rib along +X, w0 wide at x0 to w1 at x1, its top dropping a little to the tip."""
-    m.loft_x([(x0, [(y+yy, z) for yy, z in section(w0/2, z0, z1)]),
-              (x1, [(y+yy, z) for yy, z in section(w1/2, z0, z1-.4*(z1-z0))])])
+def _loft(m, stations, k, z0, sy=1):
+    """loft_x through [(x, [(y, z), ...]), ...] in sprite pixels, mirrored to starboard by sy."""
+    m.loft_x([(x*k, [(sy*y*k, z0+z*k) for y, z in sec]) for x, sec in stations])
+
+
+def _beam(m, a, b, sec_a, sec_b, k, z0):
+    """A solid along the plan segment a -> b, cross-sections [(across, z), ...] at each end."""
+    (ax, ay), (bx, by) = a, b
+    L = math.hypot(bx-ax, by-ay)
+    nx, ny = -(by-ay)/L, (bx-ax)/L
+    rings = [[m.bm.verts.new(m.base @ Vector(((px+v*nx)*k, (py+v*ny)*k, z0+z*k))) for v, z in sec]
+             for (px, py), sec in ((a, sec_a), (b, sec_b))]
+    n = len(rings[0])
+    for i in range(n):
+        m.bm.faces.new((rings[0][i], rings[0][(i+1) % n], rings[1][(i+1) % n], rings[1][i]))
+    m.bm.faces.new(rings[0])
+    m.bm.faces.new(rings[1])
 
 
 def _tt_muzzles(sp, k, za):
@@ -2231,86 +2285,127 @@ def _tt_muzzles(sp, k, za):
 
 
 def _house_tachyonlance(g, f, s, r, z0):
-    """tachyon_lance_turret_base.png: two long prong blades either side of the open
-    beam slot (the sprite draws nothing between them; the beam leaves from their
-    root), a body block across their roots, a capacitor pod on an arm either side
-    with its red lamp, and the fan of fins aft. The muzzle is the .wpn's, at the
-    emitter, behind the slot."""
+    """tachyon_lance_turret_base.png. The lit columns running the sprite's whole
+    length are the crests of two keel blades: each a wedge with a steep inner wall
+    down to the open beam slot (the dark columns either side of the gap) and an
+    outer glacis falling to the deck, tallest at the shoulders, low at both tips;
+    their aft ends are the two long legs. A clamp band crosses both blades (the
+    light line across them). The highlights across each shoulder are capacitor
+    cylinders lying athwartships, white insulators at their outer ends and a red
+    band; under them a dark machinery block with a red lamp, coolant ports (the
+    teal dots) aft of it, and three vanes each side falling away aft. The emitter
+    sits in the slot's root behind its lens."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    _tt_base(g, sp, k, z0, 1.3)
-    g['paint'].prism(_sym([(0, 0), (0, 13), (-3, 15), (-8, 15), (-9, 11), (-8, 4), (-7, 0)], k),
-                     z0, z0+1.6*k, 1.2*k, z0+2.8*k)
+    d = .8
+    _tt_deck(g, sp, k, z0, d)
+    #        x     yi   yc   yo   crest
+    blade = [(35, 1.5, 2.6, 3.6, 2.2), (30, 1.5, 3.4, 5.6, 3.2), (20, 1.5, 4.6, 8.0, 4.8),
+             (10, 1.5, 5.0, 9.6, 5.8), (5, 1.8, 5.0, 10.0, 6.0), (0, 2.0, 5.0, 9.0, 6.0),
+             (-8, 2.0, 5.0, 7.6, 5.2), (-16, 2.0, 5.0, 7.2, 3.6), (-22, 2.0, 4.6, 6.6, 2.2)]
+
+    def sec(yi, yc, yo, zc, grow=0.0):
+        return [(yi, d), (yi, zc-.6+grow), (yc, zc+grow), (yo+grow, 1.6+grow), (yo+grow, d)]
     for sy in (1, -1):
-        g['paint'].prism(_ccw([(33.5*k, 2.6*sy*k), (30*k, 6.6*sy*k), (2*k, 8.6*sy*k), (2*k, 2.4*sy*k),
-                               (19*k, 2.4*sy*k)]), z0, z0+1.6*k, .8*k, z0+2.6*k)
-        _blade(g['paint'], 3*k, 30*k, 4.2*sy*k, 1.6*k, .9*k, z0+2.5*k, z0+3.4*k)
-        g['steel'].box((2.5*k, 13.5*sy*k, z0+1.6*k), (5*k, 6*k, 1.6*k), .15*k)
-        g['metal'].cyl((5.5*k, 19.6*sy*k, z0+2.6*k), 3.0*k, 8.0*k, 'X', n=12)
-        g['dark'].cyl((9.55*k, 19.6*sy*k, z0+2.6*k), 2.2*k, .2*k, 'X', n=12)
-        g['lamp_red'].box((9.7*k, 19.6*sy*k, z0+2.6*k), (.3*k, 1.4*k, 1.4*k))
-    fins = (((-9, 3), (-21.5, 3)), ((-9, 8.5), (-20.5, 10.6)), ((-8, 12.5), (-17.4, 17.8)), ((-5, 15), (-11.6, 20.6)))
-    for (x0, y0), (x1, y1) in fins:
-        for sy in (1, -1):
-            L = math.hypot(x1-x0, y1-y0)
-            g['steel'].box(((x0+x1)/2*k, (y0+y1)/2*sy*k, z0+1.6*k), (L*k, 1.2*k, .9*k), .1*k,
-                           rot=Matrix.Rotation(math.atan2((y1-y0)*sy, x1-x0), 4, 'Z'))
-    g['dark'].box((2.4*k, 0, z0+1.8*k), (1.2*k, 2.4*k, 1.6*k))
-    g['lamp_blue'].box((3.1*k, 0, z0+2.2*k), (.4*k, 1.4*k, .6*k))
+        _loft(g['paint'], [(x, sec(yi, yc, yo, zc)) for x, yi, yc, yo, zc in blade], k, z0, sy)
+        _loft(g['metal'], [(x, sec(1.6, 5.0, 9.7, 5.9, .35)) for x in (9, 7)], k, z0, sy)
+        # Capacitor: a cylinder across the shoulder on a cradle, insulator and red band.
+        g['steel'].box((6*k, sy*17*k, z0+1.6*k), (4*k, 11*k, 1.6*k), .15*k)
+        g['accent'].cyl((6*k, sy*17*k, z0+3.0*k), 2.6*k, 13*k, 'Y', n=16)
+        g['lamp_blue'].cyl((6*k, sy*23.9*k, z0+3.0*k), 1.7*k, .8*k, 'Y', n=16)
+        g['lamp_red'].ring((6*k, sy*18.8*k, z0+3.0*k), 2.5*k, 2.75*k, .6*k, 'Y', n=16)
+        # Machinery block under the capacitor, its lamp, the coolant port aft.
+        g['steel'].box((.5*k, sy*12.5*k, z0+1.9*k), (7*k, 9*k, 2.2*k), .2*k)
+        g['lamp_red'].box((1*k, sy*13*k, z0+3.05*k), (.9*k, .9*k, .2*k))
+        g['steel'].box((-5*k, sy*10*k, z0+1.6*k), (4*k, 4*k, 1.6*k), .15*k)
+        g['lamp_blue'].cyl((-5*k, sy*10*k, z0+2.5*k), .9*k, .3*k, 'Z', n=12)
+        # Vanes: root high at the body, falling to the tip.
+        for (x0, y0), (x1, y1) in (((-9, 8.5), (-20.5, 10.6)), ((-8, 12.5), (-17.4, 17.8)), ((-5, 15), (-11.6, 20.6))):
+            _beam(g['steel'], (x0, sy*y0), (x1, sy*y1),
+                  [(-.7, d), (-.7, 2.4), (0, 2.9), (.7, 2.4), (.7, d)],
+                  [(-.4, d), (-.4, 1.2), (0, 1.5), (.4, 1.2), (.4, d)], k, z0)
+    # The emitter in the slot's root, its lens facing down the slot; the dark mass
+    # bridging the legs aft.
+    g['dark'].box((-2.5*k, 0, z0+2.0*k), (11*k, 4.2*k, 2.4*k), .15*k)
+    g['lamp_blue'].box((3.05*k, 0, z0+2.2*k), (.3*k, 2.6*k, 1.8*k))
+    g['steel'].box((-5.5*k, 0, z0+1.3*k), (5*k, 22*k, 1.2*k), .2*k)
     za = z0+2.2*k
     return (3.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 
 def _house_gravitonbeam(g, f, s, r, z0):
-    """graviton_beam_turret_base.png: a blue-white teardrop housing with its lens
-    at the point and a dark spine down the crown, swept wings either side, two
-    feet aft."""
+    """graviton_beam_turret_base.png. The nose is a raised spire whose crest
+    carries the bright cyan line (the projector), dark recesses at its shoulders;
+    behind it two rounded cowls flank a dark sunken spine with a lamp in it; a lens
+    bar lies across the body (the bright cross row); a base block and two feet aft."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    _tt_base(g, sp, k, z0, 1.3, 'paint')
-    g['paint'].prism(_sym([(20.5, 0), (17, 2.6), (11, 4.0), (2, 5.0), (-5, 4.5), (-7, 0)], k),
-                     z0, z0+1.4*k, 1.5*k, z0+2.8*k)
+    d = .6
+    _tt_deck(g, sp, k, z0, d)
+    spire = [(20.5, 1.0, 1.7), (18, 1.8, 2.6), (14, 2.6, 3.4), (10, 3.2, 3.9), (6, 3.2, 3.9)]
+    _loft(g['paint'], [(x, [(-yo, d), (yo, d), (yo, max(1.0, zs-1.0)), (.8, zs), (-.8, zs), (-yo, max(1.0, zs-1.0))])
+                       for x, yo, zs in spire], k, z0)
+    _loft(g['lamp_blue'], [(x, [(-.35, zs-.05), (.35, zs-.05), (.35, zs+.12), (-.35, zs+.12)])
+                           for x, _, zs in spire[1:4]], k, z0)
+    cowl = [(10, 2.2, 5.0, 2.8), (7, 3.2, 5.6, 3.8), (2, 3.8, 6.0, 4.3), (-3, 3.8, 6.0, 4.2), (-6.5, 3.0, 6.2, 3.2)]
     for sy in (1, -1):
-        g['paint'].prism(_ccw([(8*k, 5.4*sy*k), (-1*k, 10*sy*k), (-6*k, 10*sy*k), (-5*k, 5.4*sy*k)]),
-                         z0, z0+1.3*k, .6*k, z0+2.0*k)
-        g['steel'].box((-7.5*k, 8.2*sy*k, z0+1.4*k), (2*k, 2*k, 1.0*k), .1*k)
-    g['dark'].box((5*k, 0, z0+2.85*k), (14*k, 1.4*k, .3*k))
-    g['lamp_blue'].lathe([(1.6*k, 0), (1.3*k, .8*k), (.2*k, 1.2*k)], 16, (15.5*k, 0, z0+1.8*k), 'X')
-    za = z0+1.8*k
+        _loft(g['paint'], [(x, [(yc+yy, z) for yy, z in section(hw, d, h, min(1.3, .45*hw), 0, .4)])
+                           for x, hw, yc, h in cowl], k, z0, sy)
+        g['metal'].box((-8.2*k, sy*8.6*k, z0+1.6*k), (2.2*k, 2.4*k, 2.0*k), .15*k)
+        g['steel'].cyl((-1.5*k, sy*2.1*k, z0+3.2*k), 1.0*k, .5*k, 'Y', n=14)
+    g['dark'].box((1*k, 0, z0+1.9*k), (14*k, 3.0*k, 2.6*k))
+    g['lamp_blue'].box((3*k, 0, z0+3.25*k), (1.0*k, 1.0*k, .2*k))
+    g['lamp_blue'].cyl((-1.5*k, 0, z0+3.2*k), .8*k, 3.6*k, 'Y', n=14)
+    g['steel'].box((-7.6*k, 0, z0+1.3*k), (3.2*k, 15*k, 1.4*k), .15*k)
+    za = z0+3.0*k
     return (15.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 
 def _house_taclaser(g, f, s, r, z0):
-    """tactical_laser_turret.png: a ten-plate dome behind a short emitter spike with
-    a lit collar at its tip."""
+    """tactical_laser_turret.png. A tall twelve-plate dome; the dark band across its
+    middle with the olive-gold core in it is a trench cut across the crown with the
+    focusing core lying in it; the emitter barrel runs forward from the dome's face
+    to a lit tip."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    _tt_base(g, sp, k, z0, 1.0)
-    g['paint'].lathe([(7.2*k, 0), (7.2*k, .9*k), (5.6*k, 2.7*k), (2.8*k, 3.5*k), (0, 3.6*k)], 10,
-                     (-1.5*k, 0, z0), phase=math.pi/10)
-    g['metal'].lathe([(1.2*k, 0), (.6*k, 6.0*k), (.05*k, 6.3*k)], 12, (5.0*k, .5*k, z0+2.0*k), 'X')
-    g['lamp_blue'].cyl((9.8*k, .5*k, z0+2.0*k), .7*k, .6*k, 'X', n=12)
-    za = z0+2.0*k
-    return (5.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
+    d = .5
+    _tt_deck(g, sp, k, z0, d)
+    shell = g['paint#dome']
+    shell.lathe([(7.2*k, 0), (7.2*k, 1.0*k), (6.6*k, 2.4*k), (5.4*k, 3.4*k), (3.4*k, 4.1*k), (0, 4.3*k)], 12,
+                (-1.5*k, 0, z0+d*k), phase=math.pi/12)
+    shell.cut().box((.2*k, 0, z0+5.0*k), (4.2*k, 16*k, 2.8*k))
+    g['metal'].cyl((.2*k, 0, z0+3.3*k), 1.5*k, 9.0*k, 'Y', n=16)
+    g['lamp_core'].lathe([(1.0*k, 0), (.7*k, .5*k), (0, .7*k)], 16, (.2*k, 0, z0+4.6*k))
+    g['accent'].lathe([(1.4*k, 0), (1.4*k, 1.2*k), (1.0*k, 1.6*k), (.85*k, 6.4*k), (1.05*k, 6.7*k), (1.05*k, 7.4*k),
+                      (.5*k, 7.8*k)], 16, (3.5*k, 0, z0+2.8*k), 'X')
+    g['lamp_blue'].cyl((10.75*k, 0, z0+2.8*k), 1.1*k, .4*k, 'X', n=16)
+    za = z0+2.8*k
+    return (3.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 
 def _house_reaper(g, f, s, r, z0):
-    """light_reaper_launcher_turret_base.png: two rails either side of the loading
-    slot with the round in it (RENDER_LOADED_MISSILES), the launcher block behind,
-    and a base bar with red lamps."""
+    """light_reaper_launcher_turret_base.png. Two tall rails (lit outer faces, dark
+    inner) either side of the loading slot, the round loaded in it
+    (RENDER_LOADED_MISSILES); the launcher block with its dark tube mouth; the open
+    vent gap behind it (the sprite's hole), a rear block, and the base bar with red
+    lamps and blue-grey end caps."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    _tt_base(g, sp, k, z0, 1.0)
+    d = .5
+    _tt_deck(g, sp, k, z0, d)
     for sy in (1, -1):
-        g['metal'].box((3*k, 4.6*sy*k, z0+1.4*k), (18*k, 2.4*k, 2.0*k), .15*k)
-        g['lamp_red'].box((-7.3*k, 4.5*sy*k, z0+1.9*k), (1.0*k, 1.0*k, .4*k))
-    g['paint'].box((-.2*k, 0, z0+1.7*k), (5.6*k, 11*k, 2.6*k), .3*k)
-    g['paint'].box((-5.3*k, 0, z0+1.5*k), (1.6*k, 11*k, 2.2*k), .2*k)
-    g['steel'].box((-8.3*k, 0, z0+1.2*k), (2.6*k, 15*k, 1.2*k), .2*k)
-    zr = z0+2.0*k
-    g['accent'].lathe([(.9*k, 0), (.9*k, 7.5*k), (.5*k, 9.0*k), (.05*k, 9.6*k)], 12, (1.5*k, 0, zr), 'X')
-    g['dark'].cyl((1.3*k, 0, zr), 1.0*k, .5*k, 'X', n=12)
-    return (1.5*k, 0.0, zr), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, zr)}
+        g['metal'].box((1.5*k, sy*5.0*k, z0+2.1*k), (21*k, 2.0*k, 3.2*k), .2*k)
+        g['accent2'].box((-8.8*k, sy*9.0*k, z0+1.5*k), (3.0*k, 2.2*k, 2.0*k), .15*k)
+        g['lamp_red'].box((-8.3*k, sy*5.0*k, z0+3.75*k), (1.0*k, 1.0*k, .2*k))
+    launcher = g['paint#launcher']
+    launcher.box((-.2*k, 0, z0+2.0*k), (5.6*k, 8.0*k, 3.0*k), .25*k)
+    launcher.cut().box((.3*k, 0, z0+3.6*k), (1.8*k, 1.8*k, 2.0*k))
+    g['dark'].box((.3*k, 0, z0+2.55*k), (1.7*k, 1.7*k, .1*k))
+    g['accent'].lathe([(.85*k, 0), (.85*k, 7.0*k), (.45*k, 8.2*k), (.05*k, 8.7*k)], 14, (3.0*k, 0, z0+2.2*k), 'X')
+    g['paint'].box((-5.6*k, 0, z0+1.8*k), (3.0*k, 8.0*k, 2.6*k), .2*k)
+    g['steel'].box((-8.8*k, 0, z0+1.3*k), (3.6*k, 16*k, 1.6*k), .2*k)
+    za = z0+2.2*k
+    return (1.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 
 HANDS = {'heavyac': _house_heavyac2, 'flak': _house_flak2, 'vulcan': _house_vulcan, 'lightac': _house_lightac,
