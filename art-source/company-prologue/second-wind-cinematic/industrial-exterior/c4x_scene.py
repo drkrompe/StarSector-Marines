@@ -1479,6 +1479,8 @@ def build():
     add_landing_dust()
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
+    import c4_jungle                                    # layered canopy past the fence
+    c4_jungle.apply(YARD[1], 768.0)
     import vehicle_paint                                 # painted vehicle tops, once accepted
     vehicle_paint.apply()
     import ortho_paint                                  # painted overhead tiles, where accepted
