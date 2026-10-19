@@ -21,14 +21,14 @@ class MechLabInductionTest {
         MissionResolver.recordStoryCompletion(roster, victory());
         MissionResolver.recordStoryCompletion(roster, victory());
         MechBay bay = roster.mechBay();
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.SRM_5.id));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.SRM_5_FRAG.id));
         assertEquals(1, bay.labLesson());
         var model = new MechLabViewModel(new Reactor(), bay);
         model.guideLabLesson();
         assertEquals(2, bay.labLesson());
-        assertFalse(model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.ARMS));
+        assertFalse(model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.ARMS));
         assertEquals(2, bay.labLesson());
-        assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+        assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER));
         assertEquals(3, bay.labLesson());
         bay.pauseLabLesson(true);
         var bytes = new ByteArrayOutputStream();
@@ -40,14 +40,14 @@ class MechLabInductionTest {
         model = new MechLabViewModel(new Reactor(), bay);
         model.guideLabLesson();
         model.stripWeapon(SocketId.LEFT_SHOULDER);
-        assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+        assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER));
         assertEquals(4, bay.labLesson());
-        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_5.id));
-        assertEquals(MechWeaponComponent.SRM_5, bay.activeDeployment().get(0).leftShoulder());
+        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_5_FRAG.id));
+        assertEquals(MechWeaponComponent.SRM_5_FRAG, bay.activeDeployment().get(0).leftShoulder());
         model.guideLabLesson();
         assertEquals(5, bay.labLesson());
         bay.beginLabLesson();
-        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_5.id));
+        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_5_FRAG.id));
         assertEquals(ScreenId.MECH_LAB, ResultsScreen.returnDestination(victory()));
     }
 
@@ -61,7 +61,7 @@ class MechLabInductionTest {
                 bay = (MechBay) in.readObject();
             }
             assertEquals(1, bay.labLesson());
-            assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_5.id));
+            assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_5_FRAG.id));
             assertTrue(bay.canFabricate(MechWeaponComponent.LRM_15));
         }
     }
@@ -89,10 +89,10 @@ class MechLabInductionTest {
         bay.beginLabLesson();
         var model = new MechLabViewModel(new Reactor(), bay);
         model.guideLabLesson();
-        model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
+        model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER);
         model.stripWeapon(SocketId.LEFT_SHOULDER);
         assertEquals(3, bay.labLesson());
-        model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
+        model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER);
         assertEquals(4, bay.labLesson());
     }
 }

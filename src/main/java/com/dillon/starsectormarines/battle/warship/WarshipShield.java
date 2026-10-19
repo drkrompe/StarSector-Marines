@@ -20,12 +20,14 @@ import java.util.Map;
  *   <li><b>Upkeep.</b> While raised the shield draws {@code upkeep} times the
  *       ship's (scaled) dissipation in flux every second. In the game that is the
  *       Onslaught's 240 a second against 600 dissipated.</li>
- *   <li><b>No venting.</b> While raised the pool does not dissipate at all
- *       ({@link WarshipFlux#holdDissipation}). A ship that holds its shield and
- *       keeps firing can only climb.</li>
+ *   <li><b>Hard flux.</b> While raised the pool does not vent its hard flux, what
+ *       absorbed hits put there ({@link WarshipFlux#holdDissipation}); the soft flux
+ *       of the guns and the upkeep keeps draining, as in the base game. A ship that
+ *       holds its shield under fire climbs by what it is hit with, and vents that
+ *       only once the shield is down.</li>
  *   <li><b>Absorption.</b> A hostile detonation that reaches the hull from inside
  *       the shield's arc is absorbed: its damage times {@code efficiency} becomes
- *       flux and the hull takes nothing. From outside the arc, or while the shield
+ *       hard flux and the hull takes nothing. From outside the arc, or while the shield
  *       is down or still rising, it goes to the armour as it always did. The
  *       direction is the blast's bearing from the shield centre (the blast point
  *       stands for where the round came from); a FRONT shield faces the hull's
@@ -44,7 +46,7 @@ import java.util.Map;
  *
  * <p>It works only on a ship that is on flux; a ship with no pool (a scripted
  * cinematic hull) has no shield, so its armour answers as it always has.
- * Deliberately not modelled: hard flux, damage-type multipliers on efficiency,
+ * Deliberately not modelled: damage-type multipliers on efficiency,
  * shield-radius interception of rounds in flight, and a shield that stays
  * down while its arc is being rotated.
  */
@@ -267,7 +269,7 @@ final class WarshipShield {
         absorbedDamage += damage;
         absorbedFlux += add;
         hitFlash = 1f;
-        flux.spend(add);
+        flux.spendHard(add);
         if (flux.overloaded()) collapse();
     }
 
@@ -280,9 +282,16 @@ final class WarshipShield {
         level = 0f;
     }
 
+    /** Whether an automatic shield is locked down by a full pool until it has vented. */
+    boolean lockedOut() {
+        return lockedOut;
+    }
+
     /** Advances the shield one tick: decides whether it is up, pays its upkeep and holds the pool's venting. */
     void update(float dt, WarshipFlux flux, boolean threat) {
         if (!present()) return;
+        // An automatic shield drops at its drop level, so the guns leave it the top of the pool.
+        flux.shieldReserve(auto ? DROP_LEVEL : 1f);
         hitFlash = Math.max(0f, hitFlash - dt / FLASH_SECONDS);
         dropFlash = Math.max(0f, dropFlash - dt / FLASH_SECONDS);
         if (!flux.enabled()) {

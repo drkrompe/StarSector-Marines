@@ -4,7 +4,7 @@ Status: PLANNED
 
 Written: 2026-10-11
 
-Updated: 2026-10-13 — readiness resolved by ship-support writeback; shields shipped on the flux pool.
+Updated: 2026-10-18 — hard flux shipped (a raised shield holds only what its absorbed hits put in the pool).
 
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
 `combat-durability-nouns.md`, `command-powers-nouns.md` and
@@ -85,7 +85,7 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
     and never rest, so shields (only raised under threat) do not carry the ground
     rhythm. Acceptance is the `warship-shields` scene. Standing rule lives in
     `air-nouns.md`. Still provisional: the half scale, the three-second hold and
-    90% drop level, and the absence of hard flux and damage-type efficiency.
+    90% drop level, and the absence of damage-type efficiency.
 
 ## Owner direction: overpowered by design
 
@@ -102,7 +102,7 @@ exists.
   (`ship-support.md`, slice 2): a called committed ship pays its hull's own CR-to-deploy
   at settlement, and a ship destroyed in battle comes back crippled at CR zero. The
   world-level gating above still does the gating; readiness is the fleet-level price.
-- **Shield refinements.** Hard flux, damage-type multipliers on efficiency, rounds
+- **Shield refinements.** Damage-type multipliers on efficiency, rounds
   stopped at the bubble rather than the hull, and per-hull shield colours.
 
 ## Fitting from a fleet member (shipped) and the flagship hand-off

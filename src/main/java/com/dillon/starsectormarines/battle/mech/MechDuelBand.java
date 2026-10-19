@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import java.util.List;
 
@@ -30,7 +32,11 @@ import java.util.List;
  * accuracy there. It deliberately leaves out penetration against the target's
  * plate, heat, and ammunition depth: the choice is about which band trades
  * better, and those scale both sides of a trade alike far more often than
- * they reverse it.
+ * they reverse it. The one exception is a missile rack, whose warhead is chosen
+ * for what it does to plate: an anti-armor rack is read at its contact payload and
+ * a fragmentation rack at its armor efficiency against the target
+ * ({@code mechs-nouns.md}, Missile warheads), since otherwise a rack that barely scratches
+ * a tank would count at full weight against it.
  *
  * <p>Pure: no simulation, no state. {@link MechDuelRange} reads a live mech
  * and its target into {@link Weapon}s and executes the answer.
@@ -68,6 +74,29 @@ public final class MechDuelBand {
             float rounds = Math.max(1, def.burstCount) * Math.max(1, def.projectilesPerShot);
             float pressure = def.damage * rounds / Math.max(0.1f, def.cooldown);
             return new Weapon(def.minRange, def.range, pressure, def.accuracy, def.accuracyFalloff);
+        }
+
+        /**
+         * As {@link #of(WeaponDef)}, except that an SRM or LRM rack's round is read by its
+         * warhead against plate of {@code targetRating}: its contact payload when it has one,
+         * otherwise its area payload, each at its armor efficiency.
+         */
+        public static Weapon of(WeaponDef def, float targetRating) {
+            if (!MechWeaponComponent.missileVariants()
+                    || !(WeaponRegistry.isMechSrm(def.id) || WeaponRegistry.isMechLrm(def.id))) {
+                return of(def);
+            }
+            float perRound = def.contactDamage > 0f
+                    ? def.contactDamage * efficiency(def.contactPenetration, targetRating)
+                    : def.damage * efficiency(def.penetration, targetRating);
+            float rounds = Math.max(1, def.burstCount) * Math.max(1, def.projectilesPerShot);
+            float pressure = perRound * rounds / Math.max(0.1f, def.cooldown);
+            return new Weapon(def.minRange, def.range, pressure, def.accuracy, def.accuracyFalloff);
+        }
+
+        /** Unarmored plate takes every point. */
+        private static float efficiency(float penetration, float rating) {
+            return rating > 0f ? DurabilityModel.armorEfficiency(penetration, rating) : 1f;
         }
 
         float pressureAt(float distance) {

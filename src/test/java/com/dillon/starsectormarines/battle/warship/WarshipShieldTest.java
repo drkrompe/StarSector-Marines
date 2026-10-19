@@ -182,24 +182,80 @@ class WarshipShieldTest {
     }
 
     @Test
-    void aRaisedShieldDrawsUpkeepAndStopsTheFluxVenting() throws Exception {
+    void aRaisedShieldDrawsUpkeepAndHoldsOnlyTheHardFluxFromVenting() {
         WarshipFlux f = new WarshipFlux(4000f, 250f);
         f.enabled(true);
-        f.spend(2000f);
+        f.spend(1000f);
+        f.spendHard(1000f);
         WarshipShield shield = new WarshipShield(WarshipShield.Type.FRONT, 180f, 10f, 0f, 0f, 0.4f, 1f);
         shield.raise(true);
         for (int i = 0; i < 20; i++) {
             shield.update(0.05f, f, false);
             f.update(0.05f);
         }
-        // One second at 0.4 of 250 a second, and not a unit vented.
-        assertEquals(2000f + 100f, f.flux(), 1f);
+        // One second: 0.4 of 250 a second of upkeep, and the soft share venting at 250 a second behind the shield.
+        assertEquals(2000f + 100f - 250f, f.flux(), 1f);
+        assertEquals(1000f, f.hard(), 1e-3f, "what the hits put there is held");
+        for (int i = 0; i < 400; i++) {
+            shield.update(0.05f, f, false);
+            f.update(0.05f);
+        }
+        assertEquals(1000f, f.flux(), 1f, "the soft share vents away and the hard share stays while the shield is up");
         shield.raise(false);
         for (int i = 0; i < 20; i++) {
             shield.update(0.05f, f, false);
             f.update(0.05f);
         }
-        assertEquals(2100f - 250f, f.flux(), 1f, "dropped, the pool vents at the hull's rate again");
+        assertEquals(1000f - 250f, f.flux(), 1f, "dropped, the hard share vents at the hull's rate");
+        assertEquals(f.flux(), f.hard(), 1e-3f);
+    }
+
+    @Test
+    void aShieldDownVentsTheSoftFluxBeforeTheHard() {
+        WarshipFlux f = new WarshipFlux(4000f, 250f);
+        f.enabled(true);
+        f.spendHard(500f);
+        f.spend(500f);
+        f.update(1f);
+        assertEquals(750f, f.flux(), 1e-3f);
+        assertEquals(500f, f.hard(), 1e-3f, "the soft share goes first");
+        f.update(1f);
+        f.update(1f);
+        assertEquals(250f, f.flux(), 1e-3f);
+        assertEquals(250f, f.hard(), 1e-3f);
+    }
+
+    @Test
+    void anAbsorbedHitIsHardFluxAndAShieldHeldUpUnderFireCanOnlyClimbToOverload() {
+        WarshipFlux f = new WarshipFlux(1000f, 250f);
+        f.enabled(true);
+        WarshipShield shield = new WarshipShield(WarshipShield.Type.OMNI, 360f, 10f, 0f, 0f, 0.4f, 1f);
+        shield.raise(true);
+        for (int i = 0; i < 10; i++) shield.update(0.05f, f, false);
+        shield.absorb(300f, f);
+        assertEquals(300f, f.hard(), 1e-3f, "damage times efficiency, all of it hard");
+        for (int i = 0; i < 40 && !f.overloaded(); i++) {
+            shield.update(0.05f, f, false);
+            f.update(0.05f);
+            shield.absorb(30f, f);
+        }
+        assertTrue(f.overloaded(), "600 a second of hits against a held vent fills a 1000 pool");
+        assertFalse(shield.raised());
+    }
+
+    @Test
+    void theGunsLeaveAnAutomaticShieldTheTopOfThePool() {
+        WarshipFlux f = new WarshipFlux(1000f, 100f);
+        f.enabled(true);
+        f.spend(600f);
+        assertTrue(f.canStart(350f), "with no shield to keep, a salvo may fill the pool to just short of capacity");
+        WarshipShield shield = new WarshipShield(WarshipShield.Type.FRONT, 180f, 10f, 0f, 0f, 0.4f, 1f);
+        shield.update(0.05f, f, false);
+        assertFalse(f.canStart(350f), "a salvo that would carry the pool past the shield's drop level is not started");
+        assertTrue(f.canStart(250f), "one that stops short of it is");
+        shield.raise(true);
+        shield.update(0.05f, f, false);
+        assertTrue(f.canStart(350f), "a shield held up by order has no drop level to keep");
     }
 
     @Test
@@ -224,20 +280,6 @@ class WarshipShieldTest {
         // The hit that came while overloaded goes to the armour.
         system(s).onDetonation(hit(50f, s.shieldCentreY() + 4f, 600f), null);
         assertTrue(s.hitPoints() < s.maxHitPoints);
-    }
-
-    @Test
-    void upkeepAloneCanOverloadAShipWhoseShieldIsHeldUp() throws Exception {
-        WarshipFlux f = new WarshipFlux(100f, 250f);
-        f.enabled(true);
-        WarshipShield shield = new WarshipShield(WarshipShield.Type.OMNI, 360f, 10f, 0f, 0f, 0.4f, 1f);
-        shield.raise(true);
-        for (int i = 0; i < 40 && !f.overloaded(); i++) {
-            shield.update(0.05f, f, false);
-            f.update(0.05f);
-        }
-        assertTrue(f.overloaded(), "100 a second of upkeep against 100 capacity, and no venting");
-        assertFalse(shield.raised());
     }
 
     @Test
