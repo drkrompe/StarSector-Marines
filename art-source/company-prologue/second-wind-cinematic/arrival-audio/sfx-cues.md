@@ -143,11 +143,11 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–53.9; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
 | `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–39.4 | Bed | −18 | Gen |
 | `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the approach, building from the hover to touchdown | 3–17.9 | Bed | −10 (−18 under the lines, −14 → −10 in the hover, −7 at touchdown), below 220 Hz | Gen |
-| `c4_landing_rocket` | The landing burn: a deep rumbling roar, building through the hover, cut off at touchdown | 10–20, held down until her line ends at 10.9 | Spot | −6 (−15 → −7, −4 at touchdown) | Gen |
-| `c4_ship_hover` | Thrust texture under the burn | 11.4–16.7 | Spot | −14 | Gen; existing `shuttle-engine/engine_hum` |
-| `c4_touchdown` | The landing: a deep thump and the gear's metal groan | 16.4 | Spot | −2 | Gen |
-| `c4_dust_hiss` | Downwash blasting dust and grit across the pad | 16.4–20.4 | Spot | −10 | Gen |
-| `c4_spool_down` | The drive winding down | 16.6–21.6 | Transition | −8 | Gen; existing `c5_yard_spool_down` |
+| `landing_roar` | The belly jets: lit at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`) |
+| `landing_grit` | Sand-blast hiss and pebbles pinging off the hull, building from 13, peaking at touchdown | 13–17.4 | Spot | −11 | Code |
+| `landing_thump` | Touchdown: first legs at 16.4, second at 16.57, the struts groaning | 16.4 | Spot | −2 | Code |
+| `landing_spool` | Vent hiss and the turbines winding down | 16.4–18.4 | Transition | −8 | Code |
+| `landing_settle` | Dust washing back down and the last grit | 16.9–21.4 | Spot | −14 | Code |
 | `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 17.4–54.9; full to 39.4, thinning under the rise, out by 52.4 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 21.9–35.4 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
@@ -157,7 +157,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
 | `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
-| Music | Not chosen. Arrives under Castle's last line and carries the title | 42.4–54.9 | — | — | — |
+| Music | Not chosen; four ElevenLabs candidates in `make_music.py` (`music-takes/`), each laid by `sfx_mix.py --music` with its loudest second at C5 25, ducked 8 dB under Castle's last line. Hopeful but fragile, a beginning not a victory, no vocals | about 36–54.9 | Music | 0 (−8 under her line) | Gen (music) |
 
 ## What is still open
 

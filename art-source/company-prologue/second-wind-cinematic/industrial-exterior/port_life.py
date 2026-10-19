@@ -22,8 +22,8 @@ What is at work:
   terminal    a loop between the ferry, the arrivals hall and the freight terminal: the port bus,
               baggage tugs, vans and trucks stopping at the terminal doors.
   belt        forklifts along the warehouse faces.
-  lifters     a Hermes lifting off its pad late in C4; in C5 another coming down on that pad and a
-              Hound landing on the empty berth, each with its drive glow and a puff of apron dust.
+  lifters     a Hermes lifting off its pad late in C4 and in C5 another coming down on that pad,
+              each with its drive glow and a puff of apron dust.
   signs       amber beacons on the working vehicles, more steam off the belt's roofs.
 
 How the vehicles keep out of everything. Every road vehicle drives a fixed route: a lane's
@@ -535,7 +535,7 @@ def carry_on():
         ob = bpy.data.objects[name]
         if ob.parent is None:
             linear(ob, extrapolate=True)
-    # The Hound lifting off berth -130 climbs away faster once it is clear; the Hermes lifting off
+    # The freighter lifting off berth -130 climbs away faster once it is clear; the Hermes lifting off
     # pad -355 goes on climbing; the one landing on pad -175 stays down.
     T = c4.DURATION
     lift = bpy.data.objects.get('Lifting at berth 3')
@@ -1163,11 +1163,11 @@ def berth_work(r, F):
 
 
 def lifters(F):
-    """A Hermes lifting off pad 95 late in C4; in C5 another coming down on it, and a Hound
-    landing on the empty berth, each with its drive glow and a puff of apron dust."""
+    """A Hermes lifting off pad 95 late in C4 and in C5 another coming down on it, each with its
+    drive glow and a puff of apron dust. The C5 departure over the title is the Colossus, which is
+    port_fleet's."""
     hermes = bpy.data.objects.get('Lighter 6 parked')
-    hound = bpy.data.objects.get('Hound at berth 0')
-    if hermes is None or hound is None:
+    if hermes is None:
         return
     frames = list(range(0, F, KEY_STEP))
     t = np.array(frames) / c4.FPS
@@ -1203,20 +1203,6 @@ def lifters(F):
     z = np.where(t < t0, -60.0, 2.5 + 700.0 * (1 - u) ** 2.2)
     craft(e, z, 2.2)
     dust(e.location.x, e.location.y, t1 - 1.8, 26.0, 18, 'Lift dust hermes return')
-    # A Hound on the empty berth (-220) in C5: in from 800 m at C5 12 s, down at C5 25 s.
-    x = -220.0
-    cy = c4.BERTH_Y + c4.BERTH_DY[x]
-    hd = c4.ROW_HEADING + math.radians(4.0) + c4.STERN_FIRST
-    e = bpy.data.objects.new('Hound landing at berth 2', None)
-    c4.link(e)
-    e.instance_type, e.instance_collection, e.scale = 'COLLECTION', hound.instance_collection, hound.scale
-    e.location = (x, cy, 11)
-    e.rotation_euler = (0, 0, hd)
-    t0, t1 = T + 12.0, T + 25.0
-    u = np.clip((t - t0) / (t1 - t0), 0, 1)
-    z = np.where(t < t0, -80.0, 11.0 + 800.0 * (1 - u) ** 2.2)
-    craft(e, z, 7.0)
-    dust(x, cy, t1 - 2.2, 70.0, 40, 'Lift dust hound')
 
 
 def dust(x, y, ts, reach, n, name):

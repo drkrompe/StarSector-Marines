@@ -1,0 +1,128 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "prompt": null,
+  "request": {
+    "composition_plan": {
+      "positive_global_styles": [
+        "hopeful but fragile cinematic ambient score",
+        "hushed low string ensemble carries the theme",
+        "cellos and violas in long bowed notes",
+        "a soft piano and a distant muted horn only at the title",
+        "slow, around 60 BPM, D major with suspended uncertain colour",
+        "worn, industrial, human, humble"
+      ],
+      "negative_global_styles": [
+        "vocals",
+        "choir",
+        "lyrics",
+        "epic trailer drums",
+        "brass fanfare",
+        "triumphant",
+        "electronic dance beat",
+        "fast tempo"
+      ],
+      "sections": [
+        {
+          "section_name": "Holding",
+          "positive_local_styles": [
+            "near silence",
+            "a soft cold low drone",
+            "one or two sparse felt piano notes, far apart",
+            "vast empty space"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 10000,
+          "lines": []
+        },
+        {
+          "section_name": "Under the hail",
+          "positive_local_styles": [
+            "very sparse and quiet, leaving room for radio voices",
+            "low drone continues",
+            "a simple four-note piano figure stated once, thin and hesitant",
+            "a slow low swell under a passing ship around 0 to 6 seconds, then back down"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 27700,
+          "lines": []
+        },
+        {
+          "section_name": "Scrutiny",
+          "positive_local_styles": [
+            "a muted metallic pulse enters, like distant machinery or a ship's reactor, slow and steady",
+            "tense but not alarmed, no melody",
+            "low strings hold one dark note",
+            "the pulse stops dead at about 9.6 seconds leaving only the drone"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 15000,
+          "lines": []
+        },
+        {
+          "section_name": "Breathe",
+          "positive_local_styles": [
+            "an exhale: the music almost drops out",
+            "only a low rising swell of sustained low tones",
+            "no percussion, no melody"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 7000,
+          "lines": []
+        },
+        {
+          "section_name": "First open sky",
+          "positive_local_styles": [
+            "the emotional centre, quiet and warm",
+            "out of silence the four-note piano figure returns alone",
+            "a warm pad opens underneath and the harmony turns gently to major for the first time",
+            "fragile and unhurried, never loud"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 16000,
+          "lines": []
+        },
+        {
+          "section_name": "Greywater",
+          "positive_local_styles": [
+            "the slow pulse returns, softer and warmer, work rather than threat",
+            "piano and pad continue quietly under speech",
+            "thins out to almost nothing over the last 6 seconds"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 21400,
+          "lines": []
+        },
+        {
+          "section_name": "We're down",
+          "positive_local_styles": [
+            "very sparse: a few piano notes and a held pad",
+            "patient, tired, relieved",
+            "stays low and out of the way"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 20000,
+          "lines": []
+        },
+        {
+          "section_name": "Rise and title",
+          "positive_local_styles": [
+            "low strings and pad swell gently from the start, building for about 4 seconds",
+            "the four-note figure played fully once with strings",
+            "resolves to a warm open major chord at about 5 seconds, which rings and thins away",
+            "fades to silence by the end"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 13500,
+          "lines": []
+        }
+      ]
+    },
+    "respect_sections_durations": true
+  },
+  "audioSha256": "b84a40579c971c2f1d7e0ba652a532ccbd8b9c7c694622f71b3f7d64fa77bcd3",
+  "durationSeconds": 130.66,
+  "peakDb": -1.2,
+  "integratedLufs": -12.1
+}

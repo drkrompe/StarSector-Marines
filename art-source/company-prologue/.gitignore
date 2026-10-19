@@ -129,6 +129,11 @@ onslaught-cinematic/*.blend
 onslaught-cinematic/*.blend1
 onslaught-cinematic/review/
 
+# paragon-cinematic: the appendable .blend is built (finalize.sh) and goes to Drive; renders are outputs
+paragon-cinematic/*.blend
+paragon-cinematic/*.blend1
+paragon-cinematic/review/
+
 # colossus-surface: script outputs
 colossus-surface/review/
 colossus-surface/textures/

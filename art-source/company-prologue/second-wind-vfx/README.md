@@ -55,6 +55,8 @@ group's review into `build/<group>/`.
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
+| `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
+| `swfx_shield.py` | a shield bubble for a hull whose profile declares `SHIELD` (opt-in group; the Second Wind has none) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -403,6 +405,76 @@ Helpers:
   stagger_frames, seed)`.
 - `build(ctx, fire=[{...}])` fires during the build. The derelict carries no
   guns, so nothing is built there.
+
+### Beams (`swfx_beams`, opt-in)
+
+The Second Wind carries no beam weapon, so `beams` is not in `swfx.GROUPS` and
+its builds never run it. A hull whose profile declares `BEAMS` asks for it:
+`swfx.apply(groups=(..., 'beams'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`); each entry names the muzzle the beam rides
+and carries the weapon's vanilla width, range, colours (fringe, core, glow)
+and charge-up/charge-down, all in hull units, which are the sprite pixels
+vanilla uses.
+
+Per beam, dark until fired: a white-hot core inside a soft fringe in the
+weapon's colour (both additive, with a noise that crawls along the beam for
+vanilla's ROUGH texture); a glow at the muzzle that also shows the charge
+building; a glow at the far end; and point lights at both ends. The rig rides
+its muzzle, so a beam swings with its turret.
+
+- Knobs: `beam_t_<id>` (beam envelope), `beam_charge_<id>` (charge glow),
+  `beam_len_<id>` (length in hull units: the distance to the target), and the
+  group's `beam_gain`, `beam_width`, `beam_flare`, `beam_light`.
+- `fire_beam(ctx, id, start_frame, hold_s=None)` keys one shot with the
+  weapon's own timing: charge-up, then the burst (a burst beam such as the
+  tachyon lance) or `hold_s` seconds (a continuous beam), then charge-down.
+- To land a beam, train its turret on the target and set `beam_len_<id>` to
+  the distance (`aim(rig_name, target)` measures it).
+- A beam must not cut its own hull: `clear_line(origin, target, ignore)`
+  casts from the muzzle to the target and names the first part in the way.
+  Fire only weapons whose slot arc holds the target and whose line is clear
+  (the Paragon's `aim.engage` does both).
+- Emission is kept low on purpose: a strong emitter goes white under AgX and
+  the weapon's colour is lost.
+
+### Shield (`swfx_shield`, opt-in)
+
+The Second Wind has no shield, so `shield` is not in `swfx.GROUPS` and its
+builds never run it. A hull whose profile declares `SHIELD` asks for it:
+`swfx.apply(groups=(..., 'shield'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`): `SHIELD` names the anchor at the vanilla
+shieldCenter, the radius and arc, the emitter-node empties, the vanilla ring
+and inner colours (the hull style's) and, for a SHIELD_MOD ship system such as
+the Fortress Shield, the colours it turns the shield to, plus raise and
+system charge timings. With `fit` (`{'margin': units}`) the bubble is a shell
+fitted to the hull instead of the vanilla sphere: rays from the centre (the
+anchor in plan, the hull's mid-height) to the hull's convex hull, pushed out
+by the margin, smoothed, and swelled again round any hull corner that ends up
+closer than half the margin. A flat hull's vanilla circle is a sphere many
+times its size in 3D; the fit is what reads as a shield round the ship.
+
+Dark until raised: a sphere of the vanilla radius (or the fitted shell), additive, faint inner
+colour across the face thickening toward a ring-coloured rim, with a slow
+ripple; raising it unfolds an arc from the facing direction both ways, led by
+a bright edge, the way an OMNI shield opens in the game. Four hit flashes in
+the ring colour, each an empty aimed by azimuth and elevation about the
+centre in the hull frame and held on the surface by a shrinkwrap constraint;
+a hit also filters the light through it toward the inner colour.
+`shield_facing` turns only where the unfold starts (the shader reads a facing
+empty); the shell itself never turns. On each emitter node a glow and a point light,
+fully lit a third of the way up.
+
+- Knobs: `shield_t` (raise envelope), `shield_fortress` (system intensity:
+  colour blend; face nearly clear and rim dimmed, ripple settled, so the
+  colour lives in the hits, which spread twice as wide and darken what is
+  behind them; nodes x1.8),
+  `shield_facing` (degrees about +Z), `shield_hit_<k>` with
+  `shield_hit_az_<k>` / `shield_hit_el_<k>` (k 1-4), and the group's
+  `shield_gain`, `shield_rim`, `shield_hit_size`, `shield_light`.
+- `raise_shield(ctx, frame, hold_s=None)`, `fortress(ctx, frame, hold_s=None)`
+  and `hit(ctx, k, frame, azimuth, elevation, strength, decay_s)` key them.
+- The face is seen twice (near and far wall add), so it is kept far fainter
+  than the rim; push `shield_gain` and the bubble goes white under AgX.
 
 ### Lighting (`swfx_lighting`)
 
