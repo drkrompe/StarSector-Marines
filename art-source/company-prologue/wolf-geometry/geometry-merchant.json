@@ -51,11 +51,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.76,
+  "metres_per_unit": 0.75,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 38632,
+      "units3": 40602,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
@@ -91,17 +91,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.759,
+    "solved_metres_per_unit": 0.747,
     "range": {
-      "habitable_273": 0.736,
-      "habitable_328": 0.782
+      "habitable_273": 0.724,
+      "habitable_328": 0.769
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 71.4,
+    "length_m": 70.2,
     "fittings_m": {},
-    "published_metres_per_unit": 0.76,
+    "published_metres_per_unit": 0.75,
     "measured_this_build": {
-      "enclosed_units3": 38632,
+      "enclosed_units3": 40602,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -118,11 +118,11 @@
       ]
     },
     "size_m": [
-      74.6,
-      39.8,
-      24.0
+      73.6,
+      39.3,
+      24.8
     ],
-    "person_1_8_m_in_units": 2.37,
+    "person_1_8_m_in_units": 2.4,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -145,12 +145,12 @@
     "max": [
       57.98,
       26.18,
-      13.57
+      15.07
     ],
     "size": [
       98.18,
       52.37,
-      31.57
+      33.07
     ]
   },
   "weapon_slots": [
@@ -159,7 +159,7 @@
       "location": [
         11,
         0,
-        7.6
+        10.6
       ],
       "angle": 0,
       "arc": 150,
@@ -176,7 +176,7 @@
       "location": [
         -13,
         12,
-        8.8
+        10.3
       ],
       "angle": 90,
       "arc": 200,
@@ -193,7 +193,7 @@
       "location": [
         -13,
         -11,
-        8.8
+        10.3
       ],
       "angle": -90,
       "arc": 200,
@@ -210,7 +210,7 @@
       "location": [
         45,
         0,
-        -0.5
+        -4.0
       ],
       "angle": 0,
       "arc": 5,
@@ -227,7 +227,7 @@
       "location": [
         11,
         20,
-        -1.8
+        -3.2
       ],
       "angle": 0,
       "arc": 5,
@@ -248,7 +248,7 @@
       "location": [
         11,
         -19,
-        -1.8
+        -3.2
       ],
       "angle": 0,
       "arc": 5,
@@ -275,7 +275,7 @@
       "location": [
         11,
         0,
-        7.6
+        10.6
       ],
       "rest_angle_deg": 0,
       "arc_deg": 150,
@@ -309,7 +309,7 @@
       "location": [
         -13,
         12,
-        8.8
+        10.3
       ],
       "rest_angle_deg": 90,
       "arc_deg": 200,
@@ -347,7 +347,7 @@
       "location": [
         -13,
         -11,
-        8.8
+        10.3
       ],
       "rest_angle_deg": -90,
       "arc_deg": 200,
@@ -386,7 +386,7 @@
       "location": [
         45,
         0,
-        -0.5
+        -4.0
       ],
       "k": 0.55,
       "bay": {
@@ -396,8 +396,8 @@
         ],
         "half_width": 5.3,
         "z": [
-          -3.3,
-          3.1
+          -6.8,
+          -0.3999999999999999
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -426,7 +426,7 @@
       "location": [
         11,
         20,
-        -1.8
+        -3.2
       ],
       "k": 0.6,
       "bay": null,
@@ -460,7 +460,7 @@
       "location": [
         11,
         -19,
-        -1.8
+        -3.2
       ],
       "k": 0.6,
       "bay": null,
@@ -736,7 +736,7 @@
       "position": [
         -30,
         0,
-        7.85
+        8.67
       ],
       "colour": "white",
       "role": "stern light",
@@ -754,7 +754,7 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 38128,
+    "triangles": 38108,
     "objects": 171,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
