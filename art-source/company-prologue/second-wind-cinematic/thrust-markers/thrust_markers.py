@@ -30,7 +30,7 @@ import re
 
 import bpy
 import numpy as np
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 from card_bells import painted_bells
 
@@ -372,6 +372,7 @@ def lift_from_mains(craft_obj, label=None):
         for k in ('thrust_craft', 'thrust_index', 'radius_m', 'thrust_working'):
             e[k] = m[k]
         e['thrust_kind'] = 'lift'
+        e['thrust_vectored'] = m.name        # the main this is the same drive as, turned down
         e['thrust_source'] = 'main %02d vectored down (the hull has no belly jets): %s' % (
             m['thrust_index'], m['thrust_source'])
         e[PROP] = 0.0
@@ -388,14 +389,30 @@ def key(marks, keys, fps, kinds=None):
     for e in marks:
         if kinds and e['thrust_kind'] not in kinds:
             continue
-        if e.animation_data and e.animation_data.action:
-            e.animation_data_clear()
+        _drop_throttle(e)            # only the throttle curve: a vectored marker's swing stays
         for t, v in keys:
             e[PROP] = float(v) if e['thrust_working'] else 0.0
             e.keyframe_insert('["%s"]' % PROP, frame=round(t * fps))
         for fc in fcurves(e):
-            for k in fc.keyframe_points:
-                k.interpolation = 'LINEAR'
+            if fc.data_path == '["%s"]' % PROP:
+                for k in fc.keyframe_points:
+                    k.interpolation = 'LINEAR'
+
+
+def _drop_throttle(ob):
+    ad = ob.animation_data
+    if ad is None or ad.action is None:
+        return
+    act, path_ = ad.action, '["%s"]' % PROP
+    for fc in list(getattr(act, 'fcurves', []) or []):
+        if fc.data_path == path_:
+            act.fcurves.remove(fc)
+    for layer in getattr(act, 'layers', []):
+        for strip in layer.strips:
+            for bag in strip.channelbags:
+                for fc in list(bag.fcurves):
+                    if fc.data_path == path_:
+                        bag.fcurves.remove(fc)
 
 
 def fcurves(ob):
@@ -435,21 +452,45 @@ def path(obj, frames):
     return out
 
 
-def auto(craft_obj, marks, fps, frames, step=6, still=0.3):
+VECTOR_FULL = 6.0   # m/s of way on at which a vectored drive has swung fully back to aft
+
+
+def _smooth(lo, hi, x):
+    t = min(1.0, max(0.0, (x - lo) / (hi - lo)))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def auto(craft_obj, marks, fps, frames, step=6, still=0.3, hover=False):
     """Throttle from the craft's own keyed motion, for traffic a shot moves without saying why:
-    parked (no motion) is off; climbing or sinking with little way on is lift at full and mains
-    off; travelling is mains at cruise (0.6) with lift off. Returns the activity it chose."""
+    parked (no motion) is off; climbing, sinking or (with hover, for a shot in air) hovering
+    still more than a metre above its lowest point is lift at full and mains off;
+    travelling is mains at cruise (0.6) with lift off.
+
+    A hull whose lift markers are its mains turned down (`lift_from_mains`, `thrust_vectored`)
+    instead swings them: while it has no way on they point hull-down and carry the thrust; as
+    horizontal speed rises to VECTOR_FULL they turn back toward the main's own aft axis (keyed
+    rotation) and hand their throttle over to the main marker at the same mouth, so the two
+    always add up to the drive's one throttle (1.0 hovering, 0.6 cruising). Returns the activity."""
     fr = list(range(frames[0], frames[1] + 1, step))
     if fr[-1] != frames[1]:
         fr.append(frames[1])
     p = path(craft_obj, fr)
-    keys_main, keys_lift, moved = [], [], False
+    # In air (`hover=True`), standing still above its lowest point is a hover, not parked.
+    floor = min(q.z for q in p) + 1.0 if hover else float('inf')
+    vectored = [e for e in marks if e['thrust_kind'] == 'lift' and e.get('thrust_vectored')]
+    keys_main, keys_lift, blend, moved = [], [], [], False
     for i, f in enumerate(fr):
         a, b = p[max(0, i - 1)], p[min(len(p) - 1, i + 1)]
         dt = max(1, fr[min(len(p) - 1, i + 1)] - fr[max(0, i - 1)]) / fps
         v = (b - a) / dt
         vz, vh = abs(v.z), v.xy.length
-        if vz > still and vz >= 0.5 * vh:
+        if vectored:
+            s = round(_smooth(still, VECTOR_FULL, vh), 3)
+            hover = p[i].z > floor
+            thr = 0.0 if vz <= still and vh <= still and not hover else round(1.0 - 0.4 * s, 3)
+            lm, ll = round(thr * s, 3), round(thr * (1.0 - s), 3)
+            blend.append((f, s))
+        elif (vz > still and vz >= 0.5 * vh) or (vh <= still and p[i].z > floor):
             lm, ll = 0.0, 1.0
         elif vh > still:
             lm, ll = 0.6, 0.0
@@ -461,9 +502,34 @@ def auto(craft_obj, marks, fps, frames, step=6, still=0.3):
     key(marks, _simplify(keys_main), fps, kinds=('main',))
     key(marks, _simplify(keys_lift), fps, kinds=('lift',))
     key(marks, [(frames[0] / fps, 0.0)], fps, kinds=('maneuver',))
+    if vectored:
+        swing(vectored, blend)
     if not moved:
         return 'parked'
+    if vectored:
+        return 'vectored lift/travel'
     return 'lifting/landing' if any(v for _, v in keys_lift) else 'travelling'
+
+
+def swing(vectored, blend):
+    """Key each vectored lift marker's rotation: hull-down at blend 0, its main's aft axis at 1.
+    blend: [(frame, 0..1)]."""
+    down = Matrix(((0, 0, 1), (0, 1, 0), (-1, 0, 0))).to_quaternion()
+    for e in vectored:
+        main = bpy.data.objects.get(e['thrust_vectored'])
+        if main is None:
+            continue
+        # A pitch about the hull's side axis, from hull-down onto the main's own exhaust axis.
+        aft = (main.matrix_basis.to_3x3() @ Vector((1, 0, 0))).normalized()
+        turn = Vector((0, 0, -1)).rotation_difference(aft)
+        e.rotation_mode = 'QUATERNION'
+        for f, s in _simplify(blend):
+            e.rotation_quaternion = Quaternion().slerp(turn, s) @ down
+            e.keyframe_insert('rotation_quaternion', frame=f)
+        for fc in fcurves(e):
+            if fc.data_path == 'rotation_quaternion':
+                for k in fc.keyframe_points:
+                    k.interpolation = 'LINEAR'
 
 
 def _simplify(keys):

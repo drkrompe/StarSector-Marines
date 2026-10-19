@@ -1,0 +1,83 @@
+{
+ "asset": "hound-independent-clean.blend",
+ "state": "independent",
+ "ok": true,
+ "failed": [],
+ "checks": {
+  "root": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "everything under root": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "no libraries": {
+   "ok": true
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    752,
+    752
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "service wear group": {
+   "ok": true
+  },
+  "engine 1 anchor": {
+   "ok": true,
+   "detail": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  "engine 2 anchor": {
+   "ok": true,
+   "detail": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  "WS 002 trains": {
+   "ok": true,
+   "detail": {
+    "swing_deg": 30.0,
+    "barbette_still": true
+   }
+  },
+  "hardpoint muzzle at rest": {
+   "ok": true
+  },
+  "ramp lowers to the ground": {
+   "ok": true,
+   "detail": {
+    "toe_closed_z": -5.3,
+    "toe_open_z": -6.232,
+    "pad_bottom_z": -6.25
+   }
+  },
+  "root moves rigidly": {
+   "ok": true,
+   "detail": {
+    "max_matrix_error": 1.52587890625e-05,
+    "effect_anchors": 4
+   }
+  },
+  "effect anchors": {
+   "ok": true,
+   "detail": 4
+  }
+ }
+}

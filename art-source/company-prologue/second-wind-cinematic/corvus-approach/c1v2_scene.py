@@ -2,11 +2,24 @@
 
 Run in background Blender:
 
-    blender -b --factory-startup --python c1v2_scene.py -- [--animatic] [--frames a:b] [--still t ...]
+    blender -b --factory-startup --python c1v2_scene.py -- [--animatic | --final] [--frames a:b]
+                     [--from s] [--to s] [--step n] [--still t ...] [--samples n]
+
+CINE_SCALE=50 in the environment renders at half size, for sketch passes that only ask about
+layout or timing; finals and anything shown to the owner as a picture are at 100.
 
 --animatic   EEVEE at final timing, written to build/c1v2/animatic/frames/%05d.png under the
              repository root (ignored output). This is the layout pass the owner signs off.
---still t    render single frames at these times (seconds) to build/c1v2/stills/.
+--final      the look pass: Cycles at full size, motion blur and denoising, every volume and the
+             planet's air shell, written to build/cinematic/c1-corvus/frames/%05d.png (the C1
+             delivery folder). Frames already on disk are skipped and a frame in progress is held
+             by a placeholder, so several machines can share a range, and a stopped run resumes.
+--still t    render single frames at these times (seconds) to build/c1v2/stills/ (with --final,
+             Cycles stills to build/c1v2/stills-final/).
+--samples n  Cycles samples per pixel for --final (default 128, denoised).
+--from s, --to s, --step n
+             with --animatic, render only those seconds of the shot, every nth frame (default
+             every frame): a motion question rarely needs the whole 38 s at 24 fps.
 --save       also write the assembled scene to build/c1v2/c1v2-scene.blend.
 
 World frame, metres: +Y is the final view direction (toward Jangala), +Z up. The camera only
@@ -22,13 +35,18 @@ read from build/c1v2/inputs/ under the repository root:
                                 manifest as hound-a-clean-manifest.json
     mudskipper-skinned.blend    mudskipper-surface/build/skinned.blend
     legion-geometry.blend       legion-geometry/legion-geometry.blend
-    onslaught.blend             Drive builds/onslaught/e210771c0 or later (with onslaught-manifest.json)
+    onslaught.blend             Drive builds/onslaught/1480919b1 or later, with its SWFX effects
+                                (and onslaught-manifest.json)
+    legion.blend, mudskipper.blend   legion-cinematic / mudskipper-cinematic exports with SWFX (and
+                                <hull>-manifest.json). Optional: without them the scene falls back
+                                to legion-geometry.blend and mudskipper-skinned.blend.
     lasher.blend                Drive builds/lasher/4e2ed50 (with lasher-geometry.json)
     colossus.blend              colossus-cinematic (finalize.sh), optional colossus-manifest.json
     shepherd.blend              shepherd-cinematic (finalize.sh), optional shepherd-manifest.json
 """
 import json
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -43,6 +61,7 @@ import render_planet as planet  # noqa: E402  (guarded main; materials and spher
 REPO = BASE.parents[3]
 INPUTS = REPO / 'build' / 'c1v2' / 'inputs'
 OUT = REPO / 'build' / 'c1v2'
+FINAL_FRAMES = REPO / 'build' / 'cinematic' / 'c1-corvus' / 'frames'   # the C1 delivery folder
 ASSETS = BASE / 'assets'
 STATES = BASE.parent / 'second-wind-states' / 'patched'
 TIMELINE = REPO / 'mod' / 'data' / 'cinematic' / 'jangala-arrival' / 'c1.json'
@@ -65,6 +84,7 @@ STAR_FILL = 0.25     # share of cells that hold a visible star
 # Final framing: looking down the lane at Jangala, pitched slightly down.
 FINAL_PITCH = math.radians(-4.0)
 EEVEE_PREVIEW = True   # layout passes; the final look pass renders Cycles
+EEVEE_VOLUME_RANGE = 700.0   # metres of depth EEVEE renders volumes in: the customs Hound (see eevee())
 
 # --- Second Wind's pass ----------------------------------------------------------------------
 LANE_X, LANE_Z = 110.0, -45.0     # passes on the camera's left (opening view), below: dorsal reads
@@ -147,7 +167,7 @@ def fresh_scene():
     scene.render.fps = FPS
     scene.frame_start, scene.frame_end = 0, FRAMES - 1
     scene.render.resolution_x, scene.render.resolution_y = W, H
-    scene.render.resolution_percentage = 100
+    scene.render.resolution_percentage = int(os.environ.get('CINE_SCALE', '100'))
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Base Contrast'
     return scene
@@ -394,14 +414,19 @@ FLOTILLA = (  # (hull, px, py, range m, pitch deg, roll deg)
 
 
 def add_flotilla(scene, hulls):
-    for obj in hulls['legion'][0].all_objects:
-        if obj.type == 'MESH' and not obj.data.materials:
-            obj.data.materials.append(grey('Legion | hull grey', 0.32))
+    """hulls maps a hull to (collection, metres per unit) for instancing, or to a function that
+    links a single finished asset and returns its root."""
+    if isinstance(hulls['legion'], tuple):
+        for obj in hulls['legion'][0].all_objects:
+            if obj.type == 'MESH' and not obj.data.materials:
+                obj.data.materials.append(grey('Legion | hull grey', 0.32))
     drift = flotilla_drift()
     starts = []
     for i, (hull, px, py, rng, pitch, roll) in enumerate(FLOTILLA):
-        coll, mpu = hulls[hull]
-        e = instance(coll, mpu, 'Flotilla %d | %s' % (i, hull))
+        if callable(hulls[hull]):
+            e = hulls[hull]()
+        else:
+            e = instance(*hulls[hull], 'Flotilla %d | %s' % (i, hull))
         e.rotation_euler = attitude(FLOTILLA_HEADING, math.radians(pitch), math.radians(roll))
         start = direction_at_px(px, py) * rng - drift * (DURATION / 2)
         starts.append(start)
@@ -497,14 +522,15 @@ def add_fighters(scene, starts):
 def add_traffic(scene):
     # Each hull file is appended once; every appearance of it is an instance of that copy.
     # Hull scales from ship_scale.py (option C, 2026-10-18).
-    hulls = {'legion': (hull_collection(INPUTS / 'legion-geometry.blend'), 0.99),
-             'hound': (hull_collection(INPUTS / 'hound-skinned.blend'), 0.88)}
-    # Published ship-pipeline builds: collection, root and metres_per_unit from their manifests.
-    ons = json.loads((INPUTS / 'onslaught-manifest.json').read_text())
-    coll = hull_collection(INPUTS / 'onslaught.blend', ons['append_collection'])
-    drive_glows(coll, ons['root'], [(e['anchor'], e['mouth_radius']) for e in ons['engines']], 1.2e6)
-    quiet_lamps(coll, 6.0)
-    hulls['onslaught'] = (coll, ons['metres_per_unit'])
+    hulls = {'hound': (hull_collection(INPUTS / 'hound-skinned.blend'), 0.88)}
+    # The picket's two capitals are single finished assets carrying their own drive plumes, gun
+    # rigs and lamps (the VFX kit's SWFX), so they are linked, not instanced. Lamps are capped for
+    # picket range.
+    hulls['onslaught'] = lambda: effects_asset(scene, 'onslaught.blend', 'onslaught-manifest.json', 6.0)
+    if (INPUTS / 'legion.blend').exists():
+        hulls['legion'] = lambda: effects_asset(scene, 'legion.blend', 'legion-manifest.json', 6.0)
+    else:
+        hulls['legion'] = (hull_collection(INPUTS / 'legion-geometry.blend'), 0.99)
     las = json.loads((INPUTS / 'lasher-geometry.json').read_text())
     coll = hull_collection(INPUTS / 'lasher.blend', las['asset']['collection'])
     drive_glows(coll, las['asset']['root'], [(e['anchor'], e['mouth_radius']) for e in las['engines']], 3.0e5)
@@ -512,32 +538,42 @@ def add_traffic(scene):
     hulls['lasher'] = (coll, las['metres_per_unit'])
     add_fighters(scene, add_flotilla(scene, hulls))
     # Local working traffic across the lane during the reveal, about a kilometre out.
-    mud = rooted(INPUTS / 'mudskipper-skinned.blend', 'Mudskipper', 0.85)
+    if (INPUTS / 'mudskipper.blend').exists():
+        mud = effects_asset(scene, 'mudskipper.blend', 'mudskipper-manifest.json')
+    else:
+        mud = rooted(INPUTS / 'mudskipper-skinned.blend', 'Mudskipper', 0.85)
     fly(mud, 13.0, 23.0, Vector((520, 980, -110)), Vector((-280, 900, -20)), roll=math.radians(18))
     # Customs: a Hegemony Hound crosses between camera and hero during hail 03.
-    fly(customs_hound(scene), 23.0, 32.0, Vector((-300, 220, -70)), Vector((260, 270, -30)),
+    fly(effects_asset(scene, 'hound-a-clean.blend', 'hound-a-clean-manifest.json'), 23.0, 32.0, Vector((-300, 220, -70)), Vector((260, 270, -30)),
         roll=math.radians(-24))
     # Civilian freight in the lanes and queuing at the station: the published freighter hulls.
     import c1_fleet
     c1_fleet.add(sys.modules[__name__])
 
 
-def customs_hound(scene):
-    """The one Hound close enough to see its drives: the hound-export asset with the VFX kit's
-    SWFX effects appended in the same load, so the plumes ride its exhaust anchors.
+def effects_asset(scene, blend, manifest_name, lamp_cap=None):
+    """A finished cinematic hull linked with the VFX kit's SWFX effects from the same load, so the
+    plumes, gun rigs and lamps ride its anchors. Linked rather than instanced, because the effects
+    hang off anchors in the hull's own hierarchy; each call is one more copy of the asset.
 
-    It is linked into the scene rather than instanced, because the effects hang off anchors in
-    the hull's hierarchy. Both drives run at full throttle."""
-    manifest = json.loads((INPUTS / 'hound-a-clean-manifest.json').read_text())
-    with bpy.data.libraries.load(str(INPUTS / 'hound-a-clean.blend'), link=False) as (src, dst):
-        dst.collections = [manifest['append_collection'], 'SWFX']
+    Every drive runs at full throttle. The kit's exhaust haze is smoke in air; in vacuum it is
+    left out entirely, not dialled down. Returns the root, scaled to metres."""
+    manifest = json.loads((INPUTS / manifest_name).read_text())
+    with bpy.data.libraries.load(str(INPUTS / blend), link=False) as (src, dst):
+        dst.collections = [n for n in (manifest['append_collection'], 'SWFX') if n in src.collections]
+    ship = dst.collections[0]
     for coll in dst.collections:
         scene.collection.children.link(coll)
-    controls = bpy.data.objects['SWFX controls']
-    controls['thr_throttle'] = 1.0
-    # The kit's exhaust haze is smoke in air; in vacuum it is left out entirely, not dialled down.
-    for obj in bpy.data.collections['SWFX | Smoke'].all_objects:
-        obj.hide_render = obj.hide_viewport = True
+    if len(dst.collections) > 1:
+        fx = dst.collections[1]
+        controls = next(o for o in fx.all_objects if o.name.startswith('SWFX controls'))
+        controls['thr_throttle'] = 1.0
+        for child in fx.children_recursive:
+            if child.name.startswith('SWFX | Smoke'):
+                for obj in child.all_objects:
+                    obj.hide_render = obj.hide_viewport = True
+    if lamp_cap is not None:
+        quiet_lamps(ship, lamp_cap)
     root = bpy.data.objects[manifest['root']]
     root.scale = (manifest['metres_per_unit'],) * 3
     root.rotation_mode = 'XYZ'
@@ -577,17 +613,54 @@ def add_camera(scene):
     return cam
 
 
+def cycles(scene, samples):
+    """The look pass. A GPU is used when the machine has one Cycles can drive."""
+    scene.render.engine = 'CYCLES'
+    prefs = bpy.context.preferences.addons['cycles'].preferences
+    for kind in ('OPTIX', 'CUDA', 'METAL', 'HIP', 'ONEAPI'):
+        try:
+            prefs.compute_device_type = kind
+        except TypeError:
+            continue
+        prefs.get_devices()
+        gpus = [d for d in prefs.devices if d.type == kind]
+        if gpus:
+            for d in gpus:
+                d.use = True
+            scene.cycles.device = 'GPU'
+            break
+    scene.cycles.samples = samples
+    scene.cycles.use_denoising = True
+    scene.cycles.denoiser = 'OPENIMAGEDENOISE'
+    scene.render.use_motion_blur = True
+    scene.render.motion_blur_shutter = 0.5          # 180 degrees, as C2's patrol pass
+    scene.render.image_settings.file_format = 'PNG'
+    scene.render.image_settings.color_mode = 'RGB'
+    scene.render.use_overwrite = False
+    scene.render.use_placeholder = True
+    print('C1V2 Cycles on %s, %d samples' % (scene.cycles.device, samples), flush=True)
+
+
 def eevee(scene, samples=16):
     try:
         scene.render.engine = 'BLENDER_EEVEE_NEXT'
     except TypeError:
         scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = samples
+    # EEVEE spreads one grid of volume samples over the depth its volumes span. With the picket's
+    # and the freighters' plumes 5-9 km out, the customs Hound's plumes up close came out in
+    # blocks. Layout passes keep the grid to the near field; the far plumes are a few pixels, and
+    # the Cycles look pass renders every volume at its own resolution.
+    scene.eevee.use_volume_custom_range = True
+    scene.eevee.volumetric_start, scene.eevee.volumetric_end = 2.0, EEVEE_VOLUME_RANGE
+    scene.eevee.volumetric_tile_size = '4'
     scene.render.image_settings.file_format = 'PNG'
     scene.render.image_settings.color_mode = 'RGB'
 
 
-def build():
+def build(final=False, samples=128):
+    global EEVEE_PREVIEW
+    EEVEE_PREVIEW = not final
     scene = fresh_scene()
     star_world(scene)
     add_sun(scene)
@@ -599,14 +672,26 @@ def build():
     sys.path.insert(0, str(BASE.parent / 'thrust-markers'))
     import thrust_shots                      # every craft's nozzles marked for VFX and sound
     thrust_shots.mark_c1(sys.modules[__name__])
-    eevee(scene)
+    if final:
+        cycles(scene, samples)
+    else:
+        eevee(scene)
     return scene
 
 
 def opts():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    o = {'animatic': '--animatic' in argv, 'save': '--save' in argv, 'still': [], 'frames': None}
+    o = {'animatic': '--animatic' in argv, 'final': '--final' in argv, 'save': '--save' in argv,
+         'still': [], 'frames': None, 'samples': 128, 'step': 1}
     for i, a in enumerate(argv):
+        if a == '--from':
+            o['frames'] = (round(float(argv[i + 1]) * FPS), (o['frames'] or (0, FRAMES - 1))[1])
+        if a == '--to':
+            o['frames'] = ((o['frames'] or (0, 0))[0], min(FRAMES - 1, round(float(argv[i + 1]) * FPS)))
+        if a == '--step':
+            o['step'] = int(argv[i + 1])
+        if a == '--samples':
+            o['samples'] = int(argv[i + 1])
         if a == '--still':
             o['still'] = [float(x) for x in argv[i + 1].split(',')]
         if a == '--frames':
@@ -617,18 +702,23 @@ def opts():
 
 def main():
     o = opts()
-    scene = build()
+    scene = build(o['final'], o['samples'])
     if o['save']:
         OUT.mkdir(parents=True, exist_ok=True)
         bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'c1v2-scene.blend'))
     for t in o['still']:
         scene.frame_set(round(t * FPS))
-        scene.render.filepath = str(OUT / 'stills' / ('t%05.1f.png' % t))
+        scene.render.filepath = str(OUT / ('stills-final' if o['final'] else 'stills') / ('t%05.1f.png' % t))
         bpy.ops.render.render(write_still=True)
     if o['animatic']:
         a, b = o['frames'] or (0, FRAMES - 1)
-        scene.frame_start, scene.frame_end = a, b
+        scene.frame_start, scene.frame_end, scene.frame_step = a, b, o['step']
         scene.render.filepath = str(OUT / 'animatic' / 'frames' / '#####')
+        bpy.ops.render.render(animation=True)
+    elif o['final'] and not o['still']:
+        a, b = o['frames'] or (0, FRAMES - 1)
+        scene.frame_start, scene.frame_end = a, b
+        scene.render.filepath = str(FINAL_FRAMES / '#####')
         bpy.ops.render.render(animation=True)
 
 

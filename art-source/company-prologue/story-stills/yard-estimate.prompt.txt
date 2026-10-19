@@ -1,3 +1,15 @@
-Generated with the built-in image_gen tool. Runtime packing: art-source/company-prologue/pack.ps1
+Generated with Codex image_gen through tools/codex_imagegen.py (one generation, 2026-10-19); provenance in yard-estimate.master.png.provenance.json.
+Geometry-first: guide guides/p8-forward-console.png rendered by guides/prologue_guides.py from the real Second Wind (patched state, bridge interior), no figures; people painted from their portraits (art-source/portraits/).
+Runtime packing: art-source/company-prologue/pack.ps1
 
-Use case: illustration-story. One landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable at 1200x800. No legible text, logos, watermarks, border, interface or named-character portraits. Close still life on a battered freighter navigation desk: a yard estimate of unreadable handwritten marks and simple compartment sketches lies over an old creased worker shift roster; a metal cash lockbox, pencil, worn pressure gasket and two mugs nearby. Navigation controls at the edge are reachable, window beyond gives distant green planetary light. Tactile scratched metal and aged paper; practical commitment to a new life, no readable writing, no hologram or large screen, no hands or faces.
+Use case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.
+
+Scene: close still life at the Second Wind's forward flight console, seen from the flight seat. A yard has sent its estimate; the company has somewhere to go.
+
+Reference 1 is a render of the real forward console and is the authority: keep its camera, perspective, the sloped grey-green console with its four screens, keypad, knobs, toggle rows, the chrome grab rail along its lip, the drawer fronts below, and the narrow slit windows with their heavy posts above. Paint it as the same worn grey-green metal with screen glow on it. Screens show abstract glowing navigation graphics only, nothing readable.
+
+On the flat lip of the console, painted in: a yard estimate (a few sheets of off-white paper covered in unreadable handwritten marks and small compartment sketches of a ship) lying on top of an older, creased worker shift roster printed with an unreadable grid and a small generic company crest. A woman's weathered hand in the sleeve of a charcoal-olive duty jacket rests flat on the papers, palm over the crest, as if about to slide them aside. Around them: two chipped enamel mugs, a dented metal cash lockbox, a stub pencil and a worn rubber pressure gasket. Only the hand and forearm of the person; no face.
+
+Through the slit windows: a distant green planet glowing in black space.
+
+Practical commitment to a new life. Warm amber from a lamp overhead, cool green from the screens.
