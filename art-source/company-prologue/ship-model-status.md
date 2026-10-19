@@ -35,11 +35,11 @@ Legend: **done** = merged to main; **review** = merged, waiting on the owner;
 
 ## Fighters
 
-Each fighter at its own scale, sized from the cockpit; all six are at pass 2 detail.
+Each fighter at its own scale, sized from the cockpit.
 
 | Asset | Package | 1 | 2 | 3 | 4 scale | 6 texture | Next |
 |---|---|---|---|---|---|---|---|
-| Broadsword | `broadsword-geometry/` | done | done | done (owner accepted the detail as built and asked for gear, 2026-10-19): retractable tricycle gear with doors, legs fold aft into the fuselage and nacelles, parked level (IoU 0.931, unchanged) | done, 0.50 m/u (15.5 m) | wip: for C2 (two pass 55-80 m off the Legion's bridge glass), then effects and cinematic export | Texture, effects and export for C2 |
+| Broadsword | `broadsword-geometry/` | done | done | done (owner accepted the detail as built and asked for gear, 2026-10-19): retractable tricycle gear with doors, legs fold aft into the fuselage and nacelles, parked level (IoU 0.931, unchanged) | done, 0.50 m/u (15.5 m) | review: `fighters-surface/broadsword/`, yellowed khaki over gunmetal service livery, 12 parts (8 generated) + 4 swatches, 96-100% textured, no swaps | Effects and cinematic export for C2 (two pass 55-80 m off the Legion's bridge glass) |
 | Talon | `fighters-geometry/talon/`, `fighters-surface/talon/` | done (signed off for now: rescaled below the Broadsword, smaller canopy) | done (IoU 0.977, unchanged) | done (owner accepted the bent reshape and sled runners, 2026-10-18) | done, 0.55 m/u (12.1 m) | review: red service livery re-surfaced on the reshape, 9 parts (8 generated) + 4 swatches, 98% textured; runners on class swatches | Owner review of the texture (pass 6) |
 | Wasp (drone) | `fighters-geometry/wasp/`, `fighters-surface/wasp/` | done (signed off for now: straight arm edges, hooked claws, nose-down crouch) | done: arm-hinge and claw articulation (IoU 0.908, unchanged) | done (pass 2 accepted by the owner, 2026-10-18) | done, 0.50 m/u (9.8 m) | review: grey-blue service livery, 13 parts (8 generated) + 4 swatches, 98% textured | Owner review of the texture (pass 6) |
 | Dagger | `fighters-geometry/dagger/`, `fighters-surface/dagger/` | done | done (IoU 0.959, unchanged) | done (owner accepted the bent-wing reshape and three-leg gear, 2026-10-18) | done, 0.50 m/u (16.4 m) | review: blue-grey service livery re-surfaced on the reshape, 10 parts (8 generated) + 5 swatches, 97% textured; gear on class swatches | Owner review of the texture (pass 6) |
