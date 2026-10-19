@@ -1494,6 +1494,7 @@ def build():
     port_life.add(sys.modules[__name__])
     import c4_farm                                       # the farmland at work: field detail, machines, traffic
     c4_farm.add(sys.modules[__name__])
+    port_life.after_farm(sys.modules[__name__])         # the farm's road traffic on through C5
     import port_detail                                  # the public port's standing clutter
     port_detail.add(sys.modules[__name__])
     import c4_jungle                                    # layered canopy past the fence
