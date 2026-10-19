@@ -225,11 +225,11 @@ PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .6
 # cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
 # the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
 # its own statements so sibling hulls added at the same time do not collide in one line.
-HULLS['Manticore (P)'] = dict(units3=163199, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
-                             sprite_px=154, fittings_units={'viewport w x h': [1.52, 1.21],
-                                                            'bridge glazing band h': [1.67]})
+HULLS['Manticore (P)'] = dict(units3=158541, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+                             sprite_px=154, fittings_units={'viewport w x h': [1.49, 1.19],
+                                                            'bridge glazing band h': [1.64]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
-PUBLISHED['Manticore (P)'] = .66
+PUBLISHED['Manticore (P)'] = .67
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with

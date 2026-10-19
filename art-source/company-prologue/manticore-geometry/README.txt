@@ -25,20 +25,33 @@ centre, so slot and engine XY are used unchanged. Sprite column c, row r
 (from the top) covers X 86-r..87-r and Y 81-c..82-c. Heights are proposed
 art; the game gives none.
 
-Scale (pass 4): 0.66 m per unit
+Scale (pass 4): 0.67 m per unit
 Published through the shared sizing basis, ../ship_scale.py (owner's option C),
 never set here: METRES_PER_UNIT in build_manticore.py reads
 ship_scale.PUBLISHED and geometry.json's 'scale' is ship_scale.record('Manticore (P)').
 Inputs: 80 crew, 80 cargo, 50 fuel, destroyer class. Enclosed volume is the
 union of ship_scale.SOLIDS['manticore']: bow head, neck, core, wing body, aft
 body, ventral keel and command dome (drive cans, gun pods, launcher housings,
-armour plates and weapons excluded): 163,199 units3. That solves to 0.665
-(range 0.645-0.685), published as 0.66: 100 m long, 106 m across the gun
-pods, 25 m keel to gun top. Against known ships: 1.6 Hounds (61 m) long, 0.93
-of a Colossus (108 m). The battle roster's plan-area estimate was 96 m. A
-1.8 m person is 2.7 units. The driver re-measures the union on every build and
-fails if it drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m)
-and the dome's glazed band (1.1 m) are sized in true metres.
+armour plates and horns, and weapons excluded): 158,541 units3 after review
+round 1 faceted the decks (163,199 before, published 0.66). That solves to
+0.671 (range 0.650-0.691), published as 0.67: 102 m long, 108 m across the
+gun pods, 25 m keel to gun top. Against known ships: 1.7 Hounds (61 m) long,
+0.95 of a Colossus (108 m). The battle roster's plan-area estimate was 96 m.
+A 1.8 m person is 2.7 units. The driver re-measures the union on every build
+and fails if it drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x
+0.8 m) and the dome's glazed band (1.1 m) are sized in true metres.
+
+Owner review round 1 (2026-10-19)
+"Very flat surfaces", "the central turret is comical", "a better
+interpretation for the front head". WS 000 now carries a Hellbore (owner's
+choice) instead of the kit's Mark IX; the core deck is crowned (shoulders
+falling 22 deg outboard of the turret ring, aft deck falling 14 deg), the wing
+plates carry forward bevels and an outboard fall, wing and pod undersides
+are deeply chamfered, the pods carry red armour collars on their outboard
+halves; the bow head is a gunmetal frame round the WS 002 ring with two red
+armour horns wrapping its forward shoulders, a red crossbar behind the ring,
+a raked grey prow block, and long red rails down the neck. IoU 0.946 (the
+horns wrap a cell past the head's side walls).
 
 Detail (pass 2)
 The wing is a gunmetal structure carrying three raised red armour plates a

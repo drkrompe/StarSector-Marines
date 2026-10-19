@@ -38,11 +38,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.66,
+  "metres_per_unit": 0.67,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 163199,
+      "units3": 158541,
       "crew_max": 80,
       "cargo": 80,
       "fuel": 50,
@@ -78,25 +78,25 @@
     "contents_total_m3": 25435,
     "machinery_share": 0.47,
     "enclosed_m3": 47991,
-    "solved_metres_per_unit": 0.665,
+    "solved_metres_per_unit": 0.671,
     "range": {
-      "habitable_273": 0.645,
-      "habitable_328": 0.685
+      "habitable_273": 0.651,
+      "habitable_328": 0.692
     },
     "enclosed_m3_per_person_at_max_crew": 600,
-    "length_m": 101.0,
+    "length_m": 102.0,
     "fittings_m": {
       "viewport w x h": [
-        1.01,
+        1.0,
         0.8
       ],
       "bridge glazing band h": [
-        1.11
+        1.1
       ]
     },
-    "published_metres_per_unit": 0.66,
+    "published_metres_per_unit": 0.67,
     "measured_this_build": {
-      "enclosed_units3": 163199,
+      "enclosed_units3": 158541,
       "solids": [
         "Hull bow head",
         "Hull neck",
@@ -108,11 +108,11 @@
       ]
     },
     "size_m": [
-      100.3,
-      106.1,
-      24.6
+      102.4,
+      107.8,
+      25.0
     ],
-    "person_1_8_m_in_units": 2.73,
+    "person_1_8_m_in_units": 2.69,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -133,12 +133,12 @@
       -12.5
     ],
     "max": [
-      85.63,
+      86.5,
       80.42,
       24.82
     ],
     "size": [
-      151.93,
+      152.8,
       160.83,
       37.32
     ]
@@ -156,7 +156,7 @@
       "mount": "TURRET",
       "size": "LARGE",
       "type": "BALLISTIC",
-      "weapon": "mark9",
+      "weapon": "hellbore",
       "variant_weapon": "mark9",
       "pivot": "Weapon WS 000 pivot",
       "anchor": null
@@ -251,7 +251,7 @@
       "location": [
         36,
         -20,
-        9.96
+        7.98
       ],
       "angle": -45,
       "arc": 5,
@@ -268,7 +268,7 @@
       "location": [
         36,
         21,
-        9.09
+        7.58
       ],
       "angle": 45,
       "arc": 5,
@@ -320,7 +320,7 @@
       "index": 1,
       "slot": "WS 000",
       "mount": "TURRET",
-      "weapon": "mark9",
+      "weapon": "hellbore",
       "variant_weapon": "mark9",
       "kind": "gun",
       "size": "LARGE",
@@ -345,24 +345,9 @@
           "anchor": "Anchor turret 1 barrel 1 muzzle",
           "geometry_anchor": "Weapon WS 000 muzzle anchor 1",
           "at": [
-            50.12,
-            -4.16,
-            19.824
-          ],
-          "axis": [
-            1.0,
+            55.528,
             0.0,
-            0.0
-          ]
-        },
-        {
-          "tag": "barrel 2",
-          "anchor": "Anchor turret 1 barrel 2 muzzle",
-          "geometry_anchor": "Weapon WS 000 muzzle anchor 2",
-          "at": [
-            50.12,
-            4.16,
-            19.824
+            18.992
           ],
           "axis": [
             1.0,
@@ -832,7 +817,7 @@
       "position": [
         -48,
         0,
-        10.35
+        9.85
       ],
       "colour": "white",
       "role": "stern light",
@@ -847,7 +832,7 @@
       "position": [
         83,
         0,
-        6.51
+        6.85
       ],
       "colour": "white",
       "role": "prow anti-collision strobe",
@@ -865,8 +850,8 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 50798,
-    "objects": 207,
+    "triangles": 51506,
+    "objects": 206,
     "materials": [
       "Manticore bridge glazing",
       "Manticore grey plate",
@@ -879,14 +864,14 @@
       "Manticore running light red",
       "Manticore running light white",
       "Missile body (0.5, 0.6, 0.5)",
+      "Turret hellbore accent 0.1883,0.1775,0.1752",
+      "Turret hellbore accent2 0.0709,0.0709,0.0741",
+      "Turret hellbore metal 0.1109,0.1102,0.1104",
+      "Turret hellbore paint 0.1475,0.1403,0.1351",
+      "Turret hellbore plate 0.2741,0.2601,0.2546",
       "Turret lightac metal 0.1100,0.1106,0.1089",
       "Turret lightac paint 0.1019,0.1050,0.0988",
       "Turret lightac plate 0.2468,0.2499,0.2404",
-      "Turret mark9 accent 0.1087,0.0948,0.0932",
-      "Turret mark9 mark 0.4191,0.0673,0.0516",
-      "Turret mark9 metal 0.1107,0.1103,0.1103",
-      "Turret mark9 paint 0.1692,0.1281,0.1091",
-      "Turret mark9 plate 0.3237,0.3163,0.3067",
       "Turret needler accent 0.1323,0.1292,0.0949",
       "Turret needler metal 0.1115,0.1101,0.1096",
       "Turret needler paint 0.1832,0.1720,0.1439",
@@ -1064,18 +1049,18 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9483,
-    "sprite_uncovered": 0.0186,
-    "model_outside_sprite": 0.0349,
+    "iou": 0.9462,
+    "sprite_uncovered": 0.0154,
+    "model_outside_sprite": 0.0406,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 6.62 px per unit"
   },
   "shot_extent_px": {
     "shot-s5-1500m": {
-      "width_px": 308,
-      "height_px": 93
+      "width_px": 313,
+      "height_px": 94
     },
     "shot-s4-4000m": {
-      "width_px": 49,
+      "width_px": 50,
       "height_px": 17
     }
   }

@@ -2,7 +2,8 @@
 hardpoints, four hidden system mounts.
 
 Weapons follow the manticore_pirates_Support variant (the pirate long-range
-fit): a Mark IX autocannon on the large WS 000, Harpoon pods on the medium
+fit), except the large WS 000, which carries a Hellbore (owner, round 1: the
+kit's Mark IX read as comical on this mount), Harpoon pods on the medium
 missile hardpoints WS 004 / WS 005, light assault guns on WS 001 / WS 003 and
 a light needler on the bow WS 002. The shared turret kit
 (../turret-kit/turret_kit.py) builds them; it has no light assault gun or
@@ -44,8 +45,8 @@ SLOTS = [
     {'id': 'WS 008', 'location': (-19, 40), 'angle': 135, 'arc': 5, 'mount': 'HIDDEN', 'size': 'SMALL', 'type': 'SYSTEM'},
     {'id': 'WS 009', 'location': (-19, -40), 'angle': 225, 'arc': 5, 'mount': 'HIDDEN', 'size': 'SMALL', 'type': 'SYSTEM'},
 ]
-# manticore_pirates_Support, with the kit's stand-ins named.
-WEAPON = {'WS 000': 'mark9', 'WS 001': 'lightac', 'WS 002': 'needler', 'WS 003': 'lightac',
+# manticore_pirates_Support, with the kit's stand-ins named; WS 000 by the owner's choice.
+WEAPON = {'WS 000': 'hellbore', 'WS 001': 'lightac', 'WS 002': 'needler', 'WS 003': 'lightac',
           'WS 004': 'harpoonpod', 'WS 005': 'harpoonpod'}
 VARIANT_WEAPON = {'WS 000': 'mark9', 'WS 001': 'lightag', 'WS 002': 'lightneedler', 'WS 003': 'lightag',
                   'WS 004': 'harpoonpod', 'WS 005': 'harpoonpod'}
@@ -53,7 +54,7 @@ VARIANT_WEAPON = {'WS 000': 'mark9', 'WS 001': 'lightag', 'WS 002': 'lightneedle
 RING = {'WS 000': 13.0, 'WS 001': 7.0, 'WS 002': 6.0, 'WS 003': 7.0, 'WS 004': 7.5, 'WS 005': 7.5}
 LAUNCHERS = ('harpoonpod',)
 SW_HOUSE = 2.5     # the VFX kit's reference: the Second Wind's small mount radius, units
-GUN_FLASH = {'mark9': .7, 'lightac': .55, 'needler': .45}   # share of the ring a barrel's flash spans
+GUN_FLASH = {'hellbore': .7, 'mark9': .7, 'lightac': .55, 'needler': .45}   # share of the ring a barrel's flash spans
 MISSILE_BODY = 2.2  # the VFX kit's missile body length at scale 1, units (swfx_guns; as legion-cinematic)
 TURRETS = []       # records for geometry.json
 ANCHOR_Z = {}

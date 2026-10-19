@@ -10,8 +10,8 @@ heat glow follow its shading and a low-tech destroyer's needs):
 - Sensor domes: the tan bulbs at (5, +-35), on low plinths.
 - Main ring collar: the dark segmented ring round the Mark IX (radius ~20),
   with radial ribs.
-- Neck: transverse gunmetal ribs across the spine (rows 30-45) between red
-  cheek strips.
+- Neck: transverse gunmetal ribs across the spine (rows 30-45) between the red
+  neck rails (mt_hull).
 - Core: a dorsal ridge from the bow ring to the main collar, seam bands, and
   flank viewports for the crew decks (low tech: few, small).
 - Command dome: a glazed band across its forward face under a visor brow,
@@ -70,8 +70,10 @@ def build(kit):
             z0 = wing_z(26)-.6
             plate = shear(prism(kit, f'Hull wing {side} armour plate {k}', pts, section(z0, z0+2.8, .2, 1.0),
                                 kit.red, .12))
-            plane_cut(plate, f'{side} plate {k} outboard fall', (0, s*44, z0+2.8-.11*(44-26)),
-                      facet_normal((0, s), 22))
+            plane_cut(plate, f'{side} plate {k} outboard fall', (0, s*36, z0+2.8-.11*(36-26)),
+                      facet_normal((0, s), 20))
+            xf = max(x for x, _ in plan)
+            plane_cut(plate, f'{side} plate {k} forward bevel', (xf-3.5, s*40, z0+2.8), facet_normal((1, -.35*s), 30))
             kit.hull.append(plate)
         # Trailing-edge strake: a dark gunmetal band down the swept trailing edge.
         te = [(8.5, 70.5), (-3, 58.5), (-16, 45.5)]
@@ -96,19 +98,17 @@ def build(kit):
         dome.scale.z = .8
         bpy.ops.object.transform_apply(scale=True)
         kit.finish(dome, f'Hull wing {side} sensor dome', kit.pale)
-        # --- neck: cheek strips beside the ribbed spine ---
-        kit.box(f'Hull neck {side} cheek strip', (52, s*14.5, NECK_DECK-.4), (16, 3.0, 1.4), kit.red, .2)
         # --- core flank viewports: two decks of small panes on the core sides ---
         for k, x in enumerate((34, 30, -24, -28, -32), 1):
             y = 24.2 if x > 0 else 23.2
-            for row, z in enumerate((CORE_DECK-3.0, CORE_DECK-5.2)):
+            for row, z in enumerate((CORE_DECK-4.8, CORE_DECK-7.0)):
                 kit.box(f'Hull core {side} viewport {k}.{row+1}', (x, s*y, z), (vp[0], .3, vp[1]), kit.glass, 0)
         # --- aft body: machinery ribs and heat-vent wells ---
         for k, y in enumerate((27, 32), 1):
             kit.box(f'Hull aft {side} machinery rib {k}', (-40, s*y, AFT_DECK+.35), (26, 1.4, .9), kit.steel, .1)
-        kit.box(f'Hull aft {side} heat vent well', (-44, s*12, CORE_DECK-.15), (14, 5.0, .5), kit.dark, 0)
+        kit.box(f'Hull aft {side} heat vent well', (-36, s*12, CORE_DECK-.15), (12, 5.0, .5), kit.dark, 0)
         for k, y in enumerate((10.6, 12.0, 13.4), 1):
-            kit.box(f'Hull aft {side} heat vent slat {k}', (-44, s*y, CORE_DECK+.08), (12.5, .4, .25), kit.vent, 0)
+            kit.box(f'Hull aft {side} heat vent slat {k}', (-36, s*y, CORE_DECK+.08), (10.5, .4, .25), kit.vent, 0)
         # --- canister-flak hatches at the hidden system slots ---
         for sid, (x, y) in (('WS 007' if s > 0 else 'WS 006', (36, 21)), ('WS 008' if s > 0 else 'WS 009', (-19, 40))):
             z = seat(kit, x, s*y, 5.0)
@@ -140,8 +140,3 @@ def build(kit):
     kit.cylinder('Bridge sensor dish', (-13, 0, zr+4.9), 1.8, .35, kit.plate, vertices=16, bevel=.05)
     kit.box('Bridge roof equipment', (-9, 3.5, zr+.4), (3, 2.2, 1.0), kit.steel, .1)
     # --- bow head: sensor well and the prow strake ---
-    zb = seat(kit, 82.5, 0, HEAD_DECK)
-    kit.box('Hull bow sensor well', (82, 0, zb-.05), (2.0, 8, .4), kit.dark, 0)
-    for s in (1, -1):
-        kit.box(f'Hull bow {"port" if s > 0 else "starboard"} cheek plate', (70, s*18.6, HEAD_DECK-3.4),
-                (14, 1.2, 5.0), kit.red, .2)
