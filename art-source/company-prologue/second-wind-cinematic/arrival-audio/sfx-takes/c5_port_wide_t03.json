@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Wide busy spaceport heard from above, distant cranes, a far lifter engine rumble, trucks, industrial activity spread over a large area, outdoors, no horns",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "245e1704bfa1f47a526623943d3b0dd00a26874797f6b64d2e348bd931b454bc",
+  "durationSeconds": 12.0,
+  "peakDb": -5.4,
+  "integratedLufs": -19.9
+}
