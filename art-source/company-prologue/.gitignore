@@ -203,6 +203,15 @@ wolf-merchant-surface/skin-manifest.json
 broadsword-cinematic/*.blend
 broadsword-cinematic/*.blend1
 broadsword-cinematic/review/
+# tarsus-surface: script outputs (tarsus-surface/rebuild.sh)
+tarsus-surface/review/
+tarsus-surface/textures/
+tarsus-surface/grading/
+tarsus-surface/skin-manifest.json
+tarsus-surface/guide/*
+!tarsus-surface/guide/sheet-*-guide.png
+!tarsus-surface/guide/reference-guide.png
+!tarsus-surface/guide/reference-mask.png
 # colossus-mk3 (pirate Colossus Mk.III): the same outputs as the Colossus's packages
 colossus-mk3-geometry/*.png
 colossus-mk3-geometry/*.blend
