@@ -92,7 +92,8 @@ one of two ways (both under Anchors, Other hulls, below):
   and her lamps. Engine indices in neither side list read as `centre`. The
   Legion's (`../legion-cinematic/vfx_hull.py`) is the multi-barrel and
   launcher case: ten drives, 25 gun barrels on thirteen mounts and six
-  launcher tubes.
+  launcher tubes. The Wolf (P)'s (`../wolf-cinematic/vfx_hull.py`) has the energy
+  mounts.
 
 ## Scale
 
@@ -359,6 +360,11 @@ leaves the tube and accelerates along the line of fire out to the range, and
 **motor smoke**: a launch puff at the mouth and a trail of puffs left along
 its first stretch, sized from the missile. The launcher knobs below exist
 only when the hull has a launcher, so every other hull's knobs are unchanged.
+An **energy** mount (MOUNTS kind `'energy'`; the Wolf (P)'s ion cannon and
+mining blaster) is a gun whose flash, flash light and bolt take the weapon's
+own colour (the profile's `ENERGY_COLOURS`, {mount index: linear rgb}, else
+ion blue), white only in the hottest core, with a thicker bolt than a tracer
+and no propellant puff or brass. Opt-in: a `gun` mount builds exactly as before.
 
 | Launcher knob | Range | Default | Meaning |
 |---|---|---|---|

@@ -1,0 +1,735 @@
+{
+ "hull-side-port": {
+  "what": "cargo body port side wall",
+  "sheet": "hull",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     10.8,
+     13,
+     -0.3
+    ],
+    "faces": [
+     6,
+     8,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     33,
+     34,
+     35,
+     36,
+     37,
+     46,
+     48
+    ]
+   },
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     -11.4,
+     14,
+     -0.9
+    ],
+    "faces": [
+     6,
+     8,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     33,
+     34,
+     35,
+     36,
+     37,
+     46,
+     48
+    ]
+   },
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     -7.8,
+     14,
+     2.3
+    ],
+    "faces": [
+     6,
+     8,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     33,
+     34,
+     35,
+     36,
+     37,
+     46,
+     48
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 421.88,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   38.5,
+   11.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.25,
+    0.5
+   ],
+   "ortho_width": 44.76744186046512
+  },
+  "native_texels_per_unit": 17.7
+ },
+ "hull-side-stbd": {
+  "what": "cargo body starboard side wall (mirror of port)",
+  "sheet": "hull",
+  "tile": 0,
+  "skin_from": "hull-side-port",
+  "members": [
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     10.8,
+     -13,
+     -0.1
+    ],
+    "faces": [
+     1,
+     3,
+     10,
+     11,
+     12,
+     13,
+     14,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     40,
+     42
+    ]
+   },
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     -10.6,
+     -14,
+     0.8
+    ],
+    "faces": [
+     1,
+     3,
+     10,
+     11,
+     12,
+     13,
+     14,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     40,
+     42
+    ]
+   },
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     -7.6,
+     -14,
+     3.7
+    ],
+    "faces": [
+     1,
+     3,
+     10,
+     11,
+     12,
+     13,
+     14,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     40,
+     42
+    ]
+   }
+  ],
+  "face_count": 17,
+  "area_units2": 421.88,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   38.5,
+   11.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.25,
+    0.5
+   ],
+   "ortho_width": 44.76744186046512
+  },
+  "native_texels_per_unit": 17.7
+ },
+ "hull-top": {
+  "what": "cargo body dorsal deck with the armour straps, spar plates and deck plates",
+  "sheet": "hull",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     2.9,
+     0,
+     6.0
+    ],
+    "faces": [
+     41,
+     43,
+     44,
+     45,
+     47,
+     49,
+     50
+    ]
+   },
+   {
+    "object": "Hull forward armour strap",
+    "seed": [
+     4,
+     0,
+     6.6
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull aft armour strap",
+    "seed": [
+     -15.6,
+     0,
+     6.6
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull spar armour plate port aft",
+    "seed": [
+     -5.7,
+     10.2,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull spar armour plate port fore",
+    "seed": [
+     -0.1,
+     10,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull spar armour plate starboard aft",
+    "seed": [
+     -5.8,
+     -8.9,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull spar armour plate starboard fore",
+    "seed": [
+     0.4,
+     -8.4,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull deck plate forward sill",
+    "seed": [
+     5.35,
+     0.0,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull deck plate aft port",
+    "seed": [
+     -12.1,
+     4.5,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull deck plate turret port fore",
+    "seed": [
+     1.35,
+     4.2,
+     6.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull deck plate turret starboard fore",
+    "seed": [
+     0.05,
+     -1.95,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull deck plate turret starboard aft",
+    "seed": [
+     -6.2,
+     -1.95,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull deck plate aft starboard",
+    "seed": [
+     -12.1,
+     -11.8,
+     6.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull deck plate turret port aft",
+    "seed": [
+     -8.6,
+     4.2,
+     6.4
+    ],
+    "faces": [
+     7
+    ]
+   }
+  ],
+  "face_count": 20,
+  "area_units2": 1245.19,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   38.5,
+   28.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.25,
+    0.0
+   ],
+   "ortho_width": 57.881136950904384
+  },
+  "native_texels_per_unit": 13.7
+ },
+ "hull-stern": {
+  "what": "cargo body stern face",
+  "sheet": "hull",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     -18,
+     -4.6,
+     0.8
+    ],
+    "faces": [
+     38,
+     39
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 134.9,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   28.0,
+   7.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    0.9000000953674316
+   ],
+   "ortho_width": 32.55813953488372
+  },
+  "native_texels_per_unit": 24.4
+ },
+ "hull-under": {
+  "what": "cargo body underside and its keel plates",
+  "sheet": "hull",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull cargo body",
+    "seed": [
+     -5.2,
+     0,
+     -5.0
+    ],
+    "faces": [
+     0,
+     2,
+     4,
+     5,
+     7,
+     9,
+     51
+    ]
+   },
+   {
+    "object": "Hull keel plate ventral hatch starboard",
+    "seed": [
+     4.65,
+     -8.3,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate ventral hatch port",
+    "seed": [
+     4.65,
+     8.3,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 4",
+    "seed": [
+     -1.5,
+     8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 13",
+    "seed": [
+     -1.5,
+     -8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 3",
+    "seed": [
+     -1.5,
+     3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 12",
+    "seed": [
+     -1.5,
+     -3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 6",
+    "seed": [
+     10.25,
+     8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 15",
+    "seed": [
+     10.25,
+     -8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 5",
+    "seed": [
+     10.25,
+     3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 14",
+    "seed": [
+     10.25,
+     -3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 8",
+    "seed": [
+     14.9,
+     8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 17",
+    "seed": [
+     14.9,
+     -8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 7",
+    "seed": [
+     14.9,
+     3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 16",
+    "seed": [
+     14.9,
+     -3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 2",
+    "seed": [
+     -6.25,
+     8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 11",
+    "seed": [
+     -6.25,
+     -8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 10",
+    "seed": [
+     -6.25,
+     -3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 1",
+    "seed": [
+     -6.25,
+     3.7,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 9",
+    "seed": [
+     -9.15,
+     8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   },
+   {
+    "object": "Hull keel plate 18",
+    "seed": [
+     -9.15,
+     -8.45,
+     -5.4
+    ],
+    "faces": [
+     4
+    ]
+   }
+  ],
+  "face_count": 27,
+  "area_units2": 1260.86,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   38.5,
+   28.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.25,
+    0.0
+   ],
+   "ortho_width": 57.881136950904384
+  },
+  "native_texels_per_unit": 13.7
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "part": "spine-side-port",
+ "sheet": "body",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.898,
+ "raw_iou": 0.8241,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.8972,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.8241
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00255,
+    1.0678
+   ],
+   "offset_px": [
+    -0.16,
+    -16.39
+   ],
+   "iou": 0.837
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00155,
+    1.0628
+   ],
+   "offset_px": [
+    -0.16,
+    -16.39
+   ],
+   "iou": 0.8972
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.59,
+  "p95_px": 3.0,
+  "max_px": 3.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.85,
+  "p95_px": 1.0,
+  "max_px": 1.41
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

@@ -139,7 +139,8 @@ def fighter_bearing_deg(t):
 #   walk    the step down to Castle's station is a person walking, on its own clock, instead of
 #           a glide tied to the head turn (which slid the body forward and back with the head as
 #           it followed the fighters): leaning on the dais through both flights, then back off
-#           the console, down the dais step past the grab pole and four paces to the comms bank.
+#           the console, down the dais step past the grab pole, behind Castle at the forward panel
+#           of her bank (she crosses the frame as they squeeze past) and on to its middle panel.
 #   breath  a standing person is never still: a slow breath in pitch and height and a slower
 #           weight shift in yaw and roll, a few tenths of a degree.
 #   frame   the head sits lower once it is at the port glass, so the slit fills the frame
@@ -156,12 +157,13 @@ CAMERA = set(filter(None, os.environ.get("C2_CAMERA", "").split(",")))
 CAMERA_OPTIONS = ("walk", "breath", "frame", "lean", "lens", "duck")
 DAIS_STEP = (16.05, 1.65)        # on the dais at the head of the step (its tread is at y 1.65)
 STEP_FOOT = (15.15, 1.85)        # on the main floor at its foot; the grab pole is 0.8 to port
+PAST_CASTLE = (13.95, 2.6)       # behind Castle's back at the forward panel (sw_bridge_interior.CASTLE_AT)
 WALK = (4.6, 6.6)                # after the second flight (4.2 s), settled before abeam
 
 
 def _walk_point(u):
     """(x, y) at fraction u of the walk's length, on straight legs (Second Wind units)."""
-    pts = [STATION_FORWARD[:2], DAIS_STEP, STEP_FOOT, STATION_PORT[:2]]
+    pts = [STATION_FORWARD[:2], DAIS_STEP, STEP_FOOT, PAST_CASTLE, STATION_PORT[:2]]
     legs = [math.dist(a, b) for a, b in zip(pts, pts[1:])]
     d = u * sum(legs)
     for (a, b), n in zip(zip(pts, pts[1:]), legs):

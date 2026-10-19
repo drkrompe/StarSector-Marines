@@ -50,7 +50,8 @@ BARREL_TAG = re.compile(r'^(?:barrel|tube) (\d+)$')
 
 def mount_kind(mount):
     """A MOUNTS entry is (x, y, angle, scale, twin) or (x, y, angle, scale, twin, kind);
-    kind is 'gun' (the default) or 'launcher'."""
+    kind is 'gun' (the default), 'energy' (a gun whose effects take the weapon's
+    colour, swfx_guns) or 'launcher'."""
     return mount[5] if len(mount) > 5 else 'gun'
 
 ANCHORS = 'Anchors'
