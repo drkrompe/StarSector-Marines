@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 
 import synth_flyby
+import synth_landing
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -59,6 +60,11 @@ def sfx(cue, t, level, **kw):
 def synth(name, level, **kw):
     """A code-built pass from synth_flyby.py; its clip already sits on the shot clock."""
     return dict(kind="sfx", cue=None, synth=name, t=synth_flyby.PASSES[name]["start"], level=level, **kw)
+
+
+def landing(stem, level, **kw):
+    """A synth_landing.py stem; its clip starts at synth_landing.START on C4's clock."""
+    return dict(kind="sfx", cue=None, synth=stem, t=synth_landing.START, level=level, **kw)
 
 
 def voice(src, t, **kw):
@@ -168,12 +174,14 @@ SHOTS = {
         # drive spools down to 17.9. The drive is bass the whole way and opens up for the burn.
         sfx("c1_sw_engine_loop", 3.0, -10, until=17.9, af=LOW,
             env=[(3, -8), (10.9, -8), (12.0, -4), (16.0, 0), (16.4, 3), (17.9, -6)], fade_in=1.5, fade_out=1.0),
-        sfx("c4_landing_rocket", 10.0, -6, env=[(10, -9), (11.0, -6), (16.0, -1), (16.4, 2)]),
-        sfx("c4_ship_hover", 11.4, -14, until=16.7, loop=True, fade_in=1.0, fade_out=0.3,
-            env=[(11.4, -6), (16.0, -6), (16.4, 0)]),
-        sfx("c4_touchdown", 16.4, -2),
-        sfx("c4_dust_hiss", 16.4, -10),
-        sfx("c4_spool_down", 16.6, -8),
+        # The landing itself is synthesised from c4x_scene's timing (synth_landing.py): the belly
+        # jets' roar, sand and grit, the touchdown, the spool-down and the settling dust. The roar is
+        # held down until Kilo Nine ends at 10.9.
+        landing("landing_roar", -5, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
+        landing("landing_grit", -11),
+        landing("landing_thump", -2),
+        landing("landing_spool", -8),
+        landing("landing_settle", -14),
         sfx("c5_yard_bed", 17.4, -14, until=54.9,
             env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),
@@ -330,6 +338,67 @@ def mix(shot, picture, dirs, chosen, out, extra=(), tag=None):
         name, length, peak, video.name if video.exists() else "(no picture)"), flush=True)
 
 
+# The whole arrival in order, for a score laid across it (make_music.py score).
+ARRIVAL = ["c1", "c2", "entry", "c3", "c4c5"]
+# A shot whose newest sketch is missing plays the shipped v1 movie instead.
+FALLBACK_PICTURES = {shot: ROOT / "mod/cinematic/jangala-arrival" / (shot + ".mp4") for shot in ("c1", "c2", "c3")}
+SCORE_LEVEL = -4.0     # dB against dialogue, before ducking
+DUCK_DB = -8.0         # under any voice
+
+
+def duck(voices):
+    """Gain that takes the music DUCK_DB down wherever a voice is speaking, easing in and out."""
+    mono = np.abs(voices).max(axis=1)
+    win = int(0.05 * SR)
+    power = np.convolve(mono ** 2, np.ones(win) / win, mode="same")
+    active = (power > 10 ** (-45 / 10)).astype(float)
+    hold = int(0.25 * SR)
+    active = (np.convolve(active, np.ones(2 * hold + 1), mode="same") > 0).astype(float)
+    ease = int(0.4 * SR)
+    active = np.convolve(active, np.ones(ease) / ease, mode="same")
+    return (10 ** (DUCK_DB * active / 20))[:, None]
+
+
+def score_mix(score, pictures, dirs, chosen, out, width=960):
+    """The whole arrival with one score across it, ducked under the voices, as a small preview."""
+    score = Path(score)
+    pieces, offset = [], 0.0
+    for shot in ARRIVAL:
+        length, layers = SHOTS[shot]
+        full = np.zeros((int(round(length * SR)), 2))
+        voices = full.copy()
+        for layer in layers:
+            placed = place(layer, source(layer, dirs, chosen), length)
+            full += placed
+            if layer["kind"] == "voice":
+                voices += placed
+        last = shot == ARRIVAL[-1]
+        music = place(dict(kind="music", path=score, t=0.0, level=SCORE_LEVEL, offset=offset, until=length,
+                           fade_in=0.0, fade_out=2.0 if last else 0.0), score, length)
+        pieces.append(full + music * duck(voices))
+        offset += length
+    whole = np.concatenate(pieces)
+    name = "arrival-" + score.stem
+    write(whole, out / (name + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    parts = []
+    for shot in ARRIVAL:
+        picture = pictures.get(shot)
+        picture = picture[0] if isinstance(picture, list) else picture
+        if not (picture and picture.exists()):
+            picture = FALLBACK_PICTURES.get(shot)
+        parts.append((picture, SHOTS[shot][0]))
+    inputs = [arg for picture, _ in parts for arg in ("-i", str(picture))]
+    graph = "".join("[%d:v]fps=24,scale=%d:%d,setsar=1,tpad=stop_mode=clone:stop_duration=120,"
+                    "trim=duration=%.3f,setpts=PTS-STARTPTS[v%d];" % (i, width, width * 9 // 16, length, i)
+                    for i, (_, length) in enumerate(parts))
+    graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
+                    "-filter_complex", graph, "-map", "[v]", "-map", "%d:a" % len(parts), "-c:v", "libx264",
+                    "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
+                    "-t", "%.3f" % (len(whole) / SR), str(out / (name + ".mp4"))], check=True)
+    print("%s %5.1fs  pictures: %s" % (name, len(whole) / SR, ", ".join(str(p) for p, _ in parts)), flush=True)
+
+
 BEDS = set()
 
 
@@ -344,6 +413,9 @@ def main():
     parser.add_argument("--music", action="append", default=[],
                         help="a make_music.py take to lay into c4c5, peaking at the top of the rise; "
                              "writes c4c5-<take>.mp4 per take")
+    parser.add_argument("--score", action="append", default=[],
+                        help="a make_music.py score take to lay across the whole arrival; writes a small "
+                             "arrival-<take>.mp4 preview per take")
     args = parser.parse_args()
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     chosen = {cue: row["chosen"] for cue, row in manifest["cues"].items() if row["chosen"]}
@@ -355,10 +427,13 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     synth_flyby.build(out / "synth")
+    synth_landing.build(out / "synth")
     dirs = {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}
     for take in args.music:
         mix("c4c5", pictures.get("c4c5"), dirs, chosen, out, [music(take, C4_LENGTH + 25.0)], Path(take).stem)
-    for shot in args.shot or ([] if args.music else SHOTS):
+    for take in args.score:
+        score_mix(take, pictures, dirs, chosen, out)
+    for shot in args.shot or ([] if args.music or args.score else SHOTS):
         mix(shot, pictures.get(shot), dirs, chosen, out)
 
 

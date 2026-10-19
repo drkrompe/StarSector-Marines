@@ -2,6 +2,12 @@
 
     python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py plan
     python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py generate [--candidate ID ...]
+    python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py score [--take ID ...]
+
+A score (owner, 2026-10-19: music for the whole arrival, C1 to the title) is one generation
+from a composition plan whose sections are timed to the shots, so one piece and one theme run
+the whole 130.6 s. Its takes go to music-takes/score_<id>_tNN.mp3; sfx_mix.py --score lays one
+across every shot.
 
 The closing cue (owner, 2026-10-19): hopeful but fragile. Refugees landing somewhere with sky
 after a failing station: worn and industrial, a beginning, not a victory. No vocals. It comes in
@@ -50,16 +56,67 @@ CANDIDATES = {
 }
 
 
+# The score's sections, on the arrival clock: C1 37.7, C2 15, entry 7, C3 16, C4 21.4, C5 33.5.
+# Its shape: the hope is held back for the title (c5-v2-closing.md); until then it stays small
+# and leaves room for the hail and Castle.
+SCORE_SECTIONS = [
+    ("Holding", 10000, ["near silence", "a soft cold low drone", "one or two sparse felt piano notes, far apart",
+                        "vast empty space"]),
+    ("Under the hail", 27700, ["very sparse and quiet, leaving room for radio voices", "low drone continues",
+                               "a simple four-note piano figure stated once, thin and hesitant",
+                               "a slow low swell under a passing ship around 0 to 6 seconds, then back down"]),
+    ("Scrutiny", 15000, ["a muted metallic pulse enters, like distant machinery or a ship's reactor, slow and steady",
+                         "tense but not alarmed, no melody", "low strings hold one dark note",
+                         "the pulse stops dead at about 9.6 seconds leaving only the drone"]),
+    ("Breathe", 7000, ["an exhale: the music almost drops out", "only a low rising swell of sustained low tones",
+                       "no percussion, no melody"]),
+    ("First open sky", 16000, ["the emotional centre, quiet and warm", "out of silence the four-note piano figure returns alone",
+                               "a warm pad opens underneath and the harmony turns gently to major for the first time",
+                               "fragile and unhurried, never loud"]),
+    ("Greywater", 21400, ["the slow pulse returns, softer and warmer, work rather than threat",
+                          "piano and pad continue quietly under speech",
+                          "thins out to almost nothing over the last 6 seconds"]),
+    ("We're down", 20000, ["very sparse: a few piano notes and a held pad", "patient, tired, relieved",
+                           "stays low and out of the way"]),
+    ("Rise and title", 13500, ["low strings and pad swell gently from the start, building for about 4 seconds",
+                               "the four-note figure played fully once with strings",
+                               "resolves to a warm open major chord at about 5 seconds, which rings and thins away",
+                               "fades to silence by the end"]),
+]
+SCORE_TAKES = {
+    "piano_pad": ["hopeful but fragile cinematic ambient score", "warm, slightly worn analog synth pad",
+                  "soft felt piano carries the theme", "low strings only for weight",
+                  "slow, around 60 BPM, D major with suspended uncertain colour", "worn, industrial, human, humble"],
+    "strings": ["hopeful but fragile cinematic ambient score", "hushed low string ensemble carries the theme",
+                "cellos and violas in long bowed notes", "a soft piano and a distant muted horn only at the title",
+                "slow, around 60 BPM, D major with suspended uncertain colour", "worn, industrial, human, humble"],
+}
+SCORE_NEGATIVE = ["vocals", "choir", "lyrics", "epic trailer drums", "brass fanfare", "triumphant",
+                  "electronic dance beat", "fast tempo"]
+
+
+def score_plan(take):
+    return {"positive_global_styles": SCORE_TAKES[take], "negative_global_styles": SCORE_NEGATIVE,
+            "sections": [{"section_name": name, "positive_local_styles": styles,
+                          "negative_local_styles": [], "duration_ms": ms, "lines": []}
+                         for name, ms, styles in SCORE_SECTIONS]}
+
+
 def takes(candidate):
     return sorted(TAKES.glob(candidate + "_t[0-9][0-9].mp3"))
 
 
-def generate(candidates):
+def generate(candidates, score=False):
     key = credential()
     TAKES.mkdir(parents=True, exist_ok=True)
     for candidate in candidates:
-        payload = {"prompt": CANDIDATES[candidate], "music_length_ms": SECONDS * 1000,
-                   "model_id": MODEL, "force_instrumental": True}
+        if score:
+            payload = {"composition_plan": score_plan(candidate), "model_id": MODEL,
+                       "respect_sections_durations": True}
+            candidate = "score_" + candidate
+        else:
+            payload = {"prompt": CANDIDATES[candidate], "music_length_ms": SECONDS * 1000,
+                       "model_id": MODEL, "force_instrumental": True}
         audio = TAKES / ("%s_t%02d.mp3" % (candidate, len(takes(candidate)) + 1))
         request = urllib.request.Request(
             "https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128",
@@ -76,7 +133,7 @@ def generate(candidates):
             raise SystemExit("Generation connection failed; no retry made.") from None
         audio.write_bytes(data)
         peak, lufs = levels(audio)
-        meta.update(modelId=MODEL, prompt=CANDIDATES[candidate],
+        meta.update(modelId=MODEL, prompt=payload.get("prompt"),
                     request={k: v for k, v in payload.items() if k not in ("model_id", "prompt")},
                     audioSha256=hashlib.sha256(data).hexdigest(), durationSeconds=probe(audio),
                     peakDb=peak, integratedLufs=lufs)
@@ -87,9 +144,13 @@ def generate(candidates):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=("plan", "generate"))
+    parser.add_argument("stage", choices=("plan", "generate", "score"))
     parser.add_argument("--candidate", action="append", choices=list(CANDIDATES))
+    parser.add_argument("--take", action="append", choices=list(SCORE_TAKES))
     args = parser.parse_args()
+    if args.stage == "score":
+        generate(args.take or list(SCORE_TAKES), score=True)
+        return
     chosen = args.candidate or list(CANDIDATES)
     if args.stage == "plan":
         for candidate in chosen:
