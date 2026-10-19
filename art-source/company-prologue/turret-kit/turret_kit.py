@@ -930,6 +930,14 @@ def _sprite_mats(s, mats):
     out.setdefault('lamp_blue', lamp_material('Turret lamp blue-white', (.35, .62, 1.0), 2.0))
     out.setdefault('lamp_red', lamp_material('Turret lamp red', (1.0, .15, .1), 3.0))
     out.setdefault('lamp_core', lamp_material('Turret lamp gold core', (.95, .85, .5), 1.6))
+    cable = bpy.data.materials.get('Turret power cable')
+    if cable is None:
+        cable = bpy.data.materials.new('Turret power cable')
+        cable.use_nodes = True
+        cb = cable.node_tree.nodes['Principled BSDF']
+        cb.inputs['Base Color'].default_value = (.025, .025, .028, 1)
+        cb.inputs['Roughness'].default_value = .55
+    out.setdefault('cable', cable)
     return out
 
 
@@ -2481,12 +2489,46 @@ def _house_reaper(g, f, s, r, z0):
     return (1.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 
+def _cable(m, ctrl, r, k, z0, n=12, segs=16, t0=0.0, t1=1.0):
+    """A cable swept along a cubic Bezier ctrl = 4 points (x, y, z) in sprite pixels (z above z0),
+    from parameter t0 to t1: round, capped, its rings kept square to the run."""
+    P = [Vector(c) for c in ctrl]
+
+    def at(t):
+        u = 1-t
+        return u**3*P[0]+3*u*u*t*P[1]+3*u*t*t*P[2]+t**3*P[3]
+
+    def tan(t):
+        u = 1-t
+        return (3*u*u*(P[1]-P[0])+6*u*t*(P[2]-P[1])+3*t*t*(P[3]-P[2])).normalized()
+    rings, ref = [], Vector((0, 0, 1))
+    for i in range(segs+1):
+        t = t0+(t1-t0)*i/segs
+        c, tv = at(t), tan(t)
+        side = tv.cross(ref)
+        if side.length < 1e-4:
+            side = tv.cross(Vector((0, 1, 0)))
+        side.normalize()
+        up = side.cross(tv).normalized()
+        ref = up
+        rings.append([m.bm.verts.new(m.base @ Vector(((c.x+r*(math.cos(a)*side.x+math.sin(a)*up.x))*k,
+                                                      (c.y+r*(math.cos(a)*side.y+math.sin(a)*up.y))*k,
+                                                      z0+(c.z+r*(math.cos(a)*side.z+math.sin(a)*up.z))*k)))
+                      for a in (2*math.pi*j/n for j in range(n))])
+    for a, b in zip(rings, rings[1:]):
+        for j in range(n):
+            m.bm.faces.new((a[j], a[(j+1) % n], b[(j+1) % n], b[j]))
+    m.bm.faces.new(rings[0])
+    m.bm.faces.new(rings[-1][::-1])
+
+
 def _house_pdlaser(g, f, s, r, z0):
     """pd_laser_turret_base.png. A rounded dark housing aft (its light knob on the
     crown); round its middle a red armoured collar with a louvred vent on top (the
     light and dark stripes); forward, the light emitter drum lying along the line of
-    fire, a collar band round it and the lens in its face. A point-defence mount:
-    low, compact and fast to train."""
+    fire, a collar band round it and the lens in its face; heavy power cabling from a
+    junction box aft over the collar into the drum. A point-defence mount: low,
+    compact and fast to train."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     d = .5
@@ -2512,6 +2554,27 @@ def _house_pdlaser(g, f, s, r, z0):
     _loft(g['steel'], [(x, drum(3.5, 1.95)) for x in (4.85, 5.15)], k, z0)
     _loft(g['dark'], [(x, drum(2.0, 1.1)) for x in (7.15, 7.3)], k, z0)
     _loft(g['lamp_blue'], [(7.25, drum(1.7, .95)), (7.5, drum(1.2, .65)), (7.6, drum(.5, .3))], k, z0)
+    # Power: it is a laser / plasma mount, and the emitter draws far more than a
+    # gun's breech. A junction box on the housing's crown aft feeds two heavy
+    # armoured cables a side; they arch forward over the collar's shoulders (clear of
+    # the louvre), clamped there, and dive into the drum's back through gland
+    # collars. A pair of coolant ports on the drum's flanks.
+    g['steel'].box((-5.8*k, 0, z0+3.3*k), (1.8*k, 8.6*k, 1.4*k), .2*k)
+    g['dark'].box((-6.72*k, 0, z0+3.3*k), (.05*k, 6.0*k, .7*k))
+    for sy in (1, -1):
+        for dy, rr, lift in ((3.0, .5, 0.0), (4.1, .36, -.25)):
+            y0, y1 = sy*dy, sy*(dy-.9)
+            ctrl = [(-4.85, y0, 3.55+lift), (-1.5, y0*1.02, 5.0+lift), (1.6, y1*1.05, 5.2+lift), (3.55, y1, 3.75+lift)]
+            _cable(g['cable'], ctrl, rr, k, z0)
+            _cable(g['steel'], ctrl, rr+.18, k, z0, segs=2, t0=0.0, t1=.06)
+            _cable(g['steel'], ctrl, rr+.18, k, z0, segs=2, t0=.9, t1=1.0)
+            for t in (.22, .38, .72):
+                _cable(g['steel'], ctrl, rr+.1, k, z0, segs=1, t0=t, t1=t+.025)
+        g['steel'].box((.4*k, sy*3.65*k, z0+4.55*k), (.7*k, 2.6*k, .35*k), .05*k)
+        for yy in (2.5, 4.8):
+            g['steel'].box((.4*k, sy*yy*k, z0+4.25*k), (.7*k, .3*k, .9*k), .05*k)
+        g['steel'].cyl((5.0*k, sy*3.1*k, z0+2.4*k), .55*k, .8*k, 'Y', n=16)
+        g['dark'].cyl((5.0*k, sy*3.55*k, z0+2.4*k), .35*k, .15*k, 'Y', n=16)
     return (3.2*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 

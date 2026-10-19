@@ -87,11 +87,15 @@ def weapon_for(size, typ, elite):
 def gun_mats(kit, weapon):
     """The hull's own finish for the kit's material keys: pale hex ceramic armour (the
     kit tints it halfway toward the sprite's colour, sprite_tint), the graviton's blue
-    plate, light ceramic fittings, slate bases, dark recesses and the hull's lamps."""
+    plate, light ceramic fittings, slate bases, dark recesses and cabling, and the
+    hull's lamps. The PD laser keeps its red collar."""
     paint = kit.weapon_blue if weapon == 'gravitonbeam' else kit.pale
-    return {'armour': kit.pale, 'plate': kit.pale, 'paint': paint, 'accent': kit.white, 'accent2': kit.white,
-            'metal': kit.steel,
+    mats = {'armour': kit.pale, 'plate': kit.pale, 'paint': paint, 'accent': kit.white, 'accent2': kit.white,
+            'metal': kit.steel, 'cable': kit.tech,
             'steel': kit.slate, 'dark': kit.tech, 'lamp_blue': kit.glow, 'lamp_red': kit.glow_red}
+    if weapon == 'pdlaser':
+        del mats['accent']   # the PD's armoured collar stays the kit's red (owner, 2026-10-19)
+    return mats
 
 
 def housing_profile(hr, hh):

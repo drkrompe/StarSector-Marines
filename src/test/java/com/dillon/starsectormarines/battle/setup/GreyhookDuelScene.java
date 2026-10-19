@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.warship.WarshipEdgeHelm;
+import com.dillon.starsectormarines.battle.warship.WarshipManoeuvre;
 import com.dillon.starsectormarines.battle.warship.WarshipPosture;
 import com.dillon.starsectormarines.battle.warship.WarshipSpacing;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
@@ -36,21 +37,21 @@ import java.util.Set;
 
 /**
  * The production Black Sluice duel ({@link BlackSluiceDuel}) on open ground the size of the Black Sluice map, without
- * the ground battle: the <i>Greyhook</i> (a Venture) alone in her cradle, Voss's order, and two of Rusk's Hegemony Enforcers in
- * his refit flying in across the west edge, heading east. The duel is the production class itself, so its stations,
- * fittings, refit, edges, route and visit are the ones the chapter plays.
+ * the ground battle: the <i>Greyhook</i> (a Venture) alone in her cradle, Voss's order, and the pair Rusk lends, a
+ * Hegemony Enforcer and his own Wolf, each in its refit, flying in across the west edge, heading east. The duel is the
+ * production class itself, so its stations, fittings, refits, edges, route and visit are the ones the chapter plays.
  *
- * <p>Five loops, one per seed. A seed moves when the order comes and where along the west edge each Enforcer flies in by a
- * few cells, which is all the chapter's ground battle varies for the ships; everything after is the ships' own doing.
- * Verdicts assert mechanics (both sides put rounds on hulls, nobody fires on the ground, the Enforcers fly in on their
- * heading and cross it outside their reach of every hull of Greyhook's, the radio hears them sighted, closing and
- * firing in that order and hears the Greyhook or the Enforcers go down when they do, the Greyhook fires on an Enforcer in her
- * reach, no wing launches, every hull arrives from its pad or across its side's edge, no hull leaves the map or crosses
+ * <p>Five loops, one per seed. A seed moves when the order comes and where along the west edge each of Rusk's hulls
+ * flies in by a few cells, which is all the chapter's ground battle varies for the ships; everything after is the ships'
+ * own doing. Verdicts assert mechanics (both sides put rounds on hulls, nobody fires on the ground, Rusk's hulls fly in
+ * on their heading and cross it outside their reach of every hull of Greyhook's, the radio hears them sighted, closing
+ * and firing in that order and hears the first of them, the Greyhook or the last of them go down when they do, the
+ * Greyhook fires on a hull of Rusk's in her reach, no wing launches, every hull arrives from its pad or across its side's edge, no hull leaves the map or crosses
  * an edge, no doctrine withdraws a hull, the duel is decided only by one side's hulls all being destroyed, and a hull
  * the edge pressure holds stays out of its edge margin to within a tolerance); who wins, when each hull fell, how long
  * it lasts, the Greyhook's hull over time, breaches and mounts lost, where over the map it was fought and what each
- * side did to the other are readings. The fight's centroid is sampled every thirty seconds. Each Enforcer's shield is
- * traced ({@link ShieldTrace}): how long it was up, overall and under fire, where the Greyhook lay off its centre line,
+ * side did to the other are readings, as is how long each of Rusk's hulls held the relay's tank. The fight's centroid
+ * is sampled every thirty seconds. Each of Rusk's shields is traced ({@link ShieldTrace}): how long it was up, overall and under fire, where the Greyhook lay off its centre line,
  * which rounds it blocked and which reached the hull with the shield down, rising or up but outside the arc, and what
  * dropped it.
  */
@@ -59,9 +60,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
     private static final int WIDTH = BlackSluice.WIDTH;
     private static final int HEIGHT = BlackSluice.HEIGHT;
     /**
-     * Twenty-five minutes after the start, the recording's bound: the Enforcers decide the fight inside eight minutes
-     * on every seed measured, and the bound is kept wide so a control (the relay or the refit off, which run to sixteen
-     * minutes) is still fought to the finish; a fight still going at the end fails
+     * Twenty-five minutes after the start, the recording's bound, kept wide so a control (the relay or a refit off) is
+     * still fought to the finish; a fight still going at the end fails
      * {@code the-duel-is-decided-by-destruction}.
      * {@code -Dbattle.scene.greyhookDuel.ticks} plays longer or shorter.
      */
@@ -71,24 +71,46 @@ public final class GreyhookDuelScene implements BehaviorScene {
      * -Dbattle.scene.greyhookDuel.frameEvery} raises it so a whole fifteen-minute fight fits a review GIF's size.
      */
     private static final int FRAME_EVERY = Math.max(1, Integer.getInteger("battle.scene.greyhookDuel.frameEvery", 30));
+    /**
+     * Seconds after the order before any frame is recorded, {@code -Dbattle.scene.greyhookDuel.framesFrom}: a review
+     * excerpt of the fight's end at a dense cadence, rather than the whole fight at a sparse one. The run and its
+     * verdicts are unchanged; the recorder (and its camera) starts at that tick.
+     */
+    private static final int FRAMES_FROM_SECONDS = Math.max(0, Integer.getInteger("battle.scene.greyhookDuel.framesFrom", 0));
     private static final long[] SEEDS = {15305L, 16205L, 16206L, 20261016L, 31337L};
     /**
      * How far, as a share of its own margin, a hull the edge pressure holds may still be found inside that margin: the
      * pressure is soft and starts at the margin, so a hull turning off an edge at speed sinks a little way into it.
      */
     static final float EDGE_TOLERANCE_SHARE = 0.25f;
-    /** The duel's hulls in {@link BlackSluiceDuel#hulls()} order, as the metrics name them. */
-    private static final String[] NAMES = {"greyhook", "enforcer1", "enforcer2"};
 
     @Override public String id() { return "greyhook-duel"; }
 
     /**
-     * The Enforcers' refit for this play: the mission's own unless {@code -Dbattle.scene.greyhookDuel.refit} names
-     * {@code none} (the variant as fitted, the control) or five figures {@code capacity,dissipation,arc,upkeep,efficiency}
-     * (a tuning diagnostic; the mission is unchanged).
+     * The pair Rusk lends for this play: the mission's own, each hull in order replaced by
+     * {@code -Dbattle.scene.greyhookDuel.variant} ({@code hull:variant}, comma-separated, one per lent hull; a tuning
+     * diagnostic, the mission is unchanged), and each hull's refit by {@code -Dbattle.scene.greyhookDuel.refit} (the
+     * first hull, the Enforcer) and {@code .wolfRefit} (the second), naming {@code none} (the variant as fitted, the
+     * control) or five figures {@code capacity,dissipation,arc,upkeep,efficiency}.
      */
-    static HullRefit refit() {
-        return refit("battle.scene.greyhookDuel.refit", BlackSluiceDuel.RUSK_REFIT);
+    static List<BlackSluiceDuel.RuskHull> pair() {
+        List<BlackSluiceDuel.RuskHull> out = new ArrayList<>(BlackSluiceDuel.RUSK_PAIR);
+        String raw = System.getProperty("battle.scene.greyhookDuel.variant");
+        if (raw != null && !raw.isBlank()) {
+            String[] fits = raw.split(",");
+            for (int i = 0; i < fits.length && i < out.size(); i++) {
+                String[] p = fits[i].split(":");
+                if (p.length != 2) throw new IllegalArgumentException("variant takes hull:variant[,hull:variant]: " + raw);
+                BlackSluiceDuel.RuskHull h = out.get(i);
+                out.set(i, h.with(p[0].trim(), p[1].trim(), h.refit()));
+            }
+        }
+        String[] refits = {"battle.scene.greyhookDuel.refit", "battle.scene.greyhookDuel.wolfRefit"};
+        for (int i = 0; i < out.size() && i < refits.length; i++) {
+            BlackSluiceDuel.RuskHull h = out.get(i);
+            out.set(i, h.with(h.hullId(), h.variantId(), refit(refits[i], h.refit())));
+        }
+        return out;
     }
 
     /** The Greyhook's refit for this play, read the same way from {@code -Dbattle.scene.greyhookDuel.greyhookRefit}. */
@@ -108,18 +130,6 @@ public final class GreyhookDuelScene implements BehaviorScene {
     }
 
     /**
-     * Rusk's hull and variant for this play, {@code hull:variant}: the mission's unless
-     * {@code -Dbattle.scene.greyhookDuel.variant} names another (a tuning diagnostic).
-     */
-    static String[] enforcerFit() {
-        String raw = System.getProperty("battle.scene.greyhookDuel.variant");
-        if (raw == null || raw.isBlank()) return new String[]{BlackSluiceDuel.ENFORCER_HULL, BlackSluiceDuel.ENFORCER_VARIANT};
-        String[] p = raw.split(":");
-        if (p.length != 2) throw new IllegalArgumentException("variant takes hull:variant: " + raw);
-        return new String[]{p[0].trim(), p[1].trim()};
-    }
-
-    /**
      * The seeds to play: all five, or the comma-separated list in {@code -Dbattle.scene.greyhookDuel.seeds} (one seed is
      * how a single review GIF is rendered without the other four).
      */
@@ -133,8 +143,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
     }
 
     @Override public String label() {
-        return "The Black Sluice duel: the Greyhook (Venture) lifting alone from her cradle to fight two of Rusk's "
-                + "refitted Enforcers to the finish, five seeds";
+        return "The Black Sluice duel: the Greyhook (Venture) lifting alone from her cradle to fight Rusk's "
+                + "Enforcer and Wolf to the finish, five seeds";
     }
 
     @Override public int frameDelayMillis() { return 100; }
@@ -163,12 +173,12 @@ public final class GreyhookDuelScene implements BehaviorScene {
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) sim.getTopology().setGroundKind(x, y, GroundKind.GRASS);
         }
-        HullRefit refit = refit(), greyhookRefit = greyhookRefit();
-        String[] fit = enforcerFit();
+        HullRefit greyhookRefit = greyhookRefit();
+        List<BlackSluiceDuel.RuskHull> pair = pair();
         String greyhookFit = System.getProperty("battle.scene.greyhookDuel.greyhookVariant", BlackSluiceDuel.GREYHOOK_VARIANT);
-        boolean production = refit == BlackSluiceDuel.RUSK_REFIT && greyhookRefit == BlackSluiceDuel.GREYHOOK_REFIT
-                && fit[1].equals(BlackSluiceDuel.ENFORCER_VARIANT) && greyhookFit.equals(BlackSluiceDuel.GREYHOOK_VARIANT);
-        BlackSluiceDuel duel = new BlackSluiceDuel(greyhookFit, fit[0], fit[1], refit, greyhookRefit);
+        boolean production = greyhookRefit == BlackSluiceDuel.GREYHOOK_REFIT && pair.equals(BlackSluiceDuel.RUSK_PAIR)
+                && greyhookFit.equals(BlackSluiceDuel.GREYHOOK_VARIANT);
+        BlackSluiceDuel duel = new BlackSluiceDuel(greyhookFit, pair, greyhookRefit);
         duel.stage(sim);
         String loop = production ? base : base + "-diagnostic";
         Trace trace = new Trace(duel, sim, orderTick);
@@ -176,20 +186,42 @@ public final class GreyhookDuelScene implements BehaviorScene {
             if (tick == orderTick) {
                 for (HullFireHold hold : s.warships().hullFireHolds()) hold.release();
                 duel.withdrawalOrdered(s);
-                List<Warship> enforcers = duel.enforcers();
-                for (int i = 0; i < enforcers.size(); i++) {
-                    // Along the edge only: an Enforcer still flies in across it, from a few cells up or down the line.
-                    Warship enforcer = enforcers.get(i);
-                    enforcer.y += jitter[2 * i + 1];
-                    enforcer.stationTo(enforcer.stationX(), enforcer.stationY() + jitter[2 * i + 1]);
+                List<Warship> rusk = duel.rusk();
+                for (int i = 0; i < rusk.size(); i++) {
+                    // Along the edge only: each still flies in across it, from a few cells up or down the line.
+                    Warship ship = rusk.get(i);
+                    ship.y += jitter[2 * i + 1];
+                    ship.stationTo(ship.stationX(), ship.stationY() + jitter[2 * i + 1]);
                 }
             }
             duel.advance(s);
         };
         SceneRun.of(world).observe(script).observe(trace)
-                .frames(frames, loop, FRAME_EVERY, tick -> trace.caption(loop, tick))
+                .frames(from(frames, orderTick + 30 * FRAMES_FROM_SECONDS), loop, FRAME_EVERY,
+                        tick -> trace.caption(loop, tick))
                 .run(TICKS);
         return report(loop, trace, duel);
+    }
+
+    /** {@code sink} with nothing recorded, and its recorder not advanced, before {@code firstTick}. */
+    private static FrameSink from(FrameSink sink, int firstTick) {
+        if (firstTick <= 0) return sink;
+        return new FrameSink() {
+            @Override
+            public void frame(String loopId, BattleSimulation sim, int tick, String caption) {
+                sink.frame(loopId, sim, tick, caption);
+            }
+
+            @Override
+            public void advanced(String loopId, BattleSimulation sim, int tick) {
+                if (tick >= firstTick) sink.advanced(loopId, sim, tick);
+            }
+
+            @Override
+            public boolean records(String loopId, BattleSimulation sim, int tick, int sceneEveryTicks) {
+                return tick >= firstTick && sink.records(loopId, sim, tick, sceneEveryTicks);
+            }
+        };
     }
 
     private SceneReport report(String loop, Trace t, BlackSluiceDuel duel) {
@@ -197,24 +229,24 @@ public final class GreyhookDuelScene implements BehaviorScene {
         List<Warship> ours = List.of(greyhook);
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("both-sides-put-rounds-on-hulls",
-                t.damageToGreyhookSide > 0f && t.damageToEnforcers > 0f,
-                String.format(Locale.ROOT, "Greyhook's side took %.0f (hull and shield), the Enforcers %.0f",
-                        t.damageToGreyhookSide, t.damageToEnforcers)));
+                t.damageToGreyhookSide > 0f && t.damageToRusk > 0f,
+                String.format(Locale.ROOT, "Greyhook's side took %.0f (hull and shield), Rusk's %.0f",
+                        t.damageToGreyhookSide, t.damageToRusk)));
         int groundShots = 0;
         for (Warship hull : duel.hulls()) groundShots += hull.groundShots();
         verdicts.add(Verdict.of("nobody-fires-on-the-ground", groundShots == 0, groundShots + " ground shots"));
-        verdicts.add(Verdict.of("the-greyhook-fires-on-a-enforcer-in-her-reach",
-                t.enforcersInReach == 0 || t.greyhookShots > 0,
-                t.enforcersInReach == 0 ? "no Enforcer came into her reach"
-                        : String.format(Locale.ROOT, "%d rounds, an Enforcer inside her reach for %d ticks",
-                        t.greyhookShots, t.enforcersInReach)));
-        verdicts.add(Verdict.of("the-enforcers-fly-in-on-their-heading", t.enforcerEntryHeadingError <= 1f,
-                String.format(Locale.ROOT, "in across the west edge at most %.1f degrees off east", t.enforcerEntryHeadingError)));
-        verdicts.add(Verdict.of("the-enforcers-cross-the-edge-outside-their-reach", t.entryGap > 0f,
-                String.format(Locale.ROOT, "as the first Enforcer crossed the edge the nearest of Greyhook's hulls was %.0f cells "
-                        + "beyond its %.0f-cell reach", t.entryGap, t.entryReach)));
+        verdicts.add(Verdict.of("the-greyhook-fires-on-a-rusk-hull-in-her-reach",
+                t.ruskInReach == 0 || t.greyhookShots > 0,
+                t.ruskInReach == 0 ? "none of Rusk's hulls came into her reach"
+                        : String.format(Locale.ROOT, "%d rounds, one of Rusk's hulls inside her reach for %d ticks",
+                        t.greyhookShots, t.ruskInReach)));
+        verdicts.add(Verdict.of("rusk-flies-in-on-the-heading", t.ruskEntryHeadingError <= 1f,
+                String.format(Locale.ROOT, "in across the west edge at most %.1f degrees off east", t.ruskEntryHeadingError)));
+        verdicts.add(Verdict.of("rusk-crosses-the-edge-outside-reach", t.entryGap > 0f,
+                String.format(Locale.ROOT, "as the first of Rusk's hulls crossed the edge the nearest of Greyhook's hulls was "
+                        + "%.0f cells beyond its %.0f-cell reach", t.entryGap, t.entryReach)));
         verdicts.add(Verdict.of("hulls-arrive-only-from-a-pad-or-across-their-edge", t.badArrivals.isEmpty(),
-                t.badArrivals.isEmpty() ? t.hullsSeen + " hulls: Greyhook's on their pads, the Enforcers off the west edge"
+                t.badArrivals.isEmpty() ? t.hullsSeen + " hulls: Greyhook's on their pads, Rusk's off the west edge"
                         : String.join("; ", t.badArrivals)));
         verdicts.add(Verdict.of("no-hull-leaves-the-map", t.leavers.isEmpty(),
                 t.leavers.isEmpty() ? "none left, none started to" : String.join("; ", t.leavers)));
@@ -222,30 +254,40 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 t.foreignCrossings.isEmpty() ? "none" : String.join("; ", t.foreignCrossings)));
         verdicts.add(Verdict.of("nobody-withdraws-by-doctrine", t.withdrawals.isEmpty(),
                 t.withdrawals.isEmpty() ? "no hull took the withdraw posture" : String.join("; ", t.withdrawals)));
-        boolean greyhookSideDown = allDown(ours), enforcersDown = allDown(duel.enforcers());
+        boolean greyhookSideDown = allDown(ours), ruskDown = allDown(duel.rusk());
         verdicts.add(Verdict.of("the-duel-is-decided-by-destruction",
-                (greyhookSideDown || enforcersDown) && t.leavers.isEmpty(),
+                (greyhookSideDown || ruskDown) && t.leavers.isEmpty(),
                 greyhookSideDown ? String.format(Locale.ROOT, "the Greyhook destroyed by %.0fs", t.seconds(t.decidedTick))
-                        : enforcersDown ? String.format(Locale.ROOT, "both Enforcers destroyed by %.0fs", t.seconds(t.decidedTick))
+                        : ruskDown ? String.format(Locale.ROOT, "all of Rusk's hulls destroyed by %.0fs", t.seconds(t.decidedTick))
                         : String.format(Locale.ROOT, "both sides still flying %.0fs after the order", t.seconds(t.lastTick))));
-        int sighted = t.beatTick(BlackSluiceDuel.ENFORCERS_SIGHTED_BEAT);
-        int closing = t.beatTick(BlackSluiceDuel.ENFORCERS_CLOSING_BEAT);
+        int sighted = t.beatTick(BlackSluiceDuel.RUSK_SIGHTED_BEAT);
+        int closing = t.beatTick(BlackSluiceDuel.RUSK_CLOSING_BEAT);
         int fired = t.beatTick(BlackSluiceDuel.FIRST_HULL_FIRE_BEAT);
         verdicts.add(Verdict.of("the-radio-hears-the-approach-in-order",
                 sighted >= 0 && (closing < 0 || closing >= sighted) && (fired < 0 || (closing >= 0 && fired >= closing)),
                 String.format(Locale.ROOT, "sighted %.1fs, closing %.1fs, first hull fire %.1fs after the order",
                         t.seconds(sighted), t.seconds(closing), t.seconds(fired))));
         int greyhookBeat = t.beatTick(BlackSluiceDuel.GREYHOOK_DOWN_BEAT);
-        int enforcersBeat = t.beatTick(BlackSluiceDuel.ENFORCERS_DOWN_BEAT);
+        int ruskBeat = t.beatTick(BlackSluiceDuel.RUSK_DOWN_BEAT);
+        int firstBeat = t.beatTick(BlackSluiceDuel.RUSK_FIRST_DOWN_BEAT);
         int greyhookDown = t.downTick.getOrDefault(greyhook, -1);
-        int lastEnforcerDown = -1;
-        for (Warship w : duel.enforcers()) lastEnforcerDown = Math.max(lastEnforcerDown, t.downTick.getOrDefault(w, -1));
+        int lastRuskDown = -1, firstRuskDown = -1;
+        for (Warship w : duel.rusk()) {
+            int down = t.downTick.getOrDefault(w, -1);
+            lastRuskDown = Math.max(lastRuskDown, down);
+            if (down >= 0 && (firstRuskDown < 0 || down < firstRuskDown)) firstRuskDown = down;
+        }
+        // The first of Rusk's going down is heard only while the Greyhook and another of his still fly.
+        boolean firstHeard = firstRuskDown >= 0 && (!ruskDown || firstRuskDown < lastRuskDown)
+                && (greyhookDown < 0 || greyhookDown > firstRuskDown);
         verdicts.add(Verdict.of("the-radio-hears-who-goes-down",
                 (greyhookDown < 0 ? greyhookBeat < 0 : greyhookBeat >= greyhookDown && greyhookBeat - greyhookDown <= 1)
-                        && (enforcersDown ? enforcersBeat >= lastEnforcerDown && enforcersBeat - lastEnforcerDown <= 1 : enforcersBeat < 0),
-                String.format(Locale.ROOT, "Greyhook down %.1fs, beat %.1fs; last Enforcer down %.1fs, beat %.1fs",
-                        t.seconds(greyhookDown), t.seconds(greyhookBeat),
-                        enforcersDown ? t.seconds(lastEnforcerDown) : -1f, t.seconds(enforcersBeat))));
+                        && (ruskDown ? ruskBeat >= lastRuskDown && ruskBeat - lastRuskDown <= 1 : ruskBeat < 0)
+                        && (firstHeard ? firstBeat >= firstRuskDown && firstBeat - firstRuskDown <= 1 : firstBeat < 0),
+                String.format(Locale.ROOT, "Greyhook down %.1fs, beat %.1fs; first of Rusk's down %.1fs, beat %.1fs; "
+                                + "last down %.1fs, beat %.1fs",
+                        t.seconds(greyhookDown), t.seconds(greyhookBeat), t.seconds(firstRuskDown), t.seconds(firstBeat),
+                        ruskDown ? t.seconds(lastRuskDown) : -1f, t.seconds(ruskBeat))));
         verdicts.add(Verdict.of("held-hulls-stay-out-of-their-edge-margin",
                 t.worstMarginShare >= -EDGE_TOLERANCE_SHARE,
                 String.format(Locale.ROOT, "least clear air %.1f cells against a margin of %.1f (%s), %d ticks inside it",
@@ -258,13 +300,13 @@ public final class GreyhookDuelScene implements BehaviorScene {
 
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("orderTick", t.orderTick);
-        // 0 undecided at the end, 1 Greyhook's side, 2 the Enforcers.
-        metrics.put("winner", enforcersDown ? 1 : greyhookSideDown ? 2 : 0);
+        // 0 undecided at the end, 1 Greyhook's side, 2 Rusk's.
+        metrics.put("winner", ruskDown ? 1 : greyhookSideDown ? 2 : 0);
         metrics.put("decidedSeconds", t.seconds(t.decidedTick));
         metrics.put("firstHullHitSeconds", t.firstHitTick < 0 ? -1f : (t.firstHitTick - t.orderTick) / 30f);
         metrics.put("fightSecondsFromFirstHit", t.firstHitTick < 0 ? -1f
                 : ((t.decidedTick < 0 ? t.lastTick : t.decidedTick) - t.firstHitTick) / 30f);
-        String[] names = NAMES;
+        String[] names = t.names;
         List<Warship> all = duel.hulls();
         for (int i = 0; i < all.size() && i < names.length; i++) {
             Warship s = all.get(i);
@@ -277,17 +319,26 @@ public final class GreyhookDuelScene implements BehaviorScene {
         for (int i = 0; i < t.greyhookHull.size(); i++) {
             metrics.put("greyhookHullAt" + (30 * (i + 1)) + "s", t.greyhookHull.get(i));
         }
-        metrics.put("enforcersLost", lost(duel.enforcers()));
+        for (int i = 0; i < t.windows.size(); i++) {
+            int[] w = t.windows.get(i);
+            String at = "At" + (30 * (i + 1)) + "s";
+            metrics.put("greyhookRounds" + at, w[0]);
+            metrics.put("greyhookFlux" + at, w[1]);
+            metrics.put("greyhookTargetRangePercent" + at, w[2]);
+            for (int k = 3; k < w.length; k++) metrics.put(t.names[k - 2] + "Hull" + at, w[k]);
+        }
+        metrics.put("ruskLost", lost(duel.rusk()));
         metrics.put("damageToGreyhookSide", Math.round(t.damageToGreyhookSide));
-        metrics.put("damageToEnforcers", Math.round(t.damageToEnforcers));
+        metrics.put("damageToRusk", Math.round(t.damageToRusk));
         metrics.put("hullDamageToGreyhook", Math.round(t.hullLost(greyhook)));
-        metrics.put("hullDamageToEnforcers", Math.round(t.hullLost(duel.enforcers())));
-        metrics.put("shieldDamageToEnforcers", Math.round(t.shieldTaken(duel.enforcers())));
+        metrics.put("hullDamageToRusk", Math.round(t.hullLost(duel.rusk())));
+        metrics.put("shieldDamageToRusk", Math.round(t.shieldTaken(duel.rusk())));
         metrics.put("shieldDamageToGreyhook", Math.round(greyhook.shieldAbsorbedDamage()));
         metrics.put("entryGapBeyondReachCells", Math.round(t.entryGap));
         metrics.put("sightedSeconds", t.seconds(sighted));
         metrics.put("closingSeconds", t.seconds(closing));
         metrics.put("firstHullFireSeconds", t.seconds(fired));
+        metrics.put("firstRuskDownSeconds", t.seconds(firstRuskDown));
         metrics.put("sightedToFirstFireSeconds", sighted < 0 || fired < 0 ? -1f : (fired - sighted) / 30f);
         for (int i = 0; i < t.centroids.size(); i++) {
             float[] c = t.centroids.get(i);
@@ -303,11 +354,12 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("leastHullEdgeClearanceCells", Math.round(t.leastClearance * 10f) / 10f);
         metrics.put("leastHullEdgeClearanceMarginCells", Math.round(t.leastClearanceMargin * 10f) / 10f);
         metrics.put("ticksInsideEdgeMargin", t.ticksInsideMargin);
-        for (int i = 0; i < duel.enforcers().size(); i++) {
-            Warship enforcer = duel.enforcers().get(i);
-            metrics.put("enforcer" + (i + 1) + "OnMapSeconds", t.seconds(t.onMapTick.getOrDefault(enforcer, -1)));
-            metrics.put("enforcer" + (i + 1) + "ClearOfEdgeSeconds", t.seconds(t.clearTick.getOrDefault(enforcer, -1)));
-            metrics.put("enforcer" + (i + 1) + "Outcome", outcomeCode(duel, enforcer));
+        for (int i = 0; i < duel.rusk().size(); i++) {
+            Warship ship = duel.rusk().get(i);
+            String who = t.names[i + 1];
+            metrics.put(who + "OnMapSeconds", t.seconds(t.onMapTick.getOrDefault(ship, -1)));
+            metrics.put(who + "ClearOfEdgeSeconds", t.seconds(t.clearTick.getOrDefault(ship, -1)));
+            metrics.put(who + "Outcome", outcomeCode(duel, ship));
         }
         metrics.put("greyhookOutcome", outcomeCode(duel, greyhook));
         for (Map.Entry<String, List<float[]>> track : t.tracks.entrySet()) {
@@ -319,10 +371,17 @@ public final class GreyhookDuelScene implements BehaviorScene {
             }
         }
         metrics.put("greyhookRounds", shots(List.of(greyhook)));
-        metrics.put("enforcerRounds", shots(duel.enforcers()));
-        // Rounds by weapon, both sides: which gun is doing the work (and which is never in reach).
-        for (Warship hull : duel.hulls()) {
-            String side = hull == greyhook ? "greyhook" : "enforcer";
+        metrics.put("ruskRounds", shots(duel.rusk()));
+        int aimed = 0;
+        for (int n : t.greyhookOn) aimed += n;
+        for (int i = 0; i + 1 < t.greyhookOn.length; i++) {
+            metrics.put("greyhookOn" + duel.pair().get(i).name() + "Percent",
+                    aimed == 0 ? 0 : Math.round(100f * t.greyhookOn[i] / aimed));
+        }
+        // Rounds by weapon, each hull: which gun is doing the work (and which is never in reach).
+        for (int h = 0; h < duel.hulls().size(); h++) {
+            Warship hull = duel.hulls().get(h);
+            String side = t.names[h];
             for (Warship.Mount m : hull.mounts()) {
                 if (m.pointDefence()) continue;
                 metrics.merge(side + "Rounds_" + m.weapon.id(), m.shotsFired, (a, b) -> a.intValue() + b.intValue());
@@ -334,7 +393,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("minFriendlyGapCells", Math.round(t.minFriendlyGap * 10f) / 10f);
         metrics.put("friendlyOverlapTicks", t.friendlyOverlapTicks);
         int swaps = 0, vents = 0;
-        for (Warship e : duel.enforcers()) {
+        for (Warship e : duel.rusk()) {
             swaps += e.manoeuvre().relaySwaps();
             vents += e.manoeuvre().relayVents();
         }
@@ -343,22 +402,27 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("greyhookOverloads", greyhook.overloadCount());
         metrics.put("greyhookShieldCollapses", greyhook.shieldCollapses());
         metrics.put("greyhookPeakFluxPercent", Math.round(100f * t.peakFlux.getOrDefault(greyhook, 0f)));
-        List<Warship> enforcers = duel.enforcers();
-        for (int i = 0; i < enforcers.size(); i++) {
-            Warship enforcer = enforcers.get(i);
-            metrics.put("enforcer" + (i + 1) + "Overloads", enforcer.overloadCount());
-            metrics.put("enforcer" + (i + 1) + "RelaySwaps", enforcer.manoeuvre().relaySwaps());
-            metrics.put("enforcer" + (i + 1) + "RelayVents", enforcer.manoeuvre().relayVents());
-            metrics.put("enforcer" + (i + 1) + "ShieldCollapses", enforcer.shieldCollapses());
-            metrics.put("enforcer" + (i + 1) + "ShieldAbsorbed", Math.round(enforcer.shieldAbsorbedDamage()));
-            metrics.put("enforcer" + (i + 1) + "PeakFluxPercent", Math.round(100f * t.peakFlux.getOrDefault(enforcer, 0f)));
-            ShieldTrace st = t.shieldTraces.get(enforcer);
-            if (st != null) st.report("enforcer" + (i + 1), metrics);
-            int[] on = t.targetTicks.getOrDefault(enforcer, new int[2]);
+        List<Warship> rusk = duel.rusk();
+        for (int i = 0; i < rusk.size(); i++) {
+            Warship ship = rusk.get(i);
+            String who = t.names[i + 1];
+            metrics.put(who + "Overloads", ship.overloadCount());
+            metrics.put(who + "RelaySwaps", ship.manoeuvre().relaySwaps());
+            metrics.put(who + "RelayVents", ship.manoeuvre().relayVents());
+            int[] roles = t.roleTicks.getOrDefault(ship, new int[3]);
+            int fighting = roles[0] + roles[1] + roles[2];
+            metrics.put(who + "TankPercent", fighting == 0 ? 0 : Math.round(100f * roles[0] / fighting));
+            metrics.put(who + "StrikerPercent", fighting == 0 ? 0 : Math.round(100f * roles[1] / fighting));
+            metrics.put(who + "ShieldCollapses", ship.shieldCollapses());
+            metrics.put(who + "ShieldAbsorbed", Math.round(ship.shieldAbsorbedDamage()));
+            metrics.put(who + "PeakFluxPercent", Math.round(100f * t.peakFlux.getOrDefault(ship, 0f)));
+            ShieldTrace st = t.shieldTraces.get(ship);
+            if (st != null) st.report(who, metrics);
+            int[] on = t.targetTicks.getOrDefault(ship, new int[2]);
             int total = on[0] + on[1];
             String[] targets = {"Greyhook", "None"};
             for (int k = 0; k < 2; k++) {
-                metrics.put("enforcer" + (i + 1) + "On" + targets[k] + "Percent", total == 0 ? 0 : Math.round(100f * on[k] / total));
+                metrics.put(who + "On" + targets[k] + "Percent", total == 0 ? 0 : Math.round(100f * on[k] / total));
             }
         }
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
@@ -412,14 +476,26 @@ public final class GreyhookDuelScene implements BehaviorScene {
         final Map<Warship, Integer> downTick = new LinkedHashMap<>();
         /** The Greyhook's hull, as a percentage, every thirty seconds after the order. */
         final List<Integer> greyhookHull = new ArrayList<>();
-        float damageToGreyhookSide;
-        float damageToEnforcers;
-        int greyhookShots;
-        int enforcersInReach;
-        float enforcerEntryHeadingError;
         /**
-         * On the tick the first Enforcer's centre crossed the edge: how far the nearest of Greyhook's hulls lay beyond that
-         * Enforcer's reach (negative is inside it), and the reach.
+         * Every thirty seconds after the order: the Greyhook's rounds in those thirty seconds, her flux (percent), the
+         * range to her hull target over her reach (percent, -1 with none), and each of Rusk's hulls' remaining hull.
+         */
+        final List<int[]> windows = new ArrayList<>();
+        private int windowShots;
+        float damageToGreyhookSide;
+        float damageToRusk;
+        int greyhookShots;
+        int ruskInReach;
+        float ruskEntryHeadingError;
+        /** The duel's hulls in {@link BlackSluiceDuel#hulls()} order, as the metrics name them: greyhook, then Rusk's. */
+        final String[] names;
+        /** Ticks the Greyhook's hull target was each hull of Rusk's, in {@link BlackSluiceDuel#rusk()} order, or none (last). */
+        int[] greyhookOn = new int[0];
+        /** Per hull of Rusk's, ticks fighting as the relay's tank, as its striker, and otherwise. */
+        final Map<Warship, int[]> roleTicks = new LinkedHashMap<>();
+        /**
+         * On the tick the first of Rusk's hulls crossed the edge: how far the nearest of Greyhook's hulls lay beyond that
+         * hull's reach (negative is inside it), and the reach.
          */
         float entryGap = Float.NaN;
         float entryReach;
@@ -440,7 +516,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         /** The most two friends lay in each other beyond the pair's contact tolerance. */
         float worstFriendlyExcess = Float.NEGATIVE_INFINITY;
         int friendlyOverlapTicks;
-        /** Per Enforcer, ticks with its hull target the Greyhook, or none. */
+        /** Per hull of Rusk's, ticks with its hull target the Greyhook, or none. */
         final Map<Warship, int[]> targetTicks = new LinkedHashMap<>();
         /** The fullest each hull's flux pool was, as a share of capacity. */
         final Map<Warship, Float> peakFlux = new LinkedHashMap<>();
@@ -469,7 +545,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         float fightMinX = Float.MAX_VALUE, fightMaxX = -Float.MAX_VALUE, fightMinY = Float.MAX_VALUE, fightMaxY = -Float.MAX_VALUE;
         int fightTicks;
         int fightNorthTicks;
-        /** Per Enforcer, how its shield met the Greyhook's fire. */
+        /** Per hull of Rusk's, how its shield met the Greyhook's fire. */
         final Map<Warship, ShieldTrace> shieldTraces = new LinkedHashMap<>();
         /** Where each hull was every thirty seconds after the order, while it was over the battle, by name. */
         final Map<String, List<float[]>> tracks = new LinkedHashMap<>();
@@ -478,6 +554,15 @@ public final class GreyhookDuelScene implements BehaviorScene {
             this.duel = duel;
             this.orderTick = orderTick;
             this.sim = sim;
+            List<BlackSluiceDuel.RuskHull> pair = duel.pair();
+            names = new String[pair.size() + 1];
+            names[0] = "greyhook";
+            for (int i = 0; i < pair.size(); i++) {
+                String n = pair.get(i).name().toLowerCase(Locale.ROOT);
+                boolean twin = false;
+                for (int j = 0; j < pair.size(); j++) twin |= j != i && pair.get(j).name().equals(pair.get(i).name());
+                names[i + 1] = twin ? n + (i + 1) : n;
+            }
         }
 
         /** The tick a story beat was published, or -1. */
@@ -489,8 +574,10 @@ public final class GreyhookDuelScene implements BehaviorScene {
         String caption(String loop, int tick) {
             StringBuilder s = new StringBuilder(String.format(Locale.ROOT, "GREYHOOK DUEL / %s / %ds after the order",
                     loop, Math.max(0, tick - orderTick) / 30));
-            for (Warship hull : duel.hulls()) {
-                String name = "venture".equals(hull.hullId) ? "Greyhook" : "Enforcer";
+            List<Warship> hulls = duel.hulls();
+            for (int i = 0; i < hulls.size(); i++) {
+                Warship hull = hulls.get(i);
+                String name = i == 0 ? "Greyhook" : duel.pair().get(i - 1).name();
                 s.append(" / ").append(name).append(' ').append(hull.destroyed() ? "down"
                         : Math.round(hull.hullFraction() * 100) + "%");
             }
@@ -519,7 +606,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
             return sum;
         }
 
-        /** The edge a hull's side arrives across: the Enforcers' west; Greyhook's side has none, it lifts from its pads. */
+        /** The edge a hull's side arrives across: Rusk's west; Greyhook's side has none, it lifts from its pads. */
         private static MapEdge ownEdge(Warship ship) {
             return ship.faction == Faction.ALLY ? BlackSluiceDuel.RUSK_EDGE : null;
         }
@@ -585,8 +672,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
             for (Warship s : all) startHp.putIfAbsent(s, s.hitPoints());
             Warship greyhook = duel.greyhook();
             if (duel.ordered()) {
-                for (Warship enforcer : duel.enforcers()) {
-                    shieldTraces.computeIfAbsent(enforcer, w -> new ShieldTrace()).observe(enforcer, greyhook);
+                for (Warship ship : duel.rusk()) {
+                    shieldTraces.computeIfAbsent(ship, w -> new ShieldTrace()).observe(ship, greyhook);
                 }
             }
             for (Warship s : all) {
@@ -598,17 +685,17 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 lastShield.put(s, sh);
                 if (dh + ds <= 0f) continue;
                 if (firstHitTick < 0) firstHitTick = tick;
-                if (s.faction == Faction.ALLY) damageToEnforcers += dh + ds;
+                if (s.faction == Faction.ALLY) damageToRusk += dh + ds;
                 else damageToGreyhookSide += dh + ds;
             }
             int shots = 0;
             for (Warship.Mount m : greyhook.mounts()) shots += m.shotsFired;
             if (duel.ordered() && !greyhook.destroyed()) {
                 greyhookShots += shots - lastGreyhookShots;
-                for (Warship enforcer : duel.enforcers()) {
-                    if (!enforcer.destroyed() && !enforcer.departed()
-                            && greyhook.distanceTo(enforcer.centerX(), enforcer.centerY()) <= WarshipDuelHelm.reach(greyhook)) {
-                        enforcersInReach++;
+                for (Warship ship : duel.rusk()) {
+                    if (!ship.destroyed() && !ship.departed()
+                            && greyhook.distanceTo(ship.centerX(), ship.centerY()) <= WarshipDuelHelm.reach(greyhook)) {
+                        ruskInReach++;
                         break;
                     }
                 }
@@ -633,9 +720,21 @@ public final class GreyhookDuelScene implements BehaviorScene {
                     }
                 }
                 if (overlap) friendlyOverlapTicks++;
-                for (Warship enforcer : duel.enforcers()) {
-                    if (enforcer.destroyed() || enforcer.departed() || enforcer.descending()) continue;
-                    targetTicks.computeIfAbsent(enforcer, w -> new int[2])[enforcer.hullTarget() == greyhook ? 0 : 1]++;
+                List<Warship> ruskNow = duel.rusk();
+                if (greyhookOn.length != ruskNow.size() + 1) greyhookOn = new int[ruskNow.size() + 1];
+                if (!greyhook.destroyed() && !ruskNow.isEmpty()) {
+                    Warship aim = greyhook.hullTarget();
+                    int at = aim == null ? -1 : ruskNow.indexOf(aim);
+                    greyhookOn[at < 0 ? ruskNow.size() : at]++;
+                }
+                for (Warship ship : duel.rusk()) {
+                    if (ship.destroyed() || ship.departed() || ship.descending()) continue;
+                    targetTicks.computeIfAbsent(ship, w -> new int[2])[ship.hullTarget() == greyhook ? 0 : 1]++;
+                    if (ship.hullTarget() == greyhook && !greyhook.destroyed()) {
+                        WarshipManoeuvre.Role role = ship.manoeuvre().role();
+                        roleTicks.computeIfAbsent(ship, w -> new int[3])[role == WarshipManoeuvre.Role.TANK ? 0
+                                : role == WarshipManoeuvre.Role.STRIKER ? 1 : 2]++;
+                    }
                 }
                 for (Warship s : all) {
                     if (!s.destroyed()) peakFlux.merge(s, s.fluxFraction(), Math::max);
@@ -643,29 +742,38 @@ public final class GreyhookDuelScene implements BehaviorScene {
             }
             lastTick = tick;
             if (tick == orderTick + 1) {
-                for (Warship enforcer : duel.enforcers()) {
-                    float off = Math.abs(((enforcer.facingDegrees - BlackSluiceDuel.RUSK_HEADING) % 360f + 540f) % 360f - 180f);
-                    enforcerEntryHeadingError = Math.max(enforcerEntryHeadingError, off);
+                for (Warship ship : duel.rusk()) {
+                    float off = Math.abs(((ship.facingDegrees - BlackSluiceDuel.RUSK_HEADING) % 360f + 540f) % 360f - 180f);
+                    ruskEntryHeadingError = Math.max(ruskEntryHeadingError, off);
                 }
             }
             edges(sim, tick, all);
             if (Float.isNaN(entryGap)) {
-                for (Warship enforcer : duel.enforcers()) {
-                    float x = enforcer.centerX();
-                    if (enforcer.destroyed() || x < 0f || x > WIDTH) continue;
+                for (Warship ship : duel.rusk()) {
+                    float x = ship.centerX();
+                    if (ship.destroyed() || x < 0f || x > WIDTH) continue;
                     float near = Float.MAX_VALUE;
                     for (Warship s : all) {
-                        if (s.faction != Faction.ALLY && !s.destroyed()) near = Math.min(near, s.distanceTo(enforcer.centerX(), enforcer.centerY()));
+                        if (s.faction != Faction.ALLY && !s.destroyed()) near = Math.min(near, s.distanceTo(ship.centerX(), ship.centerY()));
                     }
-                    entryReach = WarshipDuelHelm.reach(enforcer);
+                    entryReach = WarshipDuelHelm.reach(ship);
                     entryGap = near - entryReach;
                     break;
                 }
             }
             if (duel.ordered() && tick > orderTick && (tick - orderTick) % 900 == 0) {
                 greyhookHull.add(Math.round(Math.max(0f, greyhook.hullFraction()) * 100f));
+                List<Warship> lent = duel.rusk();
+                int[] w = new int[3 + lent.size()];
+                w[0] = shots - windowShots;
+                windowShots = shots;
+                w[1] = Math.round(100f * greyhook.fluxFraction());
+                Warship aim = greyhook.hullTarget();
+                w[2] = aim == null || greyhook.destroyed() ? -1 : Math.round(100f * greyhook.distanceTo(aim.centerX(),
+                        aim.centerY()) / Math.max(1f, WarshipDuelHelm.reach(greyhook)));
+                for (int i = 0; i < lent.size(); i++) w[3 + i] = Math.round(100f * Math.max(0f, lent.get(i).hullFraction()));
+                windows.add(w);
                 int slot = (tick - orderTick) / 900;
-                String[] names = NAMES;
                 for (int i = 0; i < all.size() && i < names.length; i++) {
                     Warship s = all.get(i);
                     if (s.destroyed() || s.departed()) continue;
@@ -741,22 +849,22 @@ public final class GreyhookDuelScene implements BehaviorScene {
         private float lastFlux, lastAbsorbedFlux;
         private int lastShots, lastBlasterShots;
 
-        void observe(Warship enforcer, Warship attacker) {
+        void observe(Warship ship, Warship attacker) {
             tick++;
-            if (enforcer.destroyed() || enforcer.departed() || enforcer.descending() || attacker.destroyed()) return;
-            capacity = Math.max(capacity, enforcer.fluxCapacity());
-            dissipation = Math.max(dissipation, enforcer.fluxDissipation());
-            arc = enforcer.shieldArcDegrees();
+            if (ship.destroyed() || ship.departed() || ship.descending() || attacker.destroyed()) return;
+            capacity = Math.max(capacity, ship.fluxCapacity());
+            dissipation = Math.max(dissipation, ship.fluxDissipation());
+            arc = ship.shieldArcDegrees();
             ticks++;
             int shots = 0;
-            for (Warship.Mount m : enforcer.mounts()) {
+            for (Warship.Mount m : ship.mounts()) {
                 if (m.pointDefence()) continue;
                 shots += m.shotsFired;
             }
             int blasterNow = 0;
-            for (Warship.Mount m : enforcer.mounts()) if (m.weapon.id().equals("amblaster")) blasterNow += m.shotsFired;
-            float absorbedFlux = enforcer.shieldAbsorbedFlux();
-            float fluxNow = enforcer.fluxFraction();
+            for (Warship.Mount m : ship.mounts()) if (m.weapon.id().equals("amblaster")) blasterNow += m.shotsFired;
+            float absorbedFlux = ship.shieldAbsorbedFlux();
+            float fluxNow = ship.fluxFraction();
             if (lastFlux < 0.9f && fluxNow >= 0.9f) {
                 if (blasterNow > lastBlasterShots) crossBlaster++;
                 else if (shots > lastShots) crossGun++;
@@ -767,27 +875,27 @@ public final class GreyhookDuelScene implements BehaviorScene {
             lastShots = shots;
             lastBlasterShots = blasterNow;
             lastAbsorbedFlux = absorbedFlux;
-            float hp = Math.max(0f, enforcer.hitPoints());
-            float ab = enforcer.shieldAbsorbedDamage();
+            float hp = Math.max(0f, ship.hitPoints());
+            float ab = ship.shieldAbsorbedDamage();
             float dh = Float.isNaN(lastHp) ? 0f : lastHp - hp;
             float ds = Float.isNaN(lastAbsorbed) ? 0f : ab - lastAbsorbed;
             lastHp = hp;
             lastAbsorbed = ab;
-            int sh = enforcer.shieldHits(), hh = enforcer.hullHits();
+            int sh = ship.shieldHits(), hh = ship.hullHits();
             int dsh = lastShieldHits < 0 ? 0 : sh - lastShieldHits;
             int dhh = lastHullHits < 0 ? 0 : hh - lastHullHits;
             lastShieldHits = sh;
             lastHullHits = hh;
             if (dh > 0f || ds > 0f || dsh > 0 || dhh > 0) lastDamageTick = tick;
             boolean underFire = tick - lastDamageTick <= UNDER_FIRE_TICKS;
-            boolean up = enforcer.shieldUp();
-            boolean absorbing = enforcer.shieldAbsorbing();
-            float flux = enforcer.fluxFraction();
-            boolean lockedOut = enforcer.shieldLockedOut();
-            float bearing = AirBody.facingToward(attacker.centerX() - enforcer.shieldCentreX(),
-                    attacker.centerY() - enforcer.shieldCentreY());
-            float off = Math.abs(((bearing - enforcer.shieldFacingDegrees()) % 360f + 540f) % 360f - 180f);
-            boolean inArc = off <= enforcer.shieldArcDegrees() * 0.5f;
+            boolean up = ship.shieldUp();
+            boolean absorbing = ship.shieldAbsorbing();
+            float flux = ship.fluxFraction();
+            boolean lockedOut = ship.shieldLockedOut();
+            float bearing = AirBody.facingToward(attacker.centerX() - ship.shieldCentreX(),
+                    attacker.centerY() - ship.shieldCentreY());
+            float off = Math.abs(((bearing - ship.shieldFacingDegrees()) % 360f + 540f) % 360f - 180f);
+            boolean inArc = off <= ship.shieldArcDegrees() * 0.5f;
             if (up) upTicks++;
             if (absorbing) absorbingTicks++;
             if (inArc) {
@@ -805,10 +913,10 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 sumOffUnderFire += off;
                 offSamples++;
                 if (!up) {
-                    if (enforcer.overloaded()) downOverload++;
+                    if (ship.overloaded()) downOverload++;
                     else if (lockedOut) downLockout++;
                     else if (!inArc) downOutsideArc++;
-                    else if (enforcer.hullTarget() == null) downNoTarget++;
+                    else if (ship.hullTarget() == null) downNoTarget++;
                     else downOther++;
                 }
             }
@@ -836,7 +944,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 }
             }
             if (wasUp && !up) {
-                if (enforcer.overloaded()) dropOverload++;
+                if (ship.overloaded()) dropOverload++;
                 else if (lockedOut) dropLockout++;
                 else dropQuiet++;
             }

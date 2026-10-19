@@ -124,7 +124,12 @@ Tri-Tachyon energy weapons (house='hand')
   laser), 0.86 (reaper).
   The PD laser (pdlaser, common tech) is the same family: a rounded dark
   housing, a red armoured collar with louvres on top, and an elliptical light
-  emitter drum stepped down to its lens (IoU 0.91).
+  emitter drum stepped down to its lens (IoU 0.91). It is a laser / plasma
+  mount, so it carries heavy power cabling: a junction box on the housing's
+  crown aft, two armoured cables a side (_cable: a tube swept along a Bezier)
+  arching over the collar's shoulders on a clamp saddle, sleeve bands along
+  them, gland collars where they enter the drum, and coolant ports on the
+  drum's flanks. Cables are the 'cable' key (dark rubber by default).
   Their paints are halfway between the sprite's colour and Tri-Tachyon's pale
   ceramic, and keep more of their colour than the military livery does
   (catalogue `chroma` .7 against LIVERY's .35): recognisable, not cartoonish

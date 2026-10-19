@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a1546d-90d4-7db1-83ba-a3424efbf373",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1546d-90d4-7db1-83ba-a3424efbf373\\exec-e8cfd720-c6dd-4c6f-9272-f3a42d85bc6b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-top-c.png",
+    "sha256": "6a7b9c1b913e6228b8e1b5cf76d87d61108bb3ee52085e0290fb2203b8123bcc",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-top-c.prompt.txt",
+  "promptSha256": "457493f92a0db75da948323dd056891ffab1b42d42ba91c350561ca99bc16795",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of the hull of one 3D spacecraft (a Legion-class battlecarrier, a 290 m Hegemony capital ship of the XIV Battlegroup), each seen square-on and drawn as flat-coloured shapes on a plain flat mid-blue background. Each tile is a crop of a much larger ship, so it holds many separate plates and fittings with background blue between them:\ntop-left: port wing arm, forward middle, from above, a cluster of separate flat-coloured plates, armour slabs and fittings;\ntop-right: port wing arm, middle, from above, a cluster of separate flat-coloured plates, armour slabs and fittings;\nbottom-left: port wing arm, aft middle, from above, a cluster of separate flat-coloured plates, armour slabs and fittings;\nbottom-right: port wing arm root aft, from above, a cluster of separate flat-coloured plates, armour slabs and fittings;\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its well kept military finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that military hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline; every gap, hole or slot between and inside shapes stays plain background blue. Do not join separate shapes and do not fill the blue between them.\n- Each shape is a flat painted armoured steel surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels and hatches, subtle panel-to-panel tone differences, a light even film of service grime in the seams and a few tiny scuffs. Detail is fine and in scale with a 290 m capital ship: many small panels, not a few large ones. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: light warm grey areas are a warm mid-grey military enamel; orange areas are the XIV Battlegroup's burnt orange armour enamel; pale tan areas are a sandy tan enamel; white areas are a chalky bone-white enamel; mid grey areas are dark gunmetal grey steel; near-black areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-top-c-guide.png",
+      "sha256": "6445e3f60b758f89209ad1d6e2fa5b40cc747729e06662c1f808296ef70436be",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of faces to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "0a21b27e36f2066f89110b9066d2dc2a48e5e6c7b66be6d423c5c914308099f7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned sheet, preserving Image 1’s layout and using Image 2 only for the material finish."
+  ],
+  "usage": {
+    "input_tokens": 47453,
+    "cached_input_tokens": 35584,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 775,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.3
+}
