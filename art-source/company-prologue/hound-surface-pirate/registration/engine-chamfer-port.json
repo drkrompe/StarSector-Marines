@@ -1,0 +1,59 @@
+{
+ "part": "engine-chamfer-port",
+ "sheet": "engines",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9778,
+ "raw_iou": 0.928,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9431,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.928
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0051,
+    1.04348
+   ],
+   "offset_px": [
+    -2.33,
+    -11.65
+   ],
+   "iou": 0.9418
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0046,
+    1.04398
+   ],
+   "offset_px": [
+    -2.08,
+    -11.65
+   ],
+   "iou": 0.9431
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 3.73,
+  "p95_px": 25.0,
+  "max_px": 46.17
+ },
+ "boundary_fitted_px": {
+  "mean_px": 3.13,
+  "p95_px": 23.11,
+  "max_px": 44.1
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
