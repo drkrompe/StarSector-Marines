@@ -159,3 +159,7 @@ hound-surface-*/skin-manifest*.json
 hound-surface-*/guide/*
 !hound-surface-*/guide/sheet-*-guide.png
 !hound-surface-*/guide/reference-guide.png
+
+# Kite (P): the .blend is a build output of build_kite.py, rebuilt from the scripts.
+kite-geometry/**/*.blend
+kite-geometry/**/*.blend1

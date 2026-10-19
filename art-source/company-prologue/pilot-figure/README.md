@@ -37,7 +37,11 @@ How he is built:
   over 8.3-8.8 s; drawing it out as he sits back over 8.8-9.45 s; pushed over 9.5-10.4 s as the
   de-orbit starts at 9.6 s; a small turn to port and back over 10.7-12.5 s; eased back over
   12.5-13.2 s as the pitch-down ends; letting go and settling over 13.5-14.7 s, the yoke left
-  drawn out where he set it.
+  drawn out where he set it. On top of that, small life (owner, 2026-10-19): a slow breath,
+  and where he looks, shared by neck, head and eyes with the eyes leading. He looks ahead at
+  the Legion, follows each fighter flight past to port (3.0 and 4.2 s), glances down at the
+  console, turns to port as the Legion comes abeam (8.0 s), looks ahead to the yoke, checks
+  the slits as it rises, and once he has let go watches it climb out of them.
   The windows are constants in `build_pilot.py`. The C2 blockout and render set the scene
   frame per sample, so the bridge shots play it; the bridge review takes `--frame`.
 - **Modelled parts:** the collar, the harness, the belt, the headset and the patches. They are
