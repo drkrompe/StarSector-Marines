@@ -1781,9 +1781,11 @@ for one mission:
   low hover, a berthed hull, a pilot's helm, every craft of fighter size).
   `-Dbattle.warship.edgePressure=false` is the control.
 - **An escort screens beside its charge.** Fighting a hull, an escort interposes: it
-  stands in line between its charge and the threat, just clear of the charge's side that
-  faces it, its fellow escorts spaced square to the threat, so a screen and the ship it
-  screens meet the enemy together, the screen first.
+  stands in line between its charge and the threat, clear of the charge however either
+  turns (both hulls' half-diagonals and the screen's gap), its fellow escorts spaced square
+  to the threat, so a screen and the ship it screens meet the enemy together, the screen
+  first. A screen changing sides comes round its charge on that radius rather than
+  across its bow or along its side.
 - **Warships are bodies and do not pass through one another** (`warship-tactics.md`).
   Every pair of hulls frigate-sized and up, friend or foe, is in contact on its real
   footprint; fighters, bombers, drones and boats fly over a capital freely, and falling
@@ -1796,7 +1798,10 @@ for one mission:
   escorting or leaving bends its course (and, on a manoeuvre, its bow) away from any
   hull it would close inside the screen line's gap, looking as far ahead as its handling
   needs, and keeps its station clear of friends. An escort's screen keeps a narrower gap
-  within itself and carries its charge's way.
+  within itself and carries its charge's way, but an escort gives its own charge the whole
+  gap: the charge flies its fight and the screen makes way.
+  `-Dbattle.warship.escortClearance=false` is the control (the narrower gap toward the
+  charge, a station just off its side, and a straight course across it).
 - **A hull fight is flown in manoeuvres, decided for the group** (`warship-tactics.md`).
   Once a second each side's hunters (ships fighting hulls with their duel helm, not
   escorts) are given a **role** and a target: against a charge with escorts one hunter
