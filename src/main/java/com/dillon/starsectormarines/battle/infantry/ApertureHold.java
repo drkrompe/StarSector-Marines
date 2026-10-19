@@ -147,6 +147,19 @@ public final class ApertureHold implements Action {
     private static int parseSlotIdx(String slot) {
         int colon = slot.indexOf(':');
         if (colon < 0) return -1;
+        int digits = slot.length() - colon - 1;
+        if (digits < 1 || digits > 9) return parseSlowSlotIdx(slot, colon);
+        int value = 0;
+        for (int i = colon + 1; i < slot.length(); i++) {
+            int digit = slot.charAt(i) - '0';
+            if (digit < 0 || digit > 9) return parseSlowSlotIdx(slot, colon);
+            value = value * 10 + digit;
+        }
+        return value;
+    }
+
+    /** The general case (sign, non-ASCII digits, overlong): same answers as before. */
+    private static int parseSlowSlotIdx(String slot, int colon) {
         try {
             return Integer.parseInt(slot.substring(colon + 1));
         } catch (NumberFormatException e) {

@@ -1490,6 +1490,8 @@ def build():
     add_landing_dust()
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
+    import port_life                                    # the public port at work, on through C5
+    port_life.add(sys.modules[__name__])
     import c4_farm                                       # the farmland at work: field detail, machines, traffic
     c4_farm.add(sys.modules[__name__])
     import c4_jungle                                    # layered canopy past the fence
@@ -1502,7 +1504,8 @@ def build():
     ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
-    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP)
+    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
+             | port_life.HAZE_SKIP)
     add_camera(scene)
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness

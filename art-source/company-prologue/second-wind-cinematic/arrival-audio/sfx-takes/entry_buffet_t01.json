@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "50",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Airframe buffeting in heavy turbulence inside a spacecraft cabin, loose fittings rattling, heavy thumps against the hull",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "d89e9807b3f1f726282ef645dc46d0431ddcad7eecb8a64e218b97f8e8e1dd15",
+  "durationSeconds": 5.0,
+  "peakDb": -0.4,
+  "integratedLufs": -12.7
+}

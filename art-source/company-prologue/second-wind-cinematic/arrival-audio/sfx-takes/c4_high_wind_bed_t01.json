@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "High altitude open air wind, soft steady breeze, airy, calm, no gusts, no birds",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "141c247294b82282320e352a1481285e1d9ae40e3550bb519ceaea2ce538a7ae",
+  "durationSeconds": 12.0,
+  "peakDb": -48.4,
+  "integratedLufs": -63.8
+}

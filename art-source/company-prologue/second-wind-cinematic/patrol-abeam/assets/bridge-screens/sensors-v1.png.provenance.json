@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154c8-c644-7ad3-acf5-e799d5f3049e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c8-c644-7ad3-acf5-e799d5f3049e\\exec-623fa74d-9dc5-4c7c-aa78-d51ccb20f49e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\sensors-v1.png",
+    "sha256": "007ae0c058c7bb7ad33bd99a2166bfc05363edea4924426b2122309a3180a304",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-sensors-v1.txt",
+  "promptSha256": "95bacd351434b36d8401451f5cf33f7536e223966c9c6bc682fb5abedee4d694",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nWide landscape canvas (about 2:1). The sensor page: a circular radar / lidar sweep scope on the left with range rings, a sweep wedge and contact blips with small leader-line labels, and on the right a smaller passive bearing-versus-time waterfall and a stack of readouts (SWEEP 360, RANGE 25 KM, CONTACTS 6, EMCON NORM).\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate the single sensor-display image with the imagegen skill."
+  ],
+  "usage": {
+    "input_tokens": 36951,
+    "cached_input_tokens": 33024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 420,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.7
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Distant busy industrial spaceport ambience, heavy cranes, machinery, faint reversing beepers, metal clanks, far engine whine, outdoors",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "ab0fe2afaed034b085d58d781583dfdb80da4afaac75ccc8a696128088efa8cc",
+  "durationSeconds": 12.0,
+  "peakDb": -3.1,
+  "integratedLufs": -19.6
+}

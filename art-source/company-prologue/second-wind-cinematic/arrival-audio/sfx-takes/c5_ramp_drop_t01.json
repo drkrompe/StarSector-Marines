@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "40",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy hydraulic cargo ramp lowering from a ship, hydraulic whine, then a heavy metal clunk as it meets the ground",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "783666a8fc2712f1f6c221ea6d207881eba16eb91bfde5560e23655707903295",
+  "durationSeconds": 4.0,
+  "peakDb": 0.0,
+  "integratedLufs": -12.2
+}
