@@ -986,6 +986,16 @@ support sortie, subject only to practical runtime resources.
   All commits use the atomic campaign refit commands. An explicit empty weapon
   mount remains empty in the frozen deployment and fixture serialization. An
   authored empty socket stays visible while an absent socket produces no well.
+- The catalog beside the doll filters by hardpoint category or by cargo stock
+  without losing the selected socket's context, and clicking a dock on the doll
+  selects that socket. A card in free cargo stock offers a spare install with no
+  bill; one that must be fabricated shows its material bill and affordability.
+  Weapon cards and the equipped rack read damage, range, trigger capacity and
+  ammunition, and a candidate shows its difference from what the selected socket
+  holds. An occupied, unlocked mount can be stripped back to cargo in one atomic
+  command. Factory-locked internals read as recessed rather than as swappable
+  mounts. Hover ghosting on docks and on the top performance meters is
+  presentation only: it projects a candidate and never changes hardware.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real
   battle entities consumed by the ordinary unit render system. The retained host
@@ -1097,6 +1107,11 @@ mechs owns the mechanical and tactical meaning of a chassis and hardpoint.
 armor profile receives damage and exposes an armor-break transition.
 Rendering consumes the variant and installed mounts to show the same body that
 simulation uses; it does not choose stats or doctrine.
+Infantry equipment recovery owns which ordinary marine fetches or picks up a
+dropped demolition kit; mechs own the classification that keeps a machine out of
+it. Live `MECH_LOADOUT` membership is that classification, never faction, unit
+type or rendering, so a future chassis is excluded without the recovery sweep
+knowing it. A drop with only mechs nearby stays unassigned.
 
 
 ## Thermal reservoir and weapon mechanisms
