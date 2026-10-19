@@ -892,6 +892,17 @@ ground scale:
   fast into it and detonates as an ordinary blast credited to itself. It is the only
   role the bay rebuilds, slowly, as a Terminator's mini-fac does.
 
+  The strike is a heavy shell delivered by hand, and it is held to that family rather than
+  to anything special. Its blast kills a rifleman in any standard pattern it reaches and
+  does not kill a power suit, the same armor reach as a field mortar or a tank's twin
+  cannon, and its kill radius sits in the same band. It aims at one hostile, never at a
+  group's middle, and it fuses within a cell of that man. So it takes a picket standing a
+  cell apart whole, and from a picket two or three cells apart it takes only the man it
+  was sent at. What it buys over a shell is precision, paid for with one blast per
+  rebuild. A picket wiped out by a skimmer was a picket that had closed up under fire and
+  been worn down by the escorts first. `StrikeBlastTest` pins the law, and the
+  `drone-strike-spacing` scene measures it in a played fight.
+
 Any other drone lost stays lost. When the hull is wrecked or leaves, the anchor dies, and
 every drone still out is destroyed where it flies and falls through the ordinary drone
 crash. Bay drones carry a sturdier airframe than a hub's disposable screen, because they
