@@ -73,10 +73,19 @@ public final class MissilePath {
     private final float weaveAmplitude;
     private final float weaveHz;
     private final float weavePhase;
+    /** The share of the flight, at its end, flown straight down the line: the terminal run. Zero for none. */
+    private final float terminal;
 
     private MissilePath(float fromX, float fromY, float toX, float toY, float v0, float vMax, float acc,
                         float burn, float tau, float armingSeconds, float bulge, float weaveAmplitude,
                         float weaveHz, float weavePhase) {
+        this(fromX, fromY, toX, toY, v0, vMax, acc, burn, tau, armingSeconds, bulge, weaveAmplitude, weaveHz,
+                weavePhase, 0f);
+    }
+
+    private MissilePath(float fromX, float fromY, float toX, float toY, float v0, float vMax, float acc,
+                        float burn, float tau, float armingSeconds, float bulge, float weaveAmplitude,
+                        float weaveHz, float weavePhase, float terminal) {
         float dx = toX - fromX;
         float dy = toY - fromY;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
@@ -111,6 +120,7 @@ public final class MissilePath {
         this.weaveAmplitude = weaveAmplitude;
         this.weaveHz = weaveHz;
         this.weavePhase = weavePhase;
+        this.terminal = Math.max(0f, Math.min(0.8f, terminal));
     }
 
     /**
@@ -158,6 +168,56 @@ public final class MissilePath {
         }
         return new MissilePath(fromX, fromY, toX, toY, v0, vMax, acc, spec.burnSeconds(), tau,
                 spec.armingSeconds(), bulge, amplitude, hz, phase);
+    }
+
+    /** {@code -Dbattle.warship.missileFlight=false} is the control: a missile at a hull flies the ground flight's shape. */
+    public static final boolean HULL_FLIGHT = !"false".equalsIgnoreCase(System.getProperty("battle.warship.missileFlight"));
+    /** The widest a guided missile at a hull leaves its line toward the tube's bearing, in degrees. */
+    static final float GUIDED_LAUNCH_DEGREES = 40f;
+    /** The widest a heavy body (a torpedo, a Harpoon) leaves its line: it is pointed, then runs in. */
+    static final float HEAVY_LAUNCH_DEGREES = 12f;
+    /** The terminal run's share of the flight: a guided missile's dive, and a heavy body's long straight run-in. */
+    static final float GUIDED_TERMINAL = 0.25f;
+    static final float HEAVY_TERMINAL = 0.45f;
+    /** A heavy body's weave against a guided missile's: it holds its line. */
+    static final float HEAVY_WEAVE_SHARE = 0.25f;
+
+    /**
+     * A missile's flight at a hull, read as one: it leaves the tube along the barrel's bearing ({@code launchDegrees},
+     * the hull-facing convention) and swings onto its line in a <b>launch arc</b>, weaves through the middle of its
+     * flight, and flies the last of it straight down the line in a <b>terminal run</b>. A heavy body (a torpedo or a
+     * Harpoon) is pointed rather than swung: a short arc, barely a weave, and a long straight run-in, so a torpedo reads
+     * as a slow deliberate blow a defender sees coming. An unguided rocket keeps its own wobble. Kinematics along the
+     * line are {@link #plan}'s, so its timing, speed and landing are unchanged; only the shape across the line differs.
+     */
+    public static MissilePath atHull(MissileFlightSpec spec, float fromX, float fromY, float toX, float toY, long seed,
+                                     float speedScale, float launchDegrees, boolean heavy) {
+        MissilePath base = plan(spec, fromX, fromY, toX, toY, seed, speedScale);
+        if (!HULL_FLIGHT || spec.guidance() == MissileFlightSpec.Guidance.UNGUIDED && !heavy) return base;
+        // How far the barrel's bearing lies off the line, signed to the line's left.
+        double r = Math.toRadians(launchDegrees);
+        float lx = (float) -Math.sin(r);
+        float ly = (float) Math.cos(r);
+        float along = lx * base.dirX + ly * base.dirY;
+        float across = lx * -base.dirY + ly * base.dirX;
+        float off = (float) Math.toDegrees(Math.atan2(across, along));
+        float limit = heavy ? HEAVY_LAUNCH_DEGREES : GUIDED_LAUNCH_DEGREES;
+        float terminal = heavy ? HEAVY_TERMINAL : GUIDED_TERMINAL;
+        // A tube already on the line still fans a little, to the side its seed gives, so a volley is a trumpet.
+        float fan = Math.abs(off) < 2f ? Math.signum(base.bulge == 0f ? 1f : base.bulge) * limit * 0.25f
+                : Math.max(-limit, Math.min(limit, off));
+        // The arc is flown over the shaped share of the flight, so its peak is that share's.
+        float shaped = base.aimedLength * (1f - terminal);
+        float bulge = shaped * (float) Math.tan(Math.toRadians(fan)) / (float) Math.PI;
+        float weave = heavy ? base.weaveAmplitude * HEAVY_WEAVE_SHARE : base.weaveAmplitude * (1f - terminal);
+        return new MissilePath(fromX, fromY, toX, toY, base.v0, base.vMax, base.acc,
+                base.burnEnd == Float.MAX_VALUE ? 0f : base.burnEnd, base.tau, base.seconds, bulge, weave,
+                base.weaveHz, base.weavePhase, terminal);
+    }
+
+    /** The terminal run's share of the flight; zero for a path with none. */
+    public float terminalShare() {
+        return terminal;
     }
 
     /** A round that flies a plain line at one speed: a gun's shell, and the control the shaped paths are measured against. */
@@ -229,6 +289,8 @@ public final class MissilePath {
     public float lateral(float t) {
         if (length <= 1e-4f) return 0f;
         float u = Math.max(0f, Math.min(1f, distance(t) / length));
+        // The terminal run: the lateral shape is flown out over the leading share, then the round comes straight in.
+        if (terminal > 0f) u = Math.min(1f, u / (1f - terminal));
         float envelope = (float) Math.sin(Math.PI * u);
         float wave = weaveAmplitude * (float) Math.sin(2f * Math.PI * weaveHz * t + weavePhase);
         return envelope * (bulge + wave);

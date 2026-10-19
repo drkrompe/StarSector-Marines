@@ -1,0 +1,236 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.997)",
+ "space": "CIELAB D65",
+ "classes": {
+  "grey": {
+   "pixels": 168930,
+   "mean": [
+    51.47,
+    3.53,
+    6.44
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    37.15,
+    54.46,
+    63.09
+   ],
+   "mean_srgb": [
+    133.4,
+    120.3,
+    111.9
+   ],
+   "std_measured": [
+    11.38,
+    1.39,
+    2.24
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "orange": {
+   "pixels": 65028,
+   "mean": [
+    51.3,
+    29.72,
+    35.1
+   ],
+   "std": [
+    8.0,
+    2.0,
+    3.5
+   ],
+   "L_p10_p50_p90": [
+    37.08,
+    52.96,
+    62.74
+   ],
+   "mean_srgb": [
+    182.3,
+    100.3,
+    63.4
+   ],
+   "std_measured": [
+    10.26,
+    3.5,
+    3.76
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "tan": {
+   "pixels": 4668,
+   "mean": [
+    54.55,
+    6.95,
+    17.65
+   ],
+   "std": [
+    8.0,
+    1.0,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    43.1,
+    55.04,
+    66.81
+   ],
+   "mean_srgb": [
+    153.2,
+    125.4,
+    100.4
+   ],
+   "std_measured": [
+    11.1,
+    1.56,
+    2.62
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "bone": {
+   "pixels": 46199,
+   "mean": [
+    68.81,
+    3.49,
+    7.43
+   ],
+   "std": [
+    7.0,
+    0.5,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    49.38,
+    70.97,
+    86.81
+   ],
+   "mean_srgb": [
+    180.0,
+    165.3,
+    154.7
+   ],
+   "std_measured": [
+    14.5,
+    1.35,
+    1.62
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "gunmetal": {
+   "pixels": 48810,
+   "mean": [
+    30.2,
+    1.67,
+    1.44
+   ],
+   "std": [
+    10.0,
+    0.6,
+    1.6
+   ],
+   "L_p10_p50_p90": [
+    12.55,
+    27.99,
+    51.3
+   ],
+   "mean_srgb": [
+    74.8,
+    70.2,
+    68.9
+   ],
+   "std_measured": [
+    15.13,
+    1.53,
+    1.62
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 6520,
+   "mean": [
+    6.9,
+    2.88,
+    1.73
+   ],
+   "std": [
+    6.5,
+    0.5,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    0.0,
+    5.87,
+    15.3
+   ],
+   "mean_srgb": [
+    26.3,
+    19.8,
+    18.7
+   ],
+   "std_measured": [
+    6.35,
+    2.63,
+    1.81
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "deck": {
+   "derived": "owned: dark flight deck plate, a step above the recess tone",
+   "mean": [
+    14.0,
+    1.0,
+    1.5
+   ],
+   "std": [
+    5.0,
+    0.5,
+    0.8
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what worn paint reveals and what service deposits.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    3.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    36.0,
+    2.5,
+    7.0
+   ],
+   "what": "fine grey-brown grime and particulate in seams"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    66.0,
+    2.0,
+    6.0
+   ],
+   "what": "chalked, UV-bleached paint: faded grey and orange go paler and greyer, not white"
+  }
+ }
+}
