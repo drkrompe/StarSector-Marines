@@ -71,6 +71,12 @@ public final class GreyhookDuelScene implements BehaviorScene {
      * -Dbattle.scene.greyhookDuel.frameEvery} raises it so a whole fifteen-minute fight fits a review GIF's size.
      */
     private static final int FRAME_EVERY = Math.max(1, Integer.getInteger("battle.scene.greyhookDuel.frameEvery", 30));
+    /**
+     * Seconds after the order before any frame is recorded, {@code -Dbattle.scene.greyhookDuel.framesFrom}: a review
+     * excerpt of the fight's end at a dense cadence, rather than the whole fight at a sparse one. The run and its
+     * verdicts are unchanged; the recorder (and its camera) starts at that tick.
+     */
+    private static final int FRAMES_FROM_SECONDS = Math.max(0, Integer.getInteger("battle.scene.greyhookDuel.framesFrom", 0));
     private static final long[] SEEDS = {15305L, 16205L, 16206L, 20261016L, 31337L};
     /**
      * How far, as a share of its own margin, a hull the edge pressure holds may still be found inside that margin: the
@@ -191,9 +197,31 @@ public final class GreyhookDuelScene implements BehaviorScene {
             duel.advance(s);
         };
         SceneRun.of(world).observe(script).observe(trace)
-                .frames(frames, loop, FRAME_EVERY, tick -> trace.caption(loop, tick))
+                .frames(from(frames, orderTick + 30 * FRAMES_FROM_SECONDS), loop, FRAME_EVERY,
+                        tick -> trace.caption(loop, tick))
                 .run(TICKS);
         return report(loop, trace, duel);
+    }
+
+    /** {@code sink} with nothing recorded, and its recorder not advanced, before {@code firstTick}. */
+    private static FrameSink from(FrameSink sink, int firstTick) {
+        if (firstTick <= 0) return sink;
+        return new FrameSink() {
+            @Override
+            public void frame(String loopId, BattleSimulation sim, int tick, String caption) {
+                sink.frame(loopId, sim, tick, caption);
+            }
+
+            @Override
+            public void advanced(String loopId, BattleSimulation sim, int tick) {
+                if (tick >= firstTick) sink.advanced(loopId, sim, tick);
+            }
+
+            @Override
+            public boolean records(String loopId, BattleSimulation sim, int tick, int sceneEveryTicks) {
+                return tick >= firstTick && sink.records(loopId, sim, tick, sceneEveryTicks);
+            }
+        };
     }
 
     private SceneReport report(String loop, Trace t, BlackSluiceDuel duel) {
