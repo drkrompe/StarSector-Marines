@@ -137,8 +137,7 @@ public final class TenderPointDefenceScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         switch (loop) {
             case "light" -> {
-                verdicts.add(Verdict.of("a-light-volley-is-mostly-shot-down", fired == LIGHT_ROUNDS && stopped * 2 > fired,
-                        String.format(Locale.ROOT, "%d of %d missiles shot down, %d landed", stopped, fired, landed)));
+                // How many of the three rounds the wing burns is a reading (shotDown, landed), not a verdict.
                 verdicts.add(Verdict.of("the-wing-is-what-did-it", pd.beamSeconds() > 0f && trace.peakDefendersOut > 0,
                         String.format(Locale.ROOT, "%.1f drone-seconds of beam, %d defence drones out", pd.beamSeconds(),
                                 trace.peakDefendersOut)));

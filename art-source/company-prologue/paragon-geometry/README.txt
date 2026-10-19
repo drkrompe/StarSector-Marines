@@ -89,11 +89,15 @@ Bridge and under-bridge (pg_bridge; owner, pass 3)
   longitudinal ribs and a centreline boss on the forward tier, the bridge tower's
   wraparound glazing, vent cluster, comms mast and sensor dish, chevron fins on
   the neck and a vent array on the spine. Under it, the gantry stops at the bore's
-  edge (pg_hull.GANTRY_FRONT_X) so the deck's nose cantilevers clear over the
-  bore, raised above the loop: keel beam, transverse frames, pipe runs, downlights
-  and a glazed observation blister looking down into the bore. The gantry's
-  bulkhead facing the bore has ribs, a lit airlock and vents; its flanks carry
-  struts leaning aft, a pipe bundle and machinery units.
+  edge (pg_hull.GANTRY_FRONT_X, on the lining's flat top) so the deck's nose
+  cantilevers clear over the bore, raised above the loop: keel beam, transverse
+  frames, pipe runs, downlights and a glazed observation blister looking down
+  into the bore. The gantry's bulkhead stands on the lining up to the deck's
+  underside: full-height ribs carrying the deck, plating panels between them, an
+  observation gallery's window band and an airlock at its foot; its flanks carry
+  struts leaning aft, a pipe bundle and machinery units. Windows sit flush on the
+  vertical walls at the foot of each tier in dark frames (never on a chamfer), and
+  the tower's glazing is one band round its vertical wall with dark mullions.
 
 Bore machinery (pg_bore; owner, pass 3)
   The bore is the soft, exposed part of the ship. Read off the sprite's lining
