@@ -4,7 +4,8 @@
             --out DIR [--figures] [--views a,b] [--exterior-only] [--no-shadows]
 
 Interior views stand where C2's bridge camera stands (forward and port stations), plus an
-overview of the room, a cutaway from above with the roof lifted off, and a plan. The exterior
+overview of the room, a cutaway from above with the roof lifted off, a plan, and close-ups
+(console face, helm seat, aft hatch, the patched cable runs) for the detail C2 gets close to. The exterior
 views (port quarter and a bridge close-up, orthographic, the driver's own framings) exist so
 two builds can be pixel-diffed to show the outside of the ship did not move.
 
@@ -88,7 +89,8 @@ def glazing(o):
 
 
 def above_room(o):
-    if glazing(o) or o.name.startswith(('Command deck armoured roof', 'Command deck visor brow')):
+    if glazing(o) or o.name.startswith(('Command deck armoured roof', 'Command deck visor brow',
+                                        'Bridge wall ribs', 'Bridge header trim')):
         return True
     bb = [o.matrix_world @ Vector(c) for c in o.bound_box]
     lo = Vector([min(v[i] for v in bb) for i in range(3)])
@@ -105,6 +107,12 @@ VIEWS = {
     '04-room-from-hatch': (glazing, dict(pos=(9.9, -1.2, 19.4), target=(17.5, 1.5, 18.0), lens=15)),
     '05-cutaway': (above_room, dict(pos=(8.0, -11.0, 30.0), target=(13.4, 0.5, 17.4), lens=28)),
     '06-plan': (above_room, dict(pos=(13.45, 0, 40.0), target=(13.45, 0, 0), ortho=17.5)),
+    # Close-ups for the detail pass: Castle's comms bank face, the helm seat, the aft hatch and
+    # the patched cable runs across the ceiling and down the port mullion.
+    '09-console-face': (glazing, dict(pos=(11.75, 3.05, 19.05), target=(12.0, 4.25, 18.45), lens=30)),
+    '10-helm-seat': (glazing, dict(pos=(16.95, -.45, 19.05), target=(16.15, -1.8, 18.35), lens=22)),
+    '11-aft-hatch': (glazing, dict(pos=(11.3, -1.5, 18.6), target=(9.3, -.1, 18.0), lens=24)),
+    '12-cable-runs': (glazing, dict(pos=(13.9, .3, 19.0), target=(11.2, 3.0, 19.85), lens=20)),
     '07-exterior-port-quarter': (lambda o: False, dict(pos=(100, 130, 100), target=(5, 0, 1), ortho=163)),
     '08-exterior-bridge': (lambda o: False, dict(pos=(60, 60, 50), target=(12, 0, 14), ortho=55)),
 }
