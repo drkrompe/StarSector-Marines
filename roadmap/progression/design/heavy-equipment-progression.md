@@ -483,45 +483,47 @@ was better on every axis that decides a duel, and the mech's heat stacked on top
 
 **Readings** (`armorMatchup`, explicit fits, open / hull-down / street, eight
 seeds, both roles; Bulwark win share, a timeout read by integrity left). Both
-columns are on the same tree, with the Bulwark arms balanced as equipment and
-the anti-armor fire order in place; *before* is that tree with the tanks as they
-were. Fits: stock; refit chaingun; refit heavy cannon, bastion and pulse arms.
+columns are on the same tree, with the Bulwark arms balanced as equipment, the
+anti-armor fire order and the missile warheads (*Missile warheads*, below) in
+place; *before* is that tree with the tanks as they were. Fits: stock;
+refit chaingun; refit heavy cannon, bastion and pulse arms.
 
 | | Before | After |
 | --- | --- | --- |
-| All five fits | 0.00 | 0.48 |
-| Four refit fits | 0.00 | 0.59 |
-| By ground: open / hull-down / street | 0.00 / 0.00 / 0.00 | 0.37 / 0.39 / 0.69 |
+| All five fits | 0.01 | 0.54 |
+| Four refit fits | 0.01 | 0.64 |
+| By ground: open / hull-down / street | 0.00 / 0.00 / 0.03 | 0.37 / 0.45 / 0.81 |
 | Hull-down with the Bulwark holding the berm | 0.00 | 0.59 |
-| Against breakthrough / heavy gun | 0.00 / 0.00 | 0.55 / 0.41 |
-| Fight range under 20 / 20-30 / over 30 cells | 0.00 / 0.00 / 0.00 | 0.70 / 0.46 / 0.06 |
-| Stock / refit chaingun Bulwark | 0.00 / 0.00 | 0.06 / 0.38 |
-| Refit heavy cannon / bastion / pulse | 0.00 / 0.00 / 0.00 | 0.57 / 0.75 / 0.66 |
-| Refit Bulwark with two LRM-15 / bastion and two LRM-15 | 0.10 / 0.15 | 0.91 / 0.92 |
-| Hound, stock and refit | 0.00 | 0.00 |
-| Sirocco stock / refit | 0.00 | 0.09 / 0.18 |
+| Against breakthrough / heavy gun | 0.00 / 0.02 | 0.56 / 0.53 |
+| Fight range under 20 / 20-30 / over 30 cells | 0.04 / 0.00 / 0.00 | 0.78 / 0.53 / 0.08 |
+| Stock / refit chaingun Bulwark | 0.00 / 0.01 | 0.18 / 0.48 |
+| Refit heavy cannon / bastion / pulse | 0.01 / 0.02 / 0.01 | 0.57 / 0.79 / 0.70 |
+| Refit Bulwark with two AT LRM-15 / bastion and two AT LRM-15 | 0.12 / 0.15 | 0.89 / 0.91 |
+| Hound, stock and refit | 0.00 | 0.00 / 0.01 |
+| Sirocco (Frag LRM-5s), stock and refit | 0.00 | 0.00 |
 | Tank against tank, seconds from first hit | 45-47 | 52-55 |
-| Tank against a Bulwark, seconds from first hit | 31-38 | 55-67 |
+| Tank against a Bulwark, seconds from first hit | 32-39 | 52-62 |
 
-(The LRM, Hound and Sirocco *before* figures were read before that merge.)
-The split holds by range: beyond 30 cells the tank wins 94% of the time, and
-under 20 the mech wins 70%. Read by fit and ground, the heavy cannon is the
-cleanest example of the identity: 0.31 in the open, 0.47 hull-down, 0.94 in
-the street. The rows that do not fit it yet are owned elsewhere, and are
-reported here rather than tuned:
+The split holds by range: beyond 30 cells the tank wins 92% of the time, and
+under 20 the mech wins 78%. Read by fit and ground, the heavy cannon is the
+cleanest example of the identity: 0.31 in the open, 0.47 hull-down, 0.94 in the
+street; the factory fit goes 0.03 / 0.06 / 0.44. The rows that do not fit the
+identity yet are owned elsewhere, and are reported here rather than tuned:
 
-- **Missile fits beat tanks everywhere, the open included** (two LRM-15s 0.91,
-  open 0.91). The racks out-reach or match both guns and now meet plate they
-  defeat. That is the missiles' anti-armor role, but stronger than "the tank
-  wins in the open" allows. It belongs to the missile-rack direction
-  (anti-armor against fragmentation).
-- **The energy and autocannon arms win in the open** (bastion 0.75, pulse 0.62
+- **LRM fits beat tanks everywhere, the open included** (two AT LRM-15s 0.89).
+  The racks match the heavy gun's reach, out-reach the breakthrough tank, and
+  their contact warhead (penetration 30) meets plate it defeats at full damage.
+  That is the missiles' anti-armor role, but stronger than "the tank wins in the
+  open" allows. Missile reach or the AT warhead's damage is the lever, and both
+  belong to the missile direction.
+- **The energy and autocannon arms win in the open** (bastion 0.72, pulse 0.56
   there). Their reach (34, 32) and penetration (14, 9) now meet a plate they
-  bite, and the breakthrough tank's stand-off works only beyond a 4-cell edge.
-  If the open is to stay the tank's against these arms, the next lever is the
-  breakthrough tank's reach, not its plate.
-- **The stock chaingun Bulwark still loses (0.06)**: the chaingun is the
-  anti-infantry arm, and a stock frame's reservoir carries little missile fire.
+  bite, and the breakthrough tank stands off only when it out-reaches its target
+  by 4 cells. If the open is to stay the tank's against these arms, the next
+  lever is the breakthrough tank's reach, not its plate.
+- **Streets lean hard to the mech (0.81)**, more than the target's spread. The
+  street holds fights at 17 cells, inside the AT SRM's reach, so the warheads did
+  the work there. A tank in a street is the wrong tool, so this is accepted for now.
 - **Nothing knocks out a tank's gun.** A hull's turret has no section or pool,
   so "a tank that has lost its main gun" exists today only as an empty
   magazine. A vehicle gun that damage can disable would be a new mechanic (the
@@ -600,7 +602,8 @@ takes clearly more off it than the old rack did: a refit Bulwark leaves a
 breakthrough tank 0.74 of its integrity against 0.88 and a heavy-gun tank 0.70
 against 0.85, and a Hound leaves them 0.90 and 0.91 against 0.93 and 0.95. AT rockets hit about a third
 of the time against about half for the old area rack, because a contact warhead
-needs the body. Win shares against tanks stay at zero.
+needs the body. Win shares against tanks stayed at zero until the tanks were
+retuned (*A tank against the heavy mech*).
 
 **Why SRMs barely decide a mech fight**, warhead or not: SRM reach is 18 cells.
 In the open, mech duels settle at 19-22 cells (the outer part of the chaingun's
