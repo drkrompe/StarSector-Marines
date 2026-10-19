@@ -723,7 +723,7 @@ shared hull profile is front 1.0 rating / 1.1 plate, side 0.9 / 0.9, rear
   tanks of its own line. The heavy APC's gain on the technical runs the right way.
   The flank rows above narrow the tank's lead over an escort APC only when the
   tank is caught off its front. That is flanking working, and head-on the tank
-  still wins 0.92-0.96.
+  still wins 0.88-0.96.
 - **Two machines on one.** `2x` attackers (Bulwark, Hound, breakthrough, escort
   APC) against each tank win as often as without arcs, and kill 2-8 s sooner.
   The harness drives every attacker off the same approach, so it never sets up a
