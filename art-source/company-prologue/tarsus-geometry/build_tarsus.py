@@ -45,8 +45,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import ts_kit, ts_hull, ts_bridge, ts_engines, ts_mounts, ts_fittings
-MODULES = (ship_scale, ts_kit, ts_hull, ts_bridge, ts_engines, ts_mounts, ts_fittings)
+import ts_kit, ts_hull, ts_arms, ts_body, ts_bridge, ts_engines, ts_mounts, ts_fittings
+MODULES = (ship_scale, ts_kit, ts_hull, ts_arms, ts_body, ts_bridge, ts_engines, ts_mounts, ts_fittings)
 for module in MODULES:
     importlib.reload(module)
 
@@ -104,6 +104,8 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = ts_kit.Kit()
 ts_hull.build(kit)
+ts_arms.build(kit)
+ts_body.build(kit)
 ts_bridge.build(kit)
 ts_engines.build(kit)
 ts_fittings.build(kit)
