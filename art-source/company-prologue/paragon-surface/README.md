@@ -1,6 +1,6 @@
 # Paragon: surfacing
 
-Status: REVIEW (pass 6 round 2 posted 2026-10-19).
+Status: REVIEW (pass 6 round 3 posted 2026-10-19).
 Written: 2026-10-19
 
 The Paragon's folder for the shared surfacing harness
@@ -17,7 +17,7 @@ face, its plate size set per part, with its own relief. The owner kept it
 (2026-10-19). So the harness runs in its opt-in **overlay** mode
 (`surface_hull.OVERLAY`): every base material keeps its own colour and relief,
 and the graded Codex texture only modulates it, by its departure from its class
-mean at a per-class strength (0.8-1.0 since round 2). The wear layer bumps the hex relief
+mean at a per-class strength (0.6-0.75: round 2 ran 0.8-1.0 and read too dirty for a Tri-Tachyon flagship). The wear layer bumps the hex relief
 rather than replacing it. No surface is repainted, so no hex moves.
 
 ## Livery
@@ -39,8 +39,8 @@ copies of these materials), and so do the glazing and every glow and lamp.
   **finish layer only**: strong glaze mottling, cloudy grime and visible
   blue-gold heat tint, with no tiles, seams or fasteners (the geometry has those). Graded
   to the palette within about 2 L, tiled at 12 hull units (10.4 m) per image.
-- **Wear**: the `service` row of `wear.json`, raised in round 2 (grime 0.5,
-  soot 0.75): grime in seams, soot at the ten drives, scuffing on exposed
+- **Wear**: the `service` row of `wear.json`, set halfway between rounds 1 and 2 (grime 0.36,
+  soot 0.6): grime in seams, soot at the ten drives, scuffing on exposed
   ceramic edges. The wear colours are owned for ceramic: a scuffed
   glaze shows a paler body, and fade goes paler and bluer, never yellow.
 
