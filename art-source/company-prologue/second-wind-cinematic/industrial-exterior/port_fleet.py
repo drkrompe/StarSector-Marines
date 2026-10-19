@@ -22,8 +22,10 @@ A freighter pad is 68 m across; the Hound (61 m), Mudskipper (67 m) and Shepherd
 to tail. The Colossus is 108 x 89 m and fits only the heavy berth's 130 x 100 m walled deck.
 
 In the air, both well below the camera and never across its path:
-  'Colossus outbound'  a second Colossus lifting out low over the warehouses in C5, lift thrusters
-                       lit: the top view's traffic.
+  'Colossus outbound'  a second Colossus leaving through C5 (DEPART_KEYS): in low along the south
+                       side of Kilo Nine as the rise begins, then climbing away north-west, small
+                       and still burning under the title. Its plumes hang off its thruster markers
+                       (`after_markers`, called after `thrust_shots.mark_c4`).
   'Shepherd inbound'   a Shepherd letting down northward over the belt in C4's first seconds.
 
 Inputs: build/c1v2/inputs/{hound-skinned,mudskipper-skinned}.blend as before; shepherd.blend,
@@ -36,14 +38,16 @@ from pathlib import Path
 
 import bmesh
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix
 
 PROLOGUE = Path(__file__).resolve().parents[2]
 
-# name: (blend file, collection, metres per unit, rest z on a 3 m freighter pad, +X is the bow)
+# name: (blend file, collection, metres per unit, rest z on a 3 m freighter pad, +X is the bow).
+# Every hull here is +X bow (each geometry.json says so), so a parked hull is turned to its lane's
+# heading and its stern, where the cargo comes out, points back down the lane.
 HULLS = {
-    'hound': ('hound-skinned.blend', 'Collection', 0.88, 11.0, False),
-    'mudskipper': ('mudskipper-skinned.blend', 'Collection', 0.85, 11.0, False),
+    'hound': ('hound-skinned.blend', 'Collection', 0.88, 11.0, True),
+    'mudskipper': ('mudskipper-skinned.blend', 'Collection', 0.85, 11.0, True),
     'shepherd': ('shepherd.blend', 'SHEPHERD', 0.78, 3.0 + 16.76 * 0.78, True),
     'colossus': ('colossus.blend', 'COLOSSUS', 0.50, 52.9 * 0.50, True),
     'hermes': ('hermes.blend', 'HERMES', 0.11, 2.5, True),
@@ -57,7 +61,12 @@ LIVERIES = {
 BERTH_HULLS = {'hound': ('hound', None), 'unloading': ('shepherd', None), 'lifting': ('mudskipper', 'teal'),
                'fuelling': ('shepherd', 'slate'), 'ferry': ('mudskipper', None)}
 C5_SECONDS = 33.5                     # how far past C4's end anything moving is keyed
-HAZE_SKIP = {'Fleet lift glow'}
+HAZE_SKIP = {'Fleet plume core', 'Fleet plume glow'}
+# The departing Colossus (C4+C5 seconds after C4's end): shown from DEPART_SHOW, in the frame as the
+# rise starts, climbing away north-west under the title; drives burning the whole time it is shown.
+DEPART_SHOW = 10.0
+DEPART_KEYS = ((10.0, 700.0, 160.0, 60.0), (22.0, 170.0, 370.0, 160.0), (C5_SECONDS, -280.0, 430.0, 480.0))
+DEPART_MAIN, DEPART_LIFT = 0.8, 1.0
 
 
 def find(c4, filename):
@@ -141,7 +150,7 @@ def add(c4):
                 e.location.z = z
                 e.keyframe_insert('location', frame=f)
         # Bow up the lane, stern (where the cargo comes out) back down it toward the container yard.
-        e.rotation_euler = (0, 0, c4.ROW_HEADING + math.radians(off) + (0.0 if bow else c4.STERN_FIRST))
+        e.rotation_euler = (0, 0, c4.ROW_HEADING + math.radians(off) + (0.0 if bow else math.pi))
     for i, (x, who) in enumerate(c4.LIGHTERS):
         if who == 'empty':
             continue
@@ -168,40 +177,6 @@ def heavy(c4, fleet):
     e.location = (cx - 17.535 * 0.5, cy + 1.5 * 0.5, 0.2 + rest)
 
 
-def lift_glows(coll):
-    """The Colossus's ten ventral lift thrusters, in hull units (its export's anchors)."""
-    out = []
-    for o in coll.all_objects:
-        n = o.name.split('.')[0]
-        if n.startswith('Engine ') and n.endswith(' exhaust anchor'):
-            try:
-                k = int(n.split()[1])
-            except ValueError:
-                continue
-            if k >= 7:
-                out.append(rest_matrix(o).translation.copy())
-    return out
-
-
-def rest_matrix(o):
-    """Where `o` sits in its file's own frame. The hull's collection is excluded from the view
-    layer and never evaluated, so matrix_world is stale; compose the parent chain instead."""
-    m = o.matrix_parent_inverse @ o.matrix_basis
-    return (rest_matrix(o.parent) @ m) if o.parent is not None else m
-
-
-def glow_material():
-    m = bpy.data.materials.get('Fleet lift glow')
-    if m is None:
-        m = bpy.data.materials.new('Fleet lift glow')
-        m.use_nodes = True
-        p = m.node_tree.nodes['Principled BSDF']
-        p.inputs['Base Color'].default_value = (1.0, 0.6, 0.3, 1)
-        p.inputs['Emission Color'].default_value = (1.0, 0.6, 0.3, 1)
-        p.inputs['Emission Strength'].default_value = 30.0
-    return m
-
-
 def fly(e, keys, F):
     """Key `e` through (C4+C5 second, x, y, z, heading) at a steady speed between keys."""
     for t, x, y, z, hd in keys:
@@ -218,27 +193,22 @@ def air(c4, fleet):
     T = c4.DURATION
     END = T + C5_SECONDS
     F = round(END * c4.FPS)
-    # A second Colossus lifting out low over the warehouses in C5, 260 m climbing to 420 m, east-north-
-    # east: it comes into the top view from the west edge as the rise ends, well clear of the berth
-    # Mudskipper climbing straight up off berth 3. It is hidden, shadow and all, until its first key.
+    # A second Colossus leaving: it comes in low along the south side of Kilo Nine, big in the frame as
+    # the rise begins, and climbs away north-west, small and still burning under the title. It is
+    # airborne before it is shown, so there is no lift dust; until DEPART_SHOW it is hidden (shadow too).
     e, rest, bow = fleet.place('Colossus outbound', 'colossus')
-    hd = math.atan2(90.0, 700.0)
-    fly(e, [(T + 22.0, -800.0, 180.0, 260.0, hd), (END, -100.0, 270.0, 420.0, hd)], F)
-    coll = e.instance_collection
-    glows = lift_glows(coll)
-    for i, p in enumerate(glows):
-        bm = bmesh.new()
-        bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=1.0)
-        g = c4.mesh('Colossus outbound lift glow %d' % i, bm, glow_material())
-        g.parent = e
-        g.matrix_parent_inverse = Matrix.Identity(4)
-        g.location = p + Vector((0, 0, -4.0))
-        g.scale = (5.0, 5.0, 7.0)
-    for ob in [e] + list(e.children):
-        for f, hidden in ((0, True), (round((T + 22.0) * c4.FPS), False)):
-            ob.hide_render = ob.hide_viewport = hidden
-            ob.keyframe_insert('hide_render', frame=f)
-            ob.keyframe_insert('hide_viewport', frame=f)
+    (t0, x0, y0, _), (t2, x2, y2, _) = DEPART_KEYS[0], DEPART_KEYS[-1]
+    hd = math.atan2(y2 - y0, x2 - x0)
+    for t, x, y, z in DEPART_KEYS:
+        f = round((T + t) * c4.FPS)
+        e.location = (x, y, z)
+        e.rotation_euler = (0, 0, hd)
+        e.keyframe_insert('location', frame=f)
+        e.keyframe_insert('rotation_euler', frame=f)
+    for f, hidden in ((0, True), (round((T + DEPART_SHOW) * c4.FPS), False)):
+        e.hide_render = hidden
+        e.keyframe_insert('hide_render', frame=f)
+    e.hide_render = True
     # A Shepherd letting down northward over the belt in C4's first seconds, from 420 m to 320 m, left
     # of the camera's track: under it for the opening seconds of the pan, a hull plainly in the air at
     # well under half the camera's height, keeping pace with the pan. It goes on north past the port and
@@ -249,3 +219,66 @@ def air(c4, fleet):
     fly(e, [(0.0, -320.0, -230.0, 420.0, hd), (c4.PAN, -260.0, 620.0, 320.0, hd),
             (T, -220.0, 620.0 + 850.0 * (T - c4.PAN) / c4.PAN, 280.0, hd)], F)
     print('PORT_FLEET hulls', sorted('%s%s' % (h, '/' + l if l else '') for h, l in fleet.colls), flush=True)
+
+
+def after_markers(c4):
+    """After `thrust_shots.mark_c4`: the departing Colossus's throttle, and its plumes hung off its
+    nozzle markers (`thrust-markers/README.md`). Its mains point aft, so they are what reads from
+    above; the lift jets under the hull are lit too, for whatever a lower view or the sound wants."""
+    import thrust_markers as tm
+    craft = bpy.data.objects.get('Colossus outbound')
+    if craft is None:
+        return
+    T = c4.DURATION
+    marks = [o for o in bpy.data.objects if o.parent == craft and o.name.startswith(tm.PREFIX)]
+    on = T + DEPART_SHOW
+    tm.key(marks, [(0.0, 0.0), (on - 0.1, 0.0), (on, DEPART_MAIN)], c4.FPS, kinds=('main',))
+    tm.key(marks, [(0.0, 0.0), (on - 0.1, 0.0), (on, DEPART_LIFT)], c4.FPS, kinds=('lift',))
+    core, glow = plume_materials()
+    s = craft.scale.x
+    n = 0
+    for m in marks:
+        if m.get('thrust_kind') != 'main':
+            continue
+        r = float(m.get('radius_m', 1.5))
+        # Exaggerated past a bell's true flame so a burn reads from 1.8 km: a hot core and a wider glow.
+        for mat, length, width in ((core, 14.0 * r, 0.9 * r), (glow, 26.0 * r, 1.8 * r)):
+            p = cone(mat.name + ' | ' + m.name.split(' | ', 1)[1], mat, c4)
+            p.parent = m
+            p.matrix_parent_inverse = Matrix.Identity(4)
+            p.hide_render = True
+            p.keyframe_insert('hide_render', frame=0)
+            p.hide_render = False
+            p.keyframe_insert('hide_render', frame=round(on * c4.FPS))
+            p.scale = (length / s, width / s, width / s)
+        n += 1
+    print('PORT_FLEET departure plumes=%d shown from %.2f s (C5 %.2f s)' % (n, on, DEPART_SHOW), flush=True)
+
+
+def cone(name, mat, c4):
+    """A plume along local +X from the mouth: unit length, unit radius at the mouth."""
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=12, radius1=1.0, radius2=0.05, depth=1.0)
+    bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=Matrix.Rotation(math.pi / 2, 3, 'Y'))
+    bmesh.ops.translate(bm, verts=bm.verts, vec=(0.5, 0, 0))
+    ob = c4.mesh(name, bm, mat)
+    ob.visible_shadow = False
+    return ob
+
+
+def plume_materials():
+    out = []
+    for name, rgb, strength, alpha in (('Fleet plume core', (1.0, 0.85, 0.6), 60.0, 1.0),
+                                       ('Fleet plume glow', (1.0, 0.5, 0.15), 18.0, 0.45)):
+        m = bpy.data.materials.get(name)
+        if m is None:
+            m = bpy.data.materials.new(name)
+            m.use_nodes = True
+            m.surface_render_method = 'BLENDED'
+            p = m.node_tree.nodes['Principled BSDF']
+            p.inputs['Base Color'].default_value = rgb + (1,)
+            p.inputs['Emission Color'].default_value = rgb + (1,)
+            p.inputs['Emission Strength'].default_value = strength
+            p.inputs['Alpha'].default_value = alpha
+        out.append(m)
+    return out
