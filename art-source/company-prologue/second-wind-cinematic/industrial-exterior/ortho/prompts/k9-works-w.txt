@@ -1,0 +1,11 @@
+This tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the west side of its north half: the fabrication hall where hulls are mended, and the plate stock.
+
+What the regions are:
+- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.
+- The dark grey vertical strip at the far left: the yard's haul road of packed dark gravel with patches of old asphalt, deep tyre tracks, mud at the edges.
+- The large rust-brown rectangle with four long pale strips: the roof of the fabrication hall, corrugated metal gone rust-brown with patched sheets, the pale strips are long skylight roof lights of milky translucent panels, dirty. The dark short bars along its south edge: roll-up door hoods, dark steel.
+- The dark grey horizontal rectangle: an apron of packed dark gravel and old asphalt in front of the hall, tyre tracks and oil.
+- The rows of small blue, green, orange and white rectangles: the roofs of stacked cargo modules, ribbed painted steel with rust streaks, scuffs and stencil-free panels.
+- The long thin yellow straight lines running north-south: the rails of an overhead plate crane, heavy steel rails on a concrete ground beam painted safety yellow, worn.
+- The grey rectangles in rows between the crane rails: stacked steel plate and salvaged hull sections, grey primer and bare steel, weld scars, rust bloom, scorch marks.
+- The thin rust-brown bars at the right edge: stacked steel beams, rusty.

@@ -6,7 +6,7 @@ back over the scene from directly above. The geometry-first rule (`art-source/ge
 imagegen.md`) holds: this code owns every edge, ImageGen only paints material inside them.
 
     blender --background --factory-startup --python ortho_paint.py -- guide <tile> [<tile> ...]
-    python  ortho_paint.py paint <tile>                    (outside Blender: one paid generation)
+    python  ortho_paint.py paint <tile> [--style <tile>]   (outside Blender: one paid generation)
 
 Tiles are listed in `ortho/tiles-<layer>.json`: a name, a centre and size in metres, and a pixel
 size. A list's `layer` orders it: coarse tiles over the whole port first, finer ones over them.
@@ -22,6 +22,7 @@ look up, and leaves walls and anything moving alone. Tiles later in the list lie
 their edges feathered so neighbouring paintings blend rather than seam.
 """
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -75,6 +76,7 @@ def ship_names(c4):
 def render_guides(names):
     import bpy
     sys.path.insert(0, str(HERE))
+    os.environ['ORTHO_PAINT_OFF'] = '1'           # a guide is drawn from the blockout, never from paint
     import c4x_scene as c4
     scene = c4.build()
     scene.frame_set(c4.FRAMES - 1)
@@ -126,6 +128,8 @@ def render_guides(names):
 def apply(scene, ships=()):
     """Lay every accepted tile over the static objects' materials, on upward faces only."""
     import bpy
+    if os.environ.get('ORTHO_PAINT_OFF'):
+        return 0
     accepted = [(t, ORTHO / 'raw' / (t['name'] + '.png')) for t in tiles().values() if t.get('accepted')]
     accepted = [(t, p) for t, p in accepted if p.exists()]
     if not accepted:
@@ -208,7 +212,7 @@ def math_node(nt, op, a, b, c=None):
 
 # ---------------------------------------------------------------- outside Blender
 
-def paint(name):
+def paint(name, style=None):
     guide = ORTHO / 'guides' / (name + '.png')
     if not guide.exists():
         raise SystemExit('render the guide first: %s' % guide)
@@ -219,6 +223,10 @@ def paint(name):
     out = ORTHO / 'raw' / (name + '.png')
     cmd = [sys.executable, str(REPO / 'tools' / 'codex_imagegen.py'), '--prompt', str(full), '--out', str(out),
            '--ref', '%s=%s' % (guide, 'EDIT TARGET: the overhead guide to repaint; keep every edge where it is')]
+    if style:                                     # an accepted neighbour: same materials, same finish
+        cmd += ['--ref', '%s=%s' % (ORTHO / 'raw' / (style + '.png'),
+                                    'STYLE REFERENCE: an already painted neighbouring tile of the same place. '
+                                    'Match its materials, colours, wear and finish exactly; do not copy its layout')]
     raise SystemExit(subprocess.call(cmd))
 
 
@@ -227,4 +235,4 @@ if __name__ == '__main__':
     if argv[0] == 'guide':
         render_guides(argv[1:])
     elif argv[0] == 'paint':
-        paint(argv[1])
+        paint(argv[1], argv[argv.index('--style') + 1] if '--style' in argv else None)

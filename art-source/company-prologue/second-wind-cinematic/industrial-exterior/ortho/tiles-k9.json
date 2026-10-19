@@ -17,6 +17,125 @@
       ],
       "accepted": true,
       "about": "Kilo Nine's south half: the pad, the ramp side, the workshop and the gate. C5's opening view, 9.4 cm a pixel."
+    },
+    {
+      "name": "k9-east",
+      "centre": [
+        448.0,
+        440.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The pad's east side, the bowser and fuel tanks, the garden, the east fence and the jungle edge.",
+      "accepted": true
+    },
+    {
+      "name": "k9-hangar",
+      "centre": [
+        366.0,
+        528.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The hangar, the stacked modules and the haul road up the west fence.",
+      "accepted": true
+    },
+    {
+      "name": "k9-derrick",
+      "centre": [
+        448.0,
+        528.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The derrick over the salvage pile, the pad's north edge and the east fence.",
+      "accepted": true
+    },
+    {
+      "name": "k9-works-w",
+      "centre": [
+        366.0,
+        616.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The fabrication hall and the branch road to the works.",
+      "accepted": true
+    },
+    {
+      "name": "k9-works-e",
+      "centre": [
+        448.0,
+        616.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The plate crane over the plate stock and hull sections.",
+      "accepted": true
+    },
+    {
+      "name": "k9-north-w",
+      "centre": [
+        366.0,
+        704.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The parts store and the turning ground at the head of the haul road.",
+      "accepted": true
+    },
+    {
+      "name": "k9-north-e",
+      "centre": [
+        448.0,
+        704.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The generators, day tanks and the scrap heap in the north-east corner.",
+      "accepted": true
     }
   ],
   "layer": 1

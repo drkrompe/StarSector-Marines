@@ -1,0 +1,13 @@
+This tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the east side of its north half: the plate stock under the overhead crane, and the east fence.
+
+What the regions are:
+- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.
+- The rust-brown rectangle at the left edge with pale strips: the roof of the fabrication hall, corrugated metal gone rust-brown with patched sheets, the pale strips are long skylight roof lights of milky translucent panels, dirty. The dark short bars along its south edge: roll-up door hoods, dark steel.
+- The dark grey horizontal rectangle: an apron of packed dark gravel and old asphalt in front of the hall, tyre tracks and oil.
+- The long thin yellow straight lines running north-south: the rails of an overhead plate crane, heavy steel rails on a concrete ground beam painted safety yellow, worn.
+- The grey rectangles in rows between the crane rails: stacked steel plate and salvaged hull sections, grey primer and bare steel, weld scars, rust bloom, scorch marks.
+- The stack of thin rust-brown bars: stacked steel beams and pipe stock, rusty.
+- The small blue square at the top left: the roof of a cargo module.
+- The thin dark vertical line with small light dots near the right: the yard's east fence, a chain-link fence on steel posts, seen from above as a thin dark line. Keep it thin and straight. The grey strip just east of it: a muddy service track along the fence.
+- Dark green beyond the fence: jungle undergrowth, dense broad-leaved plants and ferns, wet. The large brown patches in it: bare red-brown earth and burnt clearings, with fallen leaves and stumps.
+- Round dark green blobs: the crowns of jungle trees seen from above, dense leafy canopy.

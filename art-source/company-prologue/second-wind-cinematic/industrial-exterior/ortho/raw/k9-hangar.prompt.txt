@@ -1,0 +1,23 @@
+Repaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.
+
+Hard rules:
+- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.
+- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.
+- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.
+- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.
+- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.
+- Fill the whole frame edge to edge. No border.
+
+Setting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.
+
+This tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the west side, between the landing pad and the yard's haul road: the hangar and the scaffold.
+
+What the regions are:
+- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.
+- The dark grey vertical strip at the far left: the yard's haul road of packed dark gravel with patches of old asphalt, deep tyre tracks, mud at the edges.
+- The large rust-brown rectangle: the hangar roof, corrugated metal gone rust-brown, patched sheets of different ages, a ridge vent, streaks.
+- The large pale grey disc: the landing pad, a low concrete slab 96 m across. Cast concrete panels with joint lines, heavy scorching and soot fanning out from its centre where ships' drives fire on landing, oil rings, patch repairs. Keep every yellow marking exactly as drawn (the dashed inner ring, the long centre line and the cross bar), as worn, chipped, faded paint.
+- The ring of chunky yellow dashes around the pad: painted yellow-and-black edge blocks on the gravel, scuffed.
+- The pale tan bar with a dark outline beside the pad: the deck of a repair scaffold tower, steel grating planks, worn and paint-spattered.
+- The grey angular slabs to the upper right: piled salvage plate and broken hull pieces, grey primer and bare steel, scorched, rusting. The dark diagonal line: the boom of a lattice derrick crane, dark painted steel.
+- The small tan shapes at the bottom left: wooden and plastic crates and pallets. The blue square: the roof of a cargo module.

@@ -1,9 +1,9 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death) and slice 6 (one-on-one duels flown for position) built
+Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position) and slice 7 (the pack relay) built
 
 Written: 2026-10-16
-Updated: 2026-10-18 — slice 6: one-on-one duels orbit, cross the T, counter and break; measured against the control
+Updated: 2026-10-18 — slice 7 integrated with its two fixes (tank ceiling on hard flux, vents inside the edge margin); Black Sluice now fought by two Enforcers
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -143,7 +143,8 @@ between hulls by the same factor the atmosphere slowed the rounds:
   bear; the helm flies it. A manoeuvre is chosen from the situation and never scripted.
 - **Group** — the ships of one side fighting hulls together, read each second. Escorts belong to their charge's group.
 - **Role** — what a ship is for in its group this minute: **lead** or **second** of a line, **pin** (engage the
-  escorts), **flank** (go round to the prize), **screen** (an escort interposing), or **free** (a lone ship).
+  escorts), **flank** (go round to the prize), **screen** (an escort interposing), **tank** or **striker** of a
+  relay (slice 7), or **free** (a lone ship).
 - **Target distribution** — who fights whom, decided for the group, not each ship for itself. Two ships on one hull is
   a decision (focus fire on a hull worn under a third, or the last hull left), and then they work it from different
   sides.
@@ -166,6 +167,9 @@ range and bearing to its target, its plate and its flux. No hull is named.
 | Flank | the flank role | wide round the prize's escorts to the prize's far quarter | the prize is in reach from that quarter: an attack or broadside run |
 | Screen | an escort | in line between its charge and the nearest threat, parallel to the charge's course | the threat leaves or the charge is lost |
 | Line ahead | second of a line | in the lead's wake at a fixed interval, matching its course | the lead is lost or the line breaks |
+| Hold aggro | a relay's tank | nearer than its partners, on the target's battery side, nose and shield on, firing only while the hard flux its shield holds stays under half its pool | the pack swaps |
+| Strike | a relay's striker | on the target's quarter at the standoff, round from the tank, off its shield arc where it can, at full fire | it runs high (a vent) or takes the target over (a swap) |
+| Vent | a relay ship off duty | nose-on, holding fire, while its partner closes to take over; then away past the target's reach (inside its edge margin, on the course with the most room), shield down | its pool is low: a strike |
 
 A ship in a manoeuvre travels **along its nose**: a hull fighting hulls can drift sideways and astern only at a
 fraction of its speed, so its motion reads as a ship's course rather than a hover that strafes. The duel helm's
@@ -481,6 +485,173 @@ control's 110, inside the contact tolerance and never overlapping. The warship s
 
 Getting round an equal at these ranges is real but brief, and is mostly a matter of who turns in first.
 
+## Slice 7: the pack relay
+
+The owner: "Maybe that's the pack tactics - we have one frigate aggro and focus on flux maintain while the other
+attacks, then when they get high flux they swap roles and dump flux by re-positioning to catch aggro". Before this
+slice two bow ships on one hull took opposite sides of it and flew the same runs and standoffs, both shields up, both
+taking fire; against a bigger hull both pools filled and both ships died.
+
+**What a target picks, and the change it needed.** A lone hull choosing between two hunters took the cheapest by range
+over its reach, minus a keeping bonus of half a reach. That never responds to a ship turning away, so a tank that broke
+off to vent stayed the target's target (measured with the relay on and this rule unchanged: the venting Wolf was the
+Venture's target for 75% of its vent). The change is narrow and is the target's own: a ship **set upon by two or more
+hulls** whose hull has stopped being a threat to it (less than half its battery laid on it, or out of its own reach)
+chooses again with threat weighed (`WarshipTactics.menace`: the share of a hull's battery laid on the chooser from
+inside its reach, a hull closing from just outside counting for up to half, and the turn to answer it), keeping only
+half its keeping bonus. Scoping it to a ship set upon matters: applied to every chooser it had Wolfs in an even 2v2
+drop a worn Hound for one facing them (`frigate-visit` stopped resolving), and a Hound's hardpoint left its target
+more often (`frigate-duel-helm`). `-Dbattle.warship.threatTargeting=false` is the control.
+
+**The relay** (`WarshipTactics.relay`, once a second, after target distribution): two or more bow ships on one hull,
+not a line of broadside ships and not an escorted charge (those keep line, and flank and pin). One is the **tank**:
+the target's own target if it has one in the pack, else the one with most flux to spare. It holds aggro: nearer than
+its partners (three quarters of the standoff), on the bearing where the target's battery bears, weighed heavily
+against flying round, so it closes where it is; nose and shield on; it starts no salvo past half its pool unless the
+target is overloaded. The rest are **strikers**: the target's quarter at the standoff, round from the tank (a
+bearing inside ninety degrees of it costs up to the target's full battery) and off its shield arc where it can, and,
+not being the target's target, firing on to the pressing ceiling. **The swap**: after twelve seconds in role, a tank
+at half its pool hands over to a striker under two fifths and inside its own reach. The new tank closes; the old
+holds fire and backs off nose-on (the standoff's vent drift) until its partner is nearer the target, in reach and
+with its battery on, then turns away, runs to past the target's reach and holds there with its shield down until
+its pool is under three tenths, and comes back as a striker. A tank at 85% with nobody fresh breaks off anyway, as a
+duel's break does; a striker at three quarters vents while the tank holds.
+
+**How it fits the standing laws.** Momentum and turning are untouched: every station is flown by the ordinary helm,
+along the nose. Soft contact, avoidance and edge pressure act as on any manoeuvre. The front-shield law gets one
+exception, decided here: the old tank turns its stern in reach only once its partner is nearer and laid on the
+target, so the target's choice has somewhere better to go. Fights to the death are unchanged: a vent leaves the
+fight's reach but not the fight. A one-on-one stays a duel.
+
+Measured on `warship-tactics`: two of Rusk's Wolfs against a Venture (the Greyhook's fit) and against an Enforcer,
+each from three openings (the target's start swung north, centre, south), each against a control loop with the relay
+off. Verdicts (all pass): the pack swaps; once turned away, the venting ship is the target's target for at most half
+its vent (28-42%); and the pack spends less of the fight within a tenth of overload than the control. The handover
+before the turn is reported separately: the old tank is the target's target for nearly all of it, by design.
+
+| loop | swaps (per min) | vent targeted | pack near overload | pack overloads | Wolfs as target's target (s) | outcome, from first hit | damage to Wolfs / to target |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| venture, control | 0 | - | 1.1% | 0 | 237 / 340 | both Wolfs lost, 471s, Venture 99% | 15,000 / 21,275 |
+| venture, relay | 13 (0.99) | 29% | 0.3% | 0 | 440 / 460 | unresolved at 790s, Wolfs 7% / 15%, Venture 99% | 37,274 / 22,987 |
+| venture north, control | 0 | - | 1.0% | 0 | 421 / 308 | both lost, 610s | 22,000 / 22,900 |
+| venture north, relay | 12 (0.92) | 28% | 0.6% | 0 | 598 / 292 | both lost, 780s, Venture 98% | 29,800 / 29,269 |
+| venture south, control | 0 | - | 1.9% | 0 | 273 / 304 | both lost, 459s | 12,900 / 20,958 |
+| venture south, relay | 12 (0.95) | 42% | 1.3% | 0 | 348 / 522 | both lost, 754s, Venture 99% | 40,200 / 19,374 |
+| enforcer, control | 0 | - | 2.0% | 0 | 133 / 44 | both lost, 95s, Enforcer 100% | 13,390 / 200 |
+| enforcer, relay | 5 (0.45) | 30% | 1.3% | 1 | 451 / 288 | both lost, 664s, Enforcer 24% | 25,175 / 30,212 |
+| enforcer north, control | 0 | - | 3.4% | 1 | 246 / 225 | both lost, 373s, Enforcer 92% | 21,340 / 18,072 |
+| enforcer north, relay | 6 (0.58) | 34% | 0.4% | 0 | 474 / 225 | **Enforcer destroyed**, 619s, Wolfs 35% / 44% | 23,058 / 37,250 |
+| enforcer south, control | 0 | - | 1.5% | 0 | 557 / 175 | both lost, 641s, Enforcer 86% | 20,890 / 26,452 |
+| enforcer south, relay | 4 (0.41) | 37% | 0.4% | 0 | 184 / 482 | **Enforcer destroyed**, 585s, Wolfs 18% / 96% | 19,490 / 37,700 |
+
+Damage counts shield and hull. The relay's one overload against the Enforcer is the opening: the Enforcer outranges a
+Wolf (270 cells against 203), so the first tank absorbs its whole approach alone with no partner in reach to take
+over. Against the Enforcer the relay turns three losses into two wins and a near thing; against the Venture it keeps
+both Wolfs alive about half as long again and wins nothing, because a Venture's omni shield takes the strikers' fire
+as well as the tank's and vents between swaps (it ends at 98-99% hull every time). Outcomes swing with small
+changes, so they are readings: while the threat rule was being shaped, the centre opening's control was lost in 95
+seconds under one version of it and won in 512 under another.
+
+**In the Black Sluice duel the relay turns a lost fight into an unresolved one, and that fails its verdict.** Measured
+on `greyhook-duel` after the Black Sluice rebalance (Hounds gone, Rusk's Wolfs refit), five seeds, relay on against
+`-Dbattle.warship.packRelay=false`:
+
+| seed | control: decided, Greyhook hull, Wolfs down at | relay: at 897s, Greyhook / Wolf hull | damage to Greyhook side / to Wolfs (control; relay) | hull damage to Greyhook / to Wolfs (control; relay) |
+| --- | --- | --- | --- | --- |
+| 15305 | 838s, 67%, 503s and 838s | unresolved, 72% / 89%, 63% | 45,327 / 16,700; 51,643 / 28,916 | 3,252 / 3,000; 2,843 / 716 |
+| 16205 | 725s, 90%, 500s and 725s | unresolved, 96% / 90%, 62% | 36,282 / 15,500; 46,827 / 22,028 | 982 / 3,000; 427 / 728 |
+| 16206 | 676s, 93%, 349s and 676s | unresolved, 95% / 75%, 93% | 28,329 / 17,200; 49,537 / 23,485 | 654 / 3,000; 537 / 485 |
+| 20261016 | 662s, 95%, 490s and 662s | unresolved, 70% / 92%, 53% | 33,124 / 17,200; 44,059 / 34,415 | 524 / 3,000; 2,959 / 815 |
+| 31337 | 555s, 93%, 431s and 555s | unresolved, 97% / 91%, 93% | 25,953 / 16,000; 52,646 / 18,637 | 678 / 3,000; 346 / 237 |
+
+The control passes all fifteen verdicts on every seed: the Greyhook kills both Wolfs. With the relay no ship is lost
+on any seed and `the-duel-is-decided-by-destruction` fails on all five: both sides are flying at the end of the
+window. The pack does more damage than the control (44-53 thousand against 26-45), nearly all of it into the omni
+shield, and takes a fraction of the hull damage. The Greyhook's hull wears down only late and only on some seeds.
+Two levers were tried and dropped, because neither decided a seed:
+- a striker venting where it stands rather than breaking off. It also failed `venting-ship-not-targeted` on one
+  `warship-tactics` opening and `pack-flux-below-overload` on another;
+- a tank firing deeper into a target losing the flux war: to the ordinary ceiling, then to 0.7 of its pool. The
+  Greyhook ended lower (41-94%) and one seed lost a Wolf, but nothing was decided, and each version failed
+  `pack-flux-below-overload` on one `warship-tactics` opening.
+
+What the duel is for is a balance question that belongs to the mission, not the tactic: whether the Wolfs fighting
+as a relay should be able to outlast the Greyhook.
+
+**Re-measured on hard flux (shields hold hard flux only, guns leave the drop level): the duel is decided, but past
+its window.** Same five seeds, window 45,000 ticks (1,500 s), and again with the window lifted to 108,000 ticks as a
+reading only (the scene's bound is unchanged). Greyhook hull and Wolf hull are at the end; blocked is rounds each Wolf's
+shield took.
+
+| seed | control (`packRelay=false`, `threatTargeting=false`): decided, Greyhook, blocked | relay at 1,500 s: Greyhook / Wolfs, blocked | relay, longer window: decided, Greyhook |
+| --- | --- | --- | --- |
+| 15305 | Greyhook, 1,201s, 84%, 219 / 176 | unresolved, 65% / 52%, 22%, 185 / 223 | Greyhook, 1,804s, 30% |
+| 16205 | Greyhook, 1,267s, 88%, 160 / 128 | **Greyhook, 1,420s**, 82%, 209 / 256 | same |
+| 16206 | Greyhook, 903s, 95%, 137 / 121 | unresolved, 71% / 0%, 38%, 235 / 258 | Greyhook, 1,573s, 71% |
+| 20261016 | Greyhook, 1,003s, 77%, 129 / 206 | unresolved, 43% / 19%, 33%, 214 / 252 | Greyhook, 1,611s, 39% |
+| 31337 | Greyhook, 823s, 96%, 121 / 112 | unresolved, 68% / 73%, 51%, 147 / 223 | Greyhook, 1,768s, 45% |
+
+The relay no longer stalemates: it lengthens the fight by about half (Wolf block share 69-84% against 58-75%) and the
+Greyhook still wins every seed, but four of five end after the window, so `the-duel-is-decided-by-destruction` fails
+on them. `warship-tactics` also fails `pack-flux-below-overload` on the two southern openings (Venture: 1.0% against
+the control's 0.7%; Enforcer: one overload against none). With the relay off and threat targeting still on, seed 15305
+fails `held-hulls-stay-out-of-their-edge-margin` (a Wolf 27.9 cells into its 38.9-cell margin for 15,066 ticks).
+One lever was tried and dropped: the tank's fire ceiling counting only the hard flux its shield holds (gun flux vents
+behind the shield). It turns the southern `warship-tactics` openings green and makes the duel close (Greyhook 14-56%
+at 1,500 s; with the longer window the Wolfs win 15305 and the Greyhook ends 5-56% elsewhere, at 1,570-1,908 s), but
+decides nothing inside the window and has three seeds fail the edge margin, the venting Wolfs holding past the
+Greyhook's reach close to their own edge.
+
+### The two fixes, and Black Sluice with Enforcers
+
+Both fixes are general, with no Black Sluice case in them.
+
+- **A tank's fire ceiling counts the hard flux its shield holds.** A tank starts no salvo once its hard flux (what
+  its shield's absorbed hits put in the pool) reaches half the pool, unless the target is overloaded. Its own guns'
+  flux is soft and vents behind its shield, so it no longer counts. The ordinary limits (the soft limit, and the
+  shield's drop level) still apply to the whole pool.
+- **A venting ship vents inside its edge margin.** The bug: a venting ship ran straight away from the target until
+  it was past the target's reach. On a small map, when that course met the edge margin first, the ship never got
+  out of reach, so it held its course into the edge, pinned against the pressure. Now it takes the course with the
+  most room toward its hold. That is straight away if the map allows, otherwise up to a right angle off it, in
+  fifteen-degree steps, each step off costing a little against the room it buys. It takes the course again if the
+  target moves and the course runs short. It runs to the hold, settled inside its margin. Where the map cannot fit
+  the full distance it holds short of it, nose back toward the fight (`WarshipTactics.ventCourse`, `ventRoom`).
+
+`warship-tactics`: all sixteen loops pass. Before the fixes the two southern openings failed
+`pack-flux-below-overload`. Relay against control (`packRelay=false`), Wolf pair against each target:
+
+| opening | swaps (per min) | vent targeted | pack near overload | outcome from first hit, relay / control | target hull at end, relay / control |
+| --- | --- | --- | --- | --- | --- |
+| venture | 8 (0.62) | 39% | 0.6% / 1.2% | both Wolfs lost 773s / 612s | 95% / 99% |
+| venture north | 16 (1.22) | 36% | 0.5% / 1.0% | one Wolf lost, unresolved at 784s / both lost 710s | 98% / 100% |
+| venture south | 6 (0.54) | 40% | 0.5% / 0.7% | both lost 663s / 417s | 93% / 99% |
+| enforcer | 7 (0.68) | 45% | 0.9% / 5.0% | both lost 618s / 112s | 72% / 100% |
+| enforcer north | 6 (0.57) | 35% | 0.6% / 2.6% | **Enforcer destroyed** 628s / both lost 103s | 0% / 100% |
+| enforcer south | 1 (0.22) | 36% | 0.6% / 0.9% | both lost 271s / 658s | 100% / 88% |
+
+**The old Wolf duel's edge failure is gone.** It was replayed as a diagnostic: the Wolfs in their refit
+(`-Dbattle.scene.greyhookDuel.variant=wolf_hegemony:wolf_hegemony_Rusk`), five seeds, 1,500 s. With the relay, no
+seed fails `held-hulls-stay-out-of-their-edge-margin`; before the fixes three did. The relay Wolfs now wear the
+Greyhook to 0-24% hull by the window's end on four seeds and kill her on one (20261016, 1,226 s). They make 23 to
+26 swaps a fight. With the relay off and threat targeting on, seed 15305 also stays clear of its margin now, and the
+Greyhook wins all five seeds at 774 to 1,280 s.
+
+**Black Sluice is now fought by two Enforcers** (`a-small-war.md`; `warship-behaviours.md`, the Greyhook fights
+alone). `greyhook-duel`, five seeds, relay on, all fifteen verdicts pass:
+
+| seed | first hit after the order | Greyhook down, after first hit | swaps / vents | Greyhook breaches / mounts out | Enforcer hull |
+| --- | --- | --- | --- | --- | --- |
+| 15305 | 75.0s | 221s | 1 / 1 | 37 / 1 | 100% / 100% |
+| 16205 | 75.4s | 272s | 1 / 2 | 36 / 1 | 100% / 100% |
+| 16206 | 84.5s | 334s | 1 / 2 | 44 / 2 | 100% / 100% |
+| 20261016 | 75.6s | 253s | 1 / 1 | 37 / 0 | 100% / 100% |
+| 31337 | 75.4s | 272s | 1 / 2 | 20 / 0 | 100% / 100% |
+
+The control, with `packRelay=false`, takes 658 to 940 s and fails `friendly-hulls-do-not-overlap` on 16205. With
+threat targeting off as well, two seeds are unresolved at 1,500 s. The relay is what brings the fight inside minutes.
+The Greyhook never takes an Enforcer's hull: her kinetic Heavy Autocannons glance off its plate.
+
 ## Slices
 
 1. **Spacing and hull contact.** Contact separation between hulls, friendly clearance in the helm. Evidence: the
@@ -497,6 +668,9 @@ Getting round an equal at these ranges is real but brief, and is mostly a matter
    hull fight.
 6. **One-on-one duels flown for position.** Approach for the quarter, orbit, cross the T, counter, break;
    `warship-mirrors`, with `-Dbattle.warship.duelManoeuvres=false` as the control.
+7. **The pack relay.** Tank, striker, swap and vent, and threat-aware target choice for a ship set upon;
+   `warship-tactics`' Wolf-pair loops against their controls, `-Dbattle.warship.packRelay=false` and
+   `-Dbattle.warship.threatTargeting=false`.
 
 Each slice re-runs the warship scene set and `greyhook-duel` and keeps their verdicts green.
 

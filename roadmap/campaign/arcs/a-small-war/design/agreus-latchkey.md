@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — Black Sluice gained open approach ground west of the apron, sized by the hull fight. Earlier 2026-10-16: Black Sluice's ships moved to a southern pad field below a ridge, reached only through the berth gate, with the duel flown over it. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
+Updated: 2026-10-18 — the family's ships are two Hegemony Enforcers, not Wolfs; earlier the same day Black Sluice gained open approach ground west of the apron, sized by the hull fight. Earlier 2026-10-16: Black Sluice's ships moved to a southern pad field below a ridge, reached only through the berth gate, with the duel flown over it. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
 
 ## Scope and provenance
 
@@ -196,13 +196,13 @@ along the berth road down the east side. The ships' fight after Voss's order goe
 where its fighting takes it, in sight of the people on the causeway.
 
 West of the landing apron the outer basin runs on as **open approach ground**, the
-ground the Wolfs cross. North of the ridge it is silt flats under regolith drifts:
+ground Rusk's Enforcers cross. North of the ridge it is silt flats under regolith drifts:
 the transfer road runs on inland from the causeway's landward end, past the first
 settling beds, silted full and abandoned with their walls fallen in stretches, to a
 low broken rim off the north edge. South of it the ridge runs on to the map's edge
 over rim country, a massif with its lobes, spurs and gullies reaching onto a second
 floor under the basin's west rim. Nothing of the ground fight is out there. It is
-there because the ships fight at their own reach: without it the Wolfs crossing the
+there because the ships fight at their own reach: without it the family's ships crossing the
 edge had Greyhook's pads in range at once.
 
 Open yards are airless and cold. Exterior workers and combatants use appropriate
@@ -276,7 +276,7 @@ beside Syrinx. That gap is the space the company is hired into.
 stand on a neighbouring world, and the Hegemony welcomes any occasion to show an
 Independent colony what it can put overhead at short notice. When Pell's raid in
 Chapter 4 shows that Rusk cannot hold his own lease, he writes home. The answer
-arrives for Chapter 5 as a pair of Wolf (H) frigates, lent from Citadel Arcadia
+arrives for Chapter 5 as a pair of Hegemony Enforcer destroyers, lent from Citadel Arcadia
 through family patronage rather than ordered out by the navy. Sending two over a
 cadet's embarrassment is itself the message. It is a favour with a price: the
 family now has an interest in how Latchkey ends, and it notices the company that
