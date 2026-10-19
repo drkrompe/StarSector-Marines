@@ -175,7 +175,8 @@ port is still settling when the title arrives (`title-logo.md`). The title's
 reveal is counted from 24 s, when Castle's last line ends, and the picture is
 black at 33 s. `industrial-exterior/c5_title.py` lays the title over the
 rendered frames, so the wordmark is read from the player's install and never
-rendered into the scene.
+rendered into the scene. The title sits over the yard, with Second
+Wind under the name, which the owner accepted on 2026-10-19.
 
 **The look waits on the texture pass.** At this distance even the placeholder
 sprites hold up, so the choice between them and the 3D figures is made once
