@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a mission may hold the battle open until a hull's part concludes (gone off the map, or its wreck at rest); at Black Sluice the Greyhook fights, then runs for her south edge on Voss's order and the battle waits for her escape or her wreck.
+Updated: 2026-10-19 — a warship spends a budget of missiles into each opening, and a shield lowered at rest is no opening; the Greyhook carries a Harpoon and a Sabot rack, no point defence.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2275,7 +2275,27 @@ holds a **salvo** open on that target for the side's other launchers for a few s
 hull fight's clock, so packmates' racks join it and the missiles arrive together, which is what
 beats point defence by numbers. Nothing about the missile changes: when it goes is the only
 choice. `-Dbattle.warship.missileWindows=false` is the control (launch at reach, a finisher held
-for a worn or overloaded hull).
+for a worn or overloaded hull). A shield **lowered at rest** is no opening: an automatic shield
+rises for the first hostile round on its way, long before a missile arrives, so only a shield that
+cannot or will not rise (locked out by a full pool, or held down by hand) reads as down; a Sabot
+may go into a resting shield, since its flight raises it.
+
+**A ship spends a few missiles into each opening, not its racks** (`MissileOpenings`). An
+**opening** is one stretch of a target's vulnerability that a side shares: the first launch into
+an opening window opens it, and every launch of that side at that target while it lasts, a
+packmate's salvo included, spends into it. A **forced** opening (an overload, a shield that
+cannot rise) lasts as long as the target cannot defend itself; a **standing** one (the flank, a
+pool running high, a worn hull, a striker's moment) lasts a few seconds of the hull fight's clock
+and then the next launch opens another. One that is overloaded or worn is **decisive**, and a
+forced or decisive window arriving in a lesser opening opens a new one. Into one opening a ship
+spends at most its **budget**: a pair of volleys, or a quarter of what is left in its gated racks
+if that is more; a torpedo or a finisher goes into a lesser opening only while the ship still holds
+a pair of them back for a decisive one. What is not spent keeps for the next opening, so a rack
+lasts over several shield lockouts and packmates spend theirs into the same one together.
+General-purpose racks, and launches into a standing condition that is no opening (a Sabot into a
+raised shield, a torpedo at a hull with no shield), are paced only by the tube ripple.
+`-Dbattle.warship.missileRestraint=false` is the control: no budget, and a resting shield reads as
+down.
 
 **A missile at a hull flies a readable run.** It leaves the tube along the barrel's bearing and
 swings onto its line in a **launch arc**, weaves through the middle of its flight, and flies the
@@ -2408,7 +2428,8 @@ down while the Greyhook still flies, Voss ordering the run, the Greyhook down or
 the last of Rusk's down). The debrief says whether she got away or was shot down short of her
 edge; only the company pulling out leaves her still up there. A
 warship over a ground battle never launches a wing from its bays (bays only classify the
-hull), and the Greyhook's fitting carries none, so it stays gun against gun.
+hull), and the Greyhook's fitting carries none, so it stays hull against hull. She carries no point
+defence: her two small hardpoints, fixed forward, hold a Harpoon and a Sabot rack (owner, 2026-10-19).
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it
