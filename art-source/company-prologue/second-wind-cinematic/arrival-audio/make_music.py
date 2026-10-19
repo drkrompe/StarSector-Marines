@@ -95,6 +95,33 @@ SCORE_NEGATIVE = ["vocals", "choir", "lyrics", "epic trailer drums", "brass fanf
                   "electronic dance beat", "fast tempo"]
 
 
+# The ending (owner, 2026-10-19: strings up, an emotional build to the title, then a fade back into
+# the game): C5 from the yard to black, 33.5 s, laid over the strings score from C5 0 (arrival 97.1).
+ENDING_SECTIONS = [
+    ("Gathering", 20000, ["hushed low strings, slow and patient, under speech",
+                          "a gradual, steadily rising build over the whole section: more players join, the line climbs",
+                          "tension resolving into hope, an emotional crescendo still held back"]),
+    ("Title", 6000, ["the emotional peak: the full string section swells and lands on a warm open major chord",
+                     "broad, heartfelt, not triumphant"]),
+    ("Back to the game", 7500, ["the chord thins out and decays slowly to silence",
+                                "a long gentle fade, ending in complete silence"]),
+]
+ENDING_TAKES = {
+    "strings": ["cinematic string ensemble score", "cellos, violas and violins in long bowed notes",
+                "slow, around 60 BPM, D major", "emotional, hopeful, fragile, worn and human"],
+    "strings_piano": ["cinematic string ensemble score with a soft felt piano melody on top",
+                      "cellos, violas and violins in long bowed notes", "a distant muted horn joins at the peak",
+                      "slow, around 60 BPM, D major", "emotional, hopeful, fragile, worn and human"],
+}
+
+
+def ending_plan(take):
+    return {"positive_global_styles": ENDING_TAKES[take], "negative_global_styles": SCORE_NEGATIVE,
+            "sections": [{"section_name": name, "positive_local_styles": styles,
+                          "negative_local_styles": [], "duration_ms": ms, "lines": []}
+                         for name, ms, styles in ENDING_SECTIONS]}
+
+
 def score_plan(take):
     return {"positive_global_styles": SCORE_TAKES[take], "negative_global_styles": SCORE_NEGATIVE,
             "sections": [{"section_name": name, "positive_local_styles": styles,
@@ -106,14 +133,14 @@ def takes(candidate):
     return sorted(TAKES.glob(candidate + "_t[0-9][0-9].mp3"))
 
 
-def generate(candidates, score=False):
+def generate(candidates, score=False, plan=None, prefix="score_"):
     key = credential()
     TAKES.mkdir(parents=True, exist_ok=True)
     for candidate in candidates:
         if score:
-            payload = {"composition_plan": score_plan(candidate), "model_id": MODEL,
+            payload = {"composition_plan": (plan or score_plan)(candidate), "model_id": MODEL,
                        "respect_sections_durations": True}
-            candidate = "score_" + candidate
+            candidate = prefix + candidate
         else:
             payload = {"prompt": CANDIDATES[candidate], "music_length_ms": SECONDS * 1000,
                        "model_id": MODEL, "force_instrumental": True}
@@ -144,10 +171,13 @@ def generate(candidates, score=False):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=("plan", "generate", "score"))
+    parser.add_argument("stage", choices=("plan", "generate", "score", "ending"))
     parser.add_argument("--candidate", action="append", choices=list(CANDIDATES))
     parser.add_argument("--take", action="append", choices=list(SCORE_TAKES))
     args = parser.parse_args()
+    if args.stage == "ending":
+        generate(list(ENDING_TAKES), score=True, plan=ending_plan, prefix="ending_")
+        return
     if args.stage == "score":
         generate(args.take or list(SCORE_TAKES), score=True)
         return
