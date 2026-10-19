@@ -13,7 +13,7 @@ kept immaculate: light service wear.
 """
 NAME = 'Paragon'
 BLEND = 'build/geom/paragon-geometry.blend'   # ../paragon-geometry/build_paragon.py, imported, never edited
-GROUPS = []                                    # round 1: class swatches over the hex finish; no part tiles yet
+GROUPS = ['top', 'ends']                       # staining tiles (make_groups.py), over the swatched hex finish
 MATERIAL_CLASS = {
     'Tri-Tachyon blue-grey skin': 'skin',
     'Tri-Tachyon pale skin': 'pale',
@@ -45,9 +45,12 @@ SHEARED_FACES = True
 
 # Overlay (the harness's opt-in, hull.OVERLAY): how strongly each class's graded
 # texture modulates the base finish. The hex ceramic carries the plate pattern;
-# the swatch adds panel-to-panel tone, grime in seams and heat staining.
-OVERLAY = {'skin': .6, 'pale': .6, 'white': .55, 'slate': .5, 'hatch': .5, 'substrate': .5,
-           'steel': .55, 'dark': .4, 'bore': .55, 'bore_light': .55}
+# the swatch adds mottling and grime, the part tiles the staining of one place.
+# Round 3 (owner: round 2 too dirty for a Tri-Tachyon flagship, pull it back partway):
+# the v2 swatches and staining tiles stay, passed at about halfway between round 1's
+# strength and round 2's full departure.
+OVERLAY = {'skin': .75, 'pale': .75, 'white': .7, 'slate': .7, 'hatch': .7, 'substrate': .7,
+           'steel': .75, 'dark': .6, 'bore': .7, 'bore_light': .7}
 
 
 def derive_palette(classes):

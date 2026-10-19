@@ -598,6 +598,7 @@ public final class WarshipShipFire {
      * mount's cooldown is this method's whenever it returns {@code true}.
      */
     boolean tickMount(float dt, WarshipSystem system, Warship ship, Warship.Mount m, List<Warship> ships) {
+        m.hullLaid = false;
         if (!looksAtHulls(ship, held) || !WarshipShipRules.mayFireAtHull(m.weapon) || ship.offMapInbound()) {
             engagements.remove(m);
             return false;
@@ -611,21 +612,22 @@ public final class WarshipShipFire {
             e = null;
         }
         if (e == null) {
-            if (m.burstRemaining > 0 || m.cooldown - dt > 0f) return false;
+            if (m.burstRemaining > 0 || m.cooldown - dt > 0f) return lay(ship, m, mx, my, ships);
             if (!ship.hasHullOrdnance(m)) return false;
-            if (!ship.fluxPool().canPress(WarshipPointDefence.engagementFlux(w))) return false;
-            if (w.missile() && !ship.missileVolleyReady()) return false;
+            if (!ship.fluxPool().canPress(WarshipPointDefence.engagementFlux(w))) return lay(ship, m, mx, my, ships);
+            if (w.missile() && !ship.missileVolleyReady()) return lay(ship, m, mx, my, ships);
             boolean clear = system.clearLineFire();
             Warship target = pick(ship, m, mx, my, ships, clear);
             if (target == null) {
-                if (clear && pick(ship, m, mx, my, ships, false) != null) {
+                Warship fouled = clear ? pick(ship, m, mx, my, ships, false) : null;
+                if (fouled != null) {
                     // Every hull it could fire at is behind a friend: it holds rather than fire into its own side.
                     lineRefusals++;
                     noteLineHeld(ship.faction, dt);
                 }
-                return false;
+                return layOn(m, mx, my, fouled);
             }
-            if (!mayStart(ship, target, WarshipPointDefence.engagementFlux(w))) return false;
+            if (!mayStart(ship, target, WarshipPointDefence.engagementFlux(w))) return layOn(m, mx, my, target);
             MissileWindow.Role role = null;
             Set<MissileWindow.Kind> open = null;
             MissileWindow.Kind window = null;
@@ -635,14 +637,14 @@ public final class WarshipShipFire {
                 open = MissileWindow.read(ship, target, mx, my, salvoOpen(ship.faction, target), missileRestraint);
                 if (missileWindows) {
                     window = MissileWindow.launch(role, open);
-                    if (window == null) return false;
+                    if (window == null) return layOn(m, mx, my, target);
                     if (missileRestraint && role != MissileWindow.Role.GENERAL && window.opening()) {
                         // Spent into an opening the side shares: at most the ship's budget there, the rest kept.
                         opening = openings.commit(ship, target, role, window);
-                        if (opening == null) return false;
+                        if (opening == null) return layOn(m, mx, my, target);
                     }
                 } else {
-                    if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return false;
+                    if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return layOn(m, mx, my, target);
                     window = MissileWindow.label(open);
                 }
             }
@@ -716,6 +718,47 @@ public final class WarshipShipFire {
                     w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
         }
         return true;
+    }
+
+    /**
+     * Keeps a mount that is holding its next round laid on the hull it would fire at: the ship's chosen hull if this
+     * mount reaches and bears on it, else the nearest it does. A barrel that swung back to rest for every cooldown spent
+     * most of the fight re-laying (a 7-degree-a-second autocannon drifted twenty degrees off over a hull-tempo cooldown
+     * and took three seconds to come back on). An empty magazine that does not refill rests. Always {@code false}: the
+     * mount has not spent the tick on a hull, so its ground logic still runs, and swings it to the lay only where it
+     * would otherwise rest. {@code -Dbattle.warship.layBetweenRounds=false} is the control.
+     */
+    private static boolean lay(Warship ship, Warship.Mount m, float mx, float my, List<Warship> ships) {
+        if (!LAY_BETWEEN_ROUNDS || !ship.hasHullOrdnance(m) && m.reloadPerSecond <= 0f) return false;
+        return layOn(m, mx, my, pick(ship, m, mx, my, ships, false));
+    }
+
+    /** Lays the held mount on where it would aim at {@code target}, when there is one; always {@code false}. */
+    private static boolean layOn(Warship.Mount m, float mx, float my, Warship target) {
+        if (!LAY_BETWEEN_ROUNDS || target == null) return false;
+        float[] aim = aimFor(mx, my, target, m.weapon);
+        m.hullLaid = true;
+        m.hullLayBearing = AirBody.facingToward(aim[0] - mx, aim[1] - my);
+        return false;
+    }
+
+    /** {@code -Dbattle.warship.layBetweenRounds=false} is the control: a held mount swings back to rest. */
+    static final boolean LAY_BETWEEN_ROUNDS = !"false".equalsIgnoreCase(System.getProperty("battle.warship.layBetweenRounds"));
+
+    /**
+     * For evidence: how many degrees the turret {@code m} lies off where it would aim at the ship's chosen hull, or NaN
+     * when it has none this mount reaches and bears on, or the mount does not traverse (a hardpoint, a fixed weapon) or
+     * may not fire at a hull.
+     */
+    static float layError(Warship ship, Warship.Mount m) {
+        Warship target = ship.hullTarget();
+        if (target == null || m.knockedOut() || m.slot.hardpoint() || m.weapon.turnRateDegPerSec() <= 0f
+                || !WarshipShipRules.mayFireAtHull(m.weapon) || !hostileHull(ship, target)) return Float.NaN;
+        float mx = ship.mountX(m);
+        float my = ship.mountY(m);
+        if (!inReach(ship, m, mx, my, target)) return Float.NaN;
+        float[] aim = aimFor(mx, my, target, m.weapon);
+        return Math.abs(WarshipFacing.wrap(AirBody.facingToward(aim[0] - mx, aim[1] - my) - m.headingDegrees));
     }
 
     /**

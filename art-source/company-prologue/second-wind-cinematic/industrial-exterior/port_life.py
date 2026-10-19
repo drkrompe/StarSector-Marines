@@ -910,10 +910,12 @@ def add(c4x):
 
     # Road loops.
     plans = {
-        'belt-east-outer': (['box', 'van', 'container', 'patrol', 'box', 'van', 'container'], 11.0, 'belt outer'),
-        'belt-east-inner': (['box', 'van', 'container', 'van', 'box', 'container'], 10.5, 'belt inner'),
-        'port-west': (['van', 'box', 'container', 'van'], 10.0, 'port road'),
-        'port-mid': (['box', 'van', 'container'], 9.0, 'port road mid'),
+        'belt-east-outer': (['container', 'box', 'container', 'patrol', 'box', 'container', 'van', 'container',
+                             'box', 'container', 'van', 'box', 'container', 'box'], 11.0, 'belt outer'),
+        'belt-east-inner': (['box', 'container', 'van', 'container', 'box', 'container', 'box', 'container',
+                             'van', 'container', 'box', 'container'], 10.5, 'belt inner'),
+        'port-west': (['container', 'box', 'van', 'container', 'box', 'container'], 10.0, 'port road'),
+        'port-mid': (['box', 'container', 'van', 'container', 'box', 'container'], 9.0, 'port road mid'),
     }
     sims = []
     for name, (plan, cruise, tag) in plans.items():
@@ -966,13 +968,13 @@ def add(c4x):
     tractor = mat('Yard tractor orange', (0.85, 0.45, 0.10), 0.5)
     yard = []
     cmats = [bpy.data.materials['Container %d' % i] for i in range(6)]
-    for k in range(5):
+    for k in range(YARD_TRACTORS):
         b = None
         if k % 2 == 0:
             b = Box('Yard box truck %d' % k, cmats[r.randrange(6)])
             boxes.append(b)
         parts = with_beacon(yard_tractor_parts(tractor, deck), 4.6, 3.3)
-        car = Car('Yard tractor %d' % k, parts, 7.5, stop - rt.L * k / 5,   # the first under the gantry
+        car = Car('Yard tractor %d' % k, parts, 7.5, stop - rt.L * k / YARD_TRACTORS,   # the first under the gantry
                   stops=[(stop, 'crane')], crane=0, loaded=b)
         car.route = rt
         if b is not None:
@@ -1000,6 +1002,7 @@ def add(c4x):
         [len(c.ops) for c in cranes], [len(c.events) for c in yard]), flush=True)
 
     strip_traffic(r, kinds, names, F)
+    print('PORT_LIFE freight road trucks=%d' % freight_road(r, kinds, names, movers, F), flush=True)
     forklifts(r, F)
     berth_work(r, F)
     lifters(F)
@@ -1023,6 +1026,93 @@ def strip_traffic(r, kinds, names, F):
             root = make('%s %s %d' % (names[kind], tag, k), kinds[kind](r))
             z = np.where(gone, -50.0, 0.0)         # driven off the belt's end: put away under the ground
             bake_pose(root, frames, x, y, z, h)
+
+
+YARD_TRACTORS = 7
+FREIGHT_LANES = ((-90.0, 18.0, 0.0), (-80.0, -16.0, math.pi))   # y, speed, heading: c4_farm's lanes
+FREIGHT_X = (-2000.0, 2000.0)                                     # the freight road's ends
+FREIGHT_MIX = ['hauler'] * 7 + ['container'] * 4 + ['tanker'] * 3 + ['box'] * 4 + ['van'] * 2
+
+
+FREIGHT = []                         # this build's freight trucks, for after_farm
+FARM_ROAD = ('Road hauler east 0', 'Road tanker east 1', 'Box truck east 2', 'Road van east 3',
+             'Road hauler west 0', 'Road tanker west 1', 'Box truck west 2', 'Road van west 3',
+             'Second freight train')     # c4_farm's, built after add() has run
+
+
+def freight_clash(xs, sign, front, rear, m):
+    """Whether a truck at xs (per frame) ever comes within 5 m of mover m on its lane."""
+    mx = m['track'][:, 0]
+    lo = np.minimum(xs - sign * rear, xs + sign * front)
+    hi = np.maximum(xs - sign * rear, xs + sign * front)
+    return bool(np.any((mx + m['r'] + 5 > lo) & (mx - m['r'] - 5 < hi)))
+
+
+def after_farm(c4x):
+    """Run once c4_farm has built its traffic: its freight-road trucks and second train drive on
+    through C5 instead of stopping where C4 ends, and any freight truck of ours they would run into
+    is taken off the road."""
+    global c4
+    c4 = c4x
+    for name in FARM_ROAD:
+        ob = bpy.data.objects.get(name)
+        if ob is not None:
+            linear(ob, extrapolate=True)
+    movers = [m for m in fixed_movers() if m['name'] in FARM_ROAD]
+    gone = 0
+    for t in FREIGHT:
+        for m in movers:
+            if abs(m['track'][0, 1] - t['lane']) < 3 and freight_clash(t['xs'], t['sign'], t['front'], t['rear'], m):
+                root = bpy.data.objects[t['name']]
+                for o in [root] + list(root.children_recursive):
+                    bpy.data.objects.remove(o, do_unlink=True)
+                gone += 1
+                break
+    print('PORT_LIFE after farm: %d farm movers carried on, %d freight trucks cleared' % (len(movers), gone), flush=True)
+
+
+def freight_road(r, kinds, names, movers, F):
+    """Heavy freight both ways on the freight road, nose to tail at a steady 18 / 16 m/s, so the belt
+    reads as industry from the top of the pan. A slot is skipped wherever one of the trucks already
+    on the lane (c4x_scene's and c4_farm's, at their own speeds) would ever run into it."""
+    frames = np.arange(0, F, KEY_STEP)
+    t = frames / c4.FPS
+    all_frames = np.arange(F)
+    FREIGHT.clear()
+    sizes = {}
+    n = 0
+    for lane, v, h in FREIGHT_LANES:
+        there = [m for m in movers if abs(m['track'][0, 1] - lane) < 3 and abs(m['track'][-1, 1] - lane) < 3]
+        sweep = abs(v) * t[-1]
+        # Positions at t = 0, in the direction of travel: d is distance along the lane from its start.
+        sign = 1.0 if v > 0 else -1.0
+        start = FREIGHT_X[0] if v > 0 else FREIGHT_X[1]
+        edge = -sweep - 40.0                            # the front of the last truck placed, as d
+        count = 0
+        while edge < FREIGHT_X[1] - FREIGHT_X[0]:
+            kind = r.choice(FREIGHT_MIX)
+            if kind not in sizes:                       # measured off the built model: dims() misreads some
+                probe = make('Freight probe', kinds[kind](r))
+                ext = extent(probe)
+                sizes[kind] = (ext[1], -ext[0])
+                for o in [probe] + list(probe.children_recursive):
+                    bpy.data.objects.remove(o, do_unlink=True)
+            front, rear = sizes[kind]
+            d = edge + rear + r.uniform(9.0, 26.0)
+            x0 = start + sign * d
+            xs = x0 + v * all_frames / c4.FPS
+            if any(freight_clash(xs, sign, front, rear, m) for m in there):
+                edge += 12.0
+                continue
+            x = x0 + v * t
+            on = (x > FREIGHT_X[0] + 20) & (x < FREIGHT_X[1] - 20)
+            root = make('%s freight %s %d' % (names[kind], 'east' if v > 0 else 'west', count), kinds[kind](r))
+            bake_pose(root, frames, x, np.full_like(x, lane), np.where(on, 0.0, -50.0), np.full_like(x, h))
+            FREIGHT.append(dict(name=root.name, lane=lane, xs=xs, sign=sign, front=front, rear=rear))
+            count += 1
+            edge = d + front
+        n += count
+    return n
 
 
 def forklifts(r, F):

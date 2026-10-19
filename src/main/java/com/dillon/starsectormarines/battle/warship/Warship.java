@@ -44,6 +44,13 @@ public final class Warship {
         float aimVy;
         /** Whether {@code aimX/aimY} is a live choice the barrel is swinging to. */
         boolean aimed;
+        /**
+         * Set by the hull fire on a tick it holds its next round (cooling down, venting, waiting on the volley or a
+         * missile window) with a hull in reach and arc: the barrel stays laid on {@link #hullLayBearing} rather than
+         * swinging back to rest between rounds. Cleared every tick the hull fire looks at the mount.
+         */
+        boolean hullLaid;
+        float hullLayBearing;
         /** The sweep this beam mount has committed, while it lasts. */
         LanceSweepSystem.Active lance;
         /** Rounds this mount has fired, for evidence. */

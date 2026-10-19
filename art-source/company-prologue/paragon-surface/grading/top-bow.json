@@ -1,0 +1,261 @@
+{
+ "part": "top-bow",
+ "regions": {
+  "skin": {
+   "pixels": 59376,
+   "share_as_declared": 0.001,
+   "share_in_declared_family": 0.001,
+   "came_back_as": {
+    "pale": 0.085,
+    "hatch": 0.07,
+    "steel": 0.676,
+    "bore": 0.036,
+    "bore_light": 0.103
+   },
+   "swap": true,
+   "before_mean_lab": [
+    66.72,
+    -0.86,
+    -2.63
+   ],
+   "after_mean_lab": [
+    60.35,
+    -0.35,
+    -6.58
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.4,
+    2.5
+   ],
+   "dE_to_palette_before": 10.23,
+   "forced_back_to_declared": true
+  },
+  "pale": {
+   "pixels": 654,
+   "share_as_declared": 0.015,
+   "share_in_declared_family": 0.791,
+   "came_back_as": {
+    "white": 0.76,
+    "steel": 0.19
+   },
+   "swap": false,
+   "before_mean_lab": [
+    82.46,
+    0.14,
+    0.84
+   ],
+   "after_mean_lab": [
+    61.97,
+    -1.1,
+    -5.67
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.704,
+    0.844
+   ],
+   "dE_to_palette_before": 21.27,
+   "forced_back_to_declared": false
+  },
+  "white": {
+   "pixels": 981,
+   "share_as_declared": 0.948,
+   "share_in_declared_family": 0.949,
+   "came_back_as": {
+    "white": 0.948,
+    "steel": 0.051
+   },
+   "swap": false,
+   "before_mean_lab": [
+    89.69,
+    0.15,
+    1.46
+   ],
+   "after_mean_lab": [
+    84.72,
+    0.18,
+    -1.04
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.662,
+    0.6
+   ],
+   "dE_to_palette_before": 2.51,
+   "forced_back_to_declared": false
+  },
+  "slate": {
+   "pixels": 5467,
+   "share_as_declared": 0.069,
+   "share_in_declared_family": 0.991,
+   "came_back_as": {
+    "slate": 0.069,
+    "dark": 0.139,
+    "bore": 0.563,
+    "bore_light": 0.211
+   },
+   "swap": false,
+   "before_mean_lab": [
+    34.4,
+    0.98,
+    -2.73
+   ],
+   "after_mean_lab": [
+    29.9,
+    -0.77,
+    -6.17
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.6,
+    0.6
+   ],
+   "dE_to_palette_before": 6.97,
+   "forced_back_to_declared": false
+  },
+  "substrate": {
+   "pixels": 1630,
+   "share_as_declared": 0.0,
+   "share_in_declared_family": 0.967,
+   "came_back_as": {
+    "hatch": 0.033,
+    "bore_light": 0.947
+   },
+   "swap": false,
+   "before_mean_lab": [
+    48.92,
+    0.19,
+    -2.72
+   ],
+   "after_mean_lab": [
+    31.9,
+    -0.77,
+    -6.17
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.873,
+    0.6
+   ],
+   "dE_to_palette_before": 16.73,
+   "forced_back_to_declared": false
+  },
+  "steel": {
+   "pixels": 2570,
+   "share_as_declared": 0.145,
+   "share_in_declared_family": 0.186,
+   "came_back_as": {
+    "white": 0.76,
+    "hatch": 0.046,
+    "steel": 0.145,
+    "bore_light": 0.036
+   },
+   "swap": true,
+   "before_mean_lab": [
+    83.17,
+    0.47,
+    2.52
+   ],
+   "after_mean_lab": [
+    75.0,
+    -0.66,
+    -2.92
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.638,
+    0.6
+   ],
+   "dE_to_palette_before": 10.57,
+   "forced_back_to_declared": true
+  },
+  "dark": {
+   "pixels": 15426,
+   "share_as_declared": 0.536,
+   "share_in_declared_family": 0.992,
+   "came_back_as": {
+    "slate": 0.294,
+    "dark": 0.536,
+    "bore": 0.132,
+    "bore_light": 0.026
+   },
+   "swap": false,
+   "before_mean_lab": [
+    24.8,
+    0.85,
+    -3.2
+   ],
+   "after_mean_lab": [
+    20.25,
+    -0.41,
+    -6.15
+   ],
+   "gain_L_a_b": [
+    0.75,
+    0.6,
+    0.6
+   ],
+   "dE_to_palette_before": 5.5,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 2098,
+   "ramp_span_L_removed": 20.85,
+   "ramp_dL_per_100px": [
+    6.43,
+    2.01
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 2063,
+   "ramp_span_L_removed": 43.66,
+   "ramp_dL_per_100px": [
+    55.45,
+    -7.44
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 12099,
+   "ramp_span_L_removed": 10.86,
+   "ramp_dL_per_100px": [
+    -5.62,
+    -2.5
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 50977,
+   "ramp_span_L_removed": 2.57,
+   "ramp_dL_per_100px": [
+    0.7,
+    -0.0
+   ],
+   "edge_band_dL_after": -5.07
+  },
+  {
+   "pixels": 2477,
+   "ramp_span_L_removed": 34.76,
+   "ramp_dL_per_100px": [
+    1.67,
+    -13.99
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 4584,
+   "ramp_span_L_removed": 41.44,
+   "ramp_dL_per_100px": [
+    8.76,
+    -8.93
+   ],
+   "edge_band_dL_after": null
+  }
+ ],
+ "ramp_span_L_removed_max": 43.66,
+ "edge_band_dL_after_mean": -5.07
+}
