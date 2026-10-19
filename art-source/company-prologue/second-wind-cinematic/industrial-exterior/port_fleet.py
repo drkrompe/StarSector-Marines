@@ -92,6 +92,8 @@ YAW_LIFT, YAW_LIFT_FROM, YAW_LIFT_TO = 35.0, 18.5, 23.0
 TURN_HEADING, TURN_TO = 255.0, 32.0
 DRIFT_SOUTH, DRIFT_FROM, DRIFT_TO = 16.0, 16.0, 22.0
 BANK_PER_YAW_RATE = 0.26              # s: degrees of bank per degree a second of turn (into the turn)
+# The mains' wash under the title: puffs, full until WASH_HOLD, a faint haze by WASH_THIN (C5 seconds).
+WASH_PUFFS, WASH_HOLD, WASH_THIN = 90, 30.0, 38.0
 GANTRY_CLEAR = 67.0                   # the heavy gantry stands this far north, clear of the bay
 PARTS = set()                         # names of every object in an appended hull collection
 
@@ -359,7 +361,9 @@ def lift_dust(c4, craft, nozzles, lift):
     it shares), at this hull's size. It stirs as the lift jets spool at LIFT_SPOOL, is thickest as
     the hull leaves the deck at LIFT_OFF and thins as the jets rise away from it. The bay's blast
     walls stop it on three sides, where it piles up and rolls over the top; the open south side lets
-    it run out across the road. A thin pall hangs over the bay after it has gone."""
+    it run out across the road. As the mains light, still low, their wash raises a fresh, thick cloud
+    off the stern that hangs over the bay through the camera's arrival (about 23 s) and thins under the
+    title (WASH_HOLD to WASH_THIN). A thin pall hangs over the bay after it has gone."""
     m = bpy.data.materials.get('Landing dust')
     if m is None or not nozzles:
         return
@@ -484,6 +488,39 @@ def lift_dust(c4, craft, nozzles, lift):
                             a = peak * c4.smoothstep(0.0, 0.2, tau) * (1 - c4.smoothstep(0.25, 1.0, k))
                             return off, (sz, sz, sz * 0.7), a
                         spawn('Lift dust colossus smoke %d' % n[kind], ts, p, life, motion, (g, g * 0.98, g * 0.95))
+    # The mains' wash: as they light, low over the deck, they blow a fresh, thick cloud of dust and
+    # smoke back off the stern and across the bay. It is what the camera finds when its rise brings the
+    # berth into frame at about 23 s: dense and slowly spreading over and around the bay to about 30 s,
+    # then thinning under the title to a faint haze by 38 s.
+    keys_sorted = sorted(sampled)
+    for i in range(WASH_PUFFS):
+        ts = T + MAIN_ON + r.uniform(0.0, MAIN_FULL - MAIN_ON + 2.0)
+        f = min(keys_sorted, key=lambda k: abs(k - ts * fps))
+        centre = sampled[f][0]
+        stern = math.radians(heading(ts - T)) + math.pi + r.gauss(0.0, 0.7)
+        back = r.uniform(10.0, 75.0)
+        side = r.uniform(-40.0, 40.0)
+        p = Vector((centre.x + back * math.cos(stern) - side * math.sin(stern),
+                    centre.y + back * math.sin(stern) + side * math.cos(stern), 3.0))
+        out = Vector((math.cos(stern), math.sin(stern), 0.0)) * r.uniform(1.0, 2.6) \
+            + Vector((r.uniform(-0.8, 0.8), r.uniform(-0.8, 0.8), 0.0))
+        life = gone - ts
+        rise = r.uniform(12.0, 30.0)
+        size0, size1 = r.uniform(14.0, 22.0), r.uniform(40.0, 70.0)
+        peak = r.uniform(0.45, 0.8)
+        smoke = r.random() < 0.35
+        lum = r.uniform(0.85, 1.1)
+        tint = (0.22 * lum, 0.21 * lum, 0.2 * lum) if smoke else (0.42 * lum, 0.35 * lum, 0.26 * lum)
+
+        def motion(tau, ts=ts, out=out, rise=rise, size0=size0, size1=size1, peak=peak):
+            t = ts + tau - T                                        # C5 seconds
+            off = out * tau + wind * tau + Vector((0, 0, 2.0 + rise * (1 - math.exp(-tau / 4.0))))
+            sz = size0 + (size1 - size0) * (1 - math.exp(-tau / 5.0))
+            a = (peak * c4.smoothstep(0.0, 1.5, tau) * (1 - 0.88 * c4.smoothstep(WASH_HOLD, WASH_THIN, t))
+                 * (1 - c4.smoothstep(WASH_THIN + 0.5, C5_SECONDS, t)))
+            return off, (sz, sz * 0.9, sz * 0.38), a
+        spawn('Lift dust colossus wash %d' % i, ts, p, life, motion, tint)
+
     # Settling: a broad, thin pall over the bay once the hull is off the deck, still hanging there as
     # the camera's rise brings the berth into frame, drifting off and gone before the title ends.
     cx, cy = (hx0 + hx1) / 2, (hy0 + hy1) / 2

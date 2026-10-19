@@ -92,7 +92,11 @@ at C5 12 s and it comes off the deck at 15 s, slowly, the way a heavy hull
 would. Its downwash throws the same dust and smoke as Second Wind's landing,
 at its own scale: stirring as the jets spool, thickest as it leaves the deck,
 piling against the bay's blast walls and running out of the open south side,
-then thinning as it climbs and leaving a thin pall over the bay. Clear of its walls it yaws 35 degrees, eased in and out between 18.5 and
+then thinning as it climbs. When its mains light, still low over the deck,
+their wash blows a fresh, thick cloud of dust and smoke back across the bay;
+that is what the camera finds when its rise reaches the berth at about 23 s,
+dense and slowly spreading to about 30 s, then thinning under the title to a
+faint haze by 38 s. Clear of its walls it yaws 35 degrees, eased in and out between 18.5 and
 23 s, sliding a little south so its corners pass under the gantry's beams. Its
 mains light at 19.5 s and are full at 21 s; it keeps turning, slower and
 banked a few degrees into the turn, onto a heading of 255 by 32 s, so its
