@@ -53,14 +53,20 @@ MAP_LAT, MAP_LON = 12.0, 95.0   # where on the game's desert01 map the battle is
 # --------------------------------------------------------------------------------- key frames
 # Each key frame: what the camera sees and where every ship is. Placements are
 # (x, y, z, heading deg, pitch deg, roll deg, throttle 0-1). Effects are listed per frame.
-CONVOY = {
+CONVOY = {   # a working convoy in loose column: escorts at point, flanks and rear
+    'wolf-m': (2300, -200, 60, 0, 1, 3, .6),
     'enforcer': (1500, 120, 80, 0, 1, -2, .6),
     'lasher-a': (950, -380, 140, 0, 0, 3, .6),
+    'mule': (700, 260, -20, 0, 0, -2, .5),
+    'buffalo-a': (350, -280, 50, 0, 1, 4, .5),
     'colossus': (0, 0, 0, 0, 0, 0, .5),
     'morrow': (-40, -165, -35, 0, 1, -3, .5),
+    'phaeton': (-350, 300, 20, 0, 0, 2, .5),
     'tarsus': (-650, 90, 30, 0, 0, 2, .5),
-    'lasher-b': (-400, 520, -60, 0, -1, -4, .6),
-    'hound-m': (-1350, -150, 110, 0, 2, 3, .6),
+    'buffalo-b': (-900, -300, -40, 0, -1, -3, .5),
+    'dram': (-1150, 260, 60, 0, 1, 2, .5),
+    'lasher-b': (-750, 640, -60, 0, -1, -4, .6),
+    'hound-m': (-1500, -150, 110, 0, 2, 3, .6),
 }
 
 
@@ -88,11 +94,13 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
 KEYFRAMES = {
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
-        caption='The convoy in column over the day side, slowing for its descent window. '
-                'Colossus centre, Morrow alongside, Enforcer leading, Lashers flanking, Hound at the rear.',
-        camera=dict(loc=(-1500, 1100, 900), target=(100, -80, -150), lens=35),
+        caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
+                'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by an '
+                'Enforcer, two Lashers, a Wolf and a Hound.',
+        camera=dict(loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
         ships=CONVOY,
-        labels=['colossus', 'morrow', 'enforcer', 'lasher-a', 'lasher-b', 'tarsus', 'hound-m']),
+        labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
+                'enforcer', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
     'k2': dict(
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
@@ -103,44 +111,63 @@ KEYFRAMES = {
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
     'k3': dict(
         shot='S6', title='The screen breaks',
-        caption='Off the convoy\'s north flank. Manticore (P) and Falcon (P) open from 2-3 km astern; the Enforcer '
-                'turns into them and is hit, Lasher A goes up. The freighters keep running.',
+        caption='Looking aft along the convoy. Manticore (P) and Falcon (P) open from 3-4 km astern. The Phaeton '
+                'tanker goes up, Lasher A is burning, and the Enforcer turns back into the fire and is hit. '
+                'The freighters keep running.',
         camera=dict(loc=(1350, 750, 380), target=(-1400, -350, -260), lens=30),
-        ships={**{k: v for k, v in CONVOY.items() if k not in ('enforcer', 'lasher-a')},
-               'enforcer': (480, 330, 90, 165, 4, 25, 1), 'lasher-a': (-350, 560, 160, 10, 6, 40, 0),
+        ships={**{k: v for k, v in CONVOY.items() if k not in ('enforcer', 'lasher-a', 'phaeton', 'wolf-m')},
+               'enforcer': (480, 330, 90, 165, 4, 25, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
+               'phaeton': (-350, 300, 20, 8, -4, 30, 0),
                'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
                'wolf-p-a': (-1250, 200, -120, 2, 6, 25, 1), 'wolf-p-b': (-1700, -650, -300, 3, 5, -20, 1),
                'buffalo2-a': (-3600, 150, -760, 0, 5, 3, 1)},
         fx=[('tracer', 'manticore-p', 'enforcer'), ('tracer', 'falcon-p', 'enforcer'),
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'enforcer', 'manticore-p'),
-            ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'enforcer'),
-            ('blast', 'lasher-a', 40), ('blast_on', 'enforcer', 18, (10, 10, 8)), ('debris', 'lasher-a', 60)],
-        labels=['enforcer', 'lasher-a', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
+            ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
+            ('blast', 'phaeton', 55), ('debris', 'phaeton', 70), ('fire_on', 'lasher-a', (-20, 10, 6)),
+            ('blast_on', 'enforcer', 18, (10, 10, 8))],
+        labels=['enforcer', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
+    'k3b': dict(
+        shot='S7', title='Boarding the Tarsus',
+        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
+                'the boarders and a Wolf (P) covers them. The rest of the convoy runs on ahead without her.',
+        camera=dict(loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
+        ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
+               'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
+               'wolf-p-b': (-420, 330, 120, -20, 3, -25, 1),
+               'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
+               'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)},
+        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-90, 0, 4)),
+            ('smoke', 'tarsus', (-90, 0, 4))],
+        labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
     'k4': dict(
-        shot='S8-S9', title='The prize',
-        caption='Close on the Colossus. Her port drive pod is shot out; the Colossus Mk.III closes from above '
-                'to take her, Kites (P) carry the boarders, Wolves cut past. Morrow is under her keel, drives lit, '
-                'holding her up.',
+        shot='S8-S9', title='She will not be taken',
+        caption='The Colossus Mk.III closes from above to take the Colossus too. Her port drive pod is shot out, '
+                'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
+                'with her drives lit, holding her up.',
         camera=dict(loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
         ships={'colossus': (0, 0, 0, 0, -3, 6, .2), 'morrow': (-10, 35, -78, 0, 8, 4, 1),
                'colossus3': (-60, 70, 175, -4, -8, 4, .6),
-               'kite-p-a': (110, 210, 40, -110, -4, 12, 1), 'kite-p-b': (-150, 250, 95, -80, -10, 6, 1),
-               'wolf-p-a': (260, 160, 110, -150, 2, -40, 1), 'tarsus': (1600, -900, -120, 0, 0, 2, .7)},
+               'kite-p-a': (110, 210, 40, -60, 6, 32, 1),
+               'wolf-p-a': (260, 160, 110, -150, 2, -40, 1)},
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
-            ('tracer', 'colossus', 'kite-p-a'), ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0))],
+            ('tracer', 'colossus', 'kite-p-a'), ('tracer', 'colossus', 'colossus3'),
+            ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0))],
         labels=['colossus', 'morrow', 'colossus3', 'kite-p-a', 'wolf-p-a']),
     'k5': dict(
-        shot='S10', title='The fall',
-        caption='Over the Falcon (P)\'s shoulder. The Colossus has lost her orbit: nose down, drives failing, '
-                'Morrow still with her. The pirates break off above an empty prize.',
+        shot='S10', title='The prize taken',
+        caption='The pirates have their prize: the captured Tarsus is clamped to the Colossus Mk.III, with a Kite (P) '
+                'still docked. Far below, the Colossus has lost her orbit, nose down, with Morrow still at her side. '
+                'A burning freighter heading into the atmosphere is not worth chasing.',
         camera=dict(loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
-        ships={'falcon-p': (-560, 120, 120, 25, -6, 8, .8), 'colossus3': (-250, 430, 20, 30, -4, -10, .5),
-               'colossus': (480, -30, -780, 5, -26, 14, .15), 'morrow': (500, -175, -830, 0, -22, 8, 1),
-               'kite-p-a': (-120, 300, -40, 160, 10, 15, 1)},
+        ships={'falcon-p': (-560, 120, 120, 25, -6, 8, .8),
+               'colossus3': (-240, 470, 60, 30, -4, -6, .3), 'tarsus': (-300, 360, 0, 30, -4, -6, 0),
+               'kite-p-a': (-330, 300, 25, 30, -2, -4, 0),
+               'colossus': (480, -30, -780, 5, -26, 14, .15), 'morrow': (500, -175, -830, 0, -22, 8, 1)},
         fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
             ('debris', 'colossus', 70, (-30, 0, 10))],
-        labels=['colossus', 'morrow', 'falcon-p', 'colossus3']),
+        labels=['colossus', 'morrow', 'falcon-p', 'colossus3', 'tarsus']),
     'k6': dict(
         shot='S12', title='Two trails toward the northern canyons',
         caption='Long lens from the pirates\' orbit. The Colossus and Morrow burn into the atmosphere, two plasma '
@@ -602,7 +629,8 @@ def blender_main(cfg):
     fire_mat = emission_mat('Fire', (1.0, .4, .12), 12.0, fade=1.2)
     flare_mat = emission_mat('Flare', (1.0, .9, .7), 60.0)
     plasma_mat = emission_mat('Entry plasma', (1.0, .62, .32), 30.0, fade=1.4)
-    smoke_mat = principled('Smoke', (.12, .11, .1), rough=1, metal=0, alpha=.35)
+    smoke_mat = principled('Smoke', (.16, .15, .14), rough=1, metal=0, alpha=.28)
+    smoke_mat.node_tree.nodes['Principled BSDF'].inputs['Specular IOR Level'].default_value = 0.0   # matte, not glass
     debris_mat = principled('Debris', (.08, .08, .08), rough=.7, metal=.5)
     plume_me.materials.append(tracer_mat)
     bead_me.materials.append(tracer_mat)
@@ -703,7 +731,7 @@ def blender_main(cfg):
         for i in range(n):
             f = i / n
             o = toward * (20 + 180 * f) + Vector(rng.normal(0, 6 + 20 * f, 3))
-            obj('Smoke', bead_me, smoke_mat, Matrix.Translation(p + o) @ Matrix.Scale(8 + 25 * f, 4))
+            obj('Smoke', bead_me, smoke_mat, Matrix.Translation(p + o) @ Matrix.Scale(5 + 14 * f, 4))
 
     def flares(key):
         for i in range(10):
