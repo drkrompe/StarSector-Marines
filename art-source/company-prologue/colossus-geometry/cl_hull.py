@@ -107,10 +107,11 @@ class Parts:
     """Many closed shells gathered into one mesh object."""
 
     def __init__(self):
-        self.v, self.f = [], []
+        self.v, self.f, self.shells = [], [], []
 
     def _add(self, verts, faces):
         o = len(self.v)
+        self.shells.append((o, len(verts), len(self.f), len(faces)))
         self.v += [tuple(p) for p in verts]
         self.f += [tuple(i+o for i in fc) for fc in faces]
         return self
@@ -169,9 +170,26 @@ def obj(name):
 
 
 def _cut(kit, target, parts, mat):
-    """Subtract one gathered cutter (disjoint shells) from target; the new faces take mat."""
-    if parts.v:
-        boolean(target, parts.build(kit, 'Temporary cargo body cutter', mat))
+    """Subtract gathered cutter shells from target; the new faces take mat.
+
+    Shells that overlap (crossing seams) would make one self-intersecting cutter,
+    which the MANIFOLD solver turns into torn, wrongly-coloured keel faces, so
+    they are split into passes whose shells are pairwise disjoint."""
+    passes = []                                   # [(Parts, [aabb...])]
+    for o, nv, fo, nf in parts.shells:
+        vs = parts.v[o:o+nv]
+        lo = [min(p[i] for p in vs) for i in range(3)]
+        hi = [max(p[i] for p in vs) for i in range(3)]
+        for g, boxes in passes:
+            if not any(all(lo[i] < b1[i] and b0[i] < hi[i] for i in range(3)) for b0, b1 in boxes):
+                break
+        else:
+            g, boxes = Parts(), []
+            passes.append((g, boxes))
+        boxes.append((lo, hi))
+        g._add(vs, [tuple(i-o for i in fc) for fc in parts.f[fo:fo+nf]])
+    for g, _ in passes:
+        boolean(target, g.build(kit, 'Temporary cargo body cutter', mat))
 
 
 def _hazard(p, u0, u1, z0, z1, band, face, depth, s, along='X'):
@@ -434,6 +452,9 @@ def _door(kit, n, s, dx0, dx1, dz0, dz1, band, w, low):
 # 5.2 units at 0.50 m/u), two across and four high, in mixed liveries.
 BAY_COLS = (47.0, 58.3, 69.7, 81.0)      # cell edges, rel y (the sprite's three slot columns)
 BAY_ROWS = (-38.0, -14.0, 10.0)          # cell edges, z (its two slot rows)
+# The aft faces (X -20, rel 46..79) are narrower: three cells on a 10.8 pitch with lighter
+# posts and the boxes 0.2 apart; the drive pod's thrust yoke bears on the second post.
+AFT_BAY_COLS = (46.3, 57.1, 67.9, 78.7)
 BAY_DEPTH = 7.0                          # recess behind the bow face
 BOX_W, BOX_H, BOX_GAP = 4.9, 5.2, .3     # container end, units
 LIVERIES = (('rust orange', (.42, .15, .05)), ('faded blue', (.11, .21, .34)), ('green', (.11, .23, .13)),
@@ -448,45 +469,52 @@ def _livery(name, rgb):
     return _LIVERY_MATS[name]
 
 
-def container_bays(kit, n, s):
-    """Open the fore module's bow face into container bays and fill them (see BAY_COLS)."""
-    f = FRONT
-    back = f-BAY_DEPTH
-    lo, hi = BAY_COLS[0]-.6, BAY_COLS[-1]+.6
-    _cut(kit, obj(n), Parts().rbox(back, f+2, lo, hi, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s), kit.dark)
-    Parts().rbox(back-.3, back+.2, lo, hi, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s).build(
+def container_bays(kit, n, s, f, d, cols, guide_name, post=.6, gap=BOX_GAP, thrust_post=None):
+    """Open a module end face into container bays and fill them (see BAY_COLS).
+
+    f is the face's X and d its outward direction (+1 the bow, -1 aft); cols are the cell
+    edges in rel y. thrust_post (rel y) names the post the drive pod's thrust yoke bears
+    on, carried flush with the face."""
+    back = f-d*BAY_DEPTH
+    lip = f-d*.3
+    xs = lambda u0, u1: (min(u0, u1), max(u0, u1))
+    lo, hi = cols[0]-post, cols[-1]+post
+    _cut(kit, obj(n), Parts().rbox(*xs(back, f+d*2), lo, hi, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s), kit.dark)
+    Parts().rbox(*xs(back-d*.3, back+d*.2), lo, hi, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s).build(
         kit, f'{n} container bay back wall', kit.dark)
-    # Cell guides: posts on the slot lines and shelves between the rows (the old bow armour).
+    # Cell guides: posts on the slot lines and shelves between the rows.
     guides = Parts()
-    for r in BAY_COLS:
-        guides.rbox(back, f-.3, r-.6, r+.6, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s)
+    for r in cols:
+        heavy = r == thrust_post                    # carried flush to the face for the yoke's shoe
+        guides.rbox(*xs(back, f if heavy else lip), r-post, r+post, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s)
     for z in BAY_ROWS:
-        guides.rbox(back, f-.3, lo, hi, z-.6, z+.6, s)
-    guides.build(kit, f'{n} bow armour', kit.steel, .1)
+        guides.rbox(*xs(back, lip), lo, hi, z-.6, z+.6, s)
+    guides.build(kit, guide_name, kit.steel, .1)
     rng = random.Random(f'{n} containers')
     bodies, seams, bars, corners = {}, Parts(), Parts(), Parts()
-    face = f-2.4                                    # door plane, set back inside the lip
-    for c0, c1 in zip(BAY_COLS, BAY_COLS[1:]):
-        w0 = (c0+c1)/2-(2*BOX_W+BOX_GAP)/2
+    face = f-d*2.4                                  # door plane, set back inside the lip
+    door = xs(face, face+d*.04)
+    for c0, c1 in zip(cols, cols[1:]):
+        w0 = (c0+c1)/2-(2*BOX_W+gap)/2
         for z0, z1 in zip(BAY_ROWS, BAY_ROWS[1:]):
             h0 = (z0+z1)/2-(4*BOX_H+3*BOX_GAP)/2
             for i in range(2):
                 for k in range(4):
-                    a = w0+i*(BOX_W+BOX_GAP)
+                    a = w0+i*(BOX_W+gap)
                     zb = h0+k*(BOX_H+BOX_GAP)
                     name, rgb = rng.choice(LIVERIES)
-                    bodies.setdefault(name, (rgb, Parts()))[1].rbox(back+.2, face, a, a+BOX_W, zb, zb+BOX_H, s)
+                    bodies.setdefault(name, (rgb, Parts()))[1].rbox(*xs(back+d*.2, face), a, a+BOX_W, zb, zb+BOX_H, s)
                     m = a+BOX_W/2
-                    seams.rbox(face, face+.04, m-.06, m+.06, zb+.5, zb+BOX_H-.5, s)          # leaf split
-                    seams.rbox(face, face+.04, a+.3, a+BOX_W-.3, zb+BOX_H-.55, zb+BOX_H-.45, s)  # header
-                    for u in (.18, .38, .62, .82):                                           # lock bars
+                    seams.rbox(*door, m-.06, m+.06, zb+.5, zb+BOX_H-.5, s)                      # leaf split
+                    seams.rbox(*door, a+.3, a+BOX_W-.3, zb+BOX_H-.55, zb+BOX_H-.45, s)          # header
+                    for u in (.18, .38, .62, .82):                                              # lock bars
                         r = a+BOX_W*u
-                        bars.rbox(face, face+.14, r-.07, r+.07, zb+.35, zb+BOX_H-.35, s)
-                        for zz in (zb+1.6, zb+BOX_H-1.6):                                  # handles
-                            bars.rbox(face, face+.2, r-.07, r+.32 if u < .5 else r-.32, zz-.06, zz+.06, s)
-                    for ca in (a, a+BOX_W-.45):                                              # corner castings
+                        bars.rbox(*xs(face, face+d*.14), r-.07, r+.07, zb+.35, zb+BOX_H-.35, s)
+                        for zz in (zb+1.6, zb+BOX_H-1.6):                                     # handles
+                            bars.rbox(*xs(face, face+d*.2), r-.07, r+.32 if u < .5 else r-.32, zz-.06, zz+.06, s)
+                    for ca in (a, a+BOX_W-.45):                                                 # corner castings
                         for cz in (zb, zb+BOX_H-.45):
-                            corners.rbox(face-.05, face+.08, ca, ca+.45, cz, cz+.45, s)
+                            corners.rbox(*xs(face-d*.05, face+d*.08), ca, ca+.45, cz, cz+.45, s)
     for name, (rgb, parts) in sorted(bodies.items()):
         parts.build(kit, f'{n} containers {name}', _livery(name, rgb), .06)
     seams.build(kit, f'{n} container door seams', kit.dark)
@@ -536,22 +564,13 @@ def module(kit, side, s, part):
         cap.rbox(84.0, FRONT-.4, 48.2, 77.0, t, t+.45, s)
         for r in (52.0, 58.0, 64.0, 70.0):
             vents.rbox(85.5, 88.0, r-1.4, r+1.4, t+.45, t+.7, s)
-        container_bays(kit, n, s)
+        container_bays(kit, n, s, FRONT, 1, BAY_COLS, f'{n} bow armour')
     else:
         cap.rbox(-17.0, -11.0, 48.2, 76.0, t, t+.45, s)
         for x in (-15.6, -14.0, -12.4):
             vents.rbox(x-.35, x+.35, 50.0, 74.0, t+.45, t+.55, s)
-        face, grille = Parts(), Parts()
-        for r0, r1 in ((46.8, 62.0), (62.6, 78.4)):
-            for z0, z1 in ((-37.0, -13.1), (-12.5, 10.5)):
-                face.rbox(-20.5, -20.0, r0, r1, z0, z1, s)
-        r = 48.0
-        while r < 77.5:
-            grille.rbox(-20.75, -20.5, r, r+.5, -10.5, 8.5, s)
-            grille.rbox(-20.75, -20.5, r, r+.5, -35.0, -15.1, s)
-            r += 2.0
-        face.build(kit, f'{n} aft end cap', kit.steel, .2)
-        grille.build(kit, f'{n} aft grille slats', kit.dark)
+        container_bays(kit, n, s, HOLD_AFT-1, -1, AFT_BAY_COLS, f'{n} aft end cap', post=.4, gap=.2,
+                       thrust_post=AFT_BAY_COLS[1])
     cap.build(kit, f'{n} {"bow" if fore else "aft"} cap plate', kit.steel, .12)
     vents.build(kit, f'{n} cap vents', kit.pale if fore else kit.dark, .05)
 
@@ -594,12 +613,14 @@ def belly(kit):
     g = Parts()
     for x in (-4.0, 13.0, 35.5, 57.0, 79.0):
         g.box(x-.3, x+.3, y(HOLD_Y-8, 1), y(HOLD_Y-8, -1), z-1, z+.6)
+    _cut(kit, hold, g, kit.dark)          # crossing seams in one cutter overlap and break the boolean
+    g = Parts()
     for r in (-17.0, 0.0, 17.0):
         g.box(HOLD_AFT+8, FRONT-8, YC+r-.3, YC+r+.3, z-1, z+.6)
     _cut(kit, hold, g, kit.dark)
     strakes = Parts()
     for r0, r1 in ((-15.0, -2.0), (2.0, 15.0)):
-        for x0, x1 in ((-11.0, 12.4), (13.6, 34.9), (36.1, 56.4), (57.6, 78.4)):
+        for x0, x1 in ((13.6, 34.9), (36.1, 56.4)):        # the end bays take the ventral hatches
             strakes.box(x0, x1, YC+r0, YC+r1, z-.5, z+.2)
     strakes.build(kit, 'Hull keel armour strakes', kit.steel, .2)
     for side, s in SIDES:
@@ -607,9 +628,102 @@ def belly(kit):
             g = Parts()
             for x in seams:
                 g.rbox(x-.3, x+.3, SIDE_Y[0]+7, SIDE_Y[1]-7, SIDE_KEEL-1, SIDE_KEEL+.6, s)
+            _cut(kit, obj(f'Cargo {side} {part} module'), g, kit.dark)
+            g = Parts()
             g.rbox(SIDE_SPLIT+8 if part == 'fore' else HOLD_AFT+8, FRONT-8 if part == 'fore' else SIDE_SPLIT-8,
                    66.7, 67.3, SIDE_KEEL-1, SIDE_KEEL+.6, s)
             _cut(kit, obj(f'Cargo {side} {part} module'), g, kit.dark)
+
+
+def aft_bulkhead(kit):
+    """The hold's aft face between the drive pods, below the waist: a plated thrust bulkhead."""
+    hold = obj('Hull central cargo hold')
+    f = HOLD_AFT
+    g = Parts()
+    for r in (-24.0, -12.0, 0.0, 12.0, 24.0):                          # vertical plate seams
+        g.box(f-1, f+.6, YC+r-.25, YC+r+.25, HOLD_KEEL+8, -16.5)
+    _cut(kit, hold, g, kit.dark)
+    g = Parts()
+    for z in (-24.0, -33.0):                                             # horizontal strata
+        g.box(f-1, f+.6, YC-HOLD_Y+.5, YC+HOLD_Y-.5, z-.25, z+.25)
+    _cut(kit, hold, g, kit.dark)
+    g = Parts().box(f-1, f+1.1, YC-5.5, YC+5.5, -39.0, -27.5)             # service hatch recess, deeper than the seams
+    _cut(kit, hold, g, kit.dark)
+    Parts().box(f+.3, f+.7, YC-5.0, YC+5.0, -38.5, -28.0).build(kit, 'Hull aft bulkhead service hatch', kit.steel, .1)
+    dogs = Parts()
+    for u in (-3.5, 0.0, 3.5):
+        for z in (-38.0, -28.5):
+            dogs.box(f, f+.3, YC+u-.4, YC+u+.4, z-.2, z+.2)
+    for z in (-36.5, -30.0):
+        dogs.box(f, f+.3, YC-4.6, YC-4.2, z-.4, z+.4).box(f, f+.3, YC+4.2, YC+4.6, z-.4, z+.4)
+    dogs.build(kit, 'Hull aft bulkhead hatch dogs', kit.pale)
+    # Two thrust frames: the heavy vertical ribs that take the waist's loads into the bulkhead.
+    ribs = Parts()
+    for r in (-17.0, 17.0):
+        ribs.box(f-1.4, f+.2, YC+r-1.2, YC+r+1.2, HOLD_KEEL+9, -16.0)
+    ribs.build(kit, 'Hull aft bulkhead thrust frames', kit.steel, .15)
+
+
+def docking(kit):
+    """Under the keel: two ventral cargo hatches and four docking clamp hardpoints, for loading
+    at a station or a freight lighter (owner, pass 3 round 4)."""
+    hold = obj('Hull central cargo hold')
+    z = HOLD_KEEL
+    hatches = ((-9.0, 9.0), (59.0, 77.0))                               # between the strakes' seams
+    g = Parts()
+    for x0, x1 in hatches:
+        g.box(x0-.6, x1+.6, YC-11.6, YC+11.6, z-1, z+1.1)     # deeper than the keel seams
+    _cut(kit, hold, g, kit.dark)
+    leaves, frame, stripes = Parts(), Parts(), Parts()
+    for x0, x1 in hatches:
+        for a, b in ((YC-11.0, YC-.15), (YC+.15, YC+11.0)):
+            leaves.box(x0, x1, a, b, z+.6, z+.9)
+        for zz in (-.05,):
+            frame.box(x0-1.4, x1+1.4, YC-12.4, YC-11.6, z+zz-.25, z+zz)
+            frame.box(x0-1.4, x1+1.4, YC+11.6, YC+12.4, z+zz-.25, z+zz)
+            frame.box(x0-1.4, x0-.6, YC-11.6, YC+11.6, z+zz-.25, z+zz)
+            frame.box(x1+.6, x1+1.4, YC-11.6, YC+11.6, z+zz-.25, z+zz)
+        u = x0-1.4
+        while u < x1+1.0:
+            for r in (-12.4, 11.6):
+                stripes.box(u, u+.5, YC+r, YC+r+.8, z-.32, z-.27)
+            u += 1.6
+    leaves.build(kit, 'Hull ventral cargo hatch leaves', kit.maroon, .08)
+    frame.build(kit, 'Hull ventral cargo hatch frames', kit.orange)
+    stripes.build(kit, 'Hull ventral cargo hatch hazard stripes', kit.dark)
+    # Docking clamp hardpoints: a bolted base, a clamp head and two jaws, on the side-module keels.
+    base, head, bolts = Parts(), Parts(), Parts()
+    zk = SIDE_KEEL
+    for side, s in SIDES:
+        for x in (-2.0, 70.0):
+            c = y(67.0, s)
+            base.box(x-3.0, x+3.0, c-3.0, c+3.0, zk-.6, zk+.2)
+            head.box(x-1.6, x+1.6, c-1.6, c+1.6, zk-2.4, zk-.6)
+            for dx in (-1.9, 1.9):
+                head.box(x+dx-.35, x+dx+.35, c-1.2, c+1.2, zk-3.4, zk-1.6)
+            for bx in (-2.4, 2.4):
+                for by in (-2.4, 2.4):
+                    bolts.box(x+bx-.25, x+bx+.25, c+by-.25, c+by+.25, zk-.85, zk-.6)
+    base.build(kit, 'Hull docking clamp bases', kit.steel, .15)
+    head.build(kit, 'Hull docking clamp heads', kit.dark, .1)
+    bolts.build(kit, 'Hull docking clamp bolts', kit.pale)
+
+
+def fenders(kit):
+    """Fender rails along the outboard walls: the berthing strakes a freighter lies against a
+    station with, carried on stand-off brackets over the thin wall skin (owner, pass 3 round 4)."""
+    rails, brackets = Parts(), Parts()
+    w = SIDE_Y[1]
+    for side, s in SIDES:
+        for z in (-11.0, -36.0):                  # between the two door rows, and below them
+            for x0, x1 in ((SIDE_SPLIT+1.2, FRONT-6.5), (-11.0, SIDE_SPLIT-1.2)):
+                rails.rbox(x0, x1, w+.25, w+.85, z-.6, z+.6, s)
+                x = x0+2.0
+                while x < x1-1.0:
+                    brackets.rbox(x-.4, x+.4, w-.1, w+.3, z-.9, z+.9, s)
+                    x += 6.0
+    rails.build(kit, 'Cargo fender rails', kit.dark, .2)
+    brackets.build(kit, 'Cargo fender rail brackets', kit.steel)
 
 
 def detail(kit):
@@ -625,3 +739,6 @@ def detail(kit):
         for part in ('fore', 'aft'):
             module(kit, side, s, part)
     belly(kit)
+    aft_bulkhead(kit)
+    docking(kit)
+    fenders(kit)

@@ -570,9 +570,11 @@ def smoothstep(a, b, x):
 # at the start, 70 m at the end, slowing as it goes.
 P0 = Vector((-220.0, -470.0, 330.0))   # in frame, lower left, from the first second
 # Second Wind's hull runs 27 m aft and 39 m forward of its root and hangs 7.9 m below it, so the
-# root sits 5.9 m aft of the pad centre (centring the hull in the ring) and 11 m up at rest.
+# root sits 5.9 m aft of the pad centre (centring the hull in the ring) and 8.3 m up at rest, on
+# Kilo Nine's low slab (K9_SLAB).
 HULL_FWD = 5.9
-REST_Z = 11.0
+K9_SLAB = 0.4                         # a private yard's pad: a low slab people and vehicles walk onto
+REST_Z = K9_SLAB + 7.9
 ARRIVE = 6.6                          # seconds: braked to a hover over the pad
 HOVER_Z = 60.0
 T_DOWN = 11.0                         # touchdown; then the drive spools down and the yard goes to work
@@ -737,14 +739,14 @@ def add_port():
     pads, marks, towers, tankb, stockb, crateb, deckb = (bmesh.new() for _ in range(7))
     mods = [bmesh.new() for _ in mod_mats]
 
-    def pad(cx, cy, h, rad, lane):
-        cylinder(pads, rad, 3, (cx, cy, 0), 40)
+    def pad(cx, cy, h, rad, lane, top=3.0):
+        cylinder(pads, rad, top, (cx, cy, 0), 40)
         for a in range(40):
             ang = 2 * math.pi * a / 40
-            box(marks, (rad * 0.1, 1.4, 0.1), (cx + (rad - 6) * math.cos(ang), cy + (rad - 6) * math.sin(ang), 3.05),
+            box(marks, (rad * 0.1, 1.4, 0.1), (cx + (rad - 6) * math.cos(ang), cy + (rad - 6) * math.sin(ang), top + 0.05),
                 ang + math.pi / 2)
-        box(marks, (2 * rad - 18, 1.8, 0.1), (cx, cy, 3.05), h)            # centre line: the way it faces
-        box(marks, (1.8, rad * 0.8, 0.1), at(cx, cy, h, rad * 0.5, 0, 3.05), h)   # nose bar
+        box(marks, (2 * rad - 18, 1.8, 0.1), (cx, cy, top + 0.05), h)            # centre line: the way it faces
+        box(marks, (1.8, rad * 0.8, 0.1), at(cx, cy, h, rad * 0.5, 0, top + 0.05), h)   # nose bar
         for k in range(lane):                                              # lead-in dashes on the apron
             box(marks, (6, 1.2, 0.1), at(cx, cy, h, -(rad + 10 + k * 11), 0, 0.1), h)
 
@@ -878,7 +880,7 @@ def add_port():
     mesh('Gate leaves', leaves, bpy.data.materials['Fence steel'])
     kx, ky = K9
     kh = k9_heading()
-    pad(kx, ky, kh, K9_R, 3)
+    pad(kx, ky, kh, K9_R, 3, K9_SLAB)
     ring = bmesh.new()
     for a in range(64):
         ang = 2 * math.pi * a / 64
@@ -1260,7 +1262,7 @@ def add_k9_vehicles():
                             ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange']),
                             ((1.2, 2.2, 0.4), (-0.6, 0, 2.0), lights)],
             [(0, OFFICE[0] - 8, 392), (sec(7.0), OFFICE[0] - 8, 392), (sec(7.8), 252, 372), (sec(9.2), 300, 372),
-             (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(12.4), 305, 430), (sec(14.2), 345, 430)],
+             (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(12.4), 305, 430), (sec(14.6), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
              (sec(12.4), math.pi / 2), (sec(13.0), 0.0)])
     beacon = bpy.data.objects.new('Customs beacon', bpy.data.lights.new('Customs beacon', 'POINT'))
@@ -1416,6 +1418,12 @@ def build():
     add_cloud_shadows()
     add_ship()
     add_landing_dust()
+    if str(BASE) not in sys.path:
+        sys.path.insert(0, str(BASE))
+    import ortho_paint                                   # painted overhead tiles, where accepted
+    manifest = json.loads((STATES / 'manifest.json').read_text())
+    ship = bpy.data.collections.get(manifest['append_collection'])
+    ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'})
     add_camera(scene)
     scene.render.engine = 'BLENDER_EEVEE'

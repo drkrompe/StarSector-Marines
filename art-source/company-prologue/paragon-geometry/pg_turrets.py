@@ -60,6 +60,7 @@ SPEC = {
     'SMALL':  dict(r=6.5, collar=1.6, hr=4.6, hh=3.0, length=12.0, er=.7, n=1),
 }
 RECORDS = []
+SPRITE_IOU = {}   # each gun's top silhouette against its weapon sprite
 
 
 def housing_profile(hr, hh):
@@ -198,9 +199,12 @@ def turret(kit, sid, loc, angle, arc, size, typ):
     pivot['arc_deg'] = arc
     pivot['size'] = size
     pivot['type'] = typ
-    # The gun, read off its weapon sprite (pg_weapons), sitting low in the well.
+    # The gun, built from its weapon sprite at the game's scale (pg_weapons.sprite_gun): its foot
+    # sits just under the well's rim, so the parts reaching past the dimple clear the plate.
     weapon = pg_weapons.weapon_for(size, typ, ELITE.get(sid))
-    parts, muzzles = pg_weapons.BUILDERS[weapon](kit, f'Weapon {sid}', spec)
+    parts, muzzles = pg_weapons.build_gun(kit, f'Weapon {sid}', weapon, D-spec['collar']-.3)
+    if weapon not in SPRITE_IOU:
+        SPRITE_IOU[weapon] = round(pg_weapons.sprite_iou(parts, weapon), 3)
     mz = [kit.empty(f'Weapon {sid} muzzle {j+1}' if len(muzzles) > 1 else f'Weapon {sid} muzzle', p, 0,
                     'SINGLE_ARROW', 3) for j, p in enumerate(muzzles)]
     bpy.context.view_layer.update()
@@ -244,6 +248,7 @@ def hardpoint(kit, sid, loc, angle, arc, size, typ):
 
 def build(kit):
     RECORDS.clear()
+    SPRITE_IOU.clear()
     for sid, loc, angle, arc, size, typ, mount in SLOTS:
         if mount == 'HARDPOINT':
             hardpoint(kit, sid, loc, angle, arc, size, typ)

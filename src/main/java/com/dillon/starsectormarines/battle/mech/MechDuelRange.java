@@ -388,7 +388,7 @@ public final class MechDuelRange {
             VehicleType type = convoy.vehicleType(target);
             if (type == null) return null;
             List<Weapon> out = new ArrayList<>(1);
-            if (type.hasTurretWeapon()) out.add(Weapon.of(type.turretStructure().mount.weapon));
+            if (convoy.isArmed(target)) out.add(Weapon.of(type.turretStructure().mount.weapon));
             return out;
         }
         return null;
