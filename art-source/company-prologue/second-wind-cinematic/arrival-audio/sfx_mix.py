@@ -160,20 +160,29 @@ SHOTS = {
         sfx("c4_touchdown", 11.0, -2),
         sfx("c4_dust_hiss", 11.0, -10),
         sfx("c4_spool_down", 11.2, -8),
-        sfx("c5_vehicles_arrive", 14.2, -12, fade_in=0.5),
         sfx("c5_yard_bed", 12.0, -14, until=49.5,
             env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
         voice(("castle", CASTLE["c4_greywater"]), 1.0),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
-        sfx("c5_car_doors", 3.5, -12),
+        # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
+        # 2.5, the crew carrier at 3.5, the bowser at 4.5, the customs car at 5.0. The take's brake
+        # hiss sits 4 s in, so each starts 4 s before its stop; a door 0.6 s after each stop.
+        sfx("c5_vehicles_arrive", -1.5, -14, fade_in=0.8),
+        sfx("c5_vehicles_arrive", -0.5, -15, offset=0.3, fade_in=0.8),
+        sfx("c5_vehicles_arrive", 0.5, -16, offset=0.6, fade_in=0.8),
+        sfx("c5_vehicles_arrive", 1.0, -18, offset=0.9, fade_in=0.8),
+        sfx("c5_car_doors", 3.1, -16, until=3.7),
+        sfx("c5_car_doors", 4.1, -16, until=4.7),
+        sfx("c5_car_doors", 5.1, -16, until=5.7),
+        sfx("c5_car_doors", 5.6, -14),
         sfx("c5_steam_vent", 4.0, -14, until=6.5),
         sfx("c5_steam_vent", 6.4, -16, until=8.6),
         sfx("c5_pa_click", 4.75, -10, until=5.2),
         sfx("c5_pa_click", 13.8, -10, until=14.25),
         sfx("c5_ramp_drop", 5.6, -8),
         # From 220 m up the families are a far murmur, not footsteps (owner, 2026-10-19).
-        sfx("c5_crowd_murmur", 10.0, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
+        sfx("c5_crowd_murmur", 8.5, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
             fade_in=2.0, fade_out=3.0),
         sfx("c5_port_wide", 17.0, -5, offset=5.0, until=33.5,
             env=[(17, -12), (26, 0), (28, 0), (32.5, -40)], fade_in=1.0),

@@ -117,7 +117,8 @@ and the beds simply run on.
 
 ## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 49.5 s)
 
-One continuous camera (owner, 2026-10-19): the sky pan from farmland over the freeway and
+One continuous camera (owner, 2026-10-19; joined in `c5_scene`: C5 opens on C4's last frame and
+pushes in from 445 m to the 220 m view of the ramp over its first 4 s): the sky pan from farmland over the freeway and
 the industrial belt to the port (0–8), down over Kilo Nine, the landing, the yard, the
 families, the rise and the title. Until it is rendered as one, the review plays the C4
 sketch (0–16) and the C5 sketch (16–49.5) back to back. Times below are on the joined clock;
@@ -144,14 +145,14 @@ black by 49.
 | `c4_touchdown` | The landing: a deep thump and the gear's metal groan | 11.0 | Spot | −2 | Gen |
 | `c4_dust_hiss` | Downwash blasting dust and grit across the pad | 11.0–15 | Spot | −10 | Gen |
 | `c4_spool_down` | The drive winding down | 11.2–16 | Transition | −8 | Gen; existing `c5_yard_spool_down` |
-| `c5_vehicles_arrive` | The tug, bowser and crew carrier start, move in and stop: idle, air-brake hiss | 14.2–20.2 | Spot | −12 | Gen |
+| `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 14.5–23, hisses at 18.5, 19.5, 20.5, 21.0 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 12–49.5; full to 34, thinning under the rise, out by 47 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 16.5–30 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
-| `c5_car_doors` | The customs car's doors; the officers step out | 19.5 | Spot | −12 | Gen |
+| `c5_car_doors` | A door 0.6 s after each vehicle stops; the customs car's two doors last | 19.1, 20.1, 21.1, 21.6 and 23.1 | Spot | −16, −14 for the customs car | Gen |
 | `c5_steam_vent` | Steam venting off the hull as the engines go dark | 20–24.6 | Spot | −14 | Gen; existing `c5_yard_steam_vent` |
 | `c5_pa_click` | The loudspeaker switched on before "All hands", and off after the announcement. A clean click and a speaker thump; **no squelch** | 20.75, 29.8 | Spot | −10 | Gen |
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 21.6–25.6, the clunk at 24.6 | Spot | −8 | Gen |
-| `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 26–41, well under Castle | Bed | −24 | Gen |
+| `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 24.5–41, from when they come off the ramp, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 33–49.5, up from −17 to −5 at 42, then fading to silence by 48.5 under the title | Bed | −17 → −5 → out | Gen |
 | Music | Not chosen. Arrives under Castle's last line and carries the title | 37–49.5 | — | — | — |
 
