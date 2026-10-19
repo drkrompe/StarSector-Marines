@@ -737,6 +737,9 @@ tasks.register('createSnapshots', JavaExec) {
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
     systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    // Rally routes searched on worker threads land on whichever tick they finish, so a DEFEND_TRACK squad set off
+    // a tick earlier or later run to run (tender-stance drifted on exactly that). Synchronous, as `test` has it.
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
     // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
@@ -776,6 +779,9 @@ tasks.register('sceneEvidence', JavaExec) {
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
     systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    // Rally routes searched on worker threads land on whichever tick they finish, so a DEFEND_TRACK squad set off
+    // a tick earlier or later run to run (tender-stance drifted on exactly that). Synchronous, as `test` has it.
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
     // Scenes are evidence only if the same world plays the same way twice. The production scheduler splits
     // 48 or more units across workers and does not, so a scene of a hundred and twenty marines drifted run to run
     // (breach-charges: 3080 ticks and 40 lost, then 5571 and 53). Serial by default; a -Dbattle switch below overrides.
@@ -804,6 +810,9 @@ tasks.register('sceneDeterminism', JavaExec) {
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
     systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    // Rally routes searched on worker threads land on whichever tick they finish, so a DEFEND_TRACK squad set off
+    // a tick earlier or later run to run (tender-stance drifted on exactly that). Synchronous, as `test` has it.
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }

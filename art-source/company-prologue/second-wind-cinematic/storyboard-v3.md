@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-18 — dialogue arc revised for the C5 v2 closing (`c5-v2-closing.md`): line 9 is now relief, C4 is one line, Nessa's memory returns to P6.
+Updated: 2026-10-18 — C4 is now the sky camera ending in the landing at Kilo Nine; C5 replaced by the v2 closing; dialogue arc revised (`c5-v2-closing.md`).
 
 ## What changed from v2
 
@@ -53,8 +53,8 @@ are new work.
 | C2 | PATROL ABEAM | Cinematic + hail continues | A Hegemony warship slides past the crew window. | **new** |
 | — | Entry (transition only) | Cinematic | Glow and cloud wipe; not a beat. | **new**, 2–3 s |
 | C3 | FIRST OPEN SKY | Cinematic, silent | Miners from an asteroid see sky. | salvage forest plate |
-| C4 | THE ROAD AND THE PORT | Cinematic + Castle | A world people live on; the freight road they will fight for. | **new** panorama |
-| C5 | NESSA'S YARD | Cinematic (push-in) | They made it. The ship is a wreck, and it is down. | **new** |
+| C4 | THE ROAD AND THE PORT | Cinematic + Castle | A world people live on; the freight road they will fight for; down at Kilo Nine. | **new**, sky camera (`industrial-exterior/`) |
+| C5 | WE'RE DOWN | Cinematic + Castle, title | They made it; the families walk off; the title. | **new**, v2 (`c5-v2-closing.md`) |
 | Y1 | Yard report | Image + dialog | Nessa held to the estimate; the Wayline bridge. | *existing* `yard-hull` |
 | Y2 | Yard completion | Image + dialog | Old seals on Nessa's wall. | *existing* `berths-fitted` |
 | Y3 | Castle's preparation lessons | Dialog | Instructions in her voice. | *existing* |
@@ -148,18 +148,22 @@ gloved hand may loosen on the frame.
 **Payoff.** The emotional centre of the arrival. These people lived years inside
 an asteroid mine. Let them, and the player, look.
 
-### C4 — THE ROAD AND THE PORT (about 20 s)
+### C4 — THE ROAD AND THE PORT (about 16 s)
 
-**Picture.** One wide panorama seen through the same window, panned in a single
-pass. It runs from farmland, to a freight road carrying a line of heavy haulers,
-to the edge of a Hegemony-built spaceport: launch cradles, lifters climbing,
-cranes, landing lights, towers, and native growth pressing in at the edges.
+**Picture.** Outside, for the first time since C2: a sky camera looking nearly
+straight down, about 820 m up, with Second Wind passing beneath it. It runs from
+farmland, across the freight road and its heavy haulers, over the industrial
+belt and the container yard, to the Greywater Down port: the public berths in
+rows by size, lifters climbing, cranes, and the jungle pressing in at the edge.
+It ends straight over Kilo Nine, Nessa's private yard, where the ship touches
+down and the yard goes to work. `industrial-exterior/c4x_scene.py` is the
+layout, and `c5-v2-closing.md` says how it hands off to C5.
 
-**Layers.** Fixed window frame; near fields and road; port district; far hills
-and sky.
+**Layers.** One Blender scene, not window layers.
 
-**Motion.** One continuous sideways pan across the panorama, with no cuts inside
-the shot.
+**Motion.** An 8 s pan toward the port that comes down to about 480 m over the
+yard, then 8 s of lingering while the ship sinks, lands in its dust and the
+yard crew move in.
 
 **Audio.** One line from Castle over the fields, overheard through the open
 intercom:
@@ -174,22 +178,13 @@ the shot is too short to carry it, and Y1 introduces Nessa anyway.
 are Wayline's kind of drivers, on the kind of road the company will defend in
 Relief.
 
-### C5 — NESSA'S YARD (about 8 s)
+### C5 — WE'RE DOWN (about 30 s)
 
-**Picture.** Outside. Second Wind is down in a yard cradle, still visibly
-scarred, with heat shimmer and vented steam. Yard crew in biofilter masks walk
-out from a sheltered gantry. One figure stands with her arms folded, too small to
-read a face.
-
-**Layers.** Hull; steam and shimmer; crew; yard and sky.
-
-**Motion.** A slow push-in. The steam layer drifts. The crew layer walks a few
-pixels.
-
-**Audio.** Flight noise falls away to ordinary yard sound.
-
-**Payoff.** They made it, and the ship is a wreck. Cut straight into Y1, where
-Castle reports the meeting with Nessa.
+Replaced by v2: `c5-v2-closing.md` holds the picture, the beats and Castle's
+closing lines. In short: overhead on the ship in Nessa's yard, the families walk
+off past the customs officers, the camera rises until the yard is one corner of a
+working port, and the title comes up. The v1 push-in (`nessas-yard/`) still ships
+until v2 is rendered.
 
 ## C1–C2: Hegemony traffic-control hail
 
@@ -376,8 +371,8 @@ people, steam. Each one has to be chosen against how its shot's camera moves.
 | C1 Corvus | Running lights and small freighters drifting along the traffic lanes; shuttles crossing toward the descent corridor; the battlegroup holding station with slow drift and engine-glow sheets. No rotating station: rotation is ruled out, unless an animation sheet carries it. |
 | C2 Patrol abeam | The patrol hull is the moving layer. Engine glow and running lights flicker from sheets. |
 | C3 First open sky | The Atlas lifter crossing; a distant flock from a sheet; mist bands sliding at their own depth. |
-| C4 The road and the port | Trucks on the freight road, which runs across the window so they only translate (the owner's example); a sprayer in the fields; lifters climbing vertically from the port at far depth; crane swings and landing lights from sheets. |
-| C5 Nessa's yard | Yard crew walking out on a walk cycle; steam and heat shimmer from sheets; a crane or hoist with a short loop. |
+| C4 The road and the port | Animated in its Blender scene: haulers, carriers, a harvester, lifters, the ship, landing dust, the yard's vehicles and crew. |
+| C5 We're down | Families and crew walking, seen from overhead (`c5-v2-closing.md`); steam; the yard's vehicles and crane. |
 
 ## Decisions
 
