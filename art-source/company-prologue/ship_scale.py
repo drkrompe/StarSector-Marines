@@ -221,15 +221,15 @@ VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SO
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
              'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .80}
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
-# wing body, aft engine block, ventral keel and command dome (SOLIDS['manticore']). The drive
+# wing body, aft engine block, ventral keel, command tier and dome (SOLIDS['manticore']). The drive
 # cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
 # the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
 # its own statements so sibling hulls added at the same time do not collide in one line.
-HULLS['Manticore (P)'] = dict(units3=158541, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
-                             sprite_px=154, fittings_units={'viewport w x h': [1.49, 1.19],
-                                                            'bridge glazing band h': [1.64]})
+HULLS['Manticore (P)'] = dict(units3=310119, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+                             sprite_px=154, fittings_units={'viewport w x h': [1.85, 1.48],
+                                                            'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
-PUBLISHED['Manticore (P)'] = .67
+PUBLISHED['Manticore (P)'] = .54
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -318,7 +318,8 @@ SOLIDS = {
 # its driver re-measures these solids on every build.
 SOLIDS['manticore'] = {'blend': '../../build/manticore/manticore.blend', 'step': .5,
                        'include': lambda n: n in ('Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body',
-                                                  'Hull aft body', 'Hull ventral keel', 'Bridge command dome')}
+                                                  'Hull aft body', 'Hull ventral keel', 'Bridge command tier',
+                                                  'Bridge command dome')}
 
 
 def table():

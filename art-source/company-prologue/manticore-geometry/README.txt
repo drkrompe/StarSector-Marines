@@ -1,4 +1,4 @@
-MANTICORE (P) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 SCALE, 6 LIGHT LIVERY)
+MANTICORE (P) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 SCALE, 6 LIGHT LIVERY; REVIEW ROUND 2)
 
 Purpose
 A scripted Blender model of the vanilla Manticore in its pirate skin for the
@@ -25,21 +25,36 @@ centre, so slot and engine XY are used unchanged. Sprite column c, row r
 (from the top) covers X 86-r..87-r and Y 81-c..82-c. Heights are proposed
 art; the game gives none.
 
-Scale (pass 4): 0.67 m per unit
+Scale (pass 4): 0.54 m per unit
 Published through the shared sizing basis, ../ship_scale.py (owner's option C),
 never set here: METRES_PER_UNIT in build_manticore.py reads
 ship_scale.PUBLISHED and geometry.json's 'scale' is ship_scale.record('Manticore (P)').
 Inputs: 80 crew, 80 cargo, 50 fuel, destroyer class. Enclosed volume is the
 union of ship_scale.SOLIDS['manticore']: bow head, neck, core, wing body, aft
-body, ventral keel and command dome (drive cans, gun pods, launcher housings,
-armour plates and horns, and weapons excluded): 158,541 units3 after review
-round 1 faceted the decks (163,199 before, published 0.66). That solves to
-0.671 (range 0.650-0.691), published as 0.67: 102 m long, 108 m across the
-gun pods, 25 m keel to gun top. Against known ships: 1.7 Hounds (61 m) long,
-0.95 of a Colossus (108 m). The battle roster's plan-area estimate was 96 m.
-A 1.8 m person is 2.7 units. The driver re-measures the union on every build
-and fails if it drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x
-0.8 m) and the dome's glazed band (1.1 m) are sized in true metres.
+body, ventral keel, command tier and dome (drive cans, gun pods, launcher
+housings, armour plates and horns, and weapons excluded): 310,119 units3 after
+review round 2 deepened the hull (158,541 at round 1, published 0.67). That
+solves to 0.537, published as 0.54: 83 m long, 87 m across the gun pods, 36 m
+keel to mast. Against known ships: 1.4 Hounds (61 m) long, 0.77 of a Colossus
+(108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m person is
+3.3 units. The driver re-measures the union on every build and fails if it
+drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
+dome's glazed band (1.1 m) are sized in true metres.
+
+Owner review round 2 (2026-10-19)
+"Comically big central turret", "a thin ship ... flying wings", "what does
+the captain see?", "does NOT need to be one flat surface", "can push hull
+down". Head, neck and core are lofted through faceted sections (flat deck only
+under a turret ring, sloped shoulders and lower faces) reaching to -22, with a
+faceted ventral blade to -30. The neck is a glacis climbing from the bow gun's
+deck to the main gun's; the deck drops in a step ahead of the main gun, which
+is sunk in a 4.4-unit well. A raked command tier lifts the dome and glazing,
+and the arms droop 9 deg outboard. The driver measures both owner questions on
+the built geometry and records them in geometry.json 'forward': the bridge
+eye sees clear to 10.75 deg down, then the bow gun over the Hellbore's roof
+(the bridge-eye camera renders that view); all six mounts trained to 0 deg
+have a clear muzzle ray dead ahead (--ahead poses the review renders that
+way). IoU 0.946.
 
 Owner review round 1 (2026-10-19)
 "Very flat surfaces", "the central turret is comical", "a better
@@ -58,7 +73,7 @@ The wing is a gunmetal structure carrying three raised red armour plates a
 side, a dark strake down each swept trailing edge and a spar to each gun pod;
 tan sensor domes at the wing roots; neck ribs between red cheek strips; a
 segmented collar round the Mark IX; the command dome's glazed band, visor
-brow, mast and dish; core flank viewports; aft heat vents; canister-flak
+brow, mast and dish; crew-deck viewports down the command tier; aft heat vents; canister-flak
 hatches at the four hidden system slots (mt_detail.py).
 
 Livery (pass 6, light)
@@ -79,7 +94,7 @@ shot extents, review set; Python + Pillow + numpy), geometry.json.
 
 Rebuild from this folder (outputs go to build/manticore/, never tracked)
 sh ../../blender.sh --background --factory-startup --python build_manticore.py -- \
-    --views top,three-quarter,port-side,front,stern,details,shot --manifest
+    --views top,three-quarter,port-side,front,stern,details,shot,bridge-eye --manifest [--ahead]
 python compose_review.py --manifest [--review DIR]
 
 Shipping

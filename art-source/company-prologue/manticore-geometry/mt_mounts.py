@@ -51,7 +51,7 @@ WEAPON = {'WS 000': 'hellbore', 'WS 001': 'lightac', 'WS 002': 'needler', 'WS 00
 VARIANT_WEAPON = {'WS 000': 'mark9', 'WS 001': 'lightag', 'WS 002': 'lightneedler', 'WS 003': 'lightag',
                   'WS 004': 'harpoonpod', 'WS 005': 'harpoonpod'}
 # Ring radii read off the sprite's turret rings (hull units).
-RING = {'WS 000': 13.0, 'WS 001': 7.0, 'WS 002': 6.0, 'WS 003': 7.0, 'WS 004': 7.5, 'WS 005': 7.5}
+RING = {'WS 000': 8.5, 'WS 001': 7.0, 'WS 002': 6.0, 'WS 003': 7.0, 'WS 004': 7.5, 'WS 005': 7.5}
 LAUNCHERS = ('harpoonpod',)
 SW_HOUSE = 2.5     # the VFX kit's reference: the Second Wind's small mount radius, units
 GUN_FLASH = {'hellbore': .7, 'mark9': .7, 'lightac': .55, 'needler': .45}   # share of the ring a barrel's flash spans
