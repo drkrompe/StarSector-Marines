@@ -6,10 +6,10 @@
   912,
   513
  ],
- "segmentation_selfcheck_iou_on_guide": 0.9805,
- "raw_iou": 0.9579,
- "best_fit": "bounds_affine",
- "fitted_iou": 0.9656,
+ "segmentation_selfcheck_iou_on_guide": 0.9895,
+ "raw_iou": 0.9801,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9816,
  "fits": {
   "identity": {
    "scale": [
@@ -20,40 +20,40 @@
     0.0,
     0.0
    ],
-   "iou": 0.9579
+   "iou": 0.9801
   },
   "bounds_affine": {
    "scale": [
-    1.00255,
-    1.0
+    1.00383,
+    0.99769
    ],
    "offset_px": [
-    -1.16,
-    -1.0
+    -1.24,
+    1.09
    ],
-   "iou": 0.9656
+   "iou": 0.9759
   },
   "iou_refined_affine": {
    "scale": [
-    1.00255,
-    1.0
+    1.00183,
+    0.99969
    ],
    "offset_px": [
-    -1.16,
-    -1.0
+    -0.24,
+    0.09
    ],
-   "iou": 0.9656
+   "iou": 0.9816
   }
  },
  "boundary_raw_px": {
-  "mean_px": 6.88,
-  "p95_px": 39.0,
-  "max_px": 88.73
+  "mean_px": 5.16,
+  "p95_px": 28.31,
+  "max_px": 129.28
  },
  "boundary_fitted_px": {
-  "mean_px": 6.53,
-  "p95_px": 38.91,
-  "max_px": 87.97
+  "mean_px": 5.04,
+  "p95_px": 28.05,
+  "max_px": 128.38
  },
  "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
 }

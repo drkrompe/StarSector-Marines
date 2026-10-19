@@ -74,6 +74,14 @@ public final class ArmorPlay {
      * attack-move onto the defenders' ground.
      */
     static final String MECH_ORDER = System.getProperty("armorMatchup.mechOrder", "engage");
+
+    /**
+     * Degrees a defending hull is turned from facing the attackers when it is set down ({@code -PdefenderFacing}):
+     * 0 (default) faces them, 90 shows them its flank, 180 its rear. A holding hull turns only as its doctrine
+     * drives it, so this asks what being caught off its front costs. Mechs are not turned: a standing mech pivots
+     * onto its target at once.
+     */
+    static final float DEFENDER_FACING = Float.parseFloat(System.getProperty("armorMatchup.defenderFacing", "0"));
     /** {@code attack-move} also restores the old steering of mechs: brought closer like a hull, in sight or not. */
     private static final boolean LEGACY_MECH_ORDER = MECH_ORDER.equals("attack-move");
 
@@ -305,7 +313,8 @@ public final class ArmorPlay {
                         float x = cell[0] + 0.5f;
                         float y = cell[1] + 0.5f;
                         long id = convoy.spawn(vehicle.type(), faction, VehicleMission.deployed(x, y));
-                        convoy.body(id).teleport(x, y, attacking ? 0f : 180f);
+                        // Facing the enemy (0° is +Y): the arcs a hull is hit on start from where it points.
+                        convoy.body(id).teleport(x, y, attacking ? -90f : 90f + DEFENDER_FACING);
                         add(new Body(id, vehicle.label(), true));
                     }
                 }

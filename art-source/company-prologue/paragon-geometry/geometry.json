@@ -44,13 +44,13 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 2486231,
+      "units3": 2448749,
       "crew_max": 1000,
       "cargo": 300,
       "fuel": 300,
       "cls": "capital",
       "boat_bays": 2,
-      "length_units": 362.2,
+      "length_units": 358.7,
       "sprite_px": 364,
       "volume_source": "measured (SOLIDS)"
     },
@@ -81,31 +81,31 @@
     "contents_total_m3": 437970,
     "machinery_share": 0.58,
     "enclosed_m3": 1042786,
-    "solved_metres_per_unit": 0.749,
+    "solved_metres_per_unit": 0.752,
     "range": {
-      "habitable_273": 0.726,
-      "habitable_328": 0.771
+      "habitable_273": 0.729,
+      "habitable_328": 0.775
     },
     "enclosed_m3_per_person_at_max_crew": 1043,
-    "length_m": 271.1,
+    "length_m": 269.9,
     "fittings_m": {
       "deck window w x h": [
-        1.72,
+        1.73,
         0.77
       ],
       "capital-mount bay w x h": [
-        15.72,
-        16.47
+        15.8,
+        16.55
       ],
       "bridge glazing band h": [
-        1.55
+        1.56
       ]
     },
     "published_metres_per_unit": 0.87,
     "override": "owner: larger than the Onslaught (2026-10-18)",
-    "length_m_published": 314.7,
+    "length_m_published": 312.1,
     "measured_this_build": {
-      "enclosed_units3": 2481000,
+      "enclosed_units3": 2448749,
       "solids": [
         "Hull belt",
         "Hull main ring",
@@ -125,9 +125,9 @@
         "Hull forward hangar"
       ]
     },
-    "length_units": 361.8,
+    "length_units": 358.7,
     "size_m": [
-      314.7,
+      312.1,
       277.5,
       87.7
     ],
@@ -152,15 +152,28 @@
       -21.39
     ],
     "max": [
-      174.07,
+      171.0,
       159.5,
       79.45
     ],
     "size": [
-      361.77,
+      358.7,
       319.0,
       100.84
-    ]
+    ],
+    "note": "hull only; with_guns includes the bow hardpoint barrels past the prow",
+    "with_guns": {
+      "min": [
+        -187.7,
+        -159.5,
+        -21.39
+      ],
+      "max": [
+        217.5,
+        159.5,
+        79.45
+      ]
+    }
   },
   "bore": {
     "centre": [
@@ -485,8 +498,9 @@
       "anchor": "Weapon WS 001 hardpoint",
       "anchor_z": 2.0,
       "muzzles": [
-        "Weapon WS 001 muzzle"
+        "Weapon WS 001 muzzle anchor 1"
       ],
+      "weapon": "tachyonlance",
       "elite_variant": "autopulse"
     },
     {
@@ -503,8 +517,9 @@
       "anchor": "Weapon WS 002 hardpoint",
       "anchor_z": 2.0,
       "muzzles": [
-        "Weapon WS 002 muzzle"
+        "Weapon WS 002 muzzle anchor 1"
       ],
+      "weapon": "tachyonlance",
       "elite_variant": "autopulse"
     },
     {
@@ -1749,20 +1764,62 @@
         0
       ],
       "orthographic_scale": 300
+    },
+    {
+      "name": "hp-close",
+      "position": [
+        250.0,
+        -95.0,
+        55.0
+      ],
+      "target": [
+        180.0,
+        0.0,
+        4.0
+      ],
+      "orthographic_scale": 60.0
+    },
+    {
+      "name": "hp-front",
+      "position": [
+        262.0,
+        0.0,
+        10.0
+      ],
+      "target": [
+        175.0,
+        0.0,
+        4.0
+      ],
+      "orthographic_scale": 60.0
+    },
+    {
+      "name": "hp-slot",
+      "position": [
+        232.0,
+        30.0,
+        14.0
+      ],
+      "target": [
+        170.0,
+        16.0,
+        2.0
+      ],
+      "orthographic_scale": 40.0
     }
   ],
   "silhouette": {
-    "iou": 0.9604,
+    "iou": 0.9479,
     "sprite_uncovered": 0.026,
-    "model_outside_sprite": 0.0141,
+    "model_outside_sprite": 0.0275,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.57,
-    "white": 0.513,
-    "dark": 0.416,
-    "agreement": 0.657,
-    "silhouette": 0.962,
+    "skin": 0.574,
+    "white": 0.518,
+    "dark": 0.417,
+    "agreement": 0.659,
+    "silhouette": 0.961,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
 }

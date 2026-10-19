@@ -499,13 +499,7 @@ def add_detail():
                 strut(lb, (xa + (xb - xa) * u0 + dx, ya + (yb - ya) * u0, z - 6 * 4 * u0 * (1 - u0)),
                       (xa + (xb - xa) * u1 + dx, ya + (yb - ya) * u1, z - 6 * 4 * u1 * (1 - u1)), 0.35)
     mesh('Transmission line', lb, steel)
-    # Harvest: a combine working down a field with its grain truck alongside.
-    green = material('Harvester orange', (0.78, 0.36, 0.08), 0.5)
-    cream = material('Truck cream', (0.80, 0.76, 0.62), 0.5)
-    vehicle('Robotic harvester', [((26, 14, 7), (0, 0, 4), green), ((3, 40, 2.4), (15, 0, 1.6), green)],
-            [(0, -60, -520), (FRAMES - 1, -60 + 3.0 * DURATION, -520)])
-    vehicle('Grain truck', [((3, 3, 3), (2.5, 0, 2), cream), ((8, 3, 2.6), (-3.5, 0, 2), cream)],
-            [(0, -60, -548), (FRAMES - 1, -60 + 3.0 * DURATION, -548)])
+    material('Truck cream', (0.80, 0.76, 0.62), 0.5)      # the crew carrier's; the farm machines are c4_farm's
     # The gate: a hauler comes up the farm track and waits at the perimeter checkpoint.
     orange = bpy.data.materials['Hauler cab']
     white = bpy.data.materials['Hauler load']
@@ -1261,6 +1255,13 @@ def add_cargo_flow(r):
         mesh('Apron laydown ' + m.name, bm, m)
 
 
+# When the yard's vehicles leave their stand-off and when they stop at the hull, in C4 seconds. They
+# move off as the dust thins at the end of C4 and are still rolling in when C5 opens, so the crews
+# climb out on screen in C5 (`c5_scene.cast`). The customs car comes in last, behind them.
+K9_ROLL_IN = {'Tug': (14.2, 18.5), 'Crew carrier': (14.5, 19.5), 'Fuel bowser': (14.8, 20.5)}
+CUSTOMS_ARRIVE = 21.0
+
+
 def add_k9_vehicles():
     """Nessa's tug, bowser and crew carrier roll out once the ship is close; customs comes over
     from the public side with its lights going and turns in at her gate as the ship settles."""
@@ -1277,11 +1278,13 @@ def add_k9_vehicles():
             ('Fuel bowser', bowser_parts(white), (470, 405), (462, 418), (0, -40)),
             ('Crew carrier', carrier_parts(cream), (322, 430), (336, 430), (-50, 4))):
         xb, yb, _ = at(kx, ky, kh, u1, v1)
-        vehicle(name, parts, [(0,) + a, (sec(5.0),) + a, (sec(8.0),) + s, (sec(12.6),) + s, (sec(14.6), xb, yb)],
-                [(0, math.atan2(s[1] - a[1], s[0] - a[0])), (sec(12.6), math.atan2(s[1] - a[1], s[0] - a[0])),
-                 (sec(13.0), math.atan2(yb - s[1], xb - s[0]))])
-    # Yard hands in hi-vis, out from the workshop to the ramp and from the hangar to the scaffold
-    # once it is down; the shot ends with them still on their way.
+        go, stop = K9_ROLL_IN[name]
+        vehicle(name, parts, [(0,) + a, (sec(5.0),) + a, (sec(8.0),) + s, (sec(go),) + s, (sec(stop), xb, yb)],
+                [(0, math.atan2(s[1] - a[1], s[0] - a[0])), (sec(go), math.atan2(s[1] - a[1], s[0] - a[0])),
+                 (sec(go + 0.6), math.atan2(yb - s[1], xb - s[0]))])
+    # Yard hands in hi-vis, out from the hangar to the scaffold once it is down; the shot ends with
+    # them still on their way. The ramp crew rides in on the crew carrier and gets out in C5
+    # (`c5_scene.cast`); the first seven draws were theirs on foot, kept so the rest stay put.
     hivis = material('Hi-vis', (1.0, 0.55, 0.08), 0.7)
     r = random.Random(57)
     for n in range(10):
@@ -1293,6 +1296,8 @@ def add_k9_vehicles():
         go = 11.8 + r.uniform(0, 1.0)
         walk = math.hypot(xb - xa, yb - ya) / 2.2
         k = min(1.0, (DURATION - go) / walk)
+        if n < 7:
+            continue
         vehicle('Yard hand %d' % n, [((1.3, 1.3, 1.8), (0, 0, 0.9), hivis)],
                 [(0, xa, ya), (sec(go), xa, ya),
                  (sec(go + walk * k), xa + (xb - xa) * k, ya + (yb - ya) * k)])
@@ -1322,22 +1327,22 @@ def add_k9_vehicles():
     lights = material('Customs lights', (1.0, 0.6, 0.2))
     lp = lights.node_tree.nodes['Principled BSDF']
     lp.inputs['Emission Color'].default_value = (1.0, 0.62, 0.25, 1)
-    for f in range(0, FRAMES, 6):                       # flashing
+    for f in range(0, FRAMES + sec(40.0), 6):           # flashing, on into C5
         lp.inputs['Emission Strength'].default_value = 120.0 if (f // 6) % 2 else 15.0
         lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
     car = vehicle('Customs car', car_parts(material('Customs white', (0.88, 0.88, 0.86), 0.4))
                   + [((0.3, 1.6, 0.18), (0.1, 0, 1.86), lights)],
             [(0, OFFICE[0] - 8, 392), (sec(7.0), OFFICE[0] - 8, 392), (sec(7.8), 252, 372), (sec(9.2), 300, 372),
-             (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(12.4), 305, 430), (sec(14.6), 355, 428)],
+             (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(14.0), 305, 430), (sec(CUSTOMS_ARRIVE), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
-             (sec(12.4), math.pi / 2), (sec(13.0), 0.0)])
+             (sec(14.0), math.pi / 2), (sec(14.6), 0.0)])
     beacon = bpy.data.objects.new('Customs beacon', bpy.data.lights.new('Customs beacon', 'POINT'))
     beacon.data.color = (1.0, 0.6, 0.2)
     beacon.data.shadow_soft_size = 0.3
     beacon.parent = car
     beacon.location = (0, 0, 4.0)
     link(beacon)
-    for f in range(0, FRAMES, 6):                       # flashing with the bar: a pool of amber on the road
+    for f in range(0, FRAMES + sec(40.0), 6):           # flashing with the bar, on into C5: a pool of amber on the road
         beacon.data.energy = 2.0e5 if (f // 6) % 2 else 0.0
         beacon.data.keyframe_insert('energy', frame=f)
     vehicle('MuniSec car at the gate', car_parts(bpy.data.materials['Customs white']),
@@ -1485,13 +1490,24 @@ def build():
     add_landing_dust()
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
+    import port_life                                    # the public port at work, on through C5
+    port_life.add(sys.modules[__name__])
+    import c4_farm                                       # the farmland at work: field detail, machines, traffic
+    c4_farm.add(sys.modules[__name__])
+    import port_detail                                  # the public port's standing clutter
+    port_detail.add(sys.modules[__name__])
+    import c4_jungle                                    # layered canopy past the fence
+    c4_jungle.apply(YARD[1], 768.0)
     import vehicle_paint                                 # painted vehicle tops, once accepted
     vehicle_paint.apply()
     import ortho_paint                                  # painted overhead tiles, where accepted
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
-    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'})
+    import wall_paint                                   # painted walls and roof plant
+    wall_paint.apply(WAREHOUSES)
+    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
+             | port_life.HAZE_SKIP)
     add_camera(scene)
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness

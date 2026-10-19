@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hit reads as what it met (`WarshipHitFx`); Rusk lends an Enforcer and a Wolf at Black Sluice; a relay's tank is the decidedly sturdier hull, and a ship choosing between hulls weighs how much of its battery each one's armour turns away.
+Updated: 2026-10-19 — a mission may hold the battle open until a hull's part concludes (gone off the map, or its wreck at rest); at Black Sluice the Greyhook fights, then runs for her south edge on Voss's order and the battle waits for her escape or her wreck.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1785,7 +1785,8 @@ for one mission:
   stands in line between its charge and the threat, clear of the charge however either
   turns (both hulls' half-diagonals and the screen's gap), its fellow escorts spaced square
   to the threat, so a screen and the ship it screens meet the enemy together, the screen
-  first. A screen changing sides comes round its charge on that radius rather than
+  first. The screen is physical: a round meets the first hull on its way, so fire laid on
+  the charge through its escort is taken on the escort's shield or plate. A screen changing sides comes round its charge on that radius rather than
   across its bow or along its side.
 - **Warships are bodies and do not pass through one another** (`warship-tactics.md`).
   Every pair of hulls frigate-sized and up, friend or foe, is in contact on its real
@@ -2181,14 +2182,46 @@ ground and air fire. Which guns may fire at a ship follows the base game: point
 defence never does, a lance keeps its ground sweep, a standoff missile keeps its
 ground payload; everything else may. A round is aimed where the hull will be,
 thrown off by the weapon's cone as a hash of who fired what, and flies as an ordinary
-shell; on arrival it lands on whatever hostile hull its blast reaches, shield first
-and then armour, each by the base game's damage types (kinetic doubled on shields and
-halved on armour, high explosive the reverse, fragmentation quartered on both, energy as
-it is) at the base game's own armour reduction rather than the ground's penetration
-scale; a multi-warhead carrier strikes with its warheads' type, and a round that reaches none carries on along its line and
-comes down on the ground as an ordinary detonation, so stray fire between ships is
-real below them. Rounds between hulls are direct fire and no point defence engages
-them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
+shell. **It meets the first hull on its way, whoever's it is** (`WarshipRoundSweep`): each
+tick its travel is a segment swept against every hull's footprint, the true-scale
+rectangle soft contact keeps hulls apart by, and it stops at the first it crosses. A
+raised shield is met first, on its bubble, where the round crosses it from outside inside
+the arc; a round entering the bubble through the open part of the arc goes on to the plate,
+and the plate cell it meets is the one its line enters. A round that reaches its aim point
+having met nothing lands on any hull its blast reaches there. Either way it meets the shield
+and the armour by the base game's damage types (kinetic doubled on shields and halved on
+armour, high explosive the reverse, fragmentation quartered on both, energy as it is) at the
+base game's own armour reduction rather than the ground's penetration scale. The hulls a
+round can meet are the hulls in contact: fighters, drones and boats, falling wrecks, hulls in
+the cloud deck, berthed, lifting off or in a low hover are flown over, as other hulls fly over
+them, and the ship that fired is never met by its own rounds. A guided or unguided missile
+meets hulls the same way; a multi-warhead carrier flies to its split unmet and its warheads,
+which strike with their own type, meet whatever they cross from there; a beam meets the first
+hull along its line at once. So an escort standing in the line of fire takes what was meant
+for its charge, a hostile hull between a ship and its target shields the target, and a ship's
+rounds can hit a friend. A round that meets nothing carries on along its line, still able to
+meet a hull it crosses, and comes down on the ground as an ordinary detonation, so stray fire
+between ships is real below them and among them. Rounds between hulls are direct fire and no
+point defence engages them. Fire at the ground and at aircraft, and a fortress battery's fire
+up at a hull, falls past or rises past other hulls without meeting them: those rounds are
+travelling between heights, not across the fight. `-Dbattle.warship.inFlightCollision=false`
+is the control (rounds resolve only where they land, on hostile hulls).
+
+**A mount does not fire through a friend.** Before it starts on a hull and before each round,
+a mount reads its line from the muzzle to its aim point; a friendly hull it can meet lying
+across that line short of the target (its footprint grown by a cell, for the cone) fouls it.
+A fouled mount takes another hull in its reach with a clear line, or, engaged, holds its round
+until the friend has passed and gives the engagement up after an unaligned barrel's patience.
+A hostile hull in the line never fouls it. The check reads only the line to the aim point: a
+round that misses and carries on can still find a friend beyond its target. Nothing about the
+helm changes for it, so what it does to the formations is a matter of where they already put
+their hulls. A line of broadside ships lays its guns abeam, clear of its own lead and seconds,
+and the check touches only a chase gun laid along the line. In a pack relay the striker works
+the target's quarter round from the tank, so its line seldom crosses the tank, and when it
+does those mounts wait for the striker's own movement to open it. A charge's guns that bear
+through its own interposed screen are the ones that fall quiet: the screen is across the very
+line it guards, which is the price of being screened. `-Dbattle.warship.clearLineFire=false`
+is the control. A ship with a hull to fight and no ground to bring its guns to bear on turns to
 the heading the broadside or bow rule gives (below), re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
 sprite. Why it is shaped this way: `warship-behaviours.md`, Decided: ship against ship.
@@ -2317,7 +2350,15 @@ the ground and never a hull hovering over it.
 a hostile hull is left to fight, and a visit it is on never ends, so it stays the
 mission's without leaving. It fights exactly as it otherwise would; only the mission
 itself can still send it away. A duel whose every hull holds the field ends only in
-destruction, and its winners stay overhead.
+destruction or in a hull the mission sends out across its edge, and its winners stay overhead.
+
+**A mission may hold the battle open until a hull's part in it has concluded**
+(`WarshipSystem.concludeBeforeBattleEnds`). The battle then does not end, whatever its
+objectives say, while that hull is still over the map: it concludes once it has flown off
+the map, or once it has been destroyed and its wreck has fallen, struck and come to rest. It
+is the warship form of the hold a crashing aircraft already puts on the battle's end, and it
+is for a story overhead that has an ending: a ground fight that finishes first waits for it.
+Nothing about how the hull flies or fights changes, and nothing in the ground referee reads it.
 
 **The duel ledger** records, for a debrief, what became of every hull over the
 battle: escaped (climbed out, or flew out across its side's edge as an escape, and gone), broke off (withdrawn by its doctrine), departed
@@ -2335,18 +2376,23 @@ Hegemony Enforcer and a Wolf lent by Rusk's family arriving when Voss orders the
 (owner, 2026-10-19: "We don't need this to be an even fight"). Their
 edge is the west, the side the company landed on and
 the far side of the basin, so they fly in across it heading east and their whole approach
-is in sight before a gun bears; Greyhook's side has no edge, since its hulls lift from their
-pads and never leave. No area is declared; the fight goes where it goes, held off the edges
+is in sight before a gun bears; Greyhook's edge is the south, over her own pads and the flats
+beyond, the only way she leaves. No area is declared; the fight goes where it goes, held off the edges
 only by the standing pressure. The map is sized for the fight, not only for the ground: open
 approach ground west of the station puts Greyhook's pads outside an Enforcer's reach as it
 crosses the edge, so Rusk's ships close for most of a minute in sight before a gun bears, and
-the standoff fits along the map with the edge margins clear. The *Greyhook* does not run:
-Rusk's ships are faster than she is (owner, 2026-10-18: she stays and fights until one side is
-dead). She lifts and fights alone under the ordinary doctrine and tactics, and every hull of
-the duel holds the field, so nobody withdraws, nobody leaves the map, and the fight ends only
-when she or both of Rusk's ships are destroyed; the winners stay overhead. The pair fight her
-as a pack relay, the Enforcer her anvil and the Wolf darting at her quarter, and the
-mission refits the Enforcer and her.
+the standoff fits along the map with the edge margins clear. The *Greyhook* fights first and
+runs second (owner, 2026-10-19: "We can add back the escape for the Venture as a story element
+to give it a conclusion"). She lifts and fights alone under the ordinary doctrine and tactics,
+and every hull of the duel holds the field, so no doctrine withdraws one. Voss's order to run
+is the one scripted thing (`BlackSluiceDuel.BreakOff`): a set time after the first hull fire,
+somewhere in a window that the moment of Voss's order fixes, or sooner if her hull falls under
+half or nothing of Rusk's is left to stop her, she flies out across her edge, answering what is in reach as she
+goes, and Rusk's ships, faster than she is, keep shooting. She gets off the map or is shot
+down onto the basin; either way the battle waits until she has (above, holding the battle
+open), and Rusk's ships stay overhead once she is gone. The pair fight her as a pack relay,
+the Enforcer her anvil and the Wolf darting at her quarter, and the mission refits the
+Enforcer.
 
 **A mission may refit a hull for one fight.** A **refit** (`HullRefit`) is named, given to
 one hull by the mission that fits it, and touches only what a shielded hull fights on: its
@@ -2355,11 +2401,12 @@ shield's arc, upkeep, and the flux each absorbed point costs. It never touches a
 plate or the hull, never the hull table or a variant another fight reads, and never the
 rules every hull fight shares, so the balance law still holds everywhere a mission has not
 named a refit. Black Sluice is the first: Rusk's Enforcer flies in his refit
-(`BlackSluiceDuel.RUSK_REFIT`) and the Greyhook in hers (`BlackSluiceDuel.GREYHOOK_REFIT`),
-while the Wolf flies as fitted. The fight reaches the radio as story beats (Rusk's ships
-sighted as they cross the edge, closing, the first hull fire, the first of them down while
-the Greyhook still flies, the Greyhook down, the last of them down). A ground battle that finishes first ends the duel where it stands, and the debrief
-says it was still being fought. A
+(`BlackSluiceDuel.RUSK_REFIT`), while the Wolf and the Greyhook fly as fitted (her refit seam,
+`BlackSluiceDuel.GREYHOOK_REFIT`, is at identity). The fight reaches the radio as story beats
+(Rusk's ships sighted as they cross the edge, closing, the first hull fire, the first of them
+down while the Greyhook still flies, Voss ordering the run, the Greyhook down or off the map,
+the last of Rusk's down). The debrief says whether she got away or was shot down short of her
+edge; only the company pulling out leaves her still up there. A
 warship over a ground battle never launches a wing from its bays (bays only classify the
 hull), and the Greyhook's fitting carries none, so it stays gun against gun.
 

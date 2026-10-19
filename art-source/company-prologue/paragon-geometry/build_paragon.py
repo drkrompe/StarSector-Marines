@@ -172,18 +172,21 @@ for name, loc, energy, size in [('Key', (300, 340, 480), 3.6e6, 320), ('Fill', (
     STUDIO.append(obj)
 
 
-def bounds(names=None):
+def bounds(names=None, guns=True):
     lo, hi = Vector((1e9,)*3), Vector((-1e9,)*3)
     dg = bpy.context.evaluated_depsgraph_get()
     for ob in scene.objects:
-        if ob.type == 'MESH' and (names is None or ob.name in names):
+        if ob.type == 'MESH' and (names is None or ob.name in names) and (guns or not ob.name.startswith('Weapon ')):
             for c in ob.evaluated_get(dg).bound_box:
                 w = ob.matrix_world @ Vector(c)
                 lo, hi = Vector(map(min, lo, w)), Vector(map(max, hi, w))
     return lo, hi
 
 
-LO, HI = bounds()
+# The hull's own extent: the bow autopulse barrels run 35 units past the prow (as the
+# game draws them), and a ship's length is its hull's, not its guns'.
+LO, HI = bounds(guns=False)
+LO_ALL, HI_ALL = bounds()
 S = METRES_PER_UNIT
 TARGET = Vector((-8, 0, 0))
 CAMERAS = [  # name, position, orthographic scale
@@ -404,7 +407,9 @@ if not args.no_save:
         'sprite': {'size': [330, 364], 'center': [164, 190],
                    'pixel_to_model': 'col c, row r covers X 173-r..174-r, Y 163-c..164-c'},
         'dimensions': {'min': [round(v, 2) for v in LO], 'max': [round(v, 2) for v in HI],
-                       'size': [round(b-a, 2) for a, b in zip(LO, HI)]},
+                       'size': [round(b-a, 2) for a, b in zip(LO, HI)],
+                       'note': 'hull only; with_guns includes the bow hardpoint barrels past the prow',
+                       'with_guns': {'min': [round(v, 2) for v in LO_ALL], 'max': [round(v, 2) for v in HI_ALL]}},
         'bore': {'centre': list(pg_hull.BORE_C), 'radius': pg_hull.BORE_R, 'lining_radius': pg_hull.LINING_R},
         'shield': dict(pg_shield.RECORDS),
         'hangar': dict(pg_hangar.RECORD),

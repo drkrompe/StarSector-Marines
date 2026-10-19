@@ -91,7 +91,9 @@ WEAPONS = {
     # livery does (chroma .7 against .35), since a Tri-Tachyon gun is known by its
     # blue-white. A hull with its own finish passes hull_finish=True, and
     # sprite_tint=0.5 to carry the same halfway mix into its materials.
-    'tachyonlance': dict(house='hand', chroma=.7, paints={'paint': (.41, .45, .51), 'accent': (.55, .57, .62)}),
+    # roller: the traverse roller path's radius, x ring radius (default .9); the lance's
+    # sits under its small turntable instead of showing through the beam slot and legs.
+    'tachyonlance': dict(house='hand', chroma=.7, roller=.4, paints={'paint': (.41, .45, .51), 'accent': (.55, .57, .62)}),
     'gravitonbeam': dict(house='hand', chroma=.7, paints={'paint': (.29, .47, .56)}),
     'taclaser':     dict(house='hand', chroma=.7, paints={'paint': (.46, .52, .56), 'accent': (.6, .64, .68)}),
     'reaper':       dict(house='hand', chroma=.7, paints={'paint': (.35, .38, .40), 'accent': (.55, .56, .58),
@@ -526,7 +528,7 @@ def build(weapon, prefix, pivot, r, mats, mpu, detail='near', **over):
     house = Group(prefix, 'house', mats, pivot)
     z0 = GAP*r
     # Traverse: the dark roller path in the gap, and the house's lit skirt above it.
-    house['dark'].cyl((0, 0, z0/2), .9*r, z0+.04, 'Z', n=48)
+    house['dark'].cyl((0, 0, z0/2), s.get('roller', .9)*r, z0+.04, 'Z', n=48)
     if s['house'] == 'box':
         trunnion, deck_top, extra = _launcher_base(house, f, s, r, z0)
     elif s['house'] == 'dome':
@@ -2268,12 +2270,12 @@ def _ccw(pts):
     return list(pts) if a > 0 else list(reversed(pts))
 
 
-def _tt_deck(g, sp, k, z0, h, key='steel'):
-    """The deck: the sprite's bodies and prongs stood up h pixels, the silhouette's floor."""
-    for body in sp.get('bodies') or [sp['body']]:
-        g[key].prism([(x*k, y*k) for x, y in body], z0, z0+h*k)
-    for p in sp['prongs']:
-        g[key].prism([(x*k, y*k) for x, y in p], z0, z0+h*k)
+def _turntable(g, k, z0, cx, R, h, key='steel'):
+    """The base a mount trains on: a round chamfered disc h pixels high, radius R, centred
+    cx forward of the pivot, a seam ring round its top. Parts reaching past it overhang;
+    a plate cut to the sprite's outline read as a strange board (owner, 2026-10-19)."""
+    g[key].lathe([(R*k, 0), (R*k, .5*h*k), ((R-.35)*k, h*k), (0, h*k)], 64, (cx*k, 0, z0))
+    g['dark'].ring((cx*k, 0, z0+(h+.02)*k), (R-.9)*k, (R-.7)*k, .06*k, 'Z', n=64)
 
 
 def _loft(m, stations, k, z0, sy=1):
@@ -2343,24 +2345,31 @@ def _house_tachyonlance(g, f, s, r, z0):
     lying athwartships, ringed with cooling fins, white insulators at their outer
     ends and a red band; under them a dark machinery block with vent slats and a red
     lamp, coolant ports (the teal dots) aft of it, and three vanes each side falling
-    away aft. The emitter sits in the slot's root behind its lens."""
+    away aft. The emitter sits in the slot's root behind its lens. It all trains on
+    a round turntable; blades and vanes cantilever past it, their undersides lifting
+    toward the tips."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     d = .8
-    _tt_deck(g, sp, k, z0, d)
-    #        x     yi   yc   yo   crest
-    blade = [(35, 1.5, 2.6, 3.6, 2.2), (30, 1.5, 3.4, 5.6, 3.2), (20, 1.5, 4.6, 8.0, 4.8),
-             (10, 1.5, 5.0, 9.6, 5.8), (5, 1.8, 5.0, 10.0, 6.0), (0, 2.0, 5.0, 9.0, 6.0),
-             (-8, 2.0, 5.0, 7.6, 5.2), (-16, 2.0, 5.0, 7.2, 3.6), (-22, 2.0, 4.6, 6.6, 2.2)]
+    _turntable(g, k, z0, -3.0, 5.5, d)
+    # Each blade's underside sits on the turntable at the shoulders and lifts toward
+    # both tips (zb), so the blades cantilever off the mount rather than lying on a plate.
+    #        x     yi   yc   yo   crest  under
+    blade = [(35.5, 1.5, 2.6, 4.6, 2.4, 1.5), (30, 1.5, 3.4, 7.4, 3.3, 1.2), (20, 1.5, 4.6, 9.8, 4.8, .8),
+             (10, 1.5, 5.0, 10.8, 5.8, d), (5, 1.8, 5.0, 11.2, 6.0, d), (0, 2.0, 5.0, 10.4, 6.0, d),
+             (-8, 2.0, 5.0, 8.6, 5.2, d), (-16, 2.0, 5.0, 7.6, 3.6, 1.0), (-22.5, 2.0, 4.6, 6.8, 2.4, 1.3)]
 
-    def sec(yi, yc, yo, zc, grow=0.0):
-        return [(yi, d), (yi, zc-.8+grow), (yi+.35*(yc-yi), zc-.2+grow), (yc, zc+grow),
-                (yc+.35*(yo-yc), zc-.45+grow), (yo+grow, 1.7+grow), (yo+grow, d)]
+    def sec(yi, yc, yo, zc, zb, grow=0.0):
+        zo = max(1.7, zb+.6)
+        return [(yi, zb), (yi, zc-.8+grow), (yi+.35*(yc-yi), zc-.2+grow), (yc, zc+grow),
+                (yc+.35*(yo-yc), zc-.45+grow), (yo+grow, zo+grow), (yo+grow, zb)]
     for sy in (1, -1):
-        _panelled(g['paint'], g['steel'], blade, sec, -22, 35, (-12, -3, 17, 27), k, z0, d, sy)
+        _panelled(g['paint'], g['steel'], blade, sec, -22.5, 35.5, (-12, -3, 17, 27), k, z0, d, sy)
         _loft(g['metal'], [(x, sec(*_cr(blade, x), .35)) for x in (9, 8.4, 7.6, 7)], k, z0, sy)
-        # Capacitor: a cylinder across the shoulder on a cradle, cooling fins, insulator, red band.
-        g['steel'].box((6*k, sy*17*k, z0+1.6*k), (4*k, 11*k, 1.6*k), .15*k)
+        # Capacitor: a cylinder across the shoulder on a cradle braced off the blade, cooling
+        # fins, insulator, red band.
+        g['steel'].box((6*k, sy*10.6*k, z0+1.8*k), (3.2*k, 3.4*k, 2.0*k), .2*k)
+        g['steel'].box((6*k, sy*15.2*k, z0+1.6*k), (4*k, 7.5*k, 1.6*k), .15*k)
         g['accent'].cyl((6*k, sy*17*k, z0+3.0*k), 2.6*k, 13*k, 'Y', n=32, bevel=.2*k)
         for yy in (11.6, 12.8, 14.0, 15.2):
             g['steel'].ring((6*k, sy*yy*k, z0+3.0*k), 2.5*k, 2.95*k, .35*k, 'Y', n=32)
@@ -2369,10 +2378,21 @@ def _house_tachyonlance(g, f, s, r, z0):
         g['lamp_red'].ring((6*k, sy*18.8*k, z0+3.0*k), 2.5*k, 2.75*k, .6*k, 'Y', n=32)
         # Machinery block under the capacitor, vent slats in its top, its lamp; the coolant port aft.
         mach = g['steel#mach']
-        mach.box((.5*k, sy*12.5*k, z0+1.9*k), (7*k, 9*k, 2.2*k), .2*k)
-        for xx in (-1.6, -.4, .8):
-            mach.cut().box((xx*k, sy*11.5*k, z0+3.0*k), (.5*k, 4.5*k, .6*k))
-        g['dark'].box((-.4*k, sy*11.5*k, z0+2.72*k), (3.4*k, 4.4*k, .05*k))
+        mach.box((2.75*k, sy*14*k, z0+1.9*k), (3.5*k, 12*k, 2.2*k), .2*k)
+        mach.box((-1.25*k, sy*12.25*k, z0+1.7*k), (4.5*k, 8.5*k, 1.8*k), .2*k)
+        # The vanes' roots are webbed into one root plate (the sprite's dark mass there).
+        g['steel'].prism(_ccw([(x*k, sy*y*k) for x, y in ((-4.5, 15.5), (-8, 12.5), (-9, 8.2), (-12.5, 9.0),
+                                                         (-13, 13.0), (-9.5, 17.0), (-6, 18.5))]),
+                         z0, z0+1.3*k, .3*k, z0+1.7*k)
+        # The dark mass aft between each leg and its inner vane: a sloped fairing.
+        g['steel'].loft_x([(x*k, [(sy*y*k, z0+z*k) for y, z in ((7.6, d), (12.5, d), (12.5, zt), (7.6, zt+.6))])
+                           for x, zt in ((-6, 2.4), (-14, 1.4))])
+        for xx in (1.6, 2.75, 3.9):
+            mach.cut().box((xx*k, sy*13*k, z0+3.0*k), (.5*k, 5.0*k, .6*k))
+        g['dark'].box((2.75*k, sy*13*k, z0+2.72*k), (3.0*k, 4.9*k, .05*k))
+        # A fairing over each shoulder, ahead of the capacitor, sloping off the blade.
+        g['paint'].prism(_ccw([(x*k, sy*y*k) for x, y in ((13.5, 9.8), (11.5, 13.8), (8.8, 15.0), (8.2, 10.6))]),
+                         z0+.8*k, z0+2.2*k, .5*k, z0+2.8*k)
         g['lamp_red'].box((2.6*k, sy*15*k, z0+3.05*k), (.9*k, .9*k, .2*k))
         g['steel'].box((-5*k, sy*10*k, z0+1.6*k), (4*k, 4*k, 1.6*k), .15*k)
         g['steel'].ring((-5*k, sy*10*k, z0+2.5*k), .9*k, 1.3*k, .3*k, 'Z', n=24)
@@ -2380,13 +2400,13 @@ def _house_tachyonlance(g, f, s, r, z0):
         # Vanes: root high at the body, falling to the tip, a rounded spine on each.
         for (x0, y0), (x1, y1) in (((-9, 8.5), (-20.5, 10.6)), ((-8, 12.5), (-17.4, 17.8)), ((-5, 15), (-11.6, 20.6))):
             _beam(g['steel'], (x0, sy*y0), (x1, sy*y1),
-                  [(-.7, d), (-.7, 2.3), (-.4, 2.75), (0, 2.9), (.4, 2.75), (.7, 2.3), (.7, d)],
-                  [(-.4, d), (-.4, 1.15), (-.25, 1.4), (0, 1.5), (.25, 1.4), (.4, 1.15), (.4, d)], k, z0)
+                  [(-1.8, d), (-1.8, 2.1), (-.7, 2.75), (0, 2.9), (.7, 2.75), (1.8, 2.1), (1.8, d)],
+                  [(-.9, .9), (-.9, 1.2), (-.45, 1.45), (0, 1.55), (.45, 1.45), (.9, 1.2), (.9, .9)], k, z0)
     # The emitter in the slot's root, its lens in a collar facing down the slot; the dark
     # mass bridging the legs aft.
-    g['dark'].box((-2.5*k, 0, z0+2.0*k), (11*k, 4.2*k, 2.4*k), .15*k)
-    g['steel'].box((2.75*k, 0, z0+2.2*k), (.5*k, 3.0*k, 2.2*k), .1*k)
-    g['lamp_blue'].box((3.05*k, 0, z0+2.2*k), (.3*k, 2.4*k, 1.6*k))
+    g['dark'].box((-2.75*k, 0, z0+2.0*k), (8.5*k, 4.2*k, 2.4*k), .15*k)
+    g['steel'].box((1.75*k, 0, z0+2.2*k), (.5*k, 3.0*k, 2.2*k), .1*k)
+    g['lamp_blue'].box((2.05*k, 0, z0+2.2*k), (.3*k, 2.4*k, 1.6*k))
     g['steel'].box((-5.5*k, 0, z0+1.3*k), (5*k, 22*k, 1.2*k), .2*k)
     za = z0+2.2*k
     return (3.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
@@ -2397,33 +2417,34 @@ def _house_gravitonbeam(g, f, s, r, z0):
     carries the bright cyan line (the projector), dark recesses at its shoulders;
     behind it two cowls flank a dark sunken spine with a lamp in it and rimmed edges;
     the cowls are laid in plates with grooved seams. A lens bar lies across the body
-    (the bright cross row) in collars; a base block and two feet aft."""
+    (the bright cross row) in collars; a base block and two feet aft. It trains on a
+    round turntable, the spire's underside lifting toward its point."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     d = .6
-    _tt_deck(g, sp, k, z0, d)
-    spire = [(20.5, 1.0, 1.7), (18, 1.8, 2.6), (14, 2.6, 3.4), (10, 3.2, 3.9), (6, 3.2, 3.9)]
+    _turntable(g, k, z0, -.5, 9.0, d)
+    spire = [(21, 1.4, 1.9, 1.3), (18, 2.4, 2.7, 1.0), (14, 3.2, 3.4, .75), (10, 3.8, 3.9, d), (6, 3.8, 3.9, d)]
 
-    def spire_sec(yo, zs):
-        s1 = max(1.0, zs-1.0)
-        return [(-yo, d), (yo, d), (yo, s1), (.45*yo+.35, zs-.25), (.5, zs), (-.5, zs), (-(.45*yo+.35), zs-.25),
+    def spire_sec(yo, zs, zb):
+        s1 = max(zb+.3, zs-1.0)
+        return [(-yo, zb), (yo, zb), (yo, s1), (.45*yo+.35, zs-.25), (.5, zs), (-.5, zs), (-(.45*yo+.35), zs-.25),
                 (-yo, s1)]
-    _panelled(g['paint'], g['steel'], spire, spire_sec, 6, 20.5, (12.5,), k, z0, d, step=.6)
+    _panelled(g['paint'], g['steel'], spire, spire_sec, 6, 21, (12.5,), k, z0, d, step=.6)
     _loft(g['lamp_blue'], [(x, [(-.3, zs-.05), (.3, zs-.05), (.3, zs+.1), (-.3, zs+.1)])
-                           for x, (_, zs) in ((x, _cr(spire, x)) for x in (18.5, 16, 14, 13, 11, 9.5))], k, z0)
-    cowl = [(10, 2.2, 5.0, 2.8), (7, 3.2, 5.6, 3.8), (2, 3.8, 6.0, 4.3), (-3, 3.8, 6.0, 4.2), (-6.5, 3.0, 6.2, 3.2)]
+                           for x, (_, zs, _) in ((x, _cr(spire, x)) for x in (18.5, 16, 14, 13, 11, 9.5))], k, z0)
+    cowl = [(10.5, 2.6, 5.4, 2.8), (7, 3.8, 6.0, 3.8), (2, 4.5, 6.4, 4.3), (-3, 4.6, 6.4, 4.2), (-7.5, 3.8, 6.6, 3.2)]
 
     def cowl_sec(hw, yc, h):
         return [(yc+yy, z) for yy, z in section(hw, d, h, min(.9, .3*hw), 0, .35, 2)]
     for sy in (1, -1):
-        _panelled(g['paint'], g['steel'], cowl, cowl_sec, -6.5, 10, (4.5, -1.5), k, z0, d, sy, step=.6)
-        g['metal'].box((-8.2*k, sy*8.6*k, z0+1.6*k), (2.2*k, 2.4*k, 2.0*k), .15*k)
+        _panelled(g['paint'], g['steel'], cowl, cowl_sec, -7.5, 10.5, (4.5, -1.5), k, z0, d, sy, step=.6)
+        g['metal'].box((-8.6*k, sy*9.0*k, z0+1.6*k), (2.6*k, 2.8*k, 2.0*k), .15*k)
         g['steel'].cyl((-1.5*k, sy*2.1*k, z0+3.2*k), 1.0*k, .5*k, 'Y', n=24)
         g['metal'].box((1*k, sy*1.65*k, z0+3.3*k), (14*k, .35*k, .3*k), .05*k)
     g['dark'].box((1*k, 0, z0+1.9*k), (14*k, 3.0*k, 2.6*k))
     g['lamp_blue'].box((3*k, 0, z0+3.25*k), (1.0*k, 1.0*k, .2*k))
     g['lamp_blue'].cyl((-1.5*k, 0, z0+3.2*k), .8*k, 3.6*k, 'Y', n=24)
-    g['steel'].box((-7.6*k, 0, z0+1.3*k), (3.2*k, 15*k, 1.4*k), .15*k)
+    g['steel'].box((-8.2*k, 0, z0+1.3*k), (3.6*k, 16*k, 1.4*k), .15*k)
     za = z0+3.0*k
     return (15.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
@@ -2437,9 +2458,16 @@ def _house_taclaser(g, f, s, r, z0):
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     d = .5
-    _tt_deck(g, sp, k, z0, d)
-    prof = [(math.cos(a)*7.2, math.sin(a)*4.3) for a in (math.radians(t) for t in range(0, 91, 9))]
-    prof = [(7.2, 0)]+prof[1:-1]+[(0, 4.3)]
+    _turntable(g, k, z0, -1.5, 8.0, d)
+    # The sprite's widest points either side (its blue nodes) are sensor lugs on the
+    # dome's flanks; a rear cap behind it; a neck cowl round the emitter's root.
+    for sy in (1, -1):
+        g['steel'].box((-3.0*k, sy*8.2*k, z0+1.6*k), (3.6*k, 2.2*k, 2.0*k), .25*k)
+        g['lamp_blue'].cyl((-3.0*k, sy*9.35*k, z0+1.7*k), .55*k, .15*k, 'Y', n=16)
+    g['steel'].box((-9.2*k, 0, z0+1.3*k), (1.8*k, 4.4*k, 1.6*k), .2*k)
+    g['paint'].lathe([(2.0*k, 0), (1.75*k, 1.2*k), (1.4*k, 2.0*k)], 24, (4.0*k, 0, z0+2.8*k), 'X')
+    prof = [(math.cos(a)*7.7, math.sin(a)*4.3) for a in (math.radians(t) for t in range(0, 91, 9))]
+    prof = [(7.7, 0)]+prof[1:-1]+[(0, 4.3)]
     shell = g['paint#dome']
     c = (-1.5*k, 0, z0+d*k)
     shell.lathe([(x*k, z*k) for x, z in prof], 32, c)
@@ -2447,7 +2475,7 @@ def _house_taclaser(g, f, s, r, z0):
     for a in (0, 60, 120):
         shell.cut().box((-1.5*k, 0, z0+(d+3.3)*k), (16*k, .35*k, 2.6*k), rot=Matrix.Rotation(math.radians(a), 4, 'Z'))
     shell.cut().box((.2*k, 0, z0+5.0*k), (4.2*k, 16*k, 2.8*k))
-    g['steel'].ring((-1.5*k, 0, z0+(d+.25)*k), 7.1*k, 7.5*k, .5*k, 'Z', n=48)
+    g['steel'].ring((-1.5*k, 0, z0+(d+.25)*k), 7.6*k, 8.0*k, .5*k, 'Z', n=48)
     g['metal'].cyl((.2*k, 0, z0+3.3*k), 1.5*k, 9.0*k, 'Y', n=32, bevel=.15*k)
     for yy in (-3.4, 3.4):
         g['steel'].ring((.2*k, yy*k, z0+3.3*k), 1.45*k, 1.75*k, .4*k, 'Y', n=32)
@@ -2471,14 +2499,14 @@ def _house_reaper(g, f, s, r, z0):
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     d = .5
-    _tt_deck(g, sp, k, z0, d)
-    rail = [(-9, 3.6), (8, 3.6), (11, 3.2), (12, 2.8)]
+    _turntable(g, k, z0, -1.5, 5.6, d)
+    rail = [(-9, 3.6, 2.5), (9, 3.6, 2.5), (10.8, 3.4, 2.6), (11.6, 2.8, 3.4)]
     for sy in (1, -1):
-        def rail_sec(h, yr=5.0):
-            return [(yr-1, d), (yr+1, d), (yr+1, h-.2), (yr+.7, h), (yr-.4, h), (yr-1, h-.6)]
-        _panelled(g['metal'], g['dark'], rail, rail_sec, -9, 12, (-2.5, 5.5), k, z0, d, sy, step=1.0, depth=.25)
-        g['accent2'].box((-8.8*k, sy*9.0*k, z0+1.5*k), (3.0*k, 2.2*k, 2.0*k), .15*k)
-        g['lamp_red'].box((-8.3*k, sy*5.0*k, z0+3.65*k), (1.0*k, 1.0*k, .2*k))
+        def rail_sec(h, yi):
+            return [(yi, d), (6.0, d), (6.0, h-.2), (5.65, h), (yi+.75, h), (yi, h-.6)]
+        _panelled(g['metal'], g['dark'], rail, rail_sec, -9, 11.6, (-2.5, 5.5), k, z0, d, sy, step=.5, depth=.25)
+        g['accent2'].box((-8.6*k, sy*7.3*k, z0+1.6*k), (2.6*k, 1.6*k, 2.2*k), .15*k)
+        g['lamp_red'].box((-8.3*k, sy*4.8*k, z0+3.65*k), (1.0*k, 1.0*k, .2*k))
     launcher = g['paint#launcher']
     launcher.box((-.2*k, 0, z0+2.0*k), (5.6*k, 8.0*k, 3.0*k), .25*k)
     launcher.cut().box((.3*k, 0, z0+3.6*k), (1.8*k, 1.8*k, 2.0*k))
@@ -2488,7 +2516,8 @@ def _house_reaper(g, f, s, r, z0):
     g['accent'].lathe([(.85*k, 0), (.85*k, 7.0*k), (.6*k, 7.9*k), (.35*k, 8.4*k), (.05*k, 8.7*k)], 24,
                       (3.0*k, 0, z0+2.2*k), 'X')
     g['paint'].box((-5.6*k, 0, z0+1.8*k), (3.0*k, 8.0*k, 2.6*k), .2*k)
-    g['steel'].box((-8.8*k, 0, z0+1.3*k), (3.6*k, 16*k, 1.6*k), .2*k)
+    g['steel'].box((-8.4*k, 0, z0+1.3*k), (2.8*k, 16*k, 1.6*k), .2*k)
+    g['steel'].box((-10.2*k, 0, z0+.9*k), (1.0*k, 12*k, .9*k), .15*k)
     za = z0+2.2*k
     return (1.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
@@ -2543,8 +2572,7 @@ def _house_pdlaser(g, f, s, r, z0):
     sp = sprite(s.get('sprite', s['weapon']))
     d = .6
     # Turntable: a chamfered disc under the whole mount, a seam ring round its top.
-    g['steel'].lathe([(5.6*k, 0), (5.6*k, .3*k), (5.25*k, d*k), (0, d*k)], 64, (-1.0*k, 0, z0))
-    g['dark'].ring((-1.0*k, 0, z0+(d+.02)*k), 4.7*k, 4.9*k, .06*k, 'Z', n=64)
+    _turntable(g, k, z0, -1.0, 5.6, d)
     # Housing: a rounded body lofted to the sprite's plan (wide at the collar, a blunt
     # rounded tail), crowned highest just behind the collar.
     body = [(-6.7, 2.2, 1.0), (-6.3, 4.2, 1.7), (-5.4, 5.6, 2.4), (-4.0, 6.4, 3.0), (-2.4, 6.7, 3.4),
@@ -2612,6 +2640,185 @@ HANDS = {'heavyac': _house_heavyac2, 'flak': _house_flak2, 'vulcan': _house_vulc
          'heavymauler': _house_heavymauler, 'hveldriver': _house_hveldriver,
          'tachyonlance': _house_tachyonlance, 'gravitonbeam': _house_gravitonbeam, 'taclaser': _house_taclaser,
          'reaper': _house_reaper, 'pdlaser': _house_pdlaser}
+
+# --- hardpoints: fixed mounts ---------------------------------------------------------
+# A hardpoint does not train: it sits in its slot (often a bay cut into the hull) and
+# fires along the hull's axis. The game draws its hardpoint sprite with the slot a
+# quarter of the sprite's length from its back, the fire point at the .wpn's
+# hardpointOffsets ahead of the slot. Builders work in sprite pixels times k (one
+# pixel one hull unit at k=1), +X along the line of fire, the slot at the origin,
+# z=0 on the mount's axis. A hull seats the parent empty (in its bay, at its angle)
+# and asks build_hardpoint for the gun.
+
+def _hp_autopulse(g, f, s, k=1.0):
+    """autopulse_laser_hardpoint_base.png (34 x 74 px): a breech on a sled in the
+    bay (the dark frame with the light core shaft), a narrow neck, the big capacitor
+    bulb with a band round it, a finned cooling flange (the sprite's crenellated band
+    is its fin tips), and the long emitter barrel to a lipped muzzle 48 px ahead of the slot (hardpointOffsets). A coolant
+    pipe runs from the flange back into the mount on one side (the sprite's bent
+    pipe) and a capacitor box rides the sled on the other; the sprite is not
+    mirrored, so neither is the gun. Built to fit a bay 21 wide and 22 high: what the
+    sprite draws wider at the breech (its side frames) is inside the hull."""
+    # Sled and breech: rails on the bay floor, the sled, its cheeks and the core shaft.
+    for sy in (1, -1):
+        g['dark'].box((-5*k, sy*6.5*k, -9.1*k), (26*k, 1.6*k, 1.0*k))
+        g['steel'].box((-7.5*k, sy*7.3*k, -.5*k), (13*k, 2.2*k, 11*k), .3*k)
+    g['steel'].box((-9*k, 0, -7.0*k), (16*k, 17*k, 3.2*k), .4*k)
+    g['steel'].box((-15.5*k, 0, -1.0*k), (3.0*k, 12*k, 9*k), .4*k)
+    g['accent2'].cyl((-7*k, 0, 0), 2.1*k, 16*k, 'X', n=32, bevel=.2*k)
+    for xx in (-12, -8, -4):
+        g['steel'].ring((xx*k, 0, 0), 2.0*k, 2.6*k, .6*k, 'X', n=32)
+    # Capacitor box on the sled (the sprite's right-hand block), with its lamps.
+    g['steel'].box((4*k, -6.4*k, -2.5*k), (10*k, 3.6*k, 9*k), .3*k)
+    for xx in (1.5, 4, 6.5):
+        g['lamp_blue'].box((xx*k, -8.25*k, -1.0*k), (1.2*k, .15*k, 2.6*k))
+    # Neck, capacitor bulb with its band, flange.
+    g['metal'].cyl((3*k, 0, 0), 4.6*k, 6.4*k, 'X', n=40, bevel=.3*k)
+    g['paint'].lathe([(5.2*k, 0), (7.3*k, 1.6*k), (8.4*k, 4.5*k), (8.4*k, 9.0*k), (7.8*k, 12.0*k), (6.2*k, 13.2*k)],
+                     48, (6.0*k, 0, 0), 'X')
+    g['steel'].ring((16.4*k, 0, 0), 8.0*k, 8.65*k, .9*k, 'X', n=48)
+    # The cooling flange: a hub ring and sixteen radial fins (the sprite's crenellated
+    # band is their tips seen from above), a heat sink, not a gear.
+    g['steel'].lathe([(5.8*k, 0), (9.2*k, 0), (9.6*k, .5*k), (9.6*k, 3.9*k), (9.2*k, 4.4*k), (5.8*k, 4.4*k)],
+                     48, (19.6*k, 0, 0), 'X', loop=True)
+    for i in range(16):
+        a = 2*math.pi*(i+.5)/16
+        g['accent'].box((21.8*k, math.cos(a)*11.0*k, math.sin(a)*11.0*k), (3.8*k, 3.4*k, .55*k), .1*k,
+                        rot=Matrix.Rotation(a, 4, 'X'))
+    g['steel'].cyl((21.8*k, 0, 0), 6.2*k, 4.6*k, 'X', n=40)
+    # Emitter barrel: a long tube with two cooling rings, the lip, a dark bore and the lens.
+    # The barrel is a tube: the bore runs 16 units back from the muzzle, lined dark,
+    # the focusing lens at its bottom.
+    barrel = g['paint#barrel']
+    barrel.lathe([(5.9*k, 0), (5.7*k, 1.0*k), (5.7*k, 18.2*k), (6.5*k, 18.6*k), (6.6*k, 21.8*k), (6.0*k, 22.4*k)],
+                 48, (24.0*k, 0, 0), 'X')
+    barrel.cut().cyl((39.0*k, 0, 0), 4.0*k, 16.0*k, 'X', n=48)
+    for xx in (30, 36):
+        g['steel'].ring((xx*k, 0, 0), 5.65*k, 6.1*k, .7*k, 'X', n=48)
+    g['dark'].ring((38.8*k, 0, 0), 3.85*k, 4.0*k, 15.4*k, 'X', n=48)
+    g['dark'].cyl((31.2*k, 0, 0), 4.0*k, .3*k, 'X', n=48)
+    g['lamp_blue'].lathe([(3.0*k, 0), (2.3*k, .5*k), (0, .8*k)], 32, (31.35*k, 0, 0), 'X')
+    # Coolant pipe from the flange back into the mount on the +y side (the sprite's
+    # bent pipe), a gland at each end.
+    ctrl = [(21.0, 11.0, 2.5), (14.0, 12.0, 3.5), (11.0, 8.4, 4.5), (8.0, 6.6, 5.2)]
+    _cable(g['metal'], ctrl, 1.1, k, 0)
+    _cable(g['steel'], ctrl, 1.45, k, 0, segs=2, t0=0.0, t1=.08)
+    _cable(g['steel'], ctrl, 1.45, k, 0, segs=2, t0=.9, t1=1.0)
+    return [(48.0*k, 0.0, 0.0)]
+
+
+def _hp_tachyonlance(g, f, s, k=1.0):
+    """tachyon_lance_hardpoint_base.png (48 x 72 px): the turret lance narrowed for a
+    fixed mount; its fire point is only 5 px ahead of the slot (hardpointOffsets),
+    at the root of the open slot between the two prongs, and the beam runs out
+    along that slot. Built as a spinal beam projector for a bay: a heavy power block
+    on a sled in the bay with trunks back to the bay's rear wall (the ship's reactor
+    feeds it); the emitter at the slot's root, its lens sunk in a dark well; two
+    long armoured prongs running out past the hull, plated and grooved, with
+    focusing rails glowing along their inner faces, a clamp band across both; and
+    the capacitor pods across the shoulders (shorter than the sprite's, so two
+    mounts side by side clear each other); a capacitor bank on the power block. The sprite's aft vanes would lie inside
+    the hull and are left out. Everything in the bay keeps within 8.6 of the axis
+    across and 8 up and down."""
+    # Prongs: diamond sections, symmetric above and below the axis, tapering to the tips.
+    #        x    yi    yo    h
+    prong = [(3.0, 1.6, 8.4, 5.4), (12, 1.6, 8.2, 5.2), (24, 1.6, 7.4, 4.6), (36, 1.6, 6.0, 3.6),
+             (48, 1.7, 4.2, 2.4), (54.5, 1.9, 2.8, 1.1)]
+
+    def sec(yi, yo, h, grow=0.0):
+        yc = yi+.42*(yo-yi)
+        return [(yi, -.72*h), (yi, .72*h), (yc, h+grow), (yo+grow, .3*h), (yo+grow, -.3*h), (yc, -h-grow)]
+
+    def core(sec_pts, depth=.35):
+        ym = sum(y for y, _ in sec_pts)/len(sec_pts)
+        return [(ym+(y-ym)*.85, z*(1-depth/max(abs(z) for _, z in sec_pts))) for y, z in sec_pts]
+    grooves = (16.0, 30.0, 43.0)
+    edges = [3.0]+[e for gx in grooves for e in (gx-.25, gx+.25)]+[54.5]
+    for sy in (1, -1):
+        for a0, b0 in zip(edges[::2], edges[1::2]):
+            n = max(1, int(math.ceil((b0-a0)/1.0)))
+            _loft(g['paint'], [(a0+(b0-a0)*i/n, sec(*_cr(prong, a0+(b0-a0)*i/n))) for i in range(n+1)], k, 0, sy)
+        for gx in grooves:
+            _loft(g['steel'], [(x, core(sec(*_cr(prong, x)))) for x in (gx-.3, gx+.3)], k, 0, sy)
+        _loft(g['metal'], [(x, sec(*_cr(prong, x), .4)) for x in (11.2, 11.8, 13.2, 13.8)], k, 0, sy)
+        # Focusing rail along the prong's inner face.
+        _loft(g['lamp_blue'], [(x, [(yi-.06, -.5), (yi+.02, -.5), (yi+.02, .5), (yi-.06, .5)])
+                               for x, (yi, _, _) in ((x, _cr(prong, x)) for x in (7, 20, 34, 47))], k, 0, sy)
+        # Capacitor pod across the shoulder: cooling rings, red band, insulator cap. A hull
+        # whose mounts stand side by side shortens the inboard pods (pod_reach, by side).
+        reach = (s.get('pod_reach') or {}).get(sy, 15.5)
+        g['accent'].cyl((15.0*k, sy*(8.1+reach-.5)/2*k, 0), 3.0*k, (reach-.5-8.1)*k, 'Y', n=32, bevel=.2*k)
+        for yy in (9.6, 10.6, 11.6):
+            if yy < reach-2.6:
+                g['steel'].ring((15.0*k, sy*yy*k, 0), 2.9*k, 3.35*k, .35*k, 'Y', n=32)
+        g['lamp_red'].ring((15.0*k, sy*(reach-2.1)*k, 0), 2.9*k, 3.15*k, .5*k, 'Y', n=32)
+        g['steel'].ring((15.0*k, sy*(reach-.6)*k, 0), 1.6*k, 3.0*k, .5*k, 'Y', n=32)
+        g['lamp_blue'].cyl((15.0*k, sy*(reach-.25)*k, 0), 1.65*k, .5*k, 'Y', n=32)
+    # The emitter: a root block bridging the prongs, its lens sunk in a dark well facing
+    # down the slot (the fire point).
+    root = g['steel#root']
+    root.box((.5*k, 0, 0), (7.0*k, 17.0*k, 11.0*k), .5*k)
+    root.cut().cyl((3.6*k, 0, 0), 1.6*k, 3.0*k, 'X', n=32)
+    g['dark'].cyl((2.2*k, 0, 0), 1.6*k, .2*k, 'X', n=32)
+    g['lamp_blue'].lathe([(1.3*k, 0), (1.0*k, .35*k), (0, .55*k)], 32, (2.3*k, 0, 0), 'X')
+    # The power block on its sled in the bay, a capacitor bank across its top, and three
+    # power trunks back to the bay's rear wall.
+    for sy in (1, -1):
+        g['dark'].box((-12*k, sy*6.5*k, -9.1*k), (26*k, 1.6*k, 1.0*k))
+    g['paint'].box((-10.0*k, 0, -.5*k), (14.0*k, 17.0*k, 13.0*k), .6*k)
+    # Capacitor bank lying across the block's top: four cells in a cradle, red bands.
+    g['steel'].box((-10.0*k, 0, 6.3*k), (12.5*k, 14.5*k, .7*k), .15*k)
+    for xx in (-14.4, -11.5, -8.6, -5.7):
+        g['accent'].cyl((xx*k, 0, 7.6*k), 1.25*k, 14.0*k, 'Y', n=32, bevel=.15*k)
+        for sy in (1, -1):
+            g['lamp_red'].ring((xx*k, sy*5.0*k, 7.6*k), 1.2*k, 1.38*k, .35*k, 'Y', n=32)
+            g['steel'].ring((xx*k, sy*6.9*k, 7.6*k), 1.2*k, 1.45*k, .4*k, 'Y', n=32)
+    for sy in (1, -1):
+        g['steel'].box((-10.0*k, sy*7.0*k, 1.0*k), (11*k, 3.2*k, 9*k), .3*k)
+        for xx in (-13, -10, -7):
+            g['lamp_blue'].box((xx*k, sy*8.65*k, 2.5*k), (1.0*k, .12*k, 3.0*k))
+    for yy, zz in ((-4.0, -2.0), (0.0, -3.5), (4.0, -2.0)):
+        ctrl = [(-17.0, yy, zz), (-23.0, yy*1.1, zz-2.5), (-29.0, yy*1.1, zz-1.0), (-33.6, yy, zz)]
+        _cable(g['cable'], ctrl, 1.3, k, 0)
+        for t0, t1 in ((0, .05), (.95, 1.0), (.4, .43), (.6, .63)):
+            _cable(g['steel'], ctrl, 1.65, k, 0, segs=2, t0=t0, t1=t1)
+    return [(5.0*k, 0.0, 0.0)]
+
+
+HARDPOINT_WEAPONS = {
+    # Tachyon lance as a spinal beam projector (the Paragon's bow pair, owner 2026-10-19).
+    'tachyonlance': dict(builder=_hp_tachyonlance, chroma=.7,
+                         paints={'paint': (.41, .45, .51), 'accent': (.55, .57, .62)}),
+    # Autopulse laser (the Paragon Elite's bow pair): cream-white emitter, steel breech,
+    # the Tri-Tachyon halfway paints as for its turrets.
+    'autopulse': dict(builder=_hp_autopulse, chroma=.7,
+                      paints={'paint': (.62, .61, .52), 'accent': (.56, .57, .6), 'accent2': (.72, .72, .74)}),
+}
+
+
+def build_hardpoint(weapon, prefix, parent, mats, mpu, detail='near', k=1.0, **over):
+    """The fixed gun for `weapon` on `parent` (an empty at the slot, +X along the line of
+    fire, z=0 on the mount's axis), at k hull units per sprite pixel. Returns {'parts',
+    'muzzles' ('<prefix> muzzle anchor <k>' empties, +X along the bore), 'spec'}.
+    hull_finish / sprite_tint work as for build()."""
+    s = dict(HARDPOINT_WEAPONS[weapon])
+    s.update(over)
+    s['weapon'] = weapon
+    f = Fit(mpu, detail)
+    _CAP[0] = CHAMFER_M*f.u
+    mats = _sprite_mats(s, mats)
+    g = Group(prefix, 'hardpoint', mats, parent)
+    muzzles = s['builder'](g, f, s, k)
+    anchors = []
+    for i, (x, y, z) in enumerate(muzzles):
+        a = bpy.data.objects.new(f'{prefix} muzzle anchor {i+1}', None)
+        bpy.context.collection.objects.link(a)
+        a.empty_display_size = 3*k
+        a.parent = parent
+        a.location = (x, y, z)
+        anchors.append(a)
+    return {'parts': g.emit(), 'muzzles': anchors, 'spec': s}
+
 
 
 def _cowl(g, f, s, r, z0):
