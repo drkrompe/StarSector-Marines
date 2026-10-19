@@ -73,7 +73,7 @@ Pass 3 round 1 (owner: "a thick cargo front with those engines almost like tug
   'Frame <side> thrust yoke / pad') run from each pod's nose and keel into a
   bolted thrust pad low on the side module's aft face. IoU 0.967.
   Scale: the measured volume rose to 1.18 M units3, so option C now solves 0.426
-  (92 m); 0.50 (108 m) stays published until the owner chooses.
+  (92 m); the owner kept 0.50 (108 m) by override (2026-10-18).
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]
