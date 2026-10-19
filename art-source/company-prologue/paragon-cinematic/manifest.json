@@ -1617,5 +1617,5 @@
   },
   "append": "load both 'PARAGON | clean' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "33a3ebc1862b51f7ee21778094f4a9975aaaee44d7aba3b0017b75796f3464d8"
+ "asset_sha256": "7fee0e61b6d103a3409480c3601f7bc277515189ad9a49d4d54c1d1d6f654f7c"
 }
