@@ -200,15 +200,22 @@ HULLS = {
                                                     'side cargo door w x h': [15, 14],
                                                     'bow cargo door w x h': [41, 23],
                                                     'bridge door w x h': [2.2, 4.6]}),
+    # The Tarsus freighter: twin forward cargo arms, central body, aft body with its two turret
+    # drums, the bow drums, drive block and forward command module. The port pressure tanks
+    # and the starboard cylinder are external tankage laid on the deck (like the Colossus's
+    # underslung pod tanks), the drive cans are drives: all excluded. Crew room sizes it
+    # (80 x 300 m3 of 24,820 m3 of contents). Fittings: Kite collar hatch, grapple receiver plate.
+    'Tarsus': dict(units3=279286, crew_max=80, cargo=350, fuel=80, cls='freighter', length_units=188.8,
+                   sprite_px=204, fittings_units={'Kite collar hatch d': [5.2], 'grapple receiver plate d': [5.2]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
-                 'Colossus': 'measured (SOLIDS)'}
+                 'Colossus': 'measured (SOLIDS)', 'Tarsus': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Tarsus': .51}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -270,6 +277,13 @@ SOLIDS = {
                      'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
                      'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
                      'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
+    # The Tarsus's arms, central body, aft body, the four drums, drive block and command
+    # module. Deck tanks, drive cans, turrets and fittings are excluded.
+    'tarsus': {'blend': 'tarsus-geometry/tarsus-geometry.blend', 'step': 1.0,
+               'include': lambda n: n in (
+                   'Hull port arm', 'Hull starboard arm', 'Hull central body', 'Hull aft body',
+                   'Hull port aft drum', 'Hull starboard aft drum', 'Hull port bow drum',
+                   'Hull starboard bow drum', 'Hull drive block', 'Bridge command module')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
