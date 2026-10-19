@@ -217,8 +217,10 @@ public final class DamageResolver {
             MechSections sections = mech.sectionsFor(hpBefore, world.maxHp(targetId),
                     armorBefore, hasArmor ? world.maxArmor(targetId) : 0f);
             MechSection section = sectionStruck(world, targetId, attackerId, mech, sections, part);
+            ArmorArcs.Arc torsoArc = torsoArc(world, targetId, attackerId, mech);
+            ArmorArcs.Profile arcs = MechSections.torsoArcs();
             sections.resolve(section, postCoverDamage, penetration, mitigationSoak, armorRating,
-                    durability, sectionHit);
+                    armorRating * arcs.rating(torsoArc), arcs.plate(torsoArc), durability, sectionHit);
             if (sectionHit.mitigatedDamage() > 0f) screens.absorb(targetId, sectionHit.mitigatedDamage());
             armorDamage = sectionHit.armorDamage();
             structureDamage = sectionHit.structureDamage();
@@ -377,6 +379,17 @@ public final class DamageResolver {
             fromLeft = rng.nextBoolean();
         }
         return sections.sectionFor(band, fromLeft, rng.nextFloat());
+    }
+
+    /**
+     * The arc of the torso a hit on a mech arrives on, read from its shooter's position against the upper torso's
+     * facing, the frame its arm hits are read in. A hit with no shooter to read meets the front, which under
+     * {@link MechSections#TORSO_ARCS} is the chassis rating as it stands.
+     */
+    private ArmorArcs.Arc torsoArc(World world, long targetId, long attackerId, MechLoadoutComponent mech) {
+        if (attackerId == targetId || !roster.isAliveById(attackerId)) return ArmorArcs.Arc.FRONT;
+        return ArmorArcs.classify(mech.torsoFacingDegrees,
+                world.x(attackerId) - world.x(targetId), world.y(attackerId) - world.y(targetId));
     }
 
     /**

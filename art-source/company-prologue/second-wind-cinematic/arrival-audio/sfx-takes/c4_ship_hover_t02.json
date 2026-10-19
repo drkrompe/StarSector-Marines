@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "60",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy spaceship hovering with powerful downward thrusters, deep steady thrust roar, slowly descending",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "93905e41437519ace0d5a2799b7f4f31be45157fa008da463f3a211616b846ac",
+  "durationSeconds": 6.0,
+  "peakDb": -0.3,
+  "integratedLufs": -11.0
+}

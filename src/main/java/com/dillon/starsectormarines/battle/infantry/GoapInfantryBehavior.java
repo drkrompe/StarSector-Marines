@@ -236,7 +236,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     public static boolean prepareForAction(long unit, BattleControl sim,
                                            boolean permitsOpportunityFire) {
         return ReflexChain.run(InfantryReflexes.PREPARATION_CHAIN, unit,
-                sim.squadOf(unit), new ReflexContext(permitsOpportunityFire),
+                sim.squadOf(unit), ReflexContext.of(permitsOpportunityFire),
                 sim) == null;
     }
 
@@ -276,7 +276,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // this arm's law. See InfantryReflexes for what each entry answers and
         // InfantryReflexOrderTest for why the order may not be shuffled.
         if (ReflexChain.run(InfantryReflexes.CHAIN, unit, squad,
-                new ReflexContext(permitsPreparationFire), sim) != null) {
+                ReflexContext.of(permitsPreparationFire), sim) != null) {
             return;
         }
 

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "80",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Hot metal hull cooling after landing, sparse ticks, pings and small creaks",
+    "duration_seconds": 8.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "466d39d39285cd61e4c931c9a4aeca436181797b5b6460657d9ae3ec7a80d6be",
+  "durationSeconds": 8.0,
+  "peakDb": -4.1,
+  "integratedLufs": -18.6
+}

@@ -62,7 +62,8 @@ def tracked(text, font, tracking):
     return mask.crop(mask.getbbox())
 
 
-def marines(treatment, mark):
+def marines(treatment, mark, text='MARINES', width=None):
+    """The line under the wordmark. `width` is its share of the wordmark's width."""
     font = ImageFont.truetype(str(FONT), 64)
     if treatment == 'match':
         font.set_variation_by_name('Light')
@@ -70,12 +71,12 @@ def marines(treatment, mark):
     else:
         font.set_variation_by_name('Bold SemiCondensed')
         cap = mark.height * 0.62
-    probe = tracked('MARINES', font, 0)
+    probe = tracked(text, font, 0)
     font = ImageFont.truetype(str(FONT), round(64 * cap / probe.height))
     font.set_variation_by_name('Light' if treatment == 'match' else 'Bold SemiCondensed')
-    base = tracked('MARINES', font, 0)
-    target = mark.width * (0.7 if treatment == 'match' else 0.46)
-    mask = tracked('MARINES', font, max(0.0, (target - base.width) / 6))
+    base = tracked(text, font, 0)
+    target = mark.width * (width or (0.7 if treatment == 'match' else 0.46))
+    mask = tracked(text, font, max(0.0, (target - base.width) / max(1, len(text) - 1)))
 
     pad = round(mask.height * 0.8)
     m = Image.new('L', (mask.width + 2 * pad, mask.height + 2 * pad), 0)

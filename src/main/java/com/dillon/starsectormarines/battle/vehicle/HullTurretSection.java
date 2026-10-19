@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 
 /**
@@ -12,7 +13,8 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
  * hull, which meets it with its own armor before its structure. A hit on a turret already at zero goes through the
  * hole to the hull's plate. Only the hull's own structure decides death; the turret at zero <b>destroys the gun</b>
  * and nothing else: the hull drives on unarmed, its turret still drawn where it last pointed. The armor rating is
- * the hull's, one plate per machine, as a mech's sections share their chassis's rating.
+ * the hull's, one plate per machine, as a mech's sections share their chassis's rating; what that plate is worth
+ * depends on the arc a hit arrives on ({@link ArmorArcs}), read for a turret hit against the turret's own facing.
  *
  * <p>Pools live here; the hull's share is derived from the columns on every hit ({@code total - turret}), so there
  * is no second copy of the hull to drift. Written only on the serialized damage path. See {@code convoy-nouns.md}.
@@ -91,6 +93,18 @@ public final class HullTurretSection {
      */
     public void resolve(boolean onTurret, float damage, float penetration, float armorRating,
                         float totalArmor, float totalStructure, DurabilityModel.Resolution scratch, Hit out) {
+        resolve(onTurret, damage, penetration, armorRating, 1f, armorRating, 1f,
+                totalArmor, totalStructure, scratch, out);
+    }
+
+    /**
+     * {@link #resolve(boolean, float, float, float, float, float, DurabilityModel.Resolution, Hit)} with the plate
+     * each part meets on the arc the hit arrives on ({@link ArmorArcs}): the turret's rating and plate on the
+     * turret's own arc, the hull's on the hull's. What goes on through the turret into the hull meets the hull's arc.
+     */
+    public void resolve(boolean onTurret, float damage, float penetration,
+                        float turretRating, float turretPlate, float hullRating, float hullPlate,
+                        float totalArmor, float totalStructure, DurabilityModel.Resolution scratch, Hit out) {
         float hullArmor = Math.max(0f, totalArmor - armor);
         float hullStructure = Math.max(0f, totalStructure - structure);
         float turretArmorDamage = 0f;
@@ -99,13 +113,14 @@ public final class HullTurretSection {
         if (onTurret && structure > 0f) {
             float armorBefore = armor;
             float structureBefore = structure;
-            DurabilityModel.resolveInto(damage, penetration, armorBefore, armorRating, structureBefore, scratch);
+            DurabilityModel.resolvePlatedInto(damage, penetration, armorBefore, turretRating, turretPlate,
+                    structureBefore, scratch);
             turretArmorDamage = scratch.armorDamage();
             onSection = scratch.structureDamage();
             toHull = 0f;
             if (onSection >= structureBefore) {
                 float toBreak = armorBefore > 0f
-                        ? armorBefore / DurabilityModel.armorEfficiency(penetration, armorRating) : 0f;
+                        ? armorBefore * turretPlate / DurabilityModel.armorEfficiency(penetration, turretRating) : 0f;
                 toHull = Math.max(0f, damage - toBreak - structureBefore);
             }
             armor = Math.max(0f, armorBefore - turretArmorDamage);
@@ -116,7 +131,8 @@ public final class HullTurretSection {
         float hullArmorDamage = 0f;
         float hullStructureDamage = 0f;
         if (toHull > 0f && hullStructure > 0f) {
-            DurabilityModel.resolveInto(toHull, penetration, hullArmor, armorRating, hullStructure, scratch);
+            DurabilityModel.resolvePlatedInto(toHull, penetration, hullArmor, hullRating, hullPlate,
+                    hullStructure, scratch);
             hullArmorDamage = scratch.armorDamage();
             hullStructureDamage = scratch.structureDamage();
         }

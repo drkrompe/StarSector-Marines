@@ -95,9 +95,9 @@ public final class DefendTrack implements Action {
         if (bearing != null && async != null) async.cancel(member);
         int anchorX = moveX;
         int anchorY = moveY;
-        int[] formationCell = formationCell(member, squad, moveX, moveY, sim);
-        moveX = formationCell[0];
-        moveY = formationCell[1];
+        long formationCell = formationCell(member, squad, moveX, moveY, sim);
+        moveX = (int) (formationCell >> 32);
+        moveY = (int) formationCell;
         if (sim.world().hasMechLoadout(member)) {
             MechRouteIntent route = MechRouteIntent.forMember(member, assignmentKind,
                     MechRouteIntent.cellKey(anchorX, anchorY), sim);
@@ -192,13 +192,13 @@ public final class DefendTrack implements Action {
     }
 
     /** Small deterministic fireteam footprint around the coarse squad rally. */
-    private static int[] formationCell(long member, Squad squad,
-                                       int anchorX, int anchorY,
-                                       BattleView sim) {
+    private static long formationCell(long member, Squad squad,
+                                      int anchorX, int anchorY,
+                                      BattleView sim) {
         if (sim.survivorPickup() != null && squad.assignmentForExecution() != null
                 && squad.assignmentForExecution().kind() == AssignmentKind.WITHDRAW) {
             int[] ramp = sim.survivorPickup().rampFor(member, sim);
-            if (ramp != null) return ramp;
+            if (ramp != null) return packCell(ramp[0], ramp[1]);
         }
         int count = squad.autonomousMemberCount(sim);
         int ordinal = 0;
@@ -213,13 +213,19 @@ public final class DefendTrack implements Action {
         int team = ordinal / Squad.FIRE_TEAM_SIZE;
         int seat = ordinal % Squad.FIRE_TEAM_SIZE;
         int teamOffsetX = team * 4 - (teamCount - 1) * 2;
-        int[] seatX = {0, -1, 1, 0};
-        int[] seatY = {0, 1, 1, 2};
-        int x = anchorX + teamOffsetX + seatX[seat];
-        int y = anchorY + seatY[seat];
+        int x = anchorX + teamOffsetX + SEAT_X[seat];
+        int y = anchorY + SEAT_Y[seat];
         if (!sim.getGrid().inBounds(x, y) || !sim.getGrid().isWalkable(x, y)) {
-            return new int[]{anchorX, anchorY};
+            return packCell(anchorX, anchorY);
         }
-        return new int[]{x, y};
+        return packCell(x, y);
+    }
+
+    private static final int[] SEAT_X = {0, -1, 1, 0};
+    private static final int[] SEAT_Y = {0, 1, 1, 2};
+
+    /** A cell as one long (x high, y low), so the per-member lookup allocates nothing. */
+    private static long packCell(int x, int y) {
+        return ((long) x << 32) | (y & 0xffffffffL);
     }
 }

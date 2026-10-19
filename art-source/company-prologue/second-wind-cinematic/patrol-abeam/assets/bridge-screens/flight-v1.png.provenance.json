@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154c8-c638-7023-a51c-989052e40d41",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c8-c638-7023-a51c-989052e40d41\\exec-a6701b55-cce7-4e4e-9831-959dcba6ccea.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\flight-v1.png",
+    "sha256": "fc764b02e8313701acf6b07b5740a94fccaf2514c9cedb0e4c2d4fef94cbd072",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-flight-v1.txt",
+  "promptSha256": "72c29fb4a1db2a2f73ab837c41377bfb6e2491102dea74676568e8bf29e776bd",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nWidest landscape canvas (about 3:1). The flight page for the pilot: a central attitude indicator (artificial horizon ball with a pitch ladder, the ship pitched about 10 degrees nose down), a heading tape across the top, vertical velocity and range tapes at each side, a small thruster-firing diagram of the hull seen from above with RCS quads, and readouts such as PITCH -10.2, ROLL 0.4, DELTA-V REM 412, ORBIT 186 KM, DEORBIT BURN T-00:41.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image with the freighter’s flight display and wide, phosphor-green layout."
+  ],
+  "usage": {
+    "input_tokens": 35205,
+    "cached_input_tokens": 29696,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 462,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.6
+}
