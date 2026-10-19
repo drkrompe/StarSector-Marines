@@ -1,6 +1,6 @@
 # Legion: surfacing
 
-Status: REVIEW (pass 6, texture pass 2 with the owner, 2026-10-19).
+Status: DONE (pass 6 accepted 2026-10-19 after texture pass 2, owner: looks good). The cinematic export is `../legion-cinematic/`.
 Written: 2026-10-19
 
 The Legion (XIV) battlecarrier's folder for the shared surfacing harness
@@ -67,5 +67,5 @@ family (a neighbour's colour at a registration edge) takes its class swatch.
 - **Pass 1** (2026-10-19, `9a90d4d48`): box tiles without the tile-line cut.
   Long plates stayed on swatch and tiles fit at IoU 0.76–0.99; a neighbour's
   paint bled onto some orange edges. The owner accepted it and asked for more.
-- **Pass 2** (2026-10-19): the tile-line cut, regenerated sheets and the
-  per-face family check.
+- **Pass 2** (2026-10-19, `75669e597`): the tile-line cut, regenerated sheets
+  and the per-face family check. Accepted by the owner.
