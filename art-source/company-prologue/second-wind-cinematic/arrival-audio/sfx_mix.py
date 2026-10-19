@@ -102,7 +102,11 @@ SHOTS = {
         sfx("c1_cabin_bed", 0.0, -16, until=37.7, env=[(0, -2), (2.6, 6), (3.1, 0)], fade_in=1.0),
         # Second Wind's drive as bass: far at first, loudest as it passes and its engines face us.
         # Second Wind's drive as a muffled heavy rocket, synthesised from its lane (owner, 2026-10-19).
-        synth("second_wind_pass", -10, fade_in=2.0),
+        # Its pass is the shot's moment (owner, 2026-10-19: "around 10 s ... I don't hear the engine"):
+        # it swells 8 dB as it brakes past the camera, 9.5-12.5. It is nearly all below 500 Hz, so it
+        # can come up under Approach's narrow 500-2200 Hz radio voice without covering the words.
+        synth("second_wind_pass", -10, fade_in=2.0,
+              env=[(0, 0), (7.0, 0), (9.5, 8), (12.5, 8), (15.0, 2), (20.0, 0)]),
         sfx("c1_hull_creaks", 0.5, -12, offset=0.5, until=3.0),
         sfx("c1_hull_creaks", 32.2, -12, offset=0.5, until=34.5),
         sfx("c1_rcs_puffs", 5.0, -14, until=7.0),
@@ -159,15 +163,15 @@ SHOTS = {
         voice(("castle", CASTLE["c4_reels"]), 7.0),
     ]),
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
-    "c4c5": (C4_LENGTH + 33.5, [
+    "c4c5": (C4_LENGTH + 40.0, [   # C5 is 40 s (owner: linger on the title, more of the port)
         sfx("c3_cabin_flight_bed", 0.0, -16, until=1.0, fade_out=1.0),
         sfx("c4_high_wind_bed", 0.0, -14, until=20.4, loop=True,
             env=[(0, 0), (13.4, 0), (16.4, -6), (20.4, -14)], fade_in=0.6),
         sfx("c4_ground_distant", 0.0, -18, until=11.0, loop=True, fade_out=2.0),
-        sfx("c4_freeway", 1.0, -12, until=53.9, fade_in=1.0,
-            env=[(1, -6), (4, 0), (13.4, -4), (17.4, -10), (39.4, -10), (47.4, -2), (53.9, -30)]),
-        sfx("c4_port_heavy", 3.5, -12, until=53.9, fade_in=1.5,
-            env=[(3.5, -10), (7, 0), (21.4, -2), (25.4, -6), (35.4, -6), (39.4, -5), (47.4, 2), (53.9, -30)]),
+        sfx("c4_freeway", 1.0, -12, until=60.9, fade_in=1.0,
+            env=[(1, -6), (4, 0), (13.4, -4), (17.4, -10), (39.4, -10), (47.4, -2), (59.4, -4), (60.9, -30)]),
+        sfx("c4_port_heavy", 3.5, -12, until=60.9, fade_in=1.5,
+            env=[(3.5, -10), (7, 0), (21.4, -2), (25.4, -6), (35.4, -6), (39.4, -5), (47.4, 2), (59.4, 0), (60.9, -30)]),
         sfx("c4_port_ambience", 5.0, -18, until=39.4, fade_in=2.5, fade_out=2.0),
         # The landing (c4x_scene, 2026-10-19): the approach runs under both of Castle's lines,
         # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
@@ -178,18 +182,19 @@ SHOTS = {
         # its ignition whump at 10.0, grit, the touchdown, the burner shutdown and the settling dust.
         # The roar carries its own low end, so the drive drops 4 dB under it from 12.0.
         synth("second_wind_c4_drive", -12, env=[(0, -4), (10.9, -4), (12.0, -4), (16.4, -4)]),
-        # The lift jets: a medium thruster close (owner, 2026-10-19, from the auditions), in place of
+        # The lift jets: the heavy generated burn, muffled (owner, 2026-10-19), in place of
         # synth_landing's roar; its grit, touchdown, shutdown and settling stay.
-        synth("second_wind_c4_lift", -4, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
+        synth("second_wind_c4_lift", -7, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
         landing("landing_grit", -11),
         landing("landing_thump", -2),
         landing("landing_spool", -8),
         landing("landing_settle", -14),
-        sfx("c5_yard_bed", 17.4, -14, until=54.9,
-            env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
-        # A second Colossus leaving low past Kilo Nine (port_fleet 'Colossus outbound'), closest at
-        # C5 18-19.5, then climbing away under the title; kept under the music and the title.
-        synth("colossus_outbound", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -4)]),
+        sfx("c5_yard_bed", 17.4, -14, until=61.4,
+            env=[(17.4, 0), (39.4, 0), (47.4, -8), (59.4, -10), (60.9, -30)], fade_in=2.0),
+        # The Colossus at the heavy berth lifting out (port_fleet): lift jets from C5 12, off the deck
+        # at 15 with its dust, mains lit at 24 as the title comes up. Kept under the music and title.
+        synth("colossus_lift", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
+        synth("colossus_mains", -12, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),
         voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([
@@ -213,8 +218,9 @@ SHOTS = {
         # From 220 m up the families are a far murmur, not footsteps (owner, 2026-10-19).
         sfx("c5_crowd_murmur", 8.5, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
             fade_in=2.0, fade_out=3.0),
-        sfx("c5_port_wide", 17.0, -5, offset=5.0, until=33.5,
-            env=[(17, -12), (26, 0), (28, 0), (32.5, -40)], fade_in=1.0),
+        # The port at work through the title's hold, out with the picture's fade to black (38-39.5).
+        sfx("c5_port_wide", 17.0, -5, offset=5.0, until=40.0,
+            env=[(17, -12), (26, 0), (37.5, 0), (39.5, -40)], fade_in=1.0),
         voice(("castle", CASTLE["c5_announce"]), 5.0),
         voice(("castle", CASTLE["c5_last"]), None, ends=24.0),
     ], C4_LENGTH)),

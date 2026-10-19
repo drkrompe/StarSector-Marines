@@ -107,6 +107,7 @@ def above_room(o):
     return over and lo.z > BI.CEILING - .45
 
 
+CX = BI.CASTLE_AT[0]
 VIEWS = {
     # name: (hide rule, aim kwargs)
     '01-forward-station': (glazing, dict(pos=(16.75, 1.2, 19.2), yaw=0, pitch=-8)),
@@ -117,10 +118,10 @@ VIEWS = {
     '06-plan': (above_room, dict(pos=(13.45, 0, 40.0), target=(13.45, 0, 0), ortho=17.5)),
     '07-exterior-port-quarter': (lambda o: False, dict(pos=(100, 130, 100), target=(5, 0, 1), ortho=163)),
     '08-exterior-bridge': (lambda o: False, dict(pos=(60, 60, 50), target=(12, 0, 14), ortho=55)),
-    # Castle at the comms bank: from the port station turned aft onto her, and from across the
-    # plot table (the MakeHuman figure when castle-figure.blend is built; see figures()).
-    '09-castle-from-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), target=(10.9, 3.4, 18.85), lens=24)),
-    '10-castle-across-the-room': (glazing, dict(pos=(13.4, -1.4, 19.1), target=(10.9, 3.4, 18.0), lens=24)),
+    # Castle at the comms bank's forward panel (BI.CASTLE_AT): from the middle panel turned
+    # forward onto her, and from across the room (the MakeHuman figure when castle-figure.blend is built; see figures()).
+    '09-castle-from-port-station': (glazing, dict(pos=(CX - 2.1, 3.6, 19.2), target=(CX, 3.4, 18.85), lens=24)),
+    '10-castle-across-the-room': (glazing, dict(pos=(CX - 2.5, -1.4, 19.1), target=(CX, 3.4, 18.0), lens=24)),
     # Close-ups for the detail pass: Castle's comms bank face, the helm seat, the aft hatch and
     # the patched cable runs across the ceiling and down the port mullion.
     '11-console-face': (glazing, dict(pos=(11.75, 3.05, 19.05), target=(12.0, 4.25, 18.45), lens=30)),

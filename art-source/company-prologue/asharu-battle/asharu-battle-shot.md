@@ -1,8 +1,8 @@
 # Asharu battle: the wreckfall
 
-Status: DRAFT — round 2 blockout (`battle_blockout.py`); hull builds 1-7 started by the owner.
+Status: DRAFT — round 3 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
 Written: 2026-10-19
-Updated: 2026-10-19 — round 2: a larger convoy, and the pirates take the Tarsus as their prize, so they do not follow.
+Updated: 2026-10-19 — round 3: the Enforcer is cut, a Lasher leads the escort, and the finished Kite (P), Hound (P) and independent Lasher and Hound replace their stand-ins.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -77,7 +77,7 @@ shows both scales.
    the convoy has just passed and climb out of it, closing from astern.
 3. **The screen goes first.** The Manticore (P) and the Falcon (P) open at long
    range. The Phaeton tanker, at the convoy's tail, goes up. A Lasher burns.
-   The Enforcer turns back into the fire and is shot up.
+   The lead Lasher turns back into the fire and is shot up.
 4. **The tail is cut off.** The Tarsus, astern of the Colossus, has her drives
    shot out and falls out of the column. Kites (P) lie alongside her with the
    boarders. The rest of the convoy runs on ahead.
@@ -117,23 +117,21 @@ Colossus 108 m, Onslaught 301 m.
 | Mule | armed freighter; gets away | 104 m (est.) | about a Colossus | stand-in |
 | Buffalo x2 | small freighters; get away | 58 m (est.) | a Hound | stand-in |
 | Dram | small tanker; gets away | 48 m (est.) | 0.8 Hound | stand-in |
-| Enforcer | escort lead, destroyer | 95 m (est.) | 0.9 Colossus | ordered (with the pirate Enforcer) |
-| Lasher x2 | escort frigates | 90 m | 1.5 Hounds | **finished** (needs an independent livery) |
+| Lasher x3 | escort lead and escort frigates | 90 m | 1.5 Hounds | **finished** (independent livery) |
 | Wolf | point escort frigate | 86 m (est.) | 1.4 Hounds | from the Wolf (P) build, with a merchant livery |
-| Hound | rear escort | 61 m | the reference | **finished** (needs an independent livery) |
+| Hound | rear escort | 61 m | the reference | **finished** (independent livery) |
 
-### Pirate raiders (12 hulls)
+### Pirate raiders (11 hulls)
 
 | Hull | Role | Length | Against known ships | Model |
 |---|---|---|---|---|
 | Falcon (P) | flagship, light cruiser | 159 m (est.) | 1.5 Colossus; half an Onslaught | ordered |
 | Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 107 m (est.) | the Colossus's twin | ordered, from the Colossus geometry |
 | Manticore (P) | long-range destroyer that breaks the screen | 96 m (est.) | 0.9 Colossus | ordered |
-| Enforcer (P) | destroyer | 95 m (est.) | 0.9 Colossus | ordered; one Enforcer build serves both fleets |
 | Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
 | Wolf (P) x2 | fast frigates that cut the column | 86 m (est.) | 1.4 Hounds | ordered |
-| Hound (P) x2 | frigates | 61 m | the reference | ordered: a pirate state of the finished Hound (tinted in the blockout) |
-| Kite (P) x2 | boarding shuttles | 55 m (est.) | 0.9 Hound | ordered |
+| Hound (P) x2 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
+| Kite (P) x2 | boarding shuttles | 52 m | 0.9 Hound | **finished** |
 
 All the pirate hulls are vanilla `pirate_bp` skins or pirate hulls (Colossus
 Mk.III), plus the Buffalo Mk.II, which pirate fleets field. Left out on purpose: the
@@ -152,7 +150,7 @@ About 95 seconds. **K** marks a shot with a blockout key frame in the review run
 | S3 | 5 s | Long lens back down at the derelict platform below: dark, stripped. Then drive lights come on in its hangars. | the platform | 135 mm from the convoy's tail |
 | S4 **K** | 6 s | First contact: twelve hulls climbing out of the platform toward the column, drives lit, the desert behind them. | Falcon (P), Wolves, Hounds (P), Kites (P) | 35 mm, off their flank |
 | S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire |
-| S6 **K** | 8 s | The screen breaks: the Phaeton tanker goes up, a Lasher burns, and the Enforcer turns back into the fire and is hit. | Enforcer, Phaeton, Lasher A | 30 mm, looking aft along the convoy |
+| S6 **K** | 8 s | The screen breaks: the Phaeton tanker goes up, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy |
 | S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), Wolf (P) | 35 mm, from behind the Tarsus |
 | S8 | 6 s | Close on the Colossus's aft: the port tug pod is shot out, the drives stutter, debris. | Colossus | 50 mm, close |
 | S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. | Colossus, Colossus Mk.III, Morrow | 28 mm, 600 m off her port side |
@@ -166,9 +164,12 @@ deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
 ## Hull builds
 
 Orders go to the coordinating session, one per hull (owner, 2026-10-19). The
-owner started orders 1-7: Colossus Mk.III, Kite (P), Wolf (P), Falcon (P),
-Hound (P) state, Manticore (P), Enforcer and Enforcer (P). The Buffalo Mk.II
-stays a stand-in. Round 2 adds two convoy hulls that are now seen close:
+owner started orders for the Colossus Mk.III, Kite (P), Wolf (P), Falcon (P),
+Hound (P) state, Manticore (P) and Enforcer. The Enforcer was cut (owner,
+2026-10-19): a finished Lasher leads the escort instead, and the pirates field
+no Enforcer. The Kite (P) and Hound (P) are finished, as are the independent
+liveries of the Lasher and Hound. The Buffalo Mk.II stays a stand-in. Round 2
+added two convoy hulls that are seen close:
 
 - **Tarsus**: the pirates' prize, close in S7 and S10. Detailed, textured and
   with effects, plus a boarded condition (drives shot out, scorched).
@@ -176,8 +177,8 @@ stays a stand-in. Round 2 adds two convoy hulls that are now seen close:
   textured, plus a destroyed condition.
 
 The Mule, Buffalo and Dram are distant and stay stand-ins. The merchant Wolf
-takes the Wolf (P) build with a merchant livery. Liveries for the finished
-Lashers and Hound are texture jobs on existing hulls.
+takes the Wolf (P) build with a merchant livery. No further hulls are to be
+ordered from this blockout without the owner asking.
 
 ## Blockout
 
@@ -185,8 +186,9 @@ Lashers and Hound are texture jobs on existing hulls.
 roster sheets (from above and broadside, every hull at true relative size) and
 the orbit diagram. Hulls come from `build/asharu-battle/inputs/` (ignored): the
 finished Colossus and Shepherd builds (`colossus-cinematic`,
-`shepherd-cinematic`), the Lasher build on Drive (`builds/lasher/4e2ed50`) and
-the skinned Hound. A stand-in is the sprite's silhouette raised into a lens
+`shepherd-cinematic`) and the Drive builds `kite-p/a48f8757b`, `hound-p/33114de`,
+`lasher-independent/7805d3b` and `hound-independent/1e91821`, each placed
+through its manifest. A stand-in is the sprite's silhouette raised into a lens
 shape and painted with the sprite. It reads as the right hull at the right size
 and nothing more. Effects (tracers, blasts, drive plumes, entry plasma) are
 placeholders for the VFX kit.
