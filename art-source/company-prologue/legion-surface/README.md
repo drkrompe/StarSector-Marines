@@ -1,6 +1,6 @@
 # Legion: surfacing
 
-Status: REVIEW (pass 6, texture pass 1 with the owner, 2026-10-19).
+Status: REVIEW (pass 6, texture pass 2 with the owner, 2026-10-19).
 Written: 2026-10-19
 
 The Legion (XIV) battlecarrier's folder for the shared surfacing harness
@@ -34,22 +34,24 @@ hull stays damage-free on patrol.
 ## Parts
 
 At 292 m the hull cannot be cut into whole faces at a usable density, so the
-parts are **box tiles**. `make_groups.py` writes `groups/*.py` from the built
-geometry:
-- Each tile is a world-space box seen square-on from one side.
-- Its members are the objects that a ray grid hits inside the box.
-- Each box carries a containment `pad` (a `parts.py` box option): a face must
-  also lie within the box grown by 10 units. A long plate whose centre falls in
-  a tile therefore stays on its class swatch rather than stretching the tile
-  across the ship.
-- Port tiles are painted. Each starboard tile reuses its port twin mirrored
-  (`skin_from`, `mirror_u`).
+parts are **box tiles**. `make_groups.py` builds them from the geometry build:
+1. It cuts every classed mesh along the tile lines and saves the result as the
+   surfacing build (`build/geom/legion-surface.blend`, `surface_hull.BLEND`).
+   A long deck or belly plate then becomes pieces, each inside one tile, so it
+   is painted rather than left on swatch. The cuts lie in flat faces, and the
+   bevels are angle-limited, so neither the shape nor the shading changes.
+2. It writes `groups/*.py`. Each tile is a world-space box seen square-on from
+   one side, and its members are the objects that a ray grid hits inside it.
+   Each box carries a containment `pad` (see the harness README): a face must
+   also lie within the box grown by 10 units.
+3. Port tiles are painted. Each starboard tile reuses its port twin mirrored
+   (`skin_from`, `mirror_u`).
 
 Rerun `make_groups.py` after any geometry rebuild, then `render_parts.py`.
 
 The cut gives 35 generated sources plus 35 mirrored reuses, on nine Codex
-sheets with one call each and no retries. Every tile holds 5.2–12 texels per
-hull unit.
+sheets with one call each and no retries. Every tile holds 5.6–15 texels per
+hull unit and fits at IoU 0.92–1.00.
 
 | Group | Sheets | Tiles |
 |---|---|---|
@@ -57,6 +59,13 @@ hull unit.
 | `side` | side-a, side-b, side-c | fore, mid and aft flank, upper and lower; bow upper and lower; stern inboard and outboard, upper and lower |
 | `belly` | belly-a, belly-b, belly-c | bow, then fore, mid-fore, mid, mid-aft and stern, each inboard and outboard |
 
-Tiles fit at IoU 0.76–0.99. The fragmented tiles (many small plates per tile)
-fit lower than whole faces do, and the belly's stern tiles fit lowest (0.76–0.80).
-In views, about 40–60% of the hull is skinned and the rest is on swatch.
+`FACE_FAMILY_MIN = 0.5`: a skinned face whose tile paint is mostly another
+family (a neighbour's colour at a registration edge) takes its class swatch.
+
+## History
+
+- **Pass 1** (2026-10-19, `9a90d4d48`): box tiles without the tile-line cut.
+  Long plates stayed on swatch and tiles fit at IoU 0.76–0.99; a neighbour's
+  paint bled onto some orange edges. The owner accepted it and asked for more.
+- **Pass 2** (2026-10-19): the tile-line cut, regenerated sheets and the
+  per-face family check.

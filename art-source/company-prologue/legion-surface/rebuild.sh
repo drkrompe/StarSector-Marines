@@ -10,7 +10,8 @@ HS=$(pwd -W 2>/dev/null || pwd)
 blend() { "$BLENDER" --background --factory-startup --python "$@" 2>&1 | grep -E "SURF|Error|Traceback" || true; }
 GEOM=../legion-geometry
 
-# 1. Clean model into build/geom (geometry imported, never edited); box-tile part tables from it.
+# 1. Clean model into build/geom (geometry imported, never edited); make_groups.py cuts it along the tile lines
+#    into the surfacing build (build/geom/legion-surface.blend) and writes the box-tile part tables.
 blend "$GEOM/build_legion.py" -- --out "$HS/build/geom" --views three-quarter --samples 8
 "$BLENDER" --background "$HS/build/geom/legion-geometry.blend" --python make_groups.py 2>&1 | grep -E "SURF|Error|Traceback" || true
 cd ../second-wind-surface
