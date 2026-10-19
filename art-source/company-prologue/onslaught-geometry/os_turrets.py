@@ -7,10 +7,12 @@ the barbette and rests at the slot angle; rotating the pivot about its local
 Z trains the turret (the Legion's convention). Only what stands above the
 traverse gap trains.
 
-Fittings follow onslaught_xiv_Elite (the Hegemony XIV fit), at mid-distance
-detail only (C1 v2 sees the hull at 80-150 px):
+Fittings follow onslaught_xiv_Elite (the Hegemony XIV fit). The trainable turrets are
+the shared turret kit's (turret-kit/turret_kit.py, its military livery), as on the
+Legion; this module seats them in their wells, checks clashes, and builds the TPC
+hardpoints. The fit (kit entry in brackets where it differs):
   devastator   WS 018/020  large naval gunhouse, two heavy barrels
-  needler      WS 019      large mount, a block of six needle barrels
+  needler      WS 019      Multi-Needler (the kit's Needler, proportioned to the large ring)
   gun          medium gunhouses: heavy autocannon (WS 001/003/014/015, two
                barrels), flak (WS 007/010/011, two short), Hypervelocity
                Driver (WS 012/013, one long)
@@ -22,9 +24,15 @@ WS 025 is a decorative hardpoint on the command dome; os_fittings puts the
 sensor mast there.
 """
 import math
+import sys
+from pathlib import Path
 import bpy
 from mathutils import Vector
+from mathutils.bvhtree import BVHTree
 import os_kit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+import turret_kit as tk
 
 SLOTS = [  # onslaught.ship (the XIV skin changes no slot), with the onslaught_xiv_Elite weapon
     ('WS 001', (158, 71), 70, 150, 'MEDIUM', 'BALLISTIC', 'heavyac'),
@@ -56,6 +64,10 @@ DECORATIVE = [('WS 025', (17, 0), 0, 120, 'SMALL', 'DECORATIVE', 'sensor mast')]
 RING = {'LARGE': 11.0, 'MEDIUM': 7.0, 'SMALL': 4.2}   # read off the sprite's turret rings
 GAP = .08
 PIVOT_Z = {}
+MUZZLES = {}
+KIT_SCALE = {}                         # slot -> share of the ring a kit turret was built at
+KIT_SHRINK = (1.0, .94, .88, .82, .76)
+KIT_WEAPON = {'multineedler': 'needler'}   # Onslaught Elite weapon -> turret-kit catalogue entry
 
 
 def _place(ob, pivot, loc, rot=(0, 0, 0)):
@@ -63,10 +75,6 @@ def _place(ob, pivot, loc, rot=(0, 0, 0)):
     ob.location = loc
     ob.rotation_euler = rot
     return ob
-
-
-def _box(kit, name, pivot, loc, dims, mat, bevel=.12):
-    return _place(kit.box(name, (0, 0, 0), dims, mat, bevel=bevel), pivot, loc)
 
 
 def _cyl(kit, name, pivot, loc, radius, depth, mat, axis='X', vertices=12, bevel=.05):
@@ -92,141 +100,6 @@ def _deck_objects():
         lo = [min(p[i] for p in pts) for i in range(2)]
         hi = [max(p[i] for p in pts) for i in range(2)]
         _DECK.append((ev, lo, hi))
-
-
-def _gunhouse(kit, sid, pivot, r, mat, roof, length=1.0):
-    z0 = GAP*r
-    oc = os_kit.octagon
-    st = [(-.85*r*length, oc(-.5*r, .5*r, z0, (roof-.08)*r, .14*r, .05*r)),
-          (-.6*r*length, oc(-.8*r, .8*r, z0, roof*r, .18*r, .05*r)),
-          (.32*r, oc(-.8*r, .8*r, z0, roof*r, .18*r, .05*r)),
-          (.66*r, oc(-.6*r, .6*r, z0, (roof-.12)*r, .1*r, .05*r))]
-    return _place(os_kit.loft_x(kit, f'Weapon {sid} turret house', st, mat, bevel=.1), pivot, (0, 0, 0))
-
-
-def _gun(kit, slot, pivot, r):
-    sid, weapon = slot[0], slot[6]
-    spec = {'devastator': (2, 1.7, .085, .34, .66), 'heavyac': (2, 1.25, .075, .3, .6),
-            'dualflak': (2, .95, .06, .3, .55), 'flak': (2, .95, .06, .3, .55),
-            'hveldriver': (1, 2.1, .07, 0, .58)}[weapon]
-    n, length, rad, spacing, roof = spec
-    mat = kit.orange if slot[4] == 'LARGE' or weapon == 'hveldriver' else kit.grey
-    _cyl(kit, f'Weapon {sid} traverse ring', pivot, (0, 0, GAP*r/2), .88*r, GAP*r+.05, kit.dark, axis='Z',
-         vertices=16, bevel=0)
-    _gunhouse(kit, sid, pivot, r, mat, roof)
-    face = .66*r
-    bz = .3*r
-    _box(kit, f'Weapon {sid} turret shield', pivot, (face+.04*r, 0, GAP*r+.24*r), (.12*r, 1.25*r, .46*r), kit.plate)
-    for k in range(n):
-        y = (k-(n-1)/2)*spacing*r
-        L = length*r
-        x0 = face+.1*r
-        _box(kit, f'Weapon {sid} mantlet {k+1}', pivot, (x0, y, bz), (.14*r, .2*r, .22*r), kit.steel, .06)
-        _cyl(kit, f'Weapon {sid} barrel {k+1}', pivot, (x0+L/2, y, bz), rad*r, L, kit.steel, vertices=10)
-        _cyl(kit, f'Weapon {sid} barrel jacket {k+1}', pivot, (x0+.18*L, y, bz), rad*1.45*r, .34*L, kit.steel,
-             vertices=10)
-        _box(kit, f'Weapon {sid} muzzle brake {k+1}', pivot, (x0+L+.04*r, y, bz), (.12*r, rad*2.6*r, rad*2.4*r),
-             kit.steel, .05)
-    if weapon == 'devastator':
-        _heavy_roof(kit, sid, pivot, r, roof, mat)
-        # Blast bags: canvas boots where each barrel enters the mantlet.
-        for k in range(n):
-            y = (k-(n-1)/2)*spacing*r
-            _cyl(kit, f'Weapon {sid} blast bag {k+1}', pivot, (face+.22*r, y, bz), .15*r, .18*r, _canvas(),
-                 vertices=12, bevel=.03)
-        # Rangefinder raised on a hood across the rear roof, with armoured ears at its ends.
-        rz = (roof+.2)*r
-        _box(kit, f'Weapon {sid} rangefinder hood', pivot, (-.4*r, 0, (roof+.13)*r), (.3*r, .7*r, .1*r), mat, .06)
-        _cyl(kit, f'Weapon {sid} rangefinder', pivot, (-.4*r, 0, rz), .08*r, 1.7*r, kit.steel, axis='Y',
-             vertices=8)
-        for side, s in (('port', 1), ('starboard', -1)):
-            _box(kit, f'Weapon {sid} rangefinder ear {side}', pivot, (-.4*r, s*.88*r, rz), (.3*r, .2*r, .26*r),
-                 kit.steel, .05)
-    else:
-        # Rangefinder across the rear roof.
-        _cyl(kit, f'Weapon {sid} rangefinder', pivot, (-.4*r, 0, (roof+.1)*r), .08*r, 1.7*r, kit.steel, axis='Y',
-             vertices=8)
-
-
-_CANVAS = []
-
-
-def _canvas():
-    """Matte dark canvas for blast bags (this module's own material)."""
-    if not _CANVAS:
-        _CANVAS.append(os_kit.material('Gun blast bag canvas', (.07, .06, .05), 0.0, .9))
-    return _CANVAS[0]
-
-
-def _heavy_roof(kit, sid, pivot, r, roof, mat):
-    """An extra roof plate over a large gunhouse: flat over the crown, sloping down the face,
-    a step narrower than the house so its edge reads as a second layer of armour."""
-    oc = os_kit.octagon
-    st = [(-.56*r, oc(-.66*r, .66*r, (roof-.03)*r, (roof+.11)*r, .07*r, 0)),
-          (.28*r, oc(-.66*r, .66*r, (roof-.03)*r, (roof+.11)*r, .07*r, 0)),
-          (.60*r, oc(-.5*r, .5*r, (roof-.16)*r, (roof-.04)*r, .05*r, 0))]
-    _place(os_kit.loft_x(kit, f'Weapon {sid} roof armour', st, mat, bevel=.08), pivot, (0, 0, 0))
-
-
-def _small(kit, slot, pivot, r):
-    sid = slot[0]
-    z0 = GAP*r
-    prof = [(.8*r, z0), (.8*r, z0+.22*r), (.58*r, z0+.46*r), (.28*r, z0+.54*r)]
-    n = 10
-    verts, faces = [], []
-    for rad, z in prof:
-        verts += [(rad*math.cos(2*math.pi*(i+.5)/n), rad*math.sin(2*math.pi*(i+.5)/n), z) for i in range(n)]
-    faces.append(tuple(reversed(range(n))))
-    for j in range(len(prof)-1):
-        faces += [(j*n+i, j*n+(i+1) % n, (j+1)*n+(i+1) % n, (j+1)*n+i) for i in range(n)]
-    faces.append(tuple(range((len(prof)-1)*n, len(prof)*n)))
-    _place(kit.mesh(f'Weapon {sid} turret house', verts, faces, kit.grey), pivot, (0, 0, 0))
-    bz = z0+.26*r
-    L = (1.1 if slot[6] == 'vulcan' else 1.3)*r
-    _box(kit, f'Weapon {sid} turret shield', pivot, (.62*r, 0, bz), (.26*r, .62*r, .36*r), kit.steel, .08)
-    _cyl(kit, f'Weapon {sid} barrel 1', pivot, (.74*r+L/2, 0, bz), (.14 if slot[6] == 'vulcan' else .09)*r, L,
-         kit.steel, vertices=10)
-
-
-def _launcher(kit, slot, pivot, r):
-    sid = slot[0]
-    z0 = GAP*r
-    _cyl(kit, f'Weapon {sid} traverse ring', pivot, (0, 0, z0/2), .88*r, z0+.05, kit.dark, axis='Z', vertices=16,
-         bevel=0)
-    # A thin deck plate inside the barbette's lip (round 11: a full-width disk stacked on the ring
-    # read as one more tier of a wedding cake).
-    _cyl(kit, f'Weapon {sid} launcher deck', pivot, (0, 0, z0+.04*r), .82*r, .08*r, kit.plate, axis='Z', vertices=16)
-    deck = z0+.08*r
-    for side, s in (('port', 1), ('starboard', -1)):
-        _box(kit, f'Weapon {sid} launcher yoke arm {side}', pivot, (0, s*.62*r, deck+.24*r), (.5*r, .12*r, .48*r),
-             kit.orange, .08)
-    hz = deck+.42*r
-    _box(kit, f'Weapon {sid} launcher house', pivot, (.05*r, 0, hz), (1.35*r, 1.08*r, .52*r), kit.grey, .12)
-    _box(kit, f'Weapon {sid} launcher cell face', pivot, (.05*r+.68*r, 0, hz), (.04*r, .9*r, .4*r), kit.dark, 0)
-    for k in range(3):
-        _box(kit, f'Weapon {sid} launcher cell cover {k+1}', pivot, (.05*r, (k-1)*.32*r, hz+.27*r),
-             (1.2*r, .26*r, .04*r), kit.steel, .03)
-
-
-def _needler(kit, slot, pivot, r):
-    sid = slot[0]
-    _cyl(kit, f'Weapon {sid} traverse ring', pivot, (0, 0, GAP*r/2), .88*r, GAP*r+.05, kit.dark, axis='Z',
-         vertices=16, bevel=0)
-    _gunhouse(kit, sid, pivot, r, kit.orange, .5, length=.9)
-    bz = .3*r
-    _box(kit, f'Weapon {sid} turret shield', pivot, (.7*r, 0, bz), (.12*r, 1.0*r, .42*r), kit.plate)
-    L = 1.35*r
-    for k in range(6):
-        y = ((k % 3)-1)*.2*r
-        z = bz+(k//3-.5)*.17*r
-        _cyl(kit, f'Weapon {sid} barrel {k+1}', pivot, (.76*r+L/2, y, z), .055*r, L, kit.steel, vertices=8)
-    _box(kit, f'Weapon {sid} barrel clamp', pivot, (.76*r+.7*L, 0, bz), (.12*r, .72*r, .52*r), kit.steel, .05)
-    _heavy_roof(kit, sid, pivot, r, .5, kit.orange)
-    _box(kit, f'Weapon {sid} barrel shroud', pivot, (.76*r+.1*r, 0, bz), (.2*r, .78*r, .56*r), kit.steel, .05)
-    _box(kit, f'Weapon {sid} sensor head', pivot, (-.36*r, .34*r, .64*r), (.34*r, .26*r, .2*r), kit.steel, .05)
-    for side, s in (('port', 1), ('starboard', -1)):
-        _box(kit, f'Weapon {sid} magazine {side}', pivot, (-.22*r, s*.86*r, .26*r), (.62*r, .16*r, .3*r),
-             kit.grey, .05)
 
 
 def _local(frame, t, w, h):
@@ -639,7 +512,7 @@ def _envelope(mount, pivot):
     dg = bpy.context.evaluated_depsgraph_get()
     inv = mount.matrix_world.inverted()
     env = {}
-    for c in pivot.children:
+    for c in pivot.children_recursive:
         if c.type != 'MESH':
             continue
         ev = c.evaluated_get(dg)
@@ -680,6 +553,44 @@ def _clear_seat(p, basis, r, angle, arc, seat, env):
     return need
 
 
+def _kit_turret(kit, sid, weapon, pivot, r):
+    """The trainable turret from the shared turret kit (turret-kit/turret_kit.py), as on the
+    Legion: the approved family of guns with its own weathered livery. The kit has no
+    Multi-Needler; WS 019 carries its Needler, proportioned to the large ring."""
+    t = tk.build(KIT_WEAPON.get(weapon, weapon), f'Weapon {sid}', pivot, r,
+                 {'armour': kit.orange, 'plate': kit.plate, 'steel': kit.steel, 'dark': kit.dark}, kit.mpu)
+    MUZZLES[sid] = len(t['muzzles'])
+
+
+def _touches_hull(sid, pivot):
+    """Any trainable part of this slot overlapping a Hull, Armour or Bridge solid at rest."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+
+    def tree(ob):
+        ev = ob.evaluated_get(dg)
+        me = ev.to_mesh()
+        pts = [ev.matrix_world @ v.co for v in me.vertices]
+        t = BVHTree.FromPolygons(pts, [tuple(p.vertices) for p in me.polygons]) if pts else None
+        ev.to_mesh_clear()
+        return t, pts
+    mine = [tree(c) for c in pivot.children_recursive if c.type == 'MESH']
+    pts = [p for _, ps in mine for p in ps]
+    if not pts:
+        return False
+    lo, hi = Vector(map(min, *pts)), Vector(map(max, *pts))
+    for ob in bpy.context.scene.objects:
+        if ob.type != 'MESH' or ob.name.split(' ')[0] not in ('Hull', 'Armour', 'Bridge'):
+            continue
+        bb = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        if any(max(b[i] for b in bb) < lo[i] or min(b[i] for b in bb) > hi[i] for i in range(3)):
+            continue
+        other, _ = tree(ob)
+        if other and any(t and t.overlap(other) for t, _ in mine):
+            return True
+    return False
+
+
 def build(kit):
     _deck_objects()
     CUTS.clear()
@@ -704,14 +615,7 @@ def build(kit):
         pivot['arc'] = arc
         bpy.context.view_layer.update()
         weapon = slot[6]
-        if weapon == 'typhoon':
-            _launcher(kit, slot, pivot, r)
-        elif weapon == 'multineedler':
-            _needler(kit, slot, pivot, r)
-        elif size == 'SMALL':
-            _small(kit, slot, pivot, r)
-        else:
-            _gun(kit, slot, pivot, r)
+        _kit_turret(kit, sid, weapon, pivot, r)
         # The barrels must clear the deck across the arc: raise the seat as far as that needs.
         seat = _clear_seat(p, basis, r, angle, arc, seat, _envelope(mount, pivot))
         origin = p+basis.col[2]*seat
@@ -726,6 +630,17 @@ def build(kit):
         rim = [None if h is None else (min(h, 0.0) if h < -.05 else 0.0) for h in rim]
         bpy.context.view_layer.update()
         _collar(kit, sid, mount, origin, basis, r, rim)
+        # The kit's houses are broader at the foot than the ring: where one still meets the hull
+        # beside its well (a raised gallery, terrace or fin edge), build it a little smaller.
+        for k in KIT_SHRINK[1:]:
+            if not _touches_hull(sid, pivot):
+                break
+            for c in list(pivot.children_recursive):
+                bpy.data.objects.remove(c, do_unlink=True)
+            _kit_turret(kit, sid, weapon, pivot, r*k)
+            KIT_SCALE[sid] = k
+        if _touches_hull(sid, pivot):
+            print(f'TURRET KIT {sid}: still touches the hull at {KIT_SHRINK[-1]}')
         PIVOT_Z[sid] = pivot.matrix_world.translation.z
     for sid, cut, depth in CUTS:
         print(f'TURRET WELL {sid}: depth {depth} into {", ".join(cut) or "-"}')
@@ -739,7 +654,11 @@ def records():
         out.append({'id': sid, 'mount': 'TURRET', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'ring_radius': RING[size],
                     'pivot': f'Weapon {sid} pivot', 'mount_empty': f'Weapon {sid} mount', 'objects': f'Weapon {sid} ...',
-                    'trains': 'rotate the pivot about its local Z (the hull normal under it); rest is the slot angle'})
+                    'trains': 'rotate the pivot about its local Z (the hull normal under it); rest is the slot angle',
+                    'elevates': f'Weapon {sid} elevation (local Y, negative lifts)',
+                    'muzzle_anchors': [f'Weapon {sid} muzzle anchor {k+1}' for k in range(MUZZLES.get(sid, 0))],
+                    'kit_scale': KIT_SCALE.get(sid, 1.0),
+                    'built_by': 'turret-kit/turret_kit.py' + (f' ({KIT_WEAPON[weapon]})' if weapon in KIT_WEAPON else '')})
     for sid, loc, angle, arc, size, typ, weapon in HARDPOINTS:
         out.append({'id': sid, 'mount': 'HARDPOINT', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'objects': f'Weapon {sid} ...',

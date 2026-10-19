@@ -37,7 +37,7 @@ public final class DirectControlAimOrigins {
             var type = sim.convoy().vehicleType(id);
             var body = sim.convoy().body(id);
             var turret = sim.convoy().turret(id);
-            if (type == null || body == null || turret == null || !type.hasTurretWeapon()) return origins;
+            if (type == null || body == null || turret == null || !sim.convoy().isArmed(id)) return origins;
             float radians = (float) Math.toRadians(body.facingDegrees);
             float cos = (float) Math.cos(radians), sin = (float) Math.sin(radians);
             float mx = body.x + type.turretMountX * cos - type.turretMountY * sin;

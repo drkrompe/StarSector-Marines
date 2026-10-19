@@ -1,8 +1,8 @@
 # Title logo — STARSECTOR: MARINES
 
-Status: DRAFT — word order decided (STARSECTOR big, MARINES small); six directions in that order, plus the game's own wordmark with MARINES; nothing chosen.
+Status: DRAFT — direction A chosen (the game's wordmark with white MARINES) and developed: sharpened, menu version and reveal timing made; not yet in the cinematic.
 Written: 2026-10-18
-Updated: 2026-10-18 — third round: the game's own wordmark, as it ships, with MARINES beneath.
+Updated: 2026-10-18 — owner chose A; developed it (see "Direction A").
 
 The title comes up at the end of the Jangala arrival cinematic, in the last six
 seconds of C5 (`c5-v2-closing.md`, beats 26–32 s). It is the first time the
@@ -104,3 +104,37 @@ too small to read, so the cinematic shows it at about 2.4 times its size.
 cyan, glowing, so the two read as one mark) and ours (warm white, bold and
 condensed). Because the big word here is the official one, this is the option
 that looks most like the base game, so MARINES has to make it clearly the mod.
+
+## Direction A (chosen)
+
+Chosen by the owner on 2026-10-18 from the labelled set: **the game's own
+wordmark with MARINES in warm white beneath it**. The white MARINES won over the
+cyan one because it reads as this mod's voice under the game's name.
+`title-logo/title_a.py` builds it.
+
+- **Sharpened, locally.** The wordmark is still read from the player's install
+  and nothing leaves the machine. Its bright letters are enlarged smoothly,
+  rounded and cut to a clean edge, and filled with their own colours; the dark
+  blue glow stays soft, as it is in the original. This replaces the plain
+  enlargement of the third round, which was visibly soft at 2.4 times its size.
+- **Size and place.** The wordmark at 2.4 times (about 53% of the screen),
+  centred a little above the middle; MARINES in Bahnschrift Bold SemiCondensed,
+  warm off-white with a dark edge, widely spaced and a little under half the
+  wordmark's width. Over the port the ground is darkened softly under both.
+- **Menu version.** The same title alone on a plain dark screen, for menus and
+  loading.
+- **Reveal**, timed from the end of Castle's last line: the port alone for a
+  second; starsector fades in over two seconds while the darkening comes up with
+  it; MARINES follows 1.6 seconds after it starts; both hold about four seconds;
+  then the whole picture fades to black over a second and a half, with the yard
+  sound. The camera is still settling, so the port eases out the last few
+  percent behind it. Timing against the actual music is still to do.
+
+Open:
+- **How it gets into the game.** If the cinematic ships as finished video, the
+  title would be baked into it; if the game draws the title live over the last
+  frames, the mod can read the wordmark from the install and sharpen it on load,
+  so none of Fractal's art ships with the mod. The second keeps to how this was
+  made.
+- MARINES is set in a Windows font; it should ship as a finished image, never
+  as the font file.

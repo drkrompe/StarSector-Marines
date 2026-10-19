@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngagement;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -354,6 +355,10 @@ public final class ArmorPlay {
                 }
                 b.integrity = Math.min(b.integrity,
                         sim.world().hp(b.id) + (sim.world().hasArmor(b.id) ? sim.world().armor(b.id) : 0f));
+                if (b.vehicle) {
+                    GroundTurret turret = sim.convoy().turret(b.id);
+                    b.mountsLost = turret != null && turret.destroyed() ? 1 : 0;
+                }
                 if (!b.vehicle && sim.world().hasMechLoadout(b.id)) {
                     MechLoadoutComponent loadout = sim.world().mechLoadout(b.id);
                     if (loadout.heat.aiCooling() || loadout.heat.venting()) b.heatLimitedTicks++;
@@ -395,6 +400,8 @@ public final class ArmorPlay {
             if (!attacking) return;
             for (Body b : ids) {
                 if (b.dead || !isAlive(sim, b)) continue;
+                // A hull whose gun was shot away has nothing left to bring into range; a player would not drive it in.
+                if (b.vehicle && b.mountsLost > 0) continue;
                 float[] at = position(sim, b);
                 float[] target = enemy.nearest(sim, at[0], at[1]);
                 if (target == null) continue;
