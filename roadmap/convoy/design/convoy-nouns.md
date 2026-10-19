@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -264,8 +264,14 @@ machine, as a mech's sections share their chassis's rating.
   pointed. The hull reads as unarmed to every question that asks: its threat
   reach is zero, a duel band reads it as a machine with no weapons, and it
   leaves `VehicleEngagement`. Direct control keeps the hull but offers no gun.
-  A disarmed hull holds, or follows a player order. Unlike a disarmed mech it
-  does not break contact yet; that is open.
+  A disarmed hull **withdraws**, the way a disarmed mech breaks contact. A hull
+  carries one gun, so there is no secondary armament left to fight from cover
+  with. Between orders it drives away from every hostile that can still shoot it
+  (mech, armed hull or infantry), weighted toward the deepest reach it stands
+  inside, until it is six cells outside each one's reach, and holds there. With
+  no drivable route it backs off the nearest threat with its nose on it. A player
+  order still owns it while the order lasts. `-Dbattle.vehicle.disarmedWithdraw=false`
+  is the control, where it holds where it stands.
 - **An empty magazine is a different fact.** It ends fire but leaves the gun.
   The hull still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
@@ -600,8 +606,8 @@ retains the same existing cross-domain behavior as an autonomous hull.
   kited out of its own reach (`heavy-equipment-progression.md`, a tank against
   the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
-  allied story columns, delivery legs, unarmed hulls, shot-away guns and empty
-  magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
+  allied story columns, delivery legs, unarmed hulls, shot-away guns (which
+  withdraw instead) and empty magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
   (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
   beyond the target's reach where its gun out-reaches it and at the outer edge of
   its own reach otherwise, never closer; an **ambusher** never drives at armor and
