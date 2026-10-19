@@ -2,14 +2,15 @@
 
 The Asharu battle plan ends with the captured Tarsus clamped under the Mk.III (S10). The
 Tarsus build (tarsus-geometry/geometry.json 'docking') publishes four dorsal grapple
-receivers, 2.6 m plates, at (metres, Tarsus frame) (35.7, 13.77, 4.87), (35.7, -12.75,
-4.87), (-15.3, 7.65, 5.64) and (-15.3, -6.63, 5.64), the Tarsus riding under the Mk.III's
-keel, dorsal up, same heading. They are copied here (TARSUS_RECEIVERS_M) rather than read
-from that package; the driver warns when the Tarsus's file disagrees.
+receivers, 2.6 m plates, at (Tarsus units, her frame) (70, 20.5, 6.05), (70, -18.5, 6.05),
+(-30, 15, 11.05) and (-30, -13, 11.05) at her 0.50 m per unit, the Tarsus riding under the
+Mk.III's keel, dorsal up, same heading. They are copied here (TARSUS_RECEIVERS_U, with her
+scale, top and centreline) rather than read from that package; the driver warns when the
+Tarsus's file disagrees.
 
 Where the Tarsus hangs (TARSUS_ORIGIN, Mk.III units): on the Mk.III's centreline, her top
 (11.2 m above her origin) a metre under the keel skids' soles, and fore-aft where the fore
-and aft booms rake out by the same amount. The receivers are 51 m apart fore and aft and
+and aft booms rake out by the same amount. The receivers are 50 m apart fore and aft and
 the Mk.III's flat keel only 46 m, so the booms splay: the fore pair from the keel ahead of
 the forward cargo hatch, the aft pair beside the aft hatch, each reaching out and down to
 its plate like a claw.
@@ -33,10 +34,11 @@ import c3_hull
 from c3_hull import Parts, YC
 
 MPU = .495
-TARSUS_MPU = .51
-TARSUS_RECEIVERS_M = [(35.7, 13.77, 4.87), (35.7, -12.75, 4.87), (-15.3, 7.65, 5.64), (-15.3, -6.63, 5.64)]
-TARSUS_CENTRELINE_M = .51              # the Tarsus's sprite centreline, Y in her frame
-TARSUS_TOP_M = 11.2                    # her highest point above her origin
+TARSUS_MPU = .50
+TARSUS_RECEIVERS_U = [(70.0, 20.5, 6.05), (70.0, -18.5, 6.05), (-30.0, 15.0, 11.05), (-30.0, -13.0, 11.05)]
+TARSUS_RECEIVERS_M = [tuple(round(v*TARSUS_MPU, 3) for v in r) for r in TARSUS_RECEIVERS_U]
+TARSUS_CENTRELINE_M = 1.0*TARSUS_MPU   # the Tarsus's sprite centreline, Y in her frame
+TARSUS_TOP_M = 23.15*TARSUS_MPU        # her highest point above her origin (drum towers)
 SKID_SOLE = c3_hull.HOLD_KEEL-2.85     # the keel skids' soles (units)
 CLEARANCE_M = 1.0
 # Base pivots (x, rel y) on the hold's flat keel, clear of hatches, skids and lift wells.

@@ -124,10 +124,11 @@ c3_grapples.build(kit)
 TARSUS_GEOMETRY = HERE.parent/'tarsus-geometry'
 if TARSUS_GEOMETRY.joinpath('geometry.json').exists():
     _dock = json.loads(TARSUS_GEOMETRY.joinpath('geometry.json').read_text(encoding='utf-8')).get('docking', {})
-    _theirs = [tuple(r['location_m']) for r in _dock.get('clamp_receivers', [])]
-    if _theirs and any(max(abs(a-b) for a, b in zip(t, m)) > .05
-                       for t, m in zip(_theirs, c3_grapples.TARSUS_RECEIVERS_M)):
-        print('WARNING the Tarsus receivers moved: update c3_grapples.TARSUS_RECEIVERS_M', _theirs)
+    _theirs = [tuple(r['location']) for r in _dock.get('clamp_receivers', [])]
+    _mpu = json.loads(TARSUS_GEOMETRY.joinpath('geometry.json').read_text(encoding='utf-8')).get('metres_per_unit')
+    if (_theirs and any(max(abs(a-b) for a, b in zip(t, m)) > .05
+                        for t, m in zip(_theirs, c3_grapples.TARSUS_RECEIVERS_U))) or (_mpu and abs(_mpu-c3_grapples.TARSUS_MPU) > 1e-6):
+        print('WARNING the Tarsus receivers or scale moved: update c3_grapples.TARSUS_RECEIVERS_U / TARSUS_MPU', _theirs, _mpu)
 tarsus_objects = []
 if args.grapples or args.tarsus:
     c3_grapples.pose(True)
@@ -402,6 +403,8 @@ if not args.no_save:
                      'tarsus_origin_units': [round(v, 3) for v in c3_grapples.tarsus_origin()],
                      'tarsus_scale_in_these_units': round(c3_grapples.TARSUS_MPU/c3_grapples.MPU, 5),
                      'tarsus_receivers_m': c3_grapples.TARSUS_RECEIVERS_M,
+                     'tarsus_receivers_units': c3_grapples.TARSUS_RECEIVERS_U,
+                     'tarsus_metres_per_unit': c3_grapples.TARSUS_MPU,
                      'grapples': [dict(index=i, mount=f'Grapple {i} mount', hinge=f'Grapple {i} hinge',
                                        stages=[f'Grapple {i} stage 2', f'Grapple {i} stage 3'],
                                        anchor=f'Grapple {i} clamp anchor', **a)

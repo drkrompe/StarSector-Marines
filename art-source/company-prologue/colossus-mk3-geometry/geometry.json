@@ -883,33 +883,56 @@
   "grapples": {
     "note": "four keel grapples that carry the captured Tarsus (asharu-battle-shot.md S10); built stowed. Grapple <i> mount is fixed (local +X the deployed boom); Grapple <i> hinge rotation_euler[1] goes from stowed_deg to 0; Grapple <i> stage 2 and stage 3 location[0] from 0 to travel. Grapple <i> clamp anchor is the pad face, on Tarsus receiver <i> at full extension.",
     "tarsus_origin_units": [
-      19.994,
-      0.47,
-      -77.496
+      20.398,
+      0.49,
+      -78.254
     ],
-    "tarsus_scale_in_these_units": 1.0303,
+    "tarsus_scale_in_these_units": 1.0101,
     "tarsus_receivers_m": [
       [
-        35.7,
-        13.77,
-        4.87
+        35.0,
+        10.25,
+        3.025
       ],
       [
-        35.7,
-        -12.75,
-        4.87
+        35.0,
+        -9.25,
+        3.025
       ],
       [
-        -15.3,
-        7.65,
-        5.64
+        -15.0,
+        7.5,
+        5.525
       ],
       [
-        -15.3,
-        -6.63,
-        5.64
+        -15.0,
+        -6.5,
+        5.525
       ]
     ],
+    "tarsus_receivers_units": [
+      [
+        70.0,
+        20.5,
+        6.05
+      ],
+      [
+        70.0,
+        -18.5,
+        6.05
+      ],
+      [
+        -30.0,
+        15.0,
+        11.05
+      ],
+      [
+        -30.0,
+        -13.0,
+        11.05
+      ]
+    ],
+    "tarsus_metres_per_unit": 0.5,
     "grapples": [
       {
         "index": 1,
@@ -926,17 +949,17 @@
           -52.0
         ],
         "boom_direction": [
-          0.4888,
-          0.519,
-          -0.7012
+          0.4327,
+          0.1964,
+          -0.8799
         ],
-        "reach": 22.329,
-        "stowed_deg": 135.47,
-        "travel_per_stage": 5.126,
+        "reach": 22.893,
+        "stowed_deg": 118.37,
+        "travel_per_stage": 5.314,
         "receiver": [
-          92.115,
-          28.288,
-          -67.658
+          91.105,
+          21.197,
+          -72.143
         ]
       },
       {
@@ -954,17 +977,17 @@
           -52.0
         ],
         "boom_direction": [
-          0.4888,
-          -0.519,
-          -0.7012
+          0.4327,
+          -0.1964,
+          -0.8799
         ],
-        "reach": 22.329,
-        "stowed_deg": 135.47,
-        "travel_per_stage": 5.126,
+        "reach": 22.893,
+        "stowed_deg": 118.37,
+        "travel_per_stage": 5.314,
         "receiver": [
-          92.115,
-          -25.288,
-          -67.658
+          91.105,
+          -18.197,
+          -72.143
         ]
       },
       {
@@ -982,17 +1005,17 @@
           -52.0
         ],
         "boom_direction": [
-          -0.6107,
-          -0.0658,
-          -0.7891
+          -0.5469,
+          -0.0805,
+          -0.8333
         ],
-        "reach": 17.872,
-        "stowed_deg": 127.9,
-        "travel_per_stage": 2.911,
+        "reach": 18.111,
+        "stowed_deg": 123.56,
+        "travel_per_stage": 3.031,
         "receiver": [
-          -10.915,
-          15.924,
-          -66.103
+          -9.905,
+          15.641,
+          -67.092
         ]
       },
       {
@@ -1010,17 +1033,17 @@
           -52.0
         ],
         "boom_direction": [
-          -0.6107,
-          0.0658,
-          -0.7891
+          -0.5469,
+          0.0805,
+          -0.8333
         ],
-        "reach": 17.872,
-        "stowed_deg": 127.9,
-        "travel_per_stage": 2.911,
+        "reach": 18.111,
+        "stowed_deg": 123.56,
+        "travel_per_stage": 3.031,
         "receiver": [
-          -10.915,
-          -12.924,
-          -66.103
+          -9.905,
+          -12.641,
+          -67.092
         ]
       }
     ]

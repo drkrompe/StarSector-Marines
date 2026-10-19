@@ -43,7 +43,7 @@ What the pirates changed (read off the two sprites, which agree aft of X -20)
   Tarsus's four dorsal receivers (tarsus-geometry/geometry.json 'docking', copied into
   TARSUS_RECEIVERS_M; the build warns if hers move). She hangs on the centreline, same
   heading, dorsal up, her top 1 m under the keel skids, fore-aft where the fore and aft
-  booms rake out equally: the receivers are 51 m apart and the flat keel 46 m, so the booms
+  booms rake out equally: the receivers are 50 m apart and the flat keel 46 m, so the booms
   splay like a claw. Built stowed (folded flat under the keel, retracted). Each: a fixed
   'Grapple <i> mount' at the pivot (local +X the deployed boom), 'Grapple <i> hinge'
   (rotation_euler[1] from its 'stowed_deg' to 0), 'Grapple <i> stage 2' and 'stage 3'
