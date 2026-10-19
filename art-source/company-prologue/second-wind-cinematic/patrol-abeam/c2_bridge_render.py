@@ -107,6 +107,7 @@ SCREEN_PAGES = {
 SCREEN_FACE = {"Bridge display salvaged": "aft", "Bridge display plot": "up", "Bridge display overhead": "down"}
 SCREEN_STRENGTH = 3.0                       # emission of a page's brightest pixel
 SCREEN_DIR = BASE / "assets" / "bridge-screens"
+SCREEN_VERSION = {"plot": 2, "systems": 2}  # v2: the ship's and planet's own names; others v1
 
 
 def bridge_practicals(powered):
@@ -147,7 +148,7 @@ def plan(frames, fps, samples_n, state=SW_STATE):
         "sw_state_blend": str(BASE.parent / "second-wind-states" / state / ("second-wind-%s.blend" % state)),
         "practicals": bridge_practicals(state != "derelict"),
         "screen_pages": SCREEN_PAGES if state != "derelict" else {},
-        "screen_face": SCREEN_FACE, "screen_dir": str(SCREEN_DIR), "screen_strength": SCREEN_STRENGTH,
+        "screen_face": SCREEN_FACE, "screen_version": SCREEN_VERSION, "screen_dir": str(SCREEN_DIR), "screen_strength": SCREEN_STRENGTH,
         "albedo": str(C1_ASSETS / "planet-albedo-detail-v1.png"),
         "clouds": str(C1_ASSETS / "planet-clouds-detail-v1.png"),
         "running_lights": lg.get("running_lights", []), "orbital_speed": C.ORBITAL_SPEED,
@@ -301,7 +302,7 @@ def blender_main(argv):
     pages = {}
     for name, (page, cu, cv, k) in p["screen_pages"].items():
         if page not in pages:
-            img = bpy.data.images.load(str(Path(p["screen_dir"]) / ("%s-v1.png" % page)))
+            img = bpy.data.images.load(str(Path(p["screen_dir"]) / ("%s-v%d.png" % (page, p["screen_version"].get(page, 1)))))
             mat = bpy.data.materials.new("C2B | bridge screen %s" % page)
             mat.use_nodes = True
             bs = mat.node_tree.nodes["Principled BSDF"]

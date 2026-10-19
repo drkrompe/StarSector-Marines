@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a154d0-0dc4-7f71-9205-f6bfeb7b0c55",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154d0-0dc4-7f71-9205-f6bfeb7b0c55\\exec-8c972b6a-e4ea-4109-b840-214fb465af08.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\plot-v2.png",
+    "sha256": "34f7691028ab0071a4c1e30ee77f66d21834bbd366e9db9241cc7e53f5a93e7e",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-plot-v2.txt",
+  "promptSha256": "3cd53c67d0fa0257e71215cf5818cd8c389a4fa215d7bd25592e9d571ed69949",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nSquare canvas. The round tactical plot table seen from directly above: concentric range rings and a compass rose filling a circle that touches the edges of the square, the corners outside the circle pure black. In the middle the own ship as a small chevron labelled SECOND WIND, the planet's limb as a large arc across one side labelled JANGALA, a big carrier icon with a dashed track and four small fighter icons in a formation, bearing lines, and small labels.\n\nNames: the own ship is SECOND WIND (short form SW); the planet is JANGALA; the carrier is HGS LEGION; the fighters are BRDSWD 1-1 to 1-4. Use only these names and generic labels; invent no other ship, planet or vessel names.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image using your tactical display specifications."
+  ],
+  "usage": {
+    "input_tokens": 37306,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 574,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.6
+}
