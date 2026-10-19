@@ -1,6 +1,6 @@
 # Legion (XIV): cinematic asset
 
-Status: REVIEW (pass 7 with the owner, 2026-10-19). Source art for cinematics; nothing here ships in the mod.
+Status: DONE (pass 7 accepted 2026-10-19, owner: looks good). C2 still uses the untextured geometry: it should switch to this asset and re-frame for the 292 m size. Source art for cinematics; nothing here ships in the mod.
 Written: 2026-10-19
 
 The textured Legion (XIV) battlecarrier (`../legion-surface/`, texture pass 2)
