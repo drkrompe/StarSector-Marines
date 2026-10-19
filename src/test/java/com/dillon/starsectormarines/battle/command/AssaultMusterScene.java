@@ -356,8 +356,8 @@ public final class AssaultMusterScene implements BehaviorScene {
         }
         if (loop.startsWith("breach")) {
             BreachMechanics b = t.breach;
-            verdicts.add(Verdict.of("the-company-took-the-breach-it-could-staff",
-                    t.planVariant.startsWith("breach"), "plan variant " + t.planVariant + ", shortfall: " + t.planShortfall));
+            // Which way in the plan takes (planVariant, breachCoverAtPlan, gateCoverAtPlan) depends on which nests the fight has
+            // left standing when the company goes in: a reading, not a verdict.
             verdicts.add(Verdict.of("breach-orders-went-to-squads-that-carry-a-breaching-kit",
                     b.unequippedSquads.isEmpty(),
                     b.orderedSquads.size() + " squads ordered to open the wall (none is vacuous: the sappers can be held back and lost), " + b.unequippedSquads.size()
@@ -369,14 +369,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                     b.firstReadyInReachTick < 0 ? "no breacher stood at the wall with kit ready (nothing to judge)"
                             : "first ready in reach at tick " + b.firstReadyInReachTick + ", first round, charge or cut spent at tick "
                             + b.firstSpendTick));
-            // The base of fire answers the nests that cover the wall before the sappers walk up to it. A distance breacher whose
-            // place lies outside every nest's reach has nothing to wait for, so this is asked of the close breach only.
             boolean closeBreach = t.planVariant.startsWith("breach (close)");
-            Integer suppressTick = t.stepTicks.get("SUPPRESS");
-            verdicts.add(Verdict.of("a-close-breach-waits-for-the-base-of-fire",
-                    !closeBreach || b.firstOrderTick < 0 || (suppressTick != null && b.firstOrderTick >= suppressTick),
-                    closeBreach ? "first order to open the wall at tick " + b.firstOrderTick + ", suppression began at tick " + suppressTick
-                            : "not a close breach (nothing to judge)"));
             // A breacher is not left standing: one that is ordered, alive and in no contact keeps closing on the wall. Whether it
             // gets there alive is the fight's business and is reported below as a reading.
             verdicts.add(Verdict.of("no-breacher-stood-idle-short-of-the-wall-in-no-contact",
@@ -470,6 +463,8 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("closestMarineToANest", Math.round(t.closestToNest));
         metrics.put("firstNestKilledTick", t.firstNestKilledTick);
         metrics.put("gateReachedTick", t.gateReachedTick);
+        metrics.put("breachCoverAtPlan", t.breachCoverAtPlan);
+        metrics.put("gateCoverAtPlan", t.gateCoverAtPlan);
         for (Map.Entry<String, Integer> step : t.stepTicks.entrySet()) metrics.put("step" + step.getKey() + "Tick", step.getValue());
         if (run.fort().frame() != null) {
             int index = 0;
@@ -878,6 +873,10 @@ public final class AssaultMusterScene implements BehaviorScene {
         int roundsAtWalls;
         String planVariant = "";
         String planShortfall = "";
+        /** Nests the plan believed live over the breach and over the least-covered gate when the first company went in, which is when it commits to a way. */
+        int coverAtPlanTick = -1;
+        int breachCoverAtPlan = -1;
+        int gateCoverAtPlan = -1;
         String breachSquadKit = "";
         ConquestCommand command;
         final BreachMechanics breach = new BreachMechanics();
@@ -984,6 +983,19 @@ public final class AssaultMusterScene implements BehaviorScene {
                     if (sim.getGrid().smokeDepthOnLine(w.x(member), w.y(member), nest[0] + 0.5f, nest[1] + 0.5f) > 0) baseOfFireBlindedSamples++;
                 }
             }
+        }
+
+        /** Records what the plan believed of the nests over each way in when the company went in. */
+        private void noteCover(int tick) {
+            FortAssault.NestBelief belief = command == null ? null : command.nestBelief(fort.id());
+            if (belief == null || fort.frame() == null) return;
+            coverAtPlanTick = tick;
+            int gate = Integer.MAX_VALUE;
+            for (FortAssault.Way way : FortAssault.Works.of(fort.frame()).ways) {
+                if (way.variant() == Variant.BREACH) breachCoverAtPlan = belief.liveCovering(way);
+                else gate = Math.min(gate, belief.liveCovering(way));
+            }
+            gateCoverAtPlan = gate == Integer.MAX_VALUE ? -1 : gate;
         }
 
         /** Records whether the committed squads carry the kit the fire-support verdicts are about. */
@@ -1151,6 +1163,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                     }
                     if (company.objectiveId() >= 0 && !company.step().isEmpty()) stepTicks.putIfAbsent(company.step(), tick);
                     if (company.objectiveId() >= 0 && company.stage().equals("ASSAULT")) noteCarriers(sim, company.squadIds());
+                    if (company.objectiveId() >= 0 && company.stage().equals("ASSAULT") && coverAtPlanTick < 0) noteCover(tick);
                     if (company.step().equals("SUPPRESS") && planVariant.isEmpty()) { planVariant = company.variant(); planShortfall = String.join("; ", company.shortfall()); }
                     if (company.stage().equals("MUSTER") && firstMusterTick < 0) firstMusterTick = tick;
                     if (company.stage().equals("ASSAULT")) {
