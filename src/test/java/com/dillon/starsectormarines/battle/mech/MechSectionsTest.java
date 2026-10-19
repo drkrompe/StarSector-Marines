@@ -42,6 +42,36 @@ class MechSectionsTest {
     }
 
     @Test
+    void theTorsoArcPlateGovernsTheTorsoAndNothingElse() {
+        MechSections flat = houndSections();
+        MechSections thin = houndSections();
+        float torsoArmor = flat.armor(MechSection.TORSO);
+        flat.resolve(MechSection.TORSO, 20f, PEN, 0f, RATING, RATING, 1f, scratch, hit);
+        float flatStrip = torsoArmor - flat.armor(MechSection.TORSO);
+        thin.resolve(MechSection.TORSO, 20f, PEN, 0f, RATING, RATING, .5f, scratch, hit);
+        assertEquals(2f * flatStrip, torsoArmor - thin.armor(MechSection.TORSO), 1e-3f);
+
+        // A leg hit meets the chassis plate whatever the torso's arc.
+        MechSections legs = houndSections();
+        float legsArmor = legs.armor(MechSection.LEGS);
+        legs.resolve(MechSection.LEGS, 10f, PEN, 0f, RATING, RATING, .5f, scratch, hit);
+        MechSections legsFlat = houndSections();
+        legsFlat.resolve(MechSection.LEGS, 10f, PEN, 0f, RATING, scratch, hit);
+        assertEquals(legsArmor - legsFlat.armor(MechSection.LEGS), legsArmor - legs.armor(MechSection.LEGS), 1e-4f);
+    }
+
+    @Test
+    void whatSpillsIntoTheTorsoMeetsTheTorsoArcPlate() {
+        MechSections sections = houndSections();
+        float torsoArmor = sections.armor(MechSection.TORSO);
+        float spill = 12f;
+        float damage = destroying(sections, MechSection.LEGS, spill);
+        sections.resolve(MechSection.LEGS, damage, PEN, 0f, RATING, RATING, .5f, scratch, hit);
+        assertEquals(spill * DurabilityModel.armorEfficiency(PEN, RATING) * 2f,
+                torsoArmor - sections.armor(MechSection.TORSO), 1e-2f);
+    }
+
+    @Test
     void poolsSumToTheChassisExactlyAndTheEmptyShoulderFoldsIntoTheTorso() {
         MechSections sections = houndSections();
 

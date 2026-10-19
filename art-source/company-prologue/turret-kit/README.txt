@@ -159,8 +159,25 @@ Other catalogue entries (WEAPONS)
   none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open
   rails), pilum, typhoon, annihilatorpod (tubes): the rack is drawn with its
   loaded missiles (RENDER_LOADED_MISSILES), on a yoke with elevation rams.
-  Not yet: hardpoints (fixed mounts) and energy weapons other than the
-  Tri-Tachyon four above; the Onslaught's built-in TPCs stay in os_turrets.
+  Not yet: other hardpoints, and energy weapons other than the Tri-Tachyon
+  guns above; the Onslaught's built-in TPCs stay in os_turrets.
+
+Hardpoints (fixed mounts)
+  build_hardpoint(weapon, prefix, parent, mats, mpu, k=1.0, **over) builds a
+  fixed gun on a hull's empty at the slot (+X along the line of fire, z=0 on the
+  mount's axis), from HARDPOINT_WEAPONS (kept apart from WEAPONS, so the turret
+  catalogue never builds them as turrets). The game draws a hardpoint sprite
+  with its slot a quarter of the sprite's length from its back and the fire
+  point at hardpointOffsets ahead of it, so most of a big hardpoint runs out
+  ahead of its slot. hull_finish / sprite_tint work as for build(); muzzles are
+  '<prefix> muzzle anchor <k>'. So far, both sized to a 21 x 22 bay:
+  - tachyonlance: a spinal beam projector (the Paragon's bow pair): a power
+    block with a capacitor bank on a sled, trunks back to the bay wall, the
+    emitter's lens sunk at the root of the beam slot (the fire point, 5 px
+    ahead of the slot), two plated prongs with focusing rails, shoulder pods;
+  - autopulse: a breech on a sled, a capacitor bulb, a finned cooling flange,
+    the hollow emitter barrel down to its lens, a coolant pipe and a
+    capacitor box.
 
 Review
   blender --background --factory-startup --python catalog.py -- --out DIR

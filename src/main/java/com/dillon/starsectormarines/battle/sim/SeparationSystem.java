@@ -24,10 +24,6 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Post-movement separation pass. It pushes overlapping ground units apart
@@ -218,6 +214,21 @@ public final class SeparationSystem {
     private long[] formationMembers = new long[0];
     /** Two-float reusable return buffer for path-heading calculation. */
     private final float[] headingScratch = new float[2];
+    /** Squad id of each dense slot this pass groups, or -1 for a slot it skips. */
+    private int[] groupedSquadOfSlot = new int[0];
+    /** Squadded combatants of the last grouping pass, one contiguous slice per squad. */
+    private long[] groupedMembers = new long[0];
+    /** Per squad id: first index of its slice, its member count and a fill cursor. */
+    private int[] groupedStart = new int[0];
+    private int[] groupedCount = new int[0];
+    private int[] groupedCursor = new int[0];
+    /** Squad ids below this have a valid entry in the grouped arrays. */
+    private int groupedSquadSlots;
+    private final FireTeamGroups.Teams fireTeams = new FireTeamGroups.Teams();
+    /** The moving members of each fire team, flattened; the second pair slices it per team. */
+    private long[] movingMembers = new long[0];
+    private int[] movingTeamStart = new int[0];
+    private int[] movingTeamLength = new int[0];
 
     public SeparationSystem(UnitRosterService roster, UnitSpatialIndex unitIndex, NavigationGrid grid) {
         this.roster = roster;
@@ -495,106 +506,148 @@ public final class SeparationSystem {
         // late-battle Conquest fields a few hundred squads against a few
         // hundred units, so the old per-squad rescan was the single most
         // expensive thing this phase did.
-        Map<Integer, List<Long>> membersBySquad = groupCombatantsBySquad(
-                dense, liveCount, controlledUnitId);
+        groupCombatantsBySquad(dense, liveCount, controlledUnitId);
         for (Squad squad : roster.getSquads()) {
             FormationProfile profile = formationProfile(squad);
             if (profile == null) continue;
-            List<Long> members = membersBySquad.get(squad.id);
-            if (members == null) continue;
+            if (squad.id < 0 || squad.id >= groupedSquadSlots) continue;
+            int memberCount = groupedCount[squad.id];
+            if (memberCount == 0) continue;
+            int first = groupedStart[squad.id];
             if (profile == FormationProfile.MECH) {
                 if (squad.lanceOrder() != MechLanceOrder.FORM_ON_LEAD) continue;
-                int count = gatherMovingFormationMembers(members);
+                int count = gatherMovingFormationMembers(groupedMembers, first, memberCount);
                 accumulateFormation(count, profile, dt,
                         Float.NaN, Float.NaN, Float.NaN, Float.NaN);
             } else {
-                accumulateInfantryFireTeams(members, dt);
+                accumulateInfantryFireTeams(groupedMembers, first, memberCount, dt);
             }
         }
     }
 
     /**
-     * Squadded combatants keyed by squad id, each list in dense-roster order —
-     * the order a per-squad scan of the dense array produced, which formation
-     * slotting and its tie-breaks depend on. Squads with no live squadded
-     * combatant are absent rather than empty, so a caller skipping a null is
-     * skipping exactly what the old empty-scan path skipped.
+     * Squadded combatants grouped by squad id into {@link #groupedMembers}, each
+     * squad's slice in dense-roster order — the order a per-squad scan of the
+     * dense array produced, which formation slotting and its tie-breaks depend
+     * on. A squad with no live squadded combatant has a count of zero, so a
+     * caller skipping it is skipping exactly what the old empty-scan path skipped.
+     * Squad ids are minted sequentially, so they index the per-squad arrays.
      */
-    private Map<Integer, List<Long>> groupCombatantsBySquad(long[] dense, int liveCount,
-                                                         long controlledUnitId) {
-        Map<Integer, List<Long>> bySquad = new HashMap<>();
+    private void groupCombatantsBySquad(long[] dense, int liveCount, long controlledUnitId) {
+        if (groupedSquadOfSlot.length < liveCount) {
+            int capacity = Math.max(liveCount, groupedSquadOfSlot.length * 2);
+            groupedSquadOfSlot = new int[capacity];
+            groupedMembers = new long[capacity];
+        }
+        int highest = -1;
         for (int i = 0; i < liveCount; i++) {
             long member = dense[i];
-            if (member == controlledUnitId) continue;
-            if (!roster.combat().has(member) || !roster.squad().hasSquad(member)) continue;
-            bySquad.computeIfAbsent(roster.squad().squadId(member),
-                    id -> new ArrayList<>()).add(member);
+            int squadId = -1;
+            if (member != controlledUnitId
+                    && roster.combat().has(member) && roster.squad().hasSquad(member)) {
+                squadId = roster.squad().squadId(member);
+            }
+            groupedSquadOfSlot[i] = squadId;
+            if (squadId > highest) highest = squadId;
         }
-        return bySquad;
+        groupedSquadSlots = highest + 1;
+        if (groupedCount.length < groupedSquadSlots) {
+            int capacity = Math.max(groupedSquadSlots, groupedCount.length * 2);
+            groupedStart = new int[capacity];
+            groupedCount = new int[capacity];
+            groupedCursor = new int[capacity];
+        }
+        Arrays.fill(groupedCount, 0, groupedSquadSlots, 0);
+        for (int i = 0; i < liveCount; i++) {
+            int squadId = groupedSquadOfSlot[i];
+            if (squadId >= 0) groupedCount[squadId]++;
+        }
+        int offset = 0;
+        for (int squadId = 0; squadId < groupedSquadSlots; squadId++) {
+            groupedStart[squadId] = offset;
+            groupedCursor[squadId] = offset;
+            offset += groupedCount[squadId];
+        }
+        for (int i = 0; i < liveCount; i++) {
+            int squadId = groupedSquadOfSlot[i];
+            if (squadId >= 0) groupedMembers[groupedCursor[squadId]++] = dense[i];
+        }
     }
 
-    private void accumulateInfantryFireTeams(List<Long> allMembers, float dt) {
-        List<List<Long>> movingTeams = new ArrayList<>();
-        for (FireTeamGroups.Team team : FireTeamGroups.organize(allMembers, roster.squad())) {
-            List<Long> moving = new ArrayList<>();
-            for (long member : team.members()) {
+    private void accumulateInfantryFireTeams(long[] allMembers, int first, int memberCount,
+                                             float dt) {
+        if (movingMembers.length < memberCount) {
+            int capacity = Math.max(memberCount, movingMembers.length * 2);
+            movingMembers = new long[capacity];
+            movingTeamStart = new int[capacity];
+            movingTeamLength = new int[capacity];
+        }
+        FireTeamGroups.organizeInto(allMembers, first, memberCount, roster.squad(), fireTeams);
+        int movingTeamCount = 0;
+        int movingCount = 0;
+        for (int t = 0; t < fireTeams.count(); t++) {
+            int teamStart = movingCount;
+            for (int k = 0; k < fireTeams.length(t); k++) {
+                long member = fireTeams.member(t, k);
                 if (entityWorld.has(member, components.MOVEMENT)
                         && (hasActivePath(member)
                         || (movement.formationMemoryTimer(member) > 0f
-                        && sharesFormationDestination(member, allMembers)))) {
-                    moving.add(member);
+                        && sharesFormationDestination(member, allMembers, first, memberCount)))) {
+                    movingMembers[movingCount++] = member;
                 }
             }
-            if (!moving.isEmpty()) movingTeams.add(moving);
+            if (movingCount > teamStart) {
+                movingTeamStart[movingTeamCount] = teamStart;
+                movingTeamLength[movingTeamCount] = movingCount - teamStart;
+                movingTeamCount++;
+            }
         }
-        if (movingTeams.isEmpty()) return;
+        if (movingTeamCount == 0) return;
 
         float centerX = 0f;
         float centerY = 0f;
         float forwardX = 0f;
         float forwardY = 0f;
-        int movingCount = 0;
-        for (List<Long> team : movingTeams) {
-            for (long member : team) {
-                centerX += world.x(member);
-                centerY += world.y(member);
-                pathHeading(member, headingScratch);
-                forwardX += headingScratch[0];
-                forwardY += headingScratch[1];
-                movingCount++;
-            }
+        for (int i = 0; i < movingCount; i++) {
+            long member = movingMembers[i];
+            centerX += world.x(member);
+            centerY += world.y(member);
+            pathHeading(member, headingScratch);
+            forwardX += headingScratch[0];
+            forwardY += headingScratch[1];
         }
         centerX /= movingCount;
         centerY /= movingCount;
         float forwardLength = (float) Math.sqrt(forwardX * forwardX + forwardY * forwardY);
-        boolean sharedArc = movingTeams.size() > 1
+        boolean sharedArc = movingTeamCount > 1
                 && forwardLength / movingCount >= FORMATION_MIN_HEADING_COHERENCE;
         if (sharedArc) {
             forwardX /= forwardLength;
             forwardY /= forwardLength;
         }
 
-        for (int teamIndex = 0; teamIndex < movingTeams.size(); teamIndex++) {
-            List<Long> team = movingTeams.get(teamIndex);
-            ensureFormationCapacity(team.size());
-            for (int i = 0; i < team.size(); i++) formationMembers[i] = team.get(i);
+        for (int teamIndex = 0; teamIndex < movingTeamCount; teamIndex++) {
+            int teamSize = movingTeamLength[teamIndex];
+            int teamFirst = movingTeamStart[teamIndex];
+            ensureFormationCapacity(teamSize);
+            for (int i = 0; i < teamSize; i++) formationMembers[i] = movingMembers[teamFirst + i];
             if (!sharedArc) {
-                accumulateFormation(team.size(), FormationProfile.INFANTRY, dt,
+                accumulateFormation(teamSize, FormationProfile.INFANTRY, dt,
                         Float.NaN, Float.NaN, Float.NaN, Float.NaN);
                 continue;
             }
-            float ordinal = teamIndex - (movingTeams.size() - 1) * 0.5f;
+            float ordinal = teamIndex - (movingTeamCount - 1) * 0.5f;
             float lateralX = -forwardY;
             float lateralY = forwardX;
             float openness = formationOpenness(
-                    formationMembers, team.size(), FormationProfile.INFANTRY);
+                    formationMembers, teamSize, FormationProfile.INFANTRY);
             float anchorX = centerX
                     + lateralX * ordinal * FIRE_TEAM_LATERAL_INTERVAL * openness
                     - forwardX * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH * openness;
             float anchorY = centerY
                     + lateralY * ordinal * FIRE_TEAM_LATERAL_INTERVAL * openness
                     - forwardY * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH * openness;
-            accumulateFormation(team.size(), FormationProfile.INFANTRY, dt,
+            accumulateFormation(teamSize, FormationProfile.INFANTRY, dt,
                     anchorX, anchorY, forwardX, forwardY);
         }
     }
@@ -653,9 +706,10 @@ public final class SeparationSystem {
         }
     }
 
-    private int gatherMovingFormationMembers(List<Long> squadMembers) {
+    private int gatherMovingFormationMembers(long[] squadMembers, int first, int memberCount) {
         int count = 0;
-        for (long member : squadMembers) {
+        for (int i = first; i < first + memberCount; i++) {
+            long member = squadMembers[i];
             if (!entityWorld.has(member, components.MOVEMENT)
                     || !hasActivePath(member)
                     || (world.hasMechLoadout(member)
@@ -733,13 +787,15 @@ public final class SeparationSystem {
         output[1] = 0f;
     }
 
-    private boolean sharesFormationDestination(long member, List<Long> squadMembers) {
+    private boolean sharesFormationDestination(long member, long[] squadMembers,
+                                               int first, int memberCount) {
         int[] path = world.path(member);
         if (Paths.cellCount(path) < 2) return false;
         int destX = Paths.destX(path);
         int destY = Paths.destY(path);
         int ownTeam = roster.squad().fireTeamIndex(member);
-        for (long other : squadMembers) {
+        for (int i = first; i < first + memberCount; i++) {
+            long other = squadMembers[i];
             if (other == member || !entityWorld.has(other, components.MOVEMENT)
                     || roster.squad().fireTeamIndex(other) == ownTeam) continue;
             int[] otherPath = world.path(other);

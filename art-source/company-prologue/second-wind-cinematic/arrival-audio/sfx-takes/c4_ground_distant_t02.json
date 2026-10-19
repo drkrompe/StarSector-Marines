@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "80",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Distant ground activity heard from high above, faint farm machinery drone, heavy trucks on a far highway, a slow freight train rumbling, soft and far away",
+    "duration_seconds": 8.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "ebb79e5b78796e9ddaa0811b4f6149e691dd966e1ec78d3acc24a38a9f1016b1",
+  "durationSeconds": 8.0,
+  "peakDb": -23.6,
+  "integratedLufs": -35.1
+}

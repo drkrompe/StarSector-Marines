@@ -131,7 +131,7 @@ public final class GoapMechBehavior implements UnitBehavior {
         // Opportunity fire is permitted because no mech step withholds it —
         // the suppression the flag carries is an infantry bounding concern.
         if (ReflexChain.run(MechReflexes.CHAIN, unit, squad,
-                new ReflexContext(true), sim) != null) {
+                ReflexContext.of(true), sim) != null) {
             return;
         }
 

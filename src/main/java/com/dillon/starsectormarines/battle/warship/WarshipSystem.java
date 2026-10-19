@@ -61,6 +61,8 @@ public final class WarshipSystem {
     private final List<WarshipWreck> wrecks = new ArrayList<>();
     private final List<WarshipWreck> wrecksView = Collections.unmodifiableList(wrecks);
     private final Set<Warship> wrecked = Collections.newSetFromMap(new IdentityHashMap<>());
+    /** Ships the battle may not end without ({@link #concludeBeforeBattleEnds}). */
+    private final List<Warship> mustConclude = new ArrayList<>();
     private int nextSerial;
     /** Wreck keys for the crash machinery: far below every aircraft id, which are positive. */
     private static final long WRECK_KEY_BASE = Long.MIN_VALUE / 2;
@@ -284,6 +286,31 @@ public final class WarshipSystem {
         return tactics;
     }
 
+    /** Whether rounds between hulls meet the first hull on their way ({@link WarshipRoundSweep}). */
+    private boolean inFlightCollision = WarshipRoundSweep.ENABLED;
+    /** Whether a mount holds a round that would cross a friendly hull ({@link WarshipRoundSweep#clearLine}). */
+    private boolean clearLineFire = WarshipRoundSweep.CLEAR_LINE;
+
+    /** Whether rounds between hulls meet the first hull on their way, rather than resolving where they land. */
+    public boolean inFlightCollision() {
+        return inFlightCollision;
+    }
+
+    /** Switches in-flight collision, for a scene's control loop. */
+    public void inFlightCollision(boolean on) {
+        this.inFlightCollision = on;
+    }
+
+    /** Whether a mount keeps a friend out of its line of fire; only meaningful while rounds can meet a friend. */
+    public boolean clearLineFire() {
+        return inFlightCollision && clearLineFire;
+    }
+
+    /** Switches the clear-line check, for a scene's control loop. */
+    public void clearLineFire(boolean on) {
+        this.clearLineFire = on;
+    }
+
     private final List<HullFireHold> hullFireHolds = new ArrayList<>();
 
     /** Each side's approved edge, the one way its warships come on and go off; a side absent has none. */
@@ -373,6 +400,40 @@ public final class WarshipSystem {
     /** Hulls taken to nothing this battle, falling, skidding or down, in the order they were lost. */
     public List<WarshipWreck> wrecks() {
         return wrecksView;
+    }
+
+    /**
+     * The battle may not end until {@code ship}'s part in it has concluded ({@link #concluded}): a mission whose story
+     * overhead has an ending (a hull that must get away or be brought down) holds the battle open for it. The
+     * simulation reads {@link #awaitingConclusion()} beside its other completion holds; nothing else changes about
+     * how the ship flies or fights.
+     */
+    public void concludeBeforeBattleEnds(Warship ship) {
+        if (ship == null) throw new IllegalArgumentException("a ship is needed");
+        for (Warship s : mustConclude) if (s == ship) return;
+        mustConclude.add(ship);
+    }
+
+    /**
+     * Whether {@code ship}'s part in the battle is over: it has left the map, or it has been destroyed and its wreck
+     * has fallen, struck and come to rest. A hull still falling or skidding has not concluded.
+     */
+    public boolean concluded(Warship ship) {
+        return concluded(ship, wrecks);
+    }
+
+    /** {@link #concluded(Warship)} against these wrecks. */
+    static boolean concluded(Warship ship, List<WarshipWreck> wrecks) {
+        if (ship.departed()) return true;
+        if (!ship.destroyed()) return false;
+        for (WarshipWreck wreck : wrecks) if (wreck.ship == ship) return wreck.phase() == WarshipWreck.Phase.DOWN;
+        return false;
+    }
+
+    /** Whether a ship the mission holds the battle open for ({@link #concludeBeforeBattleEnds}) has not concluded. */
+    public boolean awaitingConclusion() {
+        for (Warship ship : mustConclude) if (!concluded(ship)) return true;
+        return false;
     }
 
     public WarshipAirFire airFire() {
@@ -1286,12 +1347,25 @@ public final class WarshipSystem {
      * is drawn with ({@link WarshipHitFx}); null for a round with none.
      */
     boolean strikeHulls(PendingDetonation det, float fromX, float fromY, String damageType, VanillaWeapon weapon) {
+        return strikeHulls(det, fromX, fromY, damageType, weapon, null);
+    }
+
+    /**
+     * {@link #strikeHulls(PendingDetonation, float, float, String, VanillaWeapon)} whose blast reaches every hull a
+     * round can meet but {@code shooter}, friend or foe, as a round between hulls does once it can meet the first hull
+     * on its way ({@link WarshipRoundSweep}); {@code null} keeps it to hulls hostile to the round's side.
+     */
+    boolean strikeHulls(PendingDetonation det, float fromX, float fromY, String damageType, VanillaWeapon weapon,
+                        Warship shooter) {
         boolean reached = false;
         strikeX = Float.NaN;
         strikeY = Float.NaN;
         strikeShieldOnly = true;
+        struck.clear();
         for (Warship ship : ships) {
-            if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
+            if (ship.destroyed()) continue;
+            if (shooter == null ? !ship.faction.hostileTo(det.shooterFaction)
+                    : ship == shooter || !WarshipRoundSweep.meets(ship)) continue;
             float gap = ship.distanceTo(det.endpointX, det.endpointY);
             if (ship.hasShield() && gap <= det.aoeRadius + WarshipShield.THREAT_MARGIN_CELLS
                     && threatens(ship, det.damage, det.penetration, fromX, fromY, det.endpointX, det.endpointY)) {
@@ -1300,38 +1374,65 @@ public final class WarshipSystem {
             }
             if (gap > det.aoeRadius) continue;
             reached = true;
-            if (ship.shieldCoversFrom(fromX, fromY, det.endpointX, det.endpointY)) {
-                // The shield takes the hit as flux; the hull takes nothing.
-                ship.shieldModel().absorb(damageType == null ? det.damage
-                        : det.damage * shieldMultiplier(damageType), ship.fluxPool());
-                float[] at = shieldPoint(ship, fromX, fromY, det.endpointX, det.endpointY);
-                if (Float.isNaN(strikeX) && at != null && ship.plating() != null) {
-                    strikeX = at[0];
-                    strikeY = at[1];
-                }
-                if (at != null) {
-                    hitFx.shieldHit(ship, at[0], at[1], fromX, fromY, damageType, weapon, det.damage, clock);
-                }
-                continue;
-            }
-            strikeShieldOnly = false;
-            int cell = ship.entryCell(fromX, fromY, det.endpointX, det.endpointY);
-            int breachesBefore = ship.plating() == null ? 0 : ship.plating().breachCount();
-            if (damageType == null) ship.takeHit(cell, det.damage, det.penetration, clock);
-            else ship.takeHullFightHit(cell, det.damage * armourMultiplier(damageType), clock);
-            boolean breached = ship.plating() != null && ship.plating().breachCount() != breachesBefore;
-            float hx = cell >= 0 ? ship.cellX(cell) : det.endpointX;
-            float hy = cell >= 0 ? ship.cellY(cell) : det.endpointY;
-            hitFx.hullHit(ship, hx, hy, fromX, fromY, damageType, weapon, det.damage, breached, clock);
-            // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
-            if (breached) knockOutMounts(ship);
-            if (Float.isNaN(strikeX) && cell >= 0) {
-                strikeX = ship.cellX(cell);
-                strikeY = ship.cellY(cell);
-            }
+            boolean shield = ship.shieldCoversFrom(fromX, fromY, det.endpointX, det.endpointY);
+            float[] at = shield ? shieldPoint(ship, fromX, fromY, det.endpointX, det.endpointY) : null;
+            strikeOne(ship, det, fromX, fromY, det.endpointX, det.endpointY, damageType, weapon, shield, at);
         }
         return reached;
     }
+
+    /**
+     * Lands a round between hulls on the hull it met on its way ({@link WarshipRoundSweep.Contact}): on the shield's
+     * bubble where it crossed it, or on the plate cell its line enters. {@code (fromX, fromY)} is behind the contact
+     * along the round's travel, the side it came from.
+     */
+    void strikeContact(WarshipRoundSweep.Contact c, PendingDetonation det, float fromX, float fromY,
+                       String damageType, VanillaWeapon weapon) {
+        strikeX = Float.NaN;
+        strikeY = Float.NaN;
+        strikeShieldOnly = true;
+        struck.clear();
+        Warship ship = c.ship();
+        if (ship.hasShield()) ship.shieldModel().noteThreat();
+        strikeOne(ship, det, fromX, fromY, c.x(), c.y(), damageType, weapon, c.shield(), new float[]{c.x(), c.y()});
+    }
+
+    /** One hull takes {@code det} at {@code (px, py)}: on its shield at {@code shieldAt}, or on the plate it enters. */
+    private void strikeOne(Warship ship, PendingDetonation det, float fromX, float fromY, float px, float py,
+                           String damageType, VanillaWeapon weapon, boolean shield, float[] shieldAt) {
+        struck.add(ship);
+        if (shield) {
+            // The shield takes the hit as flux; the hull takes nothing.
+            ship.shieldModel().absorb(damageType == null ? det.damage
+                    : det.damage * shieldMultiplier(damageType), ship.fluxPool());
+            if (Float.isNaN(strikeX) && shieldAt != null && ship.plating() != null) {
+                strikeX = shieldAt[0];
+                strikeY = shieldAt[1];
+            }
+            if (shieldAt != null) {
+                hitFx.shieldHit(ship, shieldAt[0], shieldAt[1], fromX, fromY, damageType, weapon, det.damage, clock);
+            }
+            return;
+        }
+        strikeShieldOnly = false;
+        int cell = ship.entryCell(fromX, fromY, px, py);
+        int breachesBefore = ship.plating() == null ? 0 : ship.plating().breachCount();
+        if (damageType == null) ship.takeHit(cell, det.damage, det.penetration, clock);
+        else ship.takeHullFightHit(cell, det.damage * armourMultiplier(damageType), clock);
+        boolean breached = ship.plating() != null && ship.plating().breachCount() != breachesBefore;
+        float hx = cell >= 0 ? ship.cellX(cell) : px;
+        float hy = cell >= 0 ? ship.cellY(cell) : py;
+        hitFx.hullHit(ship, hx, hy, fromX, fromY, damageType, weapon, det.damage, breached, clock);
+        // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
+        if (breached) knockOutMounts(ship);
+        if (Float.isNaN(strikeX)) {
+            strikeX = hx;
+            strikeY = hy;
+        }
+    }
+
+    /** The hulls the last {@link #strikeHulls} or {@link #strikeContact} call reached, in the order it reached them. */
+    private final List<Warship> struck = new ArrayList<>();
 
     /** Where the last {@link #strikeHulls} call met a hull or a shield, for its blast; NaN when it met none or has no place. */
     private float strikeX = Float.NaN;
@@ -1599,7 +1700,21 @@ public final class WarshipSystem {
                 shells.remove(i);
                 continue;
             }
+            boolean sweeps = inFlightCollision && sweeps(shell);
+            float sx0 = sweeps ? shell.path().x(Math.min(shell.elapsed(), shell.flightSeconds)) : 0f;
+            float sy0 = sweeps ? shell.path().y(Math.min(shell.elapsed(), shell.flightSeconds)) : 0f;
             boolean spent = shell.advance(dt);
+            if (sweeps) {
+                // Between hulls a round stops at the first hull on its way, friend or foe, not only where it lands.
+                float t1 = Math.min(shell.elapsed(), shell.flightSeconds);
+                WarshipRoundSweep.Contact c = WarshipRoundSweep.first(ships, shell.shooter, sx0, sy0,
+                        shell.path().x(t1), shell.path().y(t1));
+                if (c != null) {
+                    shells.remove(i);
+                    landInFlight(sim, shell, c, sx0, sy0);
+                    continue;
+                }
+            }
             // A standoff missile's beam is loose the tick its painting ends, and nothing can stop it after that.
             PendingDetonation beam = shell.takeBeamRelease();
             if (beam != null) {
@@ -1620,7 +1735,11 @@ public final class WarshipSystem {
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
             if (shell.hullOnly()) {
-                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY, hullDamageType(shell.weapon), shell.weapon);
+                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY, hullDamageType(shell.weapon), shell.weapon,
+                        sweeps ? shell.shooter : null);
+                if (struck && (sweeps || shell.hullTarget() != null)) {
+                    shipFire.noteStruck(shell.faction, shell.hullTarget(), struck(), false);
+                }
                 if (shell.hullTarget() != null) {
                     shipFire.noteLanding(struck);
                     if (shell.weapon.missile()) shipFire.noteMissileLanding(struck);
@@ -1662,6 +1781,66 @@ public final class WarshipSystem {
     }
 
     /**
+     * Whether a body in flight meets hulls on its way: a ship's round or missile at a hull, and a round carrying on
+     * past the hull it missed. A multi-warhead carrier flies to its split and its warheads meet hulls instead
+     * ({@link #landStrikes}); a standoff missile's beam and every round at the ground or at aircraft are not met.
+     */
+    private static boolean sweeps(WarshipShell shell) {
+        return shell.shooter != null && !shell.carrier() && !shell.hasBeam()
+                && (shell.hullTarget() != null || shell.stray());
+    }
+
+    /** A round that met a hull on its way lands on it there, with its impact cue and, if heavy, a heavy blast. */
+    private void landInFlight(BattleSimulation sim, WarshipShell shell, WarshipRoundSweep.Contact c, float x0, float y0) {
+        float[] from = behind(c, x0, y0, shell.fromX, shell.fromY);
+        strikeContact(c, detonation(shell.faction, c.x(), c.y(), shell.damage(), shell.penetration(),
+                shell.damageRadius()), from[0], from[1], hullDamageType(shell.weapon), shell.weapon);
+        shipFire.noteStruck(shell.faction, shell.hullTarget(), struck(), true);
+        if (shell.hullTarget() != null) {
+            shipFire.noteLanding(true);
+            if (shell.weapon.missile()) shipFire.noteMissileLanding(true);
+        }
+        hullImpact(sim, shell.weapon, shell.damage(), shell.blastCells(), c.x(), c.y());
+    }
+
+    /** The impact cue and, for a heavy round that met metal, the heavy blast, where the last strike met the hull. */
+    private void hullImpact(BattleSimulation sim, VanillaWeapon weapon, float damage, float visualCells,
+                            float fallbackX, float fallbackY) {
+        float bx = strikeX(fallbackX);
+        float by = strikeY(fallbackY);
+        if (cueAllowed(weapon, IMPACT_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.IMPACT, weapon.impactSoundId(), bx, by);
+        if (damage >= HEAVY_IMPACT_DAMAGE && !strikeShieldOnly) {
+            sim.spawnHeavyImpact(bx, by, visualCells, weapon.explosionColor());
+        }
+    }
+
+    /**
+     * A point behind a contact along the round's travel this tick, the side it came from: a few cells back from where
+     * it met the hull, or {@code (fallbackX, fallbackY)} (its muzzle or split) when it moved too little to say.
+     */
+    static float[] behind(WarshipRoundSweep.Contact c, float x0, float y0, float fallbackX, float fallbackY) {
+        float dx = c.x() - x0;
+        float dy = c.y() - y0;
+        float len = (float) Math.hypot(dx, dy);
+        if (len < 1e-3f) {
+            dx = c.x() - fallbackX;
+            dy = c.y() - fallbackY;
+            len = (float) Math.hypot(dx, dy);
+            if (len < 1e-3f) return new float[]{fallbackX, fallbackY};
+        }
+        float back = Math.max(len, BEHIND_CELLS);
+        return new float[]{c.x() - dx / len * back, c.y() - dy / len * back};
+    }
+
+    /** How far behind a contact the side a round came from is read, at least, in cells. */
+    private static final float BEHIND_CELLS = 4f;
+
+    /** The hulls the last strike reached, for the tally of who took rounds between hulls. */
+    List<Warship> struck() {
+        return struck;
+    }
+
+    /**
      * A carrier has reached its split point: a flash and a split sound, once, and its warheads
      * leave it, each already committed to its own landing and now a body of its own.
      */
@@ -1692,12 +1871,34 @@ public final class WarshipSystem {
                 strikes.remove(i);
                 continue;
             }
-            if (!strike.advance(dt)) continue;
+            boolean sweeps = inFlightCollision && strike.hullTarget() != null;
+            float sx0 = sweeps ? strike.x() : 0f;
+            float sy0 = sweeps ? strike.y() : 0f;
+            boolean spent = strike.advance(dt);
+            if (sweeps) {
+                float t1 = Math.min(strike.age(), strike.delaySeconds);
+                WarshipRoundSweep.Contact c = WarshipRoundSweep.first(ships, strike.shooter, sx0, sy0,
+                        strike.path().x(t1), strike.path().y(t1));
+                if (c != null) {
+                    strikes.remove(i);
+                    PendingDetonation d = strike.detonation();
+                    float[] from = behind(c, sx0, sy0, strike.releaseX, strike.releaseY);
+                    strikeContact(c, detonation(strike.faction, c.x(), c.y(), d.damage, d.penetration, d.aoeRadius),
+                            from[0], from[1], hullDamageType(strike.weapon), strike.weapon);
+                    shipFire.noteStruck(strike.faction, strike.hullTarget(), struck(), true);
+                    shipFire.noteWarhead(true);
+                    hullImpact(sim, strike.weapon, d.damage, strike.visualCells, c.x(), c.y());
+                    continue;
+                }
+            }
+            if (!spent) continue;
             strikes.remove(i);
             PendingDetonation det = strike.detonation();
             if (strike.hullTarget() != null) {
                 // A warhead aimed at a hull lands on hulls alone; one that reached none carries on to the ground.
-                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY, hullDamageType(strike.weapon), strike.weapon);
+                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY, hullDamageType(strike.weapon), strike.weapon,
+                        sweeps ? strike.shooter : null);
+                if (struck) shipFire.noteStruck(strike.faction, strike.hullTarget(), struck(), false);
                 shipFire.noteWarhead(struck);
                 if (!struck) {
                     shells.add(WarshipShipFire.carryOn(strike));

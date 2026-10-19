@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a154d0-0dbe-7472-aa58-51432812ca0a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154d0-0dbe-7472-aa58-51432812ca0a\\exec-525b6bbb-9866-405e-9844-7de5766a38a2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\systems-v2.png",
+    "sha256": "6ec67b05f399cf7595f53d0d4f8f97dea795d69068a619f30cc168a98941ed6c",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-systems-v2.txt",
+  "promptSha256": "07f457e3bc3d78872b6c613d5fd73535d9082df096dfa3eda6e1e15a51c46868",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nWide landscape canvas (about 2:1). The ship systems page: a power-bus schematic of the freighter SECOND WIND, titled SECOND WIND / POWER DISTRIBUTION, (reactor, two main buses, breakers drawn as small boxes, some open) as a line diagram, with bar gauges for REACTOR, DRIVE, LIFE SUPPORT, CARGO BAY, and tank levels; a few breakers flagged amber as JURY-RIGGED or BYPASS, one small red OFFLINE flag for a damaged section, and a fault list of three short lines at the bottom.\n\nNames: the own ship is SECOND WIND (short form SW); the planet is JANGALA; the carrier is HGS LEGION; the fighters are BRDSWD 1-1 to 1-4. Use only these names and generic labels; invent no other ship, planet or vessel names.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate the display as one image with the requested phosphor palette and power-bus layout."
+  ],
+  "usage": {
+    "input_tokens": 37349,
+    "cached_input_tokens": 30592,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 626,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.8
+}

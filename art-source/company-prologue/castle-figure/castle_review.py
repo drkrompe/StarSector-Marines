@@ -1,13 +1,14 @@
 """Review sheets of the Castle figure, 1920x1080 at 100%.
 
     python castle_review.py --out DIR [--blend PATH] [--engine workbench|eevee]
-                            [--sheets 01-turnaround-full,02-turnaround-head,03-c2-distance]
+                            [--sheets 01-turnaround-full,02-turnaround-head,03-c2-distance,04-head-close]
                             [--prefix NAME-] [--no-bridge]
 
 Writes turnarounds of castle-figure.blend (build_castle.py builds it), each view a panel side
 by side on one 1920x1080 sheet: front, her left, back and her right; the same four
 three-quarter turns closer on the head and shoulders; and one full-frame view from C2's close
-shot (the port station turned aft onto her, 1.4 m off, 24 mm). Then, unless --no-bridge, it
+shot (the port station turned aft onto her, 1.4 m off, 24 mm), and one close on her face from
+her front left, framed like castle-v2.master.png. Then, unless --no-bridge, it
 renders her on Second Wind's bridge through the bridge's own review script (patched state,
 sw_bridge_interior.figures with the MakeHuman Castle): C2's port station, the station turned
 aft onto her, and across the room.
@@ -39,6 +40,8 @@ SHEETS = [
     # bridge_interior_review's 09-castle-from-port-station, in her frame: 1.4 m off her right
     # front, eye 1.69 m up, aimed at 1.46 m.
     ("03-c2-distance", 1.38, 1.46, 24, (280,), 1.69),
+    # Her face and hair close, from her front left, as castle-v2.master.png shows her.
+    ("04-head-close", 0.8, 1.6, 50, (30,), 1.66),
 ]
 DEFAULT_SHEETS = "01-turnaround-full,02-turnaround-head"
 

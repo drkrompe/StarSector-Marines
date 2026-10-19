@@ -6,7 +6,7 @@ well cut into the hull along the local surface normal (`Weapon <slot> well`,
 lined dark), a fixed barbette in it (`Weapon <slot> barbette`) and a pivot empty (`Weapon <slot>
 pivot`) at the traverse gap, parenting the trainable gun. Rotate the pivot
 about its local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint`
-(anchor), housing, emitter and muzzle.
+(anchor) carrying the kit's tachyon lance projector and its muzzle anchor.
 
 Each turret carries its gun from the shared turret kit (turret-kit/turret_kit.py:
 the Elite fit: tachyon lances, graviton beams, heavy needlers, tactical lasers,
@@ -64,6 +64,10 @@ ELITE = {'WS 001': 'autopulse', 'WS 002': 'autopulse', 'WS 003': 'tachyonlance',
          'WS 007': 'heavyneedler', 'WS 008': 'heavyneedler',
          'WS 011': 'pdlaser', 'WS 016': 'pdlaser', 'WS 017': 'pdlaser', 'WS 022': 'pdlaser', 'WS 023': 'pdlaser'}
 KIT_ID = {'heavyneedler': 'needler'}   # Elite variant weapon id -> turret kit id where they differ
+# The bow pair carry tachyon lances rather than the Elite's autopulses: the Paragon as a
+# planet-glasser of direct-energy beams (owner, 2026-10-19); the game's Escort and
+# Raider variants mount lances in these slots.
+HARDPOINT_WEAPON = {'WS 001': 'tachyonlance', 'WS 002': 'tachyonlance'}
 
 # size: barbette radius, collar height, housing radius, housing height, emitter length, emitter radius, emitters
 SPEC = {
@@ -96,16 +100,6 @@ def gun_mats(kit, weapon):
     if weapon == 'pdlaser':
         del mats['accent']   # the PD's armoured collar stays the kit's red (owner, 2026-10-19)
     return mats
-
-
-def housing_profile(hr, hh):
-    """A low smooth dome: flat foot, rounded shoulder, flattened crown."""
-    prof = [(0, 0)]
-    for k in range(9):
-        a = math.radians(90*k/8)
-        prof.append((hr*(.62+.38*math.cos(a)) if k else hr, hh*math.sin(a)*.92 if k else 0))
-    prof.append((0, hh))
-    return prof
 
 
 def seat(kit, x, y, r):
@@ -198,26 +192,6 @@ def barbette(kit, sid, spec, M, D):
     return -D+c
 
 
-def emitter(kit, name, start, length, radius, mat_tip):
-    """A Tri-Tachyon emitter rod along local +X from start: a tapered sleeve, the rod, a bright tip collar."""
-    sx, sy, sz = start
-    sleeve = kit.cylinder(name+' sleeve', (sx+length*.18, sy, sz), radius*1.9, length*.36, kit.pale, axis='X',
-                          vertices=24, bevel=0)
-    rod = kit.cylinder(name+' rod', (sx+length*.6, sy, sz), radius, length*.8, kit.steel, axis='X',
-                       vertices=16, bevel=0)
-    tip = kit.cylinder(name+' tip collar', (sx+length*.97, sy, sz), radius*1.45, length*.06, mat_tip, axis='X',
-                       vertices=16, bevel=0)
-    return [sleeve, rod, tip], (sx+length, sy, sz)
-
-
-def parent(objs, pivot):
-    for o in objs:
-        mw = o.matrix_world.copy()
-        o.parent = pivot
-        o.matrix_parent_inverse = pivot.matrix_world.inverted()
-        o.matrix_world = mw
-
-
 def turret(kit, sid, loc, angle, arc, size, typ):
     spec = SPEC[size]
     x, y = loc
@@ -263,24 +237,25 @@ def base_name(sid):
 
 
 def hardpoint(kit, sid, loc, angle, arc, size, typ):
-    """A fixed bow hardpoint: a slot in the prow face with the emitter running out of it."""
+    """A fixed bow hardpoint from the turret kit (tk.build_hardpoint): a tachyon lance
+    as a spinal beam projector (HARDPOINT_WEAPON), its power block on a sled in the
+    prow bay fed from the bay's back wall, its prongs running out past the prow as
+    the game draws them (the slot a quarter of the sprite's length from its back)."""
     x, y = loc
-    z = pg_hull.BAY['z']  # recessed in its bay in the prow (pg_hull.hardpoint_bays)
+    z = pg_hull.BAY['z']  # on the bay's axis (pg_hull.hardpoint_bays)
     anchor = kit.empty(f'Weapon {sid} hardpoint', (x, y, z), angle, 'ARROWS', 6)
     anchor['slot'] = sid
     anchor['angle_deg'] = angle
     anchor['arc_deg'] = arc
-    # The capital mount fills its bay: a breech block at the back, a heavy
-    # cradle, and a thick emitter whose tip stops just inside the prow face.
-    house = kit.box(f'Weapon {sid} housing', (x-23, y, z), (24, 17.0, 17.0), kit.slate, 1.2)
-    cradle = kit.box(f'Weapon {sid} cradle', (x-8, y, z), (10, 13.0, 13.0), kit.steel, .8)
-    objs, tip = emitter(kit, f'Weapon {sid} emitter', (x-12, y, z), 19.0, 3.2, kit.glow_white)
-    objs.append(cradle)
-    mz = kit.empty(f'Weapon {sid} muzzle', tip, angle, 'SINGLE_ARROW', 3)
-    parent([house]+objs+[mz], anchor)
+    weapon = HARDPOINT_WEAPON.get(sid) or ELITE.get(sid, 'autopulse')
+    # The two mounts stand 32 apart: their inboard capacitor pods are shortened so they
+    # do not meet across the centreline.
+    inboard = -1 if y > 0 else 1
+    t = tk.build_hardpoint(weapon, f'Weapon {sid}', anchor, gun_mats(kit, weapon), kit.mpu,
+                           hull_finish=True, sprite_tint=.5, pod_reach={inboard: 12.5, -inboard: 15.5})
     RECORDS.append({'id': sid, 'mount': 'HARDPOINT', 'size': size, 'type': typ, 'location': [x, y],
                     'angle_deg': angle, 'arc_deg': arc, 'anchor': anchor.name, 'anchor_z': round(z, 2),
-                    'muzzles': [mz.name], 'elite_variant': ELITE.get(sid)})
+                    'muzzles': [m.name for m in t['muzzles']], 'weapon': weapon, 'elite_variant': ELITE.get(sid)})
     return anchor
 
 

@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-19 — Rusk's family lends an Enforcer and a Wolf (owner: "We don't need this to be an even fight").
+Updated: 2026-10-19 — the duel ends in the Greyhook's run for the south edge: she escapes or is shot down, and the battle waits for it.
 
 ## Premise, place and cast
 
@@ -76,7 +76,9 @@ family has lent from Citadel Arcadia comes in low over the basin: a Hegemony Enf
 destroyer and Rusk's own Wolf. They slug it out in atmosphere while the ground fight
 continues beneath them: the armoured Enforcer holding her guns while the Wolf darts in
 on her quarter, against a heavier ship that turns slowly. It is not an even fight and
-is not meant to be. The player's fleet stays out of the sky; Rusk's ships are the
+is not meant to be. Once they have hurt her, Voss runs for the south edge with them
+on her; she gets away or is shot down short of it and walks out of the wreck, and
+the battle is not over until one or the other has happened. The player's fleet stays out of the sky; Rusk's ships are the
 family's, not the company's support. A pair,
 not one, is the point: it checks two audiences at once, the Eventide house saving
 face over a cadet's failure and the Hegemony showing an Independent colony what it
