@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155a4-4ebf-74f1-a115-6a2ec243ac7a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155a4-4ebf-74f1-a115-6a2ec243ac7a\\exec-0a40ff5c-e520-4f28-a2a2-53513d126a96.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\v2\\raising-her.raw.png",
+    "sha256": "8d2a5657b1fa8ed5028b643d54c39a229f7c9fdd8d3d72c7394c0e761110e465",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\v2\\raising-her.brief.txt",
+  "promptSha256": "d39e1ca9c74565144859b800647db0c4460a31e0e8659659e6972791841847ce",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the real Second Wind and camera; repaint, never move\nImage 2: Material and paint only: the same ship finished; not layout\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface or luxury.\n\nScene: the moment the Second Wind's drive is lit for the first time in ten years, at the loading locks of an asteroid mining colony that is being abandoned.\n\nReference 1 is a render of the real ship and is the authority for her: keep her exact silhouette, pose, camera, proportions, every turret, pod, radiator grille, patch and dent, and her livery of weathered rust-orange and cream panels over dark gunmetal. She is a short, wide, rounded 66-metre freighter, not a long tube. Do not add or remove hull parts. Reference 2 is the same ship photographed finished, for material and paint only.\n\nChange only this on the ship: the two big round drive mouths on the near (starboard) pod are lighting up for the first time, a deep warm amber-orange glow inside their throats with a little heat shimmer and faint glow on their rims; no long flame. The far (port) pod stays dark and capped. A few small work lamps on the hull.\n\nPaint around her: she is tethered beside a pressure-rated loading lock built into the scarred face of an asteroid. Heavy steel gantries, a boarding tube and fat umbilical hoses run from the rock to her flank; mooring tethers hang slack. Floodlights on the gantries. On the gantry beside the lock, three tiny figures in bulky worn civilian EVA suits, for scale (they are about the height of a door hatch), watching. Beside the lock hatch, a column of chalk tally marks, too small to read. Behind: black space with a few tumbling belt rocks and faint stars.\n\nHope through manual work; the whole dock holding its breath. No battle, no explosions.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-stern-quarter.png",
+      "sha256": "5794f69ce881702e0b2034ef139330e2c6e51f92b77f7855e9db35586d7a4530",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the real Second Wind and camera; repaint, never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\146acfbf-ace6-43bb-bef2-d8438ab41d5a\\scratchpad\\ref\\c5.png",
+      "sha256": "b7ce60840b4f150908db1bc37e4acfe5ac1b2a369da7e583b4189335d561af75",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Material and paint only: the same ship finished; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to preserve the first reference’s ship and camera while painting the asteroid dock and warm drive ignition around it."
+  ],
+  "usage": {
+    "input_tokens": 85714,
+    "cached_input_tokens": 68096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 872,
+    "reasoning_output_tokens": 18
+  },
+  "elapsedSeconds": 71.9
+}
