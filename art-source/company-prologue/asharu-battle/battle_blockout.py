@@ -1,0 +1,1185 @@
+"""Asharu battle: the blockout scene and its key frames (see asharu-battle-shot.md).
+
+    python battle_blockout.py                 # build in Blender, render every key frame, label them
+    python battle_blockout.py --frames k1,k4  # some key frames only
+    python battle_blockout.py --samples 16    # quicker, noisier
+    python battle_blockout.py --post windows  # ... and post the run to the Drive review folder
+    python battle_blockout.py --skip-render   # relabel the last raw renders
+
+Run as plain Python it is the driver: it launches Blender on itself (blender_path.py), then
+labels the frames with Pillow, draws the orbit diagram and writes NOTES.md. Inside Blender it
+builds the scene and renders. Output goes to <repo>/build/asharu-battle/<date>/ (ignored);
+renders are never committed.
+
+World frame, metres, co-moving with the convoy: +X prograde (the direction of orbit), +Y north,
++Z local up. Asharu's centre is straight below at (0, 0, -(R + ALT)). The planet is a dense
+spherical cap under the battle so its limb is a true curve, painted with the game's own desert
+map read from the install (never copied) and broken up with procedural relief at the scales a
+low orbit sees.
+
+Hulls. Finished cinematic builds are appended once from build/asharu-battle/inputs/ and placed
+as collection instances at their own metres per unit. A hull with no build yet is a stand-in:
+the game sprite's silhouette raised into a lens-shaped slab, painted with the sprite, at the
+size ship_scale.py's option C solves for it (roster.py). Every drive carries a stand-in glow and
+plume at its exhaust anchor or the .ship's engine slot.
+"""
+import json
+import math
+import os
+import subprocess
+import sys
+from datetime import date
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PROLOGUE = HERE.parent
+ART = PROLOGUE.parent
+REPO = ART.parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(PROLOGUE))
+sys.path.insert(0, str(ART))
+import roster  # noqa: E402
+
+INPUTS = REPO / 'build' / 'asharu-battle' / 'inputs'
+W, H = 1920, 1080
+
+# Asharu and the orbit. Asharu's real size is not given anywhere in the game or the story; a
+# small dry world a little smaller than Earth reads right and keeps the limb curving in frame.
+R = 5.0e6          # planet radius, m
+ALT = 250e3        # convoy altitude, m
+SUN_EL, SUN_AZ = 16.0, -40.0   # degrees: low morning sun, ahead of the convoy and to the south
+MAP_LAT, MAP_LON = 12.0, 95.0   # where on the game's desert01 map the battle is fought
+
+# --------------------------------------------------------------------------------- key frames
+# Each key frame: what the camera sees and where every ship is. Placements are
+# (x, y, z, heading deg, pitch deg, roll deg, throttle 0-1). Effects are listed per frame.
+CONVOY = {
+    'enforcer': (1500, 120, 80, 0, 1, -2, .6),
+    'lasher-a': (950, -380, 140, 0, 0, 3, .6),
+    'colossus': (0, 0, 0, 0, 0, 0, .5),
+    'morrow': (-40, -165, -35, 0, 1, -3, .5),
+    'tarsus': (-650, 90, 30, 0, 0, 2, .5),
+    'lasher-b': (-400, 520, -60, 0, -1, -4, .6),
+    'hound-m': (-1350, -150, 110, 0, 2, 3, .6),
+}
+
+
+def climb(base, dx=0, dy=0, dz=0, heading=None, pitch=None, roll=None, throttle=None):
+    x, y, z, h, p, r, t = base
+    return (x + dx, y + dy, z + dz, h if heading is None else heading, p if pitch is None else pitch,
+            r if roll is None else roll, t if throttle is None else throttle)
+
+
+PIRATES_RISING = {   # coming up out of the platform, behind and below the convoy, climbing to it
+    'falcon-p': (-6200, 250, -2900, 4, 14, -3, 1),
+    'manticore-p': (-6900, -650, -3300, 2, 13, 4, 1),
+    'enforcer-p': (-7300, 900, -3400, 6, 12, -6, 1),
+    'colossus3': (-8200, 100, -3700, 3, 10, 2, .8),
+    'buffalo2-a': (-7700, -1300, -3500, 0, 12, 5, 1),
+    'buffalo2-b': (-8600, 1500, -3900, 8, 11, -4, 1),
+    'wolf-p-a': (-5200, -300, -2400, -2, 17, 8, 1),
+    'wolf-p-b': (-5500, 700, -2600, 5, 16, -9, 1),
+    'hound-p-a': (-5800, -1000, -2700, -4, 15, 6, 1),
+    'hound-p-b': (-6000, 1200, -2900, 7, 15, -5, 1),
+    'kite-p-a': (-6600, -150, -3100, 1, 14, 0, 1),
+    'kite-p-b': (-6700, 450, -3150, 3, 14, 2, 1),
+}
+
+KEYFRAMES = {
+    'k1': dict(
+        shot='S1', title='Low orbit over Asharu',
+        caption='The convoy in column over the day side, slowing for its descent window. '
+                'Colossus centre, Morrow alongside, Enforcer leading, Lashers flanking, Hound at the rear.',
+        camera=dict(loc=(-1500, 1100, 900), target=(100, -80, -150), lens=35),
+        ships=CONVOY,
+        labels=['colossus', 'morrow', 'enforcer', 'lasher-a', 'lasher-b', 'tarsus', 'hound-m']),
+    'k2': dict(
+        shot='S4', title='First contact',
+        caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
+                'Twelve pirate hulls climb out of it toward the column.',
+        camera=dict(loc=(-4800, -2600, -1700), target=(-6500, 200, -3100), lens=35),
+        ships={**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING},
+        platform=(-9500, 1200, -4300),
+        labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
+    'k3': dict(
+        shot='S6', title='The screen breaks',
+        caption='Off the convoy\'s north flank. Manticore (P) and Falcon (P) open from 2-3 km astern; the Enforcer '
+                'turns into them and is hit, Lasher A goes up. The freighters keep running.',
+        camera=dict(loc=(1350, 750, 380), target=(-1400, -350, -260), lens=30),
+        ships={**{k: v for k, v in CONVOY.items() if k not in ('enforcer', 'lasher-a')},
+               'enforcer': (480, 330, 90, 165, 4, 25, 1), 'lasher-a': (-350, 560, 160, 10, 6, 40, 0),
+               'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
+               'wolf-p-a': (-1250, 200, -120, 2, 6, 25, 1), 'wolf-p-b': (-1700, -650, -300, 3, 5, -20, 1),
+               'buffalo2-a': (-3600, 150, -760, 0, 5, 3, 1)},
+        fx=[('tracer', 'manticore-p', 'enforcer'), ('tracer', 'falcon-p', 'enforcer'),
+            ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'enforcer', 'manticore-p'),
+            ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'enforcer'),
+            ('blast', 'lasher-a', 40), ('blast_on', 'enforcer', 18, (10, 10, 8)), ('debris', 'lasher-a', 60)],
+        labels=['enforcer', 'lasher-a', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
+    'k4': dict(
+        shot='S8-S9', title='The prize',
+        caption='Close on the Colossus. Her port drive pod is shot out; the Colossus Mk.III closes from above '
+                'to take her, Kites (P) carry the boarders, Wolves cut past. Morrow is under her keel, drives lit, '
+                'holding her up.',
+        camera=dict(loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
+        ships={'colossus': (0, 0, 0, 0, -3, 6, .2), 'morrow': (-10, 35, -78, 0, 8, 4, 1),
+               'colossus3': (-60, 70, 175, -4, -8, 4, .6),
+               'kite-p-a': (110, 210, 40, -110, -4, 12, 1), 'kite-p-b': (-150, 250, 95, -80, -10, 6, 1),
+               'wolf-p-a': (260, 160, 110, -150, 2, -40, 1), 'tarsus': (1600, -900, -120, 0, 0, 2, .7)},
+        fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
+            ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
+            ('tracer', 'colossus', 'kite-p-a'), ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0))],
+        labels=['colossus', 'morrow', 'colossus3', 'kite-p-a', 'wolf-p-a']),
+    'k5': dict(
+        shot='S10', title='The fall',
+        caption='Over the Falcon (P)\'s shoulder. The Colossus has lost her orbit: nose down, drives failing, '
+                'Morrow still with her. The pirates break off above an empty prize.',
+        camera=dict(loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
+        ships={'falcon-p': (-560, 120, 120, 25, -6, 8, .8), 'colossus3': (-250, 430, 20, 30, -4, -10, .5),
+               'colossus': (480, -30, -780, 5, -26, 14, .15), 'morrow': (500, -175, -830, 0, -22, 8, 1),
+               'kite-p-a': (-120, 300, -40, 160, 10, 15, 1)},
+        fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
+            ('debris', 'colossus', 70, (-30, 0, 10))],
+        labels=['colossus', 'morrow', 'falcon-p', 'colossus3']),
+    'k6': dict(
+        shot='S12', title='Two trails toward the northern canyons',
+        caption='Long lens from the pirates\' orbit. The Colossus and Morrow burn into the atmosphere, two plasma '
+                'trails heading north and down toward the canyon country where Basin will find them.',
+        camera=dict(loc=(0, 0, 0), target=None, lens=50, look=(0.9, 0.02, -0.42)),
+        ships={},
+        fx=[('entry_trails',)],
+        labels=['trail-colossus', 'trail-morrow']),
+}
+
+ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
+
+
+# ======================================================================================= Blender
+
+def blender_main(cfg):
+    import bmesh
+    import bpy
+    import numpy as np
+    from bpy_extras.object_utils import world_to_camera_view
+    from mathutils import Euler, Matrix, Quaternion, Vector
+
+    out = Path(cfg['out'])
+    raw = out / 'raw'
+    raw.mkdir(parents=True, exist_ok=True)
+
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene = bpy.context.scene
+    scene.render.resolution_x, scene.render.resolution_y = W, H
+    scene.render.resolution_percentage = 100
+    scene.render.engine = 'CYCLES'
+    scene.cycles.samples = cfg['samples']
+    scene.cycles.use_denoising = True
+    scene.cycles.max_bounces = 4
+    scene.cycles.transparent_max_bounces = 16
+    scene.view_settings.view_transform = 'AgX'
+    scene.view_settings.look = 'AgX - Base Contrast'
+    try:
+        prefs = bpy.context.preferences.addons['cycles'].preferences
+        for kind in ('OPTIX', 'CUDA'):
+            try:
+                prefs.compute_device_type = kind
+                prefs.get_devices()
+                if any(d.type == kind for d in prefs.devices):
+                    for d in prefs.devices:
+                        d.use = d.type == kind
+                    scene.cycles.device = 'GPU'
+                    break
+            except TypeError:
+                continue
+    except KeyError:
+        pass
+
+    def sock(sockets, name, kind='RGBA'):
+        return next(x for x in sockets if x.name == name and x.type == kind)
+
+    def link(obj, coll=None):
+        (coll or scene.collection).objects.link(obj)
+        return obj
+
+    def emission_mat(name, rgb, strength, fade=None):
+        """Emission; fade='z' fades it out along the object's generated Z (plumes, trails)."""
+        mat = bpy.data.materials.new(name)
+        mat.use_nodes = True
+        nt = mat.node_tree
+        nt.nodes.remove(nt.nodes['Principled BSDF'])
+        em = nt.nodes.new('ShaderNodeEmission')
+        em.inputs['Color'].default_value = (*rgb, 1)
+        em.inputs['Strength'].default_value = strength
+        outn = nt.nodes['Material Output']
+        if fade is None:
+            nt.links.new(em.outputs[0], outn.inputs['Surface'])
+            return mat
+        tc = nt.nodes.new('ShaderNodeTexCoord')
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+        nt.links.new(tc.outputs['Generated'], sep.inputs[0])
+        inv = nt.nodes.new('ShaderNodeMath')
+        inv.operation = 'SUBTRACT'
+        inv.inputs[0].default_value = 1.0
+        nt.links.new(sep.outputs['Z'], inv.inputs[1])
+        pw = nt.nodes.new('ShaderNodeMath')
+        pw.operation = 'POWER'
+        pw.inputs[1].default_value = fade
+        nt.links.new(inv.outputs[0], pw.inputs[0])
+        clear = nt.nodes.new('ShaderNodeBsdfTransparent')
+        mix = nt.nodes.new('ShaderNodeMixShader')
+        nt.links.new(pw.outputs[0], mix.inputs['Fac'])
+        nt.links.new(clear.outputs[0], mix.inputs[1])
+        nt.links.new(em.outputs[0], mix.inputs[2])
+        nt.links.new(mix.outputs[0], outn.inputs['Surface'])
+        return mat
+
+    def principled(name, rgb, rough=.5, metal=.3, alpha=1.0):
+        mat = bpy.data.materials.new(name)
+        mat.use_nodes = True
+        p = mat.node_tree.nodes['Principled BSDF']
+        p.inputs['Base Color'].default_value = (*rgb, 1)
+        p.inputs['Roughness'].default_value = rough
+        p.inputs['Metallic'].default_value = metal
+        p.inputs['Alpha'].default_value = alpha
+        return mat
+
+    # ---------------------------------------------------------------------------- world, sun
+    world = bpy.data.worlds.new('Asharu | space')
+    scene.world = world
+    world.use_nodes = True
+    world.node_tree.nodes['Background'].inputs['Color'].default_value = (.0008, .0009, .0014, 1)
+    sun_dir = Vector((math.cos(math.radians(SUN_EL)) * math.cos(math.radians(SUN_AZ)),
+                      math.cos(math.radians(SUN_EL)) * math.sin(math.radians(SUN_AZ)),
+                      math.sin(math.radians(SUN_EL))))
+    sun = link(bpy.data.objects.new('Asharu | Corvus', bpy.data.lights.new('Asharu | Corvus', 'SUN')))
+    sun.data.energy = 4.6
+    sun.data.color = (1.0, .96, .88)
+    sun.data.angle = math.radians(.5)
+    sun.rotation_euler = sun_dir.to_track_quat('Z', 'Y').to_euler()
+
+    # ---------------------------------------------------------------------------- planet
+    centre = Vector((0, 0, -(R + ALT)))
+
+    def cap(name, radius, max_colat_deg, rings, segments):
+        bm = bmesh.new()
+        top = bm.verts.new((0, 0, radius))
+        prev = None
+        for i in range(1, rings + 1):
+            th = math.radians(max_colat_deg) * (i / rings) ** 1.0
+            ring = [bm.verts.new((radius * math.sin(th) * math.cos(2 * math.pi * j / segments),
+                                  radius * math.sin(th) * math.sin(2 * math.pi * j / segments),
+                                  radius * math.cos(th))) for j in range(segments)]
+            for j in range(segments):
+                k = (j + 1) % segments
+                if prev is None:
+                    bm.faces.new((top, ring[j], ring[k]))
+                else:
+                    bm.faces.new((prev[j], ring[j], ring[k], prev[k]))
+            prev = ring
+        me = bpy.data.meshes.new(name)
+        bm.to_mesh(me)
+        bm.free()
+        for p in me.polygons:
+            p.use_smooth = True
+        obj = link(bpy.data.objects.new(name, me))
+        obj.location = centre
+        return obj
+
+    ground = cap('Asharu | surface', R, 24.0, 420, 1024)
+    gm = bpy.data.materials.new('Asharu | desert')
+    gm.use_nodes = True
+    nt = gm.node_tree
+    bsdf = nt.nodes['Principled BSDF']
+    bsdf.inputs['Roughness'].default_value = .95
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    # Map lookup by direction from the centre: the game's equirectangular desert01.jpg (scarps
+    # and canyons between dune seas), turned so world north is the map's north and the battle
+    # sits over latitude MAP_LAT, longitude MAP_LON.
+    turn = nt.nodes.new('ShaderNodeVectorRotate')
+    turn.rotation_type = 'Z_AXIS'
+    turn.inputs['Angle'].default_value = math.radians(90)
+    nt.links.new(tc.outputs['Object'], turn.inputs['Vector'])
+    rot = nt.nodes.new('ShaderNodeVectorRotate')
+    rot.rotation_type = 'EULER_XYZ'
+    rot.inputs['Rotation'].default_value = (0, math.radians(90 - MAP_LAT), math.radians(MAP_LON))
+    nt.links.new(turn.outputs[0], rot.inputs['Vector'])
+    nrm = nt.nodes.new('ShaderNodeVectorMath')
+    nrm.operation = 'NORMALIZE'
+    nt.links.new(rot.outputs[0], nrm.inputs[0])
+    sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+    nt.links.new(nrm.outputs[0], sep.inputs[0])
+
+    def mnode(op, a, b=None, val=None):
+        n = nt.nodes.new('ShaderNodeMath')
+        n.operation = op
+        for idx, x in enumerate((a, b)):
+            if x is None:
+                continue
+            if isinstance(x, (int, float)):
+                n.inputs[idx].default_value = x
+            else:
+                nt.links.new(x, n.inputs[idx])
+        return n.outputs[0]
+
+    lon = mnode('ARCTAN2', sep.outputs['Y'], sep.outputs['X'])
+    lat = mnode('ARCSINE', sep.outputs['Z'])
+    u = mnode('ADD', mnode('DIVIDE', lon, 2 * math.pi), .5)
+    v = mnode('ADD', mnode('DIVIDE', lat, math.pi), .5)
+    uv = nt.nodes.new('ShaderNodeCombineXYZ')
+    nt.links.new(u, uv.inputs['X'])
+    nt.links.new(v, uv.inputs['Y'])
+    img = nt.nodes.new('ShaderNodeTexImage')
+    img.image = bpy.data.images.load(str(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
+    img.interpolation = 'Cubic'
+    nt.links.new(uv.outputs[0], img.inputs['Vector'])
+    # Relief at the scales a 250 km orbit resolves: basins (60 km), ridges (8 km), dune fields.
+    def noise(scale, detail=6, rough=.55):
+        n = nt.nodes.new('ShaderNodeTexNoise')
+        n.inputs['Scale'].default_value = scale
+        n.inputs['Detail'].default_value = detail
+        n.inputs['Roughness'].default_value = rough
+        nt.links.new(tc.outputs['Object'], n.inputs['Vector'])
+        return n.outputs['Fac']
+    basin = noise(1.6e-5)
+    mid = noise(4.5e-5, 8, .6)
+    ridge = noise(1.3e-4, 8, .62)
+    fine = noise(1.2e-3, 4, .5)
+    vein = mnode('POWER', mnode('SUBTRACT', 1.0, mnode('MULTIPLY', mnode('ABSOLUTE', mnode('SUBTRACT', noise(2.2e-4, 6, .55), .5)), 2.0)), 14.0)
+    wave = nt.nodes.new('ShaderNodeTexWave')
+    wave.inputs['Scale'].default_value = 6e-4
+    wave.inputs['Distortion'].default_value = 6.0
+    nt.links.new(tc.outputs['Object'], wave.inputs['Vector'])
+    shade = mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', basin, .5), 1.1),
+                  mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', ridge, .5), 1.6),
+                        mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', fine, .5), .35),
+                              mnode('MULTIPLY', mnode('SUBTRACT', wave.outputs['Fac'], .5), .12))))
+    shade = mnode('ADD', shade, mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', mid, .5), 1.2),
+                                        mnode('MULTIPLY', vein, -.55)))
+    gain = mnode('MAXIMUM', mnode('ADD', 1.0, shade), .15)
+    tint = nt.nodes.new('ShaderNodeMix')
+    tint.data_type = 'RGBA'
+    tint.blend_type = 'MULTIPLY'
+    tint.inputs['Factor'].default_value = 1.0
+    nt.links.new(img.outputs['Color'], sock(tint.inputs, 'A'))
+    cmb = nt.nodes.new('ShaderNodeCombineColor')
+    for ch in ('Red', 'Green', 'Blue'):
+        nt.links.new(gain, cmb.inputs[ch])
+    nt.links.new(cmb.outputs[0], sock(tint.inputs, 'B'))
+    dim = nt.nodes.new('ShaderNodeMix')
+    dim.data_type = 'RGBA'
+    dim.blend_type = 'MULTIPLY'
+    dim.inputs['Factor'].default_value = 1.0
+    nt.links.new(sock(tint.outputs, 'Result'), sock(dim.inputs, 'A'))
+    sock(dim.inputs, 'B').default_value = (.78, .7, .62, 1)
+    nt.links.new(sock(dim.outputs, 'Result'), bsdf.inputs['Base Color'])
+    bump = nt.nodes.new('ShaderNodeBump')
+    bump.inputs['Strength'].default_value = .35
+    nt.links.new(mnode('ADD', ridge, mnode('MULTIPLY', fine, .5)), bump.inputs['Height'])
+    nt.links.new(bump.outputs[0], bsdf.inputs['Normal'])
+    ground.data.materials.append(gm)
+
+    air = cap('Asharu | air', R + 14e3, 25.0, 300, 1024)
+    am = bpy.data.materials.new('Asharu | air')
+    am.use_nodes = True
+    nt2 = am.node_tree
+    nt2.nodes.remove(nt2.nodes['Principled BSDF'])
+    lw = nt2.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    p3 = nt2.nodes.new('ShaderNodeMath')
+    p3.operation = 'POWER'
+    p3.inputs[1].default_value = 9.0
+    nt2.links.new(lw.outputs['Facing'], p3.inputs[0])
+    em = nt2.nodes.new('ShaderNodeEmission')
+    em.inputs['Color'].default_value = (.78, .74, .68, 1)
+    em.inputs['Strength'].default_value = 1.4
+    clear = nt2.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt2.nodes.new('ShaderNodeMixShader')
+    nt2.links.new(p3.outputs[0], mix.inputs['Fac'])
+    nt2.links.new(clear.outputs[0], mix.inputs[1])
+    nt2.links.new(em.outputs[0], mix.inputs[2])
+    nt2.links.new(mix.outputs[0], nt2.nodes['Material Output'].inputs['Surface'])
+    air.data.materials.append(am)
+    air.visible_shadow = False
+
+    # ---------------------------------------------------------------------------- hull library
+    library = {}      # game/finished key -> dict(coll, mpu, engines [(pos, dir, radius, style)], length_m)
+
+    def excluded(coll):
+        bpy.context.view_layer.layer_collection.children[coll.name].exclude = True
+        return coll
+
+    def append(path, name):
+        with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+            dst.collections = [name]
+        coll = dst.collections[0]
+        scene.collection.children.link(coll)
+        return excluded(coll)
+
+    def tinted_copy(coll, rgb, label):
+        new = bpy.data.collections.new(coll.name + ' | ' + label)
+        scene.collection.children.link(new)
+        excluded(new)
+        mats = {}
+        remap = {}
+        for obj in coll.all_objects:
+            o2 = obj.copy()
+            if obj.data is not None and hasattr(obj.data, 'materials'):
+                o2.data = obj.data.copy()
+                for i, m in enumerate(o2.data.materials):
+                    if m is None:
+                        continue
+                    if m.name not in mats:
+                        m2 = m.copy()
+                        m2.name = m.name + ' | ' + label
+                        if m2.use_nodes:
+                            for n in m2.node_tree.nodes:
+                                if n.type == 'BSDF_PRINCIPLED':
+                                    base = n.inputs['Base Color']
+                                    mul = m2.node_tree.nodes.new('ShaderNodeMix')
+                                    mul.data_type = 'RGBA'
+                                    mul.blend_type = 'MULTIPLY'
+                                    mul.inputs['Factor'].default_value = .85
+                                    sock(mul.inputs, 'B').default_value = (*rgb, 1)
+                                    if base.is_linked:
+                                        m2.node_tree.links.new(base.links[0].from_socket, sock(mul.inputs, 'A'))
+                                    else:
+                                        sock(mul.inputs, 'A').default_value = base.default_value
+                                    m2.node_tree.links.new(sock(mul.outputs, 'Result'), base)
+                        mats[m.name] = m2
+                    o2.data.materials[i] = mats[m.name]
+            remap[obj] = o2
+            new.objects.link(o2)
+        for obj, o2 in remap.items():
+            if obj.parent in remap:
+                o2.parent = remap[obj.parent]
+        return new
+
+    def finished(key):
+        f = roster.FINISHED[key]
+        if 'manifest' in f:
+            m = json.loads((INPUTS / f['manifest']).read_text())
+            coll = append(INPUTS / f['file'], m['append_collection'])
+            eng = [(Vector(e['mouth']), Vector(e['axis']), e['radius'], e.get('style', 'LOW_TECH'))
+                   for e in m['engines'] if e.get('role') == 'main drive']
+            return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'])
+        if 'geometry' in f:
+            g = json.loads((INPUTS / f['geometry']).read_text())
+            coll = append(INPUTS / f['file'], g['asset']['collection'])
+            eng = [(Vector(e['location']), Vector(e['exhaust_direction']), e['mouth_radius'], e['style'])
+                   for e in g['engines']]
+            return dict(coll=coll, mpu=g['metres_per_unit'], engines=eng, length_m=f['length_m'])
+        coll = append(INPUTS / f['file'], f['collection'])
+        g = json.loads((PROLOGUE / 'hound-geometry' / 'geometry.json').read_text())
+        eng = [(Vector(e['location']), Vector((-1, 0, 0)), e['bell_radius'], e['style']) for e in g['engines']]
+        return dict(coll=coll, mpu=f['mpu'], engines=eng, length_m=f['length_m'])
+
+    def standin(game, length_m=None):
+        """The sprite's silhouette as a lens-shaped slab in hull units (one sprite px per unit,
+        about the .ship centre), painted with the sprite, sized by option C."""
+        spec = roster.game_spec(game)
+        im = bpy.data.images.load(spec['sprite'], check_existing=True)
+        w, h = im.size
+        px = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)[::-1]   # row 0 = top
+        alpha = px[:, :, 3] > .5
+        area = int(alpha.sum())
+        rows = alpha.any(1).nonzero()[0]
+        length_px = rows.max() - rows.min() + 1
+        if length_m is None:
+            mpu, units3, cls = roster.option_c(spec, area)
+        else:
+            cls = 'capital'
+            mpu = length_m / length_px
+            units3 = roster.ship_scale.estimate_units3(area, cls)
+        step = 2 if max(w, h) < 260 else 3
+        hh, ww = h // step, w // step
+        cells = alpha[:hh * step, :ww * step].reshape(hh, step, ww, step).mean(axis=(1, 3)) > .5
+        # Distance from the edge, in cells (4-neighbour erosion).
+        d = np.zeros(cells.shape, dtype=np.float32)
+        cur = cells.copy()
+        while cur.any():
+            d += cur
+            pad = np.pad(cur, 1)
+            cur = cur & pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:]
+        soft = max(2.0, d.max() * .55)
+        prof = np.clip((d - 1) / soft, 0, 1) ** .35
+        cell_area = step * step
+        vol_per_h = (prof.sum() * (1 + .7)) * cell_area
+        h0 = 2.0 * units3 / vol_per_h if vol_per_h > 0 else 1.0   # x2: reads as a hull beside built models
+        cx, cy = spec['centre']
+        bm = bmesh.new()
+        uvl = bm.loops.layers.uv.new('UVMap')
+        top, bot, uvs = {}, {}, {}
+        for r, c in zip(*np.nonzero(cells)):
+            pxx, pyy = c * step + step / 2, r * step + step / 2
+            x = (h - pyy) - cy
+            y = cx - pxx
+            z = prof[r, c] * h0
+            top[(r, c)] = bm.verts.new((x, y, z))
+            bot[(r, c)] = top[(r, c)] if z == 0 else bm.verts.new((x, y, -.7 * z))
+            uvs[(r, c)] = (pxx / w, 1 - pyy / h)
+        for (r, c) in list(top):
+            q = [(r, c), (r + 1, c), (r + 1, c + 1), (r, c + 1)]
+            if not all(k in top for k in q):
+                continue
+            for layer, order in ((top, q), (bot, q[::-1])):
+                vs = [layer[k] for k in order]
+                if len(set(vs)) < 3:
+                    continue
+                try:
+                    f = bm.faces.new(list(dict.fromkeys(vs)))
+                except ValueError:
+                    continue
+                for loop in f.loops:
+                    k = next(kk for kk in order if layer[kk] is loop.vert)
+                    loop[uvl].uv = uvs[k]
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+        me = bpy.data.meshes.new('Stand-in | ' + game)
+        bm.to_mesh(me)
+        bm.free()
+        for p in me.polygons:
+            p.use_smooth = True
+        mat = bpy.data.materials.new('Stand-in | ' + game)
+        mat.use_nodes = True
+        nt = mat.node_tree
+        tex = nt.nodes.new('ShaderNodeTexImage')
+        tex.image = im
+        p = nt.nodes['Principled BSDF']
+        nt.links.new(tex.outputs['Color'], p.inputs['Base Color'])
+        p.inputs['Roughness'].default_value = .55
+        p.inputs['Metallic'].default_value = .35
+        me.materials.append(mat)
+        coll = bpy.data.collections.new('Stand-in | ' + game)
+        scene.collection.children.link(coll)
+        excluded(coll)
+        coll.objects.link(bpy.data.objects.new(me.name, me))
+        eng = []
+        for e in spec['engines']:
+            a = math.radians(e['angle'])
+            eng.append((Vector((e['location'][0], e['location'][1], 0)), Vector((math.cos(a), math.sin(a), 0)),
+                        e['width'] * .32, e['style']))
+        return dict(coll=coll, mpu=mpu, engines=eng, length_m=length_px * mpu, cls=cls)
+
+    def hull(m):
+        k = m['finished'] + ('|tint' if m.get('tint') else '') if m.get('finished') else m['game']
+        if k in library:
+            return library[k]
+        if m.get('finished'):
+            base_key = m['finished']
+            if base_key not in library:
+                library[base_key] = finished(base_key)
+            if m.get('tint'):
+                b = library[base_key]
+                library[k] = {**b, 'coll': tinted_copy(b['coll'], m['tint'], 'pirate')}
+        else:
+            library[k] = standin(m['game'], m.get('published_m'))
+        return library[k]
+
+    members = {m['key']: m for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES}
+
+    # ---------------------------------------------------------------------------- plumes, fx
+    plume_me = bpy.data.meshes.new('Plume unit')
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=False, segments=16, radius1=1.0, radius2=.35, depth=1.0)
+    bmesh.ops.translate(bm, verts=bm.verts[:], vec=(0, 0, .5))
+    bm.to_mesh(plume_me)
+    bm.free()
+    box_me = bpy.data.meshes.new('Box unit')
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=2.0)
+    bm.to_mesh(box_me)
+    bm.free()
+    bead_me = bpy.data.meshes.new('Bead unit')
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+    bm.to_mesh(bead_me)
+    bm.free()
+    STYLE_RGB = {'LOW_TECH': (1.0, .55, .25), 'MIDLINE': (1.0, .8, .45), 'HIGH_TECH': (.45, .7, 1.0)}
+    plume_mats = {s: emission_mat('Plume ' + s, c, 14.0, fade=1.6) for s, c in STYLE_RGB.items()}
+    bead_mats = {s: emission_mat('Drive bead ' + s, c, 40.0) for s, c in STYLE_RGB.items()}
+    tracer_mat = emission_mat('Tracer', (1.0, .62, .3), 18.0)
+    missile_mat = emission_mat('Missile', (1.0, .85, .6), 40.0)
+    blast_mat = emission_mat('Blast', (1.0, .5, .18), 7.0)
+    fire_mat = emission_mat('Fire', (1.0, .4, .12), 12.0, fade=1.2)
+    flare_mat = emission_mat('Flare', (1.0, .9, .7), 60.0)
+    plasma_mat = emission_mat('Entry plasma', (1.0, .62, .32), 30.0, fade=1.4)
+    smoke_mat = principled('Smoke', (.12, .11, .1), rough=1, metal=0, alpha=.35)
+    debris_mat = principled('Debris', (.08, .08, .08), rough=.7, metal=.5)
+    plume_me.materials.append(tracer_mat)
+    bead_me.materials.append(tracer_mat)
+    box_me.materials.append(tracer_mat)
+
+    stage = bpy.data.collections.new('Stage')
+    scene.collection.children.link(stage)
+    placed = {}
+
+    def frame_of(loc, heading, pitch, roll):
+        q = (Quaternion((0, 0, 1), math.radians(heading)) @ Quaternion((0, 1, 0), -math.radians(pitch))
+             @ Quaternion((1, 0, 0), math.radians(roll)))
+        return Matrix.Translation(Vector(loc)) @ q.to_matrix().to_4x4()
+
+    def place(key, spec):
+        x, y, z, hd, pt, rl, thr = spec
+        m = members[key]
+        lib = hull(m)
+        e = bpy.data.objects.new('Ship | ' + key, None)
+        e.instance_type = 'COLLECTION'
+        e.instance_collection = lib['coll']
+        mw = frame_of((x, y, z), hd, pt, rl)
+        e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
+        link(e, stage)
+        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'])
+        if thr <= 0:
+            return
+        for pos, dirn, rad, style in lib['engines']:
+            style = style if style in STYLE_RGB else 'LOW_TECH'
+            p = mw @ (pos * lib['mpu'])
+            dw = (mw.to_3x3() @ dirn).normalized()
+            r = max(rad * lib['mpu'], 1.0)
+            obj('Drive bead | ' + key, bead_me, bead_mats[style], Matrix.Translation(p) @ Matrix.Scale(r * .9, 4))
+            q = dw.to_track_quat('Z', 'Y')
+            L = r * (4 + 8 * thr)
+            obj('Drive plume | ' + key, plume_me, plume_mats[style], Matrix.Translation(p) @ q.to_matrix().to_4x4()
+                @ Matrix.Diagonal((r * .9, r * .9, L, 1)))
+
+    def at(key, local=(0, 0, 0)):
+        """A point on a placed ship, local in metres in its own frame."""
+        return placed[key]['matrix'] @ Vector(local)
+
+    def obj(name, me, mat, matrix):
+        o = bpy.data.objects.new(name, me)
+        o.matrix_world = matrix
+        link(o, stage)
+        o.material_slots[0].link = 'OBJECT'
+        o.material_slots[0].material = mat
+        o.visible_shadow = mat in (smoke_mat, debris_mat)   # light and plasma cast no shadow
+        return o
+
+    rng = np.random.default_rng(7)
+
+    def segment(p0, p1, radius, mat, name):
+        d = p1 - p0
+        q = d.normalized().to_track_quat('Z', 'Y')
+        obj(name, plume_me, mat, Matrix.Translation(p0) @ q.to_matrix().to_4x4()
+            @ Matrix.Diagonal((radius, radius, d.length, 1)))
+
+    def tracer(a, b, local=None, n=6):
+        p0 = at(a)
+        p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
+        for i in range(n):
+            f0 = rng.uniform(.08, .95)
+            f1 = min(1.0, f0 + 30.0 / (p1 - p0).length)
+            segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
+
+    def missiles(a, b, n=5):
+        p0, p1 = at(a), at(b)
+        for i in range(n):
+            f = rng.uniform(.3, .9)
+            p = p0.lerp(p1, f) + Vector(rng.normal(0, 60, 3))
+            obj('Missile', bead_me, missile_mat, Matrix.Translation(p) @ Matrix.Scale(2.2, 4))
+            back = (p0 - p1).normalized()
+            segment(p, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
+
+    def blast(p, radius):
+        obj('Blast', bead_me, blast_mat, Matrix.Translation(p) @ Matrix.Scale(radius * .55, 4))
+        for i in range(9):
+            o = Vector(rng.normal(0, radius * .45, 3))
+            obj('Blast lobe', bead_me, blast_mat, Matrix.Translation(p + o) @ Matrix.Scale(radius * rng.uniform(.2, .45), 4))
+        obj('Blast smoke', bead_me, smoke_mat, Matrix.Translation(p) @ Matrix.Scale(radius * 1.15, 4))
+
+    def debris(p, spread, n=40):
+        for i in range(n):
+            o = Vector(rng.normal(0, spread, 3))
+            s = rng.uniform(.6, 3.5)
+            m = Matrix.Translation(p + o) @ Euler(rng.uniform(0, 6.3, 3)).to_matrix().to_4x4() @ Matrix.Diagonal((s, s * .5, s * .2, 1))
+            obj('Debris', bead_me, debris_mat, m)
+
+    def fire(p, toward):
+        for i in range(4):
+            q = (toward + Vector(rng.normal(0, .25, 3))).normalized().to_track_quat('Z', 'Y')
+            obj('Fire', plume_me, fire_mat, Matrix.Translation(p) @ q.to_matrix().to_4x4()
+                @ Matrix.Diagonal((5, 5, rng.uniform(18, 35), 1)))
+
+    def smoke(p, toward, n=10):
+        for i in range(n):
+            f = i / n
+            o = toward * (20 + 180 * f) + Vector(rng.normal(0, 6 + 20 * f, 3))
+            obj('Smoke', bead_me, smoke_mat, Matrix.Translation(p + o) @ Matrix.Scale(8 + 25 * f, 4))
+
+    def flares(key):
+        for i in range(10):
+            p = at(key, (rng.uniform(-60, 40), rng.choice((-1, 1)) * rng.uniform(50, 120), rng.uniform(-10, 40)))
+            obj('Flare', bead_me, flare_mat, Matrix.Translation(p) @ Matrix.Scale(1.6, 4))
+
+    def entry_trails(labels3d):
+        """Two plasma trails 100-180 km up, 150-350 km downrange and heading north, from orbit."""
+        head_mat = emission_mat('Plasma head', (1, .85, .6), 60.0)
+        for name, side, scale in (('trail-colossus', 0.0, 1.0), ('trail-morrow', -.0045, .7)):
+            pts = []
+            for i in range(31):
+                f = i / 30
+                th = (150e3 + 650e3 * f) / R              # downrange arc, prograde (north-east)
+                alt = 150e3 - 105e3 * f ** .8
+                sd = side + .0035 * f                      # a slight drift off the track
+                dirn = Vector((math.sin(th), sd, math.cos(th))).normalized()
+                pts.append(centre + dirn * (R + alt))
+            # Faint where the heating starts, brightest and widest at the ships at the far end.
+            for i in range(len(pts) - 1):
+                f = i / (len(pts) - 1)
+                rad = (250 + 1600 * f ** 1.5) * scale
+                segment(pts[i + 1], pts[i], rad, plasma_mat, 'Plasma ' + name)
+            head = pts[-1]
+            obj('Plasma head', bead_me, head_mat, Matrix.Translation(head) @ Matrix.Scale(2200 * scale, 4))
+            labels3d[name] = head
+
+    def platform(p):
+        """The derelict Asharu platform: bulk-carrier segments welded between emptied tanks."""
+        mat = principled('Platform', (.32, .3, .28), rough=.75, metal=.4)
+        base = Vector(p)
+        for i in range(6):
+            o = Vector((i * 110 - 280, rng.uniform(-8, 8), rng.uniform(-6, 6)))
+            rot = Euler((0, 0, rng.uniform(-.08, .08))).to_matrix().to_4x4()
+            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)))
+        for i in range(18):
+            o = Vector((rng.uniform(-320, 300), rng.choice((-1, 1)) * rng.uniform(40, 75), rng.uniform(-30, 30)))
+            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4))
+        for side in (-1, 1):
+            obj('Platform collector', box_me, mat, Matrix.Translation(base + Vector((0, side * 190, 0)))
+                @ Matrix.Diagonal((150, 70, 1.5, 1)))
+        obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
+            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)))
+
+    def clear_stage():
+        for o in list(stage.objects):
+            bpy.data.objects.remove(o)
+        placed.clear()
+
+    cam = link(bpy.data.objects.new('Camera', bpy.data.cameras.new('Camera')))
+    scene.camera = cam
+    cam.data.sensor_fit = 'HORIZONTAL'
+    cam.data.sensor_width = 36.0
+    cam.data.clip_start = 2.0
+    cam.data.clip_end = 4.0e6
+
+    def aim(loc, target=None, lens=35, look=None, roll=0.0):
+        cam.location = Vector(loc)
+        d = (Vector(target) - Vector(loc)) if target is not None else Vector(look)
+        cam.rotation_mode = 'QUATERNION'
+        cam.rotation_quaternion = d.normalized().to_track_quat('-Z', 'Y') @ Quaternion((0, 0, 1), math.radians(roll))
+        cam.data.lens = lens
+        cam.data.type = 'PERSP'
+        bpy.context.view_layer.update()
+
+    def project(p):
+        v = world_to_camera_view(scene, cam, Vector(p))
+        if v.z <= 0 or not (-.05 <= v.x <= 1.05 and -.05 <= v.y <= 1.05):
+            return None
+        return [round(v.x * W, 1), round((1 - v.y) * H, 1)]
+
+    def ship_label(key):
+        if key not in placed:
+            return None
+        pl = placed[key]
+        p = pl['matrix'].translation
+        # Below the hull's footprint on screen: drop the point by half the hull's length.
+        dn = cam.matrix_world.to_3x3() @ Vector((0, -1, 0))
+        return project(p + dn * pl['length'] * .45)
+
+    # ------------------------------------------------------------------------- roster sheets
+    def bounds(lib):
+        """(length, beam, height) of a library hull in metres, from its collection's objects."""
+        lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
+        for o in lib['coll'].all_objects:
+            if o.type != 'MESH':
+                continue
+            for c in o.bound_box:
+                w = mat_chain(o) @ Vector(c)
+                lo = Vector(map(min, lo, w))
+                hi = Vector(map(max, hi, w))
+        d = (hi - lo) * lib['mpu']
+        return d.x, d.y, d.z
+
+    def mat_chain(o):
+        m = o.matrix_basis.copy()
+        while o.parent is not None:
+            m = o.parent.matrix_basis @ o.matrix_parent_inverse @ m
+            o = o.parent
+        return m
+
+    def roster_sheet(kf):
+        """Both fleets in rows at true relative size, with the scale references: r1 from above
+        (the game's own view), r2 broadside. Orthographic, planet hidden, studio-lit."""
+        ground.hide_render = True
+        air.hide_render = True
+        sun.data.energy = 4.0
+        sun.rotation_euler = Vector((.35, -.55, .76)).to_track_quat('Z', 'Y').to_euler()
+        rows = []
+        for fleet, ms in (('merchant', roster.MERCHANT), ('pirate', roster.PIRATE), ('reference', roster.REFERENCES)):
+            seen, row = set(), []
+            for m in ms:
+                tag = (m['game'], bool(m.get('tint')))
+                if tag in seen:
+                    continue
+                seen.add(tag)
+                row.append(m)
+            rows.append(row)
+        gap = 22.0
+        width = max(sum(hull(m)['length_m'] for m in row) + gap * (len(row) - 1) for row in rows)
+        beam = [max(bounds(hull(m))[1 if kf == 'r1' else 2] for m in row) for row in rows]
+        heights = [b + 70.0 for b in beam]                 # the hull plus room for its label
+        ortho = max(width * 1.06, sum(heights) * 1.25 * W / H)
+        top = sum(heights) / 2 + 20.0
+        lab = {}
+        for ri, row in enumerate(rows):
+            total = sum(hull(m)['length_m'] for m in row) + gap * (len(row) - 1)
+            x = -total / 2
+            yrow = top - sum(heights[:ri]) - beam[ri] / 2
+            for m in row:
+                L = hull(m)['length_m']
+                cxm = x + L / 2
+                if kf == 'r1':
+                    loc = (cxm, yrow, 0)
+                    place(m['key'], (*loc, 0, 0, 0, 0))
+                else:
+                    loc = (cxm, 0, yrow)
+                    place(m['key'], (*loc, 0, 0, 0, 0))
+                lab[m['key']] = dict(name=m['name'], length_m=round(L, 1), row=ri,
+                                     basis=roster.size_row(m)['basis'], at=None, loc=list(loc))
+                x += L + gap
+        if kf == 'r1':
+            cam.location = (0, 0, 2000)
+            cam.rotation_mode = 'XYZ'
+            cam.rotation_euler = (0, 0, 0)
+        else:
+            cam.location = (0, -2000, 0)
+            cam.rotation_mode = 'XYZ'
+            cam.rotation_euler = (math.radians(90), 0, 0)
+        cam.data.type = 'ORTHO'
+        cam.data.ortho_scale = ortho
+        bpy.context.view_layer.update()
+        for k, v in lab.items():
+            pl = placed[k]
+            p = pl['matrix'].translation
+            b = beam[lab[k]['row']] / 2 + 8
+            off = Vector((0, -b, 0)) if kf == 'r1' else Vector((0, 0, -b))
+            v['at'] = project(p + off)
+        lab['_metres_per_px'] = ortho / W
+        world.node_tree.nodes['Background'].inputs['Color'].default_value = (.035, .037, .042, 1)
+        return lab
+
+    labels = {}
+    for kf in cfg['frames']:
+        clear_stage()
+        air.hide_render = False
+        ground.hide_render = False
+        sun.data.energy = 4.6
+        sun.rotation_euler = sun_dir.to_track_quat('Z', 'Y').to_euler()
+        world.node_tree.nodes['Background'].inputs['Color'].default_value = (.0008, .0009, .0014, 1)
+        if kf in KEYFRAMES:
+            spec = KEYFRAMES[kf]
+            for key, sp in spec['ships'].items():
+                place(key, sp)
+            extra3d = {}
+            if spec.get('platform'):
+                platform(spec['platform'])
+                extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
+            for fx in spec.get('fx', ()):
+                kind = fx[0]
+                if kind == 'tracer':
+                    tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None)
+                elif kind == 'missiles':
+                    missiles(fx[1], fx[2])
+                elif kind == 'blast':
+                    blast(at(fx[1]), fx[2])
+                elif kind == 'blast_on':
+                    blast(at(fx[1], fx[3]), fx[2])
+                elif kind == 'fire_on':
+                    fire(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector((-1, .4, .3))).normalized())
+                elif kind == 'smoke':
+                    smoke(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector((-1, .2, .5))).normalized())
+                elif kind == 'debris':
+                    debris(at(fx[1], fx[3]) if len(fx) > 3 else at(fx[1]), fx[2])
+                elif kind == 'flares':
+                    flares(fx[1])
+                elif kind == 'entry_trails':
+                    entry_trails(extra3d)
+            c = spec['camera']
+            aim(c['loc'], c.get('target'), c['lens'], c.get('look'))
+            lab = {}
+            for key in spec['labels']:
+                if key in extra3d:
+                    lab[key] = project(extra3d[key])
+                else:
+                    lab[key] = ship_label(key)
+            labels[kf] = lab
+        else:
+            labels[kf] = roster_sheet(kf)
+        scene.render.filepath = str(raw / f'{kf}.png')
+        bpy.ops.render.render(write_still=True)
+        print('ASHARU rendered', kf, flush=True)
+    store = raw / 'labels.json'   # a partial render keeps the other frames' labels
+    old = json.loads(store.read_text()) if store.exists() else {}
+    store.write_text(json.dumps({**old, **labels}, indent=1))
+
+
+# ======================================================================================= driver
+
+def git_commit():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=REPO, text=True).strip()
+    except Exception:
+        return 'unknown'
+
+
+def label_frames(run):
+    from PIL import Image, ImageDraw
+    from review_font import review_font
+    labels = json.loads((run / 'raw' / 'labels.json').read_text())
+    f_title, f_cap, f_lab = review_font(30, True), review_font(21), review_font(19, True)
+    names = {m['key']: m['name'] for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES}
+    names.update({'platform': 'Asharu platform (derelict)', 'trail-colossus': 'Colossus', 'trail-morrow': 'Morrow'})
+    pirates = {m['key'] for m in roster.PIRATE}
+    order = [k for k in KEYFRAMES] + list(ROSTER_SHEETS)
+    outputs = []
+    for i, kf in enumerate([k for k in order if (run / 'raw' / f'{k}.png').exists()]):
+        im = Image.open(run / 'raw' / f'{kf}.png').convert('RGB')
+        assert im.size == (W, H), im.size
+        dr = ImageDraw.Draw(im, 'RGBA')
+        lab = labels.get(kf, {})
+        if kf in KEYFRAMES:
+            spec = KEYFRAMES[kf]
+            title = f"{spec['shot']}  {spec['title']}"
+            cap = spec['caption']
+            boxes = []
+            for key, p in sorted(lab.items(), key=lambda kv: (kv[1] or [0, 0])[1]):
+                if not p:
+                    continue
+                col = (255, 140, 110, 255) if key in pirates else (150, 210, 255, 255)
+                txt = names.get(key, key)
+                tw = dr.textlength(txt, font=f_lab)
+                x, y = min(max(p[0] - tw / 2, 8), W - tw - 8), min(max(p[1], 70), H - 120)
+                while any(x < bx1 and x + tw > bx0 and y < by1 and y + 26 > by0 for bx0, by0, bx1, by1 in boxes):
+                    y += 28
+                boxes.append((x - 5, y - 2, x + tw + 5, y + 24))
+                dr.rectangle((x - 5, y - 2, x + tw + 5, y + 24), fill=(0, 0, 0, 140))
+                dr.text((x, y), txt, font=f_lab, fill=col)
+        else:
+            mpp = lab.pop('_metres_per_px')
+            title = 'Fleet roster from above' if kf == 'r1' else 'Fleet roster broadside'
+            cap = ('Every hull at true relative size. Blue: merchant convoy. Red: pirates. Grey: known ships for scale. '
+                   'Sprite-painted slabs are stand-ins at option C size; the rest are the finished models.')
+            for key, v in lab.items():
+                if not v['at']:
+                    continue
+                col = ((255, 140, 110, 255) if v['row'] == 1 else (150, 210, 255, 255) if v['row'] == 0
+                       else (200, 200, 200, 255))
+                for j, txt in enumerate((v['name'], f"{v['length_m']:.0f} m" +
+                                         ('' if v['basis'].startswith('finished') else '  stand-in'))):
+                    tw = dr.textlength(txt, font=f_lab)
+                    dr.text((v['at'][0] - tw / 2, v['at'][1] + j * 22), txt, font=f_lab, fill=col)
+            bar = 100 / mpp
+            dr.rectangle((60, H - 150, 60 + bar, H - 142), fill=(230, 230, 230, 255))
+            dr.text((60, H - 138), '100 m', font=f_lab, fill=(230, 230, 230, 255))
+        dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
+        dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
+        dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))
+        y = H - 82
+        for line in wrap(dr, cap, f_cap, W - 44):
+            dr.text((22, y), line, font=f_cap, fill=(230, 230, 230, 255))
+            y += 27
+        name = f"{i + 2:02d}-{kf}-{slug(title)}.png"
+        im.save(run / name)
+        outputs.append(name)
+    return outputs
+
+
+def slug(s):
+    import re
+    return re.sub(r'[^a-z0-9]+', '-', s.lower()).strip('-')[:40]
+
+
+def wrap(dr, text, font, width):
+    words, lines, cur = text.split(), [], ''
+    for w in words:
+        t = (cur + ' ' + w).strip()
+        if dr.textlength(t, font=font) > width and cur:
+            lines.append(cur)
+            cur = w
+        else:
+            cur = t
+    return lines + [cur]
+
+
+def orbit_diagram(run):
+    """01: where the battle happens. Main picture: Asharu's limb, the convoy's orbit, the battle and
+    the fall to the northern canyons (altitude exaggerated). Inset: the battle itself side-on at
+    kilometre scale, from KEYFRAMES k1 and k2."""
+    from PIL import Image, ImageDraw
+    from review_font import review_font
+    im = Image.new('RGB', (W, H), (8, 9, 14))
+    dr = ImageDraw.Draw(im, 'RGBA')
+    ft, fl, fs = review_font(34, True), review_font(22, True), review_font(20)
+    EX = 2.2                                  # altitude exaggeration
+    KM_PX = 1.6                               # km per pixel
+    x0, ysurf = 260, 880                      # the battle's ground point on screen
+
+    def P(downrange_km, alt_km):
+        """Screen point: downrange along the orbit (north-east to the right), altitude up."""
+        th = downrange_km / (R / 1e3)
+        rr = R / 1e3 + alt_km * EX
+        x = x0 + rr * math.sin(th) / KM_PX
+        y = ysurf + (R / 1e3 - rr * math.cos(th)) / KM_PX
+        return x, y
+
+    ground = [P(d, 0) for d in range(-600, 2800, 20)]
+    dr.polygon(ground + [(W, H), (0, H)], fill=(150, 116, 80))
+    dr.line(ground, fill=(196, 160, 116), width=3)
+    dr.line([P(d, 14) for d in range(-600, 2800, 20)], fill=(200, 190, 170, 90), width=2)
+    orbit = [P(d, ALT / 1e3) for d in range(-600, 2800, 20)]
+    dr.line(orbit, fill=(120, 170, 230), width=3)
+    fall = [P(d, ALT / 1e3 * (1 - (d / 1450) ** 1.25)) for d in range(0, 1451, 10)]
+    dr.line(fall, fill=(255, 180, 110), width=5)
+    glow = [P(d, ALT / 1e3 * (1 - (d / 1450) ** 1.25)) for d in range(650, 1451, 10)]
+    dr.line(glow, fill=(255, 225, 170), width=9)
+    bx, by = P(0, ALT / 1e3)
+    dr.ellipse((bx - 11, by - 11, bx + 11, by + 11), outline=(255, 255, 255), width=3)
+    cx, cy = P(1450, 0)
+    dr.polygon([(cx - 70, cy + 4), (cx - 40, cy - 38), (cx - 18, cy - 14), (cx + 10, cy - 52),
+                (cx + 34, cy - 20), (cx + 64, cy + 4)], fill=(105, 80, 58))
+
+    def label(xy, txt, col, dx=0, dy=-34):
+        tw = dr.textlength(txt, font=fs)
+        dr.text((min(max(xy[0] + dx - tw / 2, 12), W - tw - 12), xy[1] + dy), txt, font=fs, fill=col)
+
+    label((bx, by), 'the battle: low orbit, 250 km up', (255, 255, 255), dx=40, dy=-44)
+    label(P(1700, ALT / 1e3), 'convoy orbit, prograde to the north-east', (120, 170, 230), dx=-60, dy=14)
+    label(P(420, 180), 'Colossus and Morrow lose their orbit', (255, 180, 110), dx=-200, dy=14)
+    label(P(1000, 95), 'entry: plasma trails (S12)', (255, 225, 170), dx=170, dy=-10)
+    label((cx, cy), "northern canyon wall: Basin's valley (the crash: a later shot)", (240, 220, 190), dx=-60, dy=22)
+    dr.text((22, 18), 'Orbital geometry: where the battle is fought', font=ft, fill=(255, 255, 255))
+    for j, line in enumerate((
+            f'Asharu taken as {R / 1e6:.0f},000 km radius, convoy at {ALT / 1e3:.0f} km (altitude drawn {EX:.1f}x). '
+            'Orbit about 6 km/s; the desert slides past beneath at about 1.3 degrees a second.',
+            'From 250 km the horizon sits 17.6 degrees below level: wide shots tilt down to put the limb high in '
+            'frame; looking down, the desert fills the frame behind the ships.',
+            'Sun low (16 degrees up), ahead and to the south-east: long shadows across the dunes, ships side-lit. '
+            'The fall runs about 1,500 km downrange.')):
+        dr.text((22, 64 + j * 28), line, font=fs, fill=(210, 210, 210))
+    # Inset: the battle side-on, km scale, from the k1/k2 placements.
+    ix0, iy0, iw, ih = W - 820, 170, 790, 430
+    dr.rectangle((ix0, iy0, ix0 + iw, iy0 + ih), fill=(14, 16, 24), outline=(90, 96, 110), width=2)
+    dr.text((ix0 + 16, iy0 + 10), 'Inset: the ambush, side-on (1 km grid)', font=fl, fill=(230, 230, 230))
+    sx, sz = 50.0, 50.0                        # px per km
+
+    def Q(xm, zm):
+        return ix0 + iw - 140 + xm / 1e3 * sx, iy0 + 120 - zm / 1e3 * sz
+
+    for k in range(-12, 3):
+        x, _ = Q(k * 1e3, 0)
+        dr.line((x, iy0 + 46, x, iy0 + ih - 10), fill=(40, 44, 56))
+    for k in range(-6, 2):
+        _, y = Q(0, k * 1e3)
+        if iy0 + 46 < y < iy0 + ih:
+            dr.line((ix0 + 4, y, ix0 + iw - 4, y), fill=(40, 44, 56))
+    plat = KEYFRAMES['k2']['platform']
+    px, py = Q(plat[0], plat[2])
+    dr.rectangle((px - 18, py - 7, px + 18, py + 7), fill=(150, 140, 128))
+    label((px, py), 'derelict platform', (200, 190, 175), dy=14)
+    for key, sp in KEYFRAMES['k2']['ships'].items():
+        if key in CONVOY:
+            continue
+        x, y = Q(sp[0], sp[2])
+        dr.ellipse((x - 4, y - 4, x + 4, y + 4), fill=(230, 120, 90))
+    for key, sp in CONVOY.items():
+        x, y = Q(sp[0], sp[2])
+        dr.ellipse((x - 5, y - 5, x + 5, y + 5), fill=(120, 170, 230))
+    a, b = Q(-8.5e3, -3.6e3), Q(-1.8e3, -.4e3)
+    dr.line((a, b), fill=(230, 120, 90), width=3)
+    dr.polygon([(b[0], b[1]), (b[0] - 16, b[1] - 2), (b[0] - 10, b[1] + 13)], fill=(230, 120, 90))
+    label(Q(0, 0), 'convoy column', (120, 170, 230), dx=0, dy=-38)
+    label(Q(-5.2e3, -2.9e3), 'pirates climb out and close', (230, 120, 90), dx=60, dy=40)
+    gx, gy = Q(1.5e3, -4.6e3)
+    dr.line((gx - sx, gy, gx, gy), fill=(230, 230, 230), width=3)
+    dr.text((gx - sx, gy + 6), '1 km', font=fs, fill=(230, 230, 230))
+    dr.text((ix0 + 16, iy0 + ih - 34), 'prograde to the right; the platform sits about 4 km lower and 10 km astern',
+            font=fs, fill=(170, 170, 180))
+    name = '01-orbit-geometry.png'
+    im.save(run / name)
+    return name
+
+
+def check(frames):
+    """Where each ship lands in each key frame, without rendering: centre pixel, length in
+    pixels, and whether it is in frame. The camera math is Blender's track ('-Z', 'Y')."""
+    lengths = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE}
+    for kf in frames:
+        if kf not in KEYFRAMES:
+            continue
+        c = KEYFRAMES[kf]['camera']
+        loc = c['loc']
+        f = [b - a for a, b in zip(loc, c['target'])] if c.get('target') else list(c['look'])
+        n = math.sqrt(sum(x * x for x in f))
+        f = [x / n for x in f]
+        r = [f[1], -f[0], 0.0]
+        n = math.sqrt(sum(x * x for x in r))
+        r = [x / n for x in r]
+        u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]]
+        fpx = c['lens'] / 36.0 * W
+        pitch = math.degrees(math.asin(f[2]))
+        dip = math.degrees(math.acos(R / (R + ALT + loc[2])))
+        hy = H / 2 - fpx * math.tan(math.radians(-dip - pitch))
+        print(f'{kf}: pitch {pitch:.1f}, horizon at y={hy:.0f}' + ('' if 0 <= hy <= H else ' (out of frame)'))
+        for key, sp in KEYFRAMES[kf]['ships'].items():
+            d = [b - a for a, b in zip(loc, sp[:3])]
+            z = sum(a * b for a, b in zip(d, f))
+            if z <= 0:
+                print(f'   {key:12} behind camera')
+                continue
+            x = W / 2 + fpx * sum(a * b for a, b in zip(d, r)) / z
+            y = H / 2 - fpx * sum(a * b for a, b in zip(d, u)) / z
+            inside = 0 <= x <= W and 60 <= y <= H - 90
+            print(f'   {key:12} ({x:6.0f}, {y:6.0f})  {lengths[key] / z * fpx:5.0f} px  {z:6.0f} m'
+                  + ('' if inside else '   OUT'))
+
+
+def main():
+    argv = sys.argv[1:]
+    if '--check' in argv:
+        check(list(KEYFRAMES))
+        return
+
+    def opt(flag, default=None):
+        return argv[argv.index(flag) + 1] if flag in argv else default
+
+    frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
+    run = REPO / 'build' / 'asharu-battle' / date.today().isoformat()
+    run.mkdir(parents=True, exist_ok=True)
+    if '--skip-render' not in argv:
+        from blender_path import BLENDER
+        cfg = dict(out=str(run), frames=frames, samples=int(opt('--samples', 48)))
+        env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
+        subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
+    outputs = [orbit_diagram(run)] + label_frames(run)
+    print('\n'.join(str(run / o) for o in outputs))
+    post = opt('--post')
+    if post:
+        import shutil
+        drive = Path('G:/My Drive/starsector') if os.name == 'nt' else next(
+            Path.home().glob('Library/CloudStorage/GoogleDrive-*/My Drive/starsector'))
+        dest = drive / 'review' / 'cinematic-asharu-battle' / f"{date.today().isoformat()}_{opt('--what', 'blockout')}_{post}"
+        dest.mkdir(parents=True, exist_ok=False)
+        for o in outputs:
+            shutil.copy2(run / o, dest / o)
+        if (run / 'NOTES.md').exists():
+            shutil.copy2(run / 'NOTES.md', dest / 'NOTES.md')
+        print('POSTED', dest)
+
+
+if __name__ == '__main__':
+    try:
+        import bpy  # noqa: F401
+    except ImportError:
+        bpy = None
+    if bpy is not None and os.environ.get('ASHARU_CFG'):
+        blender_main(json.loads(os.environ['ASHARU_CFG']))
+    else:
+        main()
