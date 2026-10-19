@@ -197,6 +197,24 @@ the yard is painted. `industrial-exterior/c5_scene.py` takes either
 Kilo Nine's pad is a low slab (0.4 m) rather than the public berths' 3 m
 plinth, so people and the yard's vehicles step straight onto it.
 
+## The port around it
+
+The public port works around Kilo Nine through C4 and on through C5, so the
+wide image under the title is a working port rather than a set
+(`industrial-exterior/port_life.py`). Vans, box trucks and container trucks run
+the port road, the cross streets and the strip between the warehouse rows,
+with a MuniSec patrol car among them. They wait at the crossings for the
+container carriers coming off the berths, and nothing drives through anything:
+the module's report counts overlaps and should read 0. The yard gantries move
+boxes between stacks, and the one over aisle -125 lifts boxes off yard
+tractors and sets others on. Forklifts run stores up the gaps beside the worked
+freighters and along the warehouse faces; a bowser comes in to the one
+fuelling; baggage tugs, the port bus and trucks at the terminal doors work the
+apron between the ferry and the freight terminal. A Hermes lifts off in C4's
+last seconds. During C5's rise another comes down on that pad and a Hound lands
+on the empty berth, so a lifter is moving in each shot. All of it is outside
+Kilo Nine's fence and keyed through C5's last frame.
+
 ## Open questions
 
 - **Line choice and delivery.** Castle's voice is calm and steady, and the hope
