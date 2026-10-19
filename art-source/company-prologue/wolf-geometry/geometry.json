@@ -121,7 +121,7 @@
     "fittings_m": {},
     "published_metres_per_unit": 0.95,
     "measured_this_build": {
-      "enclosed_units3": 19705,
+      "enclosed_units3": 19624,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -138,9 +138,9 @@
       ]
     },
     "size_m": [
-      89.3,
+      93.3,
       49.7,
-      15.8
+      17.0
     ],
     "person_1_8_m_in_units": 1.89,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -163,14 +163,14 @@
       -8.8
     ],
     "max": [
-      53.8,
+      57.98,
       26.18,
-      7.8
+      9.13
     ],
     "size": [
-      94.0,
+      98.18,
       52.37,
-      16.6
+      17.93
     ]
   },
   "weapon_slots": [
@@ -179,7 +179,7 @@
       "location": [
         11,
         0,
-        5.55
+        5.0
       ],
       "angle": 0,
       "arc": 150,
@@ -196,7 +196,7 @@
       "location": [
         45,
         0,
-        0.6
+        0.4
       ],
       "angle": 0,
       "arc": 5,
@@ -205,7 +205,7 @@
       "type": "ENERGY",
       "anchor": "Weapon WS 004 anchor",
       "muzzles": [
-        "Anchor weapon WS 004 muzzle"
+        "Anchor turret 2 barrel 1 muzzle"
       ]
     },
     {
@@ -213,7 +213,7 @@
       "location": [
         11,
         20,
-        0.3
+        0.2
       ],
       "angle": 0,
       "arc": 5,
@@ -222,7 +222,11 @@
       "type": "MISSILE",
       "anchor": "Weapon WS 005 anchor",
       "muzzles": [
-        "Anchor weapon WS 005 muzzle"
+        "Anchor turret 3 tube 1 muzzle",
+        "Anchor turret 3 tube 2 muzzle",
+        "Anchor turret 3 tube 3 muzzle",
+        "Anchor turret 3 tube 4 muzzle",
+        "Anchor turret 3 tube 5 muzzle"
       ]
     },
     {
@@ -230,7 +234,7 @@
       "location": [
         11,
         -19,
-        0.3
+        0.2
       ],
       "angle": 0,
       "arc": 5,
@@ -239,7 +243,11 @@
       "type": "MISSILE",
       "anchor": "Weapon WS 006 anchor",
       "muzzles": [
-        "Anchor weapon WS 006 muzzle"
+        "Anchor turret 4 tube 1 muzzle",
+        "Anchor turret 4 tube 2 muzzle",
+        "Anchor turret 4 tube 3 muzzle",
+        "Anchor turret 4 tube 4 muzzle",
+        "Anchor turret 4 tube 5 muzzle"
       ]
     }
   ],
@@ -249,25 +257,210 @@
       "slot": "WS 001",
       "weapon": "ioncannon",
       "pivot": "Turret 1 pivot",
+      "elevation": "Turret 1 elevation",
       "location": [
         11,
         0,
-        5.55
+        5.0
       ],
       "rest_angle_deg": 0,
       "arc_deg": 150,
+      "ring": 5.0,
       "fixed": [
-        "Turret 1 barbette",
-        "Turret 1 traverse gap"
+        "Turret 1 barbette"
       ],
       "trained": [
-        "Turret 1 gunhouse",
-        "Turret 1 mantlet",
-        "Turret 1 barrel 1",
-        "Anchor turret 1 barrel 1 muzzle"
+        "Turret 1 house dark",
+        "Turret 1 house steel",
+        "Turret 1 house accent#shell",
+        "Turret 1 house paint",
+        "Turret 1 house lamp_blue",
+        "Turret 1 gun accent",
+        "Turret 1 gun dark",
+        "Turret 1 gun lamp_blue"
+      ],
+      "kit_muzzles": [
+        "Turret 1 muzzle anchor 1"
       ],
       "muzzles": [
         "Anchor turret 1 barrel 1 muzzle"
+      ]
+    }
+  ],
+  "hardpoints": [
+    {
+      "slot": "WS 004",
+      "weapon": "miningblaster",
+      "mount": "Weapon WS 004 mount",
+      "location": [
+        45,
+        0,
+        0.4
+      ],
+      "k": 0.55,
+      "bay": {
+        "x": [
+          42.8,
+          49.0
+        ],
+        "half_width": 5.3,
+        "z": [
+          -2.4,
+          4.0
+        ],
+        "cut_from": [
+          "Hull bow fork base"
+        ]
+      },
+      "parts": [
+        "Weapon WS 004 hardpoint paint#body",
+        "Weapon WS 004 hardpoint dark",
+        "Weapon WS 004 hardpoint metal",
+        "Weapon WS 004 hardpoint steel",
+        "Weapon WS 004 hardpoint accent#prong",
+        "Weapon WS 004 hardpoint lamp_red"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 004 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor turret 2 barrel 1 muzzle"
+      ]
+    },
+    {
+      "slot": "WS 005",
+      "weapon": "annihilator",
+      "mount": "Weapon WS 005 mount",
+      "location": [
+        11,
+        20,
+        0.2
+      ],
+      "k": 0.6,
+      "bay": null,
+      "parts": [
+        "Weapon WS 005 hardpoint paint#box",
+        "Weapon WS 005 hardpoint steel",
+        "Weapon WS 005 hardpoint steel#tubes",
+        "Weapon WS 005 hardpoint dark",
+        "Weapon WS 005 hardpoint mark"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 005 muzzle anchor 1",
+        "Weapon WS 005 muzzle anchor 2",
+        "Weapon WS 005 muzzle anchor 3",
+        "Weapon WS 005 muzzle anchor 4",
+        "Weapon WS 005 muzzle anchor 5"
+      ],
+      "muzzles": [
+        "Anchor turret 3 tube 1 muzzle",
+        "Anchor turret 3 tube 2 muzzle",
+        "Anchor turret 3 tube 3 muzzle",
+        "Anchor turret 3 tube 4 muzzle",
+        "Anchor turret 3 tube 5 muzzle"
+      ]
+    },
+    {
+      "slot": "WS 006",
+      "weapon": "annihilator",
+      "mount": "Weapon WS 006 mount",
+      "location": [
+        11,
+        -19,
+        0.2
+      ],
+      "k": 0.6,
+      "bay": null,
+      "parts": [
+        "Weapon WS 006 hardpoint paint#box",
+        "Weapon WS 006 hardpoint steel",
+        "Weapon WS 006 hardpoint steel#tubes",
+        "Weapon WS 006 hardpoint dark",
+        "Weapon WS 006 hardpoint mark"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 006 muzzle anchor 1",
+        "Weapon WS 006 muzzle anchor 2",
+        "Weapon WS 006 muzzle anchor 3",
+        "Weapon WS 006 muzzle anchor 4",
+        "Weapon WS 006 muzzle anchor 5"
+      ],
+      "muzzles": [
+        "Anchor turret 4 tube 1 muzzle",
+        "Anchor turret 4 tube 2 muzzle",
+        "Anchor turret 4 tube 3 muzzle",
+        "Anchor turret 4 tube 4 muzzle",
+        "Anchor turret 4 tube 5 muzzle"
+      ]
+    }
+  ],
+  "vfx_mounts": [
+    {
+      "index": 1,
+      "slot": "WS 001",
+      "weapon": "ioncannon",
+      "location": [
+        11,
+        0
+      ],
+      "angle": 0,
+      "scale": 0.5,
+      "kind": "gun",
+      "muzzles": [
+        "Anchor turret 1 barrel 1 muzzle"
+      ]
+    },
+    {
+      "index": 2,
+      "slot": "WS 004",
+      "weapon": "miningblaster",
+      "location": [
+        45,
+        0
+      ],
+      "angle": 0,
+      "scale": 0.7,
+      "kind": "gun",
+      "muzzles": [
+        "Anchor turret 2 barrel 1 muzzle"
+      ]
+    },
+    {
+      "index": 3,
+      "slot": "WS 005",
+      "weapon": "annihilator",
+      "location": [
+        11,
+        20
+      ],
+      "angle": 0,
+      "scale": 0.5,
+      "kind": "launcher",
+      "muzzles": [
+        "Anchor turret 3 tube 1 muzzle",
+        "Anchor turret 3 tube 2 muzzle",
+        "Anchor turret 3 tube 3 muzzle",
+        "Anchor turret 3 tube 4 muzzle",
+        "Anchor turret 3 tube 5 muzzle"
+      ]
+    },
+    {
+      "index": 4,
+      "slot": "WS 006",
+      "weapon": "annihilator",
+      "location": [
+        11,
+        -19
+      ],
+      "angle": 0,
+      "scale": 0.5,
+      "kind": "launcher",
+      "muzzles": [
+        "Anchor turret 4 tube 1 muzzle",
+        "Anchor turret 4 tube 2 muzzle",
+        "Anchor turret 4 tube 3 muzzle",
+        "Anchor turret 4 tube 4 muzzle",
+        "Anchor turret 4 tube 5 muzzle"
       ]
     }
   ],
@@ -438,11 +631,22 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 7906,
-    "objects": 62,
+    "triangles": 19986,
+    "objects": 151,
     "materials": [
+      "Turret annihilator mark 0.6122,0.4277,0.1509",
+      "Turret annihilator paint 0.1989,0.1880,0.1718",
+      "Turret ioncannon accent 0.0886,0.1626,0.1113",
+      "Turret ioncannon paint 0.2099,0.2247,0.2136",
+      "Turret lamp blue-white",
+      "Turret lamp red",
+      "Turret miningblaster accent 0.2524,0.2453,0.1858",
+      "Turret miningblaster metal 0.1103,0.1103,0.1108",
+      "Turret miningblaster paint 0.2071,0.2036,0.1664",
+      "Turret steel Wolf grey machinery",
       "Wolf bridge glazing",
       "Wolf grey machinery",
+      "Wolf heat vent glow",
       "Wolf hull lamp amber",
       "Wolf pirate crimson armour",
       "Wolf recess",
@@ -562,19 +766,19 @@
     }
   ],
   "silhouette": {
-    "iou": 0.937,
-    "sprite_uncovered": 0.0288,
-    "model_outside_sprite": 0.0365,
-    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit"
+    "iou": 0.9326,
+    "sprite_uncovered": 0.0397,
+    "model_outside_sprite": 0.0298,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit; the hardpoint guns (Weapon WS ...) are hidden in the top render: the hull sprite draws no weapons"
   },
   "shot_extent_px": {
     "shot-670m": {
-      "width_px": 189,
-      "height_px": 59
+      "width_px": 192,
+      "height_px": 62
     },
     "shot-1500m": {
-      "width_px": 91,
-      "height_px": 29
+      "width_px": 92,
+      "height_px": 30
     },
     "shot-4000m": {
       "width_px": 41,
