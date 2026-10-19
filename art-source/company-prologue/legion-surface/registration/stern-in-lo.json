@@ -1,0 +1,59 @@
+{
+ "part": "stern-in-lo",
+ "sheet": "side-c",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9744,
+ "raw_iou": 0.9601,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9604,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9601
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00128,
+    1.00639
+   ],
+   "offset_px": [
+    -1.08,
+    -1.64
+   ],
+   "iou": 0.9518
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00278,
+    1.00639
+   ],
+   "offset_px": [
+    0.17,
+    -1.89
+   ],
+   "iou": 0.9604
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.69,
+  "p95_px": 11.0,
+  "max_px": 31.38
+ },
+ "boundary_fitted_px": {
+  "mean_px": 1.67,
+  "p95_px": 11.0,
+  "max_px": 30.87
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
