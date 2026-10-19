@@ -87,7 +87,11 @@ def fixed(x, y, z):
 # over the ramp at 220 m after its push-in, then rises 18-26 s to 1800 m (x1.04 by the end) and
 # drifts west; the departing Colossus flies port_fleet.DEPART_KEYS. Positions are camera-relative.
 C4_SECONDS = 21.4
-COLOSSUS_KEYS = ((10.0, 700.0, 160.0, 60.0), (22.0, 170.0, 370.0, 160.0), (33.5, -280.0, 430.0, 480.0))
+# port_fleet's 'Colossus at the heavy berth': square in the heavy bay (c4x HEAVY), it lifts on its
+# jets alone and the mains take over, integrated as port_fleet.climb does (C5 seconds).
+HEAVY_BAY = (0.0, 665.0, 5.0)
+LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 24.0, 25.5
+LIFT_ACCEL, MAIN_ACCEL, MAIN_LIFT = 0.6, 3.0, 0.8
 
 
 def smoothstep(a, b, x):
@@ -99,14 +103,30 @@ def c5_camera(t5):
     r = smoothstep(18.0, 26.0, t5)
     x = 362.0 + (150.0 - 362.0) * r
     y = 436.0 + (430.0 - 436.0) * r
-    z = 220.0 * (1800.0 / 220.0) ** r * (1 + 0.04 * smoothstep(24.0, 33.5, t5))
+    z = 220.0 * (1800.0 / 220.0) ** r * (1 + 0.07 * smoothstep(24.0, 40.0, t5))
     return np.stack([x, y, z], axis=1)
 
 
-def colossus_outbound(t):
+def lighter_six(t):
+    """port_life 'Lighter 6 return': a Hermes letting down onto pad (95, 412) from 200 m between
+    C5 10 and 22, about 27 m/s at first and slowing smoothly to touchdown."""
+    s5 = np.clip((t - C4_SECONDS - 10.0) / 12.0, 0.0, 1.0)
+    z = 200.0 * (1.0 - s5) ** 1.6
+    ship = np.stack([np.full_like(t, 95.0), np.full_like(t, 412.0), z], axis=1)
+    return ship - c5_camera(t - C4_SECONDS)
+
+
+def colossus_heavy(t):
     t5 = t - C4_SECONDS
-    keys = np.array(COLOSSUS_KEYS)
-    ship = np.stack([np.interp(t5, keys[:, 0], keys[:, i]) for i in (1, 2, 3)], axis=1)
+    dt = 1.0 / 240.0
+    grid = np.arange(LIFT_OFF, 40.0 + dt, dt)
+    ramp = np.clip((grid - MAIN_ON) / (MAIN_FULL - MAIN_ON), 0.0, 1.0)
+    vz = np.cumsum((LIFT_ACCEL + MAIN_LIFT * ramp) * dt)
+    vx = np.cumsum(MAIN_ACCEL * ramp * dt)
+    z, x = np.cumsum(vz * dt), -np.cumsum(vx * dt)          # bow west
+    x0, y0, z0 = HEAVY_BAY
+    ship = np.stack([x0 + np.interp(t5, grid, x, left=0.0), np.full_like(t, y0),
+                     z0 + np.interp(t5, grid, z, left=0.0)], axis=1)
     return ship - c5_camera(t5)
 
 
@@ -163,15 +183,19 @@ PASSES = {
     # Second Wind's own drive from its bridge: idling under the room hum, then the de-orbit burn
     # lights at 9.6 s and the same engine opens up, on through the entry and into C3's first
     # seconds (C2 0-15, entry 15-22, C3 22-24).
-    # C5: a second Colossus leaving low past Kilo Nine and climbing away north-west (port_fleet,
-    # 'Colossus outbound'), drives burning throughout: a huge, slow, muffled freighter drive, closest
-    # (about 190 m) at C5 18-19.5 and about 1.5 km off under the title. Joined C4-C5 clock.
-    "colossus_outbound": dict(HOUND, start=C4_SECONDS + 9.0, end=C4_SECONDS + 33.5, path=colossus_outbound,
-                              source="c4_launch_burn_t02",       # heavy thrusters, muffled by distance
-                              sound_speed=340.0, muffle_far=45.0, muffle_near=260.0, bass=3.4, crackle=0.18,
-                              rush_gain=0.08, rush_low=80.0, rush_high=500.0, distance_power=1.3,
-                              pan="c1", pan_width=0.7, seed=51,
-                              thrust=[(C4_SECONDS + 9.0, 0.0), (C4_SECONDS + 11.0, 0.9), (C4_SECONDS + 33.5, 0.9)]),
+    # C5: the Colossus at the heavy berth lifting out about 480 m from the camera (port_fleet): its
+    # ten lift jets spool up from 12.0 (40%), full at 15.0 as it leaves the deck, and its six mains
+    # light at 24.0 (30%), full by 25.5, as it accelerates west. Both are heavy thrusters: the
+    # generated heavy burn (audition 05), muffled by distance, and the dark code-built drive.
+    "colossus_lift": dict(HOUND, start=C4_SECONDS + 11.5, end=C4_SECONDS + 40.0, path=colossus_heavy,
+                          source="c4_launch_burn_t02", sound_speed=340.0, muffle_far=90.0, muffle_near=300.0,
+                          bass=3.0, crackle=0.0, rush_gain=0.0, distance_power=1.2, pan="c1", pan_width=0.6, seed=51,
+                          thrust=[(C4_SECONDS + 11.9, 0.0), (C4_SECONDS + 12.0, 0.4), (C4_SECONDS + 15.0, 1.0),
+                                  (C4_SECONDS + 40.0, 1.0)]),
+    "colossus_mains": dict(HOUND, start=C4_SECONDS + 23.5, end=C4_SECONDS + 40.0, path=colossus_heavy,
+                           sound_speed=340.0, distance_power=1.2, pan="c1", pan_width=0.6, seed=53, **HEAVY_RANGE,
+                           thrust=[(C4_SECONDS + 23.9, 0.0), (C4_SECONDS + 24.0, 0.3), (C4_SECONDS + 25.5, 1.0),
+                                   (C4_SECONDS + 40.0, 1.0)], thumps=(C4_SECONDS + 24.0,)),
     # C4 (joined C4-C5 clock): Second Wind seen from the sky camera, 450-800 m above it. Its main drive
     # burns full until touchdown at 16.4 and is out by 17.9; the belly lift jets light at 10.0, are full
     # 12.0-16.4 and out by 17.4 (thrust_shots.mark_c4). Burning-gas rockets, broadband: no hum.
@@ -180,10 +204,12 @@ PASSES = {
                                  distance_power=1.0, pan_width=0.0, seed=61,         # medium, at range
                                  thrust=[(0.0, 0.0), (1.0, 0.8), (16.4, 0.8), (17.9, 0.0)]),
     "second_wind_c4_lift": dict(HOUND, start=9.5, end=18.4, path=fixed(0.0, 60.0, -500.0), sound_speed=340.0,
-                                source="c4_launch_burn_t01",     # a medium thruster, close
-                                muffle_far=1500.0, muffle_near=1500.0, bass=1.6, crackle=0.0, rush_gain=0.0,
+                                # Owner, 2026-10-19: the heavy take (audition 05) "muted a bit": twice
+                                # low-passed at 2.2 kHz, lit at 10.0, flat, cut just after touchdown.
+                                source="c4_launch_burn_t02",
+                                muffle_far=2200.0, muffle_near=2200.0, bass=1.6, crackle=0.0, rush_gain=0.0,
                                 distance_power=1.0, pan_width=0.1, seed=62,
-                                thrust=[(9.5, 0.0), (10.0, 0.05), (12.0, 1.0), (16.4, 1.0), (17.4, 0.0)]),
+                                thrust=[(9.5, 0.0), (10.0, 0.0), (10.3, 1.0), (16.52, 1.0), (16.65, 0.0)]),
     "second_wind_interior": dict(HOUND, start=0.0, end=24.0, path=fixed(-40.0, 0.0, -6.0), sound_speed=340.0,
                                  muffle_far=140.0, muffle_near=140.0, bass=2.6, crackle=0.3, rush_gain=0.0,
                                  distance_power=1.0, pan_width=0.0, seed=41,
