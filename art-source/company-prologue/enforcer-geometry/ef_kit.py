@@ -58,6 +58,12 @@ def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2
     return m
 
 
+# Shared heights (hull units): the carapace deck, the floor of its sunk
+# areas and its keel. Every area module seats against these.
+DECK = 6.0
+WELL = 1.0
+KEEL = -9.0
+
 # Material classes, coloured per livery. Names are identifiers: the texture
 # pass maps classes to its swatches by these names, never by colour.
 LIVERIES = {

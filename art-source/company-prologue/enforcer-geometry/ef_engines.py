@@ -10,7 +10,8 @@ enforcer.ship has six LOW_TECH engine slots, all angle 180, Z 0 here:
   Engine 6  (-66, -37) width  8 length 32   starboard, outboard
 Engine i is the .ship's slot i-1 (the game's own slight asymmetry kept). The
 slot point is the bell mouth; the bell narrows forward into its can, which
-runs forward into the engine block. Mouth radius 0.27 x width on the mains
+runs forward into the engine block (built here: one either side of the
+stern notch, each holding a big drive between two small ones). Mouth radius 0.27 x width on the mains
 and 0.30 x on the small drives, so the three bells on a block sit side by
 side the way the sprite draws them.
 
@@ -20,7 +21,11 @@ aft-facing bell`, `Engine <i> mouth lip`, `Engine <i> dark throat`,
 `Engine <i> drive glow anchor` (an empty at the throat, +X aft).
 """
 import bpy
-from ef_kit import boolean, revolve_x
+from ef_kit import boolean, mirror_y, prism, revolve_x, section
+
+ENGINE_BLOCK = [(-45, 47), (-52, 48.5), (-58, 46.5), (-62, 43.5), (-64, 40), (-64, 17.5), (-60, 15.5),
+                (-52, 13.5), (-46, 13)]
+
 
 ENGINES = [(-66, 29, 24, 64), (-66, -28, 24, 64), (-66, 38, 8, 32), (-65, 20, 8, 32), (-65, -20, 8, 32),
            (-66, -37, 8, 32)]
@@ -42,6 +47,9 @@ HOSTS = {1: 'Hull port engine block', 3: 'Hull port engine block', 4: 'Hull port
 
 
 def build(kit):
+    for side, f in (('port', 1), ('starboard', -1)):
+        plan = ENGINE_BLOCK if f > 0 else mirror_y(ENGINE_BLOCK)
+        kit.hull.append(prism(kit, f'Hull {side} engine block', plan, section(-8.5, 4.5, 2.5, 2.0), kit.steel, .2))
     for i, (x, y, w, length) in enumerate(ENGINES, 1):
         host = bpy.data.objects[HOSTS[i]]
         rm, wall, L = mouth_r(w), WALL*w, bell_len(w)

@@ -12,8 +12,9 @@ the convoy's independent escort lead (base hull, enforcer_base.png), and
 enforcer_pirates.png): the same hull objects plus its welded armour
 (ef_armour_p) in the pirate livery.
 
-One module per area: ef_hull (carapace, wells, neck, prow, aft spine, bridge,
-engine blocks, tanks, missile pods), ef_engines (the six drives), ef_mounts
+One module per area: ef_hull (carapace, wells, ventral keel), ef_bow (neck,
+prow, missile pods), ef_spine (aft spine, bridge, tanks), ef_engines (engine
+blocks and the six drives), ef_mounts
 (the nine slots), ef_lights (running lights), ef_armour_p (pirate refit);
 ef_kit holds the shared helpers.
 
@@ -49,8 +50,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import ef_kit, ef_hull, ef_engines, ef_mounts, ef_lights, ef_armour_p
-for module in (ef_kit, ef_hull, ef_engines, ef_mounts, ef_lights, ef_armour_p):
+import ef_kit, ef_hull, ef_bow, ef_spine, ef_engines, ef_mounts, ef_lights, ef_armour_p
+for module in (ef_kit, ef_hull, ef_bow, ef_spine, ef_engines, ef_mounts, ef_lights, ef_armour_p):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -131,6 +132,8 @@ bpy.ops.object.delete(use_global=False)
 kit = ef_kit.Kit('pirate' if PIRATE else 'merchant')
 kit.mpu = METRES_PER_UNIT
 ef_hull.build(kit)
+ef_bow.build(kit)
+ef_spine.build(kit)
 ef_engines.build(kit)
 ef_mounts.build(kit)
 ef_lights.build(kit)
