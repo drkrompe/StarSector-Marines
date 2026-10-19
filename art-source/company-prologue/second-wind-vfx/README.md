@@ -55,6 +55,7 @@ group's review into `build/<group>/`.
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
+| `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -403,6 +404,37 @@ Helpers:
   stagger_frames, seed)`.
 - `build(ctx, fire=[{...}])` fires during the build. The derelict carries no
   guns, so nothing is built there.
+
+### Beams (`swfx_beams`, opt-in)
+
+The Second Wind carries no beam weapon, so `beams` is not in `swfx.GROUPS` and
+its builds never run it. A hull whose profile declares `BEAMS` asks for it:
+`swfx.apply(groups=(..., 'beams'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`); each entry names the muzzle the beam rides
+and carries the weapon's vanilla width, range, colours (fringe, core, glow)
+and charge-up/charge-down, all in hull units, which are the sprite pixels
+vanilla uses.
+
+Per beam, dark until fired: a white-hot core inside a soft fringe in the
+weapon's colour (both additive, with a noise that crawls along the beam for
+vanilla's ROUGH texture); a glow at the muzzle that also shows the charge
+building; a glow at the far end; and point lights at both ends. The rig rides
+its muzzle, so a beam swings with its turret.
+
+- Knobs: `beam_t_<id>` (beam envelope), `beam_charge_<id>` (charge glow),
+  `beam_len_<id>` (length in hull units: the distance to the target), and the
+  group's `beam_gain`, `beam_width`, `beam_flare`, `beam_light`.
+- `fire_beam(ctx, id, start_frame, hold_s=None)` keys one shot with the
+  weapon's own timing: charge-up, then the burst (a burst beam such as the
+  tachyon lance) or `hold_s` seconds (a continuous beam), then charge-down.
+- To land a beam, train its turret on the target and set `beam_len_<id>` to
+  the distance (`aim(rig_name, target)` measures it).
+- A beam must not cut its own hull: `clear_line(origin, target, ignore)`
+  casts from the muzzle to the target and names the first part in the way.
+  Fire only weapons whose slot arc holds the target and whose line is clear
+  (the Paragon's `aim.engage` does both).
+- Emission is kept low on purpose: a strong emitter goes white under AgX and
+  the weapon's colour is lost.
 
 ### Lighting (`swfx_lighting`)
 
