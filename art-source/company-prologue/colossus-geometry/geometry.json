@@ -39,7 +39,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 1123756,
+      "units3": 1126255,
       "crew_max": 200,
       "cargo": 900,
       "fuel": 120,
@@ -78,10 +78,10 @@
     "solved_metres_per_unit": 0.433,
     "range": {
       "habitable_273": 0.42,
-      "habitable_328": 0.446
+      "habitable_328": 0.445
     },
     "enclosed_m3_per_person_at_max_crew": 456,
-    "length_m": 93.8,
+    "length_m": 93.7,
     "fittings_m": {
       "personnel hatch w x h": [
         0.95,
@@ -92,8 +92,8 @@
         6.06
       ],
       "bow cargo door w x h": [
-        17.75,
-        9.96
+        17.73,
+        9.95
       ],
       "bridge door w x h": [
         0.95,
@@ -103,7 +103,7 @@
     "published_metres_per_unit": 0.5,
     "published_note": "owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front deepened the block; option C solves 0.431 (94 m) with the round-2 container bays",
     "measured_this_build": {
-      "enclosed_units3": 1126255,
+      "enclosed_units3": 1126261,
       "solids": [
         "Bridge deckhouse",
         "Cargo port aft module",
@@ -115,7 +115,7 @@
         "Hull hold hatch cover",
         "Hull keel spine"
       ],
-      "cargo_body_units3": 988721,
+      "cargo_body_units3": 988722,
       "cargo_body_m3": 123590,
       "cargo_body_share": 0.878
     },

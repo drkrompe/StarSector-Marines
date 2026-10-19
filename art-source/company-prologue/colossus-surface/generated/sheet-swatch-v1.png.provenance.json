@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154d3-5d7d-7310-9efe-50a32a7c472c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154d3-5d7d-7310-9efe-50a32a7c472c\\exec-ffd27cbc-e5ff-49a3-9e12-720c63df37fb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-surface\\generated\\sheet-swatch.png",
+    "sha256": "f3854a89881c4ffb32ea33eee1d4bfe8735cdda6a6a363ca985a1449ee3a6a8b",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-surface\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "346e9e245cc519914a29a4cee269dd02871616155736474426a983ad592fcfc8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: six squares, exact positions and colours; never move\nImage 2: Material and finish only: paint colours, seams, fasteners, wear; not layout\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (a Colossus-class heavy freighter, a huge low-tech Domain-era cargo hauler), to be painted as a flat, square-on texture sample of that material:\ntop-left square: dusty oxide-red enamel hull plate;\ntop-middle square: darker red-brown maroon enamel module plate;\ntop-right square: pale weathered warm-grey painted plate;\nbottom-left square: burnt orange enamel panel band;\nbottom-middle square: dark gunmetal grey steel machinery;\nbottom-right square: the recess and lattice material, near-black dull steel.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, seams, fasteners and its service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the six squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of heavy, old, hard-worked freighter plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a thin even film of dust and grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: oxide red stays oxide red, maroon stays maroon, pale grey stays pale warm grey, orange stays burnt orange, gunmetal stays dark grey steel, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-surface\\guide\\sheet-swatch-guide.png",
+      "sha256": "50bac5524a54208f3af7964bc72b425d06e74118635eefd88e6dece73aa2a888",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: six squares, exact positions and colours; never move"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-surface\\reference\\finish-reference.png",
+      "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only: paint colours, seams, fasteners, wear; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture sheet using Image 1’s exact layout and Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 47074,
+    "cached_input_tokens": 38016,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 623,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 54.5
+}
