@@ -239,10 +239,13 @@ def air(c4, fleet):
             ob.hide_render = ob.hide_viewport = hidden
             ob.keyframe_insert('hide_render', frame=f)
             ob.keyframe_insert('hide_viewport', frame=f)
-    # A Shepherd letting down northward over the belt in C4's first seconds, from 380 m to 300 m, left
+    # A Shepherd letting down northward over the belt in C4's first seconds, from 420 m to 320 m, left
     # of the camera's track: under it for the opening seconds of the pan, a hull plainly in the air at
-    # well under half the camera's height. It goes on north past the port and out of every later frame.
+    # well under half the camera's height, keeping pace with the pan. It goes on north past the port and
+    # out of every later frame.
     e, rest, bow = fleet.place('Shepherd inbound', 'shepherd', 'slate')
-    hd = math.atan2(1000.0, 80.0)
-    fly(e, [(0.0, -200.0, -450.0, 380.0, hd), (8.0, -120.0, 550.0, 300.0, hd), (T, -60.0, 1350.0, 260.0, hd)], F)
+    hd = math.atan2(850.0, 60.0)
+    # It starts 300 m from where Second Wind opens (c4x_scene.P0) and the two paths only diverge.
+    fly(e, [(0.0, -320.0, -230.0, 420.0, hd), (c4.PAN, -260.0, 620.0, 320.0, hd),
+            (T, -220.0, 620.0 + 850.0 * (T - c4.PAN) / c4.PAN, 280.0, hd)], F)
     print('PORT_FLEET hulls', sorted('%s%s' % (h, '/' + l if l else '') for h, l in fleet.colls), flush=True)
