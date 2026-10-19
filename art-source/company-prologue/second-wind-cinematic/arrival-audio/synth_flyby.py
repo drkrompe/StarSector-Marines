@@ -49,7 +49,7 @@ def second_wind_lane(t):
 # C2 is seen from Second Wind's bridge (patrol-abeam/c2_bridge_blockout.py). Its frame: +X ahead
 # along our bow, +Y out to port, +Z up, metres from the eye. The ear is turned toward port with
 # the watcher's head, so these passes pan by bearing from the bow (port = left).
-C2_V0, C2_V1, C2_ABEAM_T, C2_ABEAM_Y = 140.0, 22.0, 8.0, 265.0
+C2_V0, C2_V1, C2_ABEAM_T, C2_ABEAM_Y = 140.0, 22.0, 8.0, 340.0
 C2_DROP_T, C2_DROP_ACCEL = 9.6, 9.0
 
 

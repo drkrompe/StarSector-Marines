@@ -142,7 +142,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c4_freeway` | Heavy trucks and haulers on the freeway | 1–53.9; loudest crossing the road (4), low over the yard, up again with the rise, out under the title | Bed | −12 (−22 over the yard, −14 at the top of the rise) | Gen |
 | `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–53.9; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
 | `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–39.4 | Bed | −18 | Gen |
-| `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the approach, building from the hover to touchdown | 3–17.9 | Bed | −10 (−18 under the lines, −14 → −10 in the hover, −7 at touchdown), below 220 Hz | Gen |
+| `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the approach, building from the hover to touchdown | 3–17.9 | Bed | −10 (−18 under the lines and through the hover, −14 → −11 at touchdown, under the landing roar's own sub), below 220 Hz | Gen |
 | `landing_roar` | The belly jets: lit at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`) |
 | `landing_grit` | Sand-blast hiss and pebbles pinging off the hull, building from 13, peaking at touchdown | 13–17.4 | Spot | −11 | Code |
 | `landing_thump` | Touchdown: first legs at 16.4, second at 16.57, the struts groaning | 16.4 | Spot | −2 | Code |
