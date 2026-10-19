@@ -1,0 +1,59 @@
+{
+ "part": "end-bow",
+ "sheet": "ends-a",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9779,
+ "raw_iou": 0.9705,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9738,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9705
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00255,
+    1.00319
+   ],
+   "offset_px": [
+    -0.16,
+    -1.32
+   ],
+   "iou": 0.9704
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00155,
+    1.00369
+   ],
+   "offset_px": [
+    -0.16,
+    -1.07
+   ],
+   "iou": 0.9738
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.83,
+  "p95_px": 8.54,
+  "max_px": 50.25
+ },
+ "boundary_fitted_px": {
+  "mean_px": 1.72,
+  "p95_px": 8.35,
+  "max_px": 50.25
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

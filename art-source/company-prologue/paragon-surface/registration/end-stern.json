@@ -1,0 +1,59 @@
+{
+ "part": "end-stern",
+ "sheet": "ends-a",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9873,
+ "raw_iou": 0.9806,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9823,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9806
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00255,
+    1.00293
+   ],
+   "offset_px": [
+    -0.16,
+    -1.25
+   ],
+   "iou": 0.9802
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00105,
+    1.00243
+   ],
+   "offset_px": [
+    -0.16,
+    -0.75
+   ],
+   "iou": 0.9823
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.87,
+  "p95_px": 2.5,
+  "max_px": 23.6
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.81,
+  "p95_px": 2.24,
+  "max_px": 23.6
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
