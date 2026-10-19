@@ -20,6 +20,8 @@ from pathlib import Path
 
 import numpy as np
 
+import synth_flyby
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 MANIFEST = HERE / "sfx-manifest.json"
@@ -39,6 +41,7 @@ LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice ba
 # Picture sketches: the newest review video of each shot, as of the cue sheet's date.
 DRIVE = Path("G:/My Drive/starsector/review")
 PICTURES = {
+    "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c2": DRIVE / "cinematic-c2/2026-10-18_bridge-fighters_windows/01-c2-bridge-sketch.mp4",
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
@@ -51,6 +54,11 @@ PICTURES = {
 
 def sfx(cue, t, level, **kw):
     return dict(kind="sfx", cue=cue, t=t, level=level, **kw)
+
+
+def synth(name, level, **kw):
+    """A code-built pass from synth_flyby.py; its clip already sits on the shot clock."""
+    return dict(kind="sfx", cue=None, synth=name, t=synth_flyby.PASSES[name]["start"], level=level, **kw)
 
 
 def voice(src, t, **kw):
@@ -94,8 +102,8 @@ SHOTS = {
         sfx("c1_hull_creaks", 32.2, -12, offset=0.5, until=34.5),
         sfx("c1_rcs_puffs", 5.0, -14, until=7.0),
         sfx("c1_sparks", 6.0, -22, until=10.0, env=[(6, -6), (8, 0), (10, -10)]),
-        sfx("c1_hound_flyby", 25.6, -14, af=LOW),
-        sfx("c1_hound_swish", 26.0, -10),
+        # The customs Hound: synthesised from its flight path (owner, 2026-10-19).
+        synth("hound_flyby_a", -8),
         squelch("open", 3.0), hail(1, 3.16), squelch("close", 11.8), hail(2, 12.62),
         squelch("open", 23.7), hail(3, 23.86), squelch("close", 31.7), hail(4, 32.52),
     ]),
@@ -177,6 +185,9 @@ SHOTS = {
 }
 
 
+SHOTS["c1-hound-b"] = (SHOTS["c1"][0], [dict(layer, synth="hound_flyby_b") if layer.get("synth") else layer
+                                         for layer in SHOTS["c1"][1]])
+
 def decode(path, af=None):
     cmd = ["ffmpeg", "-v", "error", "-i", str(path)]
     if af:
@@ -199,6 +210,8 @@ def duration(path):
 
 
 def source(layer, dirs, chosen):
+    if layer.get("synth"):
+        return dirs["synth"] / (layer["synth"] + ".wav")
     if layer["kind"] == "sfx":
         return TAKES / (chosen[layer["cue"]] + ".mp3")
     family, name = layer["src"]
@@ -296,8 +309,9 @@ def main():
         pictures[shot] = [Path(part) for part in path.split(",")] if "," in path else Path(path)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    synth_flyby.build(out / "synth")
     for shot in args.shot or SHOTS:
-        mix(shot, pictures.get(shot), {"castle": Path(args.castle), "hail": Path(args.hail)}, chosen, out)
+        mix(shot, pictures.get(shot), {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}, chosen, out)
 
 
 if __name__ == "__main__":
