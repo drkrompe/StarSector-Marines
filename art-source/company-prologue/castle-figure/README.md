@@ -73,5 +73,6 @@ procedural hair node assets (CC0). No other assets are used.
   textured (castle_face.py) from MakeHuman's CC0 diffuses, packed into the .blend so it
   opens without MPFB; every material keeps a flat diffuse_color for Workbench.
 - The face is MakeHuman's, shaped toward the portrait: it carries her proportions and
-  expression for the repaint, not a likeness. The earpiece is on her right ear (the C2 pose);
-  the portrait and cards wear it on her left.
+  expression for the repaint, not a likeness.
+- The earpiece stays on her right ear, with her right hand at it, as C2 poses her, although the
+  portrait and cards wear it on her left (owner, 2026-10-19).
