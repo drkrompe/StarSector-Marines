@@ -177,6 +177,9 @@ def apply(kit):
     # The bore's exposed machinery plating, in the sprite's mid and light greys.
     kit.bore_mid = K.material('Bore plating mid grey', (.20, .22, .25), .45, .45)
     kit.bore_light = K.material('Bore plating light grey', (.40, .42, .45), .35, .45)
+    # The guns' blue-white armour (the weapon sprites' pale blue) and their red status lamps.
+    kit.weapon_blue = K.material('Tri-Tachyon weapon blue plate', (.42, .56, .66), .3, .4, coat=.2)
+    kit.glow_red = K.material('Weapon status lamp red', (.2, .02, .02), .0, .4, emission=(1.0, .15, .1), strength=6.0)
     kit.hatch = K.material('Tri-Tachyon hatch ceramic', (.72, .74, .77), .0, .32, coat=.3)
 
 

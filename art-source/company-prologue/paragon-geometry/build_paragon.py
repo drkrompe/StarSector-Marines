@@ -41,7 +41,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_bridge, pg_belly, pg_service, pg_hangar, pg_engines, pg_weapons, pg_turrets, pg_shield, pg_arcs
+import pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_bridge, pg_belly, pg_service, pg_hangar, pg_engines, pg_weapon_sprites, pg_weapons, pg_turrets, pg_shield, pg_arcs
 MODULES = [pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_bridge, pg_belly, pg_service, pg_hangar, pg_engines, pg_weapons,
            pg_turrets, pg_shield, pg_arcs]
 for module in MODULES:
@@ -136,6 +136,7 @@ pg_shield.build(kit, METRES_PER_UNIT)
 pg_finish.assign_sizes(kit)
 # Firing lines: report each turret's clear share of its arc (pg_arcs).
 ARCS = pg_arcs.check(kit)
+print('GUN SPRITE IOU', pg_turrets.SPRITE_IOU)
 for row in ARCS:
     print(f"ARC {row['id']} {row['size']:6} arc {row['arc_deg']:3} clear {row['clear_share']:.0%} "
           f"blocked by {', '.join(row['blocked_by']) or '-'}")
@@ -412,6 +413,7 @@ if not args.no_save:
         'finish': {'armour': 'hex ablative ceramic (owner pick, study option B)', 'plate_m': pg_finish.HEX_M,
                    'default_plate_m': pg_finish.DEFAULT_M, 'steep_face_factor': pg_finish.STEEP_FACTOR},
         'weapon_slots': pg_turrets.records(),
+        'gun_sprite_iou': dict(pg_turrets.SPRITE_IOU),
         'firing_lines': {'method': 'pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg '
                                    'depressed) from a mount sitting low in its dimpled well',
                          'barrel_line_above_rim': pg_arcs.BARREL_H,

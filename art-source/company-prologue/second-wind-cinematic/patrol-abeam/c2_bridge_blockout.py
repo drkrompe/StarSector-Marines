@@ -67,6 +67,11 @@ CROWN_BELOW_EYE_M = -20.0  # negative: the Legion's crown is 20 m ABOVE our eye 
 YAW_DEG = 168.0            # heading against ours; 180 is dead reciprocal
 ROLL_DEG = -8.0            # banked so its deck tilts toward us
 DROP_T, DROP_ACCEL = 9.6, 9.0   # Second Wind's de-orbit: the Legion rises relative to us
+# Second Wind pitches nose-down as it starts down (owner, 2026-10-18): the whole ship, bridge
+# and camera with it, so from inside the Legion and Jangala swing up the slits and the sun
+# moves across the bridge. Eased in over the first seconds of the burn.
+SHIP_PITCH_DEG = 16.0
+SHIP_PITCH_IN = (DROP_T, DROP_T + 3.5)
 
 
 # The air wing screens ahead of the carrier (owner, 2026-10-18): Broadswords (the Legion XIV
@@ -131,6 +136,12 @@ def head(t):
     u = smooth((yaw - 20.0) / 60.0)
     pos = tuple(a + (b - a) * u for a, b in zip(STATION_FORWARD, STATION_PORT))
     return yaw, pitch, pos
+
+
+def ship_pitch_deg(t):
+    """Second Wind's nose-down pitch (degrees) at C2 time t."""
+    a, b = SHIP_PITCH_IN
+    return SHIP_PITCH_DEG * smooth((t - a) / (b - a))
 
 
 def smooth(u):
