@@ -21,3 +21,4 @@ Written: 2026-08-23
 | `mech-missile-variants.md` | 2026-10-18 | `547b2d1c5` (design), this change | `mechs-nouns.md` — missile warheads, AT gate, damage-aware target choice, duel-band rack reading; `combat-durability-nouns.md` — contact and area payloads; `heavy-equipment-progression.md` — warhead readings. |
 | `mech-lab-equipment-doll-ux.md` | 2026-10-19 | `f9c1640b7` | `mechs-nouns.md` — Laws: catalog filters, stock vs fabrication cards, telemetry deltas, strip action, presentation-only ghosting. |
 | `mech-kit-retriever-exclusion.md` | 2026-10-19 | `e7afd2088`, this change | `mechs-nouns.md` — Boundaries: `MECH_LOADOUT` membership keeps mechs out of kit recovery. |
+| `mech-campaign-callsigns.md` | 2026-10-19 | `003667897`, this change | `mechs-nouns.md` — callsign: bounded Mech Lab rename, frozen at commitment, landed name with legacy fallback. |
