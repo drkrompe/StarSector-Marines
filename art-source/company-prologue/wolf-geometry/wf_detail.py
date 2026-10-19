@@ -161,7 +161,6 @@ def build(kit):
     import wf_kit
     for side, s in sides if wf_kit.VARIANT == 'pirate' else ():
         x, y = -13.6, s*12.4
-        kit.cylinder(f'Hull {side} dome weld bead', (x, y, z_at(kit, x+6.0, y, 3)+.05), 5.3, .25, steel, 'Z', 24, 0)
         on_surface(kit, f'Hull {side} dome patch plate 1', x+1.6, y+s*1.2, (3.2, 2.6, .35), red, 18*s)
         on_surface(kit, f'Hull {side} dome patch plate 2', x-2.0, y-s*1.4, (2.4, 3.0, .35), steel, -10*s)
         on_surface(kit, f'Hull wing {side} patch plate', 0.6, s*19.6, (3.4, 2.8, .35), red, 30*s)

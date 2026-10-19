@@ -75,6 +75,15 @@ def build(kit):
             xf = max(x for x, _ in plan)
             plane_cut(plate, f'{side} plate {k} forward bevel', (xf-3.5, s*40, z0+2.8), facet_normal((1, -.35*s), 30))
             kit.hull.append(droop(plate))
+        # Leading-edge armour (owner, round 6: angular armour on the arms, after
+        # the Onslaught): a thick red plate along each arm's root leading edge,
+        # its face raked steeply back and its top falling outboard.
+        skirt = prism(kit, f'Hull wing {side} leading armour',
+                      ccw([(42, s*20.5), (35, s*25.5), (32, s*31), (32, s*34), (25, s*34), (25, s*28), (33, s*20.5)]),
+                      section(WING_DECK-7.0, WING_DECK+2.6, 2.0, 1.2), kit.red, .12)
+        plane_cut(skirt, f'{side} skirt forward rake', (33, 0, WING_DECK+2.6), facet_normal((1, 0), 48))
+        plane_cut(skirt, f'{side} skirt outboard fall', (0, s*27, WING_DECK+2.6), facet_normal((0, s), 24))
+        kit.hull.append(droop(shear(skirt)))
         # Trailing-edge strake: a dark gunmetal band down the swept trailing edge.
         te = [(8.5, 70.5), (-3, 58.5), (-16, 45.5)]
         for i in range(len(te)-1):

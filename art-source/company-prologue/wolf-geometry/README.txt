@@ -85,7 +85,11 @@ section was deepened twice (round 2: "too thin of a ship": decks raised,
 keels lowered, chamfers scaled with the depth, about 26 units keel to spine;
 round 3, "too flat on the top": the bow lowered onto the hull's centre line
 and the top crowned over the spine, highest at the turret, falling fore and
-aft): measured 40,602 units3, which solves 0.747 (range 0.724-0.769): 70 m
+aft; round 4, "the modules don't feel cohesive": head, neck, main body, aft
+body and engine block are lofted through one plan, one top line and one
+keel line with rounded superellipse sections, the missile pods, outriggers
+and ventral keel faired the same way): measured 40,988 units3, which solves
+0.744 (range 0.722-0.767): 70 m
 long, 37 m across the pods, about 21 m deep. The roster's
 sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
 ship, so this is 18% under the estimate, outside its +-8%. The owner decides

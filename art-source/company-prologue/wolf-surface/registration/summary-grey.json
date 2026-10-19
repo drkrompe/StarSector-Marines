@@ -1,81 +1,81 @@
 {
  "head-top": {
-  "raw_iou": 0.9811,
+  "raw_iou": 0.9895,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.991,
-  "scale": [
-   0.99872,
-   1.00215
-  ],
-  "boundary_p95_px": 2.0
- },
- "fork-top": {
-  "raw_iou": 0.9894,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.995,
-  "scale": [
-   0.99945,
-   1.00268
-  ],
-  "boundary_p95_px": 1.0
- },
- "engine-top": {
-  "raw_iou": 0.9817,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9822,
-  "scale": [
-   0.98404,
-   1.00654
-  ],
-  "boundary_p95_px": 2.83
- },
- "pod-top-port": {
-  "raw_iou": 0.9941,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9984,
-  "scale": [
-   1.00417,
-   1.0048
-  ],
-  "boundary_p95_px": 1.0
- },
- "engine-side-port": {
-  "raw_iou": 0.9901,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9965,
-  "scale": [
-   0.99779,
-   0.99973
-  ],
-  "boundary_p95_px": 1.0
- },
- "outrigger-side-port": {
-  "raw_iou": 0.9898,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9973,
-  "scale": [
-   1.00228,
-   0.996
-  ],
-  "boundary_p95_px": 1.0
- },
- "engine-stern": {
-  "raw_iou": 0.9906,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9915,
+  "fitted_iou": 0.9961,
   "scale": [
    1.00105,
+   1.00304
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "fork-top": {
+  "raw_iou": 0.9861,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9954,
+  "scale": [
+   1.00172,
    1.0
   ],
   "boundary_p95_px": 1.0
  },
- "spine-fore": {
-  "raw_iou": 0.9878,
+ "engine-top": {
+  "raw_iou": 0.9907,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9949,
+  "fitted_iou": 0.9943,
   "scale": [
-   0.99331,
-   1.00327
+   1.001,
+   1.00027
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9948,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9971,
+  "scale": [
+   1.0,
+   1.0078
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "engine-side-port": {
+  "raw_iou": 0.9895,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9955,
+  "scale": [
+   1.00954,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "outrigger-side-port": {
+  "raw_iou": 0.9948,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9995,
+  "scale": [
+   1.0,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "engine-stern": {
+  "raw_iou": 0.9731,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9886,
+  "scale": [
+   1.00305,
+   1.00467
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-fore": {
+  "raw_iou": 0.9802,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9976,
+  "scale": [
+   1.00385,
+   1.01007
   ],
   "boundary_p95_px": 1.0
  }

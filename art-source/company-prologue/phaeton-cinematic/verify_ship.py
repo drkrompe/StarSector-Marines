@@ -17,7 +17,7 @@ validation-destroyed.json (exit 1 on any failure):
   break_frame + 4 s the base meshes are back at hull_rest (the wreck pose
   the build made); the fragments and debris start within a few units of the
   strike and end where the build flung them; the kit's fir_exp_frame follows
-  break_frame; three explosion anchors, 22 fire and 6 vent anchors;
+  break_frame; the eight-blast cook-off in delay order, 22 fire and 6 vent anchors;
 - moving the root (translate, yaw, pitch, scale) moves every part rigidly.
 """
 from pathlib import Path
@@ -147,8 +147,9 @@ else:
     knobs = bpy.data.objects.get('SWFX controls')
     check('fir_exp_frame follows break_frame', knobs is not None and abs(knobs['fir_exp_frame'] - 100.0) < 1e-6,
           knobs and knobs['fir_exp_frame'])
-    check('three explosion anchors', len(bu['explosion_anchors']) == 3
-          and all(a['anchor'] in anchors for a in bu['explosion_anchors']))
+    delays = [a['delay_s'] for a in bu['explosion_anchors']]
+    check('cook-off: eight explosion anchors in delay order', len(delays) == 8 and delays == sorted(delays)
+          and delays[0] == 0.0 and all(a['anchor'] in anchors for a in bu['explosion_anchors']), delays)
     check('fire and vent anchors', len(bu['fire_anchors']) == 22 and len(bu['vent_anchors']) == 6,
           [len(bu['fire_anchors']), len(bu['vent_anchors'])])
     ctrl['break_frame'] = 1.0

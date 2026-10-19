@@ -453,7 +453,8 @@ light; optional `size_m`), `... vent anchor ...` (a pulsing vapour cone along
 the anchor's +X; optional `length_m`) and `... explosion anchor ...` (a
 fireball that flashes white, is orange by half a second and dark smoke by about
 two, thinning over five, a faint thin shock ring, a flash light and embers;
-optional `size_m`, `delay_s`). Knobs: `fir_fire`, `fir_vent`, `fir_smoke`,
+optional `size_m`, `delay_s`; a chain of blasts such as a cook-off gives its
+lesser ones `ring` 0, a weaker `flash` and fewer `embers`). Knobs: `fir_fire`, `fir_vent`, `fir_smoke`,
 `fir_ignite` (seconds after the detonation for fires and vents to come up),
 `fir_exp_frame` (the detonation), `fir_exp_scale`, `fir_exp` (0 suppresses the
 blast for a wreck already burning). Emission and density are per metre
