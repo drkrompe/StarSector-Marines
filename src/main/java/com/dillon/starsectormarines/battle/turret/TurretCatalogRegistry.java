@@ -52,6 +52,10 @@ public final class TurretCatalogRegistry {
     public static final String TANK_HEAVY_GUN_STRUCTURE_ID = "structure.tank-heavy-gun";
     /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */
     public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
+    /** The LRM carrier's twin rail launcher: the mech anti-armor LRM rack on a vehicle turntable. */
+    public static final String VEHICLE_LRM_STRUCTURE_ID = "structure.vehicle-lrm";
+    /** The SRM technical's pintle pod: the mech anti-armor SRM rack on a pickup's ring. */
+    public static final String VEHICLE_SRM_STRUCTURE_ID = "structure.vehicle-srm";
 
     private static volatile TurretCatalogRegistry installed;
 

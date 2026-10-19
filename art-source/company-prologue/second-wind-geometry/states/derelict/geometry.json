@@ -1582,6 +1582,24 @@
       "Turret 1 roof hatch: Scar sp-turret-1"
     ],
     "overrides": [
+      "Bridge ceiling lamp: Scar dead lamp (ship-power)",
+      "Bridge ceiling lamp.001: Scar dead lamp (ship-power)",
+      "Bridge display forward console 1: Scar dead lamp (ship-power)",
+      "Bridge display forward console 2: Scar dead lamp (ship-power)",
+      "Bridge display forward console 3: Scar dead lamp (ship-power)",
+      "Bridge display forward console 4: Scar dead lamp (ship-power)",
+      "Bridge display overhead: Scar dead lamp (ship-power)",
+      "Bridge display plot: Scar dead lamp (ship-power)",
+      "Bridge display port chamfer console 1: Scar dead lamp (ship-power)",
+      "Bridge display port comms bank 1: Scar dead lamp (ship-power)",
+      "Bridge display port comms bank 2: Scar dead lamp (ship-power)",
+      "Bridge display port comms bank 3: Scar dead lamp (ship-power)",
+      "Bridge display starboard chamfer console 1: Scar dead lamp (ship-power)",
+      "Bridge display starboard systems bank 1: Scar dead lamp (ship-power)",
+      "Bridge display starboard systems bank 2: Scar dead lamp (ship-power)",
+      "Bridge display starboard systems bank 3: Scar dead lamp (ship-power)",
+      "Bridge port annunciator 1: Scar dead lamp (ship-power)",
+      "Bridge port annunciator 2: Scar dead lamp (ship-power)",
       "Command deck running light: Scar dead lamp (ship-power)",
       "Command deck running light.001: Scar dead lamp (ship-power)",
       "Command deck viewport slits: Scar unlit glazing (ship-power)",
@@ -1610,7 +1628,7 @@
       "Engine 3 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)",
       "Engine 4 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)"
     ],
-    "cut_objects": 101,
+    "cut_objects": 104,
     "sites": {
       "aft-deck-cluster": [
         {

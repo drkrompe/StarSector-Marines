@@ -32,12 +32,18 @@ import java.util.Map;
  *   <li>{@code pack-vs-escorted}: two Enforcers hunting a Dominator screened by two Lashers.</li>
  *   <li>{@code line-of-battle}: two Ventures (broadside ships) against two Enforcers (bow ships).</li>
  *   <li>{@code mirror}: two of Rusk's Wolfs against two more.</li>
+ *   <li>{@code wolfs-vs-venture}, {@code wolfs-vs-enforcer}: two of Rusk's Wolfs against one bigger hull, flying the
+ *   pack relay (one holds the target's attention while the other strikes, swapping to vent); each with a
+ *   {@code -control} loop played first with the relay off ({@code -Dbattle.warship.packRelay=false}).</li>
  * </ul>
  * Every hull fights under {@link ShipFireOrder#ALL} with its duel helm, automatic shield and doctrine (so a beaten
  * ship can break off); the escorts are named as such. The sides start out of reach on opposite sides of the ground.
  *
  * <p>Verdicts assert mechanics: no two hulls ever pass through one another, no friendly pair closes inside the other's
  * footprint. Duration, damage each way, losses, the least friendly gap and how the hunters shared their targets are
+ * readings. A relay loop also asserts its own mechanics against its control: the pack swaps, a venting ship is not
+ * the target's target for most of its vent, and the pack spends less of the fight near overload than the control.
+ * Swaps per minute, time each Wolf spends as the target's target, overloads, time to kill and damage each way are
  * readings.
  */
 public final class WarshipTacticsScene implements BehaviorScene {
@@ -62,9 +68,27 @@ public final class WarshipTacticsScene implements BehaviorScene {
     /** One hull of a loop. {@code escortOf} is the index of the hull it screens, or -1. */
     private record Spec(String hull, String variant, Faction side, int escortOf) {}
 
-    private record Loop(String id, List<Spec> west, List<Spec> east) {}
+    /**
+     * {@code relay} false plays the loop with the pack relay off; {@code control} names the loop a relay loop is read
+     * against; {@code start} (-1, 0 or +1) swings the east side's start round the ground, so one matchup is read from
+     * more than one opening.
+     */
+    private record Loop(String id, List<Spec> west, List<Spec> east, boolean relay, String control, int start) {
+        Loop(String id, List<Spec> west, List<Spec> east) {
+            this(id, west, east, true, null, 0);
+        }
+    }
 
-    private static final List<Loop> LOOPS = List.of(
+    /** How far the east side's start is swung for a relay loop's other openings, as a share of the ground's height. */
+    private static final float START_SWING_SHARE = 0.22f;
+
+    private static final Spec RUSK_WOLF = new Spec("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, -1);
+    /** A pack ship this full (or overloaded) is near overload. */
+    private static final float NEAR_OVERLOAD_FLUX = 0.9f;
+    /** The share of its venting ticks a relay's venting ships may spend as the target's target, at most. */
+    private static final float VENT_TARGETED_SHARE = 0.5f;
+
+    private static final List<Loop> LOOPS = List.of(List.of(
             new Loop("pack-vs-escorted",
                     List.of(new Spec("enforcer", "enforcer_Assault", Faction.ALLY, -1),
                             new Spec("enforcer", "enforcer_Assault", Faction.ALLY, -1)),
@@ -80,7 +104,21 @@ public final class WarshipTacticsScene implements BehaviorScene {
                     List.of(new Spec("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, -1),
                             new Spec("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, -1)),
                     List.of(new Spec("wolf_hegemony", "wolf_hegemony_Rusk", Faction.DEFENDER, -1),
-                            new Spec("wolf_hegemony", "wolf_hegemony_Rusk", Faction.DEFENDER, -1))));
+                            new Spec("wolf_hegemony", "wolf_hegemony_Rusk", Faction.DEFENDER, -1)))),
+            relay("venture", "venture_Greyhook", -1), relay("venture", "venture_Greyhook", 0),
+            relay("venture", "venture_Greyhook", 1),
+            relay("enforcer", "enforcer_Assault", -1), relay("enforcer", "enforcer_Assault", 0),
+            relay("enforcer", "enforcer_Assault", 1))
+            .stream().flatMap(List::stream).toList();
+
+    /** Two of Rusk's Wolfs on one bigger hull from one opening: the control (relay off) and the relay loop. */
+    private static List<Loop> relay(String hull, String variant, int start) {
+        String id = "wolfs-vs-" + hull + (start < 0 ? "-north" : start > 0 ? "-south" : "");
+        List<Spec> pack = List.of(RUSK_WOLF, RUSK_WOLF);
+        List<Spec> target = List.of(new Spec(hull, variant, Faction.DEFENDER, -1));
+        return List.of(new Loop(id + "-control", pack, target, false, null, start),
+                new Loop(id, pack, target, true, id + "-control", start));
+    }
 
     @Override public String id() { return "warship-tactics"; }
 
@@ -97,9 +135,14 @@ public final class WarshipTacticsScene implements BehaviorScene {
         InstalledVanillaData.install();
         String only = System.getProperty("battle.scene.warshipTactics.only");
         List<SceneReport> reports = new ArrayList<>();
+        Map<String, Trace> played = new LinkedHashMap<>();
         for (Loop loop : LOOPS) {
             if (only != null && !only.isBlank() && !List.of(only.split(",")).contains(loop.id())) continue;
-            reports.add(playOne(loop, frames));
+            // A relay loop is read against its control, so the control plays too even when only the relay was asked for.
+            if (loop.control() != null && !played.containsKey(loop.control())) {
+                for (Loop c : LOOPS) if (c.id().equals(loop.control())) reports.add(playOne(c, frames, played));
+            }
+            reports.add(playOne(loop, frames, played));
         }
         if (only == null || only.isBlank() || List.of(only.split(",")).contains(FIGHTER_LOOP)) {
             reports.add(playFighterOverCapital(frames));
@@ -107,7 +150,7 @@ public final class WarshipTacticsScene implements BehaviorScene {
         return reports;
     }
 
-    private SceneReport playOne(Loop loop, FrameSink frames) throws Exception {
+    private SceneReport playOne(Loop loop, FrameSink frames, Map<String, Trace> played) throws Exception {
         List<Warship> west = fit(loop.west(), 270f);
         List<Warship> east = fit(loop.east(), 90f);
         float reach = 0f;
@@ -132,13 +175,15 @@ public final class WarshipTacticsScene implements BehaviorScene {
         float midX = width * 0.5f;
         float midY = height * 0.5f;
         place(west, loop.west(), midX - start * 0.5f, midY, length);
-        place(east, loop.east(), midX + start * 0.5f, midY, length);
+        place(east, loop.east(), midX + start * 0.5f, midY + loop.start() * START_SWING_SHARE * height, length);
         for (Warship s : concat(west, east)) sim.addWarship(s);
+        sim.warships().tactics().packRelay(loop.relay());
         Trace trace = new Trace(west, east);
-        SceneRun.of(world).observe(trace)
-                .frames(frames, loop.id(), FRAME_EVERY, tick -> trace.caption(loop.id(), tick))
-                .run(TICKS);
-        return report(loop, trace, sim);
+        SceneRun run = SceneRun.of(world).observe(trace);
+        if (frames != null) run.frames(frames, loop.id(), FRAME_EVERY, tick -> trace.caption(loop.id(), tick));
+        run.run(TICKS);
+        played.put(loop.id(), trace);
+        return report(loop, trace, sim, loop.control() == null ? null : played.get(loop.control()));
     }
 
     private static final String FIGHTER_LOOP = "fighter-over-capital";
@@ -250,7 +295,7 @@ public final class WarshipTacticsScene implements BehaviorScene {
         return out;
     }
 
-    private SceneReport report(Loop loop, Trace t, BattleSimulation sim) {
+    private SceneReport report(Loop loop, Trace t, BattleSimulation sim, Trace control) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("hulls-never-pass-through", t.worstExcess <= 0.05f,
                 String.format(Locale.ROOT, "deepest overlap at a tick's end %.2f cells (%.2f past the pair's"
@@ -294,7 +339,10 @@ public final class WarshipTacticsScene implements BehaviorScene {
                     split + "% of escorted ticks with the pack on different hulls"));
         }
 
+        if (control != null) relayVerdicts(t, control, verdicts);
+
         Map<String, Number> metrics = new LinkedHashMap<>();
+        if (t.lone != null) relayMetrics(t, metrics);
         metrics.put("firstHitSeconds", round1(t.firstHitTick < 0 ? -1f : t.firstHitTick * TICK_SECONDS));
         metrics.put("fightSeconds", round1(t.firstHitTick < 0 ? 0f
                 : ((t.resolvedTick < 0 ? TICKS : t.resolvedTick) - t.firstHitTick) * TICK_SECONDS));
@@ -334,6 +382,56 @@ public final class WarshipTacticsScene implements BehaviorScene {
             i++;
         }
         return new SceneReport(id(), loop.id(), TICKS, verdicts, metrics);
+    }
+
+    /** The pack relay's mechanics, read against the same loop with the relay off. */
+    private static void relayVerdicts(Trace t, Trace control, List<Verdict> verdicts) {
+        int swaps = t.swaps();
+        verdicts.add(Verdict.of("swaps-happen", swaps >= 1,
+                String.format(Locale.ROOT, "%d swaps, %d vents (control: %d swaps)", swaps, t.vents(), control.swaps())));
+        float targeted = t.ventTicks == 0 ? 1f : (float) t.ventTargetedTicks / t.ventTicks;
+        verdicts.add(Verdict.of("venting-ship-not-targeted", t.ventTicks > 0 && targeted <= VENT_TARGETED_SHARE,
+                String.format(Locale.ROOT, "venting %.1fs in all once turned away, %.0f%% of it as the target's target;"
+                                + " %d of %d vents spent mostly out of its sights (and %.1fs handing over nose-on first,"
+                                + " %.0f%% of it targeted)", t.ventTicks * TICK_SECONDS, 100f * targeted,
+                        t.ventsMostlyClear, t.ventEpisodes, t.handoverTicks * TICK_SECONDS,
+                        t.handoverTicks == 0 ? 0f : 100f * t.handoverTargetedTicks / t.handoverTicks)));
+        float near = t.nearOverloadShare();
+        float controlNear = control.nearOverloadShare();
+        int overloads = t.overloads(t.west);
+        int controlOverloads = control.overloads(control.west);
+        // Read as a share of the fight, since a control that loses its pack quickly has little time in which to
+        // overload at all: what counts is how much of the fight the pack spent at its limit.
+        verdicts.add(Verdict.of("pack-flux-below-overload", near < controlNear,
+                String.format(Locale.ROOT, "pack near overload %.1f%% of the fight against the control's %.1f%%;"
+                        + " %d overloads against %d", 100f * near, 100f * controlNear, overloads, controlOverloads)));
+    }
+
+    /** Readings for a loop against one hull: who it fought, swaps, overloads, flux near the limit. */
+    private static void relayMetrics(Trace t, Map<String, Number> metrics) {
+        float minutes = Math.max(1f, t.fightTicks()) * TICK_SECONDS / 60f;
+        metrics.put("swaps", t.swaps());
+        metrics.put("swapsPerMinute", Math.round(100f * t.swaps() / minutes) / 100f);
+        metrics.put("vents", t.vents());
+        metrics.put("ventSeconds", round1(t.ventTicks * TICK_SECONDS));
+        metrics.put("ventTargetedPercent", t.ventTicks == 0 ? -1 : Math.round(100f * t.ventTargetedTicks / t.ventTicks));
+        metrics.put("handoverSeconds", round1(t.handoverTicks * TICK_SECONDS));
+        metrics.put("handoverTargetedPercent",
+                t.handoverTicks == 0 ? -1 : Math.round(100f * t.handoverTargetedTicks / t.handoverTicks));
+        metrics.put("packOverloads", t.overloads(t.west));
+        metrics.put("targetOverloads", t.overloads(t.east));
+        metrics.put("packNearOverloadPercent", round1(100f * t.nearOverloadShare()));
+        metrics.put("packOverloadedShipSeconds", round1(t.overloadedShipTicks * TICK_SECONDS));
+        for (int i = 0; i < t.west.size(); i++) {
+            Warship w = t.west.get(i);
+            metrics.put("wolf" + i + "TargetedSeconds", round1(t.targetedTicks[i] * TICK_SECONDS));
+            metrics.put("wolf" + i + "TankSeconds", round1(t.tankTicks[i] * TICK_SECONDS));
+            metrics.put("wolf" + i + "PeakFluxPercent", Math.round(100f * t.peakFlux[i]));
+            metrics.put("wolf" + i + "Overloads", w.overloadCount());
+        }
+        metrics.put("targetNoTargetSeconds", round1(t.untargetedTicks * TICK_SECONDS));
+        metrics.put("targetPeakFluxPercent", Math.round(100f * t.lonePeakFlux));
+        metrics.put("targetShieldAbsorbed", Math.round(t.lone.shieldAbsorbedDamage()));
     }
 
     private static float round1(float v) {
@@ -394,11 +492,117 @@ public final class WarshipTacticsScene implements BehaviorScene {
         /** Ticks a line's second ship was within its interval of its slot, of the ticks it sailed second. */
         int lineHeldTicks;
         int lineTicks;
+        /** For a loop against one hull: that hull, and per west hull its ticks as the hull's target and as tank. */
+        final Warship lone;
+        final int[] targetedTicks;
+        final int[] tankTicks;
+        final float[] peakFlux;
+        int untargetedTicks;
+        float lonePeakFlux;
+        /** Ticks a west hull spent venting in a relay, and of those the ticks it was the target's target. */
+        int ventTicks;
+        int ventTargetedTicks;
+        /** Ticks a venting west hull spent still handing the target over (nose-on, before it turned away). */
+        int handoverTicks;
+        int handoverTargetedTicks;
+        /** Vents ended or still running, and how many spent most of their ticks out of the target's sights. */
+        int ventEpisodes;
+        int ventsMostlyClear;
+        final int[] ventRun;
+        final int[] ventRunTargeted;
+        /** Fight ticks with any live west hull near overload, west hulls overloaded summed over ticks, fight ticks. */
+        int nearOverloadTicks;
+        int overloadedShipTicks;
+        int fightSampleTicks;
 
         Trace(List<Warship> west, List<Warship> east) {
             this.west = west;
             this.east = east;
             this.all = concat(west, east);
+            this.lone = east.size() == 1 ? east.get(0) : null;
+            this.targetedTicks = new int[west.size()];
+            this.tankTicks = new int[west.size()];
+            this.peakFlux = new float[west.size()];
+            this.ventRun = new int[west.size()];
+            this.ventRunTargeted = new int[west.size()];
+        }
+
+        int swaps() {
+            int n = 0;
+            for (Warship w : west) n += w.manoeuvre().relaySwaps();
+            return n;
+        }
+
+        int vents() {
+            int n = 0;
+            for (Warship w : west) n += w.manoeuvre().relayVents();
+            return n;
+        }
+
+        int overloads(List<Warship> side) {
+            int n = 0;
+            for (Warship w : side) n += w.overloadCount();
+            return n;
+        }
+
+        float nearOverloadShare() {
+            return fightSampleTicks == 0 ? 0f : (float) nearOverloadTicks / fightSampleTicks;
+        }
+
+        int fightTicks() {
+            return firstHitTick < 0 ? 0 : (resolvedTick < 0 ? TICKS : resolvedTick) - firstHitTick;
+        }
+
+        private void closeVent(int i) {
+            if (ventRun[i] == 0) return;
+            ventEpisodes++;
+            if (ventRunTargeted[i] * 2 < ventRun[i]) ventsMostlyClear++;
+            ventRun[i] = 0;
+            ventRunTargeted[i] = 0;
+        }
+
+        /** Per tick, for a loop against one hull: whom it fights, who tanks and vents, and the pack's flux. */
+        private void relay() {
+            if (lone == null || !live(lone)) {
+                for (int i = 0; i < west.size(); i++) closeVent(i);
+                return;
+            }
+            Warship sighted = lone.hullTarget();
+            if (sighted == null) untargetedTicks++;
+            lonePeakFlux = Math.max(lonePeakFlux, lone.fluxFraction());
+            boolean fight = firstHitTick >= 0 && resolvedTick < 0;
+            boolean near = false;
+            for (int i = 0; i < west.size(); i++) {
+                Warship w = west.get(i);
+                if (!live(w)) {
+                    closeVent(i);
+                    continue;
+                }
+                if (sighted == w) targetedTicks[i]++;
+                if (w.manoeuvre().role() == WarshipManoeuvre.Role.TANK) tankTicks[i]++;
+                peakFlux[i] = Math.max(peakFlux[i], w.fluxFraction());
+                if (w.manoeuvre().relayHandingOver()) {
+                    handoverTicks++;
+                    if (sighted == w) handoverTargetedTicks++;
+                } else if (w.manoeuvre().relayVenting()) {
+                    ventTicks++;
+                    ventRun[i]++;
+                    if (sighted == w) {
+                        ventTargetedTicks++;
+                        ventRunTargeted[i]++;
+                    }
+                } else {
+                    closeVent(i);
+                }
+                if (fight) {
+                    if (w.overloaded()) overloadedShipTicks++;
+                    near |= w.overloaded() || w.fluxFraction() >= NEAR_OVERLOAD_FLUX;
+                }
+            }
+            if (fight) {
+                fightSampleTicks++;
+                if (near) nearOverloadTicks++;
+            }
         }
 
         String caption(String loop, int tick) {
@@ -407,6 +611,14 @@ public final class WarshipTacticsScene implements BehaviorScene {
                 s.append(" / ").append(w.faction == Faction.ALLY ? "W:" : "E:").append(w.hullId).append(' ')
                         .append(w.destroyed() ? "down" : w.departed() ? "gone"
                                 : Math.round(100f * Math.max(0f, w.hullFraction())) + "%");
+                if (lone != null && w.faction == Faction.ALLY && live(w)) {
+                    WarshipManoeuvre m = w.manoeuvre();
+                    String role = m.relayVenting() ? "VENT" : m.role() == WarshipManoeuvre.Role.TANK ? "TANK"
+                            : m.role() == WarshipManoeuvre.Role.STRIKER ? "STRIKE" : "";
+                    s.append(String.format(Locale.ROOT, " flux %d%%", Math.round(100f * w.fluxFraction())));
+                    if (!role.isEmpty()) s.append(' ').append(role);
+                    if (lone.hullTarget() == w) s.append(" (targeted)");
+                }
             }
             return s.toString();
         }
@@ -516,6 +728,7 @@ public final class WarshipTacticsScene implements BehaviorScene {
             }
             split(west, east);
             split(east, west);
+            relay();
             if (resolvedTick < 0 && firstHitTick >= 0) {
                 boolean westOver = false;
                 boolean eastOver = false;

@@ -7,7 +7,8 @@ depth are proposed art geometry, not canonical game dimensions.
 
 Detail lives in one module per area so separate passes do not collide:
 sw_hull (forebody shell, bow facets, bays, armor), sw_aft_deck (centre aft
-deck and stern notch), sw_engines (aft engine pods), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
+deck and stern notch), sw_engines (aft engine pods), sw_bridge (dorsal casings, command deck, spine), sw_bridge_interior (the bridge
+room cut into the command deck, and its condition dressing), sw_turrets; sw_kit holds the
 shared materials and primitives; sw_port_module builds the port grapple.
 
 Review options, after a literal "--":
@@ -41,8 +42,8 @@ HERE = Path(__file__).resolve().parent
 # 66 m overall. Everything metric reads this; nothing hard-codes metres.
 METRES_PER_UNIT = 0.65
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_rcs, sw_damage
-for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_rcs, sw_damage):
+import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_bridge_interior, sw_turrets, sw_port_module, sw_rcs, sw_damage
+for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_bridge_interior, sw_turrets, sw_port_module, sw_rcs, sw_damage):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -75,6 +76,7 @@ sw_hull.build_details(kit)
 sw_engines.build_details(kit)
 sw_aft_deck.build_details(kit)
 sw_bridge.build(kit)
+sw_bridge_interior.build(kit)
 sw_port_module.build(kit)
 
 sw_engines.build_nozzles(kit)
@@ -82,6 +84,7 @@ sw_turrets.build(kit)
 sw_rcs.build(kit)
 # Scars are the last phase: everything above is the clean ship.
 damage = sw_damage.apply(kit, args.state) if args.state != 'clean' else None
+sw_bridge_interior.dress(kit, args.state)
 
 scene=bpy.context.scene
 scene.render.engine='CYCLES'

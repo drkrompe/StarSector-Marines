@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-18 — the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -601,7 +601,11 @@ retains the same existing cross-domain behavior as an autonomous hull.
   the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
   allied story columns, delivery legs, unarmed hulls, shot-away guns and empty
-  magazines never engage, and infantry is not a duel target. `-Dbattle.vehicle.duelRange=false`
+  magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
+  (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
+  beyond the target's reach where its gun out-reaches it and at the outer edge of
+  its own reach otherwise, never closer; an **ambusher** never drives at armor and
+  holds where it was set down (the missile carriers, below). `-Dbattle.vehicle.duelRange=false`
   is the control. Its route arrays are
   degenerate on purpose — fabricating a journey it never took would give it an
   errand to resume the moment an order was released.
@@ -804,6 +808,45 @@ it. Its sight is plain line of sight from the ground, so it has to be driven
 somewhere it can look. Acceptance is the `scout-car` scene: a position no marine
 can see is sighted, reaches the commander and is revealed to the player, and a
 scout parked behind a wall reports nothing.
+
+### The missile carriers: LRM carrier and SRM technical
+
+Two hulls carry the mechs' **anti-armor racks** (`mechs-nouns.md`, Missile
+warheads) on a turret: the same warhead, reach and cadence, as turret-mount copies
+of the mech weapons. Both mounts fire **only at hardened targets** (turrets, hubs,
+vehicles, heavy mechs), as a mech's AT rack does, and hold fire at men; a contact
+warhead spent on a rifleman is one the next tank does not get. A turret rocket
+carries its contact warhead on its detonation, so the shaped charge lands on the
+body it was aimed at and point defence that stops the rocket stops the charge.
+There is **no rack choice**: a vehicle is a fixed variant, so the anti-armor
+warhead is each hull's identity, and the fragmentation rack stays a mech fitting.
+
+The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the heavy APC's hull
+with the troop bay given over to two LRM-15 racks on a turntable
+(`art-source/vehicles/missile-carriers/`). It is the APC line's long arm against
+armor, where the fire-support APC's mortar is its short arm against men. Its rounds
+arc, and it fires **on a spotter's call** at a machine it cannot see itself:
+somebody else on its side must be looking at the target right now
+(`SideObservers`) — a sight hull with the target in its own sight range and line of
+sight (the spotter pickup, the hover scout), a soldier or mech within 34 cells with
+line of sight (a mortar's spotter reach), or a comms operator with it in sight.
+Nothing is a belief or a memory, so a carrier holds fire on a tank that ducked out
+of everyone's view rather than shelling where it was. A spotted round is an
+observed round and flies at the weapon's ordinary accuracy. It fights from
+**stand-off**, and an indirect hull plans to a band position without needing its
+own line of sight there. It pays with no seats and less plate than the
+fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
+wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
+sight, and holds fire entirely without the spotter.
+
+The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the
+pickup with a mech SRM-5 pod on its pintle ring and the technical's welded plate
+left off to make the weight. Its rack reaches 18 cells, so it never drives at a
+tank: it is an **ambusher**, holding where it was set down, behind cover, and
+firing on the armor that comes into its reach. Cheap and fragile, a filler for a
+small lift budget that can still hurt a tank that drives past. Acceptance is the
+same scene: a technical behind cover holds still as a tank drives down the road
+and fires once it is inside its reach.
 
 ### The hover line: hover scout and drone skimmer
 
