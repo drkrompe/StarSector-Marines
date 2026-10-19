@@ -1,5 +1,5 @@
 {
- "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Paragon as Tri-Tachyon's flagship: kept immaculate, so service wear is light; grime in seams, soot at the ten drives, faint scuffing on exposed ceramic edges, no neglect.",
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Paragon as Tri-Tachyon's flagship: a working flagship: grime in seams and recesses, heavy soot at the ten drives, scuffing on exposed ceramic edges, some fade, no neglect (round 2, owner: more grime).",
  "clean":   {"abrasion": 0.0,  "pitting": 0.0,  "fade": 0.0,  "grime": 0.0,  "soot": 0.0,  "neglect": 0.0},
- "service": {"abrasion": 0.16, "pitting": 0.05, "fade": 0.12, "grime": 0.26, "soot": 0.45, "neglect": 0.0}
+ "service": {"abrasion": 0.2,  "pitting": 0.06, "fade": 0.16, "grime": 0.36, "soot": 0.6,  "neglect": 0.0}
 }

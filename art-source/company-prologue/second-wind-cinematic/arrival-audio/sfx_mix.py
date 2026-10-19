@@ -35,6 +35,7 @@ DIALOGUE_LUFS = -19.0
 HAIL = ROOT / "mod/sounds/story/jangala-arrival"
 # Castle's review takes (record_castle_lines.py treat): the owner's "a" takes from the review set.
 CASTLE = {"entry": "entry_t06", "c4_reels": "c4_reels_t06", "c4_greywater": "c4_greywater_t01",
+          "c4_kilo_nine": "c4_kilo_nine_t01",
           "c5_announce": "c5v3_announce_t01", "c5_last": "c5v3_last_t01"}
 LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice band
 
@@ -47,8 +48,7 @@ PICTURES = {
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
-    "c4c5": [ROOT / "build/c4x/c4x-sketch-1fps.mp4",
-             DRIVE / "cinematic-c5/2026-10-19_rise-title_windows/05-sketch-1fps.mp4"],
+    "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_joined-sketch_windows/01-c4c5-joined-1fps.mp4",
 }
 
 
@@ -112,35 +112,45 @@ SHOTS = {
         sfx("c2_console_beeps", 0.0, -14, offset=2.0, until=0.9),
         sfx("c2_console_beeps", 2.0, -14, offset=3.4, until=3.4),
         # Two vics of three: a swish per fighter, a beat apart, peaking at 3.0 and 4.2.
-        sfx("c2_fighter_swish", 2.5, -8), sfx("c2_fighter_swish", 2.62, -12), sfx("c2_fighter_swish", 2.74, -14),
-        sfx("c2_fighter_swish", 3.7, -10), sfx("c2_fighter_swish", 3.82, -13), sfx("c2_fighter_swish", 3.94, -15),
+        synth("fighter_00", -6), synth("fighter_01", -9), synth("fighter_02", -9),
+        synth("fighter_10", -8), synth("fighter_11", -11), synth("fighter_12", -11),
         # The Legion: two layers of engine hum and the swell, all loudest at the beam (8.0).
         # The Legion's engines: two synthesised rocket clusters along the hull, a beat apart.
-        synth("legion_engines_fwd", -12, fade_in=1.0),
-        synth("legion_engines_aft", -12, fade_in=1.0),
-        sfx("c2_legion_presence", 5.0, -14, af=LOW),
+        synth("legion_drives", -7, fade_in=1.0),
+        synth("legion_forward", -9, fade_in=1.0),
         sfx("c2_switch_clicks", 9.45, -12, until=9.8),
         sfx("c2_switch_clicks", 14.35, -12, offset=3.0, until=14.8),
-        sfx("c2_deorbit_burn", 8.1, -12, until=15.0, env=[(8.1, 0), (12, 2), (15, 6)]),
+        # Second Wind's own drive heard from its bridge, lighting for the de-orbit burn at 9.6 s.
+        synth("second_wind_interior", -8, until=15.0),
         sfx("c1_hull_creaks", 10.8, -14, offset=5.0, until=12.3),
         squelch("open", 0.3), hail(7, 0.46), squelch("close", 8.94), hail(8, 9.76),
     ]),
-    "entry": (3.0, [
-        sfx("c2_deorbit_burn", 0.0, -8, offset=6.9, until=1.0, fade_out=0.9),
-        sfx("entry_reentry_roar", 0.0, -10, env=[(0, -4), (2.6, 0), (3.0, 8)]),
-        sfx("entry_buffet", 1.3, -10, until=3.0, fade_in=0.4),
+    # The entry, 7 s (c2_core HEAT/SMOKE/CLOUD_IN/WHITE/BLOOM, 2026-10-19): clear space to 1.2,
+    # heat from the bottom right filling the glass by 2.4, smoke 1.6-5.6, cloud 4.1-5.4, white
+    # 5.4-6.0, bloom to the cut. The shake (c3_core.shake_envelope) is under a pixel to 0.6 s,
+    # peaks at about 9 px from 4.0 to 5.2 s and decays; the buffet follows it in dB.
+    "entry": (7.0, [
+        synth("second_wind_interior", -8, offset=15.0, until=7.0, env=[(0, 0), (5.4, 0), (7.0, -4)]),
+        sfx("entry_reentry_roar", 1.2, -3, env=[(1.2, -10), (3.0, -4), (4.0, 0), (5.2, 0), (7.0, -2)]),
+        sfx("entry_buffet", 0.6, -4, until=7.0, loop=True, fade_in=0.3,
+            env=[(0.6, -24), (2.4, -10), (4.0, 0), (5.2, 0), (6.0, -5), (7.0, -9.5)]),
+        sfx("c1_hull_creaks", 3.6, -10, offset=5.0, until=5.1),
         voice(("castle", CASTLE["entry"]), 0.16),
     ]),
-    "c3": (12.0, [
-        sfx("entry_reentry_roar", 0.0, -2, offset=3.0, until=1.5, fade_out=1.4),
-        sfx("entry_buffet", 0.0, -10, offset=1.7, until=2.0, env=[(0, 0), (2.0, -18)]),
-        sfx("c3_wind_easing", 0.0, -6, until=12.0, env=[(0, 0), (0.9, -4), (2.7, -8), (5, -10), (12, -12)]),
-        sfx("c3_frame_settle", 1.0, -14),
-        sfx("c3_cabin_flight_bed", 0.0, -16, until=12.0, fade_in=0.8),
-        # The world below, through the glass: muffled, and in once the buffeting has gone.
-        sfx("c3_nature_muffled", 1.5, -16, until=12.0, af="lowpass=f=1800:p=2", fade_in=2.0),
-        sfx("c3_river_muffled", 1.5, -18, until=12.0, af="lowpass=f=1200:p=2", fade_in=2.5),
-        voice(("castle", CASTLE["c4_reels"]), 4.0),
+    # C3, 16 s (c3_core): still shaking at the start (about 3 px, 1 px by 2 s, gone by 5 s), the
+    # horizon levelling over 0.4-5.6 s with a settle at 5-7 s; Castle's travel-reels line at 7.0.
+    "c3": (16.0, [
+        synth("second_wind_interior", -10, offset=22.0, until=2.0, fade_out=2.0),
+        sfx("entry_reentry_roar", 0.0, -6, offset=5.8, until=1.5, fade_out=1.0),
+        sfx("entry_buffet", 0.0, -8, until=5.5, loop=True, env=[(0, -9.5), (2.0, -19), (5.0, -36)]),
+        sfx("c3_wind_easing", 0.0, -6, until=16.0, loop=True,
+            env=[(0, 0), (2.0, -3), (5.5, -9), (8, -11), (16, -12)]),
+        sfx("c3_frame_settle", 5.6, -14),
+        sfx("c3_cabin_flight_bed", 0.0, -16, until=16.0, fade_in=0.8),
+        # The world below, through the glass: muffled, and in once the shaking has gone.
+        sfx("c3_nature_muffled", 4.0, -16, until=16.0, af="lowpass=f=1800:p=2", fade_in=2.5),
+        sfx("c3_river_muffled", 4.0, -18, until=16.0, af="lowpass=f=1200:p=2", fade_in=3.0),
+        voice(("castle", CASTLE["c4_reels"]), 7.0),
     ]),
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
     "c4c5": (C4_LENGTH + 33.5, [
@@ -153,16 +163,20 @@ SHOTS = {
             env=[(3.5, -10), (7, 0), (16, -2), (20, -6), (30, -6), (34, -5), (42, 2), (48.5, -30)]),
         sfx("c4_port_ambience", 5.0, -18, until=34.0, fade_in=2.5, fade_out=2.0),
         # The landing: the drive as bass, the rocket burn under the hover, then the thump.
+        # Castle's Kilo Nine line runs 4.6-10.9: the burn sits under it and comes back up for the
+        # touchdown at 11.0.
         sfx("c1_sw_engine_loop", 3.0, -10, until=12.5, af=LOW,
-            env=[(3, -8), (6.6, 0), (10.5, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
-        sfx("c4_landing_rocket", 4.0, -6),
-        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3),
+            env=[(3, -8), (6.6, -3), (10.6, -3), (11.0, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
+        sfx("c4_landing_rocket", 5.0, -6, env=[(5, -4), (5.4, -9), (10.6, -9), (11.0, 2)]),
+        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3,
+            env=[(6, -6), (10.6, -6), (11.0, 0)]),
         sfx("c4_touchdown", 11.0, -2),
         sfx("c4_dust_hiss", 11.0, -10),
         sfx("c4_spool_down", 11.2, -8),
         sfx("c5_yard_bed", 12.0, -14, until=49.5,
             env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
-        voice(("castle", CASTLE["c4_greywater"]), 1.0),
+        voice(("castle", CASTLE["c4_greywater"]), 0.5),
+        voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
         # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
