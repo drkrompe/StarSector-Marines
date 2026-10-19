@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559b-1ef7-7080-af32-ae3d11d2b22a",
+  "source": "/Users/dillon/.codex/generated_images/01a1559b-1ef7-7080-af32-ae3d11d2b22a/exec-ec9c5a0f-99f9-440f-944f-55eb7574d207.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/hound-surface-independent/reference/finish-reference.png",
+    "sha256": "6bbbbd8846c67a86d533804210ae13fc4416358686b3648ae37f657ab0d71235",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/hound-surface-independent/prompts/finish-reference.prompt.txt",
+  "promptSha256": "d96f0d4caa0c55ea1fa4f0ba1fbbcd9f4ce600a191f3c6ddc976d664509e7646",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the ship to repaint (geometry and layout authority)\nImage 2: INPUT 2: the fleet livery (paint colours only; not layout)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one small spacecraft, a Hound-class light freighter, seen from above its port bow quarter on a plain light grey background. Its colours mark which material each surface is: the orange panels are its main armour, the darker brown panels are its structural plating (the deckhouse walls, hatch panels, fork and pod side panels), mid-grey is gunmetal machinery, near-black is recesses and seams, the off-white nose capsule and fittings are cream enamel, the small lit windows are windows.\nINPUT 2 is another ship of the same independent convoy escort fleet, already painted in the fleet's livery: use it ONLY for the paint colours. Never copy its view, composition or shapes.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that independent escort livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, ring, rail, turret and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Recolour by material, one-for-one: every orange armour panel becomes the pale warm-grey armour paint of INPUT 2's main hull (a light, slightly warm neutral grey, clearly lighter than the gunmetal); every brown structural panel becomes the muted slate-blue paint of INPUT 2's accent strips (a dull, dark greyish blue); gunmetal stays dark grey bare-ish steel; recesses stay near black; the nose capsule and cream fittings stay a warm off-white enamel; windows stay windows. No orange or brown may remain anywhere. Do not invent stripes, patches, markings or extra colours.\n- Finish: a working independent escort, decently kept. Crisp semi-matte industrial enamel with fine plate seams, flush fastener rows, small access panels and subtle panel-to-panel tone differences. Light, even service wear only: faint edge scuffs on exposed corners, a thin film of grime in seams, a little soot near the two aft engine nozzles. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/guide/reference-guide.png",
+      "sha256": "fa269ebc27bb2a050e10b7fc5efde8479bd69eb929c0a63ed492941a32d07a61",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the ship to repaint (geometry and layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/reference/livery-key.png",
+      "sha256": "d84f4821dfbf28772b1fc97eb808c9cf66c8eed43680ddde07fe479f8eaae967",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the fleet livery (paint colours only; not layout)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to apply the fleet colours and light service wear while preserving Image 1’s geometry and composition.\n"
+  ],
+  "usage": {
+    "input_tokens": 46179,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 659,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 41.5
+}
