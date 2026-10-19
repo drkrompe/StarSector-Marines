@@ -799,14 +799,13 @@ def heat_tiles(kit):
     keel on lift-off and touchdown: square tiles proud of the plating, on a 2.6-unit pitch,
     stopping at the collars, seams and docking clamps."""
     tiles = Parts()
-    fields = [(13.6, 56.4, YC-21.0, YC+21.0, HOLD_KEEL)]          # between the hatches, inside the skids
+    fields = [(13.6, 56.4, YC-17.2, YC+17.2, HOLD_KEEL)]          # between the hatches, inside the skids
     for side, s in SIDES:
         for x0, x1 in ((40.6, 65.4), (-9.4, 19.4)):
             a, b = sorted((y(54.0, s), y(80.0, s)))
             fields.append((x0, x1, a, b, SIDE_KEEL))
     keep_clear = [(cx, cy, R+2.2*R/7+.45) for cx, cy, R, k, h in LIFT]        # the hazard ring
     keep_clear += [(x, y(67.0, s), 4.1) for _, s in SIDES for x in (-2.0, 70.0)]
-    keep_clear += [(cx, cy, R+1.3) for cx, cy, R, k, h in GEAR]
     for x0, x1, a, b, k in fields:
         nx, ny = int((x1-x0)/2.6), int((b-a)/2.6)
         ox, oy = x0+(x1-x0-nx*2.6)/2, a+(b-a-ny*2.6)/2
@@ -820,69 +819,31 @@ def heat_tiles(kit):
     tiles.build(kit, 'Lift thruster heat-shield tiles', kit.tile, .12)
 
 
-# Landing legs (owner, pass 3 round 7: skids "would concentrate a lot of weight on a wedge /
-# line"): eight telescoping legs on broad footpads, built stowed. (cx, cy, pad radius, keel z,
-# host). Four on the hold keel outboard of the hatches and tile field, one on each side
-# module's keel on its docking-clamp line. Deployed, every pad bottom stands on GROUND_Z.
-GEAR = [(x, YC+r, 5.0, HOLD_KEEL, 'Hull central cargo hold') for x in (2.0, 72.0) for r in (21.5, -21.5)]
-GEAR += [(x, y(67.0, s), 3.6, SIDE_KEEL, f'Cargo {side} {part} module')
-         for side, s in SIDES for part, x in (('fore', 79.3), ('aft', 22.0))]
-GROUND_Z = HOLD_KEEL-10.0
-GEAR_LEGS = {}
-
-
-def landing_gear(kit):
-    """Each leg: a shallow pad recess and a deep strut shaft cut into the keel; a fixed sleeve
-    collar at the shaft mouth with a hazard ring; and, moving together under one empty
-    ('Hull landing leg <i> extension', custom properties open_axis and travel), a chromed
-    lower stage, a gimbal hub and a broad ribbed footpad whose sole is nearly flush when
-    stowed; the steel upper stage rides its own empty ('... upper stage extension') for half
-    the travel. Posed by moving each empty `travel` units along open_axis (--gear-down)."""
-    GEAR_LEGS.clear()
-    collars, rings = Parts(), Parts()
-    for i, (cx, cy, R, k, host) in enumerate(GEAR, 1):
-        travel = (k-.45)-GROUND_Z
-        la = travel/2+3.0                                                   # upper stage length
-        lb = travel/2+2.8                                                   # lower stage length
-        _cut(kit, obj(host), Parts().cyl((cx, cy, k-1), R+.35, 2.6, 'Z', 48), kit.dark)
-        _cut(kit, obj(host), Parts().cyl((cx, cy, k+1.5), 2.6, la+.4, 'Z', 40), kit.dark)
-        collars.tube(cx, cy, k+1.62, k+.9, 3.2, 3.2, .65, 40)
-        rings.tube(cx, cy, k+.02, k-.06, R+.85, R+.85, .45, 48)
-        pad, hub, lower, upper = Parts(), Parts(), Parts(), Parts()
-        sole = k-.45
-        pad.cyl((cx, cy, sole), R, .7, 'Z', 48)                             # the footpad
-        pad.tube(cx, cy, sole+.7, sole+1.1, R-.2, .55*R, .5, 48)            # dished top
-        for j in range(8):                                                   # radial stiffeners
-            a = math.pi*j/4
-            ca, sa = math.cos(a), math.sin(a)
-            pad.slab([(cx+ca*1.9-sa*.2, cy+sa*1.9+ca*.2, sole+.7), (cx+ca*(R-.4)-sa*.2, cy+sa*(R-.4)+ca*.2, sole+.7),
-                      (cx+ca*(R-.4)+sa*.2, cy+sa*(R-.4)-ca*.2, sole+.7), (cx+ca*1.9+sa*.2, cy+sa*1.9-ca*.2, sole+.7)],
-                     (0, 0, .55))
-        for rr in (.45*R, .8*R):                                             # tread rings on the sole
-            pad.tube(cx, cy, sole+.02, sole-.12, rr+.25, rr+.25, .5, 48)
-        hub.cyl((cx, cy, sole+.7), 2.3, .65, 'Z', 40)                       # gimbal hub and ring
-        hub.tube(cx, cy, sole+1.65, sole+1.25, 2.35, 2.35, .45, 40)
-        lower.cyl((cx, cy, sole+1.35), 1.75, lb, 'Z', 40)                   # chromed lower stage
-        upper.cyl((cx, cy, k+1.5), 2.35, la, 'Z', 40)                       # steel upper stage
-        upper.tube(cx, cy, k+1.85, k+1.45, 2.55, 2.55, .35, 40)             # its gland ring
-        n = f'Hull landing leg {i}'
-        moving = [pad.build(kit, f'{n} footpad', kit.steel, .1), hub.build(kit, f'{n} gimbal hub', kit.dark, .06),
-                  lower.build(kit, f'{n} lower stage', kit.pale, .03)]
-        staged = [upper.build(kit, f'{n} upper stage', kit.steel, .05)]
-        empties = []
-        for name, parts, t in ((f'{n} extension', moving, travel), (f'{n} upper stage extension', staged, travel/2)):
-            e = kit.empty(name, (cx, cy, k), 0)
-            e['open_axis'] = (0.0, 0.0, -1.0)
-            e['travel'] = round(t, 3)
-            bpy.context.view_layer.update()
-            for p in parts:
-                p.parent = e
-                p.matrix_parent_inverse = e.matrix_world.inverted()
-            empties.append(e.name)
-        GEAR_LEGS[i] = dict(empty=empties[0], stage_empty=empties[1], location=(cx, cy, k), travel=round(travel, 3),
-                            pad_radius=R, host=host)
-    collars.build(kit, 'Hull landing leg sleeve collars', kit.steel, .06)
-    rings.build(kit, 'Hull landing leg hazard rings', kit.orange)
+def skids(kit):
+    """Landing runners along the hold keel, outboard of the hatches and lift thrusters: what
+    the hull rests on when the lift thrusters set it down. Broad and flat-soled so the weight
+    spreads along their whole length rather than onto a line (owner, pass 3 round 7: legs
+    were rejected as more concentrated still): 8 units (4 m) wide, raked at both ends, a
+    replaceable wear shoe, side stiffeners and bolted mounting blocks."""
+    z = HOLD_KEEL
+    beams, shoes, blocks, ribs = Parts(), Parts(), Parts(), Parts()
+    for r in (-22.0, 22.0):
+        c = YC+r
+        x0, x1 = -12.0, 84.0
+        prof = [(x0, z), (x0+4, z-2.4), (x1-4, z-2.4), (x1, z)]
+        beams.slab([(px, c-4.0, pz) for px, pz in prof], (0, 8.0, 0))
+        shoes.box(x0+4.4, x1-4.4, c-3.6, c+3.6, z-2.85, z-2.35)
+        for k in range(1, 12):                                  # shoe segment joints
+            bx = x0+4.4+k*(x1-x0-8.8)/12
+            shoes.box(bx-.08, bx+.08, c-3.65, c+3.65, z-2.9, z-2.8)
+        for bx in range(int(x0)+6, int(x1)-3, 8):
+            blocks.box(bx-1.0, bx+1.0, c-4.8, c+4.8, z-1.3, z+.05)
+            for sy in (-1, 1):
+                ribs.box(bx+3.6, bx+4.4, c+sy*4.0, c+sy*4.35, z-2.2, z)
+    beams.build(kit, 'Hull keel landing skids', kit.steel, .25)
+    shoes.build(kit, 'Hull keel landing skid wear shoes', kit.dark, .1)
+    blocks.build(kit, 'Hull keel landing skid mounting blocks', kit.steel, .1)
+    ribs.build(kit, 'Hull keel landing skid stiffeners', kit.steel, .06)
 
 
 def fenders(kit):
@@ -919,5 +880,5 @@ def detail(kit):
     docking(kit)
     fenders(kit)
     lift(kit)
-    landing_gear(kit)
     heat_tiles(kit)
+    skids(kit)
