@@ -2,7 +2,7 @@
 
 Status: DRAFT — layout animatic in progress (`c1v2_scene.py`); sun decided.
 Written: 2026-10-18
-Updated: 2026-10-19 — the customs Hound flies with its drives lit.
+Updated: 2026-10-19 — finished ship builds wired in; Cycles final mode added.
 
 C1 v1 is a locked-off parallax plate: the whole system laid out at once, Second
 Wind a card drifting into it. It works as a picture and fails as an opening,
@@ -46,14 +46,12 @@ Blender scene** with the camera at the centre:
   `second-wind-states/patched`, at 0.65 m per hull unit, with the VFX kit: the
   two running engines, RCS puffs on its anchors and the conduit sparks. Its
   path is a real trajectory with real speed past the camera.
-- **Close traffic, 3D.** The modelled hulls at their own scales: Hound (A) in
-  Hegemony auxiliary livery (textured), the Legion for the Hegemony picket
-  (untextured, so mid-distance or flat-lit only), and Mudskipper as local
-  working traffic (textured). Hermes is 9 m long and untextured, so at most a
-  distant shuttle.
-- **Far traffic, imposters.** v1's painted cards — flotilla, freighters, the
-  station — as camera-facing cards placed at distance in the scene. A
-  rotating camera does not betray them.
+- **Traffic, 3D.** Every ship is a modelled hull at its own scale (see Ship
+  orders). Finished cinematic exports that carry the VFX kit's effects (drive
+  plumes, gun rigs, lamps) are linked one copy each; hulls that appear several
+  times are instanced and carry stand-in drive glows.
+- **Far imposter.** Only the station is still a painted, camera-facing card. A
+  rotating camera does not betray it.
 - **Planet.** The v1 sphere, maps and atmosphere, now in the scene rather than
   a separate layer.
 - **Sky.** A full 360-degree star field and galactic band. v1's star plate is a
@@ -77,13 +75,15 @@ crossing broadside, read as comical). Every hull keeps its own range and a small
 attitude of its own; hulls are appended once and instanced. In formation order:
 
 1. **Onslaught**, the flagship, leads at 6.0 km: Drive
-   `starsector/builds/onslaught/e210771c0/onslaught.blend` (detail pass 2) or any
-   later build; 85faadc8f and earlier are superseded. Collection
-   `ONSLAUGHT | clean`, 0.86 m per unit (about 301 m).
+   `starsector/builds/onslaught/1480919b1/onslaught.blend` (textured, with its
+   effects) or any later build; earlier builds are superseded. Collection
+   `ONSLAUGHT | clean` plus `SWFX`, 0.86 m per unit (about 301 m).
 2. **Lashers**, four frigates screening ahead of and around the flagship,
    5.8–6.2 km: Drive `starsector/builds/lasher/4e2ed50/lasher.blend`,
    collection `LASHER`, 0.95 m per unit (about 90 m).
-3. **Legion**, second line, above and behind the flagship at 6.9 km.
+3. **Legion**, second line, above and behind the flagship at 6.9 km: the
+   finished `legion-cinematic` export with its effects (0.99 m per unit), or
+   the untextured `legion-geometry` until that build is staged.
 4. **Hound (A)** pair closing up the rear, 7.3–7.4 km.
 5. **Broadswords**, the Legion's air wing (owner, 2026-10-18): four pairs flying
    loops of 450–950 m round the Legion and the flagship, each loop in its own
@@ -93,20 +93,22 @@ attitude of its own; hulls are appended once and instanced. In formation order:
    larger than the bell: the wing reads as sparks working round the fleet,
    which gives the capitals their scale.
 
-Each published hull carries a stand-in orange drive glow per engine, read from
-its exhaust anchors and hung on its root, and its running lights are capped so
-they do not bloom past the hull at picket range. A further Hound (A) crosses
-close in hail 03 (customs) under thrust: it is the `hound-export` asset with the
-VFX kit's plumes on both drives, and none of the kit's exhaust haze, which is
-smoke in air.
+The two capitals run their own effects: every drive at full throttle. Instanced
+hulls carry a stand-in orange drive glow per engine instead, read from their
+exhaust anchors and hung on the root. Running lights on the picket are capped
+so they do not bloom past the hull at picket range. A further Hound (A) crosses
+close in hail 03 (customs) under thrust: the `hound-export` asset with the
+VFX kit's plumes on both drives. No hull carries the kit's exhaust haze, which
+is smoke in air. The layout passes (EEVEE) render volumes only within 700 m,
+which keeps the customs Hound's plumes sharp; the far plumes are a few pixels
+and appear in the Cycles final.
 
 Civilian freight is 3D too (`c1_fleet.py`): a Colossus outbound 5.2 km out
 where the painted Atlas card was, and a queue inbound to the station's docks at
 8-9 km (a Colossus, two Shepherds and a Mudskipper), each a few dozen pixels
-long, with the picket's stand-in drive glows. Still a painted imposter: the
-station.
-Textures for the Legion are wanted if it is ever framed closer than the
-picket's 6–7 km.
+long, with the picket's stand-in drive glows. The Mudskippers (the queue's and
+the one crossing the lane at the reveal) become the finished
+`mudskipper-cinematic` export once it is staged.
 
 ## Light
 
@@ -127,10 +129,14 @@ silhouette. More drama, but the first seconds would show no damage at all.
    This is where the owner signs off the move. Minutes per pass, not hours.
 2. **Sky panorama** and imposter placement checked at the turn.
 3. **Look pass.** Cycles on stills at the five beat moments.
-4. **Final render**, then compose and export.
+4. **Final render** (`c1v2_scene.py --final`), then compose and export.
 
 A final 905-frame Cycles render of a whole 3D scene is hours, not the 30
 minutes v1's single hull took. The animatic exists so it is only run once.
+`--final` skips frames already on disk and holds the one in progress with a
+placeholder, so it can be split across machines (`--frames a:b`) and resumed.
+Sketch passes render at half size (`CINE_SCALE=50`), and a motion question
+renders only its seconds (`--animatic --from s --to s --step n`).
 
 ## Tone
 
