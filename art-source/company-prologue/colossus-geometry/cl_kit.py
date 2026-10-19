@@ -182,6 +182,17 @@ def boolean(target, cutter, op='DIFFERENCE', keep=False):
     bpy.ops.object.modifier_apply(modifier=mod.name)
     if not keep:
         bpy.data.objects.remove(cutter, do_unlink=True)
+    planar(target)
+
+
+def planar(obj):
+    """Split the warped n-gons a boolean leaves, which the live bevel turns into spikes."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.dissolve_degenerate(bm, dist=1e-4, edges=bm.edges[:])
+    bmesh.ops.connect_verts_nonplanar(bm, angle_limit=0.0005, faces=bm.faces[:])
+    bm.to_mesh(obj.data)
+    bm.free()
 
 
 def plane_cut(target, name, point, normal, size=200):
