@@ -22,19 +22,10 @@ BASE = Path(__file__).resolve().parent
 OUT_W, OUT_H, FPS = 1920, 1080, 24
 PLATE_SCALE = 2                     # plates are painted at 2x output density (2160 tall)
 ROOT = BASE.parents[3]
-CATALOG = ROOT / "mod/data/marines/jangala_arrival_hail.json"
-VOICE_ID = "jangala_arrival_nessa"  # Castle's Nessa memory, in the cabin, unprocessed (dialogue)
-VOICE_IN = 1.0                      # s of fields before she speaks
-TAIL = 1.5                          # s held on the port after "Let me talk first."
-
-
-def voice_seconds():
-    lines = json.loads(CATALOG.read_text(encoding="utf-8"))["lines"]
-    return next(l for l in lines if l["id"] == VOICE_ID)["durationSeconds"]
-
-
-# The shot is as long as the take: lead-in, the line, a short hold. Rounded up to whole frames.
-DURATION = math.ceil((VOICE_IN + voice_seconds() + TAIL) * 24) / 24
+# The picture's length in whole frames. It was cut to Castle's old Nessa memory (1.0 s of fields,
+# the 15.84 s take, a 1.5 s hold); her C4 line now is the shorter yard line at 1.0-8.2
+# (arrival-audio/castle_lines.py), and the picture keeps its length until it is re-cut.
+DURATION = 441 / 24
 ALTITUDE = 220.0                    # m above the plain, held level for the whole shot
 SPEED = 62.0                        # m/s ground speed along +X (about 220 km/h on final approach)
 HFOV_DEG = 50.0                     # through-the-window horizontal field of view at 1920 wide

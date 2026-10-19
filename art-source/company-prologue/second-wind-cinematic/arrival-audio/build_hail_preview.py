@@ -29,9 +29,9 @@ LEAD_IN = 3.0          # bed alone before the first call
 TURN_GAP = 0.6         # silence between turns
 SQUELCH_OPEN = 0.16    # key-up burst before an Approach transmission
 SQUELCH_CLOSE = 0.22   # key-down tail after it
-OFF_CHANNEL_GAP = 1.4  # Castle closes the channel, then speaks to the room
 TAIL = 3.0
 APPROACH = "Jangala Approach"
+HAIL_PREFIX = "jangala_arrival_hail_"   # the catalog also holds Castle's later lines (castle_lines.py)
 
 
 def duration(path):
@@ -40,12 +40,17 @@ def duration(path):
     return float(out.stdout.strip())
 
 
+def hail_catalog():
+    """The hail's lines (01-08) in order, without Castle's later lines, which the composers
+    place at fixed shot times (castle_lines.py)."""
+    lines = json.loads(CATALOG.read_text(encoding="utf-8"))["lines"]
+    return [l for l in lines if l["id"].startswith(HAIL_PREFIX)]
+
+
 def timeline(lines):
     """Start time of each line, and of each squelch burst, in seconds."""
     t, starts, squelch = LEAD_IN, [], []
-    for i, line in enumerate(lines):
-        if i == len(lines) - 1:
-            t += OFF_CHANNEL_GAP - TURN_GAP
+    for line in lines:
         radio = line["speaker"] == APPROACH
         if radio:
             squelch.append(("open", t))
@@ -103,7 +108,7 @@ def mix(lines, folder, suffix, bed, name):
 
 
 def main():
-    lines = json.loads(CATALOG.read_text(encoding="utf-8"))["lines"]
+    lines = hail_catalog()
     missing = [l["id"] for l in lines if not (TREATED / (l["id"] + ".ogg")).exists()]
     if missing:
         raise SystemExit("Run :asset-pipeline:processAudio first; missing " + ", ".join(missing))

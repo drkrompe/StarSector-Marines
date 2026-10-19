@@ -1,0 +1,11 @@
+{
+  "requestId": "hhqhRgpJBngm6RAy6zHs",
+  "characterCost": "55",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "synthesisText": "[calm, steady, dry, to the Commander beside her] We've got a few days planetside before we'll need to move along, Commander.",
+  "audioSha256": "18fb7bc264702c09bec6d97e903a6c8e2ca261f59d737a264fc0bde31f6a6ca6",
+  "durationSeconds": 3.84,
+  "take": "v4_entry_t02",
+  "outputFormat": "mp3_44100_128"
+}
