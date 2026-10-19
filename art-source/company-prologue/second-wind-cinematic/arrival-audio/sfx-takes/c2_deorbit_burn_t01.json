@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "80",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Spaceship main engine igniting inside the hull, a deep thump then a rising heavy rumble, whole structure vibrating, metal creaking as the ship pitches",
+    "duration_seconds": 8.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "12552f55305224bc20972c4b8a9acafd689c84c21a4a737cc8d1bc6b7972e351",
+  "durationSeconds": 8.0,
+  "peakDb": -4.8,
+  "integratedLufs": -20.2
+}

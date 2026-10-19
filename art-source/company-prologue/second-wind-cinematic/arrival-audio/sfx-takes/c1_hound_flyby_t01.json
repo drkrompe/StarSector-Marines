@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "60",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A small spacecraft passing close under thrust, muffled low engine whoosh by, heard from inside another ship, rising and falling",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "f28273ef0fea3519464765c1c6abb113f39283f1e2ccb4f378d7c1470e6af9f8",
+  "durationSeconds": 6.0,
+  "peakDb": -0.2,
+  "integratedLufs": -13.4
+}

@@ -1,0 +1,618 @@
+{
+ "longeron-top-port": {
+  "what": "port longeron top flange from above, bow to the right: one long pale strip",
+  "sheet": "spine-longeron",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port longeron top flange",
+    "seed": null,
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 1227.78,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   107.7,
+   11.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    34.249999046325684,
+    42.5
+   ],
+   "ortho_width": 125.23255680882654
+  },
+  "native_texels_per_unit": 6.3
+ },
+ "longeron-out-port": {
+  "what": "port longeron outboard web, row of lightening holes along its top",
+  "sheet": "spine-longeron",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port longeron",
+    "seed": null,
+    "faces": [
+     6,
+     7,
+     8,
+     16,
+     31,
+     46,
+     61,
+     76,
+     91,
+     106,
+     121,
+     136,
+     151,
+     166,
+     181,
+     196
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 7104.0,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   111.0,
+   64.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -35.5,
+    -12.0
+   ],
+   "ortho_width": 132.29974160206717
+  },
+  "native_texels_per_unit": 6.0
+ },
+ "longeron-in-port": {
+  "what": "port longeron inboard web (faces the hold)",
+  "sheet": "spine-longeron",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port longeron",
+    "seed": null,
+    "faces": [
+     10
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 7104.0,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   111.0,
+   64.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    35.5,
+    -12.0
+   ],
+   "ortho_width": 132.29974160206717
+  },
+  "native_texels_per_unit": 6.0
+ },
+ "keel-top": {
+  "what": "keel spine top plate with its ladder well, from above, bow at the top",
+  "sheet": "spine-longeron",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull keel spine",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -60.0,
+       9.0
+      ],
+      [
+       -8.0,
+       60.0,
+       13.0
+      ]
+     ]
+    },
+    "faces": [
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     21,
+     26,
+     31,
+     36,
+     41
+    ]
+   }
+  ],
+  "face_count": 11,
+  "area_units2": 952.0,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   34.0,
+   28.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.5,
+    -29.0
+   ],
+   "ortho_width": 57.881136950904384
+  },
+  "native_texels_per_unit": 13.7
+ },
+ "aft-deck-aft": {
+  "what": "aft body deck aft of the X -58 seam: stern deck and the plate under the bridge",
+  "sheet": "spine-aft",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery body",
+    "seed": {
+     "box": [
+      [
+       -93.0,
+       -60.0,
+       10.0
+      ],
+      [
+       -58.05,
+       60.0,
+       14.0
+      ]
+     ],
+     "pad": 1.0
+    },
+    "faces": [
+     79,
+     80,
+     134,
+     162,
+     214,
+     240
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 1569.25,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   61.89,
+   30.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.5000019073486328,
+    -72.85000038146973
+   ],
+   "ortho_width": 71.96093270944995
+  },
+  "native_texels_per_unit": 11.0
+ },
+ "aft-deck-fwd": {
+  "what": "aft body deck forward of the X -58 seam: plates beside and ahead of the bridge",
+  "sheet": "spine-aft",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery body",
+    "seed": {
+     "box": [
+      [
+       -58.05,
+       -60.0,
+       10.0
+      ],
+      [
+       -33.0,
+       60.0,
+       14.0
+      ]
+     ],
+     "pad": 1.0
+    },
+    "faces": [
+     81,
+     82,
+     83,
+     84,
+     108,
+     109,
+     110,
+     133,
+     135
+    ]
+   }
+  ],
+  "face_count": 9,
+  "area_units2": 1412.94,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   61.11,
+   24.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.5,
+    -46.14999961853027
+   ],
+   "ortho_width": 71.05395294899165
+  },
+  "native_texels_per_unit": 11.2
+ },
+ "aft-stern": {
+  "what": "aft body faceted stern face between the drive pods, from astern",
+  "sheet": "spine-aft",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery body",
+    "seed": {
+     "box": [
+      [
+       -93.0,
+       -60.0,
+       -17.0
+      ],
+      [
+       -75.0,
+       60.0,
+       9.5
+      ]
+     ]
+    },
+    "faces": [
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51,
+     52,
+     185,
+     186,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192,
+     193
+    ]
+   }
+  ],
+  "face_count": 27,
+  "area_units2": 1496.56,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   70.0,
+   20.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.5,
+    -1.0
+   ],
+   "ortho_width": 81.3953488372093
+  },
+  "native_texels_per_unit": 9.8
+ },
+ "aft-under": {
+  "what": "aft body plated underside between the drive pods, from below, bow up the tile",
+  "sheet": "spine-aft",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery body",
+    "seed": {
+     "box": [
+      [
+       -93.0,
+       -60.0,
+       -17.0
+      ],
+      [
+       -33.0,
+       60.0,
+       -14.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     101,
+     127,
+     151,
+     221,
+     222,
+     223,
+     224,
+     250,
+     251,
+     252,
+     253
+    ]
+   }
+  ],
+  "face_count": 23,
+  "area_units2": 2806.43,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   59.88,
+   52.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.5,
+    -60.70000076293945
+   ],
+   "ortho_width": 108.73384697492733
+  },
+  "native_texels_per_unit": 7.3
+ },
+ "longeron-top-stbd": {
+  "what": "starboard longeron top flange from above, bow to the right: one long pale strip (mirror of port)",
+  "sheet": "spine-longeron",
+  "tile": 0,
+  "skin_from": "longeron-top-port",
+  "members": [
+   {
+    "object": "Hull starboard longeron top flange",
+    "seed": null,
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 1227.78,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   107.7,
+   11.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -34.249999046325684,
+    39.5
+   ],
+   "ortho_width": 125.23255680882654
+  },
+  "native_texels_per_unit": 6.3
+ },
+ "longeron-out-stbd": {
+  "what": "starboard longeron outboard web, row of lightening holes along its top (mirror of port)",
+  "sheet": "spine-longeron",
+  "tile": 1,
+  "skin_from": "longeron-out-port",
+  "members": [
+   {
+    "object": "Hull starboard longeron",
+    "seed": null,
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     24,
+     39,
+     54,
+     69,
+     84,
+     99,
+     114,
+     129,
+     144,
+     159,
+     174,
+     189,
+     204
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 7104.0,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   111.0,
+   64.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    35.5,
+    -12.0
+   ],
+   "ortho_width": 132.29974160206717
+  },
+  "native_texels_per_unit": 6.0
+ },
+ "longeron-in-stbd": {
+  "what": "starboard longeron inboard web (faces the hold) (mirror of port)",
+  "sheet": "spine-longeron",
+  "tile": 2,
+  "skin_from": "longeron-in-port",
+  "members": [
+   {
+    "object": "Hull starboard longeron",
+    "seed": null,
+    "faces": [
+     18
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 7104.0,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   111.0,
+   64.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -35.5,
+    -12.0
+   ],
+   "ortho_width": 132.29974160206717
+  },
+  "native_texels_per_unit": 6.0
+ }
+}

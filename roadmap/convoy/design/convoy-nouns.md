@@ -301,9 +301,13 @@ only matters to rounds that do not already out-penetrate the plate. Its
 arc: thick front plate strips more slowly, thin rear plate faster, whatever the
 round. The pool stays one column, so whole-body readers still see one hull.
 
-- **One shared profile, one steeper override.** Every hull's front is rating 1.0
-  and plate 1.1, its sides 0.9 / 0.9, its rear 0.75 / 0.7. The tank line and the
-  dozer, whose plate is all glacis, are 1.0 / 1.15, 0.85 / 0.85 and 0.6 / 0.6.
+- **One shared profile, per-type overrides.** Every hull's front is rating 1.0
+  and plate 1.1, its sides 0.9 / 0.9, its rear 0.75 / 0.7. The tank line has a
+  thick glacis (1.0 / 1.15), mild flanks (1.0 / 0.95) and a thin engine deck
+  (0.6 / 0.6). The dozer is the tank line without the glacis bonus, and the SRM
+  technical's welded sheet is the shared profile without its front bonus. Both
+  overrides keep a cheaper or sidegrade hull from beating a dearer one by facing
+  alone (`heavy-equipment-progression.md`, balance is not parity).
 - **The turret faces its own way.** A hit rolled onto the turret is read against
   the turret's facing, not the hull's. A turret trained on its target shows that
   target its front, so a lone attacker meets the mantlet while a second machine on

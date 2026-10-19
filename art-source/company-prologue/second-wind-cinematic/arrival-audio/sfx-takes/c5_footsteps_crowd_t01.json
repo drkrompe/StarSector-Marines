@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Many people walking calmly on gravel and concrete, footsteps of families carrying bags, outdoors, unhurried",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "1508cc1e1fc1005d3a1358be84c06e3e6d57ee97611f189ced9b001ccd00b0b9",
+  "durationSeconds": 10.0,
+  "peakDb": -1.2,
+  "integratedLufs": -26.4
+}

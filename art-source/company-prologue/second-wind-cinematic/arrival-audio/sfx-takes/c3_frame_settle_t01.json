@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "30",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A last soft rattle of cabin fittings settling, then a single quiet creak of a metal window frame",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "afd52a1988f712637eb7ec60d368f28abad49e56ffe43ba7a7ebb271e033e43c",
+  "durationSeconds": 3.0,
+  "peakDb": -24.9,
+  "integratedLufs": -44.3
+}
