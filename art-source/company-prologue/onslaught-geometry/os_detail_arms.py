@@ -1,40 +1,31 @@
-"""Surface detail on the two gun arms (os_arms): armour plate seams and bolt rows, access hatches, flank piping, exposed machinery between plates, sponson and vent detail.
+"""Surface detail on the two gun arms (os_arms), in two layers: a big layer of armour plates, machinery bays and radiator banks that reads at the 1.5-3 km formation range, and a close-up layer of hatches, bolts, louvres, trunking and fittings on top of it.
 
-Owner, after round 11: "I'm liking the silhouette of this ship. The next passes
-need to focus on that detail on the hull, exposed machinery, piping, hatches,
-and armor." The silhouette is locked: detail stands at most a little proud of
-the surface it sits on, never changes the outline, and keeps clear of the
-turret rings (os_turrets.SLOTS, RING) and the running lights. Every object
-built here is named 'Detail <area> ...'.
+Owner, after round 11: "the next passes need to focus on that detail on the hull, exposed
+machinery, piping, hatches, and armor"; after detail pass 1: "push the next detail pass bolder:
+bigger, denser machinery and plating breakup so it reads at 1.5 km too." The silhouette is locked:
+detail stands at most a few units proud, never changes the outline, keeps clear of the turret rings
+(os_turrets.SLOTS, RING), the barrels' sweep and the running lights. Every object is 'Detail <area> ...'.
 
-Everything is placed in the WORLD after os_arms has posed the arms (rolled 16 deg outboard,
-pitched 6 deg nose down) and os_turrets has let the mounts into the deck: each element is seated
-by ray casts against the built arm parts and laid along the surface normal it lands on, so it
-follows the rolled deck, the rail's chine and the sponson's bulge without knowing their formulas.
-Read off onslaught_hegemony.png at 8x (model X = 244 - row, Y = 144 - col), the port arm carries:
+At 1.5 km the hull is about 0.8 px per unit, so the big layer works in plates of 8-25 units and in
+value steps. It is laid on lattices of casts against the bare, posed arm (Grid), so every plate
+follows the rolled deck, the rail's chine and the sponson's slope, and stops at the true edge of its
+field. Read off onslaught_hegemony.png (model X = 244 - row, Y = 144 - col):
 
-  rail        the orange rail is a run of plates: butt seams across it with a bolt row either
-              side, between the white edge-line lights (os_fittings.EDGE_X), never on them.
-  deck        the brown gun deck is plated in panels: transverse seams between the turret rings
-              and a longitudinal seam each side of the gun line, as thin dark lines.
-  hatches     personnel hatches on the inboard deck between the rings (behind every mount's arc),
-              the sprite's round hatch between WS 001 and WS 002 (X 142, Y 83), its round trunk
-              hatch aft of the Devastator (X 42, Y 99) and the round hatch on the broadside fin
-              (X 5, Y 93) with the three small vents beside it.
-  conduits    a pair of feed conduits on the inboard deck from the Devastator's drum forward to
-              WS 001, with a branch into each mount it passes (WS 005, WS 002), ending in junction
-              boxes on the mount plates; clamped down every few units.
-  channels    the deck channels between the rings (the sprite's dark lines) hold exposed
-              machinery: two feed lines along the channel floor between transverse frames, and a
-              valve block midway; all of it below the deck.
-  vents       the sprite's dark louvre panels: two on the outboard terrace (X 101-112) and four on
-              the rail aft of the sponson (X 73-88).
-  sponson     louvres in its six vent slots, a frame round the vent row, plate seams, a bolt row
-              under the rail's edge, a domed ventilator and lifting eyes on its top.
-  flank       a power trunk on the arm's outboard lower face: from the after collar forward into
-              the sponson's after end, and out of its forward end to the TPC casemate.
-  nose        a bolted surround where the TPC casemate leaves the arm's nose face.
-  rails       grab rails only beside the hatches crew use.
+  deck        the brown gun deck in three courses of plates (dark brown, deck brown, light
+              bone-brown with a raised doubler), staggered, with near-black seams between them.
+  trench      the inboard deck carries a built-up machinery trench: coaming walls round a black
+              floor, two big feed mains, straps over them and two pump housings.
+  bays        the sprite's two dark deck channels between the rings are framed machinery bays with
+              feed lines, cross frames and a valve housing, all below their rims.
+  terrace     a three-module radiator bank where the sprite has dark louvre panels (X 100-115).
+  rail        the orange rail cut into segments by dark bolted straps, alternate segments plated in
+              weathered orange, a louvre bank on its top aft of the sponson's forward end.
+  drop/flank  the deck's outboard drop to the rail and the arm's outboard flank in alternating
+              dark and bone plates (the brown band seen abeam).
+  sponson     plate courses of grey-blue steel against the dark grey, the six-slot vent row left
+              clear, and a framed radiator bank of fins under it.
+  close-up    hatches (seated on the plates), louvres in the vent slots, a three-main power trunk
+              under the rail, the casemate's bolted surround, underside seams, the ventilator.
 """
 import math
 import bpy
@@ -54,44 +45,53 @@ _TREES = {}
 
 # --- casting ---------------------------------------------------------------
 
-def _build_trees():
+def _build_trees(include=()):
+    """BVH per mesh over the renderer's triangulation (a raw polygon tree can sit up to 0.5 off a
+    twisted loft quad), with each triangle's material so a cast can tell a recess floor from deck.
+    Detail objects are left out unless their name starts with one of `include`."""
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
     _TREES.clear()
     for ob in bpy.context.scene.objects:
-        if ob.type != 'MESH' or ob.name.startswith(('Light ', 'Temporary', 'Detail ')):
+        if ob.type != 'MESH' or ob.name.startswith(('Light ', 'Temporary')):
+            continue
+        if ob.name.startswith('Detail ') and not (include and ob.name.startswith(tuple(include))):
             continue
         ev = ob.evaluated_get(dg)
         me = ev.to_mesh()
+        me.calc_loop_triangles()
         pts = [ev.matrix_world @ v.co for v in me.vertices]
         if pts:
+            mats = [m.name if m else None for m in me.materials]
+            tm = [mats[t.material_index] if t.material_index < len(mats) else None for t in me.loop_triangles]
             lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
             hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
-            _TREES[ob.name] = (BVHTree.FromPolygons(pts, [tuple(p.vertices) for p in me.polygons]), lo, hi)
+            _TREES[ob.name] = (BVHTree.FromPolygons(pts, [tuple(t.vertices) for t in me.loop_triangles]), lo, hi, tm)
         ev.to_mesh_clear()
 
 
 def _arm(side):
     """The arm's own bodies: what detail may be seated on."""
-    pre = (f'Hull {side} arm', f'Armour {side} arm', f'Armour {side} nose cheek', f'Armour {side} broadside fin')
+    pre = (f'Hull {side} arm', f'Armour {side} arm', f'Armour {side} nose cheek', f'Armour {side} broadside fin',
+           f'Detail {side} arm ')
     return lambda n: n.startswith(pre)
 
 
 def _cast(origin, direction, only=None, far=400.0):
-    """Nearest hit: (point, normal facing back along the ray, object name) or None."""
+    """Nearest hit: (point, normal facing back along the ray, object name, material) or None."""
     o, d = Vector(origin), Vector(direction).normalized()
     e = o+d*far
     lo = Vector(map(min, o, e))
     hi = Vector(map(max, o, e))
     best = None
-    for name, (t, blo, bhi) in _TREES.items():
+    for name, (t, blo, bhi, tm) in _TREES.items():
         if only is not None and not only(name):
             continue
         if blo.x > hi.x or bhi.x < lo.x or blo.y > hi.y or bhi.y < lo.y or blo.z > hi.z or bhi.z < lo.z:
             continue
-        p, n, _, dist = t.ray_cast(o, d, far)
+        p, n, i, dist = t.ray_cast(o, d, far)
         if p is not None and (best is None or dist < best[0]):
-            best = (dist, p, -n if n.dot(d) > 0 else n, name)
+            best = (dist, p, -n if n.dot(d) > 0 else n, name, tm[i] if i is not None and i < len(tm) else None)
     return None if best is None else best[1:]
 
 
@@ -220,10 +220,24 @@ class Fam:
                           for k in range(seg)])
         self._quad_loop(rings, caps=caps)
 
-    def finish(self, kit, name, mat, bevel=0):
+    def finish(self, kit, name, mat, bevel=0, smooth=0.0):
+        """`smooth` (degrees): shade smooth with edges sharper than this kept hard, so a plate
+        draped over a twisted loft reads as one plate, not a field of facets."""
         if not self.f:
             return None
-        return kit.mesh(name, self.v, self.f, mat, bevel)
+        ob = kit.mesh(name, self.v, self.f, mat, bevel)
+        if smooth:
+            import bmesh
+            bm = bmesh.new()
+            bm.from_mesh(ob.data)
+            lim = math.radians(smooth)
+            for f in bm.faces:
+                f.smooth = True
+            for e in bm.edges:
+                e.smooth = e.is_manifold and e.calc_face_angle(math.pi) < lim
+            bm.to_mesh(ob.data)
+            bm.free()
+        return ob
 
 
 # --- surface paths ---------------------------------------------------------
@@ -276,55 +290,6 @@ def _ring(x, y):
 
 
 # --- the families ----------------------------------------------------------
-
-def rail_seams(kit, side, s, seams, bolts):
-    """Butt seams across the orange rail with a bolt row either side; the sprite's rail is a run of
-    plates, not one extrusion."""
-    rail = f'Armour {side} arm belt rail'
-    only = lambda n: n == rail
-    for x in (30.0, 42.0, 50.0, 72.0, 86.0, 110.0, 122.0, 132.0, 150.0, 160.0):
-        if not _light_clear(x):
-            continue
-        pts, nrms = [], []
-        c = math.sqrt(.5)
-        d = Vector((0, -s*c, -c))
-        e = Vector((0, s*c, -c))
-        for k in range(0, 400):
-            o = Vector((x, 0, 0))+e*(k*.3)-d*200.0
-            h = _cast(o, d)
-            if h is None or h[2] != rail:
-                continue
-            pts.append(h[0])
-            nrms.append(h[1])
-        if len(pts) < 3:
-            continue
-        seams.ribbon(pts, nrms, .32, .14, .3)
-        for dx in (-.6, .6):
-            for p, n in list(zip(pts, nrms))[2:-2:4]:
-                q = Vector(p)+Vector((dx, 0, 0))
-                h = _cast(q+Vector(n)*3.0, -Vector(n), only=only)
-                if h:
-                    bolts.slab(h[0], h[1], Vector((1, 0, 0)), .2, .2, .22, .2)
-
-
-def deck_seams(kit, side, s, seams):
-    """Plate seams on the brown gun deck: across it between the rings and along it either side of
-    the gun line, as thin dark lines (never through a kept ring)."""
-    t, o = _axis(s)
-
-    def clear(h):
-        return (h[2] in (f'Hull {side} arm gallery', f'Hull {side} arm') and h[1].z > .7
-                and _keep_clear(h[0].x, h[0].y, s, .6) and all(abs(h[0].x-e) > 1.4 for e in EDGE_X))
-    for x in (96.0, 104.0, 124.0, 146.0, 170.0):
-        c = Vector((x, s*_gun_line(x), 0))
-        for run in _drape(side, c-o*26.0, c+o*30.0, .5, clear):
-            seams.ribbon(run[0], run[1], .3, .12, .3)
-    for off in (-9.5, 10.5):
-        pts = [Vector((x, s*_gun_line(x), 0))+o*off for x in (90.0, 104.0, 124.0, 146.0, 176.0)]
-        for a, b in zip(pts, pts[1:]):
-            for run in _drape(side, a, b, .5, clear):
-                seams.ribbon(run[0], run[1], .3, .12, .3)
-
 
 def under_seams(kit, side, s, seams):
     """Plate seams on the arm's bare underside (the lower glacis and the inboard bottom), seen from
@@ -379,6 +344,9 @@ def hatches(kit, side, s, lid, rim, fit, rails):
     t, o = _axis(s)
     for x, off in ((99.0, -13.5), (124.0, -12.5), (146.0, -10.5), (176.0, -6.0)):
         c = Vector((x, s*_gun_line(x), 0))+o*off
+        A = Vector((DECK_A[0], s*DECK_A[1], 0.0))
+        if _in((c-A).dot(t), (c-A).dot(o), [(a-3, b+3, cc-3, d+3) for a, b, cc, d in (TRENCH,)+BAYS+(TERRACE_BANK,)]):
+            continue
         h = _drop(c.x, c.y, side)
         if h is None or not _keep_clear(c.x, c.y, s, 2.0) or h[1].z < .85:
             continue
@@ -408,116 +376,6 @@ def hatches(kit, side, s, lid, rim, fit, rails):
         h = _drop(x, s*89.0, side)
         if h:
             rim.slab(h[0], h[1], Vector((0, 1, 0)), .9, .55, .3, .3)
-
-
-def _vent(panel, slats, frame, h, t, L, W, n_slats):
-    """A louvre panel: a dark recess plate, slats across it, a frame round it."""
-    p, n = Vector(h[0]), Vector(h[1])
-    tt = (t-n*t.dot(n)).normalized()
-    b = n.cross(tt).normalized()
-    frame.slab(p, n, tt, L/2+.35, W/2+.35, .3, .3)
-    panel.slab(p, n, tt, L/2, W/2, .36, .3)
-    for k in range(n_slats):
-        f = (k+.5)/n_slats-.5
-        slats.box(p+tt*(f*L)+n*.52, tt, b, n, .14, W/2-.1, .14)
-
-
-def vents(kit, side, s, panel, slats, frame):
-    """The sprite's dark louvre panels on the outboard terrace (X 101-112) and on the rail aft of
-    the sponson (X 73-88)."""
-    t, o = _axis(s)
-    for xc, yc, L, W in ((103.2, 100.0, 3.6, 3.2), (109.2, 99.0, 4.6, 3.2)):
-        h = _drop(xc, s*yc, side)
-        if h and h[1].z > .6:
-            _vent(panel, slats, frame, h, t, L, W, 5 if L < 4 else 6)
-    rail = f'Armour {side} arm belt rail'
-    for xc in (74.0, 78.0, 82.0, 86.0):
-        for dy in (0.0, .5, 1.0, 1.5, 2.0, 2.5, 3.0):
-            h = _drop(xc, s*(107.5+dy), side)
-            if h and h[1].z > .8 and h[2] == rail:
-                _vent(panel, slats, frame, h, t, 2.4, 1.6, 3)
-                break
-
-
-def _pipe_run(side, s, plan, r, pipes, clamps, with_clamps):
-    """A pipe laid on the deck along a plan polyline: its centre a standoff over the surface, with
-    saddle clamps."""
-    pts, nrms = [], []
-    for a, b in zip(plan, plan[1:]):
-        for run in _drape(side, a, b, .8):
-            pts += [Vector(p) for p in run[0]]
-            nrms += [Vector(n) for n in run[1]]
-    if len(pts) < 2:
-        return
-    cen = [p+n*(r+.02) for p, n in zip(pts, nrms)]
-    for i in range(len(cen)):
-        for j in (i-1, i+1):
-            if 0 <= j < len(cen):
-                need = pts[j].z+r+.02
-                if cen[i].z < need-.05:
-                    cen[i].z = need
-    keep = cen[::2]+([cen[-1]] if len(cen) % 2 == 0 else [])
-    pipes.tube(keep, r, ref=Vector((0, 0, 1)), seg=8)
-    if with_clamps:
-        for i in range(3, len(pts)-2, 6):
-            p, n = pts[i], nrms[i]
-            tt = (pts[i+1]-pts[i-1]).normalized()
-            clamps.slab(p, n, tt, .5, r+.75, .18, .2)              # foot plate
-            clamps.slab(p, n, tt, .2, r+.18, 2*r+.32, .1)          # strap over the pipe
-
-
-def conduits(kit, side, s, pipes, clamps, boxes):
-    """Feed conduits on the inboard deck, behind every mount's arc: from the Devastator's drum
-    forward to WS 001, branching into WS 005 and WS 002, ending in junction boxes."""
-    t, o = _axis(s)
-    route = [(86.0, 74.0), (100.0, 70.6), (124.0, 67.4), (149.5, 63.8)]
-    branches = [((110.0, 69.4), (112.3, 72.6)), ((131.0, 66.5), (132.6, 68.6))]
-    for k, (dy, r) in enumerate(((0.0, .55), (-1.5, .4))):
-        plan = [Vector((x, s*y, 0))+o*dy for x, y in route]
-        _pipe_run(side, s, plan, r, pipes, clamps, True)
-    for a, b in branches:
-        plan = [Vector((a[0], s*a[1], 0)), Vector((b[0], s*b[1], 0))]
-        _pipe_run(side, s, plan, .45, pipes, clamps, False)
-        h = _drop(b[0], s*b[1], side)
-        if h:
-            boxes.slab(h[0], h[1], Vector((b[0]-a[0], s*(b[1]-a[1]), 0)), .8, .9, 1.3, .3, ch=.15)
-    for x, y in (route[0], route[-1]):
-        h = _drop(x, s*y, side)
-        if h:
-            boxes.slab(Vector(h[0])-o*.6, h[1], t, 1.2, 1.6, 1.5, .3, ch=.2)
-
-
-def channel_machinery(kit, side, s, pipes, frames, blocks):
-    """Exposed machinery in the deck channels between the rings: two feed lines along each
-    channel's floor, transverse frames over them and a valve block midway, all below the deck."""
-    rings = [(158, 71, 8.0), (134, 74, 5.4), (114, 78, 5.4), (77, 88, 15.0)]
-    floor = lambda n: n == f'Hull {side} arm gallery'
-    for (ax, ay, ar), (bx, by, br) in zip(rings, rings[1:]):
-        A, B = Vector((ax, s*ay, 0)), Vector((bx, s*by, 0))
-        u = (B-A).normalized()
-        w = Vector((-u.y, u.x, 0))
-        sa = max(ar, KEEP*_ring(ax, ay))+.5
-        sb = max(br, KEEP*_ring(bx, by))+.5
-        p0, p1 = A+u*sa, B-u*sb
-        L = (p1-p0).length
-        if L < 3:
-            continue
-        cen = []
-        n = max(2, int(L/.8))
-        for i in range(n+1):
-            q = p0+(p1-p0)*(i/n)
-            cen.append(_cast((q.x, q.y, 120.0), (0, 0, -1), only=floor))
-        if any(h is None for h in cen):
-            continue
-        nz = Vector(cen[len(cen)//2][1])
-        for off, r in ((-.75, .32), (.75, .32)):
-            pts = [Vector(h[0])+w*off+Vector(h[1])*(r+.08) for h in cen]
-            pipes.tube(pts[::2]+[pts[-1]], r, ref=nz, seg=8)
-        for i in range(2, len(cen)-1, 4):
-            h = cen[i]
-            frames.slab(h[0], h[1], w, 1.55, .18, .75, .1)
-        mid = cen[len(cen)//2]
-        blocks.slab(mid[0], mid[1], u, .7, 1.1, .85, .1, ch=.12)
 
 
 def _profile(x, s, z0=12.0, z1=-52.0, dz=.25):
@@ -569,28 +427,15 @@ def sponson(kit, side, s, louvres, frame, seams, bolts, fit):
                     pts.append(h[0])
                     nrms.append(h[1])
             frame.ribbon(pts, nrms, .5, .28, .3)
-    # plate seams down the face (outside the vent row), with bolts either side
-    for x in (75.0, 129.0, 139.0):
-        prof = [(z, p, n) for z, p, n, nm in _profile(x, s, 0.0, -50.0, .4) if nm == name]
-        if len(prof) < 4:
-            continue
-        seams.ribbon([p for z, p, n in prof], [n for z, p, n in prof], .3, .12, .3)
-        for dx in (-.7, .7):
-            for z, p, n in prof[1:-1:3]:
-                h = _cast(p+n*3.0+Vector((dx, 0, 0)), -n, only=on)
-                if h:
-                    bolts.slab(h[0], h[1], Vector((1, 0, 0)), .2, .2, .22, .2)
-    # a bolt row along the sponson's top, just under the rail's lower edge
-    for x in _frange(71.0, 145.0, 1.6):
-        prof = [(z, p, n) for z, p, n, nm in _profile(x, s, 0.0, -40.0, .25) if nm == name]
-        if prof:
-            z, p, n = prof[0]
-            h = _cast(p+n*3.0+Vector((0, 0, -.9)), -n, only=on)
-            if h:
-                bolts.slab(h[0], h[1], Vector((1, 0, 0)), .2, .2, .22, .2)
-    # a domed ventilator on its face between the forward seams (the sprite's round fitting)
+
+
+def ventilator(kit, side, s, fit):
+    """The domed ventilator on the sponson's face between the forward courses (the sprite's round
+    fitting), seated on whatever plate is there."""
+    name = f'Armour {side} arm side sponson'
     for x in (134.0,):
-        prof = [(z, p, n) for z, p, n, nm in _profile(x, s, 0.0, -45.0, .25) if nm == name]
+        prof = [(z, p, n) for z, p, n, nm in _profile(x, s, 0.0, -45.0, .25)
+                if nm == name or nm.startswith(f'Detail {side} arm sponson plates')]
         if len(prof) > 8:
             z, p, n = prof[len(prof)//3]
             fit.disc(p, n, 1.5, .45, .3, seg=16)
@@ -619,7 +464,7 @@ def flank_trunk(kit, side, s, pipes, clamps, boxes):
     plate (belt 1) that carries it on to the TPC casemate."""
     rail = f'Armour {side} arm belt rail'
     arm = _arm(side)
-    run1, run2, nrm = [], [], []
+    run1, run2, run3, nrm = [], [], [], []
     for x in _frange(26.0, 163.0, 1.0):
         prof = _profile(x, s, 5.0, -50.0, .2)
         edge = None
@@ -635,10 +480,12 @@ def flank_trunk(kit, side, s, pipes, clamps, boxes):
         def at(z):
             k = min(below, key=lambda q: abs(q-z))
             return below[k]
-        p1, n1, _ = at(z_r-.9)
-        p2, n2, _ = at(z_r-2.4)
-        run1.append(p1+n1*.55)
-        run2.append(p2+n2*.4)
+        p1, n1, _ = at(z_r-1.0)
+        p2, n2, _ = at(z_r-2.8)
+        p3, n3, _ = at(z_r-4.4)
+        run1.append(p1+n1*.82)
+        run2.append(p2+n2*.67)
+        run3.append(p3+n3*.57)
         nrm.append(n1)
     if len(run1) < 4:
         return
@@ -654,8 +501,9 @@ def flank_trunk(kit, side, s, pipes, clamps, boxes):
         good.append((run1[i]-m).length < 1.5)
     run1 = [p for p, g in zip(run1, good) if g]
     run2 = [p for p, g in zip(run2, good) if g]
+    run3 = [p for p, g in zip(run3, good) if g]
     nrm = [n for n, g in zip(nrm, good) if g]
-    for run, r in ((run1, .6), (run2, .45)):
+    for run, r in ((run1, .8), (run2, .65), (run3, .55)):
         sm = []
         for i in range(len(run)):
             w = run[max(0, i-2):i+3]
@@ -673,8 +521,8 @@ def flank_trunk(kit, side, s, pipes, clamps, boxes):
         n = nrm[i]
         t = (run1[i+1]-run1[i-1]).normalized()
         b = n.cross(t).normalized()
-        c = (run1[i]+run2[i])/2
-        clamps.box(c-n*.15, t, b, n, .22, ((run1[i]-run2[i]).length+1.6)/2, .55)
+        c = (run1[i]+run3[i])/2
+        clamps.box(c-n*.15, t, b, n, .28, ((run1[i]-run3[i]).length+2.0)/2, .75)
     for p, n in ((run1[0], nrm[0]), (run1[-1], nrm[-1])):
         boxes.box(p-n*.2+Vector((0, 0, -.8)), Vector((1, 0, 0)), n.cross(Vector((1, 0, 0))).normalized(), n,
                   1.2, 1.7, .9)
@@ -734,46 +582,723 @@ def nose_surround(kit, side, s, frame_f, bolts):
                 bolts.slab(hit[0], hit[1], Vector((1, 0, 0)), .22, .22, .25, .2)
 
 
+# --- the big layer (detail pass 2): plates and bays that read at 1.5 km --------------------------
+#
+# At 1.5 km the hull is about 0.8 px per unit, so detail reads there only at the scale of plates and
+# bays and through value steps. Every arm field is broken into armour panels of 8-25 units that
+# alternate in tone and stand proud with a hard step, with wide near-black seams between them; the
+# deck channels become framed machinery trenches; the rail is cut into segments by dark straps; the
+# sponson carries plate courses and a radiator bank. All of it is laid on a lattice of casts against
+# the bare arm (a Grid), so panels follow the rolled deck and stop at the true edge of every field.
+
+LIGHTS = ((213.1, 77.1), (180.0, 77.8), (140.1, 84.9), (100.0, 104.4), (60.0, 103.5), (20.0, 110.9),
+          (-6.0, 112.0))       # where the running lights land (port; they build after this module)
+LIGHTS3 = ((213.1, 77.1, -25.8), (180.0, 77.8, -9.4), (140.1, 84.9, -5.5), (100.0, 104.4, -7.2),
+           (60.0, 103.5, 2.9), (20.0, 110.9, 9.2), (-6.0, 112.0, 10.6))
+RECESS = 'Recess and machinery'
+DECK_A = (77.0, 88.0)          # the deck frame's origin: the Devastator's slot (u along the arm, w outboard)
+
+
+class Grid:
+    """Casts along D over a (u, w) lattice in the plane through O spanned by U and W. A sample
+    counts when valid(u, w, hit) passes; a failed sample beside a good one is pulled back to just
+    inside the field's edge (found by bisection, less `margin`), so panel outlines follow the true
+    boundary of a field instead of stepping round it cell by cell."""
+
+    def __init__(self, O, U, W, D, ur, wr, step, valid, only=None, margin=.5, reach=60.0):
+        self.O, self.U, self.W, self.D = Vector(O), Vector(U), Vector(W), Vector(D).normalized()
+        self.u0, self.w0, self.step = ur[0], wr[0], step
+        self.nu, self.nw = int(round((ur[1]-ur[0])/step)), int(round((wr[1]-wr[0])/step))
+        self.valid, self.only, self.reach = valid, only, reach
+        raw = {}
+        for i in range(self.nu+1):
+            for j in range(self.nw+1):
+                h = self.sample(*self.uw(i, j))
+                if h:
+                    raw[i, j] = h
+        self.P = dict(raw)
+        for i in range(self.nu+1):
+            for j in range(self.nw+1):
+                if (i, j) in raw:
+                    continue
+                best = None
+                for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    if (i+a, j+b) not in raw:
+                        continue
+                    ua, wa = self.uw(i+a, j+b)
+                    ub, wb = self.uw(i, j)
+                    lo, hi = 0.0, 1.0
+                    for _ in range(5):
+                        m = (lo+hi)/2
+                        if self.sample(ua+(ub-ua)*m, wa+(wb-wa)*m):
+                            lo = m
+                        else:
+                            hi = m
+                    f = lo*step-margin
+                    if f < .12*step:            # the edge lies close to the good sample: hug it
+                        f = lo*step*.6
+                    if f > .04*step and (best is None or f > best[0]):
+                        best = (f, ua, wa, ub, wb)
+                if best:
+                    f, ua, wa, ub, wb = best
+                    m = f/step
+                    h = self.sample(ua+(ub-ua)*m, wa+(wb-wa)*m)
+                    if h:
+                        self.P[i, j] = h
+        self._n = {}
+
+    def uw(self, i, j):
+        return self.u0+i*self.step, self.w0+j*self.step
+
+    def ij(self, u, w):
+        return int(round((u-self.u0)/self.step)), int(round((w-self.w0)/self.step))
+
+    def at(self, u, w):
+        return self.O+self.U*u+self.W*w
+
+    def sample(self, u, w):
+        q = self.at(u, w)
+        h = _cast(q-self.D*self.reach, self.D, only=self.only, far=2*self.reach)
+        return h if h is not None and self.valid(u, w, h) else None
+
+    def normal(self, k):
+        """The hit normal smoothed over the four neighbours (a panel rides over a crease)."""
+        if k not in self._n:
+            i, j = k
+            ns = [self.P[q][1] for q in ((i, j), (i+1, j), (i-1, j), (i, j+1), (i, j-1)) if q in self.P]
+            self._n[k] = sum(ns, Vector()).normalized()
+        return self._n[k]
+
+    def cell_ok(self, i, j):
+        ks = ((i, j), (i+1, j), (i+1, j+1), (i, j+1))
+        if not all(k in self.P for k in ks):
+            return False
+        a, b, c, d = (self.P[k][0] for k in ks)
+        if max((b-a).length, (c-b).length, (d-c).length, (a-d).length) > 1.9*self.step:
+            return False
+        return ((c-a)-((b-a)+(d-a))).length < 1.5     # a step or a slot inside the cell refuses it
+
+
+def _clip(poly, n, c):
+    """Clip a convex (u, w) polygon to the half-plane n.x <= c."""
+    out = []
+    for k in range(len(poly)):
+        p, q = poly[k], poly[(k+1) % len(poly)]
+        dp, dq = n[0]*p[0]+n[1]*p[1]-c, n[0]*q[0]+n[1]*q[1]-c
+        if dp <= 0:
+            out.append(p)
+        if dp*dq < 0:
+            f = dp/(dp-dq)
+            out.append((p[0]+(q[0]-p[0])*f, p[1]+(q[1]-p[1])*f))
+    return out
+
+
+def _area(poly):
+    return abs(sum(poly[k][0]*poly[(k+1) % len(poly)][1]-poly[(k+1) % len(poly)][0]*poly[k][1]
+                   for k in range(len(poly))))/2 if len(poly) > 2 else 0.0
+
+
+STATS = {}
+CUT_DIRS = [(math.cos(math.radians(a)), math.sin(math.radians(a))) for a in range(0, 360, 5)]
+
+
+def plate_outline(g, u0, u1, w0, w1, keep=None, margin=.6, res=.5, min_keep=.35, min_area=10.0):
+    """A clean outline for a plate on the rectangle [u0, u1] x [w0, w1]: every patch of the
+    rectangle that is off the field (another body, a turret well, a field edge, a refused region)
+    is cut away with ONE straight line fitted to it, set `margin` clear, never along the cast
+    lattice. Returns the convex (u, w) polygon and its half-planes, or None when a clean cut
+    would leave too little of the plate (the plate is dropped)."""
+    nu, nw = max(1, int(round((u1-u0)/res))), max(1, int(round((w1-w0)/res)))
+    good, bad = [], {}
+    for a in range(nu+1):
+        for b in range(nw+1):
+            u, w = u0+(u1-u0)*a/nu, w0+(w1-w0)*b/nw
+            h = g.sample(u, w)
+            if h is not None and (keep is None or keep(u, w, h)):
+                good.append((u, w))
+            else:
+                bad[a, b] = (u, w)
+    if len(good) < 4:
+        return None
+    planes = [((-1.0, 0.0), -u0), ((1.0, 0.0), u1), ((0.0, -1.0), -w0), ((0.0, 1.0), w1)]
+    # the refused patches, each connected cluster cut away by its own line
+    seen, clusters = set(), []
+    for k in bad:
+        if k in seen:
+            continue
+        stack, cl = [k], []
+        seen.add(k)
+        while stack:
+            a, b = stack.pop()
+            cl.append(bad[a, b])
+            for da in (-1, 0, 1):
+                for db in (-1, 0, 1):
+                    q = (a+da, b+db)
+                    if q in bad and q not in seen:
+                        seen.add(q)
+                        stack.append(q)
+        clusters.append(cl)
+    clusters.sort(key=len, reverse=True)
+    kept = good
+    for cl in clusters:
+        live = [(n, c) for n, c in planes]
+        if all(any(n[0]*x+n[1]*y > c+1e-6 for n, c in live) for x, y in cl):
+            continue                       # already cut away by an earlier line
+        best = None
+        for n in CUT_DIRS:
+            c = min(n[0]*x+n[1]*y for x, y in cl)-margin
+            cnt = sum(1 for x, y in kept if n[0]*x+n[1]*y <= c)
+            if best is None or cnt > best[0]:
+                best = (cnt, n, c)
+        cnt, n, c = best
+        planes.append((n, c))
+        kept = [(x, y) for x, y in kept if n[0]*x+n[1]*y <= c]
+    if len(kept) < min_keep*len(good):
+        return None
+    poly = [(u0, w0), (u1, w0), (u1, w1), (u0, w1)]
+    for n, c in planes[4:]:
+        poly = _clip(poly, n, c)
+    if _area(poly) < min_area:
+        return None
+    per = sum(math.hypot(poly[k][0]-poly[k-1][0], poly[k][1]-poly[k-1][1]) for k in range(len(poly)))
+    if min(u1-u0, w1-w0) >= 4.0 and 2*_area(poly)/per < 1.2:
+        return None                        # a sliver left between two cuts is not a plate
+    return poly, planes
+
+
+def _inside(poly, u, w, pad=0.0):
+    """True when (u, w) lies inside the convex outline, at least `pad` from its edges."""
+    if not poly:
+        return False
+    sgn = 0
+    for k in range(len(poly)):
+        (x0, y0), (x1, y1) = poly[k], poly[(k+1) % len(poly)]
+        L = math.hypot(x1-x0, y1-y0)
+        if L < 1e-9:
+            continue
+        cr = ((x1-x0)*(w-y0)-(y1-y0)*(u-x0))/L
+        if sgn == 0:
+            sgn = 1 if _area_signed(poly) > 0 else -1
+        if cr*sgn < pad:
+            return False
+    return True
+
+
+def _area_signed(poly):
+    return sum(poly[k][0]*poly[(k+1) % len(poly)][1]-poly[(k+1) % len(poly)][0]*poly[k][1]
+               for k in range(len(poly)))/2
+
+
+def panel(fam, g, i0, i1, j0, j1, h, keep=None, sink=.3, min_area=None, margin=.6):
+    """Plates over the lattice rectangle [i0..i1] x [j0..j1], each with a clean outline
+    (plate_outline). Where one clean cut would waste much of the rectangle (a well in its middle,
+    a curving field edge) the rectangle is halved across its long side with a seam between the
+    halves, and each half is tried again; what still cannot be cut cleanly is dropped. A plate is
+    a top sheet h proud draped over the surface inside its outline, with a skirt down `sink` under
+    the surface along it. `keep(u, w, hit)` refuses ground. Returns the largest outline built."""
+    u0, w0 = g.uw(i0, j0)
+    u1, w1 = g.uw(i1, j1)
+    polys = []
+
+    def attempt(u0, u1, w0, w1, depth):
+        if u1-u0 < .9*g.step or w1-w0 < .9*g.step:
+            return
+        ma = min(10.0, .4*(u1-u0)*(w1-w0)) if min_area is None else min_area
+        last = depth >= 3 or max(u1-u0, w1-w0) < 8.0
+        out = plate_outline(g, u0, u1, w0, w1, keep, margin=margin, min_area=ma, min_keep=.35 if last else .7)
+        st_ = STATS.setdefault(id(fam), [0, 0, 0.0, 0.0])
+        if out is not None:
+            st_[1] += 1
+            st_[3] += _area(out[0])
+            _drape_plate(fam, g, out, h, sink)
+            polys.append(out[0])
+            return
+        if last:
+            st_[0] += 1
+            return
+        gap = .5*g.step
+        if u1-u0 >= w1-w0:
+            m = (u0+u1)/2
+            attempt(u0, m-gap, w0, w1, depth+1)
+            attempt(m+gap, u1, w0, w1, depth+1)
+        else:
+            m = (w0+w1)/2
+            attempt(u0, u1, w0, m-gap, depth+1)
+            attempt(u0, u1, m+gap, w1, depth+1)
+    attempt(u0, u1, w0, w1, 0)
+    return max(polys, key=_area) if polys else None
+
+
+def _drape_plate(fam, g, out, h, sink):
+    poly, planes = out
+    idx, faces = {}, []
+
+    def vid(u, w):
+        key = (round(u, 4), round(w, 4))
+        if key not in idx:
+            q = g.at(u, w)
+            hit = _cast(q-g.D*g.reach, g.D, only=g.only, far=2*g.reach)
+            if hit is None:
+                idx[key] = None
+            else:
+                p, n = Vector(hit[0]), Vector(hit[1])
+                if n.dot(-g.D) < 0:
+                    n = -n
+                idx[key] = len(fam.v)
+                fam.v += [tuple(p+n*h), tuple(p-n*sink)]
+        return idx[key]
+    st = g.step
+    ua, ub = min(x for x, y in poly), max(x for x, y in poly)
+    wa, wb = min(y for x, y in poly), max(y for x, y in poly)
+    k0, k1 = int(math.floor((ua-g.u0)/st)), int(math.ceil((ub-g.u0)/st))
+    l0, l1 = int(math.floor((wa-g.w0)/st)), int(math.ceil((wb-g.w0)/st))
+    for k in range(k0, k1):
+        for l in range(l0, l1):
+            cu, cw = g.u0+k*st, g.w0+l*st
+            cell = [(cu, cw), (cu+st, cw), (cu+st, cw+st), (cu, cw+st)]
+            for n, c in planes:
+                cell = _clip(cell, n, c)
+                if len(cell) < 3:
+                    break
+            if len(cell) < 3 or _area(cell) < 1e-4:
+                continue
+            ids = [vid(*v) for v in cell]
+            if None in ids:
+                continue
+            dedup = [x for m, x in enumerate(ids) if x != ids[m-1]]
+            if len(dedup) >= 3:
+                faces.append(dedup)
+    if not faces:
+        return
+    use = {}
+    for f in faces:
+        for m in range(len(f)):
+            e = (f[m], f[(m+1) % len(f)])
+            use[tuple(sorted(e))] = use.get(tuple(sorted(e)), 0)+1
+    for f in faces:
+        fam.f.append(tuple(f))
+        for m in range(len(f)):
+            a, b = f[m], f[(m+1) % len(f)]
+            if use[tuple(sorted((a, b)))] == 1:
+                fam.f.append((b, a, a+1, b+1))
+
+
+def _top(g, k, h):
+    """The top of a plate h proud at lattice vertex k: (point, normal)."""
+    n = g.normal(k)
+    return Vector(g.P[k][0])+n*h, n
+
+
+REACH = {'SMALL': 9.0, 'MEDIUM': 16.0, 'LARGE': 29.5}
+
+
+def _in_sweep(p, pad=1.5):
+    """True where a barrel can pass overhead in its arc: nothing taller than a plate goes there."""
+    for sid, slot, ang, arc, size, kind, wpn in os_turrets.SLOTS:
+        d = math.hypot(p.x-slot[0], p.y-slot[1])
+        if d > REACH[size]+pad:
+            continue
+        a = math.degrees(math.atan2(p.y-slot[1], p.x-slot[0]))
+        if abs((a-ang+180) % 360-180) <= arc/2+15:
+            return True
+    return False
+
+
+def _in(u, w, rects):
+    return any(a <= u <= b and c <= w <= d for a, b, c, d in rects)
+
+
+def _deck_grid(side, s):
+    t, o = _axis(s)
+    A = Vector((DECK_A[0], s*DECK_A[1], 0.0))
+    names = (f'Hull {side} arm gallery', f'Hull {side} arm')
+    lights = [(x, s*y) for x, y in LIGHTS]
+
+    def ok(u, w, h):
+        p, n, name, mat = h
+        if name not in names or n.z < .8 or mat == RECESS:
+            return False
+        if not _keep_clear(p.x, p.y, s, .8):
+            return False
+        return all(math.hypot(p.x-lx, p.y-ly) > 2.8 for lx, ly in lights)
+    return Grid(A, t, o, (0, 0, -1), (-92.0, 128.0), (-28.0, 32.0), 1.0, ok, only=_arm(side), reach=150.0)
+
+
+# trench, bays and banks on the deck, in the deck frame (u, w)
+TRENCH = (12.0, 58.0, -21.0, -15.0)
+BAYS = ((14.0, 33.0, -6.0, 0.0), (42.0, 54.0, -8.0, -1.0))
+TERRACE_BANK = (24.0, 42.0, 11.0, 18.0)
+
+
+def deck_plates(g, F, s):
+    """The brown gun deck in three courses of big plates in alternating tones (dark brown, the
+    deck's own brown, light bone-brown), staggered so no two neighbours match, with near-black seam
+    strips between plates and between courses; the light plates carry a raised doubler."""
+    ex = [(TRENCH[0]-1, TRENCH[1]+1, TRENCH[2]-1, TRENCH[3]+1),
+          (TERRACE_BANK[0]-1, TERRACE_BANK[1]+1, TERRACE_BANK[2]-1, TERRACE_BANK[3]+1)]
+    ex += [(a-1, b+1, c-1, d+1) for a, b, c, d in BAYS]
+    keep = lambda u, w, h: not _in(u, w, ex)
+    tones = ('dark', 'light', 'base')
+    courses = (  # (w band, u boundaries, tone offset)
+        ((-28, -13), (-92, -64, -36, -8, 12), 2),
+        ((-28, -13), (58, 80, 104, 128), 0),
+        ((-12, 6), (-92, -70, -50, -30, -12, 12, 38, 58, 83, 104, 128), 0),
+        ((7, 32), (-92, -76, -60, -45, -30, -16, -2, 12, 24, 42, 56, 70, 86, 104, 128), 1),
+    )
+    for (w0, w1), cuts, off in courses:
+        j0, j1 = g.ij(0, w0)[1], g.ij(0, w1)[1]
+        for k, (a, b) in enumerate(zip(cuts, cuts[1:])):
+            i0, i1 = g.ij(a, 0)[0], g.ij(b, 0)[0]-1
+            tone = tones[(k+off) % 3]
+            cells = panel(F[tone], g, i0, i1, j0, j1, .55, keep)
+            if tone == 'light' and cells:
+                panel(F['bone'], g, i0+2, i1-2, j0+2, j1-2, 1.0,
+                      lambda u, w, h: keep(u, w, h) and not _in_sweep(h[0]))
+            if b != cuts[-1]:
+                panel(F['seam'], g, i1, i1+1, j0, j1, .2, keep)
+    cuts = (-92, -70, -50, -30, -12, 12, 38, 58, 83, 104, 128)
+    for w0, w1 in ((-13, -12), (6, 7)):          # the seams between courses, in plate lengths
+        for a, b in zip(cuts, cuts[1:]):
+            panel(F['seam'], g, g.ij(a, 0)[0], g.ij(b, 0)[0], g.ij(0, w0)[1], g.ij(0, w1)[1], .2, keep)
+
+
+def deck_trench(g, F, side, s):
+    """The inboard machinery trench: built up rather than cut, a near-black floor between two
+    coaming walls, two big feed mains along it below the rim, straps over them and two pump
+    housings standing a little above the rim."""
+    u0, u1, w0, w1 = TRENCH
+    i0, i1 = g.ij(u0, 0)[0], g.ij(u1, 0)[0]
+    j0, j1 = g.ij(0, w0)[1], g.ij(0, w1)[1]
+    panel(F['floor'], g, i0, i1, j0, j1, .12)
+    for ja, jb in ((j0, j0+1), (j1-1, j1)):
+        panel(F['wall'], g, i0, i1, ja, jb, 2.2)
+    for ia, ib in ((i0, i0+1), (i1-1, i1)):
+        panel(F['wall'], g, ia, ib, j0, j1, 2.2)
+    for u in range(int(u0)+5, int(u1)-2, 6):
+        ia = g.ij(u, 0)[0]
+        panel(F['frame'], g, ia, ia+1, j0, j1, 2.0)
+    t, o = _axis(s)
+    A = Vector((DECK_A[0], s*DECK_A[1], 0.0))
+    deck = lambda n: n in (f'Hull {side} arm gallery', f'Hull {side} arm')
+    for w, r in ((w0+1.95, .85), (w1-1.95, .85)):
+        pts = []
+        for k in range(int((u1-u0-2)/1.5)+1):
+            q = A+t*(u0+1.0+k*1.5)+o*w
+            h = _cast(q+Vector((0, 0, 100)), (0, 0, -1), only=deck)
+            if h:
+                pts.append(Vector(h[0])+Vector(h[1])*(.14+r))
+        F['mains'].tube(pts, r, ref=Vector((0, 0, 1)), seg=10)
+    for u in (u0+9.0, u0+31.0):
+        ia, ib = g.ij(u-2.5, 0)[0], g.ij(u+2.5, 0)[0]
+        if panel(F['housing'], g, ia, ib, j0, j1, 2.7):
+            panel(F['cap'], g, ia+1, ib-1, j0+1, j1-1, 3.1)
+
+
+def deck_bays(g, F, side, s):
+    """The two deck channels between the rings as framed machinery bays: a coaming round each slot,
+    two feed lines along its floor, cross frames and a valve housing midway, all below the rim."""
+    t, o = _axis(s)
+    A = Vector((DECK_A[0], s*DECK_A[1], 0.0))
+    gal = f'Hull {side} arm gallery'
+    for u0, u1, w0, w1 in BAYS:
+        i0, i1 = g.ij(u0, 0)[0], g.ij(u1, 0)[0]
+        j0, j1 = g.ij(0, w0)[1], g.ij(0, w1)[1]
+        for ia, ib, ja, jb in ((i0, i1, j0, j0+1), (i0, i1, j1-1, j1), (i0, i0+1, j0, j1), (i1-1, i1, j0, j1)):
+            panel(F['wall'], g, ia, ib, ja, jb, 1.3)
+        floor = lambda n: n == gal
+
+        def at(u, w):
+            q = A+t*u+o*w
+            h = _cast(q+Vector((0, 0, 100)), (0, 0, -1), only=floor)
+            return h if h and h[3] == RECESS and h[1].z > .8 else None
+        wm = (w0+w1)/2
+        for dw, r in ((-1.0, .62), (1.0, .62)):
+            pts = []
+            for k in range(int((u1-u0-1.6)/1.2)+1):
+                h = at(u0+.8+k*1.2, wm+dw)
+                if h:
+                    pts.append(Vector(h[0])+Vector(h[1])*(r+.03))
+            runs, cur = [], []
+            for p in pts:
+                if cur and (p-cur[-1]).length > 2.6:
+                    runs.append(cur)
+                    cur = []
+                cur.append(p)
+            runs.append(cur)
+            for run in runs:
+                if len(run) > 1:
+                    F['lines'].tube(run, r, ref=Vector((0, 0, 1)), seg=8)
+        for u in [u0+2.5+k*4.0 for k in range(int((u1-u0-4)/4.0)+1)]:
+            h = at(u, wm)
+            if h:
+                F['frame'].slab(h[0], h[1], o, 1.9, .22, 1.6, .1)
+        h = at((u0+u1)/2, wm)
+        if h:
+            F['housing'].slab(h[0], h[1], t, 1.6, 1.7, 1.9, .1, ch=.25)
+            F['cap'].disc(Vector(h[0])+Vector(h[1])*1.9, h[1], .8, .35, .1, seg=12)
+
+
+def terrace_bank(g, F, s):
+    """A radiator bank on the outboard terrace where the sprite has its dark louvre panels: a
+    coaming, a near-black floor and three modules of big fins across it."""
+    u0, u1, w0, w1 = TERRACE_BANK
+    i0, i1 = g.ij(u0, 0)[0], g.ij(u1, 0)[0]
+    j0, j1 = g.ij(0, w0)[1], g.ij(0, w1)[1]
+    poly = panel(F['floor'], g, i0, i1, j0, j1, .15)
+    if not poly:
+        return
+    for ia, ib, ja, jb in ((i0, i1, j0, j0+1), (i0, i1, j1-1, j1), (i0, i0+1, j0, j1), (i1-1, i1, j0, j1)):
+        panel(F['wall'], g, ia, ib, ja, jb, 1.2)
+    third = (i1-i0)/3
+    for k in (1, 2):
+        ia = i0+int(round(k*third))
+        panel(F['wall'], g, ia, ia+1, j0, j1, 1.2)
+    for i in range(i0+1, i1):
+        if any(i in (i0+int(round(k*third)), i0+int(round(k*third))+1) for k in (1, 2)):
+            continue
+        pts, nrms = [], []
+        for j in range(j0+1, j1):
+            if (i, j) in g.P and _inside(poly, *g.uw(i, j), .9):
+                p, n = _top(g, (i, j), .15)
+                pts.append(p)
+                nrms.append(n)
+        if len(pts) > 1:
+            F['fins'].ribbon(pts, nrms, .32, .85, .05)
+
+
+def _rail_grid(side, s, names, extra=None):
+    """A lattice seen from above and outboard at 45 degrees: the rail's top and its chine face,
+    the sponson's slope and the arm's outboard flank all face that way."""
+    D = Vector((0, -s, -1)).normalized()
+    W = Vector((0, s, -1)).normalized()
+
+    def ok(u, w, h):
+        p, n, name, mat = h
+        if any((p-Vector((lx, s*ly, p.z))).length < 3.0 and abs(p.z-lz) < 4.0 for lx, ly, lz in LIGHTS3):
+            return False
+        return name in names and n.dot(-D) > .35 and mat != RECESS and (extra is None or extra(p, n, name))
+    return Grid((0, s*110.0, -15.0), (1, 0, 0), W, D, (-10.0, 202.0), (-34.0, 34.0), 1.0, ok, only=_arm(side))
+
+
+RAIL_STRAPS = (46.0, 94.0, 124.0, 152.0, 174.0)
+
+
+def rail_plates(g, F, side, s):
+    """The orange rail as a run of plates: dark grey straps across it at intervals, weathered
+    darker orange plates on alternate segments, a dark louvre bank on its top aft of the sponson's
+    forward end, and bolt rows down every strap."""
+    rail = (f'Armour {side} arm belt rail', f'Armour {side} arm belt 1')
+    name = lambda k: g.P[k][2]
+    on = lambda i, j: name((i, j)) in rail
+    onh = lambda u, w, h: h[2] in rail
+    bank = (73.0, 90.0)
+    for x in RAIL_STRAPS:
+        i0, i1 = g.ij(x-1.5, 0)[0], g.ij(x+1.5, 0)[0]
+        poly = panel(F['strap'], g, i0, i1, 0, g.nw, .9, onh, min_area=6.0)
+        if poly:
+            for i in (i0, i1):
+                for j in range(0, g.nw+1, 2):
+                    k = (i+(1 if i == i0 else -1), j)
+                    if k in g.P and on(*k) and _inside(poly, *g.uw(*k), .45):
+                        p, n = _top(g, k, .9)
+                        F['bolts'].slab(p-g.U*(.0), n, g.U, .22, .22, .25, .1)
+    cuts = (16.0,)+RAIL_STRAPS+(202.0,)
+    for k, (a, b) in enumerate(zip(cuts, cuts[1:])):
+        if k % 2:
+            continue
+        i0, i1 = g.ij(a+1.5+1.0, 0)[0], g.ij(b-1.5-1.0, 0)[0]
+        keep = lambda u, w, h: onh(u, w, h) and not (bank[0]-1 <= u <= bank[1]+1 and h[1].z > .78)
+        panel(F['weathered'], g, i0, i1, 0, g.nw, .5, keep)
+    # the louvre bank on the rail's flat top
+    top = lambda u, w, h: onh(u, w, h) and h[1].z > .78
+    topl = lambda i, j: on(i, j) and g.P[i, j][1].z > .78
+    i0, i1 = g.ij(bank[0], 0)[0], g.ij(bank[1], 0)[0]
+    poly = panel(F['floor'], g, i0, i1, 0, g.nw, .25, top)
+    if poly:
+        for i in range(i0+1, i1):
+            pts, nrms = [], []
+            for j in range(g.nw+1):
+                if (i, j) in g.P and topl(i, j) and _inside(poly, *g.uw(i, j), .3):
+                    p, n = _top(g, (i, j), .25)
+                    pts.append(p)
+                    nrms.append(n)
+            if len(pts) > 1:
+                F['fins'].ribbon(pts, nrms, .3, .55, .05)
+
+
+def flank_plates(g, F, side, s):
+    """The arm's outboard flank forward and aft of the sponson in big plates of alternating tone."""
+    hull = f'Hull {side} arm'
+    on = lambda u, w, h: h[2] == hull
+    for k, (a, b) in enumerate(((16, 30), (31, 46), (47, 66), (148, 162), (163, 178), (179, 202))):
+        i0, i1 = g.ij(a, 0)[0], g.ij(b, 0)[0]-1
+        panel(F[('dark', 'light')[k % 2]], g, i0, i1, 0, g.nw, .45, on)
+    # the deck's outboard drop down to the rail: the brown band seen abeam above the orange
+    gal = f'Hull {side} arm gallery'
+    drop = lambda u, w, h: h[2] == gal
+    cuts = (-10, 8, 24, 40, 58, 76, 92, 108, 126, 144, 162, 180, 200)
+    for k, (a, b) in enumerate(zip(cuts, cuts[1:])):
+        i0, i1 = g.ij(a, 0)[0], g.ij(b, 0)[0]-1
+        panel(F[('light', 'dark')[k % 2]], g, max(0, i0), i1, 0, g.nw, .45, drop)
+
+
+def _sponson_frame(side, s):
+    """The sponson's slope frame from its vent slots: O at the aftmost slot, U along the row, D
+    into the face, W down the face."""
+    ob = bpy.data.objects.get(f'Armour {side} arm side sponson')
+    if ob is None:
+        return None
+    mats = [m.name if m else None for m in ob.data.materials]
+    rows = []
+    for p in ob.data.polygons:
+        if p.material_index < len(mats) and mats[p.material_index] == RECESS and p.area > 15:
+            n = (ob.matrix_world.to_3x3() @ p.normal).normalized()
+            if n.y*s > .3:
+                rows.append((ob.matrix_world @ p.center, n))
+    if len(rows) < 3:
+        return None
+    rows.sort(key=lambda r: r[0].x)
+    D = -sum((n for c, n in rows), Vector()).normalized()
+    U = rows[-1][0]-rows[0][0]
+    U = (U-D*U.dot(D)).normalized()
+    W = D.cross(U).normalized()
+    if W.z > 0:
+        W = -W
+    return rows[0][0], U, W, D, (rows[-1][0]-rows[0][0]).dot(U)
+
+
+def sponson_plates(F, side, s):
+    """The sponson's slope in plate courses (grey-blue steel against the dark grey), the vent row
+    left clear, and a framed radiator bank of big fins under the vent row."""
+    fr = _sponson_frame(side, s)
+    if fr is None:
+        return
+    O, U, W, D, L = fr
+    name = f'Armour {side} arm side sponson'
+
+    def ok(u, w, h):
+        p, n, nm, mat = h
+        return nm == name and n.dot(-D) > .3 and mat != RECESS
+    g = Grid(O, U, W, D, (-34.0, L+38.0), (-26.0, 32.0), 1.0, ok, only=_arm(side), reach=40.0)
+    # the trunk runs under the rail along the slope's top: plates start below it
+    top = {}
+    for (i, j) in g.P:
+        top[i] = min(top.get(i, j), j)
+    topw = lambda u: g.w0+g.step*top.get(g.ij(u, 0)[0], 10**6)
+    row = (-3.5, L+3.5, -5.5, 5.5)
+    rad = (-2.0, L+2.0, 6.5, 14.5)
+    keep = lambda u, w, h: w >= topw(u)+6 and not _in(u, w, (
+        (row[0]-1, row[1]+1, row[2], row[3]), (rad[0]-1, rad[1]+1, rad[2]-1, rad[3]+1)))
+    tones = ('steel', 'base')
+    span = L+72.0
+    courses = (((-26, -7), 0), ((-6, 5), 1), ((6, 15), 0), ((16, 32), 1))
+    for (w0, w1), off in courses:
+        j0, j1 = g.ij(0, w0)[1], g.ij(0, w1)[1]
+        n = 5 if off == 0 else 4
+        cuts = [-34.0+span*k/n for k in range(n+1)]
+        for k, (a, b) in enumerate(zip(cuts, cuts[1:])):
+            i0, i1 = g.ij(a, 0)[0], g.ij(b, 0)[0]-1
+            panel(F[tones[(k+off) % 2]], g, i0, i1, j0, j1, .4, keep)
+    # radiator bank under the vent row
+    u0, u1, w0, w1 = rad
+    i0, i1 = g.ij(u0, 0)[0], g.ij(u1, 0)[0]
+    j0, j1 = g.ij(0, w0)[1], g.ij(0, w1)[1]
+    poly = panel(F['floor'], g, i0, i1, j0, j1, .12)
+    if poly:
+        for ia, ib, ja, jb in ((i0, i1, j0, j0+1), (i0, i1, j1-1, j1), (i0, i0+1, j0, j1), (i1-1, i1, j0, j1)):
+            panel(F['wall'], g, ia, ib, ja, jb, .95)
+        third = (i1-i0)/3
+        divs = {i0+int(round(k*third)) for k in (1, 2)}
+        for ia in divs:
+            panel(F['wall'], g, ia, ia+1, j0, j1, .95)
+        for i in range(i0+1, i1):
+            if i in divs or i-1 in divs:
+                continue
+            pts, nrms = [], []
+            for j in range(j0+1, j1):
+                if (i, j) in g.P and _inside(poly, *g.uw(i, j), .9):
+                    p, n = _top(g, (i, j), .12)
+                    pts.append(p)
+                    nrms.append(n)
+            if len(pts) > 1:
+                F['fins'].ribbon(pts, nrms, .3, .75, .05)
+
+
+def big_layer(kit, side, s, mats):
+    """Build every big-layer object for one arm."""
+    g = _deck_grid(side, s)
+    F = {k: Fam() for k in ('dark', 'light', 'bone', 'base', 'seam', 'floor', 'wall', 'frame', 'mains', 'housing',
+                            'cap', 'lines', 'fins')}
+    deck_plates(g, F, s)
+    deck_trench(g, F, side, s)
+    deck_bays(g, F, side, s)
+    terrace_bank(g, F, s)
+    R = {k: Fam() for k in ('strap', 'weathered', 'bolts', 'floor', 'fins', 'dark', 'light')}
+    gal = f'Hull {side} arm gallery'
+
+    def extra(p, n, nm):
+        if nm == f'Hull {side} arm':
+            return n.y*s > .3 and p.z < -10.0
+        if nm == gal:
+            return n.z < .75 and n.y*s > .2
+        return n.z < .97
+    rg = _rail_grid(side, s, (f'Armour {side} arm belt rail', f'Armour {side} arm belt 1', f'Hull {side} arm', gal),
+                    extra)
+    rail_plates(rg, R, side, s)
+    flank_plates(rg, R, side, s)
+    S = {k: Fam() for k in ('steel', 'base', 'floor', 'wall', 'fins')}
+    sponson_plates(S, side, s)
+    a = f'Detail {side} arm '
+    out = [
+        (F['dark'], 'deck plates dark', mats['dark']), (F['light'], 'deck plates light', mats['light']),
+        (F['base'], 'deck plates', kit.plate), (F['bone'], 'deck doublers', mats['bone']), (F['seam'], 'deck plate seams', mats['seam']),
+        (F['floor'], 'machinery bay floors', mats['seam']), (F['wall'], 'machinery bay coamings', kit.grey),
+        (F['frame'], 'machinery bay frames', kit.steel), (F['mains'], 'trench mains', mats['pipe']),
+        (F['housing'], 'trench pump housings', kit.grey), (F['cap'], 'trench pump caps', mats['steel']),
+        (F['lines'], 'bay feed lines', mats['pipe']), (F['fins'], 'terrace radiator fins', mats['steel']),
+        (R['strap'], 'rail straps', kit.grey), (R['weathered'], 'rail plates weathered', mats['orange']),
+        (R['bolts'], 'rail strap bolts', kit.steel), (R['floor'], 'rail louvre bank', mats['seam']),
+        (R['fins'], 'rail louvres', mats['steel']), (R['dark'], 'flank plates dark', mats['dark']),
+        (R['light'], 'flank plates light', mats['light']),
+        (S['steel'], 'sponson plates steel', mats['steel']), (S['base'], 'sponson plates', kit.grey),
+        (S['floor'], 'sponson radiator floor', mats['seam']), (S['wall'], 'sponson radiator frame', kit.grey),
+        (S['fins'], 'sponson radiator fins', mats['steel']),
+    ]
+    for fam, label, mat in out:
+        fam.finish(kit, a+label, mat, smooth=0.0 if label.endswith(('mains', 'feed lines')) else 32.0)
+
+
+def _mat(name, color, metallic, rough):
+    m = bpy.data.materials.get(name)
+    return m if m is not None else os_kit.material(name, color, metallic, rough)
+
+
 def build(kit):
     _build_trees()
     hatch_mat = os_kit.material('Hegemony hatch plate', (.24, .19, .165), .35, .5)
-    seam_mat = os_kit.material('Plate seam shadow', (.045, .03, .028), .3, .7)
     pipe_mat = os_kit.material('Conduit steel', (.16, .15, .145), .75, .42)
+    mats = {
+        'dark': _mat('Hegemony plate dark brown', (.045, .03, .026), .3, .65),
+        'light': _mat('Hegemony plate bone-brown', (.32, .24, .19), .2, .6),
+        'bone': _mat('Hegemony plate bone-brown doubler', (.40, .315, .255), .2, .6),
+        'steel': _mat('Hegemony plate grey-blue steel', (.10, .112, .135), .45, .5),
+        'orange': _mat('Hegemony orange weathered', (.34, .08, .024), .25, .62),
+        'seam': _mat('Plate seam black', (.012, .010, .010), .3, .8),
+        'pipe': pipe_mat,
+    }
+    seam_mat = os_kit.material('Plate seam shadow', (.045, .03, .028), .3, .7)
+    # the big layer, seated on the bare arm
     for side, s in SIDES:
-        seams, bolts = Fam(), Fam()
-        rail_seams(kit, side, s, seams, bolts)
-        deck_seams(kit, side, s, seams)
+        big_layer(kit, side, s, mats)
+    # the close-up layer that sits on bare surfaces the big layer leaves alone
+    for side, s in SIDES:
+        seams = Fam()
         under_seams(kit, side, s, seams)
-        lid, rim, fit, rails = Fam(), Fam(), Fam(), Fam()
-        hatches(kit, side, s, lid, rim, fit, rails)
-        panel, slats, frame = Fam(), Fam(), Fam()
-        vents(kit, side, s, panel, slats, frame)
-        pipes, clamps, boxes = Fam(), Fam(), Fam()
-        conduits(kit, side, s, pipes, clamps, boxes)
-        cpipes, cframes, cblocks = Fam(), Fam(), Fam()
-        channel_machinery(kit, side, s, cpipes, cframes, cblocks)
         seams.finish(kit, f'Detail {side} arm plate seams', seam_mat)
-        bolts.finish(kit, f'Detail {side} arm bolt rows', kit.steel)
-        lid.finish(kit, f'Detail {side} arm hatch lids', hatch_mat, .06)
-        rim.finish(kit, f'Detail {side} arm hatch coamings', kit.grey, .05)
-        fit.finish(kit, f'Detail {side} arm hatch fittings', kit.steel)
-        rails.finish(kit, f'Detail {side} arm grab rails', kit.steel)
-        panel.finish(kit, f'Detail {side} arm vent recesses', kit.dark)
-        slats.finish(kit, f'Detail {side} arm vent louvres', kit.steel)
-        frame.finish(kit, f'Detail {side} arm vent frames', kit.grey, .05)
-        pipes.finish(kit, f'Detail {side} arm deck conduits', pipe_mat)
-        clamps.finish(kit, f'Detail {side} arm conduit clamps', kit.grey)
-        boxes.finish(kit, f'Detail {side} arm junction boxes', kit.grey, .08)
-        cpipes.finish(kit, f'Detail {side} arm channel feed lines', pipe_mat)
-        cframes.finish(kit, f'Detail {side} arm channel frames', kit.steel)
-        cblocks.finish(kit, f'Detail {side} arm channel valve blocks', kit.grey, .06)
-        louv, sframe, sseams, sbolts, sfit = Fam(), Fam(), Fam(), Fam(), Fam()
-        sponson(kit, side, s, louv, sframe, sseams, sbolts, sfit)
+        louv, sframe = Fam(), Fam()
+        sponson(kit, side, s, louv, sframe, Fam(), Fam(), Fam())
         louv.finish(kit, f'Detail {side} arm sponson louvres', kit.steel)
         sframe.finish(kit, f'Detail {side} arm sponson grille frame', kit.steel, .05)
-        sseams.finish(kit, f'Detail {side} arm sponson seams', seam_mat)
-        sbolts.finish(kit, f'Detail {side} arm sponson bolt rows', kit.steel)
-        sfit.finish(kit, f'Detail {side} arm sponson fittings', kit.steel, .04)
         tp, tc, tb = Fam(), Fam(), Fam()
         flank_trunk(kit, side, s, tp, tc, tb)
         tp.finish(kit, f'Detail {side} arm flank trunk', pipe_mat)
@@ -783,3 +1308,15 @@ def build(kit):
         nose_surround(kit, side, s, nf, nb)
         nf.finish(kit, f'Detail {side} arm casemate surround', kit.grey, .08)
         nb.finish(kit, f'Detail {side} arm casemate surround bolts', kit.steel)
+    # ... and the close-up layer that stands on the plates
+    _build_trees(include=('Detail port arm ', 'Detail starboard arm '))
+    for side, s in SIDES:
+        lid, rim, fit, rails = Fam(), Fam(), Fam(), Fam()
+        hatches(kit, side, s, lid, rim, fit, rails)
+        lid.finish(kit, f'Detail {side} arm hatch lids', hatch_mat, .06)
+        rim.finish(kit, f'Detail {side} arm hatch coamings', kit.grey, .05)
+        fit.finish(kit, f'Detail {side} arm hatch fittings', kit.steel)
+        rails.finish(kit, f'Detail {side} arm grab rails', kit.steel)
+        sfit = Fam()
+        ventilator(kit, side, s, sfit)
+        sfit.finish(kit, f'Detail {side} arm sponson fittings', kit.steel, .04)

@@ -13,9 +13,11 @@ generate  one paid text-to-speech request per take, never retried; existing take
           and new ones numbered after them.
 check     one speech-to-text request per take (cached by audio hash) to confirm the words,
           plus duration and peak level; writes check.json.
-treat     applies the shipped `comms` intercom recipe (ProcessAudioTask) to intercom lines and
-          leaves off-intercom lines clean, writing <take>_treated.wav beside each take.
-package   assembles the chosen takes (PICKS) into numbered MP3s under --out.
+treat     applies each line's treatment: the shipped `comms` intercom recipe (ProcessAudioTask),
+          the stronger SHIP_PA loudspeaker, or clean for off-intercom lines, writing <take>_treated.wav beside each take.
+package   assembles the chosen takes (PICKS) into numbered MP3s under --out;
+          package-v2 / package-v3 do the same for the second C5 draft (PICKS_V2) and its
+          confident re-read (PICKS_V3).
 Requires ffmpeg/ffprobe on PATH and ELEVENLABS_API_KEY in the environment (never printed).
 """
 import argparse
@@ -40,32 +42,58 @@ COMMS = ("highpass=f=280:p=2,lowpass=f=3600:p=2,"
          "acompressor=threshold=0.125:ratio=3:attack=5:release=90:makeup=1.5,"
          "asoftclip=type=tanh:threshold=0.65:oversample=2,volume=2.5,"
          "alimiter=limit=0.89:level=false:latency=true")
+# C5's all-ship announcement plays over the overhead shot of the families walking off, so it is
+# a loudspeaker in the hold heard from the yard: narrower, driven, with two short slap echoes.
+# Owner's pick 2026-10-18 for that placement ("03"); `comms` stays for lines heard in the cabin.
+# Loudness-matched to the comms takes (about -19 LUFS).
+SHIP_PA = ("highpass=f=450:p=2,lowpass=f=2600:p=2,equalizer=f=1600:t=q:w=1:g=6,"
+           "acompressor=threshold=0.06:ratio=6:attack=3:release=70:makeup=3,"
+           "asoftclip=type=tanh:threshold=0.35:oversample=4,lowpass=f=2800:p=2,"
+           "aecho=0.8:0.5:31|67:0.3|0.18,loudnorm=I=-19:TP=-1.5:LRA=7")
+TREATMENTS = {"comms": COMMS, "ship_pa": SHIP_PA, "clean": "anull"}
 
 C5_ALL_HANDS = ("All hands, this is Castle. We're down. "
                 "Everyone we took aboard at the Claim is walking off this ship on their own feet. "
                 "Take your filters. The air's thick out there, but it's air, and nobody's metering it. "
                 "Mind the ramp. Go and see the sky.")
 C5_PRIVATE = "A new start, Commander. Let's not waste it."
+# Second draft, owner's choice 2026-10-18: "this is Castle" dropped, plain orders, a wry last line.
+C5_ANNOUNCE = ("All hands, we're down. Filters on before you step out; it's wet out there. "
+               "Take it slow on the ramp, and follow the yard crew to the workshop.")
+C5_LAST = "That was the easy part, Commander."
 
-# id, intercom?, caption text, synthesis text
+# id, treatment, caption text, synthesis text
 LINES = [
-    ("entry", True, "Cleared. Everybody breathe.",
+    ("entry", "comms", "Cleared. Everybody breathe.",
      "[relieved, warm, tired voice, speaking gently to the passengers] Cleared. Everybody breathe."),
-    ("c4_reels", True, "Like the travel reels they ran in the canteen... except this one doesn't loop.",
+    ("c4_reels", "comms", "Like the travel reels they ran in the canteen... except this one doesn't loop.",
      "[quiet, tired, a little wonder under the words] Like the travel reels they ran in the canteen... "
      "except this one doesn't loop."),
-    ("c4_greywater", True, "Greywater's past the cranes. Let me do the talking.",
+    ("c4_greywater", "comms", "Greywater's past the cranes. Let me do the talking.",
      "[calm, practical, quiet] Greywater's past the cranes. Let me do the talking."),
-    ("c5_allhands_flat", True, C5_ALL_HANDS,
+    ("c5_allhands_flat", "comms", C5_ALL_HANDS,
      "[calm, tired, practical ship's announcement, unhurried] " + C5_ALL_HANDS),
-    ("c5_allhands_warm", True, C5_ALL_HANDS,
+    ("c5_allhands_warm", "comms", C5_ALL_HANDS,
      "[calm, tired ship's announcement, quiet hope held under the words] " + C5_ALL_HANDS),
-    ("c5_private_flat", False, C5_PRIVATE,
+    ("c5_private_flat", "clean", C5_PRIVATE,
      "[quiet, plain, tired, to one person beside her] " + C5_PRIVATE),
-    ("c5_private_catch", False, C5_PRIVATE,
+    ("c5_private_catch", "clean", C5_PRIVATE,
      "[quiet, to one person beside her, a small catch in the voice, holding it together] " + C5_PRIVATE),
     # The longer catch direction above repeated the line in five of six takes.
-    ("c5_private_catch_short", False, C5_PRIVATE, "[quiet, voice catching slightly] " + C5_PRIVATE),
+    ("c5_private_catch_short", "clean", C5_PRIVATE, "[quiet, voice catching slightly] " + C5_PRIVATE),
+    ("c5v2_announce", "ship_pa", C5_ANNOUNCE,
+     "[calm, tired, practical ship's announcement, unhurried] " + C5_ANNOUNCE),
+    ("c5v2_last_plain", "clean", C5_LAST, "[quiet, tired, plain, to one person beside her] " + C5_LAST),
+    ("c5v2_last_wry", "clean", C5_LAST, "[quiet, tired, dry, a small wry smile] " + C5_LAST),
+    # Third pass: the v2 reads sounded worried. Owner: keep her confident. "Tired" is out of
+    # the directions; the calm is a captain's who has brought her people down.
+    ("c5v3_announce", "ship_pa", C5_ANNOUNCE,
+     "[calm, confident, steady ship's announcement, a captain in control, warm] " + C5_ANNOUNCE),
+    ("c5v3_last", "clean", C5_LAST, "[quiet, confident, dry, a hint of a smile] " + C5_LAST),
+    # Owner, same pass: "resolute resolve".
+    ("c5v3r_announce", "ship_pa", C5_ANNOUNCE,
+     "[resolute, steady, firm ship's announcement, quiet determination] " + C5_ANNOUNCE),
+    ("c5v3r_last", "clean", C5_LAST, "[quiet, resolute, determined, looking ahead] " + C5_LAST),
 ]
 
 # Takes that read the line cleanly and then repeated it: keep the first read, as the shipped
@@ -73,6 +101,7 @@ LINES = [
 TRIMS = {
     "c5_private_catch_t02": (0.0, 3.5),
     "c5_private_catch_t05": (0.0, 3.3),
+    "c5v2_last_plain_t03": (0.0, 2.3),
 }
 BY_ID = {line[0]: line for line in LINES}
 
@@ -198,17 +227,17 @@ def check():
 
 
 def treat():
-    for line_id, intercom, _, _ in LINES:
+    for line_id, treatment, _, _ in LINES:
         for audio in takes(line_id):
             target = audio.with_name(audio.stem + "_treated.wav")
-            chain = COMMS if intercom else "anull"
+            chain = TREATMENTS[treatment]
             if audio.stem in TRIMS:
                 start, end = TRIMS[audio.stem]
                 chain = "atrim=%.2f:%.2f,asetpts=PTS-STARTPTS,afade=t=out:st=%.2f:d=0.25,%s" % (
                     start, end, end - start - 0.25, chain)
             subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-i", str(audio), "-af", chain,
                             "-ar", "44100", str(target)], check=True)
-            print("Treated", target.name, "intercom" if intercom else "clean", flush=True)
+            print("Treated", target.name, treatment, flush=True)
 
 
 # Review set: file name, then the treated takes played in order. A C5 closing is the all-hands
@@ -227,14 +256,30 @@ PICKS = [
 ]
 OFF_CHANNEL_GAP = 1.4  # as build_hail_preview.py: Castle closes the channel, then speaks to the room
 
+# Second draft. The announcement starts about 5 s into C5 and runs about 8.5 s; the last line
+# belongs over the pull-out (18-26 s), so the gap here is the one the picture asks for.
+PICKS_V2 = [
+    ("01-c5-plain-a", ["c5v2_announce_t02", "c5v2_last_plain_t01"]),
+    ("02-c5-plain-b", ["c5v2_announce_t03", "c5v2_last_plain_t03"]),
+    ("03-c5-wry-a", ["c5v2_announce_t04", "c5v2_last_wry_t02"]),
+    ("04-c5-wry-b", ["c5v2_announce_t02", "c5v2_last_wry_t04"]),
+]
+PICTURE_GAP = 5.0
+PICKS_V3 = [
+    ("01-c5-confident-a", ["c5v3_announce_t01", "c5v3_last_t01"]),
+    ("02-c5-confident-b", ["c5v3_announce_t03", "c5v3_last_t04"]),
+    ("03-c5-resolute-a", ["c5v3r_announce_t02", "c5v3r_last_t02"]),
+    ("04-c5-resolute-b", ["c5v3r_announce_t03", "c5v3r_last_t03"]),
+]
 
-def package(target):
+
+def package(target, picks=PICKS, gap=OFF_CHANNEL_GAP):
     target.mkdir(parents=True, exist_ok=True)
-    for name, parts in PICKS:
+    for name, parts in picks:
         inputs, graph = [], []
         for i, part in enumerate(parts):
             inputs += ["-i", str(OUT / (part + "_treated.wav"))]
-            pad = ",apad=pad_dur=%.2f" % OFF_CHANNEL_GAP if i < len(parts) - 1 else ""
+            pad = ",apad=pad_dur=%.2f" % gap if i < len(parts) - 1 else ""
             graph.append("[%d:a]aformat=sample_rates=44100:channel_layouts=mono%s[p%d]" % (i, pad, i))
         graph.append("%sconcat=n=%d:v=0:a=1[out]" % ("".join("[p%d]" % i for i in range(len(parts))), len(parts)))
         out = target / (name + ".mp3")
@@ -245,7 +290,7 @@ def package(target):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=["plan", "generate", "check", "treat", "package"])
+    parser.add_argument("stage", choices=["plan", "generate", "check", "treat", "package", "package-v2", "package-v3"])
     parser.add_argument("--out", default=str(OUT / "review"))
     parser.add_argument("--line", action="append", choices=list(BY_ID))
     parser.add_argument("--takes", type=int, default=3)
@@ -261,8 +306,12 @@ def main():
         check()
     elif args.stage == "treat":
         treat()
-    else:
+    elif args.stage == "package":
         package(Path(args.out))
+    elif args.stage == "package-v2":
+        package(Path(args.out), PICKS_V2, PICTURE_GAP)
+    else:
+        package(Path(args.out), PICKS_V3, PICTURE_GAP)
 
 
 if __name__ == "__main__":

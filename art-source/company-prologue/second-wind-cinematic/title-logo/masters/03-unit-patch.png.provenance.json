@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15196-2c8c-7bd1-8ab3-a57b89e313ee",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15196-2c8c-7bd1-8ab3-a57b89e313ee\\exec-ab9b4125-452c-4ca5-9ea7-afbfcb7a57ed.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\03-unit-patch.png",
+    "sha256": "cf18d38857b535b79449be4bd0403985870de6f1e8fdf86d36e18fb2aa5d0a98",
+    "dimensions": [
+      1983,
+      793
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\03-unit-patch.txt",
+  "promptSha256": "de5abe77c2d92fef7d89577d66be4e2ab4fabede467c6697f5b5207ef1677dae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Direction: unit patch with a clean wordmark. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station, landing on a jungle world. The mark has two parts side by side: on the left, a round embroidered cloth unit patch with a merrowed edge, showing a simple emblem: a small boxy drop-ship silhouette descending toward the curve of a planet's horizon, three small stars above, in olive drab, sand, dark navy and a single small accent of muted orange, real embroidery stitch texture. On the right, a clean modern wordmark: MARINES in a bold, slightly extended geometric sans-serif in off-white, and STARSECTOR above it in small, wide-tracked light capitals, with a thin rule between them. The patch is about the height of both lines of text together. Calm, confident, hopeful, like a real service insignia. No glow, no chrome.\n\nLettering must be spelled exactly, in capital letters: the setting name STARSECTOR, small, and the mod's name MARINES, large and dominant; MARINES is the identity of the mark and STARSECTOR is a modest subtitle. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image with the embroidered patch, exact lettering, and a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 37109,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 455,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.1
+}

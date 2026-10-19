@@ -124,7 +124,8 @@ public final class MechDuelRange {
             tx = threat.x();
             ty = threat.y();
         }
-        List<Weapon> threat = threatOf(target, sim);
+        own = ownWeapons(loadout, armorRatingOf(target, sim));
+        List<Weapon> threat = threatOf(target, sim, armorRatingOf(member, sim));
         if (threat == null) return false;
         Band band = MechDuelBand.choose(own, threat, role);
         if (band == null) return false;
@@ -341,15 +342,31 @@ public final class MechDuelRange {
         return sim.getGrid().getCoverAt(x, y, dx, dy) + sim.getDoodadCoverAt(x, y, dx, dy);
     }
 
-    /** Installed weapons that can still fire. */
+    /**
+     * Plate a duel is read against before the target is known: a Bulwark's. A missile rack's
+     * pressure depends on it ({@link Weapon#of(WeaponDef, float)}).
+     */
+    static final float REFERENCE_ARMOR_RATING = 18f;
+
+    /** Installed weapons that can still fire, read against {@link #REFERENCE_ARMOR_RATING}. */
     public static List<Weapon> ownWeapons(MechLoadoutComponent loadout) {
+        return ownWeapons(loadout, REFERENCE_ARMOR_RATING);
+    }
+
+    /** Installed weapons that can still fire, read against plate of {@code targetRating}. */
+    public static List<Weapon> ownWeapons(MechLoadoutComponent loadout, float targetRating) {
         List<Weapon> out = new ArrayList<>(3);
         for (MechWeaponMount mount : loadout.mounts()) {
             if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) {
-                out.add(Weapon.of(mount.weaponDef()));
+                out.add(Weapon.of(mount.weaponDef(), targetRating));
             }
         }
         return out;
+    }
+
+    /** An actor's armor rating, or zero for one without armor. */
+    static float armorRatingOf(long id, BattleView sim) {
+        return sim.world().hasArmor(id) ? sim.world().armorRating(id) : 0f;
     }
 
     /**
@@ -358,8 +375,13 @@ public final class MechDuelRange {
      * which the rule leaves to doctrine.
      */
     static List<Weapon> threatOf(long target, BattleView sim) {
+        return threatOf(target, sim, REFERENCE_ARMOR_RATING);
+    }
+
+    /** As above, a mech target's racks read against the asking mech's plate of {@code ownRating}. */
+    static List<Weapon> threatOf(long target, BattleView sim, float ownRating) {
         if (sim.world().hasMechLoadout(target)) {
-            return ownWeapons(sim.world().mechLoadout(target));
+            return ownWeapons(sim.world().mechLoadout(target), ownRating);
         }
         BodyCarrier carrier = sim.bodies().carrierOf(target);
         if (carrier instanceof ConvoyService convoy) {

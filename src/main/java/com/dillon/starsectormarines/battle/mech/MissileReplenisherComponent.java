@@ -50,8 +50,8 @@ public record MissileReplenisherComponent(
 
     /** Seconds required to restore one trigger pack for {@code weapon}. */
     public float replenishmentSeconds(String weaponId) {
-        if (WeaponRegistry.MECH_SRM_POD_ID.equals(weaponId)) return srmReplenishmentSeconds;
-        if (WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(weaponId)) return lrmReplenishmentSeconds;
+        if (WeaponRegistry.isMechSrm(weaponId)) return srmReplenishmentSeconds;
+        if (WeaponRegistry.isMechLrm(weaponId)) return lrmReplenishmentSeconds;
         return Float.POSITIVE_INFINITY;
     }
 
