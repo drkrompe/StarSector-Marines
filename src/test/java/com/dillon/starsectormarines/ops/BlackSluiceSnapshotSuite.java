@@ -293,10 +293,10 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     assertEquals(0, hull.groundShots(), hull.hullId + " never fires at the ground");
                     assertNotNull(duel.entry(hull), hull.hullId + " has a ledger line");
                 }
-                for (Warship wolf : duel.wolves()) assertTrue(wolf.missionOwned(), "The Wolfs are the mission's, not the player's");
+                for (Warship enforcer : duel.enforcers()) assertTrue(enforcer.missionOwned(), "The Enforcers are the mission's, not the player's");
                 if (result.split()) {
                     assertTrue(duel.ordered(), "Voss's order starts the duel");
-                    assertEquals(2, duel.wolves().size());
+                    assertEquals(2, duel.enforcers().size());
                     assertNotNull(outcome.smallWarOverhead);
                 } else assertNull(outcome.smallWarOverhead, "No order, no duel to report");
             } else assertNull(outcome.smallWarOverhead);
@@ -356,7 +356,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     .arrow(BlackSluice.BERTH_ROAD_X, 150, BlackSluice.BERTH_ROAD_X, 74, "BERTH ROAD: THE ONLY WAY DOWN", ReviewStyle.ROUTE)
                     .label(BlackSluice.APPROACH + 150, 92, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
                     .label(BlackSluice.APPROACH + 56, 40, "BASIN RIM", ReviewStyle.NOTE)
-                    .arrow(2, 76, 30, 76, "WOLFS' EDGE: IN", ReviewStyle.APPROACH)
+                    .arrow(2, 76, 30, 76, "ENFORCERS' EDGE: IN", ReviewStyle.APPROACH)
                     .label(40, 116, "APPROACH: OPEN BASIN FLATS", ReviewStyle.NOTE)
                     .arrow(60, 156, 18, 156, "TRANSFER ROAD INLAND", ReviewStyle.NOTE)
                     .label(113, 226, "ABANDONED BEDS", ReviewStyle.NOTE)
@@ -430,7 +430,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
     private static String duelCaption(BlackSluiceDuel duel) {
         var s = new StringBuilder();
         for (Warship hull : duel.hulls()) {
-            String name = "venture".equals(hull.hullId) ? "Greyhook" : "Wolf";
+            String name = "venture".equals(hull.hullId) ? "Greyhook" : "Enforcer";
             s.append(name).append(' ').append(hull.destroyed() ? "down"
                     : Math.round(hull.hullFraction() * 100) + "%").append("  ");
         }
