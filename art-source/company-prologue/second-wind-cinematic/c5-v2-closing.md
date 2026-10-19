@@ -1,8 +1,8 @@
 # C5 v2 — WE'RE DOWN (closing beat and title)
 
-Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
+Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-18 — C4 now lingers through touchdown and the yard starting work; Kilo Nine grown north, with one gate on the port road.
+Updated: 2026-10-18 — closing redrafted plainer after the first takes read cheesy; the announcement is now a ship loudspeaker heard from the yard.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -28,17 +28,20 @@ counter stopped taking scrip. The hope should be small, concrete and earned. It
 should not promise riches, which belong to the campaign. Nessa's memory returns
 to P6 (`storyboard-v3.md`, Decisions); Y1 introduces her in the yard.
 
-The new Entry, C4 and C5 lines need recording in Castle's voice
-(`storyboard-v3.md`, Casting). Until then, the shipped `jangalaArrivalHail09`
-string and audio stay as they are, so caption and voice still match.
+Review takes of the new Entry, C4 and C5 lines exist in Castle's voice
+(`storyboard-v3.md`, Casting), made with `arrival-audio/record_castle_lines.py`.
+Until the owner picks takes, the shipped `jangalaArrivalHail09` string and audio
+stay as they are, so caption and voice still match.
 
 ## Who speaks, and from where
 
 **Castle, on the all-ship intercom, after touchdown.** It is diegetic. She is
 telling the families they can get off, which is what she would actually say.
-The camera's listening position is already the passenger cabin's open intercom
-(`storyboard-v3.md`, Voices), so it uses the established intercom sound with no
-squelch. Approach does not speak again. The Hegemony stays cold, and the last
+The announcement plays over the overhead shot of the families coming off the
+ship, so it is heard as the ship's loudspeaker carrying across the yard: a
+stronger, narrower sound than the cabin intercom of C1–C4, with a short metallic
+echo and still no squelch (owner's choice, 2026-10-18; the cabin intercom sound
+stays for lines heard inside). Approach does not speak again. The Hegemony stays cold, and the last
 word belongs to our people.
 
 ## Where it lands: Kilo Nine
@@ -102,28 +105,34 @@ way: cinematic, title, then play.
 **Chosen 2026-10-18, provisionally.** The owner will judge it against the
 picture and may change it.
 
-> All hands, this is Castle. We're down.
-> Everyone we took aboard at the Claim is walking off this ship on their own feet.
-> Take your filters. The air's thick out there, but it's air, and nobody's metering it.
-> Mind the ramp. Go and see the sky.
-> *(intercom clicks off; quieter, to the Commander)*
-> A new start, Commander. Let's not waste it.
+> All hands, we're down.
+> Filters on before you step out; it's wet out there.
+> Take it slow on the ramp, and follow the yard crew to the workshop.
+> *(loudspeaker off; quieter, to the Commander)*
+> That was the easy part, Commander.
 
-The announcement is public permission for the families. The last line is
-private, and the ear knows it because the intercom click is gone, as with line 9.
-"Let's not waste it" turns the hope into the task the campaign is about.
+The first draft ("Everyone we took aboard at the Claim is walking off this ship
+on their own feet… Go and see the sky… A new start, Commander. Let's not waste
+it.") read as cheesy once recorded: it told the audience what to feel. The
+announcement is now only what she would actually say. The hope is in the
+picture, the families walking off under an open sky. Castle's voice is calm and
+resolute, a captain who has brought her people down: tired reads came out
+worried (owner, 2026-10-18), so the directions no longer ask for tired. The last line is private, and the
+ear knows it because the loudspeaker is gone. It is wry rather than tender, and
+it turns the arrival into the work the campaign is about.
 
-**Timing.** The ramp drops under the second line. The camera begins to rise on
-"Go and see the sky". The private line plays over the pull-out as the ship
-shrinks among the working hulls, and the title follows.
+**Timing.** The announcement is about 8.5 s. Starting at about 5 s, "Take it
+slow on the ramp" lands as the ramp drops at 8 s and the announcement ends
+before the camera rises at 18 s. The private line plays over the pull-out as the
+ship shrinks among the working hulls, and the title follows.
 
-**Callbacks.** Air, heat and power ending; Entry's "Everybody breathe"; C3's
-first sky.
+**Callbacks.** The filters recall air the Claim had to ration. Entry's
+"Everybody breathe" sets up "All hands".
 
-**Alternatives if it does not land:** "We got a new start, Commander. Most
-people don't." or "Call it a new start, Commander." Kept from the first round:
-a shorter all-hands, "Nine years somebody else counted our days on a wall.
-Nobody's counting now."
+**Alternatives if it does not land:** the last line "It's a start, Commander."
+or "One ship, twelve rifles and a yard bill. It's a start, Commander." A shorter
+announcement: "All hands, we're down. Take your filters and your bags. Mind the
+ramp."
 
 ## Camera and crowd
 
@@ -160,9 +169,9 @@ perspective barely matters.** Both methods read as people walking:
 
 ## Open questions
 
-- **Line choice and delivery.** Castle's voice is calm and tired, and the hope
-  is under the words, not in them. Record two reads: one flat-practical, one
-  with a catch on the last line. Choose by ear against the picture.
+- **Line choice and delivery.** Castle's voice is calm and steady, and the hope
+  is under the words, not in them, and she sounds sure of herself. Confident
+  and resolute reads were recorded. Choose by ear against the picture.
 - **Music.** The hopeful ambient track the owner is looking for should arrive
   here, under Castle's last line, rather than be spent earlier.
 - **Crowd.** Tiny figures with bags and shadows, seen from overhead. Cheap at

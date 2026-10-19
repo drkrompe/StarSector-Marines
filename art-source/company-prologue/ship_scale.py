@@ -193,7 +193,9 @@ HULLS = {
     # spine, aft machinery body and bridge deckhouse; longerons, open trusses and drive pods
     # excluded. Cargo is a small term here (900 x 2 m3); crew room sizes it, like every hull.
     # Fittings: side personnel hatch, side cargo door, bow cargo door, bridge door.
-    'Colossus': dict(units3=719671, crew_max=200, cargo=900, fuel=120, cls='freighter', length_units=216.7,
+    # Published at 0.50 (108 m) by owner override (2026-10-18): the owner's thick cargo
+    # front (pass 3 round 1) deepened the block and the rule now solves 0.426 (92 m).
+    'Colossus': dict(units3=1182133, crew_max=200, cargo=900, fuel=120, cls='freighter', length_units=216.7,
                      sprite_px=224, fittings_units={'personnel hatch w x h': [2.2, 4.8],
                                                     'side cargo door w x h': [15, 14],
                                                     'bow cargo door w x h': [41, 23],

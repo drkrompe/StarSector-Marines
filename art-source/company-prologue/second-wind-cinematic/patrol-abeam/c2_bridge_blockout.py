@@ -69,6 +69,31 @@ ROLL_DEG = -8.0            # banked so its deck tilts toward us
 DROP_T, DROP_ACCEL = 9.6, 9.0   # Second Wind's de-orbit: the Legion rises relative to us
 
 
+# The air wing screens ahead of the carrier (owner, 2026-10-18): Broadswords (the Legion XIV
+# flies two Broadsword wings; no Hoplon model exists yet) come off its bow toward us and
+# streak past the port slits, the first flight at 3.0 s and the second at 4.2 s, before the
+# carrier itself closes. Each flight is a vic of three, reciprocal to us, nearly level with
+# our eye so they cross the slit band. Offsets are (behind the leader, out to port, up), m.
+FIGHTER_SPEED = 160.0       # m/s relative, constant
+FLIGHTS = [  # (C2 time the leader passes abeam our eye, out to port m, up from eye m)
+    (3.0, 55.0, 7.0),
+    (4.2, 80.0, 9.0),
+]
+VIC = [(0.0, 0.0, 0.0), (22.0, -14.0, -2.0), (22.0, 14.0, 1.5)]
+FIGHTER_BANK_DEG = 14.0      # rolled a little away from us as they slip past
+
+
+def fighter_positions(t):
+    """[(position m, heading deg, bank deg)] of every fighter at C2 time t, Second Wind frame."""
+    eye_x = STATION_FORWARD[0] * SW_MPU
+    out = []
+    for t_pass, y, z in FLIGHTS:
+        x_lead = eye_x + FIGHTER_SPEED * (t_pass - t)
+        for back, dy, dz in VIC:
+            out.append(([x_lead + back, y + dy, EYE_Z * SW_MPU + z + dz], 180.0, FIGHTER_BANK_DEG))
+    return out
+
+
 def legion_along(t):
     """Midpoint distance ahead of our eye (m) at C2 time t."""
     if t <= T_ABEAM:
@@ -86,12 +111,21 @@ def bearing_deg(t):
     return math.degrees(math.atan2(ABEAM_Y, legion_along(t)))
 
 
+def fighter_bearing_deg(t):
+    """Bearing of the first flight's leader from our eye, positive to port."""
+    t_pass, y, _ = FLIGHTS[0]
+    return math.degrees(math.atan2(y, FIGHTER_SPEED * (t_pass - t)))
+
+
 def head(t):
     """Camera yaw (deg from the bow, + to port), pitch (deg, + up) and station at C2 time t.
-    The head leads with the eyes: it follows the Legion's bearing with a little lag,
-    never looks further forward than 12 degrees or further aft than 104."""
-    lag = 0.35
-    yaw = max(12.0, min(104.0, bearing_deg(max(0.0, t - lag))))
+    Someone on the bridge watches the fighters first: the head follows the first flight in
+    from dead ahead, lets it go as it whips past (no head turns that fast), and settles on
+    the carrier, then follows the carrier with a little lag, never further aft than 104."""
+    on_fighters = 1.0 - smooth((t - 2.3) / 1.3)
+    f_yaw = min(62.0, fighter_bearing_deg(max(0.0, t - 0.15)))
+    c_yaw = min(104.0, bearing_deg(max(0.0, t - 0.35)))
+    yaw = max(4.0, f_yaw * on_fighters + c_yaw * (1.0 - on_fighters))
     # Looking slightly down at the start (our own hull), level by abeam, then up after it.
     pitch = -8.0 + 12.0 * smooth(t / T_ABEAM) + 6.0 * smooth((t - DROP_T - 0.6) / 3.0)
     u = smooth((yaw - 20.0) / 60.0)
@@ -117,8 +151,11 @@ def plan(times, res):
         centre = (legion_along(t) + STATION_FORWARD[0] * SW_MPU, ABEAM_Y,
                   eye_m - CROWN_BELOW_EYE_M - (hi[2] - mid_u[2]) * LEGION_MPU + legion_rise(t))
         samples.append({"t": t, "cam_yaw": yaw, "cam_pitch": pitch, "cam_pos_u": list(pos),
-                        "legion_centre_m": list(centre), "legion_mid_u": mid_u})
+                        "legion_centre_m": list(centre), "legion_mid_u": mid_u,
+                        "fighters": fighter_positions(t)})
+    bw = json.loads((C.BROADSWORD_DIR / "geometry.json").read_text(encoding="utf-8"))
     return {"sw_blend": str(SW_BLEND), "legion_blend": str(C.LEGION_BLEND), "sw_mpu": SW_MPU,
+            "broadsword_blend": str(C.BROADSWORD_BLEND), "fighter_mpu": float(bw["metres_per_unit"]),
             "legion_mpu": LEGION_MPU, "yaw": YAW_DEG, "roll": ROLL_DEG, "lens_mm": LENS_MM,
             "sun": list(C.SUN), "res": res, "samples": samples, "out": str(OUT),
             "planet_radius_m": C.PLANET_RADIUS_M, "altitude_m": C.ALTITUDE_M,
@@ -126,7 +163,7 @@ def plan(times, res):
 
 
 def launch(argv):
-    fps, times, res = 1.0, None, (1920, 1080)
+    fps, times, res, burst = 1.0, None, (1920, 1080), []
     i = 0
     while i < len(argv):
         if argv[i] == "--fps":
@@ -139,6 +176,9 @@ def launch(argv):
         elif argv[i] == "--out":
             global OUT
             OUT = Path(argv[i + 1])
+        elif argv[i] == "--burst":          # --burst A:B:STEP adds frames, e.g. 2.0:4.6:0.2
+            a, b_, st = (float(x) for x in argv[i + 1].split(":"))
+            burst = [round(a + k * st, 3) for k in range(int(round((b_ - a) / st)) + 1)]
         elif argv[i] == "--res":
             res = tuple(int(x) for x in argv[i + 1].split("x"))
         i += 2
@@ -146,6 +186,7 @@ def launch(argv):
     if times is None:
         n = int(round(C.C2_LEN * fps))
         times = [round(k / fps, 3) for k in range(n + 1)]
+    times = sorted(set(times) | set(burst))
     p = plan(times, list(res))
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "plan.json").write_text(json.dumps(p, indent=1), encoding="utf-8")
@@ -250,6 +291,28 @@ def blender_main(argv):
     lroot.scale = (p["legion_mpu"],) * 3
     lroot.rotation_euler = Euler((math.radians(p["roll"]), 0, math.radians(p["yaw"])), "XYZ")
 
+    # Fighters: the Broadsword model appended once, one copy of its root tree per fighter.
+    with bpy.data.libraries.load(p["broadsword_blend"], link=False) as (src, dst2):
+        dst2.collections = [c for c in src.collections if c == "BROADSWORD | geometry"]
+    proto_root = next(o for o in dst2.collections[0].objects if o.name.startswith("Broadsword root"))
+
+    def clone(obj, parent):
+        c = obj.copy()
+        scene.collection.objects.link(c)
+        c.parent = parent
+        c.matrix_parent_inverse = obj.matrix_parent_inverse.copy()
+        c.color = (0.80, 0.50, 0.22, 1)
+        for ch in obj.children:
+            clone(ch, c)
+        return c
+
+    fighters = []
+    for k in range(len(p["samples"][0]["fighters"])):
+        f = clone(proto_root, None)
+        f.name = "C2B | Broadsword %d" % k
+        f.scale = (p["fighter_mpu"],) * 3
+        fighters.append(f)
+
     # Jangala, 200 km down. A sphere scaled about the eye by 1/2000 looks identical from it
     # and keeps the depth range sane (the preview renderer's depth buffer cannot span 6000 km).
     k = 1.0 / 2000.0
@@ -288,6 +351,9 @@ def blender_main(argv):
         rot = lroot.rotation_euler.to_matrix()
         lroot.location = Vector(s["legion_centre_m"]) - rot @ (lmid * p["legion_mpu"])
         cam.location = Vector(s["cam_pos_u"]) * p["sw_mpu"]
+        for f, (pos, hdg, bank) in zip(fighters, s["fighters"]):
+            f.location = pos
+            f.rotation_euler = Euler((math.radians(bank), 0, math.radians(hdg)), "XYZ")
         # Camera looks along -Z: point it at the yaw/pitch heading in Second Wind's frame.
         yaw, pitch = math.radians(s["cam_yaw"]), math.radians(s["cam_pitch"])
         d = Vector((math.cos(pitch) * math.cos(yaw), math.cos(pitch) * math.sin(yaw), math.sin(pitch)))
