@@ -135,6 +135,8 @@ YOKE_RISE, YOKE_HEAD = 40.0, 18.0
 YOKE_STOWED, YOKE_OUT = 0.02, 0.40
 YOKE_GRIP = (0.17, 0.035)
 YOKE_GRIP_AFT = 0.03                       # the handles stand this far aft of the hub, toward him
+YOKE_GRIP_R = 0.022                        # the handles' radius: a fist's worth of rubber
+# Built heavy (owner, 2026-10-19: the first one read flimsy): a ship's helm, not a game controller.
 YOKE_COLUMN = 0.55
 YOKE_PUSH, YOKE_TURN = 0.05, 10.0          # m in along the column, degrees (positive: rolls to port)
 
@@ -374,10 +376,10 @@ def blender_main(argv):
         knuckle and back round its inner side; the thumb crosses behind it the other way."""
         for k in range(2, 6):
             for j in range(1, 4):
-                wrap("finger%d-%d.%s" % (k, j, side), centre, axis, f, 0.028)
+                wrap("finger%d-%d.%s" % (k, j, side), centre, axis, f, YOKE_GRIP_R + 0.011)
         aim("finger1-1." + side, f * 0.3 + p * 0.9)
         for j in (2, 3):
-            wrap("finger1-%d.%s" % (j, side), centre, axis, p, 0.03)
+            wrap("finger1-%d.%s" % (j, side), centre, axis, p, YOKE_GRIP_R + 0.013)
 
     def curl(side, finger_deg, thumb_deg, palm):
         n = Vector(palm).normalized()
@@ -451,7 +453,7 @@ def blender_main(argv):
                 palm = R @ mp(0, -sgn, 0)
                 bar = local(grip(side, out, turn))
                 bar_axis = (R @ mp(0, sgn * 0.012, 0.125)).normalized()
-                wrist = grip(side, out, turn) - fingers.normalized() * 0.075 - palm * 0.03
+                wrist = grip(side, out, turn) - fingers.normalized() * 0.075 - palm * (YOKE_GRIP_R + 0.014)
             else:           # over the armrest's end, palm down, fingers drooping
                 f, s_, z = spec["wrists"][k]
                 wrist = mp(f, s_, z)
@@ -738,30 +740,35 @@ def blender_main(argv):
     # column): a sleeve block under the face's overhang, its aft face square to the column.
     mount = mp(*YOKE_MOUNT)
     along = tilt(YOKE_RISE)
-    hw, hh, hd = 0.12, 0.10, 0.11            # housing width, height, depth along the column
+    hw, hh, hd = 0.20, 0.17, 0.14            # housing width, height, depth along the column
 
     def boss(bm):
         bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mount) @ along
                               @ Matrix.Translation(mp(hd / 2, 0, 0)) @ Matrix.Diagonal((hw, hd, hh, 1)))
-        tube(bm, mount + along @ mp(0.02, 0, 0), mount - along @ mp(0.025, 0, 0), 0.034, 20)   # the boot
+        tube(bm, mount + along @ mp(0.02, 0, 0), mount - along @ mp(0.012, 0, 0), 0.066, 24)   # the flange
+        for k, r in enumerate((0.058, 0.052, 0.058, 0.05)):                        # the bellows boot
+            tube(bm, mount - along @ mp(0.012 + k * 0.012, 0, 0), mount - along @ mp(0.024 + k * 0.012, 0, 0), r, 24)
         for sy, sz in ((1, 1), (1, -1), (-1, 1), (-1, -1)):                       # bolts on its aft face
-            c = mount + along @ mp(0, sy * hw * 0.36, sz * hh * 0.36)
-            tube(bm, c, c - along @ mp(0.008, 0, 0), 0.008, 6)
+            c = mount + along @ mp(0, sy * hw * 0.38, sz * hh * 0.38)
+            tube(bm, c, c - along @ mp(0.012, 0, 0), 0.012, 6)
         lever = mount + along @ mp(-0.01, hw / 2, hh * 0.15)                    # the column lock
-        tube(bm, lever, lever + along @ mp(-0.05, 0.02, 0.012), 0.006, 8)
-        tube(bm, lever + along @ mp(-0.05, 0.02, 0.012), lever + along @ mp(-0.058, 0.022, 0.014), 0.011, 10)
+        tube(bm, lever, lever + along @ mp(-0.07, 0.03, 0.015), 0.01, 10)
+        tube(bm, lever + along @ mp(-0.07, 0.03, 0.015), lever + along @ mp(-0.085, 0.034, 0.018), 0.018, 12)
     solid("yoke housing", boss, "yoke boss", yoke)
 
     def col_(bm):                   # the column runs from the hub forward and down into the housing
-        tube(bm, mp(0, 0, 0), mp(YOKE_COLUMN, 0, 0), 0.018, 16)
+        tube(bm, mp(0, 0, 0), mp(YOKE_COLUMN, 0, 0), 0.034, 24)
+        tube(bm, mp(0.02, 0, 0), mp(0.06, 0, 0), 0.042, 24)                      # the clamp collar
         for k in range(1, 9):       # its graduations: where he set it is the first thing a relief reads
-            tube(bm, mp(0.05 + k * 0.04, 0, 0), mp(0.054 + k * 0.04, 0, 0), 0.0195, 16)
+            tube(bm, mp(0.06 + k * 0.04, 0, 0), mp(0.065 + k * 0.04, 0, 0), 0.0365, 24)
     column = solid("yoke column", col_, "yoke", yoke, hub_at(YOKE_STOWED))
     column.rotation_mode = "XYZ"
     column.rotation_euler = along.to_euler()
 
     def head_(bm):                  # the knuckle that sets the wheel back less steeply than the column
-        tube(bm, mp(-0.005, 0, 0), mp(0.07, 0, 0), 0.03, 20)
+        tube(bm, mp(-0.02, 0, 0), mp(0.07, 0, 0), 0.05, 24)
+        bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mp(-0.02, 0, -0.005))
+                              @ Matrix.Diagonal((0.13, 0.07, 0.09, 1)))
     wheel = bpy.data.objects.new("Pilot yoke wheel", None)
     scene.collection.objects.link(wheel)
     wheel.parent = column
@@ -773,16 +780,23 @@ def blender_main(argv):
 
     def frame_(bm):
         for sgn in (1, -1):         # the bar out to each grip's foot, sweeping back a little
-            tube(bm, mp(-0.01, 0, 0), mp(-YOKE_GRIP_AFT, sgn * gw, gz - 0.045), 0.014, 10)
+            tube(bm, mp(-0.02, sgn * 0.05, -0.01), mp(-YOKE_GRIP_AFT, sgn * gw, gz - 0.07), 0.024, 16)
+        # the crossbeam under the bars, flat-faced toward him
+        bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mp(-0.026, 0, -0.03))
+                              @ Matrix.Diagonal((2 * gw - 0.03, 0.035, 0.03, 1)))
     solid("yoke wheel frame", frame_, "yoke", wheel)
 
     def grips(bm):
         for sgn in (1, -1):         # the handles, flared out a touch at the top
-            tube(bm, mp(-YOKE_GRIP_AFT, sgn * gw, gz - 0.06), mp(-YOKE_GRIP_AFT, sgn * (gw + 0.012), gz + 0.065), 0.017, 14)
+            a, b = mp(-YOKE_GRIP_AFT, sgn * gw, gz - 0.07), mp(-YOKE_GRIP_AFT, sgn * (gw + 0.012), gz + 0.07)
+            tube(bm, a, b, YOKE_GRIP_R, 20)
+            d = (b - a).normalized()
+            tube(bm, a - d * 0.005, a + d * 0.015, YOKE_GRIP_R + 0.006, 20)        # the foot collar
+            tube(bm, b - d * 0.01, b + d * 0.012, YOKE_GRIP_R + 0.007, 20)         # the pommel
     solid("yoke grips", grips, "grip", wheel)
 
     def tape(bm):                   # his left grip, taped where the rubber split
-        tube(bm, mp(-YOKE_GRIP_AFT, gw + 0.004, gz + 0.012), mp(-YOKE_GRIP_AFT, gw + 0.006, gz + 0.04), 0.0195, 14)
+        tube(bm, mp(-YOKE_GRIP_AFT, gw + 0.004, gz + 0.012), mp(-YOKE_GRIP_AFT, gw + 0.006, gz + 0.04), YOKE_GRIP_R + 0.0025, 20)
     solid("yoke grip tape", tape, "tape", wheel)
 
     # ---- skin the cloth-borne parts to the rig: fitted in the flying pose, they must follow the

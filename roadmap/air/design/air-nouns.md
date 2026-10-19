@@ -2069,6 +2069,21 @@ ground down-sun by the sun's reach at a presentational hover height, higher than
 an aircraft's, through the same shadow layer, sun and tint every craft uses. Like
 an aircraft's, that height is a drawing choice and not a physical altitude.
 
+**A round between hulls is drawn at the hulls' scale, as its spec says the game draws it**
+(`VanillaRoundLook`). The projectile spec decides the kind: a `BALLISTIC` shell is its bullet
+sprite stretched to the spec's length and width along its flight; a `BALLISTIC_AS_BEAM` bolt is
+a tapered streak of light in its fringe and core colours, even when the spec also names a bullet
+sprite (the Antimatter Blaster does, and the game never draws it); a missile is its sprite at its
+size, its engine flame at its nozzle while the motor burns, and its contrail one continuous
+ribbon of the spec's width, spread and colour, laid only while the motor burns and drifting on
+at the spec's share of the missile's speed. A round fired at a hull, or carrying on past one, is
+drawn at the hull presence, so it stands to the ship it hits as in the base game (a Heavy
+Autocannon shell about a quarter of an Enforcer, not a speck under a glow), and its contrail
+hangs on the hull fight's clock. The glow under a round is the spec's own (`glowColor` at
+`glowRadius`); a round whose spec names none gets a soft halo no longer than itself. A round at
+the ground or the air keeps the shared density, slimmed, because there it is measured against
+marines. This is drawing only: a round's reach, speed and blast are unchanged.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount

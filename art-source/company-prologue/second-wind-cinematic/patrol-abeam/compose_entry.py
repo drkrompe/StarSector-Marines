@@ -2,12 +2,14 @@
 
     python compose_entry.py [--stills] [--workers N] [--fps N]
 
-7.0 s at 1920x1080 / 24 fps, on C2's camera and cabin (c2-layout.md, "Entry transition"),
+7.0 s at 1920x1080 / 24 fps, through C3's window: C3's camera and C3's own cabin, so the
+window does not change at the cut (owner, 2026-10-19; c2-layout.md, "Entry transition"),
 reworked as a descent after the owner's arrival sound review (2026-10-19): longer, the
 camera and window shaking, and flames and smoke streaming across the glass from bottom
 right to top left, the way the air goes past a ship coming down bow first. Back to front:
 
-  1. Jangala as C2 leaves it (c2_planet, still drifting), hidden as the sheath thickens
+  1. Jangala as C2 leaves it (c2_planet, still drifting, lowered to C3's 9-degree view),
+              hidden as the sheath thickens
   2. fire     assets/c2-entry-glow-v1.png's filaments, flattened into a texture and streamed
               along c2_core.FLOW_DEG at two speeds (a body and fast streaks), coloured by a
               heat field that is hottest at the bottom right (the side the air hits first)
@@ -18,16 +20,16 @@ right to top left, the way the air goes past a ship coming down bow first. Back 
               line from the bottom right over CLOUD_IN; warm while the heat is still in it,
               then white; fast wisps stream through it; the glass then settles to C3's flat
               entry white (244, 246, 248)
-  5. the cabin C2's painted cabin, relit from the glass: space -> fire (orange, flickering)
-              -> cloud (soft fill)
+  5. the cabin C3's painted cabin, relit from the glass: space (dark, cold planet-shine) ->
+              fire (orange, flickering) -> cloud (C3's own daylight paint)
 
 The whole picture, cabin included, shakes (first-open-sky/c3_core.camera_shake): rising
 through the heat, hardest in the cloud, and carried on into C3, where it eases off.
 
-The camera change. C2 looks 19.29 degrees down, C3 9 degrees. Under the white the frame
-blooms (BLOOM); at the peak the C2 cabin is exchanged for C3's frame 0 (compose_c3.frame),
-and the bloom recedes onto it. C3 picks up one frame later on the same shake clock, so the
-cut is a continuation rather than a held frame.
+No camera change. C2 (on the bridge, or the old cabin at 19.29 degrees down) cuts to this
+window from space; from then on there is one window and one camera. In the white the frame
+settles onto C3's frame 0 exactly (SETTLE), and C3 picks up one frame later on the same
+shake clock, so the cut is a continuation rather than a held frame.
 
 Line 9 ("Well." / "Somebody knows we're here.") plays early in the heat; no squelch.
 
@@ -196,8 +198,8 @@ def fire_colour(temp):
 # ---------------------------------------------------------------- the frame
 
 def frame_entry(e):
-    cab = K.cabin_states()
-    lin = K.to_lin(c2_planet.plate_layer(C.C2_LEN + e))
+    cab = cabin_states()
+    lin = planet(e)
     flicker = 1.0 + 0.14 * Q._noise(e, 9.0, 21) + 0.07 * Q._noise(e, 23.0, 22)
 
     # --- fire: the heat field is fixed to the glass (the air meets the hull at the bottom
@@ -252,16 +254,47 @@ def frame_entry(e):
     a = cab["alpha"]
     out = K.to_srgb(lin * (1 - a) + cab_lin * a)
 
-    # --- bloom into C3: brighten toward white, swap the cabin at the peak, settle on C3 frame 0
-    b0, bp, b1 = C.BLOOM
-    if e >= b0:
-        rise = C.smooth((e - b0) / (bp - b0))
-        fall = C.smooth((e - bp) / (b1 - bp))
-        amount = 0.9 * rise * (1 - fall)
-        if e >= bp:
-            out = c3_frame0()
-        out = out * (1 - amount) + ENTRY_WHITE * amount
+    # --- settle exactly onto C3's frame 0 (same window, same camera: nothing to hide)
+    k = C.smooth((e - C.SETTLE[0]) / (C.SETTLE[1] - C.SETTLE[0]))
+    if k > 0:
+        out = out * (1 - k) + c3_frame0() * k
     return C3.shaken(out, e)
+
+
+# ---------------------------------------------------------------- C3's window, relit
+
+PLANET_DY = 250   # C2's plate looks 19.29 deg down; at C3's 9 deg its horizon sits ~250 px lower
+
+
+def planet(e):
+    """Jangala as C2 leaves it, still drifting, moved down to where it sits from C3's camera."""
+    p = c2_planet.plate_layer(C.C2_LEN + e)
+    out = np.zeros_like(p)
+    out[PLANET_DY:] = p[:H - PLANET_DY]
+    return K.to_lin(out)
+
+
+@lru_cache(maxsize=1)
+def cabin_states():
+    """C3's own cabin (first-open-sky/build/layers/cabin.png, exactly what C3 draws), relit
+    for the entry, as linear RGB plus coverage alpha. The painting is lit by C3's daylight,
+    so it is used as it is for the cloud state, which is therefore C3's cabin and lands on
+    C3's frame 0 with no change. Space and fire light come from the glass: a falloff from
+    the aperture (near surfaces lit, deep cabin dark), the fire hotter on the bow side."""
+    im = Image.open(C3.LAYER_DIR / "cabin.png").convert("RGBA")
+    a = np.asarray(im, np.float32) / 255
+    painted, alpha = K.to_lin(a[..., :3]), a[..., 3:4]
+    glass = Image.fromarray(((1 - a[..., 3]) * 255).astype(np.uint8))
+    near = np.asarray(glass.filter(ImageFilter.GaussianBlur(40)), np.float32) / 255
+    wide = np.asarray(glass.filter(ImageFilter.GaussianBlur(180)), np.float32) / 255
+    window = np.clip(1.6 * near + 1.1 * wide, 0, 1.4)[..., None]
+    alb = painted / 0.55                                          # the paint is lit at about this level
+    xs = np.arange(W, dtype=np.float32)[None, :, None]
+    ys = np.arange(H, dtype=np.float32)[:, None, None]
+    bias = (0.55 + 0.75 * (xs / W)) * (0.85 + 0.3 * np.clip(ys / H, 0, 1))
+    space = alb * (0.012 + window * np.array([0.06, 0.08, 0.15], np.float32))   # planet-shine, cold
+    glow = alb * (0.01 + window * bias * np.array([1.0, 0.42, 0.11], np.float32) * 0.75)
+    return {"space": space, "glow": glow, "cloud": painted, "alpha": alpha}
 
 
 @lru_cache(maxsize=1)
@@ -316,7 +349,7 @@ def main():
     (OUT / "timeline.json").write_text(json.dumps({
         "shot": SHOT, "duration": DURATION, "fps": FPS, "frames": n, "sketch_step": step,
         "hail_clock_start": C.ENTRY_START, "captions": caps, "overlays": overlays(), "audio_cues": audio_cues(),
-        "phases": {"heat": C.HEAT, "smoke": C.SMOKE, "cloud_in": C.CLOUD_IN, "white": C.WHITE, "bloom": C.BLOOM},
+        "phases": {"heat": C.HEAT, "smoke": C.SMOKE, "cloud_in": C.CLOUD_IN, "white": C.WHITE, "settle": C.SETTLE},
         "last_frame_vs_c3_frame0_mean_abs_8bit": round(seam, 3)}, indent=1), encoding="utf-8")
     K.contact_sheet(frames, n, OUT / "contact-sheet.png", cols=6, rows=4, label="ENTRY")
     K.review_movie(frames, n, K.review_pages_between(C.ENTRY_START, C.ENTRY_START + DURATION), audio_cues(), DURATION,

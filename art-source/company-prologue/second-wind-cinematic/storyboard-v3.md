@@ -138,8 +138,10 @@ feel (owner, 2026-10-19: the 3 s wipe was too short and did not read as a descen
   lands here.
 - **1.6–5.6 s.** Dark smoke tears off the flames and trails toward the top left.
 - **4.1–5.4 s.** Cloud streams in along the same line, warm at first, then white.
-- **5.4–7.0 s.** Whiteout; under it the frame blooms and the camera changes from
-  C2's to C3's.
+- **5.4–7.0 s.** Whiteout, settling onto C3's first frame.
+- **One window.** The whole entry is seen through C3's window, from C3's camera:
+  the cut into C3 changes nothing but what is outside the glass and the shake
+  (owner, 2026-10-19). The cut from C2 into the entry is the change of place.
 - **Shake, throughout.** The camera and the window shake together, building
   through the heat, hardest in the cloud, and still there when C3 opens, where it
   eases off. The cabin is lit orange by the fire, flickering, then soft white.

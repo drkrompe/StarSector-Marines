@@ -282,6 +282,9 @@ class ArmorMatchupEvidence {
                 .append(MechDuelRange.isEnabled() ? "on" : "off").append("), ")
                 .append("defenders hold eighty cells east, set down facing the attackers")
                 .append(ArmorPlay.DEFENDER_FACING == 0f ? "" : " turned " + ArmorPlay.DEFENDER_FACING + "°")
+                .append(ArmorPlay.ATTACKER_SPREAD == 0f ? ""
+                        : ", attackers fanned across " + ArmorPlay.ATTACKER_SPREAD + "° around them"
+                        + (ArmorPlay.ATTACKER_RADIUS > 0f ? " within " + ArmorPlay.ATTACKER_RADIUS + " cells" : ""))
                 .append(". Each row is the mean of ").append(seeds)
                 .append(" seeded fights. **Read rows against the control row** (stock Hound vs stock Hound): the ")
                 .append("ground favours one side. A win is the other side destroyed; a stalemate is forty seconds ")
