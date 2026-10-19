@@ -205,15 +205,31 @@ HULLS = {
     # section) are outside SOLIDS.
     'Wolf (P)': dict(units3=19800, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
                      sprite_px=96),
+    # The Falcon (P) pirate light cruiser (Asharu battle flagship): the two prongs, central
+    # body, bridge dome and waist decks; the drive blocks, outrigger thruster pods, bow
+    # forks and the tanks laid on the waist excluded. No fighter bays.
+    'Falcon (P)': dict(units3=231104, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
+                       sprite_px=222),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
-                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)'}
+                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)',
+                 'Falcon (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .80}
+# The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
+# wing body, aft engine block, ventral keel and command dome (SOLIDS['manticore']). The drive
+# cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
+# the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
+# its own statements so sibling hulls added at the same time do not collide in one line.
+HULLS['Manticore (P)'] = dict(units3=163199, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+                             sprite_px=154, fittings_units={'viewport w x h': [1.52, 1.21],
+                                                            'bridge glazing band h': [1.67]})
+VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
+PUBLISHED['Manticore (P)'] = .66
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -284,10 +300,25 @@ SOLIDS = {
                                           'Hull dorsal spine fore', 'Hull dorsal spine aft', 'Hull ventral keel',
                                           'Hull centre hump', 'Hull neck port flank', 'Hull neck starboard flank',
                                           'Hull wing port root', 'Hull wing starboard root')},
+    # The Falcon (P)'s .blend is a build output (build/falcon-p/falcon-p.blend, ignored); its
+    # driver re-measures these solids on every build. Drive blocks and outrigger pods are
+    # drive housings, the bow forks armour round the hardpoints, the waist tanks laid on
+    # the deck: all excluded.
+    'falcon-p': {'blend': '../../build/falcon-p/falcon-p.blend', 'step': 1.0,
+                 'include': lambda n: n in ('Hull port prong', 'Hull starboard prong', 'Hull central body',
+                                            'Bridge command dome', 'Hull port waist deck',
+                                            'Hull starboard waist deck')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
 }
+
+
+# The Manticore's .blend is a build output (build/manticore/manticore.blend), never tracked;
+# its driver re-measures these solids on every build.
+SOLIDS['manticore'] = {'blend': '../../build/manticore/manticore.blend', 'step': .5,
+                       'include': lambda n: n in ('Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body',
+                                                  'Hull aft body', 'Hull ventral keel', 'Bridge command dome')}
 
 
 def table():

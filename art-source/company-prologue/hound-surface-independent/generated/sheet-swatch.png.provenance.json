@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559d-9515-7d60-b3ca-f7327206c82b",
+  "source": "/Users/dillon/.codex/generated_images/01a1559d-9515-7d60-b3ca-f7327206c82b/exec-c54bc9dc-445c-45d2-9e66-9dc4517ddef7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/hound-surface-independent/generated/sheet-swatch.png",
+    "sha256": "b79e09f49509ca1811a75cdb142bcfd6b87d78d8e21f17a4b753467e9ea7f42e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/hound-surface-independent/prompts/sheet-swatch.prompt.txt",
+  "promptSha256": "1803e90c2214222221a347d2fef430ad4ac79295e165a252a53dd345ac4d819c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain light grey background. Each square is one hull material of a single 3D spacecraft (a clean, well maintained independent convoy escort light freighter), to be painted as a flat, square-on texture sample of that material:\ntop-left square: pale warm-grey armour enamel;\ntop-middle square: slate-blue painted structural plate;\ntop-right square: dark gunmetal grey steel;\nbottom-left square: the recess and machinery material, near-black dull steel;\nbottom-middle square: warm off-white cream enamel;\nbottom-right square: tinted armoured window glazing, very dark smoky glass with a faint cool cast.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the six squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept industrial plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The glass square has only faint even smudges and fine dust, no frames. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: pale grey stays pale warm-grey, slate-blue stays slate blue, gunmetal stays dark grey steel, near-black stays near-black, cream stays cream, glass stays very dark smoky glass. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/guide/sheet-swatch-guide.png",
+      "sha256": "c2ddd74e2176a8f84470bfd18681eae0a7bdb1d5d0cf32711db8e94f8a5ef576",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/reference/finish-reference.png",
+      "sha256": "6bbbbd8846c67a86d533804210ae13fc4416358686b3648ae37f657ab0d71235",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture sheet using the imagegen skill, keeping the six-square layout and matching the ship’s materials."
+  ],
+  "usage": {
+    "input_tokens": 114310,
+    "cached_input_tokens": 94080,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 887,
+    "reasoning_output_tokens": 57
+  },
+  "elapsedSeconds": 49.0
+}
