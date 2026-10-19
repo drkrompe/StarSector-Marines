@@ -452,11 +452,13 @@ public final class WarshipShipFire {
         if (relay.role == WarshipManoeuvre.Role.TANK || relay.role == WarshipManoeuvre.Role.STRIKER) {
             // A pack relay (WarshipTactics): a venting ship holds its fire; a tank keeps its pool low enough for its
             // shield to hold the target, firing only as that allows, except into an overloaded target; a striker the
-            // target is not fighting needs no such headroom and fires on up to the pressing ceiling.
+            // target is not fighting needs no such headroom and fires on up to the pressing ceiling. What the tank's
+            // shield holds is the hard flux its absorbed hits put in the pool: its own guns' flux is soft and vents
+            // behind the shield, so it is the hard share the tank's ceiling counts (the ordinary limits below still
+            // keep the whole pool short of the shield's drop).
             if (relay.relayVenting) return false;
             if (relay.role == WarshipManoeuvre.Role.TANK) {
-                if (ship.flux() + cost > WarshipTactics.TANK_FIRE_SHARE * ship.fluxPool().capacity()
-                        && !target.overloaded()) {
+                if (ship.hardFluxFraction() >= WarshipTactics.TANK_FIRE_SHARE && !target.overloaded()) {
                     return false;
                 }
             } else if (target.hullTarget() != ship && ship.fluxPool().canPress(cost)

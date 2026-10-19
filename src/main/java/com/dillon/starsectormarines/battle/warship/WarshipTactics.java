@@ -205,7 +205,10 @@ public final class WarshipTactics {
     static final float READY_FLUX = 0.4f;
     /** A striker whose pool is this full breaks off to vent while the tank holds. */
     static final float STRIKER_VENT_FLUX = 0.75f;
-    /** A tank fires only while its pool stays under this share, so its shield keeps the headroom to hold the target. */
+    /**
+     * A tank fires only while the hard flux its shield holds stays under this share of its pool, so its shield keeps
+     * the headroom to hold the target; its own guns' flux is soft and vents behind the shield, so it does not count.
+     */
     static final float TANK_FIRE_SHARE = 0.5f;
     /** A tank stands at this share of the standoff: nearer the target than its partners, so it is the hull in front. */
     static final float TANK_RANGE_SHARE = 0.75f;
@@ -226,6 +229,17 @@ public final class WarshipTactics {
     static final float VENT_OFFSET_DEGREES = 30f;
     /** A venting ship holds this far out, as a share of the target's longest reach. */
     static final float VENT_HOLD_SHARE = 1.15f;
+    /**
+     * A venting ship whose course out runs into its margin short of this share of its hold looks for a clearer one,
+     * up to {@link #VENT_COURSE_SWING_DEGREES} either side, in steps of {@link #VENT_COURSE_STEP_DEGREES}, each step
+     * off its course costing a little ({@link #VENT_COURSE_SWING_COST} at the widest) against the room it buys.
+     */
+    static final float VENT_ROOM_SHARE = 0.8f;
+    static final float VENT_COURSE_SWING_DEGREES = 90f;
+    static final float VENT_COURSE_STEP_DEGREES = 15f;
+    static final float VENT_COURSE_SWING_COST = 0.15f;
+    /** A venting ship this close to its hold, in cells, is there: it stops running and turns its nose back. */
+    static final float VENT_ARRIVE_CELLS = 4f;
     /** In choosing between hulls, what a hull with no gun laid on the chooser costs against one with its battery on it. */
     static final float THREAT_WEIGHT = 0.6f;
     /** And what a half-circle of turning to bring the chooser's own guns to bear costs. */
@@ -865,17 +879,55 @@ public final class WarshipTactics {
                 float pb = WarshipFacing.bearing(target.centerX(), target.centerY(), partner.centerX(), partner.centerY());
                 away = WarshipFacing.wrap(round - Math.signum(WarshipFacing.wrap(pb - round)) * VENT_OFFSET_DEGREES);
             }
-            m.course = away;
+            m.course = ventCourse(ship, target, away, out, edges);
+        } else if (ventRoom(ship, target, m.course, out, edges) < VENT_ROOM_SHARE * out) {
+            // The target has moved and the course out now runs into an edge's margin: it takes the clearest again.
+            float again = ventCourse(ship, target, m.course, out, edges);
+            if (ventRoom(ship, target, again, out, edges) > ventRoom(ship, target, m.course, out, edges)) m.course = again;
         }
-        if (range < out) {
-            // Running out of reach at full way along the course it took.
-            m.heading = m.course;
-            return ahead(ship, m.course, CRUISE_LENGTHS * ship.lengthCells, edges);
+        // Where it holds: out along its course past the target's reach, or as far out as the map allows inside its
+        // margin. A small map vents short of full reach rather than pinning the ship against its edge.
+        float[] hold = edges.settle(ship, target.centerX() + nx(m.course) * Math.max(out, range),
+                target.centerY() + ny(m.course) * Math.max(out, range));
+        float holdRange = target.distanceTo(hold[0], hold[1]);
+        if (range < holdRange - VENT_ARRIVE_CELLS) {
+            // Running out at full way toward the hold, along the course it took.
+            m.heading = WarshipFacing.bearing(ship.centerX(), ship.centerY(), hold[0], hold[1]);
+            return cog(ship, hold);
         }
-        // Out past the target's reach: hold there on the bearing it ran out on, nose back toward the fight.
-        float hold = Math.max(out, range);
+        // Out at the hold: nose back toward the fight.
         m.heading = Float.NaN;
-        return cog(ship, edges.settle(ship, target.centerX() + nx(m.course) * hold, target.centerY() + ny(m.course) * hold));
+        return cog(ship, hold);
+    }
+
+    /**
+     * How far out from {@code target} a venting ship can hold along {@code course} toward {@code out}, inside its
+     * margin: the distance of that hold once {@link WarshipEdgeHelm#settle settled}.
+     */
+    static float ventRoom(Warship ship, Warship target, float course, float out, WarshipEdgeHelm edges) {
+        float[] p = edges.settle(ship, target.centerX() + nx(course) * out, target.centerY() + ny(course) * out);
+        return target.distanceTo(p[0], p[1]);
+    }
+
+    /**
+     * The course a venting ship runs out on: {@code away} if the map has room along it to reach {@code out} inside
+     * the ship's margin, else the course within {@link #VENT_COURSE_SWING_DEGREES} of it with the most room, the
+     * nearer to {@code away} on a tie, so a ship venting toward an edge turns along it rather than into it.
+     */
+    static float ventCourse(Warship ship, Warship target, float away, float out, WarshipEdgeHelm edges) {
+        float best = away;
+        float bestScore = -Float.MAX_VALUE;
+        int steps = Math.round(VENT_COURSE_SWING_DEGREES / VENT_COURSE_STEP_DEGREES);
+        for (int k = -steps; k <= steps; k++) {
+            float course = WarshipFacing.wrap(away + k * VENT_COURSE_STEP_DEGREES);
+            float room = Math.min(out, ventRoom(ship, target, course, out, edges)) / Math.max(1f, out);
+            float score = room - VENT_COURSE_SWING_COST * Math.abs(k) / Math.max(1, steps);
+            if (score > bestScore) {
+                bestScore = score;
+                best = course;
+            }
+        }
+        return best;
     }
 
     /**

@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — the Greyhook turns to fight the Wolfs to the finish rather than climbing out (owner).
+Updated: 2026-10-18 — Rusk's family lends two Hegemony Enforcers instead of two Wolfs (owner); the Greyhook fights them alone, to the finish.
 
 ## Premise, place and cast
 
@@ -71,20 +71,20 @@ Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
 **The family answers overhead.** As the *Greyhook*, Voss's Venture with Voss aboard,
-lifts from the pads south of the ridge and turns to fight, escorted by two Hound
-(P) frigates, the pair of Wolf (H) frigates Rusk's
-family has lent from Citadel Arcadia comes in low over the basin. Two against two,
-they slug it out in atmosphere over the southern ground while the ground fight
-continues beside them: fast, shielded hunters working as a pack against tough,
-unshielded brawlers defending a heavy ship that cannot turn to fight. The player's fleet stays out
-of the sky; the Wolfs are the family's ships, not the company's support. A pair,
+lifts alone from the pads south of the ridge and turns to fight, the pair of
+Hegemony Enforcer destroyers Rusk's family has lent from Citadel Arcadia comes in
+low over the basin. They slug it out in atmosphere while the ground fight continues
+beneath them: two armoured Hegemony line ships working her as a pack, one holding
+her guns while the other strikes, against a heavier ship that turns slowly. The
+player's fleet stays out of the sky; the Enforcers are the family's ships, not the
+company's support. A pair,
 not one, is the point: it checks two audiences at once, the Eventide house saving
 face over a cadet's failure and the Hegemony showing an Independent colony what it
 can put overhead at short notice.
 
 **The ending opens the next question.** Rusk asks what it would take to keep the
 company on Agreus. The Hegemony auxiliary warrant follows because the family that
-lent the frigates has noticed the company beneath them. The company that began by
+lent the destroyers has noticed the company beneath them. The company that began by
 standing between a creditor and a cooperative has made itself useful to the junta
 next door. That is the hook a later arc can pull.
 

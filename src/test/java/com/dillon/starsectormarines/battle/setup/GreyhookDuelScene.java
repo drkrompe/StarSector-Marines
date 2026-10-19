@@ -59,9 +59,10 @@ public final class GreyhookDuelScene implements BehaviorScene {
     private static final int WIDTH = BlackSluice.WIDTH;
     private static final int HEIGHT = BlackSluice.HEIGHT;
     /**
-     * Twenty-five minutes after the start, the recording's bound: long enough for the Greyhook alone against Rusk's
-     * refitted Enforcers to be fought to the finish on the seeds measured (the longest took twenty-one minutes once the
-     * Enforcers' shields held hard flux only); a fight still going at the end fails {@code the-duel-is-decided-by-destruction}.
+     * Twenty-five minutes after the start, the recording's bound: the Enforcers decide the fight inside eight minutes
+     * on every seed measured, and the bound is kept wide so a control (the relay or the refit off, which run to sixteen
+     * minutes) is still fought to the finish; a fight still going at the end fails
+     * {@code the-duel-is-decided-by-destruction}.
      * {@code -Dbattle.scene.greyhookDuel.ticks} plays longer or shorter.
      */
     private static final int TICKS = Integer.getInteger("battle.scene.greyhookDuel.ticks", 45000);
@@ -332,6 +333,13 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
         metrics.put("minFriendlyGapCells", Math.round(t.minFriendlyGap * 10f) / 10f);
         metrics.put("friendlyOverlapTicks", t.friendlyOverlapTicks);
+        int swaps = 0, vents = 0;
+        for (Warship e : duel.enforcers()) {
+            swaps += e.manoeuvre().relaySwaps();
+            vents += e.manoeuvre().relayVents();
+        }
+        metrics.put("relaySwaps", swaps);
+        metrics.put("relayVents", vents);
         metrics.put("greyhookOverloads", greyhook.overloadCount());
         metrics.put("greyhookShieldCollapses", greyhook.shieldCollapses());
         metrics.put("greyhookPeakFluxPercent", Math.round(100f * t.peakFlux.getOrDefault(greyhook, 0f)));
@@ -339,6 +347,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
         for (int i = 0; i < enforcers.size(); i++) {
             Warship enforcer = enforcers.get(i);
             metrics.put("enforcer" + (i + 1) + "Overloads", enforcer.overloadCount());
+            metrics.put("enforcer" + (i + 1) + "RelaySwaps", enforcer.manoeuvre().relaySwaps());
+            metrics.put("enforcer" + (i + 1) + "RelayVents", enforcer.manoeuvre().relayVents());
             metrics.put("enforcer" + (i + 1) + "ShieldCollapses", enforcer.shieldCollapses());
             metrics.put("enforcer" + (i + 1) + "ShieldAbsorbed", Math.round(enforcer.shieldAbsorbedDamage()));
             metrics.put("enforcer" + (i + 1) + "PeakFluxPercent", Math.round(100f * t.peakFlux.getOrDefault(enforcer, 0f)));

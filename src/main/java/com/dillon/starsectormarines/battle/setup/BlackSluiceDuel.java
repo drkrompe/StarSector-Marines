@@ -20,17 +20,19 @@ import java.util.Locale;
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
  * sits landed alone in the cradle south of the ridge from the start, quiet: she fires at nothing on the ground, and the
  * battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the site
- * abandoned, the <i>Greyhook</i> lifts and turns to fight: the Enforcers are faster than she is, so she does not run. She
- * fights under the ordinary warship doctrine and tactics, and two of Rusk's Wolf (H) fly in across the west edge,
- * already under way on a heading east, on a visit nobody can command. Rusk's Enforcers carry his refit
- * ({@link #RUSK_REFIT}): a frigate's flux and shield against a cruiser's broadside, the one thing this mission tunes. Every hull of the duel holds the field ({@link Warship#holdTheField}): no doctrine
- * withdraws it and no visit ends, so the fight is over only when one side's hulls are all destroyed, and the winners
- * stay over the battle. Nobody leaves the map. The Enforcers' edge ({@link #RUSK_EDGE}) is how they arrive; nothing warps
- * in or out, and no area is declared for the fight, which goes where the fighting takes it, over the ground battle
- * included, kept off the map's edges only by the standing edge pressure every warship flies with. It stays gun against
- * gun: the Venture's fitting carries no wing, and a warship over a ground battle never launches one from its bay. No
- * hull of the duel ever fires at the ground. Nothing is scripted after the order: who falls is the ships' own doing,
- * and the debrief reads it from the {@link WarshipDuelLedger}.
+ * abandoned, the <i>Greyhook</i> lifts and turns to fight: the Enforcers are faster than she is, so she does not run.
+ * She fights under the ordinary warship doctrine and tactics, and two Hegemony Enforcers the Rusk family has lent fly in
+ * across the west edge, already under way on a heading east, on a visit nobody can command. Two bow-fighting
+ * destroyers on one hull fight it as a pack relay ({@code warship-tactics.md}, slice 7). Rusk's Enforcers carry his
+ * refit ({@link #RUSK_REFIT}), the one thing this mission tunes on them. Every hull of the duel holds the field
+ * ({@link Warship#holdTheField}): no doctrine withdraws it and no visit ends, so the fight is over only when one
+ * side's hulls are all destroyed, and the winners stay over the battle. Nobody leaves the map. The Enforcers' edge
+ * ({@link #RUSK_EDGE}) is how they arrive; nothing warps in or out, and no area is declared for the fight, which goes
+ * where the fighting takes it, over the ground battle included, kept off the map's edges only by the standing edge
+ * pressure every warship flies with. It stays gun against gun: the Venture's fitting carries no wing, and a warship
+ * over a ground battle never launches one from its bay. No hull of the duel ever fires at the ground. Nothing is
+ * scripted after the order: who falls is the ships' own doing, and the debrief reads it from the
+ * {@link WarshipDuelLedger}.
  *
  * <p>The ground referee reads nothing here. Stray rounds and falling wreckage are real on the ground, which is the
  * one way the duel can touch the fight below. A ground battle that finishes first ends the duel where it stands.
@@ -41,18 +43,29 @@ public final class BlackSluiceDuel implements SmallWarDuel {
 
     /** The Venture and her fitting: guns only, no wing. */
     static final String GREYHOOK_HULL = "venture", GREYHOOK_VARIANT = "venture_Greyhook";
-    /** Rusk's Enforcers and their fitting. */
+    /**
+     * Rusk's Enforcers and their fitting: the base game's own Balanced Enforcer, one of the Hegemony's stock
+     * medium-combat fits (Arbalests and Heavy Mortars on the turrets, Harpoons and Reapers in the racks), so the
+     * family's ships are fitted as Hegemony line ships are and nothing is authored for the mission. Of the stock fits
+     * it is the one that decides this duel inside minutes: the Assault and Escort fits outlast the Greyhook without
+     * killing her, and the Elite's longer guns already reach her cradle as the Enforcers cross their edge.
+     */
     static final String ENFORCER_HULL = "enforcer", ENFORCER_VARIANT = "enforcer_Balanced";
     /**
-     * Rusk's refit for this fight, on both Enforcers and nowhere else: a frigate fights a cruiser on its flux and its
-     * shield, so that is what it tunes. Capacity and dissipation are raised together (the guns and the shield draw on
-     * the one pool) by a quarter, the shield's upkeep is cut by a quarter and each absorbed point costs a fifth less
-     * flux, and the arc is widened by twenty degrees. No gun, plate or hull figure changes. Modest by intent: measured,
-     * no flux or shield figure lets the Enforcers win (their offence is the limit, not their pool), so the refit buys a
-     * longer fight rather than a different winner ({@code warship-behaviours.md}, the Greyhook fights alone).
+     * Rusk's refit for this fight, on both Enforcers and nowhere else: capacity and dissipation raised together (the
+     * guns and the shield draw on the one pool) by a quarter, the shield's upkeep cut by a quarter and each absorbed
+     * point costing a fifth less flux, and the arc widened by twenty degrees. No gun, plate or hull figure changes. It
+     * was written for Wolfs and kept for the Enforcers because it is what decides the fight in minutes: two Enforcers
+     * already out-vent the Greyhook, and the refit wins the flux war sooner (measured over the five duel seeds, the
+     * Greyhook falls 221 to 334 seconds after the first hit with it, 361 to 601 without it), not a different winner
+     * ({@code warship-behaviours.md}, the Greyhook fights alone).
      */
     public static final HullRefit RUSK_REFIT = new HullRefit("Rusk's hunter refit", 1.25f, 1.25f, 20f, 0.75f, 0.8f);
-    /** The Greyhook's refit for this fight. */
+    /**
+     * The Greyhook's refit for this fight: none, the seam left at identity. A worn Greyhook would only lose sooner, and
+     * no flux or shield figure lets her win, because her battery cannot get through an Enforcer's plate (her Heavy
+     * Autocannons' kinetic rounds glance off nine hundred of armour); she flies as her variant fits her.
+     */
     public static final HullRefit GREYHOOK_REFIT = HullRefit.NONE;
     /**
      * Where the Greyhook sits: landed in the cradle on the southern pad field at true scale
@@ -78,8 +91,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
      * cradle and toward the Enforcers' side, clear of the south edge's margin. Where they go from there is their doctrine's.
      */
     static final float LIFT_TOWARD_X = BlackSluice.APPROACH + 150f, LIFT_TOWARD_Y = 98f;
-    /** A Wolf this many times its own reach from a Greyhook hull is closing: the radio says so. */
-    static final float CLOSING_REACH_SHARE = 1.25f;
+    /**
+     * An Enforcer this many times its own reach from a Greyhook hull is closing: the radio says so. An Enforcer's
+     * reach is long enough that a wider share would hear it closing the moment it crosses the edge, with the sighting.
+     */
+    static final float CLOSING_REACH_SHARE = 1.1f;
 
     /** The story beats the duel publishes for the radio. */
     public static final String ENFORCERS_SIGHTED_BEAT = "small_war.enforcers_sighted",
@@ -188,7 +204,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         return true;
     }
 
-    /** Whether the hull's centre is over the map: a Wolf flying in is sighted once it has crossed the edge. */
+    /** Whether the hull's centre is over the map: an Enforcer flying in is sighted once it has crossed the edge. */
     private static boolean onMap(Warship ship) {
         float x = ship.centerX(), y = ship.centerY();
         return x >= 0f && y >= 0f && x <= BlackSluice.WIDTH && y <= BlackSluice.HEIGHT;
@@ -227,7 +243,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         }
     }
 
-    /** The tick the Greyhook or both Enforcers were destroyed, or -1 while both sides still fly (or no Wolf came). */
+    /** The tick the Greyhook or both Enforcers were destroyed, or -1 while both sides still fly (or no Enforcer came). */
     public int decidedTick() { return decidedTick; }
 
     /** The Greyhook, Voss's Venture, or {@code null} when none could be fitted. */
