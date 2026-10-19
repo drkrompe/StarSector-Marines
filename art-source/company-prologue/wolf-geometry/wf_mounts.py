@@ -54,7 +54,7 @@ MOUNT_ORDER = ['WS 001', 'WS 004', 'WS 005', 'WS 006']     # VFX mount index i =
 RING = 5.0            # the sprite's turret ring round WS 001 (rows 39-48)
 LIFT = 1.6            # barbette drum above the deck
 HARDPOINT_K = {'WS 004': .55, 'WS 005': .6, 'WS 006': .6}   # hull units per weapon sprite pixel
-AXIS_Z = {'WS 004': -.5, 'WS 005': -1.8, 'WS 006': -1.8}         # the hardpoints' bore axis height
+AXIS_Z = {'WS 004': -4.0, 'WS 005': -3.2, 'WS 006': -3.2}         # the hardpoints' bore axis height
 # Bays cut round the hardpoints: ((x0, x1) about the slot, half width, (z0, z1) about the
 # axis, hosts). The mining blaster's channel runs through the fork base between the
 # outer tines; its breech is buried in the head. The pods' launchers are set into the

@@ -1,16 +1,17 @@
 """Y1's guide: Second Wind down on Kilo Nine, from the ground, with Nessa and her estimate.
 
     blender --background --factory-startup --python y1_guide.py -- [--out PATH] [--scale 50] [--samples N]
-            [--figure PATH]
+            [--figure PATH] [--no-figure]
 
 The yard report page (`CompanyYardScreen`, storyboard-v3.md row Y1) shows the ship Nessa is about
 to convert. This renders it from the cinematic's own yard (`industrial-exterior/c5_scene.py`, which
 builds C4's port with the ship in the cradle, the scaffold arms swung in, the tug, bowser and crew
 carrier at the hull and her crew in hi-vis), at the moment the vehicles have parked and before
-anyone has come off the ramp. The camera stands on the open gravel off the ship's port flank, a
+anyone has come off the ramp. The camera stands on the open gravel off the ship's starboard flank, a
 little above eye height, looking square at its side (owner, 2026-10-19: a side view). Nessa (`nessa-figure/build_nessa.py
 --pose slate`) stands in the foreground holding the work slate out toward the viewer; the crowd's
-stand-in Nessa is hidden.
+stand-in Nessa is hidden. --no-figure leaves her out: the yard pictures are layered, the
+background painted without her and her cut-out composited over it (owner, 2026-10-19).
 
 The render is a guide for an ImageGen repaint (`geometry-first-imagegen.md`), never the shipped
 picture. It writes `<out>/y1-guide.png` (1536x1024 at --scale percent) and `y1-guide.json` with the
@@ -35,14 +36,16 @@ import c5_scene  # noqa: E402
 REPO = PROLOGUE.parents[1]
 W, H = 1536, 1024
 C5_T = 7.6                       # vehicles parked, the ramp crew out, the families not yet down
-# A broadside on the ship's port (west) flank, from the open yard between the cradle and the
-# works: the camera in the ship's own frame (u ahead along its heading, v to its left), Nessa a few
-# steps in front of it toward the ship and a little to the right of frame.
-CAMERA_UV = (-12.0, 50.0)
+# A broadside on the ship's starboard (east) flank, where the tug, bowser, crew carrier and the
+# yard hands are (owner, 2026-10-19: the whole ship and more of the ground crew in view): the
+# camera in the ship's own frame (u ahead along its heading, v to its left), Nessa a few steps in
+# front of it toward the ship and a little to the right of frame.
+CAMERA_UV = (-22.0, -64.0)      # clear of the starboard scaffold tower (u +8), toward the ramp crew
+AIM_U = -8.0                     # aim a little aft of amidships, so the stern and its crew are in frame
 NESSA_AHEAD, NESSA_RIGHT = 1.8, 0.75   # close: she is handing the estimate to the viewer
 CAMERA_Z = 1.6                   # eye height
 LOOK_AT_Z = 9.0                  # aim: the middle of the ship's flank
-LENS = 22.0
+LENS = 18.0
 
 
 def main():
@@ -67,15 +70,15 @@ def main():
     toward = (ship - cam_xy).normalized()
     right = Vector((toward.y, -toward.x))
     NESSA = cam_xy + toward * NESSA_AHEAD + right * NESSA_RIGHT
-    with bpy.data.libraries.load(str(figure)) as (src, dst):
-        dst.collections = ['Nessa figure']
-    col = dst.collections[0]
-    scene.collection.children.link(col)
-    root = bpy.data.objects['Nessa figure root']
     gz = c5_scene.ground_z(NESSA.x, NESSA.y)
-    root.location = (NESSA.x, NESSA.y, gz)
-    to_cam = cam_xy - NESSA
-    root.rotation_euler = (0, 0, math.atan2(to_cam.y, to_cam.x) + math.radians(-12))
+    if '--no-figure' not in argv:
+        with bpy.data.libraries.load(str(figure)) as (src, dst):
+            dst.collections = ['Nessa figure']
+        scene.collection.children.link(dst.collections[0])
+        root = bpy.data.objects['Nessa figure root']
+        root.location = (NESSA.x, NESSA.y, gz)
+        to_cam = cam_xy - NESSA
+        root.rotation_euler = (0, 0, math.atan2(to_cam.y, to_cam.x) + math.radians(-12))
 
     cam = bpy.data.objects.new('Y1 camera', bpy.data.cameras.new('Y1 camera'))
     scene.collection.objects.link(cam)
@@ -83,7 +86,7 @@ def main():
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, 36.0, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 0.1, 60000.0
     cam.location = (cam_xy.x, cam_xy.y, gz + CAMERA_Z)
-    aim = Vector((ship.x, ship.y, LOOK_AT_Z))
+    aim = Vector((*c4.at(c4.K9[0], c4.K9[1], c4.k9_heading(), AIM_U, 0)[:2], LOOK_AT_Z))
     cam.rotation_euler = (aim - cam.location).to_track_quat('-Z', 'Y').to_euler()
     scene.camera = cam
 

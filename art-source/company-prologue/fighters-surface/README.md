@@ -1,6 +1,6 @@
 # Fighters: surfacing (pass 6)
 
-Status: ACTIVE — all six fighters surfaced (service livery), waiting on owner review.
+Status: ACTIVE — all six fighters surfaced (service livery); the Broadsword accepted, the other five waiting on owner review.
 Written: 2026-10-18
 Updated: 2026-10-19 — the Broadsword surfaced for C2 (its geometry is its own package).
 

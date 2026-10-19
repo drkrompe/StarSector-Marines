@@ -18,7 +18,7 @@
   },
   "root metres_per_unit": {
    "ok": true,
-   "detail": 0.76
+   "detail": 0.75
   },
   "all under root": {
    "ok": true,
@@ -45,8 +45,8 @@
   "polygon count": {
    "ok": true,
    "detail": [
-    16913,
-    16913
+    16905,
+    16905
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
