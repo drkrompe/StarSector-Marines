@@ -59,7 +59,7 @@ ROOT = "Castle figure root"
 PHENOTYPE = dict(gender=0.0, age=0.71, muscle=0.55, weight=0.52, proportions=0.6, height=0.62,
                  cupsize=0.45, firmness=0.45,
                  race=dict(caucasian=0.72, asian=0.12, african=0.16))      # warm pale olive
-ASSETS = dict(eyes="high-poly.mhclo", eyebrows="eyebrow006.mhclo", eyelashes="eyelashes01.mhclo",
+ASSETS = dict(eyes="high-poly.mhclo", eyebrows="eyebrow008.mhclo", eyelashes="eyelashes01.mhclo",
               hair="short04.mhclo")                    # swept back; the bun is added below
 CLOTHES = ["male_casualsuit02.mhclo", "shoes02.mhclo"]  # long-sleeved top over trousers; boots
 

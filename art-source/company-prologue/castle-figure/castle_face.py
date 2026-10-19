@@ -29,14 +29,14 @@ import bpy
 # side wanted. Weights are 0..1 of the full target.
 FACE_TARGETS = [
     # A long face, lean below the cheekbones; older planes.
-    ("head-oval", 0.2), ("head-scale-vert-incr", 0.12),
+    ("head-oval", 0.4), ("head-scale-vert-incr", 0.12),
     ("head-fat-decr", 0.25), ("head-age-incr", 0.45),
     ("l-cheek-bones-incr", 0.8), ("r-cheek-bones-incr", 0.8),
     ("l-cheek-volume-decr", 0.4), ("r-cheek-volume-decr", 0.4),
     ("l-cheek-inner-decr", 0.2), ("r-cheek-inner-decr", 0.2),
-    # A firm jaw and squared chin.
-    ("chin-bones-incr", 0.35), ("chin-width-incr", 0.25), ("chin-prominent-incr", 0.25),
-    ("chin-height-incr", 0.15),
+    # A feminine jaw (owner, 2026-10-19): narrower at the angles, tapering to a defined chin.
+    ("chin-bones-decr", 0.35), ("chin-width-decr", 0.2), ("chin-triangle", 0.25),
+    ("chin-prominent-incr", 0.12),
     # A long, straight, narrow-tipped nose.
     ("nose-scale-vert-incr", 0.15), ("nose-scale-depth-incr", 0.1), ("nose-point-down", 0.15),
     ("nose-greek-incr", 0.3), ("nose-scale-horiz-decr", 0.1), ("nose-point-width-decr", 0.25), ("nose-width2-decr", 0.15),
