@@ -1260,7 +1260,7 @@ def add_k9_vehicles():
         lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
     car = vehicle('Customs car', [((5.2, 2.3, 1.5), (0, 0, 1.0), material('Customs white', (0.88, 0.88, 0.86), 0.4)),
                             ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange']),
-                            ((1.2, 2.2, 0.4), (-0.6, 0, 2.0), lights)],
+                            ((0.35, 1.6, 0.22), (-0.2, 0, 1.86), lights)],
             [(0, OFFICE[0] - 8, 392), (sec(7.0), OFFICE[0] - 8, 392), (sec(7.8), 252, 372), (sec(9.2), 300, 372),
              (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(12.4), 305, 430), (sec(14.6), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
@@ -1420,7 +1420,9 @@ def build():
     add_landing_dust()
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
-    import ortho_paint                                   # painted overhead tiles, where accepted
+    import vehicle_paint                                 # painted vehicle tops, once accepted
+    vehicle_paint.apply()
+    import ortho_paint                                  # painted overhead tiles, where accepted
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
