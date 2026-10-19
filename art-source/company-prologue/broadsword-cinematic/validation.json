@@ -1,0 +1,89 @@
+{
+ "asset": "broadsword.blend",
+ "collection": "BROADSWORD",
+ "root": "BROADSWORD | root",
+ "objects": 204,
+ "meshes": 179,
+ "images": 12,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    179,
+    179
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "drive anchors": {
+   "ok": true
+  },
+  "drive anchors point aft": {
+   "ok": true
+  },
+  "gun muzzle anchors": {
+   "ok": true
+  },
+  "running lights": {
+   "ok": true,
+   "detail": [
+    "Light centre dorsal 1",
+    "Light centre tail 1",
+    "Light port blade tip 1",
+    "Light starboard blade tip 1"
+   ]
+  },
+  "rest: gear stowed above its shut doors": {
+   "ok": true,
+   "detail": 0.24
+  },
+  "gear_down 1 stands on ground_z with its doors open": {
+   "ok": true,
+   "detail": {
+    "sole_error": 0.0,
+    "least_open_door_deg": 88.0
+   }
+  },
+  "sole anchors on the ground with the gear down": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "knob at 0 restores the rest pose": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  }
+ }
+}

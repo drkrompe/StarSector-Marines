@@ -188,3 +188,8 @@ wolf-merchant-surface/review/
 wolf-merchant-surface/textures/
 wolf-merchant-surface/grading/
 wolf-merchant-surface/skin-manifest.json
+
+# broadsword-cinematic: the appendable .blend is built (finalize.sh) and goes to Drive; renders are outputs
+broadsword-cinematic/*.blend
+broadsword-cinematic/*.blend1
+broadsword-cinematic/review/
