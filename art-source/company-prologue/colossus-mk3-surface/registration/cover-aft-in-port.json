@@ -1,0 +1,59 @@
+{
+ "part": "cover-aft-in-port",
+ "sheet": "hold-deck",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9921,
+ "raw_iou": 0.9932,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9975,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9932
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00135,
+    1.00227
+   ],
+   "offset_px": [
+    -0.11,
+    -1.08
+   ],
+   "iou": 0.9942
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00035,
+    1.00027
+   ],
+   "offset_px": [
+    -0.61,
+    -1.08
+   ],
+   "iou": 0.9975
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.51,
+  "p95_px": 1.0,
+  "max_px": 1.41
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.18,
+  "p95_px": 1.0,
+  "max_px": 2.24
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

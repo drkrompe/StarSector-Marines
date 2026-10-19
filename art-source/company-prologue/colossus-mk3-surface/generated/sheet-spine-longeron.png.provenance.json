@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155ff-11a8-7b92-bb9e-6d377fd1100b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155ff-11a8-7b92-bb9e-6d377fd1100b\\exec-49d1384e-7a4c-4c63-8b6e-a36a74494307.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-mk3-surface\\generated\\sheet-spine-longeron.png",
+    "sha256": "fcc9e7fc567e40de952734120e6cb2632055e472b9e4317b887bc636ca7e29e3",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-mk3-surface\\prompts\\sheet-spine-longeron.prompt.txt",
+  "promptSha256": "193ae92ee33bcae64fa37be45c66cf3c69342cf4585329dfb03363fd09cf10c8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels\nImage 2: Material and finish reference only: paint colours, wear and detail; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Colossus Mk.III: a huge, boxy, low-tech Domain-era heavy freighter taken by pirates and refitted as an armed raider), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the top flange of a long box-girder longeron seen from directly above, bow to the right: one long thin off-white strip; paint it as the girder's flat top flange with transverse butt seams every so often along its length and rows of small fasteners along both long edges;\ntop-right: the girder's outboard web seen from the side, bow to the left: a large off-white rectangle with a row of small round lightening holes along its top edge (the round discs, each a slightly recessed hole); keep every disc exactly where it is and paint each as a simple round hole rimmed by a thin welded collar, and paint the web as large vertical girder plates joined by welded seams with fastener rows;\nbottom-left: the same girder's inboard web seen from the other side, bow to the right: a large plain off-white rectangle; paint it as large vertical girder plates joined by welded seams with fastener rows, matching the outboard web;\nbottom-right: the keel spine's top plate seen from directly above, bow at the top: a salmon-red square plate with a recessed square well in its middle (same salmon-red, a slightly sunken floor) and four small dark grey square recesses, two at each side; keep the dark squares dark and the well where it is.\nINPUT 2 is the SAME ship, already painted in its pirate livery: it is the finish to match. Use its paint colours, its battered, grimy finish, its seam, fastener and weld treatment and its wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the shapes in INPUT 1 as that working hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep every tile exactly where it is, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap, notch or slot in a shape stays plain background blue. Each separate plate stays a separate plate with the same blue gap round it.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of heavy fasteners along plate edges, a few flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: the salmon-red areas are a deep, dirty crimson enamel, the same crimson as the hold in INPUT 2; off-white areas are a pale, dirty, weathered warm-grey paint (as INPUT 2's longerons and bridge; not white); dark grey areas are near-black dull steel recesses and seam grooves. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is a pirate raider kept fighting long past its service life and never properly repaired. Weathering is heavy but even across each whole shape: faded, dirty enamel, fine chips and scuffs worn through to dark bare steel along plate edges and fastener rows, oily grime in the seams, thin soot streaking. No single concentrated area of wear, no large bare patches, no holes, dents, burns, scorch marks, impact damage or repair plates. No lettering, numbers, markings, decals, graffiti, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\guide\\sheet-spine-longeron-guide.png",
+      "sha256": "78c43a192531667471d3abcd46c8c0b0e1203e8885d617a4976fed96f4615a81",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\reference\\finish-reference.png",
+      "sha256": "74371d570280499c86a6140acd689532b485cfccd4636d86bd6654f884705379",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish reference only: paint colours, wear and detail; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture reskin using Image 1 for the exact layout and Image 2 for the finish."
+  ],
+  "usage": {
+    "input_tokens": 47963,
+    "cached_input_tokens": 38400,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 906,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.8
+}

@@ -1,0 +1,27 @@
+{
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Colossus Mk.III, a pirate prize ship: `service` is the Colossus's own row (an old hauler still in work); `battle` is what the build ships, service plus fighting and pirate upkeep, near the sibling pirate hulls (Kite (P) and Hound (P) `pirate`, Wolf (P) `battle`): scuffed and pitted, the crimson overpaint faded, heavy grime and soot round six main drives, never properly maintained.",
+ "clean": {
+  "abrasion": 0.0,
+  "pitting": 0.0,
+  "fade": 0.0,
+  "grime": 0.0,
+  "soot": 0.0,
+  "neglect": 0.0
+ },
+ "service": {
+  "abrasion": 0.34,
+  "pitting": 0.1,
+  "fade": 0.28,
+  "grime": 0.42,
+  "soot": 0.5,
+  "neglect": 0.0
+ },
+ "battle": {
+  "abrasion": 0.58,
+  "pitting": 0.45,
+  "fade": 0.45,
+  "grime": 0.6,
+  "soot": 0.75,
+  "neglect": 0.4
+ }
+}

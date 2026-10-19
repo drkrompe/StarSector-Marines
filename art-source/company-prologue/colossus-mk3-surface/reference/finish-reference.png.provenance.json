@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155f2-b85d-7553-8e88-420c45bf6c76",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155f2-b85d-7553-8e88-420c45bf6c76\\exec-1f1efa42-0a08-4108-be04-923e7c9646a4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-mk3-surface\\reference\\finish-reference.png",
+    "sha256": "74371d570280499c86a6140acd689532b485cfccd4636d86bd6654f884705379",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-mk3-surface\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "a615ddf4b9022d16df078222ceee823719e63ddf7c67ca0cc4db8b86389ca480",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact ship, camera, silhouette and every shape; repaint only\nImage 2: Livery colours only (pirate paint scheme); not layout, not view, ignore its red graffiti\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Colossus Mk.III: a huge, boxy, low-tech Domain-era heavy freighter taken by pirates and refitted as an armed raider and carrier. It has a thick cargo block of a central hold and four cut-down side cargo modules, an open launch bay cut into the hold's bow, a dozen small gun turrets on round drums and sponsons, heavy armour plates bolted over the module walls, and two drive pods pushing it from behind. It is seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: bright red on the central hold, its deck, the bow face, the aft machinery body and the bridge's base deck; dark brown on the four side cargo modules and the two drive pod casings; small red blocks on the pods' aft plates; pale grey on the long longerons beside the hold, the bridge deckhouse, the pods' diagonal shoulder bands and the underslung tanks; mid-grey gunmetal on the machinery, the turrets and their drums and sponsons, the bay's inner walls, and the bolted armour plates over the module walls; a few lighter grey and pale blue-grey plates welded among the armour and on the deck; thin orange hazard frames round doors and the bay mouth; near-black recesses and seams. The open bays at the modules' end faces are full of multicoloured stacked shipping containers; small red lamps line the launch bay.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its pirate refit: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style, and do NOT paint its red graffiti, skull or slash marks or its red splashes (they are added separately).\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that pirate livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, plate, door, hatch, turret, sponson, container, lamp, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material, in the pirate scheme of INPUT 2: the red becomes a deep crimson enamel slapped on by a pirate crew, darker and dirtier than a factory red; the dark brown becomes a blackened, sooty rust-brown plate; the pale grey stays a pale, dirty, weathered warm grey paint; gunmetal stays dark grey steel, the armour plates a slightly different dull dark steel from one plate to the next; the lighter grey and pale blue-grey welded plates stay old scavenged plates in their own faded primer grey and faded blue; orange stays a faded hazard orange; recesses stay near black; windows, lamps and the containers stay as they are. Do not swap or invent colours, stripes, emblems, graffiti or extra patches.\n- Finish: an old freighter kept fighting by a pirate crew: hard service and battle, never repaired properly. Semi-matte enamel that is faded, chipped and worn through to dark bare steel along exposed edges, corners and walkways; grime and oily dirt collected in seams and round fittings; soot streaks round the gun drums and behind the drives; crisp plate seams, heavy fastener rows and weld beads round the bolted armour. Wear covers the whole ship evenly. No holes, dents, burns, scorch damage, shell hits, lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\guide\\reference-guide.png",
+      "sha256": "1361e507c719bef00265f3ca6d3d5990a37b0011845850988bcb91a8f48cb3db",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the exact ship, camera, silhouette and every shape; repaint only"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\build\\sprite-livery.png",
+      "sha256": "837854c1624bd15b8375d7d893c03c8de70991ccb7eccd9701d1402468c075b0",
+      "dimensions": [
+        896,
+        736
+      ],
+      "mode": "RGB",
+      "role": "Livery colours only (pirate paint scheme); not layout, not view, ignore its red graffiti"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to repaint the first reference, preserving its layout and applying the second reference’s colours and the specified wear.\n"
+  ],
+  "usage": {
+    "input_tokens": 45494,
+    "cached_input_tokens": 37248,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 867,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.3
+}
