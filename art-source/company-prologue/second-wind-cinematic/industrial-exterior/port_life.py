@@ -2,7 +2,7 @@
 
 Kilo Nine goes to work once Second Wind is down; this module makes the rest of the port look as
 busy, and keeps it moving after C4 ends: C5 plays on from C4's last frame (`c5_scene.py`) and rises
-to about 1.8 km over the whole port for its title, so everything here is keyed through `END`, C5's
+to about 1.8 km over the whole port for its title, so everything here is keyed through `end_frame()`, C5's
 last frame, and the port traffic `c4x_scene.py` already runs is carried on to it (`carry_on`).
 
     build():  c4x_scene.build() calls add(c4) after the port and its hulls are built, before the
@@ -49,7 +49,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
-C5_LENGTH = 33.0            # C5 through its title; it starts on C4's last frame
+C5_LENGTH = 34.0            # C5 (33.5 s with its title) and a little over; it starts on C4's last frame
 KEY_STEP = 2                # frames between baked keys
 HAZE_SKIP = {'Port beacon', 'Lifter plume'}
 
