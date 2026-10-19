@@ -590,7 +590,7 @@ above (five fits, three grounds, eight seeds, both roles), first with
   tanks against both Bulwark fits, three grounds, eight seeds, an attacking tank
   that lost its gun escaped 2 of 28 such fights backing, against 8 of 28 driving
   its route; arcs off, 3 of 33 against 5. A defending tank that lost its gun died
-  in all 20 either way, 6 seconds sooner backing. Three times the time in reach
+  in all 23 either way, 5 seconds sooner backing. Three times the time in reach
   costs more than the rear plate saves.
 
 **The AT LRM against a tank** (2026-10-19). A refit Bulwark with two AT
@@ -760,8 +760,8 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
   | --- | --- | --- | --- |
   | Escort APC vs breakthrough | 0.08 / 0.08 | 0.42 / 0.12 | 0.46 / 0.08 |
   | Escort APC vs screened | 0.08 / 0.08 | 0.38 / 0.04 | 0.04 / 0.08 |
-  | Breakthrough vs breakthrough | 0.42 / 0.42 | 0.62 / 0.58 | 0.71 / 0.71 |
-  | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.42 | 0.58 / 0.58 |
+  | Breakthrough vs breakthrough | 0.42 / 0.42 | 0.58 / 0.50 | 0.71 / 0.71 |
+  | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
   | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.25 / 0.08 |
 
   Head-on, nothing moves. With arcs off the escort APC rows barely move (0.12 to
@@ -769,11 +769,12 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
   better fight. A flanked tank that turns holds the APC off as it does head-on.
   Flanking still pays where the tank cannot turn in time, and against a mech it
   never paid much.
-- **The ladder** (4 seeds, every pairing both ways, old driving / new): 181 of
-  207 pairings are identical, and so is every open-ground fight. 14 pairings move
+- **The ladder, old driving / new** (4 seeds, every pairing both ways, on the
+  retuned profiles): 181 of 207 pairings are identical, and so is every
+  open-ground fight. 13 pairings move
   by 0.25 or more, on the street and hull-down grounds, nearly all of them
   between light hulls: the militia technical, the fire-support and escort APCs.
-  Fights there turn into stalemates (street stalemates 214 to 225 of 828) or
+  Fights there turn into stalemates (street stalemates 216 to 227 of 828) or
   out of them, all seeds together, because the turn changes where a hull stands.
   The traced cause is older than the turn. A hull that holds in band without
   landing hits never moves: two hulls nose-on at 21 cells, in sight and in reach,
