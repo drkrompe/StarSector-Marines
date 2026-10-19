@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — the heavy cannon is balanced as equipment (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); earlier: heavy cannon balanced as equipment, engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -279,8 +279,8 @@ chaingun Bulwark (stock Sirocco 0.39, refit 0.77; was 0.59 and 0.88).
 
 Still open from these readings, all outside the cannon:
 
-- **Every tank beats every Bulwark fit**, 93-95% overall, never losing to a
-  Bulwark in more than one fight in the 96 here.
+- **Every tank beat every Bulwark fit**; retuned below (*A tank against the
+  heavy mech*).
 - **The chaingun Bulwark is the weakest Bulwark.** The chaingun's 29 heat/s
   starves its own SRM-15s, and every Advanced or Prestige arm beats it 78-96%
   refit against refit.
@@ -288,6 +288,117 @@ Still open from these readings, all outside the cannon:
   and runs at about 9 heat/s, and it is the best refit Bulwark (0.69). The same
   levers apply, in the same order.
 - **The Prestige pulse laser loses to both Advanced arms** at equal budget.
+
+## A tank against the heavy mech
+
+Both tanks and the Bulwark are Heavy weight, Prestige and Heavy lift, so they
+compete for one gantry and one carrier. The identity the owner set
+(2026-10-18) is a split, not parity: **a tank wins in the open at range**,
+where its gun and plate shine; **a Bulwark wins where flexibility counts**:
+broken ground and streets, close range, and with its missiles. Overall the
+target is roughly even, with clear splits by ground.
+
+**Why every tank beat every Bulwark (2 of 480 fights to the mech).** The tank
+was better on every axis that decides a duel, and the mech's heat stacked on top:
+
+- *Plate against penetration.* A tank's rating was 36 (heavy gun 40) against
+  mech arms of penetration 5 (chaingun) to 18 (heavy cannon contact), so mech
+  rounds stripped its armor at 22-55% of their damage. The tank's contact hit
+  (penetration 28, heavy gun 40) meets the Bulwark's 18 at full damage.
+- *Pool.* 1,950 structure and armor capacity on both tanks, against 1,260 on a
+  stock Bulwark and 1,500 refit. A vehicle has one pool and no sections to
+  lose; it dies only when the whole pool is gone.
+- *The gun against a mech section.* A twin-cannon salvo landed two 150 contact
+  hits every 5.25 s, and the heavy gun 260 every 7 s: about 45 damage a second
+  on a Bulwark. Bulwark against Bulwark trades about 20.
+- *Heat.* A tank has none. A Bulwark's sustained fire is its cooling, about
+  8.5 heat/s, so against armor it delivered 2-9 damage a second in the open and
+  7-14 in streets, heat-limited for most of a street fight.
+- *Reach and kiting.* The tank guns reach 36 and 44 against mech arms of 26-34
+  and SRMs of 18, so the duel band (`mechs-nouns.md`, Duel range) holds the
+  tank just outside the mech's reach. It backed off at half its top speed, 1.55
+  and 1.3 cells/s, faster than a Bulwark walks (1.05), so the mech could never
+  close. In the open an attacking Bulwark fired 10 rounds a fight.
+- *Cover.* It is the mech's alone. A hull takes no terrain cover, while the
+  section rows hide a Bulwark's legs behind a berm. Cover only helps a mech that
+  can shoot back, though, so it did not matter while the tank stood out of
+  reach. Turret traverse (55 and 40 degrees/s) never mattered in a duel either.
+
+**What changed.**
+
+| | Breakthrough | Heavy gun |
+| --- | --- | --- |
+| Structure / armor capacity | 1100 / 850 → 750 / 550 | 1050 / 900 → 700 / 600 |
+| Armor rating | 36 → 18 | 40 → 20 |
+| Contact hit (penetration unchanged) | 150 → 75 | 260 → 135 |
+| Gun reach | 36 | 44 → 40 |
+| Reverse speed | 1.55 → 0.93 cells/s | 1.3 → 0.78 cells/s |
+
+- **Rating 18** is the Bulwark's own rating. The tank keeps its plate by bulk,
+  not hardness, so a mech's missiles (SRM 14, LRM 16) and the heavy cannon bite
+  it at 80-100% while the chaingun (5) still chips it at 35%. That is the
+  Bulwark's division of labour: the chaingun is for infantry, the shoulders for
+  armor. Rating 22 was tried: LRM fits barely moved (0.91 → 0.85) and the core
+  fits fell from 0.43 to 0.39.
+- **Pool 1,300**, about a refit Bulwark's 1,500, so neither side out-lasts the
+  other by bulk alone. Its armor per credit falls to 1.20x (breakthrough) and 1.09x
+  (heavy gun) the Bulwark's (below), still above 1, as the vehicle rule asks.
+- **Contact hit halved.** The tank still out-damages a heat-bound mech (about
+  24 damage a second on a Bulwark against the mech's 12-30), but no longer
+  takes half a Bulwark in a salvo. Tank against tank stays a quick fight: 52-55 s
+  from first hit, against 45-47 before.
+- **Reverse at 0.3 of top speed** (was 0.5 for every hull; `BicycleBody` now
+  takes it per hull, and the other hulls keep half). A tracked hull backing up is
+  slower than a Bulwark walking, so a Bulwark that closes can catch it. This is
+  the lever that gives the open ground its biggest move (0.12 → 0.31 with the stat
+  changes above); at 0.35 the breakthrough tank still backed up at 1.085, just
+  faster than the Bulwark's walk. `-Dbattle.vehicle.tankReverseFraction=.5` is the
+  control.
+- **Heavy gun reach 40**, the LRM's reach. At 44 it out-reached every mech
+  weapon by ten cells, and broken ground could not hide a Bulwark from it (mech
+  hull-down share 0.07).
+
+**Readings** (`armorMatchup`, explicit fits, open / hull-down / street, eight
+seeds, both roles; Bulwark win share, a timeout read by integrity left). Fits:
+stock; refit chaingun; refit heavy cannon, bastion and pulse arms.
+
+| | Before | After |
+| --- | --- | --- |
+| All five fits | 0.00 | 0.43 |
+| Four refit fits | 0.00 | 0.53 |
+| By ground: open / hull-down / street | 0.00 / 0.00 / 0.00 | 0.31 / 0.36 / 0.61 |
+| Hull-down with the Bulwark holding the berm | 0.00 | 0.53 |
+| Against breakthrough / heavy gun | 0.00 / 0.00 | 0.47 / 0.39 |
+| Fight range under 20 / 20-30 / over 30 cells | 0.00 / 0.00 / 0.00 | 0.60 / 0.44 / 0.03 |
+| Stock / refit chaingun Bulwark | 0.00 / 0.00 | 0.01 / 0.32 |
+| Refit heavy cannon / bastion / pulse | 0.01 / 0.01 / 0.00 | 0.57 / 0.81 / 0.42 |
+| Refit Bulwark with two LRM-15 / bastion and two LRM-15 | 0.10 / 0.15 | 0.91 / 0.93 |
+| Hound, stock and refit | 0.00 | 0.00 |
+| Sirocco stock / refit | 0.00 | 0.09 / 0.18 |
+| Tank against tank, seconds from first hit | 45-47 | 52-55 |
+| Tank against a Bulwark, seconds from first hit | 31-40 | 57-70 |
+
+The split now holds by range: beyond 30 cells the tank wins 97% of the time,
+and under 20 the mech wins 60%. The rows that do not yet fit the identity are
+owned elsewhere, and are reported rather than tuned here:
+
+- **Missile fits beat tanks everywhere, the open included** (two LRM-15s 0.91).
+  The racks out-reach or match both guns and now meet plate they defeat. That is
+  the missile-anti-armor role, but stronger than "the tank wins in the open"
+  allows. It belongs to the missile-rack session (anti-armor against
+  fragmentation).
+- **The bastion autocannon beats tanks 0.81, 0.88 in the open.** It is the
+  arm already flagged as too cool and light (above); its reach of 34 stops the
+  breakthrough tank's stand-off. The arm session owns it.
+- **The stock chaingun Bulwark still loses (0.01)**, because the chaingun starves
+  its own SRM-15s of heat. That is the chaingun Bulwark finding above, not
+  the tank.
+- **Nothing knocks out a tank's gun.** A hull's turret has no section or pool,
+  so "a tank that has lost its main gun" exists today only as an empty
+  magazine. A vehicle gun that damage can disable would be a new mechanic (the
+  vehicle doll, `mech-lab-data-authored-dolls.md`).
+- The heavy-gun tank still holds hull-down ground (Bulwark 0.24), where the map's
+  ruins leave forty-cell sight lines open.
 
 ## Lift classes
 

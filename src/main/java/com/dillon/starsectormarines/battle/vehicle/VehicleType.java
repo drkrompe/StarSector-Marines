@@ -91,10 +91,10 @@ public enum VehicleType {
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
-            TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {
+            TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
             // Bounded curvature is deliberately shared with route proof and collision checks.
-            return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed);
+            return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
         }
         @Override public float turretRecoilCells() { return .18f; }
     },
@@ -106,9 +106,9 @@ public enum VehicleType {
     HEAVY_GUN_TANK("graphics/battle/vehicles/army-tank-heavy-gun.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 2.6f, .85f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
-            TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, 1050f, 900f, 40f, 1.4f, 1.1f) {
+            TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, 700f, 600f, 20f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
-            return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed);
+            return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
         }
         @Override public float turretRecoilCells() { return .24f; }
     },
@@ -234,6 +234,15 @@ public enum VehicleType {
 
     private static final float[] NO_TINT = {1f, 1f, 1f};
     private static final float[] UP_ARMORED_TINT = {.78f, .80f, .76f};
+
+    /**
+     * The tank hulls' reverse speed as a fraction of forward top speed. A tracked hull backs up
+     * slower than a Bulwark walks, so a mech that closes on a tank can catch it instead of being
+     * kited forever; every other hull reverses at half speed. {@code -Dbattle.vehicle.tankReverseFraction=.5}
+     * is the control.
+     */
+    static final float TANK_REVERSE_FRACTION =
+            Float.parseFloat(System.getProperty("battle.vehicle.tankReverseFraction", ".3"));
 
     public boolean isApc() {
         return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC;
