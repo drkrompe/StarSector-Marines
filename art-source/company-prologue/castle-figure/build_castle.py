@@ -99,21 +99,41 @@ RIGHT_PALM = (1.0, 0.1, 0.0)                  # toward the head
 
 # ---------------------------------------------------------------- groomed hair (--hair curves)
 # Blender's own procedural hair node groups (CC0, bundled with Blender) do the grooming; this
-# script only lays the guides: one per scalp vertex, combed over the scalp to the bun, and a
-# coil of strands for the bun itself. Lengths in metres.
+# script only lays the guides: one per scalp vertex, gathered over the scalp into the bun, arcs
+# wrapping the bun's core, and the loose fringe and wisps. Lengths in metres.
 HAIR_ASSETS = "assets/nodes/procedural_hair_node_assets.blend"     # under Blender's datafiles
 HAIR_DENSITY = 7.0e5          # interpolated strands per m2 of scalp
-BUN_GUIDES, BUN_COPIES = 160, 14
 HAIR_RADIUS = 0.00012         # root radius; the profile tapers to the tip
 HAIRLINE_REACH = 0.012       # scalp is the skin within this of short04's cards
 NAPE_DROP = 0.085            # the nape hairline, below eye height (short04 runs to the collar)
-HAIR_LIFT = (0.0012, 0.0045)  # off the scalp at the root, and where the strands reach the bun
+SIDEBURN_DROP = 0.015        # in front of the ear, no scalp below this under eye height
+HAIRLINE_SOFT = (0.15, 0.4, 0.7)   # strand density on the scalp's edge ring and the next two in
+HAIR_LIFT = (0.0015, 0.007)  # off the scalp at the root, and by the bun: volume, not slicked flat
+WOBBLE = 0.0025              # a guide's sideways wander on its way up, for a gathered look
+# The bun: up the back of the head at this elevation from the head's centre, its centre this far
+# off the scalp, its half-widths across, up the head and outward (a fist-sized updo).
+BUN_ELEVATION = 14.0
+BUN_LIFT = 0.03
+BUN_RADII = (0.046, 0.038, 0.034)
+BUN_REACH = 0.05             # scalp guides stop combing and tuck in once this near its centre
+BUN_GUIDES, BUN_COPIES = 240, 12
+# The loose hair: fringe guides rooted over the front of the crown, this deep from the brow and
+# between these x (her right is -x), the share left hanging at the cheek, and wisps at her right
+# and left temple.
+FRINGE_DEPTH, FRINGE_X = 0.05, (-0.045, 0.05)
+FRINGE_ROOTS, FRINGE_HANG = 200, 0.3
+FRINGE_LOW = 0.045            # the fringe stays above this height over eye level (the brow)
+WISPS = (9, 0)
+LOOSE_COPIES = 16
 # Silver at the temples: strands rooted within these distances of either temple are grey,
-# fading out between them, with a sprinkle of grey strands everywhere else.
-TEMPLE_GREY = (0.01, 0.036)
-SALT, SALT_GREY = 0.03, 0.6     # share of stray grey strands elsewhere, and how grey
+# fading out between them; her right temple at this share (the art greys her left most), a
+# share of fringe strands at FRINGE_GREY, and a sprinkle of faintly grey strands everywhere.
+TEMPLE_GREY = (0.006, 0.026)
+TEMPLE_RIGHT = 0.6
+FRINGE_GREY = 0.5
+SALT, SALT_GREY = 0.015, 0.35   # share of stray grey strands elsewhere, and how grey
 MELANIN = dict(dark=0.72, grey=0.10, redness_dark=0.30, redness_grey=0.10)
-HAIR_RGB = dict(dark=(0.028, 0.017, 0.011), grey=(0.30, 0.295, 0.285))   # EEVEE: direct colour
+HAIR_RGB = dict(dark=(0.028, 0.017, 0.011), grey=(0.21, 0.205, 0.2))   # EEVEE: direct colour
 
 
 def _node_mod(ob, group, values):
@@ -228,17 +248,22 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
     Built in the rest pose, in the file's MPFB frame (she faces -Y, back is +Y). The groom rides
     a hidden copy of the scalp skin that the rig deforms like the body (Deform Curves on Surface),
     because the nape is weighted to the neck: hair fixed to the head bone sinks into it when she
-    bows her head. Returns the bun, to be parented to the head bone.
+    bows her head. Returns what rides the head bone instead: the bun, its core and the loose
+    fringe and wisps.
+
+    The look is castle-v2.master.png's: a loose, fist-sized updo high on the back of the crown,
+    hair gathered up into it with volume on top, a fringe swept to her right that hangs at the
+    temple, a few wisps at the cheeks, and silver sweeping back from the temples.
     """
     import random
     import bmesh
     import bpy
-    from mathutils import Vector
+    from mathutils import Matrix, Vector, noise
     from mathutils.bvhtree import BVHTree
 
     lib = Path(bpy.utils.system_resource("DATAFILES")) / HAIR_ASSETS
     names = ["Attach Hair Curves to Surface", "Interpolate Hair Curves", "Clump Hair Curves",
-             "Frizz Hair Curves", "Set Hair Curve Profile", "Duplicate Hair Curves"]
+             "Frizz Hair Curves", "Hair Curves Noise", "Set Hair Curve Profile", "Duplicate Hair Curves"]
     with bpy.data.libraries.load(str(lib)) as (src, dst):
         missing = [x for x in names if x not in src.node_groups]
         dst.node_groups = [x for x in names if x in src.node_groups]
@@ -270,8 +295,16 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
     for m, s in shown:
         m.show_viewport = s
     bpy.context.view_layer.update()
+    # In front of the ear, short04 runs down into a sideburn; the art has the hair swept up
+    # above the ear there.
+    ear_front = min(shaped[v.index].y for v in body.data.vertices if weight(v, ei) > 0.5)
+
+    def sideburn(c):
+        return abs(c.x) > 0.04 and c.z < eye_z - SIDEBURN_DROP and c.y < ear_front + 0.01
+
     keep = {v.index for v in body.data.vertices
             if weight(v, bi) > 0.5 and weight(v, ei) < 0.5 and shaped[v.index].z > eye_z - NAPE_DROP
+            and not sideburn(shaped[v.index])
             and cover.find_nearest(shaped[v.index], HAIRLINE_REACH)[0] is not None}
     # short04 stands off the skin down the middle of the nape: close holes a few rings across.
     ring = {}
@@ -280,7 +313,8 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
         ring.setdefault(a, []).append(b)
         ring.setdefault(b, []).append(a)
     allowed = {v.index for v in body.data.vertices
-               if weight(v, bi) > 0.5 and weight(v, ei) < 0.5 and shaped[v.index].z > eye_z - NAPE_DROP}
+               if weight(v, bi) > 0.5 and weight(v, ei) < 0.5 and shaped[v.index].z > eye_z - NAPE_DROP
+               and not sideburn(shaped[v.index])}
     grown = set(keep)
     for _ in range(3):
         grown |= {n for i in grown for n in ring.get(i, ()) if n in allowed}
@@ -316,13 +350,6 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
             nrm = -nrm
         return loc, nrm
 
-    # The bun sits on the back of the head at eye height, its axis back and a little down.
-    back = max(v.y for v in sv if abs(v.x) < 0.03 and abs(v.z - eye_z) < 0.04)
-    base = Vector((0.0, back + 0.006, eye_z + 0.005))
-    axis = Vector((0.0, 1.0, -0.15)).normalized()
-    u = Vector((1.0, 0.0, 0.0))
-    w = axis.cross(u)
-    bun_r = 0.03
     # The temple: the front of the hairline at her side, between the ear's top and the brow.
     side = [v for v in sv if v.x > 0.05 and eye_z - 0.005 < v.z < eye_z + 0.035]
     temple = min(side, key=lambda v: v.y)
@@ -335,67 +362,231 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
         scene.collection.objects.link(ob)
         return ob
 
-    # ---- guides: one per scalp vertex, combed over the scalp toward the bun
+    # A softer hairline: fewer strands on the scalp's outer rings.
+    order = sorted(keep)
+    edge = {i for i in keep if any(n not in keep for n in ring.get(i, ()))}
+    rings = [edge]
+    for _ in HAIRLINE_SOFT[1:]:
+        done = set().union(*rings)
+        rings.append({i for i in keep - done if any(n in rings[-1] for n in ring.get(i, ()))})
+    soft = {i: d for band, d in zip(rings, HAIRLINE_SOFT) for i in band}
+    me.attributes.new("hair_density", "FLOAT", "POINT").data.foreach_set(
+        "value", [soft.get(i, 1.0) for i in order])
+    on_edge = [i in edge for i in order]
+
+    # The head itself, for keeping loose strands (fringe, wisps) off the skin.
+    near_head = {v.index for v in body.data.vertices
+                 if weight(v, bi) > 0.5 and shaped[v.index].z > eye_z - 0.16}
+    head_polys = [tuple(p.vertices) for p in body.data.polygons
+                  if all(i in near_head for i in p.vertices)]
+    head_bvh = BVHTree.FromPolygons(shaped, head_polys)
+    head_c = Vector((0.0, centre.y, eye_z + 0.02))
+
+    def clear(p, gap):
+        """Push `p` out of the head until it stands `gap` off the skin."""
+        loc, nrm, _, _ = head_bvh.find_nearest(p)
+        if loc is None:
+            return p
+        if nrm.dot(loc - head_c) < 0:
+            nrm = -nrm
+        d = (p - loc).dot(nrm)
+        return p + nrm * (gap - d) if d < gap else p
+
+    def spline(ctrl, n):
+        """A Catmull-Rom curve through `ctrl`, `n` points."""
+        c = [ctrl[0] * 2 - ctrl[1], *ctrl, ctrl[-1] * 2 - ctrl[-2]]
+        out = []
+        for k in range(n):
+            t = k / (n - 1) * (len(ctrl) - 1)
+            i = min(int(t), len(ctrl) - 2)
+            s = t - i
+            p0, p1, p2, p3 = c[i], c[i + 1], c[i + 2], c[i + 3]
+            out.append(0.5 * (2 * p1 + (p2 - p0) * s + (2 * p0 - 5 * p1 + 4 * p2 - p3) * s * s
+                              + (3 * p1 - p0 - 3 * p2 + p3) * s * s * s))
+        return out
+
+    def jitter(r):
+        return Vector((rng.uniform(-r, r), rng.uniform(-r, r), rng.uniform(-r, r)))
+
+    # ---- the bun: a loose, gathered updo high on the back of the crown (castle-v2.master.png)
+    up = Vector((0.0, math.cos(math.radians(BUN_ELEVATION)), math.sin(math.radians(BUN_ELEVATION))))
+    hit, n_hit, _, _ = bvh.ray_cast(Vector((0.0, centre.y, eye_z + 0.02)), up)
+    if n_hit.dot(up) < 0:
+        n_hit = -n_hit
+    axis = n_hit.normalized()
+    u = (Vector((1.0, 0.0, 0.0)) - axis * axis.x).normalized()
+    w = axis.cross(u)
+    bun_c = hit + axis * BUN_LIFT
+    ru, rw, ra = BUN_RADII
+
+    def on_bun(d, scale=1.0):
+        """The point of the bun's ellipsoid in local direction `d`, kept above the scalp."""
+        d = d.normalized()
+        p = bun_c + u * (d.x * ru * scale) + w * (d.y * rw * scale) + axis * (d.z * ra * scale)
+        h = (p - hit).dot(axis)
+        return p + axis * (0.004 - h) if h < 0.004 else p
+
+    # A lumpy core under the strands, so the bun reads solid rather than see-through.
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=24, v_segments=14, radius=1.0)
+    for v in bm.verts:
+        d = v.co.normalized()
+        lump = 0.9 + 0.12 * noise.noise(d * 2.2 + Vector((3.1, 0.7, 5.3)))
+        v.co = (on_bun(d, 0.86 * lump) - bun_c)
+    core_me = bpy.data.meshes.new("Castle hair bun core")
+    bm.to_mesh(core_me)
+    bm.free()
+    core = bpy.data.objects.new("Castle hair bun core", core_me)
+    core.location = bun_c
+    scene.collection.objects.link(core)
+    core_mat = bpy.data.materials.new("Castle hair bun core")
+    core_mat.diffuse_color = (*COLOURS["hair"], 1.0)
+    core_mat.use_nodes = True
+    core_bsdf = core_mat.node_tree.nodes.get("Principled BSDF")
+    core_bsdf.inputs["Base Color"].default_value = (*HAIR_RGB["dark"], 1.0)
+    core_bsdf.inputs["Roughness"].default_value = 0.6
+    core_me.materials.append(core_mat)
+    for f in core_me.polygons:
+        f.use_smooth = True
+
+    # Gathered strands wrapping the core along random arcs.
+    coil = []
+    for _ in range(BUN_GUIDES):
+        a = Vector((rng.gauss(0, 1), rng.gauss(0, 1), rng.gauss(0, 1))).normalized()
+        s0 = a.orthogonal().normalized()
+        span = math.radians(rng.uniform(140, 320))
+        rf = rng.uniform(1.0, 1.16)
+        pts = []
+        for k in range(32):
+            th = span * k / 31
+            d = Matrix.Rotation(th, 3, a) @ s0
+            pts.append(tuple(on_bun(d, rf + 0.05 * noise.noise(d * 4 + a * 7))))
+        coil.append(pts)
+
+    # ---- the scalp: one guide per vertex, gathered up over the head into the bun, with volume
+    def tuck():
+        d = Vector((rng.gauss(0, 1), rng.gauss(0, 1), -abs(rng.gauss(0, 0.6)) - 0.3))
+        return on_bun(d, 0.8)
+
     guides = []
     for root in sv:
         pts, p, travelled = [root.copy()], root.copy(), 0.0
-        reach = (base - root).length
+        reach = (bun_c - root).length
+        wob = w.cross(Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1)))).normalized()
+        phase = rng.uniform(0, 2 * math.pi)
         for _ in range(90):
-            if (p - base).length < bun_r:
+            if (p - bun_c).length < BUN_REACH:
                 break
             loc, nrm = surface(p)
-            to_b = base - p
+            to_b = bun_c - p
             t = to_b - nrm * to_b.dot(nrm)
             step = (t if t.length > 1e-6 else to_b).normalized() * 0.006
             loc, nrm = surface(p + step)
             travelled += step.length
             f = min(travelled / max(reach, 1e-3), 1.0)
-            p = loc + nrm * (HAIR_LIFT[0] + (HAIR_LIFT[1] - HAIR_LIFT[0]) * f)
+            lift = HAIR_LIFT[0] + (HAIR_LIFT[1] - HAIR_LIFT[0]) * f ** 0.6
+            sway = wob * (WOBBLE * math.sin(phase + travelled * 90.0) * min(f * 4, 1.0))
+            p = loc + nrm * lift + sway
             pts.append(p.copy())
-        a, r = rng.uniform(0, 2 * math.pi), 0.012 * math.sqrt(rng.random())
-        tuck = base + u * (r * math.cos(a)) + w * (r * math.sin(a)) + axis * 0.008
-        pts += [p.lerp(tuck, 0.5) + axis * 0.004, tuck]
+        end = tuck()
+        pts += [p.lerp(end, 0.5) + axis * 0.006, end]
         guides.append([tuple(q) for q in pts])
     groom = curves_object("Castle hair", guides)
     groom.data.surface = scalp
     groom.data.surface_uv_map = "UVMap"
-    # Silver at the temples, by where each guide is rooted; Interpolate carries it to the children.
-    lo, hi = TEMPLE_GREY
-    temple_grey = [min(max((hi - (Vector((abs(r.x), r.y, r.z)) - temple).length) / (hi - lo), 0.0), 1.0)
-                   for r in sv]
-    groom.data.attributes.new("temple", "FLOAT", "CURVE").data.foreach_set("value", temple_grey)
 
-    # ---- the bun: strands coiled round its axis, domed away from the head
-    coil = []
-    for _ in range(BUN_GUIDES):
-        rho0 = bun_r * max(0.15, math.sqrt(rng.random()))
-        phi0, turns = rng.uniform(0, 2 * math.pi), rng.uniform(0.9, 1.6)
-        rise = rng.uniform(0.55, 1.0)
-        pts = []
-        for k in range(28):
-            s = k / 27
-            th = phi0 + s * turns * 2 * math.pi
-            rho = rho0 * (1 - 0.3 * s)
-            dome = 0.024 * math.sqrt(max(0.0, 1 - (rho / bun_r) ** 2)) * rise
-            q = base + u * (rho * math.cos(th)) + w * (0.85 * rho * math.sin(th)) + axis * (dome - 0.003)
-            pts.append(tuple(q))
-        coil.append(pts)
+    # ---- loose hair: the fringe swept to her right, and wisps hanging at the temples
+    def temple_of(sign):
+        return min((v for v in sv if v.x * sign > 0.05 and eye_z - 0.005 < v.z < eye_z + 0.035),
+                   key=lambda v: v.y)
+
+    def onto(p, gap):
+        """The skin point nearest `p`, stood `gap` off it."""
+        loc, nrm, _, _ = head_bvh.find_nearest(p)
+        if nrm.dot(loc - head_c) < 0:
+            nrm = -nrm
+        return loc + nrm * gap
+
+    def settle(ctrl, n, gap0, gap1):
+        """Spline through `ctrl`, smoothed, then kept off the skin (the gap growing root to tip)."""
+        pts = spline(ctrl, n)
+        for _ in range(3):
+            pts = [pts[0]] + [(pts[k - 1] + pts[k] * 2 + pts[k + 1]) / 4 for k in range(1, n - 1)] + [pts[-1]]
+            pts = [pts[0]] + [clear(p, gap0 + (gap1 - gap0) * min(k / 8, 1.0)) for k, p in enumerate(pts[1:], 1)]
+        return pts
+
+    temple_r = temple_of(-1)
+    front_y = min(v.y for v in sv)
+    front_edge = [v for v, e in zip(sv, on_edge) if e and v.y < centre.y - 0.03]
+
+    def hairline_z(x):
+        near = [v.z for v in front_edge if abs(v.x - x) < 0.01]
+        return min(near) if near else eye_z + 0.05
+
+    crown_front = [v for v in sv if v.y < front_y + FRINGE_DEPTH and FRINGE_X[0] < v.x < FRINGE_X[1]
+                   and v.z > hairline_z(v.x) + 0.004]
+    loose = []
+    for root in rng.sample(crown_front, min(FRINGE_ROOTS, len(crown_front))):
+        x2 = max(root.x - rng.uniform(0.02, 0.05), -0.058)
+        x3 = (x2 + temple_r.x) / 2
+
+        def brow_z(x, below):
+            # Down over the hairline, never below the top of the brow.
+            return max(hairline_z(x) - below, eye_z + FRINGE_LOW)
+
+        # Combed forward along the scalp from the root, then across the top of the forehead.
+        ctrl = [root, onto(root + Vector((x2 - root.x, -0.012, 0.0)) * 0.4, 0.006),
+                onto(Vector((x2, front_y, brow_z(x2, rng.uniform(0.004, 0.012)))), 0.005),
+                onto(Vector((x3, front_y, brow_z(x3, rng.uniform(0.006, 0.016)))), 0.005),
+                onto(Vector((temple_r.x, temple_r.y + 0.004, eye_z + rng.uniform(0.015, 0.035))), 0.006)]
+        if rng.random() < FRINGE_HANG:         # left hanging at the cheek
+            ctrl.append(onto(Vector((temple_r.x, temple_r.y + rng.uniform(0.005, 0.02),
+                                     eye_z - rng.uniform(0.035, 0.075))), 0.004))
+        else:                                  # pinned back over the ear into the bun
+            ctrl += [onto(Vector((temple_r.x, temple_r.y + 0.055, eye_z + 0.035)), 0.009), tuck()]
+        loose.append(settle(ctrl, 36, 0.004, 0.007))
+    for sign, count in ((-1, WISPS[0]), (1, WISPS[1])):
+        t = temple_of(sign)
+        side = [v for v, e in zip(sv, on_edge) if e and v.x * sign > 0.05 and t.y + 0.015 < v.y < t.y + 0.045
+                and eye_z - 0.035 < v.z < eye_z + 0.02]
+        for root in rng.sample(side, min(count, len(side))):
+            drop = rng.uniform(0.05, 0.1)
+            ctrl = [root, onto(root + Vector((0, -0.003, -0.02)), 0.003),
+                    onto(root + Vector((0, -0.006, -drop * 0.6)), 0.003),
+                    onto(root + Vector((0, -0.008, -drop)), 0.004)]
+            loose.append(settle(ctrl, 22, 0.003, 0.004))
+    fringe = curves_object("Castle hair loose", [[tuple(p) for p in s] for s in loose])
     bun = curves_object("Castle hair bun", coil)
+
+    # Silver at the temples, by where each strand is rooted (strongest on her left, as in the
+    # art); Interpolate carries the guides' value to their children.
+    lo, hi = TEMPLE_GREY
+
+    def temple_grey(r):
+        side = 1.0 if r.x > 0 else TEMPLE_RIGHT
+        return side * min(max((hi - (Vector((abs(r.x), r.y, r.z)) - temple).length) / (hi - lo), 0.0), 1.0)
+
+    groom.data.attributes.new("temple", "FLOAT", "CURVE").data.foreach_set(
+        "value", [temple_grey(r) for r in sv])
+    fringe.data.attributes.new("temple", "FLOAT", "CURVE").data.foreach_set(
+        "value", [FRINGE_GREY * (rng.random() < 0.12) for s in loose])
 
     grey = _grey_group()
     mat = _hair_material()
-    for ob in (groom, bun):
+    for ob in (groom, bun, fringe):
         ob.data.materials.append(mat)
     _node_mod(groom, groups["Attach Hair Curves to Surface"],
               {"Surface Object": scalp, "Surface UV Map": ("attribute", "UVMap"), "Resting Surface": True})
     _node_mod(groom, groups["Interpolate Hair Curves"],
               {"Resting Surface": True, "Part by Mesh Islands": False, "Interpolation Guides": 5,
-               "Density": HAIR_DENSITY, "Seed": 3})
+               "Density": HAIR_DENSITY, "Density Mask": ("attribute", "hair_density"), "Seed": 3})
     _node_mod(groom, groups["Clump Hair Curves"],
-              {"Factor": 0.3, "Shape": 0.3, "Existing Guide Map": False, "Guide Distance": 0.008})
-    _node_mod(bun, groups["Duplicate Hair Curves"], {"Amount": BUN_COPIES, "Radius": 0.0018})
-    for ob in (groom, bun):
-        _node_mod(ob, groups["Frizz Hair Curves"], {"Distance": 0.0005})
+              {"Factor": 0.35, "Shape": 0.3, "Existing Guide Map": False, "Guide Distance": 0.008})
+    _node_mod(bun, groups["Duplicate Hair Curves"], {"Amount": BUN_COPIES, "Radius": 0.003})
+    _node_mod(fringe, groups["Duplicate Hair Curves"], {"Amount": LOOSE_COPIES, "Radius": 0.0025})
+    for ob, frizz, wander in ((groom, 0.0008, 0.0012), (bun, 0.0012, 0.0012), (fringe, 0.0012, 0.0015)):
+        _node_mod(ob, groups["Frizz Hair Curves"], {"Distance": frizz})
+        _node_mod(ob, groups["Hair Curves Noise"], {"Distance": wander, "Scale": 45.0})
         _node_mod(ob, groups["Set Hair Curve Profile"], {"Radius": HAIR_RADIUS, "Shape": 0.5})
         ob.modifiers.new("Grey at the temples", "NODES").node_group = grey
     # Last, as Blender's own hair setup has it: the finished groom rides the posed scalp.
@@ -404,7 +595,7 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
     for ob in (scalp, groom):
         ob.parent = rig
         ob.matrix_parent_inverse = rig.matrix_world.inverted()
-    return bun
+    return [bun, core, fringe]
 
 
 def launch(argv):
@@ -543,7 +734,8 @@ def blender_main(argv):
         bun.scale = (0.036, 0.026, 0.03)
         bone_parent(bun, "head")
     else:
-        bone_parent(grow_curves_hair(body, rig, hair, eye_z), "head")
+        for ob in grow_curves_hair(body, rig, hair, eye_z):
+            bone_parent(ob, "head")
         bpy.data.objects.remove(hair, do_unlink=True)
 
     collar = add(bpy.ops.mesh.primitive_cone_add, "duty jacket collar", "jacket", vertices=24,

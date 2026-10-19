@@ -10,7 +10,8 @@ the painted crown sheet (`jungle/raw/crowns-v1.png`, from `jungle/crown_guide.py
 shading and real shadows on the layers below; the paint gives leaves. Layers, low to high:
 
 - understory: ferns, palms and young broadleaf where the canopy opens and along the edge,
-- the clearing edge: a dense band of palms and ferns stepping up into the forest,
+- the clearing edge: bays cut back into the old forest and grown over with ferns, palms and
+  young trees, a few lone trees left standing, and a band of ferns along the line itself,
 - the canopy: overlapping broadleaf crowns 22-34 m up, with palms through it and gaps,
 - emergents: the odd big tree standing clear above the rest.
 
@@ -266,17 +267,32 @@ def grow(fence_x, north_y, west_x=-1100.0, far=1450.0, south_y=345.0, seed=11):
         k = np.clip((x - 660) / 200, 0, 1)
         corner = south_y - 125 * k * k * (3 - 2 * k)
         ragged = 2.5 * ground.wobble(x * 0.8 + 200) + 15 * noise2(x, y, 0.035, 7) + 6 * noise2(x, y, 0.13, 8)
-        d = np.where(x > fence_x + 4, np.minimum(d, y - (corner + 10 + ragged)), d)
-        ok = (d > inset) & ~ground.in_burn(x, y)
+        south = y - (corner + 10 + ragged)
+        base = np.where(x > fence_x + 4, np.minimum(d, south), d)
+        # A bay is a stretch of the line, so its depth is read where the line is, not where the tree is.
+        cut = np.where(x > fence_x + 4, np.where(south < d, bite(x, corner), bite(np.full_like(y, fence_x), y)), bite(x, np.full_like(x, north_y)))
+        d = base - cut + 6 * noise2(x, y, 0.11, 23)                # the old trees' own ragged front
+        ok = (d > inset) & clear(x, y)
+        return ok, d, base
+
+    def clear(x, y):
+        ok = ~ground.in_burn(x, y)
         ok &= ~((x < fence_x + 4) & (y < north_y - 2))
         ok &= ~((x < 625) & (y < 364))                              # the loading strip stays clear
-        return ok, d
+        return ok
+
+    def bite(x, y):
+        """How far the old forest stands back from the clearing line: bays cut and let grow
+        back, a few deep, most shallow, and stretches where the big trees stand right at it."""
+        deep = 60 * np.clip((noise2(x, y, 0.028, 21) - 0.2) / 0.7, 0, 1) ** 0.6
+        step = 14 * np.clip(noise2(x, y, 0.07, 22) - 0.1, 0, 1)
+        return deep + step
 
     gaps = noise2  # the canopy opens where low-frequency noise peaks, onto the understory
 
     # The canopy: overlapping broadleaf crowns, rising from the edge into full height.
     x, y = scatter(rng, box, 10.5, 3.6)
-    ok, d = keep(x, y, 4.0)
+    ok, d, base = keep(x, y, 4.0)
     open_ = gaps(x, y, 0.03, 1) + 0.45 * gaps(x, y, 0.11, 2)
     ok &= open_ < 0.85
     x, y, d = x[ok], y[ok], d[ok]
@@ -294,9 +310,43 @@ def grow(fence_x, north_y, west_x=-1100.0, far=1450.0, south_y=345.0, seed=11):
     # Some of the canopy sits in shade of its neighbours: darken a few, more toward the gaps.
     canopy['tint'] *= np.clip(1.05 - 0.25 * np.clip(open_[ok], 0, 1.2), 0.7, 1.05)[:, None]
 
+    # Lone trees: left standing when a bay was cut, or grown up in it since, and a few out in
+    # the cleared ground beyond the line.
+    x, y = scatter(rng, box, 10.5, 3.6)
+    ok, d, base = keep(x, y, 4.0)
+    inside_bay = (d < -6) & (base > 2) & (rng.random(len(x)) < 0.07)
+    outside = (base < -5) & (base > -26) & (x > fence_x + 30) & (rng.random(len(x)) < 0.025)
+    ok = (inside_bay | outside) & clear(x, y)
+    x, y = x[ok], y[ok]
+    n = len(x)
+    r = rng.uniform(5.0, 9.0, n)
+    palm = rng.random(n) < 0.3
+    lone = dict(x=x, y=y, r=np.where(palm, r * 0.7, r), z=rng.uniform(14, 26, n),
+                h=r * np.where(palm, 0.3, 0.55), rot=rng.uniform(0, 2 * np.pi, n),
+                cell=np.where(palm, PALM * GRID + rng.integers(0, 4, n),
+                              np.where(rng.random(n) < 0.3, EMERGENT * GRID, BROADLEAF * GRID) + rng.integers(0, 4, n)),
+                tint=tints(rng, n, (0.68, 0.72, 0.60), 0.16))
+    for k in canopy:
+        canopy[k] = np.concatenate([canopy[k], lone[k]])
+
+    # Regrowth in the bays: ferns, palms and young trees, taller toward the old forest.
+    x, y = scatter(rng, box, 4.2, 1.8)
+    ok, d, base = keep(x, y, 4.0)
+    ok = (base > -1) & (d < 4) & clear(x, y) & (rng.random(len(x)) < 0.45 + 0.5 * np.clip(noise2(x, y, 0.09, 24) + 0.4, 0, 1))
+    x, y, d = x[ok], y[ok], d[ok]
+    n = len(x)
+    kind = rng.random(n)
+    near = np.clip(1 + d / 22.0, 0, 1)                            # 1 at the old trees, 0 far out
+    cell = np.where(kind < 0.4, FERN * GRID + rng.integers(0, 4, n),
+                    np.where(kind < 0.7, PALM * GRID + rng.integers(0, 4, n), BROADLEAF * GRID + rng.integers(0, 4, n)))
+    r = np.where(kind < 0.4, rng.uniform(1.6, 3.0, n), rng.uniform(2.4, 4.2, n) * (1 + 0.5 * near))
+    regrowth = dict(x=x, y=y, r=r, z=1.0 + 6 * near ** 2 * rng.uniform(0.5, 1.0, n) + 0.3 * r, h=r * 0.35,
+                    rot=rng.uniform(0, 2 * np.pi, n), cell=cell,
+                    tint=tints(rng, n, (0.92, 0.98, 0.70), 0.18))
+
     # Emergents: big multi-clump crowns standing over the canopy.
     x, y = scatter(rng, box, 44.0, 16.0)
-    ok, d = keep(x, y, 30.0)
+    ok, d, base = keep(x, y, 30.0)
     ok &= rng.random(len(x)) < 0.55
     x, y = x[ok], y[ok]
     n = len(x)
@@ -307,7 +357,7 @@ def grow(fence_x, north_y, west_x=-1100.0, far=1450.0, south_y=345.0, seed=11):
 
     # Understory: under the gaps and along the edge, ferns, palms and young trees.
     x, y = scatter(rng, box, 6.0, 2.6)
-    ok, d = keep(x, y, -1.0)
+    ok, d, base = keep(x, y, -1.0)
     under_open = gaps(x, y, 0.03, 1) + 0.45 * gaps(x, y, 0.11, 2)
     ok &= (under_open > 0.75) | (d < 30.0)
     x, y, d = x[ok], y[ok], d[ok]
@@ -324,8 +374,8 @@ def grow(fence_x, north_y, west_x=-1100.0, far=1450.0, south_y=345.0, seed=11):
     # The clearing edge itself: a ragged band of ferns and small palms on the cleared side of
     # the trees, overhanging the track and the burnt patches but never the fence.
     x, y = scatter(rng, box, 3.6, 1.6)
-    ok, d = keep(x, y, -7.0)
-    ok &= d < 6.0
+    ok, d, base = keep(x, y, -7.0)
+    ok = (((d > -7) & (d < 6)) | ((base > -7) & (base < 4))) & clear(x, y)
     ok &= rng.random(len(x)) < 0.7
     ok &= ~((x < fence_x + 3.5) & (x > fence_x - 30))             # the fence line and track stay clear
     ok &= ~((y < north_y + 1) & (y > north_y - 30) & (x < fence_x + 4))
@@ -337,7 +387,72 @@ def grow(fence_x, north_y, west_x=-1100.0, far=1450.0, south_y=345.0, seed=11):
                   rot=rng.uniform(0, 2 * np.pi, n),
                   cell=np.where(palm, PALM * GRID, FERN * GRID) + rng.integers(0, 4, n),
                   tint=tints(rng, n, (0.8, 0.84, 0.72), 0.15))
-    return dict(canopy=canopy, emergent=emergent, under=under, fringe=fringe)
+    # The bays' ground: cells of open, cut-over ground under the regrowth.
+    x, y = np.meshgrid(np.arange(fence_x, far, 3.0), np.arange(south_y - 130, far, 3.0))
+    x, y = x.ravel() + 1.5, y.ravel() + 1.5
+    ok, d, base = keep(x, y, 4.0)
+    ok = (base > -2) & (d < 2) & clear(x, y)
+    bay = (x[ok], y[ok])
+    return dict(canopy=canopy, emergent=emergent, under=under, regrowth=regrowth, fringe=fringe), bay
+
+
+def bay_ground(cells, size=3.0):
+    """Open cut-over ground in the bays: mud and rank grass. Kept apart from the port's overhead
+    painting, which was made before the bays were cut."""
+    x, y = cells
+    n = len(x)
+    if not n:
+        return None
+    h = size / 2 + 0.05                                    # a hair of overlap: no cracks
+    corners = np.array([(-h, -h), (h, -h), (h, h), (-h, h)])
+    verts = np.zeros((n, 4, 3))
+    verts[:, :, 0] = x[:, None] + corners[None, :, 0]
+    verts[:, :, 1] = y[:, None] + corners[None, :, 1]
+    verts[:, :, 2] = 0.13
+    me = bpy.data.meshes.new('Jungle bay ground')
+    me.vertices.add(4 * n)
+    me.vertices.foreach_set('co', verts.astype(np.float32).ravel())
+    me.loops.add(4 * n)
+    me.loops.foreach_set('vertex_index', np.arange(4 * n, dtype=np.int32))
+    me.polygons.add(n)
+    me.polygons.foreach_set('loop_start', np.arange(0, 4 * n, 4, dtype=np.int32))
+    me.update(calc_edges=True)
+    m = bpy.data.materials.new('Jungle bay ground')
+    m.use_nodes = True
+    m.diffuse_color = (0.14, 0.13, 0.07, 1)
+    nt = m.node_tree
+    pr = nt.nodes['Principled BSDF']
+    pr.inputs['Roughness'].default_value = 0.95
+    geo = nt.nodes.new('ShaderNodeNewGeometry')
+    patch = nt.nodes.new('ShaderNodeTexNoise')            # mud where it was last cut, grass elsewhere
+    patch.inputs['Scale'].default_value = 0.06
+    patch.inputs['Detail'].default_value = 4.0
+    nt.links.new(geo.outputs['Position'], patch.inputs['Vector'])
+    ramp = nt.nodes.new('ShaderNodeValToRGB')
+    ramp.color_ramp.elements[0].position, ramp.color_ramp.elements[1].position = 0.42, 0.62
+    ramp.color_ramp.elements[0].color = (0.16, 0.11, 0.06, 1)
+    ramp.color_ramp.elements[1].color = (0.15, 0.20, 0.06, 1)
+    nt.links.new(patch.outputs['Fac'], ramp.inputs['Fac'])
+    grain = nt.nodes.new('ShaderNodeTexNoise')            # tussocks and wheel-ruts at a metre or two
+    grain.inputs['Scale'].default_value = 0.7
+    grain.inputs['Detail'].default_value = 6.0
+    grain.inputs['Roughness'].default_value = 0.65
+    nt.links.new(geo.outputs['Position'], grain.inputs['Vector'])
+    light = nt.nodes.new('ShaderNodeMapRange')
+    light.inputs['To Min'].default_value = 0.55
+    light.inputs['To Max'].default_value = 1.35
+    nt.links.new(grain.outputs['Fac'], light.inputs['Value'])
+    mix = nt.nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    mix.blend_type = 'MULTIPLY'
+    mix.inputs['Factor'].default_value = 1.0
+    nt.links.new(ramp.outputs['Color'], mix.inputs['A'])
+    nt.links.new(light.outputs['Result'], mix.inputs['B'])
+    nt.links.new(mix.outputs['Result'], pr.inputs['Base Color'])
+    ob = bpy.data.objects.new('Jungle bay ground', me)
+    bpy.context.scene.collection.objects.link(ob)
+    me.materials.append(m)
+    return ob
 
 
 def apply(fence_x, north_y):
@@ -348,10 +463,12 @@ def apply(fence_x, north_y):
             bpy.data.objects.remove(ob)
     image = bpy.data.images.load(str(SHEET), check_existing=True)
     image.alpha_mode = 'STRAIGHT'
-    layers = grow(fence_x, north_y)
+    layers, bay = grow(fence_x, north_y)
+    bay_ground(bay)
     mats = {'canopy': crown_material('Jungle crowns', image, 0.22),
             'emergent': crown_material('Jungle emergents', image, 0.3),
             'under': crown_material('Jungle understory', image, 0.0),
+            'regrowth': crown_material('Jungle regrowth', image, 0.12),
             'fringe': crown_material('Jungle fringe', image, 0.12)}
     floor = bpy.data.materials.get('Jungle floor')         # the floor between: deep shade, not lawn
     if floor is not None:
