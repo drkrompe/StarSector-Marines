@@ -97,11 +97,15 @@ Built from the game's sprites (house='hand')
 Tri-Tachyon energy weapons (house='hand')
   tachyonlance, gravitonbeam, taclaser, the reaper launcher and the pdlaser,
   the Paragon's Elite fit (with the kit's needler). A beam has no gun sprite,
-  so the whole weapon trains and the
-  elevation empty carries only the muzzle anchors (at the .wpn's offsets).
-  Each stands on a thin deck cut to the sprite's outline (`bodies`, which keeps
-  both halves of the lance either side of its open beam slot, plus the thin
-  `prongs`); that holds the silhouette. Over it the sprite is read as solids,
+  so the whole weapon trains and the elevation empty carries only the muzzle
+  anchors (at the .wpn's offsets). Each trains on a round chamfered turntable
+  (_turntable), and everything the sprite shows is a part: blades, a nose and
+  rails cantilever past it, their undersides lifting toward the tips, and the
+  sprite's dark masses are machinery blocks, fairings and webbed roots, not a
+  plate cut to the outline (owner, 2026-10-19: the outline board read strange).
+  A catalogue `roller` (x ring radius, default .9) shrinks the kit's traverse
+  roller where it would show (the lance's sits under its small turntable).
+  The sprite is read as solids,
   not as layers of plate: a lit column is a crest with faces falling away
   either side, a dark band beside it a steep wall or a gap, a highlight running
   across a part says the part lies across. So the lance is two keel blades,
@@ -120,8 +124,8 @@ Tri-Tachyon energy weapons (house='hand')
   sprite-pixel scale (a lance is about 60 m across; true-metre bolts would
   vanish): cooling rings, vent slats, rims, dome plate seams cut through a
   shell to its core, skirt bands. Lamps are 'lamp_blue', 'lamp_red' and
-  'lamp_core'. Silhouette IoU 0.92 (lance), 0.95 (graviton), 0.92 (tactical
-  laser), 0.86 (reaper).
+  'lamp_core'. Silhouette IoU 0.86 (lance), 0.88 (graviton), 0.87 (tactical
+  laser; sensor lugs on its flanks, a rear cap, a neck cowl), 0.86 (reaper).
   The PD laser (pdlaser, common tech) is the same family, built for busy
   scenes. A round chamfered turntable carries it (not a plate cut to the
   sprite's outline); a dark housing lofted to the sprite's plan, a red armoured
@@ -155,8 +159,21 @@ Other catalogue entries (WEAPONS)
   none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open
   rails), pilum, typhoon, annihilatorpod (tubes): the rack is drawn with its
   loaded missiles (RENDER_LOADED_MISSILES), on a yoke with elevation rams.
-  Not yet: hardpoints (fixed mounts) and energy weapons other than the
-  Tri-Tachyon four above; the Onslaught's built-in TPCs stay in os_turrets.
+  Not yet: other hardpoints, and energy weapons other than the Tri-Tachyon
+  guns above; the Onslaught's built-in TPCs stay in os_turrets.
+
+Hardpoints (fixed mounts)
+  build_hardpoint(weapon, prefix, parent, mats, mpu, k=1.0, **over) builds a
+  fixed gun on a hull's empty at the slot (+X along the line of fire, z=0 on the
+  mount's axis), from HARDPOINT_WEAPONS (kept apart from WEAPONS, so the turret
+  catalogue never builds them as turrets). The game draws a hardpoint sprite
+  with its slot a quarter of the sprite's length from its back and the fire
+  point at hardpointOffsets ahead of it, so most of a big hardpoint runs out
+  ahead of its slot. hull_finish / sprite_tint work as for build(); muzzles are
+  '<prefix> muzzle anchor <k>'. So far: autopulse (the Paragon Elite's bow
+  pair): a breech on a sled in its bay, a capacitor bulb, a finned cooling
+  flange, the long emitter barrel to a lipped muzzle, a coolant pipe and a
+  capacitor box, sized to a 21 x 22 bay.
 
 Review
   blender --background --factory-startup --python catalog.py -- --out DIR

@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a15479-577a-78d0-be5f-e4fa853bcc25",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15479-577a-78d0-be5f-e4fa853bcc25\\exec-27943a58-bfd4-4c3f-bd16-55ac3b1d8411.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "cladding.png",
+    "sha256": "af3eca17f178bba6d5cee379d4e043092fa9fb23eb45e1c3820898cc7bdc9b29",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "cladding.prompt.txt",
+  "promptSha256": "f4dc297834374d273b3b1694191d8e9290a0087193a2b2cba50804e925fa349f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA texture for a 3D scene: one building wall material seen perfectly face-on, orthographic, filling the whole square canvas edge to edge. No perspective, no sky, no ground, no people, no vehicles, no border, no text, no logos, no signage lettering. Flat, even, overcast daylight with no cast shadows and no strong directional shading, so it works as a colour (albedo) map that the scene lights itself. Photographic, realistic, hard-used industrial look: this is Greywater Down, a humid jungle-world spaceport's industrial district, wet season, everything weathered.\nThe LEFT and RIGHT edges must tile seamlessly: whatever crosses the left edge continues exactly at the right edge, with no seam, no vignette and no change of brightness across the image.\nThe material: corrugated (trapezoidal-profile) steel wall cladding of a warehouse, ribs running VERTICALLY, about 40 ribs across the canvas (the canvas is 8 m wide and 8 m tall). Painted a plain light neutral grey (it will be tinted to other colours in the scene, so keep the paint itself colour-neutral grey, not blue or beige). Weathering: thin rust streaks running down from rows of fixing screws at two horizontal sheet joints, dark rain streaks hanging from the top edge (the eave) fading downward, a dirt and splash band along the bottom edge (the ground), a few dents and one or two replaced sheets slightly different in shade. The top edge is the roof eave: a thin flashing strip runs along it. The bottom edge is the ground line.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square wall texture with the specified weathering and seamless left and right edges."
+  ],
+  "usage": {
+    "input_tokens": 35576,
+    "cached_input_tokens": 29184,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 526,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.8
+}

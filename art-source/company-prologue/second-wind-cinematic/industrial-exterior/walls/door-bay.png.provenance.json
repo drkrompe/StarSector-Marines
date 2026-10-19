@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a15479-5759-71a2-a4af-ead451c741ac",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15479-5759-71a2-a4af-ead451c741ac\\exec-19937fc6-280d-44ed-a4a6-3db475f01fc0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "door-bay.png",
+    "sha256": "6a74d631d8f03a5a252ba4d2836f3caf9847dfba599243ff9951a96bf89a3d14",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "door-bay.prompt.txt",
+  "promptSha256": "95f72204c0d29d9e0301cc15b934824846655a4a9b70835fcca1a63028a4fede",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA texture for a 3D scene: one building wall material seen perfectly face-on, orthographic, filling the whole square canvas edge to edge. No perspective, no sky, no ground, no people, no vehicles, no border, no text, no logos, no signage lettering. Flat, even, overcast daylight with no cast shadows and no strong directional shading, so it works as a colour (albedo) map that the scene lights itself. Photographic, realistic, hard-used industrial look: this is Greywater Down, a humid jungle-world spaceport's industrial district, wet season, everything weathered.\nThe LEFT and RIGHT edges must tile seamlessly: whatever crosses the left edge continues exactly at the right edge, with no seam, no vignette and no change of brightness across the image.\nThe material: one loading bay of a corrugated steel warehouse wall, 12 m wide and 12 m tall. Vertical-ribbed light neutral grey corrugated cladding (keep the paint colour-neutral grey; it is tinted in the scene) covers the wall. Centred at the bottom, a large steel roller shutter door 5 m wide and 5.5 m tall, horizontal slats, darker galvanised grey, scuffed at the bottom, with a steel frame, yellow-and-black hazard paint on the two bollards either side and a small rain hood above it. To its right a plain steel personnel door with a small light over it. Rust streaks from fixings, rain streaks under the door hood, a dirt and splash band along the bottom edge (the ground line). The upper half of the canvas is plain weathered cladding. The left and right edges are plain cladding so bays repeat side by side along a long wall.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate exactly one image with the requested industrial wall texture and seamless left-to-right edges."
+  ],
+  "usage": {
+    "input_tokens": 35656,
+    "cached_input_tokens": 29184,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 556,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.0
+}
