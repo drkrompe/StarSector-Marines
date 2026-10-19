@@ -1,4 +1,4 @@
-PHAETON - CINEMATIC GEOMETRY (PASS 1 BLOCKOUT)
+PHAETON - CINEMATIC GEOMETRY (PASSES 1-2, 4, 5)
 
 Purpose
 An editable Blender model of the vanilla Phaeton tanker for the Asharu
@@ -54,7 +54,46 @@ Engines (phaeton.ship order; names as on the Second Wind)
   1..6 at X -93, Y +36 (w12), +24, +9, -9, -24 (w16), -36 (w12), angle 180.
   'Engine <i> aft-facing bell / mouth lip / dark throat / exhaust anchor'.
 
+Pass 2 detail (IoU 0.936; blockout 0.931)
+Four modules were detailed in parallel (hull, deck, bow, engines) and
+integrated; check_clashes.py is the cross-module overlap sweep (remaining
+hits are deliberate joins).
+- ph_hull: plate seams, coaming, keel strake, tank crown trunks, strake
+  bays and lamps, gallery windows, deck hatches and vents, pump house,
+  radiators, valve box.
+- ph_deck: Moss-type cargo deck - pipe trunk with four cargo lines,
+  catwalk over the domes, dome stairs, crown platforms, cross headers A/B,
+  port and starboard manifolds, vent masts, floodlights.
+- ph_bow: bridge cab and wheelhouse, windscreen, mast and radar, escape
+  pod and davits, observation housing, twin-leg lattice crane with hose.
+- ph_engines / ph_mounts: detailed bells (exhaust anchors unchanged),
+  drive block aft face, drums, drive housings with iris and glow, guard
+  arcs; flare launchers are 2x3 packs. Turret is the Shepherd's design at
+  TURRET_SCALE 1.5.
+reference-history/v1-blockout/ holds the blockout manifest; its close-up
+renders are regenerated (ignored), never committed.
+
+Pass 4 scale
+ship_scale.py option C on the measured SOLIDS volume (hull body, strakes,
+aft frame and spine, gallery, bridge, three tank spheres: 307,698 u3),
+freighter class: solved 0.326 m/unit (0.318-0.334), published 0.33.
+232 units = about 76 m: 1.24 Hounds (61 m), 0.70 Colossus (108 m). The
+driver re-measures on every build and stops if the volume drifts >2%.
+
+Pass 5 condition state: destroyed (ph_damage.py, --state destroyed)
+Broken into three sections at S02 (X 22) and S01 (X 66) with jagged
+cutters; tank 1 (S03) and tank 3 (S05) ruptured outward with petals,
+tank 2 shattered by the strike crater (S04) with fragments flung out;
+S06 debris, S07 exposed frames on the break faces. Base objects are never
+renamed: the base keeps its stern-most piece and other pieces become
+'Scar S0x <section> piece | <name>'. Sections are parented to 'Scar S02
+stern section', 'Scar S04 mid section', 'Scar S01 bow section' empties
+whose wreck_pose custom props store pivot/translate/rotation, so a
+cinematic can drive the break-up from intact. Fire, vent and explosion
+anchors ('... fire anchor', '... vent anchor') feed the shared SWFX
+'fire' group.
+
 Build
-  sh ../../blender.sh --background --factory-startup --python build_phaeton.py -- --out <dir>
+  sh ../../blender.sh --background --factory-startup --python build_phaeton.py -- --out <dir> [--state destroyed] [--device cpu] [--engine workbench]
   python compose_review.py --dir <dir>
 Renders go to an ignored folder (build/phaeton/...); never commit them.

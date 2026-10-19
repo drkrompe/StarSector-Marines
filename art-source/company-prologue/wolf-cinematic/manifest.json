@@ -1,10 +1,11 @@
 {
  "asset": "wolf-p.blend",
  "name": "Wolf (P)",
+ "variant": "pirate",
  "append_collection": "WOLF_P",
  "root": "WOLF_P | root",
  "anchors_collection": "WOLF_P | anchors",
- "metres_per_unit": 0.95,
+ "metres_per_unit": 0.76,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -14,21 +15,21 @@
   [
    -40.2,
    -26.183,
-   -8.8
+   -18.0
   ],
   [
    57.98,
    26.183,
-   9.127
+   11.727
   ]
  ],
  "size_m": [
-  93.3,
-  49.7,
-  17.0
+  74.6,
+  39.8,
+  22.6
  ],
  "meshes": 151,
- "polygons": 9123,
+ "polygons": 9075,
  "images": 20,
  "engines": [
   {
@@ -40,7 +41,7 @@
    "location": [
     -36,
     12,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -67,7 +68,7 @@
    "location": [
     -40,
     0,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -94,7 +95,7 @@
    "location": [
     -36,
     -11,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -123,7 +124,7 @@
    "location": [
     11,
     0,
-    5.0
+    7.6
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -153,11 +154,12 @@
   {
    "slot": "WS 004",
    "weapon": "miningblaster",
+   "built_as": "miningblaster",
    "mount": "Weapon WS 004 mount",
    "location": [
     45,
     0,
-    0.4
+    -0.5
    ],
    "k": 0.55,
    "bay": {
@@ -167,8 +169,8 @@
     ],
     "half_width": 5.3,
     "z": [
-     -2.4,
-     4.0
+     -3.3,
+     3.1
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -192,11 +194,12 @@
   {
    "slot": "WS 005",
    "weapon": "annihilator",
+   "built_as": "annihilator",
    "mount": "Weapon WS 005 mount",
    "location": [
     11,
     20,
-    0.2
+    -1.8
    ],
    "k": 0.6,
    "bay": null,
@@ -225,11 +228,12 @@
   {
    "slot": "WS 006",
    "weapon": "annihilator",
+   "built_as": "annihilator",
    "mount": "Weapon WS 006 mount",
    "location": [
     11,
     -19,
-    0.2
+    -1.8
    ],
    "k": 0.6,
    "bay": null,
@@ -332,7 +336,7 @@
    "location": [
     11,
     0,
-    5.0
+    7.6
    ],
    "angle": 0,
    "arc": 150,
@@ -349,7 +353,7 @@
    "location": [
     45,
     0,
-    0.4
+    -0.5
    ],
    "angle": 0,
    "arc": 5,
@@ -366,7 +370,7 @@
    "location": [
     11,
     20,
-    0.2
+    -1.8
    ],
    "angle": 0,
    "arc": 5,
@@ -387,7 +391,7 @@
    "location": [
     11,
     -19,
-    0.2
+    -1.8
    ],
    "angle": 0,
    "arc": 5,
@@ -414,13 +418,14 @@
   "WS 005": "annihilator",
   "WS 006": "annihilator"
  },
+ "built_as": {},
  "running_lights": [
   {
    "name": "Light port neck lamp 1",
    "position": [
     26,
     11.5,
-    3.28
+    5.88
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -435,7 +440,7 @@
    "position": [
     26,
     -11.5,
-    3.28
+    5.88
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -480,7 +485,7 @@
    "position": [
     -30,
     0,
-    5.35
+    7.85
    ],
    "colour": "white",
    "role": "stern light",
@@ -495,7 +500,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "8872f33d79d4ac8ca9983fa2ae27d66b8ded003aef14efbf10817b087d31e4a3"
+  "vfx_hull_sha256": "2aacfde2eb7e92edb8b3877fd01114aa5f854d62f584ee06d68ffcd4e1828127"
  },
  "state": "clean",
  "engines_running": [
@@ -597,7 +602,7 @@
    "anchor": "SWFX anchor turret 4 tube 5"
   }
  ],
- "gun_rigs_note": "Kit mount numbers (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, five-tube launchers.",
+ "gun_rigs_note": "Kit mount numbers in vfx_mounts order. Pirate (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, five-tube launchers.",
  "lamps": [
   {
    "object": "Light port neck lamp 1",
@@ -699,5 +704,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "2edf2d5069d6fe7ff3047136a443a81683e577cb5eea9430ad5fddc63a4b6a6c"
+ "asset_sha256": "350911d7dd591ab2a8596aa33548e1d0683eb3c3b2b18d7d82329f39e3757746"
 }

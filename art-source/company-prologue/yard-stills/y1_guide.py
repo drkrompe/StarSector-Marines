@@ -7,8 +7,8 @@ The yard report page (`CompanyYardScreen`, storyboard-v3.md row Y1) shows the sh
 to convert. This renders it from the cinematic's own yard (`industrial-exterior/c5_scene.py`, which
 builds C4's port with the ship in the cradle, the scaffold arms swung in, the tug, bowser and crew
 carrier at the hull and her crew in hi-vis), at the moment the vehicles have parked and before
-anyone has come off the ramp. The camera stands on the gravel in front of her workshop, a little
-above eye height, looking across the yard at the ship. Nessa (`nessa-figure/build_nessa.py
+anyone has come off the ramp. The camera stands on the open gravel off the ship's port flank, a
+little above eye height, looking square at its side (owner, 2026-10-19: a side view). Nessa (`nessa-figure/build_nessa.py
 --pose slate`) stands in the foreground holding the work slate out toward the viewer; the crowd's
 stand-in Nessa is hidden.
 
@@ -35,12 +35,14 @@ import c5_scene  # noqa: E402
 REPO = PROLOGUE.parents[1]
 W, H = 1536, 1024
 C5_T = 7.6                       # vehicles parked, the ramp crew out, the families not yet down
-NESSA = Vector((349.0, 421.5))   # a few steps out from her door, toward the ship
-CAMERA_BACK = 7.5                # metres behind her, away from the ship
-CAMERA_SIDE = -2.6               # to her right as she faces the camera
-CAMERA_Z = 2.3                   # above the gravel
-LOOK_AT_Z = 9.0                  # aim: the ship's flank beyond her
-LENS = 26.0
+# A broadside on the ship's port (west) flank, from the open yard between the cradle and the
+# works: the camera in the ship's own frame (u ahead along its heading, v to its left), Nessa a few
+# steps in front of it toward the ship and a little to the right of frame.
+CAMERA_UV = (-12.0, 50.0)
+NESSA_AHEAD, NESSA_RIGHT = 1.8, 0.75   # close: she is handing the estimate to the viewer
+CAMERA_Z = 1.6                   # eye height
+LOOK_AT_Z = 9.0                  # aim: the middle of the ship's flank
+LENS = 22.0
 
 
 def main():
@@ -61,9 +63,10 @@ def main():
 
     # Nessa, from her figure package, facing the camera.
     ship = Vector(c4.K9)
-    away = (NESSA - ship).normalized()
-    side = Vector((-away.y, away.x))
-    cam_xy = NESSA + away * CAMERA_BACK + side * CAMERA_SIDE
+    cam_xy = Vector(c4.at(c4.K9[0], c4.K9[1], c4.k9_heading(), *CAMERA_UV)[:2])
+    toward = (ship - cam_xy).normalized()
+    right = Vector((toward.y, -toward.x))
+    NESSA = cam_xy + toward * NESSA_AHEAD + right * NESSA_RIGHT
     with bpy.data.libraries.load(str(figure)) as (src, dst):
         dst.collections = ['Nessa figure']
     col = dst.collections[0]
@@ -80,7 +83,7 @@ def main():
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, 36.0, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 0.1, 60000.0
     cam.location = (cam_xy.x, cam_xy.y, gz + CAMERA_Z)
-    aim = Vector((ship.x * 0.55 + NESSA.x * 0.45, ship.y * 0.55 + NESSA.y * 0.45, LOOK_AT_Z))
+    aim = Vector((ship.x, ship.y, LOOK_AT_Z))
     cam.rotation_euler = (aim - cam.location).to_track_quat('-Z', 'Y').to_euler()
     scene.camera = cam
 

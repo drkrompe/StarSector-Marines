@@ -1,0 +1,314 @@
+{
+ "belt-1-port": {
+  "unit_offset_L_a_b": [
+   0.843,
+   -0.537,
+   -0.898
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-1-starboard": {
+  "unit_offset_L_a_b": [
+   0.31,
+   0.349,
+   -0.827
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-2-port": {
+  "unit_offset_L_a_b": [
+   0.757,
+   0.961,
+   0.663
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-2-starboard": {
+  "unit_offset_L_a_b": [
+   -0.498,
+   -0.02,
+   0.263
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-3-port": {
+  "unit_offset_L_a_b": [
+   0.051,
+   0.2,
+   -0.239
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-3-starboard": {
+  "unit_offset_L_a_b": [
+   -0.6,
+   -0.678,
+   0.349
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-4-port": {
+  "unit_offset_L_a_b": [
+   0.914,
+   -0.098,
+   0.404
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belt-4-starboard": {
+  "unit_offset_L_a_b": [
+   -0.404,
+   0.396,
+   0.09
+  ],
+  "note": "hash default; edit freely"
+ },
+ "dome-port": {
+  "unit_offset_L_a_b": [
+   0.851,
+   0.231,
+   -0.969
+  ],
+  "note": "hash default; edit freely"
+ },
+ "dome-starboard": {
+  "unit_offset_L_a_b": [
+   0.2,
+   0.718,
+   -0.867
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-side-port": {
+  "unit_offset_L_a_b": [
+   -0.514,
+   0.349,
+   -0.216
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-side-starboard": {
+  "unit_offset_L_a_b": [
+   -0.137,
+   -0.38,
+   -0.584
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-top-port": {
+  "unit_offset_L_a_b": [
+   -0.271,
+   0.412,
+   0.945
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-top-starboard": {
+  "unit_offset_L_a_b": [
+   -0.843,
+   0.388,
+   -0.043
+  ],
+  "note": "hash default; edit freely"
+ },
+ "fork-port": {
+  "unit_offset_L_a_b": [
+   0.569,
+   0.114,
+   0.765
+  ],
+  "note": "hash default; edit freely"
+ },
+ "fork-starboard": {
+  "unit_offset_L_a_b": [
+   1.0,
+   -0.145,
+   -0.765
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-side-port": {
+  "unit_offset_L_a_b": [
+   -0.373,
+   0.067,
+   0.78
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-side-starboard": {
+  "unit_offset_L_a_b": [
+   -0.427,
+   -0.757,
+   -0.663
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-top-port": {
+  "unit_offset_L_a_b": [
+   -0.827,
+   -0.451,
+   -0.294
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-top-starboard": {
+  "unit_offset_L_a_b": [
+   -0.859,
+   0.6,
+   -0.851
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine": {
+  "unit_offset_L_a_b": [
+   0.882,
+   0.733,
+   -0.804
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-1-port": {
+  "unit_offset_L_a_b": [
+   -0.075,
+   0.671,
+   0.639
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-1-starboard": {
+  "unit_offset_L_a_b": [
+   -0.749,
+   0.671,
+   0.31
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-2-port": {
+  "unit_offset_L_a_b": [
+   0.31,
+   0.961,
+   0.004
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-2-starboard": {
+  "unit_offset_L_a_b": [
+   -0.647,
+   -0.192,
+   -0.451
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-3-port": {
+  "unit_offset_L_a_b": [
+   -0.89,
+   0.404,
+   0.051
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-3-starboard": {
+  "unit_offset_L_a_b": [
+   0.725,
+   0.106,
+   -0.459
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-4-port": {
+  "unit_offset_L_a_b": [
+   -0.765,
+   0.749,
+   -0.631
+  ],
+  "note": "hash default; edit freely"
+ },
+ "top-4-starboard": {
+  "unit_offset_L_a_b": [
+   -0.733,
+   0.349,
+   -0.506
+  ],
+  "note": "hash default; edit freely"
+ },
+ "waist-port": {
+  "unit_offset_L_a_b": [
+   0.749,
+   0.678,
+   -0.851
+  ],
+  "note": "hash default; edit freely"
+ },
+ "waist-starboard": {
+  "unit_offset_L_a_b": [
+   -0.812,
+   -0.655,
+   -0.592
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-1-port": {
+  "unit_offset_L_a_b": [
+   -0.31,
+   0.867,
+   0.694
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-1-starboard": {
+  "unit_offset_L_a_b": [
+   0.514,
+   0.929,
+   -0.914
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-2-port": {
+  "unit_offset_L_a_b": [
+   0.647,
+   0.663,
+   -0.671
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-2-starboard": {
+  "unit_offset_L_a_b": [
+   -0.349,
+   0.341,
+   0.702
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-3-port": {
+  "unit_offset_L_a_b": [
+   0.247,
+   -0.89,
+   -0.82
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-3-starboard": {
+  "unit_offset_L_a_b": [
+   -0.2,
+   -0.976,
+   -0.467
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-4-port": {
+  "unit_offset_L_a_b": [
+   -0.757,
+   0.976,
+   -0.624
+  ],
+  "note": "hash default; edit freely"
+ },
+ "wall-4-starboard": {
+  "unit_offset_L_a_b": [
+   -0.137,
+   -0.584,
+   -0.004
+  ],
+  "note": "hash default; edit freely"
+ }
+}

@@ -9,7 +9,7 @@
     "object": "Port bay interior",
     "seed": [
      14,
-     15.6,
+     12.4,
      -0.5
     ],
     "faces": [
@@ -161,7 +161,7 @@
    }
   ],
   "face_count": 1,
-  "area_units2": 230.0,
+  "area_units2": 302.45,
   "view_dir": [
    0.0,
    0.0,
@@ -175,16 +175,16 @@
   "cone_cos": 0.6,
   "extent_units": [
    23.0,
-   10.0
+   13.15
   ],
   "tile_camera": {
    "centre_uv": [
     14.0,
-    20.0
+    18.424999713897705
    ],
-   "ortho_width": 26.74418604651163
+   "ortho_width": 27.183463715151607
   },
-  "native_texels_per_unit": 29.7
+  "native_texels_per_unit": 29.2
  },
  "bay-davit-head-port": {
   "what": "davit head over the port bay, port face",
