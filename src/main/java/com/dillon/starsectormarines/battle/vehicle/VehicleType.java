@@ -97,6 +97,8 @@ public enum VehicleType {
             return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
         }
         @Override public float turretRecoilCells() { return .18f; }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
     },
     /**
      * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
@@ -111,6 +113,8 @@ public enum VehicleType {
             return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
         }
         @Override public float turretRecoilCells() { return .24f; }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
@@ -232,6 +236,18 @@ public enum VehicleType {
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 
+    /**
+     * The share of this hull's hits that land on its turret ({@link HullTurretSection}). Zero, with
+     * {@link #turretPoolShare()}, for a hull whose gun cannot be shot away.
+     */
+    public float turretHitShare() { return 0f; }
+
+    /**
+     * The share of this hull's armor capacity and structure its turret holds; zero means the hull authors no
+     * turret section and stays one body.
+     */
+    public float turretPoolShare() { return 0f; }
+
     private static final float[] NO_TINT = {1f, 1f, 1f};
     private static final float[] UP_ARMORED_TINT = {.78f, .80f, .76f};
 
@@ -241,6 +257,16 @@ public enum VehicleType {
      * kited forever; every other hull reverses at half speed. {@code -Dbattle.vehicle.tankReverseFraction=.5}
      * is the control.
      */
+    /**
+     * A tank turret's section ({@link HullTurretSection}): a fifth of the hull's hits land on the turret, which
+     * holds a quarter of its pools. The pool share sits above the hit share, so the gun goes late in a long fight
+     * and by a run of hits in a short one, about one fight in ten against a Bulwark. A quarter of the hits against
+     * 0.18 of the pools lost the gun in most fights and gave the open ground to the mech
+     * ({@code heavy-equipment-progression.md}, a tank that loses its gun).
+     */
+    static final float TANK_TURRET_HIT_SHARE = .2f;
+    static final float TANK_TURRET_POOL_SHARE = .25f;
+
     static final float TANK_REVERSE_FRACTION =
             Float.parseFloat(System.getProperty("battle.vehicle.tankReverseFraction", ".3"));
 

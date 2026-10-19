@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-18 — anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -460,12 +460,19 @@ hardware identities; any deployed chassis may receive any of these doctrines:
 **Duel range.** Against armor — another mech or a ground vehicle — every
 doctrine fights from a **duel band** chosen from the mech's own installed,
 loaded weapons read against the target's (`MechDuelBand`): expected damage per
-second at a distance, given against received. A mech that out-reaches its
+second at a distance, given against received. A tank whose gun has been shot away
+(`convoy-nouns.md`, the turret section) has no weapons to read, so a mech
+treats it as unarmed armor. A mech that out-reaches its
 target by four cells or more **stands off**, holding just outside the target's
 reach and inside its own, whatever its role. Otherwise it **closes** to a
 shorter band of its own only when that band trades clearly better than its
 longest one — a Brawler on a small edge, Balanced and Frontline Support on a
-clear one, Long-Range Support never — and nobody closes on a tie. Failing
+clear one, Long-Range Support never — and nobody closes on a tie, with one
+exception: a band that brings a loaded **anti-armor rack** to bear closes when
+it trades merely as well as the longest band. Between equal machines that rack
+would otherwise never fire, and its warhead was fitted for exactly this target
+(`-Dbattle.mech.closeOnAntiArmorTie=false` is the control). A rack that has run
+dry leaves the reading, so a mech with empty magazines walks back out. Failing
 both, it **duels** from the outer part of its longest band (about 72–92% of
 reach) rather than walking inside it for no reason: two equal machines meet
 there, not at contact. In band with a clear shot it holds and fires, stepping

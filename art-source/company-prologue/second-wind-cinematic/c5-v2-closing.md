@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-18 — closing redrafted plainer after the first takes read cheesy; the announcement is now a ship loudspeaker heard from the yard.
+Updated: 2026-10-18 — closing redrafted plainer, the announcement on a ship loudspeaker heard from the yard; C5 layout scene with the crowd (groups, peel-offs, yard workers, customs, Nessa).
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -155,7 +155,7 @@ perspective barely matters.** Both methods read as people walking:
 
 - **Simple 3D walkers.** A body, a head and two swinging legs. They read
   crisper and darker, and their shadows, lighting and perspective come for free.
-  This is the recommended method: nothing to keep consistent, and a bag, a mask
+  They are the layout's default: nothing to keep consistent, and a bag, a mask
   or a folded-arms pose is one more block.
 - **Flat sprite cards.** Lying on the ground and turned to each walker's
   heading, flipping through a top-down walk cycle. A second upright card faces
@@ -167,6 +167,36 @@ perspective barely matters.** Both methods read as people walking:
   follow). Kept in reserve for a closer insert, such as the figure at the ramp
   who looks up.
 
+**The look waits on the texture pass.** At this distance even the placeholder
+sprites hold up, so the choice between them and the 3D figures is made once
+the yard is painted. `industrial-exterior/c5_scene.py` takes either
+(`--body 3d|sprite`).
+
+**How the crowd moves** (`industrial-exterior/c5_crowd.py`):
+
+- **Groups, not a queue.** Families come off the ramp in small groups: one to
+  five people, a child with the larger ones, bags in most hands. Each group
+  walks at its own pace, two abreast with the rest behind. The leader slows for
+  stragglers, and strangers keep a little more space than family does.
+- **People peel off.** Near the ramp, while the camera is still close, one
+  family steps aside to wait for somebody still aboard and then goes on. Another
+  stops and stays. One person stops a few steps off the ramp to look up.
+- **Nobody walks through anything.** The walk map is read from the built yard
+  itself. Every crate, vehicle, wall, washing line and the hull is sliced at
+  knee and chest height, and paths keep a body's width clear of the outline.
+  Each run counts the walker-frames spent inside anything, and it should be 0.
+- **The yard is at work.** Nessa's hands in hi-vis guide at the ramp's foot,
+  walk between the crew carrier and the hull, and stand by the tug and the
+  bowser. The two customs officers leave their car to stand either side of the
+  way off the ship. Nessa comes out of her workshop and stands apart near the
+  door.
+- **It is a long walk.** The workshop door is 52 m from the ramp, nearly 40
+  seconds on foot, so the stream is still crossing as the camera rises. That is
+  the picture the beats ask for: a thin line of people across the yard.
+
+Kilo Nine's pad is a low slab (0.4 m) rather than the public berths' 3 m
+plinth, so people and the yard's vehicles step straight onto it.
+
 ## Open questions
 
 - **Line choice and delivery.** Castle's voice is calm and steady, and the hope
@@ -174,7 +204,7 @@ perspective barely matters.** Both methods read as people walking:
   and resolute reads were recorded. Choose by ear against the picture.
 - **Music.** The hopeful ambient track the owner is looking for should arrive
   here, under Castle's last line, rather than be spent earlier.
-- **Crowd.** Tiny figures with bags and shadows, seen from overhead. Cheap at
-  that height. One figure stops; nothing else is choreographed.
+- **Crowd look.** Simple 3D figures or sprite cards (see "Camera and crowd").
+  Decide after the texture pass.
 - **Y1 hand-off.** Y1 opens with Castle reporting the meeting with Nessa. The
   title separates the two, so the change of tone is allowed.

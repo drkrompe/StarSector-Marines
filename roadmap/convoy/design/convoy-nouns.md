@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-18 — a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -244,6 +244,51 @@ queues one compact visual blast and short roof/rear-compartment burns that
 cool into smoke, with the last APC emitter expiring by 55 seconds. The escort's
 effects scale with its larger hull but stay smaller than the tank's. This is presentation only: no
 secondary damage, navigation obstruction or smoke concealment is manufactured.
+
+**A tank's turret is a section of its hull, and its gun can be shot away**
+(`HullTurretSection`). It is the mech section law (`mechs-nouns.md`, Section
+pools) with one section beside the hull. The turret holds an authored share of
+the hull's armor capacity and structure, and an authored share of the hits the
+hull takes land on it, rolled on the battle's random stream. The hull's
+`HEALTH`/`ARMOR` columns keep the totals, so every whole-body reader (a
+health bar, a threat estimate, a matchup's integrity) still sees one hull. A
+hit on the turret meets the turret's armor and then its structure. What the
+turret cannot hold goes on into the hull, which meets it with its own armor
+first. A hit on a turret already at zero goes through the hole to the hull's
+plate. Both pools resolve against the hull's one armor rating: one plate per
+machine, as a mech's sections share their chassis's rating.
+
+- **Only the hull's own structure kills.** The turret's remainder dies with it.
+- **The turret at zero destroys the gun, and nothing else.** The hull drives on
+  unarmed. The turret stops firing and traversing and stays drawn where it last
+  pointed. The hull reads as unarmed to every question that asks: its threat
+  reach is zero, a duel band reads it as a machine with no weapons, and it
+  leaves `VehicleEngagement`. Direct control keeps the hull but offers no gun.
+  A disarmed hull holds, or follows a player order. Unlike a disarmed mech it
+  does not break contact yet; that is open.
+- **An empty magazine is a different fact.** It ends fire but leaves the gun.
+  The hull still threatens what it can see, and its threat reach stays its own.
+- **The section is authored per hull** (`VehicleType.turretHitShare` /
+  `turretPoolShare`). Today only the two gun tanks author one: a fifth of the
+  hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank
+  that loses its gun). A hull with no section is one body and its gun
+  cannot be lost. That covers the APCs, the technical, the dozer's MG and the
+  light roles. Any armed hull may author one later. The turret's emplacement
+  durability in the turret catalog is the turret's as an emplacement, and a
+  hull never reads it. A turret on a hull is part of the hull's own pools,
+  never extra plate on top of them.
+- **The roll is drawn only for a hull with a section.** A battle with none
+  draws exactly what it drew before. `-Dbattle.vehicle.turretDamage=false` is
+  the whole-body control. `battle.vehicle.turretHitShare` and
+  `battle.vehicle.turretPoolShare` override the authored shares for evidence
+  runs.
+
+The turret section is battle durability, so a fitting doll does not own it. A
+future vehicle doll (`mech-lab-data-authored-dolls.md`) may draw the turret as
+a socket and show its damage, but the shares stay on the hull type, as a mech's
+pool shares stay on its body plan rather than on its doll. Vehicles have no
+campaign wear (they are variants, not fittings), so nothing is written back:
+a gun lost in battle is lost for that battle only.
 
 ## Route, corridor, and motion
 
@@ -555,8 +600,8 @@ retains the same existing cross-domain behavior as an autonomous hull.
   kited out of its own reach (`heavy-equipment-progression.md`, a tank against
   the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
-  allied story columns, delivery legs, unarmed hulls and empty magazines never
-  engage, and infantry is not a duel target. `-Dbattle.vehicle.duelRange=false`
+  allied story columns, delivery legs, unarmed hulls, shot-away guns and empty
+  magazines never engage, and infantry is not a duel target. `-Dbattle.vehicle.duelRange=false`
   is the control. Its route arrays are
   degenerate on purpose — fabricating a journey it never took would give it an
   errand to resume the moment an order was released.

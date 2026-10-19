@@ -63,6 +63,9 @@ permit the UI to bypass those commands.
 - Shipping a production tank or wheeled-vehicle fitting screen.
 - A general visual editor for doll anchors and docks; the data contract should
   remain compatible with adding one later.
+- Battle durability. A future tank doll may draw its turret as a socket, but the
+  turret's hit and pool shares stay on the hull type (`convoy-nouns.md`, the
+  turret section), as a mech's pool shares stay on its body plan.
 
 ## Dependencies
 
