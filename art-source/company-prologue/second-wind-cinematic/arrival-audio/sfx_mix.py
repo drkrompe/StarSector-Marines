@@ -346,23 +346,31 @@ SCORE_LEVEL = -4.0     # dB against dialogue, before ducking
 DUCK_DB = -8.0         # under any voice
 
 
+def moving_sum(x, width):
+    """Sum of x over a centred window of `width` samples (cumulative sums: long windows stay cheap)."""
+    c = np.concatenate([[0.0], np.cumsum(x)])
+    lo = np.clip(np.arange(len(x)) - width // 2, 0, len(x))
+    return c[np.clip(lo + width, 0, len(x))] - c[lo]
+
+
 def duck(voices):
     """Gain that takes the music DUCK_DB down wherever a voice is speaking, easing in and out."""
     mono = np.abs(voices).max(axis=1)
     win = int(0.05 * SR)
-    power = np.convolve(mono ** 2, np.ones(win) / win, mode="same")
+    power = moving_sum(mono ** 2, win) / win
     active = (power > 10 ** (-45 / 10)).astype(float)
-    hold = int(0.25 * SR)
-    active = (np.convolve(active, np.ones(2 * hold + 1), mode="same") > 0).astype(float)
+    active = (moving_sum(active, int(0.5 * SR)) > 0).astype(float)
     ease = int(0.4 * SR)
-    active = np.convolve(active, np.ones(ease) / ease, mode="same")
+    active = moving_sum(active, ease) / ease
     return (10 ** (DUCK_DB * active / 20))[:, None]
 
 
-def score_mix(score, pictures, dirs, chosen, out, width=960):
-    """The whole arrival with one score across it, ducked under the voices, as a small preview."""
-    score = Path(score)
-    pieces, offset = [], 0.0
+def player_kit(scores, pictures, dirs, chosen, out, width=960):
+    """Media for the music player page: the whole arrival's picture once (silent, small), its sound
+    without music, each score loudness-matched to SCORE_LEVEL, and where the voices are, so music
+    can be swapped, layered and ducked in the browser without rendering anything again."""
+    out.mkdir(parents=True, exist_ok=True)
+    pieces, voiced, shots, start = [], [], [], 0.0
     for shot in ARRIVAL:
         length, layers = SHOTS[shot]
         full = np.zeros((int(round(length * SR)), 2))
@@ -372,14 +380,24 @@ def score_mix(score, pictures, dirs, chosen, out, width=960):
             full += placed
             if layer["kind"] == "voice":
                 voices += placed
-        last = shot == ARRIVAL[-1]
-        music = place(dict(kind="music", path=score, t=0.0, level=SCORE_LEVEL, offset=offset, until=length,
-                           fade_in=0.0, fade_out=2.0 if last else 0.0), score, length)
-        pieces.append(full + music * duck(voices))
-        offset += length
+        pieces.append(full)
+        voiced.append(voices)
+        shots.append({"id": shot, "start": round(start, 3), "length": length})
+        start += length
     whole = np.concatenate(pieces)
-    name = "arrival-" + score.stem
-    write(whole, out / (name + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    write(whole, out / "bed.mp3", [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    # The duck curve: music gain at 20 Hz, DUCK_DB down while anyone speaks.
+    gain = duck(np.concatenate(voiced))[:, 0]
+    step = SR // 20
+    curve = [round(float(g), 3) for g in gain[::step]]
+    tracks = []
+    for score in map(Path, scores):
+        music = decode(score) * 10 ** ((DIALOGUE_LUFS + SCORE_LEVEL - loudness(score)) / 20)
+        write(music, out / (score.stem + ".mp3"), ["-c:a", "libmp3lame", "-q:a", "2"])
+        tracks.append({"id": score.stem, "file": score.stem + ".mp3"})
+    (out / "kit.json").write_text(json.dumps({"length": round(len(whole) / SR, 3), "shots": shots,
+                                              "duckRate": 20, "duck": curve, "tracks": tracks}) + "\n",
+                                  encoding="utf-8")
     parts = []
     for shot in ARRIVAL:
         picture = pictures.get(shot)
@@ -388,15 +406,16 @@ def score_mix(score, pictures, dirs, chosen, out, width=960):
             picture = FALLBACK_PICTURES.get(shot)
         parts.append((picture, SHOTS[shot][0]))
     inputs = [arg for picture, _ in parts for arg in ("-i", str(picture))]
-    graph = "".join("[%d:v]fps=24,scale=%d:%d,setsar=1,tpad=stop_mode=clone:stop_duration=120,"
+    graph = "".join("[%d:v]fps=12,scale=%d:%d,setsar=1,tpad=stop_mode=clone:stop_duration=120,"
                     "trim=duration=%.3f,setpts=PTS-STARTPTS[v%d];" % (i, width, width * 9 // 16, length, i)
                     for i, (_, length) in enumerate(parts))
     graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
-                    "-filter_complex", graph, "-map", "[v]", "-map", "%d:a" % len(parts), "-c:v", "libx264",
-                    "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
-                    "-t", "%.3f" % (len(whole) / SR), str(out / (name + ".mp4"))], check=True)
-    print("%s %5.1fs  pictures: %s" % (name, len(whole) / SR, ", ".join(str(p) for p, _ in parts)), flush=True)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", graph, "-map", "[v]",
+                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "30", "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart", "-an", "-t", "%.3f" % (len(whole) / SR), str(out / "picture.mp4")],
+                   check=True)
+    print("player kit %5.1fs  %d tracks  pictures: %s" % (
+        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _ in parts)), flush=True)
 
 
 BEDS = set()
@@ -413,9 +432,9 @@ def main():
     parser.add_argument("--music", action="append", default=[],
                         help="a make_music.py take to lay into c4c5, peaking at the top of the rise; "
                              "writes c4c5-<take>.mp4 per take")
-    parser.add_argument("--score", action="append", default=[],
-                        help="a make_music.py score take to lay across the whole arrival; writes a small "
-                             "arrival-<take>.mp4 preview per take")
+    parser.add_argument("--player", action="append", default=[],
+                        help="a make_music.py score take for the music player page; writes the page's "
+                             "media under <out>/player/ (picture, music-free mix, tracks, duck curve)")
     args = parser.parse_args()
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     chosen = {cue: row["chosen"] for cue, row in manifest["cues"].items() if row["chosen"]}
@@ -431,9 +450,9 @@ def main():
     dirs = {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}
     for take in args.music:
         mix("c4c5", pictures.get("c4c5"), dirs, chosen, out, [music(take, C4_LENGTH + 25.0)], Path(take).stem)
-    for take in args.score:
-        score_mix(take, pictures, dirs, chosen, out)
-    for shot in args.shot or ([] if args.music or args.score else SHOTS):
+    if args.player:
+        player_kit(args.player, pictures, dirs, chosen, out / "player")
+    for shot in args.shot or ([] if args.music or args.player else SHOTS):
         mix(shot, pictures.get(shot), dirs, chosen, out)
 
 
