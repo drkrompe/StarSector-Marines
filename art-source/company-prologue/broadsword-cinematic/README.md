@@ -1,6 +1,6 @@
 # Broadsword: cinematic asset
 
-Status: ACTIVE (pass 7, waiting on the owner). Source art for cinematics; nothing here ships in the mod.
+Status: DONE (pass 7 accepted as final for C2, 2026-10-19). Source art for cinematics; nothing here ships in the mod.
 Written: 2026-10-19
 
 The textured Broadsword (`../fighters-surface/broadsword/`) as one appendable
