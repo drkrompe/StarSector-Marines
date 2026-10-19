@@ -8,14 +8,15 @@ imagegen.md`) holds: this code owns every edge, ImageGen only paints material in
     blender --background --factory-startup --python ortho_paint.py -- guide <tile> [<tile> ...]
     python  ortho_paint.py paint <tile>                    (outside Blender: one paid generation)
 
-Tiles are listed in `ortho/tiles.json`: a name, a centre and size in metres, and a pixel size.
+Tiles are listed in `ortho/tiles-<layer>.json`: a name, a centre and size in metres, and a pixel
+size. A list's `layer` orders it: coarse tiles over the whole port first, finer ones over them.
 `guide` renders each one straight down through an orthographic camera with flat material colours
 and outlines, everything that moves or carries its own texture left out (the ship, port traffic,
 vehicles, people, dust, steam, cloud shadow), to `ortho/guides/<tile>.png`. `paint` sends that
 guide and the tile's prompt (`ortho/prompts/<tile>.txt`, the shared `ortho/prompts/common.txt`
 first) to `tools/codex_imagegen.py` and keeps the master as `ortho/raw/<tile>.png` with its
 provenance. Guides are regenerated, never committed; the paint, its prompt and provenance are.
-A tile is used by the scene once it is marked `"accepted": true` in tiles.json: `apply(scene)` lays
+A tile is used by the scene once it is marked `"accepted": true` in its list: `apply(scene)` lays
 every accepted tile over the materials of the static objects (`obj['ortho'] = 1`), on faces that
 look up, and leaves walls and anything moving alone. Tiles later in the list lie over earlier ones,
 their edges feathered so neighbouring paintings blend rather than seam.
@@ -27,13 +28,19 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ORTHO = HERE / 'ortho'
-TILES = ORTHO / 'tiles.json'
 REPO = HERE.parents[3]
 FEATHER = 6.0                 # metres of blend at a tile's edge
 
 
 def tiles():
-    return {t['name']: t for t in json.loads(TILES.read_text())['tiles']}
+    """Every tile in `ortho/tiles-*.json`, lower layers first (a coarse layer, then finer ones
+    painted over it), each file owned by one piece of work so two never edit the same list."""
+    out = {}
+    lists = [json.loads(p.read_text()) for p in sorted(ORTHO.glob('tiles-*.json'))]
+    for d in sorted(lists, key=lambda d: d.get('layer', 0)):
+        for t in d['tiles']:
+            out[t['name']] = t
+    return out
 
 
 # ---------------------------------------------------------------- inside Blender
