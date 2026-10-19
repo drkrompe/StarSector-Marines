@@ -89,11 +89,33 @@ Bridge and under-bridge (pg_bridge; owner, pass 3)
   longitudinal ribs and a centreline boss on the forward tier, the bridge tower's
   wraparound glazing, vent cluster, comms mast and sensor dish, chevron fins on
   the neck and a vent array on the spine. Under it, the gantry stops at the bore's
-  edge (pg_hull.GANTRY_FRONT_X) so the deck's nose cantilevers clear over the
-  bore, raised above the loop: keel beam, transverse frames, pipe runs, downlights
-  and a glazed observation blister looking down into the bore. The gantry's
-  bulkhead facing the bore has ribs, a lit airlock and vents; its flanks carry
-  struts leaning aft, a pipe bundle and machinery units.
+  edge (pg_hull.GANTRY_FRONT_X, on the lining's flat top) so the deck's nose
+  cantilevers clear over the bore, raised above the loop: keel beam, transverse
+  frames, pipe runs, downlights and a glazed observation blister looking down
+  into the bore. The gantry's bulkhead stands on the lining up to the deck's
+  underside: full-height ribs carrying the deck, plating panels between them, an
+  observation gallery's window band and an airlock at its foot; its flanks carry
+  struts leaning aft, a pipe bundle and machinery units. Windows sit flush on the
+  vertical walls at the foot of each tier in dark frames (never on a chamfer), and
+  the tower's glazing is one band round its vertical wall with dark mullions.
+
+Guns (pg_weapons; owner, pass 3: the mounts read empty)
+  Each turret carries its gun, read off the game's weapon sprite for the Elite
+  fit, sitting low in its dimpled well: the tachyon lance (WS 003/004: forked
+  prong blades over a glowing emitter channel, shoulder capacitors, a fan of
+  fins), the graviton beam (faceted teardrop housing, lens at its point, swept
+  wings), the tactical laser (round dome, emitter spike) and the reaper launcher
+  (rails with a round loaded). Pivots, muzzles and names are unchanged.
+
+Stern and belly (pg_engines, pg_belly; owner, pass 3)
+  The drives are faceted blocks standing out of the pods' stern faces, the
+  sprite's castellation, with radiator louvres across their tops and
+  chamfered-rectangle nozzles (tall slots on the small drives, broad mouths on
+  the big ones). The belly, which the sprite never shows, carries what a
+  beam-armed capital needs underneath: twelve radiator banks round the main
+  ring, finned radiator panels under each drive pod, a lit strake ring on the
+  belt's underside, docking ports with iris doors under the aft body and pods,
+  sensor blisters under the prow and bow quarters, and a keel with lights.
 
 Bore machinery (pg_bore; owner, pass 3)
   The bore is the soft, exposed part of the ship. Read off the sprite's lining
@@ -153,6 +175,8 @@ Modules (one per area)
   pg_service   service fields: uncovered plating with hatches and machinery
   pg_bore      the bore's exposed machinery: plate courses, pipes, conduits, units, lights
   pg_bridge    the bridge's detail and the under-bridge: nose underside, gantry face and flanks
+  pg_belly     the belly: radiators, pod radiators, strake, docking ports, blisters, keel
+  pg_weapons   the guns, read off the weapon sprites, built at the pivot
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -163,7 +187,7 @@ Names (identifiers: later passes key off them)
   Hull bow module / Hull <side> bow horn / Hull core trench / Hull command deck
   (+ upper, spine) / Bridge tower / Bridge glazing / Hull aft body / Hull <side> pod /
   Hull <side> reactor well / dome / Hull <side> bow lobe / Hull <side> bow groove
-  Weapon WS nnn well (+ floor), barbette, placeholder (+ stub), Weapon WS nnn pivot (empty; rotate about local Z to train),
+  Weapon WS nnn well (+ floor), barbette, gun parts (housing, prong, emitter, capacitor, fin, lens, rail ...), Weapon WS nnn pivot (empty; rotate about local Z to train),
     Weapon WS nnn muzzle [k]; hardpoints: Weapon WS 00n hardpoint (anchor), housing,
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)

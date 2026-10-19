@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — anti-armor and fragmentation missile warheads, damage-aware torso target choice; earlier: duel range against armor, headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-18 — anti-armor and fragmentation missile warheads, damage-aware torso target choice; earlier: Bulwark arms balanced as equipment, duel range against armor, headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -198,8 +198,9 @@ increasing an encounter's total armored threat.
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
   its access tier, plus a build weight for a weapon whose carriage is the cost
-  (the heavy cannon's breech and recoil mounting, so a Bulwark carrying it gives
-  up a frame part; `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
+  (the heavy cannon's breech and recoil mounting and the bastion autocannons'
+  feed, so a Bulwark carrying either gives up a frame part;
+  `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
   engine carries its own, since every CORE socket already takes the largest
   engine and its footprint costs nothing. A refit is refused
   when the result is over budget, unless it is no further over than the current

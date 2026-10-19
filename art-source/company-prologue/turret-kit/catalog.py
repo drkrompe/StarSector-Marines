@@ -16,6 +16,7 @@ from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import turret_kit as tk
+import studio
 
 argv = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
 ap = argparse.ArgumentParser()
@@ -32,42 +33,9 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
-scene.render.engine = 'CYCLES'
-scene.cycles.samples = args.samples
-scene.cycles.use_denoising = True
-scene.render.resolution_x, scene.render.resolution_y, scene.render.resolution_percentage = 1920, 1080, 100
-scene.view_settings.view_transform = 'AgX'
-
-
-def material(name, color, metallic=0.0, roughness=.6):
-    m = bpy.data.materials.new(name)
-    m.use_nodes = True
-    b = m.node_tree.nodes['Principled BSDF']
-    b.inputs['Base Color'].default_value = (*color, 1)
-    b.inputs['Metallic'].default_value = metallic
-    b.inputs['Roughness'].default_value = roughness
-    return m
-
-
-MATS = {'armour': material('XIV orange armour', (.62, .19, .055), .25, .55),
-        'plate': material('XIV grey hull plating', (.30, .27, .25), .35, .6),
-        'steel': material('Gunmetal machinery', (.16, .16, .17), .7, .5),
-        'dark': material('Recess and machinery', (.035, .035, .04), .5),
-        'glass': material('Sight glass', (.03, .05, .06), .2, .1)}
-DECK = material('Deck', (.22, .21, .2), .3, .7)
-
-world = bpy.data.worlds.new('w')
-scene.world = world
-world.use_nodes = True
-world.node_tree.nodes['Background'].inputs[0].default_value = (.74, .76, .78, 1)
-world.node_tree.nodes['Background'].inputs[1].default_value = .55
-for name, rot, energy in (('Key', (50, 0, -35), 4.0), ('Fill', (65, 0, 140), 1.2), ('Rim', (20, 0, 200), 2.0)):
-    d = bpy.data.lights.new(name, 'SUN')
-    d.energy = energy
-    d.angle = math.radians(3)
-    ob = bpy.data.objects.new(name, d)
-    scene.collection.objects.link(ob)
-    ob.rotation_euler = [math.radians(a) for a in rot]
+studio.setup(scene, args.samples)
+MATS = studio.hull_mats()
+DECK = studio.material('Deck', (.22, .21, .2), .3, .7)
 
 RING = {'LARGE': 12.5, 'MEDIUM': 9.5, 'SMALL': 5.5}
 SIZE = {'vulcan': 'SMALL', 'lightac': 'SMALL', 'lightmg': 'SMALL', 'none': 'SMALL',
