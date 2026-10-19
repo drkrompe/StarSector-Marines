@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1568b-b70c-7d41-9236-38ac19b61373",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1568b-b70c-7d41-9236-38ac19b61373\\exec-8c5e1b57-833c-482e-8260-64681c80b99e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+    "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.prompt.txt",
+  "promptSha256": "ca81e5adec0adc2cb6df8de9c52f98f9d358a963ca8d943daaffa0016ead98ce",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and layout authority: camera, horizon, ship pose and position, pad\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nCAMERA: the viewer is an adult standing on the yard gravel, eyes 1.6 metres above the ground, looking level across the yard: an ordinary eye-level photograph with a normal lens, exactly as reference 1 frames it. The horizon is level, about two thirds of the way down the frame, and passes through the heads of people in the middle distance. The ground fills only the bottom third and is seen at a normal glance: no close-up stones or puddles in sharp detail, no low or ground-level viewpoint, no wide-angle distortion.\n\nThis picture is a BACKGROUND LAYER: a character will be composited over it later, so it contains NO person in the foreground. Keep the foreground gravel open, especially in the lower left and lower right thirds.\n\nReference 1 is the GEOMETRY AND LAYOUT AUTHORITY: a rough render of the actual scene. Repaint it; keep its camera, horizon, the ship's shape, pose, size and position, the pad and the lighting direction exactly. Do not move or resize the ship. The pale-yellow bar entering at the top right is the end of a yellow repair-scaffold arm swung in over the hull: paint it as a lattice scaffold arm. The tiny figures in the far right distance are crude placement guides: paint them as real yard hands.\n\nScene: Kilo Nine, a small fenced private repair yard on the east edge of a working spaceport on the humid jungle world Jangala, late morning, high hazy sun behind the viewer and to the left, humid air with soft haze. Open air: no hangar, no roof. Second Wind, a battered, patched freighter about 66 metres long in rust-orange and dirty cream plate over grey steel, seen in three-quarter view from its bow, sits on a low concrete ring pad with yellow-painted edges, drives dark; it is enormous next to the people. A repair scaffold tower stands beside it with its arm swung in, with small arc-welding sparks at a seam. Add a few yard hands at work, all small at this distance: two at the bow on a mobile access ladder working on a hull panel, one walking along the flank with a tool case, one guiding a small cargo trolley. Yard hands wear grey coveralls with orange hi-vis vests and dark biofilter masks. Beyond: low corrugated yard sheds and stacked containers, the port's cranes in haze, a chain-link fence and dark-green jungle canopy at the left under a pale sky.\n\nMood: a working yard, a favour between old friends, practical and unglamorous.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\guides\\y1-guide-v7.png",
+      "sha256": "16f24cb806671828c8ab2e141290065fe9c54f41f91f444bc3e7e885e7ac13b7",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGB",
+      "role": "Geometry and layout authority: camera, horizon, ship pose and position, pad"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the reference while preserving its framing and ship geometry.\n"
+  ],
+  "usage": {
+    "input_tokens": 74330,
+    "cached_input_tokens": 52864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 776,
+    "reasoning_output_tokens": 27
+  },
+  "elapsedSeconds": 68.2
+}
