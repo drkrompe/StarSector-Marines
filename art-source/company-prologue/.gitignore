@@ -166,3 +166,8 @@ nessa-figure/*.blend1
 # Kite (P): the .blend is a build output of build_kite.py, rebuilt from the scripts.
 kite-geometry/**/*.blend
 kite-geometry/**/*.blend1
+# Kite (P) surfacing: graded textures, review renders and the manifest are rebuilt by rebuild.sh.
+kite-surface/review/
+kite-surface/textures/
+kite-surface/grading/
+kite-surface/skin-manifest.json

@@ -1,0 +1,42 @@
+{
+ "fuse-top": {
+  "raw_iou": 0.9878,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9971,
+  "scale": [
+   1.00342,
+   0.99973
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "fuse-side-port": {
+  "raw_iou": 0.9746,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9864,
+  "scale": [
+   1.00272,
+   1.0123
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "fuse-nose": {
+  "raw_iou": 0.9952,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9977,
+  "scale": [
+   1.00178,
+   1.002
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-side-port": {
+  "raw_iou": 0.8241,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.8972,
+  "scale": [
+   1.00155,
+   1.0628
+  ],
+  "boundary_p95_px": 1.0
+ }
+}
