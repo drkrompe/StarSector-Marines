@@ -110,8 +110,16 @@ frames only:
 - The bridge is painted steel with console screens and one low warm ceiling light. A
   light strip at the top of the slits was tried and dropped: 65 cm from the eye, even
   dimmed, it read as a band across the view.
-- The Legion and Broadswords keep their own materials, with the Legion's throats and
-  running lights and the fighters' flames as in the cabin version.
+- The Legion keeps its own materials, with its throats and running lights as in the cabin
+  version.
+- The Broadswords are the finished asset (`broadsword-cinematic`, final 2026-10-19). Each
+  fighter is its own append of BROADSWORD plus SWFX, so each has its own effects
+  controls. The drives run at full throttle, the guns stay cold and the running lights
+  are on, with no exhaust haze or landing dust in vacuum. The gear stays up, its saved
+  pose. The .blend is built, not committed: copy it from Drive
+  `builds/broadsword/<commit>/`. Both scripts refuse a copy whose sha256 differs from
+  the committed manifest's. The blockout loads the same model without effects, tinted
+  for Workbench. `C2_BROADSWORD_ASSET` points either script at another copy.
 - Jangala is a proxy sphere scaled about the eye and shaded from its own normal, so
   nothing near it can throw a shadow on it. It carries C1's maps, which are soft at
   this range, and a thin limb glow, and it turns aft at the orbital rate.
