@@ -34,6 +34,8 @@ marker (`after_markers`, called after `thrust_shots.mark_c4`).
 In the air, well below the camera and never across its path:
   'Shepherd inbound'   a Shepherd letting down northward over the belt in C4's first seconds, and on
                        north out of the frame at the same speed.
+From C5 24 s, the title, to the end the departing Colossus is the only ship in the air: the berth 3
+Mudskipper flies off north out of the frame before then (port_life keys it).
 
 Every part of every appended hull is left out of the overhead painting (`hull_part_names`), which
 otherwise takes them for static ground and prints the pad markings beneath onto their decks.
@@ -44,11 +46,12 @@ finalize.sh) or copied into build/c1v2/inputs; the Colossus file must carry its 
 missing hull stops the build (PORT_FLEET missing) rather than standing in as another hull.
 """
 import math
+import random
 from pathlib import Path
 
 import bmesh
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 
 PROLOGUE = Path(__file__).resolve().parents[2]
 
@@ -332,9 +335,8 @@ def air(c4, fleet):
 def after_markers(c4):
     """After `thrust_shots.mark_c4`: the heavy-berth Colossus's throttle as `climb` flies it on its
     nozzle markers (`thrust-markers/README.md`), its own drive effects driven from them
-    (`hang_effects`), and dust off the deck as it lifts."""
+    (`hang_effects`), and dust off the deck as it lifts (`lift_dust`)."""
     import thrust_markers as tm
-    import port_life
     craft = bpy.data.objects.get('Colossus at the heavy berth')
     if craft is None:
         return
@@ -345,19 +347,169 @@ def after_markers(c4):
     tm.key(marks, lift, fps, kinds=('lift',))
     tm.key(marks, main, fps, kinds=('main',))
     n = hang_effects(craft, marks, c4)
-    x, y = craft['rest_xy']
-    port_life.dust(x, y, T + LIFT_OFF - 0.6, 70.0, 48, 'Lift dust colossus')
+    lift_dust(c4, craft, [m for m in marks if m['thrust_kind'] == 'lift' and m['thrust_working']], lift)
     cover_old_gantry(c4)
     print('PORT_FLEET colossus drives on markers=%d; lift spool C5 %g s, off %g s, mains %g-%g s' % (
         n, LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL), flush=True)
+
+
+def lift_dust(c4, craft, nozzles, lift):
+    """Downwash off the heavy berth as the Colossus lifts out: the same dust, grit-brown billows and
+    grey smoke as Second Wind's landing on Kilo Nine (`c4x_scene.add_landing_dust`, whose material
+    it shares), at this hull's size. It stirs as the lift jets spool at LIFT_SPOOL, is thickest as
+    the hull leaves the deck at LIFT_OFF and thins as the jets rise away from it. The bay's blast
+    walls stop it on three sides, where it piles up and rolls over the top; the open south side lets
+    it run out across the road. A thin pall hangs over the bay after it has gone."""
+    m = bpy.data.materials.get('Landing dust')
+    if m is None or not nozzles:
+        return
+    T, fps = c4.DURATION, c4.FPS
+    hx0, hx1, hy0, hy1 = c4.HEAVY
+    deck = 0.2
+    wind = Vector((1.6, 0.3, 0.0))
+    r = random.Random(57)
+
+    def thr(t):
+        for (t0, v0), (t1, v1) in zip(lift, lift[1:]):
+            if t0 <= t <= t1:
+                return v0 + (v1 - v0) * (t - t0) / max(t1 - t0, 1e-6)
+        return lift[-1][1] if t > lift[-1][0] else 0.0
+
+    # Where each jet stands over the deck, and how hard it hits it, along the climb: read off the
+    # evaluated scene every third frame (the keys alone are not evaluated yet while the shot builds).
+    scene = bpy.context.scene
+    f_a, f_b = round((T + LIFT_SPOOL) * fps), round((T + LIFT_OFF + 12.0) * fps)
+    sampled = {}
+    for f in list(range(f_a, f_b, 3)) + [f_b]:
+        scene.frame_set(f)
+        sampled[f] = (craft.matrix_world.translation.to_2d(), [n.matrix_world.translation.copy() for n in nozzles])
+    scene.frame_set(0)
+    keys = sorted(sampled)
+    track = {}
+    for f in range(f_a, f_b + 1):
+        f0 = max(k for k in keys if k <= f)
+        f1 = min(k for k in keys if k >= f)
+        u = 0.0 if f1 == f0 else (f - f0) / (f1 - f0)
+        centre = sampled[f0][0].lerp(sampled[f1][0], u)
+        k = thr(f / fps)
+        hits = []
+        for a, b in zip(sampled[f0][1], sampled[f1][1]):
+            w = a.lerp(b, u)
+            h = max(0.0, w.z - deck)
+            hits.append((Vector((w.x, w.y, deck)), k * (1 - c4.smoothstep(15.0, 130.0, h))))
+        track[f] = (centre, hits)
+    gone = T + C5_SECONDS
+
+    def spawn(name, ts, p0, life, motion, tint):
+        bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+        ob = c4.mesh(name, bm, m)
+        ob['aloft'] = True                       # dust, not a ground vehicle (`c5_crowd`)
+        f0 = round(ts * fps)
+        f1 = min(round(gone * fps), f0 + round(life * fps))
+        for f in [f0 - 1] + list(range(f0, f1, 3)) + [f1]:
+            tau = max(0.0, (f - f0) / fps)
+            off, sc, a = motion(tau)
+            alive = f0 <= f < f1
+            ob.location = p0 + off
+            ob.scale = sc if alive else (0.001,) * 3      # nothing on the deck before or after: walk maps read it
+            ob.color = tint + (a if alive else 0.0,)
+            for prop in ('location', 'scale', 'color'):
+                ob.keyframe_insert(prop, frame=f)
+
+    def to_wall(p, u):
+        """Metres along u from p to the first blast wall (west, east, north); the south is open."""
+        best = 1e9
+        if u.x < -1e-3:
+            best = min(best, (hx0 - p.x) / u.x)
+        if u.x > 1e-3:
+            best = min(best, (hx1 - p.x) / u.x)
+        if u.y > 1e-3:
+            best = min(best, (hy1 - p.y) / u.y)
+        return max(best, 2.0)
+
+    budget = {'dust': 440, 'smoke': 130}
+    total = sum(s_ for f in track for _, s_ in track[f][1]) or 1.0
+    acc = {k: r.random() for k in budget}
+    n = {k: 0 for k in budget}
+    for f in range(f_a, f_b + 1):
+        centre, hits = track[f]
+        for p, s_ in hits:
+            if s_ <= 0.0:
+                continue
+            ts = f / fps + r.uniform(0.0, 1.0 / fps)
+            for kind in budget:
+                acc[kind] += budget[kind] * s_ / total
+                while acc[kind] >= 1.0:
+                    acc[kind] -= 1.0
+                    n[kind] += 1
+                    d = p.to_2d() - centre
+                    ang = (math.atan2(d.y, d.x) if d.length > 3.0 else r.uniform(0, 2 * math.pi)) + r.gauss(0.0, 0.6)
+                    u = Vector((math.cos(ang), math.sin(ang), 0.0))
+                    if kind == 'dust':
+                        reach = r.uniform(45.0, 80.0) * (0.45 + 0.55 * s_)
+                        wall = to_wall(p, u)
+                        run_out = min(reach, wall + 4.0)                # a wall stops it; it piles up
+                        pile = max(0.0, reach - run_out)                # and rolls up over the top
+                        drag = r.uniform(1.2, 1.8)
+                        life = min(r.uniform(3.5, 6.0), gone - ts)
+                        size0, size1 = r.uniform(5.0, 8.0), r.uniform(18.0, 30.0) * (0.6 + 0.4 * s_)
+                        peak = min(1.0, r.uniform(0.6, 1.4)) * (0.45 + 0.55 * s_)
+                        lum = r.uniform(0.82, 1.12)
+                        tint = (0.40 * lum, 0.335 * lum, 0.25 * lum)
+
+                        def motion(tau, u=u, run_out=run_out, pile=pile, drag=drag, life=life, size0=size0,
+                                   size1=size1, peak=peak):
+                            run = 1 - math.exp(-tau / drag)
+                            k = tau / life
+                            off = (u * (6.0 + run_out * run) + wind * tau
+                                   + Vector((0, 0, 2.0 + (8.0 + 0.6 * pile) * run + 0.8 * tau)))
+                            sz = size0 + (size1 - size0) * (1 - math.exp(-tau / (0.6 * drag + 0.4)))
+                            a = peak * (0.25 + 0.75 * c4.smoothstep(0.05, 0.4, k)) * c4.smoothstep(0.0, 0.1, tau) \
+                                * (1 - c4.smoothstep(0.55, 1.0, k))
+                            return off, (sz * 1.2, sz * 0.9, sz * (0.4 + 0.25 * run)), a
+                        spawn('Lift dust colossus %d' % n[kind], ts, p, life, motion, tint)
+                    else:
+                        life = min(r.uniform(4.0, 6.5), gone - ts)
+                        rise = r.uniform(16.0, 32.0)
+                        size0, size1 = r.uniform(5.0, 7.0), r.uniform(15.0, 26.0)
+                        peak = r.uniform(0.4, 0.65) * (0.45 + 0.55 * s_)
+                        g = r.uniform(0.17, 0.24)
+
+                        def motion(tau, u=u, life=life, rise=rise, size0=size0, size1=size1, peak=peak):
+                            k = tau / life
+                            off = (u * (10.0 + 16.0 * (1 - math.exp(-tau))) + wind * 1.6 * tau
+                                   + Vector((0, 0, 3.0 + rise * (1 - math.exp(-tau / 1.8)))))
+                            sz = size0 + (size1 - size0) * c4.smoothstep(0.0, 0.8, k)
+                            a = peak * c4.smoothstep(0.0, 0.2, tau) * (1 - c4.smoothstep(0.25, 1.0, k))
+                            return off, (sz, sz, sz * 0.7), a
+                        spawn('Lift dust colossus smoke %d' % n[kind], ts, p, life, motion, (g, g * 0.98, g * 0.95))
+    # Settling: a broad, thin pall over the bay once the hull is off the deck, still hanging there as
+    # the camera's rise brings the berth into frame, drifting off and gone before the title ends.
+    cx, cy = (hx0 + hx1) / 2, (hy0 + hy1) / 2
+    for i in range(18):
+        ts = T + LIFT_OFF + r.uniform(0.0, 5.0)
+        p = Vector((cx + r.uniform(-55, 55), cy + r.uniform(-60, 40), 3.0))
+        life = min(r.uniform(14.0, 19.0), gone - ts)
+        size, peak = r.uniform(35.0, 55.0), r.uniform(0.12, 0.2)
+
+        def motion(tau, life=life, size=size, peak=peak):
+            k = tau / life
+            a = peak * c4.smoothstep(0.0, 0.25, k) * (1 - c4.smoothstep(0.35, 1.0, k))
+            sz = size * (0.8 + 0.4 * k)
+            return wind * tau + Vector((0, 0, 2.0 * tau)), (sz, sz, sz * 0.22), a
+        spawn('Lift dust colossus pall %d' % i, ts, p, life, motion, (0.42, 0.36, 0.28))
+    print('PORT_FLEET colossus lift dust', n, 'nozzles', len(nozzles), flush=True)
 
 
 def cover_old_gantry(c4):
     """The overhead painting was made with the gantry standing over the bay, so its beams and trolley
     are in the deck's paint, and show once the Colossus has gone. A strip over them (above the rails,
     under the walls' tops) carries the same painting read from clean deck 28 m north. Runs after
-    `ortho_paint.apply`, so the deck's material is already painted when it is copied."""
-    src = bpy.data.materials.get('Concrete')
+    `ortho_paint.apply` and `c4x_scene.darken_pads`, so the deck's material is already painted and
+    toned when it is copied."""
+    deck = bpy.data.objects.get('Heavy berth deck')
+    src = deck.active_material if deck is not None else None
     if src is None or not any(n.type == 'NEW_GEOMETRY' for n in src.node_tree.nodes):
         return
     m = src.copy()

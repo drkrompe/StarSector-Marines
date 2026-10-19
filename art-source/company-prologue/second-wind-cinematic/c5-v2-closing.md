@@ -79,7 +79,9 @@ barrier. From the gate a haul road runs up the west fence to the works, with a
 branch across to the cradle. The
 Hegemony's public cradles lie west of it, each turned to face its own lead-in
 lane, with freighters unloading from the stern down cargo lanes to the
-container yard. The ships on them are a mix of the finished hull models at
+container yard. Every pad, Kilo Nine's included, is dark tarmac with dimmed
+markings, so people and vehicles on a pad stand out against it
+(`c4x_scene.darken_pads`). The ships on them are a mix of the finished hull models at
 their own scale (`industrial-exterior/port_fleet.py`): a Hegemony Hound, two
 Shepherds in different operators' colours, two Mudskippers (Wayline's ferry
 and a teal-trimmed one lifting out), Hermes lighters on the pad row, and a
@@ -87,7 +89,10 @@ Colossus in the walled heavy berth, the only bay large enough for it. Overhead,
 a Shepherd lets down over the belt in C4's first seconds. The heavy-berth
 Colossus leaves during C5's rise, flown rather than posed. Its lift jets spool
 at C5 12 s and it comes off the deck at 15 s, slowly, the way a heavy hull
-would. Clear of its walls it yaws 35 degrees, eased in and out between 18.5 and
+would. Its downwash throws the same dust and smoke as Second Wind's landing,
+at its own scale: stirring as the jets spool, thickest as it leaves the deck,
+piling against the bay's blast walls and running out of the open south side,
+then thinning as it climbs and leaving a thin pall over the bay. Clear of its walls it yaws 35 degrees, eased in and out between 18.5 and
 23 s, sliding a little south so its corners pass under the gantry's beams. Its
 mains light at 19.5 s and are full at 21 s; it keeps turning, slower and
 banked a few degrees into the turn, onto a heading of 255 by 32 s, so its
@@ -98,7 +103,9 @@ is 16 m above its deck at 22 s, 50 m at 26 s, 107 m at 30 s and 345 m at
 camera at 1.8 km, it reads by its burn and its motion, not by growing in the
 frame. Its drives are the shared VFX kit's effects on its own engines, each
 throttled by its thruster marker. The Shepherd over the belt carries on north
-out of frame.
+out of frame, and the teal Mudskipper flies off north along its bow from C5's
+start, clear of the frame before the title: from C5 24 s to the end the
+Colossus is the only ship in the air.
 C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 
