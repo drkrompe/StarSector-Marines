@@ -1,4 +1,4 @@
-MANTICORE (P) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 SCALE)
+MANTICORE (P) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 SCALE, 6 LIGHT LIVERY)
 
 Purpose
 A scripted Blender model of the vanilla Manticore in its pirate skin for the
@@ -47,6 +47,17 @@ tan sensor domes at the wing roots; neck ribs between red cheek strips; a
 segmented collar round the Mark IX; the command dome's glazed band, visor
 brow, mast and dish; core flank viewports; aft heat vents; canister-flak
 hatches at the four hidden system slots (mt_detail.py).
+
+Livery (pass 6, light)
+The pirate skin as procedural weathered paint (mt_kit.livery): the shared
+turret kit's paint tree (turret_kit.paint_material: low mottle, edges chipped
+to primer and steel, grime in crevices), plus per-plate shade variation
+(Object Info random) for patched, re-sprayed armour and streaked grime on
+object coordinates, the "poorly maintained" of manticore_pirates.skin. Blood
+red armour, painted brown gunmetal, grey plate, pale command dome. Nothing to
+pack; the guns keep their own sprite paints. Like the Lasher, this is the
+light pass for a hull seen at 1.5-4 km; Codex part skins only if a shot
+brings her closer.
 
 Files
 build_manticore.py (driver), mt_kit.py, mt_hull.py, mt_engines.py,

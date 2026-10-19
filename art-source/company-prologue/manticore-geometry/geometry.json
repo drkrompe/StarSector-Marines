@@ -1,5 +1,5 @@
 {
-  "status": "Pass 2 detail + pass 4 scale (0.66 m/u, ship_scale.py option C): wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights).",
+  "status": "Pass 6 light pirate livery (procedural weathered paint) + pass 4 scale (0.66 m/u, ship_scale.py option C) + pass 2 detail: wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights).",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
