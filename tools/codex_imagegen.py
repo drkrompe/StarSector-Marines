@@ -53,10 +53,12 @@ def compose_prompt(body, refs):
     return "".join(lines)
 
 
-def run_codex(prompt, refs, timeout, model=None):
+def run_codex(prompt, refs, timeout, model=None, effort=None):
     cmd = ["codex", "exec", "--skip-git-repo-check", "-s", "read-only", "--json"]
     if model:
         cmd += ["-m", model]
+    if effort:
+        cmd += ["-c", 'model_reasoning_effort="%s"' % effort]
     for path, _ in refs:
         cmd += ["-i", str(Path(path).resolve())]
     cmd.append("-")
@@ -99,6 +101,9 @@ def main():
                         help="Codex agent model (default $CODEX_IMAGEGEN_MODEL, else Codex's own default); "
                              "it only drives the image_gen call. A ChatGPT login rejects some configured "
                              "defaults ('not supported when using Codex with a ChatGPT account')")
+    parser.add_argument("--effort", default=os.environ.get("CODEX_IMAGEGEN_EFFORT"),
+                        help="the agent's reasoning effort (low..max, ultra), default $CODEX_IMAGEGEN_EFFORT, "
+                             "else Codex's configured default; like --model it drives the call, not the pixels")
     args = parser.parse_args()
     refs = []
     for spec in args.ref:
@@ -115,7 +120,7 @@ def main():
         thread, messages, usage = args.adopt_thread, [], None
     else:
         print("Generating with Codex image_gen (paid, no retry)...", flush=True)
-        thread, messages, usage = run_codex(prompt, refs, args.timeout, args.model)
+        thread, messages, usage = run_codex(prompt, refs, args.timeout, args.model, args.effort)
     found = sorted((IMAGES / thread).glob("*.png"), key=lambda p: p.stat().st_mtime) if (IMAGES / thread).is_dir() else []
     if not found:
         print("\n".join(messages), file=sys.stderr)
@@ -130,6 +135,7 @@ def main():
         "generator": "Codex CLI built-in image_gen",
         "codexVersion": version,
         "model": args.model or "codex default",
+        "effort": args.effort or "codex default",
         "thread": thread,
         "source": str(source),
         "otherImagesInThread": [str(p) for p in found[:-1]],
