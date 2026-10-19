@@ -19,7 +19,7 @@ makes a speech before the closing.
 | C1–C2 | The hail as recorded, ending "Corridor four, mounts cold. Thank you, Approach." | Scrutiny. The ship is small, Approach is cold, and Castle is careful. |
 | Entry | **"Cleared. Everybody breathe."** (replaces "Well. Somebody knows we're here.", which could be heard as a threat) | Relief. Her first words to the passengers rather than to Approach, which sets up the closing's "All hands". |
 | C3 | Silent while the ship levels out, then **"Like the travel reels they ran in the canteen... except this one doesn't loop."** (moved from C4, owner 2026-10-19, so it plays over the jungle) | Wonder, then recognition. Until now these people knew landscapes only from a screen on the Claim, and this one is real and goes on. |
-| C4 | **"Greywater's past the cranes. Let me do the talking."** as the shot opens, then perhaps one line about where they land (below). | Arrival: back to business, and somewhere of their own to land. |
+| C4 | **"Greywater's past the cranes. Let me do the talking."** as the shot opens, then **"Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour."** (below). | Arrival: back to business, and somewhere of their own to land. |
 | C5 | The closing lines below. | Permission: go and live here. |
 
 The prologue pages carry the wound the hope answers. Facility support ended in
@@ -33,15 +33,24 @@ Review takes of the new Entry, C4 and C5 lines exist in Castle's voice
 Until the owner picks takes, the shipped `jangalaArrivalHail09` string and audio
 stay as they are, so caption and voice still match.
 
-## Open: a line about Kilo Nine (owner to choose)
+## Castle names Kilo Nine in C4
 
-The owner may want Castle to say where they are landing as C4 comes down over the
-yard. Drafts, short enough for C4's pan, in her calm, dry register; none is recorded
-until one is chosen:
+Chosen by the owner (2026-10-19, of three drafts, as the most personable):
 
-1. "Kilo Nine. East end, behind the fence. Nessa's yard... ours, for now."
-2. "That's Kilo Nine, past the container stacks. Not a public cradle. Nessa kept it open for us."
-3. "Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour."
+> Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour.
+
+It tells the passengers where they are landing as the camera finds the yard, and
+"it's a favour" sets up Nessa without explaining her. Review takes `c4_kilo_nine_t01`
+and `_t02` (about 6.3 s, comms intercom) from `arrival-audio/record_castle_lines.py`.
+
+**It fits C4 as built; the pan does not need to be longer.** With the travel-reels
+line moved to C3, C4 carries only Castle's two lines. "Greywater's past the cranes"
+(3.4 s) plays from about 0.5 s, over the fields and freight road. This line follows
+from about 4.6 s and ends about 10.9 s, just before touchdown at 11.0: "Look for the
+fenced yard" comes as the camera starts drifting east, and "Kilo Nine" lands about
+7.4 s, as it settles over the yard (straight over it by 8.0 s). It runs under the
+landing rocket (from 4.0 s), which the mix ducks. If it feels crowded in the mix, the
+fix is a longer pan in `industrial-exterior/c4x_scene.py` (8 s to 10 s), not a cut.
 
 ## Who speaks, and from where
 
