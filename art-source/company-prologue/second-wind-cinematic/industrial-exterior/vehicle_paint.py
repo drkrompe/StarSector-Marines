@@ -179,7 +179,7 @@ def apply():
                     row = y0 + (fy + h / 2 - p.y) / h * (y1 - y0)
                     uv.data[li].uv = (col / pw, 1.0 - row / ph)
             for i, mat in enumerate(o.data.materials):
-                if mat is None:
+                if mat is None or mat.name.startswith('Tyre'):      # wheels stay rubber
                     continue
                 if mat.name not in copies:
                     copies[mat.name] = _painted(mat.copy(), img)
