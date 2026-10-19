@@ -16,7 +16,8 @@ check     one speech-to-text request per take (cached by audio hash) to confirm 
 treat     applies each line's treatment: the shipped `comms` intercom recipe (ProcessAudioTask),
           the stronger SHIP_PA loudspeaker, or clean for off-intercom lines, writing <take>_treated.wav beside each take.
 package   assembles the chosen takes (PICKS) into numbered MP3s under --out;
-          package-v2 does the same for the second C5 draft (PICKS_V2).
+          package-v2 / package-v3 do the same for the second C5 draft (PICKS_V2) and its
+          confident re-read (PICKS_V3).
 Requires ffmpeg/ffprobe on PATH and ELEVENLABS_API_KEY in the environment (never printed).
 """
 import argparse
@@ -84,6 +85,15 @@ LINES = [
      "[calm, tired, practical ship's announcement, unhurried] " + C5_ANNOUNCE),
     ("c5v2_last_plain", "clean", C5_LAST, "[quiet, tired, plain, to one person beside her] " + C5_LAST),
     ("c5v2_last_wry", "clean", C5_LAST, "[quiet, tired, dry, a small wry smile] " + C5_LAST),
+    # Third pass: the v2 reads sounded worried. Owner: keep her confident. "Tired" is out of
+    # the directions; the calm is a captain's who has brought her people down.
+    ("c5v3_announce", "ship_pa", C5_ANNOUNCE,
+     "[calm, confident, steady ship's announcement, a captain in control, warm] " + C5_ANNOUNCE),
+    ("c5v3_last", "clean", C5_LAST, "[quiet, confident, dry, a hint of a smile] " + C5_LAST),
+    # Owner, same pass: "resolute resolve".
+    ("c5v3r_announce", "ship_pa", C5_ANNOUNCE,
+     "[resolute, steady, firm ship's announcement, quiet determination] " + C5_ANNOUNCE),
+    ("c5v3r_last", "clean", C5_LAST, "[quiet, resolute, determined, looking ahead] " + C5_LAST),
 ]
 
 # Takes that read the line cleanly and then repeated it: keep the first read, as the shipped
@@ -255,6 +265,12 @@ PICKS_V2 = [
     ("04-c5-wry-b", ["c5v2_announce_t02", "c5v2_last_wry_t04"]),
 ]
 PICTURE_GAP = 5.0
+PICKS_V3 = [
+    ("01-c5-confident-a", ["c5v3_announce_t01", "c5v3_last_t01"]),
+    ("02-c5-confident-b", ["c5v3_announce_t03", "c5v3_last_t04"]),
+    ("03-c5-resolute-a", ["c5v3r_announce_t02", "c5v3r_last_t02"]),
+    ("04-c5-resolute-b", ["c5v3r_announce_t03", "c5v3r_last_t03"]),
+]
 
 
 def package(target, picks=PICKS, gap=OFF_CHANNEL_GAP):
@@ -274,7 +290,7 @@ def package(target, picks=PICKS, gap=OFF_CHANNEL_GAP):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=["plan", "generate", "check", "treat", "package", "package-v2"])
+    parser.add_argument("stage", choices=["plan", "generate", "check", "treat", "package", "package-v2", "package-v3"])
     parser.add_argument("--out", default=str(OUT / "review"))
     parser.add_argument("--line", action="append", choices=list(BY_ID))
     parser.add_argument("--takes", type=int, default=3)
@@ -292,8 +308,10 @@ def main():
         treat()
     elif args.stage == "package":
         package(Path(args.out))
-    else:
+    elif args.stage == "package-v2":
         package(Path(args.out), PICKS_V2, PICTURE_GAP)
+    else:
+        package(Path(args.out), PICKS_V3, PICTURE_GAP)
 
 
 if __name__ == "__main__":
