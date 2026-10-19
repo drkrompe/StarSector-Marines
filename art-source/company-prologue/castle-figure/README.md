@@ -19,12 +19,16 @@ light, and the repaint owns face, hair and cloth finish. Her look is the portrai
 ## Hair
 
 `--hair mesh` (the default) is MakeHuman's `short04` cards plus a modelled UV-sphere bun.
-`--hair curves` is a prototype groom: Blender hair curves on a hidden copy of the scalp skin,
-which is the skin under `short04`, so the groom keeps its hairline. The script lays one guide per
-scalp vertex, combed over the scalp to the bun, plus a coil of strands for the bun itself.
-Blender's own procedural hair node groups, bundled with Blender (CC0), do the rest: Attach,
-Interpolate (about 54,000 strands), Clump, Frizz, Set Hair Curve Profile and Duplicate (the bun).
-The armature deforms the scalp copy, and the groom follows it through Deform Curves on Surface.
+`--hair curves` is a prototype groom styled after `castle-v2.master.png`: a loose, fist-sized
+updo high on the back of the crown, hair gathered up into it with some volume, a fringe swept
+to her right that hangs at the temple, wisps at her right cheek, and silver sweeping back from
+the temples (most on her left). It is Blender hair curves on a hidden copy of the scalp skin,
+which is the skin under `short04` without its sideburns, with the hairline thinned over its
+outer rings. The script lays the guides: one per scalp vertex, gathered into the bun; arcs
+wrapping a lumpy core mesh for the bun; and the fringe and wisps, kept off the skin. Blender's
+own procedural hair node groups, bundled with Blender (CC0), do the rest: Attach, Interpolate
+(about 45,000 strands), Clump, Frizz, Hair Curves Noise, Set Hair Curve Profile and Duplicate
+(bun and loose hair). The armature deforms the scalp copy, and the groom follows it through Deform Curves on Surface.
 This matters at the nape, which is weighted to the neck: hair fixed rigidly to the head bone
 sinks into the skin when she bows her head. Each strand's `grey` attribute marks the temples
 and a sprinkle of stray grey strands. The material is a Principled Hair BSDF with two outputs:
