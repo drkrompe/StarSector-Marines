@@ -143,7 +143,8 @@ if all((src/(n+'.png')).exists() for n, _ in panels):
 
 if args.review:
     order = ['review-sheet', 'top-overlay', 'three-quarter', 'port-side', 'front', 'stern', 'bow-detail',
-             'turret-detail', 'wing-detail', 'engine-detail', 'stern-detail', 'shot-checks', 'shot-s5-1500m', 'shot-s4-4000m']
+             'turret-detail', 'wing-detail', 'engine-detail', 'stern-detail', 'bridge-eye', 'shot-checks', 'shot-s5-1500m',
+             'shot-s4-4000m']
     dst = Path(args.review)
     dst.mkdir(parents=True, exist_ok=True)
     k = 1
