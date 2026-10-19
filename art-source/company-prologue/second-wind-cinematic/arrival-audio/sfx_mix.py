@@ -45,7 +45,7 @@ DRIVE = Path("G:/My Drive/starsector/review")
 PICTURES = {
     "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
-    "c2": DRIVE / "cinematic-c2/2026-10-18_bridge-fighters_windows/01-c2-bridge-sketch.mp4",
+    "c2": DRIVE / "cinematic-c2/2026-10-19_castle-and-posts_windows/02-castle-thin-posts.mp4",
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
@@ -178,7 +178,9 @@ SHOTS = {
         # its ignition whump at 10.0, grit, the touchdown, the burner shutdown and the settling dust.
         # The roar carries its own low end, so the drive drops 4 dB under it from 12.0.
         synth("second_wind_c4_drive", -12, env=[(0, -4), (10.9, -4), (12.0, -4), (16.4, -4)]),
-        landing("landing_roar", -5, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
+        # The lift jets: a medium thruster close (owner, 2026-10-19, from the auditions), in place of
+        # synth_landing's roar; its grit, touchdown, shutdown and settling stay.
+        synth("second_wind_c4_lift", -4, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
         landing("landing_grit", -11),
         landing("landing_thump", -2),
         landing("landing_spool", -8),
@@ -369,7 +371,7 @@ def duck(voices):
     return (10 ** (DUCK_DB * active / 20))[:, None]
 
 
-def player_kit(scores, pictures, dirs, chosen, out, width=960):
+def player_kit(scores, pictures, dirs, chosen, out, width=960, repicture=False):
     """Media for the music player page: the whole arrival's picture once (silent, small), its sound
     without music, each score loudness-matched to SCORE_LEVEL, and where the voices are, so music
     can be swapped, layered and ducked in the browser without rendering anything again."""
@@ -407,6 +409,10 @@ def player_kit(scores, pictures, dirs, chosen, out, width=960):
     (out / "kit.json").write_text(json.dumps({"length": round(len(whole) / SR, 3), "shots": shots,
                                               "duckRate": 20, "duck": curve, "tracks": tracks}) + "\n",
                                   encoding="utf-8")
+    if (out / "picture.mp4").exists() and not repicture:
+        # Sound-only change: the picture is the expensive part and has not moved.
+        print("player kit %5.1fs  %d tracks  picture kept" % (len(whole) / SR, len(tracks)), flush=True)
+        return
     parts = []
     for shot in ARRIVAL:
         picture = pictures.get(shot)
@@ -441,6 +447,8 @@ def main():
     parser.add_argument("--music", action="append", default=[],
                         help="a make_music.py take to lay into c4c5, peaking at the top of the rise; "
                              "writes c4c5-<take>.mp4 per take")
+    parser.add_argument("--repicture", action="store_true",
+                        help="re-encode the player page's picture too (it is kept when only sound changed)")
     parser.add_argument("--player", action="append", default=[],
                         help="a make_music.py score take for the music player page; writes the page's "
                              "media under <out>/player/ (picture, music-free mix, tracks, duck curve)")
@@ -460,7 +468,7 @@ def main():
     for take in args.music:
         mix("c4c5", pictures.get("c4c5"), dirs, chosen, out, [music(take, C4_LENGTH + 25.0)], Path(take).stem)
     if args.player:
-        player_kit(args.player, pictures, dirs, chosen, out / "player")
+        player_kit(args.player, pictures, dirs, chosen, out / "player", repicture=args.repicture)
     for shot in args.shot or ([] if args.music or args.player else SHOTS):
         mix(shot, pictures.get(shot), dirs, chosen, out)
 
