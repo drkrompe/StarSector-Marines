@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155f6-8f69-76b1-b96d-b7917addfea0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155f6-8f69-76b1-b96d-b7917addfea0\\exec-6ae06296-c924-40e0-9fa4-74ddabc4347d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-swatch.png",
+    "sha256": "b96d620f4ab39160c22f9685fe43bac77be9550fcb996c949d29e13237294bb2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "baea78725e6d2b22750ba543ae17ee1b0929e8fcbe34794ebb41e97573a09f83",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the layout sheet to paint (layout authority)\nImage 2: INPUT 2: the finish reference (paint and finish only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-green background. Each square is one hull material of one 3D spacecraft (a working independent Phaeton-class fuel tanker, a long destroyer-sized low-tech merchant tanker with three spherical cargo tanks along its deck), to be painted as a flat, square-on texture sample of that material:\ntop-left square: deep oxide-red enamel tank hull plate;\ntop-middle square: pale warm-grey insulated enamel of the cargo domes;\ntop-right square: muted slate-blue painted steel;\nbottom-left square: pale buff-cream enamel plate;\nbottom-middle square: dark gunmetal grey steel;\nbottom-right square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the six squares exactly where they are, the same size, with the same plain green gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept industrial plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: oxide red stays oxide red, pale warm grey stays pale warm grey, slate blue stays slate blue, buff cream stays buff cream, gunmetal stays dark grey steel, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-green as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-swatch-guide.png",
+      "sha256": "2cf8f843693c89a474dadb37c6e12f3d061de19a0718db1086e3174a124f57f5",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the layout sheet to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "9511412cfedf65cfa8ada5828d34be9aa7b9538a4bf1509d1b05add0208b2b4b",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the finish reference (paint and finish only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture sheet using the first image’s exact layout and the second image’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 47033,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 634,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.1
+}

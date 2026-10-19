@@ -71,7 +71,7 @@ Following the sprite's central capsule, the command deck stands on the
 spine amidships rather than in a tower: a low segmented armoured housing
 from the aft turret pair to the forward pair, with a dark core showing
 between its armour segments, a gunmetal forward trunk, and a low command
-section with smoked viewport slits behind heavy mullions under a visor brow,
+section with clear, lightly smoked glass slits (sw_kit.glass) behind heavy mullions under a visor brow,
 facing forward over the forward turrets. Raised octagonal access trunks
 stand at the sprite's four deck rings; exposed service trunks run along the
 housing flanks.

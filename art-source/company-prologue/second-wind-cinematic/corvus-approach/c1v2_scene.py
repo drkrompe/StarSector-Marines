@@ -84,7 +84,7 @@ STAR_FILL = 0.25     # share of cells that hold a visible star
 # Final framing: looking down the lane at Jangala, pitched slightly down.
 FINAL_PITCH = math.radians(-4.0)
 EEVEE_PREVIEW = True   # layout passes; the final look pass renders Cycles
-EEVEE_VOLUME_RANGE = 700.0   # metres of depth EEVEE renders volumes in: the customs Hound (see eevee())
+EEVEE_VOLUME_RANGE = 3000.0   # metres of depth EEVEE renders volumes in: out to the hero at the end
 
 # --- Second Wind's pass ----------------------------------------------------------------------
 LANE_X, LANE_Z = 110.0, -45.0     # passes on the camera's left (opening view), below: dorsal reads
@@ -297,32 +297,80 @@ def rooted(path, label, metres_per_unit):
     return root
 
 
+# Second Wind's attitude corrections on the pass: (VFX kit manoeuvre, start s, end s). The limp
+# wanders its roll and yaw (hero_pose); these are the puffs that catch it.
+HERO_RCS = (
+    ('roll-port-down', 3.4, 4.2),
+    ('yaw-starboard', 5.9, 6.5),
+    ('roll-starboard-down', 8.6, 9.5),
+    ('pitch-up', 11.2, 11.8),
+    ('yaw-port', 14.0, 14.6),
+)
+
+
 def add_hero(scene):
+    """Second Wind, patched, with its own effects when the export carries them: the two running
+    drives, RCS corrections on the pass, the conduit sparks and seal wisps. The exhaust haze and
+    landing dust are smoke in air and stay out."""
     manifest = json.loads((STATES / 'manifest.json').read_text())
-    append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
+    ship, fx = load_with_effects(scene, INPUTS / 'second-wind-patched.blend', manifest)
     root = bpy.data.objects[manifest['root']]
     root.scale = (manifest['metres_per_unit'],) * 3
     root.rotation_mode = 'XYZ'
-    # Stand-in drive glow at the running engines until the VFX kit is wired in. The exhaust anchors
-    # are the root's children in a collection that never reaches the scene, so they are not moved
-    # with the ship: read each one's place relative to the root and hang the light on the root.
-    for i in manifest['engines_running']:
-        anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
-        if anchor is None:
-            continue
-        light = bpy.data.objects.new('Drive %d glow' % i, bpy.data.lights.new('Drive %d glow' % i, 'POINT'))
-        light.data.energy = 2.5e5
-        light.data.color = (0.55, 0.75, 1.0)
-        light.data.shadow_soft_size = 1.5
-        light.parent = root
-        light.matrix_basis = anchor.matrix_parent_inverse @ anchor.matrix_basis @ Matrix.Translation((2.0, 0, 0))
-        scene.collection.objects.link(light)
+    if fx is not None:
+        for obj in fx.all_objects:
+            if obj is not None and (' haze' in obj.name or 'dust' in obj.name):
+                obj.hide_render = obj.hide_viewport = True
+        sys.path.insert(0, str(BASE.parents[1] / 'second-wind-vfx'))
+        import swfx_core
+        import swfx_thrusters
+
+        class Knobs:            # the kit's keyframing on this asset's controls empty
+            key = swfx_core.Context.key
+
+            def __init__(self, controls):
+                self.controls = controls
+        knobs = Knobs(next(o for o in fx.all_objects if o and o.name.startswith('SWFX controls')))
+        knobs.controls['thr_throttle'] = 1.0
+        for move, t0, t1 in HERO_RCS:
+            swfx_thrusters.manoeuvre(knobs, move, round(t0 * FPS), round(t1 * FPS))
+    else:
+        # Stand-in drive glow at the running engines, for an export without effects: hang a light
+        # on the root at each exhaust anchor's place relative to it.
+        for i in manifest['engines_running']:
+            anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
+            if anchor is None:
+                continue
+            light = bpy.data.objects.new('Drive %d glow' % i, bpy.data.lights.new('Drive %d glow' % i, 'POINT'))
+            light.data.energy = 2.5e5
+            light.data.color = (0.55, 0.75, 1.0)
+            light.data.shadow_soft_size = 1.5
+            light.parent = root
+            light.matrix_basis = anchor.matrix_parent_inverse @ anchor.matrix_basis @ Matrix.Translation((2.0, 0, 0))
+            scene.collection.objects.link(light)
     for f in range(FRAMES):
         loc, rot = hero_pose(f / FPS)
         root.location, root.rotation_euler = loc, rot
         root.keyframe_insert('location', frame=f)
         root.keyframe_insert('rotation_euler', frame=f)
     return root
+
+
+def load_with_effects(scene, path, manifest):
+    """Append a finished asset's ship collection and, when it has them, its anchors collection and
+    the VFX kit's SWFX, all from one load, and link every one into the scene. The effects hang off
+    the anchors, and an object outside the view layer is never evaluated: unlinked, the anchors
+    would stay where the file left them while the ship moved away. Returns (ship, SWFX or None)."""
+    wanted = [manifest['append_collection'], manifest.get('anchors_collection'), 'SWFX']
+    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+        dst.collections = [n for n in wanted if n and n in src.collections]
+    linked = {c.name for c in scene.collection.children_recursive}
+    for coll in dst.collections:
+        if coll.name not in linked:
+            scene.collection.children.link(coll)
+            linked |= {coll.name} | {c.name for c in coll.children_recursive}
+    fx = next((c for c in dst.collections if c.name.split('.')[0] == 'SWFX'), None)
+    return dst.collections[0], fx
 
 
 def fly(root, t0, t1, p0, p1, pitch=0.0, roll=0.0):
@@ -559,14 +607,9 @@ def effects_asset(scene, blend, manifest_name, lamp_cap=None):
     Every drive runs at full throttle. The kit's exhaust haze is smoke in air; in vacuum it is
     left out entirely, not dialled down. Returns the root, scaled to metres."""
     manifest = json.loads((INPUTS / manifest_name).read_text())
-    with bpy.data.libraries.load(str(INPUTS / blend), link=False) as (src, dst):
-        dst.collections = [n for n in (manifest['append_collection'], 'SWFX') if n in src.collections]
-    ship = dst.collections[0]
-    for coll in dst.collections:
-        scene.collection.children.link(coll)
-    if len(dst.collections) > 1:
-        fx = dst.collections[1]
-        controls = next(o for o in fx.all_objects if o.name.startswith('SWFX controls'))
+    ship, fx = load_with_effects(scene, INPUTS / blend, manifest)
+    if fx is not None:
+        controls = next(o for o in fx.all_objects if o and o.name.startswith('SWFX controls'))
         controls['thr_throttle'] = 1.0
         for child in fx.children_recursive:
             if child.name.startswith('SWFX | Smoke'):
@@ -649,11 +692,14 @@ def eevee(scene, samples=16):
     scene.eevee.taa_render_samples = samples
     # EEVEE spreads one grid of volume samples over the depth its volumes span. With the picket's
     # and the freighters' plumes 5-9 km out, the customs Hound's plumes up close came out in
-    # blocks. Layout passes keep the grid to the near field; the far plumes are a few pixels, and
-    # the Cycles look pass renders every volume at its own resolution.
+    # blocks. Layout passes keep the grid to the depth Second Wind's drives reach by the end of
+    # the shot (at 700 m its plumes vanished as it pulled away) and pack its slices toward the
+    # camera, so the near Hound keeps its resolution. The far plumes are a few pixels; the Cycles
+    # look pass renders every volume at its own resolution.
     scene.eevee.use_volume_custom_range = True
     scene.eevee.volumetric_start, scene.eevee.volumetric_end = 2.0, EEVEE_VOLUME_RANGE
     scene.eevee.volumetric_tile_size = '4'
+    scene.eevee.volumetric_sample_distribution = 0.95
     scene.render.image_settings.file_format = 'PNG'
     scene.render.image_settings.color_mode = 'RGB'
 

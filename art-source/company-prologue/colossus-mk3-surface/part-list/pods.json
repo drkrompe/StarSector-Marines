@@ -1,0 +1,1656 @@
+{
+ "pod-top-1-port": {
+  "what": "port drive pod top, slice 1 of 5 (X -127..-101): casing top and inboard chamfer, aft deck plate, drive housing aft slope, tail hatch and flank covers",
+  "sheet": "pods-top",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -127,
+       38,
+       0
+      ],
+      [
+       -101,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     14,
+     22,
+     54,
+     60,
+     225,
+     228,
+     241,
+     262,
+     263,
+     264
+    ]
+   },
+   {
+    "object": "Drive pod port aft deck plate",
+    "seed": {
+     "box": [
+      [
+       -127,
+       38,
+       0
+      ],
+      [
+       -101,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     8,
+     12,
+     13,
+     18
+    ]
+   },
+   {
+    "object": "Drive pod port drive housing",
+    "seed": {
+     "box": [
+      [
+       -127,
+       38,
+       0
+      ],
+      [
+       -101,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     15
+    ]
+   },
+   {
+    "object": "Drive pod port drive housing tail hatch",
+    "seed": {
+     "box": [
+      [
+       -127,
+       38,
+       0
+      ],
+      [
+       -101,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Drive pod port drive housing flank cover 1",
+    "seed": {
+     "box": [
+      [
+       -127,
+       38,
+       0
+      ],
+      [
+       -101,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     9
+    ]
+   }
+  ],
+  "face_count": 18,
+  "area_units2": 1579.15,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   40.67,
+   23.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -61.58749008178711,
+    -113.0999984741211
+   ],
+   "ortho_width": 49.19897271681201
+  },
+  "native_texels_per_unit": 16.1
+ },
+ "pod-top-1-stbd": {
+  "what": "starboard drive pod top, slice 1 of 5 (X -127..-101): casing top and inboard chamfer, aft deck plate, drive housing aft slope, tail hatch and flank covers (mirror of port)",
+  "sheet": "pods-top",
+  "tile": 0,
+  "skin_from": "pod-top-1-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -127,
+       -69,
+       0
+      ],
+      [
+       -101,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     13,
+     19,
+     40,
+     46,
+     215,
+     218,
+     241,
+     262,
+     263,
+     264
+    ]
+   },
+   {
+    "object": "Drive pod starboard aft deck plate",
+    "seed": {
+     "box": [
+      [
+       -127,
+       -69,
+       0
+      ],
+      [
+       -101,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     7,
+     11,
+     12,
+     18
+    ]
+   },
+   {
+    "object": "Drive pod starboard drive housing",
+    "seed": {
+     "box": [
+      [
+       -127,
+       -69,
+       0
+      ],
+      [
+       -101,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     15
+    ]
+   },
+   {
+    "object": "Drive pod starboard drive housing tail hatch",
+    "seed": {
+     "box": [
+      [
+       -127,
+       -69,
+       0
+      ],
+      [
+       -101,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Drive pod starboard drive housing flank cover 1",
+    "seed": {
+     "box": [
+      [
+       -127,
+       -69,
+       0
+      ],
+      [
+       -101,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     9
+    ]
+   }
+  ],
+  "face_count": 18,
+  "area_units2": 1579.15,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   40.67,
+   23.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    58.58749008178711,
+    -113.0999984741211
+   ],
+   "ortho_width": 49.19897271681201
+  },
+  "native_texels_per_unit": 16.1
+ },
+ "pod-top-2-port": {
+  "what": "port drive pod top, slice 2 of 5 (X -101..-87): casing top and inboard chamfer, drive housing top, fore slope, top cover and band",
+  "sheet": "pods-top",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -101,
+       38,
+       0
+      ],
+      [
+       -87,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     55,
+     56,
+     61,
+     191,
+     192,
+     197,
+     261
+    ]
+   },
+   {
+    "object": "Drive pod port drive housing",
+    "seed": {
+     "box": [
+      [
+       -101,
+       38,
+       0
+      ],
+      [
+       -87,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     23,
+     24,
+     31
+    ]
+   },
+   {
+    "object": "Drive pod port drive housing top cover",
+    "seed": {
+     "box": [
+      [
+       -101,
+       38,
+       0
+      ],
+      [
+       -87,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Drive pod port drive housing band",
+    "seed": {
+     "box": [
+      [
+       -101,
+       38,
+       0
+      ],
+      [
+       -87,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     2,
+     3
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 990.08,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.17,
+   16.35
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -60.394514083862305,
+    -95.82500076293945
+   ],
+   "ortho_width": 43.22036477022393
+  },
+  "native_texels_per_unit": 18.4
+ },
+ "pod-top-2-stbd": {
+  "what": "starboard drive pod top, slice 2 of 5 (X -101..-87): casing top and inboard chamfer, drive housing top, fore slope, top cover and band (mirror of port)",
+  "sheet": "pods-top",
+  "tile": 1,
+  "skin_from": "pod-top-2-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -101,
+       -69,
+       0
+      ],
+      [
+       -87,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     41,
+     47,
+     48,
+     181,
+     184,
+     185,
+     261
+    ]
+   },
+   {
+    "object": "Drive pod starboard drive housing",
+    "seed": {
+     "box": [
+      [
+       -101,
+       -69,
+       0
+      ],
+      [
+       -87,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     22,
+     23,
+     31
+    ]
+   },
+   {
+    "object": "Drive pod starboard drive housing top cover",
+    "seed": {
+     "box": [
+      [
+       -101,
+       -69,
+       0
+      ],
+      [
+       -87,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Drive pod starboard drive housing band",
+    "seed": {
+     "box": [
+      [
+       -101,
+       -69,
+       0
+      ],
+      [
+       -87,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     2
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 990.19,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.17,
+   16.35
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    57.394514083862305,
+    -95.82500076293945
+   ],
+   "ortho_width": 43.22036477022393
+  },
+  "native_texels_per_unit": 18.4
+ },
+ "pod-top-3-port": {
+  "what": "port drive pod top, slice 3 of 5 (X -87..-66): casing top and inboard chamfer, top service cover",
+  "sheet": "pods-top",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -87,
+       38,
+       0
+      ],
+      [
+       -66,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     57,
+     58,
+     59,
+     62,
+     63,
+     160,
+     163,
+     242
+    ]
+   },
+   {
+    "object": "Drive pod port top service cover",
+    "seed": {
+     "box": [
+      [
+       -87,
+       38,
+       0
+      ],
+      [
+       -66,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Drive pod port shoulder band",
+    "seed": {
+     "box": [
+      [
+       -87,
+       38,
+       0
+      ],
+      [
+       -66,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1
+    ]
+   }
+  ],
+  "face_count": 11,
+  "area_units2": 961.27,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.01,
+   23.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -60.996341705322266,
+    -78.9000015258789
+   ],
+   "ortho_width": 49.19897271681201
+  },
+  "native_texels_per_unit": 16.1
+ },
+ "pod-top-3-stbd": {
+  "what": "starboard drive pod top, slice 3 of 5 (X -87..-66): casing top and inboard chamfer, top service cover (mirror of port)",
+  "sheet": "pods-top",
+  "tile": 2,
+  "skin_from": "pod-top-3-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -87,
+       -69,
+       0
+      ],
+      [
+       -66,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     42,
+     43,
+     44,
+     45,
+     49,
+     150,
+     153,
+     242
+    ]
+   },
+   {
+    "object": "Drive pod starboard top service cover",
+    "seed": {
+     "box": [
+      [
+       -87,
+       -69,
+       0
+      ],
+      [
+       -66,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Drive pod starboard shoulder band",
+    "seed": {
+     "box": [
+      [
+       -87,
+       -69,
+       0
+      ],
+      [
+       -66,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     2
+    ]
+   }
+  ],
+  "face_count": 11,
+  "area_units2": 961.16,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.01,
+   23.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    57.996341705322266,
+    -78.9000015258789
+   ],
+   "ortho_width": 49.19897271681201
+  },
+  "native_texels_per_unit": 16.1
+ },
+ "pod-top-4-port": {
+  "what": "port drive pod top, slice 4 of 5 (X -66..-50): casing top and inboard chamfer, shoulder band top",
+  "sheet": "pods-side",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -66,
+       38,
+       0
+      ],
+      [
+       -50,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     75,
+     76,
+     85,
+     86
+    ]
+   },
+   {
+    "object": "Drive pod port shoulder band",
+    "seed": {
+     "box": [
+      [
+       -66,
+       38,
+       0
+      ],
+      [
+       -50,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     7,
+     8,
+     11
+    ]
+   }
+  ],
+  "face_count": 9,
+  "area_units2": 656.58,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   36.3,
+   18.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -61.35000038146973,
+    -57.80110549926758
+   ],
+   "ortho_width": 42.209301438442495
+  },
+  "native_texels_per_unit": 18.8
+ },
+ "pod-top-4-stbd": {
+  "what": "starboard drive pod top, slice 4 of 5 (X -66..-50): casing top and inboard chamfer, shoulder band top (mirror of port)",
+  "sheet": "pods-side",
+  "tile": 2,
+  "skin_from": "pod-top-4-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -66,
+       -69,
+       0
+      ],
+      [
+       -50,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     72,
+     73,
+     82,
+     83
+    ]
+   },
+   {
+    "object": "Drive pod starboard shoulder band",
+    "seed": {
+     "box": [
+      [
+       -66,
+       -69,
+       0
+      ],
+      [
+       -50,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     5,
+     6,
+     7,
+     9
+    ]
+   }
+  ],
+  "face_count": 9,
+  "area_units2": 656.58,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   36.3,
+   18.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    58.35000038146973,
+    -57.80110549926758
+   ],
+   "ortho_width": 42.209301438442495
+  },
+  "native_texels_per_unit": 18.8
+ },
+ "pod-top-5-port": {
+  "what": "port drive pod top, slice 5 of 5 (X -50..-28): casing top and inboard chamfer, fore access hatch",
+  "sheet": "pods-top",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -50,
+       38,
+       0
+      ],
+      [
+       -28,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     100,
+     101,
+     102,
+     103,
+     111,
+     129,
+     132
+    ]
+   },
+   {
+    "object": "Drive pod port fore access hatch",
+    "seed": {
+     "box": [
+      [
+       -50,
+       38,
+       0
+      ],
+      [
+       -28,
+       72,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 730.6,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   25.0,
+   25.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -58.0,
+    -42.5
+   ],
+   "ortho_width": 51.679586563307495
+  },
+  "native_texels_per_unit": 15.4
+ },
+ "pod-top-5-stbd": {
+  "what": "starboard drive pod top, slice 5 of 5 (X -50..-28): casing top and inboard chamfer, fore access hatch (mirror of port)",
+  "sheet": "pods-top",
+  "tile": 3,
+  "skin_from": "pod-top-5-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -50,
+       -69,
+       0
+      ],
+      [
+       -28,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     96,
+     97,
+     98,
+     99,
+     111,
+     126,
+     129
+    ]
+   },
+   {
+    "object": "Drive pod starboard fore access hatch",
+    "seed": {
+     "box": [
+      [
+       -50,
+       -69,
+       0
+      ],
+      [
+       -28,
+       -35,
+       40
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 730.6,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   25.0,
+   25.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    55.0,
+    -42.5
+   ],
+   "ortho_width": 51.679586563307495
+  },
+  "native_texels_per_unit": 15.4
+ },
+ "pod-flank-1-port": {
+  "what": "port drive pod outboard flank and upper chamfer, slice 1 of 2 (X -112..-77), wall service cover",
+  "sheet": "pods-side",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -112,
+       70,
+       -10
+      ],
+      [
+       -77,
+       90,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     18,
+     19,
+     20,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     50,
+     51,
+     52,
+     178,
+     179,
+     180,
+     188,
+     212,
+     213,
+     214,
+     222,
+     253,
+     254,
+     255,
+     283,
+     313
+    ]
+   },
+   {
+    "object": "Drive pod port aft deck plate",
+    "seed": {
+     "box": [
+      [
+       -112,
+       70,
+       -10
+      ],
+      [
+       -77,
+       90,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     6,
+     10,
+     11
+    ]
+   },
+   {
+    "object": "Drive pod port wall service cover",
+    "seed": {
+     "box": [
+      [
+       -112,
+       70,
+       -10
+      ],
+      [
+       -77,
+       90,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     3
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1098.72,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   37.0,
+   26.25
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    92.50009536743164,
+    3.125
+   ],
+   "ortho_width": 54.263565891472865
+  },
+  "native_texels_per_unit": 14.6
+ },
+ "pod-flank-1-stbd": {
+  "what": "starboard drive pod outboard flank and upper chamfer, slice 1 of 2 (X -112..-77), wall service cover (mirror of port)",
+  "sheet": "pods-side",
+  "tile": 0,
+  "skin_from": "pod-flank-1-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -112,
+       -87,
+       -10
+      ],
+      [
+       -77,
+       -67,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     21,
+     22,
+     23,
+     50,
+     51,
+     52,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     190,
+     193,
+     194,
+     195,
+     221,
+     224,
+     225,
+     226,
+     253,
+     254,
+     255,
+     283,
+     313
+    ]
+   },
+   {
+    "object": "Drive pod starboard aft deck plate",
+    "seed": {
+     "box": [
+      [
+       -112,
+       -87,
+       -10
+      ],
+      [
+       -77,
+       -67,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     9,
+     13,
+     14
+    ]
+   },
+   {
+    "object": "Drive pod starboard wall service cover",
+    "seed": {
+     "box": [
+      [
+       -112,
+       -87,
+       -10
+      ],
+      [
+       -77,
+       -67,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     2
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1098.72,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   37.0,
+   26.25
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -92.50009536743164,
+    3.125
+   ],
+   "ortho_width": 54.263565891472865
+  },
+  "native_texels_per_unit": 14.6
+ },
+ "pod-flank-2-port": {
+  "what": "port drive pod outboard flank and upper chamfer, slice 2 of 2 (X -77..-28), shoulder band outboard face",
+  "sheet": "pods-side",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -77,
+       70,
+       -10
+      ],
+      [
+       -28,
+       90,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     47,
+     48,
+     49,
+     53,
+     71,
+     72,
+     73,
+     81,
+     82,
+     83,
+     94,
+     95,
+     96,
+     97,
+     98,
+     99,
+     109,
+     123,
+     126,
+     147,
+     148,
+     149,
+     157,
+     256,
+     289,
+     292,
+     295,
+     300,
+     319,
+     322,
+     325,
+     330
+    ]
+   },
+   {
+    "object": "Drive pod port shoulder band",
+    "seed": {
+     "box": [
+      [
+       -77,
+       70,
+       -10
+      ],
+      [
+       -28,
+       90,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     9,
+     10
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1245.83,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   44.35,
+   26.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    52.17499923706055,
+    3.0
+   ],
+   "ortho_width": 53.746770025839794
+  },
+  "native_texels_per_unit": 14.8
+ },
+ "pod-flank-2-stbd": {
+  "what": "starboard drive pod outboard flank and upper chamfer, slice 2 of 2 (X -77..-28), shoulder band outboard face (mirror of port)",
+  "sheet": "pods-side",
+  "tile": 1,
+  "skin_from": "pod-flank-2-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -77,
+       -87,
+       -10
+      ],
+      [
+       -28,
+       -67,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     53,
+     65,
+     66,
+     67,
+     75,
+     76,
+     77,
+     85,
+     86,
+     87,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     113,
+     132,
+     135,
+     156,
+     159,
+     160,
+     161,
+     256,
+     289,
+     292,
+     295,
+     300,
+     319,
+     322,
+     325,
+     330
+    ]
+   },
+   {
+    "object": "Drive pod starboard shoulder band",
+    "seed": {
+     "box": [
+      [
+       -77,
+       -87,
+       -10
+      ],
+      [
+       -28,
+       -67,
+       20
+      ]
+     ],
+     "pad": 3
+    },
+    "faces": [
+     10,
+     11
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1245.83,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   44.35,
+   26.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -52.17499923706055,
+    3.0
+   ],
+   "ortho_width": 53.746770025839794
+  },
+  "native_texels_per_unit": 14.8
+ },
+ "pod-belly-1-port": {
+  "what": "port drive pod casing bottom (X -127..-28)",
+  "sheet": "pods-side",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive pod port casing",
+    "seed": {
+     "box": [
+      [
+       -127,
+       38,
+       -20
+      ],
+      [
+       -28,
+       90,
+       -5
+      ]
+     ]
+    },
+    "faces": [
+     28,
+     29,
+     30,
+     31,
+     69,
+     79,
+     90,
+     91,
+     117,
+     141,
+     172,
+     206,
+     266
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 2059.42,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   92.0,
+   37.67
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    79.0,
+    60.663461685180664
+   ],
+   "ortho_width": 106.97674418604652
+  },
+  "native_texels_per_unit": 7.4
+ },
+ "pod-belly-1-stbd": {
+  "what": "starboard drive pod casing bottom (X -127..-28) (mirror of port)",
+  "sheet": "pods-side",
+  "tile": 3,
+  "skin_from": "pod-belly-1-port",
+  "members": [
+   {
+    "object": "Drive pod starboard casing",
+    "seed": {
+     "box": [
+      [
+       -127,
+       -87,
+       -20
+      ],
+      [
+       -28,
+       -35,
+       -5
+      ]
+     ]
+    },
+    "faces": [
+     28,
+     29,
+     30,
+     31,
+     69,
+     79,
+     90,
+     91,
+     117,
+     141,
+     172,
+     206,
+     266
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 2059.41,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   92.0,
+   37.67
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -79.0,
+    57.663461685180664
+   ],
+   "ortho_width": 106.97674418604652
+  },
+  "native_texels_per_unit": 7.4
+ }
+}

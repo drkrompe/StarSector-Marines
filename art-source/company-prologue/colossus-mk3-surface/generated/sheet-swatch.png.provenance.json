@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15600-054f-7570-813b-f8695c095f2c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15600-054f-7570-813b-f8695c095f2c\\exec-86cf2020-0703-43d4-9b1c-23372f884c79.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-mk3-surface\\generated\\sheet-swatch.png",
+    "sha256": "0cbf5fa0008110e46b1e2166496ba79e2041873facf163306c83bef937eeb055",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-mk3-surface\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "af396b618c4992cd88a6e678dc3d9b091f9616127b2f15e73642f148d686c49a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels\nImage 2: Material and finish reference only: paint colours, wear and detail; not layout\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of FIVE flat-coloured squares, three in the top row and two in the bottom row, on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (a Colossus Mk.III: a huge, boxy, low-tech Domain-era heavy freighter taken by pirates and refitted as an armed raider), to be painted as a flat, square-on texture sample of that material:\ntop-left square: deep crimson enamel hull plate;\ntop-middle square: blackened, sooty rust-brown module plate;\ntop-right square: pale dirty warm-grey painted plate;\nbottom-left square: faded hazard-orange enamel;\nbottom-middle square: dark gunmetal grey steel machinery and armour.\nINPUT 2 is the SAME ship, already painted in its pirate livery: it is the finish to match. Use its paint colours, sheen, seams, fasteners and its heavy wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the five squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of old, hard-fought pirate hull plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, fine even chips and scuffs to dark steel, a thin even film of grime and soot. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: crimson stays crimson, blackened brown stays blackened brown, pale grey stays pale warm grey, orange stays hazard orange, gunmetal stays dark grey steel. No colour changes, no repair patches, no different-coloured plates.\n- Wear is heavy but even across each whole square. No rust holes, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\guide\\sheet-swatch-guide.png",
+      "sha256": "6e4302c5f4742626cc8e99ce74bd765c849c0cf713e8796321d4f34c3a7448b2",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\reference\\finish-reference.png",
+      "sha256": "74371d570280499c86a6140acd689532b485cfccd4636d86bd6654f884705379",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish reference only: paint colours, wear and detail; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to generate one swatch sheet, preserving Image 1’s layout and matching Image 2’s finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 116088,
+    "cached_input_tokens": 97920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 904,
+    "reasoning_output_tokens": 30
+  },
+  "elapsedSeconds": 59.3
+}

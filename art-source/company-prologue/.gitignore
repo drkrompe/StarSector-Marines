@@ -203,3 +203,44 @@ wolf-merchant-surface/skin-manifest.json
 broadsword-cinematic/*.blend
 broadsword-cinematic/*.blend1
 broadsword-cinematic/review/
+# tarsus-surface: script outputs (tarsus-surface/rebuild.sh)
+tarsus-surface/review/
+tarsus-surface/textures/
+tarsus-surface/grading/
+tarsus-surface/skin-manifest.json
+tarsus-surface/guide/*
+!tarsus-surface/guide/sheet-*-guide.png
+!tarsus-surface/guide/reference-guide.png
+!tarsus-surface/guide/reference-mask.png
+# tarsus-cinematic: the per-state .blend is rebuilt by finalize.sh; manifest and validation stay tracked.
+tarsus-cinematic/*/tarsus.blend
+tarsus-cinematic/*/tarsus.blend1
+# colossus-mk3 (pirate Colossus Mk.III): the same outputs as the Colossus's packages
+colossus-mk3-geometry/*.png
+colossus-mk3-geometry/*.blend
+colossus-mk3-geometry/*.blend1
+colossus-mk3-geometry/reference-history/
+colossus-mk3-surface/review/
+colossus-mk3-surface/textures/
+colossus-mk3-surface/grading/
+colossus-mk3-surface/skin-manifest.json
+colossus-mk3-surface/guide/*
+!colossus-mk3-surface/guide/sheet-*-guide.png
+!colossus-mk3-surface/guide/reference-guide.png
+!colossus-mk3-surface/guide/reference-mask.png
+colossus-mk3-cinematic/*.blend
+colossus-mk3-cinematic/*.blend1
+colossus-mk3-cinematic/review/
+
+# Phaeton surfacing and cinematic export: outputs are rebuilt by rebuild.sh / finalize.sh.
+phaeton-surface/review/
+phaeton-surface/textures/
+phaeton-surface/grading/
+phaeton-surface/skin-manifest.json
+phaeton-surface/guide/*
+!phaeton-surface/guide/sheet-*-guide.png
+!phaeton-surface/guide/reference-guide.png
+!phaeton-surface/guide/reference-mask.png
+phaeton-cinematic/*.blend
+phaeton-cinematic/*.blend1
+phaeton-cinematic/review/

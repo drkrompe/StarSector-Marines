@@ -201,6 +201,8 @@ def setup(body):
     manifest = json.loads((c4.STATES / 'manifest.json').read_text())
     ship_parts = {o.name for o in bpy.data.collections[manifest['append_collection']].all_objects}
     ship_parts |= {o.name for o in bpy.data.objects if o.name.startswith('Drive ')}
+    import port_fleet                       # the port's hulls and the Colossus's drive volumes: nobody walks them
+    ship_parts |= port_fleet.hull_part_names()
     nav = crowd.Nav(*NAV_BOX)
     t0 = time.time()
     nav.read_scene(ship_parts, RAMP, extra=[((KX, KY), (33.0, 26.5), KH)])
