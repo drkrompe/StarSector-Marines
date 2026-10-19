@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155f6-8f69-7f03-ad51-51857538e806",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155f6-8f69-7f03-ad51-51857538e806\\exec-4ce49192-87f2-4ed7-882b-858bafa8d095.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-tanks.png",
+    "sha256": "749dae44550cc26e0d50025304803868e24549430a29a2d105378957a3a45bb6",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-tanks.prompt.txt",
+  "promptSha256": "daeeaaedc0bcb0bb014fcd5528345d8f4788eeb6a40ad57ea9e3df6111ced022",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the layout sheet to paint (layout authority)\nImage 2: INPUT 2: the finish reference (paint and finish only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a working independent Phaeton-class fuel tanker, a long destroyer-sized low-tech merchant tanker with three spherical cargo tanks along its deck), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-green background:\ntop-left: the aft spherical cargo tank's crown seen from directly above: a round light-orange dome with two notches where a catwalk crosses it;\ntop-right: the mid spherical cargo tank's crown from above, the same;\nbottom-left: the fore spherical cargo tank's crown from above, the same;\nbottom-right: the mid spherical cargo tank seen from the side: a round light-orange dome with notches where catwalks and fittings stand;\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain green gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background green.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints (keep the seam lines already drawn), neat rows of small fasteners, flush bolted access covers, subtle panel-to-panel tone differences, a light even film of grime and fuel staining in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Paint each region in the tanker's livery, matching INPUT 2: salmon-red areas are a deep oxide-red enamel hull plate; light-orange areas (the spherical cargo domes) are a pale warm-grey insulated enamel; light grey areas are a muted slate-blue painted steel; tan areas are a pale buff-cream enamel; mid-grey areas are dark grey gunmetal steel; dark grey or near-black areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-green as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-tanks-guide.png",
+      "sha256": "09d611fef4629e45d80764a8e50c7f1a2fa272fdaa6c82b6820ff6f665267ad3",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the layout sheet to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "9511412cfedf65cfa8ada5828d34be9aa7b9538a4bf1509d1b05add0208b2b4b",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the finish reference (paint and finish only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to paint the four tank faces, keeping the guide’s layout and outlines fixed."
+  ],
+  "usage": {
+    "input_tokens": 47320,
+    "cached_input_tokens": 38144,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 756,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.7
+}
