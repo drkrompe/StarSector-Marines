@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "gpt-6-astra",
+  "effort": "ultra",
+  "thread": "01a154c7-9638-7120-8467-70436f79a9f7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c7-9638-7120-8467-70436f79a9f7\\exec-14fb8c78-534d-45cd-8953-1b2ea81b1149.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\castle-figure\\face-texture\\generated\\uv-island.png",
+    "sha256": "724096e3ff3bb55c35b414d090e8881cbad3136d9d6e11c94b30c8965bffb762",
+    "dimensions": [
+      1720,
+      914
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\castle-figure\\face-texture\\prompts\\uv-island.txt",
+  "promptSha256": "b807d44fb98567ead17a84bb103224c2f47e4b71a879a594da984d9c4a462827",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority: the exact canvas, framing and feature positions to repaint in place; never move anything\nImage 2: Identity reference: her skin tone, age and character only; not layout, not lighting, not hair or clothing\n\nRepaint a 3D character's skin texture map: the colour (albedo) texture for the head of Castle, a woman in her early fifties, so it matches the woman in the identity reference.\n\nImage 1 is the texture to repaint. It is NOT a photograph of a face: it is a head unwrapped flat for texturing, so it looks stretched. The face is the small region in the middle (two eye openings, the nose with its nostrils, the lips, the chin below them). The two large rounded lobes are the scalp and the back of the head, and the two ears sit on the lobes' inner edges. Every feature must stay at exactly the same pixel position, size and stretched shape: the eye openings, nostrils, lips and ears must land where they already are, because the texture is wrapped back onto a fixed 3D mesh. Keep the same canvas size, framing and layout, and do not straighten, recentre, rotate or re-proportion anything.\n\nRepaint the skin so that, wrapped on the head, it reads as her: warm, pale olive, lightly sun-weathered skin; fine lines at the outer eye corners (crow's feet) and across the forehead; soft nasolabial folds; a few faint freckles and sun spots on the cheeks and nose; natural, slightly muted rose lips with no lipstick; a faint warmth to the cheeks and nose; the slightly darker, thinner skin of the eyelids. On the scalp lobes paint scalp skin under very short dark-brown hair roots, going silver above the ears (the temples), as a base under her real hair.\n\nThis is a texture, so it must be lit flat: no shadows, no highlights, no shine, no ambient occlusion, no directional light, no makeup. No eyebrow hairs, no eyelashes and no long hair: those are separate meshes. No text, logos, labels, borders or watermark (remove the small 'org' text at the lower left). Natural photographic skin detail, matching the existing texture's resolution.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\castle-figure\\face-texture\\guides\\uv-island.png",
+      "sha256": "3ff4febbc701c636be48583426d2dec706f20c5ff28229a786c255f913adc9d4",
+      "dimensions": [
+        1386,
+        737
+      ],
+      "mode": "RGB",
+      "role": "Layout authority: the exact canvas, framing and feature positions to repaint in place; never move anything"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity reference: her skin tone, age and character only; not layout, not lighting, not hair or clothing"
+    }
+  ],
+  "agentMessages": [
+    "I’ll repaint the texture in place, using Image 1 for layout and Image 2 for skin tone, age, and character.\n"
+  ],
+  "usage": {
+    "input_tokens": 44369,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 617,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.1
+}

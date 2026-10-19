@@ -16,6 +16,7 @@ light, and the repaint owns face, hair and cloth finish. Her look is the portrai
 | `build_castle.py` | Builds her headless and writes `castle-figure.blend` (gitignored). `python build_castle.py [--hair mesh\|curves] [--face portrait\|plain] [--out PATH]`. |
 | `castle_face.py` | Her face, half-smile and textured skin, eyes, brows and lashes: MakeHuman face targets from her portrait, the expression units masked to her left, MakeHuman's CC0 diffuses (packed into the .blend). `--face plain` skips it. |
 | `face_review.py` | Her face beside her portrait, and a front / three-quarter / profile turn, in EEVEE and Workbench. `python face_review.py --out DIR [--blend PATH] [--prefix NAME-]`. |
+| `face_texture.py` | Experiment: an ImageGen repaint of her face skin, two ways. `guides` renders the head's UV island and three orthographic albedo views into `face-texture/guides/`; Codex (Astra, `--effort ultra`) repaints each from `face-texture/prompts/` into `face-texture/generated/`; `measure` finds where eleven landmarks landed (NCC patch match, mm) and registers each generation with a robust affine; `bake` writes a UV-direct and a projected skin and a .blend for each under `build/castle-face-texture/`; `compare` renders both on her beside the portrait. Not yet adopted into `castle_face.py`. |
 | `castle_review.py` | Review sheets, 1920x1080: turnarounds, the C2 close-shot distance, and the bridge framings. `python castle_review.py --out DIR [--blend PATH] [--engine workbench\|eevee] [--sheets ...] [--prefix NAME-] [--no-bridge]`. |
 
 ## Hair
