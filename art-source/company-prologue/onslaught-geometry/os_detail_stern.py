@@ -31,8 +31,8 @@ import math
 import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-from os_machinery import Acc, tube, ring
-from os_stern import blade_inner_y, ROOT_X, WELL_FLOOR
+from os_machinery import Acc, tube, ring, box
+from os_stern import blade_inner_y, ROOT_X, WELL_FLOOR, MAINS_FACE_X
 from os_engines import ENGINES, MOUTH_R
 
 F = WELL_FLOOR
@@ -41,17 +41,21 @@ _TREES = []
 SKIPPED = []
 
 
-def _trees(families=('Hull', 'Armour', 'Engine', 'Bridge')):
+def _trees(families=('Hull', 'Armour', 'Engine', 'Bridge'), extra=()):
+    """BVHs of the renderer's own triangulation (the lofts' quads are twisted, and a BVH that
+    splits them on the other diagonal is up to half a unit off the drawn surface). `extra`
+    names this module's big-layer objects, so the small layer seats on the plates."""
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
     _TREES.clear()
     for ob in bpy.context.scene.objects:
-        if ob.type != 'MESH' or ob.name.split(' ')[0] not in families:
+        if ob.type != 'MESH' or (ob.name.split(' ')[0] not in families and ob.name not in extra):
             continue
         ev = ob.evaluated_get(dg)
         me = ev.to_mesh()
+        me.calc_loop_triangles()
         _TREES.append((ob.name, BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
-                                                     [tuple(p.vertices) for p in me.polygons])))
+                                                     [tuple(t.vertices) for t in me.loop_triangles])))
         ev.to_mesh_clear()
 
 
@@ -201,7 +205,10 @@ def surface_pipe(pipes, clamps, guides, r, clamp_every=3, stand=.15):
         h = cast(Vector(o)-Vector(d).normalized()*8.0, d, 30.0)
         if h is None:
             continue
-        cs.append((h[0]+h[1]*(r+stand), h[0], h[1]))
+        c = h[0]+h[1]*(r+stand)
+        if cs and (c-cs[-1][0]).length < .2:
+            continue                    # two guides met the same spot: no zero-length segment
+        cs.append((c, h[0], h[1]))
     for (p, _, _), (q, _, _) in zip(cs, cs[1:]):
         pipes.add(*tube(tuple(p), tuple(q), r, n=8))
     for k, (p, s, n) in enumerate(cs):
@@ -241,7 +248,373 @@ def materials():
             'shield': get('Detail heat shield steel', (.12, .11, .11), .65, .42),
             'pale': get('Pale pipe steel', (.27, .25, .23), .45, .45),
             'bronze': get('Conduit bronze', (.22, .12, .07), .7, .45),
-            'rod': get('Detail actuator rod', (.42, .41, .4), .85, .3)}
+            'rod': get('Detail actuator rod', (.42, .41, .4), .85, .3),
+            'top': get('Top run plate steel', (.24, .225, .21), .4, .5),
+            'band': get('Header band pale', (.46, .44, .40), .1, .55),
+            'radiator': get('Radiator fin red-brown', (.13, .045, .03), .55, .5)}
+
+
+# --- pass 2: the big layer (reads at 1.5 km) --------------------------------------------------
+#
+# Owner after detail pass 1: "Push the next detail pass bolder: bigger, denser machinery and
+# plating breakup so it reads at 1.5 km too." At 1.5 km the hull is about 0.8 px per unit, so
+# this layer works in plates 8-25 units long, wide near-black seams, alternating plate tones
+# (the sprite's blades are a pale bone-brown top over a darker red-brown glacis), heavy pipe
+# bundles 1.8-3.2 across and drive collars, and leaves the pass-1 parts as the close-up layer
+# seated on top of it. Every plate is a dark underlay with the plate inset half a seam on each
+# side, so neighbouring plates show a 0.9-wide dark seam between them.
+
+def tones(kit):
+    from os_kit import material
+    get = lambda name, *a: bpy.data.materials.get(name) or material(name, *a)
+    return {'bone': get('Stern plate bone-brown', (.36, .26, .2), .25, .55),
+            'dark': get('Stern plate dark red-brown', (.075, .045, .036), .35, .6),
+            'steel': get('Stern plate blue-grey steel', (.06, .066, .08), .55, .45),
+            'plate': kit.plate,
+            'seam': get('Stern seam black', (.012, .011, .011), .3, .8)}
+
+
+def cast_hull(o, d, reach=80.0, prefix='Hull'):
+    """cast() restricted to the hull's own solids (frames for plates must not ride on plates)."""
+    o, d = Vector(o), Vector(d).normalized()
+    best = None
+    for name, t in _TREES:
+        if not name.startswith(prefix):
+            continue
+        p, n, _, dist = t.ray_cast(o, d, reach)
+        if p is not None and (best is None or dist < best[0]):
+            best = (dist, p, (-n if n.dot(d) > 0 else n).normalized(), name)
+    return None if best is None else best[1:]
+
+
+def glacis_frame(x, s):
+    """The blade's outboard glacis at X, just below its chine: (point, outward normal, unit
+    vector down the slope), or None where the drop at that station is not on the glacis."""
+    h = cast_hull((x, s*(blade_inner_y(x)+19.0), 60), (0, 0, -1))
+    if h is None or not (.3 < h[1].z < .72) or 'aft leg' not in h[2]:
+        return None
+    p, n, _ = h
+    along = Vector((BLADE_DIR.x, s*BLADE_DIR.y, 0))
+    w = n.cross(along).normalized()
+    if w.z > 0:
+        w = -w
+    return p, n, w
+
+
+def glacis_pt(x, s, sl):
+    g = glacis_frame(x, s)
+    return None if g is None else (g[0]+g[2]*sl, g[1])
+
+
+# Glacis bundle: (slant below the frame point, radius, kind), outermost (highest) first.
+# Glacis bundle: (slant from glacis_frame's point, radius, kind), highest first. The glacis
+# runs from its chine (slant -4.5) to a foot 7-14 down the slope, where it meets the quarter
+# pod or the blade's vertical side; the bundle rides just under the chine, well inboard of the
+# foot, so it never stands outboard of the plan outline.
+BUNDLE = [(-1.9, .8, 'pale'), (-.2, .8, 'bronze'), (1.5, .8, 'pale')]
+GL_TOP = 2.8                    # the glacis plates' upper edge (slant), under the bundle
+GL_BAND = 1.2                   # and their lower edge this far above the foot, so nothing
+                                # stands outboard of the blade's side (the plan outline)
+
+
+_FEET = {}
+
+
+def glacis_foot(x, s):
+    """The glacis's foot at X (slant from glacis_frame's point), smoothed over +-6 units of X
+    so a run laid along it is straight; None off the glacis."""
+    key = (round(x, 1), s)
+    if key not in _FEET:
+        vals = [v for v in (_raw_foot(x+dx, s) for dx in (-6, -4, -2, 0, 2, 4, 6)) if v is not None]
+        _FEET[key] = None if _raw_foot(x, s) is None or not vals else sum(vals)/len(vals)
+    return _FEET[key]
+
+
+def glacis_along(s):
+    """Along the glacis's chine: the blade's direction, rising aft with the crest."""
+    return Vector((BLADE_DIR.x, s*BLADE_DIR.y, -BLADE_DIR.x*.158))
+
+
+def _raw_foot(x, s):
+    g = glacis_frame(x, s)
+    if g is None:
+        return None
+    p, n, w = g
+    sl = 0.0
+    while sl < 30:
+        h = cast_hull(tuple(p+w*(sl+.5)+n*5), tuple(-n), 12.0)
+        if h is None or h[1].angle(n) > math.radians(10):
+            return sl
+        sl += .5
+    return sl
+
+
+class Plates:
+    """Per-tone accumulators plus the seam underlay."""
+    def __init__(self):
+        self.acc = {k: Acc() for k in ('bone', 'dark', 'steel', 'plate')}
+        self.under = Acc()
+
+    def panel(self, tone, c, d, along, a, b, t=.8, gap=.9, tag='', maxang=14.0, raised=None, step=1.6):
+        """A big plate: a dark underlay a x b and the plate inset gap/2 all round, t proud.
+        `raised` adds a stepped doubler of that tone 1.5 inside the plate's edge."""
+        if patch(None, c, d, along, a, b, 0.0, maxang=maxang, step=step) is None:
+            SKIPPED.append((tag, 'plate does not fit'))
+            return None
+        patch(self.under, c, d, along, a, b, .3, maxang=maxang, step=step, tag=tag+' under')
+        r = patch(self.acc[tone], c, d, along, a-gap/2, b-gap/2, t, maxang=maxang, step=step, tag=tag)
+        if r is not None and raised and a-gap/2 > 2.5 and b-gap/2 > 2.5:
+            patch(self.acc[raised], on(r, 0, 0), -r[1], r[2], a-gap/2-1.5, b-gap/2-1.5, .5, lift=t-.05,
+                  sink=.1, maxang=30, step=step, tag=tag+' doubler', normal=r[1])
+        return r
+
+    def build(self, kit, M, prefix):
+        names = []
+        for k, acc in self.acc.items():
+            ob = acc.build(kit, f'{prefix} {k} plates', M[k], bevel=.15)
+            if ob is not None:
+                names.append(ob.name)
+        ob = self.under.build(kit, f'{prefix} plate seams', M['seam'])
+        if ob is not None:
+            names.append(ob.name)
+        return names
+
+
+# Blade top courses: (x0, x1, tone, raised doubler). Seams follow the sprite's plate step at
+# X -83 and its seam at X -96; the tones alternate so the blade reads as a run of plates.
+TOP_COURSES = [(-54.5, -64.5, 'bone', None), (-65.5, -76.5, 'dark', None), (-77.5, -84.5, 'bone', 'dark'),
+               (-85.5, -96.5, 'dark', None), (-97.5, -108.5, 'bone', None)]
+# Glacis courses, staggered against the top's so the seams do not line up across the chine.
+GL_UP = [(-55.0, -61.0, 'bone', None), (-62.0, -71.0, 'dark', 'steel'), (-72.0, -80.0, 'bone', None),
+         (-81.0, -90.0, 'dark', None), (-91.0, -99.5, 'bone', None)]
+
+
+def big_blade(kit, s, side, M):
+    pl = Plates()
+    along = Vector((BLADE_DIR.x, s*BLADE_DIR.y, 0))
+    down = (0, 0, -1)
+    for x0, x1, tone, raised in TOP_COURSES:
+        a = _len(x0, x1)
+        xc = (x0+x1)/2
+        done = False
+        for b in (4.4, 4.0, 3.6, 3.2):
+            for off in (11.4, 11.0, 11.8, 10.6, 12.2, 10.2):
+                c = _blade_pt(xc, off, s)
+                if patch(None, c, down, along, a, b, 0.0) is not None:
+                    pl.panel(tone, c, down, along, a, b, t=.7, tag=f'{side} blade top {x0}', raised=raised)
+                    done = True
+                    break
+            if done:
+                break
+        if not done:
+            SKIPPED.append((f'{side} blade top {x0}', 'no fit'))
+    for x0, x1, tone, raised in GL_UP:
+        feet = [glacis_foot(x, s) for x in (x0-.5, (x0+x1)/2, x1+.5)]
+        g = glacis_frame((x0+x1)/2, s)
+        if g is None or None in feet:
+            SKIPPED.append((f'{side} glacis {x0}', 'no frame'))
+            continue
+        lo = min(feet)-GL_BAND
+        bb = (lo-GL_TOP)/2
+        if bb < 1.5:
+            SKIPPED.append((f'{side} glacis {x0}', f'too short {bb:.1f}'))
+            continue
+        p, n, w = g
+        pl.panel(tone, tuple(p+w*(GL_TOP+bb)), tuple(-n), glacis_along(s), _len(x0, x1), bb, t=.8,
+                 tag=f'{side} glacis {x0}', raised=raised, maxang=16)
+    # The blade's vertical outer side aft of the quarter pod (lit, and broad, from abeam and
+    # astern): two courses of two rows, staggered tones.
+    wall = Vector((BLADE_DIR.x, s*BLADE_DIR.y, 0))
+    for j, (x0, x1) in enumerate(((-88.8, -97.4),)):
+        xc = (x0+x1)/2
+        for i, zs in enumerate(((-4.8, -4.2, -5.4, -3.6),)):
+            placed = False
+            for b in (5.2, 4.6, 4.0, 3.4):
+                for zc in zs:
+                    h = cast_hull((xc, s*130.0, zc), (0, -s, 0), 120.0)
+                    if h is None or abs(h[1].z) > .2:
+                        continue
+                    if patch(None, tuple(h[0]), tuple(-h[1]), wall, _len(x0, x1), b, 0.0) is not None:
+                        pl.panel(('bone', 'dark')[(i+j) % 2], tuple(h[0]), tuple(-h[1]), wall, _len(x0, x1), b,
+                                 t=.6, tag=f'{side} blade side {x0} {i}')
+                        placed = True
+                        break
+                if placed:
+                    break
+            if not placed:
+                SKIPPED.append((f'{side} blade side {x0} {i}', 'no fit'))
+    return pl.build(kit, M, f'Detail {side} blade')
+
+
+def big_quarter(kit, s, side, M):
+    """The aft quarter's outer side: big plates on the flare (the plate leaning inboard below the
+    chine) and on the tumble above it, staggered, alternating tones."""
+    pl = Plates()
+    fa, fb = Vector((-10.0, s*120.5, 0)), Vector((-72.0, s*99.8, 0))
+    fdir = (fb-fa).normalized()
+    out = Vector((-fdir.y, fdir.x, 0))
+    if out.y*s < 0:
+        out = -out
+    nfl = Vector((out.x*math.cos(math.radians(30)), out.y*math.cos(math.radians(30)), -math.sin(math.radians(30))))
+    L = (fb-fa).length
+    for k, f in enumerate((.11, .32, .53, .74)):
+        q = fa+(fb-fa)*f
+        cands = [tuple(q-out*dz*math.tan(math.radians(30))+Vector((0, 0, -2.0-dz))+nfl*6)
+                 for dz in (5.2, 4.6, 5.8, 4.0, 6.4, 3.4, 7.0)]
+        a = (L*.2)/2-.1 if f < .9 else L*.07
+        for b in (3.0, 2.6, 2.2):
+            c = fit(cands, tuple(-nfl), fdir, a, b)
+            if c is not None:
+                pl.panel(('dark', 'bone')[k % 2], c, tuple(-nfl), fdir, a, b, t=.9,
+                         tag=f'{side} flare {f}', raised='steel' if k == 2 else None)
+                break
+        else:
+            SKIPPED.append((f'{side} flare {f}', 'no fit'))
+    # The tumble (the steep plate from the deck edge down to the flare chine): found by
+    # horizontal casts from outboard.
+    for k, f in enumerate((.2,)):            # aft of this the tumble is cut away by the rake
+        q = fa+(fb-fa)*f
+        placed = False
+        for z in (3.0, 4.0, 2.0, 5.0, 1.0):
+            h = cast_hull(tuple(q+out*30+Vector((0, 0, z))), tuple(-out), 60.0)
+            if h is None or 'aft body' not in h[2] or not (.2 < h[1].z < .75):
+                continue
+            for b in (3.0, 2.5, 2.0, 1.6):
+                c = tuple(h[0])
+                if patch(None, c, tuple(-h[1]), fdir, 5.8, b, 0.0) is not None:
+                    pl.panel(('bone', 'dark')[k % 2], c, tuple(-h[1]), fdir, 5.8, b, t=.8,
+                             tag=f'{side} tumble {f}')
+                    placed = True
+                    break
+            if placed:
+                break
+        if not placed:
+            SKIPPED.append((f'{side} tumble {f}', 'no fit'))
+    return pl.build(kit, M, f'Detail {side} aft quarter')
+
+
+def big_aft_glacis(kit, M):
+    """The aft glacis against the core: three plates a side on the raked upper plate and the lap,
+    their seams under the pass-1 butt straps (Y 28 and 40)."""
+    pl = Plates()
+    g = math.radians(20.0)
+    d = Vector((math.cos(g), 0, -math.sin(g)))
+    for s in (1, -1):
+        for k, (y0, y1) in enumerate(((16.0, 27.5), (28.5, 39.5))):
+            yc = (y0+y1)/2
+            for z in (20.5, 20.0, 21.0, 19.5):
+                c = Vector((-21.0, s*yc, z))-d*4
+                if pl.panel(('bone', 'dark')[k], tuple(c), tuple(d), (0, s, 0), (y1-y0)/2, 2.0, t=.7,
+                            tag=f'aft glacis upper {s*yc}', maxang=10) is not None:
+                    break
+            pl.panel(('dark', 'bone')[k], (-30.0, s*yc, 15.2), (1, 0, 0), (0, s, 0), (y1-y0)/2, 2.5, t=.7,
+                     tag=f'aft glacis lap {s*yc}', maxang=10)
+    return pl.build(kit, M, 'Detail aft glacis')
+
+
+def big_drives(kit, M, m):
+    """Bold drive collars: a steel flange ring on the tail's after face round each main, a pale
+    heat-shield band and a steel band on each main's shroud, and a pale band on the face of the
+    Engine 2/3 armoured collars, so each drive reads as a heavy machine at range."""
+    steel, pale, dark = Acc(), Acc(), Acc()
+    for i, (x, y, w, _, _, angle) in enumerate(ENGINES, 1):
+        z = -6.0 if w == 30 else -8.0
+        if w == 30:
+            steel.add(*ring((MAINS_FACE_X-.4, y, z), (1, 0, 0), 9.9, 10.95, .55, n=24))
+            pale.add(*ring((-109.0, y, z), (1, 0, 0), 8.9, 9.75, .75, n=24))
+            steel.add(*ring((-111.9, y, z), (1, 0, 0), 8.9, 9.7, .55, n=24))
+            dark.add(*ring((-110.45, y, z), (1, 0, 0), 8.6, 9.6, .6, n=24))
+        elif i in (2, 3):
+            pale.add(*ring((-105.45, y, z), (1, 0, 0), 5.5, 8.1, .25, n=24))
+    names = []
+    for acc, mat, nm in ((steel, M['steel'], 'steel collars'), (pale, m['band'], 'heat-shield bands'),
+                         (dark, M['seam'], 'band seams')):
+        ob = acc.build(kit, f'Detail drive {nm}', mat, bevel=.08)
+        if ob is not None:
+            names.append(ob.name)
+    return names
+
+
+def big_radiator(kit, s, side, M, m):
+    """A radiator bank on the aft quarter's sloped deck strip: a dark bed, pale coamings along
+    both sides (the inboard one framing the outer well's rim) and transverse fins."""
+    bed, fins, coam, ends = Acc(), Acc(), Acc(), Acc()
+    spans = {}
+    for x in range(-26, -57, -2):
+        spans[x] = deck_span(float(x), s, 96.0, 124.0)
+    print('DETAIL STERN deck spans', side, {k: (None if v is None else (round(v[0], 1), round(v[1], 1)))
+                                            for k, v in spans.items()})
+    # The strip runs aft and inboard; lay the bank along its centre line.
+    xs = [x for x in spans if spans[x] is not None and spans[x][1]-spans[x][0] > 5.0]
+    if len(xs) < 6:
+        SKIPPED.append((f'{side} radiator', 'no deck strip'))
+        return []
+    x0, x1 = max(xs)-1.0, min(xs)+1.0
+    m0 = (spans[max(xs)][0]+spans[max(xs)][1])/2
+    m1 = (spans[min(xs)][0]+spans[min(xs)][1])/2
+    hw = min(spans[x][1]-spans[x][0] for x in xs)/2
+    cdir = Vector((x1-x0, s*(m1-m0), 0)).normalized()
+    a = Vector((x1-x0, m1-m0, 0)).length/2-.4
+    b = hw-1.3                  # held inboard of the strip's outer edge (the outline from below)
+    c = ((x0+x1)/2, s*((m0+m1)/2-.8), 40)
+    r = patch(bed, c, (0, 0, -1), tuple(cdir), a, b, .35, maxang=14, tag=f'{side} radiator bed')
+    if r is None:
+        return []
+    n0, u = r[1], r[2]
+    k = 0
+    du = -a+1.4
+    while du < a-1.2:
+        patch(fins, on(r, du, 0), -n0, u, .28, b-1.0, 1.1, lift=.3, sink=.1, maxang=30, step=1.2,
+              tag=f'{side} radiator fin', normal=n0)
+        du += 1.5
+        k += 1
+    for sv in (1, -1):
+        patch(coam, on(r, 0, sv*(b-.45)), -n0, u, a, .5, 1.5, maxang=30, step=1.2, tag=f'{side} radiator coaming',
+              normal=n0)
+    for su in (1, -1):
+        patch(ends, on(r, su*(a-.5), 0), -n0, u, .5, b-.9, 1.3, maxang=30, step=1.2, tag=f'{side} radiator end',
+              normal=n0)
+    for du in (-a/3, a/3):
+        patch(ends, on(r, du, 0), -n0, u, .35, b-.9, 1.4, maxang=30, step=1.2,
+              tag=f'{side} radiator tie', normal=n0)
+    names = []
+    for acc, mat, nm in ((bed, M['seam'], 'bed'), (fins, m['radiator'], 'fins'), (coam, M['bone'], 'coamings'),
+                         (ends, kit.grey, 'end bars')):
+        ob = acc.build(kit, f'Detail {side} aft quarter radiator {nm}', mat, bevel=.06)
+        if ob is not None:
+            names.append(ob.name)
+    return names
+
+
+def build_wells(kit, s, side, m):
+    """Big machinery in the open wells, sunlit from above: two trunk mains (3.2 across) from the
+    header's upper tier out over the diagonal bundles to the outer well's two pumps, with heavy
+    flanges, and a heat-exchanger shell over the inner well's banks at the root face."""
+    trunks, flanges, shells = Acc(), Acc(), Acc()
+    from os_machinery import HDR_X, HDR_HI, OUTER_PUMPS
+    Z = 5.6
+    R = 1.6
+    for (y0, (px, py, pr)) in ((73.0, OUTER_PUMPS[0]), (63.4, OUTER_PUMPS[1])):
+        a = Vector((HDR_X, s*y0, Z))
+        b = Vector((px, s*py, Z))
+        pts = [Vector((HDR_X, s*y0, HDR_HI+1.6)), a, b, Vector((px, s*py, F+13.5))]
+        pipe_line(trunks, flanges, pts, R)
+        for t in (.22, .44, .66, .88):
+            q = a+(b-a)*t
+            flanges.add(*ring(tuple(q), tuple((b-a).normalized()), R-.1, R+.75, .5, n=14))
+        flanges.add(*ring((px, s*py, F+13.9), (0, 0, 1), R-.1, R+.9, .45, n=14))
+        flanges.add(*ring((HDR_X, s*y0, HDR_HI+2.2), (0, 0, 1), R-.1, R+.9, .45, n=14))
+    # Inner well: a heat-exchanger shell lying fore and aft over the banks at the root face.
+    y, z, r = 27.0, 4.1, 2.4
+    shells.add(*tube((-47.6, s*y, z), (-53.4, s*y, z), r, n=14))
+    for x0, x1 in ((-47.6, -46.6), (-53.4, -54.4)):
+        shells.add(*tube((x0, s*y, z), (x1, s*y, z), r, r*.55, n=14))
+    for x in (-48.6, -52.4):
+        flanges.add(*ring((x, s*y, z), (1, 0, 0), r-.1, r+.6, .4, n=14))
+        flanges.add(*box(x-.5, x+.5, s*(y-1.6), s*(y+1.6), F+11.0, z-r+.4))     # saddles onto the mains
+    trunks.build(kit, f'Detail {side} well trunk mains', m['top'])
+    flanges.build(kit, f'Detail {side} well trunk flanges', kit.grey, bevel=.05)
+    shells.build(kit, f'Detail {side} inner well exchanger', m['pale'], bevel=.1)
 
 
 # --- the blades -----------------------------------------------------------------------------
@@ -262,20 +635,11 @@ def build_blade(kit, s, side, m):
     down = (0, 0, -1)
     # The sprite's long vent panel down the middle of the top plate (two groups of slots either
     # side of a cross bar, X -44..-76) and a shorter vent behind the plate step (X -84..-90).
-    for x0, x1, n in ((-52.6, -62.0, 5), (-63.6, -76.0, 6), (-85.0, -91.0, 3)):
-        louvre(vents, beds, _blade_pt((x0+x1)/2, 11.0, s), down, along, _len(x0, x1), 2.4, n,
+    for x0, x1, n in ((-56.0, -63.0, 4), (-67.0, -75.0, 5), (-87.0, -95.0, 5)):
+        louvre(vents, beds, _blade_pt((x0+x1)/2, 11.0, s), down, along, _len(x0, x1), 1.8, n,
                tag=f'{side} blade vent {x0}')
-    # Armour doublers either side of the vents, in courses with a seam between each, following
-    # the sprite's plate step at X -83 and its seam at X -96; the after course is full width.
-    courses = ((-52.6, -62.0), (-63.6, -76.0), (-77.6, -83.0), (-84.6, -95.4), (-97.0, -108.0))
-    for x0, x1 in courses:
-        full = x0 in (-77.6, -97.0)
-        for off, hb in (((11.0, 3.9),) if full else ((7.6, .75), (14.6, 1.4))):
-            if x0 == -52.6 and off > 12:
-                continue              # the junction box for the glacis conduits stands here
-            xa = -54.6 if (x0 == -52.6 and off < 9) else x0
-            patch(plates, _blade_pt((xa+x1)/2, off, s), down, along, _len(xa, x1), hb, .4,
-                  tag=f'{side} blade doubler {x0} {off}')
+    # (Pass 2: the doublers that stood either side of the vents are now the big plate courses
+    # of big_blade, on which these vents, the hatch and the boss seat.)
     # A service hatch on the after course (between the leg tip's light and the seam) and a round
     # access boss on the blade's root, where the sprite has one.
     hatch(hatches, trims, _blade_pt(-101.0, 11.0, s), down, along, 1.5, 1.3, t=.3, tag=f'{side} blade after hatch')
@@ -287,18 +651,10 @@ def build_blade(kit, s, side, m):
         trims.add(*tube(tuple(p+n*.3), tuple(p+n*.9), .55, n=8))
     else:
         SKIPPED.append((f'{side} root boss', 'not on the root ramp'))
-    # The outboard glacis: armour plates in the same courses, a hatch on the middle one.
-    for x0, x1 in ((-62.0, -72.0), (-73.6, -83.0), (-84.6, -95.4)):
-        xc = (x0+x1)/2
-        hit = cast(_blade_pt(xc, 21.0, s), down)
-        if hit is None or hit[1].z > .75:
-            SKIPPED.append((f'{side} glacis {x0}', 'not on the glacis'))
-            continue
-        p, n, _ = hit
-        if x0 == -73.6:
-            hatch(hatches, trims, tuple(p), tuple(-n), along, 1.5, 1.2, tag=f'{side} glacis hatch')
-        else:
-            patch(plates, tuple(p), tuple(-n), along, _len(x0, x1), 2.2, .4, tag=f'{side} blade glacis {x0}')
+    # A hatch on the glacis's upper course (the plates themselves are big_blade's).
+    gp = glacis_pt(-76.0, s, 5.0)
+    if gp is not None:
+        hatch(hatches, trims, tuple(gp[0]), tuple(-gp[1]), along, 1.5, 1.2, tag=f'{side} glacis hatch')
     # The transom (the raked after face over the drives' wash) and the blade's inner face aft of
     # the drive housing, over the mains: heat-shield arrays of overlapping slats.
     a = Vector((-100.0, s*69.5, 0))
@@ -308,11 +664,14 @@ def build_blade(kit, s, side, m):
     if nrm.x > 0:
         nrm = -nrm
     cands = [tuple(a+(b-a)*f+nrm*10.0+Vector((0, 0, z))) for f in (.42, .36, .48, .3, .54) for z in (8, 6, 10, 4, 12)]
+    saved = list(_TREES)            # the transom is bare hull: keep the top course's overhang out of the fit
+    _TREES[:] = [t for t in saved if not t[0].startswith('Detail')]
     c = fit(cands, tuple(-nrm), tdir, 5.2, 4.6)
     if c is not None:
         shield_array(shields, trims, c, tuple(-nrm), tdir, 5.2, 4.6, 4, tag=f'{side} transom shield')
     else:
         SKIPPED.append((f'{side} transom shield', 'no fit'))
+    _TREES[:] = saved
     din = Vector((BLADE_DIR.y, -BLADE_DIR.x, 0))          # port: into the blade's inner face (+Y)
     din = Vector((din.x, s*din.y, 0))
     for x, z in ((-108.0, 6.5), (-114.6, 10.5)):
@@ -327,69 +686,97 @@ def build_blade(kit, s, side, m):
 
 
 def build_conduits(kit, s, side, m):
-    """Pipes from the inner well to the drive housing along the blade's inner wall, above the
-    banks, and conduits from the outer well up the blade's outer glacis to a junction box."""
+    """Pass 2 (read at range): two big pipe bundles per side. The inner-well bundle leaves the
+    root face, rides the blade's inner wall above the turbopumps and dives into an inlet box on
+    the Engine 2/3 drive housing; the outer-well bundle climbs out of the outer well onto the
+    blade's outboard glacis and runs aft along it, between the plate courses, to a junction box
+    at the glacis's after end. Pipes 1.8-2 across, strapped in heavy clamp blocks."""
     pale, bronze, clamps, fit, boxes = Acc(), Acc(), Acc(), Acc(), Acc()
-    # Inner wall runs: out of the root face through a flange, aft along the blade's inner wall
-    # (cast toward it at each station), then an elbow off the wall and down into an inlet box
-    # on the drive housing's top.
-    box_c = Vector((-87.5, s*37.0, 0))
-    for (z, r, acc, x_end) in ((4.4, .7, pale, -84.5), (6.2, .55, bronze, -86.5), (7.9, .62, pale, -88.5)):
+    # --- inner wall bundle ---
+    box_c = Vector((-87.4, s*37.0, 0))
+    for k, (z, r, acc, x_end) in enumerate(((6.8, 1.0, pale, -83.6), (8.7, .9, bronze, -86.0), (10.6, 1.0, pale, -88.4))):
         guides = []
         x = ROOT_X-.6
         while x >= x_end:
             guides.append(((x, s*(blade_inner_y(x)-5.0), z), (0, s, 0)))
             x -= 1.8
-        cs = surface_pipe(acc, clamps, guides, r, clamp_every=4)
+        cs = surface_pipe(acc, clamps, guides, r, clamp_every=4, stand=.2)
         if not cs:
             SKIPPED.append((f'{side} wall run {z}', 'miss'))
             continue
         p0 = cs[0][0]
-        fit.add(*ring(tuple(p0+Vector((.3, 0, 0))), (1, 0, 0), r-.05, r+.6, .3, n=10))     # root-face flange
-        acc.add(*tube(tuple(p0), tuple(p0+Vector((.9, 0, 0))), r, n=8))
+        fit.add(*ring(tuple(p0+Vector((.3, 0, 0))), (1, 0, 0), r-.05, r+.7, .4, n=12))     # root-face flange
+        acc.add(*tube(tuple(p0), tuple(p0+Vector((.9, 0, 0))), r, n=10))
         pe = cs[-1][0]
-        drop = Vector((pe.x-1.4, box_c.y+s*.6, pe.z))
-        pipe_line(acc, fit, [pe, drop, Vector((drop.x, drop.y, 2.0))], r)
+        drop = Vector((pe.x-1.4, box_c.y+s*(.8-.0*k), pe.z))
+        pipe_line(acc, fit, [pe, drop, Vector((drop.x, drop.y, 2.6))], r)
+    for x in (-58.0, -70.0, -80.0):                    # clamp blocks over the bundle
+        h = cast((x, s*(blade_inner_y(x)-5.0), 8.7), (0, s, 0), 30.0)
+        if h is not None:
+            patch(clamps, (x, s*(blade_inner_y(x)-5.0), 8.7), (0, s, 0), (0, 0, 1), 3.3, .55, 2.5,
+                  maxang=40, step=.8, tag=f'{side} wall bundle clamp {x}')
     h = cast((box_c.x, box_c.y, 20), (0, 0, -1))
     if h is not None and h[1].z > .8:
-        top = h[0].z
-        r = patch(boxes, (box_c.x, box_c.y, 20), (0, 0, -1), (1, 0, 0), 2.9, 1.5, 1.5, maxang=12, tag=f'{side} inlet box')
+        r = patch(boxes, (box_c.x, box_c.y, 20), (0, 0, -1), (1, 0, 0), 3.7, 1.7, 1.8, maxang=12, tag=f'{side} inlet box')
         if r is not None:
-            patch(fit, on(r, 0, 0, 1.6), (0, 0, -1), (1, 0, 0), 3.2, 1.8, .35, lift=1.5, sink=.1, maxang=40,
+            patch(fit, on(r, 0, 0, 1.9), (0, 0, -1), (1, 0, 0), 3.75, 1.75, .4, lift=1.8, sink=.1, maxang=40,
                   tag=f'{side} inlet box cap')
     else:
         SKIPPED.append((f'{side} inlet box', 'not on the housing top'))
-    # Conduits up the outer glacis: out of the outer well's bundles (layer B), up the blade's
-    # outer face, over the chine and into a junction box on the forward course.
-    jb = _blade_pt(-56.0, 14.4, s)
-    hj = cast(jb, (0, 0, -1))
-    jr = None
-    if hj is not None and hj[1].z > .8:
-        jr = patch(boxes, jb, (0, 0, -1), Vector((BLADE_DIR.x, s*BLADE_DIR.y, 0)), 3.6, 1.5, 1.4, maxang=16,
-                   tag=f'{side} glacis junction box')
-    if jr is not None:
-        patch(fit, on(jr, 0, 0, 1.4), -jr[1], jr[2], 3.9, 1.8, .3, lift=1.4, sink=.1, maxang=40,
-              tag=f'{side} junction box cap')
-        for k, x in enumerate((-45.0, -47.2, -49.4)):
-            y_out = blade_inner_y(x)+40.0
-            climb = []
-            z = F+6.6
-            while z < 30:
-                hz = cast((x, s*(y_out+8.0), z), (0, -s, 0), 40.0)
-                if hz is None or hz[1].z > .6:
-                    break
-                climb.append(((x, s*y_out, z), (0, -s, 0)))
-                z += 1.4
-            cs = surface_pipe(bronze if k != 1 else pale, clamps, climb, .5, clamp_every=3)
-            if len(cs) < 2:
-                SKIPPED.append((f'{side} glacis conduit {x}', 'no climb'))
-                continue
-            top = cs[-1][0]
-            # over the chine and into the box's outboard side
-            tgt = on(jr, -2.4+2.4*k, 0, .7)
-            pipe_line(bronze if k != 1 else pale, fit,
-                      [top, Vector((top.x, top.y, max(top.z, tgt.z)+.4)),
-                       Vector((tgt.x, tgt.y+s*1.9, max(top.z, tgt.z)+.4)), Vector((tgt.x, tgt.y+s*1.2, tgt.z))], .5)
+    # --- outer glacis bundle ---
+    # Three pipes lying along the glacis just above its foot, over the quarter pod; at the
+    # forward end each turns down the blade's side into the outer well (the highest furthest
+    # forward, so they nest); at the after end they enter a junction box on the glacis.
+    along = glacis_along(s)
+    X_AFT = -86.0
+    for k, (slant, r, kind) in enumerate(BUNDLE):
+        acc = pale if kind == 'pale' else bronze
+        x_turn = -47.0-1.7*k
+        guides = []
+        g = glacis_frame(x_turn, s)
+        ft = glacis_foot(x_turn, s)
+        if g is None or ft is None:
+            SKIPPED.append((f'{side} glacis bundle {k}', 'no turn'))
+            continue
+        p, n, w = g
+        foot = p+w*ft
+        for z in (F+1.0, F+3.0, F+5.0, foot.z-2.0, foot.z-.6):
+            if z < foot.z-.5:
+                guides.append(((x_turn, s*(foot.y*s+30.0), z), (0, -s, 0)))
+        sl = ft-.6                      # up the glacis to the run's own slant
+        while sl > slant:
+            guides.append((tuple(p+w*sl), tuple(-n)))
+            sl -= 1.8
+        x = x_turn
+        while x >= X_AFT:
+            g = glacis_frame(x, s)
+            ft = glacis_foot(x, s)
+            if g is not None and ft is not None:
+                p, n, w = g
+                guides.append((tuple(p+w*slant), tuple(-n)))
+            x -= 2.0
+        cs = surface_pipe(acc, clamps, guides, r, clamp_every=99, stand=.1)
+        if len(cs) < 4:
+            SKIPPED.append((f'{side} glacis bundle {k}', 'no run'))
+            continue
+        p0, s0, n0 = cs[0]
+        fit.add(*ring(tuple(p0), tuple(n0), r-.05, r+.75, .4, n=12))
+        # the after end: a flanged elbow down into a bulkhead fitting on the glacis
+        pe, se, ne = cs[-1]
+        ax = (pe-cs[-2][0]).normalized()
+        fit.add(*ring(tuple(pe-ax*.6), tuple(ax), r-.05, r+.6, .45, n=12))
+        acc.add(*tube(tuple(pe), tuple(se-ne*.3), r, n=10))
+        fit.add(*ring(tuple(se+ne*.15), tuple(ne), r-.05, r+.9, .3, n=12))
+    mid_above = (BUNDLE[0][0]+BUNDLE[-1][0])/2
+    half = (BUNDLE[-1][0]-BUNDLE[0][0])/2+1.3
+    for x in (-56.0, -65.0, -74.0, -83.0):             # clamp blocks across the bundle
+        g = glacis_frame(x, s)
+        ft = glacis_foot(x, s)
+        if g is None or ft is None:
+            continue
+        p, n, w = g
+        patch(clamps, tuple(p+w*mid_above), tuple(-n), along, .7, half, 1.85,
+              maxang=60, step=.9, tag=f'{side} glacis bundle clamp {x}')
     pale.build(kit, f'Detail {side} blade conduits', m['pale'])
     bronze.build(kit, f'Detail {side} blade bronze conduits', m['bronze'])
     clamps.build(kit, f'Detail {side} blade conduit clamps', kit.grey)
@@ -535,25 +922,18 @@ def build_aft_quarter(kit, s, side, m):
         if y is not None:
             patch(strips, (x, s*y, 40), down, (0, 1, 0), hb, .3, .28, maxang=16, step=1.0,
                   tag=f'{side} quarter seam {x}')
-    # The outer quarter's flare (the plate leaning inboard below the glacis chine): a course of
-    # armour doublers with seams between them, and a hatch in it.
+    # A hatch on the flare's middle plate (the plates are big_quarter's).
     fa, fb = Vector((-10.0, s*120.5, 0)), Vector((-72.0, s*99.8, 0))
     fdir = (fb-fa).normalized()
     out = Vector((-fdir.y, fdir.x, 0))
     if out.y*s < 0:
         out = -out
     nfl = Vector((out.x*math.cos(math.radians(30)), out.y*math.cos(math.radians(30)), -math.sin(math.radians(30))))
-    for k, f in enumerate((.2, .36, .52, .68, .84)):
-        q = fa+(fb-fa)*f
-        cands = [tuple(q-out*dz*math.tan(math.radians(30))+Vector((0, 0, -2.0-dz))+nfl*6) for dz in (5.0, 4.0, 6.0, 3.5, 7.0)]
-        c = fit(cands, tuple(-nfl), fdir, 4.6, 2.4)
-        if c is None:
-            SKIPPED.append((f'{side} flare plate {f}', 'no fit'))
-            continue
-        if k == 2:
-            hatch(hatches, trims, c, tuple(-nfl), fdir, 1.5, 1.3, tag=f'{side} flare hatch')
-        else:
-            patch(plates, c, tuple(-nfl), fdir, 4.6, 2.4, .4, tag=f'{side} flare plate {f}')
+    q = fa+(fb-fa)*.6
+    cands = [tuple(q-out*dz*math.tan(math.radians(30))+Vector((0, 0, -2.0-dz))+nfl*6) for dz in (5.2, 4.6, 5.8, 4.0)]
+    c = fit(cands, tuple(-nfl), fdir, 1.5, 1.3)
+    if c is not None:
+        hatch(hatches, trims, c, tuple(-nfl), fdir, 1.5, 1.3, tag=f'{side} flare hatch')
     # The quarter's after faces under the outer well's sill and beside the pod mouth, in the
     # quarter drive's wash (seen from astern): heat-shield arrays and a hatch.
     c = fit([(-90.0, s*92.0, z) for z in (-15.0, -13.0, -17.0, -19.0, -11.0)], (1, 0, 0), (0, 1, 0), 4.6, 3.4)
@@ -584,7 +964,7 @@ def build_glacis(kit):
     d = Vector((math.cos(g), 0, -math.sin(g)))
     for s in (1, -1):
         for y in (28.0, 34.0, 40.0):
-            if y < 39:
+            if y < 33:
                 patch(strips, Vector((-21.0, s*y, 21.0))-d*4, tuple(d), (0, 0, 1), 2.0, .32, .28,
                       maxang=10, step=.8, tag=f'glacis strap {s*y} upper')
             patch(strips, (-30.0, s*y, 15.2), (1, 0, 0), (0, 0, 1), 2.6, .32, .28,
@@ -594,13 +974,26 @@ def build_glacis(kit):
 
 def build(kit):
     SKIPPED.clear()
+    _FEET.clear()
     m = materials()
+    M = tones(kit)
     _trees()
+    # The big layer first, seated on the hull; then the small layer seated on the big one.
+    big = []
+    for side, s in (('port', 1), ('starboard', -1)):
+        big += big_blade(kit, s, side, M)
+        big += big_quarter(kit, s, side, M)
+        big += big_radiator(kit, s, side, M, m)
+    big += big_aft_glacis(kit, M)
+    big += big_drives(kit, M, m)
+    _trees(extra=set(big))
+    _FEET.clear()
     for side, s in (('port', 1), ('starboard', -1)):
         build_blade(kit, s, side, m)
         build_conduits(kit, s, side, m)
         build_housing(kit, s, side, m)
         build_aft_quarter(kit, s, side, m)
+        build_wells(kit, s, side, m)
     for i in (1, 4):
         build_pod(kit, i, m)
     build_tail(kit, m)
