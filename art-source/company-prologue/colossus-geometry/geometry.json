@@ -39,7 +39,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 719671,
+      "units3": 1182133,
       "crew_max": 200,
       "cargo": 900,
       "fuel": 120,
@@ -75,34 +75,34 @@
     "contents_total_m3": 61980,
     "machinery_share": 0.32,
     "enclosed_m3": 91147,
-    "solved_metres_per_unit": 0.502,
+    "solved_metres_per_unit": 0.426,
     "range": {
-      "habitable_273": 0.487,
-      "habitable_328": 0.517
+      "habitable_273": 0.413,
+      "habitable_328": 0.438
     },
     "enclosed_m3_per_person_at_max_crew": 456,
-    "length_m": 108.8,
+    "length_m": 92.2,
     "fittings_m": {
       "personnel hatch w x h": [
-        1.1,
-        2.41
+        0.94,
+        2.04
       ],
       "side cargo door w x h": [
-        7.53,
-        7.03
+        6.38,
+        5.96
       ],
       "bow cargo door w x h": [
-        20.59,
-        11.55
+        17.45,
+        9.79
       ],
       "bridge door w x h": [
-        1.1,
-        2.31
+        0.94,
+        1.96
       ]
     },
     "published_metres_per_unit": 0.5,
     "measured_this_build": {
-      "enclosed_units3": 719671,
+      "enclosed_units3": 1182133,
       "solids": [
         "Bridge deckhouse",
         "Cargo port aft module",
@@ -114,18 +114,18 @@
         "Hull hold hatch cover",
         "Hull keel spine"
       ],
-      "cargo_body_units3": 577473,
-      "cargo_body_m3": 72184,
-      "cargo_body_share": 0.802
+      "cargo_body_units3": 1039935,
+      "cargo_body_m3": 129992,
+      "cargo_body_share": 0.88
     },
     "size_m": [
       108.2,
       88.0,
-      28.5
+      42.8
     ],
     "cross_checks_m": {
       "person 1.8 m in units": 3.6,
-      "cargo hold keel to deck": 20.0,
+      "cargo hold keel to deck": 34.0,
       "cargo body width": 88.0
     }
   },
@@ -145,7 +145,7 @@
     "min": [
       -125.3,
       -86.5,
-      -22.0
+      -50.5
     ],
     "max": [
       91.0,
@@ -155,7 +155,7 @@
     "size": [
       216.3,
       176.0,
-      57.0
+      85.5
     ]
   },
   "weapon_slots": [
@@ -554,9 +554,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.967,
+    "iou": 0.9668,
     "sprite_uncovered": 0.0111,
-    "model_outside_sprite": 0.0227,
+    "model_outside_sprite": 0.0229,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 5.65 px per unit"
   }
 }

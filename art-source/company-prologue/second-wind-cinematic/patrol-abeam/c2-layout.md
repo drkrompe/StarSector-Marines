@@ -44,20 +44,31 @@ de-orbit lifts it relative to us (9 m/s²) and it clears the top of the slits by
 about 14 s. The camera's yaw follows the Legion's bearing with a 0.35 s lag, from
 22° to port at the cut to 104° (just aft of the beam).
 
-**Two variants in review**, both on `c2_bridge_blockout.py`'s constants:
-(a) banked 8° toward us with its crown 20 m above our eye, so its deck faces us; and
-(b) level, closer (midline 235 m) and higher (crown 35 m above our eye), so its flank
-goes past as a wall under a deck we cannot see. Review run:
-`review/cinematic-c2/2026-10-18_bridge-blockout_windows/`.
+**Banked, chosen (owner, 2026-10-18).** Of the two variants reviewed, the owner
+chose (a): banked 8° toward us with its crown 20 m above our eye, so its deck and
+turrets face us. The rejected (b) was level, closer and higher, a flank wall under a
+deck we could not see.
 
-**Open for the owner.** Which variant; whether the bridge's glazing stays this
+**Fighters first, then the carrier (owner, 2026-10-18).** The air wing screens ahead of
+the Legion: two vics of three Broadswords (the Legion XIV flies two Broadsword wings;
+no Hoplon model exists yet) come off its bow toward us at 160 m/s and pass our port
+slits, the first 55 m out and 7 m above our eye at 3.0 s, the second 80 m out and
+9 m up at 4.2 s. The person on the bridge watches them first: the head starts almost
+dead ahead on the first flight, follows it in, lets it go as it whips past (overshooting
+to about 49° at 3.0 s), and settles on the carrier, which then fills the turn to the
+beam. Only the head's target changes; the 8.0 s abeam beat is unchanged.
+
+Review runs: `review/cinematic-c2/2026-10-18_bridge-blockout_windows/` (the two
+variants) and `.../2026-10-18_bridge-fighters_windows/` (banked, with the fighters).
+
+**Open for the owner.** Whether the bridge's glazing stays this
 narrow (the model's slits make a letterbox, with posts that take a good share of the
 view); and whether the entry glow and C3 keep the passenger-cabin window, with the
 change of camera hidden under the entry's bloom to white as it already is.
 
 ```bash
-python c2_bridge_blockout.py --fps 1                       # build/cinematic/c2-bridge/blockout/
-python c2_bridge_blockout.py --fps 1 --set ROLL_DEG=0 --set CROWN_BELOW_EYE_M=-35 --set ABEAM_Y=235 --out <dir>
+python c2_bridge_blockout.py --fps 1 --burst 1.8:4.8:0.2  # build/cinematic/c2-bridge/blockout/
+python c2_bridge_blockout.py --fps 12 --out <dir>          # every twelfth of a second, for motion
 ```
 
 ## Purpose and payoff

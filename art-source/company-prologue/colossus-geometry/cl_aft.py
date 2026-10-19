@@ -204,6 +204,24 @@ def build(kit):
                ((-72, y(42.4, s), zm+.8), (-32, y(42.4, s), zm+.8))], .75, kit.pale)
         # Pod collar truss: the short frame between the aft side module's tail and the pod's nose.
         space_frame(kit, f'Frame {side} pod collar truss', -29, -19, *sorted((y(50, s), y(62, s))), -5, 3, 2, 3)
+        # Thrust yoke (owner, pass 3 round 1: the pods push the cargo block like tugs). Heavy
+        # struts run from the pod's nose and keel into a bolted thrust pad low on the aft face
+        # of the deep side module, so the push visibly lands on the block's mass.
+        v, f = [], []
+        for r in (53.0, 61.0):
+            beam(v, f, (-33.5, y(r, s), -4), (-21.6, y(r, s), -12), 2.2, 2.2, (0, 1, 0))      # nose struts
+            beam(v, f, (-38.0, y(r, s), -11), (-21.6, y(r, s), -30), 2.0, 2.0, (0, 1, 0))     # keel struts
+        beam(v, f, (-26.0, y(52.0, s), -8.5), (-26.0, y(62.0, s), -8.5), 1.4, 1.4, (1, 0, 0))   # cross ties
+        beam(v, f, (-27.5, y(52.0, s), -22.0), (-27.5, y(62.0, s), -22.0), 1.4, 1.4, (1, 0, 0))
+        solid(kit, f'Frame {side} thrust yoke', v, f, kit.steel, bevel=.15)
+        v, f = [], []
+        block(v, f, (-22.2, min(y(50.5, s), y(63.5, s)), -34), (-20.6, max(y(50.5, s), y(63.5, s)), -6))
+        solid(kit, f'Frame {side} thrust pad', v, f, kit.dark, bevel=.3)
+        v, f = [], []
+        for r in (51.6, 62.4):
+            for zb in (-32.0, -26.0, -20.0, -14.0, -8.0):
+                block(v, f, (-22.6, y(r, s)-.3, zb-.3), (-22.2, y(r, s)+.3, zb+.3))
+        solid(kit, f'Frame {side} thrust pad bolts', v, f, kit.pale)
 
     # --- keel spine: the waist's ladder ---
     spine = prism(kit, 'Hull keel spine', plan([(-12, 20), (-46, 20)]), section(-15, 12, 4, 3), kit.red)

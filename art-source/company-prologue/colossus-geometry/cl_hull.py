@@ -23,8 +23,10 @@ HOLD_Y = 36.0       # central hold half-width
 LONGERON_Y = (36.0, 46.0)
 SIDE_Y = (46.0, 88.0)
 SIDE_SPLIT = 33.0   # seam between fore and aft side modules
-HOLD_KEEL, HOLD_DECK = -22.0, 18.0
-SIDE_KEEL, SIDE_DECK = -17.0, 14.0
+# Owner, pass 3 round 1: a thick, massive cargo front that the drive pods push like tugs.
+# The block is deepened below the pass-2 deck, so every deck fitting keeps its seat.
+HOLD_KEEL, HOLD_DECK = -50.0, 18.0
+SIDE_KEEL, SIDE_DECK = -46.0, 14.0
 AFT_KEEL, AFT_DECK = -16.0, 13.0
 SIDES = (('port', 1), ('starboard', -1))
 
@@ -51,7 +53,7 @@ def build(kit):
     # Central hold: the long box the cargo rides in, full length of the cargo body.
     hold = prism(kit, 'Hull central cargo hold',
                  plan([(FRONT, HOLD_Y-2), (FRONT-2, HOLD_Y), (HOLD_AFT, HOLD_Y)]),
-                 section(HOLD_KEEL, HOLD_DECK, 5, 3), kit.red)
+                 section(HOLD_KEEL, HOLD_DECK, 8, 3), kit.red)
     kit.hull.append(hold)
     # Hatch cover over the hold: the sprite's big pale square.
     lid = prism(kit, 'Hull hold hatch cover', plan([(79, 31), (77, 33), (15, 33), (13, 31)]),
@@ -70,10 +72,10 @@ def build(kit):
         a, b = SIDE_Y
         fore = prism(kit, f'Cargo {side} fore module',
                      plan([(FRONT, a), (FRONT, b-6), (FRONT-5, b), (SIDE_SPLIT+.6, b), (SIDE_SPLIT+.6, a)], s),
-                     section(SIDE_KEEL, SIDE_DECK, 4, 3), kit.maroon)
+                     section(SIDE_KEEL, SIDE_DECK, 7, 3), kit.maroon)
         aft = prism(kit, f'Cargo {side} aft module',
                     plan([(SIDE_SPLIT-.6, a), (SIDE_SPLIT-.6, b), (-12, b), (-20, b-9), (-20, a)], s),
-                    section(SIDE_KEEL, SIDE_DECK, 4, 3), kit.maroon)
+                    section(SIDE_KEEL, SIDE_DECK, 7, 3), kit.maroon)
         kit.hull += [fore, aft]
     detail(kit)
 
@@ -330,7 +332,7 @@ def bow_face(kit):
     """The hold's flat bow face: a two-leaf forward cargo door in a recess, framed by armour plates."""
     hold = obj('Hull central cargo hold')
     f = FRONT
-    door_r, dz0, dz1, band = 20.5, -12.5, 10.5, 1.0
+    door_r, dz0, dz1, band = 20.5, -36.0, 10.5, 1.0
     _cut(kit, hold, Parts().box(f-.5, f+3, YC-door_r-band, YC+door_r+band, dz0-band, dz1+band), kit.steel)
     fx = f-.5
     frame = Parts()
@@ -347,7 +349,7 @@ def bow_face(kit):
         leaves.box(fx, fx+.3, a, b, dz0, dz1)
     leaves.build(kit, 'Hull bow cargo door leaves', kit.red, .1)
     ribs = Parts()
-    for z in (-7.0, -1.0, 5.0):
+    for z in (-30.0, -23.0, -16.0, -9.0, -2.0, 5.0):
         for a, b in ((YC-door_r+.8, YC-1.0), (YC+1.0, YC+door_r-.8)):
             ribs.box(fx+.3, fx+.45, a, b, z-.35, z+.35)
     for a in (YC-1.0, YC+.6):
@@ -357,9 +359,9 @@ def bow_face(kit):
     for a, b in ((-33.0, -11.3), (-10.7, 10.7), (11.3, 33.0)):
         plates.box(f, f+.5, YC+a, YC+b, 12.0, 14.6)
     for s in (1, -1):
-        for z0, z1 in ((-16.0, -2.3), (-1.7, 11.4)):
+        for z0, z1 in ((-40.0, -26.3), (-25.7, -16.6), (-16.0, -2.3), (-1.7, 11.4)):
             plates.rbox(f, f+.5, 22.2, 33.0, z0, z1, s)
-    plates.box(f, f+.5, YC-21.6, YC+21.6, -16.3, -14.2)
+    plates.box(f, f+.5, YC-21.6, YC+21.6, -39.8, -37.7)
     plates.build(kit, 'Hull bow armour plates', kit.red, .25)
 
 
@@ -402,6 +404,28 @@ def longerons(kit):
         Parts().rbox(fx-1, fx+1, 40, 42, top+.8, top+1.6, s).build(kit, f'{n} deck fitting', kit.steel, .1)
 
 
+def _door(kit, n, s, dx0, dx1, dz0, dz1, band, w, low):
+    """A two-leaf cargo door in its wall recess, with hazard frame and stiffeners."""
+    frame = Parts()
+    frame.rbox(dx0-band, dx1+band, w-.5, w-.15, dz1, dz1+band, s)
+    frame.rbox(dx0-band, dx1+band, w-.5, w-.15, dz0-band, dz0, s)
+    frame.rbox(dx0-band, dx0, w-.5, w-.15, dz0, dz1, s)
+    frame.rbox(dx1, dx1+band, w-.5, w-.15, dz0, dz1, s)
+    frame.build(kit, f'{n}{low} cargo door hazard frame', kit.orange)
+    stripes = Parts()
+    _hazard(stripes, dx0, dx1, dz0, dz1, band, w-.15, .08, s)
+    stripes.build(kit, f'{n}{low} cargo door hazard stripes', kit.dark)
+    mid = (dx0+dx1)/2
+    leaves, ribs = Parts(), Parts()
+    for a, b in ((dx0, mid-.2), (mid+.2, dx1)):
+        leaves.rbox(a, b, w-.5, w-.25, dz0, dz1, s)
+        for z in (dz0+3.5, dz1-3.5):
+            ribs.rbox(a+.6, b-.6, w-.25, w-.12, z-.3, z+.3, s)
+    ribs.rbox(mid-.7, mid+.7, w-.25, w-.1, (dz0+dz1)/2-.8, (dz0+dz1)/2+.8, s)   # lock box
+    leaves.build(kit, f'{n}{low} cargo door leaves', kit.maroon, .08)
+    ribs.build(kit, f'{n}{low} cargo door stiffeners', kit.steel)
+
+
 def module(kit, side, s, part):
     """One side cargo module: panel bands, covers, tie-downs, end caps, wall doors and seams."""
     n = f'Cargo {side} {part} module'
@@ -411,7 +435,7 @@ def module(kit, side, s, part):
     tx0, tx1 = (SIDE_SPLIT+3.6, 84.0) if fore else (-17.0, SIDE_SPLIT-3.6)
     seams = FORE_SEAMS if fore else AFT_SEAMS
     (dx0, dx1), (px0, px1) = DOORS[part]
-    dz0, dz1, band = -8.0, 6.0, 1.0
+    band = 1.0
     pz0, pz1 = -7.0, -2.2
 
     # The sprite's panel bands (blue inboard, orange outboard of it), broken at the seams.
@@ -446,7 +470,8 @@ def module(kit, side, s, part):
             vents.rbox(85.5, 88.0, r-1.4, r+1.4, t+.45, t+.7, s)
         face = Parts()
         for r0, r1 in ((46.8, 58.0), (58.6, 70.0), (70.6, 81.2)):
-            face.rbox(FRONT, FRONT+.5, r0, r1, -12.5, 10.5, s)
+            for z0, z1 in ((-37.0, -13.1), (-12.5, 10.5)):
+                face.rbox(FRONT, FRONT+.5, r0, r1, z0, z1, s)
         face.build(kit, f'{n} bow armour', kit.steel, .2)
     else:
         cap.rbox(-17.0, -11.0, 48.2, 76.0, t, t+.45, s)
@@ -454,10 +479,12 @@ def module(kit, side, s, part):
             vents.rbox(x-.35, x+.35, 50.0, 74.0, t+.45, t+.55, s)
         face, grille = Parts(), Parts()
         for r0, r1 in ((46.8, 62.0), (62.6, 78.4)):
-            face.rbox(-20.5, -20.0, r0, r1, -12.5, 10.5, s)
+            for z0, z1 in ((-37.0, -13.1), (-12.5, 10.5)):
+                face.rbox(-20.5, -20.0, r0, r1, z0, z1, s)
         r = 48.0
         while r < 77.5:
             grille.rbox(-20.75, -20.5, r, r+.5, -10.5, 8.5, s)
+            grille.rbox(-20.75, -20.5, r, r+.5, -35.0, -15.1, s)
             r += 2.0
         face.build(kit, f'{n} aft end cap', kit.steel, .2)
         grille.build(kit, f'{n} aft grille slats', kit.dark)
@@ -466,24 +493,8 @@ def module(kit, side, s, part):
 
     # Doors on the outboard wall. Their contents sit inside recesses, never proud of the wall.
     w = WALL
-    frame = Parts()
-    frame.rbox(dx0-band, dx1+band, w-.5, w-.15, dz1, dz1+band, s)
-    frame.rbox(dx0-band, dx1+band, w-.5, w-.15, dz0-band, dz0, s)
-    frame.rbox(dx0-band, dx0, w-.5, w-.15, dz0, dz1, s)
-    frame.rbox(dx1, dx1+band, w-.5, w-.15, dz0, dz1, s)
-    frame.build(kit, f'{n} cargo door hazard frame', kit.orange)
-    stripes = Parts()
-    _hazard(stripes, dx0, dx1, dz0, dz1, band, w-.15, .08, s)
-    stripes.build(kit, f'{n} cargo door hazard stripes', kit.dark)
-    mid = (dx0+dx1)/2
-    leaves, ribs = Parts(), Parts()
-    for a, b in ((dx0, mid-.2), (mid+.2, dx1)):
-        leaves.rbox(a, b, w-.5, w-.25, dz0, dz1, s)
-        for z in (dz0+3.5, dz1-3.5):
-            ribs.rbox(a+.6, b-.6, w-.25, w-.12, z-.3, z+.3, s)
-    ribs.rbox(mid-.7, mid+.7, w-.25, w-.1, (dz0+dz1)/2-.8, (dz0+dz1)/2+.8, s)   # lock box
-    leaves.build(kit, f'{n} cargo door leaves', kit.maroon, .08)
-    ribs.build(kit, f'{n} cargo door stiffeners', kit.steel)
+    for dz0, dz1, low in ((-8.0, 6.0, ''), (-28.0, -14.0, ' lower')):
+        _door(kit, n, s, dx0, dx1, dz0, dz1, band, w, low)
     hframe = Parts()
     hframe.rbox(px0, px1, w-.5, w-.15, pz1, pz1+.4, s).rbox(px0, px1, w-.5, w-.15, pz0-.4, pz0, s)
     hframe.rbox(px0, px0+.4, w-.5, w-.15, pz0, pz1, s).rbox(px1-.4, px1, w-.5, w-.15, pz0, pz1, s)
@@ -502,13 +513,39 @@ def module(kit, side, s, part):
     g = Parts()
     for x in WALL_SEAMS[part]:
         g.rbox(x-.27, x+.27, WALL-.55, WALL+2, SIDE_KEEL-2, t+1, s)
-    g.rbox(dx0-band, dx1+band, WALL-.5, WALL+2, dz0-band, dz1+band, s)
+    for dz0, dz1 in ((-8.0, 6.0), (-28.0, -14.0)):
+        g.rbox(dx0-band, dx1+band, WALL-.5, WALL+2, dz0-band, dz1+band, s)
     g.rbox(px0, px1, WALL-.5, WALL+2, pz0-.4, pz1+.4, s)
     _cut(kit, mod, g, kit.steel)
     g = Parts()
-    for z in (8.9, -10.9):
+    for z in (8.9, -10.9, -30.9, -39.5):
         g.rbox(wall0+.5, wall1-.5, WALL-.5, WALL+2, z-.25, z+.25, s)
     _cut(kit, mod, g, kit.dark)
+
+
+def belly(kit):
+    """Keel seams and armour strakes under the deep cargo block (owner, pass 3 round 1)."""
+    hold = obj('Hull central cargo hold')
+    z = HOLD_KEEL
+    g = Parts()
+    for x in (-4.0, 13.0, 35.5, 57.0, 79.0):
+        g.box(x-.3, x+.3, y(HOLD_Y-8, 1), y(HOLD_Y-8, -1), z-1, z+.6)
+    for r in (-17.0, 0.0, 17.0):
+        g.box(HOLD_AFT+8, FRONT-8, YC+r-.3, YC+r+.3, z-1, z+.6)
+    _cut(kit, hold, g, kit.dark)
+    strakes = Parts()
+    for r0, r1 in ((-15.0, -2.0), (2.0, 15.0)):
+        for x0, x1 in ((-11.0, 12.4), (13.6, 34.9), (36.1, 56.4), (57.6, 78.4)):
+            strakes.box(x0, x1, YC+r0, YC+r1, z-.5, z+.2)
+    strakes.build(kit, 'Hull keel armour strakes', kit.steel, .2)
+    for side, s in SIDES:
+        for part, seams in (('fore', FORE_SEAMS), ('aft', AFT_SEAMS)):
+            g = Parts()
+            for x in seams:
+                g.rbox(x-.3, x+.3, SIDE_Y[0]+7, SIDE_Y[1]-7, SIDE_KEEL-1, SIDE_KEEL+.6, s)
+            g.rbox(SIDE_SPLIT+8 if part == 'fore' else HOLD_AFT+8, FRONT-8 if part == 'fore' else SIDE_SPLIT-8,
+                   66.7, 67.3, SIDE_KEEL-1, SIDE_KEEL+.6, s)
+            _cut(kit, obj(f'Cargo {side} {part} module'), g, kit.dark)
 
 
 def detail(kit):
@@ -523,3 +560,4 @@ def detail(kit):
     for side, s in SIDES:
         for part in ('fore', 'aft'):
             module(kit, side, s, part)
+    belly(kit)
