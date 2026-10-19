@@ -112,21 +112,21 @@ SHOTS = {
         sfx("c2_console_beeps", 0.0, -14, offset=2.0, until=0.9),
         sfx("c2_console_beeps", 2.0, -14, offset=3.4, until=3.4),
         # Two vics of three: a swish per fighter, a beat apart, peaking at 3.0 and 4.2.
-        sfx("c2_fighter_swish", 2.5, -8), sfx("c2_fighter_swish", 2.62, -12), sfx("c2_fighter_swish", 2.74, -14),
-        sfx("c2_fighter_swish", 3.7, -10), sfx("c2_fighter_swish", 3.82, -13), sfx("c2_fighter_swish", 3.94, -15),
+        synth("fighter_00", -6), synth("fighter_01", -9), synth("fighter_02", -9),
+        synth("fighter_10", -8), synth("fighter_11", -11), synth("fighter_12", -11),
         # The Legion: two layers of engine hum and the swell, all loudest at the beam (8.0).
         # The Legion's engines: two synthesised rocket clusters along the hull, a beat apart.
-        synth("legion_engines_fwd", -12, fade_in=1.0),
-        synth("legion_engines_aft", -12, fade_in=1.0),
-        sfx("c2_legion_presence", 5.0, -14, af=LOW),
+        synth("legion_drives", -7, fade_in=1.0),
+        synth("legion_forward", -9, fade_in=1.0),
         sfx("c2_switch_clicks", 9.45, -12, until=9.8),
         sfx("c2_switch_clicks", 14.35, -12, offset=3.0, until=14.8),
-        sfx("c2_deorbit_burn", 8.1, -12, until=15.0, env=[(8.1, 0), (12, 2), (15, 6)]),
+        # Second Wind's own drive heard from its bridge, lighting for the de-orbit burn at 9.6 s.
+        synth("second_wind_interior", -8, until=15.0),
         sfx("c1_hull_creaks", 10.8, -14, offset=5.0, until=12.3),
         squelch("open", 0.3), hail(7, 0.46), squelch("close", 8.94), hail(8, 9.76),
     ]),
     "entry": (3.0, [
-        sfx("c2_deorbit_burn", 0.0, -8, offset=6.9, until=1.0, fade_out=0.9),
+        synth("second_wind_interior", -8, offset=15.0, until=3.0, fade_out=0.6),
         sfx("entry_reentry_roar", 0.0, -10, env=[(0, -4), (2.6, 0), (3.0, 8)]),
         sfx("entry_buffet", 1.3, -10, until=3.0, fade_in=0.4),
         voice(("castle", CASTLE["entry"]), 0.16),

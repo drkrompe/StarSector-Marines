@@ -46,18 +46,43 @@ def second_wind_lane(t):
     return np.stack([np.full_like(t, 110.0), s, np.full_like(t, -45.0)], axis=1)
 
 
-def legion_engines(offset_m):
-    """The Legion's pass in C2 (patrol-abeam/c2_core.legion_origin): 250 m out, abeam at 8.0 s,
-    rising out of the slits from 9.6 s as Second Wind starts down. offset_m moves the engine
-    cluster along the hull, so two clusters arrive a beat apart."""
+# C2 is seen from Second Wind's bridge (patrol-abeam/c2_bridge_blockout.py). Its frame: +X ahead
+# along our bow, +Y out to port, +Z up, metres from the eye. The ear is turned toward port with
+# the watcher's head, so these passes pan by bearing from the bow (port = left).
+C2_V0, C2_V1, C2_ABEAM_T, C2_ABEAM_Y = 140.0, 22.0, 8.0, 265.0
+C2_DROP_T, C2_DROP_ACCEL = 9.6, 9.0
+
+
+def legion_along(t):
+    """The Legion's midpoint distance ahead (m): closing from 140 m/s to 22 m/s by abeam."""
+    d = C2_ABEAM_T - t
+    ahead = C2_V1 * d + (C2_V0 - C2_V1) * d * d / (2 * C2_ABEAM_T)
+    return np.where(t <= C2_ABEAM_T, ahead, -C2_V1 * (t - C2_ABEAM_T))
+
+
+def legion_at(offset_m, out_m=0.0, up_m=0.0):
+    """A point on the Legion offset_m forward of its midpoint (its bow leads toward us), rising
+    relative to us once Second Wind starts down."""
     def path(t):
-        x = -341.2 + 42.65 * t + offset_m
-        z = -34.8 + 0.5 * 12.2 * np.maximum(0.0, t - 9.6) ** 2
-        return np.stack([x, np.full_like(t, 250.4), z], axis=1)
+        x = legion_along(t) - offset_m
+        z = 20.0 + up_m + 0.5 * C2_DROP_ACCEL * np.maximum(0.0, t - C2_DROP_T) ** 2
+        return np.stack([x, np.full_like(t, C2_ABEAM_Y + out_m), z], axis=1)
     return path
 
 
-# A pass: the clip covers [start, end] on the shot clock; +Y is ahead in the final view, +X right.
+def fighter(t_pass, out_m, up_m):
+    """A Broadsword streaking past the port slits at 160 m/s, abeam our eye at t_pass."""
+    def path(t):
+        return np.stack([160.0 * (t_pass - t), np.full_like(t, out_m), np.full_like(t, up_m)], axis=1)
+    return path
+
+
+def fixed(x, y, z):
+    return lambda t: np.tile(np.array([[x, y, z]], float), (len(t), 1))
+
+
+# A pass: the clip covers [start, end] on the shot clock. In C1 +Y is ahead in the final view and
+# +X right (pan="c1"); in C2 +X is our bow and +Y port (pan="c2").
 HOUND = dict(start=21.5, end=34.5, path=straight(23.0, 32.0, (-300.0, 220.0, -70.0), (260.0, 270.0, -30.0)),
              sound_speed=300.0,       # lower = stronger pitch drop
              muffle_far=80.0, muffle_near=420.0,   # low-pass corner (Hz) far off and closest
@@ -65,26 +90,47 @@ HOUND = dict(start=21.5, end=34.5, path=straight(23.0, 32.0, (-300.0, 220.0, -70
              crackle=0.35,            # rocket crackle in the roar
              rush_gain=0.25, rush_low=120.0, rush_high=900.0,
              distance_power=1.6,      # loudness ~ (closest / r) ** power
-             pan_width=0.9, seed=11)
+             pan="c1", pan_width=0.9, seed=11,
+             thrust=None,             # optional [(t, gain)] throttle curve
+             thumps=(),               # ignition thumps, shot seconds
+             rcs=())                  # thruster bursts: (t, seconds, gain)
+FIGHTER = dict(HOUND, start=0.0, end=7.0, sound_speed=330.0, muffle_far=150.0, muffle_near=2600.0,
+               bass=0.8, crackle=0.6, rush_gain=0.7, rush_low=250.0, rush_high=5000.0,
+               distance_power=2.0, pan="c2", pan_width=1.0)
+LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, muffle_near=380.0,
+              bass=3.0, crackle=0.25, rush_gain=0.05, distance_power=1.4, pan="c2", pan_width=0.5)
+# The two ships trim to look at each other (c2_bridge_blockout): the Legion's attitude thrusters
+# fire in bursts along its hull while it closes and as it slows to the beam.
+LEGION_RCS = ((1.6, 0.5, 0.8), (3.4, 0.35, 0.6), (5.1, 0.8, 1.0), (6.3, 0.4, 0.7), (7.2, 1.1, 1.0),
+              (8.9, 0.45, 0.8), (10.4, 0.7, 0.9), (12.0, 0.5, 0.7))
 PASSES = {
     "hound_flyby_a": HOUND,
     # Heavier and more muffled: more bass, a darker roar, a slower swell.
     "hound_flyby_b": dict(HOUND, muffle_near=280.0, bass=2.2, crackle=0.25, rush_gain=0.2,
                           distance_power=1.2, seed=12),
-    # The Legion: two engine clusters along a 292 m hull, deep and slow, peaking around the beam.
-    "legion_engines_fwd": dict(HOUND, start=0.0, end=15.0, path=legion_engines(60.0), sound_speed=340.0,
-                               muffle_far=50.0, muffle_near=260.0, bass=2.6, crackle=0.2, rush_gain=0.08,
-                               distance_power=2.0, pan_width=0.35, seed=21),
-    "legion_engines_aft": dict(HOUND, start=0.0, end=15.0, path=legion_engines(-90.0), sound_speed=340.0,
-                               muffle_far=45.0, muffle_near=220.0, bass=3.0, crackle=0.15, rush_gain=0.06,
-                               distance_power=2.0, pan_width=0.35, seed=22),
     # Second Wind's own drive: braking past the camera at 10 s, then its engines face us and it
     # opens up toward Jangala. The camera follows it, so it stays near the centre.
     "second_wind_pass": dict(HOUND, start=0.0, end=37.7, path=second_wind_lane, sound_speed=340.0,
                              muffle_far=70.0, muffle_near=320.0, bass=2.2, crackle=0.4,
                              rush_gain=0.15, distance_power=0.7, pan_width=0.15, seed=13),
+    # C2. The Legion: main drives at its stern (it comes bow first, so they arrive last and
+    # loudest just past the beam), a forward cluster, and attitude thrusters along the hull.
+    "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21),
+    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), muffle_near=300.0, bass=2.4, seed=22,
+                           rcs=LEGION_RCS),
+    # The fighters: two vics of three, a hard thruster roar each, abeam at 3.0 and 4.2 s.
+    **{"fighter_%d%d" % (flight, n): dict(FIGHTER, path=fighter(t_pass + back / 160.0, out + dy, up + dz),
+                                          seed=30 + 3 * flight + n)
+       for flight, (t_pass, out, up) in enumerate(((3.0, 55.0, 7.0), (4.2, 80.0, 9.0)))
+       for n, (back, dy, dz) in enumerate(((0.0, 0.0, 0.0), (22.0, -14.0, -2.0), (22.0, 14.0, 1.5)))},
+    # Second Wind's own drive from its bridge: idling under the room hum, then the de-orbit burn
+    # lights at 9.6 s and the same engine opens up, on through the entry (C2 0-15, entry 15-18).
+    "second_wind_interior": dict(HOUND, start=0.0, end=18.0, path=fixed(-40.0, 0.0, -6.0), sound_speed=340.0,
+                                 muffle_far=140.0, muffle_near=140.0, bass=2.6, crackle=0.3, rush_gain=0.0,
+                                 distance_power=1.0, pan_width=0.0, seed=41,
+                                 thrust=[(0.0, 0.22), (9.55, 0.22), (9.8, 0.75), (11.5, 1.0), (18.0, 1.0)],
+                                 thumps=(9.6,)),
 }
-
 
 def emission_times(spec, t):
     """When the sound heard at t left the hull: solve te = t - r(te) / c by iteration."""
@@ -146,8 +192,28 @@ def render(spec):
     rush = spec["rush_gain"] * band / max(1e-9, np.abs(band).max()) * near
 
     mono = (engine + rush) * near
-    bearing = np.arctan2(pos[:, 0], pos[:, 1])
-    pan = np.clip(np.sin(bearing) * spec["pan_width"], -1, 1)
+    if spec["thrust"]:
+        points = np.array(spec["thrust"], float)
+        mono = mono * np.interp(t, points[:, 0], points[:, 1])
+    for when in spec["thumps"]:
+        # Ignition: a deep, short hit under the engine as it lights.
+        k = np.clip(t - when, 0, None)
+        hit = np.sin(2 * np.pi * 38.0 * k) * np.exp(-k / 0.35) * (t >= when)
+        mono = mono + 1.2 * hit * np.abs(mono).max()
+    if spec["rcs"]:
+        hiss = one_pole(noise - one_pole(noise, 300.0), 600.0 + 1600.0 * near)
+        hiss /= max(1e-9, np.abs(hiss).max())
+    for when, seconds, gain in spec["rcs"]:
+        # A thruster burst: a hiss of gas with a fast start and a short tail, dulled by distance.
+        k = t - when
+        shape = np.clip(k / 0.03, 0, 1) * np.clip((seconds - k) / 0.15 + 1, 0, 1) * (k >= 0)
+        mono = mono + gain * 0.9 * shape * near * hiss
+    if spec["pan"] == "c2":
+        bearing = np.arctan2(pos[:, 1], pos[:, 0])      # from the bow, + to port
+        pan = np.clip(-np.sin(bearing) * spec["pan_width"], -1, 1)
+    else:
+        bearing = np.arctan2(pos[:, 0], pos[:, 1])
+        pan = np.clip(np.sin(bearing) * spec["pan_width"], -1, 1)
     left, right = np.cos((pan + 1) * np.pi / 4), np.sin((pan + 1) * np.pi / 4)
     edge = np.minimum(1, np.minimum(t - t[0], t[-1] - t) / 0.4)
     out = np.stack([mono * left, mono * right], axis=1) * edge[:, None]
