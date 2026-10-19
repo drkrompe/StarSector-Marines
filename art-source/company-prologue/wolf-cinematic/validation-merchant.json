@@ -1,0 +1,107 @@
+{
+ "asset": "wolf.blend",
+ "collection": "WOLF",
+ "root": "WOLF | root",
+ "effects_collection": "SWFX",
+ "objects": 221,
+ "meshes": 171,
+ "effects_objects": 74,
+ "images": 20,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "root metres_per_unit": {
+   "ok": true,
+   "detail": 0.88
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": [
+    20,
+    []
+   ]
+  },
+  "mesh count": {
+   "ok": true,
+   "detail": [
+    171,
+    171
+   ]
+  },
+  "polygon count": {
+   "ok": true,
+   "detail": [
+    16991,
+    16991
+   ]
+  },
+  "three engine anchors at the mouths, pointing aft": {
+   "ok": true,
+   "detail": []
+  },
+  "3 turret(s) train and elevate": {
+   "ok": true,
+   "detail": []
+  },
+  "hardpoint muzzles point along the bow": {
+   "ok": true,
+   "detail": []
+  },
+  "declared VFX muzzles ride the kit muzzles": {
+   "ok": true,
+   "detail": "14 muzzles"
+  },
+  "lamps": {
+   "ok": true,
+   "detail": []
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 3.1e-05
+  },
+  "SWFX present": {
+   "ok": true,
+   "detail": [
+    74,
+    74
+   ]
+  },
+  "plumes leave every bell aft": {
+   "ok": true,
+   "detail": []
+  },
+  "gun rig anchors": {
+   "ok": true,
+   "detail": [
+    14,
+    14
+   ]
+  },
+  "lamp lights": {
+   "ok": true,
+   "detail": 5
+  },
+  "drivers valid": {
+   "ok": true,
+   "detail": []
+  },
+  "root carries the effects": {
+   "ok": true,
+   "detail": 0.0
+  }
+ }
+}

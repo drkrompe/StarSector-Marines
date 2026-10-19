@@ -1,0 +1,82 @@
+{
+ "neck-top-port": {
+  "raw_iou": 0.9946,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9973,
+  "scale": [
+   0.99834,
+   0.99631
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "main-top-port": {
+  "raw_iou": 0.9976,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9982,
+  "scale": [
+   0.99851,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "centre-hump": {
+  "raw_iou": 0.996,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9966,
+  "scale": [
+   1.0,
+   1.002
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "aft-top-port": {
+  "raw_iou": 0.9986,
+  "best_fit": "identity",
+  "fitted_iou": 0.9986,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "main-side-port": {
+  "raw_iou": 0.9896,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9991,
+  "scale": [
+   1.00396,
+   0.99773
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "neck-side-port": {
+  "raw_iou": 0.9855,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9945,
+  "scale": [
+   1.00379,
+   0.99591
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "aft-side-port": {
+  "raw_iou": 0.9962,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9992,
+  "scale": [
+   1.00123,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "main-under": {
+  "raw_iou": 0.9954,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9979,
+  "scale": [
+   1.0016,
+   0.99827
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

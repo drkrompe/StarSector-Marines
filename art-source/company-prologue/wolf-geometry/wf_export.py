@@ -14,7 +14,8 @@ COLL = 'WOLF_P'
 ROOT = 'WOLF_P | root'
 
 
-def package(path, metres_per_unit, pack_images=False, extra=None):
+def package(path, metres_per_unit, pack_images=False, extra=None, coll_name=COLL):
+    COLL, ROOT = coll_name, f'{coll_name} | root'
     scene = bpy.context.scene
     for ob in [o for o in bpy.data.objects if o.type in ('CAMERA', 'LIGHT')]:
         bpy.data.objects.remove(ob, do_unlink=True)
