@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -565,6 +565,17 @@ above (five fits, three grounds, eight seeds, both roles), first with
 - The open is still the tank's (0.45). If the gun-loss cost should be won back
   there, the breakthrough tank's reach remains the lever named above, not its
   pool.
+- **A tank that has lost its gun withdraws** (`convoy-nouns.md`, the turret
+  section): out of every threat's reach, then it holds. Read against
+  `-Dbattle.vehicle.disarmedWithdraw=false` (refit chaingun and AT LRM-15
+  Bulwarks against both tanks, three grounds, eight seeds, both roles), the
+  Bulwark's share moves only where a gun went, 0.63 to 0.61 over 192 fights.
+  An attacking tank with no gun now usually escapes: 4 of the 25 gun-loss fights
+  turned from Bulwark wins into stalemates, and the tank kept 6-39% of its
+  integrity. A defending tank runs and lives longer (up to 2410 against 1750
+  ticks) but still dies, because the attacking Bulwark hunts it. Among tanks the
+  same holds: four hull-down heavy-gun fights against the breakthrough tank
+  ended with the gunless defender alive out of reach.
 
 ## Missile warheads
 
