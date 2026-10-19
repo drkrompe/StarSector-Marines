@@ -21,6 +21,12 @@ fi
 if [ -z "${PYTHON:-}" ]; then
   if python3 -c '' >/dev/null 2>&1; then PYTHON=python3; else PYTHON=python; fi
 fi
-case "$0" in
-  *blender.sh) exec "$BLENDER" "$@" ;;
+# zsh sets $0 to a sourced file's own path, so the name test alone would exec Blender
+# (with no arguments: the GUI) in place of the shell that sourced this. Sourced under
+# zsh, ZSH_EVAL_CONTEXT names a file context; run, it does not.
+case "${ZSH_EVAL_CONTEXT:-}" in
+  *file*) ;;
+  *) case "$0" in
+       *blender.sh) exec "$BLENDER" "$@" ;;
+     esac ;;
 esac
