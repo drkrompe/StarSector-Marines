@@ -699,5 +699,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "b78ddfda348aacf7607899e5005daa124d48338bec1f49e708241967c1761e32"
+ "asset_sha256": "2edf2d5069d6fe7ff3047136a443a81683e577cb5eea9430ad5fddc63a4b6a6c"
 }
