@@ -45,7 +45,7 @@ DRIVE = Path("G:/My Drive/starsector/review")
 PICTURES = {
     "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
-    "c2": DRIVE / "cinematic-c2/2026-10-19_castle-and-posts_windows/02-castle-thin-posts.mp4",
+    "c2": DRIVE / "cinematic-c2/2026-10-19_camera-chosen-sketch_windows/01-c2-bridge-sketch.mp4",
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
@@ -128,6 +128,13 @@ SHOTS = {
         # The Legion's engines: two synthesised rocket clusters along the hull, a beat apart.
         synth("legion_drives", -7, fade_in=1.0),
         synth("legion_forward", -9, fade_in=1.0),
+        # The camera moves on the bridge (c2-camera, 340 m pass): leaning on the forward console at
+        # 1.5, the step down off the dais at 5.0 and four paces, brushing past Castle at 5.55, and
+        # leaning in over the comms bank at 6.6.
+        sfx("c2_console_lean", 1.47, -16),
+        sfx("c2_steps", 4.95, -14),
+        sfx("c2_brush_past", 5.33, -18),
+        sfx("c2_console_lean", 6.57, -17),
         sfx("c2_switch_clicks", 9.45, -12, until=9.8),
         sfx("c2_switch_clicks", 14.35, -12, offset=3.0, until=14.8),
         # Second Wind's own drive heard from its bridge, lighting for the de-orbit burn at 9.6 s.
