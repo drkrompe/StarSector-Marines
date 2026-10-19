@@ -360,9 +360,91 @@ def console_face(kit, name, centre, length, depth, yaw, screens):
     green.build(kit, name + ' status lamps', M['status'])
 
 
-def console_casing(kit, name, centre, length, depth, yaw, z0, glands=()):
-    """The operator side of a bank's casing: access-panel seams with screw heads, a kick plate, and
-    cable glands where looms come up out of the deck plating into the console."""
+def cabinet_doors(kit, name, at, Rz, screw_rot, length, panels, zb, zt, skip=()):
+    """What makes each access panel of a casing a door and not a seam: an inset frame, a label plate,
+    and one of three fittings by turn: a latched door with a pull handle, a louvred vent for the
+    electronics behind it, or a small service hatch over a row of capped test ports with a warning
+    placard. A low casing (the forward console on the dais) gets only the frame, latches and label.
+    `at(u, z, e)` is the casing face's frame (e out toward the operator); nothing stands more than
+    .045 proud, so the jury-rig panels bolted over a door hide it. Panels in `skip` stay plain."""
+    M = mats()
+    frame, label, hw, dark, grille, warn = (Parts() for _ in range(6))
+    pw = length / panels
+    tall = zt - zb
+    low = tall < .6
+    kind0 = sum(map(ord, name)) % 3                         # banks do not all start alike
+    for k in range(panels):
+        if k in skip:
+            continue
+        u0, u1 = -length / 2 + k * pw + .14, -length / 2 + (k + 1) * pw - .14   # inside the screws
+        a, b = zb + .1, zt - .1
+        uc, w, h = (u0 + u1) / 2, u1 - u0, b - a
+        # Inset frame: the door's own edge, a step proud of the casing.
+        for z in (a, b):
+            frame.box(at(uc, z, .008), (w, .012, .022), Rz)
+        for u in (u0, u1):
+            frame.box(at(u, (a + b) / 2, .008), (.022, .012, h), Rz)
+        # Label plate top left, with two rivets.
+        lu, lz = u0 + .2, b - .09
+        label.box(at(lu, lz, .012), (.26, .006, .07), Rz)
+        for du in (-.11, .11):
+            hw.cyl(at(lu + du, lz, .016), .008, .006, screw_rot, 6)
+        # Quarter-turn latches on the opening edge (alternate sides).
+        edge = u1 - .07 if k % 2 == 0 else u0 + .07
+        for z in ((a + b) / 2,) if low else (a + .22, b - .3):
+            hw.cyl(at(edge, z, .014), .026, .012, screw_rot, 12)
+            dark.box(at(edge, z, .021), (.034, .004, .008), Rz @ rot(y=35))
+        if low:
+            continue
+        kind = (k + kind0) % 3
+        if kind == 0:
+            # A pull handle beside the latches: a bar on two standoffs.
+            hu = edge - (.12 if k % 2 == 0 else -.12)
+            hz = (a + b) / 2
+            for dz in (-.16, .16):
+                hw.cyl(at(hu, hz + dz, .022), .016, .028, screw_rot, 8)
+            hw.tube([at(hu, hz - .17, .03), at(hu, hz + .17, .03)], .014, 8)
+        elif kind == 1:
+            # Louvred vent in the lower middle: a frame and slats canted downward.
+            vw, vh = min(.7, w * .6), min(.5, h * .4)
+            vz = a + .12 + vh / 2
+            for z in (vz - vh / 2, vz + vh / 2):
+                grille.box(at(uc, z, .012), (vw + .03, .014, .022), Rz)
+            for u in (uc - vw / 2, uc + vw / 2):
+                grille.box(at(u, vz, .012), (.022, .014, vh), Rz)
+            dark.box(at(uc, vz, .002), (vw, .004, vh), Rz)
+            n = max(4, int(vh / .055))
+            for s in range(n):
+                z = vz - vh / 2 + (s + .5) * vh / n
+                grille.box(at(uc, z, .01), (vw, .006, vh / n * 1.05), Rz @ rot(x=-35))
+        else:
+            # Service hatch near the top: hinged at its left, a hasp at its right.
+            sw_, sh = min(.42, w * .4), .26
+            su, sz = uc + .05, b - .3
+            frame.box(at(su, sz, .016), (sw_, .01, sh), Rz)
+            for dz in (-.08, .08):
+                hw.cyl(at(su - sw_ / 2, sz + dz, .02), .012, .05, Rz, 8)        # hinge barrels, vertical
+            hw.box(at(su + sw_ / 2 - .015, sz, .024), (.03, .008, .06), Rz)     # hasp
+            # A row of capped test ports below it, and a warning placard.
+            pz = sz - .28
+            for j in range(4):
+                pu = su - .15 + j * .1
+                hw.cyl(at(pu, pz, .012), .026, .016, screw_rot, 12)
+                dark.cyl(at(pu, pz, .021), .014, .004, screw_rot, 10)
+            warn.box(at(su, pz - .14, .011), (.2, .006, .08), Rz)
+            dark.box(at(su, pz - .14, .0145), (.16, .002, .012), Rz)            # its legend bar
+    frame.build(kit, name + ' cabinet door frames', M['casing'], bevel=.004)
+    label.build(kit, name + ' cabinet labels', M['label'])
+    hw.build(kit, name + ' cabinet hardware', M['hardware'], smooth=True)
+    dark.build(kit, name + ' cabinet recesses', kit.dark)
+    grille.build(kit, name + ' cabinet vents', M['grille'])
+    warn.build(kit, name + ' cabinet warning placards', M['nosing'])
+
+
+def console_casing(kit, name, centre, length, depth, yaw, z0, glands=(), skip=()):
+    """The operator side of a bank's casing: access-panel seams with screw heads, a kick plate,
+    cable glands where looms come up out of the deck plating into the console, and the panels'
+    door fittings (cabinet_doors; `skip` lists panels left plain)."""
     M = mats()
     cx, cy = centre
     Rz = rot(z=math.degrees(yaw))
@@ -384,6 +466,7 @@ def console_casing(kit, name, centre, length, depth, yaw, z0, glands=()):
         for du in (.08, pw - .08):
             for z in (deck + .2, CONSOLE_TOP - .15):
                 screws.cyl(at(-length / 2 + k * pw + du, z, .004), .014, .01, screw_rot, 8)
+    cabinet_doors(kit, name, at, Rz, screw_rot, length, panels, deck + .12, CONSOLE_TOP - .08, skip)
     if z0 == FLOOR:
         # Not on the dais: a kick plate just above the dais plating catches a snap ray of the
         # spine strike cluster's insert on the skirt below (sw_damage casts through the room),
@@ -403,7 +486,7 @@ def console_casing(kit, name, centre, length, depth, yaw, z0, glands=()):
     loom.build(kit, name + ' loom', M['loom'], smooth=True)
 
 
-def bank(kit, name, centre, length, depth, yaw_deg, screens, glands=()):
+def bank(kit, name, centre, length, depth, yaw_deg, screens, glands=(), skip=()):
     """A console run: casing to CONSOLE_TOP, a sloped face toward the operator, screens on it.
     centre is the casing's footprint centre; yaw_deg turns its length axis (0 = along X);
     the operator stands on the casing's -Y side before the turn."""
@@ -438,7 +521,7 @@ def bank(kit, name, centre, length, depth, yaw_deg, screens, glands=()):
         s.rotation_euler = (math.radians(16), 0, yaw)
     console_face(kit, name, centre, length, depth, yaw, screens)
     if z0 == FLOOR or glands:                          # the chamfer runs' faces are mostly base
-        console_casing(kit, name, centre, length, depth, yaw, z0, glands)
+        console_casing(kit, name, centre, length, depth, yaw, z0, glands, skip)
     return body
 
 
@@ -595,7 +678,7 @@ def build(kit):
     bank(kit, 'Bridge port comms bank', (12.75, 4.2), 5.0, .9, 0, [(-1.6, .9), (0, 1.1), (1.6, .9)],
          glands=(-2.15, 2.15))
     bank(kit, 'Bridge starboard systems bank', (12.75, -4.2), 5.0, .9, 180, [(-1.6, .9), (0, 1.1), (1.6, .9)],
-         glands=(-2.15, 2.15))
+         glands=(-2.15, 2.15), skip=(1,))              # the patched ship's primer panel covers door 1
     frames = Parts()
     for k, x in enumerate((11.3, 14.1)):
         kit.box('Bridge port annunciator %d' % (k + 1), (x, 4.48, CONSOLE_TOP + .45), (.5, .06, .12), M['amber'], 0)
