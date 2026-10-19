@@ -24,8 +24,9 @@ sketches and Castle's lines for review.
   about −19 LUFS (the hail takes and Castle's lines are matched there), so a bed at −14 sits
   near −33 LUFS. A level of 0 means as loud as a voice. Where no one speaks, the level is
   against where a voice would be.
-- **Source.** *Gen* is an ElevenLabs generation (`make_sfx.py` id). *Existing* names a file
-  the repository already has, which can stand in or be layered.
+- **Source.** *Gen* is an ElevenLabs generation (`make_sfx.py` id). *Code* is synthesised by
+  `synth_flyby.py` from the shot's own geometry. *Existing* names a file the repository already
+  has, which can stand in or be layered.
 
 ## Sound direction
 
@@ -64,8 +65,7 @@ follow it to the planet by about 15 s, and the customs Hound crosses close in 03
 | `c1_sw_engine_loop` | Second Wind's drive as a deep bass hum: far at first, loudest as it passes and its engines face us, easing as it recedes | 0–37.7, peak at 11 | Bed | −14 (−26 to −12), below 220 Hz | Gen |
 | `c1_sw_passby_swish` | A big heavy swish as the ship passes the camera | 9.25–14, peak at 11 | Spot | −10 | Gen |
 | Squelch open / close | Approach's key-up and key-down | 3.0 / 11.8, 23.7 / 31.7 | Spot | as shipped | Existing `jangala_squelch_open`, `_close` |
-| `c1_hound_flyby` | The customs Hound's drive as it crosses close, low end | 25.6–31.6 | Spot | −14, below 220 Hz | Gen |
-| `c1_hound_swish` | A fast swish as the Hound crosses | 26.0–30, peak at 27.3 | Spot | −10 | Gen |
+| `hound_flyby_a` | The customs Hound crossing left to right, **synthesised from its flight path** (`synth_flyby.py`, owner 2026-10-19: the generated swish missed). An engine drone and turbine whine with the pitch drop computed from the path, an air rush that swells and brightens as it closes, distance falloff and a pan from its bearing. `hound_flyby_b` is a sharper reading | 21.5–34.5, closest at about 27.5 | Spot | −8 | Code |
 
 ## C2 — PATROL ABEAM, on the bridge (15.0 s)
 
