@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Tropical jungle nature ambience heard muffled through a sealed window, distant birds, insects, soft and far away",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "430130e339f15341c234fd81146712297d77ddb7d004ffd284166b9068c35f9a",
+  "durationSeconds": 10.0,
+  "peakDb": -13.3,
+  "integratedLufs": -31.6
+}

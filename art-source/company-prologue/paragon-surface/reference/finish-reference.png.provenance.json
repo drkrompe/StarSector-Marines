@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15508-f96d-79a3-a3c6-72e28a2f617d",
+  "source": "/Users/dillon/.codex/generated_images/01a15508-f96d-79a3-a3c6-72e28a2f617d/exec-ff3f8c57-f8f0-41a2-94b1-816c4386147e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/paragon-surface/reference/finish-reference.png",
+    "sha256": "7edfef7dde8887c201b53aa7b7fc65ab58ebf9a05742349948ec667c1e80b542",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/paragon-surface/prompts/finish-reference.prompt.txt",
+  "promptSha256": "5132085b8cc27cd9799b9ee862a937535ef0f6001012a9e6d521c471587cec43",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact render to repaint; every shape stays in its pixels\nImage 2: Livery and colours only; not layout, view or pixel style\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, the Paragon (a 310 m Tri-Tachyon battleship: a broad armoured hull around a great ring-shaped bore, a raised command deck arching over the ring, a hangar in the bore wall, drive pods at the stern, and two long twin-pronged beam projectors jutting from the bow), seen from above its quarter on a plain flat mid-blue background. Its armour is already tiled in hexagonal ablative ceramic plates; the guns are already finished in their own scheme.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery. This image fixes the finish standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every hex plate, band, trench, hatch, turret, ring, emitter and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Keep the hexagonal plate pattern exactly where it is. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: the blue-grey hex ceramic armour stays a cool blue-grey glazed ceramic, the pale prow and shoulder plates stay pale blue-white ceramic, the command deck and core stay near-white ceramic, the slate bands stay dark blue-slate, the bore's machinery and plating stay grey steel and near-black recesses, windows stay softly lit glass. Do not swap or invent colours, stripes or patches.\n- Finish: Tri-Tachyon's corporate flagship, immaculate and expensive. Semi-matte glazed ceramic tiles with crisp thin seams between the hexes, very slight tile-to-tile tone differences, faint cool heat-tint where emitters and drives run hot, a light film of grime only deep in seams and recesses, a little soot at the stern drives. No rust, no chipped paint, no repair plates, no dents, no damage, no burns, no large stains, no lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/paragon-surface/guide/reference-guide.png",
+      "sha256": "9492d807919fdf1468cfc28a81bc9875e2d1c4afab766429289cbc76385c2e84",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the exact render to repaint; every shape stays in its pixels"
+    },
+    {
+      "path": "art-source/company-prologue/paragon-surface/build/sprite-livery.png",
+      "sha256": "360d761b8b9b0deadb71c7a30e76e8531c72917cd7ad544f0fea256e39672247",
+      "dimensions": [
+        1092,
+        990
+      ],
+      "mode": "RGB",
+      "role": "Livery and colours only; not layout, view or pixel style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the first image, preserving its geometry and composition and using the second image only for livery colours."
+  ],
+  "usage": {
+    "input_tokens": 75309,
+    "cached_input_tokens": 59776,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 852,
+    "reasoning_output_tokens": 56
+  },
+  "elapsedSeconds": 52.3
+}
