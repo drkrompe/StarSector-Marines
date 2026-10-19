@@ -1,15 +1,9 @@
-Generated with Codex image_gen through tools/codex_imagegen.py (one generation, 2026-10-19); provenance in last-carrier.master.png.provenance.json.
-New composition (owner, 2026-10-19). No guide; the departing carrier is the cinematic Colossus (identity from its review still), Castle from her portrait, finish from second-wind.master.png.
+Generated with Codex image_gen through tools/codex_imagegen.py (2026-10-19); provenance in last-carrier.master.png.provenance.json.
+Edit of the previous page (one generation) over guides/p3-colossus-composite.png: the real Colossus (guides/colossus_guides.py) pasted over the warped freighter (owner, 2026-10-19), everything else kept. The previous page's brief: Castle in the gallery with her chit while the freighter leaves; Castle from her portrait.
 Runtime packing: art-source/company-prologue/pack.ps1
 
-Use case: illustration-story. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.
+Use case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only the departing freighter in the window.
 
-Story: the last ore carrier leaves the Claim with the administrators and the payroll aboard. The workers stay behind with pay chits nobody will honour, eleven days before the air, heat and power are cut.
+Reference 1 is the page with a plain 3D render of the real freighter pasted over the old, warped one. Keep EVERYTHING else exactly as it is, pixel for pixel: Castle, her face, hand and pay chit, every person in the crowd, the children, the bags, the window frames, the rock field, the lamps, the light, the camera and the composition.
 
-Scene: inside the habitat's long observation gallery, a tall bolted pressure window running the width of the frame. Outside, against black space and grey asteroid rock, the company's heavy freighter is pulling away from the colony, small and receding, its six drive plumes lighting the rock warm orange. The freighter is exactly the ship in Reference 1: a massive slab-sided rust-red cargo hull with pale grey trim bands, stacked container bays at its ends, an aft bridge deckhouse and two outboard drive pods with three bells each. Seen from behind as it leaves.
-
-Inside, lit only by the freighter's drive glow through the glass and a few failing emergency lamps: a silent crowd of miners and their families in worn coveralls and patched jackets stands along the window, mostly from behind, some with children on shoulders, bags at their feet. Nobody waves.
-
-Near the front right, turned three-quarters toward the camera, stands Castle, exactly the woman in Reference 2 (her face, age, greying dark hair in a short practical bun, charcoal-olive high-collared duty jacket, small earpiece): she holds a small stamped metal pay chit between her fingers and looks at it, not at the ship. Her face is calm and set.
-
-Abandonment and dignity. No violence, no tears played for drama.
+The freighter: repaint the pasted render so it belongs in the painting, keeping its exact silhouette, size, position, angle and proportions; do not reshape, stretch, enlarge or rotate it. It is a massive slab-sided rust-red cargo hull with pale grey trim bands, open container bays at its forward end, a stepped bridge deckhouse aft and two outboard drive pods, each with three drive bells facing the camera. Light it to match the scene: the far sun from upper left, its own work lamps. Its six drive bells burn warm orange with soft exhaust plumes trailing back toward the camera, lighting the asteroid rock below. Remove any leftover trace of the older ship and its plumes. Same restrained painted realism as the rest of the image. No new text.
