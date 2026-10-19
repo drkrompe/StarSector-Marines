@@ -67,6 +67,8 @@ public final class WarshipShipFire {
         MissileWindow.Role role;
         Set<MissileWindow.Kind> open;
         MissileWindow.Kind window;
+        /** For a gated missile launched into an opening: the opening it spends into ({@link MissileOpenings}). */
+        MissileOpenings.Opening opening;
 
         Engagement(Warship target, int rounds) {
             this.target = target;
@@ -103,6 +105,8 @@ public final class WarshipShipFire {
     private boolean missileWindows = MissileWindow.ENABLED;
     /** Open salvos: per target, per side (faction ordinal), the hull-fight seconds the salvo stays open. */
     private final Map<Warship, float[]> salvos = new IdentityHashMap<>();
+    private boolean missileRestraint = MissileOpenings.ENABLED;
+    private final MissileOpenings openings = new MissileOpenings();
     private final Map<String, Integer> launchesByWindow = new TreeMap<>();
     private final Map<String, Integer> launchesByRole = new TreeMap<>();
     private int gatedLaunches;
@@ -201,6 +205,20 @@ public final class WarshipShipFire {
         this.missileWindows = on;
     }
 
+    /** Whether a ship spends at most its budget into one opening ({@link MissileOpenings}); the control is off. */
+    public boolean missileRestraint() {
+        return missileRestraint;
+    }
+
+    public void missileRestraint(boolean on) {
+        this.missileRestraint = on;
+    }
+
+    /** The openings missiles were launched into, and what each ship spent into each. */
+    public MissileOpenings openings() {
+        return openings;
+    }
+
     /** Missile volleys launched at hulls by the window they went into (the first open window, for the control). */
     public Map<String, Integer> launchesByWindow() {
         return Collections.unmodifiableMap(launchesByWindow);
@@ -258,6 +276,7 @@ public final class WarshipShipFire {
     /** Runs the open salvos down on the hull fight's clock and forgets those on hulls no longer over the battle. */
     void advance(float dt) {
         float hullDt = dt / WarshipScale.HULL_TEMPO;
+        openings.advance(hullDt);
         salvos.entrySet().removeIf(e -> e.getKey().destroyed() || e.getKey().departed());
         for (float[] open : salvos.values()) {
             for (int i = 0; i < open.length; i++) open[i] = Math.max(0f, open[i] - hullDt);
@@ -612,12 +631,18 @@ public final class WarshipShipFire {
             MissileWindow.Role role = null;
             Set<MissileWindow.Kind> open = null;
             MissileWindow.Kind window = null;
+            MissileOpenings.Opening opening = null;
             if (w.missile()) {
                 role = MissileWindow.role(w);
-                open = MissileWindow.read(ship, target, mx, my, salvoOpen(ship.faction, target));
+                open = MissileWindow.read(ship, target, mx, my, salvoOpen(ship.faction, target), missileRestraint);
                 if (missileWindows) {
                     window = MissileWindow.launch(role, open);
                     if (window == null) return layOn(m, mx, my, target);
+                    if (missileRestraint && role != MissileWindow.Role.GENERAL && window.opening()) {
+                        // Spent into an opening the side shares: at most the ship's budget there, the rest kept.
+                        opening = openings.commit(ship, target, role, window);
+                        if (opening == null) return layOn(m, mx, my, target);
+                    }
                 } else {
                     if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return layOn(m, mx, my, target);
                     window = MissileWindow.label(open);
@@ -627,6 +652,7 @@ public final class WarshipShipFire {
             e.role = role;
             e.open = open;
             e.window = window;
+            e.opening = opening;
             engagements.put(m, e);
             if (w.missile()) ship.missileVolleyStarted();
         }
@@ -680,6 +706,7 @@ public final class WarshipShipFire {
             e.paid = true;
             engagementsStarted++;
             if (e.window != null) noteLaunch(ship, e);
+            if (e.opening != null) MissileOpenings.paid(e.opening, ship);
         }
         fireRound(system, ship, m, target, aim);
         e.roundsLeft--;

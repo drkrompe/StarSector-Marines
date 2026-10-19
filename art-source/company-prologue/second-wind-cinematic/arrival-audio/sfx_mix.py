@@ -89,7 +89,7 @@ def shifted(layers, by):
     return out
 
 
-C4_LENGTH = 16.0   # C4 and C5 play as one shot (owner, 2026-10-19); C5's beats keep their own clock + 16
+C4_LENGTH = 21.4   # C4 and C5 play as one shot (owner, 2026-10-19); C5's beats keep their own clock + 21.4
 
 SHOTS = {
     "c1": (37.7, [
@@ -155,26 +155,27 @@ SHOTS = {
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
     "c4c5": (C4_LENGTH + 33.5, [
         sfx("c3_cabin_flight_bed", 0.0, -16, until=1.0, fade_out=1.0),
-        sfx("c4_high_wind_bed", 0.0, -14, until=15.0, env=[(0, 0), (8, 0), (11, -6), (15, -14)], fade_in=0.6),
-        sfx("c4_ground_distant", 0.0, -18, until=6.0, fade_out=2.0),
-        sfx("c4_freeway", 1.0, -12, until=48.5, fade_in=1.0,
-            env=[(1, -6), (4, 0), (8, -4), (12, -10), (34, -10), (42, -2), (48.5, -30)]),
-        sfx("c4_port_heavy", 3.5, -12, until=48.5, fade_in=1.5,
-            env=[(3.5, -10), (7, 0), (16, -2), (20, -6), (30, -6), (34, -5), (42, 2), (48.5, -30)]),
-        sfx("c4_port_ambience", 5.0, -18, until=34.0, fade_in=2.5, fade_out=2.0),
-        # The landing: the drive as bass, the rocket burn under the hover, then the thump.
-        # Castle's Kilo Nine line runs 4.6-10.9: the burn sits under it and comes back up for the
-        # touchdown at 11.0.
-        sfx("c1_sw_engine_loop", 3.0, -10, until=12.5, af=LOW,
-            env=[(3, -8), (6.6, -3), (10.6, -3), (11.0, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
-        sfx("c4_landing_rocket", 5.0, -6, env=[(5, -4), (5.4, -9), (10.6, -9), (11.0, 2)]),
-        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3,
-            env=[(6, -6), (10.6, -6), (11.0, 0)]),
-        sfx("c4_touchdown", 11.0, -2),
-        sfx("c4_dust_hiss", 11.0, -10),
-        sfx("c4_spool_down", 11.2, -8),
-        sfx("c5_yard_bed", 12.0, -14, until=49.5,
-            env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
+        sfx("c4_high_wind_bed", 0.0, -14, until=20.4, loop=True,
+            env=[(0, 0), (13.4, 0), (16.4, -6), (20.4, -14)], fade_in=0.6),
+        sfx("c4_ground_distant", 0.0, -18, until=11.0, loop=True, fade_out=2.0),
+        sfx("c4_freeway", 1.0, -12, until=53.9, fade_in=1.0,
+            env=[(1, -6), (4, 0), (13.4, -4), (17.4, -10), (39.4, -10), (47.4, -2), (53.9, -30)]),
+        sfx("c4_port_heavy", 3.5, -12, until=53.9, fade_in=1.5,
+            env=[(3.5, -10), (7, 0), (21.4, -2), (25.4, -6), (35.4, -6), (39.4, -5), (47.4, 2), (53.9, -30)]),
+        sfx("c4_port_ambience", 5.0, -18, until=39.4, fade_in=2.5, fade_out=2.0),
+        # The landing (c4x_scene, 2026-10-19): the approach runs under both of Castle's lines,
+        # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
+        # drive spools down to 17.9. The drive is bass the whole way and opens up for the burn.
+        sfx("c1_sw_engine_loop", 3.0, -10, until=17.9, af=LOW,
+            env=[(3, -8), (10.9, -8), (12.0, -4), (16.0, 0), (16.4, 3), (17.9, -6)], fade_in=1.5, fade_out=1.0),
+        sfx("c4_landing_rocket", 10.0, -6, env=[(10, -9), (11.0, -6), (16.0, -1), (16.4, 2)]),
+        sfx("c4_ship_hover", 11.4, -14, until=16.7, loop=True, fade_in=1.0, fade_out=0.3,
+            env=[(11.4, -6), (16.0, -6), (16.4, 0)]),
+        sfx("c4_touchdown", 16.4, -2),
+        sfx("c4_dust_hiss", 16.4, -10),
+        sfx("c4_spool_down", 16.6, -8),
+        sfx("c5_yard_bed", 17.4, -14, until=54.9,
+            env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),
         voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([

@@ -384,6 +384,7 @@ class Group:
         self.wait_until = None
         self.entered = False
         self.done = False
+        self.aboard = None                        # where they come from out of sight, for `walk_out`
 
 
 def default_slots(n):
@@ -403,7 +404,7 @@ def simulate(nav, groups, frames, ground_z, dt=1.0 / FPS, rng=None):
                 if not w.shown and w.pos is None and t >= g.t0 + k * 0.45:
                     w.pos = nav.nearest_free(g.spawn + Vector((rng.uniform(-0.4, 0.4), rng.uniform(-0.4, 0.4))))
                     w.shown = True
-                    w.heading = 0.0
+                    w.heading = 0.0 if g.aboard is None else math.atan2(w.pos.y - g.aboard.y, w.pos.x - g.aboard.x)
         live = [w for w in walkers if w.shown]
         for g in groups:
             lead = g.members[0]
@@ -592,6 +593,31 @@ def pose_at(pose, moving, phase, t, seed):
 
 
 SHEET_COLUMNS = 16      # 8 walk frames, then stand, crouch a, crouch b, signal up, signal out, carry, talk, folded
+
+
+def walk_out(groups):
+    """Groups with an `aboard` point start out of sight (under a hull) and walk straight out to
+    where the walk map takes them over, so they are seen arriving rather than appearing. Each
+    member's track gets the walk from `aboard` to its first position added in front, ending on the
+    frame it used to appear. Call after the clip reports: the walk is inside a blocked hull on
+    purpose."""
+    for g in groups:
+        if g.aboard is None:
+            continue
+        for w in g.members:
+            if not w.track:
+                continue
+            f0, x, y, h, ph, _ = w.track[0]
+            d = Vector((x, y)) - g.aboard
+            n = max(1, round(d.length / w.speed * FPS))
+            head = math.atan2(d.y, d.x)
+            lead = []
+            for i in range(n):
+                k = i / n
+                p = g.aboard + d * k
+                lead.append((f0 - n + i, p.x, p.y, head, ph - (1 - k) * d.length / STRIDE, True))
+            w.track[:0] = lead
+            w.state[:0] = [('stand', False)] * len(lead)
 
 
 def keyed(walkers, ground_z, frame0, make, every=2):

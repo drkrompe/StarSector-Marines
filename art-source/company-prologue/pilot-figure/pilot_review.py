@@ -1,7 +1,7 @@
 """Review sheets of the pilot figure, 1920x1080 at 100%.
 
     python pilot_review.py --out DIR [--blend PATH] [--engine workbench|eevee] [--prefix NAME-] [--no-bridge]
-                           [--video]
+                           [--video] [--half]
 
 Writes, for each of his two poses (relaxed at frame 0, flying at 11 s), a turnaround of
 pilot-figure.blend (build_pilot.py builds it) seated at a grey stand-in of the helm (the seat's
@@ -13,7 +13,10 @@ both poses at the helm of Second Wind's bridge through the bridge's own review s
 (bridge-relaxed/, bridge-flying/): the helm close-up and C2's two camera stations turned onto him.
 
 --video also renders the move as an mp4 (24 fps, from his left, C2 seconds VIDEO_SPAN) with
-the time burnt in; it needs ffmpeg. Workbench by default; --engine eevee lights him with castle_review.light_eevee. Nothing here
+the time burnt in; it needs ffmpeg. --half renders the figure's panels and frames at 50% and
+scales them up to 1920x1080 (owner, 2026-10-19: the GPU is shared, so non-final passes go at
+half resolution); the bridge views are Workbench and stay at full size. Workbench by
+default; --engine eevee lights him with castle_review.light_eevee. Nothing here
 is a finished render, and the outputs are never committed.
 """
 import math
@@ -55,14 +58,15 @@ def launch(argv):
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.check_call([BLENDER, "--background", "--factory-startup", str(blend),
                                "--python", str(Path(__file__).resolve()), "--", "--panels", tmp,
-                               "--engine", engine, *(["--video"] if "--video" in argv else [])])
+                               "--engine", engine, *(["--video"] if "--video" in argv else []),
+                               *(["--half"] if "--half" in argv else [])])
         from PIL import Image, ImageDraw
         def sheet(panels, labels, path):
             img = Image.new("RGB", (W, H))
             draw = ImageDraw.Draw(img)
             pw = W // len(panels)
             for k, (panel, label) in enumerate(zip(panels, labels)):
-                img.paste(Image.open(Path(tmp) / panel).convert("RGB"), (k * pw, 0))
+                img.paste(Image.open(Path(tmp) / panel).convert("RGB").resize((pw, H), Image.LANCZOS), (k * pw, 0))
                 draw.text((k * pw + 12, H - 24), label, fill=(170, 170, 160))
             for k in range(1, len(panels)):
                 draw.line([(k * pw, 0), (k * pw, H)], fill=(60, 60, 60), width=2)
@@ -79,7 +83,7 @@ def launch(argv):
         if "--video" in argv:
             frames = sorted(Path(tmp).glob("video-*.png"))
             for f in frames:
-                img = Image.open(f).convert("RGB")
+                img = Image.open(f).convert("RGB").resize((W, H), Image.LANCZOS)
                 ImageDraw.Draw(img).text((16, H - 30), "C2 %.2f s" % (int(f.stem.split("-")[1]) / 24),
                                          fill=(200, 200, 190))
                 img.save(f)
@@ -145,7 +149,8 @@ def blender_panels(argv):
         sh.background_type, sh.background_color = "VIEWPORT", (.16, .16, .17)
         scene.display.light_direction = (-.4, -.5, .75)
         scene.view_settings.view_transform = "Standard"
-    scene.render.resolution_y, scene.render.resolution_percentage = H, 100
+    scene.render.resolution_y = H
+    scene.render.resolution_percentage = 50 if "--half" in argv else 100
     scene.render.image_settings.file_format = "PNG"
     stand_in_helm()
     cam = bpy.data.objects.new("Review camera", bpy.data.cameras.new("Review camera"))
