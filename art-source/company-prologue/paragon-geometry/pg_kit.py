@@ -55,7 +55,7 @@ class Kit:
         self.steel = material('Emitter metal', (.20, .22, .25), .75, .4)
         self.glow = material('Tri-Tachyon blue glow', (.05, .1, .2), .0, .4, emission=GLOW_BLUE, strength=12.0)
         self.glow_white = material('Tri-Tachyon white glow', (.2, .2, .2), .0, .4, emission=GLOW_WHITE, strength=10.0)
-        self.glass = material('Bridge glazing', (.02, .04, .06), .2, .08, emission=(.55, .8, 1.0), strength=2.5)
+        self.glass = material('Bridge glazing', (.02, .04, .06), .2, .08, emission=(.35, .62, 1.0), strength=1.3)
         self.mpu = 1.0  # metres per unit; the driver sets it before building
         self.hull = []  # objects the downward ray-cast seats parts on
         self.detail = []  # pass 2 detail objects; turret wells cut through these too

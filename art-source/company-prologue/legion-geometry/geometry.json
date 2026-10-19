@@ -3389,5 +3389,52 @@
       "orthographic_scale": 330,
       "rotation": "looks at [0.0, 0.0, 0.0]"
     }
-  ]
+  ],
+  "silhouette": {
+    "iou": 0.9741,
+    "sprite_uncovered": 0.0084,
+    "model_outside_sprite": 0.018,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.31 px per unit"
+  },
+  "c2_frame": {
+    "c2-entry": {
+      "bbox_px": [
+        0,
+        96,
+        637,
+        636
+      ],
+      "size_px": [
+        638,
+        541
+      ],
+      "touches_frame_edge": true
+    },
+    "c2-abeam": {
+      "bbox_px": [
+        0,
+        96,
+        1904,
+        783
+      ],
+      "size_px": [
+        1905,
+        688
+      ],
+      "touches_frame_edge": true
+    },
+    "c2-exit": {
+      "bbox_px": [
+        1008,
+        0,
+        1919,
+        594
+      ],
+      "size_px": [
+        912,
+        595
+      ],
+      "touches_frame_edge": true
+    }
+  }
 }

@@ -6,7 +6,8 @@ Read off paragon.png at 7x, the white command core carries, bow to stern:
 - a forward tier with longitudinal ribs and a circular boss on the centreline
   (`Bridge boss ...`, `Bridge rib ...`);
 - the tallest tier, the bridge tower, with its vent cluster (`Bridge vent ...`),
-  a wraparound glazing band (`Bridge glazing ...`), a comms mast and a sensor dish;
+  a wraparound glazing band on its vertical wall (`Bridge glazing`, with
+  `Bridge mullion ...`), a comms mast and a sensor dish;
 - chevron fins on the neck behind it (`Bridge chevron ...`) and a vent array on
   the spine aft (`Bridge spine vent ...`).
 
@@ -73,24 +74,34 @@ def under_nose(kit):
 
 
 def gantry_face(kit, parts):
-    """The gantry's bulkhead facing the bore."""
+    """The gantry's bulkhead facing the bore, standing on the lining's flat top up to the deck's underside.
+
+    Full-height ribs (grounded on the lining, carrying the deck), plating panels
+    between them, an observation gallery's window band looking into the bore, and
+    an airlock at the foot."""
     x = pg_hull.GANTRY_FRONT_X
     w = _half(x, 1.0, pg_hull.TRENCH_PAD)
-    z0, z1 = 26.0, pg_hull.DECK_Z
+    z0, z1 = pg_hull.LINING_TOP, pg_hull.DECK_Z
+    zm, hgt = (z0+z1)/2, z1-z0
     made = []
-    for i, y in enumerate([v for v in range(-int(w)+3, int(w)-2, 4)], start=1):
-        made.append(kit.box(f'Gantry face rib {i}', (x+.5, y, (z0+z1)/2+1), (1.2, .8, z1-z0-3), kit.slate, .08))
-    # Airlock in a lit frame on the centreline.
-    made.append(kit.box('Gantry face airlock frame', (x+.7, 0, z0+5.5), (1.0, 7.0, 7.0), kit.pale, .2))
-    made.append(kit.box('Gantry face airlock door', (x+1.15, 0, z0+5.2), (.3, 5.0, 5.6), kit.slate, 0))
-    made.append(kit.box('Gantry face airlock light', (x+1.3, 0, z0+8.4), (.2, 4.4, .35), kit.glow, 0))
+    ys = [-w+1.5+k*(2*w-3)/8 for k in range(9)]
+    for i, y in enumerate(ys, start=1):
+        made.append(kit.box(f'Gantry face rib {i}', (x+.6, y, zm), (1.2, 1.0, hgt), kit.slate, .08))
+    for i, (ya, yb) in enumerate(zip(ys, ys[1:]), start=1):
+        made.append(kit.box(f'Gantry face panel {i}', (x+.2, (ya+yb)/2, zm+1.0), (.4, yb-ya-1.2, hgt-2.5),
+                            kit.bore_mid, .05))
+    # The observation gallery: a window band across the bulkhead, framed.
+    zg, hg = z1-5.5, 2.2
+    made.append(kit.box('Gantry face gallery frame', (x+.45, 0, zg), (.3, 2*w-4, hg+.6), kit.tech, 0))
+    made.append(kit.box('Gantry face gallery glazing', (x+.62, 0, zg), (.12, 2*w-4.6, hg), kit.glass, 0))
+    # The airlock at the foot, on the lining.
+    made.append(kit.box('Gantry face airlock frame', (x+.9, 0, z0+3.6), (1.0, 7.0, 7.2), kit.pale, .2))
+    made.append(kit.box('Gantry face airlock door', (x+1.45, 0, z0+3.3), (.3, 5.0, 5.8), kit.slate, 0))
+    made.append(kit.box('Gantry face airlock light', (x+1.6, 0, z0+6.6), (.2, 4.4, .35), kit.glow, 0))
     for side in (1, -1):
-        for j in range(4):
-            y = side*(7.5+j*1.6)
-            made.append(kit.box(f'Gantry face vent {"p" if side > 0 else "s"}{j+1}', (x+.9, y, z0+9.5),
-                                (.5, 1.0, 5.0), kit.tech, 0))
-        made.append(kit.box(f'Gantry face lamp {"p" if side > 0 else "s"}', (x+1.0, side*(w-3.5), z1-2.5),
-                            (.3, .9, .9), kit.glow_white, 0))
+        for j in range(3):
+            made.append(kit.box(f'Gantry face vent {"p" if side > 0 else "s"}{j+1}', (x+.55, side*(6.5+j*1.5), z0+3.0),
+                                (.3, 1.0, 4.0), kit.tech, 0))
     return made
 
 
@@ -155,17 +166,29 @@ def bridge(kit, parts):
         made.append(K.revolve(kit, 'Bridge boss dome', [(0, 0), (2.5, 0), (2.2, .9), (1.2, 1.5), (0, 1.7)], kit.slate,
                               center=(-57.0, 0, zb-.2), segments=24, smooth=40))
     # Bridge tower: wraparound glazing on its flanks, vent cluster, mast and dish.
+    # The bridge glazing: one band round the tower's vertical wall, with dark mullions.
+    tower_plan = K.ccw([(-46, 0.0), (-48, 7), (-54, 10), (-80, 10), (-86, 6), (-86, 0.0)] +
+                       [(x, -y) for x, y in reversed([(-46, 0.0), (-48, 7), (-54, 10), (-80, 10), (-86, 6), (-86, 0.0)])
+                        if y > 0])
+    band = K.inset(tower_plan, -.12)
+    zg0, zg1 = z+19.8, z+19.8+2.1/kit.mpu   # on the tower's vertical wall, above the upper tier's crown
+    n = len(band)
+    verts = [(px, py, zg0) for px, py in band]+[(px, py, zg1) for px, py in band]
+    faces = [tuple(reversed(range(n))), tuple(range(n, 2*n))]+[(i, (i+1) % n, n+(i+1) % n, n+i) for i in range(n)]
+    made.append(kit.mesh('Bridge glazing', verts, faces, kit.glass, 0, False))
     tower = parts['bridge']
-    zg = z+19.5
     for side in (1, -1):
-        for i, x in enumerate(range(-52, -82, -4), start=1):
-            hit = _flank_point(tower, x, side, zg)
+        for i, x in enumerate(range(-50, -84, -3), start=1):
+            hit = _flank_point(tower, x, side, (zg0+zg1)/2)
             if hit:
-                p, n = hit
-                g = kit.box(f'Bridge glazing {"port" if side > 0 else "starboard"} {i}', tuple(p), (3.4, .5, 2.0/kit.mpu),
-                            kit.glass, 0)
-                g.rotation_euler = (0, 0, math.atan2(n.y, n.x)+math.pi/2)
-                made.append(g)
+                p, nrm = hit
+                m = kit.box(f'Bridge mullion {"p" if side > 0 else "s"}{i}', tuple(p+nrm*.14), (.3, .2, zg1-zg0+.2),
+                            kit.tech, 0)
+                m.rotation_euler = (0, 0, math.atan2(nrm.y, nrm.x)+math.pi/2)
+                made.append(m)
+    for i, y in enumerate((-6, -3, 0, 3, 6), start=1):
+        made.append(kit.box(f'Bridge mullion front {i}', (-46.2+abs(y)*-.3, y, (zg0+zg1)/2), (.2, .3, zg1-zg0+.2),
+                            kit.tech, 0))
     zt = _top(kit, -66.0, 0.0)
     if zt is not None:
         for side in (1, -1):

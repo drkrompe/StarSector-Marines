@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — the heavy cannon is balanced as equipment (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, chaingun heat 24, pulse laser heat 26); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -277,17 +277,91 @@ outweighs a refit. The heavy-cannon Sirocco is not a counter to anything heavy:
 it loses to every refit Bulwark and to both tanks, and beats only a stock
 chaingun Bulwark (stock Sirocco 0.39, refit 0.77; was 0.59 and 0.88).
 
-Still open from these readings, all outside the cannon:
+Still open from these readings: **every tank beats every Bulwark fit**, 93-95%
+overall, never losing to a Bulwark in more than one fight in the 96 here. The
+other arms the same readings exposed are balanced in the next section.
 
-- **Every tank beats every Bulwark fit**, 93-95% overall, never losing to a
-  Bulwark in more than one fight in the 96 here.
-- **The chaingun Bulwark is the weakest Bulwark.** The chaingun's 29 heat/s
-  starves its own SRM-15s, and every Advanced or Prestige arm beats it 78-96%
-  refit against refit.
-- **The bastion autocannon now has the problem the cannon had.** It weighs 14
-  and runs at about 9 heat/s, and it is the best refit Bulwark (0.69). The same
-  levers apply, in the same order.
-- **The Prestige pulse laser loses to both Advanced arms** at equal budget.
+## The Bulwark's other arms are equipment too
+
+The same readings showed the rest of the Bulwark's 3x2 arms out of order. The
+bastion autocannons had the cannon's old problem: mass 14 and about 9 heat/s,
+so the best refit Bulwark arm cost nothing to carry, and on a **stock** frame it
+beat a refit chaingun Bulwark 56% of the time. The factory chaingun was the
+weakest: 30 heat per 1.05 s cycle starved its SRM-15s (47 s of a fight
+heat-limited), and every Advanced or Prestige arm beat it. The Prestige pulse
+laser, at 38 heat per 2.1 s, lost to both Advanced arms on the same frame, 0.00
+against the bastion. They were tuned in the cannon's order: mass first, then
+heat. Range and cycle were not needed. Each lever was read alone against the
+others' authored values before they were combined.
+
+- **Bastion: build mass 3** (mass 17), as the cannon's, for its feed. A full
+  refit Bulwark carrying it gives up its cooler. Alone it barely moves a fight
+  (refit bastion against refit cannon 0.58 to 0.46; stock frame against refit
+  chaingun unchanged at 0.56, because a stock frame has the room anyway).
+  The Sirocco's rating does not absorb it: the bastion is not its gun.
+- **Bastion: heat 28** (was 24; 10.8 heat/s). This is the lever that bites on a
+  stock frame. Alone it takes the stock-frame bastion against a refit chaingun
+  from 0.56 to 0.29. At 32 the refit bastion fell behind the refit cannon and the
+  pulse laser by a wide margin (0.31 against each), so 28 it is.
+- **Chaingun: heat 24** (was 30; 23 heat/s). The factory battery now leaves its
+  SRM-15s room: heat-limited time 47 s to 38 s, and alone it lifts the refit
+  chaingun from 0.43 to 0.49 overall. The Advanced arms still beat it 58-71%
+  refit against refit, so the Common arm stays the floor without being a
+  write-off. The Hound's nose chaingun is a separate component and is untouched,
+  so the starter fit is as it was.
+- **Pulse laser: heat 26** (was 38; 12.4 heat/s). The Prestige arm already pays
+  in mass: at 16 it fills a full refit Bulwark's engine exactly (69 of 69). At 30
+  it drew level with the cannon (0.42 each way) but still lost to the bastion
+  (0.33 against 0.50). At 26 it edges both. A pulse laser on a stock frame still
+  loses to a refit chaingun (0.15), so a Prestige arm does not outweigh an
+  internal refit either.
+
+Readings (`armorMatchup`, fourteen explicit fits: the cannon section's eleven
+plus a stock-frame bastion, a stock-frame pulse laser and a refit linear cannon;
+open / hull-down / street, eight seeds, both roles). A share is the wins over
+fights played in both roles; overall is the mean over the eleven fits the cannon
+section used. The controls are `-Dbattle.mech.buildMass.bastion-autocannons=0
+-Dbattle.mech.heat.bastion-autocannons=24 -Dbattle.mech.heat.dual-chainguns=30
+-Dbattle.mech.heat.dual-pulse-lasers=38`. The control run reproduces the
+before column fight for fight. Any arm's heat, cycle or build mass takes the same
+`-Dbattle.mech.<heat|cycle|buildMass>.<id without component.mech->` switch.
+
+| Fight | Before | After |
+| --- | --- | --- |
+| Bastion (stock frame) vs refit chaingun Bulwark | 0.56, 76 s | 0.12, 71 s |
+| Pulse laser (stock frame) vs refit chaingun Bulwark | 0.04 | 0.15 |
+| Refit bastion vs refit chaingun / refit cannon | 0.67 / 0.58 | 0.58 / 0.38 |
+| Refit pulse laser vs refit bastion / refit cannon | 0.00 / 0.19 | 0.52 / 0.44 |
+| Refit cannon vs refit chaingun | 0.77 | 0.71 |
+| Overall: refit pulse / cannon / bastion / chaingun Bulwark | 0.53 / 0.61 / 0.62 / 0.43 | 0.61 / 0.60 / 0.54 / 0.48 |
+| Overall: stock-frame cannon / bastion / pulse / chaingun Bulwark | 0.34 / 0.39 / 0.20 / 0.09 | 0.32 / 0.29 / 0.33 / 0.16 |
+| Heat-limited seconds per fight: refit chaingun / bastion / pulse | 47 / 13 / 36 | 38 / 18 / 20 |
+| Refit Sirocco vs stock chaingun Bulwark | 0.69 | 0.38 |
+| Any Bulwark fit vs breakthrough / heavy-gun tank | 0.00 | 0.00 |
+
+The ladder now reads by tier: on a full refit the Prestige pulse laser narrowly
+leads, the two Advanced guns follow (the cannon ahead of the bastion head to
+head), and the factory chaingun is last but takes fights. On a stock frame no
+upgraded arm beats a refit chaingun more than a fifth of the time. One cost
+lands outside the Bulwark: the heavy-cannon Sirocco loses its one good matchup,
+the stock chaingun Bulwark, which a refit Sirocco now beats 38% of the time
+(was 69%). The
+Sirocco was already no counter to anything heavy. Enemy Bulwarks field these
+same arms (neutral chaingun, Tri-Tachyon pulse, Hegemony bastion), so their
+fire against marines moves too. Mission evidence has not been re-read for that.
+
+Still open:
+
+- **The linear cannon is the weakest Advanced arm** (refit 0.34 overall before
+  this change, 0.30 after; it beat only the stock chaingun and stock pulse
+  frames). Its trouble is not carriage. Its penetration of 8 against the
+  Bulwark's 18 halves every round. And the duel band its SRM-15s pull it into
+  keeps it at 17 cells, where those launchers latch the reservoir about 60 s of
+  a 75 s fight. Heat 14 moved it to 0.36. Heat 16 with the cycle halved to 1.4 s
+  reached only 0.44, still level with the chaingun refit. A weapon that needs
+  its fire rate doubled is a damage question, not an equipment one, so it was
+  left as authored.
+- **Every tank beats every Bulwark fit**, as above.
 
 ## Lift classes
 
