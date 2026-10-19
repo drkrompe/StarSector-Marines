@@ -214,8 +214,50 @@ def slot_of(me, mat):
     return k
 
 
+def lab_of(rgb):
+    """CIE Lab (D65) of sRGB 0..255 triples, shape (n, 3)."""
+    import numpy as np
+    c = rgb / 255.0
+    c = np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+    xyz = c @ np.array([[0.4124, 0.3576, 0.1805], [0.2126, 0.7152, 0.0722], [0.0193, 0.1192, 0.9505]]).T
+    xyz /= np.array([0.95047, 1.0, 1.08883])
+    f = np.where(xyz > 0.008856, np.cbrt(xyz), 7.787 * xyz + 16 / 116)
+    return np.stack([116 * f[:, 1] - 16, 500 * (f[:, 0] - f[:, 1]), 200 * (f[:, 1] - f[:, 2])], axis=1)
+
+
+tile_pixels = {}
+
+
+def face_family_share(src, uvs_tris, cls):
+    """Share of a face's sampled tile pixels whose nearest palette class is in
+    the face's own paint family (hull.FACE_FAMILY_MIN check)."""
+    import numpy as np
+    if src not in tile_pixels:
+        im = bpy.data.images.load(str(DATA / 'textures' / f'{src}.png'), check_existing=False)
+        w, h = im.size
+        a = np.empty(w * h * 4, dtype=np.float32)
+        im.pixels.foreach_get(a)
+        # A byte image's pixels are its stored sRGB values / 255, rows bottom-up.
+        tile_pixels[src] = a.reshape(h, w, 4)[::-1, :, :3].astype(float) * 255
+        bpy.data.images.remove(im)
+    px = tile_pixels[src]
+    h, w = px.shape[:2]
+    pts = []
+    for a, b, c in uvs_tris:
+        for wa, wb, wc in ((1/3, 1/3, 1/3), (.6, .2, .2), (.2, .6, .2), (.2, .2, .6)):
+            u, v = a[0] * wa + b[0] * wb + c[0] * wc, a[1] * wa + b[1] * wb + c[1] * wc
+            pts.append((min(h - 1, max(0, int((1 - v) * h))), min(w - 1, max(0, int(u * w)))))
+    lab = lab_of(np.array([px[r, q] for r, q in pts]))
+    names = [k for k in PAL if 'mean' in PAL[k]]
+    means = np.array([PAL[k]['mean'] for k in names])
+    near = np.argmin(((lab[:, None, :] - means[None]) ** 2).sum(-1), axis=1)
+    fam = H.FAMILY.get(cls)
+    return float(np.mean([H.FAMILY.get(names[k]) == fam for k in near]))
+
+
 manifest = {'blend_in': str(BLEND.name), 'fallback': FALLBACK, 'uv_layer': 'skin', 'parts': {}}
 skinned_faces = {}
+off_family = {}
 cams = {}
 face_part = {}
 for part, per in selection.items():
@@ -239,6 +281,11 @@ for part, per in selection.items():
         layer = me.uv_layers.get('skin') or me.uv_layers.new(name='skin')
         if layer is None:
             raise SystemExit(f'{name}: no UV layer slot left for skin')
+        tri_of = {}
+        if H.FACE_FAMILY_MIN is not None:
+            me.calc_loop_triangles()
+            for t in me.loop_triangles:
+                tri_of.setdefault(t.polygon_index, []).append(t.vertices[:])
         for i in idx:
             poly = me.polygons[i]
             if overridden(ob, poly.material_index):
@@ -246,6 +293,12 @@ for part, per in selection.items():
             for li in poly.loop_indices:
                 layer.data[li].uv = P.project_uv(part, cam, mw @ me.vertices[me.loops[li].vertex_index].co)
             base = me.materials[poly.material_index] if me.materials else None
+            if H.FACE_FAMILY_MIN is not None and class_of(base):
+                loop_uv = {me.loops[li].vertex_index: tuple(layer.data[li].uv) for li in poly.loop_indices}
+                tris = [[loop_uv[v] for v in t] for t in tri_of.get(i, ())]
+                if face_family_share(src, tris, class_of(base)) < H.FACE_FAMILY_MIN:
+                    off_family[class_of(base)] = off_family.get(class_of(base), 0) + 1
+                    continue   # left unclaimed: the fallback gives it its class swatch
             poly.material_index = slot_of(me, skin_material(part, base))
             skinned_faces.setdefault(name, set()).add(i)
             face_part[(name, i)] = part
@@ -327,10 +380,11 @@ total = sum(len(v) for v in skinned_faces.values())
 counts['skin'] = total
 manifest['swatches'] = {c: (DATA / 'textures' / f'swatch-{c}.png').exists() for c in PAL}
 manifest['face_counts'] = counts
+manifest['off_family_to_swatch'] = off_family
 manifest['skinned_objects'] = {n: len(v) for n, v in sorted(skinned_faces.items())}
 manifest['skinned_face_count'] = total
 MANIFEST.write_text(json.dumps(manifest, indent=1) + '\n')
 bpy.context.preferences.filepaths.save_version = 0
 OUT.parent.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT))
-print('SURF skinned', total, 'faces on', len(skinned_faces), 'objects;', counts, '->', OUT)
+print('SURF skinned', total, 'faces on', len(skinned_faces), 'objects;', counts, 'off-family to swatch', off_family, '->', OUT)
