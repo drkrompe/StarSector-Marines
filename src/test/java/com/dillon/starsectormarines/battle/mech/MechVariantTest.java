@@ -74,9 +74,9 @@ class MechVariantTest {
         assertFalse(sirocco.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
         assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 sirocco.mount(MechMountSlot.ARMS).component);
-        assertSame(MechWeaponComponent.LRM_5,
+        assertSame(MechWeaponComponent.LRM_5_FRAG,
                 sirocco.mount(MechMountSlot.LEFT_SHOULDER).component);
-        assertSame(MechWeaponComponent.LRM_5,
+        assertSame(MechWeaponComponent.LRM_5_FRAG,
                 sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
         var heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
         assertEquals(45f, heavyCannon.damage, 0.001f);
@@ -157,7 +157,7 @@ class MechVariantTest {
                 MechVariant.SIROCCO, null, " lions_guard ");
         assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 guard.mount(MechMountSlot.ARMS).component);
-        assertSame(MechWeaponComponent.LRM_5,
+        assertSame(MechWeaponComponent.LRM_5_FRAG,
                 guard.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.THERMAL_LANCE,
                 guard.mount(MechMountSlot.RIGHT_SHOULDER).component);
@@ -211,7 +211,8 @@ class MechVariantTest {
         MechCombatantBehavior.tryFireMechWeapons(houndId, hound, target, 10f, sim, true);
 
         assertTrue(hound.mount(MechMountSlot.ARMS).cycleRemaining > 0f);
-        assertTrue(hound.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
+        // The factory SRM-5 is the anti-armor rack: it holds its pack at a man.
+        assertEquals(0f, hound.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining, 0.001f);
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
         assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
 
