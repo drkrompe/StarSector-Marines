@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -611,11 +611,43 @@ In the open, mech duels settle at 19-22 cells (the outer part of the chaingun's
 damage in most matchups, in both runs. The tank gap is a reach-and-band question,
 not a warhead one. The warhead decides only what happens once a rack is in range.
 
+**What actually kept the SRMs out** (re-read on the retuned tanks, 8 seeds, both
+roles, three grounds). Against both tanks the band already chooses to close to
+the racks (9.7-16.2 cells). In the open the tank holds its own stand-off beyond
+the Bulwark's 30-cell reach (31.5 cells and more) and backs away at 0.93 cells/s
+while the Bulwark walks at 1.05, so it never gets there. With tank reverse near
+zero (control, `-Dbattle.vehicle.tankReverseFraction=0.01`) the Bulwark closes to
+17 cells and the refit fit beats a breakthrough tank 8/8 on open ground, against
+3/8. The open-ground tank kiting the SRM range is accepted (owner, 2026-10-18):
+there the SRM is not the anti-tank weapon; the LRM-15 and the bastion are. Once
+a fight drains both magazines, the band rightly walks the mech back out. A longer
+SRM reach was rejected, because catching a tank on its stand-off would take more
+than 32 cells, which makes the SRM an LRM.
+
+The other gap was between equal machines. Two AT Bulwarks trade alike at every
+distance, so the band (which never closed on a tie) held them at 21-27 cells and
+their racks dealt 4% of the damage. **An anti-armor rack's band now closes on a
+tie** (`-Dbattle.mech.closeOnAntiArmorTie=false` is the control). Variant against
+control, open / hull-down / street:
+
+| Matchup | Fight range | Mean TTK s | Timeouts | Rack share of damage |
+|---|---|---|---|---|
+| stock vs stock Bulwark | 13.5 / 13.6 / 14.2 against 21.2 / 21.8 / 21.8 | 57 / 68 / 54 against 96 / 112 / 83 | 0 against 8 (of 24) | 37% against 4% |
+| stock vs refit Bulwark | 15 against 19-22 | 48-53 against 70-91 | 0 against 0 | 34% against 6% |
+| refit vs refit Bulwark | 14-16 against 21-22 | 55-72 against 74-105 | 0 against 4 | 16% against 4% |
+| Hound vs Hound | 13-19 against 19-23 | 57-70 against 69-82 | 0 against 0 | 6% against 2% |
+
+Win shares hardly move: stock Bulwark 0.58 overall against 0.56, refit 0.78
+against 0.77, and every other fit is unchanged. Nothing changes where a trade is
+not a tie: a Hound still does not walk into a Bulwark's two racks, a Frag Bulwark
+does not close on an AT one, Long-Range Support never closes, and fights against
+tanks and APCs read identically. `mech-duel-range` now asks the equal Bulwarks to
+close to the racks' band without reaching contact (median 13.5 cells, nothing
+inside 10), and asks for the old duel band under the control. `mech-versus-infantry`
+passes in both arms.
+
 Still open from these readings:
 
-- **SRM reach against the duel band.** A Bulwark's SRMs rarely reach anything
-  armored outside a street. Either the duel band should close to SRM range when
-  the racks are loaded and the target is armor, or the SRM's reach should grow.
 - **The chaingun starves the racks against men too.** A stock chaingun Bulwark
   starts about one rack salvo per fight against a rifle section, whatever the
   warhead.

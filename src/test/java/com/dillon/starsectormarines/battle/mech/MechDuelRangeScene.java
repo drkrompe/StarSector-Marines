@@ -43,8 +43,10 @@ import java.util.Map;
  *   <li><b>Two stock Bulwarks</b> under Brawler doctrine, one attack-moving at the other: the doctrine
  *       that seeks contact, so the control shows what the rule takes away. (Frontline Support with nobody
  *       to pace holds where it lands and never meets the other; Balanced already holds at its medium
- *       band, rule or no rule.) Equal machines have nothing to gain by closing, so they should settle in a duel band
- *       short of their reach rather than at contact.</li>
+ *       band, rule or no rule.) Equal machines trade alike at every distance, but each carries anti-armor racks
+ *       fitted for exactly this target, so they should close to the racks' band and still stop short of
+ *       contact. Under {@code -Dbattle.mech.closeOnAntiArmorTie=false} they settle in the chaingun's duel band
+ *       instead, and the verdict asks for that.</li>
  * </ul>
  *
  * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (mech rule on
@@ -93,6 +95,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
     static final float HOUND_CLOSES_CELLS = 4f;
     /** Bulwarks in a duel band: the fight's median distance at least this, and contact rare. */
     static final float DUEL_MEDIAN_MIN = 18f;
+    /** Bulwarks closed to their racks: the fight's median distance at most this (the SRM reach and a cell). */
+    static final float RACK_MEDIAN_MAX = SRM_REACH + 1f;
     static final float CONTACT_CELLS = 10f;
     /** A tank ordered onto a Hound's cell has gone there when it comes this close. */
     static final float ORDERED_ARRIVAL_CELLS = 8f;
@@ -521,13 +525,22 @@ public final class MechDuelRangeScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
-        if (subject) {
+        if (subject && MechDuelBand.closesOnAntiArmorTie()) {
+            verdicts.add(Verdict.of("rack-band-not-contact",
+                    t.median() <= RACK_MEDIAN_MAX && t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
+                    String.format(Locale.ROOT, "median fight distance %.1f (wanted %.0f or less), %.0f%% of the"
+                                    + " fight inside %.0f cells (wanted at most %.0f%%), closest %.1f",
+                            t.median(), RACK_MEDIAN_MAX, t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
+                            CONTACT_SHARE_MAX * 100f, t.min())));
+        } else if (subject) {
             verdicts.add(Verdict.of("duel-band-not-contact",
                     t.median() >= DUEL_MEDIAN_MIN && t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
                     String.format(Locale.ROOT, "median fight distance %.1f (wanted %.0f+), %.0f%% of the fight"
                                     + " inside %.0f cells (wanted at most %.0f%%), closest %.1f",
                             t.median(), DUEL_MEDIAN_MIN, t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
                             CONTACT_SHARE_MAX * 100f, t.min())));
+        }
+        if (subject) {
             verdicts.add(Verdict.of("both-fire", t.attackerShots > 0 && t.defenderShots > 0,
                     t.attackerShots + " / " + t.defenderShots + " rounds"));
         }

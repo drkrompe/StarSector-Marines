@@ -21,7 +21,9 @@ import java.util.List;
  *       per point of pressure received than its longest band does, by the
  *       role's {@link #closeBias}, it closes to that band. A Brawler's chaingun
  *       and SRM against a long-range target is the case; Long-Range Support
- *       never closes.</li>
+ *       never closes. A band that brings a loaded anti-armor rack to bear closes
+ *       on a tie as well: between equal machines that rack is otherwise never
+ *       fired, and the warhead was fitted for exactly this target.</li>
  *   <li><b>Duel.</b> Otherwise it fights from the outer part of its own
  *       longest band rather than walking inside it for no reason. Two equal
  *       machines meet here, not at contact.</li>
@@ -59,6 +61,22 @@ public final class MechDuelBand {
     /** Nothing is fought from closer than this, whatever the band. */
     static final float MIN_BAND = 4f;
 
+    public static final String CLOSE_ON_ANTI_ARMOR_TIE_PROPERTY = "battle.mech.closeOnAntiArmorTie";
+    /**
+     * Whether a band that brings an anti-armor rack to bear closes on a tie. Volatile and settable so a
+     * scene's control loop can flip it; {@code -Dbattle.mech.closeOnAntiArmorTie=false} is the control.
+     */
+    private static volatile boolean closeOnAntiArmorTie =
+            Boolean.parseBoolean(System.getProperty(CLOSE_ON_ANTI_ARMOR_TIE_PROPERTY, "true"));
+
+    public static boolean closesOnAntiArmorTie() {
+        return closeOnAntiArmorTie;
+    }
+
+    public static void setCloseOnAntiArmorTieForEvidence(boolean value) {
+        closeOnAntiArmorTie = value;
+    }
+
     private MechDuelBand() {}
 
     public enum Stance { STANDOFF, CLOSE, DUEL }
@@ -68,7 +86,11 @@ public final class MechDuelBand {
      * fire across, and its pressure before accuracy.
      */
     public record Weapon(float minRange, float range, float pressure,
-                         float accuracy, float accuracyFalloff) {
+                         float accuracy, float accuracyFalloff, boolean antiArmor) {
+
+        public Weapon(float minRange, float range, float pressure, float accuracy, float accuracyFalloff) {
+            this(minRange, range, pressure, accuracy, accuracyFalloff, false);
+        }
 
         public static Weapon of(WeaponDef def) {
             float rounds = Math.max(1, def.burstCount) * Math.max(1, def.projectilesPerShot);
@@ -91,7 +113,8 @@ public final class MechDuelBand {
                     : def.damage * efficiency(def.penetration, targetRating);
             float rounds = Math.max(1, def.burstCount) * Math.max(1, def.projectilesPerShot);
             float pressure = perRound * rounds / Math.max(0.1f, def.cooldown);
-            return new Weapon(def.minRange, def.range, pressure, def.accuracy, def.accuracyFalloff);
+            return new Weapon(def.minRange, def.range, pressure, def.accuracy, def.accuracyFalloff,
+                    def.contactDamage > 0f);
         }
 
         /** Unarmored plate takes every point. */
@@ -168,14 +191,17 @@ public final class MechDuelBand {
 
         float longSample = reach * SAMPLE_FRACTION;
         float longTrade = trade(own, threat, longSample);
-        float bias = closeBias;
+        float threshold = longTrade * closeBias;
+        // An anti-armor rack's band needs only to match the longest band's trade; never for a role that does not close.
+        float antiArmorThreshold = closeOnAntiArmorTie && !Float.isInfinite(closeBias) ? longTrade : threshold;
         float bestSample = -1f;
-        float bestTrade = longTrade * bias;
+        float bestTrade = 0f;
         for (Weapon w : own) {
             float sample = w.range * SAMPLE_FRACTION;
             if (sample >= longSample - 0.5f || sample < MIN_BAND) continue;
             float trade = trade(own, threat, sample);
-            if (trade >= bestTrade && (bestSample < 0f || trade > bestTrade || sample > bestSample)) {
+            if (trade < (w.antiArmor ? antiArmorThreshold : threshold)) continue;
+            if (bestSample < 0f || trade > bestTrade || trade == bestTrade && sample > bestSample) {
                 bestTrade = trade;
                 bestSample = sample;
             }
