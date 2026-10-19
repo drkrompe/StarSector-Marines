@@ -244,6 +244,8 @@ def moving_vehicles(f0, f1, step=3, top=2.2):
     for ob in bpy.data.objects:
         if ob.parent is not None or ob.type not in ('EMPTY', 'MESH') or ob.instance_type == 'COLLECTION':
             continue
+        if ob.get('aloft'):                          # a craft that flies off its pad, not a ground vehicle
+            continue
         fcs = _fcurves(ob)
         if not any(fc.data_path == 'location' for fc in fcs):
             continue

@@ -103,9 +103,10 @@ Pass 5 (condition state 'boarded', ts_damage.py)
       (D4-D6), both inboard auxiliary bells (D7, D8), the skirt keel (D9), the
       starboard aft drum (D10) and the port drive flank (D11). Each cuts every
       part under it (opened faces 'Scar burnt metal'), lays a scorch decal, curls
-      torn plating out of the rim and, where pass 7 wants smoke or sparks, sets a
-      'Scar <id> smoke anchor' (+X out of the hull; custom properties emit and
-      radius_units).
+      torn plating out of the rim and, where pass 7 wants smoke or sparks, sets
+      'Scar <id> smoke anchor' and/or 'Scar <id> spark anchor' (the shared VFX
+      kit's conduit-spark name, sparking = True), +X out of the hull, sized in
+      radius_m.
     S1, S2: the stern face and the drive deck scorched.
     K1, K2: cutting-torch rings round both Kite collar hatches.
     L1: the drive section's stern and deck marker lamps dark (object-level

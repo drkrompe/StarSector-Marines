@@ -102,9 +102,10 @@ exhaust anchors and hung on the root. Running lights on the picket are capped
 so they do not bloom past the hull at picket range. A further Hound (A) crosses
 close in hail 03 (customs) under thrust: the `hound-export` asset with the
 VFX kit's plumes on both drives. No hull carries the kit's exhaust haze, which
-is smoke in air. The layout passes (EEVEE) render volumes only within 700 m,
-which keeps the customs Hound's plumes sharp; the far plumes are a few pixels
-and appear in the Cycles final.
+is smoke in air. The layout passes (EEVEE) render volumes only within 3 km,
+with their samples packed toward the camera: that keeps the customs Hound's
+plumes sharp and Second Wind's drives in view as it pulls away. The far plumes
+are a few pixels and appear in the Cycles final.
 
 Civilian freight is 3D too (`c1_fleet.py`): a Colossus outbound 5.2 km out
 where the painted Atlas card was, and a queue inbound to the station's docks at

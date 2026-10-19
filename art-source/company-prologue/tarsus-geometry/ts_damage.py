@@ -18,9 +18,10 @@ apply(state) works on whatever file is open, by object name: build_tarsus.py
 calls it as its last modelling phase (--state boarded), and damage_blend.py
 runs it on the skinned build, so the cuts open the livery like any face.
 
-Pass 7 keys its smoke and sparks off the 'Scar <id> smoke anchor' empties
-(+X out of the hull, like the docking anchors), whose custom properties say
-what each site emits and how big it is.
+Pass 7 keys its effects off the anchors: 'Scar <id> smoke anchor' for smoke
+and 'Scar <id> spark anchor' (the shared kit's conduit-spark name, sparking =
+True) for sparks, +X out of the hull like the docking anchors, sized in
+radius_m.
 """
 import math
 import random
@@ -52,11 +53,11 @@ class Scar:
 # the cut reaches in; emit is what pass 7 puts on the anchor.
 SCARS = [
     Scar('D1', 'crater', 'open', 'port main drive bell holed through its upper outboard quarter',
-         eye=(-112, 44, 30), at=(-76, 25, 8), r=3.6, depth=3.2, petals=5, emit='smoke+sparks', seed=11),
+         eye=(-112, 44, 30), at=(-76, 25, 8), r=3.6, depth=3.2, petals=5, emit='smoke+spark', seed=11),
     Scar('D2', 'crater', 'open', 'starboard main drive bell lip blown away low outboard',
-         eye=(-118, -48, -20), at=(-77, -25, -4), r=4.4, depth=3.6, petals=6, emit='smoke+sparks', seed=12),
+         eye=(-118, -48, -20), at=(-77, -25, -4), r=4.4, depth=3.6, petals=6, emit='smoke+spark', seed=12),
     Scar('D3', 'crater', 'open', 'stern service housing between the mains, burned through',
-         eye=(-130, 1, 6), at=(-72, 1, 1), r=3.2, depth=4.0, petals=4, emit='smoke+sparks', seed=13),
+         eye=(-130, 1, 6), at=(-72, 1, 1), r=3.2, depth=4.0, petals=4, emit='smoke+spark', seed=13),
     Scar('D4', 'crater', 'open', 'strafing run along the drive deck, aft hit',
          eye=(-96, 12, 40), at=(-68, 3, 8), r=2.0, depth=2.0, petals=3, emit='smoke', seed=14),
     Scar('D5', 'crater', 'open', 'strafing run along the drive deck, middle hit',
@@ -339,22 +340,29 @@ def _petals(scar, p, n, mats):
     return ob
 
 
-def _anchor(scar, p, n):
-    e = bpy.data.objects.new(f'Scar {scar.id} smoke anchor', None)
+def _anchor(scar, p, n, kind, metres_per_unit):
+    """'Scar <id> smoke anchor' or 'Scar <id> spark anchor' (the shared VFX kit's
+    name for broken live conduit): +X out of the hull, its size in metres."""
+    e = bpy.data.objects.new(f'Scar {scar.id} {kind} anchor', None)
     e.empty_display_type, e.empty_display_size = 'SINGLE_ARROW', scar.params['r']
     x = n
     y = Vector((0, 0, 1)).cross(x)
     y = (Vector((0, 1, 0)) if y.length < 1e-3 else y).normalized()
     z = x.cross(y)
-    e.matrix_world = Matrix.Translation(p + n*.3) @ Matrix((x, y, z)).transposed().to_4x4()
-    e['scar_id'], e['emit'], e['radius_units'] = scar.id, scar.params['emit'], scar.params['r']
+    lift = .3 if kind == 'smoke' else .1
+    e.matrix_world = Matrix.Translation(p + n*lift) @ Matrix((x, y, z)).transposed().to_4x4()
+    e['scar_id'], e['emit'] = scar.id, kind
+    e['radius_units'] = scar.params['r']
+    e['radius_m'] = round(scar.params['r']*metres_per_unit*(1.0 if kind == 'smoke' else .35), 3)
+    if kind == 'spark':
+        e['sparking'] = True
     bpy.context.scene.collection.objects.link(e)
     return e
 
 
 # --- the state ---------------------------------------------------------------
 
-def apply(state='boarded'):
+def apply(state='boarded', metres_per_unit=.5):
     """Build every scar open in this state on the open file; return the record."""
     assert state in STATES, state
     mats = materials()
@@ -407,9 +415,11 @@ def apply(state='boarded'):
         if s.kind == 'crater':
             p, n, hit = sites[s.id]
             _petals(s, p, n, mats)
-            if s.params['emit']:
-                _anchor(s, p, n)
-                entry['anchor'] = f'Scar {s.id} smoke anchor'
+            kinds = [k for k in ('smoke', 'spark') if k in s.params['emit']]
+            for k in kinds:
+                _anchor(s, p, n, k, metres_per_unit)
+            if kinds:
+                entry['anchors'] = [f'Scar {s.id} {k} anchor' for k in kinds]
                 entry['emit'] = s.params['emit']
             entry.update(location=[round(c, 2) for c in p], outward=[round(c, 3) for c in n],
                          radius_units=s.params['r'], depth_units=s.params['depth'],

@@ -84,7 +84,7 @@ STAR_FILL = 0.25     # share of cells that hold a visible star
 # Final framing: looking down the lane at Jangala, pitched slightly down.
 FINAL_PITCH = math.radians(-4.0)
 EEVEE_PREVIEW = True   # layout passes; the final look pass renders Cycles
-EEVEE_VOLUME_RANGE = 700.0   # metres of depth EEVEE renders volumes in: the customs Hound (see eevee())
+EEVEE_VOLUME_RANGE = 3000.0   # metres of depth EEVEE renders volumes in: out to the hero at the end
 
 # --- Second Wind's pass ----------------------------------------------------------------------
 LANE_X, LANE_Z = 110.0, -45.0     # passes on the camera's left (opening view), below: dorsal reads
@@ -692,11 +692,14 @@ def eevee(scene, samples=16):
     scene.eevee.taa_render_samples = samples
     # EEVEE spreads one grid of volume samples over the depth its volumes span. With the picket's
     # and the freighters' plumes 5-9 km out, the customs Hound's plumes up close came out in
-    # blocks. Layout passes keep the grid to the near field; the far plumes are a few pixels, and
-    # the Cycles look pass renders every volume at its own resolution.
+    # blocks. Layout passes keep the grid to the depth Second Wind's drives reach by the end of
+    # the shot (at 700 m its plumes vanished as it pulled away) and pack its slices toward the
+    # camera, so the near Hound keeps its resolution. The far plumes are a few pixels; the Cycles
+    # look pass renders every volume at its own resolution.
     scene.eevee.use_volume_custom_range = True
     scene.eevee.volumetric_start, scene.eevee.volumetric_end = 2.0, EEVEE_VOLUME_RANGE
     scene.eevee.volumetric_tile_size = '4'
+    scene.eevee.volumetric_sample_distribution = 0.95
     scene.render.image_settings.file_format = 'PNG'
     scene.render.image_settings.color_mode = 'RGB'
 

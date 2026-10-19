@@ -1,0 +1,283 @@
+{
+ "strake-stbd": {
+  "what": "starboard machinery strake outboard face, bow to the right",
+  "sheet": "machinery",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull starboard machinery strake",
+    "seed": null,
+    "faces": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     9,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     42,
+     57,
+     62,
+     67,
+     72,
+     77,
+     82,
+     87,
+     92,
+     97,
+     102,
+     107,
+     112,
+     117,
+     121,
+     125
+    ]
+   }
+  ],
+  "face_count": 46,
+  "area_units2": 2215.31,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   162.0,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    43.0,
+    -7.0
+   ],
+   "ortho_width": 188.37209302325581
+  },
+  "native_texels_per_unit": 4.2
+ },
+ "strake-port": {
+  "what": "port machinery strake outboard face, bow to the left",
+  "sheet": "machinery",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port machinery strake",
+    "seed": null,
+    "faces": [
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     49,
+     54,
+     59,
+     64,
+     69,
+     74,
+     79,
+     84,
+     89,
+     93,
+     97,
+     101,
+     105,
+     109,
+     113,
+     117
+    ]
+   }
+  ],
+  "face_count": 47,
+  "area_units2": 1983.05,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   142.0,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -33.0,
+    -7.0
+   ],
+   "ortho_width": 165.11627906976744
+  },
+  "native_texels_per_unit": 4.8
+ },
+ "spine-top": {
+  "what": "aft machinery spine top around the reactor dome",
+  "sheet": "machinery",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft machinery spine",
+    "seed": null,
+    "faces": [
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     44,
+     47,
+     50,
+     68,
+     71,
+     74,
+     92,
+     95,
+     98
+    ]
+   }
+  ],
+  "face_count": 23,
+  "area_units2": 1349.58,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   32.0,
+   38.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -47.0
+   ],
+   "ortho_width": 78.55297157622739
+  },
+  "native_texels_per_unit": 10.1
+ },
+ "block-top": {
+  "what": "stern drive block top across the full beam",
+  "sheet": "machinery",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive block",
+    "seed": null,
+    "faces": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25
+    ]
+   }
+  ],
+  "face_count": 9,
+  "area_units2": 2240.29,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   82.0,
+   25.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -72.5
+   ],
+   "ortho_width": 95.34883720930233
+  },
+  "native_texels_per_unit": 8.3
+ }
+}
