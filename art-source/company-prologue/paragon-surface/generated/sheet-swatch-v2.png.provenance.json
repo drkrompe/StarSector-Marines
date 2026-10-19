@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15512-8d7a-7280-9189-7c3475dec516",
+  "source": "/Users/dillon/.codex/generated_images/01a15512-8d7a-7280-9189-7c3475dec516/exec-f292f974-1ccb-4c9e-a93d-cae4e35b5d27.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/paragon-surface/generated/sheet-swatch-v2.png",
+    "sha256": "c48223a0df790e4fb17e4dde31db8f3e0d8670d9e1db0816d37a1a58130bc68e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/paragon-surface/prompts/sheet-swatch-v2.prompt.txt",
+  "promptSha256": "c7e9de277ca3da166ff663ccdffc183eb9d70e18e72f56a90d30c8c3b619ad90",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority: the six squares, their positions and sizes\nImage 2: Material and finish only; not layout\n\nUse case: texture map generation / material finish sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (the Paragon, a 310 m Tri-Tachyon battleship), to be painted as a flat, square-on sample of that material's SURFACE FINISH ONLY:\ntop-left square: cool blue-grey glazed ceramic armour;\ntop-middle square: pale blue-white glazed ceramic;\ntop-right square: near-white ceramic;\nbottom-left square: dark blue-slate ceramic band;\nbottom-middle square: light grey emitter steel;\nbottom-right square: near-black dull machinery recess.\nINPUT 2 is the SAME ship, already finished: it is the finish to match (its colours, satin sheen, faint tone variation, light grime in recesses). Never copy INPUT 2's composition, view or shapes.\n\nThe model already carries its own hexagonal tile pattern and seams as geometry. These squares are a FINISH LAYER multiplied over it, so they must contain NO pattern of their own:\n- No hexagons, no tiles, no plates, no seams, no panel lines, no fasteners, no rivets, no hatches, no grilles, no lines of any kind, no stripes, labels or markings.\n- Only organic, all-over surface finish, clearly visible: pronounced cloudy mottling in the glaze (lighter and darker clouds a hand's width across), soft blotchy staining, a fine speckle, smudges and drifts of grey-brown grime, and a cool blue-violet heat tint in several soft patches, with a few warmer straw-bronze heat-tint patches on the steel. Medium contrast, spread over the whole square, with no single dominant feature and nothing centred.\n- Keep the six squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Keep each square's colour exactly. No colour changes, no patches of a different colour.\n- No rust, scorch marks, burns, damage, dents or holes, and no single concentrated stain.\n- Lighting: flat, even, shadowless, like an albedo texture map. No shadows, no ambient occlusion, no highlights, no reflections, no vignette, no gradient across a square, no border or edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no text or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/paragon-surface/guide/sheet-swatch-guide.png",
+      "sha256": "ea19ab36db8ad80d5032bd05642a5116b94ab6624e22b44c909b2a589f65ca7e",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Layout authority: the six squares, their positions and sizes"
+    },
+    {
+      "path": "art-source/company-prologue/paragon-surface/reference/finish-reference.png",
+      "sha256": "7edfef7dde8887c201b53aa7b7fc65ab58ebf9a05742349948ec667c1e80b542",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one finish sheet with the six-square layout preserved."
+  ],
+  "usage": {
+    "input_tokens": 110744,
+    "cached_input_tokens": 90496,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 923,
+    "reasoning_output_tokens": 48
+  },
+  "elapsedSeconds": 49.6
+}

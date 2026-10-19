@@ -23,11 +23,21 @@ blend render_reference_classes.py -- --hull "$HS"
 #   with --ref guide/reference-guide.png and --ref build/sprite-livery.png
 "$PY" register_reference.py --hull "$HS"
 "$PY" palette.py --hull "$HS"
-# 3. Finish-only class swatches: guide, (Codex, not replayed) prompts/sheet-swatch.prompt.txt ->
-#    generated/sheet-swatch.png with --ref guide/sheet-swatch-guide.png and --ref reference/finish-reference.png; grade.
+# 3. Staining tiles: make_groups.py writes groups/top.py and groups/ends.py (box tiles, port painted,
+#    starboard mirrored); face selection, guides, sheets; owned tone offsets; swatch guide.
+"$BLENDER" --background "$HS/build/geom/paragon-geometry.blend" --python "$HS/make_groups.py" 2>&1 | grep -E "SURF|Error|Traceback" || true
+blend render_parts.py -- --hull "$HS"
+"$PY" sheets.py compose --hull "$HS"
+"$PY" variation.py --hull "$HS"
 "$PY" swatches.py guide --hull "$HS"
-"$PY" swatches.py --hull "$HS"
-# 4. Apply as an overlay over the hex ceramic (surface_hull.OVERLAY) with light service wear; review.
+#   (Codex, not replayed) finish-layer sheets, each with --ref guide/<sheet>-guide.png and
+#   --ref reference/finish-reference.png: prompts/sheet-top-a.prompt.txt, prompts/sheet-ends-a.prompt.txt,
+#   prompts/sheet-swatch-v2.prompt.txt (round 2; round 1's sheet-swatch.png is kept for comparison).
+# 4. Register, check, de-light, grade; class swatches from the v2 sheet.
+"$PY" register.py --hull "$HS"
+"$PY" grade.py --hull "$HS"
+"$PY" swatches.py --hull "$HS" --sheet generated/sheet-swatch-v2.png
+# 5. Apply as an overlay over the hex ceramic (surface_hull.OVERLAY) with service wear; review.
 blend apply_skin.py -- --hull "$HS" --wear service
 blend review.py -- --hull "$HS" --samples 48
 "$PY" compose_review.py --hull "$HS"
