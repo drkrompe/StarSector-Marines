@@ -64,7 +64,7 @@ DECK_Z = 40.0             # its underside: above the main ring's top (36), clear
 TRENCH_PAD = 6.0          # the gantry shows this far beyond the deck on each side
 # The gantry stops at the bore's edge: forward of it the deck's nose cantilevers
 # clear over the bore, raised above the loop, with its underside detailed (pg_bridge).
-GANTRY_FRONT_X = -60.0
+GANTRY_FRONT_X = -69.0   # on the bore lining's flat top, so its bulkhead stands on the lining
 
 # The prow, port halves.
 GRILLE = [(171, 0.0), (171, 29), (136, 29), (136, 0.0)]
@@ -172,7 +172,7 @@ def build(kit):
     # The gantry the deck stands on: dark machinery under and just outside the
     # deck, standing on the main ring; the sprite's dark band round the white.
     parts['trench'] = K.profile_mass(kit, 'Hull core trench', symmetric(half_between(CORE, GANTRY_FRONT_X, DECK_AFT_X-4, TRENCH_PAD)),
-                                     [(0, 26), (5, DECK_Z+1)], [(0, 10)], mat=kit.tech, step=2.0)
+                                     [(0, DECK_Z-.5), (1.0, DECK_Z+1)], [(0, 20)], mat=kit.tech, step=2.0)
     # The aft body between the pods: its steep armoured flanks are the sprite's
     # dark ring round the skin "egg", its top a low faceted dome.
     parts['aft body'] = K.profile_mass(kit, 'Hull aft body', symmetric(half_between(CORE, -92, -176.5)),
@@ -186,13 +186,12 @@ def build(kit):
                                     [(0, 36)], mat=kit.white, step=1.5)
     parts['deck upper'] = K.profile_mass(kit, 'Hull command deck upper',
                                          symmetric(half_between(CORE, -28, DECK_AFT_X+6, 0, .66)),
-                                         [(0, DECK_Z+11), (4, DECK_Z+16), (7, DECK_Z+18)], [(0, DECK_Z+8)],
+                                         [(0, DECK_Z+15), (4, DECK_Z+18), (7, DECK_Z+19)], [(0, DECK_Z+8)],
                                          mat=kit.white, step=1.5)
     parts['bridge'] = K.profile_mass(kit, 'Bridge tower', symmetric([(-46, 0.0), (-48, 7), (-54, 10), (-80, 10),
                                                                      (-86, 6), (-86, 0.0)]),
-                                     [(0, DECK_Z+17), (3, DECK_Z+23), (5, DECK_Z+24)], [(0, DECK_Z+15)],
+                                     [(0, DECK_Z+23), (3, DECK_Z+27), (5, DECK_Z+28)], [(0, DECK_Z+17)],
                                      mat=kit.white, step=1.2)
-    glazing(kit)
     # Aft pods with their reactor domes.
     for side, label in ((1, 'port'), (-1, 'starboard')):
         parts['pod '+label] = K.profile_mass(kit, f'Hull {label} pod', pod_plan(side), [(0, 4), (5, 16), (20, 24)],
@@ -209,15 +208,6 @@ def build(kit):
         K.revolve(kit, f'Hull {label} reactor dome', [(0, -1.5), (8.5, -1.5), (8, 1.2), (6, 3.2), (3, 4.3), (0, 4.6)],
                   kit.white, center=(x, y, z+.6), segments=48, smooth=False)
     return parts
-
-
-GLAZING_M = 1.8  # the bridge glazing band's height in true metres
-
-
-def glazing(kit):
-    """The bridge's forward glazing: a band across the tower's raked front faces."""
-    z0 = DECK_Z+19.5
-    kit.box('Bridge glazing', (-48.6, 0, z0), (1.6, 12.5, GLAZING_M/kit.mpu), kit.glass, 0)
 
 
 def hardpoint_bays(kit, prow):

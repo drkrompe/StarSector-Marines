@@ -125,6 +125,39 @@ people don't." or "Call it a new start, Commander." Kept from the first round:
 a shorter all-hands, "Nine years somebody else counted our days on a wall.
 Nobody's counting now."
 
+## Camera and crowd
+
+Tested 2026-10-18 with `industrial-exterior/c5_crowd_test.py`, which builds C4's
+scene at touchdown and walks a line of families from the ramp toward the
+workshop. It does this two ways side by side, under three candidate cameras.
+
+**The camera looks straight down through a long lens from higher up.** C4's
+wide 18 mm lens sees a person at the frame edge from 45° off vertical, so
+buildings lean outward and a figure there would need a side-on view. A 50 mm
+lens covers the same ground from about 2.8 times the height, and nobody in
+frame is more than about 20° off straight down. C5 opens at 50 mm about 220 m
+up: the yard from the ramp to the workshop fills the frame, Second Wind fills
+its upper right, and a person is about 6 pixels across. The cut from C4's
+18 mm view to this one reads as a step closer, not a jump. The title pull-out
+rises straight up along the same line.
+
+**At that size a person is a handful of pixels, so detail cannot be seen and
+perspective barely matters.** Both methods read as people walking:
+
+- **Simple 3D walkers.** A body, a head and two swinging legs. They read
+  crisper and darker, and their shadows, lighting and perspective come for free.
+  This is the recommended method: nothing to keep consistent, and a bag, a mask
+  or a folded-arms pose is one more block.
+- **Flat sprite cards.** Lying on the ground and turned to each walker's
+  heading, flipping through a top-down walk cycle. A second upright card faces
+  the sun and only casts a shadow, so the shadow carries a side-on walk. With
+  the straight-down long lens, one top-down sheet works in every direction and
+  anywhere in frame. Codex could make the sheets: 8 frames across, clothing
+  variants down, 64x64 px a frame at 2.5 cm a pixel for the top view and 64x96
+  for the side view, both walking toward +x (the layout the test's placeholders
+  follow). Kept in reserve for a closer insert, such as the figure at the ramp
+  who looks up.
+
 ## Open questions
 
 - **Line choice and delivery.** Castle's voice is calm and tired, and the hope
