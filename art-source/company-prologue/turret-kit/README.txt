@@ -155,6 +155,15 @@ Dressing a turret in the hull's finish
   pattern). The Paragon dresses its Tri-Tachyon guns in its hex ceramic this
   way, with sprite_tint=.5.
 
+The Wolf (P)'s pirate fit
+  ioncannon (house='hand'): a green capsule shell on a turntable with flank
+  studs, two swept grey field-guide prongs closing toward their tips, and a
+  green emitter snout on the elevation empty, its lens in the ion blue. IoU
+  0.82. Hardpoints miningblaster (a ribbed capacitor body with two focusing
+  prongs either side of a red-lit emitter face) and annihilator (a ribbed
+  launcher box, five tubes across its face, a muzzle anchor at each mouth).
+  derive_sprites.py records all three for their colours.
+
 Other catalogue entries (WEAPONS)
   none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open
   rails), pilum, typhoon, annihilatorpod (tubes): the rack is drawn with its
@@ -177,7 +186,8 @@ Hardpoints (fixed mounts)
     ahead of the slot), two plated prongs with focusing rails, shoulder pods;
   - autopulse: a breech on a sled, a capacitor bulb, a finned cooling flange,
     the hollow emitter barrel down to its lens, a coolant pipe and a
-    capacitor box.
+    capacitor box;
+  - miningblaster, annihilator: the Wolf (P)'s (above).
 
 Review
   blender --background --factory-startup --python catalog.py -- --out DIR
@@ -198,7 +208,7 @@ The gauntlet (each turret, against its sprite)
 
 Users
   legion-geometry (lg_turrets), paragon-geometry (pg_turrets: its Elite fit,
-  hull_finish). Lasher, Onslaught, Hermes, Hound and Second
+  hull_finish), wolf-geometry (wf_mounts). Lasher, Onslaught, Hermes, Hound and Second
   Wind still use their own turret modules; moving one onto the kit is that
   hull's session's call.
 

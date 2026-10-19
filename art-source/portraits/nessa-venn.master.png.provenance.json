@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559d-5ec0-7fa2-85bf-628b783d9555",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1559d-5ec0-7fa2-85bf-628b783d9555\\exec-2bde2df7-2597-45ad-8fae-cb01ae26f966.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\portraits\\nessa-venn.master.png",
+    "sha256": "8ac9312dae6dc1d0c871bbd15a24361572cd18d1d54225bc01012c19e5bc96ec",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\portraits\\nessa-venn.prompt.txt",
+  "promptSha256": "6eac20b633bf9fb73d2a1876ff298d92689fa281cfc2ef23705a90dd28085fc5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Style only: brushwork, light, palette density, crop and framing; not her face, hair or clothes\nImage 2: Family resemblance only: skin tone, brow shape and eye colour of her younger sister\n\nUse case: stylized-concept\nAsset type: Square in-game dialogue portrait for Nessa Venn, owner of a small private repair yard on the humid jungle world Jangala, in a worn low-tech space opera. Runtime 256 x 256; readable at 64 and 128 pixels.\nReference roles: reference 1 (Castle's portrait) is STYLE ONLY: brushwork, light, palette density, crop and framing; do not copy her face, hair or clothes. Reference 2 (Mara Venn's portrait) is FAMILY RESEMBLANCE ONLY: Nessa is Mara's much older sister, so share the skin tone, brow shape and eye colour, nothing else.\nPrimary request: Painted head-and-shoulders character portrait of a woman of fifty-eight, solid and square, broad shoulders, a yard worker's build. Warm medium-brown skin, weathered, deep lines at the eyes and between strong straight brows, brown eyes, a nose once broken and a little flattened. Short iron-grey hair cropped close at the sides, cut for a helmet rather than for looks. No jewellery. Slight three-quarter pose, eyes level on the viewer, closed mouth, an appraising look that is about to name the price or say no; the faintest pleasure at one corner of the mouth. A long weathered ochre-brown canvas work coat, stand collar turned up, scorch marks and wear at the edges, over a dark grey work shirt. A compact dark biofilter half-mask with two small side filters hangs on its strap under her chin, pulled down off her face. A stylus tucked behind one ear.\nStyle: Detailed hand-painted 1990s science-fiction RPG portrait, visible brush texture and sharply readable facial planes, natural human proportions, restrained realism rather than photographic gloss; match the visual density and finish of reference 1. Large face, crop shoulders at the bottom, leave small clearance above the hair. Warm amber workshop key light from her front left, soft neutral fill, almost black muted background without discernible objects. Muted ochre, umber, charcoal, cream.\nConstraints: Original character, no resemblance to an actor or existing game character. No text, no insignia, no frame, no captions, no holograms, no blue neon, no beauty retouching, no exaggerated scowl, no weapons, no additional people. Single portrait filling a square frame.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Style only: brushwork, light, palette density, crop and framing; not her face, hair or clothes"
+    },
+    {
+      "path": "art-source\\portraits\\mara-venn.master.png",
+      "sha256": "81d62c09fe53397799c149233b03eca89d24f7e54b5d63d12f39f982040d5eb7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Family resemblance only: skin tone, brow shape and eye colour of her younger sister"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one portrait, using the first reference for style and the second for family resemblance.\n"
+  ],
+  "usage": {
+    "input_tokens": 44819,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 650,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.3
+}
