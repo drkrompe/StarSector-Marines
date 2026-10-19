@@ -18,26 +18,29 @@ does the job:
   heavy berth                Colossus, loaded and leaving: it lifts out of the bay in C5 (`climb`),
                              its gantry already rolled north clear of it, the containers staged for
                              the next hull off its stern quarter
-  lighter pads               Hermes, textured (the untextured geometry if the export is missing)
+  lighter pads               Hermes, textured
 
 A freighter pad is 68 m across; the Hound (61 m), Mudskipper (67 m) and Shepherd (67 m) fit it nose
 to tail. The Colossus is 108 x 89 m and fits only the heavy berth's 130 x 100 m walled deck.
 
 The heavy-berth Colossus's departure is flown, not posed: it climbs off the deck on its lift jets at
 a heavy hull's slow acceleration, then lights its mains and accelerates up and away west (`climb`).
-Its size in the C5 rise is whatever that altitude gives against the camera's. Its plumes hang off its
-thruster markers (`after_markers`, called after `thrust_shots.mark_c4`).
+Its size in the C5 rise is whatever that altitude gives against the camera's. It is the one hull
+linked with its own drive effects (the shared VFX kit's `SWFX`, `with_effects`): cores, plumes, bell
+glows, glow lights and haze on its own engine anchors, each engine's throttle driven by its thruster
+marker (`after_markers`, called after `thrust_shots.mark_c4`).
 
 In the air, well below the camera and never across its path:
-  'Shepherd inbound'   a Shepherd letting down northward over the belt in C4's first seconds.
+  'Shepherd inbound'   a Shepherd letting down northward over the belt in C4's first seconds, and on
+                       north out of the frame at the same speed.
 
 Every part of every appended hull is left out of the overhead painting (`hull_part_names`), which
 otherwise takes them for static ground and prints the pad markings beneath onto their decks.
 
 Inputs: build/c1v2/inputs/{hound-skinned,mudskipper-skinned}.blend as before; shepherd.blend,
 colossus.blend and hermes.blend from each hull's `*-cinematic/` folder (built there by its
-finalize.sh) or copied into build/c1v2/inputs. A missing hull is reported (PORT_FLEET missing) and
-its place falls back to a Hound, so the scene still builds.
+finalize.sh) or copied into build/c1v2/inputs; the Colossus file must carry its SWFX effects. A
+missing hull stops the build (PORT_FLEET missing) rather than standing in as another hull.
 """
 import math
 from pathlib import Path
@@ -66,8 +69,8 @@ LIVERIES = {
 }
 BERTH_HULLS = {'hound': ('hound', None), 'unloading': ('shepherd', None), 'lifting': ('mudskipper', 'teal'),
                'fuelling': ('shepherd', 'slate'), 'ferry': ('mudskipper', None)}
-C5_SECONDS = 33.5                     # how far past C4's end anything moving is keyed
-HAZE_SKIP = {'Fleet plume core', 'Fleet plume glow'}
+C5_SECONDS = 40.0                     # how far past C4's end anything moving is keyed (C5 is 40 s)
+HAZE_SKIP = set()                     # the drive effects' materials, filled as they are loaded
 # The heavy-berth Colossus's departure, in C5 seconds: lift jets spool up from LIFT_SPOOL (at 40%),
 # full at LIFT_OFF when it leaves the deck; mains light at MAIN_ON and are full at MAIN_FULL.
 LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 24.0, 25.5
@@ -81,6 +84,11 @@ PARTS = set()                         # names of every object in an appended hul
 def hull_part_names():
     """Every object the fleet's hulls are built from, for `ortho_paint.apply` to leave alone."""
     return set(PARTS)
+
+
+def missing(c4, hull, fname):
+    return 'PORT_FLEET missing %s: %s is in neither %s nor %s-cinematic/' % (
+        hull, fname, c4.INPUTS, fname.split('.')[0].split('-')[0])
 
 
 def find(c4, filename):
@@ -105,11 +113,7 @@ class Fleet:
         fname, cname, mpu, rest, bow = HULLS[hull]
         path = find(self.c4, fname)
         if path is None:
-            print('PORT_FLEET missing', hull, fname, flush=True)
-            if hull == 'hermes':
-                path, cname, rest = PROLOGUE / 'hermes-geometry' / 'hermes-geometry.blend', 'Collection', 2.5
-            else:
-                return self.coll('hound', livery)
+            raise FileNotFoundError(missing(self.c4, hull, fname))
         lights = {o.name for o in bpy.data.objects if o.type == 'LIGHT'}
         mats = set(bpy.data.materials)
         coll = self.c4.append_collection(path, cname)
@@ -184,7 +188,7 @@ def heavy(c4, fleet):
     """The Colossus in the heavy berth: square in the walled bay, bow west, the staged containers off
     its stern quarter. It is loaded and leaves in C5; its gantry stands rolled north out of the way."""
     hx0, hx1, hy0, hy1 = c4.HEAVY
-    e, rest, bow = fleet.place('Colossus at the heavy berth', 'colossus')
+    e, rest = with_effects(c4, 'Colossus at the heavy berth', 'colossus')
     # Its bounds run -126..91 units along X and -87..90 across (centre -17.5, 1.5); turned bow west,
     # that centre lies (+8.8, -0.75) m from the root, so the root sits that far back of the bay's middle.
     cx, cy = (hx0 + hx1) / 2, (hy0 + hy1) / 2
@@ -197,6 +201,43 @@ def heavy(c4, fleet):
     if g is not None:
         g.location.y = GANTRY_CLEAR
         g.keyframe_insert('location', frame=0)
+
+
+def with_effects(c4, label, hull):
+    """A finished hull linked with the shared VFX kit's effects from the same load (`SWFX`: its
+    drive cores, plumes, bell glows, glow lights and exhaust haze, riding the hull's own engine
+    anchors), under an empty named `label` that carries its motion. Linked rather than instanced,
+    because the effects hang off anchors in the hull's own hierarchy (as `c1v2_scene.effects_asset`).
+    The kit's gun flashes and running lamps are left out: nothing fires, and the lamps blow out in
+    daylight. Returns (empty, rest z)."""
+    fname, cname, mpu, rest, bow = HULLS[hull]
+    path = find(c4, fname)
+    if path is None:
+        raise FileNotFoundError(missing(c4, hull, fname))
+    mats = set(bpy.data.materials)
+    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+        if 'SWFX' not in src.collections:
+            raise RuntimeError('PORT_FLEET %s has no SWFX effects collection; rebuild it with export_effects.py' % path)
+        dst.collections = [cname, 'SWFX']
+    ship, fx = dst.collections
+    for coll in (ship, fx):
+        bpy.context.scene.collection.children.link(coll)
+    for child in fx.children_recursive:
+        if child.name in ('SWFX | Guns', 'SWFX | Lighting'):
+            for o in child.all_objects:
+                if o is not None:
+                    o.hide_render = o.hide_viewport = True
+    HAZE_SKIP.update(m.name for m in set(bpy.data.materials) - mats if m.name.startswith('SWFX'))
+    PARTS.update(o.name for o in ship.all_objects if o is not None)
+    PARTS.update(o.name for o in fx.all_objects if o is not None)
+    e = c4.link(bpy.data.objects.new(label, None))
+    e['port_fleet_hull'] = hull
+    root = next(o for o in ship.all_objects if o is not None and o.parent is None)
+    root.parent = e
+    root.matrix_parent_inverse = Matrix.Identity(4)
+    root.location, root.rotation_euler, root.scale = (0, 0, 0), (0, 0, 0), (mpu,) * 3
+    e['swfx_controls'] = next(o for o in fx.all_objects if o is not None and o.name.startswith('SWFX controls')).name
+    return e, rest
 
 
 def climb(c4, e):
@@ -232,8 +273,9 @@ def climb(c4, e):
         flush=True)
 
 
-def fly(e, keys, F):
-    """Key `e` through (C4+C5 second, x, y, z, heading) at a steady speed between keys."""
+def fly(e, keys, F, carry_on=False):
+    """Key `e` through (C4+C5 second, x, y, z, heading) at a steady speed between keys; carry_on
+    keeps it going at its last speed past the last key."""
     for t, x, y, z, hd in keys:
         f = round(t * 24)
         e.location = (x, y, z)
@@ -241,7 +283,7 @@ def fly(e, keys, F):
         e.keyframe_insert('location', frame=f)
         e.keyframe_insert('rotation_euler', frame=f)
     import port_life
-    port_life.linear(e)
+    port_life.linear(e, extrapolate=carry_on)
 
 
 def air(c4, fleet):
@@ -256,14 +298,14 @@ def air(c4, fleet):
     hd = math.atan2(850.0, 60.0)
     # It starts 300 m from where Second Wind opens (c4x_scene.P0) and the two paths only diverge.
     fly(e, [(0.0, -320.0, -230.0, 420.0, hd), (c4.PAN, -260.0, 620.0, 320.0, hd),
-            (T, -220.0, 620.0 + 850.0 * (T - c4.PAN) / c4.PAN, 280.0, hd)], F)
+            (T, -220.0, 620.0 + 850.0 * (T - c4.PAN) / c4.PAN, 280.0, hd)], F, carry_on=True)
     print('PORT_FLEET hulls', sorted('%s%s' % (h, '/' + l if l else '') for h, l in fleet.colls), flush=True)
 
 
 def after_markers(c4):
-    """After `thrust_shots.mark_c4`: the heavy-berth Colossus's throttle as `climb` flies it, plumes
-    hung off its nozzle markers (`thrust-markers/README.md`) and dust off the deck as it lifts. The
-    mains point aft and are what reads from above; the lift jets are kept short, off the deck."""
+    """After `thrust_shots.mark_c4`: the heavy-berth Colossus's throttle as `climb` flies it on its
+    nozzle markers (`thrust-markers/README.md`), its own drive effects driven from them
+    (`hang_effects`), and dust off the deck as it lifts."""
     import thrust_markers as tm
     import port_life
     craft = bpy.data.objects.get('Colossus at the heavy berth')
@@ -275,37 +317,12 @@ def after_markers(c4):
     main = [(0.0, 0.0), (T + MAIN_ON - 0.1, 0.0), (T + MAIN_ON, 0.3), (T + MAIN_FULL, 1.0)]
     tm.key(marks, lift, fps, kinds=('lift',))
     tm.key(marks, main, fps, kinds=('main',))
-    core, glow = plume_materials()
-    s = craft.scale.x
-    n = {'main': 0, 'lift': 0}
-    for m in marks:
-        kind = m.get('thrust_kind')
-        if kind not in n or not m.get('thrust_working', True):
-            continue
-        r = float(m.get('radius_m', 1.5))
-        keys = main if kind == 'main' else lift
-        # Mains exaggerated past a bell's true flame so a burn reads from 1.8 km; lift jets short.
-        if kind == 'main':
-            shape = ((core, 14.0 * r, 0.9 * r), (glow, 26.0 * r, 1.8 * r))
-        else:
-            shape = ((core, 3.0 * r, 0.7 * r), (glow, 6.0 * r, 1.3 * r))
-        for mat, length, width in shape:
-            p = cone(mat.name + ' | ' + m.name.split(' | ', 1)[1], mat, c4)
-            p.parent = m
-            p.matrix_parent_inverse = Matrix.Identity(4)
-            for t, v in keys:
-                k = max(v, 0.001)
-                p.scale = (length * (0.4 + 0.6 * k) / s, width * k / s, width * k / s)
-                p.hide_render = v <= 0.0
-                p.keyframe_insert('scale', frame=round(t * fps))
-                p.keyframe_insert('hide_render', frame=round(t * fps))
-            port_life.linear(p)
-        n[kind] += 1
+    n = hang_effects(craft, marks, c4)
     x, y = craft['rest_xy']
     port_life.dust(x, y, T + LIFT_OFF - 0.6, 70.0, 48, 'Lift dust colossus')
     cover_old_gantry(c4)
-    print('PORT_FLEET colossus plumes main=%d lift=%d; lift spool C5 %g s, off %g s, mains %g-%g s' % (
-        n['main'], n['lift'], LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL), flush=True)
+    print('PORT_FLEET colossus drives on markers=%d; lift spool C5 %g s, off %g s, mains %g-%g s' % (
+        n, LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL), flush=True)
 
 
 def cover_old_gantry(c4):
@@ -333,30 +350,140 @@ def cover_old_gantry(c4):
     p['ortho'] = 1.0
 
 
-def cone(name, mat, c4):
-    """A plume along local +X from the mouth: unit length, unit radius at the mouth."""
+def hang_effects(craft, marks, c4):
+    """Drive the hull's own drive effects off its thruster markers: each engine's throttle
+    (`thr_throttle_e<i>` on the kit's controls) follows its marker by a driver, so the markers stay
+    the one record of what each nozzle is doing (mains 1-6 are engines 1-6; lift 01-10 are 7-16, both
+    in the hull's declared order). Daylight asks for more than the kit's close-up defaults: brighter
+    bell glows and a stronger glow light on hull and deck.
+
+    The kit's cores and plumes are volumes made for Cycles (`second-wind-vfx/README.md`), and C4/C5
+    render in EEVEE, whose volume grid cannot resolve a plume tens of metres long from 1.8 km (it
+    leaves a faint smudge at best). So each marker also carries `far_plume`: the same core and plume,
+    in the kit's own Colossus colours (`colossus-cinematic/vfx_hull.py`), as soft emissive surfaces
+    that EEVEE draws at any range, sized by the same throttle."""
+    ctl = bpy.data.objects.get(craft.get('swfx_controls', ''))
+    if ctl is None:
+        return 0
+    ctl['thr_throttle'] = 1.0
+    for knob, value in (('thr_brightness', 3.0), ('thr_plume_length', 2.5), ('thr_glow', 4.0)):
+        ctl[knob] = value
+    n = 0
+    for m in marks:
+        kind, num = m.name.rsplit(' | ', 1)[1].split()
+        engine = int(num) + (6 if kind == 'lift' else 0) if kind in ('main', 'lift') else None
+        prop = 'thr_throttle_e%d' % engine if engine else None
+        if prop is None or prop not in ctl:
+            continue
+        ctl.driver_remove('["%s"]' % prop)
+        drv = ctl.driver_add('["%s"]' % prop).driver
+        drv.type = 'AVERAGE'
+        var = drv.variables.new()
+        var.type = 'SINGLE_PROP'
+        var.targets[0].id = m
+        var.targets[0].data_path = '["thrust_throttle"]'
+        far_plume(m, kind, float(m.get('radius_m', 1.5)))
+        n += 1
+    return n
+
+
+# The Colossus's clean drive colours (colossus-cinematic/vfx_hull.py COLOURS): hot core to orange plume.
+CORE_RGB, PLUME_RGB = (1.0, 0.80, 0.52), (1.0, 0.42, 0.08)
+# Per kind: (shell, length and width in bell radii, emission strength, opacity at the mouth). The kit's
+# plume is 11 radii long; a main's is drawn longer so a burn reads from 1.8 km. The lift jets are short.
+FAR_SHAPES = {
+    'main': (('core', 7.0, 0.75, 25.0, 1.0), ('plume', 40.0, 1.9, 4.0, 0.9)),
+    'lift': (('core', 2.5, 0.7, 20.0, 1.0), ('plume', 8.0, 1.4, 4.0, 0.8)),
+}
+
+
+def far_plume(marker, kind, r):
+    """A drive's core and plume as soft emissive cones along the marker's +X (`thrust-markers`
+    convention, `radius_m` the bell's radius in metres), each scaled by the marker's throttle through
+    a driver: full length and width at 1, narrowing to nothing at 0."""
+    me = bpy.data.meshes.get('Fleet far plume cone') or far_cone_mesh()
+    out = []
+    for shell, length, width, strength, alpha in FAR_SHAPES[kind]:
+        ob = bpy.data.objects.new('Fleet %s | %s' % (shell, marker.name.split(' | ', 1)[1]), me)
+        bpy.context.scene.collection.objects.link(ob)
+        ob.material_slots[0].link = 'OBJECT'
+        ob.material_slots[0].material = far_plume_material(shell, strength, alpha)
+        ob.parent = marker
+        ob.matrix_parent_inverse = Matrix.Identity(4)
+        ob.visible_shadow = False
+        L, W = length * r, width * r
+        for axis, expr in ((0, '%g * (0.35 + 0.65 * t)' % L), (1, '%g * t' % W), (2, '%g * t' % W)):
+            drv = ob.driver_add('scale', axis).driver
+            drv.type = 'SCRIPTED'
+            var = drv.variables.new()
+            var.name = 't'
+            var.type = 'SINGLE_PROP'
+            var.targets[0].id = marker
+            var.targets[0].data_path = '["thrust_throttle"]'
+            drv.expression = expr
+        out.append(ob)
+    return out
+
+
+def far_cone_mesh():
+    """Unit cone along +X from the mouth at the origin: radius 1 there, a point at x = 1. One empty
+    material slot, filled per object."""
     bm = bmesh.new()
-    bmesh.ops.create_cone(bm, cap_ends=True, segments=12, radius1=1.0, radius2=0.05, depth=1.0)
+    bmesh.ops.create_cone(bm, cap_ends=False, segments=16, radius1=1.0, radius2=0.02, depth=1.0)
     bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=Matrix.Rotation(math.pi / 2, 3, 'Y'))
     bmesh.ops.translate(bm, verts=bm.verts, vec=(0.5, 0, 0))
-    ob = c4.mesh(name, bm, mat)
-    ob.visible_shadow = False
-    return ob
+    me = bpy.data.meshes.new('Fleet far plume cone')
+    bm.to_mesh(me)
+    bm.free()
+    for poly in me.polygons:
+        poly.use_smooth = True
+    me.materials.append(None)
+    return me
 
 
-def plume_materials():
-    out = []
-    for name, rgb, strength, alpha in (('Fleet plume core', (1.0, 0.85, 0.6), 60.0, 1.0),
-                                       ('Fleet plume glow', (1.0, 0.5, 0.15), 18.0, 0.45)):
-        m = bpy.data.materials.get(name)
-        if m is None:
-            m = bpy.data.materials.new(name)
-            m.use_nodes = True
-            m.surface_render_method = 'BLENDED'
-            p = m.node_tree.nodes['Principled BSDF']
-            p.inputs['Base Color'].default_value = rgb + (1,)
-            p.inputs['Emission Color'].default_value = rgb + (1,)
-            p.inputs['Emission Strength'].default_value = strength
-            p.inputs['Alpha'].default_value = alpha
-        out.append(m)
-    return out
+def far_plume_material(shell, strength, alpha):
+    """Emission that is hottest and most opaque at the mouth and fades along the cone (object X runs
+    0 at the mouth to 1 at the tip), white-hot to the kit's orange, with edges that thin out where
+    the surface turns away from the camera, so no outline shows."""
+    name = 'Fleet far %s %g %g' % (shell, strength, alpha)
+    m = bpy.data.materials.get(name)
+    if m is not None:
+        return m
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    m.surface_render_method = 'BLENDED'
+    m.use_backface_culling = True
+    nodes, links = m.node_tree.nodes, m.node_tree.links
+    bsdf = nodes['Principled BSDF']
+    bsdf.inputs['Base Color'].default_value = (0, 0, 0, 1)
+
+    def math_node(op, a, b, clamp=False):
+        n = nodes.new('ShaderNodeMath')
+        n.operation = op
+        n.use_clamp = clamp
+        for sock, v in ((n.inputs[0], a), (n.inputs[1], b)):
+            if isinstance(v, (int, float)):
+                sock.default_value = v
+            else:
+                links.new(v, sock)
+        return n.outputs[0]
+
+    tc = nodes.new('ShaderNodeTexCoord')
+    sep = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(tc.outputs['Object'], sep.inputs[0])
+    u = math_node('MINIMUM', sep.outputs['X'], 1.0, clamp=True)              # 0 at the mouth, 1 at the tip
+    fade = math_node('POWER', math_node('SUBTRACT', 1.0, u), 1.6 if shell == 'plume' else 1.2)
+    mix = nodes.new('ShaderNodeMix')                                          # white-hot to orange
+    mix.data_type = 'RGBA'
+    links.new(u, mix.inputs['Factor'])
+    mix.inputs['A'].default_value = CORE_RGB + (1,)
+    mix.inputs['B'].default_value = (PLUME_RGB if shell == 'plume' else CORE_RGB) + (1,)
+    links.new(mix.outputs['Result'], bsdf.inputs['Emission Color'])
+    lw = nodes.new('ShaderNodeLayerWeight')                                   # soft edges
+    lw.inputs['Blend'].default_value = 0.5
+    edge = math_node('POWER', math_node('SUBTRACT', 1.0, lw.outputs['Facing']), 1.5)
+    links.new(math_node('MULTIPLY', math_node('MULTIPLY', fade, edge), alpha), bsdf.inputs['Alpha'])
+    links.new(math_node('MULTIPLY', fade, strength), bsdf.inputs['Emission Strength'])
+    return m
+
+
