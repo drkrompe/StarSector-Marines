@@ -29,6 +29,7 @@ parser.add_argument('--dir', default=str(HERE.parents[2]/'build'/'falcon-p'))
 parser.add_argument('--sprite', default=str(GAME_CORE/'graphics/ships/falcon/falcon_p.png'))
 parser.add_argument('--review')
 parser.add_argument('--extra', default='')
+parser.add_argument('--before', help='an earlier build dir: writes before-after-<view>.png for the shared cameras')
 parser.add_argument('--title', default='FALCON (P) / PIRATE LIGHT CRUISER')
 parser.add_argument('--manifest', action='store_true')
 args = parser.parse_args()
@@ -145,6 +146,22 @@ if all((src/(n+'.png')).exists() for n, _ in panels):
         sheet.paste(im, (x, y))
         draw.text((x+28, y+442), label, font=font(20), fill=(39, 49, 55))
     sheet.save(src/'review-sheet.png', optimize=True)
+
+if args.before:
+    for n in ('three-quarter', 'stern', 'bow-detail', 'bridge-detail', 'turret-detail', 'engine-detail', 'stern-detail'):
+        a, b = Path(args.before)/(n+'.png'), src/(n+'.png')
+        if not (a.exists() and b.exists()):
+            continue
+        sheet = Image.new('RGB', (1920, 1080), BG)
+        draw = ImageDraw.Draw(sheet)
+        for i, (p, label) in enumerate(((a, 'BEFORE (accepted blockout)'), (b, 'AFTER'))):
+            im = Image.open(p).convert('RGBA')
+            im = Image.alpha_composite(Image.new('RGBA', im.size, BG+(255,)), im).convert('RGB')
+            sheet.paste(im.resize((960, 540), Image.LANCZOS), (i*960, 270))
+            draw.text((i*960+28, 225), label, font=font(24), fill=(39, 49, 55))
+        draw.text((28, 30), f'{TITLE} / {n.upper()} BEFORE AND AFTER', font=font(32), fill=(39, 49, 55))
+        draw.text((28, 75), 'same camera, same studio light', font=font(20), fill=(72, 81, 88))
+        sheet.save(src/f'before-after-{n}.png', optimize=True)
 
 if args.review:
     order = ['review-sheet', 'top-overlay', 'three-quarter', 'port-side', 'front', 'stern', 'bow-detail',

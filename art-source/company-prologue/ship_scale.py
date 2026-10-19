@@ -208,7 +208,7 @@ HULLS = {
     # The Falcon (P) pirate light cruiser (Asharu battle flagship): the two prongs, central
     # body, bridge dome and waist decks; the drive blocks, outrigger thruster pods, bow
     # forks and the tanks laid on the waist excluded. No fighter bays.
-    'Falcon (P)': dict(units3=231104, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
+    'Falcon (P)': dict(units3=227910, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
                        sprite_px=222),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
@@ -219,7 +219,7 @@ VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SO
                  'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)',
                  'Falcon (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .80}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .81}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
