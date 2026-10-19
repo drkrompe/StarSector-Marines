@@ -100,3 +100,7 @@ onslaught-surface/review/
 onslaught-surface/textures/
 onslaught-surface/grading/
 onslaught-surface/skin-manifest.json
+onslaught-surface/guide/*
+!onslaught-surface/guide/sheet-*-guide.png
+!onslaught-surface/guide/reference-guide.png
+!onslaught-surface/guide/reference-mask.png
