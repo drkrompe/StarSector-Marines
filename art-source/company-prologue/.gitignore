@@ -94,3 +94,14 @@ paragon-geometry/**/*.blend1
 shepherd-cinematic/*.blend
 shepherd-cinematic/*.blend1
 shepherd-cinematic/review/
+
+# onslaught-surface: script outputs
+onslaught-surface/review/
+onslaught-surface/textures/
+onslaught-surface/grading/
+onslaught-surface/skin-manifest.json
+
+# Castle figure: the .blend is a build output of build_castle.py (needs MPFB); the copy for
+# other machines goes to Drive (starsector/builds/castle/<commit>/), never git.
+castle-figure/*.blend
+castle-figure/*.blend1

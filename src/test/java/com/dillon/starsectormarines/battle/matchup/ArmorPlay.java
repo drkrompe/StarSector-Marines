@@ -92,7 +92,7 @@ public final class ArmorPlay {
     /**
      * One side after the fight. Integrity is armor plus structure summed over the side's machines (a dead machine
      * counts zero); damage dealt is the integrity the other side lost, so overkill is not credited. {@code weapons}
-     * apportions that damage among the side's weapons by hits times the weapon's nominal damage, since the
+     * apportions that damage among the side's weapons by hits times the weapon's nominal damage (a contact warhead's payload where it has one), since the
      * simulation credits damage to the shooter and not to the gun.
      */
     public record SideStats(String label, int start, int left, float integrityStart, float integrityLeft,
@@ -384,7 +384,7 @@ public final class ArmorPlay {
                 counts[0]++;
                 if (shot.hit) {
                     counts[1]++;
-                    hitWeight.merge(key, weapon != null ? Math.max(1f, weapon.damage) : 1f, Float::sum);
+                    hitWeight.merge(key, weapon != null ? Math.max(1f, Math.max(weapon.damage, weapon.contactDamage)) : 1f, Float::sum);
                 }
             }
         }

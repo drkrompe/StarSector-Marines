@@ -691,21 +691,44 @@ def docking(kit):
     leaves.build(kit, 'Hull ventral cargo hatch leaves', kit.maroon, .08)
     frame.build(kit, 'Hull ventral cargo hatch frames', kit.orange)
     stripes.build(kit, 'Hull ventral cargo hatch hazard stripes', kit.dark)
-    # Docking clamp hardpoints: a bolted base, a clamp head and two jaws, on the side-module keels.
-    base, head, bolts = Parts(), Parts(), Parts()
+    # Hinge knuckles along each leaf's outboard edge, and stiffening ribs under the leaves.
+    knuckles, ribs = Parts(), Parts()
+    for x0, x1 in hatches:
+        for edge in (YC-10.6, YC+10.6):
+            u = x0+.6
+            while u < x1-1.5:
+                knuckles.cyl((u, edge, z+.95), .38, 1.6, 'X', 16)
+                u += 4.1
+        for u in [x0+2.25+3*k for k in range(6)]:
+            for a, b in ((YC-10.4, YC-.8), (YC+.8, YC+10.4)):
+                ribs.box(u-.3, u+.3, a, b, z+.4, z+.62)
+    knuckles.build(kit, 'Hull ventral cargo hatch hinges', kit.steel, .05)
+    ribs.build(kit, 'Hull ventral cargo hatch leaf ribs', kit.maroon, .08)
+    # Docking clamp hardpoints on the side-module keels: a round bolted flange on a hazard ring,
+    # a turned clamp body with a collar, a head plate, and two hooked jaws on pivot pins.
+    base, head, bolts, jaws, pins, rings = Parts(), Parts(), Parts(), Parts(), Parts(), Parts()
     zk = SIDE_KEEL
     for side, s in SIDES:
         for x in (-2.0, 70.0):
             c = y(67.0, s)
-            base.box(x-3.0, x+3.0, c-3.0, c+3.0, zk-.6, zk+.2)
-            head.box(x-1.6, x+1.6, c-1.6, c+1.6, zk-2.4, zk-.6)
-            for dx in (-1.9, 1.9):
-                head.box(x+dx-.35, x+dx+.35, c-1.2, c+1.2, zk-3.4, zk-1.6)
-            for bx in (-2.4, 2.4):
-                for by in (-2.4, 2.4):
-                    bolts.box(x+bx-.25, x+bx+.25, c+by-.25, c+by+.25, zk-.85, zk-.6)
-    base.build(kit, 'Hull docking clamp bases', kit.steel, .15)
-    head.build(kit, 'Hull docking clamp heads', kit.dark, .1)
+            rings.cyl((x, c, zk+.02), 4.1, -.1, 'Z', 40)
+            base.cyl((x, c, zk+.2), 3.4, -.8, 'Z', 40)
+            head.cyl((x, c, zk-.6), 2.2, -2.0, 'Z', 32)
+            head.cyl((x, c, zk-1.1), 2.55, -.45, 'Z', 32)                # collar
+            head.cyl((x, c, zk-2.6), 1.7, -.5, 'Z', 32)                 # head plate
+            for k in range(10):
+                a = 2*math.pi*(k+.5)/10
+                bolts.cyl((x+2.85*math.cos(a), c+2.85*math.sin(a), zk-.6), .26, -.28, 'Z', 6)
+            for sx in (-1, 1):
+                hook = [(1.25, -1.6), (2.05, -1.6), (2.05, -4.0), (1.85, -4.5), (.75, -4.5), (.75, -3.9), (1.25, -3.9)]
+                poly = [(x+sx*dx, c-.8, zk+dz) for dx, dz in hook]
+                jaws.slab(poly if sx > 0 else poly[::-1], (0, 1.6, 0))
+                pins.cyl((x+sx*1.3, c-1.2, zk-3.5), .32, 2.4, 'Y', 16)
+    rings.build(kit, 'Hull docking clamp hazard rings', kit.orange)
+    base.build(kit, 'Hull docking clamp bases', kit.steel, .12)
+    head.build(kit, 'Hull docking clamp heads', kit.dark, .08)
+    jaws.build(kit, 'Hull docking clamp jaws', kit.steel, .1)
+    pins.build(kit, 'Hull docking clamp pivot pins', kit.pale, .04)
     bolts.build(kit, 'Hull docking clamp bolts', kit.pale)
 
 

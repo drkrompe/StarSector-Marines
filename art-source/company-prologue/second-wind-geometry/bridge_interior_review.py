@@ -99,17 +99,23 @@ def above_room(o):
 
 VIEWS = {
     # name: (hide rule, aim kwargs)
-    '01-forward-station': (glazing, dict(pos=(15.5, .2, 19.2), yaw=6.5, pitch=-8)),
-    '02-port-station': (glazing, dict(pos=(13.0, 3.25, 19.2), yaw=90, pitch=2)),
+    '01-forward-station': (glazing, dict(pos=(16.75, 1.2, 19.2), yaw=0, pitch=-8)),
+    '02-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), yaw=90, pitch=2)),
     '03-room-from-helm': (glazing, dict(pos=(16.5, -2.9, 19.5), target=(10.0, 2.2, 17.4), lens=15)),
     '04-room-from-hatch': (glazing, dict(pos=(9.9, -1.2, 19.4), target=(17.5, 1.5, 18.0), lens=15)),
     '05-cutaway': (above_room, dict(pos=(8.0, -11.0, 30.0), target=(13.4, 0.5, 17.4), lens=28)),
     '06-plan': (above_room, dict(pos=(13.45, 0, 40.0), target=(13.45, 0, 0), ortho=17.5)),
     '07-exterior-port-quarter': (lambda o: False, dict(pos=(100, 130, 100), target=(5, 0, 1), ortho=163)),
     '08-exterior-bridge': (lambda o: False, dict(pos=(60, 60, 50), target=(12, 0, 14), ortho=55)),
+    # Castle at the comms bank: from the port station turned aft onto her, and from across the
+    # plot table (the MakeHuman figure when castle-figure.blend is built; see figures()).
+    '09-castle-from-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), target=(10.9, 3.4, 18.85), lens=24)),
+    '10-castle-across-the-room': (glazing, dict(pos=(13.4, -1.4, 19.1), target=(10.9, 3.4, 18.0), lens=24)),
 }
 wanted = opts['views'].split(',') if opts['views'] else [v for v in VIEWS if not opts['exterior_only']
                                                        or v.startswith('07') or v.startswith('08')]
+if not opts['views'] and not opts['figures']:
+    wanted = [v for v in wanted if not v.startswith(('09', '10'))]
 for name in wanted:
     hide, kw = VIEWS[name]
     show(hide)
