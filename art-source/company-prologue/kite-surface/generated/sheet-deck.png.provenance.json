@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155b7-b969-7df1-9980-228a4987e251",
+  "source": "/Users/dillon/.codex/generated_images/01a155b7-b969-7df1-9980-228a4987e251/exec-b450b67b-6aea-4cf0-b9f7-d3a79b524e62.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/kite-surface/generated/sheet-deck.png",
+    "sha256": "2b82f27e95726d1402a6625a0b6504d3754619f02c0a77c9722759a9909294a2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/kite-surface/prompts/sheet-deck.prompt.txt",
+  "promptSha256": "1f9495842eeebe5ce243c95f5aed118bb5c9c8eaad2617d6326d024418279af5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: repaint these exact shapes, nothing moves\nImage 2: Material, colour and wear finish only; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of TWO separate orthographic renders of single hull faces of one 3D spacecraft (a Kite-class pirate boarding shuttle, a 52 m lifting-body aeroshuttle kept running by a pirate crew), each face seen square-on from directly above and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\nleft: the whole wing deck from above, a wide light grey shape running from one wing tip to the other with stepped trailing edges and notches;\nright: the cabin roof and the turret hump from above: a long narrow cream strip joined to a broader cream block.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its worn pirate finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each face in INPUT 1 as that worn hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of small fasteners, flush access panels, grime in the seams, faded and worn paint with dark bare steel showing through in small scattered spots and along plate edges. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: light grey areas become the very dark warm brown-grey pirate hull enamel of INPUT 2; cream areas become its grimy yellowed bone-cream; dark grey areas stay dark gunmetal steel. Do not repaint any part of a shape another colour: no stripes, slashes, emblems or differently coloured patches.\n- Wear is heavy but spread across each whole shape, as on INPUT 2. No holes, dents, burns, scorch marks, impact damage, lettering, numbers, decals or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/kite-surface/guide/sheet-deck-guide.png",
+      "sha256": "a770d23d06dc1687c2d1815ff9520a87c7ac2045247297f9f610cb405ff97019",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: repaint these exact shapes, nothing moves"
+    },
+    {
+      "path": "art-source/company-prologue/kite-surface/reference/finish-reference.png",
+      "sha256": "a85e6fff71e4bb857038eff36bf3533a2b58b794178af8a1ef98bb83f19824de",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, colour and wear finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the two faces, preserving Image 1’s layout and using Image 2 only for the finish."
+  ],
+  "usage": {
+    "input_tokens": 69912,
+    "cached_input_tokens": 56960,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 885,
+    "reasoning_output_tokens": 62
+  },
+  "elapsedSeconds": 75.6
+}

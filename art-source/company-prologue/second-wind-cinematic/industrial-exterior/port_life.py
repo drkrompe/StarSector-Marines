@@ -49,7 +49,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
-C5_LENGTH = 34.0            # C5 (33.5 s with its title) and a little over; it starts on C4's last frame
+C5_LENGTH = 40.5            # C5 (40 s with its title) and a little over; it starts on C4's last frame
 KEY_STEP = 2                # frames between baked keys
 HAZE_SKIP = {'Port beacon', 'Lifter plume'}
 
