@@ -1,4 +1,4 @@
-WOLF (P) - CINEMATIC GEOMETRY
+WOLF (P) - CINEMATIC GEOMETRY (PASSES 1-2, 4 SCALE)
 
 Purpose
 A scripted Blender model of the vanilla Wolf frigate in its pirate skin, for
@@ -40,6 +40,25 @@ Reading of the sprite (wf_hull)
   two emitter wells, grey missile pods out to Y +-25, crimson wing roots.
 - Aft body (rows 58-73): two crimson armour domes over the removed turrets.
 - Engine block (rows 74-94): grey machinery with the three HIGH_TECH drives.
+
+Pass 2 detail (wf_detail, wf_mounts)
+Read off both sprites at 20x: sensor eyes and pale shoulder ports round the
+bridge canopy, crimson cheek strips down the head, a second canopy on the
+neck spine, sensor heads on the outriggers and their flank vent grilles
+(lit orange only to starboard, as both sprites draw it), the main body's
+two round emitter wells, lattice ribs and wells on the missile pods, the aft
+hatch well and link frames, the engine block's collar, rails, centre stack,
+finned drive housings and troughs, drive bezels, seam bands, and the pirate
+skin's "heavily modified - and poorly maintained" as form: mismatched plates
+welded over the armour domes and wing roots, weld beads round the domes.
+Weapons come from the shared turret kit (../turret-kit), which gained the
+ion cannon turret and the mining blaster and Annihilator hardpoints for this
+hull: the ion cannon on a kit barbette (Turret 1 pivot / elevation), the
+mining blaster as the bow claw's middle in a channel through the fork base
+(the sprite's inner tines are its prongs), the Annihilators set into the pod
+faces. Silhouette IoU 0.933 with the hardpoint guns left out of the top
+render (the hull sprite draws no weapons; they stand proud of the bow and
+pods as the game draws them).
 
 Slots (verified against the installed wolf.ship and the skin on every build)
   id      mount      size    type      location   angle  arc
@@ -88,7 +107,7 @@ under starsector/builds/wolf-p/<short-commit>/.
 
 Files
 build_wolf.py (driver), wf_kit.py, wf_hull.py, wf_engines.py, wf_mounts.py,
-wf_lights.py (one module per area), compose_review.py (IoU, shot extents,
+wf_lights.py, wf_detail.py (one module per area), compose_review.py (IoU, shot extents,
 review sheet), compare_lineup.py (true-scale lineup against the Hound and
 Colossus), geometry.json (identity, slots, engines, turrets, lamps, scale
 record, asset contract, IoU, shot extents).

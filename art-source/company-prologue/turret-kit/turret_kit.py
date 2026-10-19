@@ -101,6 +101,8 @@ WEAPONS = {
     # Point defence (common tech, the Paragon's PD): dark housing, red collar, light emitter drum.
     'pdlaser':      dict(house='hand', chroma=.7, paints={'paint': (.2, .2, .22), 'accent': (.42, .12, .09),
                                                           'accent2': (.62, .63, .64)}),
+    # The Wolf (P)'s WS 001: grey prongs and studs, the green shell as its accent.
+    'ioncannon':    dict(house='hand', chroma=.75, paints={'paint': (.42, .46, .43), 'accent': (.109, .262, .156)}),
     'harpoonpod':  dict(house='box', rack='open', missiles=(1, 3), mlen=1.2, mrad=.09, mcol=(.5, .6, .5)),
     'sabotpod':    dict(house='box', rack='open', missiles=(1, 3), mlen=.85, mrad=.095, mcol=(.66, .66, .62)),
     'salamanderpod': dict(house='box', rack='open', missiles=(1, 2), mlen=.9, mrad=.11, mcol=(.6, .3, .2)),
@@ -2633,13 +2635,90 @@ def _house_pdlaser(g, f, s, r, z0):
                              'muzzles': _tt_muzzles(sp, k, za), 'elevation_limits': (-5, 75)}
 
 
+def _house_ioncannon(g, f, s, r, z0):
+    """ion_cannon_turret_base.png (36 x 36 px; the Wolf (P)'s WS 001). A green
+    capsule on a turntable: the shell is a crowned pod widest at its middle
+    (+-8 px), tapering to a rear cap, with grey studs on its flanks (the sprite's
+    paired lugs). From its face two curved grey prongs run forward and close in
+    toward their tips (rows 4-11, the field guides); the emitter between them is
+    a coil-wound tube on the elevation empty, its lens lit in the ion glow
+    colour (100, 200, 255). Fire point 10 px ahead (turretOffsets)."""
+    k = r/NOMINAL_RING['SMALL']
+    sp = sprite(s.get('sprite', s['weapon']))
+    _turntable(g, k, z0, -1.0, 8.4, .5)
+    zb = z0+.5*k
+    # The shell: lofted plan stations (x, half-width), crowned sections.
+    plan = [(-8.6, 1.8), (-7.6, 5.0), (-6.0, 7.6), (-2.5, 8.6), (0.5, 8.4), (3.0, 7.8), (5.2, 6.8), (6.6, 5.0)]
+    shell = g['accent#shell']
+    stations = []
+    for x, hw in plan:
+        h = 3.6 if abs(x) < 5 else 3.6-.18*(abs(x)-5)
+        sec = section(hw, 0, h, top=.5*hw, bot=.25, tumble=.18*hw, round_=2)
+        stations.append((x*k, [(y*k, zb+z*k) for y, z in sec]))
+    shell.loft_x(stations)
+    # Plate seams cut through the shell, and a sunken panel on the crown.
+    for x in (-4.6, 1.4):
+        shell.cut().box((x*k, 0, zb+3.6*k), (.35*k, 18*k, 1.2*k))
+    shell.cut().box((-1.6*k, 0, zb+3.75*k), (4.4*k, 5.0*k, .6*k))
+    g['dark'].box((-1.6*k, 0, zb+3.2*k), (4.2*k, 4.8*k, .2*k))
+    g['steel'].box((-1.6*k, 0, zb+3.35*k), (3.0*k, 3.4*k, .3*k), .1*k)
+    # Flank studs (the sprite's grey lugs) and the rear cap.
+    for sy in (1, -1):
+        for x in (-2.6, 2.4):
+            g['steel'].cyl((x*k, sy*7.9*k, zb+1.6*k), 1.05*k, 1.2*k, 'Y', n=16, bevel=.15*k)
+            g['dark'].cyl((x*k, sy*8.55*k, zb+1.6*k), .45*k, .15*k, 'Y', n=12)
+    g['steel'].box((-8.2*k, 0, zb+1.2*k), (1.4*k, 3.4*k, 2.0*k), .2*k)
+    # The field-guide prongs: curved grey arms swept from the shell's face, closing
+    # toward their tips; one continuous solid each, tapering in width and height.
+    path = [(3.6, 6.4), (6.0, 6.3), (8.4, 5.9), (10.4, 5.1), (12.0, 4.1), (13.3, 2.8)]
+    for sy in (1, -1):
+        rings = []
+        for i, (x, y) in enumerate(path):
+            a0 = path[max(i-1, 0)]
+            a1 = path[min(i+1, len(path)-1)]
+            dx, dy = a1[0]-a0[0], a1[1]-a0[1]
+            L = math.hypot(dx, dy)
+            nx, ny = -dy/L, dx/L
+            t = i/(len(path)-1)
+            w, h = 1.6-.7*t, 2.6-1.1*t
+            sec = [(-w, .7), (w, .7), (.65*w, .7+h), (-.65*w, .7+h)]
+            rings.append([(x+v*nx, sy*(y+v*ny), z) for v, z in sec])
+        m = g['paint']
+        vs = [[m.bm.verts.new(m.base @ Vector((x*k, y*k, zb+z*k))) for x, y, z in ring] for ring in rings]
+        for ra, rb in zip(vs, vs[1:]):
+            for i in range(4):
+                m.bm.faces.new((ra[i], ra[(i+1) % 4], rb[(i+1) % 4], rb[i]))
+        m.bm.faces.new(vs[0])
+        m.bm.faces.new(vs[-1])
+        g['lamp_blue'].box((12.7*k, sy*3.5*k, zb+1.9*k), (1.0*k, .25*k, .45*k),
+                           rot=Matrix.Rotation(sy*math.radians(-40), 4, 'Z'))
+        g['dark'].box((5.4*k, sy*6.4*k, zb+1.8*k), (.3*k, 1.6*k, 1.6*k))      # prong root seam
+    za = zb+2.0*k
+
+    def gun(gg, za):
+        # The emitter: a green snout between the prongs (the sprite's green core,
+        # rows 6-12), coil rings round its root, the lens at its face.
+        snout = [(4.0, 2.6), (8.0, 2.3), (10.6, 1.8), (11.4, 1.2)]
+        st = []
+        for x, hw in snout:
+            st.append((x*k, [(y*k, za+z*k) for y, z in section(hw, -1.5, 1.4, top=.5*hw, bot=.4*hw, round_=1)]))
+        gg['accent'].loft_x(st)
+        for x in (5.0, 6.0, 7.0):
+            gg['accent'].cut().box((x*k, 0, za+1.4*k), (.35*k, 6*k, .9*k))
+        gg['dark'].box((8.6*k, 0, za+1.35*k), (3.6*k, .5*k, .2*k))
+        gg['lamp_blue'].lathe([(1.0*k, 0), (.8*k, .3*k), (0, .45*k)], 24, (11.4*k, 0, za), 'X')
+    return (2.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun,
+                              'muzzles': [(x*k, y*k, za) for x, y in sp['offsets']],
+                              'elevation_limits': (-5, 20)}
+
+
 HANDS = {'heavyac': _house_heavyac2, 'flak': _house_flak2, 'vulcan': _house_vulcan, 'lightac': _house_lightac,
          'lightmg': _house_lightmg, 'dualflak': _house_dualflak, 'needler': _house_needler,
          'squall': _house_squall, 'hurricane': _house_hurricane, 'mark9': _house_mark9,
          'hellbore': _house_hellbore, 'hephaestus': _house_hephaestus, 'devastator': _house_devastator,
          'heavymauler': _house_heavymauler, 'hveldriver': _house_hveldriver,
          'tachyonlance': _house_tachyonlance, 'gravitonbeam': _house_gravitonbeam, 'taclaser': _house_taclaser,
-         'reaper': _house_reaper, 'pdlaser': _house_pdlaser}
+         'reaper': _house_reaper, 'pdlaser': _house_pdlaser, 'ioncannon': _house_ioncannon}
 
 # --- hardpoints: fixed mounts ---------------------------------------------------------
 # A hardpoint does not train: it sits in its slot (often a bay cut into the hull) and
@@ -2785,6 +2864,66 @@ def _hp_tachyonlance(g, f, s, k=1.0):
     return [(5.0*k, 0.0, 0.0)]
 
 
+def _hp_miningblaster(g, f, s, k=1.0):
+    """blaster2_hardpoint_base.png (24 x 44 px; the Wolf (P)'s WS 004 mining blaster).
+    The slot is a quarter of the sprite's length from its back, so the gun runs
+    from 8.5 px behind it to two prongs ending 23.5 px ahead; the fire point is
+    15 px ahead (hardpointOffsets), at the prongs' root. A ribbed capacitor body
+    (the sprite's dark dashes are transverse cooling slots, cut, not painted),
+    its rear shoulders stepped out wider than its nose, and two yellow focusing
+    prongs with ribbed flanks either side of a dark emitter face whose lens glows
+    in the blaster's red (255, 100, 100)."""
+    body = g['paint#body']
+    rear = [(-8.5, -9.6), (-8.5, 9.6), (-6.4, 10.6), (2.6, 10.6), (4.2, 9.0)]
+    plan = _ccw([(x, y) for x, y in rear]+[(14.6, 8.6), (14.6, -8.6)]+[(x, -y) for x, y in reversed(rear[2:])])
+    body.prism([(x*k, y*k) for x, y in plan], -3.6*k, 2.6*k, 1.4*k, 4.0*k)
+    for x in (-6.0, -3.6, -1.2, 1.2):                 # cooling slots across the rear deck
+        for sy in (1, -1):
+            body.cut().box((x*k, sy*5.0*k, 4.0*k), (.7*k, 6.0*k, 1.6*k))
+    body.cut().box((9.0*k, 0, 4.0*k), (8.0*k, 2.4*k, 1.4*k))   # spine trench
+    g['dark'].box((9.0*k, 0, 3.0*k), (8.0*k, 2.4*k, .2*k))
+    g['metal'].cyl((9.0*k, 0, 3.4*k), .7*k, 7.6*k, 'X', n=16)   # conduit in the trench
+    g['steel'].box((-8.9*k, 0, 0), (.8*k, 16*k, 5.2*k), .15*k)  # rear plate into the bay
+    for sy in (1, -1):                                 # the focusing prongs
+        prong = g['accent#prong']
+        prong.prism([(x*k, sy*y*k) for x, y in _ccw([(13.0, 3.4), (22.4, 3.6), (23.6, 5.0), (23.6, 8.0),
+                                                       (22.0, 9.2), (13.0, 9.2)])][::(1 if sy > 0 else -1)],
+                     -2.6*k, 1.6*k, .8*k, 2.6*k)
+        for x in (15.2, 17.2, 19.2, 21.2):
+            prong.cut().box((x*k, sy*9.2*k, 0), (.5*k, 1.2*k, 5.0*k))
+            prong.cut().box((x*k, sy*3.4*k, 0), (.5*k, 1.0*k, 5.0*k))
+    g['dark'].box((15.0*k, 0, 0), (.6*k, 6.6*k, 4.2*k))           # emitter face
+    g['steel'].ring((15.3*k, 0, 0), 1.6*k, 2.4*k, .5*k, 'X', n=24)
+    g['lamp_red'].lathe([(1.6*k, 0), (1.2*k, .4*k), (0, .6*k)], 24, (15.35*k, 0, 0), 'X')
+    return [(15.0*k, 0.0, 0.0)]
+
+
+def _hp_annihilator(g, f, s, k=1.0):
+    """launcher_annihilator_hardpoint_base.png (20 x 30 px; the Wolf (P)'s WS 005 /
+    WS 006 Annihilator pods). A squat ribbed launcher box from 6 px behind the slot
+    to its face 11 px ahead, wider at the shoulders (+-8) than its rear (+-6),
+    with the five rocket tubes in a row across the face (the .wpn's fire points
+    at y -4..4, 15 px ahead; their angle offsets splay the rockets, not the
+    tubes). Muzzle anchors sit at the tube mouths."""
+    box = g['paint#box']
+    plan = _ccw([(-6.0, -5.6), (1.4, -6.2), (2.6, -8.0), (11.0, -8.0), (11.0, 8.0), (2.6, 8.0), (1.4, 6.2),
+                 (-6.0, 5.6)])
+    box.prism([(x*k, y*k) for x, y in plan], -3.0*k, 2.4*k, .9*k, 3.2*k)
+    for x in (-3.6, -1.6, 4.6, 7.2):                   # the sprite's ribs: grooves across the top
+        box.cut().box((x*k, 0, 3.2*k), (.5*k, 12*k, 1.0*k))
+    for sy in (1, -1):
+        g['steel'].box((6.6*k, sy*8.25*k, -.2*k), (6.0*k, .6*k, 3.2*k), .1*k)   # side rails
+    tubes = g['steel#tubes']
+    mouths = []
+    for y in (-4.0, -2.0, 0.0, 2.0, 4.0):
+        tubes.cyl((11.2*k, y*k, .2*k), .9*k, 1.2*k, 'X', n=16, bevel=.08*k)
+        tubes.cut().cyl((11.6*k, y*k, .2*k), .62*k, 1.6*k, 'X', n=16)
+        g['dark'].cyl((10.9*k, y*k, .2*k), .62*k, .1*k, 'X', n=16)
+        g['mark'].cyl((10.95*k, y*k, .2*k), .4*k, .1*k, 'X', n=12)            # rocket nose in the tube
+        mouths.append((11.8*k, y*k, .2*k))
+    return mouths
+
+
 HARDPOINT_WEAPONS = {
     # Tachyon lance as a spinal beam projector (the Paragon's bow pair, owner 2026-10-19).
     'tachyonlance': dict(builder=_hp_tachyonlance, chroma=.7,
@@ -2793,6 +2932,11 @@ HARDPOINT_WEAPONS = {
     # the Tri-Tachyon halfway paints as for its turrets.
     'autopulse': dict(builder=_hp_autopulse, chroma=.7,
                       paints={'paint': (.62, .61, .52), 'accent': (.56, .57, .6), 'accent2': (.72, .72, .74)}),
+    # The Wolf (P)'s pirate fit (wolf_d_pirates_Attack): the mining blaster in its bow
+    # fork and the Annihilator pods in its missile pods; the sprites' own sand-yellow
+    # and warm grey.
+    'miningblaster': dict(builder=_hp_miningblaster, paints={'paint': (.43, .41, .2), 'accent': (.5, .47, .22)}),
+    'annihilator': dict(builder=_hp_annihilator, paints={'paint': (.42, .36, .27)}),
 }
 
 
