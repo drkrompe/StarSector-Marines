@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-19 — the rise and the title are in the layout scene: up to about 1.8 km by 26 s, the title over the settling port.
+Updated: 2026-10-19 — travel-reels line moved to C3, C4 opens on "Greywater's past the cranes", Kilo Nine line drafts; the rise and title are in the layout scene.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -18,8 +18,8 @@ makes a speech before the closing.
 |---|---|---|
 | C1–C2 | The hail as recorded, ending "Corridor four, mounts cold. Thank you, Approach." | Scrutiny. The ship is small, Approach is cold, and Castle is careful. |
 | Entry | **"Cleared. Everybody breathe."** (replaces "Well. Somebody knows we're here.", which could be heard as a threat) | Relief. Her first words to the passengers rather than to Approach, which sets up the closing's "All hands". |
-| C3 | Silent. | Wonder, carried by the picture. |
-| C4 | **"Like the travel reels they ran in the canteen... except this one doesn't loop."** Optional half-line as the ship drops behind the cranes: "Greywater's past the cranes. Let me do the talking." | Recognition. Until now these people knew landscapes only from a screen on the Claim, and this one is real and goes on. |
+| C3 | Silent while the ship levels out, then **"Like the travel reels they ran in the canteen... except this one doesn't loop."** (moved from C4, owner 2026-10-19, so it plays over the jungle) | Wonder, then recognition. Until now these people knew landscapes only from a screen on the Claim, and this one is real and goes on. |
+| C4 | **"Greywater's past the cranes. Let me do the talking."** as the shot opens, then perhaps one line about where they land (below). | Arrival: back to business, and somewhere of their own to land. |
 | C5 | The closing lines below. | Permission: go and live here. |
 
 The prologue pages carry the wound the hope answers. Facility support ended in
@@ -32,6 +32,16 @@ Review takes of the new Entry, C4 and C5 lines exist in Castle's voice
 (`storyboard-v3.md`, Casting), made with `arrival-audio/record_castle_lines.py`.
 Until the owner picks takes, the shipped `jangalaArrivalHail09` string and audio
 stay as they are, so caption and voice still match.
+
+## Open: a line about Kilo Nine (owner to choose)
+
+The owner may want Castle to say where they are landing as C4 comes down over the
+yard. Drafts, short enough for C4's pan, in her calm, dry register; none is recorded
+until one is chosen:
+
+1. "Kilo Nine. East end, behind the fence. Nessa's yard... ours, for now."
+2. "That's Kilo Nine, past the container stacks. Not a public cradle. Nessa kept it open for us."
+3. "Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour."
 
 ## Who speaks, and from where
 
