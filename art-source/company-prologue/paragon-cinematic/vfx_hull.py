@@ -79,12 +79,17 @@ def _rgb(*c):
 
 
 # Vanilla beam data: (width, range, fringe, core, glow, chargeup s, chargedown s, burst s).
+# Only the PD laser carries vanilla's PD hint (weapon_data.csv): it engages
+# missiles and fighters, never the ship's main target.
 WEAPONS = {
     'tachyonlance': (25.0, 1000, _rgb(85, 25, 215), _rgb(255, 255, 255), _rgb(165, 100, 255), .5, 1.0, 1.0),
     'gravitonbeam': (20.0, 1000, _rgb(5, 135, 175), _rgb(200, 225, 255), _rgb(25, 215, 255), .1, .1, None),
     'taclaser': (13.0, 1000, _rgb(0, 255, 0), _rgb(255, 255, 255), _rgb(155, 255, 155), .1, .1, None),
     'pdlaser': (12.0, 500, _rgb(155, 0, 0), _rgb(255, 255, 255), _rgb(255, 100, 100), 0.0, .25, None),
 }
+
+
+PD = ('pdlaser',)
 
 
 def _beams():
@@ -98,7 +103,7 @@ def _beams():
             beams.append(dict(id=s['id'].replace('WS ', 'ws') + ('' if len(s['muzzles']) == 1 else f'_{k}'),
                               slot=s['id'], mount=s['mount'], muzzle=m, weapon=s['weapon'], width=width,
                               range=rng, fringe=fringe, core=core, glow=glow, chargeup=up,
-                              chargedown=down, burst=burst))
+                              chargedown=down, burst=burst, pd=s['weapon'] in PD))
     return beams
 
 

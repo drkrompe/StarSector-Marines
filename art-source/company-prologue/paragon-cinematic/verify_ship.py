@@ -29,9 +29,12 @@ Ship with effects (`PARAGON | clean` + `SWFX` in one load):
   each beam's core runs from its muzzle along the line of fire to its range
   and its impact flare sits at the far end; a beam on a training turret
   swings with it; the lance's charge envelope lights the emitter first;
-- engaging a target ahead and one on the port bow (aim.py): the aft turrets
-  hold fire ahead, and a ray along every fired beam's core meets no part of
-  the ship but its own weapon;
+- engaging a target ahead and one on the port bow (aim.py): the PD lasers
+  never fire on the main target, the aft turrets hold fire ahead, and a ray
+  along every fired beam's core meets no part of the ship but its own weapon;
+- point defence against five missiles: at least four PD lasers engage, each a
+  missile inside its 500-unit reach along a clear line, and the missile beyond
+  every PD laser's reach is left alone;
 - every driver in SWFX is valid;
 - moving the root carries every plume with the ship.
 """
@@ -298,7 +301,25 @@ for name, target in (('ahead', (1000, 0, 25)), ('port bow', (850, 500, 200))):
         if not ok:
             bad.append((name, i, blocker))
         ctrl[f'beam_t_{i}'] = 0.0
+pd_ids = {b['id'] for b in man['beams'] if b['pd']}
+check('point defence never fires on the main target', pd_ids == {'ws011', 'ws016', 'ws017', 'ws022', 'ws023'}
+      and not pd_ids & set(fired['ahead'] + fired['port bow']), sorted(pd_ids))
 check('aft turrets hold fire on a target ahead', not {'ws009', 'ws010', 'ws023'} & set(fired['ahead']), fired['ahead'])
+# Point defence: each PD laser takes a missile inside its 500-unit reach along a
+# clear line; one far beyond every PD laser's reach is left alone.
+threats = [Vector(x) for x in ((260, 230, 60), (240, -230, 70), (-290, -190, 50), (-340, 40, 90), (900, -60, 80))]
+pd = aim.point_defense(man, threats)
+upd()
+bad = []
+for i, k in pd['firing'].items():
+    b = next(x for x in man['beams'] if x['id'] == i)
+    muz = bpy.data.objects[b['muzzle']].matrix_world.translation
+    reach = (threats[k] - muz).length
+    ok, blocker = swfx_beams.clear_line(muz, threats[k], ignore=(f"Weapon {b['slot']}",), short=aim.THREAT_RADIUS)
+    if reach > b['range'] or not ok or k == len(threats) - 1:
+        bad.append((i, k, round(reach), blocker))
+check('point defence engages missiles in reach along clear lines', not bad and len(pd['firing']) >= 4,
+      bad or {i: k + 1 for i, k in pd['firing'].items()})
 check('no fired beam cuts the hull', not bad and all(fired.values()), bad or {k: len(v) for k, v in fired.items()})
 p = bpy.data.objects[f'{P} plume e5']
 q = bpy.data.objects[f'{B} ws003 rig'] if f'{B} ws003 rig' in bpy.data.objects else bpy.data.objects[f'{B} ws003']
