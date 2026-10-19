@@ -1,0 +1,802 @@
+{
+  "status": "Pass 1 blockout: silhouette, sections, slots, drives, anchors and running lights; material classes coloured per livery.",
+  "variant": "pirate",
+  "hull": {
+    "name": "Enforcer (P)",
+    "hullId": "enforcer",
+    "skinHullId": "enforcer_d_pirates",
+    "size": "DESTROYER",
+    "style": "LOW_TECH",
+    "tech": "Pirate",
+    "designation": "Destroyer",
+    "livery": "pirate (enforcer_pirates.png): stripped gunmetal, red welded slabs",
+    "source": {
+      "ship": "data/hulls/enforcer.ship",
+      "skin": "data/hulls/skins/enforcer_d_pirates.skin",
+      "sprite": "graphics/ships/enforcer/enforcer_pirates.png",
+      "ship_data": "data/hulls/ship_data.csv (row id enforcer)",
+      "variants": "data/variants/enforcer/*.variant (slots only; loadouts not modelled)"
+    },
+    "ship_system": "burndrive",
+    "shield": "FRONT 150 deg (not modelled)",
+    "crew": [
+      60,
+      100
+    ],
+    "cargo": 90,
+    "fuel": 90
+  },
+  "provenance": "verified against the installed data/hulls/enforcer.ship and data/hulls/skins/enforcer_d_pirates.skin",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.71,
+  "scale": {
+    "published_metres_per_unit": 0.71,
+    "measured_this_build": {
+      "enclosed_units3": 170644,
+      "solids": [
+        "Hull carapace",
+        "Hull ventral keel",
+        "Hull neck",
+        "Hull prow",
+        "Hull aft spine",
+        "Bridge deckhouse",
+        "Hull port engine block",
+        "Hull starboard engine block"
+      ]
+    },
+    "size_m": [
+      94.2,
+      93.7,
+      19.6
+    ],
+    "person_1_8_m_in_units": 2.54,
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number",
+    "method": "provisional: the shot plan's 95 m estimate over the 134-unit hull; pass 4 solves it with ship_scale.py"
+  },
+  "sprite": {
+    "size": [
+      136,
+      136
+    ],
+    "center": [
+      68,
+      67
+    ],
+    "pixel_to_model": "col c, row r (from the top) covers X 68-r..69-r, Y 67-c..68-c"
+  },
+  "dimensions": {
+    "min": [
+      -66.36,
+      -66.0,
+      -16.0
+    ],
+    "max": [
+      66.33,
+      66.0,
+      11.6
+    ],
+    "size": [
+      132.69,
+      132.0,
+      27.6
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        -15,
+        44,
+        7.4
+      ],
+      "angle": 90,
+      "arc": 210,
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 001 anchor",
+      "muzzles": [
+        "Anchor turret 1 barrel 1 muzzle",
+        "Anchor turret 1 barrel 2 muzzle"
+      ]
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        12,
+        29,
+        7.4
+      ],
+      "angle": 30,
+      "arc": 125,
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 002 anchor",
+      "muzzles": [
+        "Anchor turret 2 barrel 1 muzzle",
+        "Anchor turret 2 barrel 2 muzzle"
+      ]
+    },
+    {
+      "id": "WS 003",
+      "location": [
+        19,
+        0,
+        7.4
+      ],
+      "angle": 0,
+      "arc": 125,
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 003 anchor",
+      "muzzles": [
+        "Anchor turret 3 barrel 1 muzzle",
+        "Anchor turret 3 barrel 2 muzzle"
+      ]
+    },
+    {
+      "id": "WS 004",
+      "location": [
+        12,
+        -29,
+        7.4
+      ],
+      "angle": -30,
+      "arc": 125,
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 004 anchor",
+      "muzzles": [
+        "Anchor turret 4 barrel 1 muzzle",
+        "Anchor turret 4 barrel 2 muzzle"
+      ]
+    },
+    {
+      "id": "WS 005",
+      "location": [
+        -15,
+        -44,
+        7.4
+      ],
+      "angle": -90,
+      "arc": 210,
+      "mount": "TURRET",
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 005 anchor",
+      "muzzles": [
+        "Anchor turret 5 barrel 1 muzzle",
+        "Anchor turret 5 barrel 2 muzzle"
+      ]
+    },
+    {
+      "id": "WS 006",
+      "location": [
+        29,
+        49,
+        1.0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 006 anchor",
+      "muzzles": [
+        "Anchor weapon WS 006 muzzle"
+      ]
+    },
+    {
+      "id": "WS 007",
+      "location": [
+        38,
+        30,
+        1.0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 007 anchor",
+      "muzzles": [
+        "Anchor weapon WS 007 muzzle"
+      ]
+    },
+    {
+      "id": "WS 008",
+      "location": [
+        38,
+        -30,
+        1.0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 008 anchor",
+      "muzzles": [
+        "Anchor weapon WS 008 muzzle"
+      ]
+    },
+    {
+      "id": "WS 009",
+      "location": [
+        29,
+        -49,
+        1.0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 009 anchor",
+      "muzzles": [
+        "Anchor weapon WS 009 muzzle"
+      ]
+    }
+  ],
+  "turrets": [
+    {
+      "index": 1,
+      "slot": "WS 001",
+      "pivot": "Turret 1 pivot",
+      "location": [
+        -15,
+        44,
+        7.4
+      ],
+      "rest_angle_deg": 90,
+      "arc_deg": 210,
+      "fixed": [
+        "Turret 1 barbette",
+        "Turret 1 traverse gap"
+      ],
+      "trained": [
+        "Turret 1 gunhouse",
+        "Turret 1 mantlet",
+        "Turret 1 barrel 1",
+        "Turret 1 barrel 1 muzzle brake",
+        "Anchor turret 1 barrel 1 muzzle",
+        "Turret 1 barrel 2",
+        "Turret 1 barrel 2 muzzle brake",
+        "Anchor turret 1 barrel 2 muzzle"
+      ],
+      "muzzles": [
+        "Anchor turret 1 barrel 1 muzzle",
+        "Anchor turret 1 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 2,
+      "slot": "WS 002",
+      "pivot": "Turret 2 pivot",
+      "location": [
+        12,
+        29,
+        7.4
+      ],
+      "rest_angle_deg": 30,
+      "arc_deg": 125,
+      "fixed": [
+        "Turret 2 barbette",
+        "Turret 2 traverse gap"
+      ],
+      "trained": [
+        "Turret 2 gunhouse",
+        "Turret 2 mantlet",
+        "Turret 2 barrel 1",
+        "Turret 2 barrel 1 muzzle brake",
+        "Anchor turret 2 barrel 1 muzzle",
+        "Turret 2 barrel 2",
+        "Turret 2 barrel 2 muzzle brake",
+        "Anchor turret 2 barrel 2 muzzle"
+      ],
+      "muzzles": [
+        "Anchor turret 2 barrel 1 muzzle",
+        "Anchor turret 2 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 3,
+      "slot": "WS 003",
+      "pivot": "Turret 3 pivot",
+      "location": [
+        19,
+        0,
+        7.4
+      ],
+      "rest_angle_deg": 0,
+      "arc_deg": 125,
+      "fixed": [
+        "Turret 3 barbette",
+        "Turret 3 traverse gap"
+      ],
+      "trained": [
+        "Turret 3 gunhouse",
+        "Turret 3 mantlet",
+        "Turret 3 barrel 1",
+        "Turret 3 barrel 1 muzzle brake",
+        "Anchor turret 3 barrel 1 muzzle",
+        "Turret 3 barrel 2",
+        "Turret 3 barrel 2 muzzle brake",
+        "Anchor turret 3 barrel 2 muzzle"
+      ],
+      "muzzles": [
+        "Anchor turret 3 barrel 1 muzzle",
+        "Anchor turret 3 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 4,
+      "slot": "WS 004",
+      "pivot": "Turret 4 pivot",
+      "location": [
+        12,
+        -29,
+        7.4
+      ],
+      "rest_angle_deg": -30,
+      "arc_deg": 125,
+      "fixed": [
+        "Turret 4 barbette",
+        "Turret 4 traverse gap"
+      ],
+      "trained": [
+        "Turret 4 gunhouse",
+        "Turret 4 mantlet",
+        "Turret 4 barrel 1",
+        "Turret 4 barrel 1 muzzle brake",
+        "Anchor turret 4 barrel 1 muzzle",
+        "Turret 4 barrel 2",
+        "Turret 4 barrel 2 muzzle brake",
+        "Anchor turret 4 barrel 2 muzzle"
+      ],
+      "muzzles": [
+        "Anchor turret 4 barrel 1 muzzle",
+        "Anchor turret 4 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 5,
+      "slot": "WS 005",
+      "pivot": "Turret 5 pivot",
+      "location": [
+        -15,
+        -44,
+        7.4
+      ],
+      "rest_angle_deg": -90,
+      "arc_deg": 210,
+      "fixed": [
+        "Turret 5 barbette",
+        "Turret 5 traverse gap"
+      ],
+      "trained": [
+        "Turret 5 gunhouse",
+        "Turret 5 mantlet",
+        "Turret 5 barrel 1",
+        "Turret 5 barrel 1 muzzle brake",
+        "Anchor turret 5 barrel 1 muzzle",
+        "Turret 5 barrel 2",
+        "Turret 5 barrel 2 muzzle brake",
+        "Anchor turret 5 barrel 2 muzzle"
+      ],
+      "muzzles": [
+        "Anchor turret 5 barrel 1 muzzle",
+        "Anchor turret 5 barrel 2 muzzle"
+      ]
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot": 0,
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "glow_anchor": "Engine 1 drive glow anchor",
+      "location": [
+        -66,
+        29,
+        0.0
+      ],
+      "width": 24,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 6.48,
+      "bell": "Engine 1 aft-facing bell",
+      "lip": "Engine 1 mouth lip",
+      "throat": "Engine 1 dark throat",
+      "can": "Engine 1 drive can"
+    },
+    {
+      "index": 2,
+      "slot": 1,
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "glow_anchor": "Engine 2 drive glow anchor",
+      "location": [
+        -66,
+        -28,
+        0.0
+      ],
+      "width": 24,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 6.48,
+      "bell": "Engine 2 aft-facing bell",
+      "lip": "Engine 2 mouth lip",
+      "throat": "Engine 2 dark throat",
+      "can": "Engine 2 drive can"
+    },
+    {
+      "index": 3,
+      "slot": 2,
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "glow_anchor": "Engine 3 drive glow anchor",
+      "location": [
+        -66,
+        38,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 3 aft-facing bell",
+      "lip": "Engine 3 mouth lip",
+      "throat": "Engine 3 dark throat",
+      "can": "Engine 3 drive can"
+    },
+    {
+      "index": 4,
+      "slot": 3,
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "glow_anchor": "Engine 4 drive glow anchor",
+      "location": [
+        -65,
+        20,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 4 aft-facing bell",
+      "lip": "Engine 4 mouth lip",
+      "throat": "Engine 4 dark throat",
+      "can": "Engine 4 drive can"
+    },
+    {
+      "index": 5,
+      "slot": 4,
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "glow_anchor": "Engine 5 drive glow anchor",
+      "location": [
+        -65,
+        -20,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 5 aft-facing bell",
+      "lip": "Engine 5 mouth lip",
+      "throat": "Engine 5 dark throat",
+      "can": "Engine 5 drive can"
+    },
+    {
+      "index": 6,
+      "slot": 5,
+      "objects": "Engine 6 ...",
+      "anchor": "Engine 6 exhaust anchor",
+      "glow_anchor": "Engine 6 drive glow anchor",
+      "location": [
+        -66,
+        -37,
+        0.0
+      ],
+      "width": 8,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.4,
+      "bell": "Engine 6 aft-facing bell",
+      "lip": "Engine 6 mouth lip",
+      "throat": "Engine 6 dark throat",
+      "can": "Engine 6 drive can"
+    }
+  ],
+  "running_lights": [
+    {
+      "name": "Light port beam 1",
+      "position": [
+        -20,
+        63.8,
+        6.3
+      ],
+      "colour": "red",
+      "role": "port side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard beam 1",
+      "position": [
+        -20,
+        -63.8,
+        6.3
+      ],
+      "colour": "green",
+      "role": "starboard side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre stern 1",
+      "position": [
+        -28,
+        0,
+        7.9
+      ],
+      "colour": "white",
+      "role": "stern light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre prow 1",
+      "position": [
+        60,
+        0,
+        4.9
+      ],
+      "colour": "white",
+      "role": "prow anti-collision strobe",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.4,
+        "duty": 0.18
+      }
+    }
+  ],
+  "pirate_armour": [
+    "Armour P port slab 1",
+    "Armour P port slab 2",
+    "Armour P port slab 3",
+    "Armour P port slab 4",
+    "Armour P port slab 5",
+    "Armour P port slab 6",
+    "Armour P port slab 7",
+    "Armour P port slab 8",
+    "Armour P port girder 1",
+    "Armour P port girder 2",
+    "Armour P port girder 3",
+    "Armour P port girder 4",
+    "Armour P port girder 5",
+    "Armour P starboard slab 1",
+    "Armour P starboard slab 2",
+    "Armour P starboard slab 3",
+    "Armour P starboard slab 4",
+    "Armour P starboard slab 5",
+    "Armour P starboard slab 6",
+    "Armour P starboard slab 7",
+    "Armour P starboard slab 8",
+    "Armour P starboard girder 1",
+    "Armour P starboard girder 2",
+    "Armour P starboard girder 3",
+    "Armour P starboard girder 4",
+    "Armour P starboard girder 5",
+    "Armour P prow plate vertical",
+    "Armour P prow plate horizontal",
+    "Armour P neck sensor ring",
+    "Armour P neck sensor lens"
+  ],
+  "asset": {
+    "file": "enforcer-p.blend",
+    "collection": "ENFORCER (P)",
+    "root": "ENFORCER (P) | root",
+    "anchors_collection": "ENFORCER (P) | anchors",
+    "baked": "every modifier applied; no live booleans or bevels",
+    "append": "bpy.data.libraries.load(path, link=True) and take collection 'ENFORCER (P)'; instance it with a collection-instance empty scaled by metres_per_unit",
+    "triangles": 12360,
+    "objects": 135,
+    "materials": [
+      "Enforcer accent armour",
+      "Enforcer armour",
+      "Enforcer bridge glazing",
+      "Enforcer machinery",
+      "Enforcer recess",
+      "Enforcer running light green",
+      "Enforcer running light red",
+      "Enforcer running light white",
+      "Enforcer tank cladding"
+    ]
+  },
+  "object_names": {
+    "Hull ...": "carapace, ventral keel, neck, prow, aft spine, engine blocks, tanks",
+    "Bridge ...": "deckhouse and glazing band on the aft spine",
+    "Pod <side> inner|outer missile": "missile pods round the hardpoints",
+    "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, drive glow anchor",
+    "Turret <i> ...": "barbette and traverse gap (fixed); gunhouse, mantlet, barrels and Anchor turret <i> barrel <k> muzzle under Turret <i> pivot",
+    "Weapon <slot id> ...": "hardpoint launchers; anchor, and Anchor weapon <slot id> muzzle",
+    "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights",
+    "Armour P ...": "pirate variant only: welded slabs, girders, prow cross, neck sensor"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        0,
+        0,
+        200
+      ],
+      "orthographic_scale": 250
+    },
+    {
+      "name": "port-side",
+      "position": [
+        0,
+        250,
+        -1
+      ],
+      "orthographic_scale": 150
+    },
+    {
+      "name": "front",
+      "position": [
+        250,
+        0,
+        -1
+      ],
+      "orthographic_scale": 150
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        140,
+        165,
+        110
+      ],
+      "orthographic_scale": 175
+    },
+    {
+      "name": "stern",
+      "position": [
+        -250,
+        0,
+        -1
+      ],
+      "orthographic_scale": 150
+    }
+  ],
+  "shot_checks": [
+    {
+      "name": "shot-s6",
+      "ship": [
+        480,
+        330,
+        90,
+        165,
+        4,
+        25
+      ],
+      "camera": [
+        1350,
+        750,
+        380
+      ],
+      "target": [
+        -1400,
+        -350,
+        -260
+      ],
+      "lens_mm": 30,
+      "sensor_mm": 36,
+      "sun_el_az_deg": [
+        16.0,
+        -40.0
+      ],
+      "source": "asharu-battle/battle_blockout.py k3"
+    },
+    {
+      "name": "shot-s4",
+      "ship": [
+        -7300,
+        900,
+        -3400,
+        6,
+        12,
+        -6
+      ],
+      "camera": [
+        -4800,
+        -2600,
+        -1700
+      ],
+      "target": [
+        -6500,
+        200,
+        -3100
+      ],
+      "lens_mm": 35,
+      "sensor_mm": 36,
+      "sun_el_az_deg": [
+        16.0,
+        -40.0
+      ],
+      "source": "asharu-battle/battle_blockout.py k2"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.946,
+    "sprite_uncovered": 0.024,
+    "model_outside_sprite": 0.032,
+    "sprite": "graphics/ships/enforcer/enforcer_pirates.png",
+    "method": "compose_review.py: top.png alpha vs sprite alpha at 7.68 px/unit"
+  }
+}

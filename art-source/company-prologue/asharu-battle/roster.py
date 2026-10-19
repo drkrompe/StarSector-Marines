@@ -41,11 +41,17 @@ MERCHANT = [
          finished='colossus'),
     dict(key='morrow', game='shepherd', name='Shepherd "Morrow"', role='drone tender sailing as the convoy repair ship',
          finished='shepherd'),
-    dict(key='tarsus', game='tarsus', name='Tarsus', role='second freighter'),
+    dict(key='tarsus', game='tarsus', name='Tarsus', role='freighter: boarded and taken, the pirate prize'),
+    dict(key='mule', game='mule', name='Mule', role='armed freighter'),
+    dict(key='phaeton', game='phaeton', name='Phaeton', role='the convoy tanker: hit and destroyed in the opening'),
+    dict(key='buffalo-a', game='buffalo', name='Buffalo', role='small freighter'),
+    dict(key='buffalo-b', game='buffalo', name='Buffalo', role='small freighter'),
+    dict(key='dram', game='dram', name='Dram', role='small tanker'),
     dict(key='enforcer', game='enforcer', name='Enforcer', role='escort lead, destroyer'),
     dict(key='lasher-a', game='lasher', name='Lasher', role='escort frigate', finished='lasher'),
     dict(key='lasher-b', game='lasher', name='Lasher', role='escort frigate', finished='lasher'),
     dict(key='hound-m', game='hound', name='Hound', role='rear escort, combat freighter', finished='hound'),
+    dict(key='wolf-m', game='wolf', name='Wolf', role='point escort frigate', reuse='wolf (P)'),
 ]
 PIRATE = [
     dict(key='falcon-p', game='falcon_p.skin', name='Falcon (P)', role='flagship, light cruiser'),
