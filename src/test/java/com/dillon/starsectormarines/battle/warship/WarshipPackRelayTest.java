@@ -72,6 +72,86 @@ class WarshipPackRelayTest {
         assertFalse(WarshipShipFire.mayStart(tank, venture, 1f));
     }
 
+    /** A Hegemony Enforcer at {@code (x, y)} facing {@code facing}, fighting hulls, its pool on. */
+    private static Warship enforcer(float x, float y, float facing) throws Exception {
+        Warship e = Warship.fit("enforcer", "enforcer_Balanced", Faction.ALLY, x, y, facing);
+        e.shipFire(ShipFireOrder.ALL);
+        e.limitFlux();
+        return e;
+    }
+
+    @Test
+    void aDestroyerIsDecidedlySturdierThanAFrigateAndAWornOneNeedNotBe() throws Exception {
+        Warship heavy = enforcer(0f, 0f, 0f);
+        Warship light = wolf(20f, 0f, 0f);
+        assertTrue(WarshipTactics.sturdierBy(heavy, light), WarshipTactics.sturdiness(heavy) + " against "
+                + WarshipTactics.sturdiness(light));
+        assertFalse(WarshipTactics.sturdierBy(light, heavy));
+        assertSame(heavy, WarshipTactics.sturdiest(List.of(light, heavy)));
+        assertEquals(null, WarshipTactics.sturdiest(List.of(light, wolf(-20f, 0f, 0f))), "two of a kind: none stands out");
+        heavy.takeDamage(0.9f * heavy.hitPoints(), 1000f);
+        assertFalse(WarshipTactics.sturdierBy(heavy, light), "worn down, it no longer outranks a fresh frigate");
+    }
+
+    @Test
+    void inAMismatchedPairTheSturdierHullTanksAndTheLighterOneStrikes() throws Exception {
+        Warship venture = Warship.fit("venture", "venture_Greyhook", Faction.DEFENDER, 0f, 120f, 180f);
+        venture.shipFire(ShipFireOrder.ALL);
+        Warship heavy = enforcer(-20f, 0f, 0f);
+        Warship light = wolf(20f, 0f, 0f);
+        // The target has the frigate in its sights, and the frigate is nearer: the destroyer holds it all the same.
+        venture.hullTarget(light);
+        List<Warship> ships = List.of(venture, light, heavy);
+        WarshipTactics tactics = new WarshipTactics();
+        tactics.plan(0f, ships, false);
+        assertSame(Role.TANK, heavy.manoeuvre().role());
+        assertSame(Role.STRIKER, light.manoeuvre().role());
+
+        // Past the swap level the fresh frigate does not relieve it: a sturdy tank holds until its shield is going.
+        heavy.fluxPool().spend(0.6f * heavy.fluxPool().capacity());
+        tactics.plan(WarshipTactics.RELAY_MIN_SECONDS + 1f, ships, false);
+        assertSame(Role.TANK, heavy.manoeuvre().role(), "a lighter partner does not take over at the swap level");
+        heavy.fluxPool().spend(0.3f * heavy.fluxPool().capacity());
+        tactics.plan(WarshipTactics.RELAY_MIN_SECONDS + 2f, ships, false);
+        assertSame(Role.TANK, light.manoeuvre().role(), "with its shield going it hands over all the same");
+        assertTrue(heavy.manoeuvre().relayVenting());
+    }
+
+    @Test
+    void aSturdyPartnerTakesTheTargetBackFromALighterTankOnceFresh() throws Exception {
+        Warship venture = Warship.fit("venture", "venture_Greyhook", Faction.DEFENDER, 0f, 120f, 180f);
+        venture.shipFire(ShipFireOrder.ALL);
+        Warship heavy = enforcer(-20f, 0f, 0f);
+        Warship light = wolf(20f, 0f, 0f);
+        List<Warship> ships = List.of(venture, light, heavy);
+        WarshipTactics tactics = new WarshipTactics();
+        tactics.plan(0f, ships, false);
+        // The frigate holds the target, as it does while the destroyer vents, and its own pool is low.
+        light.manoeuvre().role = Role.TANK;
+        light.manoeuvre().relaySince = 0f;
+        heavy.manoeuvre().role = Role.STRIKER;
+        tactics.plan(1f, ships, false);
+        assertSame(Role.TANK, light.manoeuvre().role(), "a role is held its minimum time");
+        tactics.plan(WarshipTactics.RELAY_MIN_SECONDS + 1f, ships, false);
+        assertSame(Role.TANK, heavy.manoeuvre().role(), "fresh again, the destroyer takes the target back");
+        assertSame(Role.STRIKER, light.manoeuvre().role());
+    }
+
+    @Test
+    void aHunterBetweenTwoHullsGoesForTheOneItsGunsCanHurt() throws Exception {
+        // The Venture's Heavy Autocannons glance off a destroyer's plate and bite a frigate's.
+        Warship venture = Warship.fit("venture", "venture_Greyhook", Faction.DEFENDER, 0f, 0f, 0f);
+        venture.shipFire(ShipFireOrder.ALL);
+        venture.limitFlux();
+        Warship heavy = enforcer(-10f, 110f, 180f);
+        Warship light = wolf(10f, 125f, 180f);
+        float onHeavy = WarshipTactics.bite(venture, heavy), onLight = WarshipTactics.bite(venture, light);
+        assertTrue(onLight > onHeavy + 0.3f, "frigate " + onLight + " against destroyer " + onHeavy);
+        WarshipTactics tactics = new WarshipTactics();
+        tactics.plan(0f, List.of(venture, heavy, light), false);
+        assertSame(light, venture.manoeuvre().target(), "the nearer destroyer is passed over for the frigate");
+    }
+
     @Test
     void withTheRelayOffTheyShareTheHullAsBefore() throws Exception {
         Warship venture = Warship.fit("venture", "venture_Greyhook", Faction.DEFENDER, 0f, 120f, 180f);

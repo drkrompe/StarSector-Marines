@@ -171,6 +171,16 @@ CLOSEUPS = [
     ('engine-detail', (-320, 230, 120), (-100, 45, 0), 150),
     ('stern-detail', (-260, -120, 120), (-80, 1.5, 0), 150),
     ('underside', (40, 1.5, -420), (-17, 1.5, -10), 420),
+    ('keel-docking', (120, 160, -160), (30, 30, -40), 110),
+    ('clamp-detail', (30, 120, -90), (70, 67, -48), 22),
+    ('aft-bulkhead', (-120, -60, -70), (-19, 1.5, -28), 70),
+    ('pod-quarter', (-200, 140, 60), (-95, 55, 0), 120),
+    ('bridge-quarter', (-20, 90, 80), (-75, 1.5, 20), 70),
+    ('underside-quarter', (150, 250, -200), (20, 1.5, -40), 260),
+    ('lift-detail', (60, 60, -120), (24, 1.5, -50), 40),
+    ('module-lift', (40, 110, -110), (53.5, 60, -46), 40),
+    ('ground-quarter', (250, 300, -30), (-17, 1.5, -25), 300),
+    ('skid-detail', (60, 90, -90), (30, 23.5, -52), 40),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
@@ -327,12 +337,17 @@ if not args.no_save:
                      'anchor_location': list(cl_engines.ANCHORS[i][0]),
                      'exhaust_direction': list(cl_engines.ANCHORS[i][1])}
                     for i, (x, y, w, a) in enumerate(cl_engines.ENGINES, 1)],
+        'lift_thrusters': [{'index': i, 'objects': 'Lift thruster ...', 'anchor': f'Lift thruster {i} exhaust anchor',
+                            'host': host, 'well_radius': r, 'anchor_location': [round(v, 2) for v in cl_hull.LIFT_ANCHORS[i][0]],
+                            'exhaust_direction': list(cl_hull.LIFT_ANCHORS[i][1])}
+                           for i, (x, y, r, k, host) in enumerate(cl_hull.LIFT, 1)],
         'object_names': {'Hull ...': 'central cargo hold, hatch cover, longerons, keel spine, aft machinery body',
                          'Cargo <side> fore|aft module': 'the four side cargo modules (tear-apart units)',
                          'Frame ...': 'open lattice trusses at the waist and between the spine and the pods',
                          'Bridge ...': 'deckhouse, windscreen, wing ports, mast',
                          'Drive pod <side> casing': 'the two drive pods',
                          'Engine <i> ...': 'bell / mouth lip / dark throat / exhaust anchor',
+                         'Lift thruster ...': 'ten ventral lift thrusters; per-thruster exhaust anchors point down',
                          'Turret <i> WS 00n ... / Launcher <i> WS 00n flare launcher ...': 'mounts; pivot and muzzle empties',
                          'Scar <id> ...': 'reserved for condition states (crashed / broken); not built'},
         'condition_states': {'planned': ['crashed (broken against the northern canyon wall, Asharu)'],

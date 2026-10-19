@@ -1,0 +1,59 @@
+{
+ "part": "wing-1",
+ "sheet": "top-b",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9592,
+ "raw_iou": 0.916,
+ "best_fit": "identity",
+ "fitted_iou": 0.916,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.916
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00234,
+    0.99546
+   ],
+   "offset_px": [
+    -0.57,
+    2.16
+   ],
+   "iou": 0.9116
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00234,
+    0.99396
+   ],
+   "offset_px": [
+    -0.57,
+    2.16
+   ],
+   "iou": 0.9153
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.73,
+  "p95_px": 9.22,
+  "max_px": 14.14
+ },
+ "boundary_fitted_px": {
+  "mean_px": 1.73,
+  "p95_px": 9.22,
+  "max_px": 14.14
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

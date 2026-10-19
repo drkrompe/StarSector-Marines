@@ -1840,7 +1840,7 @@ public final class BattleSetup {
      * {@link SmallWarForces}; holders and the custody party are the employer's. {@code houseCustody}
      * names who walks the handover (Rusk's custodians or the joint party); it changes no strength.
      * The duel overhead ({@link BlackSluiceDuel}) is installed: the Greyhook alone in her cradle
-     * south of the ridge from the start, and two lent Hegemony Enforcers in Rusk's refit once Voss orders the withdrawal.
+     * south of the ridge from the start, and Rusk's lent Enforcer and Wolf once Voss orders the withdrawal.
      */
     public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean houseCustody) {
         return createSmallWar(seed, manifest, profile, houseCustody, true);

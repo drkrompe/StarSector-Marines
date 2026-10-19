@@ -111,6 +111,28 @@ public final class WarshipPointDefence {
     private List<Mark> markView = Collections.emptyList();
     private int engagements;
     private int intercepts;
+    private int hullMissileEngagements;
+    private int hullMissileIntercepts;
+
+    /**
+     * {@code -Dbattle.warship.pdThreatFirst=false} is the control: a mount takes the nearest round whoever it is aimed
+     * at. By default a round aimed at the mount's own hull counts as half as far off, so a ship's point defence turns
+     * onto a salvo coming at it before rounds merely passing.
+     */
+    static final boolean THREAT_FIRST = !"false".equalsIgnoreCase(System.getProperty("battle.warship.pdThreatFirst"));
+    /** A round aimed at the mount's own hull is weighed as this share of its distance (squared: a half). */
+    static final float THREAT_DISTANCE_SQ_SHARE = 0.25f;
+
+    /**
+     * {@code -Dbattle.warship.pdHullReach=false} is the control. A missile or warhead aimed at a hull flies the hull
+     * fight's geometry ({@link WarshipShipFire#HULL_MISSILE_SCALE}): {@link WarshipScale#HULL_REACH_MULTIPLIER} times
+     * the base game's distance at {@link WarshipScale#HULL_RANGE} times its speed. Point defence answers it in the same
+     * geometry: it reaches it at the hull reach, judges the shot as the base game would at the base game's distance and
+     * speed, and cycles on the hull fight's clock ({@link WarshipScale#HULL_TEMPO}), so the shots a mount has at a
+     * missile crossing its umbrella are the base game's. Without it a mount's umbrella is a sliver of a hull's length
+     * that a hull missile crosses in a tick or two, and a salvo lands whole.
+     */
+    static final boolean HULL_REACH = !"false".equalsIgnoreCase(System.getProperty("battle.warship.pdHullReach"));
 
     /** Engagements made (shots at ordnance, hit or miss), for evidence. */
     public int engagements() {
@@ -120,6 +142,16 @@ public final class WarshipPointDefence {
     /** Rounds destroyed, for evidence. */
     public int intercepts() {
         return intercepts;
+    }
+
+    /** Engagements at a missile or warhead aimed at a hull, for evidence. */
+    public int hullMissileEngagements() {
+        return hullMissileEngagements;
+    }
+
+    /** Missiles and warheads aimed at a hull that point defence destroyed, for evidence. */
+    public int hullMissileIntercepts() {
+        return hullMissileIntercepts;
     }
 
     /** The recent engagements, newest last; {@code freshness} runs 1 to 0 as a tracer fades. */
@@ -183,6 +215,7 @@ public final class WarshipPointDefence {
         float y;
         float speed;
         float distanceSq = Float.MAX_VALUE;
+        boolean atHull;
     }
 
     void ageMarks(float dt) {
@@ -235,10 +268,19 @@ public final class WarshipPointDefence {
         float dx = target.x - mx;
         float dy = target.y - my;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        boolean stopped = random.nextFloat() < engagementKillChance(w, distance, target.speed, target.hitpoints);
+        float speed = target.speed;
+        if (target.atHull && HULL_REACH) {
+            // Against a hull missile, the base game's shot in the base game's geometry, on the hull fight's clock.
+            m.cooldown *= WarshipScale.HULL_TEMPO;
+            distance /= WarshipScale.HULL_REACH_MULTIPLIER;
+            speed /= WarshipScale.HULL_RANGE;
+        }
+        boolean stopped = random.nextFloat() < engagementKillChance(w, distance, speed, target.hitpoints);
         engagements++;
+        if (target.atHull) hullMissileEngagements++;
         if (stopped) {
             intercepts++;
+            if (target.atHull) hullMissileIntercepts++;
             m.intercepts++;
             if (target.projectile != null) target.projectile.intercepted = true;
             if (target.body != null) target.body.intercept();
@@ -272,34 +314,43 @@ public final class WarshipPointDefence {
         for (Projectile p : sim.getActiveProjectiles()) {
             if (!p.pointDefenseTarget || p.intercepted || p.remainingTime <= 0f) continue;
             if (!ship.faction.hostileTo(p.shooterFaction)) continue;
-            consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), 0f, p, null, reachMultiplier);
+            consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), 0f, p, null, reachMultiplier,
+                    null);
         }
         for (WarshipShell s : shells) {
             if (s.intercepted || !s.canBeIntercepted() || !ship.faction.hostileTo(s.faction)) continue;
-            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s, reachMultiplier);
+            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s, reachMultiplier,
+                    s.hullTarget());
         }
         for (WarheadStrike s : strikes) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
-            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s, reachMultiplier);
+            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s, reachMultiplier,
+                    s.hullTarget());
         }
         return best.projectile == null && best.body == null ? null : best;
     }
 
     private static void consider(Target best, Warship ship, Warship.Mount m, float mx, float my,
                                  float x, float y, float speed, float hitpoints, Projectile p, Interceptable s,
-                                 float reachMultiplier) {
+                                 float reachMultiplier, Warship aimedAt) {
         float dx = x - mx;
         float dy = y - my;
         float d2 = dx * dx + dy * dy;
-        if (d2 >= best.distanceSq) return;
-        if (!Warship.bears(m, ship.facingDegrees, mx, my, x, y, reachMultiplier)) return;
+        // A hull missile is reached, and weighed, in the hull fight's geometry.
+        float scale = aimedAt != null && HULL_REACH ? WarshipScale.HULL_REACH_MULTIPLIER : 1f;
+        float weighed = d2 / (scale * scale);
+        // Weighed, not filtered: the reach test below is on the true distance.
+        if (THREAT_FIRST && aimedAt == ship) weighed *= THREAT_DISTANCE_SQ_SHARE;
+        if (weighed >= best.distanceSq) return;
+        if (!Warship.bears(m, ship.facingDegrees, mx, my, x, y, reachMultiplier * scale)) return;
         best.projectile = p;
         best.body = s;
         best.hitpoints = hitpoints;
         best.x = x;
         best.y = y;
         best.speed = speed;
-        best.distanceSq = d2;
+        best.distanceSq = weighed;
+        best.atHull = aimedAt != null;
     }
 
     /** Cells per second a ground projectile crosses at, over its whole flight. */

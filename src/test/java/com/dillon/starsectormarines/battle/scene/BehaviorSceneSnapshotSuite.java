@@ -82,6 +82,14 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
     }
 
     /**
+     * The close view for this frame of a loop, for a close view that follows something; by default the fixed
+     * {@link #closeView(String)}. Asked every recorded frame once the loop has a close view at all.
+     */
+    protected float[] closeView(String loopId, BattleSimulation sim) {
+        return closeView(loopId);
+    }
+
+    /**
      * Opt-in: record each loop through a {@link WarshipFollowRecording}, a camera that follows the hulls in the fight
      * rather than framing the whole map, densely while two hostile hulls are over the map, with a locator inset.
      * {@code -Dsnapshot.duelCamera=false} records the whole map at the scene's cadence instead.
@@ -150,9 +158,13 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                         BattleReviewFrameRenderer closer = new BattleReviewFrameRenderer(context.modRoot(),
                                 Math.round(width * closeViewScale()), Math.round(height * closeViewScale()),
                                 close[0], close[1], close[2]);
+                        // A close view is where a blast reads, so it draws what the main view was asked to.
+                        if (impacts) closer.withImpactEffects();
                         return shadows ? closer.withUnitShadows() : closer;
                     });
                     if (closeRenderer != null) {
+                        float[] now = closeView(loopId, sim);
+                        if (now != null) closeRenderer.refocus(now[0], now[1], now[2]);
                         byLoop.computeIfAbsent(loopId + "-close", id -> new CompressedFrameList())
                                 .add(closeRenderer.render(sim, caption, annotations(sim), fx));
                     }

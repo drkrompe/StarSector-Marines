@@ -189,6 +189,9 @@ def select_faces(part, objects=None):
             if abs(n.dot(d)) >= spec['cone'] and seen.get(p.index, 0) >= 0.5 * total.get(p.index, 1):
                 ok.add(p.index)
         if not ok:
+            if isinstance(seed, dict) and 'pad' in seed:
+                out.setdefault(name, set())   # a generated box tile's member may only graze it
+                continue
             raise SystemExit(f'part {part}: no faces on {name}')
         if seed is None or isinstance(seed, dict):
             # A whole-object member, or the part of it inside an axis-aligned box: every
@@ -196,8 +199,14 @@ def select_faces(part, objects=None):
             # pieces in one object (the Onslaught's detail plating: dozens of plates per
             # mesh), where one seed would claim a single plate.
             lo, hi = (seed or {}).get('box', ((-1e9,) * 3, (1e9,) * 3))
+            # 'pad' (opt-in): the whole face must also lie within the box grown
+            # by that much, so one long plate whose centre falls in a tile
+            # cannot stretch the tile across the ship (it keeps its swatch).
+            pad = (seed or {}).get('pad')
+            inside = (lambda i: True) if pad is None else (lambda i: all(
+                lo[k] - pad <= verts[v][k] <= hi[k] + pad for v in me.polygons[i].vertices for k in range(3)))
             out.setdefault(name, set()).update(
-                i for i in ok if all(lo[k] <= centres[i][k] <= hi[k] for k in range(3)))
+                i for i in ok if all(lo[k] <= centres[i][k] <= hi[k] for k in range(3)) and inside(i))
             continue
         seed_v = Vector(seed)
         start = min(ok, key=lambda i: (centres[i] - seed_v).length)

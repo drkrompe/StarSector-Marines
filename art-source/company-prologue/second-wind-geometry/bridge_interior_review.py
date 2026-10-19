@@ -107,17 +107,23 @@ VIEWS = {
     '04-room-from-hatch': (glazing, dict(pos=(9.9, -1.2, 19.4), target=(17.5, 1.5, 18.0), lens=15)),
     '05-cutaway': (above_room, dict(pos=(8.0, -11.0, 30.0), target=(13.4, 0.5, 17.4), lens=28)),
     '06-plan': (above_room, dict(pos=(13.45, 0, 40.0), target=(13.45, 0, 0), ortho=17.5)),
-    # Close-ups for the detail pass: Castle's comms bank face, the helm seat, the aft hatch and
-    # the patched cable runs across the ceiling and down the port mullion.
-    '09-console-face': (glazing, dict(pos=(11.75, 3.05, 19.05), target=(12.0, 4.25, 18.45), lens=30)),
-    '10-helm-seat': (glazing, dict(pos=(16.95, -.45, 19.05), target=(16.15, -1.8, 18.35), lens=22)),
-    '11-aft-hatch': (glazing, dict(pos=(11.3, -1.5, 18.6), target=(9.3, -.1, 18.0), lens=24)),
-    '12-cable-runs': (glazing, dict(pos=(13.9, .3, 19.0), target=(11.2, 3.0, 19.85), lens=20)),
     '07-exterior-port-quarter': (lambda o: False, dict(pos=(100, 130, 100), target=(5, 0, 1), ortho=163)),
     '08-exterior-bridge': (lambda o: False, dict(pos=(60, 60, 50), target=(12, 0, 14), ortho=55)),
+    # Castle at the comms bank: from the port station turned aft onto her, and from across the
+    # plot table (the MakeHuman figure when castle-figure.blend is built; see figures()).
+    '09-castle-from-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), target=(10.9, 3.4, 18.85), lens=24)),
+    '10-castle-across-the-room': (glazing, dict(pos=(13.4, -1.4, 19.1), target=(10.9, 3.4, 18.0), lens=24)),
+    # Close-ups for the detail pass: Castle's comms bank face, the helm seat, the aft hatch and
+    # the patched cable runs across the ceiling and down the port mullion.
+    '11-console-face': (glazing, dict(pos=(11.75, 3.05, 19.05), target=(12.0, 4.25, 18.45), lens=30)),
+    '12-helm-seat': (glazing, dict(pos=(16.95, -.45, 19.05), target=(16.15, -1.8, 18.35), lens=22)),
+    '13-aft-hatch': (glazing, dict(pos=(11.3, -1.5, 18.6), target=(9.3, -.1, 18.0), lens=24)),
+    '14-cable-runs': (glazing, dict(pos=(13.9, .3, 19.0), target=(11.2, 3.0, 19.85), lens=20)),
 }
 wanted = opts['views'].split(',') if opts['views'] else [v for v in VIEWS if not opts['exterior_only']
                                                        or v.startswith('07') or v.startswith('08')]
+if not opts['views'] and not opts['figures']:
+    wanted = [v for v in wanted if 'castle' not in v]
 for name in wanted:
     hide, kw = VIEWS[name]
     show(hide)

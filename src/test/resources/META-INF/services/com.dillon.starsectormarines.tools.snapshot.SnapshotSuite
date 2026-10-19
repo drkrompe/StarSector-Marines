@@ -76,6 +76,8 @@ com.dillon.starsectormarines.battle.warship.OnslaughtDistrictSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtFluxSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipMissilesSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipShieldSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipHitFxSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipMountsSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipSwarmSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipPostureSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipSupportFireSceneSnapshotSuite
@@ -116,6 +118,7 @@ com.dillon.starsectormarines.battle.warship.ShipArrivalSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipLowPassSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HullBroadsideSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipTacticsSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipMissileExchangeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.MirrorDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HullDurabilitySceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsSceneSnapshotSuite

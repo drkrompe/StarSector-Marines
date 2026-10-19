@@ -24,6 +24,7 @@ com.dillon.starsectormarines.battle.warship.OnslaughtDistrictScene
 com.dillon.starsectormarines.battle.warship.OnslaughtFluxScene
 com.dillon.starsectormarines.battle.warship.WarshipMissilesScene
 com.dillon.starsectormarines.battle.warship.WarshipShieldScene
+com.dillon.starsectormarines.battle.warship.WarshipHitFxScene
 com.dillon.starsectormarines.battle.warship.WarshipSwarmScene
 com.dillon.starsectormarines.battle.warship.WarshipPostureScene
 com.dillon.starsectormarines.battle.warship.WarshipSupportFireScene
@@ -80,6 +81,7 @@ com.dillon.starsectormarines.battle.setup.GreyhookDuelScene
 com.dillon.starsectormarines.battle.warship.HullDurabilityScene
 com.dillon.starsectormarines.battle.warship.MirrorDuelScene
 com.dillon.starsectormarines.battle.warship.WarshipTacticsScene
+com.dillon.starsectormarines.battle.warship.WarshipMissileExchangeScene
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageScene
 com.dillon.starsectormarines.battle.mech.MechHullDownScene
 com.dillon.starsectormarines.battle.mech.MechVersusInfantryScene

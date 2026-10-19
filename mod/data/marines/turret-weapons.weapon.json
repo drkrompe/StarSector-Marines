@@ -716,6 +716,38 @@
       "audio": { "fireSound": "flak_fire" }
     },
     {
+      "id": "weapon.tank-aps",
+      "mount": "turret-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponTankApsDisplayName",
+        "modelName": "@gearCatalogWeaponTankApsModelName",
+        "designation": "APS",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 8.0,
+        "damage": 0.0,
+        "accuracy": 0.7,
+        "cooldown": 0.1,
+        "penetration": 0.0,
+        "aoeRadius": 0.0
+      },
+      "render": {
+        "tracerColor": "FFE0A0"
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.30, "lifetime": 0.05, "color": "FFE0A0" },
+          { "kind": "smoke", "radius": 0.18, "lifetime": 0.35 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.40, "lifetime": 0.12, "color": "FFD08A" },
+          { "kind": "smoke", "radius": 0.24, "lifetime": 0.45 }
+        ]
+      },
+      "audio": { "fireSound": "flak_fire" }
+    },
+    {
       "id": "weapon.drone-pd-laser",
       "mount": "turret-mount",
       "catalog": {
