@@ -12,10 +12,10 @@ and lights it:
 - Second Wind is the patched state (`second-wind-states/patched`, appended collection, as C1
   and C5 use it), under a ship frame that carries the bridge interior and the camera, so
   pitching the ship pitches all three together against a fixed sun and planet.
-- The command deck's interior is the blockout's room in painted steel, with console screens
-  and a low warm ceiling light as its only practical light. The exterior glazing,
-  sill slab and lower bulkhead are not rendered (the room replaces them); the visor brow and
-  roof are hidden from the camera and still shade the slits.
+- The command deck's interior is the model's own (second-wind-geometry/sw_bridge_interior),
+  so the patched state export must have been rebuilt since it landed; the script refuses a
+  state without it. The pilot and Castle are added (sw_bridge_interior.figures). The glazing
+  is hidden from camera and shadow rays: it is opaque paint, not glass.
 - The Legion and its Broadswords keep their own materials; the Legion's throats and running
   lights and the fighters' flames are added as in render_patrol_sequence.py.
 - Jangala is a sphere scaled about the eye (it looks identical from there), shaded by its own
@@ -196,71 +196,21 @@ def blender_main(argv):
     sw.scale = (p["sw_mpu"],) * 3
     for o in [sw, *sw.children_recursive]:
         o.animation_data_clear()
-        base = o.name.split(".")[0]
-        if base in ("Command deck viewport slits", "Command deck lower bulkhead", "Viewport sill ledge"):
-            o.hide_render = True                    # the room below replaces them
-        elif base in ("Command deck visor brow", "Command deck armoured roof"):
-            o.visible_camera = False                # still shade the slits
-
-    b = p["bridge"]
-
-    def poly_plan(x0, x1, hw, cf, ca):
-        return [(x0 + ca, -hw), (x1 - cf, -hw), (x1, -hw + cf), (x1, hw - cf),
-                (x1 - cf, hw), (x0 + ca, hw), (x0, hw - ca), (x0, -hw + ca)]
-
-    def mesh(name, verts, faces, mat):
-        me = bpy.data.meshes.new(name)
-        me.from_pydata(verts, [], faces)
-        me.materials.append(mat)
-        ob = bpy.data.objects.new(name, me)
-        scene.collection.objects.link(ob)
-        ob.parent = sw
-        return ob
-
-    def ring(name, poly, z0, z1, mat):
-        n = len(poly)
-        verts = [(x, y, z0) for x, y in poly] + [(x, y, z1) for x, y in poly]
-        return mesh(name, verts, [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)], mat)
-
-    def cap(name, poly, z, mat):
-        return mesh(name, [(x, y, z) for x, y in poly], [tuple(range(len(poly)))], mat)
-
-    def box(name, c, s, mat, rz=0.0):
-        bpy.ops.mesh.primitive_cube_add(size=1, location=c)
-        ob = bpy.context.active_object
-        ob.name = name
-        ob.scale = s
-        ob.rotation_euler[2] = rz
-        ob.data.materials.append(mat)
-        ob.parent = sw
-        return ob
-
-    steel = paint("C2B | bridge paint", (0.13, 0.135, 0.125), 0.55, 0.2)
-    deck = paint("C2B | bridge deck", (0.05, 0.05, 0.05), 0.8, 0.1)
-    console = paint("C2B | console", (0.12, 0.125, 0.13), 0.45, 0.4)
-    leather = paint("C2B | seat", (0.09, 0.06, 0.045), 0.7, 0.0)
-    screen, _ = emission("C2B | console screen", (0.25, 0.85, 0.65), 1.2)
-    inner = poly_plan(9.05, 17.85, 4.75, 1.98, 0.8)
-    ring("C2B | bridge lower wall", inner, b["floor"], b["sill"], steel)
-    ring("C2B | bridge header wall", inner, b["header"], b["ceiling"], steel)
-    cap("C2B | bridge floor", inner, b["floor"], deck)
-    cap("C2B | bridge ceiling", inner, b["ceiling"], steel)
-    box("C2B | forward console", (17.25, 0, 18.25), (1.0, 5.4, 0.7), console)
-    box("C2B | port chamfer console", (16.75, 3.75, 18.25), (1.0, 2.4, 0.7), console, math.radians(45))
-    box("C2B | port side console", (12.8, 4.25, 18.25), (3.6, 0.9, 0.7), console)
-    for y in (-2.0, 0.0, 2.0):
-        box("C2B | forward screen", (17.05, y, 18.61), (0.45, 0.9, 0.02), screen)
-    box("C2B | port screen", (12.6, 4.15, 18.61), (1.2, 0.4, 0.02), screen)
-    # A low warm ceiling light: the room is lived in, not lit for show.
+        if o.name.startswith("Command deck viewport slits"):
+            o.visible_camera = False                # the glazing is not see-through glass
+            o.visible_shadow = False
+    if not any(o.name.startswith("Bridge deck plating") for o in sw.children_recursive):
+        raise RuntimeError("%s has no bridge interior: rebuild the patched state export" % p["sw_state_blend"])
+    # The model's ceiling lamps are the room's light; an area lamp under them carries it.
     dome = bpy.data.objects.new("C2B | bridge ceiling light", bpy.data.lights.new("C2B | bridge ceiling light", "AREA"))
-    dome.data.shape, dome.data.size, dome.data.size_y = "RECTANGLE", 4.0, 3.0
-    dome.data.energy, dome.data.color = 40.0, (1.0, 0.78, 0.55)
+    dome.data.shape, dome.data.size, dome.data.size_y = "RECTANGLE", 2.6, 3.6
+    dome.data.energy, dome.data.color = 25.0, (1.0, 0.82, 0.6)
     scene.collection.objects.link(dome)
     dome.parent = sw
-    dome.location = (14.0, 1.2, b["ceiling"] - 0.05)
-    for y in (-1.6, 1.6):
-        box("C2B | seat back", (14.9, y, 18.6), (0.25, 1.2, 1.6), leather)
-        box("C2B | seat pan", (15.4, y, 18.05), (1.1, 1.2, 0.2), leather)
+    dome.location = (13.2, 0, 20.1)
+    sys.path.insert(0, p["sw_dir"])
+    import sw_bridge_interior
+    sw_bridge_interior.figures(p["sw_mpu"], parent=sw)
 
     cam = bpy.data.objects.new("C2B | bridge camera", bpy.data.cameras.new("C2B | bridge camera"))
     scene.collection.objects.link(cam)
