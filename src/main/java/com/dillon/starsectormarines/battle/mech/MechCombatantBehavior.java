@@ -115,7 +115,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     /** Fires every installed SRM component; used by doctrines that permit close missiles. */
     public static void tryFireSrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
         for (MechWeaponMount mount : m.mounts()) {
-            if (mount != null && WeaponRegistry.MECH_SRM_POD_ID.equals(mount.weaponId())) {
+            if (mount != null && WeaponRegistry.isMechSrm(mount.weaponId())) {
                 tryFireMount(u, m, mount, target, dist, sim, hasLos);
             }
         }
@@ -130,7 +130,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     public static void tryFireLrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
         for (MechWeaponMount mount : m.mounts()) {
             if (mount != null
-                    && WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
+                    && WeaponRegistry.isMechLrm(mount.weaponId())) {
                 tryFireMount(u, m, mount, target, dist, sim, hasLos);
             }
         }
@@ -143,6 +143,8 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 || mount.burstRemaining > 0 || !mount.hasAmmo()
                 || !loadout.heat.permits(mount.component.heatPerTrigger(), true)
                 || !sim.canFireMechMount(u, mount)) return;
+        // An anti-armor warhead is wasted on a man: the rack keeps its pack for armor.
+        if (mount.component.antiArmorOnly() && !sim.isHardenedTarget(target)) return;
         WeaponDef weapon = mount.weaponDef();
         if (dist > weapon.range) return;
         boolean indirect = weapon.indirectFire;

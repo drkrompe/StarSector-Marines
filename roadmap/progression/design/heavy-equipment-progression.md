@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — the heavy cannon is balanced as equipment (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — missile racks split into anti-armor and fragmentation warheads (readings below); the heavy cannon is balanced as equipment (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -99,7 +99,8 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
   payload heavier than every available carrier's rating is not offered, and the
   briefing says why.
 - **Starter content stays useful.** Wayward's nose chaingun and SRM-5 on a stock
-  Hound remain a fit worth taking into the first operations.
+  Hound remain a fit worth taking into the first operations. The spare rack is
+  the fragmentation SRM-5, and a new company knows both SRM-5 warheads.
 
 ## Stock frame (shipped)
 
@@ -288,6 +289,89 @@ Still open from these readings, all outside the cannon:
   and runs at about 9 heat/s, and it is the best refit Bulwark (0.69). The same
   levers apply, in the same order.
 - **The Prestige pulse laser loses to both Advanced arms** at equal budget.
+
+## Missile warheads
+
+Each rack size has an anti-armor and a fragmentation warhead (`mechs-nouns.md`,
+Missile warheads). The Frag rack is a sidegrade at the same tier, footprint and
+mass, so neither warhead is an upgrade; what it gives up is the other target.
+Per rocket:
+
+| | Contact (dmg / pen) | Area (dmg / pen / radius) | Wall |
+| --- | --- | --- | --- |
+| SRM before the split | — | 49.5 / 14 / 1.3 | 25 |
+| SRM AT | 66 / 30 | 10 / 6 / 0.6 | 25 |
+| SRM Frag | — | 32 / 4 / 1.8 | 10 |
+| LRM before the split | — | 81 / 16 / 2.0 | 40 |
+| LRM AT | 95 / 30 | 15 / 6 / 1.0 | 40 |
+| LRM Frag | — | 50 / 4 / 2.8 | 15 |
+
+Controls: `-Dbattle.mech.missileVariants=false` (the single-warhead rack on the
+AT ids) and `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice).
+
+**Against men** (`sceneEvidence -Pscene=mech-versus-infantry`, four seeds per
+loop, planted stock mechs, a rifle section in the open). Seconds to kill the
+whole section:
+
+| Loop | Variant | Single-warhead control |
+| --- | --- | --- |
+| Chaingun Bulwark, twin SRM-15 Frag, 12 men at 15 cells | 35.3 s | — |
+| Chaingun Bulwark, twin SRM-15 AT, same | 40.8 s (racks hold) | 37.4 s |
+| Sirocco, twin LRM-5 Frag, 12 men at 30 cells | 13.6 s | — |
+| Sirocco, twin LRM-5 AT, same | never (racks hold, cannon out of reach) | 13.6 s |
+
+The Frag rack kills men at least as fast as the old rack did, and an AT rack holds
+fire at them every time (no salvo begun at a soft target in any loop). On a stock
+chaingun Bulwark the rack barely matters against men either way: it starts about
+one salvo per fight, because the chaingun's heat starves it (below). On the
+Sirocco the rack is the whole answer to men, which is why the Sirocco ships Frag
+LRMs.
+
+**The mixed fight.** An AT Bulwark faces six men at 13 cells with a breakthrough
+tank behind them at 15. With damage-aware target choice, the torso holds the tank
+for 335 ticks while a rack is loaded and puts 16 rack rounds into it. With
+nearest-target choice it puts none. The tank still kills the stock Bulwark in
+every play.
+
+**Against armor** (`armorMatchup`, twelve sides against each other, eight seeds,
+three grounds, both roles; win share against the single-warhead control with
+nearest-target choice):
+
+| Side | Variant | Control |
+| --- | --- | --- |
+| Stock Bulwark (AT SRM-15s) | 0.36 | 0.34 |
+| Stock Bulwark, Frag SRM-15s | 0.34 | 0.32 |
+| Refit Bulwark (AT) | 0.69 | 0.68 |
+| Refit Bulwark, Frag | 0.56 | 0.59 |
+| Hound (AT SRM-5) | 0.15 | 0.13 |
+| Hound, Frag SRM-5 | 0.10 | 0.10 |
+| Sirocco, AT LRM-5s | 0.43 | 0.40 |
+| Sirocco, Frag LRM-5s (the factory fit) | 0.21 | 0.19 |
+
+A Frag row's control fires the same Frag rack; its difference is its opponents'
+racks and the target choice. AT racks hold or slightly improve every mech's armor
+results, and the Frag
+Sirocco is half the anti-armor machine the AT one is. Where SRMs reach a tank
+(the street, at 17 cells) the AT warhead takes more off it than the old rack did:
+a refit Bulwark leaves a heavy-gun tank 0.78 of its integrity against 0.86, and a
+Hound leaves a breakthrough tank 0.90 against 0.93. AT rockets hit about a third
+of the time against about half for the old area rack, because a contact warhead
+needs the body. Win shares against tanks stay at zero.
+
+**Why SRMs barely decide a mech fight**, warhead or not: SRM reach is 18 cells.
+In the open, mech duels settle at 19-22 cells (the outer part of the chaingun's
+30-cell band), and tanks fight from 29-39 cells. So SRMs deal 1-6% of a Bulwark's
+damage in most matchups, in both runs. The tank gap is a reach-and-band question,
+not a warhead one. The warhead decides only what happens once a rack is in range.
+
+Still open from these readings:
+
+- **SRM reach against the duel band.** A Bulwark's SRMs rarely reach anything
+  armored outside a street. Either the duel band should close to SRM range when
+  the racks are loaded and the target is armor, or the SRM's reach should grow.
+- **The chaingun starves the racks against men too.** A stock chaingun Bulwark
+  starts about one rack salvo per fight against a rifle section, whatever the
+  warhead.
 
 ## Lift classes
 

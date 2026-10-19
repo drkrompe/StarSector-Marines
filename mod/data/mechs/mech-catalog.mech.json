@@ -94,6 +94,26 @@
       "description": "@gearCatalogComponentMechLrm15Description"
     },
     {
+      "component": "component.mech-srm-5-frag",
+      "designation": "SRM-5-F",
+      "description": "@gearCatalogComponentMechSrm5FragDescription"
+    },
+    {
+      "component": "component.mech-srm-15-frag",
+      "designation": "SRM-15-F",
+      "description": "@gearCatalogComponentMechSrm15FragDescription"
+    },
+    {
+      "component": "component.mech-lrm-5-frag",
+      "designation": "LRM-5-F",
+      "description": "@gearCatalogComponentMechLrm5FragDescription"
+    },
+    {
+      "component": "component.mech-lrm-15-frag",
+      "designation": "LRM-15-F",
+      "description": "@gearCatalogComponentMechLrm15FragDescription"
+    },
+    {
       "component": "component.mech-shoulder-laser",
       "designation": "SLC",
       "description": "@gearCatalogComponentMechShoulderLaserDescription"
