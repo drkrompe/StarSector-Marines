@@ -8,7 +8,7 @@ on any failure):
 - the collection, root and anchors collection exist under the manifest's names;
   every ship object descends from the root; every image is packed; nothing is
   linked to a library; object and polygon counts match the manifest;
-- the service wear group is on the materials;
+- the skin's wear group (manifest row) is on the materials;
 - engine anchors: as many as the manifest, +X aft, running, radius_m;
 - the WS 002 pivot: training it 30 degrees swings its muzzle 30 degrees about
   the pivot and leaves the barbette where it was; WS 001's muzzle stays put;
@@ -71,8 +71,10 @@ check('images packed', all(i.packed_file for i in bpy.data.images if i.source ==
 check('no libraries', not bpy.data.libraries[:] or all(not b.library for b in [*bpy.data.objects, *bpy.data.materials]))
 check('object count', len(meshes) == man['objects'], [len(meshes), man['objects']])
 check('polygon count', sum(len(o.data.polygons) for o in meshes) == man['polygons'])
-wear = bpy.data.node_groups.get('SW wear service')
-check('service wear group', wear is not None and wear.users > 0)
+# The wear row the skin was applied with ('service'; 'pirate' on the Hound (P)), read off the manifest.
+row = man['wear'].split('row `')[1].split('`')[0] if 'row `' in man.get('wear', '') else 'service'
+wear = bpy.data.node_groups.get(f'SW wear {row}')
+check(f'{row} wear group', wear is not None and wear.users > 0)
 
 for e in man['engines']:
     a = bpy.data.objects.get(e['anchor'])
