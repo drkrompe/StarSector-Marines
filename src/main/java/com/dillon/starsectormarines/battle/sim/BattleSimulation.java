@@ -3302,7 +3302,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (missionCompletionEnabled) {
             WinCheckSystem.WinResult result =
                     winCheck.tick(objectivesService.getObjectives());
-            if (result.complete() && !airSystem.hasCrashingCraft()) {
+            // A crashing craft, or a hull whose part in the battle must conclude first, holds the battle open.
+            if (result.complete() && !airSystem.hasCrashingCraft() && !warships.awaitingConclusion()) {
                 completion.finish(result.winner());
             }
         }
