@@ -94,3 +94,9 @@ paragon-geometry/**/*.blend1
 shepherd-cinematic/*.blend
 shepherd-cinematic/*.blend1
 shepherd-cinematic/review/
+
+# onslaught-surface: script outputs
+onslaught-surface/review/
+onslaught-surface/textures/
+onslaught-surface/grading/
+onslaught-surface/skin-manifest.json
