@@ -65,7 +65,7 @@ word belongs to our people.
 
 ## Where it lands: Kilo Nine
 
-Kilo Nine is not a public cradle. It is Nessa's private yard, fenced, on the
+Kilo Nine is not a public cradle. It is a private yard where Nessa is forewoman (its owner stays offscreen), fenced, on the
 east edge of Greywater Down's port with the jungle beyond its east fence. Its
 south half holds one cradle between two repair scaffolds, a derrick over a
 salvage pile, a hangar, fuel, and the workshop the families walk into. Its north

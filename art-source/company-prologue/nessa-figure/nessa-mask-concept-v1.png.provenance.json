@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15651-7b3c-72a1-ba0d-2c94e608fd44",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15651-7b3c-72a1-ba0d-2c94e608fd44\\exec-51bdc91b-51c4-48fe-8f6a-dde5c81c2a45.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\nessa-figure\\nessa-mask-concept-v1.png",
+    "sha256": "f96ea5c6a54d995c3da98b24b920a54f8d1cfcb2010b61ae4eeee4f3e855f3a1",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\nessa-figure\\nessa-mask-concept-v1.prompt.txt",
+  "promptSha256": "5f10e7100a9a740749ab1532ded3b1e575765bae7c333d0cd5e70ee068678c5c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: Nessa's face, hair, skin, build and ochre coat; not a layout\n\nOne landscape 1536x1024 character concept sheet for a mature industrial science-fiction game: hand-painted, restrained realistic finish, the same painted look as reference 1. Plain warm-grey studio background; no text, labels, logos, watermark or border.\n\nReference roles: reference 1 is NESSA'S IDENTITY ONLY: her face, iron-grey hair, skin, build and long ochre canvas work coat. It is a portrait, not a layout.\n\nSubject: Nessa Venn, 58, owner of a small private ship-repair yard on the humid jungle world Jangala. Everyone working outdoors there wears a biofilter against the jungle's spores, so the question this sheet answers is what her biofilter looks like and whether it suits her.\n\nShow her three times, side by side, at the same scale, standing, knee-up:\n1. Left: outdoors at work, the biofilter WORN. A low-profile, practical respirator that leaves her eyes, brows, cheekbones and most of her face readable: a slim moulded half-mask in worn dark rubber and olive canvas covering only nose and mouth, close to the face, with one small flat filter cartridge on the left cheek side, held by a single fabric strap behind the head. Scuffed, patched, clearly hers for years. It must not look like a gas mask, a muzzle, a ball, or military kit.\n2. Middle: the same biofilter pulled down and hanging round her neck on its strap, as she wears it indoors and when talking to someone she knows.\n3. Right: a lighter alternative for comparison: a soft cloth filter wrap (like a work scarf with a thin filter panel) pulled up over nose and mouth.\n\nIn all three she wears the long weathered ochre-brown canvas work coat, dark grey work shirt, dark trousers and boots, a stylus behind one ear, and holds a scratched work slate in one hand. Level, appraising expression. Soft warm daylight from the upper left.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\nessa-venn.master.png",
+      "sha256": "8ac9312dae6dc1d0c871bbd15a24361572cd18d1d54225bc01012c19e5bc96ec",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Nessa's face, hair, skin, build and ochre coat; not a layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet with the three biofilter options, using Nessa’s portrait for her identity and painted finish."
+  ],
+  "usage": {
+    "input_tokens": 41700,
+    "cached_input_tokens": 32768,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 679,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.9
+}
