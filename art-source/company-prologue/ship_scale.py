@@ -241,15 +241,15 @@ HULLS['Falcon (P)'] = dict(units3=227910, crew_max=180, cargo=120, fuel=100, cls
 VOLUME_SOURCE['Falcon (P)'] = 'measured (SOLIDS)'
 PUBLISHED['Falcon (P)'] = .81
 # The Tarsus, the convoy freighter the pirates take as their prize (Asharu battle): twin
-# forward cargo arms, central body, aft body, the four turret drums, drive block and forward
-# command module (SOLIDS['tarsus']). The port pressure tanks and the starboard cylinder are
+# forward cargo arms, central body over its ventral keel, aft body with its raised castle, the
+# four turret drums, drive block and forward command module (SOLIDS['tarsus']). The port pressure tanks and the starboard cylinder are
 # external tankage laid on the deck (like the Colossus's underslung pod tanks) and the drive
 # cans are drives: excluded. Fittings: the Kite boarding collar hatch and the dorsal grapple
 # receiver plate the Colossus Mk.III clamps to.
-HULLS['Tarsus'] = dict(units3=279286, crew_max=80, cargo=350, fuel=80, cls='freighter', length_units=188.8,
+HULLS['Tarsus'] = dict(units3=291623, crew_max=80, cargo=350, fuel=80, cls='freighter', length_units=188.8,
                       sprite_px=204, fittings_units={'Kite collar hatch d': [5.2], 'grapple receiver plate d': [5.2]})
 VOLUME_SOURCE['Tarsus'] = 'measured (SOLIDS)'
-PUBLISHED['Tarsus'] = .51
+PUBLISHED['Tarsus'] = .50
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -349,7 +349,8 @@ SOLIDS['tarsus'] = {'blend': 'tarsus-geometry/tarsus-geometry.blend', 'step': 1.
                     'include': lambda n: n in (
                         'Hull port arm', 'Hull starboard arm', 'Hull central body', 'Hull aft body',
                         'Hull port aft drum', 'Hull starboard aft drum', 'Hull port bow drum',
-                        'Hull starboard bow drum', 'Hull drive block', 'Bridge command module')}
+                        'Hull starboard bow drum', 'Hull drive block', 'Bridge command module',
+                        'Hull ventral keel', 'Hull aft castle')}
 
 
 def table():

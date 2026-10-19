@@ -24,6 +24,7 @@ Options after a literal "--":
                  'details' names the first seven close-ups)
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
   --samples N    Cycles samples (default 24)
+  --blockout     skip the arm and body detail modules (shape review)
   --cpu          render on the CPU rather than the shared GPU
   --res WxH      render size (default 1920x1080)
   --figure       stand a 1.8 m mannequin by the starboard Kite collar (never saved)
@@ -63,6 +64,7 @@ parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--figure', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--blockout', action='store_true', help='skip the arm and body detail modules (shape review)')
 parser.add_argument('--cpu', action='store_true', help='render on the CPU (the GPU is shared and often saturated)')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
@@ -104,8 +106,9 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = ts_kit.Kit()
 ts_hull.build(kit)
-ts_arms.build(kit)
-ts_body.build(kit)
+if not args.blockout:
+    ts_arms.build(kit)
+    ts_body.build(kit)
 ts_bridge.build(kit)
 ts_engines.build(kit)
 ts_fittings.build(kit)
@@ -269,7 +272,8 @@ def union_volume(names, step=1.0):
 
 # What counts as enclosed volume (mirrors ship_scale.SOLIDS['tarsus']).
 SOLID_NAMES = ('Hull port arm', 'Hull starboard arm', 'Hull central body', 'Hull aft body',
-               'Hull port aft drum', 'Hull starboard aft drum', 'Hull port bow drum', 'Hull starboard bow drum', 'Hull drive block', 'Bridge command module')
+               'Hull port aft drum', 'Hull starboard aft drum', 'Hull port bow drum', 'Hull starboard bow drum',
+               'Hull drive block', 'Bridge command module', 'Hull ventral keel', 'Hull aft castle')
 
 
 def scale_record(lo, hi):
@@ -309,7 +313,7 @@ if not args.no_save:
     mpu = METRES_PER_UNIT
     metres = (lambda p: [round(v*mpu, 2) for v in p]) if mpu else (lambda p: None)
     manifest = {
-        'status': 'Pass 1 blockout on the clean base. No detail, damage, condition states or textures.',
+        'status': 'Pass 2 detail and pass 3 round 1 (stepped, faceted modules) on the clean base; owner review. No damage, condition states or textures.',
         'hull': {
             'name': 'Tarsus', 'hullId': 'tarsus', 'size': 'DESTROYER', 'style': 'LOW_TECH', 'tech': 'Low Tech',
             'designation': 'Freighter',
