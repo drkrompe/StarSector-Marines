@@ -5,7 +5,7 @@
  "append_collection": "WOLF",
  "root": "WOLF | root",
  "anchors_collection": "WOLF | anchors",
- "metres_per_unit": 0.88,
+ "metres_per_unit": 0.76,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -15,21 +15,21 @@
   [
    -40.2,
    -26.183,
-   -12.0
+   -18.0
   ],
   [
    57.98,
    26.183,
-   11.166
+   13.566
   ]
  ],
  "size_m": [
-  86.4,
-  46.1,
-  20.4
+  74.6,
+  39.8,
+  24.0
  ],
  "meshes": 171,
- "polygons": 16991,
+ "polygons": 16913,
  "images": 20,
  "engines": [
   {
@@ -41,7 +41,7 @@
    "location": [
     -36,
     12,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -68,7 +68,7 @@
    "location": [
     -40,
     0,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -95,7 +95,7 @@
    "location": [
     -36,
     -11,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    5.0
+    7.6
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -158,7 +158,7 @@
    "location": [
     -13,
     12,
-    6.4
+    8.8
    ],
    "rest_angle_deg": 90,
    "arc_deg": 200,
@@ -196,7 +196,7 @@
    "location": [
     -13,
     -11,
-    6.4
+    8.8
    ],
    "rest_angle_deg": -90,
    "arc_deg": 200,
@@ -235,7 +235,7 @@
    "location": [
     45,
     0,
-    0.4
+    -0.5
    ],
    "k": 0.55,
    "bay": {
@@ -245,8 +245,8 @@
     ],
     "half_width": 5.3,
     "z": [
-     -2.4,
-     4.0
+     -3.3,
+     3.1
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -275,7 +275,7 @@
    "location": [
     11,
     20,
-    0.2
+    -1.8
    ],
    "k": 0.6,
    "bay": null,
@@ -309,7 +309,7 @@
    "location": [
     11,
     -19,
-    0.2
+    -1.8
    ],
    "k": 0.6,
    "bay": null,
@@ -442,7 +442,7 @@
    "location": [
     11,
     0,
-    5.0
+    7.6
    ],
    "angle": 0,
    "arc": 150,
@@ -459,7 +459,7 @@
    "location": [
     -13,
     12,
-    6.4
+    8.8
    ],
    "angle": 90,
    "arc": 200,
@@ -476,7 +476,7 @@
    "location": [
     -13,
     -11,
-    6.4
+    8.8
    ],
    "angle": -90,
    "arc": 200,
@@ -493,7 +493,7 @@
    "location": [
     45,
     0,
-    0.4
+    -0.5
    ],
    "angle": 0,
    "arc": 5,
@@ -510,7 +510,7 @@
    "location": [
     11,
     20,
-    0.2
+    -1.8
    ],
    "angle": 0,
    "arc": 5,
@@ -531,7 +531,7 @@
    "location": [
     11,
     -19,
-    0.2
+    -1.8
    ],
    "angle": 0,
    "arc": 5,
@@ -568,7 +568,7 @@
    "position": [
     26,
     11.5,
-    3.28
+    5.88
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -583,7 +583,7 @@
    "position": [
     26,
     -11.5,
-    3.28
+    5.88
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -628,7 +628,7 @@
    "position": [
     -30,
     0,
-    5.35
+    7.85
    ],
    "colour": "white",
    "role": "stern light",
@@ -861,5 +861,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "aa0c561c5298a23788088f89db517661d4045a336de692f008fdd0d01ef25b1f"
+ "asset_sha256": "d5ea7861960e39fa6ebdf8cadfb9bf6f136893b6160ad411fd86bd654e8d286e"
 }

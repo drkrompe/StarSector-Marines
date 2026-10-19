@@ -5,7 +5,7 @@
  "append_collection": "WOLF_P",
  "root": "WOLF_P | root",
  "anchors_collection": "WOLF_P | anchors",
- "metres_per_unit": 0.88,
+ "metres_per_unit": 0.76,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -15,21 +15,21 @@
   [
    -40.2,
    -26.183,
-   -12.0
+   -18.0
   ],
   [
    57.98,
    26.183,
-   9.127
+   11.727
   ]
  ],
  "size_m": [
-  86.4,
-  46.1,
-  18.6
+  74.6,
+  39.8,
+  22.6
  ],
  "meshes": 151,
- "polygons": 9089,
+ "polygons": 9075,
  "images": 20,
  "engines": [
   {
@@ -41,7 +41,7 @@
    "location": [
     -36,
     12,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -68,7 +68,7 @@
    "location": [
     -40,
     0,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -95,7 +95,7 @@
    "location": [
     -36,
     -11,
-    0.0
+    -2.5
    ],
    "width": 16,
    "length": 64,
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    5.0
+    7.6
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -159,7 +159,7 @@
    "location": [
     45,
     0,
-    0.4
+    -0.5
    ],
    "k": 0.55,
    "bay": {
@@ -169,8 +169,8 @@
     ],
     "half_width": 5.3,
     "z": [
-     -2.4,
-     4.0
+     -3.3,
+     3.1
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -199,7 +199,7 @@
    "location": [
     11,
     20,
-    0.2
+    -1.8
    ],
    "k": 0.6,
    "bay": null,
@@ -233,7 +233,7 @@
    "location": [
     11,
     -19,
-    0.2
+    -1.8
    ],
    "k": 0.6,
    "bay": null,
@@ -336,7 +336,7 @@
    "location": [
     11,
     0,
-    5.0
+    7.6
    ],
    "angle": 0,
    "arc": 150,
@@ -353,7 +353,7 @@
    "location": [
     45,
     0,
-    0.4
+    -0.5
    ],
    "angle": 0,
    "arc": 5,
@@ -370,7 +370,7 @@
    "location": [
     11,
     20,
-    0.2
+    -1.8
    ],
    "angle": 0,
    "arc": 5,
@@ -391,7 +391,7 @@
    "location": [
     11,
     -19,
-    0.2
+    -1.8
    ],
    "angle": 0,
    "arc": 5,
@@ -425,7 +425,7 @@
    "position": [
     26,
     11.5,
-    3.28
+    5.88
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -440,7 +440,7 @@
    "position": [
     26,
     -11.5,
-    3.28
+    5.88
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -485,7 +485,7 @@
    "position": [
     -30,
     0,
-    5.35
+    7.85
    ],
    "colour": "white",
    "role": "stern light",
@@ -704,5 +704,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "707d2495dcbee3c413e40e33a6fb759677a3cec601c65d136b896f71fa5a5a03"
+ "asset_sha256": "350911d7dd591ab2a8596aa33548e1d0683eb3c3b2b18d7d82329f39e3757746"
 }

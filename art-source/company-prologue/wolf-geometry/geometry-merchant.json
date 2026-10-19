@@ -51,11 +51,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.88,
+  "metres_per_unit": 0.76,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 25160,
+      "units3": 38632,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
@@ -91,17 +91,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.876,
+    "solved_metres_per_unit": 0.759,
     "range": {
-      "habitable_273": 0.849,
-      "habitable_328": 0.902
+      "habitable_273": 0.736,
+      "habitable_328": 0.782
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 82.3,
+    "length_m": 71.4,
     "fittings_m": {},
-    "published_metres_per_unit": 0.88,
+    "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 25160,
+      "enclosed_units3": 38632,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -118,11 +118,11 @@
       ]
     },
     "size_m": [
-      86.4,
-      46.1,
-      20.4
+      74.6,
+      39.8,
+      24.0
     ],
-    "person_1_8_m_in_units": 2.05,
+    "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -140,17 +140,17 @@
     "min": [
       -40.2,
       -26.18,
-      -12.0
+      -18.0
     ],
     "max": [
       57.98,
       26.18,
-      11.17
+      13.57
     ],
     "size": [
       98.18,
       52.37,
-      23.17
+      31.57
     ]
   },
   "weapon_slots": [
@@ -159,7 +159,7 @@
       "location": [
         11,
         0,
-        5.0
+        7.6
       ],
       "angle": 0,
       "arc": 150,
@@ -176,7 +176,7 @@
       "location": [
         -13,
         12,
-        6.4
+        8.8
       ],
       "angle": 90,
       "arc": 200,
@@ -193,7 +193,7 @@
       "location": [
         -13,
         -11,
-        6.4
+        8.8
       ],
       "angle": -90,
       "arc": 200,
@@ -210,7 +210,7 @@
       "location": [
         45,
         0,
-        0.4
+        -0.5
       ],
       "angle": 0,
       "arc": 5,
@@ -227,7 +227,7 @@
       "location": [
         11,
         20,
-        0.2
+        -1.8
       ],
       "angle": 0,
       "arc": 5,
@@ -248,7 +248,7 @@
       "location": [
         11,
         -19,
-        0.2
+        -1.8
       ],
       "angle": 0,
       "arc": 5,
@@ -275,7 +275,7 @@
       "location": [
         11,
         0,
-        5.0
+        7.6
       ],
       "rest_angle_deg": 0,
       "arc_deg": 150,
@@ -309,7 +309,7 @@
       "location": [
         -13,
         12,
-        6.4
+        8.8
       ],
       "rest_angle_deg": 90,
       "arc_deg": 200,
@@ -347,7 +347,7 @@
       "location": [
         -13,
         -11,
-        6.4
+        8.8
       ],
       "rest_angle_deg": -90,
       "arc_deg": 200,
@@ -386,7 +386,7 @@
       "location": [
         45,
         0,
-        0.4
+        -0.5
       ],
       "k": 0.55,
       "bay": {
@@ -396,8 +396,8 @@
         ],
         "half_width": 5.3,
         "z": [
-          -2.4,
-          4.0
+          -3.3,
+          3.1
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -426,7 +426,7 @@
       "location": [
         11,
         20,
-        0.2
+        -1.8
       ],
       "k": 0.6,
       "bay": null,
@@ -460,7 +460,7 @@
       "location": [
         11,
         -19,
-        0.2
+        -1.8
       ],
       "k": 0.6,
       "bay": null,
@@ -597,7 +597,7 @@
       "location": [
         -36,
         12,
-        0.0
+        -2.5
       ],
       "width": 16,
       "length": 64,
@@ -624,7 +624,7 @@
       "location": [
         -40,
         0,
-        0.0
+        -2.5
       ],
       "width": 16,
       "length": 64,
@@ -651,7 +651,7 @@
       "location": [
         -36,
         -11,
-        0.0
+        -2.5
       ],
       "width": 16,
       "length": 64,
@@ -676,7 +676,7 @@
       "position": [
         26,
         11.5,
-        3.28
+        5.88
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -691,7 +691,7 @@
       "position": [
         26,
         -11.5,
-        3.28
+        5.88
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -736,7 +736,7 @@
       "position": [
         -30,
         0,
-        5.35
+        7.85
       ],
       "colour": "white",
       "role": "stern light",
@@ -754,7 +754,7 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 38334,
+    "triangles": 38128,
     "objects": 171,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
