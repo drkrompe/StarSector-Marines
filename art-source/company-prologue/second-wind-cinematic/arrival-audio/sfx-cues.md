@@ -30,6 +30,14 @@ sketches and Castle's lines for review.
 
 ## Sound direction
 
+- **Engines are burning rocket fuel, sized by thruster (owner, 2026-10-19).** Bass and crackling
+  combustion like a shuttle launch, never compressed air, hum or chimes. From the auditions
+  (`audition_engines.py`): small thrusters close (the fighters, the customs Hound) use the bright
+  crackling code-built voice; a medium drive at range or through the hull (Second Wind in C1, C2,
+  the entry and C4) the muffled code-built voice; a heavy drive at range the darker code-built voice
+  (the Legion's forward group); the generated `c4_launch_burn_t01` is a medium thruster close
+  (Second Wind's lift jets in the landing) and `_t02` a single heavy thruster (the Legion's main
+  drives, the departing Colossus), both flown along their paths with distance and Doppler.
 - **Weight over realism in space (owner, 2026-10-19).** There is no sound in vacuum, but
   the ships need weight: each big hull carries a deep bass engine hum, and everything that
   passes the camera close gets a swish. The bass stays below the voice band; the swishes

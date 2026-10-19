@@ -8,8 +8,10 @@ X 134-r..135-r and Y 80-c..81-c. Heights are proposed art; the game gives
 none.
 
 - Prongs (`Hull <side> prong`): the long armoured wedges that carry the
-  turrets, X -46 to 108, inner wall at Y +-10..13, the outer edge running from
-  Y 62 aft to 32 at the bow. Each is lofted through stations with one inner
+  turrets, X -47 to 108, inner wall at Y +-9..13 forward of the bridge, the
+  outer edge running from Y 62 aft to 33 at the bow. Aft of the bridge the
+  inner edge runs diagonally out to Y 42 at X -39, leaving the waist and its
+  tanks open from above, as the sprite shows. Each is lofted through stations with one inner
   wall, a deck rising to a ridge on the turret line, a steep outer glacis and
   a chine, so the side profile is one wall and two chamfers, never a blob.
   They are 21 units deep aft and 10 at the bow.
@@ -33,8 +35,8 @@ from fc_kit import loft_x, prism, section, sym, mirror_y, revolve_x, boolean, pl
 
 # Prong stations: x, inner wall y, outer edge y, deck z, keel z.
 PRONG = [(108, 9.5, 33, 5.0, -5.0), (80, 10.5, 42, 7.0, -7.0), (47, 12, 50, 9.0, -8.5),
-         (20, 9, 60, 10.5, -10.0), (-12, 10, 62.5, 11.0, -10.5), (-30, 30, 61.5, 9.0, -8.5),
-         (-39, 41, 60, 7.0, -6.5), (-47, 45.5, 51, 4.0, -3.5)]
+         (20, 9, 60, 10.5, -10.0), (2, 12, 62, 11.0, -10.5), (-12, 20, 62.5, 11.0, -10.5),
+         (-30, 36.5, 61.5, 9.0, -8.5), (-39, 42, 60, 7.0, -6.5), (-47, 45.5, 51, 4.0, -3.5)]
 
 
 def ridge_y(x):
@@ -94,7 +96,7 @@ def central_body(kit):
 
 def waist(kit):
     out = []
-    port = [(-12, 10), (-12, 30), (-28, 44), (-48, 44), (-52, 10)]
+    port = [(8, 10), (8, 13), (-12, 23), (-28, 44), (-48, 44), (-52, 10)]
     for label, plan in (('port', port), ('starboard', mirror_y(port))):
         out.append(prism(kit, f'Hull {label} waist deck', plan, section(-7.5, 3.0, 1.5, 1.2), kit.plate, bevel=.12))
     for side, label in ((1, 'port'), (-1, 'starboard')):

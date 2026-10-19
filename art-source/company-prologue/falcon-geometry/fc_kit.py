@@ -70,8 +70,8 @@ class Kit:
         self.bare = material('Falcon bare engine metal', (.42, .40, .45), .85, .35, wear=.15)
         self.dark = material('Falcon recess', (.022, .02, .019), .4, .6)
         self.hazard = material('Falcon hazard yellow', (.55, .42, .02), .1, .5, wear=.3)
-        self.glass = material('Falcon bridge glazing', (.03, .03, .03), .2, .12,
-                              emission=(1.0, .55, .18), strength=3.0)
+        self.glass = material('Falcon bridge glazing', (.02, .025, .03), .2, .08,
+                              emission=(1.0, .62, .3), strength=.6)
         self.lamp = material('Falcon running lamp', (.05, .04, .03), .2, .3,
                              emission=(1.0, .55, .15), strength=12.0)
         self.vent = material('Falcon heat vent glow', (.05, .03, .02), .3, .5,
