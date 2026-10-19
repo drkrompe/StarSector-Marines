@@ -1515,6 +1515,9 @@ def build():
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
              | port_life.HAZE_SKIP)
     add_camera(scene)
+    sys.path.insert(0, str(CINE / 'thrust-markers'))
+    import thrust_shots                                  # every craft's nozzles marked, through C5
+    thrust_shots.mark_c4(sys.modules[__name__])
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames
