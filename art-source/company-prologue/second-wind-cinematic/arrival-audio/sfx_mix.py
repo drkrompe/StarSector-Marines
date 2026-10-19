@@ -20,6 +20,8 @@ from pathlib import Path
 
 import numpy as np
 
+import synth_flyby
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 MANIFEST = HERE / "sfx-manifest.json"
@@ -39,17 +41,24 @@ LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice ba
 # Picture sketches: the newest review video of each shot, as of the cue sheet's date.
 DRIVE = Path("G:/My Drive/starsector/review")
 PICTURES = {
+    "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c2": DRIVE / "cinematic-c2/2026-10-18_bridge-fighters_windows/01-c2-bridge-sketch.mp4",
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
-    "c4": ROOT / "build/c4x/c4x-sketch-1fps.mp4",
-    "c5": DRIVE / "cinematic-c5/2026-10-19_rise-title_windows/05-sketch-1fps.mp4",
+    # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
+    "c4c5": [ROOT / "build/c4x/c4x-sketch-1fps.mp4",
+             DRIVE / "cinematic-c5/2026-10-19_rise-title_windows/05-sketch-1fps.mp4"],
 }
 
 
 def sfx(cue, t, level, **kw):
     return dict(kind="sfx", cue=cue, t=t, level=level, **kw)
+
+
+def synth(name, level, **kw):
+    """A code-built pass from synth_flyby.py; its clip already sits on the shot clock."""
+    return dict(kind="sfx", cue=None, synth=name, t=synth_flyby.PASSES[name]["start"], level=level, **kw)
 
 
 def voice(src, t, **kw):
@@ -66,17 +75,35 @@ def squelch(kind, t):
 
 # Each layer: start t (shot seconds), level (dB against dialogue), and optional
 # until (loop or cut to this shot time), offset (seconds into the take), env, fade_in, fade_out, af.
+def shifted(layers, by):
+    """The same layers later on a joined shot's clock."""
+    out = []
+    for layer in layers:
+        moved = dict(layer)
+        for key in ("t", "until", "ends"):
+            if moved.get(key) is not None:
+                moved[key] += by
+        if moved.get("env"):
+            moved["env"] = [(t + by, db) for t, db in moved["env"]]
+        out.append(moved)
+    return out
+
+
+C4_LENGTH = 16.0   # C4 and C5 play as one shot (owner, 2026-10-19); C5's beats keep their own clock + 16
+
 SHOTS = {
     "c1": (37.7, [
         sfx("c1_cabin_bed", 0.0, -16, until=37.7, env=[(0, -2), (2.6, 6), (3.1, 0)], fade_in=1.0),
+        # Second Wind's drive as bass: far at first, loudest as it passes and its engines face us.
+        sfx("c1_sw_engine_loop", 0.0, -14, until=37.7, af=LOW,
+            env=[(0, -12), (8, -2), (11, 2), (16, 0), (24, -4), (37.7, -9)], fade_in=2.0),
+        sfx("c1_sw_passby_swish", 9.25, -10),
         sfx("c1_hull_creaks", 0.5, -12, offset=0.5, until=3.0),
-        sfx("c1_hull_creaks", 11.4, -14, offset=5.0, until=12.8),
         sfx("c1_hull_creaks", 32.2, -12, offset=0.5, until=34.5),
         sfx("c1_rcs_puffs", 5.0, -14, until=7.0),
-        sfx("c1_rcs_puffs", 8.4, -16, until=10.5),
-        sfx("c1_sparks", 6.0, -22, until=12.0, env=[(6, -6), (8, 0), (10.5, 0), (12, -10)]),
-        sfx("c1_drive_passby", 9.5, -14, af=LOW),
-        sfx("c1_hound_flyby", 25.6, -14, af=LOW),
+        sfx("c1_sparks", 6.0, -22, until=10.0, env=[(6, -6), (8, 0), (10, -10)]),
+        # The customs Hound: synthesised from its flight path (owner, 2026-10-19).
+        synth("hound_flyby_a", -8),
         squelch("open", 3.0), hail(1, 3.16), squelch("close", 11.8), hail(2, 12.62),
         squelch("open", 23.7), hail(3, 23.86), squelch("close", 31.7), hail(4, 32.52),
     ]),
@@ -84,10 +111,16 @@ SHOTS = {
         sfx("c1_cabin_bed", 0.0, -16, offset=37.7 % 12.0, until=1.0, fade_out=1.0),
         sfx("c2_bridge_bed", 0.0, -16, until=15.0, fade_in=1.0),
         sfx("c2_console_beeps", 0.0, -14, offset=2.0, until=0.9),
-        sfx("c2_console_beeps", 2.2, -14, offset=3.4, until=3.6),
-        sfx("c1_rcs_puffs", 2.6, -18, until=3.4, af=LOW),
-        sfx("c1_rcs_puffs", 3.8, -18, until=4.6, af=LOW),
-        sfx("c2_legion_presence", 5.0, -12, af=LOW),
+        sfx("c2_console_beeps", 2.0, -14, offset=3.4, until=3.4),
+        # Two vics of three: a swish per fighter, a beat apart, peaking at 3.0 and 4.2.
+        sfx("c2_fighter_swish", 2.5, -8), sfx("c2_fighter_swish", 2.62, -12), sfx("c2_fighter_swish", 2.74, -14),
+        sfx("c2_fighter_swish", 3.7, -10), sfx("c2_fighter_swish", 3.82, -13), sfx("c2_fighter_swish", 3.94, -15),
+        # The Legion: two layers of engine hum and the swell, all loudest at the beam (8.0).
+        sfx("c2_legion_engines_a", 0.0, -12, until=15.0, af=LOW,
+            env=[(0, -16), (8, 0), (12, -6), (15, -12)], fade_in=1.0),
+        sfx("c2_legion_engines_b", 0.0, -13, until=15.0, af=LOW,
+            env=[(0, -18), (8.5, 0), (13, -6), (15, -12)], fade_in=1.0),
+        sfx("c2_legion_presence", 5.0, -14, af=LOW),
         sfx("c2_switch_clicks", 9.45, -12, until=9.8),
         sfx("c2_switch_clicks", 14.35, -12, offset=3.0, until=14.8),
         sfx("c2_deorbit_burn", 8.1, -12, until=15.0, env=[(8.1, 0), (12, 2), (15, 6)]),
@@ -105,28 +138,36 @@ SHOTS = {
         sfx("entry_buffet", 0.0, -10, offset=1.7, until=2.0, env=[(0, 0), (2.0, -18)]),
         sfx("c3_wind_easing", 0.0, -6, until=12.0, env=[(0, 0), (0.9, -4), (2.7, -8), (5, -10), (12, -12)]),
         sfx("c3_frame_settle", 1.0, -14),
-        sfx("c3_cabin_flight_bed", 0.0, -14, until=12.0, fade_in=0.8),
+        sfx("c3_cabin_flight_bed", 0.0, -16, until=12.0, fade_in=0.8),
+        # The world below, through the glass: muffled, and in once the buffeting has gone.
+        sfx("c3_nature_muffled", 1.5, -16, until=12.0, af="lowpass=f=1800:p=2", fade_in=2.0),
+        sfx("c3_river_muffled", 1.5, -18, until=12.0, af="lowpass=f=1200:p=2", fade_in=2.5),
+        voice(("castle", CASTLE["c4_reels"]), 4.0),
     ]),
-    "c4": (16.0, [
-        sfx("c3_cabin_flight_bed", 0.0, -14, until=1.0, fade_out=1.0),
-        sfx("c4_high_wind_bed", 0.0, -14, until=16.0, env=[(0, 0), (8, 0), (11, -6)], fade_in=0.6),
-        sfx("c4_ground_distant", 0.0, -18, until=8.0, fade_out=2.0),
-        sfx("c4_port_ambience", 5.0, -18, until=16.0, env=[(5, 0), (11, 2), (14, 6)], fade_in=2.5),
-        sfx("c4_ship_hover", 4.0, -12, until=11.3, env=[(4, -6), (6.6, 0), (10.4, 0), (11, 6)],
-            fade_in=1.5, fade_out=0.3, loop=True),
-        sfx("c4_touchdown", 11.0, -4),
+    # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
+    "c4c5": (C4_LENGTH + 33.5, [
+        sfx("c3_cabin_flight_bed", 0.0, -16, until=1.0, fade_out=1.0),
+        sfx("c4_high_wind_bed", 0.0, -14, until=15.0, env=[(0, 0), (8, 0), (11, -6), (15, -14)], fade_in=0.6),
+        sfx("c4_ground_distant", 0.0, -18, until=6.0, fade_out=2.0),
+        sfx("c4_freeway", 1.0, -12, until=48.5, fade_in=1.0,
+            env=[(1, -6), (4, 0), (8, -4), (12, -10), (34, -10), (42, -2), (48.5, -30)]),
+        sfx("c4_port_heavy", 3.5, -12, until=48.5, fade_in=1.5,
+            env=[(3.5, -10), (7, 0), (16, -2), (20, -6), (30, -6), (34, -5), (42, 2), (48.5, -30)]),
+        sfx("c4_port_ambience", 5.0, -18, until=34.0, fade_in=2.5, fade_out=2.0),
+        # The landing: the drive as bass, the rocket burn under the hover, then the thump.
+        sfx("c1_sw_engine_loop", 3.0, -10, until=12.5, af=LOW,
+            env=[(3, -8), (6.6, 0), (10.5, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
+        sfx("c4_landing_rocket", 4.0, -6),
+        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3),
+        sfx("c4_touchdown", 11.0, -2),
         sfx("c4_dust_hiss", 11.0, -10),
         sfx("c4_spool_down", 11.2, -8),
-        sfx("c5_vehicles_arrive", 14.2, -16, until=16.0, fade_in=0.8),
-        voice(("castle", CASTLE["c4_reels"]), 1.0),
-        voice(("castle", CASTLE["c4_greywater"]), 7.0),
-    ]),
-    "c5": (33.5, [
-        sfx("c5_yard_bed", 0.0, -14, until=33.5, env=[(0, 0), (18, 0), (26, -8), (31, -30)], fade_in=0.5),
-        sfx("c4_port_ambience", 0.0, -18, offset=11.0, until=19.0, fade_out=2.0),
-        sfx("c4_spool_down", 0.0, -12, offset=3.8, until=1.2),
+        sfx("c5_vehicles_arrive", 14.2, -12, fade_in=0.5),
+        sfx("c5_yard_bed", 12.0, -14, until=49.5,
+            env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
+        voice(("castle", CASTLE["c4_greywater"]), 1.0),
+    ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
-        sfx("c5_vehicles_arrive", 0.0, -12, offset=1.5, until=4.5),
         sfx("c5_car_doors", 3.5, -12),
         sfx("c5_steam_vent", 4.0, -14, until=6.5),
         sfx("c5_steam_vent", 6.4, -16, until=8.6),
@@ -140,9 +181,12 @@ SHOTS = {
             env=[(17, -12), (26, 0), (28, 0), (32.5, -40)], fade_in=1.0),
         voice(("castle", CASTLE["c5_announce"]), 5.0),
         voice(("castle", CASTLE["c5_last"]), None, ends=24.0),
-    ]),
+    ], C4_LENGTH)),
 }
 
+
+SHOTS["c1-hound-b"] = (SHOTS["c1"][0], [dict(layer, synth="hound_flyby_b") if layer.get("synth") else layer
+                                         for layer in SHOTS["c1"][1]])
 
 def decode(path, af=None):
     cmd = ["ffmpeg", "-v", "error", "-i", str(path)]
@@ -166,6 +210,8 @@ def duration(path):
 
 
 def source(layer, dirs, chosen):
+    if layer.get("synth"):
+        return dirs["synth"] / (layer["synth"] + ".wav")
     if layer["kind"] == "sfx":
         return TAKES / (chosen[layer["cue"]] + ".mp3")
     family, name = layer["src"]
@@ -228,9 +274,13 @@ def mix(shot, picture, dirs, chosen, out):
     write(full, out / (shot + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
     write(effects, out / (shot + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
     video = out / (shot + ".mp4")
-    if picture and picture.exists():
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(picture), "-i", str(out / (shot + ".mp3")),
-                        "-map", "0:v", "-map", "1:a", "-vf", "fps=24,scale=1920:1080", "-c:v", "libx264",
+    parts = picture if isinstance(picture, list) else [picture] if picture else []
+    if parts and all(part.exists() for part in parts):
+        inputs = [arg for part in parts for arg in ("-i", str(part))]
+        graph = "".join("[%d:v]fps=24,scale=1920:1080,setsar=1[v%d];" % (i, i) for i in range(len(parts)))
+        graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (shot + ".mp3")),
+                        "-filter_complex", graph, "-map", "[v]", "-map", "%d:a" % len(parts), "-c:v", "libx264",
                         "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
                         "-t", "%.3f" % length, str(video)], check=True)
     peak = 20 * np.log10(np.abs(full).max() + 1e-12)
@@ -256,11 +306,12 @@ def main():
     pictures = dict(PICTURES)
     for item in args.picture:
         shot, path = item.split("=", 1)
-        pictures[shot] = Path(path)
+        pictures[shot] = [Path(part) for part in path.split(",")] if "," in path else Path(path)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    synth_flyby.build(out / "synth")
     for shot in args.shot or SHOTS:
-        mix(shot, pictures.get(shot), {"castle": Path(args.castle), "hail": Path(args.hail)}, chosen, out)
+        mix(shot, pictures.get(shot), {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}, chosen, out)
 
 
 if __name__ == "__main__":
