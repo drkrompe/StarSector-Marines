@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.warship.MissileFlightSpec;
 import com.dillon.starsectormarines.battle.warship.MissilePath;
 import com.dillon.starsectormarines.battle.warship.VanillaBeamLook;
 import com.dillon.starsectormarines.battle.warship.VanillaMountLook;
+import com.dillon.starsectormarines.battle.warship.VanillaRoundLook;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
 import com.dillon.starsectormarines.battle.warship.SplitEvent;
 import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
@@ -20,11 +21,15 @@ import com.dillon.starsectormarines.battle.warship.WarshipShell;
 import com.dillon.starsectormarines.battle.warship.WarshipWreck;
 import com.dillon.starsectormarines.battle.warship.WarshipThrust;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.ContrailStyle;
+import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Draws a warship hanging over the battle: the game's own hull art at the scale
@@ -37,9 +42,12 @@ import java.util.List;
  * install's, named by the hull spec and the weapon spec, so a player who has
  * flown the ship sees the ship they know.
  *
- * <p>Rounds in flight are drawn from the weapon's own projectile art: a shell or
- * missile as its sprite, an energy bolt as a streak in the projectile's fringe
- * and core colours, a missile with a glowing tail behind it. A muzzle flash
+ * <p>Rounds in flight are drawn as the weapon's projectile spec says the game draws
+ * them ({@link VanillaRoundLook}): a shell as its bullet sprite stretched to the
+ * spec's length and width, a {@code BALLISTIC_AS_BEAM} bolt as a tapered streak
+ * in its fringe and core colours, a missile as its sprite with its flame and a
+ * continuous contrail ribbon. Between hulls they are drawn at the hulls' own
+ * scale, so a round stands to the ship it hits as in the base game. A muzzle flash
  * lights the barrel for the instant after it fires, in the weapon's own flash
  * colour. They share the hull's layer so they read as coming from it, and so the
  * headless review frames, which draw that layer, show them.
@@ -49,16 +57,16 @@ import java.util.List;
  */
 public final class WarshipRenderSystem implements RenderSystem {
 
-    /** Presentation scale on a vanilla round's size: at ground scale the game's own proportions read as boulders. */
-    private static final float ROUND_VISUAL_SCALE = 0.6f;
     private static final float MUZZLE_FLASH_SECONDS = 0.15f;
-    /** Diameter of the glow under a slug's sprite, in cells. */
-    private static final float BOLT_GLOW_CELLS = 1.4f;
-    private static final int TAIL_PUFFS = 10;
-    /** The longest a missile's smoke is drawn behind it, in seconds, however long its spec lets a contrail hang. */
-    private static final float TRAIL_MAX_SECONDS = 1.2f;
-    private static final int TAIL_PUFFS_DENSE = 4;
-    /** More bodies than this in the air and each draws a shorter tail, so a full swarm stays affordable. */
+    /** Samples along a missile's contrail ribbon close in, in a crowded sky, and at a far framing. */
+    private static final int TRAIL_SAMPLES = 20, TRAIL_SAMPLES_DENSE = 8, TRAIL_SAMPLES_FAR = 5;
+    /** How much wider than the spec's width a streak's soft fringe is laid, since the glow texture fades to its rim. */
+    private static final float STREAK_FRINGE_SPREAD = 1.7f;
+    /** A streak's core against its fringe, across. */
+    private static final float STREAK_CORE_SHARE = 0.35f;
+    /** A missile's flame against its engine slot's authored length (the base game's full-thrust plume). */
+    private static final float MISSILE_FLAME_SHARE = 0.8f;
+    /** More bodies than this in the air and each lays a coarser contrail, so a full swarm stays affordable. */
     private static final int DENSE_BODIES = 96;
     private static final int STRIKE_TRAIL_SAMPLES = 6;
     private static final float STRIKE_TRAIL_SECONDS = 0.4f;
@@ -66,6 +74,11 @@ public final class WarshipRenderSystem implements RenderSystem {
     private static final int FOOTPRINT_SEGMENTS = 56;
     /** The furthest a body's drawn trail reaches from it, in cells, for culling. */
     private static final float BODY_CULL_EXTENT_CELLS = 14f;
+    /**
+     * The same between hulls, where a round is drawn at the hulls' scale and a missile's contrail can lie a few hull
+     * lengths behind it.
+     */
+    private static final float HULL_BODY_CULL_EXTENT_CELLS = 220f;
     private static final String GLOW = "graphics/fx/particlealpha64linear.png";
     private static final Color DEFAULT_FLASH = new Color(255, 225, 165);
     private static final Color PD_FRINGE = new Color(255, 200, 90);
@@ -119,8 +132,13 @@ public final class WarshipRenderSystem implements RenderSystem {
     private float battleSeconds;
     /** Whether this frame's framing is close enough for a swarm body's flame and contrail to read. */
     private boolean swarmDetail = true;
-    /** How many puffs of smoke a missile draws behind it this frame. */
-    private int tailPuffs = TAIL_PUFFS;
+    /** How many samples a missile's contrail ribbon takes this frame. */
+    private int tailSamples = TRAIL_SAMPLES;
+    /** Contrail ribbons rebuilt every frame from the missiles' flights, reused frame to frame. */
+    private final List<ContrailTrail> trailPool = new ArrayList<>();
+    private int trailsUsed;
+    /** Each missile weapon's contrail, per scale it is drawn at. */
+    private final Map<String, ContrailStyle[]> contrailStyles = new HashMap<>();
 
     private final ShipAtmosphereFx atmosphereFx;
     /** The battle's hit marks, read from the simulation each frame. */
@@ -193,7 +211,9 @@ public final class WarshipRenderSystem implements RenderSystem {
         List<WarshipShell> shells = ctx.sim.warships().shells();
         List<WarheadStrike> strikes = ctx.sim.warships().strikes();
         swarmDetail = ZoomDetail.swarmDetailVisible(cam);
-        tailPuffs = !swarmDetail ? 2 : shells.size() + strikes.size() > DENSE_BODIES ? TAIL_PUFFS_DENSE : TAIL_PUFFS;
+        tailSamples = !swarmDetail ? TRAIL_SAMPLES_FAR
+                : shells.size() + strikes.size() > DENSE_BODIES ? TRAIL_SAMPLES_DENSE : TRAIL_SAMPLES;
+        trailsUsed = 0;
         List<WarshipShell.Footprint> ringed = new ArrayList<>(4);
         for (WarshipShell shell : shells) {
             WarshipShell.Footprint footprint = shell.footprint();
@@ -201,7 +221,8 @@ public final class WarshipRenderSystem implements RenderSystem {
                 ringed.add(footprint);
                 drawFootprint(out, cam, cellPx, ctx.alphaMult, shell);
             }
-            if (!cull.visible(shell.x(), shell.y(), BODY_CULL_EXTENT_CELLS)) continue;
+            float extent = shell.betweenHulls() ? HULL_BODY_CULL_EXTENT_CELLS : BODY_CULL_EXTENT_CELLS;
+            if (!cull.visible(shell.x(), shell.y(), extent)) continue;
             drawShell(out, cam, cellPx, ctx.alphaMult, shell);
         }
         for (WarheadStrike strike : strikes) {
@@ -674,38 +695,108 @@ public final class WarshipRenderSystem implements RenderSystem {
                 c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.9f * f * alpha);
     }
 
+    /**
+     * A round in flight, as its projectile spec says the game draws it ({@link VanillaRoundLook}): a shell is its
+     * bullet sprite stretched to the spec's length and width along its flight, a {@code BALLISTIC_AS_BEAM} bolt a
+     * tapered streak of light, a missile its sprite with its flame and contrail. A round between hulls is drawn at the
+     * hulls' own scale, so it stands to the ship it hits as in the base game; a round at the ground or the air at the
+     * shared density. The glow under it is the spec's own, never larger than the round when the spec names none.
+     */
     private void drawShell(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipShell shell) {
         VanillaWeapon w = shell.weapon;
         if (shell.hasBeam()) drawStandoffBeam(out, cam, cellPx, alpha, shell);
+        VanillaRoundLook look = VanillaWeaponLooks.round(w.id());
+        boolean hull = shell.betweenHulls();
+        float scale = VanillaRoundLook.cellsPerPx(hull);
         // The round is where its flight function says it is now, nose along the path's tangent.
         float x = shell.x();
         float y = shell.y();
         float heading = shell.headingDegrees();
-        ShuttleSpriteCache art = sprites.spriteByPath(w.projectileSprite());
-        if (art != null) {
-            float wPx = WarshipScale.cells(art.pxW) * cellPx * ROUND_VISUAL_SCALE;
-            float hPx = WarshipScale.cells(art.pxH) * cellPx * ROUND_VISUAL_SCALE;
-            if (w.missile()) drawMissileTail(out, cam, cellPx, alpha, shell, x, y);
-            else drawBoltGlow(out, cam, cellPx, alpha, w, x, y);
-            out.addSprite(RenderLayer.SHUTTLES, art.sprite,
-                    cam.cellToScreenX(x), cam.cellToScreenY(y), wPx, hPx, heading,
-                    1f, 1f, 1f, alpha);
+        if (w.missile()) {
+            drawMissile(out, cam, cellPx, alpha, shell, look, scale, hull, x, y, heading);
             return;
         }
-        // No sprite: an energy or kinetic bolt, a streak in the projectile's own colours.
-        float lengthCells = Math.max(0.6f, WarshipScale.cells(w.projectileLengthPx())) * ROUND_VISUAL_SCALE;
-        float widthPx = Math.max(2f, WarshipScale.cells(w.projectileWidthPx()) * cellPx * ROUND_VISUAL_SCALE);
+        float lengthPx = look != null ? look.lengthPx() : w.projectileLengthPx();
+        float widthPx = look != null ? look.widthPx() : w.projectileWidthPx();
+        // The round's tip is its position; it trails back along its flight, never further than it has flown.
+        float flown = (float) Math.hypot(x - shell.fromX, y - shell.fromY);
+        float length = Math.min(Math.max(1f, lengthPx) * scale, Math.max(flown, 0.2f * lengthPx * scale));
+        float width = Math.max(1f, widthPx) * scale;
+        ShuttleSpriteCache art = look == null || look.kind() == VanillaRoundLook.Kind.SHELL
+                ? sprites.spriteByPath(w.projectileSprite()) : null;
+        Color fringe = w.fringe() != null ? w.fringe() : look == null || look.fringe() == null
+                ? DEFAULT_FLASH : look.fringe();
+        if (art != null) {
+            drawRoundGlow(out, cam, cellPx, alpha, look, fringe, scale, x, y, heading, length, width, 0.5f);
+            float[] at = along(x, y, heading, -0.5f * length);
+            out.addSprite(RenderLayer.SHUTTLES, art.sprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
+                    Math.max(1.5f, width * cellPx), Math.max(2f, length * cellPx), heading, 1f, 1f, 1f, alpha);
+            return;
+        }
+        drawStreak(out, cam, cellPx, alpha, look, fringe, w.core() != null ? w.core() : Color.WHITE, scale,
+                x, y, heading, length, width);
+    }
+
+    /** The point {@code d} cells along {@code heading} from {@code (x, y)}; negative is astern. */
+    private static float[] along(float x, float y, float heading, float d) {
         double rad = Math.toRadians(heading);
-        float tx = x + (float) Math.sin(rad) * lengthCells;
-        float ty = y - (float) Math.cos(rad) * lengthCells;
-        Color fringe = w.fringe() != null ? w.fringe() : Color.ORANGE;
-        Color core = w.core() != null ? w.core() : Color.WHITE;
-        out.addLine(RenderLayer.SHUTTLES, cam.cellToScreenX(x), cam.cellToScreenY(y),
-                cam.cellToScreenX(tx), cam.cellToScreenY(ty), widthPx,
-                fringe.getRed() / 255f, fringe.getGreen() / 255f, fringe.getBlue() / 255f, 0.8f * alpha);
-        out.addLine(RenderLayer.SHUTTLES, cam.cellToScreenX(x), cam.cellToScreenY(y),
-                cam.cellToScreenX(tx), cam.cellToScreenY(ty), widthPx * 0.4f,
-                core.getRed() / 255f, core.getGreen() / 255f, core.getBlue() / 255f, alpha);
+        return new float[]{x - (float) Math.sin(rad) * d, y + (float) Math.cos(rad) * d};
+    }
+
+    /**
+     * The glow under a round. The spec's own ({@code glowColor} at {@code glowRadius}, at the round's scale) where it
+     * names one; else a soft halo in the round's fringe colour hugging the round, no longer than it and at most three
+     * of its widths across. Centred {@code centreBack} of the round's length astern of its tip.
+     */
+    private void drawRoundGlow(DrawList out, BattleCamera cam, float cellPx, float alpha, VanillaRoundLook look,
+                               Color fringe, float scale, float x, float y, float heading, float length, float width,
+                               float centreBack) {
+        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
+        if (glow == null) return;
+        float[] at = along(x, y, heading, -centreBack * length);
+        if (look != null && look.glowColor() != null && look.glowRadiusPx() > 0f) {
+            Color c = look.glowColor();
+            float d = 2f * look.glowRadiusPx() * scale * cellPx;
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, cam.cellToScreenX(at[0]),
+                    cam.cellToScreenY(at[1]), d, d, 0f, c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                    c.getAlpha() / 255f * alpha);
+            return;
+        }
+        float across = Math.min(length, 3f * width);
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
+                Math.max(2f, across * cellPx), Math.max(2f, length * cellPx), heading,
+                fringe.getRed() / 255f, fringe.getGreen() / 255f, fringe.getBlue() / 255f,
+                0.45f * fringe.getAlpha() / 255f * alpha);
+    }
+
+    /**
+     * A {@code BALLISTIC_AS_BEAM} bolt (or a projectile with no sprite): a streak of light {@code length} by
+     * {@code width} trailing back from its tip, in its fringe colour with a narrower core, brightest toward the head
+     * and fading soft at both ends, over the spec's own glow. Additive, as the game's is.
+     */
+    private void drawStreak(DrawList out, BattleCamera cam, float cellPx, float alpha, VanillaRoundLook look,
+                            Color fringe, Color core, float scale, float x, float y, float heading,
+                            float length, float width) {
+        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
+        if (glow == null) return;
+        if (look != null && look.glowColor() != null && look.glowRadiusPx() > 0f) {
+            drawRoundGlow(out, cam, cellPx, alpha, look, fringe, scale, x, y, heading, length, width, 0.3f);
+        }
+        float fr = fringe.getRed() / 255f, fg = fringe.getGreen() / 255f, fb = fringe.getBlue() / 255f;
+        float fa = fringe.getAlpha() / 255f;
+        // The glow texture falls off to nothing at its rim, so it is laid a little wider than the streak.
+        float wide = Math.max(2f, STREAK_FRINGE_SPREAD * width * cellPx);
+        float[] body = along(x, y, heading, -0.5f * length);
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, cam.cellToScreenX(body[0]), cam.cellToScreenY(body[1]),
+                wide, Math.max(2f, length * cellPx), heading, fr, fg, fb, 0.75f * fa * alpha);
+        float[] head = along(x, y, heading, -0.22f * length);
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, cam.cellToScreenX(head[0]), cam.cellToScreenY(head[1]),
+                wide, Math.max(2f, 0.45f * length * cellPx), heading, fr, fg, fb, 0.6f * fa * alpha);
+        float[] mid = along(x, y, heading, -0.36f * length);
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, cam.cellToScreenX(mid[0]), cam.cellToScreenY(mid[1]),
+                Math.max(1.5f, STREAK_CORE_SHARE * STREAK_FRINGE_SPREAD * width * cellPx),
+                Math.max(2f, 0.68f * length * cellPx), heading,
+                core.getRed() / 255f, core.getGreen() / 255f, core.getBlue() / 255f, core.getAlpha() / 255f * alpha);
     }
 
     /**
@@ -751,68 +842,133 @@ public final class WarshipRenderSystem implements RenderSystem {
     }
 
     /**
-     * A soft glow in the round's own fringe colour under a slug's sprite. At
-     * ground scale a gun's shell sprite is a few pixels across — a Devastator
-     * round is 5 by 8 pixels close in and nothing at whole-map scale — so the
-     * glow is what keeps a heavy gun's fall of shot visible between the muzzle
-     * and the landing.
+     * A missile in flight: its body at its spec's size and scale, held at its spec's centre; the flame at its nozzle
+     * while the motor burns, with the engine's glow; and its contrail laid as one continuous ribbon along the path it
+     * actually flew (the same flight function sampled at earlier times, so it hangs along the weave and costs no
+     * state), the spec's own width widening to its spread at the end and fading out over the spec's duration on the
+     * fight's clock. Without a readable spec it is the weapon's sprite and a grey trail.
      */
-    private void drawBoltGlow(DrawList out, BattleCamera cam, float cellPx, float alpha,
-                              VanillaWeapon w, float x, float y) {
+    private void drawMissile(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipShell shell,
+                             VanillaRoundLook look, float scale, boolean hull, float x, float y, float heading) {
+        MissileFlightSpec flight = shell.weapon.flight();
+        Color flame = look != null && look.engineColor() != null ? look.engineColor()
+                : flight != null && flight.engineColor() != null ? flight.engineColor() : MISSILE_FLAME;
+        drawContrail(out, alpha, shell, look, flight, scale, hull);
+        float now = shell.elapsed();
+        boolean burning = flight == null || flight.burnSeconds() <= 0f || now <= flight.burnSeconds();
         ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
-        if (glow == null) return;
-        Color c = w.fringe() != null ? w.fringe() : DEFAULT_FLASH;
-        float size = BOLT_GLOW_CELLS * cellPx;
-        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
-                cam.cellToScreenX(x), cam.cellToScreenY(y), size, size, 0f,
-                c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.7f * alpha);
+        float behind = (look != null ? look.nozzleBehindPx() : 10f) * scale;
+        float[] nozzle = along(x, y, heading, -behind);
+        float flameWidthPx = look != null ? look.flameWidthPx() : flight != null ? flight.flameWidthPx() : 4f;
+        float flameLengthPx = look != null ? look.flameLengthPx() : flight != null ? flight.flameLengthPx() : 20f;
+        if (burning && glow != null) {
+            float glowMult = look != null ? Math.max(1f, look.engineGlowMult()) : 1f;
+            float d = Math.max(2f, 2f * flameWidthPx * scale * glowMult * cellPx);
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite, cam.cellToScreenX(nozzle[0]),
+                    cam.cellToScreenY(nozzle[1]), d, d, 0f,
+                    flame.getRed() / 255f, flame.getGreen() / 255f, flame.getBlue() / 255f, 0.55f * alpha);
+        }
+        SpriteAPI flameSprite = sprites.warshipEngineFlameSprite();
+        if (burning && flameSprite != null && swarmDetail) {
+            // The nozzle burns while the motor does; the flame points back down the path from the nozzle.
+            float flicker = 0.85f + 0.15f * (float) Math.sin(engineClockSeconds * 47f + x * 3.1f);
+            float len = flameLengthPx * scale * MISSILE_FLAME_SHARE * flicker;
+            float[] at = along(nozzle[0], nozzle[1], heading, -0.5f * len);
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, flameSprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
+                    Math.max(1.5f, flameWidthPx * scale * cellPx), Math.max(2f, len * cellPx), heading + 180f,
+                    flame.getRed() / 255f, flame.getGreen() / 255f, flame.getBlue() / 255f, 0.9f * alpha);
+        }
+        String path = look != null && look.sprite() != null ? look.sprite() : shell.weapon.projectileSprite();
+        ShuttleSpriteCache art = sprites.spriteByPath(path);
+        if (art == null) return;
+        float bodyLength = (look != null && look.lengthPx() > 0f ? look.lengthPx() : art.pxH) * scale;
+        float bodyWidth = (look != null && look.widthPx() > 0f ? look.widthPx() : art.pxW) * scale;
+        float[] mid = along(x, y, heading, look != null ? look.spriteAheadPx() * scale : 0f);
+        out.addSprite(RenderLayer.SHUTTLES, art.sprite, cam.cellToScreenX(mid[0]), cam.cellToScreenY(mid[1]),
+                Math.max(1.5f, bodyWidth * cellPx), Math.max(2f, bodyLength * cellPx), heading, 1f, 1f, 1f, alpha);
     }
 
     /**
-     * A missile's flame at its tail and the smoke behind it. The smoke is the same
-     * flight function sampled at earlier times, so it hangs along the weave the
-     * missile actually flew and costs no state; its colours, lifetime and width
-     * are the projectile's own contrail spec, and its flame the engine slot's.
+     * A missile's contrail as one ribbon ({@link ContrailTrail}, drained through the same {@code RibbonBatch} as every
+     * other trail, in game and in review frames): samples along the flight function back to the spec's duration,
+     * each placed at the nozzle as it was then and aged by how long ago that was. The ribbons are pooled for the
+     * frame, since the trail is rebuilt from the flight every frame rather than recorded.
      */
-    private void drawMissileTail(DrawList out, BattleCamera cam, float cellPx, float alpha,
-                                 WarshipShell shell, float x, float y) {
-        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
-        if (glow == null) return;
-        MissileFlightSpec flight = shell.weapon.flight();
-        Color flame = flight != null && flight.engineColor() != null ? flight.engineColor() : MISSILE_FLAME;
-        Color smoke = flight != null && flight.contrailColor() != null ? flight.contrailColor() : MISSILE_SMOKE;
-        float smokeAlpha = smoke.getAlpha() / 255f;
-        float lifetime = Math.max(0.3f, Math.min(TRAIL_MAX_SECONDS, flight == null ? 0.6f : flight.contrailSeconds()));
-        float widthMult = flight == null ? 1f : Math.max(0.5f, Math.min(2.5f, flight.contrailWidthMult()));
+    private void drawContrail(DrawList out, float alpha, WarshipShell shell, VanillaRoundLook look,
+                              MissileFlightSpec flight, float scale, boolean hull) {
+        ContrailStyle[] styles = contrailStyles(shell.weapon, look, flight, scale, hull);
         MissilePath path = shell.path();
         float now = shell.elapsed();
-        float span = Math.min(now, lifetime);
-        for (int i = 0; i < tailPuffs; i++) {
-            float back = span * i / tailPuffs;
-            float fade = 1f - (float) i / tailPuffs;
-            float size = (0.6f + 0.1f * i) * (float) Math.sqrt(widthMult) * cellPx * ROUND_VISUAL_SCALE * 2f;
-            Color c = i < 2 ? flame : smoke;
-            float a = i < 2 ? 0.6f : 0.4f * Math.max(0.35f, smokeAlpha);
-            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
-                    cam.cellToScreenX(path.x(now - back)), cam.cellToScreenY(path.y(now - back)),
-                    size, size, 0f,
-                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, a * fade * alpha);
+        // Smoke is laid while the motor burns: after flameout the trail comes away from the missile and fades.
+        float burn = flight == null || flight.burnSeconds() <= 0f ? Float.MAX_VALUE : flight.burnSeconds();
+        float newest = Math.min(now, burn);
+        float oldest = Math.max(0f, now - styles[0].durationSec);
+        if (newest - oldest <= 1e-3f) return;
+        float behind = (look != null ? look.nozzleBehindPx() : 10f) * scale;
+        // Smoke let go keeps a share of the missile's speed: a puff laid at te, aged a, has drifted on to where the
+        // missile was at te + drift * a.
+        float drift = look != null ? look.contrailDrift() : 0f;
+        ContrailTrail outer = nextTrail(styles[0]);
+        ContrailTrail inner = nextTrail(styles[1]);
+        int n = tailSamples;
+        for (int i = 0; i <= n; i++) {
+            float laid = oldest + (newest - oldest) * i / n;
+            float age = now - laid;
+            float t = Math.min(now, laid + drift * age);
+            float[] nozzle = along(path.x(t), path.y(t), path.headingDegrees(t), -behind);
+            outer.pushSample(nozzle[0], nozzle[1]);
+            outer.get(outer.size() - 1).age = age;
+            inner.pushSample(nozzle[0], nozzle[1]);
+            inner.get(inner.size() - 1).age = age;
         }
-        SpriteAPI flameSprite = sprites.warshipEngineFlameSprite();
-        if (flameSprite == null || flight == null || !swarmDetail) return;
-        // The nozzle burns while the motor does; the flame points back down the path.
-        if (now > flight.burnSeconds() && flight.burnSeconds() > 0f) return;
-        float heading = path.headingDegrees(now) + 180f;
-        double hr = Math.toRadians(heading);
-        float lenPx = Math.max(0.6f, WarshipScale.cells(flight.flameLengthPx())) * cellPx * 1.6f;
-        float widthPx = Math.max(0.3f, WarshipScale.cells(flight.flameWidthPx())) * cellPx * 1.4f;
-        float sx = cam.cellToScreenX(x);
-        float sy = cam.cellToScreenY(y);
-        float flicker = 0.85f + 0.15f * (float) Math.sin(engineClockSeconds * 47f + x * 3.1f);
-        out.addAdditiveSprite(RenderLayer.SHUTTLES, flameSprite,
-                sx + (float) -Math.sin(hr) * lenPx * 0.5f, sy + (float) Math.cos(hr) * lenPx * 0.5f,
-                widthPx, lenPx * flicker, heading,
-                flame.getRed() / 255f, flame.getGreen() / 255f, flame.getBlue() / 255f, 0.9f * alpha);
+        out.addRibbon(RenderLayer.SHUTTLES, outer, alpha);
+        out.addRibbon(RenderLayer.SHUTTLES, inner, alpha);
+    }
+
+    /**
+     * The contrail a weapon's missile lays at a scale, from its spec, cached per weapon and scale: an outer ribbon the
+     * spec's full width and a denser inner one half as wide, so the smoke is thickest down its middle and soft at its
+     * edges (a ribbon is a flat fill) while the middle carries the spec's own opacity.
+     */
+    private ContrailStyle[] contrailStyles(VanillaWeapon w, VanillaRoundLook look, MissileFlightSpec flight,
+                                           float scale, boolean hull) {
+        String key = w.id() + (hull ? "@hull" : "@ground");
+        ContrailStyle[] cached = contrailStyles.get(key);
+        if (cached != null) return cached;
+        Color c = look != null && look.contrailColor() != null ? look.contrailColor()
+                : flight != null && flight.contrailColor() != null ? flight.contrailColor() : MISSILE_SMOKE;
+        float seconds = Math.max(0.05f, look != null && look.contrailSeconds() > 0f ? look.contrailLifeSeconds(hull)
+                : flight != null ? flight.contrailSeconds() : 0.6f);
+        float widthPx = look != null && look.contrailWidthPx() > 0f ? look.contrailWidthPx()
+                : flight != null ? 4f * flight.contrailWidthMult() : 4f;
+        float growth = 1f + Math.max(-0.9f, look != null ? look.contrailGrowthAtEnd() : 1f);
+        float half = 0.5f * widthPx * scale;
+        float r = c.getRed() / 255f, g = c.getGreen() / 255f, b = c.getBlue() / 255f;
+        // A vanilla contrail's alpha is how thick the smoke is. A glow-type contrail is added in the base game; a
+        // ribbon run lays it instead, which over the ground reads much the same at these alphas.
+        float a = Math.min(1f, Math.max(0.12f, c.getAlpha() / 255f));
+        // Two layers whose overlap in the middle comes to the spec's opacity: 1 - (1 - a/2)(1 - a') = a.
+        float edge = 0.5f * a;
+        float middle = 1f - (1f - a) / (1f - edge);
+        ContrailStyle[] styles = {
+                new ContrailStyle(seconds, half, half * growth, r, g, b, edge, r, g, b, 0f, 1e-4f, false),
+                new ContrailStyle(seconds, 0.5f * half, 0.5f * half * growth, r, g, b, middle, r, g, b, 0f, 1e-4f,
+                        false)};
+        contrailStyles.put(key, styles);
+        return styles;
+    }
+
+    /** The next pooled ribbon for this frame, emptied and set to {@code style}. */
+    private ContrailTrail nextTrail(ContrailStyle style) {
+        if (trailsUsed == trailPool.size()) trailPool.add(null);
+        ContrailTrail trail = trailPool.get(trailsUsed);
+        if (trail == null || trail.style != style) {
+            trail = new ContrailTrail(style, TRAIL_SAMPLES + 2);
+            trailPool.set(trailsUsed, trail);
+        }
+        trail.clear();
+        trailsUsed++;
+        return trail;
     }
 
     /**
@@ -852,8 +1008,8 @@ public final class WarshipRenderSystem implements RenderSystem {
             String spritePath = strike.spriteId() != null ? strike.spriteId() : w.projectileSprite();
             ShuttleSpriteCache art = sprites.spriteByPath(spritePath);
             if (art != null) {
-                float wPx = WarshipScale.cells(art.pxW) * cellPx * ROUND_VISUAL_SCALE;
-                float hPx = WarshipScale.cells(art.pxH) * cellPx * ROUND_VISUAL_SCALE;
+                float wPx = WarshipScale.cells(art.pxW) * cellPx * VanillaRoundLook.GROUND_ROUND_SCALE;
+                float hPx = WarshipScale.cells(art.pxH) * cellPx * VanillaRoundLook.GROUND_ROUND_SCALE;
                 out.addSprite(RenderLayer.SHUTTLES, art.sprite, hx, hy, wPx, hPx, strike.headingDegrees(),
                         1f, 1f, 1f, alpha);
             }
