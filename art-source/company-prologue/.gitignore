@@ -113,3 +113,8 @@ onslaught-surface/guide/*
 # other machines goes to Drive (starsector/builds/castle/<commit>/), never git.
 castle-figure/*.blend
 castle-figure/*.blend1
+
+# onslaught-cinematic: the appendable .blend is built (finalize.sh) and goes to Drive; renders are outputs
+onslaught-cinematic/*.blend
+onslaught-cinematic/*.blend1
+onslaught-cinematic/review/
