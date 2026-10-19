@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15196-2cc6-7cd3-886f-11578d46fb6c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15196-2cc6-7cd3-886f-11578d46fb6c\\exec-91954972-8707-4097-a394-21312db264e4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\06-hazard-industrial.png",
+    "sha256": "f1f794d99aa92ea11001f883f69c1860966f8c9b8a5d6c023d9ce1c0858680b1",
+    "dimensions": [
+      1983,
+      793
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\06-hazard-industrial.txt",
+  "promptSha256": "9ea1e70aa209cb438bf2fed68b7b3637cddf88dd7bd1f39671a0e46273a4f528",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Direction: worn industrial safety marking. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station, landing in a working spaceport run by a stern industrial government whose colour is safety orange. The mark looks like heavy-industry signage on a port: MARINES in very bold, tightly set condensed industrial capitals in off-white with a charcoal outline, sitting on a dark charcoal bar; along the bottom of the bar a strip of diagonal orange and black hazard chevrons, worn and scuffed as if painted on a dock edge years ago. STARSECTOR is small, in white capitals, on a short tab on the top left of the bar like a section marker. Flat painted look with grime and scuffs, not glossy, not 3D. The bar and tab are the logo shape; everything outside them is transparent.\n\nLettering must be spelled exactly, in capital letters: the setting name STARSECTOR, small, and the mod's name MARINES, large and dominant; MARINES is the identity of the mark and STARSECTOR is a modest subtitle. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image with the industrial safety-sign styling and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 37085,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 471,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.3
+}

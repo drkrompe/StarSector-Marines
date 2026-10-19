@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15199-ca65-7462-bde9-e2b7bc6f39c8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15199-ca65-7462-bde9-e2b7bc6f39c8\\exec-216209fc-6783-4ad7-82b5-e2e83a1fc5dc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\03-unit-patch-v2.png",
+    "sha256": "de90a09a5c7130899f4fd37ca6ece31c01980241903ecdc9ae4b64cbe71c6dd0",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\03-unit-patch-v2.txt",
+  "promptSha256": "559e43a2cc66c036dfa2ab989c844b87af3c7534fdbefd17e841e855c0be14a3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station who arrive on a jungle world in a patched old ship. Direction: unit patch with a clean wordmark. Two parts side by side: on the left, a round embroidered cloth unit patch with a merrowed edge, showing a simple emblem: a small boxy drop-ship silhouette descending toward the curve of a jungle planet's horizon, three small stars above, in olive drab, sand, dark navy and one small accent of muted orange, real embroidery stitch texture. On the right, a clean modern wordmark: STARSECTOR in a bold, slightly extended geometric sans-serif in off-white, the dominant element; below it, after a thin rule, MARINES in smaller, wide-tracked capitals. The patch is about the height of both lines of text together. Calm, confident, hopeful, like a real service insignia. No glow, no chrome.\n\nLettering must be spelled exactly, in capital letters: STARSECTOR, large and dominant, the main word of the title; and MARINES, clearly smaller, as the subtitle that names this particular game. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface, layout or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and the smaller word must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one transparent title logo with the embroidered patch and exact lettering you specified.\n"
+  ],
+  "usage": {
+    "input_tokens": 37001,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 519,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 40.5
+}

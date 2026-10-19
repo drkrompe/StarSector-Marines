@@ -27,6 +27,11 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.SRM_15, "@gearFabricationStandardIssue", 18, 8, 28, 3),
             weapon(MechWeaponComponent.LRM_5, "@gearFabricationStandardIssue", 10, 4, 14, 2),
             weapon(MechWeaponComponent.LRM_15, "@gearFabricationMilitaryPattern", 22, 10, 30, 5),
+            // No shaped charge: a fragmentation rack is a little cheaper than its anti-armor rack, mostly in rare metals.
+            weapon(MechWeaponComponent.SRM_5_FRAG, "@gearFabricationStandardIssue", 8, 3, 11, 1),
+            weapon(MechWeaponComponent.SRM_15_FRAG, "@gearFabricationStandardIssue", 18, 8, 28, 2),
+            weapon(MechWeaponComponent.LRM_5_FRAG, "@gearFabricationStandardIssue", 10, 4, 14, 1),
+            weapon(MechWeaponComponent.LRM_15_FRAG, "@gearFabricationStandardIssue", 22, 10, 30, 3),
             weapon(MechWeaponComponent.SHOULDER_LASER_CANNON, "@gearFabricationTriTachyonPattern", 28, 16, 22, 10),
             weapon(MechWeaponComponent.THERMAL_LANCE, "@gearFabricationLionsGuardPattern", 24, 14, 28, 8),
             weapon(MechWeaponComponent.PIONEER_ROCKET_CRADLE, "@gearFabricationCommonMarket", 8, 3, 12, 1));

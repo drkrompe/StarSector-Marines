@@ -31,12 +31,12 @@ import java.util.Map;
  * from bare armour, onto the hull from a stated side.
  * <ul>
  *   <li>{@code front-arc-held}: the shield is held up and the battery lands in the
- *       arc. The hull must be untouched while flux climbs (nothing vents while the
- *       shield is up) until the pool fills, the shield drops and the ship overloads;
- *       only then does the hull take damage.</li>
+ *       arc. The hull must be untouched while flux climbs (the hits are hard flux,
+ *       which does not vent while the shield is up) until the pool fills, the shield
+ *       drops and the ship overloads; only then does the hull take damage.</li>
  *   <li>{@code rear-battery}: the same shield held up and the same battery from
  *       astern. A front shield does not cover it, so the hull is hit at once and
- *       the shield takes on nothing but its upkeep.</li>
+ *       the shield takes on nothing but its upkeep, which is soft and vents.</li>
  *   <li>{@code shield-down}: the control. No shield; the hull takes the same
  *       damage the rear loop did.</li>
  *   <li>{@code auto-threat}: an automatic shield. It is down until rounds are in
@@ -44,9 +44,9 @@ import java.util.Map;
  *       threat has been quiet for its hold and vents the flux it took.</li>
  *   <li>{@code guns-shield-up} and {@code guns-shield-down}: a directed ship
  *       shelling a block of defenders under a thin trickle of hostile fire from the
- *       front, shield held and shield not. The raised shield stops the pool
- *       venting, so the guns see a fuller pool and fire fewer rounds: the
- *       trade between protection and guns.</li>
+ *       front, shield held and shield not. The raised shield draws its upkeep and
+ *       holds the hits it takes from venting, so the guns see a fuller pool and fire
+ *       fewer rounds: the trade between protection and guns.</li>
  *   <li>{@code guns-full-pool}: the same ground fight with no shield on the hull
  *       table's own, unhalved pool, which is why a directed ship runs at
  *       {@link Warship#BRAWLER_FLUX_SCALE}: at the full pool its guns never come
@@ -154,10 +154,19 @@ public final class WarshipShieldScene implements BehaviorScene {
                         t.overloadStart > 0 && t.hullBeforeOverload >= 0.999f && t.shieldHitsAtOverload > 0,
                         "hull " + pct(t.hullBeforeOverload) + " the tick before the overload, after "
                                 + t.shieldHitsAtOverload + " absorbed hits"));
-                verdicts.add(Verdict.of("flux-climbs-without-venting",
-                        t.overloadStart > 0 && t.monotoneBeforeOverload && t.fluxAt(BATTERY_START) > 0f,
-                        "flux never fell before the overload; " + Math.round(t.fluxAt(BATTERY_START))
-                                + " at the first volley from upkeep alone"));
+                if (WarshipFlux.HARD_FLUX) {
+                    // The hits are hard flux the raised shield holds; the upkeep is soft and vents behind it.
+                    verdicts.add(Verdict.of("the-hits-are-held-as-hard-flux",
+                            t.overloadStart > 0 && t.hardMonotoneBeforeOverload
+                                    && t.fluxAt(BATTERY_START) <= 0.01f * t.ship.fluxCapacity(),
+                            "hard flux never fell before the overload; " + Math.round(t.fluxAt(BATTERY_START))
+                                    + " at the first volley, the upkeep vented behind the shield"));
+                } else {
+                    verdicts.add(Verdict.of("flux-climbs-without-venting",
+                            t.overloadStart > 0 && t.monotoneBeforeOverload && t.fluxAt(BATTERY_START) > 0f,
+                            "flux never fell before the overload; " + Math.round(t.fluxAt(BATTERY_START))
+                                    + " at the first volley from upkeep alone"));
+                }
                 verdicts.add(Verdict.of("hull-hit-only-once-the-shield-is-down",
                         t.firstHullDamage >= t.overloadStart && t.overloadStart > 0 && t.ship.hullFraction() < 0.999f,
                         "first hull damage at tick " + t.firstHullDamage + ", overload at " + t.overloadStart
@@ -172,9 +181,18 @@ public final class WarshipShieldScene implements BehaviorScene {
                         t.ship.shieldHits() == 0 && t.ship.shieldAbsorbedFlux() == 0f,
                         t.ship.shieldHits() + " hits absorbed"));
                 float upkeep = t.ship.shieldModel().upkeep() * t.ship.fluxPool().dissipation() * t.ticks / 30f;
-                verdicts.add(Verdict.of("flux-is-upkeep-alone",
-                        t.ship.overloadCount() == 0 && t.ship.flux() <= upkeep * 1.02f && t.ship.flux() >= upkeep * 0.9f,
-                        Math.round(t.ship.flux()) + " flux against " + Math.round(upkeep) + " of upkeep"));
+                if (WarshipFlux.HARD_FLUX) {
+                    // Nothing hard from astern, and the upkeep is soft: it vents behind the shield as it is drawn.
+                    verdicts.add(Verdict.of("flux-is-upkeep-and-it-vents",
+                            t.ship.overloadCount() == 0 && t.ship.fluxPool().hard() == 0f
+                                    && t.maxFlux <= 0.01f * t.ship.fluxCapacity(),
+                            Math.round(t.maxFlux) + " flux at most, none of it hard, against " + Math.round(upkeep)
+                                    + " of upkeep drawn"));
+                } else {
+                    verdicts.add(Verdict.of("flux-is-upkeep-alone",
+                            t.ship.overloadCount() == 0 && t.ship.flux() <= upkeep * 1.02f && t.ship.flux() >= upkeep * 0.9f,
+                            Math.round(t.ship.flux()) + " flux against " + Math.round(upkeep) + " of upkeep"));
+                }
             }
             case "shield-down" -> {
                 Trace rear = runs.get("rear-battery");
@@ -267,6 +285,8 @@ public final class WarshipShieldScene implements BehaviorScene {
         private float hullLastTick = 1f;
         int shieldHitsAtOverload;
         boolean monotoneBeforeOverload = true;
+        boolean hardMonotoneBeforeOverload = true;
+        private float lastHard;
         int firstHullDamage = -1;
         int firstUp = -1;
         boolean everUp;
@@ -310,6 +330,9 @@ public final class WarshipShieldScene implements BehaviorScene {
             }
             hullLastTick = ship.hullFraction();
             if (overloadStart < 0 && t > 0 && flux[t] + 1e-3f < flux[t - 1]) monotoneBeforeOverload = false;
+            float hard = ship.fluxPool().hard();
+            if (overloadStart < 0 && hard + 1e-3f < lastHard) hardMonotoneBeforeOverload = false;
+            lastHard = hard;
             if (firstHullDamage < 0 && ship.hullFraction() < 0.9999f) firstHullDamage = tick;
             boolean up = ship.shieldUp();
             if (up) {

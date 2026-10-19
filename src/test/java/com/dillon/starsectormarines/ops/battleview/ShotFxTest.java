@@ -260,8 +260,8 @@ public class ShotFxTest {
                 assertFalse(fx.travels(), "mech beam is drawn across the resolved lane");
             }
             assertEquals(w.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + w);
-            boolean expectedTrail = WeaponRegistry.MECH_SRM_POD_ID.equals(w.id)
-                    || WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(w.id)
+            boolean expectedTrail = WeaponRegistry.isMechSrm(w.id)
+                    || WeaponRegistry.isMechLrm(w.id)
                     || WeaponRegistry.MECH_PIONEER_ROCKET_ID.equals(w.id);
             assertEquals(expectedTrail, !w.fx.layers(FxSlot.TRAIL).isEmpty(),
                     "authored trail for " + w);

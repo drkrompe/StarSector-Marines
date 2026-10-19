@@ -441,7 +441,7 @@ class MechLabViewModelTest {
             assertEquals(y, stage.box().borderBox().y(), EPSILON);
             assertEquals(width, stage.box().borderBox().width(), EPSILON);
             assertEquals(height, stage.box().borderBox().height(), EPSILON);
-            var rack = model.catalogRows().get().stream().filter(row -> row.weaponPreview() == MechWeaponComponent.SRM_5).findFirst().orElseThrow();
+            var rack = model.catalogRows().get().stream().filter(row -> row.weaponPreview() == MechWeaponComponent.SRM_5_FRAG).findFirst().orElseThrow();
             var install = instance.requireElement(rack.actionId()).box().borderBox();
             document.pointerDown(install.x() + install.width() / 2, install.y() + install.height() / 2);
             document.pointerUp(install.x() + install.width() / 2, install.y() + install.height() / 2);
@@ -451,7 +451,7 @@ class MechLabViewModelTest {
             assertEquals(3, bay.labLesson());
             assertNotNull(reopened.campaignLesson());
             assertTrue(reopened.removeInstalledWeapon(SocketId.LEFT_SHOULDER));
-            assertTrue(reopened.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+            assertTrue(reopened.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER));
             assertEquals(4, bay.labLesson());
         }
     }

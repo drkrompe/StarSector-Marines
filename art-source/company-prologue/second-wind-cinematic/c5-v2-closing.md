@@ -115,8 +115,9 @@ The first draft ("Everyone we took aboard at the Claim is walking off this ship
 on their own feet… Go and see the sky… A new start, Commander. Let's not waste
 it.") read as cheesy once recorded: it told the audience what to feel. The
 announcement is now only what she would actually say. The hope is in the
-picture, the families walking off under an open sky, and Castle's voice stays
-calm and tired with the hope under the words. The last line is private, and the
+picture, the families walking off under an open sky. Castle's voice is calm and
+resolute, a captain who has brought her people down: tired reads came out
+worried (owner, 2026-10-18), so the directions no longer ask for tired. The last line is private, and the
 ear knows it because the loudspeaker is gone. It is wry rather than tender, and
 it turns the arrival into the work the campaign is about.
 
@@ -168,9 +169,9 @@ perspective barely matters.** Both methods read as people walking:
 
 ## Open questions
 
-- **Line choice and delivery.** Castle's voice is calm and tired, and the hope
-  is under the words, not in them. The last line has two reads, plain and
-  wry. Choose by ear against the picture.
+- **Line choice and delivery.** Castle's voice is calm and steady, and the hope
+  is under the words, not in them, and she sounds sure of herself. Confident
+  and resolute reads were recorded. Choose by ear against the picture.
 - **Music.** The hopeful ambient track the owner is looking for should arrive
   here, under Castle's last line, rather than be spent earlier.
 - **Crowd.** Tiny figures with bags and shadows, seen from overhead. Cheap at

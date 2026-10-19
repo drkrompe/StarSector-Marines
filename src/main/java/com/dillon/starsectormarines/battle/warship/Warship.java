@@ -384,7 +384,7 @@ public final class Warship {
      * rhythm a player can read (at the hull table's own figures a ground
      * bombardment never nears an Onslaught's capacity). This was once a stand-in
      * for what a shield would take; shields are modelled now ({@link WarshipShield}:
-     * upkeep, no venting while raised, hits absorbed as flux) and draw on this same
+     * upkeep, hits absorbed as hard flux held while raised) and draw on this same
      * scaled pool, but a shield is only raised when something threatens the hull,
      * so in a ground fight nothing is drawing and the half remains the brawler's
      * deliberate fire-rate setting rather than a placeholder for shield cost.
@@ -592,6 +592,23 @@ public final class Warship {
 
     void noteGroundShot() {
         groundShots++;
+    }
+
+    /** Whether the automatic shield is locked down by a full pool until it has vented, for evidence and a HUD. */
+    public boolean shieldLockedOut() {
+        return hasShield() && shield.lockedOut();
+    }
+
+    /** The hard share of the flux, as a share of capacity: what absorbed hits put there, held while the shield is up. */
+    public float hardFluxFraction() {
+        return flux.enabled() ? Math.min(1f, flux.hard() / flux.capacity()) : 0f;
+    }
+
+    private int hullHits;
+
+    /** Located hits that reached the hull past any shield, whether or not the plate let anything through; for evidence. */
+    public int hullHits() {
+        return hullHits;
     }
 
     /** Hits the shield has absorbed, for evidence. */
@@ -992,6 +1009,7 @@ public final class Warship {
 
     private float takeHit(int cell, float damage, float penetration, float nowSeconds, float durability) {
         if (destroyed()) return 0f;
+        hullHits++;
         float wear = Math.max(1f, durability);
         if (plating == null) {
             float taken = Math.min(hitPoints, effectiveDamage(damage, penetration, armour) / wear);

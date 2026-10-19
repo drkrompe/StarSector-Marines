@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — deployed hulls engage armor from a duel band between orders; idle turrets settle onto the hull heading.
+Updated: 2026-10-18 — tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -549,7 +549,11 @@ retains the same existing cross-domain behavior as an autonomous hull.
   for the turret; a single gun has no shorter band, so it never closes into
   contact. Too close, it backs off with its nose kept on the target through the
   manual-drive physics, because a hull cannot reverse along a route and a
-  planned retreat would begin with a turnaround toward the enemy. A player
+  planned retreat would begin with a turnaround toward the enemy. A hull
+  reverses at half its top speed, and a tank at 0.3 of it: slower than a
+  Bulwark walks, so a mech that closes on a tank catches it rather than being
+  kited out of its own reach (`heavy-equipment-progression.md`, a tank against
+  the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
   allied story columns, delivery legs, unarmed hulls and empty magazines never
   engage, and infantry is not a duel target. `-Dbattle.vehicle.duelRange=false`

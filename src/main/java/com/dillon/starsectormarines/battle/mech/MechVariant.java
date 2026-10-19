@@ -29,8 +29,9 @@ public enum MechVariant {
             1.35f, 1.20f, 0.48f, 0.65f, 1.2f,
             LayeredMechAppearance.CHASSIS_SIROCCO,
             MechWeaponComponent.SINGLE_HEAVY_CANNON,
-            MechWeaponComponent.LRM_5,
-            MechWeaponComponent.LRM_5,
+            // Artillery against men; the heavy cannon is the Sirocco's answer to armor.
+            MechWeaponComponent.LRM_5_FRAG,
+            MechWeaponComponent.LRM_5_FRAG,
             MechRole.LR_SUPPORT);
 
     public final String id;
