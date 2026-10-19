@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -256,7 +256,8 @@ hit on the turret meets the turret's armor and then its structure. What the
 turret cannot hold goes on into the hull, which meets it with its own armor
 first. A hit on a turret already at zero goes through the hole to the hull's
 plate. Both pools resolve against the hull's one armor rating: one plate per
-machine, as a mech's sections share their chassis's rating.
+machine, as a mech's sections share their chassis's rating. What that plate is
+worth on a given hit depends on its arc (below).
 
 - **Only the hull's own structure kills.** The turret's remainder dies with it.
 - **The turret at zero destroys the gun, and nothing else.** The hull drives on
@@ -288,6 +289,49 @@ machine, as a mech's sections share their chassis's rating.
   the whole-body control. `battle.vehicle.turretHitShare` and
   `battle.vehicle.turretPoolShare` override the authored shares for evidence
   runs.
+
+**A hull's plate depends on the arc a hit arrives on** (`ArmorArcs`,
+`VehicleType.armorArcs`), so flanking a machine pays. The arc is read from the
+bearing of the hit's origin against the facing of the part it lands on: front is
+45 degrees either side of the nose, rear 45 degrees either side of the tail, and
+each side the ninety between. An arc carries two multipliers. Its **rating**
+scales the hull's armor rating, the number penetration is read against, so it
+only matters to rounds that do not already out-penetrate the plate. Its
+**plate** is what each point of the hull's one armor pool counts for on that
+arc: thick front plate strips more slowly, thin rear plate faster, whatever the
+round. The pool stays one column, so whole-body readers still see one hull.
+
+- **One shared profile, one steeper override.** Every hull's front is rating 1.0
+  and plate 1.1, its sides 0.9 / 0.9, its rear 0.75 / 0.7. The tank line and the
+  dozer, whose plate is all glacis, are 1.0 / 1.15, 0.85 / 0.85 and 0.6 / 0.6.
+- **The turret faces its own way.** A hit rolled onto the turret is read against
+  the turret's facing, not the hull's. A turret trained on its target shows that
+  target its front, so a lone attacker meets the mantlet while a second machine on
+  the flank, unwatched by the gun, gets the turret's side or rear. What goes on
+  through the turret into the hull meets the hull's own arc.
+- **The turret's hit share stays fixed on every arc.** A share that grew with the
+  silhouette would also change how often a flanker shoots the gun away, and that
+  share was tuned as the gun-loss rate (`heavy-equipment-progression.md`, a tank
+  that loses its gun). Arcs are about plate; how the hits divide stays its own
+  lever.
+- **Origin is where the shooter stands now.** It covers every attributed hit
+  alike: an aimed round, an arcing shell, a missile, a blast. A ballistic or
+  arcing round's ground track runs from its shooter, and a top-attack round is
+  not read as a roof hit: the anti-armor LRM already defeats a stock tank by
+  design, and the screened tank's active protection is that threat's answer. A
+  blast is read from its firer, not from where it burst. A hit with no origin
+  (unattributed or scripted damage, a shooter already gone) meets the hull's
+  nominal plate on no arc, and no arc draws on the random stream.
+- **What presents the front.** Production sets a dropped hull down facing the way
+  its carrier flew in. A duelling hull drives to its band nose first, and backs
+  off a target that is too close with its nose kept on it. Three cases do not
+  keep the front on the threat: a target already behind a too-close hull is driven
+  away from, rear on; a disarmed hull that has a drivable withdrawal route
+  turns and drives it, showing its rear (it backs off nose-on only when no route
+  exists), and a hull already in band never turns toward a machine that comes at
+  it from the flank, because a bicycle hull cannot pivot in place.
+- `-Dbattle.vehicle.armorArcs=false` is the control: every arc is the hull's one
+  plate, bit for bit the law before arcs.
 
 The turret section is battle durability, so a fitting doll does not own it. A
 future vehicle doll (`mech-lab-data-authored-dolls.md`) may draw the turret as

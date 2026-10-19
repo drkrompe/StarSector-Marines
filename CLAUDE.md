@@ -880,7 +880,9 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   production doctrine and turrets. A mech is steered only while out of reach or out of sight, and its lance
   carries no mission order of its own, so doctrine (and its duel range against armor) decides where it fights;
   `-PmechOrder=attack-move` restores the old attack-move onto the defenders' ground and the old steering, which
-  together walked every attacking mech into contact. The Range column is the median distance between the nearest
+  together walked every attacking mech into contact. Both sides are set down facing each other;
+  `-PdefenderFacing=90|180` turns the defenders side-on or rear-on, the question facing-dependent armor asks
+  (`-Dbattle.vehicle.armorArcs=false` is its control). The Range column is the median distance between the nearest
   opposing machines from the first hit. The default ladder (`-Pladder=control,mech,mixed,vehicle`): stock Hound vs
   stock Hound (the control), every chassis at stock and refit against every other both ways, each stock chassis
   against each armed vehicle line both ways, every armed line against every other (the unarmed scout car only when

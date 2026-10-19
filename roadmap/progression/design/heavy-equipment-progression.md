@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — facing: a hull's plate depends on the arc it is hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -654,6 +654,65 @@ being a tank-only gap.
   any-round rule, LRM fit / stock / refit: reach 8, cycle 0.1, roll 0.6 and 10
   rounds gave 0.77 / 0.11 / 0.48; with 20 rounds, 0.73 / 0.08 / 0.42. A
   reach-4, 0.3 s mount engaged about 3 rounds a fight and changed nothing.
+
+## Facing: front, side and rear plate
+
+A hull's plate depends on the arc a hit arrives on (`convoy-nouns.md`, a hull's
+plate depends on the arc), so a machine caught off its front pays for it. The
+shared hull profile is front 1.0 rating / 1.1 plate, side 0.9 / 0.9, rear
+0.75 / 0.7. The tank line and the dozer are 1.0 / 1.15, 0.85 / 0.85 and 0.6 / 0.6.
+`-Dbattle.vehicle.armorArcs=false` is the control.
+
+- **The harness set hulls down side-on, and fixing that moved the street rows.**
+  `armorMatchup` teleported attacking hulls to 0° and defending hulls to 180°.
+  In the battle's frame (0° is +Y) that is north and south, across a fight that
+  runs west to east. It now sets both sides down facing each other, as
+  production drops do. Arcs then move the head-on rows hardly at all. The
+  re-baseline is the facing alone: on the old facing with arcs off, the readings
+  above come back exactly (LRM refit 0.78 / 0.66). On the street a tank set down
+  side-on fumbled its approach and closed to about 21 cells, where its twin
+  cannon wins. Pointed down the street, it stops at its duel band at about 31.6
+  cells, inside the LRM's reach. Bulwark-side shares, three grounds, eight seeds,
+  both roles, timeout read by integrity, arcs on / off:
+
+  | Fit | Breakthrough | Heavy gun | Screened |
+  | --- | --- | --- | --- |
+  | Refit, two AT LRM-15s | 1.00 / 0.98 | 0.94 / 0.92 | 0.85 / 0.85 |
+  | Bastion arms, two AT LRM-15s | 1.00 / 1.00 | 1.00 / 1.00 | 0.94 / 0.94 |
+  | Stock Bulwark | 0.17 / 0.15 | 0.27 / 0.29 | 0.17 / 0.19 |
+  | Refit chaingun Bulwark | 0.54 / 0.54 | 0.62 / 0.62 | 0.54 / 0.56 |
+
+  On the old facing, arcs moved the same rows by 0.05 or less (LRM refit 0.83 /
+  0.65 against 0.78 / 0.66). The screened tank stays the rung: against the LRM
+  fit it holds 0.15 where a breakthrough tank holds none. Its margin is smaller
+  than the old street rows made it look.
+- **Caught off its front.** `-PdefenderFacing=90|180` turns the defenders from
+  facing the attackers when they are set down. Attacker win share, eight seeds,
+  three grounds, arcs off / on:
+
+  | Attacker vs tank | Facing the attacker | Side-on | Rear on |
+  | --- | --- | --- | --- |
+  | Escort APC vs breakthrough | 0.04 / 0.08 | 0.12 / 0.42 | 0.08 / 0.46 |
+  | Escort APC vs screened | 0.12 / 0.08 | 0.08 / 0.38 | 0.12 / 0.04 |
+  | Breakthrough vs breakthrough | 0.38 / 0.42 | 0.54 / 0.62 | 0.62 / 0.71 |
+  | Refit Bulwark vs breakthrough | 0.50 / 0.46 | 0.33 / 0.42 | 0.58 / 0.58 |
+  | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.17 / 0.25 |
+
+  The rows move where the defender keeps its facing while it is shot. Against a
+  mech it does not keep it long. A duelling tank drives to its band nose first
+  and backs off a closing mech nose-on, which puts its front back on the
+  attacker, so the mech rows hardly move.
+- **The ladder.** Over the default ladder (4 seeds, every pairing both ways,
+  facing fixed in both arms), no pairing moves past noise except four, confirmed
+  at 8 seeds. The dozer attacking a tank on the street goes 0.12 to 0.62 (heavy-gun
+  0.00 to 0.62): its 1,000-point plate gains most from a 1.15 front. The SRM
+  technical against the fire-support APC goes 0.00 to 0.33, and the heavy APC
+  against the militia technical 0.17 to 0.38. Nothing broke, so nothing was
+  retuned.
+- **Two machines on one.** `2x` attackers (Bulwark, Hound, breakthrough, escort
+  APC) against each tank win as often as without arcs, and kill 2-8 s sooner.
+  The harness drives every attacker off the same approach, so it never sets up a
+  real pincer; flanking is the player's move.
 
 ## Missile warheads
 
