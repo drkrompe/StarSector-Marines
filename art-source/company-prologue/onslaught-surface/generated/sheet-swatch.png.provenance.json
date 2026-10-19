@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1545a-a198-7343-9424-7f5ff8ea4afa",
+  "source": "/Users/dillon/.codex/generated_images/01a1545a-a198-7343-9424-7f5ff8ea4afa/exec-4689f1e4-e9f2-4416-af0f-fd3ae9c5acf9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/onslaught-surface/generated/sheet-swatch.png",
+    "sha256": "5ed6e8506f6fa1a7e62a7e7ee9a61a9f7c9e0d3dc57ce042949f3981f6337e05",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/onslaught-surface/prompts/sheet-swatch.prompt.txt",
+  "promptSha256": "d4546789caf86fe96828bf1bdecdff74642cab2a7174c549027f1ae64543173a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the layout sheet of six squares (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (a Hegemony Onslaught-class battleship, a heavy low-tech capital warship), to be painted as a flat, square-on texture sample of that material:\ntop-left square: warm saturated Hegemony orange enamel armour plate;\ntop-middle square: muted warm brown-grey enamel hull plate;\ntop-right square: warm bone-white enamel plate;\nbottom-left square: dark charcoal-grey painted armour;\nbottom-middle square: dark gunmetal grey steel;\nbottom-right square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, seams, fasteners and its service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the six squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of heavy, well maintained warship plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: orange stays Hegemony orange, brown-grey stays brown-grey, bone-white stays bone-white, charcoal stays dark charcoal grey, gunmetal stays dark grey steel, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/onslaught-surface/guide/sheet-swatch-guide.png",
+      "sha256": "2d33228498fb8c0aa84f57992fa2d7fd67b06ec3624a83466323cd975e8b67d6",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the layout sheet of six squares (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/onslaught-surface/reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet, preserving Image 1’s layout and matching Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 44859,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 536,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 39.3
+}
