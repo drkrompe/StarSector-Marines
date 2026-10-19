@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "11",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Close, soft brush of a canvas flight jacket against another person's shoulder as someone squeezes past them in a tight space, fabric rustle, interior, no voices",
+    "duration_seconds": 1.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "1d488fac9d8505362b72d150c62818e331b2ab4d9239b653428ba9f0a164a789",
+  "durationSeconds": 1.0,
+  "peakDb": -4.1,
+  "integratedLufs": -20.9
+}

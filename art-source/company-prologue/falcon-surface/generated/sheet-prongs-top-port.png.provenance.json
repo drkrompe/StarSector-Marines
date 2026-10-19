@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155c8-cf1f-7133-8220-5c35d666380b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155c8-cf1f-7133-8220-5c35d666380b\\exec-989577d0-2b36-4f4c-b621-797aeab88982.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\falcon-surface\\generated\\sheet-prongs-top-port.png",
+    "sha256": "c718fbb9cae15fba9b97e02fb7ab60f57f78d8327eb732c8bf89bac311187d11",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\falcon-surface\\prompts\\sheet-prongs-top-port.prompt.txt",
+  "promptSha256": "2f43690ad6b8496753246c62fdcffdae0c3a8f862b560596cf2246923c620dd6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact four tiles, shapes and plate colours to paint\nImage 2: Material/finish only; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of one 3D spacecraft (a Falcon-class light cruiser in a pirate band's hand-applied repaint, a hard-used pirate flagship), each seen square-on, each drawn alone as flat-coloured shapes on a plain flat mid-blue background:\ntop-left, top-right, bottom-left, bottom-right: four consecutive lengths of the port prong's dorsal deck and outboard glacis, aft to bow, seen from above: a grid of dark khaki-brown armour plates with dark seams between them, many plates repainted dull brick red and some light sand tan in a patchwork, larger red patch slabs bolted over the deck with bolt heads at their corners, a long thin grey ridge cap strip running along the turret line, small dark grey hatches and vent grilles, and a round grey turret apron on the last tile.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its hard-used pirate finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that armoured surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot stays plain background blue. Thin isolated slivers and strips stay where they are.\n- Every shape is a flat painted steel plate or machinery surface. Add painted surface detail inside each plate's outline only: crisp plate seams and welded joints, rows of small fasteners and rivets, flush access panels, an even film of dust and grime in the seams and small scuffs on plate edges. Nothing may stand out from the surface or cross an outline.\n- Keep EVERY plate its own colour exactly as INPUT 1 shows it. The patchwork of plate colours is deliberate and must stay distinct, never evened out or blended: dark khaki-brown plates stay muted dark khaki-brown; dull brick-red plates stay pirate red; light tan plates stay light sand tan; mid grey plates stay a warm mid grey; dark grey-brown machinery stays dark gunmetal steel; pale grey stays pale bare steel; near-black recesses and seams stay near black. Do not repaint any plate another colour, add no stripes and no differently coloured patches.\n- Weathering is moderate and even across every plate. No rust holes, no repair patches, no soot, scorch marks, burns, large streaks, impact damage, dents, holes, large stains, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos, skulls or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\falcon-surface\\guide\\sheet-prongs-top-port-guide.png",
+      "sha256": "70ee436aadaad5945d7670b6c12bf936b6532a909848a48b92cdc83ef5a46a3d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the exact four tiles, shapes and plate colours to paint"
+    },
+    {
+      "path": "art-source\\company-prologue\\falcon-surface\\reference\\finish-reference.png",
+      "sha256": "4dc28e3f6ceef2572d4f6d3995320d8f40ab28f62c3b4a60a8c8dcbcec2e2d10",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material/finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the four-tile layout and plate colours."
+  ],
+  "usage": {
+    "input_tokens": 86718,
+    "cached_input_tokens": 59520,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 821,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 69.8
+}

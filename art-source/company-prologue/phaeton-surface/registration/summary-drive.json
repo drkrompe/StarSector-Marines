@@ -1,0 +1,42 @@
+{
+ "housing-top-port": {
+  "raw_iou": 0.9883,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.995,
+  "scale": [
+   0.99974,
+   0.99773
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "block-stern": {
+  "raw_iou": 0.9848,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9981,
+  "scale": [
+   1.0041,
+   1.01357
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "drum-side-port": {
+  "raw_iou": 0.9802,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9996,
+  "scale": [
+   1.0089,
+   1.01161
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "arc-side-port": {
+  "raw_iou": 0.9781,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9868,
+  "scale": [
+   1.00538,
+   1.01052
+  ],
+  "boundary_p95_px": 2.24
+ }
+}

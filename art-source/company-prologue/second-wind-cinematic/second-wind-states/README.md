@@ -82,8 +82,13 @@ root = bpy.data.objects['SECOND WIND | patched | root']
   has powered the buses: the port waist rip (two), the starboard waist rip and
   turret 3's feed. The VFX kit builds one intermittent emitter per live anchor
   (its `smk_sparks` control).
-- **Lights** are the ship's own emissive lamps and viewports; nothing adds a
+- **Lights** are the ship's own emissive lamps and screens; nothing adds a
   light object. The derelict has none lit (`lamps_lit` 0, checked dark below).
+- **Bridge glazing.** The command deck's slits are clear glass
+  (`sw_kit.glass`: a thin-pane shader, tinted straight-through light plus a
+  Fresnel reflection, no refraction), so the bridge room behind them is seen
+  from outside and the ship from inside. Shadow rays pass it, so the sun
+  lights the room. Do not hide it in a shot; it is not paint any more.
 - **Wear.** Skins and swatches carry the base wear, group `SW wear <state>`
   (`../../second-wind-surface/wear.py`, eight years in the belt). On top of it
   the state overlay, group `SW overlay <state>` (`wear_overlay.py`,

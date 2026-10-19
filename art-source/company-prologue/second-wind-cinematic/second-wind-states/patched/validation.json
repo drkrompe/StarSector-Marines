@@ -3,8 +3,8 @@
  "asset": "second-wind-patched.blend",
  "collection": "SECOND WIND | patched",
  "root": "SECOND WIND | patched | root",
- "objects": 1011,
- "meshes": 971,
+ "objects": 1192,
+ "meshes": 1152,
  "images": 45,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    971,
-    971
+    1152,
+    1152
    ]
   },
   "polygon count": {

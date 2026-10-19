@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "11",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Close, a gloved palm and forearm settling onto a metal ship console, a soft creak and faint plastic knock, interior, no beeps",
+    "duration_seconds": 1.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "7e213305e0b3cf89099b5ef276ee91e619078411862c31f8e223a7cf599798b2",
+  "durationSeconds": 1.0,
+  "peakDb": -0.4,
+  "integratedLufs": -19.2
+}

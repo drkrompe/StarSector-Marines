@@ -1,0 +1,59 @@
+{
+ "part": "side-port",
+ "sheet": "hull-deck",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9969,
+ "raw_iou": 0.9619,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9979,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9619
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00383,
+    1.03478
+   ],
+   "offset_px": [
+    -1.24,
+    -9.92
+   ],
+   "iou": 0.9967
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00333,
+    1.03578
+   ],
+   "offset_px": [
+    -1.24,
+    -9.92
+   ],
+   "iou": 0.9979
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.94,
+  "p95_px": 3.0,
+  "max_px": 19.7
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.22,
+  "p95_px": 1.0,
+  "max_px": 20.62
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

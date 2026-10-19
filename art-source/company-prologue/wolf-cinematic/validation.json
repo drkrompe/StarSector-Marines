@@ -18,7 +18,7 @@
   },
   "root metres_per_unit": {
    "ok": true,
-   "detail": 0.88
+   "detail": 0.76
   },
   "all under root": {
    "ok": true,
@@ -45,8 +45,8 @@
   "polygon count": {
    "ok": true,
    "detail": [
-    9089,
-    9089
+    9075,
+    9075
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
@@ -101,7 +101,7 @@
   },
   "root carries the effects": {
    "ok": true,
-   "detail": 0.0
+   "detail": 8e-06
   }
  }
 }

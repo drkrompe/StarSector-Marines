@@ -1,0 +1,299 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.996)",
+ "space": "CIELAB D65",
+ "classes": {
+  "ochre": {
+   "pixels": 88764,
+   "mean": [
+    55.44,
+    7.62,
+    24.68
+   ],
+   "std": [
+    8.0,
+    1.5,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    39.3,
+    55.88,
+    69.99
+   ],
+   "mean_srgb": [
+    159.7,
+    126.9,
+    90.4
+   ],
+   "std_measured": [
+    11.79,
+    1.59,
+    4.91
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "cream": {
+   "pixels": 70910,
+   "mean": [
+    69.68,
+    2.84,
+    12.79
+   ],
+   "std": [
+    7.0,
+    0.8,
+    1.5
+   ],
+   "L_p10_p50_p90": [
+    53.69,
+    72.47,
+    81.97
+   ],
+   "mean_srgb": [
+    184.8,
+    167.7,
+    147.3
+   ],
+   "std_measured": [
+    12.03,
+    1.08,
+    2.8
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "grey": {
+   "pixels": 24301,
+   "mean": [
+    54.8,
+    1.65,
+    3.37
+   ],
+   "std": [
+    8.0,
+    0.6,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    36.37,
+    56.2,
+    72.05
+   ],
+   "mean_srgb": [
+    136.6,
+    130.0,
+    125.4
+   ],
+   "std_measured": [
+    13.84,
+    1.08,
+    2.32
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "rust": {
+   "pixels": 69711,
+   "mean": [
+    34.04,
+    13.19,
+    15.01
+   ],
+   "std": [
+    7.0,
+    1.5,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    23.13,
+    32.79,
+    47.05
+   ],
+   "mean_srgb": [
+    107.2,
+    71.7,
+    56.9
+   ],
+   "std_measured": [
+    9.69,
+    3.0,
+    3.6
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "white": {
+   "pixels": 30855,
+   "mean": [
+    73.15,
+    1.76,
+    6.2
+   ],
+   "std": [
+    5.0,
+    0.4,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    60.76,
+    73.75,
+    85.99
+   ],
+   "mean_srgb": [
+    187.8,
+    178.1,
+    168.4
+   ],
+   "std_measured": [
+    9.92,
+    1.01,
+    3.19
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "orange": {
+   "pixels": 1959,
+   "mean": [
+    63.24,
+    29.64,
+    35.55
+   ],
+   "std": [
+    8.0,
+    2.0,
+    3.5
+   ],
+   "L_p10_p50_p90": [
+    59.35,
+    63.82,
+    66.3
+   ],
+   "mean_srgb": [
+    217.9,
+    131.0,
+    91.2
+   ],
+   "std_measured": [
+    3.01,
+    3.56,
+    5.71
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "gunmetal": {
+   "pixels": 16316,
+   "mean": [
+    37.25,
+    1.53,
+    1.52
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    18.51,
+    34.85,
+    55.51
+   ],
+   "mean_srgb": [
+    91.3,
+    86.7,
+    85.3
+   ],
+   "std_measured": [
+    17.03,
+    1.5,
+    3.03
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 233,
+   "mean": [
+    24.0,
+    0.8,
+    1.0
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    33.71,
+    40.97,
+    49.94
+   ],
+   "mean_srgb": [
+    97.2,
+    95.3,
+    96.5
+   ],
+   "std_measured": [
+    5.76,
+    0.82,
+    0.91
+   ],
+   "note": "mean owned: the reference measures only edge pixels for recesses",
+   "mean_measured": [
+    40.64,
+    1.02,
+    -0.42
+   ]
+  },
+  "copper": {
+   "derived": "rust + [+6, +2, +4]: the drive cans are bare copper beside the painted castings",
+   "mean": [
+    40.04,
+    15.19,
+    19.009999999999998
+   ],
+   "std": [
+    7.0,
+    1.5,
+    2.5
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, from the Colossus set with chalk re-chosen for the Tarsus ochre livery.",
+  "primer": {
+   "lab": [
+    52.0,
+    2.0,
+    6.0
+   ],
+   "what": "grey-brown primer under the oxide enamel"
+  },
+  "bare": {
+   "lab": [
+    68.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    44.0,
+    6.0,
+    15.0
+   ],
+   "what": "planetside dust and grit, ochre-brown from landing fields"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    66.0,
+    5.0,
+    15.0
+   ],
+   "what": "chalked, UV-faded ochre-tan paint: goes paler and greyer, not pink"
+  }
+ }
+}

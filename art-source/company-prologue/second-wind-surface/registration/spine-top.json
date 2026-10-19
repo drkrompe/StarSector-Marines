@@ -6,7 +6,7 @@
   912,
   513
  ],
- "segmentation_selfcheck_iou_on_guide": 0.9944,
+ "segmentation_selfcheck_iou_on_guide": 0.9943,
  "raw_iou": 0.9834,
  "best_fit": "iou_refined_affine",
  "fitted_iou": 0.9863,

@@ -23,6 +23,38 @@ def material(name, color, metallic=0.0, roughness=.65, emission=None):
     return m
 
 
+def glass(name, tint, roughness=.04):
+    """Clear glazing, shaded as a thin pane: light passes straight through, tinted by `tint`,
+    and a Fresnel share (IOR 1.9, about 10% head-on, so the pane reads) reflects the room and the sky off a black-based Principled
+    BSDF. Not refraction: the glazing solids are slabs with tapered faces, which refract like
+    prisms and shift the view through them. Shadow rays pass it untinted, so the sun still
+    lights what is behind it. No emission: a pane is not a lamp, so the power scar and the
+    lamp count leave it alone. The viewport colour is translucent so Workbench shows the room
+    behind it too."""
+    m = material(name, (0, 0, 0), 0.0, roughness)
+    m.diffuse_color = (*tint, .25)
+    nt = m.node_tree
+    bsdf = nt.nodes['Principled BSDF']
+    out = nt.nodes['Material Output']
+    through = nt.nodes.new('ShaderNodeBsdfTransparent')
+    through.inputs['Color'].default_value = (*tint, 1)
+    fresnel = nt.nodes.new('ShaderNodeFresnel')
+    fresnel.inputs['IOR'].default_value = 1.9      # about 10% at normal incidence: reads as a pane
+    pane = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(fresnel.outputs['Fac'], pane.inputs['Fac'])
+    nt.links.new(through.outputs['BSDF'], pane.inputs[1])
+    nt.links.new(bsdf.outputs['BSDF'], pane.inputs[2])
+    path = nt.nodes.new('ShaderNodeLightPath')
+    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(path.outputs['Is Shadow Ray'], mix.inputs['Fac'])
+    nt.links.new(pane.outputs['Shader'], mix.inputs[1])
+    nt.links.new(clear.outputs['BSDF'], mix.inputs[2])
+    nt.links.new(mix.outputs['Shader'], out.inputs['Surface'])
+    m.surface_render_method = 'BLENDED'
+    return m
+
+
 class Kit:
     def __init__(self):
         self.cream = material('Chalked cream armor', (.56, .52, .41), .3)

@@ -14,10 +14,10 @@
  },
  "oxide": {
   "parts": 12,
-  "max_pair_dE_before": 11.77,
+  "max_pair_dE_before": 9.24,
   "max_pair_dE_after": 0.0,
   "L_range_before": [
-   51.8,
+   52.1,
    56.7
   ],
   "L_range_after": [
