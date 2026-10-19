@@ -1,0 +1,189 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.995)",
+ "space": "CIELAB D65",
+ "classes": {
+  "cream": {
+   "pixels": 64594,
+   "mean": [
+    63.58,
+    4.41,
+    15.96
+   ],
+   "std": [
+    12.18,
+    1.53,
+    2.15
+   ],
+   "L_p10_p50_p90": [
+    45.4,
+    65.47,
+    77.68
+   ],
+   "mean_srgb": [
+    172.7,
+    150.4,
+    125.9
+   ]
+  },
+  "hull": {
+   "pixels": 164811,
+   "mean": [
+    29.97,
+    4.17,
+    7.34
+   ],
+   "std": [
+    9.62,
+    1.65,
+    2.52
+   ],
+   "L_p10_p50_p90": [
+    19.81,
+    28.63,
+    40.52
+   ],
+   "mean_srgb": [
+    81.4,
+    68.0,
+    59.4
+   ]
+  },
+  "gunmetal": {
+   "pixels": 56283,
+   "mean": [
+    29.26,
+    1.45,
+    2.14
+   ],
+   "std": [
+    9.0,
+    0.8,
+    1.6
+   ],
+   "L_p10_p50_p90": [
+    13.14,
+    26.84,
+    48.34
+   ],
+   "mean_srgb": [
+    72.7,
+    68.1,
+    65.7
+   ],
+   "std_measured": [
+    12.79,
+    1.07,
+    1.58
+   ],
+   "note": "spread owned: edge contamination on the reference inflates it"
+  },
+  "dark": {
+   "pixels": 218,
+   "mean": [
+    7.83,
+    0.77,
+    1.32
+   ],
+   "std": [
+    6.0,
+    0.6,
+    1.0
+   ],
+   "L_p10_p50_p90": [
+    2.42,
+    6.95,
+    14.53
+   ],
+   "mean_srgb": [
+    25.0,
+    22.8,
+    21.4
+   ],
+   "std_measured": [
+    5.88,
+    0.86,
+    1.07
+   ],
+   "note": "spread owned: edge contamination on the reference inflates it"
+  },
+  "scrap": {
+   "pixels": 13541,
+   "mean": [
+    34.2,
+    10.29,
+    14.56
+   ],
+   "std": [
+    5.36,
+    2.38,
+    3.25
+   ],
+   "L_p10_p50_p90": [
+    27.6,
+    34.12,
+    40.7
+   ],
+   "mean_srgb": [
+    103.5,
+    73.9,
+    57.8
+   ]
+  },
+  "glass": {
+   "derived": "owned: tinted armoured glazing, dark with a faint cool cast",
+   "mean": [
+    20.0,
+    -2.0,
+    -5.0
+   ],
+   "std": [
+    5.0,
+    0.8,
+    1.2
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what worn paint reveals and what a pirate crew's neglect deposits.",
+  "primer": {
+   "lab": [
+    38.0,
+    14.0,
+    16.0
+   ],
+   "what": "red-oxide primer under the worn enamel, rust-toned"
+  },
+  "bare": {
+   "lab": [
+    55.0,
+    1.0,
+    3.0
+   ],
+   "what": "abraded bare steel, dulled and oxidised"
+  },
+  "dust": {
+   "lab": [
+    36.0,
+    5.0,
+    12.0
+   ],
+   "what": "Asharu desert dust and landing grit, brown"
+  },
+  "soot": {
+   "lab": [
+    11.0,
+    0.5,
+    1.0
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    72.0,
+    3.0,
+    12.0
+   ],
+   "what": "chalked, UV-bleached paint: the bone spine goes paler and dirtier, not white"
+  }
+ }
+}
