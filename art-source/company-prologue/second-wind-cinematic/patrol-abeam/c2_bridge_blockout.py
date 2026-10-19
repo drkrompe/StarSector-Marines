@@ -30,6 +30,7 @@ of glass) at standing eye height. Workbench draws the glazing opaque, so it is h
 """
 import json
 import math
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -45,7 +46,7 @@ SW_BLEND = SW_DIR / "states" / "patched" / "second-wind-geometry.blend"   # C2 i
 # The Legion is the finished asset (legion-cinematic, accepted 2026-10-19): append the LEGION
 # collection and move its root only. legion.blend is built, not committed (its finalize.sh).
 LEGION_ASSET_DIR = BASE.parents[1] / "legion-cinematic"
-LEGION_ASSET = LEGION_ASSET_DIR / "legion.blend"
+LEGION_ASSET = Path(os.environ.get("C2_LEGION_ASSET", LEGION_ASSET_DIR / "legion.blend"))
 LEGION_MANIFEST = LEGION_ASSET_DIR / "manifest.json"
 
 # ---------------------------------------------------------------- the bridge (Second Wind units)
@@ -147,27 +148,21 @@ def fighter_bearing_deg(t):
 #           the slit is taller in the frame, and straightens again for the read-back.
 #   lens    the lens creeps from 22 mm to 27 mm toward abeam and back for the rise. An eye
 #           cannot zoom, so this is a film camera's choice, offered for comparison.
-#   glance  as the pilot draws the yoke out and pushes it (8.3-10.4 s) the head turns forward
-#           to watch him, then back to the Legion as it starts to rise.
 #   duck    the fighters fly above our eye, so from the dais they skim the top of the slit and
 #           go behind the visor brow at about 2.8 s: the person ducks lower over the console
 #           and closer to the glass to keep them in sight, and comes back up after.
-#   castle  Castle is otherwise never in frame (she stands behind the camera at her bank). After
-#           "Patrol has your signature" the person steps back a pace and inboard, over her right
-#           shoulder, so her read-back is played on her, dark against the slit with the Legion
-#           rising beyond her.
-import os  # noqa: E402
+#   castle  Castle in passing only (owner, 2026-10-19: ground the shot in the Legion, no turn
+#           onto her): as the deck tips for the de-orbit the person steps back half a pace from
+#           the bank and braces, without turning, so her right shoulder and the hand at her
+#           earpiece sit in the left edge of the frame during her read-back.
 
 CAMERA = set(filter(None, os.environ.get("C2_CAMERA", "").split(",")))
-CAMERA_OPTIONS = ("walk", "breath", "frame", "lean", "lens", "glance", "duck", "castle")
+CAMERA_OPTIONS = ("walk", "breath", "frame", "lean", "lens", "duck", "castle")
 DAIS_STEP = (16.05, 1.65)        # on the dais at the head of the step (its tread is at y 1.65)
 STEP_FOOT = (15.15, 1.85)        # on the main floor at its foot; the grab pole is 0.8 to port
 WALK = (4.6, 6.6)                # after the second flight (4.2 s), settled before abeam
-GLANCE = (8.6, 11.2)             # turned away from the Legion only between these
-PILOT_YAW, PILOT_PITCH = -48.0, -13.0   # from Castle's station: the pilot and yoke right of centre
-CASTLE_SHOULDER = (11.75, 1.95)  # a pace behind and inboard of Castle (her root 10.9, 3.25, facing port)
-CASTLE_STEP = (8.9, 10.1)        # the step back, after line 7 ends and before her read-back (9.76)
-CASTLE_YAW = 8.0                 # the head turns this much further aft to hold her left of centre
+CASTLE_SETTLE = (12.2, 2.45)     # half a pace back from the bank: Castle (root 10.9, 3.25) at the left edge
+CASTLE_STEP = (9.6, 10.6)        # with the pitch-down, a moment into her read-back (9.76)
 
 
 def _walk_point(u):
@@ -228,14 +223,8 @@ def head_full(t, options=None):
     if "castle" in opts:
         a, b = CASTLE_STEP
         k = smooth((t - a) / (b - a))
-        pos = (pos[0] + (CASTLE_SHOULDER[0] - pos[0]) * k, pos[1] + (CASTLE_SHOULDER[1] - pos[1]) * k,
-               pos[2] - 0.025 * math.sin(math.pi * min(1.0, max(0.0, (t - a) / (b - a)) * 2.0)))
-        yaw += CASTLE_YAW * k
-    if "glance" in opts:
-        a, b = GLANCE
-        k = smooth((t - a) / 0.9) * (1.0 - smooth((t - (b - 0.9)) / 0.9))
-        yaw += (PILOT_YAW - yaw) * k
-        pitch += (PILOT_PITCH - pitch) * k
+        pos = (pos[0] + (CASTLE_SETTLE[0] - pos[0]) * k, pos[1] + (CASTLE_SETTLE[1] - pos[1]) * k,
+               pos[2] - 0.025 * math.sin(math.pi * min(1.0, max(0.0, (t - a) / (b - a)))))
     if "lens" in opts:
         lens += 5.0 * smooth((t - 5.5) / 2.5) * (1.0 - smooth((t - 10.0) / 2.0))
     if "breath" in opts:

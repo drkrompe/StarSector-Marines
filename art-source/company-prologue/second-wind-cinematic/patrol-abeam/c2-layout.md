@@ -163,11 +163,12 @@ lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath**
 of a degree of breathing and weight shift), **frame** (the head sits lower at the port glass so
 the slit fills the frame), **lean** (leaning over the comms bank toward the glass at abeam, 70 cm
 to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
-back; an eye cannot zoom, so this is a film camera's choice) and **glance** (the head turns
-forward to watch the pilot draw the yoke and push it, 8.6-11.2 s, and back to the Legion as it
-starts to rise) and **castle** (Castle is otherwise never seen: after "Patrol has your
-signature" the person steps back a pace and inboard, 8.9-10.1 s, so her read-back plays over her
-right shoulder, dark against the slit with the Legion rising beyond her). The blockout can also
+back; an eye cannot zoom, so this is a film camera's choice, and it matters more with the Legion
+at 340 m) and **castle** (Castle in passing only: as the deck tips at 9.6-10.6 s the person steps
+half a pace back from the bank, without turning, so her shoulder and earpiece hand sit in the
+left edge during the read-back; it trades a good share of the slit for her). The shot is grounded
+in the Legion (owner, 2026-10-19): the head never turns onto the pilot or Castle; a glance to the
+pilot was tried and dropped. The blockout can also
 preview thinner window posts (`--posts 0.4`: the slit mullions at 40% of their 39 cm and 33 cm
 widths); the hull model itself is unchanged, so adopting it is a Second Wind model change that
 every shot of the ship would show. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
