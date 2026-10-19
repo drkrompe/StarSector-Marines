@@ -32,6 +32,7 @@ Outputs under build/c4x/.
 """
 import json
 import math
+import os
 import random
 import sys
 from pathlib import Path
@@ -77,7 +78,9 @@ def fresh_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.render.resolution_x, scene.render.resolution_y = W, H
-    scene.render.resolution_percentage = 100
+    # Sketch passes (timing, layout) may render smaller to spare the shared GPU: CINE_SCALE=50 renders
+    # 960x540. Anything shown to the owner is brought back to 1920x1080 (`c5_title`, the join).
+    scene.render.resolution_percentage = int(os.environ.get('CINE_SCALE', '100'))
     scene.render.fps = FPS
     scene.frame_start, scene.frame_end = 0, FRAMES - 1
     return scene
