@@ -46,8 +46,10 @@ PICTURES = {
     "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c2": DRIVE / "cinematic-c2/2026-10-19_camera-chosen-sketch_windows/01-c2-bridge-sketch.mp4",
-    "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
-    "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
+    # The entry and C3 through one window (entry-and-c3, 2026-10-19): one 23 s sketch, the entry its
+    # first 7 s and C3 the 16 s after. A (path, start) picture plays from that second.
+    "entry": DRIVE / "cinematic-entry/2026-10-19_one-window_windows/07-entry-into-c3.mp4",
+    "c3": (DRIVE / "cinematic-entry/2026-10-19_one-window_windows/07-entry-into-c3.mp4", 7.0),
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
     "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_slower-approach_windows/01-c4c5-slower-approach-1fps.mp4",
 }
@@ -344,8 +346,9 @@ def mix(shot, picture, dirs, chosen, out, extra=(), tag=None):
     write(effects, out / (name + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
     video = out / (name + ".mp4")
     parts = picture if isinstance(picture, list) else [picture] if picture else []
-    if parts and all(part.exists() for part in parts):
-        inputs = [arg for part in parts for arg in ("-i", str(part))]
+    parts = [part if isinstance(part, tuple) else (part, 0.0) for part in parts]
+    if parts and all(part.exists() for part, _ in parts):
+        inputs = [arg for part, at in parts for arg in ("-ss", "%.3f" % at, "-i", str(part))]
         graph = "".join("[%d:v]fps=24,scale=1920:1080,setsar=1[v%d];" % (i, i) for i in range(len(parts)))
         graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
         subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
@@ -430,20 +433,21 @@ def player_kit(scores, pictures, dirs, chosen, out, width=960, repicture=False):
     for shot in ARRIVAL:
         picture = pictures.get(shot)
         picture = picture[0] if isinstance(picture, list) else picture
+        picture, at = picture if isinstance(picture, tuple) else (picture, 0.0)
         if not (picture and picture.exists()):
-            picture = FALLBACK_PICTURES.get(shot)
-        parts.append((picture, SHOTS[shot][0]))
-    inputs = [arg for picture, _ in parts for arg in ("-i", str(picture))]
+            picture, at = FALLBACK_PICTURES.get(shot), 0.0
+        parts.append((picture, SHOTS[shot][0], at))
+    inputs = [arg for picture, _, at in parts for arg in ("-ss", "%.3f" % at, "-i", str(picture))]
     graph = "".join("[%d:v]fps=12,scale=%d:%d,setsar=1,tpad=stop_mode=clone:stop_duration=120,"
                     "trim=duration=%.3f,setpts=PTS-STARTPTS[v%d];" % (i, width, width * 9 // 16, length, i)
-                    for i, (_, length) in enumerate(parts))
+                    for i, (_, length, _) in enumerate(parts))
     graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
     subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", graph, "-map", "[v]",
                     "-c:v", "libx264", "-preset", "veryfast", "-crf", "30", "-pix_fmt", "yuv420p",
                     "-movflags", "+faststart", "-an", "-t", "%.3f" % (len(whole) / SR), str(out / "picture.mp4")],
                    check=True)
     print("player kit %5.1fs  %d tracks  pictures: %s" % (
-        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _ in parts)), flush=True)
+        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _, _ in parts)), flush=True)
 
 
 BEDS = set()
