@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — the AT LRM against a tank: diagnosis and rack levers measured, still open; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — the AT LRM against a tank: gun tanks carry top-attack active protection (fit 0.81 to 0.69), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -514,8 +514,8 @@ identity yet are owned elsewhere, and are reported here rather than tuned:
   The racks match the heavy gun's reach, out-reach the breakthrough tank, and
   their contact warhead (penetration 30) meets plate it defeats at full damage.
   That is the missiles' anti-armor role, but stronger than "the tank wins in the
-  open" allows. The rack-side levers were measured and none of them fixes it
-  (*The AT LRM against a tank*, below).
+  open" allows. The rack-side levers were measured and none of them fixes it;
+  the gun tanks' top-attack active protection does (*The AT LRM against a tank*, below).
 - **The energy and autocannon arms win in the open** (bastion 0.72, pulse 0.56
   there). Their reach (34, 32) and penetration (14, 9) now meet a plate they
   bite, and the breakthrough tank stands off only when it out-reaches its target
@@ -577,7 +577,7 @@ above (five fits, three grounds, eight seeds, both roles), first with
   same holds: four hull-down heavy-gun fights against the breakthrough tank
   ended with the gunless defender alive out of reach.
 
-**The AT LRM against a tank** (2026-10-19, open). A refit Bulwark with two AT
+**The AT LRM against a tank** (2026-10-19). A refit Bulwark with two AT
 LRM-15s beats the tanks 0.81: 0.78 against the breakthrough tank, 0.83 against
 the heavy gun, and 1.00 against the breakthrough tank in the open and hull-down.
 Bastion arms with the same racks take that to 0.94. The figures are
@@ -614,12 +614,33 @@ being a tank-only gap.
   two to four times as far as the tank rows. Reach is erratic, and at 32 the
   bastion fit beats the breakthrough tank 1.00. The tank rows are
   overdetermined: halving the racks still wins.
-- **Where the answer probably is.** On the tank. It needs something against
-  slow, interceptable rounds that a Bulwark's chaingun and a cannon do not
-  trip. A gun tank's active protection (the `PointDefenseService` bounds of
-  radius, rate and capacity, on the hull) or smoke would fit. Either would also
-  cut the AT SRM-15 in the street, so the stock Bulwark's street rows would need
-  re-reading. Not chosen yet.
+- **The answer is on the tank: active protection against top-attack rounds**
+  (`convoy-nouns.md`, a gun tank carries active protection). Each gun tank
+  carries a hull mount with reach 8, a 0.1 s cycle, a 0.7 roll and 30
+  engagements. It takes only arcing rounds coming down on its own hull. Readings
+  are Bulwark-side shares against both tanks, three grounds, eight seeds, both
+  roles, a timeout read by integrity, against `-Dbattle.vehicle.activeProtection=false`:
+
+  | Fit | Control | Active protection |
+  | --- | --- | --- |
+  | Refit, two AT LRM-15s | 0.81 | 0.69 (open 0.66, hull-down 0.91, street 0.52) |
+  | Bastion arms, two AT LRM-15s | 0.93 | 0.90 |
+  | Stock Bulwark / refit chaingun Bulwark | 0.23 / 0.51 | 0.23 / 0.51 |
+  | Hound / Sirocco, stock and refit | 0.00-0.03 | 0.00-0.02 |
+  | LRM carrier / SRM technical | 0.03 / 0.08 | 0.00 / 0.08 |
+
+  It stops about 8 rounds a fight against the LRM fit. The bastion fit stays
+  high on its arms (bastion alone 0.79): that is the reach-34 arm's case above,
+  not the rack's. Mech mirrors and tank-against-tank cannot move, because
+  neither has an arcing round falling on a gun tank.
+- **Why top-attack only.** The first prototype took any interceptable round
+  near the hull, and it taxed the SRM Bulwarks harder than the LRM fit. At the
+  same 30-round setting the stock Bulwark fell 0.23 to 0.08 (street 0.50 to
+  0.22) and the refit 0.51 to 0.35, against the LRM fit's 0.81 to 0.69. A close
+  SRM salvo is as easy to catch as a falling LRM. Settings tried for the
+  any-round rule, LRM fit / stock / refit: reach 8, cycle 0.1, roll 0.6 and 10
+  rounds gave 0.77 / 0.11 / 0.48; with 20 rounds, 0.73 / 0.08 / 0.42. A
+  reach-4, 0.3 s mount engaged about 3 rounds a fight and changed nothing.
 
 ## Missile warheads
 

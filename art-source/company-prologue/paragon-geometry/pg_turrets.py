@@ -252,7 +252,9 @@ def turret(kit, sid, loc, angle, arc, size, typ):
                     'angle_deg': angle, 'arc_deg': arc, 'pivot': pivot.name,
                     'pivot_location': [round(v, 2) for v in p], 'train_axis': [round(v, 4) for v in normal],
                     'well_depth': round(D, 2), 'barbette': base_name(sid), 'muzzles': [e.name for e in mz],
-                    'weapon': weapon, 'elite_variant': ELITE.get(sid)})
+                    'weapon': weapon, 'elite_variant': ELITE.get(sid), 'elevation': t['elevation'].name,
+                    **({'elevation_limits_deg': [t['elevation']['elevation_min_deg'], t['elevation']['elevation_max_deg']]}
+                       if 'elevation_max_deg' in t['elevation'] else {})})
     return pivot
 
 

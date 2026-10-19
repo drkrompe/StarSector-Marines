@@ -7,12 +7,15 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -82,10 +85,37 @@ public final class PointDefenseService {
     private volatile List<EmplacementView> snapshot = List.of();
     private volatile List<EngagementView> markSnapshot = List.of();
     private long nextId = 1L;
+    /** Cells from a hull within which an arcing round must be coming down for the hull's mount to take it. */
+    static final float HULL_COVER_CELLS = 3f;
+    /** Every hull that has been given its mount, with the rounds it engaged and stopped; a spent mount is not re-armed. */
+    private final Map<Long, int[]> hullMounts = new HashMap<>();
 
     /** Takes the battle's seeded RNG so an engagement roll replays identically. */
     public PointDefenseService(Random rng) {
         this.rng = rng;
+    }
+
+    /**
+     * Gives hull {@code hullId} its active protection: a carried mount whose carrier is the hull, read off
+     * {@code body} for its position, running for the battle until its magazine is spent or the hull is gone. It
+     * engages only arcing rounds coming down on the hull ({@link #comingDownOn}). A hull is mounted once; calling
+     * again for the same hull, even after its mount is spent, does nothing. Serial only.
+     */
+    public synchronized void mountHull(long hullId, Faction faction, String structureId, GroundBody body) {
+        if (hullMounts.containsKey(hullId)) return;
+        hullMounts.put(hullId, new int[2]);
+        StructureDef structure = DeployedEmplacement.requireBounded(structureId);
+        DeployableEmplacementSpec spec = new DeployableEmplacementSpec(structureId, 0f,
+                Float.POSITIVE_INFINITY, 0f, 0f, true);
+        LiveEmplacement pod = new LiveEmplacement(nextId++, hullId, hullId, faction, structure, spec, body.x, body.y);
+        pod.hull = body;
+        active.add(pod);
+    }
+
+    /** Rounds hull {@code hullId}'s active protection engaged and stopped, as {@code {engaged, stopped}}. */
+    public synchronized int[] hullInterceptions(long hullId) {
+        int[] counts = hullMounts.get(hullId);
+        return counts != null ? counts.clone() : new int[2];
     }
 
     /**
@@ -147,6 +177,11 @@ public final class PointDefenseService {
             pod.engagementTimer = pod.engagementInterval;
             sim.telemetry().recordOrdnanceEngaged(pod.carrierId);
             if (stopped) sim.telemetry().recordOrdnanceIntercepted(pod.carrierId);
+            if (pod.hull != null) {
+                int[] counts = hullMounts.get(pod.entityId);
+                counts[0]++;
+                if (stopped) counts[1]++;
+            }
             if (body != null) postEngagement(pod, body.x(), body.y(), stopped, sim);
             else postEngagement(pod, engaged.currentX(), engaged.currentY(), stopped, sim);
         }
@@ -244,8 +279,8 @@ public final class PointDefenseService {
     private Interceptable pickBody(LiveEmplacement pod, BattleControl sim, Projectile engaged) {
         List<Interceptable> bodies = sim.interceptableOrdnance();
         if (bodies.isEmpty()) return null;
-        float podX = sim.world().x(pod.entityId);
-        float podY = sim.world().y(pod.entityId);
+        float podX = x(pod, sim);
+        float podY = y(pod, sim);
         float bestDistanceSq = pod.interceptRadius * pod.interceptRadius;
         if (engaged != null) {
             float dx = engaged.currentX() - podX;
@@ -268,14 +303,15 @@ public final class PointDefenseService {
 
     private Projectile pickEngageable(LiveEmplacement pod, List<Projectile> inFlight,
                                       BattleControl sim) {
-        float podX = sim.world().x(pod.entityId);
-        float podY = sim.world().y(pod.entityId);
+        float podX = x(pod, sim);
+        float podY = y(pod, sim);
         float reachSq = pod.interceptRadius * pod.interceptRadius;
         Projectile best = null;
         float bestDistanceSq = Float.MAX_VALUE;
         for (int i = 0, n = inFlight.size(); i < n; i++) {
             Projectile p = inFlight.get(i);
             if (!p.pointDefenseTarget || p.intercepted) continue;
+            if (pod.hull != null && !comingDownOn(p, podX, podY)) continue;
             if (!pod.faction.hostileTo(p.shooterFaction)) continue;
             float dx = p.currentX() - podX;
             float dy = p.currentY() - podY;
@@ -312,8 +348,8 @@ public final class PointDefenseService {
      */
     private void launch(LiveEmplacement pod, Projectile round, BattleControl sim) {
         WeaponDef weapon = pod.structure.mount.weapon;
-        float fromX = sim.world().x(pod.entityId);
-        float fromY = sim.world().y(pod.entityId);
+        float fromX = x(pod, sim);
+        float fromY = y(pod, sim);
         float reach = pod.coastSeconds
                 + (float) Math.hypot(round.currentX() - fromX, round.currentY() - fromY) / pod.launchSpeed;
         float aimX = round.xAfter(reach);
@@ -362,10 +398,31 @@ public final class PointDefenseService {
      * audio, and its noise footprint all apply — an emplacement the enemy can
      * hear and see firing is the point, not a hidden field that eats missiles.
      */
+    /**
+     * Whether {@code round} is one a hull's active protection takes: an arcing (top-attack) round that will come down
+     * within {@link #HULL_COVER_CELLS} of the hull at ({@code hullX}, {@code hullY}). A flat rocket, such as an SRM,
+     * is left to the plate, and so is a round falling on somebody else.
+     */
+    static boolean comingDownOn(Projectile round, float hullX, float hullY) {
+        if (round.arcHeight <= 0f) return false;
+        float dx = round.toX - hullX;
+        float dy = round.toY - hullY;
+        return dx * dx + dy * dy <= HULL_COVER_CELLS * HULL_COVER_CELLS;
+    }
+
+    /** Where the mount stands: its hull's body, its carrier, or the entity it minted. */
+    private static float x(LiveEmplacement pod, BattleControl sim) {
+        return pod.hull != null ? pod.hull.x : sim.world().x(pod.entityId);
+    }
+
+    private static float y(LiveEmplacement pod, BattleControl sim) {
+        return pod.hull != null ? pod.hull.y : sim.world().y(pod.entityId);
+    }
+
     private void postEngagement(LiveEmplacement pod, float toX, float toY,
                                 boolean stopped, BattleControl sim) {
-        float fromX = sim.world().x(pod.entityId);
-        float fromY = sim.world().y(pod.entityId);
+        float fromX = x(pod, sim);
+        float fromY = y(pod, sim);
         // Point the mount at what it just shot, so a bystander can read which
         // way the pod is working rather than seeing a tracer leave a fixed
         // barrel. Snapped rather than slewed: the traverse on a cluster mount
@@ -403,8 +460,8 @@ public final class PointDefenseService {
         ArrayList<EmplacementView> views = new ArrayList<>(active.size());
         for (LiveEmplacement pod : active) {
             // A carried mount covers wherever its carrier now stands.
-            float x = pod.carried ? sim.world().x(pod.entityId) : pod.spawnX;
-            float y = pod.carried ? sim.world().y(pod.entityId) : pod.spawnY;
+            float x = pod.carried ? x(pod, sim) : pod.spawnX;
+            float y = pod.carried ? y(pod, sim) : pod.spawnY;
             views.add(new EmplacementView(pod.id, pod.entityId, pod.carrierId, pod.faction,
                     x, y, pod.interceptRadius, pod.remainingLifetime,
                     pod.totalLifetime, pod.engagementsRemaining));
@@ -474,6 +531,8 @@ public final class PointDefenseService {
         final StructureDef structure;
         /** Worn rather than set down: {@link #entityId} is the carrier. */
         final boolean carried;
+        /** A hull's own mount: its position is this body's, and {@link #entityId} is the hull. */
+        GroundBody hull;
         final float interceptRadius;
         final float engagementInterval;
         /** The mount weapon's authored accuracy against a moving warhead. */
