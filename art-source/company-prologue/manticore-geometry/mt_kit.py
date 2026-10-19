@@ -11,9 +11,14 @@ long at 1080p), so the kit is deliberately light: few materials, flat
 shading, one-segment chamfers that the export bakes.
 """
 import math
+import sys
+from pathlib import Path
 import bmesh
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+import turret_kit as tk  # noqa: E402
 
 
 def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2.0, wear=0.0):
@@ -55,17 +60,73 @@ def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2
     return m
 
 
+def livery(name, base, finish='paint', vary=.12, grime=.0):
+    """Pass 6 (light texturing): the pirate livery as a procedural weathered paint.
+
+    The shared turret kit's weathered paint (turret_kit.paint_material, the
+    same tree the guns wear): low mottle, edges chipped through to primer and
+    bare steel, grime in crevices from ambient occlusion. On top of it, what
+    "heavily modified - and poorly maintained" (manticore_pirates.skin) asks
+    for: every plate a slightly different shade of the same paint (Object Info
+    random, +-`vary` in value), as patched and re-sprayed armour is, and with
+    `grime` > 0 a large-scale streaky darkening (noise stretched along hull Z,
+    on object coordinates) of old soot and leaks. Procedural, so nothing to
+    pack, and baked geometry carries it unchanged."""
+    m = tk.paint_material(name, base, finish, base=base)
+    nt = m.node_tree
+    N, L = nt.nodes, nt.links
+    bsdf = N['Principled BSDF']
+    # The turret kit re-weathers a hull material from this value (turret_kit._sprite_mats).
+    bsdf.inputs['Base Color'].default_value = (*base, 1)
+    link = bsdf.inputs['Base Color'].links[0]
+    src = link.from_socket
+    info = N.new('ShaderNodeObjectInfo')
+    rng = N.new('ShaderNodeMapRange')
+    rng.inputs['To Min'].default_value, rng.inputs['To Max'].default_value = 1-vary, 1+vary
+    L.new(info.outputs['Random'], rng.inputs['Value'])
+    gain = rng.outputs['Result']
+    if grime:
+        tc = N.new('ShaderNodeTexCoord')
+        mp = N.new('ShaderNodeMapping')
+        mp.inputs['Scale'].default_value = (.08, .08, .5)
+        L.new(tc.outputs['Object'], mp.inputs['Vector'])
+        nz = N.new('ShaderNodeTexNoise')
+        nz.inputs['Scale'].default_value = 1.0
+        nz.inputs['Detail'].default_value = 4
+        L.new(mp.outputs['Vector'], nz.inputs['Vector'])
+        g = N.new('ShaderNodeMapRange')
+        g.inputs['From Min'].default_value, g.inputs['From Max'].default_value = .5, .75
+        g.inputs['To Min'].default_value, g.inputs['To Max'].default_value = 1.0, 1-grime
+        L.new(nz.outputs['Fac'], g.inputs['Value'])
+        mul = N.new('ShaderNodeMath')
+        mul.operation = 'MULTIPLY'
+        L.new(gain, mul.inputs[0])
+        L.new(g.outputs['Result'], mul.inputs[1])
+        gain = mul.outputs[0]
+    mix = N.new('ShaderNodeMix')
+    mix.data_type, mix.blend_type = 'RGBA', 'MULTIPLY'
+    mix.inputs['Factor'].default_value = 1.0
+    L.new(src, mix.inputs['A'])
+    comb = N.new('ShaderNodeCombineColor')
+    for k in range(3):
+        L.new(gain, comb.inputs[k])
+    L.new(comb.outputs['Color'], mix.inputs['B'])
+    L.new(mix.outputs['Result'], bsdf.inputs['Base Color'])
+    m['livery'] = 'pirate (manticore_pirates.skin)'
+    return m
+
+
 class Kit:
     def __init__(self):
         # Pirate scheme read off manticore_pirate.png: blood-red armour plates
         # (sprite median sRGB 165,63,52, darkened for albedo), brown gunmetal
         # machinery (77,68,64), a pale command dome (222,219,218), near-black
-        # recesses and warm lamps. Pass 6 (light texturing) adds the livery's
-        # wear on top of these.
-        self.red = material('Manticore pirate red armour', (.30, .040, .028), .25, .55, wear=.22)
-        self.steel = material('Manticore gunmetal machinery', (.074, .058, .052), .6, .5, wear=.18)
-        self.plate = material('Manticore grey plate', (.16, .145, .14), .45, .55, wear=.15)
-        self.pale = material('Manticore pale command plating', (.52, .51, .50), .3, .5, wear=.12)
+        # recesses and warm lamps. Pass 6 (light texturing) wears them as the
+        # turret kit's weathered paint plus per-plate shade and streaked grime (livery).
+        self.red = livery('Manticore pirate red armour', (.30, .040, .028), vary=.22, grime=.5)
+        self.steel = livery('Manticore gunmetal machinery', (.074, .058, .052), vary=.25, grime=.4)
+        self.plate = livery('Manticore grey plate', (.16, .145, .14), vary=.12, grime=.25)
+        self.pale = livery('Manticore pale command plating', (.52, .51, .50), vary=.06, grime=.3)
         self.dark = material('Manticore recess', (.025, .022, .02), .4, .6)
         self.glass = material('Manticore bridge glazing', (.03, .03, .025), .2, .15,
                               emission=(1.0, .85, .45), strength=4.0)

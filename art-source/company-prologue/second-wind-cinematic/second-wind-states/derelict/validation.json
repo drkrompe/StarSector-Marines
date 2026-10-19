@@ -3,8 +3,8 @@
  "asset": "second-wind-derelict.blend",
  "collection": "SECOND WIND | derelict",
  "root": "SECOND WIND | derelict | root",
- "objects": 888,
- "meshes": 851,
+ "objects": 1070,
+ "meshes": 1033,
  "images": 45,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    851,
-    851
+    1033,
+    1033
    ]
   },
   "polygon count": {

@@ -487,7 +487,7 @@ def blender_main(cfg):
         eng = []
         for e in m['engines']:
             role = e.get('role', 'main drive')
-            if any(w in role for w in ('lift', 'jet', 'rcs')):    # glows are for the drives only
+            if any(w in role for w in ('lift', 'jet', 'rcs', 'manoeuv', 'maneuv')):    # glows are for the drives only
                 continue
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
