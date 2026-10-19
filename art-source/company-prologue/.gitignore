@@ -179,3 +179,7 @@ wolf-surface/skin-manifest.json
 # Kite (P) cinematic export: the .blend is rebuilt by finalize.sh; manifest and validation stay tracked.
 kite-cinematic/*.blend
 kite-cinematic/*.blend1
+# Wolf (P) cinematic: the .blend is rebuilt by finalize.sh; manifest and validation stay tracked.
+wolf-cinematic/*.blend
+wolf-cinematic/*.blend1
+wolf-cinematic/review/
