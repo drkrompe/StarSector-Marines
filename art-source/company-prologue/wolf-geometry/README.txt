@@ -1,4 +1,4 @@
-WOLF (P) - CINEMATIC GEOMETRY
+WOLF (P) - CINEMATIC GEOMETRY (PASSES 1-2, 4 SCALE)
 
 Purpose
 A scripted Blender model of the vanilla Wolf frigate in its pirate skin, for
@@ -41,6 +41,25 @@ Reading of the sprite (wf_hull)
 - Aft body (rows 58-73): two crimson armour domes over the removed turrets.
 - Engine block (rows 74-94): grey machinery with the three HIGH_TECH drives.
 
+Pass 2 detail (wf_detail, wf_mounts)
+Read off both sprites at 20x: sensor eyes and pale shoulder ports round the
+bridge canopy, crimson cheek strips down the head, a second canopy on the
+neck spine, sensor heads on the outriggers and their flank vent grilles
+(lit orange only to starboard, as both sprites draw it), the main body's
+two round emitter wells, lattice ribs and wells on the missile pods, the aft
+hatch well and link frames, the engine block's collar, rails, centre stack,
+finned drive housings and troughs, drive bezels, seam bands, and the pirate
+skin's "heavily modified - and poorly maintained" as form: mismatched plates
+welded over the armour domes and wing roots, weld beads round the domes.
+Weapons come from the shared turret kit (../turret-kit), which gained the
+ion cannon turret and the mining blaster and Annihilator hardpoints for this
+hull: the ion cannon on a kit barbette (Turret 1 pivot / elevation), the
+mining blaster as the bow claw's middle in a channel through the fork base
+(the sprite's inner tines are its prongs), the Annihilators set into the pod
+faces. Silhouette IoU 0.933 with the hardpoint guns left out of the top
+render (the hull sprite draws no weapons; they stand proud of the bow and
+pods as the game draws them).
+
 Slots (verified against the installed wolf.ship and the skin on every build)
   id      mount      size    type      location   angle  arc
   WS 001  TURRET     SMALL   ENERGY    (11, 0)    0      150   Turret 1
@@ -53,18 +72,32 @@ Engines, HIGH_TECH, angle 180, width 16, Z 0: Engine 1 (-36, 12), Engine 2
 (-40, 0), Engine 3 (-36, -11). Turrets rest at their slot angles; the build
 fails if a rested barrel overlaps the hull (BVH).
 
-Scale (pass 4): 0.95 m per unit
+Scale (pass 4): 0.76 m per unit
 From the shared sizing basis, ../ship_scale.py (option C), never set here:
 METRES_PER_UNIT reads ship_scale.PUBLISHED and geometry.json's 'scale' is
 ship_scale.record('Wolf (P)'). Inputs: 30 crew, 50 cargo, 20 fuel, frigate
 class. Enclosed volume is the union of ship_scale.SOLIDS['wolf-p']: head,
 neck and its flanks, main body, centre hump, wing roots, aft body, dorsal
 spine and ventral keel; never the bow fork, outriggers, missile pods, armour
-domes or engine block (the drive section). Measured 19,705 units3, which
-solves 0.949 (range 0.92-0.977): 89 m long, 50 m across the pods, 16 m keel
-to canopy. The roster's sprite-area estimate was 86 m; the build is 4%
-longer, inside that estimate's +-8%. The driver re-measures on every build and
+domes or engine block (the drive section). After the owner's review ("don't
+create a flying wing"; turrets need a hull thick enough to carry them) every
+section was deepened twice (round 2: "too thin of a ship": decks raised,
+keels lowered, chamfers scaled with the depth, about 26 units keel to spine):
+measured 38,632 units3, which solves 0.759 (range 0.736-0.782): 71 m long
+(74 m over the mining blaster), 38 m across the pods, 21 m deep. The roster's
+sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
+ship, so this is 17% under the estimate, outside its +-8%. The owner decides
+between this and an override (as the Colossus has). The driver re-measures on every build and
 fails if the union drifts more than 2% from ship_scale.HULLS.
+
+Variants
+--variant merchant builds the convoy's own Wolf on the same hull and scale:
+no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
+turrets back on full-depth armoured drums built into the aft flanks (the
+base sprite's round wells), its own collection WOLF and asset wolf.blend,
+geometry-merchant.json, the vanilla wolf_Assault loadout (heavy blaster and
+Harpoons drawn with the kit's mining blaster and Annihilator forms for now:
+built_as in the manifest). Its livery is ../wolf-merchant-surface.
 
 Shot checks
 At 1920x1080 on a 36 mm sensor, port bow quarter from a little above, low sun
@@ -88,7 +121,7 @@ under starsector/builds/wolf-p/<short-commit>/.
 
 Files
 build_wolf.py (driver), wf_kit.py, wf_hull.py, wf_engines.py, wf_mounts.py,
-wf_lights.py (one module per area), compose_review.py (IoU, shot extents,
+wf_lights.py, wf_detail.py (one module per area), compose_review.py (IoU, shot extents,
 review sheet), compare_lineup.py (true-scale lineup against the Hound and
 Colossus), geometry.json (identity, slots, engines, turrets, lamps, scale
 record, asset contract, IoU, shot extents).

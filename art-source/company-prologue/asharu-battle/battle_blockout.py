@@ -55,7 +55,7 @@ MAP_LAT, MAP_LON = 12.0, 95.0   # where on the game's desert01 map the battle is
 # (x, y, z, heading deg, pitch deg, roll deg, throttle 0-1). Effects are listed per frame.
 CONVOY = {   # a working convoy in loose column: escorts at point, flanks and rear
     'wolf-m': (2300, -200, 60, 0, 1, 3, .6),
-    'enforcer': (1500, 120, 80, 0, 1, -2, .6),
+    'lasher-lead': (1500, 120, 80, 0, 1, -2, .6),
     'lasher-a': (950, -380, 140, 0, 0, 3, .6),
     'mule': (700, 260, -20, 0, 0, -2, .5),
     'buffalo-a': (350, -280, 50, 0, 1, 4, .5),
@@ -79,7 +79,6 @@ def climb(base, dx=0, dy=0, dz=0, heading=None, pitch=None, roll=None, throttle=
 PIRATES_RISING = {   # coming up out of the platform, behind and below the convoy, climbing to it
     'falcon-p': (-6200, 250, -2900, 4, 14, -3, 1),
     'manticore-p': (-6900, -650, -3300, 2, 13, 4, 1),
-    'enforcer-p': (-7300, 900, -3400, 6, 12, -6, 1),
     'colossus3': (-8200, 100, -3700, 3, 10, 2, .8),
     'buffalo2-a': (-7700, -1300, -3500, 0, 12, 5, 1),
     'buffalo2-b': (-8600, 1500, -3900, 8, 11, -4, 1),
@@ -95,12 +94,12 @@ KEYFRAMES = {
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
-                'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by an '
-                'Enforcer, two Lashers, a Wolf and a Hound.',
+                'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
+                'three Lashers, a Wolf and a Hound.',
         camera=dict(loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
         ships=CONVOY,
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
-                'enforcer', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
+                'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
     'k2': dict(
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
@@ -112,21 +111,21 @@ KEYFRAMES = {
     'k3': dict(
         shot='S6', title='The screen breaks',
         caption='Looking aft along the convoy. Manticore (P) and Falcon (P) open from 3-4 km astern. The Phaeton '
-                'tanker goes up, Lasher A is burning, and the Enforcer turns back into the fire and is hit. '
+                'tanker goes up, Lasher A is burning, and the lead Lasher turns back into the fire and is hit. '
                 'The freighters keep running.',
-        camera=dict(loc=(1350, 750, 380), target=(-1400, -350, -260), lens=30),
-        ships={**{k: v for k, v in CONVOY.items() if k not in ('enforcer', 'lasher-a', 'phaeton', 'wolf-m')},
-               'enforcer': (480, 330, 90, 165, 4, 25, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
+        camera=dict(loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
+        ships={**{k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')},
+               'lasher-lead': (330, 430, 70, 165, 4, 25, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
                'phaeton': (-350, 300, 20, 8, -4, 30, 0),
                'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
                'wolf-p-a': (-1250, 200, -120, 2, 6, 25, 1), 'wolf-p-b': (-1700, -650, -300, 3, 5, -20, 1),
                'buffalo2-a': (-3600, 150, -760, 0, 5, 3, 1)},
-        fx=[('tracer', 'manticore-p', 'enforcer'), ('tracer', 'falcon-p', 'enforcer'),
-            ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'enforcer', 'manticore-p'),
+        fx=[('tracer', 'manticore-p', 'lasher-lead'), ('tracer', 'falcon-p', 'lasher-lead'),
+            ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
             ('blast', 'phaeton', 55), ('debris', 'phaeton', 70), ('fire_on', 'lasher-a', (-20, 10, 6)),
-            ('blast_on', 'enforcer', 18, (10, 10, 8))],
-        labels=['enforcer', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
+            ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
+        labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
@@ -483,22 +482,16 @@ def blender_main(cfg):
 
     def finished(key):
         f = roster.FINISHED[key]
-        if 'manifest' in f:
-            m = json.loads((INPUTS / f['manifest']).read_text())
-            coll = append(INPUTS / f['file'], m['append_collection'])
-            eng = [(Vector(e['mouth']), Vector(e['axis']), e['radius'], e.get('style', 'LOW_TECH'))
-                   for e in m['engines'] if e.get('role') == 'main drive']
-            return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'])
-        if 'geometry' in f:
-            g = json.loads((INPUTS / f['geometry']).read_text())
-            coll = append(INPUTS / f['file'], g['asset']['collection'])
-            eng = [(Vector(e['location']), Vector(e['exhaust_direction']), e['mouth_radius'], e['style'])
-                   for e in g['engines']]
-            return dict(coll=coll, mpu=g['metres_per_unit'], engines=eng, length_m=f['length_m'])
-        coll = append(INPUTS / f['file'], f['collection'])
-        g = json.loads((PROLOGUE / 'hound-geometry' / 'geometry.json').read_text())
-        eng = [(Vector(e['location']), Vector((-1, 0, 0)), e['bell_radius'], e['style']) for e in g['engines']]
-        return dict(coll=coll, mpu=f['mpu'], engines=eng, length_m=f['length_m'])
+        m = json.loads((INPUTS / f['manifest']).read_text())
+        coll = append(INPUTS / f['file'], m['append_collection'])
+        eng = []
+        for e in m['engines']:
+            role = e.get('role', 'main drive')
+            if any(w in role for w in ('lift', 'jet', 'rcs', 'manoeuv', 'maneuv')):    # glows are for the drives only
+                continue
+            eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
+                        e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
+        return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'])
 
     def standin(game, length_m=None):
         """The sprite's silhouette as a lens-shaped slab in hull units (one sprite px per unit,

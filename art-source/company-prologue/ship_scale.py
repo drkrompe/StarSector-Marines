@@ -203,23 +203,17 @@ HULLS = {
     # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
     # fork, head outriggers, missile pods, armour domes and the engine block (the drive
     # section) are outside SOLIDS.
-    'Wolf (P)': dict(units3=19800, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
+    'Wolf (P)': dict(units3=38632, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
                      sprite_px=96),
-    # The Falcon (P) pirate light cruiser (Asharu battle flagship): the two prongs, central
-    # body, bridge dome and waist decks; the drive blocks, outrigger thruster pods, bow
-    # forks and the tanks laid on the waist excluded. No fighter bays.
-    'Falcon (P)': dict(units3=231104, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
-                       sprite_px=222),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
-                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)',
-                 'Falcon (P)': 'measured (SOLIDS)'}
+                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .80}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .76}
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
 # wing body, aft engine block, ventral keel, command tier and dome (SOLIDS['manticore']). The drive
 # cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
@@ -230,6 +224,32 @@ HULLS['Manticore (P)'] = dict(units3=310119, crew_max=80, cargo=80, fuel=50, cls
                                                             'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
 PUBLISHED['Manticore (P)'] = .54
+# The Kite (P), pirate boarding shuttle for the Asharu battle (kite_pirates.skin on kite;
+# designation Shuttle, so the freighter class): fuselage, wing body, cabin spine and aft hump
+# (SOLIDS['kite']). Drive cans, missile sponsons and launchers are excluded. Its 30 crew are
+# the boarding party's seats. Fittings: the neck's crew door and a cabin window.
+HULLS['Kite (P)'] = dict(units3=25690, crew_max=30, cargo=30, fuel=15, cls='freighter', length_units=64.6,
+                         sprite_px=66, fittings_units={'crew door w x h': [3.2, 3.9], 'cabin window w x h': [1.5, 1.0]})
+VOLUME_SOURCE['Kite (P)'] = 'measured (SOLIDS)'
+PUBLISHED['Kite (P)'] = .80
+# The Falcon (P), pirate light cruiser and the Asharu battle's flagship (falcon_p.skin on
+# falcon): the two prongs, central body, bridge dome and waist decks (SOLIDS['falcon-p']).
+# The drive blocks, outrigger thruster pods, bow forks and the tanks laid on the waist are
+# excluded. No fighter bays.
+HULLS['Falcon (P)'] = dict(units3=227910, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
+                           sprite_px=222)
+VOLUME_SOURCE['Falcon (P)'] = 'measured (SOLIDS)'
+PUBLISHED['Falcon (P)'] = .81
+# The Tarsus, the convoy freighter the pirates take as their prize (Asharu battle): twin
+# forward cargo arms, central body over its ventral keel, aft body with its raised castle, the
+# four turret drums, drive block and forward command module (SOLIDS['tarsus']). The port pressure tanks and the starboard cylinder are
+# external tankage laid on the deck (like the Colossus's underslung pod tanks) and the drive
+# cans are drives: excluded. Fittings: the Kite boarding collar hatch and the dorsal grapple
+# receiver plate the Colossus Mk.III clamps to.
+HULLS['Tarsus'] = dict(units3=291623, crew_max=80, cargo=350, fuel=80, cls='freighter', length_units=188.8,
+                      sprite_px=204, fittings_units={'Kite collar hatch d': [5.2], 'grapple receiver plate d': [5.2]})
+VOLUME_SOURCE['Tarsus'] = 'measured (SOLIDS)'
+PUBLISHED['Tarsus'] = .50
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -308,6 +328,10 @@ SOLIDS = {
                  'include': lambda n: n in ('Hull port prong', 'Hull starboard prong', 'Hull central body',
                                             'Bridge command dome', 'Hull port waist deck',
                                             'Hull starboard waist deck')},
+    # The Kite (P)'s .blend is a build output (kite-geometry/kite-geometry.blend, ignored);
+    # its driver re-measures these solids on every build, before the drives cut their bores.
+    'kite': {'blend': 'kite-geometry/kite-geometry.blend', 'step': .5,
+             'include': lambda n: n in ('Hull fuselage', 'Hull wing body', 'Hull dorsal spine', 'Hull aft hump')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
@@ -320,6 +344,14 @@ SOLIDS['manticore'] = {'blend': '../../build/manticore/manticore.blend', 'step':
                        'include': lambda n: n in ('Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body',
                                                   'Hull aft body', 'Hull ventral keel', 'Bridge command tier',
                                                   'Bridge command dome')}
+
+
+SOLIDS['tarsus'] = {'blend': 'tarsus-geometry/tarsus-geometry.blend', 'step': 1.0,
+                    'include': lambda n: n in (
+                        'Hull port arm', 'Hull starboard arm', 'Hull central body', 'Hull aft body',
+                        'Hull port aft drum', 'Hull starboard aft drum', 'Hull port bow drum',
+                        'Hull starboard bow drum', 'Hull drive block', 'Bridge command module',
+                        'Hull ventral keel', 'Hull aft castle')}
 
 
 def table():

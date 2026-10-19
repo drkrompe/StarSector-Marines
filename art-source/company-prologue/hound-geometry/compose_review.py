@@ -11,12 +11,14 @@ the IoU in geometry.json and composes hound-geometry.reference.png.
 from pathlib import Path
 import argparse
 import json
+import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = Path(__file__).resolve().parent
-GAME_SPRITE = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core'
-                   r'\graphics\ships\hound\hound_hegemony.png')
+sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
+from starsector_path import GAME_CORE
+GAME_SPRITE = GAME_CORE/'graphics'/'ships'/'hound'/'hound_hegemony.png'
 BG = (222, 223, 223)
 
 parser = argparse.ArgumentParser()
@@ -76,7 +78,16 @@ diff[sprite_mask & ~model_mask] = (220, 30, 30, 170)
 diff[model_mask & ~sprite_mask] = (20, 190, 220, 170)
 over = Image.alpha_composite(over, Image.fromarray(diff))
 d = ImageDraw.Draw(over)
-font = lambda s: ImageFont.truetype('C:/Windows/Fonts/arial.ttf', s)
+FONTS = ['C:/Windows/Fonts/arial.ttf', '/System/Library/Fonts/Supplemental/Arial.ttf', 'DejaVuSans.ttf']
+
+
+def font(size):
+    for f in FONTS:
+        try:
+            return ImageFont.truetype(f, size)
+        except OSError:
+            pass
+    return ImageFont.load_default()
 d.text((28, 20), 'HOUND (A) BLOCKOUT / TOP OVER hound_hegemony.png (50%)', font=font(30), fill=(39, 49, 55))
 d.text((28, 60), f'Silhouette IoU {iou:.3f}   red: sprite not covered ({missing:.1%})   '
                  f'cyan: model outside sprite ({extra:.1%})   bow left, port below, 1 px = 1 unit',

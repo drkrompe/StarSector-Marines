@@ -21,7 +21,9 @@ The (P) skin's description: the pirates' "showy 'improvements'" to the
 propulsion, a patchwork of engine components. The sprite shows it on the
 drive blocks: the inboard pair are bare engine cores in hazard-yellow bands,
 the others cans with yellow chevrons. The cans here are whole drive units
-(can, bell, lip, throat), never nozzles poking out of the hull.
+(can, shroud, bell, lip, throat), never nozzles poking out of the hull: a
+main drive's shroud carries the can's full radius back to the lip round the
+bell, the straight cylinder the sprite draws.
 
 Names follow the standing decision: `Engine <i> drive can`, `Engine <i>
 aft-facing bell`, `Engine <i> mouth lip`, `Engine <i> dark throat`,
@@ -82,6 +84,11 @@ def build(kit):
         mat_can = kit.bare if i in EXPOSED else kit.steel
         _place(revolve_x(kit, f'Engine {i} drive can', [(bl+.3, 0), (bl+.3, can_r), (can_len, can_r*.94),
                                                         (can_len, 0)], 0, 0, mat_can, n), x, y, angle)
+        if main:
+            # The can's shroud carries its full radius back to the lip round the
+            # bell, so the drive reads as the sprite's straight cylinder, not a cone.
+            _place(revolve_x(kit, f'Engine {i} bell shroud', [(.5, rm+wall*1.05), (.5, can_r), (bl+.3, can_r),
+                                                              (bl+.3, rt+wall*1.05)], 0, 0, mat_can, n), x, y, angle)
         _place(revolve_x(kit, f'Engine {i} aft-facing bell', [(bl, rt), (0, rm), (0, rm+wall), (bl, rt+wall)],
                          0, 0, kit.steel, n), x, y, angle)
         _place(revolve_x(kit, f'Engine {i} mouth lip', [(.35*wall, rm-.2*wall), (-.25*wall, rm),

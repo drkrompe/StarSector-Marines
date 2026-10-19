@@ -42,6 +42,9 @@ WEAPONS = {   # kit id -> .wpn id
     'tachyonlance': 'tachyonlance', 'gravitonbeam': 'gravitonbeam', 'taclaser': 'taclaser', 'reaper': 'reaper',
     'pdlaser': 'pdlaser',
     'autopulse': 'autopulse',   # its colours, for the hardpoint mount (HARDPOINT_WEAPONS)
+    # The Wolf (P)'s pirate fit (wolf_d_pirates_Attack): the ion cannon turret, and the
+    # colours of the mining blaster and Annihilator pod for their hardpoint mounts.
+    'ioncannon': 'ioncannon', 'miningblaster': 'miningblaster', 'annihilator': 'annihilator',
 }
 ALPHA = 40
 # Second paints, sRGB, read off each base sprite; MAIN_HINT is its body paint

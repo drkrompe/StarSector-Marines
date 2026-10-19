@@ -1,0 +1,342 @@
+{
+ "deckhouse-wall-port": {
+  "what": "taupe deckhouse port wall round its window recess",
+  "sheet": "decks",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull shielded hold deckhouse",
+    "seed": [
+     8,
+     11,
+     6
+    ],
+    "faces": [
+     6,
+     7,
+     15
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 45.39,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   11.0,
+   4.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -11.5,
+    7.549999952316284
+   ],
+   "ortho_width": 12.790697674418604
+  },
+  "native_texels_per_unit": 62.1
+ },
+ "deckhouse-wall-stbd": {
+  "what": "taupe deckhouse starboard wall (mirror of the port wall)",
+  "sheet": "decks",
+  "tile": 0,
+  "skin_from": "deckhouse-wall-port",
+  "members": [
+   {
+    "object": "Hull shielded hold deckhouse",
+    "seed": [
+     8,
+     -10.5,
+     6
+    ],
+    "faces": [
+     1,
+     2,
+     11
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 45.39,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   11.0,
+   4.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    11.5,
+    7.549999952316284
+   ],
+   "ortho_width": 12.790697674418604
+  },
+  "native_texels_per_unit": 62.1
+ },
+ "deckhouse-front": {
+  "what": "taupe deckhouse front: lower wall, raked window-band face and the visor brow edge",
+  "sheet": "decks",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull shielded hold deckhouse",
+    "seed": [
+     18.5,
+     -5,
+     6
+    ],
+    "faces": [
+     3,
+     4,
+     5,
+     18,
+     19
+    ]
+   },
+   {
+    "object": "Wheelhouse visor brow",
+    "seed": [
+     19.24,
+     0,
+     9.38
+    ],
+    "faces": [
+     2
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 80.47,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   21.5,
+   4.13
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.25,
+    7.464683771133423
+   ],
+   "ortho_width": 25.0
+  },
+  "native_texels_per_unit": 31.8
+ },
+ "deckhouse-roof": {
+  "what": "taupe deckhouse roof with the visor brow along its forward edge",
+  "sheet": "decks",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull shielded hold deckhouse",
+    "seed": [
+     12,
+     0,
+     9.7
+    ],
+    "faces": [
+     12,
+     13,
+     14,
+     16,
+     17
+    ]
+   },
+   {
+    "object": "Wheelhouse visor brow",
+    "seed": [
+     18.3,
+     0,
+     9.67
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 283.3,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   21.5,
+   13.26
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -0.25,
+    12.630572319030762
+   ],
+   "ortho_width": 27.41321889004966
+  },
+  "native_texels_per_unit": 29.0
+ },
+ "skid-side-port": {
+  "what": "taupe port stern skid, outboard side",
+  "sheet": "decks",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull stern skid port",
+    "seed": [
+     -21.7,
+     14,
+     -1
+    ],
+    "faces": [
+     7,
+     8,
+     12,
+     13,
+     18,
+     19
+    ]
+   },
+   {
+    "object": "Hull stern skid port",
+    "seed": [
+     -17.95,
+     14,
+     -0.9
+    ],
+    "faces": [
+     7,
+     8,
+     12,
+     13,
+     18,
+     19
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 42.25,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   7.0,
+   6.7
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    20.5,
+    -1.149999976158142
+   ],
+   "ortho_width": 13.850129297537396
+  },
+  "native_texels_per_unit": 57.3
+ },
+ "skid-side-stbd": {
+  "what": "taupe starboard stern skid, outboard side (mirror of port)",
+  "sheet": "decks",
+  "tile": 3,
+  "skin_from": "skid-side-port",
+  "members": [
+   {
+    "object": "Hull stern skid starboard",
+    "seed": [
+     -21.7,
+     -14,
+     -1
+    ],
+    "faces": [
+     4,
+     5,
+     9,
+     10,
+     15,
+     16
+    ]
+   },
+   {
+    "object": "Hull stern skid starboard",
+    "seed": [
+     -17.95,
+     -14,
+     -0.9
+    ],
+    "faces": [
+     4,
+     5,
+     9,
+     10,
+     15,
+     16
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 42.25,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   7.0,
+   6.7
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -20.5,
+    -1.149999976158142
+   ],
+   "ortho_width": 13.850129297537396
+  },
+  "native_texels_per_unit": 57.3
+ }
+}

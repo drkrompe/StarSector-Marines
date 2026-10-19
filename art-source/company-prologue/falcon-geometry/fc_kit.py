@@ -63,15 +63,19 @@ class Kit:
         # about 170,155,120 on the prongs, darkened for albedo), the pirates'
         # red panels, warm gunmetal machinery, near-black recesses, the hazard
         # yellow banding the drives and lilac-grey bare engine metal.
-        self.armour = material('Falcon khaki armour', (.26, .22, .14), .2, .6, wear=.22)
-        self.red = material('Falcon pirate red panel', (.42, .05, .04), .15, .55, wear=.25)
+        # Livery classes measured off falcon_p.png's prongs (sRGB means): dark
+        # khaki 119,103,89 (63% of the prong pixels), pirate red 172,75,65 (22%),
+        # light sand 196,155,113 (9%); linear albedo a little under each.
+        self.armour = material('Falcon khaki armour', (.16, .125, .09), .2, .6, wear=.22)
+        self.red = material('Falcon pirate red panel', (.36, .065, .05), .15, .55, wear=.25)
+        self.sand = material('Falcon sand panel', (.50, .30, .15), .15, .55, wear=.22)
         self.plate = material('Falcon grey plate', (.20, .19, .17), .3, .55, wear=.2)
         self.steel = material('Falcon gunmetal machinery', (.09, .08, .075), .6, .5, wear=.18)
         self.bare = material('Falcon bare engine metal', (.42, .40, .45), .85, .35, wear=.15)
         self.dark = material('Falcon recess', (.022, .02, .019), .4, .6)
         self.hazard = material('Falcon hazard yellow', (.55, .42, .02), .1, .5, wear=.3)
-        self.glass = material('Falcon bridge glazing', (.03, .03, .03), .2, .12,
-                              emission=(1.0, .55, .18), strength=3.0)
+        self.glass = material('Falcon bridge glazing', (.02, .025, .03), .2, .08,
+                              emission=(1.0, .62, .3), strength=.6)
         self.lamp = material('Falcon running lamp', (.05, .04, .03), .2, .3,
                              emission=(1.0, .55, .15), strength=12.0)
         self.vent = material('Falcon heat vent glow', (.05, .03, .02), .3, .5,

@@ -155,17 +155,22 @@ the Legion a figure hides; how near the eye comes to any surface). What it found
 - The view is mostly bridge: 7-15% glass for the first 4.5 s, about 37% at the port glass, where
   the head's upward tilt spent a third of the frame on the visor brow.
 
-Refinements, each a separate switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA`
-for the lit render) so they can be compared one at a time; none is on until the owner picks:
+Refinements, each a switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA` for the
+lit render; `none` gives the reviewed move). **All six are the default (owner, 2026-10-19):**
 **walk** (the step down is a person walking on its own clock, 4.6-6.6 s: back off the console,
 down the dais step past the grab pole, four paces with a footfall in each), **duck** (leaning
 lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath** (a few tenths
 of a degree of breathing and weight shift), **frame** (the head sits lower at the port glass so
 the slit fills the frame), **lean** (leaning over the comms bank toward the glass at abeam, 70 cm
 to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
-back; an eye cannot zoom, so this is a film camera's choice) and **glance** (the head turns
-forward to watch the pilot draw the yoke and push it, 8.6-11.2 s, and back to the Legion as it
-starts to rise). With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+back; an eye cannot zoom, so this is a film camera's choice, and it matters more with the Legion
+at 340 m). The shot is grounded in the Legion (owner, 2026-10-19): the camera stays at the glass
+and never turns onto the pilot or Castle; a glance to the pilot and a step back to bring Castle
+into the frame edge were both tried and dropped. Castle is seen in passing instead: she works the
+forward panel of her bank (`sw_bridge_interior.CASTLE_AT`, x 14.4), and the walk passes behind her
+back on its way to the middle panel, so she crosses the frame left to right at 5.55-6.0 s, about
+half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. Thinner window posts were previewed (40%
+width: about 3 points more glass) and declined; the posts stay as modelled. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 

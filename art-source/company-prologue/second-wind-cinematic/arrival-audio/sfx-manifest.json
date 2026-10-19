@@ -936,6 +936,90 @@
       "seconds": 10.0,
       "loop": false,
       "promptInfluence": 0.5
+    },
+    "c4_launch_burn": {
+      "chosen": null,
+      "takes": {
+        "c4_launch_burn_t01": {
+          "durationSeconds": 9.0,
+          "peakDb": -0.2,
+          "integratedLufs": -7.3,
+          "characterCost": "99"
+        },
+        "c4_launch_burn_t02": {
+          "durationSeconds": 9.0,
+          "peakDb": -0.1,
+          "integratedLufs": -5.4,
+          "characterCost": "99"
+        }
+      },
+      "prompt": "Space shuttle launch heard from nearby: thunderous deep bass rocket engine roar, burning rocket fuel, violent crackling exhaust, low rumble shaking the ground, sustained full thrust, no hiss, no voices",
+      "seconds": 9.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "c2_steps": {
+      "chosen": "c2_steps_t02",
+      "takes": {
+        "c2_steps_t01": {
+          "durationSeconds": 2.0,
+          "peakDb": -19.5,
+          "integratedLufs": -42.9,
+          "characterCost": "22"
+        },
+        "c2_steps_t02": {
+          "durationSeconds": 2.0,
+          "peakDb": -0.5,
+          "integratedLufs": -15.8,
+          "characterCost": "22"
+        }
+      },
+      "prompt": "First-person footsteps on a starship bridge: one heavy boot step down off a low metal step, then four unhurried paces across a hard metal deck plate, close, interior, quiet room tone, no music",
+      "seconds": 2.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "c2_brush_past": {
+      "chosen": "c2_brush_past_t02",
+      "takes": {
+        "c2_brush_past_t01": {
+          "durationSeconds": 1.0,
+          "peakDb": -4.1,
+          "integratedLufs": -20.9,
+          "characterCost": "11"
+        },
+        "c2_brush_past_t02": {
+          "durationSeconds": 1.0,
+          "peakDb": -0.2,
+          "integratedLufs": -18.0,
+          "characterCost": "11"
+        }
+      },
+      "prompt": "Close, soft brush of a canvas flight jacket against another person's shoulder as someone squeezes past them in a tight space, fabric rustle, interior, no voices",
+      "seconds": 1.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "c2_console_lean": {
+      "chosen": "c2_console_lean_t01",
+      "takes": {
+        "c2_console_lean_t01": {
+          "durationSeconds": 1.0,
+          "peakDb": -0.4,
+          "integratedLufs": -19.2,
+          "characterCost": "11"
+        },
+        "c2_console_lean_t02": {
+          "durationSeconds": 1.0,
+          "peakDb": 0.0,
+          "integratedLufs": -16.9,
+          "characterCost": "11"
+        }
+      },
+      "prompt": "Close, a gloved palm and forearm settling onto a metal ship console, a soft creak and faint plastic knock, interior, no beeps",
+      "seconds": 1.0,
+      "loop": false,
+      "promptInfluence": 0.6
     }
   }
 }

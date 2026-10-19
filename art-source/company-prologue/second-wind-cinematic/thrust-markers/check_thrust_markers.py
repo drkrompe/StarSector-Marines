@@ -24,7 +24,7 @@ from pathlib import Path
 
 import bpy
 from bpy_extras.object_utils import world_to_camera_view
-from mathutils import Vector
+from mathutils import Quaternion, Vector
 
 HERE = Path(__file__).resolve().parent
 CINE = HERE.parent
@@ -117,6 +117,8 @@ def check(scene, fps, end):
             bad.append('%s: not parented to its craft' % m.name)
         if not 0.0 <= tm.throttle_at(m, scene.frame_current) <= 1.0:
             bad.append('%s: throttle out of 0..1' % m.name)
+        if m.get('thrust_vectored'):
+            bad += vectored_faults(m, fps, end)
     suspects = []
     for ob in bpy.context.view_layer.objects:
         if ob.name.startswith(tm.PREFIX) or ob.type in ('LIGHT', 'CAMERA'):
@@ -130,6 +132,35 @@ def check(scene, fps, end):
         suspects.append(ob.name)
         bad.append('%s: looks like a ship but has no markers' % ob.name)
     return rows, bad, suspects, marked
+
+
+def vectored_faults(m, fps, end):
+    """A drive turned down for lift must point hull-down whenever it carries thrust with no way
+    on, and must never carry more than the drive's one throttle together with its main."""
+    out = []
+    main = bpy.data.objects.get(m['thrust_vectored'])
+    if main is None:
+        return ['%s: vectored from missing %s' % (m.name, m['thrust_vectored'])]
+    craft = m.parent
+    for f in range(0, end + 1, max(1, int(fps) // 2)):
+        a, b = tm.path(craft, [max(0, f - 3), min(end, f + 3)])
+        vh = (b - a).xy.length / (max(1, min(end, f + 3) - max(0, f - 3)) / fps)
+        ax = rotation_at(m, f) @ Vector((1, 0, 0))
+        if tm.throttle_at(m, f) > 0.05 and vh < 0.3 and ax.z > -0.95:
+            out.append('%s: carries thrust at %.1f s with no way on but is not pointing down' % (m.name, f / fps))
+        if tm.throttle_at(m, f) + tm.throttle_at(main, f) > 1.001:
+            out.append('%s: with its main over one throttle at %.1f s' % (m.name, f / fps))
+    return out[:3]
+
+
+def rotation_at(m, frame):
+    q = [None] * 4
+    for fc in tm.fcurves(m):
+        if fc.data_path == 'rotation_quaternion':
+            q[fc.array_index] = fc.evaluate(frame)
+    if None in q:
+        return m.matrix_basis.to_quaternion()
+    return Quaternion(q).normalized()
 
 
 def summary(scene, fps, end, shot):
@@ -148,6 +179,11 @@ def summary(scene, fps, end, shot):
             'local_location': [round(v, 4) for v in loc],
             'local_exhaust_axis': [round(v, 4) for v in rot @ Vector((1, 0, 0))],
         })
+        if m.get('thrust_vectored'):
+            rec['markers'][-1]['vectored_from'] = m['thrust_vectored']
+            rec['markers'][-1]['local_exhaust_axis_1s'] = [
+                [round(f / fps, 2)] + [round(v, 3) for v in rotation_at(m, f) @ Vector((1, 0, 0))]
+                for f in range(0, end + 1, int(fps))]
     for name, rec in data['craft'].items():
         rec['world_path_1s'] = craft_world_path(bpy.data.objects[name], fps, end, scene)
     return data
