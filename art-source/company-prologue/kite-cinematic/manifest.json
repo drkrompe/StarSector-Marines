@@ -1,0 +1,948 @@
+{
+ "asset": "kite-p.blend",
+ "append_collection": "KITE (P)",
+ "root": "KITE (P) | root",
+ "anchors_collection": "KITE (P) | anchors",
+ "state": "clean",
+ "livery": "pirate refit (kite-surface: Codex part skins, heavy wear, the sprite's red claw slashes)",
+ "metres_per_unit": 0.8,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "Vanilla hull units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+ "bounds_units": [
+  [
+   -27.2,
+   -40.59,
+   -7.15
+  ],
+  [
+   38.1,
+   40.59,
+   12.3
+  ]
+ ],
+ "size_metres": [
+  52.2,
+  64.9,
+  15.6
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "port wing nacelle",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -21.0,
+    28.0,
+    -1.600000023841858
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "width": 8,
+   "running": true
+  },
+  {
+   "index": 2,
+   "role": "port main drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -27.0,
+    13.0,
+    -0.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.5,
+   "width": 10,
+   "running": true
+  },
+  {
+   "index": 3,
+   "role": "starboard main drive",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -27.0,
+    -13.0,
+    -0.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.5,
+   "width": 10,
+   "running": true
+  },
+  {
+   "index": 4,
+   "role": "starboard wing nacelle",
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -21.0,
+    -28.0,
+    -1.600000023841858
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "width": 8,
+   "running": true
+  },
+  {
+   "index": 5,
+   "role": "starboard maneuvering jet",
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -16.0,
+    -36.0,
+    -1.7999999523162842
+   ],
+   "axis": [
+    -0.8659999966621399,
+    -0.5,
+    0.0
+   ],
+   "radius": 2.7,
+   "width": 6,
+   "running": true
+  },
+  {
+   "index": 6,
+   "role": "port maneuvering jet",
+   "anchor": "Engine 6 exhaust anchor",
+   "mouth": [
+    -16.0,
+    36.0,
+    -1.7999999523162842
+   ],
+   "axis": [
+    -0.8659999966621399,
+    0.5,
+    0.0
+   ],
+   "radius": 2.7,
+   "width": 6,
+   "running": true
+  },
+  {
+   "index": 7,
+   "role": "starboard tail drive",
+   "anchor": "Engine 7 exhaust anchor",
+   "mouth": [
+    -22.0,
+    -20.0,
+    -1.0
+   ],
+   "axis": [
+    -0.9959999918937683,
+    -0.08699999749660492,
+    0.0
+   ],
+   "radius": 2.7,
+   "width": 6,
+   "running": true
+  },
+  {
+   "index": 8,
+   "role": "port tail drive",
+   "anchor": "Engine 8 exhaust anchor",
+   "mouth": [
+    -22.0,
+    21.0,
+    -1.0
+   ],
+   "axis": [
+    -0.9959999918937683,
+    0.08699999749660492,
+    0.0
+   ],
+   "radius": 2.7,
+   "width": 6,
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "rcs": [
+  {
+   "anchor": "RCS nose port 1 anchor",
+   "at": [
+    33.303,
+    7.944,
+    0.5
+   ],
+   "exhaust_dir": [
+    0.768,
+    0.64,
+    -0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS nose port 2 anchor",
+   "at": [
+    34.003,
+    7.944,
+    0.5
+   ],
+   "exhaust_dir": [
+    0.768,
+    0.64,
+    -0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS nose starboard 1 anchor",
+   "at": [
+    33.303,
+    -7.944,
+    0.5
+   ],
+   "exhaust_dir": [
+    0.768,
+    -0.64,
+    -0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS nose starboard 2 anchor",
+   "at": [
+    34.003,
+    -7.944,
+    0.5
+   ],
+   "exhaust_dir": [
+    0.768,
+    -0.64,
+    -0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS wing port 1 anchor",
+   "at": [
+    -7.413,
+    40.429,
+    -1.4
+   ],
+   "exhaust_dir": [
+    0.514,
+    0.857,
+    0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS wing port 2 anchor",
+   "at": [
+    -6.713,
+    40.429,
+    -1.4
+   ],
+   "exhaust_dir": [
+    0.514,
+    0.857,
+    0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS wing starboard 1 anchor",
+   "at": [
+    -7.413,
+    -40.429,
+    -1.4
+   ],
+   "exhaust_dir": [
+    0.514,
+    -0.857,
+    -0.0
+   ],
+   "working": true
+  },
+  {
+   "anchor": "RCS wing starboard 2 anchor",
+   "at": [
+    -6.713,
+    -40.429,
+    -1.4
+   ],
+   "exhaust_dir": [
+    0.514,
+    -0.857,
+    -0.0
+   ],
+   "working": true
+  }
+ ],
+ "weapons": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "mount": "HARDPOINT",
+   "size": "SMALL",
+   "weapon": "hammer",
+   "kind": "launcher",
+   "rest_angle_deg": 0,
+   "arc_deg": 6,
+   "muzzles": [
+    {
+     "tag": "tube 1",
+     "anchor": "Anchor turret 1 tube 1 muzzle",
+     "rides": "Weapon WS 001 muzzle anchor 1",
+     "at": [
+      10.8,
+      21.03,
+      2.55
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ]
+    },
+    {
+     "tag": "tube 2",
+     "anchor": "Anchor turret 1 tube 2 muzzle",
+     "rides": "Weapon WS 001 muzzle anchor 2",
+     "at": [
+      10.8,
+      22.97,
+      2.55
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "mount": "HARDPOINT",
+   "size": "SMALL",
+   "weapon": "swarmer",
+   "kind": "launcher",
+   "rest_angle_deg": 0,
+   "arc_deg": 6,
+   "muzzles": [
+    {
+     "tag": "tube 1",
+     "anchor": "Anchor turret 2 tube 1 muzzle",
+     "rides": "Weapon WS 002 muzzle anchor 1",
+     "at": [
+      10.32,
+      -21.08,
+      3.545
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ]
+    },
+    {
+     "tag": "tube 2",
+     "anchor": "Anchor turret 2 tube 2 muzzle",
+     "rides": "Weapon WS 002 muzzle anchor 2",
+     "at": [
+      10.32,
+      -22.92,
+      3.545
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ]
+    },
+    {
+     "tag": "tube 3",
+     "anchor": "Anchor turret 2 tube 3 muzzle",
+     "rides": "Weapon WS 002 muzzle anchor 3",
+     "at": [
+      10.32,
+      -21.08,
+      1.905
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ]
+    },
+    {
+     "tag": "tube 4",
+     "anchor": "Anchor turret 2 tube 4 muzzle",
+     "rides": "Weapon WS 002 muzzle anchor 4",
+     "at": [
+      10.32,
+      -22.92,
+      1.905
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "mount": "TURRET",
+   "size": "SMALL",
+   "weapon": "lightdualmg",
+   "kind": "gun",
+   "rest_angle_deg": 0,
+   "arc_deg": 200,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 3 barrel 1 muzzle",
+     "rides": "Weapon WS 003 muzzle anchor 1",
+     "at": [
+      2.225,
+      -1.222,
+      10.802
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 3 barrel 2 muzzle",
+     "rides": "Weapon WS 003 muzzle anchor 2",
+     "at": [
+      2.225,
+      1.222,
+      10.802
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "pivot": "Weapon WS 003 pivot",
+   "elevation": "Weapon WS 003 elevation",
+   "pivot_at": [
+    -7.0,
+    0.0,
+    8.7
+   ]
+  }
+ ],
+ "boarding": {
+  "collar": "Hull ventral boarding collar ring",
+  "hatch": "Hull ventral boarding hatch",
+  "note": "the ventral collar mates to the prize's hull; it does not move"
+ },
+ "lamps_lit": 8,
+ "lamps": [
+  {
+   "object": "Cabin window glazing",
+   "material": "Cabin window glow",
+   "lit": true,
+   "at": [
+    15.4,
+    0.0,
+    7.2
+   ]
+  },
+  {
+   "object": "Dorsal spotlight lens",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    27.52,
+    0.0,
+    9.9
+   ]
+  },
+  {
+   "object": "Lamp dorsal beacon",
+   "material": "Nav lamp red",
+   "lit": true,
+   "at": [
+    12.0,
+    0.0,
+    9.7
+   ]
+  },
+  {
+   "object": "Lamp port landing light",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    35.5,
+    4.55,
+    -2.5
+   ]
+  },
+  {
+   "object": "Lamp port wing-tip nav",
+   "material": "Nav lamp red",
+   "lit": true,
+   "at": [
+    -11.5,
+    40.15,
+    -1.5
+   ]
+  },
+  {
+   "object": "Lamp starboard landing light",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    35.5,
+    -4.55,
+    -2.5
+   ]
+  },
+  {
+   "object": "Lamp starboard wing-tip nav",
+   "material": "Nav lamp green",
+   "lit": true,
+   "at": [
+    -11.5,
+    -40.15,
+    -1.5
+   ]
+  },
+  {
+   "object": "Lamp stern white",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    -24.27,
+    0.0,
+    1.59
+   ]
+  }
+ ],
+ "objects": 369,
+ "polygons": 55605,
+ "baked_meshes": 210,
+ "images": [
+  "Kite (P) claw slash mask",
+  "Skin fuse-nose",
+  "Skin fuse-side-port",
+  "Skin fuse-top",
+  "Skin spine-side-port",
+  "Skin spine-top",
+  "Skin wing-top",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch glass",
+  "Swatch gunmetal",
+  "Swatch hull",
+  "Swatch scrap"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile kite-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 104,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 3.6,
+     "mouth": [
+      -21.0,
+      28.0,
+      -1.6
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 4.5,
+     "mouth": [
+      -27.0,
+      13.0,
+      -0.5
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "starboard",
+     "radius": 4.5,
+     "mouth": [
+      -27.0,
+      -13.0,
+      -0.5
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "starboard",
+     "radius": 3.6,
+     "mouth": [
+      -21.0,
+      -28.0,
+      -1.6
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "starboard",
+     "radius": 2.7,
+     "mouth": [
+      -16.0,
+      -36.0,
+      -1.8
+     ],
+     "axis": [
+      -0.866,
+      -0.5,
+      0.0
+     ]
+    },
+    {
+     "index": 6,
+     "side": "port",
+     "radius": 2.7,
+     "mouth": [
+      -16.0,
+      36.0,
+      -1.8
+     ],
+     "axis": [
+      -0.866,
+      0.5,
+      0.0
+     ]
+    },
+    {
+     "index": 7,
+     "side": "starboard",
+     "radius": 2.7,
+     "mouth": [
+      -22.0,
+      -20.0,
+      -1.0
+     ],
+     "axis": [
+      -0.996,
+      -0.087,
+      0.0
+     ]
+    },
+    {
+     "index": 8,
+     "side": "port",
+     "radius": 2.7,
+     "mouth": [
+      -22.0,
+      21.0,
+      -1.0
+     ],
+     "axis": [
+      -0.996,
+      0.087,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "tube 1",
+     "muzzle": [
+      10.8,
+      21.03,
+      2.55
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ],
+     "barrel": 1,
+     "kind": "launcher"
+    },
+    {
+     "turret": 1,
+     "tag": "tube 2",
+     "muzzle": [
+      10.8,
+      22.97,
+      2.55
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ],
+     "barrel": 2,
+     "kind": "launcher"
+    },
+    {
+     "turret": 2,
+     "tag": "tube 1",
+     "muzzle": [
+      10.32,
+      -21.08,
+      3.545
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ],
+     "barrel": 1,
+     "kind": "launcher"
+    },
+    {
+     "turret": 2,
+     "tag": "tube 2",
+     "muzzle": [
+      10.32,
+      -22.92,
+      3.545
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ],
+     "barrel": 2,
+     "kind": "launcher"
+    },
+    {
+     "turret": 2,
+     "tag": "tube 3",
+     "muzzle": [
+      10.32,
+      -21.08,
+      1.905
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ],
+     "barrel": 3,
+     "kind": "launcher"
+    },
+    {
+     "turret": 2,
+     "tag": "tube 4",
+     "muzzle": [
+      10.32,
+      -22.92,
+      1.905
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      -0.0
+     ],
+     "barrel": 4,
+     "kind": "launcher"
+    },
+    {
+     "turret": 3,
+     "tag": "barrel 1",
+     "muzzle": [
+      2.225,
+      -1.222,
+      10.802
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 3,
+     "tag": "barrel 2",
+     "muzzle": [
+      2.225,
+      1.222,
+      10.802
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 2
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Lamp port wing-tip nav",
+     "role": "running-port",
+     "at": [
+      -11.5,
+      40.15,
+      -1.5
+     ]
+    },
+    {
+     "name": "Lamp starboard wing-tip nav",
+     "role": "running-starboard",
+     "at": [
+      -11.5,
+      -40.15,
+      -1.5
+     ]
+    },
+    {
+     "name": "Lamp dorsal beacon",
+     "role": "beacon",
+     "at": [
+      12.0,
+      0.0,
+      9.7
+     ]
+    },
+    {
+     "name": "Lamp stern white",
+     "role": "masthead",
+     "at": [
+      -24.274,
+      -0.0,
+      1.586
+     ]
+    },
+    {
+     "name": "Lamp port landing light",
+     "role": "work",
+     "at": [
+      35.496,
+      4.552,
+      -2.5
+     ]
+    },
+    {
+     "name": "Lamp starboard landing light",
+     "role": "work",
+     "at": [
+      35.496,
+      -4.552,
+      -2.5
+     ]
+    },
+    {
+     "name": "Dorsal spotlight lens",
+     "role": "work",
+     "at": [
+      27.52,
+      0.0,
+      9.9
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -27.2,
+     -41.07,
+     -36.14
+    ],
+    [
+     38.1,
+     40.62,
+     40.34
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 8,
+    "rcs": 8,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 8,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 2,
+    "shots": 0,
+    "built": true,
+    "launchers": 6
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'KITE (P)' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "kite-surface/build/skinned.blend",
+  "geometry_json_sha256": "74937a61db09e945ea220f99f6581a0cce5bfe9604115d6f237199ab6240430d",
+  "skin_manifest_sha256": "8b4ec753f92038d427da62e317783bf8baf466129a966828b007234e8e79c3fb"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; RCS outward); +Z as near hull-dorsal as that allows.",
+  "turret": "Rotate 'Weapon WS 003 pivot' about its local Z to train (rest: dead ahead, arc 200); 'Weapon WS 003 elevation' lifts the guns about its local Y (negative lifts).",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "0df56cbde1dffdc69fe71379dddf3866279d38034c4567c53c8dd58cd930537f"
+}
