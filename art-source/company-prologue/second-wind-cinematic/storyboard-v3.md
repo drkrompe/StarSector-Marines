@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-19 — after the sound review: the entry is a 7 s shaking descent; C3 levels out and runs 16 s with Castle's travel-reels line, moved from C4; C4 opens on "Greywater's past the cranes."
+Updated: 2026-10-19 — after the sound review: a 7 s shaking entry; C3 levels out over 16 s with Castle's travel-reels line, moved from C4; C4 opens on "Greywater's past the cranes"; C4 and C5 are one shot (`c5-v2-closing.md`).
 
 ## What changed from v2
 
@@ -69,7 +69,7 @@ is not part of this pass.
 
 ## Arrival shot list
 
-The arrival runs about two minutes (C1 38 s, C2 15, entry 7, C3 16, C4 16, C5 30), the longest part the space section that carries the hail. It plays once, the first time the player docks
+The arrival runs about two minutes (C1 38 s, C2 15, entry 7, C3 16, C4 16, C5 34), the longest part the space section that carries the hail. It plays once, the first time the player docks
 at Jangala, and it can be skipped. Starts that use a fallback port never see it.
 Timings are targets until the voice takes are measured.
 
@@ -200,7 +200,10 @@ the shot is too short to carry it, and Y1 introduces Nessa anyway.
 are Wayline's kind of drivers, on the kind of road the company will defend in
 Relief.
 
-### C5 — WE'RE DOWN (about 30 s)
+### C5 — WE'RE DOWN (about 34 s)
+
+**One shot with C4** (owner, 2026-10-19): no cut between them. C5 carries on
+from C4's last camera and pushes in to the ramp over its first 4 s.
 
 Replaced by v2: `c5-v2-closing.md` holds the picture, the beats and Castle's
 closing lines. In short: overhead on the ship in Nessa's yard, the families walk

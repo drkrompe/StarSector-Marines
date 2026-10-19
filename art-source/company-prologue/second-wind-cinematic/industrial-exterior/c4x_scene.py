@@ -1282,8 +1282,7 @@ def add_k9_vehicles():
         vehicle(name, parts, [(0,) + a, (sec(5.0),) + a, (sec(8.0),) + s, (sec(go),) + s, (sec(stop), xb, yb)],
                 [(0, math.atan2(s[1] - a[1], s[0] - a[0])), (sec(go), math.atan2(s[1] - a[1], s[0] - a[0])),
                  (sec(go + 0.6), math.atan2(yb - s[1], xb - s[0]))])
-    # Yard hands in hi-vis, out from the hangar to the scaffold once it is down; the shot ends with
-    # them still on their way. The ramp crew rides in on the crew carrier and gets out in C5
+    # Yard hands in hi-vis, out from the hangar to the scaffold once it is down, arriving in C5. The ramp crew rides in on the crew carrier and gets out in C5
     # (`c5_scene.cast`); the first seven draws were theirs on foot, kept so the rest stay put.
     hivis = material('Hi-vis', (1.0, 0.55, 0.08), 0.7)
     r = random.Random(57)
@@ -1295,12 +1294,10 @@ def add_k9_vehicles():
             xb, yb, _ = at(kx, ky, kh, r.uniform(-10, 10), 52)                       # the north scaffold
         go = 11.8 + r.uniform(0, 1.0)
         walk = math.hypot(xb - xa, yb - ya) / 2.2
-        k = min(1.0, (DURATION - go) / walk)
         if n < 7:
             continue
-        vehicle('Yard hand %d' % n, [((1.3, 1.3, 1.8), (0, 0, 0.9), hivis)],
-                [(0, xa, ya), (sec(go), xa, ya),
-                 (sec(go + walk * k), xa + (xb - xa) * k, ya + (yb - ya) * k)])
+        vehicle('Scaffold hand %d' % n, [((1.3, 1.3, 1.8), (0, 0, 0.9), hivis)],     # on through C5
+                [(0, xa, ya), (sec(go), xa, ya), (sec(go + walk), xb, yb)])
     # Scaffold arms swing in to the hull, and work starts on it: arc-light at the decks.
     arms = material('Scaffold arms', (0.85, 0.70, 0.15), 0.6)
     arc = material('Arc light', (0.7, 0.85, 1.0))

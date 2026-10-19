@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-19 — travel-reels line moved to C3, C4 opens on "Greywater's past the cranes", Kilo Nine line drafts; the rise and title are in the layout scene.
+Updated: 2026-10-19 — C4 and C5 are one shot; the port around Kilo Nine is staffed (`port_people.py`); travel-reels line moved to C3, C4 opens on "Greywater's past the cranes", Kilo Nine line drafts.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -90,8 +90,15 @@ drive spools down. Once the dust thins the yard goes to work. The tug, bowser
 and crew carrier move in from their stand-offs, and the scaffold arms swing in
 to the hull. Hands in hi-vis head out from the workshop. The customs car comes
 in through the gate behind them. C4 ends with the ship down and the yard
-moving. C5 opens on the same straight-down view a step closer, and the cut
-reads as one continuous move. The wide reveal
+moving.
+
+**C4 and C5 are one shot** (owner, 2026-10-19): there is no cut. C5 picks up
+C4's camera exactly where it stops, straight down over the yard on its wide
+lens, and over the first 4 s pushes in to the long-lens view of the ramp, the
+ground in frame shrinking at a steady rate while the lens lengthens. The yard's
+vehicles are still rolling in as the push begins, and their crews climb out once
+they stop. Nothing appears or vanishes at the join: whoever stood about the yard
+in C4 is still standing there in C5. The wide reveal
 (the yard as a small corner of a big working port, the ship one patched hull
 among the freighters) is kept for C5's pull-out under the title, so it is seen
 once and lands as the closing image. The public berths are seen passing
@@ -235,6 +242,35 @@ apron between the ferry and the freight terminal. A Hermes lifts off in C4's
 last seconds. During C5's rise another comes down on that pad and a Hound lands
 on the empty berth, so a lifter is moving in each shot. All of it is outside
 Kilo Nine's fence and keyed through C5's last frame.
+
+**The port's people** (`industrial-exterior/port_people.py`). The rise would
+show a port of empty vehicles without them, so the ground is staffed site by
+site, thickest close to Kilo Nine and on the public apron west of it and
+thinner further out, but present everywhere the rise reveals. Each job is one
+that reads from above as a shape:
+
+- an arrivals queue along the terminal hall's faces, moved up by two officials;
+- porters unloading the baggage tug while it stands at the hall;
+- a road gang crouched along the kerb with a foreman pacing it;
+- gate guards, one of whom stops a courier;
+- a marshaller waving the returning lighter onto its pad, then hands
+  unloading it;
+- signallers and lashers at the two working cranes, standing clear while a
+  box comes down (the girder hides anything under it from above);
+- crates carried from Kilo Nine's stores to its hangar;
+- cutters and a slinger in the salvage pile;
+- a smoke-break ring;
+- mechanics;
+- welders on the scaffold arms;
+- crews on the berths, pads and fuel farm.
+
+People face each other, hand things over, wait for each other and walk in
+pairs. Poses (crouch, signal, carry, talk, arms folded, work) are blocks on
+the 3D figures and extra columns on the sprite sheet. Each site has its own
+small walk map, read from the built scene like the yard's. Every vehicle that
+moves during C5 is blocked along its whole path, so nobody stands in a lane
+or under a wheel. The run's report counts people inside anything and should
+read 0. `--no-port` leaves the port people out.
 
 ## Open questions
 
