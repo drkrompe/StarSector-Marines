@@ -41,6 +41,20 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 7 (2026-10-19)
+"The missile hookup ... like we just cut a wedge into the hull", and "cohesive
+angling ... very wobbly in places". Each Harpoon slot sits on the arm's
+leading edge, so the arm now grows a faceted red launcher bay forward round it,
+deck flush with the wing and following its anhedral; the rack sits down a
+chamfered recess in the bay, open forward. The hull now speaks one angle
+vocabulary (mt_hull SHOULDER/LOWER/FALL/RAKE): lofted shoulders fall 30 deg
+and lower faces 45 deg, armour plates fall 30 deg and rake 45 deg, the forward
+hull bends down in one line from X 10 (0.18 per unit) and the arms in one
+anhedral (0.30 per unit outboard of |Y| 24). The stern keeps its accepted
+sections. Bridge clear to 4.5 deg down dead ahead, 10-18 deg elsewhere; all
+six mounts bear dead ahead and 10 deg below ahead. Volume 225,259 units3;
+0.59 m/u stands.
+
 Owner review round 6 (2026-10-19)
 "Remove the hockey pucks from the two harpoon pods", "the arm ends are oddly
 cylinderish", "the front needs cohesion work", "angular armor ... reminiscent
