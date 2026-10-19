@@ -36,8 +36,10 @@ Faces no part claims (`--fallback`):
 routes every skin and swatch material through that state's wear layer
 (wear.py): abrasion, pitting, fade, grime, soot and neglect, in ship space.
 Without it the build carries the bare base skin.
-Lamps, glazing and a damage state's scar and repair materials are never
-touched. Modifiers stay live. Writes OUT (packed images) and a manifest
+An overlay hull (surface_hull.OVERLAY) keeps each base material's own finish
+and lets the skin or swatch only modulate its colour (link_colour); its relief
+survives the wear layer too. Lamps, glazing and a damage state's scar and repair
+materials are never touched. Modifiers stay live. Writes OUT (packed images) and a manifest
 (default skin-manifest.json beside the scripts for the clean build).
 """
 from pathlib import Path
@@ -126,6 +128,40 @@ def bsdf_of(m):
     return next(n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
 
 
+def link_colour(nt, bsdf, col, cls):
+    """Wire a skin or swatch colour into the material. An overlay hull (H.OVERLAY) keeps
+    the base colour its own finish computes and multiplies it by the texture's departure
+    from its class mean (strength s: 1 + s * (colour / mean - 1)); every other hull's
+    texture replaces the base colour."""
+    s = (H.OVERLAY or {}).get(cls)
+    if not s:
+        nt.links.new(col, bsdf.inputs['Base Color'])
+        return
+    base_in = bsdf.inputs['Base Color']
+    orig = base_in.links[0].from_socket if base_in.links else None
+    mean = list(V.lab_to_linear(PAL[cls]['mean']))
+    div = nt.nodes.new('ShaderNodeVectorMath')
+    div.operation = 'DIVIDE'
+    div.inputs[1].default_value = mean
+    nt.links.new(col, div.inputs[0])
+    f = nt.nodes.new('ShaderNodeMix')
+    f.name = 'SKIN overlay strength'
+    f.data_type = 'RGBA'
+    f.inputs['Factor'].default_value = s
+    f.inputs['A'].default_value = (1, 1, 1, 1)
+    nt.links.new(div.outputs['Vector'], f.inputs['B'])
+    mul = nt.nodes.new('ShaderNodeMix')
+    mul.name = 'SKIN overlay'
+    mul.data_type, mul.blend_type = 'RGBA', 'MULTIPLY'
+    mul.inputs['Factor'].default_value = 1
+    if orig is not None:
+        nt.links.new(orig, mul.inputs['A'])
+    else:
+        mul.inputs['A'].default_value = base_in.default_value
+    nt.links.new(f.outputs['Result'], mul.inputs['B'])
+    nt.links.new(mul.outputs['Result'], base_in)
+
+
 def skin_material(part, base):
     name = f'Skin {part} | {base.name}'
     if name in bpy.data.materials:
@@ -177,7 +213,7 @@ def skin_material(part, base):
     nt.links.new(rng.outputs['Result'], mix.inputs['Factor'])
     nt.links.new(sw.outputs['Color'], mix.inputs['A'])
     nt.links.new(mul.outputs['Result'], mix.inputs['B'])
-    nt.links.new(mix.outputs['Result'], bsdf.inputs['Base Color'])
+    link_colour(nt, bsdf, mix.outputs['Result'], cls)
     m['skin_part'] = part
     m['skin_source'] = P.source_part(part)
     m['skin_class'] = cls
@@ -195,7 +231,7 @@ def swatch_material(base):
     nt = m.node_tree
     sw = nt.nodes.new('ShaderNodeGroup')
     sw.node_tree = swatch_group(cls)
-    nt.links.new(sw.outputs['Color'], bsdf_of(m).inputs['Base Color'])
+    link_colour(nt, bsdf_of(m), sw.outputs['Color'], cls)
     m['skin_swatch'] = cls
     return m
 

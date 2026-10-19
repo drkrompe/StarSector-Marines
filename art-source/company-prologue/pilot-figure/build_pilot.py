@@ -21,15 +21,23 @@ seat, he faces +X: the convention of `sw_bridge_interior.figures`):
 - collection 'Pilot figure', holding everything below; append it, never link pieces of it;
 - 'Pilot figure root', an empty on the dais at the helm seat's pedestal axis: place and turn
   this, nothing else (the seat's pan is SEAT_TOP above it);
-- 'Pilot rig', MPFB's default skeleton with its weights, posed seated;
+- 'Pilot rig', MPFB's default skeleton with its weights, seated, with the action 'Pilot leans
+  in and back' on C2's frames (frame = C2 seconds x 24);
 - the body, eyes, eyebrows, eyelashes, hair and clothes MPFB fits to it, from MakeHuman's own
   CC0 system-asset pack (listed in README.md);
-- what that pack has no piece for, modelled here on the posed body and parented to bones: the
-  coverall's collar, the harness, the patches, the belt and the headset.
+- what that pack has no piece for, modelled here on the posed body: the coverall's collar, the
+  harness, the patches, the belt and the headset;
+- 'Pilot yoke', the helm yoke: its housing, the column (keyed: push) and the wheel (keyed:
+  turn).
 
-The pose is solved, not keyed, as Castle's is (`castle-figure/build_castle.py`): hips placed on
-the seat, each leg a two-bone solve from the hip to an ankle on the dais, each arm a two-bone
-solve from the shoulder to a wrist on the console's sloped face, the hands turned flat onto it.
+He flies with a yoke (a wheel on a sliding column out of a housing on the console face) that
+belongs to this package, because it moves with him. His poses are solved rather than keyed by
+hand, as Castle's is (`castle-figure/build_castle.py`): relaxed, sat back with his forearms on
+the armrests, and at the helm, scooted forward and leaned in from the hips with his elbows bent
+and his hands round the yoke's grips, with the yoke at rest, pushed and turned. Hips are placed
+on the seat, each leg a two-bone solve to an ankle on the dais, each arm to a wrist target. The
+action eases between them over C2's timeline: in to the yoke before the de-orbit, pushed for its
+pitch-down with a small turn, and back once it is done.
 Skin, eyes, brows and lashes use MakeHuman's textures through castle_face's material helpers;
 clothes and the modelled parts are flat colours (diffuse_color for Workbench). Close shots are
 repainted with ImageGen (`geometry-first-imagegen.md`), so the figure carries silhouette,
@@ -82,6 +90,9 @@ COLOURS = {          # Workbench and Principled base colours
     "headset": (0.045, 0.045, 0.05),
     "headset pad": (0.02, 0.02, 0.022),
     "tape": (0.32, 0.27, 0.12),            # the band is taped where it cracked
+    "yoke": (0.11, 0.11, 0.105),           # the helm yoke: worn dark metal
+    "yoke boss": (0.17, 0.17, 0.16),       # its housing, bolted to the console face
+    "grip": (0.03, 0.03, 0.03),            # rubber
 }
 
 # ---------------------------------------------------------------- the helm (Second Wind units)
@@ -103,12 +114,49 @@ HIP = (-0.15, 0.43)                        # (fwd, z) of the hip joints: buttock
 ANKLE = (0.44, 0.085)                      # (fwd, z) of each ankle: feet flat, under the console lip
 ANKLE_SIDE = 0.15                          # knees a little apart
 KNEE_POLE = (1.5, 0.5)                     # (fwd, z): knees forward and up
-LEAN_DEG = 5.0                             # off the seat back, toward the console
-HEAD_LIFT_DEG = -16.0                      # chin up: eyes out of the slit, not on the console
-HEAD_TURN_DEG = 4.0                        # a touch to port, along the Legion's bearing
-WRIST = (0.56, 0.2, 0.575)                 # (fwd, side, z) of the left wrist; the right mirrors
-WRIST_RIGHT = (0.6, -0.22, 0.59)           # the right hand a little further up the face
-ELBOW_POLE = (0.0, 0.7, -0.4)              # (fwd, side, z) from the shoulder: elbows down and out
+# The helm yoke (owner, 2026-10-19: a futuristic steering wheel, as on the Rodger Young or the
+# Aliens dropship): a wheel on a column out of a housing bolted to the console face. It turns to
+# roll and slides to pitch, push nose-down and pull nose-up. It belongs to this package, not to
+# the bridge, because it moves with him; the bridge's console is where its housing sits.
+# Package frame, metres: the hub at rest, the grips' centres off it (side, up), the column's
+# length into the housing, the housing's centre and size, the push and turn he uses.
+YOKE_HUB = (0.48, 0.0, 0.6)
+YOKE_GRIP = (0.17, 0.035)
+YOKE_COLUMN = 0.3
+YOKE_BOSS = ((0.73, 0.0, 0.585), (0.14, 0.15, 0.17))
+YOKE_PUSH, YOKE_TURN = 0.06, 10.0          # m forward, degrees (positive: rolls to port)
+
+# His poses (owner, 2026-10-19). At rest he sits back against the seat, forearms on the
+# armrests, hands hanging loose over their ends. To fly he scoots forward on the pan and leans
+# in from the hips, so his elbows stay bent with his hands on the yoke's grips; then pushes it
+# for the de-orbit and turns it a little. Each: slide (m his hips move forward on the pan),
+# spine lean (degrees forward from upright; the seat back reclines 8), head lift (negative
+# raises the chin), head turn (positive to port), the elbows' pole from the shoulder (fwd, side
+# out, z), finger curl left and right; at rest the wrists (fwd, side, z) left and right, at
+# the helm the yoke's state (push m, turn degrees) whose grips the hands hold.
+RELAXED = dict(slide=0.0, lean=-6.0, head_lift=2.0, head_turn=6.0,
+               wrists=((0.1, 0.27, 0.565), (0.08, -0.27, 0.565)),
+               elbow_pole=(-0.6, 0.35, -0.8), curl=(30, 34))
+WORKING = dict(slide=0.09, lean=22.0, head_lift=-24.0, head_turn=3.0, yoke=(0.0, 0.0),
+               elbow_pole=(-0.3, 0.8, -0.7), curl=(68, 68))
+PUSHED = dict(WORKING, lean=26.0, head_lift=-28.0, yoke=(YOKE_PUSH, 0.0))
+TURNED = dict(PUSHED, head_turn=6.0, yoke=(YOKE_PUSH, YOKE_TURN))
+# When, in C2 seconds (24 fps, frame = t x 24): relaxed through the hail, in to the controls
+# before Second Wind's de-orbit starts at 9.6 s, held through its pitch-down (to 13.1 s), and
+# back again. Eased in and out; the entry after C2 stays relaxed.
+LEAN_IN = (8.3, 9.3)
+PUSH_IN, PUSH_OUT = (9.5, 10.4), (12.5, 13.2)      # the pitch-down runs 9.6-13.1 s
+TURN_IN, TURN_OUT = (10.7, 11.3), (11.9, 12.5)     # a small correction while pushed
+LEAN_BACK = (13.5, 14.7)
+FPS, LAST_FRAME = 24, 18 * 24              # C2 (15 s) and the entry transition (3 s)
+
+
+def _same(a, b, eps=1e-6):
+    return all(abs(x - y) < eps for x, y in zip(a, b))
+
+
+def _close(a, b, eps=1e-5):
+    return all(abs(a[i][j] - b[i][j]) < eps for i in range(4) for j in range(4))
 
 
 def launch(argv):
@@ -294,30 +342,63 @@ def blender_main(argv):
     def local(p):
         return Vector(p) - shift
 
-    # Legs: thighs forward onto the seat, shins down to the dais.
-    for side, sgn in (("L", 1), ("R", -1)):
-        two_bone(["upperleg01." + side, "upperleg02." + side], ["lowerleg01." + side, "lowerleg02." + side],
-                 local(mp(ANKLE[0], sgn * ANKLE_SIDE, ANKLE[1])), local(mp(KNEE_POLE[0], sgn * 0.2, KNEE_POLE[1])))
-        aim("foot." + side, mp(1.0, sgn * 0.08, -0.25))         # sole flat, toes a little out
-    # The spine comes forward off the seat back; the head stays up, eyes on the slit.
-    for name, share in (("spine05", 0.25), ("spine04", 0.3), ("spine03", 0.25), ("spine02", 0.2)):
-        if name in pbs:
-            rotate_world(name, (1, 0, 0), LEAN_DEG * share)
-    rotate_world("neck01", (1, 0, 0), HEAD_LIFT_DEG * 0.5)
-    rotate_world("head", (1, 0, 0), HEAD_LIFT_DEG * 0.5)
-    rotate_world("head", (0, 0, 1), HEAD_TURN_DEG)
-    # Arms: forward and down to the console's sloped face, hands flat on it.
-    t = math.radians(FACE_TILT)
-    fingers = mp(math.cos(t), 0, math.sin(t))
-    palm = mp(-math.sin(t), 0, -math.cos(t))
-    for side, (f, s, z), fdeg in (("L", WRIST, 14), ("R", WRIST_RIGHT, 26)):
-        sh = pbs["upperarm01." + side].head
+    def yoke_frame(push, turn):
+        """The wheel's placement (MPFB frame) for a push (m) and turn (degrees)."""
+        hub = mp(YOKE_HUB[0] + push, YOKE_HUB[1], YOKE_HUB[2])
+        return Matrix.Translation(hub) @ Matrix.Rotation(math.radians(turn), 4, mp(1, 0, 0))
+
+    def grip(side, push, turn):
         sgn = 1 if side == "L" else -1
-        two_bone(["upperarm01." + side, "upperarm02." + side], ["lowerarm01." + side, "lowerarm02." + side],
-                 local(mp(f, sgn * abs(s), z)), sh + mp(ELBOW_POLE[0], sgn * ELBOW_POLE[1], ELBOW_POLE[2]))
-        rest_palm = Vector((-1.0, 0, 0)) if side == "L" else Vector((1.0, 0, 0))
-        orient("wrist." + side, fingers + mp(0, -sgn * 0.15, 0), palm, rest_palm)
-        curl(side, fdeg, 12, palm)
+        return yoke_frame(push, turn) @ mp(0, sgn * YOKE_GRIP[0], YOKE_GRIP[1])
+
+    def solve(spec):
+        """Pose him from the rest pose: legs on the dais, the spine and head, arms to the wrists.
+        Returns every pose bone's matrix_basis."""
+        for pb in pbs:
+            pb.matrix_basis = Matrix.Identity(4)
+        view.update()
+        # Scoot: the whole body slides forward on the pan; the legs re-solve to the same feet.
+        root_pb = next(pb for pb in pbs if pb.parent is None)
+        root_pb.matrix = Matrix.Translation(mp(spec["slide"], 0, 0)) @ root_pb.matrix
+        view.update()
+        for side, sgn in (("L", 1), ("R", -1)):
+            two_bone(["upperleg01." + side, "upperleg02." + side], ["lowerleg01." + side, "lowerleg02." + side],
+                     local(mp(ANKLE[0], sgn * ANKLE_SIDE, ANKLE[1])), local(mp(KNEE_POLE[0], sgn * 0.2, KNEE_POLE[1])))
+            aim("foot." + side, mp(1.0, sgn * 0.08, -0.25))         # sole flat, toes a little out
+        for name, share in (("spine05", 0.15), ("spine04", 0.25), ("spine03", 0.3), ("spine02", 0.3)):
+            if name in pbs:
+                rotate_world(name, (1, 0, 0), spec["lean"] * share)
+        rotate_world("neck01", (1, 0, 0), spec["head_lift"] * 0.5)
+        rotate_world("head", (1, 0, 0), spec["head_lift"] * 0.5)
+        rotate_world("head", (0, 0, 1), spec["head_turn"])
+        for k, side in enumerate(("L", "R")):
+            sgn = 1 if side == "L" else -1
+            pole = spec["elbow_pole"]
+            sh = pbs["upperarm01." + side].head
+            if "yoke" in spec:
+                # Round the grip from outside: fingers forward and a little up, palm in toward
+                # the hub, the wrist back from the bar by the palm and out by the hand's depth.
+                push, turn = spec["yoke"]
+                R = yoke_frame(push, turn).to_3x3()
+                fingers = R @ mp(1.0, 0, 0.35)
+                palm = R @ mp(0, -sgn, 0)
+                wrist = grip(side, push, turn) - fingers.normalized() * 0.075 - palm * 0.03
+            else:           # over the armrest's end, palm down, fingers drooping
+                f, s_, z = spec["wrists"][k]
+                wrist = mp(f, s_, z)
+                fingers = mp(1.0, -sgn * 0.1, -0.6)
+                palm = mp(0.3, 0, -1.0)
+            two_bone(["upperarm01." + side, "upperarm02." + side], ["lowerarm01." + side, "lowerarm02." + side],
+                     local(wrist), sh + mp(pole[0], sgn * pole[1], pole[2]))
+            rest_palm = Vector((-1.0, 0, 0)) if side == "L" else Vector((1.0, 0, 0))
+            orient("wrist." + side, fingers, palm, rest_palm)
+            curl(side, spec["curl"][k], 35 if "yoke" in spec else 12, palm)
+        return {pb.name: pb.matrix_basis.copy() for pb in pbs}
+
+    relaxed = solve(RELAXED)
+    pushed = solve(PUSHED)
+    turned = solve(TURNED)
+    working = solve(WORKING)          # left posed: what the pack lacks is fitted to this pose
     rig.location = shift
     view.update()
 
@@ -557,6 +638,119 @@ def blender_main(argv):
     paint(capsule, "headset pad")
     bone_parent(capsule, "head")
 
+    # ---- the yoke: a housing on the console face, a column sliding out of it, the wheel on the
+    # column's end. Built in the MPFB frame under one empty; turned onto +X with the rig.
+    yoke = bpy.data.objects.new("Pilot yoke", None)
+    scene.collection.objects.link(yoke)
+
+    def tube(bm, a, b, r, segs=16):
+        d = b - a
+        m = Matrix.Translation((a + b) / 2) @ d.to_track_quat("Z", "Y").to_matrix().to_4x4()
+        bmesh.ops.create_cone(bm, cap_ends=True, segments=segs, radius1=r, radius2=r, depth=d.length, matrix=m)
+
+    def solid(name, build, mat, parent, at=Vector()):
+        bm = bmesh.new()
+        build(bm)
+        me = bpy.data.meshes.new("Pilot " + name)
+        bm.to_mesh(me)
+        bm.free()
+        for f in me.polygons:
+            f.use_smooth = True
+        ob = obj(name, me, mat)
+        ob.parent = parent
+        ob.location = at
+        return ob
+
+    hub_rest = mp(*YOKE_HUB)
+    bc, bs = YOKE_BOSS
+
+    def boss(bm):
+        bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mp(*bc)) @ Matrix.Diagonal((bs[1], bs[0], bs[2], 1)))
+        aft = mp(bc[0] - bs[0] / 2, 0, YOKE_HUB[2])
+        tube(bm, aft + mp(0.03, 0, 0), aft - mp(0.025, 0, 0), 0.04, 20)       # the rubber boot's flange
+        for sy, sz in ((1, 1), (1, -1), (-1, 1), (-1, -1)):                       # bolts on its aft face
+            c = mp(bc[0] - bs[0] / 2, sy * bs[1] * 0.38, bc[2] + sz * bs[2] * 0.38)
+            tube(bm, c, c - mp(0.008, 0, 0), 0.008, 6)
+    solid("yoke housing", boss, "yoke boss", yoke)
+
+    def col_(bm):
+        tube(bm, mp(0, 0, 0), mp(YOKE_COLUMN, 0, 0), 0.02, 16)
+        tube(bm, mp(-0.005, 0, 0), mp(0.06, 0, 0), 0.032, 20)                   # the wheel's hub
+    column = solid("yoke column", col_, "yoke", yoke, hub_rest)
+    column_rest = hub_rest.copy()
+    wheel = bpy.data.objects.new("Pilot yoke wheel", None)
+    scene.collection.objects.link(wheel)
+    wheel.parent = column
+    wheel.rotation_mode = "XYZ"
+    gw, gz = YOKE_GRIP
+
+    def frame_(bm):
+        for sgn in (1, -1):         # the bar out to each grip's foot, sweeping back a little
+            tube(bm, mp(-0.01, 0, 0), mp(-0.03, sgn * gw, gz - 0.045), 0.014, 10)
+    solid("yoke wheel frame", frame_, "yoke", wheel)
+
+    def grips(bm):
+        for sgn in (1, -1):         # the handles, flared out a touch at the top
+            tube(bm, mp(-0.03, sgn * gw, gz - 0.06), mp(-0.03, sgn * (gw + 0.012), gz + 0.065), 0.017, 14)
+    solid("yoke grips", grips, "grip", wheel)
+
+    def tape(bm):                   # his left grip, taped where the rubber split
+        tube(bm, mp(-0.03, gw + 0.004, gz + 0.012), mp(-0.03, gw + 0.006, gz + 0.04), 0.0195, 14)
+    solid("yoke grip tape", tape, "tape", wheel)
+
+    # ---- skin the cloth-borne parts to the rig: fitted in the working pose, they must follow the
+    # chest and arms as he leans back, which no single bone does. Each vertex takes the weights
+    # of the nearest coverall vertex and is carried back to the rest pose through that blend.
+    from mathutils.kdtree import KDTree
+    subs = [m for m in suit.modifiers if m.type == "SUBSURF"]
+    for m in subs:
+        m.show_viewport = False
+    view.update()
+    ev = suit.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    me_ev = ev.to_mesh()
+    if len(me_ev.vertices) != len(suit.data.vertices):
+        sys.exit("the coverall's evaluated mesh does not match its vertices; cannot copy weights")
+    kd = KDTree(len(me_ev.vertices))
+    for v in me_ev.vertices:
+        kd.insert(ev.matrix_world @ v.co, v.index)
+    kd.balance()
+    ev.to_mesh_clear()
+    for m in subs:
+        m.show_viewport = True
+    names = {g.index: g.name for g in suit.vertex_groups}
+    deform = {}
+    for pb in pbs:
+        deform[pb.name] = (rig.matrix_world @ pb.matrix @ pb.bone.matrix_local.inverted()
+                           @ rig.matrix_world.inverted())
+    to_rig = rig.matrix_world.inverted()
+    for ob in [o for o in scene.objects if o.type == "MESH" and o.name.startswith(
+            ("Pilot harness", "Pilot belt", "Pilot patch", "Pilot coverall collar"))]:
+        for m in [m for m in ob.modifiers]:
+            if m.type == "SOLIDIFY":            # the collar: bake its thickness in first
+                with bpy.context.temp_override(object=ob, active_object=ob):
+                    bpy.ops.object.modifier_apply(modifier=m.name)
+        world = ob.matrix_world.copy()
+        groups = {}
+        for v in ob.data.vertices:
+            p_ = world @ v.co
+            _, i, _ = kd.find(p_)
+            ws = [(names[g.group], g.weight) for g in suit.data.vertices[i].groups
+                  if names[g.group] in deform and g.weight > 1e-4]
+            total = sum(w for _, w in ws) or 1.0
+            M = sum((deform[b] * (w / total) for b, w in ws), Matrix(((0,) * 4,) * 4)) if ws else Matrix.Identity(4)
+            v.co = to_rig @ (M.inverted() @ p_)
+            for b, w in ws:
+                groups.setdefault(b, []).append((v.index, w / total))
+        ob.parent, ob.parent_type, ob.parent_bone = rig, "OBJECT", ""
+        ob.matrix_parent_inverse = Matrix.Identity(4)
+        ob.matrix_basis = Matrix.Identity(4)
+        for b, entries in groups.items():
+            vg = ob.vertex_groups.new(name=b)
+            for i, w in entries:
+                vg.add([i], w, "REPLACE")
+        ob.modifiers.new("Armature", "ARMATURE").object = rig
+    view.update()
+
     # ---- the appendable package: root on the dais under the seat's axis, he faces +X
     col = bpy.data.collections.new(COLLECTION)
     scene.collection.children.link(col)
@@ -566,6 +760,12 @@ def blender_main(argv):
     pivot = Matrix.Rotation(math.radians(90), 4, "Z")          # MPFB's -Y front onto +X
     rig.matrix_world = pivot @ rig.matrix_world
     rig.parent = root
+    yoke.matrix_world = pivot @ yoke.matrix_world
+    yoke.parent = root
+    for ob in [yoke, *yoke.children_recursive]:
+        for c in list(ob.users_collection):
+            c.objects.unlink(ob)
+        col.objects.link(ob)
     for ob in [rig, *rig.children_recursive]:
         for c in list(ob.users_collection):
             c.objects.unlink(ob)
@@ -574,6 +774,75 @@ def blender_main(argv):
     root["seat_top_m"] = round(SEAT_TOP, 4)
     root["source"] = "art-source/company-prologue/pilot-figure/build_pilot.py"
     root["frame"] = "metres; z up from the dais plating at the helm seat's axis; he faces +X"
+
+    # ---- the move: relaxed, in to the controls, and back, keyed on every frame (a consumer that
+    # resets interpolation to linear, as c2_bridge_render does, keeps the easing)
+    def ease(x):
+        x = min(max(x, 0.0), 1.0)
+        return x * x * x * (x * (x * 6 - 15) + 10)
+
+    def share(sec):
+        if sec <= LEAN_IN[0] or sec >= LEAN_BACK[1]:
+            return 0.0
+        if sec < LEAN_IN[1]:
+            return ease((sec - LEAN_IN[0]) / (LEAN_IN[1] - LEAN_IN[0]))
+        if sec > LEAN_BACK[0]:
+            return 1.0 - ease((sec - LEAN_BACK[0]) / (LEAN_BACK[1] - LEAN_BACK[0]))
+        return 1.0
+
+    def ramp(sec, up, down):
+        if sec <= up[0] or sec >= down[1]:
+            return 0.0
+        if sec < up[1]:
+            return ease((sec - up[0]) / (up[1] - up[0]))
+        if sec > down[0]:
+            return 1.0 - ease((sec - down[0]) / (down[1] - down[0]))
+        return 1.0
+
+    states = (relaxed, working, pushed, turned)
+    moving = [pb for pb in pbs if any(not _close(relaxed[pb.name], st[pb.name]) for st in states[1:])]
+    parts_ = {}
+    for pb in moving:
+        pb.rotation_mode = "QUATERNION"
+        locs, quats = [], []
+        for st in states:
+            loc, q, _ = st[pb.name].decompose()
+            if quats and quats[-1].dot(q) < 0:
+                q.negate()
+            locs.append(loc)
+            quats.append(q)
+        parts_[pb.name] = (locs, quats)
+
+    def weights(sec):
+        """Lean share, push share, turn share at a C2 second."""
+        return share(sec), ramp(sec, PUSH_IN, PUSH_OUT), ramp(sec, TURN_IN, TURN_OUT)
+
+    rig.animation_data_create()
+    rig.animation_data.action = bpy.data.actions.new("Pilot leans in and back")
+    for ob in (column, wheel):
+        ob.animation_data_create()
+        ob.animation_data.action = bpy.data.actions.new(ob.name + " moves")
+    last = None
+    for frame in range(0, LAST_FRAME + 1):
+        wt = weights(frame / FPS)
+        nxt = weights((frame + 1) / FPS)
+        if last is not None and 0 < frame < LAST_FRAME and _same(wt, last) and _same(wt, nxt):
+            continue                # a held stretch: its ends are keyed
+        w, pw, tw = wt
+        for pb in moving:
+            locs, quats = parts_[pb.name]
+            loc = locs[0].lerp(locs[1], w).lerp(locs[2], pw).lerp(locs[3], tw)
+            q = quats[0].slerp(quats[1], w).slerp(quats[2], pw).slerp(quats[3], tw)
+            pb.location, pb.rotation_quaternion = loc, q
+            pb.keyframe_insert("location", frame=frame)
+            pb.keyframe_insert("rotation_quaternion", frame=frame)
+        column.location = column_rest + mp(YOKE_PUSH * pw, 0, 0)
+        column.keyframe_insert("location", frame=frame)
+        wheel.rotation_euler = Matrix.Rotation(math.radians(YOKE_TURN * tw), 3, mp(1, 0, 0)).to_euler()
+        wheel.keyframe_insert("rotation_euler", frame=frame)
+        last = wt
+    bpy.context.scene.frame_set(0)
+    root["lean_in_s"], root["lean_back_s"] = list(LEAN_IN), list(LEAN_BACK)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     castle_face.pack()

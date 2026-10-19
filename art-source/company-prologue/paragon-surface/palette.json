@@ -1,0 +1,295 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.997)",
+ "space": "CIELAB D65",
+ "classes": {
+  "skin": {
+   "pixels": 253704,
+   "mean": [
+    60.35,
+    -3.36,
+    -10.27
+   ],
+   "std": [
+    7.0,
+    0.6,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    39.12,
+    64.34,
+    76.48
+   ],
+   "mean_srgb": [
+    129.0,
+    148.0,
+    163.3
+   ],
+   "std_measured": [
+    14.85,
+    1.05,
+    2.2
+   ],
+   "note": "spread owned: shading and hex seams on the reference inflate it"
+  },
+  "pale": {
+   "pixels": 7769,
+   "mean": [
+    61.97,
+    -1.1,
+    -5.67
+   ],
+   "std": [
+    6.0,
+    0.5,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    53.48,
+    61.26,
+    75.45
+   ],
+   "mean_srgb": [
+    142.5,
+    150.7,
+    159.6
+   ],
+   "std_measured": [
+    8.75,
+    1.44,
+    2.6
+   ],
+   "note": "spread owned: shading and hex seams on the reference inflate it"
+  },
+  "white": {
+   "pixels": 23359,
+   "mean": [
+    84.72,
+    0.18,
+    -1.04
+   ],
+   "std": [
+    5.0,
+    0.4,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    78.51,
+    86.06,
+    89.03
+   ],
+   "mean_srgb": [
+    210.9,
+    211.4,
+    213.4
+   ],
+   "std_measured": [
+    5.24,
+    0.58,
+    1.05
+   ],
+   "note": "spread owned: shading and hex seams on the reference inflate it"
+  },
+  "slate": {
+   "pixels": 3740,
+   "mean": [
+    29.9,
+    -0.77,
+    -6.17
+   ],
+   "std": [
+    6.0,
+    0.5,
+    1.0
+   ],
+   "L_p10_p50_p90": [
+    16.04,
+    31.68,
+    42.6
+   ],
+   "mean_srgb": [
+    64.0,
+    71.2,
+    79.9
+   ],
+   "std_measured": [
+    10.17,
+    0.7,
+    1.83
+   ],
+   "note": "spread owned: shading and hex seams on the reference inflate it"
+  },
+  "steel": {
+   "pixels": 969,
+   "mean": [
+    75.0,
+    -0.66,
+    -2.92
+   ],
+   "std": [
+    8.0,
+    0.5,
+    1.0
+   ],
+   "L_p10_p50_p90": [
+    59.53,
+    79.55,
+    84.92
+   ],
+   "mean_srgb": [
+    180.7,
+    185.2,
+    189.9
+   ],
+   "std_measured": [
+    9.98,
+    1.03,
+    3.96
+   ],
+   "note": "spread owned: shading and hex seams on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 8040,
+   "mean": [
+    20.25,
+    -0.41,
+    -6.15
+   ],
+   "std": [
+    5.0,
+    0.4,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    8.65,
+    20.48,
+    30.67
+   ],
+   "mean_srgb": [
+    43.2,
+    49.4,
+    57.7
+   ],
+   "std_measured": [
+    9.09,
+    0.63,
+    1.88
+   ],
+   "note": "spread owned: shading and hex seams on the reference inflate it"
+  },
+  "bore": {
+   "pixels": 3067,
+   "mean": [
+    33.11,
+    -0.56,
+    -5.54
+   ],
+   "std": [
+    8.78,
+    0.54,
+    1.16
+   ],
+   "L_p10_p50_p90": [
+    24.62,
+    30.55,
+    47.02
+   ],
+   "mean_srgb": [
+    72.3,
+    78.5,
+    86.5
+   ]
+  },
+  "bore_light": {
+   "pixels": 2642,
+   "mean": [
+    46.27,
+    -0.73,
+    -5.25
+   ],
+   "std": [
+    8.2,
+    0.62,
+    1.19
+   ],
+   "L_p10_p50_p90": [
+    36.39,
+    45.42,
+    58.23
+   ],
+   "mean_srgb": [
+    103.8,
+    110.3,
+    118.3
+   ]
+  },
+  "hatch": {
+   "derived": "owned: hatch ceramic, 4 L under the pale ceramic",
+   "mean": [
+    57.97,
+    -1.1,
+    -5.67
+   ],
+   "std": [
+    6.0,
+    0.5,
+    1.2
+   ]
+  },
+  "substrate": {
+   "derived": "owned: service-field substrate, the slate band lifted 2 L",
+   "mean": [
+    31.9,
+    -0.77,
+    -6.17
+   ],
+   "std": [
+    6.0,
+    0.5,
+    1.0
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen for the Tri-Tachyon ceramic: what scuffed glaze reveals and what a flagship on station deposits.",
+  "primer": {
+   "lab": [
+    74.0,
+    -1.0,
+    -2.0
+   ],
+   "what": "the paler ceramic body under a scuffed glaze"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    -0.5,
+    -1.5
+   ],
+   "what": "polished bare emitter steel at worn edges"
+  },
+  "dust": {
+   "lab": [
+    34.0,
+    0.0,
+    -2.0
+   ],
+   "what": "fine grime in seams, cool grey"
+  },
+  "soot": {
+   "lab": [
+    12.0,
+    0.0,
+    -1.0
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    80.0,
+    -1.0,
+    -4.0
+   ],
+   "what": "faded ceramic goes paler and bluer, never yellow"
+  }
+ }
+}

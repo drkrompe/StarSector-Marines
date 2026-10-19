@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Massive warship engines, several deep layered bass engine hums, huge reactor drone, throbbing, sub bass, steady",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "0becefc8d73554c820e6f246ba9c16637b0ebd51ab9e01e2e8008e7a99e82a86",
+  "durationSeconds": 12.0,
+  "peakDb": -0.3,
+  "integratedLufs": -9.6
+}

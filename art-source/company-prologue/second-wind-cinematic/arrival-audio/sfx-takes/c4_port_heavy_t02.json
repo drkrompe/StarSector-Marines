@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy industrial cargo port, container cranes clanking, metal containers banging, heavy machinery, ship horns, forklifts beeping, busy",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "c766b8b2e736f6e9cb5e2261242b7a156582b57fb2ad01c522d2e7f7159fbc97",
+  "durationSeconds": 12.0,
+  "peakDb": -6.4,
+  "integratedLufs": -22.2
+}

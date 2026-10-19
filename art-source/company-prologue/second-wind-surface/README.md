@@ -46,6 +46,15 @@ hull is cut into world-space box tiles; hulls that do not set them are unchanged
   instead. The value is the share of its own family a face needs; the
   manifest counts the faces sent back under `off_family_to_swatch`.
 
+**Overlay hulls** (`surface_hull.OVERLAY`, opt-in; the Paragon's
+`../paragon-surface/`): a hull whose base materials carry their own
+procedural finish (the Paragon's hex ceramic, with its relief) keeps it. A
+skin or swatch then multiplies the base colour by its departure from its class
+mean, at a per-class strength (`apply_skin.link_colour`), and the wear layer
+bumps the existing relief instead of replacing it (`wear.insert`, through the
+wear group's `Height` output). Hulls that do not set it take the texture as the
+base colour, exactly as before.
+
 ## Where it stands
 
 Share of the ship's on-screen pixels at 1920×1080 (`review/review.json`; the pilot had 13–37% part skin on port views and flat grey elsewhere):

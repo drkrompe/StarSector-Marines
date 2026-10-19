@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -327,13 +327,47 @@ round. The pool stays one column, so whole-body readers still see one hull.
   (unattributed or scripted damage, a shooter already gone) meets the hull's
   nominal plate on no arc, and no arc draws on the random stream.
 - **What presents the front.** Production sets a dropped hull down facing the way
-  its carrier flew in. A duelling hull drives to its band nose first, and backs
-  off a target that is too close with its nose kept on it. Three cases do not
-  keep the front on the threat: a target already behind a too-close hull is driven
-  away from, rear on; a disarmed hull that has a drivable withdrawal route
-  turns and drives it, showing its rear (it backs off nose-on only when no route
-  exists), and a hull already in band never turns toward a machine that comes at
-  it from the flank, because a bicycle hull cannot pivot in place.
+  its carrier flew in. A duelling hull drives to its band nose first. A bicycle
+  hull cannot pivot in place, so every other turn toward the threat is a
+  manoeuvre on the same manual drive: it **backs with opposite lock** while the
+  target is within a little past the beam (120° off the nose), which swings the
+  nose on while the hull gives ground, and drives a **forward turn** toward a
+  target further behind than that.
+  - Holding in band, a hull whose target sits more than 35° off its nose turns
+    back onto it, and stops once it is within 10°. A turn that starts forward
+    stays forward all the way round. It rehearses the turn on a copy of its own
+    body first and makes it only if it ends square on over drivable ground, still
+    in sight of the target. A backing turn also stops once it has given ground
+    to its band's far edge less slack, where the gun stops reaching. A hull a
+    parapet screens from its target (an undrivable cell within five cells on the
+    line to it) makes only the backing turn: the forward turn drives it out from
+    behind the berm before the nose comes round, and the berm is worth more than
+    the plate. `-Dbattle.vehicle.faceInBand=false` is the control.
+  - Backing off a too-close target uses the same 120° arc. Only a target further
+    behind than that is driven away from, rear on: a forward turn toward it was
+    tried and parked hulls out of each other's sight in the street.
+    `-Dbattle.vehicle.backingTurnDegrees=90` is the control (the beam).
+  - A **disarmed hull still shows its rear** while it drives its withdrawal
+    route, and backs off nose-on only where no route exists. Backing out of
+    reach nose-on first was measured and rejected: at a tank's reverse speed the
+    hull stays in reach about three times as long, and the front plate does not
+    buy that back. `-Dbattle.vehicle.withdrawNoseOn=true` is that trial
+    (`heavy-equipment-progression.md`, facing).
+  - **A hold that does no harm is not kept.** Being in band is a distance, and
+    sight is read cell centre to cell centre, so a hull can hold in band, in
+    sight, and put every round into the building corner its target stands in the
+    lee of. A hull that has held in band for three volleys of its gun (never less
+    than ten seconds) without its target losing any integrity has a **stalled
+    hold**. It moves to another firing position in band, at least three cells
+    from where it stands and with room around it to drive onto, whose lane to the
+    target is clear: the line a round flies and a line either side of it, each
+    judged the way the turret judges its own shot. The band's middle is tried
+    before its present distance, so a hull at the far slack closes to where its
+    gun hits. It drives there through the band without stopping, then holds and
+    watches again; with no such position it holds another spell. A turn onto the
+    target can still follow. An indirect-fire hull is exempt: its lane is an arc.
+    `-Dbattle.vehicle.repositionStalled=false` is the control
+    (`heavy-equipment-progression.md`, keeping the front).
 - `-Dbattle.vehicle.armorArcs=false` is the control: every arc is the hull's one
   plate, bit for bit the law before arcs.
 
@@ -661,8 +695,10 @@ retains the same existing cross-domain behavior as an autonomous hull.
   vehicle it can see within one and a half times its gun's reach is fought from
   the duel band the mechs use (`mechs-nouns.md`, Duel range), read from its
   turret against that machine's weapons. It drives to the band and stops there
-  for the turret; a single gun has no shorter band, so it never closes into
-  contact. Too close, it backs off with its nose kept on the target through the
+  for the turret, for as long as the turret wears the target down: a hold that
+  has done no harm for three volleys is stalled, and the hull moves to another
+  firing position in band with a clear lane (what presents the front). A single
+  gun has no shorter band, so it never closes into contact. Too close, it backs off with its nose kept on the target through the
   manual-drive physics, because a hull cannot reverse along a route and a
   planned retreat would begin with a turnaround toward the enemy. A hull
   reverses at half its top speed, and a tank at 0.3 of it: slower than a
