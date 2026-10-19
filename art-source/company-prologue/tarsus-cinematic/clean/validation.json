@@ -3,8 +3,8 @@
  "state": "clean",
  "collection": "TARSUS",
  "root": "TARSUS | root",
- "objects": 369,
- "meshes": 336,
+ "objects": 367,
+ "meshes": 334,
  "effects_objects": 85,
  "images": 21,
  "passed": true,
@@ -34,8 +34,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    336,
-    336
+    334,
+    334
    ]
   },
   "polygon count": {
