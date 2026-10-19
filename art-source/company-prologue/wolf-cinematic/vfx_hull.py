@@ -22,10 +22,15 @@ Lamps: the two amber neck lamps the sprite draws (steady, masthead role), the
 red and green pod-tip lights, the white stern light.
 """
 import json
+import os
 from pathlib import Path
 
-NAME = 'Wolf (P)'
-GEOMETRY_JSON = Path(__file__).resolve().parent.parent / 'wolf-geometry' / 'geometry.json'
+# WOLF_VARIANT=merchant (export_effects.py / review_ship.py --variant merchant) dresses the
+# convoy's own Wolf, the base hull with every slot armed (geometry-merchant.json).
+MERCHANT = os.environ.get('WOLF_VARIANT') == 'merchant'
+NAME = 'Wolf' if MERCHANT else 'Wolf (P)'
+GEOMETRY_JSON = Path(__file__).resolve().parent.parent / 'wolf-geometry' / (
+    'geometry-merchant.json' if MERCHANT else 'geometry.json')
 _geom = json.loads(GEOMETRY_JSON.read_text(encoding='utf-8'))
 _engines = sorted(_geom['engines'], key=lambda e: e['index'])
 
@@ -42,7 +47,7 @@ STATES = {
 }
 
 # Flash scale against the Second Wind's small mount (0.65 m/u): the Wolf's units
-# are 0.95 m, so a like-for-like small gun is ~0.7 of it in units.
+# are 0.75 m, so a like-for-like small gun is ~0.87 of it in units.
 SIZE_SCALE = {'SMALL': .7, 'MEDIUM': .95}
 KIND = {'ENERGY': 'energy', 'MISSILE': 'launcher'}
 _slots = {s['id']: s for s in _geom['weapon_slots']}
@@ -50,6 +55,8 @@ MOUNTS = [(m['location'][0], m['location'][1], m['angle'], SIZE_SCALE[_slots[m['
            KIND[_slots[m['slot']]['type']]) for m in sorted(_geom['vfx_mounts'], key=lambda m: m['index'])]
 DECLARED_MUZZLES = True
 ENERGY_COLOURS = {1: (.127, .578, 1.0), 2: (1.0, .127, .127)}
+if MERCHANT:   # ion cannon; PD lasers (255,100,100); heavy blaster (100,100,255)
+    ENERGY_COLOURS = {1: (.127, .578, 1.0), 2: (1.0, .127, .127), 3: (1.0, .127, .127), 4: (.127, .127, 1.0)}
 
 # HIGH_TECH blue (vanilla 100,165,255): a blue-white core, a blue plume.
 COLOURS = {

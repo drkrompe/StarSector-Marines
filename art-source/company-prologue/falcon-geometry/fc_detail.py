@@ -8,7 +8,11 @@ falcon_base.png (the shapes under the paint), at 8x:
 - Prong plating (`Hull <side> prong deck plating`, `... glacis plating`,
   `... belt plating`): armour plates laid on the loft's own facets with dark
   seam gaps between them (the gap shows the hull beneath; nothing is painted
-  on). Plates are cut from the facets exactly: the loft is linear between its
+  on). The pirate livery is carried by the plates: each deck and glacis
+  plate takes the paint the sprite shows under it (khaki, pirate red or
+  sand, the majority of falcon_p.png's pixels under the plate; LIVERY), so
+  the red slashes become repainted plates and the texture pass keeps each
+  plate its own colour. Plates are cut from the facets exactly: the loft is linear between its
   stations, so a plate's corners are interpolated straight from the section
   points. The turrets stand on bare aprons.
 - Pirate patch plates (`Hull <side> prong patch plates`): heavier slabs bolted
@@ -51,6 +55,50 @@ from fc_kit import boolean
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
 import turret_kit as tk
 
+SPRITE = 'graphics/ships/falcon/falcon_p.png'
+
+
+class Livery:
+    """falcon_p.png's paint, classified per pixel: 0 khaki, 1 red, 2 sand.
+    Thresholds from the prong pixels' hue, saturation and value."""
+
+    def __init__(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+        from starsector_path import GAME_CORE
+        im = bpy.data.images.load(str(GAME_CORE/SPRITE), check_existing=True)
+        self.w, self.h = im.size
+        px = list(im.pixels)
+        self.cls = {}
+        for r in range(self.h):        # Blender rows run bottom-up
+            for c in range(self.w):
+                i = ((self.h-1-r)*self.w+c)*4
+                rr, gg, bb, aa = px[i:i+4]
+                if aa < .5:
+                    continue
+                import colorsys
+                hh, ss, vv = colorsys.rgb_to_hsv(rr, gg, bb)
+                hh *= 360
+                self.cls[(c, r)] = 1 if (ss > .45 and (hh < 18 or hh > 340)) else                     2 if (ss > .3 and 18 <= hh < 45 and vv > .6) else 0
+        bpy.data.images.remove(im)
+
+    def at(self, x, y):
+        return self.cls.get((int(math.floor(81-y)), int(math.floor(134-x))))
+
+    def plate(self, corners):
+        """Majority class under a plate (a 7 x 7 sample across its corners)."""
+        votes = [0, 0, 0]
+        a, b, c, d = corners
+        for i in range(7):
+            for j in range(7):
+                u, v = (i+.5)/7, (j+.5)/7
+                p = a.lerp(b, u).lerp(d.lerp(c, u), v)
+                k = self.at(p.x, p.y)
+                if k is not None:
+                    votes[k] += 1
+        return max(range(3), key=lambda k: votes[k]) if sum(votes) else 0
+
+
+LIVERY = None
 TURRETS = [(14, 38, 9.5), (55, 29, 5.5), (14, -38, 9.5), (55, -29, 5.5)]
 GAP = .45   # plate seam, units
 
@@ -85,26 +133,27 @@ def centroid(x, side):
     return Vector((x, sum(p[0] for p in pts)/len(pts), sum(p[1] for p in pts)/len(pts)))
 
 
-def slab(bm, corners, normal, t, sink=.25):
+def slab(bm, corners, normal, t, sink=.25, mat=0):
     """A plate on four coplanar-ish corners: top `t` proud along normal, sunk below."""
     lo = [bm.verts.new(c-normal*sink) for c in corners]
     hi = [bm.verts.new(c+normal*t) for c in corners]
     n = len(corners)
-    for i in range(n):
-        bm.faces.new((lo[i], lo[(i+1) % n], hi[(i+1) % n], hi[i]))
-    bm.faces.new(lo[::-1])
-    bm.faces.new(hi)
+    faces = [bm.faces.new((lo[i], lo[(i+1) % n], hi[(i+1) % n], hi[i])) for i in range(n)]
+    faces += [bm.faces.new(lo[::-1]), bm.faces.new(hi)]
+    for f in faces:
+        f.material_index = mat
 
 
-def facet_plate(bm, side, k, x0, x1, s0, s1, t=.35):
+def facet_plate(bm, side, k, x0, x1, s0, s1, t=.35, livery=False):
     c = [facet_point(x0, side, k, s0), facet_point(x1, side, k, s0),
          facet_point(x1, side, k, s1), facet_point(x0, side, k, s1)]
     n = (c[1]-c[0]).cross(c[3]-c[0]).normalized()
     mid = sum(c, Vector())/4
+    mat = LIVERY.plate(c) if livery else 0
     if n.dot(mid-centroid((x0+x1)/2, side)) < 0:
         n = -n
         c = c[::-1]
-    slab(bm, c, n, t)
+    slab(bm, c, n, t, mat=mat)
     return mid, n
 
 
@@ -113,6 +162,7 @@ def near_turret(x, y, pad=2.5):
 
 
 def emit(bm, name, mat, kit):
+    """One object; `mat` is a material, or a list indexed by the faces' material_index."""
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me = bpy.data.meshes.new(name)
@@ -120,7 +170,11 @@ def emit(bm, name, mat, kit):
     bm.free()
     ob = bpy.data.objects.new(name, me)
     bpy.context.collection.objects.link(ob)
-    return kit.finish(ob, name, mat)
+    mats = mat if isinstance(mat, list) else [mat]
+    kit.finish(ob, name, mats[0])
+    for m in mats[1:]:
+        ob.data.materials.append(m)
+    return ob
 
 
 def mesh_obj(m, name, mat, kit):
@@ -133,8 +187,8 @@ def mesh_obj(m, name, mat, kit):
 
 # --- prongs ----------------------------------------------------------------
 
-DECK_X = [104, 93, 82, 71, 61, 51, 41, 31, 21, 11, 1, -9, -19, -29]
-GLACIS_X = [104, 90, 76, 62, 48, 35, 22, 9, -4, -17, -30]
+DECK_X = [104-5.5*i for i in range(25)]
+GLACIS_X = [104-6.7*i for i in range(21)]
 BELT_X = [104, 94, 84, 74, 64, 54, 44, 34, 24, 14, 4, -6, -16, -26, -35]
 
 
@@ -144,19 +198,22 @@ def prong_plating(kit, side, label):
         x0, x1 = xb+GAP/2, xa-GAP/2
         w = facet_width((x0+x1)/2, side, 2)
         g = GAP/max(w, 1)
-        for s0, s1 in ((.03, .5-g/2), (.5+g/2, .97)):
+        for s0, s1 in ((.03, 1/3-g/2), (1/3+g/2, 2/3-g/2), (2/3+g/2, .97)):
             mid = facet_point((x0+x1)/2, side, 2, (s0+s1)/2)
             if not near_turret(mid.x, mid.y):
-                facet_plate(deck, side, 2, x0, x1, s0, s1)
+                facet_plate(deck, side, 2, x0, x1, s0, s1, livery=True)
     for xa, xb in zip(GLACIS_X, GLACIS_X[1:]):
         x0, x1 = xb+GAP/2, xa-GAP/2
         mid = facet_point((x0+x1)/2, side, 3, .5)
         if not near_turret(mid.x, mid.y, 1.0):
-            facet_plate(glacis, side, 3, x0, x1, .04, .96)
+            g = GAP/max(facet_width((x0+x1)/2, side, 3), 1)
+            for s0, s1 in ((.04, .5-g/2), (.5+g/2, .96)):
+                facet_plate(glacis, side, 3, x0, x1, s0, s1, livery=True)
     for xa, xb in zip(BELT_X, BELT_X[1:]):
         facet_plate(belt, side, 4, xb+GAP/2, xa-GAP/2, .06, .94, t=.5)
-    emit(deck, f'Hull {label} prong deck plating', kit.armour, kit)
-    emit(glacis, f'Hull {label} prong glacis plating', kit.armour, kit)
+    paint = [kit.armour, kit.red, kit.sand]
+    emit(deck, f'Hull {label} prong deck plating', paint, kit)
+    emit(glacis, f'Hull {label} prong glacis plating', paint, kit)
     emit(belt, f'Hull {label} prong belt plating', kit.plate, kit)
 
     # Ridge cap: a raised strip along the turret line, broken at the turrets.
@@ -358,6 +415,8 @@ def bow_forks(kit):
 
 
 def build(kit):
+    global LIVERY
+    LIVERY = Livery()
     tk._CAP[0] = tk.CHAMFER_M/kit.mpu
     for side, label in ((1, 'port'), (-1, 'starboard')):
         prong_plating(kit, side, label)

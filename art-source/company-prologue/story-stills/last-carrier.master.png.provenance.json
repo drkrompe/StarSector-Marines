@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1567d-5cf3-7e83-b753-c1f6dfe58f5f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1567d-5cf3-7e83-b753-c1f6dfe58f5f\\exec-5561a3dc-00e9-4eb3-ac9a-0b23889638c1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\last-carrier-v4.png",
+    "sha256": "5045ed44ef5f3dcdf0c17b7977a5a975dca236b9eb8614707babb258444885ee",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\last-carrier.brief-v4.txt",
+  "promptSha256": "c7c784d54ee6e0b90c10b874dc5de446fd02e97147ad7a04eaf8d93bd512e234",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: keep everything except the pasted freighter, which keeps its exact silhouette and position\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only the departing freighter in the window.\n\nReference 1 is the page with a plain 3D render of the real freighter pasted over the old, warped one. Keep EVERYTHING else exactly as it is, pixel for pixel: Castle, her face, hand and pay chit, every person in the crowd, the children, the bags, the window frames, the rock field, the lamps, the light, the camera and the composition.\n\nThe freighter: repaint the pasted render so it belongs in the painting, keeping its exact silhouette, size, position, angle and proportions; do not reshape, stretch, enlarge or rotate it. It is a massive slab-sided rust-red cargo hull with pale grey trim bands, open container bays at its forward end, a stepped bridge deckhouse aft and two outboard drive pods, each with three drive bells facing the camera. Light it to match the scene: the far sun from upper left, its own work lamps. Its six drive bells burn warm orange with soft exhaust plumes trailing back toward the camera, lighting the asteroid rock below. Remove any leftover trace of the older ship and its plumes. Same restrained painted realism as the rest of the image. No new text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p3-colossus-composite.png",
+      "sha256": "753d87461d9759662813183cd1dc87c06d5798114b76574ec8fe70f2afd4899b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target: keep everything except the pasted freighter, which keeps its exact silhouette and position"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to repaint only the freighter, preserving its silhouette and placement and the rest of the scene.\n"
+  ],
+  "usage": {
+    "input_tokens": 41009,
+    "cached_input_tokens": 32640,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 394,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.1
+}

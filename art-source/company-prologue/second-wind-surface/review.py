@@ -18,6 +18,7 @@ frame the same ground.
 """
 from pathlib import Path
 import math
+import os
 import sys
 import bpy
 from mathutils import Vector
@@ -79,7 +80,8 @@ def use_gpu():
     print('SURF render device CPU (no GPU found)')
 
 
-use_gpu()
+if not os.environ.get('SURF_CPU'):   # SURF_CPU=1: stay on the CPU when the shared GPU is saturated
+    use_gpu()
 scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'PNG'

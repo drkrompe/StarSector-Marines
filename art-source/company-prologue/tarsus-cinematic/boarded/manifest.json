@@ -1,0 +1,1621 @@
+{
+ "asset": "tarsus.blend",
+ "append_collection": "TARSUS",
+ "root": "TARSUS | root",
+ "anchors_collection": "TARSUS | anchors",
+ "state": "boarded",
+ "state_note": "Boarded (the Asharu battle prize): drive section cratered and scorched, every drive dead, the drive lamps dark, torch rings at both Kite collars; not destroyed.",
+ "metres_per_unit": 0.5,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -80.44,
+   -49.87,
+   -20.7
+  ],
+  [
+   118.2,
+   51.87,
+   22.45
+  ]
+ ],
+ "size_metres_rest": [
+  99.3,
+  50.9,
+  21.6
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "main drive",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -78.4000015258789,
+    19.0,
+    1.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 9.6,
+   "width": 20,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 2,
+   "role": "auxiliary drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -76.4000015258789,
+    26.0,
+    -10.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.9,
+   "width": 6,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 3,
+   "role": "auxiliary drive",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -76.4000015258789,
+    11.0,
+    -10.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.8,
+   "width": 8,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 4,
+   "role": "auxiliary drive",
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -76.4000015258789,
+    -11.0,
+    -10.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.8,
+   "width": 8,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 5,
+   "role": "auxiliary drive",
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -76.4000015258789,
+    -25.0,
+    -10.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.9,
+   "width": 6,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 6,
+   "role": "main drive",
+   "anchor": "Engine 6 exhaust anchor",
+   "mouth": [
+    -78.4000015258789,
+    -18.0,
+    1.5
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 9.6,
+   "width": 20,
+   "style": "LOW_TECH",
+   "running": false
+  }
+ ],
+ "engines_running": [],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    -41.0,
+    37.0,
+    14.4
+   ],
+   "rest_angle_deg": 135,
+   "arc_deg": 250,
+   "trained_parts": 9,
+   "fixed_parts": 3,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "anchor": "Anchor turret 1 port gun muzzle",
+     "at": [
+      -48.191,
+      43.131,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "anchor": "Anchor turret 1 starboard gun muzzle",
+     "at": [
+      -47.131,
+      44.191,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      0.707,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "size": "SMALL",
+   "pivot": "Turret 2 pivot",
+   "pivot_at": [
+    -41.0,
+    -37.0,
+    14.4
+   ],
+   "rest_angle_deg": 225,
+   "arc_deg": 250,
+   "trained_parts": 9,
+   "fixed_parts": 3,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "anchor": "Anchor turret 2 port gun muzzle",
+     "at": [
+      -47.131,
+      -44.191,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "anchor": "Anchor turret 2 starboard gun muzzle",
+     "at": [
+      -48.191,
+      -43.131,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      -0.707,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "size": "SMALL",
+   "pivot": "Turret 3 pivot",
+   "pivot_at": [
+    101.0,
+    21.0,
+    9.4
+   ],
+   "rest_angle_deg": 45,
+   "arc_deg": 250,
+   "trained_parts": 9,
+   "fixed_parts": 3,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "anchor": "Anchor turret 3 port gun muzzle",
+     "at": [
+      107.131,
+      28.191,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "anchor": "Anchor turret 3 starboard gun muzzle",
+     "at": [
+      108.191,
+      27.131,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "slot": "WS 004",
+   "size": "SMALL",
+   "pivot": "Turret 4 pivot",
+   "pivot_at": [
+    101.0,
+    -20.0,
+    9.4
+   ],
+   "rest_angle_deg": -45,
+   "arc_deg": 250,
+   "trained_parts": 9,
+   "fixed_parts": 3,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "anchor": "Anchor turret 4 port gun muzzle",
+     "at": [
+      108.191,
+      -26.131,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "anchor": "Anchor turret 4 starboard gun muzzle",
+     "at": [
+      107.131,
+      -27.191,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "docking": {
+  "clamp_receivers": [
+   {
+    "anchor": "Clamp receiver 1 anchor",
+    "location": [
+     70.0,
+     20.5,
+     6.05
+    ],
+    "location_m": [
+     35.0,
+     10.25,
+     3.02
+    ],
+    "outward": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "anchor": "Clamp receiver 2 anchor",
+    "location": [
+     70.0,
+     -18.5,
+     6.05
+    ],
+    "location_m": [
+     35.0,
+     -9.25,
+     3.02
+    ],
+    "outward": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "anchor": "Clamp receiver 3 anchor",
+    "location": [
+     -30.0,
+     15.0,
+     11.05
+    ],
+    "location_m": [
+     -15.0,
+     7.5,
+     5.53
+    ],
+    "outward": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "anchor": "Clamp receiver 4 anchor",
+    "location": [
+     -30.0,
+     -13.0,
+     11.05
+    ],
+    "location_m": [
+     -15.0,
+     -6.5,
+     5.53
+    ],
+    "outward": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  ],
+  "kite_collars": [
+   {
+    "anchor": "Kite collar starboard anchor",
+    "location": [
+     0.0,
+     -42.3,
+     -1.0
+    ],
+    "location_m": [
+     0.0,
+     -21.15,
+     -0.5
+    ],
+    "outward": [
+     0.0,
+     -1.0,
+     0.0
+    ]
+   },
+   {
+    "anchor": "Kite collar port anchor",
+    "location": [
+     -12.0,
+     44.3,
+     -1.0
+    ],
+    "location_m": [
+     -6.0,
+     22.15,
+     -0.5
+    ],
+    "outward": [
+     0.0,
+     1.0,
+     0.0
+    ]
+   }
+  ]
+ },
+ "scars": [
+  {
+   "id": "D1",
+   "kind": "crater",
+   "status": "open",
+   "note": "port main drive bell holed through its upper outboard quarter",
+   "anchors": [
+    "Scar D1 smoke anchor",
+    "Scar D1 spark anchor"
+   ],
+   "emit": "smoke+spark",
+   "location": [
+    -74.7,
+    24.31,
+    7.21
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 3.6,
+   "depth_units": 3.2,
+   "hit": "Engine 1 gimbal ring",
+   "cut": [
+    "Hull drive block",
+    "Engine 1 drive can",
+    "Engine 1 aft-facing bell",
+    "Engine 1 mouth lip",
+    "Engine 1 dark throat",
+    "Engine 1 gimbal ring",
+    "Engine 1 cooling hoops",
+    "Engine 1 stiffener ribs",
+    "Engine 1 bell liner",
+    "Engine 1 actuator cylinders",
+    "Engine 1 actuator rods",
+    "Engine 1 thrust collar"
+   ]
+  },
+  {
+   "id": "D2",
+   "kind": "crater",
+   "status": "open",
+   "note": "starboard main drive bell lip blown away low outboard",
+   "anchors": [
+    "Scar D2 smoke anchor",
+    "Scar D2 spark anchor"
+   ],
+   "emit": "smoke+spark",
+   "location": [
+    -78.35,
+    -25.76,
+    -4.53
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 4.4,
+   "depth_units": 3.6,
+   "hit": "Engine 6 mouth lip",
+   "cut": [
+    "Engine 5 mouth lip",
+    "Engine 6 drive can",
+    "Engine 6 aft-facing bell",
+    "Engine 6 mouth lip",
+    "Engine 6 cooling hoops",
+    "Engine 6 stiffener ribs",
+    "Engine 6 bell liner"
+   ]
+  },
+  {
+   "id": "D3",
+   "kind": "crater",
+   "status": "open",
+   "note": "stern service housing between the mains, burned through",
+   "anchors": [
+    "Scar D3 smoke anchor",
+    "Scar D3 spark anchor"
+   ],
+   "emit": "smoke+spark",
+   "location": [
+    -74.7,
+    1.0,
+    1.23
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 3.2,
+   "depth_units": 4.0,
+   "hit": "Drive stern service cover upper",
+   "cut": [
+    "Hull drive block",
+    "Drive stern service housing",
+    "Drive stern service cover upper",
+    "Drive stern service cover lower"
+   ]
+  },
+  {
+   "id": "D4",
+   "kind": "crater",
+   "status": "open",
+   "note": "strafing run along the drive deck, aft hit",
+   "anchors": [
+    "Scar D4 smoke anchor"
+   ],
+   "emit": "smoke",
+   "location": [
+    -69.18,
+    3.38,
+    9.35
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 2.0,
+   "depth_units": 2.0,
+   "hit": "Drive spine radiator slats",
+   "cut": [
+    "Drive spine casing",
+    "Drive spine radiator slats",
+    "Drive stern service housing",
+    "Drive stern gantry"
+   ]
+  },
+  {
+   "id": "D5",
+   "kind": "crater",
+   "status": "open",
+   "note": "strafing run along the drive deck, middle hit",
+   "anchors": [
+    "Scar D5 smoke anchor"
+   ],
+   "emit": "smoke",
+   "location": [
+    -63.63,
+    12.23,
+    8.92
+   ],
+   "outward": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "radius_units": 2.4,
+   "depth_units": 2.2,
+   "hit": "Drive manifold port",
+   "cut": [
+    "Hull drive block",
+    "Engine 1 drive can",
+    "Engine 1 can bands",
+    "Engine 1 thrust yoke 1",
+    "Drive turbopump port",
+    "Drive manifold port",
+    "Drive feed lines port"
+   ]
+  },
+  {
+   "id": "D6",
+   "kind": "crater",
+   "status": "open",
+   "note": "strafing run along the drive deck, forward hit on the castle foot",
+   "location": [
+    -55.0,
+    18.0,
+    9.0
+   ],
+   "outward": [
+    -0.707,
+    0.0,
+    0.707
+   ],
+   "radius_units": 1.9,
+   "depth_units": 1.8,
+   "hit": "Hull aft body",
+   "cut": [
+    "Hull aft body",
+    "Hull aft castle"
+   ]
+  },
+  {
+   "id": "D7",
+   "kind": "crater",
+   "status": "open",
+   "note": "inboard port auxiliary bell shot through",
+   "anchors": [
+    "Scar D7 smoke anchor"
+   ],
+   "emit": "smoke",
+   "location": [
+    -72.5,
+    12.45,
+    -9.76
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 2.2,
+   "depth_units": 2.4,
+   "hit": "Hull drive skirt",
+   "cut": [
+    "Hull drive block",
+    "Engine 3 drive can",
+    "Engine 3 aft-facing bell",
+    "Engine 3 dark throat",
+    "Engine 3 cooling hoops",
+    "Engine 3 housing collar",
+    "Hull drive skirt"
+   ]
+  },
+  {
+   "id": "D8",
+   "kind": "crater",
+   "status": "open",
+   "note": "inboard starboard auxiliary bell shot through",
+   "location": [
+    -72.94,
+    -8.45,
+    -10.75
+   ],
+   "outward": [
+    -0.164,
+    -0.974,
+    0.154
+   ],
+   "radius_units": 2.0,
+   "depth_units": 2.4,
+   "hit": "Engine 4 aft-facing bell",
+   "cut": [
+    "Hull drive block",
+    "Engine 4 drive can",
+    "Engine 4 aft-facing bell",
+    "Engine 4 dark throat",
+    "Engine 4 cooling hoops",
+    "Engine 4 housing collar",
+    "Hull drive skirt"
+   ]
+  },
+  {
+   "id": "D9",
+   "kind": "crater",
+   "status": "open",
+   "note": "drive skirt keel holed from below",
+   "anchors": [
+    "Scar D9 smoke anchor"
+   ],
+   "emit": "smoke",
+   "location": [
+    -66.64,
+    -6.0,
+    -16.1
+   ],
+   "outward": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius_units": 2.8,
+   "depth_units": 2.6,
+   "hit": "Drive skirt keel shoe",
+   "cut": [
+    "Hull drive skirt",
+    "Drive skirt keel shoe"
+   ]
+  },
+  {
+   "id": "D10",
+   "kind": "crater",
+   "status": "open",
+   "note": "starboard aft drum casting hit on its aft face",
+   "location": [
+    -55.37,
+    -41.21,
+    4.0
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius_units": 2.4,
+   "depth_units": 2.0,
+   "hit": "Hull starboard aft drum crown buttresses",
+   "cut": [
+    "Hull aft body",
+    "Hull starboard aft drum",
+    "Hull starboard aft drum crown buttresses"
+   ]
+  },
+  {
+   "id": "D11",
+   "kind": "crater",
+   "status": "open",
+   "note": "port drive block flank hit beside the radiators",
+   "anchors": [
+    "Scar D11 smoke anchor"
+   ],
+   "emit": "smoke",
+   "location": [
+    -61.83,
+    36.89,
+    -2.04
+   ],
+   "outward": [
+    -0.21,
+    0.978,
+    0.0
+   ],
+   "radius_units": 2.2,
+   "depth_units": 2.0,
+   "hit": "Hull drive block",
+   "cut": [
+    "Hull drive block"
+   ]
+  },
+  {
+   "id": "S1",
+   "kind": "scorch",
+   "status": "open",
+   "note": "the stern face scorched by the hits round the mains",
+   "location": [
+    -74.7,
+    1.0,
+    1.01
+   ],
+   "outward": [
+    -1.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "S2",
+   "kind": "scorch",
+   "status": "open",
+   "note": "the drive deck blackened along the strafing run",
+   "location": [
+    -62.91,
+    10.14,
+    8.32
+   ],
+   "outward": [
+    -0.866,
+    0.5,
+    0.0
+   ]
+  },
+  {
+   "id": "K1",
+   "kind": "ring",
+   "status": "open",
+   "note": "cutting-torch ring where the boarders burned the starboard collar hatch",
+   "location": [
+    0.0,
+    -42.3,
+    -1.0
+   ],
+   "outward": [
+    -0.0,
+    -1.0,
+    0.0
+   ]
+  },
+  {
+   "id": "K2",
+   "kind": "ring",
+   "status": "open",
+   "note": "cutting-torch ring where the boarders burned the port collar hatch",
+   "location": [
+    -12.0,
+    44.3,
+    -1.0
+   ],
+   "outward": [
+    -0.0,
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "id": "L1",
+   "kind": "dead",
+   "status": "open",
+   "note": "drive section power lost: stern and deck marker lamps dark",
+   "objects": [
+    "Drive stern lamp port lens",
+    "Drive stern lamp starboard lens",
+    "Drive stern lamp white lens",
+    "Drive skirt stern lamp lens",
+    "Drive deck marker lamp lens"
+   ]
+  }
+ ],
+ "scar_anchors": [
+  {
+   "anchor": "Scar D1 smoke anchor",
+   "scar": "D1",
+   "emit": "smoke",
+   "radius_m": 1.8,
+   "sparking": false,
+   "at": [
+    -75.0,
+    24.31,
+    7.21
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D1 spark anchor",
+   "scar": "D1",
+   "emit": "spark",
+   "radius_m": 0.63,
+   "sparking": true,
+   "at": [
+    -74.8,
+    24.31,
+    7.21
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D2 smoke anchor",
+   "scar": "D2",
+   "emit": "smoke",
+   "radius_m": 2.2,
+   "sparking": false,
+   "at": [
+    -78.65,
+    -25.76,
+    -4.53
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D2 spark anchor",
+   "scar": "D2",
+   "emit": "spark",
+   "radius_m": 0.77,
+   "sparking": true,
+   "at": [
+    -78.45,
+    -25.76,
+    -4.53
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D3 smoke anchor",
+   "scar": "D3",
+   "emit": "smoke",
+   "radius_m": 1.6,
+   "sparking": false,
+   "at": [
+    -75.0,
+    1.0,
+    1.23
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D3 spark anchor",
+   "scar": "D3",
+   "emit": "spark",
+   "radius_m": 0.56,
+   "sparking": true,
+   "at": [
+    -74.8,
+    1.0,
+    1.23
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D4 smoke anchor",
+   "scar": "D4",
+   "emit": "smoke",
+   "radius_m": 1.0,
+   "sparking": false,
+   "at": [
+    -69.48,
+    3.38,
+    9.35
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D5 smoke anchor",
+   "scar": "D5",
+   "emit": "smoke",
+   "radius_m": 1.2,
+   "sparking": false,
+   "at": [
+    -63.63,
+    12.23,
+    9.22
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    1.0
+   ]
+  },
+  {
+   "anchor": "Scar D7 smoke anchor",
+   "scar": "D7",
+   "emit": "smoke",
+   "radius_m": 1.1,
+   "sparking": false,
+   "at": [
+    -72.8,
+    12.45,
+    -9.76
+   ],
+   "axis": [
+    -1.0,
+    -0.0,
+    0.0
+   ]
+  },
+  {
+   "anchor": "Scar D9 smoke anchor",
+   "scar": "D9",
+   "emit": "smoke",
+   "radius_m": 1.4,
+   "sparking": false,
+   "at": [
+    -66.64,
+    -6.0,
+    -16.4
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ]
+  },
+  {
+   "anchor": "Scar D11 smoke anchor",
+   "scar": "D11",
+   "emit": "smoke",
+   "radius_m": 1.1,
+   "sparking": false,
+   "at": [
+    -61.89,
+    37.19,
+    -2.04
+   ],
+   "axis": [
+    -0.21,
+    0.978,
+    0.0
+   ]
+  }
+ ],
+ "lamps_lit": 14,
+ "lamps": [
+  {
+   "object": "Bridge brow lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    50.64,
+    1.0,
+    11.65
+   ]
+  },
+  {
+   "object": "Bridge masthead lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    42.0,
+    1.0,
+    20.37
+   ]
+  },
+  {
+   "object": "Hull central body forward bay glow",
+   "material": "Bay glow orange",
+   "lit": true,
+   "at": [
+    35.88,
+    1.0,
+    7.57
+   ]
+  },
+  {
+   "object": "Hull central body forward bay lip lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    30.0,
+    0.0,
+    10.3
+   ]
+  },
+  {
+   "object": "Hull central body port deck lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -5.75,
+    40.6,
+    10.43
+   ]
+  },
+  {
+   "object": "Hull port arm deck lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    58.7,
+    17.84,
+    6.02
+   ]
+  },
+  {
+   "object": "Hull port arm wall running lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    43.6,
+    44.13,
+    3.88
+   ]
+  },
+  {
+   "object": "Hull starboard arm deck lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    58.7,
+    -15.84,
+    6.02
+   ]
+  },
+  {
+   "object": "Hull starboard arm wall running lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    43.6,
+    -42.13,
+    3.88
+   ]
+  },
+  {
+   "object": "Kite collar lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -6.0,
+    1.0,
+    4.28
+   ]
+  },
+  {
+   "object": "Mast port bow tip lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    117.8,
+    13.0,
+    6.07
+   ]
+  },
+  {
+   "object": "Mast port bow yard lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    114.0,
+    13.0,
+    5.62
+   ]
+  },
+  {
+   "object": "Mast starboard bow tip lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    117.8,
+    -11.0,
+    6.12
+   ]
+  },
+  {
+   "object": "Mast starboard bow yard lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    114.0,
+    -11.0,
+    5.67
+   ]
+  }
+ ],
+ "objects": 360,
+ "polygons": 64161,
+ "baked_meshes": 102,
+ "images": [
+  "Skin aft-wall-port",
+  "Skin arm-bow-port",
+  "Skin arm-keel-port",
+  "Skin arm-top-port",
+  "Skin arm-wall-port",
+  "Skin body-deck",
+  "Skin body-wall-port",
+  "Skin body-wall-stbd",
+  "Skin castle-top",
+  "Skin drive-top",
+  "Skin keel-bottom",
+  "Skin stern-face",
+  "Swatch copper",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch grey",
+  "Swatch gunmetal",
+  "Swatch ochre",
+  "Swatch orange",
+  "Swatch rust",
+  "Swatch white"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile tarsus-cinematic/vfx_hull.py, state boarded, groups thrusters, smoke, lighting; no landing dust; smk_atmosphere 0 (vacuum, low orbit); no rig preset)",
+  "objects": 50,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 9.6,
+     "mouth": [
+      -78.4,
+      19.0,
+      1.5
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 2.9,
+     "mouth": [
+      -76.4,
+      26.0,
+      -10.5
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "port",
+     "radius": 3.8,
+     "mouth": [
+      -76.4,
+      11.0,
+      -10.5
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "starboard",
+     "radius": 3.8,
+     "mouth": [
+      -76.4,
+      -11.0,
+      -10.5
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "starboard",
+     "radius": 2.9,
+     "mouth": [
+      -76.4,
+      -25.0,
+      -10.5
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 6,
+     "side": "starboard",
+     "radius": 9.6,
+     "mouth": [
+      -78.4,
+      -18.0,
+      1.5
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "port gun",
+     "muzzle": [
+      -48.191,
+      43.131,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 1,
+     "tag": "starboard gun",
+     "muzzle": [
+      -47.131,
+      44.191,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "port gun",
+     "muzzle": [
+      -47.131,
+      -44.191,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "starboard gun",
+     "muzzle": [
+      -48.191,
+      -43.131,
+      16.0
+     ],
+     "axis": [
+      -0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "port gun",
+     "muzzle": [
+      107.131,
+      28.191,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "starboard gun",
+     "muzzle": [
+      108.191,
+      27.131,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 4,
+     "tag": "port gun",
+     "muzzle": [
+      108.191,
+      -26.131,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 4,
+     "tag": "starboard gun",
+     "muzzle": [
+      107.131,
+      -27.191,
+      11.0
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Bridge masthead lamp",
+     "role": "masthead",
+     "at": [
+      42.0,
+      1.0,
+      20.375
+     ]
+    },
+    {
+     "name": "Mast port bow tip lamp",
+     "role": "beacon",
+     "at": [
+      117.8,
+      13.0,
+      6.071
+     ]
+    },
+    {
+     "name": "Mast starboard bow tip lamp",
+     "role": "beacon",
+     "at": [
+      117.8,
+      -11.0,
+      6.121
+     ]
+    },
+    {
+     "name": "Hull port arm wall running lamp",
+     "role": "beacon",
+     "at": [
+      43.6,
+      44.135,
+      3.884
+     ]
+    },
+    {
+     "name": "Hull starboard arm wall running lamp",
+     "role": "beacon",
+     "at": [
+      43.6,
+      -42.135,
+      3.884
+     ]
+    },
+    {
+     "name": "Kite collar lamps",
+     "role": "work",
+     "at": [
+      -6.0,
+      1.0,
+      4.275
+     ]
+    }
+   ],
+   "sparks": [
+    {
+     "name": "Scar D1 spark anchor",
+     "scar": "D1",
+     "label": "spark",
+     "sparking": true,
+     "radius_m": 0.63,
+     "at": [
+      -74.8,
+      24.314,
+      7.206
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "Scar D2 spark anchor",
+     "scar": "D2",
+     "label": "spark",
+     "sparking": true,
+     "radius_m": 0.77,
+     "at": [
+      -78.45,
+      -25.757,
+      -4.527
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "name": "Scar D3 spark anchor",
+     "scar": "D3",
+     "label": "spark",
+     "sparking": true,
+     "radius_m": 0.56,
+     "at": [
+      -74.8,
+      1.0,
+      1.233
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "bounds": [
+    [
+     -80.44,
+     -49.87,
+     -20.7
+    ],
+    [
+     118.2,
+     51.87,
+     22.45
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 6,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "boarded",
+    "haze": 0,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 3
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "damage_smoke": [
+   {
+    "scar": "D1",
+    "anchor": "Scar D1 smoke anchor",
+    "object": "SWFX smoke damage smoke D1",
+    "radius_m": 1.8
+   },
+   {
+    "scar": "D11",
+    "anchor": "Scar D11 smoke anchor",
+    "object": "SWFX smoke damage smoke D11",
+    "radius_m": 1.1
+   },
+   {
+    "scar": "D2",
+    "anchor": "Scar D2 smoke anchor",
+    "object": "SWFX smoke damage smoke D2",
+    "radius_m": 2.2
+   },
+   {
+    "scar": "D3",
+    "anchor": "Scar D3 smoke anchor",
+    "object": "SWFX smoke damage smoke D3",
+    "radius_m": 1.6
+   },
+   {
+    "scar": "D4",
+    "anchor": "Scar D4 smoke anchor",
+    "object": "SWFX smoke damage smoke D4",
+    "radius_m": 1.0
+   },
+   {
+    "scar": "D5",
+    "anchor": "Scar D5 smoke anchor",
+    "object": "SWFX smoke damage smoke D5",
+    "radius_m": 1.2
+   },
+   {
+    "scar": "D7",
+    "anchor": "Scar D7 smoke anchor",
+    "object": "SWFX smoke damage smoke D7",
+    "radius_m": 1.1
+   },
+   {
+    "scar": "D9",
+    "anchor": "Scar D9 smoke anchor",
+    "object": "SWFX smoke damage smoke D9",
+    "radius_m": 1.4
+   }
+  ],
+  "append": "load both 'TARSUS' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "tarsus-surface/build/boarded/skinned-boarded.blend",
+  "geometry_json_sha256": "b82b8fa7d4e5088bb524d56699a0a271fc139be5b5a9bab3000feb7b8de19b8b",
+  "skin_manifest_sha256": "2b8d92d2042e18102a358a397d6108813f6f6bcfedf58cd105fa4904ce489206"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; out of the hull for docking and scar anchors); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate Turret <i> pivot about its local Z to train within its arc about the slot angle; the rest pose is the slot angle.",
+  "docking": "The Colossus Mk.III grapples clamp onto the four dorsal Clamp receiver anchors (the Tarsus rides under her keel, dorsal up, same heading); Kites (P) dock on the two Kite collar anchors.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "4dba6099883013e8b4b9b547e818c9d6b50531399cfbb2f4bb36618cff2cff26"
+}

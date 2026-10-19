@@ -1,5 +1,5 @@
 {
-  "status": "Pass 2 detail + pass 4 scale (0.66 m/u, ship_scale.py option C): wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights).",
+  "status": "Review round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
@@ -38,11 +38,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.66,
+  "metres_per_unit": 0.59,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 163199,
+      "units3": 228776,
       "crew_max": 80,
       "cargo": 80,
       "fuel": 50,
@@ -78,25 +78,25 @@
     "contents_total_m3": 25435,
     "machinery_share": 0.47,
     "enclosed_m3": 47991,
-    "solved_metres_per_unit": 0.665,
+    "solved_metres_per_unit": 0.594,
     "range": {
-      "habitable_273": 0.645,
-      "habitable_328": 0.685
+      "habitable_273": 0.576,
+      "habitable_328": 0.612
     },
     "enclosed_m3_per_person_at_max_crew": 600,
-    "length_m": 101.0,
+    "length_m": 90.3,
     "fittings_m": {
       "viewport w x h": [
-        1.01,
-        0.8
+        1.1,
+        0.88
       ],
       "bridge glazing band h": [
-        1.11
+        1.21
       ]
     },
-    "published_metres_per_unit": 0.66,
+    "published_metres_per_unit": 0.59,
     "measured_this_build": {
-      "enclosed_units3": 163199,
+      "enclosed_units3": 228901,
       "solids": [
         "Hull bow head",
         "Hull neck",
@@ -104,15 +104,16 @@
         "Hull wing body",
         "Hull aft body",
         "Hull ventral keel",
+        "Bridge command tier",
         "Bridge command dome"
       ]
     },
     "size_m": [
-      100.3,
-      106.1,
-      24.6
+      91.0,
+      94.9,
+      32.2
     ],
-    "person_1_8_m_in_units": 2.73,
+    "person_1_8_m_in_units": 3.05,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -130,17 +131,17 @@
     "min": [
       -66.3,
       -80.42,
-      -12.5
+      -27.92
     ],
     "max": [
-      85.63,
+      88.0,
       80.42,
-      24.82
+      26.58
     ],
     "size": [
-      151.93,
+      154.3,
       160.83,
-      37.32
+      54.5
     ]
   },
   "weapon_slots": [
@@ -149,14 +150,14 @@
       "location": [
         21,
         0,
-        14.0
+        10.11
       ],
       "angle": 0,
       "arc": 90,
       "mount": "TURRET",
       "size": "LARGE",
       "type": "BALLISTIC",
-      "weapon": "mark9",
+      "weapon": "hellbore",
       "variant_weapon": "mark9",
       "pivot": "Weapon WS 000 pivot",
       "anchor": null
@@ -166,7 +167,7 @@
       "location": [
         23,
         65,
-        7.4
+        -1.1
       ],
       "angle": 80,
       "arc": 235,
@@ -183,7 +184,7 @@
       "location": [
         73,
         0,
-        9.7
+        2.08
       ],
       "angle": 0,
       "arc": 235,
@@ -200,7 +201,7 @@
       "location": [
         23,
         -65,
-        7.4
+        -1.1
       ],
       "angle": -80,
       "arc": 235,
@@ -217,7 +218,7 @@
       "location": [
         32,
         43,
-        5.5
+        -1.99
       ],
       "angle": 0,
       "arc": 5,
@@ -234,7 +235,7 @@
       "location": [
         32,
         -43,
-        5.5
+        -1.99
       ],
       "angle": 0,
       "arc": 5,
@@ -251,7 +252,7 @@
       "location": [
         36,
         -20,
-        9.96
+        6.4
       ],
       "angle": -45,
       "arc": 5,
@@ -268,7 +269,7 @@
       "location": [
         36,
         21,
-        9.09
+        5.88
       ],
       "angle": 45,
       "arc": 5,
@@ -285,7 +286,7 @@
       "location": [
         -19,
         40,
-        5.8
+        6.44
       ],
       "angle": 135,
       "arc": 5,
@@ -302,7 +303,7 @@
       "location": [
         -19,
         -40,
-        5.8
+        6.44
       ],
       "angle": 225,
       "arc": 5,
@@ -320,24 +321,24 @@
       "index": 1,
       "slot": "WS 000",
       "mount": "TURRET",
-      "weapon": "mark9",
+      "weapon": "hellbore",
       "variant_weapon": "mark9",
       "kind": "gun",
       "size": "LARGE",
       "type": "BALLISTIC",
-      "ring_radius": 13.0,
+      "ring_radius": 8.5,
       "pivot": "Weapon WS 000 pivot",
       "elevation": "Weapon WS 000 elevation",
       "location": [
         21,
         0,
-        14.0
+        10.11
       ],
-      "seat_z": 11.4,
-      "lift": 2.6,
+      "seat_z": 8.41,
+      "lift": 1.7,
       "rest_angle_deg": 0,
       "arc_deg": 90,
-      "vfx_scale": 3.64,
+      "vfx_scale": 2.38,
       "trainable": true,
       "muzzles": [
         {
@@ -345,24 +346,9 @@
           "anchor": "Anchor turret 1 barrel 1 muzzle",
           "geometry_anchor": "Weapon WS 000 muzzle anchor 1",
           "at": [
-            50.12,
-            -4.16,
-            19.824
-          ],
-          "axis": [
-            1.0,
+            43.576,
             0.0,
-            0.0
-          ]
-        },
-        {
-          "tag": "barrel 2",
-          "anchor": "Anchor turret 1 barrel 2 muzzle",
-          "geometry_anchor": "Weapon WS 000 muzzle anchor 2",
-          "at": [
-            50.12,
-            4.16,
-            19.824
+            13.374
           ],
           "axis": [
             1.0,
@@ -388,10 +374,10 @@
       "location": [
         23,
         65,
-        7.4
+        -1.1
       ],
-      "seat_z": 6.0,
-      "lift": 1.4,
+      "seat_z": -2.9,
+      "lift": 1.8,
       "rest_angle_deg": 80,
       "arc_deg": 235,
       "vfx_scale": 1.54,
@@ -404,7 +390,7 @@
           "at": [
             25.21,
             77.534,
-            9.996
+            1.496
           ],
           "axis": [
             0.174,
@@ -430,9 +416,9 @@
       "location": [
         73,
         0,
-        9.7
+        2.08
       ],
-      "seat_z": 8.5,
+      "seat_z": 0.88,
       "lift": 1.2,
       "rest_angle_deg": 0,
       "arc_deg": 235,
@@ -446,7 +432,7 @@
           "at": [
             83.737,
             -1.895,
-            12.454
+            4.834
           ],
           "axis": [
             1.0,
@@ -461,7 +447,7 @@
           "at": [
             83.737,
             1.895,
-            12.454
+            4.834
           ],
           "axis": [
             1.0,
@@ -487,10 +473,10 @@
       "location": [
         23,
         -65,
-        7.4
+        -1.1
       ],
-      "seat_z": 6.0,
-      "lift": 1.4,
+      "seat_z": -2.9,
+      "lift": 1.8,
       "rest_angle_deg": -80,
       "arc_deg": 235,
       "vfx_scale": 1.54,
@@ -503,7 +489,7 @@
           "at": [
             25.21,
             -77.534,
-            9.996
+            1.496
           ],
           "axis": [
             0.174,
@@ -529,10 +515,10 @@
       "location": [
         32,
         43,
-        5.5
+        -1.99
       ],
-      "seat_z": 4.0,
-      "lift": 1.5,
+      "seat_z": -0.24,
+      "lift": -1.75,
       "rest_angle_deg": 0,
       "arc_deg": 5,
       "vfx_scale": 4.091,
@@ -545,7 +531,7 @@
           "at": [
             38.075,
             41.178,
-            9.636
+            2.146
           ],
           "axis": [
             1.0,
@@ -560,7 +546,7 @@
           "at": [
             38.075,
             43.0,
-            9.636
+            2.146
           ],
           "axis": [
             1.0,
@@ -575,7 +561,7 @@
           "at": [
             38.075,
             44.822,
-            9.636
+            2.146
           ],
           "axis": [
             1.0,
@@ -601,10 +587,10 @@
       "location": [
         32,
         -43,
-        5.5
+        -1.99
       ],
-      "seat_z": 4.0,
-      "lift": 1.5,
+      "seat_z": -0.24,
+      "lift": -1.75,
       "rest_angle_deg": 0,
       "arc_deg": 5,
       "vfx_scale": 4.091,
@@ -617,7 +603,7 @@
           "at": [
             38.075,
             -44.822,
-            9.636
+            2.146
           ],
           "axis": [
             1.0,
@@ -632,7 +618,7 @@
           "at": [
             38.075,
             -43.0,
-            9.636
+            2.146
           ],
           "axis": [
             1.0,
@@ -647,7 +633,7 @@
           "at": [
             38.075,
             -41.178,
-            9.636
+            2.146
           ],
           "axis": [
             1.0,
@@ -802,7 +788,7 @@
       "position": [
         23,
         78.8,
-        1.5
+        -4.72
       ],
       "colour": "red",
       "role": "port side light (extremity)",
@@ -817,7 +803,7 @@
       "position": [
         23,
         -78.8,
-        1.5
+        -4.72
       ],
       "colour": "green",
       "role": "starboard side light (extremity)",
@@ -832,7 +818,7 @@
       "position": [
         -48,
         0,
-        10.35
+        12.71
       ],
       "colour": "white",
       "role": "stern light",
@@ -847,7 +833,7 @@
       "position": [
         83,
         0,
-        6.51
+        -5.57
       ],
       "colour": "white",
       "role": "prow anti-collision strobe",
@@ -865,8 +851,8 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 50798,
-    "objects": 207,
+    "triangles": 40202,
+    "objects": 177,
     "materials": [
       "Manticore bridge glazing",
       "Manticore grey plate",
@@ -879,14 +865,14 @@
       "Manticore running light red",
       "Manticore running light white",
       "Missile body (0.5, 0.6, 0.5)",
+      "Turret hellbore accent 0.1883,0.1775,0.1752",
+      "Turret hellbore accent2 0.0709,0.0709,0.0741",
+      "Turret hellbore metal 0.1109,0.1102,0.1104",
+      "Turret hellbore paint 0.1475,0.1403,0.1351",
+      "Turret hellbore plate 0.2741,0.2601,0.2546",
       "Turret lightac metal 0.1100,0.1106,0.1089",
       "Turret lightac paint 0.1019,0.1050,0.0988",
       "Turret lightac plate 0.2468,0.2499,0.2404",
-      "Turret mark9 accent 0.1087,0.0948,0.0932",
-      "Turret mark9 mark 0.4191,0.0673,0.0516",
-      "Turret mark9 metal 0.1107,0.1103,0.1103",
-      "Turret mark9 paint 0.1692,0.1281,0.1091",
-      "Turret mark9 plate 0.3237,0.3163,0.3067",
       "Turret needler accent 0.1323,0.1292,0.0949",
       "Turret needler metal 0.1115,0.1101,0.1096",
       "Turret needler paint 0.1832,0.1720,0.1439",
@@ -895,7 +881,7 @@
     ]
   },
   "object_names": {
-    "Hull ...": "bow head, neck, core, wing body, aft body, ventral keel, turret pods, launcher housings and cheeks, turret rings, detail",
+    "Hull ...": "bow head, neck, core, wing body, aft body, ventral keel, turret pods, launcher wells, turret rings, detail",
     "Bridge ...": "the pale command dome and its glazing",
     "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, drive glow anchor",
     "Weapon <slot id> ...": "barbette (fixed); pivot (trains about local Z), elevation (local Y, negative lifts), turret-kit house and gun parts, muzzle anchor <k>",
@@ -1027,6 +1013,211 @@
       "orthographic_scale": 64
     }
   ],
+  "forward": {
+    "bridge_sightline": {
+      "eye": [
+        -1.25,
+        0.0,
+        19.9
+      ],
+      "eye_height_above_core_deck_m": 2.9,
+      "depression_runs": [
+        {
+          "from_deg": 0.0,
+          "meets": "clear",
+          "at_x": null
+        },
+        {
+          "from_deg": 4.25,
+          "meets": "Weapon WS 000 recoil 1 metal",
+          "at_x": 36.6
+        },
+        {
+          "from_deg": 7.0,
+          "meets": "Weapon WS 000 gun steel",
+          "at_x": 27.3
+        },
+        {
+          "from_deg": 7.5,
+          "meets": "Weapon WS 000 house accent",
+          "at_x": 22.5
+        },
+        {
+          "from_deg": 10.0,
+          "meets": "Weapon WS 000 recoil 1 steel",
+          "at_x": 19.6
+        },
+        {
+          "from_deg": 18.0,
+          "meets": "Weapon WS 000 house paint",
+          "at_x": 14.9
+        },
+        {
+          "from_deg": 18.25,
+          "meets": "Weapon WS 000 recoil 1 steel",
+          "at_x": 14.9
+        },
+        {
+          "from_deg": 20.25,
+          "meets": "Weapon WS 000 house paint#rear",
+          "at_x": 14.6
+        },
+        {
+          "from_deg": 40.0,
+          "meets": "Weapon WS 000 barbette",
+          "at_x": 12.0
+        },
+        {
+          "from_deg": 40.25,
+          "meets": "Hull wing body",
+          "at_x": 11.8
+        },
+        {
+          "from_deg": 46.25,
+          "meets": "Hull core",
+          "at_x": 3.4
+        }
+      ],
+      "prow_visible": false,
+      "prow_depression_deg": 19.1,
+      "prow_ray_meets": "Weapon WS 000 recoil 1 steel",
+      "bearing_sweep": [
+        {
+          "bearing_deg": -90,
+          "clear_down_to_deg": -6.0
+        },
+        {
+          "bearing_deg": -80,
+          "clear_down_to_deg": -10.0
+        },
+        {
+          "bearing_deg": -70,
+          "clear_down_to_deg": -11.5
+        },
+        {
+          "bearing_deg": -60,
+          "clear_down_to_deg": -15.5
+        },
+        {
+          "bearing_deg": -50,
+          "clear_down_to_deg": -15.0
+        },
+        {
+          "bearing_deg": -40,
+          "clear_down_to_deg": -14.5
+        },
+        {
+          "bearing_deg": -30,
+          "clear_down_to_deg": -14.0
+        },
+        {
+          "bearing_deg": -20,
+          "clear_down_to_deg": -12.0
+        },
+        {
+          "bearing_deg": -10,
+          "clear_down_to_deg": -9.0
+        },
+        {
+          "bearing_deg": 0,
+          "clear_down_to_deg": -4.0
+        },
+        {
+          "bearing_deg": 10,
+          "clear_down_to_deg": -9.0
+        },
+        {
+          "bearing_deg": 20,
+          "clear_down_to_deg": -7.0
+        },
+        {
+          "bearing_deg": 30,
+          "clear_down_to_deg": -9.5
+        },
+        {
+          "bearing_deg": 40,
+          "clear_down_to_deg": -14.5
+        },
+        {
+          "bearing_deg": 50,
+          "clear_down_to_deg": -15.0
+        },
+        {
+          "bearing_deg": 60,
+          "clear_down_to_deg": -15.5
+        },
+        {
+          "bearing_deg": 70,
+          "clear_down_to_deg": -11.5
+        },
+        {
+          "bearing_deg": 80,
+          "clear_down_to_deg": -10.0
+        },
+        {
+          "bearing_deg": 90,
+          "clear_down_to_deg": -6.0
+        }
+      ],
+      "bow_gun_visible": false,
+      "bow_gun_depression_deg": 10.2
+    },
+    "bearing_dead_ahead": {
+      "count": 6,
+      "count_10_deg_down": 6,
+      "of": 6,
+      "mounts": [
+        {
+          "slot": "WS 000",
+          "weapon": "hellbore",
+          "bears_dead_ahead": true,
+          "blocked_by": [],
+          "bears_ahead_10_deg_down": true,
+          "blocked_10_deg_down_by": []
+        },
+        {
+          "slot": "WS 001",
+          "weapon": "lightac",
+          "bears_dead_ahead": true,
+          "blocked_by": [],
+          "bears_ahead_10_deg_down": true,
+          "blocked_10_deg_down_by": []
+        },
+        {
+          "slot": "WS 002",
+          "weapon": "needler",
+          "bears_dead_ahead": true,
+          "blocked_by": [],
+          "bears_ahead_10_deg_down": true,
+          "blocked_10_deg_down_by": []
+        },
+        {
+          "slot": "WS 003",
+          "weapon": "lightac",
+          "bears_dead_ahead": true,
+          "blocked_by": [],
+          "bears_ahead_10_deg_down": true,
+          "blocked_10_deg_down_by": []
+        },
+        {
+          "slot": "WS 004",
+          "weapon": "harpoonpod",
+          "bears_dead_ahead": true,
+          "blocked_by": [],
+          "bears_ahead_10_deg_down": true,
+          "blocked_10_deg_down_by": []
+        },
+        {
+          "slot": "WS 005",
+          "weapon": "harpoonpod",
+          "bears_dead_ahead": true,
+          "blocked_by": [],
+          "bears_ahead_10_deg_down": true,
+          "blocked_10_deg_down_by": []
+        }
+      ]
+    }
+  },
   "shot_checks": [
     {
       "name": "shot-s5-1500m",
@@ -1064,19 +1255,19 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9483,
-    "sprite_uncovered": 0.0186,
-    "model_outside_sprite": 0.0349,
+    "iou": 0.9457,
+    "sprite_uncovered": 0.0149,
+    "model_outside_sprite": 0.0416,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 6.62 px per unit"
   },
   "shot_extent_px": {
     "shot-s5-1500m": {
-      "width_px": 308,
-      "height_px": 93
+      "width_px": 253,
+      "height_px": 119
     },
     "shot-s4-4000m": {
-      "width_px": 49,
-      "height_px": 17
+      "width_px": 41,
+      "height_px": 20
     }
   }
 }

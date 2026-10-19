@@ -1,8 +1,8 @@
 # Fighters: surfacing (pass 6)
 
-Status: ACTIVE — all five fighters surfaced (service livery), waiting on owner review.
+Status: ACTIVE — all six fighters surfaced (service livery); the Broadsword accepted, the other five waiting on owner review.
 Written: 2026-10-18
-Updated: 2026-10-18 — Dagger, Talon, Longbow and Thunder re-surfaced on the pass-3 rework (bent wings, landing gear).
+Updated: 2026-10-19 — the Broadsword surfaced for C2 (its geometry is its own package).
 
 One folder per fighter for the shared surfacing harness
 (`../second-wind-surface/`, run with `--hull <folder>`; its README holds the
@@ -125,3 +125,29 @@ keeps its own material.
 fighter. For a quick check pass `--samples 12 --views
 three-quarter,starboard-quarter,port-aft-quarter,top,under-quarter` (about
 2 minutes); the full set is better rendered on the Mac's GPU.
+
+## Broadsword
+
+The Broadsword's geometry is its own package (`../broadsword-geometry/`), so
+its `rebuild.sh` builds it from there, gear up: the closed gear doors are
+painted with the belly and the legs stay out of every view. It has no review
+props to strip but the parked deck plane. Livery off
+`fighter-upres/broadsword/master-v1.png`: yellowed khaki armour plates over
+dark gunmetal structure, polished steel barrels, bands and exhaust lips,
+near-black grilles and bells. Light `service` wear, soot at the nacelle sterns.
+
+- **Finish reference** registered at IoU 0.970. Khaki and steel are measured
+  off it; the steel's spread, bright and dark are owned as on the Thunder.
+- **Parts**: one group, two sheets, 8 sources and 4 mirror reuses (nacelle
+  top, wing top, fuselage side and wing side; the model is symmetric about
+  Y = 0). Plates are their own objects, so each part is the structure and the
+  plates on it seen from one side. Fitted IoU 0.969-1.000, khaki in family
+  96%+, steel 99%+, no swaps. 14 texels per unit on the belly (one 30 x 28
+  unit part), 28-137 elsewhere.
+- **Swatches**: one sheet of four squares, 4 hull units (2.0 m) per image.
+- 4 Codex generations in all, no retries.
+
+Coverage at 1920x1080 (part skin / swatch / textured): three-quarter 48 / 48 /
+96%, top 56 / 40 / 96%, port side 17 / 79 / 96%, front 28 / 69 / 97%,
+starboard quarter 49 / 48 / 96%, port-aft quarter 43 / 54 / 97%, under
+quarter 56 / 43 / 100%. The rest is the canopy glass.

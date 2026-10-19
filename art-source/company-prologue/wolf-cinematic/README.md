@@ -30,9 +30,17 @@ manifest.
 
 - **Move the root only.** Every part and anchor descends from it. The model is
   in hull units (+X bow, +Y port, +Z dorsal; one sprite pixel per unit);
-  `metres_per_unit` is 0.95 (on the root and in the manifest): 89 m long,
-  50 m across the missile pods, 16 m deep. A shot in metres scales the root
-  by 0.95. Against the Hound (A) at 0.88 m/u, scale by 0.95 / 0.88.
+  `metres_per_unit` is 0.75 (on the root and in the manifest): 70 m from
+  bow fork to stern, 37 m across the missile pods, about 21 m deep. A shot in
+  metres scales the root by 0.75.
+- **Two variants, one hull.** `wolf-p.blend` (`WOLF_P`, the pirate skin,
+  battle wear) and `wolf.blend` (`WOLF`, the convoy's own Wolf: the base hull,
+  no pirate armour, its aft WS 002 / WS 003 PD laser turrets on full-depth
+  drums, an independent pale blue-grey livery, service wear; manifest-merchant.json,
+  validation-merchant.json). `finalize.sh --variant merchant` builds the second.
+  The merchant's WS 004 and WS 005 / WS 006 carry the vanilla wolf_Assault
+  heavy blaster and Harpoons, built with the mining blaster and Annihilator
+  forms until the turret kit has their own (manifest `built_as`).
 - **Engines.** `Engine 1-3 exhaust anchor` at the three bell mouths, local +X
   down the exhaust: 1 port, 2 centre, 3 starboard, HIGH_TECH blue.
 - **Turret.** `Turret 1 pivot` (WS 001, the ion cannon) trains about its local

@@ -7,7 +7,7 @@ one unit about the .ship centre (82, 67), so slot and engine locations from
 manticore.ship are model XY unchanged. Heights are proposed art.
 
 One module per area: mt_hull (bow head, neck, core, wings, aft body, turret
-pods, launcher housings, command dome), mt_engines (the five drives),
+pods, launcher wells, command dome), mt_engines (the five drives),
 mt_mounts (the ten slots: turrets and hardpoints from the shared turret kit,
 system anchors), mt_lights (running lights); mt_kit holds the shared helpers.
 
@@ -68,13 +68,14 @@ NAME = 'Manticore (P)'
 # (../ship_scale.py, owner's option C): contents (80 crew, 80 cargo, 50 fuel)
 # over the destroyer machinery share, against the measured enclosed volume,
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
-# pods, launcher housings or weapons). Until the hull is in ship_scale.HULLS
+# pods or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = ('Pass 2 detail + pass 4 scale (0.66 m/u, ship_scale.py option C): wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, '
-          'glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, '
-          'turret-kit weapons, anchors and running lights).')
+STATUS = ('Review round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
+          'low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 '
+          'deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + '
+          'pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.')
 SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft body', 'Hull ventral keel',
-          'Bridge command dome']
+          'Bridge command tier', 'Bridge command dome']
 if NAME in ship_scale.HULLS:
     SCALE = ship_scale.record(NAME)
     METRES_PER_UNIT = ship_scale.PUBLISHED[NAME]
@@ -92,6 +93,7 @@ parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--manifest', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--ahead', action='store_true', help='train every mount dead ahead for the review renders')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE.parents[2]/'build'/'manticore').resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -317,6 +319,122 @@ sun.data.energy = 4.6
 sun.data.color = (1.0, .96, .88)
 sun.rotation_euler = (-SUN_DIR).to_track_quat('-Z', 'Y').to_euler()
 
+
+# --- What the bridge sees, and which guns bear ahead (owner, round 2). ---
+# Both are measured on the built geometry, never asserted from the design.
+def _cast(origin, direction, skip=(), dist=1000):
+    dg = bpy.context.evaluated_depsgraph_get()
+    o = Vector(origin)
+    for _ in range(20):
+        hit, p, _n, _i, ob, _m = scene.ray_cast(dg, o, direction, distance=dist)
+        if not hit:
+            return None, None
+        if not any(ob.name.startswith(s) for s in skip):
+            return ob.name, p
+        o = p+direction*.05
+    return None, None
+
+
+def _pivots():
+    return {t['slot']: bpy.data.objects[f"Weapon {t['slot']} pivot"] for t in mt_mounts.TURRETS}
+
+
+def forward_checks():
+    bpy.context.view_layer.update()
+    # The captain's eye: on the centreline behind the middle of the dome's glazed band.
+    name, p = _cast((60, 0, BRIDGE_EYE_Z), Vector((-1, 0, 0)), skip=('Weapon ',))
+    assert name and name.startswith('Bridge'), f'eye ray met {name}'
+    eye = p+Vector((.05, 0, 0))
+    runs, last = [], None
+    for k in range(0, 241):
+        a = math.radians(k*.25)
+        ob, q = _cast(eye, Vector((math.cos(a), 0, -math.sin(a))))
+        label = 'clear' if ob is None else ob
+        if label != last:
+            runs.append({'from_deg': k*.25, 'meets': label, 'at_x': None if q is None else round(q.x, 1)})
+            last = label
+    # Can the bridge see the bow gun (WS 002's house roof) over the main gun?
+    bow_gun = [o for o in bpy.data.objects if o.name.startswith('Weapon WS 002 house') and o.type == 'MESH']
+    ztop = max((o.matrix_world @ Vector(c)).z for o in bow_gun for c in o.bound_box)
+    aim = Vector((73, 0, ztop-.3))
+    d = (aim-eye).normalized()
+    ob, q = _cast(eye, d)
+    bow_gun_seen = ob is not None and ob.startswith('Weapon WS 002')
+    # Every bearing from 90 deg port to 90 deg starboard: the steepest look down
+    # that still clears the ship, or, where the ship stands above the eye, how
+    # far up it reaches.
+    sweep = []
+    for az in range(-90, 91, 10):
+        b = math.radians(az)
+        def ray(el):
+            e = math.radians(el)
+            return _cast(eye, Vector((math.cos(e)*math.cos(b), math.cos(e)*math.sin(b), math.sin(e))))[0]
+        if ray(0) is None:
+            el = 0.0
+            while el > -60 and ray(el-.5) is None:
+                el -= .5
+            sweep.append({'bearing_deg': az, 'clear_down_to_deg': el})
+        else:
+            el = 0.0
+            while el < 30 and ray(el) is not None:
+                el += .5
+            sweep.append({'bearing_deg': az, 'blocked_up_to_deg': el, 'by': ray(0)})
+    bow = Vector((86.5, 0, mt_hull.HEAD_STATIONS[0][2]-mt_hull.nose_drop(86.5)))
+    to_bow = (bow-eye).normalized()
+    ob2, q = _cast(eye, to_bow)
+    bow_seen = ob2 is None or (q-bow).length < 1.5
+    sight = {'eye': [round(v, 2) for v in eye], 'eye_height_above_core_deck_m': round((eye.z-mt_hull.CORE_DECK)*METRES_PER_UNIT, 1),
+             'depression_runs': runs, 'prow_visible': bow_seen,
+             'prow_depression_deg': round(math.degrees(math.asin(-to_bow.z)), 1),
+             'prow_ray_meets': ob2, 'bearing_sweep': sweep, 'bow_gun_visible': bow_gun_seen,
+             'bow_gun_depression_deg': round(math.degrees(math.asin(-d.z)), 1)}
+    # Every mount trained dead ahead (bearing 0): a horizontal ray from each
+    # muzzle along +X must leave the ship without meeting any other part.
+    pivots = _pivots()
+    rest = {sid: pv.rotation_euler.z for sid, pv in pivots.items()}
+    for pv in pivots.values():
+        pv.rotation_euler.z = 0
+    bpy.context.view_layer.update()
+    bearing = []
+    for t in mt_mounts.TURRETS:
+        sid = t['slot']
+        blocked = []
+        for m in t['muzzles']:
+            mo = bpy.data.objects[m['anchor']]
+            ob, _q = _cast(mo.matrix_world.translation, Vector((1, 0, 0)), skip=(f'Weapon {sid} ', 'Anchor '))
+            if ob:
+                blocked.append(ob)
+        # Ahead and 10 deg below: a target the drooping arms let the guns reach.
+        low = Vector((math.cos(math.radians(10)), 0, -math.sin(math.radians(10))))
+        blocked_low = [ob for ob in (_cast(bpy.data.objects[m['anchor']].matrix_world.translation, low,
+                                           skip=(f'Weapon {sid} ', 'Anchor '))[0] for m in t['muzzles']) if ob]
+        bearing.append({'slot': sid, 'weapon': t['weapon'], 'bears_dead_ahead': not blocked,
+                        'blocked_by': sorted(set(blocked)), 'bears_ahead_10_deg_down': not blocked_low,
+                        'blocked_10_deg_down_by': sorted(set(blocked_low))})
+    if not args.ahead:
+        for sid, pv in pivots.items():
+            pv.rotation_euler.z = rest[sid]
+        bpy.context.view_layer.update()
+    n = sum(b['bears_dead_ahead'] for b in bearing)
+    n_low = sum(b['bears_ahead_10_deg_down'] for b in bearing)
+    print(f'bridge eye {sight["eye"]}: bow gun visible {bow_gun_seen} at {sight["bow_gun_depression_deg"]} deg; prow visible {bow_seen} at {sight["prow_depression_deg"]} deg down; '
+          f'runs {[(r["from_deg"], r["meets"]) for r in runs]}')
+    print('sweep', [(w['bearing_deg'], w.get('clear_down_to_deg', ('up', w.get('blocked_up_to_deg'), w.get('by')))) for w in sweep])
+    print(f'bearing dead ahead: {n} of {len(bearing)}: {[(b["slot"], b["blocked_by"]) for b in bearing]}')
+    print(f'bearing 10 deg down: {n_low} of {len(bearing)}: {[(b["slot"], b["blocked_10_deg_down_by"]) for b in bearing]}')
+    return {'bridge_sightline': sight, 'bearing_dead_ahead': {'count': n, 'count_10_deg_down': n_low,
+                                                              'of': len(bearing), 'mounts': bearing}}
+
+
+BRIDGE_EYE_Z = mt_hull.BRIDGE_DECK+3.4
+FORWARD = forward_checks()
+# The captain's view: a 24 mm perspective from the eye, 7 deg down, looking ahead.
+bpy.ops.object.camera_add(location=Vector(FORWARD['bridge_sightline']['eye'])+Vector((.4, 0, 0)))  # just outside the glass
+cam = bpy.context.object
+cam.name = 'Camera bridge-eye'
+cam.data.lens, cam.data.sensor_width, cam.data.clip_start, cam.data.clip_end = 24, 36, .3, 2000
+cam.rotation_euler = Vector((1, 0, -.12)).to_track_quat('-Z', 'Y').to_euler()
+
 wanted = []
 for v in [v for v in args.views.split(',') if v and v != 'none']:
     wanted += [c[0] for c in CLOSEUPS[:5]] if v == 'details' else [s[0] for s in SHOTS] if v == 'shot' else [v]
@@ -378,7 +496,7 @@ if not args.no_save:
                   'triangles': sum(len(p.vertices)-2 for o in meshes for p in o.data.polygons),
                   'objects': len(meshes), 'materials': sorted({m.name for o in meshes for m in o.data.materials})},
         'object_names': {'Hull ...': 'bow head, neck, core, wing body, aft body, ventral keel, turret pods, '
-                                     'launcher housings and cheeks, turret rings, detail',
+                                     'launcher wells, turret rings, detail',
                          'Bridge ...': 'the pale command dome and its glazing',
                          'Engine <i> ...': 'drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, '
                                            'drive glow anchor',
@@ -394,6 +512,7 @@ if not args.no_save:
                     for n, p, s in CAMERAS],
         'closeups': [{'name': n, 'position': list(p), 'target': list(t), 'orthographic_scale': s}
                      for n, p, t, s in CLOSEUPS],
+        'forward': FORWARD,
         'shot_checks': [{'name': n, 'distance_m': m, 'lens_mm': lens, 'sensor_mm': 36,
                          'view_direction': [round(v, 3) for v in vd], 'sun_direction': [round(v, 3) for v in SUN_DIR],
                          'sun': 'asharu-battle battle_blockout.py SUN_EL 16 / SUN_AZ -40, hull heading world +X'}

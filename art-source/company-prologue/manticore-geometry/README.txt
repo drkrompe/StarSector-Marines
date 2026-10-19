@@ -1,4 +1,4 @@
-MANTICORE (P) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 SCALE)
+MANTICORE (P) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 SCALE, 6 LIGHT LIVERY; REVIEW ROUND 2)
 
 Purpose
 A scripted Blender model of the vanilla Manticore in its pirate skin for the
@@ -25,28 +25,120 @@ centre, so slot and engine XY are used unchanged. Sprite column c, row r
 (from the top) covers X 86-r..87-r and Y 81-c..82-c. Heights are proposed
 art; the game gives none.
 
-Scale (pass 4): 0.66 m per unit
+Scale (pass 4): 0.59 m per unit
 Published through the shared sizing basis, ../ship_scale.py (owner's option C),
 never set here: METRES_PER_UNIT in build_manticore.py reads
 ship_scale.PUBLISHED and geometry.json's 'scale' is ship_scale.record('Manticore (P)').
 Inputs: 80 crew, 80 cargo, 50 fuel, destroyer class. Enclosed volume is the
 union of ship_scale.SOLIDS['manticore']: bow head, neck, core, wing body, aft
-body, ventral keel and command dome (drive cans, gun pods, launcher housings,
-armour plates and weapons excluded): 163,199 units3. That solves to 0.665
-(range 0.645-0.685), published as 0.66: 100 m long, 106 m across the gun
-pods, 25 m keel to gun top. Against known ships: 1.6 Hounds (61 m) long, 0.93
-of a Colossus (108 m). The battle roster's plan-area estimate was 96 m. A
-1.8 m person is 2.7 units. The driver re-measures the union on every build and
-fails if it drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m)
-and the dome's glazed band (1.1 m) are sized in true metres.
+body, ventral keel, bridge plinth and dome (drive cans, gun pods, launcher
+housings, armour plates and horns, and weapons excluded): 310,119 units3 after
+review round 5 (294,878 at rounds 3-4, published 0.54; 158,541 at round 1).
+That solves to 0.594, published as 0.59: 91 m long, 95 m across the gun pods,
+33 m keel to mast. Against known ships: 1.5 Hounds (61 m) long, 0.84 of a
+Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m person is
+3.1 units. The driver re-measures the union on every build and fails if it
+drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
+dome's glazed band (1.1 m) are sized in true metres.
+
+Owner review round 6 (2026-10-19)
+"Remove the hockey pucks from the two harpoon pods", "the arm ends are oddly
+cylinderish", "the front needs cohesion work", "angular armor ... reminiscent
+of the Onslaught"; the stern was accepted. The Harpoon hardpoints never train,
+so they get no barbette and no kit turntable: each rack stands on its pocket
+floor (mt_mounts). The octagonal gun pods are now faceted nacelles lofted to a
+point forward, with a raked red flank plate and a chevron glacis on the nose.
+One red armour strake a side now runs from the core down the neck and wraps
+the head to the beak's tip, where the two converge (replacing the separate
+horns, neck rails and prow block), and a thick raked red plate armours each
+arm's root leading edge. All six mounts still bear dead ahead and 10 deg below
+ahead; 0.59 m/u stands (228,901 units3).
+
+Owner review round 5 (2026-10-19)
+"The missile pods ... inset into the hull", "the back near the engines less
+blocky", "the central underside too fat ... slender ... lean into this
+downward angling ... to get more guns onto targets ahead". The raised
+launcher housings and cheeks are gone: each Harpoon rack sits 4 units down a
+pocket in the wing, open forward through the leading edge. The aft engine
+block is lofted through faceted sections tapering to the drive face, so the
+cans stand out of it. The core's underside is a slender V (keel a quarter of
+the beam, no deeper than -18; the ventral blade a thin fin to -22), and the
+wings fall 0.50 per unit outboard of |Y| 46. All six mounts bear dead ahead
+and 10 deg below ahead (geometry.json forward.bearing_dead_ahead). The slimmer
+belly moved the scale: 228,776 units3 solves 0.594, published 0.59 (was 0.54):
+91 m long.
+
+Owner review round 4 (2026-10-19)
+"The neck is still angled up? ... The central hull can go down." Round 3
+bent only the beak; now the whole forward hull bends down from just ahead of
+the bridge (mt_hull.NOSE_DROOP: 0.10 per unit forward of X 10, 0.32 forward of
+X 62), core front, gun pit, neck, wing leading parts, pods, launcher housings
+and head alike, so the line runs downhill from the bridge to the beak. Turret
+rings stay level. Bridge eye clear to 4 deg down dead ahead, 9-14 deg on every
+other bearing; all six mounts still bear dead ahead. Volume 294,597 units3;
+0.54 m/u stands.
+
+Owner review round 3 (2026-10-19)
+"Lower the nose ... the wings tapering downward ... a bird of prey", and
+"you raised the bridge higher" (round 2's command tier was a taller bridge,
+the one answer the owner had ruled out). The head, horns, prow, crossbar,
+neck and rails bend down 0.30 per unit forward of X 62 (mt_hull.droop; the
+bow ring stands level on it); the wing deck falls 0.16 per unit outboard of
+|Y| 24 and 0.42 outboard of |Y| 46, so the arms bend down to low gun pods.
+The bridge is back on a low raked plinth at the core deck (eye Z 19.9, its
+round-1 height); instead the Hellbore sits 7.4 units down a 17.5-radius pit
+with the deck ahead of it falling to 9.5, so its roof (17.8) is under the
+eye. Measured (geometry.json 'forward'): dead ahead clear to 3 deg down,
+6-11 deg down on every other bearing to 90 deg either side; the bow gun is
+behind the Hellbore's barrel; all six mounts still bear dead ahead.
+Enclosed volume 294,878 units3 solves 0.546, published 0.54 unchanged.
+Round 2 below is kept for its lofted sections; its command tier is gone.
+
+Owner review round 2 (2026-10-19)
+"Comically big central turret", "a thin ship ... flying wings", "what does
+the captain see?", "does NOT need to be one flat surface", "can push hull
+down". Head, neck and core are lofted through faceted sections (flat deck only
+under a turret ring, sloped shoulders and lower faces) reaching to -22, with a
+faceted ventral blade to -30. The neck is a glacis climbing from the bow gun's
+deck to the main gun's; the deck drops in a step ahead of the main gun, which
+is sunk in a 4.4-unit well. A raked command tier lifts the dome and glazing,
+and the arms droop 9 deg outboard. The driver measures both owner questions on
+the built geometry and records them in geometry.json 'forward': the bridge
+eye sees clear to 10.75 deg down, then the bow gun over the Hellbore's roof
+(the bridge-eye camera renders that view); all six mounts trained to 0 deg
+have a clear muzzle ray dead ahead (--ahead poses the review renders that
+way). IoU 0.946.
+
+Owner review round 1 (2026-10-19)
+"Very flat surfaces", "the central turret is comical", "a better
+interpretation for the front head". WS 000 now carries a Hellbore (owner's
+choice) instead of the kit's Mark IX; the core deck is crowned (shoulders
+falling 22 deg outboard of the turret ring, aft deck falling 14 deg), the wing
+plates carry forward bevels and an outboard fall, wing and pod undersides
+are deeply chamfered, the pods carry red armour collars on their outboard
+halves; the bow head is a gunmetal frame round the WS 002 ring with two red
+armour horns wrapping its forward shoulders, a red crossbar behind the ring,
+a raked grey prow block, and long red rails down the neck. IoU 0.946 (the
+horns wrap a cell past the head's side walls).
 
 Detail (pass 2)
 The wing is a gunmetal structure carrying three raised red armour plates a
 side, a dark strake down each swept trailing edge and a spar to each gun pod;
 tan sensor domes at the wing roots; neck ribs between red cheek strips; a
 segmented collar round the Mark IX; the command dome's glazed band, visor
-brow, mast and dish; core flank viewports; aft heat vents; canister-flak
+brow, mast and dish; crew-deck viewports down the command tier; aft heat vents; canister-flak
 hatches at the four hidden system slots (mt_detail.py).
+
+Livery (pass 6, light)
+The pirate skin as procedural weathered paint (mt_kit.livery): the shared
+turret kit's paint tree (turret_kit.paint_material: low mottle, edges chipped
+to primer and steel, grime in crevices), plus per-plate shade variation
+(Object Info random) for patched, re-sprayed armour and streaked grime on
+object coordinates, the "poorly maintained" of manticore_pirates.skin. Blood
+red armour, painted brown gunmetal, grey plate, pale command dome. Nothing to
+pack; the guns keep their own sprite paints. Like the Lasher, this is the
+light pass for a hull seen at 1.5-4 km; Codex part skins only if a shot
+brings her closer.
 
 Files
 build_manticore.py (driver), mt_kit.py, mt_hull.py, mt_engines.py,
@@ -55,7 +147,7 @@ shot extents, review set; Python + Pillow + numpy), geometry.json.
 
 Rebuild from this folder (outputs go to build/manticore/, never tracked)
 sh ../../blender.sh --background --factory-startup --python build_manticore.py -- \
-    --views top,three-quarter,port-side,front,stern,details,shot --manifest
+    --views top,three-quarter,port-side,front,stern,details,shot,bridge-eye --manifest [--ahead]
 python compose_review.py --manifest [--review DIR]
 
 Shipping

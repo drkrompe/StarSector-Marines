@@ -58,23 +58,23 @@
   },
   "bay-floor-port": {
    "gunmetal": {
-    "share_as_declared": 0.893,
+    "share_as_declared": 0.892,
     "share_in_declared_family": 0.998,
     "swap": false,
     "before_mean_lab": [
-     42.72,
-     0.47,
-     1.05
+     42.7,
+     0.48,
+     1.06
     ],
     "after_mean_lab": [
      46.45,
      1.05,
      1.83
     ],
-    "dE_to_palette_before": 3.86
+    "dE_to_palette_before": 3.87
    },
-   "ramp_span_L_removed_max": 1.28,
-   "edge_band_dL_after_mean": 1.77
+   "ramp_span_L_removed_max": 1.09,
+   "edge_band_dL_after_mean": 2.01
   },
   "bay-davit-head-port": {
    "gunmetal": {

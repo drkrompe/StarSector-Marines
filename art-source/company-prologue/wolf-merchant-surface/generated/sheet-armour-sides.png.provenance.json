@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1568d-d563-77b3-8fbf-43b19000c8ab",
+  "source": "/Users/dillon/.codex/generated_images/01a1568d-d563-77b3-8fbf-43b19000c8ab/exec-4761143d-d7f2-4130-8355-a18793115aaa.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/wolf-merchant-surface/generated/sheet-armour-sides.png",
+    "sha256": "ff426c53a032d8b05b3bb06c3a9f783daa8e00b474d93eed8e54d91fa95f6394",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/wolf-merchant-surface/prompts/sheet-armour-sides.prompt.txt",
+  "promptSha256": "2bbe0b5524a7de341a92949a4ebf9431e9649804309d85c6018b3f7d578da827",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (an independent Wolf-class frigate, a fast high-tech warship serving as a merchant convoy's escort), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background. Colour key: \"pale\" is a pale cool blue-grey armour enamel; \"grey\" is a warm mid-grey painted machinery steel.\ntop-left: a small rounded pale armour face seen square-on;\ntop-right: the neck flank seen from port: a long pale armour side with a rounded flank bulge;\nbottom-left: the aft body flank seen from port: a pale armour side;\nbottom-right: the main body underside seen from directly below: a broad pale armour belly with chamfered edges.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its clean working finish, its seam, fastener and wear treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or cut-out in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of small fasteners, flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: pale areas stay a pale cool blue-grey enamel (not white, not green); grey areas stay warm mid-grey steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches, no repair plates.\n- Wear: a well-run working escort: light and EVEN across each whole shape: faint scuffs on plate edges, a thin film of grime in the seams. No rust, no soot, no scorch marks, no burns, no dents, no holes, no large stains, and no single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/wolf-merchant-surface/guide/sheet-armour-sides-guide.png",
+      "sha256": "d6a79c1812948c83ef8afe0b5451cd8a391debc7ddd0fc576f51a5c5f1f8d4bd",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of faces to paint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/wolf-merchant-surface/reference/finish-reference.png",
+      "sha256": "d849b8aed48d5b60cebe0be0c45e91ac5e73a3355abadb34f845a001133bbd9e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed layout and Image 2 only as the finish reference, keeping all surface detail within the existing outlines."
+  ],
+  "usage": {
+    "input_tokens": 46462,
+    "cached_input_tokens": 37504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 631,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 33.2
+}

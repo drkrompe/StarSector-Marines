@@ -2,7 +2,8 @@
 hardpoints, four hidden system mounts.
 
 Weapons follow the manticore_pirates_Support variant (the pirate long-range
-fit): a Mark IX autocannon on the large WS 000, Harpoon pods on the medium
+fit), except the large WS 000, which carries a Hellbore (owner, round 1: the
+kit's Mark IX read as comical on this mount), Harpoon pods on the medium
 missile hardpoints WS 004 / WS 005, light assault guns on WS 001 / WS 003 and
 a light needler on the bow WS 002. The shared turret kit
 (../turret-kit/turret_kit.py) builds them; it has no light assault gun or
@@ -44,16 +45,16 @@ SLOTS = [
     {'id': 'WS 008', 'location': (-19, 40), 'angle': 135, 'arc': 5, 'mount': 'HIDDEN', 'size': 'SMALL', 'type': 'SYSTEM'},
     {'id': 'WS 009', 'location': (-19, -40), 'angle': 225, 'arc': 5, 'mount': 'HIDDEN', 'size': 'SMALL', 'type': 'SYSTEM'},
 ]
-# manticore_pirates_Support, with the kit's stand-ins named.
-WEAPON = {'WS 000': 'mark9', 'WS 001': 'lightac', 'WS 002': 'needler', 'WS 003': 'lightac',
+# manticore_pirates_Support, with the kit's stand-ins named; WS 000 by the owner's choice.
+WEAPON = {'WS 000': 'hellbore', 'WS 001': 'lightac', 'WS 002': 'needler', 'WS 003': 'lightac',
           'WS 004': 'harpoonpod', 'WS 005': 'harpoonpod'}
 VARIANT_WEAPON = {'WS 000': 'mark9', 'WS 001': 'lightag', 'WS 002': 'lightneedler', 'WS 003': 'lightag',
                   'WS 004': 'harpoonpod', 'WS 005': 'harpoonpod'}
 # Ring radii read off the sprite's turret rings (hull units).
-RING = {'WS 000': 13.0, 'WS 001': 7.0, 'WS 002': 6.0, 'WS 003': 7.0, 'WS 004': 7.5, 'WS 005': 7.5}
+RING = {'WS 000': 8.5, 'WS 001': 7.0, 'WS 002': 6.0, 'WS 003': 7.0, 'WS 004': 7.5, 'WS 005': 7.5}
 LAUNCHERS = ('harpoonpod',)
 SW_HOUSE = 2.5     # the VFX kit's reference: the Second Wind's small mount radius, units
-GUN_FLASH = {'mark9': .7, 'lightac': .55, 'needler': .45}   # share of the ring a barrel's flash spans
+GUN_FLASH = {'hellbore': .7, 'mark9': .7, 'lightac': .55, 'needler': .45}   # share of the ring a barrel's flash spans
 MISSILE_BODY = 2.2  # the VFX kit's missile body length at scale 1, units (swfx_guns; as legion-cinematic)
 TURRETS = []       # records for geometry.json
 ANCHOR_Z = {}
@@ -115,21 +116,39 @@ def mount(kit, i, slot):
     others = {o.name: _tree(o, dg) for o in bpy.context.scene.objects
               if o.type == 'MESH' and not o.name.startswith(f'Weapon {sid} ')
               and abs(o.location.x) < 1e6 and (Vector((x, y, 0))-o.matrix_world.translation).length < 200}
-    lift = .2*r
+    # A hardpoint never trains, so it needs no barbette (owner, round 6: no
+    # "hockey pucks" under the Harpoons): its rack stands on the pocket floor.
+    hard = slot['mount'] == 'HARDPOINT'
+    lift = .3 if hard else .2*r
     for _ in range(30):
-        barb = tk.barbette(f'Weapon {sid} barbette', r, lift, _mats(kit), kit.mpu, foot=foot,
-                           location=(x, y, seat))
+        barb = None if hard else tk.barbette(f'Weapon {sid} barbette', r, lift, _mats(kit), kit.mpu, foot=foot,
+                                             location=(x, y, seat))
         pivot = kit.empty(f'Weapon {sid} pivot', (x, y, seat+lift), slot['angle'], size=.6*r, kind='SINGLE_ARROW')
         t = tk.build(weapon, f'Weapon {sid}', pivot, r, _mats(kit), kit.mpu)
-        bad = _clashes(t['parts'], {n: v for n, v in others.items() if n != barb.name and not n.startswith(barb.name)})
+        bad = _clashes(t['parts'], {n: v for n, v in others.items()
+                                    if not barb or (n != barb.name and not n.startswith(barb.name))})
         if not bad:
             break
         print(f'mount {sid}: lift {lift:.2f} clashes {sorted(bad)}')
-        for ob in [barb, pivot]+list(barb.children_recursive)+list(pivot.children_recursive):
+        for ob in [o for o in (barb, pivot) if o]+(list(barb.children_recursive) if barb else [])+list(pivot.children_recursive):
             if ob.name in bpy.data.objects:
                 bpy.data.objects.remove(ob, do_unlink=True)
         lift += .4
-    kit.hull.append(barb)
+    if barb:
+        kit.hull.append(barb)
+    else:
+        # A hardpoint's rack needs no turntable: drop the kit's round house and
+        # lower the rack onto the pocket floor.
+        house = [o for o in t['parts'] if o.name.startswith(f'Weapon {sid} house')]
+        t['parts'] = [o for o in t['parts'] if o not in house]
+        for ob in house:
+            bpy.data.objects.remove(ob, do_unlink=True)
+        bpy.context.view_layer.update()
+        low = min((o.matrix_world @ Vector(c)).z for o in t['parts'] if o.type == 'MESH' for c in o.bound_box)
+        dz = low-(seat+.05)
+        pivot.location.z -= dz
+        lift -= dz
+        bpy.context.view_layer.update()
     pivot['slot'] = sid
     pivot['turret'] = i
     pivot['rest_angle_deg'] = slot['angle']

@@ -62,6 +62,21 @@ CUES = {
         "another ship, rising and falling",
         6.0, False, 0.4),
     # C2: on the bridge as the Legion passes; the de-orbit burn starts at 9.6 s.
+    # The new C2 camera (c2-camera, 2026-10-19) moves on the bridge: it leans over the forward console
+    # at 1.5, steps down off the dais at 5.0 and takes four paces, squeezes past Castle at 5.55, and
+    # leans over the comms bank at 6.6.
+    "c2_steps": (
+        "First-person footsteps on a starship bridge: one heavy boot step down off a low metal step, then "
+        "four unhurried paces across a hard metal deck plate, close, interior, quiet room tone, no music",
+        2.0, False, 0.6),
+    "c2_brush_past": (
+        "Close, soft brush of a canvas flight jacket against another person's shoulder as someone squeezes "
+        "past them in a tight space, fabric rustle, interior, no voices",
+        1.0, False, 0.6),
+    "c2_console_lean": (
+        "Close, a gloved palm and forearm settling onto a metal ship console, a soft creak and faint plastic "
+        "knock, interior, no beeps",
+        1.0, False, 0.6),
     "c2_bridge_bed": (
         "Small spaceship bridge room tone, quiet electronics hum, cooling fans in consoles, faint distant "
         "engine drone, calm, no beeps, no voices, no music",

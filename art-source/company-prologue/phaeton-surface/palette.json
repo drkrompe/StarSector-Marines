@@ -1,0 +1,246 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.992)",
+ "space": "CIELAB D65",
+ "classes": {
+  "red": {
+   "pixels": 83580,
+   "mean": [
+    37.68,
+    30.32,
+    22.67
+   ],
+   "std": [
+    8.0,
+    2.0,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    26.67,
+    37.98,
+    50.22
+   ],
+   "mean_srgb": [
+    140.9,
+    66.8,
+    53.7
+   ],
+   "std_measured": [
+    9.22,
+    6.42,
+    5.01
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dome": {
+   "pixels": 30510,
+   "mean": [
+    72.84,
+    0.59,
+    7.79
+   ],
+   "std": [
+    8.0,
+    0.6,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    63.7,
+    73.83,
+    80.29
+   ],
+   "mean_srgb": [
+    186.0,
+    177.9,
+    164.6
+   ],
+   "std_measured": [
+    6.53,
+    0.55,
+    1.29
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "slate": {
+   "pixels": 64074,
+   "mean": [
+    46.19,
+    -1.5,
+    -8.0
+   ],
+   "std": [
+    8.0,
+    0.8,
+    1.5
+   ],
+   "L_p10_p50_p90": [
+    30.35,
+    44.44,
+    64.93
+   ],
+   "mean_srgb": [
+    103.4,
+    110.5,
+    115.2
+   ],
+   "std_measured": [
+    13.02,
+    2.31,
+    3.88
+   ],
+   "note": "chroma owned toward the independent escorts' slate accent",
+   "mean_measured": [
+    46.19,
+    -1.65,
+    -3.55
+   ]
+  },
+  "cream": {
+   "pixels": 36557,
+   "mean": [
+    65.64,
+    2.85,
+    19.11
+   ],
+   "std": [
+    7.0,
+    0.6,
+    1.5
+   ],
+   "L_p10_p50_p90": [
+    53.84,
+    64.2,
+    84.29
+   ],
+   "mean_srgb": [
+    177.4,
+    156.6,
+    125.5
+   ],
+   "std_measured": [
+    14.47,
+    1.78,
+    4.12
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "gunmetal": {
+   "pixels": 82321,
+   "mean": [
+    33.65,
+    0.45,
+    0.97
+   ],
+   "std": [
+    10.0,
+    0.6,
+    1.6
+   ],
+   "L_p10_p50_p90": [
+    21.13,
+    30.4,
+    50.1
+   ],
+   "mean_srgb": [
+    80.6,
+    78.8,
+    77.6
+   ],
+   "std_measured": [
+    11.41,
+    1.48,
+    1.87
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 4999,
+   "mean": [
+    16.0,
+    0.0,
+    0.5
+   ],
+   "std": [
+    6.5,
+    0.5,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    23.81,
+    49.02,
+    53.17
+   ],
+   "mean_srgb": [
+    105.0,
+    108.5,
+    111.8
+   ],
+   "std_measured": [
+    11.25,
+    1.02,
+    1.2
+   ],
+   "note": "mean owned: thin recesses measure their neighbours",
+   "mean_measured": [
+    45.62,
+    -0.61,
+    -2.29
+   ]
+  },
+  "glass": {
+   "derived": "owned: tinted bridge glazing, dark with a faint warm cast",
+   "mean": [
+    20.0,
+    0.5,
+    2.0
+   ],
+   "std": [
+    5.0,
+    0.8,
+    1.2
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the tanker class palette: what worn paint reveals and what convoy service deposits.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    4.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    34.0,
+    3.0,
+    7.0
+   ],
+   "what": "grime, fuel film and dust, warm grey-brown"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    68.0,
+    8.0,
+    9.0
+   ],
+   "what": "chalked, UV-bleached paint: faded oxide red goes toward a pale pinkish grey, not white"
+  }
+ }
+}

@@ -535,16 +535,20 @@ def carry_on():
         ob = bpy.data.objects[name]
         if ob.parent is None:
             linear(ob, extrapolate=True)
-    # The freighter lifting off berth -130 climbs away faster once it is clear; the Hermes lifting off
-    # pad -355 goes on climbing; the one landing on pad -175 stays down.
+    # The freighter lifting off berth -130 climbs away faster once it is clear, and from C5's start
+    # accelerates off along its bow (the row faces nearly north), out of the frame well before the
+    # title, which has only the Colossus in the air; the Hermes lifting off pad -355 goes on climbing;
+    # the one landing on pad -175 stays down.
     T = c4.DURATION
     lift = bpy.data.objects.get('Lifting at berth 3')
     if lift is not None:
         frames = list(range(0, end + 1, KEY_STEP))
         t = np.array(frames) / c4.FPS
+        away = np.where(t > T, 0.5 * 3.0 * (t - T) ** 2, 0.0)                # m along its bow
         z = 11.0 + 4.0 * t + np.where(t > T, 0.6 * (t - T) ** 2, 0.0)
-        x, y = np.full(len(t), lift.location.x), np.full(len(t), lift.location.y)
-        bake_pose(lift, frames, x, y, z, np.full(len(t), lift.rotation_euler.z))
+        hd = lift.rotation_euler.z
+        x, y = lift.location.x + away * math.cos(hd), lift.location.y + away * math.sin(hd)
+        bake_pose(lift, frames, x, y, z, np.full(len(t), hd))
     up = bpy.data.objects.get('Lighter 1 lifting')
     if up is not None:
         linear(up, extrapolate=True)
@@ -766,29 +770,36 @@ def add_cranes():
         slot['boxes'].append(b)
         boxes.append(b)
         return b
-    T_END = end_frame() / c4.FPS
     for ci, cr in enumerate(cranes):
         if ci == 1 or len(cr.slots) < 2:
             continue
         # Restacking: a box at a time from the tallest loose pile to the lowest, back and forth.
         loose(cr.slots[0])
         loose(cr.slots[0])
-        t = 1.0 + 3.0 * ci
-        while t < T_END:
-            src = max((s for s in cr.slots if s['boxes']), key=lambda s: (len(s['boxes']), -abs(s['x'] - cr.idle_x)))
-            dst = min((s for s in cr.slots if s is not src), key=lambda s: (s['top'] + 2.6 * len(s['boxes']),
-                                                                           abs(s['x'] - src['x'])))
-            b = src['boxes'].pop()
-            pick = (src['x'], src['y'], src['top'] + 2.6 * len(src['boxes']), 0.0)
-            drop = (dst['x'], dst['y'], dst['top'] + 2.6 * len(dst['boxes']), 0.0)
-            off, down, _ = cr.plan(t, pick, drop, b)
-            b.segments.append(('rest', down, drop))
-            dst['boxes'].append(b)
-            t = cr.busy_until + r.uniform(2.0, 6.0)
+        restack(cr, 1.0 + 3.0 * ci, r)
     loader = cranes[1]
     for s in loader.slots[:3]:
         loose(s)
     return cranes, boxes, loader
+
+
+def restack(cr, t, r):
+    """From t to the end of C5: a box at a time from the tallest loose pile to the lowest, back and forth."""
+    T_END = end_frame() / c4.FPS
+    while t < T_END:
+        piles = [s for s in cr.slots if s['boxes']]
+        if not piles or len(cr.slots) < 2:
+            return
+        src = max(piles, key=lambda s: (len(s['boxes']), -abs(s['x'] - cr.idle_x)))
+        dst = min((s for s in cr.slots if s is not src), key=lambda s: (s['top'] + 2.6 * len(s['boxes']),
+                                                                       abs(s['x'] - src['x'])))
+        b = src['boxes'].pop()
+        pick = (src['x'], src['y'], src['top'] + 2.6 * len(src['boxes']), 0.0)
+        drop = (dst['x'], dst['y'], dst['top'] + 2.6 * len(dst['boxes']), 0.0)
+        off, down, _ = cr.plan(t, pick, drop, b)
+        b.segments.append(('rest', down, drop))
+        dst['boxes'].append(b)
+        t = cr.busy_until + r.uniform(2.0, 6.0)
 
 
 def bake_cranes(cranes, boxes, truck_cars):
@@ -997,6 +1008,8 @@ def add(c4x):
         stood = np.mean([np.mean(np.diff(c.log) < 1e-3) for c in cars])
         print('PORT_LIFE route %-16s %5.0f m  cars %d  zones %d  standing %.0f%%' % (
             rt.name, rt.L, len(cars), len(zones_of(rt, occ)), 100 * stood), flush=True)
+    for cr in cranes:                           # once its last tractor is served, the loader restacks too
+        restack(cr, cr.busy_until + r.uniform(2.0, 6.0), r)
     bake_cranes(cranes, boxes, yard)
     print('PORT_LIFE gantries: moves %s; tractor stops %s' % (
         [len(c.ops) for c in cranes], [len(c.events) for c in yard]), flush=True)
@@ -1006,6 +1019,7 @@ def add(c4x):
     forklifts(r, F)
     berth_work(r, F)
     lifters(F)
+    clear_sky()
     steam()
     print('PORT_LIFE vehicles=%d boxes=%d' % (sum(len(c) for _, c, _ in sims), len(boxes)), flush=True)
 
@@ -1019,12 +1033,15 @@ def strip_traffic(r, kinds, names, F):
                           ('strip-west', ['van', 'hauler', 'box', 'van', 'box', 'tanker', 'van', 'box', 'hauler', 'van'], 11.0, 'strip westbound')):
         rt = route(name)
         spacing = rt.L / len(plan)
-        for k, kind in enumerate(plan):
-            s = k * spacing + r.uniform(-20, 20) + v * t
-            x, y, h = rt.at(s)
-            gone = s > rt.L - 5
+        # Enough of them, queued up beyond the west end too, that the stream keeps coming the whole shot.
+        n = len(plan) * math.ceil((rt.L + v * t[-1]) / rt.L)
+        for k in range(n):
+            kind = plan[k % len(plan)]
+            s = k * spacing - v * t[-1] + r.uniform(-20, 20) + v * t
+            x, y, h = rt.at(np.clip(s, 0.0, rt.L))
+            off = (s < 0) | (s > rt.L - 5)
             root = make('%s %s %d' % (names[kind], tag, k), kinds[kind](r))
-            z = np.where(gone, -50.0, 0.0)         # driven off the belt's end: put away under the ground
+            z = np.where(off, -50.0, 0.0)          # not yet on the belt, or driven off its end: under the ground
             bake_pose(root, frames, x, y, z, h)
 
 
@@ -1204,6 +1221,37 @@ def lifters(F):
     z = np.where(t < t0, -60.0, 2.5 + 200.0 * (1 - u) ** 1.6)
     craft(e, z, 2.2)
     dust(e.location.x, e.location.y, t1 - 1.8, 26.0, 18, 'Lift dust hermes return')
+
+
+CLIMBERS = ('Lighter 6 parked', 'Lighter 1 lifting')   # 'Lifting at berth 3' is port_fleet's to fly out
+SKY_HIDE_Z = 300.0       # well above C5's 220 m camera, which holds from C5 4 s to 18 s
+SKY_WINDOW = (4.0, 17.5)
+
+
+def clear_sky():
+    """The owner wants the Colossus the only ship in the air under the title, so each craft still
+    climbing out of the port is put away once it is above C5's low camera, out of sight, before the
+    rise could find it again."""
+    C4E = c4.FRAMES - 1
+    f0, f1 = (C4E + round(w * c4.FPS) for w in SKY_WINDOW)
+    for name in CLIMBERS:
+        ob = bpy.data.objects.get(name)
+        if ob is None:
+            continue
+        zs = track(ob, list(range(f0, f1 + 1)))[:, 2]
+        above = np.nonzero(zs > SKY_HIDE_Z)[0]
+        f = f0 + int(above[0]) if len(above) else f1
+        parts = [ob] + list(ob.children_recursive) + [o for o in bpy.data.objects if o.name.startswith(name + ' ')]
+        for o in parts:
+            for frame, hidden in ((0, False), (f, True)):
+                o.hide_render = hidden
+                o.keyframe_insert('hide_render', frame=frame)
+            for fc in fcurves(o):
+                if fc.data_path == 'hide_render':
+                    for k in fc.keyframe_points:
+                        k.interpolation = 'CONSTANT'
+        print('PORT_LIFE sky: %s put away at C5 %.1f s, %.0f m up%s' % (
+            name, (f - C4E) / c4.FPS, zs[f - f0], '' if len(above) else ' (BELOW the camera: may show)'), flush=True)
 
 
 def dust(x, y, ts, reach, n, name):

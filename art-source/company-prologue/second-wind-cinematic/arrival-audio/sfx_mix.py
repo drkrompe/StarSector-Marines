@@ -35,9 +35,9 @@ DIALOGUE_LUFS = -19.0
 # fresh worktree may need --hail pointing at a checkout that has built it).
 HAIL = ROOT / "mod/sounds/story/jangala-arrival"
 # Castle's review takes (record_castle_lines.py treat): the owner's "a" takes from the review set.
-CASTLE = {"entry": "entry_t06", "c4_reels": "c4_reels_t06", "c4_greywater": "c4_greywater_t01",
-          "c4_kilo_nine": "c4_kilo_nine_t01",
-          "c5_announce": "c5v3_announce_t01", "c5_last": "c5v3_last_t01"}
+# The owner's script of 2026-10-19 (record_castle_lines.py v4): a stop, not a home.
+CASTLE = {"entry": "v4_entry_t02", "c3_reels": "v4_c3_reels_t03", "c4_yard": "v4_c4_yard_t02",
+          "c5_announce": "v4_c5_announce_t01", "c5_last": "v4_c5_last_t03"}
 LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice band
 
 # Picture sketches: the newest review video of each shot, as of the cue sheet's date.
@@ -45,9 +45,11 @@ DRIVE = Path("G:/My Drive/starsector/review")
 PICTURES = {
     "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
-    "c2": DRIVE / "cinematic-c2/2026-10-19_castle-and-posts_windows/02-castle-thin-posts.mp4",
-    "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
-    "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
+    "c2": DRIVE / "cinematic-c2/2026-10-19_camera-chosen-sketch_windows/01-c2-bridge-sketch.mp4",
+    # The entry and C3 through one window (entry-and-c3, 2026-10-19): one 23 s sketch, the entry its
+    # first 7 s and C3 the 16 s after. A (path, start) picture plays from that second.
+    "entry": DRIVE / "cinematic-entry/2026-10-19_one-window_windows/07-entry-into-c3.mp4",
+    "c3": (DRIVE / "cinematic-entry/2026-10-19_one-window_windows/07-entry-into-c3.mp4", 7.0),
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
     "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_slower-approach_windows/01-c4c5-slower-approach-1fps.mp4",
 }
@@ -102,7 +104,11 @@ SHOTS = {
         sfx("c1_cabin_bed", 0.0, -16, until=37.7, env=[(0, -2), (2.6, 6), (3.1, 0)], fade_in=1.0),
         # Second Wind's drive as bass: far at first, loudest as it passes and its engines face us.
         # Second Wind's drive as a muffled heavy rocket, synthesised from its lane (owner, 2026-10-19).
-        synth("second_wind_pass", -10, fade_in=2.0),
+        # Its pass is the shot's moment (owner, 2026-10-19: "around 10 s ... I don't hear the engine"):
+        # it swells 8 dB as it brakes past the camera, 9.5-12.5. It is nearly all below 500 Hz, so it
+        # can come up under Approach's narrow 500-2200 Hz radio voice without covering the words.
+        synth("second_wind_pass", -10, fade_in=2.0,
+              env=[(0, 0), (7.0, 0), (9.5, 8), (12.5, 8), (15.0, 2), (20.0, 0)]),
         sfx("c1_hull_creaks", 0.5, -12, offset=0.5, until=3.0),
         sfx("c1_hull_creaks", 32.2, -12, offset=0.5, until=34.5),
         sfx("c1_rcs_puffs", 5.0, -14, until=7.0),
@@ -124,6 +130,13 @@ SHOTS = {
         # The Legion's engines: two synthesised rocket clusters along the hull, a beat apart.
         synth("legion_drives", -7, fade_in=1.0),
         synth("legion_forward", -9, fade_in=1.0),
+        # The camera moves on the bridge (c2-camera, 340 m pass): leaning on the forward console at
+        # 1.5, the step down off the dais at 5.0 and four paces, brushing past Castle at 5.55, and
+        # leaning in over the comms bank at 6.6.
+        sfx("c2_console_lean", 1.47, -16),
+        sfx("c2_steps", 4.95, -14),
+        sfx("c2_brush_past", 5.33, -18),
+        sfx("c2_console_lean", 6.57, -17),
         sfx("c2_switch_clicks", 9.45, -12, until=9.8),
         sfx("c2_switch_clicks", 14.35, -12, offset=3.0, until=14.8),
         # Second Wind's own drive heard from its bridge, lighting for the de-orbit burn at 9.6 s.
@@ -156,18 +169,18 @@ SHOTS = {
         # The world below, through the glass: muffled, and in once the shaking has gone.
         sfx("c3_nature_muffled", 4.0, -16, until=16.0, af="lowpass=f=1800:p=2", fade_in=2.5),
         sfx("c3_river_muffled", 4.0, -18, until=16.0, af="lowpass=f=1200:p=2", fade_in=3.0),
-        voice(("castle", CASTLE["c4_reels"]), 7.0),
+        voice(("castle", CASTLE["c3_reels"]), 7.0),
     ]),
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
-    "c4c5": (C4_LENGTH + 33.5, [
+    "c4c5": (C4_LENGTH + 40.0, [   # C5 is 40 s (owner: linger on the title, more of the port)
         sfx("c3_cabin_flight_bed", 0.0, -16, until=1.0, fade_out=1.0),
         sfx("c4_high_wind_bed", 0.0, -14, until=20.4, loop=True,
             env=[(0, 0), (13.4, 0), (16.4, -6), (20.4, -14)], fade_in=0.6),
         sfx("c4_ground_distant", 0.0, -18, until=11.0, loop=True, fade_out=2.0),
-        sfx("c4_freeway", 1.0, -12, until=53.9, fade_in=1.0,
-            env=[(1, -6), (4, 0), (13.4, -4), (17.4, -10), (39.4, -10), (47.4, -2), (53.9, -30)]),
-        sfx("c4_port_heavy", 3.5, -12, until=53.9, fade_in=1.5,
-            env=[(3.5, -10), (7, 0), (21.4, -2), (25.4, -6), (35.4, -6), (39.4, -5), (47.4, 2), (53.9, -30)]),
+        sfx("c4_freeway", 1.0, -12, until=60.9, fade_in=1.0,
+            env=[(1, -6), (4, 0), (13.4, -4), (17.4, -10), (39.4, -10), (47.4, -2), (59.4, -4), (60.9, -30)]),
+        sfx("c4_port_heavy", 3.5, -12, until=60.9, fade_in=1.5,
+            env=[(3.5, -10), (7, 0), (21.4, -2), (25.4, -6), (35.4, -6), (39.4, -5), (47.4, 2), (59.4, 0), (60.9, -30)]),
         sfx("c4_port_ambience", 5.0, -18, until=39.4, fade_in=2.5, fade_out=2.0),
         # The landing (c4x_scene, 2026-10-19): the approach runs under both of Castle's lines,
         # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
@@ -178,20 +191,21 @@ SHOTS = {
         # its ignition whump at 10.0, grit, the touchdown, the burner shutdown and the settling dust.
         # The roar carries its own low end, so the drive drops 4 dB under it from 12.0.
         synth("second_wind_c4_drive", -12, env=[(0, -4), (10.9, -4), (12.0, -4), (16.4, -4)]),
-        # The lift jets: a medium thruster close (owner, 2026-10-19, from the auditions), in place of
+        # The lift jets: the heavy generated burn, muffled (owner, 2026-10-19), in place of
         # synth_landing's roar; its grit, touchdown, shutdown and settling stay.
-        synth("second_wind_c4_lift", -4, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
+        synth("second_wind_c4_lift", -7, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
         landing("landing_grit", -11),
         landing("landing_thump", -2),
         landing("landing_spool", -8),
         landing("landing_settle", -14),
-        sfx("c5_yard_bed", 17.4, -14, until=54.9,
-            env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
-        # A second Colossus leaving low past Kilo Nine (port_fleet 'Colossus outbound'), closest at
-        # C5 18-19.5, then climbing away under the title; kept under the music and the title.
-        synth("colossus_outbound", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -4)]),
-        voice(("castle", CASTLE["c4_greywater"]), 0.5),
-        voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
+        sfx("c5_yard_bed", 17.4, -14, until=61.4,
+            env=[(17.4, 0), (39.4, 0), (47.4, -8), (59.4, -10), (60.9, -30)], fade_in=2.0),
+        # The Colossus at the heavy berth lifting out (port_fleet): lift jets from C5 12, off the deck
+        # at 15 with its dust, mains lit at 19.5 as it turns south-west and climbs away. Kept under the music and title.
+        synth("colossus_lift", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
+        synth("colossus_mains", -12, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
+        # One line, done before the landing burn at 9.5 (owner: C4 is too short for more).
+        voice(("castle", CASTLE["c4_yard"]), 1.0),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
         # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
@@ -208,13 +222,14 @@ SHOTS = {
         sfx("c5_steam_vent", 4.0, -14, until=6.5),
         sfx("c5_steam_vent", 6.4, -16, until=8.6),
         sfx("c5_pa_click", 4.75, -10, until=5.2),
-        sfx("c5_pa_click", 13.8, -10, until=14.25),
+        sfx("c5_pa_click", 12.05, -10, until=12.5),   # the announcement ends at 11.95
         sfx("c5_ramp_drop", 5.6, -8),
         # From 220 m up the families are a far murmur, not footsteps (owner, 2026-10-19).
         sfx("c5_crowd_murmur", 8.5, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
             fade_in=2.0, fade_out=3.0),
-        sfx("c5_port_wide", 17.0, -5, offset=5.0, until=33.5,
-            env=[(17, -12), (26, 0), (28, 0), (32.5, -40)], fade_in=1.0),
+        # The port at work through the title's hold, out with the picture's fade to black (38-39.5).
+        sfx("c5_port_wide", 17.0, -5, offset=5.0, until=40.0,
+            env=[(17, -12), (26, 0), (37.5, 0), (39.5, -40)], fade_in=1.0),
         voice(("castle", CASTLE["c5_announce"]), 5.0),
         voice(("castle", CASTLE["c5_last"]), None, ends=24.0),
     ], C4_LENGTH)),
@@ -331,8 +346,9 @@ def mix(shot, picture, dirs, chosen, out, extra=(), tag=None):
     write(effects, out / (name + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
     video = out / (name + ".mp4")
     parts = picture if isinstance(picture, list) else [picture] if picture else []
-    if parts and all(part.exists() for part in parts):
-        inputs = [arg for part in parts for arg in ("-i", str(part))]
+    parts = [part if isinstance(part, tuple) else (part, 0.0) for part in parts]
+    if parts and all(part.exists() for part, _ in parts):
+        inputs = [arg for part, at in parts for arg in ("-ss", "%.3f" % at, "-i", str(part))]
         graph = "".join("[%d:v]fps=24,scale=1920:1080,setsar=1[v%d];" % (i, i) for i in range(len(parts)))
         graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
         subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
@@ -417,20 +433,21 @@ def player_kit(scores, pictures, dirs, chosen, out, width=960, repicture=False):
     for shot in ARRIVAL:
         picture = pictures.get(shot)
         picture = picture[0] if isinstance(picture, list) else picture
+        picture, at = picture if isinstance(picture, tuple) else (picture, 0.0)
         if not (picture and picture.exists()):
-            picture = FALLBACK_PICTURES.get(shot)
-        parts.append((picture, SHOTS[shot][0]))
-    inputs = [arg for picture, _ in parts for arg in ("-i", str(picture))]
+            picture, at = FALLBACK_PICTURES.get(shot), 0.0
+        parts.append((picture, SHOTS[shot][0], at))
+    inputs = [arg for picture, _, at in parts for arg in ("-ss", "%.3f" % at, "-i", str(picture))]
     graph = "".join("[%d:v]fps=12,scale=%d:%d,setsar=1,tpad=stop_mode=clone:stop_duration=120,"
                     "trim=duration=%.3f,setpts=PTS-STARTPTS[v%d];" % (i, width, width * 9 // 16, length, i)
-                    for i, (_, length) in enumerate(parts))
+                    for i, (_, length, _) in enumerate(parts))
     graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
     subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", graph, "-map", "[v]",
                     "-c:v", "libx264", "-preset", "veryfast", "-crf", "30", "-pix_fmt", "yuv420p",
                     "-movflags", "+faststart", "-an", "-t", "%.3f" % (len(whole) / SR), str(out / "picture.mp4")],
                    check=True)
     print("player kit %5.1fs  %d tracks  pictures: %s" % (
-        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _ in parts)), flush=True)
+        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _, _ in parts)), flush=True)
 
 
 BEDS = set()

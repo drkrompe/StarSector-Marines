@@ -694,8 +694,78 @@
   }
  ],
  "sparking": [],
- "lamps_lit": 13,
+ "lamps_lit": 20,
  "lamps": [
+  {
+   "object": "Bridge ceiling lamp",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    13.2,
+    -1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge ceiling lamp.001",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    13.2,
+    1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge overhead panel lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.5,
+    0.0,
+    19.94
+   ]
+  },
+  {
+   "object": "Bridge port chamfer console status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.66,
+    3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge port comms bank status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    12.72,
+    4.5,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard chamfer console status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.66,
+    -3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard systems bank status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    12.78,
+    -4.5,
+    18.54
+   ]
+  },
   {
    "object": "Command deck running light",
    "material": "Port running light",
@@ -4568,10 +4638,10 @@
   "Turret 3 optics blister": "sp-turret-3",
   "Turret 3 optics lens": "sp-turret-3"
  },
- "left_out_objects": 117,
- "objects": 942,
- "polygons": 174953,
- "baked_meshes": 832,
+ "left_out_objects": 118,
+ "objects": 1098,
+ "polygons": 207001,
+ "baked_meshes": 870,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4632,7 +4702,30 @@
   "untouched": [
    "Actuator rod chrome",
    "Bay work lights",
+   "Bridge annunciator",
+   "Bridge cable loom",
+   "Bridge ceiling lamp",
+   "Bridge console casing",
+   "Bridge console face",
+   "Bridge console hardware",
+   "Bridge console knob",
+   "Bridge deck plating",
+   "Bridge display",
+   "Bridge harness webbing",
+   "Bridge hatch gasket",
+   "Bridge interior lining",
+   "Bridge jury-rig cable",
+   "Bridge jury-rig salvaged casing",
+   "Bridge jury-rig tape",
+   "Bridge jury-rig wear",
+   "Bridge label plate",
+   "Bridge lining seam",
+   "Bridge safety nosing",
+   "Bridge seat padding",
    "Bridge smoked viewport glazing",
+   "Bridge status lamp",
+   "Bridge tread plate",
+   "Bridge vent grille",
    "Bridge viewport glazing",
    "Davit position light green",
    "Drive bell heat",
@@ -4708,5 +4801,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "774554db5168fb84007b72e6a3be63172abd4d3b78e3062280a1b1907e87c78e"
+ "asset_sha256": "e2765bb5bb576224db000463504382b42d9b0aa3fd61bca1e20ddbfb054606c3"
 }

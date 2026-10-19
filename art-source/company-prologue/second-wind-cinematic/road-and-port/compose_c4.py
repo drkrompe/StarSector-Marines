@@ -26,7 +26,9 @@ from PIL import Image, ImageDraw, ImageFilter
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
+sys.path.insert(1, str(BASE.parent / "arrival-audio"))
 import c4_camera as cam  # noqa: E402
+import castle_lines  # noqa: E402
 import c4_world as world  # noqa: E402
 
 ROOT = cam.ROOT
@@ -37,8 +39,6 @@ HORIZON_SKY = np.array((204, 218, 232), np.float32)
 LAYER = {L["id"]: L for L in cam.LAYERS}
 GROUND = ["L1-far", "L2-port", "L3-mid", "L4-near", "L4f-fore"]
 CARDS = BASE / "cards"
-WORDS = BASE / "c4-nessa-words.json"
-VOICE_SOUND = cam.VOICE_ID
 
 
 # ------------------------------------------------------------------ placement
@@ -404,10 +404,10 @@ def frame_image(t):
 def audio_cues():
     """(t, sound_id, volume[, until]): the shared cabin bed from C3 (first-open-sky/c3_audio.py)
     under the whole shot, but about 12 dB under her speech (C3's 0.55 sat level with it), so
-    the cut reads as the room settling as she starts; Castle's Nessa memory, in the cabin,
-    unprocessed (dialogue)."""
-    return [(0.0, "jangala_arrival_cabin_bed", 0.25, DURATION),
-            (cam.VOICE_IN, VOICE_SOUND, 1.0)]
+    the cut reads as the room settling as she starts; Castle's yard line over the intercom
+    (castle_lines.py)."""
+    return [(0.0, "jangala_arrival_cabin_bed", 0.25, DURATION)] + [
+        (c["t"], c["sound"], c["volume"]) for c in castle_lines.cues("c4")]
 
 
 def overlays():
@@ -419,31 +419,14 @@ def duration():
 
 
 def captions():
-    """[(t_in, t_out, speaker_id, catalog_line_id)]: the one take, first page in to last page out.
+    """[(t_in, t_out, speaker_id, catalog_line_id)]: Castle's yard line over its whole take.
     No text: the exporter turns the id into a strings.json key and the player pages it."""
-    pages = review_pages()
-    return [(pages[0][0], pages[-1][1], "Castle", cam.VOICE_ID)]
+    return castle_lines.captions("c4")
 
 
 def review_pages():
-    """(t_in, t_out, speaker, text) pages for the review mp4 only, paged the way C1 pages a long
-    line (at most two rows, split at sentences), each timed from the take's own word timings."""
-    sys.path.insert(0, str(BASE.parent / "corvus-approach"))
-    import c1_overlay as c1   # noqa: E402  (its paging and fonts are the shared caption style)
-    line = next(l for l in json.loads(cam.CATALOG.read_text(encoding="utf-8"))["lines"] if l["id"] == cam.VOICE_ID)
-    words = json.loads(WORDS.read_text(encoding="utf-8"))["words"]
-    pages = c1.chunks(line["text"])
-    out, i = [], 0
-    for n, page in enumerate(pages):
-        count = len(page.split())
-        first, last = words[i], words[i + count - 1]
-        i += count
-        t_in = cam.VOICE_IN + first["start"] - 0.12
-        out.append([t_in, cam.VOICE_IN + last["end"], "Castle", page])
-    for n in range(len(out)):
-        nxt = out[n + 1][0] - 0.04 if n + 1 < len(out) else DURATION
-        out[n][1] = min(nxt, out[n][1] + c1.TAIL)
-    return [tuple(round(v, 3) if isinstance(v, float) else v for v in o) for o in out]
+    """(t_in, t_out, speaker, text) pages for the review mp4 only."""
+    return castle_lines.review_pages("c4")
 
 
 def review_with_captions(img, t):
@@ -491,7 +474,7 @@ def main():
         return
     (BASE / "review").mkdir(exist_ok=True)
     n = round(DURATION * FPS)
-    print("C4 %.3f s, %d frames; voice at %.2f s" % (DURATION, n, cam.VOICE_IN))
+    print("C4 %.3f s, %d frames; voice at %.2f s" % (DURATION, n, captions()[0][0]))
     for t in STILLS:
         review_with_captions(frame_image(t), t).save(still_path(t), quality=93)
     sheet = Image.new("RGB", (1920, 1080 // 4 * 2 * 2))

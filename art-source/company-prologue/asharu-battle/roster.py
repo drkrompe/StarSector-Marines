@@ -24,13 +24,24 @@ import ship_scale  # noqa: E402
 from starsector_path import GAME_CORE  # noqa: E402
 
 # Finished cinematic builds this scene appends (build/asharu-battle/inputs/, ignored).
-#   file, collection, root, metres per unit, length m (published), main drive anchors
+#   file and manifest (append collection, root, metres per unit, engine anchors), length m.
+#   Drive sources: colossus-cinematic, shepherd builds/5860eae2b, kite-p/a48f8757b,
+#   hound-p/33114de, lasher-independent/7805d3b, hound-independent/1e91821,
+#   falcon-p/0044413fc, wolf-p/cec776a, wolf/cec776a, tarsus/750fb3374 (clean, boarded),
+#   colossus-mk3/005c3b11b.
 FINISHED = {
     'colossus': dict(file='colossus.blend', manifest='colossus-manifest.json', length_m=108.5),
     'shepherd': dict(file='shepherd.blend', manifest='shepherd-manifest.json', length_m=67.1),
-    'lasher': dict(file='lasher.blend', geometry='lasher-geometry.json', length_m=90.0),
-    'hound': dict(file='hound-skinned.blend', collection='Collection', mpu=0.88, length_m=61.0,
-                  engines=('Engine 1 exhaust anchor', 'Engine 2 exhaust anchor')),
+    'lasher': dict(file='lasher-independent.blend', manifest='lasher-independent-manifest.json', length_m=90.0),
+    'hound': dict(file='hound-independent-clean.blend', manifest='hound-independent-manifest.json', length_m=60.8),
+    'hound-p': dict(file='hound-p-pirate.blend', manifest='hound-p-manifest.json', length_m=60.8),
+    'kite-p': dict(file='kite-p.blend', manifest='kite-p-manifest.json', length_m=52.2),
+    'falcon-p': dict(file='falcon-p.blend', manifest='falcon-p-manifest.json', length_m=174.4),
+    'wolf-p': dict(file='wolf-p.blend', manifest='wolf-p-manifest.json', length_m=74.6),
+    'wolf': dict(file='wolf.blend', manifest='wolf-manifest.json', length_m=74.6),
+    'colossus-mk3': dict(file='colossus-mk3.blend', manifest='colossus-mk3-manifest.json', length_m=109.6),
+    'tarsus': dict(file='tarsus.blend', manifest='tarsus-manifest.json', length_m=94.0),
+    'tarsus-boarded': dict(file='tarsus-boarded.blend', manifest='tarsus-boarded-manifest.json', length_m=94.0),
 }
 
 # Each fleet member: key (unique in the scene), the game id (hull id, or skin file for a (P)
@@ -41,40 +52,36 @@ MERCHANT = [
          finished='colossus'),
     dict(key='morrow', game='shepherd', name='Shepherd "Morrow"', role='drone tender sailing as the convoy repair ship',
          finished='shepherd'),
-    dict(key='tarsus', game='tarsus', name='Tarsus', role='freighter: boarded and taken, the pirate prize'),
+    dict(key='tarsus', game='tarsus', name='Tarsus', role='freighter: boarded and taken, the pirate prize', finished='tarsus'),
     dict(key='mule', game='mule', name='Mule', role='armed freighter'),
     dict(key='phaeton', game='phaeton', name='Phaeton', role='the convoy tanker: hit and destroyed in the opening'),
     dict(key='buffalo-a', game='buffalo', name='Buffalo', role='small freighter'),
     dict(key='buffalo-b', game='buffalo', name='Buffalo', role='small freighter'),
     dict(key='dram', game='dram', name='Dram', role='small tanker'),
-    dict(key='enforcer', game='enforcer', name='Enforcer', role='escort lead, destroyer'),
+    dict(key='lasher-lead', game='lasher', name='Lasher', role='escort lead (the Enforcer build was dropped)',
+         finished='lasher'),
     dict(key='lasher-a', game='lasher', name='Lasher', role='escort frigate', finished='lasher'),
     dict(key='lasher-b', game='lasher', name='Lasher', role='escort frigate', finished='lasher'),
     dict(key='hound-m', game='hound', name='Hound', role='rear escort, combat freighter', finished='hound'),
-    dict(key='wolf-m', game='wolf', name='Wolf', role='point escort frigate', reuse='wolf (P)'),
+    dict(key='wolf-m', game='wolf', name='Wolf', role='point escort frigate', finished='wolf'),
 ]
 PIRATE = [
-    dict(key='falcon-p', game='falcon_p.skin', name='Falcon (P)', role='flagship, light cruiser'),
+    dict(key='falcon-p', game='falcon_p.skin', name='Falcon (P)', role='flagship, light cruiser', finished='falcon-p'),
     dict(key='colossus3', game='colossus3', name='Colossus Mk.III', role='prize ship: an armed Colossus come to take the cargo',
-         reuse='colossus'),
+         finished='colossus-mk3'),
     dict(key='manticore-p', game='manticore_pirates.skin', name='Manticore (P)', role='long-range destroyer: breaks the screen'),
-    dict(key='enforcer-p', game='enforcer_d_pirates.skin', name='Enforcer (P)', role='destroyer', reuse='enforcer (merchant escort)'),
     dict(key='buffalo2-a', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='buffalo2-b', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
-    dict(key='wolf-p-a', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column'),
-    dict(key='wolf-p-b', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column'),
-    # The Hound hull is built; only its pirate state is not. Drawn as the finished Hound with a
-    # rust tint until that state exists.
-    dict(key='hound-p-a', game='hound_d_pirates.skin', name='Hound (P)', role='frigate', finished='hound',
-         tint=(0.95, 0.5, 0.36)),
-    dict(key='hound-p-b', game='hound_d_pirates.skin', name='Hound (P)', role='frigate', finished='hound',
-         tint=(0.95, 0.5, 0.36)),
-    dict(key='kite-p-a', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle'),
-    dict(key='kite-p-b', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle'),
+    dict(key='wolf-p-a', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),
+    dict(key='wolf-p-b', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),
+    dict(key='hound-p-a', game='hound_d_pirates.skin', name='Hound (P)', role='frigate', finished='hound-p'),
+    dict(key='hound-p-b', game='hound_d_pirates.skin', name='Hound (P)', role='frigate', finished='hound-p'),
+    dict(key='kite-p-a', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle', finished='kite-p'),
+    dict(key='kite-p-b', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle', finished='kite-p'),
 ]
 # Scale references on the roster sheet: finished ships the owner knows.
 REFERENCES = [
-    dict(key='ref-hound', game='hound', name='Hound (A) 61 m', finished='hound'),
+    dict(key='ref-hound', game='hound', name='Hound 61 m', finished='hound'),
     dict(key='ref-onslaught', game='onslaught', name='Onslaught 301 m', published_m=301.0),
 ]
 

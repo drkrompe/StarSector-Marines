@@ -161,20 +161,44 @@ def _chute(x0, y0, z0, x1, y1, z1, w=.32, n=5):
 
 
 def _launcher(kit, s):
+    """A boxed 2x3 flare tube pack on a fixed saddle astride the guard arc's
+    outer rim. Built along +X at the slot, then turned to the slot angle."""
     x, y = s['location']
     p = s['prefix']
-    z = 0.0  # on the guard arc's mid-plane, at its outboard tip
     a = math.radians(s['angle'])
-    kit.box(f'{p} mounting saddle', (x, y, z+1.2), (3.0, 3.0, 2.0), kit.grey, .1).rotation_euler[2] = a
-    kit.box(f'{p} tube pack', (x, y, z+3.2), (4.0, 3.2, 2.4), kit.steel, .15).rotation_euler[2] = a
-    for i, dy in enumerate((-.8, 0, .8), 1):
-        t = kit.cylinder(f'{p} tube mouth {i}', (x+2.0*math.cos(a)-dy*math.sin(a), y+2.0*math.sin(a)+dy*math.cos(a), z+3.2),
-                         .45, .2, kit.dark, 'X', 8, 0)
-        t.rotation_euler = (0, math.pi/2, a)
-    kit.empty(f'{p} muzzle', (x+2.2*math.cos(a), y+2.2*math.sin(a), z+3.2), s['angle'])
-    kit.empty(f'{p} pivot', (x, y, z+3.2), s['angle'])
-    ANCHOR_Z[s['id']] = z+3.2
-    MUZZLES[s['id']] = (round(x+2.2*math.cos(a), 3), round(y+2.2*math.sin(a), 3), z+3.2)
+    hit = kit.surface(x-1.5*math.cos(a), y-1.5*math.sin(a))  # the arc's crown just inboard of the slot
+    z = hit[0].z if hit else 5.0
+    before = set(bpy.data.objects)
+    # Fixed saddle: base plate on the rim, a cradle, two cheeks and a bracket down the arc's outer chord.
+    kit.box(f'{p} saddle base plate', (x-1.4, y, z+.2), (4.8, 3.8, .4), kit.grey, .06)
+    kit.box(f'{p} mounting saddle', (x-1.2, y, z+.9), (3.4, 3.0, 1.0), kit.grey, .08)
+    for side, dy in (('port', 1.75), ('starboard', -1.75)):
+        kit.box(f'{p} saddle cheek {side}', (x-1.2, y+dy, z+1.6), (2.8, .3, 2.4), kit.grey, .04)
+        kit.cylinder(f'{p} saddle pin {side}', (x-1.2, y+dy*1.12, z+2.1), .4, .3, kit.steel, 'Y', 10, .02)
+    kit.box(f'{p} saddle bracket', (x-.7, y, z-2.4), (.4, 3.0, 4.6), kit.grey, .04)
+    for i, (dx, dy) in enumerate(((-3.4, -1.5), (-3.4, 1.5), (.6, -1.5), (.6, 1.5)), 1):
+        kit.cylinder(f'{p} saddle bolt {i}', (x+dx, y+dy, z+.45), .16, .14, kit.steel, 'Z', 6, 0)
+    # The pack: a box of six tubes, framed at the front, banded, with a rear junction box.
+    zp = z+1.4+1.3
+    kit.box(f'{p} tube pack', (x-1.2, y, zp), (4.4, 3.4, 2.6), kit.steel, .15)
+    kit.box(f'{p} pack front frame', (x+1.05, y, zp), (.2, 3.6, 2.8), kit.grey, .04)
+    for i, dx in enumerate((-1.0, .8), 1):
+        kit.box(f'{p} pack band {i}', (x-1.2+dx, y, zp), (.3, 3.55, 2.75), kit.grey, .03)
+    kit.box(f'{p} pack lid hinge', (x-1.3, y, zp+1.33), (3.8, .3, .1), kit.dark, 0)
+    i = 0
+    for dz in (.62, -.62):
+        for dy in (-1.05, 0, 1.05):
+            i += 1
+            kit.cylinder(f'{p} tube rim {i}', (x+1.16, y+dy, zp+dz), .5, .14, kit.steel, 'X', 12, 0)
+            kit.cylinder(f'{p} tube mouth {i}', (x+1.2, y+dy, zp+dz), .4, .14, kit.dark, 'X', 12, 0)
+    kit.box(f'{p} rear junction box', (x-3.7, y, zp-.3), (.6, 1.6, 1.2), kit.dark, .04)
+    kit.box(f'{p} firing cable conduit', (x-3.7, y, z+1.6), (.3, .3, 1.4), kit.dark, 0)
+    train(list(set(bpy.data.objects)-before), x, y, s['angle'])
+    mx, my = x+1.4*math.cos(a), y+1.4*math.sin(a)
+    kit.empty(f'{p} muzzle', (mx, my, zp), s['angle'])
+    kit.empty(f'{p} pivot', (x, y, zp), s['angle'])
+    ANCHOR_Z[s['id']] = zp
+    MUZZLES[s['id']] = (round(mx, 3), round(my, 3), round(zp, 3))
 
 
 def build(kit):

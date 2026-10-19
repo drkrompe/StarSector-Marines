@@ -1,5 +1,5 @@
 {
-  "status": "Pass 1 blockout on the clean base. No detail, damage, condition states or textures.",
+  "status": "Pass 2 detail and pass 3 round 1 (stepped, faceted modules) on the clean base; owner review. No damage, condition states or textures.",
   "hull": {
     "name": "Tarsus",
     "hullId": "tarsus",
@@ -35,11 +35,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.51,
+  "metres_per_unit": 0.5,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 279286,
+      "units3": 279346,
       "crew_max": 80,
       "cargo": 350,
       "fuel": 80,
@@ -90,12 +90,13 @@
         2.64
       ]
     },
-    "published_metres_per_unit": 0.51,
+    "published_metres_per_unit": 0.5,
     "measured_this_build": {
-      "enclosed_units3": 279286,
+      "enclosed_units3": 279346,
       "solids": [
         "Bridge command module",
         "Hull aft body",
+        "Hull aft castle",
         "Hull central body",
         "Hull drive block",
         "Hull port aft drum",
@@ -103,23 +104,24 @@
         "Hull port bow drum",
         "Hull starboard aft drum",
         "Hull starboard arm",
-        "Hull starboard bow drum"
+        "Hull starboard bow drum",
+        "Hull ventral keel"
       ],
-      "arms_units3": 82733,
-      "arms_m3": 10975
+      "arms_units3": 57850,
+      "arms_m3": 7231
     },
     "size_m": [
-      96.3,
-      51.9,
-      19.1
+      98.3,
+      50.9,
+      21.6
     ],
     "cross_checks_m": {
-      "person 1.8 m in units": 3.53,
-      "arm width": 17.6,
-      "arm depth": 9.2,
-      "body depth": 11.2,
-      "main drive mouth diameter": 10.2,
-      "Kite collar hatch diameter": 2.7
+      "person 1.8 m in units": 3.6,
+      "arm width": 17.2,
+      "arm depth": 8.5,
+      "body depth": 11.5,
+      "main drive mouth diameter": 10.0,
+      "Kite collar hatch diameter": 2.6
     }
   },
   "sprite": {
@@ -137,18 +139,18 @@
   "dimensions": {
     "min": [
       -78.35,
-      -49.93,
-      -15.5
+      -49.87,
+      -20.7
     ],
     "max": [
-      110.45,
-      51.93,
-      21.9
+      118.2,
+      51.87,
+      22.45
     ],
     "size": [
-      188.8,
-      101.86,
-      37.4
+      196.55,
+      101.75,
+      43.15
     ]
   },
   "weapon_slots": [
@@ -157,7 +159,7 @@
       "location": [
         -41,
         37,
-        13.4
+        14.4
       ],
       "angle": 135,
       "arc": 250,
@@ -170,7 +172,7 @@
       "muzzle_location": [
         -47.65,
         43.65,
-        15.0
+        16.0
       ]
     },
     {
@@ -178,7 +180,7 @@
       "location": [
         -41,
         -37,
-        13.4
+        14.4
       ],
       "angle": 225,
       "arc": 250,
@@ -191,7 +193,7 @@
       "muzzle_location": [
         -47.65,
         -43.65,
-        15.0
+        16.0
       ]
     },
     {
@@ -199,7 +201,7 @@
       "location": [
         101,
         21,
-        11.9
+        9.4
       ],
       "angle": 45,
       "arc": 250,
@@ -212,7 +214,7 @@
       "muzzle_location": [
         107.65,
         27.65,
-        13.5
+        11.0
       ]
     },
     {
@@ -220,7 +222,7 @@
       "location": [
         101,
         -20,
-        11.9
+        9.4
       ],
       "angle": -45,
       "arc": 250,
@@ -233,7 +235,7 @@
       "muzzle_location": [
         107.65,
         -26.65,
-        13.5
+        11.0
       ]
     }
   ],
@@ -390,13 +392,13 @@
         "anchor": "Clamp receiver 1 anchor",
         "location": [
           70.0,
-          27.0,
-          9.55
+          20.5,
+          6.05
         ],
         "location_m": [
-          35.7,
-          13.77,
-          4.87
+          35.0,
+          10.25,
+          3.02
         ],
         "outward": [
           0.0,
@@ -408,13 +410,13 @@
         "anchor": "Clamp receiver 2 anchor",
         "location": [
           70.0,
-          -25.0,
-          9.55
+          -18.5,
+          6.05
         ],
         "location_m": [
-          35.7,
-          -12.75,
-          4.87
+          35.0,
+          -9.25,
+          3.02
         ],
         "outward": [
           0.0,
@@ -430,9 +432,9 @@
           11.05
         ],
         "location_m": [
-          -15.3,
-          7.65,
-          5.64
+          -15.0,
+          7.5,
+          5.53
         ],
         "outward": [
           0.0,
@@ -448,9 +450,9 @@
           11.05
         ],
         "location_m": [
-          -15.3,
-          -6.63,
-          5.64
+          -15.0,
+          -6.5,
+          5.53
         ],
         "outward": [
           0.0,
@@ -469,8 +471,8 @@
         ],
         "location_m": [
           0.0,
-          -21.57,
-          -0.51
+          -21.15,
+          -0.5
         ],
         "outward": [
           0.0,
@@ -486,9 +488,9 @@
           -1.0
         ],
         "location_m": [
-          -6.12,
-          22.59,
-          -0.51
+          -6.0,
+          22.15,
+          -0.5
         ],
         "outward": [
           0.0,
@@ -505,14 +507,16 @@
     "Engine <i> ...": "drive can / aft-facing bell / mouth lip / dark throat / exhaust anchor",
     "Turret <i> WS 00n ...": "mounts; pivot and muzzle empties",
     "Clamp receiver ... / Kite collar ...": "docking hardpoints and their anchors",
-    "Scar <id> ...": "reserved for the boarded condition state"
+    "Scar <id> ...": "boarded condition state only (ts_damage): craters, scorch, torn plating, smoke anchors"
   },
   "condition_states": {
     "planned": [
       "boarded (drive section shot out and scorched, drives dark, Kites and Mk.III clamped on; not destroyed)"
     ],
     "contract": "second-wind-pipeline.md layers: clean base + scar table with stable ids",
-    "built": []
+    "built": [
+      "boarded"
+    ]
   },
   "cameras": [
     {
@@ -577,9 +581,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9574,
-    "sprite_uncovered": 0.0275,
-    "model_outside_sprite": 0.0158,
+    "iou": 0.9575,
+    "sprite_uncovered": 0.0221,
+    "model_outside_sprite": 0.0212,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 8.42 px per unit"
   }
 }

@@ -72,18 +72,38 @@ Engines, HIGH_TECH, angle 180, width 16, Z 0: Engine 1 (-36, 12), Engine 2
 (-40, 0), Engine 3 (-36, -11). Turrets rest at their slot angles; the build
 fails if a rested barrel overlaps the hull (BVH).
 
-Scale (pass 4): 0.95 m per unit
+Scale (pass 4): 0.75 m per unit
 From the shared sizing basis, ../ship_scale.py (option C), never set here:
 METRES_PER_UNIT reads ship_scale.PUBLISHED and geometry.json's 'scale' is
 ship_scale.record('Wolf (P)'). Inputs: 30 crew, 50 cargo, 20 fuel, frigate
 class. Enclosed volume is the union of ship_scale.SOLIDS['wolf-p']: head,
 neck and its flanks, main body, centre hump, wing roots, aft body, dorsal
 spine and ventral keel; never the bow fork, outriggers, missile pods, armour
-domes or engine block (the drive section). Measured 19,705 units3, which
-solves 0.949 (range 0.92-0.977): 89 m long, 50 m across the pods, 16 m keel
-to canopy. The roster's sprite-area estimate was 86 m; the build is 4%
-longer, inside that estimate's +-8%. The driver re-measures on every build and
+domes or engine block (the drive section). After the owner's review ("don't
+create a flying wing"; turrets need a hull thick enough to carry them) every
+section was deepened twice (round 2: "too thin of a ship": decks raised,
+keels lowered, chamfers scaled with the depth, about 26 units keel to spine;
+round 3, "too flat on the top": the bow lowered onto the hull's centre line
+and the top crowned over the spine, highest at the turret, falling fore and
+aft; round 4, "the modules don't feel cohesive": head, neck, main body, aft
+body and engine block are lofted through one plan, one top line and one
+keel line with rounded superellipse sections, the missile pods, outriggers
+and ventral keel faired the same way): measured 40,988 units3, which solves
+0.744 (range 0.722-0.767): 70 m
+long, 37 m across the pods, about 21 m deep. The roster's
+sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
+ship, so this is 18% under the estimate, outside its +-8%. The owner decides
+between this and an override (as the Colossus has). The driver re-measures on every build and
 fails if the union drifts more than 2% from ship_scale.HULLS.
+
+Variants
+--variant merchant builds the convoy's own Wolf on the same hull and scale:
+no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
+turrets back on full-depth armoured drums built into the aft flanks (the
+base sprite's round wells), its own collection WOLF and asset wolf.blend,
+geometry-merchant.json, the vanilla wolf_Assault loadout (heavy blaster and
+Harpoons drawn with the kit's mining blaster and Annihilator forms for now:
+built_as in the manifest). Its livery is ../wolf-merchant-surface.
 
 Shot checks
 At 1920x1080 on a 36 mm sensor, port bow quarter from a little above, low sun

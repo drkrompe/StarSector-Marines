@@ -1,0 +1,42 @@
+{
+ "cab-top": {
+  "raw_iou": 0.9954,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9984,
+  "scale": [
+   1.00165,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "cab-front": {
+  "raw_iou": 0.9926,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9996,
+  "scale": [
+   1.00326,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "cab-side-stbd": {
+  "raw_iou": 0.9901,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9996,
+  "scale": [
+   1.00313,
+   1.0058
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "cab-side-port": {
+  "raw_iou": 0.9916,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9981,
+  "scale": [
+   1.00341,
+   1.00605
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

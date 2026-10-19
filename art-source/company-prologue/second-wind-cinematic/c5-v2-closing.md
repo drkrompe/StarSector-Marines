@@ -30,8 +30,8 @@ to P6 (`storyboard-v3.md`, Decisions); Y1 introduces her in the yard.
 
 Review takes of the new Entry, C4 and C5 lines exist in Castle's voice
 (`storyboard-v3.md`, Casting), made with `arrival-audio/record_castle_lines.py`.
-Until the owner picks takes, the shipped `jangalaArrivalHail09` string and audio
-stay as they are, so caption and voice still match.
+The owner's script of 2026-10-19 replaced them: hail line 09 is gone, and Castle's five
+lines ship as `jangala_arrival_castle_*` (catalog, strings and cues; `arrival-audio/castle_lines.py`).
 
 ## Castle names Kilo Nine in C4
 
@@ -65,7 +65,7 @@ word belongs to our people.
 
 ## Where it lands: Kilo Nine
 
-Kilo Nine is not a public cradle. It is Nessa's private yard, fenced, on the
+Kilo Nine is not a public cradle. It is a private yard where Nessa is forewoman (its owner stays offscreen), fenced, on the
 east edge of Greywater Down's port with the jungle beyond its east fence. Its
 south half holds one cradle between two repair scaffolds, a derrick over a
 salvage pile, a hangar, fuel, and the workshop the families walk into. Its north
@@ -79,7 +79,9 @@ barrier. From the gate a haul road runs up the west fence to the works, with a
 branch across to the cradle. The
 Hegemony's public cradles lie west of it, each turned to face its own lead-in
 lane, with freighters unloading from the stern down cargo lanes to the
-container yard. The ships on them are a mix of the finished hull models at
+container yard. Every pad, Kilo Nine's included, is dark tarmac with dimmed
+markings, so people and vehicles on a pad stand out against it
+(`c4x_scene.darken_pads`). The ships on them are a mix of the finished hull models at
 their own scale (`industrial-exterior/port_fleet.py`): a Hegemony Hound, two
 Shepherds in different operators' colours, two Mudskippers (Wayline's ferry
 and a teal-trimmed one lifting out), Hermes lighters on the pad row, and a
@@ -87,9 +89,27 @@ Colossus in the walled heavy berth, the only bay large enough for it. Overhead,
 a Shepherd lets down over the belt in C4's first seconds. The heavy-berth
 Colossus leaves during C5's rise, flown rather than posed. Its lift jets spool
 at C5 12 s and it comes off the deck at 15 s, slowly, the way a heavy hull
-would. Its mains light at 24 s and it accelerates away west. It is 15 m above
-its deck at 22 s, 37 m at 26 s and 79 m at 30 s. Against a camera at 1.8 km, it
-reads by its burn and its motion, not by growing in the frame.
+would. Its downwash throws the same dust and smoke as Second Wind's landing,
+at its own scale: stirring as the jets spool, thickest as it leaves the deck,
+piling against the bay's blast walls and running out of the open south side,
+then thinning as it climbs. When its mains light, still low over the deck,
+their wash blows a fresh, thick cloud of dust and smoke back across the bay;
+that is what the camera finds when its rise reaches the berth at about 23 s,
+dense and slowly spreading to about 30 s, then thinning under the title to a
+faint haze by 38 s. Clear of its walls it yaws 35 degrees, eased in and out between 18.5 and
+23 s, sliding a little south so its corners pass under the gantry's beams. Its
+mains light at 19.5 s and are full at 21 s; it keeps turning, slower and
+banked a few degrees into the turn, onto a heading of 255 by 32 s, so its
+course curves south-west over the open port. It is still in frame and
+travelling at 38 s, about a quarter in from the west edge over the pad row. It
+is 16 m above its deck at 22 s, 50 m at 26 s, 107 m at 30 s and 345 m at
+40 s. Against a
+camera at 1.8 km, it reads by its burn and its motion, not by growing in the
+frame. Its drives are the shared VFX kit's effects on its own engines, each
+throttled by its thruster marker. The Shepherd over the belt carries on north
+out of frame, and the teal Mudskipper flies off north along its bow from C5's
+start, clear of the frame before the title: from C5 24 s to the end the
+Colossus is the only ship in the air.
 C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 

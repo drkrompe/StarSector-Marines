@@ -1,81 +1,81 @@
 {
  "head-top": {
-  "raw_iou": 0.9851,
+  "raw_iou": 0.9895,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9926,
+  "fitted_iou": 0.9961,
   "scale": [
-   1.0046,
-   1.0
+   1.00105,
+   1.00304
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 1.0
  },
  "fork-top": {
-  "raw_iou": 0.9883,
+  "raw_iou": 0.9861,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9926,
+  "fitted_iou": 0.9954,
   "scale": [
-   0.9979,
+   1.00172,
    1.0
   ],
   "boundary_p95_px": 1.0
  },
  "engine-top": {
-  "raw_iou": 0.9828,
-  "best_fit": "identity",
-  "fitted_iou": 0.9828,
-  "scale": [
-   1.0,
-   1.0
-  ],
-  "boundary_p95_px": 2.0
- },
- "pod-top-port": {
   "raw_iou": 0.9907,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9982,
+  "fitted_iou": 0.9943,
   "scale": [
-   1.00417,
+   1.001,
+   1.00027
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9948,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9971,
+  "scale": [
+   1.0,
    1.0078
   ],
   "boundary_p95_px": 1.0
  },
  "engine-side-port": {
-  "raw_iou": 0.9928,
+  "raw_iou": 0.9895,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9969,
+  "fitted_iou": 0.9955,
   "scale": [
-   1.0,
-   1.003
+   1.00954,
+   1.00227
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 1.0
  },
  "outrigger-side-port": {
-  "raw_iou": 0.9867,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9985,
+  "raw_iou": 0.9948,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9995,
   "scale": [
-   0.99872,
-   0.99461
+   1.0,
+   1.00454
   ],
   "boundary_p95_px": 1.0
  },
  "engine-stern": {
-  "raw_iou": 0.9643,
+  "raw_iou": 0.9731,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9893,
+  "fitted_iou": 0.9886,
   "scale": [
-   1.00105,
-   1.00783
+   1.00305,
+   1.00467
   ],
   "boundary_p95_px": 1.0
  },
  "spine-fore": {
-  "raw_iou": 0.9904,
+  "raw_iou": 0.9802,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9967,
+  "fitted_iou": 0.9976,
   "scale": [
-   0.9931,
-   1.00354
+   1.00385,
+   1.01007
   ],
   "boundary_p95_px": 1.0
  }

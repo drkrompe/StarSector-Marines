@@ -1,0 +1,587 @@
+{
+ "housing-top-port": {
+  "what": "port drive housing top",
+  "sheet": "drive",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive port housing",
+    "seed": null,
+    "faces": [
+     160,
+     161,
+     162,
+     163,
+     164,
+     165,
+     166,
+     167,
+     168,
+     169,
+     170,
+     171,
+     172,
+     173,
+     174,
+     175,
+     176,
+     177,
+     178,
+     179,
+     180,
+     181,
+     182,
+     183,
+     184,
+     185,
+     186,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192,
+     193,
+     194,
+     195,
+     196,
+     197,
+     198,
+     199,
+     200,
+     201,
+     202,
+     203,
+     204,
+     205,
+     206,
+     207,
+     208,
+     209,
+     210,
+     211,
+     212,
+     213,
+     214,
+     215,
+     216,
+     217,
+     218,
+     219,
+     220,
+     221,
+     222,
+     223,
+     224,
+     225,
+     226,
+     227,
+     228,
+     229,
+     230,
+     231,
+     232,
+     233,
+     234,
+     235,
+     236,
+     237,
+     238,
+     239,
+     280,
+     281,
+     282,
+     283,
+     284,
+     285,
+     286,
+     287,
+     288,
+     289,
+     290,
+     291,
+     292,
+     293,
+     294,
+     295,
+     296,
+     297,
+     298,
+     299,
+     300,
+     301,
+     302,
+     303,
+     304,
+     305,
+     306,
+     307,
+     308,
+     309,
+     310,
+     311,
+     312,
+     313,
+     314,
+     315,
+     316,
+     317,
+     318,
+     319
+    ]
+   }
+  ],
+  "face_count": 120,
+  "area_units2": 676.26,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   29.2,
+   29.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -28.999999046325684,
+    -47.0
+   ],
+   "ortho_width": 60.36175079739987
+  },
+  "native_texels_per_unit": 13.2
+ },
+ "housing-top-stbd": {
+  "what": "starboard drive housing top (mirror)",
+  "sheet": "drive",
+  "tile": 0,
+  "skin_from": "housing-top-port",
+  "members": [
+   {
+    "object": "Drive starboard housing",
+    "seed": null,
+    "faces": [
+     160,
+     161,
+     162,
+     163,
+     164,
+     165,
+     166,
+     167,
+     168,
+     169,
+     170,
+     171,
+     172,
+     173,
+     174,
+     175,
+     176,
+     177,
+     178,
+     179,
+     180,
+     181,
+     182,
+     183,
+     184,
+     185,
+     186,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192,
+     193,
+     194,
+     195,
+     196,
+     197,
+     198,
+     199,
+     200,
+     201,
+     202,
+     203,
+     204,
+     205,
+     206,
+     207,
+     208,
+     209,
+     210,
+     211,
+     212,
+     213,
+     214,
+     215,
+     216,
+     217,
+     218,
+     219,
+     220,
+     221,
+     222,
+     223,
+     224,
+     225,
+     226,
+     227,
+     228,
+     229,
+     230,
+     231,
+     232,
+     233,
+     234,
+     235,
+     236,
+     237,
+     238,
+     239,
+     280,
+     281,
+     282,
+     283,
+     284,
+     285,
+     286,
+     287,
+     288,
+     289,
+     290,
+     291,
+     292,
+     293,
+     294,
+     295,
+     296,
+     297,
+     298,
+     299,
+     300,
+     301,
+     302,
+     303,
+     304,
+     305,
+     306,
+     307,
+     308,
+     309,
+     310,
+     311,
+     312,
+     313,
+     314,
+     315,
+     316,
+     317,
+     318,
+     319
+    ]
+   }
+  ],
+  "face_count": 120,
+  "area_units2": 676.26,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   29.2,
+   29.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    28.999999046325684,
+    -47.0
+   ],
+   "ortho_width": 60.36175079739987
+  },
+  "native_texels_per_unit": 13.2
+ },
+ "block-stern": {
+  "what": "drive block stern face around the six bell mouths",
+  "sheet": "drive",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive block",
+    "seed": null,
+    "faces": [
+     8,
+     9,
+     15,
+     16
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 1690.05,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   82.0,
+   19.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -3.5
+   ],
+   "ortho_width": 95.34883720930233
+  },
+  "native_texels_per_unit": 8.3
+ },
+ "drum-side-port": {
+  "what": "port reaction drum outboard side",
+  "sheet": "drive",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Drive port reaction drum",
+    "seed": null,
+    "faces": [
+     22,
+     23,
+     39,
+     40,
+     41,
+     42,
+     43,
+     59,
+     60,
+     61
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 267.1,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.0,
+   12.45
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    76.5,
+    1.0
+   ],
+   "ortho_width": 25.726263159621283
+  },
+  "native_texels_per_unit": 30.9
+ },
+ "drum-side-stbd": {
+  "what": "starboard reaction drum outboard side (mirror)",
+  "sheet": "drive",
+  "tile": 2,
+  "skin_from": "drum-side-port",
+  "members": [
+   {
+    "object": "Drive starboard reaction drum",
+    "seed": null,
+    "faces": [
+     29,
+     30,
+     31,
+     32,
+     33,
+     49,
+     50,
+     51,
+     52,
+     53
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 267.1,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.0,
+   12.45
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -76.5,
+    1.0
+   ],
+   "ortho_width": 25.726263159621283
+  },
+  "native_texels_per_unit": 30.9
+ },
+ "arc-side-port": {
+  "what": "port guard arc outboard face",
+  "sheet": "drive",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Frame port guard arc",
+    "seed": null,
+    "faces": [
+     1,
+     6,
+     7,
+     12,
+     13,
+     17,
+     22,
+     23,
+     28,
+     29,
+     33,
+     38,
+     39,
+     44,
+     45,
+     49,
+     53,
+     57,
+     61,
+     66,
+     67,
+     72,
+     73,
+     77
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 197.53,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   24.93,
+   10.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    47.0,
+    0.0
+   ],
+   "ortho_width": 28.993579953215843
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "arc-side-stbd": {
+  "what": "starboard guard arc outboard face (mirror)",
+  "sheet": "drive",
+  "tile": 3,
+  "skin_from": "arc-side-port",
+  "members": [
+   {
+    "object": "Frame starboard guard arc",
+    "seed": null,
+    "faces": [
+     1,
+     6,
+     7,
+     12,
+     13,
+     17,
+     22,
+     23,
+     28,
+     29,
+     33,
+     38,
+     39,
+     44,
+     45,
+     49,
+     53,
+     57,
+     61,
+     66,
+     67,
+     72,
+     73,
+     77
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 197.53,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   24.93,
+   10.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -47.0,
+    0.0
+   ],
+   "ortho_width": 28.993579953215843
+  },
+  "native_texels_per_unit": 27.4
+ }
+}

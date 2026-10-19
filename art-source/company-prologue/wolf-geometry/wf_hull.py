@@ -32,7 +32,7 @@ against wolf_base.png, which shows the same hull unpainted:
 import math
 import bmesh
 import bpy
-from wf_kit import facet_normal, plane_cut, prism, section, sym, revolve_x
+from wf_kit import facet_normal, plane_cut, prism, section, sym, revolve_x, loft_x
 
 FORK = sym([(47.5, 9.4), (43, 9.4), (43, 9.0)])
 OUTER_TINE = [(53.8, 6.4), (53.8, 8.6), (51, 10), (44, 10), (44, 5.3), (51, 5.3)]
@@ -51,15 +51,15 @@ DOME = (-13.6, 12.4, 5.2)            # centre X, |Y|, plan radius of the armour 
 
 # Heights (proposed art; the game gives none). One keel chamfer, one wall,
 # one shoulder chamfer per section.
-FORK_Z = (-3.2, 3.2)
-HEAD_Z = (-5.0, 4.6)
-OUTRIGGER_Z = (-3.0, 3.4)
-NECK_Z = (-5.2, 3.2)
-MAIN_Z = (-6.8, 3.4)
-POD_Z = (-3.4, 3.0)
-AFT_Z = (-6.4, 3.6)
-ENGINE_Z = (-6.0, 5.0)
-SPINE_TOP = 6.0
+FORK_Z = (-9.5, 1.0)
+HEAD_Z = (-12.5, 5.0)
+OUTRIGGER_Z = (-9.5, 3.5)
+NECK_Z = (-13.0, 7.0)
+MAIN_Z = (-14.5, 9.0)
+POD_Z = (-10.5, 4.0)
+AFT_Z = (-14.0, 7.5)
+ENGINE_Z = (-12.5, 5.5)
+SPINE_TOP = 9.5
 
 
 def ccw(poly):
@@ -131,68 +131,172 @@ def seat(kit, x, y, fallback):
     return hit[0].z if hit else fallback
 
 
+# --- One hull, not a stack of blocks (owner, round 4: "the modules don't feel
+# cohesive"). The central hull - head, neck, main body, aft body, engine block -
+# is lofted through one plan (the union of the sprite-read outlines), one top
+# line and one keel line, with rounded superellipse sections, so each module
+# meets the next in the same section and the ship reads as one form. Each
+# module keeps its own object (and name) over its own stretch of X.
+TOP_LINE = [(46, 1.5), (43.6, 3.6), (38, 5.2), (31, 6.6), (24, 7.6), (14, 8.8), (4, 9.0), (-6, 8.4),
+            (-14, 7.8), (-21, 7.0), (-30, 5.8), (-39, 4.6)]
+KEEL_LINE = [(46, -5.0), (43.6, -9.0), (38, -11.0), (31, -12.6), (20, -14.0), (6, -14.6), (-8, -14.4),
+             (-18, -13.8), (-28, -12.8), (-39, -11.2)]
+MODULES = [('Hull head', 31.0, 43.6, 'steel'), ('Hull neck', 16.5, 31.0, 'red'), ('Hull main body', -6.0, 16.5, 'red'),
+           ('Hull aft body', -19.5, -6.0, 'red'), ('Hull engine block', -38.8, -19.5, 'steel')]
+P_TOP, P_BOTTOM = 3.4, 3.8     # superellipse exponents: a rounded crown, a fuller belly
+
+
+def line_at(ctrl, x):
+    """Cosine-eased interpolation through (x, value) control points (descending x)."""
+    pts = sorted(ctrl)
+    if x <= pts[0][0]:
+        return pts[0][1]
+    for (x0, v0), (x1, v1) in zip(pts, pts[1:]):
+        if x0 <= x <= x1:
+            t = (x-x0)/(x1-x0)
+            t = .5-.5*math.cos(math.pi*t)
+            return v0+(v1-v0)*t
+    return pts[-1][1]
+
+
+def plan_hw(polys, x):
+    """Half-width of the union of symmetric plan outlines at X (0 if none covers it)."""
+    best = 0.0
+    for poly in polys:
+        for (x0, y0), (x1, y1) in zip(poly, poly[1:]+poly[:1]):
+            if min(x0, x1) <= x <= max(x0, x1) and x0 != x1:
+                y = y0+(y1-y0)*(x-x0)/(x1-x0)
+                best = max(best, abs(y))
+    return best
+
+
+def side_span(poly, x):
+    """(centre y, half-width) of a one-sided plan outline at X."""
+    ys = []
+    for (x0, y0), (x1, y1) in zip(poly, poly[1:]+poly[:1]):
+        if min(x0, x1) <= x <= max(x0, x1) and x0 != x1:
+            ys.append(y0+(y1-y0)*(x-x0)/(x1-x0))
+    if not ys:
+        return 0.0, 0.0
+    return (max(ys)+min(ys))/2, (max(ys)-min(ys))/2
+
+
+def sponson(kit, name, poly, top, keel, mat, sign, step=.8):
+    """A side module (missile pod, outrigger) faired like the hull: superellipse
+    sections that follow its sprite outline, port outline mirrored by sign."""
+    xs0 = sorted({x for x, _ in poly})
+    x0, x1 = xs0[0]+.05, xs0[-1]-.05
+    k = max(3, int((x1-x0)/step))
+    xs = [x0+(x1-x0)*i/k for i in range(k+1)]
+    stations_ = []
+    for x in xs:
+        yc, w = side_span(poly, x)
+        stations_.append((x, yc*sign, max(w, .3)))
+    n = 20
+    out = []
+    for x, yc, w in stations_:
+        ring = []
+        zm = keel+.45*(top-keel)
+        for j in range(n):
+            a = 2*math.pi*j/n
+            c, sn = math.cos(a), math.sin(a)
+            pp = 3.4
+            y = yc+w*math.copysign(abs(c)**(2/pp), c)
+            z = zm+(top-zm)*abs(sn)**(2/pp) if sn >= 0 else zm-(zm-keel)*abs(sn)**(2/pp)
+            ring.append((y, z))
+        out.append((x, ring))
+    return loft_x(kit, name, out, mat, 0)
+
+
+def superloft(kit, name, xs, hw, top, keel, mat, yc=0.0, n=24, mid=.42, pt=P_TOP, pb=P_BOTTOM):
+    """A closed loft through superellipse sections at stations xs: half-width hw(x)
+    about yc, from keel(x) up to top(x), widest at mid of the way up."""
+    stations = []
+    for x in xs:
+        w, zt, zk = max(hw(x), .3), top(x), keel(x)
+        zm = zk+mid*(zt-zk)
+        ring = []
+        for k in range(n):
+            a = 2*math.pi*k/n
+            c, sn = math.cos(a), math.sin(a)
+            p = pt if sn >= 0 else pb
+            y = yc+w*math.copysign(abs(c)**(2/p), c)
+            z = zm+(zt-zm)*abs(sn)**(2/p) if sn >= 0 else zm-(zm-zk)*abs(sn)**(2/p)
+            ring.append((y, z))
+        stations.append((x, ring))
+    return loft_x(kit, name, stations, mat, 0)
+
+
+def stations(x0, x1, polys, step=1.2):
+    xs = {x0, x1}
+    k = max(2, int((x1-x0)/step))
+    xs.update(x0+(x1-x0)*i/k for i in range(k+1))
+    xs.update(x for poly in polys for x, _ in poly if x0 < x < x1)
+    return sorted(xs)
+
+
 def build(kit):
     red, steel, dark = kit.red, kit.steel, kit.dark
     # --- Bow fork: the base and its five tines. ---
-    fork = prism(kit, 'Hull bow fork base', ccw(FORK), section(*FORK_Z, 1.0, 1.2), steel)
+    fork = prism(kit, 'Hull bow fork base', ccw(FORK), section(*FORK_Z, 1.8, 1.4), steel)
     plane_cut(fork, 'fork top rake', (46, 0, FORK_Z[1]), facet_normal((1, 0), 25))
     tines = []
     for side, s, plan in sides(OUTER_TINE):
-        t = prism(kit, f'Hull bow {side} outer tine', plan, section(-2.6, 3.0, .9, 1.1), steel)
-        plane_cut(t, f'{side} outer tine tip rake', (50, 0, 3.0), facet_normal((1, 0), 18))
-        plane_cut(t, f'{side} outer tine chin', (50, 0, -2.6), (math.sin(math.radians(20)), 0,
+        t = prism(kit, f'Hull bow {side} outer tine', plan, section(-8.5, 0.6, .9, 1.1), steel)
+        plane_cut(t, f'{side} outer tine tip rake', (50, 0, .6), facet_normal((1, 0), 18))
+        plane_cut(t, f'{side} outer tine chin', (50, 0, -8.5), (math.sin(math.radians(20)), 0,
                                                               -math.cos(math.radians(20))))
         tines.append(t)
     # The sprite's inner tines (Y +-2..4) are the WS 004 mining blaster's prongs
     # (wf_mounts): the gun is the claw's middle, sunk in a bay in the fork base.
 
     # --- Head, outriggers. ---
-    head = shear(prism(kit, 'Hull head', ccw(HEAD), section(*HEAD_Z, 1.5, 1.8), steel), 4.0, .22)
-    plane_cut(head, 'head brow rake', (41, 0, HEAD_Z[1]), facet_normal((1, 0), 30))
-    plane_cut(head, 'head chin rake', (41, 0, HEAD_Z[0]), (.5, 0, -.866))
+    plans = [ccw(HEAD), ccw(NECK), ccw(MAIN), ccw(AFT), ccw(ENGINE_BLOCK)]
+    top = lambda x: line_at(TOP_LINE, x)
+    keel_z = lambda x: line_at(KEEL_LINE, x)
+    hull_hw = lambda x: plan_hw(plans, x)
+    body = {}
+    for name, x0, x1, mat in MODULES:
+        body[name] = superloft(kit, name, stations(x0, x1, plans), hull_hw, top, keel_z,
+                               steel if mat == 'steel' else red)
+    head = body['Hull head']
     outriggers = {}
-    for side, s, plan in sides(OUTRIGGER):
-        o = prism(kit, f'Hull {side} outrigger', plan, section(*OUTRIGGER_Z, 1.0, 1.3), steel)
-        plane_cut(o, f'{side} outrigger nose rake', (41.5, s*13, OUTRIGGER_Z[1]), facet_normal((1, 0), 34))
-        plane_cut(o, f'{side} outrigger outer shoulder', (36, s*15, OUTRIGGER_Z[1]), facet_normal((0, s), 35))
+    for side, s, plan in (('port', 1, OUTRIGGER), ('starboard', -1, OUTRIGGER)):
+        o = sponson(kit, f'Hull {side} outrigger', plan, OUTRIGGER_Z[1], OUTRIGGER_Z[0], steel, s)
         outriggers[side] = o
 
-    # --- Neck. ---
-    neck = shear(prism(kit, 'Hull neck', ccw(NECK), section(*NECK_Z, 1.5, 1.8), red), 4.5, .2)
-    for s in (1, -1):
-        plane_cut(neck, f'neck {s} shoulder', (24, s*10.5, NECK_Z[1]), facet_normal((0, s), 26))
-
-    # --- Main body, pods. ---
-    main = shear(prism(kit, 'Hull main body', ccw(MAIN), section(*MAIN_Z, 1.7, 2.1), red), 6.0, .15)
-    for s in (1, -1):
-        plane_cut(main, f'main {s} wing-root fall', (3, s*15.5, MAIN_Z[1]), facet_normal((0, s), 17))
-    plane_cut(main, 'main fore shoulder', (17.5, 0, MAIN_Z[1]), facet_normal((1, 0), 30))
+    neck, main = body['Hull neck'], body['Hull main body']
     pods = {}
-    for side, s, plan in sides(POD):
-        p = prism(kit, f'Pod {side} missile body', plan, section(*POD_Z, 1.0, 1.1), steel)
-        plane_cut(p, f'{side} pod outer shoulder', (10, s*24, POD_Z[1]), facet_normal((0, s), 35))
+    for side, s, plan in (('port', 1, POD), ('starboard', -1, POD)):
+        p = sponson(kit, f'Pod {side} missile body', plan, POD_Z[1], POD_Z[0], steel, s)
         pods[side] = p
 
-    # Rounded hull where both sprites carry round highlights: the neck flanks
-    # (rows 24-36, long curved bands), a central hump aft of the turret ring
-    # (rows 50-60, the base sprite's brightest dome) and the wing-root arms that
-    # run out to the pods (rows 49-57). Few facets: crisp plates, not bubbles.
-    lobes = [lobe(kit, 'Hull centre hump', (-1.6, 0, 1.2), (7.0, 7.4, 3.6), red, 0, 12, 6)]
-    for side, s in (('port', 1), ('starboard', -1)):
-        lobes.append(lobe(kit, f'Hull neck {side} flank', (23.5, s*9.4, .8), (7.8, 4.6, 2.9), red, s*-4, 12, 6))
-        lobes.append(lobe(kit, f'Hull wing {side} root', (0.4, s*17.8, -.4), (4.6, 5.6, 3.0), red, s*-35, 12, 6))
-    kit.hull += lobes
-
     # --- Aft body, armour domes, engine block. ---
-    aft = shear(prism(kit, 'Hull aft body', ccw(AFT), section(*AFT_Z, 1.6, 2.0), red), 5.0, .16)
+    aft = body['Hull aft body']
     kit.hull.append(aft)
     domes = []
     x, y, r = DOME
-    for side, s in (('port', 1), ('starboard', -1)):
+    import wf_kit
+    for side, s in (('port', 1), ('starboard', -1)) if wf_kit.VARIANT == 'pirate' else ():
+        # The pirate skin's armour over the removed WS 002 / WS 003 rings; the base
+        # hull keeps its turrets there (wf_mounts).
         z0 = seat(kit, x, s*y, AFT_Z[1])
         domes.append(dome(kit, f'Hull {side} armour dome', x, s*y, r, z0-.6, 3.4, red))
-    eng = shear(prism(kit, 'Hull engine block', ccw(ENGINE_BLOCK), section(*ENGINE_Z, 2.0, 2.2), steel), 5.0, .2)
-    plane_cut(eng, 'engine block aft rake', (-33, 0, ENGINE_Z[1]), facet_normal((-1, 0), 36))
+    if wf_kit.VARIANT == 'merchant':
+        # The base hull's aft turret wells (wolf_base.png rows 63-72: round rings
+        # reaching Y +-18, the silhouette the pirate domes keep): a full-depth
+        # armoured drum built into each flank, keel to a level ring deck, so the
+        # WS 002 / WS 003 turrets stand on structure as deep as the hull, not on
+        # its sloping edge.
+        for side, s in (('port', 1), ('starboard', -1)):
+            zt, zk = line_at(TOP_LINE, x)+.4, line_at(KEEL_LINE, x)+1.0
+            bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=r+.4, depth=zt-zk, location=(x, s*y, (zt+zk)/2))
+            drum = bpy.context.object
+            kit.finish(drum, f'Hull {side} turret foundation', red, .3)
+            ring_z = zt
+            kit.cylinder(f'Hull {side} turret foundation ring', (x, s*y, ring_z+.15), r-.3, .3, steel, 'Z', 24, .08)
+            domes.append(drum)
+    eng = body['Hull engine block']
 
     # --- Spine: the grey centre structure from the engine block to the head. ---
     spine = prism(kit, 'Hull dorsal spine fore', ccw(sym([(32, 4.2), (17.5, 4.6), (16.2, 3.4)])),
@@ -211,9 +315,8 @@ def build(kit):
     zs = seat(kit, 26.5, 0, SPINE_TOP)
     sensor = dome(kit, 'Hull neck sensor dome', 26.5, 0, 3.0, zs-.4, 2.2, steel, 14, 3)
     kit.hull += [canopy, sensor]
-    keel = prism(kit, 'Hull ventral keel', ccw(sym([(27, 3.2), (24, 5.0), (-16, 5.0), (-20, 3.6)])),
-                 section(-8.8, -5.0, 1.4, 0), steel)
-    plane_cut(keel, 'keel fore rake', (24, 0, -8.8), (.5, 0, -.866))
-    plane_cut(keel, 'keel aft rake', (-15, 0, -8.8), (-.5, 0, -.866))
+    keel_plan = [ccw(sym([(27, 3.2), (24, 5.0), (-16, 5.0), (-20, 3.6)]))]
+    keel = superloft(kit, 'Hull ventral keel', stations(-19.8, 26.8, keel_plan, 1.5), lambda x: plan_hw(keel_plan, x),
+                     lambda x: line_at(KEEL_LINE, x)+3.0, lambda x: line_at(KEEL_LINE, x)-3.4, steel, n=16, mid=.6)
     kit.hull += [fork, *tines, head, *outriggers.values(), neck, main, *pods.values(), aft, *domes, eng, spine, spine_aft]
     return keel

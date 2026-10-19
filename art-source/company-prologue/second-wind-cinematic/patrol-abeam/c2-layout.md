@@ -97,21 +97,35 @@ comes up into the bottom of the view, and the sunlight moves across the bridge. 
 part of the shared motion (`ship_pitch_deg`), but only the lit render applies it; the
 grey blockout's frames stay level.
 
-**Lit render: not yet (owner, 2026-10-18).** No proper render until everything in
-the shot is final: the Legion, Broadswords and Second Wind finishing their own passes
-(turrets, textures and so on), a real bridge scene, and the fly-through settled in grey.
-Until then layout is judged in the Workbench blockout only. `c2_bridge_render.py` is
-ready for that day. It dresses the blockout's motion for Cycles at 24 fps with 180°
-motion blur, importing it so the two cannot drift apart. It was checked on a few test
-frames only:
+**Lit render: first review pass (2026-10-19).** Everything in the shot is now final:
+the Legion, the Broadswords and Second Wind with its bridge. The first lit pass is a
+half-size review at 8 fps, not the final render. `c2_bridge_render.py` dresses the
+blockout's motion for Cycles at 24 fps with 180° motion blur, importing it so the two
+cannot drift apart:
 
-- Second Wind is the patched state from `second-wind-states` (its build output must exist
-  locally).
-- The bridge is painted steel with console screens and one low warm ceiling light. A
+- Second Wind is the patched state from `second-wind-states`. The .blend is built, not
+  committed: copy it from Drive `builds/second-wind/<commit>/patched/`. The script
+  refuses a copy whose sha256 differs from the committed manifest's. The bridge slits
+  are real glass and no shot hides them. Their reflection is kept but faint (owner,
+  2026-10-19): the shot lowers the glazing to about 1% straight on and scales the whole
+  reflection to 35%. At full strength the console strips and ceiling lamps lay across the
+  Legion.
+- The bridge is painted steel with console screens and warm ceiling light, plus a soft
+  overhead fill over the forward station that the glass does not show. It is lit just
+  enough for the consoles and frames to read and the fighters to be found at 3.0 s; the
+  view outside stays the brightest thing in shot (owner, 2026-10-19). A
   light strip at the top of the slits was tried and dropped: 65 cm from the eye, even
   dimmed, it read as a band across the view.
-- The Legion and Broadswords keep their own materials, with the Legion's throats and
-  running lights and the fighters' flames as in the cabin version.
+- The Legion keeps its own materials, with its throats and running lights as in the cabin
+  version.
+- The Broadswords are the finished asset (`broadsword-cinematic`, final 2026-10-19). Each
+  fighter is its own append of BROADSWORD plus SWFX, so each has its own effects
+  controls. The drives run at full throttle, the guns stay cold and the running lights
+  are on, with no exhaust haze or landing dust in vacuum. The gear stays up, its saved
+  pose. The .blend is built, not committed: copy it from Drive
+  `builds/broadsword/<commit>/`. Both scripts refuse a copy whose sha256 differs from
+  the committed manifest's. The blockout loads the same model without effects, tinted
+  for Workbench. `C2_BROADSWORD_ASSET` points either script at another copy.
 - Jangala is a proxy sphere scaled about the eye and shaded from its own normal, so
   nothing near it can throw a shadow on it. It carries C1's maps, which are soft at
   this range, and a thin limb glow, and it turns aft at the orbital rate.
@@ -155,8 +169,8 @@ the Legion a figure hides; how near the eye comes to any surface). What it found
 - The view is mostly bridge: 7-15% glass for the first 4.5 s, about 37% at the port glass, where
   the head's upward tilt spent a third of the frame on the visor brow.
 
-Refinements, each a separate switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA`
-for the lit render) so they can be compared one at a time; none is on until the owner picks:
+Refinements, each a switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA` for the
+lit render; `none` gives the reviewed move). **All six are the default (owner, 2026-10-19):**
 **walk** (the step down is a person walking on its own clock, 4.6-6.6 s: back off the console,
 down the dais step past the grab pole, four paces with a footfall in each), **duck** (leaning
 lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath** (a few tenths
@@ -169,10 +183,8 @@ and never turns onto the pilot or Castle; a glance to the pilot and a step back 
 into the frame edge were both tried and dropped. Castle is seen in passing instead: she works the
 forward panel of her bank (`sw_bridge_interior.CASTLE_AT`, x 14.4), and the walk passes behind her
 back on its way to the middle panel, so she crosses the frame left to right at 5.55-6.0 s, about
-half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. The blockout can also
-preview thinner window posts (`--posts 0.4`: the slit mullions at 40% of their 39 cm and 33 cm
-widths); the hull model itself is unchanged, so adopting it is a Second Wind model change that
-every shot of the ship would show. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. Thinner window posts were previewed (40%
+width: about 3 points more glass) and declined; the posts stay as modelled. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 
@@ -189,6 +201,7 @@ python c2_bridge_blockout.py --fps 4 --pitch --measure --out <dir>   # measure.j
 # Only once every asset is final (see above):
 python c2_bridge_render.py --frames 0,72,192,300           # lit test frames (neighbours keyed for blur)
 python c2_bridge_render.py --resume                        # build/cinematic/c2-bridge/lit/, about an hour
+python c2_bridge_render.py --fps 8 --half --out <dir>       # review pass: 960x540, 120 frames, about 75 min
 python c2_bridge_render.py --movie                         # lit/c2-bridge.mp4 with captions and cues
 ```
 
@@ -483,10 +496,9 @@ Production decisions that supersede the plan above:
   per the C3 hand-off), and C3 picks up one frame later on the same shake. The entry
   is drawn through C3's window and camera throughout, so there is no camera change.
 - **Audio cues** (player dicts). C2: squelch open, line 7, squelch close, line 8.
-  Entry: line 9 at 0.16 s (no squelch), wind from 0.35 s. Neither adds a bed: C1's
-  cabin bed runs under the whole hail. Line 9 is placed by its own rule, 1.4 s after
-  line 8 ends. `build_hail_preview.timeline()` now gives that gap to the catalog's last
-  line, C4's Nessa memory.
+  Entry: Castle's first line to the Commander at 0.16 s (no squelch;
+  `arrival-audio/castle_lines.py`), wind from 0.35 s. Neither adds a bed: C1's cabin bed
+  runs under the whole hail. Hail line 9 was dropped with the owner's script of 2026-10-19.
 - **Packaging.** `cinematic_export.py --shot c2` / `--shot entry` writes
   `mod/cinematic/jangala-arrival/{c2,entry}.mp4` and their timelines.
 

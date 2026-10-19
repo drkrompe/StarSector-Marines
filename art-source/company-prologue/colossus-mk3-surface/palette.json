@@ -1,0 +1,254 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.994)",
+ "space": "CIELAB D65",
+ "classes": {
+  "red": {
+   "pixels": 98247,
+   "mean": [
+    35.62,
+    25.12,
+    13.81
+   ],
+   "std": [
+    8.0,
+    1.5,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    22.34,
+    34.2,
+    49.35
+   ],
+   "mean_srgb": [
+    126.3,
+    66.8,
+    62.9
+   ],
+   "std_measured": [
+    10.85,
+    7.22,
+    4.49
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "maroon": {
+   "pixels": 148707,
+   "mean": [
+    25.22,
+    4.72,
+    4.74
+   ],
+   "std": [
+    7.0,
+    1.2,
+    2.0
+   ],
+   "L_p10_p50_p90": [
+    14.36,
+    23.16,
+    40.24
+   ],
+   "mean_srgb": [
+    69.7,
+    57.1,
+    52.8
+   ],
+   "std_measured": [
+    10.12,
+    1.8,
+    2.46
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "pale": {
+   "pixels": 97755,
+   "mean": [
+    66.8,
+    2.5,
+    4.53
+   ],
+   "std": [
+    8.0,
+    0.6,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    0.25,
+    61.98,
+    81.38
+   ],
+   "mean_srgb": [
+    145.4,
+    135.8,
+    129.8
+   ],
+   "std_measured": [
+    24.73,
+    1.93,
+    2.6
+   ],
+   "note": "mean owned at the measured median L: shadowed longeron end faces drag the mean",
+   "mean_measured": [
+    57.28,
+    2.5,
+    4.53
+   ]
+  },
+  "orange": {
+   "pixels": 73,
+   "mean": [
+    47.0,
+    26.77,
+    41.18
+   ],
+   "std": [
+    8.0,
+    2.0,
+    3.5
+   ],
+   "L_p10_p50_p90": [
+    41.8,
+    46.76,
+    51.93
+   ],
+   "mean_srgb": [
+    167.1,
+    91.8,
+    41.5
+   ],
+   "std_measured": [
+    4.33,
+    2.98,
+    2.88
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "gunmetal": {
+   "pixels": 143290,
+   "mean": [
+    28.02,
+    1.67,
+    0.56
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    17.98,
+    26.66,
+    40.55
+   ],
+   "mean_srgb": [
+    69.1,
+    65.2,
+    65.3
+   ],
+   "std_measured": [
+    10.33,
+    1.56,
+    2.36
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 3937,
+   "mean": [
+    11.58,
+    0.97,
+    0.28
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    1.78,
+    13.34,
+    18.0
+   ],
+   "mean_srgb": [
+    32.2,
+    30.2,
+    30.3
+   ],
+   "std_measured": [
+    6.81,
+    1.37,
+    1.57
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "red_w": {
+   "derived": "red + [3.0, -8.0, -4.0] (the geometry's designed tone offset)",
+   "mean": [
+    38.62,
+    17.12,
+    9.81
+   ],
+   "std": [
+    8.0,
+    1.5,
+    2.5
+   ]
+  },
+  "tile": {
+   "derived": "dark + [6.0, 0.0, 0.5] (the geometry's designed tone offset)",
+   "mean": [
+    17.58,
+    0.97,
+    0.78
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what battle and a pirate crew's neglect reveal and deposit on a crimson and blackened hull.",
+  "primer": {
+   "lab": [
+    38.0,
+    14.0,
+    16.0
+   ],
+   "what": "red-oxide primer under the crimson and the blackened enamel, rust-toned"
+  },
+  "bare": {
+   "lab": [
+    60.0,
+    0.5,
+    2.0
+   ],
+   "what": "abraded bare steel at chips and walkways, dulled"
+  },
+  "dust": {
+   "lab": [
+    36.0,
+    5.0,
+    12.0
+   ],
+   "what": "Asharu dust, landing grit and oily grime, brown"
+  },
+  "soot": {
+   "lab": [
+    12.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive and gun soot"
+  },
+  "chalk": {
+   "lab": [
+    56.0,
+    13.0,
+    9.0
+   ],
+   "what": "sun-faded crimson goes a dusty pink-grey, not white"
+  }
+ }
+}

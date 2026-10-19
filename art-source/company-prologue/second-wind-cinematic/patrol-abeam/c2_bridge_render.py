@@ -15,12 +15,14 @@ and lights it:
 - The command deck's interior is the model's own (second-wind-geometry/sw_bridge_interior),
   so the patched state export must have been rebuilt since it landed; the script refuses a
   state without it. The pilot and Castle are added (sw_bridge_interior.figures). The glazing
-  is hidden from camera and shadow rays: it is opaque paint, not glass.
+  is the model's own clear glass (sw_kit.glass): the camera looks through it and catches the
+  room's reflections in it, and shadow rays pass it, so the sun still reaches the room.
 - The Legion is the finished, textured asset (legion-cinematic: the LEGION collection with
   the optional SWFX effects in the same load), moved by its root only. Its ten drives idle on
   the kit's LOW_TECH plumes (the patrol coasts) with the exhaust haze off (vacuum); its 27
   running lights blink on their own data, lens and kit lamp together. The mounts stay cold.
-- The Broadswords keep their own materials, with flames added as in render_patrol_sequence.py.
+- The Broadswords are the finished asset (broadsword-cinematic: BROADSWORD plus its SWFX, one
+  load per fighter), gear up, drives at full throttle, guns cold, running lights on.
 - Jangala is a sphere scaled about the eye (it looks identical from there), shaded by its own
   normal against the sun so nothing nearby can shadow it, with C1's maps and a thin limb glow.
   It turns at the true orbital rate, aft.
@@ -54,7 +56,6 @@ C1_ASSETS = BASE.parent / "corvus-approach" / "assets"
 SUN_STRENGTH = 4.5                        # C1's key, as render_patrol_sequence.py
 SHINE_COLOR = (0.55, 0.75, 1.0)
 LEGION_IDLE = 0.2                          # SWFX master throttle: the patrol coasts (as its thrust marker)
-FIGHTER_FLAME = ((1.0, 0.70, 0.38), 40.0)
 PLANET_K = 1.0 / 2000.0                    # planet proxy scale about the eye
 MAP_SPAN_DEG = (100.0, 50.0)               # C1's detail maps cover this much arc
 STAR_SCALE = 300.0                         # Voronoi cells per unit of sky direction (a cell is about 4 px)
@@ -66,7 +67,16 @@ STAR_FLOOR, STAR_GAIN = 0.05, 2.5          # faintest star, and the brightest's 
 # emissive part is dark, so there none of these exist. Area lights are hidden from camera rays:
 # a floating rectangle in shot would read as a pane of light, not as the screen that makes it.
 CEILING_STRIPS = [((13.2, y, 20.1), (2.5, 0.45)) for y in (-1.6, 1.6)]   # under the two caged lamps
-CEILING_ENERGY, CEILING_RGB = 14.0, (1.0, 0.82, 0.6)                       # W per strip
+CEILING_ENERGY, CEILING_RGB = 24.0, (1.0, 0.82, 0.6)                       # W per strip
+# A soft overhead fill over the forward station (owner, 2026-10-19: the consoles and frames should
+# read and the fighters be easy to find, the view outside still the brightest thing in shot). It
+# lights the room without being seen in the glass itself (hidden from glossy rays).
+ROOM_FILL = ((14.8, 0.0, 20.0), (5.0, 6.0), 36.0, (1.0, 0.9, 0.78))         # loc, size, W, rgb
+# The slits' glass reflects the room faintly, not as a mirror (owner, 2026-10-19): the glazing's
+# Fresnel IOR 1.9 (about 10% straight on) is lowered to an anti-reflective 1.25 (about 1%), and
+# the whole reflection scaled by GLASS_REFLECT, since at a slant Fresnel climbs whatever the IOR:
+# at the end (14.5 s) a console strip still read mid-view with the IOR alone.
+GLASS_MATERIAL, GLASS_FRESNEL_IOR, GLASS_REFLECT = "Bridge smoked viewport glazing", 1.25, 0.35
 SCREEN_RGB = (0.22, 0.62, 0.5)                                            # 'Bridge display' emission
 CONSOLE_TOP = 18.25
 # (name, footprint centre, yaw_deg, screens (u along the run, width)) as sw_bridge_interior.build
@@ -135,6 +145,8 @@ def bridge_practicals(powered):
                     SCREEN_GLOW_SPREAD))
     loc, size, aim, energy, rgb = HELM_FILL
     out.append(("helm overhead fill", loc, size, aim, energy, rgb, 120.0))
+    loc, size, energy, rgb = ROOM_FILL
+    out.append(("bridge room fill", loc, size, None, energy, rgb, 160.0))
     return out
 
 
@@ -149,6 +161,8 @@ def plan(frames, fps, samples_n, state=SW_STATE):
         "fps": fps, "cycles_samples": samples_n, "sw_state": state,
         "sw_state_blend": str(BASE.parent / "second-wind-states" / state / ("second-wind-%s.blend" % state)),
         "practicals": bridge_practicals(state != "derelict"),
+        "glass_material": GLASS_MATERIAL, "glass_fresnel_ior": GLASS_FRESNEL_IOR,
+        "glass_reflect": GLASS_REFLECT,
         "screen_pages": SCREEN_PAGES if state != "derelict" else {},
         "screen_face": SCREEN_FACE, "screen_version": SCREEN_VERSION, "screen_dir": str(SCREEN_DIR), "screen_strength": SCREEN_STRENGTH,
         "albedo": str(C1_ASSETS / "planet-albedo-detail-v1.png"),
@@ -158,6 +172,13 @@ def plan(frames, fps, samples_n, state=SW_STATE):
         "eye_m": [c * BB.SW_MPU for c in BB.STATION_FORWARD],
     })
     return base
+
+
+def check_state(path):
+    """Refuse a Second Wind state .blend that is missing or is not the build its committed
+    manifest describes (copy it from Drive builds/second-wind/<commit>/<state>/)."""
+    man = json.loads((Path(path).parent / "manifest.json").read_text(encoding="utf-8"))
+    BB.check_broadsword(path, man["asset_sha256"])
 
 
 def movie(out_dir):
@@ -187,11 +208,16 @@ def launch(argv):
         movie(Path(argv[i + 1]) if i is not None else OUT)
         return
     fps, frames, samples_n, resume, only, out, state = 24.0, None, 64, False, None, OUT, SW_STATE
+    half = False
     i = 0
     while i < len(argv):
         a = argv[i]
         if a == "--resume":
             resume = True
+            i += 1
+            continue
+        if a == "--half":                           # 960x540 for a review pass, scaled up to view
+            half = True
             i += 1
             continue
         v = argv[i + 1]
@@ -220,7 +246,9 @@ def launch(argv):
             a, b = (int(x) for x in only.split(":"))
             frames = list(range(a, min(b + 1, n + 1)))
     p = plan(frames, fps, samples_n, state)
-    p["out"], p["resume"] = str(out), resume
+    BB.check_broadsword(p["broadsword_blend"], p["broadsword_sha256"])
+    check_state(p["sw_state_blend"])
+    p["out"], p["resume"], p["percentage"] = str(out), resume, 50 if half else 100
     p["render"] = render if render is not None else [f for f in frames if f < n]
     out.mkdir(parents=True, exist_ok=True)
     tag = "" if not only else "-" + only.replace(":", "-")
@@ -281,11 +309,21 @@ def blender_main(argv):
     sw.scale = (p["sw_mpu"],) * 3
     for o in [sw, *sw.children_recursive]:
         o.animation_data_clear()
-        if o.name.startswith("Command deck viewport slits"):
-            o.visible_camera = False                # the glazing is not see-through glass
-            o.visible_shadow = False
     if not any(o.name.startswith("Bridge deck plating") for o in sw.children_recursive):
         raise RuntimeError("%s has no bridge interior: rebuild the %s state export" % (p["sw_state_blend"], p["sw_state"]))
+    glazing = bpy.data.materials.get(p["glass_material"])
+    fresnel = [n for n in glazing.node_tree.nodes if n.type == "FRESNEL"] if glazing else []
+    if len(fresnel) != 1:
+        raise RuntimeError("the bridge glazing %r has no single Fresnel to lower" % p["glass_material"])
+    fresnel[0].inputs["IOR"].default_value = p["glass_fresnel_ior"]
+    nt = glazing.node_tree
+    link = next(l for l in nt.links if l.from_node == fresnel[0])
+    scale = nt.nodes.new("ShaderNodeMath")
+    scale.operation, scale.inputs[1].default_value = "MULTIPLY", p["glass_reflect"]
+    to = link.to_socket
+    nt.links.remove(link)
+    nt.links.new(fresnel[0].outputs["Fac"], scale.inputs[0])
+    nt.links.new(scale.outputs[0], to)
     # The room's practicals (bridge_practicals): a strip under each caged ceiling lamp, a soft
     # screen-coloured glow off every console's displays toward its operator, and the overhead
     # amber display's spill onto the helm seat. None in the derelict state: the power is off.
@@ -295,6 +333,7 @@ def blender_main(argv):
         lamp.data.shape, lamp.data.size, lamp.data.size_y = "RECTANGLE", sx, sy
         lamp.data.energy, lamp.data.color, lamp.data.spread = energy, rgb, math.radians(spread)
         lamp.visible_camera = False
+        lamp.visible_glossy = not name.endswith("room fill")
         scene.collection.objects.link(lamp)
         lamp.parent = sw
         lamp.location = loc
@@ -346,39 +385,10 @@ def blender_main(argv):
                           and o.name.split(".")[0] == "SWFX lighting " + lens.name]
         lights.append((lamps, lens["blink_period_s"], lens["blink_phase_s"], lens.get("blink_duty", 0.18)))
 
-    # ---- Broadswords, one copy of the model's root tree each, flames at full throttle.
-    with bpy.data.libraries.load(p["broadsword_blend"], link=False) as (src, dst3):
-        dst3.collections = [c for c in src.collections if c == "BROADSWORD | geometry"]
-    proto = next(o for o in dst3.collections[0].objects if o.name.startswith("Broadsword root"))
-    flame, _ = emission("C2B | Broadsword flame", *FIGHTER_FLAME)
-
-    def clone(obj, parent):
-        c = obj.copy()
-        scene.collection.objects.link(c)
-        c.parent = parent
-        c.matrix_parent_inverse = obj.matrix_parent_inverse.copy()
-        for ch in obj.children:
-            clone(ch, c)
-        return c
-
-    fighters = []
-    for k in range(len(p["samples"][0]["fighters"])):
-        f = clone(proto, None)
-        f.name = "C2B | Broadsword %d" % k
-        f.scale = (p["fighter_mpu"],) * 3
-        for ch in f.children_recursive:
-            if ch.type == "MESH" and "dark throat" in ch.name:
-                ch.data = ch.data.copy()
-                ch.data.materials.clear()
-                ch.data.materials.append(flame)
-            if ch.type == "EMPTY" and "exhaust anchor" in ch.name:
-                bpy.ops.mesh.primitive_uv_sphere_add(radius=1.6, segments=12, ring_count=6)
-                fl = bpy.context.active_object
-                fl.data.materials.append(flame)
-                fl.parent = ch
-                fl.location = (1.4, 0, 0)
-                fl.scale = (1.8, 0.8, 0.8)
-        fighters.append(f)
+    # ---- Broadswords: the finished asset with its effects, one append per fighter so each has its
+    # own SWFX (LOW_TECH drives at full throttle, both guns cold, running lights on the kit's own
+    # strobe). Gear stays up; no haze or landing dust in vacuum.
+    fighters = [root for root, _ in BB.append_broadswords(p, len(p["samples"][0]["fighters"]), effects=True)]
 
     # ---- Jangala: proxy sphere about the eye, self-shaded against the sun, C1's maps.
     eye = Vector(p["eye_m"])
@@ -552,7 +562,7 @@ def blender_main(argv):
     scene.render.use_motion_blur = True
     scene.render.motion_blur_shutter = 0.5
     scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
-    scene.render.resolution_percentage = 100
+    scene.render.resolution_percentage = int(p.get("percentage", 100))
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
     scene.view_settings.view_transform = "AgX"

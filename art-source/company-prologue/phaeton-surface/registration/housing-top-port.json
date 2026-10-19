@@ -1,0 +1,59 @@
+{
+ "part": "housing-top-port",
+ "sheet": "drive",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9971,
+ "raw_iou": 0.9883,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.995,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9883
+  },
+  "bounds_affine": {
+   "scale": [
+    0.99774,
+    0.99773
+   ],
+   "offset_px": [
+    -0.47,
+    0.08
+   ],
+   "iou": 0.9907
+  },
+  "iou_refined_affine": {
+   "scale": [
+    0.99974,
+    0.99773
+   ],
+   "offset_px": [
+    -1.47,
+    -0.42
+   ],
+   "iou": 0.995
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.96,
+  "p95_px": 2.24,
+  "max_px": 3.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.38,
+  "p95_px": 1.0,
+  "max_px": 2.24
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

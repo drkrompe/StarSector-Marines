@@ -1,0 +1,5 @@
+{
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Falcon (P) as a pirate flagship: hard-used, patched and never properly repainted, but kept fighting. Heavier abrasion, grime and soot than any navy hull; some neglect (plates in the wrong shade, bare primer) to go with the patch slabs the geometry already bolts on.",
+ "clean":  {"abrasion": 0.0,  "pitting": 0.0,  "fade": 0.0,  "grime": 0.0,  "soot": 0.0,  "neglect": 0.0},
+ "pirate": {"abrasion": 0.48, "pitting": 0.14, "fade": 0.36, "grime": 0.52, "soot": 0.7,  "neglect": 0.3}
+}

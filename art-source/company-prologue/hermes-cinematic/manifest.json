@@ -659,8 +659,8 @@
  },
  "sources": {
   "skinned_blend": "hermes-surface/build/skinned.blend",
-  "geometry_json_sha256": "3771728f540f180e6a09b639153c6f09b9adb73aa6129ced9f92dbeb4d22f344",
-  "skin_manifest_sha256": "cdc4ae75a28988cd89ef860d5078c457d9da78e7487193baf554c90f3782d0c6"
+  "geometry_json_sha256": "96be9c2154cd97830ee78d21979ea6daf12361d8b648fcb0d08851383024c982",
+  "skin_manifest_sha256": "59387e9b0bdd56dac0a531f03ea3c69b8c393c75abade4255106df225306a849"
  },
  "conventions": {
   "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
@@ -669,5 +669,5 @@
   "control": "Animate the knobs on the 'Hermes control' empty (gear_up, door_port, door_starboard; 0..1). At rest (all 0) the gear stands on landing.ground_z in hull space: place the root that far above the ground plane.",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "112dda37c612954d7487a254145a53491d1de3a5accc35b9e0b8002a384b659b"
+ "asset_sha256": "8c32845a55580c7ea10fcc7882caf93e1b802d3f818369bf947db75d7599ecdc"
 }
