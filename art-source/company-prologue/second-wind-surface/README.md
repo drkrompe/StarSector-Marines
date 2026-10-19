@@ -34,6 +34,18 @@ Mudskipper's door frame lies behind its plug-door leaves, so with the leaves
 slid away the opening would otherwise still show painted doors. The tile and
 every other member's UVs are unchanged; a row without it behaves as before.
 
+Two opt-in controls came from the Legion (`../legion-surface/`), whose 292 m
+hull is cut into world-space box tiles; hulls that do not set them are unchanged:
+- **A box seed's `pad`.** A face is a member only if its whole outline also
+  lies within the box grown by that many units, so one long plate cannot
+  stretch a tile across the ship. A member that only grazes the box may
+  contribute no faces instead of stopping the run.
+- **`FACE_FAMILY_MIN` in `surface_hull.py`.** `apply_skin.py` samples the
+  graded tile under each claimed face. A face whose paint is mostly another
+  family (a neighbour's colour at a registration edge) takes its class swatch
+  instead. The value is the share of its own family a face needs; the
+  manifest counts the faces sent back under `off_family_to_swatch`.
+
 ## Where it stands
 
 Share of the ship's on-screen pixels at 1920×1080 (`review/review.json`; the pilot had 13–37% part skin on port views and flat grey elsewhere):
