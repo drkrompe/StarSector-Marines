@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-18 — closing redrafted plainer, the announcement on a ship loudspeaker heard from the yard; C5 layout scene with the crowd (groups, peel-offs, yard workers, customs, Nessa).
+Updated: 2026-10-19 — the rise and the title are in the layout scene: up to about 1.8 km by 26 s, the title over the settling port.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -166,6 +166,17 @@ perspective barely matters.** Both methods read as people walking:
   for the side view, both walking toward +x (the layout the test's placeholders
   follow). Kept in reserve for a closer insert, such as the figure at the ramp
   who looks up.
+
+**The rise.** From 18 s the camera goes straight up, easing in and out, to
+about 1.8 km at 26 s, drifting west as it climbs so the yard ends as one fenced
+corner of the port, with the public berths, the container yard and the jungle
+edge all in frame. It keeps rising a few percent more under the title, so the
+port is still settling when the title arrives (`title-logo.md`). The title's
+reveal is counted from 24 s, when Castle's last line ends, and the picture is
+black at 33 s. `industrial-exterior/c5_title.py` lays the title over the
+rendered frames, so the wordmark is read from the player's install and never
+rendered into the scene. The title sits over the yard, with Second
+Wind under the name, which the owner accepted on 2026-10-19.
 
 **The look waits on the texture pass.** At this distance even the placeholder
 sprites hold up, so the choice between them and the 3D figures is made once

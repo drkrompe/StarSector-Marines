@@ -5,8 +5,9 @@
 
 Builds C4's scene as it ends (the ship down on Kilo Nine, the yard's vehicles parked at the hull,
 the customs car off the stern) and plays C5 on from there, `DURATION` seconds, with the camera
-straight down through a 50 mm lens about 220 m up (`c5-v2-closing.md`, "Camera and crowd"). The
-camera holds for now; the rise for the title comes later.
+straight down through a 50 mm lens about 220 m up (`c5-v2-closing.md`, "Camera and crowd"). From
+18 s it rises straight up to about 1.8 km, until the yard is one corner of the port, and the title
+comes up over that: `c5_title.py` lays it on the rendered frames.
 
 Who is on the ground:
   yard workers  Nessa's crew in hi-vis, at their jobs from the first frame: two guiding at the
@@ -45,10 +46,17 @@ import c5_crowd as crowd  # noqa: E402
 
 OUT = c4.REPO / 'build' / 'c5'
 C4_END = c4.FRAMES - 1              # C5 starts on the frame C4 ends on
-DURATION = 26.0
+DURATION = 33.5
 FRAMES = round(DURATION * c4.FPS)
 LENS, HEIGHT = 50.0, 220.0
 CENTRE = Vector((362.0, 436.0))
+# The pull-out (`c5-v2-closing.md`, beats 18-26 s): straight up, easing in and out, drifting west so
+# the yard ends as one corner of the port with the jungle along the right edge. Height grows at a
+# steady rate of zoom (geometric), and keeps settling the last few percent under the title.
+RISE = (18.0, 26.0)
+TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
+SETTLE = 1.04                       # how much further it drifts up after the rise, to the end
+TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
 
 KX, KY = c4.K9
@@ -163,8 +171,14 @@ def setup(body):
     cam = c4.link(bpy.data.objects.new('C5 | overhead', bpy.data.cameras.new('C5 | overhead')))
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, c4.SENSOR_MM, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 5.0, 60000.0
-    cam.location = (CENTRE.x, CENTRE.y, HEIGHT)
     cam.rotation_euler = (0, 0, 0)
+    for f in range(0, FRAMES + 1, 3):
+        t = f / c4.FPS
+        k = c4.smoothstep(*RISE, t)
+        settle = 1 + (SETTLE - 1) * c4.smoothstep(RISE[1] - 2.0, DURATION, t)
+        c = CENTRE.lerp(TOP_CENTRE, k)
+        cam.location = (c.x, c.y, HEIGHT * (TOP / HEIGHT) ** k * settle)
+        cam.keyframe_insert('location', frame=C4_END + min(f, FRAMES - 1))
     scene.camera = cam
     scene.frame_start, scene.frame_end = C4_END, C4_END + FRAMES - 1
     return scene
