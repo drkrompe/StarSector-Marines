@@ -30,7 +30,7 @@ import bpy
 FACE_TARGETS = [
     # A long face, lean below the cheekbones; older planes.
     ("head-oval", 0.4), ("head-scale-vert-incr", 0.12),
-    ("head-fat-decr", 0.25), ("head-age-incr", 0.45),
+    ("head-fat-decr", 0.25), ("head-age-incr", 0.7),
     ("l-cheek-bones-incr", 0.8), ("r-cheek-bones-incr", 0.8),
     ("l-cheek-volume-decr", 0.4), ("r-cheek-volume-decr", 0.4),
     ("l-cheek-inner-decr", 0.2), ("r-cheek-inner-decr", 0.2),
@@ -55,14 +55,14 @@ FACE_TARGETS = [
 
 # The half-smile: MakeHuman's zygomatic "corner puller" expression unit, mostly on her left
 # (MPFB's +X), a trace on her right, the corners pressed a little so it stays closed-mouthed.
-SMILE_LEFT, SMILE_RIGHT, SMILE_PRESS = 0.4, 0.0, 0.3
+SMILE_LEFT, SMILE_RIGHT, SMILE_PRESS = 0.28, 0.0, 0.3
 
 SKIN = "middleage_caucasian_female"
-SKIN_AGED = ("old_caucasian_female", 0.45)   # its diffuse mixed in for lines and weathering
+SKIN_AGED = ("old_caucasian_female", 0.65)   # its diffuse mixed in for lines and weathering
 SKIN_TINT = (0.9, 0.86, 0.7)        # multiplies MakeHuman's diffuse: away from pink, toward olive
 SKIN_FLAT = (0.56, 0.40, 0.31)      # Workbench
-EYE = "grey"                        # her eyes are a pale grey-green: MakeHuman's grey,
-EYE_TINT = (0.86, 0.95, 0.78)      # tinted toward green
+EYE = "grey"                        # her eyes are a grey-green: MakeHuman's grey,
+EYE_TINT = (0.80, 0.82, 0.52)      # the blue taken out, toward green
 
 
 def _mpfb():

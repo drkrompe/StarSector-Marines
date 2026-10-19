@@ -17,7 +17,11 @@ condition state's scar anchors):
                               turns to smoke, a flash light, a shock ring in
                               the anchor's YZ plane, and a burst of embers.
                               Optional 'delay_s' (after fir_exp_frame),
-                              'size_m' (fireball radius, default 30 m), 'seed'.
+                              'size_m' (fireball radius, default 30 m), 'seed',
+                              and for the lesser blasts of a chain (a
+                              cook-off): 'ring' (shock ring strength, 0 none,
+                              default 1), 'flash' (flash light strength,
+                              default 1), 'embers' (count, default 120).
 Every effect is a child of its anchor, so it rides with the wreck section
 the anchor hangs from.
 
@@ -180,13 +184,13 @@ def _fireball_material(ctx, name, seed, radius, delay):
     return m
 
 
-def _ring_material(ctx, name, delay):
+def _ring_material(ctx, name, delay, gain=1.0):
     # A thin bright band at the disc's rim (object radius 1), soft inside: an
     # annulus, not a filled disc, so the ring reads against the fireball.
     m, nodes, links = node_material(name)
     g = G(m.node_tree)
     te = f'((frame-fir_exp_frame)/{FPS}-{delay})'
-    strength = value_node(ctx, nodes, 'strength', f'fir_exp*({te}>0)*exp(-max({te},0)*3.2)*1.2',
+    strength = value_node(ctx, nodes, 'strength', f'fir_exp*({te}>0)*exp(-max({te},0)*3.2)*{1.2*gain:.3f}',
                           ('fir_exp', 'fir_exp_frame'))
     r = g.v('LENGTH', g.node('ShaderNodeTexCoord').outputs['Object'])
     band = g.m('MULTIPLY', g.mr(r, .86, .965, smooth=True), g.m('SUBTRACT', 1.0, g.mr(r, .97, 1.0)))
@@ -268,35 +272,49 @@ def build_explosion(ctx, coll, anchor):
     seed = _seed(anchor)
     delay = float(anchor.get('delay_s', 0.0))
     R = units(float(anchor.get('size_m', BLAST_M)))
+    ring_gain = float(anchor.get('ring', 1.0))
+    flash_gain = float(anchor.get('flash', 1.0))
+    ember_count = int(anchor.get('embers', 120))
     ball = _container(f'{PREFIX} fireball | {anchor.name}', coll, anchor, R*1.6,
                       _fireball_material(ctx, f'{PREFIX} fireball {seed}', seed, R, delay))
+    objects = [ball.name]
     # Shock ring: a flat annulus in the anchor's YZ plane, racing out and fading.
+    if ring_gain > 0:
+        objects.append(_shock_ring(ctx, coll, anchor, seed, R, delay, ring_gain))
+    te = f'((frame-fir_exp_frame)/{FPS}-{delay})'
+    # Flash: very bright for a few frames, then the fireball's own glow.
+    flash = swfx_core.point_light(f'{PREFIX} flash | {anchor.name}', coll, (1.0, .82, .6), 0.0, radius=R*.3)
+    swfx_core.attach(flash, anchor)
+    ctx.drive(flash.data, 'energy',
+              f'fir_exp*({te}>0)*{watts(1.5e7)*flash_gain:.1f}*fir_exp_scale*fir_exp_scale*'
+              f'(exp(-max({te},0)*9)+0.12*exp(-max({te},0)*1.2))', ('fir_exp', 'fir_exp_frame', 'fir_exp_scale'))
+    objects.append(flash.name)
+    if ember_count > 0:
+        embers = bpy.data.objects.new(f'{PREFIX} embers | {anchor.name}',
+                                      bpy.data.meshes.new(f'{PREFIX} embers {seed}'))
+        coll.objects.link(embers)
+        mod = embers.modifiers.new('Embers', 'NODES')
+        mod.node_group = _ember_tree(ctx, f'{PREFIX} embers {seed}', seed, delay, ember_count)
+        swfx_core.attach(embers, anchor)
+        objects.append(embers.name)
+    return {'anchor': anchor.name, 'delay_s': delay, 'fireball_radius_units': round(R, 2), 'objects': objects}
+
+
+def _shock_ring(ctx, coll, anchor, seed, R, delay, gain):
     bpy.ops.mesh.primitive_circle_add(vertices=64, radius=1.0, fill_type='NGON')
     ring = bpy.context.object
     for c in ring.users_collection:
         c.objects.unlink(ring)
     coll.objects.link(ring)
     ring.name = ring.data.name = f'{PREFIX} shock ring | {anchor.name}'
-    ring.data.materials.append(_ring_material(ctx, f'{PREFIX} shock ring {seed}', delay))
+    ring.data.materials.append(_ring_material(ctx, f'{PREFIX} shock ring {seed}', delay, gain))
     _no_shadow_catch(ring)
     swfx_core.attach(ring, anchor, rotation=(0, math.pi/2, 0))
     te = f'((frame-fir_exp_frame)/{FPS}-{delay})'
     for k in range(3):
         ctx.drive(ring, 'scale', f'{R*2.5:.3f}*fir_exp_scale*(1-exp(-max({te},0)*2.2))+0.001',
                   ('fir_exp_scale', 'fir_exp_frame'), index=k)
-    # Flash: very bright for a few frames, then the fireball's own glow.
-    flash = swfx_core.point_light(f'{PREFIX} flash | {anchor.name}', coll, (1.0, .82, .6), 0.0, radius=R*.3)
-    swfx_core.attach(flash, anchor)
-    ctx.drive(flash.data, 'energy',
-              f'fir_exp*({te}>0)*{watts(1.5e7):.1f}*fir_exp_scale*fir_exp_scale*'
-              f'(exp(-max({te},0)*9)+0.12*exp(-max({te},0)*1.2))', ('fir_exp', 'fir_exp_frame', 'fir_exp_scale'))
-    embers = bpy.data.objects.new(f'{PREFIX} embers | {anchor.name}', bpy.data.meshes.new(f'{PREFIX} embers {seed}'))
-    coll.objects.link(embers)
-    mod = embers.modifiers.new('Embers', 'NODES')
-    mod.node_group = _ember_tree(ctx, f'{PREFIX} embers {seed}', seed, delay)
-    swfx_core.attach(embers, anchor)
-    return {'anchor': anchor.name, 'delay_s': delay, 'fireball_radius_units': round(R, 2),
-            'objects': [ball.name, ring.name, flash.name, embers.name]}
+    return ring.name
 
 
 def build(ctx, fires=True, vents=True, explosions=True, **options):
