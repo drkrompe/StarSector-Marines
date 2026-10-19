@@ -45,7 +45,8 @@ public final class MechPatternPicker {
                     MechPattern.of(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS),
                     MechPattern.of(MechWeaponComponent.SRM_15),
                     MechPattern.of(MechWeaponComponent.LRM_15),
-                    MechPattern.of(VehicleType.UP_ARMORED_APC)),
+                    MechPattern.of(VehicleType.UP_ARMORED_APC),
+                    MechPattern.of(VehicleType.LRM_CARRIER)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
                     MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
                     MechPattern.of(VehicleType.DOZER_BREACHER)),

@@ -4652,10 +4652,10 @@
       "terminal": false
     },
     {
-      "id": "small_war_wolves_sighted",
+      "id": "small_war_enforcers_sighted",
       "missionId": "story_agreus_small_war",
-      "event": "small_war.wolves_sighted",
-      "text": "Greyhook, this is the Rusk family escort, two Wolfs out of Arcadia. You are lifting with the levy's freight. Set down where you are and nobody else needs to be hurt.",
+      "event": "small_war.enforcers_sighted",
+      "text": "Greyhook, this is the Rusk family escort, two Enforcers out of Arcadia. You are lifting with the levy's freight. Set down where you are and nobody else needs to be hurt.",
       "durationSeconds": 10,
       "priority": 23,
       "expiresSeconds": 30,
@@ -4667,10 +4667,10 @@
       "draft": true
     },
     {
-      "id": "small_war_wolves_closing",
+      "id": "small_war_enforcers_closing",
       "missionId": "story_agreus_small_war",
-      "event": "small_war.wolves_closing",
-      "text": "The Rusks send frigates after one cadet's paperwork? I can't outrun Wolfs, and I won't be caught on the pad. Shields up. We fight.",
+      "event": "small_war.enforcers_closing",
+      "text": "The Rusks send destroyers after one cadet's paperwork? I can't outrun Enforcers, and I won't be caught on the pad. Shields up. We fight.",
       "durationSeconds": 8,
       "priority": 23,
       "expiresSeconds": 30,
@@ -4712,10 +4712,10 @@
       "draft": true
     },
     {
-      "id": "small_war_wolves_down",
+      "id": "small_war_enforcers_down",
       "missionId": "story_agreus_small_war",
-      "event": "small_war.wolves_down",
-      "text": "Both of Rusk's Wolfs are down. The Greyhook owns the sky now. Stay under cover.",
+      "event": "small_war.enforcers_down",
+      "text": "Both of Rusk's Enforcers are down. The Greyhook owns the sky now. Stay under cover.",
       "durationSeconds": 8,
       "priority": 23,
       "expiresSeconds": 30,

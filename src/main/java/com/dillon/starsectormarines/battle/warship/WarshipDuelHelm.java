@@ -141,6 +141,17 @@ public final class WarshipDuelHelm {
      * the map's edge margin ({@link WarshipEdgeHelm#settle}).
      */
     public static float[] bowStation(Warship ship, Warship target, float range, WarshipEdgeHelm edges) {
+        return bowStation(ship, target, range, edges, Float.NaN, 0f, 0f);
+    }
+
+    /**
+     * {@link #bowStation}, with a bearing round the target to keep away from: a point within {@code separation}
+     * degrees of {@code avoid} (a partner's bearing round the target) costs up to {@code weight} more, falling off to
+     * nothing at the separation, so two ships on one target work it from two sides. {@code avoid} NaN is the plain
+     * station.
+     */
+    public static float[] bowStation(Warship ship, Warship target, float range, WarshipEdgeHelm edges, float avoid,
+                                     float separation, float weight) {
         float tx = target.centerX();
         float ty = target.centerY();
         float most = 0f;
@@ -160,6 +171,10 @@ public final class WarshipDuelHelm {
             float travel = (float) Math.hypot(at[i][0] - ship.x, at[i][1] - ship.y) / Math.max(1f, range);
             float score = (most > 0f ? threat[i] / most : 0f) + BOW_TRAVEL_WEIGHT * travel
                     + (shieldCovers(target, at[i][0], at[i][1]) ? BOW_SHIELD_WEIGHT : 0f);
+            if (!Float.isNaN(avoid) && separation > 0f) {
+                float round = Math.abs(WarshipFacing.wrap(WarshipFacing.bearing(tx, ty, at[i][0], at[i][1]) - avoid));
+                score += weight * Math.max(0f, 1f - round / separation);
+            }
             if (score < bestScore) {
                 bestScore = score;
                 best = at[i];

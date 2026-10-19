@@ -36,6 +36,12 @@ public final class TurretMountDef {
 
     public record Muzzle(float lateral, float forward) {}
 
+    /**
+     * Whether the mount fires only at hardened targets (turrets, hubs, vehicles, heavy mechs), as a mech's
+     * anti-armor rack does: a contact warhead spent on a rifleman is a warhead the next tank does not get.
+     */
+    public final boolean hardenedTargetsOnly;
+
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -45,8 +51,9 @@ public final class TurretMountDef {
                            int ammoCapacity, float turnRateDegPerSec,
                            float visualCells, float muzzleOffsetCells,
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
-                           String spritePath, String recoilSpritePath) {
+                           boolean hardenedTargetsOnly, String spritePath, String recoilSpritePath) {
         this.id = id;
+        this.hardenedTargetsOnly = hardenedTargetsOnly;
         this.weaponId = weaponId;
         this.weapon = weapon;
         this.ammoCapacity = ammoCapacity;
@@ -123,7 +130,8 @@ public final class TurretMountDef {
         }
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
-                muzzleLateralOffsetCells, muzzles, sprite, recoilSprite);
+                muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
+                sprite, recoilSprite);
     }
 
     static String requireText(JSONObject json, String key) throws JSONException {
