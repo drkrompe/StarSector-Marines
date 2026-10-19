@@ -159,7 +159,8 @@ final class ArmorReport {
             + "defender_damage_dealt,attacker_shots,attacker_hits,defender_shots,defender_hits,"
             + "attacker_mounts_lost,defender_mounts_lost,attacker_legs_crippled,defender_legs_crippled,"
             + "attacker_heat_limited_s,defender_heat_limited_s,attacker_survivors,defender_survivors,"
-            + "attacker_weapons,defender_weapons,gif\n";
+            + "attacker_weapons,defender_weapons,attacker_rounds_engaged,attacker_rounds_stopped,"
+            + "defender_rounds_engaged,defender_rounds_stopped,gif\n";
 
     static String runRow(ArmorPlay.Result r, String gif) {
         ArmorPlay.SideStats a = r.attackers();
@@ -172,7 +173,9 @@ final class ArmorReport {
                 + a.mountsLost() + ',' + d.mountsLost() + ',' + a.legsCrippled() + ',' + d.legsCrippled() + ','
                 + f1(a.heatLimitedSeconds()) + ',' + f1(d.heatLimitedSeconds()) + ','
                 + q(a.survivors()) + ',' + q(d.survivors()) + ','
-                + q(weaponText(a.weapons())) + ',' + q(weaponText(d.weapons())) + ',' + (gif == null ? "" : gif) + '\n';
+                + q(weaponText(a.weapons())) + ',' + q(weaponText(d.weapons())) + ','
+                + a.roundsEngaged() + ',' + a.roundsStopped() + ',' + d.roundsEngaged() + ',' + d.roundsStopped() + ','
+                + (gif == null ? "" : gif) + '\n';
     }
 
     static String q(String s) {
