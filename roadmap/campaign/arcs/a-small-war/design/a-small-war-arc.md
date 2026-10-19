@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — Rusk's family lends two Hegemony Enforcers instead of two Wolfs (owner); the Greyhook fights them alone, to the finish.
+Updated: 2026-10-19 — Rusk's family lends an Enforcer and a Wolf (owner: "We don't need this to be an even fight").
 
 ## Premise, place and cast
 
@@ -71,13 +71,13 @@ Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
 **The family answers overhead.** As the *Greyhook*, Voss's Venture with Voss aboard,
-lifts alone from the pads south of the ridge and turns to fight, the pair of
-Hegemony Enforcer destroyers Rusk's family has lent from Citadel Arcadia comes in
-low over the basin. They slug it out in atmosphere while the ground fight continues
-beneath them: two armoured Hegemony line ships working her as a pack, one holding
-her guns while the other strikes, against a heavier ship that turns slowly. The
-player's fleet stays out of the sky; the Enforcers are the family's ships, not the
-company's support. A pair,
+lifts alone from the pads south of the ridge and turns to fight, the pair Rusk's
+family has lent from Citadel Arcadia comes in low over the basin: a Hegemony Enforcer
+destroyer and Rusk's own Wolf. They slug it out in atmosphere while the ground fight
+continues beneath them: the armoured Enforcer holding her guns while the Wolf darts in
+on her quarter, against a heavier ship that turns slowly. It is not an even fight and
+is not meant to be. The player's fleet stays out of the sky; Rusk's ships are the
+family's, not the company's support. A pair,
 not one, is the point: it checks two audiences at once, the Eventide house saving
 face over a cadet's failure and the Hegemony showing an Independent colony what it
 can put overhead at short notice.

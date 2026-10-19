@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -275,7 +275,7 @@ machine, as a mech's sections share their chassis's rating.
 - **An empty magazine is a different fact.** It ends fire but leaves the gun.
   The hull still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
-  `turretPoolShare`). Today only the two gun tanks author one: a fifth of the
+  `turretPoolShare`). Today only the gun tanks (breakthrough, heavy-gun and screened) author one: a fifth of the
   hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank
   that loses its gun). A hull with no section is one body and its gun
   cannot be lost. That covers the APCs, the technical, the dozer's MG and the
@@ -295,6 +295,22 @@ a socket and show its damage, but the shares stay on the hull type, as a mech's
 pool shares stay on its body plan rather than on its doll. Vehicles have no
 campaign wear (they are variants, not fittings), so nothing is written back:
 a gun lost in battle is lost for that battle only.
+
+**The screened tank carries active protection** (`VehicleType.activeProtectionStructureId`).
+It is a point-defence mount on the hull: the carried-mount law of
+`PointDefenseService`, with the hull as the carrier. It is bounded the same way:
+it engages a round only while the round is inside its reach, at most once per
+cycle, from a finite magazine that is not refilled, and each engagement is a
+roll. What it takes is narrower than an emplacement's: **only an arcing,
+top-attack round coming down within three cells of the hull.** A flat rocket
+such as an SRM is left to the plate, and so is a round falling on somebody
+else, so the system shields its own hull and never the infantry around it.
+Guns, cannon and lasers fire rounds that point defence cannot engage at all.
+Only the screened tank carries one: a rung of the tank line, the breakthrough
+tank with this system, never a fitting on a stock tank
+(`heavy-equipment-progression.md`, the AT LRM against a tank). The mount lasts the battle, ends with the hull, and is mounted
+once: a spent magazine is not refilled. `-Dbattle.vehicle.activeProtection=false`
+is the control.
 
 ## Route, corridor, and motion
 

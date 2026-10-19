@@ -102,10 +102,14 @@ Bridge and under-bridge (pg_bridge; owner, pass 3)
 Guns (turret kit; owner, pass 3: the mounts read empty)
   Each turret carries its gun from the shared turret kit
   (../turret-kit/turret_kit.py), matched to the game's weapon sprite for the
-  Elite fit and sitting low in its dimpled well: the tachyon lance (WS
-  003/004), graviton beam, tactical laser and reaper launcher. pg_turrets asks
+  Elite fit and sitting low in its dimpled well: tachyon lances (WS 003/004),
+  graviton beams, heavy needlers (WS 007/008), tactical lasers, point-defence
+  lasers (WS 011/016/017/022/023: armoured collars kept red, power cabling in
+  the hull's dark machinery, the emitter on a gimbal elevating -5 to +75
+  degrees, recorded per slot as elevation_limits_deg) and reaper launchers. pg_turrets asks
   the kit for each gun at its nominal ring (one sprite pixel a unit, as the game
-  draws it) with hull_finish=True, so the guns wear the hull's hex ceramic,
+  draws it) with hull_finish=True and sprite_tint=.5, so the guns wear the hull's hex
+  ceramic mixed halfway toward each sprite's colour,
   blue plate, slate and lamps, and drops it to just under the well's rim. The
   kit's review sheets score each against its sprite (silhouette IoU 0.91-0.95).
   The kit hangs Weapon WS nnn elevation on the pivot and Weapon WS nnn muzzle

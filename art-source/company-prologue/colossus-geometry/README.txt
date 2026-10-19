@@ -96,6 +96,43 @@ Pass 3 round 4 (owner: "keep adding detail", without more containers): the
   keel faces (dark spikes); cl_hull._cut now splits overlapping shells into
   separate passes, and cl_kit.boolean splits any warped n-gon it leaves. IoU
   0.964; enclosed volume 1.129 M units3 (solve 0.431, published 0.50).
+Pass 3 round 5 (owner: clamps "read as low poly", the tug engine sections and
+  the bridge need more work). Clamps are round bolted flanges on hazard rings
+  with turned bodies, collars and hooked jaws on pivot pins; the keel hatches
+  take hinges and leaf ribs. Each drive pod is a heavy tug drive unit
+  (cl_engines.tug): underslung propellant tanks on strap bands either side of
+  a drive keel with a wear shoe, a dorsal drive housing with radiator banks,
+  rails and a ladder, flush rubbing strakes, a nose push knee and keel thrust
+  shoe, RCS quads, a bolted bay surround with cheek armour, a manifold and
+  turbopumps behind 40-segment bells with four hoops and ribs; the pod now
+  stands z -32..+29. The bridge (cl_bridge) is plated and vented, with a
+  recessed mullioned windscreen under an armoured brow, bolted round ports on
+  the annex, a railed annex lookout deck and bridge wings, ladders to a railed
+  roof, a ribbed dish on a yoke, a navigation scanner, a sensor dome, whips and
+  life-raft canisters. Close-up cameras added: keel-docking, clamp-detail,
+  aft-bulkhead, pod-quarter, bridge-quarter. IoU 0.9625; 1.129 M units3.
+Pass 3 round 6 (owner: "bottom is the weakest on the main hull", and "some kind
+  of bottom thrust for lifting off the ground"): ten ventral lift thrusters
+  (cl_hull.lift, LIFT), two large on the hold centreline between the cargo
+  hatches and a pair across each side module's keel. Each is a well cut up into
+  the keel with a down-facing bell (lip, two cooling hoops, dark throat),
+  vectoring vanes across the mouth, a bolted heat-shield collar and a hazard
+  ring; 'Lift thruster <i> exhaust anchor' points down (+X), listed in
+  geometry.json under lift_thrusters. Ceramic heat-shield tile fields
+  (heat_tiles) surround them; bolted landing skids with wear shoes run along
+  the hold keel (skids), and replace the plain keel strakes. IoU 0.9625;
+  1.126 M units3.
+Pass 3 round 7 (owner: skids "would concentrate a lot of weight on a wedge /
+  line"): the skids are replaced by eight telescoping landing legs on broad
+  ribbed footpads (cl_hull.landing_gear, GEAR): four on the hold keel outboard
+  of the hatches, one on each side module's clamp line. Built stowed, pads near
+  flush in recesses with hazard rings. Each leg's footpad, gimbal hub and
+  chromed lower stage ride 'Hull landing leg <i> extension' and its steel upper
+  stage rides '... upper stage extension' (custom properties open_axis, travel;
+  half travel for the stage); deployed, every pad stands on GROUND_Z (-60).
+  --gear-down poses them for renders (files take a -gear-down suffix; never
+  saved); geometry.json lists them under landing_gear. IoU 0.9625; 1.124 M
+  units3.
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]

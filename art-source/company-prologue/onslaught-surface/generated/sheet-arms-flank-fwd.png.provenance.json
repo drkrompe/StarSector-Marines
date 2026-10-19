@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a15469-c912-7d01-8193-5f0866b73681",
+  "source": "/Users/dillon/.codex/generated_images/01a15469-c912-7d01-8193-5f0866b73681/exec-5e591ec9-c679-4958-926c-4e88f3cbf412.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-arms-flank-fwd.png",
+    "sha256": "c332cfdf2aa1a60a37d021f2915e70e51f6493f50eec24e03d495750818953d9",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-arms-flank-fwd.prompt.txt",
+  "promptSha256": "62c9911f766eda4c0ebebf827ea4086d0aea379b779c04c8dce8d405712ff0d7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of one gun arm of a 3D spacecraft (a Hegemony XIV Onslaught-class battleship, a heavily armoured low-tech capital ship, properly maintained picket flagship on station), each seen square-on from the port side, bow to the left, each drawn alone as flat-coloured shapes on a plain flat mid-blue background:\ntop-left: the side sponson: dark charcoal grey armour plates with two near-black recessed radiator wells framed in dark grey, one small cool blue-grey steel plate, a dark grey lower plate, and two small dark brown plates at far right;\ntop-right: the forward flank: a warm brown-grey upper band with dark brown and bone-brown plates, then a bright orange rail with dark grey straps and weathered burnt-orange plates at both ends;\nbottom-left: the lower flank: weathered burnt-orange and bright orange plates at left with a dark grey strap and a light bone-brown strip below, then dark charcoal grey sponson armour with a large cool blue-grey steel plate and a near-black recess at right;\nbottom-right: the arm's nose side: a warm brown-grey face with a dark brown wedge plate and bone-brown plates, a large dark charcoal grey cheek plate below and to the left, a dark grey vertical strap, and weathered burnt-orange plates at the bottom right.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its maintained service finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that maintained armoured surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot stays plain background blue. Thin isolated slivers and strips stay where they are.\n- Every shape is a flat painted steel armour plate. Add painted surface detail inside each plate's outline only: crisp plate seams and welded joints, neat rows of small fasteners and rivets, flush access panels, a light even film of dust and grime in the seams and a few small scuffs on plate edges. Nothing may stand out from the surface or cross an outline.\n- Keep EVERY plate its own colour exactly as INPUT 1 shows it. The alternating plate tones are deliberate and must stay distinct, never evened out or blended: warm brown-grey plates stay warm brown-grey; dark brown plates stay dark chocolate brown; bone-brown plates stay a light warm tan; bright orange plates stay saturated Hegemony orange enamel; the duller darker orange plates stay a weathered burnt orange; dark grey armour (straps, frames, coamings, sponson plates) stays dark charcoal grey; blue-grey steel plates stay a cool blue-grey steel; near-black recesses and seams stay near-black. Do not repaint any plate another colour, add no stripes and no differently coloured patches.\n- The ship is maintained, not battered. Weathering is light and even across every plate. No rust, no repair patches, no soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-arms-flank-fwd-guide.png",
+      "sha256": "bb22ce40e1224fef62fa112dbf7009f6d54bf27171fcd541187b12f3bfc50057",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the four faces, preserving the first image’s layout and plate colours while matching the second image’s finish."
+  ],
+  "usage": {
+    "input_tokens": 107218,
+    "cached_input_tokens": 87936,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1189,
+    "reasoning_output_tokens": 86
+  },
+  "elapsedSeconds": 69.4
+}

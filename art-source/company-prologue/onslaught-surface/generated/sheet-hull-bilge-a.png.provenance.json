@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1546e-79ad-7893-b2c2-152998396852",
+  "source": "/Users/dillon/.codex/generated_images/01a1546e-79ad-7893-b2c2-152998396852/exec-7ed926b2-883a-4cec-b6c3-01c52f024097.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-hull-bilge-a.png",
+    "sha256": "e5b4eb3697052786fdc4782a18ffa0483b37ad4f57e5a2cd25987f7c2feadc86",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-hull-bilge-a.prompt.txt",
+  "promptSha256": "a1d937d4d0ea8c75f06152fe5008a71dd3da5bd4638fa16dd881b4e0eabc4e32",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of hull faces of one 3D spacecraft (a Hegemony XIV Onslaught-class battleship, a huge low-tech armoured warship), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background. Colour key used below: \"brown-grey hull\" is a warm brown-grey painted steel; \"dark brown\" plates are a deeper chocolate brown; \"bone-brown\" plates are a pale warm tan; \"blue-grey steel\" plates are a cool blue-grey painted steel; \"dark grey armour\" is a dark charcoal-grey armour; \"weathered orange\" plates are a slightly dulled Hegemony orange enamel; \"black seams\" are near-black recesses and seam backing showing between plates.\nThe other three faces are the plated lower hull (the bilge, which slopes down from the side toward the keel), each seen square-on with the ship's bow at the TOP of the tile:\ntop-left: the forefoot, the underside of the bow, port half: a large tapering expanse of brown-grey hull with, toward its right, a cluster of plates outlined by black seams: a dark brown plate and a bone-brown plate with a small round fastener, a blue-grey steel hatch plate with a raised blue-grey bar on it, a dark brown plate, and a small dark grey armour block at the top right corner;\ntop-right: the forward bilge: a large plain brown-grey hull plate filling the left and top, and at the right a group of long plates running up the tile: a brown-grey panel in a black recess with a small hatch, a dark grey armour block over a blue-grey steel plate, a black recess strip, and at the far right a narrow bone-brown plate above a small blue-grey steel plate on a black seam strip;\nbottom-left: the bilge further aft: from the left, brown-grey hull, a dark brown plate above a brown-grey plate, a long dark brown plate in a black frame, a blue-grey steel plate above a dark grey armour grille of three upright bars over black, a black recess panel, and at the far right a narrow blue-grey steel plate over a small dark brown plate;\nbottom-right: the bilge amidships: from the left, a brown-grey panel with a small bone-brown inset over a dark brown plate, a dark grey armour frame round a long black recess, a dark grey armour grille of bars over black above a blue-grey steel plate with a small tan inset, a black recess panel, and a narrow dark brown strip with a thin dark grey armour bracket at the far right, all on brown-grey hull.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its maintained service finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that maintained hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.\n- Every plate in INPUT 1 is its own plate and keeps its own outline and its own tone. The alternating plate tones are DELIBERATE: never even them out, never blend one plate into the next, never repaint a plate in its neighbour's tone. Add painted surface detail inside each plate's outline only: crisp plate seams and welded joints, neat rows of small fasteners and rivets, flush access panels, a light even film of dust, grime packed into the seams and a few tiny scuffed edges. Nothing may stand out from the surface or cross an outline.\n- The ship is a properly maintained flagship on station, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, repair patches, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-hull-bilge-a-guide.png",
+      "sha256": "0305f0c5e1a2a7886cfe2482e2afb9e123f3955915cc9281191b5c6aff110d12",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the four-tile layout and plate outlines.\n"
+  ],
+  "usage": {
+    "input_tokens": 117053,
+    "cached_input_tokens": 95872,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1128,
+    "reasoning_output_tokens": 60
+  },
+  "elapsedSeconds": 64.1
+}

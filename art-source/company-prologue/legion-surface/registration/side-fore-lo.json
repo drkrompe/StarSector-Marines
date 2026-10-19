@@ -1,0 +1,59 @@
+{
+ "part": "side-fore-lo",
+ "sheet": "side-b",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9804,
+ "raw_iou": 0.9679,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9742,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9679
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00593,
+    0.99773
+   ],
+   "offset_px": [
+    -2.2,
+    0.08
+   ],
+   "iou": 0.9532
+  },
+  "iou_refined_affine": {
+   "scale": [
+    0.99993,
+    1.00223
+   ],
+   "offset_px": [
+    -0.2,
+    0.08
+   ],
+   "iou": 0.9742
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.58,
+  "p95_px": 1.41,
+  "max_px": 3.16
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.45,
+  "p95_px": 1.0,
+  "max_px": 3.16
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

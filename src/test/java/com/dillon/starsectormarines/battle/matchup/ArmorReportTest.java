@@ -60,9 +60,9 @@ class ArmorReportTest {
     @Test
     void rowsMergeWeaponsAcrossSeeds() {
         ArmorPlay.SideStats one = new ArmorPlay.SideStats("hound", 1, 1, 100f, 50f, 80f, 10, 5, 0, 0, 0f,
-                Map.of("mech-chaingun", new ArmorPlay.WeaponStats(10, 5, 80f)), "");
+                Map.of("mech-chaingun", new ArmorPlay.WeaponStats(10, 5, 80f)), "", 0, 0);
         ArmorPlay.SideStats two = new ArmorPlay.SideStats("hound", 1, 1, 100f, 50f, 20f, 10, 1, 0, 0, 0f,
-                Map.of("mech-chaingun", new ArmorPlay.WeaponStats(10, 1, 20f)), "");
+                Map.of("mech-chaingun", new ArmorPlay.WeaponStats(10, 1, 20f)), "", 0, 0);
         ArmorReport.Row row = ArmorReport.Row.of("x", List.of(
                 fight("STALEMATE", 2000, 10, one, one), fight("STALEMATE", 2000, 10, two, two)), null);
         assertEquals("mech-chaingun 100% (h 30%)", row.attackerWeapons());
@@ -100,6 +100,6 @@ class ArmorReportTest {
     private static ArmorPlay.SideStats side(int start, int left, float integrity, int shots, int hits,
                                             int mounts, int legs, float heat) {
         return new ArmorPlay.SideStats("side", start, left, 100f, 100f * integrity, 50f, shots, hits, mounts, legs,
-                heat, Map.of("w", new ArmorPlay.WeaponStats(shots, hits, 50f)), left > 0 ? "hound[50%]" : "");
+                heat, Map.of("w", new ArmorPlay.WeaponStats(shots, hits, 50f)), left > 0 ? "hound[50%]" : "", 0, 0);
     }
 }

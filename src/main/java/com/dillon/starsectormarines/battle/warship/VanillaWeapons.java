@@ -71,6 +71,32 @@ public final class VanillaWeapons {
     }
 
     /**
+     * The magazine a weapon regains per second in the base game's combat, from the {@code ammo/sec} column of the
+     * weapon table; zero when the column is blank (the magazine never refills) or unreadable.
+     */
+    public static float ammoPerSecond(String weaponId) {
+        return number(weaponId, "ammo/sec");
+    }
+
+    /**
+     * How many rounds a regaining magazine takes back at a time, from the {@code reload size} column; one when the
+     * column is blank, as the base game reads it.
+     */
+    public static int reloadSize(String weaponId) {
+        return Math.max(1, (int) number(weaponId, "reload size"));
+    }
+
+    private static float number(String weaponId, String column) {
+        try {
+            Map<String, String> row = table().get(weaponId);
+            String v = row == null ? null : row.get(column);
+            return v == null || v.isBlank() ? 0f : Math.max(0f, Float.parseFloat(v.trim()));
+        } catch (Exception e) {
+            return 0f;
+        }
+    }
+
+    /**
      * The weapon table's {@code hints} column for a weapon, split into its comma-separated
      * tokens (trimmed, as written); empty when the weapon is unknown or has none.
      */

@@ -203,6 +203,15 @@ public final class WarshipTactics {
     static final float SWAP_FLUX = 0.5f;
     /** A partner whose pool is no fuller than this is fresh enough to take the target over. */
     static final float READY_FLUX = 0.4f;
+    /**
+     * A hull at least this many times sturdier ({@link #sturdiness}) than each of its partners is the pack's natural
+     * tank: it takes the target first, a lighter partner relieves it only when its shield is going, and it takes the
+     * target back from a lighter tank as soon as it is fresh. Between hulls closer than this, flux alone decides, as
+     * between two of a kind.
+     */
+    static final float STURDIER_SHARE = 1.5f;
+    /** The round sturdiness is read against: a middling anti-ship hit, so armour counts without deciding alone. */
+    static final float STURDY_DAMAGE = 200f, STURDY_PENETRATION = 20f;
     /** A striker whose pool is this full breaks off to vent while the tank holds. */
     static final float STRIKER_VENT_FLUX = 0.75f;
     /**
@@ -240,6 +249,18 @@ public final class WarshipTactics {
     static final float VENT_COURSE_SWING_COST = 0.15f;
     /** A venting ship this close to its hold, in cells, is there: it stops running and turns its nose back. */
     static final float VENT_ARRIVE_CELLS = 4f;
+    /**
+     * {@code -Dbattle.warship.biteTargeting=false} is the control: a hunter choosing between hulls does not weigh how
+     * much of its battery each one's armour turns away.
+     */
+    static final boolean BITE_TARGETING =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.biteTargeting"));
+    /**
+     * In choosing between hulls, what a hull whose armour turns away the chooser's whole battery costs against one it
+     * bites into fully, in reaches of range: a ship goes for the hull it can hurt, so a cruiser whose autocannons
+     * glance off a destroyer's plate turns on the frigate beside it.
+     */
+    static final float BITE_WEIGHT = 2f;
     /** In choosing between hulls, what a hull with no gun laid on the chooser costs against one with its battery on it. */
     static final float THREAT_WEIGHT = 0.6f;
     /** And what a half-circle of turning to bring the chooser's own guns to bear costs. */
@@ -422,6 +443,7 @@ public final class WarshipTactics {
                         + (focus ? 0f : SHARE_PENALTY * friends)
                         - (h.manoeuvre().target == e ? KEEP_BONUS * (1f - KEEP_THREAT_SHARE * (1f - threat)) : 0f);
                 if (weigh) cost += THREAT_WEIGHT * (1f - threat) + TURN_WEIGHT * turnToBear(h, e) / 180f;
+                if (BITE_TARGETING && enemies.size() > 1) cost += BITE_WEIGHT * (1f - bite(h, e));
                 if (cost < pickCost) {
                     pickCost = cost;
                     pick = e;
@@ -491,6 +513,26 @@ public final class WarshipTactics {
         return INCOMING_MENACE * laid * share;
     }
 
+    /**
+     * The share of {@code h}'s anti-ship gun firepower that gets through {@code e}'s armour, by the armour rule
+     * ({@link Warship#effectiveDamage}) against its full rating: 1 for a target nothing glances off, 0 for one its
+     * whole battery bounces from. A hull with no gun that may fire at a ship reads 1, so the term cannot move it.
+     */
+    static float bite(Warship h, Warship e) {
+        float all = 0f;
+        float through = 0f;
+        for (Warship.Mount m : h.mounts()) {
+            if (!WarshipShipRules.gunAtHull(m.weapon) || m.knockedOut()) continue;
+            float power = WarshipShipRules.firepower(m.weapon);
+            float hit = m.weapon.beam() ? m.weapon.damagePerSecond() * WarshipAirRules.BEAM_PULSE_SECONDS
+                    : m.weapon.damagePerShot();
+            if (power <= 0f || hit <= 0f) continue;
+            all += power;
+            through += power * Warship.effectiveDamage(hit, WarshipSystem.penetration(m.weapon.damageType()), e.armour) / hit;
+        }
+        return all <= 0f ? 1f : through / all;
+    }
+
     /** How many of {@code enemies} have {@code h} as the hull their group gave them to fight. */
     static int setUpon(Warship h, List<Warship> enemies) {
         int n = 0;
@@ -530,11 +572,15 @@ public final class WarshipTactics {
         }
         Warship tank = null;
         for (Warship h : pack) if (h.manoeuvre().role == Role.TANK) tank = h;
+        Warship anvil = sturdiest(pack);
         if (tank == null) {
-            // The first tank is the hull the target already has in its sights, else the one with the most flux to
-            // spare, nearer first: whoever is drawing the fire holds it. A ship out venting is never it.
+            // The first tank is a decidedly sturdier hull, if the pack has one; else the hull the target already has
+            // in its sights, else the one with the most flux to spare, nearer first: whoever is drawing the fire
+            // holds it. A ship out venting is never it.
             Warship sighted = target.hullTarget();
-            if (sighted != null && pack.contains(sighted) && !sighted.manoeuvre().relayVenting) {
+            if (anvil != null) {
+                tank = anvil;
+            } else if (sighted != null && pack.contains(sighted) && !sighted.manoeuvre().relayVenting) {
                 tank = sighted;
             } else {
                 float best = Float.MAX_VALUE;
@@ -548,16 +594,17 @@ public final class WarshipTactics {
                     }
                 }
             }
-        } else if (now - tank.manoeuvre().relaySince >= RELAY_MIN_SECONDS && tank.fluxFraction() >= SWAP_FLUX) {
+        } else if (now - tank.manoeuvre().relaySince >= RELAY_MIN_SECONDS
+                && (tank.fluxFraction() >= SWAP_FLUX || anvil != null && anvil != tank && ready(anvil, target))) {
             // A fresh partner takes over: low in flux and inside its own reach of the target, so it can catch the
-            // target's eye at once rather than leave nobody holding it while it closes.
+            // target's eye at once rather than leave nobody holding it while it closes. A decidedly lighter partner
+            // does not relieve a sturdy tank (that tank holds until its shield is going, below), and a sturdy partner
+            // takes the target back from a lighter tank as soon as it is fresh, whatever the tank's own pool.
             Warship fresh = null;
             for (Warship h : pack) {
-                if (h == tank || h.manoeuvre().relayVenting || h.overloaded() || h.fluxFraction() > READY_FLUX
-                        || target.distanceTo(h.centerX(), h.centerY())
-                        > WarshipShipFire.longestReach(h) * IN_REACH_SHARE) {
-                    continue;
-                }
+                if (h == tank || !ready(h, target)) continue;
+                if (tank.fluxFraction() < SWAP_FLUX && h != anvil) continue;
+                if (sturdierBy(tank, h)) continue;
                 if (fresh == null || h.fluxFraction() < fresh.fluxFraction()) fresh = h;
             }
             WarshipManoeuvre old = tank.manoeuvre();
@@ -595,6 +642,49 @@ public final class WarshipTactics {
             if (tank != null) m.relayPartner = tank;
             if (!m.relayVenting && h.fluxFraction() >= STRIKER_VENT_FLUX) beginVent(m, now, tank);
         }
+    }
+
+    /** Whether {@code h} is fresh enough, and near enough, to take the target over as the relay's tank. */
+    private static boolean ready(Warship h, Warship target) {
+        return !h.manoeuvre().relayVenting && !h.overloaded() && h.fluxFraction() <= READY_FLUX
+                && target.distanceTo(h.centerX(), h.centerY()) <= WarshipShipFire.longestReach(h) * IN_REACH_SHARE;
+    }
+
+    /**
+     * How much fire a hull can stand, for choosing a pack's tank: its remaining hull points over the share of a
+     * middling anti-ship round ({@link #STURDY_DAMAGE}, {@link #STURDY_PENETRATION}) its armour lets through, plus the
+     * damage its shield's whole pool could absorb. Nothing names a hull: a destroyer outranks a frigate because its
+     * table does, and a worn destroyer can fall below a fresh frigate.
+     */
+    static float sturdiness(Warship h) {
+        float through = Warship.effectiveDamage(STURDY_DAMAGE, STURDY_PENETRATION, h.armour) / STURDY_DAMAGE;
+        float hull = Math.max(0f, h.hitPoints()) / Math.max(0.05f, through);
+        WarshipShield shield = h.shieldModel();
+        float screen = shield == null || !h.hasShield() ? 0f : h.fluxCapacity() / Math.max(0.01f, shield.efficiency());
+        return hull + screen;
+    }
+
+    /** Whether {@code a} is decidedly sturdier than {@code b} ({@link #STURDIER_SHARE}). */
+    static boolean sturdierBy(Warship a, Warship b) {
+        return sturdiness(a) >= STURDIER_SHARE * sturdiness(b);
+    }
+
+    /**
+     * The pack's natural tank: the one hull, not out venting or overloaded, decidedly sturdier than every other
+     * such hull of the pack; {@code null} when none stands out, as between two of a kind.
+     */
+    static Warship sturdiest(List<Warship> pack) {
+        Warship best = null;
+        for (Warship h : pack) {
+            if (h.manoeuvre().relayVenting || h.overloaded()) continue;
+            if (best == null || sturdiness(h) > sturdiness(best)) best = h;
+        }
+        if (best == null) return null;
+        for (Warship h : pack) {
+            if (h == best || h.manoeuvre().relayVenting || h.overloaded()) continue;
+            if (!sturdierBy(best, h)) return null;
+        }
+        return best;
     }
 
     /** Gives {@code m} a relay role (or none), starting its manoeuvre afresh only when the role changes. */
