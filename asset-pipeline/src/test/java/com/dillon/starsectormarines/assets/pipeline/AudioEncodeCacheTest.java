@@ -114,6 +114,14 @@ class AudioEncodeCacheTest {
     }
 
     @Test
+    void shipLoudspeakerIsItsOwnRecipe() {
+        String pa = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, AudioManifest.Processing.SHIP_PA).toString();
+        String comms = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, AudioManifest.Processing.COMMS).toString();
+        assertTrue(pa.contains("aecho=") && pa.contains("loudnorm=I=-19"), "the loudspeaker slaps back and is matched to the intercom");
+        assertTrue(!pa.equals(comms));
+    }
+
+    @Test
     void failedAndEmptyEncodesPreservePriorOutputAndAreRetried() throws Exception {
         Path source = Files.writeString(directory.resolve("source.wav"), "audio");
         Path output = Files.writeString(directory.resolve("clip.ogg"), "previous good audio");

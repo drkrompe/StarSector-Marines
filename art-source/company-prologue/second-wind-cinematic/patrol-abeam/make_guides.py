@@ -173,8 +173,8 @@ def timeline():
                                    (hl["line7_patrol"][0], hl["line7_patrol"][1], (255, 220, 120), "PATROL HAS YOUR SIGNATURE"),
                                    (hl["squelch_close_7"][0], hl["squelch_close_7"][1], (200, 200, 200), "")]),
         (250, "Castle (intercom)", [(hl["line8"][0], hl["line8"][1], (230, 190, 160), "8: Corridor four, mounts cold. Thank you, Approach."),
-                                    (hl["line9_well"][0], hl["line9_well"][1], (255, 160, 110), "9: Well."),
-                                    (hl["line9_knows"][0], hl["line9_knows"][1], (255, 160, 110), "Somebody knows we're here.")]),
+                                    (C.CASTLE_PLANETSIDE[0], C.CASTLE_PLANETSIDE[1], (255, 160, 110),
+                                     "We've got a few days planetside...")]),
     ]
     for y, name, items in rows:
         d.text((60, y - 4), name, fill=(200, 200, 200), font=fs, anchor="lb")
@@ -210,8 +210,8 @@ def timeline():
     notes = ["Cut C1->C2 at 37.70: 0.3 s before Approach keys up for line 7 (C1's rule).",
              "Hull centred abeam at C2 %.1f s, under 'Patrol has your signature' (C2 7.50-8.84)." % C.PATROL_T_MID,
              "Castle's read-back (line 8) starts the de-orbit; the hull clears the glass as she finishes.",
-             "No squelch before line 9: the channel is closed. 'Well.' over the glow, 'Somebody knows we're here.' over the cloud.",
-             "Cut to C3 at 55.70, 0.12 s after line 9 ends; C3 opens out of the white."]
+             "No squelch after line 8: the channel is closed. Castle to the Commander from entry 0.16: 'We've got a few days planetside...'",
+             "Cut to C3 at entry %.1f; C3 opens out of the white." % C.ENTRY_LEN]
     for i, n in enumerate(notes):
         d.text((60, 670 + i * 26), n, fill=(190, 190, 190), font=fs)
     im.save(GUIDES / "c2-timeline.png")
@@ -254,8 +254,7 @@ def transition_chart():
     curve(cloud, (230, 235, 245), "cloud wipe coverage", 128)
     curve(framewarm, (255, 90, 40), "frame: orange relight", 152)
     curve(framesoft, (140, 190, 255), "frame: first soft fill (cloud light)", 176)
-    for label, T0 in (("'Well.'", C.HAIL["line9_well"][0] - C.ENTRY_START),
-                      ("'Somebody knows we're here.'", C.HAIL["line9_knows"][0] - C.ENTRY_START)):
+    for label, T0 in (("'We've got a few days planetside...'", C.CASTLE_PLANETSIDE[0] - C.ENTRY_START),):
         d.line((X(T0), gy0, X(T0), gy1), fill=(255, 200, 120), width=2)
         d.text((X(T0) + 6, gy0 + 6), label, fill=(255, 200, 120), font=fs)
     d.text((gx0, gy1 + 34), "seconds from 52.70 (cut from C2); cut to C3 at 3.0 = 55.70", fill=(160, 160, 160), font=fs)
