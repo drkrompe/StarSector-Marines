@@ -1517,7 +1517,7 @@ def add_k9_vehicles():
     lights = material('Customs lights', (1.0, 0.6, 0.2))
     lp = lights.node_tree.nodes['Principled BSDF']
     lp.inputs['Emission Color'].default_value = (1.0, 0.62, 0.25, 1)
-    for f in range(0, FRAMES + round(40.0 * FPS), 6):   # flashing, on into C5
+    for f in range(0, FRAMES + round(41.0 * FPS), 6):   # flashing, on into C5 (40 s)
         lp.inputs['Emission Strength'].default_value = 120.0 if (f // 6) % 2 else 15.0
         lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
     car = vehicle('Customs car', car_parts(material('Customs white', (0.88, 0.88, 0.86), 0.4))
