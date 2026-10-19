@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.warship.HullContactReadings;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.HullRefit;
 import com.dillon.starsectormarines.battle.warship.MapEdge;
+import com.dillon.starsectormarines.battle.warship.MountLayReadings;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
@@ -89,6 +90,12 @@ public final class GreyhookDuelScene implements BehaviorScene {
      * pressure is soft and starts at the margin, so a hull turning off an edge at speed sinks a little way into it.
      */
     static final float EDGE_TOLERANCE_SHARE = 0.25f;
+    /**
+     * The least share of its in-reach time a turret must spend laid on the hull it is fighting: it stays on through its
+     * cooldown and every hold, so only the slew onto a new bearing and a target crossing faster than it traverses
+     * take it off.
+     */
+    static final float LAID_SHARE = 0.75f;
 
     @Override public String id() { return "greyhook-duel"; }
 
@@ -334,6 +341,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
                         t.closestFriends, t.friendlyOverlapTicks)));
         verdicts.add(Verdict.of("no-wing-launches", t.defenderAircraft == 0,
                 t.defenderAircraft + " Greyhook aircraft over the battle"));
+        verdicts.add(t.lay.verdict("turrets-stay-laid-on-a-hull-in-reach", LAID_SHARE));
 
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("orderTick", t.orderTick);
@@ -444,6 +452,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("roundsAtHulls", fire.roundsFired());
         metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
         HullContactReadings.put(metrics, fire);
+        t.lay.put(metrics);
         metrics.put("minFriendlyGapCells", Math.round(t.minFriendlyGap * 10f) / 10f);
         metrics.put("friendlyOverlapTicks", t.friendlyOverlapTicks);
         int swaps = 0, vents = 0;
@@ -619,6 +628,8 @@ public final class GreyhookDuelScene implements BehaviorScene {
         final Map<Warship, ShieldTrace> shieldTraces = new LinkedHashMap<>();
         /** Where each hull was every thirty seconds after the order, while it was over the battle, by name. */
         final Map<String, List<float[]>> tracks = new LinkedHashMap<>();
+        /** How well every hull's turrets stay laid on the hull they fight, from the order on. */
+        final MountLayReadings lay = new MountLayReadings();
 
         Trace(BlackSluiceDuel duel, BattleSimulation sim, int orderTick) {
             this.duel = duel;
@@ -746,6 +757,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
             for (Warship s : all) startHp.putIfAbsent(s, s.hitPoints());
             Warship greyhook = duel.greyhook();
             if (duel.ordered()) {
+                for (int i = 0; i < all.size() && i < names.length; i++) lay.observe(names[i], all.get(i));
                 for (Warship ship : duel.rusk()) {
                     shieldTraces.computeIfAbsent(ship, w -> new ShieldTrace()).observe(ship, greyhook);
                 }
