@@ -203,3 +203,12 @@ wolf-merchant-surface/skin-manifest.json
 broadsword-cinematic/*.blend
 broadsword-cinematic/*.blend1
 broadsword-cinematic/review/
+
+# Phaeton surfacing and cinematic export: outputs are rebuilt by rebuild.sh / finalize.sh.
+phaeton-surface/review/
+phaeton-surface/textures/
+phaeton-surface/grading/
+phaeton-surface/skin-manifest.json
+phaeton-cinematic/*.blend
+phaeton-cinematic/*.blend1
+phaeton-cinematic/review/

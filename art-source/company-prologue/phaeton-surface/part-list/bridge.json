@@ -1,0 +1,175 @@
+{
+ "cab-top": {
+  "what": "bridge cab roof from above",
+  "sheet": "bridge",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge cab",
+    "seed": null,
+    "faces": [
+     15,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 307.95,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.5,
+   18.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    20.25,
+    110.25
+   ],
+   "ortho_width": 38.24289405684754
+  },
+  "native_texels_per_unit": 20.8
+ },
+ "cab-front": {
+  "what": "bridge cab forward face from ahead",
+  "sheet": "bridge",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge cab",
+    "seed": null,
+    "faces": [
+     2,
+     9,
+     10,
+     16
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 290.99,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.5,
+   14.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -20.25,
+    7.0
+   ],
+   "ortho_width": 28.940568475452192
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "cab-side-stbd": {
+  "what": "bridge cab starboard wall",
+  "sheet": "bridge",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge cab",
+    "seed": null,
+    "faces": [
+     1,
+     8,
+     14
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 254.77,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   18.5,
+   12.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    110.25,
+    6.400000095367432
+   ],
+   "ortho_width": 26.45994871469739
+  },
+  "native_texels_per_unit": 30.0
+ },
+ "cab-side-port": {
+  "what": "bridge cab port wall",
+  "sheet": "bridge",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge cab",
+    "seed": null,
+    "faces": [
+     4,
+     11,
+     12
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 277.39,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   17.0,
+   12.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -109.5,
+    6.400000095367432
+   ],
+   "ortho_width": 26.45994871469739
+  },
+  "native_texels_per_unit": 30.0
+ }
+}
