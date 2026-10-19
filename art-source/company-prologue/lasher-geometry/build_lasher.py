@@ -59,8 +59,6 @@ import ship_scale
 SHIP = 'data/hulls/lasher.ship'
 SPRITE = 'graphics/ships/lasher/lasher_base.png'
 LIGHTS_SPRITE = 'graphics/ships/lasher/lasher_lights.png'
-COLL = 'LASHER'
-ROOT = 'LASHER | root'
 
 # Real-world scale (pipeline pass 4), from the shared sizing basis
 # (../ship_scale.py, owner 2026-10-18): contents (50 crew, 40 cargo, 25 fuel)
@@ -85,8 +83,16 @@ parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--manifest', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--livery', default='hegemony', choices=sorted(ls_kit.LIVERIES),
+                    help='paint scheme (ls_kit.LIVERIES); a livery other than hegemony builds its own '
+                         'collection, LASHER (<livery>), into build/lasher-<livery>/')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-OUT = Path(args.out or HERE.parents[2]/'build'/'lasher').resolve()
+HEGEMONY = args.livery == 'hegemony'
+# The Hegemony build is the original asset, names unchanged; another livery is its own
+# collection so both can be appended into one scene without Blender renaming either.
+COLL = 'LASHER' if HEGEMONY else f'LASHER ({args.livery})'
+ROOT = f'{COLL} | root'
+OUT = Path(args.out or HERE.parents[2]/'build'/('lasher' if HEGEMONY else f'lasher-{args.livery}')).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 
 
@@ -121,7 +127,7 @@ provenance = check_against_install()
 
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
-kit = ls_kit.Kit()
+kit = ls_kit.Kit(args.livery)
 kit.mpu = METRES_PER_UNIT
 ls_hull.build(kit)
 ls_pods.build(kit)
@@ -335,8 +341,11 @@ if not args.no_save:
                   'Built for distant formation shots (C1 v2); no interiors, damage or articulation beyond turrets.',
         'hull': {
             'name': 'Lasher', 'hullId': 'lasher', 'size': 'FRIGATE', 'style': 'LOW_TECH', 'tech': 'Low Tech',
-            'designation': 'Frigate', 'livery': 'Hegemony (the base hull and sprite; Hegemony fleets fly it '
-                                                'unskinned, data/world/factions/hegemony.faction)',
+            'designation': 'Frigate',
+            'livery': ('Hegemony (the base hull and sprite; Hegemony fleets fly it '
+                       'unskinned, data/world/factions/hegemony.faction)') if HEGEMONY else
+                      ('Independent (Asharu convoy escort): pale warm-grey armour from the independent '
+                       'faction colour, slate-blue accent; ls_kit.LIVERIES'),
             'source': {'ship': SHIP, 'sprite': SPRITE, 'lights': LIGHTS_SPRITE,
                        'ship_data': 'data/hulls/ship_data.csv (row id lasher)',
                        'variants': 'data/variants/lasher/lasher_*.variant (slots only; loadouts not modelled)'},
@@ -383,7 +392,7 @@ if not args.no_save:
         if key in old:
             manifest[key] = old[key]
     manifest_path.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
-    if args.manifest:
+    if args.manifest and HEGEMONY:  # the tracked manifest is the Hegemony asset's
         shutil.copy(manifest_path, HERE/'geometry.json')
 
     # --- The appendable asset: one collection, one root, nothing but the ship. ---

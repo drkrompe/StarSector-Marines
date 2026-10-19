@@ -116,6 +116,20 @@ scaled by metres_per_unit; verify_asset.py does exactly that three times
 and checks the contract. The built file is not tracked: it is copied to the
 shared Drive under starsector/builds/lasher/<short-commit>/.
 
+Liveries
+--livery hegemony (default) builds the original asset unchanged: collection
+LASHER into build/lasher/. --livery independent is the Asharu convoy's escort
+scheme: pale warm-grey armour from the independent faction colour (150,150,150)
+with a slate-blue accent on the wing strakes, spine ridge, gunhouses, gun-pod
+spine plates and drive lips (ls_kit.LIVERIES). Texture only: the geometry,
+names and anchors are the same. It builds its own collection,
+LASHER (independent), root LASHER (independent) | root, into
+build/lasher-independent/, so both liveries can be appended into one scene.
+verify_asset.py, export_effects.py and review_effects.py take either build
+(pass the blend path, or --out for the review). The tracked geometry.json
+stays the Hegemony asset's; the independent build writes its own beside the
+blend. Drive: builds/lasher-independent/<short-commit>/.
+
 Owner review
 Accepted as built on 2026-10-18 at 0.95 m per unit (build f264ff7).
 reference-history/v2-accepted/geometry.json records the accepted state.

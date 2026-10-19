@@ -171,15 +171,13 @@ PUSH_IN, PUSH_OUT = (9.5, 10.4), (12.5, 13.2)      # the pitch-down runs 9.6-13.
 TURN_IN, TURN_OUT = (10.7, 11.3), (11.9, 12.5)     # a small correction while pushed
 LET_GO = (13.5, 14.7)
 FPS, LAST_FRAME = 24, 18 * 24              # C2 (15 s) and the entry transition (3 s)
-# Where he looks, on top of the poses (owner, 2026-10-19: small life, no more): C2 second, yaw
-# (degrees to port) and lift (negative raises the chin). Ahead at the Legion 22 degrees off the
-# bow; after fighter flight 1 as it whips past to port at 3.0 s and flight 2 at 4.2 s; down at
-# the console; round to port as the Legion comes abeam at 8.0 s; ahead to the yoke; a check up
-# at the slits as the Legion rises; and once he has let go, watching it climb out of them. The
-# neck and head share the turn and the eyes lead it and carry what the head leaves.
-LOOKS = ((0.0, 14, 0), (2.3, 14, 0), (2.8, 40, -4), (3.4, 30, -2), (3.9, 22, 0), (4.3, 36, -4),
-         (4.8, 24, 0), (5.3, 0, 16), (6.0, 2, 14), (6.7, 40, -2), (8.0, 58, -3), (8.5, 6, 0),
-         (10.3, 4, 0), (10.9, 14, -8), (11.6, 4, 0), (13.6, 4, 0), (14.5, 32, -10), (18.0, 32, -10))
+# Where he looks, on top of the poses (owner, 2026-10-19: small life, no more; he is only ever
+# seen from behind, so a look is a slow turn of the head, never a flick of the eyes). C2 second,
+# yaw (degrees to port) and lift (negative raises the chin). Ahead at the Legion 22 degrees off
+# the bow; one slow turn to port as it comes abeam; ahead again to fly the pitch through; and
+# once he has let go, round to watch it climb out of the slits.
+LOOKS = ((0.0, 12, 0), (6.4, 12, 0), (8.0, 42, -3), (9.0, 6, 0), (13.6, 6, 0), (14.8, 30, -8),
+         (18.0, 30, -8))
 BREATH_S, BREATH_DEG = 4.4, 0.8            # one slow breath, the chest's rise
 
 

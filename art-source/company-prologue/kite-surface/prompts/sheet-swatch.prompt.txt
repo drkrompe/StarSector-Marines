@@ -1,0 +1,17 @@
+Use case: texture map generation / material swatch sheet for a 3D model.
+INPUT 1 is a layout sheet of FIVE flat-coloured squares on a plain flat mid-blue background. Each square is one hull material of a single 3D spacecraft (a Kite-class pirate boarding shuttle, heavily used and poorly maintained by its pirate crew), to be painted as a flat, square-on texture sample of that material, in reading order (left to right, top row first):
+1: grimy yellowed bone-cream enamel hull plate;
+2: very dark warm brown-grey pirate hull enamel;
+3: dark gunmetal grey steel;
+4: the recess and machinery material, near-black dull steel;
+5: dull rust-brown raw welded scrap steel plate.
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, fine seams and fasteners and its heavy, even wear. Never copy INPUT 2's composition, view or shapes.
+
+Paint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:
+- Keep the squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.
+- Each square is a flat, seen-square-on sample of worn industrial plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, scattered small worn spots, an even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.
+- Keep each square's colour exactly as listed. No colour changes, no patches of another colour.
+- Wear is even across each whole square. No holes, burns, impact damage, large stains or any concentrated area of wear.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

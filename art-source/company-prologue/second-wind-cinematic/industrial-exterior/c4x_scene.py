@@ -747,6 +747,7 @@ LIGHTERS = [(-445.0, 'parked'), (-355.0, 'lifting'), (-265.0, 'parked'), (-175.0
 # The heavy berth: a walled bay with a gantry for the largest hull that lands. Empty, cargo staged
 # for an inbound.
 HEAVY = (-60.0, 70.0, 615.0, 715.0)       # x0, x1, y0, y1: behind the berths, its road down to the port road
+HEAVY_RAIL_END = 750.0                    # its gantry's rails run on past the north wall to here
 OFFICE = (240.0, 415.0)                   # arrivals: customs and decontamination, MuniSec's post
 # Kilo Nine, Nessa's private cradle, faces the way Second Wind comes in.
 K9 = (400.0, 465.0)
@@ -897,9 +898,14 @@ def add_port():
     box(marks, (1.6, hy1 - hy0 - 24, 0.1), (hx0 + 15, (hy0 + hy1) / 2, 0.3))
     box(marks, (1.6, hy1 - hy0 - 24, 0.1), (hx1 - 15, (hy0 + hy1) / 2, 0.3))
     mesh('Heavy berth walls', wall, concrete)
+    # The rails run on past the north wall, so the gantry can roll clear of a hull lifting out of the
+    # bay (`port_fleet` stands it there, so the Colossus can lift out).
+    rails = bmesh.new()
+    for x in (hx0 - 4, hx1 + 4):
+        box(rails, (2, HEAVY_RAIL_END - hy0, 0.8), (x, (hy0 + HEAVY_RAIL_END) / 2, 0.4))
+    mesh('Heavy berth gantry rails', rails, bpy.data.materials['Crane yellow'])
     gc = bmesh.new()
     for x in (hx0 - 4, hx1 + 4):
-        box(gc, (2, hy1 - hy0, 0.8), (x, (hy0 + hy1) / 2, 0.4))             # rails
         for y in (HEAVY[2] + 38, HEAVY[2] + 56):
             strut(gc, (x, y, 0), (x, y, 46), 1.8)
     for y in (HEAVY[2] + 38, HEAVY[2] + 56):
@@ -1517,7 +1523,7 @@ def add_k9_vehicles():
     lights = material('Customs lights', (1.0, 0.6, 0.2))
     lp = lights.node_tree.nodes['Principled BSDF']
     lp.inputs['Emission Color'].default_value = (1.0, 0.62, 0.25, 1)
-    for f in range(0, FRAMES + round(40.0 * FPS), 6):   # flashing, on into C5
+    for f in range(0, FRAMES + round(41.0 * FPS), 6):   # flashing, on into C5 (40 s)
         lp.inputs['Emission Strength'].default_value = 120.0 if (f // 6) % 2 else 15.0
         lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
     car = vehicle('Customs car', car_parts(material('Customs white', (0.88, 0.88, 0.86), 0.4))
@@ -1526,15 +1532,8 @@ def add_k9_vehicles():
              (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(14.0), 305, 430), (sec(CUSTOMS_ARRIVE - LATE), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
              (sec(14.0), math.pi / 2), (sec(14.6), 0.0)])
-    beacon = bpy.data.objects.new('Customs beacon', bpy.data.lights.new('Customs beacon', 'POINT'))
-    beacon.data.color = (1.0, 0.6, 0.2)
-    beacon.data.shadow_soft_size = 0.3
-    beacon.parent = car
-    beacon.location = (0, 0, 4.0)
-    link(beacon)
-    for f in range(0, FRAMES + sec(40.0), 6):           # flashing with the bar, on into C5: a pool of amber on the road
-        beacon.data.energy = 2.0e5 if (f // 6) % 2 else 0.0
-        beacon.data.keyframe_insert('energy', frame=f)
+    # No point light with the bar: in daylight a 200 kW beacon 2 m over a white roof blew the car out
+    # to a glowing white block in C5 (owner, 2026-10-19). The flashing bar itself is the signal.
     vehicle('MuniSec car at the gate', car_parts(bpy.data.materials['Customs white']),
             [(0, -250, -104)], [(0, 0.3)])
 
@@ -1638,7 +1637,7 @@ def build():
     import ortho_paint                                  # painted overhead tiles, where accepted
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
-    ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
+    ortho_paint.apply(scene, ({o.name for o in ship.all_objects} if ship else set()) | port_fleet.hull_part_names())
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP

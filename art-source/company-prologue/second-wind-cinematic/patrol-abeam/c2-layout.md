@@ -163,9 +163,16 @@ lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath**
 of a degree of breathing and weight shift), **frame** (the head sits lower at the port glass so
 the slit fills the frame), **lean** (leaning over the comms bank toward the glass at abeam, 70 cm
 to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
-back; an eye cannot zoom, so this is a film camera's choice) and **glance** (the head turns
-forward to watch the pilot draw the yoke and push it, 8.6-11.2 s, and back to the Legion as it
-starts to rise). With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+back; an eye cannot zoom, so this is a film camera's choice, and it matters more with the Legion
+at 340 m). The shot is grounded in the Legion (owner, 2026-10-19): the camera stays at the glass
+and never turns onto the pilot or Castle; a glance to the pilot and a step back to bring Castle
+into the frame edge were both tried and dropped. Castle is seen in passing instead: she works the
+forward panel of her bank (`sw_bridge_interior.CASTLE_AT`, x 14.4), and the walk passes behind her
+back on its way to the middle panel, so she crosses the frame left to right at 5.55-6.0 s, about
+half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. The blockout can also
+preview thinner window posts (`--posts 0.4`: the slit mullions at 40% of their 39 cm and 33 cm
+widths); the hull model itself is unchanged, so adopting it is a Second Wind model change that
+every shot of the ship would show. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 

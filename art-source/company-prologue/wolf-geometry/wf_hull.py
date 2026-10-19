@@ -34,9 +34,8 @@ import bmesh
 import bpy
 from wf_kit import facet_normal, plane_cut, prism, section, sym, revolve_x
 
-FORK = sym([(47.5, 10), (43, 10), (43, 9.6)])
+FORK = sym([(47.5, 9.4), (43, 9.4), (43, 9.0)])
 OUTER_TINE = [(53.8, 6.4), (53.8, 8.6), (51, 10), (44, 10), (44, 5.3), (51, 5.3)]
-INNER_TINE = [(53.4, 2.3), (53.4, 3.8), (50, 4.3), (45, 4.3), (45, 1.9), (50, 1.9)]
 HEAD = sym([(43.6, 8.5), (42.5, 10), (31, 10), (30.5, 9)])
 OUTRIGGER = [(43.5, 12.4), (43.5, 13.9), (42.0, 15.3), (40.6, 16.2), (32.5, 16.2), (30.6, 15.8), (30.6, 10.4),
              (42, 10.4)]
@@ -144,10 +143,8 @@ def build(kit):
         plane_cut(t, f'{side} outer tine chin', (50, 0, -2.6), (math.sin(math.radians(20)), 0,
                                                               -math.cos(math.radians(20))))
         tines.append(t)
-    for side, s, plan in sides(INNER_TINE):
-        t = prism(kit, f'Hull bow {side} inner tine', plan, section(-1.8, 2.0, .6, .8), steel)
-        plane_cut(t, f'{side} inner tine tip rake', (50, 0, 2.0), facet_normal((1, 0), 15))
-        tines.append(t)
+    # The sprite's inner tines (Y +-2..4) are the WS 004 mining blaster's prongs
+    # (wf_mounts): the gun is the claw's middle, sunk in a bay in the fork base.
 
     # --- Head, outriggers. ---
     head = shear(prism(kit, 'Hull head', ccw(HEAD), section(*HEAD_Z, 1.5, 1.8), steel), 4.0, .22)
@@ -201,7 +198,7 @@ def build(kit):
     spine = prism(kit, 'Hull dorsal spine fore', ccw(sym([(32, 4.2), (17.5, 4.6), (16.2, 3.4)])),
                   section(0, SPINE_TOP, 0, 1.4), steel)
     plane_cut(spine, 'spine fore rake', (29, 0, SPINE_TOP), facet_normal((1, 0), 35))
-    plane_cut(spine, 'spine fore aft rake', (21.5, 0, SPINE_TOP), facet_normal((-1, 0), 40))
+    plane_cut(spine, 'spine fore aft rake', (25.0, 0, SPINE_TOP), facet_normal((-1, 0), 40))
     spine_aft = prism(kit, 'Hull dorsal spine aft', ccw(sym([(-2.5, 3.0), (-6, 3.6), (-33, 3.6)])),
                       section(0, SPINE_TOP-.6, 0, 1.3), steel)
     plane_cut(spine_aft, 'spine aft rake', (-29, 0, SPINE_TOP-.6), facet_normal((-1, 0), 30))
