@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "80",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Loud wind roar and buffeting against an aircraft fuselage gradually easing to a smooth quiet airflow",
+    "duration_seconds": 8.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "15da59426ca267a2d70efd4e2ff3be9def30659d1a92467e7721be3a35aef460",
+  "durationSeconds": 8.0,
+  "peakDb": -6.6,
+  "integratedLufs": -22.0
+}

@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.story.SmallWarProgress;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -86,7 +87,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                 + "The production duel overhead is installed except in the no-duel control: ground victory never depends on it. No live travel, host save/reload or economy acceptance is claimed.\n");
         var directory = context.projectRoot().resolve("build/reports/black-sluice"); Files.createDirectories(directory);
         String filter = System.getProperty("battle.blackSluice.fixture", "");
-        var fixtures = List.of(
+        List<Fixture> fixtures = List.of(
                 new Fixture("ordinary-15305", 15305, Control.ORDINARY, AgreusYardAgreement.HOUSE_CUSTODY),
                 new Fixture("ordinary-15305-no-duel", 15305, Control.ORDINARY, AgreusYardAgreement.HOUSE_CUSTODY, false),
                 new Fixture("ordinary-16205", 16205, Control.ORDINARY, AgreusYardAgreement.HOUSE_CUSTODY),
@@ -95,6 +96,13 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                 new Fixture("fuel-loss", 15305, Control.FUEL_LOSS, AgreusYardAgreement.HOUSE_CUSTODY),
                 new Fixture("custody-loss", 15305, Control.CUSTODY_LOSS, AgreusYardAgreement.YARD_COMPACT),
                 new Fixture("withdrawal", 15305, Control.RETREAT, AgreusYardAgreement.HOUSE_CUSTODY));
+        // -Dbattle.blackSluice.extraSeeds=20261016,31337 adds ordinary House Custody fixtures at those seeds.
+        var extra = new ArrayList<>(fixtures);
+        for (String seed : System.getProperty("battle.blackSluice.extraSeeds", "").split(",")) {
+            if (!seed.isBlank()) extra.add(new Fixture("ordinary-" + seed.trim(), Long.parseLong(seed.trim()), Control.ORDINARY,
+                    AgreusYardAgreement.HOUSE_CUSTODY));
+        }
+        fixtures = List.copyOf(extra);
         try {
             for (var fixture : fixtures) {
                 if (filter.equals("map")) break;
@@ -141,7 +149,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer duelRenderer = followDuel ? WarshipFollowRecording.mainRenderer(context.modRoot(), 1920, 1080) : null;
             BattleReviewFrameRenderer duelInset = followDuel ? WarshipFollowRecording.insetRenderer(context.modRoot(), 1920, 1080) : null;
             ReviewImpactFx duelFx = followDuel && recordDuel ? new ReviewImpactFx(context.modRoot()) : null;
-            int duelOverTick = -1, dockContactTick = -1;
+            int duelOverTick = -1, dockContactTick = -1, groundDoneTick = -1;
             assertTrue(sim.tenders().tenders().isEmpty(), "A Small War has no tender");
             var scheduled = new HashSet<String>(); int aircraft = 0;
             for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.MARINE) {
@@ -173,6 +181,14 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     injected = true; report.append("  diagnostic: killed the whole custody party at HANDOVER\n");
                 }
                 sim.advance(BattleSimulation.TICK_DT);
+                if (groundDoneTick < 0 && sequence.progress().terminal()) {
+                    groundDoneTick = sim.getSimTickIndex();
+                    report.append("  ground decided tick=").append(groundDoneTick).append(" phase=").append(sequence.progress().phase()).append('\n');
+                }
+                // The battle never ends while the Greyhook is still up there, or while her wreck is still falling or skidding.
+                if (sim.isComplete() && duel != null && duel.ordered())
+                    assertTrue(sim.warships().concluded(duel.greyhook()) && sequence.progress().terminal(),
+                            fixture.id() + ": the battle ended before the ground was decided and the Greyhook had concluded");
                 if (!formUpOver && sequence.progress().visited(SmallWarProgress.CUSTOMS) && !sequence.formingUp()) {
                     formUpOver = true;
                     report.append("  form-up at the staging ground over, pushing on tick=").append(sim.getSimTickIndex()).append('\n');
@@ -288,6 +304,20 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                             .append("s hull=").append(Math.round(hull.hullFraction() * 100)).append("% groundShots=").append(hull.groundShots()).append('\n');
                 }
                 report.append("  overhead=").append(outcome.smallWarOverhead).append('\n');
+                if (duel.ordered()) {
+                    var fate = duel.entry(duel.greyhook());
+                    report.append(String.format(Locale.ROOT,
+                            "  duel timing: order tick=%d firstFire=%.1fs breakOff=%s %.1fs decided=%.1fs groundDecided=%.1fs missionEnd=%.1fs (after the order)%n",
+                            splitTick, sinceOrder(duel.firstFireTick(), splitTick), duel.breakOff(), sinceOrder(duel.breakTick(), splitTick),
+                            sinceOrder(duel.decidedTick(), splitTick), sinceOrder(groundDoneTick, splitTick),
+                            sim.isComplete() ? sinceOrder(sim.getSimTickIndex(), splitTick) : -1f));
+                    if (sim.isComplete()) {
+                        assertTrue(fate.outcome() == WarshipDuelLedger.Outcome.ESCAPED || fate.outcome() == WarshipDuelLedger.Outcome.DESTROYED,
+                                "A finished battle has the Greyhook away or down, not " + fate.outcome());
+                        if (fate.outcome() == WarshipDuelLedger.Outcome.ESCAPED)
+                            assertEquals(BlackSluiceDuel.GREYHOOK_EDGE, duel.greyhook().exitEdge(), "She leaves only across her own edge");
+                    }
+                }
                 assertEquals(duel.outcomeSummary(), outcome.smallWarOverhead, "The debrief reads the duel's own summary");
                 for (Warship hull : duel.hulls()) {
                     assertEquals(0, hull.groundShots(), hull.hullId + " never fires at the ground");
@@ -300,7 +330,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     assertNotNull(outcome.smallWarOverhead);
                 } else assertNull(outcome.smallWarOverhead, "No order, no duel to report");
             } else assertNull(outcome.smallWarOverhead);
-            if (!duelFrames.isEmpty()) frames.add(SnapshotArtifact.animation(fixture.id() + "-duel.gif", duelFrames, 100));
+            if (!duelFrames.isEmpty()) frames.add(SnapshotArtifact.colorAnimation(fixture.id() + "-duel.gif", duelFrames, 100));
             report.append("  casualties=").append(outcome.marinesLost).append("/").append(outcome.marinesEngaged).append('\n');
             victories.put(fixture.id(), outcome.victory);
             if (OBSERVE) return outcome.victory;
@@ -425,6 +455,10 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("black-sluice-contract-board.png", new HeadlessUiRenderer(context.modRoot(), context.starsectorCore())
                     .renderRelative(document, 1920, 1080, 1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
         }
+    }
+
+    private static float sinceOrder(int tick, int orderTick) {
+        return tick < 0 || orderTick < 0 ? -1f : (tick - orderTick) / 30f;
     }
 
     private static String duelCaption(BlackSluiceDuel duel) {

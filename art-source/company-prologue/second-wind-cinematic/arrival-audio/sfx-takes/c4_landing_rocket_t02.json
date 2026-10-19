@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Huge rocket engine landing burn, deep bass roar, rumbling intense thrust, ground shaking, descending slowly",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "e08d0e5adc9a89e671a88d56bbe9a13ddf4099de26b07b264c1cf9218b0eb215",
+  "durationSeconds": 10.0,
+  "peakDb": -0.3,
+  "integratedLufs": -6.7
+}

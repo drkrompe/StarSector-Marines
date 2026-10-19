@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-19 — Rusk's family lends an Enforcer and a Wolf (owner: not an even fight, one fun to watch); the Greyhook goes for the Wolf and Rusk wins every measured seed; radio beats renamed `small_war.rusk_*` with a new one for the first of his ships going down (draft, text only).
+Updated: 2026-10-19 — the Greyhook refitted with a Harpoon and a Sabot rack in place of her fixed PD lasers; the duel ends in her run for the south edge (escape or crash) and the battle waits for it.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -412,7 +412,7 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 **The duel overhead.** When Voss orders the withdrawal, the *Greyhook*, Voss's own
 Venture with Voss aboard, lifts alone from her cradle on the pads south of the ridge
-and turns to fight: Rusk's ships are faster than she is, so she does not run. The pair
+and turns to fight: Rusk's ships are faster than she is, so she does not run at once. The pair
 Rusk's family has lent from Citadel Arcadia, a Hegemony Enforcer destroyer and Rusk's own Wolf,
 flies in across the west edge to stop her. What follows is a slugging match in atmosphere that goes wherever the
 fighting takes it, over the basin and the company's fight alike, in full view of it:
@@ -429,27 +429,38 @@ pack relay: the sturdier Enforcer holds her guns with its shield on her while th
 darts in on her quarter and breaks off to vent. Her autocannons glance off the
 Enforcer's plate, so she goes for the Wolf. Refits are the one thing the mission tunes
 (`BlackSluiceDuel.RUSK_REFIT` on the Enforcer, `GREYHOOK_REFIT` on her; the Wolf flies as
-fitted): pools and shields, never guns or plate. The owner removed her two Hound (P)
+fitted, and since the escape so does she): pools and shields, never guns or plate. The owner removed her two Hound (P)
 escorts on 2026-10-18 ("we plainly have a bad matchup"), replaced the Wolfs with two
 Enforcers the same day, and made the pair an Enforcer and a Wolf the next; the frigate
 pads either side of her cradle stand empty. Her fitting carries no wing and a warship over a ground
-battle never launches one, so the fight stays gun against gun.
+battle never launches one, so the fight stays hull against hull. She carries no point defence: her two
+small hardpoints, fixed forward, hold a Harpoon and a Sabot rack (owner, 2026-10-19, "refit her with
+vanilla missile pods in WS 004/007 and drop the PD claim"), so the Wolf's lasers have missiles to shoot.
 
 - The player's fleet stays out of the sky. The company has no air role in the
   duel and cannot order Rusk's ships; they are the family's, not a support power.
 - Rusk's ships fight the Greyhook, not Black Sluice's ground garrison. They
   answer no calls for fire and make no ground objective easier by existing. Stray
   fire and falling wreckage are real on the ground in both directions.
-- Nothing about the duel is scripted, and nobody breaks off (owner, 2026-10-18:
-  "she stays and fights ... until one side is dead"). The fight ends only
-  when the Greyhook or both of Rusk's ships are shot down onto the basin; the winners stay overhead,
-  and nobody leaves the map. The Greyhook can hold the sky or be shot down; if she
-  is, Voss walks out of the wreck, so her last line stands on either ending. The
-  debrief reports what actually happened, and ground victory never depends on it.
-  If the ground fight finishes first the chapter ends there, with the duel still
-  being fought, and the debrief says so.
+- The fight has an ending (owner, 2026-10-19: "We probably need a shorter duel. We
+  can add back the escape for the Venture as a story element to give it a
+  conclusion"). Voss orders the run 68 to 84 seconds after the first hull fire
+  (where in that window is fixed by the moment of her withdrawal order), sooner if
+  her hull falls under half or Rusk's ships are both down; that order is the one
+  scripted thing. She flies out across the south
+  edge, over her own pads, fighting what is in reach, with Rusk's ships shooting at
+  her; she gets away or is shot down onto the basin short of the edge, and nothing
+  decides which but the ships. Either way Voss lives: away, or walking out of the
+  wreck, so her last line stands on both endings. Rusk's ships stay overhead once
+  she is gone. The debrief reports what actually happened, and ground victory never
+  depends on it.
+- The mission does not end until the ground objectives are decided and the
+  Greyhook is off the map or her wreck has struck and come to rest (owner: "We
+  won't want the mission to end until all objectives are complete and the Venture
+  escapes or is destroyed with the crash"). A ground fight that finishes first
+  waits for her; only the company pulling out leaves her still up there.
 - Two ships, one visit. Rusk's letter after Chapter 4 explains their arrival;
-  they stay to the end of the fight they came for. Their presence is a warning to the
+  they stay to the end of the fight they came for, and over the battle after it. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
 - Ship-versus-ship fighting is built (`air-nouns.md`, Overhead ships): hull fire
   is held until Voss's withdrawal beat, and none of the duel's hulls fires at the
@@ -457,10 +468,12 @@ battle never launches one, so the fight stays gun against gun.
   kept off the map's edges by the standing edge pressure.
 - Nothing warps in or out. Rusk's edge is the west, the side the company landed
   on and the far side of the basin, which they fly in across already under way;
-  Greyhook's ships lift from their pads. Nobody flies out across any edge.
+  the Greyhook lifts from her pad and leaves, if she leaves, across the south edge
+  and no other.
 
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
-boss avatar or mandatory escape is needed. Her last line on the channel tells the
+boss avatar or guaranteed escape is needed: her run for the edge can fail, and she
+walks out of the wreck when it does. Her last line on the channel tells the
 company she is alive and what she has lost: “Keep the pier. I've lost worse
 berths.” The confirmed result is loss of this surface facility and its organized
 levy route. The debrief does not invent her death, the destruction of her fleet or
@@ -728,6 +741,19 @@ Still open inside this story:
   shipped is delivered once on the next load. Greyhook's enemy rigs draw the
   same rig in Greyhook's own paint (soot, battle-worn, crude red markings); the
   company's issue stays rust-orange. Still to observe: the rigs and the card in the live game.
+- **The duel ends in the Greyhook's run** (owner, 2026-10-19; `warship-behaviours.md`,
+  the Greyhook runs for her edge). Over the five ordinary fixtures the first hull fire
+  comes 64 seconds after Voss's order, the run 132 to 147; she gets away across the
+  south edge on two seeds (15305 with 28 percent of her hull, 16205 with 2) and is shot
+  down short of it on three (16206, 20261016, 31337), the Wolf left at 28 to 76 percent
+  and the Enforcer unmarked. The ground is decided 111 to 136 seconds after the order
+  and the battle ends 239 to 329, when her part concludes: the chapter now runs 6.4 to
+  7.8 minutes from the first tick, two to three minutes longer than the ground alone.
+  The duel concludes three to four and a half minutes after the first hull fire, past
+  the two to three asked for; the run itself is about three. The radio lines
+  (`small_war.greyhook_breaks`, Voss; `small_war.greyhook_escaped`, Castle) and the
+  reworded `small_war.rusk_closing` and `small_war.rusk_down` are drafts, text only.
+  The paragraphs below describe the fight to the death this replaced.
 - **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
   Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
   ground referee never reads it; a duel-off control wins the same seed. Since

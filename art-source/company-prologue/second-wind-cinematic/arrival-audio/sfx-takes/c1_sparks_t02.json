@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "60",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Faint intermittent electrical crackle and fizzing sparks from a damaged power conduit, small, dry",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "d9708a265ca87b27bdd2c16bb464b829c5b4e9e418623d0e62ef2a7ef2a160b7",
+  "durationSeconds": 6.0,
+  "peakDb": -0.0,
+  "integratedLufs": -21.4
+}

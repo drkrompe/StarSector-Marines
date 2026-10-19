@@ -1,0 +1,104 @@
+{
+ "asset": "onslaught.blend",
+ "collection": "ONSLAUGHT | clean",
+ "root": "ONSLAUGHT | clean | root",
+ "effects_collection": "SWFX",
+ "objects": 1136,
+ "meshes": 943,
+ "effects_objects": 199,
+ "images": 75,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "root metres_per_unit": {
+   "ok": true,
+   "detail": 0.86
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": [
+    75,
+    []
+   ]
+  },
+  "mesh count": {
+   "ok": true,
+   "detail": [
+    943,
+    943
+   ]
+  },
+  "polygon count": {
+   "ok": true,
+   "detail": [
+    271188,
+    271188
+   ]
+  },
+  "six engine anchors at the mouths, pointing aft": {
+   "ok": true,
+   "detail": []
+  },
+  "22 turret pivots train and elevate": {
+   "ok": true,
+   "detail": "worst train error 1.71e-05"
+  },
+  "TPC muzzles point forward": {
+   "ok": true,
+   "detail": []
+  },
+  "kit gun anchors ride the turret muzzles": {
+   "ok": true,
+   "detail": "26 rigs, 38 barrels"
+  },
+  "running lights": {
+   "ok": true,
+   "detail": []
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  },
+  "SWFX present": {
+   "ok": true,
+   "detail": [
+    199,
+    199
+   ]
+  },
+  "plumes leave every bell aft, sized to it": {
+   "ok": true,
+   "detail": []
+  },
+  "gun rig anchors": {
+   "ok": true,
+   "detail": 38
+  },
+  "lamp lights": {
+   "ok": true,
+   "detail": 21
+  },
+  "drivers valid": {
+   "ok": true,
+   "detail": []
+  },
+  "root carries the effects": {
+   "ok": true,
+   "detail": 4.6e-05
+  }
+ }
+}

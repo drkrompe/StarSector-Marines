@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Humid jungle edge outdoors, insects and cicadas in a nearby tree line, a few distant birds, light breeze, faint far machinery, no voices, no music",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "085e7a6726b963935a6c2ac82c7800cfafc5a3100d40d9376ccea73bffd25b5a",
+  "durationSeconds": 12.0,
+  "peakDb": -24.2,
+  "integratedLufs": -34.1
+}

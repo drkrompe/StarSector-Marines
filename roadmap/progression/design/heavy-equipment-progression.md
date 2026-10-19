@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -98,6 +98,14 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
   committed ships, so a carrier lost is a carrier the company no longer has. A
   payload heavier than every available carrier's rating is not offered, and the
   briefing says why.
+- **Balance is not parity** (owner, 2026-10-19). A more expensive or higher-tier
+  machine should wreck a cheaper one: a Bulwark or a screened tank crushes a Hound
+  or a stock tank. Read an `armorMatchup` row against the two machines' bills and
+  tiers, not against an even split. A near-even row between unequal machines is
+  the finding to flag, and a balance pass never retunes toward parity. A cheap
+  machine beats a dear one only by being bought for it (an anti-armor fit against
+  a stock tank) or by being used well (a flank), and a mechanic that narrows a gap
+  cost or tier says should be wide is called out where it is measured.
 - **Starter content stays useful.** Wayward's nose chaingun and SRM-5 on a stock
   Hound remain a fit worth taking into the first operations. The spare rack is
   the fragmentation SRM-5, and a new company knows both SRM-5 warheads.
@@ -576,6 +584,14 @@ above (five fits, three grounds, eight seeds, both roles), first with
   ticks) but still dies, because the attacking Bulwark hunts it. Among tanks the
   same holds: four hull-down heavy-gun fights against the breakthrough tank
   ended with the gunless defender alive out of reach.
+- **Withdrawing nose on was measured and rejected** (`convoy-nouns.md`, what
+  presents the front). Backing out of the nearest threat's reach before routing
+  keeps the front plate toward it at 0.3 of top speed. Over the same three
+  tanks against both Bulwark fits, three grounds, eight seeds, an attacking tank
+  that lost its gun escaped 2 of 28 such fights backing, against 8 of 28 driving
+  its route; arcs off, 3 of 33 against 5. A defending tank that lost its gun died
+  in all 23 either way, 5 seconds sooner backing. Three times the time in reach
+  costs more than the rear plate saves.
 
 **The AT LRM against a tank** (2026-10-19). A refit Bulwark with two AT
 LRM-15s beats the tanks 0.81: 0.78 against the breakthrough tank, 0.83 against
@@ -654,6 +670,236 @@ being a tank-only gap.
   any-round rule, LRM fit / stock / refit: reach 8, cycle 0.1, roll 0.6 and 10
   rounds gave 0.77 / 0.11 / 0.48; with 20 rounds, 0.73 / 0.08 / 0.42. A
   reach-4, 0.3 s mount engaged about 3 rounds a fight and changed nothing.
+
+## Facing: front, side and rear plate
+
+A hull's plate depends on the arc a hit arrives on (`convoy-nouns.md`, a hull's
+plate depends on the arc), so a machine caught off its front pays for it. The
+shared hull profile is front 1.0 rating / 1.1 plate, side 0.9 / 0.9, rear
+0.75 / 0.7. The tank line is 1.0 / 1.15, 1.0 / 0.95 and 0.6 / 0.6. The dozer is
+the tank line without the glacis bonus, and the SRM technical the hull profile
+without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
+
+- **The harness set hulls down side-on, and fixing that moved the street rows.**
+  `armorMatchup` teleported attacking hulls to 0° and defending hulls to 180°.
+  In the battle's frame (0° is +Y) that is north and south, across a fight that
+  runs west to east. It now sets both sides down facing each other, as
+  production drops do. Arcs then move the head-on rows hardly at all. The
+  re-baseline is the facing alone: on the old facing with arcs off, the readings
+  above come back exactly (LRM refit 0.78 / 0.66). On the street a tank set down
+  side-on fumbled its approach and closed to about 21 cells, where its twin
+  cannon wins. Pointed down the street, it stops at its duel band at about 31.6
+  cells, inside the LRM's reach. Bulwark-side shares, three grounds, eight seeds,
+  both roles, timeout read by integrity, arcs on / off:
+
+  | Fit | Breakthrough | Heavy gun | Screened |
+  | --- | --- | --- | --- |
+  | Refit, two AT LRM-15s | 1.00 / 0.98 | 0.94 / 0.92 | 0.85 / 0.85 |
+  | Bastion arms, two AT LRM-15s | 1.00 / 1.00 | 1.00 / 1.00 | 0.94 / 0.94 |
+  | Stock Bulwark | 0.17 / 0.15 | 0.27 / 0.29 | 0.17 / 0.19 |
+  | Refit chaingun Bulwark | 0.54 / 0.54 | 0.62 / 0.62 | 0.54 / 0.56 |
+
+  On the old facing, arcs moved the same rows by 0.05 or less (LRM refit 0.83 /
+  0.65 against 0.78 / 0.66). The screened tank stays the rung: against the LRM
+  fit it holds 0.15 where a breakthrough tank holds none. Its margin is smaller
+  than the old street rows made it look.
+- **Caught off its front.** `-PdefenderFacing=90|180` turns the defenders from
+  facing the attackers when they are set down. Attacker win share, eight seeds,
+  three grounds, arcs off / on:
+
+  | Attacker vs tank | Facing the attacker | Side-on | Rear on |
+  | --- | --- | --- | --- |
+  | Escort APC vs breakthrough | 0.04 / 0.08 | 0.12 / 0.42 | 0.08 / 0.46 |
+  | Escort APC vs screened | 0.12 / 0.08 | 0.08 / 0.38 | 0.12 / 0.04 |
+  | Breakthrough vs breakthrough | 0.38 / 0.42 | 0.54 / 0.58 | 0.62 / 0.71 |
+  | Refit Bulwark vs breakthrough | 0.50 / 0.46 | 0.33 / 0.42 | 0.58 / 0.54 |
+  | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.17 / 0.25 |
+
+  These are the retuned profiles (below). The retune moved tank-on-tank side-on
+  (0.62 to 0.58; against the screened tank 0.58 to 0.54) and two rear-on mech
+  rows by one fight in eight; the escort APC's flank gains are untouched. Head-on,
+  the tanks beat the escort APC 0.88-0.96. The rows move where the defender keeps
+  its facing while it is shot. Against a mech it does not keep it long: a
+  duelling tank drives to its band nose first and backs off a closing mech
+  nose-on, which puts its front back on the attacker, so the mech rows hardly
+  move. The escort APC rows were a tank that never turned; *Keeping the front*
+  below is the driving that answers them.
+- **The ladder, and the two rows retuned.** Over the default ladder (4 seeds,
+  every pairing both ways, facing fixed in both arms), the first profiles moved
+  four pairings past noise, confirmed at 8 seeds. Read against bill and tier
+  (*Balance is not parity*), two of them narrowed gaps that should stay wide, and
+  the owner had them retuned with per-type profiles, keeping the flanking gains:
+  - **The dozer beat its own line's cannon tanks on the street**, 0.12 to 0.62
+    (heavy-gun 0.00 to 0.62). It was not the dozer's front: removing its glacis
+    bonus, then thinning its own flanks, moved nothing, because every hit in that
+    fight lands broadside both ways. The tank's 0.85 side plate let the dozer's
+    penetration-4 MG out-trade the cannon in a long, close fight. A tank's flank
+    is now 1.0 rating / 0.95 plate (0.9 still gave the dozer half its street
+    fights), and the dozer is the tank line's profile without the glacis bonus.
+    Street, dozer attacking, arcs on / off: breakthrough 2/8 / 1/8, heavy-gun
+    0/8 / 0/8, screened 2/8 / 1/8.
+  - **The SRM technical (38/27/72/6) took a third of its fights from the
+    fire-support APC (52/40/115/11).** Its welded sheet lost the hull profile's
+    front bonus, and it is back to 0/24, as with arcs off.
+  - Running the right way and kept: the heavy APC against the militia technical
+    goes 0.17 to 0.38.
+
+  A dozer attacking a tank on open ground or hull-down wins with arcs off as well
+  (1.00); that is the best armor per credit in the game (*Vehicles: variants, not
+  fittings*) and not a facing finding.
+- **Keeping the front** (`convoy-nouns.md`, what presents the front). A tank
+  set down off its front used to lose that way for the whole fight. In band it
+  never turned. When the APC closed inside its band floor, the retreat read the
+  APC as just behind the beam (about 115° off the nose), drove away from it rear
+  on, and stuck against the map edge. Two changes answer it. A hull holding in
+  band turns onto a target more than 35° off its nose. The retreat backs with
+  opposite lock out to 120° off the nose instead of only to the beam. Same table,
+  same seeds, old driving / new, arcs on:
+
+  | Attacker vs tank | Facing the attacker | Side-on | Rear on |
+  | --- | --- | --- | --- |
+  | Escort APC vs breakthrough | 0.08 / 0.08 | 0.42 / 0.12 | 0.46 / 0.08 |
+  | Escort APC vs screened | 0.08 / 0.08 | 0.38 / 0.04 | 0.04 / 0.08 |
+  | Breakthrough vs breakthrough | 0.42 / 0.42 | 0.58 / 0.50 | 0.71 / 0.71 |
+  | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
+  | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.25 / 0.08 |
+
+  Head-on, nothing moves. With arcs off the escort APC rows barely move (0.12 to
+  0.12 side-on, 0.08 to 0.12 rear on), so the turn buys front plate, not a
+  better fight. A flanked tank that turns holds the APC off as it does head-on.
+  Flanking still pays where the tank cannot turn in time, and against a mech it
+  never paid much.
+- **The ladder, old driving / new** (4 seeds, every pairing both ways, on the
+  retuned profiles): 181 of 207 pairings are identical, and so is every
+  open-ground fight. 13 pairings move
+  by 0.25 or more, on the street and hull-down grounds, nearly all of them
+  between light hulls: the militia technical, the fire-support and escort APCs.
+  Fights there turn into stalemates (street stalemates 216 to 227 of 828) or
+  out of them, all seeds together, because the turn changes where a hull stands.
+  The traced cause is older than the turn. A hull that holds in band without
+  landing hits never moved: two hulls nose-on at 21 cells, in sight and in reach,
+  sat out the fight. Sight is read cell centre to cell centre; the rounds fly
+  from the turret, and the defender stood in the lee of the last building front,
+  whose corner took them. That holding rule was the lever, not the turn.
+- **A stalled hold moves** (`convoy-nouns.md`, what presents the front). A hull
+  that has held in band for three volleys (at least ten seconds) without its
+  target losing integrity drives to another in-band firing position, three cells
+  or more away, with room to drive onto and a lane the turret's own line-of-fire
+  test passes along the centre line and 0.6 cells either side. In the traced
+  fight the escort APC crosses eight cells to a clear lane and finishes the
+  militia technical (a 1,930-tick stalemate becomes a win at 1,854). Ladder,
+  4 seeds, rule off / on: 586 of 621 pairings identical, and every one on open
+  ground but one. 12 pairings move by 0.25 or more, all on the street but one
+  hull-down row (Sirocco against the militia technical, one fight in four).
+  Street fights left undecided (stalemate or timeout) go 227 to 141 of 828.
+  Most of them are fights that never began: the escort APC against a Hound, a
+  breakthrough tank or a screened tank timed out with no damage on either side,
+  and now ends about as it does on open ground (Hound 0.00 to 1.00, both tanks
+  0.00 to 0.50). Light hulls that stalemated now finish each other, 0.00 to
+  1.00: the escort APC against the militia technical and the heavy,
+  up-armored and fire-support APCs, the heavy APC against the fire-support APC,
+  and the dozer against the militia technical. The facing
+  table, 8 seeds, three grounds, rule off / on (the off arm is the table above
+  exactly):
+
+  | Attacker vs tank | Facing the attacker | Side-on | Rear on |
+  | --- | --- | --- | --- |
+  | Escort APC vs breakthrough | 0.08 / 0.17 | 0.12 / 0.12 | 0.08 / 0.08 |
+  | Escort APC vs screened | 0.08 / 0.17 | 0.04 / 0.04 | 0.08 / 0.08 |
+  | Breakthrough vs breakthrough | 0.42 / 0.42 | 0.50 / 0.50 | 0.71 / 0.71 |
+  | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
+  | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.08 / 0.08 |
+
+  Only the head-on escort APC rows move, and only by the street fights that now
+  start; undecided fights across the table go 61 to 13 of 576. The facing gains
+  are untouched. `-Dbattle.vehicle.repositionStalled=false` is the control.
+- **What was tried and taken out.** Each was read on the same table:
+  - *A forward turn toward a too-close target behind the hull*, instead of
+    driving away from it. In the street both tanks parked out of each other's
+    sight: every street tank duel and every tank attack on the street became a
+    stalemate. A target more than 120° off the nose is still driven away from.
+  - *Re-facing in band without looking.* On the hull-down ground a rear-set
+    tank's forward turn drove it out from behind its berm (the refit Bulwark's
+    share 0.58 to 0.79, the same with arcs off), and on the street light hulls
+    backed round corners or out of reach and the ladder moved 31 pairings. A
+    hull a parapet screens now makes only the backing turn. Every turn is
+    rehearsed on a copy of the hull's body and made only if it ends square on in
+    sight, and a backing turn stops at its band's far edge less slack.
+  - *Screening every turn* (forward and backing alike) left the side-on tank
+    unturned, and the escort APC went back to 0.46.
+  - *Turning only after a hit off the front.* It answered rear on (0.12) but not
+    side-on (0.46): the APC's first hits land after it has closed inside the
+    tank's band, so the in-band turn never starts and the retreat decides.
+  - *Handing a forward turn over to backing for its last stretch.* At a tank's
+    reverse speed (13° a second at full lock) a rear-on turn then takes longer
+    than its rehearsal allows, so it was never made. A turn that starts forward
+    stays forward, a full-lock circle that does not close on the target.
+  - *A gunless tank backing out of reach nose on* before it drives its route
+    (`-Dbattle.vehicle.withdrawNoseOn=true`, off). See the withdrawal readings
+    above.
+- **One front, and a turn that costs** (`convoy-nouns.md`, what presents the
+  front). The owner's brief: no arbitrary slowness, and flanking should pay. A
+  hull now faces the worst threat it knows of (harm into its plate), turns only
+  toward what it or a spotter sees, and its gun shakes while its heading turns,
+  by the share of its turret's traverse the yaw takes. Nothing slows the turn
+  itself: the bicycle hull's pivot is already physical.
+  - *Two angles.* `-PattackerSpread` fans the attackers around the defender
+    (open ground) and `-PattackerRadius` sets them the same distance out, so a
+    narrow fan is the head-on control. At 20 cells, 12 seeds, almost every pair
+    beats a lone tank from any angle. Two Bulwarks, two escort APCs, two militia
+    technicals, an escort APC with a tank: all 1.00. They read in time and in
+    what is left of them: two Bulwarks kill in 38.9 s with 0.67 of their
+    integrity left at a 30° fan, 18.3 s with 0.86 from opposite sides; two
+    technicals 42.7 s / 0.27 against 20.6 s / 0.63. The pair a lone tank can
+    beat is two fire-support APCs:
+
+    | Two fire-support APCs vs | 30° fan | 90° | 180° (opposite sides) | 180°, arcs off |
+    | --- | --- | --- | --- | --- |
+    | Breakthrough tank | 0.33 | 0.42 | 0.50 | 0.17 |
+    | Screened tank | 0.17 | 0.33 | 0.50 | 0.17 |
+
+    The gain is the side plate (arcs off it is gone), and the tank's turn does
+    not take it back: with the turn off, 0.42 / 0.42 from opposite sides. At
+    90° the worst-threat rule costs the pair one or two fights in twelve
+    against the nearest-target control (0.50 / 0.50).
+  - *The lone flanker*, all three grounds, 8 seeds, before / after (the
+    before arm is the shipped turn with `faceWorstThreat` and `pivotAccuracy`
+    off), arcs on:
+
+    | Attacker vs tank | Facing the attacker | Side-on | Rear on |
+    | --- | --- | --- | --- |
+    | Escort APC vs breakthrough | 0.21 / 0.12 | 0.12 / 0.00 | 0.08 / 0.12 |
+    | Escort APC vs screened | 0.21 / 0.25 | 0.04 / 0.08 | 0.08 / 0.12 |
+    | Breakthrough vs breakthrough | 0.42 / 0.46 | 0.54 / 0.58 | 0.71 / 0.71 |
+    | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.58 | 0.54 / 0.58 |
+    | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.08 / 0.08 |
+
+    With one threat the worst is the nearest, so every move here is the shaken
+    gun, and it shakes both ways. A tank turning onto a refit Bulwark on its
+    flank misses more, and the Bulwark's side-on share rises 0.42 to 0.58. The
+    escort APC drives curves of its own while it closes and shoots, and its
+    side-on row falls to 0.00 (three fights in twenty-four). A lone light hull
+    still does not out-flank a tank's turn: flanking pays with a second
+    machine, against a mech, or rear on. Head-on the tanks beat the escort APC
+    0.88 and 0.75 (0.79 before; one fight in 24).
+  - *The ladder* (4 seeds, every pairing both ways): 450 of 621 pairings
+    identical, 25 move by one fight in four, in both directions and mostly
+    between hulls, which every turn now shakes. Undecided fights 221 to 222.
+  - Controls, each on its own: `-Dbattle.vehicle.faceWorstThreat=false`,
+    `-Dbattle.vehicle.faceKnownOnly=false` (omniscient; on these grounds every
+    machine is in sight, so it moves nothing here), and
+    `-Dbattle.vehicle.pivotAccuracy=false`.
+- **The mech torso** has arcs too (`mechs-nouns.md`, the torso's plate depends
+  on its arc): front as the chassis rating stands, sides 0.95 / 0.85, rear
+  0.75 / 0.6, with `-Dbattle.mech.armorArcs=false` the control. Over the mech and
+  mixed ladders (8 seeds, both roles), 202 of 291 rows are identical to the
+  control and no pairing moves past noise. Two-on-one mech fights (`2x` Hound,
+  Sirocco and Bulwark, Hound+Sirocco, two breakthrough tanks against a Bulwark,
+  a refit Bulwark and a Sirocco) win exactly as often, and only a few kill a
+  second or two sooner. A mech's torso follows the machine it is shooting, and
+  two attackers on one approach both stay inside its ninety-degree front.
+  Flanking changes a mech-versus-mech outcome only when the player puts a
+  machine behind the torso. The harness never does.
 
 ## Missile warheads
 

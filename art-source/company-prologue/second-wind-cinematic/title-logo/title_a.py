@@ -1,4 +1,4 @@
-"""Direction A, developed: the game's own wordmark, sharpened, with MARINES in warm white.
+"""Direction A, developed: the game's own wordmark, sharpened, with MARINES MOD in warm white.
 
     python title_a.py --bg <frame.png> [--out build/title-logo/a] [--no-video]
 
@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from compose_game_wordmark import WORDMARK, marines, scrim
+from compose_game_wordmark import WORDMARK, marines, scrim, system_font
 
 HERE = Path(__file__).resolve().parent
 W, H = 1920, 1080
@@ -32,6 +32,8 @@ SCALE = 2.4                 # the wordmark at about 53% of the screen width
 SUPER = 4                   # worked at four times the final size, then reduced
 GLOW = (0.0, 72 / 255, 1.0)  # the wordmark's own dark-blue halo
 FPS = 30
+
+SUBTITLE, SUBTITLE_WIDTH = 'MARINES MOD', 0.62   # the line under the wordmark, as a share of its width
 
 # The reveal, in seconds from the moment Castle's last line ends (`title-logo.md`).
 STARSECTOR_IN = (1.0, 3.0)
@@ -84,8 +86,9 @@ def wordmark_plain(scale=SCALE):
 
 
 def layout(mark):
-    """Wordmark and MARINES with their places in a 1920x1080 frame."""
-    sub = marines('ours', mark)
+    """Wordmark and MARINES MOD with their places in a 1920x1080 frame. MOD says plainly that this
+    is a mod of the game whose name sits above it (owner, 2026-10-19)."""
+    sub = marines('ours', mark, SUBTITLE, SUBTITLE_WIDTH)
     gap = round(mark.height * 0.35)
     total = mark.height + gap + sub.height
     top = round(H * 0.46 - total / 2)
@@ -118,7 +121,7 @@ def ramp(t, span):
 
 
 def label(im, text, size=40):
-    font = ImageFont.truetype(r'C:\Windows\Fonts\segoeuib.ttf', size)
+    font = ImageFont.truetype(str(system_font('segoeuib.ttf', 'Arial Bold.ttf')), size)
     d = ImageDraw.Draw(im)
     b = d.textbbox((0, 0), text, font=font)
     p = size // 2
@@ -166,7 +169,7 @@ def main():
         y = 140 + i * (tile.height + 160)
         cmp.paste(tile, ((W - tile.width) // 2, y))
         ImageDraw.Draw(cmp).text(((W - tile.width) // 2, y - 60), name, fill=(230, 230, 230),
-                                 font=ImageFont.truetype(r'C:\Windows\Fonts\segoeuib.ttf', 40))
+                                 font=ImageFont.truetype(str(system_font('segoeuib.ttf', 'Arial Bold.ttf')), 40))
     cmp.save(out / '02-sharpening.png')
 
     menu = Image.new('RGB', (W, H), (12, 14, 18))

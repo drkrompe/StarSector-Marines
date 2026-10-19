@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Enormous capital ship engine thrum, slow pulsing low bass, heavy machinery hum, distant and huge",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "e7dfba42127496ecd8e99c63f4765166d12f460d7bcae9607d9b7521c5a9405e",
+  "durationSeconds": 12.0,
+  "peakDb": -0.4,
+  "integratedLufs": -10.8
+}

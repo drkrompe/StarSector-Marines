@@ -51,7 +51,7 @@ def moving_or_textured(ob, ship_names):
     """True for what the overhead painting must leave out."""
     import bpy  # noqa: F401
     skip = ('Cloud shadows', 'Steam', 'Landing dust', 'Drive ', 'Scaffold arm', 'Arc ', 'Customs beacon',
-            'Yard people', 'Yard hand')
+            'Yard people', 'Yard hand', 'Jungle bay ground')
     if ob.name in ship_names or ob.name.startswith(skip) or ob.instance_type == 'COLLECTION':
         return True
     p = ob

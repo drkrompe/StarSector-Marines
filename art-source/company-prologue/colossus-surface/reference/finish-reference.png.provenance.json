@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154cf-5ad4-7062-8628-fe5e8dfd5103",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154cf-5ad4-7062-8628-fe5e8dfd5103\\exec-41c028f2-2a07-4f18-9960-796dd93f59bd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-surface\\reference\\finish-reference.png",
+    "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-surface\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "c48cb61bf1695f29a5e972614acf6cc4ebe88aeae73cee10c14bd9e7476c59b0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact model render to repaint; every shape stays in its pixels\nImage 2: Livery and colour key only (the game sprite, turned bow-right); not layout, view or style\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Colossus-class heavy freighter (a huge, boxy, low-tech Domain-era cargo hauler: a thick cargo block of a central hold and four side cargo modules, with two drive pods pushing it from behind like tugboats), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: dusty oxide red on the central hold, its hatch cover, the aft machinery body and the bridge's base deck; darker maroon on the four side cargo modules and the two drive pod casings; pale weathered grey on the long longerons beside the hold, the bridge deckhouse, the pods' diagonal shoulder bands and the underslung tanks; thin burnt-orange and faded-blue bands on the side modules' decks; mid-grey gunmetal machinery (frames, trusses, turrets, cranes, cell guides, rails, clamps); near-black recesses and seams. The open bays at the cargo block's bow and aft faces are full of multicoloured stacked shipping containers.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, door, hatch, turret, crane, container, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: oxide red stays a dusty, slightly faded oxide-red enamel (as INPUT 2's hull), maroon stays a darker red-brown maroon enamel, pale grey stays a pale weathered warm grey paint, burnt orange stays a burnt orange enamel, faded blue stays a faded mid blue enamel, gunmetal stays dark grey bare-ish steel, recesses stay near black, windows stay as they are. The containers keep their own colours. Do not swap or invent colours, stripes or patches.\n- Finish: an old Domain-era frontier freighter still in service, low-tech, heavy and solid: \"thicker than strictly necessary hull plating\". Semi-matte industrial enamel with crisp plate seams, rows of heavy fasteners, small access panels and visible panel-to-panel tone differences. Even service wear of a hard-working hauler: dusty edges and corners from planetside lifts, a film of dust and grime in seams, faint scuffs on exposed corners, a little soot near the aft drives. No rust holes, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-surface\\guide\\reference-guide.png",
+      "sha256": "d30513e469cd52466c789d65dc0030ea6bba6c29272f07b76d15e7e884d6567b",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the exact model render to repaint; every shape stays in its pixels"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-surface\\build\\sprite-livery.png",
+      "sha256": "bb130d4fa9d9f16303e0b3191f22b19831c71a5601e3e49a61f545d4f7297852",
+      "dimensions": [
+        896,
+        736
+      ],
+      "mode": "RGB",
+      "role": "Livery and colour key only (the game sprite, turned bow-right); not layout, view or style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to apply the specified finish while preserving Image 1’s geometry and composition."
+  ],
+  "usage": {
+    "input_tokens": 45085,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 770,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.3
+}

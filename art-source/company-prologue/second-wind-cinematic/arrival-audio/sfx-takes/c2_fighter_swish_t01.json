@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "30",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Very fast fighter craft fly-by, a quick sharp whoosh swish passing close, short",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "af0409d12dc60be3bb92ad05ab5ccdbdd4c92d3a0b1016c2ba36d7624e57eec9",
+  "durationSeconds": 3.0,
+  "peakDb": -0.1,
+  "integratedLufs": -12.9
+}

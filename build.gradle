@@ -392,7 +392,7 @@ tasks.register('armorMatchup', Test) {
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     systemProperty 'armorMatchup.dir', layout.buildDirectory.dir('reports/armor-matchups').get().asFile.absolutePath
-    ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'ladder', 'gifs', 'gifSeeds', 'standoff', 'mechOrder', 'debug'].each { name ->
+    ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'ladder', 'gifs', 'gifSeeds', 'standoff', 'mechOrder', 'defenderFacing', 'attackerSpread', 'attackerRadius', 'debug'].each { name ->
         if (providers.gradleProperty(name).isPresent()) {
             systemProperty "armorMatchup.${name}", providers.gradleProperty(name).get()
         }

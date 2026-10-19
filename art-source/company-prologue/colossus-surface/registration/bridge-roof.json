@@ -1,0 +1,59 @@
+{
+ "part": "bridge-roof",
+ "sheet": "bridge",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9929,
+ "raw_iou": 0.995,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.998,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.995
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00128,
+    1.00246
+   ],
+   "offset_px": [
+    -0.08,
+    -1.13
+   ],
+   "iou": 0.996
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00128,
+    1.00321
+   ],
+   "offset_px": [
+    -0.08,
+    -1.13
+   ],
+   "iou": 0.998
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.47,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.19,
+  "p95_px": 1.0,
+  "max_px": 2.24
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

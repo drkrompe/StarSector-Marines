@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Busy freeway traffic from a distance, heavy trucks and haulers passing continuously, tyre roar and diesel engines",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "65e67af7315cf369e8d867d92bfa5b12472803f950f372f86ab115d4cc679d81",
+  "durationSeconds": 12.0,
+  "peakDb": -8.2,
+  "integratedLufs": -19.3
+}

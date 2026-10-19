@@ -29,7 +29,8 @@ import java.util.Set;
  * Black Sluice referee and Greyhook's split. Sites and the handover are read from physical
  * presence; there is no construction step and no tender on this mission; the split happens only when fuel control actually falls, and those who
  * obey it walk off the map along the service road, so the withdrawal is strength Greyhook loses
- * rather than a despawn. The optional {@link SmallWarDuel} hears the order; nothing here waits on it.
+ * rather than a despawn. The optional {@link SmallWarDuel} hears the order; nothing here waits on it, but the battle
+ * itself does not end until the duel's story has concluded (the duel holds it open through the warships).
  */
 public final class SmallWarSequence implements Objective {
     /** One outfit's account: who stood or was committed, who is still here, and who walked out. */
@@ -119,7 +120,12 @@ public final class SmallWarSequence implements Objective {
     }
 
     public void advance(BattleSimulation sim) {
-        if (sim.isComplete() || progress.terminal()) return;
+        if (sim.isComplete()) return;
+        if (progress.terminal()) {
+            // The ground is decided; the duel overhead plays on until it concludes, and the battle waits for it.
+            if (duel != null && progress.split()) duel.advance(sim);
+            return;
+        }
         if (!initialized) { initialized = true; emit(sim, "mobilization"); }
         Phase before = progress.phase();
         liftDown = companyLiftDown(sim);

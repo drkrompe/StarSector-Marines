@@ -1,0 +1,42 @@
+{
+ "top-stern": {
+  "raw_iou": 0.9824,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9858,
+  "scale": [
+   1.00128,
+   1.00315
+  ],
+  "boundary_p95_px": 17.72
+ },
+ "top-aft": {
+  "raw_iou": 0.9823,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9853,
+  "scale": [
+   1.00062,
+   1.00227
+  ],
+  "boundary_p95_px": 21.02
+ },
+ "top-mid": {
+  "raw_iou": 0.957,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9584,
+  "scale": [
+   1.0,
+   0.9992
+  ],
+  "boundary_p95_px": 61.0
+ },
+ "top-bow": {
+  "raw_iou": 0.9734,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.976,
+  "scale": [
+   0.99882,
+   1.00173
+  ],
+  "boundary_p95_px": 65.51
+ }
+}

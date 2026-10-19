@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154e2-b75d-7ef0-a1dd-96be32dd74cf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154e2-b75d-7ef0-a1dd-96be32dd74cf\\exec-7e972dbc-8a6c-4efd-befd-b301ff61f3a0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\generated\\sheet-pods-flank1-v2.png",
+    "sha256": "52eeb15c7e4c96feadb521b068ec26c5b47b9e98e06bc72b9ebe3ef3346862af",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\prompts\\sheet-pods-flank1-v2.prompt.txt",
+  "promptSha256": "e37b67637c58d7620d209bd27bbb80379d2523dc0806a6893b48bff354d13d37",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: each tile's exact shape, position and colour regions; never move\nImage 2: Material and finish only: paint colours, seams, fasteners, wear; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet holding ONE orthographic render of a single hull face of a 3D spacecraft (a Colossus-class heavy freighter, a huge low-tech Domain-era cargo hauler), in the top-left tile, on a plain flat mid-blue background; the rest of the sheet is empty blue:\ntop-left: the aft half of one long drive pod's outboard flank seen from the side, bow to the left: rows of dusty rose plates divided by thin dark grey vertical grooves, crossed by two long horizontal blue gaps (channels that stay background blue), one thin dark grey horizontal groove low down, a raised dusty rose rectangular cover plate, a pale pink stepped plate at the top right (the edge of the worn aft deck plate) and a small dark grey block at the lower right.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint the face in INPUT 1 as that working hull surface. This image will be cut and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the tile exactly where it is, the same size. Do not zoom, crop, shift, rotate, enlarge or shrink anything. The shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and every gap or slot in it stays plain background blue. Leave the rest of the sheet plain blue and empty.\n- The shape is a flat painted steel hull surface of an old, hard-worked freighter. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, subtle panel-to-panel tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour. The dusty rose plates are a dark maroon red-brown enamel, as INPUT 2's drive pods. The pale pink stepped plate at the top right is RED, not grey: a lighter, sun-worn, dusty oxide-red / faded brick-red enamel, clearly the same red paint family as the maroon, only lighter and more faded; it must not be painted grey, white, cream or bare metal. There is no grey or white paint anywhere in this face. The dark grey grooves and block are near-black recesses. No stripes, no differently coloured patches and no repair plates.\n- The ship is in service, not battered. Weathering is light and even across the whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\guide\\sheet-pods-flank1-v2-guide.png",
+      "sha256": "43ed40993ce05e6eac3c52b17391f49360e524fb07220b5026a0c66b91e8f399",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: each tile's exact shape, position and colour regions; never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\reference\\finish-reference.png",
+      "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only: paint colours, seams, fasteners, wear; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 for the exact layout and Image 2 only for the hull’s paint and finish, generating one image.\n"
+  ],
+  "usage": {
+    "input_tokens": 47730,
+    "cached_input_tokens": 38272,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 932,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.8
+}

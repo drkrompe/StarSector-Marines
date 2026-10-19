@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "40",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Dust and grit blasted outward by engine downwash, sand hissing and rattling across concrete, fading",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "d0cff5847eb4452c771c5cfaf1604092772728fc64e5c7f6bfe2705916742bdc",
+  "durationSeconds": 4.0,
+  "peakDb": -8.5,
+  "integratedLufs": -17.9
+}

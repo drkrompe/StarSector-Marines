@@ -101,6 +101,39 @@ public final class DurabilityModel {
     }
 
     /** Returns armor-removal efficiency in [0.10, 1.00]. */
+    /**
+     * {@link #resolveInto(float, float, float, float, float, Resolution)} on plate that counts for {@code plate}
+     * times its points ({@link ArmorArcs}): a hit meets {@code currentArmor * plate} of armor, and every point of
+     * it the hit strips costs the body {@code 1 / plate} of a real point. Overflow into structure is what the
+     * larger (or smaller) plate leaves over. A plate of one is the ordinary law exactly.
+     */
+    public static void resolvePlatedInto(float postCoverDamage,
+                                         float penetration,
+                                         float currentArmor,
+                                         float armorRating,
+                                         float plate,
+                                         float currentStructure,
+                                         Resolution out) {
+        resolvePlatedInto(postCoverDamage, penetration, 0f, currentArmor, armorRating, plate, currentStructure, out);
+    }
+
+    /** {@link #resolvePlatedInto(float, float, float, float, float, float, Resolution)} with a screen in play. */
+    public static void resolvePlatedInto(float postCoverDamage,
+                                         float penetration,
+                                         float mitigationSoak,
+                                         float currentArmor,
+                                         float armorRating,
+                                         float plate,
+                                         float currentStructure,
+                                         Resolution out) {
+        if (!(plate > 0f) || !Float.isFinite(plate)) {
+            throw new IllegalArgumentException("plate must be positive and finite");
+        }
+        resolveInto(postCoverDamage, penetration, mitigationSoak, currentArmor * plate, armorRating,
+                currentStructure, out);
+        if (plate != 1f) out.armorDamage = Math.min(currentArmor, out.armorDamage / plate);
+    }
+
     public static float armorEfficiency(float penetration, float armorRating) {
         return MIN_ARMOR_EFFICIENCY + (1f - MIN_ARMOR_EFFICIENCY)
                 * penetrationRatio(penetration, armorRating);

@@ -248,7 +248,7 @@ def recovery_roll(fighter, t, fighter_span_m):
 C2_START = 37.70                           # C1's cut: 0.3 s before Approach keys up for line 7
 C2_LEN = 15.0
 ENTRY_START = C2_START + C2_LEN            # 52.70
-ENTRY_LEN = 3.0                            # cut to C3 at 55.70
+ENTRY_LEN = 7.0                            # cut to C3 at 59.70 (first-open-sky/c3_core.ENTRY_LEN)
 HAIL = {                                   # absolute seconds
     "squelch_open_7": 38.00,
     "line7": (38.16, 46.64),
@@ -261,12 +261,19 @@ HAIL = {                                   # absolute seconds
     "line9_knows": (54.00, 55.27),         # "Somebody knows we're here."
 }
 
-# Entry transition, seconds from ENTRY_START. Both wipes travel right to left: the glow
-# grows from the bow side, the cloud deck streams aft, the same way the world moves.
-GLOW_IN = (0.00, 1.10)                     # orange heat glow wipes across the glass
-GLOW_HOLD = (1.10, 1.50)
-CLOUD_IN = (1.30, 2.50)                    # cloud wipes across and over the glow
-WHITE_HOLD = (2.50, 3.00)                  # cloud whiteout; C3 opens out of white
+# Entry transition, seconds from ENTRY_START: a descent, not a wipe (owner, 2026-10-19).
+# Flames and smoke stream across the glass from bottom right to top left, the way the air
+# goes past a ship coming down bow first, while the camera and window shake
+# (first-open-sky/c3_core.camera_shake, shared with C3 so the cut cannot show).
+FLOW_DEG = 27.0                            # the stream's angle above horizontal, travelling up-left
+HEAT = (0.15, 2.40, 4.60, 5.70)            # heat glow: starts, full, starts to quench, gone
+SMOKE = (1.60, 3.00, 4.80, 5.60)           # smoke torn off the sheath: in, full, thinning, gone
+CLOUD_IN = (4.10, 5.40)                    # cloud streams across and over the flames
+WHITE = (5.40, 6.00)                       # cloud whiteout
+SETTLE = (6.00, 6.90)                      # the last of the cloud settles onto C3's frame 0
+# The same phases under the names the blockout and guide sheets (compose_blockout.py,
+# make_guides.py) were drawn with.
+GLOW_IN, GLOW_HOLD, WHITE_HOLD = (HEAT[0], HEAT[1]), (HEAT[1], HEAT[2]), WHITE
 
 
 def smooth(u):

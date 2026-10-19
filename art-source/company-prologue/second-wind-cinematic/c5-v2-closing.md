@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-19 — the rise and the title are in the layout scene: up to about 1.8 km by 26 s, the title over the settling port.
+Updated: 2026-10-19 — C4 and C5 are one shot; the port around Kilo Nine is staffed (`port_people.py`); travel-reels line moved to C3, C4 opens on "Greywater's past the cranes", Kilo Nine line drafts.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -18,8 +18,8 @@ makes a speech before the closing.
 |---|---|---|
 | C1–C2 | The hail as recorded, ending "Corridor four, mounts cold. Thank you, Approach." | Scrutiny. The ship is small, Approach is cold, and Castle is careful. |
 | Entry | **"Cleared. Everybody breathe."** (replaces "Well. Somebody knows we're here.", which could be heard as a threat) | Relief. Her first words to the passengers rather than to Approach, which sets up the closing's "All hands". |
-| C3 | Silent. | Wonder, carried by the picture. |
-| C4 | **"Like the travel reels they ran in the canteen... except this one doesn't loop."** Optional half-line as the ship drops behind the cranes: "Greywater's past the cranes. Let me do the talking." | Recognition. Until now these people knew landscapes only from a screen on the Claim, and this one is real and goes on. |
+| C3 | Silent while the ship levels out, then **"Like the travel reels they ran in the canteen... except this one doesn't loop."** (moved from C4, owner 2026-10-19, so it plays over the jungle) | Wonder, then recognition. Until now these people knew landscapes only from a screen on the Claim, and this one is real and goes on. |
+| C4 | **"Greywater's past the cranes. Let me do the talking."** as the shot opens, then **"Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour."** (below). | Arrival: back to business, and somewhere of their own to land. |
 | C5 | The closing lines below. | Permission: go and live here. |
 
 The prologue pages carry the wound the hope answers. Facility support ended in
@@ -32,6 +32,25 @@ Review takes of the new Entry, C4 and C5 lines exist in Castle's voice
 (`storyboard-v3.md`, Casting), made with `arrival-audio/record_castle_lines.py`.
 Until the owner picks takes, the shipped `jangalaArrivalHail09` string and audio
 stay as they are, so caption and voice still match.
+
+## Castle names Kilo Nine in C4
+
+Chosen by the owner (2026-10-19, of three drafts, as the most personable):
+
+> Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour.
+
+It tells the passengers where they are landing as the camera finds the yard, and
+"it's a favour" sets up Nessa without explaining her. Review takes `c4_kilo_nine_t01`
+and `_t02` (about 6.3 s, comms intercom) from `arrival-audio/record_castle_lines.py`.
+
+**It fits C4 as built; the pan does not need to be longer.** With the travel-reels
+line moved to C3, C4 carries only Castle's two lines. "Greywater's past the cranes"
+(3.4 s) plays from about 0.5 s, over the fields and freight road. This line follows
+from about 4.6 s and ends about 10.9 s, just before touchdown at 11.0: "Look for the
+fenced yard" comes as the camera starts drifting east, and "Kilo Nine" lands about
+7.4 s, as it settles over the yard (straight over it by 8.0 s). It runs under the
+landing rocket (from 4.0 s), which the mix ducks. If it feels crowded in the mix, the
+fix is a longer pan in `industrial-exterior/c4x_scene.py` (8 s to 10 s), not a cut.
 
 ## Who speaks, and from where
 
@@ -80,8 +99,15 @@ drive spools down. Once the dust thins the yard goes to work. The tug, bowser
 and crew carrier move in from their stand-offs, and the scaffold arms swing in
 to the hull. Hands in hi-vis head out from the workshop. The customs car comes
 in through the gate behind them. C4 ends with the ship down and the yard
-moving. C5 opens on the same straight-down view a step closer, and the cut
-reads as one continuous move. The wide reveal
+moving.
+
+**C4 and C5 are one shot** (owner, 2026-10-19): there is no cut. C5 picks up
+C4's camera exactly where it stops, straight down over the yard on its wide
+lens, and over the first 4 s pushes in to the long-lens view of the ramp, the
+ground in frame shrinking at a steady rate while the lens lengthens. The yard's
+vehicles are still rolling in as the push begins, and their crews climb out once
+they stop. Nothing appears or vanishes at the join: whoever stood about the yard
+in C4 is still standing there in C5. The wide reveal
 (the yard as a small corner of a big working port, the ship one patched hull
 among the freighters) is kept for C5's pull-out under the title, so it is seen
 once and lands as the closing image. The public berths are seen passing
@@ -175,7 +201,8 @@ port is still settling when the title arrives (`title-logo.md`). The title's
 reveal is counted from 24 s, when Castle's last line ends, and the picture is
 black at 33 s. `industrial-exterior/c5_title.py` lays the title over the
 rendered frames, so the wordmark is read from the player's install and never
-rendered into the scene.
+rendered into the scene. The title sits over the yard, with Second
+Wind under the name, which the owner accepted on 2026-10-19.
 
 **The look waits on the texture pass.** At this distance even the placeholder
 sprites hold up, so the choice between them and the 3D figures is made once
@@ -206,6 +233,53 @@ the yard is painted. `industrial-exterior/c5_scene.py` takes either
 
 Kilo Nine's pad is a low slab (0.4 m) rather than the public berths' 3 m
 plinth, so people and the yard's vehicles step straight onto it.
+
+## The port around it
+
+The public port works around Kilo Nine through C4 and on through C5, so the
+wide image under the title is a working port rather than a set
+(`industrial-exterior/port_life.py`). Vans, box trucks and container trucks run
+the port road, the cross streets and the strip between the warehouse rows,
+with a MuniSec patrol car among them. They wait at the crossings for the
+container carriers coming off the berths, and nothing drives through anything:
+the module's report counts overlaps and should read 0. The yard gantries move
+boxes between stacks, and the one over aisle -125 lifts boxes off yard
+tractors and sets others on. Forklifts run stores up the gaps beside the worked
+freighters and along the warehouse faces; a bowser comes in to the one
+fuelling; baggage tugs, the port bus and trucks at the terminal doors work the
+apron between the ferry and the freight terminal. A Hermes lifts off in C4's
+last seconds. During C5's rise another comes down on that pad and a Hound lands
+on the empty berth, so a lifter is moving in each shot. All of it is outside
+Kilo Nine's fence and keyed through C5's last frame.
+
+**The port's people** (`industrial-exterior/port_people.py`). The rise would
+show a port of empty vehicles without them, so the ground is staffed site by
+site, thickest close to Kilo Nine and on the public apron west of it and
+thinner further out, but present everywhere the rise reveals. Each job is one
+that reads from above as a shape:
+
+- an arrivals queue along the terminal hall's faces, moved up by two officials;
+- porters unloading the baggage tug while it stands at the hall;
+- a road gang crouched along the kerb with a foreman pacing it;
+- gate guards, one of whom stops a courier;
+- a marshaller waving the returning lighter onto its pad, then hands
+  unloading it;
+- signallers and lashers at the two working cranes, standing clear while a
+  box comes down (the girder hides anything under it from above);
+- crates carried from Kilo Nine's stores to its hangar;
+- cutters and a slinger in the salvage pile;
+- a smoke-break ring;
+- mechanics;
+- welders on the scaffold arms;
+- crews on the berths, pads and fuel farm.
+
+People face each other, hand things over, wait for each other and walk in
+pairs. Poses (crouch, signal, carry, talk, arms folded, work) are blocks on
+the 3D figures and extra columns on the sprite sheet. Each site has its own
+small walk map, read from the built scene like the yard's. Every vehicle that
+moves during C5 is blocked along its whole path, so nobody stands in a lane
+or under a wheel. The run's report counts people inside anything and should
+read 0. `--no-port` leaves the port people out.
 
 ## Open questions
 

@@ -803,7 +803,9 @@ public final class TacticalScoring {
             if (selfSquadId != Squad.NO_SQUAD) {
                 Squad squad = scoring.roster.getSquad(selfSquadId);
                 if (squad != null) {
-                    for (BelievedContact contact : squad.believedContacts()) {
+                    List<BelievedContact> contacts = squad.believedContacts();
+                    for (int i = 0, n = contacts.size(); i < n; i++) {
+                        BelievedContact contact = contacts.get(i);
                         believed.add(contact.unitId());
                         // The existing scorer reads the live position of a believed identity.
                         // Use that same position only to bound enumeration, not last-seen cells
@@ -1689,7 +1691,11 @@ public final class TacticalScoring {
         World world = roster.world();
         VisionService vision = roster.vision();
         LongBucket candidates = RETARGET_CANDIDATES.get();
-        unitIndex.gather(selfX, selfY, MAX_PLAUSIBLE_ATTACK_RANGE, candidates);
+        // The combatant slice is already hostile-faction, combatant and unrestrained
+        // — the same tests the loop applies — so a radius this wide does not
+        // drag the whole neighbourhood (friendlies, civilians) through them.
+        unitIndex.gatherHostileCombatants(selfX, selfY, MAX_PLAUSIBLE_ATTACK_RANGE,
+                selfFaction, candidates);
         for (int i = 0, n = candidates.size; i < n; i++) {
             long u = candidates.ids[i];
             if (u == exclude || u == self) continue;
@@ -1768,6 +1774,9 @@ public final class TacticalScoring {
             float otherY = world.y(other);
             float d = cellDistance(selfX, selfY, otherX, otherY);
             if (d > range) continue;
+            // Only the nearest visible candidate, and the preferred one, can change
+            // the answer, so a candidate that cannot beat the best so far needs no ray.
+            if (d >= bestDist && other != preferred) continue;
             if (!canShootPair(grid, selfX, selfY, otherX, otherY,
                     selfAir, vision.targetAirLosRadius(other))) continue;
             if (other == preferred) preferredDist = d;
@@ -2066,7 +2075,9 @@ public final class TacticalScoring {
     public float believedHostilePresenceWithin(Squad squad, int cx, int cy,
                                                 float radius) {
         float presence = 0f;
-        for (BelievedContact contact : squad.believedContacts()) {
+        List<BelievedContact> contacts = squad.believedContacts();
+        for (int i = 0, n = contacts.size(); i < n; i++) {
+            BelievedContact contact = contacts.get(i);
             long id = contact.unitId();
             if (!roster.isAliveById(id) || !roster.identity().has(id)) continue;
             if (!squad.faction.hostileTo(roster.identity().faction(id))) continue;
@@ -2120,7 +2131,9 @@ public final class TacticalScoring {
         BelievedContact primary = null;
         float primaryDistance = Float.MAX_VALUE;
 
-        for (BelievedContact contact : squad.believedContacts()) {
+        List<BelievedContact> contacts = squad.believedContacts();
+        for (int i = 0, n = contacts.size(); i < n; i++) {
+            BelievedContact contact = contacts.get(i);
             long id = contact.unitId();
             if (!roster.isAliveById(id)
                     || !roster.identity().has(id)

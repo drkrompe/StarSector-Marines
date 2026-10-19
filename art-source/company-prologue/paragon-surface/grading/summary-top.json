@@ -1,0 +1,500 @@
+{
+ "parts": {
+  "top-stern": {
+   "skin": {
+    "share_as_declared": 0.0,
+    "share_in_declared_family": 0.0,
+    "swap": true,
+    "before_mean_lab": [
+     69.57,
+     -1.37,
+     -3.06
+    ],
+    "after_mean_lab": [
+     60.35,
+     -3.36,
+     -7.65
+    ],
+    "dE_to_palette_before": 11.85
+   },
+   "white": {
+    "share_as_declared": 0.476,
+    "share_in_declared_family": 0.534,
+    "swap": true,
+    "before_mean_lab": [
+     75.79,
+     -0.12,
+     1.06
+    ],
+    "after_mean_lab": [
+     84.72,
+     0.18,
+     -1.04
+    ],
+    "dE_to_palette_before": 7.1
+   },
+   "slate": {
+    "share_as_declared": 0.063,
+    "share_in_declared_family": 0.956,
+    "swap": false,
+    "before_mean_lab": [
+     37.56,
+     1.81,
+     -3.87
+    ],
+    "after_mean_lab": [
+     29.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 8.04
+   },
+   "substrate": {
+    "share_as_declared": 0.0,
+    "share_in_declared_family": 0.932,
+    "swap": false,
+    "before_mean_lab": [
+     47.43,
+     0.14,
+     -2.52
+    ],
+    "after_mean_lab": [
+     31.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 13.75
+   },
+   "steel": {
+    "share_as_declared": 0.306,
+    "share_in_declared_family": 0.559,
+    "swap": true,
+    "before_mean_lab": [
+     68.82,
+     1.77,
+     5.4
+    ],
+    "after_mean_lab": [
+     75.0,
+     -0.66,
+     -2.92
+    ],
+    "dE_to_palette_before": 9.83
+   },
+   "dark": {
+    "share_as_declared": 0.899,
+    "share_in_declared_family": 0.992,
+    "swap": false,
+    "before_mean_lab": [
+     20.97,
+     0.72,
+     -2.62
+    ],
+    "after_mean_lab": [
+     20.25,
+     -0.41,
+     -6.15
+    ],
+    "dE_to_palette_before": 4.64
+   },
+   "bore": {
+    "share_as_declared": 0.009,
+    "share_in_declared_family": 0.482,
+    "swap": true,
+    "before_mean_lab": [
+     52.49,
+     0.8,
+     -1.05
+    ],
+    "after_mean_lab": [
+     33.11,
+     -0.56,
+     -5.54
+    ],
+    "dE_to_palette_before": 18.88
+   },
+   "ramp_span_L_removed_max": 154.88,
+   "edge_band_dL_after_mean": -5.57
+  },
+  "top-aft": {
+   "skin": {
+    "share_as_declared": 0.0,
+    "share_in_declared_family": 0.0,
+    "swap": true,
+    "before_mean_lab": [
+     68.61,
+     -1.11,
+     -2.51
+    ],
+    "after_mean_lab": [
+     60.35,
+     -2.77,
+     -6.27
+    ],
+    "dE_to_palette_before": 11.18
+   },
+   "pale": {
+    "share_as_declared": 0.033,
+    "share_in_declared_family": 0.813,
+    "swap": false,
+    "before_mean_lab": [
+     82.36,
+     0.25,
+     1.1
+    ],
+    "after_mean_lab": [
+     61.97,
+     -1.1,
+     -5.67
+    ],
+    "dE_to_palette_before": 22.11
+   },
+   "white": {
+    "share_as_declared": 0.994,
+    "share_in_declared_family": 0.995,
+    "swap": false,
+    "before_mean_lab": [
+     89.16,
+     0.36,
+     2.57
+    ],
+    "after_mean_lab": [
+     84.72,
+     0.18,
+     -1.04
+    ],
+    "dE_to_palette_before": 6.96
+   },
+   "slate": {
+    "share_as_declared": 0.039,
+    "share_in_declared_family": 0.967,
+    "swap": false,
+    "before_mean_lab": [
+     40.25,
+     1.13,
+     -2.45
+    ],
+    "after_mean_lab": [
+     29.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 8.68
+   },
+   "substrate": {
+    "share_as_declared": 0.0,
+    "share_in_declared_family": 0.997,
+    "swap": false,
+    "before_mean_lab": [
+     45.92,
+     0.31,
+     -2.81
+    ],
+    "after_mean_lab": [
+     31.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 14.78
+   },
+   "steel": {
+    "share_as_declared": 0.122,
+    "share_in_declared_family": 0.152,
+    "swap": true,
+    "before_mean_lab": [
+     85.71,
+     0.29,
+     2.63
+    ],
+    "after_mean_lab": [
+     75.0,
+     -0.66,
+     -2.92
+    ],
+    "dE_to_palette_before": 11.4
+   },
+   "dark": {
+    "share_as_declared": 0.221,
+    "share_in_declared_family": 0.997,
+    "swap": false,
+    "before_mean_lab": [
+     27.86,
+     0.8,
+     -3.56
+    ],
+    "after_mean_lab": [
+     20.25,
+     -0.41,
+     -6.15
+    ],
+    "dE_to_palette_before": 9.13
+   },
+   "bore_light": {
+    "share_as_declared": 0.009,
+    "share_in_declared_family": 0.968,
+    "swap": false,
+    "before_mean_lab": [
+     73.79,
+     0.52,
+     -1.12
+    ],
+    "after_mean_lab": [
+     46.27,
+     -0.73,
+     -5.25
+    ],
+    "dE_to_palette_before": 27.85
+   },
+   "ramp_span_L_removed_max": 150.4,
+   "edge_band_dL_after_mean": -4.21
+  },
+  "top-mid": {
+   "skin": {
+    "share_as_declared": 0.002,
+    "share_in_declared_family": 0.002,
+    "swap": true,
+    "before_mean_lab": [
+     64.47,
+     -0.6,
+     -2.04
+    ],
+    "after_mean_lab": [
+     60.35,
+     -0.24,
+     -5.11
+    ],
+    "dE_to_palette_before": 9.85
+   },
+   "pale": {
+    "share_as_declared": 0.03,
+    "share_in_declared_family": 0.751,
+    "swap": false,
+    "before_mean_lab": [
+     79.57,
+     0.24,
+     0.92
+    ],
+    "after_mean_lab": [
+     61.97,
+     -1.1,
+     -5.67
+    ],
+    "dE_to_palette_before": 17.4
+   },
+   "white": {
+    "share_as_declared": 0.936,
+    "share_in_declared_family": 0.947,
+    "swap": false,
+    "before_mean_lab": [
+     89.62,
+     0.4,
+     2.8
+    ],
+    "after_mean_lab": [
+     84.72,
+     0.18,
+     -1.04
+    ],
+    "dE_to_palette_before": 5.84
+   },
+   "slate": {
+    "share_as_declared": 0.023,
+    "share_in_declared_family": 0.927,
+    "swap": false,
+    "before_mean_lab": [
+     40.67,
+     0.57,
+     -2.37
+    ],
+    "after_mean_lab": [
+     29.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 11.5
+   },
+   "steel": {
+    "share_as_declared": 0.108,
+    "share_in_declared_family": 0.158,
+    "swap": true,
+    "before_mean_lab": [
+     85.98,
+     0.25,
+     1.57
+    ],
+    "after_mean_lab": [
+     75.0,
+     -0.66,
+     -2.92
+    ],
+    "dE_to_palette_before": 10.65
+   },
+   "dark": {
+    "share_as_declared": 0.362,
+    "share_in_declared_family": 0.987,
+    "swap": false,
+    "before_mean_lab": [
+     26.24,
+     0.84,
+     -3.35
+    ],
+    "after_mean_lab": [
+     20.25,
+     -0.41,
+     -6.15
+    ],
+    "dE_to_palette_before": 6.0
+   },
+   "bore": {
+    "share_as_declared": 0.028,
+    "share_in_declared_family": 0.107,
+    "swap": true,
+    "before_mean_lab": [
+     60.67,
+     0.23,
+     -3.31
+    ],
+    "after_mean_lab": [
+     33.11,
+     -0.56,
+     -5.54
+    ],
+    "dE_to_palette_before": 27.66
+   },
+   "bore_light": {
+    "share_as_declared": 0.018,
+    "share_in_declared_family": 0.516,
+    "swap": true,
+    "before_mean_lab": [
+     78.5,
+     0.5,
+     -1.95
+    ],
+    "after_mean_lab": [
+     46.27,
+     -0.73,
+     -5.25
+    ],
+    "dE_to_palette_before": 32.43
+   },
+   "ramp_span_L_removed_max": 67.31,
+   "edge_band_dL_after_mean": -16.34
+  },
+  "top-bow": {
+   "skin": {
+    "share_as_declared": 0.001,
+    "share_in_declared_family": 0.001,
+    "swap": true,
+    "before_mean_lab": [
+     66.72,
+     -0.86,
+     -2.63
+    ],
+    "after_mean_lab": [
+     60.35,
+     -0.35,
+     -6.58
+    ],
+    "dE_to_palette_before": 10.23
+   },
+   "pale": {
+    "share_as_declared": 0.015,
+    "share_in_declared_family": 0.791,
+    "swap": false,
+    "before_mean_lab": [
+     82.46,
+     0.14,
+     0.84
+    ],
+    "after_mean_lab": [
+     61.97,
+     -1.1,
+     -5.67
+    ],
+    "dE_to_palette_before": 21.27
+   },
+   "white": {
+    "share_as_declared": 0.948,
+    "share_in_declared_family": 0.949,
+    "swap": false,
+    "before_mean_lab": [
+     89.69,
+     0.15,
+     1.46
+    ],
+    "after_mean_lab": [
+     84.72,
+     0.18,
+     -1.04
+    ],
+    "dE_to_palette_before": 2.51
+   },
+   "slate": {
+    "share_as_declared": 0.069,
+    "share_in_declared_family": 0.991,
+    "swap": false,
+    "before_mean_lab": [
+     34.4,
+     0.98,
+     -2.73
+    ],
+    "after_mean_lab": [
+     29.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 6.97
+   },
+   "substrate": {
+    "share_as_declared": 0.0,
+    "share_in_declared_family": 0.967,
+    "swap": false,
+    "before_mean_lab": [
+     48.92,
+     0.19,
+     -2.72
+    ],
+    "after_mean_lab": [
+     31.9,
+     -0.77,
+     -6.17
+    ],
+    "dE_to_palette_before": 16.73
+   },
+   "steel": {
+    "share_as_declared": 0.145,
+    "share_in_declared_family": 0.186,
+    "swap": true,
+    "before_mean_lab": [
+     83.17,
+     0.47,
+     2.52
+    ],
+    "after_mean_lab": [
+     75.0,
+     -0.66,
+     -2.92
+    ],
+    "dE_to_palette_before": 10.57
+   },
+   "dark": {
+    "share_as_declared": 0.536,
+    "share_in_declared_family": 0.992,
+    "swap": false,
+    "before_mean_lab": [
+     24.8,
+     0.85,
+     -3.2
+    ],
+    "after_mean_lab": [
+     20.25,
+     -0.41,
+     -6.15
+    ],
+    "dE_to_palette_before": 5.5
+   },
+   "ramp_span_L_removed_max": 43.66,
+   "edge_band_dL_after_mean": -5.07
+  }
+ }
+}

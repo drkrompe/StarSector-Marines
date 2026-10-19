@@ -310,6 +310,7 @@ def blender_main(argv):
     out = Path(p["out"])
     lmid = Vector(p["samples"][0]["legion_mid_u"])
     for s in p["samples"]:
+        scene.frame_set(int(round(s["t"] * 24)))     # animated figures (the pilot leans in at ~9 s)
         rot = lroot.rotation_euler.to_matrix()
         lroot.location = Vector(s["legion_centre_m"]) - rot @ (lmid * p["legion_mpu"])
         cam.location = Vector(s["cam_pos_u"]) * p["sw_mpu"]

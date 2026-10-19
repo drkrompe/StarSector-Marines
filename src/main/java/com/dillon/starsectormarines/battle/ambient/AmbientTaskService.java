@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,9 +83,17 @@ public final class AmbientTaskService {
      */
     private static final float CALM_SECONDS = 4f;
 
-    private final Map<Long, AmbientTaskRoute> assignments = new ConcurrentHashMap<>();
+    /**
+     * Primitive-keyed because {@link #advance}, {@link #applyAppearance},
+     * {@link #assigned} and {@link #isControlling} probe these for every live
+     * unit every tick, and a boxed {@code Long} key allocates once the id is
+     * past the small-value cache. They are written only on the simulation
+     * thread; the unit-update workers read them between serial phases, when
+     * nothing writes.
+     */
+    private final Long2ObjectOpenHashMap<AmbientTaskRoute> assignments = new Long2ObjectOpenHashMap<>();
     private final Map<Long, Progress> progress = new ConcurrentHashMap<>();
-    private final Map<Long, StoodDown> stoodDown = new ConcurrentHashMap<>();
+    private final Long2ObjectOpenHashMap<StoodDown> stoodDown = new Long2ObjectOpenHashMap<>();
     private final Map<Long, Long> liveFireTargets = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> primaryFireWindows = new ConcurrentHashMap<>();
     private final Map<Long, AmbientTaskPose> livePoses = new ConcurrentHashMap<>();
@@ -223,6 +232,8 @@ public final class AmbientTaskService {
     public void advance(float dt) {
         if (!Float.isFinite(dt)) throw new IllegalArgumentException("ambient dt must be finite");
         elapsedSeconds += Math.max(0f, dt);
+        // A battle with no ambient work (most of them) has nothing to walk.
+        if (assignments.isEmpty() && stoodDown.isEmpty()) return;
         for (int index = 0; index < roster.liveCount(); index++) {
             long actorId = roster.get(index);
             AmbientTaskRoute route = assignments.get(actorId);
@@ -312,6 +323,7 @@ public final class AmbientTaskService {
 
     /** Actors currently assigned a route, in roster order. */
     public List<Long> assigned() {
+        if (assignments.isEmpty()) return List.of();
         List<Long> working = new ArrayList<>();
         for (int index = 0; index < roster.liveCount(); index++) {
             long actorId = roster.get(index);
@@ -322,6 +334,7 @@ public final class AmbientTaskService {
 
     /** Reasserts task poses after the ordinary battle FacingSystem has run. */
     public void applyAppearance() {
+        if (assignments.isEmpty()) return;
         for (int index = 0; index < roster.liveCount(); index++) {
             long actorId = roster.get(index);
             if (!assignments.containsKey(actorId) || !roster.isLive(actorId)) continue;

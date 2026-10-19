@@ -177,7 +177,7 @@ def group(state):
                  ('Paint', 'NodeSocketFloat'), ('Fade', 'NodeSocketFloat'), ('Reveal', 'NodeSocketFloat')):
         io.new_socket(s, in_out='INPUT', socket_type=t)
     for s, t in (('Color', 'NodeSocketColor'), ('Roughness', 'NodeSocketFloat'), ('Metallic', 'NodeSocketFloat'),
-                 ('Normal', 'NodeSocketVector')):
+                 ('Normal', 'NodeSocketVector'), ('Height', 'NodeSocketFloat')):
         io.new_socket(s, in_out='OUTPUT', socket_type=t)
     g = G(tree)
     gi, go = g.node('NodeGroupInput'), g.node('NodeGroupOutput')
@@ -311,7 +311,9 @@ def group(state):
     bump = g.node('ShaderNodeBump')
     bump.inputs['Strength'].default_value = 0.8
     bump.inputs['Distance'].default_value = 0.06
-    g.link(g.math('SUBTRACT', 0.0, g.math('ADD', g.math('MULTIPLY', pit, 0.5), ding)), bump.inputs['Height'])
+    height = g.math('SUBTRACT', 0.0, g.math('ADD', g.math('MULTIPLY', pit, 0.5), ding))
+    g.link(height, bump.inputs['Height'])
+    g.link(height, go.inputs['Height'])   # for a material whose own normal must survive (insert)
     g.link(c, go.inputs['Color'])
     g.link(g.math('MINIMUM', r, 1.0), go.inputs['Roughness'])
     g.link(m, go.inputs['Metallic'])
@@ -337,5 +339,17 @@ def insert(material, state, cls):
     nt.links.new(wn.outputs['Color'], bsdf.inputs['Base Color'])
     nt.links.new(wn.outputs['Roughness'], bsdf.inputs['Roughness'])
     nt.links.new(wn.outputs['Metallic'], bsdf.inputs['Metallic'])
-    nt.links.new(wn.outputs['Normal'], bsdf.inputs['Normal'])
+    if H.OVERLAY and bsdf.inputs['Normal'].links:
+        # An overlay hull's material already has its own relief (the procedural plating):
+        # the wear's pits bump that normal rather than replacing it.
+        prev = bsdf.inputs['Normal'].links[0].from_socket
+        bp = nt.nodes.new('ShaderNodeBump')
+        bp.name = 'SW wear bump'
+        bp.inputs['Strength'].default_value = 0.8
+        bp.inputs['Distance'].default_value = 0.06
+        nt.links.new(wn.outputs['Height'], bp.inputs['Height'])
+        nt.links.new(prev, bp.inputs['Normal'])
+        nt.links.new(bp.outputs['Normal'], bsdf.inputs['Normal'])
+    else:
+        nt.links.new(wn.outputs['Normal'], bsdf.inputs['Normal'])
     material['wear_state'] = state

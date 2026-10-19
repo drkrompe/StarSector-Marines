@@ -185,7 +185,7 @@ HULLS = {
     # this table solves 0.748 (271 m). Fittings: deck window slits and glazing band
     # (sized 2.0 x 0.9 m and 1.8 m at 0.87), the capital-mount bays. The forward hangar in
     # the bore wall (owner, pass 3; 21 x 14 x 35 m) holds two boats: boat_bays=2.
-    'Paragon': dict(units3=2486231, crew_max=1000, cargo=300, fuel=300, cls='capital', boat_bays=2, length_units=362.2,
+    'Paragon': dict(units3=2448749, crew_max=1000, cargo=300, fuel=300, cls='capital', boat_bays=2, length_units=358.7,
                     sprite_px=364, fittings_units={'deck window w x h': [2.30, 1.03],
                                                    'capital-mount bay w x h': [21.0, 22.0],
                                                    'bridge glazing band h': [2.07]}),

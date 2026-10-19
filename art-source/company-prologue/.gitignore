@@ -11,6 +11,8 @@ second-wind-projection-spike/review-sheet*.png
 second-wind-cinematic/second-wind-states/**/*.png
 hound-surface/review/
 hound-surface/textures/
+paragon-surface/review/
+paragon-surface/textures/
 
 # Cinematic: anything a script of ours can regenerate (owner, 2026-10-18).
 # What stays tracked is the shipped video, scripts and text, Codex/ImageGen
@@ -118,3 +120,26 @@ onslaught-surface/guide/*
 # other machines goes to Drive (starsector/builds/castle/<commit>/), never git.
 castle-figure/*.blend
 castle-figure/*.blend1
+# The pilot figure likewise (build_pilot.py; Drive: starsector/builds/pilot/<commit>/).
+pilot-figure/*.blend
+pilot-figure/*.blend1
+
+# onslaught-cinematic: the appendable .blend is built (finalize.sh) and goes to Drive; renders are outputs
+onslaught-cinematic/*.blend
+onslaught-cinematic/*.blend1
+onslaught-cinematic/review/
+
+# colossus-surface: script outputs
+colossus-surface/review/
+colossus-surface/textures/
+colossus-surface/grading/
+colossus-surface/skin-manifest.json
+colossus-surface/guide/*
+!colossus-surface/guide/sheet-*-guide.png
+!colossus-surface/guide/reference-guide.png
+!colossus-surface/guide/reference-mask.png
+
+# colossus-cinematic: the appendable .blend is built (finalize.sh); renders are outputs
+colossus-cinematic/*.blend
+colossus-cinematic/*.blend1
+colossus-cinematic/review/

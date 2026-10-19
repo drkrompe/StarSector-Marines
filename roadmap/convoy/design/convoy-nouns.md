@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -256,7 +256,8 @@ hit on the turret meets the turret's armor and then its structure. What the
 turret cannot hold goes on into the hull, which meets it with its own armor
 first. A hit on a turret already at zero goes through the hole to the hull's
 plate. Both pools resolve against the hull's one armor rating: one plate per
-machine, as a mech's sections share their chassis's rating.
+machine, as a mech's sections share their chassis's rating. What that plate is
+worth on a given hit depends on its arc (below).
 
 - **Only the hull's own structure kills.** The turret's remainder dies with it.
 - **The turret at zero destroys the gun, and nothing else.** The hull drives on
@@ -288,6 +289,111 @@ machine, as a mech's sections share their chassis's rating.
   the whole-body control. `battle.vehicle.turretHitShare` and
   `battle.vehicle.turretPoolShare` override the authored shares for evidence
   runs.
+
+**A hull's plate depends on the arc a hit arrives on** (`ArmorArcs`,
+`VehicleType.armorArcs`), so flanking a machine pays. The arc is read from the
+bearing of the hit's origin against the facing of the part it lands on: front is
+45 degrees either side of the nose, rear 45 degrees either side of the tail, and
+each side the ninety between. An arc carries two multipliers. Its **rating**
+scales the hull's armor rating, the number penetration is read against, so it
+only matters to rounds that do not already out-penetrate the plate. Its
+**plate** is what each point of the hull's one armor pool counts for on that
+arc: thick front plate strips more slowly, thin rear plate faster, whatever the
+round. The pool stays one column, so whole-body readers still see one hull.
+
+- **One shared profile, per-type overrides.** Every hull's front is rating 1.0
+  and plate 1.1, its sides 0.9 / 0.9, its rear 0.75 / 0.7. The tank line has a
+  thick glacis (1.0 / 1.15), mild flanks (1.0 / 0.95) and a thin engine deck
+  (0.6 / 0.6). The dozer is the tank line without the glacis bonus, and the SRM
+  technical's welded sheet is the shared profile without its front bonus. Both
+  overrides keep a cheaper or sidegrade hull from beating a dearer one by facing
+  alone (`heavy-equipment-progression.md`, balance is not parity).
+- **The turret faces its own way.** A hit rolled onto the turret is read against
+  the turret's facing, not the hull's. A turret trained on its target shows that
+  target its front, so a lone attacker meets the mantlet while a second machine on
+  the flank, unwatched by the gun, gets the turret's side or rear. What goes on
+  through the turret into the hull meets the hull's own arc.
+- **The turret's hit share stays fixed on every arc.** A share that grew with the
+  silhouette would also change how often a flanker shoots the gun away, and that
+  share was tuned as the gun-loss rate (`heavy-equipment-progression.md`, a tank
+  that loses its gun). Arcs are about plate; how the hits divide stays its own
+  lever.
+- **Origin is where the shooter stands now.** It covers every attributed hit
+  alike: an aimed round, an arcing shell, a missile, a blast. A ballistic or
+  arcing round's ground track runs from its shooter, and a top-attack round is
+  not read as a roof hit: the anti-armor LRM already defeats a stock tank by
+  design, and the screened tank's active protection is that threat's answer. A
+  blast is read from its firer, not from where it burst. A hit with no origin
+  (unattributed or scripted damage, a shooter already gone) meets the hull's
+  nominal plate on no arc, and no arc draws on the random stream.
+- **What presents the front.** Production sets a dropped hull down facing the way
+  its carrier flew in. A duelling hull drives to its band nose first. A bicycle
+  hull cannot pivot in place, so every other turn toward the threat is a
+  manoeuvre on the same manual drive: it **backs with opposite lock** while the
+  target is within a little past the beam (120° off the nose), which swings the
+  nose on while the hull gives ground, and drives a **forward turn** toward a
+  target further behind than that.
+  - Holding in band, a hull whose target sits more than 35° off its nose turns
+    back onto it, and stops once it is within 10°. A turn that starts forward
+    stays forward all the way round. It rehearses the turn on a copy of its own
+    body first and makes it only if it ends square on over drivable ground, still
+    in sight of the target. A backing turn also stops once it has given ground
+    to its band's far edge less slack, where the gun stops reaching. A hull a
+    parapet screens from its target (an undrivable cell within five cells on the
+    line to it) makes only the backing turn: the forward turn drives it out from
+    behind the berm before the nose comes round, and the berm is worth more than
+    the plate. `-Dbattle.vehicle.faceInBand=false` is the control.
+  - **One front, for the worst threat it knows of.** A hull has one front
+    plate, so with several hostile machines about it turns onto the one that
+    can do it the most harm from where it stands, not merely the nearest. Harm
+    is each weapon's rounds a second, at its accuracy for the range and its
+    armor efficiency against the hull's plate; a gun out of its own reach does
+    none. The threat it faces keeps the front until another is a quarter
+    worse, and everything else takes the side or the rear: two machines from
+    two sides beat the turn. The band is still held against the duel target.
+    `-Dbattle.vehicle.faceWorstThreat=false` is the control (the duel target).
+  - **It turns only toward what it knows of**: a machine in its own sight, or
+    one its side's spotters report (`SideSpotting`). A flanker out of sight, or
+    come up behind cover, gets its shots on the side until it is seen. There is
+    no arc of vision and no reaction delay beyond the hull's one-second
+    decision. `-Dbattle.vehicle.faceKnownOnly=false` is the omniscient control.
+  - **A turn shakes the gun.** The turret rides the hull, so while the heading
+    turns the turret must traverse against it to stay on target. A hull's gun
+    loses accuracy in proportion to the share of its turret's traverse rate the
+    hull's yaw takes, up to a moving shooter's full penalty (half) once the hull
+    turns as fast as the turret can. A tank backing round at full lock (about
+    12° a second under a 40° turret) loses about a sixth, and a forward turn
+    at speed the full half. It is the body's own yaw, whatever turns it: a turn
+    onto a threat, a route's corner, a driver at the wheel. A hull driving
+    straight is not shaken. `-Dbattle.vehicle.pivotAccuracy=false` is the
+    control.
+  - Backing off a too-close target uses the same 120° arc. Only a target further
+    behind than that is driven away from, rear on: a forward turn toward it was
+    tried and parked hulls out of each other's sight in the street.
+    `-Dbattle.vehicle.backingTurnDegrees=90` is the control (the beam).
+  - A **disarmed hull still shows its rear** while it drives its withdrawal
+    route, and backs off nose-on only where no route exists. Backing out of
+    reach nose-on first was measured and rejected: at a tank's reverse speed the
+    hull stays in reach about three times as long, and the front plate does not
+    buy that back. `-Dbattle.vehicle.withdrawNoseOn=true` is that trial
+    (`heavy-equipment-progression.md`, facing).
+  - **A hold that does no harm is not kept.** Being in band is a distance, and
+    sight is read cell centre to cell centre, so a hull can hold in band, in
+    sight, and put every round into the building corner its target stands in the
+    lee of. A hull that has held in band for three volleys of its gun (never less
+    than ten seconds) without its target losing any integrity has a **stalled
+    hold**. It moves to another firing position in band, at least three cells
+    from where it stands and with room around it to drive onto, whose lane to the
+    target is clear: the line a round flies and a line either side of it, each
+    judged the way the turret judges its own shot. The band's middle is tried
+    before its present distance, so a hull at the far slack closes to where its
+    gun hits. It drives there through the band without stopping, then holds and
+    watches again; with no such position it holds another spell. A turn onto the
+    target can still follow. An indirect-fire hull is exempt: its lane is an arc.
+    `-Dbattle.vehicle.repositionStalled=false` is the control
+    (`heavy-equipment-progression.md`, keeping the front).
+- `-Dbattle.vehicle.armorArcs=false` is the control: every arc is the hull's one
+  plate, bit for bit the law before arcs.
 
 The turret section is battle durability, so a fitting doll does not own it. A
 future vehicle doll (`mech-lab-data-authored-dolls.md`) may draw the turret as
@@ -613,8 +719,10 @@ retains the same existing cross-domain behavior as an autonomous hull.
   vehicle it can see within one and a half times its gun's reach is fought from
   the duel band the mechs use (`mechs-nouns.md`, Duel range), read from its
   turret against that machine's weapons. It drives to the band and stops there
-  for the turret; a single gun has no shorter band, so it never closes into
-  contact. Too close, it backs off with its nose kept on the target through the
+  for the turret, for as long as the turret wears the target down: a hold that
+  has done no harm for three volleys is stalled, and the hull moves to another
+  firing position in band with a clear lane (what presents the front). A single
+  gun has no shorter band, so it never closes into contact. Too close, it backs off with its nose kept on the target through the
   manual-drive physics, because a hull cannot reverse along a route and a
   planned retreat would begin with a turnaround toward the enemy. A hull
   reverses at half its top speed, and a tank at 0.3 of it: slower than a

@@ -57,6 +57,11 @@ public abstract class GroundBody {
         onTeleport();
     }
 
+    /** How fast the hull's heading is turning, degrees a second, positive counterclockwise. Zero for a body that cannot turn. */
+    public float yawRateDegPerSec() {
+        return 0f;
+    }
+
     /** Hook for subclasses to reset model-specific state (e.g., steering angle) on teleport. */
     protected void onTeleport() {}
 

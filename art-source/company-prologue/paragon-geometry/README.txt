@@ -106,7 +106,16 @@ Guns (turret kit; owner, pass 3: the mounts read empty)
   graviton beams, heavy needlers (WS 007/008), tactical lasers, point-defence
   lasers (WS 011/016/017/022/023: armoured collars kept red, power cabling in
   the hull's dark machinery, the emitter on a gimbal elevating -5 to +75
-  degrees, recorded per slot as elevation_limits_deg) and reaper launchers. pg_turrets asks
+  degrees, recorded per slot as elevation_limits_deg) and reaper launchers.
+  The bow hardpoints WS 001/002 carry the kit's tachyon lance as a spinal beam
+  projector (tk.build_hardpoint; HARDPOINT_WEAPON: the Paragon as a
+  planet-glasser, owner 2026-10-19, where the Elite variant has autopulses): a
+  power block with a capacitor bank on a sled in each bay, fed by three trunks
+  from the bay's back wall, the emitter's lens sunk at the root of the beam slot,
+  and the two plated prongs with glowing focusing rails running out past the
+  prow as the game draws them. The bays are cut through the belt and the bow
+  module as well as the prow. The manifest's dimensions are the hull's;
+  with_guns adds the prongs (346 m against 312 m). pg_turrets asks
   the kit for each gun at its nominal ring (one sprite pixel a unit, as the game
   draws it) with hull_finish=True and sprite_tint=.5, so the guns wear the hull's hex
   ceramic mixed halfway toward each sprite's colour,

@@ -10,10 +10,14 @@ straight down through a 50 mm lens about 220 m up (`c5-v2-closing.md`, "Camera a
 comes up over that: `c5_title.py` lays it on the rendered frames.
 
 Who is on the ground:
-  yard workers  Nessa's crew in hi-vis, at their jobs from the first frame: two guiding at the
-                foot of the ramp, two between the crew carrier and the hull, one at the tug and one
-                walking between it and the hull, one at the bowser.
-  customs       two officers out of their car, to stand either side of the way off the ship.
+  yard vehicles still rolling in from their stand-offs as C5 opens: the tug, the crew carrier,
+                the bowser, then the customs car; each stops at the hull in the first five seconds.
+  yard workers  Nessa's crew in hi-vis, out of the vehicles once they stop: from the carrier two
+                to guide at the foot of the ramp and two to work between it and the hull; from
+                the tug its driver, who stays by it, and a runner between it and the hull; from
+                the bowser its driver.
+  customs       two officers out of their car once it pulls up, to stand either side of the way
+                off the ship.
   Nessa         out of her workshop, to stand apart by its door with her arms folded.
   families      off the ramp from 8.5 s, in small groups that walk together, a child among the
                 larger ones and bags in most hands, toward the workshop door and inside. It is
@@ -26,6 +30,9 @@ Everyone walks on a map read from the scene (`c5_crowd.Nav`), so nobody passes t
 a vehicle, a wall or the hull; the run prints how many walker-frames ended up inside anything
 (should be 0) and --map writes the map with everyone's tracks to build/c5/walk-map.png.
 
+The rest of the port is at work too: `port_people.py` casts it, site by site, each on its own walk
+map; --no-port leaves it out (quicker while working on the yard).
+
 --body picks the look: simple 3D figures (default) or flat sprite cards; the choice waits on
 the texture pass. --stills renders C5 seconds; otherwise the shot renders at --step (default 24:
 one frame a second) to build/c5/frames/.
@@ -37,12 +44,14 @@ import sys
 import time
 from pathlib import Path
 
+import bmesh
 import bpy
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import c4x_scene as c4  # noqa: E402
 import c5_crowd as crowd  # noqa: E402
+import port_people  # noqa: E402
 
 OUT = c4.REPO / 'build' / 'c5'
 C4_END = c4.FRAMES - 1              # C5 starts on the frame C4 ends on
@@ -54,8 +63,10 @@ CENTRE = Vector((362.0, 436.0))
 # the yard ends as one corner of the port with the jungle along the right edge. Height grows at a
 # steady rate of zoom (geometric), and keeps settling the last few percent under the title.
 RISE = (18.0, 26.0)
+PUSH = 4.0                          # the push in from C4's last view to the ramp, C5 seconds
 TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
 SETTLE = 1.04                       # how much further it drifts up after the rise, to the end
+PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # every vehicle has stopped by this C5 second
 TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
 
@@ -68,8 +79,10 @@ def at(u, v):
 
 
 RAMP = at(-36.5, 0)                       # the foot of the stern ramp, between the engine pods
+ABOARD = at(-24.0, 0)                     # inside the hull, under its roof: where the families walk out from
 DOOR = Vector((334.0, 410.6))             # Nessa's workshop door, under the awning
 DOOR_FRONT = Vector((336.0, 415.0))
+IDLERS = ((330.0, 417.0), (336.0, 419.0), (339.0, 416.0), (448.0, 418.0))   # C4's 'Yard people' inside NAV_BOX
 # Where a family steps aside, near the ramp so it happens while the camera is still close: one
 # waits off the north side for somebody still aboard, one stops to the south to take it in.
 SPOTS = {'wait': at(-40, 13), 'aside': at(-44, -12)}
@@ -92,22 +105,34 @@ def cast(rng):
     def worker(name, start, plan, t0=0.0, look=ship, speed=1.2):
         groups.append(G([W(name, 'worker', speed=speed, look=look)], start, t0, plan))
 
-    worker('Yard hand guide L', at(-37.5, 6.5), [('stay',)], look=RAMP + (RAMP - at(-30, 0)))
-    worker('Yard hand guide R', at(-37.5, -6.5), [('stay',)], look=RAMP + (RAMP - at(-30, 0)))
+    # The yard's vehicles are still rolling in when C5 opens (`c4x_scene.K9_ROLL_IN`): each crew
+    # climbs out once its vehicle has stopped, the ramp crew from the crew carrier's side door.
+    parked = {n: stop - c4.DURATION for n, (_, stop) in c4.K9_ROLL_IN.items()}
+    out = parked['Crew carrier'] + 0.6
+    guide = RAMP + (RAMP - at(-30, 0))
+    for k, (name, spot) in enumerate((('Yard hand guide L', at(-37.5, 6.5)), ('Yard hand guide R', at(-37.5, -6.5)))):
+        worker(name, CARRIER, [('go', spot, 0.4), ('stay',)], t0=out + 0.5 * k, look=guide)
     for k in range(2):
         a, b = CARRIER + Vector((k * 2.0 - 1.0, 0)), at(-30, -14 - k * 2)
-        worker('Yard hand carrier %d' % k, a if k else b,
-               [('go', b, 0.6), ('wait', 3.0), ('go', a, 0.6), ('wait', 2.5)] * 6 if k else
-               [('go', a, 0.6), ('wait', 2.5), ('go', b, 0.6), ('wait', 3.0)] * 6, t0=0.3 * k)
-    worker('Yard hand tug', TUG, [('stay',)])
-    worker('Yard hand tug runner', at(-26, 26), [('go', TUG + Vector((1.5, -1.0)), 0.6), ('wait', 4.0),
-                                                 ('go', at(-26, 26), 0.6), ('wait', 3.0)] * 6)
-    worker('Yard hand bowser', BOWSER, [('stay',)])
-    # Customs: out of the car to either side of the way off the ship.
+        worker('Yard hand carrier %d' % k, CARRIER,
+               [('go', a, 0.6), ('wait', 1.5 + k), ('go', b, 0.6), ('wait', 3.0), ('go', a, 0.6), ('wait', 2.5)] * 5,
+               t0=out + 1.0 + 0.5 * k)
+    worker('Yard hand tug', TUG, [('stay',)], t0=parked['Tug'] + 0.6)
+    worker('Yard hand tug runner', TUG + Vector((1.5, -1.0)),
+           [('go', at(-26, 26), 0.6), ('wait', 3.0), ('go', TUG + Vector((1.5, -1.0)), 0.6), ('wait', 4.0)] * 6,
+           t0=parked['Tug'] + 1.1)
+    worker('Yard hand bowser', BOWSER, [('stay',)], t0=parked['Fuel bowser'] + 0.6)
+    # Customs: out of the car once it has pulled up off the stern, to either side of the way off the ship.
+    car = c4.CUSTOMS_ARRIVE - c4.DURATION
     for k, post in enumerate(OFFICERS):
         groups.append(G([W('Customs officer %d' % k, 'customs', speed=1.15, look=RAMP)],
-                        CAR + Vector((0.0, 2.6 * (1 if k == 0 else -1))), 1.0 + 0.7 * k,
+                        CAR + Vector((0.0, 2.6 * (1 if k == 0 else -1))), car + 0.8 + 0.6 * k,
                         [('go', post, 0.5), ('stay',)]))
+    # Whoever was standing about the workshop in C4 heads inside as the vehicles come in; one stays
+    # by the garden. They stand exactly where C4's static figures stood, so nothing pops at the join.
+    for k, spot in enumerate(IDLERS):
+        plan = [('stay',)] if k == 3 else [('wait', 2.0 + 0.8 * k), ('go', DOOR_FRONT, 0.5), ('enter', DOOR)]
+        worker('Yard idler %d' % k, Vector(spot), plan, look=None)
     # Nessa: out of her door, a few steps, and stands apart.
     groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
                     [('go', Vector((350.0, 419.0)), 0.5), ('stay',)]))
@@ -127,16 +152,52 @@ def cast(rng):
         look = ship if gi == 7 else None
         if look:
             members[0].look = look
-        groups.append(G(members, RAMP, t, special.get(gi, [('go', DOOR_FRONT, 2.5), ('enter', DOOR)])))
+        g = G(members, RAMP, t, special.get(gi, [('go', DOOR_FRONT, 2.5), ('enter', DOOR)]))
+        g.aboard = ABOARD                                        # they come down the ramp, not out of the air
+        groups.append(g)
         t += rng.uniform(1.0, 1.7)
     return groups
 
 
+def _in_nav(p):
+    return NAV_BOX[0] <= p.x <= NAV_BOX[2] and NAV_BOX[1] <= p.y <= NAV_BOX[3]
+
+
+def camera_at(t):
+    """(lens mm, location) at C5 second t. C4 and C5 are one shot: the camera starts exactly where
+    C4's sky camera stops, straight down over the yard on its wide lens, and pushes in to the
+    long-lens view of the ramp over `PUSH` seconds. The ground covered shrinks at a steady rate
+    while the lens lengthens, so the push reads as one smooth move rather than a zoom. Then it
+    holds, and rises for the title (`RISE`)."""
+    w0 = c4.SENSOR_MM / c4.LENS_MM * c4.CAM_LINGER.z           # ground width C4 ends on
+    w1 = c4.SENSOR_MM / LENS * HEIGHT
+    k = c4.smoothstep(0.0, PUSH, t)
+    lens = c4.LENS_MM * (LENS / c4.LENS_MM) ** k
+    c = c4.CAM_LINGER.to_2d().lerp(CENTRE, k)
+    z = w0 * (w1 / w0) ** k * lens / c4.SENSOR_MM
+    r = c4.smoothstep(*RISE, t)
+    if r > 0:
+        settle = 1 + (SETTLE - 1) * c4.smoothstep(RISE[1] - 2.0, DURATION, t)
+        c = CENTRE.lerp(TOP_CENTRE, r)
+        z = HEIGHT * (TOP / HEIGHT) ** r * settle
+    return lens, (c.x, c.y, z)
+
+
 def setup(body):
     scene = c4.build()
-    for ob in [o for o in bpy.data.objects if o.name.startswith(('Yard hand', 'Landing dust', 'Yard people'))]:
+    # One shot with C4: nothing may pop at the join. C4's last landing dust has faded by now, and the
+    # few static figures of C4's yard inside the walk area become walkers standing where they stood
+    # (`IDLERS`); the rest of C4's figures stay as they are.
+    for ob in [o for o in bpy.data.objects if o.name.startswith('Landing dust')]:
         bpy.data.objects.remove(ob)
-    scene.frame_set(C4_END)
+    people = bpy.data.objects.get('Yard people')
+    if people is not None:
+        bm = bmesh.new()
+        bm.from_mesh(people.data)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if _in_nav(v.co)], context='VERTS')
+        bm.to_mesh(people.data)
+        bm.free()
+    scene.frame_set(C4_END + round(PARKED * c4.FPS))   # the walk map is read with the vehicles parked
     manifest = json.loads((c4.STATES / 'manifest.json').read_text())
     ship_parts = {o.name for o in bpy.data.collections[manifest['append_collection']].all_objects}
     ship_parts |= {o.name for o in bpy.data.objects if o.name.startswith('Drive ')}
@@ -146,6 +207,8 @@ def setup(body):
     print('C5_CROWD walk map %.1fs' % (time.time() - t0), flush=True)
     rng = random.Random(11)
     groups = cast(rng)
+    if '--no-port' not in sys.argv:
+        groups += port_people.yard_extras()
     walkers = crowd.simulate(nav, groups, FRAMES, ground_z)
     print('C5_CROWD walked %.1fs' % (time.time() - t0), flush=True)
     if '--report' in sys.argv:
@@ -161,24 +224,37 @@ def setup(body):
             print('C5_REPORT ' + ' '.join(row), flush=True)
     inside = crowd.clip_report(nav, walkers)
     print('C5_CROWD walkers=%d inside-something=%d' % (len(walkers), inside), flush=True)
+    caught = set()
+    run_over = crowd.mover_clips(walkers, crowd.moving_vehicles(C4_END, C4_END + FRAMES), C4_END, caught)
+    print('C5_CROWD run-over=%d (walker-frames under a moving vehicle) %s' % (run_over, sorted(caught)[:6]), flush=True)
+    crowd.walk_out(groups)
     OUT.mkdir(parents=True, exist_ok=True)
     crowd.save_map(nav, walkers, OUT / 'walk-map.png')
     if body == 'sprite':
-        make = crowd.body_sprite(c4.mesh, c4.SUN_DIR, OUT / 'sprites')
+        make = crowd.body_sprite(c4.mesh, c4.SUN_DIR, OUT / 'sprites', c4.box, c4.material)
     else:
         make = crowd.body_3d(c4.mesh, c4.box, c4.material)
     crowd.keyed(walkers, ground_z, C4_END, make)
+    if '--no-port' not in sys.argv:
+        (OUT / 'walk-maps').mkdir(parents=True, exist_ok=True)
+        clips = 0
+        for site, pnav, people in port_people.populate(ship_parts, FRAMES, C4_END):
+            crowd.save_map(pnav, people, OUT / 'walk-maps' / (site.name + '.png'))
+            crowd.keyed(people, lambda x, y, z=site.z: z, C4_END, make)
+            clips += crowd.clip_report(pnav, people)
+        for z, w in port_people.posed(C4_END, FRAMES):
+            crowd.keyed([w], lambda x, y, z=z: z, C4_END, make)
+        print('C5_CROWD port inside-something=%d' % clips, flush=True)
     cam = c4.link(bpy.data.objects.new('C5 | overhead', bpy.data.cameras.new('C5 | overhead')))
-    cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, c4.SENSOR_MM, 'HORIZONTAL'
+    cam.data.sensor_width, cam.data.sensor_fit = c4.SENSOR_MM, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 5.0, 60000.0
     cam.rotation_euler = (0, 0, 0)
     for f in range(0, FRAMES + 1, 3):
-        t = f / c4.FPS
-        k = c4.smoothstep(*RISE, t)
-        settle = 1 + (SETTLE - 1) * c4.smoothstep(RISE[1] - 2.0, DURATION, t)
-        c = CENTRE.lerp(TOP_CENTRE, k)
-        cam.location = (c.x, c.y, HEIGHT * (TOP / HEIGHT) ** k * settle)
+        lens, (x, y, z) = camera_at(f / c4.FPS)
+        cam.data.lens = lens
+        cam.location = (x, y, z)
         cam.keyframe_insert('location', frame=C4_END + min(f, FRAMES - 1))
+        cam.data.keyframe_insert('lens', frame=C4_END + min(f, FRAMES - 1))
     scene.camera = cam
     scene.frame_start, scene.frame_end = C4_END, C4_END + FRAMES - 1
     return scene

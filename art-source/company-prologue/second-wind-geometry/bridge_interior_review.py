@@ -1,7 +1,7 @@
 """Grey review renders of the bridge interior (sw_bridge_interior), 1920x1080, Workbench.
 
     blender --background --factory-startup <model>.blend --python bridge_interior_review.py --
-            --out DIR [--figures] [--views a,b] [--exterior-only] [--no-shadows]
+            --out DIR [--figures] [--views a,b] [--exterior-only] [--no-shadows] [--frame N]
 
 Interior views stand where C2's bridge camera stands (forward and port stations), plus an
 overview of the room, a cutaway from above with the roof lifted off, a plan, and close-ups
@@ -24,7 +24,7 @@ sys.path.insert(0, str(HERE))
 import sw_bridge_interior as BI  # noqa: E402
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-opts = {'out': None, 'figures': False, 'views': None, 'exterior_only': False, 'no_shadows': False}
+opts = {'out': None, 'figures': False, 'views': None, 'exterior_only': False, 'no_shadows': False, 'frame': None}
 i = 0
 while i < len(argv):
     k = argv[i].lstrip('-').replace('-', '_')
@@ -42,6 +42,8 @@ for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
 if opts['figures']:
     BI.figures(0.65)
+if opts['frame'] is not None:       # an animated figure's pose (the pilot leans in at C2's 9 s)
+    scene.frame_set(int(opts['frame']))
 
 scene.render.engine = 'BLENDER_WORKBENCH'
 sh = scene.display.shading
@@ -119,11 +121,15 @@ VIEWS = {
     '12-helm-seat': (glazing, dict(pos=(16.95, -.45, 19.05), target=(16.15, -1.8, 18.35), lens=22)),
     '13-aft-hatch': (glazing, dict(pos=(11.3, -1.5, 18.6), target=(9.3, -.1, 18.0), lens=24)),
     '14-cable-runs': (glazing, dict(pos=(13.9, .3, 19.0), target=(11.2, 3.0, 19.85), lens=20)),
+    # The pilot at the helm, from C2's two camera stations turned onto him (the MakeHuman pilot
+    # when pilot-figure.blend is built; see figures()).
+    '15-pilot-from-forward-station': (glazing, dict(pos=(16.75, 1.2, 19.2), target=(16.4, -1.7, 18.45), lens=24)),
+    '16-pilot-from-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), target=(16.3, -1.7, 18.5), lens=24)),
 }
 wanted = opts['views'].split(',') if opts['views'] else [v for v in VIEWS if not opts['exterior_only']
                                                        or v.startswith('07') or v.startswith('08')]
 if not opts['views'] and not opts['figures']:
-    wanted = [v for v in wanted if 'castle' not in v]
+    wanted = [v for v in wanted if 'castle' not in v and 'pilot' not in v]
 for name in wanted:
     hide, kw = VIEWS[name]
     show(hide)

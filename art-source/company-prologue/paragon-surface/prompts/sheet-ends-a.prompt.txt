@@ -1,0 +1,20 @@
+Use case: precise-object-edit / texture finish layer over a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of parts of the hull of one 3D spacecraft (the Paragon, a 310 m Tri-Tachyon battleship), each seen square-on, on a plain flat mid-blue background. Each tile is a crop of a much larger ship:
+top-left: the stern face seen straight on: the drive mouths (the dark rounded and square openings) along the lower middle. Heavy soot round every drive mouth, fanning out and streaking UPWARD and outward from the mouths; heat tint on the drive blocks;
+top-right: the bow face seen straight on: the projector bay mouth (the dark square) and the prow. Strong heat tint round the bay mouth; grime in the recesses;
+bottom-left: the flank aft seen from the side, the stern at the LEFT: pod and ring walls. Soot streaks trailing LEFT (aft) from the drive end at the left; grime along the lower edge and round the windows;
+bottom-right: the flank forward seen from the side, the bow at the RIGHT: ring and bow walls. Heat tint near the bow at the right; grime round the windows and along the lower edge.
+INPUT 2 is the SAME ship, already finished: it is the finish to match (its ceramic colours, satin sheen, grime). Never copy INPUT 2's composition, view or shapes.
+
+This image is a FINISH LAYER: it will be cut into its tiles and multiplied over the 3D model, which already carries its own hexagonal tile pattern, seams and panel lines as geometry. So:
+- Do NOT paint any hexagons, tiles, plates, seams, panel lines, fasteners or hatches. The hexagonal pattern visible in INPUT 1 belongs to the model: paint over it, so every shape becomes a smooth, continuous, pattern-free surface of its own colour carrying only the finish described below.
+- Keep the tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline; every gap, hole or slot between and inside shapes stays plain background blue. Do not join separate shapes and do not fill the blue between them.
+- Keep each region's colour: blue-grey ceramic stays cool blue-grey, pale and white ceramic stay pale, dark slate stays dark slate, light steel stays light grey steel, near-black stays near-black. No stripes, no different-coloured plates, no repair patches, no lettering, numbers, markings or logos.
+- The finish, clearly visible and placed where it belongs:
+  - all over: cloudy mottling in the glaze and soft drifts of grey-brown grime, heavier in recesses, along the edges of raised parts and round every hatch, vent and service field;
+  - SOOT: dark soot around every drive mouth and drive block, fanning out and trailing in streaks in the direction stated for each tile;
+  - HEAT TINT: a cool blue-violet heat tint (with a faint straw-bronze inner ring on steel) around every emitter, gun well, glowing line and projector bay;
+  - concentrated where the tile description says; elsewhere light.
+- Lighting: flat, even, shadowless, like an albedo texture map. No cast shadows, no ambient-occlusion darkening, no highlights, no reflections, no gradients from lighting.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.
