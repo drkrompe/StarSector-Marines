@@ -5,8 +5,9 @@
 
 Builds C4's scene as it ends (the ship down on Kilo Nine, the yard's vehicles parked at the hull,
 the customs car off the stern) and plays C5 on from there, `DURATION` seconds, with the camera
-straight down through a 50 mm lens about 220 m up (`c5-v2-closing.md`, "Camera and crowd"). The
-camera holds for now; the rise for the title comes later.
+straight down through a 50 mm lens about 220 m up (`c5-v2-closing.md`, "Camera and crowd"). From
+`RISE` it goes straight up to `TOP` for the title, Nessa's yard shrinking to one corner of the port,
+and holds there.
 
 Who is on the ground:
   yard workers  Nessa's crew in hi-vis, at their jobs from the first frame: two guiding at the
@@ -25,6 +26,9 @@ Everyone walks on a map read from the scene (`c5_crowd.Nav`), so nobody passes t
 a vehicle, a wall or the hull; the run prints how many walker-frames ended up inside anything
 (should be 0) and --map writes the map with everyone's tracks to build/c5/walk-map.png.
 
+The rest of the port is at work too: `port_people.py` casts it, site by site, each on its own walk
+map; --no-port leaves it out (quicker while working on the yard).
+
 --body picks the look: simple 3D figures (default) or flat sprite cards; the choice waits on
 the texture pass. --stills renders C5 seconds; otherwise the shot renders at --step (default 24:
 one frame a second) to build/c5/frames/.
@@ -42,12 +46,14 @@ from mathutils import Vector
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import c4x_scene as c4  # noqa: E402
 import c5_crowd as crowd  # noqa: E402
+import port_people  # noqa: E402
 
 OUT = c4.REPO / 'build' / 'c5'
 C4_END = c4.FRAMES - 1              # C5 starts on the frame C4 ends on
-DURATION = 26.0
+DURATION = 34.0                     # 0-18 s in the yard, the rise, then the title over the port
 FRAMES = round(DURATION * c4.FPS)
 LENS, HEIGHT = 50.0, 220.0
+RISE, TOP = (18.0, 26.0), 1800.0    # seconds, and the height it rises to
 CENTRE = Vector((362.0, 436.0))
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
 
@@ -138,6 +144,8 @@ def setup(body):
     print('C5_CROWD walk map %.1fs' % (time.time() - t0), flush=True)
     rng = random.Random(11)
     groups = cast(rng)
+    if '--no-port' not in sys.argv:
+        groups += port_people.yard_extras()
     walkers = crowd.simulate(nav, groups, FRAMES, ground_z)
     print('C5_CROWD walked %.1fs' % (time.time() - t0), flush=True)
     if '--report' in sys.argv:
@@ -156,15 +164,29 @@ def setup(body):
     OUT.mkdir(parents=True, exist_ok=True)
     crowd.save_map(nav, walkers, OUT / 'walk-map.png')
     if body == 'sprite':
-        make = crowd.body_sprite(c4.mesh, c4.SUN_DIR, OUT / 'sprites')
+        make = crowd.body_sprite(c4.mesh, c4.SUN_DIR, OUT / 'sprites', c4.box, c4.material)
     else:
         make = crowd.body_3d(c4.mesh, c4.box, c4.material)
     crowd.keyed(walkers, ground_z, C4_END, make)
+    if '--no-port' not in sys.argv:
+        (OUT / 'walk-maps').mkdir(parents=True, exist_ok=True)
+        clips = 0
+        for site, pnav, people in port_people.populate(ship_parts, FRAMES, C4_END):
+            crowd.save_map(pnav, people, OUT / 'walk-maps' / (site.name + '.png'))
+            crowd.keyed(people, lambda x, y, z=site.z: z, C4_END, make)
+            clips += crowd.clip_report(pnav, people)
+        for z, w in port_people.posed(C4_END, FRAMES):
+            crowd.keyed([w], lambda x, y, z=z: z, C4_END, make)
+        print('C5_CROWD port inside-something=%d' % clips, flush=True)
     cam = c4.link(bpy.data.objects.new('C5 | overhead', bpy.data.cameras.new('C5 | overhead')))
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, c4.SENSOR_MM, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 5.0, 60000.0
-    cam.location = (CENTRE.x, CENTRE.y, HEIGHT)
     cam.rotation_euler = (0, 0, 0)
+    for f in range(FRAMES):                     # straight up, at an even rate of zoom
+        u = c4.smoothstep(RISE[0], RISE[1], f / c4.FPS)
+        cam.location = (CENTRE.x, CENTRE.y, HEIGHT * (TOP / HEIGHT) ** u)
+        if f == 0 or RISE[0] * c4.FPS - 1 <= f <= RISE[1] * c4.FPS + 1:
+            cam.keyframe_insert('location', frame=C4_END + f)
     scene.camera = cam
     scene.frame_start, scene.frame_end = C4_END, C4_END + FRAMES - 1
     return scene

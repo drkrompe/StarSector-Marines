@@ -50,45 +50,100 @@ def ellipse(img, cx, cy, rx, ry, rgba):
     img[m] = rgba
 
 
-def top_sheet():
+def top_sheet(poses=False):
     """Seen from straight above, walking toward +x: feet and arms swing fore and aft under and
-    beside the shoulders; the head bobs a pixel."""
+    beside the shoulders; the head bobs a pixel. With `poses`, eight more frames follow the walk:
+    stand, crouch a/b, signal up/out, carry, talk, arms folded (`c5_crowd.SHEET_COLUMNS`)."""
     fw, fh = SHEET_TOP
-    sheet = np.zeros((fh * len(VARIANTS), fw * FRAMES_PER_CYCLE, 4), np.float32)
+    cols = FRAMES_PER_CYCLE + (len(POSES) if poses else 0)
+    sheet = np.zeros((fh * len(VARIANTS), fw * cols, 4), np.float32)
     for row, (cloth, hair) in enumerate(VARIANTS):
-        for i in range(FRAMES_PER_CYCLE):
-            ph = 2 * math.pi * i / FRAMES_PER_CYCLE
+        for i in range(cols):
             img = np.zeros((fh, fw, 4), np.float32)
             cx, cy = fw / 2, fh / 2
-            s = math.sin(ph)
-            for side, sgn in ((-1, 1), (1, -1)):                       # feet, stepping
-                ellipse(img, cx + sgn * s * 9, cy + side * 4, 4.5, 2.5, (0.08, 0.07, 0.06, 1))
-            for side, sgn in ((-1, -1), (1, 1)):                       # arms, against the feet
-                ellipse(img, cx + sgn * s * 5, cy + side * 11, 4.0, 2.6, (*cloth, 1))
-            ellipse(img, cx, cy, 6.5, 10.5, (*cloth, 1))                # shoulders and back
-            ellipse(img, cx + 1, cy, 4.2, 4.2, (*hair, 1))             # head
+            if i < FRAMES_PER_CYCLE:
+                s = math.sin(2 * math.pi * i / FRAMES_PER_CYCLE)
+                feet = ((s * 9, -4), (-s * 9, 4))
+                arms = ((-s * 5, -11, 4.0, 2.6), (s * 5, 11, 4.0, 2.6))
+                body, head = (0, 6.5, 10.5), 1
+            else:
+                feet, arms, body, head = POSES[i - FRAMES_PER_CYCLE]
+            for dx, dy in feet:
+                ellipse(img, cx + dx, cy + dy, 4.5, 2.5, (0.08, 0.07, 0.06, 1))
+            for dx, dy, rx, ry in arms:
+                ellipse(img, cx + dx, cy + dy, rx, ry, (*cloth, 1))
+            ellipse(img, cx + body[0], cy, body[1], body[2], (*cloth, 1))   # shoulders and back
+            ellipse(img, cx + head, cy, 4.2, 4.2, (*hair, 1))
             sheet[row * fh:(row + 1) * fh, i * fw:(i + 1) * fw] = img
     return sheet
 
 
-def side_sheet():
-    """Side-on silhouette walking toward +x: only its outline matters, as a cast shadow."""
+# Top-down poses: (feet [(dx, dy)], arms [(dx, dy, rx, ry)], body (dx, rx, ry), head dx), facing +x.
+POSES = [
+    ([(1, -4), (1, 4)], [(0, -11, 4.0, 2.6), (0, 11, 4.0, 2.6)], (0, 6.5, 10.5), 1),                 # stand
+    ([(-6, -5), (-6, 5)], [(9, -7, 5.0, 2.4), (6, 7, 5.0, 2.4)], (2, 8.5, 10.5), 7),                 # crouch a
+    ([(-6, -5), (-6, 5)], [(6, -7, 5.0, 2.4), (9, 7, 5.0, 2.4)], (2, 8.5, 10.5), 7),                 # crouch b
+    ([(1, -4), (1, 4)], [(0, -15, 3.0, 4.5), (0, 15, 3.0, 4.5)], (0, 6.5, 10.5), 1),                 # signal up
+    ([(1, -4), (1, 4)], [(0, -19, 2.6, 8.0), (0, 19, 2.6, 8.0)], (0, 6.5, 10.5), 1),                 # signal out
+    ([(1, -4), (1, 4)], [(8, -8, 5.0, 2.4), (8, 8, 5.0, 2.4)], (0, 6.5, 10.5), 1),                   # carry
+    ([(1, -4), (1, 4)], [(0, -11, 4.0, 2.6), (9, 13, 5.5, 2.4)], (0, 6.5, 10.5), 1),                 # talk
+    ([(1, -4), (1, 4)], [(6, 0, 3.0, 9.0)], (0, 6.5, 10.5), 1),                                       # folded
+]
+
+
+def segment(img, a, b, r):
+    n = max(2, int(math.hypot(b[0] - a[0], b[1] - a[1])))
+    for k in range(n + 1):
+        t = k / n
+        ellipse(img, a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, r, r, (0, 0, 0, 1))
+
+
+def side_sheet(poses=False):
+    """Side-on silhouette walking toward +x: only its outline matters, as a cast shadow. With
+    `poses`, the same eight poses as `top_sheet` follow the walk."""
     fw, fh = SHEET_SIDE
-    sheet = np.zeros((fh * len(VARIANTS), fw * FRAMES_PER_CYCLE, 4), np.float32)
+    cols = FRAMES_PER_CYCLE + (len(SIDE_POSES) if poses else 0)
+    sheet = np.zeros((fh * len(VARIANTS), fw * cols, 4), np.float32)
     for row in range(len(VARIANTS)):
-        for i in range(FRAMES_PER_CYCLE):
-            ph = 2 * math.pi * i / FRAMES_PER_CYCLE
+        for i in range(cols):
             img = np.zeros((fh, fw, 4), np.float32)
-            hip = (fw / 2, fh - 36)                                    # image rows run down from the top
-            for sgn in (1, -1):                                         # legs from the hip to the foot
-                a = sgn * 0.45 * math.sin(ph)
-                for k in range(36):
-                    ellipse(img, hip[0] + math.sin(a) * k, hip[1] + math.cos(a) * k, 2.6, 1.0, (0, 0, 0, 1))
-            for k in range(30):                                         # body
-                ellipse(img, fw / 2, hip[1] - k, 5.5, 1.0, (0, 0, 0, 1))
-            ellipse(img, fw / 2 + 1, hip[1] - 34, 4.5, 4.5, (0, 0, 0, 1))
+            hx, hy = fw / 2, fh - 36                                    # the hip; image rows run down
+            if i < FRAMES_PER_CYCLE:
+                ph = 2 * math.pi * i / FRAMES_PER_CYCLE
+                for sgn in (1, -1):                                     # legs from the hip to the foot
+                    a = sgn * 0.45 * math.sin(ph)
+                    segment(img, (hx, hy), (hx + math.sin(a) * 35, hy + math.cos(a) * 35), 2.0)
+                drop, lean, arms = 0, 0, []
+            else:
+                legs, drop, lean, arms = SIDE_POSES[i - FRAMES_PER_CYCLE]
+                hy2 = hy + drop
+                for knee, foot in legs:
+                    segment(img, (hx, hy2), (hx + knee[0], hy2 + knee[1]), 2.0)
+                    segment(img, (hx + knee[0], hy2 + knee[1]), (hx + foot[0], hy + 35), 2.0)
+            hy2 = hy + drop
+            sx, sy = hx + lean, hy2 - 28                                 # the shoulder
+            segment(img, (hx, hy2), (sx, sy), 5.0)                       # body
+            ellipse(img, sx + 1, sy - 6, 4.5, 4.5, (0, 0, 0, 1))
+            for dx, dy in arms:
+                segment(img, (sx, sy + 2), (sx + dx, sy + 2 + dy), 1.6)
+            if i == FRAMES_PER_CYCLE + 5:                                # the carried box
+                ellipse(img, sx + 16, sy + 8, 8, 6, (0, 0, 0, 1))
             sheet[row * fh:(row + 1) * fh, i * fw:(i + 1) * fw] = img
     return sheet
+
+
+# Side poses: (legs [(knee dx, dy), (foot dx)], hip drop px, shoulder lean px, arms [(dx, dy)]).
+_STRAIGHT = [((0, 17), (0, 0)), ((1, 17), (1, 0))]
+SIDE_POSES = [
+    (_STRAIGHT, 0, 0, [(1, 24)]),                                              # stand
+    ([((14, 2), (4, 0)), ((10, 4), (-2, 0))], 16, 10, [(14, 14)]),             # crouch a
+    ([((14, 2), (4, 0)), ((10, 4), (-2, 0))], 16, 10, [(16, 8)]),              # crouch b
+    (_STRAIGHT, 0, 0, [(6, -24), (-6, -24)]),                                  # signal up
+    (_STRAIGHT, 0, 0, [(22, -4), (-22, -4)]),                                  # signal out
+    (_STRAIGHT, 0, 1, [(14, 6)]),                                              # carry
+    (_STRAIGHT, 0, 0, [(1, 24), (16, 4)]),                                     # talk
+    (_STRAIGHT, 0, 0, [(8, 10)]),                                              # folded
+]
 
 
 def to_image(name, arr, path):
