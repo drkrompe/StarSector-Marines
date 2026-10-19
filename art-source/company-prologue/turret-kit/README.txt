@@ -40,7 +40,10 @@ Paint (texture pass)
   and grime in crevices from ambient occlusion. Gun metal gets the same tree
   with a metallic base that rubs brighter at its edges. The hull's own plate
   and steel on a turret are weathered the same way at the hull's colour.
-  A paint is named by its target, the colour the sprite shows. Its base colour
+  Livery: a sprite's colour is only a hint (turret_kit.LIVERY). Each paint
+  keeps part of its sprite's hue at service-paint brightness (bodies about a
+  third, accents a little more, markings most); gun metal goes to gunmetal.
+  A paint is named by its target, that livery colour. Its base colour
   is solved by calibrate_paints.py so that a flat roof of it, under the review
   studio (studio.py, shared with catalog.py), renders that colour from above;
   the table is paint_calibration.json. Paint is matte (a low specular level):

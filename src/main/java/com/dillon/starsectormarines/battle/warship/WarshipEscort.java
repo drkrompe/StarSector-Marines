@@ -18,6 +18,13 @@ import java.util.List;
  */
 public final class WarshipEscort {
 
+    /**
+     * {@code -Dbattle.warship.escortClearance=false} is the control that restores an escort keeping only the screen's
+     * narrower touch gap from its own charge and steering straight across it to change sides.
+     */
+    public static final boolean CLEARS_CHARGE =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.escortClearance"));
+
     /** Cells of open air between the lead's hull and the escort's, on the escort's ring. */
     public static final float GAP_CELLS = 4f;
 
@@ -109,6 +116,66 @@ public final class WarshipEscort {
         }
         float along = (slot - (slots - 1) * 0.5f) * spacing;
         return new float[]{leadX + bx * radius + ax * along, leadY + by * radius + ay * along};
+    }
+
+    /** The most of the way round its charge, in degrees, an escort changing sides steers for at once. */
+    static final float ROUND_STEP_DEGREES = 45f;
+
+    /**
+     * Radius about the lead's centre that clears both hulls at any headings by {@link #GAP_CELLS}: both hulls'
+     * half-diagonals and the gap. A lead turning in place sweeps no corner past it.
+     */
+    public static float roundingRadius(Warship lead, Warship escort) {
+        return halfDiagonal(lead) + halfDiagonal(escort) + GAP_CELLS;
+    }
+
+    private static float halfDiagonal(Warship ship) {
+        return 0.5f * (float) Math.hypot(ship.lengthCells, ship.widthCells);
+    }
+
+    /**
+     * Where an escort steers for its station {@code (sx, sy)} (a centre-of-gravity point): straight there, unless the
+     * straight way passes inside {@link #roundingRadius} of its charge, when it comes round the charge instead,
+     * steering for a point on that radius at most {@link #ROUND_STEP_DEGREES} further round, the short way, toward the
+     * station's side. A screen changing beams goes round its charge, not across its bow or along its side.
+     *
+     * @return {@code [x, y]}, a centre-of-gravity point
+     */
+    public static float[] roundCharge(Warship escort, Warship lead, float sx, float sy) {
+        float ox = escort.centerX() - escort.x;
+        float oy = escort.centerY() - escort.y;
+        float lx = lead.centerX();
+        float ly = lead.centerY();
+        float r = roundingRadius(lead, escort);
+        float[] waypoint = rounding(escort.centerX() - lx, escort.centerY() - ly, sx + ox - lx, sy + oy - ly, r,
+                escort.serial() % 2 == 0);
+        if (waypoint == null) return new float[]{sx, sy};
+        return new float[]{lx + waypoint[0] - ox, ly + waypoint[1] - oy};
+    }
+
+    /**
+     * The geometry of {@link #roundCharge}, about the charge's centre: from {@code (ex, ey)} to {@code (tx, ty)}, the
+     * waypoint on radius {@code r}, or {@code null} when the straight way stays outside {@code r} short of its end.
+     * {@code portOnTie} picks the way round when the station is dead opposite.
+     */
+    static float[] rounding(float ex, float ey, float tx, float ty, float r, boolean portOnTie) {
+        float dx = tx - ex;
+        float dy = ty - ey;
+        float dd = dx * dx + dy * dy;
+        if (dd < 1e-6f) return null;
+        // The closest the straight way comes to the charge, short of the station itself.
+        float t = -(ex * dx + ey * dy) / dd;
+        if (t <= 0f || t >= 1f) return null;
+        float cx = ex + dx * t;
+        float cy = ey + dy * t;
+        if (cx * cx + cy * cy >= r * r) return null;
+        double from = Math.atan2(ey, ex);
+        double to = Math.atan2(ty, tx);
+        double delta = Math.IEEEremainder(to - from, 2.0 * Math.PI);
+        if (Math.abs(Math.abs(delta) - Math.PI) < 1e-3) delta = portOnTie ? Math.PI : -Math.PI;
+        double step = Math.toRadians(ROUND_STEP_DEGREES);
+        double at = from + Math.signum(delta) * Math.min(Math.abs(delta), step);
+        return new float[]{(float) (r * Math.cos(at)), (float) (r * Math.sin(at))};
     }
 
     /** Distance between neighbouring escorts in a screen's line: an escort's length and the gap. */

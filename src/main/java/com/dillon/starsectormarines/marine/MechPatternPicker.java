@@ -36,11 +36,15 @@ public final class MechPatternPicker {
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_PULSE_LASERS),
                     MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON),
+                    MechPattern.of(MechWeaponComponent.SRM_15),
+                    MechPattern.of(MechWeaponComponent.LRM_15),
                     MechPattern.of(VehicleType.HOVER_SCOUT),
                     MechPattern.of(VehicleType.DRONE_SKIMMER)),
             FactionMechLoadouts.HEGEMONY_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS),
+                    MechPattern.of(MechWeaponComponent.SRM_15),
+                    MechPattern.of(MechWeaponComponent.LRM_15),
                     MechPattern.of(VehicleType.UP_ARMORED_APC)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
                     MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
@@ -56,6 +60,12 @@ public final class MechPatternPicker {
      * out of what they have are.
      */
     static final Set<String> FIELD_RIG_FACTIONS = Set.of("pirates", "independent");
+
+    /**
+     * Who weights up a fragmentation rack: the outfits whose wars are fought against men rather than
+     * armor. The navies weight up the anti-armor racks instead ({@link #FACTION_ISSUE}).
+     */
+    static final Set<String> FRAG_RACK_FACTIONS = Set.of("pirates", "independent", FactionMechLoadouts.LUDDIC_PATH_ID);
 
     private MechPatternPicker() {}
 
@@ -107,7 +117,14 @@ public final class MechPatternPicker {
         Set<MechPattern> issue = FACTION_ISSUE.getOrDefault(key, Set.of());
         if (issue.contains(pattern)) return FACTION_ISSUE_WEIGHT;
         boolean fieldRig = pattern.kind() == MechPattern.Kind.VEHICLE && pattern.vehicleType().isPickup();
-        return fieldRig && FIELD_RIG_FACTIONS.contains(key) ? FACTION_ISSUE_WEIGHT : BASE_WEIGHT;
+        if (fieldRig && FIELD_RIG_FACTIONS.contains(key)) return FACTION_ISSUE_WEIGHT;
+        boolean fragRack = pattern.kind() == MechPattern.Kind.WEAPON && isFragRack(pattern.component());
+        return fragRack && FRAG_RACK_FACTIONS.contains(key) ? FACTION_ISSUE_WEIGHT : BASE_WEIGHT;
+    }
+
+    private static boolean isFragRack(MechWeaponComponent component) {
+        return component == MechWeaponComponent.SRM_5_FRAG || component == MechWeaponComponent.SRM_15_FRAG
+                || component == MechWeaponComponent.LRM_5_FRAG || component == MechWeaponComponent.LRM_15_FRAG;
     }
 
     private record Candidate(String id, int weight) {}

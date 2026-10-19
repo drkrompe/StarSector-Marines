@@ -505,7 +505,7 @@ public final class OverwatchKillZone implements Action {
     private static boolean hasLrmPressure(MechLoadoutComponent loadout) {
         for (MechWeaponMount mount : loadout.mounts()) {
             if (mount != null
-                    && WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())
+                    && WeaponRegistry.isMechLrm(mount.weaponId())
                     && (mount.hasAmmo() || mount.burstRemaining > 0)) {
                 return true;
             }
@@ -517,7 +517,7 @@ public final class OverwatchKillZone implements Action {
         boolean found = false;
         for (MechWeaponMount mount : loadout.mounts()) {
             if (mount == null
-                    || !WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) continue;
+                    || !WeaponRegistry.isMechLrm(mount.weaponId())) continue;
             found = true;
             if (!mount.full()) return false;
         }

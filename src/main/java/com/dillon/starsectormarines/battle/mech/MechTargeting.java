@@ -4,11 +4,15 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Traverse-aware target retention shared by every mech combat posture. */
 public final class MechTargeting {
@@ -20,6 +24,17 @@ public final class MechTargeting {
      * marginally closer.
      */
     public static final float CLOSE_THREAT_AGGRO_RANGE = 10f;
+
+    /**
+     * Whether a mech beyond close-threat range aims at the target its loaded mounts hurt most
+     * rather than the nearest ({@link MechTargetPressure}). {@code -Dbattle.mech.damageAwareTargeting=false}
+     * is the control.
+     */
+    static final boolean DAMAGE_AWARE = Boolean.parseBoolean(
+            System.getProperty("battle.mech.damageAwareTargeting", "true"));
+
+    /** A held target is kept unless another would take this many times its pressure. */
+    static final float RETARGET_MARGIN = 1.25f;
 
     private MechTargeting() {}
 
@@ -43,6 +58,10 @@ public final class MechTargeting {
         if (closeThreat != 0L) return closeThreat;
 
         float attackRange = sim.world().attackRange(mech);
+        if (DAMAGE_AWARE && sim.world().hasMechLoadout(mech)) {
+            long chosen = hardestHit(mech, hipFacing, attackRange, current, squad, sim);
+            if (chosen != 0L) return chosen;
+        }
         if (isBeliefLegal(mech, current, squad, sim)
                 && isDirectlyEngageable(mech, current, hipFacing,
                 attackRange, sim)) {
@@ -52,6 +71,59 @@ public final class MechTargeting {
         long traversable = closestBelievedEngageableInArc(
                 mech, hipFacing, attackRange, squad, sim);
         return traversable;
+    }
+
+    /**
+     * The believed, engageable target the mech's loaded mounts hurt most per second, keeping the
+     * held target unless another beats it by {@link #RETARGET_MARGIN}; nearer wins a tie. Zero when
+     * nothing scores, which leaves the choice to the nearest-target rule.
+     */
+    private static long hardestHit(long mech, float hipFacing, float range, long current,
+                                   Squad squad, BattleView sim) {
+        if (squad == null) return 0L;
+        List<MechWeaponComponent> loaded = loadedComponents(sim.world().mechLoadout(mech));
+        if (loaded.isEmpty()) return 0L;
+        float currentScore = -1f;
+        if (isBeliefLegal(mech, current, squad, sim)
+                && isDirectlyEngageable(mech, current, hipFacing, range, sim)) {
+            currentScore = score(mech, current, loaded, sim);
+        }
+        long best = 0L;
+        float bestScore = 0f;
+        float bestDistance = Float.MAX_VALUE;
+        for (BelievedContact belief : squad.believedContacts()) {
+            long candidate = belief.unitId();
+            if (!isBeliefLegal(mech, candidate, squad, sim)
+                    || !isDirectlyEngageable(mech, candidate, hipFacing, range, sim)) continue;
+            float score = score(mech, candidate, loaded, sim);
+            float distance = TacticalScoring.cellDistance(
+                    sim.world().x(mech), sim.world().y(mech),
+                    sim.world().x(candidate), sim.world().y(candidate));
+            if (score > bestScore || (score == bestScore && score > 0f && distance < bestDistance)) {
+                best = candidate;
+                bestScore = score;
+                bestDistance = distance;
+            }
+        }
+        if (currentScore > 0f && bestScore <= currentScore * RETARGET_MARGIN) return current;
+        return best;
+    }
+
+    private static float score(long mech, long target, List<MechWeaponComponent> loaded, BattleView sim) {
+        float distance = TacticalScoring.cellDistance(
+                sim.world().x(mech), sim.world().y(mech),
+                sim.world().x(target), sim.world().y(target));
+        float rating = sim.world().hasArmor(target) ? sim.world().armorRating(target) : 0f;
+        return MechTargetPressure.pressure(loaded, distance, rating, sim.isHardenedTarget(target));
+    }
+
+    /** Mounts with a pack ready or a burst still going. */
+    private static List<MechWeaponComponent> loadedComponents(MechLoadoutComponent loadout) {
+        List<MechWeaponComponent> loaded = new ArrayList<>(3);
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) loaded.add(mount.component);
+        }
+        return loaded;
     }
 
     private static long closestEngageableInArc(long mech, float hipFacing,

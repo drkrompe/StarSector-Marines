@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — the Greyhook fights Black Sluice's Wolfs alone, and a mission may refit a hull's flux and shield for one fight (`HullRefit`; Rusk's Wolfs carry one). Earlier the same day: the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-18 — a raised shield holds only the hard flux its absorbed hits put in the pool (the guns' and the upkeep's soft flux vents behind it, as in the base game), and no salvo is started that would carry the pool past the ship's own automatic shield's drop level. Earlier the same day: the Greyhook fights Black Sluice's Wolfs alone, and a mission may refit a hull's flux and shield for one fight (`HullRefit`; Rusk's Wolfs carry one). Earlier the same day: the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1781,9 +1781,11 @@ for one mission:
   low hover, a berthed hull, a pilot's helm, every craft of fighter size).
   `-Dbattle.warship.edgePressure=false` is the control.
 - **An escort screens beside its charge.** Fighting a hull, an escort interposes: it
-  stands in line between its charge and the threat, just clear of the charge's side that
-  faces it, its fellow escorts spaced square to the threat, so a screen and the ship it
-  screens meet the enemy together, the screen first.
+  stands in line between its charge and the threat, clear of the charge however either
+  turns (both hulls' half-diagonals and the screen's gap), its fellow escorts spaced square
+  to the threat, so a screen and the ship it screens meet the enemy together, the screen
+  first. A screen changing sides comes round its charge on that radius rather than
+  across its bow or along its side.
 - **Warships are bodies and do not pass through one another** (`warship-tactics.md`).
   Every pair of hulls frigate-sized and up, friend or foe, is in contact on its real
   footprint; fighters, bombers, drones and boats fly over a capital freely, and falling
@@ -1796,7 +1798,10 @@ for one mission:
   escorting or leaving bends its course (and, on a manoeuvre, its bow) away from any
   hull it would close inside the screen line's gap, looking as far ahead as its handling
   needs, and keeps its station clear of friends. An escort's screen keeps a narrower gap
-  within itself and carries its charge's way.
+  within itself and carries its charge's way, but an escort gives its own charge the whole
+  gap: the charge flies its fight and the screen makes way.
+  `-Dbattle.warship.escortClearance=false` is the control (the narrower gap toward the
+  charge, a station just off its side, and a straight course across it).
 - **A hull fight is flown in manoeuvres, decided for the group** (`warship-tactics.md`).
   Once a second each side's hunters (ships fighting hulls with their duel helm, not
   escorts) are given a **role** and a target: against a charge with escorts one hunter
@@ -2376,7 +2381,10 @@ when it is started. Below 85% of capacity the ship fires freely; at 85% it stops
 starting new fire (what is under way finishes, a laid lance burns out) until the
 pool has drained to 55%, so a battery surges, rests and surges again, and a salvo
 that would not fit in what is left is not started, which keeps a governed ship off
-real overload. A ship **presses** past that order, up to 80% of its pool (short of its own
+real overload; nor, on a ship with an automatic shield, one that would carry the pool past
+that shield's 90% drop level, so a ship's own guns never lock its shield out (a Wolf's
+antimatter blaster is over a quarter of its pool a shot).
+`-Dbattle.warship.shieldReserve=false` is the control. A ship **presses** past that order, up to 80% of its pool (short of its own
 shield's drop), at a target that is overloaded, or shield-down and deeper in flux than
 the shooter, or at least 60% full and ten points deeper than it: the leader in a flux war
 keeps the pressure on until the other shield gives, and of two ships with their shields
@@ -2405,17 +2413,23 @@ part that moves the budget and nothing finer. The figures are the hull's own: th
 table's `shield type` (FRONT, OMNI or none; a phase cloak is none), `shield arc`,
 `shield upkeep` and `shield efficiency`, and the spec's `shieldRadius` and
 `shieldCenter`. While a shield is raised it draws its upkeep (a share of the
-ship's dissipation, per second) from the pool and **the pool stops venting
-entirely**; a ship that holds its shield and keeps firing can only climb. A
+ship's dissipation, per second) from the pool, and **the pool stops venting its
+hard flux**: what absorbed hits put there. Everything else in the pool is soft (the
+guns, point defence, the upkeep itself) and keeps venting at the hull's rate behind the
+shield, as the base game's does; with the shield down the soft share vents first and
+then the hard. A ship that holds its shield under fire therefore climbs by what it is
+hit with rather than by its own guns, and vents that only once the shield is down. A
 hostile detonation that reaches the hull from inside the arc (asked of the side the round was
 fired from, for a round with a source) is absorbed: its
-damage times the shield's efficiency becomes flux and the hull takes nothing. A
+damage times the shield's efficiency becomes hard flux and the hull takes nothing.
+`-Dbattle.warship.hardFlux=false` is the control: no flux is hard, and a raised shield
+holds the whole pool from venting. A
 FRONT shield faces the hull's heading; an OMNI shield covers every bearing. A hit
 from outside the arc, or while the shield is down or still rising (0.4 s), goes to
 the armour exactly as before. If the pool reaches capacity the shield drops and
 the ship overloads, the ordinary overload. A raised shield therefore costs the
-guns their venting and, held long enough, the whole ship its guns: the brawler
-that fires hard behind its shield cannot do both indefinitely.
+guns its upkeep and the pool's room, and under sustained fire the whole ship its guns:
+the hits it holds fill the pool until the shield must drop to vent them.
 By default the shield is automatic: it rises when a hostile round that would hurt
 the hull is about to land within a few cells of it from inside the arc (for a hull with an
 armour grid and a round with a firer, judged by the side it was fired from, as absorption is) (a queued
@@ -2428,7 +2442,7 @@ A shield works only on a ship that is on flux, so a scripted hull's armour answe
 as it always has. It is readable for a HUD (`shieldUp`, `shieldLevel`, `shieldState`,
 absorbed hits and flux) and drawn as the arc of the hull's own bubble. A round too
 weak to hurt the hull never raises an automatic shield, but a raised one absorbs it like any other.
-Not modelled: hard flux, damage-type multipliers on efficiency, rounds stopped at
+Not modelled: damage-type multipliers on efficiency, rounds stopped at
 the bubble's radius rather than at the hull, and per-hull shield colours (the
 stock hulls name none; every shield is the default pale cyan).
 
