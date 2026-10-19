@@ -1,10 +1,11 @@
 {
  "asset": "wolf-p.blend",
  "name": "Wolf (P)",
+ "variant": "pirate",
  "append_collection": "WOLF_P",
  "root": "WOLF_P | root",
  "anchors_collection": "WOLF_P | anchors",
- "metres_per_unit": 0.95,
+ "metres_per_unit": 0.88,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -14,7 +15,7 @@
   [
    -40.2,
    -26.183,
-   -8.8
+   -12.0
   ],
   [
    57.98,
@@ -23,12 +24,12 @@
   ]
  ],
  "size_m": [
-  93.3,
-  49.7,
-  17.0
+  86.4,
+  46.1,
+  18.6
  ],
  "meshes": 151,
- "polygons": 9123,
+ "polygons": 9089,
  "images": 20,
  "engines": [
   {
@@ -153,6 +154,7 @@
   {
    "slot": "WS 004",
    "weapon": "miningblaster",
+   "built_as": "miningblaster",
    "mount": "Weapon WS 004 mount",
    "location": [
     45,
@@ -192,6 +194,7 @@
   {
    "slot": "WS 005",
    "weapon": "annihilator",
+   "built_as": "annihilator",
    "mount": "Weapon WS 005 mount",
    "location": [
     11,
@@ -225,6 +228,7 @@
   {
    "slot": "WS 006",
    "weapon": "annihilator",
+   "built_as": "annihilator",
    "mount": "Weapon WS 006 mount",
    "location": [
     11,
@@ -414,6 +418,7 @@
   "WS 005": "annihilator",
   "WS 006": "annihilator"
  },
+ "built_as": {},
  "running_lights": [
   {
    "name": "Light port neck lamp 1",
@@ -495,7 +500,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "8872f33d79d4ac8ca9983fa2ae27d66b8ded003aef14efbf10817b087d31e4a3"
+  "vfx_hull_sha256": "2aacfde2eb7e92edb8b3877fd01114aa5f854d62f584ee06d68ffcd4e1828127"
  },
  "state": "clean",
  "engines_running": [
@@ -597,7 +602,7 @@
    "anchor": "SWFX anchor turret 4 tube 5"
   }
  ],
- "gun_rigs_note": "Kit mount numbers (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, five-tube launchers.",
+ "gun_rigs_note": "Kit mount numbers in vfx_mounts order. Pirate (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, five-tube launchers.",
  "lamps": [
   {
    "object": "Light port neck lamp 1",
@@ -699,5 +704,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "2edf2d5069d6fe7ff3047136a443a81683e577cb5eea9430ad5fddc63a4b6a6c"
+ "asset_sha256": "707d2495dcbee3c413e40e33a6fb759677a3cec601c65d136b896f71fa5a5a03"
 }

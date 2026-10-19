@@ -1,5 +1,6 @@
 {
   "status": "Pass 1 blockout: silhouette, sections, slots, drives, anchors, lamps; blockout materials in the pirate scheme. Built for the Asharu battle (S7-S9 close, S6 mid, S4 distant).",
+  "variant": "pirate",
   "hull": {
     "name": "Wolf (P)",
     "hullId": "wolf",
@@ -53,6 +54,7 @@
       "WS 005": "annihilator",
       "WS 006": "annihilator"
     },
+    "built_as": {},
     "built_in_mods": [],
     "built_in_weapons": [],
     "ship_system": "displacer_degraded",
@@ -71,11 +73,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.95,
+  "metres_per_unit": 0.88,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 19800,
+      "units3": 25160,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
@@ -111,17 +113,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.949,
+    "solved_metres_per_unit": 0.876,
     "range": {
-      "habitable_273": 0.92,
-      "habitable_328": 0.977
+      "habitable_273": 0.849,
+      "habitable_328": 0.902
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 89.2,
+    "length_m": 82.3,
     "fittings_m": {},
-    "published_metres_per_unit": 0.95,
+    "published_metres_per_unit": 0.88,
     "measured_this_build": {
-      "enclosed_units3": 19624,
+      "enclosed_units3": 25160,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -138,11 +140,11 @@
       ]
     },
     "size_m": [
-      93.3,
-      49.7,
-      17.0
+      86.4,
+      46.1,
+      18.6
     ],
-    "person_1_8_m_in_units": 1.89,
+    "person_1_8_m_in_units": 2.05,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -160,7 +162,7 @@
     "min": [
       -40.2,
       -26.18,
-      -8.8
+      -12.0
     ],
     "max": [
       57.98,
@@ -170,7 +172,7 @@
     "size": [
       98.18,
       52.37,
-      17.93
+      21.13
     ]
   },
   "weapon_slots": [
@@ -291,6 +293,7 @@
     {
       "slot": "WS 004",
       "weapon": "miningblaster",
+      "built_as": "miningblaster",
       "mount": "Weapon WS 004 mount",
       "location": [
         45,
@@ -330,6 +333,7 @@
     {
       "slot": "WS 005",
       "weapon": "annihilator",
+      "built_as": "annihilator",
       "mount": "Weapon WS 005 mount",
       "location": [
         11,
@@ -363,6 +367,7 @@
     {
       "slot": "WS 006",
       "weapon": "annihilator",
+      "built_as": "annihilator",
       "mount": "Weapon WS 006 mount",
       "location": [
         11,
@@ -631,7 +636,7 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 19986,
+    "triangles": 19906,
     "objects": 151,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
@@ -766,9 +771,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9326,
-    "sprite_uncovered": 0.0397,
-    "model_outside_sprite": 0.0298,
+    "iou": 0.9332,
+    "sprite_uncovered": 0.0386,
+    "model_outside_sprite": 0.0302,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit; the hardpoint guns (Weapon WS ...) are hidden in the top render: the hull sprite draws no weapons"
   },
   "shot_extent_px": {

@@ -28,8 +28,10 @@ import bpy
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
-man = json.loads((HERE / 'manifest.json').read_text())
-geom = json.loads((HERE.parent / 'wolf-geometry' / 'geometry.json').read_text())
+MERCHANT = '--variant' in sys.argv and sys.argv[sys.argv.index('--variant') + 1] == 'merchant'
+man = json.loads((HERE / ('manifest-merchant.json' if MERCHANT else 'manifest.json')).read_text())
+geom = json.loads((HERE.parent / 'wolf-geometry' / ('geometry-merchant.json' if MERCHANT else 'geometry.json')).read_text())
+N_TURRETS = 3 if MERCHANT else 1
 checks, fails = {}, []
 
 
@@ -125,7 +127,7 @@ for t in man['turrets']:
     upd()
     if err > 1e-3 or moved < .05:
         bad.append((t['slot'], round(err, 5), round(moved, 3)))
-check('turret 1 trains and elevates', not bad and len(man['turrets']) == 1, bad)
+check(f'{N_TURRETS} turret(s) train and elevate', not bad and len(man['turrets']) == N_TURRETS, bad)
 
 bad = []
 for h in man['hardpoints']:
@@ -138,7 +140,7 @@ check('hardpoint muzzles point along the bow', not bad and len(man['hardpoints']
 declared = [n for m in man['vfx_mounts'] for n in m['muzzles']]
 bad = [n for n in declared if not (anchors.get(n) and anchors[n].parent and anchors[n].parent.type == 'EMPTY'
                                     and maxdiff(anchors[n].matrix_world, anchors[n].parent.matrix_world) < 1e-4)]
-check('declared VFX muzzles ride the kit muzzles', not bad and len(declared) == 12, bad or f'{len(declared)} muzzles')
+check('declared VFX muzzles ride the kit muzzles', not bad and len(declared) >= 12, bad or f'{len(declared)} muzzles')
 
 bad = [l['name'] for l in man['running_lights'] if not bpy.data.objects.get(l['name'])]
 check('lamps', not bad and len(man['running_lights']) == 5, bad)
@@ -173,7 +175,7 @@ for e in man['engines']:
         bad.append((i, round(axis.dot(d), 4), round(far / r, 1)))
 check('plumes leave every bell aft', not bad, bad)
 ga = [o for o in fx if o.name.startswith('SWFX anchor turret ')]
-check('gun rig anchors', len(ga) == 12, len(ga))
+check('gun rig anchors', len(ga) == len(declared), [len(ga), len(declared)])
 ll = [o for o in fx if o.type == 'LIGHT' and o.name.startswith('SWFX lighting Light ')]
 check('lamp lights', len(ll) == 5, len(ll))
 inval = []
@@ -196,7 +198,7 @@ result = {'asset': man['asset'], 'collection': man['append_collection'], 'root':
           'effects_collection': 'SWFX', 'objects': ship_objects, 'meshes': len(meshes),
           'effects_objects': len(fx), 'images': len(bpy.data.images),
           'passed': not fails, 'failed': fails, 'checks': checks}
-(HERE / 'validation.json').write_text(json.dumps(result, indent=1) + '\n')
+(HERE / ('validation-merchant.json' if MERCHANT else 'validation.json')).write_text(json.dumps(result, indent=1) + '\n')
 print('VERIFY', 'PASS' if not fails else f'FAIL {fails}')
 for k, v in checks.items():
     print('  ', 'ok ' if v['ok'] else 'BAD', k, v.get('detail', ''))
