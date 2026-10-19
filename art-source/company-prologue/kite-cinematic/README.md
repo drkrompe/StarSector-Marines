@@ -1,6 +1,6 @@
 # Kite (P): cinematic asset
 
-Status: ACTIVE (pass 7 in owner review). Source art for cinematics; nothing here ships in the mod.
+Status: DONE (accepted by the owner 2026-10-19). Source art for cinematics; nothing here ships in the mod.
 Written: 2026-10-19
 
 The textured pirate Kite (`../kite-surface/`) as one appendable Blender collection, for the
