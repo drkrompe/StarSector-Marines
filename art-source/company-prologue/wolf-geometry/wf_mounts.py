@@ -11,17 +11,33 @@ Loadout: wolf_d_pirates_Attack.variant, the pirate fleets' goal variant: an
 ion cannon on WS 001, a mining blaster on WS 004, Annihilator rocket pods on
 WS 005 / WS 006.
 
-The turret is a fixed barbette plus a trainable top parented to `Turret 1
-pivot`, an empty at the top of the traverse gap; a shot trains it by turning
-the pivot about hull +Z. It rests at its slot angle (ahead). Every slot has
-`Weapon <id> anchor` (+X along the slot angle); every gun a muzzle empty, +X
-along the line of fire: `Anchor turret 1 barrel <k> muzzle` on the turret and
-`Anchor weapon <id> muzzle` on the hardpoints, the names the shared VFX kit
-(../second-wind-vfx) looks for.
+Every gun comes from the shared turret kit (../turret-kit, turret_kit.py):
+the ion cannon is `tk.build('ioncannon')` on a kit barbette, trained by
+`Turret 1 pivot` (an empty at the top of the drum; turn it about hull +Z, it
+rests ahead) and elevated by `Turret 1 elevation`; the mining blaster and the
+Annihilator pods are `tk.build_hardpoint` on fixed `Weapon <id> mount`
+empties: the mining blaster fills the bow fork's centre (it is the claw's
+middle, where the sprite draws the inner tines) in a channel cut through the
+fork base, its breech buried in the head; the pods are set into the missile
+pods' faces, their rears inside the pods. Hardpoint size: the
+game draws them over the hull at sprite scale and well proud of the bow; here
+they are scaled (HARDPOINT_K) to sit in the hull's own fork and pods.
+
+Mounts for the shared VFX kit (../second-wind-vfx), in this order: 1 WS 001,
+2 WS 004, 3 WS 005, 4 WS 006. Each gun has `Anchor turret <i> barrel 1
+muzzle` (the launchers `Anchor turret <i> tube <k> muzzle`, one per tube), +X
+along the line of fire, parented to the kit's own muzzle anchor. Every slot
+also has `Weapon <id> anchor` (+X along the slot angle).
 """
 import math
+import sys
+from pathlib import Path
 import bpy
-from wf_kit import parent
+from mathutils import Matrix
+from wf_kit import boolean
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+import turret_kit as tk  # noqa: E402
 
 SLOTS = [
     {'id': 'WS 001', 'location': (11, 0), 'angle': 0, 'arc': 150, 'mount': 'TURRET', 'size': 'SMALL', 'type': 'ENERGY'},
@@ -34,36 +50,45 @@ REMOVED = [
     {'id': 'WS 003', 'location': (-13, -11), 'angle': -90, 'arc': 200, 'mount': 'TURRET', 'size': 'SMALL', 'type': 'ENERGY'},
 ]
 LOADOUT = {'WS 001': 'ioncannon', 'WS 004': 'miningblaster', 'WS 005': 'annihilator', 'WS 006': 'annihilator'}
-BARBETTE_R = 4.4
-BARBETTE_H = 2.0
-GAP = .15
+MOUNT_ORDER = ['WS 001', 'WS 004', 'WS 005', 'WS 006']     # VFX mount index i = position + 1
+RING = 5.0            # the sprite's turret ring round WS 001 (rows 39-48)
+LIFT = 1.6            # barbette drum above the deck
+HARDPOINT_K = {'WS 004': .55, 'WS 005': .6, 'WS 006': .6}   # hull units per weapon sprite pixel
+AXIS_Z = {'WS 004': .4, 'WS 005': .2, 'WS 006': .2}         # the hardpoints' bore axis height
+# Bays cut round the hardpoints: ((x0, x1) about the slot, half width, (z0, z1) about the
+# axis, hosts). The mining blaster's channel runs through the fork base between the
+# outer tines; its breech is buried in the head. The pods' launchers are set into the
+# pods' faces without a bay: their rears are inside the pod.
+BAYS = {'WS 004': ((-2.2, 4.0), 5.3, (-2.8, 3.6), ('Hull bow fork base',))}
 ANCHOR_Z = {}
 TURRETS = []
+HARDPOINTS = []
 MUZZLES = {}
 
 
-def turret(kit, i, slot):
+def mats(kit):
+    return {'armour': kit.red, 'plate': kit.steel, 'steel': kit.steel, 'dark': kit.dark}
+
+
+def vfx_anchor(name, src):
+    """The VFX kit's declared muzzle, riding the turret kit's own anchor."""
+    a = bpy.data.objects.new(name, None)
+    a.empty_display_size = .6
+    bpy.context.collection.objects.link(a)
+    a.parent = src
+    return a
+
+
+def turret(kit, i, slot, mpu):
     x, y = slot['location']
     sid = slot['id']
-    z0 = kit.surface(x, y)[0].z
-    kit.cylinder(f'Turret {i} barbette', (x, y, z0+BARBETTE_H/2-.4), BARBETTE_R, BARBETTE_H+.8, kit.steel,
-                 vertices=20, bevel=.12)
-    kit.cylinder(f'Turret {i} traverse gap', (x, y, z0+BARBETTE_H+GAP/2), BARBETTE_R-.35, GAP+.02, kit.dark,
-                 vertices=20, bevel=0)
-    top = z0+BARBETTE_H+GAP
+    seat = kit.surface(x, y)[0].z
+    tk.barbette(f'Turret {i} barbette', RING, LIFT, mats(kit), mpu, foot=1.2, location=(x, y, seat))
+    top = seat+LIFT
     pivot = kit.empty(f'Turret {i} pivot', (x, y, top), 0, size=2.5, kind='SINGLE_ARROW')
-    parts = [
-        kit.cylinder(f'Turret {i} gunhouse', (x-.3, y, top+.9), 3.7, 1.8, kit.steel, vertices=10, bevel=.15),
-        kit.box(f'Turret {i} mantlet', (x+3.4, y, top+1.0), (1.4, 3.2, 1.5), kit.steel, .1),
-    ]
-    muzzles = []
-    for k, dy in enumerate((0.0,), 1):
-        parts.append(kit.cylinder(f'Turret {i} barrel {k}', (x+6.0, y+dy, top+1.0), .55, 4.6, kit.steel, 'X', 10, 0))
-        m = kit.empty(f'Anchor turret {i} barrel {k} muzzle', (x+8.3, y+dy, top+1.0), 0, size=1)
-        parts.append(m)
-        muzzles.append(m.name)
-    for ob in parts:
-        parent(ob, pivot)
+    t = tk.build(LOADOUT[sid], f'Turret {i}', pivot, RING, mats(kit), mpu)
+    muzzles = [vfx_anchor(f'Anchor turret {MOUNT_ORDER.index(sid)+1} barrel {k} muzzle', m).name
+               for k, m in enumerate(t['muzzles'], 1)]
     pivot.rotation_euler = (0, 0, math.radians(slot['angle']))
     pivot['slot'] = sid
     pivot['weapon'] = LOADOUT[sid]
@@ -74,46 +99,66 @@ def turret(kit, i, slot):
     ANCHOR_Z[sid] = top
     MUZZLES[sid] = muzzles
     TURRETS.append({'index': i, 'slot': sid, 'weapon': LOADOUT[sid], 'pivot': pivot.name,
-                    'location': [x, y, round(top, 2)], 'rest_angle_deg': slot['angle'], 'arc_deg': slot['arc'],
-                    'fixed': [f'Turret {i} barbette', f'Turret {i} traverse gap'],
-                    'trained': [o.name for o in parts], 'muzzles': muzzles})
+                    'elevation': t['elevation'].name, 'location': [x, y, round(top, 2)],
+                    'rest_angle_deg': slot['angle'], 'arc_deg': slot['arc'], 'ring': RING,
+                    'fixed': [f'Turret {i} barbette'], 'trained': [o.name for o in t['parts']],
+                    'kit_muzzles': [m.name for m in t['muzzles']], 'muzzles': muzzles})
 
 
-def hardpoint(kit, slot):
+def hardpoint(kit, slot, mpu):
     x, y = slot['location']
     sid = slot['id']
-    if slot['type'] == 'ENERGY':   # the mining blaster in the bow channel
-        z = .6
-        kit.box(f'Weapon {sid} breech', (x, y, z), (5.0, 4.2, 3.4), kit.steel, .15)
-        kit.cylinder(f'Weapon {sid} barrel', (x+5.0, y, z), 1.05, 6.0, kit.steel, 'X', 12, 0)
-        kit.cylinder(f'Weapon {sid} emitter', (x+8.3, y, z), 1.35, .9, kit.dark, 'X', 12, 0)
-        m = kit.empty(f'Anchor weapon {sid} muzzle', (x+8.8, y, z), 0, size=1)
-    else:                          # an Annihilator pod in the missile pod's face
-        z = .3
-        kit.box(f'Weapon {sid} launcher', (x+2.6, y, z), (5.4, 4.6, 3.6), kit.steel, .12)
-        for k, (dy, dz) in enumerate(((1.1, .85), (-1.1, .85), (1.1, -.85), (-1.1, -.85)), 1):
-            kit.cylinder(f'Weapon {sid} tube {k}', (x+5.35, y+dy, z+dz), .6, .2, kit.dark, 'X', 10, 0)
-        m = kit.empty(f'Anchor weapon {sid} muzzle', (x+5.5, y, z), 0, size=1)
+    z = AXIS_Z[sid]
+    (bx0, bx1), hw, (bz0, bz1), hosts = BAYS.get(sid, ((0, 0), 0, (0, 0), ()))
+    for host in hosts:
+        cutter = kit.box(f'Temporary {sid} bay cutter', (x+(bx0+bx1)/2, y, z+(bz0+bz1)/2),
+                         (bx1-bx0, 2*hw, bz1-bz0), kit.dark, 0)
+        boolean(bpy.data.objects[host], cutter)
+    mount = kit.empty(f'Weapon {sid} mount', (x, y, z), slot['angle'], size=2)
+    hp = tk.build_hardpoint(LOADOUT[sid], f'Weapon {sid}', mount, mats(kit), mpu, k=HARDPOINT_K[sid])
+    tag = 'tube' if slot['type'] == 'MISSILE' else 'barrel'
+    i = MOUNT_ORDER.index(sid)+1
+    muzzles = [vfx_anchor(f'Anchor turret {i} {tag} {k} muzzle', m).name for k, m in enumerate(hp['muzzles'], 1)]
     kit.empty(f'Weapon {sid} anchor', (x, y, z), slot['angle'], size=2)
     ANCHOR_Z[sid] = z
-    MUZZLES[sid] = [m.name]
+    MUZZLES[sid] = muzzles
+    HARDPOINTS.append({'slot': sid, 'weapon': LOADOUT[sid], 'mount': mount.name, 'location': [x, y, z],
+                       'k': HARDPOINT_K[sid], 'bay': {'x': [x+bx0, x+bx1], 'half_width': hw,
+                                                      'z': [z+bz0, z+bz1], 'cut_from': list(hosts)}
+                       if hosts else None,
+                       'parts': [o.name for o in hp['parts']], 'kit_muzzles': [m.name for m in hp['muzzles']],
+                       'muzzles': muzzles})
 
 
 def build(kit):
     ANCHOR_Z.clear()
     TURRETS.clear()
+    HARDPOINTS.clear()
     MUZZLES.clear()
     i = 0
     for slot in SLOTS:
         if slot['mount'] == 'TURRET':
             i += 1
-            turret(kit, i, slot)
+            turret(kit, i, slot, kit.mpu)
         else:
-            hardpoint(kit, slot)
+            hardpoint(kit, slot, kit.mpu)
+
+
+def mounts():
+    """VFX mounts in MOUNT_ORDER: (x, y, angle, scale, twin, kind)."""
+    out = []
+    for sid in MOUNT_ORDER:
+        slot = next(s for s in SLOTS if s['id'] == sid)
+        kind = 'launcher' if slot['type'] == 'MISSILE' else 'gun'
+        scale = .5 if slot['size'] == 'SMALL' else .7
+        out.append({'index': MOUNT_ORDER.index(sid)+1, 'slot': sid, 'weapon': LOADOUT[sid],
+                    'location': list(slot['location']), 'angle': slot['angle'], 'scale': scale, 'kind': kind,
+                    'muzzles': MUZZLES[sid]})
+    return out
 
 
 def clearance(names_a, names_b):
-    """Pairs of meshes that overlap (BVH), for the trained barrels against the hull."""
+    """Pairs of meshes that overlap (BVH), for the trained turret against the hull."""
     from mathutils.bvhtree import BVHTree
     dg = bpy.context.evaluated_depsgraph_get()
 
