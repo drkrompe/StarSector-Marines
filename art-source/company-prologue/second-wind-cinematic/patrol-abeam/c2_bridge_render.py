@@ -533,6 +533,11 @@ def blender_main(argv):
             for fc in _fcurves(ad.action):
                 for kp in fc.keyframe_points:
                     kp.interpolation = "CONSTANT" if fc.data_path == "hide_render" else "LINEAR"
+    sys.path.insert(0, str(BASE.parent / "thrust-markers"))
+    import thrust_shots                      # every craft's nozzles marked for VFX and sound
+    thrust_shots.mark_c2(scene, p)
+    if p.get("build_only"):                  # thrust-markers/check_thrust_markers.py stops here
+        return scene
 
     scene.render.engine = "CYCLES"
     scene.cycles.samples = int(p["cycles_samples"])
