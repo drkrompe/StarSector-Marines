@@ -124,6 +124,9 @@ public final class ZoneQueries {
         if (sim == null || selfFaction == null) return true;
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
+        // A zone the tick's table saw empty of hostiles is clear whatever the area; anything else
+        // — a hostile counted, or no table for this moment — is settled by the live scan below.
+        if (noHostileInTable(graph, zoneId, selfFaction, sim)) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(u))) continue;
@@ -132,6 +135,14 @@ public final class ZoneQueries {
             if (graph.zoneIdAt(x, y) == zoneId) return false;
         }
         return true;
+    }
+
+    /** Whether the tick's zone table is in force and saw no hostile in {@code zoneId}; false means scan. */
+    private static boolean noHostileInTable(ZoneGraph graph, int zoneId, Faction selfFaction,
+                                            BattleView sim) {
+        ZoneOccupancy table = sim.zoneOccupancy();
+        return table != null
+                && table.noHostileIn(graph, sim.getSimTickIndex(), zoneId, selfFaction);
     }
 
     /** Tests a held group of zones with one live-roster pass, not one pass per room. */
@@ -147,6 +158,14 @@ public final class ZoneQueries {
             if (graph.zoneById(zoneId) != null) held.add(zoneId);
         }
         if (held.isEmpty()) return true;
+        boolean allClearInTable = true;
+        for (int zoneId : held) {
+            if (!noHostileInTable(graph, zoneId, selfFaction, sim)) {
+                allClearInTable = false;
+                break;
+            }
+        }
+        if (allClearInTable) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(unit))) continue;

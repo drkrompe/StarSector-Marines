@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.matchup;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -82,6 +83,22 @@ public final class ArmorPlay {
      * onto its target at once.
      */
     static final float DEFENDER_FACING = Float.parseFloat(System.getProperty("armorMatchup.defenderFacing", "0"));
+    /**
+     * Degrees of arc, seen from the defenders, the attacking machines are fanned across when they are set down
+     * ({@code -PattackerSpread}): 0 (default) sets them abreast at the west edge; 90 sets two of them 45° either side
+     * of west, 180 one due north and one due south, so a second machine comes in on the defender's flank. Each is set
+     * as far out on its bearing as the map allows, up to the usual eighty cells, facing the defenders, and is steered
+     * from there the usual way, which keeps it on its own side. Open ground only: a bearing on the other grounds runs
+     * into their walls.
+     */
+    static final float ATTACKER_SPREAD = Float.parseFloat(System.getProperty("armorMatchup.attackerSpread", "0"));
+    /**
+     * Cells off the defenders a fanned attacker is set at, at most ({@code -PattackerRadius}; default 0, as far out
+     * as the map allows on its bearing). A wide fan only fits close in, so a narrow fan at the same radius is its
+     * head-on control: the same start distance, one approach.
+     */
+    static final float ATTACKER_RADIUS = Float.parseFloat(System.getProperty("armorMatchup.attackerRadius", "0"));
+    private static final int SPREAD_EDGE_CELLS = 4;
     /** {@code attack-move} also restores the old steering of mechs: brought closer like a hull, in sight or not. */
     private static final boolean LEGACY_MECH_ORDER = MECH_ORDER.equals("attack-move");
 
@@ -140,6 +157,9 @@ public final class ArmorPlay {
 
     public static Result play(ArmorScenarios.ArmorScenario scenario, ArmorSide attacker, ArmorSide defender,
                               long seed, MatchupRecording recording) {
+        if (ATTACKER_SPREAD > 0f && !scenario.id().equals("open-ground")) {
+            throw new IllegalArgumentException("-PattackerSpread is for open-ground only, not " + scenario.id());
+        }
         ArmorScenarios.Ground ground = ArmorScenarios.build(scenario);
         SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false).seed(seed);
         List<String> attackerSquads = declareMechs(builder, scenario, attacker, true);
@@ -213,7 +233,7 @@ public final class ArmorPlay {
             if (unit instanceof ArmorSide.Mech mech) {
                 String key = prefix + "-" + keys.size();
                 int first = slot;
-                int[] firstCell = scenario.slot(attacking, first);
+                int[] firstCell = cell(scenario, side, attacking, first);
                 int[] seat = {first};
                 SceneBuilder.SquadSpec squad = builder.squad(key)
                         .faction(attacking ? Faction.MARINE : Faction.DEFENDER)
@@ -221,7 +241,7 @@ public final class ArmorPlay {
                         .at(firstCell[0], firstCell[1])
                         .mech(mech.deployment())
                         .each(spec -> {
-                            int[] cell = scenario.slot(attacking, seat[0]++);
+                            int[] cell = cell(scenario, side, attacking, seat[0]++);
                             spec.atPosition(cell[0] + 0.5f, cell[1] + 0.5f);
                         });
                 if (attacking) {
@@ -238,6 +258,39 @@ public final class ArmorPlay {
             slot += unit.count();
         }
         return keys;
+    }
+
+    /**
+     * Cell of the {@code index}th machine of a side: the scenario's slot, or for an attacker under
+     * {@link #ATTACKER_SPREAD} its place on the fan around the first defender's slot.
+     */
+    static int[] cell(ArmorScenarios.ArmorScenario scenario, ArmorSide side, boolean attacking, int index) {
+        int count = 0;
+        for (ArmorSide.Unit unit : side.units()) count += unit.count();
+        if (!attacking || ATTACKER_SPREAD <= 0f || count < 2) return scenario.slot(attacking, index);
+        return fanned(scenario.slot(false, 0), scenario.slot(true, 0), ATTACKER_SPREAD, index, count);
+    }
+
+    /**
+     * The {@code index}th of {@code count} cells fanned across {@code spread} degrees around {@code anchor}, centred
+     * on the bearing to {@code usual}: each as far out as {@code usual} is, or less where the map edge comes first.
+     */
+    static int[] fanned(int[] anchor, int[] usual, float spread, int index, int count) {
+        double base = Math.atan2(usual[1] - anchor[1], usual[0] - anchor[0]);
+        double angle = base + Math.toRadians(spread * (index / (float) (count - 1) - 0.5f));
+        float cos = (float) Math.cos(angle);
+        float sin = (float) Math.sin(angle);
+        float radius = (float) Math.hypot(usual[0] - anchor[0], usual[1] - anchor[1]);
+        if (ATTACKER_RADIUS > 0f) radius = Math.min(radius, ATTACKER_RADIUS);
+        for (; radius > 1f; radius -= 0.5f) {
+            int x = Math.round(anchor[0] + cos * radius);
+            int y = Math.round(anchor[1] + sin * radius);
+            if (x >= SPREAD_EDGE_CELLS && x < ArmorScenarios.WIDTH - SPREAD_EDGE_CELLS
+                    && y >= SPREAD_EDGE_CELLS && y < ArmorScenarios.HEIGHT - SPREAD_EDGE_CELLS) {
+                return new int[] {x, y};
+            }
+        }
+        return usual;
     }
 
     static float median(List<Float> values) {
@@ -309,12 +362,16 @@ public final class ArmorPlay {
             for (ArmorSide.Unit unit : side.units()) {
                 if (unit instanceof ArmorSide.Vehicle vehicle) {
                     for (int i = 0; i < unit.count(); i++) {
-                        int[] cell = scenario.slot(attacking, slot + i);
+                        int[] cell = cell(scenario, side, attacking, slot + i);
                         float x = cell[0] + 0.5f;
                         float y = cell[1] + 0.5f;
                         long id = convoy.spawn(vehicle.type(), faction, VehicleMission.deployed(x, y));
                         // Facing the enemy (0° is +Y): the arcs a hull is hit on start from where it points.
-                        convoy.body(id).teleport(x, y, attacking ? -90f : 90f + DEFENDER_FACING);
+                        int[] anchor = scenario.slot(false, 0);
+                        float facing = attacking
+                                ? AirBody.facingToward(anchor[0] + 0.5f - x, anchor[1] + 0.5f - y)
+                                : 90f + DEFENDER_FACING;
+                        convoy.body(id).teleport(x, y, facing);
                         add(new Body(id, vehicle.label(), true));
                     }
                 }

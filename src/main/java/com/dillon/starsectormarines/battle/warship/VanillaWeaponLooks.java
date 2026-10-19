@@ -27,12 +27,17 @@ public final class VanillaWeaponLooks {
     private static final VanillaMountLook NO_MOUNT = VanillaMountLook.fromSpec("", new JSONObject(), null);
     private static final Map<String, VanillaMountLook> MOUNTS = new ConcurrentHashMap<>();
 
+    private static final VanillaRoundLook NO_ROUND = new VanillaRoundLook(VanillaRoundLook.Kind.STREAK, null, 0f, 0f,
+            0f, null, null, null, 0f, 0f, 0f, 0f, null, 0f, null, 0f, 0f, 0f, 0f, false);
+    private static final Map<String, VanillaRoundLook> ROUNDS = new ConcurrentHashMap<>();
+
     private VanillaWeaponLooks() {}
 
     /** Forgets what was cached, for a tool that has just changed where data is read from. */
     public static void clearCache() {
         CACHE.clear();
         MOUNTS.clear();
+        ROUNDS.clear();
     }
 
     /** The beam look of {@code weaponId}, or {@code null} for a non-beam or unknown weapon. */
@@ -71,6 +76,27 @@ public final class VanillaWeaponLooks {
             LOG.warn("VanillaWeaponLooks: mount " + weaponId + " — "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
             return NO_MOUNT;
+        }
+    }
+
+    /** How {@code weaponId}'s round looks in flight, from its projectile spec; {@code null} when it cannot be read. */
+    public static VanillaRoundLook round(String weaponId) {
+        if (weaponId == null || weaponId.isEmpty()) return null;
+        VanillaRoundLook look = ROUNDS.computeIfAbsent(weaponId, VanillaWeaponLooks::resolveRound);
+        return look == NO_ROUND ? null : look;
+    }
+
+    private static VanillaRoundLook resolveRound(String weaponId) {
+        try {
+            JSONObject wpn = VanillaData.json("data/weapons/" + weaponId + ".wpn");
+            String projectileId = wpn == null ? null : wpn.optString("projectileSpecId", null);
+            JSONObject proj = projectileId == null || projectileId.isBlank() ? null : projectile(projectileId);
+            VanillaRoundLook look = VanillaRoundLook.fromSpec(proj);
+            return look != null ? look : NO_ROUND;
+        } catch (Exception e) {
+            LOG.warn("VanillaWeaponLooks: round " + weaponId + " — "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage());
+            return NO_ROUND;
         }
     }
 

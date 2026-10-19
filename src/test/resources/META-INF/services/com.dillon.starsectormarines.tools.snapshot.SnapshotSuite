@@ -78,6 +78,7 @@ com.dillon.starsectormarines.battle.warship.WarshipMissilesSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipShieldSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipHitFxSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipMountsSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipRoundsSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipSwarmSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipPostureSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipSupportFireSceneSnapshotSuite

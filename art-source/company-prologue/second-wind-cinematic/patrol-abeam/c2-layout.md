@@ -264,7 +264,7 @@ Hail clock in seconds (`build_hail_preview.timeline()`, catalog
 | 55.58 | Entry 2.88 | Line 9 ends | Fire and smoke streaming up-left; shake building. |
 | 56.80–58.10 | Entry 4.10–5.40 | — | Cloud streams in from the bottom right; the fire quenches by 5.7. Hardest shake. |
 | 58.10–58.70 | Entry 5.40–6.00 | — | Whiteout. |
-| 58.80–59.66 | Entry 6.10–6.96 | — | Bloom; under its peak (6.50) the camera changes to C3's. |
+| 58.70–59.60 | Entry 6.00–6.90 | — | The white settles onto C3's frame 0 (same window, same camera). |
 | 59.70 | Entry 7.00 | — | Cut to C3, which opens out of the white, still shaking. |
 
 ## Entry transition
@@ -274,8 +274,16 @@ not a wipe. Longer than the first 3 s version, with the camera and window shakin
 flames and smoke streaming across the window from bottom right to top left. It joins C2
 to C3 and is not a shot in its own right. It runs 7.0 s.
 
-- **Same frame, same camera.** C2's cabin and camera, relit; only the light on the frame
-  and what is behind the glass change, and the whole picture shakes.
+- **C3's window and camera, from the first frame** (owner, 2026-10-19). The entry first
+  used C2's cabin camera (19.29 degrees down, so the window read keystoned) and swapped to
+  C3's under a bloom; the owner saw the frame change at the cut. Now the entry is drawn
+  through C3's own cabin (`first-open-sky/build/layers/cabin.png`) at C3's 9 degrees, and
+  only the light on the frame, what is behind the glass and the shake change. The cut
+  from C2 into the entry is where the place changes. C2's planet plate is lowered 250 px
+  to where its horizon sits from 9 degrees.
+- **The cabin's light.** C3's paint is lit by C3's daylight, so the cloud state is that
+  paint as it is. Space and fire light come from the glass: a falloff from the aperture,
+  cold planet-shine in space, orange and flickering in the fire, hotter on the bow side.
 - **Direction.** Everything streams along one line, from bottom right to top left, 27
   degrees above horizontal (`c2_core.FLOW_DEG`). That is the air going past a port
   window of a ship coming down bow first: aft, as in every window shot, and up. C3 opens
@@ -295,8 +303,8 @@ to C3 and is not a shot in its own right. It runs 7.0 s.
   and a fraction of a degree of turn, building through the heat to about 9 px in the
   cloud and still about 3 px at the cut. It is one function of time from the entry's
   start, shared with C3, which eases it away (`first-open-sky/c3_core.camera_shake`).
-- **The camera change.** Under the white the frame blooms (6.1–6.96 s); at its peak C2's
-  cabin is exchanged for C3's frame 0, and the bloom recedes onto it.
+- **Into C3.** In the white (6.0–6.9 s) the frame settles exactly onto C3's frame 0;
+  C3 picks up one frame later on the same shake.
 - **Line 9 sits early in it.** "Well." plays over the first heat and "Somebody knows
   we're here." as the flames spread. There is no squelch: the missing key-up is how the
   ear knows she has closed the channel.
@@ -411,8 +419,8 @@ Production decisions that supersede the plan above:
 - **Planet drift** is per row at the true ground rate (about 7 px/s at the horizon,
   21 at the sill), not two translating cards.
 - **The entry ends on C3's frame 0** (C3's cabin at 9 degrees around flat entry white,
-  per the C3 hand-off), and C3 picks up one frame later on the same shake. The
-  19.29-to-9-degree change happens under a bloom to white at 6.50 s.
+  per the C3 hand-off), and C3 picks up one frame later on the same shake. The entry
+  is drawn through C3's window and camera throughout, so there is no camera change.
 - **Audio cues** (player dicts). C2: squelch open, line 7, squelch close, line 8.
   Entry: line 9 at 0.16 s (no squelch), wind from 0.35 s. Neither adds a bed: C1's
   cabin bed runs under the whole hail. Line 9 is placed by its own rule, 1.4 s after

@@ -185,6 +185,14 @@ public final class WarshipShell implements Interceptable {
         return hullTarget;
     }
 
+    /**
+     * Whether this round flies between hulls: fired at a hull, or carrying on past one it missed. Such a round is
+     * drawn at the hulls' own scale; a round at the ground or the air at the shared density.
+     */
+    public boolean betweenHulls() {
+        return hullTarget != null || stray;
+    }
+
     /** Whether this round carries on to the ground when it misses every hull. */
     boolean straysOnMiss() {
         return !Float.isNaN(strayX);
