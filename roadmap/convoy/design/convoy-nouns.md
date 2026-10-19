@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -323,13 +323,32 @@ round. The pool stays one column, so whole-body readers still see one hull.
   (unattributed or scripted damage, a shooter already gone) meets the hull's
   nominal plate on no arc, and no arc draws on the random stream.
 - **What presents the front.** Production sets a dropped hull down facing the way
-  its carrier flew in. A duelling hull drives to its band nose first, and backs
-  off a target that is too close with its nose kept on it. Three cases do not
-  keep the front on the threat: a target already behind a too-close hull is driven
-  away from, rear on; a disarmed hull that has a drivable withdrawal route
-  turns and drives it, showing its rear (it backs off nose-on only when no route
-  exists), and a hull already in band never turns toward a machine that comes at
-  it from the flank, because a bicycle hull cannot pivot in place.
+  its carrier flew in. A duelling hull drives to its band nose first. A bicycle
+  hull cannot pivot in place, so every other turn toward the threat is a
+  manoeuvre on the same manual drive: it **backs with opposite lock** while the
+  target is within a little past the beam (120° off the nose), which swings the
+  nose on while the hull gives ground, and drives a **forward turn** toward a
+  target further behind than that.
+  - Holding in band, a hull whose target sits more than 35° off its nose turns
+    back onto it, and stops once it is within 10°. A turn that starts forward
+    stays forward all the way round. It rehearses the turn on a copy of its own
+    body first and makes it only if it ends square on over drivable ground, still
+    in sight of the target. A backing turn also stops once it has given ground
+    to its band's far edge less slack, where the gun stops reaching. A hull a
+    parapet screens from its target (an undrivable cell within five cells on the
+    line to it) makes only the backing turn: the forward turn drives it out from
+    behind the berm before the nose comes round, and the berm is worth more than
+    the plate. `-Dbattle.vehicle.faceInBand=false` is the control.
+  - Backing off a too-close target uses the same 120° arc. Only a target further
+    behind than that is driven away from, rear on: a forward turn toward it was
+    tried and parked hulls out of each other's sight in the street.
+    `-Dbattle.vehicle.backingTurnDegrees=90` is the control (the beam).
+  - A **disarmed hull still shows its rear** while it drives its withdrawal
+    route, and backs off nose-on only where no route exists. Backing out of
+    reach nose-on first was measured and rejected: at a tank's reverse speed the
+    hull stays in reach about three times as long, and the front plate does not
+    buy that back. `-Dbattle.vehicle.withdrawNoseOn=true` is that trial
+    (`heavy-equipment-progression.md`, facing).
 - `-Dbattle.vehicle.armorArcs=false` is the control: every arc is the hull's one
   plate, bit for bit the law before arcs.
 
