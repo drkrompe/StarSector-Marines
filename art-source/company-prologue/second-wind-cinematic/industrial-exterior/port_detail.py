@@ -212,6 +212,7 @@ def keep_out(c4, g):
     for x, who in c4.LIGHTERS:
         g.circle(x, c4.LIGHTER_Y, c4.LIGHTER_R + 7)
         g.rect(x - 8, x + 8, c4.LIGHTER_Y - c4.LIGHTER_R - 14, c4.LIGHTER_Y)    # its crates
+    lanes += moving_ground(c4)
     LANES.extend(lanes)
     for ln in lanes:
         g.rect(*ln)
@@ -232,6 +233,32 @@ def keep_out(c4, g):
     for x, y, w, d, hh in c4.WAREHOUSES:
         g.rect(x - w / 2 - 2, x + w / 2 + 2, y - d / 2 - 2, y + d / 2 + 2)
     g.rect(-250.0, -214.0, -165.0, -92.0)                      # gate checkpoint
+
+
+def moving_ground(c4):
+    """Where port-life's vehicles drive (`port_life.ROUTES`, a lane centre each, vehicles up to 3 m
+    wide), and the paths its berth forklifts and second bowser take up the berth gaps
+    (`port_life.berth_work`): rectangles nothing standing may overlap."""
+    out = []
+    try:
+        import port_life
+    except ImportError:
+        return out
+    w = 4.0
+    for name, rt in port_life.ROUTES.items():
+        pts = rt['pts'] + ([rt['pts'][0]] if rt.get('closed', True) else [])
+        for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+            out.append((min(ax, bx) - w, max(ax, bx) + w, min(ay, by) - w, max(ay, by) + w))
+    for x, off, who in c4.BERTHS:
+        if who not in ('hound', 'unloading', 'fuelling'):
+            continue
+        cy = c4.BERTH_Y + c4.BERTH_DY[x]
+        gx = x + 39.0
+        if who == 'fuelling':
+            out.append((gx - 5, gx + 5, cy - 68, cy - 2))
+        else:
+            out.append((gx - 5, gx + 5, cy - 46, cy + 28))
+    return out
 
 
 # ---------------------------------------------------------------- pieces of kit
@@ -401,11 +428,11 @@ def berth_gaps(c4, g, P, r):
         n = int((x1 - x0 - 4) // 7)
         bx = x0 + 2
         for row, (by, h) in enumerate(((y0 + 1, -math.pi / 2), (y0 + 13, math.pi / 2))):
-            if not g.free(bx, bx + n * 7, by, by + 12):
-                continue
-            bays(P, bx, by + (0 if row == 0 else 12), n, 7.0, 12.0 if row == 0 else -12.0)
             for i in range(n):
                 cx, cy = bx + 3.5 + i * 7, by + 6
+                if not g.free(cx - 3.5, cx + 3.5, by, by + 12):
+                    continue
+                bays(P, cx - 3.5, by + (0 if row == 0 else 12), 1, 7.0, 12.0 if row == 0 else -12.0)
                 kind = (i * 3 + k + row * 2) % 6
                 if kind == 0:
                     park(c4, 'Tug port %d %d %d' % (k, row, i), c4.tug_parts(P.m['gse']), cx, cy, h)
@@ -418,7 +445,7 @@ def berth_gaps(c4, g, P, r):
                 elif kind == 4:
                     hose_reel(P, cx - 1.2, cy - 2, h)
                     hose_reel(P, cx + 1.2, cy + 2, h)
-            g.take(bx, bx + n * 7, by, by + 12)
+                g.take(cx - 3.5, cx + 3.5, by, by + 12)
         # Above the bays: dolly trains parked in rows, a crew hut, drums, a mast.
         yy = y0 + 31
         for row in range(2):
@@ -723,14 +750,14 @@ def arrivals(c4, g, P, r):
     """Around the arrivals hall: a car park east of the ferry, buses and a taxi rank at the hall's
     door, MuniSec on the kerb, a kiosk."""
     ox, oy = c4.OFFICE
-    x0, x1, y0, y1 = 186.0, 284.0, 446.0, 520.0
+    x0, x1, y0, y1 = 208.0, 268.0, 455.0, 526.0
     c4.plane('Arrivals car park', x0, x1, y0, y1, P.m['lot'], 0.06)
     for row in range(5):
-        y = y0 + 4 + row * 14
-        bays(P, x0 + 4, y - 3, 30, 3.0, 6.0)
-        for k in range(30):
+        y = y0 + 5 + row * 14
+        bays(P, x0 + 3, y - 3, 18, 3.0, 6.0)
+        for k in range(18):
             if r.random() < 0.72:
-                car(P, r, x0 + 5.5 + k * 3.0, y, math.pi / 2 + r.uniform(-0.04, 0.04))
+                car(P, r, x0 + 4.5 + k * 3.0, y, math.pi / 2 + r.uniform(-0.04, 0.04))
     for x in (x0 + 2, x1 - 2):
         light_mast(P, x, y1 - 2, 18.0)
     g.take(x0, x1, y0, y1)
@@ -753,19 +780,19 @@ def arrivals(c4, g, P, r):
     g.take(ox - 54, ox - 14, 383.0, 389.0)
     # Customs' inspection pound between the ferry and the terminal: freight held for a look, a
     # booth, a covered inspection bay.
-    x0, x1, y0, y1 = 200.0, 282.0, 530.0, 612.0
+    x0, x1, y0, y1 = 208.0, 268.0, 534.0, 610.0
     c4.plane('Customs pound', x0, x1, y0, y1, P.m['lot'], 0.06)
     fence_box(P, x0, x1, y0, y1, 'W', (30.0, 46.0))
     for k in range(5):
-        y = y0 + 10 + k * 9
-        truck(P, r, x0 + 30, y, 0.0)
-        P.box('white line', (22.0, 0.5, 0.05), (x0 + 20, y - 4.5, 0.1))
-    P.box(P.m['roofs'][2], (26.0, 20.0, 7.0), (x1 - 18, y0 + 26, 3.5))   # the inspection shed
-    c4.WAREHOUSES.append((x1 - 18, y0 + 26, 26.0, 20.0, 7.0))
+        y = y0 + 8 + k * 8
+        truck(P, r, x0 + 24, y, 0.0)
+        P.box('white line', (22.0, 0.5, 0.05), (x0 + 14, y - 4.0, 0.1))
+    P.box(P.m['roofs'][2], (20.0, 18.0, 7.0), (x1 - 12, y0 + 22, 3.5))   # the inspection shed
+    c4.WAREHOUSES.append((x1 - 12, y0 + 22, 20.0, 18.0, 7.0))
     hut(P, r, x0 + 6, y0 + 56, 4.0, 3.0, 3.0, P.m['orange'])
-    crate_stack(P, r, x1 - 30, y1 - 18, 6, 3)
+    crate_stack(P, r, x0 + 30, y1 - 14, 6, 3)
     for k in range(3):
-        P.box(P.m['containers'][k + 1], (12, 2.4, 2.6), (x1 - 14, y1 - 26 - k * 3.4, 1.3))
+        P.box(P.m['containers'][k + 1], (12, 2.4, 2.6), (x1 - 10, y1 - 24 - k * 3.4, 1.3))
     light_mast(P, x1 - 3, y1 - 3, 22.0)
     g.take(x0, x1, y0, y1)
 
