@@ -799,7 +799,7 @@ def heat_tiles(kit):
     keel on lift-off and touchdown: square tiles proud of the plating, on a 2.6-unit pitch,
     stopping at the collars, seams and docking clamps."""
     tiles = Parts()
-    fields = [(13.6, 56.4, YC-21.0, YC+21.0, HOLD_KEEL)]          # between the hatches, inside the skids
+    fields = [(13.6, 56.4, YC-17.2, YC+17.2, HOLD_KEEL)]          # between the hatches, inside the skids
     for side, s in SIDES:
         for x0, x1 in ((40.6, 65.4), (-9.4, 19.4)):
             a, b = sorted((y(54.0, s), y(80.0, s)))
@@ -820,22 +820,30 @@ def heat_tiles(kit):
 
 
 def skids(kit):
-    """Landing skids along the hold keel, outboard of the hatches and lift thrusters: the
-    ground the hull rests on when the lift thrusters set it down. Bolted wear shoes on
-    gusseted mounting blocks, raked at both ends."""
+    """Landing runners along the hold keel, outboard of the hatches and lift thrusters: what
+    the hull rests on when the lift thrusters set it down. Broad and flat-soled so the weight
+    spreads along their whole length rather than onto a line (owner, pass 3 round 7: legs
+    were rejected as more concentrated still): 8 units (4 m) wide, raked at both ends, a
+    replaceable wear shoe, side stiffeners and bolted mounting blocks."""
     z = HOLD_KEEL
-    beams, shoes, blocks = Parts(), Parts(), Parts()
-    for r in (-23.0, 23.0):
+    beams, shoes, blocks, ribs = Parts(), Parts(), Parts(), Parts()
+    for r in (-22.0, 22.0):
         c = YC+r
         x0, x1 = -12.0, 84.0
-        prof = [(x0, z), (x0+3, z-2.2), (x1-3, z-2.2), (x1, z)]
-        beams.slab([(px, c-1.4, pz) for px, pz in prof], (0, 2.8, 0))
-        shoes.box(x0+3.4, x1-3.4, c-1.1, c+1.1, z-2.6, z-2.15)
+        prof = [(x0, z), (x0+4, z-2.4), (x1-4, z-2.4), (x1, z)]
+        beams.slab([(px, c-4.0, pz) for px, pz in prof], (0, 8.0, 0))
+        shoes.box(x0+4.4, x1-4.4, c-3.6, c+3.6, z-2.85, z-2.35)
+        for k in range(1, 12):                                  # shoe segment joints
+            bx = x0+4.4+k*(x1-x0-8.8)/12
+            shoes.box(bx-.08, bx+.08, c-3.65, c+3.65, z-2.9, z-2.8)
         for bx in range(int(x0)+6, int(x1)-3, 8):
-            blocks.box(bx-.9, bx+.9, c-2.2, c+2.2, z-1.2, z+.05)
-    beams.build(kit, 'Hull keel landing skids', kit.steel, .2)
+            blocks.box(bx-1.0, bx+1.0, c-4.8, c+4.8, z-1.3, z+.05)
+            for sy in (-1, 1):
+                ribs.box(bx+3.6, bx+4.4, c+sy*4.0, c+sy*4.35, z-2.2, z)
+    beams.build(kit, 'Hull keel landing skids', kit.steel, .25)
     shoes.build(kit, 'Hull keel landing skid wear shoes', kit.dark, .1)
     blocks.build(kit, 'Hull keel landing skid mounting blocks', kit.steel, .1)
+    ribs.build(kit, 'Hull keel landing skid stiffeners', kit.steel, .06)
 
 
 def fenders(kit):

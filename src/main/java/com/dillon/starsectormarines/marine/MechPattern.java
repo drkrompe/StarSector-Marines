@@ -68,6 +68,7 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.HEAVY_GUN_TANK, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
+        VEHICLE_TIERS.put(VehicleType.SCREENED_TANK, EquipmentAccessTier.PRESTIGE);
         // The light roles: lines of their own, one hull each.
         VEHICLE_TIERS.put(VehicleType.SUPPLY_TRUCK, EquipmentAccessTier.COMMON);
         VEHICLE_TIERS.put(VehicleType.SCOUT_CAR, EquipmentAccessTier.ADVANCED);

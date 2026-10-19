@@ -179,6 +179,8 @@ CLOSEUPS = [
     ('underside-quarter', (150, 250, -200), (20, 1.5, -40), 260),
     ('lift-detail', (60, 60, -120), (24, 1.5, -50), 40),
     ('module-lift', (40, 110, -110), (53.5, 60, -46), 40),
+    ('ground-quarter', (250, 300, -30), (-17, 1.5, -25), 300),
+    ('skid-detail', (60, 90, -90), (30, 23.5, -52), 40),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')

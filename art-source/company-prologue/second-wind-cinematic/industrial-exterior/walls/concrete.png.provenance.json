@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a15479-5768-7122-b0bc-30a0e50e76d1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15479-5768-7122-b0bc-30a0e50e76d1\\exec-387b5bc0-02f8-4115-ae4b-1bd50dedf213.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "concrete.png",
+    "sha256": "37d09880a0ac30d99878d5737e8e34b54632c943da695e858467facf0d144d36",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "concrete.prompt.txt",
+  "promptSha256": "ca36c0fcf8e44852ca223f89cd4ac9b8ee7e80f91dc1aafafb0049af996218ca",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA texture for a 3D scene: one building wall material seen perfectly face-on, orthographic, filling the whole square canvas edge to edge. No perspective, no sky, no ground, no people, no vehicles, no border, no text, no logos, no signage lettering. Flat, even, overcast daylight with no cast shadows and no strong directional shading, so it works as a colour (albedo) map that the scene lights itself. Photographic, realistic, hard-used industrial look: this is Greywater Down, a humid jungle-world spaceport's industrial district, wet season, everything weathered.\nThe LEFT and RIGHT edges must tile seamlessly: whatever crosses the left edge continues exactly at the right edge, with no seam, no vignette and no change of brightness across the image.\nThe material: plain weathered precast concrete wall panels, 6 m wide and 6 m tall, three panels across and two high, separated by dark caulked joints. Pale grey concrete with formwork texture, bolt-hole plugs in a grid, dark rain streaks from the top of each panel, rust bleed from a few embedded fixings, green-black tropical algae in patches. Both the LEFT/RIGHT edges and the TOP/BOTTOM edges tile seamlessly.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless concrete wall texture with the requested panel layout and weathering."
+  ],
+  "usage": {
+    "input_tokens": 35349,
+    "cached_input_tokens": 29696,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 444,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.9
+}

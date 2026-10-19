@@ -13,8 +13,23 @@ light, and the repaint owns face, hair and cloth finish. Her look is the portrai
 
 | File | What it is |
 |---|---|
-| `build_castle.py` | Builds her headless and writes `castle-figure.blend` (gitignored). `python build_castle.py`. |
-| `castle_review.py` | Workbench review: two turnarounds and the bridge framings, 1920x1080. `python castle_review.py --out DIR`. |
+| `build_castle.py` | Builds her headless and writes `castle-figure.blend` (gitignored). `python build_castle.py [--hair mesh\|curves] [--out PATH]`. |
+| `castle_review.py` | Review sheets, 1920x1080: turnarounds, the C2 close-shot distance, and the bridge framings. `python castle_review.py --out DIR [--blend PATH] [--engine workbench\|eevee] [--sheets ...] [--prefix NAME-] [--no-bridge]`. |
+
+## Hair
+
+`--hair mesh` (the default) is MakeHuman's `short04` cards plus a modelled UV-sphere bun.
+`--hair curves` is a prototype groom: Blender hair curves on a hidden copy of the scalp skin,
+which is the skin under `short04`, so the groom keeps its hairline. The script lays one guide per
+scalp vertex, combed over the scalp to the bun, plus a coil of strands for the bun itself.
+Blender's own procedural hair node groups, bundled with Blender (CC0), do the rest: Attach,
+Interpolate (about 54,000 strands), Clump, Frizz, Set Hair Curve Profile and Duplicate (the bun).
+The armature deforms the scalp copy, and the groom follows it through Deform Curves on Surface.
+This matters at the nape, which is weighted to the neck: hair fixed rigidly to the head bone
+sinks into the skin when she bows her head. Each strand's `grey` attribute marks the temples
+and a sprinkle of stray grey strands. The material is a Principled Hair BSDF with two outputs:
+melanin for Cycles, and direct colour for EEVEE, which ignores the melanin parametrisation.
+Workbench draws the flat `diffuse_color`. The owner has not yet chosen between the two modes.
 
 ## Using her
 
@@ -40,12 +55,13 @@ A Mac without MPFB takes the .blend from Drive, `starsector/builds/castle/<commi
 MakeHuman's base mesh, targets, rigs, skins, clothes, hair and other system assets are
 CC0 (released by Data Collection AB, Joel Palmius and Jonas Hauquier in 2020; each asset
 file says so). MPFB, the plug-in, is GPL-3.0; the meshes it outputs are not covered by
-that. The bun, collar and headset are modelled here. No other assets are used.
+that. The bun, collar and headset are modelled here. The curves groom uses Blender's bundled
+procedural hair node assets (CC0). No other assets are used.
 
 ## Open
 
-- Hair: the pack has no bun; `short04` (swept back) carries a modelled bun. The repaint
-  does the rest.
+- Hair: the pack has no bun. Either `short04` (swept back) carries a modelled bun and the
+  repaint does the rest, or the curves groom replaces both (see Hair). The owner decides.
 - Boots: `shoes02` reads as low shoes, not work boots.
 - Materials are flat colours, not MPFB's textured skin (whose textures live in one
   machine's Blender profile). A finished look comes from the repaint, not from Cycles.
