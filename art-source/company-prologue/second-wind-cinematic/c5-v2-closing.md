@@ -88,8 +88,11 @@ a Shepherd lets down over the belt in C4's first seconds. The heavy-berth
 Colossus leaves during C5's rise, flown rather than posed. Its lift jets spool
 at C5 12 s and it comes off the deck at 15 s, slowly, the way a heavy hull
 would. Its mains light at 24 s and it accelerates away west. It is 15 m above
-its deck at 22 s, 37 m at 26 s and 79 m at 30 s. Against a camera at 1.8 km, it
-reads by its burn and its motion, not by growing in the frame.
+its deck at 22 s, 37 m at 26 s, 79 m at 30 s and 282 m at 40 s. Against a
+camera at 1.8 km, it reads by its burn and its motion, not by growing in the
+frame. Its drives are the shared VFX kit's effects on its own engines, each
+throttled by its thruster marker. The Shepherd over the belt carries on north
+out of frame.
 C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 
