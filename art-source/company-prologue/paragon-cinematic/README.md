@@ -1,6 +1,6 @@
 # Paragon: cinematic asset
 
-Status: REVIEW (pass 7 posted 2026-10-19; Fortress Shield posted 2026-10-19)
+Status: REVIEW (drives, beams and point defence accepted by the owner 2026-10-19; the Fortress Shield still in progress)
 Written: 2026-10-19
 
 Source art for cinematics; nothing here ships in the mod. This folder makes
