@@ -11,6 +11,10 @@ face before any other face of the part's objects). Every boundary of such a
 group is therefore a crease (the neighbouring face turns out of the cone), an
 object edge, or an occlusion edge, never a box cut through a plate. Faces two
 parts both qualify for go to the part whose direction they face more squarely.
+A seed of None takes every qualifying face of the object instead of one
+connected group, and a seed {'box': ((x0, y0, z0), (x1, y1, z1))} every
+qualifying face whose centre lies in that world-space box: for an object built
+as many separate pieces (a mesh of plates), cut into tiles of a useful size.
 
 Object names are the clean build's stable keys (second-wind-pipeline.md);
 duplicates carry Blender's creation-order suffixes (.001, ...), which are
@@ -186,6 +190,15 @@ def select_faces(part, objects=None):
                 ok.add(p.index)
         if not ok:
             raise SystemExit(f'part {part}: no faces on {name}')
+        if seed is None or isinstance(seed, dict):
+            # A whole-object member, or the part of it inside an axis-aligned box: every
+            # qualifying face (whose centre lies in the box). For a mesh of many separate
+            # pieces in one object (the Onslaught's detail plating: dozens of plates per
+            # mesh), where one seed would claim a single plate.
+            lo, hi = (seed or {}).get('box', ((-1e9,) * 3, (1e9,) * 3))
+            out.setdefault(name, set()).update(
+                i for i in ok if all(lo[k] <= centres[i][k] <= hi[k] for k in range(3)))
+            continue
         seed_v = Vector(seed)
         start = min(ok, key=lambda i: (centres[i] - seed_v).length)
         group, todo = {start}, [start]

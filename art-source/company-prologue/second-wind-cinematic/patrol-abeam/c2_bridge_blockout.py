@@ -9,9 +9,9 @@ closes on the patrol and passes it. Then Second Wind starts down and the Legion 
 of the top of the slits. No cut: the pan is the move.
 
 Plain Python plans the motion (the Legion's track, the camera's head turn) and runs Blender
-on this same file. Blender opens Second Wind's clean master (second-wind-geometry, read
-only), blocks out the command deck's interior around the model's own slits and mullions,
-appends the Legion master, and renders Workbench frames:
+on this same file. Blender opens Second Wind's patched state (second-wind-geometry, read
+only), which carries the bridge interior (sw_bridge_interior), adds the pilot and Castle
+(sw_bridge_interior.figures), appends the Legion master, and renders Workbench frames:
 
     build/cinematic/c2-bridge/blockout/b_<t>.png      1920x1080, one per requested time
     build/cinematic/c2-bridge/blockout/plan.json
@@ -19,13 +19,8 @@ appends the Legion master, and renders Workbench frames:
 Frame of reference is Second Wind, in metres: +X bow, +Y port, +Z dorsal, origin at its
 model origin. Second Wind is 0.65 m per unit, the Legion 0.99 (each geometry.json).
 
-The command deck the exterior model carries is low and armoured: viewport slits from
-18.6 to 19.45 units (about 55 cm of glass), under a visor brow and over a sill ledge. Its
-interior is built here and nowhere else: a floor just above the waist housing's top, inner
-walls on the glass line below the sill and above the header, a ceiling under the roof, a
-console run below the forward and port slits, and two seats. The exterior solids that would
-fill the room (glazing, lower bulkhead, brow and roof undersides) are hidden from the
-camera but still cast shadows, so sun through the slits is honest.
+The command deck is low and armoured: viewport slits from 18.6 to 19.45 units (about 55 cm
+of glass) at standing eye height. Workbench draws the glazing opaque, so it is hidden here.
 """
 import json
 import math
@@ -40,19 +35,17 @@ sys.path.insert(0, str(BASE.parents[2]))
 from blender_path import BLENDER  # noqa: E402
 
 SW_DIR = BASE.parents[1] / "second-wind-geometry"
-SW_BLEND = SW_DIR / "second-wind-geometry.blend"
+SW_BLEND = SW_DIR / "states" / "patched" / "second-wind-geometry.blend"   # C2 is the patched state
 
 # ---------------------------------------------------------------- the bridge (Second Wind units)
 SW_MPU = 0.65
-FLOOR_Z = 17.55            # just above the waist housing's top (17.5)
-SILL_Z = 18.6              # viewport sill ledge top
-HEADER_Z = 19.45           # visor brow underside
-CEILING_Z = 19.95          # under the armoured roof
-EYE_Z = 19.2               # seated eye, about 1.07 m above the floor
-# The glazing's plan (sw_bridge.plan(9.0, 17.9, 4.8, 2.0, .8)): forward face at x 17.9,
-# chamfers to the sides at |y| 4.8. The camera leans in toward the slit it is looking out of.
-STATION_FORWARD = (16.9, 1.1, EYE_Z)        # 1.0 unit (65 cm) behind the forward face
-STATION_PORT = (12.9, 3.8, EYE_Z)           # 1.0 unit inboard of the port side slits
+# The bridge is sw_bridge_interior's: floor z 16.6, slits 18.6 to 19.45, a standing bridge.
+EYE_Z = 19.2               # standing eye, about 1.69 m above the floor, mid-slit
+# The camera is someone standing at the slits: between the flight seats, leaning on the
+# forward console (its face is at x 16.85), then at the port comms bank (face at y 3.75),
+# a step forward of Castle.
+STATION_FORWARD = (16.75, 1.2, EYE_Z)       # on the dais's clear port side, leaning over the console
+STATION_PORT = (13.0, 3.6, EYE_Z)           # 1.05 units (70 cm) inboard of the port glass, at the bank
 LENS_MM = 22.0             # on a 36 mm sensor: 78.6 degrees across
 
 # ---------------------------------------------------------------- the pass (metres, Second Wind frame)
@@ -170,7 +163,7 @@ def plan(times, res):
             "legion_mpu": LEGION_MPU, "yaw": YAW_DEG, "roll": ROLL_DEG, "lens_mm": LENS_MM,
             "sun": list(C.SUN), "res": res, "samples": samples, "out": str(OUT),
             "planet_radius_m": C.PLANET_RADIUS_M, "altitude_m": C.ALTITUDE_M,
-            "bridge": {"floor": FLOOR_Z, "sill": SILL_Z, "header": HEADER_Z, "ceiling": CEILING_Z}}
+            "sw_dir": str(SW_DIR)}
 
 
 def launch(argv):
@@ -228,61 +221,18 @@ def blender_main(argv):
         o.color = (0.62, 0.60, 0.55, 1)
     sw_root.scale = (p["sw_mpu"],) * 3
 
-    # The exterior solids that fill the room: hidden from the camera, still casting shadows.
-    for name in ("Command deck viewport slits", "Command deck lower bulkhead", "Command deck visor brow",
-                 "Command deck armoured roof", "Viewport sill ledge"):
-        for o in bpy.data.objects:
-            if o.name == name or o.name.startswith(name + "."):
-                o.visible_camera = False
-                o.hide_render = True       # Workbench ignores ray visibility
-
-    b = p["bridge"]
-
-    def poly_plan(x0, x1, hw, cf, ca):
-        return [(x0 + ca, -hw), (x1 - cf, -hw), (x1, -hw + cf), (x1, hw - cf),
-                (x1 - cf, hw), (x0 + ca, hw), (x0, hw - ca), (x0, -hw + ca)]
-
-    def mesh(name, verts, faces, colour):
-        me = bpy.data.meshes.new(name)
-        me.from_pydata(verts, [], faces)
-        ob = bpy.data.objects.new(name, me)
-        scene.collection.objects.link(ob)
-        ob.parent = sw_root
-        ob.color = colour
-        return ob
-
-    def ring(name, poly, z0, z1, colour):
-        n = len(poly)
-        verts = [(x, y, z0) for x, y in poly] + [(x, y, z1) for x, y in poly]
-        faces = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
-        return mesh(name, verts, faces, colour)
-
-    def cap(name, poly, z, colour):
-        return mesh(name, [(x, y, z) for x, y in poly], [tuple(range(len(poly)))], colour)
-
-    def box(name, c, s, colour, rz=0.0):
-        bpy.ops.mesh.primitive_cube_add(size=1, location=c)
-        ob = bpy.context.active_object
-        ob.name = name
-        ob.scale = s
-        ob.rotation_euler[2] = rz
-        ob.parent = sw_root
-        ob.color = colour
-        return ob
-
-    dark, panel, seat = (0.10, 0.10, 0.11, 1), (0.22, 0.22, 0.23, 1), (0.16, 0.13, 0.11, 1)
-    inner = poly_plan(9.05, 17.85, 4.75, 1.98, 0.8)     # just inboard of the glazing
-    ring("C2B | bridge lower wall", inner, b["floor"], b["sill"], panel)
-    ring("C2B | bridge header wall", inner, b["header"], b["ceiling"], panel)
-    cap("C2B | bridge floor", inner, b["floor"], dark)
-    cap("C2B | bridge ceiling", inner, b["ceiling"], dark)
-    # Console run under the forward face and the port chamfer, and one along the port side.
-    box("C2B | forward console", (17.25, 0, 18.25), (1.0, 5.4, 0.7), panel)
-    box("C2B | port chamfer console", (16.75, 3.75, 18.25), (1.0, 2.4, 0.7), panel, math.radians(45))
-    box("C2B | port side console", (12.8, 4.25, 18.25), (3.6, 0.9, 0.7), panel)
-    for y in (-1.6, 1.6):
-        box("C2B | seat back", (14.9, y, 18.6), (0.25, 1.2, 1.6), seat)
-        box("C2B | seat pan", (15.4, y, 18.05), (1.1, 1.2, 0.2), seat)
+    # The bridge is the model's own (sw_bridge_interior), cut into the command deck. Workbench
+    # draws the glazing opaque, so it is hidden here; the figures are added, never saved.
+    for o in bpy.data.objects:
+        if o.name.startswith("Command deck viewport slits"):
+            o.hide_render = True
+        if o.type == "MESH" and o.data.materials and o.data.materials[0] is not None:
+            o.color = o.data.materials[0].diffuse_color
+    sys.path.insert(0, p["sw_dir"])
+    import sw_bridge_interior
+    for root in sw_bridge_interior.figures(p["sw_mpu"], parent=sw_root):
+        for ch in root.children_recursive:
+            ch.color = ch.data.materials[0].diffuse_color
 
     # Legion: appended, rooted, scaled to metres.
     with bpy.data.libraries.load(p["legion_blend"], link=False) as (src, dst):

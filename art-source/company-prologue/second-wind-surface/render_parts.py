@@ -55,7 +55,8 @@ for part in MINE:
     area = sum(bpy.data.objects[n].data.polygons[i].area for n, idx in faces.items() for i in idx)
     listing[part] = {
         'what': spec['what'], 'sheet': P.sheet_of(src)[0], 'tile': P.sheet_of(src)[1], 'skin_from': spec.get('skin_from'),
-        'members': [{'object': n, 'seed': list(s), 'faces': faces[n]} for n, s in spec['members']],
+        'members': [{'object': n, 'seed': s if s is None or isinstance(s, dict) else list(s), 'faces': faces[n]}
+                    for n, s in spec['members']],
         'face_count': sum(len(v) for v in faces.values()), 'area_units2': round(area, 2),
         'view_dir': list(spec['dir']), 'screen_up': list(spec['up']), 'cone_cos': spec['cone'],
         'extent_units': [round(ext['w'], 2), round(ext['h'], 2)],

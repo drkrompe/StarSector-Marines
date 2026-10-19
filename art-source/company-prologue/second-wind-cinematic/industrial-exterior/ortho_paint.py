@@ -6,7 +6,7 @@ back over the scene from directly above. The geometry-first rule (`art-source/ge
 imagegen.md`) holds: this code owns every edge, ImageGen only paints material inside them.
 
     blender --background --factory-startup --python ortho_paint.py -- guide <tile> [<tile> ...]
-    python  ortho_paint.py paint <tile>                    (outside Blender: one paid generation)
+    python  ortho_paint.py paint <tile> [--style <tile>]   (outside Blender: one paid generation)
 
 Tiles are listed in `ortho/tiles-<layer>.json`: a name, a centre and size in metres, and a pixel
 size. A list's `layer` orders it: coarse tiles over the whole port first, finer ones over them.
@@ -19,9 +19,11 @@ provenance. Guides are regenerated, never committed; the paint, its prompt and p
 A tile is used by the scene once it is marked `"accepted": true` in its list: `apply(scene)` lays
 every accepted tile over the materials of the static objects (`obj['ortho'] = 1`), on faces that
 look up, and leaves walls and anything moving alone. Tiles later in the list lie over earlier ones,
-their edges feathered so neighbouring paintings blend rather than seam.
+their edges feathered so neighbouring paintings blend rather than seam (a tile's optional
+`feather`, in metres, widens or narrows that blend; it should stay within half its overlap).
 """
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -75,6 +77,7 @@ def ship_names(c4):
 def render_guides(names):
     import bpy
     sys.path.insert(0, str(HERE))
+    os.environ['ORTHO_PAINT_OFF'] = '1'           # a guide is drawn from the blockout, never from paint
     import c4x_scene as c4
     scene = c4.build()
     scene.frame_set(c4.FRAMES - 1)
@@ -90,8 +93,15 @@ def render_guides(names):
             p = p.parent
     for m in bpy.data.materials:                  # the flat renderer reads each material's display colour
         bsdf = m.node_tree and next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
-        if bsdf is not None and not bsdf.inputs['Base Color'].links:
-            m.diffuse_color = bsdf.inputs['Base Color'].default_value
+        if bsdf is None:
+            continue
+        base = bsdf.inputs['Base Color']
+        if not base.links:
+            m.diffuse_color = base.default_value
+        elif base.links[0].from_node.type == 'MIX':      # a patterned material (crop rows): its mean colour
+            mix = base.links[0].from_node
+            a, b = mix.inputs['A'].default_value, mix.inputs['B'].default_value
+            m.diffuse_color = [(x + y) / 2 for x, y in zip(a, b)]
     scene.render.engine = 'BLENDER_WORKBENCH'
     sh = scene.display.shading
     sh.light = 'FLAT'
@@ -126,6 +136,8 @@ def render_guides(names):
 def apply(scene, ships=()):
     """Lay every accepted tile over the static objects' materials, on upward faces only."""
     import bpy
+    if os.environ.get('ORTHO_PAINT_OFF'):
+        return 0
     accepted = [(t, ORTHO / 'raw' / (t['name'] + '.png')) for t in tiles().values() if t.get('accepted')]
     accepted = [(t, p) for t, p in accepted if p.exists()]
     if not accepted:
@@ -175,11 +187,13 @@ def apply(scene, ships=()):
             tex.extension = 'CLIP'
             tex.interpolation = 'Linear'
             nt.links.new(uv.outputs[0], tex.inputs['Vector'])
-            # feather: full strength from FEATHER metres inside the tile's edge, nothing at the edge
+            # feather: full strength from `feather` metres inside the tile's edge, nothing at the edge.
+            # At most half the tile's overlap with the one beneath, so this blend ends before that one fades.
+            feather = t.get('feather', FEATHER)
             fu = math_node(nt, 'MINIMUM', u, math_node(nt, 'SUBTRACT', 1.0, u))
             fv = math_node(nt, 'MINIMUM', v, math_node(nt, 'SUBTRACT', 1.0, v))
-            edge = math_node(nt, 'MINIMUM', math_node(nt, 'MULTIPLY', fu, w / FEATHER),
-                             math_node(nt, 'MULTIPLY', fv, h / FEATHER))
+            edge = math_node(nt, 'MINIMUM', math_node(nt, 'MULTIPLY', fu, w / feather),
+                             math_node(nt, 'MULTIPLY', fv, h / feather))
             edge = math_node(nt, 'MINIMUM', math_node(nt, 'MAXIMUM', edge, 0.0), 1.0)
             k = math_node(nt, 'MULTIPLY', math_node(nt, 'MULTIPLY', tex.outputs['Alpha'], edge), gate.outputs[0])
             mix = nt.nodes.new('ShaderNodeMix')
@@ -208,7 +222,7 @@ def math_node(nt, op, a, b, c=None):
 
 # ---------------------------------------------------------------- outside Blender
 
-def paint(name):
+def paint(name, style=None):
     guide = ORTHO / 'guides' / (name + '.png')
     if not guide.exists():
         raise SystemExit('render the guide first: %s' % guide)
@@ -219,6 +233,10 @@ def paint(name):
     out = ORTHO / 'raw' / (name + '.png')
     cmd = [sys.executable, str(REPO / 'tools' / 'codex_imagegen.py'), '--prompt', str(full), '--out', str(out),
            '--ref', '%s=%s' % (guide, 'EDIT TARGET: the overhead guide to repaint; keep every edge where it is')]
+    if style:                                     # an accepted neighbour: same materials, same finish
+        cmd += ['--ref', '%s=%s' % (ORTHO / 'raw' / (style + '.png'),
+                                    'STYLE REFERENCE: an already painted neighbouring tile of the same place. '
+                                    'Match its materials, colours, wear and finish exactly; do not copy its layout')]
     raise SystemExit(subprocess.call(cmd))
 
 
@@ -227,4 +245,4 @@ if __name__ == '__main__':
     if argv[0] == 'guide':
         render_guides(argv[1:])
     elif argv[0] == 'paint':
-        paint(argv[1])
+        paint(argv[1], argv[argv.index('--style') + 1] if '--style' in argv else None)

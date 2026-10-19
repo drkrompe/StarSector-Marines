@@ -4,23 +4,32 @@ Every slot is read from paragon.ship and placed at its location, resting at its
 slot angle; the build fails if the installed file disagrees. A turret is a
 well cut into the hull along the local surface normal (`Weapon <slot> well`,
 lined dark), a fixed barbette in it (`Weapon <slot> barbette`) and a pivot empty (`Weapon <slot>
-pivot`) at the traverse gap, parenting the trainable parts (housing, emitters)
-and a `Weapon <slot> muzzle` empty per barrel. Rotate the pivot about its
-local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint` (anchor),
-housing, emitter and muzzle.
+pivot`) at the traverse gap, parenting the trainable gun. Rotate the pivot
+about its local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint`
+(anchor), housing, emitter and muzzle.
 
-Each turret carries its gun, read off the game's weapon sprite (pg_weapons:
-tachyon lance, graviton beam, tactical laser, reaper), sitting low in its well.
+Each turret carries its gun from the shared turret kit (turret-kit/turret_kit.py:
+tachyon lance, graviton beam, tactical laser, reaper, each matched to its game
+sprite), dressed in the hull's hex ceramic mixed halfway toward the sprite's
+colour (hull_finish, sprite_tint) and sitting low in its
+well. The kit hangs `Weapon <slot> elevation` on the pivot and `Weapon <slot>
+muzzle anchor <k>` on that, +X along the line of fire.
 The two capital mounts in the prow bays keep their housing and emitter. Barbette radii are read off the sprite's turret
 wells (large 14, medium 10.5, small 6.5 units).
 """
 import math
+import sys
+from pathlib import Path
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 import pg_kit as K
 import pg_hull
-import pg_weapons
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+import turret_kit as tk
+
+WEAPON_OF = {'LARGE': 'tachyonlance', 'MEDIUM': 'gravitonbeam', 'SMALL': 'taclaser'}
 
 SLOTS = [  # id, location, angle, arc, size, type, mount
     ('WS 001', (163, 16), 0, 5, 'LARGE', 'ENERGY', 'HARDPOINT'),
@@ -60,7 +69,24 @@ SPEC = {
     'SMALL':  dict(r=6.5, collar=1.6, hr=4.6, hh=3.0, length=12.0, er=.7, n=1),
 }
 RECORDS = []
-SPRITE_IOU = {}   # each gun's top silhouette against its weapon sprite
+
+
+def weapon_for(size, typ, elite):
+    """The kit weapon on a slot: the Elite variant's, else the size's beam; missiles are reapers."""
+    if typ == 'MISSILE':
+        return 'reaper'
+    if elite in ('tachyonlance', 'gravitonbeam', 'taclaser'):
+        return elite
+    return WEAPON_OF[size]
+
+
+def gun_mats(kit, weapon):
+    """The hull's own finish for the kit's material keys: pale hex ceramic armour (the
+    kit tints it halfway toward the sprite's colour, sprite_tint), the graviton's blue
+    plate, light ceramic fittings, slate bases, dark recesses and the hull's lamps."""
+    paint = kit.weapon_blue if weapon == 'gravitonbeam' else kit.pale
+    return {'armour': kit.pale, 'plate': kit.pale, 'paint': paint, 'accent': kit.white, 'metal': kit.steel,
+            'steel': kit.slate, 'dark': kit.tech, 'lamp_blue': kit.glow, 'lamp_red': kit.glow_red}
 
 
 def housing_profile(hr, hh):
@@ -199,16 +225,17 @@ def turret(kit, sid, loc, angle, arc, size, typ):
     pivot['arc_deg'] = arc
     pivot['size'] = size
     pivot['type'] = typ
-    # The gun, built from its weapon sprite at the game's scale (pg_weapons.sprite_gun): its foot
-    # sits just under the well's rim, so the parts reaching past the dimple clear the plate.
-    weapon = pg_weapons.weapon_for(size, typ, ELITE.get(sid))
-    parts, muzzles = pg_weapons.build_gun(kit, f'Weapon {sid}', weapon, D-spec['collar']-.3)
-    if weapon not in SPRITE_IOU:
-        SPRITE_IOU[weapon] = round(pg_weapons.sprite_iou(parts, weapon), 3)
-    mz = [kit.empty(f'Weapon {sid} muzzle {j+1}' if len(muzzles) > 1 else f'Weapon {sid} muzzle', p, 0,
-                    'SINGLE_ARROW', 3) for j, p in enumerate(muzzles)]
-    bpy.context.view_layer.update()
-    parent(parts+mz, pivot)
+    # The gun, from the turret kit at the game's scale (its nominal ring, one sprite pixel a
+    # unit): its foot drops to just under the well's rim, so the parts reaching past the
+    # dimple clear the plate.
+    weapon = weapon_for(size, typ, ELITE.get(sid))
+    ring = tk.NOMINAL_RING[tk.sprite(weapon)['size']]
+    t = tk.build(weapon, f'Weapon {sid}', pivot, ring, gun_mats(kit, weapon), kit.mpu, hull_finish=True, sprite_tint=.5)
+    dz = D-spec['collar']-.3-tk.GAP*ring
+    for ob in t['parts']+[t['elevation']]:
+        if ob.parent == pivot:
+            ob.location.z += dz
+    mz = t['muzzles']
     pivot.matrix_world = M @ Matrix.Translation((0, 0, ztop)) @ Matrix.Rotation(math.radians(angle), 4, 'Z')
     bpy.context.view_layer.update()
     p = pivot.matrix_world.translation
@@ -248,7 +275,6 @@ def hardpoint(kit, sid, loc, angle, arc, size, typ):
 
 def build(kit):
     RECORDS.clear()
-    SPRITE_IOU.clear()
     for sid, loc, angle, arc, size, typ, mount in SLOTS:
         if mount == 'HARDPOINT':
             hardpoint(kit, sid, loc, angle, arc, size, typ)

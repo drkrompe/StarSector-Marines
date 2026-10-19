@@ -74,6 +74,10 @@ public final class MechFabricationCatalog {
             // stocked with, the spotter's the rare metals in its salvaged sensor mast.
             vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 55, 25, 70, 4),
             vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 25, 35, 55, 12),
+            // The rocket pickup is a stripped pickup plus a mech SRM-5's bill for its pod.
+            vehicle(VehicleType.SRM_TECHNICAL, "@gearFabricationFieldRig", 38, 27, 72, 6),
+            // The missile carrier is the heavy APC's hull bill plus two LRM-15 racks' bills.
+            vehicle(VehicleType.LRM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 82, 48, 148, 13),
             // Tri-Tachyon's hover line is a corporate pattern, not a rig: lift fans, sensor clusters and drone
             // control are rare metals, and the composite skirt is light on plate.
             vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 28, 40, 50, 24),

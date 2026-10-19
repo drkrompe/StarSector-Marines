@@ -9,6 +9,8 @@ the muzzle, +y to port. Polygons are traced pixel outlines simplified to
 straight edges (so a staircase becomes a chamfer), counter-clockwise.
 
   body      the base sprite's outline with prongs under 3 px opened away
+  bodies    every part of that opened outline at least a fifth of the largest
+            (two halves where a slot splits the sprite down its line of fire)
   under     the under sprite's outline, where the weapon has one (Squall)
   prongs    what the opening removed: sight posts, rails, thin arms
   slots     dark detail inside the body (vents, grilles, embrasures, ladders)
@@ -36,6 +38,8 @@ WEAPONS = {   # kit id -> .wpn id
     'heavymauler': 'heavymauler', 'hveldriver': 'hveldriver', 'devastator': 'devastator',
     'mark9': 'mark9', 'hellbore': 'hellbore', 'hephaestus': 'hephag', 'needler': 'heavyneedler',
     'squall': 'squall', 'hurricane': 'hurricane',
+    # Tri-Tachyon (the Paragon's Elite fit): beams have no gun sprite, the reaper is drawn loaded.
+    'tachyonlance': 'tachyonlance', 'gravitonbeam': 'gravitonbeam', 'taclaser': 'taclaser', 'reaper': 'reaper',
 }
 ALPHA = 40
 # Second paints, sRGB, read off each base sprite; MAIN_HINT is its body paint
@@ -86,6 +90,61 @@ def components(m, min_px=1):
 
 def outline(cells):
     """Outer boundary of a 4-connected pixel set as grid corners (i, j)."""
+    return max(loops_of(cells), key=lambda lp: abs(_area(lp)))
+
+
+def _area(lp):
+    return sum(a[1]*b[0]-b[1]*a[0] for a, b in zip(lp, lp[1:]+lp[:1]))/2
+
+
+def outer_loops(cells, share=.2):
+    """Every outer boundary loop at least `share` of the largest: a pixel set that
+    pinches to one pixel corner (the tachyon lance either side of its beam slot)
+    traces as two loops, of which outline() keeps only the larger."""
+    loops = pinched_loops(cells)
+    big = max(loops, key=lambda lp: abs(_area(lp)))
+    sign = _area(big) > 0
+    return [lp for lp in loops if (_area(lp) > 0) == sign and abs(_area(lp)) >= share*abs(_area(big))]
+
+
+def pinched_loops(cells):
+    """Every boundary loop, split where the set pinches to a shared pixel corner.
+    loops_of keys edges by their start corner, so at a pinch one edge overwrites
+    the other and a loop jumps across; here a corner keeps every edge leaving it,
+    and the walk turns left first, hugging the pixel it is going round."""
+    cs = set(cells)
+    out = {}
+    for i, j in cs:
+        for a, b, open_ in (((i, j+1), (i, j), (i-1, j)), ((i+1, j), (i+1, j+1), (i+1, j)),
+                            ((i, j), (i+1, j), (i, j-1)), ((i+1, j+1), (i, j+1), (i, j+1))):
+            if open_ not in cs:
+                out.setdefault(a, []).append(b)
+    loops = []
+    while out:
+        start = next(iter(out))
+        prev, cur = start, out[start].pop()
+        if not out[start]:
+            del out[start]
+        loop = [start]
+        while cur != start:
+            loop.append(cur)
+            ends = out[cur]
+            din = (cur[0]-prev[0], cur[1]-prev[1])
+            # left of travel with interior on the left: (di, dj) -> (-dj, di) in (row, col)
+            def rank(e, din=din, cur=cur):
+                d = (e[0]-cur[0], e[1]-cur[1])
+                return 0 if d == (-din[1], din[0]) else 1 if d == din else 2
+            nxt = min(ends, key=rank)
+            ends.remove(nxt)
+            if not ends:
+                del out[cur]
+            prev, cur = cur, nxt
+        loops.append(loop)
+    return loops
+
+
+def loops_of(cells):
+    """Every boundary loop of a pixel set as grid corners (i, j), interior on the left."""
     cs = set(cells)
     edges = {}
     for i, j in cs:          # directed boundary edges, interior on the left
@@ -105,10 +164,7 @@ def outline(cells):
             loop.append(nxt)
             nxt = edges.pop(nxt)
         loops.append(loop)
-
-    def area(lp):
-        return sum(a[1]*b[0]-b[1]*a[0] for a, b in zip(lp, lp[1:]+lp[:1]))/2
-    return max(loops, key=lambda lp: abs(area(lp)))
+    return loops
 
 
 def simplify(pts, tol):
@@ -130,8 +186,8 @@ def simplify(pts, tol):
     return a[:-1]+b[:-1]
 
 
-def poly(cells, cx, cy, tol=.75):
-    lp = simplify(outline(cells), tol)
+def poly(cells, cx, cy, tol=.75, loop=None):
+    lp = simplify(loop or outline(cells), tol)
     pts = [(round(cy-i, 2), round(cx-j, 2)) for i, j in lp]          # (x forward, y port)
     s = sum(a[0]*b[1]-b[0]*a[1] for a, b in zip(pts, pts[1:]+pts[:1]))
     return pts if s > 0 else pts[::-1]
@@ -161,7 +217,11 @@ def main():
         px = base.load()
         solid = grid(base, lambda p: p[3] > ALPHA)
         body_m = morph(morph(solid, all), any)
-        body_c = max(components(body_m), key=len)
+        comps = components(body_m)
+        body_c = max(comps, key=len)
+        # A sprite split down its line of fire (the tachyon lance's open beam slot)
+        # comes apart into halves: every outer loop at least a fifth of the largest.
+        bodies = [poly(None, cx, cy, loop=lp) for c in comps if len(c) >= .2*len(body_c) for lp in outer_loops(c)]
         body_set = set(body_c)
         inner = morph([[(i, j) in body_set for j in range(base.width)] for i in range(base.height)], all)
         vals = [px[j, i] for i, j in body_c if inner[i][j]]
@@ -239,7 +299,7 @@ def main():
             under = poly(max(components(um), key=len), ui.width/2, ui.height/2)
         out[kid] = {'wpn': wid, 'under': under, 'size': re.search(r'"size"\s*:\s*"(\w+)"', t).group(1),
                     'sprite_px': [base.width, base.height],
-                    'body': poly(body_c, cx, cy), 'prongs': prongs, 'slots': slots, 'panels': panels,
+                    'body': poly(body_c, cx, cy), 'bodies': bodies, 'prongs': prongs, 'slots': slots, 'panels': panels,
                     'barrels': barrels, 'colours': colours,
                     'offsets': [nums[k:k+2] for k in range(0, len(nums)-1, 2)],
                     'barrel_mode': (re.search(r'"barrelMode"\s*:\s*"(\w+)"', t) or [None, None])[1],

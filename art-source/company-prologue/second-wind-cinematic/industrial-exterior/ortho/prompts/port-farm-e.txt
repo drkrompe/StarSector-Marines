@@ -1,0 +1,9 @@
+This tile: 960 m wide by 640 m tall, so one pixel is about 62 cm. It is farmland just outside the port's industrial belt: big rectangular fields seen from very high up, with a ditch and a verge along the top edge where the belt begins. Paint it like a real high-altitude aerial survey photograph of tropical farmland.
+
+What the regions are:
+- The large rectangles in shades of green, olive and khaki: crop fields, one crop to a field. Each field shows its crop rows as fine straight parallel lines about 11 m apart (about 18 pixels): in some fields the rows run left to right, in others top to bottom, never diagonal. The greener fields are growing crops, dense green rows over dark wet soil; the olive ones are younger crops with more soil showing; the khaki and tan ones are ripe grain or harvested stubble with dry straw-coloured rows. Vary the tone a little inside each field (wetter and drier patches, a few thin spots), but keep each field's own colour.
+- The narrow grey-brown strips between the fields: grass margins and dirt field edges, a few metres wide.
+- The pale tan straight strips (one running top to bottom, one left to right): farm tracks of packed tan gravel and dirt with two tyre ruts and puddles.
+- The dark green lines along many field edges, including the one down the far left edge: hedgerows of dense bushes and small trees, seen from above as lumpy dark green leafy lines. Keep them exactly as wide and as straight as drawn.
+- The round dark green blobs: small clumps of tree crowns, leafy canopy seen from above.
+- The strip along the top edge: at the very top a band of rough grassy verge with weeds; below it the blue-grey line is a drainage ditch of dark, still, muddy water with reeds along its banks; below that a strip of bare brown dirt before the first fields.
