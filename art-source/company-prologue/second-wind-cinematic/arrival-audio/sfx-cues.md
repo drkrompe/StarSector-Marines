@@ -126,9 +126,12 @@ sketch (0–16) and the C5 sketch (16–49.5) back to back. Times below are on t
 C5's own beats are at their C5 time + 16.
 
 Second Wind brakes into a hover at 6.6 and touches down at 11.0 in a ring of dust. The yard
-vehicles roll from 14.2; the customs car is in by 21. Castle's in-flight line is now about
-where they are going: "Greywater's past the cranes. Let me do the talking." from 1.0 (owner:
-the line said after landing came off wrong). Her all-hands is on the loudspeaker from 21.0,
+vehicles roll from 14.2; the customs car is in by 21. Castle's in-flight lines are about where
+they are going (owner: the line said after landing came off wrong): "Greywater's past the
+cranes. Let me do the talking." from 0.5, then "Look for the fenced yard on the east side.
+Kilo Nine. Mind your manners down there; it's a favour." from 4.6 to about 10.9, with "Kilo
+Nine" as the camera settles over the yard. The landing burn is ducked 5 dB under it and
+comes back for the touchdown. Her all-hands is on the loudspeaker from 21.0,
 the ramp drops at 24, the camera rises 34–42, her last line ends at 40, the title from 41,
 black by 49.
 

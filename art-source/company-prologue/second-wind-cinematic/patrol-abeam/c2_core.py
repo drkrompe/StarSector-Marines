@@ -270,7 +270,7 @@ HEAT = (0.15, 2.40, 4.60, 5.70)            # heat glow: starts, full, starts to 
 SMOKE = (1.60, 3.00, 4.80, 5.60)           # smoke torn off the sheath: in, full, thinning, gone
 CLOUD_IN = (4.10, 5.40)                    # cloud streams across and over the flames
 WHITE = (5.40, 6.00)                       # cloud whiteout
-BLOOM = (6.10, 6.50, 6.96)                 # rise, peak (C2 cabin exchanged for C3's), back to C3 frame 0
+SETTLE = (6.00, 6.90)                      # the last of the cloud settles onto C3's frame 0
 # The same phases under the names the blockout and guide sheets (compose_blockout.py,
 # make_guides.py) were drawn with.
 GLOW_IN, GLOW_HOLD, WHITE_HOLD = (HEAT[0], HEAT[1]), (HEAT[1], HEAT[2]), WHITE

@@ -134,6 +134,9 @@ YOKE_MOUNT = (0.50, 0.0, 0.40)
 YOKE_RISE, YOKE_HEAD = 40.0, 18.0
 YOKE_STOWED, YOKE_OUT = 0.02, 0.40
 YOKE_GRIP = (0.17, 0.035)
+YOKE_GRIP_AFT = 0.03                       # the handles stand this far aft of the hub, toward him
+YOKE_GRIP_R = 0.022                        # the handles' radius: a fist's worth of rubber
+# Built heavy (owner, 2026-10-19: the first one read flimsy): a ship's helm, not a game controller.
 YOKE_COLUMN = 0.55
 YOKE_PUSH, YOKE_TURN = 0.05, 10.0          # m in along the column, degrees (positive: rolls to port)
 
@@ -143,18 +146,18 @@ YOKE_PUSH, YOKE_TURN = 0.05, 10.0          # m in along the column, degrees (pos
 # seat, elbows bent at his sides; he pushes it for the de-orbit and turns it a little. Each:
 # slide (m his hips move forward on the pan), spine lean (degrees forward from upright; the seat
 # back reclines 8), head lift (negative raises the chin), head turn (positive to port), the
-# elbows' pole from the shoulder (fwd, side out, z), finger curl left and right; at rest the
-# wrists (fwd, side, z) left and right, at the helm the yoke's state (how far out along the
-# column m, turn degrees) whose grips the hands hold.
+# elbows' pole from the shoulder (fwd, side out, z); at rest the wrists (fwd, side, z) and the
+# fingers' curl, left and right; at the helm the yoke's state (how far out along the column m,
+# turn degrees) whose grips the hands close round.
 RELAXED = dict(slide=0.0, lean=-6.0, head_lift=2.0, head_turn=6.0,
                wrists=((0.1, 0.27, 0.565), (0.08, -0.27, 0.565)),
                elbow_pole=(-0.6, 0.35, -0.8), curl=(30, 34))
 REACH = dict(slide=0.06, lean=22.0, head_lift=-20.0, head_turn=3.0, yoke=(YOKE_STOWED, 0.0),
-             elbow_pole=(-0.3, 0.8, -0.7), curl=(68, 68))
+             elbow_pole=(-0.3, 0.8, -0.7))
 DRAWING = dict(slide=0.03, lean=11.0, head_lift=-10.0, head_turn=3.0,
-               yoke=((YOKE_STOWED + YOKE_OUT) / 2, 0.0), elbow_pole=(-0.4, 0.65, -0.8), curl=(68, 68))
+               yoke=((YOKE_STOWED + YOKE_OUT) / 2, 0.0), elbow_pole=(-0.4, 0.65, -0.8))
 FLYING = dict(slide=0.0, lean=1.0, head_lift=-3.0, head_turn=3.0, yoke=(YOKE_OUT, 0.0),
-              elbow_pole=(-0.5, 0.5, -0.9), curl=(68, 68))
+              elbow_pole=(-0.5, 0.5, -0.9))
 PUSHED = dict(FLYING, lean=4.0, head_lift=-6.0, yoke=(YOKE_OUT - YOKE_PUSH, 0.0))
 TURNED = dict(PUSHED, head_turn=6.0, yoke=(YOKE_OUT - YOKE_PUSH, YOKE_TURN))
 # When, in C2 seconds (24 fps, frame = t x 24): relaxed through the hail; in to the stowed yoke
@@ -340,6 +343,44 @@ def blender_main(argv):
             aim(name, end - joint)
         return end
 
+    def rest_palm(side):
+        """The way the palm faces in the rig's rest pose, measured off the hand's bones: square to
+        the fingers and across the knuckles, on the side the fingers curl toward."""
+        w = bones["wrist." + side]
+        f = (w.tail_local - w.head_local).normalized()
+        a = (bones["finger5-1." + side].head_local - bones["finger2-1." + side].head_local).normalized()
+        n = f.cross(a).normalized()
+        d1 = bones["finger3-1." + side].tail_local - bones["finger3-1." + side].head_local
+        d3 = bones["finger3-3." + side].tail_local - bones["finger3-3." + side].head_local
+        return n if n.dot(d3.normalized() - d1.normalized()) > 0 else -n
+
+    def wrap(name, centre, axis, toward, radius):
+        """Aim a finger bone along the circle of `radius` round a bar (its centre and axis), the
+        way round whose tangent leads toward `toward`: the bone's tail lands on that circle one
+        bone-length further round from its head."""
+        pb = pbs[name]
+        h = pb.head.copy()
+        rel = h - centre
+        along = axis * axis.dot(rel)
+        radial = rel - along
+        if radial.length < 1e-6:
+            return
+        u = radial.normalized()
+        sgn = 1 if axis.cross(u).dot(toward) > 0 else -1
+        theta = sgn * pb.bone.length / radius
+        tail = centre + along + (Matrix.Rotation(theta, 3, axis) @ u) * radius
+        aim(name, tail - h)
+
+    def grip_hand(side, centre, axis, f, p):
+        """Close the hand round a bar under the palm: each finger wraps it forward from the
+        knuckle and back round its inner side; the thumb crosses behind it the other way."""
+        for k in range(2, 6):
+            for j in range(1, 4):
+                wrap("finger%d-%d.%s" % (k, j, side), centre, axis, f, YOKE_GRIP_R + 0.011)
+        aim("finger1-1." + side, f * 0.3 + p * 0.9)
+        for j in (2, 3):
+            wrap("finger1-%d.%s" % (j, side), centre, axis, p, YOKE_GRIP_R + 0.013)
+
     def curl(side, finger_deg, thumb_deg, palm):
         n = Vector(palm).normalized()
         for f in range(1, 6):
@@ -376,7 +417,8 @@ def blender_main(argv):
 
     def grip(side, out, turn):
         sgn = 1 if side == "L" else -1
-        return yoke_frame(out, turn) @ mp(0, sgn * YOKE_GRIP[0], YOKE_GRIP[1])
+        # The middle of the handle he holds, which flares out a little toward its top.
+        return yoke_frame(out, turn) @ mp(-YOKE_GRIP_AFT, sgn * (YOKE_GRIP[0] + 0.006), YOKE_GRIP[1])
 
     def solve(spec):
         """Pose him from the rest pose: legs on the dais, the spine and head, arms to the wrists.
@@ -409,7 +451,9 @@ def blender_main(argv):
                 R = yoke_frame(out, turn).to_3x3()
                 fingers = R @ mp(1.0, 0, 0.35)
                 palm = R @ mp(0, -sgn, 0)
-                wrist = grip(side, out, turn) - fingers.normalized() * 0.075 - palm * 0.03
+                bar = local(grip(side, out, turn))
+                bar_axis = (R @ mp(0, sgn * 0.012, 0.125)).normalized()
+                wrist = grip(side, out, turn) - fingers.normalized() * 0.075 - palm * (YOKE_GRIP_R + 0.014)
             else:           # over the armrest's end, palm down, fingers drooping
                 f, s_, z = spec["wrists"][k]
                 wrist = mp(f, s_, z)
@@ -417,9 +461,11 @@ def blender_main(argv):
                 palm = mp(0.3, 0, -1.0)
             two_bone(["upperarm01." + side, "upperarm02." + side], ["lowerarm01." + side, "lowerarm02." + side],
                      local(wrist), sh + mp(pole[0], sgn * pole[1], pole[2]))
-            rest_palm = Vector((-1.0, 0, 0)) if side == "L" else Vector((1.0, 0, 0))
-            orient("wrist." + side, fingers, palm, rest_palm)
-            curl(side, spec["curl"][k], 35 if "yoke" in spec else 12, palm)
+            orient("wrist." + side, fingers, palm, rest_palm(side))
+            if "yoke" in spec:
+                grip_hand(side, bar, bar_axis, fingers.normalized(), palm.normalized())
+            else:
+                curl(side, spec["curl"][k], 12, palm)
         return {pb.name: pb.matrix_basis.copy() for pb in pbs}
 
     relaxed = solve(RELAXED)
@@ -694,30 +740,35 @@ def blender_main(argv):
     # column): a sleeve block under the face's overhang, its aft face square to the column.
     mount = mp(*YOKE_MOUNT)
     along = tilt(YOKE_RISE)
-    hw, hh, hd = 0.12, 0.10, 0.11            # housing width, height, depth along the column
+    hw, hh, hd = 0.20, 0.17, 0.14            # housing width, height, depth along the column
 
     def boss(bm):
         bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mount) @ along
                               @ Matrix.Translation(mp(hd / 2, 0, 0)) @ Matrix.Diagonal((hw, hd, hh, 1)))
-        tube(bm, mount + along @ mp(0.02, 0, 0), mount - along @ mp(0.025, 0, 0), 0.034, 20)   # the boot
+        tube(bm, mount + along @ mp(0.02, 0, 0), mount - along @ mp(0.012, 0, 0), 0.066, 24)   # the flange
+        for k, r in enumerate((0.058, 0.052, 0.058, 0.05)):                        # the bellows boot
+            tube(bm, mount - along @ mp(0.012 + k * 0.012, 0, 0), mount - along @ mp(0.024 + k * 0.012, 0, 0), r, 24)
         for sy, sz in ((1, 1), (1, -1), (-1, 1), (-1, -1)):                       # bolts on its aft face
-            c = mount + along @ mp(0, sy * hw * 0.36, sz * hh * 0.36)
-            tube(bm, c, c - along @ mp(0.008, 0, 0), 0.008, 6)
+            c = mount + along @ mp(0, sy * hw * 0.38, sz * hh * 0.38)
+            tube(bm, c, c - along @ mp(0.012, 0, 0), 0.012, 6)
         lever = mount + along @ mp(-0.01, hw / 2, hh * 0.15)                    # the column lock
-        tube(bm, lever, lever + along @ mp(-0.05, 0.02, 0.012), 0.006, 8)
-        tube(bm, lever + along @ mp(-0.05, 0.02, 0.012), lever + along @ mp(-0.058, 0.022, 0.014), 0.011, 10)
+        tube(bm, lever, lever + along @ mp(-0.07, 0.03, 0.015), 0.01, 10)
+        tube(bm, lever + along @ mp(-0.07, 0.03, 0.015), lever + along @ mp(-0.085, 0.034, 0.018), 0.018, 12)
     solid("yoke housing", boss, "yoke boss", yoke)
 
     def col_(bm):                   # the column runs from the hub forward and down into the housing
-        tube(bm, mp(0, 0, 0), mp(YOKE_COLUMN, 0, 0), 0.018, 16)
+        tube(bm, mp(0, 0, 0), mp(YOKE_COLUMN, 0, 0), 0.034, 24)
+        tube(bm, mp(0.02, 0, 0), mp(0.06, 0, 0), 0.042, 24)                      # the clamp collar
         for k in range(1, 9):       # its graduations: where he set it is the first thing a relief reads
-            tube(bm, mp(0.05 + k * 0.04, 0, 0), mp(0.054 + k * 0.04, 0, 0), 0.0195, 16)
+            tube(bm, mp(0.06 + k * 0.04, 0, 0), mp(0.065 + k * 0.04, 0, 0), 0.0365, 24)
     column = solid("yoke column", col_, "yoke", yoke, hub_at(YOKE_STOWED))
     column.rotation_mode = "XYZ"
     column.rotation_euler = along.to_euler()
 
     def head_(bm):                  # the knuckle that sets the wheel back less steeply than the column
-        tube(bm, mp(-0.005, 0, 0), mp(0.07, 0, 0), 0.03, 20)
+        tube(bm, mp(-0.02, 0, 0), mp(0.07, 0, 0), 0.05, 24)
+        bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mp(-0.02, 0, -0.005))
+                              @ Matrix.Diagonal((0.13, 0.07, 0.09, 1)))
     wheel = bpy.data.objects.new("Pilot yoke wheel", None)
     scene.collection.objects.link(wheel)
     wheel.parent = column
@@ -729,16 +780,23 @@ def blender_main(argv):
 
     def frame_(bm):
         for sgn in (1, -1):         # the bar out to each grip's foot, sweeping back a little
-            tube(bm, mp(-0.01, 0, 0), mp(-0.03, sgn * gw, gz - 0.045), 0.014, 10)
+            tube(bm, mp(-0.02, sgn * 0.05, -0.01), mp(-YOKE_GRIP_AFT, sgn * gw, gz - 0.07), 0.024, 16)
+        # the crossbeam under the bars, flat-faced toward him
+        bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(mp(-0.026, 0, -0.03))
+                              @ Matrix.Diagonal((2 * gw - 0.03, 0.035, 0.03, 1)))
     solid("yoke wheel frame", frame_, "yoke", wheel)
 
     def grips(bm):
         for sgn in (1, -1):         # the handles, flared out a touch at the top
-            tube(bm, mp(-0.03, sgn * gw, gz - 0.06), mp(-0.03, sgn * (gw + 0.012), gz + 0.065), 0.017, 14)
+            a, b = mp(-YOKE_GRIP_AFT, sgn * gw, gz - 0.07), mp(-YOKE_GRIP_AFT, sgn * (gw + 0.012), gz + 0.07)
+            tube(bm, a, b, YOKE_GRIP_R, 20)
+            d = (b - a).normalized()
+            tube(bm, a - d * 0.005, a + d * 0.015, YOKE_GRIP_R + 0.006, 20)        # the foot collar
+            tube(bm, b - d * 0.01, b + d * 0.012, YOKE_GRIP_R + 0.007, 20)         # the pommel
     solid("yoke grips", grips, "grip", wheel)
 
     def tape(bm):                   # his left grip, taped where the rubber split
-        tube(bm, mp(-0.03, gw + 0.004, gz + 0.012), mp(-0.03, gw + 0.006, gz + 0.04), 0.0195, 14)
+        tube(bm, mp(-YOKE_GRIP_AFT, gw + 0.004, gz + 0.012), mp(-YOKE_GRIP_AFT, gw + 0.006, gz + 0.04), YOKE_GRIP_R + 0.0025, 20)
     solid("yoke grip tape", tape, "tape", wheel)
 
     # ---- skin the cloth-borne parts to the rig: fitted in the flying pose, they must follow the

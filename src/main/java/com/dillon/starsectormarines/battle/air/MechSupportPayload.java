@@ -53,9 +53,7 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 }
             }
         }
-        String fallbackName = "support-" + context.nextUnitName();
-        String name = deployment.displayName();
-        if (name == null || name.isBlank()) name = fallbackName;
+        String name = landedName(deployment, "support-" + context.nextUnitName());
         EntitySpec spec = new EntitySpec(name, context.faction,
                 UnitType.HEAVY_MECH, point.cellX(), point.cellY())
                 .atPosition(point.x(), point.y())
@@ -77,6 +75,16 @@ public enum MechSupportPayload implements AirDeliveryPayload {
             squad.originalSize++;
         }
         return true;
+    }
+
+    /**
+     * The landed mech's visible name: the callsign frozen into its deployment, or
+     * {@code fallback} for a debug, legacy or unnamed deployment. The fallback is always drawn
+     * by the caller, so naming a mech never shifts the unit-name sequence of later actors.
+     */
+    static String landedName(MechDeploymentSpec deployment, String fallback) {
+        String name = deployment.displayName();
+        return name == null || name.isBlank() ? fallback : name;
     }
 
     /**

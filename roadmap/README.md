@@ -73,9 +73,9 @@ with detached evidence. Test the live transition from Corvus, owned tender suppo
 signing and once-only rewards, including the Boarding Jack card, in the game. Chapter 5's frigate
 duel is built over Black Sluice (`warship-behaviours.md`, ship against ship).
 
-Mech-company work begins with editable campaign callsigns carried into the
-deployed unit's visible identity. Persistent multi-lance organization, the
-shared roster cap, and casualty/replacement policy remain open.
+Mech-company work has editable campaign callsigns carried into the deployed
+unit's visible identity. Persistent multi-lance organization, the shared roster
+cap, and casualty/replacement policy remain open.
 
 Wayline has chapter briefings, outcome correspondence, a completed record, and
 separate recurring jobs. Relief has an authored freight checkpoint and finite

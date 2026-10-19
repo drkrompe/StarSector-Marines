@@ -35,6 +35,7 @@ DIALOGUE_LUFS = -19.0
 HAIL = ROOT / "mod/sounds/story/jangala-arrival"
 # Castle's review takes (record_castle_lines.py treat): the owner's "a" takes from the review set.
 CASTLE = {"entry": "entry_t06", "c4_reels": "c4_reels_t06", "c4_greywater": "c4_greywater_t01",
+          "c4_kilo_nine": "c4_kilo_nine_t01",
           "c5_announce": "c5v3_announce_t01", "c5_last": "c5v3_last_t01"}
 LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice band
 
@@ -47,8 +48,7 @@ PICTURES = {
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
-    "c4c5": [ROOT / "build/c4x/c4x-sketch-1fps.mp4",
-             DRIVE / "cinematic-c5/2026-10-19_rise-title_windows/05-sketch-1fps.mp4"],
+    "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_joined-sketch_windows/01-c4c5-joined-1fps.mp4",
 }
 
 
@@ -163,16 +163,20 @@ SHOTS = {
             env=[(3.5, -10), (7, 0), (16, -2), (20, -6), (30, -6), (34, -5), (42, 2), (48.5, -30)]),
         sfx("c4_port_ambience", 5.0, -18, until=34.0, fade_in=2.5, fade_out=2.0),
         # The landing: the drive as bass, the rocket burn under the hover, then the thump.
+        # Castle's Kilo Nine line runs 4.6-10.9: the burn sits under it and comes back up for the
+        # touchdown at 11.0.
         sfx("c1_sw_engine_loop", 3.0, -10, until=12.5, af=LOW,
-            env=[(3, -8), (6.6, 0), (10.5, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
-        sfx("c4_landing_rocket", 4.0, -6),
-        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3),
+            env=[(3, -8), (6.6, -3), (10.6, -3), (11.0, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
+        sfx("c4_landing_rocket", 5.0, -6, env=[(5, -4), (5.4, -9), (10.6, -9), (11.0, 2)]),
+        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3,
+            env=[(6, -6), (10.6, -6), (11.0, 0)]),
         sfx("c4_touchdown", 11.0, -2),
         sfx("c4_dust_hiss", 11.0, -10),
         sfx("c4_spool_down", 11.2, -8),
         sfx("c5_yard_bed", 12.0, -14, until=49.5,
             env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
-        voice(("castle", CASTLE["c4_greywater"]), 1.0),
+        voice(("castle", CASTLE["c4_greywater"]), 0.5),
+        voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
         # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
