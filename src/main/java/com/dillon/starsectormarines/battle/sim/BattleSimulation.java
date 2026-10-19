@@ -1933,6 +1933,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * SECONDARY_WEAPON.aimTargetId} world columns, {@code TURRET_STATE.burstTargetId}
      * via {@code TurretStateService}) where there's no companion holder unit to thread.
      */
+    /**
+     * Gives every hull on the map that authors active protection its mount ({@link VehicleType#activeProtectionStructureId}),
+     * once per hull; {@link PointDefenseService#mountHull} ignores a hull it has already armed.
+     */
+    private void mountHullProtection() {
+        ConvoyService convoy = convoy();
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long id = convoy.vehicleAt(i);
+            VehicleType type = convoy.vehicleType(id);
+            String structureId = type != null ? type.activeProtectionStructureId() : null;
+            if (structureId == null || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) continue;
+            pointDefense.mountHull(id, convoy.faction(id), structureId, convoy.body(id));
+        }
+    }
+
     public long resolveUnit(long id) {
         return rosterService.bodies().isTargetable(id) ? id : 0L;
     }
@@ -3056,6 +3071,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Point-defence emplacements mint, age, and engage here — deliberately
         // ahead of shots.tickProjectiles below, so a round marked intercepted
         // this tick is dropped on the same beat it would have detonated.
+        mountHullProtection();
         pointDefense.tick(TICK_DT, this);
         // Crew-served tubes: set-up and pack clocks, minting, retiring, and the loss of a tube with its gunner.
         fieldMortars.tick(TICK_DT, this);

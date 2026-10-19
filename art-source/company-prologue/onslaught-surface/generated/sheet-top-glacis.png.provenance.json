@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1546c-eb26-79d1-9e43-5787e9fc98f8",
+  "source": "/Users/dillon/.codex/generated_images/01a1546c-eb26-79d1-9e43-5787e9fc98f8/exec-ff53f4e2-33a5-4bbe-84d7-2ce3e50fb70d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-top-glacis.png",
+    "sha256": "193b066d77a3d86f8ff4105f11ebb80f86e92099cc7afbdbeb7b3378d9576cef",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-top-glacis.prompt.txt",
+  "promptSha256": "1d3767652ebe6a47e285d82a58cfb09aba8e7a2f4030e2eb7a100572f2716631",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of dorsal hull surfaces of one 3D spacecraft (an Onslaught-class Hegemony battleship, a huge low-tech armoured capital ship), each surface seen square-on and drawn alone as flat-coloured shapes on a plain flat mid-blue background. The flat colours mark materials:\n- bright orange areas are warm saturated Hegemony orange enamel armour; darker rust-orange plates are a weathered, duller and darker orange enamel (keep them clearly darker than the bright orange plates); black lines and strips are near-black plate seams and recesses;\n- the large dark charcoal-grey areas are dark grey armour; the pale grey inset panels are light grey painted steel plates; the dark blue-grey inset panels are blue-grey steel plates; the small mid-grey blocks are gunmetal hatches and handles; black outlines are near-black seams;\nThe four tiles:\ntop-left: a long sloped armour band seen square-on: a darker rust-orange weathered plate at its left end, then two bright orange plates divided by black seams, a small rust-orange hatch cover on the right plate, a thin black seam along the bottom edge, a row of small fastener dots;\ntop-right: the same band continued: a darker rust-orange plate at the left, two bright orange plates with a small rust-orange hatch cover on each, a narrow rust-orange strip at the right end, black seams between;\nbottom-left: the band's forward end: two bright orange plates with a small rust-orange hatch cover, a darker rust-orange plate at the right end with a row of fastener dots, black seams between;\nbottom-right: a dark charcoal-grey armour band seen square-on, split in two by a blue gap, carrying recessed inset panels: pale light-grey panels, dark blue-grey steel panels and one narrow blue-grey strip at the left, two small mid-grey hatch blocks, scattered fastener dots;\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its heavy semi-matte industrial enamel, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four tiles in INPUT 1 as those working armour plates. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline; every gap between separate plates stays plain background blue.\n- Each shape is a flat painted heavy armour plate. Add painted surface detail inside its outline only: crisp plate seams and weld lines, neat rows of large fasteners, flush access covers, subtle tone variation within a plate, a light even film of dust and grime packed into the seams, and lightly scuffed plate edges. Nothing may stand out from the surface or cross the outline.\n- Keep each plate its OWN colour exactly as INPUT 1 marks it. The ship's plating alternates tones on purpose: never even them out, never blend one plate's tone into its neighbour, never repaint a plate another colour. No stripes, no differently coloured patches, no repair plates.\n- The ship is a picket flagship on station, properly maintained. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-top-glacis-guide.png",
+      "sha256": "3fbf37e9e03e9b278b4eac50ee1b450031fb24c957e4e9341e1304781cce959b",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the four-tile layout and plate colours."
+  ],
+  "usage": {
+    "input_tokens": 160163,
+    "cached_input_tokens": 133760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1135,
+    "reasoning_output_tokens": 50
+  },
+  "elapsedSeconds": 80.1
+}

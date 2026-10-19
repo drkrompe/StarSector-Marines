@@ -1,5 +1,5 @@
 {
- "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Onslaught as a Hegemony picket flagship on station: maintained, but long on patrol - service wear a little heavier than the Hound's, with soot at six drives.",
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Onslaught as a Hegemony picket flagship on station: maintained, but long on patrol - service wear a little heavier than the Hound's, with soot at six drives. Pitting kept low: its larger dings read as scattered rings across the big plates.",
  "clean":   {"abrasion": 0.0,  "pitting": 0.0,  "fade": 0.0,  "grime": 0.0,  "soot": 0.0,  "neglect": 0.0},
- "service": {"abrasion": 0.32, "pitting": 0.22, "fade": 0.2,  "grime": 0.38, "soot": 0.5,  "neglect": 0.0}
+ "service": {"abrasion": 0.32, "pitting": 0.1, "fade": 0.2,  "grime": 0.38, "soot": 0.5,  "neglect": 0.0}
 }
