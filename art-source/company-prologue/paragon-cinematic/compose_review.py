@@ -15,6 +15,9 @@ beside this script (ignored; renders are never committed):
                        missiles
   beam-broadside.png, beam-bow.png, beam-port.png, beam-pd.png   the same frames full size
   lance-sequence.png   the bow tachyon lances through one shot, six stills
+  shield.png           the Fortress Shield half raised, raised with two hits, and in
+                       fortress mode with one
+  shield-half.png, shield-raised.png, shield-fortress.png   the same frames full size
 There is no turn movie: the Onslaught's turntable is the model for one if a shot wants it.
 """
 from pathlib import Path
@@ -41,6 +44,7 @@ PAGES = {
     'whole': ['three-quarter', 'stern-quarter', 'three-quarter-fx', 'stern-quarter-fx'],
     'effects': ['engine-detail-fx', 'engine-detail-fx-dark', 'stern-quarter-fx-dark', 'formation-1.5km-fx@crop'],
     'beams': ['beam-broadside-fx', 'beam-bow-fx', 'beam-port-fx', 'beam-pd-fx'],
+    'shield': ['shield-half', 'shield-raised', 'shield-fortress'],
 }
 NOTES = {'-dark': '  (studio off: the ship glow and the drives)', '-fx': '  (SWFX effects)',
          '@crop': '  (2x crop, effects)'}
@@ -71,6 +75,9 @@ for name, views in PAGES.items():
         d.text((x + 12, y + 5), f"Paragon  ·  {v.split('@')[0].replace('-fx', '').replace('-dark', '')}{note}",
                font=font, fill=(235, 235, 235))
     W.save(out / f'{name}.png')
+for n in ('shield-half', 'shield-raised', 'shield-fortress'):
+    if (src / f'{n}.png').exists():
+        shutil.copyfile(src / f'{n}.png', out / f'{n}.png')
 for n in ('formation-1.5km', 'beam-broadside', 'beam-bow', 'beam-port', 'beam-pd'):
     f = src / f'{n}-fx.png' if n != 'formation-1.5km' else src / 'formation-1.5km-fx.png'
     if f.exists():

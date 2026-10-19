@@ -1,0 +1,14 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "prompt": "Sparse ambient closing cue: slow fingerpicked clean electric guitar with long reverb and a faint tape-worn texture over an airy shimmering ambient bed, a few notes left hanging in space. No drums. 18 seconds long. Starts almost silent and sparse for the first 3 seconds, swells gently but clearly from 3 to 8 seconds, reaches a warm open major chord at about 8 seconds and lets it ring out and thin away to silence by the end. Hopeful but fragile: refugees from a failing station landing somewhere with open sky, worn and humble, a beginning rather than a victory. Instrumental only, no vocals, no choir.",
+  "request": {
+    "music_length_ms": 18000,
+    "force_instrumental": true
+  },
+  "audioSha256": "169e4c708e9342fb9fba040614db87a3ee29fa1906e9426c2199c34635a75836",
+  "durationSeconds": 18.05,
+  "peakDb": -1.6,
+  "integratedLufs": -14.1
+}

@@ -18,10 +18,12 @@ manifest.json:
    `Anchor turret <rig> <port|starboard> gun muzzle` under the turret kit's own
    muzzle empty (identity offset), so it trains and elevates with the gun;
 3. `swfx.apply(state='clean', hull=<this folder>)` with groups thrusters,
-   smoke, guns and beams: plumes, cores, bell glow and glow lights on all ten
-   drives, exhaust haze, the needler rigs, and a beam rig on every energy
-   weapon (swfx_beams, dark until fired); no RCS, no landing dust, no lamps,
-   no lighting-rig preset (that is the shot's);
+   smoke, guns, beams and shield: plumes, cores, bell glow and glow lights on
+   all ten drives, exhaust haze, the needler rigs, a beam rig on every energy
+   weapon (swfx_beams, dark until fired), and the Fortress Shield bubble on
+   the `Shield emitter` with its ten emitter nodes (swfx_shield, dark until
+   raised); no RCS, no landing dust, no lamps, no lighting-rig preset (that is
+   the shot's);
 4. the asset's default for space: `smk_atmosphere` 0 (vacuum).
 
 Append `PARAGON | clean` alone for the bare ship, or with `SWFX` in the same
@@ -50,7 +52,7 @@ ap.add_argument('--out', default=str(HERE))
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 BASE, OUT = Path(args.base).resolve(), Path(args.out).resolve()
 base_man = json.loads((BASE.parent / 'manifest.json').read_text(encoding='utf-8'))
-GROUPS = ('thrusters', 'smoke', 'guns', 'beams')
+GROUPS = ('thrusters', 'smoke', 'guns', 'beams', 'shield')
 ASSET = 'paragon.blend'
 
 bpy.ops.wm.open_mainfile(filepath=str(BASE))
@@ -146,10 +148,20 @@ man['beams'] = [{k: b[k] for k in ('id', 'slot', 'mount', 'weapon', 'muzzle', 'w
                                    'chargedown', 'burst', 'pd')} for b in vfx_hull.BEAMS]
 man['beams_note'] = ('swfx_beams.fire_beam(ctx, id, start_frame, hold_s) keys a shot with the weapon\'s own timing; '
                      'beam_len_<id> is the length in hull units (the distance to the target).')
+sh = vfx_hull.SHIELD
+man['shield_fx'] = {'bubble': ctx.records['shield']['bubble'], 'anchor': sh['anchor'], 'radius': sh['radius'],
+                    'arc': sh['arc'], 'nodes': ctx.records['shield']['nodes'],
+                    'node_lights': ctx.records['shield']['lights'], 'hits': ctx.records['shield']['hits'],
+                    'colours': {k: sh[k] for k in ('ring', 'inner', 'inner_alpha', 'fortress_ring',
+                                                   'fortress_inner', 'fortress_alpha')},
+                    'timing_s': {k: sh[k] for k in ('raise_s', 'lower_s', 'fortress_up_s', 'fortress_down_s')}}
+man['shield_fx_note'] = ('Knobs shield_t (raise), shield_fortress, shield_facing, shield_hit_<k> with '
+                         'shield_hit_az_<k>/shield_hit_el_<k>; swfx_shield.raise_shield / fortress / hit key them. '
+                         'The game forbids firing while the Fortress Shield is on.')
 man['effects'] = {
     'collection': swfx_core.ROOT,
     'kit': 'second-wind-vfx (swfx.apply, hull profile paragon-cinematic/vfx_hull.py, state clean, '
-           'groups thrusters, smoke, guns, beams; rcs=False, dust=False; no lamps, no rig preset)',
+           'groups thrusters, smoke, guns, beams, shield; rcs=False, dust=False; no lamps, no rig preset)',
     'defaults': {'smk_atmosphere': 0.0},
     'objects': len(objs),
     'anchors': {k: (len(v) if isinstance(v, list) else v) for k, v in ctx.records['anchors'].items()},
@@ -167,4 +179,5 @@ man['asset_sha256'] = sha(blend)
 (OUT / 'manifest.json').write_text(json.dumps(man, indent=1) + '\n', encoding='utf-8')
 print('EFFECTS', len(objs), 'objects; engines', len(eng), [(e.index, e.side, round(e.radius, 2)) for e in eng],
       'guns', len(ctx.anchors.guns), 'rigs', len(rigs), 'beams', len(ctx.records['beams']['beams']),
-      'missing beams', ctx.records['beams']['missing'])
+      'missing beams', ctx.records['beams']['missing'],
+      'shield nodes', len(ctx.records['shield']['nodes']), 'missing shield', ctx.records['shield']['missing'])

@@ -5,7 +5,7 @@
  "effects_collection": "SWFX",
  "objects": 1728,
  "meshes": 1615,
- "effects_objects": 202,
+ "effects_objects": 233,
  "images": 18,
  "passed": true,
  "failed": [],
@@ -72,8 +72,8 @@
   "SWFX present": {
    "ok": true,
    "detail": [
-    202,
-    202
+    233,
+    233
    ]
   },
   "plumes leave every bell aft, sized to it": {
@@ -102,6 +102,71 @@
     1.0,
     6000.0
    ]
+  },
+  "shield parts present": {
+   "ok": true,
+   "detail": [
+    10,
+    10,
+    4
+   ]
+  },
+  "shield dark until raised": {
+   "ok": true,
+   "detail": [
+    0.0,
+    0
+   ]
+  },
+  "shield bubble on the emitter at the vanilla radius": {
+   "ok": true,
+   "detail": [
+    270.0,
+    270.0,
+    [
+     1.0,
+     0.0,
+     -0.0
+    ]
+   ]
+  },
+  "emitter nodes are lit a third of the way up": {
+   "ok": true,
+   "detail": [
+    1500,
+    1500
+   ]
+  },
+  "fortress mode burns the nodes hotter, in the fortress colour": {
+   "ok": true,
+   "detail": [
+    1.8,
+    [
+     1.0,
+     0.392,
+     1.0
+    ]
+   ]
+  },
+  "shield hits land on the bubble in the hull frame": {
+   "ok": true,
+   "detail": [
+    [
+     -0.0,
+     1.0,
+     0.0
+    ],
+    [
+     "SWFX shield hit 1",
+     "SWFX shield hit 2",
+     "SWFX shield hit 3",
+     "SWFX shield hit 4"
+    ]
+   ]
+  },
+  "the shield encloses every drive and turret": {
+   "ok": true,
+   "detail": "10/10 drives, 21/21 turrets, 100.00% of hull vertices"
   },
   "drivers valid": {
    "ok": true,

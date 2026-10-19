@@ -1,7 +1,7 @@
 """Review the Paragon cinematic asset the way a shot uses it: appended into a clean scene.
 
   blender --background --factory-startup --python review_ship.py --
-      [--views a,b] [--effects] [--lights-off] [--beams] [--lance-sequence]
+      [--views a,b] [--effects] [--lights-off] [--beams] [--lance-sequence] [--shield]
       [--samples 32] [--out DIR] [--device GPU|CPU]
 
 Appends `PARAGON | clean` (and with --effects the optional `SWFX` collection,
@@ -31,6 +31,11 @@ in the same load) into a factory scene and renders 1920x1080 at 100% in Cycles:
 - --lance-sequence: the bow lances only, six stills through one shot (charge
   building, full charge, beam on, beam held, charge-down, dark again) from the
   `beam-bow` camera, as lance-<k>.png.
+- --shield: the Fortress Shield (swfx_shield) from high on the port bow,
+  space-lit, three stills: `shield-half` (shield_t 0.5: the bubble unfolding
+  from the bow, its edge still opening, the emitter nodes already lit),
+  `shield-raised` (fully raised, two hits flashing: port bow and dorsal aft)
+  and `shield-fortress` (the same with the Fortress Shield on, one hit).
 
 Outputs go to build/review/ beside this script (ignored) as
 <view>[-fx][-dark].png.
@@ -55,6 +60,7 @@ ap.add_argument('--lights-off', action='store_true')
 ap.add_argument('--beams', action='store_true')
 ap.add_argument('--lance-sequence', action='store_true')
 ap.add_argument('--point-defense', action='store_true')
+ap.add_argument('--shield', action='store_true')
 ap.add_argument('--device', default='GPU', choices=('GPU', 'CPU'))
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out).resolve()
@@ -85,6 +91,13 @@ BEAM_VIEWS = {
     'beam-port': (Vector((-760, -700, 520)), Vector((260, 200, 70)), 26.0),
     'beam-pd': (Vector((260, -780, 760)), Vector((-10, 0, 40)), 36.0),
     'beam-bow': (Vector((330, 170, 95)), Vector((150, 0, 20)), 28.0),
+    'shield': (Vector((720, 820, 470)), Vector((0, 0, 0)), 30.0),
+}
+# Shield stills: (shield_t, shield_fortress, [(hit, azimuth, elevation, strength), ...]).
+SHIELD_STILLS = {
+    'shield-half': (.5, 0.0, []),
+    'shield-raised': (1.0, 0.0, [(1, 35, 10, 1.0), (2, 160, 40, .7)]),
+    'shield-fortress': (1.0, 1.0, [(1, 35, 10, 1.0)]),
 }
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -302,3 +315,21 @@ if args.lance_sequence:
                 knob(f"beam_t_{b['id']}", t)
         upd()
         render(f'lance-{k}')
+if args.shield:
+    assert ctrl is not None, '--shield needs --effects'
+    for b in man['beams']:
+        knob(f"beam_t_{b['id']}", 0.0)
+        knob(f"beam_charge_{b['id']}", 0.0)
+    studio(False)
+    aim_persp(*BEAM_VIEWS['shield'])
+    for name, (t, fort, hits) in SHIELD_STILLS.items():
+        knob('shield_t', t)
+        knob('shield_fortress', fort)
+        for k in range(1, 5):
+            knob(f'shield_hit_{k}', 0.0)
+        for k, az, el, amt in hits:
+            knob(f'shield_hit_az_{k}', az)
+            knob(f'shield_hit_el_{k}', el)
+            knob(f'shield_hit_{k}', amt)
+        upd()
+        render(name)
