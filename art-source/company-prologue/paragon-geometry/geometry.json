@@ -1710,20 +1710,6 @@
       "orthographic_scale": 300
     },
     {
-      "name": "turret-large",
-      "position": [
-        60.0,
-        -170.0,
-        80.0
-      ],
-      "target": [
-        3.0,
-        -99.0,
-        30.0
-      ],
-      "orthographic_scale": 45.0
-    },
-    {
       "name": "turret-bow",
       "position": [
         190.0,
@@ -1738,46 +1724,32 @@
       "orthographic_scale": 70.0
     },
     {
-      "name": "turret-aft",
-      "position": [
-        -60.0,
-        -170.0,
-        70.0
-      ],
-      "target": [
-        -75.0,
-        -95.0,
-        20.0
-      ],
-      "orthographic_scale": 60.0
-    },
-    {
-      "name": "turret-needler",
-      "position": [
-        110.0,
-        -150.0,
-        70.0
-      ],
-      "target": [
-        51.0,
-        -90.0,
-        20.0
-      ],
-      "orthographic_scale": 45.0
-    },
-    {
       "name": "turret-pd",
       "position": [
-        160.0,
-        -120.0,
-        60.0
+        135.0,
+        -100.0,
+        30.0
       ],
       "target": [
         106.0,
         -69.0,
-        20.0
+        22.0
       ],
-      "orthographic_scale": 30.0
+      "orthographic_scale": 22.0
+    },
+    {
+      "name": "turret-pd-aft",
+      "position": [
+        -120.0,
+        -150.0,
+        40.0
+      ],
+      "target": [
+        -145.0,
+        -121.0,
+        18.0
+      ],
+      "orthographic_scale": 22.0
     }
   ],
   "silhouette": {
@@ -1788,7 +1760,7 @@
   },
   "gauntlet": {
     "skin": 0.569,
-    "white": 0.512,
+    "white": 0.513,
     "dark": 0.415,
     "agreement": 0.656,
     "silhouette": 0.962,
