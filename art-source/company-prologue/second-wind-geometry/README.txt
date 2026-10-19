@@ -235,7 +235,7 @@ build_reference.py: deterministic scene and camera construction; runs in Blender
   and primitives; sw_port_module.py builds the port grapple.
 sw_bridge_interior.py: the bridge room (owner brief 2026-10-18), cut out of the command
   deck by a hidden cutter as live 'Bridge interior cavity' Booleans: main floor 16.6,
-  ceiling 20.3, a raised flight dais forward (17.55) with the two flight seats and low
+  ceiling 20.3, a raised flight dais forward (17.55) with the helm seat and low
   consoles, the port comms bank (Castle's), the starboard systems bank, a plot table, the
   dais rail and the aft hatch; dress(state) adds the jury-rigged details of 'patched' (and
   'derelict', 'refit'). figures() builds the seated pilot and standing Castle mannequins for
