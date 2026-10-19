@@ -11,10 +11,15 @@ of the top of the slits. No cut: the pan is the move.
 Plain Python plans the motion (the Legion's track, the camera's head turn) and runs Blender
 on this same file. Blender opens Second Wind's patched state (second-wind-geometry, read
 only), which carries the bridge interior (sw_bridge_interior), adds the pilot and Castle
-(sw_bridge_interior.figures), appends the Legion master, and renders Workbench frames:
+(sw_bridge_interior.figures), appends the textured Legion (legion-cinematic's LEGION
+collection, moved by its root only), and renders Workbench frames:
 
     build/cinematic/c2-bridge/blockout/b_<t>.png      1920x1080, one per requested time
     build/cinematic/c2-bridge/blockout/plan.json
+
+--measure renders masks instead of pictures (the Legion alone, the glazing alone) at a quarter
+of the size, and writes measure.json: per time, how much of the hull's silhouette lies inside
+the frame and inside the glass, and which edges of the frame it runs off.
 
 Frame of reference is Second Wind, in metres: +X bow, +Y port, +Z dorsal, origin at its
 model origin. Second Wind is 0.65 m per unit, the Legion 0.99 (each geometry.json).
@@ -36,6 +41,11 @@ from blender_path import BLENDER  # noqa: E402
 
 SW_DIR = BASE.parents[1] / "second-wind-geometry"
 SW_BLEND = SW_DIR / "states" / "patched" / "second-wind-geometry.blend"   # C2 is the patched state
+# The Legion is the finished asset (legion-cinematic, accepted 2026-10-19): append the LEGION
+# collection and move its root only. legion.blend is built, not committed (its finalize.sh).
+LEGION_ASSET_DIR = BASE.parents[1] / "legion-cinematic"
+LEGION_ASSET = LEGION_ASSET_DIR / "legion.blend"
+LEGION_MANIFEST = LEGION_ASSET_DIR / "manifest.json"
 
 # ---------------------------------------------------------------- the bridge (Second Wind units)
 SW_MPU = 0.65
@@ -55,7 +65,11 @@ LENS_MM = 22.0             # on a 36 mm sensor: 78.6 degrees across
 LEGION_MPU = 0.99
 T_ABEAM = 8.0              # under "Patrol has your signature" (C2 7.50-8.84)
 V0, V1 = 140.0, 22.0       # m/s relative, at C2 0 s and at abeam
-ABEAM_Y = 265.0            # Legion midline out to port at abeam (near flank about 120 m)
+# Re-solved for the finished 292 m asset (2026-10-19): at 265 m (near flank about 120 m) the hull
+# ran off the bottom of the frame from 7 to 11 s and the bridge hid 29% of it at abeam. At 340 m
+# (near flank about 195 m) `--measure` puts 97-100% of the hull inside the glass from 7.5 to
+# 12.5 s with nothing off the frame, and it still rises clear of the slits by 15 s.
+ABEAM_Y = 340.0            # Legion midline out to port at abeam
 CROWN_BELOW_EYE_M = -20.0  # negative: the Legion's crown is 20 m ABOVE our eye at abeam; it towers
 YAW_DEG = 168.0            # heading against ours; 180 is dead reciprocal
 ROLL_DEG = -8.0            # banked so its deck tilts toward us
@@ -145,8 +159,10 @@ def smooth(u):
 def plan(times, res):
     sys.path.insert(0, str(BASE))
     import c2_core as C
-    lg = C.LEGION_GEOM
-    lo, hi = lg["dimensions"]["min"], lg["dimensions"]["max"]
+    man = json.loads(LEGION_MANIFEST.read_text(encoding="utf-8"))
+    if abs(man["metres_per_unit"] - LEGION_MPU) > 1e-9:
+        raise RuntimeError("legion-cinematic is %s m/unit; the pass is solved for %s" % (man["metres_per_unit"], LEGION_MPU))
+    lo, hi = man["bounds_units_rest"]
     mid_u = [(lo[i] + hi[i]) / 2 for i in range(3)]
     eye_m = EYE_Z * SW_MPU
     samples = []
@@ -158,7 +174,8 @@ def plan(times, res):
                         "legion_centre_m": list(centre), "legion_mid_u": mid_u,
                         "fighters": fighter_positions(t)})
     bw = json.loads((C.BROADSWORD_DIR / "geometry.json").read_text(encoding="utf-8"))
-    return {"sw_blend": str(SW_BLEND), "legion_blend": str(C.LEGION_BLEND), "sw_mpu": SW_MPU,
+    return {"sw_blend": str(SW_BLEND), "legion_blend": str(LEGION_ASSET), "legion_root": man["root"],
+            "legion_collection": man["append_collection"], "sw_mpu": SW_MPU,
             "broadsword_blend": str(C.BROADSWORD_BLEND), "fighter_mpu": float(bw["metres_per_unit"]),
             "legion_mpu": LEGION_MPU, "yaw": YAW_DEG, "roll": ROLL_DEG, "lens_mm": LENS_MM,
             "sun": list(C.SUN), "res": res, "samples": samples, "out": str(OUT),
@@ -167,9 +184,13 @@ def plan(times, res):
 
 
 def launch(argv):
-    fps, times, res, burst = 1.0, None, (1920, 1080), []
+    fps, times, res, burst, measure = 1.0, None, (1920, 1080), [], False
     i = 0
     while i < len(argv):
+        if argv[i] == "--measure":
+            measure, res = True, (480, 270)
+            i += 1
+            continue
         if argv[i] == "--fps":
             fps = float(argv[i + 1])
         elif argv[i] == "--times":
@@ -192,6 +213,9 @@ def launch(argv):
         times = [round(k / fps, 3) for k in range(n + 1)]
     times = sorted(set(times) | set(burst))
     p = plan(times, list(res))
+    p["measure"] = measure
+    if not LEGION_ASSET.exists():
+        raise SystemExit("%s is not built: run legion-cinematic/finalize.sh" % LEGION_ASSET)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "plan.json").write_text(json.dumps(p, indent=1), encoding="utf-8")
     for s in p["samples"]:
@@ -235,21 +259,14 @@ def blender_main(argv):
             if ch.type == "MESH" and ch.data.materials:
                 ch.color = ch.data.materials[0].diffuse_color
 
-    # Legion: appended, rooted, scaled to metres.
+    # Legion: the asset's collection, moved by its root only, scaled to metres.
     with bpy.data.libraries.load(p["legion_blend"], link=False) as (src, dst):
-        dst.objects = list(src.objects)
-    lroot = bpy.data.objects.new("C2B | Legion root", None)
-    scene.collection.objects.link(lroot)
-    for o in dst.objects:
-        if o is None or o.type in ("CAMERA", "LIGHT"):
-            continue
-        scene.collection.objects.link(o)
-    for o in dst.objects:
-        if o is not None and o.type not in ("CAMERA", "LIGHT") and o.parent is None:
-            o.parent = lroot
-            o.matrix_parent_inverse = Matrix.Identity(4)
-        if o is not None:
-            o.color = (0.78, 0.42, 0.18, 1)
+        dst.collections = [p["legion_collection"]]
+    scene.collection.children.link(dst.collections[0])
+    lroot = bpy.data.objects[p["legion_root"]]
+    legion = [lroot, *lroot.children_recursive]
+    for o in legion:
+        o.color = (0.78, 0.42, 0.18, 1)
     lroot.scale = (p["legion_mpu"],) * 3
     lroot.rotation_euler = Euler((math.radians(p["roll"]), 0, math.radians(p["yaw"])), "XYZ")
 
@@ -308,6 +325,9 @@ def blender_main(argv):
     scene.view_settings.view_transform = "Standard"
 
     out = Path(p["out"])
+    if p.get("measure"):
+        measure(p, scene, cam, lroot, legion, planet)
+        return
     lmid = Vector(p["samples"][0]["legion_mid_u"])
     for s in p["samples"]:
         scene.frame_set(int(round(s["t"] * 24)))     # animated figures (the pilot leans in at ~9 s)
@@ -325,6 +345,71 @@ def blender_main(argv):
         scene.render.filepath = str(out / ("b_%05.2f.png" % s["t"]))
         bpy.ops.render.render(write_still=True)
         print("rendered", s["t"], flush=True)
+
+
+def measure(p, scene, cam, lroot, legion, planet):
+    """Per sample, flat masks of the Legion alone and of Second Wind alone with its glazing left
+    out (so what it does not cover is the view through the slits, past posts, brow and
+    consoles), and
+    measure.json: how much of the hull is in the frame and in the glass, and which edges of the
+    frame it runs off. The hull is also drawn through a camera three times as wide at the same
+    eye and aim, so a hull that runs off the frame is counted as such."""
+    import bpy
+    import numpy as np
+    from mathutils import Vector
+
+    sh = scene.display.shading
+    sh.light, sh.color_type, sh.show_shadows, sh.show_cavity = "FLAT", "OBJECT", False, False
+    lset = set(legion)
+    glass = {o for o in bpy.data.objects if o.name.startswith("Command deck viewport slits")}
+    # Only what the picture draws: the bridge's boolean cutters are hidden from render.
+    every = [o for o in scene.objects if o.type in ("MESH", "CURVE") and not o.hide_render]
+    ship = {o for o in bpy.data.objects["C2B | Second Wind root"].children_recursive} - glass
+    w, h = p["res"]
+    wide = 3.0
+    path = str(Path(p["out"]) / "_mask.png")
+
+    def render(show, zoom=1.0):
+        for o in every:
+            o.hide_render = o not in show
+            o.color = (1, 1, 1, 1)
+        cam.data.sensor_width = 36.0 * zoom
+        scene.render.filepath = path
+        bpy.ops.render.render(write_still=True)
+        img = bpy.data.images.load(path)
+        a = np.array(img.pixels[:], dtype=np.float32).reshape(img.size[1], img.size[0], 4)[::-1, :, 0]
+        bpy.data.images.remove(img)
+        return a > 0.5
+
+    rows = []
+    lmid = Vector(p["samples"][0]["legion_mid_u"])
+    for s in p["samples"]:
+        scene.frame_set(int(round(s["t"] * 24)))
+        rot = lroot.rotation_euler.to_matrix()
+        lroot.location = Vector(s["legion_centre_m"]) - rot @ (lmid * p["legion_mpu"])
+        cam.location = Vector(s["cam_pos_u"]) * p["sw_mpu"]
+        yaw, pitch = math.radians(s["cam_yaw"]), math.radians(s["cam_pitch"])
+        d = Vector((math.cos(pitch) * math.cos(yaw), math.cos(pitch) * math.sin(yaw), math.sin(pitch)))
+        cam.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
+        bpy.context.view_layer.update()
+        hull = render(lset)
+        total = int(render(lset, wide).sum())
+        g = ~render(ship)                      # what the eye sees past the bridge: the openings
+        cam.data.sensor_width = 36.0
+        n = int(hull.sum())
+        ys, xs = np.nonzero(hull) if n else ([0], [0])
+        edges = [k for k, v in (("left", hull[:, 0].any()), ("right", hull[:, -1].any()),
+                                ("top", hull[0, :].any()), ("bottom", hull[-1, :].any())) if v]
+        rows.append({"t": s["t"], "in_frame": round(n / max(total * wide * wide, 1), 3),
+                     "in_glass": round(int((hull & g).sum()) / max(n, 1), 3),
+                     "frame_share": round(n / (w * h), 3),
+                     "bbox_px_1080": [int(min(xs) * 1920 / w), int(min(ys) * 1080 / h),
+                                      int((max(xs) + 1) * 1920 / w), int((max(ys) + 1) * 1080 / h)],
+                     "runs_off": edges})
+        print("MEASURE t=%5.2f in frame %.2f in glass %.2f share %.2f bbox %s off %s" % (
+            s["t"], rows[-1]["in_frame"], rows[-1]["in_glass"], rows[-1]["frame_share"],
+            rows[-1]["bbox_px_1080"], ",".join(edges) or "-"), flush=True)
+    (Path(p["out"]) / "measure.json").write_text(json.dumps(rows, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":

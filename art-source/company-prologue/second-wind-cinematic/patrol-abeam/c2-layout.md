@@ -10,7 +10,7 @@ Status: REWORK. The owner has moved C2 to Second Wind's bridge (2026-10-18, see
 *Bridge pass* below); a grey blockout is in review. The cabin-window production build
 described in the rest of this sheet is what currently ships, and stays the plan of
 record for the entry and for anything the bridge pass does not replace.
-Updated: 2026-10-19 — the entry reworked as a 7 s shaking descent (sound review); bridge pass blockout on the modelled bridge interior.
+Updated: 2026-10-19 — the bridge pass uses the finished, textured Legion and is re-framed for its 292 m size (pass at 340 m).
 
 ## Bridge pass (owner direction, 2026-10-18)
 
@@ -49,10 +49,27 @@ frames).
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
 22 m/s at abeam (8.0 s, under "Patrol has your signature"); it starts 650 m ahead,
-22° off the bow, and passes with its midline 235–265 m out. From 9.6 s Second Wind's
+28° off the bow, and passes with its midline 340 m out (its near flank about 195 m). From 9.6 s Second Wind's
 de-orbit lifts it relative to us (9 m/s²) and it clears the top of the slits by
 about 14 s. The camera's yaw follows the Legion's bearing with a 0.35 s lag, from
 22° to port at the cut to 104° (just aft of the beam).
+
+**Re-framed for the finished Legion (2026-10-19).** The pass was laid out at 265 m, and the
+292 m hull (291 m in beam) overfilled it: from 7 to 11 s it ran off the bottom of the frame,
+and at abeam the brow, sill and posts hid 29% of it. `c2_bridge_blockout.py --measure` renders
+the hull and Second Wind's own silhouette as masks and reports how much of the hull is in the
+frame and in the glass. A sweep of pass distance (340, 400, 460 m) and height (crown 20 or
+40 m above the eye) settled on **340 m with the chosen 20 m**: the nearest pass at which the
+whole hull, bow to stern, sits inside the glass from 7.5 to 12.5 s (97–100%) with nothing off
+the frame, while it still rises clear of the slits by 15 s. The opening is unchanged (the eye
+is on the fighters, the carrier beyond the forward console). The flyby sound's copy of the
+geometry (`arrival-audio/synth_flyby.py`) carries the new distance; its stems need re-synthesis.
+
+**The textured asset.** The blockout and the lit render append `legion-cinematic`'s `LEGION`
+collection (the lit render adds its `SWFX` effects in the same load) and move its root only, at
+0.99 m per unit. Its drives idle on the kit's LOW_TECH plumes (master throttle 0.2, exhaust
+haze off: vacuum), its 27 running lights blink on their own data, lens and kit lamp together,
+and its mounts stay at rest. `legion.blend` is built, not committed (its `finalize.sh`).
 
 **Banked, chosen (owner, 2026-10-18).** Of the two variants reviewed, the owner
 chose (a): banked 8° toward us with its crown 20 m above our eye, so its deck and
