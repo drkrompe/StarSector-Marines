@@ -33,7 +33,7 @@ Each fighter at its own scale, sized from the cockpit; all six are at pass 2 det
 
 | Asset | Package | 1 | 2 | 3 | 4 scale | 6 texture | Next |
 |---|---|---|---|---|---|---|---|
-| Broadsword | `broadsword-geometry/` | done | done | review | done, 0.50 m/u (15.5 m) | — | Owner review |
+| Broadsword | `broadsword-geometry/` | done | done | done (owner accepted the detail as built and asked for gear, 2026-10-19): retractable tricycle gear with doors, legs fold aft into the fuselage and nacelles, parked level (IoU 0.931, unchanged) | done, 0.50 m/u (15.5 m) | wip: for C2 (two pass 55-80 m off the Legion's bridge glass), then effects and cinematic export | Texture, effects and export for C2 |
 | Talon | `fighters-geometry/talon/`, `fighters-surface/talon/` | done (signed off for now: rescaled below the Broadsword, smaller canopy) | done (IoU 0.977, unchanged) | done (owner accepted the bent reshape and sled runners, 2026-10-18) | done, 0.55 m/u (12.1 m) | review: red service livery re-surfaced on the reshape, 9 parts (8 generated) + 4 swatches, 98% textured; runners on class swatches | Owner review of the texture (pass 6) |
 | Wasp (drone) | `fighters-geometry/wasp/`, `fighters-surface/wasp/` | done (signed off for now: straight arm edges, hooked claws, nose-down crouch) | done: arm-hinge and claw articulation (IoU 0.908, unchanged) | done (pass 2 accepted by the owner, 2026-10-18) | done, 0.50 m/u (9.8 m) | review: grey-blue service livery, 13 parts (8 generated) + 4 swatches, 98% textured | Owner review of the texture (pass 6) |
 | Dagger | `fighters-geometry/dagger/`, `fighters-surface/dagger/` | done | done (IoU 0.959, unchanged) | done (owner accepted the bent-wing reshape and three-leg gear, 2026-10-18) | done, 0.50 m/u (16.4 m) | review: blue-grey service livery re-surfaced on the reshape, 10 parts (8 generated) + 5 swatches, 97% textured; gear on class swatches | Owner review of the texture (pass 6) |
@@ -48,6 +48,12 @@ scope unless the owner asks for it.
 | Asset | Package | State | Next |
 |---|---|---|---|
 | Fleet scale lineup | `fleet-scale/` | review: `fleet_lineup.py` renders every hull at its published option C scale, with real-world references (container, 747, ISS, Eiffel Tower, Nimitz, football pitch): broadside, top-down, the Hound at and in a Legion hangar lane, walkway eye level, fighters in the lane, Legion, Onslaught and Paragon side by side, plus a sizes table | Owner judges the final C sizes; rerun after any rescale or new hull |
+
+## Shared effects
+
+| Asset | Package | State | Next |
+|---|---|---|---|
+| Shield kit (`swfx_shield`) | `second-wind-vfx/` | done (round 2, 2026-10-19; decisions by the coordinator for the owner, who can override): the Paragon's Fortress Shield generalised. FRONT arcs of any width (a pie slice from the shield centre, as the game draws it) on the shell fitted ~10 m clear, unfolding from and turning with the facing, hits as on the Paragon; colour follows the shield's technology (vanilla hull style): low tech pink-red, midline blue, high tech the same blue with the Paragon's steadier, brighter finish (the Paragon is the high-tech reference); Onslaught, Legion and Colossus `low-tech`; faction schemes kept in the kit, not default; one `shield_strength` knob from vanilla shield efficiency (0.6 is 1.0, capitals' 1.0 is 0.8); the Paragon unchanged (A/B within render noise, verify passes); review/shield-kit/2026-10-19_directional-shields-round2_windows | Onslaught, Legion and Colossus exports add `shield` to their SWFX groups when a shot needs shields |
 
 ## Standing decisions
 
