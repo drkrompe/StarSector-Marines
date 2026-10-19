@@ -1335,9 +1335,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9556,
-    "sprite_uncovered": 0.0159,
-    "model_outside_sprite": 0.0298,
+    "iou": 0.955,
+    "sprite_uncovered": 0.0151,
+    "model_outside_sprite": 0.0313,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
   },
   "formation_extent": {
