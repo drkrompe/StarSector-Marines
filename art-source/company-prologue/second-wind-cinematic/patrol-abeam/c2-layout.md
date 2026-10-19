@@ -164,11 +164,9 @@ of a degree of breathing and weight shift), **frame** (the head sits lower at th
 the slit fills the frame), **lean** (leaning over the comms bank toward the glass at abeam, 70 cm
 to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
 back; an eye cannot zoom, so this is a film camera's choice, and it matters more with the Legion
-at 340 m) and **castle** (Castle in passing only: as the deck tips at 9.6-10.6 s the person steps
-half a pace back from the bank, without turning, so her shoulder and earpiece hand sit in the
-left edge during the read-back; it trades a good share of the slit for her). The shot is grounded
-in the Legion (owner, 2026-10-19): the head never turns onto the pilot or Castle; a glance to the
-pilot was tried and dropped. The blockout can also
+at 340 m). The shot is grounded in the Legion (owner, 2026-10-19): the camera stays at the glass
+and never turns onto the pilot or Castle, so neither is in frame; a glance to the pilot and a step
+back to bring Castle into the frame edge were both tried and dropped. The blockout can also
 preview thinner window posts (`--posts 0.4`: the slit mullions at 40% of their 39 cm and 33 cm
 widths); the hull model itself is unchanged, so adopting it is a Second Wind model change that
 every shot of the ship would show. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
