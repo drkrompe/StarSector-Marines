@@ -63,8 +63,23 @@ def moving_or_textured(ob, ship_names):
 
 
 def mark_static(scene_objects, ship_names):
+    scene_objects = list(scene_objects)
     for ob in scene_objects:
         ob['ortho'] = 0.0 if moving_or_textured(ob, ship_names) else 1.0
+    # A hull placed as a collection instance is drawn from objects that are not in the scene, and
+    # those may carry a stale 1 (or none, read through to whatever else holds the name): mark every
+    # object of every instanced collection off, or the pad's markings are painted across its deck.
+    seen = set()
+    todo = [ob.instance_collection for ob in scene_objects if ob.instance_type == 'COLLECTION' and ob.instance_collection]
+    while todo:
+        coll = todo.pop()
+        if coll.name in seen:
+            continue
+        seen.add(coll.name)
+        for ob in coll.all_objects:
+            ob['ortho'] = 0.0
+            if ob.instance_type == 'COLLECTION' and ob.instance_collection:
+                todo.append(ob.instance_collection)
 
 
 def ship_names(c4):

@@ -172,11 +172,12 @@ SHOTS = {
         # The landing (c4x_scene, 2026-10-19): the approach runs under both of Castle's lines,
         # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
         # drive spools down to 17.9. The drive is bass the whole way and opens up for the burn.
-        sfx("c1_sw_engine_loop", 3.0, -10, until=17.9, af=LOW,
-            env=[(3, -8), (10.9, -8), (12.0, -4), (16.0, 0), (16.4, 3), (17.9, -6)], fade_in=1.5, fade_out=1.0),
-        # The landing itself is synthesised from c4x_scene's timing (synth_landing.py): the belly
-        # jets' roar, sand and grit, the touchdown, the spool-down and the settling dust. The roar is
-        # held down until Kilo Nine ends at 10.9.
+        # Owner, 2026-10-19: burning-gas thrusters, heavy lift; no hum, no chimes. Second Wind's
+        # main drive is synthesised in the C1-C2 rocket voice (the generated bass loop was a 76 Hz
+        # hum); the landing itself is synth_landing.py's broadband rebuild: the lift jets' roar with
+        # its ignition whump at 10.0, grit, the touchdown, the burner shutdown and the settling dust.
+        # The roar carries its own low end, so the drive drops 4 dB under it from 12.0.
+        synth("second_wind_c4_drive", -12, env=[(0, -4), (10.9, -4), (12.0, -4), (16.4, -4)]),
         landing("landing_roar", -5, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
         landing("landing_grit", -11),
         landing("landing_thump", -2),
@@ -184,6 +185,9 @@ SHOTS = {
         landing("landing_settle", -14),
         sfx("c5_yard_bed", 17.4, -14, until=54.9,
             env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
+        # A second Colossus leaving low past Kilo Nine (port_fleet 'Colossus outbound'), closest at
+        # C5 18-19.5, then climbing away under the title; kept under the music and the title.
+        synth("colossus_outbound", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -4)]),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),
         voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([
@@ -391,10 +395,15 @@ def player_kit(scores, pictures, dirs, chosen, out, width=960):
     step = SR // 20
     curve = [round(float(g), 3) for g in gain[::step]]
     tracks = []
-    for score in map(Path, scores):
+    for item in scores:
+        # PATH or PATH@SECONDS: a take that starts later in the arrival (an ending, a section) is
+        # padded with silence so every track on the page shares one clock.
+        path, _, at = item.partition("@")
+        score = Path(path)
         music = decode(score) * 10 ** ((DIALOGUE_LUFS + SCORE_LEVEL - loudness(score)) / 20)
+        music = np.concatenate([np.zeros((int(round(float(at or 0) * SR)), 2)), music])
         write(music, out / (score.stem + ".mp3"), ["-c:a", "libmp3lame", "-q:a", "2"])
-        tracks.append({"id": score.stem, "file": score.stem + ".mp3"})
+        tracks.append({"id": score.stem, "file": score.stem + ".mp3", "start": float(at or 0)})
     (out / "kit.json").write_text(json.dumps({"length": round(len(whole) / SR, 3), "shots": shots,
                                               "duckRate": 20, "duck": curve, "tracks": tracks}) + "\n",
                                   encoding="utf-8")

@@ -290,15 +290,18 @@ def find(scene=None, coll=None):
             ob = place(f'SWFX anchor turret {i} {tag}', coll, brake, muzzle, axis, .8 * s)
             a.guns.append(GunAnchor(i, tag, ob, s, heavy))
     # Another hull's export declares its muzzles (`Anchor weapon WS 00<i> muzzle`,
-    # +X the line of fire); used only when no Second Wind turret was found.
+    # +X the line of fire; a twin mount numbers them `... muzzle <k>`, which become
+    # tag 'barrel <k>'); used only when no Second Wind turret was found.
     for declared in ([] if a.guns else sorted(bpy.data.objects, key=lambda o: o.name)):
         m = OTHER_MUZZLE.match(declared.name)
         if not m or declared.type != 'EMPTY':
             continue
         mw, s = declared.matrix_world, float(declared.get('scale', 1.0))
-        ob = place(f'SWFX anchor turret {m.group(1)} gun', coll, declared, mw.translation.copy(),
+        k = int(m.group(2)) if m.group(2) else None
+        tag = 'gun' if k is None else f'barrel {k}'
+        ob = place(f'SWFX anchor turret {m.group(1)} {tag}', coll, declared, mw.translation.copy(),
                    mw.to_3x3() @ Vector((1, 0, 0)), .8 * s)
-        a.guns.append(GunAnchor(int(m.group(1)), 'gun', ob, s, False))
+        a.guns.append(GunAnchor(int(m.group(1)), tag, ob, s, False, barrel=k))
 
     # --- lamps -----------------------------------------------------------
     for prefix, role, color in LAMPS:
@@ -329,7 +332,7 @@ def find(scene=None, coll=None):
 
 # Another hull's declared anchors: 'Engine 1 port exhaust anchor', 'Anchor weapon WS 001 muzzle'.
 OTHER_ENGINE = re.compile(r'^Engine (\d+) \S.* exhaust anchor(\.\d+)?$')
-OTHER_MUZZLE = re.compile(r'^Anchor weapon WS 0*(\d+) muzzle(\.\d+)?$')
+OTHER_MUZZLE = re.compile(r'^Anchor weapon WS 0*(\d+) muzzle(?: (\d+))?(\.\d+)?$')
 
 
 def export_root():

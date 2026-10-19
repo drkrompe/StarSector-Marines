@@ -138,7 +138,8 @@ YOKE_GRIP_AFT = 0.03                       # the handles stand this far aft of t
 YOKE_GRIP_R = 0.022                        # the handles' radius: a fist's worth of rubber
 # Built heavy (owner, 2026-10-19: the first one read flimsy): a ship's helm, not a game controller.
 YOKE_COLUMN = 0.55
-YOKE_PUSH, YOKE_TURN = 0.05, 10.0          # m in along the column, degrees (positive: rolls to port)
+# The push reads from behind his left shoulder, where C2's optional glance at him sees it.
+YOKE_PUSH, YOKE_TURN = 0.08, 10.0          # m in along the column, degrees (positive: rolls to port)
 
 # His poses (owner, 2026-10-19). At rest he sits back against the seat, forearms on the
 # armrests, hands hanging loose over their ends, the yoke stowed. To fly he leans in and takes
@@ -158,7 +159,7 @@ DRAWING = dict(slide=0.03, lean=11.0, head_lift=-10.0, head_turn=3.0,
                yoke=((YOKE_STOWED + YOKE_OUT) / 2, 0.0), elbow_pole=(-0.4, 0.65, -0.8))
 FLYING = dict(slide=0.0, lean=1.0, head_lift=-3.0, head_turn=3.0, yoke=(YOKE_OUT, 0.0),
               elbow_pole=(-0.5, 0.5, -0.9))
-PUSHED = dict(FLYING, lean=4.0, head_lift=-6.0, yoke=(YOKE_OUT - YOKE_PUSH, 0.0))
+PUSHED = dict(FLYING, lean=8.0, head_lift=-9.0, yoke=(YOKE_OUT - YOKE_PUSH, 0.0))
 TURNED = dict(PUSHED, head_turn=6.0, yoke=(YOKE_OUT - YOKE_PUSH, YOKE_TURN))
 # When, in C2 seconds (24 fps, frame = t x 24): relaxed through the hail; in to the stowed yoke
 # and drawing it out before Second Wind's de-orbit starts at 9.6 s; held through its pitch-down
@@ -170,10 +171,14 @@ PUSH_IN, PUSH_OUT = (9.5, 10.4), (12.5, 13.2)      # the pitch-down runs 9.6-13.
 TURN_IN, TURN_OUT = (10.7, 11.3), (11.9, 12.5)     # a small correction while pushed
 LET_GO = (13.5, 14.7)
 FPS, LAST_FRAME = 24, 18 * 24              # C2 (15 s) and the entry transition (3 s)
-
-
-def _same(a, b, eps=1e-6):
-    return all(abs(x - y) < eps for x, y in zip(a, b))
+# Where he looks, on top of the poses (owner, 2026-10-19: small life, no more; he is only ever
+# seen from behind, so a look is a slow turn of the head, never a flick of the eyes). C2 second,
+# yaw (degrees to port) and lift (negative raises the chin). Ahead at the Legion 22 degrees off
+# the bow; one slow turn to port as it comes abeam; ahead again to fly the pitch through; and
+# once he has let go, round to watch it climb out of the slits.
+LOOKS = ((0.0, 12, 0), (6.4, 12, 0), (8.0, 42, -3), (9.0, 6, 0), (13.6, 6, 0), (14.8, 30, -8),
+         (18.0, 30, -8))
+BREATH_S, BREATH_DEG = 4.4, 0.8            # one slow breath, the chest's rise
 
 
 def _close(a, b, eps=1e-5):
@@ -915,17 +920,32 @@ def blender_main(argv):
         return (rise(sec, REACH_IN), rise(sec, DRAW_OUT), ramp(sec, PUSH_IN, PUSH_OUT),
                 ramp(sec, TURN_IN, TURN_OUT), rise(sec, LET_GO))
 
+    def look(sec):
+        """(yaw, lift) at a C2 second, eased between the LOOKS keys."""
+        if sec <= LOOKS[0][0]:
+            return LOOKS[0][1:]
+        for (t0, y0, l0), (t1, y1, l1) in zip(LOOKS, LOOKS[1:]):
+            if sec <= t1:
+                e = ease((sec - t0) / (t1 - t0))
+                return y0 + (y1 - y0) * e, l0 + (l1 - l0) * e
+        return LOOKS[-1][1:]
+
+    life = [n for n in ("spine04", "neck01", "head", "eye.L", "eye.R") if n in pbs]
+    for n in life:
+        pbs[n].rotation_mode = "QUATERNION"
+    # Re-posing a bone needs the depsgraph; the meshes need not ride along while keying.
+    hidden = [o for o in scene.objects if o.type == "MESH" and not o.hide_viewport]
+    for o in hidden:
+        o.hide_viewport = True
+
     rig.animation_data_create()
     rig.animation_data.action = bpy.data.actions.new("Pilot draws the yoke out and flies")
     for ob in (column, wheel):
         ob.animation_data_create()
         ob.animation_data.action = bpy.data.actions.new(ob.name + " moves")
-    last = None
     for frame in range(0, LAST_FRAME + 1):
-        wt = weights(frame / FPS)
-        nxt = weights((frame + 1) / FPS)
-        if last is not None and 0 < frame < LAST_FRAME and _same(wt, last) and _same(wt, nxt):
-            continue                # a held stretch: its ends are keyed
+        sec = frame / FPS
+        wt = weights(sec)
         a, d, pw, tw, r = wt
         # The draw-out runs through the half-drawn pose, so the hands keep close to the grips
         # they are carrying out along the column.
@@ -939,11 +959,30 @@ def blender_main(argv):
             pb.location, pb.rotation_quaternion = loc, q
             pb.keyframe_insert("location", frame=frame)
             pb.keyframe_insert("rotation_quaternion", frame=frame)
+        # The life on top: the breath in the chest, the look shared by neck, head and eyes.
+        for n in life:
+            if pbs[n] not in moving:
+                pbs[n].matrix_basis = relaxed[n]
+        view.update()
+        yaw, lift = look(sec)
+        ahead_yaw, ahead_lift = look(sec + 0.15)        # the eyes get there first
+        rotate_world("spine04", (1, 0, 0), BREATH_DEG * math.sin(2 * math.pi * sec / BREATH_S))
+        rotate_world("neck01", (0, 0, 1), yaw * 0.35)
+        rotate_world("neck01", (1, 0, 0), lift * 0.4)
+        rotate_world("head", (0, 0, 1), yaw * 0.45)
+        rotate_world("head", (1, 0, 0), lift * 0.4)
+        for n in ("eye.L", "eye.R"):
+            if n in pbs:
+                rotate_world(n, (0, 0, 1), max(-22.0, min(22.0, ahead_yaw - yaw * 0.8)))
+                rotate_world(n, (1, 0, 0), max(-15.0, min(15.0, ahead_lift - lift * 0.8)))
+        for n in life:
+            pbs[n].keyframe_insert("rotation_quaternion", frame=frame)
         column.location = hub_at(YOKE_STOWED + (YOKE_OUT - YOKE_STOWED) * d - YOKE_PUSH * pw)
         column.keyframe_insert("location", frame=frame)
         wheel.rotation_euler = (head_tilt @ Matrix.Rotation(math.radians(YOKE_TURN * tw), 4, mp(1, 0, 0))).to_euler()
         wheel.keyframe_insert("rotation_euler", frame=frame)
-        last = wt
+    for o in hidden:
+        o.hide_viewport = False
     bpy.context.scene.frame_set(0)
     root["reach_s"], root["draw_out_s"], root["let_go_s"] = list(REACH_IN), list(DRAW_OUT), list(LET_GO)
 

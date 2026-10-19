@@ -89,7 +89,7 @@ textarea { width: 100%; min-height: 90px; font: 12px var(--mono); background: va
     <button id="reset">Reset to the suggested layering</button>
   </div>
   <textarea id="settings" readonly aria-label="Current settings"></textarea>
-  <p class="note">The suggested start is strings everywhere, with the piano-and-pad take layered in only for First open sky and the rise to the title. The piano take goes silent from about 1:26, so its later cells play nothing. Pictures are the current 1 fps sketches at 960x540; this page is for judging music, not picture.</p>
+  <p class="note">The suggested start is strings from C1 to C4, the piano-and-pad take layered in for First open sky, and Ending A taking over at the yard: it builds to the title and fades to silence for the return to the game. Ending B is the strings-only alternative; switch A off and B on to compare. The piano-and-pad take goes silent from about 1:26. Pictures are the current 1 fps sketches at 960x540; this page is for judging music, not picture.</p>
 </div>
 
 <script>
@@ -104,9 +104,13 @@ const SECTIONS = [
 ];
 const TRACKS = [
   { id: "score_strings_t01", name: "Strings", note: "Score take 1, hushed low strings",
-    on: [1, 1, 1, 1, 1, 1, 1], db: 0 },
+    on: [1, 1, 1, 1, 1, 0, 0], db: 6 },
   { id: "score_piano_pad_t01", name: "Piano + pad", note: "Score take 1, silent after 1:26",
-    on: [0, 0, 0, 1, 0, 0, 1], db: -3 },
+    on: [0, 0, 0, 1, 0, 0, 0], db: -3 },
+  { id: "ending_strings_piano_t01", name: "Ending A", note: "Strings + piano: builds from the yard, peaks at the title, fades out",
+    on: [0, 0, 0, 0, 0, 1, 1], db: 4 },
+  { id: "ending_strings_t01", name: "Ending B", note: "Strings only: the same build, fuller from the start",
+    on: [0, 0, 0, 0, 0, 0, 0], db: 4 },
 ];
 const BED = { id: "bed", name: "Effects + voices", note: "The current sound mix, no music", db: 0 };
 const FADE = 0.75;
@@ -114,7 +118,14 @@ const KEY = "arrival-score-desk-v1";
 
 let kit = null, ctx = null, buffers = {}, playing = false, startedAt = 0, offset = 0, live = [];
 let state = defaults();
-try { const saved = JSON.parse(localStorage.getItem(KEY) || "null"); if (saved && saved.tracks) state = saved; } catch (e) {}
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+  if (saved && saved.tracks) {
+    // Keep the viewer's settings for tracks they have already heard; new tracks take their defaults.
+    for (const id in saved.tracks) if (state.tracks[id]) state.tracks[id] = saved.tracks[id];
+    state.duck = saved.duck !== false; state.bedDb = saved.bedDb ?? state.bedDb;
+  }
+} catch (e) {}
 
 function defaults() {
   return { duck: true, bedDb: BED.db,

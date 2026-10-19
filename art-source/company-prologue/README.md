@@ -6,13 +6,14 @@ arrival cinematic. These are authoring sources; only the packed JPEGs under
 
 | Location | Purpose |
 |---|---|
-| [story-stills/](story-stills/) | Ten original story-frame masters with their exact generation prompts. Used by the campaign intro and yard UI. |
+| [story-stills/](story-stills/) | Ten story-frame masters with their exact generation prompts. Used by the campaign intro and yard UI. P1, P4, P5, P6 and P8 are painted over guide renders of the real Second Wind and its bridge (`guides/prologue_guides.py`, no figures; people from their portraits); `alternates/` holds generations not shipped. |
 | [pack.ps1](pack.ps1) | Packs only `story-stills/*.master.png`: complete 3:2 frames, 1200x800 JPEG, quality 85, maximum 400 KiB each. |
 | `second-wind-hull.reference.png`, `second-wind-design-v1/v2/v3.reference.png` and adjacent prompts | Original hull and design evolution. V3 is the accepted clean/medium geometry reference; earlier sheets remain useful reference art. |
 | [second-wind-geometry/](second-wind-geometry/) | The single accepted clean-hull geometry source (V3 revision), renders and coordinate contract. Older V2 reference images are under `reference-history/v2/`; its obsolete model and builders were removed. |
 | [second-wind-pipeline.md](second-wind-pipeline.md) | How geometry, condition states (derelict → patched → refit → restored) and surfacing fit together across the ship's campaign life. Read first for any Second Wind work. |
 | [ship-model-status.md](ship-model-status.md) | Where every cinematic ship and fighter model stands in the `ship-model-pipeline` passes, with its scale and next step. |
 | [fleet-scale/](fleet-scale/README.md) | Rerunnable lineup of every cinematic hull at its own `metres_per_unit`, with a sizes table, for judging relative scale. |
+| [asharu-battle/](asharu-battle/asharu-battle-shot.md) | The wreckfall cinematic: merchant convoy against pirates in low orbit over Asharu, ending with the Colossus and Morrow going down. Shot plan, both fleet rosters, pirate build list, and the Blender blockout with its key frames. |
 | [hound-geometry/](hound-geometry/README.txt) | Hound (A) cinematic blockout (`hound_hegemony` over `hound`): silhouette, sections and the vanilla slots, with a sprite overlay and IoU. No detail, damage or surfacing yet. |
 | [second-wind-skins/](second-wind-skins/README.txt) | Weathering states, including the heavily damaged arrival reference. |
 | [second-wind-cinematic/](second-wind-cinematic/README.md) | Current shot order, reusable ship master, sources and earlier technique studies. |

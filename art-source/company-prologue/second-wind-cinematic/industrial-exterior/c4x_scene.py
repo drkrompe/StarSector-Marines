@@ -748,9 +748,6 @@ LIGHTERS = [(-445.0, 'parked'), (-355.0, 'lifting'), (-265.0, 'parked'), (-175.0
 # for an inbound.
 HEAVY = (-60.0, 70.0, 615.0, 715.0)       # x0, x1, y0, y1: behind the berths, its road down to the port road
 OFFICE = (240.0, 415.0)                   # arrivals: customs and decontamination, MuniSec's post
-# The skinned Hound and Mudskipper carry their engines on +X: a hull facing heading h is turned
-# half round so its stern, where the cargo comes out, points back down its lane.
-STERN_FIRST = math.pi
 # Kilo Nine, Nessa's private cradle, faces the way Second Wind comes in.
 K9 = (400.0, 465.0)
 K9_R = 48.0                               # a 96 m pad: Second Wind sits inside its ring
@@ -1529,15 +1526,8 @@ def add_k9_vehicles():
              (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(14.0), 305, 430), (sec(CUSTOMS_ARRIVE - LATE), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
              (sec(14.0), math.pi / 2), (sec(14.6), 0.0)])
-    beacon = bpy.data.objects.new('Customs beacon', bpy.data.lights.new('Customs beacon', 'POINT'))
-    beacon.data.color = (1.0, 0.6, 0.2)
-    beacon.data.shadow_soft_size = 0.3
-    beacon.parent = car
-    beacon.location = (0, 0, 4.0)
-    link(beacon)
-    for f in range(0, FRAMES + sec(40.0), 6):           # flashing with the bar, on into C5: a pool of amber on the road
-        beacon.data.energy = 2.0e5 if (f // 6) % 2 else 0.0
-        beacon.data.keyframe_insert('energy', frame=f)
+    # No point light with the bar: in daylight a 200 kW beacon 2 m over a white roof blew the car out
+    # to a glowing white block in C5 (owner, 2026-10-19). The flashing bar itself is the signal.
     vehicle('MuniSec car at the gate', car_parts(bpy.data.materials['Customs white']),
             [(0, -250, -104)], [(0, 0.3)])
 
@@ -1650,6 +1640,7 @@ def build():
     sys.path.insert(0, str(CINE / 'thrust-markers'))
     import thrust_shots                                  # every craft's nozzles marked, through C5
     thrust_shots.mark_c4(sys.modules[__name__])
+    port_fleet.after_markers(sys.modules[__name__])     # the departing Colossus's burn, off its markers
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames
