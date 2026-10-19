@@ -747,6 +747,7 @@ LIGHTERS = [(-445.0, 'parked'), (-355.0, 'lifting'), (-265.0, 'parked'), (-175.0
 # The heavy berth: a walled bay with a gantry for the largest hull that lands. Empty, cargo staged
 # for an inbound.
 HEAVY = (-60.0, 70.0, 615.0, 715.0)       # x0, x1, y0, y1: behind the berths, its road down to the port road
+HEAVY_RAIL_END = 750.0                    # its gantry's rails run on past the north wall to here
 OFFICE = (240.0, 415.0)                   # arrivals: customs and decontamination, MuniSec's post
 # Kilo Nine, Nessa's private cradle, faces the way Second Wind comes in.
 K9 = (400.0, 465.0)
@@ -897,9 +898,14 @@ def add_port():
     box(marks, (1.6, hy1 - hy0 - 24, 0.1), (hx0 + 15, (hy0 + hy1) / 2, 0.3))
     box(marks, (1.6, hy1 - hy0 - 24, 0.1), (hx1 - 15, (hy0 + hy1) / 2, 0.3))
     mesh('Heavy berth walls', wall, concrete)
+    # The rails run on past the north wall, so the gantry can roll clear of a hull lifting out of the
+    # bay (`port_fleet` stands it there, so the Colossus can lift out).
+    rails = bmesh.new()
+    for x in (hx0 - 4, hx1 + 4):
+        box(rails, (2, HEAVY_RAIL_END - hy0, 0.8), (x, (hy0 + HEAVY_RAIL_END) / 2, 0.4))
+    mesh('Heavy berth gantry rails', rails, bpy.data.materials['Crane yellow'])
     gc = bmesh.new()
     for x in (hx0 - 4, hx1 + 4):
-        box(gc, (2, hy1 - hy0, 0.8), (x, (hy0 + hy1) / 2, 0.4))             # rails
         for y in (HEAVY[2] + 38, HEAVY[2] + 56):
             strut(gc, (x, y, 0), (x, y, 46), 1.8)
     for y in (HEAVY[2] + 38, HEAVY[2] + 56):
@@ -1631,7 +1637,7 @@ def build():
     import ortho_paint                                  # painted overhead tiles, where accepted
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
-    ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
+    ortho_paint.apply(scene, ({o.name for o in ship.all_objects} if ship else set()) | port_fleet.hull_part_names())
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
