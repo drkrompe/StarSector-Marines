@@ -90,6 +90,27 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
     'kite-p-b': (-6700, 450, -3150, 3, 14, 2, 1),
 }
 
+# Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
+# grapples.tarsus_origin_units (20.398, 0.49, -78.254) at 0.495 m/u, axes aligned.
+CLAMP_TARSUS_M = (10.10, 0.24, -38.74)
+
+
+def aboard(parent, offset, thr=0):
+    """A ship riding with another: the parent's spec moved by offset (metres, parent frame),
+    with the parent's heading, pitch and roll. Same rotation order as frame_of."""
+    x, y, z, hd, pt, rl = parent[:6]
+    ch, sh = math.cos(math.radians(hd)), math.sin(math.radians(hd))
+    cp, sp = math.cos(math.radians(-pt)), math.sin(math.radians(-pt))
+    cr, sr = math.cos(math.radians(rl)), math.sin(math.radians(rl))
+    ox, oy, oz = offset
+    oy, oz = cr * oy - sr * oz, sr * oy + cr * oz                    # roll about X
+    ox, oz = cp * ox + sp * oz, -sp * ox + cp * oz                   # pitch about Y
+    ox, oy = ch * ox - sh * oy, sh * ox + ch * oy                    # heading about Z
+    return (x + ox, y + oy, z + oz, hd, pt, rl, thr)
+
+
+C3_PRIZE = (-150, 330, 60, 30, -4, -6, .3)
+
 KEYFRAMES = {
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
@@ -146,6 +167,7 @@ KEYFRAMES = {
                 'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
                 'with her drives lit, holding her up.',
         camera=dict(loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
+        knobs={'colossus3': {'grapples': 0.5}},
         ships={'colossus': (0, 0, 0, 0, -3, 6, .2), 'morrow': (-10, 35, -78, 0, 8, 4, 1),
                'colossus3': (-60, 70, 175, -4, -8, 4, .6),
                'kite-p-a': (110, 210, 40, -60, 6, 32, 1),
@@ -162,9 +184,10 @@ KEYFRAMES = {
                 'A burning freighter heading into the atmosphere is not worth chasing.',
         camera=dict(loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
         states={'tarsus': 'tarsus-boarded'},
+        knobs={'colossus3': {'grapples': 1.0}},
         ships={'falcon-p': (-560, 120, 120, 25, -6, 8, .8),
-               'colossus3': (-240, 470, 60, 30, -4, -6, .3), 'tarsus': (-300, 360, 0, 30, -4, -6, 0),
-               'kite-p-a': (-330, 300, 25, 30, -2, -4, 0),
+               'colossus3': C3_PRIZE, 'tarsus': aboard(C3_PRIZE, CLAMP_TARSUS_M),
+               'kite-p-a': aboard(C3_PRIZE, (10, 66, -40)),
                'colossus': (480, -30, -780, 5, -26, 14, .15), 'morrow': (500, -175, -830, 0, -22, 8, 1)},
         fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
             ('debris', 'colossus', 70, (-30, 0, 10))],
@@ -486,6 +509,9 @@ def blender_main(cfg):
         f = roster.FINISHED[key]
         m = json.loads((INPUTS / f['manifest']).read_text())
         coll = append(INPUTS / f['file'], m['append_collection'])
+        ctl = m.get('control', {}).get('object')
+        ctl = next((o for o in coll.all_objects if ctl and o.name.split('.')[0] == ctl), None) or (
+            bpy.data.objects.get(ctl) if ctl else None)
         eng = []
         for e in m['engines']:
             role = e.get('role', 'main drive')
@@ -495,7 +521,8 @@ def blender_main(cfg):
                 continue
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
-        return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'])
+        knobs = {k['name']: m['control']['saved_pose'].get(k['name'], 0.0) for k in m['control']['knobs']} if ctl else {}
+        return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl, knobs=knobs)
 
     def standin(game, length_m=None):
         """The sprite's silhouette as a lens-shaped slab in hull units (one sprite px per unit,
@@ -904,6 +931,17 @@ def blender_main(cfg):
             spec = KEYFRAMES[kf]
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
+            for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
+                if lib.get('ctl') is not None:
+                    for name, rest in lib['knobs'].items():
+                        lib['ctl'][name] = rest
+            for key, kn in spec.get('knobs', {}).items():
+                lib = hull(members[key])
+                for name, val in kn.items():
+                    lib['ctl'][name] = val
+            if any(lib.get('ctl') is not None for lib in library.values()):
+                scene.frame_set(scene.frame_current)    # drivers read the knobs
+                bpy.context.view_layer.update()
             extra3d = {}
             if spec.get('platform'):
                 platform(spec['platform'])
