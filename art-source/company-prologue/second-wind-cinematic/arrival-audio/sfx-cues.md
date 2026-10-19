@@ -142,11 +142,11 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c4_freeway` | Heavy trucks and haulers on the freeway | 1–53.9; loudest crossing the road (4), low over the yard, up again with the rise, out under the title | Bed | −12 (−22 over the yard, −14 at the top of the rise) | Gen |
 | `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–53.9; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
 | `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–39.4 | Bed | −18 | Gen |
-| `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the approach, building from the hover to touchdown | 3–17.9 | Bed | −10 (−18 under the lines and through the hover, −14 → −11 at touchdown, under the landing roar's own sub), below 220 Hz | Gen |
-| `landing_roar` | The belly jets: lit at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`) |
-| `landing_grit` | Sand-blast hiss and pebbles pinging off the hull, building from 13, peaking at touchdown | 13–17.4 | Spot | −11 | Code |
-| `landing_thump` | Touchdown: first legs at 16.4, second at 16.57, the struts groaning | 16.4 | Spot | −2 | Code |
-| `landing_spool` | Vent hiss and the turbines winding down | 16.4–18.4 | Transition | −8 | Code |
+| `second_wind_c4_drive` | Second Wind's main drive heard from the sky camera: a muffled burning-gas rocket, broadband, **no hum** (owner, 2026-10-19: "burning gas thrusters, heavy lift"). Full until touchdown, out by 17.9 (thruster markers) | 0–17.9 | Bed | −12 (−16 throughout, under the lines and the landing roar) | Code (`synth_flyby.py`) |
+| `landing_roar` | The belly lift jets: broadband crackling combustion with heavy low end, an ignition whump at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`, broadband rebuild) |
+| `landing_grit` | Sand and grit blasted across the pad, building from about 13, peaking at touchdown; noise only, no pings | 13–17.4 | Spot | −11 | Code |
+| `landing_thump` | Touchdown: the legs at 16.4 and 16.57, a noise thump with no tone | 16.4 | Spot | −2 | Code |
+| `landing_spool` | Burner shutdown: sputtering coughs, pops and gas hiss after the cut-off | 16.6–18.5 | Transition | −8 | Code |
 | `landing_settle` | Dust washing back down and the last grit | 16.9–21.4 | Spot | −14 | Code |
 | `colossus_outbound` | A second Colossus leaving (`port_fleet`), **synthesised from its path** against the C5 camera: a huge, slow, muffled freighter drive coming in from the east at about 460 m, closest (about 165 m) at C5 18–19.5, then about 1.5 km off and still burning under the title. Kept under the music and the title | 30.4–54.9, closest 39.4–40.9 | Spot | −10, −14 under the title | Code |
 | `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
