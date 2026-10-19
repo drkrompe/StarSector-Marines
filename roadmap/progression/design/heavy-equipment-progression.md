@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — missile racks split into anti-armor and fragmentation warheads (readings below); the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -286,7 +286,8 @@ Still open from these readings:
   Its armor-duel share is low by design, so it is judged against infantry,
   never by how it fares against machines. Its anti-armor answer is its SRM
   shoulders, as LRMs are the Sirocco's. What these readings did expose is that
-  the chaingun's heat starves those shoulders (next section).
+  the chaingun's heat starved those shoulders. That is now fixed by the firing
+  order, not by heat (next section).
 
 The bastion and the pulse laser are balanced in the next section.
 
@@ -328,10 +329,39 @@ arms first, so the chaingun takes every release. Against ten rifles and an AMR
 (`mech-frame-endurance`, 48 seeds) heat 24 also raised a stock chaingun
 Bulwark's damage per minute by 26% (1136 to 1435) and a refit's by 15%. Every
 neutral enemy Bulwark fights on a stock frame, so that would have been a quarter
-more fire at marines while fixing nothing for the shoulders. The fault is the
-firing order: against armor, the anti-armor mounts should get the reservoir
-first. That is weapon-selection behavior, not equipment, and it is left open
-below.
+more fire at marines while fixing nothing for the shoulders. The fault was the
+firing order.
+
+**Against a machine, the anti-armor mounts fire first.** An autonomous mech now
+tries its mounts in order of armor efficiency against the target it is shooting,
+when that target is a mech or a vehicle, and in slot order otherwise
+(`mechs-nouns.md`, Thermal reservoir). Against infantry nothing changes. A
+chaingun, pulse laser or linear cannon now yields the reservoir to the SRM-15s;
+a heavy cannon fires before them and a bastion ties them. Readings, against
+`-Dbattle.mech.armorFireOrder=false` (the control reproduces the matrix below
+fight for fight):
+
+| Reading | Control | Rule |
+| --- | --- | --- |
+| SRM share of damage against machines: stock / refit chaingun Bulwark | 0.15 / 0.18 | 0.42 / 0.30 |
+| Damage dealt per fight: stock / refit chaingun Bulwark | 433 / 780 | 513 / 810 |
+| SRM share: stock / refit pulse-laser Bulwark | 0.07 / 0.22 | 0.32 / 0.24 |
+| SRM share: heavy cannon, bastion, linear cannon Bulwarks | unchanged | unchanged |
+| Overall win share: refit / stock chaingun Bulwark | 0.43 / 0.09 | 0.43 / 0.12 |
+| Damage per minute against ten rifles and an AMR, every chassis and frame | — | identical |
+| Stock chaingun Bulwark vs stock Hound (`armorMatchup`, 16 seeds) | 0.79 | 0.92 |
+| Endurance under a hostile stock Bulwark: stock Bulwark / stock Hound / refit Hound | 127 / 56 / 74 s | 80 / 42 / 46 s |
+
+The chaingun Bulwark's duel share hardly moves, as its role says it should not.
+What moves is what it does to machines: its shoulders now do a third or more of
+its damage to them. The cost lands on whatever a chaingun Bulwark shoots. Every
+neutral enemy Bulwark carries one, and a planted mech under one now lasts about
+a third less. A stock Hound, the starter machine, loses its first mount at 3 s
+instead of 7 under the heavier opening salvo. A stock Hound already lost to a
+stock Bulwark (0.06 before, 0.00 now), so the starter fit's place is unchanged:
+it is for the first operations, not for facing heavy armor. The Hound's own fire
+barely changes (SRM share 0.08), because it mostly fights beyond its SRM-5's
+18-cell reach.
 
 Readings (`armorMatchup`, fourteen explicit fits: the cannon section's eleven
 plus a stock-frame bastion, a stock-frame pulse laser and a refit linear cannon;
@@ -371,11 +401,6 @@ Still open:
   reached only 0.44, level with the chaingun refit, a Common arm. A weapon that needs
   its fire rate doubled is a damage question, not an equipment one, so it was
   left as authored.
-- **The chaingun takes every heat release from the shoulders.** Against armor
-  the SRM-15s should be offered the reservoir before the anti-infantry arm, on
-  stock frames as well as refit ones. Judge a fix by the shoulders' share of
-  damage against machines, and leave the chaingun's fire against infantry where
-  it is (`mech-frame-endurance`, rifles).
 - **Every tank beats every Bulwark fit**, as above.
 
 Direction, not yet a story: missile racks are the mech's anti-armor weapons, and

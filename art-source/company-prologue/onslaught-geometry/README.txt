@@ -98,4 +98,13 @@ Status
   and bolt rows, hatches and an airlock a side, louvres and heat shields, conduit
   runs from well to drive and along the chines, valve chests in the waist
   valleys, gimbal rams on the drives. Silhouette locked: IoU, seam audit,
-  turret training and lights unchanged. Awaiting the owner's review.
+  turret training and lights unchanged.
+  Detail pass 2 (owner: "bolder: bigger, denser machinery and plating breakup so
+  it reads at 1.5 km too"): a big layer under the pass-1 parts - armour plates of
+  8-25 units in alternating tones on a near-black underlay (wide dark seams),
+  segmented orange courses with dark joints, open machinery trenches and bays
+  (waist valleys, arm decks, belly, stern wells) with tanks, pumps and pipe
+  bundles of 1-3 units, radiator fin banks, bold drive collars. The waist trench
+  stops short of the arm's own bay (os_detail_top.TRENCH_FORE). IoU 0.955;
+  silhouettes gain edge pixels only; seam audit, turrets and lights unchanged.
+  Awaiting the owner's review.

@@ -101,6 +101,7 @@
       ]
     },
     "published_metres_per_unit": 0.5,
+    "published_note": "owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front deepened the block; option C solves 0.426 (92 m)",
     "measured_this_build": {
       "enclosed_units3": 1182133,
       "solids": [

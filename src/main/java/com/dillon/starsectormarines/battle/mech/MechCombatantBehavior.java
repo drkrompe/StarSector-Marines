@@ -95,8 +95,17 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * </ul>
      */
     public static void tryFireMechWeapons(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        for (MechWeaponMount mount : m.mounts()) {
-            tryFireMount(u, m, mount, target, dist, sim, hasLos);
+        MechWeaponMount[] mounts = m.mounts();
+        float armorRating = MechFireOrder.machineArmorRating(target, sim);
+        if (armorRating <= 0f) {
+            for (MechWeaponMount mount : mounts) {
+                tryFireMount(u, m, mount, target, dist, sim, hasLos);
+            }
+            return;
+        }
+        // Against a machine, the mounts that best defeat its armor get the reservoir first.
+        for (int index : MechFireOrder.order(mounts, armorRating)) {
+            tryFireMount(u, m, mounts[index], target, dist, sim, hasLos);
         }
     }
 
