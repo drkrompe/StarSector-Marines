@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155b5-844d-7ab0-8c44-83ee431a501e",
+  "source": "/Users/dillon/.codex/generated_images/01a155b5-844d-7ab0-8c44-83ee431a501e/exec-166e86f1-e78f-4435-a20f-cdf931f99249.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/wolf-surface/reference/finish-reference.png",
+    "sha256": "3289ffba467b2ba0e3c8009225b3561a9b2090012e43f1198f5a404185a042e6",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/wolf-surface/prompts/finish-reference.prompt.txt",
+  "promptSha256": "d48dbdfb44326a33bc94f46b96474149bbdeafe0c85701f8e6cb130b01158ffc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the game sprite (paint scheme and colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one small spacecraft, a pirate Wolf-class frigate (a fast high-tech warship that a pirate crew has heavily modified and poorly maintained), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: deep crimson painted armour on the rounded hull decks, flanks and the two domes aft; warm mid-grey machinery steel on the bow fork, head, outriggers, missile pods and the finned engine block; near-black recesses, slots and seams; small pale glazed canopies and ports. The green and sand-yellow weapons, the small glowing lamps and the orange vent are separate fittings: leave their colours as they are.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours (its crimson and warm grey). Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, turret, vent, dome, fin and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: crimson stays a deep, slightly dull crimson enamel (as INPUT 2's red, not orange, not pink), grey machinery stays a warm mid-grey painted steel, recesses stay near black, glazing stays pale tinted glass. Do not swap or invent colours, stripes, logos or patches.\n- Finish: a hard-used pirate warship. Semi-matte enamel with crisp plate seams, fastener rows, access panels and noticeable plate-to-plate tone differences. Battle-worn but even across the whole ship: scuffed and chipped paint on exposed edges and corners showing dark steel, fine scratches, a dusty grime film packed into seams and recesses, faded paint on the upper decks, soot near the aft drives. No rust holes, no burn craters, no dents, no torn metal, no repair plates, no large single stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/wolf-surface/guide/reference-guide.png",
+      "sha256": "76bffeabddc05c7d84c9a99237765bf82833e5f81f2734629f92711e27bfe21a",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/wolf-surface/build/sprite-livery.png",
+      "sha256": "fa010e6e2c74e393dc29bb8b63ddcba483322d8ca0b66fc62c3a3301e98b2de5",
+      "dimensions": [
+        768,
+        416
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the game sprite (paint scheme and colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the worn crimson-and-grey finish while preserving the render’s geometry and composition."
+  ],
+  "usage": {
+    "input_tokens": 73587,
+    "cached_input_tokens": 57984,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 795,
+    "reasoning_output_tokens": 39
+  },
+  "elapsedSeconds": 40.0
+}

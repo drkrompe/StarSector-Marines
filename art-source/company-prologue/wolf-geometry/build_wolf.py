@@ -92,8 +92,21 @@ parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--manifest', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--variant', default='pirate', choices=('pirate', 'merchant'))
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-OUT = Path(args.out or HERE.parents[2]/'build'/'wolf-p').resolve()
+# The variant: 'pirate' is the Wolf (P) (the skin, its armour over WS 002 / WS 003);
+# 'merchant' the base hull with every slot armed, for the convoy's own Wolf. Same
+# hull, same scale; separate collection, asset and manifest.
+wf_kit.VARIANT = args.variant
+wf_mounts.configure(args.variant)
+MERCHANT = args.variant == 'merchant'
+if MERCHANT:
+    COLL, ROOT, NAME_SHOWN = 'WOLF', 'WOLF | root', 'Wolf'
+else:
+    NAME_SHOWN = NAME
+ASSET = 'wolf.blend' if MERCHANT else 'wolf-p.blend'
+GEOM_JSON = 'geometry-merchant.json' if MERCHANT else 'geometry.json'
+OUT = Path(args.out or HERE.parents[2]/'build'/('wolf' if MERCHANT else 'wolf-p')).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 
 
@@ -111,15 +124,15 @@ def check_against_install():
     import re  # the skin is loose JSON (bare .8, trailing commas): read the one list we need
     found = re.search(r'"removeWeaponSlots"\s*:\s*\[([^\]]*)\]', (GAME/SKIN).read_text(encoding='utf-8'))
     removed = set(re.findall(r'"([^"]+)"', found.group(1))) if found else set()
-    if removed != {s['id'] for s in wf_mounts.REMOVED}:
+    if removed != {s['id'] for s in (wf_mounts.PIRATE['removed'])}:
         raise RuntimeError(f'wolf_d_pirates.skin removes {removed}')
-    for mine in wf_mounts.SLOTS+wf_mounts.REMOVED:
+    for mine in wf_mounts.PIRATE['slots']+wf_mounts.PIRATE['removed']:
         s = slots[mine['id']]
         theirs = (tuple(s['locations']), s['angle'], s['arc'], s['mount'], s['size'], s['type'])
         ours = (mine['location'], mine['angle'], mine['arc'], mine['mount'], mine['size'], mine['type'])
         if theirs != ours:
             raise RuntimeError(f"{mine['id']} differs from wolf.ship: {theirs} vs {ours}")
-    if len(slots) != len(wf_mounts.SLOTS)+len(wf_mounts.REMOVED):
+    if len(slots) != len(wf_mounts.PIRATE['slots'])+len(wf_mounts.PIRATE['removed']):
         raise RuntimeError('wolf.ship weapon slot count changed')
     engines = [(e['location'][0], e['location'][1], e['width'], e['length']) for e in ship['engineSlots']]
     if engines != [tuple(e) for e in wf_engines.ENGINES]:
@@ -351,22 +364,25 @@ for name in wanted:
     bpy.ops.render.render(write_still=True)
 
 if not args.no_save:
-    manifest_path = OUT/'geometry.json'
-    old = json.loads((HERE/'geometry.json').read_text(encoding='utf-8')) if (HERE/'geometry.json').exists() else {}
+    manifest_path = OUT/GEOM_JSON
+    old = json.loads((HERE/GEOM_JSON).read_text(encoding='utf-8')) if (HERE/GEOM_JSON).exists() else {}
     manifest = {
         'status': 'Pass 1 blockout: silhouette, sections, slots, drives, anchors, lamps; blockout '
                   'materials in the pirate scheme. Built for the Asharu battle (S7-S9 close, S6 mid, S4 distant).',
+        'variant': args.variant,
         'hull': {
-            'name': NAME, 'hullId': 'wolf', 'skinHullId': 'wolf_d_pirates', 'size': 'FRIGATE',
+            'name': NAME_SHOWN, 'hullId': 'wolf', 'skinHullId': None if MERCHANT else 'wolf_d_pirates', 'size': 'FRIGATE',
             'style': 'HIGH_TECH', 'tech': 'Pirate (skin) on a High Tech hull', 'designation': 'Frigate',
-            'livery': 'pirate: "heavily modified - and poorly maintained - by its pirate crew" (the skin)',
+            'livery': 'merchant: an independent convoy escort in the base hull\'s unpainted scheme (wolf_base.png)'
+            if MERCHANT else 'pirate: "heavily modified - and poorly maintained - by its pirate crew" (the skin)',
             'source': {'ship': SHIP, 'skin': SKIN, 'sprite': SPRITE, 'base_sprite': BASE_SPRITE,
                        'ship_data': 'data/hulls/ship_data.csv (row id wolf)',
                        'variant': 'data/variants/wolf/wolf_d_pirates_Attack.variant (loadout modelled)'},
             'removed_weapon_slots': [s['id'] for s in wf_mounts.REMOVED],
             'removed_slot_records': wf_mounts.REMOVED,
             'loadout': wf_mounts.LOADOUT,
-            'built_in_mods': [], 'built_in_weapons': [], 'ship_system': 'displacer_degraded',
+            'built_as': wf_mounts.BUILT_AS,
+            'built_in_mods': [], 'built_in_weapons': [], 'ship_system': 'displacer' if MERCHANT else 'displacer_degraded',
             'shield': 'FRONT 150 deg (not modelled)', 'crew': [15, 30], 'cargo': 50, 'fuel': 20,
         },
         'provenance': provenance,
@@ -386,7 +402,7 @@ if not args.no_save:
         'vfx_mounts': wf_mounts.mounts(),
         'engines': wf_engines.records(),
         'running_lights': wf_lights.records(),
-        'asset': {'file': 'wolf-p.blend', 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',
+        'asset': {'file': ASSET, 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',
                   'baked': 'every modifier applied; no live booleans or bevels',
                   'append': f"bpy.data.libraries.load(path, link=True) and take collection '{COLL}'; "
                             "instance it with a collection-instance empty scaled by metres_per_unit",
@@ -413,33 +429,12 @@ if not args.no_save:
             manifest[key] = old[key]
     manifest_path.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
     if args.manifest:
-        shutil.copy(manifest_path, HERE/'geometry.json')
+        shutil.copy(manifest_path, HERE/GEOM_JSON)
 
-    # --- The appendable asset: one collection, one root, nothing but the ship. ---
-    for ob in [o for o in bpy.data.objects if o.type in ('CAMERA', 'LIGHT')]:
-        bpy.data.objects.remove(ob, do_unlink=True)
-    coll = bpy.data.collections.new(COLL)
-    scene.collection.children.link(coll)
-    anchors = bpy.data.collections.new(f'{COLL} | anchors')
-    coll.children.link(anchors)
-    root = bpy.data.objects.new(ROOT, None)
-    root.empty_display_type, root.empty_display_size = 'ARROWS', 12
-    coll.objects.link(root)
-    root['metres_per_unit'] = METRES_PER_UNIT
-    root['axes'] = '+X bow, +Y port, +Z dorsal; hull units'
-    root['source'] = 'art-source/company-prologue/wolf-geometry/build_wolf.py'
-    for ob in [o for o in bpy.data.objects if o is not root]:
-        for c in list(ob.users_collection):
-            c.objects.unlink(ob)
-        (anchors if ob.type == 'EMPTY' else coll).objects.link(ob)
-        if ob.parent is None:
-            ob.parent = root  # root sits at the hull origin: no inverse needed
-    bpy.context.view_layer.update()
-    orphans = [o.name for o in coll.all_objects if o is not root and o.parent is None]
-    assert not orphans, orphans
-    for c in [c for c in bpy.data.collections if c.name not in (COLL, f'{COLL} | anchors')]:
-        bpy.data.collections.remove(c)
-    bpy.ops.outliner.orphans_purge(do_recursive=True)
-    bpy.context.preferences.filepaths.save_version = 0
-    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'wolf-p.blend'), compress=True)
-    print('saved', OUT/'wolf-p.blend')
+    # The clean geometry build for the surfacing harness (../wolf-surface): the
+    # same model with the review cameras and studio, never the appendable asset.
+    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'wolf-geometry.blend'), copy=True, compress=True)
+    import wf_export
+    importlib.reload(wf_export)
+    wf_export.package(OUT/ASSET, METRES_PER_UNIT, coll_name=COLL)
+    print('saved', OUT/ASSET)

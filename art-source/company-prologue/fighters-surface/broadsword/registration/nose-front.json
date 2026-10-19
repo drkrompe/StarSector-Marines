@@ -1,0 +1,59 @@
+{
+ "part": "nose-front",
+ "sheet": "hull-low",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9912,
+ "raw_iou": 0.981,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9877,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.981
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0051,
+    1.00619
+   ],
+   "offset_px": [
+    -2.33,
+    -1.59
+   ],
+   "iou": 0.9842
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0031,
+    1.00719
+   ],
+   "offset_px": [
+    -0.83,
+    -1.59
+   ],
+   "iou": 0.9877
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.87,
+  "p95_px": 2.0,
+  "max_px": 2.83
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.57,
+  "p95_px": 2.0,
+  "max_px": 3.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

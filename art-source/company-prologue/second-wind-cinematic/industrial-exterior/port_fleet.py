@@ -15,18 +15,24 @@ does the job:
                              for a hull that rests at z 11, which the Mudskipper shares with the Hound)
   berth 4 (-40)   fuelling   Shepherd in a second operator's slate-blue
   berth 5 (140)   ferry      Mudskipper, Wayline's own livery
-  heavy berth                Colossus, unloading into the staged containers
+  heavy berth                Colossus, loaded and leaving: it lifts out of the bay in C5 (`climb`),
+                             its gantry already rolled north clear of it, the containers staged for
+                             the next hull off its stern quarter
   lighter pads               Hermes, textured (the untextured geometry if the export is missing)
 
 A freighter pad is 68 m across; the Hound (61 m), Mudskipper (67 m) and Shepherd (67 m) fit it nose
 to tail. The Colossus is 108 x 89 m and fits only the heavy berth's 130 x 100 m walled deck.
 
-In the air, both well below the camera and never across its path:
-  'Colossus outbound'  a second Colossus leaving through C5 (DEPART_KEYS): in low along the south
-                       side of Kilo Nine as the rise begins, then climbing away north-west, small
-                       and still burning under the title. Its plumes hang off its thruster markers
-                       (`after_markers`, called after `thrust_shots.mark_c4`).
+The heavy-berth Colossus's departure is flown, not posed: it climbs off the deck on its lift jets at
+a heavy hull's slow acceleration, then lights its mains and accelerates up and away west (`climb`).
+Its size in the C5 rise is whatever that altitude gives against the camera's. Its plumes hang off its
+thruster markers (`after_markers`, called after `thrust_shots.mark_c4`).
+
+In the air, well below the camera and never across its path:
   'Shepherd inbound'   a Shepherd letting down northward over the belt in C4's first seconds.
+
+Every part of every appended hull is left out of the overhead painting (`hull_part_names`), which
+otherwise takes them for static ground and prints the pad markings beneath onto their decks.
 
 Inputs: build/c1v2/inputs/{hound-skinned,mudskipper-skinned}.blend as before; shepherd.blend,
 colossus.blend and hermes.blend from each hull's `*-cinematic/` folder (built there by its
@@ -62,11 +68,19 @@ BERTH_HULLS = {'hound': ('hound', None), 'unloading': ('shepherd', None), 'lifti
                'fuelling': ('shepherd', 'slate'), 'ferry': ('mudskipper', None)}
 C5_SECONDS = 33.5                     # how far past C4's end anything moving is keyed
 HAZE_SKIP = {'Fleet plume core', 'Fleet plume glow'}
-# The departing Colossus (C4+C5 seconds after C4's end): shown from DEPART_SHOW, in the frame as the
-# rise starts, climbing away north-west under the title; drives burning the whole time it is shown.
-DEPART_SHOW = 10.0
-DEPART_KEYS = ((10.0, 700.0, 160.0, 60.0), (22.0, 170.0, 370.0, 160.0), (C5_SECONDS, -280.0, 430.0, 480.0))
-DEPART_MAIN, DEPART_LIFT = 0.8, 1.0
+# The heavy-berth Colossus's departure, in C5 seconds: lift jets spool up from LIFT_SPOOL (at 40%),
+# full at LIFT_OFF when it leaves the deck; mains light at MAIN_ON and are full at MAIN_FULL.
+LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 24.0, 25.5
+LIFT_ACCEL = 0.6                      # m/s^2 up on the lift jets alone: a heavy hull, slow off the deck
+MAIN_ACCEL, MAIN_LIFT = 3.0, 0.8      # m/s^2 forward (west, its bow) and extra up once the mains are full
+PITCH = math.radians(4.0)             # nose up as the mains take over
+GANTRY_CLEAR = 67.0                   # the heavy gantry stands this far north, clear of the bay
+PARTS = set()                         # names of every object in an appended hull collection
+
+
+def hull_part_names():
+    """Every object the fleet's hulls are built from, for `ortho_paint.apply` to leave alone."""
+    return set(PARTS)
 
 
 def find(c4, filename):
@@ -105,6 +119,7 @@ class Fleet:
             bpy.data.objects.remove(o)
         if livery:
             tint(set(bpy.data.materials) - mats, *LIVERIES[livery])
+        PARTS.update(o.name for o in coll.all_objects)
         self.colls[key] = (coll, mpu, rest, bow)
         return self.colls[key]
 
@@ -166,8 +181,8 @@ def add(c4):
 
 
 def heavy(c4, fleet):
-    """The Colossus in the heavy berth: square in the walled bay, bow west, its hold under the
-    gantry, the staged containers off its stern quarter."""
+    """The Colossus in the heavy berth: square in the walled bay, bow west, the staged containers off
+    its stern quarter. It is loaded and leaves in C5; its gantry stands rolled north out of the way."""
     hx0, hx1, hy0, hy1 = c4.HEAVY
     e, rest, bow = fleet.place('Colossus at the heavy berth', 'colossus')
     # Its bounds run -126..91 units along X and -87..90 across (centre -17.5, 1.5); turned bow west,
@@ -175,6 +190,46 @@ def heavy(c4, fleet):
     cx, cy = (hx0 + hx1) / 2, (hy0 + hy1) / 2
     e.rotation_euler = (0, 0, math.pi)
     e.location = (cx - 17.535 * 0.5, cy + 1.5 * 0.5, 0.2 + rest)
+    climb(c4, e)
+    # Keyed rather than just moved, so the overhead painting (which skips what is animated) leaves it
+    # its own yellow instead of printing the ground it now stands over onto it.
+    g = bpy.data.objects.get('Heavy berth gantry')
+    if g is not None:
+        g.location.y = GANTRY_CLEAR
+        g.keyframe_insert('location', frame=0)
+
+
+def climb(c4, e):
+    """Key the lift-off and climb, integrated frame by frame from the accelerations above, and print
+    the altitude above the deck at C5 22, 26, 30 s and the end."""
+    T, fps = c4.DURATION, c4.FPS
+    x, y, z0 = e.location
+    e['rest_xy'] = (x, y)
+    z, vx, vz = z0, 0.0, 0.0
+    alt = {}
+    f_off, f_end = round((T + LIFT_OFF) * fps), round((T + C5_SECONDS) * fps)
+    e.keyframe_insert('location', frame=0)
+    e.keyframe_insert('rotation_euler', frame=0)
+    dt = 1.0 / fps
+    for f in range(f_off, f_end + 1):
+        t = f / fps - T
+        ramp = min(max((t - MAIN_ON) / (MAIN_FULL - MAIN_ON), 0.0), 1.0)
+        vz += (LIFT_ACCEL + MAIN_LIFT * ramp) * dt
+        vx += MAIN_ACCEL * ramp * dt
+        z += vz * dt
+        x -= vx * dt                                   # bow west
+        alt[f] = z - z0
+        if (f - f_off) % 3 == 0 or f == f_end:
+            pr = min(max((t - MAIN_ON) / 3.0, 0.0), 1.0)
+            e.location = (x, y, z)
+            e.rotation_euler = (0, -PITCH * pr * pr * (3 - 2 * pr), math.pi)
+            e.keyframe_insert('location', frame=f)
+            e.keyframe_insert('rotation_euler', frame=f)
+    import port_life
+    port_life.linear(e)
+    print('PORT_FLEET colossus above its deck: %s' % ', '.join(
+        'C5 %g s %.1f m' % (s, alt.get(round((T + s) * fps), 0.0)) for s in (22, 26, 30, C5_SECONDS)),
+        flush=True)
 
 
 def fly(e, keys, F):
@@ -193,22 +248,6 @@ def air(c4, fleet):
     T = c4.DURATION
     END = T + C5_SECONDS
     F = round(END * c4.FPS)
-    # A second Colossus leaving: it comes in low along the south side of Kilo Nine, big in the frame as
-    # the rise begins, and climbs away north-west, small and still burning under the title. It is
-    # airborne before it is shown, so there is no lift dust; until DEPART_SHOW it is hidden (shadow too).
-    e, rest, bow = fleet.place('Colossus outbound', 'colossus')
-    (t0, x0, y0, _), (t2, x2, y2, _) = DEPART_KEYS[0], DEPART_KEYS[-1]
-    hd = math.atan2(y2 - y0, x2 - x0)
-    for t, x, y, z in DEPART_KEYS:
-        f = round((T + t) * c4.FPS)
-        e.location = (x, y, z)
-        e.rotation_euler = (0, 0, hd)
-        e.keyframe_insert('location', frame=f)
-        e.keyframe_insert('rotation_euler', frame=f)
-    for f, hidden in ((0, True), (round((T + DEPART_SHOW) * c4.FPS), False)):
-        e.hide_render = hidden
-        e.keyframe_insert('hide_render', frame=f)
-    e.hide_render = True
     # A Shepherd letting down northward over the belt in C4's first seconds, from 420 m to 320 m, left
     # of the camera's track: under it for the opening seconds of the pan, a hull plainly in the air at
     # well under half the camera's height, keeping pace with the pan. It goes on north past the port and
@@ -222,37 +261,76 @@ def air(c4, fleet):
 
 
 def after_markers(c4):
-    """After `thrust_shots.mark_c4`: the departing Colossus's throttle, and its plumes hung off its
-    nozzle markers (`thrust-markers/README.md`). Its mains point aft, so they are what reads from
-    above; the lift jets under the hull are lit too, for whatever a lower view or the sound wants."""
+    """After `thrust_shots.mark_c4`: the heavy-berth Colossus's throttle as `climb` flies it, plumes
+    hung off its nozzle markers (`thrust-markers/README.md`) and dust off the deck as it lifts. The
+    mains point aft and are what reads from above; the lift jets are kept short, off the deck."""
     import thrust_markers as tm
-    craft = bpy.data.objects.get('Colossus outbound')
+    import port_life
+    craft = bpy.data.objects.get('Colossus at the heavy berth')
     if craft is None:
         return
-    T = c4.DURATION
+    T, fps = c4.DURATION, c4.FPS
     marks = [o for o in bpy.data.objects if o.parent == craft and o.name.startswith(tm.PREFIX)]
-    on = T + DEPART_SHOW
-    tm.key(marks, [(0.0, 0.0), (on - 0.1, 0.0), (on, DEPART_MAIN)], c4.FPS, kinds=('main',))
-    tm.key(marks, [(0.0, 0.0), (on - 0.1, 0.0), (on, DEPART_LIFT)], c4.FPS, kinds=('lift',))
+    lift = [(0.0, 0.0), (T + LIFT_SPOOL - 0.1, 0.0), (T + LIFT_SPOOL, 0.4), (T + LIFT_OFF, 1.0)]
+    main = [(0.0, 0.0), (T + MAIN_ON - 0.1, 0.0), (T + MAIN_ON, 0.3), (T + MAIN_FULL, 1.0)]
+    tm.key(marks, lift, fps, kinds=('lift',))
+    tm.key(marks, main, fps, kinds=('main',))
     core, glow = plume_materials()
     s = craft.scale.x
-    n = 0
+    n = {'main': 0, 'lift': 0}
     for m in marks:
-        if m.get('thrust_kind') != 'main':
+        kind = m.get('thrust_kind')
+        if kind not in n or not m.get('thrust_working', True):
             continue
         r = float(m.get('radius_m', 1.5))
-        # Exaggerated past a bell's true flame so a burn reads from 1.8 km: a hot core and a wider glow.
-        for mat, length, width in ((core, 14.0 * r, 0.9 * r), (glow, 26.0 * r, 1.8 * r)):
+        keys = main if kind == 'main' else lift
+        # Mains exaggerated past a bell's true flame so a burn reads from 1.8 km; lift jets short.
+        if kind == 'main':
+            shape = ((core, 14.0 * r, 0.9 * r), (glow, 26.0 * r, 1.8 * r))
+        else:
+            shape = ((core, 3.0 * r, 0.7 * r), (glow, 6.0 * r, 1.3 * r))
+        for mat, length, width in shape:
             p = cone(mat.name + ' | ' + m.name.split(' | ', 1)[1], mat, c4)
             p.parent = m
             p.matrix_parent_inverse = Matrix.Identity(4)
-            p.hide_render = True
-            p.keyframe_insert('hide_render', frame=0)
-            p.hide_render = False
-            p.keyframe_insert('hide_render', frame=round(on * c4.FPS))
-            p.scale = (length / s, width / s, width / s)
-        n += 1
-    print('PORT_FLEET departure plumes=%d shown from %.2f s (C5 %.2f s)' % (n, on, DEPART_SHOW), flush=True)
+            for t, v in keys:
+                k = max(v, 0.001)
+                p.scale = (length * (0.4 + 0.6 * k) / s, width * k / s, width * k / s)
+                p.hide_render = v <= 0.0
+                p.keyframe_insert('scale', frame=round(t * fps))
+                p.keyframe_insert('hide_render', frame=round(t * fps))
+            port_life.linear(p)
+        n[kind] += 1
+    x, y = craft['rest_xy']
+    port_life.dust(x, y, T + LIFT_OFF - 0.6, 70.0, 48, 'Lift dust colossus')
+    cover_old_gantry(c4)
+    print('PORT_FLEET colossus plumes main=%d lift=%d; lift spool C5 %g s, off %g s, mains %g-%g s' % (
+        n['main'], n['lift'], LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL), flush=True)
+
+
+def cover_old_gantry(c4):
+    """The overhead painting was made with the gantry standing over the bay, so its beams and trolley
+    are in the deck's paint, and show once the Colossus has gone. A strip over them (above the rails,
+    under the walls' tops) carries the same painting read from clean deck 28 m north. Runs after
+    `ortho_paint.apply`, so the deck's material is already painted when it is copied."""
+    src = bpy.data.materials.get('Concrete')
+    if src is None or not any(n.type == 'NEW_GEOMETRY' for n in src.node_tree.nodes):
+        return
+    m = src.copy()
+    m.name = 'Heavy berth deck patch'
+    nt = m.node_tree
+    for geo in [n for n in nt.nodes if n.type == 'NEW_GEOMETRY']:
+        shift = nt.nodes.new('ShaderNodeVectorMath')
+        shift.operation = 'ADD'
+        shift.inputs[1].default_value = (0.0, 28.0, 0.0)
+        for link in list(geo.outputs['Position'].links):
+            nt.links.new(shift.outputs[0], link.to_socket)
+        nt.links.new(geo.outputs['Position'], shift.inputs[0])
+    hx0, hx1 = c4.HEAVY[0], c4.HEAVY[1]
+    y0 = c4.HEAVY[2] + 35                      # beams at +38 and +56, the trolley between
+    p = c4.plane('Heavy berth deck patch', hx0 - 8, hx1 + 8, y0, y0 + 24, m, 0.9)
+    p.visible_shadow = False
+    p['ortho'] = 1.0
 
 
 def cone(name, mat, c4):

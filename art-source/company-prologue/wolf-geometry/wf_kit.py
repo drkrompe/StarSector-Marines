@@ -55,13 +55,21 @@ def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2
     return m
 
 
+VARIANT = 'pirate'   # 'pirate' (the Wolf (P)) or 'merchant' (the base hull); the driver sets it
+
+
 class Kit:
     def __init__(self):
         # Pirate scheme read off wolf_pirates.png: a worn crimson over the
         # base hull (sprite median sRGB 161,56,55, darkened for albedo),
         # warm grey machinery (118,113,109), near-black recesses (43,32,30).
         # These blockout materials stand in until the texture pass.
-        self.red = material('Wolf pirate crimson armour', (.30, .045, .04), .2, .55, wear=.25)
+        if VARIANT == 'merchant':
+            # The base hull's unpainted scheme (wolf_base.png): pale blue-grey
+            # armour (sprite sRGB about 170, 200, 205, darkened for albedo).
+            self.red = material('Wolf hull armour', (.27, .37, .40), .25, .5, wear=.15)
+        else:
+            self.red = material('Wolf pirate crimson armour', (.30, .045, .04), .2, .55, wear=.25)
         self.steel = material('Wolf grey machinery', (.16, .15, .14), .6, .45, wear=.2)
         self.dark = material('Wolf recess', (.022, .017, .016), .4, .6)
         self.glass = material('Wolf bridge glazing', (.03, .035, .04), .2, .12,

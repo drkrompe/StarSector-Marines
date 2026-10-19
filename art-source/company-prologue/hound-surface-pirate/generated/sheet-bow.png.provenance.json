@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155b9-26cd-7370-914f-0e1f89a628e1",
+  "source": "/Users/dillon/.codex/generated_images/01a155b9-26cd-7370-914f-0e1f89a628e1/exec-f5938bdb-9d03-4077-87d7-cf860954ff10.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/hound-surface-pirate/generated/sheet-bow.png",
+    "sha256": "41eec4daa94f2ce3f623bf2dd87c0ae4fd8929bc73f818120bf1247cd4f7540c",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/hound-surface-pirate/prompts/sheet-bow.prompt.txt",
+  "promptSha256": "ef49e560ff440460f6022a3563ab01f0581dc6c37df9256310b6460056e86e13",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a poorly kept pirate combat freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: the outboard side wall of one tine of the bow gun fork, a long tapered plate of dark brown-grey (dark brown-grey) painted structural armour, its pointed end to the right;\ntop-right: the nose dome of the bridge capsule seen from straight ahead, a twelve-sided rounded shell in warm off-white cream enamel (the slightly different inner twelve-gon is just the next ring of facets of the same cream shell);\nbottom-left: the forward face of one crash-cage ring around the bridge capsule, an elliptical ring frame of dark gunmetal grey steel; the hole in the middle stays plain background grey;\nbottom-right: the side wall of the gun-fork base, crude crimson red armour plate, with a rectangular hole (plain background grey, stays empty) and a vertical near-black recess strip near its right end that stays near-black.\nINPUT 1's flat colours are the model's OLD paint scheme and only mark the materials: its orange shapes are now the pirates' crude crimson red repaint (a dull, slightly brownish blood red, unevenly brushed), its brown / taupe shapes are now a grimy dark brown-grey. Paint the NEW colours; no orange may remain.\nINPUT 2 is the SAME ship already painted: it is the finish to match. Use its paint colours, its hard-used, poorly kept finish, its even grime, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that hard-used, poorly kept hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole in a shape stays plain background grey.\n- Each shape is a flat steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners and rivets along the edges, flush access-panel outlines, faint even scuffing. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour exactly: the dark brown-grey shape stays dark brown-grey painted plate, the cream shape stays warm off-white cream enamel, the gunmetal shape stays dark grey steel, the crimson red shape stays crude crimson red, and the near-black strip stays near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes, no lettering, numbers, markings or decals.\n- The ship is hard-used and poorly kept but not wrecked: wear is even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape (the cream dome is painted as one flat even colour, not shaded as a sphere).\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/hound-surface-pirate/guide/sheet-bow-guide.png",
+      "sha256": "d24f899e71400e0c6187e2cd083ffc48ae4c764472c48832e648f28a14e9caed",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/hound-surface-pirate/reference/finish-reference.png",
+      "sha256": "ff37479751e28640da49090c59d3dbfbc6f7217358bf66e787af54eaaef631db",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the four faces, preserving the sheet’s layout and outlines."
+  ],
+  "usage": {
+    "input_tokens": 79018,
+    "cached_input_tokens": 53632,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 816,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 47.4
+}
