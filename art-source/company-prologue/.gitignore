@@ -148,3 +148,6 @@ colossus-surface/guide/*
 colossus-cinematic/*.blend
 colossus-cinematic/*.blend1
 colossus-cinematic/review/
+# Kite (P): the .blend is a build output of build_kite.py, rebuilt from the scripts.
+kite-geometry/**/*.blend
+kite-geometry/**/*.blend1

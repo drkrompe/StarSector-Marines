@@ -162,6 +162,17 @@ PASSES = {
                               rush_gain=0.08, rush_low=80.0, rush_high=500.0, distance_power=1.3,
                               pan="c1", pan_width=0.7, seed=51,
                               thrust=[(C4_SECONDS + 9.0, 0.0), (C4_SECONDS + 11.0, 0.9), (C4_SECONDS + 33.5, 0.9)]),
+    # C4 (joined C4-C5 clock): Second Wind seen from the sky camera, 450-800 m above it. Its main drive
+    # burns full until touchdown at 16.4 and is out by 17.9; the belly lift jets light at 10.0, are full
+    # 12.0-16.4 and out by 17.4 (thrust_shots.mark_c4). Burning-gas rockets, broadband: no hum.
+    "second_wind_c4_drive": dict(HOUND, start=0.0, end=19.4, path=fixed(0.0, 60.0, -600.0), sound_speed=340.0,
+                                 muffle_far=180.0, muffle_near=180.0, bass=2.4, crackle=0.45, rush_gain=0.0,
+                                 distance_power=1.0, pan_width=0.0, seed=61,
+                                 thrust=[(0.0, 0.0), (1.0, 0.8), (16.4, 0.8), (17.9, 0.0)]),
+    "second_wind_c4_lift": dict(HOUND, start=9.5, end=18.4, path=fixed(0.0, 60.0, -500.0), sound_speed=340.0,
+                                muffle_far=520.0, muffle_near=520.0, bass=1.6, crackle=0.8, rush_gain=0.35,
+                                rush_low=200.0, rush_high=2500.0, distance_power=1.0, pan_width=0.1, seed=62,
+                                thrust=[(9.5, 0.0), (10.0, 0.05), (12.0, 1.0), (16.4, 1.0), (17.4, 0.0)]),
     "second_wind_interior": dict(HOUND, start=0.0, end=24.0, path=fixed(-40.0, 0.0, -6.0), sound_speed=340.0,
                                  muffle_far=140.0, muffle_near=140.0, bass=2.6, crackle=0.3, rush_gain=0.0,
                                  distance_power=1.0, pan_width=0.0, seed=41,

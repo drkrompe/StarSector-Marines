@@ -1,4 +1,4 @@
-BROADSWORD - CINEMATIC GEOMETRY (PASS 2: PLAUSIBLE DETAIL)
+BROADSWORD - CINEMATIC GEOMETRY (PASS 3: DETAIL AND LANDING GEAR)
 
 Purpose
 An editable scripted Blender model of the vanilla Broadsword heavy fighter,
@@ -6,8 +6,9 @@ built for the Jangala cinematic's shot C2, where the Hegemony Legion's air
 wing launches from and recovers to its flight decks. It follows the
 ship-model-pipeline skill (.claude/skills/ship-model-pipeline). Pass 1
 (blockout) is kept in reference-history/v1-blockout/. Pass 2 adds the
-detail the sprite and its up-res master imply. Pass 3 (owner review) is
-next; there are no damage states, textures or VFX yet. It copies the Hound
+detail the sprite and its up-res master imply. Pass 3 (owner review,
+2026-10-19): the detail accepted as built, plus retractable landing gear
+("get some gear on it"). There are no damage states yet. It copies the Hound
 kit helpers into bw_kit.py and imports no other hull's modules.
 
 Hull identity (read-only install, starsector-core)
@@ -67,9 +68,9 @@ glass by 0.21 m. Each exhaust bell is 1.8 m across. The canopy is broad,
 1.9 m at the sill against 0.9-1.3 m on real aircraft: the sprite's wide
 glazed hood, not a reason for a tighter scale.
 Beside a hull at another scale, scale the root by 0.50 / that hull's
-metres_per_unit, read from its own geometry.json: the Legion's is 0.61
-(legion-geometry, local main 496340563), giving 0.82. Her 14.1 m span is
-about 23 Legion units. The Legion's hangar tunnels are being widened to
+metres_per_unit, read from its own geometry.json: the Legion's is 0.99,
+giving 0.51. Her 14.1 m span is
+about 14 Legion units. The Legion's hangar tunnels are being widened to
 clear a Hoplon's 38 units (about 40 forward, 46 aft; final mouth widths
 in its flight_decks), and fighters leave only through the mouths under
 the wing arms, so she fits either hangar with room to spare.
@@ -94,20 +95,37 @@ and inboard armour, bright exhaust lips, bells and throats, and bolts.
 check_clashes.py lists only deliberate embedding (plates and parts sunk
 into the structure they attach to).
 
+Landing gear (pass 3)
+Tricycle gear for standing on a flight deck: a nose leg under the forward
+fuselage (hinge 9.6, 0, -1.55) and a main leg under each nacelle (-5.6,
++-5.5, -2.45), each an oleo strut, gland, piston, torque link, drag brace,
+trunnion, axle and twin wheels, with a dark well liner and a pair of
+gunmetal doors hinged on their outboard edges. Parked, the six wheel soles
+stand on one level deck at z -5.2 (2.6 m below the root) and the lowest
+other part clears it by 0.96 m.
+Legs fold aft into the solid above them. Each leg's parts are parented to
+"Hull <leg> hinge" (custom properties open_axis Y, retract_deg 90); each
+door to "Hull <leg> door <side> hinge" (open_axis X, open_deg +-88). The
+pose is rotations only: bw_gear.pose(t), t=1 down, 0 up, doors open for
+t >= 1/3. The build checks that stowed legs sit above their doors, and
+fails otherwise. --gear down|up chooses the pose; the .blend is saved
+down. Dimensions are measured gear up.
+
 Files
 build_broadsword.py driver; bw_kit.py helpers; bw_hull.py nose, fuselage,
 canopy, spine; bw_wings.py gun housings, blades, strakes; bw_guns.py guns
-and slot anchors; bw_engines.py nacelles and bells; compose_review.py
+and slot anchors; bw_engines.py nacelles and bells; bw_gear.py landing gear; compose_review.py
 overlay, IoU and sheets; check_clashes.py overlap sweep.
 broadsword-geometry.blend, geometry.json (manifest: slots, engines,
 anchors, scale, cameras, silhouette).
 Renders (1920x1080): top.png, top-alpha.png, top-overlay.png,
 port-side.png, front.png, stern.png, three-quarter.png, space-sun.png (hard
-sun from high aft, black space), nose-, cockpit-, gun- and engine-detail.png,
+sun from high aft, black space), parked.png and under-quarter.png (gear),
+nose-, cockpit-, gun-, engine- and gear-detail.png,
 broadsword-geometry.reference.png (sheet), pass2-before-after.png.
 
 Rebuild (from this folder; render processes one at a time)
-  sh ../../blender.sh --background --factory-startup --python build_broadsword.py -- --views top,port-side,front,stern,three-quarter,space-sun,details
+  sh ../../blender.sh --background --factory-startup --python build_broadsword.py -- --views top,port-side,front,stern,three-quarter,space-sun,details,parked,under-quarter
   python compose_review.py
 Blockout: add --blockout --out reference-history/v1-blockout, then
   python compose_review.py --dir reference-history/v1-blockout
