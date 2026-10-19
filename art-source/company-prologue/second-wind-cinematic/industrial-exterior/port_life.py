@@ -914,7 +914,7 @@ def add(c4x):
                              'box', 'container', 'van', 'box', 'container', 'box'], 11.0, 'belt outer'),
         'belt-east-inner': (['box', 'container', 'van', 'container', 'box', 'container', 'box', 'container',
                              'van', 'container', 'box', 'container'], 10.5, 'belt inner'),
-        'port-west': (['container', 'box', 'container', 'van', 'container', 'box', 'container', 'van'], 10.0, 'port road'),
+        'port-west': (['container', 'box', 'van', 'container', 'box', 'container'], 10.0, 'port road'),
         'port-mid': (['box', 'container', 'van', 'container', 'box', 'container'], 9.0, 'port road mid'),
     }
     sims = []
