@@ -45,7 +45,7 @@ DRIVE = Path("G:/My Drive/starsector/review")
 PICTURES = {
     "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
-    "c2": DRIVE / "cinematic-c2/2026-10-19_castle-and-posts_windows/02-castle-thin-posts.mp4",
+    "c2": DRIVE / "cinematic-c2/2026-10-19_camera-chosen-sketch_windows/01-c2-bridge-sketch.mp4",
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
