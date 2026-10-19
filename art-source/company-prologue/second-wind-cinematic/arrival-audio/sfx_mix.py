@@ -48,7 +48,7 @@ PICTURES = {
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
-    "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_joined-sketch_windows/01-c4c5-joined-1fps.mp4",
+    "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_slower-approach_windows/01-c4c5-slower-approach-1fps.mp4",
 }
 
 
@@ -232,6 +232,8 @@ def duration(path):
 
 
 def source(layer, dirs, chosen):
+    if layer.get("path"):
+        return layer["path"]
     if layer.get("synth"):
         return dirs["synth"] / (layer["synth"] + ".wav")
     if layer["kind"] == "sfx":
@@ -284,8 +286,26 @@ def write(samples, path, extra=()):
 LIMIT = ["-af", "alimiter=limit=0.89:level=false"]
 
 
-def mix(shot, picture, dirs, chosen, out):
+def music(path, peak_at):
+    """A closing music candidate (make_music.py) on the joined C4-C5 clock, its loudest second laid
+    at peak_at and ducked under Castle's last line (C5 21.7-24.0)."""
+    end = C4_LENGTH + 24.0
+    return dict(kind="music", path=Path(path), t=peak_at - loudest(Path(path)), level=0.0,
+                until=SHOTS["c4c5"][0], fade_out=2.0,
+                env=[(end - 2.6, 0), (end - 2.3, -8), (end, -8), (end + 0.6, 0)])
+
+
+def loudest(path):
+    """Seconds into a take of its loudest second."""
+    clip = decode(path).mean(axis=1)
+    per = [float(np.sqrt(np.mean(clip[i:i + SR] ** 2))) for i in range(0, len(clip) - SR + 1, SR // 4)]
+    return per.index(max(per)) * 0.25 + 0.5
+
+
+def mix(shot, picture, dirs, chosen, out, extra=(), tag=None):
     length, layers = SHOTS[shot]
+    layers = layers + list(extra)
+    name = shot + ("-" + tag if tag else "")
     full = np.zeros((int(round(length * SR)), 2))
     effects = full.copy()
     for layer in layers:
@@ -293,21 +313,21 @@ def mix(shot, picture, dirs, chosen, out):
         full += placed
         if layer["kind"] == "sfx":
             effects += placed
-    write(full, out / (shot + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
-    write(effects, out / (shot + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
-    video = out / (shot + ".mp4")
+    write(full, out / (name + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    write(effects, out / (name + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    video = out / (name + ".mp4")
     parts = picture if isinstance(picture, list) else [picture] if picture else []
     if parts and all(part.exists() for part in parts):
         inputs = [arg for part in parts for arg in ("-i", str(part))]
         graph = "".join("[%d:v]fps=24,scale=1920:1080,setsar=1[v%d];" % (i, i) for i in range(len(parts)))
         graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
-        subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (shot + ".mp3")),
+        subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
                         "-filter_complex", graph, "-map", "[v]", "-map", "%d:a" % len(parts), "-c:v", "libx264",
                         "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
                         "-t", "%.3f" % length, str(video)], check=True)
     peak = 20 * np.log10(np.abs(full).max() + 1e-12)
     print("%-6s %5.1fs  mix peak %5.1f dBFS before limiter  %s" % (
-        shot, length, peak, video.name if video.exists() else "(no picture)"), flush=True)
+        name, length, peak, video.name if video.exists() else "(no picture)"), flush=True)
 
 
 BEDS = set()
@@ -321,6 +341,9 @@ def main():
                         help="folder holding Castle's *_treated.wav review takes")
     parser.add_argument("--hail", default=str(HAIL), help="folder holding the encoded hail .ogg files")
     parser.add_argument("--out", default=str(OUT))
+    parser.add_argument("--music", action="append", default=[],
+                        help="a make_music.py take to lay into c4c5, peaking at the top of the rise; "
+                             "writes c4c5-<take>.mp4 per take")
     args = parser.parse_args()
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     chosen = {cue: row["chosen"] for cue, row in manifest["cues"].items() if row["chosen"]}
@@ -332,8 +355,11 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     synth_flyby.build(out / "synth")
-    for shot in args.shot or SHOTS:
-        mix(shot, pictures.get(shot), {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}, chosen, out)
+    dirs = {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}
+    for take in args.music:
+        mix("c4c5", pictures.get("c4c5"), dirs, chosen, out, [music(take, C4_LENGTH + 25.0)], Path(take).stem)
+    for shot in args.shot or ([] if args.music else SHOTS):
+        mix(shot, pictures.get(shot), dirs, chosen, out)
 
 
 if __name__ == "__main__":

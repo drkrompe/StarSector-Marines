@@ -157,7 +157,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
 | `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
-| Music | Not chosen. Arrives under Castle's last line and carries the title | 42.4–54.9 | — | — | — |
+| Music | Not chosen; four ElevenLabs candidates in `make_music.py` (`music-takes/`), each laid by `sfx_mix.py --music` with its loudest second at C5 25, ducked 8 dB under Castle's last line. Hopeful but fragile, a beginning not a victory, no vocals | about 36–54.9 | Music | 0 (−8 under her line) | Gen (music) |
 
 ## What is still open
 
