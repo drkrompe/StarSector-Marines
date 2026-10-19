@@ -612,7 +612,7 @@ public final class WarshipShipFire {
             // A beam lands where it points: on the hull's near face, at once.
             float damage = w.damagePerSecond() * WarshipAirRules.BEAM_PULSE_SECONDS;
             boolean onHull = system.strikeHulls(WarshipSystem.detonation(ship.faction, target.centerX(),
-                    target.centerY(), damage, penetration, blast), mx, my, w.damageType());
+                    target.centerY(), damage, penetration, blast), mx, my, w.damageType(), w);
             noteLanding(onHull);
             // The beam ends where it met the hull or its shield.
             tracers.trace(ship, w, mx, my, system.strikeX(target.centerX()), system.strikeY(target.centerY()), onHull);
