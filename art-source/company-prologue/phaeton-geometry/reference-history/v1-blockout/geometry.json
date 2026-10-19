@@ -1,0 +1,461 @@
+{
+  "status": "Pass 1 blockout on the clean base. No detail, damage, condition states or textures.",
+  "hull": {
+    "name": "Phaeton",
+    "hullId": "phaeton",
+    "size": "DESTROYER",
+    "style": "LOW_TECH",
+    "tech": "Low Tech",
+    "designation": "Tanker",
+    "source": {
+      "ship": "data/hulls/phaeton.ship",
+      "sprite": "graphics/ships/tanker_medium.png",
+      "ship_data": "data/hulls/ship_data.csv (row id phaeton)",
+      "lights_layer": "none in the install"
+    },
+    "ship_data": {
+      "min_crew": 10,
+      "max_crew": 20,
+      "cargo": 20,
+      "fuel": 800,
+      "mass": 400,
+      "hitpoints": 2000,
+      "armor": 350
+    },
+    "built_in_mods": [
+      "civgrade"
+    ],
+    "ship_system": "flarelauncher",
+    "shield": "OMNI (radius 160)",
+    "campaign_role": "the Asharu convoy tanker, destroyed in the opening (asharu-battle-shot.md S1, S6)"
+  },
+  "provenance": "verified against the installed phaeton.ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.32,
+  "scale": {
+    "note": "not in ship_scale.py yet; option C estimate 73 m over 229 units",
+    "provisional_metres_per_unit": 0.32
+  },
+  "sprite": {
+    "size": [
+      120,
+      234
+    ],
+    "center": [
+      60,
+      94
+    ],
+    "pixel_to_model": "col c, row r covers X 139-r..140-r, Y 59-c..60-c"
+  },
+  "dimensions": {
+    "min": [
+      -93.0,
+      -60.43,
+      -20.0
+    ],
+    "max": [
+      138.75,
+      61.43,
+      21.6
+    ],
+    "size": [
+      231.75,
+      121.85,
+      41.6
+    ]
+  },
+  "tanks": [
+    {
+      "name": "Tank 1 aft sphere",
+      "centre": [
+        0.0,
+        0,
+        6.0
+      ],
+      "radius": 15.0
+    },
+    {
+      "name": "Tank 2 mid sphere",
+      "centre": [
+        44.0,
+        0,
+        6.0
+      ],
+      "radius": 14.5
+    },
+    {
+      "name": "Tank 3 fore sphere",
+      "centre": [
+        88.0,
+        0,
+        6.0
+      ],
+      "radius": 15.5
+    }
+  ],
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        -75,
+        0,
+        14.02
+      ],
+      "angle": 180,
+      "arc": 150,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "objects": "Turret 1 WS 001 ...",
+      "pivot": "Turret 1 WS 001 pivot",
+      "muzzle": "Turret 1 WS 001 muzzle",
+      "muzzle_location": [
+        -87.75,
+        0.0,
+        15.975
+      ]
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        38,
+        38,
+        12.02
+      ],
+      "angle": 90,
+      "arc": 180,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "objects": "Turret 2 WS 002 ...",
+      "pivot": "Turret 2 WS 002 pivot",
+      "muzzle": "Turret 2 WS 002 muzzle",
+      "muzzle_location": [
+        38.0,
+        50.75,
+        13.975
+      ]
+    },
+    {
+      "id": "WS 003",
+      "location": [
+        36,
+        -34,
+        12.02
+      ],
+      "angle": -90,
+      "arc": 180,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "objects": "Turret 3 WS 003 ...",
+      "pivot": "Turret 3 WS 003 pivot",
+      "muzzle": "Turret 3 WS 003 muzzle",
+      "muzzle_location": [
+        36.0,
+        -46.75,
+        13.975
+      ]
+    },
+    {
+      "id": "WS 004",
+      "location": [
+        126,
+        13,
+        12.02
+      ],
+      "angle": 0,
+      "arc": 210,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "objects": "Turret 4 WS 004 ...",
+      "pivot": "Turret 4 WS 004 pivot",
+      "muzzle": "Turret 4 WS 004 muzzle",
+      "muzzle_location": [
+        138.75,
+        13.0,
+        13.975
+      ]
+    },
+    {
+      "id": "WS 005",
+      "location": [
+        -51,
+        59,
+        3.2
+      ],
+      "angle": 110,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "objects": "Launcher 1 WS 005 ...",
+      "pivot": "Launcher 1 WS 005 pivot",
+      "muzzle": "Launcher 1 WS 005 muzzle",
+      "muzzle_location": [
+        -51.752,
+        61.067,
+        3.2
+      ]
+    },
+    {
+      "id": "WS 006",
+      "location": [
+        -51,
+        -58,
+        3.2
+      ],
+      "angle": 250,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "objects": "Launcher 2 WS 006 ...",
+      "pivot": "Launcher 2 WS 006 pivot",
+      "muzzle": "Launcher 2 WS 006 muzzle",
+      "muzzle_location": [
+        -51.752,
+        -60.067,
+        3.2
+      ]
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "role": "main drive",
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "location": [
+        -93,
+        36,
+        -1.0
+      ],
+      "width": 12,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -93,
+        36,
+        -1.0
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 2,
+      "role": "main drive",
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "location": [
+        -93,
+        24,
+        -1.0
+      ],
+      "width": 16,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -93,
+        24,
+        -1.0
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 3,
+      "role": "main drive",
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "location": [
+        -93,
+        9,
+        -1.0
+      ],
+      "width": 16,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -93,
+        9,
+        -1.0
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 4,
+      "role": "main drive",
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "location": [
+        -93,
+        -9,
+        -1.0
+      ],
+      "width": 16,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -93,
+        -9,
+        -1.0
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 5,
+      "role": "main drive",
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "location": [
+        -93,
+        -24,
+        -1.0
+      ],
+      "width": 16,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -93,
+        -24,
+        -1.0
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 6,
+      "role": "main drive",
+      "objects": "Engine 6 ...",
+      "anchor": "Engine 6 exhaust anchor",
+      "location": [
+        -93,
+        -36,
+        -1.0
+      ],
+      "width": 12,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -93,
+        -36,
+        -1.0
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "object_names": {
+    "Hull ...": "tank hull, port gallery block, turret sponsons, aft machinery spine, reactor dome",
+    "Tank <i> ...": "the three spherical cargo tanks (aft, mid, fore) and their skirts",
+    "Bridge ...": "bridge cab and glazing on the starboard bow",
+    "Crane ...": "port bow hose crane",
+    "Drive ...": "stern drive block, reaction drums, drive housings",
+    "Frame ...": "guard arcs and yokes",
+    "Engine <i> ...": "bell / mouth lip / dark throat / exhaust anchor",
+    "Turret <n> WS 00x ... / Launcher <n> WS 00x ...": "weapon mounts; pivot and muzzle empties",
+    "Scar <id> ...": "reserved for the destroyed condition state"
+  },
+  "condition_states": {
+    "planned": [
+      "destroyed"
+    ],
+    "contract": "second-wind-pipeline.md layers: clean base + scar table with stable ids",
+    "built": []
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        22,
+        0,
+        220
+      ],
+      "orthographic_scale": 250,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        22,
+        300,
+        2
+      ],
+      "orthographic_scale": 250,
+      "rotation": "looks at [22.0, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        320,
+        0,
+        2
+      ],
+      "orthographic_scale": 140,
+      "rotation": "looks at [22.0, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        220,
+        230,
+        150
+      ],
+      "orthographic_scale": 260,
+      "rotation": "looks at [22.0, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -280,
+        0,
+        2
+      ],
+      "orthographic_scale": 140,
+      "rotation": "looks at [22.0, 0.0, 0.0]"
+    },
+    {
+      "name": "starboard-quarter",
+      "position": [
+        -160,
+        -230,
+        140
+      ],
+      "orthographic_scale": 260,
+      "rotation": "looks at [22.0, 0.0, 0.0]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9312,
+    "sprite_uncovered": 0.0367,
+    "model_outside_sprite": 0.0344,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 7.68 px per unit"
+  }
+}

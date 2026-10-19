@@ -164,6 +164,18 @@ def _blob(name, centre, radius, rng, mat):
     return ob
 
 
+def _cut_overlapping(blob, centre, radius, skip=()):
+    """Cut every other mesh the blob reaches: tank seams, trunks, crown platforms, stairs, pipes."""
+    c = Vector(centre)
+    dg = bpy.context.evaluated_depsgraph_get()
+    for ob in [o for o in bpy.context.scene.objects if o.type == 'MESH' and o.name not in skip
+               and not o.name.startswith('Scar ') and not o.hide_render]:
+        pts = [ob.matrix_world @ Vector(b) for b in ob.evaluated_get(dg).bound_box]
+        if all(min(p[k] for p in pts) < c[k]+radius*1.35 and max(p[k] for p in pts) > c[k]-radius*1.35
+               for k in range(3)):
+            _cut(ob, blob)
+
+
 def _hollow(ob, thickness):
     """Make a solid tank a shell whose inner face takes the scorched interior."""
     m = _mats()['inside']
@@ -235,6 +247,7 @@ def _rupture(sid, tank, direction, radius, rng):
     _hollow(ob, .5)
     blob = _blob(f'Scar {sid} hole cutter', c+d*r, radius, rng, _mats()['ember'])
     _cut(ob, blob)
+    _cut_overlapping(blob, c+d*r, radius, skip=(tank,))
     bpy.data.objects.remove(blob, do_unlink=True)
     # Petals: torn shell leaves curling out round the hole.
     for k in range(5):
@@ -281,6 +294,7 @@ def _shatter(rng):
     _hollow(ob, .5)
     blob = _blob(f'Scar {sid} burst cutter', c+Vector((0, .2, .3))*r, r*1.12, rng, _mats()['ember'])
     _cut(ob, blob)
+    _cut_overlapping(blob, c+Vector((0, .2, .3))*r, r*1.12, skip=(tank,))
     bpy.data.objects.remove(blob, do_unlink=True)
     # What is left is a ring of shell near the deck: break it into fragments.
     bpy.context.view_layer.objects.active = ob
