@@ -75,14 +75,15 @@ def pulses(times, width, level, base=0.0):
 
 def _rest(found, done, fps, frames, lift=False):
     """Every craft the shot did not name: markers, and throttle from its own motion. lift: in
-    air, a hull with no belly jets gets its mains vectored down as lift markers too."""
+    air, a hull with no belly jets gets its mains vectored down as lift markers too, and a craft
+    standing still in the air reads as hovering."""
     for name, ob in sorted(found.items()):
         if name in done:
             continue
         marks = mark_any(ob)
         if lift:
             marks += tm.lift_from_mains(ob)
-        ob['thrust_activity'] = tm.auto(ob, marks, fps, frames)
+        ob['thrust_activity'] = tm.auto(ob, marks, fps, frames, hover=lift)
 
 
 def _label(name):
