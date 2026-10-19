@@ -56,6 +56,8 @@ BELL = {'mouth_r': 2.95, 'throat_r': 1.45, 'wall': .22}
 BULKHEAD_X = -116.5     # aft bulkhead / thrust frame face
 SILL_Z = -4.4           # floor of the nozzle bay
 SEAMS = (-40, -74, -88, -102)
+HUMP_X = (-113.0, -88.0)  # dorsal drive housing, aft to fore
+STRAKES = ((6.4, 8.0), (-8.0, -6.4))  # rubbing strakes on the outboard wall (z0, z1)
 LAUNCHER_PATCHES = [(-83, 83), (-84, -81)]  # WS 007 / WS 008: keep clear
 ANCHORS = {}
 
@@ -270,9 +272,9 @@ def pod(kit, side, s, mats):
            ('Z', 1), .17, .2, kit.steel)
     # Conduit strap running aft from the ring.
     sy0, sy1 = sorted((Y(63.5), Y(67)))
-    _block(kit, f'Drive pod {side} conduit strap', -106, -71.4, sy0, sy1, z-.4, z+.55, kit.steel, .2)
+    _block(kit, f'Drive pod {side} conduit strap', HUMP_X[1]-.6, -71.4, sy0, sy1, z-.4, z+.55, kit.steel, .2)
     _studs(kit, f'Drive pod {side} conduit strap bolts',
-           [(x, Y(r), z+.55) for x in range(-104, -72, 4) for r in (63.95, 66.55)], ('Z', 1), .16, .18, kit.steel)
+           [(x, Y(r), z+.55) for x in range(-86, -72, 4) for r in (63.95, 66.55)], ('Z', 1), .16, .18, kit.steel)
     # Round inspection port on the outboard shoulder, breaking the outline.
     px, pz = -71, 1.5
     a, b, h = _env(px)
@@ -301,9 +303,9 @@ def pod(kit, side, s, mats):
     a, b, h = _env(-99)
     wy = Y(b)
     w0, w1 = sorted((wy-s*.3, wy+s*.3))
-    _block(kit, f'Drive pod {side} wall service cover', -105, -93, w0, w1, -1.8, 8.2, kit.maroon, .15)
+    _block(kit, f'Drive pod {side} wall service cover', -105, -93, w0, w1, -4.6, 5.0, kit.maroon, .15)
     _studs(kit, f'Drive pod {side} wall service cover bolts',
-           [(x, wy+s*.3, zz) for x in (-104.3, -99, -93.7) for zz in (-1.1, 7.5)], ('Y', s), .17, .2, kit.steel)
+           [(x, wy+s*.3, zz) for x in (-104.3, -99, -93.7) for zz in (-3.9, 4.3)], ('Y', s), .17, .2, kit.steel)
     # Round coupling on the inboard side where the outline bulges toward the spine.
     a, b, h = _env(-104.5)
     _rod(kit, f'Drive pod {side} inboard coupling', (-104.5, Y(a+2), 0), (-104.5, Y(a-2.2), 0), 3.0, kit.steel, n=16)
@@ -320,6 +322,344 @@ def pod(kit, side, s, mats):
     # Heat-shield sill under the bells: a raised lip at the bay's aft edge.
     _block(kit, f'Drive pod {side} heat-shield sill', -125.3, -123.0, by0+.05, by1-.05, SILL_Z-.4, SILL_Z+.45,
            mats['shield'], .12)
+    tug(kit, side, s, mats, secs, casing, ys, by0, by1)
+
+
+# --- pass 3 round 5: the tug drive unit (owner: "our tug boat engine sections need some more work") ---
+#
+# Each pod is a working tug: below it a drive keel (skeg) between two underslung propellant tanks,
+# above it a dorsal drive housing with radiator banks, rubbing strakes let flush into the outboard
+# wall, rubber push knees on the nose and a keel thrust shoe where the thrust yoke picks up, RCS
+# quads at the corners, ladders and handrails at person scale (3.6 units = 1.8 m), unlit work-lamp
+# housings, and in the drive end a bay surround, cheek armour, heat-shield liners, a propellant
+# manifold with a turbopump under each chamber, and feed lines from the tanks. Nothing here
+# changes the pod's plan outline beyond a unit at the nose pads and the bay posts.
+
+TANK_R = 6.0
+TANKS = (('inboard', 55.0, -50.0, -100.0), ('outboard', 71.0, -66.0, -102.0))  # rel y, cylinder x fore/aft
+TANK_Z = -21.0
+DOME = 4.0
+SKEG = (61.6, 64.4)          # rel y of the drive keel's faces
+SKEG_XZ = [(-44, -9), (-44, -14), (-53, -27.5), (-59, -31), (-99, -31), (-108, -25), (-115, -11), (-115, -9)]
+HUMP_REL = (52.0, 74.0)
+HUMP_TOP = 27.0
+
+
+def _revolve_dir(kit, name, profile, origin, axis, mat, n=24, bevel=0):
+    """Closed (t, r) outline revolved about the line origin + t*axis."""
+    o, a = Vector(origin), Vector(axis).normalized()
+    u = a.cross(Vector((0, 0, 1)) if abs(a.z) < .9 else Vector((1, 0, 0))).normalized()
+    w = a.cross(u)
+    verts = []
+    for t, r in profile:
+        for i in range(n):
+            ang = 2*math.pi*(i+.5)/n
+            verts.append(tuple(o+a*t+u*(r*math.cos(ang))+w*(r*math.sin(ang))))
+    m = len(profile)
+    faces = []
+    for p in range(m):
+        q = (p+1) % m
+        faces += [(p*n+i, p*n+(i+1) % n, q*n+(i+1) % n, q*n+i) for i in range(n)]
+    return kit.mesh(name, verts, faces, mat, bevel)
+
+
+def _wall_strip(kit, name, s, x0, x1, z0, z1, d0, d1, mat, bevel=.1, taper=1.2):
+    """A strip lofted along the outboard wall from x0 aft to x1, wall offset d0..d1 (rel y), z0..z1."""
+    xs = [x0, x0-taper]+[x for x, *_ in ENVELOPE if x1+taper < x < x0-taper]+[x1+taper, x1]
+    stations = []
+    for x in sorted(set(xs)):
+        b = _env(x)[1]
+        e = (d1-d0)*.55 if x in (x0, x1) else 0      # the ends taper back into the wall
+        c = min(.45, (z1-z0)*.3)
+        sec = [(b+d0, z0), (b+d1-e-c, z0), (b+d1-e, z0+c), (b+d1-e, z1-c), (b+d1-e-c, z1), (b+d0, z1)]
+        stations.append((x, [(cl_hull.y(r, s), z) for r, z in sec]))
+    return loft_x(kit, name, stations, mat, bevel)
+
+
+def _hit(ob, x, y, top=60):
+    """Height where a ray dropped at (x, y) meets one object, or None."""
+    bpy.context.view_layer.update()
+    ev = ob.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    hit, p, _, _ = ev.ray_cast(ev.matrix_world.inverted() @ Vector((x, y, top)), Vector((0, 0, -1)))
+    return (ev.matrix_world @ p).z if hit else None
+
+
+def _join(parts, name):
+    bpy.ops.object.select_all(action='DESELECT')
+    for p in parts:
+        p.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]
+    bpy.ops.object.join()
+    ob = bpy.context.view_layer.objects.active
+    ob.name = ob.data.name = name
+    return ob
+
+
+def _rail(kit, name, pts, r, mat, n=8):
+    """A bent bar through pts: one rod per leg, gathered into one object."""
+    return _join([_rod(kit, name+' leg', p, q, r, mat, n) for p, q in zip(pts, pts[1:])], name)
+
+
+def _rcs_quad(kit, name, x, y, z, out, fore_sign, mats):
+    """A low-tech RCS quad: pedestal, bolted housing and four bells (fore/aft, outboard, up, down-slant)."""
+    _revolve_z(kit, name+' pedestal', [(0, -1.5), (1.15, -1.5), (1.15, .2), (.9, .45), (0, .45)], x, y, z,
+               kit.steel, n=24)
+    hz = z+1.3
+    _block(kit, name+' housing', x-1.2, x+1.2, y-1.2, y+1.2, z+.3, z+2.3, kit.pale, .18)
+    _studs(kit, name+' housing bolts', [(x+dx, y+dy, z+2.3) for dx in (-.85, .85) for dy in (-.85, .85)],
+           ('Z', 1), .13, .14, kit.steel)
+    dirs = [(fore_sign, 0, 0), (0, out, 0), (0, 0, 1), (0, out*.7, -.7)]
+    for k, d in enumerate(dirs, 1):
+        dv = Vector(d).normalized()
+        base = Vector((x, y, hz))+Vector((dv.x*1.15, dv.y*1.15, dv.z*1.0))
+        _revolve_dir(kit, f'{name} bell {k}', [(0, 0), (0, .32), (.25, .3), (.85, .55), (.85, .45), (.3, .2), (.3, 0)],
+                     base, dv, kit.steel if k % 2 else mats['lip'], n=16)
+
+
+def _lamp_housing(kit, name, x, y, z, aim, mat_lens):
+    """An unlit work-lamp housing on a bracket, its lens facing along aim (no lights layer)."""
+    a = Vector(aim).normalized()
+    _rod(kit, name+' bracket', (x, y, z-.2), (x, y, z+1.0), .14, kit.steel, n=8)
+    p = Vector((x, y, z+1.3))
+    _revolve_dir(kit, name+' housing', [(-.55, 0), (-.55, .38), (-.2, .5), (.25, .5), (.25, 0)], p, a, kit.steel, n=20)
+    _revolve_dir(kit, name+' lens', [(.2, 0), (.2, .42), (.32, .42), (.32, 0)], p, a, mat_lens, n=20)
+
+
+def tug(kit, side, s, mats, secs, casing, ys, by0, by1):
+    Y = lambda rel: cl_hull.y(rel, s)
+    rubber = mats['rubber']
+
+    # Rubbing strakes, let into channels on the outboard wall so they stand flush with the outline.
+    for k, (z0, z1) in enumerate(STRAKES, 1):
+        _cut(casing, _wall_strip(kit, 'channel', s, -37.6, -112.5, z0-.35, z1+.35, -1.6, 2, kit.dark, 0, .01))
+        _wall_strip(kit, f'Drive pod {side} rubbing strake {k}', s, -38, -112, z0, z1, -1.4, .1, kit.steel, .12, 1.4)
+        for j, x in enumerate((-46, -58, -80, -94, -106), 1):
+            b = _env(x)[1]
+            _studs(kit, f'Drive pod {side} rubbing strake {k} bolts {j}',
+                   [(x+dx, Y(b+.1), (z0+z1)/2) for dx in (-.9, .9)], ('Y', s), .16, .16, kit.pale)
+
+    # Push knee: a rubber bumper pad on the nose face outboard of where the yoke picks up (the
+    # inboard half of the nose is taken by the waist truss).
+    for k, (r0, r1, zh) in enumerate(((64.0, 69.6, 6.0),), 1):
+        y0, y1 = sorted((Y(r0), Y(r1)))
+        _block(kit, f'Drive pod {side} push knee {k} backing plate', -31.0, -29.6, y0-.3, y1+.3, -zh-.6, zh+.6,
+               kit.steel, .15)
+        _block(kit, f'Drive pod {side} push knee {k} bumper', -29.7, -28.9, y0, y1, -zh, zh, rubber, .25)
+        _studs(kit, f'Drive pod {side} push knee {k} bolts',
+               [(-29.6, yy, zz) for yy in (y0-.05, y1+.05) for zz in (-zh-.2, 0, zh+.2)], ('X', 1), .14, .2, kit.pale)
+    # Keel thrust shoe just aft of where the yoke's keel struts leave the pod.
+    y0, y1 = sorted((Y(51), Y(63)))
+    _block(kit, f'Drive pod {side} keel thrust shoe', -47.5, -40.2, y0, y1, -18.6, -12.5, kit.steel, .3)
+    _block(kit, f'Drive pod {side} keel thrust shoe bearing face', -40.6, -39.9, y0+.8, y1-.8, -18.0, -14.0,
+           kit.dark, .1)
+    _studs(kit, f'Drive pod {side} keel thrust shoe bolts',
+           [(x, yy, -18.6) for x in (-46.5, -43.8, -41.2) for yy in (y0+.7, (y0+y1)/2, y1-.7)], ('Z', -1),
+           .2, .2, kit.pale)
+
+    # Drive keel (skeg) between the tanks, with a wear shoe, stiffener ribs and bolted access plates.
+    k0, k1 = sorted((Y(SKEG[0]), Y(SKEG[1])))
+    keel = _xz_prism(kit, f'Drive pod {side} drive keel', SKEG_XZ, k0, k1, kit.maroon)
+    kb = keel.modifiers.new('Plate edge chamfer', 'BEVEL')
+    kb.width, kb.segments, kb.limit_method = .3, 2, 'ANGLE'
+    _xz_prism(kit, f'Drive pod {side} drive keel wear shoe',
+              [(-58.4, -30.6), (-99.4, -30.6), (-99.8, -31.9), (-58.0, -31.9)], k0-.35, k1+.35, kit.steel)
+    for j, x in enumerate((-64, -73, -82, -91), 1):
+        _block(kit, f'Drive pod {side} drive keel stiffener {j}', x-.4, x+.4, k0-.4, k1+.4, -30.4, -16, kit.steel, .1)
+    for j, (xa, xb) in enumerate(((-71.5, -65.5), (-89.5, -83.5)), 1):
+        _block(kit, f'Drive pod {side} drive keel access plate {j}', xa, xb, k0-.25, k1+.25, -27.6, -21.6,
+               kit.maroon, .12)
+        _studs(kit, f'Drive pod {side} drive keel access plate {j} bolts',
+               [(x, yy, zz) for x in (xa+.5, (xa+xb)/2, xb-.5) for zz in (-27.1, -22.1) for yy in (k0-.25, k1+.25)],
+               ('X', 1), .14, .14, kit.pale)
+
+    # Underslung propellant tanks: domed cylinders in saddle straps, with weld seams.
+    for name, rel, xf, xa in TANKS:
+        cy = Y(rel)
+        prof = [(xa-DOME*math.cos(math.pi/2*k/6), TANK_R*math.sin(math.pi/2*k/6)) for k in range(7)]
+        prof += [(xf+DOME*math.sin(math.pi/2*k/6), TANK_R*math.cos(math.pi/2*k/6)) for k in range(7)]
+        revolve_x(kit, f'Drive pod {side} {name} propellant tank', prof, cy, TANK_Z, kit.pale, n=36)
+        straps = [xf-2.5+(xa-xf+5)*k/3 for k in range(4)]
+        for j, x in enumerate(straps, 1):
+            revolve_x(kit, f'Drive pod {side} {name} tank strap {j}',
+                      [(x-.5, TANK_R-.1), (x-.5, TANK_R+.35), (x-.3, TANK_R+.5), (x+.3, TANK_R+.5), (x+.5, TANK_R+.35),
+                       (x+.5, TANK_R-.1)], cy, TANK_Z, kit.steel, n=36)
+            a = math.radians(-35)
+            _studs(kit, f'Drive pod {side} {name} tank strap {j} tensioner',
+                   [(x-.3, cy+s*(TANK_R+.45)*math.cos(a), TANK_Z+(TANK_R+.45)*math.sin(a))],
+                   ('X', 1), .45, .6, kit.dark, n=8)
+        for j, (p, q) in enumerate(zip(straps, straps[1:]), 1):
+            x = (p+q)/2
+            revolve_x(kit, f'Drive pod {side} {name} tank weld seam {j}',
+                      [(x-.12, TANK_R-.05), (x-.12, TANK_R+.1), (x+.12, TANK_R+.1), (x+.12, TANK_R-.05)],
+                      cy, TANK_Z, kit.steel, n=36)
+        for j, x in enumerate((xf+DOME-.4, xa-DOME+.4), 1):
+            revolve_x(kit, f'Drive pod {side} {name} tank pole fitting {j}',
+                      [(x-.7, 0), (x-.7, .9), (x+.7, .9), (x+.7, 0)], cy, TANK_Z, kit.steel, n=20)
+        # Feed line from the aft dome up into the drive end's keel.
+        tail = xa-DOME
+        dy = -2.5 if name == 'outboard' else 1.0
+        pts = [(tail+.2, cy, TANK_Z), (tail-3.0, cy, TANK_Z), (tail-6.0, cy+s*dy*.5, TANK_Z+3.5),
+               (-114.5, cy+s*dy, -9.5)]
+        _rail(kit, f'Drive pod {side} {name} feed line', pts, .55, kit.steel, n=16)
+        for j, p in enumerate(pts[1:3], 1):
+            revolve_x(kit, f'Drive pod {side} {name} feed line flange {j}',
+                      [(p[0]-.25, 0), (p[0]-.25, .85), (p[0]+.25, .85), (p[0]+.25, 0)], p[1], p[2], kit.dark, n=16)
+
+    # Dorsal drive housing: a raised hump over the drive's machinery, radiator banks on both flanks.
+    h0, h1 = sorted((Y(HUMP_REL[0]), Y(HUMP_REL[1])))
+    # It runs aft down the drive end's sloping top, so its tail is a raked fairing over the aft deck.
+    stations = [(HUMP_X[0], octagon(h0+3, h1-3, 7.5, 13.5, 2)),
+                (-108.0, octagon(h0+1, h1-1, 10.0, HUMP_TOP-5, 3)),
+                (-104.0, octagon(h0, h1, 12.0, HUMP_TOP, 3.4)),
+                (HUMP_X[1]-2.5, octagon(h0, h1, 13.5, HUMP_TOP, 3.4)),
+                (HUMP_X[1], octagon(h0+1, h1-1, 13.5, HUMP_TOP-3, 2.6))]
+    loft_x(kit, f'Drive pod {side} drive housing', stations, kit.maroon, .15)
+    _skin(kit, f'Drive pod {side} drive housing band', stations, .25,
+          _block(kit, 'clip', -98.2, -95.4, -200, 200, 16.3, 40, kit.pale), kit.pale)
+    _skin(kit, f'Drive pod {side} drive housing coaming', stations, .45,
+          _block(kit, 'clip', -200, 0, -200, 200, 15.6, 17.0, kit.steel), kit.steel)
+    # Bolted plates laid over the raked tail: a hatch on the slope and a service cover on each flank.
+    hump = bpy.data.objects[f'Drive pod {side} drive housing']
+    r0, r1 = sorted((Y(HUMP_REL[0]+6), Y(HUMP_REL[1]-6)))
+    _skin(kit, f'Drive pod {side} drive housing tail hatch', stations, .3,
+          _block(kit, 'clip', -111.2, -105.4, r0, r1, 14.5, 40, kit.maroon), kit.maroon, .1)
+    for j, (ra, rb) in enumerate(((HUMP_REL[0]-2, HUMP_REL[0]+3.2), (HUMP_REL[1]-3.2, HUMP_REL[1]+2)), 1):
+        q0, q1 = sorted((Y(ra), Y(rb)))
+        _skin(kit, f'Drive pod {side} drive housing flank cover {j}', stations, .3,
+              _block(kit, 'clip', -111.6, -104.6, q0, q1, 13.2, 19.4, kit.maroon), kit.maroon, .1)
+    bolts = []
+    for x in (-110.6, -108.3, -106.0):
+        for rr in (HUMP_REL[0]+6.6, (HUMP_REL[0]+HUMP_REL[1])/2, HUMP_REL[1]-6.6):
+            h = _hit(hump, x, Y(rr))
+            if h is not None:
+                bolts.append((x, Y(rr), h+.28))
+    _studs(kit, f'Drive pod {side} drive housing tail hatch bolts', bolts, ('Z', 1), .17, .18, kit.steel)
+    xr0, xr1 = -102.6, -91.0
+    for face, yy, sg in (('inboard', Y(HUMP_REL[0]), -s), ('outboard', Y(HUMP_REL[1]), s)):
+        # Radiator bank: a frame proud of the flank holding a row of vertical fins.
+        f0, f1 = sorted((yy-sg*.3, yy+sg*.7))
+        _block(kit, f'Drive pod {side} drive housing {face} radiator frame top', xr0-.4, xr1+.4, f0, f1, 24.4, 25.2,
+               kit.steel, .1)
+        _block(kit, f'Drive pod {side} drive housing {face} radiator frame foot', xr0-.4, xr1+.4, f0, f1, 17.0,
+               17.8, kit.steel, .1)
+        fins = []
+        n = 12
+        for j in range(n):
+            x = xr0+(xr1-xr0)*(j+.5)/n
+            fins.append(_block(kit, 'fin', x-.13, x+.13, *sorted((yy-sg*.3, yy+sg*1.0)), 17.6, 24.6, kit.dark, .04))
+        _join(fins, f'Drive pod {side} drive housing {face} radiator fins')
+    # Top: bolted access cover, two lifting eyes, a vent and the handrail round it.
+    tx0, tx1 = -103.2, -91.0
+    ty0, ty1 = sorted((Y(HUMP_REL[0]+3.3), Y(HUMP_REL[1]-3.3)))
+    cy0, cy1 = sorted((Y(HUMP_REL[0]+5), Y(HUMP_REL[0]+11)))
+    _block(kit, f'Drive pod {side} drive housing top cover', tx0+1.2, tx1-1.2, cy0, cy1, HUMP_TOP-.3,
+           HUMP_TOP+.35, kit.maroon, .12)
+    _studs(kit, f'Drive pod {side} drive housing top cover bolts',
+           [(x, yy, HUMP_TOP+.35) for x in (tx0+1.7, (tx0+tx1)/2, tx1-1.7) for yy in (cy0+.5, cy1-.5)],
+           ('Z', 1), .16, .16, kit.steel)
+    vy = Y(HUMP_REL[1]-6.5)
+    _revolve_z(kit, f'Drive pod {side} drive housing vent', [(0, -.3), (1.5, -.3), (1.5, 1.6), (1.8, 1.8), (1.8, 2.3),
+                                                             (0, 2.3)], -96.8, vy, HUMP_TOP, kit.steel, n=24)
+    _revolve_z(kit, f'Drive pod {side} drive housing vent mouth', [(0, 2.25), (1.4, 2.25), (1.4, 2.45), (0, 2.45)],
+               -96.8, vy, HUMP_TOP, kit.dark, n=24)
+    ey = Y(HUMP_REL[1]-3.0)
+    for j, x in enumerate((tx0+1.0, tx1-1.0), 1):
+        _rail(kit, f'Drive pod {side} drive housing lifting eye {j}',
+              [(x-.6, ey, HUMP_TOP-.2), (x-.6, ey, HUMP_TOP+.9), (x+.6, ey, HUMP_TOP+.9), (x+.6, ey, HUMP_TOP-.2)],
+              .18, kit.steel)
+    rz = HUMP_TOP+2.2
+    ring = [(tx0, ty0), (tx1, ty0), (tx1, ty1), (tx0, ty1)]
+    _rail(kit, f'Drive pod {side} drive housing handrail', [(x, yy, rz) for x, yy in ring+ring[:1]], .1, kit.pale)
+    _rail(kit, f'Drive pod {side} drive housing handrail mid rail', [(x, yy, rz-1.1) for x, yy in ring+ring[:1]], .08,
+          kit.pale)
+    posts = []
+    for (xa, ya), (xb, yb) in zip(ring, ring[1:]+ring[:1]):
+        m = max(1, round(math.hypot(xb-xa, yb-ya)/3.6))
+        for j in range(m):
+            t = j/m
+            p = (xa+(xb-xa)*t, ya+(yb-ya)*t)
+            posts.append(_rod(kit, 'post', (*p, HUMP_TOP-.1), (*p, rz), .1, kit.pale))
+    _join(posts, f'Drive pod {side} drive housing handrail stanchions')
+    # Ladder up the housing's inboard flank, from the pod top to the rail.
+    lx, ly = -100.8, Y(HUMP_REL[0]-1.0)
+    lz0 = _top(kit, lx, Y(HUMP_REL[0]-1.6))
+    parts = [_rod(kit, 'stile', (lx+dx, ly, lz0), (lx+dx, ly, rz), .09, kit.steel) for dx in (-.45, .45)]
+    z = lz0+.6
+    while z < HUMP_TOP+.2:
+        parts.append(_rod(kit, 'rung', (lx-.45, ly, z), (lx+.45, ly, z), .07, kit.steel))
+        z += .6
+    for zz in (lz0+2.5, HUMP_TOP-1.5):
+        for dx in (-.45, .45):
+            parts.append(_rod(kit, 'standoff', (lx+dx, ly, zz), (lx+dx, Y(HUMP_REL[0]+.3), zz), .07, kit.steel))
+    _join(parts, f'Drive pod {side} drive housing ladder')
+    # Work-lamp housings on the housing's fore corners, looking forward along the pod top.
+    for j, rel in enumerate((HUMP_REL[0]+2.5, HUMP_REL[1]-2.5), 1):
+        _lamp_housing(kit, f'Drive pod {side} work lamp {j}', HUMP_X[1]-.9, Y(rel), HUMP_TOP-2.6, (1, 0, -.15),
+                      mats['lip'])
+
+    # Ladder up the outboard wall to the top, between the shoulder band and the inspection port.
+    lx = -62.6
+    b = max(_env(lx-.5)[1], _env(lx+.5)[1])
+    ly, wy = Y(b+.75), Y(b-.3)
+    parts = [_rod(kit, 'stile', (lx+dx, ly, -9.0), (lx+dx, ly, 9.6), .09, kit.steel) for dx in (-.45, .45)]
+    z = -8.6
+    while z < 9.4:
+        parts.append(_rod(kit, 'rung', (lx-.45, ly, z), (lx+.45, ly, z), .07, kit.steel))
+        z += .6
+    for zz in (-8.9, 0.0, 9.3):
+        for dx in (-.45, .45):
+            parts.append(_rod(kit, 'standoff', (lx+dx, wy, zz), (lx+dx, ly, zz), .07, kit.steel))
+    _join(parts, f'Drive pod {side} outboard ladder')
+    gz = _top(kit, lx, Y(b-3.4))
+    for j, dx in enumerate((-.9, .9), 1):
+        _rail(kit, f'Drive pod {side} outboard ladder grab handle {j}',
+              [(lx+dx, Y(b-3.4), gz-.4), (lx+dx, Y(b-3.4), gz+1.8), (lx+dx, Y(b-.9), 11.6), (lx+dx, Y(b-.9), 10.0)],
+              .1, kit.pale)
+
+    # RCS quads at the four corners of the pod top.
+    for j, (x, rel, fs) in enumerate(((-40.8, 66.0, 1), (-40.8, 49.5, 1), (-108.2, 78.5, -1), (-108.2, 47.5, -1)), 1):
+        yy = Y(rel)
+        _rcs_quad(kit, f'Drive pod {side} RCS quad {j}', x, yy, _top(kit, x, yy), s if rel > 60 else -s, fs, mats)
+
+    # Drive end: heavy bay surround posts and lower beam on the aft face.
+    for j, (ya, yb) in enumerate(((by0-1.3, by0), (by1, by1+1.3)), 1):
+        _block(kit, f'Drive pod {side} bay surround post {j}', -125.9, -124.2, ya, yb, SILL_Z-1.6, 6.4, kit.steel, .18)
+        _studs(kit, f'Drive pod {side} bay surround post {j} bolts',
+               [(-125.9, (ya+yb)/2, zz) for zz in (SILL_Z-.8, -.8, 3.0, 5.6)], ('X', -1), .17, .17, kit.pale)
+    _block(kit, f'Drive pod {side} bay surround lower beam', -125.9, -124.2, by0-1.3, by1+1.3, SILL_Z-2.4, SILL_Z-.8,
+           kit.steel, .18)
+    # Heat-shield liners on the bay's side walls.
+    for j, (ya, yb) in enumerate(((by0, by0+.35), (by1-.35, by1)), 1):
+        _block(kit, f'Drive pod {side} bay heat-shield liner {j}', -124.4, -116.8, ya, yb, SILL_Z+.4, 5.8,
+               mats['shield'], .08)
+    # Armoured cheek: two layered plates on the outboard cheek's flank.
+    o0, o1 = sorted((Y(66.5), Y(120)))
+    _skin(kit, f'Drive pod {side} cheek armour', secs, .45,
+          _block(kit, 'clip', -124.4, -111.6, o0, o1, -6.5, 5.6, kit.steel), kit.steel)
+    _skin(kit, f'Drive pod {side} cheek armour outer plate', secs, .8,
+          _block(kit, 'clip', -122.6, -114.0, o0, o1, -4.6, 3.8, kit.red), kit.red)
+    _skin(kit, f'Drive pod {side} cheek armour wear strip', secs, 1.0,
+          _block(kit, 'clip', -122.2, -114.4, o0, o1, -.6, .4, kit.steel), kit.steel)
+    pts = []
+    for x in (-123.9, -121.0, -118.0, -115.0, -112.2):
+        bw = _env(x)[1]
+        pts += [(x, Y(bw+.45), zz) for zz in (-6.0, 5.1)]
+    for x in (-122.0, -114.6):
+        bw = _env(x)[1]
+        pts += [(x, Y(bw+.8), zz) for zz in (-3.9, -2.0, 2.0, 3.2)]
+    _studs(kit, f'Drive pod {side} cheek armour bolts', pts, ('Y', s), .17, .18, kit.pale)
+    # Propellant manifold across the bay floor, a turbopump under each combustion chamber.
+    _revolve_dir(kit, f'Drive pod {side} propellant manifold', [(0, 0), (0, .55), (by1-by0-1.2, .55), (by1-by0-1.2, 0)],
+                 (-117.3, by0+.6, -3.75), (0, 1, 0), kit.steel, n=16)
+    for i, (_, y, _, _) in enumerate(ENGINES, 1):
+        if (y > 0) != (s > 0):
+            continue
+        revolve_x(kit, f'Drive pod {side} turbopump {i}',
+                  [(-117.9, 0), (-117.9, .55), (-117.75, .85), (-116.75, .85), (-116.6, .55), (-116.6, 0)],
+                  y, -3.45, mats['chamber'], n=20)
+        for k, dy in enumerate((-.9, .9), 1):
+            _rail(kit, f'Drive pod {side} turbopump {i} feed {k}',
+                  [(-117.25, y, -3.0), (-117.25, y+dy, -2.4), (-117.25, y+dy*.9, -1.5)], .16, mats['lip'], n=10)
 
 
 def nozzle(kit, i, y, mats):
@@ -327,25 +667,31 @@ def nozzle(kit, i, y, mats):
     ss = [k/10 for k in range(11)]
     outer = [(_bell_x(u), _bell_r(u)+w) for u in reversed(ss)]
     inner = [(_bell_x(u), _bell_r(u)) for u in ss]
-    revolve_x(kit, f'Engine {i} aft-facing bell', outer+inner, y, POD_Z, kit.steel, n=24)
+    revolve_x(kit, f'Engine {i} aft-facing bell', outer+inner, y, POD_Z, kit.steel, n=40)
     lip_x = MOUTH_X
     revolve_x(kit, f'Engine {i} mouth lip', [(lip_x-.18, m-.08), (lip_x-.18, m+.42), (lip_x+.5, m+.42), (lip_x+.5, m-.08)],
-              y, POD_Z, mats['lip'], n=24)
+              y, POD_Z, mats['lip'], n=40)
     # Liner: a dark skin just inside the bell, closed at the throat.
     ls = [k/10 for k in range(10, -1, -1)]
     liner = [(_bell_x(u*.97), _bell_r(u*.97)-.04) for u in ls]+[(THROAT_X+.12, .01)]
     liner += [(_bell_x(u*.97), _bell_r(u*.97)-.15) for u in reversed(ls)]
-    revolve_x(kit, f'Engine {i} dark throat', liner, y, POD_Z, mats['liner'], n=24)
+    revolve_x(kit, f'Engine {i} dark throat', liner, y, POD_Z, mats['liner'], n=40)
     # Cooling hoops and the heat-shield band round the bell (the sprite's striped nozzles).
-    for k, u in enumerate((.86, .3), 1):
+    for k, u in enumerate((.86, .3, .76, .12), 1):
         x, r = _bell_x(u), _bell_r(u)+w
         revolve_x(kit, f'Engine {i} cooling hoop {k}', [(x-.22, r-.1), (x-.22, r+.22), (x+.22, r+.22), (x+.22, r-.1)],
-                  y, POD_Z, kit.steel, n=24)
+                  y, POD_Z, kit.steel, n=40)
+    # Eight stiffener ribs running down the bell between the hoops, clear of the actuators.
+    for k in range(8):
+        a = math.radians(22.5+45*k)
+        pts = [(_bell_x(u), y+(_bell_r(u)+w+.1)*math.cos(a), POD_Z+(_bell_r(u)+w+.1)*math.sin(a))
+               for u in (.3, .45, .6, .74, .86)]
+        _rail(kit, f'Engine {i} stiffener rib {k+1}', pts, .09, kit.steel, n=6)
     ua, ub = .5, .68
     xa, xb = _bell_x(ua), _bell_x(ub)
     revolve_x(kit, f'Engine {i} heat-shield band', [(xa, _bell_r(ua)+w-.05), (xb, _bell_r(ub)+w-.05),
                                                      (xb, _bell_r(ub)+w+.18), (xa, _bell_r(ua)+w+.18)],
-              y, POD_Z, mats['shield'], n=24)
+              y, POD_Z, mats['shield'], n=40)
     # Throat ring, combustion chamber and gimbal ring back to the thrust frame.
     revolve_x(kit, f'Engine {i} throat ring', [(THROAT_X-.35, t), (THROAT_X-.35, t+.75), (THROAT_X+.35, t+.75),
                                                 (THROAT_X+.35, t)], y, POD_Z, kit.steel, n=20)
@@ -377,6 +723,7 @@ def build(kit):
         'shield': material('Drive heat-shield band', (.30, .27, .25), .6, .5),
         'deck': material('Drive pod worn aft plate', (.46, .33, .30), .25, .55),
         'chamber': material('Drive chamber dark metal', (.07, .07, .075), .7, .5),
+        'rubber': material('Drive pod fender rubber', (.035, .035, .033), 0, .9),
     }
     for side, s in cl_hull.SIDES:
         pod(kit, side, s, mats)

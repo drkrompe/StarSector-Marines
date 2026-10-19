@@ -652,10 +652,11 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 007 barbette",
       "muzzles": [
-        "Weapon WS 007 muzzle anchor 1"
+        "Weapon WS 007 muzzle anchor 1",
+        "Weapon WS 007 muzzle anchor 2"
       ],
-      "weapon": "gravitonbeam",
-      "elite_variant": null
+      "weapon": "needler",
+      "elite_variant": "heavyneedler"
     },
     {
       "id": "WS 008",
@@ -682,10 +683,11 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 008 barbette",
       "muzzles": [
-        "Weapon WS 008 muzzle anchor 1"
+        "Weapon WS 008 muzzle anchor 1",
+        "Weapon WS 008 muzzle anchor 2"
       ],
-      "weapon": "gravitonbeam",
-      "elite_variant": null
+      "weapon": "needler",
+      "elite_variant": "heavyneedler"
     },
     {
       "id": "WS 009",
@@ -774,8 +776,8 @@
       "muzzles": [
         "Weapon WS 011 muzzle anchor 1"
       ],
-      "weapon": "taclaser",
-      "elite_variant": null
+      "weapon": "pdlaser",
+      "elite_variant": "pdlaser"
     },
     {
       "id": "WS 012",
@@ -924,8 +926,8 @@
       "muzzles": [
         "Weapon WS 016 muzzle anchor 1"
       ],
-      "weapon": "taclaser",
-      "elite_variant": null
+      "weapon": "pdlaser",
+      "elite_variant": "pdlaser"
     },
     {
       "id": "WS 017",
@@ -954,8 +956,8 @@
       "muzzles": [
         "Weapon WS 017 muzzle anchor 1"
       ],
-      "weapon": "taclaser",
-      "elite_variant": null
+      "weapon": "pdlaser",
+      "elite_variant": "pdlaser"
     },
     {
       "id": "WS 018",
@@ -1104,8 +1106,8 @@
       "muzzles": [
         "Weapon WS 022 muzzle anchor 1"
       ],
-      "weapon": "taclaser",
-      "elite_variant": null
+      "weapon": "pdlaser",
+      "elite_variant": "pdlaser"
     },
     {
       "id": "WS 023",
@@ -1134,8 +1136,8 @@
       "muzzles": [
         "Weapon WS 023 muzzle anchor 1"
       ],
-      "weapon": "taclaser",
-      "elite_variant": null
+      "weapon": "pdlaser",
+      "elite_variant": "pdlaser"
     }
   ],
   "firing_lines": {
@@ -1708,48 +1710,6 @@
       "orthographic_scale": 300
     },
     {
-      "name": "stern-quarter",
-      "position": [
-        -330.0,
-        -200.0,
-        60.0
-      ],
-      "target": [
-        -170.0,
-        -80.0,
-        0.0
-      ],
-      "orthographic_scale": 150.0
-    },
-    {
-      "name": "belly-aft",
-      "position": [
-        -60.0,
-        -160.0,
-        -150.0
-      ],
-      "target": [
-        -140.0,
-        -40.0,
-        -18.0
-      ],
-      "orthographic_scale": 110.0
-    },
-    {
-      "name": "turret-large",
-      "position": [
-        60.0,
-        -170.0,
-        80.0
-      ],
-      "target": [
-        3.0,
-        -99.0,
-        30.0
-      ],
-      "orthographic_scale": 45.0
-    },
-    {
       "name": "turret-bow",
       "position": [
         190.0,
@@ -1764,18 +1724,32 @@
       "orthographic_scale": 70.0
     },
     {
-      "name": "turret-aft",
+      "name": "turret-pd",
       "position": [
-        -60.0,
-        -170.0,
-        70.0
+        135.0,
+        -100.0,
+        30.0
       ],
       "target": [
-        -75.0,
-        -95.0,
-        20.0
+        106.0,
+        -69.0,
+        22.0
       ],
-      "orthographic_scale": 60.0
+      "orthographic_scale": 22.0
+    },
+    {
+      "name": "turret-pd-aft",
+      "position": [
+        -120.0,
+        -150.0,
+        40.0
+      ],
+      "target": [
+        -145.0,
+        -121.0,
+        18.0
+      ],
+      "orthographic_scale": 22.0
     }
   ],
   "silhouette": {
@@ -1785,10 +1759,10 @@
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.567,
-    "white": 0.526,
-    "dark": 0.413,
-    "agreement": 0.655,
+    "skin": 0.569,
+    "white": 0.513,
+    "dark": 0.415,
+    "agreement": 0.656,
     "silhouette": 0.962,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }

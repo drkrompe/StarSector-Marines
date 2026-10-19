@@ -128,6 +128,17 @@ class Parts:
         """Box given in rel y on one side."""
         return self.box(x0, x1, y(r0, s), y(r1, s), z0, z1)
 
+    def tube(self, cx, cy, z0, z1, r0, r1, wall, n=40):
+        """Annular shell about a vertical axis: radius r0 at z0 to r1 at z1, `wall` thick."""
+        vs = []
+        for r, z in ((r0, z0), (r1, z1), (r1-wall, z1), (r0-wall, z0)):
+            vs += [(cx+r*math.cos(2*math.pi*i/n), cy+r*math.sin(2*math.pi*i/n), z) for i in range(n)]
+        fs = []
+        for a in range(4):
+            b = (a+1) % 4
+            fs += [(a*n+i, a*n+(i+1) % n, b*n+(i+1) % n, b*n+i) for i in range(n)]
+        return self._add(vs, fs)
+
     def slab(self, poly, ext):
         """A planar polygon swept along ext."""
         n = len(poly)
@@ -618,11 +629,6 @@ def belly(kit):
     for r in (-17.0, 0.0, 17.0):
         g.box(HOLD_AFT+8, FRONT-8, YC+r-.3, YC+r+.3, z-1, z+.6)
     _cut(kit, hold, g, kit.dark)
-    strakes = Parts()
-    for r0, r1 in ((-15.0, -2.0), (2.0, 15.0)):
-        for x0, x1 in ((13.6, 34.9), (36.1, 56.4)):        # the end bays take the ventral hatches
-            strakes.box(x0, x1, YC+r0, YC+r1, z-.5, z+.2)
-    strakes.build(kit, 'Hull keel armour strakes', kit.steel, .2)
     for side, s in SIDES:
         for part, seams in (('fore', FORE_SEAMS), ('aft', AFT_SEAMS)):
             g = Parts()
@@ -691,22 +697,145 @@ def docking(kit):
     leaves.build(kit, 'Hull ventral cargo hatch leaves', kit.maroon, .08)
     frame.build(kit, 'Hull ventral cargo hatch frames', kit.orange)
     stripes.build(kit, 'Hull ventral cargo hatch hazard stripes', kit.dark)
-    # Docking clamp hardpoints: a bolted base, a clamp head and two jaws, on the side-module keels.
-    base, head, bolts = Parts(), Parts(), Parts()
+    # Hinge knuckles along each leaf's outboard edge, and stiffening ribs under the leaves.
+    knuckles, ribs = Parts(), Parts()
+    for x0, x1 in hatches:
+        for edge in (YC-10.6, YC+10.6):
+            u = x0+.6
+            while u < x1-1.5:
+                knuckles.cyl((u, edge, z+.95), .38, 1.6, 'X', 16)
+                u += 4.1
+        for u in [x0+2.25+3*k for k in range(6)]:
+            for a, b in ((YC-10.4, YC-.8), (YC+.8, YC+10.4)):
+                ribs.box(u-.3, u+.3, a, b, z+.4, z+.62)
+    knuckles.build(kit, 'Hull ventral cargo hatch hinges', kit.steel, .05)
+    ribs.build(kit, 'Hull ventral cargo hatch leaf ribs', kit.maroon, .08)
+    # Docking clamp hardpoints on the side-module keels: a round bolted flange on a hazard ring,
+    # a turned clamp body with a collar, a head plate, and two hooked jaws on pivot pins.
+    base, head, bolts, jaws, pins, rings = Parts(), Parts(), Parts(), Parts(), Parts(), Parts()
     zk = SIDE_KEEL
     for side, s in SIDES:
         for x in (-2.0, 70.0):
             c = y(67.0, s)
-            base.box(x-3.0, x+3.0, c-3.0, c+3.0, zk-.6, zk+.2)
-            head.box(x-1.6, x+1.6, c-1.6, c+1.6, zk-2.4, zk-.6)
-            for dx in (-1.9, 1.9):
-                head.box(x+dx-.35, x+dx+.35, c-1.2, c+1.2, zk-3.4, zk-1.6)
-            for bx in (-2.4, 2.4):
-                for by in (-2.4, 2.4):
-                    bolts.box(x+bx-.25, x+bx+.25, c+by-.25, c+by+.25, zk-.85, zk-.6)
-    base.build(kit, 'Hull docking clamp bases', kit.steel, .15)
-    head.build(kit, 'Hull docking clamp heads', kit.dark, .1)
+            rings.cyl((x, c, zk+.02), 4.1, -.1, 'Z', 40)
+            base.cyl((x, c, zk+.2), 3.4, -.8, 'Z', 40)
+            head.cyl((x, c, zk-.6), 2.2, -2.0, 'Z', 32)
+            head.cyl((x, c, zk-1.1), 2.55, -.45, 'Z', 32)                # collar
+            head.cyl((x, c, zk-2.6), 1.7, -.5, 'Z', 32)                 # head plate
+            for k in range(10):
+                a = 2*math.pi*(k+.5)/10
+                bolts.cyl((x+2.85*math.cos(a), c+2.85*math.sin(a), zk-.6), .26, -.28, 'Z', 6)
+            for sx in (-1, 1):
+                hook = [(1.25, -1.6), (2.05, -1.6), (2.05, -4.0), (1.85, -4.5), (.75, -4.5), (.75, -3.9), (1.25, -3.9)]
+                poly = [(x+sx*dx, c-.8, zk+dz) for dx, dz in hook]
+                jaws.slab(poly if sx > 0 else poly[::-1], (0, 1.6, 0))
+                pins.cyl((x+sx*1.3, c-1.2, zk-3.5), .32, 2.4, 'Y', 16)
+    rings.build(kit, 'Hull docking clamp hazard rings', kit.orange)
+    base.build(kit, 'Hull docking clamp bases', kit.steel, .12)
+    head.build(kit, 'Hull docking clamp heads', kit.dark, .08)
+    jaws.build(kit, 'Hull docking clamp jaws', kit.steel, .1)
+    pins.build(kit, 'Hull docking clamp pivot pins', kit.pale, .04)
     bolts.build(kit, 'Hull docking clamp bolts', kit.pale)
+
+
+# Ventral lift thrusters (owner, pass 3 round 6: "some kind of bottom thrust for lifting off
+# the ground"): (cx, cy, well radius, keel z, keel object). Two large ones on the hold's
+# centreline between the cargo hatches, and a pair across each side module's keel, clear of
+# its seams and docking clamp.
+LIFT = [(24.5, YC, 7.0, HOLD_KEEL, 'Hull central cargo hold'),
+        (46.5, YC, 7.0, HOLD_KEEL, 'Hull central cargo hold')]
+for _side, _s in SIDES:
+    for _part, _x in (('fore', 53.5), ('aft', 5.0)):
+        for _r in (59.5, 74.5):
+            LIFT.append((_x, y(_r, _s), 3.6, SIDE_KEEL, f'Cargo {_side} {_part} module'))
+LIFT_ANCHORS = {}
+
+
+def lift(kit):
+    """Each thruster: a well cut up into the keel, a down-facing bell with a lip and cooling
+    hoops and a dark throat, vectoring vanes across the well mouth, a bolted heat-shield
+    collar proud of the keel and a hazard ring round it. 'Lift thruster <i> exhaust anchor'
+    sits on the bell mouth with +X pointing down, the main drives' convention."""
+    LIFT_ANCHORS.clear()
+    bells, lips, throats, vanes, collars, rings, bolts = (Parts() for _ in range(7))
+    for i, (cx, cy, R, k, host) in enumerate(LIFT, 1):
+        _cut(kit, obj(host), Parts().cyl((cx, cy, k-1), R, 5.0, 'Z', 48), kit.dark)
+        mouth, throat = k+1.4, k+3.6
+        bells.tube(cx, cy, throat, mouth, .45*R, .86*R, .18*R/3.6, 48)
+        lips.tube(cx, cy, mouth, mouth-.3, .9*R, .9*R, .2, 48)
+        for t in (.35, .7):
+            zz = throat+(mouth-throat)*t
+            rr = .45*R+(.86-.45)*R*t+.08
+            lips.tube(cx, cy, zz+.15, zz-.15, rr+.18, rr+.18, .2, 48)
+        throats.cyl((cx, cy, throat-.05), .46*R, .45, 'Z', 32)
+        pitch = R/3.0
+        u = -R+pitch/2
+        while u < R:
+            half = math.sqrt(max(R*R-u*u, 0))-.15
+            vanes.box(cx-half, cx+half, cy+u-.12, cy+u+.12, k+.15, k+1.05)
+            u += pitch
+        w = 2.2*R/7.0
+        collars.tube(cx, cy, k+.02, k-.3, R+w, R+w, w, 48)
+        collars.tube(cx, cy, k+.6, k-.45, R+.02, R+.02, .3, 48)       # lip lining the well edge
+        rings.tube(cx, cy, k+.02, k-.06, R+w+.45, R+w+.45, .45, 48)
+        for j in range(16 if R > 5 else 10):
+            a = 2*math.pi*(j+.5)/(16 if R > 5 else 10)
+            bolts.cyl((cx+(R+w/2)*math.cos(a), cy+(R+w/2)*math.sin(a), k-.3), .22, -.25, 'Z', 6)
+        loc = (cx, cy, mouth-.3)
+        ob = kit.empty(f'Lift thruster {i} exhaust anchor', loc, 0)
+        ob.rotation_euler = (0, math.pi/2, 0)                           # +X points down
+        LIFT_ANCHORS[i] = (loc, (0.0, 0.0, -1.0))
+    bells.build(kit, 'Lift thruster bells', kit.steel, .05)
+    lips.build(kit, 'Lift thruster lips and hoops', kit.pale, .04)
+    throats.build(kit, 'Lift thruster dark throats', kit.dark)
+    vanes.build(kit, 'Lift thruster vectoring vanes', kit.steel, .06)
+    collars.build(kit, 'Lift thruster heat-shield collars', kit.steel, .08)
+    rings.build(kit, 'Lift thruster hazard rings', kit.orange)
+    bolts.build(kit, 'Lift thruster collar bolts', kit.pale)
+
+
+def heat_tiles(kit):
+    """Ceramic heat-shield tile fields round the lift thrusters, where their exhaust washes the
+    keel on lift-off and touchdown: square tiles proud of the plating, on a 2.6-unit pitch,
+    stopping at the collars, seams and docking clamps."""
+    tiles = Parts()
+    fields = [(13.6, 56.4, YC-21.0, YC+21.0, HOLD_KEEL)]          # between the hatches, inside the skids
+    for side, s in SIDES:
+        for x0, x1 in ((40.6, 65.4), (-9.4, 19.4)):
+            a, b = sorted((y(54.0, s), y(80.0, s)))
+            fields.append((x0, x1, a, b, SIDE_KEEL))
+    keep_clear = [(cx, cy, R+2.2*R/7+.45) for cx, cy, R, k, h in LIFT]        # the hazard ring
+    keep_clear += [(x, y(67.0, s), 4.1) for _, s in SIDES for x in (-2.0, 70.0)]
+    for x0, x1, a, b, k in fields:
+        nx, ny = int((x1-x0)/2.6), int((b-a)/2.6)
+        ox, oy = x0+(x1-x0-nx*2.6)/2, a+(b-a-ny*2.6)/2
+        for i in range(nx):
+            for j in range(ny):
+                cx, cy = ox+2.6*(i+.5), oy+2.6*(j+.5)
+                near = lambda px, py: math.hypot(max(abs(cx-px)-1.15, 0), max(abs(cy-py)-1.15, 0))
+                if any(near(px, py) < pr+.25 for px, py, pr in keep_clear):
+                    continue
+                tiles.box(cx-1.15, cx+1.15, cy-1.15, cy+1.15, k-.2, k+.05)
+    tiles.build(kit, 'Lift thruster heat-shield tiles', kit.tile, .12)
+
+
+def skids(kit):
+    """Landing skids along the hold keel, outboard of the hatches and lift thrusters: the
+    ground the hull rests on when the lift thrusters set it down. Bolted wear shoes on
+    gusseted mounting blocks, raked at both ends."""
+    z = HOLD_KEEL
+    beams, shoes, blocks = Parts(), Parts(), Parts()
+    for r in (-23.0, 23.0):
+        c = YC+r
+        x0, x1 = -12.0, 84.0
+        prof = [(x0, z), (x0+3, z-2.2), (x1-3, z-2.2), (x1, z)]
+        beams.slab([(px, c-1.4, pz) for px, pz in prof], (0, 2.8, 0))
+        shoes.box(x0+3.4, x1-3.4, c-1.1, c+1.1, z-2.6, z-2.15)
+        for bx in range(int(x0)+6, int(x1)-3, 8):
+            blocks.box(bx-.9, bx+.9, c-2.2, c+2.2, z-1.2, z+.05)
+    beams.build(kit, 'Hull keel landing skids', kit.steel, .2)
+    shoes.build(kit, 'Hull keel landing skid wear shoes', kit.dark, .1)
+    blocks.build(kit, 'Hull keel landing skid mounting blocks', kit.steel, .1)
 
 
 def fenders(kit):
@@ -742,3 +871,6 @@ def detail(kit):
     aft_bulkhead(kit)
     docking(kit)
     fenders(kit)
+    lift(kit)
+    heat_tiles(kit)
+    skids(kit)

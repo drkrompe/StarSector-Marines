@@ -37,8 +37,9 @@ Castle's comms bank along the port side, a plot table and the aft hatch. The cam
 a standing eye about 1.7 m off the floor, on a 22 mm lens: first on the clear port side
 of the dais, leaning over the console about 60 cm behind the forward glass, then stepping
 down to Castle's station, 70 cm inboard of the port glass. The eye height is the same at both,
-since leaning on the dais and standing on the floor put it level with the slits. The pilot and
-Castle are simple mannequins (`sw_bridge_interior.figures`).
+since leaning on the dais and standing on the floor put it level with the slits. The pilot is a
+simple mannequin; Castle is the MakeHuman figure from `castle-figure/` once its .blend is built,
+and a mannequin until then (`sw_bridge_interior.figures`).
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to

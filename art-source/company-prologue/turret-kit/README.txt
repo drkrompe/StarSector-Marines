@@ -95,8 +95,9 @@ Built from the game's sprites (house='hand')
   Starsector.app/Contents/Resources/Java).
 
 Tri-Tachyon energy weapons (house='hand')
-  tachyonlance, gravitonbeam, taclaser and the reaper launcher, the Paragon's
-  Elite fit. A beam has no gun sprite, so the whole weapon trains and the
+  tachyonlance, gravitonbeam, taclaser, the reaper launcher and the pdlaser,
+  the Paragon's Elite fit (with the kit's needler). A beam has no gun sprite,
+  so the whole weapon trains and the
   elevation empty carries only the muzzle anchors (at the .wpn's offsets).
   Each stands on a thin deck cut to the sprite's outline (`bodies`, which keeps
   both halves of the lance either side of its open beam slot, plus the thin
@@ -113,8 +114,22 @@ Tri-Tachyon energy weapons (house='hand')
   emitter barrel; the reaper tall rails, a launcher with its tube mouth, the
   round loaded in the slot, and a base bar with lamps and end caps. Heights
   follow SECTION (roof 6.0 / 4.6 / 3.2 px), so each has a profile from the
-  side. Lamps are 'lamp_blue', 'lamp_red' and 'lamp_core'. Silhouette IoU
-  0.92 (lance), 0.95 (graviton), 0.93 (tactical laser), 0.86 (reaper).
+  side. The forms are smooth lofts through Catmull-Rom profiles (_cr), laid
+  in plates (_panelled): each plate its own loft, a pulled-in core in the gap,
+  so a seam is a groove with a floor rather than a painted line. Detail is
+  sprite-pixel scale (a lance is about 60 m across; true-metre bolts would
+  vanish): cooling rings, vent slats, rims, dome plate seams cut through a
+  shell to its core, skirt bands. Lamps are 'lamp_blue', 'lamp_red' and
+  'lamp_core'. Silhouette IoU 0.92 (lance), 0.95 (graviton), 0.92 (tactical
+  laser), 0.86 (reaper).
+  The PD laser (pdlaser, common tech) is the same family: a rounded dark
+  housing, a red armoured collar with louvres on top, and an elliptical light
+  emitter drum stepped down to its lens (IoU 0.91). It is a laser / plasma
+  mount, so it carries heavy power cabling: a junction box on the housing's
+  crown aft, two armoured cables a side (_cable: a tube swept along a Bezier)
+  arching over the collar's shoulders on a clamp saddle, sleeve bands along
+  them, gland collars where they enter the drum, and coolant ports on the
+  drum's flanks. Cables are the 'cable' key (dark rubber by default).
   Their paints are halfway between the sprite's colour and Tri-Tachyon's pale
   ceramic, and keep more of their colour than the military livery does
   (catalogue `chroma` .7 against LIVERY's .35): recognisable, not cartoonish
@@ -155,8 +170,8 @@ The gauntlet (each turret, against its sprite)
   fixes; apply them and render again until it passes.
 
 Users
-  legion-geometry (lg_turrets), paragon-geometry (pg_turrets: the Tri-Tachyon
-  four, hull_finish). Lasher, Onslaught, Hermes, Hound and Second
+  legion-geometry (lg_turrets), paragon-geometry (pg_turrets: its Elite fit,
+  hull_finish). Lasher, Onslaught, Hermes, Hound and Second
   Wind still use their own turret modules; moving one onto the kit is that
   hull's session's call.
 

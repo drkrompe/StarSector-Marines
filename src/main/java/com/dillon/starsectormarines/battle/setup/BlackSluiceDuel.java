@@ -20,13 +20,14 @@ import java.util.Locale;
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
  * sits landed alone in the cradle south of the ridge from the start, quiet: she fires at nothing on the ground, and the
  * battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the site
- * abandoned, the <i>Greyhook</i> lifts and turns to fight: the Enforcers are faster than she is, so she does not run.
- * She fights under the ordinary warship doctrine and tactics, and two Hegemony Enforcers the Rusk family has lent fly in
- * across the west edge, already under way on a heading east, on a visit nobody can command. Two bow-fighting
- * destroyers on one hull fight it as a pack relay ({@code warship-tactics.md}, slice 7). Rusk's Enforcers carry his
- * refit ({@link #RUSK_REFIT}), the one thing this mission tunes on them. Every hull of the duel holds the field
+ * abandoned, the <i>Greyhook</i> lifts and turns to fight: Rusk's ships are faster than she is, so she does not run.
+ * She fights under the ordinary warship doctrine and tactics, and the pair the Rusk family has lent ({@link #RUSK_PAIR}:
+ * a Hegemony Enforcer and Rusk's own Wolf) fly in across the west edge, already under way on a heading east, on a visit
+ * nobody can command. Two bow-fighting hulls on one target fight it as a pack relay ({@code warship-tactics.md},
+ * slice 7): the sturdier Enforcer holds her eye and the Wolf strikes from her quarter. Each lent hull carries its own
+ * refit ({@link RuskHull#refit}), the one thing this mission tunes on them. Every hull of the duel holds the field
  * ({@link Warship#holdTheField}): no doctrine withdraws it and no visit ends, so the fight is over only when one
- * side's hulls are all destroyed, and the winners stay over the battle. Nobody leaves the map. The Enforcers' edge
+ * side's hulls are all destroyed, and the winners stay over the battle. Nobody leaves the map. Rusk's edge
  * ({@link #RUSK_EDGE}) is how they arrive; nothing warps in or out, and no area is declared for the fight, which goes
  * where the fighting takes it, over the ground battle included, kept off the map's edges only by the standing edge
  * pressure every warship flies with. It stays gun against gun: the Venture's fitting carries no wing, and a warship
@@ -44,29 +45,61 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** The Venture and her fitting: guns only, no wing. */
     static final String GREYHOOK_HULL = "venture", GREYHOOK_VARIANT = "venture_Greyhook";
     /**
-     * Rusk's Enforcers and their fitting: the base game's own Balanced Enforcer, one of the Hegemony's stock
-     * medium-combat fits (Arbalests and Heavy Mortars on the turrets, Harpoons and Reapers in the racks), so the
-     * family's ships are fitted as Hegemony line ships are and nothing is authored for the mission. Of the stock fits
-     * it is the one that decides this duel inside minutes: the Assault and Escort fits outlast the Greyhook without
-     * killing her, and the Elite's longer guns already reach her cradle as the Enforcers cross their edge.
-     */
-    static final String ENFORCER_HULL = "enforcer", ENFORCER_VARIANT = "enforcer_Balanced";
-    /**
-     * Rusk's refit for this fight, on both Enforcers and nowhere else: capacity and dissipation raised together (the
-     * guns and the shield draw on the one pool) by a quarter, the shield's upkeep cut by a quarter and each absorbed
-     * point costing a fifth less flux, and the arc widened by twenty degrees. No gun, plate or hull figure changes. It
-     * was written for Wolfs and kept for the Enforcers because it is what decides the fight in minutes: two Enforcers
-     * already out-vent the Greyhook, and the refit wins the flux war sooner (measured over the five duel seeds, the
-     * Greyhook falls 221 to 334 seconds after the first hit with it, 361 to 601 without it), not a different winner
-     * ({@code warship-behaviours.md}, the Greyhook fights alone).
+     * Rusk's refit: capacity and dissipation raised together (the guns and the shield draw on the one pool) by a
+     * quarter, the shield's upkeep cut by a quarter and each absorbed point costing a fifth less flux, and the arc
+     * widened by twenty degrees. No gun, plate or hull figure changes. Written for his hunting Wolfs, it now rides on
+     * his Enforcer ({@link #ENFORCER}).
      */
     public static final HullRefit RUSK_REFIT = new HullRefit("Rusk's hunter refit", 1.25f, 1.25f, 20f, 0.75f, 0.8f);
     /**
-     * The Greyhook's refit for this fight: none, the seam left at identity. A worn Greyhook would only lose sooner, and
-     * no flux or shield figure lets her win, because her battery cannot get through an Enforcer's plate (her Heavy
-     * Autocannons' kinetic rounds glance off nine hundred of armour); she flies as her variant fits her.
+     * One of the hulls Rusk lends: what the radio and the captions call it, its hull and fitting, and the refit it
+     * flies in.
      */
-    public static final HullRefit GREYHOOK_REFIT = HullRefit.NONE;
+    public record RuskHull(String name, String hullId, String variantId, HullRefit refit) {
+        public RuskHull {
+            if (name == null || hullId == null || variantId == null || refit == null) {
+                throw new IllegalArgumentException("A lent hull needs a name, a hull, a fitting and a refit");
+            }
+        }
+
+        /** The same hull in another fitting or refit, for a tuning diagnostic. */
+        public RuskHull with(String hull, String variant, HullRefit other) {
+            return new RuskHull(name, hull, variant, other);
+        }
+    }
+    /**
+     * Rusk's Enforcer: the base game's own Balanced Enforcer, one of the Hegemony's stock medium-combat fits
+     * (Arbalests and Heavy Mortars on the turrets, Harpoons and Reapers in the racks), fitted as Hegemony line ships
+     * are, in Rusk's refit. Nine hundred of armour that her autocannons glance off makes it the pair's anvil: the
+     * relay's tank, holding her eye from nearest. The refit is what lets it finish her: measured over the five duel
+     * seeds, without it the Enforcer has to break off to vent, she kills the Wolf on four of them, and the lone Enforcer
+     * cannot finish her inside the twenty-five-minute bound.
+     */
+    public static final RuskHull ENFORCER = new RuskHull("Enforcer", "enforcer", "enforcer_Balanced", RUSK_REFIT);
+    /**
+     * Rusk's Wolf: his own hunter fitting ({@code wolf_hegemony_Rusk}: an Antimatter Blaster, a pulse laser, Harpoons)
+     * as fitted, with no refit: the frigate that darts in on her quarter while the Enforcer holds her eye, and the one
+     * hull of the pair her autocannons bite. In the hunter refit it ended at 68 to 97 percent of its hull over the five
+     * duel seeds; as fitted it is the hull at risk.
+     */
+    public static final RuskHull WOLF = new RuskHull("Wolf", "wolf_hegemony", "wolf_hegemony_Rusk", HullRefit.NONE);
+    /**
+     * The pair Rusk's family lends (owner, 2026-10-19: "We don't need this to be an even fight. We could have an
+     * enforcer and a wolf even"): one Enforcer and one Wolf, flying in at {@link #RUSK_ENTRY_ALONG} in this order.
+     */
+    public static final List<RuskHull> RUSK_PAIR = List.of(ENFORCER, WOLF);
+    /**
+     * The Greyhook's refit for this fight: her vents opened up, dissipation raised by a third and a little more
+     * capacity, and her shield taking a tenth less flux for each point it absorbs. No gun, plate or hull figure
+     * changes. Her Heavy Autocannons' kinetic rounds glance off an Enforcer's nine hundred of armour and only her pulse
+     * laser bites it, so her way through the pair is the Wolf; under two hulls' fire her shield holds the hard flux of
+     * every hit, and she fires in short bursts between its lockouts. The refit puts the Wolf in danger without letting
+     * her outlast the pair: measured over the five duel seeds, as fitted she falls 318 to 441 seconds after the first
+     * hit with the Wolf at 51 to 84 percent; refitted, 428 to 623 seconds, the Wolf at 9 to 50 percent or killed (one
+     * seed). Much more (a quarter more pool, half again the dissipation and a shield at 0.6 of the flux) and she kills
+     * the Wolf and then holds the lone Enforcer off past the twenty-five-minute bound.
+     */
+    public static final HullRefit GREYHOOK_REFIT = new HullRefit("the Greyhook's open vents", 1.1f, 1.35f, 0f, 1f, 0.9f);
     /**
      * Where the Greyhook sits: landed in the cradle on the southern pad field at true scale
      * ({@code landed-ships-true-scale.md}), nose west, the frigate pads either side of her empty. She lifts when Voss
@@ -75,59 +108,63 @@ public final class BlackSluiceDuel implements SmallWarDuel {
      */
     static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
     /**
-     * The Enforcers' edge: west, the side the company landed on and the far side of the basin from the pads, so their
+     * Rusk's edge: west, the side the company landed on and the far side of the basin from the pads, so their
      * whole approach is in sight before a gun bears.
      */
     public static final MapEdge RUSK_EDGE = MapEdge.WEST;
     /**
-     * Where along the west edge the Enforcers fly in: either side of a line a little north of the pads, clear of the
+     * Where along the west edge Rusk's hulls fly in, in {@link #RUSK_PAIR} order: either side of a line a little north of the pads, clear of the
      * south edge's margin, so they come straight on across the basin rather than turning off the edge.
      */
     static final float[] RUSK_ENTRY_ALONG = {84f + 22f, 84f - 22f};
-    /** The Enforcers' entry heading: due east, in the hull-facing convention. */
+    /** Rusk's entry heading: due east, in the hull-facing convention. */
     static final float RUSK_HEADING = 270f;
     /**
      * Where the Greyhook's lift run turns toward: over the middle of the station, north-west of the
-     * cradle and toward the Enforcers' side, clear of the south edge's margin. Where they go from there is their doctrine's.
+     * cradle and toward Rusk's side, clear of the south edge's margin. Where they go from there is their doctrine's.
      */
     static final float LIFT_TOWARD_X = BlackSluice.APPROACH + 150f, LIFT_TOWARD_Y = 98f;
     /**
-     * An Enforcer this many times its own reach from a Greyhook hull is closing: the radio says so. An Enforcer's
-     * reach is long enough that a wider share would hear it closing the moment it crosses the edge, with the sighting.
+     * One of Rusk's hulls this many times its own reach from a Greyhook hull is closing: the radio says so. An
+     * Enforcer's reach is long enough that a wider share would hear it closing the moment it crosses the edge, with
+     * the sighting.
      */
     static final float CLOSING_REACH_SHARE = 1.1f;
 
     /** The story beats the duel publishes for the radio. */
-    public static final String ENFORCERS_SIGHTED_BEAT = "small_war.enforcers_sighted",
-            ENFORCERS_CLOSING_BEAT = "small_war.enforcers_closing",
+    public static final String RUSK_SIGHTED_BEAT = "small_war.rusk_sighted",
+            RUSK_CLOSING_BEAT = "small_war.rusk_closing",
             FIRST_HULL_FIRE_BEAT = "small_war.first_hull_fire",
+            RUSK_FIRST_DOWN_BEAT = "small_war.rusk_first_down",
             GREYHOOK_DOWN_BEAT = "small_war.greyhook_down",
-            ENFORCERS_DOWN_BEAT = "small_war.enforcers_down";
+            RUSK_DOWN_BEAT = "small_war.rusk_down";
 
-    private final String greyhookVariant, enforcerHull, enforcerVariant;
-    private final HullRefit ruskRefit, greyhookRefit;
+    private final String greyhookVariant;
+    private final List<RuskHull> pair;
+    private final HullRefit greyhookRefit;
     private Warship rig;
-    private final List<Warship> enforcers = new ArrayList<>();
+    private final List<Warship> rusk = new ArrayList<>();
     private WarshipDuelLedger ledger;
     private boolean ordered;
     private int decidedTick = -1;
-    private boolean sighted, closing, fired, greyhookDown, enforcersDown;
+    private boolean sighted, closing, fired, firstDown, greyhookDown, ruskDown;
 
-    /** The chapter's duel: Rusk's Enforcers in his refit, the Greyhook in hers. */
+    /** The chapter's duel: Rusk's Enforcer and Wolf, each in its own refit, the Greyhook in hers. */
     public BlackSluiceDuel() {
-        this(GREYHOOK_VARIANT, ENFORCER_HULL, ENFORCER_VARIANT, RUSK_REFIT, GREYHOOK_REFIT);
+        this(GREYHOOK_VARIANT, RUSK_PAIR, GREYHOOK_REFIT);
     }
 
     /**
-     * The duel with another fitting or refit on either side, for a tuning diagnostic; the chapter plays the
-     * {@linkplain #BlackSluiceDuel() default}.
+     * The duel with other hulls, fittings or refits on either side, for a tuning diagnostic; the chapter plays the
+     * {@linkplain #BlackSluiceDuel() default}. Rusk's hulls fly in at {@link #RUSK_ENTRY_ALONG} in list order, at most
+     * one per entry.
      */
-    BlackSluiceDuel(String greyhookVariant, String enforcerHull, String enforcerVariant, HullRefit ruskRefit,
-                    HullRefit greyhookRefit) {
+    BlackSluiceDuel(String greyhookVariant, List<RuskHull> pair, HullRefit greyhookRefit) {
+        if (pair.isEmpty() || pair.size() > RUSK_ENTRY_ALONG.length) {
+            throw new IllegalArgumentException("Rusk lends one to " + RUSK_ENTRY_ALONG.length + " hulls, not " + pair.size());
+        }
         this.greyhookVariant = greyhookVariant;
-        this.enforcerHull = enforcerHull;
-        this.enforcerVariant = enforcerVariant;
-        this.ruskRefit = ruskRefit;
+        this.pair = List.copyOf(pair);
         this.greyhookRefit = greyhookRefit;
     }
 
@@ -170,27 +207,29 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         // She lifts and fights under her doctrine.
         quiet(rig).lift(LIFT_TOWARD_X, LIFT_TOWARD_Y);
         try {
-            for (float along : RUSK_ENTRY_ALONG) {
-                Warship enforcer = quiet(Warship.fit(enforcerHull, enforcerVariant, Faction.ALLY, 0f, along, RUSK_HEADING));
-                enforcer.refit(ruskRefit);
+            for (int i = 0; i < pair.size(); i++) {
+                RuskHull lent = pair.get(i);
+                float along = RUSK_ENTRY_ALONG[i];
+                Warship ship = quiet(Warship.fit(lent.hullId(), lent.variantId(), Faction.ALLY, 0f, along, RUSK_HEADING));
+                ship.refit(lent.refit());
                 // In across the west edge already under way on its heading over the basin, closing on its own handling.
-                sim.warships().enterAcrossEdge(sim, enforcer, along, RUSK_HEADING);
+                sim.warships().enterAcrossEdge(sim, ship, along, RUSK_HEADING);
                 // The mission's, not the player's. Holding the field, its visit never ends.
-                enforcer.visit(0f);
-                enforcers.add(enforcer);
+                ship.visit(0f);
+                rusk.add(ship);
             }
         } catch (Exception e) {
-            LOG.warn("Black Sluice duel could not fit the Enforcers; the Greyhook holds the sky unopposed", e);
-            enforcers.clear();
+            LOG.warn("Black Sluice duel could not fit Rusk's hulls; the Greyhook holds the sky unopposed", e);
+            rusk.clear();
         }
-        for (Warship enforcer : enforcers) sim.addWarship(enforcer);
+        for (Warship ship : rusk) sim.addWarship(ship);
     }
 
     @Override
     public void advance(BattleSimulation sim) {
         if (!ordered || rig == null) return;
         radio(sim);
-        if (decidedTick < 0 && !enforcers.isEmpty() && (allDown(enforcers) || rig.destroyed())) {
+        if (decidedTick < 0 && !rusk.isEmpty() && (allDown(rusk) || rig.destroyed())) {
             decidedTick = sim.getSimTickIndex();
         }
     }
@@ -204,28 +243,29 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         return true;
     }
 
-    /** Whether the hull's centre is over the map: an Enforcer flying in is sighted once it has crossed the edge. */
+    /** Whether the hull's centre is over the map: a hull flying in is sighted once it has crossed the edge. */
     private static boolean onMap(Warship ship) {
         float x = ship.centerX(), y = ship.centerY();
         return x >= 0f && y >= 0f && x <= BlackSluice.WIDTH && y <= BlackSluice.HEIGHT;
     }
 
     /**
-     * The fight on the radio: the Enforcers sighted crossing the edge, closing on the Greyhook, the first hull fire, the
-     * Greyhook going down, and both Enforcers going down.
+     * The fight on the radio: Rusk's hulls sighted crossing the edge, closing on the Greyhook, the first hull fire, the
+     * first of Rusk's hulls going down while the Greyhook and another of his still fly, the Greyhook going down, and
+     * the last of Rusk's going down.
      */
     private void radio(BattleSimulation sim) {
         if (!sighted) {
-            for (Warship enforcer : enforcers) sighted |= over(enforcer) && onMap(enforcer);
-            if (sighted) sim.emitStoryBeat(ENFORCERS_SIGHTED_BEAT);
+            for (Warship ship : rusk) sighted |= over(ship) && onMap(ship);
+            if (sighted) sim.emitStoryBeat(RUSK_SIGHTED_BEAT);
         }
         if (!closing) {
-            for (Warship enforcer : enforcers) {
-                if (!over(enforcer) || !onMap(enforcer)) continue;
-                float near = WarshipDuelHelm.reach(enforcer) * CLOSING_REACH_SHARE;
-                closing |= over(rig) && rig.distanceTo(enforcer.centerX(), enforcer.centerY()) <= near;
+            for (Warship ship : rusk) {
+                if (!over(ship) || !onMap(ship)) continue;
+                float near = WarshipDuelHelm.reach(ship) * CLOSING_REACH_SHARE;
+                closing |= over(rig) && rig.distanceTo(ship.centerX(), ship.centerY()) <= near;
             }
-            if (closing) sim.emitStoryBeat(ENFORCERS_CLOSING_BEAT);
+            if (closing) sim.emitStoryBeat(RUSK_CLOSING_BEAT);
         }
         if (!fired) {
             for (Warship hull : hulls()) {
@@ -233,27 +273,34 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             }
             if (fired) sim.emitStoryBeat(FIRST_HULL_FIRE_BEAT);
         }
+        if (!firstDown && rusk.size() > 1 && !allDown(rusk) && !rig.destroyed()) {
+            for (Warship ship : rusk) firstDown |= ship.destroyed();
+            if (firstDown) sim.emitStoryBeat(RUSK_FIRST_DOWN_BEAT);
+        }
         if (!greyhookDown && rig.destroyed()) {
             greyhookDown = true;
             sim.emitStoryBeat(GREYHOOK_DOWN_BEAT);
         }
-        if (!enforcersDown && !enforcers.isEmpty() && allDown(enforcers)) {
-            enforcersDown = true;
-            sim.emitStoryBeat(ENFORCERS_DOWN_BEAT);
+        if (!ruskDown && !rusk.isEmpty() && allDown(rusk)) {
+            ruskDown = true;
+            sim.emitStoryBeat(RUSK_DOWN_BEAT);
         }
     }
 
-    /** The tick the Greyhook or both Enforcers were destroyed, or -1 while both sides still fly (or no Enforcer came). */
+    /** The tick the Greyhook or all of Rusk's hulls were destroyed, or -1 while both sides still fly (or none came). */
     public int decidedTick() { return decidedTick; }
 
     /** The Greyhook, Voss's Venture, or {@code null} when none could be fitted. */
     public Warship greyhook() { return rig; }
-    public List<Warship> enforcers() { return List.copyOf(enforcers); }
-    /** Every hull of the duel: the Greyhook, and the Enforcers once they have come. */
+    /** Rusk's hulls once they have come, in {@link #RUSK_PAIR} order. */
+    public List<Warship> rusk() { return List.copyOf(rusk); }
+    /** What the radio calls each of Rusk's hulls, in {@link #rusk()} order. */
+    public List<RuskHull> pair() { return pair; }
+    /** Every hull of the duel: the Greyhook, and Rusk's once they have come. */
     public List<Warship> hulls() {
         List<Warship> out = new ArrayList<>();
         if (rig != null) out.add(rig);
-        out.addAll(enforcers);
+        out.addAll(rusk);
         return out;
     }
     public boolean ordered() { return ordered; }
@@ -263,7 +310,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         if (!ordered || ledger == null) return null;
         StringBuilder s = new StringBuilder("Overhead: ");
         s.append(rigLine()).append(' ');
-        s.append(enforcers.isEmpty() ? "The Enforcers never came." : group("The two Enforcers Rusk lent", enforcers));
+        s.append(rusk.isEmpty() ? "Rusk's ships never came." : ruskLine());
         String ground = groundLine();
         if (ground != null) s.append(' ').append(ground);
         return s.toString();
@@ -274,8 +321,8 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         WarshipDuelLedger.Outcome o = e == null ? WarshipDuelLedger.Outcome.OVER_THE_BATTLE : e.outcome();
         return switch (o) {
             case DESTROYED -> "the Greyhook was shot down onto the basin, and Voss walked out of the wreck.";
-            case OVER_THE_BATTLE -> enforcers.isEmpty() ? "the Greyhook was still overhead when we finished."
-                    : allDown(enforcers) ? "the Greyhook held the sky, " + state(rig) + "."
+            case OVER_THE_BATTLE -> rusk.isEmpty() ? "the Greyhook was still overhead when we finished."
+                    : allDown(rusk) ? "the Greyhook held the sky, " + state(rig) + "."
                     : "the Greyhook was still fighting when we finished, " + state(rig) + ".";
             // Nothing of this duel leaves the map; kept so a ledger line never reads as nothing.
             case ESCAPED, BROKE_OFF, DEPARTED -> "the Greyhook left the field, " + state(rig) + ".";
@@ -291,25 +338,22 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         return "barely flying";
     }
 
-    private String group(String who, List<Warship> ships) {
-        int[] counts = new int[WarshipDuelLedger.Outcome.values().length];
-        for (Warship ship : ships) {
-            WarshipDuelLedger.Entry e = ledger.entry(ship);
-            counts[(e == null ? WarshipDuelLedger.Outcome.OVER_THE_BATTLE : e.outcome()).ordinal()]++;
-        }
+    /** One clause per lent hull, by name: "Rusk's Enforcer was still overhead, scarred; his Wolf was shot down." */
+    private String ruskLine() {
         List<String> parts = new ArrayList<>();
-        add(parts, counts, WarshipDuelLedger.Outcome.DESTROYED, "shot down");
-        add(parts, counts, WarshipDuelLedger.Outcome.ESCAPED, "got away");
-        add(parts, counts, WarshipDuelLedger.Outcome.BROKE_OFF, "broke off hurt");
-        add(parts, counts, WarshipDuelLedger.Outcome.DEPARTED, "left when the fight was done");
-        add(parts, counts, WarshipDuelLedger.Outcome.OVER_THE_BATTLE, "still overhead");
-        return who + ": " + String.join(", ", parts) + ".";
-    }
-
-    private static void add(List<String> parts, int[] counts, WarshipDuelLedger.Outcome o, String words) {
-        int n = counts[o.ordinal()];
-        if (n == 0) return;
-        parts.add((n == 1 ? "one " : n == 2 ? "both " : n + " ") + words);
+        for (int i = 0; i < rusk.size(); i++) {
+            Warship ship = rusk.get(i);
+            WarshipDuelLedger.Entry e = ledger.entry(ship);
+            WarshipDuelLedger.Outcome o = e == null ? WarshipDuelLedger.Outcome.OVER_THE_BATTLE : e.outcome();
+            String fate = switch (o) {
+                case DESTROYED -> " was shot down";
+                case OVER_THE_BATTLE -> " was still overhead, " + state(ship);
+                case ESCAPED, BROKE_OFF, DEPARTED -> " left the field, " + state(ship);
+            };
+            parts.add((i == 0 ? "Rusk's " : "his ") + pair.get(i).name() + fate);
+        }
+        String line = String.join("; ", parts) + ".";
+        return Character.toUpperCase(line.charAt(0)) + line.substring(1);
     }
 
     private String groundLine() {

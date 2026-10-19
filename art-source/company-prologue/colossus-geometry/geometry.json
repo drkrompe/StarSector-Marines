@@ -39,7 +39,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 1128836,
+      "units3": 1128719,
       "crew_max": 200,
       "cargo": 900,
       "fuel": 120,
@@ -103,7 +103,7 @@
     "published_metres_per_unit": 0.5,
     "published_note": "owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front deepened the block; option C solves 0.431 (94 m) with the round-2 container bays",
     "measured_this_build": {
-      "enclosed_units3": 1128836,
+      "enclosed_units3": 1126255,
       "solids": [
         "Bridge deckhouse",
         "Cargo port aft module",
@@ -115,14 +115,14 @@
         "Hull hold hatch cover",
         "Hull keel spine"
       ],
-      "cargo_body_units3": 991185,
-      "cargo_body_m3": 123898,
+      "cargo_body_units3": 988721,
+      "cargo_body_m3": 123590,
       "cargo_body_share": 0.878
     },
     "size_m": [
-      108.2,
+      108.5,
       88.8,
-      42.8
+      43.8
     ],
     "cross_checks_m": {
       "person 1.8 m in units": 3.6,
@@ -144,9 +144,9 @@
   },
   "dimensions": {
     "min": [
-      -125.3,
+      -126.07,
       -87.35,
-      -50.5
+      -52.6
     ],
     "max": [
       91.0,
@@ -154,9 +154,9 @@
       35.0
     ],
     "size": [
-      216.3,
+      217.07,
       177.7,
-      85.5
+      87.6
     ]
   },
   "weapon_slots": [
@@ -475,6 +475,178 @@
       ]
     }
   ],
+  "lift_thrusters": [
+    {
+      "index": 1,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 1 exhaust anchor",
+      "host": "Hull central cargo hold",
+      "well_radius": 7.0,
+      "anchor_location": [
+        24.5,
+        1.5,
+        -48.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 2,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 2 exhaust anchor",
+      "host": "Hull central cargo hold",
+      "well_radius": 7.0,
+      "anchor_location": [
+        46.5,
+        1.5,
+        -48.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 3,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 3 exhaust anchor",
+      "host": "Cargo port fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        61.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 4,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 4 exhaust anchor",
+      "host": "Cargo port fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        76.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 5,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 5 exhaust anchor",
+      "host": "Cargo port aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        61.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 6,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 6 exhaust anchor",
+      "host": "Cargo port aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        76.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 7,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 7 exhaust anchor",
+      "host": "Cargo starboard fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        -58.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 8,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 8 exhaust anchor",
+      "host": "Cargo starboard fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        -73.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 9,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 9 exhaust anchor",
+      "host": "Cargo starboard aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        -58.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 10,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 10 exhaust anchor",
+      "host": "Cargo starboard aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        -73.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    }
+  ],
   "object_names": {
     "Hull ...": "central cargo hold, hatch cover, longerons, keel spine, aft machinery body",
     "Cargo <side> fore|aft module": "the four side cargo modules (tear-apart units)",
@@ -482,6 +654,7 @@
     "Bridge ...": "deckhouse, windscreen, wing ports, mast",
     "Drive pod <side> casing": "the two drive pods",
     "Engine <i> ...": "bell / mouth lip / dark throat / exhaust anchor",
+    "Lift thruster ...": "ten ventral lift thrusters; per-thruster exhaust anchors point down",
     "Turret <i> WS 00n ... / Launcher <i> WS 00n flare launcher ...": "mounts; pivot and muzzle empties",
     "Scar <id> ...": "reserved for condition states (crashed / broken); not built"
   },
@@ -555,9 +728,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9639,
-    "sprite_uncovered": 0.0114,
-    "model_outside_sprite": 0.0257,
+    "iou": 0.9625,
+    "sprite_uncovered": 0.011,
+    "model_outside_sprite": 0.0276,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 5.65 px per unit"
   }
 }
