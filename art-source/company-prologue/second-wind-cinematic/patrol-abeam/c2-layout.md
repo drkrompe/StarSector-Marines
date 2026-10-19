@@ -165,7 +165,12 @@ the slit fills the frame), **lean** (leaning over the comms bank toward the glas
 to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
 back; an eye cannot zoom, so this is a film camera's choice) and **glance** (the head turns
 forward to watch the pilot draw the yoke and push it, 8.6-11.2 s, and back to the Legion as it
-starts to rise). With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+starts to rise) and **castle** (Castle is otherwise never seen: after "Patrol has your
+signature" the person steps back a pace and inboard, 8.9-10.1 s, so her read-back plays over her
+right shoulder, dark against the slit with the Legion rising beyond her). The blockout can also
+preview thinner window posts (`--posts 0.4`: the slit mullions at 40% of their 39 cm and 33 cm
+widths); the hull model itself is unchanged, so adopting it is a Second Wind model change that
+every shot of the ship would show. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 
