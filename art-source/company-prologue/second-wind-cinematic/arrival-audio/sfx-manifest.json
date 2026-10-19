@@ -1,0 +1,686 @@
+{
+  "model": "eleven_text_to_sound_v2",
+  "cues": {
+    "c1_cabin_bed": {
+      "chosen": "c1_cabin_bed_t01",
+      "takes": {
+        "c1_cabin_bed_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -10.9,
+          "integratedLufs": -22.3,
+          "characterCost": "120"
+        },
+        "c1_cabin_bed_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -16.9,
+          "integratedLufs": -30.3,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "Interior of an old cargo spaceship passenger compartment, steady low engine hum carried through the hull, air recycler ventilation hiss, faint electrical buzz, calm, no voices, no music",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c1_hull_creaks": {
+      "chosen": "c1_hull_creaks_t02",
+      "takes": {
+        "c1_hull_creaks_t01": {
+          "durationSeconds": 8.0,
+          "peakDb": -11.0,
+          "integratedLufs": -30.2,
+          "characterCost": "80"
+        },
+        "c1_hull_creaks_t02": {
+          "durationSeconds": 8.0,
+          "peakDb": -8.7,
+          "integratedLufs": -28.5,
+          "characterCost": "80"
+        }
+      },
+      "prompt": "Sparse deep metal groans and creaks of an old spaceship hull flexing, slow, heavy, isolated, long pauses between them",
+      "seconds": 8.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c1_drive_passby": {
+      "chosen": "c1_drive_passby_t01",
+      "takes": {
+        "c1_drive_passby_t01": {
+          "durationSeconds": 10.0,
+          "peakDb": -0.4,
+          "integratedLufs": -12.1,
+          "characterCost": "100"
+        },
+        "c1_drive_passby_t02": {
+          "durationSeconds": 10.0,
+          "peakDb": -0.5,
+          "integratedLufs": -12.5,
+          "characterCost": "100"
+        }
+      },
+      "prompt": "Deep spaceship engine rumble swelling slowly as it passes close, low frequency drone rising then fading away, heavy and muffled, no high frequencies",
+      "seconds": 10.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c1_sparks": {
+      "chosen": "c1_sparks_t02",
+      "takes": {
+        "c1_sparks_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": -1.7,
+          "integratedLufs": -16.7,
+          "characterCost": "60"
+        },
+        "c1_sparks_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.0,
+          "integratedLufs": -21.4,
+          "characterCost": "60"
+        }
+      },
+      "prompt": "Faint intermittent electrical crackle and fizzing sparks from a damaged power conduit, small, dry",
+      "seconds": 6.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c1_rcs_puffs": {
+      "chosen": "c1_rcs_puffs_t02",
+      "takes": {
+        "c1_rcs_puffs_t01": {
+          "durationSeconds": 4.0,
+          "peakDb": -11.1,
+          "integratedLufs": -26.9,
+          "characterCost": "40"
+        },
+        "c1_rcs_puffs_t02": {
+          "durationSeconds": 4.0,
+          "peakDb": -3.2,
+          "integratedLufs": -23.3,
+          "characterCost": "40"
+        }
+      },
+      "prompt": "Two short bursts of a gas thruster heard muffled through a metal hull, a soft thump and hiss each, with a pause between",
+      "seconds": 4.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c1_hound_flyby": {
+      "chosen": "c1_hound_flyby_t01",
+      "takes": {
+        "c1_hound_flyby_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.2,
+          "integratedLufs": -13.4,
+          "characterCost": "60"
+        },
+        "c1_hound_flyby_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.2,
+          "integratedLufs": -13.6,
+          "characterCost": "60"
+        }
+      },
+      "prompt": "A small spacecraft passing close under thrust, muffled low engine whoosh by, heard from inside another ship, rising and falling",
+      "seconds": 6.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c2_bridge_bed": {
+      "chosen": "c2_bridge_bed_t02",
+      "takes": {
+        "c2_bridge_bed_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -37.6,
+          "integratedLufs": -51.6,
+          "characterCost": "120"
+        },
+        "c2_bridge_bed_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -35.2,
+          "integratedLufs": -48.7,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "Small spaceship bridge room tone, quiet electronics hum, cooling fans in consoles, faint distant engine drone, calm, no beeps, no voices, no music",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c2_console_beeps": {
+      "chosen": "c2_console_beeps_t02",
+      "takes": {
+        "c2_console_beeps_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": -5.0,
+          "integratedLufs": -12.7,
+          "characterCost": "60"
+        },
+        "c2_console_beeps_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": -6.7,
+          "integratedLufs": -22.6,
+          "characterCost": "60"
+        }
+      },
+      "prompt": "Sparse soft spaceship console beeps and short chirps, a proximity tone, quiet sci-fi cockpit instrument sounds with gaps between",
+      "seconds": 6.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c2_switch_clicks": {
+      "chosen": "c2_switch_clicks_t01",
+      "takes": {
+        "c2_switch_clicks_t01": {
+          "durationSeconds": 4.0,
+          "peakDb": -0.4,
+          "integratedLufs": -24.1,
+          "characterCost": "40"
+        },
+        "c2_switch_clicks_t02": {
+          "durationSeconds": 4.0,
+          "peakDb": -1.0,
+          "integratedLufs": -23.6,
+          "characterCost": "40"
+        }
+      },
+      "prompt": "A few chunky mechanical toggle switch clicks on a metal control panel, close, dry, with pauses",
+      "seconds": 4.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c2_legion_presence": {
+      "chosen": "c2_legion_presence_t01",
+      "takes": {
+        "c2_legion_presence_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -0.4,
+          "integratedLufs": -13.9,
+          "characterCost": "120"
+        },
+        "c2_legion_presence_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -0.4,
+          "integratedLufs": -14.1,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "A massive warship passing slowly very close outside, deep sub-bass rumble swelling to a peak and slowly receding, felt more than heard, ominous, low frequencies only",
+      "seconds": 12.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c2_deorbit_burn": {
+      "chosen": "c2_deorbit_burn_t01",
+      "takes": {
+        "c2_deorbit_burn_t01": {
+          "durationSeconds": 8.0,
+          "peakDb": -4.8,
+          "integratedLufs": -20.2,
+          "characterCost": "80"
+        },
+        "c2_deorbit_burn_t02": {
+          "durationSeconds": 8.0,
+          "peakDb": -8.1,
+          "integratedLufs": -23.9,
+          "characterCost": "80"
+        }
+      },
+      "prompt": "Spaceship main engine igniting inside the hull, a deep thump then a rising heavy rumble, whole structure vibrating, metal creaking as the ship pitches",
+      "seconds": 8.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "entry_reentry_roar": {
+      "chosen": "entry_reentry_roar_t01",
+      "takes": {
+        "entry_reentry_roar_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.3,
+          "integratedLufs": -12.3,
+          "characterCost": "60"
+        },
+        "entry_reentry_roar_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.4,
+          "integratedLufs": -11.2,
+          "characterCost": "60"
+        }
+      },
+      "prompt": "Atmospheric re-entry heard from inside a spacecraft cabin, a muffled roar building quickly, heavy rumble, buffeting, plasma hiss through the hull",
+      "seconds": 6.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "entry_buffet": {
+      "chosen": "entry_buffet_t01",
+      "takes": {
+        "entry_buffet_t01": {
+          "durationSeconds": 5.0,
+          "peakDb": -0.4,
+          "integratedLufs": -12.7,
+          "characterCost": "50"
+        },
+        "entry_buffet_t02": {
+          "durationSeconds": 5.0,
+          "peakDb": -1.0,
+          "integratedLufs": -12.7,
+          "characterCost": "50"
+        }
+      },
+      "prompt": "Airframe buffeting in heavy turbulence inside a spacecraft cabin, loose fittings rattling, heavy thumps against the hull",
+      "seconds": 5.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c3_cabin_flight_bed": {
+      "chosen": "c3_cabin_flight_bed_t01",
+      "takes": {
+        "c3_cabin_flight_bed_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -7.0,
+          "integratedLufs": -19.7,
+          "characterCost": "120"
+        },
+        "c3_cabin_flight_bed_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -9.1,
+          "integratedLufs": -20.5,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "Inside an aircraft cabin in steady flight, smooth air rushing over the fuselage, soft ventilation, low engine drone, calm, no voices, no music",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c3_wind_easing": {
+      "chosen": "c3_wind_easing_t02",
+      "takes": {
+        "c3_wind_easing_t01": {
+          "durationSeconds": 8.0,
+          "peakDb": -3.5,
+          "integratedLufs": -17.3,
+          "characterCost": "80"
+        },
+        "c3_wind_easing_t02": {
+          "durationSeconds": 8.0,
+          "peakDb": -6.6,
+          "integratedLufs": -22.0,
+          "characterCost": "80"
+        }
+      },
+      "prompt": "Loud wind roar and buffeting against an aircraft fuselage gradually easing to a smooth quiet airflow",
+      "seconds": 8.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c3_frame_settle": {
+      "chosen": "c3_frame_settle_t01",
+      "takes": {
+        "c3_frame_settle_t01": {
+          "durationSeconds": 3.0,
+          "peakDb": -24.9,
+          "integratedLufs": -44.3,
+          "characterCost": "30"
+        },
+        "c3_frame_settle_t02": {
+          "durationSeconds": 3.0,
+          "peakDb": -29.9,
+          "integratedLufs": -47.0,
+          "characterCost": "30"
+        }
+      },
+      "prompt": "A last soft rattle of cabin fittings settling, then a single quiet creak of a metal window frame",
+      "seconds": 3.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c4_port_ambience": {
+      "chosen": "c4_port_ambience_t01",
+      "takes": {
+        "c4_port_ambience_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -3.1,
+          "integratedLufs": -19.6,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "Distant busy industrial spaceport ambience, heavy cranes, machinery, faint reversing beepers, metal clanks, far engine whine, outdoors",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c5_port_wide": {
+      "chosen": "c5_port_wide_t01",
+      "takes": {
+        "c5_port_wide_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -5.2,
+          "integratedLufs": -19.0,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "Wide busy spaceport heard from above, distant cranes, a far lifter engine rumble, trucks, horns, industrial activity spread over a large area, outdoors",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c4_high_wind_bed": {
+      "chosen": "c4_high_wind_bed_t02",
+      "takes": {
+        "c4_high_wind_bed_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -48.4,
+          "integratedLufs": -63.8,
+          "characterCost": "120"
+        },
+        "c4_high_wind_bed_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -35.5,
+          "integratedLufs": -54.9,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "High altitude open air wind, soft steady breeze, airy, calm, no gusts, no birds",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c4_ground_distant": {
+      "chosen": "c4_ground_distant_t02",
+      "takes": {
+        "c4_ground_distant_t01": {
+          "durationSeconds": 8.0,
+          "peakDb": -22.7,
+          "integratedLufs": -36.1,
+          "characterCost": "80"
+        },
+        "c4_ground_distant_t02": {
+          "durationSeconds": 8.0,
+          "peakDb": -23.6,
+          "integratedLufs": -35.1,
+          "characterCost": "80"
+        }
+      },
+      "prompt": "Distant ground activity heard from high above, faint farm machinery drone, heavy trucks on a far highway, a slow freight train rumbling, soft and far away",
+      "seconds": 8.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c4_ship_hover": {
+      "chosen": "c4_ship_hover_t02",
+      "takes": {
+        "c4_ship_hover_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.4,
+          "integratedLufs": -11.3,
+          "characterCost": "60"
+        },
+        "c4_ship_hover_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.3,
+          "integratedLufs": -11.0,
+          "characterCost": "60"
+        }
+      },
+      "prompt": "Heavy spaceship hovering with powerful downward thrusters, deep steady thrust roar, slowly descending",
+      "seconds": 6.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c4_touchdown": {
+      "chosen": "c4_touchdown_t02",
+      "takes": {
+        "c4_touchdown_t01": {
+          "durationSeconds": 3.0,
+          "peakDb": -4.1,
+          "integratedLufs": -16.0,
+          "characterCost": "30"
+        },
+        "c4_touchdown_t02": {
+          "durationSeconds": 3.0,
+          "peakDb": -0.3,
+          "integratedLufs": -15.1,
+          "characterCost": "30"
+        }
+      },
+      "prompt": "Very heavy spacecraft landing gear touching down on concrete, deep thump, metal clank and groan",
+      "seconds": 3.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c4_dust_hiss": {
+      "chosen": "c4_dust_hiss_t01",
+      "takes": {
+        "c4_dust_hiss_t01": {
+          "durationSeconds": 4.0,
+          "peakDb": -8.5,
+          "integratedLufs": -17.9,
+          "characterCost": "40"
+        },
+        "c4_dust_hiss_t02": {
+          "durationSeconds": 4.0,
+          "peakDb": -0.0,
+          "integratedLufs": -11.4,
+          "characterCost": "40"
+        }
+      },
+      "prompt": "Dust and grit blasted outward by engine downwash, sand hissing and rattling across concrete, fading",
+      "seconds": 4.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c4_spool_down": {
+      "chosen": "c4_spool_down_t01",
+      "takes": {
+        "c4_spool_down_t01": {
+          "durationSeconds": 5.0,
+          "peakDb": -0.0,
+          "integratedLufs": -12.1,
+          "characterCost": "50"
+        },
+        "c4_spool_down_t02": {
+          "durationSeconds": 5.0,
+          "peakDb": -1.4,
+          "integratedLufs": -14.6,
+          "characterCost": "50"
+        }
+      },
+      "prompt": "Large spaceship engines winding down after landing, turbine whine falling in pitch to silence",
+      "seconds": 5.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c5_yard_bed": {
+      "chosen": "c5_yard_bed_t01",
+      "takes": {
+        "c5_yard_bed_t01": {
+          "durationSeconds": 12.0,
+          "peakDb": -22.0,
+          "integratedLufs": -33.1,
+          "characterCost": "120"
+        },
+        "c5_yard_bed_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -24.2,
+          "integratedLufs": -34.1,
+          "characterCost": "120"
+        }
+      },
+      "prompt": "Humid jungle edge outdoors, insects and cicadas in a nearby tree line, a few distant birds, light breeze, faint far machinery, no voices, no music",
+      "seconds": 12.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c5_hull_ticks": {
+      "chosen": "c5_hull_ticks_t02",
+      "takes": {
+        "c5_hull_ticks_t01": {
+          "durationSeconds": 8.0,
+          "peakDb": -4.1,
+          "integratedLufs": -18.6,
+          "characterCost": "80"
+        },
+        "c5_hull_ticks_t02": {
+          "durationSeconds": 8.0,
+          "peakDb": -2.6,
+          "integratedLufs": -20.5,
+          "characterCost": "80"
+        }
+      },
+      "prompt": "Hot metal hull cooling after landing, sparse ticks, pings and small creaks",
+      "seconds": 8.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c5_steam_vent": {
+      "chosen": "c5_steam_vent_t02",
+      "takes": {
+        "c5_steam_vent_t01": {
+          "durationSeconds": 5.0,
+          "peakDb": -18.1,
+          "integratedLufs": -32.8,
+          "characterCost": "50"
+        },
+        "c5_steam_vent_t02": {
+          "durationSeconds": 5.0,
+          "peakDb": -1.7,
+          "integratedLufs": -11.3,
+          "characterCost": "50"
+        }
+      },
+      "prompt": "Steam venting from a vehicle hull, two pressurised hiss bursts, outdoors",
+      "seconds": 5.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c5_vehicles_arrive": {
+      "chosen": "c5_vehicles_arrive_t01",
+      "takes": {
+        "c5_vehicles_arrive_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": -0.9,
+          "integratedLufs": -16.0,
+          "characterCost": "60"
+        },
+        "c5_vehicles_arrive_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": -1.3,
+          "integratedLufs": -16.1,
+          "characterCost": "60"
+        }
+      },
+      "prompt": "Heavy utility vehicles pulling up and stopping on a concrete yard, low engine idle, air brake hiss",
+      "seconds": 6.0,
+      "loop": false,
+      "promptInfluence": 0.4
+    },
+    "c5_car_doors": {
+      "chosen": "c5_car_doors_t01",
+      "takes": {
+        "c5_car_doors_t01": {
+          "durationSeconds": 3.0,
+          "peakDb": -0.3,
+          "integratedLufs": -15.1,
+          "characterCost": "30"
+        },
+        "c5_car_doors_t02": {
+          "durationSeconds": 3.0,
+          "peakDb": -0.1,
+          "integratedLufs": -15.1,
+          "characterCost": "30"
+        }
+      },
+      "prompt": "Car doors opening and closing, two doors, then boots stepping out on concrete",
+      "seconds": 3.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c5_pa_click": {
+      "chosen": "c5_pa_click_t02",
+      "takes": {
+        "c5_pa_click_t01": {
+          "durationSeconds": 1.48,
+          "peakDb": -50.6,
+          "integratedLufs": -65.8,
+          "characterCost": "15"
+        },
+        "c5_pa_click_t02": {
+          "durationSeconds": 1.48,
+          "peakDb": 0.0,
+          "integratedLufs": -20.6,
+          "characterCost": "15"
+        }
+      },
+      "prompt": "Loudspeaker public address switched on, a single clean switch click and a soft speaker thump, no static, no beep",
+      "seconds": 1.5,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "c5_ramp_drop": {
+      "chosen": "c5_ramp_drop_t01",
+      "takes": {
+        "c5_ramp_drop_t01": {
+          "durationSeconds": 4.0,
+          "peakDb": 0.0,
+          "integratedLufs": -12.2,
+          "characterCost": "40"
+        },
+        "c5_ramp_drop_t02": {
+          "durationSeconds": 4.0,
+          "peakDb": 0.0,
+          "integratedLufs": -10.9,
+          "characterCost": "40"
+        }
+      },
+      "prompt": "Heavy hydraulic cargo ramp lowering from a ship, hydraulic whine, then a heavy metal clunk as it meets the ground",
+      "seconds": 4.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "c5_footsteps_crowd": {
+      "chosen": "c5_footsteps_crowd_t02",
+      "takes": {
+        "c5_footsteps_crowd_t01": {
+          "durationSeconds": 10.0,
+          "peakDb": -1.2,
+          "integratedLufs": -26.4,
+          "characterCost": "100"
+        },
+        "c5_footsteps_crowd_t02": {
+          "durationSeconds": 10.0,
+          "peakDb": -6.7,
+          "integratedLufs": -28.9,
+          "characterCost": "100"
+        }
+      },
+      "prompt": "Many people walking calmly on gravel and concrete, footsteps of families carrying bags, outdoors, unhurried",
+      "seconds": 10.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "c5_crowd_murmur": {
+      "chosen": "c5_crowd_murmur_t02",
+      "takes": {
+        "c5_crowd_murmur_t01": {
+          "durationSeconds": 10.0,
+          "peakDb": -26.8,
+          "integratedLufs": -43.0,
+          "characterCost": "100"
+        },
+        "c5_crowd_murmur_t02": {
+          "durationSeconds": 10.0,
+          "peakDb": -22.7,
+          "integratedLufs": -39.7,
+          "characterCost": "100"
+        }
+      },
+      "prompt": "Small crowd of families murmuring quietly outdoors, unintelligible walla, soft relieved voices, a child, no clear words",
+      "seconds": 10.0,
+      "loop": true,
+      "promptInfluence": 0.3
+    }
+  }
+}

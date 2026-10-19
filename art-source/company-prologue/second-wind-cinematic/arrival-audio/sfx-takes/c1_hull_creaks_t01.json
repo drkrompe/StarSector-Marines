@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "80",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Sparse deep metal groans and creaks of an old spaceship hull flexing, slow, heavy, isolated, long pauses between them",
+    "duration_seconds": 8.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "bf91959dabf9bd209f3c0da32a942edfa732b81f706cf440e3a116800639a681",
+  "durationSeconds": 8.0,
+  "peakDb": -11.0,
+  "integratedLufs": -30.2
+}
