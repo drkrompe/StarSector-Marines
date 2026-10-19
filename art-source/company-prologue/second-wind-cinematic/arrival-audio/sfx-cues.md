@@ -148,6 +148,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `landing_thump` | Touchdown: first legs at 16.4, second at 16.57, the struts groaning | 16.4 | Spot | −2 | Code |
 | `landing_spool` | Vent hiss and the turbines winding down | 16.4–18.4 | Transition | −8 | Code |
 | `landing_settle` | Dust washing back down and the last grit | 16.9–21.4 | Spot | −14 | Code |
+| `colossus_outbound` | A second Colossus leaving (`port_fleet`), **synthesised from its path** against the C5 camera: a huge, slow, muffled freighter drive coming in from the east at about 460 m, closest (about 165 m) at C5 18–19.5, then about 1.5 km off and still burning under the title. Kept under the music and the title | 30.4–54.9, closest 39.4–40.9 | Spot | −10, −14 under the title | Code |
 | `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 17.4–54.9; full to 39.4, thinning under the rise, out by 52.4 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 21.9–35.4 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |

@@ -184,6 +184,9 @@ SHOTS = {
         landing("landing_settle", -14),
         sfx("c5_yard_bed", 17.4, -14, until=54.9,
             env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
+        # A second Colossus leaving low past Kilo Nine (port_fleet 'Colossus outbound'), closest at
+        # C5 18-19.5, then climbing away under the title; kept under the music and the title.
+        synth("colossus_outbound", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -4)]),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),
         voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([
@@ -391,10 +394,15 @@ def player_kit(scores, pictures, dirs, chosen, out, width=960):
     step = SR // 20
     curve = [round(float(g), 3) for g in gain[::step]]
     tracks = []
-    for score in map(Path, scores):
+    for item in scores:
+        # PATH or PATH@SECONDS: a take that starts later in the arrival (an ending, a section) is
+        # padded with silence so every track on the page shares one clock.
+        path, _, at = item.partition("@")
+        score = Path(path)
         music = decode(score) * 10 ** ((DIALOGUE_LUFS + SCORE_LEVEL - loudness(score)) / 20)
+        music = np.concatenate([np.zeros((int(round(float(at or 0) * SR)), 2)), music])
         write(music, out / (score.stem + ".mp3"), ["-c:a", "libmp3lame", "-q:a", "2"])
-        tracks.append({"id": score.stem, "file": score.stem + ".mp3"})
+        tracks.append({"id": score.stem, "file": score.stem + ".mp3", "start": float(at or 0)})
     (out / "kit.json").write_text(json.dumps({"length": round(len(whole) / SR, 3), "shots": shots,
                                               "duckRate": 20, "duck": curve, "tracks": tracks}) + "\n",
                                   encoding="utf-8")
