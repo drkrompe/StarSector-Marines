@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Immutable hardware installed in one mech hardpoint. The underlying
  * weapon catalog owns projectile behavior; this component owns the rack
@@ -122,6 +125,10 @@ public enum MechWeaponComponent {
 
     /** Mechanical trigger-to-trigger time, independent of thermal headroom and pack supply. */
     public float cycleSeconds() {
+        return tuned("cycle", authoredCycleSeconds());
+    }
+
+    private float authoredCycleSeconds() {
         return switch (this) {
             case NOSE_CHAINGUN -> .65f;
             case DUAL_CHAINGUNS -> 1.05f;
@@ -149,17 +156,40 @@ public enum MechWeaponComponent {
 
     /** Whole-packet thermal reservation: scheduled rounds cannot stall halfway through a salvo. */
     public float heatPerTrigger() {
+        return tuned("heat", authoredHeat());
+    }
+
+    /**
+     * A balance control: {@code -Dbattle.mech.<axis>.<short id>=<value>} replaces one authored value, where the
+     * short id is the component id without {@code component.mech-} (for example
+     * {@code -Dbattle.mech.heat.bastion-autocannons=24}). Read once per component and axis.
+     */
+    public float tuned(String axis, float authored) {
+        float override = TUNING.computeIfAbsent(axis + "." + id.substring(id.indexOf("mech-") + 5), key -> {
+            String value = System.getProperty("battle.mech." + key);
+            return value != null ? Float.parseFloat(value) : Float.NaN;
+        });
+        return Float.isNaN(override) ? authored : override;
+    }
+
+    private static final Map<String, Float> TUNING = new ConcurrentHashMap<>();
+
+    private float authoredHeat() {
         return switch (this) {
             case NOSE_CHAINGUN -> 18f;
-            case DUAL_CHAINGUNS -> 30f;
+            // Cool enough that the factory battery leaves its SRM-15s room (heavy-equipment-progression.md).
+            case DUAL_CHAINGUNS -> 24f;
             case SRM_5 -> 28f;
             case SRM_15 -> 42f;
             case LRM_5 -> 22f;
             case LRM_15 -> 40f;
-            case DUAL_LINEAR_CANNONS, DUAL_BASTION_AUTOCANNONS -> 24f;
+            case DUAL_LINEAR_CANNONS -> 24f;
+            // Hot enough that the bastion's range costs its carrier reservoir, as the heavy cannon's does.
+            case DUAL_BASTION_AUTOCANNONS -> 28f;
             case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_HEAT;
             case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
-            case DUAL_PULSE_LASERS -> 38f;
+            // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
+            case DUAL_PULSE_LASERS -> 26f;
             case DUAL_MUSTER_AUTOGUNS -> 22f;
             case NOSE_MUSTER_AUTOGUN -> 14f;
             case SHOULDER_LASER_CANNON -> 35f;

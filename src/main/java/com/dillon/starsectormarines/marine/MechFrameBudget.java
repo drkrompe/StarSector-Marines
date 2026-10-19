@@ -64,11 +64,17 @@ public final class MechFrameBudget {
     }
 
     /**
-     * Mass a weapon carries beyond its footprint and tier. The heavy cannon's breech and recoil
-     * mounting are why a Bulwark carrying it gives up a frame part (heavy-equipment-progression.md).
+     * Mass a weapon carries beyond its footprint and tier: the heavy cannon's breech and recoil mounting and the
+     * bastion autocannons' feed are why a Bulwark carrying either gives up a frame part
+     * (heavy-equipment-progression.md). {@code -Dbattle.mech.buildMass.<short id>=0} is the control.
      */
     private static float buildMass(MechWeaponComponent component) {
-        return component == MechWeaponComponent.SINGLE_HEAVY_CANNON ? HEAVY_CANNON_BUILD_MASS : 0f;
+        float authored = switch (component) {
+            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_BUILD_MASS;
+            case DUAL_BASTION_AUTOCANNONS -> 3f;
+            default -> 0f;
+        };
+        return component.tuned("buildMass", authored);
     }
 
     /** {@code -Dbattle.mech.heavyCannonBuildMass=0} is the control. */
