@@ -10,10 +10,14 @@ straight down through a 50 mm lens about 220 m up (`c5-v2-closing.md`, "Camera a
 comes up over that: `c5_title.py` lays it on the rendered frames.
 
 Who is on the ground:
-  yard workers  Nessa's crew in hi-vis, at their jobs from the first frame: two guiding at the
-                foot of the ramp, two between the crew carrier and the hull, one at the tug and one
-                walking between it and the hull, one at the bowser.
-  customs       two officers out of their car, to stand either side of the way off the ship.
+  yard vehicles still rolling in from their stand-offs as C5 opens: the tug, the crew carrier,
+                the bowser, then the customs car; each stops at the hull in the first five seconds.
+  yard workers  Nessa's crew in hi-vis, out of the vehicles once they stop: from the carrier two
+                to guide at the foot of the ramp and two to work between it and the hull; from
+                the tug its driver, who stays by it, and a runner between it and the hull; from
+                the bowser its driver.
+  customs       two officers out of their car once it pulls up, to stand either side of the way
+                off the ship.
   Nessa         out of her workshop, to stand apart by its door with her arms folded.
   families      off the ramp from 8.5 s, in small groups that walk together, a child among the
                 larger ones and bags in most hands, toward the workshop door and inside. It is
@@ -56,6 +60,7 @@ CENTRE = Vector((362.0, 436.0))
 RISE = (18.0, 26.0)
 TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
 SETTLE = 1.04                       # how much further it drifts up after the rise, to the end
+PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # every vehicle has stopped by this C5 second
 TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
 
@@ -92,21 +97,28 @@ def cast(rng):
     def worker(name, start, plan, t0=0.0, look=ship, speed=1.2):
         groups.append(G([W(name, 'worker', speed=speed, look=look)], start, t0, plan))
 
-    worker('Yard hand guide L', at(-37.5, 6.5), [('stay',)], look=RAMP + (RAMP - at(-30, 0)))
-    worker('Yard hand guide R', at(-37.5, -6.5), [('stay',)], look=RAMP + (RAMP - at(-30, 0)))
+    # The yard's vehicles are still rolling in when C5 opens (`c4x_scene.K9_ROLL_IN`): each crew
+    # climbs out once its vehicle has stopped, the ramp crew from the crew carrier's side door.
+    parked = {n: stop - c4.DURATION for n, (_, stop) in c4.K9_ROLL_IN.items()}
+    out = parked['Crew carrier'] + 0.6
+    guide = RAMP + (RAMP - at(-30, 0))
+    for k, (name, spot) in enumerate((('Yard hand guide L', at(-37.5, 6.5)), ('Yard hand guide R', at(-37.5, -6.5)))):
+        worker(name, CARRIER, [('go', spot, 0.4), ('stay',)], t0=out + 0.5 * k, look=guide)
     for k in range(2):
         a, b = CARRIER + Vector((k * 2.0 - 1.0, 0)), at(-30, -14 - k * 2)
-        worker('Yard hand carrier %d' % k, a if k else b,
-               [('go', b, 0.6), ('wait', 3.0), ('go', a, 0.6), ('wait', 2.5)] * 6 if k else
-               [('go', a, 0.6), ('wait', 2.5), ('go', b, 0.6), ('wait', 3.0)] * 6, t0=0.3 * k)
-    worker('Yard hand tug', TUG, [('stay',)])
-    worker('Yard hand tug runner', at(-26, 26), [('go', TUG + Vector((1.5, -1.0)), 0.6), ('wait', 4.0),
-                                                 ('go', at(-26, 26), 0.6), ('wait', 3.0)] * 6)
-    worker('Yard hand bowser', BOWSER, [('stay',)])
-    # Customs: out of the car to either side of the way off the ship.
+        worker('Yard hand carrier %d' % k, CARRIER,
+               [('go', a, 0.6), ('wait', 1.5 + k), ('go', b, 0.6), ('wait', 3.0), ('go', a, 0.6), ('wait', 2.5)] * 5,
+               t0=out + 1.0 + 0.5 * k)
+    worker('Yard hand tug', TUG, [('stay',)], t0=parked['Tug'] + 0.6)
+    worker('Yard hand tug runner', TUG + Vector((1.5, -1.0)),
+           [('go', at(-26, 26), 0.6), ('wait', 3.0), ('go', TUG + Vector((1.5, -1.0)), 0.6), ('wait', 4.0)] * 6,
+           t0=parked['Tug'] + 1.1)
+    worker('Yard hand bowser', BOWSER, [('stay',)], t0=parked['Fuel bowser'] + 0.6)
+    # Customs: out of the car once it has pulled up off the stern, to either side of the way off the ship.
+    car = c4.CUSTOMS_ARRIVE - c4.DURATION
     for k, post in enumerate(OFFICERS):
         groups.append(G([W('Customs officer %d' % k, 'customs', speed=1.15, look=RAMP)],
-                        CAR + Vector((0.0, 2.6 * (1 if k == 0 else -1))), 1.0 + 0.7 * k,
+                        CAR + Vector((0.0, 2.6 * (1 if k == 0 else -1))), car + 0.8 + 0.6 * k,
                         [('go', post, 0.5), ('stay',)]))
     # Nessa: out of her door, a few steps, and stands apart.
     groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
@@ -136,7 +148,7 @@ def setup(body):
     scene = c4.build()
     for ob in [o for o in bpy.data.objects if o.name.startswith(('Yard hand', 'Landing dust', 'Yard people'))]:
         bpy.data.objects.remove(ob)
-    scene.frame_set(C4_END)
+    scene.frame_set(C4_END + round(PARKED * c4.FPS))   # the walk map is read with the vehicles parked
     manifest = json.loads((c4.STATES / 'manifest.json').read_text())
     ship_parts = {o.name for o in bpy.data.collections[manifest['append_collection']].all_objects}
     ship_parts |= {o.name for o in bpy.data.objects if o.name.startswith('Drive ')}

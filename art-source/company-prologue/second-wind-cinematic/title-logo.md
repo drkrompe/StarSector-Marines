@@ -1,8 +1,8 @@
 # Title logo — STARSECTOR: MARINES
 
-Status: ACTIVE — direction A approved (the game's wordmark with white MARINES): size, MARINES and reveal timing agreed; laid over C5's layout sketch by `industrial-exterior/c5_title.py`, not yet timed to music.
+Status: ACTIVE — direction A approved (the game's wordmark with white MARINES MOD): size, line and reveal timing agreed; laid over C5's layout sketch by `industrial-exterior/c5_title.py`, not yet timed to music.
 Written: 2026-10-18
-Updated: 2026-10-19 — the title is in C5's layout sketch, over the real camera rise.
+Updated: 2026-10-19 — the line under the wordmark is MARINES MOD; the title is in C5's layout sketch.
 
 The title comes up at the end of the Jangala arrival cinematic, in the last six
 seconds of C5 (`c5-v2-closing.md`, beats 26–32 s). It is the first time the
@@ -106,6 +106,13 @@ condensed). Because the big word here is the official one, this is the option
 that looks most like the base game, so MARINES has to make it clearly the mod.
 
 ## Direction A (chosen)
+
+**MARINES MOD** (owner, 2026-10-19). The line under the wordmark reads MARINES
+MOD, on one line in the same lettering, a little wider than MARINES was. The
+big word is the game's own name, so the title should not read as if it owned
+it; MOD says plainly that this is a mod of that game, which needs the game to
+play. Small taglines ("A Starsector mod", "Fan mod") under MARINES were tried
+and passed over. Where the text below says MARINES, read MARINES MOD.
 
 Chosen by the owner on 2026-10-18 from the labelled set, and approved the same
 day once developed, with size, MARINES and reveal timing as described below: **the game's own
