@@ -30,8 +30,8 @@ to P6 (`storyboard-v3.md`, Decisions); Y1 introduces her in the yard.
 
 Review takes of the new Entry, C4 and C5 lines exist in Castle's voice
 (`storyboard-v3.md`, Casting), made with `arrival-audio/record_castle_lines.py`.
-Until the owner picks takes, the shipped `jangalaArrivalHail09` string and audio
-stay as they are, so caption and voice still match.
+The owner's script of 2026-10-19 replaced them: hail line 09 is gone, and Castle's five
+lines ship as `jangala_arrival_castle_*` (catalog, strings and cues; `arrival-audio/castle_lines.py`).
 
 ## Castle names Kilo Nine in C4
 

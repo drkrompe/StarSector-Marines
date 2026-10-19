@@ -1,0 +1,17 @@
+{
+  "requestId": "z4LPRITlwQXisplFsVhT",
+  "characterCost": "62",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "synthesisText": "[quiet, a little wonder under the words, looking out of the window] So much greenery and life... it's like the travel reels from the canteen.",
+  "audioSha256": "d66d881bb3f9f2546838390b5ca3a1ea6b04a0e9f9f166941a99ab2953203c68",
+  "durationSeconds": 5.2,
+  "take": "v4_c3_reels_t03",
+  "outputFormat": "mp3_44100_128",
+  "edit": {
+    "operation": "trimmed to 0-5.2s with a 0.25s fade-out",
+    "reason": "the model read the line again after its first read (record_castle_lines.TRIMS)",
+    "generatedAudioSha256": "e361c3e8fef94aceb8e407238bc97048fa0957abb4404ce2ea68ffb1d51545c5",
+    "generatedDurationSeconds": 9.92
+  }
+}
