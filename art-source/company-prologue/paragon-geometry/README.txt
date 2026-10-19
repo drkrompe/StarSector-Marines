@@ -104,8 +104,9 @@ Guns (turret kit; owner, pass 3: the mounts read empty)
   (../turret-kit/turret_kit.py), matched to the game's weapon sprite for the
   Elite fit and sitting low in its dimpled well: tachyon lances (WS 003/004),
   graviton beams, heavy needlers (WS 007/008), tactical lasers, point-defence
-  lasers (WS 011/016/017/022/023, their armoured collars kept red and their
-  power cabling in the hull's dark machinery) and reaper launchers. pg_turrets asks
+  lasers (WS 011/016/017/022/023: armoured collars kept red, power cabling in
+  the hull's dark machinery, the emitter on a gimbal elevating -5 to +75
+  degrees, recorded per slot as elevation_limits_deg) and reaper launchers. pg_turrets asks
   the kit for each gun at its nominal ring (one sprite pixel a unit, as the game
   draws it) with hull_finish=True and sprite_tint=.5, so the guns wear the hull's hex
   ceramic mixed halfway toward each sprite's colour,
