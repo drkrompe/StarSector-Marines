@@ -110,6 +110,12 @@ public class GroundSystem {
         this.engagement = new VehicleEngagement(convoy, roster, navigation, controlSystem);
     }
 
+    /** Who calls targets for the indirect-fire hulls: their turrets and their stand-off driving read the same eyes. */
+    public void setSpotting(SideSpotting spotting) {
+        turrets.setSpotting(spotting);
+        engagement.setSpotting(spotting);
+    }
+
     /** Gives bladed hulls the blade that opens ground ahead of them. */
     public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
 

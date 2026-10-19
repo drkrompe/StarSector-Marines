@@ -34,6 +34,8 @@ public final class GroundTurret {
     public float burstTimer;
     /** Entity id of the target locked when the current burst started. */
     public long burstTargetId;
+    /** Sim-seconds until a missile launcher next looks for a new target. */
+    public float relookTimer;
     /** World point committed by a manual trigger; null for autonomous bursts. */
     public PointFireAim burstPointAim;
 

@@ -146,6 +146,7 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
+import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -276,6 +277,7 @@ import java.util.function.Consumer;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.airsupport.CommsOperators;
 import com.dillon.starsectormarines.battle.power.AirStrikePower;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
@@ -1308,6 +1310,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
+                (side, x, y) -> commsSees(side, x, y)));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             if (applyingInitialDamage) return;
@@ -1872,6 +1876,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** What this battle's scout cars saw on the last tick. */
     public ScoutSight scoutSight() { return scoutSight; }
+
+    /** Whether one of {@code side}'s comms operators has the point in sight: a spotter for the missile carriers. */
+    private boolean commsSees(Faction side, float x, float y) {
+        for (CommsOperators.Operator eye : CommsOperators.available(this, side)) {
+            if (CommsOperators.knowledge(this, eye, x, y, false) == CommsOperators.Knowledge.SIGHT) return true;
+        }
+        return false;
+    }
 
     /** The drone skimmers' tethered flights. */
     public DroneBaySystem droneBays() { return droneBays; }
