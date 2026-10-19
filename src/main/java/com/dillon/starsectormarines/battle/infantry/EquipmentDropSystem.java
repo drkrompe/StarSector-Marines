@@ -100,10 +100,15 @@ public final class EquipmentDropSystem {
         drops.removeConsumed();
     }
 
-    /** Only marine infantry handle demolition kits; a mech can neither be recruited to fetch one nor pick one up by standing on it. */
+    /**
+     * Only marine infantry handle demolition kits; a mech can neither be recruited
+     * to fetch one nor pick one up by standing on it. "Mech" is {@code MECH_LOADOUT}
+     * membership, the live-mech capability, so a future chassis inherits the
+     * exclusion without this sweep knowing its unit type.
+     */
     private boolean canCarryKit(long u) {
         return rosterService.identity().faction(u) == Faction.MARINE
-                && !rosterService.identity().type(u).isMech();
+                && !rosterService.world().hasMechLoadout(u);
     }
 
     private boolean hasLivingRetriever(EquipmentDrop drop) {
@@ -122,7 +127,8 @@ public final class EquipmentDropSystem {
      * (e.g., a PLANTER whose site already blew but didn't tick through their
      * own update yet) don't strand drops with no retriever. Anyone idle —
      * combatant, finished planter, retriever whose kit got picked up — is
-     * eligible. Returns {@code 0L} only when every alive marine is genuinely busy.
+     * eligible. Returns {@code 0L} when every alive marine is genuinely busy or
+     * the only candidates are mechs, leaving the drop unassigned.
      */
     private long nearestAvailableMarine(int cx, int cy) {
         World world = rosterService.world();

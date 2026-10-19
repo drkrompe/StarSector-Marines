@@ -19,3 +19,5 @@ Written: 2026-08-23
 | `tank-variant-art.md` | 2026-10-16 | this change | `convoy-nouns.md` — tank variant sheets, dozer blade, twin MG on the turret ring; `mechs-nouns.md` — both tank variants offered. The blade's breach followed separately. |
 | `dozer-breach.md` | 2026-10-16 | this change | `convoy-nouns.md` — the dozer's blade: pushable rule, rate, breach view for route proof, opening-only law; `mechs-nouns.md` — the dozer's trade. |
 | `mech-missile-variants.md` | 2026-10-18 | `547b2d1c5` (design), this change | `mechs-nouns.md` — missile warheads, AT gate, damage-aware target choice, duel-band rack reading; `combat-durability-nouns.md` — contact and area payloads; `heavy-equipment-progression.md` — warhead readings. |
+| `mech-lab-equipment-doll-ux.md` | 2026-10-19 | `f9c1640b7` | `mechs-nouns.md` — Laws: catalog filters, stock vs fabrication cards, telemetry deltas, strip action, presentation-only ghosting. |
+| `mech-kit-retriever-exclusion.md` | 2026-10-19 | `e7afd2088`, this change | `mechs-nouns.md` — Boundaries: `MECH_LOADOUT` membership keeps mechs out of kit recovery. |

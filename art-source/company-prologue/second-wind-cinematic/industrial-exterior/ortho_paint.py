@@ -19,7 +19,8 @@ provenance. Guides are regenerated, never committed; the paint, its prompt and p
 A tile is used by the scene once it is marked `"accepted": true` in its list: `apply(scene)` lays
 every accepted tile over the materials of the static objects (`obj['ortho'] = 1`), on faces that
 look up, and leaves walls and anything moving alone. Tiles later in the list lie over earlier ones,
-their edges feathered so neighbouring paintings blend rather than seam.
+their edges feathered so neighbouring paintings blend rather than seam (a tile's optional
+`feather`, in metres, widens or narrows that blend; it should stay within half its overlap).
 """
 import json
 import os
@@ -92,8 +93,15 @@ def render_guides(names):
             p = p.parent
     for m in bpy.data.materials:                  # the flat renderer reads each material's display colour
         bsdf = m.node_tree and next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
-        if bsdf is not None and not bsdf.inputs['Base Color'].links:
-            m.diffuse_color = bsdf.inputs['Base Color'].default_value
+        if bsdf is None:
+            continue
+        base = bsdf.inputs['Base Color']
+        if not base.links:
+            m.diffuse_color = base.default_value
+        elif base.links[0].from_node.type == 'MIX':      # a patterned material (crop rows): its mean colour
+            mix = base.links[0].from_node
+            a, b = mix.inputs['A'].default_value, mix.inputs['B'].default_value
+            m.diffuse_color = [(x + y) / 2 for x, y in zip(a, b)]
     scene.render.engine = 'BLENDER_WORKBENCH'
     sh = scene.display.shading
     sh.light = 'FLAT'
@@ -179,11 +187,13 @@ def apply(scene, ships=()):
             tex.extension = 'CLIP'
             tex.interpolation = 'Linear'
             nt.links.new(uv.outputs[0], tex.inputs['Vector'])
-            # feather: full strength from FEATHER metres inside the tile's edge, nothing at the edge
+            # feather: full strength from `feather` metres inside the tile's edge, nothing at the edge.
+            # At most half the tile's overlap with the one beneath, so this blend ends before that one fades.
+            feather = t.get('feather', FEATHER)
             fu = math_node(nt, 'MINIMUM', u, math_node(nt, 'SUBTRACT', 1.0, u))
             fv = math_node(nt, 'MINIMUM', v, math_node(nt, 'SUBTRACT', 1.0, v))
-            edge = math_node(nt, 'MINIMUM', math_node(nt, 'MULTIPLY', fu, w / FEATHER),
-                             math_node(nt, 'MULTIPLY', fv, h / FEATHER))
+            edge = math_node(nt, 'MINIMUM', math_node(nt, 'MULTIPLY', fu, w / feather),
+                             math_node(nt, 'MULTIPLY', fv, h / feather))
             edge = math_node(nt, 'MINIMUM', math_node(nt, 'MAXIMUM', edge, 0.0), 1.0)
             k = math_node(nt, 'MULTIPLY', math_node(nt, 'MULTIPLY', tex.outputs['Alpha'], edge), gate.outputs[0])
             mix = nt.nodes.new('ShaderNodeMix')
