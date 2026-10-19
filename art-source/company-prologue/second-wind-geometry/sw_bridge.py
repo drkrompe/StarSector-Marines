@@ -113,8 +113,8 @@ def build(kit):
     green=sw_kit.material('Starboard running light',(.05,.5,.15),emission=(.1,1,.3))
     amber=sw_kit.material('Mast beacon',(.8,.5,.1),emission=(1,.6,.15))
     white=sw_kit.material('Masthead light',(.9,.9,.85),emission=(1,1,.9))
-    # Darker smoked glazing than kit.glass, which reads pale at ship scale.
-    glass=sw_kit.material('Bridge smoked viewport glazing',(.02,.03,.04),.3,.1,emission=(.012,.03,.04))
+    # Real glass, lightly smoked: the bridge room is cut in behind it and C2 looks out through it.
+    glass=sw_kit.glass('Bridge smoked viewport glazing',(.74,.8,.8))   # per face: a slab tints twice
 
     # --- Spine housing. A dark core runs the whole length; cream armour
     # segments sit over it with gaps, so the dark bands of the sprite are

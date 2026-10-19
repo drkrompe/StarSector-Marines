@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155d5-a8d4-7310-a789-5f287f9b7497",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155d5-a8d4-7310-a789-5f287f9b7497\\exec-3a29a66f-52c7-4225-8366-910c183c8409.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\last-carrier-v3.png",
+    "sha256": "3bce5b79ab624dba25a62ea98c41dd20cc7b6d4b6b9ef324b7904b3ddbad5364",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\last-carrier.brief-v3.txt",
+  "promptSha256": "a2b50c61976e349718298144b46791ee563f2b1387687ca8ee0ce629ccce6959",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: the departing freighter's shape and livery; not layout or lighting\nImage 2: Identity only: Castle's face, hair and jacket; not layout or style\nImage 3: Style and finish only: a page from the same set; not content\n\nUse case: illustration-story. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: the last ore carrier leaves the Claim with the administrators and the payroll aboard. The workers stay behind with pay chits nobody will honour, eleven days before the air, heat and power are cut.\n\nScene: inside the habitat's long observation gallery, a tall bolted pressure window running the width of the frame. Outside, against black space and grey asteroid rock, the company's heavy freighter is pulling away from the colony, small and receding, its six drive plumes lighting the rock warm orange. The freighter is exactly the ship in Reference 1: a massive slab-sided rust-red cargo hull with pale grey trim bands, stacked container bays at its ends, an aft bridge deckhouse and two outboard drive pods with three bells each. Seen from behind as it leaves.\n\nInside, lit only by the freighter's drive glow through the glass and a few failing emergency lamps: a silent crowd of miners and their families in worn coveralls and patched jackets stands along the window, mostly from behind, some with children on shoulders, bags at their feet. Nobody waves.\n\nNear the front right, turned three-quarters toward the camera, stands Castle, exactly the woman in Reference 2 (her face, age, greying dark hair in a short practical bun, charcoal-olive high-collared duty jacket, small earpiece): she holds a small stamped metal pay chit between her fingers and looks at it, not at the ship. Her face is calm and set.\n\nAbandonment and dignity. No violence, no tears played for drama.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\146acfbf-ace6-43bb-bef2-d8438ab41d5a\\scratchpad\\ref\\colossus.png",
+      "sha256": "82864ae80d446e802797977cfada9f0adbac66eecc49530ff81075e2fb0fdaa7",
+      "dimensions": [
+        960,
+        504
+      ],
+      "mode": "RGB",
+      "role": "Identity only: the departing freighter's shape and livery; not layout or lighting"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Castle's face, hair and jacket; not layout or style"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\second-wind.master.png",
+      "sha256": "17d47861914a2ae8e5d08dd47c3ede4fc97dbac3b8c7d371af41666edc123bc9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Style and finish only: a page from the same set; not content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one illustration using the ship and Castle references for identity, and the third image for finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 46877,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 851,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 126.8
+}

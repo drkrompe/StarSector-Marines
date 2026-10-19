@@ -689,8 +689,78 @@
  ],
  "sparks": [],
  "sparking": [],
- "lamps_lit": 15,
+ "lamps_lit": 22,
  "lamps": [
+  {
+   "object": "Bridge ceiling lamp",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    13.2,
+    -1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge ceiling lamp.001",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    13.2,
+    1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge overhead panel lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.5,
+    0.0,
+    19.94
+   ]
+  },
+  {
+   "object": "Bridge port chamfer console status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.66,
+    3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge port comms bank status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    12.72,
+    4.5,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard chamfer console status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.66,
+    -3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard systems bank status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    12.78,
+    -4.5,
+    18.54
+   ]
+  },
   {
    "object": "Command deck running light",
    "material": "Port running light",
@@ -4299,10 +4369,10 @@
   "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
   "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
  },
- "left_out_objects": 90,
- "objects": 884,
- "polygons": 150531,
- "baked_meshes": 764,
+ "left_out_objects": 91,
+ "objects": 1033,
+ "polygons": 182053,
+ "baked_meshes": 800,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4362,7 +4432,26 @@
   "untouched": [
    "Actuator rod chrome",
    "Bay work lights",
+   "Bridge annunciator",
+   "Bridge cable loom",
+   "Bridge ceiling lamp",
+   "Bridge console casing",
+   "Bridge console face",
+   "Bridge console hardware",
+   "Bridge console knob",
+   "Bridge deck plating",
+   "Bridge display",
+   "Bridge harness webbing",
+   "Bridge hatch gasket",
+   "Bridge interior lining",
+   "Bridge label plate",
+   "Bridge lining seam",
+   "Bridge safety nosing",
+   "Bridge seat padding",
    "Bridge smoked viewport glazing",
+   "Bridge status lamp",
+   "Bridge tread plate",
+   "Bridge vent grille",
    "Bridge viewport glazing",
    "Davit position light green",
    "Drive bell heat",
@@ -4427,5 +4516,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "da4b9316f852cd33536f5c39d8f30cc50db0a51bc655fa98caf50f694ecaa124"
+ "asset_sha256": "0eded2194a124ba3d0df7efd9a0b08025bfd8cbb6e18f2e3b3f57d119ef8efdf"
 }

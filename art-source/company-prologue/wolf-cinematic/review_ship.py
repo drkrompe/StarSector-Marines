@@ -40,9 +40,13 @@ ap.add_argument('--effects', action='store_true')
 ap.add_argument('--fire', type=int, default=0)
 ap.add_argument('--lights-off', action='store_true')
 ap.add_argument('--device', default='GPU', choices=('GPU', 'CPU'))
+ap.add_argument('--variant', default='pirate', choices=('pirate', 'merchant'))
+ap.add_argument('--res', default='1920x1080')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out).resolve()
-man = json.loads((HERE / 'manifest.json').read_text())
+import os
+os.environ['WOLF_VARIANT'] = args.variant
+man = json.loads((HERE / ('manifest-merchant.json' if args.variant == 'merchant' else 'manifest.json')).read_text())
 MPU = man['metres_per_unit']
 (lx, ly, lz), (hx, hy, hz) = man['bounds_units']
 MID = Vector(((lx + hx) / 2, 0, (lz + hz) / 2))
@@ -85,7 +89,8 @@ for kind in (('METAL', 'OPTIX', 'CUDA') if args.device == 'GPU' else ()):
 scene.cycles.samples = args.samples
 scene.cycles.use_denoising = True
 scene.cycles.volume_bounces = 1
-scene.render.resolution_x, scene.render.resolution_y, scene.render.resolution_percentage = 1920, 1080, 100
+scene.render.resolution_x, scene.render.resolution_y = map(int, args.res.split('x'))
+scene.render.resolution_percentage = 100
 scene.render.fps = 24
 scene.render.image_settings.file_format = 'PNG'
 scene.render.image_settings.color_mode = 'RGB'
@@ -173,6 +178,6 @@ for v in [v for v in args.views.split(',') if v]:
     else:
         studio(True)
         aim_ortho(*VIEWS[v])
-    scene.render.filepath = str(OUT / f'{v}{suffix}.png')
+    scene.render.filepath = str(OUT / f"{v}{suffix}{'-merchant' if args.variant == 'merchant' else ''}.png")
     bpy.ops.render.render(write_still=True)
     print('REVIEW still', v + suffix, flush=True)

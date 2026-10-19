@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155ca-9282-75a3-ad6c-7774c31b6f4d",
+  "source": "/Users/dillon/.codex/generated_images/01a155ca-9282-75a3-ad6c-7774c31b6f4d/exec-8d89f16e-c65f-44d5-a937-3f935d5ec75a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/wolf-merchant-surface/generated/sheet-swatch.png",
+    "sha256": "c81c35b4c9c4f4a9fe59fa6b49f8dff069d7a506afe2d7b0ad2eb72ffa84a8d2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/wolf-merchant-surface/prompts/sheet-swatch.prompt.txt",
+  "promptSha256": "476984bace8e879ba635935c272b87fa26d34cb9c4df877d1f39705d7adc9c5c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the swatch layout to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of flat-coloured squares on a plain flat mid-blue background. Each square is one hull material of a single 3D spacecraft (a working independent Wolf-class frigate, a convoy escort), to be painted as a flat, square-on texture sample of that material, in reading order:\nfirst square: pale cool blue-grey armour enamel;\nsecond square: warm mid-grey painted machinery steel;\nthird square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it; any empty slot stays plain blue.\n- Each square is a flat, seen-square-on sample of well kept industrial plate: a fine, even, all-over surface. Only sparse, small detail: a few thin plate seams and small scattered fasteners, faint even scuffing, a thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: pale blue-grey stays pale blue-grey, grey stays warm mid-grey, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/wolf-merchant-surface/guide/sheet-swatch-guide.png",
+      "sha256": "ff16e3fb017d96045f0e7429586c0eaf4e52240469426c9f8658dc4a70f96cbd",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the swatch layout to paint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/wolf-merchant-surface/reference/finish-reference.png",
+      "sha256": "d849b8aed48d5b60cebe0be0c45e91ac5e73a3355abadb34f845a001133bbd9e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet using the first image’s exact layout and the second image’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 44743,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 569,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 34.1
+}

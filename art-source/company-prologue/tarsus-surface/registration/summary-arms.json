@@ -1,0 +1,42 @@
+{
+ "arm-top-port": {
+  "raw_iou": 0.9878,
+  "best_fit": "identity",
+  "fitted_iou": 0.9878,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "arm-wall-port": {
+  "raw_iou": 0.9701,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9771,
+  "scale": [
+   1.00145,
+   1.00881
+  ],
+  "boundary_p95_px": 52.0
+ },
+ "arm-bow-port": {
+  "raw_iou": 0.9723,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9788,
+  "scale": [
+   1.005,
+   1.002
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "arm-keel-port": {
+  "raw_iou": 0.9886,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9952,
+  "scale": [
+   1.0109,
+   1.00146
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

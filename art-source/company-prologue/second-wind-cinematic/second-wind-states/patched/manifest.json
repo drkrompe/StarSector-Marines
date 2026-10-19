@@ -747,8 +747,88 @@
   "Scar ds-stbd-waist-rip spark anchor",
   "Scar sp-turret-3 spark anchor"
  ],
- "lamps_lit": 10,
+ "lamps_lit": 18,
  "lamps": [
+  {
+   "object": "Bridge ceiling lamp",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    13.2,
+    -1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge ceiling lamp.001",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    13.2,
+    1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge jury-rig clamp lamp",
+   "material": "Bridge ceiling lamp",
+   "lit": true,
+   "at": [
+    15.6,
+    -1.2,
+    18.35
+   ]
+  },
+  {
+   "object": "Bridge overhead panel lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.5,
+    0.0,
+    19.94
+   ]
+  },
+  {
+   "object": "Bridge port chamfer console status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.66,
+    3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge port comms bank status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    12.72,
+    4.5,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard chamfer console status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    16.66,
+    -3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard systems bank status lamps",
+   "material": "Bridge status lamp",
+   "lit": true,
+   "at": [
+    12.78,
+    -4.5,
+    18.54
+   ]
+  },
   {
    "object": "Command deck running light",
    "material": "Port running light",
@@ -4654,10 +4734,10 @@
   "Turret 3 optics lens": "sp-turret-3",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 148,
- "objects": 971,
- "polygons": 197114,
- "baked_meshes": 865,
+ "left_out_objects": 155,
+ "objects": 1152,
+ "polygons": 233392,
+ "baked_meshes": 907,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4718,7 +4798,31 @@
   "untouched": [
    "Actuator rod chrome",
    "Bay work lights",
+   "Bridge annunciator",
+   "Bridge cable loom",
+   "Bridge ceiling lamp",
+   "Bridge console casing",
+   "Bridge console face",
+   "Bridge console hardware",
+   "Bridge console knob",
+   "Bridge deck plating",
+   "Bridge display",
+   "Bridge harness webbing",
+   "Bridge hatch gasket",
+   "Bridge interior lining",
+   "Bridge jury-rig cable",
+   "Bridge jury-rig primer",
+   "Bridge jury-rig salvaged casing",
+   "Bridge jury-rig tape",
+   "Bridge jury-rig wear",
+   "Bridge label plate",
+   "Bridge lining seam",
+   "Bridge safety nosing",
+   "Bridge seat padding",
    "Bridge smoked viewport glazing",
+   "Bridge status lamp",
+   "Bridge tread plate",
+   "Bridge vent grille",
    "Bridge viewport glazing",
    "Davit position light green",
    "Drive bell heat",
@@ -4783,7 +4887,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-patched.blend",
-  "geometry_json_sha256": "25486ad553c8a0d8a4167fe6aed9d37f6b05ea08adf3023da439c83a74842bc5",
+  "geometry_json_sha256": "db9bd17f0e575726bc64f4b6954a861961746cf97da6aaf4a161eb1f0bfdf08d",
   "wear_params_sha256": "c7be319d59ae4a855bee19129b0226cbd57d8b20a99cde28f88bfa9e60cff162"
  },
  "conventions": {
@@ -4794,5 +4898,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "1f112ffce98d92fa74cfd51990411408f5bdc6db566951d0a909b2311cfa754b"
+ "asset_sha256": "0fa9c5cc8b26915c0d271ddff7d80a0bb651470b08cd0519a9ffc2241d6b8a7f"
 }

@@ -3,8 +3,8 @@
  "asset": "second-wind-restored.blend",
  "collection": "SECOND WIND | restored",
  "root": "SECOND WIND | restored | root",
- "objects": 922,
- "meshes": 884,
+ "objects": 1071,
+ "meshes": 1033,
  "images": 45,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    884,
-    884
+    1033,
+    1033
    ]
   },
   "polygon count": {

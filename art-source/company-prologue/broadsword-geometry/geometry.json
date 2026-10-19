@@ -300,6 +300,68 @@
       1.571
     ]
   },
+  "running_lights": [
+    {
+      "name": "Light port blade tip 1",
+      "position": [
+        1.6,
+        13.86,
+        0.1
+      ],
+      "colour": "red",
+      "role": "port side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard blade tip 1",
+      "position": [
+        1.6,
+        -13.86,
+        0.1
+      ],
+      "colour": "green",
+      "role": "starboard side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre tail 1",
+      "position": [
+        -7.02,
+        0,
+        0.5
+      ],
+      "colour": "white",
+      "role": "tail light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre dorsal 1",
+      "position": [
+        3.2,
+        0,
+        2.05
+      ],
+      "colour": "white",
+      "role": "anti-collision strobe",
+      "blink": {
+        "period_s": 1.2,
+        "phase_s": 0.3,
+        "duty": 0.18
+      }
+    }
+  ],
   "landing_gear": {
     "legs": [
       {
@@ -376,7 +438,9 @@
     "Wing <side> ...": "gun pod housings, blades, aft strakes",
     "Weapon <slot id> ...": "gun geometry and slot anchors",
     "Engine <i> ...": "nacelle, collar, mouth lip, aft-facing bell, dark throat",
-    "Flare launcher WS 005 ...": "the system launcher on the spine"
+    "Flare launcher WS 005 ...": "the system launcher on the spine",
+    "Hull <leg> ...": "landing gear legs, wells and doors (nose gear, port/starboard main gear)",
+    "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
   },
   "cameras": [
     {

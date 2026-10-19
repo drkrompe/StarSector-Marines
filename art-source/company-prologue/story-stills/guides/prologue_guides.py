@@ -16,6 +16,7 @@ world outside. Output: build/prologue-guides/<view>.png (ignored), copied beside
 when a page is generated.
 """
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -41,6 +42,9 @@ VIEWS = {
     "p1-bridge-from-hatch": (True, (9.7, -1.6, 19.35), (17.5, 1.2, 18.1), 16.0),
     # P6: across the room onto the port comms bank, where Castle writes; the slits above it.
     "p6-comms-bank": (True, (14.2, -1.0, 19.3), (11.6, 4.0, 18.55), 22.0),
+    # P6 again, with a grey stand-in for Castle at her real height (owner, 2026-10-19: the repaint
+    # sized her wrongly against the console; ImageGen repaints a stand-in more faithfully).
+    "p6-comms-bank-standin": (True, (14.2, -1.0, 19.3), (11.6, 4.0, 18.55), 22.0),
     # P8: from the flight seat down onto the forward console's lip and screens.
     "p8-forward-console": (True, (16.05, -1.7, 19.25), (17.6, -0.4, 18.15), 24.0),
     # P4: stern starboard quarter, the two running drives (3, 4) lit; the port pod is capped.
@@ -48,6 +52,52 @@ VIEWS = {
     # P5: low on the port beam, onto the side bay the families board through.
     "p5-port-bay": (False, (-12.0, 62.0, -9.0), (22.0, 0.0, 4.0), 26.0),
 }
+
+
+# Stand-ins: (view, root in hull units, facing deg, pose). Pose in metres in the figure's own
+# frame (+X where it faces, +Y its left, z up from its soles), as sw_bridge_interior.figures.
+# Castle at the port comms bank (front edge y 3.75, top 1.07 m, keypad 1.20 m): left forearm
+# along the console lip, right hand on the keypad, leaning in, head turned to her right toward
+# the message screen, which turns her face toward the camera.
+CASTLE_AT_COMMS = dict(
+    pelvis=(0, 0, .95), neck=(.12, 0, 1.47), head=(.17, -.03, 1.62),
+    hip_l=(0, .1, .92), hip_r=(0, -.1, .92), knee_l=(.03, .1, .5), knee_r=(.02, -.1, .5),
+    ankle_l=(0, .12, .08), ankle_r=(-.04, -.1, .08),
+    shoulder_l=(.14, .19, 1.40), shoulder_r=(.14, -.19, 1.40),
+    elbow_l=(.30, .27, 1.15), elbow_r=(.33, -.28, 1.18),
+    hand_l=(.50, .12, 1.10), hand_r=(.585, -.16, 1.235),
+    face=(.7, -.7, 0))
+STANDINS = {"p6-comms-bank-standin": ((12.6, 3.15, 16.6), 90.0, CASTLE_AT_COMMS)}
+
+
+def standin(at, facing_deg, pose, parent):
+    """A plain light-grey mannequin, 1.66 m to the crown of the head, with a dark nose to say which
+    way the face looks. Returns its objects so a view can show or hide them."""
+    sys.path.insert(0, str(PROLOGUE / "second-wind-geometry"))
+    import sw_bridge_interior as BI
+    mat = bpy.data.materials.new("PG | stand-in")
+    mat.use_nodes = True
+    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (.55, .55, .55, 1)
+    nose_mat = bpy.data.materials.new("PG | stand-in nose")
+    nose_mat.use_nodes = True
+    nose_mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (.05, .05, .05, 1)
+    root = bpy.data.objects.new("PG | stand-in", None)
+    bpy.context.scene.collection.objects.link(root)
+    root.parent, root.location = parent, at
+    root.rotation_euler[2] = math.radians(facing_deg)
+    u = 1.0 / 0.65
+    P = {k: tuple(c * u for c in v) for k, v in pose.items() if k != "face"}
+    for side in ("l", "r"):
+        BI._limb("SI thigh " + side, P["hip_" + side], P["knee_" + side], .075 * u, mat, root)
+        BI._limb("SI shin " + side, P["knee_" + side], P["ankle_" + side], .06 * u, mat, root)
+        BI._limb("SI upper arm " + side, P["shoulder_" + side], P["elbow_" + side], .05 * u, mat, root)
+        BI._limb("SI forearm " + side, P["elbow_" + side], P["hand_" + side], .042 * u, mat, root)
+        BI._ball("SI hand " + side, P["hand_" + side], .045 * u, mat, root)
+    BI._limb("SI torso", P["pelvis"], P["neck"], .17 * u, mat, root)
+    BI._ball("SI head", P["head"], .105 * u, mat, root)
+    f = Vector(pose["face"]).normalized() * .1 * u
+    BI._ball("SI nose", tuple(Vector(P["head"]) + f), .025 * u, nose_mat, root)
+    return [root, *root.children_recursive]
 
 
 def args():
@@ -138,11 +188,12 @@ def setup(blend):
     fill.data.energy, fill.data.color, fill.data.angle = 0.35, (0.6, 0.7, 0.9), math.radians(40)
     fill.rotation_euler = Vector((-0.4, 0.6, -0.3)).to_track_quat("Z", "Y").to_euler()
     scene.collection.objects.link(fill)
-    return scene, glazing, sun
+    return scene, glazing, sun, sw
 
 
 def render(o):
-    scene, glazing, sun = setup(o["blend"])
+    scene, glazing, sun, sw = setup(o["blend"])
+    figures = {v: standin(at, deg, pose, sw) for v, (at, deg, pose) in STANDINS.items()}
     cam = bpy.data.objects.new("PG | camera", bpy.data.cameras.new("PG | camera"))
     scene.collection.objects.link(cam)
     scene.camera = cam
@@ -157,7 +208,8 @@ def render(o):
     gpus = [d for d in prefs.devices if d.type == "OPTIX"]
     for d in prefs.devices:
         d.use = d.type == "OPTIX"
-    scene.cycles.device = "GPU" if gpus else "CPU"
+    # PG_CPU=1 renders on the processor: the one GPU is often saturated by other sessions' renders.
+    scene.cycles.device = "GPU" if gpus and not os.environ.get("PG_CPU") else "CPU"
     scene.render.resolution_x, scene.render.resolution_y = 1536, 1024
     scene.render.resolution_percentage = int(o["percent"])
     scene.render.image_settings.file_format = "PNG"
@@ -174,6 +226,9 @@ def render(o):
         # The port-side views want the light on the port flank (a lit dock), the rest from starboard.
         towards = SUN_PORT if name.startswith("p5") else SUN_STBD
         sun.rotation_euler = Vector(towards).to_track_quat("Z", "Y").to_euler()
+        for v, objs in figures.items():
+            for ob in objs:
+                ob.hide_render = v != name
         cam.location = pos
         cam.rotation_euler = (Vector(target) - Vector(pos)).to_track_quat("-Z", "Y").to_euler()
         cam.data.lens = lens

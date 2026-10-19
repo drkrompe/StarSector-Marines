@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559a-e7c7-7d01-babe-6302e0d67548",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1559a-e7c7-7d01-babe-6302e0d67548\\exec-253b2746-62fb-4467-a246-c6c338291ef2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\broadsword\\generated\\sheet-hull-low.png",
+    "sha256": "5ae6d8eec7b21d15fe0b6fc6ad0276a20cc10f5ca2dfb8f2bddb1fd3abca807f",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\broadsword\\prompts\\sheet-hull-low.prompt.txt",
+  "promptSha256": "8dc0dac9624f819c1df797f2d21b7e9152ec76f4607eacfc99d0d3d3ba493440",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four tiles to paint (layout authority)\nImage 2: INPUT 2: the same craft already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one single-seat heavy space fighter (a Broadsword, about 15 metres long), each tile seen square-on and drawn alone as flat-coloured shapes on a plain light grey background (khaki shapes are armour, dark grey shapes are steel structure):\ntop-left: the fuselage port side: dark steel flank under khaki nose and shoulder plates;\ntop-right: the port wing outboard side: gun pod housing, blade and strake edges;\nbottom-left: the nose from dead ahead: dark steel with the two khaki nose plates;\nbottom-right: the whole belly from below, dark steel, with the closed landing gear doors;\nINPUT 2 is the SAME craft already painted: it is the finish to match. Use its paint colours, its clean semi-matte finish, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four tiles in INPUT 1 as that surface of a front-line craft in good order. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and the background between and around shapes stays plain grey. A tile may hold several separate shapes: keep every one where it is.\n- Each shape is a flat armour or steel surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners along plate edges, flush access-panel outlines, faint even scuffing. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour exactly: khaki shapes stay the pale yellowed khaki armour enamel of INPUT 2, dark grey shapes stay dark gunmetal grey steel, and small near-black slits stay near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes, no lettering, numbers, markings, insignia or decals.\n- Wear is light and even across each whole shape: faint scuffs at edges, a thin film of grime in seams. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\broadsword\\guide\\sheet-hull-low-guide.png",
+      "sha256": "ab70333a1f47aca94b63d0d42fd6e85275da42e95f62f36c4dcfe787e87c2e4d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four tiles to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\broadsword\\reference\\finish-reference.png",
+      "sha256": "bd61a69eb3c5b09d89c5f1ac9d590ff7c508d827167f446b597f4b482c0ae78b",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same craft already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to apply the reference finish while preserving the four-tile layout and outlines.\n"
+  ],
+  "usage": {
+    "input_tokens": 46175,
+    "cached_input_tokens": 25856,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 612,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.6
+}
