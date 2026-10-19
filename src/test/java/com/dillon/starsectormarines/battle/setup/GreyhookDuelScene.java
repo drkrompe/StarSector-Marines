@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.warship.WarshipEdgeHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipManoeuvre;
 import com.dillon.starsectormarines.battle.warship.WarshipPosture;
 import com.dillon.starsectormarines.battle.warship.WarshipSpacing;
+import com.dillon.starsectormarines.battle.warship.WarshipWreck;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -43,15 +44,18 @@ import java.util.Set;
  * production class itself, so its stations, fittings, refits, edges, route and visit are the ones the chapter plays.
  *
  * <p>Five loops, one per seed. A seed moves when the order comes and where along the west edge each of Rusk's hulls
- * flies in by a few cells, which is all the chapter's ground battle varies for the ships; everything after is the ships'
- * own doing. Verdicts assert mechanics (both sides put rounds on hulls, nobody fires on the ground, Rusk's hulls fly in
- * on their heading and cross it outside their reach of every hull of Greyhook's, the radio hears them sighted, closing
- * and firing in that order and hears the first of them, the Greyhook or the last of them go down when they do, the
- * Greyhook fires on a hull of Rusk's in her reach, no wing launches, every hull arrives from its pad or across its side's edge, no hull leaves the map or crosses
- * an edge, no doctrine withdraws a hull, the duel is decided only by one side's hulls all being destroyed, and a hull
- * the edge pressure holds stays out of its edge margin to within a tolerance); who wins, when each hull fell, how long
- * it lasts, the Greyhook's hull over time, breaches and mounts lost, where over the map it was fought and what each
- * side did to the other are readings, as is how long each of Rusk's hulls held the relay's tank. The fight's centroid
+ * flies in by a few cells, which is all the chapter's ground battle varies for the ships; everything after Voss's order
+ * to run ({@link BlackSluiceDuel.BreakOff}) is the ships' own doing. Verdicts assert mechanics (both sides put rounds on
+ * hulls, nobody fires on the ground, Rusk's hulls fly in on their heading and cross it outside their reach of every
+ * hull of Greyhook's, the radio hears them sighted, closing and firing in that order, hears the run ordered when it is,
+ * and hears the first of them, the Greyhook or the last of them go down and the Greyhook get away when they do, the
+ * Greyhook fires on a hull of Rusk's in her reach, no wing launches, every hull arrives from its pad or across its
+ * side's edge, the Greyhook alone leaves and only across her own edge after the order to run, no doctrine withdraws a
+ * hull, the duel concludes with her gone off the map or her wreck at rest, the battle is held open exactly until it
+ * does, and a hull the edge pressure holds stays out of its edge margin to within a tolerance); whether she gets away,
+ * when each hull fell, how long it lasts, the Greyhook's hull over time, breaches and mounts lost, where over the map it
+ * was fought and what each side did to the other are readings, as is how long each of Rusk's hulls held the relay's
+ * tank. A loop ends a few seconds after the duel concludes. The fight's centroid
  * is sampled every thirty seconds. Each of Rusk's shields is traced ({@link ShieldTrace}): how long it was up, overall and under fire, where the Greyhook lay off its centre line,
  * which rounds it blocked and which reached the hull with the shield down, rising or up but outside the arc, and what
  * dropped it.
@@ -61,12 +65,13 @@ public final class GreyhookDuelScene implements BehaviorScene {
     private static final int WIDTH = BlackSluice.WIDTH;
     private static final int HEIGHT = BlackSluice.HEIGHT;
     /**
-     * Twenty-five minutes after the start, the recording's bound, kept wide so a control (the relay or a refit off) is
-     * still fought to the finish; a fight still going at the end fails
-     * {@code the-duel-is-decided-by-destruction}.
+     * Ten minutes after the start, the recording's bound: the duel concludes well inside it, and a loop stops
+     * {@link #TAIL_TICKS} after it does; a duel still going at the end fails {@code the-duel-concludes}.
      * {@code -Dbattle.scene.greyhookDuel.ticks} plays longer or shorter.
      */
-    private static final int TICKS = Integer.getInteger("battle.scene.greyhookDuel.ticks", 45000);
+    private static final int TICKS = Integer.getInteger("battle.scene.greyhookDuel.ticks", 18000);
+    /** Ticks a loop plays on after the duel concludes, so the wreck at rest or the empty sky is recorded. */
+    private static final int TAIL_TICKS = 150;
     /**
      * Ticks between recorded frames outside the duel camera's dense stretches; {@code
      * -Dbattle.scene.greyhookDuel.frameEvery} raises it so a whole fifteen-minute fight fits a review GIF's size.
@@ -145,7 +150,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
 
     @Override public String label() {
         return "The Black Sluice duel: the Greyhook (Venture) lifting alone from her cradle to fight Rusk's "
-                + "Enforcer and Wolf to the finish, five seeds";
+                + "Enforcer and Wolf, then running for the east edge, five seeds";
     }
 
     @Override public int frameDelayMillis() { return 100; }
@@ -197,10 +202,12 @@ public final class GreyhookDuelScene implements BehaviorScene {
             }
             duel.advance(s);
         };
-        SceneRun.of(world).observe(script).observe(trace)
+        SceneRun run = SceneRun.of(world).observe(script).observe(trace)
                 .frames(from(frames, orderTick + 30 * FRAMES_FROM_SECONDS), loop, FRAME_EVERY,
-                        tick -> trace.caption(loop, tick))
-                .run(TICKS);
+                        tick -> trace.caption(loop, tick));
+        while (run.tick() < TICKS && (trace.concludedTick < 0 || run.tick() <= trace.concludedTick + TAIL_TICKS)) {
+            run.step();
+        }
         return report(loop, trace, duel);
     }
 
@@ -249,18 +256,39 @@ public final class GreyhookDuelScene implements BehaviorScene {
         verdicts.add(Verdict.of("hulls-arrive-only-from-a-pad-or-across-their-edge", t.badArrivals.isEmpty(),
                 t.badArrivals.isEmpty() ? t.hullsSeen + " hulls: Greyhook's on their pads, Rusk's off the west edge"
                         : String.join("; ", t.badArrivals)));
-        verdicts.add(Verdict.of("no-hull-leaves-the-map", t.leavers.isEmpty(),
-                t.leavers.isEmpty() ? "none left, none started to" : String.join("; ", t.leavers)));
+        verdicts.add(Verdict.of("only-the-greyhook-leaves-and-only-across-her-edge", t.leavers.isEmpty(),
+                t.leavers.isEmpty() ? (greyhook.departing() || greyhook.departed()
+                        ? String.format(Locale.ROOT, "the Greyhook alone, across the %s edge, from %.0fs (the order to run)",
+                        greyhook.exitEdge(), t.seconds(duel.breakTick())) : "none left, none started to")
+                        : String.join("; ", t.leavers)));
         verdicts.add(Verdict.of("no-hull-crosses-an-edge-once-over-the-map", t.foreignCrossings.isEmpty(),
                 t.foreignCrossings.isEmpty() ? "none" : String.join("; ", t.foreignCrossings)));
         verdicts.add(Verdict.of("nobody-withdraws-by-doctrine", t.withdrawals.isEmpty(),
                 t.withdrawals.isEmpty() ? "no hull took the withdraw posture" : String.join("; ", t.withdrawals)));
         boolean greyhookSideDown = allDown(ours), ruskDown = allDown(duel.rusk());
-        verdicts.add(Verdict.of("the-duel-is-decided-by-destruction",
-                (greyhookSideDown || ruskDown) && t.leavers.isEmpty(),
-                greyhookSideDown ? String.format(Locale.ROOT, "the Greyhook destroyed by %.0fs", t.seconds(t.decidedTick))
-                        : ruskDown ? String.format(Locale.ROOT, "all of Rusk's hulls destroyed by %.0fs", t.seconds(t.decidedTick))
-                        : String.format(Locale.ROOT, "both sides still flying %.0fs after the order", t.seconds(t.lastTick))));
+        WarshipDuelLedger.Entry fate = duel.entry(greyhook);
+        boolean escaped = fate != null && fate.outcome() == WarshipDuelLedger.Outcome.ESCAPED;
+        verdicts.add(Verdict.of("the-duel-concludes",
+                t.concludedTick >= 0 && (escaped || greyhookSideDown) && t.leavers.isEmpty(),
+                escaped ? String.format(Locale.ROOT, "the Greyhook off the map across the %s edge at %.0fs",
+                        greyhook.exitEdge(), t.seconds(t.concludedTick))
+                        : greyhookSideDown ? String.format(Locale.ROOT, "the Greyhook destroyed at %.0fs, her wreck at rest at %.0fs",
+                        t.seconds(t.decidedTick), t.seconds(t.concludedTick))
+                        : String.format(Locale.ROOT, "the Greyhook still over the battle %.0fs after the order (%s)",
+                        t.seconds(t.lastTick), fate == null ? "no ledger line" : fate.outcome())));
+        verdicts.add(Verdict.of("a-destroyed-greyhook-crashes-to-rest",
+                !greyhookSideDown || t.wreckRestTick >= 0 && t.wreckStruck,
+                !greyhookSideDown ? "she was not destroyed"
+                        : String.format(Locale.ROOT, "burst %.1fs, struck the ground %s, at rest %.1fs after the order",
+                        t.seconds(t.decidedTick), t.wreckStruck ? "yes" : "no", t.seconds(t.wreckRestTick))));
+        verdicts.add(Verdict.of("the-battle-is-held-open-until-she-concludes", t.holdErrors.isEmpty(),
+                t.holdErrors.isEmpty() ? String.format(Locale.ROOT,
+                        "held from the order to %.1fs, released on the tick she concluded", t.seconds(t.concludedTick))
+                        : String.join("; ", t.holdErrors)));
+        verdicts.add(Verdict.of("the-run-is-ordered-once-by-voss",
+                duel.breakOff() != BlackSluiceDuel.BreakOff.NONE || greyhookSideDown,
+                String.format(Locale.ROOT, "%s at %.1fs (first hull fire %.1fs)", duel.breakOff(),
+                        t.seconds(duel.breakTick()), t.seconds(duel.firstFireTick()))));
         int sighted = t.beatTick(BlackSluiceDuel.RUSK_SIGHTED_BEAT);
         int closing = t.beatTick(BlackSluiceDuel.RUSK_CLOSING_BEAT);
         int fired = t.beatTick(BlackSluiceDuel.FIRST_HULL_FIRE_BEAT);
@@ -268,6 +296,14 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 sighted >= 0 && (closing < 0 || closing >= sighted) && (fired < 0 || (closing >= 0 && fired >= closing)),
                 String.format(Locale.ROOT, "sighted %.1fs, closing %.1fs, first hull fire %.1fs after the order",
                         t.seconds(sighted), t.seconds(closing), t.seconds(fired))));
+        int breaksBeat = t.beatTick(BlackSluiceDuel.GREYHOOK_BREAKS_BEAT);
+        int escapedBeat = t.beatTick(BlackSluiceDuel.GREYHOOK_ESCAPED_BEAT);
+        int goneTick = escaped ? t.decidedTick : -1;
+        verdicts.add(Verdict.of("the-radio-hears-the-run",
+                (duel.breakTick() < 0 ? breaksBeat < 0 : breaksBeat >= duel.breakTick() && breaksBeat - duel.breakTick() <= 1)
+                        && (goneTick < 0 ? escapedBeat < 0 : escapedBeat >= goneTick && escapedBeat - goneTick <= 1),
+                String.format(Locale.ROOT, "run ordered %.1fs, beat %.1fs; off the map %.1fs, beat %.1fs",
+                        t.seconds(duel.breakTick()), t.seconds(breaksBeat), t.seconds(goneTick), t.seconds(escapedBeat))));
         int greyhookBeat = t.beatTick(BlackSluiceDuel.GREYHOOK_DOWN_BEAT);
         int ruskBeat = t.beatTick(BlackSluiceDuel.RUSK_DOWN_BEAT);
         int firstBeat = t.beatTick(BlackSluiceDuel.RUSK_FIRST_DOWN_BEAT);
@@ -301,12 +337,28 @@ public final class GreyhookDuelScene implements BehaviorScene {
 
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("orderTick", t.orderTick);
-        // 0 undecided at the end, 1 Greyhook's side, 2 Rusk's.
-        metrics.put("winner", ruskDown ? 1 : greyhookSideDown ? 2 : 0);
+        // 0 still over the battle at the end, 1 escaped, 2 shot down.
+        metrics.put("greyhookEnding", escaped ? 1 : greyhookSideDown ? 2 : 0);
+        // 0 still fighting, 1 ordered on the clock, 2 crippled, 3 unopposed.
+        metrics.put("breakOffReason", duel.breakOff().ordinal());
         metrics.put("decidedSeconds", t.seconds(t.decidedTick));
+        metrics.put("concludedSeconds", t.seconds(t.concludedTick));
+        metrics.put("breakOffSeconds", t.seconds(duel.breakTick()));
         metrics.put("firstHullHitSeconds", t.firstHitTick < 0 ? -1f : (t.firstHitTick - t.orderTick) / 30f);
+        metrics.put("breakOffSecondsFromFirstHit", t.firstHitTick < 0 || duel.breakTick() < 0 ? -1f
+                : (duel.breakTick() - t.firstHitTick) / 30f);
         metrics.put("fightSecondsFromFirstHit", t.firstHitTick < 0 ? -1f
                 : ((t.decidedTick < 0 ? t.lastTick : t.decidedTick) - t.firstHitTick) / 30f);
+        metrics.put("concludedSecondsFromFirstHit", t.firstHitTick < 0 || t.concludedTick < 0 ? -1f
+                : (t.concludedTick - t.firstHitTick) / 30f);
+        metrics.put("greyhookHullAtBreakOffPercent", t.hullAtBreak);
+        metrics.put("greyhookRunCells", Math.round(t.runCells));
+        for (int i = 0; i < t.run.size(); i++) {
+            int[] r = t.run.get(i);
+            String at = "RunAt" + (10 * i) + "s";
+            metrics.put("greyhookHull" + at, r[0]);
+            for (int k = 1; k < r.length; k++) metrics.put(t.names[k] + "Range" + at, r[k]);
+        }
         String[] names = t.names;
         List<Warship> all = duel.hulls();
         for (int i = 0; i < all.size() && i < names.length; i++) {
@@ -471,8 +523,24 @@ public final class GreyhookDuelScene implements BehaviorScene {
         final BlackSluiceDuel duel;
         final int orderTick;
         final Map<Warship, Float> startHp = new LinkedHashMap<>();
-        /** The tick one side's hulls were all destroyed, or -1. */
+        /** The tick the Greyhook was destroyed or gone off the map, or -1. */
         int decidedTick = -1;
+        /** The tick her part concluded (gone, or her wreck at rest), or -1. */
+        int concludedTick = -1;
+        /** The tick her wreck came to rest, or -1; whether it struck the ground first. */
+        int wreckRestTick = -1;
+        boolean wreckStruck;
+        /** Ticks the battle's hold disagreed with her state: held after she concluded, or released before. */
+        final List<String> holdErrors = new ArrayList<>();
+        /** Her hull, percent, on the tick the run was ordered (-1 before), and how far she flew from there. */
+        int hullAtBreak = -1;
+        float runCells;
+        private float runX = Float.NaN, runY;
+        /**
+         * Every ten seconds from the order to run: her hull (percent), and the range to each of Rusk's hulls over the
+         * battle (cells, -1 for one that is down).
+         */
+        final List<int[]> run = new ArrayList<>();
         int firstHitTick = -1;
         /** The tick each hull was destroyed. */
         final Map<Warship, Integer> downTick = new LinkedHashMap<>();
@@ -635,7 +703,10 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 if (s.destroyed()) continue;
                 if (!onMapTick.containsKey(s) && x >= 0f && x <= WIDTH && y >= 0f && y <= HEIGHT) onMapTick.put(s, tick);
                 if (s.entryEdge() != null && !s.enteringAcrossEdge() && !clearTick.containsKey(s)) clearTick.put(s, tick);
-                if ((s.departing() || s.departed()) && left.add(s)) {
+                // Only the Greyhook leaves, only once Voss has ordered the run, and only across her own edge.
+                boolean run = s == duel.greyhook() && duel.breakTick() >= 0 && s.escapingAcrossEdge()
+                        && s.exitEdge() == BlackSluiceDuel.GREYHOOK_EDGE;
+                if ((s.departing() || s.departed()) && !run && left.add(s)) {
                     leavers.add(String.format(Locale.ROOT, "%s leaving at %.0f,%.0f, %.0fs after the order", name(s), x, y,
                             seconds(tick)));
                 }
@@ -647,6 +718,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 // Over the map once, a hull never goes past an edge again: arriving across it is the only crossing.
                 for (MapEdge e : MapEdge.values()) {
                     if (s.enteringAcrossEdge()) break;
+                    if (run && e == BlackSluiceDuel.GREYHOOK_EDGE) continue;
                     if (e.beyond(x, y, WIDTH, HEIGHT) && crossedForeign.add(s)) {
                         foreignCrossings.add(String.format(Locale.ROOT, "%s over the %s edge at %.0fs", name(s), e,
                                 seconds(tick)));
@@ -811,6 +883,39 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 }
             }
             for (Warship s : all) if (s.destroyed()) downTick.putIfAbsent(s, tick);
+            if (duel.ordered()) {
+                boolean done = sim.warships().concluded(greyhook);
+                if (done && concludedTick < 0) concludedTick = tick;
+                boolean held = sim.warships().awaitingConclusion();
+                if (held == done && holdErrors.size() < 5) {
+                    holdErrors.add(String.format(Locale.ROOT, "%s at %.1fs", held ? "held after she concluded"
+                            : "released before she concluded", seconds(tick)));
+                }
+                for (var wreck : sim.warships().wrecks()) {
+                    if (wreck.ship != greyhook) continue;
+                    wreckStruck |= !Float.isNaN(wreck.struckX());
+                    if (wreckRestTick < 0 && wreck.phase() == WarshipWreck.Phase.DOWN) {
+                        wreckRestTick = tick;
+                    }
+                }
+                if (duel.breakTick() >= 0 && hullAtBreak < 0) hullAtBreak = Math.round(100f * Math.max(0f, greyhook.hullFraction()));
+                if (duel.breakTick() >= 0 && (tick - duel.breakTick()) % 300 == 0 && !greyhook.destroyed()
+                        && !greyhook.departed()) {
+                    List<Warship> lent = duel.rusk();
+                    int[] r = new int[1 + lent.size()];
+                    r[0] = Math.round(100f * Math.max(0f, greyhook.hullFraction()));
+                    for (int i = 0; i < lent.size(); i++) {
+                        Warship ship = lent.get(i);
+                        r[1 + i] = ship.destroyed() ? -1 : Math.round(greyhook.distanceTo(ship.centerX(), ship.centerY()));
+                    }
+                    run.add(r);
+                }
+                if (duel.breakTick() >= 0 && !greyhook.destroyed() && !greyhook.departed()) {
+                    if (!Float.isNaN(runX)) runCells += (float) Math.hypot(greyhook.centerX() - runX, greyhook.centerY() - runY);
+                    runX = greyhook.centerX();
+                    runY = greyhook.centerY();
+                }
+            }
             for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.DEFENDER) defenderAircraft++;
             if (decidedTick < 0 && duel.decidedTick() >= 0) decidedTick = duel.decidedTick();
         }

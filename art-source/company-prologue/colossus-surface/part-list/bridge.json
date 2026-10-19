@@ -1,0 +1,465 @@
+{
+ "bridge-roof": {
+  "what": "bridge roof from above: pale cab roof, red annex roof deck forward, pale visor top",
+  "sheet": "bridge",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge deckhouse",
+    "seed": {
+     "box": [
+      [
+       -75.0,
+       -30.0,
+       20.0
+      ],
+      [
+       -50.0,
+       33.0,
+       26.0
+      ]
+     ]
+    },
+    "faces": [
+     51,
+     52,
+     53,
+     130,
+     135
+    ]
+   },
+   {
+    "object": "Bridge annex roof plating",
+    "seed": [
+     -47.0,
+     18.0,
+     18.8
+    ],
+    "faces": [
+     7
+    ]
+   },
+   {
+    "object": "Bridge windscreen visor",
+    "seed": [
+     -53.0,
+     1.5,
+     24.4
+    ],
+    "faces": [
+     2
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 921.19,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   45.65,
+   23.7
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.5,
+    -54.64999961853027
+   ],
+   "ortho_width": 53.07878006336301
+  },
+  "native_texels_per_unit": 15.0
+ },
+ "bridge-wall-port": {
+  "what": "bridge deckhouse port wall with its roof chamfer, red coaming frame along its foot",
+  "sheet": "bridge",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge deckhouse",
+    "seed": {
+     "box": [
+      [
+       -75.0,
+       1.5,
+       11.0
+      ],
+      [
+       -38.0,
+       33.0,
+       26.0
+      ]
+     ]
+    },
+    "faces": [
+     2,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     42,
+     43,
+     44,
+     74,
+     75,
+     76,
+     90,
+     91,
+     150,
+     151,
+     261,
+     262,
+     263,
+     264,
+     265,
+     266,
+     307
+    ]
+   },
+   {
+    "object": "Bridge red frame",
+    "seed": [
+     -60.0,
+     27.4,
+     13.6
+    ],
+    "faces": [
+     4,
+     5,
+     6
+    ]
+   }
+  ],
+  "face_count": 28,
+  "area_units2": 337.81,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   29.32,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    58.2403621673584,
+    18.0
+   ],
+   "ortho_width": 34.092184554698854
+  },
+  "native_texels_per_unit": 23.3
+ },
+ "bridge-wall-stbd": {
+  "what": "bridge deckhouse starboard wall (mirror of port)",
+  "sheet": "bridge",
+  "tile": 1,
+  "skin_from": "bridge-wall-port",
+  "members": [
+   {
+    "object": "Bridge deckhouse",
+    "seed": {
+     "box": [
+      [
+       -75.0,
+       -30.0,
+       11.0
+      ],
+      [
+       -38.0,
+       1.5,
+       26.0
+      ]
+     ]
+    },
+    "faces": [
+     6,
+     7,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     48,
+     49,
+     50,
+     80,
+     81,
+     82,
+     111,
+     112,
+     154,
+     156,
+     298,
+     299,
+     300,
+     301,
+     302,
+     303
+    ]
+   },
+   {
+    "object": "Bridge red frame",
+    "seed": [
+     -60.0,
+     -24.4,
+     13.6
+    ],
+    "faces": [
+     9,
+     10,
+     11
+    ]
+   }
+  ],
+  "face_count": 28,
+  "area_units2": 337.81,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   29.32,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -58.2403621673584,
+    18.0
+   ],
+   "ortho_width": 34.092184554698854
+  },
+  "native_texels_per_unit": 23.3
+ },
+ "bridge-front": {
+  "what": "bridge forward face: annex front, raked windscreen wall round the recess, surround and visor",
+  "sheet": "bridge",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge deckhouse",
+    "seed": {
+     "box": [
+      [
+       -57.0,
+       -30.0,
+       11.0
+      ],
+      [
+       -38.0,
+       33.0,
+       26.0
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     8,
+     10,
+     11,
+     12,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     55,
+     56,
+     73,
+     83,
+     92,
+     93,
+     114,
+     115,
+     146,
+     157,
+     182,
+     207,
+     232,
+     257,
+     282,
+     308,
+     311
+    ]
+   },
+   {
+    "object": "Bridge windscreen surround",
+    "seed": [
+     -51.5,
+     12.5,
+     21.0
+    ],
+    "faces": [
+     9
+    ]
+   },
+   {
+    "object": "Bridge windscreen visor",
+    "seed": [
+     -51.3,
+     1.5,
+     23.7
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Bridge red frame",
+    "seed": [
+     -40.1,
+     1.5,
+     13.6
+    ],
+    "faces": [
+     3,
+     12,
+     13
+    ]
+   }
+  ],
+  "face_count": 38,
+  "area_units2": 707.4,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   48.31,
+   12.01
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.5,
+    18.003437995910645
+   ],
+   "ortho_width": 56.17539605429006
+  },
+  "native_texels_per_unit": 14.1
+ },
+ "bridge-aft": {
+  "what": "bridge aft face with its roof chamfer, red frame foot",
+  "sheet": "bridge",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge deckhouse",
+    "seed": {
+     "box": [
+      [
+       -75.0,
+       -30.0,
+       11.0
+      ],
+      [
+       -62.0,
+       33.0,
+       26.0
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     20,
+     21,
+     22,
+     23,
+     46,
+     77,
+     78,
+     79,
+     309,
+     310
+    ]
+   },
+   {
+    "object": "Bridge red frame",
+    "seed": {
+     "box": [
+      [
+       -75.0,
+       -30.0,
+       11.0
+      ],
+      [
+       -71.5,
+       33.0,
+       16.0
+      ]
+     ]
+    },
+    "faces": [
+     7,
+     8
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 552.72,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.57,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.5,
+    18.0
+   ],
+   "ortho_width": 43.690712507380994
+  },
+  "native_texels_per_unit": 18.2
+ }
+}

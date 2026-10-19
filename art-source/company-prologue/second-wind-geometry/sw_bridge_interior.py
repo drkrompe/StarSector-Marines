@@ -1036,23 +1036,24 @@ def dress(kit, state):
 # ---------------------------------------------------------------- figures (never built into the ship)
 # Simple 1.8 m mannequins for review renders and for shots on the bridge (C2): the pilot seated
 # at the helm, and Castle standing at the port comms bank. Like every hull's scale figure they
-# are added by the caller and never saved into a geometry .blend. Castle is the MakeHuman figure
-# from castle-figure/ (build_castle.py) when its .blend has been built, posed for this spot,
-# and her mannequin otherwise.
+# are added by the caller and never saved into a geometry .blend. Each is the MakeHuman figure
+# from its own package when that .blend has been built (castle-figure/build_castle.py,
+# pilot-figure/build_pilot.py), and the mannequin otherwise.
 
 CASTLE_BLEND = Path(__file__).resolve().parents[1] / 'castle-figure' / 'castle-figure.blend'
+PILOT_BLEND = Path(__file__).resolve().parents[1] / 'pilot-figure' / 'pilot-figure.blend'
 
 
-def castle_figure(name, at, facing_deg, metres_per_unit, parent=None, blend=CASTLE_BLEND):
-    """Append the 'Castle figure' collection under an empty named `name`; None if not built.
+def _append_figure(blend, collection, root_name, name, at, facing_deg, metres_per_unit, parent):
+    """Append a figure package's collection under an empty named `name`; None if not built.
 
-    The figure is in metres facing its root's +X, so the empty takes the mannequin's place,
+    A package is in metres facing its root's +X, so the empty takes the mannequin's place,
     turn and the metres-to-units scale."""
     blend = Path(blend)
     if not blend.exists():
         return None
     with bpy.data.libraries.load(str(blend), link=False) as (src, dst):
-        dst.collections = ['Castle figure']
+        dst.collections = [collection]
     col = dst.collections[0]
     holder = bpy.data.objects.new(name, None)
     bpy.context.collection.objects.link(holder)
@@ -1062,10 +1063,22 @@ def castle_figure(name, at, facing_deg, metres_per_unit, parent=None, blend=CAST
     holder.scale = (1.0 / metres_per_unit,) * 3
     for ob in col.all_objects:
         bpy.context.collection.objects.link(ob)
-        if ob.name.startswith('Castle figure root'):
+        if ob.name.startswith(root_name):
             ob.parent = holder
     bpy.data.collections.remove(col)
     return holder
+
+
+def castle_figure(name, at, facing_deg, metres_per_unit, parent=None, blend=CASTLE_BLEND):
+    """Castle standing, her root at her feet."""
+    return _append_figure(blend, 'Castle figure', 'Castle figure root', name, at, facing_deg,
+                          metres_per_unit, parent)
+
+
+def pilot_figure(name, at, facing_deg, metres_per_unit, parent=None, blend=PILOT_BLEND):
+    """The pilot seated, his root on the dais plating at the helm seat's axis."""
+    return _append_figure(blend, 'Pilot figure', 'Pilot figure root', name, at, facing_deg,
+                          metres_per_unit, parent)
 
 def _limb(name, a, b, r, mat, parent):
     import mathutils
@@ -1089,11 +1102,12 @@ def _ball(name, c, r, mat, parent):
     return ob
 
 
-def figures(metres_per_unit, parent=None, castle=True):
+def figures(metres_per_unit, parent=None, castle=True, pilot=True):
     """Build 'Bridge figure pilot' and 'Bridge figure Castle' in hull units; returns their roots.
 
-    castle=True uses the MakeHuman Castle when castle-figure.blend exists (else the mannequin);
-    False always uses the mannequin."""
+    castle=True uses the MakeHuman Castle when castle-figure.blend exists, pilot=True the
+    MakeHuman pilot when pilot-figure.blend exists (else each is a mannequin); False always
+    uses the mannequin."""
     u = 1.0 / metres_per_unit
     suit = sw_kit.material('Bridge figure flight suit', (.11, .12, .10), 0, .8)
     skin = sw_kit.material('Bridge figure skin', (.33, .23, .18), 0, .6)
@@ -1130,8 +1144,13 @@ def figures(metres_per_unit, parent=None, castle=True):
                   elbow_l=(.3, .23, 1.15), elbow_r=(.3, -.23, 1.15),
                   hand_l=(.55, .18, 1.12), hand_r=(.55, -.18, 1.12))
     m = metres_per_unit
-    # Hips on the helm seat's pan, on the dais; feet on the dais.
-    person('Bridge figure pilot', (FLIGHT_SEAT_X - .05, -1.7, STEP + FLIGHT_SEAT_PAN + .08 - .84 / m), 0, seated)
+    # On the helm seat: the MakeHuman pilot's root is on the dais plating at the seat's axis;
+    # the mannequin's hips are on the pan, feet on the dais.
+    real = pilot and pilot_figure('Bridge figure pilot', (FLIGHT_SEAT_X, -1.7, STEP + .06), 0, m, parent)
+    if real:
+        roots.append(real)
+    else:
+        person('Bridge figure pilot', (FLIGHT_SEAT_X - .05, -1.7, STEP + FLIGHT_SEAT_PAN + .08 - .84 / m), 0, seated)
     real = castle and castle_figure('Bridge figure Castle', (10.9, 3.25, FLOOR), 90, m, parent)
     if real:
         roots.append(real)

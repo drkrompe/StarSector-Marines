@@ -1,0 +1,82 @@
+{
+ "longeron-top-port": {
+  "raw_iou": 0.9762,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9998,
+  "scale": [
+   1.00128,
+   1.01005
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "longeron-out-port": {
+  "raw_iou": 0.9955,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9978,
+  "scale": [
+   1.0,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "longeron-in-port": {
+  "raw_iou": 0.9957,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9998,
+  "scale": [
+   1.0,
+   1.00454
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "keel-top": {
+  "raw_iou": 0.9936,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 1.0,
+  "scale": [
+   1.00187,
+   1.00454
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "aft-deck-aft": {
+  "raw_iou": 0.9928,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9956,
+  "scale": [
+   1.00128,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "aft-deck-fwd": {
+  "raw_iou": 0.9772,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9862,
+  "scale": [
+   1.00255,
+   1.00443
+  ],
+  "boundary_p95_px": 44.0
+ },
+ "aft-stern": {
+  "raw_iou": 0.9942,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9996,
+  "scale": [
+   1.00255,
+   1.00444
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "aft-under": {
+  "raw_iou": 0.9934,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9975,
+  "scale": [
+   1.00149,
+   1.00404
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

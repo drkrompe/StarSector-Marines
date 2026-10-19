@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154d7-e11d-7fc1-8654-9e2540fda28f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154d7-e11d-7fc1-8654-9e2540fda28f\\exec-73de948d-c894-4da9-8499-a6820979187b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-bridge\\colossus-surface\\generated\\sheet-bridge.png",
+    "sha256": "eba673eda4726dc981152dc59bc9e486703f8162ad36e54f3f13de70a40a66fc",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-bridge\\colossus-surface\\prompts\\sheet-bridge.prompt.txt",
+  "promptSha256": "73e9bb4dbc144e85374628b49ec34b99a7c0fc9ea56fc23bd721d2a14742260d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: each tile's exact shape, position and colour regions; never move\nImage 2: Material and finish only: paint colours, seams, fasteners, wear; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Domain-era Colossus-class heavy freighter, an old frontier bulk hauler still in service; these four faces are its small bridge deckhouse, which stands on the aft machinery body), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the bridge roof seen from directly above, bow at the top: at the top a wide trapezoid of dusty oxide-red roof deck plating (the forward annex's walking deck); below it a narrow pale grey strip (the top of the windscreen visor); below that the broad pale grey cab roof with chamfered lower corners, crossed by two thin dark straight transverse seam grooves;\ntop-right: the deckhouse's port wall seen from port, bow to the left: a long low pale grey wall crossed by one thin dark horizontal groove and one thin dark vertical seam, rising in the middle to a raised pale grey trapezoid of sloping shoulder plating with a dark rectangular recess in it; along the wall's foot runs a dusty oxide-red strip (the coaming frame), with a sliver of pale grey below it;\nbottom-left: the deckhouse's forward face seen from directly ahead: a wide pale grey face with sloping shoulders; a wide dark rectangular recess (the windscreen opening) high in the centre; below it the lower pale grey front crossed by a thin dark horizontal groove and two thin dark vertical seams, carrying a row of six small round dark ports; along the foot a dusty oxide-red strip;\nbottom-right: the deckhouse's aft face seen from astern: a wide pale grey wall whose upper half is a broad sloping band with chamfered ends, crossed by a thin dark horizontal groove and two thin dark vertical seams; along the foot two dusty oxide-red strips with a pale grey gap between them (the doorway landing).\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its dusty, hard-worked frontier finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or notch in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline. The existing thin dark grooves and seams stay exactly where they are, as dark seam lines.\n- Keep each region's colour: the near-white areas in INPUT 1 are a pale weathered grey enamel (a dusty light warm grey, matching the pale bridge and longerons in INPUT 2, not white); salmon-pink areas are a dusty oxide-red enamel; dark grey areas (the recesses, round ports and seam grooves) stay near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in long service but maintained, not battered. Weathering is light and even across each whole shape. No rust streaks, soot, scorch marks, burns, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-bridge\\colossus-surface\\guide\\sheet-bridge-guide.png",
+      "sha256": "d407fee13e80d19ff34880b5a7aa7f9f949560a8555d94d3f39950f3190545c2",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: each tile's exact shape, position and colour regions; never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-bridge\\colossus-surface\\reference\\finish-reference.png",
+      "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only: paint colours, seams, fasteners, wear; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to reskin the four faces, preserving the guide’s layout and colour regions."
+  ],
+  "usage": {
+    "input_tokens": 87257,
+    "cached_input_tokens": 59520,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1041,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 78.8
+}

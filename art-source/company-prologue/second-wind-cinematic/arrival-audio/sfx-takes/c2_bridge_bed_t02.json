@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Small spaceship bridge room tone, quiet electronics hum, cooling fans in consoles, faint distant engine drone, calm, no beeps, no voices, no music",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "177163f1acb3b33686ade2dcff415bed4624efc5259e671282ad43cb2217f8ea",
+  "durationSeconds": 12.0,
+  "peakDb": -35.2,
+  "integratedLufs": -48.7
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A massive warship passing slowly very close outside, deep sub-bass rumble swelling to a peak and slowly receding, felt more than heard, ominous, low frequencies only",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "d8ef47649e496e271b4a0af0106d243e94011232a6d477b6e98a6b1cb3855ced",
+  "durationSeconds": 12.0,
+  "peakDb": -0.4,
+  "integratedLufs": -13.9
+}

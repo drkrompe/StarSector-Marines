@@ -1,0 +1,283 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.996)",
+ "space": "CIELAB D65",
+ "classes": {
+  "red": {
+   "pixels": 166558,
+   "mean": [
+    45.28,
+    18.56,
+    13.08
+   ],
+   "std": [
+    8.0,
+    1.5,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    32.77,
+    42.81,
+    61.95
+   ],
+   "mean_srgb": [
+    143.4,
+    95.0,
+    86.3
+   ],
+   "std_measured": [
+    12.41,
+    2.87,
+    2.39
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "maroon": {
+   "pixels": 244328,
+   "mean": [
+    34.55,
+    14.22,
+    8.9
+   ],
+   "std": [
+    7.0,
+    1.2,
+    2.0
+   ],
+   "L_p10_p50_p90": [
+    22.74,
+    32.23,
+    52.03
+   ],
+   "mean_srgb": [
+    107.5,
+    72.5,
+    67.7
+   ],
+   "std_measured": [
+    11.73,
+    2.88,
+    2.37
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "pale": {
+   "pixels": 115575,
+   "mean": [
+    66.8,
+    1.5,
+    4.04
+   ],
+   "std": [
+    8.0,
+    0.6,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    0.27,
+    66.82,
+    82.54
+   ],
+   "mean_srgb": [
+    155.7,
+    148.7,
+    142.7
+   ],
+   "std_measured": [
+    23.84,
+    1.24,
+    1.87
+   ],
+   "note": "mean owned at the measured median L: shadowed longeron end faces drag the mean",
+   "mean_measured": [
+    62.0,
+    1.5,
+    4.04
+   ]
+  },
+  "orange": {
+   "pixels": 6895,
+   "mean": [
+    62.96,
+    16.2,
+    27.69
+   ],
+   "std": [
+    8.0,
+    2.0,
+    3.5
+   ],
+   "L_p10_p50_p90": [
+    59.19,
+    63.71,
+    67.22
+   ],
+   "mean_srgb": [
+    195.0,
+    140.6,
+    104.0
+   ],
+   "std_measured": [
+    4.61,
+    1.92,
+    3.33
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "blue": {
+   "pixels": 3627,
+   "mean": [
+    64.43,
+    -5.04,
+    -11.91
+   ],
+   "std": [
+    7.0,
+    1.0,
+    2.0
+   ],
+   "L_p10_p50_p90": [
+    61.82,
+    64.54,
+    67.0
+   ],
+   "mean_srgb": [
+    134.0,
+    159.8,
+    177.1
+   ],
+   "std_measured": [
+    2.1,
+    0.88,
+    2.24
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "gunmetal": {
+   "pixels": 42478,
+   "mean": [
+    33.06,
+    0.76,
+    0.6
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    19.14,
+    30.72,
+    54.4
+   ],
+   "mean_srgb": [
+    79.4,
+    77.3,
+    76.8
+   ],
+   "std_measured": [
+    13.15,
+    1.27,
+    1.36
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 2785,
+   "mean": [
+    11.04,
+    0.2,
+    0.2
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    1.14,
+    10.91,
+    20.39
+   ],
+   "mean_srgb": [
+    30.0,
+    29.4,
+    29.3
+   ],
+   "std_measured": [
+    8.84,
+    0.65,
+    0.74
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "red_w": {
+   "derived": "red + [14.0, -6.0, -2.0] (the geometry's designed tone offset)",
+   "mean": [
+    59.28,
+    12.559999999999999,
+    11.08
+   ],
+   "std": [
+    8.0,
+    1.5,
+    2.5
+   ]
+  },
+  "tile": {
+   "derived": "dark + [6.0, 0.0, 0.5] (the geometry's designed tone offset)",
+   "mean": [
+    17.04,
+    0.2,
+    0.7
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what worn paint reveals and what service deposits.",
+  "primer": {
+   "lab": [
+    52.0,
+    2.0,
+    6.0
+   ],
+   "what": "grey-brown primer under the oxide enamel"
+  },
+  "bare": {
+   "lab": [
+    68.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    44.0,
+    6.0,
+    15.0
+   ],
+   "what": "planetside dust and grit, ochre-brown from landing fields"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    60.0,
+    13.0,
+    13.0
+   ],
+   "what": "chalked, UV-faded oxide paint: red goes paler and pinker-grey, not white"
+  }
+ }
+}
