@@ -39,11 +39,12 @@ LEAN_M = 0.05
 CABIN_DEPTH_M = 1.2
 LEAN_SPAN = (6.5, 12.5)   # seconds; eased; after the ship is level, under Castle's line
 
-# Castle, over the nature view (moved here from C4, owner 2026-10-19):
-# "Like the travel reels they ran in the canteen... except this one doesn't loop."
-# Take c4_reels_t06 (5.12 s). It starts once the ship is level and the shake has gone.
+# Castle, over the nature view (owner's script, 2026-10-19; arrival-audio/castle_lines.py):
+# "So much greenery and life... it's like the travel reels from the canteen."
+# Take v4_c3_reels_t03, first read (5.2 s), shipped as jangala_arrival_castle_reels. It starts
+# once the ship is level and the shake has gone.
 CASTLE_REELS_AT = 7.0
-CASTLE_REELS_TAKE = ("c4_reels_t06", 5.12)
+CASTLE_REELS_TAKE = ("v4_c3_reels_t03", 5.2)
 
 
 def smoother(u):

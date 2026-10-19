@@ -1,4 +1,4 @@
-TARSUS (FREIGHTER) - CINEMATIC GEOMETRY (PASSES 1, 2 AND 4; PASS 3 ROUND 1)
+TARSUS (FREIGHTER) - CINEMATIC GEOMETRY (PASSES 1, 2, 4 AND 5; PASS 3 ROUND 1)
 
 Purpose
 An editable Blender model of the vanilla Tarsus (hullId tarsus), the convoy
@@ -92,6 +92,32 @@ Docking (published in geometry.json 'docking', in units and metres)
   (70, +-19.5 rel, the flat inboard strip), two on the aft body at (-30, +-14 rel), clear of the port
   tanks and the drums. Kite collar port|starboard anchor: on the central
   body's walls, starboard at X 0, port at X -12, +X outward.
+
+Pass 5 (condition state 'boarded', ts_damage.py)
+  The prize after the fight: drives shot out, Kites on the collars, not destroyed.
+  One scar table with stable ids, resolved by ray casts against the clean ship
+  before any cut, so every id lands in the same place in the geometry build and
+  on the skinned build:
+    D1-D11 craters: both main bells holed (D1 port, D2 starboard lip), the stern
+      service housing burned through (D3), a strafing run along the drive deck
+      (D4-D6), both inboard auxiliary bells (D7, D8), the skirt keel (D9), the
+      starboard aft drum (D10) and the port drive flank (D11). Each cuts every
+      part under it (opened faces 'Scar burnt metal'), lays a scorch decal, curls
+      torn plating out of the rim and, where pass 7 wants smoke or sparks, sets
+      'Scar <id> smoke anchor' and/or 'Scar <id> spark anchor' (the shared VFX
+      kit's conduit-spark name, sparking = True), +X out of the hull, sized in
+      radius_m.
+    S1, S2: the stern face and the drive deck scorched.
+    K1, K2: cutting-torch rings round both Kite collar hatches.
+    L1: the drive section's stern and deck marker lamps dark (object-level
+      material override; the meshes keep their base material).
+  Laws: no base object is renamed, replaced or deleted; holds, command module,
+  tanks, turrets, clamp receivers and collars are never cut. A closed mesh cuts
+  with MANIFOLD and an open one with hole-tolerant EXACT, and a cut that grows a
+  mesh past its own extent (the cutter's skin kept) is put back.
+  --state boarded --out DIR builds it here (tarsus-geometry-boarded.blend, with
+  the scar record in geometry.json 'scars'); damage_blend.py IN OUT applies it to
+  the skinned build (../tarsus-surface/rebuild.sh).
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_tarsus.py -- [--views ...] [--samples N] [--cpu]

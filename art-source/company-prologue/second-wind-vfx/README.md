@@ -57,6 +57,7 @@ group's review into `build/<group>/`.
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
 | `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
 | `swfx_shield.py` | a shield for a hull whose profile declares `SHIELD`: OMNI or FRONT arc, faction colour schemes, strength (opt-in group; the Second Wind has none) |
+| `swfx_fire.py` | fires, venting and explosions on a wreck's `... fire anchor` / `vent anchor` / `explosion anchor` empties (opt-in group `fire`; the Second Wind has none; first user `../phaeton-cinematic/`) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -442,6 +443,23 @@ its muzzle, so a beam swings with its turret.
   (the Paragon's `aim.engage` does both).
 - Emission is kept low on purpose: a strong emitter goes white under AgX and
   the weapon's colour is lost.
+
+### Fire (`swfx_fire`, opt-in)
+
+For wrecks and kills. A shot asks for it with `groups=(..., 'fire')`; it finds
+anchors by name on any hull, usually a condition state's scar anchors: `...
+fire anchor ...` (a domain-warped flame volume, its smoke and a flickering
+light; optional `size_m`), `... vent anchor ...` (a pulsing vapour cone along
+the anchor's +X; optional `length_m`) and `... explosion anchor ...` (a
+fireball that flashes white, is orange by half a second and dark smoke by about
+two, thinning over five, a faint thin shock ring, a flash light and embers;
+optional `size_m`, `delay_s`). Knobs: `fir_fire`, `fir_vent`, `fir_smoke`,
+`fir_ignite` (seconds after the detonation for fires and vents to come up),
+`fir_exp_frame` (the detonation), `fir_exp_scale`, `fir_exp` (0 suppresses the
+blast for a wreck already burning). Emission and density are per metre
+(`swfx_core.units`), so a fire reads the same on any hull scale. The
+Phaeton's wreck drives `fir_exp_frame` from its own `break_frame`
+(`../phaeton-cinematic/`).
 
 ### Shield (`swfx_shield`, opt-in)
 

@@ -1,15 +1,15 @@
 {
  "part": "aft-top-port",
  "sheet": "crimson-tops",
- "tile": 3,
+ "tile": 2,
  "tile_size": [
   912,
   513
  ],
- "segmentation_selfcheck_iou_on_guide": 0.9939,
- "raw_iou": 0.9944,
+ "segmentation_selfcheck_iou_on_guide": 0.9983,
+ "raw_iou": 0.9947,
  "best_fit": "iou_refined_affine",
- "fitted_iou": 0.9979,
+ "fitted_iou": 0.9987,
  "fits": {
   "identity": {
    "scale": [
@@ -20,40 +20,40 @@
     0.0,
     0.0
    ],
-   "iou": 0.9944
+   "iou": 0.9947
   },
   "bounds_affine": {
    "scale": [
-    0.99617,
-    1.00525
+    1.0,
+    1.00304
    ],
    "offset_px": [
-    0.24,
-    -1.35
+    -1.0,
+    -1.28
    ],
-   "iou": 0.9941
+   "iou": 0.9962
   },
   "iou_refined_affine": {
    "scale": [
-    0.99917,
-    1.00525
+    1.002,
+    1.00404
    ],
    "offset_px": [
-    0.24,
-    -0.85
+    -1.0,
+    -1.28
    ],
-   "iou": 0.9979
+   "iou": 0.9987
   }
  },
  "boundary_raw_px": {
-  "mean_px": 0.55,
+  "mean_px": 0.5,
   "p95_px": 1.0,
   "max_px": 3.0
  },
  "boundary_fitted_px": {
-  "mean_px": 0.22,
+  "mean_px": 0.13,
   "p95_px": 1.0,
-  "max_px": 3.0
+  "max_px": 4.0
  },
  "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
 }

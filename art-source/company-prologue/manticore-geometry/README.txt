@@ -25,21 +25,74 @@ centre, so slot and engine XY are used unchanged. Sprite column c, row r
 (from the top) covers X 86-r..87-r and Y 81-c..82-c. Heights are proposed
 art; the game gives none.
 
-Scale (pass 4): 0.54 m per unit
+Scale (pass 4): 0.59 m per unit
 Published through the shared sizing basis, ../ship_scale.py (owner's option C),
 never set here: METRES_PER_UNIT in build_manticore.py reads
 ship_scale.PUBLISHED and geometry.json's 'scale' is ship_scale.record('Manticore (P)').
 Inputs: 80 crew, 80 cargo, 50 fuel, destroyer class. Enclosed volume is the
 union of ship_scale.SOLIDS['manticore']: bow head, neck, core, wing body, aft
-body, ventral keel, command tier and dome (drive cans, gun pods, launcher
+body, ventral keel, bridge plinth and dome (drive cans, gun pods, launcher
 housings, armour plates and horns, and weapons excluded): 310,119 units3 after
-review round 2 deepened the hull (158,541 at round 1, published 0.67). That
-solves to 0.537, published as 0.54: 83 m long, 87 m across the gun pods, 36 m
-keel to mast. Against known ships: 1.4 Hounds (61 m) long, 0.77 of a Colossus
-(108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m person is
-3.3 units. The driver re-measures the union on every build and fails if it
+review round 5 (294,878 at rounds 3-4, published 0.54; 158,541 at round 1).
+That solves to 0.594, published as 0.59: 91 m long, 95 m across the gun pods,
+33 m keel to mast. Against known ships: 1.5 Hounds (61 m) long, 0.84 of a
+Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m person is
+3.1 units. The driver re-measures the union on every build and fails if it
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
+
+Owner review round 6 (2026-10-19)
+"Remove the hockey pucks from the two harpoon pods", "the arm ends are oddly
+cylinderish", "the front needs cohesion work", "angular armor ... reminiscent
+of the Onslaught"; the stern was accepted. The Harpoon hardpoints never train,
+so they get no barbette and no kit turntable: each rack stands on its pocket
+floor (mt_mounts). The octagonal gun pods are now faceted nacelles lofted to a
+point forward, with a raked red flank plate and a chevron glacis on the nose.
+One red armour strake a side now runs from the core down the neck and wraps
+the head to the beak's tip, where the two converge (replacing the separate
+horns, neck rails and prow block), and a thick raked red plate armours each
+arm's root leading edge. All six mounts still bear dead ahead and 10 deg below
+ahead; 0.59 m/u stands (228,901 units3).
+
+Owner review round 5 (2026-10-19)
+"The missile pods ... inset into the hull", "the back near the engines less
+blocky", "the central underside too fat ... slender ... lean into this
+downward angling ... to get more guns onto targets ahead". The raised
+launcher housings and cheeks are gone: each Harpoon rack sits 4 units down a
+pocket in the wing, open forward through the leading edge. The aft engine
+block is lofted through faceted sections tapering to the drive face, so the
+cans stand out of it. The core's underside is a slender V (keel a quarter of
+the beam, no deeper than -18; the ventral blade a thin fin to -22), and the
+wings fall 0.50 per unit outboard of |Y| 46. All six mounts bear dead ahead
+and 10 deg below ahead (geometry.json forward.bearing_dead_ahead). The slimmer
+belly moved the scale: 228,776 units3 solves 0.594, published 0.59 (was 0.54):
+91 m long.
+
+Owner review round 4 (2026-10-19)
+"The neck is still angled up? ... The central hull can go down." Round 3
+bent only the beak; now the whole forward hull bends down from just ahead of
+the bridge (mt_hull.NOSE_DROOP: 0.10 per unit forward of X 10, 0.32 forward of
+X 62), core front, gun pit, neck, wing leading parts, pods, launcher housings
+and head alike, so the line runs downhill from the bridge to the beak. Turret
+rings stay level. Bridge eye clear to 4 deg down dead ahead, 9-14 deg on every
+other bearing; all six mounts still bear dead ahead. Volume 294,597 units3;
+0.54 m/u stands.
+
+Owner review round 3 (2026-10-19)
+"Lower the nose ... the wings tapering downward ... a bird of prey", and
+"you raised the bridge higher" (round 2's command tier was a taller bridge,
+the one answer the owner had ruled out). The head, horns, prow, crossbar,
+neck and rails bend down 0.30 per unit forward of X 62 (mt_hull.droop; the
+bow ring stands level on it); the wing deck falls 0.16 per unit outboard of
+|Y| 24 and 0.42 outboard of |Y| 46, so the arms bend down to low gun pods.
+The bridge is back on a low raked plinth at the core deck (eye Z 19.9, its
+round-1 height); instead the Hellbore sits 7.4 units down a 17.5-radius pit
+with the deck ahead of it falling to 9.5, so its roof (17.8) is under the
+eye. Measured (geometry.json 'forward'): dead ahead clear to 3 deg down,
+6-11 deg down on every other bearing to 90 deg either side; the bow gun is
+behind the Hellbore's barrel; all six mounts still bear dead ahead.
+Enclosed volume 294,878 units3 solves 0.546, published 0.54 unchanged.
+Round 2 below is kept for its lofted sections; its command tier is gone.
 
 Owner review round 2 (2026-10-19)
 "Comically big central turret", "a thin ship ... flying wings", "what does

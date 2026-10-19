@@ -1,81 +1,81 @@
 {
  "head-top": {
-  "raw_iou": 0.9815,
+  "raw_iou": 0.9894,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9937,
+  "fitted_iou": 0.9939,
   "scale": [
-   0.99872,
-   0.99785
+   1.00283,
+   1.00304
   ],
   "boundary_p95_px": 1.0
  },
  "fork-top": {
-  "raw_iou": 0.9876,
+  "raw_iou": 0.9901,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9963,
+  "fitted_iou": 0.9966,
   "scale": [
-   0.99817,
-   0.99884
+   1.00045,
+   1.00068
   ],
   "boundary_p95_px": 1.0
  },
  "engine-top": {
-  "raw_iou": 0.9908,
-  "best_fit": "identity",
-  "fitted_iou": 0.9908,
+  "raw_iou": 0.9881,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9907,
   "scale": [
-   1.0,
-   1.0
+   1.001,
+   1.00027
   ],
-  "boundary_p95_px": 1.41
+  "boundary_p95_px": 1.0
  },
  "pod-top-port": {
-  "raw_iou": 0.9974,
+  "raw_iou": 0.996,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9993,
+  "fitted_iou": 0.9992,
   "scale": [
-   1.00008,
-   1.00127
+   1.0,
+   1.00454
   ],
   "boundary_p95_px": 1.0
  },
  "engine-side-port": {
-  "raw_iou": 0.996,
-  "best_fit": "bounds_affine",
-  "fitted_iou": 0.9982,
+  "raw_iou": 0.9932,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9956,
   "scale": [
-   1.0,
-   1.00227
+   1.00804,
+   0.998
   ],
   "boundary_p95_px": 1.0
  },
  "outrigger-side-port": {
-  "raw_iou": 0.9939,
+  "raw_iou": 0.9951,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9954,
+  "fitted_iou": 0.9994,
   "scale": [
-   1.00611,
-   1.00454
+   1.00446,
+   1.00227
   ],
   "boundary_p95_px": 1.0
  },
  "engine-stern": {
-  "raw_iou": 0.9892,
+  "raw_iou": 0.9855,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9942,
+  "fitted_iou": 0.9871,
   "scale": [
-   1.00155,
-   1.00594
+   1.00383,
+   0.99858
   ],
-  "boundary_p95_px": 1.0
+  "boundary_p95_px": 1.41
  },
  "spine-fore": {
-  "raw_iou": 0.9916,
+  "raw_iou": 0.9924,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9967,
+  "fitted_iou": 0.9969,
   "scale": [
-   0.99715,
-   1.00454
+   1.00385,
+   1.00227
   ],
   "boundary_p95_px": 1.0
  }

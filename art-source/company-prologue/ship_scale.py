@@ -200,10 +200,18 @@ HULLS = {
                                                     'side cargo door w x h': [15, 14],
                                                     'bow cargo door w x h': [41, 23],
                                                     'bridge door w x h': [2.2, 4.6]}),
+    # The Colossus Mk.III (pirate refit of the Colossus): the Colossus's hull with the side
+    # modules cut down and a launch bay cut into the hold. Published at 0.495 (107 m), the
+    # Asharu battle plan's size for the Colossus's twin; fittings are the Colossus's doors.
+    'Colossus Mk.III': dict(units3=786639, crew_max=160, cargo=300, fuel=60, cls='freighter', length_units=216.7,
+                            sprite_px=224, fittings_units={'personnel hatch w x h': [2.2, 4.8],
+                                                           'side cargo door w x h': [10, 14],
+                                                           'launch bay mouth w x h': [34, 30],
+                                                           'bridge door w x h': [2.2, 4.6]}),
     # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
     # fork, head outriggers, missile pods, armour domes and the engine block (the drive
     # section) are outside SOLIDS.
-    'Wolf (P)': dict(units3=38632, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
+    'Wolf (P)': dict(units3=40988, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
                      sprite_px=96),
     # The Phaeton tanker (Asharu convoy): the red tank hull, the machinery strakes along
     # both flanks (pump rooms and pipe galleries), the aft transverse frame and machinery
@@ -222,19 +230,19 @@ VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SO
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
                  'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .76}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .75}
 VOLUME_SOURCE['Phaeton'] = 'measured (SOLIDS)'   # the tanker; see HULLS['Phaeton']
 PUBLISHED['Phaeton'] = .33   # the rule solves 0.326 (75.7 m): published at two places, 76.6 m
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
 # wing body, aft engine block, ventral keel, command tier and dome (SOLIDS['manticore']). The drive
-# cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
+# cans, outer turret pods, armour plates and weapons are excluded. Fittings:
 # the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
 # its own statements so sibling hulls added at the same time do not collide in one line.
-HULLS['Manticore (P)'] = dict(units3=310119, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+HULLS['Manticore (P)'] = dict(units3=228776, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
                              sprite_px=154, fittings_units={'viewport w x h': [1.85, 1.48],
                                                             'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
-PUBLISHED['Manticore (P)'] = .54
+PUBLISHED['Manticore (P)'] = .59
 # The Kite (P), pirate boarding shuttle for the Asharu battle (kite_pirates.skin on kite;
 # designation Shuttle, so the freighter class): fuselage, wing body, cabin spine and aft hump
 # (SOLIDS['kite']). Drive cans, missile sponsons and launchers are excluded. Its 30 crew are
@@ -261,6 +269,9 @@ HULLS['Tarsus'] = dict(units3=291623, crew_max=80, cargo=350, fuel=80, cls='frei
                       sprite_px=204, fittings_units={'Kite collar hatch d': [5.2], 'grapple receiver plate d': [5.2]})
 VOLUME_SOURCE['Tarsus'] = 'measured (SOLIDS)'
 PUBLISHED['Tarsus'] = .50
+# The Colossus Mk.III (pirate refit of the Colossus), its own statements like the siblings'.
+VOLUME_SOURCE['Colossus Mk.III'] = 'measured (SOLIDS)'
+PUBLISHED['Colossus Mk.III'] = .495
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -322,6 +333,14 @@ SOLIDS = {
                      'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
                      'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
                      'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
+    # The Colossus Mk.III (.blend a build output; the driver re-measures every build): the
+    # Colossus's solids, with the side modules cut down and the
+    # launch bay (open to space) cut out of the hold; sponsons, tubs and refit armour excluded.
+    'colossus-mk3': {'blend': '../../build/colossus-mk3/geo/colossus-mk3-geometry.blend', 'step': 1.0,
+                     'include': lambda n: n in (
+                         'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
+                         'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
+                         'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
     # The Wolf (P)'s .blend is a build output (build/wolf-p/wolf-p.blend), never tracked; its
     # driver re-measures these solids on every build. The bow fork is open structure round
     # the hardpoint, the outriggers and missile pods machinery and weapon pods, the domes

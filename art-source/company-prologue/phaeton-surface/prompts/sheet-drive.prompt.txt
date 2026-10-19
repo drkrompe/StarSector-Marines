@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a working independent Phaeton-class fuel tanker, a long destroyer-sized low-tech merchant tanker with three spherical cargo tanks along its deck), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-green background:
+top-left: a drive housing's top seen from above: a round mid-grey gunmetal ring with a round inner rim and a small hole in the middle that stays background green;
+top-right: the drive block's stern face: a long mid-grey gunmetal steel face;
+bottom-left: a reaction drum's outboard side: a light grey cylinder end with chamfered corners;
+bottom-right: a guard arc's outboard face: a long tan strip pierced by four round holes that stay background green;
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain green gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background green.
+- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints (keep the seam lines already drawn), neat rows of small fasteners, flush bolted access covers, subtle panel-to-panel tone differences, a light even film of grime and fuel staining in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.
+- Paint each region in the tanker's livery, matching INPUT 2: salmon-red areas are a deep oxide-red enamel hull plate; light-orange areas (the spherical cargo domes) are a pale warm-grey insulated enamel; light grey areas are a muted slate-blue painted steel; tan areas are a pale buff-cream enamel; mid-grey areas are dark grey gunmetal steel; dark grey or near-black areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.
+- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform mid-green as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

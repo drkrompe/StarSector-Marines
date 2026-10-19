@@ -6,10 +6,10 @@
   912,
   513
  ],
- "segmentation_selfcheck_iou_on_guide": 0.9995,
- "raw_iou": 0.9947,
+ "segmentation_selfcheck_iou_on_guide": 0.9987,
+ "raw_iou": 0.9948,
  "best_fit": "iou_refined_affine",
- "fitted_iou": 0.9985,
+ "fitted_iou": 0.9971,
  "fits": {
   "identity": {
    "scale": [
@@ -20,38 +20,38 @@
     0.0,
     0.0
    ],
-   "iou": 0.9947
+   "iou": 0.9948
   },
   "bounds_affine": {
    "scale": [
-    1.00417,
-    1.00454
+    1.0,
+    1.0068
    ],
    "offset_px": [
-    -1.9,
-    -1.16
+    0.0,
+    -2.24
    ],
-   "iou": 0.9952
+   "iou": 0.997
   },
   "iou_refined_affine": {
    "scale": [
-    1.00417,
-    1.00454
+    1.0,
+    1.0078
    ],
    "offset_px": [
-    -1.4,
-    -0.66
+    0.0,
+    -2.24
    ],
-   "iou": 0.9985
+   "iou": 0.9971
   }
  },
  "boundary_raw_px": {
-  "mean_px": 0.57,
+  "mean_px": 0.52,
   "p95_px": 1.0,
-  "max_px": 1.41
+  "max_px": 2.0
  },
  "boundary_fitted_px": {
-  "mean_px": 0.17,
+  "mean_px": 0.29,
   "p95_px": 1.0,
   "max_px": 2.0
  },

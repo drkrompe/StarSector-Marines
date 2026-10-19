@@ -1,0 +1,26 @@
+{
+ "c5_seconds": 7.6,
+ "frame": 695,
+ "lens_mm": 32.0,
+ "camera": [
+  363.20477294921875,
+  539.7937622070312,
+  1.75
+ ],
+ "aim": [
+  402.2105712890625,
+  468.33367919921875,
+  1.75
+ ],
+ "nessa": [
+  363.3263854980469,
+  537.8475952148438,
+  0.15
+ ],
+ "figure": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\nessa\\build\\nessa-figure\\nessa-slate.blend",
+ "size": [
+  1536,
+  1024
+ ],
+ "scale": 50
+}

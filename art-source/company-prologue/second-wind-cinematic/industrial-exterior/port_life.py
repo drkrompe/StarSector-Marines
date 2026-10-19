@@ -535,16 +535,20 @@ def carry_on():
         ob = bpy.data.objects[name]
         if ob.parent is None:
             linear(ob, extrapolate=True)
-    # The freighter lifting off berth -130 climbs away faster once it is clear; the Hermes lifting off
-    # pad -355 goes on climbing; the one landing on pad -175 stays down.
+    # The freighter lifting off berth -130 climbs away faster once it is clear, and from C5's start
+    # accelerates off along its bow (the row faces nearly north), out of the frame well before the
+    # title, which has only the Colossus in the air; the Hermes lifting off pad -355 goes on climbing;
+    # the one landing on pad -175 stays down.
     T = c4.DURATION
     lift = bpy.data.objects.get('Lifting at berth 3')
     if lift is not None:
         frames = list(range(0, end + 1, KEY_STEP))
         t = np.array(frames) / c4.FPS
+        away = np.where(t > T, 0.5 * 3.0 * (t - T) ** 2, 0.0)                # m along its bow
         z = 11.0 + 4.0 * t + np.where(t > T, 0.6 * (t - T) ** 2, 0.0)
-        x, y = np.full(len(t), lift.location.x), np.full(len(t), lift.location.y)
-        bake_pose(lift, frames, x, y, z, np.full(len(t), lift.rotation_euler.z))
+        hd = lift.rotation_euler.z
+        x, y = lift.location.x + away * math.cos(hd), lift.location.y + away * math.sin(hd)
+        bake_pose(lift, frames, x, y, z, np.full(len(t), hd))
     up = bpy.data.objects.get('Lighter 1 lifting')
     if up is not None:
         linear(up, extrapolate=True)
@@ -1015,6 +1019,7 @@ def add(c4x):
     forklifts(r, F)
     berth_work(r, F)
     lifters(F)
+    clear_sky()
     steam()
     print('PORT_LIFE vehicles=%d boxes=%d' % (sum(len(c) for _, c, _ in sims), len(boxes)), flush=True)
 
@@ -1216,6 +1221,37 @@ def lifters(F):
     z = np.where(t < t0, -60.0, 2.5 + 200.0 * (1 - u) ** 1.6)
     craft(e, z, 2.2)
     dust(e.location.x, e.location.y, t1 - 1.8, 26.0, 18, 'Lift dust hermes return')
+
+
+CLIMBERS = ('Lighter 6 parked', 'Lighter 1 lifting')   # 'Lifting at berth 3' is port_fleet's to fly out
+SKY_HIDE_Z = 300.0       # well above C5's 220 m camera, which holds from C5 4 s to 18 s
+SKY_WINDOW = (4.0, 17.5)
+
+
+def clear_sky():
+    """The owner wants the Colossus the only ship in the air under the title, so each craft still
+    climbing out of the port is put away once it is above C5's low camera, out of sight, before the
+    rise could find it again."""
+    C4E = c4.FRAMES - 1
+    f0, f1 = (C4E + round(w * c4.FPS) for w in SKY_WINDOW)
+    for name in CLIMBERS:
+        ob = bpy.data.objects.get(name)
+        if ob is None:
+            continue
+        zs = track(ob, list(range(f0, f1 + 1)))[:, 2]
+        above = np.nonzero(zs > SKY_HIDE_Z)[0]
+        f = f0 + int(above[0]) if len(above) else f1
+        parts = [ob] + list(ob.children_recursive) + [o for o in bpy.data.objects if o.name.startswith(name + ' ')]
+        for o in parts:
+            for frame, hidden in ((0, False), (f, True)):
+                o.hide_render = hidden
+                o.keyframe_insert('hide_render', frame=frame)
+            for fc in fcurves(o):
+                if fc.data_path == 'hide_render':
+                    for k in fc.keyframe_points:
+                        k.interpolation = 'CONSTANT'
+        print('PORT_LIFE sky: %s put away at C5 %.1f s, %.0f m up%s' % (
+            name, (f - C4E) / c4.FPS, zs[f - f0], '' if len(above) else ' (BELOW the camera: may show)'), flush=True)
 
 
 def dust(x, y, ts, reach, n, name):

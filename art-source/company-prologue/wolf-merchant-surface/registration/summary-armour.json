@@ -1,81 +1,71 @@
 {
  "neck-top-port": {
-  "raw_iou": 0.9939,
+  "raw_iou": 0.9922,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9939,
+  "fitted_iou": 0.9984,
   "scale": [
-   0.99961,
-   0.99942
+   0.99928,
+   1.00379
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 1.0
  },
  "main-top-port": {
-  "raw_iou": 0.9969,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9987,
-  "scale": [
-   0.9995,
-   1.00327
-  ],
-  "boundary_p95_px": 1.0
- },
- "centre-hump": {
-  "raw_iou": 0.9945,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9985,
-  "scale": [
-   1.00215,
-   1.00327
-  ],
-  "boundary_p95_px": 1.0
- },
- "aft-top-port": {
-  "raw_iou": 0.994,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9979,
-  "scale": [
-   0.99835,
-   1.00499
-  ],
-  "boundary_p95_px": 1.0
- },
- "main-side-port": {
-  "raw_iou": 0.9937,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9983,
-  "scale": [
-   1.00455,
-   1.00154
-  ],
-  "boundary_p95_px": 1.0
- },
- "neck-side-port": {
-  "raw_iou": 0.9937,
-  "best_fit": "identity",
-  "fitted_iou": 0.9937,
+  "raw_iou": 0.9917,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9974,
   "scale": [
    1.0,
    1.0
   ],
   "boundary_p95_px": 1.0
  },
- "aft-side-port": {
-  "raw_iou": 0.9957,
+ "aft-top-port": {
+  "raw_iou": 0.9884,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9981,
+  "fitted_iou": 0.9977,
   "scale": [
-   1.0,
-   1.00227
+   0.99717,
+   1.0065
   ],
   "boundary_p95_px": 1.0
  },
  "main-under": {
-  "raw_iou": 0.9921,
+  "raw_iou": 0.995,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9962,
+  "fitted_iou": 0.9977,
   "scale": [
-   1.0008,
-   1.00327
+   0.999,
+   1.00248
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "main-side-port": {
+  "raw_iou": 0.9845,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9997,
+  "scale": [
+   1.01086,
+   1.0
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "neck-side-port": {
+  "raw_iou": 0.9879,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9939,
+  "scale": [
+   1.00788,
+   0.99773
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "aft-side-port": {
+  "raw_iou": 0.9899,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9982,
+  "scale": [
+   1.00942,
+   1.00254
   ],
   "boundary_p95_px": 1.0
  }

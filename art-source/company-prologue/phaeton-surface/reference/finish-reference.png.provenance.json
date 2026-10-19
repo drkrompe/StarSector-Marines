@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155f3-5173-7e73-9d7a-71d92a7c358c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155f3-5173-7e73-9d7a-71d92a7c358c\\exec-3138e6c3-5eb7-45b7-8e2b-271016a7b8c5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "reference\\finish-reference.png",
+    "sha256": "9511412cfedf65cfa8ada5828d34be9aa7b9538a4bf1509d1b05add0208b2b4b",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\finish-reference.prompt.txt",
+  "promptSha256": "df85b22d4c497782b68b46ed101a7701af04d29f5d8a01c995f4c164488e3f23",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the game sprite (deep red of the tank hull only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Phaeton-class fuel tanker (a long, destroyer-sized low-tech merchant tanker with three spherical cargo tanks in a row along its deck), seen from above its port bow quarter on a plain flat mid-green background. Its placeholder colours mark which material each surface is: red on the long tank hull, its open deck, its flanks and the crew gallery block; a slightly lighter red on the three big spherical cargo domes; light grey on the light structure (pipework, catwalks and stairs, the lattice crane, masts, the turret sponsons, the reactor dome and the two reaction drums at the stern corners); tan on the bridge cab at the bow, the two slotted guard arcs either side of the stern and small fittings; mid-grey gunmetal on the machinery (the long strakes below the deck line along both flanks, the aft spine and the stern drive block); near-black on recesses; small warm-lit windows.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the deep red of the tank hull. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in an independent merchant tanker livery:\n- the tank hull, deck, flanks and gallery block (red): a deep oxide-red enamel, like INPUT 2's red but slightly darker and duller;\n- the three spherical cargo domes (lighter red): a pale warm-grey insulated enamel, clearly paler than everything else;\n- the light structure (light grey): a muted slate-blue painted steel;\n- the bridge cab, guard arcs and fittings (tan): a pale buff-cream enamel;\n- the machinery strakes, spine and drive block (gunmetal): dark grey gunmetal steel, bare-ish and industrial;\n- recesses stay near-black dull steel; windows stay as they are.\nThis image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, dome, pipe, turret, crane, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-green with no floor, shadow, stars, text or border.\n- Apart from the repaint above, do not swap or invent colours, stripes, lettering or patches.\n- Finish: a working independent fuel tanker in convoy service, low-tech, rugged and industrial. Semi-matte enamel with crisp plate seams, weld lines, rows of flush fasteners, bolted access covers and subtle panel-to-panel tone differences. Moderate, even service wear: faint edge scuffs on exposed corners, a thin film of grime and fuel staining in seams, a little soot near the aft drives. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\reference-guide.png",
+      "sha256": "7a5e363bb4fe0970f9cbcde79797cf31c0baf9b17338c81585cd39b9d2825b69",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "reference\\sprite-livery.png",
+      "sha256": "1ad98708ffc6c5685c6a715dc71788824cf90ef19ab6ea9f247c80f8d0f22bc3",
+      "dimensions": [
+        960,
+        1872
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 2: the game sprite (deep red of the tank hull only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to repaint the supplied render, preserving its composition and geometry as closely as possible."
+  ],
+  "usage": {
+    "input_tokens": 46050,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 712,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 54.1
+}

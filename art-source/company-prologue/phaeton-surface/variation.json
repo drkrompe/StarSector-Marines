@@ -1,0 +1,258 @@
+{
+ "arc-side-port": {
+  "unit_offset_L_a_b": [
+   0.773,
+   -0.788,
+   0.114
+  ],
+  "note": "hash default; edit freely"
+ },
+ "arc-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.561,
+   -0.788,
+   0.812
+  ],
+  "note": "hash default; edit freely"
+ },
+ "belly": {
+  "unit_offset_L_a_b": [
+   -0.302,
+   -0.953,
+   -0.02
+  ],
+  "note": "hash default; edit freely"
+ },
+ "block-stern": {
+  "unit_offset_L_a_b": [
+   -0.647,
+   0.318,
+   0.412
+  ],
+  "note": "hash default; edit freely"
+ },
+ "block-top": {
+  "unit_offset_L_a_b": [
+   0.059,
+   -0.992,
+   -0.796
+  ],
+  "note": "hash default; edit freely"
+ },
+ "bow": {
+  "unit_offset_L_a_b": [
+   0.514,
+   -0.067,
+   0.373
+  ],
+  "note": "hash default; edit freely"
+ },
+ "cab-front": {
+  "unit_offset_L_a_b": [
+   -0.545,
+   0.584,
+   -0.788
+  ],
+  "note": "hash default; edit freely"
+ },
+ "cab-side-port": {
+  "unit_offset_L_a_b": [
+   0.482,
+   -0.082,
+   0.655
+  ],
+  "note": "hash default; edit freely"
+ },
+ "cab-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.522,
+   -0.216,
+   0.922
+  ],
+  "note": "hash default; edit freely"
+ },
+ "cab-top": {
+  "unit_offset_L_a_b": [
+   0.459,
+   -0.082,
+   -0.451
+  ],
+  "note": "hash default; edit freely"
+ },
+ "deck-top": {
+  "unit_offset_L_a_b": [
+   -0.137,
+   -0.216,
+   0.396
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drum-side-port": {
+  "unit_offset_L_a_b": [
+   0.004,
+   -0.914,
+   0.247
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drum-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.106,
+   0.49,
+   -0.122
+  ],
+  "note": "hash default; edit freely"
+ },
+ "frame-top": {
+  "unit_offset_L_a_b": [
+   0.898,
+   0.671,
+   0.098
+  ],
+  "note": "hash default; edit freely"
+ },
+ "gallery-side-port": {
+  "unit_offset_L_a_b": [
+   -0.506,
+   0.012,
+   0.835
+  ],
+  "note": "hash default; edit freely"
+ },
+ "gallery-top": {
+  "unit_offset_L_a_b": [
+   0.725,
+   0.757,
+   0.984
+  ],
+  "note": "hash default; edit freely"
+ },
+ "housing-top-port": {
+  "unit_offset_L_a_b": [
+   -0.984,
+   0.004,
+   0.992
+  ],
+  "note": "hash default; edit freely"
+ },
+ "housing-top-stbd": {
+  "unit_offset_L_a_b": [
+   -0.169,
+   0.38,
+   0.694
+  ],
+  "note": "hash default; edit freely"
+ },
+ "side-port": {
+  "unit_offset_L_a_b": [
+   0.835,
+   0.624,
+   0.192
+  ],
+  "note": "hash default; edit freely"
+ },
+ "side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.145,
+   0.702,
+   0.992
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-top": {
+  "unit_offset_L_a_b": [
+   0.224,
+   0.624,
+   -0.914
+  ],
+  "note": "hash default; edit freely"
+ },
+ "strake-port": {
+  "unit_offset_L_a_b": [
+   -0.051,
+   0.247,
+   -0.475
+  ],
+  "note": "hash default; edit freely"
+ },
+ "strake-stbd": {
+  "unit_offset_L_a_b": [
+   0.396,
+   -0.451,
+   0.341
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank1-side-port": {
+  "unit_offset_L_a_b": [
+   -0.569,
+   0.271,
+   -0.976
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank1-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.114,
+   -0.294,
+   -0.255
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank1-top": {
+  "unit_offset_L_a_b": [
+   0.38,
+   0.114,
+   0.286
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank2-side-port": {
+  "unit_offset_L_a_b": [
+   0.694,
+   0.224,
+   0.89
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank2-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.122,
+   -0.78,
+   -0.153
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank2-top": {
+  "unit_offset_L_a_b": [
+   0.725,
+   -0.443,
+   0.961
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank3-side-port": {
+  "unit_offset_L_a_b": [
+   -0.624,
+   0.71,
+   0.184
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank3-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.231,
+   -0.239,
+   -0.31
+  ],
+  "note": "hash default; edit freely"
+ },
+ "tank3-top": {
+  "unit_offset_L_a_b": [
+   0.365,
+   0.475,
+   -0.357
+  ],
+  "note": "hash default; edit freely"
+ }
+}

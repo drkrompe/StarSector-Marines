@@ -27,6 +27,8 @@ Options after a literal "--":
   --blockout     skip the arm and body detail modules (shape review)
   --cpu          render on the CPU rather than the shared GPU
   --res WxH      render size (default 1920x1080)
+  --state S      clean (default; the committed asset) or boarded (the prize:
+                 ts_damage scars; needs --out or --no-save)
   --figure       stand a 1.8 m mannequin by the starboard Kite collar (never saved)
   --no-save      skip the .blend and geometry.json
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
@@ -46,7 +48,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import ts_kit, ts_hull, ts_arms, ts_body, ts_bridge, ts_engines, ts_mounts, ts_fittings
+import ts_kit, ts_hull, ts_arms, ts_body, ts_bridge, ts_engines, ts_mounts, ts_fittings, ts_damage
 MODULES = (ship_scale, ts_kit, ts_hull, ts_arms, ts_body, ts_bridge, ts_engines, ts_mounts, ts_fittings)
 for module in MODULES:
     importlib.reload(module)
@@ -65,9 +67,12 @@ parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--figure', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
 parser.add_argument('--blockout', action='store_true', help='skip the arm and body detail modules (shape review)')
+parser.add_argument('--state', choices=('clean',)+ts_damage.STATES, default='clean')
 parser.add_argument('--cpu', action='store_true', help='render on the CPU (the GPU is shared and often saturated)')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
+if args.state != 'clean' and OUT == HERE.resolve() and not args.no_save:
+    raise SystemExit(f'--state {args.state} needs --out DIR (or --no-save): this folder holds the clean asset')
 OUT.mkdir(parents=True, exist_ok=True)
 
 # Real-world scale (pipeline pass 4): one number every metric value reads.
@@ -113,6 +118,7 @@ ts_bridge.build(kit)
 ts_engines.build(kit)
 ts_fittings.build(kit)
 ts_mounts.build(kit)
+scars = ts_damage.apply(args.state, METRES_PER_UNIT or .5) if args.state != 'clean' else None
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
@@ -308,7 +314,8 @@ if not args.no_save:
     scene.render.film_transparent = False
     scene.camera = bpy.data.objects['Camera three-quarter']
     bpy.context.preferences.filepaths.save_version = 0
-    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'tarsus-geometry.blend'))
+    BLEND_NAME = 'tarsus-geometry.blend' if args.state == 'clean' else f'tarsus-geometry-{args.state}.blend'
+    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/BLEND_NAME))
     lo, hi = bounds()
     mpu = METRES_PER_UNIT
     metres = (lambda p: [round(v*mpu, 2) for v in p]) if mpu else (lambda p: None)
@@ -364,15 +371,25 @@ if not args.no_save:
                          'Engine <i> ...': 'drive can / aft-facing bell / mouth lip / dark throat / exhaust anchor',
                          'Turret <i> WS 00n ...': 'mounts; pivot and muzzle empties',
                          'Clamp receiver ... / Kite collar ...': 'docking hardpoints and their anchors',
-                         'Scar <id> ...': 'reserved for the boarded condition state'},
+                         'Scar <id> ...': 'boarded condition state only (ts_damage): craters, scorch, torn plating, smoke anchors'},
         'condition_states': {'planned': ['boarded (drive section shot out and scorched, drives dark, '
                                          'Kites and Mk.III clamped on; not destroyed)'],
                              'contract': 'second-wind-pipeline.md layers: clean base + scar table with stable ids',
-                             'built': []},
+                             'built': list(ts_damage.STATES)},
         'cameras': [{'name': n, 'position': list(p), 'orthographic_scale': s,
                      'rotation': 'bow left, port below' if n == 'top' else 'looks at '+str(list(TARGET))}
                     for n, p, s in CAMERAS],
     }
+    if scars is not None:
+        manifest['state'] = args.state
+        manifest['status'] = ('Boarded condition state of the pass 2 / round 1 geometry (ts_damage): the drive '
+                              'section cratered and scorched, its lamps dark; cutting rings at both Kite collars. '
+                              'Not destroyed: holds, command module, tanks, turrets and docking hardware untouched.')
+        for row in scars:
+            if mpu and 'radius_units' in row:
+                row['radius_m'] = round(row['radius_units']*mpu, 2)
+                row['location_m'] = metres(row['location'])
+        manifest['scars'] = scars
     path = OUT/'geometry.json'
     if path.exists():  # keep the silhouette record compose_review.py wrote
         old = json.loads(path.read_text(encoding='utf-8'))

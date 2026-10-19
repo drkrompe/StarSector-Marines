@@ -44,3 +44,6 @@ blend render_parts.py -- --hull "$HS"
 # 5. Apply with service wear, review.
 blend apply_skin.py -- --hull "$HS" --wear service
 SURF_CPU=1 blend review.py -- --hull "$HS" --samples 16 --views s7-astern,three-quarter
+# 6. Boarded condition state on the skinned build (tarsus-geometry/ts_damage.py).
+"$BLENDER" --background --factory-startup --python "$GEOM/damage_blend.py" -- "$HS/build/skinned.blend" "$HS/build/boarded/skinned-boarded.blend" 2>&1 | grep -E "SCAR|Error|Traceback" || true
+SURF_CPU=1 blend review.py -- --hull "$HS" --blend build/boarded/skinned-boarded.blend --out build/review-boarded --samples 16 --views s7-astern,s10-above-behind

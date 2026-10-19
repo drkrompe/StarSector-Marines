@@ -5,7 +5,7 @@
  "append_collection": "WOLF",
  "root": "WOLF | root",
  "anchors_collection": "WOLF | anchors",
- "metres_per_unit": 0.76,
+ "metres_per_unit": 0.75,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -20,17 +20,17 @@
   [
    57.98,
    26.183,
-   13.566
+   14.57
   ]
  ],
  "size_m": [
-  74.6,
-  39.8,
-  24.0
+  73.6,
+  39.3,
+  24.4
  ],
- "meshes": 171,
- "polygons": 16913,
- "images": 20,
+ "meshes": 166,
+ "polygons": 19009,
+ "images": 19,
  "engines": [
   {
    "index": 1,
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    7.6
+    10.44
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -158,7 +158,7 @@
    "location": [
     -13,
     12,
-    8.8
+    9.8
    ],
    "rest_angle_deg": 90,
    "arc_deg": 200,
@@ -196,7 +196,7 @@
    "location": [
     -13,
     -11,
-    8.8
+    9.8
    ],
    "rest_angle_deg": -90,
    "arc_deg": 200,
@@ -235,7 +235,7 @@
    "location": [
     45,
     0,
-    -0.5
+    -4.0
    ],
    "k": 0.55,
    "bay": {
@@ -245,8 +245,8 @@
     ],
     "half_width": 5.3,
     "z": [
-     -3.3,
-     3.1
+     -6.8,
+     -0.3999999999999999
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -275,7 +275,7 @@
    "location": [
     11,
     20,
-    -1.8
+    -3.2
    ],
    "k": 0.6,
    "bay": null,
@@ -309,7 +309,7 @@
    "location": [
     11,
     -19,
-    -1.8
+    -3.2
    ],
    "k": 0.6,
    "bay": null,
@@ -442,7 +442,7 @@
    "location": [
     11,
     0,
-    7.6
+    10.44
    ],
    "angle": 0,
    "arc": 150,
@@ -459,7 +459,7 @@
    "location": [
     -13,
     12,
-    8.8
+    9.8
    ],
    "angle": 90,
    "arc": 200,
@@ -476,7 +476,7 @@
    "location": [
     -13,
     -11,
-    8.8
+    9.8
    ],
    "angle": -90,
    "arc": 200,
@@ -493,7 +493,7 @@
    "location": [
     45,
     0,
-    -0.5
+    -4.0
    ],
    "angle": 0,
    "arc": 5,
@@ -510,7 +510,7 @@
    "location": [
     11,
     20,
-    -1.8
+    -3.2
    ],
    "angle": 0,
    "arc": 5,
@@ -531,7 +531,7 @@
    "location": [
     11,
     -19,
-    -1.8
+    -3.2
    ],
    "angle": 0,
    "arc": 5,
@@ -568,7 +568,7 @@
    "position": [
     26,
     11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -583,7 +583,7 @@
    "position": [
     26,
     -11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -628,7 +628,7 @@
    "position": [
     -30,
     0,
-    7.85
+    8.67
    ],
    "colour": "white",
    "role": "stern light",
@@ -643,7 +643,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-merchant-surface (shared harness, service wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "2aacfde2eb7e92edb8b3877fd01114aa5f854d62f584ee06d68ffcd4e1828127"
+  "vfx_hull_sha256": "76f0fc185258ef3bc3567c65a79a32d2b180ff54ed5bb09507f68ebed813622b"
  },
  "state": "clean",
  "engines_running": [
@@ -861,5 +861,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "d5ea7861960e39fa6ebdf8cadfb9bf6f136893b6160ad411fd86bd654e8d286e"
+ "asset_sha256": "cfbc840363e01c5c0c73fdf7779829994fd9100e10261bbd4d8ffea433d34a82"
 }

@@ -1,0 +1,614 @@
+{
+ "asset": "phaeton-destroyed.blend",
+ "append_collection": "PHAETON WRECK",
+ "root": "PHAETON WRECK | root",
+ "anchors_collection": "PHAETON WRECK | anchors",
+ "state": "destroyed",
+ "metres_per_unit": 0.33,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_frame0": [
+  [
+   -93.44,
+   -59.7,
+   -21.67
+  ],
+  [
+   138.75,
+   60.7,
+   34.55
+  ]
+ ],
+ "size_metres_frame0": [
+  76.6,
+  39.7,
+  18.6
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "main drive",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -93.0,
+    36.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.48,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 2,
+   "role": "main drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -93.0,
+    24.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 3,
+   "role": "main drive",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -93.0,
+    9.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 4,
+   "role": "main drive",
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -93.0,
+    -9.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 5,
+   "role": "main drive",
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -93.0,
+    -24.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": false
+  },
+  {
+   "index": 6,
+   "role": "main drive",
+   "anchor": "Engine 6 exhaust anchor",
+   "mouth": [
+    -93.0,
+    -36.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.48,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": false
+  }
+ ],
+ "engines_running": [],
+ "turrets": [],
+ "launchers": [],
+ "lamps_lit": 0,
+ "lamps": [
+  {
+   "object": "Bow port sidelight",
+   "material": "Navigation lamp red",
+   "lit": false,
+   "at": [
+    117.0,
+    30.6,
+    4.43
+   ]
+  },
+  {
+   "object": "Bow sensor head lamp",
+   "material": "Gallery window amber",
+   "lit": false,
+   "at": [
+    124.2,
+    -18.2,
+    13.55
+   ]
+  },
+  {
+   "object": "Bridge masthead lamp",
+   "material": "Masthead lamp white",
+   "lit": false,
+   "at": [
+    107.6,
+    -20.2,
+    33.25
+   ]
+  },
+  {
+   "object": "Bridge starboard sidelight",
+   "material": "Navigation lamp green",
+   "lit": false,
+   "at": [
+    119.25,
+    -35.3,
+    17.7
+   ]
+  },
+  {
+   "object": "Drive port housing crown port",
+   "material": "Drive housing pink glow",
+   "lit": false,
+   "at": [
+    -47.0,
+    29.0,
+    4.52
+   ]
+  }
+ ],
+ "objects": 1404,
+ "polygons": 95710,
+ "baked_meshes": 465,
+ "images": [
+  "Skin arc-side-port",
+  "Skin belly",
+  "Skin block-stern",
+  "Skin block-top",
+  "Skin bow",
+  "Skin cab-front",
+  "Skin cab-side-port",
+  "Skin cab-side-stbd",
+  "Skin cab-top",
+  "Skin deck-top",
+  "Skin drum-side-port",
+  "Skin frame-top",
+  "Skin gallery-side-port",
+  "Skin gallery-top",
+  "Skin housing-top-port",
+  "Skin side-port",
+  "Skin side-stbd",
+  "Skin spine-top",
+  "Skin strake-port",
+  "Skin strake-stbd",
+  "Skin tank1-top",
+  "Skin tank2-side-port",
+  "Skin tank2-top",
+  "Skin tank3-top",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch dome",
+  "Swatch gunmetal",
+  "Swatch red",
+  "Swatch slate"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile phaeton-cinematic/vfx_hull.py, state destroyed, groups fire; no rig preset)",
+  "objects": 103,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 3.4799999999999995,
+     "mouth": [
+      -71.0,
+      36.0,
+      -5.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      -0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 4.64,
+     "mouth": [
+      -71.0,
+      24.0,
+      -5.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      -0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "port",
+     "radius": 4.64,
+     "mouth": [
+      -71.0,
+      9.0,
+      -5.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      -0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "starboard",
+     "radius": 4.64,
+     "mouth": [
+      -71.0,
+      -9.0,
+      -5.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      -0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "starboard",
+     "radius": 4.64,
+     "mouth": [
+      -71.0,
+      -24.0,
+      -5.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      -0.0
+     ]
+    },
+    {
+     "index": 6,
+     "side": "starboard",
+     "radius": 3.4799999999999995,
+     "mouth": [
+      -71.0,
+      -36.0,
+      -5.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      -0.0
+     ]
+    }
+   ],
+   "guns": [],
+   "lamps": [
+    {
+     "name": "Bridge masthead lamp",
+     "role": "masthead",
+     "at": [
+      107.6,
+      -20.2,
+      33.25
+     ]
+    },
+    {
+     "name": "Bow port sidelight",
+     "role": "masthead",
+     "at": [
+      117.0,
+      30.6,
+      4.434
+     ]
+    },
+    {
+     "name": "Bridge starboard sidelight",
+     "role": "masthead",
+     "at": [
+      119.25,
+      -35.3,
+      17.7
+     ]
+    },
+    {
+     "name": "Deck aft dome crown lamp port lens",
+     "role": "beacon",
+     "at": [
+      0.0,
+      5.16,
+      26.25
+     ]
+    },
+    {
+     "name": "Deck mid dome crown lamp starboard lens",
+     "role": "beacon",
+     "at": [
+      44.0,
+      -5.16,
+      25.75
+     ]
+    },
+    {
+     "name": "Deck fore dome crown lamp port lens",
+     "role": "beacon",
+     "at": [
+      88.0,
+      5.16,
+      26.75
+     ]
+    },
+    {
+     "name": "Deck vent mast 1 lamp lens",
+     "role": "beacon",
+     "at": [
+      -19.74,
+      -8.0,
+      31.5
+     ]
+    },
+    {
+     "name": "Deck vent mast 4 lamp lens",
+     "role": "beacon",
+     "at": [
+      107.26,
+      7.0,
+      31.15
+     ]
+    },
+    {
+     "name": "Deck trunk gap A lamp lens",
+     "role": "work",
+     "at": [
+      22.258,
+      3.96,
+      12.85
+     ]
+    },
+    {
+     "name": "Deck trunk gap B lamp lens",
+     "role": "work",
+     "at": [
+      65.29,
+      3.96,
+      12.85
+     ]
+    },
+    {
+     "name": "Deck port manifold lamp lens",
+     "role": "work",
+     "at": [
+      53.8,
+      29.36,
+      10.7
+     ]
+    },
+    {
+     "name": "Deck starboard manifold lamp lens",
+     "role": "work",
+     "at": [
+      70.4,
+      -28.16,
+      10.7
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -93.44,
+     -59.7,
+     -21.67
+    ],
+    [
+     138.75,
+     60.7,
+     34.55
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "fire": {
+    "state": "destroyed",
+    "fires": 22,
+    "vents": 6,
+    "explosions": 3
+   }
+  },
+  "append": "load both 'PHAETON WRECK' and 'SWFX' in one call; the ship alone works without it",
+  "detonation": "SWFX controls fir_exp_frame is driven from PHAETON WRECK | controls break_frame: set break_frame only. fir_fire / fir_vent / fir_smoke scale the wreck's fires; fir_exp 0 suppresses the blast for a wreck already burning."
+ },
+ "sources": {
+  "skinned_blend": "phaeton-surface/build/skinned-destroyed.blend",
+  "geometry_json_sha256": "2680b8d564ba98cd8bed70e4b0b957d2065326990351b8975a12708e4cc3d213"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft, line of fire, vent direction); +Z as near hull-dorsal as that allows.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres.",
+  "wreck": "Base objects keep their names; damage adds Scar <id> objects (phaeton-geometry/ph_damage.py scar table). Lamps are dark."
+ },
+ "break_up": {
+  "controls": "PHAETON WRECK | controls",
+  "break_frame": "frame of the detonation; before it every section is in the intact pose",
+  "break_rate": "drift speed multiplier",
+  "break_s": 4.0,
+  "sections": {
+   "stern": {
+    "empty": "Scar S02 stern section",
+    "pivot": [
+     22,
+     0,
+     -4
+    ],
+    "translate_at_break_s": [
+     -14,
+     -4,
+     -5
+    ],
+    "rotate_deg_at_break_s": [
+     -5,
+     -4,
+     -7
+    ]
+   },
+   "mid": {
+    "empty": "Scar S04 mid section",
+    "pivot": [
+     44,
+     0,
+     -4
+    ],
+    "translate_at_break_s": [
+     2,
+     -6,
+     -14
+    ],
+    "rotate_deg_at_break_s": [
+     -24,
+     -10,
+     14
+    ]
+   },
+   "bow": {
+    "empty": "Scar S01 bow section",
+    "pivot": [
+     66,
+     0,
+     -4
+    ],
+    "translate_at_break_s": [
+     26,
+     7,
+     12
+    ],
+    "rotate_deg_at_break_s": [
+     16,
+     8,
+     6
+    ]
+   }
+  },
+  "flying_pieces": 40,
+  "explosion_anchors": [
+   {
+    "anchor": "Scar S04 explosion anchor main",
+    "at": [
+     44.0,
+     4.0,
+     4.0
+    ],
+    "section": null,
+    "size_m": 20.0,
+    "delay_s": 0.0
+   },
+   {
+    "anchor": "Scar S03 explosion anchor tank 1",
+    "at": [
+     8.0,
+     6.0,
+     14.0
+    ],
+    "section": "stern",
+    "size_m": 10.0,
+    "delay_s": 0.35
+   },
+   {
+    "anchor": "Scar S05 explosion anchor tank 3",
+    "at": [
+     80.0,
+     -3.0,
+     16.0
+    ],
+    "section": "bow",
+    "size_m": 11.0,
+    "delay_s": 0.6
+   }
+  ],
+  "fire_anchors": [
+   "Scar S01 fire anchor aft face 1",
+   "Scar S01 fire anchor aft face 2",
+   "Scar S01 fire anchor aft face 3",
+   "Scar S01 fire anchor fore face 1",
+   "Scar S01 fire anchor fore face 2",
+   "Scar S01 fire anchor fore face 3",
+   "Scar S02 fire anchor aft face 1",
+   "Scar S02 fire anchor aft face 2",
+   "Scar S02 fire anchor aft face 3",
+   "Scar S02 fire anchor fore face 1",
+   "Scar S02 fire anchor fore face 2",
+   "Scar S02 fire anchor fore face 3",
+   "Scar S03 fire anchor 1",
+   "Scar S04 fire anchor 1",
+   "Scar S04 fire anchor 2",
+   "Scar S04 fire anchor 3",
+   "Scar S05 fire anchor 1",
+   "Scar S06 fire anchor 1",
+   "Scar S06 fire anchor 2",
+   "Scar S06 fire anchor 3",
+   "Scar S06 fire anchor 4",
+   "Scar S06 fire anchor 5"
+  ],
+  "vent_anchors": [
+   "Scar S01 vent anchor aft face",
+   "Scar S01 vent anchor fore face",
+   "Scar S02 vent anchor aft face",
+   "Scar S02 vent anchor fore face",
+   "Scar S03 vent anchor 1",
+   "Scar S05 vent anchor 1"
+  ],
+  "staging": "Append PHAETON and PHAETON WRECK at the same root transform; set break_frame; show PHAETON before it and PHAETON WRECK from it. The swap is seamless: the wreck is in the intact pose at break_frame, under the flash."
+ },
+ "asset_sha256": "b69646885031bff8749446c73332a4771bba025bb1eb9332ca8a2fc217b533a0"
+}

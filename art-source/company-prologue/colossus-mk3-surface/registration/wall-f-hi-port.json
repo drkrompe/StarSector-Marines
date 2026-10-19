@@ -1,0 +1,59 @@
+{
+ "part": "wall-f-hi-port",
+ "sheet": "modules-wall",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9951,
+ "raw_iou": 0.9939,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9977,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9939
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00128,
+    1.00247
+   ],
+   "offset_px": [
+    -0.08,
+    -1.13
+   ],
+   "iou": 0.9977
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00115,
+    1.00247
+   ],
+   "offset_px": [
+    -0.08,
+    -1.13
+   ],
+   "iou": 0.9977
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.48,
+  "p95_px": 1.0,
+  "max_px": 1.41
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.19,
+  "p95_px": 1.0,
+  "max_px": 1.41
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
