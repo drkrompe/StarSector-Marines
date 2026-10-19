@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a151b2-a866-7e62-b3e7-649fc72de217",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a151b2-a866-7e62-b3e7-649fc72de217\\exec-52c49840-3530-42e1-8605-bc32a3cfb75e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\raw\\k9-works-w.png",
+    "sha256": "24cf4cecba8d504b0454525e67881b1c6c07ef1efda090f3e65e6c996c94267b",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\raw\\k9-works-w.prompt.txt",
+  "promptSha256": "3fd9b1f3d9faf19f36d9ddb4f6cd06e90aecf607f70a71ff038d286fdf067097",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: EDIT TARGET: the overhead guide to repaint; keep every edge where it is\nImage 2: STYLE REFERENCE: an already painted neighbouring tile of the same place. Match its materials, colours, wear and finish exactly; do not copy its layout\n\nRepaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.\n\nHard rules:\n- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.\n- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.\n- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.\n- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.\n- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.\n- Fill the whole frame edge to edge. No border.\n\nSetting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.\n\nThis tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the west side of its north half: the fabrication hall where hulls are mended, and the plate stock.\n\nWhat the regions are:\n- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.\n- The dark grey vertical strip at the far left: the yard's haul road of packed dark gravel with patches of old asphalt, deep tyre tracks, mud at the edges.\n- The large rust-brown rectangle with four long pale strips: the roof of the fabrication hall, corrugated metal gone rust-brown with patched sheets, the pale strips are long skylight roof lights of milky translucent panels, dirty. The dark short bars along its south edge: roll-up door hoods, dark steel.\n- The dark grey horizontal rectangle: an apron of packed dark gravel and old asphalt in front of the hall, tyre tracks and oil.\n- The rows of small blue, green, orange and white rectangles: the roofs of stacked cargo modules, ribbed painted steel with rust streaks, scuffs and stencil-free panels.\n- The long thin yellow straight lines running north-south: the rails of an overhead plate crane, heavy steel rails on a concrete ground beam painted safety yellow, worn.\n- The grey rectangles in rows between the crane rails: stacked steel plate and salvaged hull sections, grey primer and bare steel, weld scars, rust bloom, scorch marks.\n- The thin rust-brown bars at the right edge: stacked steel beams, rusty.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\guides\\k9-works-w.png",
+      "sha256": "e59ff3749d5a4ae9c11fd9fd4e0f70088d4589eba1007b440c5b5ed5f0a1b7e8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "EDIT TARGET: the overhead guide to repaint; keep every edge where it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\raw\\k9-south.png",
+      "sha256": "8a705f8edc801c02899ba37da19f1923a6f2a30417e0df2b5c91b2bc3265d33c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "STYLE REFERENCE: an already painted neighbouring tile of the same place. Match its materials, colours, wear and finish exactly; do not copy its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll repaint the guide with the imagegen skill, preserving its geometry and matching the neighbouring tile’s materials and wear."
+  ],
+  "usage": {
+    "input_tokens": 112322,
+    "cached_input_tokens": 91264,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1066,
+    "reasoning_output_tokens": 43
+  },
+  "elapsedSeconds": 58.3
+}

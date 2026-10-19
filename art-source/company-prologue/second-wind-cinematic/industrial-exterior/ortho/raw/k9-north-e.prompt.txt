@@ -1,0 +1,26 @@
+Repaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.
+
+Hard rules:
+- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.
+- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.
+- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.
+- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.
+- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.
+- Fill the whole frame edge to edge. No border.
+
+Setting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.
+
+This tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the north-east corner: the yard's generators and fuel tanks, the scrap heap, and the fence corner.
+
+What the regions are:
+- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.
+- The dark grey rectangle at the top left: the turning ground, packed dark gravel and broken asphalt with curved tyre tracks and oil.
+- The long thin yellow straight lines running north-south: the rails of an overhead plate crane, heavy steel rails on a concrete ground beam painted safety yellow, worn.
+- The grey rectangles in rows between the crane rails: stacked steel plate and salvaged hull sections, grey primer and bare steel, weld scars, rust bloom, scorch marks.
+- The three long pale green rectangles and the small green square: the roofs of the yard's diesel generator sets and a switchgear cabinet, faded green painted steel with exhaust soot around the stacks and louvred vents.
+- The two white discs: the tops of two round fuel day tanks, white paint, dirty and streaked, with a filler hatch.
+- The scatter of grey slabs at the top right: a scrap heap of cut hull plate, twisted pieces and junk, grey and rust-brown, overlapping.
+- The small squares at the left edge: the roofs of cargo modules.
+- The thin dark vertical line with small light dots near the right: the yard's east fence, a chain-link fence on steel posts, seen from above as a thin dark line. Keep it thin and straight. The grey strip just east of it: a muddy service track along the fence.
+- Dark green beyond the fence: jungle undergrowth, dense broad-leaved plants and ferns, wet. The large brown patches in it: bare red-brown earth and burnt clearings, with fallen leaves and stumps.
+- Round dark green blobs: the crowns of jungle trees seen from above, dense leafy canopy.
