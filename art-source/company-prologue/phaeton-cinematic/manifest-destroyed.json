@@ -238,7 +238,7 @@
  "effects": {
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, hull profile phaeton-cinematic/vfx_hull.py, state destroyed, groups fire; no rig preset)",
-  "objects": 103,
+  "objects": 118,
   "anchors": {
    "engines": [
     {
@@ -463,7 +463,7 @@
     "state": "destroyed",
     "fires": 22,
     "vents": 6,
-    "explosions": 3
+    "explosions": 8
    }
   },
   "append": "load both 'PHAETON WRECK' and 'SWFX' in one call; the ship alone works without it",
@@ -554,6 +554,34 @@
     "delay_s": 0.0
    },
    {
+    "anchor": "Scar S04 explosion anchor tank 2 flashback",
+    "at": [
+     44.0,
+     -8.0,
+     8.0
+    ],
+    "section": "mid",
+    "size_m": 11.0,
+    "delay_s": 0.5,
+    "ring": 0.0,
+    "flash": 0.5,
+    "embers": 60
+   },
+   {
+    "anchor": "Scar S02 explosion anchor aft fuel line",
+    "at": [
+     24.0,
+     10.0,
+     0.0
+    ],
+    "section": "stern",
+    "size_m": 6.0,
+    "delay_s": 1.2,
+    "ring": 0.0,
+    "flash": 0.3,
+    "embers": 40
+   },
+   {
     "anchor": "Scar S03 explosion anchor tank 1",
     "at": [
      8.0,
@@ -561,8 +589,39 @@
      14.0
     ],
     "section": "stern",
-    "size_m": 10.0,
-    "delay_s": 0.35
+    "size_m": 16.0,
+    "delay_s": 1.9,
+    "ring": 0.6,
+    "flash": 0.8,
+    "embers": 100
+   },
+   {
+    "anchor": "Scar S02 explosion anchor machinery",
+    "at": [
+     -30.0,
+     -28.0,
+     6.0
+    ],
+    "section": "stern",
+    "size_m": 7.0,
+    "delay_s": 2.7,
+    "ring": 0.0,
+    "flash": 0.3,
+    "embers": 40
+   },
+   {
+    "anchor": "Scar S01 explosion anchor fore fuel line",
+    "at": [
+     68.0,
+     -12.0,
+     -2.0
+    ],
+    "section": "bow",
+    "size_m": 6.0,
+    "delay_s": 3.4,
+    "ring": 0.0,
+    "flash": 0.3,
+    "embers": 40
    },
    {
     "anchor": "Scar S05 explosion anchor tank 3",
@@ -572,8 +631,25 @@
      16.0
     ],
     "section": "bow",
-    "size_m": 11.0,
-    "delay_s": 0.6
+    "size_m": 18.0,
+    "delay_s": 4.2,
+    "ring": 0.7,
+    "flash": 1.0,
+    "embers": 120
+   },
+   {
+    "anchor": "Scar S02 explosion anchor drive block",
+    "at": [
+     -80.0,
+     0.0,
+     4.0
+    ],
+    "section": "stern",
+    "size_m": 9.0,
+    "delay_s": 5.6,
+    "ring": 0.0,
+    "flash": 0.5,
+    "embers": 60
    }
   ],
   "fire_anchors": [
@@ -610,5 +686,5 @@
   ],
   "staging": "Append PHAETON and PHAETON WRECK at the same root transform; set break_frame; show PHAETON before it and PHAETON WRECK from it. The swap is seamless: the wreck is in the intact pose at break_frame, under the flash."
  },
- "asset_sha256": "b69646885031bff8749446c73332a4771bba025bb1eb9332ca8a2fc217b533a0"
+ "asset_sha256": "dbd0ed966a2f743040653eeef8ec5d8d418af09bec813d5939810d7529ee7b19"
 }
