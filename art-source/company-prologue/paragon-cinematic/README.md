@@ -1,6 +1,6 @@
 # Paragon: cinematic asset
 
-Status: REVIEW (pass 7 posted 2026-10-19)
+Status: REVIEW (pass 7 posted 2026-10-19; Fortress Shield posted 2026-10-19)
 Written: 2026-10-19
 
 Source art for cinematics; nothing here ships in the mod. This folder makes
@@ -44,10 +44,10 @@ root = bpy.data.objects['PARAGON | clean | root']
 - **Bow lances.** WS 001 and 002 are fixed hardpoints:
   `Weapon WS 001|002 muzzle anchor 1`, +X forward.
 - **Shield.** `Shield emitter` at the Fortress Shield centre and ten emitter
-  nodes on the bore lining; the radius is in the manifest's `shield`. There
-  is no shield effect yet.
+  nodes on the bore lining; the radius is in the manifest's `shield`. The
+  effect is in `SWFX` (below).
 - **Effects (optional).** `SWFX` is the shared kit (`swfx.apply(state='clean',
-  groups=(thrusters, smoke, guns, beams), hull=<this folder>, rcs=False,
+  groups=(thrusters, smoke, guns, beams, shield), hull=<this folder>, rcs=False,
   dust=False)`). It provides:
   - HIGH_TECH blue plumes (vanilla 100,165,255), blue-white cores, bell glow
     and a glow light on all ten drives, each sized to its mouth;
@@ -58,7 +58,19 @@ root = bpy.data.objects['PARAGON | clean | root']
     lances, four graviton beams, four tactical lasers, five PD lasers) in the
     vanilla colours, widths, ranges and charge timings, dark until fired.
     `swfx_beams.fire_beam(ctx, 'ws003', frame)` keys a shot; `beam_len_<id>`
-    is the distance to the target. `manifest.json` `beams` lists every id.
+    is the distance to the target. `manifest.json` `beams` lists every id;
+  - the Fortress Shield (`swfx_shield`, dark until raised): a 270-unit
+    (235 m) bubble on `Shield emitter` in the vanilla colours (HIGH_TECH ring
+    255,255,255 and inner 125,125,255; the fortressshield system's inner
+    255,100,255), unfolding from the bow both ways and closing aft as an OMNI
+    shield does in the game; four aimable hit flashes; a glow and a light on
+    each of the ten emitter nodes, which light first. `shield_t` raises it,
+    `shield_fortress` blends to the Fortress Shield (brighter, steadier,
+    magenta, nodes hotter), `shield_facing` turns where it unfolds from.
+    `swfx_shield.raise_shield(ctx, frame, hold_s)`, `fortress(ctx, frame,
+    hold_s)` (the system's 1.5 s charge up and down) and `hit(ctx, k, frame,
+    azimuth, elevation)` key them; `manifest.json` `shield_fx` lists the
+    parts. In the game a ship cannot fire while the Fortress Shield is on.
 - **Aiming (`aim.py`).** `aim.engage(man, target)` trains every turret whose
   vanilla arc holds the target and returns which beams may fire, their
   lengths, and why the rest hold: outside the arc, unable to lay on it within
@@ -69,7 +81,7 @@ root = bpy.data.objects['PARAGON | clean | root']
   the port bow 8 bear. Fire only what `engage` returns.
 
   Everything is animatable from `SWFX controls` (`thr_*`, `smk_*`, `gun_*`,
-  `beam_*`; see `../second-wind-vfx/README.md`). Append it in the same load as
+  `beam_*`, `shield_*`; see `../second-wind-vfx/README.md`). Append it in the same load as
   the ship.
 
 The meshes are baked (bevels applied), so the asset costs nothing to evaluate
@@ -82,7 +94,9 @@ Second-Wind-shaped engines, so the kit looks for `Engine <i> exhaust anchor`
 first; the effects export adds them. The profile sets `GEOMETRY_JSON` (the
 scale), the ten `ENGINES` and their mouth radii, the port/starboard split, one
 state `clean`, HIGH_TECH `COLOURS`, the needler `RIGS`, the `BEAMS` table
-(read off the vanilla `.wpn` files and `weapon_data.csv`), no lamps and no RCS.
+(read off the vanilla `.wpn` files and `weapon_data.csv`), the `SHIELD`
+(geometry.json's `shield`, the HIGH_TECH hull style's shield colours and the
+fortressshield system's), no lamps and no RCS.
 
 ## Build
 
@@ -101,7 +115,10 @@ state `clean`, HIGH_TECH `COLOURS`, the needler `RIGS`, the `BEAMS` table
    `review/beams.png`, `review/beam-broadside.png`, `review/beam-bow.png` and
    `review/beam-port.png` (`aim.engage` on a point 870 m ahead and on one
    high on the port bow, every beam that can bear fired at it), and
-   `review/lance-sequence.png` (the bow lances through one shot).
+   `review/lance-sequence.png` (the bow lances through one shot), and
+   `review/shield.png` with `review/shield-half.png`, `shield-raised.png`
+   and `shield-fortress.png` (`--shield`: half raised, raised with two hits,
+   and the Fortress Shield with one).
 
 `--samples S` changes the samples, `--no-review` stops after verification.
 Renders go to `build/review/`, sheets to `review/`; both are ignored.
@@ -127,13 +144,17 @@ fired, and fired, running from the muzzle along the line of fire to their
 range with the impact glow at the end; a beam training with its turret; the
 lance's charge lighting the emitter before the beam; on a target ahead and
 one on the port bow, the aft turrets holding fire ahead and a ray along every
-fired beam meeting no part of the ship but its own weapon; every driver
-valid; and
-the root carrying the effects.
+fired beam meeting no part of the ship but its own weapon; the shield: its
+bubble on `Shield emitter` at the vanilla radius, dark (and the nodes unlit)
+until raised, the ten nodes fully lit a third of the way up, the Fortress
+Shield burning them hotter in its own colour, a hit aimed by azimuth and
+elevation landing on the bubble in the hull frame whatever the facing (and
+read by the bubble's shader), and the bubble enclosing every drive and
+turret (and all of the hull); every driver valid; and the root carrying the
+effects and the shield.
 
 ## Left out
 
-- No shield effect: the Fortress Shield is a separate piece of work.
 - No missile effects: the four Reaper racks have no launch or wake.
 - No running lights (the Paragon has none) and no lighting-rig preset (the
   shot's).
@@ -146,5 +167,7 @@ the root carrying the effects.
   `aim.engage`, a turret trained across the ship would fire through it.
 - Arcs are vanilla's flat 2D arcs measured in the hull's plane; the 3D hull
   masks more than the game's sprite does, which the clear-line rule handles.
+- The shield's raise and lower times (1 s) are the cinematic's own: the
+  game's shield unfold rate is not a data column.
 - Gun flashes for the needlers are sized against the Second Wind's mount and
   were not reviewed firing.

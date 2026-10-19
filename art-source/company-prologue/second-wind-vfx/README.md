@@ -56,6 +56,7 @@ group's review into `build/<group>/`.
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
 | `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
+| `swfx_shield.py` | a shield bubble for a hull whose profile declares `SHIELD` (opt-in group; the Second Wind has none) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -435,6 +436,35 @@ its muzzle, so a beam swings with its turret.
   (the Paragon's `aim.engage` does both).
 - Emission is kept low on purpose: a strong emitter goes white under AgX and
   the weapon's colour is lost.
+
+### Shield (`swfx_shield`, opt-in)
+
+The Second Wind has no shield, so `shield` is not in `swfx.GROUPS` and its
+builds never run it. A hull whose profile declares `SHIELD` asks for it:
+`swfx.apply(groups=(..., 'shield'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`): `SHIELD` names the anchor at the vanilla
+shieldCenter, the radius and arc, the emitter-node empties, the vanilla ring
+and inner colours (the hull style's) and, for a SHIELD_MOD ship system such as
+the Fortress Shield, the colours it turns the shield to, plus raise and
+system charge timings.
+
+Dark until raised: a sphere of the vanilla radius, additive, faint inner
+colour across the face thickening toward a ring-coloured rim, with a slow
+ripple; raising it unfolds an arc from the facing direction both ways, led by
+a bright edge, the way an OMNI shield opens in the game. Four hit flashes in
+the ring colour, each an empty aimed by azimuth and elevation about the
+anchor in the hull frame. On each emitter node a glow and a point light,
+fully lit a third of the way up.
+
+- Knobs: `shield_t` (raise envelope), `shield_fortress` (system intensity:
+  colour blend, brighter face and rim, ripple settled, nodes x1.8),
+  `shield_facing` (degrees about +Z), `shield_hit_<k>` with
+  `shield_hit_az_<k>` / `shield_hit_el_<k>` (k 1-4), and the group's
+  `shield_gain`, `shield_rim`, `shield_hit_size`, `shield_light`.
+- `raise_shield(ctx, frame, hold_s=None)`, `fortress(ctx, frame, hold_s=None)`
+  and `hit(ctx, k, frame, azimuth, elevation, strength, decay_s)` key them.
+- The face is seen twice (near and far wall add), so it is kept far fainter
+  than the rim; push `shield_gain` and the bubble goes white under AgX.
 
 ### Lighting (`swfx_lighting`)
 
