@@ -48,6 +48,7 @@ public final class WarshipSystem {
     private final List<WarheadStrike> strikesView = Collections.unmodifiableList(strikes);
     private final List<SplitEvent> splits = new ArrayList<>();
     private final List<SplitEvent> splitsView = Collections.unmodifiableList(splits);
+    private final WarshipHitFx hitFx = new WarshipHitFx();
     private final List<Interceptable> interceptables = new ArrayList<>();
     private final List<Interceptable> interceptablesView = Collections.unmodifiableList(interceptables);
     private final Map<Warship.Mount, Volley> volleys = new IdentityHashMap<>();
@@ -388,6 +389,11 @@ public final class WarshipSystem {
         return strikesView;
     }
 
+    /** What the hull fight's hits look like: flares on shields, blasts on hulls, breach smoke. Presentation only. */
+    public WarshipHitFx hitFx() {
+        return hitFx;
+    }
+
     /** Splits the carriers have just made, newest last, for presentation: one flash per sheaf. */
     public List<SplitEvent> splits() {
         return splitsView;
@@ -436,12 +442,14 @@ public final class WarshipSystem {
         ships.removeIf(Warship::destroyed);
         tickWrecks(dt, sim);
         shipFire.held(hullFireHeld(sim));
+        shipFire.advance(dt);
         tactics.plan(clock, ships, shipFire.held());
         WarshipEdgeHelm edges = new WarshipEdgeHelm(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         for (Warship ship : ships) {
             // A ship fighting hulls spends on the hull fight's clock (D1).
             float fightDt = ship.hullTarget() != null ? dt / WarshipScale.HULL_TEMPO : dt;
             ship.tickMissileGate(fightDt);
+            ship.tickReloads(fightDt);
             ship.tickMountRepairs(clock);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
@@ -493,6 +501,7 @@ public final class WarshipSystem {
         WarshipSpacing.separate(ships, dt);
         ships.removeIf(Warship::departed);
         pointDefence.ageMarks(dt);
+        hitFx.tick(clock, dt, ships);
         interceptables.clear();
         for (WarshipShell s : shells) if (!s.intercepted && s.canBeIntercepted()) interceptables.add(s);
         for (WarheadStrike s : strikes) if (!s.intercepted) interceptables.add(s);
@@ -1269,9 +1278,18 @@ public final class WarshipSystem {
      * rather than the ground's penetration scale. {@code null} is any other round, which keeps that scale.
      */
     boolean strikeHulls(PendingDetonation det, float fromX, float fromY, String damageType) {
+        return strikeHulls(det, fromX, fromY, damageType, null);
+    }
+
+    /**
+     * {@link #strikeHulls(PendingDetonation, float, float, String)} for a round of {@code weapon}, whose look the hit
+     * is drawn with ({@link WarshipHitFx}); null for a round with none.
+     */
+    boolean strikeHulls(PendingDetonation det, float fromX, float fromY, String damageType, VanillaWeapon weapon) {
         boolean reached = false;
         strikeX = Float.NaN;
         strikeY = Float.NaN;
+        strikeShieldOnly = true;
         for (Warship ship : ships) {
             if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
             float gap = ship.distanceTo(det.endpointX, det.endpointY);
@@ -1286,15 +1304,27 @@ public final class WarshipSystem {
                 // The shield takes the hit as flux; the hull takes nothing.
                 ship.shieldModel().absorb(damageType == null ? det.damage
                         : det.damage * shieldMultiplier(damageType), ship.fluxPool());
-                if (Float.isNaN(strikeX)) noteShieldStrike(ship, fromX, fromY, det.endpointX, det.endpointY);
+                float[] at = shieldPoint(ship, fromX, fromY, det.endpointX, det.endpointY);
+                if (Float.isNaN(strikeX) && at != null && ship.plating() != null) {
+                    strikeX = at[0];
+                    strikeY = at[1];
+                }
+                if (at != null) {
+                    hitFx.shieldHit(ship, at[0], at[1], fromX, fromY, damageType, weapon, det.damage, clock);
+                }
                 continue;
             }
+            strikeShieldOnly = false;
             int cell = ship.entryCell(fromX, fromY, det.endpointX, det.endpointY);
             int breachesBefore = ship.plating() == null ? 0 : ship.plating().breachCount();
             if (damageType == null) ship.takeHit(cell, det.damage, det.penetration, clock);
             else ship.takeHullFightHit(cell, det.damage * armourMultiplier(damageType), clock);
+            boolean breached = ship.plating() != null && ship.plating().breachCount() != breachesBefore;
+            float hx = cell >= 0 ? ship.cellX(cell) : det.endpointX;
+            float hy = cell >= 0 ? ship.cellY(cell) : det.endpointY;
+            hitFx.hullHit(ship, hx, hy, fromX, fromY, damageType, weapon, det.damage, breached, clock);
             // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
-            if (ship.plating() != null && ship.plating().breachCount() != breachesBefore) ship.knockOutBreachedMounts(clock);
+            if (breached) knockOutMounts(ship);
             if (Float.isNaN(strikeX) && cell >= 0) {
                 strikeX = ship.cellX(cell);
                 strikeY = ship.cellY(cell);
@@ -1307,9 +1337,21 @@ public final class WarshipSystem {
     private float strikeX = Float.NaN;
     private float strikeY = Float.NaN;
 
-    /** The point on a shield's bubble toward where a round came from (where it landed, with no source). */
-    private void noteShieldStrike(Warship ship, float fromX, float fromY, float px, float py) {
-        if (ship.plating() == null) return;
+    /** Whether every hull the last {@link #strikeHulls} call reached took it on a shield, so its blast is the shield's. */
+    private boolean strikeShieldOnly;
+
+    /** Silences the mounts standing on newly breached plate, and marks each one that went. */
+    private void knockOutMounts(Warship ship) {
+        List<Warship.Mount> standing = new ArrayList<>();
+        for (Warship.Mount m : ship.mounts()) if (!m.knockedOut()) standing.add(m);
+        if (ship.knockOutBreachedMounts(clock) == 0) return;
+        for (Warship.Mount m : standing) {
+            if (m.knockedOut()) hitFx.mountLost(ship, ship.mountX(m), ship.mountY(m), clock);
+        }
+    }
+
+    /** The point on a shield's bubble toward where a round came from (where it landed, with no source); null for none. */
+    private static float[] shieldPoint(Warship ship, float fromX, float fromY, float px, float py) {
         float cx = ship.shieldCentreX();
         float cy = ship.shieldCentreY();
         float tx = Float.isFinite(fromX) ? fromX : px;
@@ -1317,10 +1359,9 @@ public final class WarshipSystem {
         float dx = tx - cx;
         float dy = ty - cy;
         float len = (float) Math.hypot(dx, dy);
-        if (len < 1e-3f) return;
+        if (len < 1e-3f) return null;
         float r = Math.min(len, ship.shieldRadiusCells());
-        strikeX = cx + dx / len * r;
-        strikeY = cy + dy / len * r;
+        return new float[]{cx + dx / len * r, cy + dy / len * r};
     }
 
     /** X of where the last hull strike landed on a hull or shield, or {@code fallback} when it had no place. */
@@ -1579,8 +1620,11 @@ public final class WarshipSystem {
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
             if (shell.hullOnly()) {
-                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY, hullDamageType(shell.weapon));
-                if (shell.hullTarget() != null) shipFire.noteLanding(struck);
+                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY, hullDamageType(shell.weapon), shell.weapon);
+                if (shell.hullTarget() != null) {
+                    shipFire.noteLanding(struck);
+                    if (shell.weapon.missile()) shipFire.noteMissileLanding(struck);
+                }
                 if (!struck && shell.straysOnMiss()) {
                     // It passed the hull it was fired at: it carries on and comes down on the ground.
                     shells.add(shell.carryOn());
@@ -1593,7 +1637,8 @@ public final class WarshipSystem {
                     if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
                         cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), bx, by);
                     }
-                    if (landing.damage >= HEAVY_IMPACT_DAMAGE) {
+                    // A shield's hit is its own flare (WarshipHitFx); the fireball is for a round that met metal.
+                    if (landing.damage >= HEAVY_IMPACT_DAMAGE && !strikeShieldOnly) {
                         sim.spawnHeavyImpact(bx, by, shell.blastCells(), shell.weapon.explosionColor());
                     }
                     continue;
@@ -1652,7 +1697,7 @@ public final class WarshipSystem {
             PendingDetonation det = strike.detonation();
             if (strike.hullTarget() != null) {
                 // A warhead aimed at a hull lands on hulls alone; one that reached none carries on to the ground.
-                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY, hullDamageType(strike.weapon));
+                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY, hullDamageType(strike.weapon), strike.weapon);
                 shipFire.noteWarhead(struck);
                 if (!struck) {
                     shells.add(WarshipShipFire.carryOn(strike));
@@ -1663,7 +1708,7 @@ public final class WarshipSystem {
                 if (cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
                     cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), bx, by);
                 }
-                if (det.damage >= HEAVY_IMPACT_DAMAGE) {
+                if (det.damage >= HEAVY_IMPACT_DAMAGE && !strikeShieldOnly) {
                     sim.spawnHeavyImpact(bx, by, strike.visualCells, strike.weapon.explosionColor());
                 }
                 continue;

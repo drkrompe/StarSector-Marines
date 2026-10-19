@@ -499,13 +499,7 @@ def add_detail():
                 strut(lb, (xa + (xb - xa) * u0 + dx, ya + (yb - ya) * u0, z - 6 * 4 * u0 * (1 - u0)),
                       (xa + (xb - xa) * u1 + dx, ya + (yb - ya) * u1, z - 6 * 4 * u1 * (1 - u1)), 0.35)
     mesh('Transmission line', lb, steel)
-    # Harvest: a combine working down a field with its grain truck alongside.
-    green = material('Harvester orange', (0.78, 0.36, 0.08), 0.5)
-    cream = material('Truck cream', (0.80, 0.76, 0.62), 0.5)
-    vehicle('Robotic harvester', [((26, 14, 7), (0, 0, 4), green), ((3, 40, 2.4), (15, 0, 1.6), green)],
-            [(0, -60, -520), (FRAMES - 1, -60 + 3.0 * DURATION, -520)])
-    vehicle('Grain truck', [((3, 3, 3), (2.5, 0, 2), cream), ((8, 3, 2.6), (-3.5, 0, 2), cream)],
-            [(0, -60, -548), (FRAMES - 1, -60 + 3.0 * DURATION, -548)])
+    material('Truck cream', (0.80, 0.76, 0.62), 0.5)      # the crew carrier's; the farm machines are c4_farm's
     # The gate: a hauler comes up the farm track and waits at the perimeter checkpoint.
     orange = bpy.data.materials['Hauler cab']
     white = bpy.data.materials['Hauler load']
@@ -1485,13 +1479,19 @@ def build():
     add_landing_dust()
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
+    import c4_farm                                       # the farmland at work: field detail, machines, traffic
+    c4_farm.add(sys.modules[__name__])
+    import c4_jungle                                    # layered canopy past the fence
+    c4_jungle.apply(YARD[1], 768.0)
     import vehicle_paint                                 # painted vehicle tops, once accepted
     vehicle_paint.apply()
     import ortho_paint                                  # painted overhead tiles, where accepted
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
-    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'})
+    import wall_paint                                   # painted walls and roof plant
+    wall_paint.apply(WAREHOUSES)
+    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP)
     add_camera(scene)
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness

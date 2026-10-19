@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — the family's ships are two Hegemony Enforcers, not Wolfs; earlier the same day Black Sluice gained open approach ground west of the apron, sized by the hull fight. Earlier 2026-10-16: Black Sluice's ships moved to a southern pad field below a ridge, reached only through the berth gate, with the duel flown over it. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
+Updated: 2026-10-19 — the family's ships are an Enforcer and a Wolf.
 
 ## Scope and provenance
 
@@ -196,7 +196,7 @@ along the berth road down the east side. The ships' fight after Voss's order goe
 where its fighting takes it, in sight of the people on the causeway.
 
 West of the landing apron the outer basin runs on as **open approach ground**, the
-ground Rusk's Enforcers cross. North of the ridge it is silt flats under regolith drifts:
+ground Rusk's ships cross. North of the ridge it is silt flats under regolith drifts:
 the transfer road runs on inland from the causeway's landward end, past the first
 settling beds, silted full and abandoned with their walls fallen in stretches, to a
 low broken rim off the north edge. South of it the ridge runs on to the map's edge

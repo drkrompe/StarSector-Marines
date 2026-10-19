@@ -293,10 +293,10 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     assertEquals(0, hull.groundShots(), hull.hullId + " never fires at the ground");
                     assertNotNull(duel.entry(hull), hull.hullId + " has a ledger line");
                 }
-                for (Warship enforcer : duel.enforcers()) assertTrue(enforcer.missionOwned(), "The Enforcers are the mission's, not the player's");
+                for (Warship ship : duel.rusk()) assertTrue(ship.missionOwned(), "Rusk's ships are the mission's, not the player's");
                 if (result.split()) {
                     assertTrue(duel.ordered(), "Voss's order starts the duel");
-                    assertEquals(2, duel.enforcers().size());
+                    assertEquals(BlackSluiceDuel.RUSK_PAIR.size(), duel.rusk().size());
                     assertNotNull(outcome.smallWarOverhead);
                 } else assertNull(outcome.smallWarOverhead, "No order, no duel to report");
             } else assertNull(outcome.smallWarOverhead);
@@ -429,8 +429,10 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
 
     private static String duelCaption(BlackSluiceDuel duel) {
         var s = new StringBuilder();
-        for (Warship hull : duel.hulls()) {
-            String name = "venture".equals(hull.hullId) ? "Greyhook" : "Enforcer";
+        var hulls = duel.hulls();
+        for (int i = 0; i < hulls.size(); i++) {
+            Warship hull = hulls.get(i);
+            String name = i == 0 ? "Greyhook" : duel.pair().get(i - 1).name();
             s.append(name).append(' ').append(hull.destroyed() ? "down"
                     : Math.round(hull.hullFraction() * 100) + "%").append("  ");
         }

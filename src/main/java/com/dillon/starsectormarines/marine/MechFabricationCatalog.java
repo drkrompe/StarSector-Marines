@@ -70,6 +70,9 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 52, 40, 115, 11),
             vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 130, 100, 255, 38),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 125, 110, 290, 24),
+            // The screened tank is the breakthrough tank plus its interceptor system: launchers and their sensor
+            // are machinery and rare metals, not plate.
+            vehicle(VehicleType.SCREENED_TANK, "@gearFabricationHeavyVehicleStandardFit", 125, 115, 240, 44),
             // Field rigs are workshop pickups, not issue hulls: the supply pickup's bill is mostly the supplies it is
             // stocked with, the spotter's the rare metals in its salvaged sensor mast.
             vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 55, 25, 70, 4),

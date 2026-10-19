@@ -1,0 +1,19 @@
+{
+  "outputSize": [3072, 768],
+  "frameCells": 7.789194,
+  "frames": [
+    {"copy": "../../../mod/graphics/battle/vehicles/army-tank.png", "frame": 0,
+     "note": "Live hull, verbatim from the breakthrough sheet: the screened tank is that hull."},
+    {"source": "turret-raw.png", "sourceSize": [1774, 887],
+     "alphaFloor": 8,
+     "scale": 0.636364, "sourceCenter": [1495, 457], "targetCenter": [1152, 384],
+     "sourceMuzzles": [[1149, 458]],
+     "note": "ImageGen drew the turret 1.10x the target about (1495,457) (alpha IoU 0.988 against turret-target.png outside the launchers); 0.7 / 1.1 restores the breakthrough turret's 140.857 px/cell. Muzzle 2.233 cells, as the breakthrough's 2.243."},
+    {"copy": "../../../mod/graphics/battle/vehicles/army-tank.png", "frame": 2,
+     "note": "Wreck hull, verbatim from the breakthrough sheet."},
+    {"source": "wreck-raw.png", "sourceSize": [1774, 887],
+     "alphaFloor": 8,
+     "scale": 0.855, "sourceCenter": [1344, 447], "targetCenter": [2688, 384],
+     "note": "Registered to wreck-target.png within 1 px at 1:1 (alpha bounding boxes)."}
+  ]
+}
