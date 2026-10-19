@@ -58,6 +58,49 @@ dead ahead on the first flight, follows it in, lets it go as it whips past (over
 to about 49° at 3.0 s), and settles on the carrier, which then fills the turn to the
 beam. Only the head's target changes; the 8.0 s abeam beat is unchanged.
 
+**We go down, and the ship shows it (owner, 2026-10-18).** When the de-orbit starts at
+9.6 s, Second Wind pitches 16° nose-down over 3.5 s. The whole ship pitches (hull,
+bridge and camera together) against a fixed sun, planet and Legion, so from inside
+the Legion swings up the slits faster than its climb alone would carry it, Jangala
+comes up into the bottom of the view, and the sunlight moves across the bridge. The pitch is
+part of the shared motion (`ship_pitch_deg`), but only the lit render applies it; the
+grey blockout's frames stay level.
+
+**Lit render: not yet (owner, 2026-10-18).** No proper render until everything in
+the shot is final: the Legion, Broadswords and Second Wind finishing their own passes
+(turrets, textures and so on), a real bridge scene, and the fly-through settled in grey.
+Until then layout is judged in the Workbench blockout only. `c2_bridge_render.py` is
+ready for that day. It dresses the blockout's motion for Cycles at 24 fps with 180°
+motion blur, importing it so the two cannot drift apart. It was checked on a few test
+frames only:
+
+- Second Wind is the patched state from `second-wind-states` (its build output must exist
+  locally).
+- The bridge is painted steel with console screens and one low warm ceiling light. A
+  light strip at the top of the slits was tried and dropped: 65 cm from the eye, even
+  dimmed, it read as a band across the view.
+- The Legion and Broadswords keep their own materials, with the Legion's throats and
+  running lights and the fighters' flames as in the cabin version.
+- Jangala is a proxy sphere scaled about the eye and shaded from its own normal, so
+  nothing near it can throw a shadow on it. It carries C1's maps, which are soft at
+  this range, and a thin limb glow, and it turns aft at the orbital rate.
+- Light is the same as the cabin version: C1's sun and the planet-shine, no world
+  light.
+- **Stars are in (owner, 2026-10-18), overriding open question 6.** C1 shows stars,
+  so C2 does too. C1's star plate is flat and cannot follow a 100° head turn, so the
+  bridge sky carries a procedural field: one point per small cell of sky, about 3.5%
+  of cells lit, most of them faint, tinted warm to blue. Only camera rays see it, so
+  it lights nothing. Each star is about a pixel across; sub-pixel stars came out
+  invisible, averaged away and then removed by the denoiser.
+
+A frame takes about 10 s on the GPU.
+
+**The bridge scene is still a blockout.** The interior is a box room built around the
+model's own slits and posts: floor, walls, ceiling, three console blocks, two seat
+blocks and one ceiling light. It has no modelled controls, displays, crew, hatch or
+interior framing, and nothing has been designed for it. It needs its own pass through
+the ship-model pipeline before C2 can be rendered properly.
+
 Review runs: `review/cinematic-c2/2026-10-18_bridge-blockout_windows/` (the two
 variants) and `.../2026-10-18_bridge-fighters_windows/` (banked, with the fighters).
 
@@ -69,6 +112,10 @@ change of camera hidden under the entry's bloom to white as it already is.
 ```bash
 python c2_bridge_blockout.py --fps 1 --burst 1.8:4.8:0.2  # build/cinematic/c2-bridge/blockout/
 python c2_bridge_blockout.py --fps 12 --out <dir>          # every twelfth of a second, for motion
+# Only once every asset is final (see above):
+python c2_bridge_render.py --frames 0,72,192,300           # lit test frames (neighbours keyed for blur)
+python c2_bridge_render.py --resume                        # build/cinematic/c2-bridge/lit/, about an hour
+python c2_bridge_render.py --movie                         # lit/c2-bridge.mp4 with captions and cues
 ```
 
 ## Purpose and payoff
