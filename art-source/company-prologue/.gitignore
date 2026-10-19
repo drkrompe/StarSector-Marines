@@ -94,3 +94,7 @@ paragon-geometry/**/*.blend1
 shepherd-cinematic/*.blend
 shepherd-cinematic/*.blend1
 shepherd-cinematic/review/
+legion-surface/review/
+legion-surface/textures/
+legion-surface/grading/
+legion-surface/skin-manifest.json
