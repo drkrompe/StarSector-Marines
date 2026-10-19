@@ -3308,7 +3308,7 @@
 		"nexInvasionNotApplied": "The invasion's result could not be handed to Nexerelin. The market is unchanged; the company's losses stand.",
 
 		# Arrival cinematic (cinematic_export.py timelines name these keys). Hail lines are keyed from their catalog
-		# ids in jangala_arrival_hail.json and must match its text; the Nessa line is openingCompanyPrologueNessaVenn...
+		# ids in jangala_arrival_hail.json (hail and Castle's lines alike) and must match its text.
 		"jangalaArrivalSpeakerApproach": "JANGALA APPROACH",
 		"jangalaArrivalSpeakerCastle": "CASTLE  /  SECOND WIND",
 		"jangalaArrivalLockTitle": "JANGALA",
@@ -3320,6 +3320,10 @@
 		"jangalaArrivalHail04": "Nothing to declare, Approach. Ore dust and tired people.",
 		"jangalaArrivalHail07": "Second Wind, you're cleared to Greywater Down on civilian corridor four. Keep your mounts cold and stay in the corridor. Patrol has your signature.",
 		"jangalaArrivalHail08": "Corridor four, mounts cold. Thank you, Approach.",
-		"jangalaArrivalHail09": "Well. Somebody knows we're here."
+		"jangalaArrivalCastlePlanetside": "We've got a few days planetside before we'll need to move along, Commander.",
+		"jangalaArrivalCastleReels": "So much greenery and life... it's like the travel reels from the canteen.",
+		"jangalaArrivalCastleYard": "Set us down in that fenced yard on the east side. Nessa called in a favour to get us a berth for refit. Best behaviour.",
+		"jangalaArrivalCastleAllHands": "All hands, get some rest, see the sights, but keep your identification on you. We regroup at the yard tomorrow.",
+		"jangalaArrivalCastleOwnWay": "Hard part starts now, Commander. From here, we find our own way."
 	}
 }

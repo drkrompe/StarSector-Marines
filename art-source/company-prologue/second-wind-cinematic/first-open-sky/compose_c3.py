@@ -30,6 +30,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
+sys.path.insert(1, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "arrival-audio"))
+import castle_lines  # noqa: E402
 from c3_core import (BASE, CABIN_DEPTH_M, CASTLE_REELS_AT, CASTLE_REELS_TAKE, CIN, DURATION, ENTRY_LEN,  # noqa: E402
                      F_PX, FPS, H, HORIZON_Y, LAYERS, ROOT, W, PLATE_X0, PLATE_Y0, camera_shake, lean_scale,
                      nose_down_deg, rise_at, smooth, travelled, truck_at, world_buffet)
@@ -54,15 +56,13 @@ def duration():
 
 
 def captions():
-    """Castle's travel-reels line plays here once the ship is level (voice_timing()). Its
-    caption and cue are registered with the rest of Castle's lines; until that line is in
-    the catalog nothing is returned, and the arrival mix (sfx_mix.py) places the take."""
-    return []
+    """Castle's travel-reels line, once the ship is level (castle_lines.py, voice_timing())."""
+    return castle_lines.captions("c3")
 
 
 def voice_timing():
     """Where Castle's line sits in this shot, for the mix and the timeline."""
-    return {"line": "c4_reels", "take": CASTLE_REELS_TAKE[0], "t": CASTLE_REELS_AT,
+    return {"line": "c3_reels", "take": CASTLE_REELS_TAKE[0], "t": CASTLE_REELS_AT,
             "ends": round(CASTLE_REELS_AT + CASTLE_REELS_TAKE[1], 3)}
 
 
@@ -73,11 +73,11 @@ def overlays():
 def audio_cues():
     """(t, sound_id, volume[, until]). Built by :asset-pipeline:processAudio from
     audio.json; sources from c3_audio.py. The bed loops for the whole shot; the wind
-    is one pass whose buffeting eases with the shake."""
+    is one pass whose buffeting eases with the shake; Castle's line over the intercom."""
     return [
         (0.0, "jangala_arrival_cabin_bed", 0.55, DURATION),
         (0.0, "jangala_arrival_wind", 0.80),
-    ]
+    ] + [(c["t"], c["sound"], c["volume"]) for c in castle_lines.cues("c3")]
 
 
 # ---------------------------------------------------------------- sources
@@ -367,7 +367,8 @@ def review_audio(path):
         loop = len(cue) > 3
         if loop:
             inputs += ["-stream_loop", "-1"]
-        inputs += ["-i", str(AUDIO_SRC / (sid + ".flac"))]
+        built = ROOT / "mod" / "sounds" / "story" / "jangala-arrival" / (sid + ".ogg")   # a voice: processed
+        inputs += ["-i", str(AUDIO_SRC / (sid + ".flac") if (AUDIO_SRC / (sid + ".flac")).exists() else built)]
         graph.append("[%d:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=%.2f,adelay=%d:all=1%s[a%d]"
                      % (k, vol, round(t * 1000), ",atrim=0:%.3f" % cue[3] if loop else "", k))
         labels.append("[a%d]" % k)

@@ -18,14 +18,17 @@ Layers, back to front (each a still unless named as moving):
 Generated art: c5-sky-v1, c5-yard-v1, c5-crew-walk-v1, c5-nessa-crate-v1 (prompts/ and the
 .provenance.json beside each master).
 
-The runtime contract's data: captions() and overlays() are empty (no dialogue, no lock-ons);
-audio_cues() lays the yard: the ship winding down, steam on the plumes' breathing cycle,
+The runtime contract's data: captions() are Castle's two C5 lines (arrival-audio/castle_lines.py:
+the all-hands on the ship's loudspeaker at 5.0 and her last line to the Commander at 19.6, timed
+for the joined C4-C5 picture's 40 s C5, so this 8 s shot cannot export them until it is that
+length); overlays() is empty (no lock-ons); audio_cues() lays those lines and the yard: the ship winding down, steam on the plumes' breathing cycle,
 cooling hull ticks, the jib winch on the crate's loop, a gantry radio, a crane horn far off,
 boots arriving late, and the jungle under all of it.
 """
 import argparse
 import json
 import subprocess
+import sys
 import wave
 from functools import lru_cache
 from multiprocessing import Pool
@@ -35,6 +38,8 @@ import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 BASE = Path(__file__).resolve().parent
+sys.path.insert(1, str(BASE.parent / "arrival-audio"))
+import castle_lines  # noqa: E402
 ROOT = BASE.parents[3]
 OUT = ROOT / "build" / "cinematic" / "c5-nessas-yard"
 CACHE = OUT / "cache"
@@ -514,8 +519,8 @@ def duration():
 
 
 def captions():
-    """No dialogue over C5: the silence after C4's "Let me talk first." is the beat."""
-    return []
+    """Castle's all-hands over the loudspeaker, then her last line to the Commander (castle_lines.py)."""
+    return castle_lines.captions("c5")
 
 
 def overlays():
@@ -536,7 +541,7 @@ def audio_cues():
         (3.2, "c5_yard_crane_horn", 0.22),
         (3.6, "c5_yard_boots", 0.30),
         (5.0, "c5_yard_winch", 0.22),
-    ]
+    ] + [(c["t"], c["sound"], c["volume"]) for c in castle_lines.cues("c5")]
 
 
 def _decoded(sid):
@@ -563,6 +568,8 @@ def mix_cues(path):
         fade_out = cue[5] if len(cue) > 5 else 0.0
         x = _decoded(sid)
         a = int(t * 44100)
+        if a >= n:
+            continue
         if until is not None:
             x = x[: int((until - t) * 44100)].copy()
         x = x.copy()

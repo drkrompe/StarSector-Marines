@@ -40,12 +40,47 @@ C5_T = 7.6                       # vehicles parked, the ramp crew out, the famil
 # yard hands are (owner, 2026-10-19: the whole ship and more of the ground crew in view): the
 # camera in the ship's own frame (u ahead along its heading, v to its left), Nessa a few steps in
 # front of it toward the ship and a little to the right of frame.
-CAMERA_UV = (-22.0, -64.0)      # clear of the starboard scaffold tower (u +8), toward the ramp crew
-AIM_U = -8.0                     # aim a little aft of amidships, so the stern and its crew are in frame
+# A three-quarter view on the bow from the port side (owner, 2026-10-19), over the open yard
+# between the cradle and the works; the starboard side is fenced in by scaffold towers. The camera
+# takes the first of these spots (u ahead along the ship's heading, v to its left) with open sky
+# around it and nothing but the ship on its lines to the hull.
+CAMERA_TRY = ((42.0, 72.0), (32.0, 82.0), (52.0, 62.0), (24.0, 90.0), (58.0, 78.0), (38.0, 98.0))
+AIM_U = 4.0                      # a little forward of amidships
+# A standing viewer's camera (owner, 2026-10-19: the tilted-up wide view read as lying on the
+# ground): level at eye height, no tilt, the frame raised by lens shift so the horizon sits about
+# two thirds down and the ground fills only the bottom third, without converging verticals.
+SHIFT_Y = 0.11
 NESSA_AHEAD, NESSA_RIGHT = 1.8, 0.75   # close: she is handing the estimate to the viewer
 CAMERA_Z = 1.6                   # eye height
-LOOK_AT_Z = 9.0                  # aim: the middle of the ship's flank
-LENS = 18.0
+LENS = 32.0
+
+
+def clear_spot(scene):
+    """The first candidate spot with open sky round it and only the ship on its lines to the hull."""
+    kx, ky, kh = c4.K9[0], c4.K9[1], c4.k9_heading()
+    manifest = json.loads((c4.STATES / 'manifest.json').read_text())
+    ship = {o.name for o in bpy.data.collections[manifest['append_collection']].all_objects}
+    dg = bpy.context.evaluated_depsgraph_get()
+    targets = [Vector(c4.at(kx, ky, kh, u, 0, z)) for u in range(-30, 31, 6) for z in (3.0, 8.0, 13.0, 18.0)]
+    best = None
+    for u, v in CAMERA_TRY:
+        xy = Vector(c4.at(kx, ky, kh, u, v)[:2])
+        eye = Vector((xy.x, xy.y, c5_scene.ground_z(xy.x, xy.y) + CAMERA_Z))
+        roof = any(scene.ray_cast(dg, eye + Vector((dx, dy, 0)), Vector((0, 0, 1)), distance=80.0)[0]
+                   for dx, dy in ((0, 0), (4, 0), (-4, 0), (0, 4), (0, -4)))
+        clear = 0
+        for t in targets:
+            d = (t - eye).length
+            hit, _, _, _, ob, _ = scene.ray_cast(dg, eye, (t - eye).normalized(), distance=d + 40)
+            clear += bool(hit and ob is not None and (ob.name in ship or ob.name.startswith('Drive ')))
+        share = clear / len(targets)
+        print('Y1_SPOT u=%.0f v=%.0f roof=%s sees %.0f%%' % (u, v, roof, share * 100), flush=True)
+        if not roof and share >= 0.9:
+            return xy
+        score = share - (1.0 if roof else 0.0)
+        if best is None or score > best[0]:
+            best = (score, xy)
+    return best[1]
 
 
 def main():
@@ -66,7 +101,7 @@ def main():
 
     # Nessa, from her figure package, facing the camera.
     ship = Vector(c4.K9)
-    cam_xy = Vector(c4.at(c4.K9[0], c4.K9[1], c4.k9_heading(), *CAMERA_UV)[:2])
+    cam_xy = clear_spot(scene)
     toward = (ship - cam_xy).normalized()
     right = Vector((toward.y, -toward.x))
     NESSA = cam_xy + toward * NESSA_AHEAD + right * NESSA_RIGHT
@@ -86,7 +121,8 @@ def main():
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, 36.0, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 0.1, 60000.0
     cam.location = (cam_xy.x, cam_xy.y, gz + CAMERA_Z)
-    aim = Vector((*c4.at(c4.K9[0], c4.K9[1], c4.k9_heading(), AIM_U, 0)[:2], LOOK_AT_Z))
+    aim = Vector((*c4.at(c4.K9[0], c4.K9[1], c4.k9_heading(), AIM_U, 0)[:2], gz + CAMERA_Z))
+    cam.data.shift_y = SHIFT_Y
     cam.rotation_euler = (aim - cam.location).to_track_quat('-Z', 'Y').to_euler()
     scene.camera = cam
 

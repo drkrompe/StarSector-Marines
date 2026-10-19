@@ -235,14 +235,14 @@ VOLUME_SOURCE['Phaeton'] = 'measured (SOLIDS)'   # the tanker; see HULLS['Phaeto
 PUBLISHED['Phaeton'] = .33   # the rule solves 0.326 (75.7 m): published at two places, 76.6 m
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
 # wing body, aft engine block, ventral keel, command tier and dome (SOLIDS['manticore']). The drive
-# cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
+# cans, outer turret pods, armour plates and weapons are excluded. Fittings:
 # the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
 # its own statements so sibling hulls added at the same time do not collide in one line.
-HULLS['Manticore (P)'] = dict(units3=294878, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+HULLS['Manticore (P)'] = dict(units3=228776, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
                              sprite_px=154, fittings_units={'viewport w x h': [1.85, 1.48],
                                                             'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
-PUBLISHED['Manticore (P)'] = .54
+PUBLISHED['Manticore (P)'] = .59
 # The Kite (P), pirate boarding shuttle for the Asharu battle (kite_pirates.skin on kite;
 # designation Shuttle, so the freighter class): fuselage, wing body, cabin spine and aft hump
 # (SOLIDS['kite']). Drive cans, missile sponsons and launchers are excluded. Its 30 crew are

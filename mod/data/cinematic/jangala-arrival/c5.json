@@ -6,7 +6,20 @@
  "height": 1080,
  "frames": 192,
  "duration": 8.0,
- "captions": [],
+ "captions": [
+  {
+   "t_in": 5.0,
+   "t_out": 11.95,
+   "speaker": "castle",
+   "key": "jangalaArrivalCastleAllHands"
+  },
+  {
+   "t_in": 19.6,
+   "t_out": 24.0,
+   "speaker": "castle",
+   "key": "jangalaArrivalCastleOwnWay"
+  }
+ ],
  "overlays": [],
  "cues": [
   {
@@ -67,6 +80,16 @@
    "t": 5.0,
    "sound": "c5_yard_winch",
    "volume": 0.22
+  },
+  {
+   "t": 5.0,
+   "sound": "jangala_arrival_castle_all_hands",
+   "volume": 1.0
+  },
+  {
+   "t": 19.6,
+   "sound": "jangala_arrival_castle_own_way",
+   "volume": 1.0
   }
  ],
  "speakers": {

@@ -1,0 +1,11 @@
+{
+  "requestId": "c7EJ3vX1KvOl36fVl5Io",
+  "characterCost": "73",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "synthesisText": "[calm, practical, a small dry smile at the end] Set us down in that fenced yard on the east side. Nessa called in a favour to get us a berth for refit. Best behaviour.",
+  "audioSha256": "aaa95d25d51255379413151a152d6cd4109ba88bfd963f78d26315edc9c90f68",
+  "durationSeconds": 7.2,
+  "take": "v4_c4_yard_t02",
+  "outputFormat": "mp3_44100_128"
+}

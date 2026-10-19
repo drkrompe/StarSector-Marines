@@ -52,7 +52,7 @@ POD = (23, 65, 13.5)   # outer turret pod: centre x, |y|, radius
 # neck still climbs; the central hull can go down): the whole forward hull
 # pitches down from just ahead of the bridge, 0.10 per unit forward of X 10, and
 # the beak bends harder, 0.32 per unit forward of X 62. Turret rings stay level.
-WING_DROOP = [(24.0, .16), (46.0, .42)]
+WING_DROOP = [(24.0, .16), (46.0, .50)]
 NOSE_DROOP = [(10.0, .10), (62.0, .32)]
 
 
@@ -90,6 +90,7 @@ def droop(ob):
     ob.data.update()
     return ob
 LAUNCHER = (32, 43)    # WS 004 / WS 005 hardpoint, port side
+LAUNCHER_WELL_DEPTH = 4.0
 
 
 def ccw(poly):
@@ -136,10 +137,16 @@ def facets(hw, top, bot, flat=.5, keel=.45, up=.45, down=.55):
 # main gun's well, so its barrel overhangs the fall rather than lying on it; the core reaches far below its deck.
 HEAD_STATIONS = [(86.5, 7, 2.5, -3), (83, 14, 6, -7), (78, 20, 8, -10), (66, 21, 8, -12), (61, 17, 8.5, -13)]
 NECK_STATIONS = [(63, 16.5, 8.5, -13), (58, 16, 9, -15), (50, 18, 9.2, -17), (43, 19.5, 9.5, -19)]
-CORE_STATIONS = [(45, 19.5, 9.5, -19), (38, 22.5, 9.5, -21), (34.6, 24.2, 10, -21.5), (29, 25, 15, -22), (10, 25, 15, -23),
-                 (-20, 24, 15, -24), (-40, 24, 13.5, -22), (-57.5, 23, 11, -16)]
+# Round 5 (owner: the belly is too fat): the core's underside is a slender V,
+# its keel a quarter of the beam wide and no deeper than -18.
+CORE_STATIONS = [(45, 19.5, 9.5, -13), (38, 22.5, 9.5, -15), (34.6, 24.2, 10, -15.5), (29, 25, 15, -16),
+                 (-20, 24, 15, -18), (-40, 24, 13.5, -17), (-57.5, 23, 11, -13)]
 # The ventral blade under the core: a faceted fin to -30 for the side profile.
-KEEL_STATIONS = [(32, 5, -18, -22), (20, 9, -20, -30), (-36, 9, -20, -30), (-50, 5, -16, -21)]
+KEEL_STATIONS = [(26, 2, -14, -17), (12, 3, -15, -22), (-34, 3, -15, -22), (-48, 2, -13, -16)]
+# The aft engine block (round 5: less blocky): lofted through faceted sections
+# that taper to the drive face, so the cans stand out of it as drive units.
+AFT_STATIONS = [(-15, 40, 12, -12), (-26, 45.5, 12, -14), (-35, 38.5, 11.5, -14), (-54, 37, 9, -11),
+                (-56, 34, 8, -9)]
 
 
 def lofted(kit, name, stations, mat, **kw):
@@ -181,7 +188,7 @@ def build(kit):
     kit.hull += [droop(prow), droop(crossbar)]
 
     neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
-    core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red))
+    core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red, keel=.25, down=.8))
     # The main gun stands in a well, so its roof sits low under the bridge's sightline.
     r, d = MAIN_WELL
     well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10-nose_drop(21)), r, 20, kit.red, vertices=24)
@@ -189,9 +196,7 @@ def build(kit):
     # The arms droop outboard (anhedral) with deep chamfers below: the gun pods
     # at their tips hang low and forward of the core's flanks.
     wing = droop(shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 4.5, 3.0), kit.steel)))
-    aft = prism(kit, 'Hull aft body', ccw(AFT), section(AFT_KEEL, AFT_DECK, 5.0, 3.5), kit.steel)
-    for s in (1, -1):
-        plane_cut(aft, f'aft {s} shoulder', (-30, s*36, AFT_DECK), facet_normal((0, s), 34))
+    aft = lofted(kit, 'Hull aft body', AFT_STATIONS, kit.steel, flat=.45, keel=.35, up=.45, down=.6)
     keel = lofted(kit, 'Hull ventral keel', KEEL_STATIONS, kit.steel, flat=.6, keel=.25, up=.2, down=.6)
     kit.hull += [head, neck, core, wing, aft, keel]
 
@@ -212,17 +217,14 @@ def build(kit):
         boolean(collar, hole)
         plane_cut(collar, f'{side} collar inboard half', (x, s*(y-3), 0), (.35, -s, 0))
         kit.hull.append(droop(collar))
-        # Launcher housing: a base block with two cheeks either side of the rack.
-        base = prism(kit, f'Hull {side} launcher housing',
-                     ccw([(lx+11, s*(ly-9)), (lx+11, s*(ly+9)), (lx-7, s*(ly+10)), (lx-7, s*(ly-10))]),
-                     section(-8.0-ldrop, 8.0-ldrop, 2.4, 1.0), kit.steel)
-        kit.hull.append(droop(base))
-        for k, dy in (('inboard', -8.6), ('outboard', 8.6)):
-            cheek = prism(kit, f'Hull {side} launcher {k} cheek',
-                          ccw([(lx+12, s*(ly+dy-.9)), (lx+12, s*(ly+dy+.9)), (lx-4, s*(ly+dy+1.1)),
-                               (lx-4, s*(ly+dy-1.1))]), section(5.5-ldrop, 14.5-ldrop, .3, .6), kit.steel, .1)
-            plane_cut(cheek, f'{side} {k} cheek rake', (lx+8, s*(ly+dy), 14.5-ldrop), facet_normal((1, 0), 40))
-            kit.hull.append(droop(cheek))
+        # Launcher well (round 5: inset, not a raised housing): the Harpoon rack
+        # sits down in a pocket in the wing, open forward through the leading
+        # edge so its tubes have a clear channel ahead.
+        floor = WING_DECK-ldrop-nose_drop(lx)-LAUNCHER_WELL_DEPTH
+        cutter = prism(kit, f'Temporary {side} launcher well cutter',
+                       ccw([(lx+40, s*(ly-8.5)), (lx+40, s*(ly+8.5)), (lx-9, s*(ly+8.5)), (lx-9, s*(ly-8.5))]),
+                       section(floor, floor+30, 0, 0), kit.steel, 0)
+        boolean(wing, cutter)
 
     # The main gun's ring at the bottom of its well, and the small bow ring for WS 002.
     kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK-MAIN_WELL[1]-.6-nose_drop(21)), MAIN_WELL[0]-.6, 1.4,

@@ -60,19 +60,9 @@ def duration():
 @lru_cache(maxsize=1)
 def _hail():
     """[(line, start, end)] on the absolute hail clock, from the catalog and the treated clips.
-
-    Line 9 is Castle closing the channel and speaking to the room: it starts
-    OFF_CHANNEL_GAP after line 8 ends (c2-layout.md, *Entry transition*). The preview
-    timeline applies that gap to the catalog's last line, which is now C4's Nessa memory,
-    so line 9 is placed here by the rule rather than read from it."""
+    The hail ends with line 8; Castle's later lines are placed by castle_lines.py."""
     import c1_overlay
-    import build_hail_preview as hail
-    out = [(line, start, end) for line, start, end, _, _ in c1_overlay.hail_lines()]
-    for i, (line, start, end) in enumerate(out):
-        if line["id"] == "jangala_arrival_hail_09" and i > 0:
-            begin = out[i - 1][2] + hail.OFF_CHANNEL_GAP
-            out[i] = (line, begin, begin + (end - start))
-    return out
+    return [(line, start, end) for line, start, end, _, _ in c1_overlay.hail_lines()]
 
 
 SPEAKER_IDS = {"Jangala Approach": "approach", "Castle": "castle"}   # runtime-contract speaker ids
@@ -129,8 +119,7 @@ def review_pages_between(t0, t1):
 
 
 # Sentence starts measured from the treated takes (c2_core.HAIL), keyed by a page's first words.
-SENTENCE_STARTS = {str(["Patrol", "has", "your"]): C.HAIL["line7_patrol"][0],
-                   str(["Somebody", "knows", "we're"]): C.HAIL["line9_knows"][0]}
+SENTENCE_STARTS = {str(["Patrol", "has", "your"]): C.HAIL["line7_patrol"][0]}
 
 
 def captions():
@@ -146,7 +135,7 @@ def audio_cues():
     squelch is part of the radio, C1's sounds); line 8 is Castle on the open channel. No
     bed: C1's cabin bed runs under the whole hail, through C2 and the entry."""
     import build_hail_preview as hail
-    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    lines = hail.hail_catalog()
     _, squelch, _ = hail.timeline(lines)
     t0, t1 = C.C2_START, C.ENTRY_START
     starts = [start for _, start, _ in _hail()]
@@ -165,8 +154,6 @@ def check_hail():
             raise SystemExit("hail line %s moved: %.2f, c2_core says %.2f" % (line_id, starts[line_id][0], C.HAIL[key][0]))
     if abs(starts["jangala_arrival_hail_07"][0] - C.HAIL["line7"][0]) > 0.05:
         raise SystemExit("hail line 7 moved")
-    if abs(starts["jangala_arrival_hail_09"][0] - C.HAIL["line9"][0]) > 0.05:
-        raise SystemExit("hail line 9 moved")
 
 
 # ---------------------------------------------------------------- the cabin

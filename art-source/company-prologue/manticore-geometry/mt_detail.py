@@ -3,7 +3,7 @@
 Read off the sprite at 6-10x (the hull has no lights layer, so glazing and
 heat glow follow its shading and a low-tech destroyer's needs):
 - Wings: two big raised red armour plates a side between the core and the
-  launcher housings (the bright angular plates, rows 45-90), each a slab with
+  launcher wells (the bright angular plates, rows 45-90), each a slab with
   its outboard edge falling; a dark trailing-edge strake running down the
   wing's swept trailing edge, with joints; the gunmetal rib that carries each
   outer pod (the dark spar from the core to the pod).
@@ -104,7 +104,8 @@ def build(kit):
                 kit.box(f'Hull core {side} viewport {k}.{row+1}', (x, s*16.35, z), (vp[0], .3, vp[1]), kit.glass, 0)
         # --- aft body: machinery ribs and heat-vent wells ---
         for k, y in enumerate((27, 32), 1):
-            kit.box(f'Hull aft {side} machinery rib {k}', (-40, s*y, AFT_DECK+.35), (26, 1.4, .9), kit.steel, .1)
+            kit.box(f'Hull aft {side} machinery rib {k}', (-40, s*y, seat(kit, -40, s*y, AFT_DECK)+.2), (26, 1.4, .9),
+                    kit.steel, .1)
         zv = seat(kit, -42, s*8, CORE_DECK)
         kit.box(f'Hull aft {side} heat vent well', (-42, s*8, zv-.15), (10, 5.0, .5), kit.dark, 0)
         for k, y in enumerate((6.6, 8.0, 9.4), 1):

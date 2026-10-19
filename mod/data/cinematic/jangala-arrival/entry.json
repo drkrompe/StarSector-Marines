@@ -9,16 +9,16 @@
  "captions": [
   {
    "t_in": 0.16,
-   "t_out": 3.0,
+   "t_out": 4.0,
    "speaker": "castle",
-   "key": "jangalaArrivalHail09"
+   "key": "jangalaArrivalCastlePlanetside"
   }
  ],
  "overlays": [],
  "cues": [
   {
    "t": 0.16,
-   "sound": "jangala_arrival_hail_09",
+   "sound": "jangala_arrival_castle_planetside",
    "volume": 1.0
   },
   {

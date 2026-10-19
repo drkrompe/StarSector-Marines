@@ -39,7 +39,7 @@ import build_hail_preview as hail  # noqa: E402
 
 def c1_duration():
     """C1 ends where Approach keys up for line 7, which belongs to C2."""
-    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    lines = hail.hail_catalog()
     _, squelch, _ = hail.timeline(lines)
     opens = [t for kind, t in squelch if kind == "open"]
     return opens[2] - 0.3
@@ -204,11 +204,11 @@ def overlays():
 def audio_cues():
     """[{t, sound, volume, [until, fade_in, fade_out]}] in shot time (hail time is shot time).
     The cabin bed is C1's and carries on under the hail's later lines in C2 to `until`."""
-    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    lines = hail.hail_catalog()
     starts, squelch, total = hail.timeline(lines)
     cues = [{"t": 0.0, "sound": "jangala_cabin_bed", "volume": 1.0, "until": round(total - hail.TAIL + 0.5, 3),
              "fade_in": 1.0, "fade_out": 1.5}]
-    # Lines 7-9 start after C1 ends (hail time is C1 time, so they fall past `duration()`): they
+    # Lines 7-8 start after C1 ends (hail time is C1 time, so they fall past `duration()`): they
     # belong to C2's own cues, in C2 time.
     for kind, t in squelch:
         if t < duration():
