@@ -512,9 +512,13 @@ def blender_main(argv):
         ship.rotation_euler = (0, math.radians(s["ship_pitch"]), 0)
         ship.keyframe_insert("rotation_euler", frame=fr)
         cam.location = Vector(s["cam_pos_u"]) * p["sw_mpu"]
-        cam.rotation_euler = (math.radians(90 + s["cam_pitch"]), 0, math.radians(s["cam_yaw"] - 90))
+        look = Euler((math.radians(90 + s["cam_pitch"]), 0, math.radians(s["cam_yaw"] - 90)), "XYZ").to_matrix()
+        roll = Matrix.Rotation(math.radians(s.get("cam_roll", 0.0)), 3, "Z")      # about the view axis
+        cam.rotation_euler = (look @ roll).to_euler("XYZ", cam.rotation_euler)
+        cam.data.lens = s.get("lens_mm", p["lens_mm"])
         cam.keyframe_insert("location", frame=fr)
         cam.keyframe_insert("rotation_euler", frame=fr)
+        cam.data.keyframe_insert("lens", frame=fr)
         lroot.location = Vector(s["legion_centre_m"]) - rot @ (lmid * p["legion_mpu"])
         lroot.keyframe_insert("location", frame=fr)
         for f, (pos, hdg, bank) in zip(fighters, s["fighters"]):

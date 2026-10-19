@@ -10,7 +10,7 @@ Status: REWORK. The owner has moved C2 to Second Wind's bridge (2026-10-18, see
 *Bridge pass* below); a grey blockout is in review. The cabin-window production build
 described in the rest of this sheet is what currently ships, and stays the plan of
 record for the entry and for anything the bridge pass does not replace.
-Updated: 2026-10-19 — the entry reworked as a 7 s shaking descent (sound review); bridge pass blockout on the modelled bridge interior.
+Updated: 2026-10-19 — bridge camera pass: findings and switchable refinements (owner to pick); the entry as a 7 s shaking descent.
 
 ## Bridge pass (owner direction, 2026-10-18)
 
@@ -117,6 +117,37 @@ Review runs: `review/cinematic-c2/2026-10-18_bridge-blockout_windows/` (the two
 variants) and `.../2026-10-18_bridge-fighters_windows/` (banked, with the fighters);
 the interior: `review/second-wind/2026-10-18_bridge-interior_windows/`.
 
+**Camera pass (2026-10-19, owner review pending).** The move above was played through the
+blockout with the real pilot and Castle at 12 fps, pitch applied, and measured frame by frame
+(`--measure`: what share of the frame is glass, posts and bridge, or each figure; how much of
+the Legion a figure hides; how near the eye comes to any surface). What it found:
+
+- The camera never comes nearer than 36 cm to anything, so it passes through nobody and nothing,
+  and the pilot, yoke and Castle never hide the Legion. They are also never in frame: Castle
+  stands behind the camera at her own station and the pilot is well to starboard of the dais.
+- The body's position was tied to where the head points, so when the head swung after the
+  first flight and back to the carrier (2.8-3.6 s) the whole person slid forward and back with
+  it, and left the dais just as the fighters arrived. It read as a dolly.
+- The fighters pass about 7 m above our eye. From the dais that is the top edge of the slit:
+  they skim along under the visor brow and are gone behind it by 2.8 s, never more than 0.6% of
+  the frame. Flying them 5 m lower did not help (the posts and the speed hide them either way).
+- The view is mostly bridge: 7-15% glass for the first 4.5 s, about 37% at the port glass, where
+  the head's upward tilt spent a third of the frame on the visor brow.
+
+Refinements, each a separate switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA`
+for the lit render) so they can be compared one at a time; none is on until the owner picks:
+**walk** (the step down is a person walking on its own clock, 4.6-6.6 s: back off the console,
+down the dais step past the grab pole, four paces with a footfall in each), **duck** (leaning
+lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath** (a few tenths
+of a degree of breathing and weight shift), **frame** (the head sits lower at the port glass so
+the slit fills the frame), **lean** (leaning over the comms bank toward the glass at abeam, 70 cm
+to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
+back; an eye cannot zoom, so this is a film camera's choice) and **glance** (the head turns
+forward to watch the pilot draw the yoke and push it, 8.6-11.2 s, and back to the Legion as it
+starts to rise). With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+up to 2% of the frame, nearest surface 41 cm. Review:
+`review/cinematic-c2/2026-10-19_camera-pass_windows/`.
+
 **Open for the owner.** Whether the bridge's glazing stays this
 narrow (the model's slits make a letterbox, with posts that take a good share of the
 view); and whether the entry glow and C3 keep the passenger-cabin window, with the
@@ -125,6 +156,8 @@ change of camera hidden under the entry's bloom to white as it already is.
 ```bash
 python c2_bridge_blockout.py --fps 1 --burst 1.8:4.8:0.2  # build/cinematic/c2-bridge/blockout/
 python c2_bridge_blockout.py --fps 12 --out <dir>          # every twelfth of a second, for motion
+python c2_bridge_blockout.py --fps 12 --res 960x540 --pitch --camera walk,duck --out <dir>   # with the de-orbit pitch and refinements
+python c2_bridge_blockout.py --fps 4 --pitch --measure --out <dir>   # measure.json: glass/post/figure shares, nearest surface
 # Only once every asset is final (see above):
 python c2_bridge_render.py --frames 0,72,192,300           # lit test frames (neighbours keyed for blur)
 python c2_bridge_render.py --resume                        # build/cinematic/c2-bridge/lit/, about an hour
