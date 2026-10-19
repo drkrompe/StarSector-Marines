@@ -1,11 +1,11 @@
 # Mechs — Open Stories
 
 Status: ACTIVE — battle doctrine overrides, manual specialist tuning,
-data-authored fitting dolls, and campaign callsigns remain.
+and data-authored fitting dolls remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — mech kit-retriever exclusion and Mech Lab doll UX folded; earlier: mech missile warheads, vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
+Updated: 2026-10-19 — campaign callsigns, mech kit-retriever exclusion and Mech Lab doll UX folded; earlier: mech missile warheads, vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
 
 Read `mechs-nouns.md` before changing the live story.
 
@@ -14,4 +14,3 @@ Read `mechs-nouns.md` before changing the live story.
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |
 | `s1-specialist-striders.md` | Active manual tuning | Validate and tune the shipped Bulwark/Hound/Sirocco identities, formations, production encounters, and debug delivery feel without weakening their stated tradeoffs. |
 | `mech-lab-data-authored-dolls.md` | Proposed | Move maintenance facing, physical anchors, equipment docks, footprints, compatibility, and capacity into a validated asset catalog shared by mechs and future vehicles. |
-| `mech-campaign-callsigns.md` | In progress | Edit a persistent mech's display callsign in the Mech Lab and freeze it into the landed support unit's visible identity. |

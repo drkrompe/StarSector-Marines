@@ -1,27 +1,37 @@
-"""The entry transition between C2 and C3: heat glow, then cloud, across the one window.
+"""The entry transition between C2 and C3: the ship coming down through the heat, then cloud.
 
-    python compose_entry.py [--stills] [--workers N]
+    python compose_entry.py [--stills] [--workers N] [--fps N]
 
-3.0 s at 1920x1080 / 24 fps, on C2's camera and cabin (c2-layout.md, "Entry transition").
-Back to front:
+7.0 s at 1920x1080 / 24 fps, through C3's window: C3's camera and C3's own cabin, so the
+window does not change at the cut (owner, 2026-10-19; c2-layout.md, "Entry transition"),
+reworked as a descent after the owner's arrival sound review (2026-10-19): longer, the
+camera and window shaking, and flames and smoke streaming across the glass from bottom
+right to top left, the way the air goes past a ship coming down bow first. Back to front:
 
-  1. Jangala as C2 leaves it (c2_planet, still drifting), behind everything
-  2. heat glow   assets/c2-entry-glow-v1.png: the plasma sheath's filaments, scrolling aft
-                 (right to left) at FILAMENT_PX_S inside a wipe that enters from the bow side
-                 (right jamb) over GLOW_IN; translate only, the wipe is the card's soft edge
-  3. cloud       assets/c2-entry-cloud-v1.png: its ragged leading edge leads, its luminous
-                 body follows, the card translating right to left over CLOUD_IN; then the
-                 glass settles to C3's flat entry white (244, 246, 248)
-  4. the cabin   C2's painted cabin, relit from the glass: space -> glow (orange, strongest
-                 on the bow side, right side first as the wipe reaches it) -> cloud (soft fill)
+  1. Jangala as C2 leaves it (c2_planet, still drifting, lowered to C3's 9-degree view),
+              hidden as the sheath thickens
+  2. fire     assets/c2-entry-glow-v1.png's filaments, flattened into a texture and streamed
+              along c2_core.FLOW_DEG at two speeds (a body and fast streaks), coloured by a
+              heat field that is hottest at the bottom right (the side the air hits first)
+              and spreads up-left from there over HEAT
+  3. smoke    torn off the sheath: the cloud card's detail, darkened, streaming the same way
+              and thicker toward the top left, where it trails
+  4. cloud    assets/c2-entry-cloud-v1.png, its ragged edge first, carried in along the same
+              line from the bottom right over CLOUD_IN; warm while the heat is still in it,
+              then white; fast wisps stream through it; the glass then settles to C3's flat
+              entry white (244, 246, 248)
+  5. the cabin C3's painted cabin, relit from the glass: space (dark, cold planet-shine) ->
+              fire (orange, flickering) -> cloud (C3's own daylight paint)
 
-The camera change. C2 looks 19.29 degrees down, C3 9 degrees. The cloud's arrival floods
-the cabin with light and the frame blooms close to white (BLOOM); under the peak the C2
-cabin is exchanged for C3's (c3_cabin(), the same assembly as first-open-sky/c3_layers.py),
-and the bloom recedes onto C3's frame 0 exactly: C3's daylight cabin around a glass of
-flat entry white (first-open-sky/c3-handoff contract). The cut to C3 is then invisible.
+The whole picture, cabin included, shakes (first-open-sky/c3_core.camera_shake): rising
+through the heat, hardest in the cloud, and carried on into C3, where it eases off.
 
-Line 9 ("Well." / "Somebody knows we're here.") plays inside the transition; no squelch.
+No camera change. C2 (on the bridge, or the old cabin at 19.29 degrees down) cuts to this
+window from space; from then on there is one window and one camera. In the white the frame
+settles onto C3's frame 0 exactly (SETTLE), and C3 picks up one frame later on the same
+shake clock, so the cut is a continuation rather than a held frame.
+
+Line 9 ("Well." / "Somebody knows we're here.") plays early in the heat; no squelch.
 
 Writes build/cinematic/entry/frames/%05d.png, entry.mp4 (review), timeline.json and
 contact-sheet.png; review stills to review/entry-*.png.
@@ -30,28 +40,31 @@ import argparse
 import json
 import math
 import os
+import shutil
 import sys
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
+sys.path.insert(1, str(BASE.parent / "first-open-sky"))
 import c2_core as C  # noqa: E402
 import c2_planet  # noqa: E402
 import compose_c2 as K  # noqa: E402
+import c3_core as Q  # noqa: E402
+import compose_c3 as C3  # noqa: E402
 
 SHOT = "entry"
 OUT = K.ROOT / "build" / "cinematic" / SHOT
 DURATION = C.ENTRY_LEN
 W, H, FPS = C.W, C.H, C.FPS
-C3_DIR = K.CIN / "first-open-sky"
 ENTRY_WHITE = np.array([244, 246, 248], np.float32) / 255          # C3's frame-0 glass (sRGB)
-FILAMENT_PX_S = (210.0, 720.0)   # the sheath body, and the fast streaks drawn out of the same plate
-GLOW_GAIN = 1.25
-BLOOM = (2.40, 2.72, 2.96)        # rise, peak (cabin exchanged), back to C3's frame 0
+SPEED = {"body": 520.0, "streak": 1500.0, "smoke": 820.0, "wisp": 1150.0}   # px/s along the stream
+if abs(Q.ENTRY_LEN - C.ENTRY_LEN) > 1e-9:
+    raise SystemExit("c2_core.ENTRY_LEN %.2f != c3_core.ENTRY_LEN %.2f" % (C.ENTRY_LEN, Q.ENTRY_LEN))
 
 
 def duration():
@@ -78,134 +91,216 @@ def audio_cues():
     ]
 
 
-# ---------------------------------------------------------------- sources
+# ---------------------------------------------------------------- the stream
+
+A = math.radians(C.FLOW_DEG)
+_X = np.arange(W, dtype=np.float32)[None, :] - W / 2
+_Y = np.arange(H, dtype=np.float32)[:, None] - H / 2
+UF = _X * math.cos(A) + _Y * math.sin(A)              # along the stream, + toward the bottom right
+VF = -_X * math.sin(A) + _Y * math.cos(A)             # across it
+U_HALF = W / 2 * math.cos(A) + H / 2 * math.sin(A)    # the frame's half-extent along the stream
+UN = UF / U_HALF                                      # -1 top left .. +1 bottom right
+
+
+def smooth_arr(u):
+    u = np.clip(u, 0.0, 1.0)
+    return u * u * (3 - 2 * u)
+
+
+def _ramp(e, span):
+    """0 -> 1 -> 1 -> 0 over a four-point span (in, full, out-start, gone)."""
+    return C.smooth((e - span[0]) / (span[1] - span[0])) * (1 - C.smooth((e - span[2]) / (span[3] - span[2])))
+
 
 @lru_cache(maxsize=None)
-def glow_card(stretch=1.0, h=1000):
-    """The filament plate at a scale that covers the glass height. stretch > 1 draws it out
-    along the flow, for the fast streak layer."""
-    im = Image.open(BASE / "assets" / "c2-entry-glow-v1.png").convert("RGB")
-    im = im.resize((round(im.width * h / im.height * stretch), h), Image.LANCZOS)
-    a = np.asarray(im, np.float32) / 255
-    return a[(h - 760) // 2:(h - 760) // 2 + 760] if h > 760 else a
+def detail(name):
+    """A card's luminance with its broad light divided out: a texture of filaments (glow) or
+    billows (cloud) of mean ~1 that can be streamed without carrying the card's gradient."""
+    im = Image.open(BASE / "assets" / name).convert("L")
+    lum = np.asarray(im, np.float32) / 255 + 0.02
+    broad = np.asarray(im.filter(ImageFilter.GaussianBlur(70)), np.float32) / 255 + 0.02
+    d = lum / broad
+    lo, mid, hi = np.percentile(d, [5, 50, 95])
+    return 1.0 + 0.5 * np.clip((d - mid) / ((hi - lo) / 2), -1.6, 1.6)     # median 1, ~0.2..1.8
+
+
+@lru_cache(maxsize=1)
+def smoke_tex():
+    """Big soft plumes: the cloud card's billows at their own scale (not its fine detail),
+    normalised to 0..1 so a threshold cuts separate plumes out of it."""
+    im = Image.open(BASE / "assets" / "c2-entry-cloud-v1.png").convert("L")
+    soft = np.asarray(im.filter(ImageFilter.GaussianBlur(10)), np.float32)
+    broad = np.asarray(im.filter(ImageFilter.GaussianBlur(220)), np.float32)
+    d = soft - broad
+    lo, hi = np.percentile(d, [3, 97])
+    return np.clip((d - lo) / (hi - lo), 0, 1)
+
+
+def stream(tex, along, su, sv, v_off=0.0):
+    """Sample a texture laid along the stream: texture x runs bottom right -> top left as
+    `along` grows (features travel up-left), mirrored so it never runs out."""
+    th, tw = tex.shape[:2]
+    u = (UF + along) / su
+    v = VF / sv + th / 2 + v_off
+
+    def fold(q, n):
+        q = np.mod(q, 2 * (n - 1))
+        return np.where(q > n - 1, 2 * (n - 1) - q, q)
+    u, v = fold(u, tw), fold(v, th)
+    i0, j0 = np.floor(u).astype(np.int32), np.floor(v).astype(np.int32)
+    i1, j1 = np.minimum(i0 + 1, tw - 1), np.minimum(j0 + 1, th - 1)
+    fu, fv = u - i0, v - j0
+    top = tex[j0, i0] * (1 - fu) + tex[j0, i1] * fu
+    bot = tex[j1, i0] * (1 - fu) + tex[j1, i1] * fu
+    return top * (1 - fv) + bot * fv
 
 
 @lru_cache(maxsize=1)
 def cloud_card():
     im = Image.open(BASE / "assets" / "c2-entry-cloud-v1.png").convert("RGB")
-    h = 1100
+    h = 1150
     im = im.resize((round(im.width * h / im.height), h), Image.LANCZOS)
-    return np.asarray(im, np.float32)[150:950] / 255
+    return np.asarray(im, np.float32) / 255
 
 
-@lru_cache(maxsize=1)
-def c3_cabin():
-    """C3's cabin exactly as first-open-sky/c3_layers.py assembles it (sRGB RGBA float)."""
-    G = C3_DIR / "guides"
-    cab = np.asarray(Image.open(G / "c3-cabin-projected-p09.png").convert("RGBA"), np.float32) / 255
-    un = np.asarray(Image.open(G / "c3-cabin-unpainted-p09.png").convert("L"), np.float32) / 255
-    seam = int(np.argmin(un[:, W // 2] > 0.5))
-    top = np.asarray(Image.open(C3_DIR / "assets" / "c3-cabin-top-v2.png").convert("RGB").resize((W, H), Image.LANCZOS),
-                     np.float32) / 255
-    yy = np.arange(H, dtype=np.float32)[:, None]
-    w = np.maximum(((seam + 4 - yy) / 8).clip(0, 1) * np.ones((1, W), np.float32), un)
-    rgb = cab[..., :3] * (1 - w[..., None]) + top * w[..., None]
-    return rgb, cab[..., 3:4]
+def cloud_sheet(front):
+    """The cloud card carried along the stream, ragged edge first. `front` is where its
+    leading edge stands along the stream (frame px from centre, + toward the bottom right).
+    Beyond the card's far end the dense body continues (clamped)."""
+    cc = cloud_card()
+    th, tw = cc.shape[:2]
+    u = np.clip(UF - front, 0, tw - 1.001)
+    v = np.mod(VF + th / 2, 2 * (th - 1))
+    v = np.clip(np.where(v > th - 1, 2 * (th - 1) - v, v), 0, th - 1.001)   # mirrored across the stream
+    i0, j0 = u.astype(np.int32), v.astype(np.int32)
+    fu, fv = (u - i0)[..., None], (v - j0)[..., None]
+    top = cc[j0, i0] * (1 - fu) + cc[j0, i0 + 1] * fu
+    bot = cc[j0 + 1, i0] * (1 - fu) + cc[j0 + 1, i0 + 1] * fu
+    rgb = top * (1 - fv) + bot * fv
+    rag = stream(smoke_tex(), front * 0.35, 1.1, 0.9, v_off=330.0) - 0.5
+    lead = np.clip((UF - front) / 240.0 + 0.5 + 1.4 * rag, 0, 1)   # a torn edge, nothing ahead of it
+    return rgb, lead
 
 
-@lru_cache(maxsize=1)
-def c3_frame0():
-    rgb, a = c3_cabin()
-    return rgb * a + ENTRY_WHITE * (1 - a)
+FIRE = [(0.00, (0.0, 0.0, 0.0)), (0.25, (0.30, 0.025, 0.0)), (0.55, (0.95, 0.20, 0.02)),
+        (0.85, (1.25, 0.55, 0.10)), (1.20, (1.6, 1.15, 0.55)), (1.70, (2.0, 1.85, 1.5))]
 
 
-def strip(card, x):
-    """Columns of a card placed with its left edge at frame x (sub-pixel), clipped to the frame."""
-    ch, cw = card.shape[:2]
-    cols = np.arange(W, dtype=np.float32) - x
-    i0 = np.floor(cols).astype(int)
-    f = (cols - i0)[None, :, None]
-    ok = ((i0 >= 0) & (i0 < cw - 1))[None, :, None]
-    i0 = np.clip(i0, 0, cw - 2)
-    return (card[:, i0] * (1 - f) + card[:, i0 + 1] * f) * ok, ok
-
-
-def wipe(edge, soft, ys):
-    """1 to the right of a slanted, soft edge travelling right to left (bow to stern)."""
-    xs = np.arange(W, dtype=np.float32)[None, :]
-    lead = edge - 0.18 * (ys - 350.0)                 # the low glass, nearest the hull's underside, leads
-    return np.clip((xs - lead) / soft + 0.5, 0, 1)
+def fire_colour(temp):
+    """Linear RGB of a flame at temperature 0..~1.7: deep red, orange, yellow, near white."""
+    ks = np.array([k for k, _ in FIRE], np.float32)
+    out = np.empty(temp.shape + (3,), np.float32)
+    for c in range(3):
+        out[..., c] = np.interp(temp, ks, np.array([v[c] for _, v in FIRE], np.float32))
+    return out
 
 
 # ---------------------------------------------------------------- the frame
 
 def frame_entry(e):
-    cab = K.cabin_states()
-    t2 = C.C2_LEN + e
-    ys = np.arange(H, dtype=np.float32)[:, None]
-    lin = K.to_lin(c2_planet.plate_layer(t2))
+    cab = cabin_states()
+    lin = planet(e)
+    flicker = 1.0 + 0.14 * Q._noise(e, 9.0, 21) + 0.07 * Q._noise(e, 23.0, 22)
 
-    # --- heat glow
-    g_u = C.smooth((e - C.GLOW_IN[0]) / (C.GLOW_IN[1] - C.GLOW_IN[0]))
-    glow_edge = 2150 - 2900 * g_u
-    def layer(card, x):
-        rows, _ = strip(card, x)
-        out = np.empty((H, W, 3), np.float32)
-        out[:rows.shape[0]] = rows
-        out[rows.shape[0]:] = rows[-1]
-        return out
+    # --- fire: the heat field is fixed to the glass (the air meets the hull at the bottom
+    # right), the filaments stream through it
+    h = _ramp(e, C.HEAT)
+    onset = C.smooth((e - C.HEAT[0]) / (C.HEAT[1] - C.HEAT[0] + 0.6))
+    body = detail("c2-entry-glow-v1.png")
+    fb = stream(body, SPEED["body"] * e, 1.5, 1.0)
+    fs = stream(body, SPEED["streak"] * e + 900.0, 3.2, 0.7, v_off=170.0)
+    fil = np.clip(0.7 * fb + 0.5 * fs - 0.55, 0, None)           # dark lanes between the streams
+    front = 1.25 - 2.6 * onset                                     # the hot edge spreads up-left
+    reach = np.clip((UN - front) / 0.6 + 0.4 * (fil - 0.6), 0, 1)
+    field = (0.22 + 0.78 * ((UN + 1) / 2) ** 1.3) * reach * h * flicker
+    temp = field * (0.03 + 1.45 * fil ** 2.2)
+    sheath = np.clip(reach * h * 1.6, 0, 1)[..., None]           # the plasma hides the planet
+    lin = lin * (1 - 0.985 * sheath) + fire_colour(temp)
 
-    body = layer(glow_card(), -60 - FILAMENT_PX_S[0] * e)
-    streak = layer(glow_card(2.0, 760), -40 - FILAMENT_PX_S[1] * e)
-    gl = K.to_lin(body) + 0.35 * K.to_lin(streak)
-    # the wipe's edge is ragged along the filaments themselves, not a straight soft line
-    fil = (body @ np.array([0.3, 0.6, 0.1], np.float32))
-    xs_ = np.arange(W, dtype=np.float32)[None, :]
-    lead = glow_edge - 0.18 * (ys - 350.0)
-    gm = np.clip((xs_ - lead) / 700.0 + 0.5 + 0.9 * (fil - 0.45), 0, 1)[..., None] * min(1.0, g_u * 4)
-    heat = (0.55 + 0.45 * np.clip(np.arange(W, dtype=np.float32) / W, 0, 1))[None, :, None]
-    flicker = 1.0 + 0.06 * math.sin(e * 31.0) + 0.04 * math.sin(e * 53.0 + 1.1)
-    glow_fade = 1 - C.smooth((e - 2.1) / 0.6)                  # the cloud has quenched it by the white
-    sheath = gl * heat * GLOW_GAIN * flicker
-    lin = lin * (1 - 0.92 * gm) + sheath * gm * glow_fade
+    # --- smoke torn off the sheath, trailing to the top left
+    sm = _ramp(e, C.SMOKE)
+    if sm > 0:
+        billow = smoke_tex()
+        d = 0.65 * stream(billow, SPEED["smoke"] * e + 400.0, 1.5, 1.15, v_off=-90.0)             + 0.35 * stream(billow, SPEED["smoke"] * 1.25 * e + 1700.0, 1.2, 0.9, v_off=210.0)
+        trail = np.clip(0.2 + 0.8 * (1 - UN) / 2, 0, 1)
+        dens = smooth_arr((d - 0.60) / 0.14) * trail * sm
+        # grey-brown soot, its underside lit by the fire it came off
+        under = smooth_arr((0.70 - d) / 0.12)[..., None]
+        smoke = np.array([0.030, 0.027, 0.024], np.float32) + fire_colour(temp * 0.8) * (0.08 + 0.35 * under)
+        lin = lin * (1 - dens[..., None]) + smoke * dens[..., None]
 
-    # --- cloud
+    # --- cloud, carried in from the bottom right along the stream; warm, then white
     c_u = C.smooth((e - C.CLOUD_IN[0]) / (C.CLOUD_IN[1] - C.CLOUD_IN[0]))
-    cc = cloud_card()
-    cx = W + 40 - (W + 40 + 380) * c_u - 120 * (e - C.CLOUD_IN[0])            # leading edge in at the right jamb; body over the glass by 2.5
-    crow, cok = strip(cc, cx)
-    cl = np.zeros((H, W, 3), np.float32)
-    cl[:crow.shape[0]] = crow
-    cl[crow.shape[0]:] = crow[-1]
-    lum = cl @ np.array([0.3, 0.6, 0.1], np.float32)
-    dens = np.clip((lum - 0.25) / 0.30, 0, 1)[..., None]       # torn edge: thin vapour is see-through
-    cm = np.clip(dens * 1.6, 0, 1) * wipe(cx + 420, 700.0, ys)[..., None]   # never shows the card's own edge
-    cl_lin = K.to_lin(cl) * 1.15
-    lin = lin * (1 - cm) + cl_lin * cm
+    cloud_amt = 0.0
+    if e >= C.CLOUD_IN[0] - 0.05:
+        front_px = U_HALF + 60 - (2 * U_HALF + 1250) * c_u - 160.0 * max(0.0, e - C.CLOUD_IN[1])
+        rgb, lead = cloud_sheet(front_px)
+        lum = rgb @ np.array([0.3, 0.6, 0.1], np.float32)
+        dens = np.clip((lum - 0.30) / 0.28, 0, 1) * lead          # its torn edge: thin vapour shows through
+        wisp = stream(detail("c2-entry-cloud-v1.png"), SPEED["wisp"] * e, 2.6, 0.8, v_off=60.0)
+        warm = 1 - C.smooth((e - C.CLOUD_IN[0] - 0.4) / 1.2)
+        tint = np.array([1.0, 0.62, 0.38], np.float32) * warm + (1 - warm)
+        cl_lin = K.to_lin(rgb) * 1.12 * tint * (0.9 + 0.12 * wisp[..., None])
+        cm = np.clip(dens * 1.5, 0, 1)[..., None]
+        lin = lin * (1 - cm) + cl_lin * cm
+        cloud_amt = c_u
     # white: the glass settles to C3's flat entry white
-    wh = C.smooth((e - 2.35) / 0.35)
+    wh = C.smooth((e - C.WHITE[0]) / (C.WHITE[1] - C.WHITE[0]))
     lin = lin * (1 - wh) + K.to_lin(ENTRY_WHITE) * wh
 
     # --- the cabin, relit from the glass
-    xs = np.arange(W, dtype=np.float32)[None, :, None]
-    reach = np.clip((xs - (glow_edge - 500)) / 1100.0, 0, 1) * min(1.0, g_u * 1.6)      # right side first
-    reach = reach * glow_fade
-    cloud_amt = C.smooth((e - 1.45) / 1.0)
-    cab_lin = cab["space"] * (1 - reach) * (1 - cloud_amt) + cab["glow"] * flicker * reach * (1 - cloud_amt) \
-        + cab["cloud"] * cloud_amt
+    k_fire = float(np.clip(h * flicker * min(1.0, onset * 1.6), 0, 1.2)) * (1 - cloud_amt)
+    cab_lin = cab["space"] * max(0.0, 1 - k_fire) * (1 - cloud_amt) + cab["glow"] * k_fire + cab["cloud"] * cloud_amt
     a = cab["alpha"]
     out = K.to_srgb(lin * (1 - a) + cab_lin * a)
 
-    # --- bloom into C3: brighten toward white, swap the cabin at the peak, settle on C3 frame 0
-    b0, bp, b1 = BLOOM
-    if e >= b0:
-        rise = C.smooth((e - b0) / (bp - b0))
-        fall = C.smooth((e - bp) / (b1 - bp))
-        amount = 0.9 * rise * (1 - fall)
-        if e >= bp:
-            out = c3_frame0()
-        out = out * (1 - amount) + ENTRY_WHITE * amount
-    return Image.fromarray((np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8))
+    # --- settle exactly onto C3's frame 0 (same window, same camera: nothing to hide)
+    k = C.smooth((e - C.SETTLE[0]) / (C.SETTLE[1] - C.SETTLE[0]))
+    if k > 0:
+        out = out * (1 - k) + c3_frame0() * k
+    return C3.shaken(out, e)
+
+
+# ---------------------------------------------------------------- C3's window, relit
+
+PLANET_DY = 250   # C2's plate looks 19.29 deg down; at C3's 9 deg its horizon sits ~250 px lower
+
+
+def planet(e):
+    """Jangala as C2 leaves it, still drifting, moved down to where it sits from C3's camera."""
+    p = c2_planet.plate_layer(C.C2_LEN + e)
+    out = np.zeros_like(p)
+    out[PLANET_DY:] = p[:H - PLANET_DY]
+    return K.to_lin(out)
+
+
+@lru_cache(maxsize=1)
+def cabin_states():
+    """C3's own cabin (first-open-sky/build/layers/cabin.png, exactly what C3 draws), relit
+    for the entry, as linear RGB plus coverage alpha. The painting is lit by C3's daylight,
+    so it is used as it is for the cloud state, which is therefore C3's cabin and lands on
+    C3's frame 0 with no change. Space and fire light come from the glass: a falloff from
+    the aperture (near surfaces lit, deep cabin dark), the fire hotter on the bow side."""
+    im = Image.open(C3.LAYER_DIR / "cabin.png").convert("RGBA")
+    a = np.asarray(im, np.float32) / 255
+    painted, alpha = K.to_lin(a[..., :3]), a[..., 3:4]
+    glass = Image.fromarray(((1 - a[..., 3]) * 255).astype(np.uint8))
+    near = np.asarray(glass.filter(ImageFilter.GaussianBlur(40)), np.float32) / 255
+    wide = np.asarray(glass.filter(ImageFilter.GaussianBlur(180)), np.float32) / 255
+    window = np.clip(1.6 * near + 1.1 * wide, 0, 1.4)[..., None]
+    alb = painted / 0.55                                          # the paint is lit at about this level
+    xs = np.arange(W, dtype=np.float32)[None, :, None]
+    ys = np.arange(H, dtype=np.float32)[:, None, None]
+    bias = (0.55 + 0.75 * (xs / W)) * (0.85 + 0.3 * np.clip(ys / H, 0, 1))
+    space = alb * (0.012 + window * np.array([0.06, 0.08, 0.15], np.float32))   # planet-shine, cold
+    glow = alb * (0.01 + window * bias * np.array([1.0, 0.42, 0.11], np.float32) * 0.75)
+    return {"space": space, "glow": glow, "cloud": painted, "alpha": alpha}
+
+
+@lru_cache(maxsize=1)
+def c3_frame0():
+    """C3's frame 0 before the shake (the shake is the entry's own, applied after)."""
+    return C3.frame(0.0, unshaken=True)
 
 
 def _render(i):
@@ -213,28 +308,52 @@ def _render(i):
     return i
 
 
+STILLS = (("entry-1-first-heat", 1.0), ("entry-2-fire", 2.6), ("entry-3-smoke", 3.6), ("entry-4-cloud", 4.6),
+          ("entry-5-white", 5.8), ("entry-6-bloom", 6.5))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stills", action="store_true")
+    parser.add_argument("--fps", type=int, default=FPS, help="sketch rate: render every FPS/fps-th frame and hold it")
     parser.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
     args = parser.parse_args()
     K.check_hail()
     n = round(DURATION * FPS)
-    for name, e in (("entry-1-glow-in", 0.5), ("entry-2-glow", 0.9), ("entry-3-cloud", 1.9), ("entry-4-white", 2.5),
-                    ("entry-5-bloom", 2.75), ("entry-6-last", (n - 1) / FPS)):
+    (BASE / "review").mkdir(exist_ok=True)
+    for old in (BASE / "review").glob("entry-*.png"):
+        old.unlink()
+    for name, e in STILLS + (("entry-7-last", (n - 1) / FPS),):
         frame_entry(e).save(BASE / "review" / (name + ".png"))
     if args.stills:
         return
-    K.write_frames(_render, n, OUT / "frames", args.workers)
-    last = np.asarray(Image.open(OUT / "frames" / ("%05d.png" % (n - 1))), np.float32) / 255
-    seam = float(np.abs(last - c3_frame0()).mean() * 255)
+    step = max(1, round(FPS / args.fps))
+    frames = OUT / "frames"
+    frames.mkdir(parents=True, exist_ok=True)
+    for old in frames.glob("*.png"):
+        old.unlink()
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(args.workers) as pool:
+        for done in pool.map(_render, list(range(0, n, step)) + ([n - 1] if (n - 1) % step else []), chunksize=2):
+            if done % 48 == 0:
+                print("frame", done, flush=True)
+    if step > 1:                                                  # a sketch: hold each drawn frame
+        for i in range(n):
+            if i % step and i != n - 1:
+                shutil.copyfile(frames / ("%05d.png" % (i - i % step)), frames / ("%05d.png" % i))
+    # The cut: the entry's last frame against C3's first, one frame on along the same shake.
+    last = np.asarray(Image.open(frames / ("%05d.png" % (n - 1))), np.float32)
+    first = np.asarray(C3.frame(0.0), np.float32)
+    seam = float(np.abs(last - first).mean())
     caps = captions()
     (OUT / "timeline.json").write_text(json.dumps({
-        "shot": SHOT, "duration": DURATION, "fps": FPS, "frames": n, "hail_clock_start": C.ENTRY_START,
-        "captions": caps, "overlays": overlays(), "audio_cues": audio_cues(),
+        "shot": SHOT, "duration": DURATION, "fps": FPS, "frames": n, "sketch_step": step,
+        "hail_clock_start": C.ENTRY_START, "captions": caps, "overlays": overlays(), "audio_cues": audio_cues(),
+        "phases": {"heat": C.HEAT, "smoke": C.SMOKE, "cloud_in": C.CLOUD_IN, "white": C.WHITE, "settle": C.SETTLE},
         "last_frame_vs_c3_frame0_mean_abs_8bit": round(seam, 3)}, indent=1), encoding="utf-8")
-    K.contact_sheet(OUT / "frames", n, OUT / "contact-sheet.png", cols=6, rows=4, label="ENTRY")
-    K.review_movie(OUT / "frames", n, K.review_pages_between(C.ENTRY_START, C.ENTRY_START + DURATION), audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.ENTRY_START)
+    K.contact_sheet(frames, n, OUT / "contact-sheet.png", cols=6, rows=4, label="ENTRY")
+    K.review_movie(frames, n, K.review_pages_between(C.ENTRY_START, C.ENTRY_START + DURATION), audio_cues(), DURATION,
+                   OUT / (SHOT + ".mp4"), bed_from=C.ENTRY_START)
     print("Entry: last frame vs C3 frame 0, mean |diff| %.2f / 255" % seam)
 
 

@@ -37,6 +37,15 @@ class MissileWindowTest {
     }
 
     @Test
+    void aShieldLoweredAtRestIsNoOpeningButASabotMayGoIntoIt() {
+        assertTrue(!Kind.SHIELD_IDLE.opening());
+        assertNull(MissileWindow.launch(Role.TORPEDO, EnumSet.of(Kind.SHIELD_IDLE)));
+        assertNull(MissileWindow.launch(Role.FINISHER, EnumSet.of(Kind.SHIELD_IDLE)));
+        assertNull(MissileWindow.launch(Role.SATURATION, EnumSet.of(Kind.SHIELD_IDLE)));
+        assertEquals(Kind.SHIELD_IDLE, MissileWindow.launch(Role.ANTI_SHIELD, EnumSet.of(Kind.SHIELD_IDLE)));
+    }
+
+    @Test
     void saturationGoesWithASalvoOrAnyOpeningButNotIntoAQuietShield() {
         assertNull(MissileWindow.launch(Role.SATURATION, EnumSet.of(Kind.SHIELD_UP)));
         assertNull(MissileWindow.launch(Role.SATURATION, EnumSet.of(Kind.WORN, Kind.SHIELD_UP)));

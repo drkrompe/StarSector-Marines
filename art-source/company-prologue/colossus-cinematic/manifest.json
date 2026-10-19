@@ -1,0 +1,1379 @@
+{
+ "asset": "colossus.blend",
+ "append_collection": "COLOSSUS",
+ "root": "COLOSSUS | root",
+ "anchors_collection": "COLOSSUS | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.5,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -126.07,
+   -87.35,
+   -52.9
+  ],
+  [
+   91.0,
+   90.35,
+   35.0
+  ]
+ ],
+ "size_metres_rest": [
+  108.5,
+  88.8,
+  44.0
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "main drive",
+   "pod": "port",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -124.5,
+    64.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.95,
+   "width": 15,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "role": "main drive",
+   "pod": "port",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -124.5,
+    56.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.95,
+   "width": 15,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 3,
+   "role": "main drive",
+   "pod": "port",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -124.5,
+    49.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.95,
+   "width": 15,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 4,
+   "role": "main drive",
+   "pod": "starboard",
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -124.5,
+    -61.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.95,
+   "width": 15,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 5,
+   "role": "main drive",
+   "pod": "starboard",
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -124.5,
+    -54.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.95,
+   "width": 15,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 6,
+   "role": "main drive",
+   "pod": "starboard",
+   "anchor": "Engine 6 exhaust anchor",
+   "mouth": [
+    -124.5,
+    -46.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.95,
+   "width": 15,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 7,
+   "role": "lift thruster",
+   "lift_thruster": 1,
+   "host": "Hull central cargo hold",
+   "anchor": "Engine 7 exhaust anchor",
+   "mouth": [
+    24.5,
+    1.5,
+    -48.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 6.02,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 8,
+   "role": "lift thruster",
+   "lift_thruster": 2,
+   "host": "Hull central cargo hold",
+   "anchor": "Engine 8 exhaust anchor",
+   "mouth": [
+    46.5,
+    1.5,
+    -48.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 6.02,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 9,
+   "role": "lift thruster",
+   "lift_thruster": 3,
+   "host": "Cargo port fore module",
+   "anchor": "Engine 9 exhaust anchor",
+   "mouth": [
+    53.5,
+    61.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 10,
+   "role": "lift thruster",
+   "lift_thruster": 4,
+   "host": "Cargo port fore module",
+   "anchor": "Engine 10 exhaust anchor",
+   "mouth": [
+    53.5,
+    76.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 11,
+   "role": "lift thruster",
+   "lift_thruster": 5,
+   "host": "Cargo port aft module",
+   "anchor": "Engine 11 exhaust anchor",
+   "mouth": [
+    5.0,
+    61.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 12,
+   "role": "lift thruster",
+   "lift_thruster": 6,
+   "host": "Cargo port aft module",
+   "anchor": "Engine 12 exhaust anchor",
+   "mouth": [
+    5.0,
+    76.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 13,
+   "role": "lift thruster",
+   "lift_thruster": 7,
+   "host": "Cargo starboard fore module",
+   "anchor": "Engine 13 exhaust anchor",
+   "mouth": [
+    53.5,
+    -58.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 14,
+   "role": "lift thruster",
+   "lift_thruster": 8,
+   "host": "Cargo starboard fore module",
+   "anchor": "Engine 14 exhaust anchor",
+   "mouth": [
+    53.5,
+    -73.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 15,
+   "role": "lift thruster",
+   "lift_thruster": 9,
+   "host": "Cargo starboard aft module",
+   "anchor": "Engine 15 exhaust anchor",
+   "mouth": [
+    5.0,
+    -58.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 16,
+   "role": "lift thruster",
+   "lift_thruster": 10,
+   "host": "Cargo starboard aft module",
+   "anchor": "Engine 16 exhaust anchor",
+   "mouth": [
+    5.0,
+    -73.0,
+    -44.900001525878906
+   ],
+   "axis": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "radius": 3.096,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16
+ ],
+ "main_drives": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "lift_thrusters": [
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    69.0,
+    75.0,
+    16.0
+   ],
+   "rest_angle_deg": 80,
+   "arc_deg": 140,
+   "trained_parts": 33,
+   "fixed_parts": 10,
+   "muzzles": [
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 1 WS 001 barrel 1 muzzle brake",
+     "anchor": "Anchor turret 1 starboard gun muzzle",
+     "at": [
+      72.152,
+      86.824,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      0.985,
+      0.0
+     ]
+    },
+    {
+     "tag": "port gun",
+     "brake": "Turret 1 WS 001 barrel 2 muzzle brake",
+     "anchor": "Anchor turret 1 port gun muzzle",
+     "at": [
+      69.95,
+      87.231,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      0.985,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "size": "SMALL",
+   "pivot": "Turret 2 pivot",
+   "pivot_at": [
+    3.0,
+    75.0,
+    16.0
+   ],
+   "rest_angle_deg": 90,
+   "arc_deg": 130,
+   "trained_parts": 33,
+   "fixed_parts": 10,
+   "muzzles": [
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 2 WS 002 barrel 1 muzzle brake",
+     "anchor": "Anchor turret 2 starboard gun muzzle",
+     "at": [
+      4.1,
+      87.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "port gun",
+     "brake": "Turret 2 WS 002 barrel 2 muzzle brake",
+     "anchor": "Anchor turret 2 port gun muzzle",
+     "at": [
+      1.9,
+      87.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "size": "SMALL",
+   "pivot": "Turret 3 pivot",
+   "pivot_at": [
+    70.0,
+    -74.0,
+    16.0
+   ],
+   "rest_angle_deg": -80,
+   "arc_deg": 140,
+   "trained_parts": 33,
+   "fixed_parts": 10,
+   "muzzles": [
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 3 WS 003 barrel 1 muzzle brake",
+     "anchor": "Anchor turret 3 starboard gun muzzle",
+     "at": [
+      70.95,
+      -86.231,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      -0.985,
+      0.0
+     ]
+    },
+    {
+     "tag": "port gun",
+     "brake": "Turret 3 WS 003 barrel 2 muzzle brake",
+     "anchor": "Anchor turret 3 port gun muzzle",
+     "at": [
+      73.117,
+      -85.849,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      -0.985,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "slot": "WS 004",
+   "size": "SMALL",
+   "pivot": "Turret 4 pivot",
+   "pivot_at": [
+    4.0,
+    -73.0,
+    16.0
+   ],
+   "rest_angle_deg": -90,
+   "arc_deg": 130,
+   "trained_parts": 33,
+   "fixed_parts": 10,
+   "muzzles": [
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 4 WS 004 barrel 1 muzzle brake",
+     "anchor": "Anchor turret 4 starboard gun muzzle",
+     "at": [
+      2.9,
+      -85.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "port gun",
+     "brake": "Turret 4 WS 004 barrel 2 muzzle brake",
+     "anchor": "Anchor turret 4 port gun muzzle",
+     "at": [
+      5.1,
+      -85.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "launchers": [
+  {
+   "index": 1,
+   "slot": "WS 005",
+   "mount": "HIDDEN",
+   "fixed": true,
+   "angle_deg": 45,
+   "anchor": "Anchor launcher 1 flare muzzle",
+   "at": [
+    86.116,
+    82.116,
+    15.0
+   ],
+   "axis": [
+    0.707,
+    0.707,
+    0.0
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 006",
+   "mount": "HIDDEN",
+   "fixed": true,
+   "angle_deg": -45,
+   "anchor": "Anchor launcher 2 flare muzzle",
+   "at": [
+    85.116,
+    -82.116,
+    15.0
+   ],
+   "axis": [
+    0.707,
+    -0.707,
+    0.0
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 007",
+   "mount": "HIDDEN",
+   "fixed": true,
+   "angle_deg": 100,
+   "anchor": "Anchor launcher 3 flare muzzle",
+   "at": [
+    -83.427,
+    84.581,
+    12.006
+   ],
+   "axis": [
+    -0.202,
+    0.703,
+    -0.682
+   ]
+  },
+  {
+   "index": 4,
+   "slot": "WS 008",
+   "mount": "HIDDEN",
+   "fixed": true,
+   "angle_deg": 260,
+   "anchor": "Anchor launcher 4 flare muzzle",
+   "at": [
+    -84.256,
+    -81.593,
+    11.966
+   ],
+   "axis": [
+    -0.204,
+    -0.701,
+    -0.683
+   ]
+  }
+ ],
+ "lamps_lit": 19,
+ "lamps": [
+  {
+   "object": "Bridge masthead lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -65.8,
+    1.5,
+    32.85
+   ]
+  },
+  {
+   "object": "Bridge port frame lamp 1",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -62.5,
+    28.5,
+    13.2
+   ]
+  },
+  {
+   "object": "Bridge port frame lamp 2",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -66.0,
+    28.5,
+    13.2
+   ]
+  },
+  {
+   "object": "Bridge port frame lamp 3",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -69.5,
+    28.5,
+    13.2
+   ]
+  },
+  {
+   "object": "Bridge port yard lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -65.8,
+    4.5,
+    30.75
+   ]
+  },
+  {
+   "object": "Bridge starboard frame lamp 1",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -62.5,
+    -25.5,
+    13.2
+   ]
+  },
+  {
+   "object": "Bridge starboard frame lamp 2",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -66.0,
+    -25.5,
+    13.2
+   ]
+  },
+  {
+   "object": "Bridge starboard frame lamp 3",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -69.5,
+    -25.5,
+    13.2
+   ]
+  },
+  {
+   "object": "Bridge starboard yard lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -65.8,
+    -1.5,
+    30.75
+   ]
+  },
+  {
+   "object": "Hull aft port band edge lamp 1",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -34.5,
+    23.1,
+    13.2
+   ]
+  },
+  {
+   "object": "Hull aft port band edge lamp 2",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -37.5,
+    23.1,
+    13.2
+   ]
+  },
+  {
+   "object": "Hull aft port band edge lamp 3",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -40.5,
+    23.1,
+    13.2
+   ]
+  },
+  {
+   "object": "Hull aft port stern lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -93.75,
+    4.7,
+    5.2
+   ]
+  },
+  {
+   "object": "Hull aft starboard band edge lamp 1",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -34.5,
+    -20.1,
+    13.2
+   ]
+  },
+  {
+   "object": "Hull aft starboard band edge lamp 2",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -37.5,
+    -20.1,
+    13.2
+   ]
+  },
+  {
+   "object": "Hull aft starboard band edge lamp 3",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -40.5,
+    -20.1,
+    13.2
+   ]
+  },
+  {
+   "object": "Hull aft starboard stern lamp",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    -93.75,
+    -1.7,
+    5.2
+   ]
+  },
+  {
+   "object": "Hull port hatch edge lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    38.5,
+    35.7,
+    19.97
+   ]
+  },
+  {
+   "object": "Hull starboard hatch edge lamps",
+   "material": "Running lamp",
+   "lit": true,
+   "at": [
+    38.5,
+    -32.7,
+    19.97
+   ]
+  }
+ ],
+ "objects": 1123,
+ "polygons": 159627,
+ "baked_meshes": 440,
+ "images": [
+  "Skin aft-deck-aft",
+  "Skin aft-deck-fwd",
+  "Skin aft-face",
+  "Skin aft-stern",
+  "Skin aft-under",
+  "Skin bow-port",
+  "Skin bridge-aft",
+  "Skin bridge-front",
+  "Skin bridge-roof",
+  "Skin bridge-wall-port",
+  "Skin cover-aft-in-port",
+  "Skin cover-aft-out-port",
+  "Skin cover-fore",
+  "Skin deck-a-port",
+  "Skin deck-aft",
+  "Skin deck-f-port",
+  "Skin keel-a-port",
+  "Skin keel-aft-port",
+  "Skin keel-f-port",
+  "Skin keel-fore-port",
+  "Skin keel-top",
+  "Skin longeron-in-port",
+  "Skin longeron-out-port",
+  "Skin longeron-top-port",
+  "Skin pod-belly-1-port",
+  "Skin pod-flank-1-port",
+  "Skin pod-flank-2-port",
+  "Skin pod-top-1-port",
+  "Skin pod-top-2-port",
+  "Skin pod-top-3-port",
+  "Skin pod-top-4-port",
+  "Skin pod-top-5-port",
+  "Skin wall-a-hi-port",
+  "Skin wall-a-lo-port",
+  "Skin wall-f-hi-port",
+  "Skin wall-f-lo-port",
+  "Swatch blue",
+  "Swatch dark",
+  "Swatch gunmetal",
+  "Swatch maroon",
+  "Swatch orange",
+  "Swatch pale",
+  "Swatch red",
+  "Swatch red_w",
+  "Swatch tile"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile colossus-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 152,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 2.95,
+     "mouth": [
+      -124.5,
+      64.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 2.95,
+     "mouth": [
+      -124.5,
+      56.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "port",
+     "radius": 2.95,
+     "mouth": [
+      -124.5,
+      49.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "starboard",
+     "radius": 2.95,
+     "mouth": [
+      -124.5,
+      -61.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "starboard",
+     "radius": 2.95,
+     "mouth": [
+      -124.5,
+      -54.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 6,
+     "side": "starboard",
+     "radius": 2.95,
+     "mouth": [
+      -124.5,
+      -46.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 7,
+     "side": "centre",
+     "radius": 6.02,
+     "mouth": [
+      24.5,
+      1.5,
+      -48.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 8,
+     "side": "centre",
+     "radius": 6.02,
+     "mouth": [
+      46.5,
+      1.5,
+      -48.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 9,
+     "side": "port",
+     "radius": 3.096,
+     "mouth": [
+      53.5,
+      61.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 10,
+     "side": "port",
+     "radius": 3.096,
+     "mouth": [
+      53.5,
+      76.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 11,
+     "side": "port",
+     "radius": 3.096,
+     "mouth": [
+      5.0,
+      61.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 12,
+     "side": "port",
+     "radius": 3.096,
+     "mouth": [
+      5.0,
+      76.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 13,
+     "side": "starboard",
+     "radius": 3.096,
+     "mouth": [
+      53.5,
+      -58.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 14,
+     "side": "starboard",
+     "radius": 3.096,
+     "mouth": [
+      53.5,
+      -73.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 15,
+     "side": "starboard",
+     "radius": 3.096,
+     "mouth": [
+      5.0,
+      -58.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    },
+    {
+     "index": 16,
+     "side": "starboard",
+     "radius": 3.096,
+     "mouth": [
+      5.0,
+      -73.0,
+      -44.9
+     ],
+     "axis": [
+      0.0,
+      0.0,
+      -1.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "port gun",
+     "muzzle": [
+      69.95,
+      87.231,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      0.985,
+      0.0
+     ]
+    },
+    {
+     "turret": 1,
+     "tag": "starboard gun",
+     "muzzle": [
+      72.152,
+      86.824,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      0.985,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "port gun",
+     "muzzle": [
+      1.9,
+      87.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "starboard gun",
+     "muzzle": [
+      4.1,
+      87.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "port gun",
+     "muzzle": [
+      73.117,
+      -85.849,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      -0.985,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "starboard gun",
+     "muzzle": [
+      70.95,
+      -86.231,
+      17.85
+     ],
+     "axis": [
+      0.174,
+      -0.985,
+      0.0
+     ]
+    },
+    {
+     "turret": 4,
+     "tag": "port gun",
+     "muzzle": [
+      5.1,
+      -85.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 4,
+     "tag": "starboard gun",
+     "muzzle": [
+      2.9,
+      -85.22,
+      17.85
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Bridge masthead lamp",
+     "role": "masthead",
+     "at": [
+      -65.8,
+      1.5,
+      32.85
+     ]
+    },
+    {
+     "name": "Bridge port yard lamp",
+     "role": "beacon",
+     "at": [
+      -65.8,
+      4.5,
+      30.75
+     ]
+    },
+    {
+     "name": "Bridge starboard yard lamp",
+     "role": "beacon",
+     "at": [
+      -65.8,
+      -1.5,
+      30.75
+     ]
+    },
+    {
+     "name": "Hull aft port stern lamp",
+     "role": "beacon",
+     "at": [
+      -93.75,
+      4.7,
+      5.2
+     ]
+    },
+    {
+     "name": "Hull aft starboard stern lamp",
+     "role": "beacon",
+     "at": [
+      -93.75,
+      -1.7,
+      5.2
+     ]
+    },
+    {
+     "name": "Hull port hatch edge lamps",
+     "role": "work",
+     "at": [
+      38.5,
+      35.7,
+      19.975
+     ]
+    },
+    {
+     "name": "Hull starboard hatch edge lamps",
+     "role": "work",
+     "at": [
+      38.5,
+      -32.7,
+      19.975
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -126.07,
+     -87.35,
+     -52.9
+    ],
+    [
+     91.0,
+     90.35,
+     35.0
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 16,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 16,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 8,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'COLOSSUS' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "colossus-surface/build/skinned.blend",
+  "geometry_json_sha256": "0ead6079735e142bd397a01a8b68ec91d1f52012e3fedeb38f52b75e65b9458d",
+  "skin_manifest_sha256": "9f7625bf00874c8beba0d35b16bb2188f6c66f599ad1190a992ac0f8c9ba8b53"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust: aft for the main drives, down for the lift thrusters; line of fire); +Z as near hull-dorsal as that allows (toward the bow for a downward axis).",
+  "turrets": "Rotate Turret <i> pivot about its local Z to train within its arc about the slot angle; the rest pose is the slot angle. The four flare launchers are fixed.",
+  "engines": "Engines 1-6 are the main drives, 7-16 the lift thrusters (lift thruster 1-10); with the effects collection each has its own throttle, thr_throttle_e<i>.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "fdc0b9a976f00131beea607ef1d0bf86ae2bb5855abeabeeed4c3b69a8685332"
+}

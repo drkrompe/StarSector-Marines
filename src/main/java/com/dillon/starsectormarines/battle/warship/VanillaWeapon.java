@@ -247,7 +247,13 @@ public record VanillaWeapon(
         return flash == null ? 0f : (float) flash.optDouble("length", 0.0);
     }
 
+    /**
+     * The sprite a round is drawn with: its {@code bulletSprite}, else its {@code sprite}; {@code null} for a round
+     * the game draws as a streak of light ({@code BALLISTIC_AS_BEAM}), which it does even when the spec names a
+     * bullet sprite (the Antimatter Blaster names one and is never drawn with it).
+     */
     private static String sprite(JSONObject proj) {
+        if (VanillaRoundLook.isStreak(proj)) return null;
         String bullet = proj.optString("bulletSprite", null);
         return bullet != null ? bullet : proj.optString("sprite", null);
     }

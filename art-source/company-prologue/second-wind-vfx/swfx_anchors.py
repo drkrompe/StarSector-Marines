@@ -44,6 +44,14 @@ MOUNTS = swfx_hull.get('MOUNTS', MOUNTS)
 DECLARED_MUZZLES = swfx_hull.get('DECLARED_MUZZLES', False)
 # 'Anchor turret <i> <tag> muzzle', the cinematic export's own muzzle empties.
 DECLARED_MUZZLE = re.compile(r'^Anchor turret (\d+) (.+) muzzle(\.\d+)?$')
+# A multi-barrel mount numbers its barrels: 'barrel <k>' (guns) or 'tube <k>' (launchers).
+BARREL_TAG = re.compile(r'^(?:barrel|tube) (\d+)$')
+
+
+def mount_kind(mount):
+    """A MOUNTS entry is (x, y, angle, scale, twin) or (x, y, angle, scale, twin, kind);
+    kind is 'gun' (the default) or 'launcher'."""
+    return mount[5] if len(mount) > 5 else 'gun'
 
 ANCHORS = 'Anchors'
 
@@ -77,12 +85,15 @@ class EngineAnchor:
 
 
 class GunAnchor:
-    def __init__(self, turret, tag, empty, scale, twin):
+    def __init__(self, turret, tag, empty, scale, twin, kind='gun', barrel=None):
         self.turret = turret          # 1..4 (sw_turrets MOUNTS order)
-        self.tag = tag                # 'gun', or 'port gun' / 'starboard gun' on turret 4
+        self.tag = tag                # 'gun', or 'port gun' / 'starboard gun' on turret 4;
+                                      # 'barrel <k>' / 'tube <k>' on another hull's multi-barrel mount
         self.empty = empty            # at the muzzle brake's mouth, +X along the barrel
         self.scale = scale            # mount scale (1.0 small, 1.3 the medium twin)
         self.twin = twin
+        self.kind = kind              # 'gun' (muzzle flash, tracer, brass) or 'launcher' (missile launch)
+        self.barrel = barrel          # k of a 'barrel <k>' / 'tube <k>' tag, else None
 
     def __repr__(self):
         return f'<turret {self.turret} {self.tag}>'
@@ -143,7 +154,9 @@ class Anchors:
             'engines': [{'index': e.index, 'side': e.side, 'radius': e.radius, 'mouth': w(e),
                          'axis': [round(v, 3) for v in e.empty.matrix_world.to_3x3().col[0]]} for e in self.engines],
             'guns': [{'turret': g.turret, 'tag': g.tag, 'muzzle': w(g),
-                      'axis': [round(v, 3) for v in g.empty.matrix_world.to_3x3().col[0]]} for g in self.guns],
+                      'axis': [round(v, 3) for v in g.empty.matrix_world.to_3x3().col[0]],
+                      **({'barrel': g.barrel} if g.barrel is not None else {}),
+                      **({'kind': g.kind} if g.kind != 'gun' else {})} for g in self.guns],
             'lamps': [{'name': l.name, 'role': l.role, 'at': w(l)} for l in self.lamps],
             'sparks': [{'name': s.name, 'scar': s.scar, 'label': s.label, 'sparking': s.sparking,
                         'radius_m': round(s.radius * swfx_core.METRES_PER_UNIT, 3), 'at': w(s),
@@ -259,8 +272,11 @@ def find(scene=None, coll=None):
             mw = declared.matrix_world
             ob = place(f'SWFX anchor turret {i} {tag}', coll, declared, mw.translation.copy(),
                        mw.to_3x3() @ Vector((1, 0, 0)), .8 * s)
-            a.guns.append(GunAnchor(i, tag, ob, s, heavy))
-    for i, (x, y, angle, s, heavy) in enumerate(() if DECLARED_MUZZLES else MOUNTS, 1):
+            b = BARREL_TAG.match(tag)
+            a.guns.append(GunAnchor(i, tag, ob, s, heavy, mount_kind(MOUNTS[i - 1]),
+                                    int(b.group(1)) if b else None))
+    for i, mount in enumerate(() if DECLARED_MUZZLES else MOUNTS, 1):
+        s, heavy = mount[3], mount[4]
         tags = ('port gun', 'starboard gun') if heavy else ('gun',)
         for tag in tags:
             brake = bpy.data.objects.get(f'Turret {i} {tag} muzzle brake')

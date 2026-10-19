@@ -55,6 +55,7 @@ group's review into `build/<group>/`.
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
+| `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -76,7 +77,10 @@ one of two ways (both under Anchors, Other hulls, below):
   - its geometry.json (scale), the engine table, the bell radii and the
     port/starboard split;
   - the condition states and the turret mounts (`DECLARED_MUZZLES` takes the
-    export's `Anchor turret <i> <tag> muzzle` empties);
+    export's `Anchor turret <i> <tag> muzzle` empties). A mount with more
+    than two barrels tags them `barrel <k>`, and a missile mount (MOUNTS kind
+    `'launcher'`, the optional sixth field) tags its tubes `tube <k>` (Guns,
+    below);
   - its lamp list, so `lighting` works;
   - plume colours per engine mode;
   - the art-placed RCS quads.
@@ -84,7 +88,10 @@ one of two ways (both under Anchors, Other hulls, below):
   Whatever a profile leaves out keeps the Second Wind's value. The
   Mudskipper's profile is `../mudskipper-cinematic/vfx_hull.py`: three orange
   LOW_TECH drives, her two maneuvering jets as geometry RCS anchors, a twin MG
-  and her lamps. Engine indices in neither side list read as `centre`.
+  and her lamps. Engine indices in neither side list read as `centre`. The
+  Legion's (`../legion-cinematic/vfx_hull.py`) is the multi-barrel and
+  launcher case: ten drives, 25 gun barrels on thirteen mounts and six
+  launcher tubes.
 
 ## Scale
 
@@ -338,6 +345,35 @@ volume that can overlap another needs the same treatment.
 
 Every shot is deterministic.
 
+**Other hulls' mounts.** The knob index k is the barrel's own number when the
+export tags it `barrel <k>` (a three-barrel heavy autocannon gets t5_1..t5_3);
+the Second Wind's `gun`, `port gun` and `starboard gun` keep k 1, 1 and 2.
+Flash boxes on one mount are padded apart a little, so Cycles never cuts one
+off at a shared face. A **launcher** (MOUNTS kind `'launcher'`, tubes
+`tube <k>`) gets none of the gun effects. Per tube it has a **launch bloom**
+(an ignition ball at the cell mouth, a short forward lick, and backblast out
+of the launcher's rear face) and a **launch light**, on `gun_launch_t{i}_{k}`.
+Per launch, `fire()` makes a **missile** (a body with a motor flame) that
+leaves the tube and accelerates along the line of fire out to the range, and
+**motor smoke**: a launch puff at the mouth and a trail of puffs left along
+its first stretch, sized from the missile. The launcher knobs below exist
+only when the hull has a launcher, so every other hull's knobs are unchanged.
+
+| Launcher knob | Range | Default | Meaning |
+|---|---|---|---|
+| `gun_launch_t{i}_{k}`, `gun_seed_t{i}_{k}` | | keyed by `fire()` | Per-tube launch envelope and bloom seed |
+| `gun_launch_gain` | 0-4 | 1 | Launch bloom brightness |
+| `gun_launch_light` | 0-60000 | 4000 | Launch light watts at envelope 1 |
+| `gun_missile_gain` | 0-4 | 1 | Motor flame brightness |
+| `gun_missile_velocity` | 0-400 m/s | 40 | Speed leaving the tube (read at `fire()`) |
+| `gun_missile_accel` | 0-2000 m/s² | 220 | Motor acceleration (read at `fire()`) |
+| `gun_missile_range` | 50-6000 m | 1200 | Distance at which the missile leaves the shot (read at `fire()`) |
+| `gun_missile_smoke` | 0-4 | 1 | Motor smoke density; `gun_atmosphere` also thickens it |
+
+Cost: every launch and flash light is a light, and the smoke scatters, so a
+whole battery firing is expensive to render; exhaust haze wrapping the same
+frame multiplies it (the Legion's review leaves haze out of its firing pass).
+
 | Knob | Range | Default | Meaning |
 |---|---|---|---|
 | `gun_flash_t{i}_{k}`, `gun_seed_t{i}_{k}` | | keyed by `fire()` | Per-gun flash envelope and shape seed. k=2 is the twin's starboard gun. |
@@ -361,12 +397,44 @@ Some knobs are live and some are read once:
 Helpers:
 
 - `fire(ctx, turret, start_frame, shots, interval_frames, tag=None)`. The
-  twin alternates port first. `tag` can be `'port gun'`, `'starboard gun'`
-  or `'both'` (a salvo).
+  twin alternates port first; a multi-barrel mount or launcher ripples
+  through its barrels or tubes in order. `tag` can be `'port gun'`,
+  `'starboard gun'`, `'barrel <k>'`, `'tube <k>'` or `'both'` (a salvo).
 - `burst(ctx, turrets=(1,2,3,4), start_frame, shots, interval_frames,
   stagger_frames, seed)`.
 - `build(ctx, fire=[{...}])` fires during the build. The derelict carries no
   guns, so nothing is built there.
+
+### Beams (`swfx_beams`, opt-in)
+
+The Second Wind carries no beam weapon, so `beams` is not in `swfx.GROUPS` and
+its builds never run it. A hull whose profile declares `BEAMS` asks for it:
+`swfx.apply(groups=(..., 'beams'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`); each entry names the muzzle the beam rides
+and carries the weapon's vanilla width, range, colours (fringe, core, glow)
+and charge-up/charge-down, all in hull units, which are the sprite pixels
+vanilla uses.
+
+Per beam, dark until fired: a white-hot core inside a soft fringe in the
+weapon's colour (both additive, with a noise that crawls along the beam for
+vanilla's ROUGH texture); a glow at the muzzle that also shows the charge
+building; a glow at the far end; and point lights at both ends. The rig rides
+its muzzle, so a beam swings with its turret.
+
+- Knobs: `beam_t_<id>` (beam envelope), `beam_charge_<id>` (charge glow),
+  `beam_len_<id>` (length in hull units: the distance to the target), and the
+  group's `beam_gain`, `beam_width`, `beam_flare`, `beam_light`.
+- `fire_beam(ctx, id, start_frame, hold_s=None)` keys one shot with the
+  weapon's own timing: charge-up, then the burst (a burst beam such as the
+  tachyon lance) or `hold_s` seconds (a continuous beam), then charge-down.
+- To land a beam, train its turret on the target and set `beam_len_<id>` to
+  the distance (`aim(rig_name, target)` measures it).
+- A beam must not cut its own hull: `clear_line(origin, target, ignore)`
+  casts from the muzzle to the target and names the first part in the way.
+  Fire only weapons whose slot arc holds the target and whose line is clear
+  (the Paragon's `aim.engage` does both).
+- Emission is kept low on purpose: a strong emitter goes white under AgX and
+  the weapon's colour is lost.
 
 ### Lighting (`swfx_lighting`)
 
@@ -495,7 +563,17 @@ auto-run off. `check_kit.py` fails on any invalid or non-simple driver.
 - that seal leaks appear only where the state allows them;
 - that there is exactly one conduit-spark emitter per scar spark anchor
   whose `sparking` is true;
-- that every driver is valid and a simple expression.
+- that every driver is valid and a simple expression;
+- that no two guns share a knob label, and every mount has the right kind of
+  rig (a launcher tube a launch bloom and no muzzle flash, a gun the reverse).
+
+`--hull <folder>` runs it on another hull's export (the Legion's
+`finalize.sh` does). `--fire` then fires every turret and checks that guns
+make gun effects and launchers missiles. `--fingerprint OUT.json` writes a
+canonical dump of everything the kit built (after `--fire` when given) and
+prints its sha256: a kit change must leave the Second Wind's unchanged. The
+barrel and launcher change (2026-10-19) left `patched` and `clean` with
+`--fire` byte-identical.
 
 At writing it passes on `derelict`, `patched`, `refit` and `restored`:
 
