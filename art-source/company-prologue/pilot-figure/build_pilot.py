@@ -21,15 +21,19 @@ seat, he faces +X: the convention of `sw_bridge_interior.figures`):
 - collection 'Pilot figure', holding everything below; append it, never link pieces of it;
 - 'Pilot figure root', an empty on the dais at the helm seat's pedestal axis: place and turn
   this, nothing else (the seat's pan is SEAT_TOP above it);
-- 'Pilot rig', MPFB's default skeleton with its weights, posed seated;
+- 'Pilot rig', MPFB's default skeleton with its weights, seated, with the action 'Pilot leans
+  in and back' on C2's frames (frame = C2 seconds x 24);
 - the body, eyes, eyebrows, eyelashes, hair and clothes MPFB fits to it, from MakeHuman's own
   CC0 system-asset pack (listed in README.md);
 - what that pack has no piece for, modelled here on the posed body and parented to bones: the
   coverall's collar, the harness, the patches, the belt and the headset.
 
-The pose is solved, not keyed, as Castle's is (`castle-figure/build_castle.py`): hips placed on
-the seat, each leg a two-bone solve from the hip to an ankle on the dais, each arm a two-bone
-solve from the shoulder to a wrist on the console's sloped face, the hands turned flat onto it.
+He has two poses, solved rather than keyed by hand, as Castle's is (`castle-figure/build_castle.py`):
+relaxed, sat back with his forearms on the armrests, and working, leaned in from the hips with
+his elbows bent and his hands flat on the console's sloped face. Hips are placed on the seat,
+each leg a two-bone solve to an ankle on the dais, each arm to a wrist target. The rig's action
+eases between them over C2's timeline (RELAXED, WORKING, LEAN_IN, LEAN_BACK): in to the controls
+before the de-orbit, back once the pitch-down is done.
 Skin, eyes, brows and lashes use MakeHuman's textures through castle_face's material helpers;
 clothes and the modelled parts are flat colours (diffuse_color for Workbench). Close shots are
 repainted with ImageGen (`geometry-first-imagegen.md`), so the figure carries silhouette,
@@ -103,12 +107,29 @@ HIP = (-0.15, 0.43)                        # (fwd, z) of the hip joints: buttock
 ANKLE = (0.44, 0.085)                      # (fwd, z) of each ankle: feet flat, under the console lip
 ANKLE_SIDE = 0.15                          # knees a little apart
 KNEE_POLE = (1.5, 0.5)                     # (fwd, z): knees forward and up
-LEAN_DEG = 5.0                             # off the seat back, toward the console
-HEAD_LIFT_DEG = -16.0                      # chin up: eyes out of the slit, not on the console
-HEAD_TURN_DEG = 4.0                        # a touch to port, along the Legion's bearing
-WRIST = (0.56, 0.2, 0.575)                 # (fwd, side, z) of the left wrist; the right mirrors
-WRIST_RIGHT = (0.6, -0.22, 0.59)           # the right hand a little further up the face
-ELBOW_POLE = (0.0, 0.7, -0.4)              # (fwd, side, z) from the shoulder: elbows down and out
+# Two poses, and the move between them (owner, 2026-10-19). At rest he sits back against the
+# seat, forearms on the armrests, hands hanging loose over their ends. To fly he leans in from
+# the hips, so his shoulders come to the console and his elbows stay bent, hands flat on its
+# sloped face. Each: spine lean (degrees forward from upright; the seat back reclines 8), head
+# lift (negative raises the chin), head turn (positive to port), wrists (fwd, side, z) left and
+# right, the elbows' pole from the shoulder (fwd, side out, z), finger curl left and right.
+RELAXED = dict(lean=-6.0, head_lift=2.0, head_turn=6.0,
+               wrists=((0.1, 0.27, 0.565), (0.08, -0.27, 0.565)),
+               elbow_pole=(-0.6, 0.35, -0.8), curl=(30, 34))
+WORKING = dict(lean=36.0, head_lift=-38.0, head_turn=3.0,
+               wrists=((0.52, 0.2, 0.565), (0.56, -0.22, 0.58)),
+               elbow_pole=(-0.2, 0.7, -0.6), curl=(14, 26))
+FACE_FINGERS_LIFT = FACE_TILT              # working hands: fingers up the console's slope
+# When, in C2 seconds (24 fps, frame = t x 24): relaxed through the hail, in to the controls
+# before Second Wind's de-orbit starts at 9.6 s, held through its pitch-down (to 13.1 s), and
+# back again. Eased in and out; the entry after C2 stays relaxed.
+LEAN_IN = (8.3, 9.3)
+LEAN_BACK = (13.5, 14.7)
+FPS, LAST_FRAME = 24, 18 * 24              # C2 (15 s) and the entry transition (3 s)
+
+
+def _close(a, b, eps=1e-5):
+    return all(abs(a[i][j] - b[i][j]) < eps for i in range(4) for j in range(4))
 
 
 def launch(argv):
@@ -294,30 +315,44 @@ def blender_main(argv):
     def local(p):
         return Vector(p) - shift
 
-    # Legs: thighs forward onto the seat, shins down to the dais.
-    for side, sgn in (("L", 1), ("R", -1)):
-        two_bone(["upperleg01." + side, "upperleg02." + side], ["lowerleg01." + side, "lowerleg02." + side],
-                 local(mp(ANKLE[0], sgn * ANKLE_SIDE, ANKLE[1])), local(mp(KNEE_POLE[0], sgn * 0.2, KNEE_POLE[1])))
-        aim("foot." + side, mp(1.0, sgn * 0.08, -0.25))         # sole flat, toes a little out
-    # The spine comes forward off the seat back; the head stays up, eyes on the slit.
-    for name, share in (("spine05", 0.25), ("spine04", 0.3), ("spine03", 0.25), ("spine02", 0.2)):
-        if name in pbs:
-            rotate_world(name, (1, 0, 0), LEAN_DEG * share)
-    rotate_world("neck01", (1, 0, 0), HEAD_LIFT_DEG * 0.5)
-    rotate_world("head", (1, 0, 0), HEAD_LIFT_DEG * 0.5)
-    rotate_world("head", (0, 0, 1), HEAD_TURN_DEG)
-    # Arms: forward and down to the console's sloped face, hands flat on it.
-    t = math.radians(FACE_TILT)
-    fingers = mp(math.cos(t), 0, math.sin(t))
-    palm = mp(-math.sin(t), 0, -math.cos(t))
-    for side, (f, s, z), fdeg in (("L", WRIST, 14), ("R", WRIST_RIGHT, 26)):
-        sh = pbs["upperarm01." + side].head
-        sgn = 1 if side == "L" else -1
-        two_bone(["upperarm01." + side, "upperarm02." + side], ["lowerarm01." + side, "lowerarm02." + side],
-                 local(mp(f, sgn * abs(s), z)), sh + mp(ELBOW_POLE[0], sgn * ELBOW_POLE[1], ELBOW_POLE[2]))
-        rest_palm = Vector((-1.0, 0, 0)) if side == "L" else Vector((1.0, 0, 0))
-        orient("wrist." + side, fingers + mp(0, -sgn * 0.15, 0), palm, rest_palm)
-        curl(side, fdeg, 12, palm)
+    def solve(spec):
+        """Pose him from the rest pose: legs on the dais, the spine and head, arms to the wrists.
+        Returns every pose bone's matrix_basis."""
+        for pb in pbs:
+            pb.matrix_basis = Matrix.Identity(4)
+        view.update()
+        for side, sgn in (("L", 1), ("R", -1)):
+            two_bone(["upperleg01." + side, "upperleg02." + side], ["lowerleg01." + side, "lowerleg02." + side],
+                     local(mp(ANKLE[0], sgn * ANKLE_SIDE, ANKLE[1])), local(mp(KNEE_POLE[0], sgn * 0.2, KNEE_POLE[1])))
+            aim("foot." + side, mp(1.0, sgn * 0.08, -0.25))         # sole flat, toes a little out
+        for name, share in (("spine05", 0.15), ("spine04", 0.25), ("spine03", 0.3), ("spine02", 0.3)):
+            if name in pbs:
+                rotate_world(name, (1, 0, 0), spec["lean"] * share)
+        rotate_world("neck01", (1, 0, 0), spec["head_lift"] * 0.5)
+        rotate_world("head", (1, 0, 0), spec["head_lift"] * 0.5)
+        rotate_world("head", (0, 0, 1), spec["head_turn"])
+        working = spec is WORKING
+        t = math.radians(FACE_FINGERS_LIFT)
+        for k, side in enumerate(("L", "R")):
+            sgn = 1 if side == "L" else -1
+            f, s_, z = spec["wrists"][k]
+            pole = spec["elbow_pole"]
+            sh = pbs["upperarm01." + side].head
+            two_bone(["upperarm01." + side, "upperarm02." + side], ["lowerarm01." + side, "lowerarm02." + side],
+                     local(mp(f, s_, z)), sh + mp(pole[0], sgn * pole[1], pole[2]))
+            if working:     # flat on the console's sloped face, fingers up it
+                fingers = mp(math.cos(t), -sgn * 0.15, math.sin(t))
+                palm = mp(-math.sin(t), 0, -math.cos(t))
+            else:           # over the armrest's end, palm down, fingers drooping
+                fingers = mp(1.0, -sgn * 0.1, -0.6)
+                palm = mp(0.3, 0, -1.0)
+            rest_palm = Vector((-1.0, 0, 0)) if side == "L" else Vector((1.0, 0, 0))
+            orient("wrist." + side, fingers, palm, rest_palm)
+            curl(side, spec["curl"][k], 12, palm)
+        return {pb.name: pb.matrix_basis.copy() for pb in pbs}
+
+    relaxed = solve(RELAXED)
+    working = solve(WORKING)          # left posed: what the pack lacks is fitted to this pose
     rig.location = shift
     view.update()
 
@@ -557,6 +592,59 @@ def blender_main(argv):
     paint(capsule, "headset pad")
     bone_parent(capsule, "head")
 
+    # ---- skin the cloth-borne parts to the rig: fitted in the working pose, they must follow the
+    # chest and arms as he leans back, which no single bone does. Each vertex takes the weights
+    # of the nearest coverall vertex and is carried back to the rest pose through that blend.
+    from mathutils.kdtree import KDTree
+    subs = [m for m in suit.modifiers if m.type == "SUBSURF"]
+    for m in subs:
+        m.show_viewport = False
+    view.update()
+    ev = suit.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    me_ev = ev.to_mesh()
+    if len(me_ev.vertices) != len(suit.data.vertices):
+        sys.exit("the coverall's evaluated mesh does not match its vertices; cannot copy weights")
+    kd = KDTree(len(me_ev.vertices))
+    for v in me_ev.vertices:
+        kd.insert(ev.matrix_world @ v.co, v.index)
+    kd.balance()
+    ev.to_mesh_clear()
+    for m in subs:
+        m.show_viewport = True
+    names = {g.index: g.name for g in suit.vertex_groups}
+    deform = {}
+    for pb in pbs:
+        deform[pb.name] = (rig.matrix_world @ pb.matrix @ pb.bone.matrix_local.inverted()
+                           @ rig.matrix_world.inverted())
+    to_rig = rig.matrix_world.inverted()
+    for ob in [o for o in scene.objects if o.type == "MESH" and o.name.startswith(
+            ("Pilot harness", "Pilot belt", "Pilot patch", "Pilot coverall collar"))]:
+        for m in [m for m in ob.modifiers]:
+            if m.type == "SOLIDIFY":            # the collar: bake its thickness in first
+                with bpy.context.temp_override(object=ob, active_object=ob):
+                    bpy.ops.object.modifier_apply(modifier=m.name)
+        world = ob.matrix_world.copy()
+        groups = {}
+        for v in ob.data.vertices:
+            p_ = world @ v.co
+            _, i, _ = kd.find(p_)
+            ws = [(names[g.group], g.weight) for g in suit.data.vertices[i].groups
+                  if names[g.group] in deform and g.weight > 1e-4]
+            total = sum(w for _, w in ws) or 1.0
+            M = sum((deform[b] * (w / total) for b, w in ws), Matrix(((0,) * 4,) * 4)) if ws else Matrix.Identity(4)
+            v.co = to_rig @ (M.inverted() @ p_)
+            for b, w in ws:
+                groups.setdefault(b, []).append((v.index, w / total))
+        ob.parent, ob.parent_type, ob.parent_bone = rig, "OBJECT", ""
+        ob.matrix_parent_inverse = Matrix.Identity(4)
+        ob.matrix_basis = Matrix.Identity(4)
+        for b, entries in groups.items():
+            vg = ob.vertex_groups.new(name=b)
+            for i, w in entries:
+                vg.add([i], w, "REPLACE")
+        ob.modifiers.new("Armature", "ARMATURE").object = rig
+    view.update()
+
     # ---- the appendable package: root on the dais under the seat's axis, he faces +X
     col = bpy.data.collections.new(COLLECTION)
     scene.collection.children.link(col)
@@ -574,6 +662,47 @@ def blender_main(argv):
     root["seat_top_m"] = round(SEAT_TOP, 4)
     root["source"] = "art-source/company-prologue/pilot-figure/build_pilot.py"
     root["frame"] = "metres; z up from the dais plating at the helm seat's axis; he faces +X"
+
+    # ---- the move: relaxed, in to the controls, and back, keyed on every frame (a consumer that
+    # resets interpolation to linear, as c2_bridge_render does, keeps the easing)
+    def ease(x):
+        x = min(max(x, 0.0), 1.0)
+        return x * x * x * (x * (x * 6 - 15) + 10)
+
+    def share(sec):
+        if sec <= LEAN_IN[0] or sec >= LEAN_BACK[1]:
+            return 0.0
+        if sec < LEAN_IN[1]:
+            return ease((sec - LEAN_IN[0]) / (LEAN_IN[1] - LEAN_IN[0]))
+        if sec > LEAN_BACK[0]:
+            return 1.0 - ease((sec - LEAN_BACK[0]) / (LEAN_BACK[1] - LEAN_BACK[0]))
+        return 1.0
+
+    moving = [pb for pb in pbs if not _close(relaxed[pb.name], working[pb.name])]
+    parts_ = {}
+    for pb in moving:
+        pb.rotation_mode = "QUATERNION"
+        la, ra, sa = relaxed[pb.name].decompose()
+        lb, rb, sb = working[pb.name].decompose()
+        if ra.dot(rb) < 0:
+            rb.negate()
+        parts_[pb.name] = (la, ra, lb, rb)
+    rig.animation_data_create()
+    rig.animation_data.action = bpy.data.actions.new("Pilot leans in and back")
+    last = None
+    for frame in range(0, LAST_FRAME + 1):
+        w = share(frame / FPS)
+        if last is not None and abs(w - last) < 1e-6 and 0 < frame < LAST_FRAME and abs(share((frame + 1) / FPS) - w) < 1e-6:
+            continue                # a held stretch: its ends are keyed
+        for pb in moving:
+            la, ra, lb, rb = parts_[pb.name]
+            pb.location = la.lerp(lb, w)
+            pb.rotation_quaternion = ra.slerp(rb, w)
+            pb.keyframe_insert("location", frame=frame)
+            pb.keyframe_insert("rotation_quaternion", frame=frame)
+        last = w
+    bpy.context.scene.frame_set(0)
+    root["lean_in_s"], root["lean_back_s"] = list(LEAN_IN), list(LEAN_BACK)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     castle_face.pack()
