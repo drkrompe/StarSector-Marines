@@ -427,8 +427,8 @@ def lighter95(rng, shot):
 
 def crane_crew(name, x, spreader, rng, shot, lashers=2, clerk=True, home_dx=-6.0):
     """A container gantry's ground crew: a signaller and lashers. Whenever the spreader comes down
-    on a box the lashers walk to its side and crouch at it until it lifts, and the signaller signals
-    while it is down; between lifts they stand back and talk."""
+    on a box the lashers walk out to stand clear either side of it until it lifts, and the signaller
+    signals while it is down; between lifts they stand back and talk."""
     s = Site(name, (x - 28.0, 264.6, x + 28.0, 293.4), (x, 270.0))
     windows = shot.low(spreader, 14.0) or [(1.0, 5.0, x + 1.6, 277.0), (9.5, 14.0, x + 1.6, 277.0),
                                            (17.5, 21.5, x + 14.2, 277.0), (25.5, 30.0, x + 14.2, 277.0)]
@@ -443,9 +443,11 @@ def crane_crew(name, x, spreader, rng, shot, lashers=2, clerk=True, home_dx=-6.0
         wait_at = home + Vector((1.2 + 1.0 * k, -0.9 + 1.4 * k))
         plan = []
         for t0, t1, bx, by in windows:
-            side = Vector((bx + (-4.5 if k == 0 else 4.5), 274.4))       # in the aisle beside the box
+            # Standing clear of the landing box, just outside the gantry's girder (about 15 m wide),
+            # which hides anything under it from above.
+            side = Vector((bx + (-9.0 if k == 0 else 9.0), by - 1.6))
             plan += [('until', max(0.0, t0 - 3.5)), ('pose', 'stand'), ('go', side, 0.6), ('face', Vector((bx, by))),
-                     ('pose', 'crouch'), ('until', t1), ('pose', 'stand'), ('go', wait_at, 0.6),
+                     ('until', t1), ('go', wait_at, 0.6),
                      ('face', home), ('pose', 'talk')]
         s.add(w, wait_at, plan + [('stay',)])
     if clerk:
