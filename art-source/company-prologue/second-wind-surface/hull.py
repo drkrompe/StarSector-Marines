@@ -69,3 +69,7 @@ REVIEW_EXTRA = get('REVIEW_EXTRA', {})          # name -> (azimuth, elevation, o
 REVIEW_PAGES = get('REVIEW_PAGES', [])
 CAPTION = get('CAPTION', NAME)
 SHEARED_FACES = get('SHEARED_FACES', False)  # bent per vertex after build: faces may be out of plane (parts.py)
+# Per-face paint check (apply_skin.py): a claimed face whose tile pixels are mostly
+# another paint family (a neighbour's paint at a registration edge) takes its
+# class swatch instead. The share of declared-family paint a face needs; None is off.
+FACE_FAMILY_MIN = get('FACE_FAMILY_MIN', None)

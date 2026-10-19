@@ -2,6 +2,10 @@
 
   blender --background build/geom/legion-geometry.blend --python make_groups.py
 
+It first cuts the geometry build along the tile lines and saves that as the
+surfacing build (surface_hull.BLEND, build/geom/legion-surface.blend); every
+later step opens that one.
+
 The Legion is 292 m long and built from many plate meshes, so a part is a
 box tile of the hull seen square-on from one side (parts.py box members),
 sized so a tile holds about 6-9 texels per hull unit; a face longer than its
@@ -80,6 +84,61 @@ MIRROR_DIR = {'PORT': 'STARBOARD'}
 STEP = 1.5
 PAD = 10   # parts.py box 'pad': a face must also lie within the box grown by this
 
+CUT_BLEND = HERE / SH.BLEND   # the surfacing build: the geometry build cut along the tile lines
+
+
+def tile_planes():
+    """World planes (axis, value) along every tile edge, mirrored to starboard."""
+    out = set()
+    for _g, _v, _p, xs, ys, zs, _w in TILES:
+        for k, rng in enumerate((xs, ys, zs)):
+            for v in rng or ():
+                out.add((k, float(v)))
+                if k == 1:
+                    out.add((1, -float(v)))
+    return sorted(out)
+
+
+def cut_at_tile_lines():
+    """Split every classed mesh along the tile lines, so a long plate becomes
+    pieces that each fall inside one tile and get painted, instead of keeping
+    its swatch. The cuts lie in flat faces and the bevels are angle-limited,
+    so the shape and its shading do not change."""
+    import bmesh
+    planes = tile_planes()
+    cut = 0
+    for ob in bpy.data.objects:
+        if ob.type != 'MESH' or ob.data.users > 1:
+            continue
+        if not any(m and m.name.split('.')[0] in SH.MATERIAL_CLASS for m in ob.data.materials):
+            continue
+        mw = ob.matrix_world
+        corners = [mw @ Vector(c) for c in ob.bound_box]
+        lo = [min(c[k] for c in corners) for k in range(3)]
+        hi = [max(c[k] for c in corners) for k in range(3)]
+        hits = [(k, v) for k, v in planes if lo[k] + 0.01 < v < hi[k] - 0.01]
+        if not hits:
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        inv, n3 = mw.inverted(), mw.to_3x3().transposed()
+        before = len(bm.faces)
+        for k, v in hits:
+            co = [0.0, 0.0, 0.0]
+            co[k] = v
+            no = [0.0, 0.0, 0.0]
+            no[k] = 1.0
+            geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+            bmesh.ops.bisect_plane(bm, geom=geom, plane_co=inv @ Vector(co), plane_no=(n3 @ Vector(no)).normalized(), dist=1e-4)
+        bm.to_mesh(ob.data)
+        bm.free()
+        cut += len(ob.data.polygons) - before
+    return cut
+
+
+print('SURF cut at tile lines:', cut_at_tile_lines(), 'faces added')
+CUT_BLEND.parent.mkdir(parents=True, exist_ok=True)
+bpy.ops.wm.save_as_mainfile(filepath=str(CUT_BLEND), copy=True)
 dg = bpy.context.evaluated_depsgraph_get()
 scene = bpy.context.scene
 
