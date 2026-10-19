@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.warship.BloomPath;
 import com.dillon.starsectormarines.battle.warship.MissileFlightSpec;
 import com.dillon.starsectormarines.battle.warship.MissilePath;
 import com.dillon.starsectormarines.battle.warship.VanillaBeamLook;
+import com.dillon.starsectormarines.battle.warship.VanillaMountLook;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
 import com.dillon.starsectormarines.battle.warship.SplitEvent;
 import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
@@ -27,8 +28,10 @@ import java.util.List;
 
 /**
  * Draws a warship hanging over the battle: the game's own hull art at the scale
- * every hull is drawn at, and each fitted weapon's own turret sprite on the slot
- * the hull's data places it, pointing where the barrel points.
+ * every hull is drawn at, and each fitted weapon on the slot the hull's data
+ * places it, pointing where the barrel points, with every sprite layer its spec
+ * names (under-plate, base, recoiling barrel, loaded missiles, glow; see
+ * {@link VanillaMountLook}).
  *
  * <p>Nothing here is authored by the mod. The hull and turret art are the
  * install's, named by the hull spec and the weapon spec, so a player who has
@@ -379,18 +382,131 @@ public final class WarshipRenderSystem implements RenderSystem {
                 tint, tint * 0.9f, tint * 0.85f, alpha);
     }
 
+    /**
+     * A fitted weapon, drawn as the game draws it: every layer its spec names
+     * ({@link VanillaMountLook#layers}), bottom to top: the under-plate, the barrel
+     * and the base (the barrel beneath only for {@code RENDER_BARREL_BELOW}), any
+     * missiles loaded in an open rack, and the glow lit in its own colour as it
+     * fires. A turret's sprites centre on the mount; a hardpoint's sit a quarter of
+     * their height forward of it, where the game pivots one. The barrel slides back
+     * by the spec's {@code visualRecoil} on each shot and runs out again. A weapon
+     * whose spec cannot be read draws its base alone.
+     */
     private void drawMount(DrawList out, BattleCamera cam, float cellPx, float alpha,
                            Warship ship, Warship.Mount m) {
-        String path = m.slot.hardpoint() ? m.weapon.hardpointSprite() : m.weapon.turretSprite();
-        ShuttleSpriteCache art = sprites.spriteByPath(path);
-        if (art == null) return;
+        boolean hp = m.slot.hardpoint();
         // A mount is part of the hull's body, so it is drawn at the hull's size, berthed or flying.
         float body = ship.bodyScale();
-        float w = WarshipScale.hullCells(art.pxW) * body * cellPx;
-        float h = WarshipScale.hullCells(art.pxH) * body * cellPx;
-        out.addSprite(ship.berthed() ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, art.sprite,
-                cam.cellToScreenX(bodyX(ship, ship.mountX(m))), cam.cellToScreenY(bodyY(ship, ship.mountY(m))),
-                w, h, heading(ship, m), 1f, 1f, 1f, alpha);
+        RenderLayer layer = ship.berthed() ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES;
+        float heading = heading(ship, m);
+        float px = bodyX(ship, ship.mountX(m));
+        float py = bodyY(ship, ship.mountY(m));
+        VanillaMountLook look = VanillaWeaponLooks.mount(m.weapon.id());
+        if (look == null) {
+            ShuttleSpriteCache art = sprites.spriteByPath(hp ? m.weapon.hardpointSprite() : m.weapon.turretSprite());
+            if (art != null) drawLayer(out, cam, cellPx, layer, art, false, px, py, heading, hp, 0f, body,
+                    1f, 1f, 1f, alpha);
+            return;
+        }
+        float cooldown = m.weapon.cooldownSeconds();
+        float recoil = WarshipScale.hullCells(look.recoilPx(m.secondsSinceFired, cooldown)) * body;
+        // An animated weapon (a rotary cannon's barrels) turns its frames while it fires.
+        int frame = look.frameAt(battleSeconds, m.secondsSinceFired, cooldown);
+        for (VanillaMountLook.Layer l : look.layers(hp)) {
+            if (l.kind() == VanillaMountLook.Kind.LOADED_MISSILES) {
+                drawLoadedMissiles(out, cam, cellPx, layer, alpha, ship, m, look, px, py, heading);
+                continue;
+            }
+            ShuttleSpriteCache art = sprites.spriteByPath(look.frameSprite(l.sprite(), frame));
+            if (art == null) art = sprites.spriteByPath(l.sprite());
+            if (art == null) continue;
+            switch (l.kind()) {
+                case BARREL -> drawLayer(out, cam, cellPx, layer, art, false, px, py, heading, hp, -recoil, body,
+                        1f, 1f, 1f, alpha);
+                case GLOW -> {
+                    float lit = look.glowLevel(m.secondsSinceFired, cooldown);
+                    if (lit > 0.01f) {
+                        Color g = look.glowColor();
+                        drawLayer(out, cam, cellPx, layer, art, true, px, py, heading, hp, 0f, body,
+                                g.getRed() / 255f, g.getGreen() / 255f, g.getBlue() / 255f,
+                                alpha * lit * g.getAlpha() / 255f);
+                    }
+                }
+                case BASE -> drawLayer(out, cam, cellPx, layer, art, look.additive(), px, py, heading, hp, 0f, body,
+                        1f, 1f, 1f, alpha);
+                default -> drawLayer(out, cam, cellPx, layer, art, false, px, py, heading, hp, 0f, body,
+                        1f, 1f, 1f, alpha);
+            }
+        }
+    }
+
+    /**
+     * One weapon sprite on its mount at {@code (px, py)}, pointing {@code heading}, moved {@code along} cells along
+     * the barrel (negative is recoil). A hardpoint sprite is pivoted a quarter of its height from its breech.
+     */
+    private static void drawLayer(DrawList out, BattleCamera cam, float cellPx, RenderLayer layer,
+                                  ShuttleSpriteCache art, boolean additive, float px, float py, float heading,
+                                  boolean hardpoint, float along, float body, float r, float g, float b, float a) {
+        float wCells = WarshipScale.hullCells(art.pxW) * body;
+        float hCells = WarshipScale.hullCells(art.pxH) * body;
+        float ahead = along + (hardpoint ? hCells * 0.25f : 0f);
+        double rad = Math.toRadians(heading);
+        float cx = px - (float) Math.sin(rad) * ahead;
+        float cy = py + (float) Math.cos(rad) * ahead;
+        float sx = cam.cellToScreenX(cx);
+        float sy = cam.cellToScreenY(cy);
+        if (additive) {
+            out.addAdditiveSprite(layer, art.sprite, sx, sy, wCells * cellPx, hCells * cellPx, heading, r, g, b, a);
+        } else {
+            out.addSprite(layer, art.sprite, sx, sy, wCells * cellPx, hCells * cellPx, heading, r, g, b, a);
+        }
+    }
+
+    /**
+     * The missiles an open rack shows ({@code RENDER_LOADED_MISSILES}): the round's own sprite on every barrel it
+     * leaves from, nose along the barrel. A barrel that has just fired stands empty until the launcher has cycled,
+     * and a rack whose magazine is spent shows none.
+     */
+    private void drawLoadedMissiles(DrawList out, BattleCamera cam, float cellPx, RenderLayer layer, float alpha,
+                                    Warship ship, Warship.Mount m, VanillaMountLook look,
+                                    float px, float py, float heading) {
+        if (m.ammoRemaining() == 0) return;
+        ShuttleSpriteCache art = sprites.spriteByPath(look.missileSprite());
+        if (art == null) return;
+        boolean hp = m.slot.hardpoint();
+        float body = ship.bodyScale();
+        boolean cycling = m.secondsSinceFired < Math.max(0.3f, m.weapon.cooldownSeconds());
+        boolean[] empty = cycling ? look.firedBarrels(hp, m.shotsFired, m.weapon.burstSize()) : null;
+        float wPx = look.missileWidthPx() > 0f ? look.missileWidthPx() : art.pxW;
+        float hPx = look.missileHeightPx() > 0f ? look.missileHeightPx() : art.pxH;
+        float wCells = WarshipScale.hullCells(wPx) * body;
+        float hCells = WarshipScale.hullCells(hPx) * body;
+        float ahead = WarshipScale.hullCells(look.missileCentreForwardPx()) * body;
+        List<VanillaMountLook.Barrel> barrels = look.barrels(hp);
+        for (int i = 0; i < barrels.size(); i++) {
+            if (empty != null && empty[i]) continue;
+            VanillaMountLook.Barrel b = barrels.get(i);
+            float[] at = barrelPoint(px, py, heading, b, body);
+            double rad = Math.toRadians(heading + b.angleDegrees());
+            float cx = at[0] - (float) Math.sin(rad) * ahead;
+            float cy = at[1] + (float) Math.cos(rad) * ahead;
+            out.addSprite(layer, art.sprite, cam.cellToScreenX(cx), cam.cellToScreenY(cy),
+                    wCells * cellPx, hCells * cellPx, heading + b.angleDegrees(), 1f, 1f, 1f, alpha);
+        }
+    }
+
+    /**
+     * Where a barrel's round leaves, in cells: the spec's offset (forward along the weapon, left across it) from the
+     * mount at {@code (px, py)}, turned to {@code heading} and grown with the hull's body.
+     */
+    static float[] barrelPoint(float px, float py, float heading, VanillaMountLook.Barrel b, float body) {
+        double rad = Math.toRadians(heading);
+        float s = (float) Math.sin(rad);
+        float c = (float) Math.cos(rad);
+        float fwd = WarshipScale.hullCells(b.forwardPx()) * body;
+        float left = WarshipScale.hullCells(b.leftPx()) * body;
+        // Forward is (-sin, cos); left of it is (-cos, -sin).
+        return new float[]{px - s * fwd - c * left, py + c * fwd - s * left};
     }
 
     /**
@@ -486,6 +602,11 @@ public final class WarshipRenderSystem implements RenderSystem {
         return m.slot.hardpoint() ? ship.facingDegrees + m.slot.angleDegrees() : m.headingDegrees;
     }
 
+    /**
+     * The flash at the muzzle of the barrel that just fired (every barrel, for a linked weapon), at the offset the
+     * weapon's spec gives its rounds, in the weapon's own flash colour. A weapon whose spec cannot be read flashes a
+     * fixed barrel's length out.
+     */
     private void drawMuzzleFlash(DrawList out, BattleCamera cam, float cellPx, float alpha,
                                  Warship ship, Warship.Mount m) {
         if (m.secondsSinceFired >= MUZZLE_FLASH_SECONDS) return;
@@ -493,15 +614,33 @@ public final class WarshipRenderSystem implements RenderSystem {
         if (glow == null) return;
         float fade = 1f - m.secondsSinceFired / MUZZLE_FLASH_SECONDS;
         Color c = m.weapon.muzzleColor() != null ? m.weapon.muzzleColor() : DEFAULT_FLASH;
-        double rad = Math.toRadians(heading(ship, m));
-        // The flash sits a barrel's length out from the pivot, along the heading.
-        float barrel = 1.2f * WarshipScale.HULL_PRESENCE;
-        float fx = bodyX(ship, ship.mountX(m)) - (float) Math.sin(rad) * barrel;
-        float fy = bodyY(ship, ship.mountY(m)) + (float) Math.cos(rad) * barrel;
+        float heading = heading(ship, m);
+        float px = bodyX(ship, ship.mountX(m));
+        float py = bodyY(ship, ship.mountY(m));
         float size = Math.max(1.5f, WarshipScale.cells(m.weapon.muzzleLengthPx()) * 2f) * cellPx;
-        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
-                cam.cellToScreenX(fx), cam.cellToScreenY(fy), size, size, 0f,
-                c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.9f * fade * alpha);
+        float r = c.getRed() / 255f;
+        float g = c.getGreen() / 255f;
+        float b = c.getBlue() / 255f;
+        VanillaMountLook look = VanillaWeaponLooks.mount(m.weapon.id());
+        if (look == null) {
+            double rad = Math.toRadians(heading);
+            float barrel = 1.2f * WarshipScale.HULL_PRESENCE;
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
+                    cam.cellToScreenX(px - (float) Math.sin(rad) * barrel),
+                    cam.cellToScreenY(py + (float) Math.cos(rad) * barrel), size, size, 0f,
+                    r, g, b, 0.9f * fade * alpha);
+            return;
+        }
+        boolean hp = m.slot.hardpoint();
+        List<VanillaMountLook.Barrel> barrels = look.barrels(hp);
+        boolean[] fired = look.firedBarrels(hp, m.shotsFired, 1);
+        for (int i = 0; i < barrels.size(); i++) {
+            if (!fired[i]) continue;
+            float[] at = barrelPoint(px, py, heading, barrels.get(i), ship.bodyScale());
+            out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
+                    cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]), size, size, 0f,
+                    r, g, b, 0.9f * fade * alpha);
+        }
     }
 
     /**

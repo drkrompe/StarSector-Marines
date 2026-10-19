@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a15467-f644-7152-bada-d9913d9fa205",
+  "source": "/Users/dillon/.codex/generated_images/01a15467-f644-7152-bada-d9913d9fa205/exec-52bd23c0-10dc-4360-802c-ac3ee55c7cdb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-stern-under.png",
+    "sha256": "7638e6ca14e964b71d2a0b41f21e4665e520016e242c65d9da7c4e9e1650a7a4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-stern-under.prompt.txt",
+  "promptSha256": "9c1b3442ba6e79cc6e7f7558a5caee10d9d8663e3f9eab38ac5e01916edc9589",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Hegemony Onslaught-class battleship, a heavy low-tech capital warship; these faces are from its stern: the undersides and keels below the aft blades), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the blade's underside and aft lower facet: one large muted warm brown-grey plate with an orange sliver at its pointed right tip;\ntop-right: the aft quarter's outboard lower slope: a large muted warm brown-grey plate with one small dark gunmetal louvred hatch near its right end and a tiny pale bone-brown fitting near the top;\nbottom-left: a drive keel's outboard wall: a stepped muted warm brown-grey plate, wide at the top and narrowing to the bottom;\nbottom-right: the drive keel's aft face: a muted warm brown-grey shield-shaped plate with one small dark gunmetal drain grille near its bottom.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its heavy warship finish, its seam and fastener treatment and its light service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that heavy warship hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, grime packed into the seams, a light even film of dust and a few tiny scuffs on edges. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour and keep every plate its own tone, never evened out: muted warm brown-grey areas are a warm brown-grey enamel hull plate; pale bone-brown plates stay a lighter pinkish bone-brown enamel; dark brown plates stay a darker red-brown enamel; orange areas are a saturated Hegemony orange enamel armour band; dark charcoal areas are dark charcoal-grey painted armour; mid grey areas are dark gunmetal grey steel; red-brown fins stay red-brown; near-black areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in service and properly maintained, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-stern-under-guide.png",
+      "sha256": "37ee6f45804c93bc85f9c7c3713b23e32ab18bfea6791e64b8fba31068d0b768",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the four-face layout."
+  ],
+  "usage": {
+    "input_tokens": 76186,
+    "cached_input_tokens": 51840,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 921,
+    "reasoning_output_tokens": 86
+  },
+  "elapsedSeconds": 56.7
+}

@@ -77,6 +77,7 @@
     { "id": "mount.shield-generator-core", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 1, "turnRateDegPerSec": 60.0 } },
     { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } },
     { "id": "mount.drone-pd-halo", "weapon": "weapon.drone-pd-laser", "sim": { "ammoCapacity": 24, "turnRateDegPerSec": 360.0 }, "render": { "visualCells": 0.5, "muzzleOffsetCells": 0.2, "sprite": "graphics/weapons/burstpd_turret_base.png" } },
+    { "id": "mount.tank-aps", "weapon": "weapon.tank-aps", "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 720.0 } },
     { "id": "mount.pd-pack", "weapon": "weapon.pd-pack", "sim": { "ammoCapacity": 6, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
   "structures": [
@@ -107,6 +108,7 @@
     { "id": "structure.deployable-point-defence", "mount": "mount.pd-interceptor", "catalog": { "displayName": "Palisade Interceptor Pod" }, "durability": { "structure": 26.0, "armorCapacity": 18.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 3.0 },
     { "id": "structure.drone-pd-halo", "mount": "mount.drone-pd-halo", "catalog": { "displayName": "Halo Drone Laser" }, "durability": { "structure": 20.0, "armorCapacity": 10.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 1.0 },
     { "id": "structure.carried-point-defence", "mount": "mount.pd-pack", "catalog": { "displayName": "Arrestor Interceptor Pack" }, "durability": { "structure": 26.0, "armorCapacity": 18.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 3.0 },
+    { "id": "structure.tank-aps", "mount": "mount.tank-aps", "catalog": { "displayName": "Hull Active Protection" }, "durability": { "structure": 1.0, "armorCapacity": 1.0, "armorRating": 1.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 0.1 },
     { "id": "structure.fortress-battery-placeholder", "mount": "mount.fortress-battery", "catalog": { "displayName": "Fortress Battery" }, "durability": { "structure": 1800.0, "armorCapacity": 1200.0, "armorRating": 40.0 }, "physics": { "radius": 1.4, "hitHalfHeight": 1.0, "footprintCells": [3, 3] }, "forceScore": 60.0, "battery": { "loadout": "citadel", "fireControlRadius": 4.5 },
       "art": { "base": "graphics/structures/fortress-battery-base.png" },
       "gatehouseArt": { "tower": "graphics/fort/gate-tower.png", "towerDamaged": "graphics/fort/gate-tower-damaged.png", "gate": "graphics/fort/gate-leaves.png" } },

@@ -1,0 +1,59 @@
+{
+ "part": "arm-deck-2-port",
+ "sheet": "arms-deck-aft-v2",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9937,
+ "raw_iou": 0.9897,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9936,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9897
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00145,
+    1.0
+   ],
+   "offset_px": [
+    -1.16,
+    -1.0
+   ],
+   "iou": 0.9894
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00345,
+    1.003
+   ],
+   "offset_px": [
+    -1.16,
+    -1.0
+   ],
+   "iou": 0.9936
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.35,
+  "p95_px": 9.49,
+  "max_px": 17.46
+ },
+ "boundary_fitted_px": {
+  "mean_px": 1.07,
+  "p95_px": 9.0,
+  "max_px": 17.09
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

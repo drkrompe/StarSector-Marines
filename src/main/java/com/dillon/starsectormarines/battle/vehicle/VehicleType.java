@@ -99,6 +99,7 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .18f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public String activeProtectionStructureId() { return GUN_TANK_ACTIVE_PROTECTION; }
     },
     /**
      * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
@@ -115,6 +116,7 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .24f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public String activeProtectionStructureId() { return GUN_TANK_ACTIVE_PROTECTION; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
@@ -290,6 +292,20 @@ public enum VehicleType {
      * turret section and stays one body.
      */
     public float turretPoolShare() { return 0f; }
+
+    /**
+     * The turret-catalog structure of this hull's active protection, or null for a hull that carries none. Its mount
+     * is a hull-borne point-defence system ({@code PointDefenseService#mountHull}): it engages hostile arcing,
+     * top-attack rounds coming down on the hull, inside its reach, at its rate, from a finite magazine. Flat
+     * rockets, gun rounds and rounds falling on anybody else are left alone. Only the two gun tanks carry one.
+     * {@code -Dbattle.vehicle.activeProtection=false} is the control.
+     */
+    public String activeProtectionStructureId() { return null; }
+
+    /** The gun tanks' active-protection structure, or null under the control. */
+    private static final String GUN_TANK_ACTIVE_PROTECTION =
+            Boolean.parseBoolean(System.getProperty("battle.vehicle.activeProtection", "true"))
+                    ? "structure.tank-aps" : null;
 
     private static final float[] NO_TINT = {1f, 1f, 1f};
     private static final float[] UP_ARMORED_TINT = {.78f, .80f, .76f};

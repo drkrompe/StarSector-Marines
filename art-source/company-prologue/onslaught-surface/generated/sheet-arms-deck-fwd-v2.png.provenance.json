@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1546e-07af-7fa0-a2d5-fee054cea150",
+  "source": "/Users/dillon/.codex/generated_images/01a1546e-07af-7fa0-a2d5-fee054cea150/exec-30fc7f8d-0bd5-4785-8f69-f376c9aec949.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-arms-deck-fwd-v2.png",
+    "sha256": "aca151973b808ec80e269e80c4359729407433312b8d813e2c2d1b2d2315399d",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-arms-deck-fwd-v2.prompt.txt",
+  "promptSha256": "3a54133ab795a9a150c2dddad38adf83ef9fb01b5e57513f9416556f6ec066c7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of one gun arm of a 3D spacecraft (a Hegemony XIV Onslaught-class battleship, a heavily armoured low-tech capital ship, properly maintained picket flagship on station), each seen from directly above, bow at the top of the tile, each drawn alone as flat-coloured shapes on a plain flat mid-blue background:\ntop-left: the arm's dorsal deck amidships: warm brown-grey deck plates with two long dark grey rectangular coaming frames around near-black machinery bay floors, a long dark grey frame ladder in the middle, narrow near-black seam strips and a few dark brown plates;\ntop-right: the deck further forward: warm brown-grey plates, one mid-tan bone-brown plate at upper left, several dark brown plates, an octagonal brown-grey turret ring with a dark opening, dark grey coaming frames over near-black floors, and a mid-grey armour strip along the right edge;\nbottom-left: the forward deck: warm brown-grey plates, mid-tan bone-brown plates in a bow-tie pattern, a small round grey hatch lid, a small square hatch, dark brown plates, a turret ring, and a dark grey armour strip on the right;\nbottom-right: the arm's nose deck: a round brown-grey turret housing low in the tile, a dark brown stepped plate at the top with a small square hatch, mid-tan bone-brown plates on the right, a dark grey strip and small orange slivers at the right edge.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its maintained service finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that maintained armoured surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot stays plain background blue. Thin isolated slivers and strips stay where they are.\n- Every shape is a flat painted steel armour plate. Add painted surface detail inside each plate's outline only: crisp plate seams and welded joints, neat rows of small fasteners and rivets, flush access panels, a light even film of dust and grime in the seams and a few small scuffs on plate edges. Nothing may stand out from the surface or cross an outline.\n- Keep EVERY plate its own colour exactly as INPUT 1 shows it. The alternating plate tones are deliberate and must stay distinct, never evened out or blended: warm brown-grey plates stay warm brown-grey; dark brown plates stay dark chocolate brown; bone-brown plates stay a MEDIUM dusty greyish tan: clearly darker than bone white, never cream, off-white or pale, about halfway between the warm brown-grey plates and bone white (INPUT 1 draws them lighter than the paint really is: the pale tan plates in INPUT 1 are this medium tan); bright orange plates stay saturated Hegemony orange enamel; the duller darker orange plates stay a weathered burnt orange; dark grey armour (straps, frames, coamings, sponson plates) stays dark charcoal grey; blue-grey steel plates stay a cool blue-grey steel; near-black recesses and seams stay near-black. Do not repaint any plate another colour, add no stripes and no differently coloured patches.\n- The ship is maintained, not battered. Weathering is light and even across every plate. No rust, no repair patches, no soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-arms-deck-fwd-v2-guide.png",
+      "sha256": "45eaeca8c4af8255645ee3bcf1b222478797a55bcfab7a12f29d42c7097290ac",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the four tiles, preserving the layout and plate colours in Image 1 and matching the surface finish in Image 2."
+  ],
+  "usage": {
+    "input_tokens": 76177,
+    "cached_input_tokens": 60160,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1136,
+    "reasoning_output_tokens": 41
+  },
+  "elapsedSeconds": 58.2
+}
