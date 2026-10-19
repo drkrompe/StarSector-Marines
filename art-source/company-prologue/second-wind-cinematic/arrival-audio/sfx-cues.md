@@ -148,6 +148,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `landing_thump` | Touchdown: first legs at 16.4, second at 16.57, the struts groaning | 16.4 | Spot | −2 | Code |
 | `landing_spool` | Vent hiss and the turbines winding down | 16.4–18.4 | Transition | −8 | Code |
 | `landing_settle` | Dust washing back down and the last grit | 16.9–21.4 | Spot | −14 | Code |
+| `colossus_outbound` | A second Colossus leaving (`port_fleet`), **synthesised from its path** against the C5 camera: a huge, slow, muffled freighter drive coming in from the east at about 460 m, closest (about 165 m) at C5 18–19.5, then about 1.5 km off and still burning under the title. Kept under the music and the title | 30.4–54.9, closest 39.4–40.9 | Spot | −10, −14 under the title | Code |
 | `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 17.4–54.9; full to 39.4, thinning under the rise, out by 52.4 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 21.9–35.4 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
@@ -157,7 +158,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
 | `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
-| Music | Not chosen; four ElevenLabs candidates in `make_music.py` (`music-takes/`), each laid by `sfx_mix.py --music` with its loudest second at C5 25, ducked 8 dB under Castle's last line. Hopeful but fragile, a beginning not a victory, no vocals | about 36–54.9 | Music | 0 (−8 under her line) | Gen (music) |
+| Music | **Ending A chosen** (owner, 2026-10-19): `ending_strings_piano_t01` from `make_music.py ending`, strings with a soft piano on top, building from the yard to a peak at the title and fading to silence for the return to the game. Before it, the strings score (`score_strings_t01`) runs C1–C4 at +6 dB, with the piano-and-pad score layered into C3 as a suggestion. Laid out and ducked under the voices on the Arrival Score Desk (`score-desk.html`) | Ending 21.4–54.9 here | Music | +4 (ducked 8 dB under voices) | Gen (music) |
 
 ## What is still open
 

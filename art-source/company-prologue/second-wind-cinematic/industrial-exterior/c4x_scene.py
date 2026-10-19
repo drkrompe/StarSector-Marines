@@ -748,9 +748,6 @@ LIGHTERS = [(-445.0, 'parked'), (-355.0, 'lifting'), (-265.0, 'parked'), (-175.0
 # for an inbound.
 HEAVY = (-60.0, 70.0, 615.0, 715.0)       # x0, x1, y0, y1: behind the berths, its road down to the port road
 OFFICE = (240.0, 415.0)                   # arrivals: customs and decontamination, MuniSec's post
-# The skinned Hound and Mudskipper carry their engines on +X: a hull facing heading h is turned
-# half round so its stern, where the cargo comes out, points back down its lane.
-STERN_FIRST = math.pi
 # Kilo Nine, Nessa's private cradle, faces the way Second Wind comes in.
 K9 = (400.0, 465.0)
 K9_R = 48.0                               # a 96 m pad: Second Wind sits inside its ring
@@ -1650,6 +1647,7 @@ def build():
     sys.path.insert(0, str(CINE / 'thrust-markers'))
     import thrust_shots                                  # every craft's nozzles marked, through C5
     thrust_shots.mark_c4(sys.modules[__name__])
+    port_fleet.after_markers(sys.modules[__name__])     # the departing Colossus's burn, off its markers
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames

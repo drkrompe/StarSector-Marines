@@ -97,3 +97,15 @@ RCS_QUADS = {}
 # (object name, role, colour); one entry per running light, colour from geometry.json.
 LAMPS = [(l['name'], 'beacon' if l['colour'] == 'red' else 'masthead', tuple(l['rgb']))
          for l in _geom['running_lights']]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla FRONT, arc 180, radius 240,
+# shieldCenter (32, 0) (onslaught.ship, ship_data.csv), efficiency 1.0. Not in this
+# export's groups: a shot asks for it with groups=(..., 'shield'). The arc is
+# fitted to the hull ~10 m clear (margin 11.6 units at 0.86 m/u) like the
+# Paragon's, centred on the root at the shieldCenter. Colours: the 'hegemony'
+# scheme (the Hegemony XIV livery); a shot may pass shield_scheme to swfx.apply.
+SHIELD = dict(
+    type='FRONT', anchor='ONSLAUGHT | clean | root', center=(32, 0), radius=240.0, arc=180.0, nodes=[],
+    scheme='hegemony', efficiency=1.0, fit=dict(margin=11.6), raise_s=1.0, lower_s=1.0,
+)

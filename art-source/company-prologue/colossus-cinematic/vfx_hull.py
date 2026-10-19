@@ -67,3 +67,15 @@ LAMPS = [
     ('Hull port hatch edge lamps', 'work', WHITE),
     ('Hull starboard hatch edge lamps', 'work', WHITE),
 ]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla FRONT, arc 150, radius 170,
+# shieldCenter (-6, 1) (colossus.ship, ship_data.csv), efficiency 1.0. Not in this
+# export's groups: a shot asks for it with groups=(..., 'shield'). The arc is
+# fitted to the hull ~10 m clear (margin 20.0 units at 0.5 m/u) like the
+# Paragon's, centred on the root at the shieldCenter. Colours: the 'low-tech'
+# scheme (an independent freighter: the plain LOW_TECH colours); a shot may pass shield_scheme to swfx.apply.
+SHIELD = dict(
+    type='FRONT', anchor='COLOSSUS | root', center=(-6, 1), radius=170.0, arc=150.0, nodes=[],
+    scheme='low-tech', efficiency=1.0, fit=dict(margin=20.0), raise_s=1.0, lower_s=1.0,
+)
