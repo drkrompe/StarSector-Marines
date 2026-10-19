@@ -50,8 +50,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import mt_kit, mt_hull, mt_engines, mt_mounts, mt_lights
-for module in (mt_kit, mt_hull, mt_engines, mt_mounts, mt_lights):
+import mt_kit, mt_hull, mt_detail, mt_engines, mt_mounts, mt_lights
+for module in (mt_kit, mt_hull, mt_detail, mt_engines, mt_mounts, mt_lights):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -70,7 +70,9 @@ NAME = 'Manticore (P)'
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
 # pods, launcher housings or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = 'Pass 1 blockout: silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights.'
+STATUS = ('Pass 2 detail: wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, '
+          'glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, '
+          'turret-kit weapons, anchors and running lights).')
 SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft body', 'Hull ventral keel',
           'Bridge command dome']
 if NAME in ship_scale.HULLS:
@@ -131,6 +133,7 @@ bpy.ops.object.delete(use_global=False)
 kit = mt_kit.Kit()
 kit.mpu = METRES_PER_UNIT
 mt_hull.build(kit)
+mt_detail.build(kit)
 mt_engines.build(kit)
 mt_mounts.build(kit)
 mt_lights.build(kit)

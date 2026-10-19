@@ -1,5 +1,5 @@
 {
-  "status": "Pass 1 blockout: silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights.",
+  "status": "Pass 2 detail: wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights).",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
@@ -812,11 +812,13 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 45402,
-    "objects": 114,
+    "triangles": 50278,
+    "objects": 207,
     "materials": [
+      "Manticore bridge glazing",
       "Manticore grey plate",
       "Manticore gunmetal machinery",
+      "Manticore heat vent glow",
       "Manticore pale command plating",
       "Manticore pirate red armour",
       "Manticore recess",
@@ -1009,15 +1011,15 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9482,
-    "sprite_uncovered": 0.0187,
+    "iou": 0.9483,
+    "sprite_uncovered": 0.0186,
     "model_outside_sprite": 0.0349,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 6.62 px per unit"
   },
   "shot_extent_px": {
     "shot-s5-1500m": {
       "width_px": 289,
-      "height_px": 84
+      "height_px": 88
     },
     "shot-s4-4000m": {
       "width_px": 46,

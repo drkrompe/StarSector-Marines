@@ -11,8 +11,8 @@ edge; sprite column c, row r from the top covers X 86-r..87-r and Y
   turret stands on a raised ring at X 21; the pale command dome (rows 87-110)
   sits on it aft of the ring.
 - Wings (X 31 to -26): a swept delta out to the outer turret pods, its
-  trailing edge running from (6, 72) to (-18, 47); red armour plates on the
-  upper surface, falling outboard.
+  trailing edge running from (6, 72) to (-18, 47); a gunmetal structure that
+  carries the red armour plates (pass 2), its upper surface falling outboard.
 - Outer turret pods (centred on WS 001 / WS 003 at (23, +-65)): octagonal
   gunmetal drums at the wing tips.
 - Launcher housings (WS 004 / WS 005 at (32, +-43)): the medium missile
@@ -78,7 +78,7 @@ def build(kit):
     neck = prism(kit, 'Hull neck', ccw(NECK), section(-6, NECK_DECK, 1.8, 2.4), kit.steel)
     core = prism(kit, 'Hull core', ccw(CORE), section(CORE_KEEL, CORE_DECK, 2.6, 3.0), kit.red)
     plane_cut(core, 'core bow rake', (40, 0, CORE_DECK), facet_normal((1, 0), 30))
-    wing = shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 1.4, 1.8), kit.red), True)
+    wing = shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 1.4, 1.8), kit.steel), True)
     aft = prism(kit, 'Hull aft body', ccw(AFT), section(AFT_KEEL, AFT_DECK, 2.2, 2.6), kit.steel)
     for s in (1, -1):
         plane_cut(aft, f'aft {s} shoulder', (-30, s*36, AFT_DECK), facet_normal((0, s), 34))
