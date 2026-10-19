@@ -279,7 +279,7 @@ def scale_record(lo, hi):
     return {
         **SCALE, 'published_metres_per_unit': METRES_PER_UNIT,
         'published_note': 'owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front '
-                          'deepened the block; option C solves 0.426 (92 m)',
+                          'deepened the block; option C solves 0.431 (94 m) with the round-2 container bays',
         'measured_this_build': {'enclosed_units3': round(measured), 'solids': solids,
                                 'cargo_body_units3': round(hold), 'cargo_body_m3': round(hold*m**3),
                                 'cargo_body_share': round(hold/measured, 3)},

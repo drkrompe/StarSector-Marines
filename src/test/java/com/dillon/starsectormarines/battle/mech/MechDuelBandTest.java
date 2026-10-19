@@ -27,6 +27,12 @@ class MechDuelBandTest {
     private static final List<Weapon> SIROCCO = List.of(HEAVY_CANNON, LRM, LRM);
     private static final List<Weapon> BULWARK = List.of(CHAINGUN, SRM, SRM);
 
+    /** Anti-armor racks: the contact payload against a Bulwark's plate, at full efficiency. */
+    private static final Weapon AT_SRM = new Weapon(0f, 18f, 66f * 4 / 5.5f, 0.55f, 0f, true);
+    private static final Weapon AT_LRM = new Weapon(0f, 40f, 95f * 5 / 9f, 0.55f, 0f, true);
+    private static final List<Weapon> AT_BULWARK = List.of(CHAINGUN, AT_SRM, AT_SRM);
+    private static final List<Weapon> AT_HOUND = List.of(CHAINGUN, AT_SRM);
+
     @Test
     void outReachingSiroccoStandsOffBeyondTheHoundsReach() {
         Band band = MechDuelBand.choose(SIROCCO, HOUND, MechRole.LR_SUPPORT);
@@ -104,5 +110,35 @@ class MechDuelBandTest {
         assertEquals(10f, mortar.pressureAt(10f) / (1f - 0.5f * 10f / 30f), 1e-4f);
         assertEquals(5f, mortar.pressureAt(30f), 1e-4f);
         assertEquals(0f, mortar.pressureAt(31f));
+    }
+
+    @Test
+    void equalMachinesCloseOnATieWhenTheCloseBandBringsAnAntiArmorRack() {
+        Band band = MechDuelBand.choose(AT_BULWARK, AT_BULWARK, MechRole.ARMORED_SUPPORT);
+        assertEquals(Stance.CLOSE, band.stance());
+        assertTrue(band.max() <= 18f, "inside the rack's reach: " + band);
+        assertEquals(Stance.CLOSE, MechDuelBand.choose(AT_HOUND, AT_HOUND, MechRole.ASSAULT).stance());
+    }
+
+    @Test
+    void anAntiArmorRackDoesNotCloseIntoAWorseTrade() {
+        // The Hound's one rack against the Bulwark's two still loses the short band.
+        assertEquals(Stance.DUEL, MechDuelBand.choose(AT_HOUND, AT_BULWARK, MechRole.ASSAULT).stance());
+    }
+
+    @Test
+    void longRangeSupportDoesNotCloseOnAnAntiArmorTie() {
+        List<Weapon> lrSupport = List.of(CHAINGUN, AT_SRM, AT_LRM);
+        assertEquals(Stance.DUEL, MechDuelBand.choose(lrSupport, lrSupport, MechRole.LR_SUPPORT).stance());
+    }
+
+    @Test
+    void theControlKeepsEqualMachinesInTheDuelBand() {
+        MechDuelBand.setCloseOnAntiArmorTieForEvidence(false);
+        try {
+            assertEquals(Stance.DUEL, MechDuelBand.choose(AT_BULWARK, AT_BULWARK, MechRole.ARMORED_SUPPORT).stance());
+        } finally {
+            MechDuelBand.setCloseOnAntiArmorTieForEvidence(true);
+        }
     }
 }
