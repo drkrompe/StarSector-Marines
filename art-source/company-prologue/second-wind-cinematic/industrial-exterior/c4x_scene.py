@@ -1489,6 +1489,8 @@ def build():
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, {o.name for o in ship.all_objects} if ship else ())
+    import wall_paint                                   # painted walls and roof plant
+    wall_paint.apply(WAREHOUSES)
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP)
     add_camera(scene)
     scene.render.engine = 'BLENDER_EEVEE'

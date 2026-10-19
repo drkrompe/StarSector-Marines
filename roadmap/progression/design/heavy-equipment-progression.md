@@ -643,9 +643,9 @@ being a tank-only gap.
   street rows do not move, because its SRMs fly flat. The bastion fit stays high
   on its arms (bastion alone 0.79): that is the reach-34 arm's case above, not
   the rack's. Against other tanks the screened tank duels as the breakthrough
-  tank does. Its sheet is stand-in art (launcher boxes and sensor plates drawn on
-  the breakthrough turret, `art-source/vehicles/tank-screened`) until an
-  ImageGen pass.
+  tank does. Its sheet is the breakthrough hull with an ImageGen turret carrying the
+  fit where it can be seen: a launcher box on each rear flank, a sensor panel
+  on each cheek (`art-source/vehicles/tank-screened`).
 - **Why top-attack only.** The first prototype took any interceptable round
   near the hull, and it taxed the SRM Bulwarks harder than the LRM fit. At the
   same 30-round setting the stock Bulwark fell 0.23 to 0.08 (street 0.50 to
