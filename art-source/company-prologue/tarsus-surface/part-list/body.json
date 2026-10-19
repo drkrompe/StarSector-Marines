@@ -1,0 +1,761 @@
+{
+ "body-deck": {
+  "what": "central body deck from above, bow at the top",
+  "sheet": "body",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": {
+     "box": [
+      [
+       -25.0,
+       -43.0,
+       6.0
+      ],
+      [
+       42.0,
+       45.0,
+       11.0
+      ]
+     ]
+    },
+    "faces": [
+     46,
+     47,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     80,
+     81,
+     82,
+     226,
+     227,
+     228,
+     237,
+     238,
+     239,
+     250,
+     251,
+     252,
+     253,
+     264,
+     265,
+     266,
+     267,
+     289,
+     302,
+     310,
+     311,
+     326,
+     327
+    ]
+   }
+  ],
+  "face_count": 53,
+  "area_units2": 5604.91,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   85.0,
+   65.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.0,
+    8.5
+   ],
+   "ortho_width": 134.36692506459946
+  },
+  "native_texels_per_unit": 5.9
+ },
+ "body-wall-port": {
+  "what": "central body port wall, bow to the left",
+  "sheet": "body",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": {
+     "box": [
+      [
+       -25.0,
+       30.0,
+       -14.0
+      ],
+      [
+       42.0,
+       45.0,
+       10.0
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     2,
+     3,
+     5,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     48,
+     85,
+     89,
+     98,
+     108,
+     113,
+     118,
+     167,
+     174,
+     175,
+     196,
+     201,
+     206,
+     217,
+     275,
+     319,
+     324
+    ]
+   }
+  ],
+  "face_count": 35,
+  "area_units2": 1537.39,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   65.0,
+   23.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -8.5,
+    -1.5
+   ],
+   "ortho_width": 75.5813953488372
+  },
+  "native_texels_per_unit": 10.5
+ },
+ "body-wall-stbd": {
+  "what": "central body starboard wall, bow to the right",
+  "sheet": "body",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": {
+     "box": [
+      [
+       -25.0,
+       -43.0,
+       -14.0
+      ],
+      [
+       42.0,
+       -28.0,
+       10.0
+      ]
+     ]
+    },
+    "faces": [
+     7,
+     9,
+     11,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     123,
+     128,
+     132,
+     136,
+     142,
+     147,
+     152,
+     157,
+     182,
+     183,
+     192,
+     195,
+     210,
+     214,
+     323
+    ]
+   }
+  ],
+  "face_count": 35,
+  "area_units2": 1393.23,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   65.0,
+   20.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    8.5,
+    -3.0
+   ],
+   "ortho_width": 75.5813953488372
+  },
+  "native_texels_per_unit": 10.5
+ },
+ "stern-face": {
+  "what": "drive block stern face seen from astern, round the two main drive mouths",
+  "sheet": "body",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull drive block",
+    "seed": {
+     "box": [
+      [
+       -75.0,
+       -40.0,
+       -12.0
+      ],
+      [
+       -66.0,
+       40.0,
+       8.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     7,
+     21,
+     22,
+     37,
+     94
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 1233.29,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   67.81,
+   16.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.906667709350586,
+    -1.75
+   ],
+   "ortho_width": 78.8527156031409
+  },
+  "native_texels_per_unit": 10.1
+ },
+ "castle-top": {
+  "what": "aft body deck and the raised castle from above",
+  "sheet": "aft",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft body",
+    "seed": {
+     "box": [
+      [
+       -57.0,
+       -46.0,
+       8.0
+      ],
+      [
+       -19.0,
+       48.0,
+       12.0
+      ]
+     ]
+    },
+    "faces": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     31
+    ]
+   },
+   {
+    "object": "Hull aft castle",
+    "seed": {
+     "box": [
+      [
+       -56.0,
+       -22.0,
+       12.0
+      ],
+      [
+       -34.0,
+       24.0,
+       17.0
+      ]
+     ]
+    },
+    "faces": [
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     88,
+     93
+    ]
+   }
+  ],
+  "face_count": 21,
+  "area_units2": 4419.74,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   89.0,
+   36.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.0,
+    -38.25
+   ],
+   "ortho_width": 103.48837209302326
+  },
+  "native_texels_per_unit": 7.7
+ },
+ "keel-bottom": {
+  "what": "the belly from below: ventral keel and central body keel",
+  "sheet": "aft",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull ventral keel",
+    "seed": {
+     "box": [
+      [
+       -51.0,
+       -20.0,
+       -21.0
+      ],
+      [
+       31.0,
+       22.0,
+       -12.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     29,
+     34,
+     39,
+     44,
+     89,
+     94,
+     95,
+     96
+    ]
+   },
+   {
+    "object": "Hull central body",
+    "seed": {
+     "box": [
+      [
+       -25.0,
+       -43.0,
+       -14.0
+      ],
+      [
+       42.0,
+       45.0,
+       -10.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     83
+    ]
+   }
+  ],
+  "face_count": 22,
+  "area_units2": 7425.36,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   71.0,
+   89.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.0,
+    -5.099061965942383
+   ],
+   "ortho_width": 185.6369531123829
+  },
+  "native_texels_per_unit": 4.3
+ },
+ "drive-top": {
+  "what": "drive block deck from above, between and around the drive cans",
+  "sheet": "aft",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull drive block",
+    "seed": {
+     "box": [
+      [
+       -74.0,
+       -40.0,
+       3.0
+      ],
+      [
+       -51.0,
+       40.0,
+       8.0
+      ]
+     ]
+    },
+    "faces": [
+     33,
+     34,
+     35,
+     36,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     59,
+     60,
+     61,
+     75,
+     76,
+     77,
+     103
+    ]
+   }
+  ],
+  "face_count": 19,
+  "area_units2": 1477.46,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   76.0,
+   21.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.0,
+    -62.75
+   ],
+   "ortho_width": 88.37209302325581
+  },
+  "native_texels_per_unit": 9.0
+ },
+ "aft-wall-port": {
+  "what": "aft body and castle port walls, between the drum towers",
+  "sheet": "aft",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft body",
+    "seed": {
+     "box": [
+      [
+       -57.0,
+       30.0,
+       -14.0
+      ],
+      [
+       -19.0,
+       47.0,
+       11.0
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     2,
+     9,
+     10
+    ]
+   },
+   {
+    "object": "Hull aft castle",
+    "seed": {
+     "box": [
+      [
+       -56.0,
+       14.0,
+       8.0
+      ],
+      [
+       -34.0,
+       23.0,
+       17.0
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     2,
+     3,
+     56,
+     57,
+     64,
+     65,
+     94
+    ]
+   }
+  ],
+  "face_count": 12,
+  "area_units2": 842.77,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   35.0,
+   26.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    37.5,
+    0.0
+   ],
+   "ortho_width": 53.746770025839794
+  },
+  "native_texels_per_unit": 14.8
+ },
+ "aft-wall-stbd": {
+  "what": "aft body and castle starboard walls (mirror of port)",
+  "sheet": "aft",
+  "tile": 3,
+  "skin_from": "aft-wall-port",
+  "members": [
+   {
+    "object": "Hull aft body",
+    "seed": {
+     "box": [
+      [
+       -57.0,
+       -45.0,
+       -14.0
+      ],
+      [
+       -19.0,
+       -28.0,
+       11.0
+      ]
+     ]
+    },
+    "faces": [
+     6,
+     7,
+     14,
+     15
+    ]
+   },
+   {
+    "object": "Hull aft castle",
+    "seed": {
+     "box": [
+      [
+       -56.0,
+       -21.0,
+       8.0
+      ],
+      [
+       -34.0,
+       -12.0,
+       17.0
+      ]
+     ]
+    },
+    "faces": [
+     6,
+     7,
+     8,
+     30,
+     72,
+     73,
+     80,
+     81
+    ]
+   }
+  ],
+  "face_count": 12,
+  "area_units2": 842.77,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   35.0,
+   26.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -37.5,
+    0.0
+   ],
+   "ortho_width": 53.746770025839794
+  },
+  "native_texels_per_unit": 14.8
+ }
+}

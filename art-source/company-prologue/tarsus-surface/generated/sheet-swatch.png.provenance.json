@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155ea-1445-7553-83a6-acc6f1ba58a5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155ea-1445-7553-83a6-acc6f1ba58a5\\exec-05c016f1-84e9-4ef9-9e56-3032326e9e1c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\tarsus-surface\\generated\\sheet-swatch.png",
+    "sha256": "c3e5cd790fdffbb22fb2239aee18746ada7a1f8efc3ea37773571d50683c7c5a",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\tarsus-surface\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "1739cc641f4085f142013855ce6239fdc70eb3a2082ef33d9cc3a9839e4d692d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: repaint these exact shapes in place, never move a pixel of them\nImage 2: Finish and paint colours only; not layout, not view\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (a Tarsus-class freighter, a rugged low-tech Domain-era hazard-duty cargo hauler in independent merchant service), to be painted as a flat, square-on texture sample of that material:\ntop-left square: weathered warm ochre-tan enamel hull plate;\ntop-middle square: dusty pale cream enamel deck plate;\ntop-right square: dark rust-brown painted casting;\nbottom-left square: mid warm grey painted structure;\nbottom-middle square: signal orange enamel panel;\nbottom-right square: dark gunmetal grey steel machinery.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, seams, fasteners and its service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the six squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of sturdy, hard-worked freighter plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a thin even film of dust and grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: ochre-tan stays ochre-tan, pale cream stays pale cream, rust-brown stays dark rust-brown, mid grey stays mid warm grey, signal orange stays signal orange, gunmetal stays dark grey steel. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\tarsus-surface\\guide\\sheet-swatch-guide.png",
+      "sha256": "afc55016fba655e183cbabbe1d7408efd878d023dc576cf31c3255239ba37a90",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: repaint these exact shapes in place, never move a pixel of them"
+    },
+    {
+      "path": "art-source\\company-prologue\\tarsus-surface\\reference\\finish-reference.png",
+      "sha256": "3062830a125138c0ba86a762d67c5ee9d3dafdc1a51549b53f90be9c500ec755",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Finish and paint colours only; not layout, not view"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to add the requested material finishes while preserving the six-square layout and blue gutters."
+  ],
+  "usage": {
+    "input_tokens": 47013,
+    "cached_input_tokens": 38016,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 605,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.9
+}

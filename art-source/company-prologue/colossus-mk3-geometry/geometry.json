@@ -1,0 +1,1137 @@
+{
+  "status": "Geometry and detail (passes 1-2) and scale (pass 4), forked from the accepted Colossus; waiting on owner review. No damage states (not needed).",
+  "hull": {
+    "name": "Colossus Mk.III",
+    "hullId": "colossus3",
+    "size": "CRUISER",
+    "style": "LOW_TECH",
+    "tech": "Pirate",
+    "designation": "Modified Freighter",
+    "source": {
+      "ship": "data/hulls/colossus3.ship",
+      "sprite": "graphics/ships/colossus/colossus3_pirate.png",
+      "ship_data": "data/hulls/ship_data.csv (row id colossus3)",
+      "lights_layer": "none in the install",
+      "forked_from": "colossus-geometry/ (accepted Colossus, 0.50 m/u)"
+    },
+    "ship_data": {
+      "min_crew": 80,
+      "max_crew": 160,
+      "cargo": 300,
+      "fuel": 60,
+      "mass": 1400,
+      "hitpoints": 6000,
+      "armor": 600
+    },
+    "built_in_mods": [
+      "civgrade",
+      "converted_bay",
+      "ground_support"
+    ],
+    "ship_system": "flarelauncher",
+    "shield": "FRONT (radius 170, arc 150)"
+  },
+  "provenance": "verified against the installed colossus3.ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.495,
+  "scale": {
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 786639,
+      "crew_max": 160,
+      "cargo": 300,
+      "fuel": 60,
+      "cls": "freighter",
+      "length_units": 216.7,
+      "sprite_px": 224,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.0,
+        "hangar_box_factor": 2.5,
+        "shares": {
+          "armour": 0.03,
+          "drive": 0.15,
+          "weapons": 0.02,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 48000,
+      "cargo": 600,
+      "fuel": 90,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 48690,
+    "machinery_share": 0.32,
+    "enclosed_m3": 71603,
+    "solved_metres_per_unit": 0.45,
+    "range": {
+      "habitable_273": 0.436,
+      "habitable_328": 0.463
+    },
+    "enclosed_m3_per_person_at_max_crew": 448,
+    "length_m": 97.5,
+    "fittings_m": {
+      "personnel hatch w x h": [
+        0.99,
+        2.16
+      ],
+      "side cargo door w x h": [
+        4.5,
+        6.3
+      ],
+      "launch bay mouth w x h": [
+        15.29,
+        13.5
+      ],
+      "bridge door w x h": [
+        0.99,
+        2.07
+      ]
+    },
+    "published_metres_per_unit": 0.495,
+    "published_note": "published at 0.495 (107 m), the settled size in the Asharu battle plan (asharu-battle-shot.md): the Colossus's twin, beside a Colossus itself published at 0.50 by owner override",
+    "measured_this_build": {
+      "enclosed_units3": 786639,
+      "solids": [
+        "Bridge deckhouse",
+        "Cargo port aft module",
+        "Cargo port fore module",
+        "Cargo starboard aft module",
+        "Cargo starboard fore module",
+        "Hull aft machinery body",
+        "Hull central cargo hold",
+        "Hull hold hatch cover",
+        "Hull keel spine"
+      ],
+      "cargo_body_units3": 654928,
+      "cargo_body_m3": 79434,
+      "cargo_body_share": 0.833
+    },
+    "size_m": [
+      109.6,
+      84.5,
+      44.4
+    ],
+    "cross_checks_m": {
+      "person 1.8 m in units": 3.64,
+      "cargo hold keel to deck": 33.7,
+      "cargo body width": 61.9
+    }
+  },
+  "sprite": {
+    "size": [
+      184,
+      224
+    ],
+    "center": [
+      93,
+      128
+    ],
+    "centreline_y": 1.5,
+    "pixel_to_model": "col c, row r covers X 95-r..96-r, Y 92-c..93-c"
+  },
+  "dimensions": {
+    "min": [
+      -126.07,
+      -83.85,
+      -54.66
+    ],
+    "max": [
+      95.4,
+      86.85,
+      35.0
+    ],
+    "size": [
+      221.47,
+      170.7,
+      89.66
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        42,
+        60,
+        17.4
+      ],
+      "angle": 80,
+      "arc": 140,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "twin",
+      "objects": "Turret 1 WS 001 ...",
+      "pivot": "Turret 1 WS 001 pivot",
+      "muzzles": {
+        "Turret 1 WS 001 muzzle port": [
+          43.035,
+          72.206,
+          19.25
+        ],
+        "Turret 1 WS 001 muzzle starboard": [
+          45.202,
+          71.824,
+          19.25
+        ]
+      }
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        -6,
+        63,
+        17.4
+      ],
+      "angle": 90,
+      "arc": 130,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "cannon",
+      "objects": "Turret 2 WS 002 ...",
+      "pivot": "Turret 2 WS 002 pivot",
+      "muzzles": {
+        "Turret 2 WS 002 muzzle": [
+          -6.0,
+          77.8,
+          19.25
+        ]
+      }
+    },
+    {
+      "id": "WS 003",
+      "location": [
+        42,
+        -58,
+        17.4
+      ],
+      "angle": -80,
+      "arc": 140,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "twin",
+      "objects": "Turret 3 WS 003 ...",
+      "pivot": "Turret 3 WS 003 pivot",
+      "muzzles": {
+        "Turret 3 WS 003 muzzle port": [
+          45.202,
+          -69.824,
+          19.25
+        ],
+        "Turret 3 WS 003 muzzle starboard": [
+          43.035,
+          -70.206,
+          19.25
+        ]
+      }
+    },
+    {
+      "id": "WS 004",
+      "location": [
+        -6,
+        -61,
+        17.4
+      ],
+      "angle": -90,
+      "arc": 130,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "cannon",
+      "objects": "Turret 4 WS 004 ...",
+      "pivot": "Turret 4 WS 004 pivot",
+      "muzzles": {
+        "Turret 4 WS 004 muzzle": [
+          -6.0,
+          -75.8,
+          19.25
+        ]
+      }
+    },
+    {
+      "id": "WS 005",
+      "location": [
+        89,
+        64,
+        15.22
+      ],
+      "angle": 45,
+      "arc": 20,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "objects": "Launcher 1 WS 005 flare launcher ...",
+      "pivot": "Launcher 1 WS 005 flare launcher pivot",
+      "muzzles": {
+        "Launcher 1 WS 005 flare launcher muzzle": [
+          88.823,
+          63.823,
+          16.4
+        ]
+      }
+    },
+    {
+      "id": "WS 006",
+      "location": [
+        89,
+        -61,
+        15.4
+      ],
+      "angle": -45,
+      "arc": 20,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "objects": "Launcher 2 WS 006 flare launcher ...",
+      "pivot": "Launcher 2 WS 006 flare launcher pivot",
+      "muzzles": {
+        "Launcher 2 WS 006 flare launcher muzzle": [
+          89.247,
+          -61.247,
+          16.4
+        ]
+      }
+    },
+    {
+      "id": "WS 007",
+      "location": [
+        -83,
+        84,
+        11.11
+      ],
+      "angle": 100,
+      "arc": 20,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "objects": "Launcher 3 WS 007 flare launcher ...",
+      "pivot": "Launcher 3 WS 007 flare launcher pivot",
+      "muzzles": {
+        "Launcher 3 WS 007 flare launcher muzzle": [
+          -83.254,
+          84.596,
+          11.994
+        ]
+      }
+    },
+    {
+      "id": "WS 008",
+      "location": [
+        -84,
+        -81,
+        11.09
+      ],
+      "angle": 260,
+      "arc": 20,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "objects": "Launcher 4 WS 008 flare launcher ...",
+      "pivot": "Launcher 4 WS 008 flare launcher pivot",
+      "muzzles": {
+        "Launcher 4 WS 008 flare launcher muzzle": [
+          -84.256,
+          -81.593,
+          11.966
+        ]
+      }
+    },
+    {
+      "id": "WS 009",
+      "location": [
+        19,
+        -51,
+        23.7
+      ],
+      "angle": -90,
+      "arc": 130,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "cannon",
+      "objects": "Turret 5 WS 009 ...",
+      "pivot": "Turret 5 WS 009 pivot",
+      "muzzles": {
+        "Turret 5 WS 009 muzzle": [
+          19.0,
+          -65.8,
+          25.55
+        ]
+      }
+    },
+    {
+      "id": "WS 010",
+      "location": [
+        18,
+        53,
+        24.7
+      ],
+      "angle": 90,
+      "arc": 130,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "cannon",
+      "objects": "Turret 6 WS 010 ...",
+      "pivot": "Turret 6 WS 010 pivot",
+      "muzzles": {
+        "Turret 6 WS 010 muzzle": [
+          18.0,
+          67.8,
+          26.55
+        ]
+      }
+    },
+    {
+      "id": "WS 011",
+      "location": [
+        59,
+        -39,
+        25.2
+      ],
+      "angle": -40,
+      "arc": 170,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "twin",
+      "objects": "Turret 7 WS 011 ...",
+      "pivot": "Turret 7 WS 011 pivot",
+      "muzzles": {
+        "Turret 7 WS 011 muzzle port": [
+          69.053,
+          -45.999,
+          27.05
+        ],
+        "Turret 7 WS 011 muzzle starboard": [
+          67.639,
+          -47.685,
+          27.05
+        ]
+      }
+    },
+    {
+      "id": "WS 012",
+      "location": [
+        59,
+        41,
+        25.2
+      ],
+      "angle": 50,
+      "arc": 170,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "twin",
+      "objects": "Turret 8 WS 012 ...",
+      "pivot": "Turret 8 WS 012 pivot",
+      "muzzles": {
+        "Turret 8 WS 012 muzzle port": [
+          65.999,
+          51.053,
+          27.05
+        ],
+        "Turret 8 WS 012 muzzle starboard": [
+          67.685,
+          49.639,
+          27.05
+        ]
+      }
+    },
+    {
+      "id": "WS 013",
+      "location": [
+        80,
+        -53,
+        17.4
+      ],
+      "angle": -45,
+      "arc": 200,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "rotary",
+      "objects": "Turret 9 WS 013 ...",
+      "pivot": "Turret 9 WS 013 pivot",
+      "muzzles": {
+        "Turret 9 WS 013 muzzle": [
+          88.061,
+          -61.061,
+          19.25
+        ]
+      }
+    },
+    {
+      "id": "WS 014",
+      "location": [
+        80,
+        55,
+        17.4
+      ],
+      "angle": 45,
+      "arc": 200,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "rotary",
+      "objects": "Turret 10 WS 014 ...",
+      "pivot": "Turret 10 WS 014 pivot",
+      "muzzles": {
+        "Turret 10 WS 014 muzzle": [
+          88.061,
+          63.061,
+          19.25
+        ]
+      }
+    },
+    {
+      "id": "WS 015",
+      "location": [
+        84,
+        29,
+        21.2
+      ],
+      "angle": 6,
+      "arc": 160,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "rotary",
+      "objects": "Turret 11 WS 015 ...",
+      "pivot": "Turret 11 WS 015 pivot",
+      "muzzles": {
+        "Turret 11 WS 015 muzzle": [
+          95.338,
+          30.192,
+          23.05
+        ]
+      }
+    },
+    {
+      "id": "WS 016",
+      "location": [
+        84,
+        -27,
+        21.2
+      ],
+      "angle": -6,
+      "arc": 160,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "gun": "rotary",
+      "objects": "Turret 12 WS 016 ...",
+      "pivot": "Turret 12 WS 016 pivot",
+      "muzzles": {
+        "Turret 12 WS 016 muzzle": [
+          95.338,
+          -28.192,
+          23.05
+        ]
+      }
+    }
+  ],
+  "launch_bay": {
+    "id": "WS 017",
+    "locations": [
+      69,
+      -5,
+      69,
+      9,
+      52,
+      -6,
+      52,
+      9
+    ],
+    "angle": 0,
+    "arc": 8,
+    "mount": "HIDDEN",
+    "size": "SMALL",
+    "type": "LAUNCH_BAY",
+    "objects": "Launch bay ...",
+    "launch_points": [
+      {
+        "anchor": "Launch bay WS 017 launch point 1",
+        "location": [
+          69,
+          -5,
+          -8.65
+        ],
+        "direction": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "anchor": "Launch bay WS 017 launch point 2",
+        "location": [
+          69,
+          9,
+          -8.65
+        ],
+        "direction": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "anchor": "Launch bay WS 017 launch point 3",
+        "location": [
+          52,
+          -6,
+          -8.65
+        ],
+        "direction": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "anchor": "Launch bay WS 017 launch point 4",
+        "location": [
+          52,
+          9,
+          -8.65
+        ],
+        "direction": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    "well": {
+      "x": [
+        46.0,
+        90.5
+      ],
+      "half_width": 17.0,
+      "floor_z": -12.0,
+      "centreline_y": 1.5
+    }
+  },
+  "engines": [
+    {
+      "index": 1,
+      "pod": "port",
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "location": [
+        -124,
+        64,
+        0.0
+      ],
+      "width": 15,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -124.5,
+        64,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 2,
+      "pod": "port",
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "location": [
+        -124,
+        56,
+        0.0
+      ],
+      "width": 15,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -124.5,
+        56,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 3,
+      "pod": "port",
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "location": [
+        -124,
+        49,
+        0.0
+      ],
+      "width": 15,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -124.5,
+        49,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 4,
+      "pod": "starboard",
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "location": [
+        -124,
+        -61,
+        0.0
+      ],
+      "width": 15,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -124.5,
+        -61,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 5,
+      "pod": "starboard",
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "location": [
+        -124,
+        -54,
+        0.0
+      ],
+      "width": 15,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -124.5,
+        -54,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 6,
+      "pod": "starboard",
+      "objects": "Engine 6 ...",
+      "anchor": "Engine 6 exhaust anchor",
+      "location": [
+        -124,
+        -46,
+        0.0
+      ],
+      "width": 15,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "anchor_location": [
+        -124.5,
+        -46,
+        0.0
+      ],
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "lift_thrusters": [
+    {
+      "index": 1,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 1 exhaust anchor",
+      "host": "Hull central cargo hold",
+      "well_radius": 7.0,
+      "anchor_location": [
+        24.5,
+        1.5,
+        -48.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 2,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 2 exhaust anchor",
+      "host": "Hull central cargo hold",
+      "well_radius": 7.0,
+      "anchor_location": [
+        46.5,
+        1.5,
+        -48.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 3,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 3 exhaust anchor",
+      "host": "Cargo port fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        55.75,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 4,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 4 exhaust anchor",
+      "host": "Cargo port aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        55.75,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 5,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 5 exhaust anchor",
+      "host": "Cargo starboard fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        -52.75,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 6,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 6 exhaust anchor",
+      "host": "Cargo starboard aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        -52.75,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    }
+  ],
+  "grapples": {
+    "note": "four keel grapples that carry the captured Tarsus (asharu-battle-shot.md S10); built stowed. Grapple <i> mount is fixed (local +X the deployed boom); Grapple <i> hinge rotation_euler[1] goes from stowed_deg to 0; Grapple <i> stage 2 and stage 3 location[0] from 0 to travel. Grapple <i> clamp anchor is the pad face, on Tarsus receiver <i> at full extension.",
+    "tarsus_origin_units": [
+      20.398,
+      0.49,
+      -78.254
+    ],
+    "tarsus_scale_in_these_units": 1.0101,
+    "tarsus_receivers_m": [
+      [
+        35.0,
+        10.25,
+        3.025
+      ],
+      [
+        35.0,
+        -9.25,
+        3.025
+      ],
+      [
+        -15.0,
+        7.5,
+        5.525
+      ],
+      [
+        -15.0,
+        -6.5,
+        5.525
+      ]
+    ],
+    "tarsus_receivers_units": [
+      [
+        70.0,
+        20.5,
+        6.05
+      ],
+      [
+        70.0,
+        -18.5,
+        6.05
+      ],
+      [
+        -30.0,
+        15.0,
+        11.05
+      ],
+      [
+        -30.0,
+        -13.0,
+        11.05
+      ]
+    ],
+    "tarsus_metres_per_unit": 0.5,
+    "grapples": [
+      {
+        "index": 1,
+        "mount": "Grapple 1 mount",
+        "hinge": "Grapple 1 hinge",
+        "stages": [
+          "Grapple 1 stage 2",
+          "Grapple 1 stage 3"
+        ],
+        "anchor": "Grapple 1 clamp anchor",
+        "pivot": [
+          81.2,
+          16.7,
+          -52.0
+        ],
+        "boom_direction": [
+          0.4327,
+          0.1964,
+          -0.8799
+        ],
+        "reach": 22.893,
+        "stowed_deg": 118.37,
+        "travel_per_stage": 5.314,
+        "receiver": [
+          91.105,
+          21.197,
+          -72.143
+        ]
+      },
+      {
+        "index": 2,
+        "mount": "Grapple 2 mount",
+        "hinge": "Grapple 2 hinge",
+        "stages": [
+          "Grapple 2 stage 2",
+          "Grapple 2 stage 3"
+        ],
+        "anchor": "Grapple 2 clamp anchor",
+        "pivot": [
+          81.2,
+          -13.7,
+          -52.0
+        ],
+        "boom_direction": [
+          0.4327,
+          -0.1964,
+          -0.8799
+        ],
+        "reach": 22.893,
+        "stowed_deg": 118.37,
+        "travel_per_stage": 5.314,
+        "receiver": [
+          91.105,
+          -18.197,
+          -72.143
+        ]
+      },
+      {
+        "index": 3,
+        "mount": "Grapple 3 mount",
+        "hinge": "Grapple 3 hinge",
+        "stages": [
+          "Grapple 3 stage 2",
+          "Grapple 3 stage 3"
+        ],
+        "anchor": "Grapple 3 clamp anchor",
+        "pivot": [
+          0.0,
+          17.1,
+          -52.0
+        ],
+        "boom_direction": [
+          -0.5469,
+          -0.0805,
+          -0.8333
+        ],
+        "reach": 18.111,
+        "stowed_deg": 123.56,
+        "travel_per_stage": 3.031,
+        "receiver": [
+          -9.905,
+          15.641,
+          -67.092
+        ]
+      },
+      {
+        "index": 4,
+        "mount": "Grapple 4 mount",
+        "hinge": "Grapple 4 hinge",
+        "stages": [
+          "Grapple 4 stage 2",
+          "Grapple 4 stage 3"
+        ],
+        "anchor": "Grapple 4 clamp anchor",
+        "pivot": [
+          0.0,
+          -14.1,
+          -52.0
+        ],
+        "boom_direction": [
+          -0.5469,
+          0.0805,
+          -0.8333
+        ],
+        "reach": 18.111,
+        "stowed_deg": 123.56,
+        "travel_per_stage": 3.031,
+        "receiver": [
+          -9.905,
+          -12.641,
+          -67.092
+        ]
+      }
+    ]
+  },
+  "object_names": {
+    "Hull ...": "central cargo hold, hatch cover, longerons, keel spine, aft machinery body",
+    "Launch bay ...": "the converted launch bay (WS 017) cut into the hold",
+    "Refit ...": "the pirate refit: welded armour, scavenged plates",
+    "Grapple <i> ...": "the four keel grapples (moving parts under mount/hinge/stage empties)",
+    "Cargo <side> fore|aft module": "the four side cargo modules (tear-apart units)",
+    "Frame ...": "open lattice trusses at the waist and between the spine and the pods",
+    "Bridge ...": "deckhouse, windscreen, wing ports, mast",
+    "Drive pod <side> casing": "the two drive pods",
+    "Engine <i> ...": "bell / mouth lip / dark throat / exhaust anchor",
+    "Lift thruster ...": "ten ventral lift thrusters; per-thruster exhaust anchors point down",
+    "Turret <i> WS 0nn ... / Launcher <i> WS 00n flare launcher ...": "mounts; pivot and muzzle empties"
+  },
+  "condition_states": {
+    "planned": [],
+    "built": [],
+    "note": "none needed for the Asharu battle (prize ship survives)"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        -17,
+        1.5,
+        400
+      ],
+      "orthographic_scale": 340,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        -17,
+        450,
+        2
+      ],
+      "orthographic_scale": 240,
+      "rotation": "looks at [-17.0, 1.5, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        450,
+        1.5,
+        2
+      ],
+      "orthographic_scale": 205,
+      "rotation": "looks at [-17.0, 1.5, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        290,
+        330,
+        220
+      ],
+      "orthographic_scale": 300,
+      "rotation": "looks at [-17.0, 1.5, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -450,
+        1.5,
+        2
+      ],
+      "orthographic_scale": 205,
+      "rotation": "looks at [-17.0, 1.5, 0.0]"
+    },
+    {
+      "name": "starboard-quarter",
+      "position": [
+        270,
+        -320,
+        210
+      ],
+      "orthographic_scale": 300,
+      "rotation": "looks at [-17.0, 1.5, 0.0]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9452,
+    "sprite_uncovered": 0.0244,
+    "model_outside_sprite": 0.0321,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 5.65 px per unit"
+  }
+}
