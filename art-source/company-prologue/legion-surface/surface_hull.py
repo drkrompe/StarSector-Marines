@@ -10,7 +10,7 @@ command dome; gunmetal machinery; near-black recesses and the dark flight
 decks. Damage-free patrol hull, service wear.
 """
 NAME = 'Legion'
-BLEND = 'build/geom/legion-geometry.blend'   # rebuild.sh step 1: ../legion-geometry/build_legion.py -- --out <this>/build/geom
+BLEND = 'build/geom/legion-surface.blend'    # make_groups.py: the geometry build (../legion-geometry/build_legion.py) cut along the tile lines
 GROUPS = ['top', 'side', 'belly']
 MATERIAL_CLASS = {
     'XIV grey hull plating': 'grey',
@@ -84,3 +84,4 @@ REVIEW_PAGES = [('views-whole', ['three-quarter', 'starboard-side', 'top', 'port
                 ('views-close', ['bow-detail', 'bridge-detail', 'turret-detail', 'flight-deck-detail']),
                 ('views-close-2', ['aft-deck-detail', 'flank-detail', 'engine-detail', 'stern-detail'])]
 CAPTION = 'Legion (XIV) battlecarrier surfacing, Hegemony XIV livery: graded Codex part skins + graded class swatches on every other base face.'
+FACE_FAMILY_MIN = 0.5                # a skinned face needs half its tile paint in its own family (apply_skin.py)
