@@ -1,0 +1,633 @@
+{
+  "status": "Passes 1-4: blockout, detail, scale.",
+  "passes": {
+    "1 blockout": "built; v1-blockout renders regenerate from commit 0af310a38",
+    "2 plausible detailing": "built: hull and cabin here, engines and weapons by one Opus agent each",
+    "4 real-world scale": "metres_per_unit 0.80 from ship_scale.py option C (solves 0.804, range 0.779-0.828)"
+  },
+  "hull": {
+    "hullId": "kite",
+    "skinHullId": "kite_pirates",
+    "hullName": "Kite (P)",
+    "hullSize": "FRIGATE",
+    "style": "MIDLINE",
+    "tech": "Pirate",
+    "designation": "Shuttle",
+    "builtInMods": [
+      "civgrade"
+    ],
+    "system": "maneuveringjets",
+    "crew": [
+      2,
+      30
+    ],
+    "cargo": 30,
+    "fuel": 15,
+    "variant": "kite_pirates_Raider (WS 001 hammer, WS 002 swarmer, WS 003 lightdualmg)",
+    "source": "starsector-core/data/hulls/kite.ship, skins/kite_pirates.skin, ship_data.csv",
+    "sprite": "starsector-core/graphics/ships/aeroshuttle/aeroshuttle_pirates.png (82x66, centre 41,28 from bottom-left)",
+    "lights": "none: the aeroshuttle sprites have no lights layer",
+    "cinematic_role": "Asharu battle: the two pirate boarding shuttles that carry the boarders to the Colossus (S4 distant, S7, S9 at 350-550 m)"
+  },
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "Vanilla hull units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.8,
+  "scale": {
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 25690,
+      "crew_max": 30,
+      "cargo": 30,
+      "fuel": 15,
+      "cls": "freighter",
+      "length_units": 64.6,
+      "sprite_px": 66,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.0,
+        "hangar_box_factor": 2.5,
+        "shares": {
+          "armour": 0.03,
+          "drive": 0.15,
+          "weapons": 0.02,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 9000,
+      "cargo": 60,
+      "fuel": 22,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 9082,
+    "machinery_share": 0.32,
+    "enclosed_m3": 13357,
+    "solved_metres_per_unit": 0.804,
+    "range": {
+      "habitable_273": 0.779,
+      "habitable_328": 0.828
+    },
+    "enclosed_m3_per_person_at_max_crew": 445,
+    "length_m": 51.9,
+    "fittings_m": {
+      "crew door w x h": [
+        2.57,
+        3.14
+      ],
+      "cabin window w x h": [
+        1.21,
+        0.8
+      ]
+    }
+  },
+  "person_1_8m_units": 2.25,
+  "enclosed_volume_units3": 26831,
+  "enclosed_volume_objects": [
+    "Hull fuselage",
+    "Hull wing body",
+    "Hull dorsal spine",
+    "Hull aft hump"
+  ],
+  "dimensions": {
+    "min": [
+      -27.2,
+      -40.62,
+      -7.16
+    ],
+    "max": [
+      38.1,
+      40.62,
+      12.3
+    ],
+    "size": [
+      65.3,
+      81.24,
+      19.46
+    ],
+    "size_metres": [
+      52.24,
+      64.99,
+      15.57
+    ],
+    "game_bounds_polygon": [
+      [
+        37,
+        0
+      ],
+      [
+        -12,
+        40
+      ],
+      [
+        -26,
+        0
+      ],
+      [
+        -11,
+        -39
+      ]
+    ],
+    "collisionRadius": 64
+  },
+  "decks": [
+    {
+      "x0": -22.5,
+      "x1": 3.0,
+      "z": 7.5
+    },
+    {
+      "x0": -25.0,
+      "x1": 37.6,
+      "z": 6.0
+    },
+    {
+      "x0": -2.0,
+      "x1": 32.0,
+      "z": 9.5
+    },
+    {
+      "x0": -22.0,
+      "x1": 16.0,
+      "z": 0.8
+    }
+  ],
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "location": [
+        6,
+        22
+      ],
+      "angle": 0,
+      "arc": 6,
+      "weapon": "hammer",
+      "muzzles": [
+        "Weapon WS 001 muzzle anchor 1",
+        "Weapon WS 001 muzzle anchor 2"
+      ]
+    },
+    {
+      "id": "WS 002",
+      "mount": "HARDPOINT",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "location": [
+        6,
+        -22
+      ],
+      "angle": 0,
+      "arc": 6,
+      "weapon": "swarmer",
+      "muzzles": [
+        "Weapon WS 002 muzzle anchor 1",
+        "Weapon WS 002 muzzle anchor 2",
+        "Weapon WS 002 muzzle anchor 3",
+        "Weapon WS 002 muzzle anchor 4"
+      ]
+    },
+    {
+      "id": "WS 003",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "location": [
+        -7,
+        0
+      ],
+      "angle": 0,
+      "arc": 200,
+      "weapon": "lightdualmg",
+      "muzzles": [
+        "Weapon WS 003 muzzle anchor 1",
+        "Weapon WS 003 muzzle anchor 2"
+      ],
+      "pivot": "Weapon WS 003 pivot",
+      "seat_z": 7.5
+    }
+  ],
+  "engines": [
+    {
+      "object_prefix": "Engine 1",
+      "location": [
+        -21,
+        28
+      ],
+      "z": -1.6,
+      "angle": 180,
+      "width": 8,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 3.6,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 1 exhaust anchor",
+      "role": "port wing nacelle"
+    },
+    {
+      "object_prefix": "Engine 2",
+      "location": [
+        -27,
+        13
+      ],
+      "z": -0.5,
+      "angle": 180,
+      "width": 10,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 4.5,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 2 exhaust anchor",
+      "role": "port main drive"
+    },
+    {
+      "object_prefix": "Engine 3",
+      "location": [
+        -27,
+        -13
+      ],
+      "z": -0.5,
+      "angle": 180,
+      "width": 10,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 4.5,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 3 exhaust anchor",
+      "role": "starboard main drive"
+    },
+    {
+      "object_prefix": "Engine 4",
+      "location": [
+        -21,
+        -28
+      ],
+      "z": -1.6,
+      "angle": 180,
+      "width": 8,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 3.6,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "anchor": "Engine 4 exhaust anchor",
+      "role": "starboard wing nacelle"
+    },
+    {
+      "object_prefix": "Engine 5",
+      "location": [
+        -16,
+        -36
+      ],
+      "z": -1.8,
+      "angle": 210,
+      "width": 6,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 2.7,
+      "exhaust_direction": [
+        -0.866,
+        -0.5,
+        0
+      ],
+      "anchor": "Engine 5 exhaust anchor",
+      "role": "starboard maneuvering jet"
+    },
+    {
+      "object_prefix": "Engine 6",
+      "location": [
+        -16,
+        36
+      ],
+      "z": -1.8,
+      "angle": 150,
+      "width": 6,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 2.7,
+      "exhaust_direction": [
+        -0.866,
+        0.5,
+        0
+      ],
+      "anchor": "Engine 6 exhaust anchor",
+      "role": "port maneuvering jet"
+    },
+    {
+      "object_prefix": "Engine 7",
+      "location": [
+        -22,
+        -20
+      ],
+      "z": -1.0,
+      "angle": 185,
+      "width": 6,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 2.7,
+      "exhaust_direction": [
+        -0.996,
+        -0.087,
+        0
+      ],
+      "anchor": "Engine 7 exhaust anchor",
+      "role": "starboard tail drive"
+    },
+    {
+      "object_prefix": "Engine 8",
+      "location": [
+        -22,
+        21
+      ],
+      "z": -1.0,
+      "angle": 175,
+      "width": 6,
+      "style": "MIDLINE",
+      "bell_mouth_radius": 2.7,
+      "exhaust_direction": [
+        -0.996,
+        0.087,
+        0
+      ],
+      "anchor": "Engine 8 exhaust anchor",
+      "role": "port tail drive"
+    }
+  ],
+  "condition_states": {
+    "built": [
+      "clean"
+    ],
+    "note": "no damage states needed (brief)"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        5,
+        0,
+        100
+      ],
+      "target": null,
+      "orthographic_scale": 160,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "port-side",
+      "position": [
+        5,
+        200,
+        0
+      ],
+      "target": [
+        5,
+        0,
+        0
+      ],
+      "orthographic_scale": 90,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "bow",
+      "position": [
+        200,
+        0,
+        0
+      ],
+      "target": [
+        5,
+        0,
+        0
+      ],
+      "orthographic_scale": 100,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern",
+      "position": [
+        -200,
+        0,
+        0
+      ],
+      "target": [
+        5,
+        0,
+        0
+      ],
+      "orthographic_scale": 100,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "port-quarter",
+      "position": [
+        120,
+        130,
+        85
+      ],
+      "target": [
+        4,
+        0,
+        -1
+      ],
+      "orthographic_scale": 125,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern-quarter",
+      "position": [
+        -120,
+        110,
+        75
+      ],
+      "target": [
+        -4,
+        0,
+        -1
+      ],
+      "orthographic_scale": 125,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "underside",
+      "position": [
+        50,
+        85,
+        -95
+      ],
+      "target": [
+        4,
+        0,
+        -3
+      ],
+      "orthographic_scale": 125,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "bow-detail",
+      "position": [
+        95,
+        55,
+        45
+      ],
+      "target": [
+        26,
+        0,
+        2
+      ],
+      "orthographic_scale": 42,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "cockpit-detail",
+      "position": [
+        75,
+        30,
+        55
+      ],
+      "target": [
+        24,
+        0,
+        6
+      ],
+      "orthographic_scale": 30,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "sponson-detail",
+      "position": [
+        55,
+        70,
+        45
+      ],
+      "target": [
+        8,
+        24,
+        1
+      ],
+      "orthographic_scale": 30,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "turret-detail",
+      "position": [
+        25,
+        55,
+        55
+      ],
+      "target": [
+        -7,
+        0,
+        8
+      ],
+      "orthographic_scale": 26,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern-detail",
+      "position": [
+        -100,
+        65,
+        35
+      ],
+      "target": [
+        -22,
+        0,
+        -1
+      ],
+      "orthographic_scale": 60,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "underside-detail",
+      "position": [
+        50,
+        65,
+        -60
+      ],
+      "target": [
+        0,
+        0,
+        -5
+      ],
+      "orthographic_scale": 60,
+      "resolution": [
+        1920,
+        1080
+      ]
+    }
+  ],
+  "top_view_mapping": {
+    "pixels_per_unit": 12.0,
+    "centre": [
+      5,
+      0
+    ],
+    "bow": "left",
+    "port": "down"
+  },
+  "mesh_authority": "All views render the same objects; later surface art is subordinate to this geometry.",
+  "silhouette": {
+    "iou": 0.9577,
+    "pixels_per_unit": 12,
+    "alpha_threshold": 128,
+    "model_only_area_units2": 111.1,
+    "sprite_only_area_units2": 19.5
+  }
+}

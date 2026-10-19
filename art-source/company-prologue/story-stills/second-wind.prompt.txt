@@ -1,3 +1,18 @@
-Generated with the built-in image_gen tool. Runtime packing: ./art-source/company-prologue/pack.ps1
+Generated with Codex image_gen through tools/codex_imagegen.py (one generation, 2026-10-19); provenance in second-wind.master.png.provenance.json.
+Geometry-first: guide guides/p1-bridge-from-hatch.png rendered by guides/prologue_guides.py from the real Second Wind (patched state, bridge interior), no figures; people painted from their portraits (art-source/portraits/).
+Runtime packing: art-source/company-prologue/pack.ps1
 
-Use case: illustration-story. Asset: cinematic campaign opening illustration for a dark science fiction strategy game, landscape 1536x1024. Interior of the Second Wind, a small battered civilian combat freighter patched back into flight by refugees from a closed independent mining colony. View from the rear of a cramped practical bridge toward thick small forward windows: distant green planet limb and tiny scattered civilian traffic lights in black space. Foreground worn captain's chair empty, exposed access panels and bundled cables, mismatched repairs, scuffed grey metal, amber emergency lamps, dim green instruments without legible text. Two exhausted civilian mechanics in worn work clothes: one asleep at an auxiliary console, one monitoring the drive. They are ordinary workers, no armored soldiers. Hand-painted mature science fiction game illustration, restrained brushwork, convincing industrial scale, muted charcoal and warm dirty amber, subdued hope and fatigue after escape, no glossy futuristic palace, no cartoon look. Do not depict Castle or a distinct captain; their portraits and dialogue are separate UI elements. No text, logos, watermark, UI, borders or title. Whole composition readable when downscaled.
+Use case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.
+
+Scene: the cramped bridge of the Second Wind, a battered civilian combat freighter just escaped from a closed mining colony. The crew are exhausted; the ship is holding.
+
+Reference 1 is a render of the real bridge and is the authority for the room: keep its camera, perspective, every console, the horseshoe of grey-green console banks with their glowing screens and lamp rows, the round plot table in the foreground with its rail, the raised helm dais ahead with its yellow-edged step, grab rail and the one flight seat, the ceiling pipes and caged strip lamps, the riveted orange patch plate on the right, and the row of narrow slit windows. Do not enlarge the windows or add a captain's chair. Paint it as the same worn grey-green room, scuffed and lived in, with screen glow on the metal.
+
+Through the slit windows: black space, a sliver of a distant green planet and a few faint traffic lights. Screens show abstract glowing navigation graphics only, nothing readable.
+
+People (paint them; they are not in the render):
+- Castle, the company's operations officer, exactly the woman in Reference 2 (her face, age, greying dark hair in a short practical bun, charcoal-olive high-collared duty jacket, small earpiece with boom mic). She stands at the comms bank on the LEFT side of the room, one hand on the console edge, half-turned and glancing up at the ceiling as if listening to the drive change pitch. Tired, alert. Seen at modest size, three-quarter view, face readable.
+- The pilot, an ordinary crewman in a faded patched olive flight coverall and battered over-ear headset, cropped hair, asleep slumped sideways in the flight seat on the dais, seen from behind and the side. Only his head, shoulder and arm show over the seat.
+- A folded paper shift roster wedged under the edge of the forward console.
+
+Nobody else. Fatigue and quiet relief, not drama.

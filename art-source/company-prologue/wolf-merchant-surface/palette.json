@@ -1,0 +1,154 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.978)",
+ "space": "CIELAB D65",
+ "classes": {
+  "armour": {
+   "pixels": 100935,
+   "mean": [
+    66.51,
+    -3.3,
+    -4.96
+   ],
+   "std": [
+    8.0,
+    1.2,
+    1.6
+   ],
+   "L_p10_p50_p90": [
+    50.63,
+    69.53,
+    78.28
+   ],
+   "mean_srgb": [
+    150.7,
+    163.9,
+    170.4
+   ],
+   "std_measured": [
+    11.47,
+    1.2,
+    1.93
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "grey": {
+   "pixels": 185152,
+   "mean": [
+    44.58,
+    1.44,
+    2.03
+   ],
+   "std": [
+    9.0,
+    0.8,
+    1.6
+   ],
+   "L_p10_p50_p90": [
+    22.33,
+    43.87,
+    68.02
+   ],
+   "mean_srgb": [
+    109.4,
+    104.5,
+    102.1
+   ],
+   "std_measured": [
+    16.64,
+    1.29,
+    2.26
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 1969,
+   "mean": [
+    16.0,
+    0.8,
+    1.6
+   ],
+   "std": [
+    6.5,
+    0.6,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    24.3,
+    41.98,
+    56.91
+   ],
+   "mean_srgb": [
+    101.8,
+    97.3,
+    95.3
+   ],
+   "std_measured": [
+    14.48,
+    0.84,
+    1.36
+   ],
+   "note": "mean owned: the reference recesses are too few pixels and edge-contaminated",
+   "mean_measured": [
+    41.61,
+    1.39,
+    1.76
+   ]
+  },
+  "glass": {
+   "derived": "owned: tinted armoured glazing, dark with a faint cool cast",
+   "mean": [
+    22.0,
+    -2.0,
+    -5.0
+   ],
+   "std": [
+    5.0,
+    0.8,
+    1.2
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65: what worn paint reveals and what a working escort collects.",
+  "primer": {
+   "lab": [
+    55.0,
+    -1.0,
+    3.0
+   ],
+   "what": "grey primer under the pale paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel at scuffed edges"
+  },
+  "dust": {
+   "lab": [
+    34.0,
+    2.0,
+    7.0
+   ],
+   "what": "grime in the seams"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    80.0,
+    -1.5,
+    0.0
+   ],
+   "what": "UV-faded pale blue-grey goes paler and greyer"
+  }
+ }
+}

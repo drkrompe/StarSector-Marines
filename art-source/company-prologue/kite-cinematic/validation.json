@@ -1,0 +1,76 @@
+{
+ "asset": "kite-p.blend",
+ "collection": "KITE (P)",
+ "root": "KITE (P) | root",
+ "objects": 406,
+ "meshes": 369,
+ "effects_objects": 104,
+ "images": 13,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "effects ride the ship": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    369,
+    369
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "eight drive anchors at their mouths, along the exhaust": {
+   "ok": true,
+   "detail": []
+  },
+  "RCS anchors": {
+   "ok": true
+  },
+  "muzzles fire ahead at rest": {
+   "ok": true,
+   "detail": []
+  },
+  "WS 003 trains its two muzzles; barbette fixed": {
+   "ok": true,
+   "detail": 2e-06
+  },
+  "launcher muzzles stay with the hull": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  }
+ }
+}

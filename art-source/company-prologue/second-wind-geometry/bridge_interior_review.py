@@ -2,6 +2,7 @@
 
     blender --background --factory-startup <model>.blend --python bridge_interior_review.py --
             --out DIR [--figures] [--views a,b] [--exterior-only] [--no-shadows] [--frame N]
+            [--frames A:B] [--res WxH] [--percent P] [--lens-scale K]
 
 Interior views stand where C2's bridge camera stands (forward and port stations), plus an
 overview of the room, a cutaway from above with the roof lifted off, a plan, and close-ups
@@ -11,6 +12,10 @@ two builds can be pixel-diffed to show the outside of the ship did not move.
 
 Glazing is hidden in the interior views: Workbench draws it opaque. --figures adds the 1.8 m
 mannequins (sw_bridge_interior.figures); they are never saved.
+
+--frames A:B (or a list A,B,C) renders every frame from A to B of each view as <view>_<frame>.png, for a clip of
+the figures' C2 animation (frame = C2 seconds x 24); --res, --percent and --lens-scale change
+the output size, the render percentage (half for a check pass on the shared GPU) and the lens.
 """
 import math
 import sys
@@ -24,7 +29,8 @@ sys.path.insert(0, str(HERE))
 import sw_bridge_interior as BI  # noqa: E402
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-opts = {'out': None, 'figures': False, 'views': None, 'exterior_only': False, 'no_shadows': False, 'frame': None}
+opts = {'out': None, 'figures': False, 'views': None, 'exterior_only': False, 'no_shadows': False, 'frame': None,
+        'frames': None, 'res': '1920x1080', 'percent': '100', 'lens_scale': '1'}
 i = 0
 while i < len(argv):
     k = argv[i].lstrip('-').replace('-', '_')
@@ -54,8 +60,8 @@ if opts['no_shadows']:      # for exterior diffs: Workbench stencil shadows reac
     sh.show_shadows = sh.show_cavity = False
 scene.display.light_direction = (-.4, .5, .75)
 sh.background_type, sh.background_color = 'VIEWPORT', (.03, .03, .035)
-scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
-scene.render.resolution_percentage = 100
+scene.render.resolution_x, scene.render.resolution_y = (int(v) for v in opts['res'].split('x'))
+scene.render.resolution_percentage = int(opts['percent'])
 scene.render.image_settings.file_format = 'PNG'
 scene.view_settings.view_transform = 'Standard'
 
@@ -77,7 +83,7 @@ def aim(pos, target=None, yaw=None, pitch=0.0, lens=22.0, ortho=None):
     cam.data.type = 'ORTHO' if ortho else 'PERSP'
     if ortho:
         cam.data.ortho_scale = ortho
-    cam.data.lens = lens
+    cam.data.lens = lens * float(opts['lens_scale'])
 
 
 def show(hide):
@@ -101,6 +107,7 @@ def above_room(o):
     return over and lo.z > BI.CEILING - .45
 
 
+CX = BI.CASTLE_AT[0]
 VIEWS = {
     # name: (hide rule, aim kwargs)
     '01-forward-station': (glazing, dict(pos=(16.75, 1.2, 19.2), yaw=0, pitch=-8)),
@@ -111,10 +118,10 @@ VIEWS = {
     '06-plan': (above_room, dict(pos=(13.45, 0, 40.0), target=(13.45, 0, 0), ortho=17.5)),
     '07-exterior-port-quarter': (lambda o: False, dict(pos=(100, 130, 100), target=(5, 0, 1), ortho=163)),
     '08-exterior-bridge': (lambda o: False, dict(pos=(60, 60, 50), target=(12, 0, 14), ortho=55)),
-    # Castle at the comms bank: from the port station turned aft onto her, and from across the
-    # plot table (the MakeHuman figure when castle-figure.blend is built; see figures()).
-    '09-castle-from-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), target=(10.9, 3.4, 18.85), lens=24)),
-    '10-castle-across-the-room': (glazing, dict(pos=(13.4, -1.4, 19.1), target=(10.9, 3.4, 18.0), lens=24)),
+    # Castle at the comms bank's forward panel (BI.CASTLE_AT): from the middle panel turned
+    # forward onto her, and from across the room (the MakeHuman figure when castle-figure.blend is built; see figures()).
+    '09-castle-from-port-station': (glazing, dict(pos=(CX - 2.1, 3.6, 19.2), target=(CX, 3.4, 18.85), lens=24)),
+    '10-castle-across-the-room': (glazing, dict(pos=(CX - 2.5, -1.4, 19.1), target=(CX, 3.4, 18.0), lens=24)),
     # Close-ups for the detail pass: Castle's comms bank face, the helm seat, the aft hatch and
     # the patched cable runs across the ceiling and down the port mullion.
     '11-console-face': (glazing, dict(pos=(11.75, 3.05, 19.05), target=(12.0, 4.25, 18.45), lens=30)),
@@ -139,6 +146,17 @@ for name in wanted:
         cam.data.type, cam.data.ortho_scale = 'ORTHO', kw['ortho']
     else:
         aim(**kw)
-    scene.render.filepath = str(out / (name + '.png'))
-    bpy.ops.render.render(write_still=True)
+    if opts['frames']:
+        if ':' in opts['frames']:
+            a, b = (int(v) for v in opts['frames'].split(':'))
+            frames = range(a, b + 1)
+        else:
+            frames = [int(v) for v in opts['frames'].split(',')]
+        for f in frames:
+            scene.frame_set(f)
+            scene.render.filepath = str(out / ('%s_%04d.png' % (name, f)))
+            bpy.ops.render.render(write_still=True)
+    else:
+        scene.render.filepath = str(out / (name + '.png'))
+        bpy.ops.render.render(write_still=True)
     print('REVIEW', name, flush=True)

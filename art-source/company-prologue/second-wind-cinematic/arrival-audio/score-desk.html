@@ -71,7 +71,7 @@ textarea { width: 100%; min-height: 90px; font: 12px var(--mono); background: va
 
   <div class="transport">
     <button id="play" class="primary" disabled>Loading…</button>
-    <span class="time" id="clock">0:00.0 / 2:10.6</span>
+    <span class="time" id="clock">0:00.0 / 2:17.1</span>
     <span class="where" id="where">C1 Corvus</span>
     <label class="check"><input type="checkbox" id="duck" checked> Duck music under voices</label>
     <span class="status" id="status">Fetching the sound…</span>
@@ -89,7 +89,7 @@ textarea { width: 100%; min-height: 90px; font: 12px var(--mono); background: va
     <button id="reset">Reset to the suggested layering</button>
   </div>
   <textarea id="settings" readonly aria-label="Current settings"></textarea>
-  <p class="note">The suggested start is strings from C1 to C4, the piano-and-pad take layered in for First open sky, and Ending A taking over at the yard: it builds to the title and fades to silence for the return to the game. Ending B is the strings-only alternative; switch A off and B on to compare. The piano-and-pad take goes silent from about 1:26. Pictures are the current 1 fps sketches at 960x540; this page is for judging music, not picture.</p>
+  <p class="note">The suggested start is strings from C1 to C4, the piano-and-pad take layered in for First open sky, and Ending A taking over at the yard: it builds to the title, carries the longer hold on it and goes to silence with the fade to black. The picture still ends on the 33.5 s C5 sketch, so it holds its last frame through the extra time until the 40 s picture is in. The piano-and-pad take goes silent from about 1:26. Pictures are the current 1 fps sketches at 960x540; this page is for judging music, not picture.</p>
 </div>
 
 <script>
@@ -100,20 +100,19 @@ const SECTIONS = [
   { id: "c3", name: "C3 Open sky", start: 59.7, length: 16.0 },
   { id: "c4", name: "C4 Port", start: 75.7, length: 21.4 },
   { id: "c5", name: "C5 Yard", start: 97.1, length: 20.0 },
-  { id: "title", name: "Rise + title", start: 117.1, length: 13.5 },
+  { id: "title", name: "Rise + title", start: 117.1, length: 20.0 },
 ];
 const TRACKS = [
   { id: "score_strings_t01", name: "Strings", note: "Score take 1, hushed low strings",
     on: [1, 1, 1, 1, 1, 0, 0], db: 6 },
   { id: "score_piano_pad_t01", name: "Piano + pad", note: "Score take 1, silent after 1:26",
     on: [0, 0, 0, 1, 0, 0, 0], db: -3 },
-  { id: "ending_strings_piano_t01", name: "Ending A", note: "Strings + piano: builds from the yard, peaks at the title, fades out",
+  { id: "ending_strings_piano_t02", name: "Ending A", note: "Strings + piano, 40 s: builds from the yard, swells at the title, carries the hold, out by the black",
     on: [0, 0, 0, 0, 0, 1, 1], db: 4 },
-  { id: "ending_strings_t01", name: "Ending B", note: "Strings only: the same build, fuller from the start",
-    on: [0, 0, 0, 0, 0, 0, 0], db: 4 },
 ];
 const BED = { id: "bed", name: "Effects + voices", note: "The current sound mix, no music", db: 0 };
 const FADE = 0.75;
+const SPAN = SECTIONS.reduce((a, s) => a + s.length, 0);
 const KEY = "arrival-score-desk-v1";
 
 let kit = null, ctx = null, buffers = {}, playing = false, startedAt = 0, offset = 0, live = [];
@@ -131,7 +130,7 @@ function defaults() {
   return { duck: true, bedDb: BED.db,
     tracks: Object.fromEntries(TRACKS.map(t => [t.id, { db: t.db, on: t.on.slice() }])) };
 }
-const total = () => kit ? kit.length : 130.6;
+const total = () => kit ? kit.length : SPAN;
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return m + ":" + (s - m * 60).toFixed(1).padStart(4, "0"); };
 const dbGain = db => Math.pow(10, db / 20);
 const $ = id => document.getElementById(id);
@@ -151,7 +150,7 @@ function laneCells(lane, render) {
   for (let i = 0; i < SECTIONS.length; i++) {
     const sec = SECTIONS[i];
     const el = render(sec, i);
-    el.style.width = "calc((100% - " + (SECTIONS.length - 1) * 2 + "px) * " + (sec.length / 130.6) + ")";
+    el.style.width = "calc((100% - " + (SECTIONS.length - 1) * 2 + "px) * " + (sec.length / SPAN) + ")";
     lane.appendChild(el);
   }
   const head = document.createElement("div"); head.className = "head"; lane.appendChild(head);

@@ -103,8 +103,11 @@ ENDING_SECTIONS = [
                           "tension resolving into hope, an emotional crescendo still held back"]),
     ("Title", 6000, ["the emotional peak: the full string section swells and lands on a warm open major chord",
                      "broad, heartfelt, not triumphant"]),
-    ("Back to the game", 7500, ["the chord thins out and decays slowly to silence",
-                                "a long gentle fade, ending in complete silence"]),
+    # C5 is 40 s (owner: linger on the title): the peak still lands on the title's arrival at
+    # 25-26 s, the music carries the hold, and resolves into the black at 38-39.5.
+    ("Hold", 11000, ["the warm major harmony is held and carried, gently moving, full but calm",
+                     "the piano melody returns softly over sustained strings, hopeful, unhurried"]),
+    ("Into the black", 3000, ["a final soft resolution that decays quickly to complete silence"]),
 ]
 ENDING_TAKES = {
     "strings": ["cinematic string ensemble score", "cellos, violas and violins in long bowed notes",
@@ -173,10 +176,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("stage", choices=("plan", "generate", "score", "ending"))
     parser.add_argument("--candidate", action="append", choices=list(CANDIDATES))
-    parser.add_argument("--take", action="append", choices=list(SCORE_TAKES))
+    parser.add_argument("--take", action="append", choices=sorted(set(SCORE_TAKES) | set(ENDING_TAKES)))
     args = parser.parse_args()
     if args.stage == "ending":
-        generate(list(ENDING_TAKES), score=True, plan=ending_plan, prefix="ending_")
+        generate(args.take or list(ENDING_TAKES), score=True, plan=ending_plan, prefix="ending_")
         return
     if args.stage == "score":
         generate(args.take or list(SCORE_TAKES), score=True)

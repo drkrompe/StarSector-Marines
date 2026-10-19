@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155b7-b600-7250-9113-bb7022eb3037",
+  "source": "/Users/dillon/.codex/generated_images/01a155b7-b600-7250-9113-bb7022eb3037/exec-6d80f488-8293-45ca-8eeb-a9e5135afdf1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/hound-surface-pirate/reference/finish-reference.png",
+    "sha256": "ff37479751e28640da49090c59d3dbfbc6f7217358bf66e787af54eaaef631db",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/hound-surface-pirate/prompts/finish-reference.prompt.txt",
+  "promptSha256": "112c3edf732334e5abb8bfc22d1a713950f375c1fea1e83e7add60366d480689",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the ship to repaint (geometry and layout authority)\nImage 2: INPUT 2: the game sprite in its pirate livery (paint colours only; not layout)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one small spacecraft, a Hound-class light freighter refitted by pirates, seen from above its port bow quarter on a plain light grey background. Its colours mark which material each surface is: the orange panels are its original armour, the brown panels are its structural plating (deckhouse walls, hatch panels, fork and pod side panels), the very dark brown slabs are crude armour plates the pirates welded on, mid-grey is gunmetal machinery and guns, near-black is recesses and seams, the off-white nose capsule and fittings are cream enamel, the small lit windows are windows; a few small black and bright marks are battle scars.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its pirate livery (the Hound (P)): use it ONLY for the paint scheme and colours. Never copy its view, composition, pixel style or its black slash markings.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that pirate livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, slab, ring, rail, gun and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Recolour by material, one-for-one: every orange armour panel becomes the pirates' crude crimson red repaint of INPUT 2 (a dull, slightly brownish blood red, unevenly brushed on over the old paint); every brown structural panel becomes a grimy dark brown-grey; the welded slabs become the same dark brown-grey, darker and duller, unpainted scrap steel; gunmetal stays dark grey steel; recesses stay near black; the nose capsule and cream fittings stay a dirty, yellowed off-white; windows stay windows. No orange may remain. Do not invent stripes, patches, slashes, skulls, markings or extra colours.\n- Finish: a hard-used pirate ship, poorly kept. Matte, uneven industrial paint with plate seams, fastener rows and access panels; brush-edged, slightly uneven red coats; a dull film of grime over everything, darker in seams; dulled, sun-faded paint. Keep the wear spread evenly across the whole ship: no single concentrated damage, no large rust patches, no holes, no repair plates of other colours, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/hound-surface-pirate/guide/reference-guide.png",
+      "sha256": "2fa419d0cd9f80da02bc2e235c8b82ca38e6f2174bd4f8a383d5c2778717e747",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the ship to repaint (geometry and layout authority)"
+    },
+    {
+      "path": "/Applications/Starsector.app/Contents/Resources/Java/graphics/ships/hound/hound_pirates.png",
+      "sha256": "339195d93400689b56ec2b1ee53275578c70e263fc0eeeba9f2d09ba2d9cf205",
+      "dimensions": [
+        62,
+        72
+      ],
+      "mode": "RGBA",
+      "role": "INPUT 2: the game sprite in its pirate livery (paint colours only; not layout)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to apply the pirate colours and wear while preserving the reference composition and geometry.\n"
+  ],
+  "usage": {
+    "input_tokens": 41098,
+    "cached_input_tokens": 32256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 645,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.6
+}

@@ -1,0 +1,42 @@
+{
+ "deckhouse-wall-port": {
+  "raw_iou": 0.9773,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9906,
+  "scale": [
+   1.00765,
+   1.01428
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "deckhouse-front": {
+  "raw_iou": 0.9723,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9794,
+  "scale": [
+   1.00333,
+   1.02387
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "deckhouse-roof": {
+  "raw_iou": 0.9858,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9988,
+  "scale": [
+   1.005,
+   1.00834
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "skid-side-port": {
+  "raw_iou": 0.9732,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9881,
+  "scale": [
+   1.0082,
+   1.01007
+  ],
+  "boundary_p95_px": 2.0
+ }
+}
