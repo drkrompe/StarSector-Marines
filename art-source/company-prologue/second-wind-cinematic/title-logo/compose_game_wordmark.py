@@ -16,14 +16,39 @@ MARINES is set in Windows' Bahnschrift, in two treatments:
 Writes NN-<layout>.png per layout and 00-all.png to --out. Renders are output: never committed.
 """
 import argparse
+import os
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = Path(__file__).resolve().parent
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector')
-WORDMARK = GAME / 'starsector-core' / 'graphics' / 'ui' / 'starsector_title_alpha.png'
-FONT = Path(r'C:\Windows\Fonts\bahnschrift.ttf')
+
+
+def game_core():
+    """The install's game-data folder: $STARSECTOR_DIR if set, else the platform's default install.
+    Windows keeps it in `starsector-core`, the macOS app bundle in `Contents/Resources/Java`."""
+    root = Path(os.environ.get('STARSECTOR_DIR') or (
+        '/Applications/Starsector.app' if sys.platform == 'darwin'
+        else r'C:\Program Files (x86)\Fractal Softworks\Starsector'))
+    mac = root / 'Contents' / 'Resources' / 'Java'
+    return mac if mac.is_dir() else root / 'starsector-core'
+
+
+def system_font(*names):
+    """The first of `names` found in $TITLE_FONT_DIR, the Windows fonts folder or the macOS ones.
+    Bahnschrift and Segoe UI ship with Windows only; on a Mac, install them (or point
+    $TITLE_FONT_DIR at a folder holding them) to render the title as it is on Windows."""
+    dirs = [os.environ.get('TITLE_FONT_DIR'), r'C:\Windows\Fonts', Path.home() / 'Library' / 'Fonts',
+            '/Library/Fonts', '/System/Library/Fonts/Supplemental']
+    for d in filter(None, dirs):
+        for n in names:
+            if (Path(d) / n).is_file():
+                return Path(d) / n
+    raise FileNotFoundError(f'none of {names} in {[str(d) for d in dirs if d]}')
+
+
+WORDMARK = game_core() / 'graphics' / 'ui' / 'starsector_title_alpha.png'
 W, H = 1920, 1080
 
 CORE, GLOW = (92, 255, 255), (0, 72, 255)       # the wordmark's own core and halo colours
@@ -64,7 +89,7 @@ def tracked(text, font, tracking):
 
 def marines(treatment, mark, text='MARINES', width=None):
     """The line under the wordmark. `width` is its share of the wordmark's width."""
-    font = ImageFont.truetype(str(FONT), 64)
+    font = ImageFont.truetype(str(system_font('bahnschrift.ttf')), 64)
     if treatment == 'match':
         font.set_variation_by_name('Light')
         cap = mark.height * 0.5
@@ -72,7 +97,7 @@ def marines(treatment, mark, text='MARINES', width=None):
         font.set_variation_by_name('Bold SemiCondensed')
         cap = mark.height * 0.62
     probe = tracked(text, font, 0)
-    font = ImageFont.truetype(str(FONT), round(64 * cap / probe.height))
+    font = ImageFont.truetype(str(system_font('bahnschrift.ttf')), round(64 * cap / probe.height))
     font.set_variation_by_name('Light' if treatment == 'match' else 'Bold SemiCondensed')
     base = tracked(text, font, 0)
     target = mark.width * (width or (0.7 if treatment == 'match' else 0.46))

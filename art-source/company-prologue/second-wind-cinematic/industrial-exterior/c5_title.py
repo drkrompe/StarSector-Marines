@@ -51,6 +51,8 @@ def main():
     frames = sorted((OUT / 'frames').glob('*.png'))
     for i, p in enumerate(frames):
         bg = Image.open(p).convert('RGB')
+        if bg.size != (1920, 1080):                   # a CINE_SCALE sketch: the title is laid out full size
+            bg = bg.resize((1920, 1080), Image.LANCZOS)
         titled(bg, parts, i * a.step / FPS).save(target / p.name)
     rate = a.fps or max(1, round(FPS / a.step))
     subprocess.check_call(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', str(rate), '-i',

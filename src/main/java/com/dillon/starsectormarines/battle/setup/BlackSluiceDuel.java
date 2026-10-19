@@ -48,7 +48,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
 
     private static final Logger LOG = Global.getLogger(BlackSluiceDuel.class);
 
-    /** The Venture and her fitting: guns only, no wing. */
+    /** The Venture and her fitting: her guns, a Harpoon and a Sabot rack in her two small hardpoints, no wing. */
     static final String GREYHOOK_HULL = "venture", GREYHOOK_VARIANT = "venture_Greyhook";
     /**
      * Rusk's refit: capacity and dissipation raised together (the guns and the shield draw on the one pool) by a
@@ -352,6 +352,12 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         if (!fired) {
             for (Warship hull : hulls()) {
                 for (Warship.Mount m : hull.mounts()) fired |= !m.pointDefence() && m.shotsFired > 0;
+            }
+            if (fired && !closing) {
+                // A rack outreaching the guns (the Greyhook's Sabots) can open the fight before either side's guns
+                // bear; a hull under fire is being closed on, so the radio hears that first.
+                closing = true;
+                sim.emitStoryBeat(RUSK_CLOSING_BEAT);
             }
             if (fired) sim.emitStoryBeat(FIRST_HULL_FIRE_BEAT);
         }

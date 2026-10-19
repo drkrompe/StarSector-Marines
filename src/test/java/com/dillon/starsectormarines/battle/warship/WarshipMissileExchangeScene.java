@@ -204,6 +204,7 @@ public final class WarshipMissileExchangeScene implements BehaviorScene {
                                         + "opening against the control's %.0f%% of %d (control by window %s)",
                                 100f * openingShare, openers, 100f * controlShare, cg, cf.launchesByWindow())));
             }
+            if (fire.missileRestraint()) verdicts.add(MissileOpeningReadings.verdict(fire, t::name));
             if (loop.id().startsWith("pack")) {
                 int joined = fire.coordinatedLaunches();
                 verdicts.add(Verdict.of("the-pack-launches-together", joined > 0,
@@ -234,6 +235,7 @@ public final class WarshipMissileExchangeScene implements BehaviorScene {
         metrics.put("openerIntoOpeningPercent", Math.round(100f * openingShare));
         metrics.put("coordinatedLaunches", fire.coordinatedLaunches());
         metrics.put("salvosOpened", fire.salvosOpened());
+        MissileOpeningReadings.metrics(fire, t::name, metrics);
         metrics.put("missilesFired", fire.missilesFired());
         metrics.put("missilesShotDown", fire.missilesShotDown());
         metrics.put("missilesOnHull", fire.missilesOnHull());
@@ -314,6 +316,12 @@ public final class WarshipMissileExchangeScene implements BehaviorScene {
                 }
             }
             if (decidedTick < 0 && (lost(west) == west.size() || lost(east) == east.size())) decidedTick = tick;
+        }
+
+        /** {@code west0enforcer}: the side, the place in its line and the hull. */
+        String name(Warship s) {
+            int i = west.indexOf(s);
+            return i >= 0 ? "west" + i + s.hullId : "east" + east.indexOf(s) + s.hullId;
         }
 
         int reloaded() {

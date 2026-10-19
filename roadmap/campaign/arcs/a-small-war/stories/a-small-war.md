@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-19 — the duel ends in the Greyhook's run for the south edge (escape or crash, mixed across seeds) and the battle waits for it; new draft radio lines `small_war.greyhook_breaks` and `small_war.greyhook_escaped`.
+Updated: 2026-10-19 — the Greyhook refitted with a Harpoon and a Sabot rack in place of her fixed PD lasers; the duel ends in her run for the south edge (escape or crash) and the battle waits for it.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -433,7 +433,9 @@ fitted, and since the escape so does she): pools and shields, never guns or plat
 escorts on 2026-10-18 ("we plainly have a bad matchup"), replaced the Wolfs with two
 Enforcers the same day, and made the pair an Enforcer and a Wolf the next; the frigate
 pads either side of her cradle stand empty. Her fitting carries no wing and a warship over a ground
-battle never launches one, so the fight stays gun against gun.
+battle never launches one, so the fight stays hull against hull. She carries no point defence: her two
+small hardpoints, fixed forward, hold a Harpoon and a Sabot rack (owner, 2026-10-19, "refit her with
+vanilla missile pods in WS 004/007 and drop the PD claim"), so the Wolf's lasers have missiles to shoot.
 
 - The player's fleet stays out of the sky. The company has no air role in the
   duel and cannot order Rusk's ships; they are the family's, not a support power.
