@@ -72,7 +72,7 @@ Engines, HIGH_TECH, angle 180, width 16, Z 0: Engine 1 (-36, 12), Engine 2
 (-40, 0), Engine 3 (-36, -11). Turrets rest at their slot angles; the build
 fails if a rested barrel overlaps the hull (BVH).
 
-Scale (pass 4): 0.76 m per unit
+Scale (pass 4): 0.75 m per unit
 From the shared sizing basis, ../ship_scale.py (option C), never set here:
 METRES_PER_UNIT reads ship_scale.PUBLISHED and geometry.json's 'scale' is
 ship_scale.record('Wolf (P)'). Inputs: 30 crew, 50 cargo, 20 fuel, frigate
@@ -82,11 +82,13 @@ spine and ventral keel; never the bow fork, outriggers, missile pods, armour
 domes or engine block (the drive section). After the owner's review ("don't
 create a flying wing"; turrets need a hull thick enough to carry them) every
 section was deepened twice (round 2: "too thin of a ship": decks raised,
-keels lowered, chamfers scaled with the depth, about 26 units keel to spine):
-measured 38,632 units3, which solves 0.759 (range 0.736-0.782): 71 m long
-(74 m over the mining blaster), 38 m across the pods, 21 m deep. The roster's
+keels lowered, chamfers scaled with the depth, about 26 units keel to spine;
+round 3, "too flat on the top": the bow lowered onto the hull's centre line
+and the top crowned over the spine, highest at the turret, falling fore and
+aft): measured 40,602 units3, which solves 0.747 (range 0.724-0.769): 70 m
+long, 37 m across the pods, about 21 m deep. The roster's
 sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
-ship, so this is 17% under the estimate, outside its +-8%. The owner decides
+ship, so this is 18% under the estimate, outside its +-8%. The owner decides
 between this and an override (as the Colossus has). The driver re-measures on every build and
 fails if the union drifts more than 2% from ship_scale.HULLS.
 

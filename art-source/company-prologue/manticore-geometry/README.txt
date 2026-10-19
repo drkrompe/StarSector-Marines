@@ -31,15 +31,31 @@ never set here: METRES_PER_UNIT in build_manticore.py reads
 ship_scale.PUBLISHED and geometry.json's 'scale' is ship_scale.record('Manticore (P)').
 Inputs: 80 crew, 80 cargo, 50 fuel, destroyer class. Enclosed volume is the
 union of ship_scale.SOLIDS['manticore']: bow head, neck, core, wing body, aft
-body, ventral keel, command tier and dome (drive cans, gun pods, launcher
+body, ventral keel, bridge plinth and dome (drive cans, gun pods, launcher
 housings, armour plates and horns, and weapons excluded): 310,119 units3 after
-review round 2 deepened the hull (158,541 at round 1, published 0.67). That
-solves to 0.537, published as 0.54: 83 m long, 87 m across the gun pods, 36 m
+review round 3 (310,119 at round 2, 158,541 at round 1, published 0.67). That
+solves to 0.546, published as 0.54: 83 m long, 87 m across the gun pods, 36 m
 keel to mast. Against known ships: 1.4 Hounds (61 m) long, 0.77 of a Colossus
 (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m person is
 3.3 units. The driver re-measures the union on every build and fails if it
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
+
+Owner review round 3 (2026-10-19)
+"Lower the nose ... the wings tapering downward ... a bird of prey", and
+"you raised the bridge higher" (round 2's command tier was a taller bridge,
+the one answer the owner had ruled out). The head, horns, prow, crossbar,
+neck and rails bend down 0.30 per unit forward of X 62 (mt_hull.droop; the
+bow ring stands level on it); the wing deck falls 0.16 per unit outboard of
+|Y| 24 and 0.42 outboard of |Y| 46, so the arms bend down to low gun pods.
+The bridge is back on a low raked plinth at the core deck (eye Z 19.9, its
+round-1 height); instead the Hellbore sits 7.4 units down a 17.5-radius pit
+with the deck ahead of it falling to 9.5, so its roof (17.8) is under the
+eye. Measured (geometry.json 'forward'): dead ahead clear to 3 deg down,
+6-11 deg down on every other bearing to 90 deg either side; the bow gun is
+behind the Hellbore's barrel; all six mounts still bear dead ahead.
+Enclosed volume 294,878 units3 solves 0.546, published 0.54 unchanged.
+Round 2 below is kept for its lofted sections; its command tier is gone.
 
 Owner review round 2 (2026-10-19)
 "Comically big central turret", "a thin ship ... flying wings", "what does

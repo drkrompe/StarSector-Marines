@@ -1,6 +1,6 @@
 # Colossus Mk.III: surfacing
 
-Status: ACTIVE. Pirate refit livery with battle wear on the clean build; source art only, nothing here ships.
+Status: SHIPPED (owner accepted 2026-10-19). Pirate refit livery with battle wear on the clean build; source art only, nothing here ships.
 Written: 2026-10-19
 
 The Colossus Mk.III's inputs to the shared harness in `../second-wind-surface/` (see its README):

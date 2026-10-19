@@ -70,9 +70,10 @@ NAME = 'Manticore (P)'
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
 # pods, launcher housings or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = ('Review round 2: deep faceted lofted hull, glacis neck, main gun sunk in a well, raised command tier, '
-          'drooping arms; pass 6 light pirate livery + pass 4 scale (0.54 m/u, ship_scale.py option C) + pass 2 '
-          'detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.')
+STATUS = ('Review round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
+          'low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 '
+          'deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.54 m/u, ship_scale.py option C) + '
+          'pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.')
 SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft body', 'Hull ventral keel',
           'Bridge command tier', 'Bridge command dome']
 if NAME in ship_scale.HULLS:
@@ -359,14 +360,33 @@ def forward_checks():
     d = (aim-eye).normalized()
     ob, q = _cast(eye, d)
     bow_gun_seen = ob is not None and ob.startswith('Weapon WS 002')
-    bow = Vector((86.5, 0, mt_hull.HEAD_STATIONS[0][2]))
+    # Every bearing from 90 deg port to 90 deg starboard: the steepest look down
+    # that still clears the ship, or, where the ship stands above the eye, how
+    # far up it reaches.
+    sweep = []
+    for az in range(-90, 91, 10):
+        b = math.radians(az)
+        def ray(el):
+            e = math.radians(el)
+            return _cast(eye, Vector((math.cos(e)*math.cos(b), math.cos(e)*math.sin(b), math.sin(e))))[0]
+        if ray(0) is None:
+            el = 0.0
+            while el > -60 and ray(el-.5) is None:
+                el -= .5
+            sweep.append({'bearing_deg': az, 'clear_down_to_deg': el})
+        else:
+            el = 0.0
+            while el < 30 and ray(el) is not None:
+                el += .5
+            sweep.append({'bearing_deg': az, 'blocked_up_to_deg': el, 'by': ray(0)})
+    bow = Vector((86.5, 0, mt_hull.HEAD_STATIONS[0][2]-mt_hull.nose_drop(86.5)))
     to_bow = (bow-eye).normalized()
     ob2, q = _cast(eye, to_bow)
     bow_seen = ob2 is None or (q-bow).length < 1.5
     sight = {'eye': [round(v, 2) for v in eye], 'eye_height_above_core_deck_m': round((eye.z-mt_hull.CORE_DECK)*METRES_PER_UNIT, 1),
              'depression_runs': runs, 'prow_visible': bow_seen,
              'prow_depression_deg': round(math.degrees(math.asin(-to_bow.z)), 1),
-             'prow_ray_meets': ob2, 'bow_gun_visible': bow_gun_seen,
+             'prow_ray_meets': ob2, 'bearing_sweep': sweep, 'bow_gun_visible': bow_gun_seen,
              'bow_gun_depression_deg': round(math.degrees(math.asin(-d.z)), 1)}
     # Every mount trained dead ahead (bearing 0): a horizontal ray from each
     # muzzle along +X must leave the ship without meeting any other part.
@@ -393,6 +413,7 @@ def forward_checks():
     n = sum(b['bears_dead_ahead'] for b in bearing)
     print(f'bridge eye {sight["eye"]}: bow gun visible {bow_gun_seen} at {sight["bow_gun_depression_deg"]} deg; prow visible {bow_seen} at {sight["prow_depression_deg"]} deg down; '
           f'runs {[(r["from_deg"], r["meets"]) for r in runs]}')
+    print('sweep', [(w['bearing_deg'], w.get('clear_down_to_deg', ('up', w.get('blocked_up_to_deg'), w.get('by')))) for w in sweep])
     print(f'bearing dead ahead: {n} of {len(bearing)}: {[(b["slot"], b["blocked_by"]) for b in bearing]}')
     return {'bridge_sightline': sight, 'bearing_dead_ahead': {'count': n, 'of': len(bearing), 'mounts': bearing}}
 

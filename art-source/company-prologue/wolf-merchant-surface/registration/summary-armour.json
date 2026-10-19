@@ -1,68 +1,68 @@
 {
  "neck-top-port": {
-  "raw_iou": 0.9939,
+  "raw_iou": 0.9911,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9939,
+  "fitted_iou": 0.9956,
   "scale": [
-   0.99961,
-   0.99942
+   0.99805,
+   0.99683
   ],
-  "boundary_p95_px": 2.0
+  "boundary_p95_px": 1.0
  },
  "main-top-port": {
-  "raw_iou": 0.9969,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9987,
-  "scale": [
-   0.9995,
-   1.00327
-  ],
-  "boundary_p95_px": 1.0
- },
- "centre-hump": {
-  "raw_iou": 0.9945,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9985,
-  "scale": [
-   1.00215,
-   1.00327
-  ],
-  "boundary_p95_px": 1.0
- },
- "aft-top-port": {
-  "raw_iou": 0.994,
+  "raw_iou": 0.9927,
   "best_fit": "iou_refined_affine",
   "fitted_iou": 0.9979,
   "scale": [
-   0.99835,
-   1.00499
-  ],
-  "boundary_p95_px": 1.0
- },
- "main-side-port": {
-  "raw_iou": 0.9937,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9983,
-  "scale": [
-   1.00455,
-   1.00154
-  ],
-  "boundary_p95_px": 1.0
- },
- "neck-side-port": {
-  "raw_iou": 0.9937,
-  "best_fit": "identity",
-  "fitted_iou": 0.9937,
-  "scale": [
-   1.0,
+   0.99627,
    1.0
   ],
   "boundary_p95_px": 1.0
  },
- "aft-side-port": {
-  "raw_iou": 0.9957,
+ "centre-hump": {
+  "raw_iou": 0.9952,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9981,
+  "fitted_iou": 0.9972,
+  "scale": [
+   0.99671,
+   1.00027
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "aft-top-port": {
+  "raw_iou": 0.9971,
+  "best_fit": "identity",
+  "fitted_iou": 0.9971,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "main-side-port": {
+  "raw_iou": 0.9954,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.998,
+  "scale": [
+   1.0,
+   1.002
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "neck-side-port": {
+  "raw_iou": 0.9885,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9948,
+  "scale": [
+   0.99555,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "aft-side-port": {
+  "raw_iou": 0.9954,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9973,
   "scale": [
    1.0,
    1.00227
@@ -70,11 +70,11 @@
   "boundary_p95_px": 1.0
  },
  "main-under": {
-  "raw_iou": 0.9921,
+  "raw_iou": 0.9948,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9962,
+  "fitted_iou": 0.9979,
   "scale": [
-   1.0008,
+   1.0013,
    1.00327
   ],
   "boundary_p95_px": 1.0
