@@ -337,7 +337,11 @@ tries its mounts in order of armor efficiency against the target it is shooting,
 when that target is a mech or a vehicle, and in slot order otherwise
 (`mechs-nouns.md`, Thermal reservoir). Against infantry nothing changes. A
 chaingun, pulse laser or linear cannon now yields the reservoir to the SRM-15s;
-a heavy cannon fires before them and a bastion ties them. Readings, against
+a heavy cannon fires before them. With the anti-armor warheads (penetration 30,
+Missile warheads below) a bastion now yields to them too, and a fragmentation
+rack fires after every arm gun. The table was read on the single-warhead SRM
+(penetration 14), when the bastion tied the racks; the Missile warheads readings
+are taken with this rule on. Readings, against
 `-Dbattle.mech.armorFireOrder=false` (the control reproduces the matrix below
 fight for fight):
 
