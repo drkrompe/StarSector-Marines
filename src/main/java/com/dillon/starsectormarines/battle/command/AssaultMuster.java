@@ -249,12 +249,21 @@ final class AssaultMuster {
         smoke = List.copyOf(clouds);
     }
     private final List<StrikeRequest> strikeRequests = new ArrayList<>();
-    /** What each fort's company did with its held close breachers, kept past the company for evidence. */
+    /**
+     * What each fort's company did with its held close breachers, kept past the company for evidence. The first company
+     * to hold or let go sappers keeps the entry: a later company formed on the same fort does not overwrite the record
+     * of the breach that was actually made.
+     */
     private final Map<Integer, FortAssault.SatchelRecord> satchelRecords = new TreeMap<>();
 
     /** The satchel records by fort, for evidence; the plan never reads them. */
     Map<Integer, FortAssault.SatchelRecord> satchelRecords() {
         return satchelRecords;
+    }
+
+    /** What the plan believes of a fort's nests, for evidence; null before the fort is disclosed. */
+    FortAssault.NestBelief nestBelief(int fortId) {
+        return beliefs.get(fortId);
     }
 
     /** The commander's report of what the air said to a strike the plan asked for. */
@@ -846,7 +855,10 @@ final class AssaultMuster {
                         : defenceOf(objective, company.members, byId, new int[] {lead.anchorX(), lead.anchorY()});
                 if (defence != null) {
                     company.execution = new FortAssault.Execution(works, belief, defence, tick);
-                    satchelRecords.put(company.fortId, company.execution.satchelRecord());
+                    FortAssault.SatchelRecord kept = satchelRecords.get(company.fortId);
+                    if (kept == null || (kept.heldSinceTick < 0 && kept.releasedTick < 0)) {
+                        satchelRecords.put(company.fortId, company.execution.satchelRecord());
+                    }
                     notes.add("company for fort " + company.fortId + " takes the " + defence.variant() + ": "
                             + defence.liveCovering() + " nests believed to cover it"
                             + (defence.staffed() ? "" : "; it cannot staff it (" + String.join("; ", defence.staffing().describeGaps()) + ")"));

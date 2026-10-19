@@ -1,4 +1,4 @@
-COLOSSUS (HEAVY FREIGHTER) - CINEMATIC GEOMETRY (PASS 1 BLOCKOUT)
+COLOSSUS (HEAVY FREIGHTER) - CINEMATIC GEOMETRY (PASSES 1, 2 AND 4; PASS 3 OWNER REVIEW NEXT)
 
 Purpose
 An editable Blender model of the vanilla Colossus (hullId colossus; not the
@@ -40,6 +40,40 @@ Modules, named so the crashed state can tear the hull apart along them:
   Drive pod port|starboard casing, Engine <i> ..., Turret <i> ..., Launcher <i> ...
 Heights are proposed art: hold keel -22 to deck 18, side modules -17..14, aft
 body -16..13, deckhouse roof 24, pods +-16.
+
+Pass 2 (plausible detail, IoU 0.967): four module agents, one per file.
+  cl_hull: hatch cover as a crane platform plus two hinged leaves with seams and
+  dogs; two deck cranes at the sprite's L-shaped marks; hatch-edge lamp rows;
+  forward coaming vents; longerons as box girders with lightening holes; side
+  modules with the sprite's blue and orange bands, seams, service covers, side
+  cargo doors and personnel hatches; a two-leaf bow cargo door.
+  cl_aft: ladder keel spine through the waist; open space-frame trusses with
+  walkway gratings and pipe runs; segmented aft body with hatches, vents,
+  striped band ribs; stern radiator grilles, housings and tail block.
+  cl_bridge: deckhouse stepped to a forward annex and a cab with a raked,
+  framed windscreen, wing and aft ports, roof ring and dish, mast with lamps,
+  aft personnel door with landing, step and rails.
+  cl_engines: segmented pods with seam rings, shoulder band, inspection ring and
+  port, fins, covers, thrust frame; three gimballed bells per pod at the slots.
+  cl_mounts: twin light autocannon turrets (barbette, race, faceted house,
+  mantlet, braked barrels, feed trunk); six-tube flare launchers seated and
+  tilted to the surface. check_clashes.py is the cross-module overlap sweep.
+Pass 4 (scale): 0.50 m per unit from ship_scale.py option C (solves 0.502,
+  range 0.487-0.517): 108 x 88 x 28.5 m. Crew room sizes it (200 x 300 m3);
+  900 cargo is 1,800 m3 of 61,980. Fittings check: personnel hatch 1.1 x 2.4 m,
+  bridge door 1.1 x 2.3 m, side cargo doors 7.5 x 7.0 m, bow door 20.6 x 11.6 m.
+  --figure stands a 1.8 m mannequin on the bridge's aft door landing.
+
+Pass 3 round 1 (owner: "a thick cargo front with those engines almost like tug
+  boats to move the massive hulk"): the cargo block is deepened below the pass-2
+  deck (hold keel -22 -> -50, side modules -17 -> -46), so deck fittings keep
+  their seats; full-height bow cargo door, a lower row of side cargo doors, more
+  wall strata, deeper bow armour and aft end caps, keel seams and armour strakes.
+  The drive pods stay as built and read as tugs: steel thrust yokes (cl_aft,
+  'Frame <side> thrust yoke / pad') run from each pod's nose and keel into a
+  bolted thrust pad low on the side module's aft face. IoU 0.967.
+  Scale: the measured volume rose to 1.18 M units3, so option C now solves 0.426
+  (92 m); the owner kept 0.50 (108 m) by override (2026-10-18).
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]

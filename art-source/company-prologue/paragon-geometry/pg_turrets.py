@@ -9,8 +9,8 @@ and a `Weapon <slot> muzzle` empty per barrel. Rotate the pivot about its
 local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint` (anchor),
 housing, emitter and muzzle.
 
-The turrets are placeholders (owner, pass 1): a dark well-sized barbette and a
-puck with a stub showing the resting direction, until real mounts are designed.
+Each turret carries its gun, read off the game's weapon sprite (pg_weapons:
+tachyon lance, graviton beam, tactical laser, reaper), sitting low in its well.
 The two capital mounts in the prow bays keep their housing and emitter. Barbette radii are read off the sprite's turret
 wells (large 14, medium 10.5, small 6.5 units).
 """
@@ -20,6 +20,7 @@ from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 import pg_kit as K
 import pg_hull
+import pg_weapons
 
 SLOTS = [  # id, location, angle, arc, size, type, mount
     ('WS 001', (163, 16), 0, 5, 'LARGE', 'ENERGY', 'HARDPOINT'),
@@ -197,15 +198,9 @@ def turret(kit, sid, loc, angle, arc, size, typ):
     pivot['arc_deg'] = arc
     pivot['size'] = size
     pivot['type'] = typ
-    # Placeholder (owner, pass 1: the turrets are scrap): a dark puck showing the
-    # pivot, size and resting direction, sitting in its well. Real mounts replace
-    # these parts; the pivot, muzzle anchors and their names stay.
-    hr = spec['hr']
-    house = K.revolve(kit, f'Weapon {sid} placeholder', [(0, 0), (hr, 0), (hr*.8, 2.0), (0, 2.0)], kit.slate,
-                      segments=24, smooth=False)
-    stub = kit.box(f'Weapon {sid} placeholder stub', (hr*.9, 0, 1.0), (hr*.9, hr*.22, 1.2), kit.slate, 0)
-    parts = [house, stub]
-    muzzles = [(hr*1.35, 0, 1.0)] if typ != 'MISSILE' else [(hr*.5, j*hr*.3, 2.0) for j in (-1, 1)]
+    # The gun, read off its weapon sprite (pg_weapons), sitting low in the well.
+    weapon = pg_weapons.weapon_for(size, typ, ELITE.get(sid))
+    parts, muzzles = pg_weapons.BUILDERS[weapon](kit, f'Weapon {sid}', spec)
     mz = [kit.empty(f'Weapon {sid} muzzle {j+1}' if len(muzzles) > 1 else f'Weapon {sid} muzzle', p, 0,
                     'SINGLE_ARROW', 3) for j, p in enumerate(muzzles)]
     bpy.context.view_layer.update()
@@ -217,7 +212,7 @@ def turret(kit, sid, loc, angle, arc, size, typ):
                     'angle_deg': angle, 'arc_deg': arc, 'pivot': pivot.name,
                     'pivot_location': [round(v, 2) for v in p], 'train_axis': [round(v, 4) for v in normal],
                     'well_depth': round(D, 2), 'barbette': base_name(sid), 'muzzles': [e.name for e in mz],
-                    'placeholder': True, 'elite_variant': ELITE.get(sid)})
+                    'weapon': weapon, 'elite_variant': ELITE.get(sid)})
     return pivot
 
 

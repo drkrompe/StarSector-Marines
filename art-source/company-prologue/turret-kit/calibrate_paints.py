@@ -51,7 +51,8 @@ for w, spec in tk.WEAPONS.items():
     for key, rgb in tk.paint_targets(s).items():
         targets[(tk.FINISH[key], tk._key(rgb))] = rgb
     if 'mcol' in s:
-        targets[('paint', tk._key(s['mcol']))] = tuple(s['mcol'])
+        m = tk.livery(s['mcol'], 'missile')
+        targets[('paint', tk._key(m))] = m
 items = sorted(targets.items())
 print(f'{len(items)} paints to calibrate')
 

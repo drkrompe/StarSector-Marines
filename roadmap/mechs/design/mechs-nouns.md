@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — duel range against armor (stand off, close, or duel from the outer band; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-18 — against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -198,8 +198,9 @@ increasing an encounter's total armored threat.
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
   its access tier, plus a build weight for a weapon whose carriage is the cost
-  (the heavy cannon's breech and recoil mounting, so a Bulwark carrying it gives
-  up a frame part; `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
+  (the heavy cannon's breech and recoil mounting and the bastion autocannons'
+  feed, so a Bulwark carrying either gives up a frame part;
+  `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
   engine carries its own, since every CORE socket already takes the largest
   engine and its footprint costs nothing. A refit is refused
   when the result is over budget, unless it is no further over than the current
@@ -1059,6 +1060,19 @@ to complete even if the chassis becomes hot. Blocked/unaimed first rounds spend
 nothing; cancelled packets retain spent heat and ammo. Cooling runs once in the
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
+
+**Against a machine, the mount that best defeats its armor fires first.** The
+reservoir admits one packet at a time, so whichever mount an autonomous mech tries
+first after a release takes the heat. Against a mech or a ground vehicle, mounts
+are tried in order of armor efficiency against that target's rating
+(`clamp(penetration / rating, 0, 1)`, the better of a weapon's payloads), with
+slot order kept on ties (`MechFireOrder`). Against anything else the slot order
+stands: arms, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
+anti-armor weapons, are no longer starved by the chaingun against a machine,
+while its fire at infantry is exactly what it was. A heavy cannon still fires
+before the launchers it out-penetrates, and a bastion, which ties them, keeps
+its slot. Manual fire follows the player's groups, not this order.
+`-Dbattle.mech.armorFireOrder=false` is the control.
 
 Thresholds are fractions of capacity, quoted here at the stock 100. AI refuses a
 trigger that would exceed 90 heat. At 75 it holds further triggers until 40,
