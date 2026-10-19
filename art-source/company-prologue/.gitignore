@@ -148,3 +148,6 @@ colossus-surface/guide/*
 colossus-cinematic/*.blend
 colossus-cinematic/*.blend1
 colossus-cinematic/review/
+# Nessa figure: build output of build_nessa.py (needs MPFB)
+nessa-figure/*.blend
+nessa-figure/*.blend1
