@@ -1,6 +1,6 @@
 # Onslaught (XIV): surfacing
 
-Status: REVIEW. Base skin on every face, service wear; pass 6 round 1 awaiting the owner.
+Status: DONE (pass 6 round 1 accepted by the owner 2026-10-19). Base skin on every face, service wear.
 Written: 2026-10-19
 
 The Onslaught (XIV)'s folder for the shared surfacing harness
