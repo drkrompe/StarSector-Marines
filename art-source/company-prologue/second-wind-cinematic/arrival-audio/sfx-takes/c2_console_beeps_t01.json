@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "60",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Sparse soft spaceship console beeps and short chirps, a proximity tone, quiet sci-fi cockpit instrument sounds with gaps between",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "bbca942fd11bdcc17f95cace1632539ff1dd3e7375f030632312b4a0813e6dad",
+  "durationSeconds": 6.0,
+  "peakDb": -5.0,
+  "integratedLufs": -12.7
+}

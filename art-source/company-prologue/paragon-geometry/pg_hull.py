@@ -157,7 +157,7 @@ def build(kit):
     # Prow.
     parts['prow'] = K.profile_mass(kit, 'Hull prow', symmetric(GRILLE), [(0, 8), (3, 20), (10, 23)],
                                    [(0, -5), (3, -12), (10, -14)], mat=kit.pale, step=2.0)
-    hardpoint_bays(kit, parts['prow'])
+    hardpoint_bays(kit, (parts['belt'], parts['prow']))
     parts['bow module'] = K.profile_mass(kit, 'Hull bow module', symmetric(BOW_MODULE), [(0, 14), (3, 21), (8, 24)],
                                          [(0, -6), (8, -10)], mat=kit.white, step=2.0)
     for side, label in ((1, 'port'), (-1, 'starboard')):
@@ -210,7 +210,9 @@ def build(kit):
     return parts
 
 
-def hardpoint_bays(kit, prow):
+def hardpoint_bays(kit, masses):
+    """The two bow hardpoint bays, cut through every mass they pass through (the belt runs
+    under the prow there and filled them below x 165 until 2026-10-19), and lined dark."""
     for side in (1, -1):
         y = BAY['y']*side
         length = 190.0-BAY['back']
@@ -219,7 +221,8 @@ def hardpoint_bays(kit, prow):
         cut.name = 'Temporary hardpoint bay cutter'
         cut.dimensions = (length, BAY['w'], BAY['h'])
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-        K.boolean(prow, cut)
+        for i, mass in enumerate(masses):
+            K.boolean(mass, cut, keep=i < len(masses)-1)
         # Line the bay dark: back wall, floor, roof and outboard wall, a skin's depth inside the cut.
         side_name = 'port' if side > 0 else 'starboard'
         b, w, h, z = BAY['back'], BAY['w'], BAY['h'], BAY['z']

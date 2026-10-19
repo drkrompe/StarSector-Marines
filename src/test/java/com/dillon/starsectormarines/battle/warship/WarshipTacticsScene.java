@@ -367,6 +367,7 @@ public final class WarshipTacticsScene implements BehaviorScene {
         metrics.put("splitWhileEscortedPercent", t.splitSampleTicks == 0 ? -1 : Math.round(100f * t.splitTicks / t.splitSampleTicks));
         metrics.put("lineHeldPercent", t.lineTicks == 0 ? -1 : Math.round(100f * t.lineHeldTicks / t.lineTicks));
         metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
+        HullContactReadings.put(metrics, fire);
         int i = 0;
         for (Warship s : concat(t.west, t.east)) {
             String n = (s.faction == Faction.ALLY ? "west" : "east") + (i % 4) + s.hullId;

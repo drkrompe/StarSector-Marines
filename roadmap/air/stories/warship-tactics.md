@@ -3,7 +3,7 @@
 Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position), slice 7 (the pack relay) and slice 8 (missile behaviour) built
 
 Written: 2026-10-16
-Updated: 2026-10-19 — slice 8 missile behaviour; a mismatched pack tanks with its sturdier hull and a ship goes for the hull its guns can hurt; Black Sluice is fought by an Enforcer and a Wolf
+Updated: 2026-10-19 — rounds between hulls meet the first hull on their way, with a clear-line fire check; slice 8 missile behaviour; a mismatched pack tanks with its sturdier hull and a ship goes for the hull its guns can hurt; Black Sluice is fought by an Enforcer and a Wolf
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -782,8 +782,49 @@ Greyhook falls 174 to 293 seconds after the first hit (221 to 334 before), neith
 
 Each slice re-runs the warship scene set and `greyhook-duel` and keeps their verdicts green.
 
+## In-flight collision (2026-10-19)
+
+A round between hulls used to resolve only at its aim point, on hostile hulls its blast reached: nothing between
+stopped it, and a friend was never hit. It now meets the first hull on its way (`air-nouns.md`, **Overhead ships**),
+and a mount holds a round whose line crosses a friend. `-Dbattle.warship.inFlightCollision=false` and
+`-Dbattle.warship.clearLineFire=false` are the controls; `warship-screen` is the acceptance.
+
+`warship-screen` (40 seconds, held stations): with collision on, the escort on the line took all 56 of the hits from
+rounds aimed at its charge and was worn to 3% of its hull, and the charge was not touched. In the control the charge
+took 55 and 1,841 round-ticks were spent inside the escort's footprint. A friend held across part of the line took 16
+of 56 hits (29%) without the clear-line check and 0 of 40 with it, while the shooter still put 25 hits on its target.
+
+The warship scene set and `greyhook-duel` (170 loops): 168 green against the control's 165, of which the three red
+in the control are `warship-screen` loops that demand collision. `wolfs-vs-enforcer-north`'s `venting-ship-not-targeted`
+is red in both. `wolfs-vs-venture`'s `pack-flux-below-overload` goes red with the clear-line check: the relay is near overload for 1.3% of the
+fight against its relay-off control's 0.8%, with no overloads in either. The Wolfs hold 20 mount-seconds there, and
+the verdict is green with the check off. A raised shield is asked of where a round meets the plate as well as of its
+bubble, since a drawn hull reaches past its bubble: without that, `hull-broadside`'s front shield took nothing from
+ahead.
+
+| reading (on / control) | Black Sluice, five seeds | `pack-vs-escorted` | `line-of-battle` |
+| --- | --- | --- | --- |
+| decided, seconds after the order | 382–597 / 400–585 | 730 / 489 | unresolved / unresolved |
+| friendly fire, share of hull hits | 0.1–2.6% / 0 | 0 / 0 | 0.6% / 0 |
+| rounds stopped by a hull they were not fired at | 2–28 / 0 | 0 / 0 | 60 / 0 |
+| hits on escorts | 0 / 0 | 290 / 160 | — |
+| mount-seconds held for a friend in the line | 31–538 (Rusk's pair) / 0 | 669 / 0 | 260 / 0 |
+| Rusk ships lost | 0, 1, 0, 1, 1 / none | — | — |
+
+At Black Sluice only Rusk's pair holds fire: an Enforcer and a Wolf on one hull lay lines across each other. The
+check reads the line at the moment of firing, so a friend moving into a round's path in flight, a round carrying on
+past its target and a guided missile's weave can all still find a friend; which of them makes up the 0.1-2.6% is not
+yet measured. Rusk's hull damage taken roughly
+doubles (1,417–1,500 against 696–1,089) and he now loses a ship on three seeds of five; the Greyhook still falls on every
+seed. In `pack-vs-escorted` the escorts take the pin's fire on their plate and both die where the control lost none.
+A screen's charge loses the guns that bear through it, and no helm station moves to reopen a line: that is the open
+question below.
+
+
 ## Open questions
 
 1. Ramming: should a hull that drives into another hurt it, as the base game's collisions do?
-2. Should a pack with a prize and no escorts split by sides automatically (pincer), or only when the prize is
+2. Should a helm reopen a fouled line (a striker sliding off the tank's line, an escort standing a little off its
+   charge's main battery), or is a held gun the honest price of the formation?
+3. Should a pack with a prize and no escorts split by sides automatically (pincer), or only when the prize is
    broadside (so one ship always sits on its unarmed quarter)?

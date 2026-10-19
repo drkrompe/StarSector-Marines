@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.Random;
 
@@ -31,6 +32,10 @@ import java.util.Random;
  * hit lands on the turret, and only the hull's own structure decides death. The
  * roll is drawn only for such a hull, so a battle without one, or with
  * {@code -Dbattle.vehicle.turretDamage=false}, draws exactly what it drew before.
+ *
+ * <p>A ground hull's plate depends on the arc a hit arrives on ({@link ArmorArcs}, profiles on
+ * {@link VehicleType#armorArcs()}): the hull's arc is read against the hull's facing, a turret hit's against the
+ * turret's. The arc is read from where the hit's shooter stands, which no random draw decides.
  *
  * <p>Serial only: it holds one reusable {@link DurabilityModel.Resolution},
  * which is the shape both resolvers it replaces already had.
@@ -71,18 +76,33 @@ public final class BodyDamageResolver {
         float hpBefore = world.hp(targetId);
         float armorBefore = world.armor(targetId);
         float postCover = damage * world.damageTakenMult(targetId);
-        HullTurretSection section = turretSection(carrier, targetId);
+        float rating = world.armorRating(targetId);
+        ConvoyService convoy = carrier instanceof ConvoyService c ? c : null;
+        GroundTurret turret = convoy != null ? convoy.turret(targetId) : null;
+        HullTurretSection section = turret != null ? turret.section : null;
+        // No origin to read, no arc: the hull's nominal plate.
+        ArmorArcs.Profile arcs = hasOrigin(world, targetId, attackerId) ? arcsOf(convoy, targetId)
+                : ArmorArcs.Profile.FLAT;
+        float dx = arcs != ArmorArcs.Profile.FLAT ? world.x(attackerId) - world.x(targetId) : 0f;
+        float dy = arcs != ArmorArcs.Profile.FLAT ? world.y(attackerId) - world.y(targetId) : 0f;
+        ArmorArcs.Arc hullArc = arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
+                : ArmorArcs.classify(convoy.body(targetId).facingDegrees, dx, dy);
         float armorDamage;
         float hpAfter;
         if (section != null) {
+            // The turret faces its own way: a hit on it is read against the barrel, not the hull.
+            ArmorArcs.Arc turretArc = arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
+                    : ArmorArcs.classify(turret.facingDeg, dx, dy);
             section.resolve(section.struck(rng.nextFloat()), postCover, penetration,
-                    world.armorRating(targetId), armorBefore, hpBefore, durability, sectionHit);
+                    rating * arcs.rating(turretArc), arcs.plate(turretArc),
+                    rating * arcs.rating(hullArc), arcs.plate(hullArc),
+                    armorBefore, hpBefore, durability, sectionHit);
             armorDamage = sectionHit.armorDamage();
             // The hull's own structure is the only death; the turret's remainder goes with it.
             hpAfter = sectionHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - sectionHit.structureDamage());
         } else {
-            DurabilityModel.resolveInto(postCover, penetration,
-                    armorBefore, world.armorRating(targetId), hpBefore, durability);
+            DurabilityModel.resolvePlatedInto(postCover, penetration,
+                    armorBefore, rating * arcs.rating(hullArc), arcs.plate(hullArc), hpBefore, durability);
             armorDamage = durability.armorDamage();
             hpAfter = Math.max(0f, hpBefore - durability.structureDamage());
         }
@@ -102,9 +122,21 @@ public final class BodyDamageResolver {
         if (hpAfter <= 0f) carrier.destroy(targetId);
     }
 
-    private static HullTurretSection turretSection(BodyCarrier carrier, long id) {
-        if (!(carrier instanceof ConvoyService convoy)) return null;
-        GroundTurret turret = convoy.turret(id);
-        return turret != null ? turret.section : null;
+    /** A ground hull's arcs, or {@link ArmorArcs.Profile#FLAT} for any other carried body. */
+    private static ArmorArcs.Profile arcsOf(ConvoyService convoy, long id) {
+        if (convoy == null) return ArmorArcs.Profile.FLAT;
+        VehicleType type = convoy.vehicleType(id);
+        return type != null && convoy.body(id) != null ? type.armorArcs() : ArmorArcs.Profile.FLAT;
     }
+
+    /**
+     * Whether the hit has an origin to read an arc from: a shooter, other than the body itself, still standing
+     * where it can be asked. Every hit with one (an aimed round, an arcing shell, a missile, a blast) is read from
+     * where its shooter stands now; one without (unattributed or scripted damage, a shooter already gone) meets
+     * the hull's nominal plate, on no arc.
+     */
+    private static boolean hasOrigin(World world, long targetId, long attackerId) {
+        return attackerId != CombatTelemetryService.NO_ATTACKER && attackerId != targetId && world.isAlive(attackerId);
+    }
+
 }

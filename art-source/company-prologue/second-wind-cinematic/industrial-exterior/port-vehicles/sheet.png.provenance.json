@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154d0-7ec2-7c90-9075-0bb58a622d2c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154d0-7ec2-7c90-9075-0bb58a622d2c\\exec-f0fa9dac-53bd-467f-b946-6380e411de2a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\port-life\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\port-vehicles\\sheet.png",
+    "sha256": "ea744926b438578341bb3ad32a24d5caefe934d3b4f693fb90b5781c058854d6",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\port-life\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\port-vehicles\\sheet.prompt.txt",
+  "promptSha256": "27ba7cdb72b72a1a9ab44401ecb5bf942383d6dc623266038fca663c3f861092",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: EDIT TARGET: the overhead guide to repaint; keep every edge where it is\nImage 2: STYLE REFERENCE: the port's yard vehicles, already painted from above the same way. Match their wear, grime, detail and finish; do not copy their layout\n\nRepaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.\n\nHard rules:\n- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.\n- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.\n- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.\n- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.\n- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.\n- Fill the whole frame edge to edge. No border.\n\nSetting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.\n\nThis image is the exception to \"no vehicles\": it is a sheet of vehicle roofs, each seen from directly above, and every shape on it IS a vehicle to be painted. The sheet is 32 m wide by 21.3 m tall, so one pixel is about 2 cm. Every vehicle faces right: its front is the right-hand end. These are the working vehicles of the public spaceport at Greywater Down, a Hegemony port on a rainy jungle world: hard-used, dusty, sun-faded and patched, never new and never glossy.\n\nKeep the plain flat grey background exactly as it is, empty and untextured: it is not ground. Paint only inside each vehicle's outline, and keep each outline exactly where it is. The small black blocks poking out at the sides are tyres: paint them as worn black rubber seen from above.\n\nWhat each shape is (top row left to right, then the middle row, then the bottom row):\n- Top left, the long dark grey strip with a small orange square at its right end: a container-yard terminal tractor with an empty skeletal container chassis behind it. The orange square is the tractor's cab roof: faded safety orange, a roof hatch, a windscreen edge along the right side, an exhaust stack. The long dark grey strip is the bare steel chassis seen from above: two rails, cross members, twist-lock corners, rust and grease.\n- Top right, the long white block with a thin orange stripe along its middle: the port's passenger bus. White paint gone dusty, the orange stripe is the Hegemony livery band running down the roof, roof hatches, an air-conditioning pod, a windscreen edge at the right end, rain streaks.\n- Middle left, the shape with a coloured square at its right end and a coloured box over most of its length: a rigid container truck carrying a 20-foot shipping container. The square is the cab roof (faded paint, roof hatch, windscreen edge on the right); the long box is the container's roof: corrugated painted steel with corner castings, dents, rust streaks, faded stencil-free paint. A strip of dark steel chassis shows between them.\n- Middle right, the small dark blue block: a MuniSec patrol car, the port's municipal security. Dark blue paint with a white roof panel, a light bar painted across the roof just behind its middle (blue and amber lenses), a windscreen edge at the right end and a rear window at the left. Cleaner than the working vehicles but dusty.\n- Bottom left, the small blue block: a baggage and cargo tug, a small open tow tractor. Faded blue paint, a light sun canopy over the driver's seat, engine cover vents, a tow hitch at the left end.\n- Bottom centre, the small grey block with a coloured box on it: a cargo dolly, a towed steel platform carrying a cargo module. The grey is the steel deck with its rails; the box is the module's roof: ribbed painted steel, scuffed, rusty at the edges.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\port-life\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\port-vehicles\\guide.png",
+      "sha256": "a3f4777f505b212c2efb89d4faaf2ff9ecdf0d0a28c71890d5b653333b06cd9a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "EDIT TARGET: the overhead guide to repaint; keep every edge where it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\port-life\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\vehicles\\sheet.png",
+      "sha256": "906c4da752413dff7de1f28753db3610d1261319a6f85b5719bcb06cdbffd19c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "STYLE REFERENCE: the port's yard vehicles, already painted from above the same way. Match their wear, grime, detail and finish; do not copy their layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll repaint the six vehicles to match the reference’s worn finish while preserving the guide’s exact layout and plain grey background."
+  ],
+  "usage": {
+    "input_tokens": 46607,
+    "cached_input_tokens": 37760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 872,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.6
+}

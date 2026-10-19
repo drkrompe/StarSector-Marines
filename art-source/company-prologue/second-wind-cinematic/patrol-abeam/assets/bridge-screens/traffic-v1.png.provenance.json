@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154c8-c69f-7103-9b80-62e78ad7c9f3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c8-c69f-7103-9b80-62e78ad7c9f3\\exec-b0e724b0-2400-43d7-aa34-7a4d07eba51f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\traffic-v1.png",
+    "sha256": "2e5f9bcc90c2a5f8b46c0889a6a0141d958b036101e433a8880de51d133763a8",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-traffic-v1.txt",
+  "promptSha256": "e8ab12395b6bfc64a7dcbb8b19c00e1c6905f0cfdee119346d0967176a2fe974",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nWidest landscape canvas (about 3:1). The traffic and transponder page: a table of nearby contacts in rows with columns ID, CLASS, RANGE, BRG, CLOSURE, IFF; rows such as HGS LEGION / CARRIER / 2.1 KM, BRDSWD 1-1 to 1-4 / FIGHTER, and a dimmed row for an old beacon; one row highlighted amber as the selected contact. Beside the table, a small range-ring scope with the contacts plotted as ticks.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image of the freighter’s traffic and transponder display."
+  ],
+  "usage": {
+    "input_tokens": 37072,
+    "cached_input_tokens": 33024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 660,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.3
+}

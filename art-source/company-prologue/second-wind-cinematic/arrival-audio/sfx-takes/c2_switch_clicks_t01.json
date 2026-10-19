@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "40",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A few chunky mechanical toggle switch clicks on a metal control panel, close, dry, with pauses",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "382e6438864bac5319f473e0b975a043c3bddcc631ae0e3cb6b6551cbc31cd79",
+  "durationSeconds": 4.0,
+  "peakDb": -0.4,
+  "integratedLufs": -24.1
+}
