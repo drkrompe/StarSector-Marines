@@ -15,7 +15,8 @@ and lights it:
 - The command deck's interior is the model's own (second-wind-geometry/sw_bridge_interior),
   so the patched state export must have been rebuilt since it landed; the script refuses a
   state without it. The pilot and Castle are added (sw_bridge_interior.figures). The glazing
-  is hidden from camera and shadow rays: it is opaque paint, not glass.
+  is the model's own clear glass (sw_kit.glass): the camera looks through it and catches the
+  room's reflections in it, and shadow rays pass it, so the sun still reaches the room.
 - The Legion and its Broadswords keep their own materials; the Legion's throats and running
   lights and the fighters' flames are added as in render_patrol_sequence.py.
 - Jangala is a sphere scaled about the eye (it looks identical from there), shaded by its own
@@ -279,9 +280,6 @@ def blender_main(argv):
     sw.scale = (p["sw_mpu"],) * 3
     for o in [sw, *sw.children_recursive]:
         o.animation_data_clear()
-        if o.name.startswith("Command deck viewport slits"):
-            o.visible_camera = False                # the glazing is not see-through glass
-            o.visible_shadow = False
     if not any(o.name.startswith("Bridge deck plating") for o in sw.children_recursive):
         raise RuntimeError("%s has no bridge interior: rebuild the %s state export" % (p["sw_state_blend"], p["sw_state"]))
     # The room's practicals (bridge_practicals): a strip under each caged ceiling lamp, a soft
