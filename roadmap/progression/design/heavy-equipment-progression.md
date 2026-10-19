@@ -426,8 +426,9 @@ Per rocket:
 Controls: `-Dbattle.mech.missileVariants=false` (the single-warhead rack on the
 AT ids) and `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice).
 
-Readings were taken at `536ae4d80`, before the bastion and pulse-laser heat changes
-above landed.
+Readings were taken on top of the bastion and pulse-laser heat changes above and
+of the armor fire order (against a machine, the reservoir goes to the mounts that
+best defeat its armor first, so AT racks fire before the arms and Frag racks after).
 
 **Against men** (`sceneEvidence -Pscene=mech-versus-infantry`, four seeds per
 loop, planted stock mechs, a rifle section in the open). Seconds to kill the
@@ -449,9 +450,10 @@ LRMs.
 
 **The mixed fight.** An AT Bulwark faces six men at 13 cells with a breakthrough
 tank behind them at 15. With damage-aware target choice, the torso holds the tank
-for 335 ticks while a rack is loaded and puts 16 rack rounds into it. With
-nearest-target choice it puts none. The tank still kills the stock Bulwark in
-every play.
+for 336 ticks while a rack is loaded and puts 32 rack rounds into it, killing 15
+of the 24 men over four plays. With nearest-target choice it puts no rack round
+into the tank and kills all 24 men. The tank kills the stock Bulwark in every
+play either way, so this loop shows the choice working, not that it wins.
 
 **Against armor** (`armorMatchup`, twelve sides against each other, eight seeds,
 three grounds, both roles; win share against the single-warhead control with
@@ -459,22 +461,22 @@ nearest-target choice):
 
 | Side | Variant | Control |
 | --- | --- | --- |
-| Stock Bulwark (AT SRM-15s) | 0.36 | 0.34 |
-| Stock Bulwark, Frag SRM-15s | 0.34 | 0.32 |
-| Refit Bulwark (AT) | 0.69 | 0.68 |
-| Refit Bulwark, Frag | 0.56 | 0.59 |
+| Stock Bulwark (AT SRM-15s) | 0.53 | 0.47 |
+| Stock Bulwark, Frag SRM-15s | 0.34 | 0.31 |
+| Refit Bulwark (AT) | 0.69 | 0.70 |
+| Refit Bulwark, Frag | 0.51 | 0.55 |
 | Hound (AT SRM-5) | 0.15 | 0.13 |
-| Hound, Frag SRM-5 | 0.10 | 0.10 |
+| Hound, Frag SRM-5 | 0.09 | 0.09 |
 | Sirocco, AT LRM-5s | 0.43 | 0.40 |
 | Sirocco, Frag LRM-5s (the factory fit) | 0.21 | 0.19 |
 
 A Frag row's control fires the same Frag rack; its difference is its opponents'
-racks and the target choice. AT racks hold or slightly improve every mech's armor
-results, and the Frag
-Sirocco is half the anti-armor machine the AT one is. Where SRMs reach a tank
-(the street, at 17 cells) the AT warhead takes more off it than the old rack did:
-a refit Bulwark leaves a heavy-gun tank 0.78 of its integrity against 0.86, and a
-Hound leaves a breakthrough tank 0.90 against 0.93. AT rockets hit about a third
+racks and the target choice. AT racks hold or improve every mech's armor results,
+most for the stock Bulwark, and the Frag Sirocco is half the anti-armor machine
+the AT one is. Where SRMs reach a tank (the street, at 17 cells) the AT warhead
+takes clearly more off it than the old rack did: a refit Bulwark leaves a
+breakthrough tank 0.74 of its integrity against 0.88 and a heavy-gun tank 0.70
+against 0.85, and a Hound leaves them 0.90 and 0.91 against 0.93 and 0.95. AT rockets hit about a third
 of the time against about half for the old area rack, because a contact warhead
 needs the body. Win shares against tanks stay at zero.
 
