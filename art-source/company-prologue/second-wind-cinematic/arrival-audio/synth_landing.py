@@ -7,16 +7,17 @@ picture: timing is read straight out of `industrial-exterior/c4x_scene.py` (ARRI
 HOVER_Z, REST_Z, DURATION and the lift jets' throttle, `lift_throttle`), so a retimed C4 only
 needs this re-run. Five stems on C4's clock, each starting at its own `start`, plus their sum:
 
-- `landing_roar`: the belly jets. A rocket roar (`synth_flyby.rocket`) lit two seconds before
-  the hover and held through the descent. As the hull sinks the jets hit the pad: the roar
-  opens up and roughens, and a sub-bass ground rumble rises under it.
-- `landing_grit`: dust and grit blasting off the slab: a sand-blast hiss whose grain follows
-  the downwash, and pebbles pinging off metal (the yard's vehicles at their stand-off).
-- `landing_thump`: touchdown. A deep hit, the legs' second contact a moment later, and the
-  struts taking the weight with a groan.
-- `landing_spool`: the jets cutting out: the roar's pitch and brightness falling away, a vent
-  hiss, and a turbine whine winding down.
-- `landing_settle`: what the dust does after: a soft, thinning wash and the last grit landing.
+Everything is noise, shaped: no oscillators and no resonant filters anywhere, since anything
+pitched read as wind chimes or an electronic engine (owner, 2026-10-19: "Burning gas thrusters -
+heavy lift").
+
+- `landing_roar`: the belly jets burning. Ragged broadband combustion with crackle, a chest-deep
+  low end, turbulence, and pressure surges as the throttle trims the descent; a whump as they
+  light. Near the pad it buffets and hardens with the roar thrown back off the slab.
+- `landing_grit`: dust and grit stripped off the slab: a grainy hiss and gravel rattling.
+- `landing_thump`: touchdown: a deep shove, the legs' crunch, the second pair a moment later.
+- `landing_spool`: the burners shutting down: sputtering coughs, pops, and gas hissing off.
+- `landing_settle`: the dust coming back down: a thinning wash and the odd bit of grit.
 
 Output is regenerable, so it goes under build/; `sfx_mix.py` places it. Seeded and deterministic.
 Requires numpy.
@@ -88,84 +89,136 @@ def norm(x, peak=1.0):
     return x / max(1e-9, np.abs(x).max()) * peak
 
 
-def pings(t, rng, rate, lo=1800.0, hi=5200.0, decay=(0.008, 0.03)):
-    """Small hard things hitting metal: short inharmonic rings, density rate(t) per second."""
+def lp2(x, cutoff):
+    """Two plain one-pole low-passes: dull, never resonant."""
+    return fb.one_pole(fb.one_pole(x, cutoff), cutoff)
+
+
+def hp(x, cutoff):
+    return x - fb.one_pole(x, cutoff)
+
+
+def flutter(n, rng, rate):
+    """A slow random wobble, about +-1, changing at roughly `rate` times a second."""
+    return norm(lp2(rng.standard_normal(n), rate))
+
+
+def grains(t, rng, density, length=(0.002, 0.006), lo=600.0, hi=7000.0):
+    """Gravel and grit: very short bursts of filtered noise (no pitch), density(t) per second."""
     n = len(t)
     out = np.zeros(n)
-    density = rate(t)
-    for i in np.flatnonzero(rng.random(n) < density / SR):
-        f0, tau = rng.uniform(lo, hi), rng.uniform(*decay)
-        k = np.arange(int(tau * 6 * SR)) / SR
-        ring = np.sin(2 * np.pi * f0 * k) + 0.5 * np.sin(2 * np.pi * f0 * 2.76 * k + rng.uniform(0, 6))
-        ring *= np.exp(-k / tau) * rng.uniform(0.2, 1.0)
-        j = min(n, i + len(ring))
-        out[i:j] += ring[: j - i]
-    return out
+    for i in np.flatnonzero(rng.random(n) < density(t) / SR):
+        k = int(rng.uniform(*length) * SR)
+        g = rng.standard_normal(k) * np.exp(-np.arange(k) / (0.3 * k)) * rng.pareto(2.5)
+        j = min(n, i + k)
+        out[i:j] += g[: j - i]
+    return band(out, lo, hi)
+
+
+def crackle(t, rng, density):
+    """Combustion crackle: sharp broadband clicks of both signs with heavy-tailed sizes."""
+    n = len(t)
+    hits = (rng.random(n) < density / SR) * rng.choice((-1.0, 1.0), n) * rng.pareto(2.0, n)
+    kernel = np.exp(-np.arange(int(0.003 * SR)) / (0.0006 * SR))
+    return hp(np.convolve(hits, kernel)[:n], 300.0)
+
+
+def bump(t, at, width):
+    return np.exp(-0.5 * ((t - at) / width) ** 2)
+
+
+def cutoff_gate(t):
+    """The burners cut cleanly a moment after the legs touch; the shutdown stem carries the rest."""
+    return 1 - smoothstep(T_DOWN + 0.12, T_DOWN + 0.2, t)
 
 
 def roar(t, rng):
+    """Heavy-lift gas burners: ragged broadband combustion, no pitch anywhere. Felt as pressure
+    low down, torn and crackling higher up; it buffets and hardens as the pad throws it back."""
+    n = len(t)
     g, thr = ground_effect(t), throttle(t)
-    # After cut-off the jets' voice slows: read the source on a clock that runs down with the throttle.
-    rate = 0.55 + 0.45 * np.clip(thr, 0, 1) ** 0.5
-    clock = np.cumsum(rate) / SR
-    src = fb.rocket(int((clock[-1] + 0.5) * SR), rng, 0.55)
-    voice = np.interp(clock * SR, np.arange(len(src)), src)
-    corner = 260.0 + 1500.0 * g + 300.0 * thr
-    body = fb.one_pole(fb.one_pole(voice, corner), corner)
-    sub = fb.one_pole(fb.one_pole(voice, 70.0), 70.0)
-    rumble = fb.one_pole(fb.one_pole(fb.coloured(len(t), rng, 2.0), 45.0), 45.0)
-    mono = norm(body) * (0.55 + 0.45 * g) + 0.9 * norm(sub) + 1.1 * norm(rumble) * g
-    return mono * thr ** 1.3
+    # Throttle trims on the way down: pressure surges as the pilot holds the descent.
+    trims = np.ones(n)
+    for k, at in enumerate(np.linspace(ARRIVE + 0.6, T_DOWN - 0.5, 5)):
+        trims += rng.uniform(0.18, 0.4) * bump(t, at + rng.uniform(-0.3, 0.3), rng.uniform(0.15, 0.3))
+    lit = smoothstep(ARRIVE - LIFT_ON, ARRIVE - LIFT_ON + 0.25, t)
+    ignition = bump(t, ARRIVE - LIFT_ON + 0.15, 0.12)                    # the whump as they light
+    level = np.maximum(thr, 0.6 * lit * (t < ARRIVE)) * trims * cutoff_gate(t)
+
+    turb = 1 + 0.35 * flutter(n, rng, 22.0) + 0.25 * flutter(n, rng, 7.0)
+    buffet = 1 + 0.8 * g * flutter(n, rng, 4.5)                         # the ground pushing back
+    torn = norm(lp2(fb.coloured(n, rng, 1.0) + 0.5 * rng.standard_normal(n), 1400.0 + 4200.0 * g))
+    chest = norm(lp2(fb.coloured(n, rng, 2.0), 95.0)) * (1 + 0.5 * flutter(n, rng, 6.0))
+    floor = norm(lp2(fb.coloured(n, rng, 2.0), 38.0)) * g               # deep ground rumble near the pad
+    blast = norm(hp(rng.standard_normal(n), 1800.0)) * g ** 2            # the pad's reflected roar
+    crack = norm(crackle(t, rng, 120.0 + 520.0 * g)) * (0.5 + 0.5 * g)
+    body = 0.9 * torn * turb + 1.1 * chest + 0.9 * floor + 0.35 * blast + 0.45 * crack
+    whump = norm(lp2(fb.coloured(n, rng, 2.0), 120.0)) * ignition * 2.0
+    return body * buffet * level + whump
 
 
 def grit(t, rng):
-    g = ground_effect(t)
-    after = np.exp(-np.clip(t - T_DOWN - LIFT_OFF, 0, None) / 0.5)     # the blast stops with the jets
-    blast = g * after
-    hiss = band(fb.coloured(len(t), rng, 0.6), 1500.0, 7000.0)
-    grain = fb.one_pole(np.abs(rng.standard_normal(len(t))), 35.0)      # the hiss is grainy, not smooth
-    hiss = norm(hiss) * (0.5 + 1.2 * norm(grain))
-    patter = pings(t, rng, lambda t: 260.0 * blast ** 1.5)
-    return norm(hiss) * blast ** 1.2 * 0.8 + norm(patter) * 0.5
+    """Dust and grit stripped off the slab: a hiss with grain, and gravel rattling on metal."""
+    n = len(t)
+    g = ground_effect(t) * (1 - smoothstep(T_DOWN + 0.12, T_DOWN + 0.6, t))
+    hiss = band(rng.standard_normal(n), 900.0, 6500.0)
+    grain = 0.35 + norm(np.abs(lp2(rng.standard_normal(n), 90.0)))
+    rattle = grains(t, rng, lambda _: 940.0 * g ** 1.4)
+    return norm(hiss * grain) * g ** 1.2 + 0.6 * norm(rattle)
 
 
 def thump(t, rng):
-    out = np.zeros(len(t))
-    for when, gain in ((T_DOWN, 1.0), (T_DOWN + 0.17, 0.55)):
+    """Touchdown, all noise: a deep shove into the slab, the legs' crunch, the second legs after."""
+    n = len(t)
+    out = np.zeros(n)
+    deep = norm(lp2(fb.coloured(n, rng, 2.0), 90.0))
+    crunch = norm(lp2(rng.standard_normal(n), 1600.0))
+    clunk = norm(band(rng.standard_normal(n), 120.0, 500.0))
+    for when, gain in ((T_DOWN, 1.0), (T_DOWN + 0.17, 0.6)):
         k = np.clip(t - when, 0, None)
-        on = t >= when
-        sweep = 2 * np.pi * (34.0 * k + 30.0 * 0.12 * (1 - np.exp(-k / 0.12)))   # 64 Hz falling to 34
-        hit = np.sin(sweep) * np.exp(-k / 0.42)
-        crunch = fb.one_pole(rng.standard_normal(len(t)), 900.0) * np.exp(-k / 0.06)
-        out += gain * on * (hit + 0.35 * norm(crunch))
-    # The struts taking the weight: a slow, inharmonic metal groan.
-    k = np.clip(t - T_DOWN - 0.08, 0, None)
-    on = t >= T_DOWN + 0.08
-    groan = sum(a * np.sin(2 * np.pi * f * k * (1 - 0.06 * np.minimum(k, 1.2)))
-                for f, a in ((97.0, 1.0), (151.0, 0.6), (233.0, 0.35), (412.0, 0.15)))
-    out += 0.22 * on * groan * smoothstep(0.0, 0.15, k) * np.exp(-k / 0.7)
+        on = (t >= when) * smoothstep(0.0, 0.006, k)
+        out += gain * on * (1.3 * deep * np.exp(-k / 0.35) + 0.5 * crunch * np.exp(-k / 0.05)
+                            + 0.5 * clunk * np.exp(-k / 0.12))
     return out
 
 
 def spool(t, rng):
-    k = np.clip(t - T_DOWN, 0, None)
-    on = t >= T_DOWN
-    vent = band(fb.coloured(len(t), rng, 0.8), 2500.0, 9000.0)
-    vent = norm(vent) * on * smoothstep(0.0, 0.25, k) * np.exp(-k / 1.1)
-    f = 180.0 + 720.0 * np.exp(-k / 0.9)                                  # the turbine winding down
-    phase = 2 * np.pi * np.cumsum(f) / SR
-    whine = (np.sin(phase) + 0.3 * np.sin(2.01 * phase)) * on * np.exp(-k / 1.6) * (1 - np.exp(-k / 0.05))
-    return 0.8 * vent + 0.12 * whine
+    """The burners shutting down: the flame sputters out in shorter, weaker coughs, a few pops,
+    and the last gas hissing off the nozzles."""
+    n = len(t)
+    flame = norm(lp2(fb.coloured(n, rng, 1.0) + 0.3 * rng.standard_normal(n), 2400.0)) \
+        + 0.9 * norm(lp2(fb.coloured(n, rng, 2.0), 110.0))
+    gate = np.zeros(n)
+    at, gap, length, gain = T_DOWN + 0.2, 0.06, 0.13, 0.85
+    while gain > 0.08:
+        gate += gain * smoothstep(at, at + 0.012, t) * (1 - smoothstep(at + length, at + length + 0.03, t))
+        at += length + gap * rng.uniform(0.7, 1.4)
+        gap, length, gain = gap * 1.5, length * 0.8, gain * 0.68
+    out = norm(flame) * gate
+    pops = np.zeros(n)
+    for when in sorted(rng.uniform(T_DOWN + 0.25, T_DOWN + 1.8, 7)):
+        k = np.clip(t - when, 0, None)
+        on = (t >= when) * smoothstep(0.0, 0.002, k)
+        pops += rng.uniform(0.4, 1.0) * on * np.exp(-k / 0.025)
+    pop_noise = lp2(rng.standard_normal(n), 2800.0) + 0.8 * norm(lp2(rng.standard_normal(n), 220.0))
+    out += 0.9 * norm(pop_noise) * pops
+    k = np.clip(t - T_DOWN - 0.2, 0, None)
+    on = t >= T_DOWN + 0.2
+    gas = lp2(hp(rng.standard_normal(n), 1500.0), 1500.0 + 6500.0 * np.exp(-k / 0.8))
+    out += 0.45 * norm(gas) * on * smoothstep(0.0, 0.15, k) * np.exp(-k / 1.0)
+    return out
 
 
 def settle(t, rng):
+    """Dust coming back down: a soft, thinning wash and the odd bit of grit landing."""
+    n = len(t)
     k = np.clip(t - T_DOWN - 0.5, 0, None)
     on = t >= T_DOWN + 0.5
-    wash = band(fb.coloured(len(t), rng, 1.2), 300.0, 2400.0)
+    wash = band(fb.coloured(n, rng, 1.2), 250.0, 1800.0)
     shape = on * smoothstep(0.0, 0.8, k) * (1 - smoothstep(0.0, DURATION - T_DOWN - 1.0, k))
-    last = pings(t, rng, lambda t: 30.0 * np.exp(-np.clip(t - T_DOWN - 1.0, 0, None) / 1.2) * (t > T_DOWN + 0.6),
-                 900.0, 3000.0, (0.01, 0.04))
-    return norm(wash) * shape * 0.7 + norm(last) * 0.35
+    last = grains(t, rng, lambda t: 25.0 * np.exp(-np.clip(t - T_DOWN - 1.0, 0, None) / 1.2) * (t > T_DOWN + 0.6),
+                  (0.002, 0.004), 500.0, 4000.0)
+    return norm(wash) * shape * 0.7 + norm(last) * 0.3
 
 
 STEMS = {"landing_roar": (roar, 11), "landing_grit": (grit, 12), "landing_thump": (thump, 13),
@@ -178,23 +231,17 @@ WIDTH = {"landing_roar": 0.15, "landing_grit": 0.7, "landing_thump": 0.0, "landi
          "landing_settle": 0.8}
 
 
-def stereo(mono, width, rng):
-    """Decorrelated sides: a few ms of slowly wandering delay on one channel."""
-    if width <= 0:
-        return np.stack([mono, mono], axis=1)
-    lag = (0.004 + 0.003 * np.sin(2 * np.pi * 0.21 * np.arange(len(mono)) / SR + rng.uniform(0, 6))) * SR
-    other = np.interp(np.arange(len(mono)) - lag, np.arange(len(mono)), mono)
-    mid, side = (mono + other) / 2, (mono - other) / 2 * width * 2
-    return np.stack([mid + side, mid - side], axis=1)
-
-
 def render():
     t = START + np.arange(int(round((END - START) * SR))) / SR
     edge = np.minimum(1, np.minimum(t - t[0], t[-1] - t) / 0.05)[:, None]
     stems = {}
     for name, (fn, seed) in STEMS.items():
-        rng = np.random.default_rng(seed)
-        stems[name] = stereo(norm(fn(t, rng)), WIDTH[name], rng) * edge
+        # Width from two independent renders of the same stem, one per side: a delay-based widener
+        # comb-filters noise into a metallic tone.
+        a = norm(fn(t, np.random.default_rng(seed)))
+        b = norm(fn(t, np.random.default_rng(seed + 100))) if WIDTH[name] > 0 else a
+        w = WIDTH[name] / 2
+        stems[name] = np.stack([(1 - w) * a + w * b, w * a + (1 - w) * b], axis=1) * edge
     total = sum(BALANCE[n] * s / max(1e-9, np.abs(s).max()) for n, s in stems.items())
     stems["landing_synth"] = total
     return {n: norm(s, 0.89) for n, s in stems.items()}
