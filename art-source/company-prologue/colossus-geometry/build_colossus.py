@@ -70,6 +70,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 # Real-world scale (pipeline pass 4): one number every metric value reads.
 # Solved on the shared basis (../ship_scale.py, option C) against the
 # enclosed volume of ship_scale.SOLIDS['colossus'], re-measured every build.
+# Published 0.50 by owner override (2026-10-18); the deepened block solves 0.426.
 SCALE = ship_scale.record(NAME) if NAME in ship_scale.HULLS else None
 METRES_PER_UNIT = ship_scale.PUBLISHED.get(NAME) or (round(SCALE['solved_metres_per_unit'], 2) if SCALE else None)
 
@@ -277,6 +278,8 @@ def scale_record(lo, hi):
     m = METRES_PER_UNIT
     return {
         **SCALE, 'published_metres_per_unit': METRES_PER_UNIT,
+        'published_note': 'owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front '
+                          'deepened the block; option C solves 0.429 (93 m) with the round-2 container bays',
         'measured_this_build': {'enclosed_units3': round(measured), 'solids': solids,
                                 'cargo_body_units3': round(hold), 'cargo_body_m3': round(hold*m**3),
                                 'cargo_body_share': round(hold/measured, 3)},

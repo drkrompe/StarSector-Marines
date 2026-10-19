@@ -50,6 +50,15 @@ public final class WeaponRegistry {
     public static final String MECH_HEAVY_CANNON_ID = "weapon.mech-heavy-cannon";
     public static final String MECH_SRM_POD_ID = "weapon.mech-srm-pod";
     public static final String MECH_LRM_ARTILLERY_ID = "weapon.mech-lrm-artillery";
+    /** Fragmentation racks: area damage at low penetration ({@code mechs-nouns.md}, Missile warheads). */
+    public static final String MECH_SRM_FRAG_ID = "weapon.mech-srm-frag";
+    public static final String MECH_LRM_FRAG_ID = "weapon.mech-lrm-frag";
+    /**
+     * The single-warhead racks every SRM and LRM was before the anti-armor and fragmentation
+     * split: the control arm of {@code -Dbattle.mech.missileVariants=false}.
+     */
+    public static final String MECH_SRM_LEGACY_ID = "weapon.mech-srm-pod-legacy";
+    public static final String MECH_LRM_LEGACY_ID = "weapon.mech-lrm-artillery-legacy";
     public static final String MECH_SHOULDER_LASER_ID = "weapon.mech-shoulder-laser";
     public static final String MECH_PULSE_LASER_ID = "weapon.mech-pulse-laser";
     public static final String MECH_BASTION_AUTOCANNON_ID = "weapon.mech-bastion-autocannon";
@@ -67,6 +76,18 @@ public final class WeaponRegistry {
             "data/marines/marine-weapons.weapon.json",
             "data/marines/turret-weapons.weapon.json",
             "data/marines/missile-aa-weapons.weapon.json");
+
+    /** Whether a weapon id is a short-range missile rack of any warhead. */
+    public static boolean isMechSrm(String weaponId) {
+        return MECH_SRM_POD_ID.equals(weaponId) || MECH_SRM_FRAG_ID.equals(weaponId)
+                || MECH_SRM_LEGACY_ID.equals(weaponId);
+    }
+
+    /** Whether a weapon id is a long-range missile rack of any warhead. */
+    public static boolean isMechLrm(String weaponId) {
+        return MECH_LRM_ARTILLERY_ID.equals(weaponId) || MECH_LRM_FRAG_ID.equals(weaponId)
+                || MECH_LRM_LEGACY_ID.equals(weaponId);
+    }
 
     private static volatile WeaponRegistry installed;
 

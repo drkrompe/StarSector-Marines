@@ -11,6 +11,7 @@ Planform is read off colossus.png; heights are proposed art. The sprite sits
 -46..-61), so every part is symmetric about Y = YC.
 """
 import math
+import random
 import bpy
 import cl_kit
 from cl_kit import prism, section, boolean
@@ -426,6 +427,73 @@ def _door(kit, n, s, dx0, dx1, dz0, dz1, band, w, low):
     ribs.build(kit, f'{n}{low} cargo door stiffeners', kit.steel)
 
 
+# Owner, pass 3 round 2: the hull is a thin wrapper round stacked cargo containers.
+# The sprite's six grey slots on each fore module's bow face are open container
+# bays: a thin hull lip round a recess, a steel cell-guide grid on the slot lines,
+# and in each cell a stack of standard 40 ft boxes end-on (2.44 x 2.59 m = 4.9 x
+# 5.2 units at 0.50 m/u), two across and four high, in mixed liveries.
+BAY_COLS = (47.0, 58.3, 69.7, 81.0)      # cell edges, rel y (the sprite's three slot columns)
+BAY_ROWS = (-38.0, -14.0, 10.0)          # cell edges, z (its two slot rows)
+BAY_DEPTH = 7.0                          # recess behind the bow face
+BOX_W, BOX_H, BOX_GAP = 4.9, 5.2, .3     # container end, units
+LIVERIES = (('rust orange', (.42, .15, .05)), ('faded blue', (.11, .21, .34)), ('green', (.11, .23, .13)),
+            ('grey', (.30, .30, .31)), ('cream', (.55, .49, .38)), ('oxblood', (.28, .06, .05)),
+            ('teal', (.09, .26, .26)))
+_LIVERY_MATS = {}
+
+
+def _livery(name, rgb):
+    if name not in _LIVERY_MATS:
+        _LIVERY_MATS[name] = cl_kit.material(f'Container livery {name}', rgb, .35, .7)
+    return _LIVERY_MATS[name]
+
+
+def container_bays(kit, n, s):
+    """Open the fore module's bow face into container bays and fill them (see BAY_COLS)."""
+    f = FRONT
+    back = f-BAY_DEPTH
+    lo, hi = BAY_COLS[0]-.6, BAY_COLS[-1]+.6
+    _cut(kit, obj(n), Parts().rbox(back, f+2, lo, hi, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s), kit.dark)
+    Parts().rbox(back-.3, back+.2, lo, hi, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s).build(
+        kit, f'{n} container bay back wall', kit.dark)
+    # Cell guides: posts on the slot lines and shelves between the rows (the old bow armour).
+    guides = Parts()
+    for r in BAY_COLS:
+        guides.rbox(back, f-.3, r-.6, r+.6, BAY_ROWS[0]-.6, BAY_ROWS[-1]+.6, s)
+    for z in BAY_ROWS:
+        guides.rbox(back, f-.3, lo, hi, z-.6, z+.6, s)
+    guides.build(kit, f'{n} bow armour', kit.steel, .1)
+    rng = random.Random(f'{n} containers')
+    bodies, seams, bars, corners = {}, Parts(), Parts(), Parts()
+    face = f-2.4                                    # door plane, set back inside the lip
+    for c0, c1 in zip(BAY_COLS, BAY_COLS[1:]):
+        w0 = (c0+c1)/2-(2*BOX_W+BOX_GAP)/2
+        for z0, z1 in zip(BAY_ROWS, BAY_ROWS[1:]):
+            h0 = (z0+z1)/2-(4*BOX_H+3*BOX_GAP)/2
+            for i in range(2):
+                for k in range(4):
+                    a = w0+i*(BOX_W+BOX_GAP)
+                    zb = h0+k*(BOX_H+BOX_GAP)
+                    name, rgb = rng.choice(LIVERIES)
+                    bodies.setdefault(name, (rgb, Parts()))[1].rbox(back+.2, face, a, a+BOX_W, zb, zb+BOX_H, s)
+                    m = a+BOX_W/2
+                    seams.rbox(face, face+.04, m-.06, m+.06, zb+.5, zb+BOX_H-.5, s)          # leaf split
+                    seams.rbox(face, face+.04, a+.3, a+BOX_W-.3, zb+BOX_H-.55, zb+BOX_H-.45, s)  # header
+                    for u in (.18, .38, .62, .82):                                           # lock bars
+                        r = a+BOX_W*u
+                        bars.rbox(face, face+.14, r-.07, r+.07, zb+.35, zb+BOX_H-.35, s)
+                        for zz in (zb+1.6, zb+BOX_H-1.6):                                  # handles
+                            bars.rbox(face, face+.2, r-.07, r+.32 if u < .5 else r-.32, zz-.06, zz+.06, s)
+                    for ca in (a, a+BOX_W-.45):                                              # corner castings
+                        for cz in (zb, zb+BOX_H-.45):
+                            corners.rbox(face-.05, face+.08, ca, ca+.45, cz, cz+.45, s)
+    for name, (rgb, parts) in sorted(bodies.items()):
+        parts.build(kit, f'{n} containers {name}', _livery(name, rgb), .06)
+    seams.build(kit, f'{n} container door seams', kit.dark)
+    bars.build(kit, f'{n} container lock bars', kit.pale)
+    corners.build(kit, f'{n} container corner castings', kit.steel)
+
+
 def module(kit, side, s, part):
     """One side cargo module: panel bands, covers, tie-downs, end caps, wall doors and seams."""
     n = f'Cargo {side} {part} module'
@@ -468,11 +536,7 @@ def module(kit, side, s, part):
         cap.rbox(84.0, FRONT-.4, 48.2, 77.0, t, t+.45, s)
         for r in (52.0, 58.0, 64.0, 70.0):
             vents.rbox(85.5, 88.0, r-1.4, r+1.4, t+.45, t+.7, s)
-        face = Parts()
-        for r0, r1 in ((46.8, 58.0), (58.6, 70.0), (70.6, 81.2)):
-            for z0, z1 in ((-37.0, -13.1), (-12.5, 10.5)):
-                face.rbox(FRONT, FRONT+.5, r0, r1, z0, z1, s)
-        face.build(kit, f'{n} bow armour', kit.steel, .2)
+        container_bays(kit, n, s)
     else:
         cap.rbox(-17.0, -11.0, 48.2, 76.0, t, t+.45, s)
         for x in (-15.6, -14.0, -12.4):
