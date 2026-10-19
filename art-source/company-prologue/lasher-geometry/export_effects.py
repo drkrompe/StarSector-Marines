@@ -55,6 +55,7 @@ def summary(rec):
     'anchors': ctx.records.get('anchors'),
     'controls': 'SWFX controls (animatable custom properties; see second-wind-vfx/README.md)',
     'groups': {g: summary(ctx.records.get(g)) for g in GROUPS},
-    'append': "load both 'LASHER' and 'SWFX' in one call; the ship alone works without it",
+    'append': f"load both '{next(c.name for c in bpy.data.collections if c.name.startswith('LASHER') and not c.name.endswith('| anchors'))}' "
+              "and 'SWFX' in one call; the ship alone works without it",
 }, indent=1, default=str) + '\n', encoding='utf-8')
 print('EFFECTS', len(objs), 'objects; engines', len(a.engines), 'guns', len(a.guns), 'lamps', len(a.lamps))

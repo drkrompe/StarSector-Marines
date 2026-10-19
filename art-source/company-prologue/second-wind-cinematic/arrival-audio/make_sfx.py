@@ -199,6 +199,12 @@ CUES = {
         "Heavy industrial cargo port, container cranes clanking, metal containers banging, heavy machinery, "
         "forklifts beeping, busy, no horns, no ship horns",
         12.0, True, 0.4),
+    # Owner, 2026-10-19: "bass with burning rocket fuel like a shuttle launch", not compressed air.
+    "c4_launch_burn": (
+        "Space shuttle launch heard from nearby: thunderous deep bass rocket engine roar, burning rocket "
+        "fuel, violent crackling exhaust, low rumble shaking the ground, sustained full thrust, no hiss, "
+        "no voices",
+        9.0, False, 0.6),
     "c4_landing_rocket": (
         "Huge rocket engine landing burn, deep bass roar, rumbling intense thrust, ground shaking, "
         "descending slowly",

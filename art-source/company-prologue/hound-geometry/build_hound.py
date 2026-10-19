@@ -23,6 +23,10 @@ Options after a literal "--":
   --samples N    Cycles samples (default 24)
   --res WxH      render size (default 1920x1080)
   --no-save      skip the .blend and geometry.json
+  --state S      clean (default; the Hound (A) as committed) or pirate (the
+                 Hound (P): hd_pirate's welded scrap armour, chaingun and twin
+                 MG, light scars). A pirate build needs --out (or --no-save):
+                 the tracked .blend and geometry.json are the clean asset's.
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
 sprite overlay, the silhouette IoU and the review sheet.
 """
@@ -38,11 +42,11 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import hd_kit, hd_hull, hd_wheelhouse, hd_engines, hd_bridge, hd_fork, hd_mounts
-for module in (hd_kit, hd_hull, hd_wheelhouse, hd_engines, hd_bridge, hd_fork, hd_mounts):
+sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
+import hd_kit, hd_hull, hd_wheelhouse, hd_engines, hd_bridge, hd_fork, hd_mounts, hd_pirate
+for module in (hd_kit, hd_hull, hd_wheelhouse, hd_engines, hd_bridge, hd_fork, hd_mounts, hd_pirate):
     importlib.reload(module)
-
-GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
+from starsector_path import GAME_CORE as GAME
 SHIP = 'data/hulls/hound.ship'
 SKIN = 'data/hulls/skins/hound_hegemony.skin'
 SPRITE = 'graphics/ships/hound/hound_hegemony.png'
@@ -74,12 +78,15 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--state', choices=('clean', 'pirate'), default='clean')
 parser.add_argument('--ramp-open', type=float, default=0.0,
                     help='lower the aft ventral ramp by this many degrees (review renders)')
 parser.add_argument('--figure', action='store_true',
                     help='add a 1.8 m scale figure on the bridge walkway (review renders)')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
+if args.state != 'clean' and OUT == HERE.resolve() and not args.no_save:
+    raise SystemExit(f'--state {args.state} needs --out DIR (or --no-save): this folder holds the clean asset')
 OUT.mkdir(parents=True, exist_ok=True)
 
 
@@ -114,7 +121,8 @@ hd_wheelhouse.build(kit)
 hd_fork.build(kit)
 hd_bridge.build(kit)
 hd_engines.build(kit)
-hd_mounts.build(kit)
+hd_mounts.build(kit, hd_pirate.GUNS if args.state == 'pirate' else None)
+pirate = hd_pirate.build(kit) if args.state == 'pirate' else None
 if args.figure:
     hd_wheelhouse.scale_figure(kit)
 if args.ramp_open:
@@ -162,6 +170,13 @@ CLOSEUPS = [
     ('wheelhouse-detail', (46, 48, 30), (11, 1, 8), 30),
     ('underside-aft', (-62, 40, -40), (-11, 0, -4), 52),
 ]
+if args.state == 'pirate':  # state-only close-ups; the clean scene keeps its cameras
+    CLOSEUPS += [
+        ('armour-detail', (52, 70, 46), (-3, 10, 4), 44),
+        ('armour-starboard', (40, -80, 50), (-2, -14, 4), 46),
+        ('chaingun-detail', (52, -14, 14), (37, -6, .6), 12),
+        ('twin-mg-detail', (6, 26, 22), (-6.5, 6.5, 10), 10),
+    ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
     CLOSEUPS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
@@ -267,6 +282,11 @@ if not args.no_save:
                      'rotation': 'bow left, port below' if n == 'top' else 'looks at '+str(list(TARGET))}
                     for n, p, s in CAMERAS],
     }
+    if pirate:
+        manifest['status'] = 'Hound (P) pirate state of the detailed Hound (A) geometry: welded scrap armour, ' \
+                             'chaingun (WS 001), twin light MG (WS 002), light battle scars. No textures.'
+        manifest['state'] = 'pirate'
+        manifest['states'] = {'pirate': pirate}
     path = OUT/'geometry.json'
     if path.exists():  # keep the silhouette record compose_review.py wrote
         old = json.loads(path.read_text(encoding='utf-8'))

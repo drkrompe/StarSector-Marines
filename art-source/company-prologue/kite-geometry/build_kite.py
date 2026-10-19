@@ -33,8 +33,10 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import kp_kit, kp_hull, kp_engines, kp_weapons
-MODULES = (kp_kit, kp_hull, kp_engines, kp_weapons)
+sys.path.insert(0, str(HERE.parent))
+import ship_scale  # noqa: E402
+import kp_kit, kp_hull, kp_cabin, kp_engines, kp_weapons
+MODULES = (kp_kit, kp_hull, kp_cabin, kp_engines, kp_weapons)
 for module in MODULES:
     importlib.reload(module)
 
@@ -48,11 +50,15 @@ parser.add_argument('--figure', action='store_true')
 parser.add_argument('--state', default='clean', choices=('clean',))
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 
-# Pass 4 publishes the hull's one real-world scale here; until then this is
-# option C's estimate (55 m over the sprite's 64-pixel length).
-METRES_PER_UNIT = 0.86
-STATUS = 'Pass 1 blockout.'
-PASSES = {'1 blockout': 'built'}
+# Pass 4: the hull's one real-world scale. Every metric value (VFX sizes and
+# speeds, lamp falloff, cameras, depth of field, flight speeds, texel density)
+# derives from it; nothing hard-codes metres. Solved by ship_scale.py option C
+# from the measured enclosed volume (SOLIDS['kite']): 0.804, published 0.80.
+METRES_PER_UNIT = 0.80
+STATUS = 'Passes 1-4: blockout, detail, scale.'
+PASSES = {'1 blockout': 'built; v1-blockout renders regenerate from commit 0af310a38',
+          '2 plausible detailing': 'built: hull and cabin here, engines and weapons by one Opus agent each',
+          '4 real-world scale': 'metres_per_unit 0.80 from ship_scale.py option C (solves 0.804, range 0.779-0.828)'}
 RENDERS = Path(args.out).resolve() if args.out else HERE/'renders'
 SAVE_DIR = Path(args.out).resolve() if args.out else HERE
 RENDERS.mkdir(parents=True, exist_ok=True)
@@ -118,9 +124,12 @@ def build_module(module):
         ob['module'] = module.__name__
 
 
-for module in (kp_hull, kp_engines, kp_weapons):
+for module in (kp_hull, kp_cabin):
     build_module(module)
+# Measured before the drives cut their bores, so drive cans stay out of it.
 envelope_u3 = union_volume(HABITABLE)
+for module in (kp_engines, kp_weapons):
+    build_module(module)
 print('VOLUME', round(envelope_u3))
 
 if args.figure:
@@ -199,8 +208,8 @@ if not args.no_save and not args.figure:
     lo = Vector((1e9,)*3); hi = Vector((-1e9,)*3)
     for ob in bpy.data.objects:
         if ob.type == 'MESH' and not ob.name.startswith('Scale figure'):
-            for c in ob.bound_box:
-                w = ob.matrix_world @ Vector(c)
+            for v in ob.data.vertices:      # vertices, not bound_box: a joined object's box can be stale
+                w = ob.matrix_world @ v.co
                 lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
     gj = SAVE_DIR/'geometry.json'
     old = json.loads(gj.read_text(encoding='utf-8')) if gj.exists() else {}
@@ -220,6 +229,8 @@ if not args.no_save and not args.figure:
         'axes': {'+X': 'bow', '+Y': 'port', '+Z': 'dorsal'},
         'units': 'Vanilla hull units (1 sprite px = 1 unit); multiply by metres_per_unit for metres',
         'metres_per_unit': METRES_PER_UNIT,
+        'scale': ship_scale.record('Kite (P)'),
+        'person_1_8m_units': round(1.8/METRES_PER_UNIT, 2),
         'enclosed_volume_units3': round(envelope_u3),
         'enclosed_volume_objects': list(HABITABLE),
         'dimensions': {'min': [round(v, 2) for v in lo], 'max': [round(v, 2) for v in hi],
@@ -241,7 +252,7 @@ if not args.no_save and not args.figure:
         'top_view_mapping': {'pixels_per_unit': 1920/TOP_SCALE, 'centre': list(TOP_CENTRE), 'bow': 'left', 'port': 'down'},
         'mesh_authority': 'All views render the same objects; later surface art is subordinate to this geometry.',
     }
-    for keep in ('silhouette', 'scale'):
+    for keep in ('silhouette',):
         if keep in old:
             manifest[keep] = old[keep]
     gj.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')

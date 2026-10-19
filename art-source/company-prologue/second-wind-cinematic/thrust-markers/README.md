@@ -52,6 +52,16 @@ bell's mouth, pointing hull-down with +Z toward the bow: its mains vectored for 
 (`thrust_markers.lift_from_mains`). No nozzle is invented. Second Wind has real belly jets
 (its down-facing RCS), so it uses those.
 
+Such a lift marker carries `thrust_vectored` (the name of the main it is the same drive as) and
+its direction is keyed, because the drive turns (owner, 2026-10-19: thrusting down is fine
+while not moving). With no way on (hovering, going straight up or setting down) it points
+hull-down and carries the drive's whole throttle. As the craft picks up horizontal speed it
+pitches back toward its main's aft axis, fully aft by `VECTOR_FULL` (6 m/s), and hands its
+throttle over to the main marker at the same mouth; slowing down turns it back. The two always
+add up to the drive's one throttle (1.0 hovering, 0.6 cruising), so hang a plume off either or
+both. A plume parented to the lift marker follows the turn by itself; read `rotation_quaternion`
+if you need the direction. Re-keying throttle with `tm.key` leaves the turn alone.
+
 ## Using it
 
 ```python
@@ -64,8 +74,8 @@ tm.auto(craft, marks, fps, (0, end))  # throttle read off a craft's own keyed mo
 
 `thrust_shots.py` is the per-shot half: one call at the end of each scene's build
 (`mark_c1`, `mark_c2`, `mark_c4`, which also covers C5) gives the named craft their throttle
-from the scene's own constants, and every other craft `auto` (parked: off; climbing or sinking
-with little way on: lift; travelling: cruise). A ship another session adds is found and marked
+from the scene's own constants, and every other craft `auto` (parked: off; climbing, sinking
+or (in the port shot) hovering still in the air: lift; travelling: cruise; vectored drives turn between the two). A ship another session adds is found and marked
 without a change here. Where a shot already hung a drive glow off an exhaust anchor (C1's and
 C4's Second Wind glows, C2's Broadsword flames), it now hangs off the marker.
 
@@ -80,7 +90,9 @@ python c3_atlas_markers.py [--sheet]          # C3's Atlas layer (2D composite)
 The check builds the shot the way its own script does and fails if a craft has no markers, a
 marker breaks the convention, or an object named like a ship is not a marked craft. It writes
 `build/thrust-markers/<shot>.json` (per marker: craft, kind, radius, throttle keys, place on the
-craft; per craft: world position once a second) for the VFX and sound passes. `--still` renders
+craft, and for a vectored lift marker its exhaust direction once a second; per craft: world
+position once a second) for the VFX and sound passes. A vectored marker must point down whenever
+it thrusts with no way on, and never adds up with its main to more than full throttle. `--still` renders
 1920x1080 frames, and `draw_glyphs.py` draws the markers over them.
 
 ## Shots without a 3D scene

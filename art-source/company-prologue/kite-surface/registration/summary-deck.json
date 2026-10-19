@@ -1,0 +1,22 @@
+{
+ "wing-top": {
+  "raw_iou": 0.9912,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9958,
+  "scale": [
+   1.00055,
+   1.00068
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "spine-top": {
+  "raw_iou": 0.9877,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9972,
+  "scale": [
+   1.00631,
+   1.0015
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

@@ -133,7 +133,7 @@ def build(kit):
         kit.box(f'Hull bow {side} pad vent', (39, s*13.2, HEAD_DECK-.15), (5, 1.6, .2), kit.dark, 0)
         strake = ccw([(4, s*31.8), (4, s*22), (-9, s*20), (-12.5, s*31.6)])
         shear(prism(kit, f'Hull wing {side} armour strake', strake, section(WING_DECK-.5, WING_DECK+.55, .2, .4),
-                    kit.orange, .1))
+                    kit.accent, .1))
         for x in (-1.5, -6.5):  # strake joints
             shear(kit.box(f'Hull wing {side} strake seam {x:+.1f}', (x, s*26.5, WING_DECK+.56), (.35, 10.5, .1),
                           kit.dark, 0))
@@ -152,7 +152,7 @@ def build(kit):
         for k, y in enumerate((1.9, 3.3), 1):
             kit.box(f'Hull spine {side} heat vent slat {k}', (-16, s*y, SPINE_DECK+.1), (9.5, .35, .2), kit.vent, 0)
     # Spine ridge (the lighter centre stripe) and its seam bands.
-    kit.box('Hull spine ridge', (11.5, 0, SPINE_DECK+.3), (37, 2.6, .7), kit.orange, .15)
+    kit.box('Hull spine ridge', (11.5, 0, SPINE_DECK+.3), (37, 2.6, .7), kit.accent, .15)
     for x in (17.2, -3.2, -20.5):
         kit.box(f'Hull spine seam {x:+.1f}', (x, 0, SPINE_DECK+.05), (.4, 9, .2), kit.dark, 0)
     # Bridge viewport arc across the head, forward of the bow turret (lights rows 12-15).

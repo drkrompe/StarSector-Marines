@@ -1,0 +1,59 @@
+{
+ "part": "hull-top",
+ "sheet": "hull",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9917,
+ "raw_iou": 0.8848,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.8894,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.8848
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0033,
+    0.99544
+   ],
+   "offset_px": [
+    -1.5,
+    1.17
+   ],
+   "iou": 0.8847
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0033,
+    0.99944
+   ],
+   "offset_px": [
+    -1.5,
+    1.17
+   ],
+   "iou": 0.8894
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 17.94,
+  "p95_px": 97.0,
+  "max_px": 118.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 17.71,
+  "p95_px": 98.0,
+  "max_px": 119.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

@@ -16,7 +16,8 @@ and geometry.json (tracked manifest).
 Modules: kp_kit (materials and helpers, copied from the Hermes kit),
 kp_hull (fuselage, wing body, dorsal spine, aft hump, missile sponsons),
 kp_engines (the eight drive units at the .ship engine slots),
-kp_weapons (two missile hardpoints and the WS 003 turret from the shared
+kp_cabin (cockpit, cabin windows, doors, belly, plating, pirate add-ons,
+lamps, RCS), kp_weapons (two missile hardpoints and the WS 003 turret from the shared
 turret kit). Axes +X bow, +Y port, +Z dorsal; one unit = one sprite pixel
 about the .ship centre.
 

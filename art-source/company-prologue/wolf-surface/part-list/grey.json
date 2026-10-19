@@ -1,0 +1,1045 @@
+{
+ "head-top": {
+  "what": "head and both outriggers from above",
+  "sheet": "grey-tops",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull head",
+    "seed": [
+     38.0,
+     4.0,
+     4.4
+    ],
+    "faces": [
+     3,
+     7,
+     13,
+     19,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     80,
+     81,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     110,
+     111,
+     112,
+     113,
+     114,
+     120,
+     121,
+     122,
+     123,
+     127,
+     128
+    ]
+   },
+   {
+    "object": "Hull port outrigger",
+    "seed": [
+     36.0,
+     13.0,
+     3.3
+    ],
+    "faces": [
+     2,
+     3,
+     6,
+     7,
+     11,
+     17,
+     19,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     74,
+     75,
+     76,
+     81,
+     82,
+     87,
+     88,
+     93,
+     94
+    ]
+   },
+   {
+    "object": "Hull starboard outrigger",
+    "seed": [
+     36.0,
+     -13.0,
+     3.3
+    ],
+    "faces": [
+     2,
+     3,
+     6,
+     7,
+     12,
+     13,
+     19,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     76,
+     77,
+     78,
+     79,
+     82,
+     89,
+     90,
+     91,
+     94
+    ]
+   }
+  ],
+  "face_count": 96,
+  "area_units2": 472.42,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   32.23,
+   13.09
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    37.05000972747803
+   ],
+   "ortho_width": 37.47708963793377
+  },
+  "native_texels_per_unit": 21.2
+ },
+ "fork-top": {
+  "what": "bow fork base and outer tines from above",
+  "sheet": "grey-tops",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull bow fork base",
+    "seed": [
+     45.5,
+     7.0,
+     3.0
+    ],
+    "faces": [
+     15,
+     16,
+     28,
+     67,
+     68,
+     69,
+     70,
+     76,
+     84,
+     86,
+     108,
+     109,
+     110,
+     111,
+     117,
+     118
+    ]
+   },
+   {
+    "object": "Hull bow port outer tine",
+    "seed": [
+     49.0,
+     7.6,
+     2.9
+    ],
+    "faces": [
+     2,
+     3,
+     6,
+     7,
+     10,
+     14,
+     30,
+     35,
+     43,
+     45,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     59,
+     60,
+     61,
+     64,
+     69,
+     70,
+     73
+    ]
+   },
+   {
+    "object": "Hull bow starboard outer tine",
+    "seed": [
+     49.0,
+     -7.6,
+     2.9
+    ],
+    "faces": [
+     2,
+     3,
+     6,
+     7,
+     10,
+     14,
+     37,
+     39,
+     43,
+     45,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     59,
+     60,
+     61,
+     64,
+     69,
+     70,
+     73
+    ]
+   }
+  ],
+  "face_count": 66,
+  "area_units2": 118.27,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   20.0,
+   10.72
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    48.442426681518555
+   ],
+   "ortho_width": 23.25581395348837
+  },
+  "native_texels_per_unit": 34.2
+ },
+ "engine-top": {
+  "what": "engine block deck and the aft spine",
+  "sheet": "grey-tops",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull engine block",
+    "seed": [
+     -28.0,
+     0.0,
+     5.0
+    ],
+    "faces": [
+     3,
+     12,
+     18,
+     24,
+     122,
+     123,
+     124,
+     125,
+     126,
+     127,
+     133,
+     134,
+     139,
+     140,
+     141,
+     142,
+     143,
+     144,
+     145,
+     146,
+     147,
+     148,
+     149,
+     150,
+     151,
+     152,
+     153,
+     165,
+     183,
+     184,
+     193,
+     194,
+     311,
+     315,
+     317,
+     344,
+     400,
+     407,
+     439,
+     440,
+     450
+    ]
+   },
+   {
+    "object": "Hull dorsal spine aft",
+    "seed": [
+     -15.0,
+     0.0,
+     5.3
+    ],
+    "faces": [
+     2,
+     5,
+     7,
+     8,
+     10,
+     11,
+     21,
+     24,
+     26,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     44,
+     45,
+     46,
+     48,
+     51,
+     52,
+     53,
+     55
+    ]
+   }
+  ],
+  "face_count": 69,
+  "area_units2": 784.33,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   32.59,
+   36.24
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -20.620540618896484
+   ],
+   "ortho_width": 74.91696379905524
+  },
+  "native_texels_per_unit": 10.6
+ },
+ "pod-top-port": {
+  "what": "port missile pod from above",
+  "sheet": "grey-tops",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Pod port missile body",
+    "seed": [
+     10.0,
+     19.0,
+     3.0
+    ],
+    "faces": [
+     4,
+     9,
+     15,
+     19,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     76,
+     77,
+     78,
+     79,
+     84,
+     85,
+     90,
+     91,
+     94
+    ]
+   }
+  ],
+  "face_count": 25,
+  "area_units2": 118.52,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   10.93,
+   10.03
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -19.150001049041748,
+    9.5
+   ],
+   "ortho_width": 20.734458745912065
+  },
+  "native_texels_per_unit": 38.3
+ },
+ "engine-side-port": {
+  "what": "engine block port flank",
+  "sheet": "grey-faces",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull engine block",
+    "seed": [
+     -28.0,
+     15.0,
+     -1.0
+    ],
+    "faces": [
+     7,
+     13,
+     20,
+     23,
+     25,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     364,
+     365,
+     377,
+     378,
+     379,
+     380,
+     401,
+     414,
+     419,
+     441,
+     442,
+     445,
+     446,
+     447,
+     448,
+     449,
+     451,
+     452
+    ]
+   }
+  ],
+  "face_count": 38,
+  "area_units2": 181.67,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   16.5,
+   9.68
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    26.75,
+    -1.1706598997116089
+   ],
+   "ortho_width": 20.004615980833382
+  },
+  "native_texels_per_unit": 39.7
+ },
+ "outrigger-side-port": {
+  "what": "port outrigger outboard wall",
+  "sheet": "grey-faces",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port outrigger",
+    "seed": [
+     36.0,
+     16.2,
+     0.0
+    ],
+    "faces": [
+     16,
+     20,
+     31,
+     32,
+     33,
+     35,
+     44,
+     46,
+     47,
+     48,
+     49,
+     50,
+     77,
+     78,
+     79,
+     80,
+     91,
+     92
+    ]
+   }
+  ],
+  "face_count": 18,
+  "area_units2": 69.64,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.81,
+   5.1
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -37.006136894226074,
+    -0.3651472330093384
+   ],
+   "ortho_width": 14.897991890131042
+  },
+  "native_texels_per_unit": 53.3
+ },
+ "engine-stern": {
+  "what": "engine block stern face round the drives",
+  "sheet": "grey-faces",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull engine block",
+    "seed": [
+     -38.6,
+     6.0,
+     -2.0
+    ],
+    "faces": [
+     1,
+     2,
+     4,
+     5,
+     8,
+     9,
+     10,
+     11,
+     43,
+     44,
+     45,
+     48,
+     50,
+     52,
+     53,
+     77,
+     78,
+     79,
+     80,
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     128,
+     129,
+     130,
+     131,
+     132,
+     135,
+     136,
+     137,
+     138,
+     156,
+     157,
+     158,
+     159,
+     160,
+     161,
+     162,
+     168,
+     169,
+     170,
+     171,
+     172,
+     173,
+     174,
+     175,
+     178,
+     179,
+     180,
+     181,
+     182,
+     195,
+     196,
+     197,
+     198,
+     199,
+     200,
+     262,
+     263,
+     264,
+     266,
+     267,
+     278,
+     280,
+     281,
+     282,
+     346,
+     347,
+     351,
+     352,
+     356,
+     357,
+     362
+    ]
+   }
+  ],
+  "face_count": 101,
+  "area_units2": 151.97,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   32.0,
+   9.46
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -1.2625147104263306
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "spine-fore": {
+  "what": "the neck spine from above",
+  "sheet": "grey-faces",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull dorsal spine fore",
+    "seed": [
+     24.0,
+     0.0,
+     6.0
+    ],
+    "faces": [
+     1,
+     3,
+     5,
+     7,
+     8,
+     10,
+     12,
+     13,
+     19,
+     21,
+     22,
+     24,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     37,
+     38,
+     40,
+     42,
+     43
+    ]
+   }
+  ],
+  "face_count": 25,
+  "area_units2": 151.37,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   9.16,
+   13.96
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    24.921552658081055
+   ],
+   "ortho_width": 28.858494327357878
+  },
+  "native_texels_per_unit": 27.5
+ },
+ "pod-top-stbd": {
+  "what": "starboard missile pod (mirror)",
+  "sheet": "grey-tops",
+  "tile": 3,
+  "skin_from": "pod-top-port",
+  "members": [
+   {
+    "object": "Pod starboard missile body",
+    "seed": [
+     10.0,
+     -19.0,
+     3.0
+    ],
+    "faces": [
+     5,
+     10,
+     17,
+     21,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     76,
+     77,
+     78,
+     79,
+     84,
+     85,
+     90,
+     91,
+     94
+    ]
+   }
+  ],
+  "face_count": 25,
+  "area_units2": 118.52,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   10.93,
+   10.03
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    19.150001049041748,
+    9.5
+   ],
+   "ortho_width": 20.734458745912065
+  },
+  "native_texels_per_unit": 38.3
+ },
+ "engine-side-stbd": {
+  "what": "engine block starboard flank (mirror)",
+  "sheet": "grey-faces",
+  "tile": 0,
+  "skin_from": "engine-side-port",
+  "members": [
+   {
+    "object": "Hull engine block",
+    "seed": [
+     -28.0,
+     -15.0,
+     -1.0
+    ],
+    "faces": [
+     0,
+     6,
+     14,
+     15,
+     17,
+     19,
+     55,
+     57,
+     59,
+     61,
+     63,
+     66,
+     112,
+     113,
+     114,
+     115,
+     116,
+     117,
+     118,
+     119,
+     120,
+     272,
+     273,
+     290,
+     291,
+     292,
+     293,
+     310,
+     328,
+     329,
+     426,
+     427,
+     428,
+     429,
+     431,
+     432,
+     436,
+     437,
+     438
+    ]
+   }
+  ],
+  "face_count": 39,
+  "area_units2": 182.27,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   16.5,
+   9.68
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -26.75,
+    -1.1706598997116089
+   ],
+   "ortho_width": 20.004615980833382
+  },
+  "native_texels_per_unit": 39.7
+ },
+ "outrigger-side-stbd": {
+  "what": "starboard outrigger outboard wall (mirror)",
+  "sheet": "grey-faces",
+  "tile": 1,
+  "skin_from": "outrigger-side-port",
+  "members": [
+   {
+    "object": "Hull starboard outrigger",
+    "seed": [
+     36.0,
+     -16.2,
+     0.0
+    ],
+    "faces": [
+     8,
+     11,
+     34,
+     35,
+     36,
+     38,
+     44,
+     46,
+     47,
+     48,
+     49,
+     52,
+     69,
+     71,
+     74,
+     75,
+     84,
+     86
+    ]
+   }
+  ],
+  "face_count": 18,
+  "area_units2": 69.64,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.81,
+   5.1
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    37.006136894226074,
+    -0.3651472330093384
+   ],
+   "ortho_width": 14.897991890131042
+  },
+  "native_texels_per_unit": 53.3
+ }
+}
