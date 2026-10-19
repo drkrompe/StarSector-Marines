@@ -647,8 +647,10 @@ def populate(skip, frames, frame0, only=None):
         nav.read_scene(skip, s.open_at, movers=near)
         walkers = crowd.simulate(nav, s.groups, frames, None)
         inside = crowd.clip_report(nav, walkers)
-        hit = crowd.mover_clips(walkers, near, frame0)
-        print('PORT_PEOPLE %-10s walkers=%3d inside-something=%d run-over=%d movers=%d %.1fs' % (
-            s.name, len(walkers), inside, hit, len(near), time.time() - t0), flush=True)
+        caught = set()
+        hit = crowd.mover_clips(walkers, near, frame0, caught)
+        print('PORT_PEOPLE %-10s walkers=%3d inside-something=%d run-over=%d movers=%d %.1fs%s' % (
+            s.name, len(walkers), inside, hit, len(near), time.time() - t0,
+            ' ' + str(sorted(caught)[:4]) if caught else ''), flush=True)
         out.append((s, nav, walkers))
     return out

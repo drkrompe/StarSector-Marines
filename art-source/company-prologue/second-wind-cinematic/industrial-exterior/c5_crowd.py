@@ -283,7 +283,7 @@ def mover_clips(walkers, movers, frame0, names=None):
             if all(abs(q[1] - x) + abs(q[2] - y) < 0.05 and abs(q[3] - h) < 0.01 for q in near):
                 continue
             for w in walkers:
-                k = f - frame0
+                k = f - frame0 - w.track[0][0] if w.track else -1    # a track starts when they appear
                 if 0 <= k < len(w.track) and w.track[k][5]:
                     px, py = w.track[k][1] - x, w.track[k][2] - y
                     u, v = px * math.cos(h) + py * math.sin(h), -px * math.sin(h) + py * math.cos(h)
