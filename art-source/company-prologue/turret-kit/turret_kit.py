@@ -85,6 +85,12 @@ WEAPONS = {
     'hurricane': dict(house='hand', mcol=(.105, .136, .145),
                         paints={'paint': (.24, .19, .13), 'accent': (.67, .6, .52),
                                 'plate': (.4, .38, .34), 'mark': (.55, .08, .03)}),
+    # Tri-Tachyon, pale blue-white ceramic. A hull with its own finish passes
+    # hull_finish=True (build(..., hull_finish=True)) to dress them in its materials.
+    'tachyonlance': dict(house='hand'),
+    'gravitonbeam': dict(house='hand'),
+    'taclaser':     dict(house='hand'),
+    'reaper':       dict(house='hand', paints={'accent': (.55, .56, .58)}),
     'harpoonpod':  dict(house='box', rack='open', missiles=(1, 3), mlen=1.2, mrad=.09, mcol=(.5, .6, .5)),
     'sabotpod':    dict(house='box', rack='open', missiles=(1, 3), mlen=.85, mrad=.095, mcol=(.66, .66, .62)),
     'salamanderpod': dict(house='box', rack='open', missiles=(1, 2), mlen=.9, mrad=.11, mcol=(.6, .3, .2)),
@@ -874,6 +880,10 @@ def _sprite_mats(s, mats):
     over them as calibrated, weathered materials (paint_material)."""
     out = dict(mats)
     targets = paint_targets(s)
+    if s.get('hull_finish'):
+        # The hull dresses the turret in its own finish: its materials win wherever
+        # it supplies the key, and are used as they are, not re-weathered.
+        targets = {key: rgb for key, rgb in targets.items() if key not in mats}
     for key, rgb in targets.items():
         out[key] = paint_material(f"Turret {s['weapon']} {key} {_key(rgb)}", rgb, FINISH[key])
     for key in ('armour', 'plate', 'steel'):
@@ -882,7 +892,7 @@ def _sprite_mats(s, mats):
         hm = mats.get(key)
         b = next((n for n in hm.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None) \
             if hm is not None and key not in targets and hm.node_tree else None
-        if b is not None:
+        if b is not None and not s.get('hull_finish'):
             rgb = tuple(b.inputs['Base Color'].default_value[:3])
             out[key] = paint_material(f'Turret {key} {hm.name}', rgb, FINISH[key], base=rgb)
     glow = bpy.data.materials.get('Turret lamp glow')
@@ -898,6 +908,9 @@ def _sprite_mats(s, mats):
             b.inputs['Emission Strength'].default_value = 1.8
     out['glow'] = glow
     out.setdefault('glass', mats['dark'])
+    # Energy weapons' lamps: emitter blue-white and status red (a hull may supply its own).
+    out.setdefault('lamp_blue', lamp_material('Turret lamp blue-white', (.35, .62, 1.0), 2.0))
+    out.setdefault('lamp_red', lamp_material('Turret lamp red', (1.0, .15, .1), 3.0))
     return out
 
 
@@ -2181,11 +2194,132 @@ def _house_hveldriver(g, f, s, r, z0):
                               'muzzles': [(19.8*k, 0, za)], 'skip_barrels': True}
 
 
+# --- Tri-Tachyon energy weapons (the Paragon's Elite fit) ----------------------------
+# A beam has no gun sprite: the whole weapon trains, and the elevation empty
+# carries nothing but the muzzle anchors. Each stands on a base plate cut to its
+# sprite's outline (the body, plus the thin prongs the measurement opened off it),
+# with its raised parts built over that plate, so the sprite's dark gaps read as
+# the base showing between plates. Measurements are sprite pixels times k.
+
+def _ccw(pts):
+    a = sum(p[0]*q[1]-q[0]*p[1] for p, q in zip(pts, pts[1:]+pts[:1]))
+    return list(pts) if a > 0 else list(reversed(pts))
+
+
+def _sym(half, k):
+    """A plan mirrored about the line of fire from its port half [(x, y >= 0), ...], scaled by k."""
+    pts = list(half)+[(x, -y) for x, y in reversed(half) if y > 0]
+    return _ccw([(x*k, y*k) for x, y in pts])
+
+
+def _tt_base(g, sp, k, z0, h, key='steel'):
+    """The base plate: the sprite's bodies and prongs stood up h pixels, bevelled in at the top."""
+    for body in sp.get('bodies') or [sp['body']]:
+        g[key].prism([(x*k, y*k) for x, y in body], z0, z0+.7*h*k, .2*k, z0+h*k)
+    for p in sp['prongs']:
+        g[key].prism([(x*k, y*k) for x, y in p], z0, z0+.8*h*k)
+
+
+def _blade(m, x0, x1, y, w0, w1, z0, z1):
+    """A tapered rib along +X, w0 wide at x0 to w1 at x1, its top dropping a little to the tip."""
+    m.loft_x([(x0, [(y+yy, z) for yy, z in section(w0/2, z0, z1)]),
+              (x1, [(y+yy, z) for yy, z in section(w1/2, z0, z1-.4*(z1-z0))])])
+
+
+def _tt_muzzles(sp, k, za):
+    return [(x*k, y*k, za) for x, y in sp['offsets']]
+
+
+def _house_tachyonlance(g, f, s, r, z0):
+    """tachyon_lance_turret_base.png: two long prong blades either side of the open
+    beam slot (the sprite draws nothing between them; the beam leaves from their
+    root), a body block across their roots, a capacitor pod on an arm either side
+    with its red lamp, and the fan of fins aft. The muzzle is the .wpn's, at the
+    emitter, behind the slot."""
+    k = _k(s, r)
+    sp = sprite(s.get('sprite', s['weapon']))
+    _tt_base(g, sp, k, z0, 1.3)
+    g['paint'].prism(_sym([(0, 0), (0, 13), (-3, 15), (-8, 15), (-9, 11), (-8, 4), (-7, 0)], k),
+                     z0, z0+1.6*k, 1.2*k, z0+2.8*k)
+    for sy in (1, -1):
+        g['paint'].prism(_ccw([(33.5*k, 2.6*sy*k), (30*k, 6.6*sy*k), (2*k, 8.6*sy*k), (2*k, 2.4*sy*k),
+                               (19*k, 2.4*sy*k)]), z0, z0+1.6*k, .8*k, z0+2.6*k)
+        _blade(g['paint'], 3*k, 30*k, 4.2*sy*k, 1.6*k, .9*k, z0+2.5*k, z0+3.4*k)
+        g['steel'].box((2.5*k, 13.5*sy*k, z0+1.6*k), (5*k, 6*k, 1.6*k), .15*k)
+        g['metal'].cyl((5.5*k, 19.6*sy*k, z0+2.6*k), 3.0*k, 8.0*k, 'X', n=12)
+        g['dark'].cyl((9.55*k, 19.6*sy*k, z0+2.6*k), 2.2*k, .2*k, 'X', n=12)
+        g['lamp_red'].box((9.7*k, 19.6*sy*k, z0+2.6*k), (.3*k, 1.4*k, 1.4*k))
+    fins = (((-9, 3), (-21.5, 3)), ((-9, 8.5), (-20.5, 10.6)), ((-8, 12.5), (-17.4, 17.8)), ((-5, 15), (-11.6, 20.6)))
+    for (x0, y0), (x1, y1) in fins:
+        for sy in (1, -1):
+            L = math.hypot(x1-x0, y1-y0)
+            g['steel'].box(((x0+x1)/2*k, (y0+y1)/2*sy*k, z0+1.6*k), (L*k, 1.2*k, .9*k), .1*k,
+                           rot=Matrix.Rotation(math.atan2((y1-y0)*sy, x1-x0), 4, 'Z'))
+    g['dark'].box((2.4*k, 0, z0+1.8*k), (1.2*k, 2.4*k, 1.6*k))
+    g['lamp_blue'].box((3.1*k, 0, z0+2.2*k), (.4*k, 1.4*k, .6*k))
+    za = z0+2.2*k
+    return (3.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
+
+
+def _house_gravitonbeam(g, f, s, r, z0):
+    """graviton_beam_turret_base.png: a blue-white teardrop housing with its lens
+    at the point and a dark spine down the crown, swept wings either side, two
+    feet aft."""
+    k = _k(s, r)
+    sp = sprite(s.get('sprite', s['weapon']))
+    _tt_base(g, sp, k, z0, 1.3, 'paint')
+    g['paint'].prism(_sym([(20.5, 0), (17, 2.6), (11, 4.0), (2, 5.0), (-5, 4.5), (-7, 0)], k),
+                     z0, z0+1.4*k, 1.5*k, z0+2.8*k)
+    for sy in (1, -1):
+        g['paint'].prism(_ccw([(8*k, 5.4*sy*k), (-1*k, 10*sy*k), (-6*k, 10*sy*k), (-5*k, 5.4*sy*k)]),
+                         z0, z0+1.3*k, .6*k, z0+2.0*k)
+        g['steel'].box((-7.5*k, 8.2*sy*k, z0+1.4*k), (2*k, 2*k, 1.0*k), .1*k)
+    g['dark'].box((5*k, 0, z0+2.85*k), (14*k, 1.4*k, .3*k))
+    g['lamp_blue'].lathe([(1.6*k, 0), (1.3*k, .8*k), (.2*k, 1.2*k)], 16, (15.5*k, 0, z0+1.8*k), 'X')
+    za = z0+1.8*k
+    return (15.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
+
+
+def _house_taclaser(g, f, s, r, z0):
+    """tactical_laser_turret.png: a ten-plate dome behind a short emitter spike with
+    a lit collar at its tip."""
+    k = _k(s, r)
+    sp = sprite(s.get('sprite', s['weapon']))
+    _tt_base(g, sp, k, z0, 1.0)
+    g['paint'].lathe([(7.2*k, 0), (7.2*k, .9*k), (5.6*k, 2.7*k), (2.8*k, 3.5*k), (0, 3.6*k)], 10,
+                     (-1.5*k, 0, z0), phase=math.pi/10)
+    g['metal'].lathe([(1.2*k, 0), (.6*k, 6.0*k), (.05*k, 6.3*k)], 12, (5.0*k, .5*k, z0+2.0*k), 'X')
+    g['lamp_blue'].cyl((9.8*k, .5*k, z0+2.0*k), .7*k, .6*k, 'X', n=12)
+    za = z0+2.0*k
+    return (5.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
+
+
+def _house_reaper(g, f, s, r, z0):
+    """light_reaper_launcher_turret_base.png: two rails either side of the loading
+    slot with the round in it (RENDER_LOADED_MISSILES), the launcher block behind,
+    and a base bar with red lamps."""
+    k = _k(s, r)
+    sp = sprite(s.get('sprite', s['weapon']))
+    _tt_base(g, sp, k, z0, 1.0)
+    for sy in (1, -1):
+        g['metal'].box((3*k, 4.6*sy*k, z0+1.4*k), (18*k, 2.4*k, 2.0*k), .15*k)
+        g['lamp_red'].box((-7.3*k, 4.5*sy*k, z0+1.9*k), (1.0*k, 1.0*k, .4*k))
+    g['paint'].box((-.2*k, 0, z0+1.7*k), (5.6*k, 11*k, 2.6*k), .3*k)
+    g['paint'].box((-5.3*k, 0, z0+1.5*k), (1.6*k, 11*k, 2.2*k), .2*k)
+    g['steel'].box((-8.3*k, 0, z0+1.2*k), (2.6*k, 15*k, 1.2*k), .2*k)
+    zr = z0+2.0*k
+    g['accent'].lathe([(.9*k, 0), (.9*k, 7.5*k), (.5*k, 9.0*k), (.05*k, 9.6*k)], 12, (1.5*k, 0, zr), 'X')
+    g['dark'].cyl((1.3*k, 0, zr), 1.0*k, .5*k, 'X', n=12)
+    return (1.5*k, 0.0, zr), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, zr)}
+
+
 HANDS = {'heavyac': _house_heavyac2, 'flak': _house_flak2, 'vulcan': _house_vulcan, 'lightac': _house_lightac,
          'lightmg': _house_lightmg, 'dualflak': _house_dualflak, 'needler': _house_needler,
          'squall': _house_squall, 'hurricane': _house_hurricane, 'mark9': _house_mark9,
          'hellbore': _house_hellbore, 'hephaestus': _house_hephaestus, 'devastator': _house_devastator,
-         'heavymauler': _house_heavymauler, 'hveldriver': _house_hveldriver}
+         'heavymauler': _house_heavymauler, 'hveldriver': _house_hveldriver,
+         'tachyonlance': _house_tachyonlance, 'gravitonbeam': _house_gravitonbeam, 'taclaser': _house_taclaser,
+         'reaper': _house_reaper}
 
 
 def _cowl(g, f, s, r, z0):

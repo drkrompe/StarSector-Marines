@@ -1,0 +1,13 @@
+This tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the east side of its south half: the landing pad's east edge, fuel, the yard's vegetable garden and the east fence.
+
+What the regions are:
+- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.
+- The large pale grey disc: the landing pad, a low concrete slab 96 m across. Cast concrete panels with joint lines, heavy scorching and soot fanning out from its centre where ships' drives fire on landing, oil rings, patch repairs. Keep every yellow marking exactly as drawn (the dashed inner ring, the long centre line and the cross bar), as worn, chipped, faded paint.
+- The ring of chunky yellow dashes around the pad: painted yellow-and-black edge blocks on the gravel, scuffed.
+- The pale tan bar with a dark outline beside the pad: the deck of a repair scaffold tower, steel grating planks, worn and paint-spattered.
+- The two white discs at the bottom: the tops of two round fuel tanks, white paint, dirty and streaked, with a filler hatch.
+- The brown rectangle with green stripes: a small vegetable garden, raised beds of dark soil with rows of green leafy crops, a wooden edge.
+- The tiny dashed rows at the bottom left: laundry hanging on washing lines, seen from above.
+- The thin dark vertical line with small light dots near the right: the yard's east fence, a chain-link fence on steel posts, seen from above as a thin dark line. Keep it thin and straight. The grey strip just east of it: a muddy service track along the fence.
+- Dark green beyond the fence: jungle undergrowth, dense broad-leaved plants and ferns, wet. The large brown patches in it: bare red-brown earth and burnt clearings, with fallen leaves and stumps.
+- Round dark green blobs: the crowns of jungle trees seen from above, dense leafy canopy.

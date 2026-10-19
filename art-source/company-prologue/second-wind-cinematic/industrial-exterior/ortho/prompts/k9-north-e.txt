@@ -1,0 +1,14 @@
+This tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the north-east corner: the yard's generators and fuel tanks, the scrap heap, and the fence corner.
+
+What the regions are:
+- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.
+- The dark grey rectangle at the top left: the turning ground, packed dark gravel and broken asphalt with curved tyre tracks and oil.
+- The long thin yellow straight lines running north-south: the rails of an overhead plate crane, heavy steel rails on a concrete ground beam painted safety yellow, worn.
+- The grey rectangles in rows between the crane rails: stacked steel plate and salvaged hull sections, grey primer and bare steel, weld scars, rust bloom, scorch marks.
+- The three long pale green rectangles and the small green square: the roofs of the yard's diesel generator sets and a switchgear cabinet, faded green painted steel with exhaust soot around the stacks and louvred vents.
+- The two white discs: the tops of two round fuel day tanks, white paint, dirty and streaked, with a filler hatch.
+- The scatter of grey slabs at the top right: a scrap heap of cut hull plate, twisted pieces and junk, grey and rust-brown, overlapping.
+- The small squares at the left edge: the roofs of cargo modules.
+- The thin dark vertical line with small light dots near the right: the yard's east fence, a chain-link fence on steel posts, seen from above as a thin dark line. Keep it thin and straight. The grey strip just east of it: a muddy service track along the fence.
+- Dark green beyond the fence: jungle undergrowth, dense broad-leaved plants and ferns, wet. The large brown patches in it: bare red-brown earth and burnt clearings, with fallen leaves and stumps.
+- Round dark green blobs: the crowns of jungle trees seen from above, dense leafy canopy.

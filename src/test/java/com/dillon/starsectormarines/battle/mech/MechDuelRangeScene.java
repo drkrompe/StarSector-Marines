@@ -91,6 +91,12 @@ public final class MechDuelRangeScene implements BehaviorScene {
     static final float GIVE_GROUND_DISTANCE = HOUND_REACH + 1.5f;
     /** Cells of ground, straight away from the Hound, that count as having given it. */
     static final float GIVE_GROUND_CELLS = 3f;
+    /**
+     * The tank's bar, lower than the walking Sirocco's: a tank backs up at 0.3 of its top speed (0.93 cells/s), and
+     * it stands off only until its fire takes out the Hound's chaingun, when the Hound's reach falls to its SRM's
+     * and the stand-off band closes in to 19.5. That window is about two seconds, so it gives under two cells.
+     */
+    static final float TANK_GIVE_GROUND_CELLS = 1f;
     /** Cells the Hound must close on the Sirocco once it is being shelled. */
     static final float HOUND_CLOSES_CELLS = 4f;
     /** Bulwarks in a duel band: the fight's median distance at least this, and contact rare. */
@@ -405,14 +411,18 @@ public final class MechDuelRangeScene implements BehaviorScene {
          * never came that close asked nothing of it, and the detail says so.
          */
         Verdict givesGround(String name, String shooter) {
+            return givesGround(name, shooter, GIVE_GROUND_CELLS);
+        }
+
+        Verdict givesGround(String name, String shooter, float wanted) {
             if (insideStandoffTicks == 0) {
                 return Verdict.of(name, true, String.format(Locale.ROOT, "the Hound never came inside %.1f cells,"
                         + " so the %s was never asked to give ground", GIVE_GROUND_DISTANCE, shooter));
             }
-            return Verdict.of(name, attackerGaveGround >= GIVE_GROUND_CELLS, String.format(Locale.ROOT,
+            return Verdict.of(name, attackerGaveGround >= wanted, String.format(Locale.ROOT,
                     "with the Hound inside %.1f cells for %d ticks the %s gave %.1f cells of ground (wanted %.0f);"
                             + " %.0f%% of the fight beyond the Hound's reach, median %.1f", GIVE_GROUND_DISTANCE,
-                    insideStandoffTicks, shooter, attackerGaveGround, GIVE_GROUND_CELLS,
+                    insideStandoffTicks, shooter, attackerGaveGround, wanted,
                     shareAbove(HOUND_REACH) * 100f, median()));
         }
 
@@ -504,7 +514,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
             float share = t.shareAbove(HOUND_REACH);
             // The Hound sorties off its post at a tank that out-reaches it: the share of the fight beyond its reach
             // is a reading of that chase, and the tank opening distance as it comes on is the mechanic.
-            verdicts.add(t.givesGround("tank-gives-ground", "tank"));
+            verdicts.add(t.givesGround("tank-gives-ground", "tank", TANK_GIVE_GROUND_CELLS));
         } else {
             verdicts.add(Verdict.of("control-tank-holds", moved < 1f,
                     String.format(Locale.ROOT, "the tank moved %.1f cells (wanted under 1)", moved)));
