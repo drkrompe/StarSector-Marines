@@ -80,8 +80,12 @@ Pass 3 round 2 (owner: the hull as a thin wrapper round stacked containers; the
   steel cell guides on the sprite's slot lines ('<module> bow armour') hold, per
   cell, a stack of 40 ft containers end-on, two across and four high (4.9 x 5.2
   units at 0.50 m/u), 48 per face, in seven liveries ('<module> containers
-  <livery>', lock bars, door seams, corner castings). The open bays are outside
-  the enclosed volume (1.16 M units3; solve 0.429, published 0.50 by override).
+  <livery>', lock bars, door seams, corner castings). The aft modules' end faces
+  (X -20, facing the waist) take the same bays on a narrower 10.8 pitch
+  (cl_hull.AFT_BAY_COLS); each drive pod's thrust yoke converges on a shoe on
+  the cell-guide post between the stacks, so the push lands on the frame, and
+  the pod collar truss stops at the hull lip. The open bays are outside the
+  enclosed volume (1.13 M units3; solve 0.431, published 0.50 by override).
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]
