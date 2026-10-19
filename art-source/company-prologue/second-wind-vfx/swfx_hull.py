@@ -12,10 +12,14 @@ leaves out keeps the Second Wind's value:
   BELL_R            {width: bell mouth radius (hull units)}
   PORT_ENGINES, STARBOARD_ENGINES   index tuples; any other index is 'centre'
   STATES            condition table (swfx_core.STATES shape)
-  MOUNTS            [(x, y, angle, scale, twin), ...] in turret index order
+  MOUNTS            [(x, y, angle, scale, twin[, kind]), ...] in turret index order;
+                    kind 'gun' (default) or 'launcher' (a missile mount: launch
+                    effects instead of muzzle flash, tracer and brass)
   DECLARED_MUZZLES  True: guns come from the ship's own 'Anchor turret <i> <tag>
                     muzzle' empties (+X along the line of fire) instead of the
-                    Second Wind's muzzle-brake parts
+                    Second Wind's muzzle-brake parts; a multi-barrel mount tags
+                    its barrels 'barrel <k>' (or 'tube <k>' on a launcher), and
+                    k is the gun's index in its knob names (t<i>_<k>)
   LAMPS             [(object name prefix, role, colour or None), ...]
   RCS_QUADS         art-placed RCS quads ({} for none; geometry RCS anchors
                     always win when present)
