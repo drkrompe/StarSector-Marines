@@ -1,0 +1,14 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "prompt": "Ambient cinematic closing cue: a warm, slightly worn analog synth pad with soft felt piano notes, slow and unhurried, around 60 BPM, a suspended uncertain colour that opens into major. No drums. 18 seconds long. Starts almost silent and sparse for the first 3 seconds, swells gently but clearly from 3 to 8 seconds, reaches a warm open major chord at about 8 seconds and lets it ring out and thin away to silence by the end. Hopeful but fragile: refugees from a failing station landing somewhere with open sky, worn and humble, a beginning rather than a victory. Instrumental only, no vocals, no choir.",
+  "request": {
+    "music_length_ms": 18000,
+    "force_instrumental": true
+  },
+  "audioSha256": "d3ae3d5dcde07a5cb9d0c8c80410c331c64c5e5dbcd6601c5a4946b83d0a7574",
+  "durationSeconds": 18.05,
+  "peakDb": -5.2,
+  "integratedLufs": -17.1
+}
