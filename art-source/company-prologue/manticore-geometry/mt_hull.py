@@ -44,10 +44,43 @@ NECK_DECK, HEAD_DECK = 11.0, 8.0
 HEAD_KEEL, NECK_KEEL = -10.0, -14.0
 WING_DECK, WING_KEEL = 9.0, -9.0
 AFT_DECK, AFT_KEEL = 12.0, -18.0
-BRIDGE_DECK = 26.5   # the command tier's roof: the captain looks over the main gun
-MAIN_WELL = (13.6, 4.4)   # the main gun stands in a well (radius, depth below the core deck)
+BRIDGE_DECK = 16.5   # the bridge plinth's roof, just above the core deck (owner: never a taller bridge)
+MAIN_WELL = (17.5, 7.4)   # the main gun stands in a well (radius, depth below the core deck)
 POD = (23, 65, 13.5)   # outer turret pod: centre x, |y|, radius
-WING_SLOPE = (24.0, .16)   # the arms droop (anhedral) outboard of |Y| 24 at 0.16 per unit
+# Owner, round 3 (a bird of prey): the arms bend down toward their tips, 0.16
+# per unit outboard of |Y| 24 and 0.42 outboard of |Y| 46; the nose droops like
+# a beak, 0.30 per unit forward of X 62.
+WING_DROOP = [(24.0, .16), (46.0, .42)]
+NOSE_DROOP = (62.0, .30)
+
+
+def wing_drop(y):
+    """How far the wing deck has fallen at |y|."""
+    y, d = abs(y), 0.0
+    for k, (y0, slope) in enumerate(WING_DROOP):
+        y1 = WING_DROOP[k+1][0] if k+1 < len(WING_DROOP) else 1e9
+        if y > y0:
+            d += slope*(min(y, y1)-y0)
+    return d
+
+
+def nose_drop(x):
+    x0, k = NOSE_DROOP
+    return k*max(0.0, x-x0)
+
+
+def droop(ob):
+    """Bend a bow part down forward of NOSE_DROOP's X (a crease there keeps faces planar)."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(NOSE_DROOP[0], 0, 0),
+                           plane_no=(1, 0, 0))
+    for v in bm.verts:
+        v.co.z -= nose_drop(v.co.x)
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
+    return ob
 LAUNCHER = (32, 43)    # WS 004 / WS 005 hardpoint, port side
 
 
@@ -57,16 +90,16 @@ def ccw(poly):
 
 
 def shear(ob, top_only=False):
-    """Lower vertices outboard of WING_SLOPE's |Y| so a part follows the wing's falling deck."""
-    y0, k = WING_SLOPE
+    """Lower vertices outboard of WING_DROOP's first |Y| so a part follows the wing's falling deck."""
     bm = bmesh.new()
     bm.from_mesh(ob.data)
-    for s in (1, -1):  # a crease at |Y| = y0 keeps every face planar
-        bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(0, s*y0, 0),
-                               plane_no=(0, 1, 0))
+    for y0, _k in WING_DROOP:
+        for s in (1, -1):  # a crease at each break keeps every face planar
+            bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(0, s*y0, 0),
+                                   plane_no=(0, 1, 0))
     for v in bm.verts:
-        if (not top_only or v.co.z > 0) and abs(v.co.y) > y0:
-            v.co.z -= k*(abs(v.co.y)-y0)
+        if not top_only or v.co.z > 0:
+            v.co.z -= wing_drop(v.co.y)
     bm.to_mesh(ob.data)
     bm.free()
     ob.data.update()
@@ -94,8 +127,8 @@ def facets(hw, top, bot, flat=.5, keel=.45, up=.45, down=.55):
 # gun superfires over the bow gun; the deck drops in a steep step ahead of the
 # main gun's well, so its barrel overhangs the fall rather than lying on it; the core reaches far below its deck.
 HEAD_STATIONS = [(86.5, 7, 2.5, -3), (83, 14, 6, -7), (78, 20, 8, -10), (66, 21, 8, -12), (61, 17, 8.5, -13)]
-NECK_STATIONS = [(63, 16.5, 8.5, -13), (58, 16, 9, -15), (50, 18, 9.5, -17), (43, 19.5, 10, -19)]
-CORE_STATIONS = [(45, 19.5, 10, -19), (38, 22.5, 11, -21), (34.6, 24.2, 13, -21.5), (31, 25, 15, -22), (10, 25, 15, -23),
+NECK_STATIONS = [(63, 16.5, 8.5, -13), (58, 16, 9, -15), (50, 18, 9.2, -17), (43, 19.5, 9.5, -19)]
+CORE_STATIONS = [(45, 19.5, 9.5, -19), (38, 22.5, 9.5, -21), (34.6, 24.2, 10, -21.5), (29, 25, 15, -22), (10, 25, 15, -23),
                  (-20, 24, 15, -24), (-40, 24, 13.5, -22), (-57.5, 23, 11, -16)]
 # The ventral blade under the core: a faceted fin to -30 for the side profile.
 KEEL_STATIONS = [(32, 5, -18, -22), (20, 9, -20, -30), (-36, 9, -20, -30), (-50, 5, -16, -21)]
@@ -106,7 +139,7 @@ def lofted(kit, name, stations, mat, **kw):
 
 
 def build(kit):
-    head = lofted(kit, 'Hull bow head', HEAD_STATIONS, kit.steel)
+    head = droop(lofted(kit, 'Hull bow head', HEAD_STATIONS, kit.steel))
     for s in (1, -1):
         side = 'port' if s > 0 else 'starboard'
         # Armour horn (owner, round 1: a better head than a red block): a red
@@ -120,7 +153,7 @@ def build(kit):
         plane_cut(horn, f'{side} horn aft rake', (71, s*12, HEAD_DECK+4.4), facet_normal((-1, 0), 40))
         n = facet_normal((1, 0), 40)
         plane_cut(horn, f'{side} horn chin', (80, s*12, HEAD_DECK-16.0), (n[0], 0, -n[2]))
-        kit.hull.append(horn)
+        kit.hull.append(droop(horn))
         # Neck rail: the long red strake down each side of the neck (rows 26-45),
         # riding the glacis.
         rail = prism(kit, f'Hull neck {side} rail', ccw([(64, s*10.5), (64, s*15), (52, s*17.5), (43, s*19),
@@ -128,7 +161,7 @@ def build(kit):
                      section(NECK_KEEL+3.0, 17.0, 1.0, .7), kit.red, .15)
         plane_cut(rail, f'{side} rail glacis', (63, 0, 10.0), facet_normal((1, 0), 2))
         plane_cut(rail, f'{side} rail outboard fall', (52, s*13, 10.4), facet_normal((0, s), 26))
-        kit.hull.append(rail)
+        kit.hull.append(droop(rail))
     crossbar = prism(kit, 'Hull bow crossbar', ccw(sym([(66.5, 7.5), (64, 9.5), (61, 8.5), (60.5, 4)])),
                      section(4.0, HEAD_DECK+1.6, .5, 1.3), kit.red, .15)
     # The prow block stands proud of the head's stem face: coincident faces shade black.
@@ -137,9 +170,9 @@ def build(kit):
     plane_cut(prow, 'prow face rake', (85.8, 0, 4.5), facet_normal((1, 0), 40))
     n = facet_normal((1, 0), 40)
     plane_cut(prow, 'prow chin rake', (84.8, 0, -6.0), (n[0], 0, -n[2]))
-    kit.hull += [prow, crossbar]
+    kit.hull += [droop(prow), droop(crossbar)]
 
-    neck = lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel)
+    neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
     core = lofted(kit, 'Hull core', CORE_STATIONS, kit.red)
     # The main gun stands in a well, so its roof sits low under the bridge's sightline.
     r, d = MAIN_WELL
@@ -156,9 +189,9 @@ def build(kit):
 
     # Outer turret pods: octagonal drums at the drooping wing tips.
     x, y, r = POD
-    drop = WING_SLOPE[1]*(y-WING_SLOPE[0])
+    drop = wing_drop(y)
     lx, ly = LAUNCHER
-    ldrop = WING_SLOPE[1]*(ly-WING_SLOPE[0])
+    ldrop = wing_drop(ly)
     for side, s in (('port', 1), ('starboard', -1)):
         pod = prism(kit, f'Hull {side} turret pod', ccw(octagon_plan(x, s*y, r)),
                     section(-14.0-drop, 11.0-drop, 5.0, 3.4), kit.steel)
@@ -186,19 +219,21 @@ def build(kit):
     # The main gun's ring at the bottom of its well, and the small bow ring for WS 002.
     kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK-MAIN_WELL[1]-.6), MAIN_WELL[0]-.6, 1.4,
                                  kit.steel, vertices=24, bevel=.2))
-    kit.hull.append(kit.cylinder('Hull bow turret ring', (73, 0, HEAD_DECK+.4), 8.0, 1.2, kit.steel,
+    # The bow ring stands level on the drooping beak: its top is the deck's height
+    # at the ring's centre, its foot buried in the falling deck ahead.
+    kit.hull.append(kit.cylinder('Hull bow turret ring', (73, 0, HEAD_DECK+1.0-nose_drop(73)-1.8), 8.0, 4.8, kit.steel,
                                  vertices=16, bevel=.2))
 
-    # The command tier (owner, round 2: what does the captain see?). A raked,
-    # faceted block aft of the main gun lifts the bridge above the gun's roof:
-    # the main gun is sunk in its well and the neck falls away ahead as a
-    # glacis, so the glazing looks over the Hellbore and down the neck to the bow.
-    tier = prism(kit, 'Bridge command tier', ccw(sym([(8, 10), (4, 16), (-24, 16.5), (-30, 11), (-31, 4)])),
-                 section(CORE_DECK-3.0, BRIDGE_DECK, 1.0, 3.0), kit.red)
-    plane_cut(tier, 'tier front rake', (4, 0, BRIDGE_DECK), facet_normal((1, 0), 44))
+    # The bridge plinth: a low raked armoured base under the command dome, not a
+    # tower (owner, round 3: a taller bridge is not the answer). The view comes
+    # from the hull falling away round the bridge instead: the main gun is sunk,
+    # the beak droops ahead and the arms bend down outboard.
+    tier = prism(kit, 'Bridge command tier', ccw(sym([(2.5, 10), (-1, 16), (-24, 16.5), (-30, 11), (-31, 4)])),
+                 section(CORE_DECK-3.0, BRIDGE_DECK, 1.0, 1.0), kit.red)
+    plane_cut(tier, 'tier front rake', (0, 0, BRIDGE_DECK), facet_normal((1, 0), 44))
     plane_cut(tier, 'tier aft rake', (-25, 0, BRIDGE_DECK), facet_normal((-1, 0), 30))
     for s in (1, -1):
-        plane_cut(tier, f'tier {s} side fall', (-10, s*11, BRIDGE_DECK), facet_normal((0, s), 30))
+        plane_cut(tier, f'tier {s} side fall', (-10, s*14, BRIDGE_DECK), facet_normal((0, s), 30))
     kit.hull.append(tier)
     # The pale command dome on the tier (sprite rows 87-110).
     dome = prism(kit, 'Bridge command dome', ccw(sym([(-1, 5), (-3, 9.5), (-8, 11.5), (-15, 11), (-19.5, 7)])),
