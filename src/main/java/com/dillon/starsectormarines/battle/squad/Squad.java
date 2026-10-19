@@ -27,7 +27,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -179,6 +178,10 @@ public final class Squad {
             ENGAGED_DECAY_SECONDS + SUSPICIOUS_DECAY_SECONDS;
     private static final float BELIEF_DECAY_PER_SECOND =
             1f / BELIEF_LIFETIME_SECONDS;
+
+    /** Published belief order: ascending unit id, so readers see one deterministic list. */
+    private static final Comparator<BelievedContact> BELIEF_ORDER =
+            Comparator.comparingLong(BelievedContact::unitId);
 
     /** Serial-write contact store owned by {@code SquadAlertSystem}. */
     private final Long2ObjectOpenHashMap<BelievedContact> contactMemory =
@@ -974,6 +977,8 @@ public final class Squad {
      */
     void beginBeliefTick(float dt, int simTick, LongPredicate stillResolves) {
         directContactObservedLastTick = false;
+        // An iterator over an empty store still allocates one, every squad every tick.
+        if (contactMemory.isEmpty()) return;
         ObjectIterator<Long2ObjectMap.Entry<BelievedContact>> iterator =
                 contactMemory.long2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
@@ -1087,14 +1092,18 @@ public final class Squad {
      * last-seen projection from the freshest deterministic contact.
      */
     void publishBeliefSnapshot() {
-        List<BelievedContact> snapshot = new ArrayList<>(contactMemory.values());
-        snapshot.sort(Comparator.comparingLong(BelievedContact::unitId));
-        believedContacts = List.copyOf(snapshot);
-
         BelievedContact freshest = null;
-        for (BelievedContact contact : snapshot) {
-            if (freshest == null || contact.lastSeenTick() > freshest.lastSeenTick()) {
-                freshest = contact;
+        if (contactMemory.isEmpty()) {
+            // Most squads, most ticks: nothing remembered, so nothing to copy.
+            if (!believedContacts.isEmpty()) believedContacts = List.of();
+        } else {
+            BelievedContact[] snapshot = contactMemory.values().toArray(new BelievedContact[0]);
+            Arrays.sort(snapshot, BELIEF_ORDER);
+            believedContacts = List.of(snapshot);
+            for (BelievedContact contact : snapshot) {
+                if (freshest == null || contact.lastSeenTick() > freshest.lastSeenTick()) {
+                    freshest = contact;
+                }
             }
         }
         AudibleBearing heard = audibleBearing;

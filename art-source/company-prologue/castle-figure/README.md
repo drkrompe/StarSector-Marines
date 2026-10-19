@@ -13,7 +13,9 @@ light, and the repaint owns face, hair and cloth finish. Her look is the portrai
 
 | File | What it is |
 |---|---|
-| `build_castle.py` | Builds her headless and writes `castle-figure.blend` (gitignored). `python build_castle.py [--hair mesh\|curves] [--out PATH]`. |
+| `build_castle.py` | Builds her headless and writes `castle-figure.blend` (gitignored). `python build_castle.py [--hair mesh\|curves] [--face portrait\|plain] [--out PATH]`. |
+| `castle_face.py` | Her face, half-smile and textured skin, eyes, brows and lashes: MakeHuman face targets from her portrait, the expression units masked to her left, MakeHuman's CC0 diffuses (packed into the .blend). `--face plain` skips it. |
+| `face_review.py` | Her face beside her portrait, and a front / three-quarter / profile turn, in EEVEE and Workbench. `python face_review.py --out DIR [--blend PATH] [--prefix NAME-]`. |
 | `castle_review.py` | Review sheets, 1920x1080: turnarounds, the C2 close-shot distance, and the bridge framings. `python castle_review.py --out DIR [--blend PATH] [--engine workbench\|eevee] [--sheets ...] [--prefix NAME-] [--no-bridge]`. |
 
 ## Hair
@@ -67,5 +69,10 @@ procedural hair node assets (CC0). No other assets are used.
 - Hair: the pack has no bun. Either `short04` (swept back) carries a modelled bun and the
   repaint does the rest, or the curves groom replaces both (see Hair). The owner decides.
 - Boots: `shoes02` reads as low shoes, not work boots.
-- Materials are flat colours, not MPFB's textured skin (whose textures live in one
-  machine's Blender profile). A finished look comes from the repaint, not from Cycles.
+- Clothes, boots and hair materials are flat colours. Skin, eyes, brows and lashes are
+  textured (castle_face.py) from MakeHuman's CC0 diffuses, packed into the .blend so it
+  opens without MPFB; every material keeps a flat diffuse_color for Workbench.
+- The face is MakeHuman's, shaped toward the portrait: it carries her proportions and
+  expression for the repaint, not a likeness.
+- The earpiece stays on her right ear, with her right hand at it, as C2 poses her, although the
+  portrait and cards wear it on her left (owner, 2026-10-19).

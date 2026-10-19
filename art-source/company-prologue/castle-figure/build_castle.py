@@ -1,7 +1,10 @@
 """Castle as a 3D figure: a MakeHuman body built by MPFB, rigged and posed, in metres.
 
-    python build_castle.py [--hair mesh|curves] [--out PATH]   # launches Blender 5.2 headless
-    blender --background --python build_castle.py -- [--hair mesh|curves] [--out castle-figure.blend]
+    python build_castle.py [--hair mesh|curves] [--face portrait|plain] [--out PATH]   # Blender 5.2, headless
+    blender --background --python build_castle.py -- [--hair mesh|curves] [--face portrait|plain] [--out PATH]
+
+--face portrait (the default) shapes her face, half-smile and textured skin (castle_face.py);
+--face plain is MakeHuman's default face for her age, in flat colours.
 
 --hair mesh (the default) is MakeHuman's short04 cards with a modelled bun; --hair curves grooms
 Blender hair curves instead (grow_curves_hair), a prototype the owner is still choosing between.
@@ -56,7 +59,7 @@ ROOT = "Castle figure root"
 PHENOTYPE = dict(gender=0.0, age=0.71, muscle=0.55, weight=0.52, proportions=0.6, height=0.62,
                  cupsize=0.45, firmness=0.45,
                  race=dict(caucasian=0.72, asian=0.12, african=0.16))      # warm pale olive
-ASSETS = dict(eyes="high-poly.mhclo", eyebrows="eyebrow006.mhclo", eyelashes="eyelashes01.mhclo",
+ASSETS = dict(eyes="high-poly.mhclo", eyebrows="eyebrow008.mhclo", eyelashes="eyelashes01.mhclo",
               hair="short04.mhclo")                    # swept back; the bun is added below
 CLOTHES = ["male_casualsuit02.mhclo", "shoes02.mhclo"]  # long-sleeved top over trousers; boots
 
@@ -611,6 +614,11 @@ def blender_main(argv):
     hair_mode = argv[argv.index("--hair") + 1] if "--hair" in argv else "mesh"
     if hair_mode not in ("mesh", "curves"):
         sys.exit("--hair is mesh (MakeHuman short04 and a modelled bun) or curves (a groom)")
+    face_mode = argv[argv.index("--face") + 1] if "--face" in argv else "portrait"
+    if face_mode not in ("portrait", "plain"):
+        sys.exit("--face is portrait (castle_face: her face, smile and textured skin) or plain")
+    sys.path.insert(0, str(HERE))
+    import castle_face
 
     try:
         import addon_utils
@@ -639,6 +647,8 @@ def blender_main(argv):
     info.update(ASSETS)
     info["clothes"] = list(CLOTHES)
     info["skin_material_type"] = "NONE"
+    if face_mode == "portrait":
+        info["targets"] = castle_face.human_info_targets()
     settings = HumanService.get_default_deserialization_settings()
     settings.update(scale=0.1, subdiv_levels=1, override_skin_model="NONE")   # 0.1: dm to metres
     body = HumanService.deserialize_from_dict(info, settings)
@@ -684,6 +694,8 @@ def blender_main(argv):
         c = poly.center
         if c.z < hem and abs(c.x) < 0.25:
             poly.material_index = 1
+    if face_mode == "portrait":
+        castle_face.dress_face(body, parts)
 
     # ---- landmarks of the built body (rest pose, MPFB frame)
     verts = [body.matrix_world @ v.co for v in body.data.vertices]
@@ -885,6 +897,7 @@ def blender_main(argv):
     root["frame"] = "metres; z up from the soles; she faces +X"
 
     out.parent.mkdir(parents=True, exist_ok=True)
+    castle_face.pack()
     bpy.ops.wm.save_as_mainfile(filepath=str(out), compress=True)
     print("CASTLE height %.3f m, ear %s -> %s" % (root["height_m"], tuple(round(c, 3) for c in ear_r),
                                                    out), flush=True)
