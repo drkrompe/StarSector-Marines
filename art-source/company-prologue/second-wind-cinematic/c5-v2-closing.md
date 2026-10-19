@@ -255,8 +255,8 @@ tractors and sets others on. Forklifts run stores up the gaps beside the worked
 freighters and along the warehouse faces; a bowser comes in to the one
 fuelling; baggage tugs, the port bus and trucks at the terminal doors work the
 apron between the ferry and the freight terminal. A Hermes lifts off in C4's
-last seconds. During C5's rise another comes down on that pad and a Hound lands
-on the empty berth, so a lifter is moving in each shot. All of it is outside
+last seconds. During C5's rise another comes down on that pad, and the Colossus
+climbing away over the title is the fleet's (`port_fleet.py`). All of it is outside
 Kilo Nine's fence and keyed through C5's last frame.
 
 **The port's people** (`industrial-exterior/port_people.py`). The rise would

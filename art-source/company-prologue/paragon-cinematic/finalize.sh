@@ -19,7 +19,7 @@ mkdir -p build
 # 1. The geometry package's own export, run on the textured build (one collection, packed images).
 "$BLENDER" --background "$SKINNED" --python-exit-code 1 --python ../paragon-geometry/export_paragon.py \
   -- --out build/export > build/export.log 2>&1 || { tail -20 build/export.log; exit 1; }
-# 2. Engine and kit gun anchors, the SWFX effects collection (with beams) -> paragon.blend + manifest.json.
+# 2. Engine and kit gun anchors, the SWFX effects collection (with beams and shield) -> paragon.blend + manifest.json.
 run export_effects.py 2>&1 | grep -E "EFFECTS|Error|Traceback"
 # 3. Append into an empty scene and check -> validation.json (exit 1 on failure).
 run verify_ship.py 2>&1 | grep -E "VERIFY|BAD|Error|Traceback"
@@ -29,7 +29,8 @@ R=(review_ship.py -- --samples "$SAMPLES")
 run "${R[@]}" --views three-quarter,stern-quarter | grep -E "REVIEW|Error" || true
 run "${R[@]}" --effects --views three-quarter,stern-quarter,engine-detail,formation-1.5km | grep -E "REVIEW|Error" || true
 run "${R[@]}" --effects --lights-off --views engine-detail,stern-quarter | grep -E "REVIEW|Error" || true
-run "${R[@]}" --effects --beams --lance-sequence --views= | grep -E "REVIEW|Error" || true
+run "${R[@]}" --effects --beams --point-defense --lance-sequence --views= | grep -E "REVIEW|Error" || true
+run "${R[@]}" --effects --shield --views= | grep -E "REVIEW|Error" || true
 # compose_review.py needs Pillow: the first of $PYTHON and /usr/bin/python3 that has it.
 for PY in "${PYTHON:-python3}" /usr/bin/python3; do "$PY" -c 'import PIL' 2>/dev/null && break; done
 "$PY" compose_review.py

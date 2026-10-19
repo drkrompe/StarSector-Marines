@@ -1,7 +1,7 @@
 """Review the Paragon cinematic asset the way a shot uses it: appended into a clean scene.
 
   blender --background --factory-startup --python review_ship.py --
-      [--views a,b] [--effects] [--lights-off] [--beams] [--lance-sequence]
+      [--views a,b] [--effects] [--lights-off] [--beams] [--lance-sequence] [--shield]
       [--samples 32] [--out DIR] [--device GPU|CPU]
 
 Appends `PARAGON | clean` (and with --effects the optional `SWFX` collection,
@@ -24,9 +24,18 @@ in the same load) into a factory scene and renders 1920x1080 at 100% in Cycles:
   `beam-bow` (the bow lances and the forward turrets close, perspective);
   then a second target, TARGET_PORT, high on the port bow, seen past the
   ship from the starboard quarter (`beam-port`);
+- --point-defense: the PD lasers alone against THREATS, incoming missiles
+  drawn as small bodies with a burning motor (aim.point_defense: each PD laser
+  takes the nearest one inside its 500-unit reach, arc and a clear line);
+  the main weapons stay dark. View `beam-pd`;
 - --lance-sequence: the bow lances only, six stills through one shot (charge
   building, full charge, beam on, beam held, charge-down, dark again) from the
   `beam-bow` camera, as lance-<k>.png.
+- --shield: the Fortress Shield (swfx_shield) from high on the port bow,
+  space-lit, three stills: `shield-half` (shield_t 0.5: the bubble unfolding
+  from the bow, its edge still opening, the emitter nodes already lit),
+  `shield-raised` (fully raised, two hits flashing: port bow and dorsal aft)
+  and `shield-fortress` (the same with the Fortress Shield on, one hit).
 
 Outputs go to build/review/ beside this script (ignored) as
 <view>[-fx][-dark].png.
@@ -50,6 +59,8 @@ ap.add_argument('--effects', action='store_true')
 ap.add_argument('--lights-off', action='store_true')
 ap.add_argument('--beams', action='store_true')
 ap.add_argument('--lance-sequence', action='store_true')
+ap.add_argument('--point-defense', action='store_true')
+ap.add_argument('--shield', action='store_true')
 ap.add_argument('--device', default='GPU', choices=('GPU', 'CPU'))
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out).resolve()
@@ -70,11 +81,23 @@ FORMATION = {'formation-1.5km': (-40, 18, 1.5)}
 # on the port bow, where the most weapons bear (8 of 17).
 TARGET = Vector((1000, 0, 25))
 TARGET_PORT = Vector((850, 500, 200))
+# Incoming missiles for the point-defence view (hull units), the last beyond
+# every PD laser's 500-unit reach.
+THREATS = [Vector(t) for t in ((260, 230, 60), (40, 300, 140), (240, -230, 70), (-290, -190, 50),
+                               (-340, 40, 90), (120, 20, 230), (900, -60, 80))]
 # Beam views (perspective): (camera location, look-at, lens mm).
 BEAM_VIEWS = {
     'beam-broadside': (Vector((420, 1250, 520)), Vector((400, 0, 10)), 30.0),
     'beam-port': (Vector((-760, -700, 520)), Vector((260, 200, 70)), 26.0),
+    'beam-pd': (Vector((260, -780, 760)), Vector((-10, 0, 40)), 36.0),
     'beam-bow': (Vector((330, 170, 95)), Vector((150, 0, 20)), 28.0),
+    'shield': (Vector((720, 820, 470)), Vector((0, 0, 0)), 30.0),
+}
+# Shield stills: (shield_t, shield_fortress, [(hit, azimuth, elevation, strength), ...]).
+SHIELD_STILLS = {
+    'shield-half': (.5, 0.0, []),
+    'shield-raised': (1.0, 0.0, [(1, 35, 10, 1.0), (2, 160, 40, .7)]),
+    'shield-fortress': (1.0, 1.0, [(1, 35, 10, 1.0)]),
 }
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -225,6 +248,59 @@ if args.beams:
     studio(False)
     aim_persp(*BEAM_VIEWS['beam-port'])
     render(f'beam-port{suffix}')
+def missile(k, at):
+    """A small inbound missile: a dark body pointing at the ship and a motor glow."""
+    body = bpy.data.meshes.new(f'Threat {k}')
+    import bmesh
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=10, radius1=1.4, radius2=1.4, depth=10)
+    bm.to_mesh(body)
+    bm.free()
+    ob = bpy.data.objects.new(f'Threat {k}', body)
+    rig.objects.link(ob)
+    ob.location = at
+    ob.rotation_euler = (Vector((0, 0, 20)) - at).to_track_quat('Z', 'Y').to_euler()
+    m = bpy.data.materials.get('Threat body') or bpy.data.materials.new('Threat body')
+    m.diffuse_color = (.2, .2, .22, 1)
+    body.materials.append(m)
+    glow = bpy.data.meshes.new(f'Threat {k} motor')
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=2.6)
+    bm.to_mesh(glow)
+    bm.free()
+    g = bpy.data.objects.new(f'Threat {k} motor', glow)
+    rig.objects.link(g)
+    g.location = at - (Vector((0, 0, 20)) - at).normalized() * 6
+    gm = bpy.data.materials.get('Threat motor')
+    if gm is None:
+        gm = bpy.data.materials.new('Threat motor')
+        gm.use_nodes = True
+        nt = gm.node_tree
+        nt.nodes.clear()
+        em, out = nt.nodes.new('ShaderNodeEmission'), nt.nodes.new('ShaderNodeOutputMaterial')
+        em.inputs['Color'].default_value = (1.0, .55, .2, 1)
+        em.inputs['Strength'].default_value = 25.0
+        nt.links.new(em.outputs[0], out.inputs['Surface'])
+    glow.materials.append(gm)
+
+
+if args.point_defense:
+    assert ctrl is not None, '--point-defense needs --effects'
+    for b in man['beams']:
+        knob(f"beam_t_{b['id']}", 0.0)
+        knob(f"beam_charge_{b['id']}", 0.0)
+    for k, t in enumerate(THREATS, 1):
+        missile(k, t)
+    pd = aim.point_defense(man, THREATS)
+    for i, k in pd['firing'].items():
+        knob(f'beam_len_{i}', pd['length'][i])
+        knob(f'beam_t_{i}', 1.0)
+        knob(f'beam_charge_{i}', 1.0)
+    upd()
+    print('REVIEW pd firing', {i: k + 1 for i, k in pd['firing'].items()}, 'held', pd['held'], flush=True)
+    studio(False)
+    aim_persp(*BEAM_VIEWS['beam-pd'])
+    render(f'beam-pd{suffix}')
 if args.lance_sequence:
     assert ctrl is not None, '--lance-sequence needs --effects'
     lances = fire_all(TARGET, which=('WS 001', 'WS 002'))
@@ -239,3 +315,21 @@ if args.lance_sequence:
                 knob(f"beam_t_{b['id']}", t)
         upd()
         render(f'lance-{k}')
+if args.shield:
+    assert ctrl is not None, '--shield needs --effects'
+    for b in man['beams']:
+        knob(f"beam_t_{b['id']}", 0.0)
+        knob(f"beam_charge_{b['id']}", 0.0)
+    studio(False)
+    aim_persp(*BEAM_VIEWS['shield'])
+    for name, (t, fort, hits) in SHIELD_STILLS.items():
+        knob('shield_t', t)
+        knob('shield_fortress', fort)
+        for k in range(1, 5):
+            knob(f'shield_hit_{k}', 0.0)
+        for k, az, el, amt in hits:
+            knob(f'shield_hit_az_{k}', az)
+            knob(f'shield_hit_el_{k}', el)
+            knob(f'shield_hit_{k}', amt)
+        upd()
+        render(name)

@@ -23,6 +23,16 @@ tachyon lances (WS 001, 002) are fixed hardpoints; the rest train with their
 turrets. Hull units are sprite pixels, the same unit vanilla's width and
 range are given in, so they carry over unchanged.
 
+Shield: the OMNI 360-degree shield of radius 270 about shieldCenter (1, 0)
+(paragon.ship, ship_data.csv), on the geometry's `Shield emitter` empty, with
+the ten `Shield emitter node <k>` empties on the bore lining as its emitter
+array. Colours are vanilla: the HIGH_TECH hull style's shieldRingColor
+(255,255,255) and shieldInnerColor (125,125,255, alpha 75); the Fortress
+Shield system's (fortressshield.system) ring 255,255,255 and inner
+255,100,255 (alpha 75), charge up and down 1.5 s (ship_systems.csv).
+Raise and lower times are the cinematic's own (the game's unfold rate is not
+a data column).
+
 Lamps: none. The Paragon has no running lights; its lamps are emissive
 geometry that glows without the kit.
 """
@@ -79,12 +89,17 @@ def _rgb(*c):
 
 
 # Vanilla beam data: (width, range, fringe, core, glow, chargeup s, chargedown s, burst s).
+# Only the PD laser carries vanilla's PD hint (weapon_data.csv): it engages
+# missiles and fighters, never the ship's main target.
 WEAPONS = {
     'tachyonlance': (25.0, 1000, _rgb(85, 25, 215), _rgb(255, 255, 255), _rgb(165, 100, 255), .5, 1.0, 1.0),
     'gravitonbeam': (20.0, 1000, _rgb(5, 135, 175), _rgb(200, 225, 255), _rgb(25, 215, 255), .1, .1, None),
     'taclaser': (13.0, 1000, _rgb(0, 255, 0), _rgb(255, 255, 255), _rgb(155, 255, 155), .1, .1, None),
     'pdlaser': (12.0, 500, _rgb(155, 0, 0), _rgb(255, 255, 255), _rgb(255, 100, 100), 0.0, .25, None),
 }
+
+
+PD = ('pdlaser',)
 
 
 def _beams():
@@ -98,8 +113,19 @@ def _beams():
             beams.append(dict(id=s['id'].replace('WS ', 'ws') + ('' if len(s['muzzles']) == 1 else f'_{k}'),
                               slot=s['id'], mount=s['mount'], muzzle=m, weapon=s['weapon'], width=width,
                               range=rng, fringe=fringe, core=core, glow=glow, chargeup=up,
-                              chargedown=down, burst=burst))
+                              chargedown=down, burst=burst, pd=s['weapon'] in PD))
     return beams
 
 
 BEAMS = _beams()
+
+
+SHIELD = dict(
+    anchor=_geom['shield']['anchor'],
+    radius=float(_geom['shield']['radius_units']),
+    arc=float(_geom['shield']['arc_deg']),
+    nodes=[n['name'] for n in _geom['shield']['emitter_nodes']],
+    ring=_rgb(255, 255, 255), inner=_rgb(125, 125, 255), inner_alpha=round(75 / 255, 4),
+    fortress_ring=_rgb(255, 255, 255), fortress_inner=_rgb(255, 100, 255), fortress_alpha=round(75 / 255, 4),
+    raise_s=1.0, lower_s=1.0, fortress_up_s=1.5, fortress_down_s=1.5,
+)

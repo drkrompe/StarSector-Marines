@@ -1154,65 +1154,252 @@ def add_k9_works(r, mods, stockb, crateb, towers, tankb):
             (318, 652), (318, 612), 4.0, 2.0, 0.3)
 
 
-def add_landing_dust():
-    """Downwash off the pad as the ship comes down the last few metres: low, flat puffs of yard
-    dust running out from under the hull and thinning as they spread."""
+# The lift jets' throttle, as the thruster markers key it (`thrust_shots.mark_c4`): lit over the two
+# seconds before the hover, full through the descent, off a second after touchdown.
+LIFT_ON, LIFT_OFF = 2.0, 1.0
+
+
+def lift_throttle(t):
+    return smoothstep(ARRIVE - LIFT_ON, ARRIVE, t) * (1 - smoothstep(T_DOWN, T_DOWN + LIFT_OFF, t))
+
+
+def lift_nozzles(manifest):
+    """Second Wind's working belly jets, from the hull's own anchors (the thruster markers' source):
+    the two under the bow are one source, then each engine pod's and the starboard stern jet. The
+    port stern jet is dead, so that corner of the pad blows less."""
+    down = [r for r in manifest['rcs'] if r['exhaust_dir'][2] < -0.7 and r['working']]
+    bow = [r['at'] for r in down if r['cluster'] == 'ventral']
+    out = [Vector(r['at']) for r in down if r['cluster'] != 'ventral']
+    if bow:
+        out.append(sum((Vector(a) for a in bow), Vector()) / len(bow))
+    return out
+
+
+def dust_material():
+    """Soft, noisy puffs. Each object's colour carries its own tint, and its alpha the fade."""
     m = bpy.data.materials.new('Landing dust')
     m.use_nodes = True
     m.surface_render_method = 'BLENDED'
+    m.use_transparent_shadow = True                                    # the cloud shades the pad under it
     nt = m.node_tree
     p = nt.nodes['Principled BSDF']
-    p.inputs['Base Color'].default_value = (0.62, 0.55, 0.44, 1)
     p.inputs['Roughness'].default_value = 1.0
     info = nt.nodes.new('ShaderNodeObjectInfo')
+    # Billows read from above by their sunny and shaded sides: brighten the face turned to the sun,
+    # darken the far side (sunlight alone barely shades a thin, flattened puff).
+    geo = nt.nodes.new('ShaderNodeNewGeometry')
+    sun = nt.nodes.new('ShaderNodeVectorMath')
+    sun.operation = 'DOT_PRODUCT'
+    sun.inputs[1].default_value = SUN_DIR
+    lit = nt.nodes.new('ShaderNodeMapRange')
+    lit.inputs['From Min'].default_value, lit.inputs['From Max'].default_value = -0.2, 1.0
+    lit.inputs['To Min'].default_value, lit.inputs['To Max'].default_value = 0.5, 1.15
+    shade = nt.nodes.new('ShaderNodeVectorMath')
+    shade.operation = 'SCALE'
+    nt.links.new(geo.outputs['Normal'], sun.inputs[0])
+    nt.links.new(sun.outputs['Value'], lit.inputs['Value'])
+    nt.links.new(info.outputs['Color'], shade.inputs[0])
+    nt.links.new(lit.outputs['Result'], shade.inputs['Scale'])
+    nt.links.new(shade.outputs[0], p.inputs['Base Color'])
     coord = nt.nodes.new('ShaderNodeTexCoord')
     noise = nt.nodes.new('ShaderNodeTexNoise')
-    noise.inputs['Scale'].default_value = 2.5
-    noise.inputs['Detail'].default_value = 4.0
+    noise.noise_dimensions = '4D'                                       # each puff its own lumps
+    noise.inputs['Scale'].default_value = 2.0
+    noise.inputs['Detail'].default_value = 6.0
+    noise.inputs['Roughness'].default_value = 0.62
+    seed = nt.nodes.new('ShaderNodeMath')
+    seed.operation = 'MULTIPLY'
+    seed.inputs[1].default_value = 40.0
+    nt.links.new(info.outputs['Random'], seed.inputs[0])
+    nt.links.new(seed.outputs[0], noise.inputs['W'])
     soft = nt.nodes.new('ShaderNodeMapRange')
-    soft.inputs['From Min'].default_value = 0.35
-    soft.inputs['From Max'].default_value = 0.7
-    mul = nt.nodes.new('ShaderNodeMath')
-    mul.operation = 'MULTIPLY'
-    nt.links.new(coord.outputs['Object'], noise.inputs['Vector'])
-    nt.links.new(noise.outputs['Fac'], soft.inputs['Value'])
-    nt.links.new(soft.outputs['Result'], mul.inputs[0])
-    nt.links.new(info.outputs['Alpha'], mul.inputs[1])
+    soft.inputs['From Min'].default_value = 0.42
+    soft.inputs['From Max'].default_value = 0.64
     edge = nt.nodes.new('ShaderNodeLayerWeight')                       # thin toward the rim: no hard ball edges
+    edge.inputs['Blend'].default_value = 0.5
     rim = nt.nodes.new('ShaderNodeMath')
     rim.operation = 'SUBTRACT'
     rim.inputs[0].default_value = 1.0
-    mul2 = nt.nodes.new('ShaderNodeMath')
-    mul2.operation = 'MULTIPLY'
+    rim2 = nt.nodes.new('ShaderNodeMath')
+    rim2.operation = 'POWER'
+    rim2.inputs[1].default_value = 1.2
+    nt.links.new(coord.outputs['Object'], noise.inputs['Vector'])
+    nt.links.new(noise.outputs['Fac'], soft.inputs['Value'])
     nt.links.new(edge.outputs['Facing'], rim.inputs[1])
-    nt.links.new(mul.outputs[0], mul2.inputs[0])
-    nt.links.new(rim.outputs[0], mul2.inputs[1])
-    nt.links.new(mul2.outputs[0], p.inputs['Alpha'])
+    nt.links.new(rim.outputs[0], rim2.inputs[0])
+    a = soft.outputs['Result']
+    for other in (info.outputs['Alpha'], rim2.outputs[0]):
+        mul = nt.nodes.new('ShaderNodeMath')
+        mul.operation = 'MULTIPLY'
+        nt.links.new(a, mul.inputs[0])
+        nt.links.new(other, mul.inputs[1])
+        a = mul.outputs[0]
+    nt.links.new(a, p.inputs['Alpha'])
+    return m
+
+
+def add_landing_dust(manifest):
+    """Downwash off Kilo Nine as Second Wind comes down from its hover on its belly jets. Each jet
+    hits the pad below it and blows a wall of dust and grit out along the slab: faint stirring at
+    sixty metres, a rolling ring running out past the pad's edge as the hull sinks, grit streaking
+    out ahead of it and grey smoke boiling up round the pods. The jets cut a second after the legs
+    touch; the last of it drifts downwind and thins, and every puff is gone before C4 ends (C5
+    removes them at the join)."""
+    scene = bpy.context.scene
+    root = bpy.data.objects[manifest['root']]
+    nozzles = lift_nozzles(manifest)
+    m = dust_material()
     r = random.Random(91)
     kx, ky = K9
-    for n in range(80):
-        ang = r.uniform(0, 2 * math.pi)
-        r0, r1 = r.uniform(22, 38), r.uniform(70, 125)
-        ts = T_DOWN - 2.4 + r.uniform(0.0, 2.0)                        # from about 25 m up to touchdown
-        life = r.uniform(3.5, 5.5)
-        size0, size1 = r.uniform(4, 7), r.uniform(12, 20)
+    wind = Vector((1.6, 0.3, 0.0))                      # metres a second: the steam leans the same way
+    gone = DURATION - 0.4                               # all faded by here
+    f_a, f_b = math.floor((ARRIVE - LIFT_ON) * FPS), math.ceil((T_DOWN + LIFT_OFF) * FPS)
+
+    # Where each jet hits the ground, and how hard, frame by frame along the ship's own keyed path.
+    track = {}
+    for f in range(f_a, f_b + 1):
+        scene.frame_set(f)
+        mw = root.matrix_world
+        centre = (mw @ Vector((9.0, 0.0, 0.0))).to_2d()
+        hits = []
+        for n in nozzles:
+            w = mw @ n
+            ground = K9_SLAB if math.hypot(w.x - kx, w.y - ky) < K9_R else 0.15
+            h = max(0.0, w.z - ground)
+            hits.append((Vector((w.x, w.y, ground)), lift_throttle(f / FPS) * (1 - smoothstep(10.0, 80.0, h)), h))
+        track[f] = (centre, hits)
+    scene.frame_set(0)
+
+    def spawn(name, ts, p0, centre, life, motion, tint):
+        """One puff: motion(tau) -> (offset from p0, (sx, sy, sz), heading, alpha)."""
         bm = bmesh.new()
         bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
-        ob = mesh('Landing dust %d' % n, bm, m)
-        ob.rotation_euler = (0, 0, r.uniform(0, math.pi))
+        ob = mesh(name, bm, m)
+        ob.rotation_mode = 'XYZ'
         f0 = round(ts * FPS)
-        for f in [f0 - 1] + list(range(f0, min(FRAMES, f0 + round(life * FPS)) + 1, 3)):
-            k = max(0.0, (f - f0) / (life * FPS))
-            run = 1 - (1 - min(k, 1.0)) ** 2.5
-            rad = r0 + (r1 - r0) * run
-            ob.location = (kx + rad * math.cos(ang), ky + rad * math.sin(ang), 3 + 4 * run)
-            sz = size0 + (size1 - size0) * run
-            ob.scale = (sz, sz, sz * 0.35)
-            a = 0.0 if f < f0 else 0.75 * smoothstep(0.0, 0.08, k) * (1 - smoothstep(0.35, 1.0, k))
-            ob.color = (1, 1, 1, a)
-            ob.keyframe_insert('location', frame=f)
-            ob.keyframe_insert('scale', frame=f)
-            ob.keyframe_insert('color', frame=f)
+        f1 = min(round(gone * FPS), f0 + round(life * FPS))
+        for f in [f0 - 1] + list(range(f0, f1, 2)) + [f1]:
+            tau = max(0.0, (f - f0) / FPS)
+            off, sc, hd, a = motion(tau)
+            a *= 1 - smoothstep(gone - 2.5, gone, f / FPS)        # whatever is left thins out by the join
+            if f < f0 or f >= f1:
+                a = 0.0
+            ob.location = p0 + off
+            ob.scale = sc
+            ob.rotation_euler = (0.0, 0.0, hd)
+            ob.color = tint + (a,)
+            for prop in ('location', 'scale', 'rotation_euler', 'color'):
+                ob.keyframe_insert(prop, frame=f)
+        return ob
+
+    def outward(p, centre, spread):
+        """Out from the hull's middle through the jet's footprint, fanned."""
+        d = p.to_2d() - centre
+        base = math.atan2(d.y, d.x) if d.length > 2.0 else r.uniform(0, 2 * math.pi)
+        a = base + r.gauss(0.0, spread)
+        return Vector((math.cos(a), math.sin(a), 0.0)), a
+
+    # Spawn by accumulated strength: the harder and closer the jets, the more comes off the pad.
+    budget = {'dust': 210, 'grit': 140, 'smoke': 46}
+    total = sum(s for f in track for _, s, _ in track[f][1]) or 1.0
+    acc = {k: r.random() for k in budget}
+    n = {k: 0 for k in budget}
+    for f in range(f_a, f_b + 1):
+        centre, hits = track[f]
+        for p, s, h in hits:
+            if s <= 0.0:
+                continue
+            ts = f / FPS + r.uniform(0.0, 1.0 / FPS)
+            for kind in budget:
+                acc[kind] += budget[kind] * s / total
+                while acc[kind] >= 1.0:
+                    acc[kind] -= 1.0
+                    n[kind] += 1
+                    if kind == 'dust':
+                        u, hd = outward(p, centre, 0.55)
+                        v0 = r.uniform(26.0, 46.0) * (0.45 + 0.55 * s)
+                        drag = r.uniform(1.1, 1.7)
+                        reach = v0 * drag
+                        life = min(r.uniform(2.6, 4.6), gone - ts)
+                        size0, size1 = r.uniform(3.0, 5.0), r.uniform(11.0, 19.0) * (0.6 + 0.4 * s)
+                        peak = min(1.0, r.uniform(0.35, 1.1)) * (0.35 + 0.65 * s)
+                        lum = r.uniform(0.82, 1.12)
+                        tint = (0.40 * lum, 0.335 * lum, 0.25 * lum)   # the yard's own dirt
+
+                        def motion(tau, u=u, hd=hd, reach=reach, drag=drag, life=life, size0=size0,
+                                   size1=size1, peak=peak):
+                            run = 1 - math.exp(-tau / drag)
+                            k = tau / life
+                            # Wall jet: fast and low off the slab, slowing, the front rolling up as it goes.
+                            off = u * (4.0 + reach * run) + wind * tau + Vector((0, 0, 1.2 + 5.5 * run + 0.5 * tau))
+                            sz = size0 + (size1 - size0) * (1 - math.exp(-tau / (0.6 * drag + 0.4)))
+                            # Thin while it is a fast sheet off the jet, thickest as the front piles up.
+                            a = peak * (0.25 + 0.75 * smoothstep(0.05, 0.4, k)) * smoothstep(0.0, 0.1, tau) * (1 - smoothstep(0.55, 1.0, k))
+                            return off, (sz * 1.2, sz * 0.85, sz * (0.38 + 0.2 * run)), hd + math.pi / 2, a
+                        spawn('Landing dust %d' % n[kind], ts, p, centre, life, motion, tint)
+                    elif kind == 'grit' and s > 0.25:
+                        u, hd = outward(p, centre, 0.7)
+                        v0 = r.uniform(55.0, 85.0) * s
+                        life = min(r.uniform(0.5, 0.95), gone - ts)
+                        ln, wd = r.uniform(5.0, 10.0), r.uniform(0.5, 0.9)
+                        peak = r.uniform(0.35, 0.6)
+                        tint = (0.24, 0.20, 0.15)
+
+                        def motion(tau, u=u, hd=hd, v0=v0, life=life, ln=ln, wd=wd, peak=peak):
+                            run = 0.55 * (1 - math.exp(-tau / 0.55))
+                            off = u * (3.0 + v0 * run) + Vector((0, 0, 0.6))
+                            a = peak * smoothstep(0.0, 0.05, tau) * (1 - smoothstep(0.25, 1.0, tau / life))
+                            return off, (ln * (1 - 0.4 * tau / life), wd, wd * 0.5), hd, a
+                        spawn('Landing dust grit %d' % n[kind], ts, p, centre, life, motion, tint)
+                    elif kind == 'smoke':
+                        ang = r.uniform(0, 2 * math.pi)
+                        u = Vector((math.cos(ang), math.sin(ang), 0.0))
+                        life = min(r.uniform(3.2, 5.0), gone - ts)
+                        rise = r.uniform(9.0, 18.0)
+                        size0, size1 = r.uniform(3.0, 4.5), r.uniform(9.0, 15.0)
+                        peak = r.uniform(0.3, 0.5) * (0.4 + 0.6 * s)
+                        g = r.uniform(0.17, 0.24)
+                        tint = (g, g * 0.98, g * 0.95)
+
+                        def motion(tau, u=u, life=life, rise=rise, size0=size0, size1=size1, peak=peak):
+                            k = tau / life
+                            # Boiling up off the jet's footprint round the hull's edge, leaning downwind.
+                            off = u * (6.0 + 10.0 * (1 - math.exp(-tau))) + wind * 1.6 * tau + Vector((0, 0, 2.0 + rise * (1 - math.exp(-tau / 1.6))))
+                            sz = size0 + (size1 - size0) * smoothstep(0.0, 0.8, k)
+                            a = peak * smoothstep(0.0, 0.2, tau) * (1 - smoothstep(0.25, 1.0, k))
+                            return off, (sz, sz, sz * 0.7), 0.0, a
+                        spawn('Landing dust smoke %d' % n[kind], ts, p, centre, life, motion, tint)
+
+    # Settling: a broad, thin pall over the pad from touchdown, drifting off and gone by the join.
+    centre = track[f_b][0]
+    for i in range(14):
+        ts = T_DOWN - 0.6 + r.uniform(0.0, 1.0)
+        ang = r.uniform(0, 2 * math.pi)
+        d = r.uniform(20.0, 70.0)
+        p = Vector((centre.x + d * math.cos(ang), centre.y + d * math.sin(ang), 2.0))
+        life = gone - ts
+        size = r.uniform(26.0, 40.0)
+        peak = r.uniform(0.08, 0.14)
+
+        def motion(tau, life=life, size=size, peak=peak):
+            k = tau / life
+            a = peak * smoothstep(0.0, 0.25, k) * (1 - smoothstep(0.35, 1.0, k))
+            sz = size * (0.8 + 0.4 * k)
+            return wind * tau + Vector((0, 0, 1.5 * tau)), (sz, sz, sz * 0.22), 0.0, a
+        spawn('Landing dust pall %d' % i, ts, p, centre, life, motion, (0.42, 0.36, 0.28))
+
+    # The jets' own light on the slab and the dust they kick up, under the hull's edge.
+    for j, _ in enumerate(nozzles):
+        lamp = link(bpy.data.objects.new('Landing dust glow %d' % j, bpy.data.lights.new('Landing dust glow %d' % j, 'POINT')))
+        lamp.data.color = (0.62, 0.78, 1.0)
+        lamp.data.shadow_soft_size = 2.0
+        for f in [f_a - 1] + list(range(f_a, f_b + 1, 2)) + [f_b + 1]:
+            p, s, h = track[min(max(f, f_a), f_b)][1][j]
+            lamp.location = p + Vector((0, 0, 1.5))
+            lamp.data.energy = 0.0 if f < f_a or f > f_b else 1.2e4 * s
+            lamp.keyframe_insert('location', frame=f)
+            lamp.data.keyframe_insert('energy', frame=f)
+    print('LANDING_DUST', n, 'nozzles', len(nozzles), flush=True)
 
 
 def add_cargo_flow(r):
@@ -1436,8 +1623,7 @@ def build():
     add_steam()
     add_port_traffic()
     add_cloud_shadows()
-    add_ship()
-    add_landing_dust()
+    add_landing_dust(add_ship())
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
     import port_life                                    # the public port at work, on through C5
@@ -1461,6 +1647,9 @@ def build():
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
              | port_life.HAZE_SKIP | port_fleet.HAZE_SKIP)
     add_camera(scene)
+    sys.path.insert(0, str(CINE / 'thrust-markers'))
+    import thrust_shots                                  # every craft's nozzles marked, through C5
+    thrust_shots.mark_c4(sys.modules[__name__])
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames

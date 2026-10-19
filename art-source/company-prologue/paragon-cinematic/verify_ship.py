@@ -29,11 +29,21 @@ Ship with effects (`PARAGON | clean` + `SWFX` in one load):
   each beam's core runs from its muzzle along the line of fire to its range
   and its impact flare sits at the far end; a beam on a training turret
   swings with it; the lance's charge envelope lights the emitter first;
-- engaging a target ahead and one on the port bow (aim.py): the aft turrets
-  hold fire ahead, and a ray along every fired beam's core meets no part of
-  the ship but its own weapon;
+- engaging a target ahead and one on the port bow (aim.py): the PD lasers
+  never fire on the main target, the aft turrets hold fire ahead, and a ray
+  along every fired beam's core meets no part of the ship but its own weapon;
+- point defence against five missiles: at least four PD lasers engage, each a
+  missile inside its 500-unit reach along a clear line, and the missile beyond
+  every PD laser's reach is left alone;
+- the shield: a bubble of the vanilla radius centred on `Shield emitter`,
+  dark (collapsed, nodes unlit) until raised; a third of the way up the ten
+  emitter nodes are fully lit; fortress mode burns them hotter and turns their
+  light toward the fortressshield colour; a hit aimed by azimuth and
+  elevation lands on the bubble's surface in the hull frame whatever the
+  shield's facing, and the bubble's hit shader reads that hit; the bubble
+  encloses every drive and turret;
 - every driver in SWFX is valid;
-- moving the root carries every plume with the ship.
+- moving the root carries every plume and the shield with the ship.
 """
 from pathlib import Path
 import json
@@ -266,6 +276,74 @@ check('lance charge lights the emitter first', fl.matrix_world.to_scale().x > .1
 ctrl['beam_charge_ws001'] = 0.0
 ctrl.update_tag()
 upd()
+# Shield (swfx_shield): dark until raised, nodes lead, fortress, hits, enclosure.
+S = 'SWFX shield'
+sf = man['shield_fx']
+bub, sanc = bpy.data.objects.get(sf['bubble']), bpy.data.objects.get(sf['anchor'])
+glows = [bpy.data.objects.get(n) for n in sf['nodes']]
+nlights = [bpy.data.objects.get(n) for n in sf['node_lights']]
+check('shield parts present', bub and sanc and all(glows) and all(nlights) and len(glows) == 10
+      and len(sf['hits']) == 4, [len(glows), len(nlights), len(sf['hits'])])
+
+
+def knobs(**kw):
+    for k, v in kw.items():
+        ctrl[k] = float(v)
+    ctrl.update_tag()
+    upd()
+
+
+def light_on(lo):
+    return lo.data.energy > 1.0
+
+
+knobs(shield_t=0.0, shield_fortress=0.0)
+check('shield dark until raised', bub.matrix_world.to_scale().x < 1e-3 and
+      all(g.matrix_world.to_scale().x < 1e-3 for g in glows) and not any(light_on(lo) for lo in nlights),
+      [round(bub.matrix_world.to_scale().x, 4), sum(light_on(lo) for lo in nlights)])
+knobs(shield_t=1.0)
+c0 = sanc.matrix_world.translation
+pts = [bub.matrix_world @ v.co for v in bub.data.vertices]
+rad = sum((p - c0).length for p in pts) / len(pts)
+cen = sum(pts, Vector()) / len(pts)
+check('shield bubble on the emitter at the vanilla radius', abs(rad - sf['radius']) < .01 * sf['radius']
+      and (cen - c0).length < .5 and (c0.xy - Vector(geom['shield']['center'][:2])).length < 1e-3,
+      [round(rad, 2), sf['radius'], [round(c, 2) for c in cen]])
+full = [lo.data.energy for lo in nlights]
+knobs(shield_t=.34)
+lead = [lo.data.energy for lo in nlights]
+check('emitter nodes are lit a third of the way up', all(a >= .99 * b > 0 for a, b in zip(lead, full))
+      and all(g.matrix_world.to_scale().x > .5 for g in glows), [round(lead[0]), round(full[0])])
+knobs(shield_t=1.0, shield_fortress=1.0)
+fort = [lo.data.energy for lo in nlights]
+col = list(nlights[0].data.color)
+want = sf['colours']['fortress_inner']
+check('fortress mode burns the nodes hotter, in the fortress colour',
+      all(f > 1.5 * b for f, b in zip(fort, full)) and max(abs(a - b) for a, b in zip(col, want)) < 1e-3,
+      [round(fort[0] / full[0], 2), [round(c, 3) for c in col]])
+knobs(shield_fortress=0.0)
+bad = []
+for facing in (0.0, 90.0):
+    knobs(shield_facing=facing, shield_hit_az_2=120.0, shield_hit_el_2=30.0)
+    h = bpy.data.objects[sf['hits'][1]]
+    a, e = math.radians(120), math.radians(30)
+    want = c0 + sf['radius'] * Vector((math.cos(a) * math.cos(e), math.sin(a) * math.cos(e), math.sin(e)))
+    if (h.matrix_world.translation - want).length > .05:
+        bad.append((facing, [round(c, 2) for c in h.matrix_world.translation], [round(c, 2) for c in want]))
+fwd = (bub.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized()
+knobs(shield_facing=0.0, shield_hit_az_2=0.0, shield_hit_el_2=0.0)
+bound = {n.object.name for n in bub.data.materials[0].node_tree.nodes if n.type == 'TEX_COORD' and n.object}
+check('shield hits land on the bubble in the hull frame', not bad and fwd.y > .999 and bound == set(sf['hits']),
+      bad or [[round(c, 3) for c in fwd], sorted(bound)])
+inside = [e['index'] for e in man['engines'] if (Vector((e['mouth_x'], e['slot_location'][1], e['axis_z'])) - c0).length
+          < sf['radius']]
+pivs = [s['pivot'] for s in man['weapon_slots'] if s['mount'] == 'TURRET']
+pin = [p for p in pivs if (bpy.data.objects[p].matrix_world.translation - c0).length < sf['radius']]
+hull_v = [o.matrix_world @ v.co for o in ship_c.all_objects if o.type == 'MESH' for v in o.data.vertices]
+vin = sum((p - c0).length < sf['radius'] for p in hull_v) / len(hull_v)
+check('the shield encloses every drive and turret', len(inside) == 10 and len(pin) == len(pivs),
+      f'{len(inside)}/10 drives, {len(pin)}/{len(pivs)} turrets, {vin:.2%} of hull vertices')
+knobs(shield_t=0.0)
 inval = []
 for o in fx:
     for owner in (o, o.data):
@@ -298,15 +376,37 @@ for name, target in (('ahead', (1000, 0, 25)), ('port bow', (850, 500, 200))):
         if not ok:
             bad.append((name, i, blocker))
         ctrl[f'beam_t_{i}'] = 0.0
+pd_ids = {b['id'] for b in man['beams'] if b['pd']}
+check('point defence never fires on the main target', pd_ids == {'ws011', 'ws016', 'ws017', 'ws022', 'ws023'}
+      and not pd_ids & set(fired['ahead'] + fired['port bow']), sorted(pd_ids))
 check('aft turrets hold fire on a target ahead', not {'ws009', 'ws010', 'ws023'} & set(fired['ahead']), fired['ahead'])
+# Point defence: each PD laser takes a missile inside its 500-unit reach along a
+# clear line; one far beyond every PD laser's reach is left alone.
+threats = [Vector(x) for x in ((260, 230, 60), (240, -230, 70), (-290, -190, 50), (-340, 40, 90), (900, -60, 80))]
+pd = aim.point_defense(man, threats)
+upd()
+bad = []
+for i, k in pd['firing'].items():
+    b = next(x for x in man['beams'] if x['id'] == i)
+    muz = bpy.data.objects[b['muzzle']].matrix_world.translation
+    reach = (threats[k] - muz).length
+    ok, blocker = swfx_beams.clear_line(muz, threats[k], ignore=(f"Weapon {b['slot']}",), short=aim.THREAT_RADIUS)
+    if reach > b['range'] or not ok or k == len(threats) - 1:
+        bad.append((i, k, round(reach), blocker))
+check('point defence engages missiles in reach along clear lines', not bad and len(pd['firing']) >= 4,
+      bad or {i: k + 1 for i, k in pd['firing'].items()})
 check('no fired beam cuts the hull', not bad and all(fired.values()), bad or {k: len(v) for k, v in fired.items()})
 p = bpy.data.objects[f'{P} plume e5']
 q = bpy.data.objects[f'{B} ws003 rig'] if f'{B} ws003 rig' in bpy.data.objects else bpy.data.objects[f'{B} ws003']
 qb = q.matrix_world.copy()
 before = p.matrix_world.copy()
+ctrl['shield_t'] = 1.0
+ctrl.update_tag()
+upd()
+sb = bub.matrix_world.copy()
 root.matrix_world = M @ root.matrix_world
 upd()
-err = max(maxdiff(p.matrix_world, M @ before), maxdiff(q.matrix_world, M @ qb))
+err = max(maxdiff(p.matrix_world, M @ before), maxdiff(q.matrix_world, M @ qb), maxdiff(bub.matrix_world, M @ sb))
 check('root carries the effects', err < 1e-3, round(err, 6))
 
 result = {'asset': man['asset'], 'collection': man['append_collection'], 'root': man['root'],

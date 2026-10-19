@@ -1187,7 +1187,7 @@
  "sources": {
   "geometry_json_sha256": "70f44aca37042d223d932cda96c9eca307da2aee5cf1b54410a5a67e50d41280",
   "base_export": "paragon-cinematic/build/export/paragon.blend",
-  "vfx_hull_sha256": "a3cff3b0f169c7bc59d82342b6a6929cc1297ee963aa86e8e617fb40bbab93e6"
+  "vfx_hull_sha256": "1ae5d5dfcab3da7955bab1bc7b12a9759783dbb1e668d7c6bf1dc7fdb5d3796d"
  },
  "conventions": {
   "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only. Scale it by metres_per_unit for metres.",
@@ -1317,7 +1317,8 @@
    "range": 1000,
    "chargeup": 0.5,
    "chargedown": 1.0,
-   "burst": 1.0
+   "burst": 1.0,
+   "pd": false
   },
   {
    "id": "ws002",
@@ -1329,7 +1330,8 @@
    "range": 1000,
    "chargeup": 0.5,
    "chargedown": 1.0,
-   "burst": 1.0
+   "burst": 1.0,
+   "pd": false
   },
   {
    "id": "ws003",
@@ -1341,7 +1343,8 @@
    "range": 1000,
    "chargeup": 0.5,
    "chargedown": 1.0,
-   "burst": 1.0
+   "burst": 1.0,
+   "pd": false
   },
   {
    "id": "ws004",
@@ -1353,7 +1356,8 @@
    "range": 1000,
    "chargeup": 0.5,
    "chargedown": 1.0,
-   "burst": 1.0
+   "burst": 1.0,
+   "pd": false
   },
   {
    "id": "ws005",
@@ -1365,7 +1369,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws006",
@@ -1377,7 +1382,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws009",
@@ -1389,7 +1395,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws010",
@@ -1401,7 +1408,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws011",
@@ -1413,7 +1421,8 @@
    "range": 500,
    "chargeup": 0.0,
    "chargedown": 0.25,
-   "burst": null
+   "burst": null,
+   "pd": true
   },
   {
    "id": "ws013",
@@ -1425,7 +1434,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws015",
@@ -1437,7 +1447,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws016",
@@ -1449,7 +1460,8 @@
    "range": 500,
    "chargeup": 0.0,
    "chargedown": 0.25,
-   "burst": null
+   "burst": null,
+   "pd": true
   },
   {
    "id": "ws017",
@@ -1461,7 +1473,8 @@
    "range": 500,
    "chargeup": 0.0,
    "chargedown": 0.25,
-   "burst": null
+   "burst": null,
+   "pd": true
   },
   {
    "id": "ws019",
@@ -1473,7 +1486,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws021",
@@ -1485,7 +1499,8 @@
    "range": 1000,
    "chargeup": 0.1,
    "chargedown": 0.1,
-   "burst": null
+   "burst": null,
+   "pd": false
   },
   {
    "id": "ws022",
@@ -1497,7 +1512,8 @@
    "range": 500,
    "chargeup": 0.0,
    "chargedown": 0.25,
-   "burst": null
+   "burst": null,
+   "pd": true
   },
   {
    "id": "ws023",
@@ -1509,17 +1525,85 @@
    "range": 500,
    "chargeup": 0.0,
    "chargedown": 0.25,
-   "burst": null
+   "burst": null,
+   "pd": true
   }
  ],
  "beams_note": "swfx_beams.fire_beam(ctx, id, start_frame, hold_s) keys a shot with the weapon's own timing; beam_len_<id> is the length in hull units (the distance to the target).",
+ "shield_fx": {
+  "bubble": "SWFX shield bubble",
+  "anchor": "Shield emitter",
+  "radius": 270.0,
+  "arc": 360.0,
+  "nodes": [
+   "SWFX shield Shield emitter node 1",
+   "SWFX shield Shield emitter node 2",
+   "SWFX shield Shield emitter node 3",
+   "SWFX shield Shield emitter node 4",
+   "SWFX shield Shield emitter node 5",
+   "SWFX shield Shield emitter node 6",
+   "SWFX shield Shield emitter node 7",
+   "SWFX shield Shield emitter node 8",
+   "SWFX shield Shield emitter node 9",
+   "SWFX shield Shield emitter node 10"
+  ],
+  "node_lights": [
+   "SWFX shield Shield emitter node 1 light",
+   "SWFX shield Shield emitter node 2 light",
+   "SWFX shield Shield emitter node 3 light",
+   "SWFX shield Shield emitter node 4 light",
+   "SWFX shield Shield emitter node 5 light",
+   "SWFX shield Shield emitter node 6 light",
+   "SWFX shield Shield emitter node 7 light",
+   "SWFX shield Shield emitter node 8 light",
+   "SWFX shield Shield emitter node 9 light",
+   "SWFX shield Shield emitter node 10 light"
+  ],
+  "hits": [
+   "SWFX shield hit 1",
+   "SWFX shield hit 2",
+   "SWFX shield hit 3",
+   "SWFX shield hit 4"
+  ],
+  "colours": {
+   "ring": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "inner": [
+    0.4902,
+    0.4902,
+    1.0
+   ],
+   "inner_alpha": 0.2941,
+   "fortress_ring": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "fortress_inner": [
+    1.0,
+    0.3922,
+    1.0
+   ],
+   "fortress_alpha": 0.2941
+  },
+  "timing_s": {
+   "raise_s": 1.0,
+   "lower_s": 1.0,
+   "fortress_up_s": 1.5,
+   "fortress_down_s": 1.5
+  }
+ },
+ "shield_fx_note": "Knobs shield_t (raise), shield_fortress, shield_facing, shield_hit_<k> with shield_hit_az_<k>/shield_hit_el_<k>; swfx_shield.raise_shield / fortress / hit key them. The game forbids firing while the Fortress Shield is on.",
  "effects": {
   "collection": "SWFX",
-  "kit": "second-wind-vfx (swfx.apply, hull profile paragon-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, beams; rcs=False, dust=False; no lamps, no rig preset)",
+  "kit": "second-wind-vfx (swfx.apply, hull profile paragon-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, beams, shield; rcs=False, dust=False; no lamps, no rig preset)",
   "defaults": {
    "smk_atmosphere": 0.0
   },
-  "objects": 202,
+  "objects": 233,
   "anchors": {
    "engines": 10,
    "guns": 4,
@@ -1613,9 +1697,18 @@
    "beams": {
     "beams": 17,
     "missing": 0
+   },
+   "shield": {
+    "bubble": "SWFX shield bubble",
+    "hits": 4,
+    "nodes": 10,
+    "lights": 10,
+    "missing": 0,
+    "radius": 270.0,
+    "anchor": "Shield emitter"
    }
   },
   "append": "load both 'PARAGON | clean' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "7fee0e61b6d103a3409480c3601f7bc277515189ad9a49d4d54c1d1d6f654f7c"
+ "asset_sha256": "ccd107e64620e3d838310f4af2a57858aece50f6abebb5b9d1ac222aa5656b1a"
 }
