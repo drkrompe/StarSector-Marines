@@ -401,6 +401,9 @@ Per rocket:
 Controls: `-Dbattle.mech.missileVariants=false` (the single-warhead rack on the
 AT ids) and `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice).
 
+Readings were taken at `536ae4d80`, before the bastion and pulse-laser heat changes
+above landed.
+
 **Against men** (`sceneEvidence -Pscene=mech-versus-infantry`, four seeds per
 loop, planted stock mechs, a rifle section in the open). Seconds to kill the
 whole section:
