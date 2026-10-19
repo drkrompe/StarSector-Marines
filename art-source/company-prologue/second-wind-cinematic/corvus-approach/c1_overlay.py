@@ -57,7 +57,7 @@ def parts():
 def hail_lines():
     """[(line, start, end, key_up)] for the whole hail; key_up is the squelch-open time
     for an Approach transmission, else the start."""
-    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    lines = hail.hail_catalog()
     starts, squelch, _ = hail.timeline(lines)
     opens = iter(t for kind, t in squelch if kind == "open")
     closes = iter(t for kind, t in squelch if kind == "close")

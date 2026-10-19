@@ -3,43 +3,43 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a155d5-a91f-7910-96f4-5d36468451d4",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155d5-a91f-7910-96f4-5d36468451d4\\exec-33d086cd-5ae4-4f66-8431-adadf70add39.png",
+  "thread": "01a15684-a977-7091-9993-9fe8fe482f5b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15684-a977-7091-9993-9fe8fe482f5b\\exec-61e128c5-8101-4cee-989e-c68f5e0f8a7e.png",
   "otherImagesInThread": [],
   "output": {
-    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v3.png",
-    "sha256": "e8ba317549f4332198aeaf238dd4fd23b15ba3d90fa857a15dd92374e0b487ee",
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v5.png",
+    "sha256": "46da795e80aa5878fe89a5f14ab6faf9d06413269eb5c8b7dc45efb791248765",
     "dimensions": [
       1536,
       1024
     ],
     "mode": "RGB"
   },
-  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v3.txt",
-  "promptSha256": "2390e5838334f25192566c2f33c980015537578981187f8043afbc7f9b48f46f",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Style and finish only: a page from the same set; not content\n\nUse case: illustration-story. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: Harker's Claim, an asteroid mine, is being quietly emptied by its operator. Every month the manifests said ore. They weren't failing; they were packing.\n\nScene: night shift on the cargo floor of the Claim's loading hall, inside the pressurized asteroid habitat. Centre of the frame: a big steel freight container stencilled with crude ore-hazard chevrons and mining-grade markings (no readable words), its doors half open. Inside, packed in foam and strapped down, is not ore but the colony clinic's medical scanner: a pale curved diagnostic ring and its padded bed, still with a faded red medical cross on its side panel. Beside it, more crates marked the same way, one with its lid askew showing reactor fuel canisters and coiled drill heads. Two company loaders in clean company overalls close and seal the doors without looking inside, a forklift waiting.\n\nForeground left, on a manifest clerk's standing desk at the edge of the floor: a thick open manifest ledger with columns of unreadable handwritten entries, a rubber stamp and ink pad, a lamp, and a weathered woman's hand in the cuff of a charcoal-olive duty jacket resting flat beside the ledger, as if she has just stopped writing. Only the hand; no face.\n\nBackground: cold rock walls, gantries, amber lamps, and through a heavy sealed observation window the dark hull of a waiting company carrier. Quiet, damning, no drama.\n",
+  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v5.txt",
+  "promptSha256": "23e57c96e78ec658e48d76ccbdd200b155e0f83336abb47905e8b5a35eeee89c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: keep the gallery; the pasted boats keep their exact silhouette, size and position\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only what is seen through the big window.\n\nKeep EVERYTHING in the gallery exactly as it is, pixel for pixel: the manager and his gesture, Castle and the miners behind the tape, the guards, the families with luggage at the gate, the gangway, the departures panels, the floor, the lights, the camera and the composition. The window's heavy bolted frame and its two vertical mullions stay in front of everything outside; repair them wherever a pasted boat overlaps them.\n\nThrough the window, the old freighter is gone. Instead, beyond the glass, a dim pressurized launch bay cut into the asteroid rock, lit by a few hard floodlights, with two small company boats on their landing pads. Repaint the two pasted renders so they belong in the painting, keeping each one's exact silhouette, size, position and angle; do not reshape, enlarge or add parts. They are short, boxy 9-metre shuttles in pale grey and off-white plating with dark window bands at the nose, a small turret on top and a side boarding door; the nearer one has its side door open with light spilling out, and its stubby landing legs stand on the pad. A ground crew figure or two beside them for scale, a fuel hose, pad markings. The boats are plainly too small for everyone in the gallery: two boats, a handful of seats.\n\nSame restrained painted realism, amber and cool light as the rest of the image. No new text.\n",
   "adopted": false,
   "references": [
     {
-      "path": "art-source\\company-prologue\\story-stills\\second-wind.master.png",
-      "sha256": "17d47861914a2ae8e5d08dd47c3ede4fc97dbac3b8c7d371af41666edc123bc9",
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p2-hermes-composite.png",
+      "sha256": "8173cf04654d417d1a945a981f59cd4fc527a4d88b5c51605196d38c6fb421f8",
       "dimensions": [
         1536,
         1024
       ],
       "mode": "RGB",
-      "role": "Style and finish only: a page from the same set; not content"
+      "role": "Edit target: keep the gallery; the pasted boats keep their exact silhouette, size and position"
     }
   ],
   "agentMessages": [
-    "I’ll generate one image with the reference’s worn industrial finish and the quietly incriminating cargo scene."
+    "I’ll edit only the view through the window, preserving the gallery and both boats’ exact silhouettes, sizes, and positions."
   ],
   "usage": {
-    "input_tokens": 41307,
+    "input_tokens": 41182,
     "cached_input_tokens": 32640,
     "cache_write_input_tokens": 0,
-    "output_tokens": 655,
+    "output_tokens": 464,
     "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 64.1
+  "elapsedSeconds": 51.3
 }

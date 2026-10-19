@@ -535,16 +535,20 @@ def carry_on():
         ob = bpy.data.objects[name]
         if ob.parent is None:
             linear(ob, extrapolate=True)
-    # The freighter lifting off berth -130 climbs away faster once it is clear; the Hermes lifting off
-    # pad -355 goes on climbing; the one landing on pad -175 stays down.
+    # The freighter lifting off berth -130 climbs away faster once it is clear, and from C5's start
+    # accelerates off along its bow (the row faces nearly north), out of the frame well before the
+    # title, which has only the Colossus in the air; the Hermes lifting off pad -355 goes on climbing;
+    # the one landing on pad -175 stays down.
     T = c4.DURATION
     lift = bpy.data.objects.get('Lifting at berth 3')
     if lift is not None:
         frames = list(range(0, end + 1, KEY_STEP))
         t = np.array(frames) / c4.FPS
+        away = np.where(t > T, 0.5 * 3.0 * (t - T) ** 2, 0.0)                # m along its bow
         z = 11.0 + 4.0 * t + np.where(t > T, 0.6 * (t - T) ** 2, 0.0)
-        x, y = np.full(len(t), lift.location.x), np.full(len(t), lift.location.y)
-        bake_pose(lift, frames, x, y, z, np.full(len(t), lift.rotation_euler.z))
+        hd = lift.rotation_euler.z
+        x, y = lift.location.x + away * math.cos(hd), lift.location.y + away * math.sin(hd)
+        bake_pose(lift, frames, x, y, z, np.full(len(t), hd))
     up = bpy.data.objects.get('Lighter 1 lifting')
     if up is not None:
         linear(up, extrapolate=True)

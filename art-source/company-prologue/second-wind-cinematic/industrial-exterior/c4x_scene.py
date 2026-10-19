@@ -1405,6 +1405,35 @@ def add_landing_dust(manifest):
     print('LANDING_DUST', n, 'nozzles', len(nozzles), flush=True)
 
 
+# Every landing pad is dark tarmac, its markings dimmed, so people and vehicles on a pad stand out
+# against it: (object, value, saturation) applied over the painted colour.
+PAD_TONES = (('Pads', 0.24, 0.5), ('Heavy berth deck', 0.24, 0.5), ('Pad markings', 0.55, 0.8),
+             ('Kilo Nine ring', 0.55, 0.8), ('Lighter rings', 0.55, 0.8))
+
+
+def darken_pads():
+    """Runs after `ortho_paint.apply`: each pad object gets its own copy of its painted material with
+    the result darkened and a little desaturated, so the painting's stains and wear still show."""
+    for name, value, sat in PAD_TONES:
+        ob = bpy.data.objects.get(name)
+        if ob is None or not ob.data.materials:
+            continue
+        m = ob.data.materials[0].copy()
+        m.name = name + ' tarmac'
+        ob.data.materials[0] = m
+        nt = m.node_tree
+        bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+        base = bsdf.inputs['Base Color']
+        hsv = nt.nodes.new('ShaderNodeHueSaturation')
+        hsv.inputs['Saturation'].default_value = sat
+        hsv.inputs['Value'].default_value = value
+        if base.links:
+            nt.links.new(base.links[0].from_socket, hsv.inputs['Color'])
+        else:
+            hsv.inputs['Color'].default_value = base.default_value
+        nt.links.new(hsv.outputs['Color'], base)
+
+
 def add_cargo_flow(r):
     """Freighters unload from the stern: containers set down on the apron, carriers shuttling them
     to the container yard."""
@@ -1638,6 +1667,7 @@ def build():
     manifest = json.loads((STATES / 'manifest.json').read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, ({o.name for o in ship.all_objects} if ship else set()) | port_fleet.hull_part_names())
+    darken_pads()
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
