@@ -1,0 +1,7 @@
+{
+  "note": "Overhead paint tiles for the C4/C5 port. centre and size in metres (world x, y); pixels must share the size's aspect. See ortho_paint.py.",
+  "tiles": [
+    {"name": "k9-south", "centre": [366.0, 440.0], "size": [144.0, 96.0], "pixels": [1536, 1024], "accepted": true,
+     "about": "Kilo Nine's south half: the pad, the ramp side, the workshop and the gate. C5's opening view, 9.4 cm a pixel."}
+  ]
+}
