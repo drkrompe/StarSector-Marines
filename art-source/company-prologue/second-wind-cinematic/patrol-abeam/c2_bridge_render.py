@@ -1,7 +1,7 @@
 """C2 from Second Wind's bridge, lit: Cycles frames of the pass c2_bridge_blockout.py plans.
 
     python c2_bridge_render.py [--fps 24] [--frames 0,72,192] [--samples 64] [--resume]
-                               [--only A:B] [--out DIR]
+                               [--only A:B] [--out DIR] [--state patched|derelict|...]
     python c2_bridge_render.py --movie [--out DIR]     # c2-bridge.mp4 with captions and cues
 
 The motion is the blockout's (`c2_bridge_blockout`: the Legion's track and bank, the
@@ -23,6 +23,9 @@ and lights it:
   It turns at the true orbital rate, aft.
 - One sun, c2_core.SUN at C1's strength, and Jangala's planet-shine from below. No world light:
   the sky holds a procedural star field that only camera rays see.
+- Inside, the bridge's own practicals (bridge_practicals): the two ceiling lamp strips, a soft
+  screen-coloured glow off each console toward its operator, and the overhead amber display's
+  spill on the helm seat. They are ship's power, so `--state derelict` has none.
 
 Output: build/cinematic/c2-bridge/lit/f_<frame>.png (1920x1080 RGBA... opaque), meta.json.
 GPU: OptiX by default; C1_CYCLES_CPU=1 renders on the CPU.
@@ -43,9 +46,7 @@ sys.path.insert(0, str(BASE.parents[2]))
 from blender_path import BLENDER  # noqa: E402
 import c2_bridge_blockout as BB  # noqa: E402
 
-SW_STATE_BLEND = BASE.parent / "second-wind-states" / "patched" / "second-wind-patched.blend"
-SW_COLLECTION = "SECOND WIND | patched"
-SW_ROOT = "SECOND WIND | patched | root"
+SW_STATE = "patched"                      # C2's; --state picks another for a lighting check
 C1_ASSETS = BASE.parent / "corvus-approach" / "assets"
 SUN_STRENGTH = 4.5                        # C1's key, as render_patrol_sequence.py
 SHINE_COLOR = (0.55, 0.75, 1.0)
@@ -57,8 +58,56 @@ STAR_SCALE = 300.0                         # Voronoi cells per unit of sky direc
 STAR_SHARE = 0.035                         # share of cells holding a star
 STAR_FLOOR, STAR_GAIN = 0.05, 2.5          # faintest star, and the brightest's strength
 
+# Bridge practicals, in hull units (sw_bridge_interior's coordinates; the lights ride the root).
+# Every one is ship's power: sw_damage's 'ship-power' scar is open only in 'derelict', where every
+# emissive part is dark, so there none of these exist. Area lights are hidden from camera rays:
+# a floating rectangle in shot would read as a pane of light, not as the screen that makes it.
+CEILING_STRIPS = [((13.2, y, 20.1), (2.5, 0.45)) for y in (-1.6, 1.6)]   # under the two caged lamps
+CEILING_ENERGY, CEILING_RGB = 14.0, (1.0, 0.82, 0.6)                       # W per strip
+SCREEN_RGB = (0.22, 0.62, 0.5)                                            # 'Bridge display' emission
+CONSOLE_TOP = 18.25
+# (name, footprint centre, yaw_deg, screens (u along the run, width)) as sw_bridge_interior.build
+# lays the banks out; the operator stands toward (sin yaw, -cos yaw).
+BANKS = [
+    ("forward console", (17.43, 0.0), -90.0, [(-2.0, .9), (-.7, .9), (.7, .9), (2.0, .9)]),
+    ("port chamfer console", (16.45, 3.36), -45.0, [(0, 1.0)]),
+    ("starboard chamfer console", (16.45, -3.36), -135.0, [(0, 1.0)]),
+    ("port comms bank", (12.75, 4.2), 0.0, [(-1.6, .9), (0, 1.1), (1.6, .9)]),
+    ("starboard systems bank", (12.75, -4.2), 180.0, [(-1.6, .9), (0, 1.1), (1.6, .9)]),
+]
+SCREEN_GLOW_W = 2.5                        # W per hull unit of lit screen run
+SCREEN_GLOW_OUT, SCREEN_GLOW_UP = 0.3, 0.3 # in front of the screens, and above them
+SCREEN_GLOW_SPREAD = 70.0                  # deg: toward the operator, not across the deck
+# The overhead amber display (16.5, 0, 19.94) down onto the helm seat (16.3, -1.7).
+HELM_FILL = ((16.45, -1.2, 19.88), (0.5, 0.9), (16.3, -1.7, 18.4), 8.0, (0.9, 0.45, 0.12))
 
-def plan(frames, fps, samples_n):
+
+def bridge_practicals(powered):
+    """[(name, location, (size_x, size_y), aim point or None for straight down, energy W, rgb,
+    spread deg)]."""
+    if not powered:
+        return []
+    out = [("bridge ceiling light %d" % k, loc, size, None, CEILING_ENERGY, CEILING_RGB, 180.0)
+           for k, (loc, size) in enumerate(CEILING_STRIPS)]
+    for name, (cx, cy), yaw_deg, screens in BANKS:
+        yaw = math.radians(yaw_deg)
+        ux, uy = math.cos(yaw), math.sin(yaw)
+        ox, oy = math.sin(yaw), -math.cos(yaw)
+        lo = min(u - w / 2 for u, w in screens)
+        hi = max(u + w / 2 for u, w in screens)
+        mid = (lo + hi) / 2
+        out_ = .08 + SCREEN_GLOW_OUT
+        loc = (cx + ux * mid + ox * out_, cy + uy * mid + oy * out_, CONSOLE_TOP + .2 + SCREEN_GLOW_UP)
+        # Aim at the operator's hands over the switch row; the face is still in its spread.
+        aim = (loc[0] + ox * 1.2, loc[1] + oy * 1.2, CONSOLE_TOP + .1)
+        out.append(("%s screen glow" % name, loc, (hi - lo, .3), aim, SCREEN_GLOW_W * (hi - lo), SCREEN_RGB,
+                    SCREEN_GLOW_SPREAD))
+    loc, size, aim, energy, rgb = HELM_FILL
+    out.append(("helm overhead fill", loc, size, aim, energy, rgb, 120.0))
+    return out
+
+
+def plan(frames, fps, samples_n, state=SW_STATE):
     import c2_core as C
     times = [f / fps for f in frames]
     base = BB.plan(times, [1920, 1080])
@@ -67,7 +116,9 @@ def plan(frames, fps, samples_n):
         s["ship_pitch"] = BB.ship_pitch_deg(s["t"])
     lg = C.LEGION_GEOM
     base.update({
-        "fps": fps, "cycles_samples": samples_n, "sw_state_blend": str(SW_STATE_BLEND),
+        "fps": fps, "cycles_samples": samples_n, "sw_state": state,
+        "sw_state_blend": str(BASE.parent / "second-wind-states" / state / ("second-wind-%s.blend" % state)),
+        "practicals": bridge_practicals(state != "derelict"),
         "albedo": str(C1_ASSETS / "planet-albedo-detail-v1.png"),
         "clouds": str(C1_ASSETS / "planet-clouds-detail-v1.png"),
         "running_lights": lg.get("running_lights", []), "orbital_speed": C.ORBITAL_SPEED,
@@ -103,7 +154,7 @@ def launch(argv):
         i = argv.index("--out") if "--out" in argv else None
         movie(Path(argv[i + 1]) if i is not None else OUT)
         return
-    fps, frames, samples_n, resume, only, out = 24.0, None, 64, False, None, OUT
+    fps, frames, samples_n, resume, only, out, state = 24.0, None, 64, False, None, OUT, SW_STATE
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -122,6 +173,8 @@ def launch(argv):
             only = v
         elif a == "--out":
             out = Path(v)
+        elif a == "--state":
+            state = v
         i += 2
     import c2_core as C
     n = int(round(C.C2_LEN * fps))
@@ -134,7 +187,7 @@ def launch(argv):
         if only:
             a, b = (int(x) for x in only.split(":"))
             frames = list(range(a, min(b + 1, n + 1)))
-    p = plan(frames, fps, samples_n)
+    p = plan(frames, fps, samples_n, state)
     p["out"], p["resume"] = str(out), resume
     p["render"] = render if render is not None else [f for f in frames if f < n]
     out.mkdir(parents=True, exist_ok=True)
@@ -186,9 +239,9 @@ def blender_main(argv):
     ship = bpy.data.objects.new("C2B | ship frame", None)
     scene.collection.objects.link(ship)
     with bpy.data.libraries.load(p["sw_state_blend"], link=False) as (src, dst):
-        dst.collections = [SW_COLLECTION]
+        dst.collections = ["SECOND WIND | %s" % p["sw_state"]]
     scene.collection.children.link(dst.collections[0])
-    sw = bpy.data.objects[SW_ROOT]
+    sw = bpy.data.objects["SECOND WIND | %s | root" % p["sw_state"]]
     if abs(sw.get("metres_per_unit", p["sw_mpu"]) - p["sw_mpu"]) > 1e-9:
         raise RuntimeError("Second Wind state is %s m/unit" % sw.get("metres_per_unit"))
     sw.parent = ship
@@ -200,14 +253,22 @@ def blender_main(argv):
             o.visible_camera = False                # the glazing is not see-through glass
             o.visible_shadow = False
     if not any(o.name.startswith("Bridge deck plating") for o in sw.children_recursive):
-        raise RuntimeError("%s has no bridge interior: rebuild the patched state export" % p["sw_state_blend"])
-    # The model's ceiling lamps are the room's light; an area lamp under them carries it.
-    dome = bpy.data.objects.new("C2B | bridge ceiling light", bpy.data.lights.new("C2B | bridge ceiling light", "AREA"))
-    dome.data.shape, dome.data.size, dome.data.size_y = "RECTANGLE", 2.6, 3.6
-    dome.data.energy, dome.data.color = 25.0, (1.0, 0.82, 0.6)
-    scene.collection.objects.link(dome)
-    dome.parent = sw
-    dome.location = (13.2, 0, 20.1)
+        raise RuntimeError("%s has no bridge interior: rebuild the %s state export" % (p["sw_state_blend"], p["sw_state"]))
+    # The room's practicals (bridge_practicals): a strip under each caged ceiling lamp, a soft
+    # screen-coloured glow off every console's displays toward its operator, and the overhead
+    # amber display's spill onto the helm seat. None in the derelict state: the power is off.
+    for name, loc, (sx, sy), aim, energy, rgb, spread in p["practicals"]:
+        name = "C2B | " + name
+        lamp = bpy.data.objects.new(name, bpy.data.lights.new(name, "AREA"))
+        lamp.data.shape, lamp.data.size, lamp.data.size_y = "RECTANGLE", sx, sy
+        lamp.data.energy, lamp.data.color, lamp.data.spread = energy, rgb, math.radians(spread)
+        lamp.visible_camera = False
+        scene.collection.objects.link(lamp)
+        lamp.parent = sw
+        lamp.location = loc
+        if aim is not None:
+            d = Vector(aim) - Vector(loc)
+            lamp.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
     sys.path.insert(0, p["sw_dir"])
     import sw_bridge_interior
     sw_bridge_interior.figures(p["sw_mpu"], parent=sw)
