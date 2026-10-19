@@ -353,16 +353,28 @@
       "promptInfluence": 0.4
     },
     "c5_port_wide": {
-      "chosen": "c5_port_wide_t01",
+      "chosen": "c5_port_wide_t03",
       "takes": {
         "c5_port_wide_t01": {
           "durationSeconds": 12.0,
           "peakDb": -5.2,
           "integratedLufs": -19.0,
           "characterCost": "120"
+        },
+        "c5_port_wide_t02": {
+          "durationSeconds": 12.0,
+          "peakDb": -13.4,
+          "integratedLufs": -26.2,
+          "characterCost": "120"
+        },
+        "c5_port_wide_t03": {
+          "durationSeconds": 12.0,
+          "peakDb": -5.4,
+          "integratedLufs": -19.9,
+          "characterCost": "120"
         }
       },
-      "prompt": "Wide busy spaceport heard from above, distant cranes, a far lifter engine rumble, trucks, horns, industrial activity spread over a large area, outdoors",
+      "prompt": "Wide busy spaceport heard from above, distant cranes, a far lifter engine rumble, trucks, industrial activity spread over a large area, outdoors, no horns",
       "seconds": 12.0,
       "loop": true,
       "promptInfluence": 0.4
@@ -872,7 +884,7 @@
       "promptInfluence": 0.4
     },
     "c4_port_heavy": {
-      "chosen": "c4_port_heavy_t01",
+      "chosen": "c4_port_heavy_t03",
       "takes": {
         "c4_port_heavy_t01": {
           "durationSeconds": 12.0,
@@ -885,9 +897,21 @@
           "peakDb": -6.4,
           "integratedLufs": -22.2,
           "characterCost": "120"
+        },
+        "c4_port_heavy_t03": {
+          "durationSeconds": 12.0,
+          "peakDb": -0.1,
+          "integratedLufs": -21.1,
+          "characterCost": "120"
+        },
+        "c4_port_heavy_t04": {
+          "durationSeconds": 12.0,
+          "peakDb": -4.6,
+          "integratedLufs": -25.4,
+          "characterCost": "120"
         }
       },
-      "prompt": "Heavy industrial cargo port, container cranes clanking, metal containers banging, heavy machinery, ship horns, forklifts beeping, busy",
+      "prompt": "Heavy industrial cargo port, container cranes clanking, metal containers banging, heavy machinery, forklifts beeping, busy, no horns, no ship horns",
       "seconds": 12.0,
       "loop": true,
       "promptInfluence": 0.4

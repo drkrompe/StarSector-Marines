@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a mission may hold the battle open until a hull's part concludes (gone off the map, or its wreck at rest); at Black Sluice the Greyhook fights, then runs for her south edge on Voss's order and the battle waits for her escape or her wreck.
+Updated: 2026-10-19 — a turret stays inside its slot's arc and stays laid on the hull it fights between rounds, resting only with no hull in reach.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1972,7 +1972,17 @@ A ship is heard in the game's own sounds, never a mod clip: the weapon's fire so
 A turret traverses within its slot's arc and a hardpoint fires where the nose
 points, so which guns reach a target is a fact about the ship's heading. The
 Onslaught's heavy turrets are port and starboard; ahead of it only its
-hardpoints and bow guns answer. Choosing a heading that brings the battery to
+hardpoints and bow guns answer. A barrel never leaves its slot's arc: a bearing
+beyond it is met at the nearer stop, and a swing between stops goes round
+inside the arc, never through the hull. **A turret stays laid on the hull it
+fights.** Between rounds (cooling down, venting, waiting on the volley or a
+missile's window, holding for a friend in its line) it keeps tracking where it
+would aim at the hull it reaches and bears on, and rests along its slot only
+when no hull is in its reach and arc. A barrel that swung home for every
+cooldown spent most of a hull fight re-laying: on the hull fight's long clock a
+slow heavy gun drifted twenty degrees off and took seconds to come back, and was
+on its target a fifth of the time. Ground orders keep their own aim; the hull's
+lay only replaces rest. `-Dbattle.warship.layBetweenRounds=false` is the control. Choosing a heading that brings the battery to
 bear is the director's job and part of what makes a capital worth positioning.
 
 **A warship takes orders, and an area order leaves the choosing to the ship.**
@@ -2058,6 +2068,21 @@ simulation. The ship's shadow is its own hull sprite laid on the
 ground down-sun by the sun's reach at a presentational hover height, higher than
 an aircraft's, through the same shadow layer, sun and tint every craft uses. Like
 an aircraft's, that height is a drawing choice and not a physical altitude.
+
+**A round between hulls is drawn at the hulls' scale, as its spec says the game draws it**
+(`VanillaRoundLook`). The projectile spec decides the kind: a `BALLISTIC` shell is its bullet
+sprite stretched to the spec's length and width along its flight; a `BALLISTIC_AS_BEAM` bolt is
+a tapered streak of light in its fringe and core colours, even when the spec also names a bullet
+sprite (the Antimatter Blaster does, and the game never draws it); a missile is its sprite at its
+size, its engine flame at its nozzle while the motor burns, and its contrail one continuous
+ribbon of the spec's width, spread and colour, laid only while the motor burns and drifting on
+at the spec's share of the missile's speed. A round fired at a hull, or carrying on past one, is
+drawn at the hull presence, so it stands to the ship it hits as in the base game (a Heavy
+Autocannon shell about a quarter of an Enforcer, not a speck under a glow), and its contrail
+hangs on the hull fight's clock. The glow under a round is the spec's own (`glowColor` at
+`glowRadius`); a round whose spec names none gets a soft halo no longer than itself. A round at
+the ground or the air keeps the shared density, slimmed, because there it is measured against
+marines. This is drawing only: a round's reach, speed and blast are unchanged.
 
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's

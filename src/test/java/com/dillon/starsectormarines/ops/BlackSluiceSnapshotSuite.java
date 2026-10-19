@@ -330,7 +330,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     assertNotNull(outcome.smallWarOverhead);
                 } else assertNull(outcome.smallWarOverhead, "No order, no duel to report");
             } else assertNull(outcome.smallWarOverhead);
-            if (!duelFrames.isEmpty()) frames.add(SnapshotArtifact.animation(fixture.id() + "-duel.gif", duelFrames, 100));
+            if (!duelFrames.isEmpty()) frames.add(SnapshotArtifact.colorAnimation(fixture.id() + "-duel.gif", duelFrames, 100));
             report.append("  casualties=").append(outcome.marinesLost).append("/").append(outcome.marinesEngaged).append('\n');
             victories.put(fixture.id(), outcome.victory);
             if (OBSERVE) return outcome.victory;

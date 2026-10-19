@@ -1426,7 +1426,7 @@ and drains the same simulation lists `BattleScreen.advance` does.
 | Aircraft hulls, turrets and shadows, warships, convoys, drones | Drawn |
 | Aircraft engine plumes (`EngineFxPass`) | Drawn (additive, replayed through recording sprites) |
 | Projectile bodies, hitscan tracers, bolts, tracer tails | Drawn (`SHOTS`) |
-| Missile and projectile contrails (`ContrailFxService`) | Drawn as flat-coloured ribbon segments through the shared `RibbonBatch` geometry; additive plume styles draw as ordinary blends |
+| Missile and projectile contrails (`ContrailFxService`), and warship missiles' contrail ribbons | Drawn as flat-coloured ribbon segments through the shared `RibbonBatch` geometry; additive plume styles draw as ordinary blends |
 | Lingering beams and delivered-ordnance traces (falling bombs, gun-run streaks) | Drawn |
 | Weapon `fx` blocks: launch, muzzle, trail, impact, aftermath; heavy blasts, rolling blasts, wall dust, wreck smoke and fire; point-defence intercept bursts | Drawn from the real `ImpactFx` fed per tick, painted over the frame |
 | Smoke clouds, shield domes, point-defence engagement marks, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader, in blocks) |

@@ -1,6 +1,6 @@
 # C2 PATROL ABEAM and the entry transition: shared layout
 
-Shot C2 of `storyboard-v3.md` and the entry transition after it: 15.0 s plus 3.0 s,
+Shot C2 of `storyboard-v3.md` and the entry transition after it: 15.0 s plus 7.0 s,
 1920x1080, 24 fps. Every layer obeys this sheet so the pieces composite into one
 camera. `c2_core.py` holds the same numbers as code: camera, sun, planet, the patrol's
 track and the hail timings. The guides, the blockout and any later compositor read
@@ -10,7 +10,7 @@ Status: REWORK. The owner has moved C2 to Second Wind's bridge (2026-10-18, see
 *Bridge pass* below); a grey blockout is in review. The cabin-window production build
 described in the rest of this sheet is what currently ships, and stays the plan of
 record for the entry and for anything the bridge pass does not replace.
-Updated: 2026-10-18 — bridge pass blockout on the modelled bridge interior; the patrol is the Legion at 0.99 m/unit.
+Updated: 2026-10-19 — the entry reworked as a 7 s shaking descent (sound review); bridge pass blockout on the modelled bridge interior.
 
 ## Bridge pass (owner direction, 2026-10-18)
 
@@ -40,10 +40,11 @@ down to Castle's station, 70 cm inboard of the port glass. The eye height is the
 since leaning on the dais and standing on the floor put it level with the slits. The pilot (an
 unnamed crewman, seated at the helm) and Castle are MakeHuman figures from `pilot-figure/` and
 `castle-figure/` once their .blends are built, and mannequins until then (`sw_bridge_interior.figures`). The
-pilot flies with a yoke (owner, 2026-10-19). He sits back, forearms on the armrests, leans in
-to the yoke over 8.3–9.3 s, pushes it for the de-orbit's pitch-down (9.5–13.2 s, with a small
-turn to port in the middle) and sits back again over 13.5–14.7 s (his package's action, on
-C2's frames).
+pilot flies with a yoke on a telescoping column (owner, 2026-10-19). He sits back, forearms on
+the armrests, with it stowed; leans in and draws it out to him over 8.3–9.45 s and flies sat
+back; pushes it for the de-orbit's pitch-down (9.5–13.2 s, with a small turn to port in the
+middle); and lets go over 13.5–14.7 s, leaving it drawn out (his package's action, on C2's
+frames).
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
@@ -160,8 +161,8 @@ the one used for C2, the entry, C3 and C4.
 | Lens | 26 mm on a 36 mm sensor (the forest-reveal and parallax-window cabin camera). Focal length 1386.7 px at 1920 wide; horizontal field of view 69.4°. |
 | Pitch | 18.6° down. This is measured from the realism frame itself: its jambs converge to a vertical vanishing point about 4670 px below the top of the frame. The Blender cabin camera reads 19.3°. |
 | Glass | Measured on `realism-lookdev/window-realism-v1.png`: left jamb at x = 157 + 0.172y, right jamb at x = 1764 − 0.172y, sill at y = 704. The opening runs out through the top of the frame. Through it the camera sees from 2.7° above the horizontal to 25.4° below it, and from 30° left to 30° right. |
-| Motion | **None.** No push, no truck, no shake; the frame does not move at all (storyboard). Everything that moves is outside the glass, or is a change of light on the frame. |
-| Duration | C2 runs 37.70–52.70 (15.0 s) on the hail clock. The entry runs 52.70–55.70 (3.0 s). |
+| Motion | **None in C2.** No push, no truck, no shake; the frame does not move at all (storyboard). Everything that moves is outside the glass, or is a change of light on the frame. The entry shakes (below). |
+| Duration | C2 runs 37.70–52.70 (15.0 s) on the hail clock. The entry runs 52.70–59.70 (7.0 s). |
 
 ## Sun and light
 
@@ -236,8 +237,10 @@ planet and the frame, so there are never more than four layers live: the planet
 | *Scrutiny beat (proposed)* | One dorsal turret is trained on Second Wind as the bow enters. It slews back to fore and aft on "Patrol has your signature". | Rotation of the turret in the same render. Its geometry is already in the proxy. | It costs nothing in a rendered sequence and makes "mounts cold" visible. See the open questions. |
 | Jangala | The surface drifts aft. The limb holds. | Two translating cards (layers 2 and 3) | Distance forgives. Over 15 s the ground's change of angle is under a degree. |
 | Cabin | Nothing moves. The light changes for the entry. | Cross-fades between relit frame plates, timed by `c2_core` | A light change is not a geometric change |
-| Entry glow | Hot filaments stream aft (right to left) inside a glow that wipes in from the bow side | A glow card that **translates** right to left with a soft leading edge (the wipe is the card's own edge), plus a filament card scrolling at about 600 px/s | Translate only. The wipe is not an animated mask. |
-| Entry cloud | Cloud overruns the glow from right to left and whites out the glass | A cloud card translating right to left, its soft leading edge 260 px wide | Same rule |
+| Entry fire | Flames stream across the glass from bottom right to top left, 27 degrees above horizontal, spreading from the bottom right | The glow card's filaments with its broad light divided out, streamed along that line at two speeds (520 and 1500 px/s), coloured through a fire ramp by a heat field fixed to the glass | Translate along the stream only. The heat field is the only mask, and it does not move with the flames. |
+| Entry smoke | Dark plumes torn off the flames, trailing toward the top left | The cloud card's billows at their own scale, thresholded into plumes, streamed the same way at 820 px/s, lit from below by the fire | Same rule |
+| Entry cloud | Cloud streams in along the same line from the bottom right, ragged edge first, warm then white, and whites out the glass | The cloud card carried along the stream, mirrored across it, with fast wisps streaming through | Same rule |
+| Entry shake | The camera and the window shake together | `first-open-sky/c3_core.camera_shake`, applied to the whole picture | Shared with C3, so it continues across the cut |
 
 ## Audio sync points
 
@@ -255,37 +258,60 @@ Hail clock in seconds (`build_hail_preview.timeline()`, catalog
 | 46.64–46.86 | C2 8.94–9.16 | Approach keys down | |
 | 47.46–51.46 | C2 9.76–13.76 | 8: "Corridor four, mounts cold. Thank you, Approach." | The de-orbit burn starts at 9.6, under the read-back; cabin rumble rises in the mix. The stern and lit engine block pull ahead and rise (still 3 at 11.4). The hull clears the glass at about 13.5. |
 | 51.46–52.70 | C2 13.76–15.00 | — | Clear glass: Jangala and black. A breath before the heat. |
-| 52.70 | Entry 0.00 | — | The glow wipe begins at the right jamb. |
-| 53.06–53.47 | Entry 0.36–0.77 | 9 (off channel, no squelch): "Well." | Glow covers the glass by 1.1; the frame takes the orange (still 4 at 0.9). |
-| 54.00–55.27 | Entry 1.30–2.57 | 9: "Somebody knows we're here." | The cloud wipe starts at 1.3 and covers the glass by 2.5 (still 5 at 2.2). |
-| 55.58 | Entry 2.88 | Line 9 ends | |
-| 55.70 | Entry 3.00 | — | Cut to C3, which opens out of the white. |
+| 52.70 | Entry 0.00 | — | Clear glass. The heat starts at the bottom right at 0.15; the shake begins. |
+| 53.06–53.47 | Entry 0.36–0.77 | 9 (off channel, no squelch): "Well." | First heat in the bottom right corner. |
+| 54.00–55.27 | Entry 1.30–2.57 | 9: "Somebody knows we're here." | Flames spread across the glass, full by 2.4; smoke from 1.6. |
+| 55.58 | Entry 2.88 | Line 9 ends | Fire and smoke streaming up-left; shake building. |
+| 56.80–58.10 | Entry 4.10–5.40 | — | Cloud streams in from the bottom right; the fire quenches by 5.7. Hardest shake. |
+| 58.10–58.70 | Entry 5.40–6.00 | — | Whiteout. |
+| 58.70–59.60 | Entry 6.00–6.90 | — | The white settles onto C3's frame 0 (same window, same camera). |
+| 59.70 | Entry 7.00 | — | Cut to C3, which opens out of the white, still shaking. |
 
 ## Entry transition
 
-**What the storyboard asks:** an orange heat glow, then cloud, wiped across the same
-window frame, joining C2 to C3. It lasts 2–3 s and is not a shot in its own right.
+**What the storyboard asks** (owner, 2026-10-19, after the first sound mix): a descent,
+not a wipe. Longer than the first 3 s version, with the camera and window shaking and
+flames and smoke streaming across the window from bottom right to top left. It joins C2
+to C3 and is not a shot in its own right. It runs 7.0 s.
 
-- **Same frame, same camera.** Only the light on the frame and the cards behind the
-  glass change.
-- **Direction.** Both wipes run right to left, from bow to stern. The plasma sheath
-  builds from the leading edge, and the cloud streams aft. That is the same flow as
-  every window shot, so it never reverses at the cut.
-- **Glow (0.0–1.1 s in, held to 1.5 s).** It is hottest toward the bow side and low in
-  the glass, where the sheath wraps the hull's leading underside. It is dimmer and more
-  filamentary aft, with filaments scrolling aft. The frame takes an orange relight that
-  is strongest on the surfaces nearest the opening (`guides/transition-timing.png`).
-- **Cloud (1.3–2.5 s, white held to 3.0 s).** It overruns the glow and whites out the
-  glass. The frame trades the orange for the sequence's first soft fill. C3 opens out of
-  the white, so the join is a match on white rather than a cut between two lit pictures.
-- **Line 9 sits inside it.** "Well." plays over the glow and "Somebody knows we're
-  here." over the cloud. Its last syllable ends 0.12 s before the cut. There is no
-  squelch: the missing key-up is how the ear knows she has closed the channel.
-- **The time skip is honest about being a wipe.** Going from 200 km to the cloud deck
-  takes many minutes. The glow-then-cloud wipe is an ellipsis, which is why it is a
-  transition and not a shot.
-- **Sources.** Restyle the glow and cloud from `entry-window/`'s exterior cards (below).
-  The blockout cuts them out of its movie as stand-ins.
+- **C3's window and camera, from the first frame** (owner, 2026-10-19). The entry first
+  used C2's cabin camera (19.29 degrees down, so the window read keystoned) and swapped to
+  C3's under a bloom; the owner saw the frame change at the cut. Now the entry is drawn
+  through C3's own cabin (`first-open-sky/build/layers/cabin.png`) at C3's 9 degrees, and
+  only the light on the frame, what is behind the glass and the shake change. The cut
+  from C2 into the entry is where the place changes. C2's planet plate is lowered 250 px
+  to where its horizon sits from 9 degrees.
+- **The cabin's light.** C3's paint is lit by C3's daylight, so the cloud state is that
+  paint as it is. Space and fire light come from the glass: a falloff from the aperture,
+  cold planet-shine in space, orange and flickering in the fire, hotter on the bow side.
+- **Direction.** Everything streams along one line, from bottom right to top left, 27
+  degrees above horizontal (`c2_core.FLOW_DEG`). That is the air going past a port
+  window of a ship coming down bow first: aft, as in every window shot, and up. C3 opens
+  with the world moving the same way, sliding aft and rising as the ship comes out of
+  its descent, so the flow never reverses at the cut.
+- **Fire (0.15–2.4 s building, quenched by 5.7 s).** The heat is fixed to the glass,
+  hottest at the bottom right, where the air meets the hull first, and spreads up-left
+  from there. Through it the flames stream: dark lanes between yellow-white cores,
+  deep red toward the top left. The planet fades behind the sheath. The cabin takes an
+  orange, flickering relight from the glass.
+- **Smoke (1.6–5.6 s).** Dark plumes tear off and trail toward the top left, their
+  undersides lit by the fire.
+- **Cloud (4.1–5.4 s, white 5.4–6.0 s).** It streams in along the same line, ragged edge
+  first, warm while the heat is still in it and then white, and whites out the glass.
+  The cabin trades the orange for the sequence's first soft fill.
+- **Shake.** The camera and the window shake together: a fast buffet, a slower heave,
+  and a fraction of a degree of turn, building through the heat to about 9 px in the
+  cloud and still about 3 px at the cut. It is one function of time from the entry's
+  start, shared with C3, which eases it away (`first-open-sky/c3_core.camera_shake`).
+- **Into C3.** In the white (6.0–6.9 s) the frame settles exactly onto C3's frame 0;
+  C3 picks up one frame later on the same shake.
+- **Line 9 sits early in it.** "Well." plays over the first heat and "Somebody knows
+  we're here." as the flames spread. There is no squelch: the missing key-up is how the
+  ear knows she has closed the channel.
+- **The time skip is honest about being a transition.** Going from 200 km to the cloud
+  deck takes many minutes. Seven seconds of fire, smoke and cloud is an ellipsis.
+- **Sources.** The glow and cloud cards in `assets/` (`c2-entry-glow-v1.png`,
+  `c2-entry-cloud-v1.png`), streamed and coloured in `compose_entry.py`. No new art.
 
 ## Salvage
 
@@ -393,8 +419,8 @@ Production decisions that supersede the plan above:
 - **Planet drift** is per row at the true ground rate (about 7 px/s at the horizon,
   21 at the sill), not two translating cards.
 - **The entry ends on C3's frame 0** (C3's cabin at 9 degrees around flat entry white,
-  per the C3 hand-off). The 19.29-to-9-degree change happens under a bloom to white
-  at 2.72 s.
+  per the C3 hand-off), and C3 picks up one frame later on the same shake. The entry
+  is drawn through C3's window and camera throughout, so there is no camera change.
 - **Audio cues** (player dicts). C2: squelch open, line 7, squelch close, line 8.
   Entry: line 9 at 0.16 s (no squelch), wind from 0.35 s. Neither adds a bed: C1's
   cabin bed runs under the whole hail. Line 9 is placed by its own rule, 1.4 s after
