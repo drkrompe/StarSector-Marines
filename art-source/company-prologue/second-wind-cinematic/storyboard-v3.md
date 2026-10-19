@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-18 — C4 is now the sky camera ending in the landing at Kilo Nine; C5 replaced by the v2 closing; dialogue arc revised (`c5-v2-closing.md`).
+Updated: 2026-10-19 — after the sound review: a 7 s shaking entry; C3 levels out over 16 s with Castle's travel-reels line, moved from C4; C4 opens on "Greywater's past the cranes"; C4 and C5 are one shot (`c5-v2-closing.md`).
 
 ## What changed from v2
 
@@ -51,8 +51,8 @@ are new work.
 | — | *Campaign travel to Jangala* | — | The player flies there. | — |
 | C1 | CORVUS | Cinematic + voiced hail | Jangala, the Hegemony fleet, civilian traffic, and how small they are. | **new** |
 | C2 | PATROL ABEAM | Cinematic + hail continues | A Hegemony warship slides past the crew window. | **new** |
-| — | Entry (transition only) | Cinematic | Glow and cloud wipe; not a beat. | **new**, 2–3 s |
-| C3 | FIRST OPEN SKY | Cinematic, silent | Miners from an asteroid see sky. | salvage forest plate |
+| — | Entry (transition only) | Cinematic | The descent: flames, smoke and cloud stream past a shaking window; not a beat. | **new**, 7 s |
+| C3 | FIRST OPEN SKY | Cinematic + Castle | Miners from an asteroid see sky. | salvage forest plate |
 | C4 | THE ROAD AND THE PORT | Cinematic + Castle | A world people live on; the freight road they will fight for; down at Kilo Nine. | **new**, sky camera (`industrial-exterior/`) |
 | C5 | WE'RE DOWN | Cinematic + Castle, title | They made it; the families walk off; the title. | **new**, v2 (`c5-v2-closing.md`) |
 | Y1 | Yard report | Image + dialog | Nessa held to the estimate; the Wayline bridge. | *existing* `yard-hull` |
@@ -69,7 +69,7 @@ is not part of this pass.
 
 ## Arrival shot list
 
-The arrival runs about 90 seconds, most of it the space section that carries the hail. It plays once, the first time the player docks
+The arrival runs about two minutes (C1 38 s, C2 15, entry 7, C3 16, C4 16, C5 34), the longest part the space section that carries the hail. It plays once, the first time the player docks
 at Jangala, and it can be skipped. Starts that use a fallback port never see it.
 Timings are targets until the voice takes are measured.
 
@@ -126,12 +126,25 @@ hull is in the window.
 
 **Payoff.** Scale and scrutiny, felt rather than described.
 
-### Entry — transition (2–3 s)
+### Entry — transition (7 s)
 
-Orange heat glow, then cloud, wiped across the same window frame. It joins C2 to
-C3 and is not a shot in its own right.
+The ship coming down through the atmosphere, seen through the same window frame.
+It joins C2 to C3 and is not a shot in its own right, but it is long enough to
+feel (owner, 2026-10-19: the 3 s wipe was too short and did not read as a descent).
 
-### C3 — FIRST OPEN SKY (about 12 s, silent)
+- **0–2.4 s.** Heat builds from the bottom right of the glass and spreads across it.
+  Flames stream across the window from bottom right to top left, the way the air
+  goes past a ship coming down bow first. Castle's "Cleared. Everybody breathe."
+  lands here.
+- **1.6–5.6 s.** Dark smoke tears off the flames and trails toward the top left.
+- **4.1–5.4 s.** Cloud streams in along the same line, warm at first, then white.
+- **5.4–7.0 s.** Whiteout; under it the frame blooms and the camera changes from
+  C2's to C3's.
+- **Shake, throughout.** The camera and the window shake together, building
+  through the heat, hardest in the cloud, and still there when C3 opens, where it
+  eases off. The cabin is lit orange by the fire, flickering, then soft white.
+
+### C3 — FIRST OPEN SKY (16 s)
 
 **Picture.** The approved forest reveal: canopy to the horizon, a river, mist in
 the valleys, an Atlas lifter in the sky.
@@ -139,11 +152,20 @@ the valleys, an Atlas lifter in the sky.
 **Layers.** Fixed window frame and cabin; near canopy; middle ridges; far hills
 and sky; the lifter as a cut-out.
 
-**Motion.** The world slides aft at rates set by depth. The lifter crosses
-slowly against it.
+**Motion.** The ship comes out of the cloud still descending, nose down, and
+flattens out. Through the side window that reads as the horizon tilted, rising
+toward the bow, then swinging level over the first 5–6 s, with the ground
+rising fast and then settling, while the shake from the entry eases away. From
+then on the ship flies level and the world slides aft at rates set by depth, as
+before. The lifter crosses slowly against it.
 
-**Audio.** Cabin vibration easing, ventilation, and no speech. A passenger's
-gloved hand may loosen on the frame.
+**Audio.** Cabin vibration easing, ventilation. Once the ship is level and the
+shake has gone (7 s), Castle, quietly, over the open intercom:
+
+> Like the travel reels they ran in the canteen... except this one doesn't loop.
+
+It moved here from C4 (owner, 2026-10-19) so it plays over the nature view, with
+about 4 s left after it to look. A passenger's gloved hand may loosen on the frame.
 
 **Payoff.** The emotional centre of the arrival. These people lived years inside
 an asteroid mine. Let them, and the player, look.
@@ -165,20 +187,23 @@ layout, and `c5-v2-closing.md` says how it hands off to C5.
 yard, then 8 s of lingering while the ship sinks, lands in its dust and the
 yard crew move in.
 
-**Audio.** One line from Castle over the fields, overheard through the open
-intercom:
+**Audio.** Castle's travel-reels line now plays in C3. C4 opens on her next one,
+over the intercom (owner, 2026-10-19):
 
-> Like the travel reels they ran in the canteen... except this one doesn't loop.
+> Greywater's past the cranes. Let me do the talking.
 
-Optionally, as the ship drops behind the cranes: "Greywater's past the cranes.
-Let me do the talking." Her Nessa memory no longer plays here (see Decisions):
+A line about where they will land (Kilo Nine) may follow; the owner is choosing
+among drafts. Her Nessa memory no longer plays here (see Decisions):
 the shot is too short to carry it, and Y1 introduces Nessa anyway.
 
 **Payoff.** The futuristic world on the ground, and a quiet setup: the haulers
 are Wayline's kind of drivers, on the kind of road the company will defend in
 Relief.
 
-### C5 — WE'RE DOWN (about 30 s)
+### C5 — WE'RE DOWN (about 34 s)
+
+**One shot with C4** (owner, 2026-10-19): no cut between them. C5 carries on
+from C4's last camera and pushes in to the ramp over its first 4 s.
 
 Replaced by v2: `c5-v2-closing.md` holds the picture, the beats and Castle's
 closing lines. In short: overhead on the ship in Nessa's yard, the families walk

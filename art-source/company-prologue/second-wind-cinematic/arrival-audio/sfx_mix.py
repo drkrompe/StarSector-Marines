@@ -95,9 +95,8 @@ SHOTS = {
     "c1": (37.7, [
         sfx("c1_cabin_bed", 0.0, -16, until=37.7, env=[(0, -2), (2.6, 6), (3.1, 0)], fade_in=1.0),
         # Second Wind's drive as bass: far at first, loudest as it passes and its engines face us.
-        sfx("c1_sw_engine_loop", 0.0, -14, until=37.7, af=LOW,
-            env=[(0, -12), (8, -2), (11, 2), (16, 0), (24, -4), (37.7, -9)], fade_in=2.0),
-        sfx("c1_sw_passby_swish", 9.25, -10),
+        # Second Wind's drive as a muffled heavy rocket, synthesised from its lane (owner, 2026-10-19).
+        synth("second_wind_pass", -10, fade_in=2.0),
         sfx("c1_hull_creaks", 0.5, -12, offset=0.5, until=3.0),
         sfx("c1_hull_creaks", 32.2, -12, offset=0.5, until=34.5),
         sfx("c1_rcs_puffs", 5.0, -14, until=7.0),
@@ -116,10 +115,9 @@ SHOTS = {
         sfx("c2_fighter_swish", 2.5, -8), sfx("c2_fighter_swish", 2.62, -12), sfx("c2_fighter_swish", 2.74, -14),
         sfx("c2_fighter_swish", 3.7, -10), sfx("c2_fighter_swish", 3.82, -13), sfx("c2_fighter_swish", 3.94, -15),
         # The Legion: two layers of engine hum and the swell, all loudest at the beam (8.0).
-        sfx("c2_legion_engines_a", 0.0, -12, until=15.0, af=LOW,
-            env=[(0, -16), (8, 0), (12, -6), (15, -12)], fade_in=1.0),
-        sfx("c2_legion_engines_b", 0.0, -13, until=15.0, af=LOW,
-            env=[(0, -18), (8.5, 0), (13, -6), (15, -12)], fade_in=1.0),
+        # The Legion's engines: two synthesised rocket clusters along the hull, a beat apart.
+        synth("legion_engines_fwd", -12, fade_in=1.0),
+        synth("legion_engines_aft", -12, fade_in=1.0),
         sfx("c2_legion_presence", 5.0, -14, af=LOW),
         sfx("c2_switch_clicks", 9.45, -12, until=9.8),
         sfx("c2_switch_clicks", 14.35, -12, offset=3.0, until=14.8),
@@ -162,21 +160,30 @@ SHOTS = {
         sfx("c4_touchdown", 11.0, -2),
         sfx("c4_dust_hiss", 11.0, -10),
         sfx("c4_spool_down", 11.2, -8),
-        sfx("c5_vehicles_arrive", 14.2, -12, fade_in=0.5),
         sfx("c5_yard_bed", 12.0, -14, until=49.5,
             env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
         voice(("castle", CASTLE["c4_greywater"]), 1.0),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
-        sfx("c5_car_doors", 3.5, -12),
+        # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
+        # 2.5, the crew carrier at 3.5, the bowser at 4.5, the customs car at 5.0. The take's brake
+        # hiss sits 4 s in, so each starts 4 s before its stop; a door 0.6 s after each stop.
+        sfx("c5_vehicles_arrive", -1.5, -14, fade_in=0.8),
+        sfx("c5_vehicles_arrive", -0.5, -15, offset=0.3, fade_in=0.8),
+        sfx("c5_vehicles_arrive", 0.5, -16, offset=0.6, fade_in=0.8),
+        sfx("c5_vehicles_arrive", 1.0, -18, offset=0.9, fade_in=0.8),
+        sfx("c5_car_doors", 3.1, -16, until=3.7),
+        sfx("c5_car_doors", 4.1, -16, until=4.7),
+        sfx("c5_car_doors", 5.1, -16, until=5.7),
+        sfx("c5_car_doors", 5.6, -14),
         sfx("c5_steam_vent", 4.0, -14, until=6.5),
         sfx("c5_steam_vent", 6.4, -16, until=8.6),
         sfx("c5_pa_click", 4.75, -10, until=5.2),
         sfx("c5_pa_click", 13.8, -10, until=14.25),
         sfx("c5_ramp_drop", 5.6, -8),
-        sfx("c5_footsteps_crowd", 9.0, -14, until=27.0, env=[(9, -6), (11, 0), (18, 0), (26, -10)],
-            fade_out=1.5),
-        sfx("c5_crowd_murmur", 10.0, -20, until=25.0, fade_in=1.5, fade_out=2.0),
+        # From 220 m up the families are a far murmur, not footsteps (owner, 2026-10-19).
+        sfx("c5_crowd_murmur", 8.5, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
+            fade_in=2.0, fade_out=3.0),
         sfx("c5_port_wide", 17.0, -5, offset=5.0, until=33.5,
             env=[(17, -12), (26, 0), (28, 0), (32.5, -40)], fade_in=1.0),
         voice(("castle", CASTLE["c5_announce"]), 5.0),

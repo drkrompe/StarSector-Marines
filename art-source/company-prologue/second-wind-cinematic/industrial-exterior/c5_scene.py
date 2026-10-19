@@ -44,6 +44,7 @@ import sys
 import time
 from pathlib import Path
 
+import bmesh
 import bpy
 from mathutils import Vector
 
@@ -62,6 +63,7 @@ CENTRE = Vector((362.0, 436.0))
 # the yard ends as one corner of the port with the jungle along the right edge. Height grows at a
 # steady rate of zoom (geometric), and keeps settling the last few percent under the title.
 RISE = (18.0, 26.0)
+PUSH = 4.0                          # the push in from C4's last view to the ramp, C5 seconds
 TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
 SETTLE = 1.04                       # how much further it drifts up after the rise, to the end
 PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # every vehicle has stopped by this C5 second
@@ -79,6 +81,7 @@ def at(u, v):
 RAMP = at(-36.5, 0)                       # the foot of the stern ramp, between the engine pods
 DOOR = Vector((334.0, 410.6))             # Nessa's workshop door, under the awning
 DOOR_FRONT = Vector((336.0, 415.0))
+IDLERS = ((330.0, 417.0), (336.0, 419.0), (339.0, 416.0), (448.0, 418.0))   # C4's 'Yard people' inside NAV_BOX
 # Where a family steps aside, near the ramp so it happens while the camera is still close: one
 # waits off the north side for somebody still aboard, one stops to the south to take it in.
 SPOTS = {'wait': at(-40, 13), 'aside': at(-44, -12)}
@@ -124,6 +127,11 @@ def cast(rng):
         groups.append(G([W('Customs officer %d' % k, 'customs', speed=1.15, look=RAMP)],
                         CAR + Vector((0.0, 2.6 * (1 if k == 0 else -1))), car + 0.8 + 0.6 * k,
                         [('go', post, 0.5), ('stay',)]))
+    # Whoever was standing about the workshop in C4 heads inside as the vehicles come in; one stays
+    # by the garden. They stand exactly where C4's static figures stood, so nothing pops at the join.
+    for k, spot in enumerate(IDLERS):
+        plan = [('stay',)] if k == 3 else [('wait', 2.0 + 0.8 * k), ('go', DOOR_FRONT, 0.5), ('enter', DOOR)]
+        worker('Yard idler %d' % k, Vector(spot), plan, look=None)
     # Nessa: out of her door, a few steps, and stands apart.
     groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
                     [('go', Vector((350.0, 419.0)), 0.5), ('stay',)]))
@@ -148,10 +156,44 @@ def cast(rng):
     return groups
 
 
+def _in_nav(p):
+    return NAV_BOX[0] <= p.x <= NAV_BOX[2] and NAV_BOX[1] <= p.y <= NAV_BOX[3]
+
+
+def camera_at(t):
+    """(lens mm, location) at C5 second t. C4 and C5 are one shot: the camera starts exactly where
+    C4's sky camera stops, straight down over the yard on its wide lens, and pushes in to the
+    long-lens view of the ramp over `PUSH` seconds. The ground covered shrinks at a steady rate
+    while the lens lengthens, so the push reads as one smooth move rather than a zoom. Then it
+    holds, and rises for the title (`RISE`)."""
+    w0 = c4.SENSOR_MM / c4.LENS_MM * c4.CAM_LINGER.z           # ground width C4 ends on
+    w1 = c4.SENSOR_MM / LENS * HEIGHT
+    k = c4.smoothstep(0.0, PUSH, t)
+    lens = c4.LENS_MM * (LENS / c4.LENS_MM) ** k
+    c = c4.CAM_LINGER.to_2d().lerp(CENTRE, k)
+    z = w0 * (w1 / w0) ** k * lens / c4.SENSOR_MM
+    r = c4.smoothstep(*RISE, t)
+    if r > 0:
+        settle = 1 + (SETTLE - 1) * c4.smoothstep(RISE[1] - 2.0, DURATION, t)
+        c = CENTRE.lerp(TOP_CENTRE, r)
+        z = HEIGHT * (TOP / HEIGHT) ** r * settle
+    return lens, (c.x, c.y, z)
+
+
 def setup(body):
     scene = c4.build()
-    for ob in [o for o in bpy.data.objects if o.name.startswith(('Yard hand', 'Landing dust', 'Yard people'))]:
+    # One shot with C4: nothing may pop at the join. C4's last landing dust has faded by now, and the
+    # few static figures of C4's yard inside the walk area become walkers standing where they stood
+    # (`IDLERS`); the rest of C4's figures stay as they are.
+    for ob in [o for o in bpy.data.objects if o.name.startswith('Landing dust')]:
         bpy.data.objects.remove(ob)
+    people = bpy.data.objects.get('Yard people')
+    if people is not None:
+        bm = bmesh.new()
+        bm.from_mesh(people.data)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if _in_nav(v.co)], context='VERTS')
+        bm.to_mesh(people.data)
+        bm.free()
     scene.frame_set(C4_END + round(PARKED * c4.FPS))   # the walk map is read with the vehicles parked
     manifest = json.loads((c4.STATES / 'manifest.json').read_text())
     ship_parts = {o.name for o in bpy.data.collections[manifest['append_collection']].all_objects}
@@ -200,16 +242,15 @@ def setup(body):
             crowd.keyed([w], lambda x, y, z=z: z, C4_END, make)
         print('C5_CROWD port inside-something=%d' % clips, flush=True)
     cam = c4.link(bpy.data.objects.new('C5 | overhead', bpy.data.cameras.new('C5 | overhead')))
-    cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = LENS, c4.SENSOR_MM, 'HORIZONTAL'
+    cam.data.sensor_width, cam.data.sensor_fit = c4.SENSOR_MM, 'HORIZONTAL'
     cam.data.clip_start, cam.data.clip_end = 5.0, 60000.0
     cam.rotation_euler = (0, 0, 0)
     for f in range(0, FRAMES + 1, 3):
-        t = f / c4.FPS
-        k = c4.smoothstep(*RISE, t)
-        settle = 1 + (SETTLE - 1) * c4.smoothstep(RISE[1] - 2.0, DURATION, t)
-        c = CENTRE.lerp(TOP_CENTRE, k)
-        cam.location = (c.x, c.y, HEIGHT * (TOP / HEIGHT) ** k * settle)
+        lens, (x, y, z) = camera_at(f / c4.FPS)
+        cam.data.lens = lens
+        cam.location = (x, y, z)
         cam.keyframe_insert('location', frame=C4_END + min(f, FRAMES - 1))
+        cam.data.keyframe_insert('lens', frame=C4_END + min(f, FRAMES - 1))
     scene.camera = cam
     scene.frame_start, scene.frame_end = C4_END, C4_END + FRAMES - 1
     return scene
