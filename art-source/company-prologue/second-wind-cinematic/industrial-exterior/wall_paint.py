@@ -21,6 +21,7 @@ against stays where it was.
 
     apply()  from `c4x_scene.build()`, after `ortho_paint.apply`; skipped when ORTHO_PAINT_OFF is set,
              so overhead guides are drawn from the same blockout their paint was.
+             WALL_PAINT_OFF=1 leaves the walls flat and the roofs bare, for a before/after control.
 """
 import math
 import os
@@ -381,7 +382,7 @@ def mesh(name, bm, m):
 
 
 def apply(warehouses=()):
-    if os.environ.get('ORTHO_PAINT_OFF'):
+    if os.environ.get('ORTHO_PAINT_OFF') or os.environ.get('WALL_PAINT_OFF'):
         return 0
     rng = random.Random(41)
     done = 0
