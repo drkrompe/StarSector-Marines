@@ -71,9 +71,16 @@ public final class DroneBaySystem {
     private int scanCountdown;
     private int nextDrone;
     private int strikesDetonated;
+    private float lastStrikeX = Float.NaN, lastStrikeY = Float.NaN;
 
     /** Strike drones that have reached their target and detonated this battle. */
     public int strikesDetonated() { return strikesDetonated; }
+
+    /** Where the latest strike drone detonated, or NaN before the first; for evidence that measures the blast. */
+    public float lastStrikeX() { return lastStrikeX; }
+
+    /** See {@link #lastStrikeX()}. */
+    public float lastStrikeY() { return lastStrikeY; }
 
     /** The wing tethered to {@code hullId}, or null when that hull carries none or has not come onto the field. */
     public DroneWing wing(long hullId) {
@@ -170,6 +177,8 @@ public final class DroneBaySystem {
                 STRIKE_PENETRATION, 0, side, /*aerialDelivery*/ false));
         sim.spawnHeavyImpact(bx, by, STRIKE_BLAST_RADIUS, STRIKE_BLAST_TINT);
         strikesDetonated++;
+        lastStrikeX = bx;
+        lastStrikeY = by;
         if (sim.resolveUnit(drone) != 0L) sim.applyExternalDamage(drone, DESTROY, DESTROY);
         wing.lost(drone);
     }

@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -565,6 +565,17 @@ above (five fits, three grounds, eight seeds, both roles), first with
 - The open is still the tank's (0.45). If the gun-loss cost should be won back
   there, the breakthrough tank's reach remains the lever named above, not its
   pool.
+- **A tank that has lost its gun withdraws** (`convoy-nouns.md`, the turret
+  section): out of every threat's reach, then it holds. Read against
+  `-Dbattle.vehicle.disarmedWithdraw=false` (refit chaingun and AT LRM-15
+  Bulwarks against both tanks, three grounds, eight seeds, both roles), the
+  Bulwark's share moves only where a gun went, 0.63 to 0.61 over 192 fights.
+  An attacking tank with no gun now usually escapes: 4 of the 25 gun-loss fights
+  turned from Bulwark wins into stalemates, and the tank kept 6-39% of its
+  integrity. A defending tank runs and lives longer (up to 2410 against 1750
+  ticks) but still dies, because the attacking Bulwark hunts it. Among tanks the
+  same holds: four hull-down heavy-gun fights against the breakthrough tank
+  ended with the gunless defender alive out of reach.
 
 ## Missile warheads
 
@@ -748,8 +759,8 @@ one. Lines and their first variants:
 
 | Line | Variants (light → heavy, or sidegrade) |
 | --- | --- |
-| Technical (field rig) | Militia technical — Common filler for a small lift budget |
-| APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar or autocannon instead of seats) |
+| Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
+| APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar instead of seats) or LRM carrier (two LRM-15 anti-armor racks instead of seats, spotted indirect fire) |
 | Tank | Breakthrough tank → heavy-gun tank, or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
@@ -769,11 +780,34 @@ Per lift, every vehicle ties or beats its class mech except the heavy APC (380
 against the Hound's 725) and the fire-support APC (380 against the Sirocco's
 550). Those two pay in plate for their seats and their mortar. A role hull
 bought for its job rather than its plate (the fire-support APC's mortar, the
-spotter pickup's sight, the supply pickup's stock) is held only to costing less than
-its class mech. The measure is
+spotter pickup's sight, the supply pickup's stock, a missile carrier's racks) is held
+only to costing less than its class mech. A missile carrier's bill is its hull's
+plus the bills of the mech racks it carries: the LRM carrier is the heavy APC's
+38/28/88/3 plus two LRM-15s (82/48/148/13), the SRM technical a stripped pickup
+plus an SRM-5 (38/27/72/6). The measure is
 bulk only and ignores armor rating, so it is not effective durability. The
 dozer is the best armor per credit in the game, and raising its bill past the
 Bulwark's would break this rule, so it stays as it is.
+
+**The missile carriers in a duel** (`armorMatchup`, one machine a side, four
+seeds, three grounds, both roles; no spotter, so the LRM carrier fires only on its
+own sight). Wins out of 24 and the opponent's integrity left:
+
+| Carrier against | Breakthrough | Heavy-gun | Hound | Sirocco | Bulwark | Bulwark refit |
+| --- | --- | --- | --- | --- | --- | --- |
+| LRM carrier | 0 (0.53-0.87) | 0 (0.27-0.84) | 20 | 16 | 17 | 10 |
+| SRM technical | 0 (0.77-1.00) | 0 (0.75-1.00) | 1 | 1 | 0 (1.00) | 0 (1.00) |
+
+The LRM carrier out-shoots every mech from 26-34 cells (a ten-round anti-armor
+salvo every nine seconds) but cannot stand off a tank: 300 points of hull die in
+7-17 s once a tank closes, and a carrier reversing at half speed cannot open the
+range on a tank driving at it, so its tank fights settle at 25-35 cells, inside the
+cannon's 36. It takes a quarter to half of a tank's integrity before it dies. The
+SRM technical never wins a stand-up fight: in the open every machine out-reaches
+its 18 cells and it dies in 3-15 s, which is why it is an ambusher; its acceptance
+is the ambush, not the duel. On the street every short-reach attacking hull (the
+militia technical and heavy APC too) times out under the instrument's steering, so
+those rows read nothing. Not tuned: the duel numbers are readings.
 
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.
@@ -803,6 +837,7 @@ internals vocabulary without the doll.
 | Tank variant art (shipped; `convoy-nouns.md`) | Art for the heavy-gun tank and dozer breacher; both offered. |
 | Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade clears ground other vehicles can follow. |
 | Light roles (shipped; `convoy-nouns.md`, light roles) | Supply pickup through the resupply authority; spotter pickup through fog and commander contacts; both field rigs. |
+| Missile carriers (shipped; `convoy-nouns.md`, the missile carriers) | LRM carrier (spotted indirect anti-armor fire, stand-off) and SRM technical (ambusher field rig); both hold fire at men. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.

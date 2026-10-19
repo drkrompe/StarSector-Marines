@@ -1,0 +1,132 @@
+{
+  "note": "Coarse layer over everything C4's sky camera sees (x -866..924, y -771..785 on the ground; worked out from add_camera and the 18 mm lens). Kilo Nine's fine layer (tiles-k9.json, layer 1) lies over this one. Seams sit where the ground is plain: the farm tiles meet on the hedge at x 57, the belt tiles start in the dirt strip at y -176 and meet on the cross streets at x -300 and 300, the port tiles start on bare concrete north of the last container row at y 320 and meet in the clear lane at x 77 east of the heavy berth (the west one runs on to x 110 under it). Each tile blends over 12 m at its edges (`feather`): a blend must finish before the tile beneath starts fading out, so it is at most half the narrowest overlap (23 m, at the farm hedge). centre and size in metres (world x, y); pixels share the size's aspect. See ortho_paint.py.",
+  "layer": 0,
+  "tiles": [
+    {
+      "name": "port-farm-w",
+      "centre": [
+        -400.0,
+        -462.0
+      ],
+      "size": [
+        960.0,
+        640.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The west fields, hedgerows and farm tracks south of the belt, C4's opening view. 62.5 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    },
+    {
+      "name": "port-farm-e",
+      "centre": [
+        537.0,
+        -462.0
+      ],
+      "size": [
+        960.0,
+        640.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The east fields, from the hedge at x 57. 62.5 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    },
+    {
+      "name": "port-belt-w",
+      "centre": [
+        -500.0,
+        84.0
+      ],
+      "size": [
+        780.0,
+        520.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The belt's west end: ditch, fence, freight road, sidings, the tank farm and plant, warehouses, the container yard's west end. 51 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    },
+    {
+      "name": "port-belt-c",
+      "centre": [
+        84.0,
+        84.0
+      ],
+      "size": [
+        780.0,
+        520.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The belt's middle, between the cross streets at x -300 and 300: warehouses and the container yard with its cranes. 51 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    },
+    {
+      "name": "port-belt-e",
+      "centre": [
+        684.0,
+        84.0
+      ],
+      "size": [
+        780.0,
+        520.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The belt's east end from the cross street at x 300: warehouses, the east stack, open yard ground. 51 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    },
+    {
+      "name": "port-berths-w",
+      "centre": [
+        -394.0,
+        656.0
+      ],
+      "size": [
+        1008.0,
+        672.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The public berths, lighter pads, fuel farm and heavy berth, reaching 33 m past the lane at x 77 under the east tile. Seen only from 600 m and up. 66 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    },
+    {
+      "name": "port-berths-e",
+      "centre": [
+        509.0,
+        610.0
+      ],
+      "size": [
+        870.0,
+        580.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "about": "The ferry berth, the arrivals hall and its crest, the freight terminal, Kilo Nine (under its own fine layer) and the jungle. 57 cm a pixel.",
+      "accepted": true,
+      "feather": 12.0
+    }
+  ]
+}

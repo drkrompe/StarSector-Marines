@@ -4,7 +4,7 @@ package com.dillon.starsectormarines.battle.story;
  * Chapter-five referee at Black Sluice: reversible custody of three sites taken in order (customs,
  * fuel control, dispatch), the once-only split when fuel control first falls, and a protected
  * handover by a living custody party. There is no construction step: the holders occupy what the
- * company actually takes. Nothing here reads the frigate duel overhead: ground victory never
+ * company actually takes. Nothing here reads the hull duel overhead: ground victory never
  * depends on it.
  */
 public final class SmallWarProgress {

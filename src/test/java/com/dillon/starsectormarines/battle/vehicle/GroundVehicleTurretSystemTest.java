@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -243,6 +244,60 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
+    void anAntiArmorLauncherHoldsFireAtMenAndFiresItsShapedChargeIntoArmor() {
+        Fixture f = new Fixture(VehicleType.SRM_TECHNICAL);
+        f.turret.facingDeg = 0f;
+        f.enemy(20, 30);
+        for (int i = 0; i < 120; i++) f.auto();
+        assertTrue(f.shots.getActiveShots().isEmpty(), "a rifleman is not worth a contact warhead");
+        assertEquals(f.mount.mount.ammoCapacity, f.turret.ammo);
+
+        long tank = f.hostileHull(VehicleType.BREAKTHROUGH_TANK, 20.5f, 32.5f);
+        for (int i = 0; i < 120 && f.shots.getActiveShots().isEmpty(); i++) f.auto();
+        assertEquals(tank, f.turret.targetId);
+        assertFalse(f.shots.getActiveShots().isEmpty());
+        Projectile rocket = f.shots.getActiveProjectiles().get(0);
+        assertEquals(tank, rocket.onArrival.directTargetId, "the contact warhead rides the rocket onto the hull");
+        assertEquals(f.weapon.contactDamage, rocket.onArrival.directDamage, 0.001f);
+    }
+
+    @Test
+    void anIndirectLauncherFiresOverAWallOnlyWhileSomebodyElseIsLooking() {
+        Fixture f = new Fixture(VehicleType.LRM_CARRIER);
+        for (int x = 10; x < 32; x++) f.grid.setWalkable(x, 30, false);
+        long tank = f.hostileHull(VehicleType.BREAKTHROUGH_TANK, 20.5f, 45.5f);
+        assertFalse(f.grid.hasLineOfSight(20, 20, 20, 45), "the wall hides the tank from the carrier");
+        for (int i = 0; i < 120; i++) f.auto();
+        assertTrue(f.shots.getActiveShots().isEmpty(), "nobody is looking, so the launcher holds");
+
+        boolean[] looking = {true};
+        f.system.setSpotting((side, target) -> looking[0] && side == Faction.MARINE && target == tank);
+        for (int i = 0; i < 120 && f.shots.getActiveShots().isEmpty(); i++) f.auto();
+        assertEquals(1, f.shots.getActiveShots().size());
+        assertTrue(f.weapon.indirectFire && f.weapon.arcHeight > 0f, "the round arcs over the wall");
+        while (f.turret.burstRemaining > 0) f.auto();
+        int fired = f.shots.getActiveShots().size();
+        assertEquals(f.weapon.burstCount, fired);
+
+        looking[0] = false;
+        for (int i = 0; i < (int) (2f * f.weapon.cooldown / DT); i++) f.auto();
+        assertEquals(fired, f.shots.getActiveShots().size(), "the spotter looked away: no salvo at a memory");
+        assertEquals(0L, f.turret.targetId);
+    }
+
+    @Test
+    void ownSightBeatsASpottersCallThenTheNearerThenTheLowerId() {
+        int own = GroundVehicleTurretSystem.OWN_SIGHT;
+        int spotted = GroundVehicleTurretSystem.SPOTTED;
+        assertTrue(GroundVehicleTurretSystem.better(spotted, 5f, 9L, 0, Float.MAX_VALUE, 0L));
+        assertTrue(GroundVehicleTurretSystem.better(own, 30f, 9L, spotted, 5f, 4L));
+        assertFalse(GroundVehicleTurretSystem.better(spotted, 5f, 9L, own, 30f, 4L));
+        assertTrue(GroundVehicleTurretSystem.better(own, 5f, 9L, own, 30f, 4L));
+        assertTrue(GroundVehicleTurretSystem.better(own, 5f, 3L, own, 5f, 4L));
+        assertFalse(GroundVehicleTurretSystem.better(own, 5f, 5L, own, 5f, 4L));
+    }
+
+    @Test
     void aShotAwayGunNeitherFiresNorTraversesAndTheHullReadsUnarmed() {
         Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
         if (f.turret.section == null) return;
@@ -301,6 +356,14 @@ class GroundVehicleTurretSystemTest {
         float mountY() { return body.y + type.turretMountY; }
         PointFireAim north() { return new PointFireAim(mountX(), 60f); }
         void tick(PointFireAim aim, boolean trigger) { system.tick(DT, id, aim, trigger); }
+        void auto() { system.tick(DT, 0L, null, false); }
+        long hostileHull(VehicleType hull, float x, float y) {
+            long other = roster.convoy().spawn(hull, Faction.DEFENDER, VehicleMission.deployed(x, y));
+            roster.convoy().body(other).teleport(x, y, 180f);
+            // Its own gun stays silent: these fixtures ask about the launcher, and the bare fixture has no scorer.
+            roster.convoy().turret(other).ammo = 0;
+            return other;
+        }
         long enemy(int x, int y) {
             return roster.spawn(new EntitySpec("turret target", Faction.DEFENDER, UnitType.MARINE, x, y));
         }

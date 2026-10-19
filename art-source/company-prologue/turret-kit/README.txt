@@ -98,21 +98,37 @@ Tri-Tachyon energy weapons (house='hand')
   tachyonlance, gravitonbeam, taclaser and the reaper launcher, the Paragon's
   Elite fit. A beam has no gun sprite, so the whole weapon trains and the
   elevation empty carries only the muzzle anchors (at the .wpn's offsets).
-  Each stands on a base plate cut to the sprite's outline (`bodies`, which
-  keeps both halves of the lance either side of its open beam slot, plus the
-  thin `prongs`), with its raised parts over it: the lance's prong blades,
-  body block, capacitor pods with red lamps and fan of fins; the graviton's
-  teardrop housing, lens and swept wings; the tactical laser's ten-plate dome
-  and emitter spike; the reaper's rails, launcher and the round loaded in its
-  slot. Lamps are 'lamp_blue' and 'lamp_red' keys. Silhouette IoU 0.93
-  (lance), 0.95 (graviton), 0.93 (tactical laser), 0.91 (reaper).
+  Each stands on a thin deck cut to the sprite's outline (`bodies`, which keeps
+  both halves of the lance either side of its open beam slot, plus the thin
+  `prongs`); that holds the silhouette. Over it the sprite is read as solids,
+  not as layers of plate: a lit column is a crest with faces falling away
+  either side, a dark band beside it a steep wall or a gap, a highlight running
+  across a part says the part lies across. So the lance is two keel blades,
+  each a wedge with a steep inner wall down to the open slot and an outer
+  glacis, tallest at the shoulders and low at both tips, with athwartships
+  capacitor cylinders, machinery blocks, coolant ports and falling vanes; the
+  graviton a crested spire nose with its projector line, faceted cowls either
+  side of a sunken spine, and a lens bar across; the tactical laser a tall
+  dome with a trench across its crown holding the focusing core, and an
+  emitter barrel; the reaper tall rails, a launcher with its tube mouth, the
+  round loaded in the slot, and a base bar with lamps and end caps. Heights
+  follow SECTION (roof 6.0 / 4.6 / 3.2 px), so each has a profile from the
+  side. Lamps are 'lamp_blue', 'lamp_red' and 'lamp_core'. Silhouette IoU
+  0.92 (lance), 0.95 (graviton), 0.93 (tactical laser), 0.86 (reaper).
+  Their paints are halfway between the sprite's colour and Tri-Tachyon's pale
+  ceramic, and keep more of their colour than the military livery does
+  (catalogue `chroma` .7 against LIVERY's .35): recognisable, not cartoonish
+  (owner, 2026-10-19).
 
 Dressing a turret in the hull's finish
   build(..., hull_finish=True) uses the hull's own materials for every key the
   hull supplies (paint, accent, metal, steel, lamp_blue ...), as they are,
   instead of the sprite's paints and the kit's weathering. Keys the hull
-  leaves out still come from the sprite. The Paragon dresses its Tri-Tachyon
-  guns in its hex ceramic this way.
+  leaves out still come from the sprite. sprite_tint=f then mixes the sprite's
+  own colour a fraction f into the hull's paint and accent (tinted(): a Mix node
+  ahead of the material's base colour, so a procedural finish keeps its
+  pattern). The Paragon dresses its Tri-Tachyon guns in its hex ceramic this
+  way, with sprite_tint=.5.
 
 Other catalogue entries (WEAPONS)
   none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open

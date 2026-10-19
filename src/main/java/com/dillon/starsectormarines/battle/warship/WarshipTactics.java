@@ -38,6 +38,12 @@ import java.util.Map;
  * breaks away at full way, its quarter crossed by the other. {@code -Dbattle.warship.duelManoeuvres=false} is the
  * control.
  *
+ * <p><b>The pack relay</b> ({@link #relay}): two or more bow ships on one hull share it as a tank, which holds the
+ * target's attention and fires only as its flux allows, and strikers, which work its quarter at full fire; they swap
+ * when the tank runs high, the old tank venting out of reach. {@code -Dbattle.warship.packRelay=false} is the control,
+ * and {@code -Dbattle.warship.threatTargeting=false} the control for the target's threat-aware choice that the relay
+ * catches and sheds the target's attention by.
+ *
  * <p>A ship flying a manoeuvre travels along its nose ({@link #alongNose}): it can drift sideways and astern only at
  * a fraction of its speed, so its motion reads as a course, not a hover. {@code -Dbattle.warship.tactics=false} is the
  * control: every hunter flies the single-ship duel helm, and the pack division is the old one.
@@ -177,6 +183,95 @@ public final class WarshipTactics {
      */
     static final float COUNTER_FLUX = 0.5f;
 
+    // ------------------------------------------------------------------------------------- the pack relay
+
+    /**
+     * {@code -Dbattle.warship.packRelay=false} is the control: two or more bow ships on one hull work it from opposite
+     * sides with the ordinary runs and standoffs, nobody holding the target's attention for the other.
+     */
+    static final boolean PACK_RELAY_DEFAULT =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.packRelay"));
+    /**
+     * {@code -Dbattle.warship.threatTargeting=false} is the control: a hunter choosing between hulls reads only the
+     * range over its reach, as before, and not which of them has its guns on it or how far it must turn to answer.
+     */
+    static final boolean THREAT_TARGETING_DEFAULT =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.threatTargeting"));
+    /** A relay role is held at least this long, in seconds, before the pack swaps. */
+    static final float RELAY_MIN_SECONDS = 12f;
+    /** A tank whose pool is this full hands the target over to a fresh partner. */
+    static final float SWAP_FLUX = 0.5f;
+    /** A partner whose pool is no fuller than this is fresh enough to take the target over. */
+    static final float READY_FLUX = 0.4f;
+    /** A striker whose pool is this full breaks off to vent while the tank holds. */
+    static final float STRIKER_VENT_FLUX = 0.75f;
+    /**
+     * A tank fires only while the hard flux its shield holds stays under this share of its pool, so its shield keeps
+     * the headroom to hold the target; its own guns' flux is soft and vents behind the shield, so it does not count.
+     */
+    static final float TANK_FIRE_SHARE = 0.5f;
+    /** A tank stands at this share of the standoff: nearer the target than its partners, so it is the hull in front. */
+    static final float TANK_RANGE_SHARE = 0.75f;
+    /** How much flying round to the target's battery arc costs a tank, per range's worth: it closes where it is. */
+    static final float TANK_TRAVEL_WEIGHT = 1.2f;
+    /** A striker keeps at least this far round the target from its tank, in degrees: the two work it from two sides. */
+    static final float STRIKER_SEPARATION_DEGREES = 90f;
+    /** What a striker station inside that separation costs, at the tank's own bearing, against the target's battery. */
+    static final float STRIKER_SEPARATION_WEIGHT = 0.6f;
+    /** A tank handing over turns away once its partner is in place, or after this long, in seconds, regardless. */
+    static final float HANDOVER_MAX_SECONDS = 15f;
+    /**
+     * Or once its own pool is this full: its shield is going, and a ship whose shield is going turns away and opens at
+     * full way rather than sit out an overload in the target's sights, as a duel's break does.
+     */
+    static final float HANDOVER_DANGER_FLUX = 0.85f;
+    /** How far off straight away from the target a venting ship runs, toward the side away from its partner, in degrees. */
+    static final float VENT_OFFSET_DEGREES = 30f;
+    /** A venting ship holds this far out, as a share of the target's longest reach. */
+    static final float VENT_HOLD_SHARE = 1.15f;
+    /**
+     * A venting ship whose course out runs into its margin short of this share of its hold looks for a clearer one,
+     * up to {@link #VENT_COURSE_SWING_DEGREES} either side, in steps of {@link #VENT_COURSE_STEP_DEGREES}, each step
+     * off its course costing a little ({@link #VENT_COURSE_SWING_COST} at the widest) against the room it buys.
+     */
+    static final float VENT_ROOM_SHARE = 0.8f;
+    static final float VENT_COURSE_SWING_DEGREES = 90f;
+    static final float VENT_COURSE_STEP_DEGREES = 15f;
+    static final float VENT_COURSE_SWING_COST = 0.15f;
+    /** A venting ship this close to its hold, in cells, is there: it stops running and turns its nose back. */
+    static final float VENT_ARRIVE_CELLS = 4f;
+    /** In choosing between hulls, what a hull with no gun laid on the chooser costs against one with its battery on it. */
+    static final float THREAT_WEIGHT = 0.6f;
+    /** And what a half-circle of turning to bring the chooser's own guns to bear costs. */
+    static final float TURN_WEIGHT = 0.3f;
+    /**
+     * How much of the bonus for keeping its hull a chooser gives up when that hull is no threat to it: half, so a
+     * hull that has turned away is let go for one that has its guns on, but two hulls trading places round it do not
+     * have it swinging between them.
+     */
+    static final float KEEP_THREAT_SHARE = 0.5f;
+    /** A hull closing from short of its reach counts at most this share of the threat it will be in reach. */
+    static final float INCOMING_MENACE = 0.5f;
+    /** A hull with less than half its battery laid on the chooser has stopped being the threat it was. */
+    static final float LET_GO_MENACE = 0.5f;
+
+    private boolean packRelay = PACK_RELAY_DEFAULT;
+    private boolean threatTargeting = THREAT_TARGETING_DEFAULT;
+
+    /** Turns the pack relay on or off for this battle (a scene's control loop); the default is the property's. */
+    void packRelay(boolean on) {
+        this.packRelay = on;
+    }
+
+    boolean packRelay() {
+        return packRelay;
+    }
+
+    /** Turns threat-aware target choice on or off for this battle; the default is the property's. */
+    void threatTargeting(boolean on) {
+        this.threatTargeting = on;
+    }
+
     private float nextPlan;
 
     /** Groups and assigns, once a second. */
@@ -201,7 +296,7 @@ public final class WarshipTactics {
                 for (Warship h : hunters) h.manoeuvre().clear();
                 continue;
             }
-            assign(hunters, enemies, ships);
+            assign(hunters, enemies, ships, now);
             // One ship against one: the duel's own manoeuvres (orbit, cross, break) are flown. A pack, a line or an
             // escorted charge is the group's choreography and keeps its own.
             boolean duel = DUEL_MANOEUVRES && hunters.size() == 1 && enemies.size() == 1;
@@ -230,7 +325,7 @@ public final class WarshipTactics {
                 && s.remoteOrder() == Warship.RemoteOrder.NONE && !s.berthed() && !s.liftRunning();
     }
 
-    private void assign(List<Warship> hunters, List<Warship> enemies, List<Warship> ships) {
+    private void assign(List<Warship> hunters, List<Warship> enemies, List<Warship> ships, float now) {
         Warship charge = null;
         float chargeGap = Float.MAX_VALUE;
         float[] centre = centroid(hunters);
@@ -246,7 +341,8 @@ public final class WarshipTactics {
             divideOnCharge(hunters, charge, WarshipEscort.escortsOf(charge, ships));
             return;
         }
-        distribute(hunters, enemies);
+        Map<Warship, List<Warship>> on = distribute(hunters, enemies, threatTargeting);
+        for (Map.Entry<Warship, List<Warship>> entry : on.entrySet()) relay(now, entry.getKey(), entry.getValue());
     }
 
     /** One hunter flanks the charge; the rest pin its escorts, spread over them. */
@@ -293,19 +389,39 @@ public final class WarshipTactics {
         }
     }
 
-    /** Each hunter takes the hull cheapest for it, a friend already on one making it dearer. */
-    private static void distribute(List<Warship> hunters, List<Warship> enemies) {
+    /**
+     * Each hunter takes the hull cheapest for it, a friend already on one making it dearer. With threat targeting on,
+     * a hunter set upon by two or more hulls whose own hull has stopped being a threat to it (turned its guns away, or opened past its own reach: {@link
+     * #menace} under {@link #LET_GO_MENACE}) chooses again with threat weighed: a hull is cheaper the more of its
+     * battery it has laid on the hunter from inside its reach and the less the hunter must turn to bring its guns to
+     * bear, and the hull it had keeps only half its keeping bonus. A ship answers the hull in front of it with its guns
+     * on and lets one that has turned away go. That is what a pack relay's tank draws, and what a venting partner sheds
+     * by turning away; a hull still threatening its chooser is chosen by range as before.
+     *
+     * @return the hunters on each hull, in hunter order
+     */
+    private static Map<Warship, List<Warship>> distribute(List<Warship> hunters, List<Warship> enemies,
+                                                          boolean threatAware) {
         Map<Warship, List<Warship>> on = new IdentityHashMap<>();
+        boolean weighThreat = threatAware && enemies.size() > 1;
         for (Warship h : hunters) {
             float reach = Math.max(1f, WarshipShipFire.longestReach(h));
             Warship pick = null;
             float pickCost = Float.MAX_VALUE;
+            // Threat is weighed only by a ship set upon by two or more hulls, and only when the one it has is no
+            // longer a threat to it: then it looks for the one that is. Otherwise it chooses by range, as it always
+            // did, so a ship in an even fight does not drop the hull it is wearing down for another.
+            Warship current = h.manoeuvre().target;
+            boolean weigh = weighThreat && current != null && enemies.contains(current)
+                    && setUpon(h, enemies) >= 2 && menace(current, h) < LET_GO_MENACE;
             for (Warship e : enemies) {
                 int friends = on.getOrDefault(e, List.of()).size();
                 boolean focus = enemies.size() == 1 || e.hullFraction() < FOCUS_HULL;
+                float threat = weigh ? menace(e, h) : 1f;
                 float cost = e.distanceTo(h.centerX(), h.centerY()) / reach
                         + (focus ? 0f : SHARE_PENALTY * friends)
-                        - (h.manoeuvre().target == e ? KEEP_BONUS : 0f);
+                        - (h.manoeuvre().target == e ? KEEP_BONUS * (1f - KEEP_THREAT_SHARE * (1f - threat)) : 0f);
+                if (weigh) cost += THREAT_WEIGHT * (1f - threat) + TURN_WEIGHT * turnToBear(h, e) / 180f;
                 if (cost < pickCost) {
                     pickCost = cost;
                     pick = e;
@@ -320,9 +436,9 @@ public final class WarshipTactics {
             for (Warship h : entry.getValue()) {
                 int side = entry.getValue().size() == 1 && h.manoeuvre().target == target ? h.manoeuvre().side
                         : entry.getValue().size() == 1 ? (h.serial() % 2 == 0 ? 1 : -1) : next;
-                // A line keeps its roles from pass to pass; they are re-read below.
-                Role keep = h.manoeuvre().role == Role.LEAD || h.manoeuvre().role == Role.SECOND
-                        ? h.manoeuvre().role : Role.FREE;
+                // A line and a relay keep their roles from pass to pass; they are re-read below.
+                Role r = h.manoeuvre().role;
+                Role keep = r == Role.LEAD || r == Role.SECOND || r == Role.TANK || r == Role.STRIKER ? r : Role.FREE;
                 setRole(h.manoeuvre(), keep, target, side, h.manoeuvre().leader);
                 next = -next;
             }
@@ -333,7 +449,7 @@ public final class WarshipTactics {
         for (Warship h : hunters) if (!WarshipDuelHelm.bowFighter(h)) line.add(h);
         if (line.size() < 2) {
             for (Warship h : line) setRole(h.manoeuvre(), Role.FREE, h.manoeuvre().target, h.manoeuvre().side, null);
-            return;
+            return on;
         }
         line.sort((a, b) -> Float.compare(a.manoeuvre().target.distanceTo(a.centerX(), a.centerY()),
                 b.manoeuvre().target.distanceTo(b.centerX(), b.centerY())));
@@ -349,6 +465,154 @@ public final class WarshipTactics {
             setRole(m, Role.SECOND, m.target, lm.side, ahead);
             ahead = h;
         }
+        return on;
+    }
+
+    /**
+     * How much of a threat {@code e} is to {@code to}: the share of its anti-ship battery it has laid on {@code to} at
+     * its present heading, when {@code to} is inside its longest reach. Short of its reach (out to {@link
+     * WarshipShipFire#NOTICE_REACH_SHARE} of it) a hull closing with its guns laid is an incoming threat, counted at
+     * up to {@link #INCOMING_MENACE} of that share by how much of its top speed it is closing at; a hull opening the
+     * range, or further off, is none.
+     */
+    static float menace(Warship e, Warship to) {
+        float reach = WarshipShipFire.longestReach(e);
+        float range = e.distanceTo(to.centerX(), to.centerY());
+        if (reach <= 0f || range > reach * WarshipShipFire.NOTICE_REACH_SHARE) return 0f;
+        float best = Math.max(firepowerOff(e, 0f), firepowerOff(e, 90f));
+        if (best <= 0f) return 0f;
+        float laid = Math.min(1f, WarshipShipRules.firepowerAt(e, e.facingDegrees, to.centerX(), to.centerY()) / best);
+        if (range <= reach * IN_REACH_SHARE) return laid;
+        float dx = to.centerX() - e.centerX();
+        float dy = to.centerY() - e.centerY();
+        float len = Math.max(1e-3f, (float) Math.hypot(dx, dy));
+        float closing = ((e.velocityX - to.velocityX) * dx + (e.velocityY - to.velocityY) * dy) / len;
+        float share = Math.max(0f, Math.min(1f, closing / Math.max(1e-3f, e.maxSpeed)));
+        return INCOMING_MENACE * laid * share;
+    }
+
+    /** How many of {@code enemies} have {@code h} as the hull their group gave them to fight. */
+    static int setUpon(Warship h, List<Warship> enemies) {
+        int n = 0;
+        for (Warship e : enemies) if (e.manoeuvre().target == h) n++;
+        return n;
+    }
+
+    /** How far, in degrees, {@code h} must turn from its heading to the one that brings its guns to bear on {@code e}. */
+    static float turnToBear(Warship h, Warship e) {
+        float[] aim = WarshipShipRules.aimPoint(h, e);
+        return Math.abs(WarshipFacing.wrap(WarshipShipRules.bestHeading(h, aim[0], aim[1]) - h.facingDegrees));
+    }
+
+    /**
+     * The pack relay, once a second, over the hunters a hull has drawn: two or more bow ships on one hull share it as
+     * a <b>tank</b>, which holds the target's attention from nearest and nose-on with its shield on it and fires only
+     * as its flux allows, and <b>strikers</b>, which work it from its quarter at full fire. The ship with the most
+     * flux to spare holds the target; when the tank's pool runs high and a partner is fresh, they swap: the partner
+     * closes to catch the target's eye and the old tank, once the partner is in place, turns away, opens past the
+     * target's reach to vent with its shield down, and comes back as a striker. A striker running high breaks off to
+     * vent the same way while the tank holds. Broadside ships in a line keep their line. Nothing is read but the hulls'
+     * own pools, reach and bearings, and the target's own choice of whom to fight.
+     */
+    private void relay(float now, Warship target, List<Warship> on) {
+        List<Warship> pack = new ArrayList<>();
+        for (Warship h : on) {
+            if (WarshipDuelHelm.bowFighter(h) && h.manoeuvre().role != Role.LEAD && h.manoeuvre().role != Role.SECOND) {
+                pack.add(h);
+            }
+        }
+        if (!packRelay || pack.size() < 2) {
+            for (Warship h : on) {
+                WarshipManoeuvre m = h.manoeuvre();
+                if (m.role == Role.TANK || m.role == Role.STRIKER) relayRole(m, Role.FREE, now);
+            }
+            return;
+        }
+        Warship tank = null;
+        for (Warship h : pack) if (h.manoeuvre().role == Role.TANK) tank = h;
+        if (tank == null) {
+            // The first tank is the hull the target already has in its sights, else the one with the most flux to
+            // spare, nearer first: whoever is drawing the fire holds it. A ship out venting is never it.
+            Warship sighted = target.hullTarget();
+            if (sighted != null && pack.contains(sighted) && !sighted.manoeuvre().relayVenting) {
+                tank = sighted;
+            } else {
+                float best = Float.MAX_VALUE;
+                for (Warship h : pack) {
+                    if (h.manoeuvre().relayVenting) continue;
+                    float score = h.fluxFraction() + 0.1f * target.distanceTo(h.centerX(), h.centerY())
+                            / Math.max(1f, WarshipShipFire.longestReach(h));
+                    if (score < best) {
+                        best = score;
+                        tank = h;
+                    }
+                }
+            }
+        } else if (now - tank.manoeuvre().relaySince >= RELAY_MIN_SECONDS && tank.fluxFraction() >= SWAP_FLUX) {
+            // A fresh partner takes over: low in flux and inside its own reach of the target, so it can catch the
+            // target's eye at once rather than leave nobody holding it while it closes.
+            Warship fresh = null;
+            for (Warship h : pack) {
+                if (h == tank || h.manoeuvre().relayVenting || h.overloaded() || h.fluxFraction() > READY_FLUX
+                        || target.distanceTo(h.centerX(), h.centerY())
+                        > WarshipShipFire.longestReach(h) * IN_REACH_SHARE) {
+                    continue;
+                }
+                if (fresh == null || h.fluxFraction() < fresh.fluxFraction()) fresh = h;
+            }
+            WarshipManoeuvre old = tank.manoeuvre();
+            if (fresh != null) {
+                relayRole(old, Role.STRIKER, now);
+                beginVent(old, now, fresh);
+                relayRole(fresh.manoeuvre(), Role.TANK, now);
+                fresh.manoeuvre().relaySwaps++;
+                tank = fresh;
+            } else if (tank.fluxFraction() >= HANDOVER_DANGER_FLUX) {
+                // Nobody fresh to take it over and the shield going: it breaks off to vent all the same, and the
+                // partner with the most to spare, if any is not venting itself, takes the target as best it can.
+                relayRole(old, Role.STRIKER, now);
+                beginVent(old, now, null);
+                Warship next = null;
+                for (Warship h : pack) {
+                    if (h.manoeuvre().relayVenting || h.overloaded()) continue;
+                    if (next == null || h.fluxFraction() < next.fluxFraction()) next = h;
+                }
+                old.relayPartner = next;
+                if (next != null) {
+                    relayRole(next.manoeuvre(), Role.TANK, now);
+                    next.manoeuvre().relaySwaps++;
+                }
+                tank = next;
+            }
+        }
+        for (Warship h : pack) {
+            WarshipManoeuvre m = h.manoeuvre();
+            if (h == tank) {
+                relayRole(m, Role.TANK, now);
+                continue;
+            }
+            relayRole(m, Role.STRIKER, now);
+            if (tank != null) m.relayPartner = tank;
+            if (!m.relayVenting && h.fluxFraction() >= STRIKER_VENT_FLUX) beginVent(m, now, tank);
+        }
+    }
+
+    /** Gives {@code m} a relay role (or none), starting its manoeuvre afresh only when the role changes. */
+    private static void relayRole(WarshipManoeuvre m, Role role, float now) {
+        if (m.role == role) return;
+        m.role = role;
+        m.kind = null;
+        m.relaySince = now;
+        m.relayVenting = false;
+        m.relayPartner = null;
+    }
+
+    /** Sends a relay ship off to vent, its partner left holding the target. */
+    private static void beginVent(WarshipManoeuvre m, float now, Warship partner) {
+        m.relayVenting = true;
+        m.relayVents++;
+        m.relayPartner = partner;
+        m.begin(Kind.VENT, now, Float.NaN);
     }
 
     private static void setRole(WarshipManoeuvre m, Role role, Warship target, int side, Warship leader) {
@@ -394,6 +658,9 @@ public final class WarshipTactics {
         if (m.role == Role.SECOND && m.leader != null && !m.leader.destroyed() && !m.leader.departed()) {
             if (m.kind != Kind.LINE_AHEAD) m.begin(Kind.LINE_AHEAD, now, Float.NaN);
             return lineAhead(ship, m);
+        }
+        if (m.role == Role.TANK || m.role == Role.STRIKER) {
+            return flyRelay(ship, target, m, now, toTarget, range, standoff, reach, edges);
         }
         if (m.kind == null || m.kind == Kind.LINE_AHEAD) {
             Kind first = m.role == Role.FLANK ? Kind.FLANK : range > reach * IN_REACH_SHARE ? Kind.APPROACH : run(bow);
@@ -549,6 +816,149 @@ public final class WarshipTactics {
         }
         if (m.role == Role.LEAD) m.speedShare = lineClosedUp(ship, ships) ? LEAD_SPEED_SHARE : LEAD_WAIT_SPEED_SHARE;
         return execute(ship, target, m, toTarget, range, standoff, reach, bow, edges);
+    }
+
+    /**
+     * One tick of a pack relay ship's manoeuvre. A tank holds the target's attention: on the bearing round it where
+     * its battery bears most, weighed heavily against flying round, at {@link #TANK_RANGE_SHARE} of the standoff, nose
+     * and shield on. A striker works the target's quarter at the standoff, round from its tank. A venting ship holds
+     * fire: while its partner is still closing to take over it stays nose-on, then turns away and runs to past the
+     * target's reach, and holds out there, shield down, until its pool is low; then it comes back as a striker.
+     */
+    private static float[] flyRelay(Warship ship, Warship target, WarshipManoeuvre m, float now, float toTarget,
+                                    float range, float standoff, float reach, WarshipEdgeHelm edges) {
+        boolean far = range > reach * IN_REACH_SHARE;
+        if (m.role == Role.TANK) {
+            if (m.kind != Kind.HOLD_AGGRO) m.begin(Kind.HOLD_AGGRO, now, Float.NaN);
+            float clear = 0.5f * ship.lengthCells + 0.5f * target.lengthCells + WarshipDuelHelm.CLEARANCE_CELLS;
+            float r = Math.max(clear, TANK_RANGE_SHARE * standoff);
+            float[] p = aggroStation(ship, target, r, edges);
+            m.heading = far ? WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]) : Float.NaN;
+            return cog(ship, p);
+        }
+        Warship partner = m.relayPartner;
+        if (m.relayVenting) {
+            if (m.kind != Kind.VENT) m.begin(Kind.VENT, now, Float.NaN);
+            if (ship.fluxFraction() <= VENTED_FLUX && !ship.overloaded()) {
+                m.relayVenting = false;
+            } else {
+                return vent(ship, target, m, now, toTarget, range, partner, edges);
+            }
+        }
+        if (m.kind != Kind.STRIKE) m.begin(Kind.STRIKE, now, Float.NaN);
+        float avoid = partner == null || partner.destroyed() || partner.departed() ? Float.NaN
+                : WarshipFacing.bearing(target.centerX(), target.centerY(), partner.centerX(), partner.centerY());
+        float[] p = WarshipDuelHelm.bowStation(ship, target, standoff, edges, avoid, STRIKER_SEPARATION_DEGREES,
+                STRIKER_SEPARATION_WEIGHT);
+        m.heading = far ? WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]) : Float.NaN;
+        return cog(ship, p);
+    }
+
+    /** A venting relay ship's station this tick (see {@link #flyRelay}). */
+    private static float[] vent(Warship ship, Warship target, WarshipManoeuvre m, float now, float toTarget,
+                                float range, Warship partner, WarshipEdgeHelm edges) {
+        float out = WarshipShipFire.longestReach(target) * VENT_HOLD_SHARE;
+        float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
+        boolean partnerLive = partner != null && !partner.destroyed() && !partner.departed();
+        if (Float.isNaN(m.course)) {
+            // Handing over: the partner closes to take the target's eye while this ship keeps its nose and shield on,
+            // holding its fire. Once the partner is in place (in reach, nearer the target, its battery on it), or
+            // the handover has run long, this ship turns away.
+            boolean inPlace = !partnerLive || (target.distanceTo(partner.centerX(), partner.centerY()) < range
+                    && mainBears(partner, target) && target.distanceTo(partner.centerX(), partner.centerY())
+                    <= WarshipShipFire.longestReach(partner));
+            if (!inPlace && m.seconds(now) < HANDOVER_MAX_SECONDS && range < out
+                    && ship.fluxFraction() < HANDOVER_DANGER_FLUX && !ship.overloaded()) {
+                // Backing off as a standoff's vent does: astern and to one side, nose, guns and shield on the target.
+                float at = round + m.side * VENT_SLIDE_DEGREES;
+                m.heading = Float.NaN;
+                return cog(ship, edges.settle(ship, target.centerX() + nx(at) * out, target.centerY() + ny(at) * out));
+            }
+            float away = round;
+            if (partnerLive) {
+                float pb = WarshipFacing.bearing(target.centerX(), target.centerY(), partner.centerX(), partner.centerY());
+                away = WarshipFacing.wrap(round - Math.signum(WarshipFacing.wrap(pb - round)) * VENT_OFFSET_DEGREES);
+            }
+            m.course = ventCourse(ship, target, away, out, edges);
+        } else if (ventRoom(ship, target, m.course, out, edges) < VENT_ROOM_SHARE * out) {
+            // The target has moved and the course out now runs into an edge's margin: it takes the clearest again.
+            float again = ventCourse(ship, target, m.course, out, edges);
+            if (ventRoom(ship, target, again, out, edges) > ventRoom(ship, target, m.course, out, edges)) m.course = again;
+        }
+        // Where it holds: out along its course past the target's reach, or as far out as the map allows inside its
+        // margin. A small map vents short of full reach rather than pinning the ship against its edge.
+        float[] hold = edges.settle(ship, target.centerX() + nx(m.course) * Math.max(out, range),
+                target.centerY() + ny(m.course) * Math.max(out, range));
+        float holdRange = target.distanceTo(hold[0], hold[1]);
+        if (range < holdRange - VENT_ARRIVE_CELLS) {
+            // Running out at full way toward the hold, along the course it took.
+            m.heading = WarshipFacing.bearing(ship.centerX(), ship.centerY(), hold[0], hold[1]);
+            return cog(ship, hold);
+        }
+        // Out at the hold: nose back toward the fight.
+        m.heading = Float.NaN;
+        return cog(ship, hold);
+    }
+
+    /**
+     * How far out from {@code target} a venting ship can hold along {@code course} toward {@code out}, inside its
+     * margin: the distance of that hold once {@link WarshipEdgeHelm#settle settled}.
+     */
+    static float ventRoom(Warship ship, Warship target, float course, float out, WarshipEdgeHelm edges) {
+        float[] p = edges.settle(ship, target.centerX() + nx(course) * out, target.centerY() + ny(course) * out);
+        return target.distanceTo(p[0], p[1]);
+    }
+
+    /**
+     * The course a venting ship runs out on: {@code away} if the map has room along it to reach {@code out} inside
+     * the ship's margin, else the course within {@link #VENT_COURSE_SWING_DEGREES} of it with the most room, the
+     * nearer to {@code away} on a tie, so a ship venting toward an edge turns along it rather than into it.
+     */
+    static float ventCourse(Warship ship, Warship target, float away, float out, WarshipEdgeHelm edges) {
+        float best = away;
+        float bestScore = -Float.MAX_VALUE;
+        int steps = Math.round(VENT_COURSE_SWING_DEGREES / VENT_COURSE_STEP_DEGREES);
+        for (int k = -steps; k <= steps; k++) {
+            float course = WarshipFacing.wrap(away + k * VENT_COURSE_STEP_DEGREES);
+            float room = Math.min(out, ventRoom(ship, target, course, out, edges)) / Math.max(1f, out);
+            float score = room - VENT_COURSE_SWING_COST * Math.abs(k) / Math.max(1, steps);
+            if (score > bestScore) {
+                bestScore = score;
+                best = course;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * A tank's station: of the bearings round the target at {@code range}, the one where the target's anti-ship
+     * battery bears most at its present heading, less {@link #TANK_TRAVEL_WEIGHT} for each range's worth of flying to
+     * get there, so a tank closes to the front of the target from where it is rather than circling to it.
+     */
+    static float[] aggroStation(Warship ship, Warship target, float range, WarshipEdgeHelm edges) {
+        float tx = target.centerX();
+        float ty = target.centerY();
+        int n = WarshipDuelHelm.BOW_BEARINGS;
+        float[][] at = new float[n][];
+        float[] power = new float[n];
+        float most = 0f;
+        for (int i = 0; i < n; i++) {
+            double a = 2.0 * Math.PI * i / n;
+            at[i] = edges.settle(ship, tx + (float) Math.cos(a) * range, ty + (float) Math.sin(a) * range);
+            power[i] = WarshipShipRules.firepowerAt(target, target.facingDegrees, at[i][0], at[i][1]);
+            most = Math.max(most, power[i]);
+        }
+        float[] best = at[0];
+        float bestScore = Float.MAX_VALUE;
+        for (int i = 0; i < n; i++) {
+            float travel = (float) Math.hypot(at[i][0] - ship.centerX(), at[i][1] - ship.centerY()) / Math.max(1f, range);
+            float score = (most > 0f ? 1f - power[i] / most : 0f) + TANK_TRAVEL_WEIGHT * travel;
+            if (score < bestScore) {
+                bestScore = score;
+                best = at[i];
+            }
+        }
+        return best;
     }
 
     /** Whether every ship following {@code lead} in its line is within half an interval of its place. */

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -264,8 +264,14 @@ machine, as a mech's sections share their chassis's rating.
   pointed. The hull reads as unarmed to every question that asks: its threat
   reach is zero, a duel band reads it as a machine with no weapons, and it
   leaves `VehicleEngagement`. Direct control keeps the hull but offers no gun.
-  A disarmed hull holds, or follows a player order. Unlike a disarmed mech it
-  does not break contact yet; that is open.
+  A disarmed hull **withdraws**, the way a disarmed mech breaks contact. A hull
+  carries one gun, so there is no secondary armament left to fight from cover
+  with. Between orders it drives away from every hostile that can still shoot it
+  (mech, armed hull or infantry), weighted toward the deepest reach it stands
+  inside, until it is six cells outside each one's reach, and holds there. With
+  no drivable route it backs off the nearest threat with its nose on it. A player
+  order still owns it while the order lasts. `-Dbattle.vehicle.disarmedWithdraw=false`
+  is the control, where it holds where it stands.
 - **An empty magazine is a different fact.** It ends fire but leaves the gun.
   The hull still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
@@ -600,8 +606,12 @@ retains the same existing cross-domain behavior as an autonomous hull.
   kited out of its own reach (`heavy-equipment-progression.md`, a tank against
   the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
-  allied story columns, delivery legs, unarmed hulls, shot-away guns and empty
-  magazines never engage, and infantry is not a duel target. `-Dbattle.vehicle.duelRange=false`
+  allied story columns, delivery legs, unarmed hulls, shot-away guns (which
+  withdraw instead) and empty magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
+  (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
+  beyond the target's reach where its gun out-reaches it and at the outer edge of
+  its own reach otherwise, never closer; an **ambusher** never drives at armor and
+  holds where it was set down (the missile carriers, below). `-Dbattle.vehicle.duelRange=false`
   is the control. Its route arrays are
   degenerate on purpose — fabricating a journey it never took would give it an
   errand to resume the moment an order was released.
@@ -805,6 +815,45 @@ somewhere it can look. Acceptance is the `scout-car` scene: a position no marine
 can see is sighted, reaches the commander and is revealed to the player, and a
 scout parked behind a wall reports nothing.
 
+### The missile carriers: LRM carrier and SRM technical
+
+Two hulls carry the mechs' **anti-armor racks** (`mechs-nouns.md`, Missile
+warheads) on a turret: the same warhead, reach and cadence, as turret-mount copies
+of the mech weapons. Both mounts fire **only at hardened targets** (turrets, hubs,
+vehicles, heavy mechs), as a mech's AT rack does, and hold fire at men; a contact
+warhead spent on a rifleman is one the next tank does not get. A turret rocket
+carries its contact warhead on its detonation, so the shaped charge lands on the
+body it was aimed at and point defence that stops the rocket stops the charge.
+There is **no rack choice**: a vehicle is a fixed variant, so the anti-armor
+warhead is each hull's identity, and the fragmentation rack stays a mech fitting.
+
+The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the heavy APC's hull
+with the troop bay given over to two LRM-15 racks on a turntable
+(`art-source/vehicles/missile-carriers/`). It is the APC line's long arm against
+armor, where the fire-support APC's mortar is its short arm against men. Its rounds
+arc, and it fires **on a spotter's call** at a machine it cannot see itself:
+somebody else on its side must be looking at the target right now
+(`SideObservers`) — a sight hull with the target in its own sight range and line of
+sight (the spotter pickup, the hover scout), a soldier or mech within 34 cells with
+line of sight (a mortar's spotter reach), or a comms operator with it in sight.
+Nothing is a belief or a memory, so a carrier holds fire on a tank that ducked out
+of everyone's view rather than shelling where it was. A spotted round is an
+observed round and flies at the weapon's ordinary accuracy. It fights from
+**stand-off**, and an indirect hull plans to a band position without needing its
+own line of sight there. It pays with no seats and less plate than the
+fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
+wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
+sight, and holds fire entirely without the spotter.
+
+The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the
+pickup with a mech SRM-5 pod on its pintle ring and the technical's welded plate
+left off to make the weight. Its rack reaches 18 cells, so it never drives at a
+tank: it is an **ambusher**, holding where it was set down, behind cover, and
+firing on the armor that comes into its reach. Cheap and fragile, a filler for a
+small lift budget that can still hurt a tank that drives past. Acceptance is the
+same scene: a technical behind cover holds still as a tank drives down the road
+and fires once it is inside its reach.
+
 ### The hover line: hover scout and drone skimmer
 
 Tri-Tachyon's company hulls are purpose-built corporate issue, not field rigs: a
@@ -848,6 +897,17 @@ ground scale:
 - A **strike** drone waits in the bay for a hostile to threaten the hull. It then flies
   fast into it and detonates as an ordinary blast credited to itself. It is the only
   role the bay rebuilds, slowly, as a Terminator's mini-fac does.
+
+  The strike is a heavy shell delivered by hand, and it is held to that family rather than
+  to anything special. Its blast kills a rifleman in any standard pattern it reaches and
+  does not kill a power suit, the same armor reach as a field mortar or a tank's twin
+  cannon, and its kill radius sits in the same band. It aims at one hostile, never at a
+  group's middle, and it fuses within a cell of that man. So it takes a picket standing a
+  cell apart whole, and from a picket two or three cells apart it takes only the man it
+  was sent at. What it buys over a shell is precision, paid for with one blast per
+  rebuild. A picket wiped out by a skimmer was a picket that had closed up under fire and
+  been worn down by the escorts first. `StrikeBlastTest` pins the law, and the
+  `drone-strike-spacing` scene measures it in a played fight.
 
 Any other drone lost stays lost. When the hull is wrecked or leaves, the anchor dies, and
 every drone still out is destroyed where it flies and falls through the ordinary drone
