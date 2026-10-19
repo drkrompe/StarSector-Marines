@@ -1,0 +1,198 @@
+{
+ "asset": "paragon.blend",
+ "collection": "PARAGON | clean",
+ "root": "PARAGON | clean | root",
+ "effects_collection": "SWFX",
+ "objects": 1728,
+ "meshes": 1615,
+ "effects_objects": 233,
+ "images": 18,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "root metres_per_unit": {
+   "ok": true,
+   "detail": 0.87
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": [
+    18,
+    []
+   ]
+  },
+  "mesh count": {
+   "ok": true,
+   "detail": [
+    1615,
+    1615
+   ]
+  },
+  "polygon count": {
+   "ok": true,
+   "detail": [
+    121323,
+    121323
+   ]
+  },
+  "ten engine empties at the slots, pointing aft": {
+   "ok": true,
+   "detail": []
+  },
+  "21 turret pivots train and elevate": {
+   "ok": true,
+   "detail": "worst train error 1.72e-05"
+  },
+  "bow lance muzzles point forward": {
+   "ok": true,
+   "detail": []
+  },
+  "kit gun anchors ride the turret muzzles": {
+   "ok": true,
+   "detail": "2 rigs, 4 barrels"
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  },
+  "SWFX present": {
+   "ok": true,
+   "detail": [
+    233,
+    233
+   ]
+  },
+  "plumes leave every bell aft, sized to it": {
+   "ok": true,
+   "detail": []
+  },
+  "gun rig anchors": {
+   "ok": true,
+   "detail": 4
+  },
+  "beams dark until fired": {
+   "ok": true,
+   "detail": []
+  },
+  "17 beams run from the muzzle to range along the line of fire": {
+   "ok": true,
+   "detail": []
+  },
+  "a beam trains with its turret": {
+   "ok": true,
+   "detail": 30.0
+  },
+  "lance charge lights the emitter first": {
+   "ok": true,
+   "detail": [
+    1.0,
+    6000.0
+   ]
+  },
+  "shield parts present": {
+   "ok": true,
+   "detail": [
+    10,
+    10,
+    4
+   ]
+  },
+  "shield dark until raised": {
+   "ok": true,
+   "detail": [
+    0.0,
+    0
+   ]
+  },
+  "shield bubble on the emitter at the vanilla radius": {
+   "ok": true,
+   "detail": [
+    270.0,
+    270.0,
+    [
+     1.0,
+     0.0,
+     -0.0
+    ]
+   ]
+  },
+  "emitter nodes are lit a third of the way up": {
+   "ok": true,
+   "detail": [
+    1500,
+    1500
+   ]
+  },
+  "fortress mode burns the nodes hotter, in the fortress colour": {
+   "ok": true,
+   "detail": [
+    1.8,
+    [
+     1.0,
+     0.392,
+     1.0
+    ]
+   ]
+  },
+  "shield hits land on the bubble in the hull frame": {
+   "ok": true,
+   "detail": [
+    [
+     -0.0,
+     1.0,
+     0.0
+    ],
+    [
+     "SWFX shield hit 1",
+     "SWFX shield hit 2",
+     "SWFX shield hit 3",
+     "SWFX shield hit 4"
+    ]
+   ]
+  },
+  "the shield encloses every drive and turret": {
+   "ok": true,
+   "detail": "10/10 drives, 21/21 turrets, 100.00% of hull vertices"
+  },
+  "drivers valid": {
+   "ok": true,
+   "detail": []
+  },
+  "aft turrets hold fire on a target ahead": {
+   "ok": true,
+   "detail": [
+    "ws001",
+    "ws002",
+    "ws005",
+    "ws006",
+    "ws011",
+    "ws017"
+   ]
+  },
+  "no fired beam cuts the hull": {
+   "ok": true,
+   "detail": {
+    "ahead": 6,
+    "port bow": 8
+   }
+  },
+  "root carries the effects": {
+   "ok": true,
+   "detail": 1.5e-05
+  }
+ }
+}

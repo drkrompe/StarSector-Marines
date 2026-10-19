@@ -48,7 +48,7 @@ PICTURES = {
     "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
     "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
-    "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_joined-sketch_windows/01-c4c5-joined-1fps.mp4",
+    "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_slower-approach_windows/01-c4c5-slower-approach-1fps.mp4",
 }
 
 
@@ -89,7 +89,7 @@ def shifted(layers, by):
     return out
 
 
-C4_LENGTH = 16.0   # C4 and C5 play as one shot (owner, 2026-10-19); C5's beats keep their own clock + 16
+C4_LENGTH = 21.4   # C4 and C5 play as one shot (owner, 2026-10-19); C5's beats keep their own clock + 21.4
 
 SHOTS = {
     "c1": (37.7, [
@@ -155,26 +155,27 @@ SHOTS = {
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
     "c4c5": (C4_LENGTH + 33.5, [
         sfx("c3_cabin_flight_bed", 0.0, -16, until=1.0, fade_out=1.0),
-        sfx("c4_high_wind_bed", 0.0, -14, until=15.0, env=[(0, 0), (8, 0), (11, -6), (15, -14)], fade_in=0.6),
-        sfx("c4_ground_distant", 0.0, -18, until=6.0, fade_out=2.0),
-        sfx("c4_freeway", 1.0, -12, until=48.5, fade_in=1.0,
-            env=[(1, -6), (4, 0), (8, -4), (12, -10), (34, -10), (42, -2), (48.5, -30)]),
-        sfx("c4_port_heavy", 3.5, -12, until=48.5, fade_in=1.5,
-            env=[(3.5, -10), (7, 0), (16, -2), (20, -6), (30, -6), (34, -5), (42, 2), (48.5, -30)]),
-        sfx("c4_port_ambience", 5.0, -18, until=34.0, fade_in=2.5, fade_out=2.0),
-        # The landing: the drive as bass, the rocket burn under the hover, then the thump.
-        # Castle's Kilo Nine line runs 4.6-10.9: the burn sits under it and comes back up for the
-        # touchdown at 11.0.
-        sfx("c1_sw_engine_loop", 3.0, -10, until=12.5, af=LOW,
-            env=[(3, -8), (6.6, -3), (10.6, -3), (11.0, 3), (12.5, -6)], fade_in=1.5, fade_out=1.0),
-        sfx("c4_landing_rocket", 5.0, -6, env=[(5, -4), (5.4, -9), (10.6, -9), (11.0, 2)]),
-        sfx("c4_ship_hover", 6.0, -14, until=11.3, loop=True, fade_in=1.0, fade_out=0.3,
-            env=[(6, -6), (10.6, -6), (11.0, 0)]),
-        sfx("c4_touchdown", 11.0, -2),
-        sfx("c4_dust_hiss", 11.0, -10),
-        sfx("c4_spool_down", 11.2, -8),
-        sfx("c5_yard_bed", 12.0, -14, until=49.5,
-            env=[(12, 0), (34, 0), (42, -8), (47, -30)], fade_in=2.0),
+        sfx("c4_high_wind_bed", 0.0, -14, until=20.4, loop=True,
+            env=[(0, 0), (13.4, 0), (16.4, -6), (20.4, -14)], fade_in=0.6),
+        sfx("c4_ground_distant", 0.0, -18, until=11.0, loop=True, fade_out=2.0),
+        sfx("c4_freeway", 1.0, -12, until=53.9, fade_in=1.0,
+            env=[(1, -6), (4, 0), (13.4, -4), (17.4, -10), (39.4, -10), (47.4, -2), (53.9, -30)]),
+        sfx("c4_port_heavy", 3.5, -12, until=53.9, fade_in=1.5,
+            env=[(3.5, -10), (7, 0), (21.4, -2), (25.4, -6), (35.4, -6), (39.4, -5), (47.4, 2), (53.9, -30)]),
+        sfx("c4_port_ambience", 5.0, -18, until=39.4, fade_in=2.5, fade_out=2.0),
+        # The landing (c4x_scene, 2026-10-19): the approach runs under both of Castle's lines,
+        # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
+        # drive spools down to 17.9. The drive is bass the whole way and opens up for the burn.
+        sfx("c1_sw_engine_loop", 3.0, -10, until=17.9, af=LOW,
+            env=[(3, -8), (10.9, -8), (12.0, -4), (16.0, 0), (16.4, 3), (17.9, -6)], fade_in=1.5, fade_out=1.0),
+        sfx("c4_landing_rocket", 10.0, -6, env=[(10, -9), (11.0, -6), (16.0, -1), (16.4, 2)]),
+        sfx("c4_ship_hover", 11.4, -14, until=16.7, loop=True, fade_in=1.0, fade_out=0.3,
+            env=[(11.4, -6), (16.0, -6), (16.4, 0)]),
+        sfx("c4_touchdown", 16.4, -2),
+        sfx("c4_dust_hiss", 16.4, -10),
+        sfx("c4_spool_down", 16.6, -8),
+        sfx("c5_yard_bed", 17.4, -14, until=54.9,
+            env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),
         voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
     ] + shifted([
@@ -231,6 +232,8 @@ def duration(path):
 
 
 def source(layer, dirs, chosen):
+    if layer.get("path"):
+        return layer["path"]
     if layer.get("synth"):
         return dirs["synth"] / (layer["synth"] + ".wav")
     if layer["kind"] == "sfx":
@@ -283,8 +286,26 @@ def write(samples, path, extra=()):
 LIMIT = ["-af", "alimiter=limit=0.89:level=false"]
 
 
-def mix(shot, picture, dirs, chosen, out):
+def music(path, peak_at):
+    """A closing music candidate (make_music.py) on the joined C4-C5 clock, its loudest second laid
+    at peak_at and ducked under Castle's last line (C5 21.7-24.0)."""
+    end = C4_LENGTH + 24.0
+    return dict(kind="music", path=Path(path), t=peak_at - loudest(Path(path)), level=0.0,
+                until=SHOTS["c4c5"][0], fade_out=2.0,
+                env=[(end - 2.6, 0), (end - 2.3, -8), (end, -8), (end + 0.6, 0)])
+
+
+def loudest(path):
+    """Seconds into a take of its loudest second."""
+    clip = decode(path).mean(axis=1)
+    per = [float(np.sqrt(np.mean(clip[i:i + SR] ** 2))) for i in range(0, len(clip) - SR + 1, SR // 4)]
+    return per.index(max(per)) * 0.25 + 0.5
+
+
+def mix(shot, picture, dirs, chosen, out, extra=(), tag=None):
     length, layers = SHOTS[shot]
+    layers = layers + list(extra)
+    name = shot + ("-" + tag if tag else "")
     full = np.zeros((int(round(length * SR)), 2))
     effects = full.copy()
     for layer in layers:
@@ -292,21 +313,21 @@ def mix(shot, picture, dirs, chosen, out):
         full += placed
         if layer["kind"] == "sfx":
             effects += placed
-    write(full, out / (shot + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
-    write(effects, out / (shot + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
-    video = out / (shot + ".mp4")
+    write(full, out / (name + ".mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    write(effects, out / (name + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
+    video = out / (name + ".mp4")
     parts = picture if isinstance(picture, list) else [picture] if picture else []
     if parts and all(part.exists() for part in parts):
         inputs = [arg for part in parts for arg in ("-i", str(part))]
         graph = "".join("[%d:v]fps=24,scale=1920:1080,setsar=1[v%d];" % (i, i) for i in range(len(parts)))
         graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
-        subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (shot + ".mp3")),
+        subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
                         "-filter_complex", graph, "-map", "[v]", "-map", "%d:a" % len(parts), "-c:v", "libx264",
                         "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
                         "-t", "%.3f" % length, str(video)], check=True)
     peak = 20 * np.log10(np.abs(full).max() + 1e-12)
     print("%-6s %5.1fs  mix peak %5.1f dBFS before limiter  %s" % (
-        shot, length, peak, video.name if video.exists() else "(no picture)"), flush=True)
+        name, length, peak, video.name if video.exists() else "(no picture)"), flush=True)
 
 
 BEDS = set()
@@ -320,6 +341,9 @@ def main():
                         help="folder holding Castle's *_treated.wav review takes")
     parser.add_argument("--hail", default=str(HAIL), help="folder holding the encoded hail .ogg files")
     parser.add_argument("--out", default=str(OUT))
+    parser.add_argument("--music", action="append", default=[],
+                        help="a make_music.py take to lay into c4c5, peaking at the top of the rise; "
+                             "writes c4c5-<take>.mp4 per take")
     args = parser.parse_args()
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     chosen = {cue: row["chosen"] for cue, row in manifest["cues"].items() if row["chosen"]}
@@ -331,8 +355,11 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     synth_flyby.build(out / "synth")
-    for shot in args.shot or SHOTS:
-        mix(shot, pictures.get(shot), {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}, chosen, out)
+    dirs = {"castle": Path(args.castle), "hail": Path(args.hail), "synth": out / "synth"}
+    for take in args.music:
+        mix("c4c5", pictures.get("c4c5"), dirs, chosen, out, [music(take, C4_LENGTH + 25.0)], Path(take).stem)
+    for shot in args.shot or ([] if args.music else SHOTS):
+        mix(shot, pictures.get(shot), dirs, chosen, out)
 
 
 if __name__ == "__main__":

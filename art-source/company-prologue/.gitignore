@@ -96,6 +96,11 @@ paragon-geometry/**/*.blend1
 shepherd-cinematic/*.blend
 shepherd-cinematic/*.blend1
 shepherd-cinematic/review/
+# Legion cinematic export: the .blend is rebuilt by finalize.sh; the manifest
+# and validation stay tracked.
+legion-cinematic/*.blend
+legion-cinematic/*.blend1
+legion-cinematic/review/
 legion-surface/review/
 legion-surface/textures/
 legion-surface/grading/
@@ -123,6 +128,11 @@ pilot-figure/*.blend1
 onslaught-cinematic/*.blend
 onslaught-cinematic/*.blend1
 onslaught-cinematic/review/
+
+# paragon-cinematic: the appendable .blend is built (finalize.sh) and goes to Drive; renders are outputs
+paragon-cinematic/*.blend
+paragon-cinematic/*.blend1
+paragon-cinematic/review/
 
 # colossus-surface: script outputs
 colossus-surface/review/

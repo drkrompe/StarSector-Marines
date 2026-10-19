@@ -116,49 +116,48 @@ Longer since the owner's review (`c3_core`): it opens still descending and shaki
 | `c3_river_muffled` | The river's rush, far off, low-passed at 1.2 kHz | 4–16 | Bed | −18 | Gen |
 | Castle | "Like the travel reels they ran in the canteen... except this one doesn't loop." | 7.0–12.1 | Voice | 0 | `c4_reels` take |
 
-## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 49.5 s)
+## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 54.9 s)
 
 One continuous camera (owner, 2026-10-19; joined in `c5_scene`: C5 opens on C4's last frame and
 pushes in from 445 m to the 220 m view of the ramp over its first 4 s): the sky pan from farmland over the freeway and
-the industrial belt to the port (0–8), down over Kilo Nine, the landing, the yard, the
-families, the rise and the title. Until it is rendered as one, the review plays the C4
-sketch (0–16) and the C5 sketch (16–49.5) back to back. Times below are on the joined clock;
-C5's own beats are at their C5 time + 16.
+the industrial belt to the port (0–13.4), down over Kilo Nine, the landing, the yard, the
+families, the rise and the title. C4 runs 0–21.4 and C5 follows; times below are on the
+joined clock, and C5's own beats are at their C5 time + 21.4.
 
-Second Wind brakes into a hover at 6.6 and touches down at 11.0 in a ring of dust. The yard
-vehicles roll from 14.2; the customs car is in by 21. Castle's in-flight lines are about where
-they are going (owner: the line said after landing came off wrong): "Greywater's past the
-cranes. Let me do the talking." from 0.5, then "Look for the fenced yard on the east side.
-Kilo Nine. Mind your manners down there; it's a favour." from 4.6 to about 10.9, with "Kilo
-Nine" as the camera settles over the yard. The landing burn is ducked 5 dB under it and
-comes back for the touchdown. Her all-hands is on the loudspeaker from 21.0,
-the ramp drops at 24, the camera rises 34–42, her last line ends at 40, the title from 41,
-black by 49.
+The approach is slower (owner: she named the landing zone after we were already landing).
+Castle's in-flight lines are both over before the ship starts down: "Greywater's past the
+cranes. Let me do the talking." 0.5–3.9, then "Look for the fenced yard on the east side.
+Kilo Nine. Mind your manners down there; it's a favour." 4.6–10.9. Second Wind brakes into a
+hover at 12.0, touches down at 16.4 in a ring of dust, and its drive winds down by 17.9. The
+burn builds from under the end of her line into the touchdown. The yard vehicles roll from
+19.6 and stop at 23.9, 24.9, 25.9 and 26.4. Her all-hands is on the loudspeaker from 26.4,
+the ramp drops at 30, the families walk out from under the stern from 29.9, the camera
+rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 
 | Cue | What | When | Kind | Level | Source |
 |---|---|---|---|---|---|
 | `c3_cabin_flight_bed` (carried) | The cabin, fading as the picture goes outside | 0–1.0 | Transition | −16 to silence | Gen |
-| `c4_high_wind_bed` | Open air at altitude, soft and steady | 0–15, easing out as the camera descends | Bed | −14 to −28 | Gen |
-| `c4_ground_distant` | Far below: farm machinery and a slow train | 0–6 | Spot | −18 | Gen |
-| `c4_freeway` | Heavy trucks and haulers on the freeway | 1–48.5; loudest crossing the road (4), low over the yard, up again with the rise, out under the title | Bed | −12 (−22 over the yard, −14 at the top of the rise) | Gen |
-| `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–48.5; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
-| `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–34 | Bed | −18 | Gen |
-| `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the descent, building to touchdown | 3–12.5 | Bed | −10 (−18 to −7), below 220 Hz | Gen |
-| `c4_landing_rocket` | The landing burn: a deep rumbling roar under the hover, cut off at touchdown | 4–14, sustained 4.5–10.5 | Spot | −6 | Gen |
-| `c4_ship_hover` | Thrust texture under the burn | 6–11.3 | Spot | −14 | Gen; existing `shuttle-engine/engine_hum` |
-| `c4_touchdown` | The landing: a deep thump and the gear's metal groan | 11.0 | Spot | −2 | Gen |
-| `c4_dust_hiss` | Downwash blasting dust and grit across the pad | 11.0–15 | Spot | −10 | Gen |
-| `c4_spool_down` | The drive winding down | 11.2–16 | Transition | −8 | Gen; existing `c5_yard_spool_down` |
-| `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 14.5–23, hisses at 18.5, 19.5, 20.5, 21.0 | Spot | −14 to −18 | Gen |
-| `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 12–49.5; full to 34, thinning under the rise, out by 47 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
-| `c5_hull_ticks` | The hull ticking and pinging as it cools | 16.5–30 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
-| `c5_car_doors` | A door 0.6 s after each vehicle stops; the customs car's two doors last | 19.1, 20.1, 21.1, 21.6 and 23.1 | Spot | −16, −14 for the customs car | Gen |
-| `c5_steam_vent` | Steam venting off the hull as the engines go dark | 20–24.6 | Spot | −14 | Gen; existing `c5_yard_steam_vent` |
-| `c5_pa_click` | The loudspeaker switched on before "All hands", and off after the announcement. A clean click and a speaker thump; **no squelch** | 20.75, 29.8 | Spot | −10 | Gen |
-| `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 21.6–25.6, the clunk at 24.6 | Spot | −8 | Gen |
-| `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 24.5–41, from when they come off the ramp, well under Castle | Bed | −24 | Gen |
-| `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 33–49.5, up from −17 to −5 at 42, then fading to silence by 48.5 under the title | Bed | −17 → −5 → out | Gen |
-| Music | Not chosen. Arrives under Castle's last line and carries the title | 37–49.5 | — | — | — |
+| `c4_high_wind_bed` | Open air at altitude, soft and steady | 0–20.4, easing out after the pan as the ship goes down | Bed | −14 to −28 | Gen |
+| `c4_ground_distant` | Far below: farm machinery and a slow train | 0–11 | Spot | −18 | Gen |
+| `c4_freeway` | Heavy trucks and haulers on the freeway | 1–53.9; loudest crossing the road (4), low over the yard, up again with the rise, out under the title | Bed | −12 (−22 over the yard, −14 at the top of the rise) | Gen |
+| `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–53.9; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
+| `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–39.4 | Bed | −18 | Gen |
+| `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the approach, building from the hover to touchdown | 3–17.9 | Bed | −10 (−18 under the lines, −14 → −10 in the hover, −7 at touchdown), below 220 Hz | Gen |
+| `c4_landing_rocket` | The landing burn: a deep rumbling roar, building through the hover, cut off at touchdown | 10–20, held down until her line ends at 10.9 | Spot | −6 (−15 → −7, −4 at touchdown) | Gen |
+| `c4_ship_hover` | Thrust texture under the burn | 11.4–16.7 | Spot | −14 | Gen; existing `shuttle-engine/engine_hum` |
+| `c4_touchdown` | The landing: a deep thump and the gear's metal groan | 16.4 | Spot | −2 | Gen |
+| `c4_dust_hiss` | Downwash blasting dust and grit across the pad | 16.4–20.4 | Spot | −10 | Gen |
+| `c4_spool_down` | The drive winding down | 16.6–21.6 | Transition | −8 | Gen; existing `c5_yard_spool_down` |
+| `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
+| `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 17.4–54.9; full to 39.4, thinning under the rise, out by 52.4 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
+| `c5_hull_ticks` | The hull ticking and pinging as it cools | 21.9–35.4 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
+| `c5_car_doors` | A door 0.6 s after each vehicle stops; the customs car's two doors last | 24.5, 25.5, 26.5, 27.0 and 28.5 | Spot | −16, −14 for the customs car | Gen |
+| `c5_steam_vent` | Steam venting off the hull as the engines go dark | 25.4–30.0 | Spot | −14 | Gen; existing `c5_yard_steam_vent` |
+| `c5_pa_click` | The loudspeaker switched on before "All hands", and off after the announcement. A clean click and a speaker thump; **no squelch** | 26.15, 35.2 | Spot | −10 | Gen |
+| `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
+| `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
+| `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
+| Music | Not chosen; four ElevenLabs candidates in `make_music.py` (`music-takes/`), each laid by `sfx_mix.py --music` with its loudest second at C5 25, ducked 8 dB under Castle's last line. Hopeful but fragile, a beginning not a victory, no vocals | about 36–54.9 | Music | 0 (−8 under her line) | Gen (music) |
 
 ## What is still open
 

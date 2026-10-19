@@ -15,13 +15,16 @@ import com.dillon.starsectormarines.battle.warship.HullContactReadings;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.HullRefit;
 import com.dillon.starsectormarines.battle.warship.MapEdge;
+import com.dillon.starsectormarines.battle.warship.MissileOpeningReadings;
 import com.dillon.starsectormarines.battle.warship.MountLayReadings;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.warship.WarshipEdgeHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipManoeuvre;
+import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import com.dillon.starsectormarines.battle.warship.WarshipPosture;
+import com.dillon.starsectormarines.battle.warship.WarshipShipFire;
 import com.dillon.starsectormarines.battle.warship.WarshipSpacing;
 import com.dillon.starsectormarines.battle.warship.WarshipWreck;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
@@ -37,6 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * The production Black Sluice duel ({@link BlackSluiceDuel}) on open ground the size of the Black Sluice map, without
@@ -341,10 +345,24 @@ public final class GreyhookDuelScene implements BehaviorScene {
                         t.closestFriends, t.friendlyOverlapTicks)));
         verdicts.add(Verdict.of("no-wing-launches", t.defenderAircraft == 0,
                 t.defenderAircraft + " Greyhook aircraft over the battle"));
+        WarshipShipFire shipFire = t.sim.warships().shipFire();
+        List<Warship> hulls = duel.hulls();
+        Function<Warship, String> named = s -> {
+            int i = hulls.indexOf(s);
+            return i >= 0 && i < t.names.length ? t.names[i] : s.hullId;
+        };
+        if (shipFire.missileWindows() && shipFire.missileRestraint()) verdicts.add(MissileOpeningReadings.verdict(shipFire, named));
         verdicts.add(t.lay.verdict("turrets-stay-laid-on-a-hull-in-reach", LAID_SHARE));
 
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("orderTick", t.orderTick);
+        MissileOpeningReadings.metrics(shipFire, named, metrics);
+        WarshipPointDefence pd = t.sim.warships().pointDefence();
+        metrics.put("missilesFired", shipFire.missilesFired());
+        metrics.put("missilesShotDown", shipFire.missilesShotDown());
+        metrics.put("missilesOnHull", shipFire.missilesOnHull());
+        metrics.put("pdEngagements", pd.hullMissileEngagements());
+        metrics.put("pdIntercepts", pd.hullMissileIntercepts());
         // 0 still over the battle at the end, 1 escaped, 2 shot down.
         metrics.put("greyhookEnding", escaped ? 1 : greyhookSideDown ? 2 : 0);
         // 0 still fighting, 1 ordered on the clock, 2 crippled, 3 unopposed.

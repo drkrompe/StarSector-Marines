@@ -591,6 +591,9 @@ def build():
     add_hero(scene)
     add_traffic(scene)
     add_camera(scene)
+    sys.path.insert(0, str(BASE.parent / 'thrust-markers'))
+    import thrust_shots                      # every craft's nozzles marked for VFX and sound
+    thrust_shots.mark_c1(sys.modules[__name__])
     eevee(scene)
     return scene
 
