@@ -15,11 +15,11 @@ import bpy
 HERE = Path(__file__).resolve().parent
 argv = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
 path = Path(argv[0] if argv else HERE.parents[2]/'build'/'lasher'/'lasher.blend').resolve()
-COLL, ROOT = 'LASHER', 'LASHER | root'
-
 bpy.ops.wm.read_factory_settings(use_empty=True)
 with bpy.data.libraries.load(str(path), link=True) as (src, dst):
-    assert COLL in src.collections, src.collections
+    # LASHER, or LASHER (<livery>) for another paint scheme (build_lasher.py --livery)
+    COLL = next(c for c in src.collections if c.startswith('LASHER') and not c.endswith('| anchors'))
+    ROOT = f'{COLL} | root'
     dst.collections = [COLL]
 coll = dst.collections[0]
 objs = list(coll.all_objects)

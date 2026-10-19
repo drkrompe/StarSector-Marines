@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559d-9519-7e82-9cc5-524a994a8652",
+  "source": "/Users/dillon/.codex/generated_images/01a1559d-9519-7e82-9cc5-524a994a8652/exec-843ee1ef-1fc6-4a82-8e7b-2e8cd4688b2d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/hound-surface-independent/generated/sheet-hull.png",
+    "sha256": "99fbadb4d137b5b4dfd9751116cab4f604e34067cdb036615ea3045f05d0025a",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/hound-surface-independent/prompts/sheet-hull.prompt.txt",
+  "promptSha256": "9f9319405834e714f4330004bc827eab5fee869b68baff870da63ac2ec8ea1ad",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a clean, well maintained independent convoy escort freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: the main cargo hull's port side wall, seen from port, bow to the right: a long pale warm-grey armour wall with chamfered top and bottom edges; its thin straight slots and small rectangular cut-outs are background grey and must stay empty;\ntop-right: the main cargo hull's dorsal deck seen from directly above, bow to the right: a large pale warm-grey armour deck with two raised pale grey armour straps running across it (the narrow bands near each end) and four slightly lighter pale grey spar armour plates on it;\nbottom-left: the main cargo hull's flat stern face, seen from astern: a wide pale warm-grey armour face with a large rectangular opening in the middle that is background grey and must stay empty;\nbottom-right: the main cargo hull's underside seen from directly below: a large flat pale warm-grey armour plate with chamfered edges and a square opening that is background grey and must stay empty.\nINPUT 1's flat colours are the model's OLD paint scheme and only mark the materials: its orange shapes are now the pale warm-grey armour (a light, slightly warm neutral grey, clearly lighter than gunmetal), its brown / taupe shapes are now the muted slate-blue structural paint (a dull, dark greyish blue). Paint the NEW colours; no orange or brown may remain.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its clean maintained finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that clean, well maintained hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole or slot in a shape stays plain background grey.\n- Each shape is a flat steel armour surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of fasteners and rivets, flush access panels, a very light even film of service grime and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: every shape is pale warm-grey paint (the lighter pale grey plates on the deck stay a slightly lighter pale grey). Do not repaint any part of a shape another colour: no grey, slate-blue, cream, white or black areas, no stripes, no differently coloured patches and no repair plates.\n- The ship is clean and maintained, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/guide/sheet-hull-guide.png",
+      "sha256": "5a622e52c0afec5a000933f1f08a789d6c8bb41e2364084f0972dd034759f2aa",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet to paint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/hound-surface-independent/reference/finish-reference.png",
+      "sha256": "6bbbbd8846c67a86d533804210ae13fc4416358686b3648ae37f657ab0d71235",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, keeping the four-face layout and openings fixed while matching the reference finish."
+  ],
+  "usage": {
+    "input_tokens": 45346,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 649,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.4
+}

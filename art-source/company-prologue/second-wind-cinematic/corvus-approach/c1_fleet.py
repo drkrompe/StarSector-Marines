@@ -27,6 +27,7 @@ from mathutils import Vector
 HULLS = {
     'colossus': ('colossus.blend', 'COLOSSUS', 'COLOSSUS | root', 0.50, 6, 2.0e5),
     'shepherd': ('shepherd.blend', 'SHEPHERD', 'SHEPHERD | root', 0.78, 2, 2.0e5),
+    'mudskipper': ('mudskipper.blend', 'MUDSKIPPER', 'MUDSKIPPER | root', 0.85, 1, 2.0e5),
 }
 # (hull, px, py in the final view at the shot's end, range m, velocity in world m/s (x right, y down the lane, z up), roll deg)
 LANE = (
@@ -57,7 +58,7 @@ def add(c1):
         c1.quiet_lamps(coll, 6.0)
         colls[hull] = (coll, mpu)
     mud = c1.INPUTS / 'mudskipper-skinned.blend'
-    if mud.exists():
+    if 'mudskipper' not in colls and mud.exists():   # until the finished Mudskipper is staged
         colls['mudskipper'] = (c1.hull_collection(mud), 0.85)
     for i, (hull, px, py, rng, vel, roll) in enumerate(LANE):
         if hull not in colls:

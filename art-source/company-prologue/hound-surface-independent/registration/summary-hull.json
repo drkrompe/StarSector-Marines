@@ -1,0 +1,42 @@
+{
+ "hull-side-port": {
+  "raw_iou": 0.9341,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9363,
+  "scale": [
+   1.00205,
+   1.00444
+  ],
+  "boundary_p95_px": 100.0
+ },
+ "hull-top": {
+  "raw_iou": 0.8848,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.8894,
+  "scale": [
+   1.0033,
+   0.99944
+  ],
+  "boundary_p95_px": 98.0
+ },
+ "hull-stern": {
+  "raw_iou": 0.9818,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9858,
+  "scale": [
+   1.00255,
+   1.00257
+  ],
+  "boundary_p95_px": 89.0
+ },
+ "hull-under": {
+  "raw_iou": 0.9914,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9961,
+  "scale": [
+   1.0023,
+   1.00217
+  ],
+  "boundary_p95_px": 1.41
+ }
+}
