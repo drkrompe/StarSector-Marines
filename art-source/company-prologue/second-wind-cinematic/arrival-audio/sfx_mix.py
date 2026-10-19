@@ -199,7 +199,7 @@ SHOTS = {
         sfx("c5_yard_bed", 17.4, -14, until=61.4,
             env=[(17.4, 0), (39.4, 0), (47.4, -8), (59.4, -10), (60.9, -30)], fade_in=2.0),
         # The Colossus at the heavy berth lifting out (port_fleet): lift jets from C5 12, off the deck
-        # at 15 with its dust, mains lit at 24 as the title comes up. Kept under the music and title.
+        # at 15 with its dust, mains lit at 19.5 as it turns south-west and climbs away. Kept under the music and title.
         synth("colossus_lift", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
         synth("colossus_mains", -12, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
         voice(("castle", CASTLE["c4_greywater"]), 0.5),

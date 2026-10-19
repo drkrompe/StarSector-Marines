@@ -24,7 +24,8 @@ A freighter pad is 68 m across; the Hound (61 m), Mudskipper (67 m) and Shepherd
 to tail. The Colossus is 108 x 89 m and fits only the heavy berth's 130 x 100 m walled deck.
 
 The heavy-berth Colossus's departure is flown, not posed: it climbs off the deck on its lift jets at
-a heavy hull's slow acceleration, then lights its mains and accelerates up and away west (`climb`).
+a heavy hull's slow acceleration, turning onto its departure heading, then lights its mains and
+accelerates up and away, curving south-west across the open port (`climb`).
 Its size in the C5 rise is whatever that altitude gives against the camera's. It is the one hull
 linked with its own drive effects (the shared VFX kit's `SWFX`, `with_effects`): cores, plumes, bell
 glows, glow lights and haze on its own engine anchors, each engine's throttle driven by its thruster
@@ -73,10 +74,21 @@ C5_SECONDS = 40.0                     # how far past C4's end anything moving is
 HAZE_SKIP = set()                     # the drive effects' materials, filled as they are loaded
 # The heavy-berth Colossus's departure, in C5 seconds: lift jets spool up from LIFT_SPOOL (at 40%),
 # full at LIFT_OFF when it leaves the deck; mains light at MAIN_ON and are full at MAIN_FULL.
-LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 24.0, 25.5
+# The mains light as the camera starts its rise, so the burn is under way when the title comes up.
+LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 19.5, 21.0
 LIFT_ACCEL = 0.6                      # m/s^2 up on the lift jets alone: a heavy hull, slow off the deck
-MAIN_ACCEL, MAIN_LIFT = 3.0, 0.8      # m/s^2 forward (west, its bow) and extra up once the mains are full
+MAIN_ACCEL, MAIN_LIFT = 1.6, 0.8      # m/s^2 along its bow and extra up once the mains are full
 PITCH = math.radians(4.0)             # nose up as the mains take over
+# Its turn onto the departure heading (headings in degrees, 180 = bow west as it is parked). As it comes
+# off the deck it yaws 35 deg, eased in and out, while sliding a little south: a corner swinging north
+# would otherwise pass through the parked gantry's beams, and early in the turn the hull is barely over
+# the bay walls. Under the mains it keeps turning, more gently, onto TURN_HEADING with a small bank,
+# so its course curves south-west across the open port and it is still in frame, travelling, as the
+# title fades.
+YAW_LIFT, YAW_LIFT_FROM, YAW_LIFT_TO = 35.0, 18.5, 23.0
+TURN_HEADING, TURN_TO = 255.0, 32.0
+DRIFT_SOUTH, DRIFT_FROM, DRIFT_TO = 16.0, 16.0, 22.0
+BANK_PER_YAW_RATE = 0.26              # s: degrees of bank per degree a second of turn (into the turn)
 GANTRY_CLEAR = 67.0                   # the heavy gantry stands this far north, clear of the bay
 PARTS = set()                         # names of every object in an appended hull collection
 
@@ -232,6 +244,7 @@ def with_effects(c4, label, hull):
     PARTS.update(o.name for o in fx.all_objects if o is not None)
     e = c4.link(bpy.data.objects.new(label, None))
     e['port_fleet_hull'] = hull
+    e['aloft'] = True                        # c5_crowd: its drive volumes reach the ground; it is no ground mover
     root = next(o for o in ship.all_objects if o is not None and o.parent is None)
     root.parent = e
     root.matrix_parent_inverse = Matrix.Identity(4)
@@ -240,13 +253,25 @@ def with_effects(c4, label, hull):
     return e, rest
 
 
+def smooth(t, t0, t1):
+    k = min(max((t - t0) / (t1 - t0), 0.0), 1.0)
+    return k * k * (3 - 2 * k)
+
+
+def heading(t):
+    """The bow's heading in degrees at C5 second t."""
+    return (180.0 + YAW_LIFT * smooth(t, YAW_LIFT_FROM, YAW_LIFT_TO)
+            + (TURN_HEADING - 180.0 - YAW_LIFT) * smooth(t, YAW_LIFT_TO, TURN_TO))
+
+
 def climb(c4, e):
-    """Key the lift-off and climb, integrated frame by frame from the accelerations above, and print
-    the altitude above the deck at C5 22, 26, 30 s and the end."""
+    """Key the lift-off, turn and climb, integrated frame by frame from the accelerations above (the
+    mains push along the bow as it turns, so the course follows the heading round), and print the
+    altitude above the deck at C5 22, 26, 30 s and the end."""
     T, fps = c4.DURATION, c4.FPS
     x, y, z0 = e.location
     e['rest_xy'] = (x, y)
-    z, vx, vz = z0, 0.0, 0.0
+    z, vx, vy, vz = z0, 0.0, 0.0, 0.0
     alt = {}
     f_off, f_end = round((T + LIFT_OFF) * fps), round((T + C5_SECONDS) * fps)
     e.keyframe_insert('location', frame=0)
@@ -255,15 +280,17 @@ def climb(c4, e):
     for f in range(f_off, f_end + 1):
         t = f / fps - T
         ramp = min(max((t - MAIN_ON) / (MAIN_FULL - MAIN_ON), 0.0), 1.0)
+        h = math.radians(heading(t))
         vz += (LIFT_ACCEL + MAIN_LIFT * ramp) * dt
-        vx += MAIN_ACCEL * ramp * dt
-        z += vz * dt
-        x -= vx * dt                                   # bow west
+        vx += MAIN_ACCEL * ramp * math.cos(h) * dt
+        vy += MAIN_ACCEL * ramp * math.sin(h) * dt
+        x, y, z = x + vx * dt, y + vy * dt, z + vz * dt
         alt[f] = z - z0
         if (f - f_off) % 3 == 0 or f == f_end:
-            pr = min(max((t - MAIN_ON) / 3.0, 0.0), 1.0)
-            e.location = (x, y, z)
-            e.rotation_euler = (0, -PITCH * pr * pr * (3 - 2 * pr), math.pi)
+            pr = smooth(t, MAIN_ON, MAIN_ON + 3.0)
+            rate = (heading(t + 0.05) - heading(t - 0.05)) / 0.1
+            e.location = (x, y - DRIFT_SOUTH * smooth(t, DRIFT_FROM, DRIFT_TO), z)
+            e.rotation_euler = (-math.radians(BANK_PER_YAW_RATE * rate), -PITCH * pr, h)
             e.keyframe_insert('location', frame=f)
             e.keyframe_insert('rotation_euler', frame=f)
     import port_life
