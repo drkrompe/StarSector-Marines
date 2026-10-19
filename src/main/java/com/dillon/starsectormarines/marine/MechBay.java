@@ -111,10 +111,13 @@ public final class MechBay implements Serializable {
     public boolean labLessonPaused() { return labLessonPaused; }
     public void pauseLabLesson(boolean paused) { labLessonPaused = paused; }
 
-    /** Once-only recovery package; also migrates an already-owned story Hound. */
+    /**
+     * Once-only recovery package; also migrates an already-owned story Hound. The rack is the
+     * fragmentation one, since the first operations are fought against men.
+     */
     public void beginLabLesson() {
         if (labLesson != 0) return;
-        addWeapon(MechWeaponComponent.SRM_5.id, 1);
+        addWeapon(MechWeaponComponent.SRM_5_FRAG.id, 1);
         labLesson = 1;
     }
 
@@ -127,7 +130,7 @@ public final class MechBay implements Serializable {
         CampaignMech mech = mechById(WaylineHound.ID);
         if (mech == null) return;
         for (MechMountSlot mount : List.of(MechMountSlot.LEFT_SHOULDER, MechMountSlot.RIGHT_SHOULDER)) {
-            if (mech.weaponAt(mount) != MechWeaponComponent.SRM_5) continue;
+            if (!isLessonRack(mech.weaponAt(mount))) continue;
             if (labLesson == 2) { labLesson = 3; return; }
             if (labLesson == 3 && lessonRackRemoved) labLesson = 4;
         }
@@ -135,6 +138,11 @@ public final class MechBay implements Serializable {
 
     public MechBay() {
         ensureSupportSquad();
+    }
+
+    /** Either SRM-5 warhead counts for the lesson; a save from before the split holds the anti-armor one. */
+    private static boolean isLessonRack(MechWeaponComponent component) {
+        return component == MechWeaponComponent.SRM_5_FRAG || component == MechWeaponComponent.SRM_5;
     }
 
     /** Explicit legacy/test fixture; ordinary campaign construction stays empty. */
@@ -571,7 +579,7 @@ public final class MechBay implements Serializable {
         if (socket == null || socket.factoryLocked()) return false;
         if (mech.weaponAt(slot) == null) return false;
         if (labLesson == 3 && WaylineHound.ID.equals(mechId)
-                && mech.weaponAt(slot) == MechWeaponComponent.SRM_5) lessonRackRemoved = true;
+                && isLessonRack(mech.weaponAt(slot))) lessonRackRemoved = true;
         mech.installWeapon(slot, null);
         return true;
     }
