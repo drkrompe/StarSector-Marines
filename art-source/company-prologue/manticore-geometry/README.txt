@@ -41,6 +41,16 @@ keel to mast. Against known ships: 1.4 Hounds (61 m) long, 0.77 of a Colossus
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 4 (2026-10-19)
+"The neck is still angled up? ... The central hull can go down." Round 3
+bent only the beak; now the whole forward hull bends down from just ahead of
+the bridge (mt_hull.NOSE_DROOP: 0.10 per unit forward of X 10, 0.32 forward of
+X 62), core front, gun pit, neck, wing leading parts, pods, launcher housings
+and head alike, so the line runs downhill from the bridge to the beak. Turret
+rings stay level. Bridge eye clear to 4 deg down dead ahead, 9-14 deg on every
+other bearing; all six mounts still bear dead ahead. Volume 294,597 units3;
+0.54 m/u stands.
+
 Owner review round 3 (2026-10-19)
 "Lower the nose ... the wings tapering downward ... a bird of prey", and
 "you raised the bridge higher" (round 2's command tier was a taller bridge,

@@ -70,7 +70,7 @@ NAME = 'Manticore (P)'
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
 # pods, launcher housings or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = ('Review round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
+STATUS = ('Review round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
           'low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 '
           'deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.54 m/u, ship_scale.py option C) + '
           'pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.')

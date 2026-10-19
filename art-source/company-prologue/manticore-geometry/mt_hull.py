@@ -48,10 +48,12 @@ BRIDGE_DECK = 16.5   # the bridge plinth's roof, just above the core deck (owner
 MAIN_WELL = (17.5, 7.4)   # the main gun stands in a well (radius, depth below the core deck)
 POD = (23, 65, 13.5)   # outer turret pod: centre x, |y|, radius
 # Owner, round 3 (a bird of prey): the arms bend down toward their tips, 0.16
-# per unit outboard of |Y| 24 and 0.42 outboard of |Y| 46; the nose droops like
-# a beak, 0.30 per unit forward of X 62.
+# per unit outboard of |Y| 24 and 0.42 outboard of |Y| 46. Round 4 (owner: the
+# neck still climbs; the central hull can go down): the whole forward hull
+# pitches down from just ahead of the bridge, 0.10 per unit forward of X 10, and
+# the beak bends harder, 0.32 per unit forward of X 62. Turret rings stay level.
 WING_DROOP = [(24.0, .16), (46.0, .42)]
-NOSE_DROOP = (62.0, .30)
+NOSE_DROOP = [(10.0, .10), (62.0, .32)]
 
 
 def wing_drop(y):
@@ -65,16 +67,22 @@ def wing_drop(y):
 
 
 def nose_drop(x):
-    x0, k = NOSE_DROOP
-    return k*max(0.0, x-x0)
+    """How far the forward hull has bent down at x."""
+    d = 0.0
+    for k, (x0, slope) in enumerate(NOSE_DROOP):
+        x1 = NOSE_DROOP[k+1][0] if k+1 < len(NOSE_DROOP) else 1e9
+        if x > x0:
+            d += slope*(min(x, x1)-x0)
+    return d
 
 
 def droop(ob):
-    """Bend a bow part down forward of NOSE_DROOP's X (a crease there keeps faces planar)."""
+    """Bend a part down forward of NOSE_DROOP's breaks (a crease at each keeps faces planar)."""
     bm = bmesh.new()
     bm.from_mesh(ob.data)
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(NOSE_DROOP[0], 0, 0),
-                           plane_no=(1, 0, 0))
+    for x0, _k in NOSE_DROOP:
+        bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(x0, 0, 0),
+                               plane_no=(1, 0, 0))
     for v in bm.verts:
         v.co.z -= nose_drop(v.co.x)
     bm.to_mesh(ob.data)
@@ -173,14 +181,14 @@ def build(kit):
     kit.hull += [droop(prow), droop(crossbar)]
 
     neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
-    core = lofted(kit, 'Hull core', CORE_STATIONS, kit.red)
+    core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red))
     # The main gun stands in a well, so its roof sits low under the bridge's sightline.
     r, d = MAIN_WELL
-    well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10), r, 20, kit.red, vertices=24)
+    well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10-nose_drop(21)), r, 20, kit.red, vertices=24)
     boolean(core, well)
     # The arms droop outboard (anhedral) with deep chamfers below: the gun pods
     # at their tips hang low and forward of the core's flanks.
-    wing = shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 4.5, 3.0), kit.steel))
+    wing = droop(shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 4.5, 3.0), kit.steel)))
     aft = prism(kit, 'Hull aft body', ccw(AFT), section(AFT_KEEL, AFT_DECK, 5.0, 3.5), kit.steel)
     for s in (1, -1):
         plane_cut(aft, f'aft {s} shoulder', (-30, s*36, AFT_DECK), facet_normal((0, s), 34))
@@ -195,7 +203,7 @@ def build(kit):
     for side, s in (('port', 1), ('starboard', -1)):
         pod = prism(kit, f'Hull {side} turret pod', ccw(octagon_plan(x, s*y, r)),
                     section(-14.0-drop, 11.0-drop, 5.0, 3.4), kit.steel)
-        kit.hull.append(pod)
+        kit.hull.append(droop(pod))
         # The red armour collar round the pod's outboard half (the sprite's red crescents).
         collar = prism(kit, f'Hull {side} pod armour collar', ccw(octagon_plan(x, s*y, r+1.0)),
                        section(-8.0-drop, 8.6-drop, 2.0, 1.4), kit.red, .12)
@@ -203,21 +211,21 @@ def build(kit):
                      section(-40, 40, 0, 0), kit.red)
         boolean(collar, hole)
         plane_cut(collar, f'{side} collar inboard half', (x, s*(y-3), 0), (.35, -s, 0))
-        kit.hull.append(collar)
+        kit.hull.append(droop(collar))
         # Launcher housing: a base block with two cheeks either side of the rack.
         base = prism(kit, f'Hull {side} launcher housing',
                      ccw([(lx+11, s*(ly-9)), (lx+11, s*(ly+9)), (lx-7, s*(ly+10)), (lx-7, s*(ly-10))]),
                      section(-8.0-ldrop, 8.0-ldrop, 2.4, 1.0), kit.steel)
-        kit.hull.append(base)
+        kit.hull.append(droop(base))
         for k, dy in (('inboard', -8.6), ('outboard', 8.6)):
             cheek = prism(kit, f'Hull {side} launcher {k} cheek',
                           ccw([(lx+12, s*(ly+dy-.9)), (lx+12, s*(ly+dy+.9)), (lx-4, s*(ly+dy+1.1)),
                                (lx-4, s*(ly+dy-1.1))]), section(5.5-ldrop, 14.5-ldrop, .3, .6), kit.steel, .1)
             plane_cut(cheek, f'{side} {k} cheek rake', (lx+8, s*(ly+dy), 14.5-ldrop), facet_normal((1, 0), 40))
-            kit.hull.append(cheek)
+            kit.hull.append(droop(cheek))
 
     # The main gun's ring at the bottom of its well, and the small bow ring for WS 002.
-    kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK-MAIN_WELL[1]-.6), MAIN_WELL[0]-.6, 1.4,
+    kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK-MAIN_WELL[1]-.6-nose_drop(21)), MAIN_WELL[0]-.6, 1.4,
                                  kit.steel, vertices=24, bevel=.2))
     # The bow ring stands level on the drooping beak: its top is the deck's height
     # at the ring's centre, its foot buried in the falling deck ahead.

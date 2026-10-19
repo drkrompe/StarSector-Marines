@@ -25,7 +25,7 @@ silhouette by more than a cell, so the top-view IoU holds.
 import math
 import bpy
 from mt_kit import boolean, facet_normal, plane_cut, prism, section, sym
-from mt_hull import wing_drop, ccw, shear, BRIDGE_DECK, CORE_DECK, AFT_DECK, MAIN_WELL, WING_DECK
+from mt_hull import wing_drop, ccw, droop, shear, BRIDGE_DECK, CORE_DECK, AFT_DECK, MAIN_WELL, WING_DECK
 
 VIEWPORT_M = (1.0, .8)       # one viewport pane
 BRIDGE_BAND_M = 1.1          # the dome's glazed band height
@@ -74,7 +74,7 @@ def build(kit):
                       facet_normal((0, s), 20))
             xf = max(x for x, _ in plan)
             plane_cut(plate, f'{side} plate {k} forward bevel', (xf-3.5, s*40, z0+2.8), facet_normal((1, -.35*s), 30))
-            kit.hull.append(plate)
+            kit.hull.append(droop(plate))
         # Trailing-edge strake: a dark gunmetal band down the swept trailing edge.
         te = [(8.5, 70.5), (-3, 58.5), (-16, 45.5)]
         for i in range(len(te)-1):
@@ -84,12 +84,12 @@ def build(kit):
             nx, ny = dy/ln*3.2, -dx/ln*3.2  # inboard offset
             pts = ccw([(x0, s*y0), (x1, s*y1), (x1-nx, s*(y1-ny)), (x0-nx, s*(y0-ny))])
             zt = WING_DECK
-            shear(prism(kit, f'Hull wing {side} trailing strake {i+1}', pts, section(zt-1.6, zt+.5, .1, .3),
-                        kit.steel, .08))
+            droop(shear(prism(kit, f'Hull wing {side} trailing strake {i+1}', pts, section(zt-1.6, zt+.5, .1, .3),
+                        kit.steel, .08)))
         # Pod spar: the gunmetal rib from the core shoulder to the outer pod.
         spar = strip(kit, f'Hull wing {side} pod spar', [(18, s*24), (21, s*40), (22, s*54)], 3.4, WING_DECK-.8,
                      1.9, kit.steel)
-        shear(spar)
+        droop(shear(spar))
         # Sensor dome on its plinth (the tan bulb at (5, +-35)).
         z = seat(kit, 5, s*35, WING_DECK)
         kit.cylinder(f'Hull wing {side} sensor plinth', (5, s*35, z+.4), 4.6, 1.2, kit.steel, vertices=12, bevel=.1)
