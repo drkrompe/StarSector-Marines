@@ -1,0 +1,27 @@
+Repaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.
+
+Hard rules:
+- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.
+- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.
+- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.
+- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.
+- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.
+- Fill the whole frame edge to edge. No border.
+
+Setting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.
+
+This tile: 1008 m wide by 672 m tall, so one pixel is about 66 cm. It is the west half of Greywater Down's public landing field, seen from very high up: a vast apron with a row of freighter berths, small shuttle pads, a fuel farm and the walled heavy berth, the jungle beyond it at the top and the edge of the industrial belt at the bottom. Paint it like a real high-altitude aerial survey photograph of a busy, hard-used frontier spaceport.
+
+Registration matters more than anything here. Much of this tile is plain apron, so it is easy to let things drift: they must not. The jungle's edge stays about one third of the way down the frame, the berth pads stay where they are in the lower half, and the roads and the container yard stay at the very bottom, every one on exactly the same pixel rows and columns as in the guide.
+
+What the regions are:
+- The big flat mid-grey area: the port apron, a huge hardstand of dark weathered concrete in large cast panels with a faint grid of joint lines, rain-darkened, with patch repairs, broad tyre-worn paths, oil and fuel stains, and faint scorched patches. Keep it fairly plain and even; it is very large. Keep its overall tone a medium grey like the guide's, not darker: the tile beside it paints the same apron.
+- The five large pale grey discs in a row: freighter berth pads, raised concrete slabs about 68 m across, each heavily scorched and sooted from its centre outward where ships' drives fire, with oil rings and patched panels. Keep every yellow marking exactly as drawn (the dashed ring, the long centre line and the cross bar), as worn, faded paint.
+- The short dark line with a small square beside each pad: a steel service tower and its arm, seen from above, dark grey steel.
+- The small clusters of coloured squares beside the pads (orange, green, blue, white): stacked cargo modules, painted steel roofs; the rust-brown bars beside them: bundles of steel stock; the tiny tan squares: crates. The pairs of white discs: the tops of small round fuel tanks. The little groups of thin coloured bars below some pads: shipping containers set down on the apron, ribbed roofs in their own colours.
+- The dark grey strips running down from the pads and along the bottom: asphalt roads and cargo lanes, worn and patched, the long one across the bottom is the port road. No painted road lines.
+- The seven small grey discs with a yellow ring near the bottom (the last one cut by the right edge): small shuttle landing pads, concrete with a ring of yellow edge blocks and their worn yellow marking; the tiny tan dots beside them: crates.
+- The light grey rectangle with eight white discs at the top: the fuel farm, a concrete bund with eight large round fuel tank roofs, dirty white with streaks and a hatch on each; the dark strip below it: its access road.
+- The rectangle at the top right with yellow lines: the heavy berth, a concrete landing deck inside low blast walls (the thin pale outline), with a big painted yellow box marking, yellow gantry crane girders spanning it and its long rails along both sides, all seen from directly above. Keep every yellow line exactly as drawn. The thin coloured bars below it: shipping containers staged for an incoming ship. The small coloured squares cut by the right edge: more stacked cargo modules.
+- The dark green area across the top: the jungle beyond the port, a dense dark green mass of wet undergrowth and broad-leaved plants; the row of round dark green blobs along its edge: the crowns of the tree line.
+- At the bottom: the dark grey band is the asphalt loading strip at the port's edge; the pale grey area below it is the container yard's concrete; the brown-grey patch at the bottom left is bare dirt yard ground.

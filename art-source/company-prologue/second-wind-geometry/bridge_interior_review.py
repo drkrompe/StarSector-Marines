@@ -99,8 +99,8 @@ def above_room(o):
 
 VIEWS = {
     # name: (hide rule, aim kwargs)
-    '01-forward-station': (glazing, dict(pos=(15.5, .2, 19.2), yaw=6.5, pitch=-8)),
-    '02-port-station': (glazing, dict(pos=(13.0, 3.25, 19.2), yaw=90, pitch=2)),
+    '01-forward-station': (glazing, dict(pos=(16.75, 1.2, 19.2), yaw=0, pitch=-8)),
+    '02-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), yaw=90, pitch=2)),
     '03-room-from-helm': (glazing, dict(pos=(16.5, -2.9, 19.5), target=(10.0, 2.2, 17.4), lens=15)),
     '04-room-from-hatch': (glazing, dict(pos=(9.9, -1.2, 19.4), target=(17.5, 1.5, 18.0), lens=15)),
     '05-cutaway': (above_room, dict(pos=(8.0, -11.0, 30.0), target=(13.4, 0.5, 17.4), lens=28)),

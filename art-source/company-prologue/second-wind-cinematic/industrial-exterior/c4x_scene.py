@@ -373,11 +373,21 @@ def add_yard():
 
 
 def vehicle(name, parts, keys, heading_keys=None):
-    """A small vehicle: (size, centre, material) boxes under one root, keyed (frame, x, y)."""
+    """A small vehicle under one root, keyed (frame, x, y). A part is (size, centre, material), a box,
+    or (('tube', radius, length), centre, material), a tank lying along the vehicle. Parts sharing a
+    material become one mesh."""
     root = link(bpy.data.objects.new(name, None))
-    for i, (size, centre, mat) in enumerate(parts):
-        bm = bmesh.new()
-        box(bm, size, centre)
+    by_mat = {}
+    for size, centre, mat in parts:
+        bm = by_mat.setdefault(mat.name, (bmesh.new(), mat))[0]
+        if size[0] == 'tube':
+            r = bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=size[1], radius2=size[1],
+                                      depth=size[2])
+            m = Matrix.Translation(centre) @ Matrix.Rotation(math.pi / 2, 4, 'Y')
+            bmesh.ops.transform(bm, matrix=m, verts=r['verts'])
+        else:
+            box(bm, size, centre)
+    for i, (bm, mat) in enumerate(by_mat.values()):
         mesh('%s %d' % (name, i), bm, mat).parent = root
     for f, x, y in keys:
         root.location = (x, y, 0)
@@ -386,6 +396,61 @@ def vehicle(name, parts, keys, heading_keys=None):
         root.rotation_euler = (0, 0, h)
         root.keyframe_insert('rotation_euler', frame=f)
     return root
+
+
+def tyre():
+    return bpy.data.materials.get('Tyre') or material('Tyre', (0.03, 0.03, 0.03), 0.9)
+
+
+def wheels(xs, half_track, r=0.55, w=0.45):
+    """Wheel boxes at each x, both sides, inside the body's width."""
+    return [((r * 2, w, r * 2), (x, side * half_track, r), tyre()) for x in xs for side in (-1, 1)]
+
+
+# Rough shapes for the yard's vehicles, front toward +x. Each keeps the footprint its painted roof
+# was measured on (`vehicle_paint.py`), and its blocks stand where the painting put the cab, tank,
+# load or windscreens.
+
+def tug_parts(paint):
+    return [((8, 4, 0.9), (0, 0, 0.95), paint),                    # chassis and deck
+            ((5.6, 3.6, 0.5), (-1.2, 0, 1.65), paint),              # engine covers
+            ((2.2, 2.45, 1.3), (2.3, -0.15, 2.05), paint)           # the operator's cab
+            ] + wheels((-2.6, 2.6), 1.6, 0.6, 0.6)
+
+
+def bowser_parts(paint):
+    return [((12.5, 2.2, 0.4), (0.25, 0, 0.95), paint),             # chassis rails
+            (('tube', 1.35, 9.0), (-1.5, 0, 2.5), paint),           # the tank
+            ((3.0, 3.0, 2.4), (5.0, 0, 2.2), paint)                 # cab
+            ] + wheels((-4.6, -3.4, 0.6, 5.4), 1.25, 0.5, 0.45)
+
+
+def carrier_parts(paint):
+    return [((10, 3, 2.5), (0, 0, 1.9), paint),                     # the bus body
+            ((9.4, 2.7, 0.3), (-0.2, 0, 3.3), paint)                # roof
+            ] + wheels((-3.4, 3.3), 1.3, 0.55, 0.4)
+
+
+def car_parts(paint):
+    return [((5.2, 2.3, 0.85), (0, 0, 0.8), paint),                 # lower body
+            ((4.6, 2.1, 0.55), (0.0, 0, 1.5), paint)                # cabin: glass at both ends, roof between
+            ] + wheels((-1.6, 1.6), 0.95, 0.38, 0.3)
+
+
+def flatbed_parts(cab, bed, load):
+    return [((11.7, 3.2, 0.5), (-1.15, 0, 1.25), bed),              # the flatbed deck
+            ((8.7, 2.9, 2.4), (-1.2, 0, 2.7), load),                # a hull section lashed on
+            ((3.7, 3.0, 1.6), (6.85, 0, 1.5), cab),                 # cab, lower
+            ((2.8, 2.8, 1.5), (6.6, 0, 3.0), cab)                   # cab, upper
+            ] + wheels((-5.4, -4.2, 2.6, 7.6), 1.3, 0.55, 0.5)
+
+
+def forklift_parts(paint, module):
+    return [((2.3, 1.9, 1.1), (-0.45, 0.05, 0.95), paint),          # body and counterweight
+            ((1.5, 1.6, 0.12), (-0.2, 0.05, 2.4), paint),           # overhead guard
+            ((0.25, 1.4, 3.0), (0.7, 0.05, 1.7), paint),            # mast
+            ((3.8, 4, 2.4), (2.7, 0, 1.9), module)                  # the module on the forks
+            ] + wheels((-1.0, 0.2), 0.75, 0.32, 0.3)
 
 
 def add_detail():
@@ -1073,13 +1138,11 @@ def add_k9_works(r, mods, stockb, crateb, towers, tankb):
     mesh('Scrap heap', scrap, bpy.data.materials['Hull plate'])
     # Turning ground at the head of the haul road, a flatbed with a hull section on it.
     plane('Turning ground', 312, 400, 718, 750, bpy.data.materials['Haul road'], 0.18)
-    vehicle('Flatbed', [((3.4, 3.0, 3.4), (7, 0, 2.1), bpy.data.materials['Hauler cab']),
-                        ((12, 3.2, 1.2), (-1, 0, 1.4), bpy.data.materials['Steel']),
-                        ((9, 3.0, 4), (-1, 0, 4), bpy.data.materials['Plate stock'])],
+    vehicle('Flatbed', flatbed_parts(bpy.data.materials['Hauler cab'], bpy.data.materials['Steel'],
+                                     bpy.data.materials['Plate stock']),
             [(0, 352, 734)], [(0, 0.0)])
     # A forklift running modules between the store and the hall the whole time.
-    shuttle('Yard forklift', [((3.2, 1.8, 2.2), (0, 0, 1.2), bpy.data.materials['Crane yellow']),
-                              ((4, 4, 3), (2.6, 0, 2.5), bpy.data.materials['Module 2'])],
+    shuttle('Yard forklift', forklift_parts(bpy.data.materials['Crane yellow'], bpy.data.materials['Module 2']),
             (318, 652), (318, 612), 4.0, 2.0, 0.3)
 
 
@@ -1170,8 +1233,7 @@ def add_cargo_flow(r):
                 box(lay[r.randrange(6)], (12, 2.4, 2.6), at(cx, cy, h, -(rad + 8), j * (10 + i * 3.2), 1.3), h)
         lats = (-5.0, 0.0, 5.0) if who == 'unloading' else (-4.0, 4.0)
         if who == 'fuelling':
-            vehicle('Port bowser %d' % n, [((3, 3, 3), (5, 0, 2), bpy.data.materials['Hauler load']),
-                                           ((9, 3, 3), (-1.5, 0, 2), bpy.data.materials['Hauler load'])],
+            vehicle('Port bowser %d' % n, bowser_parts(bpy.data.materials['Hauler load']),
                     [(0,) + at(cx, cy, h, 4, -(rad + 6))[:2]], [(0, h)])
         for k, lat in enumerate(lats):
             shuttle('Carrier %d %d' % (n, k),
@@ -1205,10 +1267,9 @@ def add_k9_vehicles():
     # once the dust thins.
     sec = lambda t: round(t * FPS)
     for name, parts, a, s, (u1, v1) in (
-            ('Tug', [((8, 4, 2.4), (0, 0, 1.4), yellow)], (342, 528), (342, 507), (-46, 22)),
-            ('Fuel bowser', [((3, 3, 3), (5, 0, 2), white), ((9, 3, 3), (-1.5, 0, 2), white)], (470, 405),
-             (462, 418), (0, -40)),
-            ('Crew carrier', [((10, 3, 3.2), (0, 0, 2), cream)], (322, 430), (336, 430), (-50, 4))):
+            ('Tug', tug_parts(yellow), (342, 528), (342, 507), (-46, 22)),
+            ('Fuel bowser', bowser_parts(white), (470, 405), (462, 418), (0, -40)),
+            ('Crew carrier', carrier_parts(cream), (322, 430), (336, 430), (-50, 4))):
         xb, yb, _ = at(kx, ky, kh, u1, v1)
         vehicle(name, parts, [(0,) + a, (sec(5.0),) + a, (sec(8.0),) + s, (sec(12.6),) + s, (sec(14.6), xb, yb)],
                 [(0, math.atan2(s[1] - a[1], s[0] - a[0])), (sec(12.6), math.atan2(s[1] - a[1], s[0] - a[0])),
@@ -1258,9 +1319,8 @@ def add_k9_vehicles():
     for f in range(0, FRAMES, 6):                       # flashing
         lp.inputs['Emission Strength'].default_value = 120.0 if (f // 6) % 2 else 15.0
         lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
-    car = vehicle('Customs car', [((5.2, 2.3, 1.5), (0, 0, 1.0), material('Customs white', (0.88, 0.88, 0.86), 0.4)),
-                            ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange']),
-                            ((0.35, 1.6, 0.22), (-0.2, 0, 1.86), lights)],
+    car = vehicle('Customs car', car_parts(material('Customs white', (0.88, 0.88, 0.86), 0.4))
+                  + [((0.3, 1.6, 0.18), (0.1, 0, 1.86), lights)],
             [(0, OFFICE[0] - 8, 392), (sec(7.0), OFFICE[0] - 8, 392), (sec(7.8), 252, 372), (sec(9.2), 300, 372),
              (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(12.4), 305, 430), (sec(14.6), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
@@ -1274,8 +1334,7 @@ def add_k9_vehicles():
     for f in range(0, FRAMES, 6):                       # flashing with the bar: a pool of amber on the road
         beacon.data.energy = 2.0e5 if (f // 6) % 2 else 0.0
         beacon.data.keyframe_insert('energy', frame=f)
-    vehicle('MuniSec car at the gate', [((5.2, 2.3, 1.5), (0, 0, 1.0), bpy.data.materials['Customs white']),
-                                        ((1.4, 2.3, 0.1), (0.4, 0, 1.8), bpy.data.materials['Hegemony orange'])],
+    vehicle('MuniSec car at the gate', car_parts(bpy.data.materials['Customs white']),
             [(0, -250, -104)], [(0, 0.3)])
 
 

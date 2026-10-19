@@ -10,7 +10,8 @@ about its local Z to train. Hardpoints are fixed: `Weapon <slot> hardpoint`
 
 Each turret carries its gun from the shared turret kit (turret-kit/turret_kit.py:
 tachyon lance, graviton beam, tactical laser, reaper, each matched to its game
-sprite), dressed in the hull's hex ceramic (hull_finish) and sitting low in its
+sprite), dressed in the hull's hex ceramic mixed halfway toward the sprite's
+colour (hull_finish, sprite_tint) and sitting low in its
 well. The kit hangs `Weapon <slot> elevation` on the pivot and `Weapon <slot>
 muzzle anchor <k>` on that, +X along the line of fire.
 The two capital mounts in the prow bays keep their housing and emitter. Barbette radii are read off the sprite's turret
@@ -80,10 +81,11 @@ def weapon_for(size, typ, elite):
 
 
 def gun_mats(kit, weapon):
-    """The hull's own finish for the kit's material keys: pale hex ceramic armour, the
-    graviton's blue plate, slate bases, dark recesses and the hull's lamps."""
+    """The hull's own finish for the kit's material keys: pale hex ceramic armour (the
+    kit tints it halfway toward the sprite's colour, sprite_tint), the graviton's blue
+    plate, light ceramic fittings, slate bases, dark recesses and the hull's lamps."""
     paint = kit.weapon_blue if weapon == 'gravitonbeam' else kit.pale
-    return {'armour': kit.pale, 'plate': kit.pale, 'paint': paint, 'accent': kit.steel, 'metal': kit.steel,
+    return {'armour': kit.pale, 'plate': kit.pale, 'paint': paint, 'accent': kit.white, 'metal': kit.steel,
             'steel': kit.slate, 'dark': kit.tech, 'lamp_blue': kit.glow, 'lamp_red': kit.glow_red}
 
 
@@ -228,7 +230,7 @@ def turret(kit, sid, loc, angle, arc, size, typ):
     # dimple clear the plate.
     weapon = weapon_for(size, typ, ELITE.get(sid))
     ring = tk.NOMINAL_RING[tk.sprite(weapon)['size']]
-    t = tk.build(weapon, f'Weapon {sid}', pivot, ring, gun_mats(kit, weapon), kit.mpu, hull_finish=True)
+    t = tk.build(weapon, f'Weapon {sid}', pivot, ring, gun_mats(kit, weapon), kit.mpu, hull_finish=True, sprite_tint=.5)
     dz = D-spec['collar']-.3-tk.GAP*ring
     for ob in t['parts']+[t['elevation']]:
         if ob.parent == pivot:
