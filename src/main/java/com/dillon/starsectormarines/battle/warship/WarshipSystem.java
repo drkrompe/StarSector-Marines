@@ -61,6 +61,8 @@ public final class WarshipSystem {
     private final List<WarshipWreck> wrecks = new ArrayList<>();
     private final List<WarshipWreck> wrecksView = Collections.unmodifiableList(wrecks);
     private final Set<Warship> wrecked = Collections.newSetFromMap(new IdentityHashMap<>());
+    /** Ships the battle may not end without ({@link #concludeBeforeBattleEnds}). */
+    private final List<Warship> mustConclude = new ArrayList<>();
     private int nextSerial;
     /** Wreck keys for the crash machinery: far below every aircraft id, which are positive. */
     private static final long WRECK_KEY_BASE = Long.MIN_VALUE / 2;
@@ -398,6 +400,40 @@ public final class WarshipSystem {
     /** Hulls taken to nothing this battle, falling, skidding or down, in the order they were lost. */
     public List<WarshipWreck> wrecks() {
         return wrecksView;
+    }
+
+    /**
+     * The battle may not end until {@code ship}'s part in it has concluded ({@link #concluded}): a mission whose story
+     * overhead has an ending (a hull that must get away or be brought down) holds the battle open for it. The
+     * simulation reads {@link #awaitingConclusion()} beside its other completion holds; nothing else changes about
+     * how the ship flies or fights.
+     */
+    public void concludeBeforeBattleEnds(Warship ship) {
+        if (ship == null) throw new IllegalArgumentException("a ship is needed");
+        for (Warship s : mustConclude) if (s == ship) return;
+        mustConclude.add(ship);
+    }
+
+    /**
+     * Whether {@code ship}'s part in the battle is over: it has left the map, or it has been destroyed and its wreck
+     * has fallen, struck and come to rest. A hull still falling or skidding has not concluded.
+     */
+    public boolean concluded(Warship ship) {
+        return concluded(ship, wrecks);
+    }
+
+    /** {@link #concluded(Warship)} against these wrecks. */
+    static boolean concluded(Warship ship, List<WarshipWreck> wrecks) {
+        if (ship.departed()) return true;
+        if (!ship.destroyed()) return false;
+        for (WarshipWreck wreck : wrecks) if (wreck.ship == ship) return wreck.phase() == WarshipWreck.Phase.DOWN;
+        return false;
+    }
+
+    /** Whether a ship the mission holds the battle open for ({@link #concludeBeforeBattleEnds}) has not concluded. */
+    public boolean awaitingConclusion() {
+        for (Warship ship : mustConclude) if (!concluded(ship)) return true;
+        return false;
     }
 
     public WarshipAirFire airFire() {
