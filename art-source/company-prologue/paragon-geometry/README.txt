@@ -99,13 +99,20 @@ Bridge and under-bridge (pg_bridge; owner, pass 3)
   vertical walls at the foot of each tier in dark frames (never on a chamfer), and
   the tower's glazing is one band round its vertical wall with dark mullions.
 
-Guns (pg_weapons; owner, pass 3: the mounts read empty)
-  Each turret carries its gun, read off the game's weapon sprite for the Elite
-  fit, sitting low in its dimpled well: the tachyon lance (WS 003/004: forked
-  prong blades over a glowing emitter channel, shoulder capacitors, a fan of
-  fins), the graviton beam (faceted teardrop housing, lens at its point, swept
-  wings), the tactical laser (round dome, emitter spike) and the reaper launcher
-  (rails with a round loaded). Pivots, muzzles and names are unchanged.
+Guns (pg_weapons, pg_weapon_sprites; owner, pass 3: the mounts read empty)
+  Each turret carries its gun, matched to the game's weapon sprite for the
+  Elite fit, sitting low in its dimpled well. trace_weapons.py (Pillow, numpy,
+  scipy, scikit-image) writes pg_weapon_sprites.py: each sprite's alpha outline
+  as a simplified polygon, its tone rows, and the .wpn fire offsets. Every gun
+  stands on a dark base plate cut to that outline; its raised parts are built
+  over it, so the sprite's dark gaps read as base between plates: the tachyon
+  lance (WS 003/004: two prong blades either side of an open beam slot, a body
+  block, shoulder capacitors with red lamps, eight fin ridges aft), the
+  graviton beam (blue-white teardrop housing, lens at its point, swept wings),
+  the tactical laser (faceted dome, emitter spike) and the reaper launcher
+  (rails either side of an open loading slot, launcher, base bar with lamps).
+  Top-view IoU against each sprite is 0.95-0.98, reported by every build
+  (gun_sprite_iou in the manifest). Pivots, muzzles and names are unchanged.
 
 Stern and belly (pg_engines, pg_belly; owner, pass 3)
   The drives are faceted blocks standing out of the pods' stern faces, the
