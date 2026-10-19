@@ -118,7 +118,7 @@ ts_bridge.build(kit)
 ts_engines.build(kit)
 ts_fittings.build(kit)
 ts_mounts.build(kit)
-scars = ts_damage.apply(args.state) if args.state != 'clean' else None
+scars = ts_damage.apply(args.state, METRES_PER_UNIT or .5) if args.state != 'clean' else None
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'

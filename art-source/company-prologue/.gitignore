@@ -212,3 +212,6 @@ tarsus-surface/guide/*
 !tarsus-surface/guide/sheet-*-guide.png
 !tarsus-surface/guide/reference-guide.png
 !tarsus-surface/guide/reference-mask.png
+# tarsus-cinematic: the per-state .blend is rebuilt by finalize.sh; manifest and validation stay tracked.
+tarsus-cinematic/*/tarsus.blend
+tarsus-cinematic/*/tarsus.blend1
