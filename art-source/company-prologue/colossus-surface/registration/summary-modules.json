@@ -1,0 +1,82 @@
+{
+ "wall-f-hi-port": {
+  "raw_iou": 0.9929,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9955,
+  "scale": [
+   1.00255,
+   1.00494
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "wall-f-lo-port": {
+  "raw_iou": 0.9899,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9966,
+  "scale": [
+   1.00251,
+   1.00227
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "wall-a-hi-port": {
+  "raw_iou": 0.9914,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9974,
+  "scale": [
+   1.00133,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "wall-a-lo-port": {
+  "raw_iou": 0.9886,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9983,
+  "scale": [
+   1.00171,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "deck-f-port": {
+  "raw_iou": 0.9931,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9984,
+  "scale": [
+   1.00113,
+   1.00027
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "deck-a-port": {
+  "raw_iou": 0.9918,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9992,
+  "scale": [
+   1.00538,
+   1.00027
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "keel-f-port": {
+  "raw_iou": 0.992,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.998,
+  "scale": [
+   1.00296,
+   1.00454
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "keel-a-port": {
+  "raw_iou": 0.9829,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9929,
+  "scale": [
+   1.00439,
+   1.00454
+  ],
+  "boundary_p95_px": 3.0
+ }
+}

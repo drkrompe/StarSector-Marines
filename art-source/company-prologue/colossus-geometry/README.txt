@@ -126,7 +126,11 @@ Pass 3 round 7 (owner: thin skids "would concentrate a lot of weight on a wedge
   / line"; telescoping legs were tried and rejected as more concentrated still):
   the keel skids are broad flat-soled runners, 8 units (4 m) wide and 96 long,
   with a segmented wear shoe, side stiffeners and mounting blocks; the tile
-  field stops inside them. IoU 0.9625; 1.126 M units3.
+  field stops inside them. IoU 0.9625; 1.126 M units3. Accepted by the owner.
+Pass 6 prep: a boolean-cut mesh drops its live bevel modifier (cl_kit.boolean).
+  On cut faces the bevel produced inverted faces, which showed as a dark wedge
+  on the hatch cover in the surfacing guides; the per-face flip scan is now
+  clean. Surfacing lives in ../colossus-surface/.
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]

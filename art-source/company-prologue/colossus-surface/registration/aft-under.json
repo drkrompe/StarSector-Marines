@@ -1,0 +1,59 @@
+{
+ "part": "aft-under",
+ "sheet": "spine-aft",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.997,
+ "raw_iou": 0.9934,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9975,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9934
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00199,
+    1.00454
+   ],
+   "offset_px": [
+    -0.41,
+    -1.16
+   ],
+   "iou": 0.9971
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00149,
+    1.00404
+   ],
+   "offset_px": [
+    -0.53,
+    -1.16
+   ],
+   "iou": 0.9975
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.69,
+  "p95_px": 1.0,
+  "max_px": 6.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.27,
+  "p95_px": 1.0,
+  "max_px": 6.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

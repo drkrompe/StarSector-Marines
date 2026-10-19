@@ -932,24 +932,26 @@ def add(c4x):
     tugp = mat('Baggage tug blue', (0.20, 0.34, 0.52), 0.5)
     deck = bpy.data.materials['Steel']
     terminal = [bus]
-    for k in range(2):
+    for k in range(3):
         parts = with_beacon(baggage_tug_parts(tugp), -0.5, 2.15, 0.5)
-        car = Car('Baggage tug %d' % k, parts, 6.0, rt.L * (0.3 + 0.35 * k), stops=[(ferry, 6.0), (hall, 6.0)])
+        car = Car('Baggage tug %d' % k, parts, 6.0, rt.L * (0.22 + 0.22 * k), stops=[(ferry, 6.0), (hall, 6.0)])
         car.train = [('Cargo dolly %d %d' % (k, j), dolly_parts(deck, bpy.data.materials['Module %d' % ((k + j) % 4)]),
                       4.6 + 3.9 * j) for j in range(3)]
         car.rear = 4.6 + 3.9 * 2 + 1.6
         terminal.append(car)
-    terminal.append(Car('Box truck terminal 0', kinds['box'](r), 7.0, rt.L * 0.5, stops=[(doors, 12.0)]))
-    terminal.append(Car('Road van terminal 0', kinds['van'](r), 7.0, rt.L * 0.83, stops=[(doors, 8.0)]))
+    terminal.append(Car('Box truck terminal 0', kinds['box'](r), 7.0, rt.L * 0.75, stops=[(doors, 12.0)]))
+    terminal.append(Car('Road van terminal 0', kinds['van'](r), 7.0, rt.L * 0.88, stops=[(doors, 8.0)]))
+    terminal.append(Car('Road van terminal 1', kinds['van'](r), 7.0, rt.L * 0.12, stops=[(hall, 7.0)]))
+    terminal.append(Car('Port bus 1', bus.parts, 7.0, rt.L * 0.56, stops=[(hall, 9.0), (ferry, 9.0)]))
     sims.append((rt, terminal, 0.0))
 
     # The heavy berth road: tugs with dollies between the staging and the lighter pads.
     rt = route('heavy')
     pads = rt.nearest_s(46, 412)
     heavy = []
-    for k in range(2):
+    for k in range(3):
         parts = with_beacon(baggage_tug_parts(tugp), -0.5, 2.15, 0.5)
-        car = Car('Baggage tug heavy %d' % k, parts, 5.0, rt.L * 0.5 * k, stops=[(pads, 10.0), (rt.nearest_s(46, 590), 8.0)])
+        car = Car('Baggage tug heavy %d' % k, parts, 5.0, rt.L * k / 3, stops=[(pads, 10.0), (rt.nearest_s(46, 590), 8.0)])
         car.train = [('Cargo dolly heavy %d %d' % (k, j), dolly_parts(deck, bpy.data.materials['Module %d' % j]),
                       4.6 + 3.9 * j) for j in range(2)]
         car.rear = 4.6 + 3.9 + 1.6
