@@ -1,8 +1,8 @@
 # Title logo — STARSECTOR: MARINES
 
-Status: DRAFT — word order decided (STARSECTOR big, MARINES small); six directions made in that order; no direction chosen.
+Status: DRAFT — word order decided (STARSECTOR big, MARINES small); six directions in that order, plus the game's own wordmark with MARINES; nothing chosen.
 Written: 2026-10-18
-Updated: 2026-10-18 — owner flipped the hierarchy after the first round; second round made to match.
+Updated: 2026-10-18 — third round: the game's own wordmark, as it ships, with MARINES beneath.
 
 The title comes up at the end of the Jangala arrival cinematic, in the last six
 seconds of C5 (`c5-v2-closing.md`, beats 26–32 s). It is the first time the
@@ -86,3 +86,21 @@ The owner picks one or two to develop. Developing one means: redrawing the
 lettering so it is exact and our own (ImageGen lettering is a sketch, not
 final type), a clean vector version, a plain-background version for menus, and
 the fade timed against the music.
+
+## The game's own wordmark
+
+The installed game carries its title as a small transparent image
+(`graphics/ui/starsector_title_alpha.png`, 450x50): lowercase, widely spaced,
+square-cornered letters in glowing cyan. The owner asked to try it as the big
+word, with MARINES beneath. It is used **as it ships**: read from the player's
+install at run time and never copied into this repository. An AI redraw at a
+higher resolution was tried and refused by the session's permission check, since
+it means sending Fractal's art to an outside service. So the only change is
+plain enlargement, which softens it a little.
+
+At its own size it is under a quarter of the screen, and MARINES beneath it is
+too small to read, so the cinematic shows it at about 2.4 times its size.
+`title-logo/compose_game_wordmark.py` sets MARINES two ways: matching (thin,
+cyan, glowing, so the two read as one mark) and ours (warm white, bold and
+condensed). Because the big word here is the official one, this is the option
+that looks most like the base game, so MARINES has to make it clearly the mod.
