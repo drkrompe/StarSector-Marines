@@ -81,8 +81,8 @@ for hull in sorted(p for p in R.iterdir() if p.is_dir()):
              OUT / 'schemes.png')
     tech = sorted(hull.glob('tech-*.png'), key=num)
     if tech:
-        cap = {'low-tech': 'low tech: vanilla pink-red, older emitter (busier, dimmer rim)',
-               'midline': 'midline: vanilla blue, the same busier finish',
+        cap = {'low-tech': 'low tech: vanilla pink-red, older emitter (rough, dim rim, murky face)',
+               'midline': 'midline: vanilla blue, the same rough finish',
                'high-tech': 'high tech: vanilla blue, the Paragon finish (steady, even, bright rim)'}
         panels = [(p, cap[p.stem.split('-', 2)[2]]) for p in tech]
         ref = R / 'paragon-reference.png'

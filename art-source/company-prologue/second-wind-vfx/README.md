@@ -497,9 +497,10 @@ the faction. `swfx_shield.SCHEMES` holds the vanilla hull-style shield colours
 125,125,255, OMEGA, THREAT and DWELLER; ring white and inner alpha 75
 everywhere; no `.ship` file overrides them) as `low-tech`, `midline`,
 `high-tech` and so on. Each carries a finish (`FINISHES`): ripple amplitude,
-noise grain and rim brightness as multipliers on the Paragon's accepted look.
-High tech is that look exactly (the reference), steady and even with a bright
-rim. Midline and low tech ripple harder and coarser under a dimmer rim. So
+noise grain, rim brightness and face density as multipliers on the Paragon's
+accepted look. High tech is that look exactly (the reference), steady and even
+with a bright rim. Midline and low tech share a rough, coarse finish with a dim
+rim and a murky face (owner's pick); low tech's pink-red tells them apart. So
 high tech reads as better tech though vanilla gives it midline's blue. The
 Onslaught, Legion and Colossus profiles use `low-tech`. Faction-leaned schemes
 (`hegemony`, `tritachyon`, `independent`, `sindrian_diktat`,
