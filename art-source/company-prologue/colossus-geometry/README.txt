@@ -122,17 +122,11 @@ Pass 3 round 6 (owner: "bottom is the weakest on the main hull", and "some kind
   (heat_tiles) surround them; bolted landing skids with wear shoes run along
   the hold keel (skids), and replace the plain keel strakes. IoU 0.9625;
   1.126 M units3.
-Pass 3 round 7 (owner: skids "would concentrate a lot of weight on a wedge /
-  line"): the skids are replaced by eight telescoping landing legs on broad
-  ribbed footpads (cl_hull.landing_gear, GEAR): four on the hold keel outboard
-  of the hatches, one on each side module's clamp line. Built stowed, pads near
-  flush in recesses with hazard rings. Each leg's footpad, gimbal hub and
-  chromed lower stage ride 'Hull landing leg <i> extension' and its steel upper
-  stage rides '... upper stage extension' (custom properties open_axis, travel;
-  half travel for the stage); deployed, every pad stands on GROUND_Z (-60).
-  --gear-down poses them for renders (files take a -gear-down suffix; never
-  saved); geometry.json lists them under landing_gear. IoU 0.9625; 1.124 M
-  units3.
+Pass 3 round 7 (owner: thin skids "would concentrate a lot of weight on a wedge
+  / line"; telescoping legs were tried and rejected as more concentrated still):
+  the keel skids are broad flat-soled runners, 8 units (4 m) wide and 96 long,
+  with a segmented wear shoe, side stiffeners and mounting blocks; the tile
+  field stops inside them. IoU 0.9625; 1.126 M units3.
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]

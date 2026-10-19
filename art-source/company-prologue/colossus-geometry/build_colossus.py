@@ -27,7 +27,6 @@ Options after a literal "--":
   --samples N    Cycles samples (default 24)
   --res WxH      render size (default 1920x1080)
   --figure       stand a 1.8 m mannequin by the bridge (never saved)
-  --gear-down    render with the landing legs deployed; files take a -gear-down suffix (never saved)
   --no-save      skip the .blend and geometry.json
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
 sprite overlay, the silhouette IoU and the review sheet.
@@ -63,7 +62,6 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--figure', action='store_true')
-parser.add_argument('--gear-down', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
@@ -154,18 +152,6 @@ if args.figure:
     p = kit.surface(-74.5, 4.5)[0]
     figure = kit.cylinder('Review figure', (p.x, p.y, p.z+h/2), h*.13, h, kit.lamp, vertices=12)
 
-def pose_gear(down):
-    """Move each landing leg's extension empty along its open axis by its travel (or back)."""
-    for leg in cl_hull.GEAR_LEGS.values():
-        for key in ('empty', 'stage_empty'):
-            e = bpy.data.objects[leg[key]]
-            e.location = Vector(leg['location'])+(Vector(e['open_axis'])*e['travel'] if down else Vector())
-    bpy.context.view_layer.update()
-
-
-pose_gear(args.gear_down)
-SUFFIX = '-gear-down' if args.gear_down else ''
-
 # Every view observes the same objects; only the active camera changes.
 TARGET = Vector((-17, 1.5, 0))
 CAMERAS = [  # name, position, orthographic scale
@@ -193,8 +179,8 @@ CLOSEUPS = [
     ('underside-quarter', (150, 250, -200), (20, 1.5, -40), 260),
     ('lift-detail', (60, 60, -120), (24, 1.5, -50), 40),
     ('module-lift', (40, 110, -110), (53.5, 60, -46), 40),
-    ('gear-detail', (40, 80, -80), (2, 23, -56), 30),
     ('ground-quarter', (250, 300, -30), (-17, 1.5, -25), 300),
+    ('skid-detail', (60, 90, -90), (30, 23.5, -52), 40),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
@@ -226,11 +212,10 @@ for name in wanted:
     scene.camera = bpy.data.objects['Camera '+name]
     # The top view has a transparent film so its alpha is the silhouette.
     scene.render.film_transparent = name == 'top'
-    scene.render.filepath = str(OUT/(name+SUFFIX+'.png'))
+    scene.render.filepath = str(OUT/(name+'.png'))
     bpy.ops.render.render(write_still=True)
 if figure:
     bpy.data.objects.remove(figure, do_unlink=True)
-pose_gear(False)
 
 
 def bounds(names=None):
@@ -356,10 +341,6 @@ if not args.no_save:
                             'host': host, 'well_radius': r, 'anchor_location': [round(v, 2) for v in cl_hull.LIFT_ANCHORS[i][0]],
                             'exhaust_direction': list(cl_hull.LIFT_ANCHORS[i][1])}
                            for i, (x, y, r, k, host) in enumerate(cl_hull.LIFT, 1)],
-        'landing_gear': [{'index': i, 'objects': f'Hull landing leg {i} ...', 'extension_empty': g['empty'], 'upper_stage_empty': g['stage_empty'],
-                          'host': g['host'], 'pad_radius': g['pad_radius'], 'location': list(g['location']),
-                          'open_axis': [0.0, 0.0, -1.0], 'travel': g['travel'], 'ground_z': cl_hull.GROUND_Z}
-                         for i, g in cl_hull.GEAR_LEGS.items()],
         'object_names': {'Hull ...': 'central cargo hold, hatch cover, longerons, keel spine, aft machinery body',
                          'Cargo <side> fore|aft module': 'the four side cargo modules (tear-apart units)',
                          'Frame ...': 'open lattice trusses at the waist and between the spine and the pods',
@@ -367,7 +348,6 @@ if not args.no_save:
                          'Drive pod <side> casing': 'the two drive pods',
                          'Engine <i> ...': 'bell / mouth lip / dark throat / exhaust anchor',
                          'Lift thruster ...': 'ten ventral lift thrusters; per-thruster exhaust anchors point down',
-                         'Hull landing leg <i> ...': 'eight telescoping legs, built stowed; footpad, hub and piston parented to the extension empty',
                          'Turret <i> WS 00n ... / Launcher <i> WS 00n flare launcher ...': 'mounts; pivot and muzzle empties',
                          'Scar <id> ...': 'reserved for condition states (crashed / broken); not built'},
         'condition_states': {'planned': ['crashed (broken against the northern canyon wall, Asharu)'],
