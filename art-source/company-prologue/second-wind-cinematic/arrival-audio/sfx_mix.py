@@ -173,7 +173,7 @@ SHOTS = {
         # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
         # drive spools down to 17.9. The drive is bass the whole way and opens up for the burn.
         sfx("c1_sw_engine_loop", 3.0, -10, until=17.9, af=LOW,
-            env=[(3, -8), (10.9, -8), (12.0, -4), (16.0, 0), (16.4, 3), (17.9, -6)], fade_in=1.5, fade_out=1.0),
+            env=[(3, -8), (10.9, -8), (12.0, -8), (16.0, -4), (16.4, -1), (17.9, -8)], fade_in=1.5, fade_out=1.0),
         # The landing itself is synthesised from c4x_scene's timing (synth_landing.py): the belly
         # jets' roar, sand and grit, the touchdown, the spool-down and the settling dust. The roar is
         # held down until Kilo Nine ends at 10.9.
