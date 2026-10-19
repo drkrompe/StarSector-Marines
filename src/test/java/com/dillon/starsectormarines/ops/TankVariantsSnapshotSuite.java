@@ -34,14 +34,14 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The breakthrough hull and its two variants side by side, live and wrecked, then the
- * same three in a short gun-range fight. Art review: the heavy gun and the dozer must
- * read as different tanks at game scale, and their guns must leave from the drawn muzzle.
+ * The breakthrough hull and its variants side by side, live and wrecked, then the same
+ * line in a short gun-range fight. Art review: the heavy gun, the screened tank's interceptor
+ * fit and the dozer must read as different tanks at game scale, and their guns must leave from the drawn muzzle.
  */
 public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> LINE = List.of(
-            VehicleType.BREAKTHROUGH_TANK, VehicleType.HEAVY_GUN_TANK, VehicleType.DOZER_BREACHER);
-    private static final List<String> NAMES = List.of("BREAKTHROUGH TANK", "HEAVY-GUN TANK", "DOZER BREACHER");
+            VehicleType.BREAKTHROUGH_TANK, VehicleType.HEAVY_GUN_TANK, VehicleType.SCREENED_TANK, VehicleType.DOZER_BREACHER);
+    private static final List<String> NAMES = List.of("BREAKTHROUGH TANK", "HEAVY-GUN TANK", "SCREENED TANK", "DOZER BREACHER");
 
     @Override public String id() { return "tank-variants"; }
     @Override public String label() { return "Tank variants side by side, wrecks and a battle frame"; }
@@ -62,7 +62,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             List<Long> live = new ArrayList<>();
             List<Long> wrecks = new ArrayList<>();
             for (int i = 0; i < LINE.size(); i++) {
-                float x = 16 + i * 16;
+                float x = 13 + i * 13;
                 live.add(spawn(sim, LINE.get(i), Faction.MARINE, x, 26, 90, 90));
                 wrecks.add(spawn(sim, LINE.get(i), Faction.MARINE, x, 13, 90, 90));
                 labels.label(x, 21.5f, NAMES.get(i), ReviewStyle.NOTE);
@@ -77,9 +77,9 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             sim.convoy().body(dummy).teleport(60, 37, 90);
 
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
-                    context.modRoot(), 1920, 1080, 32, 19.5f, 46);
+                    context.modRoot(), 1920, 1080, 32.5f, 19.5f, 52);
             artifacts.add(new SnapshotArtifact("lineup.png", renderer.render(sim,
-                    "Tank variants | breakthrough, heavy gun, dozer / live and wrecked / crosses mark the ballistic muzzle"
+                    "Tank variants | breakthrough, heavy gun, screened, dozer / live and wrecked / crosses mark the ballistic muzzle"
                             + " | 1920 x 1080, UI 100%", labels.build())));
             artifacts.add(new SnapshotArtifact("lineup-battle-scale.png", renderer.refocus(32, 19.5f, 60).render(sim,
                     "Tank variants | battle-scale camera, 60 cells across | 1920 x 1080, UI 100%", labels.build())));
@@ -152,7 +152,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 }
                 BufferedImage frame = renderer.render(sim,
                         "Tank variants in battle | THUNDER RUN staging apron, seed 9301 | breakthrough, heavy gun,"
-                                + " dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
+                                + " screened, dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
                         labels.build(), impacts);
                 frames.add(frame);
                 int inFlight = sim.getActiveShots().size();

@@ -121,8 +121,9 @@ public enum VehicleType {
      * protection that takes top-attack rounds coming down on it ({@link #activeProtectionStructureId}), paid for in
      * a little speed for the launcher boxes and their power. The tank
      * line's answer to a missile mech, bought as its own rung rather than fitted to a stock tank; the stock tanks
-     * carry none. Its sheet is the breakthrough hull's with the launcher boxes and sensor plates drawn on
-     * the turret (art-source/vehicles/tank-screened, stand-in art).
+     * carry none. Its sheet is the breakthrough hull with an ImageGen turret carrying the
+     * fit: an interceptor launcher box on each rear flank and a sensor panel on each cheek
+     * (art-source/vehicles/tank-screened).
      */
     SCREENED_TANK("graphics/battle/vehicles/army-tank-screened.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 2.9f, .95f, 3.0f, .8f, 3.0f,
