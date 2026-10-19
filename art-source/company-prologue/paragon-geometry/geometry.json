@@ -1785,10 +1785,10 @@
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.591,
-    "white": 0.553,
-    "dark": 0.409,
-    "agreement": 0.668,
+    "skin": 0.567,
+    "white": 0.526,
+    "dark": 0.413,
+    "agreement": 0.655,
     "silhouette": 0.962,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
