@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hit reads as what it met (`WarshipHitFx`); Rusk lends an Enforcer and a Wolf at Black Sluice; a relay's tank is the decidedly sturdier hull, and a ship choosing between hulls weighs how much of its battery each one's armour turns away.
+Updated: 2026-10-19 — a round between hulls meets the first hull on its way, friend or foe, so an escort screens with its plate and a mount holds a round whose line crosses a friend; a hit reads as what it met (`WarshipHitFx`); Rusk lends an Enforcer and a Wolf at Black Sluice; a relay's tank is the decidedly sturdier hull, and a ship choosing between hulls weighs how much of its battery each one's armour turns away.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1785,7 +1785,8 @@ for one mission:
   stands in line between its charge and the threat, clear of the charge however either
   turns (both hulls' half-diagonals and the screen's gap), its fellow escorts spaced square
   to the threat, so a screen and the ship it screens meet the enemy together, the screen
-  first. A screen changing sides comes round its charge on that radius rather than
+  first. The screen is physical: a round meets the first hull on its way, so fire laid on
+  the charge through its escort is taken on the escort's shield or plate. A screen changing sides comes round its charge on that radius rather than
   across its bow or along its side.
 - **Warships are bodies and do not pass through one another** (`warship-tactics.md`).
   Every pair of hulls frigate-sized and up, friend or foe, is in contact on its real
@@ -2181,14 +2182,46 @@ ground and air fire. Which guns may fire at a ship follows the base game: point
 defence never does, a lance keeps its ground sweep, a standoff missile keeps its
 ground payload; everything else may. A round is aimed where the hull will be,
 thrown off by the weapon's cone as a hash of who fired what, and flies as an ordinary
-shell; on arrival it lands on whatever hostile hull its blast reaches, shield first
-and then armour, each by the base game's damage types (kinetic doubled on shields and
-halved on armour, high explosive the reverse, fragmentation quartered on both, energy as
-it is) at the base game's own armour reduction rather than the ground's penetration
-scale; a multi-warhead carrier strikes with its warheads' type, and a round that reaches none carries on along its line and
-comes down on the ground as an ordinary detonation, so stray fire between ships is
-real below them. Rounds between hulls are direct fire and no point defence engages
-them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
+shell. **It meets the first hull on its way, whoever's it is** (`WarshipRoundSweep`): each
+tick its travel is a segment swept against every hull's footprint, the true-scale
+rectangle soft contact keeps hulls apart by, and it stops at the first it crosses. A
+raised shield is met first, on its bubble, where the round crosses it from outside inside
+the arc; a round entering the bubble through the open part of the arc goes on to the plate,
+and the plate cell it meets is the one its line enters. A round that reaches its aim point
+having met nothing lands on any hull its blast reaches there. Either way it meets the shield
+and the armour by the base game's damage types (kinetic doubled on shields and halved on
+armour, high explosive the reverse, fragmentation quartered on both, energy as it is) at the
+base game's own armour reduction rather than the ground's penetration scale. The hulls a
+round can meet are the hulls in contact: fighters, drones and boats, falling wrecks, hulls in
+the cloud deck, berthed, lifting off or in a low hover are flown over, as other hulls fly over
+them, and the ship that fired is never met by its own rounds. A guided or unguided missile
+meets hulls the same way; a multi-warhead carrier flies to its split unmet and its warheads,
+which strike with their own type, meet whatever they cross from there; a beam meets the first
+hull along its line at once. So an escort standing in the line of fire takes what was meant
+for its charge, a hostile hull between a ship and its target shields the target, and a ship's
+rounds can hit a friend. A round that meets nothing carries on along its line, still able to
+meet a hull it crosses, and comes down on the ground as an ordinary detonation, so stray fire
+between ships is real below them and among them. Rounds between hulls are direct fire and no
+point defence engages them. Fire at the ground and at aircraft, and a fortress battery's fire
+up at a hull, falls past or rises past other hulls without meeting them: those rounds are
+travelling between heights, not across the fight. `-Dbattle.warship.inFlightCollision=false`
+is the control (rounds resolve only where they land, on hostile hulls).
+
+**A mount does not fire through a friend.** Before it starts on a hull and before each round,
+a mount reads its line from the muzzle to its aim point; a friendly hull it can meet lying
+across that line short of the target (its footprint grown by a cell, for the cone) fouls it.
+A fouled mount takes another hull in its reach with a clear line, or, engaged, holds its round
+until the friend has passed and gives the engagement up after an unaligned barrel's patience.
+A hostile hull in the line never fouls it. The check reads only the line to the aim point: a
+round that misses and carries on can still find a friend beyond its target. Nothing about the
+helm changes for it, so what it does to the formations is a matter of where they already put
+their hulls. A line of broadside ships lays its guns abeam, clear of its own lead and seconds,
+and the check touches only a chase gun laid along the line. In a pack relay the striker works
+the target's quarter round from the tank, so its line seldom crosses the tank, and when it
+does those mounts wait for the striker's own movement to open it. A charge's guns that bear
+through its own interposed screen are the ones that fall quiet: the screen is across the very
+line it guards, which is the price of being screened. `-Dbattle.warship.clearLineFire=false`
+is the control. A ship with a hull to fight and no ground to bring its guns to bear on turns to
 the heading the broadside or bow rule gives (below), re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
 sprite. Why it is shaped this way: `warship-behaviours.md`, Decided: ship against ship.
