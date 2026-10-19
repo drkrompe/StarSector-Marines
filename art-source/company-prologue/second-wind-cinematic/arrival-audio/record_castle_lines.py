@@ -61,6 +61,13 @@ C5_PRIVATE = "A new start, Commander. Let's not waste it."
 C5_ANNOUNCE = ("All hands, we're down. Filters on before you step out; it's wet out there. "
                "Take it slow on the ramp, and follow the yard crew to the workshop.")
 C5_LAST = "That was the easy part, Commander."
+V4_ENTRY = "We've got a few days planetside before we'll need to move along, Commander."
+V4_REELS = "So much greenery and life... it's like the travel reels from the canteen."
+V4_YARD = ("Set us down in that fenced yard on the east side. Nessa called in a favour to get us a berth "
+           "for refit. Best behaviour.")
+V4_ANNOUNCE = ("All hands, get some rest, see the sights, but keep your identification on you. "
+               "We regroup at the yard tomorrow.")
+V4_LAST = "Hard part starts now, Commander. From here, we find our own way."
 
 # id, treatment, caption text, synthesis text
 LINES = [
@@ -99,6 +106,15 @@ LINES = [
     ("c5v3r_announce", "ship_pa", C5_ANNOUNCE,
      "[resolute, steady, firm ship's announcement, quiet determination] " + C5_ANNOUNCE),
     ("c5v3r_last", "clean", C5_LAST, "[quiet, resolute, determined, looking ahead] " + C5_LAST),
+    # Fourth pass, the owner's script of 2026-10-19: Jangala is a stop, not a home. The crew are
+    # not Hegemony citizens; a few days planetside, a borrowed berth, then their own way.
+    ("v4_entry", "comms", V4_ENTRY, "[calm, steady, dry, to the Commander beside her] " + V4_ENTRY),
+    ("v4_c3_reels", "comms", V4_REELS,
+     "[quiet, a little wonder under the words, looking out of the window] " + V4_REELS),
+    ("v4_c4_yard", "comms", V4_YARD, "[calm, practical, a small dry smile at the end] " + V4_YARD),
+    ("v4_c5_announce", "ship_pa", V4_ANNOUNCE,
+     "[calm, confident, warm ship's announcement, a captain in control] " + V4_ANNOUNCE),
+    ("v4_c5_last", "clean", V4_LAST, "[quiet, resolute, confident, looking ahead, to one person] " + V4_LAST),
 ]
 
 # Takes that read the line cleanly and then repeated it: keep the first read, as the shipped
@@ -107,6 +123,9 @@ TRIMS = {
     "c5_private_catch_t02": (0.0, 3.5),
     "c5_private_catch_t05": (0.0, 3.3),
     "c5v2_last_plain_t03": (0.0, 2.3),
+    "v4_c3_reels_t01": (0.0, 5.2),
+    "v4_c3_reels_t02": (0.0, 5.05),
+    "v4_c3_reels_t03": (0.0, 5.2),
 }
 BY_ID = {line[0]: line for line in LINES}
 
