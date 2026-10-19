@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — the torso has front, side and rear arcs (a thinner back), read against the upper torso's facing; earlier: anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-19 — callsign bounds and freeze folded in; the torso has front, side and rear arcs (a thinner back), read against the upper torso's facing; earlier: anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -50,11 +50,17 @@ increasing an encounter's total armored threat.
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
-- A **callsign** is the player-authored display label for one campaign mech.
-  The persistent mech id remains its identity; changing the callsign changes
-  neither hardware nor doctrine. Support freezes the callsign with the other
-  deployment values, and the battle mech never reads it back from the campaign
-  record.
+- A **callsign** is the player-authored display label for one campaign mech,
+  edited on its Mech Lab surface. The persistent mech id remains its identity;
+  changing the callsign changes neither hardware, doctrine, squad membership nor
+  inventory. Callsigns need not be unique, since ids, never display text,
+  distinguish records and battle entities. Input is trimmed and holds at most 48
+  characters; blank input and a refused rename leave the current name. Support
+  freezes the callsign with the other deployment values at commitment, so a
+  later rename cannot reach a mech already in flight, and the battle mech never
+  reads it back from the campaign record. The landed unit's name, shown on its
+  selection panel and in direct control, is that frozen callsign; a deployment
+  without one (debug, legacy, story) keeps its deterministic `support-` name.
 - A **mech squad** is the player-facing group of up to four campaign mechs
   configured together in the Mech Lab. One selected active squad becomes
   the payload when a sourced Mech Support power is committed. It is distinct
