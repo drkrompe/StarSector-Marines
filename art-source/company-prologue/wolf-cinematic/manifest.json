@@ -20,17 +20,17 @@
   [
    57.98,
    26.183,
-   14.727
+   14.57
   ]
  ],
  "size_m": [
   73.6,
   39.3,
-  24.5
+  24.4
  ],
- "meshes": 151,
- "polygons": 9067,
- "images": 20,
+ "meshes": 144,
+ "polygons": 11119,
+ "images": 19,
  "engines": [
   {
    "index": 1,
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    10.6
+    10.44
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -336,7 +336,7 @@
    "location": [
     11,
     0,
-    10.6
+    10.44
    ],
    "angle": 0,
    "arc": 150,
@@ -425,7 +425,7 @@
    "position": [
     26,
     11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -440,7 +440,7 @@
    "position": [
     26,
     -11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -500,7 +500,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "f41a904c749bb4083b2e68f9207847186a53ed57d4419d6ab394a94cde63980a"
+  "vfx_hull_sha256": "76f0fc185258ef3bc3567c65a79a32d2b180ff54ed5bb09507f68ebed813622b"
  },
  "state": "clean",
  "engines_running": [
@@ -704,5 +704,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "4e2ca6467bbdede849e23511e892cc1a0e77b26fa2b8d2fce8f8b0db2e7c29aa"
+ "asset_sha256": "9bda51d0a6452981d564291b1e66f4932216bee925eeb4e112eb9b5ca2e23841"
 }

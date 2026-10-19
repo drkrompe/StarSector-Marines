@@ -3,12 +3,12 @@
   "codexVersion": "codex-cli 0.160.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a15665-cda0-7d70-8ed4-f7da85c3ccb3",
-  "source": "/Users/dillon/.codex/generated_images/01a15665-cda0-7d70-8ed4-f7da85c3ccb3/exec-be99e712-0f94-4caa-98c9-1dd086718f61.png",
+  "thread": "01a1568d-d558-78a2-8fd6-5dd0a7b94916",
+  "source": "/Users/dillon/.codex/generated_images/01a1568d-d558-78a2-8fd6-5dd0a7b94916/exec-9ba43c09-4a89-4655-aff2-47c1e57a34c2.png",
   "otherImagesInThread": [],
   "output": {
     "path": "art-source/company-prologue/wolf-surface/generated/sheet-crimson-sides.png",
-    "sha256": "278954fd847b0359d90df084c0cefad61e48b0e50ae49e08aa750d970a79491d",
+    "sha256": "ab363a8844cb73d147e1cf3cd380fdb873f1647266b4c05aeaf8937b38f9e676",
     "dimensions": [
       1672,
       941
@@ -17,18 +17,18 @@
   },
   "promptFile": "art-source/company-prologue/wolf-surface/prompts/sheet-crimson-sides.prompt.txt",
   "promptSha256": "303053a51c5432c79b8a34f7454574359faa17314639ac13c9a2b33f690e06d7",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a pirate Wolf-class frigate, a fast high-tech warship that a pirate crew has heavily modified and poorly maintained), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background. Colour key: \"crimson\" is a deep, slightly dull crimson armour enamel; \"grey\" is a warm mid-grey painted machinery steel.\ntop-left: a small rounded crimson armour face seen square-on;\ntop-right: the neck flank seen from port: a long crimson armour side with a rounded flank bulge;\nbottom-left: the aft body flank seen from port: a crimson armour side;\nbottom-right: the main body underside seen from directly below: a broad crimson armour belly with chamfered edges.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its battle-worn finish, its seam, fastener and wear treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or cut-out in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of small fasteners, flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: crimson areas stay deep crimson enamel (not orange, not pink, not brown); grey areas stay warm mid-grey steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches, no repair plates.\n- Wear: a hard-used pirate warship, battle-worn but EVEN across each whole shape: chipped and scuffed paint along plate edges and seams showing dark steel, fine scratches, dusty grime packed into seams, slightly faded paint. No rust, no soot, no scorch marks, no burns, no dents, no holes, no large stains, and no single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a pirate Wolf-class frigate, a fast high-tech warship that a pirate crew has heavily modified and poorly maintained), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background. Colour key: \"crimson\" is a deep, slightly dull crimson armour enamel; \"grey\" is a warm mid-grey painted machinery steel.\ntop-left: a small rounded crimson armour face seen square-on;\ntop-right: the neck flank seen from port: a long crimson armour side with a rounded flank bulge;\nbottom-left: the aft body flank seen from port: a crimson armour side;\nbottom-right: the main body underside seen from directly below: a broad crimson armour belly with chamfered edges.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its battle-worn finish, its seam, fastener and wear treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or cut-out in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of small fasteners, flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: crimson areas stay deep crimson enamel (not orange, not pink, not brown); grey areas stay warm mid-grey steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches, no repair plates.\n- Wear: a hard-used pirate warship, battle-worn but EVEN across each whole shape: chipped and scuffed paint along plate edges and seams showing dark steel, fine scratches, dusty grime packed into seams, slightly faded paint. No rust, no soot, no scorch marks, no burns, no dents, no holes, no large stains, and no single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
   "adopted": false,
   "references": [
     {
       "path": "art-source/company-prologue/wolf-surface/guide/sheet-crimson-sides-guide.png",
-      "sha256": "1ebe0e25df5d318e69d117fa652a0b02a7d21d766e1390df562b64057420fce1",
+      "sha256": "0e768e259c0ee050e9aca815aaae6c4de1b7aa5072f259684d8ec7b684ef25a5",
       "dimensions": [
         1920,
         1080
       ],
       "mode": "RGB",
-      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+      "role": "INPUT 1: the sheet of faces to paint (layout authority)"
     },
     {
       "path": "art-source/company-prologue/wolf-surface/reference/finish-reference.png",
@@ -42,14 +42,14 @@
     }
   ],
   "agentMessages": [
-    "I’ll use Image 1 as the fixed layout and Image 2 as the finish reference for one texture reskin."
+    "I’ll use image_gen to apply the reference finish while preserving the sheet’s layout and outlines."
   ],
   "usage": {
-    "input_tokens": 45032,
-    "cached_input_tokens": 34176,
+    "input_tokens": 46475,
+    "cached_input_tokens": 34944,
     "cache_write_input_tokens": 0,
-    "output_tokens": 648,
+    "output_tokens": 607,
     "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 41.3
+  "elapsedSeconds": 33.7
 }
