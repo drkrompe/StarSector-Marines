@@ -1,0 +1,1145 @@
+{
+ "asset": "phaeton.blend",
+ "append_collection": "PHAETON",
+ "root": "PHAETON | root",
+ "anchors_collection": "PHAETON | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.33,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -93.44,
+   -59.7,
+   -21.67
+  ],
+  [
+   138.75,
+   60.7,
+   34.55
+  ]
+ ],
+ "size_metres_rest": [
+  76.6,
+  39.7,
+  18.6
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "main drive",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -93.0,
+    36.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.48,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "role": "main drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -93.0,
+    24.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 3,
+   "role": "main drive",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -93.0,
+    9.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 4,
+   "role": "main drive",
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -93.0,
+    -9.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 5,
+   "role": "main drive",
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -93.0,
+    -24.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 4.64,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 6,
+   "role": "main drive",
+   "anchor": "Engine 6 exhaust anchor",
+   "mouth": [
+    -93.0,
+    -36.0,
+    -1.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.48,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    -75.0,
+    0.0,
+    14.325
+   ],
+   "rest_angle_deg": 180,
+   "arc_deg": 150,
+   "trained_parts": 43,
+   "fixed_parts": 40,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "brake": "Turret 1 WS 001 muzzle brake 1",
+     "anchor": "Anchor turret 1 port gun muzzle",
+     "at": [
+      -87.74,
+      -0.9,
+      16.275
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 1 WS 001 muzzle brake 2",
+     "anchor": "Anchor turret 1 starboard gun muzzle",
+     "at": [
+      -87.74,
+      0.9,
+      16.275
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "size": "SMALL",
+   "pivot": "Turret 2 pivot",
+   "pivot_at": [
+    38.0,
+    38.0,
+    12.025
+   ],
+   "rest_angle_deg": 90,
+   "arc_deg": 180,
+   "trained_parts": 43,
+   "fixed_parts": 40,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "brake": "Turret 2 WS 002 muzzle brake 1",
+     "anchor": "Anchor turret 2 port gun muzzle",
+     "at": [
+      37.1,
+      50.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 2 WS 002 muzzle brake 2",
+     "anchor": "Anchor turret 2 starboard gun muzzle",
+     "at": [
+      38.9,
+      50.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "size": "SMALL",
+   "pivot": "Turret 3 pivot",
+   "pivot_at": [
+    36.0,
+    -34.0,
+    12.025
+   ],
+   "rest_angle_deg": -90,
+   "arc_deg": 180,
+   "trained_parts": 43,
+   "fixed_parts": 40,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "brake": "Turret 3 WS 003 muzzle brake 1",
+     "anchor": "Anchor turret 3 port gun muzzle",
+     "at": [
+      36.9,
+      -46.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 3 WS 003 muzzle brake 2",
+     "anchor": "Anchor turret 3 starboard gun muzzle",
+     "at": [
+      35.1,
+      -46.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "slot": "WS 004",
+   "size": "SMALL",
+   "pivot": "Turret 4 pivot",
+   "pivot_at": [
+    126.0,
+    13.0,
+    12.025
+   ],
+   "rest_angle_deg": 0,
+   "arc_deg": 210,
+   "trained_parts": 43,
+   "fixed_parts": 40,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "brake": "Turret 4 WS 004 muzzle brake 1",
+     "anchor": "Anchor turret 4 port gun muzzle",
+     "at": [
+      138.74,
+      13.9,
+      13.975
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "brake": "Turret 4 WS 004 muzzle brake 2",
+     "anchor": "Anchor turret 4 starboard gun muzzle",
+     "at": [
+      138.74,
+      12.1,
+      13.975
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "launchers": [
+  {
+   "index": 1,
+   "slot": "WS 005",
+   "mount": "HIDDEN",
+   "fixed": true,
+   "angle_deg": 110,
+   "anchor": "Anchor launcher 1 flare muzzle",
+   "at": [
+    -51.479,
+    60.316,
+    7.7
+   ],
+   "axis": [
+    -0.342,
+    0.94,
+    0.0
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 006",
+   "mount": "HIDDEN",
+   "fixed": true,
+   "angle_deg": 250,
+   "anchor": "Anchor launcher 2 flare muzzle",
+   "at": [
+    -51.479,
+    -59.316,
+    7.7
+   ],
+   "axis": [
+    -0.342,
+    -0.94,
+    0.0
+   ]
+  }
+ ],
+ "lamps_lit": 35,
+ "lamps": [
+  {
+   "object": "Bow port sidelight",
+   "material": "Navigation lamp red",
+   "lit": true,
+   "at": [
+    117.0,
+    30.6,
+    4.43
+   ]
+  },
+  {
+   "object": "Bow sensor head lamp",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    124.2,
+    -18.2,
+    13.55
+   ]
+  },
+  {
+   "object": "Bridge deck door lamp",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    100.7,
+    -24.75,
+    13.25
+   ]
+  },
+  {
+   "object": "Bridge mast signal lamps",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    107.6,
+    -20.2,
+    28.6
+   ]
+  },
+  {
+   "object": "Bridge masthead lamp",
+   "material": "Masthead lamp white",
+   "lit": true,
+   "at": [
+    107.6,
+    -20.2,
+    33.25
+   ]
+  },
+  {
+   "object": "Bridge starboard sidelight",
+   "material": "Navigation lamp green",
+   "lit": true,
+   "at": [
+    119.25,
+    -35.3,
+    17.7
+   ]
+  },
+  {
+   "object": "Bridge wing lamps",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    114.0,
+    -35.6,
+    17.55
+   ]
+  },
+  {
+   "object": "Deck aft dome crown lamp port lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    0.0,
+    5.16,
+    26.25
+   ]
+  },
+  {
+   "object": "Deck aft dome crown lamp starboard lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    0.0,
+    -5.16,
+    26.25
+   ]
+  },
+  {
+   "object": "Deck edge lamp 1 lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    -18.0,
+    26.64,
+    7.6
+   ]
+  },
+  {
+   "object": "Deck edge lamp 2 lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    8.0,
+    26.64,
+    7.25
+   ]
+  },
+  {
+   "object": "Deck edge lamp 3 lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    -18.0,
+    -26.64,
+    7.6
+   ]
+  },
+  {
+   "object": "Deck edge lamp 4 lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    8.0,
+    -26.64,
+    7.11
+   ]
+  },
+  {
+   "object": "Deck edge lamp 5 lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    70.0,
+    -26.64,
+    7.6
+   ]
+  },
+  {
+   "object": "Deck edge lamp 6 lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    90.0,
+    -26.64,
+    7.6
+   ]
+  },
+  {
+   "object": "Deck fore dome crown lamp port lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    88.0,
+    5.16,
+    26.75
+   ]
+  },
+  {
+   "object": "Deck fore dome crown lamp starboard lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    88.0,
+    -5.16,
+    26.75
+   ]
+  },
+  {
+   "object": "Deck mid dome crown lamp port lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    44.0,
+    5.16,
+    25.75
+   ]
+  },
+  {
+   "object": "Deck mid dome crown lamp starboard lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    44.0,
+    -5.16,
+    25.75
+   ]
+  },
+  {
+   "object": "Deck port manifold lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    53.8,
+    29.36,
+    10.7
+   ]
+  },
+  {
+   "object": "Deck starboard manifold lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    70.4,
+    -28.16,
+    10.7
+   ]
+  },
+  {
+   "object": "Deck trunk aft lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    -20.77,
+    3.96,
+    12.85
+   ]
+  },
+  {
+   "object": "Deck trunk fore lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    108.02,
+    3.96,
+    12.85
+   ]
+  },
+  {
+   "object": "Deck trunk gap A lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    22.26,
+    3.96,
+    12.85
+   ]
+  },
+  {
+   "object": "Deck trunk gap B lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    65.49,
+    3.96,
+    12.85
+   ]
+  },
+  {
+   "object": "Deck vent mast 1 lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    -19.74,
+    -8.0,
+    31.5
+   ]
+  },
+  {
+   "object": "Deck vent mast 2 lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    20.26,
+    -8.0,
+    31.5
+   ]
+  },
+  {
+   "object": "Deck vent mast 3 lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    69.26,
+    -8.0,
+    31.5
+   ]
+  },
+  {
+   "object": "Deck vent mast 4 lamp lens",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    107.26,
+    7.0,
+    31.15
+   ]
+  },
+  {
+   "object": "Drive port housing crown port",
+   "material": "Drive housing pink glow",
+   "lit": true,
+   "at": [
+    -47.0,
+    29.0,
+    4.52
+   ]
+  },
+  {
+   "object": "Drive starboard housing crown port",
+   "material": "Drive housing pink glow",
+   "lit": true,
+   "at": [
+    -47.0,
+    -29.0,
+    4.52
+   ]
+  },
+  {
+   "object": "Hull fore pump house lamps",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    66.0,
+    14.75,
+    10.68
+   ]
+  },
+  {
+   "object": "Hull gallery skylight",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    69.0,
+    34.6,
+    12.05
+   ]
+  },
+  {
+   "object": "Hull port strake lamps",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    1.0,
+    38.5,
+    -0.75
+   ]
+  },
+  {
+   "object": "Hull starboard strake lamps",
+   "material": "Gallery window amber",
+   "lit": true,
+   "at": [
+    52.0,
+    -38.05,
+    -0.58
+   ]
+  }
+ ],
+ "objects": 1190,
+ "polygons": 95699,
+ "baked_meshes": 397,
+ "images": [
+  "Skin arc-side-port",
+  "Skin belly",
+  "Skin block-stern",
+  "Skin block-top",
+  "Skin bow",
+  "Skin cab-front",
+  "Skin cab-side-port",
+  "Skin cab-side-stbd",
+  "Skin cab-top",
+  "Skin deck-top",
+  "Skin drum-side-port",
+  "Skin frame-top",
+  "Skin gallery-side-port",
+  "Skin gallery-top",
+  "Skin housing-top-port",
+  "Skin side-port",
+  "Skin side-stbd",
+  "Skin spine-top",
+  "Skin strake-port",
+  "Skin strake-stbd",
+  "Skin tank1-top",
+  "Skin tank2-side-port",
+  "Skin tank2-top",
+  "Skin tank3-top",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch dome",
+  "Swatch gunmetal",
+  "Swatch red",
+  "Swatch slate"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile phaeton-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 92,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 3.4799999999999995,
+     "mouth": [
+      -93.0,
+      36.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 4.64,
+     "mouth": [
+      -93.0,
+      24.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "port",
+     "radius": 4.64,
+     "mouth": [
+      -93.0,
+      9.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "starboard",
+     "radius": 4.64,
+     "mouth": [
+      -93.0,
+      -9.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "starboard",
+     "radius": 4.64,
+     "mouth": [
+      -93.0,
+      -24.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 6,
+     "side": "starboard",
+     "radius": 3.4799999999999995,
+     "mouth": [
+      -93.0,
+      -36.0,
+      -1.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "port gun",
+     "muzzle": [
+      -87.74,
+      -0.9,
+      16.275
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 1,
+     "tag": "starboard gun",
+     "muzzle": [
+      -87.74,
+      0.9,
+      16.275
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "port gun",
+     "muzzle": [
+      37.1,
+      50.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "starboard gun",
+     "muzzle": [
+      38.9,
+      50.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "port gun",
+     "muzzle": [
+      36.9,
+      -46.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "starboard gun",
+     "muzzle": [
+      35.1,
+      -46.74,
+      13.975
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 4,
+     "tag": "port gun",
+     "muzzle": [
+      138.74,
+      13.9,
+      13.975
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 4,
+     "tag": "starboard gun",
+     "muzzle": [
+      138.74,
+      12.1,
+      13.975
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Bridge masthead lamp",
+     "role": "masthead",
+     "at": [
+      107.6,
+      -20.2,
+      33.25
+     ]
+    },
+    {
+     "name": "Bow port sidelight",
+     "role": "masthead",
+     "at": [
+      117.0,
+      30.6,
+      4.434
+     ]
+    },
+    {
+     "name": "Bridge starboard sidelight",
+     "role": "masthead",
+     "at": [
+      119.25,
+      -35.3,
+      17.7
+     ]
+    },
+    {
+     "name": "Deck aft dome crown lamp port lens",
+     "role": "beacon",
+     "at": [
+      0.0,
+      5.16,
+      26.25
+     ]
+    },
+    {
+     "name": "Deck mid dome crown lamp starboard lens",
+     "role": "beacon",
+     "at": [
+      44.0,
+      -5.16,
+      25.75
+     ]
+    },
+    {
+     "name": "Deck fore dome crown lamp port lens",
+     "role": "beacon",
+     "at": [
+      88.0,
+      5.16,
+      26.75
+     ]
+    },
+    {
+     "name": "Deck vent mast 1 lamp lens",
+     "role": "beacon",
+     "at": [
+      -19.74,
+      -8.0,
+      31.5
+     ]
+    },
+    {
+     "name": "Deck vent mast 4 lamp lens",
+     "role": "beacon",
+     "at": [
+      107.26,
+      7.0,
+      31.15
+     ]
+    },
+    {
+     "name": "Deck trunk gap A lamp lens",
+     "role": "work",
+     "at": [
+      22.258,
+      3.96,
+      12.85
+     ]
+    },
+    {
+     "name": "Deck trunk gap B lamp lens",
+     "role": "work",
+     "at": [
+      65.485,
+      3.96,
+      12.85
+     ]
+    },
+    {
+     "name": "Deck port manifold lamp lens",
+     "role": "work",
+     "at": [
+      53.8,
+      29.36,
+      10.7
+     ]
+    },
+    {
+     "name": "Deck starboard manifold lamp lens",
+     "role": "work",
+     "at": [
+      70.4,
+      -28.16,
+      10.7
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -93.44,
+     -59.7,
+     -21.67
+    ],
+    [
+     138.75,
+     60.7,
+     34.55
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 6,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 6,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 8,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'PHAETON' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "phaeton-surface/build/skinned.blend",
+  "geometry_json_sha256": "2680b8d564ba98cd8bed70e4b0b957d2065326990351b8975a12708e4cc3d213"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft, line of fire, vent direction); +Z as near hull-dorsal as that allows.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres.",
+  "turrets": "Rotate Turret <i> pivot about its local Z to train within its arc about the slot angle; the rest pose is the slot angle. The two flare launchers are fixed."
+ },
+ "asset_sha256": "8d699e691758fdf4c30a391f6daadd20f6e46c66ccfc2514485c531f07322a08"
+}

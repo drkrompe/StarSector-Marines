@@ -1,0 +1,84 @@
+{
+ "asset": "phaeton-destroyed.blend",
+ "collection": "PHAETON WRECK",
+ "root": "PHAETON WRECK | root",
+ "objects": 1458,
+ "meshes": 1404,
+ "images": 30,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    1404,
+    1404
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "six main drive anchors": {
+   "ok": true
+  },
+  "drives dead": {
+   "ok": true
+  },
+  "intact pose before break_frame": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "wreck pose at break_s (base meshes at hull_rest)": {
+   "ok": true,
+   "detail": 5e-05
+  },
+  "flying pieces start near the strike": {
+   "ok": true,
+   "detail": 4.07
+  },
+  "flying pieces reach the build pose": {
+   "ok": true,
+   "detail": 0.00014
+  },
+  "fir_exp_frame follows break_frame": {
+   "ok": true,
+   "detail": 100.0
+  },
+  "three explosion anchors": {
+   "ok": true
+  },
+  "fire and vent anchors": {
+   "ok": true,
+   "detail": [
+    22,
+    6
+   ]
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  }
+ }
+}
