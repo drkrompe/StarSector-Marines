@@ -161,6 +161,13 @@ def plan(frames, fps, samples_n, state=SW_STATE):
     return base
 
 
+def check_state(path):
+    """Refuse a Second Wind state .blend that is missing or is not the build its committed
+    manifest describes (copy it from Drive builds/second-wind/<commit>/<state>/)."""
+    man = json.loads((Path(path).parent / "manifest.json").read_text(encoding="utf-8"))
+    BB.check_broadsword(path, man["asset_sha256"])
+
+
 def movie(out_dir):
     """Review mp4: the lit frames with captions burnt in and C2's own cues mixed (compose_c2)."""
     import tempfile
@@ -188,11 +195,16 @@ def launch(argv):
         movie(Path(argv[i + 1]) if i is not None else OUT)
         return
     fps, frames, samples_n, resume, only, out, state = 24.0, None, 64, False, None, OUT, SW_STATE
+    half = False
     i = 0
     while i < len(argv):
         a = argv[i]
         if a == "--resume":
             resume = True
+            i += 1
+            continue
+        if a == "--half":                           # 960x540 for a review pass, scaled up to view
+            half = True
             i += 1
             continue
         v = argv[i + 1]
@@ -222,7 +234,8 @@ def launch(argv):
             frames = list(range(a, min(b + 1, n + 1)))
     p = plan(frames, fps, samples_n, state)
     BB.check_broadsword(p["broadsword_blend"], p["broadsword_sha256"])
-    p["out"], p["resume"] = str(out), resume
+    check_state(p["sw_state_blend"])
+    p["out"], p["resume"], p["percentage"] = str(out), resume, 50 if half else 100
     p["render"] = render if render is not None else [f for f in frames if f < n]
     out.mkdir(parents=True, exist_ok=True)
     tag = "" if not only else "-" + only.replace(":", "-")
@@ -522,7 +535,7 @@ def blender_main(argv):
     scene.render.use_motion_blur = True
     scene.render.motion_blur_shutter = 0.5
     scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
-    scene.render.resolution_percentage = 100
+    scene.render.resolution_percentage = int(p.get("percentage", 100))
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
     scene.view_settings.view_transform = "AgX"

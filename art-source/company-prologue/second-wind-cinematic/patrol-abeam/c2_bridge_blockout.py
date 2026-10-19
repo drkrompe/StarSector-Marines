@@ -343,10 +343,11 @@ def launch(argv):
 # ================================================================ Blender
 
 def check_broadsword(path, sha256):
-    """Refuse a Broadsword .blend that is missing or is not the build the manifest describes."""
+    """Refuse a built .blend (the Broadsword, or a Second Wind state) that is missing or is not
+    the build its committed manifest describes."""
     import hashlib
     if not Path(path).exists():
-        raise SystemExit("%s is missing: copy broadsword.blend from Drive builds/broadsword/<commit>/" % path)
+        raise SystemExit("%s is missing: copy it from Drive builds/ (the asset's <commit> folder)" % path)
     digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
     if digest != sha256:
         raise SystemExit("%s is not the manifest's build (sha256 %s, manifest %s)" % (path, digest[:12], sha256[:12]))
