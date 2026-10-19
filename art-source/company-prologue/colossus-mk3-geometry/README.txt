@@ -1,4 +1,4 @@
-COLOSSUS MK.III (PIRATE REFIT) - CINEMATIC GEOMETRY (PASSES 1, 2 AND 4; OWNER REVIEW NEXT)
+COLOSSUS MK.III (PIRATE REFIT) - CINEMATIC GEOMETRY (PASSES 1, 2 AND 4; OWNER ACCEPTED 2026-10-19)
 
 Purpose
 The pirates' prize ship in the Asharu battle cinematic (asharu-battle/asharu-battle-shot.md):
