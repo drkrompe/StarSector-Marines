@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — the heavy cannon is balanced as equipment (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-18 — missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -99,7 +99,8 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
   payload heavier than every available carrier's rating is not offered, and the
   briefing says why.
 - **Starter content stays useful.** Wayward's nose chaingun and SRM-5 on a stock
-  Hound remain a fit worth taking into the first operations.
+  Hound remain a fit worth taking into the first operations. The spare rack is
+  the fragmentation SRM-5, and a new company knows both SRM-5 warheads.
 
 ## Stock frame (shipped)
 
@@ -277,17 +278,226 @@ outweighs a refit. The heavy-cannon Sirocco is not a counter to anything heavy:
 it loses to every refit Bulwark and to both tanks, and beats only a stock
 chaingun Bulwark (stock Sirocco 0.39, refit 0.77; was 0.59 and 0.88).
 
-Still open from these readings, all outside the cannon:
+Still open from these readings:
 
 - **Every tank beats every Bulwark fit**, 93-95% overall, never losing to a
   Bulwark in more than one fight in the 96 here.
-- **The chaingun Bulwark is the weakest Bulwark.** The chaingun's 29 heat/s
-  starves its own SRM-15s, and every Advanced or Prestige arm beats it 78-96%
-  refit against refit.
-- **The bastion autocannon now has the problem the cannon had.** It weighs 14
-  and runs at about 9 heat/s, and it is the best refit Bulwark (0.69). The same
-  levers apply, in the same order.
-- **The Prestige pulse laser loses to both Advanced arms** at equal budget.
+- **The chaingun Bulwark is the anti-infantry Bulwark** (owner, 2026-10-18).
+  Its armor-duel share is low by design, so it is judged against infantry,
+  never by how it fares against machines. Its anti-armor answer is its SRM
+  shoulders, as LRMs are the Sirocco's. What these readings did expose is that
+  the chaingun's heat starved those shoulders. That is now fixed by the firing
+  order, not by heat (next section).
+
+The bastion and the pulse laser are balanced in the next section.
+
+## The Bulwark's other arms are equipment too
+
+The same readings showed two more of the Bulwark's 3x2 arms out of order. The
+bastion autocannons had the cannon's old problem: mass 14 and about 9 heat/s,
+so the best refit Bulwark arm cost nothing to carry, and on a **stock** frame it
+beat a refit chaingun Bulwark 56% of the time. The Prestige pulse laser, at 38
+heat per 2.1 s, lost to both Advanced arms on the same frame, 0.00 against the
+bastion. They were tuned in the cannon's order: mass first, then
+heat. Range and cycle were not needed. Each lever was read alone against the
+others' authored values before they were combined.
+
+- **Bastion: build mass 3** (mass 17), as the cannon's, for its feed. A full
+  refit Bulwark carrying it gives up its cooler. Alone it barely moves a fight
+  (refit bastion against refit cannon 0.58 to 0.46; stock frame against refit
+  chaingun unchanged at 0.56, because a stock frame has the room anyway).
+  The Sirocco's rating does not absorb it: the bastion is not its gun.
+- **Bastion: heat 28** (was 24; 10.8 heat/s). This is the lever that bites on a
+  stock frame. Alone it takes the stock-frame bastion against a refit chaingun
+  from 0.56 to 0.29. At 32 the refit bastion fell behind the refit cannon and the
+  pulse laser by a wide margin (0.31 against each), so 28 it is.
+- **Pulse laser: heat 26** (was 38; 12.4 heat/s). The Prestige arm already pays
+  in mass: at 16 it fills a full refit Bulwark's engine exactly (69 of 69). At 30
+  it drew level with the cannon (0.42 each way) but still lost to the bastion
+  (0.33 against 0.50). At 26 it edges both. A pulse laser on a stock frame loses
+  to every refit Advanced arm (0.00-0.02), so a Prestige arm does not outweigh
+  an internal refit either.
+
+**The chaingun stays at 30, and heat is the wrong lever for its fault.** The
+chaingun's 29 heat/s does starve the Bulwark's SRM-15s, its anti-armor role:
+against machines the shoulders deal only 14-16% of a chaingun Bulwark's damage.
+Heat 24 was tried. On a refit frame it lifts that share to 25%, but on a stock
+frame it falls to 10%. A reservoir releases at 40% and admits a salvo only under
+90%, so a 42-heat SRM after a chaingun burst needs a reservoir of
+2 x (burst + 42): 132 at heat 24, beyond any stock frame. And the AI tries the
+arms first, so the chaingun takes every release. Against ten rifles and an AMR
+(`mech-frame-endurance`, 48 seeds) heat 24 also raised a stock chaingun
+Bulwark's damage per minute by 26% (1136 to 1435) and a refit's by 15%. Every
+neutral enemy Bulwark fights on a stock frame, so that would have been a quarter
+more fire at marines while fixing nothing for the shoulders. The fault was the
+firing order.
+
+**Against a machine, the anti-armor mounts fire first.** An autonomous mech now
+tries its mounts in order of armor efficiency against the target it is shooting,
+when that target is a mech or a vehicle, and in slot order otherwise
+(`mechs-nouns.md`, Thermal reservoir). Against infantry nothing changes. A
+chaingun, pulse laser or linear cannon now yields the reservoir to the SRM-15s;
+a heavy cannon fires before them. With the anti-armor warheads (penetration 30,
+Missile warheads below) a bastion now yields to them too, and a fragmentation
+rack fires after every arm gun. The table was read on the single-warhead SRM
+(penetration 14), when the bastion tied the racks; the Missile warheads readings
+are taken with this rule on. Readings, against
+`-Dbattle.mech.armorFireOrder=false` (the control reproduces the matrix below
+fight for fight):
+
+| Reading | Control | Rule |
+| --- | --- | --- |
+| SRM share of damage against machines: stock / refit chaingun Bulwark | 0.15 / 0.18 | 0.42 / 0.30 |
+| Damage dealt per fight: stock / refit chaingun Bulwark | 433 / 780 | 513 / 810 |
+| SRM share: stock / refit pulse-laser Bulwark | 0.07 / 0.22 | 0.32 / 0.24 |
+| SRM share: heavy cannon, bastion, linear cannon Bulwarks | unchanged | unchanged |
+| Overall win share: refit / stock chaingun Bulwark | 0.43 / 0.09 | 0.43 / 0.12 |
+| Damage per minute against ten rifles and an AMR, every chassis and frame | — | identical |
+| Stock chaingun Bulwark vs stock Hound (`armorMatchup`, 16 seeds) | 0.79 | 0.92 |
+| Endurance under a hostile stock Bulwark: stock Bulwark / stock Hound / refit Hound | 127 / 56 / 74 s | 80 / 42 / 46 s |
+
+The chaingun Bulwark's duel share hardly moves, as its role says it should not.
+What moves is what it does to machines: its shoulders now do a third or more of
+its damage to them. The cost lands on whatever a chaingun Bulwark shoots. Every
+neutral enemy Bulwark carries one, and a planted mech under one now lasts about
+a third less. A stock Hound, the starter machine, loses its first mount at 3 s
+instead of 7 under the heavier opening salvo. A stock Hound already lost to a
+stock Bulwark (0.06 before, 0.00 now), so the starter fit's place is unchanged:
+it is for the first operations, not for facing heavy armor. The Hound's own fire
+barely changes (SRM share 0.08), because it mostly fights beyond its SRM-5's
+18-cell reach.
+
+Readings (`armorMatchup`, fourteen explicit fits: the cannon section's eleven
+plus a stock-frame bastion, a stock-frame pulse laser and a refit linear cannon;
+open / hull-down / street, eight seeds, both roles). A share is the wins over
+fights played in both roles; overall is the mean over the eleven fits the cannon
+section used. The controls are `-Dbattle.mech.buildMass.bastion-autocannons=0
+-Dbattle.mech.heat.bastion-autocannons=24 -Dbattle.mech.heat.dual-pulse-lasers=38`.
+The control run reproduces the before column fight for fight. Any arm's heat,
+cycle or build mass takes the same
+`-Dbattle.mech.<heat|cycle|buildMass>.<id without component.mech->` switch.
+
+| Fight | Before | After |
+| --- | --- | --- |
+| Bastion (stock frame) vs refit chaingun / refit cannon Bulwark | 0.56 / 0.04 | 0.29 / 0.04 |
+| Refit bastion vs refit cannon / refit chaingun | 0.58 / 0.67 | 0.38 / 0.65 |
+| Refit pulse laser vs refit bastion / refit cannon | 0.00 / 0.19 | 0.52 / 0.44 |
+| Overall: refit pulse / cannon / bastion Bulwark | 0.53 / 0.61 / 0.62 | 0.61 / 0.61 / 0.55 |
+| Overall: stock-frame bastion / pulse Bulwark | 0.39 / 0.20 | 0.31 / 0.37 |
+| Heat-limited seconds per fight: refit bastion / pulse | 13 / 36 | 18 / 20 |
+| Any Bulwark fit vs breakthrough / heavy-gun tank | 0.00 | 0.00 |
+
+On a full refit the Prestige pulse laser now narrowly leads, and the two
+Advanced guns follow, the cannon ahead of the bastion head to head. The
+chaingun Bulwark reads as before (refit 0.43 overall), which is its intended
+place in a fight between machines. Enemy Tri-Tachyon and Hegemony Bulwarks field
+the pulse laser and the bastion, so their fire against marines moves too.
+Mission evidence has not been re-read for that.
+
+Still open:
+
+- **The linear cannon is the weakest Advanced arm** (refit 0.34 overall before
+  this change, 0.32 after; it beats only the stock chaingun frame and the
+  Siroccos clearly). Its trouble is not carriage. Its penetration of 8 against the
+  Bulwark's 18 halves every round. And the duel band its SRM-15s pull it into
+  keeps it at 17 cells, where those launchers latch the reservoir about 60 s of
+  a 75 s fight. Read with the chaingun at 24, heat 14 moved it to 0.36. Heat 16 with the cycle halved to 1.4 s
+  reached only 0.44, level with the chaingun refit, a Common arm. A weapon that needs
+  its fire rate doubled is a damage question, not an equipment one, so it was
+  left as authored.
+- **Every tank beats every Bulwark fit**, as above.
+
+Direction, not yet a story: missile racks are the mech's anti-armor weapons, and
+each likely wants an anti-armor and a fragmentation variant, so a rack fitted
+for infantry work stops competing with the arm built for it.
+
+## Missile warheads
+
+Each rack size has an anti-armor and a fragmentation warhead (`mechs-nouns.md`,
+Missile warheads). The Frag rack is a sidegrade at the same tier, footprint and
+mass, so neither warhead is an upgrade; what it gives up is the other target.
+Per rocket:
+
+| | Contact (dmg / pen) | Area (dmg / pen / radius) | Wall |
+| --- | --- | --- | --- |
+| SRM before the split | — | 49.5 / 14 / 1.3 | 25 |
+| SRM AT | 66 / 30 | 10 / 6 / 0.6 | 25 |
+| SRM Frag | — | 32 / 4 / 1.8 | 10 |
+| LRM before the split | — | 81 / 16 / 2.0 | 40 |
+| LRM AT | 95 / 30 | 15 / 6 / 1.0 | 40 |
+| LRM Frag | — | 50 / 4 / 2.8 | 15 |
+
+Controls: `-Dbattle.mech.missileVariants=false` (the single-warhead rack on the
+AT ids) and `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice).
+
+Readings were taken on top of the bastion and pulse-laser heat changes above and
+of the armor fire order (against a machine, the reservoir goes to the mounts that
+best defeat its armor first, so AT racks fire before the arms and Frag racks after).
+
+**Against men** (`sceneEvidence -Pscene=mech-versus-infantry`, four seeds per
+loop, planted stock mechs, a rifle section in the open). Seconds to kill the
+whole section:
+
+| Loop | Variant | Single-warhead control |
+| --- | --- | --- |
+| Chaingun Bulwark, twin SRM-15 Frag, 12 men at 15 cells | 35.3 s | — |
+| Chaingun Bulwark, twin SRM-15 AT, same | 40.8 s (racks hold) | 37.4 s |
+| Sirocco, twin LRM-5 Frag, 12 men at 30 cells | 13.6 s | — |
+| Sirocco, twin LRM-5 AT, same | never (racks hold, cannon out of reach) | 13.6 s |
+
+The Frag rack kills men at least as fast as the old rack did, and an AT rack holds
+fire at them every time (no salvo begun at a soft target in any loop). On a stock
+chaingun Bulwark the rack barely matters against men either way: it starts about
+one salvo per fight, because the chaingun's heat starves it (below). On the
+Sirocco the rack is the whole answer to men, which is why the Sirocco ships Frag
+LRMs.
+
+**The mixed fight.** An AT Bulwark faces six men at 13 cells with a breakthrough
+tank behind them at 15. With damage-aware target choice, the torso holds the tank
+for 336 ticks while a rack is loaded and puts 32 rack rounds into it, killing 15
+of the 24 men over four plays. With nearest-target choice it puts no rack round
+into the tank and kills all 24 men. The tank kills the stock Bulwark in every
+play either way, so this loop shows the choice working, not that it wins.
+
+**Against armor** (`armorMatchup`, twelve sides against each other, eight seeds,
+three grounds, both roles; win share against the single-warhead control with
+nearest-target choice):
+
+| Side | Variant | Control |
+| --- | --- | --- |
+| Stock Bulwark (AT SRM-15s) | 0.53 | 0.47 |
+| Stock Bulwark, Frag SRM-15s | 0.34 | 0.31 |
+| Refit Bulwark (AT) | 0.69 | 0.70 |
+| Refit Bulwark, Frag | 0.51 | 0.55 |
+| Hound (AT SRM-5) | 0.15 | 0.13 |
+| Hound, Frag SRM-5 | 0.09 | 0.09 |
+| Sirocco, AT LRM-5s | 0.43 | 0.40 |
+| Sirocco, Frag LRM-5s (the factory fit) | 0.21 | 0.19 |
+
+A Frag row's control fires the same Frag rack; its difference is its opponents'
+racks and the target choice. AT racks hold or improve every mech's armor results,
+most for the stock Bulwark, and the Frag Sirocco is half the anti-armor machine
+the AT one is. Where SRMs reach a tank (the street, at 17 cells) the AT warhead
+takes clearly more off it than the old rack did: a refit Bulwark leaves a
+breakthrough tank 0.74 of its integrity against 0.88 and a heavy-gun tank 0.70
+against 0.85, and a Hound leaves them 0.90 and 0.91 against 0.93 and 0.95. AT rockets hit about a third
+of the time against about half for the old area rack, because a contact warhead
+needs the body. Win shares against tanks stay at zero.
+
+**Why SRMs barely decide a mech fight**, warhead or not: SRM reach is 18 cells.
+In the open, mech duels settle at 19-22 cells (the outer part of the chaingun's
+30-cell band), and tanks fight from 29-39 cells. So SRMs deal 1-6% of a Bulwark's
+damage in most matchups, in both runs. The tank gap is a reach-and-band question,
+not a warhead one. The warhead decides only what happens once a rack is in range.
+
+Still open from these readings:
+
+- **SRM reach against the duel band.** A Bulwark's SRMs rarely reach anything
+  armored outside a street. Either the duel band should close to SRM range when
+  the racks are loaded and the target is armor, or the SRM's reach should grow.
+- **The chaingun starves the racks against men too.** A stock chaingun Bulwark
+  starts about one rack salvo per fight against a rifle section, whatever the
+  warhead.
 
 ## Lift classes
 

@@ -1,4 +1,4 @@
-"""Surface detail on the hull's flanks and underside (os_hull belly, prow and core sides): plating seams, hatches, keel conduits, belly access panels.
+"""Surface detail on the hull's flanks and underside (os_hull belly, prow and stem sides, forefoot): plate courses, heat-sink banks, machinery bays, conduit bundles, hatches.
 
 Owner, after round 11: "I'm liking the silhouette of this ship. The next passes
 need to focus on that detail on the hull, exposed machinery, piping, hatches,
@@ -29,6 +29,21 @@ the band's edge near X 138 and 116. The underside follows the hull's own planes
                  ports on the centreline;
   waist bellies  radiator louvre banks under each waist valley.
 
+Detail pass 2 (owner: "bolder, bigger, denser ... so it reads at 1.5 km"). At formation
+range a unit is under a pixel, so a big layer goes down first and reads by value, at the
+scale of plates and bays (big_layer): brick-bonded courses of plates 10-25 long in
+alternating tones (dark brown, bone-brown, blue-grey steel, weathered orange, the base
+brown) standing 1.2 proud over a near-black backing, so every gap is a wide dark seam,
+with stepped doublers on alternate plates; on the prow and stem flanks two courses either
+side of a conduit trench (three conduits, shared brackets, junction boxes at the stem
+knuckle and the root) and two heat-sink banks of big fins; on the forefoot two courses;
+on each bilge plane three courses, four fin banks, two machinery bays with twin tanks and
+one with pump housings (a 3.0 coaming round a dark floor, contents below its rim), a
+four-conduit bundle along the bilge chine; broad low keel plates on the keel flat. The
+pass-1 parts (bolts, hatches, ports, the airlock, grapple points) are the close-up layer,
+re-placed on plate centres and seated on the plates. Aft of X 19 the aft body breaks
+through the bilge plane's middle, so the middle course stops there.
+
 Every part is seated by ray casts on the built hull and armour (one BVH per
 solid, as os_fittings does): a footprint is cast at its centre, its corners and
 edge midpoints, sunk below the deepest of them and standing its stated height
@@ -51,12 +66,15 @@ X = Vector((1, 0, 0))
 Z = Vector((0, 0, 1))
 
 
-def _trees():
+def _trees(own=False):
+    """BVHs of the hull's solids; `own` adds this module's big layer (plates, banks, bays) so
+    the small layer seats on top of it."""
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
     _TREES.clear()
     for ob in bpy.context.scene.objects:
-        if ob.type != 'MESH' or ob.name.split(' ')[0] not in ('Hull', 'Armour', 'Bridge', 'Machinery', 'Engine'):
+        if ob.type != 'MESH' or (ob.name.split(' ')[0] not in ('Hull', 'Armour', 'Bridge', 'Machinery', 'Engine')
+                                 and not (own and ob.name.startswith('Detail hull'))):
             continue
         ev = ob.evaluated_get(dg)
         me = ev.to_mesh()
@@ -384,6 +402,289 @@ def _bilge_len(x):
     return math.hypot(c3[0]-kp[0], c3[1]-kp[1])
 
 
+# --- detail pass 2: the big layer, read at 1.5 km ----------------------------------
+# At formation range one unit is under a pixel, so the flanks and the belly are broken up
+# at the scale of PLATES and BAYS: courses of armour plates 10-25 long in alternating
+# tones, standing 1.2 proud over a near-black backing so every gap between them is a wide
+# dark seam; every other plate carries a stepped doubler; heat-sink banks of big fins in
+# raised frames; machinery bays (a tall coaming round a dark floor holding tanks and
+# pump housings below its rim); conduit bundles in a trench along the prow's side and the
+# belly's bilge chine. The pass-1 parts (hatches, ports, bolts, the airlock) are the
+# close-up layer and seat on top of the plates afterwards.
+
+def _patch(fn, s):
+    """A conformal patch over a surface parameterisation fn(x, t, s): x from xa to xb, t from ta to tb."""
+    def make(xa, xb, ta, tb):
+        return lambda a, b: fn(xa+(xb-xa)*a, ta+(tb-ta)*b, s)
+    return make
+
+
+def _dead_len(x):
+    fo = fore(x)
+    return math.hypot(fo['w']-fo['fl']-fo['kw'], fo['zl']-fo['keel'])
+
+
+def plate_course(G, patch, L, stations, ta, tb, tones, tag, h=1.2, gap=1.0, skip=(), step=2, back=True):
+    """A course of plates between `stations` (descending X) across ta..tb: a near-black backing
+    over the whole course and a plate inset half a gap from each station; every `step`th plate
+    carries a doubler stepped another .8 proud, inset 1.8 all round."""
+    for i, (xa, xb) in enumerate(zip(stations, stations[1:])):
+        ln = L((xa+xb)/2)
+        nu = max(2, int(round((xa-xb)/3.0)))
+        nv = max(2, int(round((tb-ta)*ln/3.0)))
+        if back:
+            conformal(G['back'], patch(xa, xb, ta, tb), nu, nv, .4, tag=f'{tag} back {xa}')
+        if (xa, xb) in skip:
+            continue
+        dt = gap/2/ln
+        tone = tones[i % len(tones)]
+        ok = conformal(G[tone], patch(xa-gap/2, xb+gap/2, ta+dt, tb-dt), nu, nv, h, tag=f'{tag} plate {xa}')
+        if not ok and xa-xb > 8.0:
+            # a step under the plate (another mass breaking through): two half plates instead
+            xm = (xa+xb)/2
+            for x0, x1 in ((xa, xm), (xm, xb)):
+                if back:
+                    conformal(G['back'], patch(x0, x1, ta, tb), max(2, nu//2), nv, .4, tag=f'{tag} back half {x0}')
+                conformal(G[tone], patch(x0-gap/2, x1+gap/2, ta+dt, tb-dt), max(2, nu//2), nv, h,
+                          tag=f'{tag} half plate {x0}')
+            continue
+        if ok and step and i % step == 0 and xa-xb > 7.0 and (tb-ta)*ln > 6.0:
+            d = 1.8
+            conformal(G[tone], patch(xa-gap/2-d, xb+gap/2+d, ta+dt+d/ln, tb-dt-d/ln), nu, nv, h+.8,
+                      tag=f'{tag} doubler {xa}')
+
+
+def coaming(G, patch, ln, xa, xb, ta, tb, rim, h, fam='coam', tag=''):
+    """A raised frame round xa..xb x ta..tb: four strips `rim` wide standing h proud."""
+    dt = rim/ln
+    nu = max(2, int(round((xa-xb)/3.0)))
+    nv = max(2, int(round((tb-ta)*ln/3.0)))
+    conformal(G[fam], patch(xa, xb, ta, ta+dt), nu, 1, h, tag=f'{tag} rim')
+    conformal(G[fam], patch(xa, xb, tb-dt, tb), nu, 1, h, tag=f'{tag} rim')
+    conformal(G[fam], patch(xa, xa-rim, ta+dt, tb-dt), 1, nv, h, tag=f'{tag} rim')
+    conformal(G[fam], patch(xb+rim, xb, ta+dt, tb-dt), 1, nv, h, tag=f'{tag} rim')
+
+
+def radiator_bank(G, patch, ln, xa, xb, ta, tb, tag, pitch=1.4, rim=1.1, h=2.2):
+    """A heat-sink bank: a heavy frame and big transverse fins, a header bar down its middle."""
+    coaming(G, patch, ln, xa, xb, ta, tb, rim, h, tag=tag)
+    dt = rim/ln
+    nv = max(2, int(round((tb-ta)*ln/3.0)))
+    n = int((xa-xb-2*rim)/pitch)
+    span = (xa-xb-2*rim)/n
+    for k in range(n):
+        xc = xa-rim-span*(k+.5)
+        conformal(G['fin'], patch(xc+.2, xc-.2, ta+dt, tb-dt), 1, nv, h-.35, tag=f'{tag} fin')
+    tm = (ta+tb)/2
+    for tt in (tm-.18*(tb-ta), tm+.18*(tb-ta)):
+        conformal(G['coam'], patch(xa-rim, xb+rim, tt-.45/ln, tt+.45/ln), max(2, int((xa-xb)/3)), 1, h-.15,
+                  tag=f'{tag} header')
+
+
+def _hit(pt, o):
+    h = _cast(pt+o*8.0, -o)
+    if h is None or h[0] > 14.0:
+        return None
+    return h[1], h[2].normalized()
+
+
+def tank(G, fn, s, x0, x1, t, r, standoff, tag):
+    """A storage tank lying along X on the surface fn(x, t, s): a cylinder with stepped end
+    caps and saddles under it."""
+    a, b = _hit(*fn(x0, t, s)), _hit(*fn(x1, t, s))
+    if a is None or b is None:
+        REFUSED.append((tag, 'tank miss'))
+        return
+    pa, pb = a[0]+a[1]*standoff, b[0]+b[1]*standoff
+    d = (pb-pa).normalized()
+    G['tank'].cyl(pa+d*.6, pb-d*.6, r, 16)
+    G['tank'].cyl(pa, pa+d*.6, r*.72, 16)
+    G['tank'].cyl(pb-d*.6, pb, r*.72, 16)
+    for k in (1, 3):
+        G['band'].cyl(pa+(pb-pa)*(k/4)-d*.3, pa+(pb-pa)*(k/4)+d*.3, r+.12, 16)
+    for k in (1, 3):
+        x = x0+(x1-x0)*k/4
+        h = _hit(*fn(x, t, s))
+        if h:
+            p, n = h
+            side = n.cross(d).normalized()
+            G['band'].box(p+n*(standoff-r*.4)/2, (d, side, n), (.35, r*.8, (standoff-r*.4)/2+.3))
+
+
+def pump(G, f, tag):
+    """A pump housing: a block with a motor drum on it and a valve chest, under 2.6 proud."""
+    if f is None:
+        return
+    G['tank'].fbox(f, -1.9, 1.9, -1.5, 1.5, -.3, 1.4)
+    G['band'].fbox(f, -2.2, 2.2, -1.8, 1.8, -.3, .35)
+    G['band'].fcyl(f, -.6, 0, 1.05, 1.0, 2.5, 14)
+    G['tank'].fbox(f, .8, 1.7, -.9, .9, 1.2, 2.3)
+
+
+def bundle(G, pts_k, r, standoff, tag, bracket_every=7.0):
+    """A bundle of conduits: pts_k is a list (one per pipe) of seated points [(p, n)]; pipes stand
+    `standoff` off the surface, flanged at nodes, the bundle held by shared brackets."""
+    axes = [[p+n*standoff for p, n in pts] for pts in pts_k]
+    for ax in axes:
+        for a, b in zip(ax, ax[1:]):
+            G['bundle'].cyl(a, b, r, 10)
+        for i in range(1, len(ax)-1):
+            d = (ax[i+1]-ax[i-1]).normalized()
+            G['bracket'].cyl(ax[i]-d*.4, ax[i]+d*.4, r*1.35, 10)
+    first, last = pts_k[0], pts_k[-1]
+    for i in range(len(first)-1):
+        (pa, na), (pb, nb) = first[i], first[i+1]
+        (qa, _), (qb, _) = last[i], last[i+1]
+        seg = (pb-pa).length
+        k = max(1, int(seg/bracket_every))
+        for j in range(k):
+            t = (j+.5)/k
+            c0, c1 = pa+(pb-pa)*t, qa+(qb-qa)*t
+            n = (na*(1-t)+nb*t).normalized()
+            mid = (c0+c1)/2
+            h = _cast(mid+n*6.0, -n)
+            if h is None or h[0] > 9.0:
+                continue
+            p = h[1]
+            d = (pb-pa).normalized()
+            across = (c1-c0)
+            half = across.length/2+r+.45
+            v = (across-n*across.dot(n)).normalized()
+            u = v.cross(n).normalized()
+            hh = standoff+r+.3
+            G['bracket'].box(p+n*(hh-.4)/2, (u, v, n), (.45, half, (hh+.4)/2))
+
+
+def junction(G, f, hu, hv, h):
+    if f is None:
+        return
+    G['coam'].fbox(f, -hu, hu, -hv, hv, -.3, h)
+    G['band'].fbox(f, -hu+.5, hu-.5, -hv+.5, hv-.5, h-.2, h+.45, flat=True)
+
+
+def big_layer(kit, G, s):
+    side_p, bilge_p, dead_p = _patch(side_point, s), _patch(bilge_point, s), _patch(deadrise_point, s)
+
+    # --- prow sides: two courses either side of a conduit trench, brick-bonded; the upper
+    # course in the sprite's dirty orange edge band against dark brown, the lower in bone,
+    # steel and brown; a heat-sink bank forward and aft in the lower course ---
+    up = [205.0, 196.0, 184.0, 172.0, 160.0, 148.0, 136.0, 120.0, 106.0]
+    lo = [205.0, 191.0, 179.0, 167.0, 153.0, 134.0, 121.0, 106.0]
+    # the stem's flat flank (X 225..205), a broad plane at the bow every view sees: two
+    # courses, no trench (the bundle ends in a junction box at the stem's knuckle)
+    plate_course(G, side_p, _side_len, [224.0, 214.0, 205.4], .55, .97, ['orange', 'steel'], 'stem upper', step=0)
+    plate_course(G, side_p, _side_len, [224.0, 217.0, 205.4], .03, .55, ['steel', 'bone'], 'stem lower', step=1)
+    plate_course(G, side_p, _side_len, up, .72, .97, ['orange', 'dkbrown', 'orange', 'bone'], 'prow upper', step=0)
+    plate_course(G, side_p, _side_len, lo, .03, .43, ['bone', 'steel', 'dkbrown', 'bone', 'steel', 'dkbrown', 'bone'],
+                 'prow lower', skip={(191.0, 179.0), (121.0, 106.0)})
+    for xa, xb in ((191.0, 179.0), (121.0, 106.0)):
+        radiator_bank(G, side_p, _side_len((xa+xb)/2), xa-.5, xb+.5, .05, .41, f'prow bank {xa}')
+    # the trench: a dark floor, a lip each side, three conduits running bow to root
+    for xa, xb in zip(up, up[1:]):
+        conformal(G['back'], side_p(xa, xb, .43, .72), max(2, int((xa-xb)/3)), 2, .4, tag=f'trench {xa}')
+        conformal(G['coam'], side_p(xa, xb, .43, .43+.8/_side_len(xa)), max(2, int((xa-xb)/3)), 1, 1.6,
+                  tag=f'trench lip {xa}')
+    xs = [201.5, 196.0, 186.0, 172.0, 160.0, 148.0, 134.0, 120.0, 108.0]
+    pts_k = []
+    for k in range(3):
+        pts = []
+        for x in xs:
+            ln = _side_len(x)
+            hh = .575+(k-1)*1.85/ln
+            h = _hit(*side_point(x, hh, s))
+            if h:
+                pts.append(h)
+        pts_k.append(pts)
+    if all(len(p) == len(xs) for p in pts_k):
+        bundle(G, pts_k, .72, 1.05, 'prow bundle')
+    for x in (108.5, 202.5):
+        p, o = side_point(x, .575, s)
+        junction(G, on(p, o, X, 2.4, 3.4, 1.5, f'prow junction {x}'), 2.4, 3.4, 2.4)
+
+    # --- forefoot deadrise: two courses ---
+    plate_course(G, dead_p, _dead_len, [203.0, 192.0, 180.0, 168.0], .06, .47, ['steel', 'dkbrown', 'bone'], 'forefoot a')
+    plate_course(G, dead_p, _dead_len, [203.0, 197.0, 186.0, 174.0, 168.0], .53, .94, ['dkbrown', 'bone', 'steel', 'dkbrown'],
+                 'forefoot b')
+
+    # --- belly bilge planes: three courses, brick-bonded, with bays and banks ---
+    A = [160.0, 140.0, 118.0, 96.0, 74.0, 52.0, 30.0, 8.0, -14.0, -36.0]
+    # aft of X 19 the aft body's underside breaks through the plane's middle: the middle
+    # course stops there and the pump bay takes the inner course
+    B = [160.0, 150.0, 129.0, 107.0, 85.0, 63.0, 41.0, 19.0]
+    C = A
+    banks_c = {(140.0, 118.0), (74.0, 52.0), (30.0, 8.0)}
+    banks_a = {(96.0, 74.0)}
+    bays = {(129.0, 107.0): ('tanks', .36, .62), (63.0, 41.0): ('tanks', .36, .62), (8.0, -14.0): ('pumps', .05, .29)}
+    plate_course(G, bilge_p, _bilge_len, A, .04, .3, ['dkbrown', 'base', 'dkbrown', 'steel', 'base', 'dkbrown', 'bone'], 'belly a',
+                 skip=banks_a | {(8.0, -14.0)})
+    plate_course(G, bilge_p, _bilge_len, B, .35, .63, ['base', 'dkbrown', 'base', 'bone', 'dkbrown', 'base', 'steel'], 'belly b', skip=set(bays))
+    plate_course(G, bilge_p, _bilge_len, C, .65, .86, ['steel', 'dkbrown', 'steel', 'base', 'steel', 'dkbrown'], 'belly c', skip=banks_c)
+    for xa, xb in banks_c:
+        radiator_bank(G, bilge_p, _bilge_len((xa+xb)/2), xa-.5, xb+.5, .66, .85, f'belly bank {xa}')
+    for xa, xb in banks_a:
+        radiator_bank(G, bilge_p, _bilge_len((xa+xb)/2), xa-.5, xb+.5, .05, .32, f'belly bank {xa}')
+    for (xa, xb), (kind, ta, tb) in bays.items():
+        ln = _bilge_len((xa+xb)/2)
+        coaming(G, bilge_p, ln, xa-.5, xb+.5, ta, tb, 1.5, 3.0, tag=f'bay {xa}')
+        # a lower outer step round the coaming, so it reads as a heavy frame from any side
+        coaming(G, bilge_p, ln, xa+.3, xb-.3, ta-1.2/ln, tb+1.2/ln, 1.2, 1.7, fam='band', tag=f'bay step {xa}')
+        tm = (ta+tb)/2
+        if kind == 'tanks':
+            dt = 1.55/ln
+            for tc in (tm-dt, tm+dt):
+                tank(G, bilge_point, s, xa-2.6, xb+2.6, tc, 1.35, 1.6, f'bay tank {xa}')
+        else:
+            for xc in (xa-5.5, xb+5.5):
+                p, o = bilge_point(xc, tm, s)
+                pump(G, on(p, o, X, 2.2, 1.8, 2.0, f'bay pump {xc}'), 'pump')
+            # a header pipe between the pumps
+            pts_k = [[h for h in (_hit(*bilge_point(x, tc, s)) for x in (xa-3.0, (xa+xb)/2, xb+3.0)) if h]
+                     for tc in (tm-.08, tm+.085)]
+            if all(len(p) == 3 for p in pts_k):
+                bundle(G, pts_k, .8, 1.2, 'bay header', bracket_every=4.0)
+    # the bilge chine bundle: four conduits, junction boxes at both ends
+    xs = [158.0, 150.0, 128.0, 104.0, 88.0, 74.0, 60.0, 40.0, 20.0, 0.0, -18.0, -28.0]
+    pts_k = []
+    for k in range(4):
+        pts = []
+        for x in xs:
+            ln = _bilge_len(x)
+            h = _hit(*bilge_point(x, 1.0-(1.5+1.75*k)/ln, s))
+            if h:
+                pts.append(h)
+        pts_k.append(pts)
+    n = min(len(p) for p in pts_k)
+    if n >= 2:
+        bundle(G, [p[:n] for p in pts_k], .72, 1.05, 'bilge bundle')
+    for x in (159.0, xs[n-1]-1.5):
+        ln = _bilge_len(x)
+        p, o = bilge_point(x, 1.0-4.1/ln, s)
+        junction(G, on(p, o, X, 2.4, 4.0, 2.5, f'bilge junction {x}'), 2.4, 4.0, 2.6)
+    # the trench floor under the bundle
+    for xa, xb in zip(A, A[1:]):
+        for ta in (.985, .9):
+            if conformal(G['back'], bilge_p(xa, xb, .86, ta), max(2, int((xa-xb)/3)), 2, .4, tag=f'chine floor {xa}'):
+                break
+
+
+def keel_plates(G):
+    """Broad keel plates along the keel flat, alternating tone, low (0.35) so the keel line
+    keeps its shape, with the gaps between them dark."""
+    st = [160.0, 146.0, 128.0, 110.0, 92.0, 74.0, 56.0, 30.0, 10.0, -8.0, -26.0, -40.0]
+    tones = ['steel', 'dkbrown']
+
+    def P(xa, xb, ya, yb):
+        def f(a, b):
+            x = xa+(xb-xa)*a
+            h = _cast(Vector((x, 0.0, -95.0)), Z)
+            z = h[1].z if h else -45.0
+            return Vector((x, ya+(yb-ya)*b, z)), Vector((0, 0, -1))
+        return f
+    for i, (xa, xb) in enumerate(zip(st, st[1:])):
+        nu = max(2, int((xa-xb)/3))
+        conformal(G[tones[i % 2]], P(xa-.5, xb+.5, -6.0, 6.0), nu, 4, .35, tag=f'keel plate {xa}')
+
+
 def build(kit):
     _trees()
     REFUSED.clear()
@@ -391,6 +692,14 @@ def build(kit):
     leaf_mat = material('Hegemony hatch plate', (.20, .13, .105), .35, .55)
     doubler_mat = material('Hegemony doubler plate', (.115, .073, .062), .35, .6)
     pipe_mat = material('Hull conduit steel', (.16, .15, .15), .8, .4)
+    # pass 2 plate tones, kept in the Hegemony palette
+    tone = {'dkbrown': material('Hegemony dark brown plate', (.062, .039, .034), .35, .62),
+            'bone': material('Hegemony bone-brown plate', (.25, .175, .135), .3, .58),
+            'steel': material('Hegemony blue-grey steel plate', (.050, .056, .066), .55, .5),
+            'orange': material('Hegemony weathered orange plate', (.36, .10, .035), .3, .6),
+            'base': kit.plate}
+    seam_black = material('Hull seam black', (.012, .011, .012), .3, .8)
+    tank_mat = material('Hull tank steel', (.22, .21, .20), .7, .38)
     made = []
 
     def finish(F):
@@ -399,6 +708,26 @@ def build(kit):
             if ob:
                 made.append(ob)
 
+    # --- the big layer first ---
+    for side, s in (('port', 1), ('starboard', -1)):
+        G = {k: Family(f'Detail hull {side} {k} plates', m, .3) for k, m in tone.items()}
+        G['back'] = Family(f'Detail hull {side} seam backing', seam_black, 0)
+        G['coam'] = Family(f'Detail hull {side} bay coamings', kit.grey, .2)
+        G['fin'] = Family(f'Detail hull {side} radiator fins', kit.steel, 0)
+        G['tank'] = Family(f'Detail hull {side} bay tanks', tank_mat, .1)
+        G['band'] = Family(f'Detail hull {side} bay fittings', kit.steel, 0)
+        G['bundle'] = Family(f'Detail hull {side} conduit bundle', tank_mat, 0)
+        G['bracket'] = Family(f'Detail hull {side} bundle brackets', kit.steel, 0)
+        big_layer(kit, G, s)
+        finish(G)
+    G = {'steel': Family('Detail hull keel steel plates', tone['steel'], .2),
+         'dkbrown': Family('Detail hull keel brown plates', tone['dkbrown'], .2)}
+    keel_plates(G)
+    finish(G)
+    big_refused = len(REFUSED)
+
+    # --- the close-up layer, seated on the plates ---
+    _trees(own=True)
     for side, s in (('port', 1), ('starboard', -1)):
         F = {'seam': Family(f'Detail hull {side} seam straps', seam_mat, 0),
              'doubler': Family(f'Detail hull {side} doubler plates', doubler_mat, 0),
@@ -410,12 +739,6 @@ def build(kit):
              'slat': Family(f'Detail hull {side} louvre slats', kit.steel, .04),
              'lamp': Family(f'Detail hull {side} airlock lamp', kit.lamp, 0),
              'pipe': Family(f'Detail hull {side} keel conduits', pipe_mat, 0)}
-
-        def side_patch(xa, xb, ha, hb):
-            return lambda a, b: side_point(xa+(xb-xa)*a, ha+(hb-ha)*b, s)
-
-        def bilge_patch(xa, xb, ta, tb):
-            return lambda a, b: bilge_point(xa+(xb-xa)*a, ta+(tb-ta)*b, s)
 
         def item(kind, f, *a):
             if f is None:
@@ -429,79 +752,41 @@ def build(kit):
             elif kind == 'hardpoint':
                 hardpoint(F, f)
 
-        # --- prow sides: plates broken on FORE_W's stations (the sprite's band notches) ---
-        for x in (172.0, 148.0, 120.0):
-            if not conformal(F['seam'], side_patch(x+.38, x-.38, .06, .9), 2, 8, .35, tag=f'prow seam {x}'):
-                continue
-            for k in range(7):
-                h = .12+.75*k/6
-                for dx in (1.0, -1.0):
-                    p, o = side_point(x+dx, h, s)
-                    f = on(p, o, X, .18, .18, .6, 'bolt')
-                    if f:
-                        F['steel'].fbox(f, -.18, .18, -.18, .18, -.2, .38)
-        for xa, xb in ((198.0, 172.4), (171.6, 148.4), (147.6, 120.4), (119.6, 106.0)):
-            dh = .35/_side_len((xa+xb)/2)
-            conformal(F['seam'], side_patch(xa, xb, .62-dh, .62+dh), 6, 1, .3, tag=f'prow hseam {xa}')
-        # a darker doubler on the forward lower plate, the airlock and its ports in the
-        # next, a hatch and a grapple point under WS 019's deck, a louvre at the root
-        conformal(F['doubler'], side_patch(195.0, 175.0, .12, .55), 6, 3, .3, tag='prow doubler')
-        # the airlock stands in an armoured surround plate, so it reads past a few hundred metres
-        if conformal(F['leaf'], side_patch(162.6, 157.4, .1, .62), 3, 4, .28, tag='airlock surround'):
-            p, o = side_point(160.0, .3, s)
-            f = on(p, o, X, 1.7, 2.1, 1.2, 'airlock', up=True)
-            if f:
-                f.hi += .28     # stand on the surround (and sink through it)
-                airlock(F, f)
-        for x in (166.0, 154.0):
-            p, o = side_point(x, .8, s)
-            item('port', on(p, o, X, .9, .9, 1.0, f'prow port {x}'), .5)
-        p, o = side_point(140.0, .32, s)
-        item('hatch', on(p, o, X, 1.6, 1.3, 1.0, 'prow hatch', up=True), 1.6, 1.3)
-        p, o = side_point(128.0, .3, s)
-        item('hardpoint', on(p, o, X, 1.7, 1.7, 1.0, 'prow hardpoint'))
-        p, o = side_point(134.0, .8, s)
-        item('port', on(p, o, X, .9, .9, 1.0, 'prow port 134'), .5)
-        p, o = side_point(113.0, .32, s)
-        item('louvre', on(p, o, X, 3.6, 2.2, 1.0, 'prow louvre', up=True), 3.6, 2.2, 5)
-        p, o = side_point(113.0, .8, s)
-        item('port', on(p, o, X, .9, .9, 1.0, 'prow port 113'), .5)
+        def bolt_rows(pt, stations, ta, tb, n, off=1.15):
+            for x in stations[1:-1]:
+                for k in range(n):
+                    t = ta+(tb-ta)*(k+.5)/n
+                    for dx in (off, -off):
+                        p, o = pt(x+dx, t, s)
+                        f = on(p, o, X, .18, .18, .5, 'bolt')
+                        if f:
+                            F['steel'].fbox(f, -.18, .18, -.18, .18, -.2, .38)
 
-        # --- the forefoot's deadrise, forward of the belly ---
-        def dead_patch(xa, xb, ta, tb):
-            return lambda a, b: deadrise_point(xa+(xb-xa)*a, ta+(tb-ta)*b, s)
-        for x in (196.0, 172.0):
-            conformal(F['seam'], dead_patch(x+.38, x-.38, .15, .9), 1, 8, .35, tag=f'forefoot seam {x}')
-        conformal(F['doubler'], dead_patch(194.5, 189.5, .28, .8), 3, 5, .3, tag='forefoot doubler')
-        conformal(F['doubler'], dead_patch(182.0, 177.5, .2, .85), 3, 5, .3, tag='forefoot doubler aft')
-        p, o = deadrise_point(186.0, .55, s)
+        # prow sides: bolts either side of each plate break, the airlock, a hatch, a grapple
+        # point, vent ports in the upper course
+        bolt_rows(side_point, [203.0, 196.0, 184.0, 172.0, 160.0, 148.0, 136.0, 120.0, 106.0], .75, .95, 3)
+        bolt_rows(side_point, [203.0, 191.0, 179.0, 167.0, 153.0, 134.0, 121.0, 106.0], .06, .41, 5)
+        p, o = side_point(160.0, .23, s)
+        f = on(p, o, X, 1.7, 2.1, 1.2, 'airlock', up=True)
+        if f:
+            airlock(F, f)
+        p, o = side_point(143.0, .23, s)
+        item('hatch', on(p, o, X, 1.6, 1.3, 1.0, 'prow hatch', up=True), 1.6, 1.3)
+        p, o = side_point(127.5, .23, s)
+        item('hardpoint', on(p, o, X, 1.7, 1.7, 1.0, 'prow hardpoint'))
+        for x in (166.0, 154.0, 130.0, 113.0):
+            p, o = side_point(x, .85, s)
+            item('port', on(p, o, X, .9, .9, 1.0, f'prow port {x}'), .5)
+
+        # forefoot: a grapple point and vent ports on the plates
+        p, o = deadrise_point(186.0, .27, s)
         item('hardpoint', on(p, o, X, 1.7, 1.7, 1.0, 'forefoot hardpoint'))
-        for x in (199.0, 175.0):
-            p, o = deadrise_point(x, .5, s)
+        for x in (191.5, 180.0):
+            p, o = deadrise_point(x, .73, s)
             item('port', on(p, o, X, .9, .9, 1.0, f'forefoot port {x}'), .6)
 
-        # --- bilge planes: a course of plates on the belly's stations ---
-        seams = (150.0, 128.0, 104.0, 74.0, 40.0, 8.0)
-        for x in seams+(-20.0,):
-            # aft, the aft body comes down over the plane's upper part: stop the strap short
-            for t1 in (.86, .7, .55, .42):
-                if conformal(F['seam'], bilge_patch(x+.4, x-.4, .2, t1), 2, 10, .38, tag=f'bilge seam {x}'):
-                    break
-            else:
-                continue
-            for k in range(int((t1-.2)/.07)+1):
-                t = .24+(t1-.28)*k/max(1, int((t1-.2)/.07))
-                for dx in (1.05, -1.05):
-                    p, o = bilge_point(x+dx, t, s)
-                    f = on(p, o, X, .18, .18, .6, 'bolt')
-                    if f:
-                        F['steel'].fbox(f, -.18, .18, -.18, .18, -.2, .4)
-        for xa, xb in zip(seams, seams[1:]):
-            dt = .35/_bilge_len((xa+xb)/2)
-            conformal(F['seam'], bilge_patch(xa-.4, xb+.4, .5-dt, .5+dt), 8, 1, .32, tag=f'bilge lseam {xa}')
-        conformal(F['doubler'], bilge_patch(126.5, 105.5, .55, .82), 6, 3, .3, tag='doubler 128')
-        conformal(F['doubler'], bilge_patch(72.5, 41.5, .23, .46), 8, 3, .3, tag='doubler 74')
-        conformal(F['doubler'], bilge_patch(148.5, 129.5, .55, .82), 5, 3, .3, tag='doubler 150')
+        # belly: bolts on the plate breaks, hatches, ports and a grapple point on plate centres
+        bolt_rows(bilge_point, [160.0, 140.0, 118.0, 96.0, 74.0, 52.0, 30.0, 8.0, -14.0, -36.0], .08, .3, 4)
 
         def put(kind, x, t, *a, n=1):
             hu, hv = {'port': (1.1, 1.1), 'hardpoint': (1.7, 1.7)}.get(kind, a[:2])
@@ -509,41 +794,19 @@ def build(kit):
                 xk = x+(k-(n-1)/2)*(2*hu+.4)
                 p, o = bilge_point(xk, t, s)
                 item(kind, on(p, o, X, hu, hv, 1.0, f'bilge {kind} {xk}'), *a)
-        put('port', 143.0, .3, .75)
-        put('port', 135.0, .3, .75)
-        put('hatch', 116.0, .34, 2.2, 1.6)
-        put('louvre', 89.0, .32, 2.6, 2.6, 5, n=4)
-        put('hatch', 95.0, .7, 1.6, 1.2)
-        put('port', 84.0, .68, .75)
-        put('port', 79.0, .68, .75)
-        put('hatch', 64.0, .68, 3.0, 2.2)
-        put('hatch', 49.0, .68, 1.6, 1.2)
-        put('port', 30.0, .3, .75)
-        put('port', 24.0, .3, .75)
-        put('hatch', 15.0, .32, 1.8, 1.4)
-        put('louvre', 24.0, .68, 2.6, 2.8, 5, n=4)
-        put('hardpoint', -2.0, .3)
-        put('hatch', -14.0, .26, 1.6, 1.2)
+        put('port', 150.0, .19, .75, n=2)
+        put('hatch', 125.0, .19, 2.2, 1.6)
+        put('hatch', 107.0, .755, 1.6, 1.2)
+        put('port', 85.0, .755, .75, n=2)
+        put('hatch', 63.0, .19, 3.0, 2.2)
+        put('hardpoint', 41.0, .19)
+        put('hatch', 41.0, .755, 1.6, 1.2)
+        put('port', 19.0, .19, .75, n=2)
+        put('hatch', 30.0, .49, 1.8, 1.4)
+        put('port', 96.0, .49, .75, n=2)
+        put('hardpoint', -25.0, .17)
 
-        # --- the conduits along the bilge chine, junction box to junction box ---
-        for t, r, so, tag in ((.93, .55, .85, 'main'), (.865, .35, .6, 'branch')):
-            pts = []
-            for x in (158.0, 150.0, 128.0, 104.0, 88.0, 74.0, 60.0, 40.0, 20.0, 0.0, -18.0, -28.0):
-                p, o = bilge_point(x, t, s)
-                hit = _cast(p+o*8.0, -o)
-                if hit is None or hit[0] > 14.0:
-                    REFUSED.append((f'conduit {tag} {x}', 'miss'))
-                    continue
-                pts.append((hit[1], hit[2].normalized()))
-            pipe_run(F, pts, r, so)
-        for x in (160.5, -30.5):
-            p, o = bilge_point(x, .9, s)
-            f = on(p, o, X, 2.0, 1.6, 2.2, f'junction {x}')
-            if f:
-                F['frame'].fbox(f, -2.0, 2.0, -1.6, 1.6, -.3, 1.5)
-                F['steel'].fbox(f, -1.6, 1.6, -1.2, 1.2, 1.2, 1.75, flat=True)
-
-        # --- waist bellies: radiator banks under the valley ---
+        # waist bellies: radiator banks under the valley
         for x in (84.0, 56.0, 28.0):
             fo = fore(x)
             yc, yo = fo['w']-fo['fl'], _table(WAIST_OUT, x)
@@ -563,24 +826,25 @@ def build(kit):
 
     def keel_at(x, hu, hv, tag):
         return seat((x, 0.0, -80.0), (0, 0, 1), X, hu, hv, .8, tag)
-    f = keel_at(40.0, 3.6, 3.6, 'docking collar')
+    f = keel_at(42.0, 3.6, 3.6, 'docking collar')
     if f:
-        # a ring of eight segments round a dark mating face, and four latch blocks
         F['dark'].fcyl(f, 0, 0, 2.3, -.3, .5, 16)
         for k in range(8):
             F['pipe'].fbox(f.turned(2*math.pi*k/8), 2.3, 3.1, -1.05, 1.05, -.3, .95)
         for k in range(4):
             F['steel'].fbox(f.turned(2*math.pi*(k+.5)/4), 3.0, 3.6, -.45, .45, -.3, .7)
-    for x in (122.0, 2.0):
+    for x in (119.0, 1.0):
         f = keel_at(x, 2.4, 1.8, f'keel hatch {x}')
         if f:
             hatch(F, f, 2.4, 1.8)
-    for x in (142.0, 98.0, 70.0, 16.0, -24.0):
+    for x in (138.0, 101.0, 65.0, 20.0, -17.0):
         f = keel_at(x, 1.1, 1.1, f'keel port {x}')
         if f:
             port(F, f, .7)
     finish(F)
-    print(f'DETAIL HULL: {len(made)} objects; refused {len(REFUSED)}')
+    bpy.context.view_layer.update()
+    faces = sum(len(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()).data.polygons) for ob in made)
+    print(f'DETAIL HULL: {len(made)} objects, {faces} faces; refused {len(REFUSED)} ({big_refused} big layer)')
     for tag, why in REFUSED:
         print('  refused', tag, why)
     return made

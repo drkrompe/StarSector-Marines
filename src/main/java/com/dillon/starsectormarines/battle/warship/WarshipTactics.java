@@ -1244,6 +1244,9 @@ public final class WarshipTactics {
         float across = (float) Math.sqrt(Math.max(0f, 1f - along * along));
         float leadExtent = 0.5f * lead.lengthCells * along + 0.5f * lead.widthCells * across;
         float out = leadExtent + 0.5f * Math.max(escort.lengthCells, escort.widthCells) + WarshipEscort.GAP_CELLS;
+        // Clear of the charge however either turns: a heavy hull swinging its bow sweeps its corners out to its
+        // half-diagonal faster than a screen sitting just off its side can give way.
+        if (WarshipEscort.CLEARS_CHARGE) out = Math.max(out, WarshipEscort.roundingRadius(lead, escort));
         int slot = Math.max(0, escorts.indexOf(escort));
         int slots = Math.max(1, escorts.size());
         float spread = (slot - (slots - 1) * 0.5f) * (Math.max(escort.lengthCells, escort.widthCells)

@@ -20,6 +20,8 @@ read from build/c1v2/inputs/ under the repository root:
     hound-skinned.blend         hound-surface/build/skinned.blend
     mudskipper-skinned.blend    mudskipper-surface/build/skinned.blend
     legion-geometry.blend       legion-geometry/legion-geometry.blend
+    onslaught.blend             Drive builds/onslaught/85faadc8f (with onslaught-manifest.json)
+    lasher.blend                Drive builds/lasher/4e2ed50 (with lasher-geometry.json)
 """
 import json
 import math
@@ -292,11 +294,49 @@ def fly(root, t0, t1, p0, p1, pitch=0.0, roll=0.0):
         root.keyframe_insert('location', frame=f)
 
 
-def hull_collection(path):
+def hull_collection(path, name='Collection'):
     """An appended hull kept out of the render itself, for collection instances."""
-    coll = append_collection(path, 'Collection')
+    coll = append_collection(path, name)
     bpy.context.view_layer.layer_collection.children[coll.name].exclude = True
     return coll
+
+
+def drive_glows(coll, root_name, engines, energy):
+    """Stand-in drive glow inside a published hull's collection, so every instance carries it.
+
+    The exhaust anchors sit in the hull's anchors collection, which is excluded with the hull and
+    never evaluated: read each one's place relative to the root and hang the light on the root.
+    engines: (anchor name, mouth radius in hull units) pairs."""
+    root = bpy.data.objects[root_name]
+    for anchor_name, mouth in engines:
+        anchor = bpy.data.objects.get(anchor_name)
+        if anchor is None:
+            continue
+        name = '%s | %s glow' % (root_name.split(' |')[0], anchor_name.replace(' exhaust anchor', ''))
+        light = bpy.data.objects.new(name, bpy.data.lights.new(name, 'POINT'))
+        light.data.energy = energy * (mouth / 4.6) ** 2
+        light.data.color = (1.0, 0.72, 0.42)   # low-tech drives burn orange
+        light.data.shadow_soft_size = mouth * 0.5
+        light.parent = root
+        light.matrix_basis = (anchor.matrix_parent_inverse @ anchor.matrix_basis
+                              @ Matrix.Translation((mouth * 0.6, 0, 0)))
+        coll.objects.link(light)
+
+
+def quiet_lamps(coll, strength):
+    """Running lights sized for a close camera blow out to blobs larger than the hull at picket
+    range: cap their emission for distant formation work."""
+    for obj in coll.all_objects:
+        if obj.type != 'MESH' or not obj.name.startswith('Light '):
+            continue
+        for mat in obj.data.materials:
+            if mat is None or not mat.use_nodes:
+                continue
+            for node in mat.node_tree.nodes:
+                sock = node.inputs.get('Emission Strength') or (
+                    node.inputs.get('Strength') if node.type == 'EMISSION' else None)
+                if sock is not None and sock.default_value > strength:
+                    sock.default_value = strength
 
 
 def instance(coll, metres_per_unit, name):
@@ -310,17 +350,23 @@ def instance(coll, metres_per_unit, name):
 
 # Hegemony picket off the station, upper left of the final framing: the lead and its escorts in
 # formation, each placed through a pixel of the final view at its own range, all drifting on one
-# heading with their own small attitude differences. Slots marked for ordered hulls (Onslaught,
-# Lasher) are filled by what exists until those arrive.
+# heading with their own small attitude differences. The Onslaught is the flagship and leads (it
+# is furthest along the heading, which runs toward the left of the frame); the Legion holds the
+# second line, Lashers screen ahead and below, Hounds close up the rear.
 FLOTILLA_HEADING = math.radians(160)
 FLOTILLA_SPEED = 10.0
 FLOTILLA = (  # (hull, px, py, range m, pitch deg, roll deg)
-    ('legion', 540, 300, 2600, 6, -8),
-    ('hound', 360, 210, 2300, 4, -12),
-    ('hound', 720, 200, 2900, 9, -5),
-    ('hound', 400, 430, 2100, 2, -15),
-    ('hound', 690, 440, 2500, 7, -9),
+    ('onslaught', 490, 300, 2700, 5, -7),
+    ('legion', 750, 440, 3000, 6, -8),
+    ('lasher', 300, 200, 2300, 3, -12),
+    ('lasher', 340, 450, 2150, 2, -15),
+    ('lasher', 640, 170, 2500, 8, -6),
+    ('lasher', 540, 540, 2350, 4, -10),
+    ('hound', 790, 140, 2900, 9, -5),
+    ('hound', 920, 540, 2600, 7, -9),
 )
+# Pixels are where each hull sits at mid-shot; the drift carries the picket about 150-200 px
+# left by the closing hold, which is the framing these were laid out for.
 
 
 def add_flotilla(scene, hulls):
@@ -343,6 +389,17 @@ def add_traffic(scene):
     # Hull scales from ship_scale.py (option C, 2026-10-18).
     hulls = {'legion': (hull_collection(INPUTS / 'legion-geometry.blend'), 0.99),
              'hound': (hull_collection(INPUTS / 'hound-skinned.blend'), 0.88)}
+    # Published ship-pipeline builds: collection, root and metres_per_unit from their manifests.
+    ons = json.loads((INPUTS / 'onslaught-manifest.json').read_text())
+    coll = hull_collection(INPUTS / 'onslaught.blend', ons['append_collection'])
+    drive_glows(coll, ons['root'], [(e['anchor'], e['mouth_radius']) for e in ons['engines']], 1.2e6)
+    quiet_lamps(coll, 6.0)
+    hulls['onslaught'] = (coll, ons['metres_per_unit'])
+    las = json.loads((INPUTS / 'lasher-geometry.json').read_text())
+    coll = hull_collection(INPUTS / 'lasher.blend', las['asset']['collection'])
+    drive_glows(coll, las['asset']['root'], [(e['anchor'], e['mouth_radius']) for e in las['engines']], 3.0e5)
+    quiet_lamps(coll, 6.0)
+    hulls['lasher'] = (coll, las['metres_per_unit'])
     add_flotilla(scene, hulls)
     # Local working traffic across the lane during the reveal, about a kilometre out.
     mud = rooted(INPUTS / 'mudskipper-skinned.blend', 'Mudskipper', 0.85)

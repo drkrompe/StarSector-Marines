@@ -189,14 +189,26 @@ HULLS = {
                     sprite_px=364, fittings_units={'deck window w x h': [2.30, 1.03],
                                                    'capital-mount bay w x h': [21.0, 22.0],
                                                    'bridge glazing band h': [2.07]}),
+    # The Colossus heavy freighter: cargo body (central hold and four side modules), keel
+    # spine, aft machinery body and bridge deckhouse; longerons, open trusses and drive pods
+    # excluded. Cargo is a small term here (900 x 2 m3); crew room sizes it, like every hull.
+    # Fittings: side personnel hatch, side cargo door, bow cargo door, bridge door.
+    # Published at 0.50 (108 m) by owner override (2026-10-18): the owner's thick cargo
+    # front (pass 3 round 1) deepened the block and the rule now solves 0.426 (92 m).
+    'Colossus': dict(units3=1182133, crew_max=200, cargo=900, fuel=120, cls='freighter', length_units=216.7,
+                     sprite_px=224, fittings_units={'personnel hatch w x h': [2.2, 4.8],
+                                                    'side cargo door w x h': [15, 14],
+                                                    'bow cargo door w x h': [41, 23],
+                                                    'bridge door w x h': [2.2, 4.6]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
-                 'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)'}
+                 'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
+                 'Colossus': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with

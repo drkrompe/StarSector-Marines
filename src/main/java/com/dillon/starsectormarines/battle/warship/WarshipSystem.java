@@ -1027,6 +1027,14 @@ public final class WarshipSystem {
             tx = clear[0];
             ty = clear[1];
         }
+        Warship screened = keepsClear && WarshipSpacing.ENABLED && WarshipEscort.CLEARS_CHARGE
+                ? WarshipEscort.liveLead(ship) : null;
+        if (screened != null && WarshipSpacing.obstructs(screened)) {
+            // A screen changing sides comes round its charge rather than across it.
+            float[] round = WarshipEscort.roundCharge(ship, screened, tx, ty);
+            tx = round[0];
+            ty = round[1];
+        }
         float dx = tx - ship.x;
         float dy = ty - ship.y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);

@@ -56,22 +56,22 @@ grilles. Light `service` wear (`wear.json`), heavier soot at the drive drums.
   within 0.5 dE, 4 hull units (2.2 m) per image.
 - 4 Codex generations in all, no retries.
 
-Coverage at 1920x1080 (part skin / swatch / textured):
+Coverage at 1920x1080 (part skin / swatch / textured), full review set:
 
 | View | Skin | Swatch | Textured |
 |---|---|---|---|
-| three-quarter | 58% | 40% | 98% |
-| top | 69% | 29% | 98% |
+| three-quarter | 53% | 45% | 98% |
+| top | 66% | 32% | 98% |
 | port-side | 31% | 66% | 97% |
-| front | 15% | 83% | 98% |
-| starboard-quarter | 58% | 40% | 98% |
-| port-aft-quarter | 53% | 45% | 98% |
-| under-quarter | 59% | 41% | 100% |
-| starboard-side | 24% | 72% | 96% |
-| gun-detail | 30% | 70% | 100% |
-| cockpit-detail | 50% | 36% | 87% |
-| aft-detail | 72% | 28% | 100% |
-| engine-detail | 30% | 70% | 100% |
+| front | 20% | 78% | 98% |
+| starboard-quarter | 54% | 44% | 98% |
+| port-aft-quarter | 50% | 48% | 98% |
+| under-quarter | 53% | 47% | 100% |
+| starboard-side | 26% | 71% | 96% |
+| gun-detail | 28% | 71% | 100% |
+| cockpit-detail | 50% | 37% | 87% |
+| aft-detail | 69% | 31% | 100% |
+| engine-detail | 27% | 72% | 100% |
 
 The untextured remainder is the canopy glass, which keeps its own material.
 
@@ -100,7 +100,9 @@ The Dagger's cream class (the torpedo store) is owned, not measured. The
 Longbow's belly is one 29 x 31 unit part (12 texels per unit); split it if a
 shot looks up at it closely.
 
-Coverage at 1920x1080 (part skin / swatch / textured), quick review pass:
+Coverage at 1920x1080 (part skin / swatch / textured): the Wasp from its quick
+pass, the others from the full review set on the reshaped hulls (close-ups in
+the review run's NOTES.md on Drive).
 
 | View | Wasp | Dagger | Longbow | Thunder |
 |---|---|---|---|---|
@@ -108,7 +110,10 @@ Coverage at 1920x1080 (part skin / swatch / textured), quick review pass:
 | starboard-quarter | 44 / 54 / 98% | 53 / 44 / 97% | 41 / 56 / 98% | 52 / 44 / 97% |
 | port-aft-quarter | 40 / 58 / 98% | 48 / 49 / 97% | 40 / 57 / 98% | 45 / 51 / 97% |
 | top | 51 / 47 / 98% | 63 / 34 / 97% | 57 / 41 / 97% | 62 / 35 / 97% |
-| under-quarter | | 66 / 34 / 99% | 42 / 57 / 99% | 65 / 34 / 99% |
+| under-quarter |  | 66 / 34 / 99% | 42 / 57 / 99% | 65 / 34 / 99% |
+| port-side |  | 28 / 68 / 96% | 17 / 79 / 96% | 17 / 78 / 94% |
+| starboard-side |  | 39 / 57 / 95% | 14 / 83 / 96% | 23 / 71 / 94% |
+| front |  | 24 / 73 / 96% | 14 / 83 / 97% | 28 / 67 / 95% |
 
 The untextured remainder is glass (canopies, lamps, sensor windows), which
 keeps its own material.

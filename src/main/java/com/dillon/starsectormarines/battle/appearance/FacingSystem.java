@@ -412,7 +412,7 @@ public final class FacingSystem {
         MechWeaponMount active = activeMount(loadout, weaponId);
         if (active != null) return active;
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weaponId().equals(weaponId)) return mount;
+            if (mount != null && sameRack(mount.weaponId(), weaponId)) return mount;
         }
         return null;
     }
@@ -420,12 +420,19 @@ public final class FacingSystem {
     private static MechWeaponMount activeMount(MechLoadoutComponent loadout,
                                                 String weaponId) {
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weaponId().equals(weaponId)
+            if (mount != null && sameRack(mount.weaponId(), weaponId)
                     && mount.burstRemaining > 0) {
                 return mount;
             }
         }
         return null;
+    }
+
+    /** An SRM or LRM family id stands for every warhead of that rack. */
+    private static boolean sameRack(String mountWeaponId, String weaponId) {
+        if (WeaponRegistry.MECH_SRM_POD_ID.equals(weaponId)) return WeaponRegistry.isMechSrm(mountWeaponId);
+        if (WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(weaponId)) return WeaponRegistry.isMechLrm(mountWeaponId);
+        return mountWeaponId.equals(weaponId);
     }
 
     private static float trackPhase(MechWeaponMount mount) {
@@ -442,7 +449,7 @@ public final class FacingSystem {
 
     private static boolean anyTrackFlash(MechLoadoutComponent loadout, String weaponId) {
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weaponId().equals(weaponId) && trackFlash(mount)) {
+            if (mount != null && sameRack(mount.weaponId(), weaponId) && trackFlash(mount)) {
                 return true;
             }
         }

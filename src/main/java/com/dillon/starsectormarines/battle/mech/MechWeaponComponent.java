@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Immutable hardware installed in one mech hardpoint. The underlying
  * weapon catalog owns projectile behavior; this component owns the rack
@@ -50,17 +53,31 @@ public enum MechWeaponComponent {
             "weapon.mech-quarry-breaker", 1, 4,
             LayeredMechAppearance.ARMS_QUARRY_BREAKER),
 
+    // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 2, "weapon.mech-srm-pod",
+            HardpointType.MISSILE, 2, 2, Variants.srm(),
             2, 6, LayeredMechAppearance.POD_SMALL_SRM),
     SRM_15("component.mech-srm-15", "@gearMechWeaponComponentSRM15", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 3, "weapon.mech-srm-pod",
+            HardpointType.MISSILE, 2, 3, Variants.srm(),
             4, 6, LayeredMechAppearance.POD_LARGE_SRM),
     LRM_5("component.mech-lrm-5", "@gearMechWeaponComponentLRM5", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 2, "weapon.mech-lrm-artillery",
+            HardpointType.MISSILE, 2, 2, Variants.lrm(),
             2, 4, LayeredMechAppearance.POD_SMALL_LRM),
     LRM_15("component.mech-lrm-15", "@gearMechWeaponComponentLRM15", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 3, "weapon.mech-lrm-artillery",
+            HardpointType.MISSILE, 2, 3, Variants.lrm(),
+            5, 3, LayeredMechAppearance.POD_LARGE_LRM),
+    // The fragmentation racks: the same rack sizes with an area warhead at low penetration.
+    SRM_5_FRAG("component.mech-srm-5-frag", "@gearMechWeaponComponentSRM5FRAG", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 2, 2, WeaponRegistry.MECH_SRM_FRAG_ID,
+            2, 6, LayeredMechAppearance.POD_SMALL_SRM),
+    SRM_15_FRAG("component.mech-srm-15-frag", "@gearMechWeaponComponentSRM15FRAG", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_SRM_FRAG_ID,
+            4, 6, LayeredMechAppearance.POD_LARGE_SRM),
+    LRM_5_FRAG("component.mech-lrm-5-frag", "@gearMechWeaponComponentLRM5FRAG", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 2, 2, WeaponRegistry.MECH_LRM_FRAG_ID,
+            2, 4, LayeredMechAppearance.POD_SMALL_LRM),
+    LRM_15_FRAG("component.mech-lrm-15-frag", "@gearMechWeaponComponentLRM15FRAG", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_LRM_FRAG_ID,
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
     SHOULDER_LASER_CANNON("component.mech-shoulder-laser", "@gearMechWeaponComponentSHOULDERLASERCANNON",
             MountFamily.SHOULDER, HardpointType.ENERGY, 3, 2,
@@ -74,6 +91,42 @@ public enum MechWeaponComponent {
             MountFamily.SHOULDER, HardpointType.MISSILE, 1, 1,
             "weapon.mech-pioneer-rocket", 4, 3,
             LayeredMechAppearance.POD_PIONEER_ROCKET);
+
+    /**
+     * Whether the split into anti-armor and fragmentation racks is live.
+     * {@code -Dbattle.mech.missileVariants=false} is the control: the anti-armor ids fire the
+     * single warhead every rack had before the split, at any target.
+     */
+    public static boolean missileVariants() { return Variants.ON; }
+
+    /** Read in the constructors, before the enum's own statics exist. */
+    private static final class Variants {
+        static final boolean ON = Boolean.parseBoolean(
+                System.getProperty("battle.mech.missileVariants", "true"));
+
+        static String srm() { return ON ? WeaponRegistry.MECH_SRM_POD_ID : WeaponRegistry.MECH_SRM_LEGACY_ID; }
+
+        static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ARTILLERY_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
+    }
+
+    /** An anti-armor rack: it holds fire at anything that is not a hardened target. */
+    public boolean antiArmorOnly() {
+        return Variants.ON && switch (this) {
+            case SRM_5, SRM_15, LRM_5, LRM_15 -> true;
+            default -> false;
+        };
+    }
+
+    /** The fragmentation rack of the same size, or null for anything that is not an anti-armor rack. */
+    public MechWeaponComponent fragCounterpart() {
+        return switch (this) {
+            case SRM_5 -> SRM_5_FRAG;
+            case SRM_15 -> SRM_15_FRAG;
+            case LRM_5 -> LRM_5_FRAG;
+            case LRM_15 -> LRM_15_FRAG;
+            default -> null;
+        };
+    }
 
     public enum MountFamily { ARMS, SHOULDER }
     public enum HardpointType { BALLISTIC, ENERGY, MISSILE }
@@ -122,12 +175,16 @@ public enum MechWeaponComponent {
 
     /** Mechanical trigger-to-trigger time, independent of thermal headroom and pack supply. */
     public float cycleSeconds() {
+        return tuned("cycle", authoredCycleSeconds());
+    }
+
+    private float authoredCycleSeconds() {
         return switch (this) {
             case NOSE_CHAINGUN -> .65f;
             case DUAL_CHAINGUNS -> 1.05f;
-            case SRM_5 -> 1.8f;
-            case SRM_15 -> 2.6f;
-            case LRM_5, LRM_15 -> 9f;
+            case SRM_5, SRM_5_FRAG -> 1.8f;
+            case SRM_15, SRM_15_FRAG -> 2.6f;
+            case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
             case DUAL_LINEAR_CANNONS -> 2.8f;
             case SINGLE_HEAVY_CANNON -> 2.5f;
             case DUAL_PULSE_LASERS -> 2.1f;
@@ -149,17 +206,39 @@ public enum MechWeaponComponent {
 
     /** Whole-packet thermal reservation: scheduled rounds cannot stall halfway through a salvo. */
     public float heatPerTrigger() {
+        return tuned("heat", authoredHeat());
+    }
+
+    /**
+     * A balance control: {@code -Dbattle.mech.<axis>.<short id>=<value>} replaces one authored value, where the
+     * short id is the component id without {@code component.mech-} (for example
+     * {@code -Dbattle.mech.heat.bastion-autocannons=24}). Read once per component and axis.
+     */
+    public float tuned(String axis, float authored) {
+        float override = TUNING.computeIfAbsent(axis + "." + id.substring(id.indexOf("mech-") + 5), key -> {
+            String value = System.getProperty("battle.mech." + key);
+            return value != null ? Float.parseFloat(value) : Float.NaN;
+        });
+        return Float.isNaN(override) ? authored : override;
+    }
+
+    private static final Map<String, Float> TUNING = new ConcurrentHashMap<>();
+
+    private float authoredHeat() {
         return switch (this) {
             case NOSE_CHAINGUN -> 18f;
             case DUAL_CHAINGUNS -> 30f;
-            case SRM_5 -> 28f;
-            case SRM_15 -> 42f;
-            case LRM_5 -> 22f;
-            case LRM_15 -> 40f;
-            case DUAL_LINEAR_CANNONS, DUAL_BASTION_AUTOCANNONS -> 24f;
+            case SRM_5, SRM_5_FRAG -> 28f;
+            case SRM_15, SRM_15_FRAG -> 42f;
+            case LRM_5, LRM_5_FRAG -> 22f;
+            case LRM_15, LRM_15_FRAG -> 40f;
+            case DUAL_LINEAR_CANNONS -> 24f;
+            // Hot enough that the bastion's range costs its carrier reservoir, as the heavy cannon's does.
+            case DUAL_BASTION_AUTOCANNONS -> 28f;
             case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_HEAT;
             case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
-            case DUAL_PULSE_LASERS -> 38f;
+            // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
+            case DUAL_PULSE_LASERS -> 26f;
             case DUAL_MUSTER_AUTOGUNS -> 22f;
             case NOSE_MUSTER_AUTOGUN -> 14f;
             case SHOULDER_LASER_CANNON -> 35f;

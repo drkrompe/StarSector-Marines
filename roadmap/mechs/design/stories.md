@@ -6,7 +6,7 @@ cleanup remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
+Updated: 2026-10-18 — mech missile warheads shipped; earlier: vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
 
 Read `mechs-nouns.md` before changing the live story.
 
