@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-19 — a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -264,8 +264,14 @@ machine, as a mech's sections share their chassis's rating.
   pointed. The hull reads as unarmed to every question that asks: its threat
   reach is zero, a duel band reads it as a machine with no weapons, and it
   leaves `VehicleEngagement`. Direct control keeps the hull but offers no gun.
-  A disarmed hull holds, or follows a player order. Unlike a disarmed mech it
-  does not break contact yet; that is open.
+  A disarmed hull **withdraws**, the way a disarmed mech breaks contact. A hull
+  carries one gun, so there is no secondary armament left to fight from cover
+  with. Between orders it drives away from every hostile that can still shoot it
+  (mech, armed hull or infantry), weighted toward the deepest reach it stands
+  inside, until it is six cells outside each one's reach, and holds there. With
+  no drivable route it backs off the nearest threat with its nose on it. A player
+  order still owns it while the order lasts. `-Dbattle.vehicle.disarmedWithdraw=false`
+  is the control, where it holds where it stands.
 - **An empty magazine is a different fact.** It ends fire but leaves the gun.
   The hull still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
@@ -600,8 +606,8 @@ retains the same existing cross-domain behavior as an autonomous hull.
   kited out of its own reach (`heavy-equipment-progression.md`, a tank against
   the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
-  allied story columns, delivery legs, unarmed hulls, shot-away guns and empty
-  magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
+  allied story columns, delivery legs, unarmed hulls, shot-away guns (which
+  withdraw instead) and empty magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
   (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
   beyond the target's reach where its gun out-reaches it and at the outer edge of
   its own reach otherwise, never closer; an **ambusher** never drives at armor and
@@ -891,6 +897,17 @@ ground scale:
 - A **strike** drone waits in the bay for a hostile to threaten the hull. It then flies
   fast into it and detonates as an ordinary blast credited to itself. It is the only
   role the bay rebuilds, slowly, as a Terminator's mini-fac does.
+
+  The strike is a heavy shell delivered by hand, and it is held to that family rather than
+  to anything special. Its blast kills a rifleman in any standard pattern it reaches and
+  does not kill a power suit, the same armor reach as a field mortar or a tank's twin
+  cannon, and its kill radius sits in the same band. It aims at one hostile, never at a
+  group's middle, and it fuses within a cell of that man. So it takes a picket standing a
+  cell apart whole, and from a picket two or three cells apart it takes only the man it
+  was sent at. What it buys over a shell is precision, paid for with one blast per
+  rebuild. A picket wiped out by a skimmer was a picket that had closed up under fire and
+  been worn down by the escorts first. `StrikeBlastTest` pins the law, and the
+  `drone-strike-spacing` scene measures it in a played fight.
 
 Any other drone lost stays lost. When the hull is wrecked or leaves, the anchor dies, and
 every drone still out is destroyed where it flies and falls through the ordinary drone

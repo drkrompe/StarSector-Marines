@@ -56,6 +56,16 @@ public final class Warship {
         public float secondsSinceFired = 1000f;
         /** Rounds left in this mount's own magazine, or {@code -1} when it has none to run out of. */
         int ammoRemaining = UNLIMITED;
+        /** The magazine's size on the duel footing, or {@code -1} when it has none. */
+        int ammoMax = UNLIMITED;
+        /** Rounds a regaining magazine takes back per hull-fight second (the table's {@code ammo/sec}); zero for none. */
+        float reloadPerSecond;
+        /** Rounds a regaining magazine takes back at a time (the table's {@code reload size}). */
+        int reloadSize = 1;
+        /** Rounds earned toward the next reload. */
+        float reloadProgress;
+        /** Rounds this mount's magazine has taken back over the battle, for evidence. */
+        int reloaded;
         /** Whether the plating cell under this mount's slot has been holed through, taking the mount with it. */
         boolean knockedOut;
         /** When a silenced mount comes back into action, in battle seconds; NaN while it is not being repaired. */
@@ -78,6 +88,16 @@ public final class Warship {
         /** Rounds left in this mount's own magazine, or {@code -1} when it is unlimited. */
         public int ammoRemaining() {
             return ammoRemaining;
+        }
+
+        /** The magazine's size on the duel footing, or {@code -1} when it has none. */
+        public int ammoMax() {
+            return ammoMax;
+        }
+
+        /** Rounds this mount's magazine has taken back over the battle. */
+        public int reloaded() {
+            return reloaded;
         }
 
         Mount(WarshipSlot slot, VanillaWeapon weapon) {
@@ -2292,7 +2312,35 @@ public final class Warship {
         for (Mount m : mounts) {
             if (!m.weapon.missile() || m.ammoRemaining >= 0) continue;
             int ammo = VanillaWeapons.ammo(m.weapon.id());
-            if (ammo > 0) m.ammoRemaining = ammo;
+            if (ammo <= 0) continue;
+            m.ammoRemaining = ammo;
+            m.ammoMax = ammo;
+            m.reloadPerSecond = VanillaWeapons.ammoPerSecond(m.weapon.id());
+            m.reloadSize = VanillaWeapons.reloadSize(m.weapon.id());
+        }
+    }
+
+    /**
+     * Refills the magazines that regain rounds in the base game (a Pilum's, a Swarmer fighter's), at the table's
+     * {@code ammo/sec} on the clock {@code dt} is measured on (the hull fight's, so a reload takes the base game's
+     * seconds against the hull fight's tempo), in the table's reload size, never past the magazine. A full magazine
+     * earns nothing toward the next reload, as in the base game.
+     */
+    void tickReloads(float dt) {
+        if (!duelFooting) return;
+        for (Mount m : mounts) {
+            if (m.ammoMax <= 0 || m.reloadPerSecond <= 0f || m.lost) continue;
+            if (m.ammoRemaining >= m.ammoMax) {
+                m.reloadProgress = 0f;
+                continue;
+            }
+            m.reloadProgress += m.reloadPerSecond * dt;
+            while (m.reloadProgress >= m.reloadSize && m.ammoRemaining < m.ammoMax) {
+                m.reloadProgress -= m.reloadSize;
+                int back = Math.min(m.reloadSize, m.ammoMax - m.ammoRemaining);
+                m.ammoRemaining += back;
+                m.reloaded += back;
+            }
         }
     }
 

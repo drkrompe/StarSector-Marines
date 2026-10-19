@@ -8,13 +8,14 @@ slits at standing eye height, about 1.3 m above the floor: this is a standing br
 
 The front of the room is a raised flight dais (z 17.55, about 60 cm up), because the housing's
 solid top runs forward under the bulkhead's raked skirt and the hull pinches in below it: a
-room floor that far forward would break out of the hull. The pilots sit on the dais at low
-consoles with their eyes in the slit band; standing crew work from the main floor behind a
-rail along the dais edge, with a step up between its two halves.
+room floor that far forward would break out of the hull. The pilot sits on the dais at a low
+console with eyes in the slit band (the owner calls it a crow's nest); standing crew work
+from the main floor behind a rail along the dais edge, with the step up to port of it.
 
 Layout, a compact version of the ship-interiors bridge (central plot, inward-facing banks):
 - the flight stations on the dais: one low console run across the forward face and both
-  chamfers, with the helm seat to starboard and the co-pilot's to port;
+  chamfers, with the one flight seat (the helm) to starboard; the port side of the dais is clear,
+  where a crewman steps up to lean over the console and look out (C2's forward station);
 - the comms and sensor bank along the port side (Castle's station, the one C2 turns to);
 - the systems bank along the starboard side;
 - a small plot table aft of centre and the standing rail along the dais edge;
@@ -34,6 +35,8 @@ exterior: 'Bridge ...' for the base room, 'Bridge jury-rig ...' for state dressi
 'Bridge display ...' for every screen (the damage pass darkens them when the power is off).
 """
 import math
+from pathlib import Path
+
 import bpy
 import sw_kit
 from sw_bridge import plan
@@ -237,7 +240,7 @@ def build(kit):
     prism(kit, 'Bridge deck plating', stepped_rings(.05)[0], FLOOR, FLOOR + .08, M['deck'])
     lo, hi = stepped_rings(.05)
     prism(kit, 'Bridge dais plating', hi[2:6], STEP, STEP + .06, M['deck'])
-    kit.box('Bridge dais step', (KNEE - .25, 0, FLOOR + .24), (.5, 1.4, .48), M['casing'], .03)
+    kit.box('Bridge dais step', (KNEE - .25, 1.65, FLOOR + .24), (.5, 1.4, .48), M['casing'], .03)
     # The room's painted lining, a hair inside the cut faces: knee wall, step, the walls below
     # and above the slits and the ceiling, open across the slit band so the glass stays clear.
     stepped_solid(kit, 'Bridge lining', .02, FLOOR, CEILING - .02, M['lining'],
@@ -251,7 +254,6 @@ def build(kit):
     for s, side in ((1, 'port'), (-1, 'starboard')):
         bank(kit, 'Bridge %s chamfer console' % side, (16.45, s * 3.36), 2.7, .9, -90 + s * 45, [(0, 1.0)])
     seat(kit, 'Bridge helm seat', FLIGHT_SEAT_X, -1.7, 0, STEP, FLIGHT_SEAT_PAN)
-    seat(kit, 'Bridge co-pilot seat', FLIGHT_SEAT_X, 1.7, 0, STEP, FLIGHT_SEAT_PAN)
 
     # Side banks: comms and sensors to port (Castle's), systems to starboard.
     bank(kit, 'Bridge port comms bank', (12.75, 4.2), 5.0, .9, 0, [(-1.6, .9), (0, 1.1), (1.6, .9)])
@@ -262,11 +264,11 @@ def build(kit):
     # Plot table aft of centre; the standing rail along the dais edge.
     kit.cylinder('Bridge plot table', (11.9, 0, FLOOR + .66), 1.05, 1.32, M['casing'], vertices=24, bevel=.04)
     kit.cylinder('Bridge display plot', (11.9, 0, FLOOR + 1.335), .9, .02, M['display'], vertices=24, bevel=0)
-    for k, s_ in enumerate((-1, 1)):            # either side of the dais step
-        kit.cylinder('Bridge standing rail %d' % (k + 1), (15.6, s_ * 1.65, FLOOR + 1.55), .07, 1.7, kit.steel,
-                     axis='Y', vertices=12, bevel=0)
-        for y in (s_ * .85, s_ * 2.45):
-            kit.cylinder('Bridge standing rail post', (15.6, y, FLOOR + .78), .06, 1.55, kit.steel, vertices=12, bevel=0)
+    # The rail runs from the starboard chamfer to the centreline; the step up is in the gap to
+    # port, where the dais is clear.
+    kit.cylinder('Bridge standing rail', (15.6, -.85, FLOOR + 1.55), .07, 3.3, kit.steel, axis='Y', vertices=12, bevel=0)
+    for y in (-2.45, -.85, .75):
+        kit.cylinder('Bridge standing rail post', (15.6, y, FLOOR + .78), .06, 1.55, kit.steel, vertices=12, bevel=0)
 
     # Aft hatch in the aft wall, onto the spine.
     kit.box('Bridge aft hatch frame', (9.22, 0, FLOOR + 1.55), (.16, 2.0, 3.1), kit.steel, .05)
@@ -289,15 +291,15 @@ def dress(kit, state):
     powered = state != 'derelict'
     # In 'derelict' sw_damage's ship-power override has already darkened every emissive part
     # of the room; the dressing added here follows it.
-    # The escape crew's salvaged display, strapped to the forward console beside the co-pilot.
-    disp = kit.box('Bridge jury-rig salvaged display', (17.45, 2.3, CONSOLE_TOP + .4), (.2, 1.1, .6),
+    # The escape crew's salvaged display, strapped to the forward console beside the helm.
+    disp = kit.box('Bridge jury-rig salvaged display', (17.45, -2.75, CONSOLE_TOP + .4), (.2, 1.1, .6),
                    M['salvage'], .04)
     disp.rotation_euler = (0, math.radians(-12), 0)
-    scr = kit.box('Bridge display salvaged', (17.34, 2.3, CONSOLE_TOP + .42), (.02, .9, .46),
+    scr = kit.box('Bridge display salvaged', (17.34, -2.75, CONSOLE_TOP + .42), (.02, .9, .46),
                   M['display'] if powered else M['dead'], 0)
     scr.rotation_euler = (0, math.radians(-12), 0)
     for z in (CONSOLE_TOP + .22, CONSOLE_TOP + .6):
-        kit.box('Bridge jury-rig strap', (17.45, 2.3, z), (.26, 1.18, .05), M['tape'], 0)
+        kit.box('Bridge jury-rig strap', (17.45, -2.75, z), (.26, 1.18, .05), M['tape'], 0)
     if state in ('patched', 'derelict'):
         # Loose cable runs taped across the ceiling and down the port wall to the comms bank.
         runs = [((10.0, -1.0, CEILING - .12), (17.0, -1.0, CEILING - .12)),
@@ -326,7 +328,36 @@ def dress(kit, state):
 # ---------------------------------------------------------------- figures (never built into the ship)
 # Simple 1.8 m mannequins for review renders and for shots on the bridge (C2): the pilot seated
 # at the helm, and Castle standing at the port comms bank. Like every hull's scale figure they
-# are added by the caller and never saved into a geometry .blend.
+# are added by the caller and never saved into a geometry .blend. Castle is the MakeHuman figure
+# from castle-figure/ (build_castle.py) when its .blend has been built, posed for this spot,
+# and her mannequin otherwise.
+
+CASTLE_BLEND = Path(__file__).resolve().parents[1] / 'castle-figure' / 'castle-figure.blend'
+
+
+def castle_figure(name, at, facing_deg, metres_per_unit, parent=None, blend=CASTLE_BLEND):
+    """Append the 'Castle figure' collection under an empty named `name`; None if not built.
+
+    The figure is in metres facing its root's +X, so the empty takes the mannequin's place,
+    turn and the metres-to-units scale."""
+    blend = Path(blend)
+    if not blend.exists():
+        return None
+    with bpy.data.libraries.load(str(blend), link=False) as (src, dst):
+        dst.collections = ['Castle figure']
+    col = dst.collections[0]
+    holder = bpy.data.objects.new(name, None)
+    bpy.context.collection.objects.link(holder)
+    holder.parent = parent
+    holder.location = at
+    holder.rotation_euler[2] = math.radians(facing_deg)
+    holder.scale = (1.0 / metres_per_unit,) * 3
+    for ob in col.all_objects:
+        bpy.context.collection.objects.link(ob)
+        if ob.name.startswith('Castle figure root'):
+            ob.parent = holder
+    bpy.data.collections.remove(col)
+    return holder
 
 def _limb(name, a, b, r, mat, parent):
     import mathutils
@@ -350,8 +381,11 @@ def _ball(name, c, r, mat, parent):
     return ob
 
 
-def figures(metres_per_unit, parent=None):
-    """Build 'Bridge figure pilot' and 'Bridge figure Castle' in hull units; returns their roots."""
+def figures(metres_per_unit, parent=None, castle=True):
+    """Build 'Bridge figure pilot' and 'Bridge figure Castle' in hull units; returns their roots.
+
+    castle=True uses the MakeHuman Castle when castle-figure.blend exists (else the mannequin);
+    False always uses the mannequin."""
     u = 1.0 / metres_per_unit
     suit = sw_kit.material('Bridge figure flight suit', (.11, .12, .10), 0, .8)
     skin = sw_kit.material('Bridge figure skin', (.33, .23, .18), 0, .6)
@@ -390,5 +424,9 @@ def figures(metres_per_unit, parent=None):
     m = metres_per_unit
     # Hips on the helm seat's pan, on the dais; feet on the dais.
     person('Bridge figure pilot', (FLIGHT_SEAT_X - .05, -1.7, STEP + FLIGHT_SEAT_PAN + .08 - .84 / m), 0, seated)
-    person('Bridge figure Castle', (10.9, 3.25, FLOOR), 90, standing)
+    real = castle and castle_figure('Bridge figure Castle', (10.9, 3.25, FLOOR), 90, m, parent)
+    if real:
+        roots.append(real)
+    else:
+        person('Bridge figure Castle', (10.9, 3.25, FLOOR), 90, standing)
     return roots

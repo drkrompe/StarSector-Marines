@@ -96,6 +96,21 @@ Pass 3 round 4 (owner: "keep adding detail", without more containers): the
   keel faces (dark spikes); cl_hull._cut now splits overlapping shells into
   separate passes, and cl_kit.boolean splits any warped n-gon it leaves. IoU
   0.964; enclosed volume 1.129 M units3 (solve 0.431, published 0.50).
+Pass 3 round 5 (owner: clamps "read as low poly", the tug engine sections and
+  the bridge need more work). Clamps are round bolted flanges on hazard rings
+  with turned bodies, collars and hooked jaws on pivot pins; the keel hatches
+  take hinges and leaf ribs. Each drive pod is a heavy tug drive unit
+  (cl_engines.tug): underslung propellant tanks on strap bands either side of
+  a drive keel with a wear shoe, a dorsal drive housing with radiator banks,
+  rails and a ladder, flush rubbing strakes, a nose push knee and keel thrust
+  shoe, RCS quads, a bolted bay surround with cheek armour, a manifold and
+  turbopumps behind 40-segment bells with four hoops and ribs; the pod now
+  stands z -32..+29. The bridge (cl_bridge) is plated and vented, with a
+  recessed mullioned windscreen under an armoured brow, bolted round ports on
+  the annex, a railed annex lookout deck and bridge wings, ladders to a railed
+  roof, a ribbed dish on a yoke, a navigation scanner, a sensor dome, whips and
+  life-raft canisters. Close-up cameras added: keel-docking, clamp-detail,
+  aft-bulkhead, pod-quarter, bridge-quarter. IoU 0.9625; 1.129 M units3.
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]

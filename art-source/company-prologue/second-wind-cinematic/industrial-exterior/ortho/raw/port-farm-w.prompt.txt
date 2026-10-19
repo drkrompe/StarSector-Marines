@@ -1,0 +1,23 @@
+Repaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.
+
+Hard rules:
+- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.
+- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.
+- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.
+- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.
+- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.
+- Fill the whole frame edge to edge. No border.
+
+Setting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.
+
+This tile: 960 m wide by 640 m tall, so one pixel is about 62 cm. It is farmland just outside the port's industrial belt: big rectangular fields seen from very high up, with a ditch and a verge along the top edge where the belt begins. Paint it like a real high-altitude aerial survey photograph of tropical farmland.
+
+What the regions are:
+- The large rectangles in shades of green, olive and khaki: crop fields, one crop to a field. Each field shows its crop rows as fine straight parallel lines about 11 m apart (about 18 pixels): in some fields the rows run left to right, in others top to bottom, never diagonal. The greener fields are growing crops, dense green rows over dark wet soil; the olive ones are younger crops with more soil showing; the khaki and tan ones are ripe grain or harvested stubble with dry straw-coloured rows. Vary the tone a little inside each field (wetter and drier patches, a few thin spots), but keep each field's own colour.
+- The narrow grey-brown strips between the fields: grass margins and dirt field edges, a few metres wide.
+- The pale tan straight strips (one running top to bottom, one left to right): farm tracks of packed tan gravel and dirt with two tyre ruts and puddles.
+- The dark green lines along some field edges: hedgerows of dense bushes and small trees, seen from above as lumpy dark green leafy lines. Keep them exactly as wide and as straight as drawn.
+- The round dark green blobs: small clumps of tree crowns, leafy canopy seen from above.
+- The very thin grey lines crossing the fields at a slant, with small X-shaped marks: a high-voltage power line, its cables and lattice pylons seen from directly above. Keep them hair-thin and exactly where drawn; the fields continue underneath them.
+- The strip along the top edge: at the very top a band of rough grassy verge with weeds; below it the blue-grey line is a drainage ditch of dark, still, muddy water with reeds along its banks; below that a strip of bare brown dirt before the first fields.
+- The small dark grey square at the top edge: a short patch of asphalt where a farm track meets the belt's checkpoint.
