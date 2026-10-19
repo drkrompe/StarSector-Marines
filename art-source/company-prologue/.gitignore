@@ -94,6 +94,11 @@ paragon-geometry/**/*.blend1
 shepherd-cinematic/*.blend
 shepherd-cinematic/*.blend1
 shepherd-cinematic/review/
+# Legion cinematic export: the .blend is rebuilt by finalize.sh; the manifest
+# and validation stay tracked.
+legion-cinematic/*.blend
+legion-cinematic/*.blend1
+legion-cinematic/review/
 legion-surface/review/
 legion-surface/textures/
 legion-surface/grading/

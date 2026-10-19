@@ -40,6 +40,23 @@ ship's motion (correct for rounds fired from a moving ship) but would swing
 with the turret if it trained mid-shot; the turrets rest at their slot angles.
 
 Derelict: the guns are stripped, no anchors exist, and nothing is built.
+
+Other hulls' mounts (swfx_hull MOUNTS, swfx_anchors.GunAnchor):
+
+  barrels    a mount with more than two barrels tags them 'barrel <k>' and
+             each gets its own rig and knobs, gun_flash_t{i}_{k}; the Second
+             Wind's 'gun' / 'port gun' / 'starboard gun' keep k 1, 1 and 2.
+             Overlapping flash boxes on one mount are padded apart a little,
+             so Cycles never cuts one off at a shared face.
+  launcher   a missile mount (MOUNTS kind 'launcher', tubes 'tube <k>') gets
+             no muzzle flash, tracer or brass. Its rig is a launch bloom
+             (ignition at the cell mouth and backblast out of its rear) and
+             a light, on gun_launch_t{i}_{k}; fire() keys that and launches
+             a missile that leaves the tube at gun_missile_velocity and
+             accelerates at gun_missile_accel along the line of fire, its
+             motor burning, out to gun_missile_range, shedding motor smoke
+             along its first stretch. The launcher knobs exist only when a
+             launcher does, so a hull without one keeps the gun knobs alone.
 """
 import math
 import random
@@ -84,6 +101,16 @@ KNOBS = [
     ('gun_tracer_range', 280.0, 30.0, 3000.0, 'tracer burnout range in metres (read at fire())'),
     ('gun_gravity', 9.81, 0.0, 30.0, 'gravity on ejected brass, m/s^2, scaled by gun_atmosphere (read at fire())'),
     ('gun_casings', 1.0, 0.0, 1.0, 'eject brass casings (>= .5 on; read at fire())'),
+]
+# Missile mounts only (made when the hull has a launcher; read at fire() unless noted).
+LAUNCH_KNOBS = [
+    ('gun_launch_gain', 1.0, 0.0, 4.0, 'master launch-bloom brightness (volume and light)'),
+    ('gun_launch_light', 4000.0, 0.0, 60000.0, 'launch point-light power in W at envelope 1'),
+    ('gun_missile_gain', 1.0, 0.0, 4.0, 'missile motor flame brightness'),
+    ('gun_missile_velocity', 40.0, 0.0, 400.0, 'missile speed leaving the tube, m/s'),
+    ('gun_missile_accel', 220.0, 0.0, 2000.0, 'missile acceleration under its motor, m/s^2'),
+    ('gun_missile_range', 1200.0, 50.0, 6000.0, 'distance at which the missile leaves the shot, metres'),
+    ('gun_missile_smoke', 1.0, 0.0, 4.0, 'motor smoke trail density multiplier'),
 ]
 
 
@@ -244,11 +271,15 @@ def _key_zero(ctx, name, frame):
 
 
 def _knob(ctx, name):
-    return float(ctx.controls.get(name, dict((k[0], k[1]) for k in KNOBS).get(name, 0.0)))
+    return float(ctx.controls.get(name, dict((k[0], k[1]) for k in KNOBS + LAUNCH_KNOBS).get(name, 0.0)))
 
 
 def gun_index(anchor):
-    """k in the knob names: 1 for a single gun or the twin's port gun, 2 for its starboard gun."""
+    """k in the knob names: 1 for a single gun or the twin's port gun, 2 for its starboard gun;
+    k itself for a multi-barrel mount's 'barrel <k>' / 'tube <k>'."""
+    barrel = getattr(anchor, 'barrel', None)
+    if barrel is not None:
+        return barrel
     return 2 if anchor.tag == 'starboard gun' else 1
 
 
@@ -478,13 +509,21 @@ def build(ctx, fire=None, **options):
                             if ctx.state == 'derelict' else 'no gun anchors found on this build')
         return record
     record['built'] = True
+    launchers = [a for a in guns if getattr(a, 'kind', 'gun') == 'launcher']
+    if launchers:
+        for name, default, lo, hi, desc in LAUNCH_KNOBS:
+            ctx.prop(name, default, lo, hi, desc)
+        record['launchers'] = [_build_launcher(ctx, coll, a) for a in launchers]
     for a in guns:
+        if a in launchers:
+            continue
         label = gun_label(a)
         s = a.scale
         ctx.prop(f'gun_flash_{label}', 0.0, 0.0, 2.0, f'turret {a.turret} {a.tag} flash envelope (keyed by fire())')
         ctx.prop(f'gun_seed_{label}', 0.0, 0.0, 1.0, f'turret {a.turret} {a.tag} per-shot flash shape seed')
         mat = _flash_material(ctx, label)
-        box = swfx_core.box_volume(f'{PREFIX} flash {label}', coll, -1.3, 4.4, 2.6, 1.2, mat)
+        box = swfx_core.box_volume(f'{PREFIX} flash {label}', coll, -1.3, 4.4, 2.6, 1.2, mat,
+                                   **({'pad': .012 * (a.barrel - 1)} if getattr(a, 'barrel', None) else {}))
         swfx_core.attach(box, a.empty)
         box.scale = (s, s, s)
         box.visible_shadow = False
@@ -530,6 +569,8 @@ FLASH_PROFILES = ((1.0,), (1.0, .32), (1.0, .55, .14), (.9, .4))
 
 def _shot(ctx, a, frame, shot_no):
     """Key one round of one gun at an integer frame. Returns its record."""
+    if getattr(a, 'kind', 'gun') == 'launcher':
+        return _launch(ctx, a, frame)
     coll = ctx.collection(GROUP)
     label = gun_label(a)
     rig = _rig(ctx, a)
@@ -658,18 +699,20 @@ def _shot(ctx, a, frame, shot_no):
 def fire(ctx, turret, start_frame, shots, interval_frames, tag=None):
     """Fire `shots` rounds from one turret, one every `interval_frames`,
     starting at `start_frame`. tag: None (the single gun; on the twin the two
-    guns alternate, port first), 'port gun' / 'starboard gun' (that gun only),
-    or 'both' (twin salvo: both guns every interval). Deterministic: the same
+    guns alternate, port first; a multi-barrel mount or launcher ripples
+    through its barrels or tubes in order), 'port gun' / 'starboard gun' /
+    'barrel <k>' / 'tube <k>' (that one only), or 'both' (salvo: every
+    barrel every interval). Deterministic: the same
     call always keys the same envelopes and spawns the same objects.
     Returns one record per round."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret]
     if not guns or not ctx.spec.get('guns', True):
         return []
-    if tag in ('port gun', 'starboard gun', 'gun'):
+    if tag in ('port gun', 'starboard gun', 'gun') or (tag and tag.startswith(('barrel ', 'tube '))):
         guns = [g for g in guns if g.tag == tag]
         if not guns:
             return []
-    guns.sort(key=lambda g: 0 if g.tag in ('gun', 'port gun') else 1)
+    guns.sort(key=gun_index)
     out = []
     for n in range(int(shots)):
         f = int(round(start_frame + n * interval_frames))
@@ -692,6 +735,279 @@ def burst(ctx, turrets=(1, 2, 3, 4), start_frame=1, shots=8, interval_frames=3, 
         start = start_frame + k * stagger_frames + (jitter if k else 0)
         out += fire(ctx, t, max(start, start_frame), shots, interval_frames)
     return out
+
+
+# --- launchers ----------------------------------------------------------------
+def _launch_material(ctx, label, scale=1.0):
+    """Emission-only volume for one tube's launch: an ignition ball at the cell
+    mouth, a short forward lick as the missile clears it, and the backblast out
+    of the cell's rear (launcher cells vent aft), broken up by seeded noise.
+    Object coordinates are mount units, origin at the tube mouth, +X downrange;
+    the backblast leaves about 3 units behind it, at the launcher's rear face.
+    Volume emission adds up along the ray in world units, so the strength is
+    divided by the mount scale: a launcher reads as bright at any size."""
+    env_name, seed_name = f'gun_launch_{label}', f'gun_seed_{label}'
+    m, nodes, links = swfx_core.node_material(f'{PREFIX} launch {label}')
+    g = _G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tc = nodes.new('ShaderNodeTexCoord')
+    p = tc.outputs['Object']
+    x, y, z = g.xyz(p)
+    env = swfx_core.value_node(ctx, nodes, 'envelope', f'{env_name}*gun_launch_gain', (env_name, 'gun_launch_gain'))
+    seed = swfx_core.value_node(ctx, nodes, 'shot seed', seed_name, (seed_name,))
+    sa = g.fract(g.mul(seed, 7.137))
+    sb = g.fract(g.mul(seed, 13.71))
+    rr = g.add(g.sq(y), g.sq(z))
+    ignition = g.exp_neg(g.add(g.mul(g.sq(g.sub(x, .35)), 3.0), g.mul(rr, 5.0)))
+    L = g.add(1.2, g.mul(sa, 1.2))
+    t = g.clamp01(g.div(x, L))
+    lick = g.mul(g.exp_neg(g.div(rr, g.sq(g.add(.25, g.mul(t, .5))))), g.pow(g.sub(1.0, t), 1.3))
+    lick = g.mul(lick, g.smooth(-.1, .3, x))
+    # Backblast: a fan out of the rear face (x = -3), widening as it goes aft.
+    u = g.sub(-3.0, x)
+    Lb = g.add(1.6, g.mul(sb, 1.4))
+    tb = g.clamp01(g.div(u, Lb))
+    back = g.mul(g.exp_neg(g.div(rr, g.sq(g.add(.45, g.mul(tb, 1.1))))), g.pow(g.sub(1.0, tb), 1.5))
+    back = g.mul(back, g.smooth(-.2, .25, u))
+    billow = g.noise(p, g.mul(seed, 61.0), 1.8, 3.0, .6)
+    brk = g.add(.25, g.mul(g.clamp01(g.mul(g.sub(billow, .3), 2.2)), 1.4))
+    field = g.add(g.mul(ignition, 3.0), g.mul(g.add(g.mul(lick, 1.2), g.mul(back, 1.6)), brk))
+    gx, gy, gz = g.xyz(tc.outputs['Generated'])
+    ell = g.add(g.add(g.sq(g.sub(gx, .5)), g.sq(g.sub(gy, .5))), g.sq(g.sub(gz, .5)))
+    mask = g.pow(g.mx(g.sub(1.0, g.mul(ell, 4.0)), 0.0), .5)
+    field = g.pow(g.mul(field, mask), 1.25)
+    hot = g.clamp01(g.mul(field, env))
+    temp = g.add(1500.0, g.mul(g.pow(hot, .6), 3300.0))
+    bb = nodes.new('ShaderNodeBlackbody')
+    links.new(temp, bb.inputs[0])
+    em = nodes.new('ShaderNodeEmission')
+    links.new(bb.outputs[0], em.inputs['Color'])
+    links.new(g.mul(g.mul(field, env), 30.0 / max(scale, 1e-3)), em.inputs['Strength'])
+    links.new(em.outputs[0], out.inputs['Volume'])
+    return m
+
+
+def _motor_material(ctx):
+    """The missile's motor flame: an additive soft rod trailing the nozzle, a
+    white-hot root fading through yellow to orange. Object colour R carries the
+    burn (keyed: full while the motor runs)."""
+    name = f'{PREFIX} missile motor'
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, nodes, links = swfx_core.node_material(name)
+    g = _G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tc = nodes.new('ShaderNodeTexCoord')
+    gx, _, _ = g.xyz(tc.outputs['Generated'])
+    info = nodes.new('ShaderNodeObjectInfo')
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(info.outputs['Color'], sep.inputs[0])
+    burn = sep.outputs[0]
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    facing = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 3.0)
+    along = g.pow(gx, 3.5)                      # flame tail (x=0) -> nozzle (x=1)
+    root = g.exp_neg(g.mul(g.sq(g.sub(gx, .97)), 220.0))
+    gain = swfx_core.value_node(ctx, nodes, 'motor gain', 'gun_missile_gain', ('gun_missile_gain',))
+    strength = g.mul(g.mul(g.add(along, g.mul(root, 3.0)), g.mul(facing, burn)), g.mul(gain, 45.0))
+    em = nodes.new('ShaderNodeEmission')
+    mix = nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    links.new(g.clamp01(g.add(g.mul(root, 1.3), g.mul(along, .5))), mix.inputs['Factor'])
+    mix.inputs['A'].default_value = (1.0, .42, .10, 1)
+    mix.inputs['B'].default_value = (1.0, .92, .74, 1)
+    links.new(mix.outputs['Result'], em.inputs['Color'])
+    links.new(strength, em.inputs['Strength'])
+    tr = nodes.new('ShaderNodeBsdfTransparent')
+    add = nodes.new('ShaderNodeAddShader')
+    links.new(tr.outputs[0], add.inputs[0])
+    links.new(em.outputs[0], add.inputs[1])
+    links.new(add.outputs[0], out.inputs['Surface'])
+    try:
+        m.surface_render_method = 'BLENDED'
+    except Exception:
+        pass
+    return m
+
+
+def _missile_material():
+    name = f'{PREFIX} missile body'
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, nodes, links = swfx_core.node_material(name)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    b = nodes.new('ShaderNodeBsdfPrincipled')
+    b.inputs['Base Color'].default_value = (.32, .32, .3, 1)
+    b.inputs['Metallic'].default_value = .6
+    b.inputs['Roughness'].default_value = .45
+    links.new(b.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def _trail_material(ctx):
+    """Motor smoke: the muzzle puff's soft lumpy volume, paler, denser in air
+    and thin in vacuum. Object colour R is the puff's fade, G a seed, B the
+    inverse of its mount scale: density adds up along the ray in world units,
+    so a big launcher's smoke is no more opaque than a small one's."""
+    name = f'{PREFIX} missile smoke'
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, nodes, links = swfx_core.node_material(name)
+    g = _G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tc = nodes.new('ShaderNodeTexCoord')
+    p = tc.outputs['Object']
+    x, y, z = g.xyz(p)
+    r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
+    shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 1.2)
+    info = nodes.new('ShaderNodeObjectInfo')
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(info.outputs['Color'], sep.inputs[0])
+    fade, seed, thin = sep.outputs[0], sep.outputs[1], sep.outputs[2]
+    n1 = g.noise(p, g.mul(seed, 53.0), 2.2, 2.0, .62)
+    lumps = g.pow(g.clamp01(g.mul(g.sub(n1, .36), 2.8)), 1.3)
+    atm = swfx_core.value_node(ctx, nodes, 'atmosphere density', '(0.2+0.8*gun_atmosphere)*gun_missile_smoke',
+                               ('gun_atmosphere', 'gun_missile_smoke'))
+    vol = nodes.new('ShaderNodeVolumePrincipled')
+    vol.inputs['Color'].default_value = (.66, .64, .6, 1)
+    vol.inputs['Anisotropy'].default_value = .35
+    links.new(g.mul(g.mul(g.mul(g.mul(shell, lumps), fade), g.mul(atm, 2.5)), thin), vol.inputs['Density'])
+    links.new(vol.outputs[0], out.inputs['Volume'])
+    return m
+
+
+def _build_launcher(ctx, coll, a):
+    """One tube's reusable rig: the launch bloom volume and its light, dark until fired."""
+    label = gun_label(a)
+    s = a.scale
+    ctx.prop(f'gun_launch_{label}', 0.0, 0.0, 2.0, f'turret {a.turret} {a.tag} launch envelope (keyed by fire())')
+    ctx.prop(f'gun_seed_{label}', 0.0, 0.0, 1.0, f'turret {a.turret} {a.tag} per-launch bloom shape seed')
+    box = swfx_core.box_volume(f'{PREFIX} launch {label}', coll, -6.2, 3.0, 2.2, 2.2, _launch_material(ctx, label, s),
+                               pad=.012 * ((a.barrel or 1) - 1))
+    swfx_core.attach(box, a.empty)
+    box.scale = (s, s, s)
+    box.visible_shadow = False
+    box.hide_render = True       # only exists on launch frames
+    light = swfx_core.point_light(f'{PREFIX} launch light {label}', coll, (1.0, .74, .45), 0.0, radius=.5 * s)
+    swfx_core.attach(light, a.empty, local=(-.5 * s, 0, .3 * s))
+    env = f'gun_launch_{label}'
+    ctx.drive(light.data, 'energy', f'{env}*gun_launch_gain*gun_launch_light',
+              (env, 'gun_launch_gain', 'gun_launch_light'))
+    _RIGS[(a.turret, a.tag)] = dict(anchor=a, flash=box, light=light, count=0)
+    return {'turret': a.turret, 'tag': a.tag, 'label': label, 'scale': s, 'kind': 'launcher',
+            'bloom': box.name, 'light': light.name}
+
+
+LAUNCH_PROFILE = (.7, 1.0, .75, .5, .3, .16, .07)
+TRAIL_PUFFS = 4           # a launch puff plus this many along the trail: smoke is most of a launch's render cost
+
+
+def _launch(ctx, a, frame):
+    """Key one missile launch from one tube at an integer frame. Returns its record."""
+    coll = ctx.collection(GROUP)
+    label = gun_label(a)
+    rig = _rig(ctx, a)
+    n = rig['count']
+    rig['count'] += 1
+    rnd = random.Random(f'swfx-launch|{a.turret}|{a.tag}|{frame}|{n}')
+    s = a.scale
+    fps = ctx.scene.render.fps or swfx_core.FPS
+
+    gain = rnd.uniform(.85, 1.15)
+    env, seed = f'gun_launch_{label}', f'gun_seed_{label}'
+    for j, v in enumerate(LAUNCH_PROFILE):
+        _key_env(ctx, env, frame + j, v * gain)
+    ctx.key(seed, frame, rnd.random(), 'CONSTANT')
+    _key_zero(ctx, env, frame + len(LAUNCH_PROFILE))
+    _key_zero(ctx, env, frame - 1)
+    box = rig.get('flash') or bpy.data.objects.get(f'{PREFIX} launch {label}')
+    if box is not None:
+        lit = rig.setdefault('flash_frames', _shown_frames(box))
+        lit.update(range(frame, frame + len(LAUNCH_PROFILE)))
+        _rebuild_visibility(box, lit)
+    rec = {'turret': a.turret, 'tag': a.tag, 'frame': frame, 'round': n, 'kind': 'launcher',
+           'bloom_frames': len(LAUNCH_PROFILE)}
+
+    # Flight along the line of fire (anchor +X), a fraction of a degree off.
+    v0 = swfx_core.units(_knob(ctx, 'gun_missile_velocity'))
+    acc = swfx_core.units(_knob(ctx, 'gun_missile_accel'))
+    rng = swfx_core.units(_knob(ctx, 'gun_missile_range'))
+    if acc > 1e-6:
+        t_end = (-v0 + math.sqrt(v0 * v0 + 2 * acc * rng)) / acc
+    else:
+        t_end = rng / max(v0, 1e-6)
+    life = max(2, int(math.ceil(t_end * fps)))
+    yaw, pitch = rnd.gauss(0, .006), rnd.gauss(0, .006)
+    d = Vector((math.cos(yaw), math.sin(yaw), pitch)).normalized()
+
+    def at(tsec):
+        return d * (v0 * tsec + .5 * acc * tsec * tsec)
+
+    body_mesh = _cylinder_mesh(f'{PREFIX} missile body mesh', .2, -2.2, 0.0, 10, _missile_material())
+    body = bpy.data.objects.new(f'{PREFIX} missile {label} f{frame:04d}', body_mesh)
+    coll.objects.link(body)
+    swfx_core.attach(body, a.empty)
+    body.scale = (s, s, s)
+    body.rotation_euler = (0, -pitch, yaw)
+    frames = [frame + j for j in range(life + 1)]
+    path = [at(j / fps) for j in range(life + 1)]
+    for i in range(3):
+        _bake(body, 'location', i, frames, [q[i] for q in path])
+    _visible_between(body, frame, frame + life)
+    motor_mesh = _cylinder_mesh(f'{PREFIX} missile motor mesh', .12, -4.5, 0.0, 10, _motor_material(ctx))
+    motor = bpy.data.objects.new(f'{PREFIX} missile motor {label} f{frame:04d}', motor_mesh)
+    coll.objects.link(motor)
+    motor.parent = body
+    motor.location = (-2.2, 0, 0)
+    motor.visible_shadow = False
+    # The motor lights a frame after the bloom and stretches as the missile picks up speed.
+    f_ign = frame + 1
+    _bake(motor, 'scale', 0, [frame, f_ign, f_ign + 6], [.15, .6, 1.0])
+    _bake(motor, 'color', 0, [frame, f_ign, frame + life], [0.0, 1.0, 1.0])
+    motor.color = (1, 0, 0, 1)
+    _visible_between(motor, f_ign, frame + life)
+    rec['missile'] = body.name
+    rec['flight_frames'] = life
+
+    # Launch smoke at the mouth and the motor's trail over its first stretch,
+    # each puff left where the missile was (anchor space: it rides the ship).
+    atm = _knob(ctx, 'gun_atmosphere')
+    smesh = _unit_box_mesh(f'{PREFIX} missile smoke mesh', _trail_material(ctx))
+    puffs = []
+    for k in range(TRAIL_PUFFS + 1):
+        f0 = frame + (0 if k == 0 else 1 + int(round(k * k * 1.6)))
+        tsec = (f0 - frame) / fps
+        p0 = Vector((-1.2 * s, 0, 0)) if k == 0 else at(tsec) - d * 3.0 * s
+        # Sized from the missile (body radius .2 mount units), not the mount: the launch
+        # puff starts about three missile diameters across, the trail about two.
+        size = s * (.6 if k == 0 else .4 + .05 * k) * rnd.uniform(.85, 1.15)
+        plife = int(round(fps * (.7 + 1.6 * atm) * rnd.uniform(.85, 1.2)))
+        pf = bpy.data.objects.new(f'{PREFIX} missile smoke {label} f{frame:04d} {k}', smesh)
+        coll.objects.link(pf)
+        swfx_core.attach(pf, a.empty)
+        pf.visible_shadow = False
+        pf.color = (1.0, 0.0, 1.0 / max(s, 1e-3), 1.0)
+        sg = rnd.random()
+        grow = (1.0 + 1.2 * (1 - atm)) * rnd.uniform(.85, 1.15)
+        fr, sc, fade = [], [], []
+        for j in range(plife + 1):
+            t = j / plife
+            e = 1 - (1 - t) ** (3.0 - 1.2 * atm)
+            fr.append(f0 + j)
+            sc.append(size * (.6 + 1.8 * grow * e))
+            fade.append(min(1.0, (j + .5) / 1.5) * (1 - t) ** (2.0 - 1.0 * atm))
+        for i in range(3):
+            _bake(pf, 'scale', i, fr, sc)
+            _bake(pf, 'location', i, [f0], [p0[i]], 'CONSTANT')
+        _bake(pf, 'color', 0, fr, fade)
+        _bake(pf, 'color', 1, [f0], [sg], 'CONSTANT')
+        _visible_between(pf, f0, f0 + plife)
+        puffs.append(pf.name)
+    rec['smoke'] = puffs
+    return rec
 
 
 # --- review -----------------------------------------------------------------

@@ -1,0 +1,328 @@
+{
+ "asset": "legion.blend",
+ "collection": "LEGION",
+ "root": "LEGION | root",
+ "objects": 941,
+ "meshes": 720,
+ "images": 42,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "root carries metres_per_unit": {
+   "ok": true,
+   "detail": 0.99
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    720,
+    720
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "engine anchors": {
+   "ok": true
+  },
+  "engine anchors point aft": {
+   "ok": true
+  },
+  "turret 1 (WS 000 squall) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1.5e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 5
+   }
+  },
+  "turret 1 (WS 000) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "min_lift": 6.607,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 2 (WS 001 hurricane) trains": {
+   "ok": true,
+   "detail": {
+    "err": 4e-06,
+    "rest_aim_dot": 1.0,
+    "muzzles": 1
+   }
+  },
+  "turret 2 (WS 001) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 1.7e-05,
+    "min_lift": 6.9,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 3 (WS 002 flak) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1.3e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 1
+   }
+  },
+  "turret 3 (WS 002) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "min_lift": 4.271,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 4 (WS 003 flak) trains": {
+   "ok": true,
+   "detail": {
+    "err": 0.0,
+    "rest_aim_dot": 1.0,
+    "muzzles": 1
+   }
+  },
+  "turret 4 (WS 003) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "min_lift": 4.271,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 5 (WS 004 heavyac) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1.9e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 3
+   }
+  },
+  "turret 5 (WS 004) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "min_lift": 3.106,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 6 (WS 005 heavyac) trains": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "rest_aim_dot": 1.0,
+    "muzzles": 3
+   }
+  },
+  "turret 6 (WS 005) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 2e-06,
+    "min_lift": 3.106,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 7 (WS 007 heavyac) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1.5e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 3
+   }
+  },
+  "turret 7 (WS 007) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "min_lift": 3.106,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 8 (WS 008 vulcan) trains": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "rest_aim_dot": 1.0,
+    "muzzles": 2
+   }
+  },
+  "turret 8 (WS 008) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 2e-06,
+    "min_lift": 1.424,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 9 (WS 009 vulcan) trains": {
+   "ok": true,
+   "detail": {
+    "err": 0.0,
+    "rest_aim_dot": 1.0,
+    "muzzles": 2
+   }
+  },
+  "turret 9 (WS 009) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 0.0,
+    "min_lift": 1.424,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 10 (WS 014 none in Elite) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1.5e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 1
+   }
+  },
+  "turret 10 (WS 014) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 3e-06,
+    "min_lift": 2.531,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 11 (WS 015 none in Elite) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 1
+   }
+  },
+  "turret 11 (WS 015) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 1.6e-05,
+    "min_lift": 2.531,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 12 (WS 018 vulcan) trains": {
+   "ok": true,
+   "detail": {
+    "err": 8e-06,
+    "rest_aim_dot": 1.0,
+    "muzzles": 2
+   }
+  },
+  "turret 12 (WS 018) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 1.1e-05,
+    "min_lift": 1.424,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 13 (WS 019 vulcan) trains": {
+   "ok": true,
+   "detail": {
+    "err": 9e-06,
+    "rest_aim_dot": 1.0,
+    "muzzles": 2
+   }
+  },
+  "turret 13 (WS 019) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 1.1e-05,
+    "min_lift": 1.424,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 14 (WS 020 vulcan) trains": {
+   "ok": true,
+   "detail": {
+    "err": 1.7e-05,
+    "rest_aim_dot": 1.0,
+    "muzzles": 2
+   }
+  },
+  "turret 14 (WS 020) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 1.1e-05,
+    "min_lift": 1.424,
+    "pitch_deg": 15.0
+   }
+  },
+  "turret 15 (WS 021 vulcan) trains": {
+   "ok": true,
+   "detail": {
+    "err": 9e-06,
+    "rest_aim_dot": 1.0,
+    "muzzles": 2
+   }
+  },
+  "turret 15 (WS 021) elevates": {
+   "ok": true,
+   "detail": {
+    "err": 1.7e-05,
+    "min_lift": 1.424,
+    "pitch_deg": 15.0
+   }
+  },
+  "flight-deck mouths and launch points": {
+   "ok": true,
+   "detail": []
+  },
+  "running lights carry blink": {
+   "ok": true
+  },
+  "control drivers are valid simple expressions": {
+   "ok": true,
+   "detail": []
+  },
+  "control knobs drive their parts": {
+   "ok": true,
+   "detail": 28
+  },
+  "knobs at 0 restore the rest pose": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  },
+  "effects ride the root": {
+   "ok": true,
+   "detail": {
+    "effects": 217,
+    "loose": []
+   }
+  }
+ }
+}

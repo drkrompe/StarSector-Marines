@@ -1,0 +1,3368 @@
+{
+ "asset": "legion.blend",
+ "append_collection": "LEGION",
+ "root": "LEGION | root",
+ "anchors_collection": "LEGION | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.99,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -137.93,
+   -146.9,
+   -56.87
+  ],
+  [
+   157.0,
+   146.9,
+   32.15
+  ]
+ ],
+ "size_metres_rest": [
+  292.0,
+  290.9,
+  88.1
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -118.0,
+    62.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.82,
+   "width": 6,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -118.0,
+    57.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.82,
+   "width": 6,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 3,
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -117.0,
+    -56.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.82,
+   "width": 6,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 4,
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -118.0,
+    -61.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 2.82,
+   "width": 6,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 5,
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -123.0,
+    44.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 8.88,
+   "width": 24,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 6,
+   "anchor": "Engine 6 exhaust anchor",
+   "mouth": [
+    -124.0,
+    -44.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 8.88,
+   "width": 24,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 7,
+   "anchor": "Engine 7 exhaust anchor",
+   "mouth": [
+    -128.0,
+    26.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 7.52,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 8,
+   "anchor": "Engine 8 exhaust anchor",
+   "mouth": [
+    -128.0,
+    -26.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 7.52,
+   "width": 16,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 9,
+   "anchor": "Engine 9 exhaust anchor",
+   "mouth": [
+    -123.0,
+    13.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 5.64,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 10,
+   "anchor": "Engine 10 exhaust anchor",
+   "mouth": [
+    -123.0,
+    -12.0,
+    -4.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 5.64,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 000",
+   "weapon": "squall",
+   "kind": "launcher",
+   "size": "LARGE",
+   "type": "MISSILE",
+   "pivot": "Weapon WS 000 pivot",
+   "elevation": "Weapon WS 000 elevation",
+   "pivot_at": [
+    42.0,
+    56.0,
+    12.75
+   ],
+   "elevation_at": [
+    42.0,
+    56.0,
+    19.35
+   ],
+   "rest_angle_deg": 30,
+   "arc_deg": 160,
+   "ring_radius": 12.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 10.694,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "tube 1",
+     "anchor": "Anchor turret 1 tube 1 muzzle",
+     "geometry_anchor": "Weapon WS 000 muzzle anchor 1",
+     "at": [
+      60.084,
+      75.678,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 2",
+     "anchor": "Anchor turret 1 tube 2 muzzle",
+     "geometry_anchor": "Weapon WS 000 muzzle anchor 2",
+     "at": [
+      62.084,
+      72.214,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 3",
+     "anchor": "Anchor turret 1 tube 3 muzzle",
+     "geometry_anchor": "Weapon WS 000 muzzle anchor 3",
+     "at": [
+      64.084,
+      68.75,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 4",
+     "anchor": "Anchor turret 1 tube 4 muzzle",
+     "geometry_anchor": "Weapon WS 000 muzzle anchor 4",
+     "at": [
+      66.084,
+      65.286,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 5",
+     "anchor": "Anchor turret 1 tube 5 muzzle",
+     "geometry_anchor": "Weapon WS 000 muzzle anchor 5",
+     "at": [
+      68.084,
+      61.822,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 26,
+   "elevating_parts": 21
+  },
+  {
+   "index": 2,
+   "slot": "WS 001",
+   "weapon": "hurricane",
+   "kind": "launcher",
+   "size": "LARGE",
+   "type": "MISSILE",
+   "pivot": "Weapon WS 001 pivot",
+   "elevation": "Weapon WS 001 elevation",
+   "pivot_at": [
+    42.0,
+    -56.0,
+    12.75
+   ],
+   "elevation_at": [
+    42.866,
+    -56.5,
+    21.05
+   ],
+   "rest_angle_deg": -30,
+   "arc_deg": 160,
+   "ring_radius": 12.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 9.402,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "tube 1",
+     "anchor": "Anchor turret 2 tube 1 muzzle",
+     "geometry_anchor": "Weapon WS 001 muzzle anchor 1",
+     "at": [
+      66.249,
+      -70.0,
+      23.65
+     ],
+     "axis": [
+      0.866,
+      -0.5,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 19,
+   "elevating_parts": 8
+  },
+  {
+   "index": 3,
+   "slot": "WS 002",
+   "weapon": "flak",
+   "kind": "gun",
+   "size": "MEDIUM",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 002 pivot",
+   "elevation": "Weapon WS 002 elevation",
+   "pivot_at": [
+    13.0,
+    107.0,
+    6.334
+   ],
+   "elevation_at": [
+    15.008,
+    109.867,
+    10.094
+   ],
+   "rest_angle_deg": 55,
+   "arc_deg": 180,
+   "ring_radius": 9.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 2.47,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 3 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 002 muzzle anchor 1",
+     "at": [
+      24.472,
+      123.383,
+      10.094
+     ],
+     "axis": [
+      0.574,
+      0.819,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 12,
+   "elevating_parts": 7
+  },
+  {
+   "index": 4,
+   "slot": "WS 003",
+   "weapon": "flak",
+   "kind": "gun",
+   "size": "MEDIUM",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 003 pivot",
+   "elevation": "Weapon WS 003 elevation",
+   "pivot_at": [
+    13.0,
+    -107.0,
+    6.334
+   ],
+   "elevation_at": [
+    15.008,
+    -109.867,
+    10.094
+   ],
+   "rest_angle_deg": -55,
+   "arc_deg": 180,
+   "ring_radius": 9.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 2.47,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 4 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 003 muzzle anchor 1",
+     "at": [
+      24.472,
+      -123.383,
+      10.094
+     ],
+     "axis": [
+      0.574,
+      -0.819,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 12,
+   "elevating_parts": 7
+  },
+  {
+   "index": 5,
+   "slot": "WS 004",
+   "weapon": "heavyac",
+   "kind": "gun",
+   "size": "MEDIUM",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 004 pivot",
+   "elevation": "Weapon WS 004 elevation",
+   "pivot_at": [
+    80.0,
+    34.0,
+    14.09
+   ],
+   "elevation_at": [
+    87.518,
+    36.736,
+    18.25
+   ],
+   "rest_angle_deg": 20,
+   "arc_deg": 160,
+   "ring_radius": 9.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 2.66,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 5 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 004 muzzle anchor 1",
+     "at": [
+      100.504,
+      36.142,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      0.342,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 5 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 004 muzzle anchor 2",
+     "at": [
+      100.673,
+      41.524,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      0.342,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 3",
+     "anchor": "Anchor turret 5 barrel 3 muzzle",
+     "geometry_anchor": "Weapon WS 004 muzzle anchor 3",
+     "at": [
+      97.084,
+      45.539,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      0.342,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 14,
+   "elevating_parts": 9
+  },
+  {
+   "index": 6,
+   "slot": "WS 005",
+   "weapon": "heavyac",
+   "kind": "gun",
+   "size": "MEDIUM",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 005 pivot",
+   "elevation": "Weapon WS 005 elevation",
+   "pivot_at": [
+    104.0,
+    0.0,
+    19.59
+   ],
+   "elevation_at": [
+    112.0,
+    0.0,
+    23.75
+   ],
+   "rest_angle_deg": 0,
+   "arc_deg": 180,
+   "ring_radius": 9.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 2.66,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 6 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 005 muzzle anchor 1",
+     "at": [
+      124.0,
+      -5.0,
+      23.75
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 6 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 005 muzzle anchor 2",
+     "at": [
+      126.0,
+      0.0,
+      23.75
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 3",
+     "anchor": "Anchor turret 6 barrel 3 muzzle",
+     "geometry_anchor": "Weapon WS 005 muzzle anchor 3",
+     "at": [
+      124.0,
+      5.0,
+      23.75
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 14,
+   "elevating_parts": 9
+  },
+  {
+   "index": 7,
+   "slot": "WS 007",
+   "weapon": "heavyac",
+   "kind": "gun",
+   "size": "MEDIUM",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 007 pivot",
+   "elevation": "Weapon WS 007 elevation",
+   "pivot_at": [
+    80.0,
+    -34.0,
+    14.09
+   ],
+   "elevation_at": [
+    87.518,
+    -36.736,
+    18.25
+   ],
+   "rest_angle_deg": -20,
+   "arc_deg": 160,
+   "ring_radius": 9.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 2.66,
+   "keyable_for_c2": true,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 7 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 007 muzzle anchor 1",
+     "at": [
+      97.084,
+      -45.539,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      -0.342,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 7 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 007 muzzle anchor 2",
+     "at": [
+      100.673,
+      -41.524,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      -0.342,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 3",
+     "anchor": "Anchor turret 7 barrel 3 muzzle",
+     "geometry_anchor": "Weapon WS 007 muzzle anchor 3",
+     "at": [
+      100.504,
+      -36.142,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      -0.342,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 14,
+   "elevating_parts": 9
+  },
+  {
+   "index": 8,
+   "slot": "WS 008",
+   "weapon": "vulcan",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 008 pivot",
+   "elevation": "Weapon WS 008 elevation",
+   "pivot_at": [
+    -58.0,
+    130.0,
+    1.255
+   ],
+   "elevation_at": [
+    -58.0,
+    134.5,
+    2.995
+   ],
+   "rest_angle_deg": 90,
+   "arc_deg": 180,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 0.99,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 8 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 008 muzzle anchor 1",
+     "at": [
+      -56.0,
+      140.0,
+      2.995
+     ],
+     "axis": [
+      -0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 8 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 008 muzzle anchor 2",
+     "at": [
+      -60.0,
+      140.0,
+      2.995
+     ],
+     "axis": [
+      -0.0,
+      1.0,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 11,
+   "elevating_parts": 6
+  },
+  {
+   "index": 9,
+   "slot": "WS 009",
+   "weapon": "vulcan",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 009 pivot",
+   "elevation": "Weapon WS 009 elevation",
+   "pivot_at": [
+    -58.0,
+    -130.0,
+    1.255
+   ],
+   "elevation_at": [
+    -58.0,
+    -134.5,
+    2.995
+   ],
+   "rest_angle_deg": -90,
+   "arc_deg": 180,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 0.99,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 9 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 009 muzzle anchor 1",
+     "at": [
+      -60.0,
+      -140.0,
+      2.995
+     ],
+     "axis": [
+      -0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 9 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 009 muzzle anchor 2",
+     "at": [
+      -56.0,
+      -140.0,
+      2.995
+     ],
+     "axis": [
+      -0.0,
+      -1.0,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 11,
+   "elevating_parts": 6
+  },
+  {
+   "index": 10,
+   "slot": "WS 014",
+   "weapon": "none in Elite",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 014 pivot",
+   "elevation": "Weapon WS 014 elevation",
+   "pivot_at": [
+    -8.0,
+    118.0,
+    -0.909
+   ],
+   "elevation_at": [
+    -7.679,
+    120.288,
+    0.961
+   ],
+   "rest_angle_deg": 82,
+   "arc_deg": 156,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 1.32,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 10 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 014 muzzle anchor 1",
+     "at": [
+      -6.318,
+      129.971,
+      0.961
+     ],
+     "axis": [
+      0.139,
+      0.99,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 8,
+   "elevating_parts": 4
+  },
+  {
+   "index": 11,
+   "slot": "WS 015",
+   "weapon": "none in Elite",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 015 pivot",
+   "elevation": "Weapon WS 015 elevation",
+   "pivot_at": [
+    -8.0,
+    -118.0,
+    -0.909
+   ],
+   "elevation_at": [
+    -7.679,
+    -120.288,
+    0.961
+   ],
+   "rest_angle_deg": -82,
+   "arc_deg": 156,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 1.32,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 11 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 015 muzzle anchor 1",
+     "at": [
+      -6.318,
+      -129.971,
+      0.961
+     ],
+     "axis": [
+      0.139,
+      -0.99,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 8,
+   "elevating_parts": 4
+  },
+  {
+   "index": 12,
+   "slot": "WS 018",
+   "weapon": "vulcan",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 018 pivot",
+   "elevation": "Weapon WS 018 elevation",
+   "pivot_at": [
+    36.0,
+    91.0,
+    7.011
+   ],
+   "elevation_at": [
+    40.111,
+    92.83,
+    8.751
+   ],
+   "rest_angle_deg": 24,
+   "arc_deg": 100,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 0.99,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 12 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 018 muzzle anchor 1",
+     "at": [
+      45.949,
+      93.24,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      0.407,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 12 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 018 muzzle anchor 2",
+     "at": [
+      44.322,
+      96.894,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      0.407,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 11,
+   "elevating_parts": 6
+  },
+  {
+   "index": 13,
+   "slot": "WS 019",
+   "weapon": "vulcan",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 019 pivot",
+   "elevation": "Weapon WS 019 elevation",
+   "pivot_at": [
+    36.0,
+    -91.0,
+    7.011
+   ],
+   "elevation_at": [
+    40.111,
+    -92.83,
+    8.751
+   ],
+   "rest_angle_deg": -24,
+   "arc_deg": 100,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 0.99,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 13 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 019 muzzle anchor 1",
+     "at": [
+      44.322,
+      -96.894,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      -0.407,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 13 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 019 muzzle anchor 2",
+     "at": [
+      45.949,
+      -93.24,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      -0.407,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 11,
+   "elevating_parts": 6
+  },
+  {
+   "index": 14,
+   "slot": "WS 020",
+   "weapon": "vulcan",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 020 pivot",
+   "elevation": "Weapon WS 020 elevation",
+   "pivot_at": [
+    76.0,
+    60.0,
+    16.824
+   ],
+   "elevation_at": [
+    79.497,
+    62.832,
+    18.564
+   ],
+   "rest_angle_deg": 39,
+   "arc_deg": 160,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 0.99,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 14 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 020 muzzle anchor 1",
+     "at": [
+      85.03,
+      64.739,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      0.629,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 14 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 020 muzzle anchor 2",
+     "at": [
+      82.513,
+      67.847,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      0.629,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 11,
+   "elevating_parts": 6
+  },
+  {
+   "index": 15,
+   "slot": "WS 021",
+   "weapon": "vulcan",
+   "kind": "gun",
+   "size": "SMALL",
+   "type": "BALLISTIC",
+   "pivot": "Weapon WS 021 pivot",
+   "elevation": "Weapon WS 021 elevation",
+   "pivot_at": [
+    76.0,
+    -60.0,
+    16.824
+   ],
+   "elevation_at": [
+    79.497,
+    -62.832,
+    18.564
+   ],
+   "rest_angle_deg": -39,
+   "arc_deg": 160,
+   "ring_radius": 5.5,
+   "elevation_limits_deg": null,
+   "vfx_scale": 0.99,
+   "keyable_for_c2": false,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 15 barrel 1 muzzle",
+     "geometry_anchor": "Weapon WS 021 muzzle anchor 1",
+     "at": [
+      82.513,
+      -67.847,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      -0.629,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 15 barrel 2 muzzle",
+     "geometry_anchor": "Weapon WS 021 muzzle anchor 2",
+     "at": [
+      85.03,
+      -64.739,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      -0.629,
+      0.0
+     ]
+    }
+   ],
+   "trained_parts": 11,
+   "elevating_parts": 6
+  }
+ ],
+ "flight_decks": [
+  {
+   "slot": "WS 010",
+   "side": "port",
+   "end": "aft",
+   "role": "recovery station (aft mouth) and aft launches",
+   "launch_direction": [
+    -0.9848,
+    0.1736,
+    0.0
+   ],
+   "recovery_approach": [
+    0.9848,
+    -0.1736,
+    0.0
+   ],
+   "mouth": {
+    "anchor": "Flight deck WS 010 mouth",
+    "centre": [
+     -64.0,
+     105.0,
+     -18.44
+    ],
+    "normal": [
+     -1,
+     0,
+     0
+    ],
+    "clear_width": 41.5,
+    "clear_height": 14.08
+   },
+   "launch_points": [
+    {
+     "anchor": "Flight deck WS 010 launch point 1",
+     "at": [
+      -27.0,
+      103.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 010 launch point 2",
+     "at": [
+      -35.0,
+      91.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 010 launch point 3",
+     "at": [
+      -44.0,
+      105.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 010 launch point 4",
+     "at": [
+      -51.0,
+      92.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      0.174,
+      0.0
+     ]
+    }
+   ],
+   "blast_deflector": "Flight deck WS 010 blast deflector hinge"
+  },
+  {
+   "slot": "WS 011",
+   "side": "starboard",
+   "end": "aft",
+   "role": "recovery station (aft mouth) and aft launches",
+   "launch_direction": [
+    -0.9848,
+    -0.1736,
+    0.0
+   ],
+   "recovery_approach": [
+    0.9848,
+    0.1736,
+    0.0
+   ],
+   "mouth": {
+    "anchor": "Flight deck WS 011 mouth",
+    "centre": [
+     -64.0,
+     -105.0,
+     -18.44
+    ],
+    "normal": [
+     -1,
+     0,
+     0
+    ],
+    "clear_width": 41.5,
+    "clear_height": 14.08
+   },
+   "launch_points": [
+    {
+     "anchor": "Flight deck WS 011 launch point 1",
+     "at": [
+      -35.0,
+      -90.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      -0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 011 launch point 2",
+     "at": [
+      -26.0,
+      -102.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      -0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 011 launch point 3",
+     "at": [
+      -50.0,
+      -92.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      -0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 011 launch point 4",
+     "at": [
+      -40.0,
+      -104.0,
+      -26.0
+     ],
+     "x_axis": [
+      -0.985,
+      -0.174,
+      0.0
+     ]
+    }
+   ],
+   "blast_deflector": "Flight deck WS 011 blast deflector hinge"
+  },
+  {
+   "slot": "WS 012",
+   "side": "port",
+   "end": "forward",
+   "role": "launch station (forward mouth)",
+   "launch_direction": [
+    0.9848,
+    0.1736,
+    0.0
+   ],
+   "recovery_approach": [
+    -0.9848,
+    -0.1736,
+    0.0
+   ],
+   "mouth": {
+    "anchor": "Flight deck WS 012 mouth",
+    "centre": [
+     82.0,
+     101.5,
+     -18.316
+    ],
+    "normal": [
+     0.742,
+     0.671,
+     0
+    ],
+    "clear_width": 42.0,
+    "clear_height": 12.92
+   },
+   "launch_points": [
+    {
+     "anchor": "Flight deck WS 012 launch point 1",
+     "at": [
+      47.0,
+      104.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 012 launch point 2",
+     "at": [
+      59.0,
+      92.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 012 launch point 3",
+     "at": [
+      63.0,
+      105.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 012 launch point 4",
+     "at": [
+      72.0,
+      90.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      0.174,
+      0.0
+     ]
+    }
+   ],
+   "blast_deflector": "Flight deck WS 012 blast deflector hinge"
+  },
+  {
+   "slot": "WS 013",
+   "side": "starboard",
+   "end": "forward",
+   "role": "launch station (forward mouth)",
+   "launch_direction": [
+    0.9848,
+    -0.1736,
+    0.0
+   ],
+   "recovery_approach": [
+    -0.9848,
+    0.1736,
+    0.0
+   ],
+   "mouth": {
+    "anchor": "Flight deck WS 013 mouth",
+    "centre": [
+     82.0,
+     -101.5,
+     -18.316
+    ],
+    "normal": [
+     0.742,
+     -0.671,
+     0
+    ],
+    "clear_width": 42.0,
+    "clear_height": 12.92
+   },
+   "launch_points": [
+    {
+     "anchor": "Flight deck WS 013 launch point 1",
+     "at": [
+      59.0,
+      -92.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      -0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 013 launch point 2",
+     "at": [
+      48.0,
+      -104.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      -0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 013 launch point 3",
+     "at": [
+      72.0,
+      -90.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      -0.174,
+      0.0
+     ]
+    },
+    {
+     "anchor": "Flight deck WS 013 launch point 4",
+     "at": [
+      64.0,
+      -105.0,
+      -26.0
+     ],
+     "x_axis": [
+      0.985,
+      -0.174,
+      0.0
+     ]
+    }
+   ],
+   "blast_deflector": "Flight deck WS 013 blast deflector hinge"
+  }
+ ],
+ "control": {
+  "object": "Legion control",
+  "knobs": [
+   {
+    "name": "deflector_ws010",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "WS 010 blast deflector: 0 flat (rest), 1 raised 50 deg"
+   },
+   {
+    "name": "deflector_ws011",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "WS 011 blast deflector: 0 flat (rest), 1 raised 50 deg"
+   },
+   {
+    "name": "deflector_ws012",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "WS 012 blast deflector: 0 flat (rest), 1 raised 50 deg"
+   },
+   {
+    "name": "deflector_ws013",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "WS 013 blast deflector: 0 flat (rest), 1 raised 50 deg"
+   },
+   {
+    "name": "barrier_port",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "port recovery barrier: 0 stowed flat (rest), 1 raised"
+   },
+   {
+    "name": "transfer_door_port_1",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "port transfer door 1: 0 closed (rest), 1 open (the leaf rises)"
+   },
+   {
+    "name": "transfer_door_port_2",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "port transfer door 2: 0 closed (rest), 1 open (the leaf rises)"
+   },
+   {
+    "name": "transfer_door_port_3",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "port transfer door 3: 0 closed (rest), 1 open (the leaf rises)"
+   },
+   {
+    "name": "traverser_port_1",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "port traverser 1: 0 parked at its door, 1 at the launch points, -1 at the lock centre"
+   },
+   {
+    "name": "traverser_port_2",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "port traverser 2: 0 parked at its door, 1 at the launch points, -1 at the lock centre"
+   },
+   {
+    "name": "traverser_port_3",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "port traverser 3: 0 parked at its door, 1 at the launch points, -1 at the lock centre"
+   },
+   {
+    "name": "crane_port",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "port gantry crane: 0 parked, 1 full travel forward, -1 full travel aft"
+   },
+   {
+    "name": "barrier_starboard",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "starboard recovery barrier: 0 stowed flat (rest), 1 raised"
+   },
+   {
+    "name": "transfer_door_starboard_1",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "starboard transfer door 1: 0 closed (rest), 1 open (the leaf rises)"
+   },
+   {
+    "name": "transfer_door_starboard_2",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "starboard transfer door 2: 0 closed (rest), 1 open (the leaf rises)"
+   },
+   {
+    "name": "transfer_door_starboard_3",
+    "range": [
+     0.0,
+     1.0
+    ],
+    "description": "starboard transfer door 3: 0 closed (rest), 1 open (the leaf rises)"
+   },
+   {
+    "name": "traverser_starboard_1",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "starboard traverser 1: 0 parked at its door, 1 at the launch points, -1 at the lock centre"
+   },
+   {
+    "name": "traverser_starboard_2",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "starboard traverser 2: 0 parked at its door, 1 at the launch points, -1 at the lock centre"
+   },
+   {
+    "name": "traverser_starboard_3",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "starboard traverser 3: 0 parked at its door, 1 at the launch points, -1 at the lock centre"
+   },
+   {
+    "name": "crane_starboard",
+    "range": [
+     -1.0,
+     1.0
+    ],
+    "description": "starboard gantry crane: 0 parked, 1 full travel forward, -1 full travel aft"
+   }
+  ],
+  "drives": [
+   {
+    "object": "Flight deck WS 010 blast deflector hinge",
+    "knob": "deflector_ws010",
+    "channel": "rotation Y",
+    "at_1": "-50 deg"
+   },
+   {
+    "object": "Flight deck WS 011 blast deflector hinge",
+    "knob": "deflector_ws011",
+    "channel": "rotation Y",
+    "at_1": "-50 deg"
+   },
+   {
+    "object": "Flight deck WS 012 blast deflector hinge",
+    "knob": "deflector_ws012",
+    "channel": "rotation Y",
+    "at_1": "50 deg"
+   },
+   {
+    "object": "Flight deck WS 013 blast deflector hinge",
+    "knob": "deflector_ws013",
+    "channel": "rotation Y",
+    "at_1": "50 deg"
+   },
+   {
+    "object": "Wing port recovery barrier hinge",
+    "knob": "barrier_port",
+    "channel": "rotation Y",
+    "at_1": "-90 deg"
+   },
+   {
+    "object": "Wing port transfer door 1 slide",
+    "knob": "transfer_door_port_1",
+    "channel": "location (local)",
+    "at_1": [
+     0.0,
+     0.0,
+     10.6
+    ]
+   },
+   {
+    "object": "Wing port transfer door 2 slide",
+    "knob": "transfer_door_port_2",
+    "channel": "location (local)",
+    "at_1": [
+     0.0,
+     0.0,
+     10.6
+    ]
+   },
+   {
+    "object": "Wing port transfer door 3 slide",
+    "knob": "transfer_door_port_3",
+    "channel": "location (local)",
+    "at_1": [
+     0.0,
+     0.0,
+     10.6
+    ]
+   },
+   {
+    "object": "Wing port traverser 1 slide",
+    "knob": "traverser_port_1",
+    "channel": "location Y (local)",
+    "at_1": 12.4,
+    "at_minus_1": -27.6
+   },
+   {
+    "object": "Wing port traverser 2 slide",
+    "knob": "traverser_port_2",
+    "channel": "location Y (local)",
+    "at_1": 12.4,
+    "at_minus_1": -27.6
+   },
+   {
+    "object": "Wing port traverser 3 slide",
+    "knob": "traverser_port_3",
+    "channel": "location Y (local)",
+    "at_1": 13.4,
+    "at_minus_1": -26.6
+   },
+   {
+    "object": "Wing port gantry crane slide",
+    "knob": "crane_port",
+    "channel": "location X (local)",
+    "at_1": 52.0,
+    "at_minus_1": -70.0
+   },
+   {
+    "object": "Wing starboard recovery barrier hinge",
+    "knob": "barrier_starboard",
+    "channel": "rotation Y",
+    "at_1": "-90 deg"
+   },
+   {
+    "object": "Wing starboard transfer door 1 slide",
+    "knob": "transfer_door_starboard_1",
+    "channel": "location (local)",
+    "at_1": [
+     0.0,
+     0.0,
+     10.6
+    ]
+   },
+   {
+    "object": "Wing starboard transfer door 2 slide",
+    "knob": "transfer_door_starboard_2",
+    "channel": "location (local)",
+    "at_1": [
+     0.0,
+     0.0,
+     10.6
+    ]
+   },
+   {
+    "object": "Wing starboard transfer door 3 slide",
+    "knob": "transfer_door_starboard_3",
+    "channel": "location (local)",
+    "at_1": [
+     0.0,
+     0.0,
+     10.6
+    ]
+   },
+   {
+    "object": "Wing starboard traverser 1 slide",
+    "knob": "traverser_starboard_1",
+    "channel": "location Y (local)",
+    "at_1": -12.4,
+    "at_minus_1": 27.6
+   },
+   {
+    "object": "Wing starboard traverser 2 slide",
+    "knob": "traverser_starboard_2",
+    "channel": "location Y (local)",
+    "at_1": -12.4,
+    "at_minus_1": 27.6
+   },
+   {
+    "object": "Wing starboard traverser 3 slide",
+    "knob": "traverser_starboard_3",
+    "channel": "location Y (local)",
+    "at_1": -13.4,
+    "at_minus_1": 26.6
+   },
+   {
+    "object": "Wing starboard gantry crane slide",
+    "knob": "crane_starboard",
+    "channel": "location X (local)",
+    "at_1": 52.0,
+    "at_minus_1": -70.0
+   }
+  ],
+  "saved_pose": {
+   "deflector_ws010": 0.0,
+   "deflector_ws011": 0.0,
+   "deflector_ws012": 0.0,
+   "deflector_ws013": 0.0,
+   "barrier_port": 0.0,
+   "transfer_door_port_1": 0.0,
+   "transfer_door_port_2": 0.0,
+   "transfer_door_port_3": 0.0,
+   "traverser_port_1": 0.0,
+   "traverser_port_2": 0.0,
+   "traverser_port_3": 0.0,
+   "crane_port": 0.0,
+   "barrier_starboard": 0.0,
+   "transfer_door_starboard_1": 0.0,
+   "transfer_door_starboard_2": 0.0,
+   "transfer_door_starboard_3": 0.0,
+   "traverser_starboard_1": 0.0,
+   "traverser_starboard_2": 0.0,
+   "traverser_starboard_3": 0.0,
+   "crane_starboard": 0.0
+  }
+ },
+ "lamps": [
+  {
+   "object": "Light port mast head 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "mast head (obstruction)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 0.0,
+    "duty": 0.18
+   },
+   "at": [
+    73.5,
+    121.2,
+    12.17
+   ]
+  },
+  {
+   "object": "Light starboard mast head 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "mast head (obstruction)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 1.2,
+    "duty": 0.18
+   },
+   "at": [
+    73.5,
+    -121.2,
+    12.17
+   ]
+  },
+  {
+   "object": "Light port bow blade tip 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "bow-blade tip (extremity)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 0.3,
+    "duty": 0.18
+   },
+   "at": [
+    145.5,
+    33.5,
+    5.13
+   ]
+  },
+  {
+   "object": "Light port sponson tail 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "sponson tail corner (extremity)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 0.6,
+    "duty": 0.18
+   },
+   "at": [
+    -69.0,
+    144.5,
+    -6.47
+   ]
+  },
+  {
+   "object": "Light port forward pod 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "forward hangar corner (obstruction)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 0.9,
+    "duty": 0.18
+   },
+   "at": [
+    64.8,
+    122.0,
+    0.37
+   ]
+  },
+  {
+   "object": "Light port deck edge 1",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.0,
+    "duty": 0.18
+   },
+   "at": [
+    46.0,
+    126.5,
+    -3.1
+   ]
+  },
+  {
+   "object": "Light port deck edge 2",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.4,
+    "duty": 0.18
+   },
+   "at": [
+    20.0,
+    135.5,
+    -5.29
+   ]
+  },
+  {
+   "object": "Light port deck edge 3",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.8,
+    "duty": 0.18
+   },
+   "at": [
+    -20.0,
+    136.5,
+    -5.46
+   ]
+  },
+  {
+   "object": "Light port deck edge 4",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 1.2,
+    "duty": 0.18
+   },
+   "at": [
+    -45.0,
+    139.5,
+    -5.99
+   ]
+  },
+  {
+   "object": "Light port flank 1",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.2,
+    "duty": 0.18
+   },
+   "at": [
+    40.04,
+    98.43,
+    4.1
+   ]
+  },
+  {
+   "object": "Light port flank 2",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.6,
+    "duty": 0.18
+   },
+   "at": [
+    10.09,
+    96.99,
+    4.1
+   ]
+  },
+  {
+   "object": "Light port flank 3",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 1.0,
+    "duty": 0.18
+   },
+   "at": [
+    -25.0,
+    80.2,
+    4.0
+   ]
+  },
+  {
+   "object": "Light port flank 4",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 1.4,
+    "duty": 0.18
+   },
+   "at": [
+    -48.0,
+    78.52,
+    4.18
+   ]
+  },
+  {
+   "object": "Light port flank tail 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "sponson flank extremity",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 0.6,
+    "duty": 0.18
+   },
+   "at": [
+    -70.0,
+    77.81,
+    4.2
+   ]
+  },
+  {
+   "object": "Light starboard bow blade tip 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "bow-blade tip (extremity)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 1.5,
+    "duty": 0.18
+   },
+   "at": [
+    145.5,
+    -33.5,
+    5.13
+   ]
+  },
+  {
+   "object": "Light starboard sponson tail 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "sponson tail corner (extremity)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 1.8,
+    "duty": 0.18
+   },
+   "at": [
+    -69.0,
+    -144.5,
+    -6.47
+   ]
+  },
+  {
+   "object": "Light starboard forward pod 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "forward hangar corner (obstruction)",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 2.1,
+    "duty": 0.18
+   },
+   "at": [
+    64.8,
+    -122.0,
+    0.37
+   ]
+  },
+  {
+   "object": "Light starboard deck edge 1",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.0,
+    "duty": 0.18
+   },
+   "at": [
+    46.0,
+    -126.5,
+    -3.1
+   ]
+  },
+  {
+   "object": "Light starboard deck edge 2",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.4,
+    "duty": 0.18
+   },
+   "at": [
+    20.0,
+    -135.5,
+    -5.29
+   ]
+  },
+  {
+   "object": "Light starboard deck edge 3",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.8,
+    "duty": 0.18
+   },
+   "at": [
+    -20.0,
+    -136.5,
+    -5.66
+   ]
+  },
+  {
+   "object": "Light starboard deck edge 4",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "deck-edge position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 1.2,
+    "duty": 0.18
+   },
+   "at": [
+    -45.0,
+    -139.5,
+    -6.19
+   ]
+  },
+  {
+   "object": "Light starboard flank 1",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.2,
+    "duty": 0.18
+   },
+   "at": [
+    40.04,
+    -98.43,
+    4.1
+   ]
+  },
+  {
+   "object": "Light starboard flank 2",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.6,
+    "duty": 0.18
+   },
+   "at": [
+    10.09,
+    -96.99,
+    4.1
+   ]
+  },
+  {
+   "object": "Light starboard flank 3",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 1.0,
+    "duty": 0.18
+   },
+   "at": [
+    -25.0,
+    -80.2,
+    4.0
+   ]
+  },
+  {
+   "object": "Light starboard flank 4",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "flank strake position light",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 1.4,
+    "duty": 0.18
+   },
+   "at": [
+    -48.0,
+    -78.53,
+    4.18
+   ]
+  },
+  {
+   "object": "Light starboard flank tail 1",
+   "colour": "red",
+   "rgb": [
+    1.0,
+    0.12,
+    0.06
+   ],
+   "role": "sponson flank extremity",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 1.8,
+    "duty": 0.18
+   },
+   "at": [
+    -70.0,
+    -77.84,
+    3.8
+   ]
+  },
+  {
+   "object": "Light centre tail spike 1",
+   "colour": "white",
+   "rgb": [
+    1.0,
+    0.95,
+    0.88
+   ],
+   "role": "stern light",
+   "blink": {
+    "period_s": 2.4,
+    "phase_s": 0.0,
+    "duty": 0.18
+   },
+   "at": [
+    -133.0,
+    0.0,
+    6.17
+   ]
+  }
+ ],
+ "objects": 720,
+ "polygons": 149391,
+ "baked_meshes": 58,
+ "unshared_meshes": 35,
+ "dropped_stray_empties": [
+  "Weapon WS 002 recoil 1",
+  "Weapon WS 003 recoil 1",
+  "Weapon WS 004 recoil 1",
+  "Weapon WS 004 recoil 2",
+  "Weapon WS 004 recoil 3",
+  "Weapon WS 007 recoil 1",
+  "Weapon WS 007 recoil 2",
+  "Weapon WS 007 recoil 3",
+  "Weapon WS 008 recoil 1",
+  "Weapon WS 008 recoil 2",
+  "Weapon WS 009 recoil 1",
+  "Weapon WS 009 recoil 2",
+  "Weapon WS 020 recoil 1",
+  "Weapon WS 020 recoil 2",
+  "Weapon WS 021 recoil 1",
+  "Weapon WS 021 recoil 2"
+ ],
+ "images": [
+  "Skin belly-bow",
+  "Skin belly-fore-in",
+  "Skin belly-fore-out",
+  "Skin belly-mid-aft-in",
+  "Skin belly-mid-aft-out",
+  "Skin belly-mid-fore-in",
+  "Skin belly-mid-fore-out",
+  "Skin belly-mid-in",
+  "Skin belly-mid-out",
+  "Skin belly-stern-in",
+  "Skin belly-stern-out",
+  "Skin bow-hi",
+  "Skin bow-lo",
+  "Skin side-aft-hi",
+  "Skin side-aft-lo",
+  "Skin side-fore-hi",
+  "Skin side-fore-lo",
+  "Skin side-mid-hi",
+  "Skin side-mid-lo",
+  "Skin stern-in-hi",
+  "Skin stern-in-lo",
+  "Skin stern-out-hi",
+  "Skin stern-out-lo",
+  "Skin top-aft",
+  "Skin top-bed",
+  "Skin top-bow",
+  "Skin top-dome",
+  "Skin top-fore",
+  "Skin top-stern",
+  "Skin top-waist",
+  "Skin wing-1",
+  "Skin wing-2",
+  "Skin wing-3",
+  "Skin wing-4",
+  "Skin wing-5",
+  "Swatch bone",
+  "Swatch dark",
+  "Swatch deck",
+  "Swatch grey",
+  "Swatch gunmetal",
+  "Swatch orange",
+  "Swatch tan"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile legion-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no landing dust, smk_atmosphere 0 (vacuum), no rig preset)",
+  "objects": 218,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 2.82,
+     "mouth": [
+      -118.0,
+      62.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 2.82,
+     "mouth": [
+      -118.0,
+      57.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "starboard",
+     "radius": 2.82,
+     "mouth": [
+      -117.0,
+      -56.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "starboard",
+     "radius": 2.82,
+     "mouth": [
+      -118.0,
+      -61.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "port",
+     "radius": 8.88,
+     "mouth": [
+      -123.0,
+      44.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 6,
+     "side": "starboard",
+     "radius": 8.88,
+     "mouth": [
+      -124.0,
+      -44.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 7,
+     "side": "port",
+     "radius": 7.52,
+     "mouth": [
+      -128.0,
+      26.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 8,
+     "side": "starboard",
+     "radius": 7.52,
+     "mouth": [
+      -128.0,
+      -26.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 9,
+     "side": "port",
+     "radius": 5.64,
+     "mouth": [
+      -123.0,
+      13.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 10,
+     "side": "starboard",
+     "radius": 5.64,
+     "mouth": [
+      -123.0,
+      -12.0,
+      -4.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "tube 1",
+     "muzzle": [
+      60.084,
+      75.678,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ],
+     "barrel": 1,
+     "kind": "launcher"
+    },
+    {
+     "turret": 1,
+     "tag": "tube 2",
+     "muzzle": [
+      62.084,
+      72.214,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ],
+     "barrel": 2,
+     "kind": "launcher"
+    },
+    {
+     "turret": 1,
+     "tag": "tube 3",
+     "muzzle": [
+      64.084,
+      68.75,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ],
+     "barrel": 3,
+     "kind": "launcher"
+    },
+    {
+     "turret": 1,
+     "tag": "tube 4",
+     "muzzle": [
+      66.084,
+      65.286,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ],
+     "barrel": 4,
+     "kind": "launcher"
+    },
+    {
+     "turret": 1,
+     "tag": "tube 5",
+     "muzzle": [
+      68.084,
+      61.822,
+      19.15
+     ],
+     "axis": [
+      0.866,
+      0.5,
+      0.0
+     ],
+     "barrel": 5,
+     "kind": "launcher"
+    },
+    {
+     "turret": 10,
+     "tag": "barrel 1",
+     "muzzle": [
+      -6.318,
+      129.971,
+      0.961
+     ],
+     "axis": [
+      0.139,
+      0.99,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 11,
+     "tag": "barrel 1",
+     "muzzle": [
+      -6.318,
+      -129.971,
+      0.961
+     ],
+     "axis": [
+      0.139,
+      -0.99,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 12,
+     "tag": "barrel 1",
+     "muzzle": [
+      45.949,
+      93.24,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      0.407,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 12,
+     "tag": "barrel 2",
+     "muzzle": [
+      44.322,
+      96.894,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      0.407,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 13,
+     "tag": "barrel 1",
+     "muzzle": [
+      44.322,
+      -96.894,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      -0.407,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 13,
+     "tag": "barrel 2",
+     "muzzle": [
+      45.949,
+      -93.24,
+      8.751
+     ],
+     "axis": [
+      0.914,
+      -0.407,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 14,
+     "tag": "barrel 1",
+     "muzzle": [
+      85.03,
+      64.739,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      0.629,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 14,
+     "tag": "barrel 2",
+     "muzzle": [
+      82.513,
+      67.847,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      0.629,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 15,
+     "tag": "barrel 1",
+     "muzzle": [
+      82.513,
+      -67.847,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      -0.629,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 15,
+     "tag": "barrel 2",
+     "muzzle": [
+      85.03,
+      -64.739,
+      18.564
+     ],
+     "axis": [
+      0.777,
+      -0.629,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 2,
+     "tag": "tube 1",
+     "muzzle": [
+      66.249,
+      -70.0,
+      23.65
+     ],
+     "axis": [
+      0.866,
+      -0.5,
+      0.0
+     ],
+     "barrel": 1,
+     "kind": "launcher"
+    },
+    {
+     "turret": 3,
+     "tag": "barrel 1",
+     "muzzle": [
+      24.472,
+      123.383,
+      10.094
+     ],
+     "axis": [
+      0.574,
+      0.819,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 4,
+     "tag": "barrel 1",
+     "muzzle": [
+      24.472,
+      -123.383,
+      10.094
+     ],
+     "axis": [
+      0.574,
+      -0.819,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 5,
+     "tag": "barrel 1",
+     "muzzle": [
+      100.504,
+      36.142,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      0.342,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 5,
+     "tag": "barrel 2",
+     "muzzle": [
+      100.673,
+      41.524,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      0.342,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 5,
+     "tag": "barrel 3",
+     "muzzle": [
+      97.084,
+      45.539,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      0.342,
+      0.0
+     ],
+     "barrel": 3
+    },
+    {
+     "turret": 6,
+     "tag": "barrel 1",
+     "muzzle": [
+      124.0,
+      -5.0,
+      23.75
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 6,
+     "tag": "barrel 2",
+     "muzzle": [
+      126.0,
+      0.0,
+      23.75
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 6,
+     "tag": "barrel 3",
+     "muzzle": [
+      124.0,
+      5.0,
+      23.75
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 3
+    },
+    {
+     "turret": 7,
+     "tag": "barrel 1",
+     "muzzle": [
+      97.084,
+      -45.539,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      -0.342,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 7,
+     "tag": "barrel 2",
+     "muzzle": [
+      100.673,
+      -41.524,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      -0.342,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 7,
+     "tag": "barrel 3",
+     "muzzle": [
+      100.504,
+      -36.142,
+      18.25
+     ],
+     "axis": [
+      0.94,
+      -0.342,
+      0.0
+     ],
+     "barrel": 3
+    },
+    {
+     "turret": 8,
+     "tag": "barrel 1",
+     "muzzle": [
+      -56.0,
+      140.0,
+      2.995
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 8,
+     "tag": "barrel 2",
+     "muzzle": [
+      -60.0,
+      140.0,
+      2.995
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 9,
+     "tag": "barrel 1",
+     "muzzle": [
+      -60.0,
+      -140.0,
+      2.995
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 9,
+     "tag": "barrel 2",
+     "muzzle": [
+      -56.0,
+      -140.0,
+      2.995
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "barrel": 2
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Light port mast head 1",
+     "role": "running-port",
+     "at": [
+      73.5,
+      121.2,
+      12.171
+     ]
+    },
+    {
+     "name": "Light starboard mast head 1",
+     "role": "running-starboard",
+     "at": [
+      73.5,
+      -121.2,
+      12.171
+     ]
+    },
+    {
+     "name": "Light port bow blade tip 1",
+     "role": "running-port",
+     "at": [
+      145.5,
+      33.5,
+      5.13
+     ]
+    },
+    {
+     "name": "Light port sponson tail 1",
+     "role": "running-port",
+     "at": [
+      -69.0,
+      144.5,
+      -6.473
+     ]
+    },
+    {
+     "name": "Light port forward pod 1",
+     "role": "running-port",
+     "at": [
+      64.8,
+      122.0,
+      0.371
+     ]
+    },
+    {
+     "name": "Light port deck edge 1",
+     "role": "masthead",
+     "at": [
+      46.0,
+      126.5,
+      -3.099
+     ]
+    },
+    {
+     "name": "Light port deck edge 2",
+     "role": "masthead",
+     "at": [
+      20.0,
+      135.5,
+      -5.286
+     ]
+    },
+    {
+     "name": "Light port deck edge 3",
+     "role": "masthead",
+     "at": [
+      -20.0,
+      136.5,
+      -5.462
+     ]
+    },
+    {
+     "name": "Light port deck edge 4",
+     "role": "masthead",
+     "at": [
+      -45.0,
+      139.5,
+      -5.991
+     ]
+    },
+    {
+     "name": "Light port flank 1",
+     "role": "masthead",
+     "at": [
+      40.045,
+      98.428,
+      4.102
+     ]
+    },
+    {
+     "name": "Light port flank 2",
+     "role": "masthead",
+     "at": [
+      10.09,
+      96.99,
+      4.103
+     ]
+    },
+    {
+     "name": "Light port flank 3",
+     "role": "masthead",
+     "at": [
+      -25.0,
+      80.2,
+      4.0
+     ]
+    },
+    {
+     "name": "Light port flank 4",
+     "role": "masthead",
+     "at": [
+      -48.0,
+      78.518,
+      4.183
+     ]
+    },
+    {
+     "name": "Light port flank tail 1",
+     "role": "running-port",
+     "at": [
+      -70.001,
+      77.808,
+      4.2
+     ]
+    },
+    {
+     "name": "Light starboard bow blade tip 1",
+     "role": "running-starboard",
+     "at": [
+      145.5,
+      -33.5,
+      5.13
+     ]
+    },
+    {
+     "name": "Light starboard sponson tail 1",
+     "role": "running-starboard",
+     "at": [
+      -69.0,
+      -144.5,
+      -6.473
+     ]
+    },
+    {
+     "name": "Light starboard forward pod 1",
+     "role": "running-starboard",
+     "at": [
+      64.8,
+      -122.0,
+      0.371
+     ]
+    },
+    {
+     "name": "Light starboard deck edge 1",
+     "role": "masthead",
+     "at": [
+      46.0,
+      -126.5,
+      -3.099
+     ]
+    },
+    {
+     "name": "Light starboard deck edge 2",
+     "role": "masthead",
+     "at": [
+      20.0,
+      -135.5,
+      -5.286
+     ]
+    },
+    {
+     "name": "Light starboard deck edge 3",
+     "role": "masthead",
+     "at": [
+      -20.0,
+      -136.5,
+      -5.662
+     ]
+    },
+    {
+     "name": "Light starboard deck edge 4",
+     "role": "masthead",
+     "at": [
+      -45.0,
+      -139.5,
+      -6.191
+     ]
+    },
+    {
+     "name": "Light starboard flank 1",
+     "role": "masthead",
+     "at": [
+      40.045,
+      -98.428,
+      4.102
+     ]
+    },
+    {
+     "name": "Light starboard flank 2",
+     "role": "masthead",
+     "at": [
+      10.09,
+      -96.99,
+      4.103
+     ]
+    },
+    {
+     "name": "Light starboard flank 3",
+     "role": "masthead",
+     "at": [
+      -25.0,
+      -80.2,
+      4.0
+     ]
+    },
+    {
+     "name": "Light starboard flank 4",
+     "role": "masthead",
+     "at": [
+      -48.0,
+      -78.527,
+      4.182
+     ]
+    },
+    {
+     "name": "Light starboard flank tail 1",
+     "role": "running-starboard",
+     "at": [
+      -69.999,
+      -77.843,
+      3.8
+     ]
+    },
+    {
+     "name": "Light centre tail spike 1",
+     "role": "masthead",
+     "at": [
+      -133.0,
+      0.0,
+      6.168
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -137.93,
+     -146.9,
+     -56.87
+    ],
+    [
+     157.0,
+     146.9,
+     32.15
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 10,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 10,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 25,
+    "shots": 0,
+    "built": true,
+    "launchers": 6
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'LEGION' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "legion-surface/build/skinned.blend",
+  "geometry_json_sha256": "3f4d23598881b6d95dd585c5e4b38a46c38fe075b90483ae95f2b535445017d2",
+  "skin_manifest_sha256": "d1780bab0305419a0262ad25d5b824351c617a8d929bef89d9399d556eab4fcb"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate the turret pivot (Weapon <slot> pivot) about its local Z to train; the rest pose is the slot angle. Rotate Weapon <slot> elevation about its local Y to elevate; negative lifts the muzzles.",
+  "control": "Animate the knobs on the 'Legion control' empty (control.knobs); all 0 is the built pose: deflectors and barriers stowed, doors closed, traversers and cranes parked.",
+  "lamps": "Running-light blink is stored on each lamp (blink_period_s, blink_phase_s, blink_duty); the lens materials are shared, so a shot that blinks them keys per-lamp copies.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "73d8f7e61d9fdae672b64bbd4f95cb8863a7f3ac983da5e351b78b92be2431bd"
+}
