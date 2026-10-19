@@ -1192,7 +1192,8 @@ def lifters(F):
     z = 2.5 + np.where(k < 18, 0.5 * 2.2 * k ** 2, 0.5 * 2.2 * 18 ** 2 + 2.2 * 18 * (k - 18))   # to 40 m/s
     craft(hermes, z, 2.2)
     dust(hermes.location.x, hermes.location.y, 9.4, 26.0, 18, 'Lift dust hermes')
-    # Back down on it in C5: a second Hermes, in from 700 m at C5 10 s, down at C5 22 s.
+    # Back down on it in C5: a second Hermes, in from 200 m at C5 10 s (under the camera's 220 m,
+    # about 27 m/s at first and easing), down at C5 22 s.
     t0, t1 = T + 10.0, T + 22.0
     e = bpy.data.objects.new('Lighter 6 return', None)
     c4.link(e)
@@ -1200,7 +1201,7 @@ def lifters(F):
     e.location = hermes.location.copy()
     e.rotation_euler = (0, 0, hermes.rotation_euler.z + 0.3)
     u = np.clip((t - t0) / (t1 - t0), 0, 1)
-    z = np.where(t < t0, -60.0, 2.5 + 700.0 * (1 - u) ** 2.2)
+    z = np.where(t < t0, -60.0, 2.5 + 200.0 * (1 - u) ** 1.6)
     craft(e, z, 2.2)
     dust(e.location.x, e.location.y, t1 - 1.8, 26.0, 18, 'Lift dust hermes return')
 
