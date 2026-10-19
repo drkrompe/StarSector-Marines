@@ -162,6 +162,47 @@ CUES = {
         "Small crowd of families murmuring quietly outdoors, unintelligible walla, soft relieved voices, "
         "a child, no clear words",
         10.0, True, 0.3),
+    # Owner review 2026-10-19: more weight on the ships, swishes for the passes, nature in C3,
+    # a heavy port and a rocket landing for the joined C4-C5 shot.
+    "c1_sw_engine_loop": (
+        "Deep bassy spaceship engine drone, heavy low throbbing rumble, steady and powerful, sub bass, "
+        "no high frequencies",
+        10.0, True, 0.5),
+    "c1_sw_passby_swish": (
+        "Big heavy spaceship fly-by whoosh, a deep cinematic swish passing close and receding, rumbling",
+        5.0, False, 0.5),
+    "c1_hound_swish": (
+        "Fast small spaceship fly-by, sharp engine roar and whoosh swish passing close left to right",
+        4.0, False, 0.5),
+    "c2_fighter_swish": (
+        "Very fast fighter craft fly-by, a quick sharp whoosh swish passing close, short",
+        3.0, False, 0.5),
+    "c2_legion_engines_a": (
+        "Massive warship engines, several deep layered bass engine hums, huge reactor drone, throbbing, "
+        "sub bass, steady",
+        12.0, True, 0.5),
+    "c2_legion_engines_b": (
+        "Enormous capital ship engine thrum, slow pulsing low bass, heavy machinery hum, distant and huge",
+        12.0, True, 0.5),
+    "c3_nature_muffled": (
+        "Tropical jungle nature ambience heard muffled through a sealed window, distant birds, insects, "
+        "soft and far away",
+        10.0, True, 0.4),
+    "c3_river_muffled": (
+        "Distant river water rushing over rocks heard muffled from far away, soft steady flow",
+        10.0, True, 0.4),
+    "c4_freeway": (
+        "Busy freeway traffic from a distance, heavy trucks and haulers passing continuously, "
+        "tyre roar and diesel engines",
+        12.0, True, 0.4),
+    "c4_port_heavy": (
+        "Heavy industrial cargo port, container cranes clanking, metal containers banging, heavy machinery, "
+        "ship horns, forklifts beeping, busy",
+        12.0, True, 0.4),
+    "c4_landing_rocket": (
+        "Huge rocket engine landing burn, deep bass roar, rumbling intense thrust, ground shaking, "
+        "descending slowly",
+        10.0, False, 0.5),
 }
 
 BEDS = {cue for cue, spec in CUES.items() if spec[2]}
