@@ -1,0 +1,162 @@
+{
+ "arm-deck-5-port": {
+  "raw_iou": 0.9867,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9911,
+  "scale": [
+   1.00179,
+   0.99946
+  ],
+  "boundary_p95_px": 76.51
+ },
+ "arm-deck-6-port": {
+  "raw_iou": 0.9905,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9938,
+  "scale": [
+   0.99972,
+   0.99966
+  ],
+  "boundary_p95_px": 27.19
+ },
+ "arm-deck-7-port": {
+  "raw_iou": 0.9872,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9883,
+  "scale": [
+   1.002,
+   1.00273
+  ],
+  "boundary_p95_px": 30.89
+ },
+ "arm-deck-1-port": {
+  "raw_iou": 0.9784,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9792,
+  "scale": [
+   1.00368,
+   1.00327
+  ],
+  "boundary_p95_px": 45.4
+ },
+ "arm-deck-2-port": {
+  "raw_iou": 0.9897,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9936,
+  "scale": [
+   1.00345,
+   1.003
+  ],
+  "boundary_p95_px": 9.0
+ },
+ "arm-deck-3-port": {
+  "raw_iou": 0.991,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9921,
+  "scale": [
+   1.00322,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "arm-deck-4-port": {
+  "raw_iou": 0.9749,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9787,
+  "scale": [
+   1.00306,
+   1.00354
+  ],
+  "boundary_p95_px": 25.0
+ },
+ "arm-flank-1-port": {
+  "raw_iou": 0.9883,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9942,
+  "scale": [
+   0.99989,
+   1.00218
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "arm-flank-2-port": {
+  "raw_iou": 0.9806,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9897,
+  "scale": [
+   1.00321,
+   1.002
+  ],
+  "boundary_p95_px": 16.12
+ },
+ "arm-flank-3-port": {
+  "raw_iou": 0.9907,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9938,
+  "scale": [
+   1.0015,
+   1.00427
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "arm-flank-4-port": {
+  "raw_iou": 0.9883,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9887,
+  "scale": [
+   1.001,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "arm-flank-5-port": {
+  "raw_iou": 0.9863,
+  "best_fit": "identity",
+  "fitted_iou": 0.9863,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "arm-deck-8-port": {
+  "raw_iou": 0.9877,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9901,
+  "scale": [
+   1.00281,
+   1.00554
+  ],
+  "boundary_p95_px": 19.77
+ },
+ "arm-flank-6-port": {
+  "raw_iou": 0.9865,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9887,
+  "scale": [
+   1.0,
+   1.00258
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "arm-flank-7-port": {
+  "raw_iou": 0.9868,
+  "best_fit": "identity",
+  "fitted_iou": 0.9868,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "arm-flank-8-port": {
+  "raw_iou": 0.9784,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.981,
+  "scale": [
+   0.999,
+   1.002
+  ],
+  "boundary_p95_px": 44.98
+ }
+}

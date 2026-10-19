@@ -2,7 +2,8 @@
 
   sh ../../blender.sh --background onslaught-geometry.blend --python export_onslaught.py -- [--out DIR]
 
-Input is the .blend build_onslaught.py saves beside geometry.json. Output, in
+Input is the .blend build_onslaught.py saves beside geometry.json, or the textured
+build onslaught-surface/build/skinned.blend (its images are packed). Output, in
 DIR (default ./export, ignored):
   onslaught.blend   one collection `ONSLAUGHT | clean` holding a root empty
                     `ONSLAUGHT | clean | root` that parents every ship part and
@@ -110,6 +111,11 @@ for ob in meshes:
         lo, hi = Vector(map(min, lo, w)), Vector(map(max, hi, w))
 blend = OUT/'onslaught.blend'
 bpy.context.preferences.filepaths.save_version = 0
+# A skinned build (onslaught-surface/build/skinned.blend) carries its part skins and
+# swatches as image files beside it: pack them so the asset is one self-contained file.
+images = [im for im in bpy.data.images if im.source == 'FILE' and im.filepath]
+if images:
+    bpy.ops.file.pack_all()
 bpy.ops.wm.save_as_mainfile(filepath=str(blend), compress=True)
 manifest = {
     'asset': blend.name,
