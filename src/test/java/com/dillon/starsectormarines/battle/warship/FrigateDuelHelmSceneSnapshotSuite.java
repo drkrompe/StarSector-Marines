@@ -13,6 +13,9 @@ public final class FrigateDuelHelmSceneSnapshotSuite extends BehaviorSceneSnapsh
 
     @Override protected boolean showUnitShadows() { return true; }
 
+    /** The adaptive palette: the compact cube posterised hull plate, glow and smoke into a few dozen bands. */
+    @Override protected boolean colourAnimation() { return true; }
+
     /** The close view is shown to people, so it is recorded at the full 1920x1080 too. */
     @Override protected float closeViewScale() { return 1f; }
 

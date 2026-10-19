@@ -32,6 +32,7 @@ Outputs under build/c4x/.
 """
 import json
 import math
+import os
 import random
 import sys
 from pathlib import Path
@@ -48,8 +49,12 @@ OUT = REPO / 'build' / 'c4x'
 STATES = CINE / 'second-wind-states' / 'patched'
 
 FPS = 24
-PAN = 8.0                               # the pan; then the camera lingers over the landing
-DURATION = 16.0
+# The approach is LATE seconds slower than the first cut (owner, 2026-10-19: Castle names Kilo Nine
+# while it is still ahead, not as the ship is already coming down). Everything from the hover on
+# moves later by the same amount.
+LATE = 5.4
+PAN = 8.0 + LATE                        # the pan; then the camera lingers over the landing
+DURATION = 16.0 + LATE
 FRAMES = round(DURATION * FPS)
 W, H = 1920, 1080
 LENS_MM, SENSOR_MM = 18.0, 36.0
@@ -73,7 +78,9 @@ def fresh_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.render.resolution_x, scene.render.resolution_y = W, H
-    scene.render.resolution_percentage = 100
+    # Sketch passes (timing, layout) may render smaller to spare the shared GPU: CINE_SCALE=50 renders
+    # 960x540. Anything shown to the owner is brought back to 1920x1080 (`c5_title`, the join).
+    scene.render.resolution_percentage = int(os.environ.get('CINE_SCALE', '100'))
     scene.render.fps = FPS
     scene.frame_start, scene.frame_end = 0, FRAMES - 1
     return scene
@@ -640,9 +647,9 @@ P0 = Vector((-220.0, -470.0, 330.0))   # in frame, lower left, from the first se
 HULL_FWD = 5.9
 K9_SLAB = 0.4                         # a private yard's pad: a low slab people and vehicles walk onto
 REST_Z = K9_SLAB + 7.9
-ARRIVE = 6.6                          # seconds: braked to a hover over the pad
+ARRIVE = 6.6 + LATE                   # seconds: braked to a hover over the pad
 HOVER_Z = 60.0
-T_DOWN = 11.0                         # touchdown; then the drive spools down and the yard goes to work
+T_DOWN = 11.0 + LATE                  # touchdown; then the drive spools down and the yard goes to work
 
 
 def landing_point():
@@ -1258,8 +1265,9 @@ def add_cargo_flow(r):
 # When the yard's vehicles leave their stand-off and when they stop at the hull, in C4 seconds. They
 # move off as the dust thins at the end of C4 and are still rolling in when C5 opens, so the crews
 # climb out on screen in C5 (`c5_scene.cast`). The customs car comes in last, behind them.
-K9_ROLL_IN = {'Tug': (14.2, 18.5), 'Crew carrier': (14.5, 19.5), 'Fuel bowser': (14.8, 20.5)}
-CUSTOMS_ARRIVE = 21.0
+K9_ROLL_IN = {n: (go + LATE, stop + LATE) for n, (go, stop) in
+              {'Tug': (14.2, 18.5), 'Crew carrier': (14.5, 19.5), 'Fuel bowser': (14.8, 20.5)}.items()}
+CUSTOMS_ARRIVE = 21.0 + LATE
 
 
 def add_k9_vehicles():
@@ -1272,13 +1280,13 @@ def add_k9_vehicles():
     kh = k9_heading()
     # Out of the hangar and the workshop to a stand-off clear of the downwash, then in to the hull
     # once the dust thins.
-    sec = lambda t: round(t * FPS)
+    sec = lambda t: round((t + LATE) * FPS)              # timed against the first cut, moved by LATE
     for name, parts, a, s, (u1, v1) in (
             ('Tug', tug_parts(yellow), (342, 528), (342, 507), (-46, 22)),
             ('Fuel bowser', bowser_parts(white), (470, 405), (462, 418), (0, -40)),
             ('Crew carrier', carrier_parts(cream), (322, 430), (336, 430), (-50, 4))):
         xb, yb, _ = at(kx, ky, kh, u1, v1)
-        go, stop = K9_ROLL_IN[name]
+        go, stop = (t - LATE for t in K9_ROLL_IN[name])
         vehicle(name, parts, [(0,) + a, (sec(5.0),) + a, (sec(8.0),) + s, (sec(go),) + s, (sec(stop), xb, yb)],
                 [(0, math.atan2(s[1] - a[1], s[0] - a[0])), (sec(go), math.atan2(s[1] - a[1], s[0] - a[0])),
                  (sec(go + 0.6), math.atan2(yb - s[1], xb - s[0]))])
@@ -1324,13 +1332,13 @@ def add_k9_vehicles():
     lights = material('Customs lights', (1.0, 0.6, 0.2))
     lp = lights.node_tree.nodes['Principled BSDF']
     lp.inputs['Emission Color'].default_value = (1.0, 0.62, 0.25, 1)
-    for f in range(0, FRAMES + sec(40.0), 6):           # flashing, on into C5
+    for f in range(0, FRAMES + round(40.0 * FPS), 6):   # flashing, on into C5
         lp.inputs['Emission Strength'].default_value = 120.0 if (f // 6) % 2 else 15.0
         lp.inputs['Emission Strength'].keyframe_insert('default_value', frame=f)
     car = vehicle('Customs car', car_parts(material('Customs white', (0.88, 0.88, 0.86), 0.4))
                   + [((0.3, 1.6, 0.18), (0.1, 0, 1.86), lights)],
             [(0, OFFICE[0] - 8, 392), (sec(7.0), OFFICE[0] - 8, 392), (sec(7.8), 252, 372), (sec(9.2), 300, 372),
-             (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(14.0), 305, 430), (sec(CUSTOMS_ARRIVE), 355, 428)],
+             (sec(9.8), 305, 384), (sec(10.8), 305, 424), (sec(14.0), 305, 430), (sec(CUSTOMS_ARRIVE - LATE), 355, 428)],
             [(0, -0.9), (sec(7.1), -0.9), (sec(7.8), 0.0), (sec(9.2), 0.0), (sec(9.8), math.pi / 2),
              (sec(14.0), math.pi / 2), (sec(14.6), 0.0)])
     beacon = bpy.data.objects.new('Customs beacon', bpy.data.lights.new('Customs beacon', 'POINT'))
@@ -1491,6 +1499,7 @@ def build():
     port_life.add(sys.modules[__name__])
     import c4_farm                                       # the farmland at work: field detail, machines, traffic
     c4_farm.add(sys.modules[__name__])
+    port_life.after_farm(sys.modules[__name__])         # the farm's road traffic on through C5
     import port_detail                                  # the public port's standing clutter
     port_detail.add(sys.modules[__name__])
     import c4_jungle                                    # layered canopy past the fence

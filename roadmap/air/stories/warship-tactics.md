@@ -3,7 +3,7 @@
 Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position), slice 7 (the pack relay) and slice 8 (missile behaviour) built
 
 Written: 2026-10-16
-Updated: 2026-10-19 — rounds between hulls meet the first hull on their way, with a clear-line fire check; slice 8 missile behaviour; a mismatched pack tanks with its sturdier hull and a ship goes for the hull its guns can hurt; Black Sluice is fought by an Enforcer and a Wolf
+Updated: 2026-10-19 — a missile budget per opening and the Greyhook's missile racks; rounds between hulls meet the first hull on their way, with a clear-line fire check; slice 8 missile behaviour; a mismatched pack tanks with its sturdier hull and a ship goes for the hull its guns can hurt; Black Sluice is fought by an Enforcer and a Wolf
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -755,6 +755,64 @@ Whether a lone target should turn to the tank, or a striker should start its ven
 relay question left open here. In `frigate-missiles` the Wolf's PD lasers stop
 all four Harpoons the Brawler sends at it. Black Sluice (`greyhook-duel`, five seeds) passes all its verdicts: the
 Greyhook falls 174 to 293 seconds after the first hit (221 to 334 before), neither Enforcer loses hull.
+
+### Restraint per opening, and the Greyhook's missile racks
+
+A window said when a launch could go, never how many. At Black Sluice (seed 15305) the Enforcer put all eight volleys
+into one 16-second shield lockout, one every 2.27 s (the tube ripple at hull tempo), the Wolf put five Harpoons into
+one stretch, no launch joined a salvo, and the Wolf's first Harpoon went into "shield down" at Greyhook flux 0.02: her
+automatic shield simply was not up yet at rest.
+
+- **A shield lowered at rest is no opening** (`MissileWindow.Kind.SHIELD_IDLE`). An automatic shield rises for the
+  first hostile round on its way (`WarshipSystem.sensesThreat` reads in-flight shells), so a torpedo or finisher sent
+  at a resting shield meets a raised one. Only a shield locked out by a full pool, or held down by hand, reads as
+  down. A Sabot may go into a resting shield, which its flight raises.
+- **An opening is shared by a side and has a budget per ship** (`MissileOpenings`). Forced openings (overload, a
+  shield that cannot rise) last while the target cannot defend itself; standing ones (flank, high flux, worn, strike,
+  a salvo with no opening of its own) last 8 hull-fight seconds. Overload and worn are decisive, and a forced or
+  decisive window during a lesser opening starts a new one. A ship spends at most a pair of volleys into one, or a
+  quarter of its remaining gated volleys if more; a torpedo or finisher goes into a lesser opening only while the
+  ship still keeps a pair back for a decisive one. Packmates spend into the same opening, so the salvo is the pack's.
+  General racks and launches into a standing non-opening (Sabot on a raised shield, torpedo on a shieldless hull)
+  are paced only by the ripple. `-Dbattle.warship.missileRestraint=false` is the control.
+- **The Greyhook carries a Harpoon and a Sabot rack** (owner, 2026-10-19: "refit her with vanilla missile pods in WS
+  004/007 and drop the PD claim"). The two PD lasers there sat in fixed-forward hardpoints (arc 5) and engaged once
+  in a whole fight. One of each, as a salvage captain would keep: the Sabot works a shield toward lockout, the Harpoon
+  is the finisher for it; both are vanilla small racks (4 OP each), so she stands at 63 of the Venture's 115 OP. Her
+  Sabots outreach both sides' guns and open the fight about 41 s after the order, before Rusk is in gun range, so the
+  duel's radio now hears Rusk closing when the first hull fire comes first; the run, timed from the first hull fire,
+  comes about 20 s sooner.
+
+`warship-missile-exchange`, restraint against its control (500 s; all verdicts green, the new
+`missiles-keep-to-the-opening-budget` included):
+
+| loop | launches by window, control / restraint | openers into an opening | openings | PD engagements / kills | lost W / E |
+| --- | --- | --- | --- | --- | --- |
+| fleet | shield-down 15, shield-up 7, high-flux 1, overload 1 / shield-down 5, shield-idle 5 (Sabots), shield-up 4, worn 4 | 100% / 100% | — / 5 | 29 / 8 against 42 / 12 | 2 / 2 against 3 / 0 |
+| pack | shield-down 21, high-flux 10, overload 2 / high-flux 14, shield-down 7 | 100% / 100% | — / 8 | 31 / 7 against 0 / 0 | none / none |
+
+In the fleet each ship spends a pair at a time (the Hammerhead 2, 2, 2 into three openings, two of them decisive). In
+the pack the Enforcers launch nothing: every launch they made before went into the Dominator's resting front shield,
+which their own missiles would have raised; it never locks out in 500 s. The Dominator's Pilums keep their budget
+(3, 2, 1, 3, 3, 3, 3, 3 against 6 to 8).
+
+`greyhook-duel`, five seeds, restraint and refit (merged with the turret-laying change; control in brackets is
+`missileRestraint=false` with the same refit):
+
+| seed | launches per opening | missiles fired / PD engagements / PD kills | outcome |
+| --- | --- | --- | --- |
+| 15305 | Enforcer 2,2,2 | 9 / 9 / 3 (13 / 23 / 5) | Wolf down 196 s; she escapes 267 s after the order, 73% hull (58%) |
+| 16205 | Greyhook 1; Enforcer 2,2,2; Wolf 1 | 11 / 14 / 4 (14 / 23 / 6) | Wolf down 164 s; escapes 262 s, 74% (49%) |
+| 16206 | Greyhook 1; Enforcer 2,2 | 8 / 14 / 4 (14 / 25 / 5) | Wolf down 139 s; escapes 275 s, 89% (60%) |
+| 20261016 | Enforcer 2,2,2; Wolf 2,2,2 (last decisive) | 15 / 9 / 3 (17 / 23 / 5) | escapes 264 s, 45% (40%), Wolf at 22% |
+| 31337 | Enforcer 2,2,2; Wolf 2 | 11 / 9 / 3 (17 / 23 / 5) | escapes 259 s, 60% (47%), Wolf at 32% |
+
+The Enforcer's Reapers are kept as its reserve and no opening is decisive enough to spend them. Every Greyhook missile
+that dies is the Wolf's lasers' work: she launches 3 to 4, and 3 to 4 are shot down. On main she escapes on all five
+seeds too (33 to 73% hull, 293 to 310 s), so the escape-or-crash mix of the earlier duel is now all escape; that is a
+reading for the duel's tuning, not something restraint changed. The warship set (170 loops) is 168 green, red only on
+`wolfs-vs-enforcer-north` and `wolfs-vs-venture-south` (`venting-ship-not-targeted`), both red on main; the
+`warship-mirrors` Eagle loops that are red on main are green here.
 
 ## Slices
 

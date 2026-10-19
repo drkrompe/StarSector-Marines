@@ -198,11 +198,10 @@ full of flat soft white, sRGB (244, 246, 248), on C3's camera with the cabin unc
 C3's frame 0 is exactly that. If the entry instead ends white over the whole frame, C3
 adds a short white-to-cabin fade.
 
-- The entry tail (`entry-window/`) ends on the forest reveal's first frame: the reveal
-  camera at 19.3 degrees down, the orange cabin, and the forest. C3's camera differs
-  only in pitch, from the same eye point, so the entry tail can be re-rendered on C3's
-  camera with no new geometry: its cloud cards are already 2D layers in front of the
-  forest, and the cabin re-view is exactly `c3_cabin_render.py`.
+- **One window across the cut** (owner, 2026-10-19). The entry
+  (`patrol-abeam/compose_entry.py`) is drawn through this shot's own cabin layer and
+  camera from its first frame, relit for space and fire, and settles onto frame 0 in
+  the white. Only what is outside the glass and the shake change at the cut.
 - **The join sits inside the cloud.** The entry ends in thinning cloud; C3's first
   1.6 s is that cloud burning off and sliding aft. Whiteout is the most forgiving
   place for any mismatch between the two renders.

@@ -1,0 +1,19 @@
+Use case: texture map generation / material finish sheet for a 3D model.
+INPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (the Paragon, a 310 m Tri-Tachyon battleship), to be painted as a flat, square-on sample of that material's SURFACE FINISH ONLY:
+top-left square: cool blue-grey glazed ceramic armour;
+top-middle square: pale blue-white glazed ceramic;
+top-right square: near-white ceramic;
+bottom-left square: dark blue-slate ceramic band;
+bottom-middle square: light grey emitter steel;
+bottom-right square: near-black dull machinery recess.
+INPUT 2 is the SAME ship, already finished: it is the finish to match (its colours, satin sheen, faint tone variation, light grime in recesses). Never copy INPUT 2's composition, view or shapes.
+
+The model already carries its own hexagonal tile pattern and seams as geometry. These squares are a FINISH LAYER multiplied over it, so they must contain NO pattern of their own:
+- No hexagons, no tiles, no plates, no seams, no panel lines, no fasteners, no rivets, no hatches, no grilles, no lines of any kind, no stripes, labels or markings.
+- Only organic, all-over surface finish, clearly visible: pronounced cloudy mottling in the glaze (lighter and darker clouds a hand's width across), soft blotchy staining, a fine speckle, smudges and drifts of grey-brown grime, and a cool blue-violet heat tint in several soft patches, with a few warmer straw-bronze heat-tint patches on the steel. Medium contrast, spread over the whole square, with no single dominant feature and nothing centred.
+- Keep the six squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.
+- Keep each square's colour exactly. No colour changes, no patches of a different colour.
+- No rust, scorch marks, burns, damage, dents or holes, and no single concentrated stain.
+- Lighting: flat, even, shadowless, like an albedo texture map. No shadows, no ambient occlusion, no highlights, no reflections, no vignette, no gradient across a square, no border or edge line round a square.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no text or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

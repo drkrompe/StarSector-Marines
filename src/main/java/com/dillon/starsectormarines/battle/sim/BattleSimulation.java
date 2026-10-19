@@ -145,6 +145,7 @@ import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
+import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -245,6 +246,7 @@ import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSy
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
+import com.dillon.starsectormarines.battle.decision.goap.world.ZoneOccupancy;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -1074,6 +1076,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Alias of {@link NavigationService#getZoneGraph()}. */
     private final ZoneGraph zoneGraph;
+    /** Hostile presence per zone as the unit update begins; see {@link ZoneOccupancy}. */
+    private final ZoneOccupancy zoneOccupancy = new ZoneOccupancy();
 
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
@@ -1309,6 +1313,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
+        // A gun on a turning hull shakes the way a moving shooter's does.
+        turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
                 (side, x, y) -> commsSees(side, x, y)));
@@ -1408,6 +1414,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public EnvironmentWear environmentWear() { return environmentWear; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
+    @Override public ZoneOccupancy zoneOccupancy() { return zoneOccupancy; }
 
     public boolean damageCell(int x, int y, int amount) {
         return mapEditor.damageWall(x, y, amount);
@@ -2790,6 +2797,23 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.releaseCurrentThreadLosCache();
     }
 
+    /**
+     * Counts every live unit on the ground into the zone it stands in, so the garrison's "is this room free of
+     * enemies?" can be answered without a roster walk for each question. Valid until the unit update
+     * ends; see {@link ZoneOccupancy} for what that does and does not promise.
+     */
+    private void publishZoneOccupancy() {
+        zoneOccupancy.begin(zoneGraph);
+        for (int i = 0, n = liveUnitCount(); i < n; i++) {
+            long unit = liveUnitAt(i);
+            // A unit aboard a vehicle has no position of its own and stands in no room.
+            if (!world().hasPosition(unit)) continue;
+            zoneOccupancy.add(identity().faction(unit),
+                    zoneGraph.zoneIdAt(world().cellX(unit), world().cellY(unit)));
+        }
+        zoneOccupancy.publish(simTickIndex);
+    }
+
     private void tick() {
         simTickIndex++;
         // The ordinary phase profiler can report only after a tick returns.
@@ -2861,6 +2885,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
         navigation.rebuildSpatialIndices(rosterService);
+        publishZoneOccupancy();
         // A scout car's mast reports against the index just rebuilt: to the fog's next vision pass and to the
         // commander's next capture.
         scoutSight.tick(convoy(), rosterService, unitIndex, grid, fogOfWar,
@@ -2988,6 +3013,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } finally {
             navigation.endSharedGoalPathSnapshot();
         }
+        // Units have moved, so the zone table no longer describes where they stand.
+        zoneOccupancy.close();
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Apply occupancy + destIndex deltas queued by setPath during the
         // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any

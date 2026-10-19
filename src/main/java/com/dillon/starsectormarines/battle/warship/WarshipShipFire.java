@@ -67,6 +67,8 @@ public final class WarshipShipFire {
         MissileWindow.Role role;
         Set<MissileWindow.Kind> open;
         MissileWindow.Kind window;
+        /** For a gated missile launched into an opening: the opening it spends into ({@link MissileOpenings}). */
+        MissileOpenings.Opening opening;
 
         Engagement(Warship target, int rounds) {
             this.target = target;
@@ -103,6 +105,8 @@ public final class WarshipShipFire {
     private boolean missileWindows = MissileWindow.ENABLED;
     /** Open salvos: per target, per side (faction ordinal), the hull-fight seconds the salvo stays open. */
     private final Map<Warship, float[]> salvos = new IdentityHashMap<>();
+    private boolean missileRestraint = MissileOpenings.ENABLED;
+    private final MissileOpenings openings = new MissileOpenings();
     private final Map<String, Integer> launchesByWindow = new TreeMap<>();
     private final Map<String, Integer> launchesByRole = new TreeMap<>();
     private int gatedLaunches;
@@ -201,6 +205,20 @@ public final class WarshipShipFire {
         this.missileWindows = on;
     }
 
+    /** Whether a ship spends at most its budget into one opening ({@link MissileOpenings}); the control is off. */
+    public boolean missileRestraint() {
+        return missileRestraint;
+    }
+
+    public void missileRestraint(boolean on) {
+        this.missileRestraint = on;
+    }
+
+    /** The openings missiles were launched into, and what each ship spent into each. */
+    public MissileOpenings openings() {
+        return openings;
+    }
+
     /** Missile volleys launched at hulls by the window they went into (the first open window, for the control). */
     public Map<String, Integer> launchesByWindow() {
         return Collections.unmodifiableMap(launchesByWindow);
@@ -258,6 +276,7 @@ public final class WarshipShipFire {
     /** Runs the open salvos down on the hull fight's clock and forgets those on hulls no longer over the battle. */
     void advance(float dt) {
         float hullDt = dt / WarshipScale.HULL_TEMPO;
+        openings.advance(hullDt);
         salvos.entrySet().removeIf(e -> e.getKey().destroyed() || e.getKey().departed());
         for (float[] open : salvos.values()) {
             for (int i = 0; i < open.length; i++) open[i] = Math.max(0f, open[i] - hullDt);
@@ -579,6 +598,7 @@ public final class WarshipShipFire {
      * mount's cooldown is this method's whenever it returns {@code true}.
      */
     boolean tickMount(float dt, WarshipSystem system, Warship ship, Warship.Mount m, List<Warship> ships) {
+        m.hullLaid = false;
         if (!looksAtHulls(ship, held) || !WarshipShipRules.mayFireAtHull(m.weapon) || ship.offMapInbound()) {
             engagements.remove(m);
             return false;
@@ -592,32 +612,39 @@ public final class WarshipShipFire {
             e = null;
         }
         if (e == null) {
-            if (m.burstRemaining > 0 || m.cooldown - dt > 0f) return false;
+            if (m.burstRemaining > 0 || m.cooldown - dt > 0f) return lay(ship, m, mx, my, ships);
             if (!ship.hasHullOrdnance(m)) return false;
-            if (!ship.fluxPool().canPress(WarshipPointDefence.engagementFlux(w))) return false;
-            if (w.missile() && !ship.missileVolleyReady()) return false;
+            if (!ship.fluxPool().canPress(WarshipPointDefence.engagementFlux(w))) return lay(ship, m, mx, my, ships);
+            if (w.missile() && !ship.missileVolleyReady()) return lay(ship, m, mx, my, ships);
             boolean clear = system.clearLineFire();
             Warship target = pick(ship, m, mx, my, ships, clear);
             if (target == null) {
-                if (clear && pick(ship, m, mx, my, ships, false) != null) {
+                Warship fouled = clear ? pick(ship, m, mx, my, ships, false) : null;
+                if (fouled != null) {
                     // Every hull it could fire at is behind a friend: it holds rather than fire into its own side.
                     lineRefusals++;
                     noteLineHeld(ship.faction, dt);
                 }
-                return false;
+                return layOn(m, mx, my, fouled);
             }
-            if (!mayStart(ship, target, WarshipPointDefence.engagementFlux(w))) return false;
+            if (!mayStart(ship, target, WarshipPointDefence.engagementFlux(w))) return layOn(m, mx, my, target);
             MissileWindow.Role role = null;
             Set<MissileWindow.Kind> open = null;
             MissileWindow.Kind window = null;
+            MissileOpenings.Opening opening = null;
             if (w.missile()) {
                 role = MissileWindow.role(w);
-                open = MissileWindow.read(ship, target, mx, my, salvoOpen(ship.faction, target));
+                open = MissileWindow.read(ship, target, mx, my, salvoOpen(ship.faction, target), missileRestraint);
                 if (missileWindows) {
                     window = MissileWindow.launch(role, open);
-                    if (window == null) return false;
+                    if (window == null) return layOn(m, mx, my, target);
+                    if (missileRestraint && role != MissileWindow.Role.GENERAL && window.opening()) {
+                        // Spent into an opening the side shares: at most the ship's budget there, the rest kept.
+                        opening = openings.commit(ship, target, role, window);
+                        if (opening == null) return layOn(m, mx, my, target);
+                    }
                 } else {
-                    if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return false;
+                    if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return layOn(m, mx, my, target);
                     window = MissileWindow.label(open);
                 }
             }
@@ -625,6 +652,7 @@ public final class WarshipShipFire {
             e.role = role;
             e.open = open;
             e.window = window;
+            e.opening = opening;
             engagements.put(m, e);
             if (w.missile()) ship.missileVolleyStarted();
         }
@@ -678,6 +706,7 @@ public final class WarshipShipFire {
             e.paid = true;
             engagementsStarted++;
             if (e.window != null) noteLaunch(ship, e);
+            if (e.opening != null) MissileOpenings.paid(e.opening, ship);
         }
         fireRound(system, ship, m, target, aim);
         e.roundsLeft--;
@@ -689,6 +718,47 @@ public final class WarshipShipFire {
                     w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
         }
         return true;
+    }
+
+    /**
+     * Keeps a mount that is holding its next round laid on the hull it would fire at: the ship's chosen hull if this
+     * mount reaches and bears on it, else the nearest it does. A barrel that swung back to rest for every cooldown spent
+     * most of the fight re-laying (a 7-degree-a-second autocannon drifted twenty degrees off over a hull-tempo cooldown
+     * and took three seconds to come back on). An empty magazine that does not refill rests. Always {@code false}: the
+     * mount has not spent the tick on a hull, so its ground logic still runs, and swings it to the lay only where it
+     * would otherwise rest. {@code -Dbattle.warship.layBetweenRounds=false} is the control.
+     */
+    private static boolean lay(Warship ship, Warship.Mount m, float mx, float my, List<Warship> ships) {
+        if (!LAY_BETWEEN_ROUNDS || !ship.hasHullOrdnance(m) && m.reloadPerSecond <= 0f) return false;
+        return layOn(m, mx, my, pick(ship, m, mx, my, ships, false));
+    }
+
+    /** Lays the held mount on where it would aim at {@code target}, when there is one; always {@code false}. */
+    private static boolean layOn(Warship.Mount m, float mx, float my, Warship target) {
+        if (!LAY_BETWEEN_ROUNDS || target == null) return false;
+        float[] aim = aimFor(mx, my, target, m.weapon);
+        m.hullLaid = true;
+        m.hullLayBearing = AirBody.facingToward(aim[0] - mx, aim[1] - my);
+        return false;
+    }
+
+    /** {@code -Dbattle.warship.layBetweenRounds=false} is the control: a held mount swings back to rest. */
+    static final boolean LAY_BETWEEN_ROUNDS = !"false".equalsIgnoreCase(System.getProperty("battle.warship.layBetweenRounds"));
+
+    /**
+     * For evidence: how many degrees the turret {@code m} lies off where it would aim at the ship's chosen hull, or NaN
+     * when it has none this mount reaches and bears on, or the mount does not traverse (a hardpoint, a fixed weapon) or
+     * may not fire at a hull.
+     */
+    static float layError(Warship ship, Warship.Mount m) {
+        Warship target = ship.hullTarget();
+        if (target == null || m.knockedOut() || m.slot.hardpoint() || m.weapon.turnRateDegPerSec() <= 0f
+                || !WarshipShipRules.mayFireAtHull(m.weapon) || !hostileHull(ship, target)) return Float.NaN;
+        float mx = ship.mountX(m);
+        float my = ship.mountY(m);
+        if (!inReach(ship, m, mx, my, target)) return Float.NaN;
+        float[] aim = aimFor(mx, my, target, m.weapon);
+        return Math.abs(WarshipFacing.wrap(AirBody.facingToward(aim[0] - mx, aim[1] - my) - m.headingDegrees));
     }
 
     /**

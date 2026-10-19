@@ -55,6 +55,19 @@ public final class TurretFireSystem implements TurretFireSink {
         void queue(PendingDetonation det);
     }
 
+    /**
+     * What the shooter's own motion does to its gun's accuracy, as a multiplier: a hull whose heading is turning
+     * under its turret ({@code HullPivot}). One for a shooter it does not know.
+     */
+    @FunctionalInterface
+    public interface ShooterAccuracy {
+        ShooterAccuracy NONE = shooterId -> 1f;
+
+        float multiplier(long shooterId);
+    }
+
+    private ShooterAccuracy shooterAccuracy = ShooterAccuracy.NONE;
+
     public TurretFireSystem(Random rng, CellTopology topology,
                             ShotService shots, DamageService damageService,
                             DetonationSink detonationSink,
@@ -70,6 +83,11 @@ public final class TurretFireSystem implements TurretFireSink {
         this.world = world;
         this.resolver = resolver;
         this.telemetry = telemetry;
+    }
+
+    /** Who reads a shooter's own motion into its accuracy ({@link ShooterAccuracy}). */
+    public void setShooterAccuracy(ShooterAccuracy shooterAccuracy) {
+        this.shooterAccuracy = shooterAccuracy != null ? shooterAccuracy : ShooterAccuracy.NONE;
     }
 
     @Override
@@ -90,7 +108,7 @@ public final class TurretFireSystem implements TurretFireSink {
         float distToTarget = (float) Math.sqrt(
                 (tcx + 0.5f - fromX) * (tcx + 0.5f - fromX) +
                 (tcy + 0.5f - fromY) * (tcy + 0.5f - fromY));
-        float effectiveAccuracy = weapon.accuracy;
+        float effectiveAccuracy = weapon.accuracy * shooterAccuracy.multiplier(shooterId);
         if (weapon.indirectFire) {
             float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
             float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
@@ -179,7 +197,8 @@ public final class TurretFireSystem implements TurretFireSink {
         BallisticResolver.Source source = new BallisticResolver.Source(
                 shooterId, muzzle.x(), muzzle.y(), 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolvePoint(source, aim.x(), aim.y(),
-                weapon.accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, rng);
+                weapon.accuracy * shooterAccuracy.multiplier(shooterId), weapon.hitSpread,
+                weapon.directRoundVelocity(), weapon.range, rng);
         telemetry.recordRoundFired(shooterId);
         deliverGroundDirect(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
         return true;

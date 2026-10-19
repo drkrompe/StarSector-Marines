@@ -138,8 +138,10 @@ feel (owner, 2026-10-19: the 3 s wipe was too short and did not read as a descen
   lands here.
 - **1.6–5.6 s.** Dark smoke tears off the flames and trails toward the top left.
 - **4.1–5.4 s.** Cloud streams in along the same line, warm at first, then white.
-- **5.4–7.0 s.** Whiteout; under it the frame blooms and the camera changes from
-  C2's to C3's.
+- **5.4–7.0 s.** Whiteout, settling onto C3's first frame.
+- **One window.** The whole entry is seen through C3's window, from C3's camera:
+  the cut into C3 changes nothing but what is outside the glass and the shake
+  (owner, 2026-10-19). The cut from C2 into the entry is the change of place.
 - **Shake, throughout.** The camera and the window shake together, building
   through the heat, hardest in the cloud, and still there when C3 opens, where it
   eases off. The cabin is lit orange by the fire, flickering, then soft white.
@@ -192,8 +194,13 @@ over the intercom (owner, 2026-10-19):
 
 > Greywater's past the cranes. Let me do the talking.
 
-A line about where they will land (Kilo Nine) may follow; the owner is choosing
-among drafts. Her Nessa memory no longer plays here (see Decisions):
+Then, as the camera drifts east and comes down over the yard (owner's pick,
+2026-10-19):
+
+> Look for the fenced yard on the east side. Kilo Nine. Mind your manners down there; it's a favour.
+
+Both fit the 16 s as built: about 0.5–3.9 s and 4.6–10.9 s, ending before
+touchdown at 11.0 (`c5-v2-closing.md`). Her Nessa memory no longer plays here (see Decisions):
 the shot is too short to carry it, and Y1 introduces Nessa anyway.
 
 **Payoff.** The futuristic world on the ground, and a quiet setup: the haulers
