@@ -25,6 +25,10 @@ REPO = HERE.parents[3]
 OUT = REPO / 'build' / 'c5'
 FPS = 24
 TITLE_T0 = 24.0                         # keep equal to c5_scene.TITLE_T0 (that one imports bpy)
+# C5 holds the title over the working port for about ten seconds (owner, 2026-10-19), longer than
+# the standalone reveal's own fade, then fades to black with half a second to spare before
+# c5_scene.DURATION (40 s): fade over C5 38.0-39.5.
+FADE_OUT = (14.0, 15.5)
 
 
 def titled(bg, parts, t):
@@ -34,7 +38,7 @@ def titled(bg, parts, t):
         return bg
     f = title_a.frame(bg, parts, title_a.ramp(r, title_a.STARSECTOR_IN), title_a.ramp(r, title_a.MARINES_IN),
                       title_a.ramp(r, title_a.STARSECTOR_IN))
-    out = 1 - title_a.ramp(r, title_a.FADE_OUT)
+    out = 1 - title_a.ramp(r, FADE_OUT)
     return Image.blend(Image.new('RGB', f.size), f, out) if out < 1 else f
 
 
