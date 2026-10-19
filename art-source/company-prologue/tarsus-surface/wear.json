@@ -1,0 +1,19 @@
+{
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Tarsus as an independent merchant's hazard-duty freighter in service: hard-worked and dusty from planetside lifts, maintained; soot at the two mains and four auxiliaries.",
+ "clean": {
+  "abrasion": 0.0,
+  "pitting": 0.0,
+  "fade": 0.0,
+  "grime": 0.0,
+  "soot": 0.0,
+  "neglect": 0.0
+ },
+ "service": {
+  "abrasion": 0.36,
+  "pitting": 0.12,
+  "fade": 0.3,
+  "grime": 0.44,
+  "soot": 0.5,
+  "neglect": 0.0
+ }
+}
