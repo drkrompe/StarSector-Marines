@@ -125,7 +125,7 @@
     "size_m": [
       109.6,
       84.5,
-      43.5
+      44.4
     ],
     "cross_checks_m": {
       "person 1.8 m in units": 3.64,
@@ -149,7 +149,7 @@
     "min": [
       -126.07,
       -83.85,
-      -52.9
+      -54.66
     ],
     "max": [
       95.4,
@@ -159,7 +159,7 @@
     "size": [
       221.47,
       170.7,
-      87.9
+      89.66
     ]
   },
   "weapon_slots": [
@@ -880,10 +880,156 @@
       ]
     }
   ],
+  "grapples": {
+    "note": "four keel grapples that carry the captured Tarsus (asharu-battle-shot.md S10); built stowed. Grapple <i> mount is fixed (local +X the deployed boom); Grapple <i> hinge rotation_euler[1] goes from stowed_deg to 0; Grapple <i> stage 2 and stage 3 location[0] from 0 to travel. Grapple <i> clamp anchor is the pad face, on Tarsus receiver <i> at full extension.",
+    "tarsus_origin_units": [
+      19.994,
+      0.47,
+      -77.496
+    ],
+    "tarsus_scale_in_these_units": 1.0303,
+    "tarsus_receivers_m": [
+      [
+        35.7,
+        13.77,
+        4.87
+      ],
+      [
+        35.7,
+        -12.75,
+        4.87
+      ],
+      [
+        -15.3,
+        7.65,
+        5.64
+      ],
+      [
+        -15.3,
+        -6.63,
+        5.64
+      ]
+    ],
+    "grapples": [
+      {
+        "index": 1,
+        "mount": "Grapple 1 mount",
+        "hinge": "Grapple 1 hinge",
+        "stages": [
+          "Grapple 1 stage 2",
+          "Grapple 1 stage 3"
+        ],
+        "anchor": "Grapple 1 clamp anchor",
+        "pivot": [
+          81.2,
+          16.7,
+          -52.0
+        ],
+        "boom_direction": [
+          0.4888,
+          0.519,
+          -0.7012
+        ],
+        "reach": 22.329,
+        "stowed_deg": 135.47,
+        "travel_per_stage": 5.126,
+        "receiver": [
+          92.115,
+          28.288,
+          -67.658
+        ]
+      },
+      {
+        "index": 2,
+        "mount": "Grapple 2 mount",
+        "hinge": "Grapple 2 hinge",
+        "stages": [
+          "Grapple 2 stage 2",
+          "Grapple 2 stage 3"
+        ],
+        "anchor": "Grapple 2 clamp anchor",
+        "pivot": [
+          81.2,
+          -13.7,
+          -52.0
+        ],
+        "boom_direction": [
+          0.4888,
+          -0.519,
+          -0.7012
+        ],
+        "reach": 22.329,
+        "stowed_deg": 135.47,
+        "travel_per_stage": 5.126,
+        "receiver": [
+          92.115,
+          -25.288,
+          -67.658
+        ]
+      },
+      {
+        "index": 3,
+        "mount": "Grapple 3 mount",
+        "hinge": "Grapple 3 hinge",
+        "stages": [
+          "Grapple 3 stage 2",
+          "Grapple 3 stage 3"
+        ],
+        "anchor": "Grapple 3 clamp anchor",
+        "pivot": [
+          0.0,
+          17.1,
+          -52.0
+        ],
+        "boom_direction": [
+          -0.6107,
+          -0.0658,
+          -0.7891
+        ],
+        "reach": 17.872,
+        "stowed_deg": 127.9,
+        "travel_per_stage": 2.911,
+        "receiver": [
+          -10.915,
+          15.924,
+          -66.103
+        ]
+      },
+      {
+        "index": 4,
+        "mount": "Grapple 4 mount",
+        "hinge": "Grapple 4 hinge",
+        "stages": [
+          "Grapple 4 stage 2",
+          "Grapple 4 stage 3"
+        ],
+        "anchor": "Grapple 4 clamp anchor",
+        "pivot": [
+          0.0,
+          -14.1,
+          -52.0
+        ],
+        "boom_direction": [
+          -0.6107,
+          0.0658,
+          -0.7891
+        ],
+        "reach": 17.872,
+        "stowed_deg": 127.9,
+        "travel_per_stage": 2.911,
+        "receiver": [
+          -10.915,
+          -12.924,
+          -66.103
+        ]
+      }
+    ]
+  },
   "object_names": {
     "Hull ...": "central cargo hold, hatch cover, longerons, keel spine, aft machinery body",
     "Launch bay ...": "the converted launch bay (WS 017) cut into the hold",
-    "Refit ...": "the pirate refit: welded armour, scavenged plates, boarding gear",
+    "Refit ...": "the pirate refit: welded armour, scavenged plates",
+    "Grapple <i> ...": "the four keel grapples (moving parts under mount/hinge/stage empties)",
     "Cargo <side> fore|aft module": "the four side cargo modules (tear-apart units)",
     "Frame ...": "open lattice trusses at the waist and between the spine and the pods",
     "Bridge ...": "deckhouse, windscreen, wing ports, mast",

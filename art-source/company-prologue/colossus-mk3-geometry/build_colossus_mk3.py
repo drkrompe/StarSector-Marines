@@ -25,6 +25,9 @@ Options after a literal "--":
   --cpu          render on the CPU
   --res WxH      render size (default 1920x1080)
   --figure       stand a 1.8 m mannequin by the bridge (never saved)
+  --grapples     render with the four keel grapples deployed (the .blend keeps them stowed)
+  --tarsus       hang ../tarsus-geometry/tarsus-geometry.blend from the deployed grapples,
+                 at her own scale (0.51 m/u) in this hull's units (never saved)
   --no-save      skip the .blend and geometry.json
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
 sprite overlay, the silhouette IoU and the review sheet.
@@ -43,8 +46,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import c3_kit, c3_hull, c3_aft, c3_bridge, c3_engines, c3_mounts, c3_refit
-MODULES = (ship_scale, c3_kit, c3_hull, c3_aft, c3_bridge, c3_engines, c3_mounts, c3_refit)
+import c3_kit, c3_hull, c3_aft, c3_bridge, c3_engines, c3_mounts, c3_refit, c3_grapples
+MODULES = (ship_scale, c3_kit, c3_hull, c3_aft, c3_bridge, c3_engines, c3_mounts, c3_refit, c3_grapples)
 for module in MODULES:
     importlib.reload(module)
 
@@ -62,6 +65,8 @@ parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--cpu', action='store_true', help='render on the CPU (a GPU busy with other sessions can stall)')
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--figure', action='store_true')
+parser.add_argument('--grapples', action='store_true', help='render with the keel grapples deployed (saved stowed)')
+parser.add_argument('--tarsus', action='store_true', help='hang the committed Tarsus build from the grapples for review (never saved)')
 parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
@@ -115,6 +120,30 @@ c3_bridge.build(kit)
 c3_engines.build(kit)
 c3_mounts.build(kit)
 c3_refit.build(kit)
+c3_grapples.build(kit)
+TARSUS_GEOMETRY = HERE.parent/'tarsus-geometry'
+if TARSUS_GEOMETRY.joinpath('geometry.json').exists():
+    _dock = json.loads(TARSUS_GEOMETRY.joinpath('geometry.json').read_text(encoding='utf-8')).get('docking', {})
+    _theirs = [tuple(r['location_m']) for r in _dock.get('clamp_receivers', [])]
+    if _theirs and any(max(abs(a-b) for a, b in zip(t, m)) > .05
+                       for t, m in zip(_theirs, c3_grapples.TARSUS_RECEIVERS_M)):
+        print('WARNING the Tarsus receivers moved: update c3_grapples.TARSUS_RECEIVERS_M', _theirs)
+tarsus_objects = []
+if args.grapples or args.tarsus:
+    c3_grapples.pose(True)
+if args.tarsus:
+    with bpy.data.libraries.load(str(TARSUS_GEOMETRY/'tarsus-geometry.blend'), link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    k = c3_grapples.TARSUS_MPU/c3_grapples.MPU
+    from mathutils import Matrix as _M
+    place = _M.Translation(c3_grapples.tarsus_origin()) @ _M.Scale(k, 4)
+    for ob in dst.objects:
+        if ob is None or ob.type not in ('MESH', 'EMPTY') or ob.name.startswith('Camera'):
+            continue
+        bpy.context.scene.collection.objects.link(ob)
+        if ob.parent is None:
+            ob.matrix_world = place @ ob.matrix_world
+        tarsus_objects.append(ob)
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
@@ -193,6 +222,8 @@ CLOSEUPS = [
     ('sponson-detail', (40, 160, 20), (20, 62, 6), 70),
     ('refit-wall', (60, 260, -10), (25, 62, -15), 120),
     ('bay-mouth', (300, 1.5, 10), (85, 1.5, 0), 60),
+    ('grapple-detail', (120, 150, -120), (60, 10, -62), 60),
+    ('prize-carry', (120, 420, -70), (20, 1.5, -55), 300),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
@@ -228,6 +259,9 @@ for name in wanted:
     bpy.ops.render.render(write_still=True)
 if figure:
     bpy.data.objects.remove(figure, do_unlink=True)
+for ob in tarsus_objects:
+    bpy.data.objects.remove(ob, do_unlink=True)
+c3_grapples.pose(False)
 
 
 def bounds(names=None):
@@ -360,9 +394,22 @@ if not args.no_save:
                             'host': host, 'well_radius': r, 'anchor_location': [round(v, 2) for v in c3_hull.LIFT_ANCHORS[i][0]],
                             'exhaust_direction': list(c3_hull.LIFT_ANCHORS[i][1])}
                            for i, (x, y, r, k, host) in enumerate(c3_hull.LIFT, 1)],
+        'grapples': {'note': 'four keel grapples that carry the captured Tarsus (asharu-battle-shot.md S10); built '
+                              'stowed. Grapple <i> mount is fixed (local +X the deployed boom); Grapple <i> hinge '
+                              'rotation_euler[1] goes from stowed_deg to 0; Grapple <i> stage 2 and stage 3 '
+                              'location[0] from 0 to travel. Grapple <i> clamp anchor is the pad face, on '
+                              'Tarsus receiver <i> at full extension.',
+                     'tarsus_origin_units': [round(v, 3) for v in c3_grapples.tarsus_origin()],
+                     'tarsus_scale_in_these_units': round(c3_grapples.TARSUS_MPU/c3_grapples.MPU, 5),
+                     'tarsus_receivers_m': c3_grapples.TARSUS_RECEIVERS_M,
+                     'grapples': [dict(index=i, mount=f'Grapple {i} mount', hinge=f'Grapple {i} hinge',
+                                       stages=[f'Grapple {i} stage 2', f'Grapple {i} stage 3'],
+                                       anchor=f'Grapple {i} clamp anchor', **a)
+                                  for i, a in c3_grapples.ANCHORS.items()]},
         'object_names': {'Hull ...': 'central cargo hold, hatch cover, longerons, keel spine, aft machinery body',
                          'Launch bay ...': 'the converted launch bay (WS 017) cut into the hold',
-                         'Refit ...': 'the pirate refit: welded armour, scavenged plates, boarding gear',
+                         'Refit ...': 'the pirate refit: welded armour, scavenged plates',
+                         'Grapple <i> ...': 'the four keel grapples (moving parts under mount/hinge/stage empties)',
                          'Cargo <side> fore|aft module': 'the four side cargo modules (tear-apart units)',
                          'Frame ...': 'open lattice trusses at the waist and between the spine and the pods',
                          'Bridge ...': 'deckhouse, windscreen, wing ports, mast',

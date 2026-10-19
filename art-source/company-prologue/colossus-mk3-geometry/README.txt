@@ -2,8 +2,9 @@ COLOSSUS MK.III (PIRATE REFIT) - CINEMATIC GEOMETRY (PASSES 1, 2 AND 4; OWNER RE
 
 Purpose
 The pirates' prize ship in the Asharu battle cinematic (asharu-battle/asharu-battle-shot.md):
-an armed Colossus that comes alongside to take the merchant Colossus. Closest of the pirates:
-about 500 m off in S9 "The prize", mid-ground in S10, distant in S4. No damage states.
+an armed Colossus that closes to take the merchant Colossus (S9, about 500-600 m off) and
+fails, and carries off the captured Tarsus clamped under her keel instead (S10, mid-ground);
+distant in S4. No damage states.
 It follows the ship-model-pipeline skill and starts from the accepted Colossus
 (../colossus-geometry/): every module is a fork, copied rather than imported (c3_*), and
 object names keep the Colossus's, so the surfacing part tables carry over.
@@ -38,6 +39,17 @@ What the pirates changed (read off the two sprites, which agree aft of X -20)
   blackened rust-brown on the modules and pods, crimson blocks on the pods' aft plates
   (the sprite's red pod patches), the Colossus's pale longerons and bridge shell kept.
 - Lift thrusters: the cut-down modules take one each (six in all, two on the hold).
+- Keel grapples (c3_grapples), for the S10 prize: four telescoping booms that clamp the
+  Tarsus's four dorsal receivers (tarsus-geometry/geometry.json 'docking', copied into
+  TARSUS_RECEIVERS_M; the build warns if hers move). She hangs on the centreline, same
+  heading, dorsal up, her top 1 m under the keel skids, fore-aft where the fore and aft
+  booms rake out equally: the receivers are 51 m apart and the flat keel 46 m, so the booms
+  splay like a claw. Built stowed (folded flat under the keel, retracted). Each: a fixed
+  'Grapple <i> mount' at the pivot (local +X the deployed boom), 'Grapple <i> hinge'
+  (rotation_euler[1] from its 'stowed_deg' to 0), 'Grapple <i> stage 2' and 'stage 3'
+  (location[0] from 0 to 'travel'), and 'Grapple <i> clamp anchor' on the 2.6 m pad face,
+  on receiver <i> at full extension. --grapples renders them deployed; --tarsus hangs the
+  committed Tarsus build from them for review (never saved).
 
 Slots (checked against the install on every build, WS 017 included)
 WS 001 (42,60) 80/140, 002 (-6,63) 90/130, 003 (42,-58) -80/140, 004 (-6,-61) -90/130,
@@ -64,5 +76,6 @@ Build (from this folder; renders and the .blend go to the ignored build/ tree)
   python compose_review.py --dir ../../../build/colossus-mk3/geo
 --cpu renders on the CPU: with other sessions holding the GPU, a GPU render stalled for
 twenty minutes where the CPU takes seconds. Close-ups: bay-detail, bay-mouth, bow-guns,
-sponson-detail, refit-wall, turret-detail and the Colossus's set. geometry.json is copied
+sponson-detail, refit-wall, turret-detail, grapple-detail, prize-carry (with --tarsus) and
+the Colossus's set. geometry.json is copied
 here from the build.
