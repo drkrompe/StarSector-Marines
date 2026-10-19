@@ -55,6 +55,8 @@ group's review into `build/<group>/`.
 | `swfx_thrusters.py` | drive plumes, cores, bell glow, engine glow lights, RCS puffs |
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
+| `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
+| `swfx_shield.py` | a shield for a hull whose profile declares `SHIELD`: OMNI or FRONT arc, faction colour schemes, strength (opt-in group; the Second Wind has none) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -76,7 +78,10 @@ one of two ways (both under Anchors, Other hulls, below):
   - its geometry.json (scale), the engine table, the bell radii and the
     port/starboard split;
   - the condition states and the turret mounts (`DECLARED_MUZZLES` takes the
-    export's `Anchor turret <i> <tag> muzzle` empties);
+    export's `Anchor turret <i> <tag> muzzle` empties). A mount with more
+    than two barrels tags them `barrel <k>`, and a missile mount (MOUNTS kind
+    `'launcher'`, the optional sixth field) tags its tubes `tube <k>` (Guns,
+    below);
   - its lamp list, so `lighting` works;
   - plume colours per engine mode;
   - the art-placed RCS quads.
@@ -84,7 +89,10 @@ one of two ways (both under Anchors, Other hulls, below):
   Whatever a profile leaves out keeps the Second Wind's value. The
   Mudskipper's profile is `../mudskipper-cinematic/vfx_hull.py`: three orange
   LOW_TECH drives, her two maneuvering jets as geometry RCS anchors, a twin MG
-  and her lamps. Engine indices in neither side list read as `centre`.
+  and her lamps. Engine indices in neither side list read as `centre`. The
+  Legion's (`../legion-cinematic/vfx_hull.py`) is the multi-barrel and
+  launcher case: ten drives, 25 gun barrels on thirteen mounts and six
+  launcher tubes.
 
 ## Scale
 
@@ -338,6 +346,35 @@ volume that can overlap another needs the same treatment.
 
 Every shot is deterministic.
 
+**Other hulls' mounts.** The knob index k is the barrel's own number when the
+export tags it `barrel <k>` (a three-barrel heavy autocannon gets t5_1..t5_3);
+the Second Wind's `gun`, `port gun` and `starboard gun` keep k 1, 1 and 2.
+Flash boxes on one mount are padded apart a little, so Cycles never cuts one
+off at a shared face. A **launcher** (MOUNTS kind `'launcher'`, tubes
+`tube <k>`) gets none of the gun effects. Per tube it has a **launch bloom**
+(an ignition ball at the cell mouth, a short forward lick, and backblast out
+of the launcher's rear face) and a **launch light**, on `gun_launch_t{i}_{k}`.
+Per launch, `fire()` makes a **missile** (a body with a motor flame) that
+leaves the tube and accelerates along the line of fire out to the range, and
+**motor smoke**: a launch puff at the mouth and a trail of puffs left along
+its first stretch, sized from the missile. The launcher knobs below exist
+only when the hull has a launcher, so every other hull's knobs are unchanged.
+
+| Launcher knob | Range | Default | Meaning |
+|---|---|---|---|
+| `gun_launch_t{i}_{k}`, `gun_seed_t{i}_{k}` | | keyed by `fire()` | Per-tube launch envelope and bloom seed |
+| `gun_launch_gain` | 0-4 | 1 | Launch bloom brightness |
+| `gun_launch_light` | 0-60000 | 4000 | Launch light watts at envelope 1 |
+| `gun_missile_gain` | 0-4 | 1 | Motor flame brightness |
+| `gun_missile_velocity` | 0-400 m/s | 40 | Speed leaving the tube (read at `fire()`) |
+| `gun_missile_accel` | 0-2000 m/s² | 220 | Motor acceleration (read at `fire()`) |
+| `gun_missile_range` | 50-6000 m | 1200 | Distance at which the missile leaves the shot (read at `fire()`) |
+| `gun_missile_smoke` | 0-4 | 1 | Motor smoke density; `gun_atmosphere` also thickens it |
+
+Cost: every launch and flash light is a light, and the smoke scatters, so a
+whole battery firing is expensive to render; exhaust haze wrapping the same
+frame multiplies it (the Legion's review leaves haze out of its firing pass).
+
 | Knob | Range | Default | Meaning |
 |---|---|---|---|
 | `gun_flash_t{i}_{k}`, `gun_seed_t{i}_{k}` | | keyed by `fire()` | Per-gun flash envelope and shape seed. k=2 is the twin's starboard gun. |
@@ -361,12 +398,130 @@ Some knobs are live and some are read once:
 Helpers:
 
 - `fire(ctx, turret, start_frame, shots, interval_frames, tag=None)`. The
-  twin alternates port first. `tag` can be `'port gun'`, `'starboard gun'`
-  or `'both'` (a salvo).
+  twin alternates port first; a multi-barrel mount or launcher ripples
+  through its barrels or tubes in order. `tag` can be `'port gun'`,
+  `'starboard gun'`, `'barrel <k>'`, `'tube <k>'` or `'both'` (a salvo).
 - `burst(ctx, turrets=(1,2,3,4), start_frame, shots, interval_frames,
   stagger_frames, seed)`.
 - `build(ctx, fire=[{...}])` fires during the build. The derelict carries no
   guns, so nothing is built there.
+
+### Beams (`swfx_beams`, opt-in)
+
+The Second Wind carries no beam weapon, so `beams` is not in `swfx.GROUPS` and
+its builds never run it. A hull whose profile declares `BEAMS` asks for it:
+`swfx.apply(groups=(..., 'beams'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`); each entry names the muzzle the beam rides
+and carries the weapon's vanilla width, range, colours (fringe, core, glow)
+and charge-up/charge-down, all in hull units, which are the sprite pixels
+vanilla uses.
+
+Per beam, dark until fired: a white-hot core inside a soft fringe in the
+weapon's colour (both additive, with a noise that crawls along the beam for
+vanilla's ROUGH texture); a glow at the muzzle that also shows the charge
+building; a glow at the far end; and point lights at both ends. The rig rides
+its muzzle, so a beam swings with its turret.
+
+- Knobs: `beam_t_<id>` (beam envelope), `beam_charge_<id>` (charge glow),
+  `beam_len_<id>` (length in hull units: the distance to the target), and the
+  group's `beam_gain`, `beam_width`, `beam_flare`, `beam_light`.
+- `fire_beam(ctx, id, start_frame, hold_s=None)` keys one shot with the
+  weapon's own timing: charge-up, then the burst (a burst beam such as the
+  tachyon lance) or `hold_s` seconds (a continuous beam), then charge-down.
+- To land a beam, train its turret on the target and set `beam_len_<id>` to
+  the distance (`aim(rig_name, target)` measures it).
+- A beam must not cut its own hull: `clear_line(origin, target, ignore)`
+  casts from the muzzle to the target and names the first part in the way.
+  Fire only weapons whose slot arc holds the target and whose line is clear
+  (the Paragon's `aim.engage` does both).
+- Emission is kept low on purpose: a strong emitter goes white under AgX and
+  the weapon's colour is lost.
+
+### Shield (`swfx_shield`, opt-in)
+
+The Second Wind has no shield, so `shield` is not in `swfx.GROUPS` and its
+builds never run it. A hull whose profile declares `SHIELD` asks for it:
+`swfx.apply(groups=(..., 'shield'))`. The Paragon is the first
+(`paragon-cinematic/vfx_hull.py`): `SHIELD` names the anchor at the vanilla
+shieldCenter, the radius and arc, the emitter-node empties, the vanilla ring
+and inner colours (the hull style's) and, for a SHIELD_MOD ship system such as
+the Fortress Shield, the colours it turns the shield to, plus raise and
+system charge timings. With `fit` (`{'margin': units}`) the bubble is a shell
+fitted to the hull instead of the vanilla sphere: rays from the centre (the
+anchor in plan, the hull's mid-height) to the hull's convex hull, pushed out
+by the margin, smoothed, and swelled again round any hull corner that ends up
+closer than half the margin. A flat hull's vanilla circle is a sphere many
+times its size in 3D; the fit is what reads as a shield round the ship.
+
+Dark until raised: a sphere of the vanilla radius (or the fitted shell), additive, faint inner
+colour across the face thickening toward a ring-coloured rim, with a slow
+ripple; raising it unfolds an arc from the facing direction both ways, led by
+a bright edge, the way an OMNI shield opens in the game. Four hit flashes in
+the ring colour, each an empty aimed by azimuth and elevation about the
+centre in the hull frame and held on the surface by a shrinkwrap constraint;
+a hit also filters the light through it toward the inner colour.
+`shield_facing` turns only where the unfold starts (the shader reads a facing
+empty); the shell itself never turns. On each emitter node a glow and a point light,
+fully lit a third of the way up.
+
+- Knobs: `shield_t` (raise envelope), `shield_fortress` (system intensity:
+  colour blend; face nearly clear and rim dimmed, ripple settled, so the
+  colour lives in the hits, which spread twice as wide and darken what is
+  behind them; nodes x1.8),
+  `shield_facing` (degrees about +Z), `shield_hit_<k>` with
+  `shield_hit_az_<k>` / `shield_hit_el_<k>` (k 1-4), and the group's
+  `shield_gain`, `shield_rim`, `shield_hit_size`, `shield_light`.
+- `raise_shield(ctx, frame, hold_s=None)`, `fortress(ctx, frame, hold_s=None)`
+  and `hit(ctx, k, frame, azimuth, elevation, strength, decay_s)` key them.
+- The face is seen twice (near and far wall add), so it is kept far fainter
+  than the rim; push `shield_gain` and the bubble goes white under AgX.
+
+**Front shields.** Most hulls carry a FRONT shield: an arc of a set width
+centred on a facing that turns. `SHIELD['type'] = 'FRONT'` keeps the same
+fitted shell and measures the arc in plan, about +Z, so the arc covers the
+hull's whole height across its width; at full raise it stops at half the arc
+either side of `shield_facing`, its ends keeping a dimmer edge. It unfolds
+from the facing both ways as `shield_t` rises, and the hits land on it exactly
+as on the Paragon (a hit outside the open arc does not show; `in_arc(azimuth,
+facing, t)` tells a shot whether a round lands on the shield or goes on to the
+hull). `center` places
+the shell's centre at the vanilla shieldCenter when the anchor is the hull's
+root. The Onslaught, Legion and Colossus profiles carry their vanilla FRONT
+shields (180, 180, 150 degrees, efficiency 1.0); their own exports do not ask
+for the group, so a shot adds `'shield'` to its groups. OMNI (the default)
+stays the Paragon's 3D unfold, unchanged.
+
+**Colour schemes follow the shield's technology** (the hull style), not
+the faction. `swfx_shield.SCHEMES` holds the vanilla hull-style shield colours
+(`hull_styles.json`: LOW_TECH inner 255,125,125, MIDLINE and HIGH_TECH
+125,125,255, OMEGA, THREAT and DWELLER; ring white and inner alpha 75
+everywhere; no `.ship` file overrides them) as `low-tech`, `midline`,
+`high-tech` and so on. Each carries a finish (`FINISHES`): ripple amplitude,
+noise grain and rim brightness as multipliers on the Paragon's accepted look.
+High tech is that look exactly (the reference), steady and even with a bright
+rim. Midline and low tech ripple harder and coarser under a dimmer rim. So
+high tech reads as better tech though vanilla gives it midline's blue. The
+Onslaught, Legion and Colossus profiles use `low-tech`. Faction-leaned schemes
+(`hegemony`, `tritachyon`, `independent`, `sindrian_diktat`,
+`luddic_church`, `pirates`) stay available but are no profile's default. A
+profile names one with `scheme` (or a `finish` of its own). A shot overrides
+it with `swfx.apply(..., shield_scheme=NAME)` (and `shield_arc`,
+`shield_type`). `vanilla_styles(install)` reads the install's
+`hull_styles.json` to check the table.
+
+**Strength.** `shield_strength` (0-1.5) is one knob for how solid the shield
+reads: 1.0 is the Paragon's accepted look exactly (every strength term is 1
+there). Lower thins the face and rim, wavers the whole shield and drops it out
+in moving patches; higher brightens it and filters what lies behind it toward
+the inner colour. Its default comes from the profile's `efficiency` (vanilla
+shield efficiency) through `strength_from_efficiency`: 0.6, the best in
+vanilla, is exactly 1.0, the capitals' 1.0 is 0.8 and the Conquest's 1.4
+is 0.6 (linear, `STRENGTH_PER_EFFICIENCY`). Key it per shot like any knob.
+
+`review_shields.py` renders a hull's front arcs (closed, half, full, turned),
+the tech strip (low tech, midline, high tech at equal strength), the scheme strip, the strength strip and a flicker strip, and the Paragon's
+stills for an A/B against another checkout's kit (`--kit`);
+`compose_shields.py` makes the 1920x1080 sheets.
 
 ### Lighting (`swfx_lighting`)
 
@@ -495,7 +650,17 @@ auto-run off. `check_kit.py` fails on any invalid or non-simple driver.
 - that seal leaks appear only where the state allows them;
 - that there is exactly one conduit-spark emitter per scar spark anchor
   whose `sparking` is true;
-- that every driver is valid and a simple expression.
+- that every driver is valid and a simple expression;
+- that no two guns share a knob label, and every mount has the right kind of
+  rig (a launcher tube a launch bloom and no muzzle flash, a gun the reverse).
+
+`--hull <folder>` runs it on another hull's export (the Legion's
+`finalize.sh` does). `--fire` then fires every turret and checks that guns
+make gun effects and launchers missiles. `--fingerprint OUT.json` writes a
+canonical dump of everything the kit built (after `--fire` when given) and
+prints its sha256: a kit change must leave the Second Wind's unchanged. The
+barrel and launcher change (2026-10-19) left `patched` and `clean` with
+`--fire` byte-identical.
 
 At writing it passes on `derelict`, `patched`, `refit` and `restored`:
 

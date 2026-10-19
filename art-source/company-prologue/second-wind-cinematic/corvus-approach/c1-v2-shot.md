@@ -100,7 +100,11 @@ close in hail 03 (customs) under thrust: it is the `hound-export` asset with the
 VFX kit's plumes on both drives, and none of the kit's exhaust haze, which is
 smoke in air.
 
-Still painted imposters: the station and the distant freighter traffic.
+Civilian freight is 3D too (`c1_fleet.py`): a Colossus outbound 5.2 km out
+where the painted Atlas card was, and a queue inbound to the station's docks at
+8-9 km (a Colossus, two Shepherds and a Mudskipper), each a few dozen pixels
+long, with the picket's stand-in drive glows. Still a painted imposter: the
+station.
 Textures for the Legion are wanted if it is ever framed closer than the
 picket's 6–7 km.
 
