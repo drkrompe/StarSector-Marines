@@ -99,7 +99,6 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .18f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
-        @Override public String activeProtectionStructureId() { return GUN_TANK_ACTIVE_PROTECTION; }
     },
     /**
      * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
@@ -116,7 +115,27 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .24f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
-        @Override public String activeProtectionStructureId() { return GUN_TANK_ACTIVE_PROTECTION; }
+    },
+    /**
+     * The breakthrough tank with a hull interceptor system: the same hull, twin cannons and plate, plus active
+     * protection that takes top-attack rounds coming down on it ({@link #activeProtectionStructureId}), paid for in
+     * a little speed for the launcher boxes and their power. The tank
+     * line's answer to a missile mech, bought as its own rung rather than fitted to a stock tank; the stock tanks
+     * carry none. Its sheet is the breakthrough hull with an ImageGen turret carrying the
+     * fit: an interceptor launcher box on each rear flank and a sensor panel on each cheek
+     * (art-source/vehicles/tank-screened).
+     */
+    SCREENED_TANK("graphics/battle/vehicles/army-tank-screened.png", 0, 4, -90f,
+            0, 4.3f, 3.9f, 2.9f, .95f, 3.0f, .8f, 3.0f,
+            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
+            TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
+        }
+        @Override public float turretRecoilCells() { return .18f; }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public String activeProtectionStructureId() { return SCREENED_TANK_ACTIVE_PROTECTION; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
@@ -297,13 +316,13 @@ public enum VehicleType {
      * The turret-catalog structure of this hull's active protection, or null for a hull that carries none. Its mount
      * is a hull-borne point-defence system ({@code PointDefenseService#mountHull}): it engages hostile arcing,
      * top-attack rounds coming down on the hull, inside its reach, at its rate, from a finite magazine. Flat
-     * rockets, gun rounds and rounds falling on anybody else are left alone. Only the two gun tanks carry one.
-     * {@code -Dbattle.vehicle.activeProtection=false} is the control.
+     * rockets, gun rounds and rounds falling on anybody else are left alone. Only the screened tank carries one;
+     * it is a rung of the tank line, not a fitting. {@code -Dbattle.vehicle.activeProtection=false} is the control.
      */
     public String activeProtectionStructureId() { return null; }
 
-    /** The gun tanks' active-protection structure, or null under the control. */
-    private static final String GUN_TANK_ACTIVE_PROTECTION =
+    /** The screened tank's active-protection structure, or null under the control. */
+    private static final String SCREENED_TANK_ACTIVE_PROTECTION =
             Boolean.parseBoolean(System.getProperty("battle.vehicle.activeProtection", "true"))
                     ? "structure.tank-aps" : null;
 
@@ -356,7 +375,7 @@ public enum VehicleType {
 
     /** The breakthrough hull and the variants built on it. */
     public boolean isTank() {
-        return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == DOZER_BREACHER;
+        return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == SCREENED_TANK || this == DOZER_BREACHER;
     }
 
     /**
@@ -523,7 +542,7 @@ public enum VehicleType {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
             case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER,
                  LRM_CARRIER -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
+            case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, SCREENED_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }

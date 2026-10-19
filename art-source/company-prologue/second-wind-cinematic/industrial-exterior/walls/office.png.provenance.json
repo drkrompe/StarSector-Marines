@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a15479-5775-7162-8398-1b0a5332a79f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15479-5775-7162-8398-1b0a5332a79f\\exec-50796531-6c68-4142-8c7d-8b871ae5dfa8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "office.png",
+    "sha256": "1409c2c881240e18ed9fd05c3dfbee978e0112bf47e25bc9df8de63603c02b08",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "office.prompt.txt",
+  "promptSha256": "ffba3e4e3683e83d1f0a26bd38a92b9b470c7428fd215ba20ec4760201ac056e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA texture for a 3D scene: one building wall material seen perfectly face-on, orthographic, filling the whole square canvas edge to edge. No perspective, no sky, no ground, no people, no vehicles, no border, no text, no logos, no signage lettering. Flat, even, overcast daylight with no cast shadows and no strong directional shading, so it works as a colour (albedo) map that the scene lights itself. Photographic, realistic, hard-used industrial look: this is Greywater Down, a humid jungle-world spaceport's industrial district, wet season, everything weathered.\nThe LEFT and RIGHT edges must tile seamlessly: whatever crosses the left edge continues exactly at the right edge, with no seam, no vignette and no change of brightness across the image.\nThe material: the facade of a two-storey port office and arrivals building, 12 m wide and 10 m tall. Pale weathered precast concrete panels with dark joints, two long horizontal bands of dark tinted glass ribbon windows (one per storey, each about 1.6 m tall, with thin grey aluminium mullions every 1.5 m), a thin parapet capping along the top edge, dark rain streaks running down from the window sills and from the parapet, green-black algae staining low down and a dirt splash band along the bottom edge (the ground line). One external air-conditioning unit on a bracket under a window. Utilitarian government building, slightly run down.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless wall texture with the specified facade and flat lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 35435,
+    "cached_input_tokens": 26880,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 430,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.1
+}

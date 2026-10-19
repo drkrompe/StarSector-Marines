@@ -122,6 +122,11 @@ Pass 3 round 6 (owner: "bottom is the weakest on the main hull", and "some kind
   (heat_tiles) surround them; bolted landing skids with wear shoes run along
   the hold keel (skids), and replace the plain keel strakes. IoU 0.9625;
   1.126 M units3.
+Pass 3 round 7 (owner: thin skids "would concentrate a lot of weight on a wedge
+  / line"; telescoping legs were tried and rejected as more concentrated still):
+  the keel skids are broad flat-soled runners, 8 units (4 m) wide and 96 long,
+  with a segmented wear shoe, side stiffeners and mounting blocks; the tile
+  field stops inside them. IoU 0.9625; 1.126 M units3.
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]
