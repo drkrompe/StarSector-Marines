@@ -59,7 +59,6 @@ EYE_Z = 19.2               # standing eye, about 1.69 m above the floor, mid-sli
 STATION_FORWARD = (16.75, 1.2, EYE_Z)       # on the dais's clear port side, leaning over the console
 STATION_PORT = (13.0, 3.6, EYE_Z)           # 1.05 units (70 cm) inboard of the port glass, at the bank
 LENS_MM = 22.0             # on a 36 mm sensor: 78.6 degrees across
-POSTS = 1.0                # width of the slit mullions in the blockout (1 = the model's own)
 
 # ---------------------------------------------------------------- the pass (metres, Second Wind frame)
 # The Legion comes the other way, bow first, a little angled so its bow quarter and deck read,
@@ -139,7 +138,8 @@ def fighter_bearing_deg(t):
 #   walk    the step down to Castle's station is a person walking, on its own clock, instead of
 #           a glide tied to the head turn (which slid the body forward and back with the head as
 #           it followed the fighters): leaning on the dais through both flights, then back off
-#           the console, down the dais step past the grab pole and four paces to the comms bank.
+#           the console, down the dais step past the grab pole, behind Castle at the forward panel
+#           of her bank (she crosses the frame as they squeeze past) and on to its middle panel.
 #   breath  a standing person is never still: a slow breath in pitch and height and a slower
 #           weight shift in yaw and roll, a few tenths of a degree.
 #   frame   the head sits lower once it is at the port glass, so the slit fills the frame
@@ -152,16 +152,20 @@ def fighter_bearing_deg(t):
 #           go behind the visor brow at about 2.8 s: the person ducks lower over the console
 #           and closer to the glass to keep them in sight, and comes back up after.
 
-CAMERA = set(filter(None, os.environ.get("C2_CAMERA", "").split(",")))
+# Chosen by the owner (2026-10-19): all six refinements are on by default.
+# C2_CAMERA (or --camera) replaces the set; "none" gives the move as reviewed on 2026-10-18.
+CAMERA_DEFAULT = "walk,duck,breath,frame,lean,lens"
+CAMERA = set(c for c in os.environ.get("C2_CAMERA", CAMERA_DEFAULT).split(",") if c and c != "none")
 CAMERA_OPTIONS = ("walk", "breath", "frame", "lean", "lens", "duck")
 DAIS_STEP = (16.05, 1.65)        # on the dais at the head of the step (its tread is at y 1.65)
 STEP_FOOT = (15.15, 1.85)        # on the main floor at its foot; the grab pole is 0.8 to port
+PAST_CASTLE = (13.95, 2.6)       # behind Castle's back at the forward panel (sw_bridge_interior.CASTLE_AT)
 WALK = (4.6, 6.6)                # after the second flight (4.2 s), settled before abeam
 
 
 def _walk_point(u):
     """(x, y) at fraction u of the walk's length, on straight legs (Second Wind units)."""
-    pts = [STATION_FORWARD[:2], DAIS_STEP, STEP_FOOT, STATION_PORT[:2]]
+    pts = [STATION_FORWARD[:2], DAIS_STEP, STEP_FOOT, PAST_CASTLE, STATION_PORT[:2]]
     legs = [math.dist(a, b) for a, b in zip(pts, pts[1:])]
     d = u * sum(legs)
     for (a, b), n in zip(zip(pts, pts[1:]), legs):
@@ -269,7 +273,7 @@ def plan(times, res):
             "legion_mpu": LEGION_MPU, "yaw": YAW_DEG, "roll": ROLL_DEG, "lens_mm": LENS_MM,
             "sun": list(C.SUN), "res": res, "samples": samples, "out": str(OUT),
             "planet_radius_m": C.PLANET_RADIUS_M, "altitude_m": C.ALTITUDE_M,
-            "sw_dir": str(SW_DIR), "camera": sorted(CAMERA), "posts": POSTS}
+            "sw_dir": str(SW_DIR), "camera": sorted(CAMERA)}
 
 
 def launch(argv):
@@ -304,9 +308,6 @@ def launch(argv):
             if CAMERA - set(CAMERA_OPTIONS):
                 raise SystemExit("unknown camera refinement %s; choose from %s"
                                  % (sorted(CAMERA - set(CAMERA_OPTIONS)), CAMERA_OPTIONS))
-        elif argv[i] == "--posts":          # --posts 0.4: preview the slit mullions at that width
-            global POSTS
-            POSTS = float(argv[i + 1])
         elif argv[i] == "--measure":        # measure.json instead of frames (see measure_frame)
             measure = True
             i -= 1
@@ -363,12 +364,6 @@ def blender_main(argv):
         for ch in root.children_recursive:      # the MakeHuman Castle also holds a rig and empties
             if ch.type == "MESH" and ch.data.materials:
                 ch.color = ch.data.materials[0].diffuse_color
-
-    # A preview of thinner window posts (--posts): the slit mullions narrowed along the glass in
-    # place. Only this render changes; the hull model is untouched.
-    for o in bpy.data.objects:
-        if "mullion" in o.name:
-            o.scale.x *= p.get("posts", 1.0)
 
     # Legion: the asset's collection, moved by its root only, scaled to metres.
     with bpy.data.libraries.load(p["legion_blend"], link=False) as (src, dst):

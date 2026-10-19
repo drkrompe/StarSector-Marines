@@ -301,7 +301,10 @@ if not args.no_effects:
     import swfx  # noqa: E402
     import swfx_core  # noqa: E402
     groups = ('thrusters', 'smoke', 'guns')
-    ctx = swfx.apply(state=STATE, groups=groups, rcs=False, dust=False)
+    # The kit's states are the Second Wind's conditions; the Hound (P)'s drives and guns
+    # are healthy (its scars are light hull damage), so its effects are the kit's clean ones.
+    FX_STATE = 'clean' if STATE == 'pirate' else STATE
+    ctx = swfx.apply(state=FX_STATE, groups=groups, rcs=False, dust=False)
     fx = bpy.data.collections[swfx_core.ROOT]
     found = ctx.records['anchors']
     assert len(found['engines']) == len(engines) and len(found['guns']) == sum(len(w['muzzles']) for w in weapons), found
@@ -313,7 +316,7 @@ if not args.no_effects:
         return rec
 
     effects = {'collection': swfx_core.ROOT, 'objects': len(fx.all_objects),
-               'kit': f"second-wind-vfx (swfx.apply state '{STATE}', groups {', '.join(groups)}; rcs and landing dust "
+               'kit': f"second-wind-vfx (swfx.apply state '{FX_STATE}', groups {', '.join(groups)}; rcs and landing dust "
                       'off: the Hound has no RCS quads and the dust is the Second Wind\'s; no rig preset)',
                'metres_per_unit_used': swfx_core.METRES_PER_UNIT,
                'anchors': {'engines': len(found['engines']), 'guns': len(found['guns'])},

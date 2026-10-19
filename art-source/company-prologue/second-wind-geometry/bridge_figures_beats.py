@@ -35,7 +35,7 @@ def main(argv):
     out = Path(argv[argv.index("--out") + 1]).resolve()
     out.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
-        for sheet, view, beats in SHEETS[:1] if "--pilot" in argv else SHEETS:
+        for sheet, view, beats in [s for s in SHEETS if not argv[2:] or any(a.lstrip("-") in s[0] for a in argv[2:])]:
             frames = [round(t * FPS) for t, _ in beats]
             subprocess.check_call([BLENDER, "--background", "--factory-startup", str(SW_BLEND), "--python",
                                    str(HERE / "bridge_interior_review.py"), "--", "--out", tmp, "--figures",

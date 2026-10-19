@@ -55,7 +55,7 @@ import port_people  # noqa: E402
 
 OUT = c4.REPO / 'build' / 'c5'
 C4_END = c4.FRAMES - 1              # C5 starts on the frame C4 ends on
-DURATION = 33.5
+DURATION = 40.0                     # owner, 2026-10-19: linger on the title, more of the port at work
 FRAMES = round(DURATION * c4.FPS)
 LENS, HEIGHT = 50.0, 220.0
 CENTRE = Vector((362.0, 436.0))
@@ -65,7 +65,7 @@ CENTRE = Vector((362.0, 436.0))
 RISE = (18.0, 26.0)
 PUSH = 4.0                          # the push in from C4's last view to the ramp, C5 seconds
 TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
-SETTLE = 1.04                       # how much further it drifts up after the rise, to the end
+SETTLE = 1.07                      # how much further it drifts up after the rise, to the end
 PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # every vehicle has stopped by this C5 second
 TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)

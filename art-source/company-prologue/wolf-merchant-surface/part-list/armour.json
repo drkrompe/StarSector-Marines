@@ -1,0 +1,1061 @@
+{
+ "neck-top-port": {
+  "what": "neck deck, port half, with its rounded flank",
+  "sheet": "armour-tops",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull neck",
+    "seed": [
+     24.0,
+     8.0,
+     2.4
+    ],
+    "faces": [
+     28,
+     29,
+     34,
+     35,
+     44,
+     45,
+     46,
+     50,
+     123,
+     124,
+     125,
+     126,
+     127,
+     133,
+     137,
+     139,
+     140,
+     142,
+     145,
+     146,
+     147,
+     148,
+     155,
+     174,
+     177,
+     178,
+     179,
+     189,
+     190,
+     204,
+     207,
+     208,
+     217,
+     219
+    ]
+   },
+   {
+    "object": "Hull neck port flank",
+    "seed": [
+     23.5,
+     9.4,
+     3.6
+    ],
+    "faces": [
+     0,
+     3,
+     8,
+     11,
+     13,
+     15,
+     16,
+     18,
+     20,
+     21,
+     26,
+     29,
+     32,
+     35,
+     38,
+     41,
+     44,
+     47,
+     48,
+     49,
+     52,
+     54,
+     57,
+     59,
+     62,
+     65,
+     68,
+     71
+    ]
+   }
+  ],
+  "face_count": 62,
+  "area_units2": 566.08,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   32.32,
+   15.92
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    23.547722816467285
+   ],
+   "ortho_width": 37.57852066394895
+  },
+  "native_texels_per_unit": 21.1
+ },
+ "main-top-port": {
+  "what": "main body deck, port half, with the wing root",
+  "sheet": "armour-tops",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull main body",
+    "seed": [
+     10.0,
+     13.0,
+     2.6
+    ],
+    "faces": [
+     8,
+     10,
+     11,
+     20,
+     23,
+     29,
+     35,
+     119,
+     120,
+     121,
+     122,
+     123,
+     124,
+     125,
+     126,
+     127,
+     128,
+     129,
+     130,
+     131,
+     132,
+     133,
+     134,
+     135,
+     136,
+     137,
+     138,
+     139,
+     140,
+     141,
+     142,
+     143,
+     144,
+     145,
+     146,
+     147,
+     148,
+     149,
+     150,
+     157,
+     186,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192,
+     193,
+     194,
+     197,
+     198,
+     219,
+     220,
+     221,
+     222,
+     223,
+     224,
+     225,
+     228,
+     229,
+     237,
+     238,
+     239,
+     245,
+     246
+    ]
+   },
+   {
+    "object": "Hull wing port root",
+    "seed": [
+     0.4,
+     17.8,
+     2.5
+    ],
+    "faces": [
+     0,
+     3,
+     8,
+     11,
+     13,
+     16,
+     18,
+     21,
+     26,
+     29,
+     32,
+     35,
+     38,
+     41,
+     44,
+     47,
+     49,
+     52,
+     54,
+     57,
+     62,
+     65,
+     68,
+     71
+    ]
+   }
+  ],
+  "face_count": 89,
+  "area_units2": 1229.0,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   47.07,
+   26.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0009555816650390625,
+    5.050447463989258
+   ],
+   "ortho_width": 55.748060753795215
+  },
+  "native_texels_per_unit": 14.2
+ },
+ "centre-hump": {
+  "what": "the rounded hump aft of the turret",
+  "sheet": "armour-tops",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull centre hump",
+    "seed": [
+     -1.6,
+     0.0,
+     4.7
+    ],
+    "faces": [
+     0,
+     3,
+     5,
+     8,
+     10,
+     11,
+     13,
+     15,
+     16,
+     18,
+     20,
+     21,
+     25,
+     26,
+     29,
+     31,
+     32,
+     35,
+     37,
+     38,
+     41,
+     43,
+     44,
+     47,
+     48,
+     49,
+     52,
+     54,
+     57,
+     59,
+     62,
+     64,
+     65,
+     68,
+     70,
+     71
+    ]
+   }
+  ],
+  "face_count": 36,
+  "area_units2": 211.31,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.45,
+  "extent_units": [
+   14.8,
+   14.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -1.6000001430511475
+   ],
+   "ortho_width": 28.940569461162085
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "aft-top-port": {
+  "what": "aft body deck, port half, round the aft turret",
+  "sheet": "armour-tops",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft body",
+    "seed": [
+     -8.0,
+     8.0,
+     3.0
+    ],
+    "faces": [
+     16,
+     17,
+     18,
+     19,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     72,
+     73,
+     80,
+     81,
+     104,
+     105,
+     107,
+     108,
+     109,
+     110,
+     112,
+     113,
+     114,
+     115,
+     121,
+     122,
+     123
+    ]
+   }
+  ],
+  "face_count": 33,
+  "area_units2": 498.78,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   31.14,
+   15.94
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -4.76837158203125e-07,
+    -12.999905109405518
+   ],
+   "ortho_width": 36.2122236296188
+  },
+  "native_texels_per_unit": 21.9
+ },
+ "main-side-port": {
+  "what": "main body and wing root port flank",
+  "sheet": "armour-sides",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull main body",
+    "seed": [
+     0.5,
+     23.4,
+     -2.0
+    ],
+    "faces": [
+     17,
+     21,
+     53,
+     54,
+     55,
+     91,
+     93,
+     94,
+     95,
+     211,
+     213,
+     215,
+     226,
+     227
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 91.03,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   6.42,
+   14.25
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.0097483396530151,
+    -3.253547191619873
+   ],
+   "ortho_width": 29.461869035272326
+  },
+  "native_texels_per_unit": 27.0
+ },
+ "neck-side-port": {
+  "what": "neck port flank",
+  "sheet": "armour-sides",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull neck",
+    "seed": [
+     24.0,
+     14.9,
+     -1.5
+    ],
+    "faces": [
+     14,
+     16,
+     17,
+     39,
+     40,
+     42,
+     47,
+     49,
+     63,
+     66,
+     68,
+     70,
+     92,
+     93,
+     95,
+     96,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     184,
+     186,
+     187,
+     188,
+     191,
+     193,
+     210,
+     215,
+     216,
+     218
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 274.89,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   16.23,
+   17.18
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -23.616333961486816,
+    -3.823666572570801
+   ],
+   "ortho_width": 35.520331804142444
+  },
+  "native_texels_per_unit": 22.4
+ },
+ "aft-side-port": {
+  "what": "aft body port flank",
+  "sheet": "armour-sides",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull aft body",
+    "seed": [
+     -14.0,
+     15.6,
+     -1.5
+    ],
+    "faces": [
+     5,
+     6,
+     11,
+     12,
+     28,
+     29,
+     31,
+     41,
+     42,
+     43,
+     44,
+     85,
+     94,
+     96,
+     106
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 278.55,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.49,
+   18.73
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    12.275092601776123,
+    -4.602133274078369
+   ],
+   "ortho_width": 38.728196491566734
+  },
+  "native_texels_per_unit": 20.5
+ },
+ "main-under": {
+  "what": "main body underside, both sides",
+  "sheet": "armour-sides",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull main body",
+    "seed": [
+     5.0,
+     6.0,
+     -6.8
+    ],
+    "faces": [
+     2,
+     5,
+     14,
+     15,
+     16,
+     25,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     45,
+     46,
+     47,
+     49,
+     51,
+     59,
+     61,
+     62,
+     65,
+     67,
+     68,
+     77,
+     79,
+     80,
+     81,
+     82,
+     84,
+     155,
+     156,
+     162,
+     163,
+     164,
+     167,
+     169,
+     170,
+     173,
+     175,
+     176,
+     178,
+     179,
+     180,
+     182,
+     185,
+     199,
+     201,
+     202,
+     204,
+     206,
+     208,
+     210,
+     212,
+     214,
+     217,
+     231,
+     232,
+     235,
+     241,
+     243
+    ]
+   }
+  ],
+  "face_count": 62,
+  "area_units2": 1187.74,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   47.07,
+   26.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    5.051392555236816
+   ],
+   "ortho_width": 55.75296958903625
+  },
+  "native_texels_per_unit": 14.2
+ },
+ "neck-top-stbd": {
+  "what": "neck deck, starboard half, with its rounded flank (mirror)",
+  "sheet": "armour-tops",
+  "tile": 0,
+  "skin_from": "neck-top-port",
+  "members": [
+   {
+    "object": "Hull neck",
+    "seed": [
+     24.0,
+     -8.0,
+     2.4
+    ],
+    "faces": []
+   },
+   {
+    "object": "Hull neck starboard flank",
+    "seed": [
+     23.5,
+     -9.4,
+     3.6
+    ],
+    "faces": [
+     0,
+     3,
+     8,
+     11,
+     13,
+     15,
+     16,
+     18,
+     20,
+     21,
+     26,
+     29,
+     32,
+     35,
+     38,
+     41,
+     44,
+     47,
+     48,
+     49,
+     52,
+     54,
+     57,
+     59,
+     62,
+     65,
+     68,
+     71
+    ]
+   }
+  ],
+  "face_count": 28,
+  "area_units2": 104.55,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   7.95,
+   15.56
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.399999618530273,
+    23.5
+   ],
+   "ortho_width": 32.16950961169654
+  },
+  "native_texels_per_unit": 24.7
+ },
+ "main-top-stbd": {
+  "what": "main body deck, starboard half, with the wing root (mirror)",
+  "sheet": "armour-tops",
+  "tile": 1,
+  "skin_from": "main-top-port",
+  "members": [
+   {
+    "object": "Hull main body",
+    "seed": [
+     10.0,
+     -13.0,
+     2.6
+    ],
+    "faces": []
+   },
+   {
+    "object": "Hull wing starboard root",
+    "seed": [
+     0.4,
+     -17.8,
+     2.5
+    ],
+    "faces": [
+     0,
+     3,
+     8,
+     11,
+     13,
+     16,
+     18,
+     21,
+     26,
+     29,
+     32,
+     35,
+     38,
+     41,
+     44,
+     47,
+     49,
+     52,
+     54,
+     57,
+     62,
+     65,
+     68,
+     71
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 64.99,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   9.17,
+   8.43
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    17.799999237060547,
+    0.40000009536743164
+   ],
+   "ortho_width": 17.434307955956275
+  },
+  "native_texels_per_unit": 45.6
+ },
+ "main-side-stbd": {
+  "what": "main body and wing root starboard flank (mirror)",
+  "sheet": "armour-sides",
+  "tile": 0,
+  "skin_from": "main-side-port",
+  "members": [
+   {
+    "object": "Hull main body",
+    "seed": [
+     0.5,
+     -23.4,
+     -2.0
+    ],
+    "faces": [
+     3,
+     4,
+     9,
+     73,
+     74,
+     76,
+     109,
+     110,
+     111,
+     112,
+     171,
+     181,
+     183,
+     195,
+     196
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 92.7,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   6.42,
+   18.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    1.0097483396530151,
+    -5.366234302520752
+   ],
+   "ortho_width": 38.03579838084928
+  },
+  "native_texels_per_unit": 20.9
+ },
+ "neck-side-stbd": {
+  "what": "neck starboard flank (mirror)",
+  "sheet": "armour-sides",
+  "tile": 1,
+  "skin_from": "neck-side-port",
+  "members": [
+   {
+    "object": "Hull neck",
+    "seed": [
+     24.0,
+     -14.9,
+     -1.5
+    ],
+    "faces": [
+     1,
+     3,
+     6,
+     7,
+     22,
+     23,
+     30,
+     32,
+     33,
+     77,
+     78,
+     80,
+     86,
+     105,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     113,
+     114,
+     115,
+     116,
+     117,
+     161,
+     164,
+     166,
+     168,
+     169,
+     176,
+     195,
+     197,
+     199,
+     205
+    ]
+   }
+  ],
+  "face_count": 35,
+  "area_units2": 276.57,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   16.23,
+   17.18
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    23.616333961486816,
+    -3.823666572570801
+   ],
+   "ortho_width": 35.520331804142444
+  },
+  "native_texels_per_unit": 22.4
+ },
+ "aft-side-stbd": {
+  "what": "aft body starboard flank (mirror)",
+  "sheet": "armour-sides",
+  "tile": 2,
+  "skin_from": "aft-side-port",
+  "members": [
+   {
+    "object": "Hull aft body",
+    "seed": [
+     -14.0,
+     -15.6,
+     -1.5
+    ],
+    "faces": [
+     7,
+     8,
+     13,
+     14,
+     36,
+     37,
+     38,
+     47,
+     49,
+     50,
+     52,
+     91,
+     101,
+     102,
+     111
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 278.55,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.49,
+   18.73
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -12.275092601776123,
+    -4.602133274078369
+   ],
+   "ortho_width": 38.728196491566734
+  },
+  "native_texels_per_unit": 20.5
+ }
+}

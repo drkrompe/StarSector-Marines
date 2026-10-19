@@ -181,10 +181,63 @@ Stable object names (for later damage, surfacing and VFX layers)
 The hull parts the turret seats on are found by downward ray-cast
 (hd_kit.Kit.surface). Booleans use the MANIFOLD solver.
 
+Pirate state (Hound (P))
+--state pirate builds the clean ship, then hd_pirate.py adds the Hound (P):
+the skin hound_d_pirates (same hull and slots, sprite hound_pirates.png,
+"heavily modified - and poorly maintained - by its pirate crew") with the
+hound_d_pirates_Overdriven guns. The sprite's outline is the Hegemony one;
+its large dark areas over formerly-orange armour are read as welded-on scrap
+armour. --state clean (the default) is the committed Hound (A), unchanged.
+- Armour: hd_pirate.SLABS, 17 thick (0.35-0.62 m), skewed, torch-cut slabs
+  with cut corners and a notch, in the sprite's dark areas: starboard deck
+  1-5 (deck, deckhouse roof and a doubler), aft deck 1-3, port pod 1-3
+  (top, outboard chamfer, one on the side over the skirt), starboard pod 1-2,
+  bow neck 1 (the capsule's aft sleeve between the cage bars), spar 1-3.
+  Each is bedded by ray-cast (Kit.surface for deck slabs, the same cast along
+  Y for pod sides): flat blocks fitted to the surface, or bent plates folded
+  to it. Objects: 'Pirate armour <area> <k>' plus '... weld' (a fillet
+  bead round its foot), '... bolts', '... lugs' on three; starboard deck 1
+  and port pod 2 have a cut-out showing the original plate. Material
+  'Pirate scrap armour'; welds 'Recess and machinery'.
+- Guns (hd_mounts.build(kit, hd_pirate.GUNS) replaces only the barrel
+  groups; mounts, cradle, breech, mantlet, feed, houses are the clean ones):
+  WS 001 chaingun: 'Weapon WS 001 motor housing', '... drive motor',
+  '... ammo feed' (+ drop), and under the empty 'Weapon WS 001 rotor'
+  (local X = spin axis) the spindle, barrel 1-6, rear barrel clamp, barrel
+  clamp, muzzle bores and 'Weapon WS 001 muzzle brake' (the muzzle plate).
+  WS 002 twin light MG: 'Weapon WS 002 twin cradle', barrel 1-2,
+  perforated barrel jacket 1-2, muzzle brake 1-2 and muzzle bore 1-2 (no
+  plain '... muzzle brake'); trained with the house above the traverse gap.
+  WS 003 unchanged. Absent in this state: WS 001 recoil sleeve, recoil
+  cylinders, barrel, barrel jacket, jacket bands, muzzle bore and the old
+  muzzle brake; WS 002 barrel, barrel jacket and muzzle brake.
+- Scars: hd_pirate.SCARS, light wear, stable ids HD01-HD11, each placed by a
+  ray-cast: scorches HD01 (port pod skirt), HD05 (deckhouse front, feed-port
+  armour), HD07 (deck forward of the turret), HD09 (bridge capsule aft
+  sleeve), HD11 (starboard pod collar); pocks HD02 (port pod skirt), HD03
+  (port pod intake cap), HD06 (deckhouse front), HD10 (port pod collar top
+  plate), each with a soot ring; gouge HD04 (port pod collar shoulder);
+  patch HD08 (crude plate over an old hole in the port pod reinforcing
+  band). Objects 'Scar HD<nn> scorch|patch plate|patch weld|patch bolts';
+  pocks and the gouge are a live Boolean 'Scar cuts' on the base object they
+  hit (cutter 'Scar cutter - <object>', hidden), as the Second Wind does.
+  Materials 'Scar scorch', 'Scar bare metal' (the cut walls).
+- Checks printed on every pirate build: gun overlaps (CLASHES, as clean),
+  armour against every gun, and what each slab is bedded in.
+- Build (never into this folder; the tracked .blend and geometry.json are
+  the clean asset's, and the driver refuses):
+  sh ../../blender.sh --background --factory-startup --python build_hound.py -- \
+     --state pirate --out <dir> --views top,port-side,front,three-quarter,stern,fork-detail,turret-detail
+  python compose_review.py --dir <dir>
+  <dir>/hound-geometry.blend and <dir>/geometry.json (with states.pirate:
+  armour list, guns, replaced parts, the scar table, checks). Extra pirate
+  close-ups: armour-detail, armour-starboard, chaingun-detail,
+  twin-mg-detail.
+
 Files
 build_hound.py: builds the scene, cameras and renders; runs in Blender.
   hd_hull.py, hd_wheelhouse.py, hd_engines.py, hd_bridge.py, hd_fork.py,
-  hd_mounts.py: one
+  hd_mounts.py, hd_pirate.py (the Hound (P) state): one
   module per area. hd_kit.py: materials and primitives.
 compose_review.py: top overlay, IoU, review sheet and the pass-2
   before/after sheet (Python + Pillow + numpy).
@@ -207,7 +260,8 @@ Rebuild from this folder
 sh ../../blender.sh --background --factory-startup --python build_hound.py
 python compose_review.py
 Options after "--": --out DIR, --views a,b ('details' = all close-ups),
---samples N, --res WxH, --no-save, --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE.
+--samples N, --res WxH, --no-save, --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE,
+--state clean|pirate.
 The committed set is --views top,port-side,front,three-quarter,stern,details
 (about 2 minutes at 24 samples).
 

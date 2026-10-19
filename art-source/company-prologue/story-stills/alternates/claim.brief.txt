@@ -1,7 +1,0 @@
-Use case: illustration-story. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.
-
-Scene: Harker's Claim, an asteroid mining settlement being quietly stripped by its operator. Inside a cavernous rock-cut loading hall, a valuable drill rig hangs in a cargo cradle, being packed for export on the company carriers. Two tired civilian miners in worn coveralls watch from the side; one sits on a tool crate. Empty mounting bolts and dismantled machine bases on the floor show what has already gone. A canteen notice pinned to the scarred rock wall, no readable text. A large CLOSED, pressure-rated observation window with heavy bolted frame and mullions shows cold asteroid rock and black space; the hall is sealed and pressurized.
-
-Reference 1 is the earlier version of this page: keep its composition, camera, the hanging drill rig, the two miners' places and the window. Repaint it so its finish, palette and level of detail match Reference 2, a page from the same set: same restrained painted realism, grey-green and rust steel, amber lamps against cool shadow. Reference 2 is style only, not content.
-
-Melancholy rather than drama.

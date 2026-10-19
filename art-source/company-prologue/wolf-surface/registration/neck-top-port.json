@@ -1,0 +1,59 @@
+{
+ "part": "neck-top-port",
+ "sheet": "crimson-tops",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9952,
+ "raw_iou": 0.9887,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.996,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9887
+  },
+  "bounds_affine": {
+   "scale": [
+    0.99361,
+    0.99483
+   ],
+   "offset_px": [
+    3.42,
+    1.33
+   ],
+   "iou": 0.9835
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00061,
+    0.99883
+   ],
+   "offset_px": [
+    0.42,
+    -0.67
+   ],
+   "iou": 0.996
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.11,
+  "p95_px": 2.0,
+  "max_px": 63.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.49,
+  "p95_px": 1.0,
+  "max_px": 62.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

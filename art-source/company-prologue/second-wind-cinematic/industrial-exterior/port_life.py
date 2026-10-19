@@ -49,7 +49,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
-C5_LENGTH = 34.0            # C5 (33.5 s with its title) and a little over; it starts on C4's last frame
+C5_LENGTH = 40.5            # C5 (40 s with its title) and a little over; it starts on C4's last frame
 KEY_STEP = 2                # frames between baked keys
 HAZE_SKIP = {'Port beacon', 'Lifter plume'}
 
@@ -766,29 +766,36 @@ def add_cranes():
         slot['boxes'].append(b)
         boxes.append(b)
         return b
-    T_END = end_frame() / c4.FPS
     for ci, cr in enumerate(cranes):
         if ci == 1 or len(cr.slots) < 2:
             continue
         # Restacking: a box at a time from the tallest loose pile to the lowest, back and forth.
         loose(cr.slots[0])
         loose(cr.slots[0])
-        t = 1.0 + 3.0 * ci
-        while t < T_END:
-            src = max((s for s in cr.slots if s['boxes']), key=lambda s: (len(s['boxes']), -abs(s['x'] - cr.idle_x)))
-            dst = min((s for s in cr.slots if s is not src), key=lambda s: (s['top'] + 2.6 * len(s['boxes']),
-                                                                           abs(s['x'] - src['x'])))
-            b = src['boxes'].pop()
-            pick = (src['x'], src['y'], src['top'] + 2.6 * len(src['boxes']), 0.0)
-            drop = (dst['x'], dst['y'], dst['top'] + 2.6 * len(dst['boxes']), 0.0)
-            off, down, _ = cr.plan(t, pick, drop, b)
-            b.segments.append(('rest', down, drop))
-            dst['boxes'].append(b)
-            t = cr.busy_until + r.uniform(2.0, 6.0)
+        restack(cr, 1.0 + 3.0 * ci, r)
     loader = cranes[1]
     for s in loader.slots[:3]:
         loose(s)
     return cranes, boxes, loader
+
+
+def restack(cr, t, r):
+    """From t to the end of C5: a box at a time from the tallest loose pile to the lowest, back and forth."""
+    T_END = end_frame() / c4.FPS
+    while t < T_END:
+        piles = [s for s in cr.slots if s['boxes']]
+        if not piles or len(cr.slots) < 2:
+            return
+        src = max(piles, key=lambda s: (len(s['boxes']), -abs(s['x'] - cr.idle_x)))
+        dst = min((s for s in cr.slots if s is not src), key=lambda s: (s['top'] + 2.6 * len(s['boxes']),
+                                                                       abs(s['x'] - src['x'])))
+        b = src['boxes'].pop()
+        pick = (src['x'], src['y'], src['top'] + 2.6 * len(src['boxes']), 0.0)
+        drop = (dst['x'], dst['y'], dst['top'] + 2.6 * len(dst['boxes']), 0.0)
+        off, down, _ = cr.plan(t, pick, drop, b)
+        b.segments.append(('rest', down, drop))
+        dst['boxes'].append(b)
+        t = cr.busy_until + r.uniform(2.0, 6.0)
 
 
 def bake_cranes(cranes, boxes, truck_cars):
@@ -997,6 +1004,8 @@ def add(c4x):
         stood = np.mean([np.mean(np.diff(c.log) < 1e-3) for c in cars])
         print('PORT_LIFE route %-16s %5.0f m  cars %d  zones %d  standing %.0f%%' % (
             rt.name, rt.L, len(cars), len(zones_of(rt, occ)), 100 * stood), flush=True)
+    for cr in cranes:                           # once its last tractor is served, the loader restacks too
+        restack(cr, cr.busy_until + r.uniform(2.0, 6.0), r)
     bake_cranes(cranes, boxes, yard)
     print('PORT_LIFE gantries: moves %s; tractor stops %s' % (
         [len(c.ops) for c in cranes], [len(c.events) for c in yard]), flush=True)
@@ -1019,12 +1028,15 @@ def strip_traffic(r, kinds, names, F):
                           ('strip-west', ['van', 'hauler', 'box', 'van', 'box', 'tanker', 'van', 'box', 'hauler', 'van'], 11.0, 'strip westbound')):
         rt = route(name)
         spacing = rt.L / len(plan)
-        for k, kind in enumerate(plan):
-            s = k * spacing + r.uniform(-20, 20) + v * t
-            x, y, h = rt.at(s)
-            gone = s > rt.L - 5
+        # Enough of them, queued up beyond the west end too, that the stream keeps coming the whole shot.
+        n = len(plan) * math.ceil((rt.L + v * t[-1]) / rt.L)
+        for k in range(n):
+            kind = plan[k % len(plan)]
+            s = k * spacing - v * t[-1] + r.uniform(-20, 20) + v * t
+            x, y, h = rt.at(np.clip(s, 0.0, rt.L))
+            off = (s < 0) | (s > rt.L - 5)
             root = make('%s %s %d' % (names[kind], tag, k), kinds[kind](r))
-            z = np.where(gone, -50.0, 0.0)         # driven off the belt's end: put away under the ground
+            z = np.where(off, -50.0, 0.0)          # not yet on the belt, or driven off its end: under the ground
             bake_pose(root, frames, x, y, z, h)
 
 

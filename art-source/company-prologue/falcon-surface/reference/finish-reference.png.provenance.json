@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155c4-d592-70d3-920e-76c07ee87f1a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155c4-d592-70d3-920e-76c07ee87f1a\\exec-2d23e960-a03c-4de1-823b-2b07c9abecb0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\falcon-surface\\reference\\finish-reference.png",
+    "sha256": "4dc28e3f6ceef2572d4f6d3995320d8f40ab28f62c3b4a60a8c8dcbcec2e2d10",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\falcon-surface\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "c402d5717d87315c3e03b44d187556ae522c495c6d7fa3ec1c0b4e40d8630f20",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact ship, pose and silhouette to repaint\nImage 2: Livery colours only; not layout\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one warship, a Falcon-class light cruiser in a pirate band's repaint, seen from above one bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: two long prongs of dark khaki-brown armour plating, with individual plates repainted a dull pirate red and others a light sand tan; light grey belt plates, ridge caps, central body and bridge dome; warm dark gunmetal machinery (drive blocks, radiator fins, spine housing, turrets); bare polished steel tanks, engine cores and pipes; hazard-yellow bands on the drives; near-black recesses and seams; small lit viewports.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its pirate livery, turned so the bow points right (four times its pixel size): use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed warship hull in that pirate livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every plate, turret, fin, tank, pipe and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material and tone: khaki plates stay a muted dark khaki-brown military paint (as INPUT 2), red plates stay a dull brick pirate red, sand plates stay a light sand tan, grey plates stay a mid warm grey, gunmetal stays dark steel, bare metal stays pale polished steel, the yellow bands stay hazard yellow, recesses and seams stay near black, viewports stay viewports. Each plate keeps its own colour; do not swap, merge or invent colours, stripes or patches.\n- Finish: a hard-used pirate flagship, a captured navy cruiser repainted by hand and kept fighting. Semi-matte enamel brushed over heavy armour plate, with crisp plate seams, rows of fasteners, weld lines and access panels, and visible tone differences from plate to plate (some repaints in a slightly different shade). Even, all-over wear: scuffed edges and corners showing darker primer, grime packed into seams, dust streaking aft, soot round the stern drives. No rust holes, no battle damage, no burns, no dents, no lettering, numbers, skulls or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no environment reflections, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\falcon-surface\\guide\\reference-guide.png",
+      "sha256": "e4b76c0bf7b6302666374078452bacf24afc98830329a12a1032284532b1547c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the exact ship, pose and silhouette to repaint"
+    },
+    {
+      "path": "art-source\\company-prologue\\falcon-surface\\build\\sprite-livery.png",
+      "sha256": "5e4e8c30fcabd0002208c97fb14ee0b39122472018db3b26e86a5fb5bfca0afe",
+      "dimensions": [
+        888,
+        648
+      ],
+      "mode": "RGB",
+      "role": "Livery colours only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to apply the worn pirate finish while preserving Image 1’s geometry, composition, and plate colours."
+  ],
+  "usage": {
+    "input_tokens": 43694,
+    "cached_input_tokens": 25856,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 667,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.3
+}
