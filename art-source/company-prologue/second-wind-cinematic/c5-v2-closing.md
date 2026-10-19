@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing chosen provisionally, to be judged against picture; not recorded.
 Written: 2026-10-18
-Updated: 2026-10-18 — Kilo Nine is Nessa's private yard at the port edge; C4 now ends low and tight on it, wide reveal kept for C5.
+Updated: 2026-10-18 — C4 now lingers through touchdown and the yard starting work; Kilo Nine grown north, with one gate on the port road.
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -44,27 +44,41 @@ word belongs to our people.
 ## Where it lands: Kilo Nine
 
 Kilo Nine is not a public cradle. It is Nessa's private yard, fenced, on the
-east edge of Greywater Down's port with the jungle beyond its back fence: one
-cradle between two repair scaffolds, a derrick over a salvage pile, a hangar,
-fuel, stacked modules and steel, and the workshop the families walk into. The
+east edge of Greywater Down's port with the jungle beyond its east fence. Its
+south half holds one cradle between two repair scaffolds, a derrick over a
+salvage pile, a hangar, fuel, and the workshop the families walk into. Its north
+half holds the works where hulls are actually mended: a fabrication hall, an
+overhead crane over the plate stock and hull sections, a parts store of stacked
+modules, the yard's own generators, and a scrap heap.
+
+Ground traffic has one way in. The port road runs east along the container
+yard to a gate in the yard's south fence, with a gatehouse and a raised
+barrier. From the gate a haul road runs up the west fence to the works, with a
+branch across to the cradle. The
 Hegemony's public cradles lie west of it, each turned to face its own lead-in
 lane, with freighters unloading from the stern down cargo lanes to the
 container yard. C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 
 On the ground: Nessa's tug, bowser and crew carrier roll out from the hangar
-and workshop. A Hegemony customs car, white with a blue roof band and lights
-going, comes over from the port office and turns in at her gate as the ship
-settles. That pays off the customs mention in the hail. The officers meet the
+and workshop and wait clear of the downwash. A Hegemony customs car, white with
+an orange roof band and lights going, comes over from the port office and in
+through her gate as the ship touches down. That pays off the customs mention in the hail. The officers meet the
 ship at the ramp; the families pass them on the way to the workshop.
 
 ## The hand-off from C4
 
-Decided 2026-10-18 by the owner. C4 does not end on the wide port. Over its
-last seconds the sky camera drifts east and comes down to end straight over
-Kilo Nine, low (about 330 m) and tight on Nessa's yard, with Second Wind still
-about 95 m up and descending onto its pad. C5 opens on the same straight-down
-view a step closer, and the cut reads as one continuous move. The wide reveal
+Decided 2026-10-18 by the owner. C4 does not end on the wide port. After its
+8 s pan the sky camera comes down to about 480 m straight over Kilo Nine and
+lingers for 8 s more, drifting north over the yard. Second Wind braked into a
+hover over its pad (96 m across, room to spare around the hull) during the pan.
+Now it sinks and touches down at about 11 s in a ring of yard dust, and its
+drive spools down. Once the dust thins the yard goes to work. The tug, bowser
+and crew carrier move in from their stand-offs, and the scaffold arms swing in
+to the hull. Hands in hi-vis head out from the workshop. The customs car comes
+in through the gate behind them. C4 ends with the ship down and the yard
+moving. C5 opens on the same straight-down view a step closer, and the cut
+reads as one continuous move. The wide reveal
 (the yard as a small corner of a big working port, the ship one patched hull
 among the freighters) is kept for C5's pull-out under the title, so it is seen
 once and lands as the closing image. The public berths are seen passing
@@ -74,7 +88,7 @@ through frame during C4's pan; C4 just does not rest on them.
 
 | t (s) | Picture | Sound |
 |---|---|---|
-| 0–5 | Overhead, looking straight down. Second Wind settles into Kilo Nine between the repair scaffolds. Nessa's tug, bowser and crew carrier converge; the customs car pulls up. | Drive spool-down, hull ticks, yard bed. |
+| 0–5 | Overhead, looking straight down and a step closer than C4's last frame. Second Wind sits on its pad, the last of the dust drifting off. The tug, bowser and crew carrier pull up at the hull, and the customs car parks off the stern. | Hull ticks as it cools, the yard bed. |
 | 5–8 | Engines dark. Steam vents. Crew in biofilter masks walk out; one figure with folded arms (Nessa, unreadable). | Intercom click. Castle begins. |
 | 8–18 | The ramp drops. A thin stream of figures carrying bags crosses the yard, past the customs officers, toward Nessa's workshop. One stops at the ramp's foot and looks up. | Castle's middle lines. |
 | 18–26 | The camera rises straight up. Nessa's yard shrinks to a small fenced corner of a big working port, and the ship becomes one patched hull among the freighters. | Castle's last line, then the bed opens up. |
@@ -110,6 +124,39 @@ first sky.
 people don't." or "Call it a new start, Commander." Kept from the first round:
 a shorter all-hands, "Nine years somebody else counted our days on a wall.
 Nobody's counting now."
+
+## Camera and crowd
+
+Tested 2026-10-18 with `industrial-exterior/c5_crowd_test.py`, which builds C4's
+scene at touchdown and walks a line of families from the ramp toward the
+workshop. It does this two ways side by side, under three candidate cameras.
+
+**The camera looks straight down through a long lens from higher up.** C4's
+wide 18 mm lens sees a person at the frame edge from 45° off vertical, so
+buildings lean outward and a figure there would need a side-on view. A 50 mm
+lens covers the same ground from about 2.8 times the height, and nobody in
+frame is more than about 20° off straight down. C5 opens at 50 mm about 220 m
+up: the yard from the ramp to the workshop fills the frame, Second Wind fills
+its upper right, and a person is about 6 pixels across. The cut from C4's
+18 mm view to this one reads as a step closer, not a jump. The title pull-out
+rises straight up along the same line.
+
+**At that size a person is a handful of pixels, so detail cannot be seen and
+perspective barely matters.** Both methods read as people walking:
+
+- **Simple 3D walkers.** A body, a head and two swinging legs. They read
+  crisper and darker, and their shadows, lighting and perspective come for free.
+  This is the recommended method: nothing to keep consistent, and a bag, a mask
+  or a folded-arms pose is one more block.
+- **Flat sprite cards.** Lying on the ground and turned to each walker's
+  heading, flipping through a top-down walk cycle. A second upright card faces
+  the sun and only casts a shadow, so the shadow carries a side-on walk. With
+  the straight-down long lens, one top-down sheet works in every direction and
+  anywhere in frame. Codex could make the sheets: 8 frames across, clothing
+  variants down, 64x64 px a frame at 2.5 cm a pixel for the top view and 64x96
+  for the side view, both walking toward +x (the layout the test's placeholders
+  follow). Kept in reserve for a closer insert, such as the figure at the ramp
+  who looks up.
 
 ## Open questions
 

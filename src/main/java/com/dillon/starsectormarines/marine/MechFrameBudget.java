@@ -23,7 +23,8 @@ public final class MechFrameBudget {
     public static float ratedOutput(MechVariant variant) {
         return switch (variant) {
             case HOUND -> 20f;
-            case SIROCCO -> 36f;
+            // Rated for its factory heavy cannon, so the build mass costs the Sirocco nothing.
+            case SIROCCO -> 36f + HEAVY_CANNON_BUILD_MASS;
             case BULWARK -> 46f;
         };
     }
@@ -55,12 +56,30 @@ public final class MechFrameBudget {
         };
     }
 
-    /** A weapon's mass: its footprint, plus the weight its access tier carries. */
+    /** A weapon's mass: its footprint, plus the weight its access tier carries, plus its own heavy build. */
     public static float mass(MechWeaponComponent component) {
         if (component == null) return 0f;
         EquipmentAccessTier tier = MechPattern.of(component).accessTier();
-        return component.slotCost * 2f + tierMass(tier);
+        return component.slotCost * 2f + tierMass(tier) + buildMass(component);
     }
+
+    /**
+     * Mass a weapon carries beyond its footprint and tier: the heavy cannon's breech and recoil mounting and the
+     * bastion autocannons' feed are why a Bulwark carrying either gives up a frame part
+     * (heavy-equipment-progression.md). {@code -Dbattle.mech.buildMass.<short id>=0} is the control.
+     */
+    private static float buildMass(MechWeaponComponent component) {
+        float authored = switch (component) {
+            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_BUILD_MASS;
+            case DUAL_BASTION_AUTOCANNONS -> 3f;
+            default -> 0f;
+        };
+        return component.tuned("buildMass", authored);
+    }
+
+    /** {@code -Dbattle.mech.heavyCannonBuildMass=0} is the control. */
+    private static final float HEAVY_CANNON_BUILD_MASS = Float.parseFloat(
+            System.getProperty("battle.mech.heavyCannonBuildMass", "3"));
 
     public static float mass(MechInternal internal, MechVariant variant) {
         if (internal == null) return 0f;

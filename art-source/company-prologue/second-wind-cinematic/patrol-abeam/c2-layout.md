@@ -6,9 +6,59 @@ camera. `c2_core.py` holds the same numbers as code: camera, sun, planet, the pa
 track and the hail timings. The guides, the blockout and any later compositor read
 them from there.
 
-Status: PRODUCTION. C2 and the entry render to final frames (see *Production build*).
-The blockout sections below remain the plan of record where *Production build* does
-not override them.
+Status: REWORK. The owner has moved C2 to Second Wind's bridge (2026-10-18, see
+*Bridge pass* below); a grey blockout is in review. The cabin-window production build
+described in the rest of this sheet is what currently ships, and stays the plan of
+record for the entry and for anything the bridge pass does not replace.
+Updated: 2026-10-18 — bridge pass blockout; the patrol is the Legion at 0.99 m/unit.
+
+## Bridge pass (owner direction, 2026-10-18)
+
+**Why it changed.** The ship sizes were settled (the Legion is 0.99 m per unit: about
+292 m long, 291 m in beam, 88 m keel to crown). Measured through the cabin camera, the
+old pass (Legion at 0.61, about 180 m) filled 50% of the glass at its best moment,
+with the nearest armour about 113–131 m off; the same rules at 0.99 fill 78%, with
+the visible flank 125–150 m off and a 43 m/s pass that moves 20 px a frame. Rather
+than retune a flat wall sliding past one window, the owner asked for the shot to be
+seen **from the bridge**: one continuous shot, no cut, the camera turning like
+someone's head. It starts looking forward over Second Wind's own trunk and forward
+turrets at the Legion ahead, follows it through the port chamfer to the port side
+slits as Second Wind closes and passes, and watches it rise out of the top of the
+slits when the de-orbit starts.
+
+**The bridge.** The command deck is the one on Second Wind's model (`sw_bridge`): a
+low armoured cabin about 6 m square on the forward end of the spine, with slit
+glazing round the front and sides, about 55 cm of glass between the sill ledge and
+the visor brow, behind heavy posts. Its interior exists only in the blockout
+(`c2_bridge_blockout.py`): a floor just above the waist housing, the sill about
+70 cm above it, headroom about 1.6 m, consoles under the forward and port slits, two
+seats. The exterior model is unchanged; the solids that would fill the room are
+hidden from the camera and still cast shadows. The camera is a seated eye about 1 m
+off the floor, 65 cm behind the glass it looks through, on a 22 mm lens.
+
+**The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
+Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
+22 m/s at abeam (8.0 s, under "Patrol has your signature"); it starts 650 m ahead,
+22° off the bow, and passes with its midline 235–265 m out. From 9.6 s Second Wind's
+de-orbit lifts it relative to us (9 m/s²) and it clears the top of the slits by
+about 14 s. The camera's yaw follows the Legion's bearing with a 0.35 s lag, from
+22° to port at the cut to 104° (just aft of the beam).
+
+**Two variants in review**, both on `c2_bridge_blockout.py`'s constants:
+(a) banked 8° toward us with its crown 20 m above our eye, so its deck faces us; and
+(b) level, closer (midline 235 m) and higher (crown 35 m above our eye), so its flank
+goes past as a wall under a deck we cannot see. Review run:
+`review/cinematic-c2/2026-10-18_bridge-blockout_windows/`.
+
+**Open for the owner.** Which variant; whether the bridge's glazing stays this
+narrow (the model's slits make a letterbox, with posts that take a good share of the
+view); and whether the entry glow and C3 keep the passenger-cabin window, with the
+change of camera hidden under the entry's bloom to white as it already is.
+
+```bash
+python c2_bridge_blockout.py --fps 1                       # build/cinematic/c2-bridge/blockout/
+python c2_bridge_blockout.py --fps 1 --set ROLL_DEG=0 --set CROWN_BELOW_EYE_M=-35 --set ABEAM_Y=235 --out <dir>
+```
 
 ## Purpose and payoff
 
@@ -27,8 +77,9 @@ off-channel "Well. Somebody knows we're here." plays over the glow and the cloud
 is the first time in years that anyone official has noticed these people, and the
 window shows it before she says it.
 
-**Continuity.** The patrol is C1's hero warship, the Dominator `heg-hero-v2`, now
-alongside. The sun is C1's sun, carried into Second Wind's frame. The window frame is
+**Continuity.** The patrol is a Hegemony Legion (owner, 2026-10-16), not C1's
+Dominator `heg-hero-v2`; the Dominator figures below are the original blockout's
+stand-in. The sun is C1's sun, carried into Second Wind's frame. The window frame is
 the one used for C2, the entry, C3 and C4.
 
 ## Camera

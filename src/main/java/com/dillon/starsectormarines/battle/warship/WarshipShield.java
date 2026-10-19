@@ -79,6 +79,10 @@ final class WarshipShield {
     private final float upkeep;
     private final float efficiency;
 
+    private float refitArc;
+    private float refitUpkeep = 1f;
+    private float refitEfficiency = 1f;
+
     private boolean auto = true;
     private boolean manualUp;
     private boolean raised;
@@ -149,7 +153,7 @@ final class WarshipShield {
     }
 
     float arcDegrees() {
-        return arcDegrees;
+        return type == Type.NONE ? 0f : Math.min(360f, arcDegrees + refitArc);
     }
 
     float radiusCells() {
@@ -166,11 +170,22 @@ final class WarshipShield {
 
     /** Upkeep as a share of the ship's dissipation, per second. */
     float upkeep() {
-        return upkeep;
+        return upkeep * refitUpkeep;
     }
 
     float efficiency() {
-        return efficiency;
+        return efficiency * refitEfficiency;
+    }
+
+    /**
+     * A refit's changes to the emitter ({@link HullRefit}): degrees added to the arc (never past all round), and
+     * multipliers on upkeep and on the flux each absorbed point of damage costs. A hull with no shield gains none.
+     */
+    void refit(float arcBonusDegrees, float upkeepScale, float efficiencyScale) {
+        if (!(upkeepScale >= 0f && efficiencyScale > 0f)) throw new IllegalArgumentException("refit shield scales out of range");
+        this.refitArc = Math.max(0f, arcBonusDegrees);
+        this.refitUpkeep = upkeepScale;
+        this.refitEfficiency = efficiencyScale;
     }
 
     /** Whether the shield is commanded up (it draws upkeep and holds the pool from venting). */
@@ -233,7 +248,7 @@ final class WarshipShield {
         return switch (type) {
             case NONE -> false;
             case OMNI -> true;
-            case FRONT -> Math.abs(WarshipFacing.wrap(bearingDegrees - facingDegrees)) <= arcDegrees * 0.5f;
+            case FRONT -> Math.abs(WarshipFacing.wrap(bearingDegrees - facingDegrees)) <= arcDegrees() * 0.5f;
         };
     }
 
@@ -247,7 +262,7 @@ final class WarshipShield {
      * that fills the pool the shield collapses with the ship's overload.
      */
     void absorb(float damage, WarshipFlux flux) {
-        float add = damage * efficiency;
+        float add = damage * efficiency();
         hits++;
         absorbedDamage += damage;
         absorbedFlux += add;
@@ -295,7 +310,7 @@ final class WarshipShield {
         if (raised) level = Math.min(1f, level + dt / RAISE_SECONDS);
         else level = Math.max(0f, level - dt / LOWER_SECONDS);
         if (raised) {
-            flux.spend(upkeep * flux.dissipation() * dt);
+            flux.spend(upkeep() * flux.dissipation() * dt);
             if (flux.overloaded()) collapse();
         }
         flux.holdDissipation(raised);

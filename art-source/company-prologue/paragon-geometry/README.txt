@@ -75,6 +75,65 @@ Forward hangar (pg_hangar; owner, pass 3)
   unrendered) counts as enclosed volume, and ship_scale.py carries it as two boat
   bays.
 
+Finish: hex ablative ceramic (pg_finish; owner's pick, pass 3)
+  The armour (skin, pale, white) is crowned hexagonal ceramic plates with dark
+  seams: it spalls plate by plate under beam fire and is re-plated. Plate size
+  differs by part (pg_finish.HEX_M, metres: main ring 4.0, aft body 3.6, belt and
+  pods 3.0, bow module 2.6, horns and lobes 2.4, prow and deck 2.2, bridge 1.8)
+  and shrinks to 0.6x on steep faces; each object carries it as `hex_u`. Each
+  point takes its dominant projection plane's plates (no blended fragments).
+  Machinery is blue-black ceramic with pale ceramic caps. Procedural, triplanar.
+
+Bridge and under-bridge (pg_bridge; owner, pass 3)
+  Read off the sprite's command core at 7x: the nose's sensor slot and crossbar,
+  longitudinal ribs and a centreline boss on the forward tier, the bridge tower's
+  wraparound glazing, vent cluster, comms mast and sensor dish, chevron fins on
+  the neck and a vent array on the spine. Under it, the gantry stops at the bore's
+  edge (pg_hull.GANTRY_FRONT_X, on the lining's flat top) so the deck's nose
+  cantilevers clear over the bore, raised above the loop: keel beam, transverse
+  frames, pipe runs, downlights and a glazed observation blister looking down
+  into the bore. The gantry's bulkhead stands on the lining up to the deck's
+  underside: full-height ribs carrying the deck, plating panels between them, an
+  observation gallery's window band and an airlock at its foot; its flanks carry
+  struts leaning aft, a pipe bundle and machinery units. Windows sit flush on the
+  vertical walls at the foot of each tier in dark frames (never on a chamfer), and
+  the tower's glazing is one band round its vertical wall with dark mullions.
+
+Guns (pg_weapons; owner, pass 3: the mounts read empty)
+  Each turret carries its gun, read off the game's weapon sprite for the Elite
+  fit, sitting low in its dimpled well: the tachyon lance (WS 003/004: forked
+  prong blades over a glowing emitter channel, shoulder capacitors, a fan of
+  fins), the graviton beam (faceted teardrop housing, lens at its point, swept
+  wings), the tactical laser (round dome, emitter spike) and the reaper launcher
+  (rails with a round loaded). Pivots, muzzles and names are unchanged.
+
+Stern and belly (pg_engines, pg_belly; owner, pass 3)
+  The drives are faceted blocks standing out of the pods' stern faces, the
+  sprite's castellation, with radiator louvres across their tops and
+  chamfered-rectangle nozzles (tall slots on the small drives, broad mouths on
+  the big ones). The belly, which the sprite never shows, carries what a
+  beam-armed capital needs underneath: twelve radiator banks round the main
+  ring, finned radiator panels under each drive pod, a lit strake ring on the
+  belt's underside, docking ports with iris doors under the aft body and pods,
+  sensor blisters under the prow and bow quarters, and a keel with lights.
+
+Bore machinery (pg_bore; owner, pass 3)
+  The bore is the soft, exposed part of the ship. Read off the sprite's lining
+  band at 8x: courses of curved plate segments in light, mid and dark greys
+  (some with raised sub-panels, a seeded share missing to show pumps and junction
+  boxes behind), pipe runs between the courses, conduits dropping over the lip
+  every 22.5 degrees, a rim conduit on the flat top, capacitor drums and pump
+  boxes on the top between the emitter nodes, and blue-white status lights. All
+  detail; none of it counts as enclosed volume. The hangar mouth is cut through it.
+
+Service fields (pg_service; owner, pass 3)
+  Where the plating is left off: shallow recesses following the plate (floor
+  parallel to the fitted surface plane, walls showing the substrate) with
+  rounded-rectangle crew hatches (2.6 x 1.6 m, glowing seam, split line, status
+  light), iris hatches, vent banks and radiator fins. Fields on the main ring's
+  crown fore and aft, on each pod top and at the command deck's after end; a
+  field that would meet a turret's dimple is left out.
+
 Armour and machinery character study (study_armour.py, compose_study.py)
   Three energy-resistant ceramic treatments on the built model, same cameras:
   A thermal tiles (2.4 m grid; graphite and titanium machinery), B hex ablative
@@ -112,6 +171,12 @@ Modules (one per area)
   pg_arcs      firing-line check across every turret's arc
   pg_detail    pass 2 detail: insets, dimples, niches, grille, glow, seams, windows
   pg_hangar    the forward hangar in the bore wall, its door and anchors
+  pg_finish    the hex ablative ceramic finish, machinery finish, substrate, plate sizes
+  pg_service   service fields: uncovered plating with hatches and machinery
+  pg_bore      the bore's exposed machinery: plate courses, pipes, conduits, units, lights
+  pg_bridge    the bridge's detail and the under-bridge: nose underside, gantry face and flanks
+  pg_belly     the belly: radiators, pod radiators, strake, docking ports, blisters, keel
+  pg_weapons   the guns, read off the weapon sprites, built at the pivot
 
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship centre:
@@ -122,11 +187,16 @@ Names (identifiers: later passes key off them)
   Hull bow module / Hull <side> bow horn / Hull core trench / Hull command deck
   (+ upper, spine) / Bridge tower / Bridge glazing / Hull aft body / Hull <side> pod /
   Hull <side> reactor well / dome / Hull <side> bow lobe / Hull <side> bow groove
-  Weapon WS nnn well (+ floor), barbette, placeholder (+ stub), Weapon WS nnn pivot (empty; rotate about local Z to train),
+  Weapon WS nnn well (+ floor), barbette, gun parts (housing, prong, emitter, capacitor, fin, lens, rail ...), Weapon WS nnn pivot (empty; rotate about local Z to train),
     Weapon WS nnn muzzle [k]; hardpoints: Weapon WS 00n hardpoint (anchor), housing,
     cradle, emitter, muzzle
   Engine i drive pod / aft-facing bell / mouth lip / dark throat; Engine i exhaust (empty)
   Detail ... (pass 2 parts), Hull <side> reactor glow k, Hull main ring seam light
+  Bridge ... (nose sensor, ribs, boss, glazing, vents, mast, dish, chevrons, spine vents),
+    Under bridge ... (keel beam, frames, downlights, pipes, blister), Gantry face ..., Gantry <side> ...
+  Bore plate <course> <k> (+ panel), Bore pipe <k>, Bore conduit <k>, Bore rim conduit, Bore drum/pump <k>,
+    Bore gap <course> <k> pump/box/light, Bore light <course> <k>
+  Service <side> <field> ... (floor, hatch seam/plate/split/status light, iris, vents, fins)
   Hangar ... (floor, roof, walls, lights, frame, door leaves and slides, mouth, launch point),
     Hull forward hangar (the bay's air, unrendered; counted volume)
   Shield emitter (empty at shieldCenter; radius, arc, type as custom properties),

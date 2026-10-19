@@ -55,7 +55,7 @@ class Kit:
         self.steel = material('Emitter metal', (.20, .22, .25), .75, .4)
         self.glow = material('Tri-Tachyon blue glow', (.05, .1, .2), .0, .4, emission=GLOW_BLUE, strength=12.0)
         self.glow_white = material('Tri-Tachyon white glow', (.2, .2, .2), .0, .4, emission=GLOW_WHITE, strength=10.0)
-        self.glass = material('Bridge glazing', (.02, .04, .06), .2, .08, emission=(.55, .8, 1.0), strength=2.5)
+        self.glass = material('Bridge glazing', (.02, .04, .06), .2, .08, emission=(.35, .62, 1.0), strength=1.3)
         self.mpu = 1.0  # metres per unit; the driver sets it before building
         self.hull = []  # objects the downward ray-cast seats parts on
         self.detail = []  # pass 2 detail objects; turret wells cut through these too
@@ -714,3 +714,21 @@ def profile_mass(kit, name, plan, top, bot, holes=(), mat=None, step=2.5, smooth
     bm.to_mesh(ob.data)
     bm.free()
     return ob
+
+
+def surface_below(kit, x, y, bottom=-160):
+    """Lowest (point, normal) where a ray raised at (x, y) from below meets the hull parts."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    best = None
+    for ob in kit.hull:
+        ev = ob.evaluated_get(dg)
+        inv = ev.matrix_world.inverted()
+        o = inv @ Vector((x, y, bottom))
+        d = (inv.to_3x3() @ Vector((0, 0, 1))).normalized()
+        hit, p, n, _ = ev.ray_cast(o, d)
+        if hit:
+            p = ev.matrix_world @ p
+            if best is None or p.z < best[0].z:
+                best = (p, (ev.matrix_world.to_3x3() @ n).normalized())
+    return best

@@ -27,8 +27,8 @@ Pass 2 detail, read off the sprite and the hull's yard life:
     along its inboard wall and the dark service notches on its outboard face;
   - the crossbeam carries seams and dark slots on what the pods leave
     visible; the machinery's aft face carries a bolted reactor access hatch,
-    louvred intakes and piping between the stern lamp housings (red to
-    starboard, green to port, where the sprite has them);
+    louvred intakes and piping between the stern lamp housings (where the
+    sprite has them; red to port, green to starboard by convention);
   - two crew airlocks: a vestibule onto the turret deck, and a door on the
     starboard bow quarter stepping down to the gantry base deck;
   - ventral: she rests on her keel on a yard service cradle, so the keel
@@ -86,7 +86,7 @@ LAMP_Z = 2.5                               # lamp post centre, on the quarter bl
 SPINE_TOP = 13.0
 INTAKES = ((-20.0, 1.9), (-20.0, -4.1))
 INTAKE_R = 2.3   # the sprite's paired grey intake rings
-LAMPS = (('port green', 8.5), ('starboard red', -9.5))
+LAMPS = (('port red', 8.5), ('starboard green', -9.5))
 SHOE_X = (-21.0, -7.0, 7.0, 21.0)
 SKID_Y = (0.5, -5.5)                       # port, starboard keel skids
 KEEL_FLAT = BODY_KEEL
@@ -495,7 +495,8 @@ def _machinery(kit, mats, body, mach, beam):
         seams.box((xf-.02, yy, 3.3), (.1, .1, 1.4))
     seams.emit(kit, 'Hull aft machinery seam gaps', mats['dark'])
 
-    # Stern running lamps where the sprite has them: red to starboard, green to port.
+    # Stern running lamps where the sprite has them, coloured to the navigation
+    # convention (owner): red to port, green to starboard.
     for name, y in LAMPS:
         lens_mat = mats['green'] if 'green' in name else mats['red']
         kit.box(f'Hull stern lamp post {name}', (-31.9, y, LAMP_Z), (1.2, 1.6, 2.2), mats['cream'], .1)

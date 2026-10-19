@@ -60,6 +60,20 @@ def silhouette_iou(spr, top, ring):
     return inter/union if union else 0.0
 
 
+def colour_match(spr, top):
+    """Mean sRGB of the sprite's opaque pixels and of the model's top view (its
+    own opaque pixels), and the model's mean luminance over the sprite's: the
+    paint pass reads 'paler than the sprite' off this rather than by eye."""
+    def mean(im):
+        px = [p for p in im.getdata() if p[3] > 127]
+        return [sum(p[i] for p in px)/len(px) for i in range(3)] if px else [0, 0, 0]
+    a, b = mean(spr), mean(top.resize((top.width//4, top.height//4)))
+
+    def lum(c):
+        return .2126*c[0]+.7152*c[1]+.0722*c[2]
+    return a, b, lum(b)/max(lum(a), 1e-6)
+
+
 NAMES = {'vulcan': 'Vulcan Cannon', 'lightac': 'Light Autocannon', 'lightmg': 'Light Machine Gun',
          'heavyac': 'Heavy Autocannon', 'flak': 'Flak Cannon', 'dualflak': 'Dual Flak Cannon',
          'needler': 'Heavy Needler', 'squall': 'Squall MLRS', 'hurricane': 'Hurricane MIRV',
@@ -115,7 +129,7 @@ def main():
     core = os.path.join(a.game, 'starsector-core')
     names = [n for n in a.only.split(',') if n] or \
         sorted(f[:-8] for f in os.listdir(a.dir) if f.endswith('-top.png'))
-    scores = {}
+    scores, colours = {}, {}
     for w in names:
         spr, size = composite(core, WPN.get(w, w))
         S = 540
@@ -128,6 +142,8 @@ def main():
         top_full = Image.open(os.path.join(a.dir, w+'-top.png')).convert('RGBA')
         iou = silhouette_iou(spr, top_full, RING[size])
         scores[w] = iou
+        ca, cb, lr = colour_match(spr, top_full)
+        colours[w] = {'sprite': [round(c) for c in ca], 'model': [round(c) for c in cb], 'luminance': round(lr, 3)}
         bg = Image.new('RGBA', (S, S), (165, 167, 170, 255))
         bg.alpha_composite(top_full.resize((S, S)))
         sheet.alpha_composite(bg, (640+50, 0))
@@ -139,14 +155,19 @@ def main():
         tq = tq.resize((1920, round(tq.height*1920/tq.width)))
         sheet.alpha_composite(tq.crop((0, (tq.height-540)//2, 1920, (tq.height-540)//2+540)), (0, 540))
         d = ImageDraw.Draw(sheet)
-        for x, label in ((8, f'{w}: game sprite'), (698, f'model, top (same scale)   silhouette IoU {iou:.3f}'),
+        cm = colours[w]
+        for x, label in ((8, f'{w}: game sprite   mean colour {tuple(cm["sprite"])}'),
+                         (698, f'model, top (same scale)   silhouette IoU {iou:.3f}   mean colour {tuple(cm["model"])}'
+                               f'   luminance x{cm["luminance"]:.2f}'),
                          (1338, 'model, side')):
             d.text((x, 6), label, fill=(255, 255, 255, 255))
         d.text((8, 546), 'model, three-quarter', fill=(255, 255, 255, 255))
         sheet.convert('RGB').save(os.path.join(a.dir, w+'-sheet.png'))
-        print(f'wrote {os.path.join(a.dir, w+"-sheet.png")}  IoU {iou:.3f}')
+        print(f'wrote {os.path.join(a.dir, w+"-sheet.png")}  IoU {iou:.3f}  colour {cm}')
     with open(os.path.join(a.dir, 'iou.json'), 'w') as fh:
         json.dump(scores, fh, indent=1)
+    with open(os.path.join(a.dir, 'colour.json'), 'w') as fh:
+        json.dump(colours, fh, indent=1)
     if a.contact:
         order = [w for w in NAMES if w in names]+[w for w in names if w not in NAMES]
         contact(core, a.dir, order, scores)

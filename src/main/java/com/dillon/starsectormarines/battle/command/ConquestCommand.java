@@ -453,6 +453,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return muster.satchelRecords();
     }
 
+    /** What the plans believe of a fort's nests, for evidence; the commander never reads it. */
+    FortAssault.NestBelief nestBelief(int fortId) {
+        return muster.nestBelief(fortId);
+    }
+
     /** How many strikes the plans asked for, by what the air said, over the battle so far. */
     public Map<AirPoolService.Outcome, Integer> strikeOutcomes() {
         return Map.copyOf(strikeOutcomes);

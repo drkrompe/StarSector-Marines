@@ -18,21 +18,22 @@ canopy frame) and the drive bells keep their swatches.
 """
 from parts_common import PORT, STARBOARD, UP_Z, DOWN_Z
 
-# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1).
+# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1), measured
+# on the pass-3 rework (bent wings and landing gear, 2026-10-18).
 BOX = {
     'Hull fuselage': (-6.9, 13.3, -3.6, 3.6, -2.0, 2.4),
-    'Hull port prong': (10.5, 18.24, 3.95, 7.1, -0.25, 0.55),
-    'Hull starboard prong': (10.5, 17.35, -5.99, -3.95, -0.25, 0.55),
-    'Wing port fore arm': (-0.41, 13.51, 0.1, 13.5, -0.95, 0.9),
-    'Wing starboard fore arm': (-0.41, 13.51, -13.5, -0.1, -0.95, 0.9),
-    'Wing port aft arm': (-10.29, 0.89, -0.26, 10.76, -0.95, 0.9),
-    'Wing starboard aft arm': (-10.29, 0.89, -10.76, 0.26, -0.95, 0.9),
-    'Engine 1 port drive pod': (-13.0, -6.4, 5.0, 13.0, -2.1, 2.0),
-    'Engine 2 starboard drive pod': (-13.0, -6.4, -13.0, -5.0, -2.1, 2.0),
-    'Weapon WS 001 housing': (6.0, 16.0, 8.4, 16.0, -1.2, 1.35),
-    'Weapon WS 001 ventral fin': (0.0, 6.0, 12.01, 15.05, -0.9, 0.4),
-    'Weapon WS 002 inner plate': (5.0, 15.1, -9.4, -4.4, -1.45, 1.55),
-    'Weapon WS 002 outer plate': (5.0, 15.1, -16.0, -12.6, -1.45, 1.55),
+    'Hull port prong': (10.5, 18.3, 3.95, 7.1, -0.73, 0.48),
+    'Hull starboard prong': (10.5, 17.4, -6.0, -3.95, -0.57, 0.48),
+    'Wing port fore arm': (-0.41, 13.51, 0.1, 13.5, -2.28, 0.9),
+    'Wing starboard fore arm': (-0.41, 13.51, -13.5, -0.1, -2.28, 0.9),
+    'Wing port aft arm': (-10.29, 0.89, -0.26, 10.76, -1.89, 0.9),
+    'Wing starboard aft arm': (-10.29, 0.89, -10.76, 0.26, -1.89, 0.9),
+    'Engine 1 port drive pod': (-13.0, -6.4, 5.0, 13.0, -3.28, 1.66),
+    'Engine 2 starboard drive pod': (-13.0, -6.4, -13.0, -5.0, -3.27, 1.65),
+    'Weapon WS 001 housing': (6.0, 16.0, 8.4, 16.0, -2.89, 0.61),
+    'Weapon WS 001 ventral fin': (0.0, 6.0, 12.0, 15.05, -2.49, -0.8),
+    'Weapon WS 002 inner plate': (5.0, 15.1, -9.4, -4.4, -2.21, 1.37),
+    'Weapon WS 002 outer plate': (5.0, 15.1, -16.0, -12.6, -3.14, 0.22),
 }
 STEP = 0.6
 

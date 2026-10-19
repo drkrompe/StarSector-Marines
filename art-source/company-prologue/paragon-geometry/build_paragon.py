@@ -41,8 +41,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
 import ship_scale
-import pg_kit, pg_outline, pg_hull, pg_detail, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs
-MODULES = [pg_kit, pg_outline, pg_hull, pg_detail, pg_hangar, pg_engines, pg_turrets, pg_shield, pg_arcs]
+import pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_bridge, pg_belly, pg_service, pg_hangar, pg_engines, pg_weapons, pg_turrets, pg_shield, pg_arcs
+MODULES = [pg_kit, pg_outline, pg_hull, pg_finish, pg_detail, pg_bore, pg_bridge, pg_belly, pg_service, pg_hangar, pg_engines, pg_weapons,
+           pg_turrets, pg_shield, pg_arcs]
 for module in MODULES:
     importlib.reload(module)
 
@@ -121,12 +122,18 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = pg_kit.Kit()
 kit.mpu = METRES_PER_UNIT
+pg_finish.apply(kit)
 hull = pg_hull.build(kit)
 pg_detail.build(kit, hull)
+pg_bore.build(kit)
+pg_bridge.build(kit, hull)
+pg_belly.build(kit, hull)
+pg_service.build(kit)
 pg_hangar.build(kit, args.hangar_open)
 pg_engines.build(kit)
 pg_turrets.build(kit)
 pg_shield.build(kit, METRES_PER_UNIT)
+pg_finish.assign_sizes(kit)
 # Firing lines: report each turret's clear share of its arc (pg_arcs).
 ARCS = pg_arcs.check(kit)
 for row in ARCS:
@@ -233,6 +240,7 @@ for name, pos, scale in CAMERAS:
 # white (command deck, bow module, reactor domes), dark (lining, wells,
 # machinery). Faces steeper than ~57 deg render dark too, as the sprite shades them.
 CLASS_OF = {'Tri-Tachyon blue-grey skin': 1, 'Tri-Tachyon pale skin': 1, 'Tri-Tachyon blue glow': 1,
+            'Tri-Tachyon substrate': 1, 'Tri-Tachyon hatch ceramic': 1,
             'Tri-Tachyon white core': 2, 'Tri-Tachyon white glow': 2}
 
 
@@ -400,6 +408,9 @@ if not args.no_save:
         'bore': {'centre': list(pg_hull.BORE_C), 'radius': pg_hull.BORE_R, 'lining_radius': pg_hull.LINING_R},
         'shield': dict(pg_shield.RECORDS),
         'hangar': dict(pg_hangar.RECORD),
+        'service_fields': list(pg_service.RECORDS),
+        'finish': {'armour': 'hex ablative ceramic (owner pick, study option B)', 'plate_m': pg_finish.HEX_M,
+                   'default_plate_m': pg_finish.DEFAULT_M, 'steep_face_factor': pg_finish.STEEP_FACTOR},
         'weapon_slots': pg_turrets.records(),
         'firing_lines': {'method': 'pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg '
                                    'depressed) from a mount sitting low in its dimpled well',

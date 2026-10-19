@@ -1,12 +1,12 @@
 {
   "generator": "Codex CLI built-in image_gen",
   "codexVersion": "codex-cli 0.159.0",
-  "thread": "01a1505d-8ea5-7c11-bbfc-9ee9c6a1374c",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1505d-8ea5-7c11-bbfc-9ee9c6a1374c\\exec-5280be4f-3cd7-412a-ba3e-64bb7e1d592f.png",
+  "thread": "01a15144-b7ce-7e50-952e-56f31851c478",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15144-b7ce-7e50-952e-56f31851c478\\exec-3893253b-6434-4e1e-bacb-e851e05eac16.png",
   "otherImagesInThread": [],
   "output": {
     "path": "art-source\\company-prologue\\fighters-surface\\dagger\\reference\\finish-reference.png",
-    "sha256": "0cd5ec193046ffac0bcd1f5b8a76792a69399abf262f7f6a3f9ed9f6d476a191",
+    "sha256": "458c5a48d1963618aee1c1b288a0cfa489383bbbf68be8d42c636729652e7402",
     "dimensions": [
       1672,
       941
@@ -14,13 +14,13 @@
     "mode": "RGB"
   },
   "promptFile": "art-source\\company-prologue\\fighters-surface\\dagger\\prompts\\finish-reference.prompt.txt",
-  "promptSha256": "d8ea49ea3a680dc87467925421951dc6b99056f214813e983fcd5a1fedce5f59",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the craft's livery (colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one single-seat space torpedo bomber, a Dagger, about 16 metres long, with two forward prongs, a cockpit body, a broad drive block at the stern and a torpedo pod with a cream torpedo on the port side, seen from above its port bow quarter on a plain light grey background. Its flat colours mark which material each surface is: pale blue-grey armour (the prongs, cockpit body, drive block, wing pylon, strut, fins and the torpedo pod), dark grey steel (the canopy frame, grilles and the seeker), a cream torpedo store, bright steel rings and lips, near-black recesses, vents and grilles, and a cyan-tinted canopy.\nINPUT 2 is a painted top-down illustration of this exact craft in its livery: use it ONLY for the paint scheme and colours. Never copy its view, composition, shapes or illustration style.\n\nRepaint the craft in INPUT 1 as a real, photographed spacecraft in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the craft exactly where it is, the same size, same silhouette and outline, same camera, every plate, vent, grille, ring and window in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Keep every surface's material: pale blue-grey armour becomes the pale cool blue-grey enamel of INPUT 2, the dark grey steel stays dark gunmetal grey, the torpedo stays a warm off-white cream enamel, bright rings stay brighter polished steel, recesses, vents and grilles stay near black, the canopy stays a dark cyan-tinted glass. Do not swap or invent colours, stripes, patches or markings.\n- Finish: a front-line military craft in good order. Crisp semi-matte enamel with fine plate seams, flush fastener rows and small access panels, subtle plate-to-plate tone differences. Light, even service wear only: faint edge scuffs on exposed corners and leading edges, a thin film of grime in seams, soot on the drive block at the stern. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "promptSha256": "3635c05b77aaf110e7c54674b502fb44475924310670a06f39f97a1fde33033a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the craft's livery (colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one single-seat space torpedo bomber, a Dagger, about 16 metres long, with two forward prongs, a cockpit body, a broad drive block at the stern and a torpedo pod with a cream torpedo on the port side, seen from above its port bow quarter on a plain light grey background. Its flat colours mark which material each surface is: pale blue-grey armour (the prongs, cockpit body, drive block, wing pylon, strut, fins and the torpedo pod), dark grey steel (the canopy frame, grilles and the seeker), a cream torpedo store, bright steel rings and lips, near-black recesses, vents and grilles, and a cyan-tinted canopy. The craft stands on three landing legs under the hull: dark grey steel struts and braces, bright steel pistons and near-black foot pads; its wings bend down from the prongs (an inverted gull), so the torpedo pod and tip fins sit lower than the hull.\nINPUT 2 is a painted top-down illustration of this exact craft in its livery: use it ONLY for the paint scheme and colours. Never copy its view, composition, shapes or illustration style.\n\nRepaint the craft in INPUT 1 as a real, photographed spacecraft in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the craft exactly where it is, the same size, same silhouette and outline, same camera, every plate, vent, grille, ring and window in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat light grey with no floor, shadow, stars, text or border.\n- Keep every surface's material: pale blue-grey armour becomes the pale cool blue-grey enamel of INPUT 2, the dark grey steel stays dark gunmetal grey, the torpedo stays a warm off-white cream enamel, bright rings stay brighter polished steel, recesses, vents and grilles stay near black, the canopy stays a dark cyan-tinted glass. Do not swap or invent colours, stripes, patches or markings.\n- Finish: a front-line military craft in good order. Crisp semi-matte enamel with fine plate seams, flush fastener rows and small access panels, subtle plate-to-plate tone differences. Light, even service wear only: faint edge scuffs on exposed corners and leading edges, a thin film of grime in seams, soot on the drive block at the stern. No rust, no chipped-away paint areas, no repair plates, no dents, no damage, no burns, no large stains, no lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
   "adopted": false,
   "references": [
     {
       "path": "art-source\\company-prologue\\fighters-surface\\dagger\\guide\\reference-guide.png",
-      "sha256": "e7779f7edd12e93e06284f6472b163c16082cf45ff04785f62b5827cfd5c3223",
+      "sha256": "2e7095387086da6248c8d3c367ac8e88b8c477a2d07a4e4a25558ea56c1670e2",
       "dimensions": [
         1920,
         1080
@@ -43,11 +43,11 @@
     "I’ll use the imagegen skill to apply the livery and finish while preserving Image 1’s geometry and composition."
   ],
   "usage": {
-    "input_tokens": 85702,
-    "cached_input_tokens": 65536,
+    "input_tokens": 86872,
+    "cached_input_tokens": 66048,
     "cache_write_input_tokens": 0,
-    "output_tokens": 728,
-    "reasoning_output_tokens": 18
+    "output_tokens": 859,
+    "reasoning_output_tokens": 16
   },
-  "elapsedSeconds": 49.3
+  "elapsedSeconds": 57.6
 }

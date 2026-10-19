@@ -18,18 +18,19 @@ canopy frame) and the drive bells keep their swatches.
 """
 from parts_common import PORT, STARBOARD, UP_Z, DOWN_Z
 
-# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1).
+# World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1), measured
+# on the pass-3 rework (bent wings and landing gear, 2026-10-18).
 BOX = {
     'Hull cockpit body': (-7.6, 2.0, -6.8, 6.8, -1.35, 1.6),
-    'Engine 1 drive block': (-15.0, -7.1, -6.0, 6.0, -1.6, 1.85),
-    'Hull port prong': (-0.9, 17.7, 1.0, 7.0, -0.85, 1.5),
-    'Hull starboard prong': (-0.9, 17.7, -7.0, -1.0, -0.85, 1.5),
-    'Wing port torpedo pod': (-2.85, 11.2, 8.0, 12.0, -1.25, 0.9),
-    'Wing port pylon': (0.0, 7.0, 6.6, 8.4, -0.35, 0.55),
-    'Wing port strut': (2.0, 7.0, 11.7, 13.2, -0.25, 0.45),
-    'Wing starboard stub': (0.0, 6.9, -9.1, -6.6, -0.5, 0.9),
-    'Wing port tip fin': (-0.98, 7.98, 12.95, 14.05, -1.0, 1.1),
-    'Wing starboard tip fin': (-0.98, 7.98, -10.05, -8.95, -1.0, 1.1),
+    'Engine 1 drive block': (-15.0, -7.1, -6.0, 6.0, -1.95, 2.15),
+    'Hull port prong': (-0.9, 17.7, 1.0, 7.0, -1.42, 1.42),
+    'Hull starboard prong': (-0.9, 17.7, -7.0, -1.0, -1.42, 1.42),
+    'Wing port torpedo pod': (-2.85, 11.2, 8.0, 12.0, -1.94, 0.21),
+    'Wing port pylon': (0.0, 7.0, 6.6, 8.4, -1.07, 0.55),
+    'Wing port strut': (2.0, 7.0, 11.7, 13.2, -1.74, -0.31),
+    'Wing starboard stub': (0.0, 6.9, -9.1, -6.6, -1.35, 0.9),
+    'Wing port tip fin': (-0.98, 7.98, 12.95, 14.05, -2.5, -0.4),
+    'Wing starboard tip fin': (-0.98, 7.98, -10.05, -8.95, -1.93, 0.17),
 }
 STEP = 0.6
 

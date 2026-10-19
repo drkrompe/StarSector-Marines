@@ -269,10 +269,10 @@ def build(kit, parts):
     shelf_glow(kit)
     aft_grilles(kit, parts)
     deck_windows(kit, parts)
-    lining_ribs(kit)
+    # (the lining ribs are superseded by pg_bore's machinery)
     aft_body_seams(kit, parts)
     flank_panels(kit, parts)
-    gantry(kit, parts)
+    # (the gantry's frames and pipes are pg_bridge's now)
 
 
 # Stern machinery: dark finned grilles let into each pod's aft face between the drive blocks (port Y spans).
@@ -318,20 +318,28 @@ WINDOW_M = (2.0, 0.9)
 
 
 def deck_windows(kit, parts):
-    """Rows of glazed slits along the command deck's tiers."""
-    for tier, z, xs in (('deck', pg_hull.DECK_Z+6.5, range(-30, -100, -5)),
-                        ('deck upper', pg_hull.DECK_Z+14.0, range(-36, -96, -6))):
+    """Rows of windows along the command deck's tiers, flush on the vertical wall at each tier's foot.
+
+    A window sitting on a 45-degree chamfer pokes out at an angle and reads as a
+    shard (owner, pass 3); on the vertical wall it sits flush, a lit pane in a
+    dark frame."""
+    rows = (('deck', pg_hull.DECK_Z+2.0, range(-30, -100, -5)),
+            ('deck upper', pg_hull.DECK_Z+13.5, range(-36, -96, -6)))
+    w, h = WINDOW_M[0]/kit.mpu, WINDOW_M[1]/kit.mpu
+    for tier, z, xs in rows:
         ob = parts[tier]
         for side, label in ((1, 'port'), (-1, 'starboard')):
             for i, x in enumerate(xs, start=1):
                 hit = _flank_point(ob, x, side, z)
-                if not hit:
+                if not hit or abs(hit[1].z) > .2:   # only where the wall is vertical
                     continue
                 p, n = hit
-                w = kit.box(f'Detail {label} {tier} window {i}', tuple(p),
-                            (WINDOW_M[0]/kit.mpu, .5, WINDOW_M[1]/kit.mpu), kit.glass, 0)
-                w.rotation_euler = (0, 0, math.atan2(n.y, n.x)+math.pi/2)
-                kit.detail.append(w)
+                yaw = math.atan2(n.y, n.x)+math.pi/2
+                frame = kit.box(f'Detail {label} {tier} window {i} frame', tuple(p+n*.05), (w+.5, .2, h+.4), kit.tech, 0)
+                pane = kit.box(f'Detail {label} {tier} window {i}', tuple(p+n*.12), (w, .12, h), kit.glass, 0)
+                for o in (frame, pane):
+                    o.rotation_euler = (0, 0, yaw)
+                    kit.detail.append(o)
 
 
 def lining_ribs(kit):
@@ -342,9 +350,9 @@ def lining_ribs(kit):
         a = 2*math.pi*k/48
         if k % 4 == 0:
             continue  # where the emitter nodes stand (every 30 deg, offset 15: pg_shield)
-        r = (pg_hull.BORE_R+pg_hull.LINING_R)/2
+        r = (pg_hull.LIP_TOP_R+pg_hull.LINING_R)/2
         b = kit.box(f'Detail bore lining rib {k+1}', (cx+r*math.cos(a), cy+r*math.sin(a), z+.5),
-                    (pg_hull.LINING_R-pg_hull.BORE_R-3.0, 1.4, 1.0), kit.slate, .1)
+                    (pg_hull.LINING_R-pg_hull.LIP_TOP_R-1.5, 1.4, 1.0), kit.slate, .1)
         b.rotation_euler = (0, 0, a)
         kit.detail.append(b)
 
