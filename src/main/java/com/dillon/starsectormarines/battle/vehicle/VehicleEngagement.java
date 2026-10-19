@@ -35,7 +35,7 @@ import java.util.Map;
  *
  * <p>What it does not touch: a player order (an active one owns the chassis and an arrived one hands back here, the
  * way a mech's doctrine resumes after a move), a hull under direct control, delivery legs, allied story columns
- * (their scripts own when they move), unarmed hulls and empty magazines. Infantry is not a duel target: against
+ * (their scripts own when they move), unarmed hulls, a gun shot away ({@link HullTurretSection}) and empty magazines. Infantry is not a duel target: against
  * infantry a hull still holds where it stands and fires.
  *
  * <p>{@code -Dbattle.vehicle.duelRange=false} is the control: a deployed hull holds where it was set down.
@@ -217,7 +217,7 @@ public final class VehicleEngagement {
         if (convoy.faction(id) == Faction.ALLY) return false;
         VehicleType type = convoy.vehicleType(id);
         GroundTurret turret = convoy.turret(id);
-        return type != null && type.hasTurretWeapon() && turret != null && turret.ammo > 0;
+        return type != null && convoy.isArmed(id) && turret != null && turret.ammo > 0;
     }
 
     private void decide(long id, Plan plan, GroundBody body) {
@@ -395,7 +395,7 @@ public final class VehicleEngagement {
         if (!convoy.isVehicle(target)) return MechDuelRange.ownWeapons(roster.world().mechLoadout(target));
         List<Weapon> out = new ArrayList<>(1);
         VehicleType type = convoy.vehicleType(target);
-        if (type != null && type.hasTurretWeapon()) out.add(Weapon.of(type.turretStructure().mount.weapon));
+        if (type != null && convoy.isArmed(target)) out.add(Weapon.of(type.turretStructure().mount.weapon));
         return out;
     }
 }

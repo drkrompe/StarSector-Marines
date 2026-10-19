@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15196-2c7b-7470-9e17-3550f232530e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15196-2c7b-7470-9e17-3550f232530e\\exec-09db9b9a-d4ad-4442-9e66-249d5984d6f4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\04-hull-paint.png",
+    "sha256": "9bd23a52f5651ec6b0a9f782c05fa716695660c99e8c4a95c3830f98cd29d14e",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\04-hull-paint.txt",
+  "promptSha256": "86c21d61950343c89d972b8f9d49de6378c288995b6ce4d469a0357336b1f8e8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Direction: hand-painted hull lettering. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station, who arrive on a jungle world in a patched, much-repaired old freighter. The mark is the ship's own lettering: MARINES brush-painted by hand in tall, bold, slightly condensed block capitals on a section of weathered hull plating made of several overlapping patched panels with weld seams and rivet lines, in mismatched faded rust-red, grey and primer tones. The paint is cream white with a hand-painted thin black keyline, sun-faded and scuffed, with a few chips where a panel was replaced and the lettering carries on across it. STARSECTOR is smaller, painted in a simple stencil along a narrow strip above. The hull panel section is the logo shape, cut out with a slightly irregular rectangular silhouette of plate edges; everything outside the panel is transparent. Honest, worn, proud, home-made.\n\nLettering must be spelled exactly, in capital letters: the setting name STARSECTOR, small, and the mod's name MARINES, large and dominant; MARINES is the identity of the mark and STARSECTOR is a modest subtitle. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image with the weathered hull lettering and transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 37146,
+    "cached_input_tokens": 13312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 509,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.4
+}

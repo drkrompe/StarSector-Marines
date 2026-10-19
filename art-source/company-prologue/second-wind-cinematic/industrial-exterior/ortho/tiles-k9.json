@@ -1,0 +1,23 @@
+{
+  "note": "Fine layer over Kilo Nine (C5, and the end of C4): 144 x 96 m tiles at 9.4 cm a pixel. centre and size in metres (world x, y); pixels must share the size's aspect. See ortho_paint.py.",
+  "tiles": [
+    {
+      "name": "k9-south",
+      "centre": [
+        366.0,
+        440.0
+      ],
+      "size": [
+        144.0,
+        96.0
+      ],
+      "pixels": [
+        1536,
+        1024
+      ],
+      "accepted": true,
+      "about": "Kilo Nine's south half: the pad, the ramp side, the workshop and the gate. C5's opening view, 9.4 cm a pixel."
+    }
+  ],
+  "layer": 1
+}

@@ -39,8 +39,24 @@ public final class GroundTurret {
     /** World point committed by a manual trigger; null for autonomous bursts. */
     public PointFireAim burstPointAim;
 
+    /** The turret as a section of the hull, or null when the hull authors none (its gun cannot be shot away). */
+    public final HullTurretSection section;
+
     public GroundTurret(int startingAmmo) {
+        this(startingAmmo, null);
+    }
+
+    public GroundTurret(int startingAmmo, HullTurretSection section) {
         this.ammo = startingAmmo;
+        this.section = section;
+    }
+
+    /**
+     * Whether damage has destroyed the gun. A destroyed turret stays drawn where it last pointed, never fires,
+     * never traverses, and the hull reads as unarmed to every threat and engagement question.
+     */
+    public boolean destroyed() {
+        return section != null && section.destroyed();
     }
 
     /** Releases queued work without refunding ammunition or resetting the fire clock. */
