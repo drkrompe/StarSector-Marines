@@ -415,31 +415,10 @@ if not args.no_save:
     if args.manifest:
         shutil.copy(manifest_path, HERE/'geometry.json')
 
-    # --- The appendable asset: one collection, one root, nothing but the ship. ---
-    for ob in [o for o in bpy.data.objects if o.type in ('CAMERA', 'LIGHT')]:
-        bpy.data.objects.remove(ob, do_unlink=True)
-    coll = bpy.data.collections.new(COLL)
-    scene.collection.children.link(coll)
-    anchors = bpy.data.collections.new(f'{COLL} | anchors')
-    coll.children.link(anchors)
-    root = bpy.data.objects.new(ROOT, None)
-    root.empty_display_type, root.empty_display_size = 'ARROWS', 12
-    coll.objects.link(root)
-    root['metres_per_unit'] = METRES_PER_UNIT
-    root['axes'] = '+X bow, +Y port, +Z dorsal; hull units'
-    root['source'] = 'art-source/company-prologue/wolf-geometry/build_wolf.py'
-    for ob in [o for o in bpy.data.objects if o is not root]:
-        for c in list(ob.users_collection):
-            c.objects.unlink(ob)
-        (anchors if ob.type == 'EMPTY' else coll).objects.link(ob)
-        if ob.parent is None:
-            ob.parent = root  # root sits at the hull origin: no inverse needed
-    bpy.context.view_layer.update()
-    orphans = [o.name for o in coll.all_objects if o is not root and o.parent is None]
-    assert not orphans, orphans
-    for c in [c for c in bpy.data.collections if c.name not in (COLL, f'{COLL} | anchors')]:
-        bpy.data.collections.remove(c)
-    bpy.ops.outliner.orphans_purge(do_recursive=True)
-    bpy.context.preferences.filepaths.save_version = 0
-    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'wolf-p.blend'), compress=True)
+    # The clean geometry build for the surfacing harness (../wolf-surface): the
+    # same model with the review cameras and studio, never the appendable asset.
+    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'wolf-geometry.blend'), copy=True, compress=True)
+    import wf_export
+    importlib.reload(wf_export)
+    wf_export.package(OUT/'wolf-p.blend', METRES_PER_UNIT)
     print('saved', OUT/'wolf-p.blend')
