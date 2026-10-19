@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — the AT LRM against a tank: gun tanks carry top-attack active protection (fit 0.81 to 0.69), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -515,7 +515,7 @@ identity yet are owned elsewhere, and are reported here rather than tuned:
   their contact warhead (penetration 30) meets plate it defeats at full damage.
   That is the missiles' anti-armor role, but stronger than "the tank wins in the
   open" allows. The rack-side levers were measured and none of them fixes it;
-  the gun tanks' top-attack active protection does (*The AT LRM against a tank*, below).
+  the screened tank's top-attack active protection answers it (*The AT LRM against a tank*, below).
 - **The energy and autocannon arms win in the open** (bastion 0.72, pulse 0.56
   there). Their reach (34, 32) and penetration (14, 9) now meet a plate they
   bite, and the breakthrough tank stands off only when it out-reaches its target
@@ -614,25 +614,38 @@ being a tank-only gap.
   two to four times as far as the tank rows. Reach is erratic, and at 32 the
   bastion fit beats the breakthrough tank 1.00. The tank rows are
   overdetermined: halving the racks still wins.
-- **The answer is on the tank: active protection against top-attack rounds**
-  (`convoy-nouns.md`, a gun tank carries active protection). Each gun tank
-  carries a hull mount with reach 8, a 0.1 s cycle, a 0.7 roll and 30
-  engagements. It takes only arcing rounds coming down on its own hull. Readings
-  are Bulwark-side shares against both tanks, three grounds, eight seeds, both
-  roles, a timeout read by integrity, against `-Dbattle.vehicle.activeProtection=false`:
+- **The answer is a rung, not a stock buff** (owner, 2026-10-19). A cheap tank
+  losing to a dedicated anti-armor fit is by design; the counter is something a
+  company buys. The **screened tank** is the breakthrough tank with active
+  protection (`convoy-nouns.md`, the screened tank carries active protection), a
+  Prestige sidegrade on the tank line at Heavy lift. Its bill is the breakthrough
+  tank's plus machinery and rare metals for the launchers and their sensor
+  (125 supplies, 115 machinery, 240 metals, 44 rare metals), and the launcher
+  boxes cost it a little speed (2.9 against 3.1). Its system has reach 8, a
+  0.1 s cycle, a 0.7 roll and 30 engagements, and takes only arcing rounds
+  coming down on its own hull. It stays a rung rather than a fitting: one fixed
+  system with one tuning gives the player the same choice a fitting would (pay
+  for it or not), without a socket, a save field or a balance surface per hull,
+  which is what *Vehicles: variants, not fittings* refuses. The stock tanks carry
+  none. Readings are Bulwark-side shares, three grounds, eight seeds, both roles,
+  a timeout read by integrity; the breakthrough tank is the screened tank's
+  control:
 
-  | Fit | Control | Active protection |
-  | --- | --- | --- |
-  | Refit, two AT LRM-15s | 0.81 | 0.69 (open 0.66, hull-down 0.91, street 0.52) |
-  | Bastion arms, two AT LRM-15s | 0.93 | 0.90 |
-  | Stock Bulwark / refit chaingun Bulwark | 0.23 / 0.51 | 0.23 / 0.51 |
-  | Hound / Sirocco, stock and refit | 0.00-0.03 | 0.00-0.02 |
-  | LRM carrier / SRM technical | 0.03 / 0.08 | 0.00 / 0.08 |
+  | Fit | Breakthrough | Heavy gun | Screened |
+  | --- | --- | --- | --- |
+  | Refit, two AT LRM-15s | 0.78 | 0.83 | 0.66 (open 0.81, hull-down 0.88, street 0.28) |
+  | Bastion arms, two AT LRM-15s | 0.89 | 0.98 | 0.82 |
+  | Stock Bulwark | 0.21 | 0.25 | 0.21 (street 0.50) |
+  | Refit chaingun Bulwark | 0.50 | 0.52 | 0.48 |
+  | Hound / Sirocco, stock and refit | 0.00-0.04 | 0.00-0.02 | 0.00 |
 
-  It stops about 8 rounds a fight against the LRM fit. The bastion fit stays
-  high on its arms (bastion alone 0.79): that is the reach-34 arm's case above,
-  not the rack's. Mech mirrors and tank-against-tank cannot move, because
-  neither has an arcing round falling on a gun tank.
+  It stops about 10 rounds a fight against the LRM fit. The stock Bulwark's
+  street rows do not move, because its SRMs fly flat. The bastion fit stays high
+  on its arms (bastion alone 0.79): that is the reach-34 arm's case above, not
+  the rack's. Against other tanks the screened tank duels as the breakthrough
+  tank does. Its sheet is stand-in art (launcher boxes and sensor plates drawn on
+  the breakthrough turret, `art-source/vehicles/tank-screened`) until an
+  ImageGen pass.
 - **Why top-attack only.** The first prototype took any interceptable round
   near the hull, and it taxed the SRM Bulwarks harder than the LRM fit. At the
   same 30-round setting the stock Bulwark fell 0.23 to 0.08 (street 0.50 to
@@ -826,7 +839,7 @@ one. Lines and their first variants:
 | --- | --- |
 | Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
 | APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar instead of seats) or LRM carrier (two LRM-15 anti-armor racks instead of seats, spotted indirect fire) |
-| Tank | Breakthrough tank → heavy-gun tank, or a dozer-blade breaching sidegrade |
+| Tank | Breakthrough tank → heavy-gun tank, a screened tank (active protection against top-attack rounds), or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 | Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |
