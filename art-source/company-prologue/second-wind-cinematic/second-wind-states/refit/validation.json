@@ -3,8 +3,8 @@
  "asset": "second-wind-refit.blend",
  "collection": "SECOND WIND | refit",
  "root": "SECOND WIND | refit | root",
- "objects": 979,
- "meshes": 942,
+ "objects": 1135,
+ "meshes": 1098,
  "images": 45,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    942,
-    942
+    1098,
+    1098
    ]
   },
   "polygon count": {
@@ -40,7 +40,7 @@
   },
   "hull_rest is rest position": {
    "ok": true,
-   "detail": 1e-06
+   "detail": 4e-06
   },
   "base wear on every skin and swatch": {
    "ok": true,

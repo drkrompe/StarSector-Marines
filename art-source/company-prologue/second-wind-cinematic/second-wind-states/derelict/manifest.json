@@ -698,6 +698,276 @@
  "lamps_lit": 0,
  "lamps": [
   {
+   "object": "Bridge ceiling lamp",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    13.2,
+    -1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge ceiling lamp.001",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    13.2,
+    1.6,
+    20.24
+   ]
+  },
+  {
+   "object": "Bridge display forward console 1",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    17.35,
+    2.0,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display forward console 2",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    17.35,
+    0.7,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display forward console 3",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    17.35,
+    -0.7,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display forward console 4",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    17.35,
+    -2.0,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display overhead",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.5,
+    0.0,
+    19.94
+   ]
+  },
+  {
+   "object": "Bridge display plot",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    11.9,
+    0.0,
+    17.93
+   ]
+  },
+  {
+   "object": "Bridge display port chamfer console 1",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.39,
+    3.3,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display port comms bank 1",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    11.15,
+    4.12,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display port comms bank 2",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    12.75,
+    4.12,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display port comms bank 3",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    14.35,
+    4.12,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display starboard chamfer console 1",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.39,
+    -3.3,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display starboard systems bank 1",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    14.35,
+    -4.12,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display starboard systems bank 2",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    12.75,
+    -4.12,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge display starboard systems bank 3",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    11.15,
+    -4.12,
+    18.45
+   ]
+  },
+  {
+   "object": "Bridge overhead panel lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.5,
+    0.0,
+    19.94
+   ]
+  },
+  {
+   "object": "Bridge port annunciator 1",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    11.3,
+    4.48,
+    18.7
+   ]
+  },
+  {
+   "object": "Bridge port annunciator 2",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    14.1,
+    4.48,
+    18.7
+   ]
+  },
+  {
+   "object": "Bridge port chamfer console status lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.66,
+    3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge port chamfer console warning lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.62,
+    3.6,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge port comms bank status lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    12.72,
+    4.5,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge port comms bank warning lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    12.63,
+    4.5,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard chamfer console status lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.66,
+    -3.57,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard chamfer console warning lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    16.69,
+    -3.53,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard systems bank status lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    12.78,
+    -4.5,
+    18.54
+   ]
+  },
+  {
+   "object": "Bridge starboard systems bank warning lamps",
+   "material": "Scar dead lamp",
+   "lit": false,
+   "at": [
+    12.87,
+    -4.5,
+    18.54
+   ]
+  },
+  {
    "object": "Command deck running light",
    "material": "Scar dead lamp",
    "lit": false,
@@ -4355,7 +4625,7 @@
     73.0,
     16.3
    ],
-   "objects": 23
+   "objects": 48
   },
   "sp-housing-strike": {
    "centre": [
@@ -4610,10 +4880,10 @@
   "Turret 4 starboard optics blister": "sp-turret-4",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 195,
- "objects": 851,
- "polygons": 178461,
- "baked_meshes": 755,
+ "left_out_objects": 202,
+ "objects": 1033,
+ "polygons": 214742,
+ "baked_meshes": 797,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4673,6 +4943,28 @@
   "untouched": [
    "Actuator rod chrome",
    "Bay work lights",
+   "Bridge cable loom",
+   "Bridge console casing",
+   "Bridge console face",
+   "Bridge console hardware",
+   "Bridge console knob",
+   "Bridge deck plating",
+   "Bridge display unpowered",
+   "Bridge harness webbing",
+   "Bridge hatch gasket",
+   "Bridge interior lining",
+   "Bridge jury-rig cable",
+   "Bridge jury-rig primer",
+   "Bridge jury-rig salvaged casing",
+   "Bridge jury-rig tape",
+   "Bridge jury-rig wear",
+   "Bridge label plate",
+   "Bridge lining seam",
+   "Bridge safety nosing",
+   "Bridge seat padding",
+   "Bridge smoked viewport glazing",
+   "Bridge tread plate",
+   "Bridge vent grille",
    "RCS bell heat-tinted steel",
    "RCS housing gunmetal",
    "Scar broken actuator rod chrome",
@@ -4729,7 +5021,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-derelict.blend",
-  "geometry_json_sha256": "345070d6bc216595705a0037f6fcbca730dec3806eeb89e99d687d771621d228",
+  "geometry_json_sha256": "1e81e6570d379267303a5c78c01ede3a23f5142b3b23f07e0e3ffdd76c8e8936",
   "wear_params_sha256": "5572966dbb3381782a6f7f9896a7c3605eddff06edb65ef3a103ba9d1c128bc0"
  },
  "conventions": {
@@ -4740,5 +5032,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "8937be96526363cebbd8a9a209158f9e9ba32e6d1d86e55a405bb8fdf69c1114"
+ "asset_sha256": "1a4d1cb4e0d3324e79a294fb5dd13635b5d1e168d1469d0c6b4c62f8149ee2b7"
 }

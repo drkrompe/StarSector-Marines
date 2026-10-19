@@ -813,8 +813,8 @@
  },
  "sources": {
   "skinned_blend": "shepherd-surface/build/skinned.blend",
-  "geometry_json_sha256": "a23ff8c286b30943084e5943bb245d5b64aa67d507d07ba71789c5f6c76d2ae5",
-  "skin_manifest_sha256": "dc85ce091d1f13ccb72adaba00d99ba68af6cb743b17e51ff2ba5e896e82f5bf"
+  "geometry_json_sha256": "7db94a7623f56e70bba39511d06f2ce562d4f2970c14c2b228bd77f2f13b3388",
+  "skin_manifest_sha256": "f844deef38eee5ca3041bd278030d86532c6379b67a25eb5cfd3ad9252e8caaa"
  },
  "conventions": {
   "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
@@ -822,5 +822,5 @@
   "turrets": "Rotate Turret 1 pivot about its local Z to train (arc 200 deg about the slot angle); the rest pose is the slot angle. The WS 008 hardpoint is fixed.",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "f28ad9e2d6aa28e73401c2cf7ae93f50b00e427a3c40681c498beef9b0d49590"
+ "asset_sha256": "fd9fd785e51f50a7b60bcfd8ffcfcac0ad8d9430524e9708e518dc6598a0c6bd"
 }

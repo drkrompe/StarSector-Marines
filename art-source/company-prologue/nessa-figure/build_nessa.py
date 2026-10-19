@@ -1,6 +1,6 @@
 """Nessa Venn as a 3D figure: a MakeHuman body built by MPFB, rigged and posed, in metres.
 
-    python build_nessa.py [--pose folded|slate] [--mask face|neck] [--out PATH]   # Blender 5.2, headless
+    python build_nessa.py [--pose folded|slate] [--mask face|neck|none] [--out PATH]   # Blender 5.2, headless
 
 Nessa owns Kilo Nine, the private yard where Second Wind lands (`character.md` beside this
 file): a woman of 58, 1.72 m, solid and square, warm medium-brown skin, short iron-grey hair,
@@ -11,7 +11,8 @@ light, and an ImageGen repaint owns the face and cloth finish (`geometry-first-i
 --pose folded (the default) is C5's: standing apart, arms folded, weight back.
 --pose slate holds the estimate's work slate out in her right hand, for the Y1 picture.
 --mask face (the default) wears the biofilter, as everyone does outdoors on Jangala;
---mask neck hangs it under her chin, for indoors and the portrait.
+--mask neck hangs it under her chin, for indoors and the portrait; --mask none leaves it off
+(the Y1 guide: the owner judges the mask from concept art first).
 
 What this builds, in the file's own frame (metres, z up from the soles, she faces +X):
 
@@ -79,8 +80,8 @@ def blender_main(argv):
     out = Path(argv[argv.index("--out") + 1]) if "--out" in argv else BLEND
     pose = argv[argv.index("--pose") + 1] if "--pose" in argv else "folded"
     mask = argv[argv.index("--mask") + 1] if "--mask" in argv else "face"
-    if pose not in ("folded", "slate") or mask not in ("face", "neck"):
-        sys.exit("--pose folded|slate, --mask face|neck")
+    if pose not in ("folded", "slate") or mask not in ("face", "neck", "none"):
+        sys.exit("--pose folded|slate, --mask face|neck|none")
 
     try:
         import addon_utils
@@ -274,29 +275,30 @@ def blender_main(argv):
 
     # ---- the biofilter mask: a moulded half-mask over nose and mouth with two side filters and
     # a strap round the head; or hung under the chin from the strap.
-    face = [v for v in bverts if abs(v.x) < 0.012 and eye_z - 0.11 < v.z < eye_z - 0.02]
-    front_y = min(v.y for v in face) if face else eye_y - 0.03
-    on_face = mask == "face"
-    mz = eye_z - 0.062 if on_face else eye_z - 0.175
-    my = front_y + (0.012 if on_face else 0.045)
-    bone = "head" if on_face else "neck01"
-    shell = add(bpy.ops.mesh.primitive_uv_sphere_add, "mask", "mask", segments=24, ring_count=14,
-                radius=1.0, location=(0, my, mz))
-    shell.scale = (0.036, 0.024, 0.040)
-    shell.rotation_euler = (math.radians(-12 if on_face else 25), 0, 0)
-    bone_parent(shell, bone)
-    for sgn in (1, -1):
-        f = add(bpy.ops.mesh.primitive_cylinder_add, "mask filter %s" % ("L" if sgn > 0 else "R"), "filter",
-                vertices=20, radius=0.016, depth=0.018,
-                location=(sgn * 0.033, my - 0.002, mz - 0.012))
-        f.rotation_euler = (math.radians(90), 0, math.radians(sgn * 40))
-        bone_parent(f, bone)
-    strap = add(bpy.ops.mesh.primitive_torus_add, "mask strap", "strap", major_radius=1.0,
-                minor_radius=0.05, major_segments=40, minor_segments=6,
-                location=(0, eye_y + 0.075, eye_z - 0.035 if on_face else eye_z - 0.16))
-    strap.scale = (0.074, 0.092, 0.06) if on_face else (0.07, 0.075, 0.06)
-    strap.rotation_euler = (math.radians(-18 if on_face else 8), 0, 0)
-    bone_parent(strap, bone)
+    if mask != "none":
+        face = [v for v in bverts if abs(v.x) < 0.012 and eye_z - 0.11 < v.z < eye_z - 0.02]
+        front_y = min(v.y for v in face) if face else eye_y - 0.03
+        on_face = mask == "face"
+        mz = eye_z - 0.062 if on_face else eye_z - 0.175
+        my = front_y + (0.012 if on_face else 0.045)
+        bone = "head" if on_face else "neck01"
+        shell = add(bpy.ops.mesh.primitive_uv_sphere_add, "mask", "mask", segments=24, ring_count=14,
+                    radius=1.0, location=(0, my, mz))
+        shell.scale = (0.036, 0.024, 0.040)
+        shell.rotation_euler = (math.radians(-12 if on_face else 25), 0, 0)
+        bone_parent(shell, bone)
+        for sgn in (1, -1):
+            f = add(bpy.ops.mesh.primitive_cylinder_add, "mask filter %s" % ("L" if sgn > 0 else "R"), "filter",
+                    vertices=20, radius=0.016, depth=0.018,
+                    location=(sgn * 0.033, my - 0.002, mz - 0.012))
+            f.rotation_euler = (math.radians(90), 0, math.radians(sgn * 40))
+            bone_parent(f, bone)
+        strap = add(bpy.ops.mesh.primitive_torus_add, "mask strap", "strap", major_radius=1.0,
+                    minor_radius=0.05, major_segments=40, minor_segments=6,
+                    location=(0, eye_y + 0.075, eye_z - 0.035 if on_face else eye_z - 0.16))
+        strap.scale = (0.074, 0.092, 0.06) if on_face else (0.07, 0.075, 0.06)
+        strap.rotation_euler = (math.radians(-18 if on_face else 8), 0, 0)
+        bone_parent(strap, bone)
 
     # ---- the pose
     pbs = rig.pose.bones

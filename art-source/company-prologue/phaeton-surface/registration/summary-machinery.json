@@ -1,0 +1,42 @@
+{
+ "strake-stbd": {
+  "raw_iou": 0.9375,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.977,
+  "scale": [
+   1.00205,
+   1.08675
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "strake-port": {
+  "raw_iou": 0.9559,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9987,
+  "scale": [
+   1.00255,
+   1.01493
+  ],
+  "boundary_p95_px": 0.0
+ },
+ "spine-top": {
+  "raw_iou": 0.9902,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9979,
+  "scale": [
+   1.00538,
+   1.0078
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "block-top": {
+  "raw_iou": 0.9826,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9988,
+  "scale": [
+   1.00255,
+   1.01674
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

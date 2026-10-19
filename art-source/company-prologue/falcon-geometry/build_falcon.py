@@ -52,8 +52,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import fc_kit, fc_hull, fc_detail, fc_engines, fc_mounts, fc_lights
-for module in (fc_kit, fc_hull, fc_detail, fc_engines, fc_mounts, fc_lights):
+import fc_kit, fc_hull, fc_detail, fc_engines, fc_mounts, fc_lights, export_falcon
+for module in (fc_kit, fc_hull, fc_detail, fc_engines, fc_mounts, fc_lights, export_falcon):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -425,31 +425,15 @@ if not args.no_save:
     if args.manifest:
         shutil.copy(manifest_path, HERE/'geometry.json')
 
-    # --- The appendable asset: one collection, one root, nothing but the ship. ---
-    for ob in [o for o in bpy.data.objects if o.type in ('CAMERA', 'LIGHT')]:
-        bpy.data.objects.remove(ob, do_unlink=True)
-    coll = bpy.data.collections.new(COLL)
-    scene.collection.children.link(coll)
-    anchors = bpy.data.collections.new(f'{COLL} | anchors')
-    coll.children.link(anchors)
-    root = bpy.data.objects.new(ROOT, None)
-    root.empty_display_type, root.empty_display_size = 'ARROWS', 20
-    coll.objects.link(root)
-    root['metres_per_unit'] = METRES_PER_UNIT
-    root['axes'] = '+X bow, +Y port, +Z dorsal; hull units'
-    root['source'] = 'art-source/company-prologue/falcon-geometry/build_falcon.py'
-    for ob in [o for o in bpy.data.objects if o is not root]:
-        for c in list(ob.users_collection):
-            c.objects.unlink(ob)
-        (anchors if ob.type == 'EMPTY' else coll).objects.link(ob)
-        if ob.parent is None:
-            ob.parent = root  # root sits at the hull origin: no inverse needed
-    bpy.context.view_layer.update()
-    orphans = [o.name for o in coll.all_objects if o is not root and o.parent is None]
-    assert not orphans, orphans
-    for c in [c for c in bpy.data.collections if c.name not in (COLL, f'{COLL} | anchors')]:
-        bpy.data.collections.remove(c)
-    bpy.ops.outliner.orphans_purge(do_recursive=True)
+    # The review scene (cameras, studio lamps) is the surfacing harness's input; then the
+    # appendable asset (export_falcon.py): one collection, one root, nothing but the ship.
+    sun.hide_render = True                 # leave the review scene in its studio setup
+    for lt in studio:
+        lt.hide_render = False
+    bg.inputs[0].default_value, bg.inputs[1].default_value = (.74, .76, .78, 1), .65
+    scene.render.film_transparent = False
     bpy.context.preferences.filepaths.save_version = 0
-    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'falcon-p.blend'), compress=True)
+    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'falcon-p-geometry.blend'), compress=True)
+    import export_falcon
+    export_falcon.make_asset(OUT/'falcon-p.blend', METRES_PER_UNIT)
     print('saved', OUT/'falcon-p.blend')

@@ -65,7 +65,7 @@ word belongs to our people.
 
 ## Where it lands: Kilo Nine
 
-Kilo Nine is not a public cradle. It is Nessa's private yard, fenced, on the
+Kilo Nine is not a public cradle. It is a private yard where Nessa is forewoman (its owner stays offscreen), fenced, on the
 east edge of Greywater Down's port with the jungle beyond its east fence. Its
 south half holds one cradle between two repair scaffolds, a derrick over a
 salvage pile, a hangar, fuel, and the workshop the families walk into. Its north
@@ -87,9 +87,18 @@ Colossus in the walled heavy berth, the only bay large enough for it. Overhead,
 a Shepherd lets down over the belt in C4's first seconds. The heavy-berth
 Colossus leaves during C5's rise, flown rather than posed. Its lift jets spool
 at C5 12 s and it comes off the deck at 15 s, slowly, the way a heavy hull
-would. Its mains light at 24 s and it accelerates away west. It is 15 m above
-its deck at 22 s, 37 m at 26 s and 79 m at 30 s. Against a camera at 1.8 km, it
-reads by its burn and its motion, not by growing in the frame.
+would. Clear of its walls it yaws 35 degrees, eased in and out between 18.5 and
+23 s, sliding a little south so its corners pass under the gantry's beams. Its
+mains light at 19.5 s and are full at 21 s; it keeps turning, slower and
+banked a few degrees into the turn, onto a heading of 255 by 32 s, so its
+course curves south-west over the open port. It is still in frame and
+travelling at 38 s, about a quarter in from the west edge over the pad row. It
+is 16 m above its deck at 22 s, 50 m at 26 s, 107 m at 30 s and 345 m at
+40 s. Against a
+camera at 1.8 km, it reads by its burn and its motion, not by growing in the
+frame. Its drives are the shared VFX kit's effects on its own engines, each
+throttled by its thruster marker. The Shepherd over the belt carries on north
+out of frame.
 C4's sky shot ends over this layout
 (`industrial-exterior/c4x_scene.py`), and C5 must match it.
 

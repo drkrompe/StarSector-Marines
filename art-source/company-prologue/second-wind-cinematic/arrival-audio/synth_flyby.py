@@ -90,12 +90,12 @@ C4_SECONDS = 21.4
 # port_fleet's 'Colossus at the heavy berth' (C5 seconds, world metres), as port-fleet keys it: parked
 # in the walled bay until it lifts on its jets at 15, then the mains take it up and away west.
 # Interpolated smoothly (it accelerates), never linearly. Paste a new track here when it changes.
-COLOSSUS_KEYS = ((0.0, -3.8, 665.8, 26.6), (16.0, -3.8, 665.8, 27.0), (18.0, -3.8, 665.8, 29.5),
-                 (20.0, -3.8, 665.8, 34.3), (22.0, -3.8, 665.8, 41.6), (24.0, -3.8, 665.8, 51.3),
-                 (26.0, -6.6, 665.8, 64.1), (28.0, -20.3, 665.8, 82.2), (30.0, -46.1, 665.8, 106.0),
-                 (32.0, -83.8, 665.8, 135.3), (34.0, -133.6, 665.8, 170.3), (36.0, -195.3, 665.8, 210.8),
-                 (38.0, -269.1, 665.8, 257.0), (40.0, -354.8, 665.8, 308.7))
-LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 24.0, 25.5
+COLOSSUS_KEYS = ((0.0, -3.8, 665.8, 26.6), (16.0, -3.8, 665.8, 27.0), (18.0, -3.8, 661.6, 29.5),
+                 (20.0, -3.8, 653.9, 34.4), (22.0, -6.4, 649.0, 43.0), (24.0, -14.3, 645.1, 57.1),
+                 (26.0, -27.4, 637.4, 76.9), (28.0, -44.9, 625.1, 102.2), (30.0, -65.7, 607.4, 133.1),
+                 (32.0, -88.8, 583.7, 169.7), (34.0, -113.5, 553.8, 211.8), (36.0, -139.9, 517.7, 259.6),
+                 (38.0, -168.0, 475.5, 312.9), (40.0, -197.7, 427.1, 371.8))   # port_fleet 7acb34ea7
+LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 19.5, 21.0
 
 
 def smooth_track(keys, t):
@@ -197,7 +197,7 @@ PASSES = {
     # seconds (C2 0-15, entry 15-22, C3 22-24).
     # C5: the Colossus at the heavy berth lifting out about 480 m from the camera (port_fleet): its
     # ten lift jets spool up from 12.0 (40%), full at 15.0 as it leaves the deck, and its six mains
-    # light at 24.0 (30%), full by 25.5, as it accelerates west. Both are heavy thrusters: the
+    # light at 19.5 (30%), full by 21.0, as it turns south-west and climbs away. Both are heavy thrusters: the
     # generated heavy burn (audition 05), muffled by distance, and the dark code-built drive.
     "colossus_lift": dict(HOUND, start=C4_SECONDS + 11.5, end=C4_SECONDS + 40.0, path=colossus_heavy,
                           source="c4_launch_burn_t02", sound_speed=340.0, muffle_far=90.0, muffle_near=300.0,

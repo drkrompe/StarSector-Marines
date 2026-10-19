@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155ff-116e-7dc0-a2a6-0a3176ad81df",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155ff-116e-7dc0-a2a6-0a3176ad81df\\exec-fa00c679-db43-4e83-b474-8e18aeef463f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-mk3-surface\\generated\\sheet-hold-deck.png",
+    "sha256": "c5e7a3d59972fa7642dcce9a25b23b95b7e49b0185a84f3190081f1994e47993",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-mk3-surface\\prompts\\sheet-hold-deck.prompt.txt",
+  "promptSha256": "0d2c510fd166adaae95159e6109594c51b98e5b99f093f26d81ea87b80b8d8c1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels\nImage 2: Material and finish reference only: paint colours, wear and detail; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of hull faces of one 3D spacecraft (a Colossus Mk.III: a huge, boxy, low-tech Domain-era heavy freighter taken by pirates and refitted as an armed raider; these are the deck and bow of its big central cargo hold), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the hold's aft hatch cover seen from directly above, bow to the right: three tall salmon-red lid panels side by side with narrow blue gaps between them, and a thin near-black strip along their top edge;\ntop-right: the outer row of the same aft hatch cover seen from directly above, bow to the right: three tall salmon-red lid panels side by side with narrow blue gaps, the outer two with a clipped top corner;\nbottom-left: half of the hold's bow face beside the launch bay mouth, seen from straight ahead: a row of five salmon-red armour plates of different widths divided by blue gaps along the top, and below them one separate tall salmon-red plate (the lower bow door leaf);\nbottom-right: the hold deck aft of the hatch cover, seen from directly above, bow at the top: one long salmon-red band of deck plates across the ship, crossed lengthwise by a thin slightly darker red seam line, with a thin lip along its top edge.\nINPUT 2 is the SAME ship, already painted in its pirate livery: it is the finish to match. Use its paint colours, its battered, grimy finish, its seam, fastener and weld treatment and its wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the shapes in INPUT 1 as that working hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep every tile exactly where it is, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap, notch or slot in a shape stays plain background blue. Each separate plate stays a separate plate with the same blue gap round it.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of heavy fasteners along plate edges, a few flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: the salmon-red areas are a deep, dirty crimson enamel, the same crimson as the hold in INPUT 2; the thin near-black strip is near-black dull steel recesses and seam grooves. Do not repaint any part of a shape another colour: no stripes, no orange or blue bands, no grey plates, no differently coloured patches and no repair plates.\n- The ship is a pirate raider kept fighting long past its service life and never properly repaired. Weathering is heavy but even across each whole shape: faded, dirty enamel, fine chips and scuffs worn through to dark bare steel along plate edges and fastener rows, oily grime in the seams, thin soot streaking. No single concentrated area of wear, no large bare patches, no holes, dents, burns, scorch marks, impact damage or repair plates. No lettering, numbers, markings, decals, graffiti, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\guide\\sheet-hold-deck-guide.png",
+      "sha256": "70d31818db629cb6b396ce86ab05e1e806f58f94bd424cf8438bd6101cc625a1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\reference\\finish-reference.png",
+      "sha256": "74371d570280499c86a6140acd689532b485cfccd4636d86bd6654f884705379",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish reference only: paint colours, wear and detail; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to reskin the sheet, with Image 1 controlling geometry and Image 2 controlling the finish."
+  ],
+  "usage": {
+    "input_tokens": 47640,
+    "cached_input_tokens": 38272,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 749,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.8
+}

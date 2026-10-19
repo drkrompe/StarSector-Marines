@@ -20,7 +20,7 @@ Hull identity (read-only install, starsector-core)
   linked; missile slots WS 003/004 empty.
 - data/hulls/wing_data.csv broadsword_wing; data/variants/legion/
   legion_xiv_Elite.variant flies two Broadsword wings (and two Hoplon).
-- No lights layer exists for this hull, so there are no emissives.
+- No lights layer exists for this hull; the running lights are bw_lights.py.
 - Detail reference: art-source/aircraft/fighter-upres/broadsword/master-v1.png.
 
 Coordinates and names
@@ -29,10 +29,11 @@ Coordinates and names
 Sprite column c, row r (from the top) covers X 19-r..20-r, Y 14-c..15-c.
 Heights are proposed art; the game gives none.
 
-Append the collection "BROADSWORD | geometry" (143 objects: 133 meshes,
-10 empties, no images, no linked datablocks). Every object is parented to
-the empty "Broadsword root" at the .ship centre (the game's rotation
-pivot), which carries custom properties metres_per_unit and axes. Move,
+Append the collection "BROADSWORD | geometry" (198 objects: 179 meshes,
+19 empties, no images, no linked datablocks). Every object descends from
+the empty "Broadsword root" (gear parts through their hinges) at the .ship
+centre (the game's rotation pivot), which carries custom properties
+metres_per_unit and axes. Move,
 turn or scale the root; nothing else needs touching. Cameras and lights
 live in "BROADSWORD | review rig" and are not part of the asset.
 
@@ -111,10 +112,18 @@ t >= 1/3. The build checks that stowed legs sit above their doors, and
 fails otherwise. --gear down|up chooses the pose; the .blend is saved
 down. Dimensions are measured gear up.
 
+Running lights
+No lights layer exists for this hull, so the lamps follow ordinary practice
+for a fighter in company (the Lasher's pattern): red on the port blade tip,
+green on the starboard, a white tail light on the spine's aft face and a
+white anti-collision strobe on the dorsal plate. Small emissive spheres named
+"Light <side> <where> 1"; each origin is its position; colours, roles and
+blink are in geometry.json running_lights.
+
 Files
 build_broadsword.py driver; bw_kit.py helpers; bw_hull.py nose, fuselage,
 canopy, spine; bw_wings.py gun housings, blades, strakes; bw_guns.py guns
-and slot anchors; bw_engines.py nacelles and bells; bw_gear.py landing gear; compose_review.py
+and slot anchors; bw_engines.py nacelles and bells; bw_gear.py landing gear; bw_lights.py running lights; compose_review.py
 overlay, IoU and sheets; check_clashes.py overlap sweep.
 broadsword-geometry.blend, geometry.json (manifest: slots, engines,
 anchors, scale, cameras, silhouette).
@@ -136,7 +145,8 @@ Limits
 - Heights, sections and the underside are proposed; only the plan comes
   from the game.
 - Flat materials only: khaki, gunmetal, bright steel, dark recess and
-  canopy glass. No textures, wear or decals.
-- No damage states, engine glow or plume; the anchors are where they go.
+  canopy glass. The textured livery is ../fighters-surface/broadsword/.
+- No damage states. Engine glow, plumes and gun effects are the cinematic
+  export's optional SWFX collection (../broadsword-cinematic/).
 - The Hegemony XIV livery is not applied: vanilla Broadswords keep the
   low-tech khaki.

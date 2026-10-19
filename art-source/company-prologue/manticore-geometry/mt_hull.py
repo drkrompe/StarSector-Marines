@@ -3,13 +3,20 @@
 Read off manticore_pirate.png (164x154, .ship centre (82, 67) from the bottom
 edge; sprite column c, row r from the top covers X 86-r..87-r and Y
 81-c..82-c). The hull is wider (Y +-79) than it is long (X -66..86):
-- Bow head (rows 4-26, X 62-84): a squared armoured head, Y +-20, carrying
-  the small WS 002 turret on a raised ring, red armour cheeks either side.
+- Bow head (rows 4-26, X 62-84): a squared gunmetal head, Y +-20, carrying
+  the small WS 002 turret on a raised ring, two red armour horns on its
+  forward shoulders, a red crossbar behind the ring, a grey prow bar.
 - Neck (rows 26-45, X 42-62): narrower (pinched to +-16 at X 58), a gunmetal
-  spine of ribs between red cheek plates.
+  spine of ribs between two long red rails.
 - Core (X 44 to the stern, Y +-24): the thick central body. The large WS 000
-  turret stands on a raised ring at X 21; the pale command dome (rows 87-110)
-  sits on it aft of the ring.
+  turret stands in a well at X 21; the pale command dome (rows 87-110) sits
+  aft of it on a raised command tier.
+Round 2 (owner: one flat surface, a thin flying wing, a bridge that sees only
+the back of the main gun): head, neck and core are lofted through faceted
+sections reaching far below the deck, flat only where a turret ring stands;
+the neck is a glacis climbing to the main gun's deck and the deck drops in a
+step ahead of the gun's well; the arms droop; the command tier lifts the
+bridge so its eye clears the sunk main gun and sees the bow gun over it.
 - Wings (X 31 to -26): a swept delta out to the outer turret pods, its
   trailing edge running from (6, 72) to (-18, 47); a gunmetal structure that
   carries the red armour plates (pass 2), its upper surface falling outboard.
@@ -24,20 +31,23 @@ Heights are proposed art; the game gives none.
 import math
 import bmesh
 import bpy
-from mt_kit import facet_normal, plane_cut, prism, section, sym
+from mt_kit import boolean, facet_normal, loft_x, plane_cut, prism, section, sym
 
 HEAD = sym([(85.5, 9), (84, 14), (80.5, 20), (66, 21), (63, 18.5), (61, 16.5)])
 NECK = sym([(63, 16.5), (58, 16), (50, 18), (44, 19.5), (38, 21)])
-CORE = sym([(45, 19.5), (38, 22.5), (31, 25), (10, 25), (-20, 24), (-40, 24), (-56, 23)])
+CORE = sym([(45, 19.5), (38, 22.5), (31, 25), (10, 25), (-20, 24), (-40, 24), (-57.5, 23)])
 WING = sym([(41, 21), (34, 25), (31, 31), (31, 54), (24, 64), (12, 73), (6, 72.5), (-4, 61),
             (-17.5, 47), (-26, 45), (-30, 30)])
 AFT = sym([(-15, 40), (-26, 45.5), (-30, 43), (-35, 38.5), (-54, 37), (-56, 34), (-56, 4)])
-CORE_DECK, CORE_KEEL = 10.0, -9.0
-NECK_DECK, HEAD_DECK = 8.0, 7.5
-WING_DECK, WING_KEEL = 5.0, -4.0
-AFT_DECK, AFT_KEEL = 8.5, -8.0
+CORE_DECK, CORE_KEEL = 15.0, -22.0
+NECK_DECK, HEAD_DECK = 11.0, 8.0
+HEAD_KEEL, NECK_KEEL = -10.0, -14.0
+WING_DECK, WING_KEEL = 9.0, -9.0
+AFT_DECK, AFT_KEEL = 12.0, -18.0
+BRIDGE_DECK = 26.5   # the command tier's roof: the captain looks over the main gun
+MAIN_WELL = (13.6, 4.4)   # the main gun stands in a well (radius, depth below the core deck)
 POD = (23, 65, 13.5)   # outer turret pod: centre x, |y|, radius
-WING_SLOPE = (26.0, .11)   # the wing's upper surface falls outboard of |Y| 26 at 0.11 per unit
+WING_SLOPE = (24.0, .16)   # the arms droop (anhedral) outboard of |Y| 24 at 0.16 per unit
 LAUNCHER = (32, 43)    # WS 004 / WS 005 hardpoint, port side
 
 
@@ -67,52 +77,131 @@ def octagon_plan(cx, cy, r, n=8, phase=math.pi/8):
     return [(cx+r*math.cos(phase+2*math.pi*k/n), cy+r*math.sin(phase+2*math.pi*k/n)) for k in range(n)]
 
 
+def facets(hw, top, bot, flat=.5, keel=.45, up=.45, down=.55):
+    """A faceted cross-section [(y, z)] round the hull, never a slab: a flat
+    deck only `flat` x the half-width wide (where a turret ring stands),
+    shoulders falling `up` per unit to the beam, a short vertical beam, and
+    lower faces rising `down` per unit from a keel `keel` x the half-width."""
+    a, b = flat*hw, keel*hw
+    mu = top-up*(hw-a)
+    ml = min(bot+down*(hw-b), mu-2)
+    return [(a, top), (-a, top), (-hw, mu), (-hw, ml), (-b, bot), (b, bot), (hw, ml), (hw, mu)]
+
+
+# Lofted stations (x, half-width, deck, keel), bow first. Owner, round 2: the
+# hull is not one flat surface and does not float in water. The bow head is
+# low; the neck is a glacis climbing aft to the main gun's deck, so the main
+# gun superfires over the bow gun; the deck drops in a steep step ahead of the
+# main gun's well, so its barrel overhangs the fall rather than lying on it; the core reaches far below its deck.
+HEAD_STATIONS = [(86.5, 7, 2.5, -3), (83, 14, 6, -7), (78, 20, 8, -10), (66, 21, 8, -12), (61, 17, 8.5, -13)]
+NECK_STATIONS = [(63, 16.5, 8.5, -13), (58, 16, 9, -15), (50, 18, 9.5, -17), (43, 19.5, 10, -19)]
+CORE_STATIONS = [(45, 19.5, 10, -19), (38, 22.5, 11, -21), (34.6, 24.2, 13, -21.5), (31, 25, 15, -22), (10, 25, 15, -23),
+                 (-20, 24, 15, -24), (-40, 24, 13.5, -22), (-57.5, 23, 11, -16)]
+# The ventral blade under the core: a faceted fin to -30 for the side profile.
+KEEL_STATIONS = [(32, 5, -18, -22), (20, 9, -20, -30), (-36, 9, -20, -30), (-50, 5, -16, -21)]
+
+
+def lofted(kit, name, stations, mat, **kw):
+    return loft_x(kit, name, [(x, facets(hw, top, bot, **kw)) for x, hw, top, bot in stations], mat)
+
+
 def build(kit):
-    head = prism(kit, 'Hull bow head', ccw(HEAD), section(-5.5, HEAD_DECK, 1.8, 2.0), kit.red)
-    # The bow: top raked down to the stem, chin raked up, cheek facets.
-    plane_cut(head, 'bow top rake', (80, 0, HEAD_DECK), facet_normal((1, 0), 24))
-    n = facet_normal((1, 0), 30)
-    plane_cut(head, 'bow chin rake', (79, 0, -5.5), (n[0], 0, -n[2]))
+    head = lofted(kit, 'Hull bow head', HEAD_STATIONS, kit.steel)
     for s in (1, -1):
-        plane_cut(head, f'bow {s} cheek', (82, s*15, HEAD_DECK-1), facet_normal((.6, s), 38))
-    neck = prism(kit, 'Hull neck', ccw(NECK), section(-6, NECK_DECK, 1.8, 2.4), kit.steel)
-    core = prism(kit, 'Hull core', ccw(CORE), section(CORE_KEEL, CORE_DECK, 2.6, 3.0), kit.red)
-    plane_cut(core, 'core bow rake', (40, 0, CORE_DECK), facet_normal((1, 0), 30))
-    wing = shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 1.4, 1.8), kit.steel), True)
-    aft = prism(kit, 'Hull aft body', ccw(AFT), section(AFT_KEEL, AFT_DECK, 2.2, 2.6), kit.steel)
+        side = 'port' if s > 0 else 'starboard'
+        # Armour horn (owner, round 1: a better head than a red block): a red
+        # wedge wrapping each forward shoulder, its top falling outboard and
+        # forward from a ridge along its inboard edge, its chin cut back.
+        horn = prism(kit, f'Hull bow {side} horn', ccw([(85, s*9), (85, s*16), (80, s*21.5), (69, s*21.5),
+                                                         (67.5, s*15), (72, s*8.5)]),
+                     section(HEAD_DECK-16.0, HEAD_DECK+4.4, 2.6, .9), kit.red, .15)
+        plane_cut(horn, f'{side} horn outboard fall', (76, s*12, HEAD_DECK+4.4), facet_normal((0, s), 34))
+        plane_cut(horn, f'{side} horn forward rake', (78, s*12, HEAD_DECK+4.4), facet_normal((1, 0), 36))
+        plane_cut(horn, f'{side} horn aft rake', (71, s*12, HEAD_DECK+4.4), facet_normal((-1, 0), 40))
+        n = facet_normal((1, 0), 40)
+        plane_cut(horn, f'{side} horn chin', (80, s*12, HEAD_DECK-16.0), (n[0], 0, -n[2]))
+        kit.hull.append(horn)
+        # Neck rail: the long red strake down each side of the neck (rows 26-45),
+        # riding the glacis.
+        rail = prism(kit, f'Hull neck {side} rail', ccw([(64, s*10.5), (64, s*15), (52, s*17.5), (43, s*19),
+                                                          (43, s*14.5), (52, s*12.5)]),
+                     section(NECK_KEEL+3.0, 17.0, 1.0, .7), kit.red, .15)
+        plane_cut(rail, f'{side} rail glacis', (63, 0, 10.0), facet_normal((1, 0), 2))
+        plane_cut(rail, f'{side} rail outboard fall', (52, s*13, 10.4), facet_normal((0, s), 26))
+        kit.hull.append(rail)
+    crossbar = prism(kit, 'Hull bow crossbar', ccw(sym([(66.5, 7.5), (64, 9.5), (61, 8.5), (60.5, 4)])),
+                     section(4.0, HEAD_DECK+1.6, .5, 1.3), kit.red, .15)
+    # The prow block stands proud of the head's stem face: coincident faces shade black.
+    prow = prism(kit, 'Hull bow prow block', ccw(sym([(87.3, 6), (84.8, 8.5), (80, 8.5), (80, 4)])),
+                 section(-6.0, 4.5, 2.0, 1.6), kit.plate, .15)
+    plane_cut(prow, 'prow face rake', (85.8, 0, 4.5), facet_normal((1, 0), 40))
+    n = facet_normal((1, 0), 40)
+    plane_cut(prow, 'prow chin rake', (84.8, 0, -6.0), (n[0], 0, -n[2]))
+    kit.hull += [prow, crossbar]
+
+    neck = lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel)
+    core = lofted(kit, 'Hull core', CORE_STATIONS, kit.red)
+    # The main gun stands in a well, so its roof sits low under the bridge's sightline.
+    r, d = MAIN_WELL
+    well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10), r, 20, kit.red, vertices=24)
+    boolean(core, well)
+    # The arms droop outboard (anhedral) with deep chamfers below: the gun pods
+    # at their tips hang low and forward of the core's flanks.
+    wing = shear(prism(kit, 'Hull wing body', ccw(WING), section(WING_KEEL, WING_DECK, 4.5, 3.0), kit.steel))
+    aft = prism(kit, 'Hull aft body', ccw(AFT), section(AFT_KEEL, AFT_DECK, 5.0, 3.5), kit.steel)
     for s in (1, -1):
         plane_cut(aft, f'aft {s} shoulder', (-30, s*36, AFT_DECK), facet_normal((0, s), 34))
-    # Ventral keel under the core: depth for the side profile.
-    keel = prism(kit, 'Hull ventral keel', ccw(sym([(36, 10), (-46, 12), (-52, 8)])),
-                 section(CORE_KEEL-3.5, CORE_KEEL+.5, 1.6, 0), kit.steel)
+    keel = lofted(kit, 'Hull ventral keel', KEEL_STATIONS, kit.steel, flat=.6, keel=.25, up=.2, down=.6)
     kit.hull += [head, neck, core, wing, aft, keel]
 
-    # Outer turret pods: octagonal drums at the wing tips.
+    # Outer turret pods: octagonal drums at the drooping wing tips.
     x, y, r = POD
+    drop = WING_SLOPE[1]*(y-WING_SLOPE[0])
+    lx, ly = LAUNCHER
+    ldrop = WING_SLOPE[1]*(ly-WING_SLOPE[0])
     for side, s in (('port', 1), ('starboard', -1)):
-        pod = prism(kit, f'Hull {side} turret pod', ccw(octagon_plan(x, s*y, r)), section(-5.5, 6.0, 1.6, 2.0),
-                    kit.steel)
+        pod = prism(kit, f'Hull {side} turret pod', ccw(octagon_plan(x, s*y, r)),
+                    section(-14.0-drop, 11.0-drop, 5.0, 3.4), kit.steel)
         kit.hull.append(pod)
+        # The red armour collar round the pod's outboard half (the sprite's red crescents).
+        collar = prism(kit, f'Hull {side} pod armour collar', ccw(octagon_plan(x, s*y, r+1.0)),
+                       section(-8.0-drop, 8.6-drop, 2.0, 1.4), kit.red, .12)
+        hole = prism(kit, f'Temporary {side} pod collar cutter', ccw(octagon_plan(x, s*y, r-1.2)),
+                     section(-40, 40, 0, 0), kit.red)
+        boolean(collar, hole)
+        plane_cut(collar, f'{side} collar inboard half', (x, s*(y-3), 0), (.35, -s, 0))
+        kit.hull.append(collar)
         # Launcher housing: a base block with two cheeks either side of the rack.
-        lx, ly = LAUNCHER
         base = prism(kit, f'Hull {side} launcher housing',
                      ccw([(lx+11, s*(ly-9)), (lx+11, s*(ly+9)), (lx-7, s*(ly+10)), (lx-7, s*(ly-10))]),
-                     section(-2.0, 4.0, .8, 1.0), kit.steel)
+                     section(-8.0-ldrop, 8.0-ldrop, 2.4, 1.0), kit.steel)
         kit.hull.append(base)
         for k, dy in (('inboard', -8.6), ('outboard', 8.6)):
             cheek = prism(kit, f'Hull {side} launcher {k} cheek',
                           ccw([(lx+12, s*(ly+dy-.9)), (lx+12, s*(ly+dy+.9)), (lx-4, s*(ly+dy+1.1)),
-                               (lx-4, s*(ly+dy-1.1))]), section(2.0, 10.0, .3, .6), kit.steel, .1)
-            plane_cut(cheek, f'{side} {k} cheek rake', (lx+8, s*(ly+dy), 10.0), facet_normal((1, 0), 40))
+                               (lx-4, s*(ly+dy-1.1))]), section(5.5-ldrop, 14.5-ldrop, .3, .6), kit.steel, .1)
+            plane_cut(cheek, f'{side} {k} cheek rake', (lx+8, s*(ly+dy), 14.5-ldrop), facet_normal((1, 0), 40))
             kit.hull.append(cheek)
 
-    # Raised ring round the large WS 000 turret, and the small bow ring for WS 002.
-    kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK+.6), 17.5, 1.6, kit.steel,
-                                 vertices=24, bevel=.25))
+    # The main gun's ring at the bottom of its well, and the small bow ring for WS 002.
+    kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK-MAIN_WELL[1]-.6), MAIN_WELL[0]-.6, 1.4,
+                                 kit.steel, vertices=24, bevel=.2))
     kit.hull.append(kit.cylinder('Hull bow turret ring', (73, 0, HEAD_DECK+.4), 8.0, 1.2, kit.steel,
                                  vertices=16, bevel=.2))
-    # The pale command dome aft of the main ring (sprite rows 87-110).
+
+    # The command tier (owner, round 2: what does the captain see?). A raked,
+    # faceted block aft of the main gun lifts the bridge above the gun's roof:
+    # the main gun is sunk in its well and the neck falls away ahead as a
+    # glacis, so the glazing looks over the Hellbore and down the neck to the bow.
+    tier = prism(kit, 'Bridge command tier', ccw(sym([(8, 10), (4, 16), (-24, 16.5), (-30, 11), (-31, 4)])),
+                 section(CORE_DECK-3.0, BRIDGE_DECK, 1.0, 3.0), kit.red)
+    plane_cut(tier, 'tier front rake', (4, 0, BRIDGE_DECK), facet_normal((1, 0), 44))
+    plane_cut(tier, 'tier aft rake', (-25, 0, BRIDGE_DECK), facet_normal((-1, 0), 30))
+    for s in (1, -1):
+        plane_cut(tier, f'tier {s} side fall', (-10, s*11, BRIDGE_DECK), facet_normal((0, s), 30))
+    kit.hull.append(tier)
+    # The pale command dome on the tier (sprite rows 87-110).
     dome = prism(kit, 'Bridge command dome', ccw(sym([(-1, 5), (-3, 9.5), (-8, 11.5), (-15, 11), (-19.5, 7)])),
-                 section(CORE_DECK-1, CORE_DECK+6.5, .6, 3.0), kit.pale)
-    plane_cut(dome, 'dome front rake', (-3, 0, CORE_DECK+6.5), facet_normal((1, 0), 38))
+                 section(BRIDGE_DECK-1, BRIDGE_DECK+5.0, .6, 2.4), kit.pale)
+    plane_cut(dome, 'dome front rake', (-3, 0, BRIDGE_DECK+5.0), facet_normal((1, 0), 38))
     kit.hull.append(dome)

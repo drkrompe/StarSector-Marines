@@ -1,0 +1,59 @@
+{
+ "part": "arm-keel-port",
+ "sheet": "arms",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9935,
+ "raw_iou": 0.9886,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9952,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9886
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0099,
+    0.99546
+   ],
+   "offset_px": [
+    -4.51,
+    0.16
+   ],
+   "iou": 0.9865
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0109,
+    1.00146
+   ],
+   "offset_px": [
+    -4.51,
+    0.16
+   ],
+   "iou": 0.9952
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.61,
+  "p95_px": 1.0,
+  "max_px": 5.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.27,
+  "p95_px": 1.0,
+  "max_px": 5.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
