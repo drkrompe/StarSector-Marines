@@ -3,63 +3,43 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a1567d-5cdd-7951-a1d9-15e36fa05d28",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1567d-5cdd-7951-a1d9-15e36fa05d28\\exec-b9437533-2bb3-435d-94d2-2a3da1474cc2.png",
+  "thread": "01a15684-a977-7091-9993-9fe8fe482f5b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15684-a977-7091-9993-9fe8fe482f5b\\exec-61e128c5-8101-4cee-989e-c68f5e0f8a7e.png",
   "otherImagesInThread": [],
   "output": {
-    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v4.png",
-    "sha256": "112125ca2ea62d982cfb729aff0dc0375dce3be95a67f4e46951016fa73e02f2",
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v5.png",
+    "sha256": "46da795e80aa5878fe89a5f14ab6faf9d06413269eb5c8b7dc45efb791248765",
     "dimensions": [
       1536,
       1024
     ],
     "mode": "RGB"
   },
-  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v4.txt",
-  "promptSha256": "1d2d32a6ac5ac4f39ba7ea31abc42757c15b7be986aebbac7fafa6d0fda501c1",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the window and the real freighter through it; never reshape or move the ship\nImage 2: Identity only: Castle's face, hair and jacket; not layout or style\nImage 3: Style and finish only: a page from the same set; not content\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: the writing on the wall at Harker's Claim, an asteroid mine. Upper management already know the colony is finished. They are getting their own people out on the company freighter, and telling everyone else there will be another boat.\n\nReference 1 is the layout authority: keep its camera, the wide sealed observation window across the upper half (heavy bolted mullions, real glass with faint reflections), and the docked freighter seen through it, painted exactly as the render shows it: same silhouette, size, position and angle, a massive slab-sided rust-red cargo hull with pale grey trim and banded cargo doors, lit by the dock's floodlights against black space and rock. Do not reshape it. The dark band at the bottom is the gallery floor.\n\nPaint the departure gallery of the habitat, inside, in front of the window:\n- On the right, a guarded boarding gate with a short enclosed gangway leading off toward the freighter. Through it, hurried and well dressed, administrators and their families with matching hard-shell luggage, a child in a clean coat, a porter wheeling a trolley of sealed company cases. Two company security guards in grey uniforms and visored caps hold the gate.\n- Centre foreground: a company manager in a clean, well-cut charcoal overcoat with a company pin, mid-forties, open hands raised in a calm placating gesture and a practised reassuring smile, addressing the miners. He is the focus.\n- Left: a cluster of worried miners and their families in worn, patched coveralls, held back behind a waist-high barrier tape, listening, unconvinced. Among them, three-quarter to the camera, Castle (exactly the woman in Reference 2: her face, age, greying dark hair in a short bun, charcoal-olive high-collared duty jacket, earpiece), arms folded over a thick manifest ledger, watching the luggage go through the gate, not the manager.\n- A departures board on the wall as blank glowing panels, nothing readable.\n\nClean light and expensive luggage on the right; dim amber and worn clothes on the left. Quiet betrayal, no violence.\n",
+  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v5.txt",
+  "promptSha256": "23e57c96e78ec658e48d76ccbdd200b155e0f83336abb47905e8b5a35eeee89c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: keep the gallery; the pasted boats keep their exact silhouette, size and position\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only what is seen through the big window.\n\nKeep EVERYTHING in the gallery exactly as it is, pixel for pixel: the manager and his gesture, Castle and the miners behind the tape, the guards, the families with luggage at the gate, the gangway, the departures panels, the floor, the lights, the camera and the composition. The window's heavy bolted frame and its two vertical mullions stay in front of everything outside; repair them wherever a pasted boat overlaps them.\n\nThrough the window, the old freighter is gone. Instead, beyond the glass, a dim pressurized launch bay cut into the asteroid rock, lit by a few hard floodlights, with two small company boats on their landing pads. Repaint the two pasted renders so they belong in the painting, keeping each one's exact silhouette, size, position and angle; do not reshape, enlarge or add parts. They are short, boxy 9-metre shuttles in pale grey and off-white plating with dark window bands at the nose, a small turret on top and a side boarding door; the nearer one has its side door open with light spilling out, and its stubby landing legs stand on the pad. A ground crew figure or two beside them for scale, a fuel hose, pad markings. The boats are plainly too small for everyone in the gallery: two boats, a handful of seats.\n\nSame restrained painted realism, amber and cool light as the rest of the image. No new text.\n",
   "adopted": false,
   "references": [
     {
-      "path": "art-source\\company-prologue\\story-stills\\guides\\p2-gallery-layout.png",
-      "sha256": "40094b603535a902aeb761a17498a515f8e697866bc31548ffce79d9d1cd38a9",
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p2-hermes-composite.png",
+      "sha256": "8173cf04654d417d1a945a981f59cd4fc527a4d88b5c51605196d38c6fb421f8",
       "dimensions": [
         1536,
         1024
       ],
       "mode": "RGB",
-      "role": "Geometry/layout authority: the window and the real freighter through it; never reshape or move the ship"
-    },
-    {
-      "path": "art-source\\portraits\\castle\\castle-master.png",
-      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
-      "dimensions": [
-        1254,
-        1254
-      ],
-      "mode": "RGB",
-      "role": "Identity only: Castle's face, hair and jacket; not layout or style"
-    },
-    {
-      "path": "art-source\\company-prologue\\story-stills\\second-wind.master.png",
-      "sha256": "17d47861914a2ae8e5d08dd47c3ede4fc97dbac3b8c7d371af41666edc123bc9",
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "mode": "RGB",
-      "role": "Style and finish only: a page from the same set; not content"
+      "role": "Edit target: keep the gallery; the pasted boats keep their exact silhouette, size and position"
     }
   ],
   "agentMessages": [
-    "I’ll generate one image using the supplied layout, Castle identity, and finish references."
+    "I’ll edit only the view through the window, preserving the gallery and both boats’ exact silhouettes, sizes, and positions."
   ],
   "usage": {
-    "input_tokens": 49919,
-    "cached_input_tokens": 36864,
+    "input_tokens": 41182,
+    "cached_input_tokens": 32640,
     "cache_write_input_tokens": 0,
-    "output_tokens": 969,
+    "output_tokens": 464,
     "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 66.8
+  "elapsedSeconds": 51.3
 }
