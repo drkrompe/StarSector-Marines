@@ -39,7 +39,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 1182133,
+      "units3": 1157336,
       "crew_max": 200,
       "cargo": 900,
       "fuel": 120,
@@ -75,35 +75,35 @@
     "contents_total_m3": 61980,
     "machinery_share": 0.32,
     "enclosed_m3": 91147,
-    "solved_metres_per_unit": 0.426,
+    "solved_metres_per_unit": 0.429,
     "range": {
-      "habitable_273": 0.413,
-      "habitable_328": 0.438
+      "habitable_273": 0.416,
+      "habitable_328": 0.441
     },
     "enclosed_m3_per_person_at_max_crew": 456,
-    "length_m": 92.2,
+    "length_m": 92.9,
     "fittings_m": {
       "personnel hatch w x h": [
         0.94,
-        2.04
+        2.06
       ],
       "side cargo door w x h": [
-        6.38,
-        5.96
+        6.43,
+        6.0
       ],
       "bow cargo door w x h": [
-        17.45,
-        9.79
+        17.57,
+        9.86
       ],
       "bridge door w x h": [
         0.94,
-        1.96
+        1.97
       ]
     },
     "published_metres_per_unit": 0.5,
-    "published_note": "owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front deepened the block; option C solves 0.426 (92 m)",
+    "published_note": "owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front deepened the block; option C solves 0.429 (93 m) with the round-2 container bays",
     "measured_this_build": {
-      "enclosed_units3": 1182133,
+      "enclosed_units3": 1157336,
       "solids": [
         "Bridge deckhouse",
         "Cargo port aft module",
@@ -115,9 +115,9 @@
         "Hull hold hatch cover",
         "Hull keel spine"
       ],
-      "cargo_body_units3": 1039935,
-      "cargo_body_m3": 129992,
-      "cargo_body_share": 0.88
+      "cargo_body_units3": 1015138,
+      "cargo_body_m3": 126892,
+      "cargo_body_share": 0.877
     },
     "size_m": [
       108.2,
@@ -555,9 +555,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9668,
-    "sprite_uncovered": 0.0111,
-    "model_outside_sprite": 0.0229,
+    "iou": 0.9665,
+    "sprite_uncovered": 0.0118,
+    "model_outside_sprite": 0.0225,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 5.65 px per unit"
   }
 }
