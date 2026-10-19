@@ -20,7 +20,7 @@ read from build/c1v2/inputs/ under the repository root:
     hound-skinned.blend         hound-surface/build/skinned.blend
     mudskipper-skinned.blend    mudskipper-surface/build/skinned.blend
     legion-geometry.blend       legion-geometry/legion-geometry.blend
-    onslaught.blend             Drive builds/onslaught/85faadc8f (with onslaught-manifest.json)
+    onslaught.blend             Drive builds/onslaught/e210771c0 or later (with onslaught-manifest.json)
     lasher.blend                Drive builds/lasher/4e2ed50 (with lasher-geometry.json)
 """
 import json
@@ -28,6 +28,7 @@ import math
 import sys
 from pathlib import Path
 
+import bmesh
 import bpy
 from mathutils import Euler, Matrix, Quaternion, Vector
 
@@ -54,6 +55,8 @@ FRAMES = round(DURATION * FPS)
 # lit, day side left, night side (city lights) right.
 SUN_DIR = Vector((-0.75, 0.15, 0.65)).normalized()   # toward the sun
 SUN_STRENGTH = 4.6
+STAR_CELLS = 300.0   # star lattice cells per radian of sky (a cell is about 9 px)
+STAR_FILL = 0.25     # share of cells that hold a visible star
 
 # Final framing: looking down the lane at Jangala, pitched slightly down.
 FINAL_PITCH = math.radians(-4.0)
@@ -155,12 +158,29 @@ def star_world(scene):
     g = planet.Graph(world)
     bg = nt.nodes['Background']
     coord = nt.nodes.new('ShaderNodeTexCoord').outputs['Generated']
+    # Stars are Voronoi feature points of a lattice the sky sphere passes through. Judging them by
+    # their 3D distance from the sphere keeps only points in a thin shell, and wherever the sphere
+    # runs nearly flat through a lattice layer (straight down an axis, which is down the lane) that
+    # shell sorts them into rings. Each point is instead projected onto the sphere and judged by
+    # its angular distance from the view direction, which has no shell and so no rings.
+    view = g.vmath('NORMALIZE', coord)
     vor = nt.nodes.new('ShaderNodeTexVoronoi')
-    vor.inputs['Scale'].default_value = 300.0
-    nt.links.new(coord, vor.inputs['Vector'])
-    star = g.smooth(vor.outputs['Distance'], 0.12, 0.0)              # discs about a pixel across
-    bright = g.math('POWER', vor.outputs['Color'], 8.0)                  # few bright, many dim
-    stars = g.math('MULTIPLY', star, g.math('MULTIPLY', bright, 6.0))
+    vor.inputs['Scale'].default_value = 1.0
+    lattice = nt.nodes.new('ShaderNodeVectorMath')
+    lattice.operation = 'SCALE'
+    nt.links.new(view, lattice.inputs[0])
+    lattice.inputs['Scale'].default_value = STAR_CELLS
+    nt.links.new(lattice.outputs['Vector'], vor.inputs['Vector'])
+    feature = g.vmath('NORMALIZE', vor.outputs['Position'])
+    apart = g.math('MULTIPLY', g.vmath('DISTANCE', feature, view, out='Value'), STAR_CELLS)
+    star = g.smooth(apart, 0.12, 0.0)                                  # discs about a pixel across
+    # Every cell holds a point, so only some of them are lit: one random channel picks which
+    # (about the density the shell used to keep), another how bright.
+    rand = nt.nodes.new('ShaderNodeSeparateColor')
+    nt.links.new(vor.outputs['Color'], rand.inputs['Color'])
+    lit = g.math('GREATER_THAN', rand.outputs[0], 1.0 - STAR_FILL)
+    bright = g.math('POWER', rand.outputs[1], 8.0)                      # few bright, many dim
+    stars = g.math('MULTIPLY', g.math('MULTIPLY', star, lit), g.math('MULTIPLY', bright, 6.0))
     band_n = Vector((0.3, -0.2, 0.93)).normalized()
     across = g.vmath('DOT_PRODUCT', g.vmath('NORMALIZE', coord), tuple(band_n), out='Value')
     band = g.smooth(g.math('ABSOLUTE', across), 0.22, 0.0)
@@ -348,40 +368,126 @@ def instance(coll, metres_per_unit, name):
     return e
 
 
-# Hegemony picket off the station, upper left of the final framing: the lead and its escorts in
-# formation, each placed through a pixel of the final view at its own range, all drifting on one
-# heading with their own small attitude differences. The Onslaught is the flagship and leads (it
-# is furthest along the heading, which runs toward the left of the frame); the Legion holds the
-# second line, Lashers screen ahead and below, Hounds close up the rear.
-FLOTILLA_HEADING = math.radians(160)
-FLOTILLA_SPEED = 10.0
+# Hegemony picket out by the station, 6-7.5 km off: it has come out to meet the inbound lane and
+# is heading back down it toward the player, bows on but 20 degrees off head-on (the way the C2
+# Legion meets Second Wind), so over the shot it grows and slides slowly right toward the lane.
+# Each hull is placed through a pixel of the final view at its own range, all on one heading with
+# small attitude differences of their own. The Onslaught leads, Lashers screen ahead of it, the
+# Legion holds the second line and the Hounds close up the rear.
+FLOTILLA_HEADING = math.radians(290)
+FLOTILLA_SPEED = 30.0
 FLOTILLA = (  # (hull, px, py, range m, pitch deg, roll deg)
-    ('onslaught', 490, 300, 2700, 5, -7),
-    ('legion', 750, 440, 3000, 6, -8),
-    ('lasher', 300, 200, 2300, 3, -12),
-    ('lasher', 340, 450, 2150, 2, -15),
-    ('lasher', 640, 170, 2500, 8, -6),
-    ('lasher', 540, 540, 2350, 4, -10),
-    ('hound', 790, 140, 2900, 9, -5),
-    ('hound', 920, 540, 2600, 7, -9),
+    ('onslaught', 490, 360, 6000, 2, -3),
+    ('lasher', 330, 340, 6100, 1, -4),
+    ('lasher', 640, 370, 6200, 3, 2),
+    ('lasher', 400, 420, 5800, 0, -2),
+    ('lasher', 590, 430, 5900, 2, 3),
+    ('legion', 470, 300, 6900, 3, -2),
+    ('hound', 350, 280, 7400, 4, -5),
+    ('hound', 580, 290, 7300, 2, 4),
 )
-# Pixels are where each hull sits at mid-shot; the drift carries the picket about 150-200 px
-# left by the closing hold, which is the framing these were laid out for.
+# Pixels are where each hull sits at mid-shot.
 
 
 def add_flotilla(scene, hulls):
     for obj in hulls['legion'][0].all_objects:
         if obj.type == 'MESH' and not obj.data.materials:
             obj.data.materials.append(grey('Legion | hull grey', 0.32))
-    drift = Vector((math.cos(FLOTILLA_HEADING), math.sin(FLOTILLA_HEADING), 0.0)) * FLOTILLA_SPEED
+    drift = flotilla_drift()
+    starts = []
     for i, (hull, px, py, rng, pitch, roll) in enumerate(FLOTILLA):
         coll, mpu = hulls[hull]
         e = instance(coll, mpu, 'Flotilla %d | %s' % (i, hull))
         e.rotation_euler = attitude(FLOTILLA_HEADING, math.radians(pitch), math.radians(roll))
         start = direction_at_px(px, py) * rng - drift * (DURATION / 2)
+        starts.append(start)
         for f in range(FRAMES):
             e.location = start + drift * (f / FPS)
             e.keyframe_insert('location', frame=f)
+    return starts
+
+
+def flotilla_drift():
+    return Vector((math.cos(FLOTILLA_HEADING), math.sin(FLOTILLA_HEADING), 0.0)) * FLOTILLA_SPEED
+
+
+# The Legion's air wing (the XIV Legion flies Broadswords) working round the picket: pairs flying
+# loops about a hull of the formation, each loop in its own tilted plane, banked into the turn and
+# carried along with the formation's drift. At 6-7 km a Broadsword is a few pixels: these are
+# motion and scale, not detail.
+BROADSWORD = BASE.parents[1] / 'broadsword-geometry'
+FIGHTER_ELEMENTS = (  # (FLOTILLA index circled, radius m, period s (negative: other way), phase, tilt deg)
+    (5, 450, 14.0, 0.0, 20),
+    (5, 620, -18.0, 2.0, -15),
+    (0, 720, 21.0, 1.0, 10),
+    (0, 950, -25.0, 4.0, 30),
+)
+WINGMAN = (-30.0, 22.0)   # metres behind the leader along the loop, and outboard of it
+FIGHTER_BANK = math.radians(55)
+FIGHTER_GLOW, FIGHTER_GLOW_RADIUS = 40.0, 3.5   # drive bead emission and radius (m)
+
+
+def add_fighters(scene, starts):
+    geo = json.loads((BROADSWORD / 'geometry.json').read_text())
+    coll = hull_collection(BROADSWORD / 'broadsword-geometry.blend', geo['collections']['model'])
+    for obj in coll.all_objects:
+        if obj.type == 'MESH' and not obj.data.materials:
+            obj.data.materials.append(grey('Broadsword | hull grey', 0.45))
+    # The hull alone is a speck at picket range; what reads is the drive. Each engine carries an
+    # emissive bead a few metres across, deliberately larger than the bell, so the wing shows as
+    # sparks working round the formation.
+    glow = bpy.data.materials.new('Broadsword | drive bead')
+    glow.use_nodes = True
+    nt = glow.node_tree
+    nt.nodes.remove(nt.nodes['Principled BSDF'])
+    emit = nt.nodes.new('ShaderNodeEmission')
+    emit.inputs['Color'].default_value = (1.0, 0.78, 0.5, 1.0)
+    emit.inputs['Strength'].default_value = FIGHTER_GLOW
+    nt.links.new(emit.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+    root = bpy.data.objects[geo['root']['name']]
+    mpu = geo['metres_per_unit']
+    for eng in geo['engines']:
+        mesh = bpy.data.meshes.new('Broadsword | drive bead %d' % eng['index'])
+        bead = bpy.data.objects.new(mesh.name, mesh)
+        coll.objects.link(bead)
+        bm = bmesh.new()
+        bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=FIGHTER_GLOW_RADIUS / mpu)
+        bm.to_mesh(mesh)
+        bm.free()
+        mesh.materials.append(glow)
+        bead.parent = root
+        bead.location = Vector(eng['anchor_location']) + Vector((-FIGHTER_GLOW_RADIUS / mpu, 0, 0))
+    drift = flotilla_drift()
+    for k, (anchor, radius, period, phase, tilt) in enumerate(FIGHTER_ELEMENTS):
+        tilt = math.radians(tilt)
+        sense = 1 if period > 0 else -1
+        u = Vector((1.0, 0.0, 0.0))
+        v = Vector((0.0, math.cos(tilt), math.sin(tilt)))
+        normal = u.cross(v) * sense
+        for m, (behind, out) in enumerate(((0.0, 0.0), WINGMAN)):
+            r = radius + out
+            e = instance(coll, geo['metres_per_unit'], 'Fighter %d.%d | broadsword' % (k, m))
+            e.rotation_mode = 'QUATERNION'
+            prev = None
+            for f in range(FRAMES):
+                t = f / FPS
+                th = phase + sense * (behind / r + 2 * math.pi * t / abs(period))
+                centre = starts[anchor] + drift * t
+                radial = u * math.cos(th) + v * math.sin(th)
+                tangent = (-u * math.sin(th) + v * math.cos(th)) * sense
+                vel = tangent * (2 * math.pi * r / abs(period)) + drift
+                x = vel.normalized()
+                z = normal * math.cos(FIGHTER_BANK) - radial * math.sin(FIGHTER_BANK)
+                z = (z - x * z.dot(x)).normalized()
+                y = z.cross(x)
+                q = Matrix((x, y, z)).transposed().to_quaternion()
+                if prev is not None and prev.dot(q) < 0:
+                    q.negate()
+                prev = q
+                e.location = centre + radial * r
+                e.rotation_quaternion = q
+                e.keyframe_insert('location', frame=f)
+                e.keyframe_insert('rotation_quaternion', frame=f)
 
 
 def add_traffic(scene):
@@ -400,7 +506,7 @@ def add_traffic(scene):
     drive_glows(coll, las['asset']['root'], [(e['anchor'], e['mouth_radius']) for e in las['engines']], 3.0e5)
     quiet_lamps(coll, 6.0)
     hulls['lasher'] = (coll, las['metres_per_unit'])
-    add_flotilla(scene, hulls)
+    add_fighters(scene, add_flotilla(scene, hulls))
     # Local working traffic across the lane during the reveal, about a kilometre out.
     mud = rooted(INPUTS / 'mudskipper-skinned.blend', 'Mudskipper', 0.85)
     fly(mud, 13.0, 23.0, Vector((520, 980, -110)), Vector((-280, 900, -20)), roll=math.radians(18))
