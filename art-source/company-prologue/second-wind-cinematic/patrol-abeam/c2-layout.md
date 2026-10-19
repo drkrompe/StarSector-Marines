@@ -10,7 +10,7 @@ Status: REWORK. The owner has moved C2 to Second Wind's bridge (2026-10-18, see
 *Bridge pass* below); a grey blockout is in review. The cabin-window production build
 described in the rest of this sheet is what currently ships, and stays the plan of
 record for the entry and for anything the bridge pass does not replace.
-Updated: 2026-10-18 — bridge pass blockout; the patrol is the Legion at 0.99 m/unit.
+Updated: 2026-10-18 — bridge pass blockout on the modelled bridge interior; the patrol is the Legion at 0.99 m/unit.
 
 ## Bridge pass (owner direction, 2026-10-18)
 
@@ -29,12 +29,14 @@ slits when the de-orbit starts.
 **The bridge.** The command deck is the one on Second Wind's model (`sw_bridge`): a
 low armoured cabin about 6 m square on the forward end of the spine, with slit
 glazing round the front and sides, about 55 cm of glass between the sill ledge and
-the visor brow, behind heavy posts. Its interior exists only in the blockout
-(`c2_bridge_blockout.py`): a floor just above the waist housing, the sill about
-70 cm above it, headroom about 1.6 m, consoles under the forward and port slits, two
-seats. The exterior model is unchanged; the solids that would fill the room are
-hidden from the camera and still cast shadows. The camera is a seated eye about 1 m
-off the floor, 65 cm behind the glass it looks through, on a 22 mm lens.
+the visor brow, behind heavy posts. Its interior is the model's own
+(`sw_bridge_interior`, in the patched state the shot appends): a standing bridge sunk
+into the waist housing, the floor 1.3 m below the slits and about 2.4 m of headroom,
+with a raised flight dais forward where the pilot and co-pilot sit at low consoles,
+Castle's comms bank along the port side, a plot table and the aft hatch. The camera is
+a standing eye about 1.7 m off the floor, on a 22 mm lens: first at the dais rail, 1.5
+m behind the forward glass, then turning to Castle's station at the port slits. The
+pilot and Castle are simple mannequins (`sw_bridge_interior.figures`).
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
@@ -95,14 +97,15 @@ frames only:
 
 A frame takes about 10 s on the GPU.
 
-**The bridge scene is still a blockout.** The interior is a box room built around the
-model's own slits and posts: floor, walls, ceiling, three console blocks, two seat
-blocks and one ceiling light. It has no modelled controls, displays, crew, hatch or
-interior framing, and nothing has been designed for it. It needs its own pass through
-the ship-model pipeline before C2 can be rendered properly.
+**The bridge scene is modelled in grey** (`sw_bridge_interior`, owner review
+pending): the room, consoles and screens, seats, rail, plot table, hatch, ceiling
+fittings and the patched state's jury-rigging, with mannequin crew. It is untextured
+and its lighting is not designed. On the pan from the forward station to the port one,
+the co-pilot's seat back crosses the frame for a moment.
 
 Review runs: `review/cinematic-c2/2026-10-18_bridge-blockout_windows/` (the two
-variants) and `.../2026-10-18_bridge-fighters_windows/` (banked, with the fighters).
+variants) and `.../2026-10-18_bridge-fighters_windows/` (banked, with the fighters);
+the interior: `review/second-wind/2026-10-18_bridge-interior_windows/`.
 
 **Open for the owner.** Whether the bridge's glazing stays this
 narrow (the model's slits make a letterbox, with posts that take a good share of the

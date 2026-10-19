@@ -1553,7 +1553,7 @@
       "RCS pod-port down nozzle: Salvage plate bare steel (rcs-pod-port)",
       "RCS pod-port up nozzle: Salvage plate bare steel (rcs-pod-port)"
     ],
-    "cut_objects": 101,
+    "cut_objects": 104,
     "sites": {
       "aft-deck-cluster": [
         {

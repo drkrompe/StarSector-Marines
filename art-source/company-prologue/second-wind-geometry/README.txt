@@ -233,6 +233,18 @@ build_reference.py: deterministic scene and camera construction; runs in Blender
   sw_port_module.py: one module per area, so
   separate passes do not edit the same file; sw_kit.py holds shared materials
   and primitives; sw_port_module.py builds the port grapple.
+sw_bridge_interior.py: the bridge room (owner brief 2026-10-18), cut out of the command
+  deck by a hidden cutter as live 'Bridge interior cavity' Booleans: main floor 16.6,
+  ceiling 20.3, a raised flight dais forward (17.55) with the two flight seats and low
+  consoles, the port comms bank (Castle's), the starboard systems bank, a plot table, the
+  dais rail and the aft hatch; dress(state) adds the jury-rigged details of 'patched' (and
+  'derelict', 'refit'). figures() builds the seated pilot and standing Castle mannequins for
+  review renders and shots; they are never saved. Outer faces keep their positions and
+  normals under the cut.
+bridge_interior_review.py: Workbench review of the room at 1920x1080 (the C2 stations,
+  the room from helm and hatch, a cutaway, a plan) plus two exterior views for diffs:
+  blender --background --factory-startup <blend> --python bridge_interior_review.py --
+    --out <dir> [--figures] [--views a,b] [--exterior-only] [--no-shadows]
 sw_damage.py, sw_scars_*.py: condition states (see Condition states).
 states/<state>/ (derelict, patched, refit, restored): review renders, .blend,
   geometry.json and review sheet per state; never the guide sent to ImageGen.
