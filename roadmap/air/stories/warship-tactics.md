@@ -3,7 +3,7 @@
 Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position) and slice 7 (the pack relay) built
 
 Written: 2026-10-16
-Updated: 2026-10-18 — slice 7: two or more bow ships on one hull fight it as a tag-team relay; measured against the control
+Updated: 2026-10-18 — slice 7: two or more bow ships on one hull fight it as a tag-team relay; re-measured on hard flux, not yet integrated
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -577,6 +577,30 @@ Two levers were tried and dropped, because neither decided a seed:
 
 What the duel is for is a balance question that belongs to the mission, not the tactic: whether the Wolfs fighting
 as a relay should be able to outlast the Greyhook.
+
+**Re-measured on hard flux (shields hold hard flux only, guns leave the drop level): the duel is decided, but past
+its window.** Same five seeds, window 45,000 ticks (1,500 s), and again with the window lifted to 108,000 ticks as a
+reading only (the scene's bound is unchanged). Greyhook hull and Wolf hull are at the end; blocked is rounds each Wolf's
+shield took.
+
+| seed | control (`packRelay=false`, `threatTargeting=false`): decided, Greyhook, blocked | relay at 1,500 s: Greyhook / Wolfs, blocked | relay, longer window: decided, Greyhook |
+| --- | --- | --- | --- |
+| 15305 | Greyhook, 1,201s, 84%, 219 / 176 | unresolved, 65% / 52%, 22%, 185 / 223 | Greyhook, 1,804s, 30% |
+| 16205 | Greyhook, 1,267s, 88%, 160 / 128 | **Greyhook, 1,420s**, 82%, 209 / 256 | same |
+| 16206 | Greyhook, 903s, 95%, 137 / 121 | unresolved, 71% / 0%, 38%, 235 / 258 | Greyhook, 1,573s, 71% |
+| 20261016 | Greyhook, 1,003s, 77%, 129 / 206 | unresolved, 43% / 19%, 33%, 214 / 252 | Greyhook, 1,611s, 39% |
+| 31337 | Greyhook, 823s, 96%, 121 / 112 | unresolved, 68% / 73%, 51%, 147 / 223 | Greyhook, 1,768s, 45% |
+
+The relay no longer stalemates: it lengthens the fight by about half (Wolf block share 69-84% against 58-75%) and the
+Greyhook still wins every seed, but four of five end after the window, so `the-duel-is-decided-by-destruction` fails
+on them. `warship-tactics` also fails `pack-flux-below-overload` on the two southern openings (Venture: 1.0% against
+the control's 0.7%; Enforcer: one overload against none). With the relay off and threat targeting still on, seed 15305
+fails `held-hulls-stay-out-of-their-edge-margin` (a Wolf 27.9 cells into its 38.9-cell margin for 15,066 ticks).
+One lever was tried and dropped: the tank's fire ceiling counting only the hard flux its shield holds (gun flux vents
+behind the shield). It turns the southern `warship-tactics` openings green and makes the duel close (Greyhook 14-56%
+at 1,500 s; with the longer window the Wolfs win 15305 and the Greyhook ends 5-56% elsewhere, at 1,570-1,908 s), but
+decides nothing inside the window and has three seeds fail the edge margin, the venting Wolfs holding past the
+Greyhook's reach close to their own edge.
 
 ## Slices
 
