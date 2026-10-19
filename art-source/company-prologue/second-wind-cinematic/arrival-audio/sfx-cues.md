@@ -30,6 +30,14 @@ sketches and Castle's lines for review.
 
 ## Sound direction
 
+- **Engines are burning rocket fuel, sized by thruster (owner, 2026-10-19).** Bass and crackling
+  combustion like a shuttle launch, never compressed air, hum or chimes. From the auditions
+  (`audition_engines.py`): small thrusters close (the fighters, the customs Hound) use the bright
+  crackling code-built voice; a medium drive at range or through the hull (Second Wind in C1, C2,
+  the entry and C4) the muffled code-built voice; a heavy drive at range the darker code-built voice
+  (the Legion's forward group); the generated `c4_launch_burn_t01` is a medium thruster close
+  (Second Wind's lift jets in the landing) and `_t02` a single heavy thruster (the Legion's main
+  drives, the departing Colossus), both flown along their paths with distance and Doppler.
 - **Weight over realism in space (owner, 2026-10-19).** There is no sound in vacuum, but
   the ships need weight: each big hull carries a deep bass engine hum, and everything that
   passes the camera close gets a swish. The bass stays below the voice band; the swishes
@@ -78,6 +86,7 @@ over 3.5 s, and the Legion clears the slits at about 14.
 | `c2_console_beeps` | A contact chirp as the Legion is tracked; a short double tone as the fighters come in | 0.2, 2.0 | Spot | −14 | Gen |
 | `fighter_00`…`fighter_12` | The six Broadswords, **synthesised from their flight paths** in `c2_bridge_blockout`: a hard thruster roar each, a sharp pitch drop at 160 m/s, swinging hard to port as they whip past; the leaders loudest | 2.0–5.5, peaks at 3.0 and 4.2 | Spot | −6 leaders, −9 to −11 wingmen | Code |
 | `legion_drives`, `legion_forward` | The Legion, **synthesised from its track**: its main drives at the stern (arriving last, loudest just past the beam) and a forward cluster, deep muffled rockets with heavy bass, plus attitude-thruster bursts along the hull as it trims to the beam | 0–15, building to the beam at 8.0 | Spot | −7 and −9 | Code |
+| `c2_console_lean`, `c2_steps`, `c2_brush_past` | The camera moving on the bridge (the 340 m C2 camera pass): a palm settling on the forward console at 1.5, the boot step down off the dais at 5.0 and four paces across the deck plate, a jacket brushing past Castle at 5.55, and a lean over the comms bank at 6.6. Close and quiet, under the hail | 1.5, 5.0–6.6, 6.6 | Spot | −14 to −18 | Gen |
 | `c2_switch_clicks` | Castle keys her reply; then she closes the channel to Approach | 9.5, 14.4 | Spot | −12 | Gen |
 | `second_wind_interior` | Second Wind's own drive heard from its bridge, the same rocket voice as C1: idling low, then the de-orbit burn lights at 9.6 with an ignition thump and opens up, on through the entry | 0–15, burn from 9.6 | Transition | −8 (idle about −22) | Code |
 | Squelch open / close | Approach's key-up and key-down | 0.3 / 8.94 | Spot | as shipped | Existing |
@@ -116,7 +125,7 @@ Longer since the owner's review (`c3_core`): it opens still descending and shaki
 | `c3_river_muffled` | The river's rush, far off, low-passed at 1.2 kHz | 4–16 | Bed | −18 | Gen |
 | Castle | "Like the travel reels they ran in the canteen... except this one doesn't loop." | 7.0–12.1 | Voice | 0 | `c4_reels` take |
 
-## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 54.9 s)
+## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 61.4 s)
 
 One continuous camera (owner, 2026-10-19; joined in `c5_scene`: C5 opens on C4's last frame and
 pushes in from 445 m to the 220 m view of the ramp over its first 4 s): the sky pan from farmland over the freeway and
@@ -125,6 +134,8 @@ families, the rise and the title. C4 runs 0–21.4 and C5 follows; times below a
 joined clock, and C5's own beats are at their C5 time + 21.4.
 
 The approach is slower (owner: she named the landing zone after we were already landing).
+C5 is 40 s (owner, 2026-10-19: linger on the title, more of the port at work): the title rises from C5 24, holds to 38.0 and fades to black over 38.0–39.5. The port beds carry the hold and go out with the fade; Ending A (`ending_strings_piano_t02`, 40 s) swells at the title, carries the hold and resolves into the black. Rows below give the 33.5 s timings where they differ.
+
 Castle's in-flight lines are both over before the ship starts down: "Greywater's past the
 cranes. Let me do the talking." 0.5–3.9, then "Look for the fenced yard on the east side.
 Kilo Nine. Mind your manners down there; it's a favour." 4.6–10.9. Second Wind brakes into a
@@ -142,13 +153,14 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c4_freeway` | Heavy trucks and haulers on the freeway | 1–53.9; loudest crossing the road (4), low over the yard, up again with the rise, out under the title | Bed | −12 (−22 over the yard, −14 at the top of the rise) | Gen |
 | `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–53.9; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
 | `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–39.4 | Bed | −18 | Gen |
-| `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the approach, building from the hover to touchdown | 3–17.9 | Bed | −10 (−18 under the lines, −14 → −10 in the hover, −7 at touchdown), below 220 Hz | Gen |
-| `landing_roar` | The belly jets: lit at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`) |
-| `landing_grit` | Sand-blast hiss and pebbles pinging off the hull, building from 13, peaking at touchdown | 13–17.4 | Spot | −11 | Code |
-| `landing_thump` | Touchdown: first legs at 16.4, second at 16.57, the struts groaning | 16.4 | Spot | −2 | Code |
-| `landing_spool` | Vent hiss and the turbines winding down | 16.4–18.4 | Transition | −8 | Code |
+| `second_wind_c4_drive` | Second Wind's main drive heard from the sky camera: a muffled burning-gas rocket, broadband, **no hum** (owner, 2026-10-19: "burning gas thrusters, heavy lift"). Full until touchdown, out by 17.9 (thruster markers) | 0–17.9 | Bed | −12 (−16 throughout, under the lines and the landing roar) | Code (`synth_flyby.py`) |
+| `landing_roar` | The belly lift jets: broadband crackling combustion with heavy low end, an ignition whump at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`, broadband rebuild) |
+| `landing_grit` | Sand and grit blasted across the pad, building from about 13, peaking at touchdown; noise only, no pings | 13–17.4 | Spot | −11 | Code |
+| `landing_thump` | Touchdown: the legs at 16.4 and 16.57, a noise thump with no tone | 16.4 | Spot | −2 | Code |
+| `landing_spool` | Burner shutdown: sputtering coughs, pops and gas hiss after the cut-off | 16.6–18.5 | Transition | −8 | Code |
 | `landing_settle` | Dust washing back down and the last grit | 16.9–21.4 | Spot | −14 | Code |
-| `colossus_outbound` | A second Colossus leaving (`port_fleet`), **synthesised from its path** against the C5 camera: a huge, slow, muffled freighter drive coming in from the east at about 460 m, closest (about 165 m) at C5 18–19.5, then about 1.5 km off and still burning under the title. Kept under the music and the title | 30.4–54.9, closest 39.4–40.9 | Spot | −10, −14 under the title | Code |
+| `lighter_six` | Lighter 6 (`port_life`), a Hermes letting down from 200 m onto a pad about 270 m west of the yard: a small thruster, building as it slows to touchdown, cut at about C5 22.3 | 30.9–44.0, touchdown 43.4 | Spot | −14 | Code |
+| `colossus_lift`, `colossus_mains` | The Colossus at the heavy berth lifting out (`port_fleet`), about 480 m from the camera: its ten lift jets spool up from C5 12 (40%) to full at 15 as it leaves the deck (the generated heavy burn, muffled by distance), then its six mains light at C5 24 with an ignition thump, full by 25.5, as it accelerates west under the title (the dark code-built heavy drive). Kept under the music and title | Lift from 33.4, mains from 45.4, to the end | Spot | −10 and −12, 3 dB down under the title | Gen + Code |
 | `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 17.4–54.9; full to 39.4, thinning under the rise, out by 52.4 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 21.9–35.4 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |

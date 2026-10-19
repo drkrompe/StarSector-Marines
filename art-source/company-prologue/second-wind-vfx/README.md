@@ -92,7 +92,8 @@ one of two ways (both under Anchors, Other hulls, below):
   and her lamps. Engine indices in neither side list read as `centre`. The
   Legion's (`../legion-cinematic/vfx_hull.py`) is the multi-barrel and
   launcher case: ten drives, 25 gun barrels on thirteen mounts and six
-  launcher tubes.
+  launcher tubes. The Wolf (P)'s (`../wolf-cinematic/vfx_hull.py`) has the energy
+  mounts.
 
 ## Scale
 
@@ -359,6 +360,11 @@ leaves the tube and accelerates along the line of fire out to the range, and
 **motor smoke**: a launch puff at the mouth and a trail of puffs left along
 its first stretch, sized from the missile. The launcher knobs below exist
 only when the hull has a launcher, so every other hull's knobs are unchanged.
+An **energy** mount (MOUNTS kind `'energy'`; the Wolf (P)'s ion cannon and
+mining blaster) is a gun whose flash, flash light and bolt take the weapon's
+own colour (the profile's `ENERGY_COLOURS`, {mount index: linear rgb}, else
+ion blue), white only in the hottest core, with a thicker bolt than a tracer
+and no propellant puff or brass. Opt-in: a `gun` mount builds exactly as before.
 
 | Launcher knob | Range | Default | Meaning |
 |---|---|---|---|
@@ -491,18 +497,24 @@ shields (180, 180, 150 degrees, efficiency 1.0); their own exports do not ask
 for the group, so a shot adds `'shield'` to its groups. OMNI (the default)
 stays the Paragon's 3D unfold, unchanged.
 
-**Colour schemes.** `swfx_shield.SCHEMES` holds the vanilla hull-style shield
-colours (`hull_styles.json`: LOW_TECH inner 255,125,125, MIDLINE and
-HIGH_TECH 125,125,255, OMEGA, THREAT and DWELLER; ring white and inner alpha
-75 everywhere; no `.ship` file overrides them) as `low-tech`, `midline`,
-`high-tech`, and faction schemes (`hegemony`, `tritachyon`, `independent`,
-`sindrian_diktat`, `luddic_church`, `pirates`): the faction's hull style with
-ring and inner leaned toward its `.faction` colour. Vanilla tells midline and
-high tech apart by nothing, so the faction lean is what separates Tri-Tachyon
-from the independents. A profile names one with `scheme`; a shot overrides it
-with `swfx.apply(..., shield_scheme=NAME)` (and `shield_arc`, `shield_type`).
-`vanilla_styles(install)` reads the install's `hull_styles.json` to check
-the table.
+**Colour schemes follow the shield's technology** (the hull style), not
+the faction. `swfx_shield.SCHEMES` holds the vanilla hull-style shield colours
+(`hull_styles.json`: LOW_TECH inner 255,125,125, MIDLINE and HIGH_TECH
+125,125,255, OMEGA, THREAT and DWELLER; ring white and inner alpha 75
+everywhere; no `.ship` file overrides them) as `low-tech`, `midline`,
+`high-tech` and so on. Each carries a finish (`FINISHES`): ripple amplitude,
+noise grain, rim brightness and face density as multipliers on the Paragon's
+accepted look. High tech is that look exactly (the reference), steady and even
+with a bright rim. Midline and low tech share a rough, coarse finish with a dim
+rim and a murky face (owner's pick); low tech's pink-red tells them apart. So
+high tech reads as better tech though vanilla gives it midline's blue. The
+Onslaught, Legion and Colossus profiles use `low-tech`. Faction-leaned schemes
+(`hegemony`, `tritachyon`, `independent`, `sindrian_diktat`,
+`luddic_church`, `pirates`) stay available but are no profile's default. A
+profile names one with `scheme` (or a `finish` of its own). A shot overrides
+it with `swfx.apply(..., shield_scheme=NAME)` (and `shield_arc`,
+`shield_type`). `vanilla_styles(install)` reads the install's
+`hull_styles.json` to check the table.
 
 **Strength.** `shield_strength` (0-1.5) is one knob for how solid the shield
 reads: 1.0 is the Paragon's accepted look exactly (every strength term is 1
@@ -510,10 +522,11 @@ there). Lower thins the face and rim, wavers the whole shield and drops it out
 in moving patches; higher brightens it and filters what lies behind it toward
 the inner colour. Its default comes from the profile's `efficiency` (vanilla
 shield efficiency) through `strength_from_efficiency`: 0.6, the best in
-vanilla, is 1.0, the Onslaught's 1.0 is 0.6. Key it per shot like any knob.
+vanilla, is exactly 1.0, the capitals' 1.0 is 0.8 and the Conquest's 1.4
+is 0.6 (linear, `STRENGTH_PER_EFFICIENCY`). Key it per shot like any knob.
 
 `review_shields.py` renders a hull's front arcs (closed, half, full, turned),
-the scheme strip, the strength strip and a flicker strip, and the Paragon's
+the tech strip (low tech, midline, high tech at equal strength), the scheme strip, the strength strip and a flicker strip, and the Paragon's
 stills for an A/B against another checkout's kit (`--kit`);
 `compose_shields.py` makes the 1920x1080 sheets.
 

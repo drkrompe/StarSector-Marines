@@ -1,0 +1,5 @@
+{
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Hound (P) is 'heavily modified - and poorly maintained - by its pirate crew' (hound_d_pirates.skin), and lightly battle-worn: heavier abrasion, fade and grime than a service ship, soot at the drives, some wrong-shade repaints (neglect), well short of the derelict.",
+ "clean":  {"abrasion": 0.0,  "pitting": 0.0,  "fade": 0.0,  "grime": 0.0,  "soot": 0.0,  "neglect": 0.0},
+ "pirate": {"abrasion": 0.6,  "pitting": 0.45, "fade": 0.55, "grime": 0.65, "soot": 0.75, "neglect": 0.45}
+}

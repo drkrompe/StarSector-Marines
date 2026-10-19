@@ -25,6 +25,9 @@ Options after a literal "--":
   --samples N    Cycles samples (default 32)
   --res WxH      render size (default 1920x1080)
   --no-save      skip the .blend and geometry.json
+  --gear down|up pose the landing gear (default down: parked on its
+                 wheels; the .blend is saved in this pose). Views 'parked'
+                 and 'under-quarter' and the close-up 'gear-detail' show it.
 Then run compose_review.py (Python + Pillow + numpy) for the sprite
 overlay, silhouette IoU and review sheets.
 """
@@ -41,8 +44,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import bw_kit, bw_hull, bw_wings, bw_guns, bw_engines
-for module in (bw_kit, bw_hull, bw_wings, bw_guns, bw_engines):
+import bw_kit, bw_hull, bw_wings, bw_guns, bw_engines, bw_gear, bw_lights
+for module in (bw_kit, bw_hull, bw_wings, bw_guns, bw_engines, bw_gear, bw_lights):
     importlib.reload(module)
 
 GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
@@ -63,7 +66,7 @@ ROOT = 'Broadsword root'
 # fighter size. The canopy is broad (1.95 m at the sill against 0.9-1.3 m
 # on real aircraft): read as the sprite's wide glazed hood, not a tighter
 # scale. To sit her beside a hull at another scale, scale the root by
-# METRES_PER_UNIT / that hull's (0.50 / 0.61 = 0.82 for the Legion).
+# METRES_PER_UNIT / that hull's (0.50 / 0.99 = 0.51 for the Legion).
 METRES_PER_UNIT = 0.50
 SCALE_RANGE = (0.43, 0.57)
 PILOT_SEAT_X = 6.3  # seat back; legs run forward under the glass
@@ -76,6 +79,7 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=32)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--gear', choices=('down', 'up'), default='down')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -124,6 +128,9 @@ bw_hull.build(kit)
 bw_wings.build(kit)
 bw_engines.build(kit)
 bw_guns.build(kit)
+if not args.blockout:
+    bw_gear.build(kit)
+    bw_lights.build(kit)
 
 root = bpy.data.objects.new(ROOT, None)
 root.empty_display_type = 'PLAIN_AXES'
@@ -138,6 +145,45 @@ for ob in model.objects:
     if ob.type == 'MESH':
         for poly in ob.data.polygons:
             poly.use_smooth = False
+
+
+# Parked check (gear down): the wheels' soles stand on one level deck at
+# bw_gear.DECK_Z, and nothing else reaches it.
+parked = None
+if not args.blockout:
+    bw_gear.pose(1.0)
+    dg0 = bpy.context.evaluated_depsgraph_get()
+
+    def lowest(ob):
+        ev = ob.evaluated_get(dg0)
+        me = ev.to_mesh()
+        z = min((ev.matrix_world @ v.co).z for v in me.vertices)
+        ev.to_mesh_clear()
+        return z
+    meshes = [o for o in model.objects if o.type == 'MESH']
+    soles = {n: lowest(bpy.data.objects[n]) for n in bw_gear.FEET}
+    others = sorted((lowest(o), o.name) for o in meshes if not o.name.startswith(tuple(f'Hull {l[0]}' for l in bw_gear.LEGS)))
+    spread = max(soles.values())-min(soles.values())
+    parked = {'deck_z_units': bw_gear.DECK_Z, 'feet': list(soles),
+              'sole_spread_m': round(spread*METRES_PER_UNIT, 3),
+              'sole_error_m': round(max(abs(z-bw_gear.DECK_Z) for z in soles.values())*METRES_PER_UNIT, 3),
+              'lowest_body_part': others[0][1],
+              'body_clearance_m': round((others[0][0]-bw_gear.DECK_Z)*METRES_PER_UNIT, 2)}
+    if parked['sole_error_m'] > .01 or parked['body_clearance_m'] <= .3:
+        raise RuntimeError(f'parked check failed {parked}')
+    print('parked', parked)
+    # Gear up: nothing of the gear but its doors may hang below the belly it folded into.
+    bw_gear.pose(0.0)
+    stowed = {}
+    for leg, *_ in bw_gear.LEGS:
+        n = f'Hull {leg}'
+        legs = [o for o in meshes if o.name.startswith(n) and ' door ' not in o.name]
+        doors = [o for o in meshes if o.name.startswith(n+' door ')]
+        stowed[leg] = round((min(lowest(o) for o in legs)-min(lowest(o) for o in doors))*METRES_PER_UNIT, 3)
+    if min(stowed.values()) < 0:
+        raise RuntimeError(f'stowed gear hangs below its doors {stowed}')
+    parked['stowed_leg_above_door_bottom_m'] = stowed
+    bw_gear.pose(1.0 if args.gear == 'down' else 0.0)
 
 bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children[RIG]
 scene.render.engine = 'CYCLES'
@@ -185,7 +231,12 @@ CLOSEUPS = [  # name, position, target, ortho scale
     ('cockpit-detail', (30, 20, 26), (6, 0, 2), 13),
     ('gun-detail', (30, 30, 18), (5, 9.5, .5), 12),
     ('engine-detail', (-40, 26, 18), (-9, 5, -.5), 17),
+    ('gear-detail', (30, 34, -14), (2, 2, -3.5), 20),
 ]
+if not args.blockout:
+    # Parked: low port-bow view, the deck plane under the wheels.
+    CAMERAS.append(('parked', (52, 46, 4), 46))
+    CAMERAS.append(('under-quarter', (40, 44, -36), 46))
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
     CLOSEUPS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
@@ -206,7 +257,16 @@ for name, pos, scale in CAMERAS:
     if name == 'top':
         cam.rotation_euler = (0, 0, math.pi)  # nose left, port below
     else:
-        cam.rotation_euler = (TARGET-cam.location).to_track_quat('-Z', 'Y').to_euler()
+        aim = TARGET+Vector((0, 0, -1.5)) if name in ('parked', 'under-quarter') else TARGET
+        cam.rotation_euler = (aim-cam.location).to_track_quat('-Z', 'Y').to_euler()
+# The parked deck shows only in the parked view, and only with the gear down.
+deck = None
+if not args.blockout:
+    bpy.ops.mesh.primitive_plane_add(size=200, location=(0, 0, bw_gear.DECK_Z))
+    deck = bpy.context.object
+    deck.name = 'Parked deck plane'
+    deck.data.materials.append(bw_kit.material('Deck grey', (.42, .43, .44), 0, .8))
+    deck.hide_render = True
 # Perspective still under the space sun: starboard bow quarter, looking
 # back and down across her toward the sun's side.
 bpy.ops.object.camera_add(location=(44, -40, 26))
@@ -217,7 +277,7 @@ cam.rotation_euler = (Vector((2.5, 0, -.8))-cam.location).to_track_quat('-Z', 'Y
 
 wanted = []
 for v in [v for v in args.views.split(',') if v and v != 'none']:
-    wanted += [c[0] for c in CLOSEUPS[:4]] if v == 'details' else [v]
+    wanted += [c[0] for c in CLOSEUPS[:5]] if v == 'details' else [v]
 wanted += [spec.split(':')[0] for spec in args.cam]
 
 
@@ -232,6 +292,8 @@ def studio(on):
 for name in wanted:
     scene.camera = bpy.data.objects['Camera '+name]
     studio(name != 'space-sun')
+    if deck:
+        deck.hide_render = not (name == 'parked' and args.gear == 'down')
     # The top view has a transparent film so its alpha is the silhouette.
     scene.render.film_transparent = name == 'top'
     scene.render.filepath = str(OUT/(name+'.png'))
@@ -243,6 +305,8 @@ if not args.no_save:
     scene.camera = bpy.data.objects['Camera three-quarter']
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'broadsword-geometry.blend'))
+    if not args.blockout:
+        bw_gear.pose(0.0)  # flight dimensions: gear up
     lo = Vector((1e9,)*3)
     hi = Vector((-1e9,)*3)
     dg = bpy.context.evaluated_depsgraph_get()
@@ -266,9 +330,9 @@ if not args.no_save:
     canopy = (bw_hull.CANOPY[0][0]-bw_hull.CANOPY[-1][0], 2*max(w for _, w, _ in bw_hull.CANOPY))
     anchors = {ob.name: [round(v, 3) for v in ob.matrix_world.translation] for ob in kit.anchors}
     manifest = {
-        'status': ('Blockout (pass 1)' if args.blockout else 'Pass 2: plausible detail')
+        'status': ('Blockout (pass 1)' if args.blockout else 'Pass 3: plausible detail plus retractable landing gear')
                   + ': silhouette, sections, slots and engines' + ('' if args.blockout else
-                  ', armour plates, canopy frame, grilles, gun and nacelle detail') + '. No damage or textures.',
+                  ', armour plates, canopy frame, grilles, gun and nacelle detail, tricycle gear') + '. No damage or textures.',
         'hull': {'name': 'Broadsword', 'hullId': 'broadsword', 'size': 'FIGHTER', 'style': 'LOW_TECH',
                  'designation': 'Heavy Fighter', 'wing': 'broadsword_wing (Legion XIV Elite carries two)',
                  'variant': 'broadsword_Fighter: lightmg x2 (WS 001/002, linked); missile slots empty',
@@ -292,10 +356,10 @@ if not args.no_save:
                                'person 1.8 m in units': round(1.8/m, 2),
                                'seated 1.8 m pilot head clearance under the canopy': round(pilot_clearance(), 2)},
             'range': list(SCALE_RANGE),
-            'beside_the_legion': 'scale the root by %.2f (0.50 / the Legion 0.61, legion-geometry at 496340563); '
+            'beside_the_legion': 'scale the root by %.2f (0.50 / the Legion 0.99, legion-geometry/geometry.json); '
                                  'her %.1f m span is about %.0f Legion units, inside its hangar tunnels (being widened '
                                  'to about 40 forward and 46 aft for the Hoplon); fighters leave through the mouths '
-                                 'under the wing arms' % (m/.61, size[1]*m, size[1]*m/.61),
+                                 'under the wing arms' % (m/.99, size[1]*m, size[1]*m/.99),
             'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
         },
         'sprite': {'size': [30, 33], 'center': [15, 13],
@@ -320,12 +384,25 @@ if not args.no_save:
         'slot_symmetry_note': 'Integer .ship slots straddle the centre line of an even-width sprite (11/-10, 7/-6, '
                               '6/-5); the model and its anchors are symmetric at the mean (10.5, 6.5, 5.5).',
         'anchors': anchors,
+        'running_lights': [] if args.blockout else bw_lights.records(),
+        **({} if args.blockout else {'landing_gear': {
+            'legs': [{'name': f'Hull {l}', 'hinge': f'Hull {l} hinge', 'hinge_location': [x, y, z],
+                      'wheel_radius': r, 'doors': [f'Hull {l} door {s} hinge' for s in ('port', 'starboard')]}
+                     for l, x, y, z, r, _, _ in bw_gear.LEGS],
+            'pose': 'built down. Stow: rotate each leg hinge retract_deg about its local Y (foot swings aft into '
+                    'the fuselage or nacelle) and each door hinge back from open_deg to 0 about its local X. '
+                    'bw_gear.pose(t) is the reference: t=1 down, 0 up; doors are open for t >= 1/3.',
+            'saved_pose': args.gear,
+            'dimensions_note': 'dimensions and scale sizes are measured gear up (flight)',
+            'parked_check': parked}}),
         'anchor_convention': 'ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)',
         'object_names': {'Hull ...': 'nose, forward fuselage, aft spine and their plates',
                          'Canopy ...': 'glass and frame', 'Wing <side> ...': 'gun pod housings, blades, aft strakes',
                          'Weapon <slot id> ...': 'gun geometry and slot anchors',
                          'Engine <i> ...': 'nacelle, collar, mouth lip, aft-facing bell, dark throat',
-                         'Flare launcher WS 005 ...': 'the system launcher on the spine'},
+                         'Flare launcher WS 005 ...': 'the system launcher on the spine',
+                         'Hull <leg> ...': 'landing gear legs, wells and doors (nose gear, port/starboard main gear)',
+                         'Light <side> <where> <k>': 'running lights; positions, colours and blink in running_lights'},
         'cameras': [{'name': n, 'position': list(p), 'orthographic_scale': s,
                      'rotation': 'nose left, port below' if n == 'top' else 'looks at '+str(list(TARGET))}
                     for n, p, s in CAMERAS],

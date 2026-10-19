@@ -75,14 +75,15 @@ def pulses(times, width, level, base=0.0):
 
 def _rest(found, done, fps, frames, lift=False):
     """Every craft the shot did not name: markers, and throttle from its own motion. lift: in
-    air, a hull with no belly jets gets its mains vectored down as lift markers too."""
+    air, a hull with no belly jets gets its mains vectored down as lift markers too, and a craft
+    standing still in the air reads as hovering."""
     for name, ob in sorted(found.items()):
         if name in done:
             continue
         marks = mark_any(ob)
         if lift:
             marks += tm.lift_from_mains(ob)
-        ob['thrust_activity'] = tm.auto(ob, marks, fps, frames)
+        ob['thrust_activity'] = tm.auto(ob, marks, fps, frames, hover=lift)
 
 
 def _label(name):
@@ -158,7 +159,7 @@ def mark_c2(scene, p):
             m = mark_any(ob, 'Second Wind', working=sw_working(), activity='coasting, then the de-orbit burn')
             tm.key(m, [(0, 0.0), (drop, 0.0), (drop + 0.6, 1.0), (p['samples'][-1]['t'], 1.0)], fps, kinds=('main',))
             tm.key(m, pulses((drop + 0.3, drop + 1.6, drop + 2.9), 0.25, 0.7), fps, kinds=('maneuver', 'lift'))
-        elif name == 'C2B | Legion root':
+        elif name in ('C2B | Legion root', 'LEGION | root'):
             m = mark_any(ob, 'Legion', activity='idling past (the patrol coasts)')
             tm.key(m, [(0, 0.2)], fps, kinds=('main',))
             tm.key(m, [(0, 0.0)], fps, kinds=('maneuver', 'lift'))

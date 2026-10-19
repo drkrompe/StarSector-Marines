@@ -1,0 +1,249 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.992)",
+ "space": "CIELAB D65",
+ "classes": {
+  "khaki": {
+   "pixels": 159691,
+   "mean": [
+    38.79,
+    2.41,
+    9.19
+   ],
+   "std": [
+    8.0,
+    1.2,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    21.74,
+    38.12,
+    55.46
+   ],
+   "mean_srgb": [
+    101.1,
+    89.5,
+    76.6
+   ],
+   "std_measured": [
+    13.53,
+    1.11,
+    3.28
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "red": {
+   "pixels": 41528,
+   "mean": [
+    47.72,
+    24.89,
+    15.5
+   ],
+   "std": [
+    8.0,
+    2.0,
+    2.5
+   ],
+   "L_p10_p50_p90": [
+    38.63,
+    47.91,
+    56.79
+   ],
+   "mean_srgb": [
+    159.8,
+    96.2,
+    88.4
+   ],
+   "std_measured": [
+    7.89,
+    8.05,
+    5.58
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "sand": {
+   "pixels": 4673,
+   "mean": [
+    69.98,
+    4.74,
+    16.67
+   ],
+   "std": [
+    8.0,
+    1.5,
+    3.0
+   ],
+   "L_p10_p50_p90": [
+    62.57,
+    71.16,
+    75.87
+   ],
+   "mean_srgb": [
+    191.2,
+    167.1,
+    141.2
+   ],
+   "std_measured": [
+    6.57,
+    1.18,
+    2.84
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "plate": {
+   "pixels": 58886,
+   "mean": [
+    51.66,
+    1.16,
+    2.4
+   ],
+   "std": [
+    8.0,
+    0.6,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    31.28,
+    53.92,
+    66.65
+   ],
+   "mean_srgb": [
+    127.0,
+    122.3,
+    119.1
+   ],
+   "std_measured": [
+    13.71,
+    0.99,
+    1.62
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "gunmetal": {
+   "pixels": 56425,
+   "mean": [
+    30.3,
+    1.69,
+    2.51
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.4
+   ],
+   "L_p10_p50_p90": [
+    15.96,
+    25.87,
+    54.07
+   ],
+   "mean_srgb": [
+    75.8,
+    70.3,
+    67.5
+   ],
+   "std_measured": [
+    14.71,
+    1.13,
+    2.34
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "dark": {
+   "pixels": 13189,
+   "mean": [
+    12.64,
+    1.11,
+    1.53
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ],
+   "L_p10_p50_p90": [
+    2.28,
+    5.99,
+    43.53
+   ],
+   "mean_srgb": [
+    35.3,
+    32.2,
+    30.7
+   ],
+   "std_measured": [
+    16.53,
+    0.8,
+    0.93
+   ],
+   "note": "spread owned: shading and edge contamination on the reference inflate it"
+  },
+  "bare": {
+   "derived": "gunmetal + [30.0, 1.0, -3.0] (the geometry's designed tone offset)",
+   "mean": [
+    60.3,
+    2.69,
+    -0.4900000000000002
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.4
+   ]
+  },
+  "hazard": {
+   "derived": "sand + [4.0, -8.0, 32.0] (the geometry's designed tone offset)",
+   "mean": [
+    73.98,
+    -3.26,
+    48.67
+   ],
+   "std": [
+    8.0,
+    1.5,
+    3.0
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what worn pirate paint reveals and what a hard-used raider deposits.",
+  "primer": {
+   "lab": [
+    44.0,
+    3.0,
+    8.0
+   ],
+   "what": "the navy's original khaki-grey primer under the pirate repaint"
+  },
+  "bare": {
+   "lab": [
+    64.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare armour steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    27.0,
+    5.0,
+    11.0
+   ],
+   "what": "grime and drive residue, warm brown"
+  },
+  "soot": {
+   "lab": [
+    11.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot from the patched-up drives"
+  },
+  "chalk": {
+   "lab": [
+    64.0,
+    7.0,
+    17.0
+   ],
+   "what": "chalked, sun-bleached paint: faded red and khaki go to a dusty tan"
+  }
+ }
+}

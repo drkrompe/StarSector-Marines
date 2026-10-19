@@ -1,0 +1,3158 @@
+{
+ "top-1-port": {
+  "what": "port prong deck and glacis, X -48 to -10: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-port",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     39,
+     65,
+     73,
+     128,
+     145,
+     176,
+     177,
+     178,
+     179
+    ]
+   },
+   {
+    "object": "Hull port prong deck plating",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     347,
+     353,
+     359,
+     365,
+     371,
+     377,
+     383,
+     389,
+     395
+    ]
+   },
+   {
+    "object": "Hull port prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     185,
+     191,
+     197,
+     203,
+     209,
+     215
+    ]
+   },
+   {
+    "object": "Hull port prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     17
+    ]
+   },
+   {
+    "object": "Hull port prong patch plates",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11
+    ]
+   },
+   {
+    "object": "Hull port prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     9,
+     19,
+     29,
+     39,
+     49,
+     59
+    ]
+   },
+   {
+    "object": "Hull port prong hatches",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     270
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1651.89,
+  "view_dir": [
+   0.0,
+   0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   49.14,
+   37.51
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -22.376113176345825,
+    38.148393362760544
+   ],
+   "ortho_width": 77.53274989066506
+  },
+  "native_texels_per_unit": 10.2
+ },
+ "top-2-port": {
+  "what": "port prong deck and glacis, X -10 to 28: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-port",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     13,
+     79,
+     129,
+     180,
+     188,
+     189
+    ]
+   },
+   {
+    "object": "Hull port prong deck plating",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     245,
+     251,
+     257,
+     263,
+     269,
+     275,
+     281,
+     287,
+     293,
+     299,
+     305,
+     311,
+     317,
+     323,
+     329,
+     335,
+     341
+    ]
+   },
+   {
+    "object": "Hull port prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     137,
+     143,
+     149,
+     155,
+     161,
+     167,
+     173,
+     179
+    ]
+   },
+   {
+    "object": "Hull port prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull port prong patch plates",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull port prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     69,
+     79,
+     89,
+     99
+    ]
+   },
+   {
+    "object": "Hull port prong hatches",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     95,
+     101,
+     107,
+     113,
+     119,
+     244
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       0.0,
+       -40.0
+      ],
+      [
+       28.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     180
+    ]
+   }
+  ],
+  "face_count": 42,
+  "area_units2": 2453.65,
+  "view_dir": [
+   0.0,
+   0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   42.13,
+   46.91
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.06285572052002,
+    32.54859736561775
+   ],
+   "ortho_width": 96.97171896311048
+  },
+  "native_texels_per_unit": 8.2
+ },
+ "top-3-port": {
+  "what": "port prong deck and glacis, X 28 to 66: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-port",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     93,
+     205,
+     206
+    ]
+   },
+   {
+    "object": "Hull port prong deck plating",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     131,
+     137,
+     143,
+     149,
+     155,
+     161,
+     167,
+     173,
+     179,
+     185,
+     191,
+     197,
+     203,
+     209,
+     215,
+     221,
+     227,
+     233,
+     239
+    ]
+   },
+   {
+    "object": "Hull port prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     77,
+     83,
+     89,
+     95,
+     101,
+     107,
+     113,
+     119,
+     125,
+     131
+    ]
+   },
+   {
+    "object": "Hull port prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     11
+    ]
+   },
+   {
+    "object": "Hull port prong patch plates",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     17
+    ]
+   },
+   {
+    "object": "Hull port prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     109,
+     119
+    ]
+   },
+   {
+    "object": "Hull port prong hatches",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     35,
+     41,
+     47,
+     65,
+     71,
+     77,
+     83,
+     89,
+     192,
+     218
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       0.0,
+       -40.0
+      ],
+      [
+       66.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     128,
+     154
+    ]
+   }
+  ],
+  "face_count": 50,
+  "area_units2": 3270.53,
+  "view_dir": [
+   0.0,
+   0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   60.0,
+   43.68
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    50.0,
+    30.931732922792435
+   ],
+   "ortho_width": 90.28700808838049
+  },
+  "native_texels_per_unit": 8.8
+ },
+ "top-4-port": {
+  "what": "port prong deck and glacis, X 66 to 110: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-port",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     200,
+     201
+    ]
+   },
+   {
+    "object": "Hull port prong deck plating",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47,
+     53,
+     59,
+     65,
+     71,
+     77,
+     83,
+     89,
+     95,
+     101,
+     107,
+     113,
+     119,
+     125
+    ]
+   },
+   {
+    "object": "Hull port prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47,
+     53,
+     59,
+     65,
+     71
+    ]
+   },
+   {
+    "object": "Hull port prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull port prong patch plates",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     23
+    ]
+   },
+   {
+    "object": "Hull port prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     129,
+     139,
+     149,
+     159
+    ]
+   },
+   {
+    "object": "Hull port prong hatches",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     53,
+     59,
+     143,
+     166
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     49,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     81,
+     105
+    ]
+   }
+  ],
+  "face_count": 90,
+  "area_units2": 1783.75,
+  "view_dir": [
+   0.0,
+   0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   45.63,
+   30.79
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    85.12668228149414,
+    24.78953990340233
+   ],
+   "ortho_width": 63.65738050574171
+  },
+  "native_texels_per_unit": 12.5
+ },
+ "top-1-starboard": {
+  "what": "starboard prong deck and glacis, X -48 to -10: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-starboard",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     58,
+     66,
+     73,
+     135,
+     164,
+     165,
+     171,
+     172,
+     175
+    ]
+   },
+   {
+    "object": "Hull starboard prong deck plating",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     347,
+     353,
+     359,
+     365,
+     371,
+     377,
+     383,
+     389,
+     395
+    ]
+   },
+   {
+    "object": "Hull starboard prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     185,
+     191,
+     197,
+     203,
+     209,
+     215
+    ]
+   },
+   {
+    "object": "Hull starboard prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     17
+    ]
+   },
+   {
+    "object": "Hull starboard prong patch plates",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11
+    ]
+   },
+   {
+    "object": "Hull starboard prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     9,
+     19,
+     29,
+     39,
+     49,
+     59
+    ]
+   },
+   {
+    "object": "Hull starboard prong hatches",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     270
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -10.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 1647.6,
+  "view_dir": [
+   0.0,
+   -0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   -0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   49.06,
+   37.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    22.334603548049927,
+    38.1961904168129
+   ],
+   "ortho_width": 77.31647959667275
+  },
+  "native_texels_per_unit": 10.3
+ },
+ "top-2-starboard": {
+  "what": "starboard prong deck and glacis, X -10 to 28: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-starboard",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     11,
+     80,
+     177,
+     178,
+     179,
+     180
+    ]
+   },
+   {
+    "object": "Hull starboard prong deck plating",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     245,
+     251,
+     257,
+     263,
+     269,
+     275,
+     281,
+     287,
+     293,
+     299,
+     305,
+     311,
+     317,
+     323,
+     329,
+     335,
+     341
+    ]
+   },
+   {
+    "object": "Hull starboard prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     137,
+     143,
+     149,
+     155,
+     161,
+     167,
+     173,
+     179
+    ]
+   },
+   {
+    "object": "Hull starboard prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull starboard prong patch plates",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull starboard prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     69,
+     79,
+     89,
+     99
+    ]
+   },
+   {
+    "object": "Hull starboard prong hatches",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     95,
+     101,
+     107,
+     113,
+     119,
+     244
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       -10.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       28.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     180
+    ]
+   }
+  ],
+  "face_count": 42,
+  "area_units2": 2453.53,
+  "view_dir": [
+   0.0,
+   -0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   -0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   42.13,
+   46.91
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -9.06285572052002,
+    32.54859736561775
+   ],
+   "ortho_width": 96.97171896311048
+  },
+  "native_texels_per_unit": 8.2
+ },
+ "top-3-starboard": {
+  "what": "starboard prong deck and glacis, X 28 to 66: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-starboard",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     93,
+     196,
+     197
+    ]
+   },
+   {
+    "object": "Hull starboard prong deck plating",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     131,
+     137,
+     143,
+     149,
+     155,
+     161,
+     167,
+     173,
+     179,
+     185,
+     191,
+     197,
+     203,
+     209,
+     215,
+     221,
+     227,
+     233,
+     239
+    ]
+   },
+   {
+    "object": "Hull starboard prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     77,
+     83,
+     89,
+     95,
+     101,
+     107,
+     113,
+     119,
+     125,
+     131
+    ]
+   },
+   {
+    "object": "Hull starboard prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     11
+    ]
+   },
+   {
+    "object": "Hull starboard prong patch plates",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     17
+    ]
+   },
+   {
+    "object": "Hull starboard prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     109,
+     119
+    ]
+   },
+   {
+    "object": "Hull starboard prong hatches",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     35,
+     41,
+     47,
+     65,
+     71,
+     77,
+     83,
+     89,
+     192,
+     218
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       28.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       66.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     128,
+     154
+    ]
+   }
+  ],
+  "face_count": 50,
+  "area_units2": 3273.37,
+  "view_dir": [
+   0.0,
+   -0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   -0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   60.0,
+   43.68
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -50.0,
+    30.931732922792435
+   ],
+   "ortho_width": 90.28700808838049
+  },
+  "native_texels_per_unit": 8.8
+ },
+ "top-4-starboard": {
+  "what": "starboard prong deck and glacis, X 66 to 110: khaki armour plates with pirate red and sand repaint plates, the grey ridge cap along the turret line, red patch slabs and hatches",
+  "sheet": "prongs-top-starboard",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     198,
+     206
+    ]
+   },
+   {
+    "object": "Hull starboard prong deck plating",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47,
+     53,
+     59,
+     65,
+     71,
+     77,
+     83,
+     89,
+     95,
+     101,
+     107,
+     113,
+     119,
+     125
+    ]
+   },
+   {
+    "object": "Hull starboard prong glacis plating",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47,
+     53,
+     59,
+     65,
+     71
+    ]
+   },
+   {
+    "object": "Hull starboard prong ridge cap",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Hull starboard prong patch plates",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     23
+    ]
+   },
+   {
+    "object": "Hull starboard prong patch bolts",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     129,
+     139,
+     149,
+     159
+    ]
+   },
+   {
+    "object": "Hull starboard prong hatches",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     53,
+     59,
+     143,
+     166
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       66.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     81,
+     105
+    ]
+   }
+  ],
+  "face_count": 90,
+  "area_units2": 1779.29,
+  "view_dir": [
+   0.0,
+   -0.20952908873087348,
+   0.9778024140774096
+  ],
+  "screen_up": [
+   0.0,
+   -0.9778024140774096,
+   -0.20952908873087348
+  ],
+  "cone_cos": 0.85,
+  "extent_units": [
+   45.54,
+   30.79
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -85.08169555664062,
+    24.79106578230858
+   ],
+   "ortho_width": 63.651071962460065
+  },
+  "native_texels_per_unit": 12.5
+ },
+ "belt-1-port": {
+  "what": "port prong outboard belt, X -48 to -9: grey belt armour plates over khaki",
+  "sheet": "prongs-belt",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong belt plating",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     71,
+     77,
+     83
+    ]
+   },
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       100.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     50,
+     51,
+     55,
+     56,
+     67,
+     74,
+     143,
+     144,
+     148,
+     166,
+     167
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 327.52,
+  "view_dir": [
+   0.0,
+   0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   39.19,
+   7.39
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -25.79889154434204,
+    33.91009396314621
+   ],
+   "ortho_width": 45.57412058808083
+  },
+  "native_texels_per_unit": 17.4
+ },
+ "belt-1-starboard": {
+  "what": "starboard prong outboard belt, X -48 to -9 (mirror of port)",
+  "sheet": "prongs-belt",
+  "tile": 0,
+  "skin_from": "belt-1-port",
+  "members": [
+   {
+    "object": "Hull starboard prong belt plating",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     71,
+     77,
+     83
+    ]
+   },
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       -0.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     43,
+     44,
+     56,
+     57,
+     64,
+     72,
+     124,
+     134,
+     136,
+     137,
+     139
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 329.19,
+  "view_dir": [
+   0.0,
+   -0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   -0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   39.26,
+   7.43
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    25.829756259918213,
+    33.92923831939697
+   ],
+   "ortho_width": 45.645898996397506
+  },
+  "native_texels_per_unit": 17.4
+ },
+ "wall-1-port": {
+  "what": "port prong inner wall facing the waist, X -48 to -9: khaki armour with rows of small viewports",
+  "sheet": "prongs-wall",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     36,
+     37,
+     135,
+     136
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       0.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 208.57,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   16.95,
+   14.23
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -38.47381401062012,
+    0.7749223709106445
+   ],
+   "ortho_width": 29.41517595788921
+  },
+  "native_texels_per_unit": 27.0
+ },
+ "wall-1-starboard": {
+  "what": "starboard prong inner wall, X -48 to -9 (mirror of port)",
+  "sheet": "prongs-wall",
+  "tile": 0,
+  "skin_from": "wall-1-port",
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     60,
+     61,
+     153,
+     154
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       -48.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       -9.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 207.53,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   16.87,
+   14.05
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    38.43415641784668,
+    0.7748053073883057
+   ],
+   "ortho_width": 29.038219796902755
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "belt-2-port": {
+  "what": "port prong outboard belt, X -9 to 30: grey belt armour plates over khaki",
+  "sheet": "prongs-belt",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong belt plating",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       0.0,
+       -40.0
+      ],
+      [
+       30.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     47,
+     53,
+     59,
+     65
+    ]
+   },
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       0.0,
+       -40.0
+      ],
+      [
+       30.0,
+       100.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     80,
+     85,
+     168,
+     172
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 505.02,
+  "view_dir": [
+   0.0,
+   0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   45.9,
+   11.15
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    10.95002031326294,
+    32.03239589929581
+   ],
+   "ortho_width": 53.37213804555494
+  },
+  "native_texels_per_unit": 14.9
+ },
+ "belt-2-starboard": {
+  "what": "starboard prong outboard belt, X -9 to 30 (mirror of port)",
+  "sheet": "prongs-belt",
+  "tile": 1,
+  "skin_from": "belt-2-port",
+  "members": [
+   {
+    "object": "Hull starboard prong belt plating",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       30.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     47,
+     53,
+     59,
+     65
+    ]
+   },
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       30.0,
+       -0.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     79,
+     84,
+     149,
+     160
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 506.81,
+  "view_dir": [
+   0.0,
+   -0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   -0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   45.9,
+   11.19
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -10.95002031326294,
+    32.05154025554657
+   ],
+   "ortho_width": 53.37213804555494
+  },
+  "native_texels_per_unit": 14.9
+ },
+ "wall-2-port": {
+  "what": "port prong inner wall facing the waist, X -9 to 30: khaki armour with rows of small viewports",
+  "sheet": "prongs-wall",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       0.0,
+       -40.0
+      ],
+      [
+       30.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     83,
+     84,
+     118,
+     122
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       0.0,
+       -40.0
+      ],
+      [
+       30.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 598.17,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   32.0,
+   17.69
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    4.0,
+    0.8949844837188721
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "wall-2-starboard": {
+  "what": "starboard prong inner wall, X -9 to 30 (mirror of port)",
+  "sheet": "prongs-wall",
+  "tile": 1,
+  "skin_from": "wall-2-port",
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       30.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     85,
+     86,
+     182,
+     184
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       -9.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       30.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 597.66,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   32.0,
+   17.78
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -4.0,
+    0.8949606418609619
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "belt-3-port": {
+  "what": "port prong outboard belt, X 30 to 69: grey belt armour plates over khaki",
+  "sheet": "prongs-belt",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong belt plating",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       0.0,
+       -40.0
+      ],
+      [
+       69.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     29,
+     35,
+     41
+    ]
+   },
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       0.0,
+       -40.0
+      ],
+      [
+       69.0,
+       100.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     94,
+     173,
+     204
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 540.34,
+  "view_dir": [
+   0.0,
+   0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   60.0,
+   15.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    49.99999523162842,
+    28.201449513435364
+   ],
+   "ortho_width": 69.76743520692338
+  },
+  "native_texels_per_unit": 11.4
+ },
+ "belt-3-starboard": {
+  "what": "starboard prong outboard belt, X 30 to 69 (mirror of port)",
+  "sheet": "prongs-belt",
+  "tile": 2,
+  "skin_from": "belt-3-port",
+  "members": [
+   {
+    "object": "Hull starboard prong belt plating",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       69.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     29,
+     35,
+     41
+    ]
+   },
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       69.0,
+       -0.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     92,
+     161,
+     191
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 536.7,
+  "view_dir": [
+   0.0,
+   -0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   -0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   60.0,
+   15.42
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -49.99999523162842,
+    28.201519668102264
+   ],
+   "ortho_width": 69.76743520692338
+  },
+  "native_texels_per_unit": 11.4
+ },
+ "wall-3-port": {
+  "what": "port prong inner wall facing the waist, X 30 to 69: khaki armour with rows of small viewports",
+  "sheet": "prongs-wall",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       0.0,
+       -40.0
+      ],
+      [
+       69.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     87,
+     88,
+     91,
+     92,
+     125,
+     190
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       0.0,
+       -40.0
+      ],
+      [
+       69.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     132,
+     158
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 862.04,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   60.0,
+   16.86
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    50.0,
+    0.8649888038635254
+   ],
+   "ortho_width": 69.76744186046511
+  },
+  "native_texels_per_unit": 11.4
+ },
+ "wall-3-starboard": {
+  "what": "starboard prong inner wall, X 30 to 69 (mirror of port)",
+  "sheet": "prongs-wall",
+  "tile": 2,
+  "skin_from": "wall-3-port",
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       69.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     89,
+     90,
+     94,
+     95,
+     185,
+     199
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       30.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       69.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     129,
+     155
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 870.17,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   60.0,
+   16.95
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -50.0,
+    0.8649711608886719
+   ],
+   "ortho_width": 69.76744186046511
+  },
+  "native_texels_per_unit": 11.4
+ },
+ "belt-4-port": {
+  "what": "port prong outboard belt, X 69 to 110: grey belt armour plates over khaki",
+  "sheet": "prongs-belt",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong belt plating",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23
+    ]
+   },
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       100.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     98,
+     99,
+     197
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 292.34,
+  "view_dir": [
+   0.0,
+   0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   43.62,
+   11.06
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    86.13098526000977,
+    21.71060499548912
+   ],
+   "ortho_width": 50.72432229685229
+  },
+  "native_texels_per_unit": 15.7
+ },
+ "belt-4-starboard": {
+  "what": "starboard prong outboard belt, X 69 to 110 (mirror of port)",
+  "sheet": "prongs-belt",
+  "tile": 3,
+  "skin_from": "belt-4-port",
+  "members": [
+   {
+    "object": "Hull starboard prong belt plating",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23
+    ]
+   },
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       -100.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       3.2
+      ]
+     ]
+    },
+    "faces": [
+     97,
+     98,
+     195
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 296.07,
+  "view_dir": [
+   0.0,
+   -0.8130546934301629,
+   0.5821873113450549
+  ],
+  "screen_up": [
+   0.0,
+   -0.5821873113450549,
+   -0.8130546934301629
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   43.54,
+   11.12
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -86.08740997314453,
+    21.680632561445236
+   ],
+   "ortho_width": 50.62298442042151
+  },
+  "native_texels_per_unit": 15.7
+ },
+ "wall-4-port": {
+  "what": "port prong inner wall facing the waist, X 69 to 110: khaki armour with rows of small viewports",
+  "sheet": "prongs-wall",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port prong",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     96,
+     97,
+     193
+    ]
+   },
+   {
+    "object": "Hull port prong fittings",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       0.0,
+       -40.0
+      ],
+      [
+       110.0,
+       45.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     13,
+     14,
+     15,
+     16,
+     104
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 286.02,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   30.06,
+   13.45
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    92.91227340698242,
+    1.377561092376709
+   ],
+   "ortho_width": 34.94953776514807
+  },
+  "native_texels_per_unit": 22.7
+ },
+ "wall-4-starboard": {
+  "what": "starboard prong inner wall, X 69 to 110 (mirror of port)",
+  "sheet": "prongs-wall",
+  "tile": 3,
+  "skin_from": "wall-4-port",
+  "members": [
+   {
+    "object": "Hull starboard prong",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     99,
+     100,
+     202
+    ]
+   },
+   {
+    "object": "Hull starboard prong fittings",
+    "seed": {
+     "box": [
+      [
+       69.0,
+       -45.0,
+       -40.0
+      ],
+      [
+       110.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     5,
+     6,
+     106
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 288.99,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   29.97,
+   13.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -92.86727905273438,
+    1.3555374145507812
+   ],
+   "ortho_width": 34.84489973201308
+  },
+  "native_texels_per_unit": 22.8
+ }
+}

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155a4-4f0c-7ba3-bc4e-00c617fb0e89",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155a4-4f0c-7ba3-bc4e-00c617fb0e89\\exec-b09d44ef-69db-45d6-a697-a79e461613ff.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\v2\\departure-roster.raw.png",
+    "sha256": "231c0b4f64b781b823b5e6dd2169a155003e441601147eeb456f5cfaa9c6a9e4",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\v2\\departure-roster.brief.txt",
+  "promptSha256": "9ce27bf26fdfacce6f2c6eab3cecd8bfa238a653cf69f5839a547235cf5dbee0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the real Second Wind and camera; repaint, never move\nImage 2: Material and paint only: the same ship finished; not layout\nImage 3: Identity only: the escort section's uniform; not layout or style\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nScene: evacuation day. Miners from an abandoned asteroid colony board the Second Wind inside a pressurized loading dock.\n\nReference 1 is a render of the real ship's port flank and is the authority for her: keep the camera, her exact shape, the open side cargo bay (the dark rectangular opening left of centre), the big armoured drum of the drive pod to its right, every panel and patch, and her rust-orange and gunmetal livery. Do not add or remove hull parts. Reference 2 is the same ship photographed finished, for material and paint only.\n\nPaint around her (everything below and around the hull is empty in the render): an enclosed pressurized loading dock carved into asteroid rock: a heavy ribbed pressure roof overhead, rock walls with sealed, deeply framed observation windows showing the asteroid field, amber dock work lights, a scuffed steel deck. A wide steel boarding ramp runs up from the dock floor into the open cargo bay, lit inside.\n\nA modest queue of miners in patched civilian coveralls carries bedding rolls, duffel bags, a toolbox and children's things up the ramp; faces not prominent. Near the ramp, two members of the escort section, dressed like the woman in Reference 3 (dark navy armoured field jackets with plate panels, practical, no helmets) carry a dismantled point-defence gun between them.\n\nForeground, lower left, close to camera: a scratched folding desk with a handwritten departure roster on a clipboard (marks illegible), a stub pencil, worn work gloves and a dented metal cup.\n\nHuman trust and responsibility, quiet, no parade.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p5-port-bay.png",
+      "sha256": "277c9614b052ab31e547f3ff54cc5f41fdf9e7b5a9f9fb6e76216059673e6429",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the real Second Wind and camera; repaint, never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\146acfbf-ace6-43bb-bef2-d8438ab41d5a\\scratchpad\\ref\\c5.png",
+      "sha256": "b7ce60840b4f150908db1bc37e4acfe5ac1b2a369da7e583b4189335d561af75",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Material and paint only: the same ship finished; not layout"
+    },
+    {
+      "path": "art-source\\portraits\\sabine-hale.master.png",
+      "sha256": "008daeb37fe8bd34c80fa135130bfe7e1525edc485a5b0933f31cc42a5947dea",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: the escort section's uniform; not layout or style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, preserving the ship’s layout and camera while painting the evacuation dock around it."
+  ],
+  "usage": {
+    "input_tokens": 50595,
+    "cached_input_tokens": 39680,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 803,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 72.1
+}

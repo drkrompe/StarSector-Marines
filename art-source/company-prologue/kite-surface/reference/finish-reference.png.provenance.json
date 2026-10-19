@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155b5-0979-7112-8999-5ad3e9388552",
+  "source": "/Users/dillon/.codex/generated_images/01a155b5-0979-7112-8999-5ad3e9388552/exec-d31f4a60-3705-464d-b21b-37e3571856d8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/kite-surface/reference/finish-reference.png",
+    "sha256": "a85e6fff71e4bb857038eff36bf3533a2b58b794178af8a1ef98bb83f19824de",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/kite-surface/prompts/finish-reference.prompt.txt",
+  "promptSha256": "5f2be7d83b5474419718facb6f1df5d9f38ee82bf883f0fbae889b8ecf45a8b1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: repaint this exact render, nothing moves\nImage 2: Livery and colour identity only; not layout, view or pixel style\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Kite-class aeroshuttle (a ~52 m lifting-body boarding shuttle), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: pale cream plate on the raised cabin spine and turret hump, light grey hull plate on the fuselage and wings, mid/dark grey gunmetal machinery (drive cans, missile sponsons and launchers, turret, fittings), near-black recesses and seams, light brown-grey welded scrap plates laid on the shoulders and wings, small lit cabin windows and a dark windscreen.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its pirate refit: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style, and do NOT paint its red slash marks (they are added separately).\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that pirate livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, plate, turret, launcher, drive, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material, recoloured to the pirate scheme of INPUT 2: the light grey hull plate becomes a very dark, warm brown-grey enamel (as INPUT 2's hull); the cream spine and hump become a grimy, yellowed bone-cream; gunmetal stays dark grey steel; recesses stay near black; the scrap plates become dull rust-brown raw steel, a little different from each other; windows stay as they are. Keep the red rocket box red. Do not invent stripes, slashes, emblems or extra patches.\n- Finish: a working ship kept running by a pirate crew, heavily used and poorly maintained but not battle damaged. Semi-matte enamel that is faded and dirty, worn through to dark bare steel along exposed edges and corners, grime collected in seams and round fittings, streaks of soot behind the drives, fine plate seams and fastener rows. No holes, dents, burns, scorch damage, lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/kite-surface/guide/reference-guide.png",
+      "sha256": "e107ccf0a5ccb74a0c33cf2cd945783a3e628ae802f4a65e7d397a0789f6cf79",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: repaint this exact render, nothing moves"
+    },
+    {
+      "path": "art-source/company-prologue/kite-surface/reference/sprite-livery.png",
+      "sha256": "d6d15c1cf609c2cf220a5703a0e802c6f41297649a8262dddde30ff9f3f32cb2",
+      "dimensions": [
+        656,
+        528
+      ],
+      "mode": "RGBA",
+      "role": "Livery and colour identity only; not layout, view or pixel style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to reskin the render, keeping its geometry and composition fixed.\n"
+  ],
+  "usage": {
+    "input_tokens": 63131,
+    "cached_input_tokens": 45824,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 957,
+    "reasoning_output_tokens": 72
+  },
+  "elapsedSeconds": 54.8
+}

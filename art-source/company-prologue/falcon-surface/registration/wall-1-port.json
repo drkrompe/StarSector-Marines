@@ -1,0 +1,59 @@
+{
+ "part": "wall-1-port",
+ "sheet": "prongs-wall",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9983,
+ "raw_iou": 0.9867,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.996,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9867
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0019,
+    0.99773
+   ],
+   "offset_px": [
+    0.63,
+    -0.92
+   ],
+   "iou": 0.9943
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0014,
+    0.99973
+   ],
+   "offset_px": [
+    0.63,
+    -0.92
+   ],
+   "iou": 0.996
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.25,
+  "p95_px": 2.0,
+  "max_px": 3.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.37,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

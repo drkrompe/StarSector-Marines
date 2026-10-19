@@ -1,0 +1,189 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.997)",
+ "space": "CIELAB D65",
+ "classes": {
+  "orange": {
+   "pixels": 97971,
+   "mean": [
+    31.56,
+    26.77,
+    14.19
+   ],
+   "std": [
+    11.42,
+    6.98,
+    3.16
+   ],
+   "L_p10_p50_p90": [
+    16.15,
+    31.39,
+    47.32
+   ],
+   "mean_srgb": [
+    117.5,
+    55.8,
+    53.4
+   ]
+  },
+  "taupe": {
+   "pixels": 83024,
+   "mean": [
+    28.51,
+    3.07,
+    5.71
+   ],
+   "std": [
+    11.34,
+    0.91,
+    1.14
+   ],
+   "L_p10_p50_p90": [
+    13.7,
+    28.23,
+    43.25
+   ],
+   "mean_srgb": [
+    75.5,
+    65.3,
+    58.6
+   ]
+  },
+  "gunmetal": {
+   "pixels": 111958,
+   "mean": [
+    38.55,
+    1.03,
+    2.41
+   ],
+   "std": [
+    12.0,
+    1.8,
+    3.0
+   ],
+   "L_p10_p50_p90": [
+    22.7,
+    36.75,
+    57.4
+   ],
+   "mean_srgb": [
+    94.2,
+    90.1,
+    86.9
+   ],
+   "std_measured": [
+    13.38,
+    0.91,
+    1.39
+   ],
+   "note": "spread owned: edge contamination on the reference inflates it"
+  },
+  "dark": {
+   "pixels": 2875,
+   "mean": [
+    18.84,
+    0.52,
+    1.51
+   ],
+   "std": [
+    6.5,
+    0.7,
+    1.0
+   ],
+   "L_p10_p50_p90": [
+    2.8,
+    17.27,
+    37.62
+   ],
+   "mean_srgb": [
+    47.5,
+    45.5,
+    43.6
+   ],
+   "std_measured": [
+    13.0,
+    0.74,
+    0.97
+   ],
+   "note": "spread owned: edge contamination on the reference inflates it"
+  },
+  "cream": {
+   "pixels": 22726,
+   "mean": [
+    60.03,
+    1.65,
+    10.55
+   ],
+   "std": [
+    10.61,
+    0.79,
+    1.73
+   ],
+   "L_p10_p50_p90": [
+    47.67,
+    58.89,
+    74.49
+   ],
+   "mean_srgb": [
+    155.2,
+    143.0,
+    126.3
+   ]
+  },
+  "glass": {
+   "derived": "owned: tinted armoured glazing, darker than recess paint is light, faint cool cast",
+   "mean": [
+    24.0,
+    -2.0,
+    -4.0
+   ],
+   "std": [
+    5.0,
+    0.8,
+    1.2
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the Hound (P)'s class palette: what worn paint reveals and what the belt deposits.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    5.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    28.0,
+    5.0,
+    9.0
+   ],
+   "what": "grime and dust, dark brown"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    62.0,
+    14.0,
+    10.0
+   ],
+   "what": "chalked, UV-bleached paint: faded crimson goes to dusty brick pink"
+  }
+ }
+}

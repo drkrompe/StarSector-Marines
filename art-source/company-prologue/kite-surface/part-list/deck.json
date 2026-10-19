@@ -1,0 +1,170 @@
+{
+ "wing-top": {
+  "what": "the whole wing deck from above, both sides (its top is one polygon across the ship)",
+  "sheet": "deck",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull wing body",
+    "seed": [
+     -10.0,
+     30.0,
+     0.8
+    ],
+    "faces": [
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     113,
+     114,
+     115,
+     116,
+     117,
+     118,
+     119,
+     120,
+     121,
+     122,
+     123,
+     124,
+     125,
+     126,
+     127,
+     140,
+     195
+    ]
+   }
+  ],
+  "face_count": 46,
+  "area_units2": 2330.6,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   80.0,
+   38.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -3.0
+   ],
+   "ortho_width": 93.02325581395348
+  },
+  "native_texels_per_unit": 8.5
+ },
+ "spine-top": {
+  "what": "cabin roof and turret hump deck from above",
+  "sheet": "deck",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull dorsal spine",
+    "seed": [
+     15.0,
+     0.0,
+     9.5
+    ],
+    "faces": [
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51
+    ]
+   },
+   {
+    "object": "Hull aft hump",
+    "seed": [
+     -15.0,
+     0.0,
+     7.5
+    ],
+    "faces": [
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37
+    ]
+   }
+  ],
+  "face_count": 26,
+  "area_units2": 929.23,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   21.0,
+   54.06
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    4.529999732971191
+   ],
+   "ortho_width": 111.75193688050105
+  },
+  "native_texels_per_unit": 7.1
+ }
+}

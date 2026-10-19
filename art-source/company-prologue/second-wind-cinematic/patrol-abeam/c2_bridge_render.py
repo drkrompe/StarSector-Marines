@@ -17,8 +17,11 @@ and lights it:
   state without it. The pilot and Castle are added (sw_bridge_interior.figures). The glazing
   is the model's own clear glass (sw_kit.glass): the camera looks through it and catches the
   room's reflections in it, and shadow rays pass it, so the sun still reaches the room.
-- The Legion and its Broadswords keep their own materials; the Legion's throats and running
-  lights and the fighters' flames are added as in render_patrol_sequence.py.
+- The Legion is the finished, textured asset (legion-cinematic: the LEGION collection with
+  the optional SWFX effects in the same load), moved by its root only. Its ten drives idle on
+  the kit's LOW_TECH plumes (the patrol coasts) with the exhaust haze off (vacuum); its 27
+  running lights blink on their own data, lens and kit lamp together. The mounts stay cold.
+- The Broadswords keep their own materials, with flames added as in render_patrol_sequence.py.
 - Jangala is a sphere scaled about the eye (it looks identical from there), shaded by its own
   normal against the sun so nothing nearby can shadow it, with C1's maps and a thin limb glow.
   It turns at the true orbital rate, aft.
@@ -51,7 +54,7 @@ SW_STATE = "patched"                      # C2's; --state picks another for a li
 C1_ASSETS = BASE.parent / "corvus-approach" / "assets"
 SUN_STRENGTH = 4.5                        # C1's key, as render_patrol_sequence.py
 SHINE_COLOR = (0.55, 0.75, 1.0)
-LEGION_THROAT = ((1.0, 0.62, 0.30), 2.5)
+LEGION_IDLE = 0.2                          # SWFX master throttle: the patrol coasts (as its thrust marker)
 FIGHTER_FLAME = ((1.0, 0.70, 0.38), 40.0)
 PLANET_K = 1.0 / 2000.0                    # planet proxy scale about the eye
 MAP_SPAN_DEG = (100.0, 50.0)               # C1's detail maps cover this much arc
@@ -143,7 +146,6 @@ def plan(frames, fps, samples_n, state=SW_STATE):
     for s, f in zip(base["samples"], frames):
         s["frame"] = f
         s["ship_pitch"] = BB.ship_pitch_deg(s["t"])
-    lg = C.LEGION_GEOM
     base.update({
         "fps": fps, "cycles_samples": samples_n, "sw_state": state,
         "sw_state_blend": str(BASE.parent / "second-wind-states" / state / ("second-wind-%s.blend" % state)),
@@ -152,7 +154,7 @@ def plan(frames, fps, samples_n, state=SW_STATE):
         "screen_face": SCREEN_FACE, "screen_version": SCREEN_VERSION, "screen_dir": str(SCREEN_DIR), "screen_strength": SCREEN_STRENGTH,
         "albedo": str(C1_ASSETS / "planet-albedo-detail-v1.png"),
         "clouds": str(C1_ASSETS / "planet-clouds-detail-v1.png"),
-        "running_lights": lg.get("running_lights", []), "orbital_speed": C.ORBITAL_SPEED,
+        "legion_idle": LEGION_IDLE, "orbital_speed": C.ORBITAL_SPEED,
         "planetshine": C.PLANETSHINE,
         "eye_m": [c * BB.SW_MPU for c in BB.STATION_FORWARD],
     })
@@ -323,36 +325,24 @@ def blender_main(argv):
     cam.data.lens, cam.data.sensor_width, cam.data.sensor_fit = p["lens_mm"], 36.0, "HORIZONTAL"
     cam.data.clip_start, cam.data.clip_end = 0.05, 1.0e5
 
-    # ---- the Legion, with its throats and running lights.
+    # ---- the Legion: the finished asset and its effects in one load, moved by its root only.
     with bpy.data.libraries.load(p["legion_blend"], link=False) as (src, dst2):
-        dst2.objects = list(src.objects)
-    lroot = bpy.data.objects.new("C2B | Legion root", None)
-    scene.collection.objects.link(lroot)
-    legion = [o for o in dst2.objects if o is not None and o.type not in ("CAMERA", "LIGHT")]
-    for o in legion:
-        scene.collection.objects.link(o)
-        o.animation_data_clear()
-    for o in legion:
-        if o.parent is None:
-            o.parent = lroot
-            o.matrix_parent_inverse = Matrix.Identity(4)
+        dst2.collections = [p["legion_collection"], "SWFX"]
+    for c in dst2.collections:
+        scene.collection.children.link(c)
+    lroot = bpy.data.objects[p["legion_root"]]
     lroot.scale = (p["legion_mpu"],) * 3
     lroot.rotation_euler = Euler((math.radians(p["roll"]), 0, math.radians(p["yaw"])), "XYZ")
-    throat, _ = emission("C2B | Legion throat", *LEGION_THROAT)
-    for o in legion:
-        if o.type == "MESH" and o.name.startswith("Engine ") and o.name.split(".")[0].endswith("dark throat"):
-            o.data.materials.clear()
-            o.data.materials.append(throat)
+    fx = bpy.data.objects["SWFX controls"]
+    fx["thr_throttle"] = p["legion_idle"]
+    fx["smk_haze"] = 0.0                    # in vacuum the exhaust disperses; no haze round the stern
+    fx.update_tag()
+    # Running lights: each lens carries its blink; the kit's lamp for it rides along.
     lights = []
-    for rl in p["running_lights"]:
-        mat, _ = emission("C2B | %s" % rl["name"], rl["rgb"], 60.0)
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.9, segments=12, ring_count=6)
-        lamp = bpy.context.active_object
-        lamp.data.materials.append(mat)
-        lamp.parent = lroot
-        lamp.location = rl["position"]
-        bl = rl["blink"]
-        lights.append((lamp, bl["period_s"], bl["phase_s"], bl.get("duty", 0.18)))
+    for lens in [o for o in lroot.children_recursive if "blink_period_s" in o.keys()]:
+        lamps = [lens] + [o for o in bpy.data.objects if o.type == "LIGHT"
+                          and o.name.split(".")[0] == "SWFX lighting " + lens.name]
+        lights.append((lamps, lens["blink_period_s"], lens["blink_phase_s"], lens.get("blink_duty", 0.18)))
 
     # ---- Broadswords, one copy of the model's root tree each, flames at full throttle.
     with bpy.data.libraries.load(p["broadsword_blend"], link=False) as (src, dst3):
@@ -526,9 +516,10 @@ def blender_main(argv):
             f.keyframe_insert("rotation_euler", frame=fr)
         planet.rotation_euler = (0, -omega * s["t"], 0)
         planet.keyframe_insert("rotation_euler", frame=fr)
-        for lamp, period, phase, duty in lights:
-            lamp.hide_render = ((s["t"] + phase) % period) > period * duty
-            lamp.keyframe_insert("hide_render", frame=fr)
+        for lamps, period, phase, duty in lights:
+            for lamp in lamps:
+                lamp.hide_render = ((s["t"] + phase) % period) > period * duty
+                lamp.keyframe_insert("hide_render", frame=fr)
     for o in bpy.data.objects:
         ad = o.animation_data
         if ad and ad.action:

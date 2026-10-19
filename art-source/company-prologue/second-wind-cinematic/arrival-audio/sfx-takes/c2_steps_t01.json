@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "First-person footsteps on a starship bridge: one heavy boot step down off a low metal step, then four unhurried paces across a hard metal deck plate, close, interior, quiet room tone, no music",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "99c1c594bc73dde69b71543d4a112ebbea1cc24339113411192bf8eb965cb819",
+  "durationSeconds": 2.0,
+  "peakDb": -19.5,
+  "integratedLufs": -42.9
+}

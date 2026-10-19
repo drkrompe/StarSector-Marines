@@ -10,7 +10,7 @@ Status: REWORK. The owner has moved C2 to Second Wind's bridge (2026-10-18, see
 *Bridge pass* below); a grey blockout is in review. The cabin-window production build
 described in the rest of this sheet is what currently ships, and stays the plan of
 record for the entry and for anything the bridge pass does not replace.
-Updated: 2026-10-19 — bridge camera pass: findings and switchable refinements (owner to pick); the entry as a 7 s shaking descent.
+Updated: 2026-10-19 — the bridge pass uses the finished, textured Legion, re-framed for its 292 m size (pass at 340 m); camera pass findings and switchable refinements (owner to pick).
 
 ## Bridge pass (owner direction, 2026-10-18)
 
@@ -44,15 +44,36 @@ pilot flies with a yoke on a telescoping column (owner, 2026-10-19). He sits bac
 the armrests, with it stowed; leans in and draws it out to him over 8.3–9.45 s and flies sat
 back; pushes it for the de-orbit's pitch-down (9.5–13.2 s, with a small turn to port in the
 middle); and lets go over 13.5–14.7 s, leaving it drawn out (his package's action, on C2's
-frames).
+frames). His head and eyes follow the fighters past to port, glance at the console and turn
+to the Legion as it comes abeam. Castle listens with her hands on her bank, looks out through
+the port slits at the Legion over 7.1–9.9 s, keys the bank with her hand at her earpiece for
+the read-back (9.76–13.76 s), braces a little as the deck tips, and lowers her hand by
+14.6 s. `second-wind-geometry/bridge_figures_clip.py` renders both side by side as a check.
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
 22 m/s at abeam (8.0 s, under "Patrol has your signature"); it starts 650 m ahead,
-22° off the bow, and passes with its midline 235–265 m out. From 9.6 s Second Wind's
+28° off the bow, and passes with its midline 340 m out (its near flank about 195 m). From 9.6 s Second Wind's
 de-orbit lifts it relative to us (9 m/s²) and it clears the top of the slits by
 about 14 s. The camera's yaw follows the Legion's bearing with a 0.35 s lag, from
 22° to port at the cut to 104° (just aft of the beam).
+
+**Re-framed for the finished Legion (2026-10-19).** The pass was laid out at 265 m, and the
+292 m hull (291 m in beam) overfilled it: from 7 to 11 s it ran off the bottom of the frame,
+and at abeam the brow, sill and posts hid 29% of it. `c2_bridge_blockout.py --hull-fit` renders
+the hull and Second Wind's own silhouette as masks and reports how much of the hull is in the
+frame and in the glass. A sweep of pass distance (340, 400, 460 m) and height (crown 20 or
+40 m above the eye) settled on **340 m with the chosen 20 m**: the nearest pass at which the
+whole hull, bow to stern, sits inside the glass from 7.5 to 12.5 s (97–100%) with nothing off
+the frame, while it still rises clear of the slits by 15 s. The opening is unchanged (the eye
+is on the fighters, the carrier beyond the forward console). The flyby sound's copy of the
+geometry (`arrival-audio/synth_flyby.py`) carries the new distance; its stems need re-synthesis.
+
+**The textured asset.** The blockout and the lit render append `legion-cinematic`'s `LEGION`
+collection (the lit render adds its `SWFX` effects in the same load) and move its root only, at
+0.99 m per unit. Its drives idle on the kit's LOW_TECH plumes (master throttle 0.2, exhaust
+haze off: vacuum), its 27 running lights blink on their own data, lens and kit lamp together,
+and its mounts stay at rest. `legion.blend` is built, not committed (its `finalize.sh`).
 
 **Banked, chosen (owner, 2026-10-18).** Of the two variants reviewed, the owner
 chose (a): banked 8° toward us with its crown 20 m above our eye, so its deck and
@@ -134,17 +155,22 @@ the Legion a figure hides; how near the eye comes to any surface). What it found
 - The view is mostly bridge: 7-15% glass for the first 4.5 s, about 37% at the port glass, where
   the head's upward tilt spent a third of the frame on the visor brow.
 
-Refinements, each a separate switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA`
-for the lit render) so they can be compared one at a time; none is on until the owner picks:
+Refinements, each a switch in `c2_bridge_blockout.CAMERA` (`--camera`, or `C2_CAMERA` for the
+lit render; `none` gives the reviewed move). **All six are the default (owner, 2026-10-19):**
 **walk** (the step down is a person walking on its own clock, 4.6-6.6 s: back off the console,
 down the dais step past the grab pole, four paces with a footfall in each), **duck** (leaning
 lower and nearer the glass to keep the fighters in sight, 1.5-4.4 s), **breath** (a few tenths
 of a degree of breathing and weight shift), **frame** (the head sits lower at the port glass so
 the slit fills the frame), **lean** (leaning over the comms bank toward the glass at abeam, 70 cm
 to 45 cm, straightening for the read-back), **lens** (22 mm creeping to 27 mm toward abeam and
-back; an eye cannot zoom, so this is a film camera's choice) and **glance** (the head turns
-forward to watch the pilot draw the yoke and push it, 8.6-11.2 s, and back to the Legion as it
-starts to rise). With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
+back; an eye cannot zoom, so this is a film camera's choice, and it matters more with the Legion
+at 340 m). The shot is grounded in the Legion (owner, 2026-10-19): the camera stays at the glass
+and never turns onto the pilot or Castle; a glance to the pilot and a step back to bring Castle
+into the frame edge were both tried and dropped. Castle is seen in passing instead: she works the
+forward panel of her bank (`sw_bridge_interior.CASTLE_AT`, x 14.4), and the walk passes behind her
+back on its way to the middle panel, so she crosses the frame left to right at 5.55-6.0 s, about
+half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the Legion. Thinner window posts were previewed (40%
+width: about 3 points more glass) and declined; the posts stay as modelled. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155d5-a8d7-7732-ba4a-5b2236973df8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155d5-a8d7-7732-ba4a-5b2236973df8\\exec-834c68e0-ce4f-414a-8ea4-a162227d0b3e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\somewhere-to-dock-v3.png",
+    "sha256": "ccbbab42e2e9f73eab5c7c7a5145d3818bcd9b6cce1b159b073e4c00a5b1ff4d",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\somewhere-to-dock.brief-v2.txt",
+  "promptSha256": "c57c7373e98644a3a7f9465fd141302af32cd125b8a1fdf485cdf2b92547f3e6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the real bridge, camera, and the grey stand-in whose size, pose and hand placement Castle must take exactly\nImage 2: Identity only: Castle's face, hair and jacket; not layout or style\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nScene: late on the Second Wind's bridge. Castle, the company's operations officer, writes a message to an old friend she has not spoken to in years, while patrols crawl across the navigation display.\n\nReference 1 is a render of the real bridge with a plain grey stand-in figure in it. It is the authority for everything: keep its camera, perspective, the port comms bank (the long console of grey-green cabinets with three screens, keypad, switch rows, amber indicator lamps and lamp row), the round plot table edge in the lower left, the ceiling pipes and caged strip lamp, the wall cabinets on the left and the narrow slit windows above the bank. Do not enlarge the windows.\n\nREPLACE THE GREY STAND-IN WITH CASTLE, keeping the stand-in's exact size, height, position, pose, lean and limb placement. Her body occupies exactly the stand-in's silhouette: same head height against the console and windows, same shoulders, same legs and feet on the floor. Her left forearm rests along the console's front lip exactly where the stand-in's left forearm lies; her right hand is on the keypad exactly where the stand-in's right hand is. Do not move, enlarge or shrink her, and do not change where her hands touch the console. The stand-in's dark nose dot marks where her face looks: her head is turned to her right, toward the right-hand screen, so the camera sees her face in three-quarter profile, lit green-white by the screens.\n\nCastle is exactly the woman in Reference 2: her face, age, greying dark hair in a short practical bun, charcoal-olive high-collared duty jacket with work trousers and boots, small earpiece with boom mic. Careful and a little uncertain, reading what she has written before sending.\n\nPaint the room as the same worn grey-green bridge, scuffed and lived in, lit mostly by the screens and one ceiling lamp. The centre screen shows a dark navigation plot with a few small amber patrol markers and dotted tracks; the right screen shows a message thread as blurred unreadable lines. Nothing readable. Through the slit windows: dark space with the scattered lights of distant freighters and stations. Nobody else.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p6-comms-bank-standin.png",
+      "sha256": "069a5c8fee197ee0effddcf0e8dc181c5cbaa87bfcdd48eaa4df5cba180ed76b",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the real bridge, camera, and the grey stand-in whose size, pose and hand placement Castle must take exactly"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Castle's face, hair and jacket; not layout or style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the bridge layout and stand-in placement as fixed references, with Castle’s identity from the portrait.\n"
+  ],
+  "usage": {
+    "input_tokens": 42978,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 734,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.3
+}

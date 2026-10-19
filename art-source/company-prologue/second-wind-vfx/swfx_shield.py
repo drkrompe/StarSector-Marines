@@ -62,16 +62,19 @@ reads. 1.0 is the Paragon's accepted look exactly. Lower is thinner and
 flickers: the face and rim fade, the whole shield wavers and patches of it
 drop out, moving fast. Higher is denser: brighter, and it filters what lies
 behind it toward the inner colour. strength_from_efficiency maps the vanilla
-stat onto it (0.6, the best shield in vanilla, is 1.0), and a shot keys it
+stat onto it (0.6, the best shield in vanilla, is 1.0; 1.0 is 0.8), and a shot keys it
 like any knob, e.g. down as the ship's flux climbs.
 
-Colour schemes: SCHEMES holds the vanilla hull-style shield colours
+Colour schemes follow the shield's technology, the hull style. SCHEMES holds the vanilla hull-style shield colours
 (hull_styles.json: LOW_TECH inner 255,125,125; MIDLINE and HIGH_TECH inner
 125,125,255; ring white, inner alpha 75 for all) and faction schemes built on
 them: the faction's hull style, with ring and inner leaned toward the faction's
 own colour (its .faction "color"). Vanilla .ship files carry no shield colours
-of their own, so the hull style is the vanilla answer and the faction lean is
-ours. vanilla_styles() reads hull_styles.json from an install to check them.
+of their own, so the hull style is the vanilla answer. Each scheme also carries
+a finish (FINISHES): high tech is the Paragon's look exactly; midline and low
+tech ripple harder and coarser with a dim rim and a murkier face, so high tech reads as better
+tech though vanilla gives it midline's blue. The faction schemes stay
+available but are no profile's default. vanilla_styles() reads hull_styles.json from an install to check them.
 `swfx.apply(..., shield_scheme=NAME, shield_arc=DEG, shield_type=T)` overrides
 the profile for one build.
 
@@ -128,6 +131,7 @@ FLAT_EDGE = .2          # share of that edge left where the shell faces up or do
 STRENGTH_MAX = 1.5
 WAVER, DROPOUT, DROP_SCALE, FLICKER_RATE, DENSE_SHADE = 1.4, 1.8, 2.2, 7.0, .45
 BEST_EFFICIENCY = .6    # the best vanilla shield efficiency (Paragon, Medusa): strength 1
+STRENGTH_PER_EFFICIENCY = .5   # strength lost per unit of efficiency above that: 1.0 reads 0.8
 
 
 def _rgb(*c):
@@ -145,7 +149,26 @@ STYLES = {
     'THREAT': dict(ring=(255, 255, 255), inner=(156, 186, 174), inner_alpha=75),
     'DWELLER': dict(ring=(255, 255, 255), inner=(255, 0, 50), inner_alpha=75),
 }
-# Factions: (hull style, the faction's .faction "color"). The scheme is the
+# Finish by shield technology: ripple (amplitude), grain (noise frequency),
+# rim (brightness) and face (density of the face), each a multiplier on the Paragon's accepted look. Vanilla
+# gives midline and high tech the same blue; what separates them here is the
+# finish. High tech is the Paragon itself, the reference (all 1): steady, even,
+# a bright rim. Midline and low tech are rougher and coarser, with a dim rim and
+# a murkier face: the shield of an older emitter rather than a different paint.
+IDENTITY = dict(ripple=1.0, grain=1.0, rim=1.0, face=1.0)
+FINISHES = {
+    'HIGH_TECH': IDENTITY,
+    'OMEGA': IDENTITY,
+    # Owner's pick (round 3, candidate C): rough, a dim rim and a murky face.
+    # Low tech shares it; its pink-red is what tells it apart.
+    'MIDLINE': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+    'LOW_TECH': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+    'THREAT': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+    'DWELLER': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+}
+# Factions (not defaults: colour follows the shield's technology, the hull
+# style, and the owner keys schemes on that): (hull style, the faction's
+# .faction "color"). The scheme is the
 # style's colours leaned toward the faction colour (brightened to full): the
 # ring by RING_LEAN, the inner by INNER_LEAN.
 FACTIONS = {
@@ -159,8 +182,9 @@ FACTIONS = {
 RING_LEAN, INNER_LEAN = .3, .4
 
 
-def _scheme(ring, inner, alpha, source):
-    return dict(ring=_rgb(*ring), inner=_rgb(*inner), inner_alpha=round(alpha / 255, 4), source=source)
+def _scheme(ring, inner, alpha, style, source):
+    return dict(ring=_rgb(*ring), inner=_rgb(*inner), inner_alpha=round(alpha / 255, 4),
+                finish=dict(FINISHES[style]), source=source)
 
 
 def _lean(a, b, k):
@@ -170,20 +194,21 @@ def _lean(a, b, k):
     return tuple(round(x + (y * 255 / top - x) * k) for x, y in zip(a, b))
 
 
-SCHEMES = {name.lower().replace('_', '-'): _scheme(s['ring'], s['inner'], s['inner_alpha'],
+SCHEMES = {name.lower().replace('_', '-'): _scheme(s['ring'], s['inner'], s['inner_alpha'], name,
                                                   f'vanilla hull style {name}')
            for name, s in STYLES.items()}
 for _f, (_style, _col) in FACTIONS.items():
     _s = STYLES[_style]
     SCHEMES[_f] = _scheme(_lean(_s['ring'], _col, RING_LEAN), _lean(_s['inner'], _col, INNER_LEAN),
-                          _s['inner_alpha'], f'{_style} leaned toward the {_f} faction colour {_col}')
+                          _s['inner_alpha'], _style, f'{_style} leaned toward the {_f} faction colour {_col}')
 
 
 def strength_from_efficiency(efficiency):
     """shield_strength for a vanilla shield efficiency (flux per damage absorbed;
-    lower is better): 0.6, the best in vanilla, is 1.0; the Onslaught's 1.0 is
-    0.6; the Conquest's 1.4 is 0.43."""
-    return max(0.0, min(STRENGTH_MAX, BEST_EFFICIENCY / float(efficiency)))
+    lower is better), linear: 0.6, the best in vanilla, is exactly 1.0; the
+    capitals' 1.0 (Onslaught, Legion) is 0.8; the Conquest's 1.4 is 0.6."""
+    s = 1.0 - STRENGTH_PER_EFFICIENCY * (float(efficiency) - BEST_EFFICIENCY)
+    return max(0.0, min(STRENGTH_MAX, s))
 
 
 def vanilla_styles(install):
@@ -210,13 +235,14 @@ def resolve(spec, scheme=None, arc=None, shield_type=None):
     s = dict(spec)
     name = scheme or s.get('scheme')
     if scheme:
-        for k in ('ring', 'inner', 'inner_alpha', 'fortress_ring', 'fortress_inner', 'fortress_alpha'):
+        for k in ('ring', 'inner', 'inner_alpha', 'fortress_ring', 'fortress_inner', 'fortress_alpha', 'finish'):
             s.pop(k, None)
     if name:
         c = SCHEMES[name]
         s['scheme'] = name
-        for k in ('ring', 'inner', 'inner_alpha'):
+        for k in ('ring', 'inner', 'inner_alpha', 'finish'):
             s.setdefault(k, c[k])
+    s['finish'] = dict(IDENTITY, **s.get('finish', {}))
     s.setdefault('fortress_ring', s['ring'])
     s.setdefault('fortress_inner', s['inner'])
     s.setdefault('fortress_alpha', s['inner_alpha'])
@@ -292,12 +318,13 @@ def _bubble_material(ctx, s, hits, R, facing):
     tc = nodes.new('ShaderNodeTexCoord')
     noise = nodes.new('ShaderNodeTexNoise')
     noise.noise_dimensions = '4D'
-    noise.inputs['Scale'].default_value = 3.0 / R
+    fin = s['finish']
+    noise.inputs['Scale'].default_value = 3.0 * fin['grain'] / R
     noise.inputs['Detail'].default_value = 2.0
     links.new(tc.outputs['Object'], noise.inputs['Vector'])
     clock = swfx_core.value_node(ctx, nodes, 'shield time', 'frame / 30.0')
     links.new(clock, noise.inputs['W'])
-    ripple = g.add(1.0, g.mul(g.sub(noise.outputs['Fac'], .5), g.mul(g.sub(1.0, fort), 1.2)))
+    ripple = g.add(1.0, g.mul(g.sub(noise.outputs['Fac'], .5), g.mul(g.sub(1.0, fort), 1.2 * fin['ripple'])))
     # Unfolding: the angle from the facing direction (the facing empty's +X,
     # at the centre), as a fraction of the half-arc; the shield covers what is
     # within shield_t of it. OMNI measures it in 3D (a cone that closes behind
@@ -346,8 +373,8 @@ def _bubble_material(ctx, s, hits, R, facing):
     inner_a = g.add(s['inner_alpha'], g.mul(fort, s['fortress_alpha'] - s['inner_alpha']))
     # Thinner face-on, thickening toward the silhouette (the vanilla shield's gradient).
     grad = g.add(.35, g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65))
-    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3), ripple), grad)
-    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK)
+    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3 * fin['face']), ripple), grad)
+    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'])
     # Strength: every term is exactly 1 (or 0) at shield_strength 1, the
     # Paragon's look. The face thins with it, the rim less so.
     sig = swfx_core.value_node(ctx, nodes, 'strength', 'shield_strength', ('shield_strength',))
@@ -639,6 +666,7 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
     record['arc'] = float(s.get('arc', 360))
     record['scheme'] = s.get('scheme')
     record['colours'] = {k: s[k] for k in ('ring', 'inner', 'inner_alpha')}
+    record['finish'] = s['finish']
     record['strength'] = round(strength, 3)
     record['mean_radius'] = round(R, 2)
     record['fit'] = dict(fit) if fit else None

@@ -1,5 +1,5 @@
 {
-  "status": "Pass 2: plausible detail: silhouette, sections, slots and engines, armour plates, canopy frame, grilles, gun and nacelle detail. No damage or textures.",
+  "status": "Pass 3: plausible detail plus retractable landing gear: silhouette, sections, slots and engines, armour plates, canopy frame, grilles, gun and nacelle detail, tricycle gear. No damage or textures.",
   "hull": {
     "name": "Broadsword",
     "hullId": "broadsword",
@@ -53,7 +53,7 @@
       0.43,
       0.57
     ],
-    "beside_the_legion": "scale the root by 0.82 (0.50 / the Legion 0.61, legion-geometry at 496340563); her 14.1 m span is about 23 Legion units, inside its hangar tunnels (being widened to about 40 forward and 46 aft for the Hoplon); fighters leave through the mouths under the wing arms",
+    "beside_the_legion": "scale the root by 0.51 (0.50 / the Legion 0.99, legion-geometry/geometry.json); her 14.1 m span is about 14 Legion units, inside its hangar tunnels (being widened to about 40 forward and 46 aft for the Hoplon); fighters leave through the mouths under the wing arms",
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -71,7 +71,7 @@
     "min": [
       -11.9,
       -14.08,
-      -3.28
+      -3.29
     ],
     "max": [
       19.05,
@@ -81,7 +81,7 @@
     "size": [
       30.95,
       28.15,
-      6.5
+      6.51
     ]
   },
   "root": {
@@ -300,6 +300,137 @@
       1.571
     ]
   },
+  "running_lights": [
+    {
+      "name": "Light port blade tip 1",
+      "position": [
+        1.6,
+        13.86,
+        0.1
+      ],
+      "colour": "red",
+      "role": "port side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard blade tip 1",
+      "position": [
+        1.6,
+        -13.86,
+        0.1
+      ],
+      "colour": "green",
+      "role": "starboard side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre tail 1",
+      "position": [
+        -7.02,
+        0,
+        0.5
+      ],
+      "colour": "white",
+      "role": "tail light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre dorsal 1",
+      "position": [
+        3.2,
+        0,
+        2.05
+      ],
+      "colour": "white",
+      "role": "anti-collision strobe",
+      "blink": {
+        "period_s": 1.2,
+        "phase_s": 0.3,
+        "duty": 0.18
+      }
+    }
+  ],
+  "landing_gear": {
+    "legs": [
+      {
+        "name": "Hull nose gear",
+        "hinge": "Hull nose gear hinge",
+        "hinge_location": [
+          9.6,
+          0.0,
+          -1.55
+        ],
+        "wheel_radius": 0.48,
+        "doors": [
+          "Hull nose gear door port hinge",
+          "Hull nose gear door starboard hinge"
+        ]
+      },
+      {
+        "name": "Hull port main gear",
+        "hinge": "Hull port main gear hinge",
+        "hinge_location": [
+          -5.6,
+          5.5,
+          -2.45
+        ],
+        "wheel_radius": 0.6,
+        "doors": [
+          "Hull port main gear door port hinge",
+          "Hull port main gear door starboard hinge"
+        ]
+      },
+      {
+        "name": "Hull starboard main gear",
+        "hinge": "Hull starboard main gear hinge",
+        "hinge_location": [
+          -5.6,
+          -5.5,
+          -2.45
+        ],
+        "wheel_radius": 0.6,
+        "doors": [
+          "Hull starboard main gear door port hinge",
+          "Hull starboard main gear door starboard hinge"
+        ]
+      }
+    ],
+    "pose": "built down. Stow: rotate each leg hinge retract_deg about its local Y (foot swings aft into the fuselage or nacelle) and each door hinge back from open_deg to 0 about its local X. bw_gear.pose(t) is the reference: t=1 down, 0 up; doors are open for t >= 1/3.",
+    "saved_pose": "down",
+    "dimensions_note": "dimensions and scale sizes are measured gear up (flight)",
+    "parked_check": {
+      "deck_z_units": -5.2,
+      "feet": [
+        "Hull nose gear wheel port",
+        "Hull nose gear wheel starboard",
+        "Hull port main gear wheel port",
+        "Hull port main gear wheel starboard",
+        "Hull starboard main gear wheel port",
+        "Hull starboard main gear wheel starboard"
+      ],
+      "sole_spread_m": 0.0,
+      "sole_error_m": 0.0,
+      "lowest_body_part": "Engine 1 collar rib 2",
+      "body_clearance_m": 0.96,
+      "stowed_leg_above_door_bottom_m": {
+        "nose gear": 0.039,
+        "port main gear": 0.038,
+        "starboard main gear": 0.038
+      }
+    }
+  },
   "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
   "object_names": {
     "Hull ...": "nose, forward fuselage, aft spine and their plates",
@@ -307,7 +438,9 @@
     "Wing <side> ...": "gun pod housings, blades, aft strakes",
     "Weapon <slot id> ...": "gun geometry and slot anchors",
     "Engine <i> ...": "nacelle, collar, mouth lip, aft-facing bell, dark throat",
-    "Flare launcher WS 005 ...": "the system launcher on the spine"
+    "Flare launcher WS 005 ...": "the system launcher on the spine",
+    "Hull <leg> ...": "landing gear legs, wells and doors (nose gear, port/starboard main gear)",
+    "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
   },
   "cameras": [
     {
@@ -358,6 +491,26 @@
         34
       ],
       "orthographic_scale": 44,
+      "rotation": "looks at [3.5, 0.0, 0.0]"
+    },
+    {
+      "name": "parked",
+      "position": [
+        52,
+        46,
+        4
+      ],
+      "orthographic_scale": 46,
+      "rotation": "looks at [3.5, 0.0, 0.0]"
+    },
+    {
+      "name": "under-quarter",
+      "position": [
+        40,
+        44,
+        -36
+      ],
+      "orthographic_scale": 46,
       "rotation": "looks at [3.5, 0.0, 0.0]"
     }
   ],

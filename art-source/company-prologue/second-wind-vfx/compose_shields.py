@@ -79,9 +79,20 @@ for hull in sorted(p for p in R.iterdir() if p.is_dir()):
         grid([(p, p.stem.split('-', 2)[2].replace('_', ' ')) for p in schemes], 3,
              'Colour schemes (top row: vanilla hull styles; below: factions, the style leaned to the faction colour)',
              OUT / 'schemes.png')
+    tech = sorted(hull.glob('tech-*.png'), key=num)
+    if tech:
+        cap = {'low-tech': 'low tech: vanilla pink-red, older emitter (rough, dim rim, murky face)',
+               'midline': 'midline: vanilla blue, the same rough finish',
+               'high-tech': 'high tech: vanilla blue, the Paragon finish (steady, even, bright rim)'}
+        panels = [(p, cap[p.stem.split('-', 2)[2]]) for p in tech]
+        ref = R / 'paragon-reference.png'
+        if ref.exists():
+            panels.append((ref, 'the Paragon as accepted: the high-tech reference'))
+        grid(panels, 2, f'Shield technology on the {hull.name.split("-")[0].capitalize()}, all at strength 1.0',
+             OUT / 'tech.png')
     strength = sorted(hull.glob('strength-*.png'), key=num)
     if strength:
-        cap = {.25: 'very weak', .43: 'Conquest (eff 1.4)', .6: 'Onslaught/Legion (eff 1.0)',
+        cap = {.3: 'very weak', .6: 'Conquest (eff 1.4)', .8: 'Onslaught/Legion (eff 1.0)',
                1.0: 'Paragon (eff 0.6), as accepted', 1.25: 'denser', 1.5: 'densest'}
         grid([(p, f'strength {float(p.stem.split("-")[2]):.2f}: {cap.get(float(p.stem.split("-")[2]), "")}')
               for p in strength], 3, f'shield_strength on the {hull.name.split("-")[0].capitalize()}',
