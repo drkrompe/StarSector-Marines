@@ -76,9 +76,9 @@ BREAK_S = 4.0                       # seconds from detonation to ph_damage's wre
 STRIKE = (44.0, 4.0, 4.0)           # S04: the missile strike on tank 2 (ph_damage.CRATER)
 # (name, at, parent section or None for the root, size_m, delay_s): the main blast and the
 # two ruptured tanks going up a beat later.
-BLASTS = [('Scar S04 explosion anchor main', STRIKE, None, 26.0, 0.0),
-          ('Scar S03 explosion anchor tank 1', (8.0, 6.0, 14.0), 'stern', 12.0, .35),
-          ('Scar S05 explosion anchor tank 3', (80.0, -3.0, 16.0), 'bow', 13.0, .6)]
+BLASTS = [('Scar S04 explosion anchor main', STRIKE, None, 20.0, 0.0),
+          ('Scar S03 explosion anchor tank 1', (8.0, 6.0, 14.0), 'stern', 10.0, .35),
+          ('Scar S05 explosion anchor tank 3', (80.0, -3.0, 16.0), 'bow', 11.0, .6)]
 
 geom = json.loads(GEOM_JSON.read_text())
 MPU = geom['metres_per_unit']

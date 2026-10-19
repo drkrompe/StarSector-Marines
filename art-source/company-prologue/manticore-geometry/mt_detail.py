@@ -25,7 +25,7 @@ silhouette by more than a cell, so the top-view IoU holds.
 import math
 import bpy
 from mt_kit import boolean, facet_normal, plane_cut, prism, section, sym
-from mt_hull import WING_SLOPE, ccw, shear, BRIDGE_DECK, CORE_DECK, AFT_DECK, MAIN_WELL, WING_DECK
+from mt_hull import wing_drop, ccw, shear, BRIDGE_DECK, CORE_DECK, AFT_DECK, MAIN_WELL, WING_DECK
 
 VIEWPORT_M = (1.0, .8)       # one viewport pane
 BRIDGE_BAND_M = 1.1          # the dome's glazed band height
@@ -56,8 +56,7 @@ def seat(kit, x, y, fallback=0.0):
 
 def wing_z(y, deck=WING_DECK):
     """The wing deck's height at |y| (what `shear` will lower an unsheared part to)."""
-    y0, k = WING_SLOPE
-    return deck-k*max(0, abs(y)-y0)
+    return deck-wing_drop(y)
 
 
 def build(kit):
@@ -71,7 +70,7 @@ def build(kit):
             z0 = WING_DECK-.6   # unsheared; `shear` lays it on the drooping deck
             plate = shear(prism(kit, f'Hull wing {side} armour plate {k}', pts, section(z0, z0+2.8, .2, 1.0),
                                 kit.red, .12))
-            plane_cut(plate, f'{side} plate {k} outboard fall', (0, s*36, z0+2.8-WING_SLOPE[1]*(36-WING_SLOPE[0])-.3),
+            plane_cut(plate, f'{side} plate {k} outboard fall', (0, s*36, z0+2.8-wing_drop(36)-.3),
                       facet_normal((0, s), 20))
             xf = max(x for x, _ in plan)
             plane_cut(plate, f'{side} plate {k} forward bevel', (xf-3.5, s*40, z0+2.8), facet_normal((1, -.35*s), 30))
@@ -99,9 +98,9 @@ def build(kit):
         dome.scale.z = .8
         bpy.ops.object.transform_apply(scale=True)
         kit.finish(dome, f'Hull wing {side} sensor dome', kit.pale)
-        # --- crew-deck viewports: two rows down each wall of the command tier ---
+        # --- crew-deck viewports: one row down each wall of the bridge plinth ---
         for k, x in enumerate((-1, -5, -9, -15, -19), 1):
-            for row, z in enumerate((CORE_DECK+.8, CORE_DECK+3.0)):
+            for row, z in enumerate((CORE_DECK-.75,)):
                 kit.box(f'Hull core {side} viewport {k}.{row+1}', (x, s*16.35, z), (vp[0], .3, vp[1]), kit.glass, 0)
         # --- aft body: machinery ribs and heat-vent wells ---
         for k, y in enumerate((27, 32), 1):

@@ -1,6 +1,6 @@
 # Falcon (P) surfacing
 
-Status: ACTIVE — pass 6 texture, waiting on the owner.
+Status: SHIPPED — pass 6 texture accepted by the owner (2026-10-19); the faded red is sun-faded paint, by design.
 Written: 2026-10-19
 
 The Falcon (P)'s inputs to the shared surfacing harness

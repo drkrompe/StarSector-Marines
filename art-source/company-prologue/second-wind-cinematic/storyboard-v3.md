@@ -179,7 +179,7 @@ straight down, about 820 m up, with Second Wind passing beneath it. It runs from
 farmland, across the freight road and its heavy haulers, over the industrial
 belt and the container yard, to the Greywater Down port: the public berths in
 rows by size, lifters climbing, cranes, and the jungle pressing in at the edge.
-It ends straight over Kilo Nine, Nessa's private yard, where the ship touches
+It ends straight over Kilo Nine, the private yard where Nessa is forewoman, where the ship touches
 down and the yard goes to work. `industrial-exterior/c4x_scene.py` is the
 layout, and `c5-v2-closing.md` says how it hands off to C5.
 

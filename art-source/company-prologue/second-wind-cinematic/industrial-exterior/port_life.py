@@ -1019,6 +1019,7 @@ def add(c4x):
     forklifts(r, F)
     berth_work(r, F)
     lifters(F)
+    clear_sky()
     steam()
     print('PORT_LIFE vehicles=%d boxes=%d' % (sum(len(c) for _, c, _ in sims), len(boxes)), flush=True)
 
@@ -1220,6 +1221,37 @@ def lifters(F):
     z = np.where(t < t0, -60.0, 2.5 + 200.0 * (1 - u) ** 1.6)
     craft(e, z, 2.2)
     dust(e.location.x, e.location.y, t1 - 1.8, 26.0, 18, 'Lift dust hermes return')
+
+
+CLIMBERS = ('Lighter 6 parked', 'Lighter 1 lifting')   # 'Lifting at berth 3' is port_fleet's to fly out
+SKY_HIDE_Z = 300.0       # well above C5's 220 m camera, which holds from C5 4 s to 18 s
+SKY_WINDOW = (4.0, 17.5)
+
+
+def clear_sky():
+    """The owner wants the Colossus the only ship in the air under the title, so each craft still
+    climbing out of the port is put away once it is above C5's low camera, out of sight, before the
+    rise could find it again."""
+    C4E = c4.FRAMES - 1
+    f0, f1 = (C4E + round(w * c4.FPS) for w in SKY_WINDOW)
+    for name in CLIMBERS:
+        ob = bpy.data.objects.get(name)
+        if ob is None:
+            continue
+        zs = track(ob, list(range(f0, f1 + 1)))[:, 2]
+        above = np.nonzero(zs > SKY_HIDE_Z)[0]
+        f = f0 + int(above[0]) if len(above) else f1
+        parts = [ob] + list(ob.children_recursive) + [o for o in bpy.data.objects if o.name.startswith(name + ' ')]
+        for o in parts:
+            for frame, hidden in ((0, False), (f, True)):
+                o.hide_render = hidden
+                o.keyframe_insert('hide_render', frame=frame)
+            for fc in fcurves(o):
+                if fc.data_path == 'hide_render':
+                    for k in fc.keyframe_points:
+                        k.interpolation = 'CONSTANT'
+        print('PORT_LIFE sky: %s put away at C5 %.1f s, %.0f m up%s' % (
+            name, (f - C4E) / c4.FPS, zs[f - f0], '' if len(above) else ' (BELOW the camera: may show)'), flush=True)
 
 
 def dust(x, y, ts, reach, n, name):

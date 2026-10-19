@@ -51,15 +51,15 @@ DOME = (-13.6, 12.4, 5.2)            # centre X, |Y|, plan radius of the armour 
 
 # Heights (proposed art; the game gives none). One keel chamfer, one wall,
 # one shoulder chamfer per section.
-FORK_Z = (-6.5, 4.5)
-HEAD_Z = (-11.0, 7.0)
-OUTRIGGER_Z = (-8.0, 5.5)
-NECK_Z = (-12.5, 6.0)
-MAIN_Z = (-14.5, 6.0)
-POD_Z = (-9.5, 5.0)
-AFT_Z = (-14.0, 6.0)
-ENGINE_Z = (-13.0, 7.5)
-SPINE_TOP = 8.5
+FORK_Z = (-9.5, 1.0)
+HEAD_Z = (-12.5, 5.0)
+OUTRIGGER_Z = (-9.5, 3.5)
+NECK_Z = (-13.0, 7.0)
+MAIN_Z = (-14.5, 9.0)
+POD_Z = (-10.5, 4.0)
+AFT_Z = (-14.0, 7.5)
+ENGINE_Z = (-12.5, 5.5)
+SPINE_TOP = 9.5
 
 
 def ccw(poly):
@@ -138,16 +138,16 @@ def build(kit):
     plane_cut(fork, 'fork top rake', (46, 0, FORK_Z[1]), facet_normal((1, 0), 25))
     tines = []
     for side, s, plan in sides(OUTER_TINE):
-        t = prism(kit, f'Hull bow {side} outer tine', plan, section(-4.5, 4.2, .9, 1.1), steel)
-        plane_cut(t, f'{side} outer tine tip rake', (50, 0, 4.2), facet_normal((1, 0), 18))
-        plane_cut(t, f'{side} outer tine chin', (50, 0, -4.5), (math.sin(math.radians(20)), 0,
+        t = prism(kit, f'Hull bow {side} outer tine', plan, section(-8.5, 0.6, .9, 1.1), steel)
+        plane_cut(t, f'{side} outer tine tip rake', (50, 0, .6), facet_normal((1, 0), 18))
+        plane_cut(t, f'{side} outer tine chin', (50, 0, -8.5), (math.sin(math.radians(20)), 0,
                                                               -math.cos(math.radians(20))))
         tines.append(t)
     # The sprite's inner tines (Y +-2..4) are the WS 004 mining blaster's prongs
     # (wf_mounts): the gun is the claw's middle, sunk in a bay in the fork base.
 
     # --- Head, outriggers. ---
-    head = shear(prism(kit, 'Hull head', ccw(HEAD), section(*HEAD_Z, 3.0, 2.4), steel), 4.0, .22)
+    head = shear(prism(kit, 'Hull head', ccw(HEAD), section(*HEAD_Z, 3.0, 2.4), steel), 3.0, .3)
     plane_cut(head, 'head brow rake', (41, 0, HEAD_Z[1]), facet_normal((1, 0), 30))
     plane_cut(head, 'head chin rake', (41, 0, HEAD_Z[0]), (.5, 0, -.866))
     outriggers = {}
@@ -158,12 +158,12 @@ def build(kit):
         outriggers[side] = o
 
     # --- Neck. ---
-    neck = shear(prism(kit, 'Hull neck', ccw(NECK), section(*NECK_Z, 3.4, 2.8), red), 4.5, .2)
+    neck = shear(prism(kit, 'Hull neck', ccw(NECK), section(*NECK_Z, 3.4, 2.8), red), 3.0, .32)
     for s in (1, -1):
         plane_cut(neck, f'neck {s} shoulder', (24, s*10.5, NECK_Z[1]), facet_normal((0, s), 26))
 
     # --- Main body, pods. ---
-    main = shear(prism(kit, 'Hull main body', ccw(MAIN), section(*MAIN_Z, 4.2, 3.2), red), 6.0, .15)
+    main = shear(prism(kit, 'Hull main body', ccw(MAIN), section(*MAIN_Z, 4.2, 3.2), red), 3.5, .3)
     for s in (1, -1):
         plane_cut(main, f'main {s} wing-root fall', (3, s*15.5, MAIN_Z[1]), facet_normal((0, s), 17))
     plane_cut(main, 'main fore shoulder', (17.5, 0, MAIN_Z[1]), facet_normal((1, 0), 30))
@@ -177,14 +177,14 @@ def build(kit):
     # (rows 24-36, long curved bands), a central hump aft of the turret ring
     # (rows 50-60, the base sprite's brightest dome) and the wing-root arms that
     # run out to the pods (rows 49-57). Few facets: crisp plates, not bubbles.
-    lobes = [lobe(kit, 'Hull centre hump', (-1.6, 0, 3.8), (7.0, 7.4, 3.6), red, 0, 12, 6)]
+    lobes = [lobe(kit, 'Hull centre hump', (-1.6, 0, 6.6), (7.0, 7.4, 3.6), red, 0, 12, 6)]
     for side, s in (('port', 1), ('starboard', -1)):
         lobes.append(lobe(kit, f'Hull neck {side} flank', (23.5, s*9.4, 3.4), (7.8, 4.6, 2.9), red, s*-4, 12, 6))
         lobes.append(lobe(kit, f'Hull wing {side} root', (0.4, s*17.8, 2.4), (4.6, 5.6, 3.0), red, s*-35, 12, 6))
     kit.hull += lobes
 
     # --- Aft body, armour domes, engine block. ---
-    aft = shear(prism(kit, 'Hull aft body', ccw(AFT), section(*AFT_Z, 3.8, 3.0), red), 5.0, .16)
+    aft = shear(prism(kit, 'Hull aft body', ccw(AFT), section(*AFT_Z, 3.8, 3.0), red), 3.0, .3)
     kit.hull.append(aft)
     domes = []
     x, y, r = DOME
@@ -208,7 +208,7 @@ def build(kit):
             ring_z = AFT_Z[1]+1.2
             kit.cylinder(f'Hull {side} turret foundation ring', (x, s*y, ring_z+.15), r-.3, .3, steel, 'Z', 24, .08)
             domes.append(drum)
-    eng = shear(prism(kit, 'Hull engine block', ccw(ENGINE_BLOCK), section(*ENGINE_Z, 3.4, 2.8), steel), 5.0, .2)
+    eng = shear(prism(kit, 'Hull engine block', ccw(ENGINE_BLOCK), section(*ENGINE_Z, 3.4, 2.8), steel), 3.5, .25)
     plane_cut(eng, 'engine block aft rake', (-33, 0, ENGINE_Z[1]), facet_normal((-1, 0), 36))
 
     # --- Spine: the grey centre structure from the engine block to the head. ---

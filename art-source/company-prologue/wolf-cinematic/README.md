@@ -30,9 +30,9 @@ manifest.
 
 - **Move the root only.** Every part and anchor descends from it. The model is
   in hull units (+X bow, +Y port, +Z dorsal; one sprite pixel per unit);
-  `metres_per_unit` is 0.76 (on the root and in the manifest): 71 m from
-  bow fork to stern, 38 m across the missile pods, 21 m deep. A shot in
-  metres scales the root by 0.76.
+  `metres_per_unit` is 0.75 (on the root and in the manifest): 70 m from
+  bow fork to stern, 37 m across the missile pods, about 21 m deep. A shot in
+  metres scales the root by 0.75.
 - **Two variants, one hull.** `wolf-p.blend` (`WOLF_P`, the pirate skin,
   battle wear) and `wolf.blend` (`WOLF`, the convoy's own Wolf: the base hull,
   no pirate armour, its aft WS 002 / WS 003 PD laser turrets on full-depth

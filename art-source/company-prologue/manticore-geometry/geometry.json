@@ -1,5 +1,5 @@
 {
-  "status": "Review round 2: deep faceted lofted hull, glacis neck, main gun sunk in a well, raised command tier, drooping arms; pass 6 light pirate livery + pass 4 scale (0.54 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
+  "status": "Review round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.54 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
@@ -42,7 +42,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 310119,
+      "units3": 294878,
       "crew_max": 80,
       "cargo": 80,
       "fuel": 50,
@@ -78,25 +78,25 @@
     "contents_total_m3": 25435,
     "machinery_share": 0.47,
     "enclosed_m3": 47991,
-    "solved_metres_per_unit": 0.537,
+    "solved_metres_per_unit": 0.546,
     "range": {
-      "habitable_273": 0.52,
-      "habitable_328": 0.553
+      "habitable_273": 0.529,
+      "habitable_328": 0.562
     },
     "enclosed_m3_per_person_at_max_crew": 600,
-    "length_m": 81.6,
+    "length_m": 82.9,
     "fittings_m": {
       "viewport w x h": [
-        0.99,
-        0.79
+        1.01,
+        0.81
       ],
       "bridge glazing band h": [
-        1.1
+        1.11
       ]
     },
     "published_metres_per_unit": 0.54,
     "measured_this_build": {
-      "enclosed_units3": 310119,
+      "enclosed_units3": 294878,
       "solids": [
         "Hull bow head",
         "Hull neck",
@@ -111,7 +111,7 @@
     "size_m": [
       82.9,
       86.8,
-      36.0
+      30.6
     ],
     "person_1_8_m_in_units": 3.33,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -136,12 +136,12 @@
     "max": [
       87.3,
       80.42,
-      36.58
+      26.58
     ],
     "size": [
       153.6,
       160.83,
-      66.58
+      56.58
     ]
   },
   "weapon_slots": [
@@ -150,7 +150,7 @@
       "location": [
         21,
         0,
-        14.8
+        10.7
       ],
       "angle": 0,
       "arc": 90,
@@ -167,7 +167,7 @@
       "location": [
         23,
         65,
-        5.84
+        1.3
       ],
       "angle": 80,
       "arc": 235,
@@ -184,7 +184,7 @@
       "location": [
         73,
         0,
-        10.2
+        7.5
       ],
       "angle": 0,
       "arc": 235,
@@ -201,7 +201,7 @@
       "location": [
         23,
         -65,
-        5.84
+        1.3
       ],
       "angle": -80,
       "arc": 235,
@@ -332,10 +332,10 @@
       "location": [
         21,
         0,
-        14.8
+        10.7
       ],
-      "seat_z": 10.7,
-      "lift": 4.1,
+      "seat_z": 9.0,
+      "lift": 1.7,
       "rest_angle_deg": 0,
       "arc_deg": 90,
       "vfx_scale": 2.38,
@@ -348,7 +348,7 @@
           "at": [
             43.576,
             0.0,
-            18.064
+            13.964
           ],
           "axis": [
             1.0,
@@ -374,10 +374,10 @@
       "location": [
         23,
         65,
-        5.84
+        1.3
       ],
-      "seat_z": 4.44,
-      "lift": 1.4,
+      "seat_z": -0.5,
+      "lift": 1.8,
       "rest_angle_deg": 80,
       "arc_deg": 235,
       "vfx_scale": 1.54,
@@ -390,7 +390,7 @@
           "at": [
             25.21,
             77.534,
-            8.436
+            3.896
           ],
           "axis": [
             0.174,
@@ -416,9 +416,9 @@
       "location": [
         73,
         0,
-        10.2
+        7.5
       ],
-      "seat_z": 9.0,
+      "seat_z": 6.3,
       "lift": 1.2,
       "rest_angle_deg": 0,
       "arc_deg": 235,
@@ -432,7 +432,7 @@
           "at": [
             83.737,
             -1.895,
-            12.954
+            10.254
           ],
           "axis": [
             1.0,
@@ -447,7 +447,7 @@
           "at": [
             83.737,
             1.895,
-            12.954
+            10.254
           ],
           "axis": [
             1.0,
@@ -473,10 +473,10 @@
       "location": [
         23,
         -65,
-        5.84
+        1.3
       ],
-      "seat_z": 4.44,
-      "lift": 1.4,
+      "seat_z": -0.5,
+      "lift": 1.8,
       "rest_angle_deg": -80,
       "arc_deg": 235,
       "vfx_scale": 1.54,
@@ -489,7 +489,7 @@
           "at": [
             25.21,
             -77.534,
-            8.436
+            3.896
           ],
           "axis": [
             0.174,
@@ -788,7 +788,7 @@
       "position": [
         23,
         78.8,
-        3.0
+        -1.9
       ],
       "colour": "red",
       "role": "port side light (extremity)",
@@ -803,7 +803,7 @@
       "position": [
         23,
         -78.8,
-        3.0
+        -1.9
       ],
       "colour": "green",
       "role": "starboard side light (extremity)",
@@ -833,7 +833,7 @@
       "position": [
         83,
         0,
-        6.35
+        0.05
       ],
       "colour": "white",
       "role": "prow anti-collision strobe",
@@ -851,8 +851,8 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 50166,
-    "objects": 202,
+    "triangles": 49826,
+    "objects": 192,
     "materials": [
       "Manticore bridge glazing",
       "Manticore grey plate",
@@ -1018,9 +1018,9 @@
       "eye": [
         -1.25,
         0.0,
-        29.9
+        19.9
       ],
-      "eye_height_above_core_deck_m": 8.0,
+      "eye_height_above_core_deck_m": 2.6,
       "depression_runs": [
         {
           "from_deg": 0.0,
@@ -1028,56 +1028,154 @@
           "at_x": null
         },
         {
-          "from_deg": 10.75,
-          "meets": "Weapon WS 002 house steel",
-          "at_x": 77.4
-        },
-        {
-          "from_deg": 11.0,
-          "meets": "Weapon WS 002 house plate",
-          "at_x": 77.2
-        },
-        {
-          "from_deg": 11.25,
-          "meets": "Weapon WS 002 house steel",
-          "at_x": 75.7
-        },
-        {
-          "from_deg": 12.0,
+          "from_deg": 3.25,
           "meets": "Weapon WS 000 recoil 1 metal",
           "at_x": 36.6
         },
         {
-          "from_deg": 17.0,
+          "from_deg": 5.75,
           "meets": "Weapon WS 000 gun steel",
-          "at_x": 27.5
+          "at_x": 27.3
+        },
+        {
+          "from_deg": 6.25,
+          "meets": "Weapon WS 000 house accent",
+          "at_x": 21.9
+        },
+        {
+          "from_deg": 8.25,
+          "meets": "Weapon WS 000 recoil 1 steel",
+          "at_x": 20.0
+        },
+        {
+          "from_deg": 16.0,
+          "meets": "Weapon WS 000 house paint",
+          "at_x": 14.9
+        },
+        {
+          "from_deg": 16.25,
+          "meets": "Weapon WS 000 recoil 1 steel",
+          "at_x": 14.9
+        },
+        {
+          "from_deg": 16.5,
+          "meets": "Weapon WS 000 house paint",
+          "at_x": 14.9
+        },
+        {
+          "from_deg": 16.75,
+          "meets": "Weapon WS 000 recoil 1 steel",
+          "at_x": 14.9
         },
         {
           "from_deg": 17.75,
-          "meets": "Weapon WS 000 recoil 1 steel",
-          "at_x": 26.8
+          "meets": "Weapon WS 000 house paint",
+          "at_x": 14.9
         },
         {
-          "from_deg": 19.5,
-          "meets": "Weapon WS 000 house accent",
-          "at_x": 22.6
+          "from_deg": 18.25,
+          "meets": "Weapon WS 000 house paint#rear",
+          "at_x": 14.7
         },
         {
-          "from_deg": 23.0,
-          "meets": "Weapon WS 000 recoil 1 steel",
-          "at_x": 19.9
+          "from_deg": 38.25,
+          "meets": "Weapon WS 000 barbette",
+          "at_x": 12.1
         },
         {
-          "from_deg": 33.25,
-          "meets": "Bridge command tier",
-          "at_x": 4.0
+          "from_deg": 40.25,
+          "meets": "Hull wing body",
+          "at_x": 11.6
+        },
+        {
+          "from_deg": 46.25,
+          "meets": "Hull core",
+          "at_x": 3.4
         }
       ],
       "prow_visible": false,
-      "prow_depression_deg": 17.3,
-      "prow_ray_meets": "Weapon WS 000 gun steel",
-      "bow_gun_visible": true,
-      "bow_gun_depression_deg": 11.6
+      "prow_depression_deg": 15.8,
+      "prow_ray_meets": "Weapon WS 000 recoil 1 steel",
+      "bearing_sweep": [
+        {
+          "bearing_deg": -90,
+          "clear_down_to_deg": -6.0
+        },
+        {
+          "bearing_deg": -80,
+          "clear_down_to_deg": -10.0
+        },
+        {
+          "bearing_deg": -70,
+          "clear_down_to_deg": -10.0
+        },
+        {
+          "bearing_deg": -60,
+          "clear_down_to_deg": -8.0
+        },
+        {
+          "bearing_deg": -50,
+          "clear_down_to_deg": -7.0
+        },
+        {
+          "bearing_deg": -40,
+          "clear_down_to_deg": -8.5
+        },
+        {
+          "bearing_deg": -30,
+          "clear_down_to_deg": -11.0
+        },
+        {
+          "bearing_deg": -20,
+          "clear_down_to_deg": -10.5
+        },
+        {
+          "bearing_deg": -10,
+          "clear_down_to_deg": -7.5
+        },
+        {
+          "bearing_deg": 0,
+          "clear_down_to_deg": -3.0
+        },
+        {
+          "bearing_deg": 10,
+          "clear_down_to_deg": -7.5
+        },
+        {
+          "bearing_deg": 20,
+          "clear_down_to_deg": -6.0
+        },
+        {
+          "bearing_deg": 30,
+          "clear_down_to_deg": -8.0
+        },
+        {
+          "bearing_deg": 40,
+          "clear_down_to_deg": -8.5
+        },
+        {
+          "bearing_deg": 50,
+          "clear_down_to_deg": -7.0
+        },
+        {
+          "bearing_deg": 60,
+          "clear_down_to_deg": -8.0
+        },
+        {
+          "bearing_deg": 70,
+          "clear_down_to_deg": -10.0
+        },
+        {
+          "bearing_deg": 80,
+          "clear_down_to_deg": -10.0
+        },
+        {
+          "bearing_deg": 90,
+          "clear_down_to_deg": -6.0
+        }
+      ],
+      "bow_gun_visible": false,
+      "bow_gun_depression_deg": 6.1
     },
     "bearing_dead_ahead": {
       "count": 6,
