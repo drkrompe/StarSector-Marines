@@ -1,6 +1,6 @@
 # Colossus: cinematic asset
 
-Status: IN REVIEW (pass 7 round 1 posted 2026-10-19).
+Status: DONE (pass 7 accepted 2026-10-19 at round 1: shipped for now, until the crashed state is needed).
 Written: 2026-10-19
 
 This folder holds source art for cinematics; nothing here ships in the mod. It
