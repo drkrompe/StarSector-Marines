@@ -87,11 +87,32 @@ def fixed(x, y, z):
 # over the ramp at 220 m after its push-in, then rises 18-26 s to 1800 m (x1.04 by the end) and
 # drifts west; the departing Colossus flies port_fleet.DEPART_KEYS. Positions are camera-relative.
 C4_SECONDS = 21.4
-# port_fleet's 'Colossus at the heavy berth': square in the heavy bay (c4x HEAVY), it lifts on its
-# jets alone and the mains take over, integrated as port_fleet.climb does (C5 seconds).
-HEAVY_BAY = (0.0, 665.0, 5.0)
+# port_fleet's 'Colossus at the heavy berth' (C5 seconds, world metres), as port-fleet keys it: parked
+# in the walled bay until it lifts on its jets at 15, then the mains take it up and away west.
+# Interpolated smoothly (it accelerates), never linearly. Paste a new track here when it changes.
+COLOSSUS_KEYS = ((0.0, -3.8, 665.8, 26.6), (16.0, -3.8, 665.8, 27.0), (18.0, -3.8, 665.8, 29.5),
+                 (20.0, -3.8, 665.8, 34.3), (22.0, -3.8, 665.8, 41.6), (24.0, -3.8, 665.8, 51.3),
+                 (26.0, -6.6, 665.8, 64.1), (28.0, -20.3, 665.8, 82.2), (30.0, -46.1, 665.8, 106.0),
+                 (32.0, -83.8, 665.8, 135.3), (34.0, -133.6, 665.8, 170.3), (36.0, -195.3, 665.8, 210.8),
+                 (38.0, -269.1, 665.8, 257.0), (40.0, -354.8, 665.8, 308.7))
 LIFT_SPOOL, LIFT_OFF, MAIN_ON, MAIN_FULL = 12.0, 15.0, 24.0, 25.5
-LIFT_ACCEL, MAIN_ACCEL, MAIN_LIFT = 0.6, 3.0, 0.8
+
+
+def smooth_track(keys, t):
+    """Catmull-Rom through (t, x, y, z) keys, held at the ends."""
+    k = np.array(keys, float)
+    kt, kp = k[:, 0], k[:, 1:]
+    t = np.clip(t, kt[0], kt[-1])
+    i = np.clip(np.searchsorted(kt, t, side="right") - 1, 0, len(kt) - 2)
+    p0, p1 = kp[np.maximum(i - 1, 0)], kp[i]
+    p2, p3 = kp[i + 1], kp[np.minimum(i + 2, len(kt) - 1)]
+    t0, t1 = kt[i], kt[i + 1]
+    u = ((t - t0) / (t1 - t0))[:, None]
+    dt = (t1 - t0)[:, None]
+    m1 = (p2 - p0) / (kt[i + 1] - kt[np.maximum(i - 1, 0)])[:, None] * dt
+    m2 = (p3 - p1) / (kt[np.minimum(i + 2, len(kt) - 1)] - kt[i])[:, None] * dt
+    h00, h10, h01, h11 = 2 * u**3 - 3 * u**2 + 1, u**3 - 2 * u**2 + u, -2 * u**3 + 3 * u**2, u**3 - u**2
+    return h00 * p1 + h10 * m1 + h01 * p2 + h11 * m2
 
 
 def smoothstep(a, b, x):
@@ -118,16 +139,7 @@ def lighter_six(t):
 
 def colossus_heavy(t):
     t5 = t - C4_SECONDS
-    dt = 1.0 / 240.0
-    grid = np.arange(LIFT_OFF, 40.0 + dt, dt)
-    ramp = np.clip((grid - MAIN_ON) / (MAIN_FULL - MAIN_ON), 0.0, 1.0)
-    vz = np.cumsum((LIFT_ACCEL + MAIN_LIFT * ramp) * dt)
-    vx = np.cumsum(MAIN_ACCEL * ramp * dt)
-    z, x = np.cumsum(vz * dt), -np.cumsum(vx * dt)          # bow west
-    x0, y0, z0 = HEAVY_BAY
-    ship = np.stack([x0 + np.interp(t5, grid, x, left=0.0), np.full_like(t, y0),
-                     z0 + np.interp(t5, grid, z, left=0.0)], axis=1)
-    return ship - c5_camera(t5)
+    return smooth_track(COLOSSUS_KEYS, t5) - c5_camera(t5)
 
 
 # A pass: the clip covers [start, end] on the shot clock. In C1 +Y is ahead in the final view and
@@ -190,12 +202,13 @@ PASSES = {
     "colossus_lift": dict(HOUND, start=C4_SECONDS + 11.5, end=C4_SECONDS + 40.0, path=colossus_heavy,
                           source="c4_launch_burn_t02", sound_speed=340.0, muffle_far=90.0, muffle_near=300.0,
                           bass=3.0, crackle=0.0, rush_gain=0.0, distance_power=1.2, pan="c1", pan_width=0.6, seed=51,
-                          thrust=[(C4_SECONDS + 11.9, 0.0), (C4_SECONDS + 12.0, 0.4), (C4_SECONDS + 15.0, 1.0),
-                                  (C4_SECONDS + 40.0, 1.0)]),
-    "colossus_mains": dict(HOUND, start=C4_SECONDS + 23.5, end=C4_SECONDS + 40.0, path=colossus_heavy,
+                          thrust=[(C4_SECONDS + LIFT_SPOOL - 0.1, 0.0), (C4_SECONDS + LIFT_SPOOL, 0.4),
+                                  (C4_SECONDS + LIFT_OFF, 1.0), (C4_SECONDS + 40.0, 1.0)]),
+    "colossus_mains": dict(HOUND, start=C4_SECONDS + MAIN_ON - 0.5, end=C4_SECONDS + 40.0, path=colossus_heavy,
                            sound_speed=340.0, distance_power=1.2, pan="c1", pan_width=0.6, seed=53, **HEAVY_RANGE,
-                           thrust=[(C4_SECONDS + 23.9, 0.0), (C4_SECONDS + 24.0, 0.3), (C4_SECONDS + 25.5, 1.0),
-                                   (C4_SECONDS + 40.0, 1.0)], thumps=(C4_SECONDS + 24.0,)),
+                           thrust=[(C4_SECONDS + MAIN_ON - 0.1, 0.0), (C4_SECONDS + MAIN_ON, 0.3),
+                                   (C4_SECONDS + MAIN_FULL, 1.0), (C4_SECONDS + 40.0, 1.0)],
+                           thumps=(C4_SECONDS + MAIN_ON,)),
     # C4 (joined C4-C5 clock): Second Wind seen from the sky camera, 450-800 m above it. Its main drive
     # burns full until touchdown at 16.4 and is out by 17.9; the belly lift jets light at 10.0, are full
     # 12.0-16.4 and out by 17.4 (thrust_shots.mark_c4). Burning-gas rockets, broadband: no hum.
