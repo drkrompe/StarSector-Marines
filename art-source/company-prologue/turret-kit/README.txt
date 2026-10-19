@@ -170,10 +170,14 @@ Hardpoints (fixed mounts)
   with its slot a quarter of the sprite's length from its back and the fire
   point at hardpointOffsets ahead of it, so most of a big hardpoint runs out
   ahead of its slot. hull_finish / sprite_tint work as for build(); muzzles are
-  '<prefix> muzzle anchor <k>'. So far: autopulse (the Paragon Elite's bow
-  pair): a breech on a sled in its bay, a capacitor bulb, a finned cooling
-  flange, the long emitter barrel to a lipped muzzle, a coolant pipe and a
-  capacitor box, sized to a 21 x 22 bay.
+  '<prefix> muzzle anchor <k>'. So far, both sized to a 21 x 22 bay:
+  - tachyonlance: a spinal beam projector (the Paragon's bow pair): a power
+    block with a capacitor bank on a sled, trunks back to the bay wall, the
+    emitter's lens sunk at the root of the beam slot (the fire point, 5 px
+    ahead of the slot), two plated prongs with focusing rails, shoulder pods;
+  - autopulse: a breech on a sled, a capacitor bulb, a finned cooling flange,
+    the hollow emitter barrel down to its lens, a coolant pipe and a
+    capacitor box.
 
 Review
   blender --background --factory-startup --python catalog.py -- --out DIR
