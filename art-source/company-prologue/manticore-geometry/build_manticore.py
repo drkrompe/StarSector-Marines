@@ -7,7 +7,7 @@ one unit about the .ship centre (82, 67), so slot and engine locations from
 manticore.ship are model XY unchanged. Heights are proposed art.
 
 One module per area: mt_hull (bow head, neck, core, wings, aft body, turret
-pods, launcher housings, command dome), mt_engines (the five drives),
+pods, launcher wells, command dome), mt_engines (the five drives),
 mt_mounts (the ten slots: turrets and hardpoints from the shared turret kit,
 system anchors), mt_lights (running lights); mt_kit holds the shared helpers.
 
@@ -68,11 +68,11 @@ NAME = 'Manticore (P)'
 # (../ship_scale.py, owner's option C): contents (80 crew, 80 cargo, 50 fuel)
 # over the destroyer machinery share, against the measured enclosed volume,
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
-# pods, launcher housings or weapons). Until the hull is in ship_scale.HULLS
+# pods or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = ('Review round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
+STATUS = ('Review round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
           'low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 '
-          'deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.54 m/u, ship_scale.py option C) + '
+          'deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + '
           'pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.')
 SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft body', 'Hull ventral keel',
           'Bridge command tier', 'Bridge command dome']
@@ -404,18 +404,26 @@ def forward_checks():
             ob, _q = _cast(mo.matrix_world.translation, Vector((1, 0, 0)), skip=(f'Weapon {sid} ', 'Anchor '))
             if ob:
                 blocked.append(ob)
+        # Ahead and 10 deg below: a target the drooping arms let the guns reach.
+        low = Vector((math.cos(math.radians(10)), 0, -math.sin(math.radians(10))))
+        blocked_low = [ob for ob in (_cast(bpy.data.objects[m['anchor']].matrix_world.translation, low,
+                                           skip=(f'Weapon {sid} ', 'Anchor '))[0] for m in t['muzzles']) if ob]
         bearing.append({'slot': sid, 'weapon': t['weapon'], 'bears_dead_ahead': not blocked,
-                        'blocked_by': sorted(set(blocked))})
+                        'blocked_by': sorted(set(blocked)), 'bears_ahead_10_deg_down': not blocked_low,
+                        'blocked_10_deg_down_by': sorted(set(blocked_low))})
     if not args.ahead:
         for sid, pv in pivots.items():
             pv.rotation_euler.z = rest[sid]
         bpy.context.view_layer.update()
     n = sum(b['bears_dead_ahead'] for b in bearing)
+    n_low = sum(b['bears_ahead_10_deg_down'] for b in bearing)
     print(f'bridge eye {sight["eye"]}: bow gun visible {bow_gun_seen} at {sight["bow_gun_depression_deg"]} deg; prow visible {bow_seen} at {sight["prow_depression_deg"]} deg down; '
           f'runs {[(r["from_deg"], r["meets"]) for r in runs]}')
     print('sweep', [(w['bearing_deg'], w.get('clear_down_to_deg', ('up', w.get('blocked_up_to_deg'), w.get('by')))) for w in sweep])
     print(f'bearing dead ahead: {n} of {len(bearing)}: {[(b["slot"], b["blocked_by"]) for b in bearing]}')
-    return {'bridge_sightline': sight, 'bearing_dead_ahead': {'count': n, 'of': len(bearing), 'mounts': bearing}}
+    print(f'bearing 10 deg down: {n_low} of {len(bearing)}: {[(b["slot"], b["blocked_10_deg_down_by"]) for b in bearing]}')
+    return {'bridge_sightline': sight, 'bearing_dead_ahead': {'count': n, 'count_10_deg_down': n_low,
+                                                              'of': len(bearing), 'mounts': bearing}}
 
 
 BRIDGE_EYE_Z = mt_hull.BRIDGE_DECK+3.4
@@ -488,7 +496,7 @@ if not args.no_save:
                   'triangles': sum(len(p.vertices)-2 for o in meshes for p in o.data.polygons),
                   'objects': len(meshes), 'materials': sorted({m.name for o in meshes for m in o.data.materials})},
         'object_names': {'Hull ...': 'bow head, neck, core, wing body, aft body, ventral keel, turret pods, '
-                                     'launcher housings and cheeks, turret rings, detail',
+                                     'launcher wells, turret rings, detail',
                          'Bridge ...': 'the pale command dome and its glazing',
                          'Engine <i> ...': 'drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, '
                                            'drive glow anchor',

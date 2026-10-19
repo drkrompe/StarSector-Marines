@@ -12,8 +12,8 @@ RED, GREEN, WHITE = (1.0, .06, .03), (.08, 1.0, .3), (1.0, .95, .85)
 LIGHTS = []
 
 
-from mt_hull import POD, wing_drop
-POD_LAMP_Z = 9.6-wing_drop(POD[1])   # near the top of the drooping gun pod's outboard face
+from mt_hull import POD, nose_drop, wing_drop
+POD_LAMP_Z = 9.6-wing_drop(POD[1])-nose_drop(POD[0])   # near the top of the drooping gun pod's outboard face
 
 def lamp(kit, name, loc, colour, role, period, phase, mats):
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.4, location=loc)

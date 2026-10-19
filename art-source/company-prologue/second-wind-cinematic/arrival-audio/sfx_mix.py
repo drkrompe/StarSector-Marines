@@ -35,9 +35,9 @@ DIALOGUE_LUFS = -19.0
 # fresh worktree may need --hail pointing at a checkout that has built it).
 HAIL = ROOT / "mod/sounds/story/jangala-arrival"
 # Castle's review takes (record_castle_lines.py treat): the owner's "a" takes from the review set.
-CASTLE = {"entry": "entry_t06", "c4_reels": "c4_reels_t06", "c4_greywater": "c4_greywater_t01",
-          "c4_kilo_nine": "c4_kilo_nine_t01",
-          "c5_announce": "c5v3_announce_t01", "c5_last": "c5v3_last_t01"}
+# The owner's script of 2026-10-19 (record_castle_lines.py v4): a stop, not a home.
+CASTLE = {"entry": "v4_entry_t02", "c3_reels": "v4_c3_reels_t03", "c4_yard": "v4_c4_yard_t02",
+          "c5_announce": "v4_c5_announce_t01", "c5_last": "v4_c5_last_t03"}
 LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice band
 
 # Picture sketches: the newest review video of each shot, as of the cue sheet's date.
@@ -169,7 +169,7 @@ SHOTS = {
         # The world below, through the glass: muffled, and in once the shaking has gone.
         sfx("c3_nature_muffled", 4.0, -16, until=16.0, af="lowpass=f=1800:p=2", fade_in=2.5),
         sfx("c3_river_muffled", 4.0, -18, until=16.0, af="lowpass=f=1200:p=2", fade_in=3.0),
-        voice(("castle", CASTLE["c4_reels"]), 7.0),
+        voice(("castle", CASTLE["c3_reels"]), 7.0),
     ]),
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
     "c4c5": (C4_LENGTH + 40.0, [   # C5 is 40 s (owner: linger on the title, more of the port)
@@ -204,8 +204,8 @@ SHOTS = {
         # at 15 with its dust, mains lit at 19.5 as it turns south-west and climbs away. Kept under the music and title.
         synth("colossus_lift", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
         synth("colossus_mains", -12, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
-        voice(("castle", CASTLE["c4_greywater"]), 0.5),
-        voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
+        # One line, done before the landing burn at 9.5 (owner: C4 is too short for more).
+        voice(("castle", CASTLE["c4_yard"]), 1.0),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
         # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
@@ -222,7 +222,7 @@ SHOTS = {
         sfx("c5_steam_vent", 4.0, -14, until=6.5),
         sfx("c5_steam_vent", 6.4, -16, until=8.6),
         sfx("c5_pa_click", 4.75, -10, until=5.2),
-        sfx("c5_pa_click", 13.8, -10, until=14.25),
+        sfx("c5_pa_click", 12.05, -10, until=12.5),   # the announcement ends at 11.95
         sfx("c5_ramp_drop", 5.6, -8),
         # From 220 m up the families are a far murmur, not footsteps (owner, 2026-10-19).
         sfx("c5_crowd_murmur", 8.5, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
