@@ -360,6 +360,35 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void mechCallsignRenamesTheSelectedAssetAndRefusesBlankInput() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.selectGantryAction(0).run();
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        MechWeaponComponent arms = mech.arms();
+
+        viewModel.editCallSignAction().accept("   ");
+        assertTrue(viewModel.callSignRenameDisabled().get());
+        viewModel.renameCallSignAction().run();
+        assertEquals("Bulwark 01", mech.displayName());
+
+        viewModel.editCallSignAction().accept("  Ironside ");
+        assertFalse(viewModel.callSignRenameDisabled().get());
+        viewModel.renameCallSignAction().run();
+        assertEquals("Ironside", mech.displayName());
+        assertEquals("Ironside", viewModel.selectedMechName().get());
+        assertEquals("Ironside", viewModel.gantryRows().get().get(0).name());
+        assertEquals(MechBay.STARTER_MECH_ID, mech.id());
+        assertEquals(arms, mech.arms());
+
+        viewModel.editCallSignAction().accept("I".repeat(CampaignMech.CALLSIGN_MAX_LENGTH + 1));
+        assertTrue(viewModel.callSignRenameDisabled().get());
+        viewModel.renameCallSignAction().run();
+        assertEquals("Ironside", mech.displayName());
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
+    }
+
+    @Test
     void vacantGantryFabricatesAKnownVehiclePattern() {
         MechBay bay = MechBay.legacyStarterFixture();
         TestResources resources = TestResources.stocked(2_000);

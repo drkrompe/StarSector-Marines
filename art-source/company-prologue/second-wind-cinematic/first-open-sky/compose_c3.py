@@ -1,16 +1,22 @@
 """C3 FIRST OPEN SKY: final frames (storyboard-v3.md, c3-layout.md, runtime-contract.md).
 
-python compose_c3.py            # review stills and contact sheet only (review/, 1920x1080)
-python compose_c3.py --movie    # also every frame and the review mp4
+python compose_c3.py                 # review stills and contact sheet only (review/, 1920x1080)
+python compose_c3.py --movie         # also every frame and the review mp4
+python compose_c3.py --movie --fps 8 # a sketch: every third frame, held, for timing review
+python compose_c3.py --coverage      # count window pixels no world layer covers, shot-wide
 
 Writes build/cinematic/c3-first-open-sky/frames/%05d.png (1920x1080, 24 fps, sRGB, no
 text) and c3-first-open-sky.mp4 beside them, with the audio cues mixed in for review.
 The player takes captions(), overlays() and audio_cues() from here (runtime-contract.md).
 
 Build order: c3_bands.py, c3_plates.py prep/check/assemble, c3_layers.py, then this.
-Every layer only translates and scales; rates come from c3_core.py's camera and
-distances. The window opens in the entry's last cloud: frame 0 is the aperture filled
-with flat soft white, which burns off and slides aft over the first 1.6 s.
+Every world layer translates and scales at the rate c3_core.py's camera and distances
+give it, and the whole world turns about the lens centre with the ship's attitude: the
+shot opens nose down and descending out of the entry and eases level (c3_core.LEVEL_SPAN),
+so the horizon swings level while the shake eases off. The window opens in the entry's
+last cloud: frame 0 is the aperture filled with flat soft white, which burns off and
+slides aft over the first 1.6 s. The camera shake moves the whole picture, cabin and all,
+and is the entry's own shake carried on (c3_core.camera_shake).
 """
 import argparse
 import json
@@ -24,8 +30,9 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
-from c3_core import (BASE, CABIN_DEPTH_M, CIN, DURATION, F_PX, FPS, GROUND_SPEED, H, HORIZON_Y, LAYERS, ROOT,  # noqa: E402
-                     SINK_RATE, W, PLATE_X0, PLATE_Y0, lean_scale, rise_px, smooth, truck_px)
+from c3_core import (BASE, CABIN_DEPTH_M, CASTLE_REELS_AT, CASTLE_REELS_TAKE, CIN, DURATION, ENTRY_LEN,  # noqa: E402
+                     F_PX, FPS, H, HORIZON_Y, LAYERS, ROOT, W, PLATE_X0, PLATE_Y0, camera_shake, lean_scale,
+                     nose_down_deg, rise_at, smooth, travelled, truck_at, world_buffet)
 
 LAYER_DIR = BASE / "build" / "layers"
 AUDIO_SRC = ROOT / "asset-pipeline" / "src" / "tool" / "resources" / "audio" / "jangala-arrival"
@@ -36,6 +43,7 @@ SHOT = "c3-first-open-sky"
 # hand-off agreed in the shared notes, c3-handoff.md), then burns it off.
 ENTRY_WHITE = np.array([244, 246, 248], np.float32) / 255
 BURN = 1.6
+FLOCK_IN = 8.6                       # s: the flock clears the right jamb, under Castle's line
 DEBUG = False
 
 
@@ -46,8 +54,16 @@ def duration():
 
 
 def captions():
-    """No dialogue: the shot lets the company, and the player, look."""
+    """Castle's travel-reels line plays here once the ship is level (voice_timing()). Its
+    caption and cue are registered with the rest of Castle's lines; until that line is in
+    the catalog nothing is returned, and the arrival mix (sfx_mix.py) places the take."""
     return []
+
+
+def voice_timing():
+    """Where Castle's line sits in this shot, for the mix and the timeline."""
+    return {"line": "c4_reels", "take": CASTLE_REELS_TAKE[0], "t": CASTLE_REELS_AT,
+            "ends": round(CASTLE_REELS_AT + CASTLE_REELS_TAKE[1], 3)}
 
 
 def overlays():
@@ -57,7 +73,7 @@ def overlays():
 def audio_cues():
     """(t, sound_id, volume[, until]). Built by :asset-pipeline:processAudio from
     audio.json; sources from c3_audio.py. The bed loops for the whole shot; the wind
-    is one pass whose buffeting eases with the world shake."""
+    is one pass whose buffeting eases with the shake."""
     return [
         (0.0, "jangala_arrival_cabin_bed", 0.55, DURATION),
         (0.0, "jangala_arrival_wind", 0.80),
@@ -71,13 +87,13 @@ def arr(im):
 
 
 def img(a):
-    return Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8))
+    return Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8))
 
 
 class Layer:
-    def __init__(self, name, im, x, y, vx=0.0, vy=0.0, scale=1.0, alpha=None, path=None, world=True):
-        self.name, self.im, self.x, self.y, self.vx, self.vy = name, im, x, y, vx, vy
-        self.scale, self.alpha, self.path, self.world = scale, alpha, path, world
+    """`pos(t)` is the layer's top-left in the level, unshaken frame at C3 time t."""
+    def __init__(self, name, im, pos, scale=1.0, path=None, opaque=False):
+        self.name, self.im, self.pos, self.scale, self.path, self.opaque = name, im, pos, scale, path, opaque
 
 
 def baked(name, meta):
@@ -120,33 +136,40 @@ def build():
     D = {n: d for n, d, _ in LAYERS}
     L = []
     sky = Image.open(CIN / "managed-land-realism" / "assets" / "sky-realism-v1.png").convert("RGBA")
-    sky_scale = 1.25
+    sky_scale = SKY_SCALE
     sky = sky.resize((round(sky.width * sky_scale), round(sky.height * sky_scale)), Image.LANCZOS)
-    L.append(Layer("sky", sky, -60, HORIZON_Y + 90 - sky.height, vx=-truck_px(D["horizon"]) / DURATION))
-
-    def plate(name, dist, extra_vx=0.0, dy=0.0):
-        im, s = baked(name, meta)
-        L.append(Layer(name, im, PLATE_X0, PLATE_Y0 + dy, scale=s,
-                       vx=-truck_px(dist) / DURATION + extra_vx, vy=-rise_px(dist) / DURATION))
-
+    sky_x, sky_y = SKY_X, HORIZON_Y + 90 - sky.height
+    L.append(Layer("sky", sky, lambda t: (sky_x - truck_at(t, D["horizon"]), sky_y), opaque=True))
     breeze = 1.0                                                  # m/s from the bow
-    plate("range", D["horizon"])
-    plate("far", D["far"])
-    plate("mist-high", 4500.0, extra_vx=-F_PX * breeze / 4500.0)
-    plate("mid", D["mid"])
+
+    def plate(name, dist, breeze_dist=None, opaque=False):
+        im, s = baked(name, meta)
+
+        def pos(t):
+            x = PLATE_X0 - truck_at(t, dist) - (F_PX * breeze * t / breeze_dist if breeze_dist else 0.0)
+            return x, PLATE_Y0 - rise_at(t, dist)
+        L.append(Layer(name, im, pos, scale=s, opaque=opaque))
+
+    plate("range", D["horizon"], opaque=True)
+    plate("far", D["far"], opaque=True)
+    plate("mist-high", 4500.0, breeze_dist=4500.0)
+    plate("mid", D["mid"], opaque=True)
     # Atlas: 300 m hull at 2.2 km (189 px), bow right, climbing out at 60 m/s and 8 m/s.
     atlas, s = baked("atlas", meta)
     ad = 2200.0
-    L.append(Layer("atlas", atlas, 520, 205, scale=s, vx=-F_PX * GROUND_SPEED / ad + F_PX * 60.0 / ad,
-                   vy=-F_PX * (8.0 + SINK_RATE) / ad))
-    plate("mist-low", 1700.0, extra_vx=-F_PX * breeze / 1700.0)
-    plate("near", D["near"])
+    L.append(Layer("atlas", atlas, lambda t: (520 + F_PX * (60.0 * t - travelled(t)[0]) / ad,
+                                              205 - F_PX * (8.0 * t + travelled(t)[1]) / ad), scale=s))
+    plate("mist-low", 1700.0, breeze_dist=1700.0)
+    plate("near", D["near"], opaque=True)
     # Flock: eleven 3 m fliers ~700 m out at about our altitude, against the bright low
     # sky; flying aft at 8 m/s they pass the ship and enter from behind the right jamb.
     fd = 700.0
     span = F_PX * 3.0 / fd * 1.4          # 5.9 px true; drawn 1.4x so a wingbeat reads at 1080p
     rng = np.random.default_rng(11)
-    vx_f = (-F_PX * GROUND_SPEED - F_PX * 8.0) / fd
+
+    def flock_x(t):
+        return F_PX * (travelled(t)[0] + 8.0 * t) / fd
+
     for i in range(11):
         bx, by = rng.uniform(-70, 70), rng.uniform(-14, 14)
         ph, sz, rate = rng.uniform(0, 1), rng.uniform(0.8, 1.15), rng.uniform(2.9, 3.5)
@@ -159,15 +182,18 @@ def build():
         def bob(t, ph=ph):
             return 1.2 * math.sin(2 * math.pi * (t * 0.7 + ph))
 
-        L.append(Layer("bird%d" % i, None, 1900 + bx - vx_f * 2.5, 255 + by, vx=vx_f, vy=-0.8, path=(frames, bob)))
+        x0 = 1900 + bx + flock_x(FLOCK_IN)
+        L.append(Layer("bird%d" % i, None, lambda t, x0=x0, y0=255 + by: (x0 - flock_x(t), y0 - 0.8 * (t - FLOCK_IN)),
+                       path=(frames, bob)))
     cabin, _ = baked("cabin", meta)
-    L.append(Layer("cabin", cabin, 0, 0, world=False))
+    L.append(Layer("cabin", cabin, lambda t: (0, 0)))
     # density of the entry's last cloud, sliding aft at ~800 m (c3-layout.md, Pickup)
     cloud = Image.open(CIN / "managed-land-realism" / "assets" / "clouds-realism-v1.png").convert("RGBA")
     cloud = cloud.filter(ImageFilter.GaussianBlur(5))             # out of focus, 0.8 km off
     return L, cloud
 
 
+SKY_SCALE, SKY_X = 1.45, -260.0      # the sky plate is enlarged so the turned window stays inside it
 SCENE = None
 
 
@@ -178,19 +204,32 @@ def scene():
     return SCENE
 
 
-def jitter(t):
-    """The airframe's last buffeting from the entry: world shake decaying over ~3 s."""
-    amp = 2.4 * math.exp(-t / 0.9)
-    return amp * math.sin(t * 37.0) + 0.6 * amp * math.sin(t * 23.0 + 1.3), amp * 0.7 * math.sin(t * 29.0 + 0.4)
+def world_affine(x, y, s, roll_deg):
+    """PIL AFFINE coefficients (frame -> source) for a layer at top-left (x, y), scale s,
+    with the world turned roll_deg counter-clockwise (horizon up on the right) about the
+    lens centre. Through a port window the ship's pitch is exactly this roll."""
+    th = math.radians(roll_deg)
+    c, n = math.cos(th), math.sin(th)
+    cx, cy = W / 2, H / 2
+    return (c / s, -n / s, (-c * cx + n * cy + cx - x) / s,
+            n / s, c / s, (-n * cx - c * cy + cy - y) / s)
 
 
-def place(canvas, im, x, y, s, alpha=1.0, tint=None):
+def place(canvas, im, x, y, s, roll=0.0, alpha=1.0, tint=None, cov=None):
+    """Composite a layer placed at top-left (x, y), scale s, turned with the world by roll."""
     w, h = im.size
-    bx0, by0 = max(0, math.floor(x)), max(0, math.floor(y))
-    bx1, by1 = min(W, math.ceil(x + w * s)), min(H, math.ceil(y + h * s))
+    th = math.radians(roll)
+    corners = []
+    for qx, qy in ((0, 0), (w, 0), (0, h), (w, h)):
+        px, py = x + qx * s - W / 2, y + qy * s - H / 2
+        corners.append((W / 2 + math.cos(th) * px + math.sin(th) * py, H / 2 - math.sin(th) * px + math.cos(th) * py))
+    bx0, by0 = max(0, math.floor(min(c[0] for c in corners))), max(0, math.floor(min(c[1] for c in corners)))
+    bx1, by1 = min(W, math.ceil(max(c[0] for c in corners))), min(H, math.ceil(max(c[1] for c in corners)))
     if bx1 <= bx0 or by1 <= by0:
         return
-    tile = im.transform((bx1 - bx0, by1 - by0), Image.AFFINE, (1 / s, 0, (bx0 - x) / s, 0, 1 / s, (by0 - y) / s),
+    a_, b_, c_, d_, e_, f_ = world_affine(x, y, s, roll)
+    tile = im.transform((bx1 - bx0, by1 - by0), Image.AFFINE,
+                        (a_, b_, c_ + a_ * bx0 + b_ * by0, d_, e_, f_ + d_ * bx0 + e_ * by0),
                         resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
     a = arr(tile)
     rgb, al = a[..., :3], a[..., 3:4] * alpha
@@ -198,17 +237,20 @@ def place(canvas, im, x, y, s, alpha=1.0, tint=None):
         rgb = rgb * 0.45 + np.array(tint, np.float32) * 0.55
     reg = canvas[by0:by1, bx0:bx1]
     canvas[by0:by1, bx0:bx1] = reg * (1 - al) + rgb * al
+    if cov is not None:
+        cr = cov[by0:by1, bx0:bx1]
+        cov[by0:by1, bx0:bx1] = cr * (1 - al[..., 0]) + al[..., 0]
 
 
-def burn_off(canvas, cloud, t, jx, jy):
+def burn_off(canvas, cloud, t, jx, jy, roll):
     """The entry's cloud over the world: flat white at t = 0, thinning from its
     thinnest parts first as it slides aft, gone at BURN."""
     if t >= BURN:
         return
     u = smooth(t / BURN)
     s = 2.4
-    x, y = -1250 - F_PX * GROUND_SPEED / 800.0 * t + jx, -560 + jy
-    tile = cloud.transform((W, H), Image.AFFINE, (1 / s, 0, -x / s, 0, 1 / s, -y / s),
+    x, y = -1250 - truck_at(t, 800.0) + jx, -560 - rise_at(t, 800.0) + jy
+    tile = cloud.transform((W, H), Image.AFFINE, world_affine(x, y, s, roll),
                            resample=Image.BILINEAR, fillcolor=(0, 0, 0, 0))
     c = arr(tile)
     dens = c[..., 3] * (0.55 + 0.45 * (c[..., :3] @ np.array([0.3, 0.6, 0.1], np.float32)))
@@ -219,25 +261,50 @@ def burn_off(canvas, cloud, t, jx, jy):
     canvas[:] = canvas * (1 - a) + col * a
 
 
-def frame(t):
+def shaken(canvas, s):
+    """The camera shake at entry second s, applied to the whole picture (cabin included).
+    `canvas` is a float sRGB array; returns an Image."""
+    dx, dy, rot, zoom = camera_shake(s)
+    im = img(canvas)
+    if abs(dx) + abs(dy) + abs(rot) * 20 + (zoom - 1) * 1000 < 0.02:
+        return im
+    th = math.radians(rot)
+    c, n = math.cos(th) / zoom, math.sin(th) / zoom
+    cx, cy = W / 2, H / 2
+    # frame -> source: undo the translation, then the turn and zoom about the centre
+    return im.transform((W, H), Image.AFFINE, (c, -n, cx - c * (cx + dx) + n * (cy + dy),
+                                                n, c, cy - n * (cx + dx) - c * (cy + dy)),
+                        resample=Image.BICUBIC)
+
+
+def frame(t, shake_s=None, coverage=None, unshaken=False):
+    """C3 at time t. shake_s overrides the shake clock (entry seconds; default ENTRY_LEN + t).
+    `coverage`, a list, receives the count of window pixels no opaque world layer covers.
+    unshaken=True returns the float array before the camera shake."""
     layers, cloud = scene()
+    s_ent = ENTRY_LEN + t if shake_s is None else shake_s
     canvas = np.zeros((H, W, 3), np.float32)
-    jx, jy = jitter(t)
+    cov = np.zeros((H, W), np.float32) if coverage is not None else None
+    jx, jy = world_buffet(s_ent)
+    roll = nose_down_deg(t)
     for L in layers:
         if L.name == "cabin":
-            burn_off(canvas, cloud, t, jx, jy)
+            if coverage is not None:
+                glass = arr(L.im)[..., 3] < 0.5
+                coverage.append(int(((cov < 0.98) & glass).sum()))
+            burn_off(canvas, cloud, t, jx, jy, roll)
             s = L.scale * lean_scale(t, CABIN_DEPTH_M)
             place(canvas, L.im, W / 2 - W / 2 * s, H / 2 - H / 2 * s, s)
             continue
+        x, y = L.pos(t)
         if L.path is not None:
             draw, bob = L.path
-            im = draw(t)
-            place(canvas, im, L.x + L.vx * t + jx, L.y + L.vy * t + bob(t) + jy, 1.0)
+            place(canvas, draw(t), x + jx, y + bob(t) + jy, 1.0, roll)
             continue
         # the lean moves the eye 5 cm toward km-distant layers: scale 1.00004, ignored
         tint = TINT.get(L.name) if DEBUG else None
-        place(canvas, L.im, L.x + L.vx * t + jx, L.y + L.vy * t + jy, L.scale, tint=tint)
-    return img(canvas)
+        place(canvas, L.im, x + jx, y + jy, L.scale, roll, tint=tint, cov=cov if L.opaque else None)
+    return canvas if unshaken else shaken(canvas, s_ent)
 
 
 TINT = {"sky": (0.35, 0.6, 1.0), "range": (0.6, 0.45, 1.0), "far": (1.0, 0.8, 0.25),
@@ -255,11 +322,12 @@ def label(im, text):
 
 
 STILLS = [
-    ("01-pickup", 0.0, "t=0.0s  pickup: the aperture full of the entry's flat white"),
-    ("02-burn", 0.8, "t=0.8s  the cloud burning off, thinnest parts first, sliding aft"),
-    ("03-settle", 4.0, "t=4.0s  vibration gone"),
-    ("04-lean", 8.0, "t=8.0s  lean nearly complete: cabin x1.04; Atlas climbing right, flock in from the right"),
-    ("05-out", DURATION - 1 / FPS, "t=12.0s  out"),
+    ("01-pickup", 0.0, "t=0.0s  pickup: the aperture full of the entry's flat white, nose down, shaking"),
+    ("02-burn", 0.8, "t=0.8s  the cloud burning off, sliding aft and up; horizon still tilted"),
+    ("03-levelling", 2.8, "t=2.8s  flattening out: the horizon swinging level, the shake easing"),
+    ("04-level", 6.0, "t=6.0s  level, shake gone; the sideways slide carries on"),
+    ("05-line", 10.0, "t=10.0s  under Castle's line: the lean under way, Atlas climbing, flock in from the right"),
+    ("06-out", DURATION - 1 / FPS, "t=16.0s  out"),
 ]
 
 
@@ -277,9 +345,18 @@ def contact_sheet(path):
     sheet.save(path)
 
 
+STEP = 1
+
+
 def render(i):
     frame(i / FPS).save(OUT / "frames" / ("%05d.png" % i))
     return i
+
+
+def _coverage(i):
+    holes = []
+    frame(i / FPS, coverage=holes, unshaken=True)
+    return i, holes[0]
 
 
 def review_audio(path):
@@ -303,7 +380,19 @@ def main():
     global DEBUG
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--movie", action="store_true")
+    ap.add_argument("--fps", type=int, default=FPS, help="sketch rate: render every FPS/fps-th frame and hold it")
+    ap.add_argument("--coverage", action="store_true")
+    ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
     args = ap.parse_args()
+    n = round(DURATION * FPS)
+    if args.coverage:
+        worst = []
+        with ProcessPoolExecutor(args.workers) as pool:
+            for i, holes in pool.map(_coverage, range(0, n, 3), chunksize=4):
+                if holes:
+                    worst.append((holes, i))
+        print("frames with uncovered window pixels:", len(worst), "worst:", sorted(worst)[-5:])
+        return
     rev = BASE / "review"
     rev.mkdir(exist_ok=True)
     for old in rev.glob("c3-0*.png"):
@@ -311,10 +400,10 @@ def main():
     for name, t, text in STILLS:
         label(frame(t), "C3  " + text).save(rev / ("c3-%s.png" % name))
     DEBUG = True
-    label(frame(6.0), "C3 band check t=6.0s  sky / range / far / mid / near / Atlas tinted; mist white; cabin untinted").save(
-        rev / "c3-06-bands.png")
+    label(frame(8.0), "C3 band check t=8.0s  sky / range / far / mid / near / Atlas tinted; mist white; cabin untinted").save(
+        rev / "c3-07-bands.png")
     DEBUG = False
-    contact_sheet(rev / "c3-07-contact-sheet.png")
+    contact_sheet(rev / "c3-08-contact-sheet.png")
     print("stills and contact sheet in", rev)
     if not args.movie:
         return
@@ -322,11 +411,16 @@ def main():
     fr.mkdir(parents=True, exist_ok=True)
     for old in fr.glob("*.png"):
         old.unlink()
-    n = round(DURATION * FPS)
-    with ProcessPoolExecutor(max(1, (os.cpu_count() or 2) // 2)) as pool:
-        for i in pool.map(render, range(n), chunksize=6):
+    step = max(1, round(FPS / args.fps))
+    with ProcessPoolExecutor(args.workers) as pool:
+        for i in pool.map(render, range(0, n, step), chunksize=2):
             if i % 48 == 0:
                 print("frame", i, flush=True)
+    if step > 1:                                                  # a sketch: hold each drawn frame
+        import shutil
+        for i in range(n):
+            if i % step:
+                shutil.copyfile(fr / ("%05d.png" % (i - i % step)), fr / ("%05d.png" % i))
     wav = OUT / "c3-review-audio.wav"
     review_audio(wav)
     movie = OUT / (SHOT + ".mp4")
@@ -334,8 +428,9 @@ def main():
                     "-i", str(wav), "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p",
                     "-c:a", "aac", "-b:a", "160k", "-shortest", str(movie)], check=True)
     (OUT / "timeline.json").write_text(json.dumps({
-        "shot": SHOT, "duration": duration(), "fps": FPS, "frames": n,
-        "captions": captions(), "overlays": overlays(), "audio_cues": audio_cues()}, indent=1), encoding="utf-8")
+        "shot": SHOT, "duration": duration(), "fps": FPS, "frames": n, "sketch_step": step,
+        "captions": captions(), "overlays": overlays(), "audio_cues": audio_cues(),
+        "voice": voice_timing()}, indent=1), encoding="utf-8")
     print("wrote", movie)
 
 

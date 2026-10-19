@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceS
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.goap.world.ZoneOccupancy;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -138,6 +139,15 @@ public interface BattleView {
 
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     ZoneGraph getZoneGraph();
+
+    /**
+     * Where each faction's units stood when this tick's unit update began, or {@code null} when the
+     * view keeps none. A caller treats it as a shortcut for "no hostile here" and scans when it
+     * declines; see {@link ZoneOccupancy}.
+     */
+    default ZoneOccupancy zoneOccupancy() {
+        return null;
+    }
 
     /**
      * Number of live units in the dense roster — the corpse-free count for live

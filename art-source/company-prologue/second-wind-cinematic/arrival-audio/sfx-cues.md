@@ -62,10 +62,9 @@ follow it to the planet by about 15 s, and the customs Hound crosses close in 03
 | `c1_hull_creaks` | Old hull flexing: slow metal groans | 1.0, 33.0 | Spot | −12 | Gen |
 | `c1_rcs_puffs` | A thruster burst heard through the hull as the ship corrects | 5.5 | Spot | −14 | Gen |
 | `c1_sparks` | Faint fizz of the broken conduits | 6–10, while the damage fills the frame | Spot | −22 | Gen |
-| `c1_sw_engine_loop` | Second Wind's drive as a deep bass hum: far at first, loudest as it passes and its engines face us, easing as it recedes | 0–37.7, peak at 11 | Bed | −14 (−26 to −12), below 220 Hz | Gen |
-| `c1_sw_passby_swish` | A big heavy swish as the ship passes the camera | 9.25–14, peak at 11 | Spot | −10 | Gen |
+| `second_wind_pass` | Second Wind's drive as a muffled heavy rocket, **synthesised from its lane** in the C1 scene: a deep roar with crackle, a heavy low end, the pitch drop and a swell as it brakes past the camera at 10 s, then its engines facing us as it opens up toward Jangala | 0–37.7, loudest 9–12 | Spot | −10 | Code |
 | Squelch open / close | Approach's key-up and key-down | 3.0 / 11.8, 23.7 / 31.7 | Spot | as shipped | Existing `jangala_squelch_open`, `_close` |
-| `hound_flyby_a` | The customs Hound crossing left to right, **synthesised from its flight path** (`synth_flyby.py`, owner 2026-10-19: the generated swish missed). An engine drone and turbine whine with the pitch drop computed from the path, an air rush that swells and brightens as it closes, distance falloff and a pan from its bearing. `hound_flyby_b` is a sharper reading | 21.5–34.5, closest at about 27.5 | Spot | −8 | Code |
+| `hound_flyby_a` | The customs Hound crossing left to right, **synthesised from its flight path** (`synth_flyby.py`, owner 2026-10-19: the generated swish missed). A muffled rocket roar with a heavy low end and the pitch drop computed from the path, a dark air rush that swells as it closes, distance falloff and a pan from its bearing. `hound_flyby_b` is darker and heavier | 21.5–34.5, closest at about 27.5 | Spot | −8 | Code |
 
 ## C2 — PATROL ABEAM, on the bridge (15.0 s)
 
@@ -77,57 +76,62 @@ over 3.5 s, and the Legion clears the slits at about 14.
 |---|---|---|---|---|---|
 | `c2_bridge_bed` | Bridge room tone: console fans, electronics hum, distant drive | 0–15, from a 1 s crossfade off the cabin bed | Bed | −16 | Gen |
 | `c2_console_beeps` | A contact chirp as the Legion is tracked; a short double tone as the fighters come in | 0.2, 2.0 | Spot | −14 | Gen |
-| `c2_fighter_swish` | Fast swishes as the fighters pass: one per fighter, three a vic, 0.12 s apart | 2.5–3.2 and 3.7–4.4, peaks at 3.0 and 4.2 | Spot | −8 to −15 | Gen |
-| `c2_legion_engines_a`, `_b` | The Legion's engines: two layered deep bass hums, swelling to the beam and falling away | 0–15, peaks at 8.0 and 8.5 | Bed | −12 and −13 (−28 at the ends), below 220 Hz | Gen |
-| `c2_legion_presence` | The warship's mass going by: a sub rumble under the hums | 5–17, peak at 8.0 | Transition | −14, below 220 Hz | Gen |
+| `fighter_00`…`fighter_12` | The six Broadswords, **synthesised from their flight paths** in `c2_bridge_blockout`: a hard thruster roar each, a sharp pitch drop at 160 m/s, swinging hard to port as they whip past; the leaders loudest | 2.0–5.5, peaks at 3.0 and 4.2 | Spot | −6 leaders, −9 to −11 wingmen | Code |
+| `legion_drives`, `legion_forward` | The Legion, **synthesised from its track**: its main drives at the stern (arriving last, loudest just past the beam) and a forward cluster, deep muffled rockets with heavy bass, plus attitude-thruster bursts along the hull as it trims to the beam | 0–15, building to the beam at 8.0 | Spot | −7 and −9 | Code |
 | `c2_switch_clicks` | Castle keys her reply; then she closes the channel to Approach | 9.5, 14.4 | Spot | −12 | Gen |
-| `c2_deorbit_burn` | Main drive lights: a thump, the rumble rising, the hull creaking into the pitch | 9.6–15, rising into the entry | Transition | −12 rising to −6 | Gen |
+| `second_wind_interior` | Second Wind's own drive heard from its bridge, the same rocket voice as C1: idling low, then the de-orbit burn lights at 9.6 with an ignition thump and opens up, on through the entry | 0–15, burn from 9.6 | Transition | −8 (idle about −22) | Code |
 | Squelch open / close | Approach's key-up and key-down | 0.3 / 8.94 | Spot | as shipped | Existing |
 
-## Entry — the heat and the cloud (3.0 s)
+## Entry — the heat and the cloud (7.0 s)
 
-Castle's "Cleared. Everybody breathe." from 0.16 s, off channel, no squelch. Glow covers the
-glass by 1.1 s; cloud from 1.3 s, white by 2.5 s; cut to C3 on white.
-
-**The picture is being reworked (owner, 2026-10-19):** a longer transition, with motion down
-and to the right (flames and smoke streaming bottom right to top left) and the camera and
-window shaking. The roar and buffeting below stretch with it; C3 then opens on the ship
-levelling out.
-
-| Cue | What | When | Kind | Level | Source |
-|---|---|---|---|---|---|
-| `c2_deorbit_burn` (carried) | The burn's tail under the glow | 0–1.0 | Transition | −8 | Gen |
-| `entry_reentry_roar` | Re-entry through the hull: muffled roar building, plasma hiss | 0–3.0, running on 1.5 s into C3 | Transition | −10 under the line, swelling to −2 on the white after she finishes | Gen |
-| `entry_buffet` | Airframe buffeting, fittings rattling, thumps | 1.3–3.0 and into C3 | Spot | −10 | Gen |
-
-## C3 — FIRST OPEN SKY (12.0 s)
-
-The world shake decays with a 0.9 s time constant; then the passengers look. The owner wants
-the shot longer, opening on the ship levelling out; the cues hold their times from the start
-and the beds simply run on.
+Longer since the owner's review (`c2_core` HEAT, SMOKE, CLOUD_IN, WHITE, BLOOM). Castle's
+"Cleared. Everybody breathe." from 0.16 s, off channel, no squelch, over clear space to 1.2.
+Heat from the bottom right fills the glass by 2.4, flames streaming to the top left; smoke
+1.6–5.6; cloud 4.1–5.4; white 5.4–6.0; bloom to the cut at 7.0. The camera and window shake
+(`c3_core.shake_envelope`) stay under a pixel to 0.6 s, peak at about 9 px from 4.0 to 5.2 s,
+and decay (about 3 px at the cut).
 
 | Cue | What | When | Kind | Level | Source |
 |---|---|---|---|---|---|
-| `entry_reentry_roar` / `entry_buffet` (tails) | The entry's last buffeting | 0–1.5 | Transition | −6 falling away | Gen |
-| `c3_wind_easing` | Wind roar on the fuselage easing to a smooth airflow | 0–8 | Transition | −6 easing to −16 | Gen; existing `jangala_arrival_wind` |
-| `c3_frame_settle` | A last rattle as the fittings settle, one creak of the window frame | 2.0 | Spot | −14 | Gen |
-| `c3_cabin_flight_bed` | The cabin in steady flight: air over the hull, ventilation, a low drone | 0–12, under everything; into C4's first second | Bed | −16 | Gen; existing `jangala_arrival_cabin_bed` |
-| `c3_nature_muffled` | The jungle below heard through the glass: birds and insects, low-passed at 1.8 kHz | 1.5–12, in once the buffeting has gone | Bed | −16 | Gen |
-| `c3_river_muffled` | The river's rush, far off, low-passed at 1.2 kHz | 1.5–12 | Bed | −18 | Gen |
-| Castle | "Like the travel reels they ran in the canteen... except this one doesn't loop." Moved here from C4 (owner): it is about the view | 4.0–9.1 | Voice | 0 | `c4_reels` take |
+| `second_wind_interior` (carried) | The de-orbit burn running on under the heat | 0–7.0, easing under the bloom | Transition | −8 | Code |
+| `entry_reentry_roar` | Re-entry through the hull: the roar building with the heat, peaking with the shake, easing into the cloud | 1.2–7.0, peak 4.0–5.2 | Transition | −13 under the line, up to −3 at the peak | Gen |
+| `entry_buffet` | Buffeting and rattling fittings, following the shake envelope in dB | 0.6–7.0, peak 4.0–5.2 | Bed (looped) | −28 to −4 | Gen |
+| `c1_hull_creaks` | One groan of the hull under load | 3.6 | Spot | −10 | Gen |
+
+## C3 — FIRST OPEN SKY (16.0 s)
+
+Longer since the owner's review (`c3_core`): it opens still descending and shaking (about
+3 px, 1 px by 2 s, gone by 5 s), the horizon swings level over 0.4–5.6 s with a settle around
+5–7 s, then the passengers look. Castle's travel-reels line is at 7.0.
+
+| Cue | What | When | Kind | Level | Source |
+|---|---|---|---|---|---|
+| `second_wind_interior` (tail) | The burn's last seconds | 0–2.0 | Transition | −10 falling away | Code |
+| `entry_reentry_roar` (tail) | The roar's tail | 0–1.5 | Transition | −6 falling away | Gen |
+| `entry_buffet` | The last buffeting, following the shake | 0–5.5 | Bed (looped) | −17 falling to −44 | Gen |
+| `c3_wind_easing` | Wind on the fuselage easing to a smooth airflow as the ship levels | 0–16, easing over 0–5.5 | Bed (looped) | −6 easing to −18 | Gen; existing `jangala_arrival_wind` |
+| `c3_frame_settle` | A last rattle and one creak of the window frame as it settles | 5.6 | Spot | −14 | Gen |
+| `c3_cabin_flight_bed` | The cabin in steady flight: air over the hull, ventilation, a low drone | 0–16, under everything; into C4's first second | Bed | −16 | Gen; existing `jangala_arrival_cabin_bed` |
+| `c3_nature_muffled` | The jungle below heard through the glass, low-passed at 1.8 kHz | 4–16, in once the shaking has gone | Bed | −16 | Gen |
+| `c3_river_muffled` | The river's rush, far off, low-passed at 1.2 kHz | 4–16 | Bed | −18 | Gen |
+| Castle | "Like the travel reels they ran in the canteen... except this one doesn't loop." | 7.0–12.1 | Voice | 0 | `c4_reels` take |
 
 ## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 49.5 s)
 
-One continuous camera (owner, 2026-10-19): the sky pan from farmland over the freeway and
+One continuous camera (owner, 2026-10-19; joined in `c5_scene`: C5 opens on C4's last frame and
+pushes in from 445 m to the 220 m view of the ramp over its first 4 s): the sky pan from farmland over the freeway and
 the industrial belt to the port (0–8), down over Kilo Nine, the landing, the yard, the
 families, the rise and the title. Until it is rendered as one, the review plays the C4
 sketch (0–16) and the C5 sketch (16–49.5) back to back. Times below are on the joined clock;
 C5's own beats are at their C5 time + 16.
 
 Second Wind brakes into a hover at 6.6 and touches down at 11.0 in a ring of dust. The yard
-vehicles roll from 14.2; the customs car is in by 21. Castle's in-flight line is now about
-where they are going: "Greywater's past the cranes. Let me do the talking." from 1.0 (owner:
-the line said after landing came off wrong). Her all-hands is on the loudspeaker from 21.0,
+vehicles roll from 14.2; the customs car is in by 21. Castle's in-flight lines are about where
+they are going (owner: the line said after landing came off wrong): "Greywater's past the
+cranes. Let me do the talking." from 0.5, then "Look for the fenced yard on the east side.
+Kilo Nine. Mind your manners down there; it's a favour." from 4.6 to about 10.9, with "Kilo
+Nine" as the camera settles over the yard. The landing burn is ducked 5 dB under it and
+comes back for the touchdown. Her all-hands is on the loudspeaker from 21.0,
 the ramp drops at 24, the camera rises 34–42, her last line ends at 40, the title from 41,
 black by 49.
 
@@ -137,7 +141,7 @@ black by 49.
 | `c4_high_wind_bed` | Open air at altitude, soft and steady | 0–15, easing out as the camera descends | Bed | −14 to −28 | Gen |
 | `c4_ground_distant` | Far below: farm machinery and a slow train | 0–6 | Spot | −18 | Gen |
 | `c4_freeway` | Heavy trucks and haulers on the freeway | 1–48.5; loudest crossing the road (4), low over the yard, up again with the rise, out under the title | Bed | −12 (−22 over the yard, −14 at the top of the rise) | Gen |
-| `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, horns, forklifts | 3.5–48.5; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
+| `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–48.5; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
 | `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–34 | Bed | −18 | Gen |
 | `c1_sw_engine_loop` (reused) | Second Wind's drive as bass under the descent, building to touchdown | 3–12.5 | Bed | −10 (−18 to −7), below 220 Hz | Gen |
 | `c4_landing_rocket` | The landing burn: a deep rumbling roar under the hover, cut off at touchdown | 4–14, sustained 4.5–10.5 | Spot | −6 | Gen |
@@ -145,16 +149,15 @@ black by 49.
 | `c4_touchdown` | The landing: a deep thump and the gear's metal groan | 11.0 | Spot | −2 | Gen |
 | `c4_dust_hiss` | Downwash blasting dust and grit across the pad | 11.0–15 | Spot | −10 | Gen |
 | `c4_spool_down` | The drive winding down | 11.2–16 | Transition | −8 | Gen; existing `c5_yard_spool_down` |
-| `c5_vehicles_arrive` | The tug, bowser and crew carrier start, move in and stop: idle, air-brake hiss | 14.2–20.2 | Spot | −12 | Gen |
+| `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 14.5–23, hisses at 18.5, 19.5, 20.5, 21.0 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 12–49.5; full to 34, thinning under the rise, out by 47 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 16.5–30 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
-| `c5_car_doors` | The customs car's doors; the officers step out | 19.5 | Spot | −12 | Gen |
+| `c5_car_doors` | A door 0.6 s after each vehicle stops; the customs car's two doors last | 19.1, 20.1, 21.1, 21.6 and 23.1 | Spot | −16, −14 for the customs car | Gen |
 | `c5_steam_vent` | Steam venting off the hull as the engines go dark | 20–24.6 | Spot | −14 | Gen; existing `c5_yard_steam_vent` |
 | `c5_pa_click` | The loudspeaker switched on before "All hands", and off after the announcement. A clean click and a speaker thump; **no squelch** | 20.75, 29.8 | Spot | −10 | Gen |
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 21.6–25.6, the clunk at 24.6 | Spot | −8 | Gen |
-| `c5_footsteps_crowd` | The families walking off: footsteps on grit and concrete, bags | 25–43, fading as the camera climbs | Bed | −14, to −24 by 42 | Gen |
-| `c5_crowd_murmur` | Quiet unintelligible family voices, a child | 26–41, well under Castle | Bed | −20 | Gen |
-| `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks, horns | 33–49.5, up from −17 to −5 at 42, then fading to silence by 48.5 under the title | Bed | −17 → −5 → out | Gen |
+| `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 24.5–41, from when they come off the ramp, well under Castle | Bed | −24 | Gen |
+| `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 33–49.5, up from −17 to −5 at 42, then fading to silence by 48.5 under the title | Bed | −17 → −5 → out | Gen |
 | Music | Not chosen. Arrives under Castle's last line and carries the title | 37–49.5 | — | — | — |
 
 ## What is still open

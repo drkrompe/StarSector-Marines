@@ -156,6 +156,12 @@ public class BicycleBody extends GroundBody {
         y += fy * speed * dt;
     }
 
+    /** The heading's rate of turn from speed and steering: {@code (v / L) tan(delta)}, as the next tick integrates it. */
+    @Override
+    public float yawRateDegPerSec() {
+        return (float) Math.toDegrees((speed / wheelbaseCells) * Math.tan(steeringRad));
+    }
+
     /** Read-only access to current steering angle (radians). Useful for debug overlays. */
     public float getSteeringRad() { return steeringRad; }
 

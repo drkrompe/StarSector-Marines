@@ -3,9 +3,10 @@
 Status: ACTIVE. Production plates, cards and audio cues built; final frames render from `compose_c3.py`.
 
 Written: 2026-10-16
-Updated: 2026-10-16 — production pass: 2x de-misted plates, mist cards, cabin head v2, realism Atlas, flock flap cycle, burn-off from the entry's white, audio cues.
+Updated: 2026-10-19 — sound-review rework: 16 s; opens nose down and descending, levels out, then the level slide; shared shake with the entry; Castle's travel-reels line.
 
-Shot C3 of `storyboard-v3.md`: 12.0 seconds, 1920x1080, 24 fps (288 frames), no dialogue: cabin bed and wind only.
+Shot C3 of `storyboard-v3.md`: 16.0 seconds, 1920x1080, 24 fps (384 frames). Cabin bed and
+wind, and one line from Castle once the ship is level.
 Every layer and moving element obeys this sheet, so the pieces composite into one
 camera. The numbers live in `c3_core.py`; this sheet explains them.
 
@@ -14,7 +15,9 @@ camera. The numbers live in `c3_core.py`; this sheet explains them.
 The emotional centre of the arrival. The company lived for years inside an asteroid
 mine, where every horizon was a rock wall a few metres away and every "sky" was a
 ceiling. C3 is the first time they see a horizon, weather, and air with distance in it.
-Nobody speaks. The shot lets them, and the player, look.
+For the first seven seconds nobody speaks; then Castle, quietly: "Like the travel
+reels they ran in the canteen... except this one doesn't loop." The shot lets them,
+and the player, look.
 
 How the frame sells "first sky":
 
@@ -32,7 +35,11 @@ How the frame sells "first sky":
   300 m Atlas lifter, 190 px long, climbs out against cumulus many kilometres across. A
   small flock crosses the low sky from behind the right jamb. Distance is something
   you can watch move.
-- **The lean.** Between 3.5 and 9.5 s the passenger leans 5 cm toward the glass. The
+- **Down, then level.** The shot opens with the ship still coming down out of the
+  entry, nose low, the horizon tilted and the ground rising fast, the window
+  shaking. Over the first 5–6 s the horizon swings level, the ground settles and the
+  shake fades: the ship has flattened out, and what follows is calm.
+- **The lean.** Between 6.5 and 12.5 s the passenger leans 5 cm toward the glass. The
   window frame grows 4% and opens more sky at the edges while the world does not grow
   at all (it is kilometres away). It is the only motion in the shot that belongs to a
   person rather than to the ship.
@@ -44,10 +51,11 @@ How the frame sells "first sky":
 | Eye point | The reveal camera's own eye point (`02 REVEAL / near glass`, frame 144), about 1.2 m from the glass | The painted cabin was projected from this point, so a camera here may rotate freely and still see the paint exactly (`c3_cabin_render.py`). |
 | Lens | 26 mm on a 36 mm sensor: f = 1386.7 px at 1920, 69.4 x 42.6 degrees | Same lens as the reveal and as C2 (`patrol-abeam/c2_core.py`). |
 | Pitch | **9 degrees down** (the reveal looks 19.3 down) | Horizon at y = 320; window head at y = 77 (10 degrees above level); sill at y = 967 (26 degrees below). |
-| Truck | The ship flies bow-right at **20 m/s**, 400 m above the canopy, sinking 2 m/s. The world slides right to left (aft) and rises slightly. | Same flow as the parallax-window study and C2: port window, world moves aft. Rates below come from these numbers through the lens. |
-| Push | **The lean**: the eye moves 5 cm toward the glass, eased over 3.5–9.5 s. Cabin scale 1.2/(1.2-0.05) = 1.0435; the world scales 1.00004. | A physical dolly, about the principal point. No zoom. The cabin's depth spread (1.1–1.25 m) changes its scale by under 0.3%, so the cabin stays one card. |
-| Vibration | 2.4 px of world shake, decaying with a 0.9 s time constant | The airframe's last buffeting from the entry, felt as the world moving; the eye is fixed to the ship. Audio eases with it. |
-| Duration | 12.0 s | Storyboard target. |
+| Truck | The ship flies bow-right. At frame 0 it is still descending out of the entry: **30 m/s along, 16 m/s down**. Both ease (0.4–5.6 s) to level flight at **16 m/s**, 400 m above the canopy, sinking 2 m/s. The world slides right to left (aft) and rises, fast at first. | Same flow as the parallax-window study and C2: port window, world moves aft. Level speed came down from 20 m/s so the longer shot stays inside the painted plates. Rates below come from these numbers through the lens. |
+| Attitude | **8 degrees nose down** at frame 0, easing level over the same span, the nose carrying 0.7 degrees past level around 5–7 s before it settles. | Through a port window the ship's pitch is a roll of the picture about the lens centre: the horizon tilts, rising toward the bow (right), and swings level. Every world layer turns together; the cabin does not. |
+| Push | **The lean**: the eye moves 5 cm toward the glass, eased over 6.5–12.5 s, after the ship is level and under Castle's line. Cabin scale 1.2/(1.2-0.05) = 1.0435; the world scales 1.00004. | A physical dolly, about the principal point. No zoom. The cabin's depth spread (1.1–1.25 m) changes its scale by under 0.3%, so the cabin stays one card. |
+| Shake | The camera shake the entry built, carried on: about 3 px of buffet and heave with a fraction of a degree of turn at frame 0, gone by about 5 s. It moves the **whole picture, cabin included** (a hand-held eye, not a fixed mount), with just enough zoom that no edge shows. A smaller jitter moves the world alone. | One function of time counted from the entry's start (`c3_core.camera_shake`), shared with the entry, so the cut cannot show. Audio eases with it. |
+| Duration | 16.0 s | About 5.6 s of levelling out, then Castle's 5.1 s line from 7.0 s, and about 4 s more to look. |
 
 Guides: `guides/c3-cabin-geometry-p09.png` (neutral greybox at this camera),
 `guides/c3-cabin-depth-p09.png` (16-bit camera distance) and `.json` (the camera
@@ -77,18 +85,19 @@ actually used). `-p12` is the 12-degree alternative for comparison.
 ## Scale and distance
 
 Canopy treated as flat 400 m below the eye for the row distances; the hills make the
-real ground nearer on the ridges. "Slide" is the screen travel over the whole shot.
+real ground nearer on the ridges. "Slide" is the screen travel over the whole shot (298 m flown, 74 m descended), level
+rows only; the turn of the picture comes on top of it in the first 5.6 s.
 
-| Frame row (y) | What is there | Slant distance | Slide over 12 s |
+| Frame row (y) | What is there | Slant distance | Slide over 16 s |
 |---:|---|---:|---:|
-| 77 | Window head (sky, 10 degrees up) | cloud deck about 4.6 km | about 70 px |
+| 77 | Window head (sky, 10 degrees up) | cloud deck about 4.6 km | about 90 px |
 | 320 | Geometric horizon (true horizon dips 0.64 degrees, 15 px lower) | 71 km to the edge | 0 |
-| 340 | Horizon range | 30–60 km | 8–13 |
-| 400 | Far ridges | 7 km | 48 |
-| 500 | Ridges behind the middle forest | 3.1 km | 107 |
-| 600 | Middle forest | 2.0 km | 166 |
-| 800 | River, near bank | 1.2 km | 280 |
-| 967 | Sill (lowest ground visible) | 0.9 km | 366 |
+| 340 | Horizon range | 30–60 km | 7–14 |
+| 400 | Far ridges | 7 km | 59 |
+| 500 | Ridges behind the middle forest | 3.1 km | 133 |
+| 600 | Middle forest | 2.0 km | 207 |
+| 800 | River, near bank | 1.2 km | 344 |
+| 967 | Sill (lowest ground visible) | 0.9 km | 459 |
 
 | Body | Size | Distance | On screen |
 |---|---|---:|---|
@@ -110,16 +119,19 @@ disjoint cut-outs that share its distance. Bands are cut from the approved maste
 
 | Layer | Distance | Slide | Carries | Source | Behind nearer bands |
 |---|---:|---:|---|---|---|
-| Horizon | 40 km | 8 px | Clear-sky gradient, horizon cumulus, the blue range | `managed-land-realism/assets/sky-realism-v1.png`; range = band `mountains` of the master | Range behind the far crests: **1,255 master px of slivers, nothing exists** (Codex fill, `c3-inpaint-mountains.png`) |
-| Far | 7 km | 48 px | Far wooded ridges; planned: the overhead cumulus row | Band `far`; master RGB where shown | 12,846 px, continued by `far-realism-v1` (salvage) |
-| Mid | 1.8 km | 185 px | Middle forest, river and banks | Band `mid`; master RGB where shown | 9,925 px, continued by `mid-realism-v1` (salvage) |
-| Near | 1.0 km | 333 px | Nearest canopy bank, lower right | Band `near`; master RGB | none |
+| Horizon | 40 km | 10 px | Clear-sky gradient, horizon cumulus, the blue range | `managed-land-realism/assets/sky-realism-v1.png`; range = band `mountains` of the master | Range behind the far crests: **1,255 master px of slivers, nothing exists** (Codex fill, `c3-inpaint-mountains.png`) |
+| Far | 7 km | 59 px | Far wooded ridges; planned: the overhead cumulus row | Band `far`; master RGB where shown | 12,846 px, continued by `far-realism-v1` (salvage) |
+| Mid | 1.8 km | 230 px | Middle forest, river and banks | Band `mid`; master RGB where shown | 9,925 px, continued by `mid-realism-v1` (salvage) |
+| Near | 1.0 km | 413 px | Nearest canopy bank, lower right | Band `near`; master RGB | none |
 | Cabin | 1.2 m | 0 (lean only) | Window frame and cabin | `c3_cabin_render.py` re-view of `cabin-realism-v1`, top band from `assets/c3-cabin-top-v1.png` | — |
 
 Each band's distance is the median canopy distance over the rows it occupies. The
 plate is the master scaled 1.2 (its own horizon row 200 lands on y = 320, which makes
-its implied lens this lens) with its left edge at x = 100. `c3_bands.py` walks the
-whole shot, lean included, and finds **no pixel needed beyond the master's canvas**.
+its implied lens this lens) with its left edge at x = 100. `c3_bands.py` walked the
+12 s shot, lean included, and found no pixel needed beyond the master's canvas; for
+the 16 s shot with the turn, `compose_c3.py --coverage` composites every third frame
+and counts window pixels that no opaque world layer covers: **none**. The sky plate
+is drawn 1.45x (was 1.25x) so the turned window stays inside it.
 
 ### How the still was split
 
@@ -169,13 +181,14 @@ flight. `c3_core.ELEMENTS` holds the numbers.
 | Element | Host | True distance | Own travel | Method and why it is safe |
 |---|---|---:|---|---|
 | Atlas lifter | Mid | 2.2 km | 60 m/s bow-right, climbing 8 m/s | One side-view card (bow right). Net screen motion about +25 px/s right, 6 px/s up: it crosses slowly *against* the world. Bearing change about 12 degrees: end-face sliver about 4 px, so no perspective change shows. Realism card `assets/c3-atlas-v1.png`, repainted on `guides/c3-atlas-guide.png`: the reveal scene's Atlas is itself one plane carrying the painted card, so the guide is that card's exact silhouette in grey with the shared sun laid over it (`c3_atlas_guide.py`). Baked at 3x, hazed 15%. |
-| Flock | Near | 0.7 km | 8 m/s aft | Eleven fliers from a procedural flap cycle (`compose_c3.bird_frame`): each wing is an arm and a hand segment, the hand lagging the arm so a downstroke reads as a stroke; 2.9-3.5 flaps/s per bird, each gliding with wings held up for 0.6 s in every 2.6 s, with a slight bob. Drawn at 6x and reduced, at 1.4x true span so the wingbeat reads. They pass the ship and enter from behind the right jamb at about 2.5 s, crossing the bright low sky. No perspective. |
+| Flock | Near | 0.7 km | 8 m/s aft | Eleven fliers from a procedural flap cycle (`compose_c3.bird_frame`): each wing is an arm and a hand segment, the hand lagging the arm so a downstroke reads as a stroke; 2.9-3.5 flaps/s per bird, each gliding with wings held up for 0.6 s in every 2.6 s, with a slight bob. Drawn at 6x and reduced, at 1.4x true span so the wingbeat reads. They pass the ship and enter from behind the right jamb at about 8.6 s, under Castle's line, crossing the bright low sky. No perspective. |
 | Low mist | Mid | 1.7 km | 1 m/s breeze from the bow | Translucent card: the difference matte over the mid band. Depth offset and breeze together slide it about 20 px aft against the forest under it. |
 | High mist | Far | 4.5 km | the same breeze | The matte over the far band and the range; slides about 30 px aft against the ridges it lies between. |
 | Entry's last cloud | Near | 0.8 km | none | Frame 0 is the aperture filled with the entry's flat soft white, sRGB (244, 246, 248). It burns off over the first 1.6 s, thinnest parts first, its density from `managed-land-realism/assets/clouds-realism-v1.png` (softened: it is out of focus) sliding aft at the 800 m rate. |
 | Gloved hand (optional) | Cabin | 0.6 m | — | A 3–4 frame sheet on the sill, loosening at about 9.5 s, after the lean. Owner call (open question 3). |
 
-Nothing near the camera moves fast, nothing rotates, and nothing changes scale except
+Nothing near the camera moves fast, nothing turns except the whole world with the ship's
+attitude in the first 5.6 s, and nothing changes scale except
 the cabin under the lean.
 
 ## Picking up from the entry transition
@@ -185,15 +198,16 @@ full of flat soft white, sRGB (244, 246, 248), on C3's camera with the cabin unc
 C3's frame 0 is exactly that. If the entry instead ends white over the whole frame, C3
 adds a short white-to-cabin fade.
 
-- The entry tail (`entry-window/`) ends on the forest reveal's first frame: the reveal
-  camera at 19.3 degrees down, the orange cabin, and the forest. C3's camera differs
-  only in pitch, from the same eye point, so the entry tail can be re-rendered on C3's
-  camera with no new geometry: its cloud cards are already 2D layers in front of the
-  forest, and the cabin re-view is exactly `c3_cabin_render.py`.
+- **One window across the cut** (owner, 2026-10-19). The entry
+  (`patrol-abeam/compose_entry.py`) is drawn through this shot's own cabin layer and
+  camera from its first frame, relit for space and fire, and settles onto frame 0 in
+  the white. Only what is outside the glass and the shake change at the cut.
 - **The join sits inside the cloud.** The entry ends in thinning cloud; C3's first
   1.6 s is that cloud burning off and sliding aft. Whiteout is the most forgiving
   place for any mismatch between the two renders.
-- The world shake carries over from the entry and decays in C3's first 3 s; the audio
+- The shake carries over from the entry: one function of time from the entry's start
+  moves the whole picture in both shots, and C3 frame 0 is one frame on from the entry's
+  last. It eases away over C3's first 5 s, with the horizon swinging level; the audio
   rumble eases with it.
 - The flow continues right to left, as in C2 and as C4's pan must. The sun stays upper
   left, in front of the glass.
@@ -222,9 +236,12 @@ realism plates) and the reveal's 3D scenery.
 
 `audio_cues()` in `compose_c3.py`: `jangala_arrival_cabin_bed` (a 16 s seamless loop,
 volume 0.55, the whole shot) and `jangala_arrival_wind` (one 12.5 s pass, volume 0.8,
-its buffeting easing with the world shake). Both are built by `c3_audio.py` from
+its buffeting easing with the shake). Castle's travel-reels line (take `c4_reels_t06`,
+5.12 s) starts at **7.0 s** (`c3_core.CASTLE_REELS_AT`, `compose_c3.voice_timing()`), once
+the ship is level and the shake has gone; the arrival mix places it until the line
+joins the shipped catalog, when `captions()` and `audio_cues()` carry it. Both are built by `c3_audio.py` from
 repository ambience and seeded noise and registered in `audio.json`; any window shot
-may reuse them. `captions()` and `overlays()` are empty.
+may reuse them. `overlays()` is empty.
 
 ## Files
 

@@ -3,14 +3,14 @@
     python pilot_review.py --out DIR [--blend PATH] [--engine workbench|eevee] [--prefix NAME-] [--no-bridge]
                            [--video]
 
-Writes, for each of his two poses (relaxed at frame 0, working at 11 s), a turnaround of
+Writes, for each of his two poses (relaxed at frame 0, flying at 11 s), a turnaround of
 pilot-figure.blend (build_pilot.py builds it) seated at a grey stand-in of the helm (the seat's
 pan, back and armrests, the forward console's casing and sloped face, at their
 sw_bridge_interior sizes): four panels on one sheet, from his front left, his left, behind and
 behind to his right, and a close sheet of his head and shoulders from the same four sides; then
 one sheet of the move from his left at six moments of C2. Then, unless --no-bridge, it renders
 both poses at the helm of Second Wind's bridge through the bridge's own review script
-(bridge-relaxed/, bridge-working/): the helm close-up and C2's two camera stations turned onto him.
+(bridge-relaxed/, bridge-flying/): the helm close-up and C2's two camera stations turned onto him.
 
 --video also renders the move as an mp4 (24 fps, from his left, C2 seconds VIDEO_SPAN) with
 the time burnt in; it needs ffmpeg. Workbench by default; --engine eevee lights him with castle_review.light_eevee. Nothing here
@@ -35,9 +35,10 @@ SHEETS = [
     ("turnaround", 3.4, 0.62, 60, (35, 90, 180, 230), 1.1),
     ("head-and-shoulders", 1.3, 0.95, 60, (35, 90, 160, 210), 1.15),
 ]
-POSES = (("relaxed", 0), ("working", 11 * 24))          # (name, frame): at rest, and at 11 s
-# The move, from his left at the C2 seconds named: in, held, and back.
-MOTION = (2.6, 0.62, 45, 75, 1.0, (8.3, 8.8, 9.3, 12.0, 14.1, 14.7))
+POSES = (("relaxed", 0), ("flying", 11 * 24))           # (name, frame): at rest, and at 11 s
+# The move, from his left at the C2 seconds named: at rest with the yoke stowed, taking it,
+# drawing it out, flying it pushed, letting go, and sat back with it left out.
+MOTION = (3.3, 0.62, 45, 60, 1.0, (8.3, 8.8, 9.15, 9.45, 12.0, 14.7))
 VIDEO_SPAN = (7.5, 15.5)
 
 
@@ -82,7 +83,7 @@ def launch(argv):
                 ImageDraw.Draw(img).text((16, H - 30), "C2 %.2f s" % (int(f.stem.split("-")[1]) / 24),
                                          fill=(200, 200, 190))
                 img.save(f)
-            video = out / ("%slean-in-and-back-%s.mp4" % (prefix, engine))
+            video = out / ("%sdraw-out-and-fly-%s.mp4" % (prefix, engine))
             subprocess.check_call(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-framerate", "24",
                                    "-start_number", frames[0].stem.split("-")[1],
                                    "-i", str(Path(tmp) / "video-%04d.png"), "-pix_fmt", "yuv420p",
@@ -90,7 +91,7 @@ def launch(argv):
             print("VIDEO", video.name, flush=True)
         times = MOTION[5]
         sheet(["motion-%d.png" % k for k in range(len(times))], ["%.1f s" % t for t in times],
-              out / ("%s%02d-lean-in-and-back-%s.png" % (prefix, n, engine)))
+              out / ("%s%02d-draw-out-and-fly-%s.png" % (prefix, n, engine)))
     if "--no-bridge" not in argv:
         for pose, frame in POSES:
             sub = out / ("bridge-" + pose)
@@ -152,9 +153,9 @@ def blender_panels(argv):
     scene.camera = cam
     cam.data.sensor_width, cam.data.sensor_fit = 36.0, "VERTICAL"
     cam.data.clip_start = .02
-    def shoot(path, yaw, dist, z, lens, eye, width):
+    def shoot(path, yaw, dist, z, lens, eye, width, fwd=0.1):
         a = math.radians(yaw)
-        target = Vector((0.1, 0, z))
+        target = Vector((fwd, 0, z))
         cam.data.lens = lens
         scene.render.resolution_x = width
         cam.location = target + Vector((math.cos(a) * dist, math.sin(a) * dist, eye - z))
@@ -170,7 +171,7 @@ def blender_panels(argv):
     dist, z, lens, yaw, eye, times = MOTION
     for k, t in enumerate(times):
         scene.frame_set(round(t * 24))
-        shoot("motion-%d.png" % k, yaw, dist, z, lens, eye, W // len(times))
+        shoot("motion-%d.png" % k, yaw, dist, z, lens, eye, W // len(times), fwd=0.25)
     if "--video" in argv:
         for frame in range(round(VIDEO_SPAN[0] * 24), round(VIDEO_SPAN[1] * 24) + 1):
             scene.frame_set(frame)

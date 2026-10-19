@@ -105,6 +105,16 @@ public final class ContrailTrail {
         }
     }
 
+    /**
+     * Drops every sample, so a trail rebuilt from scratch each frame (a warship missile's, laid along its flight
+     * function rather than recorded) can reuse its ring instead of allocating another.
+     */
+    public void clear() {
+        head = 0;
+        count = 0;
+        hasPrev = false;
+    }
+
     /** Number of live samples. {@code < 2} means no segments to draw. */
     public int size() { return count; }
 

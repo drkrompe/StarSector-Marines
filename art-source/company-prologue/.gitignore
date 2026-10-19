@@ -133,3 +133,8 @@ colossus-surface/guide/*
 !colossus-surface/guide/sheet-*-guide.png
 !colossus-surface/guide/reference-guide.png
 !colossus-surface/guide/reference-mask.png
+
+# colossus-cinematic: the appendable .blend is built (finalize.sh); renders are outputs
+colossus-cinematic/*.blend
+colossus-cinematic/*.blend1
+colossus-cinematic/review/

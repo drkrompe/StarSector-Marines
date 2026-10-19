@@ -5,12 +5,16 @@ import com.dillon.starsectormarines.battle.mech.MechDuelBand;
 import com.dillon.starsectormarines.battle.mech.MechDuelBand.Band;
 import com.dillon.starsectormarines.battle.mech.MechDuelBand.Weapon;
 import com.dillon.starsectormarines.battle.mech.MechDuelRange;
+import com.dillon.starsectormarines.battle.mech.MechSections;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,8 +56,17 @@ import java.util.Map;
  * ground and still in sight of the target, and a turn begun backing stops once it has given ground to within
  * {@link #HOLD_SLACK} of the band's far edge: a turn that backs a hull round a street corner, or out to where its gun
  * no longer reaches, takes it out of the fight it was turning to. {@code -Dbattle.vehicle.faceInBand=false} is the
- * control. The retreat from a too-close target backs off it nose-on across the same arc; only a target further behind
+ * control. The front goes to the worst hostile machine the hull knows of, which need not be the target it holds its
+ * band against ({@link ThreatFront}); a gun on a turning hull shakes ({@link HullPivot}). The retreat from a too-close target backs off it nose-on across the same arc; only a target further behind
  * is driven away from, rear on. A forward turn toward that one was tried and parked hulls out of sight in the street.
+ *
+ * <p>A hold in band is a hold for as long as it wears the target down. A hull that has held through
+ * {@link #stallSeconds} without its target losing any integrity has a <b>stalled</b> hold: its rounds go into the corner
+ * or barricade between, or it stands at the far slack where its gun no longer hits. It moves to another firing position
+ * in band, at least {@link #REPOSITION_MIN_SHIFT} cells away, whose lane to the target is clear of anything that stops a
+ * round ({@link #laneClear}), the band's middle tried first. It drives there whatever the band says on the way, then
+ * holds and watches again; with no such position it holds for another spell. An indirect-fire hull is exempt: its lane
+ * is an arc. {@code -Dbattle.vehicle.repositionStalled=false} is the control.
  *
  * <p>What it does not touch: a player order (an active one owns the chassis and an arrived one hands back here, the
  * way a mech's doctrine resumes after a move), a hull under direct control, delivery legs, allied story columns
@@ -139,6 +152,29 @@ public final class VehicleEngagement {
     static final float BACKING_TURN_DEGREES =
             Math.max(0f, Math.min(180f, Float.parseFloat(System.getProperty(BACKING_TURN_PROPERTY, "120"))));
 
+    /**
+     * {@code false} is the control: a hull holding in its band stays there however long its rounds go into the
+     * street furniture rather than the target.
+     */
+    public static final String REPOSITION_STALLED_PROPERTY = "battle.vehicle.repositionStalled";
+
+    private static final boolean repositionsStalled =
+            Boolean.parseBoolean(System.getProperty(REPOSITION_STALLED_PROPERTY, "true"));
+
+    /** Least seconds a hull holds in band without wearing its target down before it counts the hold as stalled. */
+    static final float STALL_MIN_SECONDS = 10f;
+    /** Volleys of its own gun a hull holds in band without wearing its target down before the hold is stalled. */
+    static final float STALL_VOLLEYS = 3f;
+    /** Cells a stalled hull's new firing position must lie from where it stands, or it is the same position. */
+    static final float REPOSITION_MIN_SHIFT = 3f;
+    /**
+     * Cells either side of the line from a firing position to the target that must also be clear of anything that
+     * stops a round: the turret's scatter, and the corner of a target standing in the lee of a building front.
+     */
+    static final float LANE_HALF_WIDTH = 0.6f;
+    /** Cells of room beyond its footprint a stalled hull wants around a new firing position. */
+    static final int REPOSITION_ROOM_CELLS = 1;
+
     private final ConvoyService convoy;
     private final UnitRosterService roster;
     private final NavigationService navigation;
@@ -164,6 +200,11 @@ public final class VehicleEngagement {
         boolean withdrawing;
         /** Holding in band and turning the nose back onto a target that sits off the front arc. */
         boolean refacing;
+        /**
+         * The machine the front is kept on ({@link ThreatFront}): the worst known threat, which need not be the
+         * target the band is held against.
+         */
+        long faceTarget;
         /** The turn began with the target well behind: it is driven forward all the way round. */
         boolean refaceForward;
         /**
@@ -171,6 +212,12 @@ public final class VehicleEngagement {
          * holding at the very edge stands about where its gun stops reaching.
          */
         float refaceMaxDistance;
+        /** Seconds held in band since the target last lost integrity. */
+        float stallSeconds;
+        /** The target's integrity when last read, or negative when not being watched. */
+        float watchedIntegrity = -1f;
+        /** Driving from a stalled hold to another firing position in band; the band does not stop it. */
+        boolean repositioning;
     }
 
     VehicleEngagement(ConvoyService convoy, UnitRosterService roster, NavigationService navigation,
@@ -222,6 +269,7 @@ public final class VehicleEngagement {
             plan.routeY = null;
             plan.retreating = false;
             plan.refacing = false;
+            plan.repositioning = false;
             plan.target = 0L;
             plan.decideIn = 0f;
             plan.replanIn = 0f;
@@ -254,10 +302,12 @@ public final class VehicleEngagement {
             body.speed = 0f;
             plan.routeX = null;
             plan.routeY = null;
+            plan.repositioning = false;
         } else if (convoy.control(id).localPlanFailureTime >= VehicleMoveOrderSystem.GIVE_UP_SECONDS) {
             controlSystem.clearRoute(id);
             plan.routeX = null;
             plan.routeY = null;
+            plan.repositioning = false;
             plan.restIn = GIVE_UP_REST_SECONDS;
         }
     }
@@ -293,13 +343,14 @@ public final class VehicleEngagement {
      * as it backs).
      */
     private void reface(long id, Plan plan, GroundBody body, float dt) {
-        if (plan.target == 0L || !isLive(plan.target) || convoy.control(id).wallStuckTime > RETREAT_STUCK_SECONDS) {
+        if (plan.target == 0L || !isLive(plan.target) || plan.faceTarget == 0L || !isLive(plan.faceTarget)
+                || convoy.control(id).wallStuckTime > RETREAT_STUCK_SECONDS) {
             plan.refacing = false;
             plan.restIn = GIVE_UP_REST_SECONDS;
             brake(id, body, dt);
             return;
         }
-        float alpha = offNose(plan.target, body);
+        float alpha = offNose(plan.faceTarget, body);
         float[] drive = faceDrive(alpha, plan.refaceForward);
         // A backing turn gives ground for good; a forward one swings out and comes back round.
         if (Math.abs(alpha) <= REFACE_STOP_DEGREES
@@ -594,6 +645,8 @@ public final class VehicleEngagement {
         if (target != plan.target) {
             plan.routeX = null;
             plan.routeY = null;
+            plan.repositioning = false;
+            unwatch(plan);
         }
         plan.target = target;
         if (target == 0L) {
@@ -627,23 +680,50 @@ public final class VehicleEngagement {
             plan.routeY = null;
             plan.retreating = plan.restIn <= 0f;
             plan.refacing = false;
+            plan.repositioning = false;
+            unwatch(plan);
             return;
         }
         plan.retreating = false;
         if (inBand(band, distance)) {
+            // A hull leaving a stalled hold drives on through the band to the position it chose.
+            if (plan.repositioning && plan.routeX != null) return;
+            plan.repositioning = false;
             if (plan.routeX != null) controlSystem.clearRoute(id);
             plan.routeX = null;
             plan.routeY = null;
+            if (!plan.refacing && !indirect && repositionsStalled
+                    && stalled(plan, type.turretStructure().mount.weapon.cooldown, integrity(target)) && plan.restIn <= 0f) {
+                // Holding in band and not wearing the target down: the rounds are going into whatever stands
+                // between, or the far edge of the band is past where the gun still hits. Another firing position
+                // with a clear lane, at the band's middle, is worth the drive; none, and it holds for another spell.
+                unwatch(plan);
+                float[][] route = planReposition(type, body, at, band, distance);
+                if (route != null && route[0].length > 0) {
+                    plan.routeX = route[0];
+                    plan.routeY = route[1];
+                    plan.plannedTargetX = at[0];
+                    plan.plannedTargetY = at[1];
+                    plan.repositioning = true;
+                    plan.refacing = false;
+                    return;
+                }
+            }
             // A bicycle hull cannot pivot where it stands, so turning to a target off its front arc is a manoeuvre.
             // The forward turn a target behind it needs drives it out from behind a parapet before its nose comes
             // round, so a screened hull turns only by backing.
             // A turn is made only if, rehearsed, it ends square on and still in sight: one that backs the hull behind
             // the corner it was holding takes it out of the fight.
-            float alpha = offNose(target, body);
+            // The front goes to the worst threat the hull knows of, which need not be the target it holds against.
+            long face = faceTarget(id, plan.faceTarget, body, target);
+            if (face != plan.faceTarget) plan.refacing = false;
+            plan.faceTarget = face;
+            float[] faceAt = position(face);
+            float alpha = offNose(face, body);
             boolean wasRefacing = plan.refacing;
             plan.refacing = facesInBand && plan.restIn <= 0f && shouldReface(alpha, plan.refacing)
-                    && (plan.refacing || (Math.abs(alpha) <= BACKING_TURN_DEGREES || !screened(body, at))
-                    && turnKeepsSight(type, body, at));
+                    && (plan.refacing || (Math.abs(alpha) <= BACKING_TURN_DEGREES || !screened(body, faceAt))
+                    && turnKeepsSight(type, body, faceAt));
             if (!wasRefacing && plan.refacing) {
                 plan.refaceForward = Math.abs(alpha) > BACKING_TURN_DEGREES;
                 plan.refaceMaxDistance = band.max() - HOLD_SLACK;
@@ -651,6 +731,7 @@ public final class VehicleEngagement {
             return;
         }
         plan.refacing = false;
+        unwatch(plan);
         // A route is rethought when the target has moved off the point it was planned against, or when the
         // end of the route is no longer in band (a closing target has made it too near).
         boolean stale = plan.routeX == null
@@ -661,6 +742,7 @@ public final class VehicleEngagement {
         plan.replanIn = REPLAN_SECONDS;
         float[][] route = planToBand(id, type, body, at, band, !indirect);
         if (plan.routeX != null) controlSystem.clearRoute(id);
+        plan.repositioning = false;
         if (route == null || route[0].length == 0) {
             plan.routeX = null;
             plan.routeY = null;
@@ -670,6 +752,105 @@ public final class VehicleEngagement {
         plan.routeY = route[1];
         plan.plannedTargetX = at[0];
         plan.plannedTargetY = at[1];
+    }
+
+    /**
+     * Whether a hull holding in band has held long enough without its target losing integrity
+     * ({@link #stallSeconds}): one decision's worth of holding is added unless the target has lost some since the
+     * last reading, which starts the count again. The first reading only starts watching.
+     */
+    private static boolean stalled(Plan plan, float cooldown, float integrity) {
+        if (plan.watchedIntegrity < 0f || integrity < plan.watchedIntegrity - 1e-3f) {
+            plan.stallSeconds = 0f;
+        } else {
+            plan.stallSeconds += DECIDE_SECONDS;
+        }
+        plan.watchedIntegrity = integrity;
+        return plan.stallSeconds >= stallSeconds(cooldown);
+    }
+
+    /**
+     * How long a hull holds in band without wearing its target down before the hold counts as stalled: three volleys
+     * of its gun, and never less than {@link #STALL_MIN_SECONDS}, so a slow gun's misses are not taken for a lane
+     * the rounds cannot get down.
+     */
+    static float stallSeconds(float cooldown) {
+        return Math.max(STALL_MIN_SECONDS, STALL_VOLLEYS * cooldown);
+    }
+
+    private static void unwatch(Plan plan) {
+        plan.stallSeconds = 0f;
+        plan.watchedIntegrity = -1f;
+    }
+
+    /** What the target has left to lose: hit points and armor, and a mech's section structure and plate. */
+    private float integrity(long target) {
+        World world = roster.world();
+        float sum = world.hp(target) + (world.hasArmor(target) ? world.armor(target) : 0f);
+        if (!convoy.isVehicle(target) && world.hasMechLoadout(target)) {
+            MechSections sections = world.mechLoadout(target).sections();
+            if (sections != null) sum += sections.totalStructure() + sections.totalArmor();
+        }
+        return sum;
+    }
+
+    /**
+     * Where a stalled hull moves: a drivable cell in band, at least {@link #REPOSITION_MIN_SHIFT} from where it
+     * stands, whose lane to the target is clear ({@link #laneClear}). The band's middle is tried before the
+     * hull's present distance, on the line through the hull first and then at widening bearings either side, so a
+     * hull holding at the far slack closes to where its gun hits and a hull whose lane is fouled steps across the
+     * street. Null when nothing qualifies.
+     */
+    private float[][] planReposition(VehicleType type, GroundBody body, float[] target, Band band, float distance) {
+        NavigationGrid grid = controlSystem.planningGrid(type);
+        NavigationGrid live = navigation.getGrid();
+        int fit = VehicleClearance.radiusForWidth(type.visualWidthCells);
+        VehicleClearance clearance = VehicleClearance.erode(grid, fit);
+        // A firing position is one a hull can drive onto from any side, not one its footprint only just fits.
+        VehicleClearance roomy = VehicleClearance.erode(grid, fit + REPOSITION_ROOM_CELLS);
+        TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
+        int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
+                SNAP_RADIUS);
+        if (from == null) return null;
+        double base = Math.atan2(body.y - target[1], body.x - target[0]);
+        float[] radii = {band.middle(), Math.min(distance, band.max())};
+        for (float bearing : BEARINGS) {
+            double angle = base + Math.toRadians(bearing);
+            for (float radius : radii) {
+                int gx = (int) Math.floor(target[0] + Math.cos(angle) * radius);
+                int gy = (int) Math.floor(target[1] + Math.sin(angle) * radius);
+                int[] to = VehicleRoutePlanner.snapToMask(roomy, gx, gy, SNAP_RADIUS);
+                if (to == null) continue;
+                float cx = to[0] + 0.5f;
+                float cy = to[1] + 0.5f;
+                if (Math.hypot(cx - body.x, cy - body.y) < REPOSITION_MIN_SHIFT) continue;
+                if (!inBand(band, (float) Math.hypot(cx - target[0], cy - target[1]))) continue;
+                // Lanes are read off the live grid: the planning grid is a navigation-only copy.
+                if (!laneClear(live, cx, cy, target[0], target[1])) continue;
+                float[][] route = VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
+                        grid, cost, clearance, type);
+                if (route != null && route[0].length > 0) return route;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a round fired from ({@code x}, {@code y}) at ({@code tx}, {@code ty}) meets nothing that stops it: the
+     * line itself and the two lines {@link #LANE_HALF_WIDTH} either side of it, each judged as the turret judges its
+     * own shot ({@link NavigationGrid#hasLineOfFire}). A cell's line of sight runs centre to centre and can graze a
+     * corner the scatter of real rounds does not.
+     */
+    static boolean laneClear(NavigationGrid grid, float x, float y, float tx, float ty) {
+        float dx = tx - x;
+        float dy = ty - y;
+        float length = (float) Math.hypot(dx, dy);
+        if (length < 1e-3f) return true;
+        float nx = -dy / length * LANE_HALF_WIDTH;
+        float ny = dx / length * LANE_HALF_WIDTH;
+        return grid.hasLineOfFire(x, y, tx, ty)
+                && grid.hasLineOfFire(x + nx, y + ny, tx + nx, ty + ny)
+                && grid.hasLineOfFire(x - nx, y - ny, tx - nx, ty - ny);
     }
 
     /**
@@ -746,6 +927,71 @@ public final class VehicleEngagement {
             }
         }
         return best;
+    }
+
+    /**
+     * The machine hull {@code id} keeps its front on: of the hostile machines it knows of ({@link #knows}), the one
+     * that can do it the most harm from where it stands ({@link ThreatFront}), the one it is facing kept unless another
+     * is clearly worse. The duel target when nothing known can reach it, or with {@link ThreatFront#PROPERTY} off.
+     */
+    private long faceTarget(long id, long current, GroundBody body, long duelTarget) {
+        if (!ThreatFront.ENABLED) return duelTarget;
+        Faction own = convoy.faction(id);
+        World world = roster.world();
+        float rating = world.hasArmor(id) ? world.armorRating(id) : 0f;
+        List<ThreatFront.Threat> threats = new ArrayList<>();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long candidate = roster.get(i);
+            if (!world.hasMechLoadout(candidate) || !hostileMachine(candidate, own) || !knows(own, body, candidate)) {
+                continue;
+            }
+            threats.add(new ThreatFront.Threat(candidate,
+                    ThreatFront.harm(weaponsOf(candidate), distance(candidate, body), rating)));
+        }
+        for (long candidate : convoy.entityIds()) {
+            if (candidate == id || !hostileMachine(candidate, own) || !knows(own, body, candidate)) continue;
+            threats.add(new ThreatFront.Threat(candidate,
+                    ThreatFront.harm(weaponsOf(candidate), distance(candidate, body), rating)));
+        }
+        long face = ThreatFront.choose(threats, current);
+        return face != 0L ? face : duelTarget;
+    }
+
+    /**
+     * Whether a hull knows where {@code candidate} is: it sees it, or a spotter on its side does
+     * ({@link SideSpotting}). Everything, with {@link ThreatFront#KNOWN_ONLY_PROPERTY} off.
+     */
+    private boolean knows(Faction own, GroundBody body, long candidate) {
+        if (!ThreatFront.KNOWN_ONLY) return true;
+        float[] at = position(candidate);
+        return navigation.getGrid().hasLineOfSight((int) Math.floor(body.x), (int) Math.floor(body.y),
+                (int) Math.floor(at[0]), (int) Math.floor(at[1]))
+                || spotting.spotted(own, candidate);
+    }
+
+    /** A live hostile mech or ground vehicle. */
+    private boolean hostileMachine(long candidate, Faction own) {
+        if (convoy.isVehicle(candidate)) {
+            return convoy.isTargetable(candidate) && convoy.structure(candidate) > 0f
+                    && own.hostileTo(convoy.faction(candidate));
+        }
+        return roster.isAliveById(candidate) && roster.world().hasMechLoadout(candidate)
+                && own.hostileTo(roster.identity().faction(candidate));
+    }
+
+    /** What a machine can still shoot with: a mech's loaded mounts, or a hull's turret gun while it has one. */
+    private List<WeaponDef> weaponsOf(long candidate) {
+        List<WeaponDef> out = new ArrayList<>(3);
+        if (convoy.isVehicle(candidate)) {
+            VehicleType type = convoy.vehicleType(candidate);
+            if (type != null && convoy.isArmed(candidate)) out.add(type.turretStructure().mount.weapon);
+            return out;
+        }
+        MechLoadoutComponent loadout = roster.world().mechLoadout(candidate);
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) out.add(mount.weaponDef());
+        }
+        return out;
     }
 
     private boolean valid(long candidate, Faction own, GroundBody body, float aware, boolean indirect) {

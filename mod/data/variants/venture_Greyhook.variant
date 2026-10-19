@@ -25,10 +25,12 @@
         {
             "autofire": true,
             "mode": "LINKED",
-            "weapons": {
-                "WS 004": "pdlaser",
-                "WS 007": "pdlaser"
-            }
+            "weapons": {"WS 004": "harpoon"}
+        },
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {"WS 007": "sabot"}
         }
     ]
 }
