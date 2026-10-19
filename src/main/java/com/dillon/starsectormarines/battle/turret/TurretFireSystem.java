@@ -282,13 +282,21 @@ public final class TurretFireSystem implements TurretFireSink {
 
         float flightTime = (float) Math.hypot(aimX - fromX, aimY - fromY) / speed;
 
+        // An anti-armor rocket's contact warhead rides its detonation, as a mech rack's does: a round
+        // that hit its roll lands the shaped charge on the target, which takes no share of the area,
+        // and point defence that stops the rocket stops the charge with it.
+        long contactTarget = hit && weapon.contactDamage > 0f ? target : 0L;
         PendingDetonation onArrival = new PendingDetonation(
                 shooterId,
                 toX, toY, flightTime,
                 weapon.aoeRadius, weapon.damage, weapon.penetration,
                 weapon.wallDamage, shooterFaction, aerialDelivery,
                 weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
-                /*friendlyFireImmune*/ false, /*authoredAftermath*/ true);
+                /*friendlyFireImmune*/ false,
+                contactTarget, contactTarget != 0L ? weapon.contactDamage : 0f,
+                contactTarget != 0L ? weapon.contactPenetration : 0f,
+                /*authoredAftermath*/ true,
+                contactTarget != 0L ? new long[] {contactTarget} : new long[0]);
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 weapon.boostRamp, weapon.arcHeight,
                 shooterFaction, aerialDelivery, flightTime, onArrival, weapon.id,

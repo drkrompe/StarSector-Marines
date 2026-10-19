@@ -1,12 +1,11 @@
 # Mechs — Open Stories
 
 Status: ACTIVE — battle doctrine overrides, manual specialist tuning,
-data-authored fitting dolls, campaign callsigns, and one bounded capability
-cleanup remain.
+data-authored fitting dolls, and campaign callsigns remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — mech missile warheads shipped; earlier: vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
+Updated: 2026-10-19 — mech kit-retriever exclusion and Mech Lab doll UX folded; earlier: mech missile warheads, vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
 
 Read `mechs-nouns.md` before changing the live story.
 
@@ -15,6 +14,4 @@ Read `mechs-nouns.md` before changing the live story.
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |
 | `s1-specialist-striders.md` | Active manual tuning | Validate and tune the shipped Bulwark/Hound/Sirocco identities, formations, production encounters, and debug delivery feel without weakening their stated tradeoffs. |
 | `mech-lab-data-authored-dolls.md` | Proposed | Move maintenance facing, physical anchors, equipment docks, footprints, compatibility, and capacity into a validated asset catalog shared by mechs and future vehicles. |
-| `mech-lab-equipment-doll-ux.md` | Completed | Polish the Mech Lab center doll presentation, CAD-style leaders, equipped rack telemetry, catalog filtering, combat stat comparison, and unequip actions. |
-| `mech-kit-retriever-exclusion.md` | Proposed | Keep `MECH_LOADOUT` actors out of infantry kit retrieval while preserving ordinary marine recovery. |
 | `mech-campaign-callsigns.md` | In progress | Edit a persistent mech's display callsign in the Mech Lab and freeze it into the landed support unit's visible identity. |

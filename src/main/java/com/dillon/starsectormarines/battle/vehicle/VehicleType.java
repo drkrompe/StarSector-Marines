@@ -209,6 +209,39 @@ public enum VehicleType {
             return List.of(DroneRole.ESCORT, DroneRole.ESCORT, DroneRole.HALO, DroneRole.HALO, DroneRole.STRIKE);
         }
     },
+    /**
+     * The heavy APC's hull with the troop bay given over to a launcher: two of the mech LRM-15's anti-armor racks
+     * on a turntable where the twin MG stood. It is the long arm against armor, where the fire-support APC's mortar
+     * is the short arm against men: its rounds arc over cover onto a machine somebody else on its side is looking
+     * at ({@link SideObservers}), it holds fire at anything soft, and it fights from beyond its target's reach
+     * ({@link Stance#STANDOFF}). It pays with no seats and thinner plate than the carrier it replaces. Its sheet is
+     * the APC's hulls with the mech LRM pod drawn at the hull's scale (art-source/vehicles/missile-carriers).
+     */
+    LRM_CARRIER("graphics/battle/vehicles/lrm-carrier.png", 0, 4, -90f,
+            0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
+            1, 0f, .15208333f, 0f, 0f, 2.4f, -90f,
+            TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID, 200f, 100f, 14f, 1.25f, .75f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public Stance engagementStance() { return Stance.STANDOFF; }
+    },
+    /**
+     * The rocket pickup, a field rig: the technical's pickup with a mech SRM pod bolted to its pintle ring and the
+     * welded plate left off to make the weight. Its anti-armor rockets reach no farther than a rack on a mech's
+     * shoulder, so it never drives at a tank: it waits where it was set down, behind cover, and fires on the armor
+     * that comes into reach ({@link Stance#AMBUSH}). It holds fire at men. Cheap and fragile, a Light lift
+     * (art-source/vehicles/missile-carriers).
+     */
+    SRM_TECHNICAL("graphics/battle/vehicles/srm-technical.png", 0, 4, -90f,
+            0, 3.0f, 1.5f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
+            1, 0f, -.9875f, 0f, 0f, 3.0f, -90f,
+            TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID, 260f, 60f, 5f, 1.3f, .65f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.65f, 30f, 180f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public Stance engagementStance() { return Stance.AMBUSH; }
+    },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
             0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
@@ -232,6 +265,16 @@ public enum VehicleType {
 
     /** How far this hull reports what it sees to its side, in cells; 0 for a hull that is not a sight source. */
     public float sightCells() { return 0f; }
+
+    /**
+     * How a deployed hull fights armor on its own ({@link VehicleEngagement}). A dueller takes the duel band its gun
+     * and the target's weapons choose. A stand-off hull holds beyond the target's reach where its gun out-reaches it
+     * and at the edge of its own otherwise, and never drives in to see what a spotter already sees. An ambusher
+     * never drives at armor at all: it holds where it was set down and fires on what comes into its reach.
+     */
+    public enum Stance { DUEL, STANDOFF, AMBUSH }
+
+    public Stance engagementStance() { return Stance.DUEL; }
 
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
@@ -271,7 +314,8 @@ public enum VehicleType {
             Float.parseFloat(System.getProperty("battle.vehicle.tankReverseFraction", ".3"));
 
     public boolean isApc() {
-        return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC;
+        return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC
+                || this == LRM_CARRIER;
     }
 
     /**
@@ -279,7 +323,7 @@ public enum VehicleType {
      * from a civilian chassis, never a military faction's issue — which is how pattern channels weight it.
      */
     public boolean isPickup() {
-        return this == MILITIA_TECHNICAL || this == SUPPLY_TRUCK || this == SCOUT_CAR;
+        return this == MILITIA_TECHNICAL || this == SUPPLY_TRUCK || this == SCOUT_CAR || this == SRM_TECHNICAL;
     }
 
     /**
@@ -460,8 +504,9 @@ public enum VehicleType {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT -> LiftClass.LIGHT;
-            case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER -> LiftClass.MEDIUM;
+            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
+            case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER,
+                 LRM_CARRIER -> LiftClass.MEDIUM;
             case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };

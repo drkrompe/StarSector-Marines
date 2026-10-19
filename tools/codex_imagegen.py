@@ -20,6 +20,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import os
 import subprocess
 import sys
 import tempfile
@@ -52,8 +53,10 @@ def compose_prompt(body, refs):
     return "".join(lines)
 
 
-def run_codex(prompt, refs, timeout):
+def run_codex(prompt, refs, timeout, model=None):
     cmd = ["codex", "exec", "--skip-git-repo-check", "-s", "read-only", "--json"]
+    if model:
+        cmd += ["-m", model]
     for path, _ in refs:
         cmd += ["-i", str(Path(path).resolve())]
     cmd.append("-")
@@ -92,6 +95,10 @@ def main():
     parser.add_argument("--timeout", type=int, default=420, help="seconds before giving up (default 420)")
     parser.add_argument("--adopt-thread", help="record an image an earlier run already generated")
     parser.add_argument("--replace", action="store_true", help="allow overwriting an existing --out")
+    parser.add_argument("--model", default=os.environ.get("CODEX_IMAGEGEN_MODEL"),
+                        help="Codex agent model (default $CODEX_IMAGEGEN_MODEL, else Codex's own default); "
+                             "it only drives the image_gen call. A ChatGPT login rejects some configured "
+                             "defaults ('not supported when using Codex with a ChatGPT account')")
     args = parser.parse_args()
     refs = []
     for spec in args.ref:
@@ -108,7 +115,7 @@ def main():
         thread, messages, usage = args.adopt_thread, [], None
     else:
         print("Generating with Codex image_gen (paid, no retry)...", flush=True)
-        thread, messages, usage = run_codex(prompt, refs, args.timeout)
+        thread, messages, usage = run_codex(prompt, refs, args.timeout, args.model)
     found = sorted((IMAGES / thread).glob("*.png"), key=lambda p: p.stat().st_mtime) if (IMAGES / thread).is_dir() else []
     if not found:
         print("\n".join(messages), file=sys.stderr)
@@ -122,6 +129,7 @@ def main():
     record = {
         "generator": "Codex CLI built-in image_gen",
         "codexVersion": version,
+        "model": args.model or "codex default",
         "thread": thread,
         "source": str(source),
         "otherImagesInThread": [str(p) for p in found[:-1]],

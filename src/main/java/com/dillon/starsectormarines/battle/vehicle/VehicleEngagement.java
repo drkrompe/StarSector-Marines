@@ -27,6 +27,12 @@ import java.util.Map;
  * the outer part of its own. Inside the band it stops and lets the turret work, which acquires on its own as it
  * always has. A single-gun hull has no shorter band to close to, so it never closes into contact.
  *
+ * <p>A hull's {@link VehicleType.Stance} adjusts this. A stand-off hull (the LRM carrier) holds beyond the target's
+ * reach where its gun out-reaches it and at the outer edge of its own reach otherwise, never closer; with an
+ * indirect-fire gun it also takes a target a spotter on its side is looking at ({@link SideSpotting}), and does not
+ * drive in to see it for itself. An ambusher (the SRM technical) never drives at armor: it holds where it was set
+ * down and lets its turret take what comes into reach.
+ *
  * <p>What it does not touch: a player order (an active one owns the chassis and an arrived one hands back here, the
  * way a mech's doctrine resumes after a move), a hull under direct control, delivery legs, allied story columns
  * (their scripts own when they move), unarmed hulls, a gun shot away ({@link HullTurretSection}) and empty magazines. Infantry is not a duel target: against
@@ -69,6 +75,10 @@ public final class VehicleEngagement {
     private final NavigationService navigation;
     private final VehicleControlSystem controlSystem;
     private final Map<Long, Plan> plans = new HashMap<>();
+    private SideSpotting spotting = SideSpotting.NONE;
+
+    /** A stand-off hull that cannot out-reach its target holds no nearer than this share of its own reach. */
+    static final float EDGE_BAND_SHARE = 0.85f;
 
     private static final class Plan {
         long target;
@@ -89,6 +99,11 @@ public final class VehicleEngagement {
         this.roster = roster;
         this.navigation = navigation;
         this.controlSystem = controlSystem;
+    }
+
+    /** Who calls targets for an indirect-fire hull that cannot see them itself. */
+    void setSpotting(SideSpotting spotting) {
+        this.spotting = spotting != null ? spotting : SideSpotting.NONE;
     }
 
     public static boolean isEnabled() {
@@ -208,7 +223,8 @@ public final class VehicleEngagement {
     private void decide(long id, Plan plan, GroundBody body) {
         VehicleType type = convoy.vehicleType(id);
         Weapon gun = Weapon.of(type.turretStructure().mount.weapon);
-        long target = pickTarget(id, plan.target, body, gun.range() * AWARE_REACH_FACTOR);
+        boolean indirect = type.turretStructure().mount.weapon.indirectFire;
+        long target = pickTarget(id, plan.target, body, gun.range() * AWARE_REACH_FACTOR, indirect);
         if (target != plan.target) {
             plan.routeX = null;
             plan.routeY = null;
@@ -221,9 +237,18 @@ public final class VehicleEngagement {
             plan.routeY = null;
             return;
         }
+        if (type.engagementStance() == VehicleType.Stance.AMBUSH) {
+            // An ambusher waits in its cover: no band to drive to and nothing to back away from.
+            plan.retreating = false;
+            if (plan.routeX != null) controlSystem.clearRoute(id);
+            plan.routeX = null;
+            plan.routeY = null;
+            return;
+        }
         float[] at = position(target);
         Band band = MechDuelBand.choose(List.of(gun), threatOf(target), CLOSE_BIAS);
         if (band == null) return;
+        if (type.engagementStance() == VehicleType.Stance.STANDOFF) band = standoff(band, gun.range());
         float distance = (float) Math.hypot(at[0] - body.x, at[1] - body.y);
         if (plan.retreating ? distance < band.min() : distance < band.min() - innerSlack(band)) {
             if (!plan.retreating && plan.routeX != null) controlSystem.clearRoute(id);
@@ -247,7 +272,7 @@ public final class VehicleEngagement {
                         plan.routeY[plan.routeY.length - 1] - at[1]));
         if (!stale || plan.replanIn > 0f || plan.restIn > 0f) return;
         plan.replanIn = REPLAN_SECONDS;
-        float[][] route = planToBand(id, type, body, at, band);
+        float[][] route = planToBand(id, type, body, at, band, !indirect);
         if (plan.routeX != null) controlSystem.clearRoute(id);
         if (route == null || route[0].length == 0) {
             plan.routeX = null;
@@ -261,10 +286,21 @@ public final class VehicleEngagement {
     }
 
     /**
-     * A drivable route to a cell at the middle of {@code band} off the target, with a line of sight to it, tried on
+     * A stand-off hull's band: the duel band's stand-off where its gun out-reaches the target, else the outer edge of
+     * its own reach rather than the duel band's middle, so it never closes to trade at the target's preferred range.
+     */
+    static Band standoff(Band chosen, float reach) {
+        if (chosen.stance() == MechDuelBand.Stance.STANDOFF) return chosen;
+        return new Band(MechDuelBand.Stance.STANDOFF, reach * EDGE_BAND_SHARE, reach - 1f);
+    }
+
+    /**
+     * A drivable route to a cell at the middle of {@code band} off the target, with a line of sight to it (when
+     * {@code needSight}; an indirect-fire hull fires on a spotter's call instead), tried on
      * the line through the hull first and then at widening bearings either side; null when none is drivable.
      */
-    private float[][] planToBand(long id, VehicleType type, GroundBody body, float[] target, Band band) {
+    private float[][] planToBand(long id, VehicleType type, GroundBody body, float[] target, Band band,
+                                 boolean needSight) {
         NavigationGrid grid = controlSystem.planningGrid(type);
         VehicleClearance clearance = VehicleClearance.erode(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
         TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
@@ -283,7 +319,9 @@ public final class VehicleEngagement {
             if (to == null) continue;
             float d = (float) Math.hypot(to[0] + 0.5f - target[0], to[1] + 0.5f - target[1]);
             // Sight is read off the live grid: the planning grid is a navigation-only copy.
-            if (!inBand(band, d) || !navigation.getGrid().hasLineOfSight(to[0], to[1], tx, ty)) continue;
+            if (!inBand(band, d) || (needSight && !navigation.getGrid().hasLineOfSight(to[0], to[1], tx, ty))) {
+                continue;
+            }
             if (from[0] == to[0] && from[1] == to[1]) return new float[][] {new float[0], new float[0]};
             float[][] route = VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
                     grid, cost, clearance, type);
@@ -294,11 +332,12 @@ public final class VehicleEngagement {
 
     /**
      * The hostile machine this hull fights: its current one while still visible and in awareness, else the
-     * nearest visible hostile mech or ground vehicle within {@code aware} cells.
+     * nearest visible hostile mech or ground vehicle within {@code aware} cells. An {@code indirect} hull also counts
+     * a machine its side's spotters see as visible.
      */
-    private long pickTarget(long id, long current, GroundBody body, float aware) {
+    private long pickTarget(long id, long current, GroundBody body, float aware, boolean indirect) {
         Faction own = convoy.faction(id);
-        if (current != 0L && valid(current, own, body, aware)) return current;
+        if (current != 0L && valid(current, own, body, aware, indirect)) return current;
         long best = 0L;
         float bestDistance = Float.MAX_VALUE;
         World world = roster.world();
@@ -306,7 +345,7 @@ public final class VehicleEngagement {
             long candidate = roster.get(i);
             if (!world.hasMechLoadout(candidate)) continue;
             float d = distance(candidate, body);
-            if (d < bestDistance && valid(candidate, own, body, aware)) {
+            if (d < bestDistance && valid(candidate, own, body, aware, indirect)) {
                 best = candidate;
                 bestDistance = d;
             }
@@ -314,7 +353,7 @@ public final class VehicleEngagement {
         for (long candidate : convoy.entityIds()) {
             if (candidate == id) continue;
             float d = distance(candidate, body);
-            if (d < bestDistance && valid(candidate, own, body, aware)) {
+            if (d < bestDistance && valid(candidate, own, body, aware, indirect)) {
                 best = candidate;
                 bestDistance = d;
             }
@@ -322,7 +361,7 @@ public final class VehicleEngagement {
         return best;
     }
 
-    private boolean valid(long candidate, Faction own, GroundBody body, float aware) {
+    private boolean valid(long candidate, Faction own, GroundBody body, float aware, boolean indirect) {
         boolean vehicle = convoy.isVehicle(candidate);
         if (vehicle) {
             if (!convoy.isTargetable(candidate) || convoy.structure(candidate) <= 0f) return false;
@@ -334,7 +373,8 @@ public final class VehicleEngagement {
         float[] at = position(candidate);
         if (Math.hypot(at[0] - body.x, at[1] - body.y) > aware) return false;
         return navigation.getGrid().hasLineOfSight((int) Math.floor(body.x), (int) Math.floor(body.y),
-                (int) Math.floor(at[0]), (int) Math.floor(at[1]));
+                (int) Math.floor(at[0]), (int) Math.floor(at[1]))
+                || (indirect && spotting.spotted(own, candidate));
     }
 
     private float distance(long candidate, GroundBody body) {

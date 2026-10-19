@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
@@ -28,6 +29,10 @@ public final class GroundVehicleTurretSystem {
     private final NavigationGrid grid;
     private final World world;
     private final TurretFireSink fireSink;
+    private SideSpotting spotting = SideSpotting.NONE;
+
+    /** Seconds between a launcher's looks for a new target ({@link #tickLauncher}). */
+    static final float LAUNCHER_RELOOK_SECONDS = 0.5f;
 
     public GroundVehicleTurretSystem(ConvoyService convoy, UnitRosterService roster,
                                      TacticalScoring scoring, NavigationGrid grid,
@@ -38,6 +43,11 @@ public final class GroundVehicleTurretSystem {
         this.grid = grid;
         this.world = world;
         this.fireSink = fireSink;
+    }
+
+    /** Who calls targets for an indirect-fire launcher that cannot see them itself. */
+    public void setSpotting(SideSpotting spotting) {
+        this.spotting = spotting != null ? spotting : SideSpotting.NONE;
     }
 
     public void cancelQueuedFire(long id) {
@@ -162,6 +172,11 @@ public final class GroundVehicleTurretSystem {
             return;
         }
 
+        if (mount.hardenedTargetsOnly || weapon.indirectFire) {
+            tickLauncher(id, turret, body, structure, mountX, mountY, dt);
+            return;
+        }
+
         TurretAim.State aim = new TurretAim.State();
         aim.originCellX = (int) Math.floor(mountX);
         aim.originCellY = (int) Math.floor(mountY);
@@ -198,6 +213,115 @@ public final class GroundVehicleTurretSystem {
                 turret.burstTargetId = aim.target;
             }
         }
+    }
+
+    /**
+     * A missile launcher's autonomous tick (the missile carriers, {@code convoy-nouns.md}). A launcher whose mount is
+     * {@link TurretMountDef#hardenedTargetsOnly} spends its contact warheads only on turrets, hubs, vehicles and heavy
+     * mechs, as a mech's anti-armor rack does, and holds fire at everything else. An indirect-fire launcher also takes
+     * a target it cannot see when somebody else on its side is looking at it ({@link SideSpotting}): the round arcs
+     * over whatever is between, at the weapon's observed accuracy. A target nobody is looking at is not fired on.
+     * Its own sight is preferred, then the nearest.
+     */
+    private void tickLauncher(long id, GroundTurret turret, GroundBody body, StructureDef structure,
+                              float mountX, float mountY, float dt) {
+        TurretMountDef mount = structure.mount;
+        WeaponDef weapon = mount.weapon;
+        Faction side = convoy.faction(id);
+        if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
+        turret.relookTimer -= dt;
+        long target = turret.targetId;
+        if (target != 0L && launcherSight(side, target, mountX, mountY, mount) == NO_SIGHT) target = 0L;
+        if (target == 0L && turret.relookTimer <= 0f) {
+            turret.relookTimer = LAUNCHER_RELOOK_SECONDS;
+            target = pickLauncherTarget(id, side, mountX, mountY, mount);
+        }
+        turret.targetId = target;
+        if (target == 0L) {
+            turret.facingDeg = idleFacing(turret.facingDeg, body.facingDegrees, mount.turnRateDegPerSec, dt);
+            return;
+        }
+        float bearing = TurretAim.bearingTo(mountX, mountY, world.x(target), world.y(target));
+        turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
+        if (turret.cooldownTimer > 0f
+                || Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) > TurretAim.FIRE_ARC_DEG
+                || !barrelClear(body, TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0))) {
+            return;
+        }
+        // A spotted round is an observed round: the spotter's eyes stand in for the hull's, as a mortar's do.
+        fireSink.fire(id, mountX, mountY, side, structure, target, false, true, turret.facingDeg, 0);
+        turret.ammo--;
+        turret.cooldownTimer = weapon.cooldown;
+        if (turret.ammo > 0 && weapon.burstCount > 1) {
+            turret.burstRemaining = weapon.burstCount - 1;
+            turret.burstTimer = weapon.burstSpacing;
+            turret.burstTargetId = target;
+        }
+    }
+
+    static final int NO_SIGHT = 0;
+    static final int SPOTTED = 1;
+    static final int OWN_SIGHT = 2;
+
+    /** How launcher {@code mount} at the point may engage {@code target}: not at all, on a spotter's call, or itself. */
+    private int launcherSight(Faction side, long target, float mountX, float mountY, TurretMountDef mount) {
+        if (!world.isAlive(target)) return NO_SIGHT;
+        boolean vehicle = convoy.isVehicle(target);
+        if (vehicle && (!convoy.isTargetable(target) || convoy.structure(target) <= 0f)) return NO_SIGHT;
+        Faction other = vehicle ? convoy.faction(target) : roster.identity().faction(target);
+        if (other == null || !side.hostileTo(other)) return NO_SIGHT;
+        if (mount.hardenedTargetsOnly && !hardened(target)) return NO_SIGHT;
+        WeaponDef weapon = mount.weapon;
+        float tx = world.x(target);
+        float ty = world.y(target);
+        float distance = (float) Math.hypot(tx - mountX, ty - mountY);
+        if (distance > weapon.range || distance < weapon.minRange) return NO_SIGHT;
+        if (grid.hasLineOfSight((int) Math.floor(mountX), (int) Math.floor(mountY),
+                (int) Math.floor(tx), (int) Math.floor(ty))) return OWN_SIGHT;
+        return weapon.indirectFire && spotting.spotted(side, target) ? SPOTTED : NO_SIGHT;
+    }
+
+    private long pickLauncherTarget(long self, Faction side, float mountX, float mountY, TurretMountDef mount) {
+        long best = 0L;
+        int bestSight = NO_SIGHT;
+        float bestDistance = Float.MAX_VALUE;
+        for (long candidate : convoy.entityIds()) {
+            if (candidate == self) continue;
+            int sight = launcherSight(side, candidate, mountX, mountY, mount);
+            if (sight == NO_SIGHT) continue;
+            float d = (float) Math.hypot(world.x(candidate) - mountX, world.y(candidate) - mountY);
+            if (better(sight, d, candidate, bestSight, bestDistance, best)) {
+                best = candidate;
+                bestSight = sight;
+                bestDistance = d;
+            }
+        }
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long candidate = roster.get(i);
+            if (mount.hardenedTargetsOnly && !hardened(candidate)) continue;
+            int sight = launcherSight(side, candidate, mountX, mountY, mount);
+            if (sight == NO_SIGHT) continue;
+            float d = (float) Math.hypot(world.x(candidate) - mountX, world.y(candidate) - mountY);
+            if (better(sight, d, candidate, bestSight, bestDistance, best)) {
+                best = candidate;
+                bestSight = sight;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    /** A turret, hub, vehicle or heavy mech: what an anti-armor warhead is spent on. */
+    private boolean hardened(long target) {
+        return convoy.isVehicle(target) || TacticalScoring.isHardened(roster.identity().type(target));
+    }
+
+    /** Own sight before a spotter's call, then the nearer, then the lower id so the choice repeats. */
+    static boolean better(int sight, float distance, long id, int bestSight, float bestDistance, long best) {
+        if (best == 0L) return true;
+        if (sight != bestSight) return sight > bestSight;
+        if (distance != bestDistance) return distance < bestDistance;
+        return id < best;
     }
 
     /** One idle tick: the turret slews back toward the hull's heading at {@link #IDLE_RETURN_RATE_SHARE} of its rate. */

@@ -90,14 +90,36 @@ Built from the game's sprites (house='hand')
   muzzle_ring per house); a builder may build its own gun group instead.
   derive_sprites.py (system Python + PIL) rewrites sprite_outlines.json from
   the installed game's .wpn files and sprites: outlines, barrels, colours,
-  offsets, render hints.
+  offsets, render hints. --game names the install folder holding
+  starsector-core (on a Mac, a folder with a starsector-core link to
+  Starsector.app/Contents/Resources/Java).
+
+Tri-Tachyon energy weapons (house='hand')
+  tachyonlance, gravitonbeam, taclaser and the reaper launcher, the Paragon's
+  Elite fit. A beam has no gun sprite, so the whole weapon trains and the
+  elevation empty carries only the muzzle anchors (at the .wpn's offsets).
+  Each stands on a base plate cut to the sprite's outline (`bodies`, which
+  keeps both halves of the lance either side of its open beam slot, plus the
+  thin `prongs`), with its raised parts over it: the lance's prong blades,
+  body block, capacitor pods with red lamps and fan of fins; the graviton's
+  teardrop housing, lens and swept wings; the tactical laser's ten-plate dome
+  and emitter spike; the reaper's rails, launcher and the round loaded in its
+  slot. Lamps are 'lamp_blue' and 'lamp_red' keys. Silhouette IoU 0.93
+  (lance), 0.95 (graviton), 0.93 (tactical laser), 0.91 (reaper).
+
+Dressing a turret in the hull's finish
+  build(..., hull_finish=True) uses the hull's own materials for every key the
+  hull supplies (paint, accent, metal, steel, lamp_blue ...), as they are,
+  instead of the sprite's paints and the kit's weathering. Keys the hull
+  leaves out still come from the sprite. The Paragon dresses its Tri-Tachyon
+  guns in its hex ceramic this way.
 
 Other catalogue entries (WEAPONS)
   none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open
   rails), pilum, typhoon, annihilatorpod (tubes): the rack is drawn with its
   loaded missiles (RENDER_LOADED_MISSILES), on a yoke with elevation rams.
-  Not yet: hardpoints (fixed mounts) and energy weapons; the Onslaught's
-  built-in TPCs stay in os_turrets.
+  Not yet: hardpoints (fixed mounts) and energy weapons other than the
+  Tri-Tachyon four above; the Onslaught's built-in TPCs stay in os_turrets.
 
 Review
   blender --background --factory-startup --python catalog.py -- --out DIR
@@ -117,7 +139,8 @@ The gauntlet (each turret, against its sprite)
   fixes; apply them and render again until it passes.
 
 Users
-  legion-geometry (lg_turrets). Lasher, Onslaught, Hermes, Hound and Second
+  legion-geometry (lg_turrets), paragon-geometry (pg_turrets: the Tri-Tachyon
+  four, hull_finish). Lasher, Onslaught, Hermes, Hound and Second
   Wind still use their own turret modules; moving one onto the kit is that
   hull's session's call.
 

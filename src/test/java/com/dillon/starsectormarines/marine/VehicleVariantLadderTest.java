@@ -138,14 +138,15 @@ class VehicleVariantLadderTest {
 
     private static final Set<VehicleType> ROLE_HULLS =
             EnumSet.of(VehicleType.FIRE_SUPPORT_APC, VehicleType.SCOUT_CAR, VehicleType.SUPPLY_TRUCK,
-                    VehicleType.HOVER_SCOUT, VehicleType.DRONE_SKIMMER);
+                    VehicleType.HOVER_SCOUT, VehicleType.DRONE_SKIMMER, VehicleType.LRM_CARRIER,
+                    VehicleType.SRM_TECHNICAL);
 
     private static MechVariant mechOf(LiftClass lift) {
         for (MechVariant variant : MechVariant.values()) if (variant.liftClass() == lift) return variant;
         throw new IllegalArgumentException(lift.name());
     }
 
-    private static float credits(FabricationCost cost) {
+    static float credits(FabricationCost cost) {
         Map<String, Integer> price = Map.of("supplies", 100, "heavy_machinery", 150, "metals", 30, "rare_metals", 200);
         float total = 0f;
         for (FabricationCost.Line line : cost.lines()) total += line.quantity() * price.get(line.commodityId());
