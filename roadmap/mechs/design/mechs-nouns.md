@@ -1119,9 +1119,9 @@ are tried in order of armor efficiency against that target's rating
 slot order kept on ties (`MechFireOrder`). Against anything else the slot order
 stands: arms, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
 anti-armor weapons, are no longer starved by the chaingun against a machine,
-while its fire at infantry is exactly what it was. A heavy cannon still fires
-before the launchers it out-penetrates, and a bastion, which ties them, keeps
-its slot. Manual fire follows the player's groups, not this order.
+while its fire at infantry is exactly what it was. An anti-armor rack (penetration 30) defeats any mech's plate outright, so a
+heavy cannon, which also does, keeps its slot ahead of it, a bastion yields to
+it, and a fragmentation rack (penetration 4) goes after every arm gun. Manual fire follows the player's groups, not this order.
 `-Dbattle.mech.armorFireOrder=false` is the control.
 
 Thresholds are fractions of capacity, quoted here at the stock 100. AI refuses a
