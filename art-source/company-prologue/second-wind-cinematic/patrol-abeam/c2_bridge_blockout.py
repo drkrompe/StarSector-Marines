@@ -44,8 +44,8 @@ EYE_Z = 19.2               # standing eye, about 1.69 m above the floor, mid-sli
 # The camera is someone standing at the slits: between the flight seats, leaning on the
 # forward console (its face is at x 16.85), then at the port comms bank (face at y 3.75),
 # a step forward of Castle.
-STATION_FORWARD = (15.5, 0.2, EYE_Z)        # on the main floor at the dais rail, 1.5 m behind the glass
-STATION_PORT = (13.0, 3.25, EYE_Z)          # 1.4 units (90 cm) inboard of the port glass
+STATION_FORWARD = (16.75, 1.2, EYE_Z)       # on the dais's clear port side, leaning over the console
+STATION_PORT = (13.0, 3.6, EYE_Z)           # 1.05 units (70 cm) inboard of the port glass, at the bank
 LENS_MM = 22.0             # on a 36 mm sensor: 78.6 degrees across
 
 # ---------------------------------------------------------------- the pass (metres, Second Wind frame)
@@ -231,8 +231,9 @@ def blender_main(argv):
     sys.path.insert(0, p["sw_dir"])
     import sw_bridge_interior
     for root in sw_bridge_interior.figures(p["sw_mpu"], parent=sw_root):
-        for ch in root.children_recursive:
-            ch.color = ch.data.materials[0].diffuse_color
+        for ch in root.children_recursive:      # the MakeHuman Castle also holds a rig and empties
+            if ch.type == "MESH" and ch.data.materials:
+                ch.color = ch.data.materials[0].diffuse_color
 
     # Legion: appended, rooted, scaled to metres.
     with bpy.data.libraries.load(p["legion_blend"], link=False) as (src, dst):

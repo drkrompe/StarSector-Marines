@@ -32,11 +32,14 @@ glazing round the front and sides, about 55 cm of glass between the sill ledge a
 the visor brow, behind heavy posts. Its interior is the model's own
 (`sw_bridge_interior`, in the patched state the shot appends): a standing bridge sunk
 into the waist housing, the floor 1.3 m below the slits and about 2.4 m of headroom,
-with a raised flight dais forward where the pilot and co-pilot sit at low consoles,
+with a raised flight dais forward (the owner's crow's nest) where the pilot sits at a low console,
 Castle's comms bank along the port side, a plot table and the aft hatch. The camera is
-a standing eye about 1.7 m off the floor, on a 22 mm lens: first at the dais rail, 1.5
-m behind the forward glass, then turning to Castle's station at the port slits. The
-pilot and Castle are simple mannequins (`sw_bridge_interior.figures`).
+a standing eye about 1.7 m off the floor, on a 22 mm lens: first on the clear port side
+of the dais, leaning over the console about 60 cm behind the forward glass, then stepping
+down to Castle's station, 70 cm inboard of the port glass. The eye height is the same at both,
+since leaning on the dais and standing on the floor put it level with the slits. The pilot is a
+simple mannequin; Castle is the MakeHuman figure from `castle-figure/` once its .blend is built,
+and a mannequin until then (`sw_bridge_interior.figures`).
 
 **The pass.** The Legion comes the other way, bow first, 12° off reciprocal, and
 Second Wind passes it to port. Closing speed bleeds from 140 m/s at the cut to
@@ -100,8 +103,10 @@ A frame takes about 10 s on the GPU.
 **The bridge scene is modelled in grey** (`sw_bridge_interior`, owner review
 pending): the room, consoles and screens, seats, rail, plot table, hatch, ceiling
 fittings and the patched state's jury-rigging, with mannequin crew. It is untextured
-and its lighting is not designed. On the pan from the forward station to the port one,
-the co-pilot's seat back crosses the frame for a moment.
+and its lighting is not designed. The co-pilot's seat was removed (owner) so the pan is clear,
+and both stations moved closer to the glass for more view: the share of the frame showing
+space rose from 9% to 14% forward and 28% to 40% at the port glass. The slits themselves are
+unchanged; making them taller is an exterior change.
 
 Review runs: `review/cinematic-c2/2026-10-18_bridge-blockout_windows/` (the two
 variants) and `.../2026-10-18_bridge-fighters_windows/` (banked, with the fighters);

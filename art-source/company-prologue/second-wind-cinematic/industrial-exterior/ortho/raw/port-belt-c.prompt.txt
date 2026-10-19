@@ -1,0 +1,26 @@
+Repaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.
+
+Hard rules:
+- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.
+- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.
+- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.
+- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.
+- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.
+- Fill the whole frame edge to edge. No border.
+
+Setting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.
+
+This tile: 780 m wide by 520 m tall, so one pixel is about 51 cm. It is part of the industrial belt between the farmland (south, at the bottom) and the spaceport (north, at the top): a ditch and fence, a freight road, rail sidings, two rows of warehouses and the port's container yard. Paint it like a real high-altitude aerial survey photograph of a hard-worked, rain-washed industrial district.
+
+What the regions are, from the bottom up:
+- The blue-grey line near the bottom edge: a drainage ditch of dark, still, muddy water with reedy banks. The olive band above it: a rough grassy verge with weeds, crossed by the two very thin straight lines of the belt's perimeter fence (a chain-link fence on posts, seen from above as a thin dark line; keep it thin).
+- The short dark grey strip down to the ditch at the bottom left, with a tiny pale square: the asphalt apron of the belt's checkpoint and the roof of its guard booth.
+- The wide dark grey band running left to right: the freight road, worn grey-black asphalt with patched cracks, tyre polish along its lanes and oil stains. No painted road lines.
+- The three thin darker lines above it: rail sidings, each a bed of dark grey ballast stones with two thin steel rails on closely spaced sleepers.
+- The flat brown-grey ground everywhere between things: compacted dirt and gravel yard surface, tyre tracks, oil stains, puddles, a few weeds at the edges.
+- The dark grey bands running top to bottom: cross streets of worn asphalt, patched and stained. The cross streets run on through the container yard to the loading strip: keep them clear asphalt there, with no containers on them.
+- The large rectangles in rust-orange, grey, off-white and green: warehouse roofs seen from above, corrugated or standing-seam metal in faded paint of that colour, with rust streaks, patched sheets and grime along the gutters. The long white stripes on some roofs: skylight strips of translucent ribbed panels. The small grey squares on the roofs: roof plant, air handlers and vent boxes.
+- The groups of two or three short white bars just below the lower row of warehouses: the white roofs of cargo trailers parked against the loading docks. Paint them only as those plain flat white rectangles.
+- The large pale grey area at the top: the container yard, a stained concrete slab of large cast panels. The many small coloured bars on it: shipping containers seen from above, ribbed steel roofs in their own colours (rust red, blue, green, mustard yellow, grey, plum), scuffed and rust-edged, lined up in rows exactly as drawn. The dark grey stripes crossing it top to bottom: asphalt aisles between the stacks.
+- The yellow H-shapes over the containers: rail-mounted gantry cranes, yellow-painted steel girders seen from directly above. Keep them exactly as drawn.
+- The thin dark band along the very top edge: the asphalt loading strip at the edge of the port.

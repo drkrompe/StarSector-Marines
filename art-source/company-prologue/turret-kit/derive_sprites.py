@@ -40,14 +40,17 @@ WEAPONS = {   # kit id -> .wpn id
     'squall': 'squall', 'hurricane': 'hurricane',
     # Tri-Tachyon (the Paragon's Elite fit): beams have no gun sprite, the reaper is drawn loaded.
     'tachyonlance': 'tachyonlance', 'gravitonbeam': 'gravitonbeam', 'taclaser': 'taclaser', 'reaper': 'reaper',
+    'pdlaser': 'pdlaser',
 }
 ALPHA = 40
 # Second paints, sRGB, read off each base sprite; MAIN_HINT is its body paint
 # where that is needed to tell the two apart.
 ACCENT = {'flak': (200, 60, 55), 'dualflak': (225, 160, 60), 'devastator': (190, 120, 70),
-          'hephaestus': (215, 180, 95), 'hveldriver': (200, 185, 120)}
+          'hephaestus': (215, 180, 95), 'hveldriver': (200, 185, 120),
+          'pdlaser': (185, 55, 40)}
 MAIN_HINT = {'flak': (150, 120, 100), 'dualflak': (150, 115, 105), 'devastator': (205, 205, 215),
-             'hephaestus': (160, 150, 140), 'hveldriver': (175, 175, 180)}
+             'hephaestus': (160, 150, 140), 'hveldriver': (175, 175, 180),
+             'pdlaser': (70, 70, 72)}
 
 
 def lin(c):

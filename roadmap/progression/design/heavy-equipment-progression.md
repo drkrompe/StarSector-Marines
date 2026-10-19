@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-18 — missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — the AT LRM against a tank: diagnosis and rack levers measured, still open; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -514,8 +514,8 @@ identity yet are owned elsewhere, and are reported here rather than tuned:
   The racks match the heavy gun's reach, out-reach the breakthrough tank, and
   their contact warhead (penetration 30) meets plate it defeats at full damage.
   That is the missiles' anti-armor role, but stronger than "the tank wins in the
-  open" allows. Missile reach or the AT warhead's damage is the lever, and both
-  belong to the missile direction.
+  open" allows. The rack-side levers were measured and none of them fixes it
+  (*The AT LRM against a tank*, below).
 - **The energy and autocannon arms win in the open** (bastion 0.72, pulse 0.56
   there). Their reach (34, 32) and penetration (14, 9) now meet a plate they
   bite, and the breakthrough tank stands off only when it out-reaches its target
@@ -565,6 +565,61 @@ above (five fits, three grounds, eight seeds, both roles), first with
 - The open is still the tank's (0.45). If the gun-loss cost should be won back
   there, the breakthrough tank's reach remains the lever named above, not its
   pool.
+- **A tank that has lost its gun withdraws** (`convoy-nouns.md`, the turret
+  section): out of every threat's reach, then it holds. Read against
+  `-Dbattle.vehicle.disarmedWithdraw=false` (refit chaingun and AT LRM-15
+  Bulwarks against both tanks, three grounds, eight seeds, both roles), the
+  Bulwark's share moves only where a gun went, 0.63 to 0.61 over 192 fights.
+  An attacking tank with no gun now usually escapes: 4 of the 25 gun-loss fights
+  turned from Bulwark wins into stalemates, and the tank kept 6-39% of its
+  integrity. A defending tank runs and lives longer (up to 2410 against 1750
+  ticks) but still dies, because the attacking Bulwark hunts it. Among tanks the
+  same holds: four hull-down heavy-gun fights against the breakthrough tank
+  ended with the gunless defender alive out of reach.
+
+**The AT LRM against a tank** (2026-10-19, open). A refit Bulwark with two AT
+LRM-15s beats the tanks 0.81: 0.78 against the breakthrough tank, 0.83 against
+the heavy gun, and 1.00 against the breakthrough tank in the open and hull-down.
+Bastion arms with the same racks take that to 0.94. The figures are
+`armorMatchup`, three grounds, eight seeds, both roles, with a timeout read by
+integrity. The same fit also beats a refit chaingun Bulwark 0.77, so it is the
+strongest armor dueller there is, and the tank rows reflect that rather than
+being a tank-only gap.
+
+- **Why.** Penetration does not separate the targets: a Bulwark and a tank
+  both rate 18, and their pools are 1260 and 1300, so a warhead treats them
+  alike. Fire rate does: one AT LRM-15 delivers 5 x 95 contact every 9 s, about
+  1.7 times a tank's whole main gun, and the Bulwark carries two. An indirect
+  round rolls its hit at launch, with no range falloff and nothing for the
+  target's size or motion, and lands about 80% of rolls on a hull. It opens at
+  40 cells, outside the breakthrough tank's 36. So the tank dies in 11-18 s
+  having fired 6-8 rounds. Against a chaingun Bulwark the tank's one edge is
+  stand-off reach, and the rack's reach takes that away. The report's
+  damage-by-weapon column had shown the racks at 15% of the damage, weighting a
+  hit by its 15-point blast. It now counts a contact warhead at its payload.
+- **What did not work.** These are fit-against-tanks / fit-against-the-refit-
+  chaingun-Bulwark readings, from 0.81 / 0.77:
+
+  | Lever (AT LRM-15 only unless noted) | Against tanks | Against refit Bulwark |
+  | --- | --- | --- |
+  | Two salvos loaded instead of three | 0.81 | 0.73 |
+  | Contact damage 70 / 55 (shared with the AT LRM-5) | 0.80 / 0.77 | 0.60 / 0.56 |
+  | Scatter 2.5 / 3.5 | 0.79 / 0.80 | 0.75 / 0.75 |
+  | Cycle 13 s / 18 s | 0.81 / 0.80 | 0.75 / 0.73 |
+  | Heat per salvo 60 / 70 / 80 / 90 | 0.82 / 0.80 / 0.74 / 0.77 | 0.69 / 0.79 / 0.56 / 0.42 |
+  | Reach 34 / 32 (shared) | 0.89 / 0.73 | 0.67 / 0.67 |
+
+  The magazine levers miss because the refit's replenisher reloads and the
+  first two volleys already kill. Every damage-side lever moves the mech rows
+  two to four times as far as the tank rows. Reach is erratic, and at 32 the
+  bastion fit beats the breakthrough tank 1.00. The tank rows are
+  overdetermined: halving the racks still wins.
+- **Where the answer probably is.** On the tank. It needs something against
+  slow, interceptable rounds that a Bulwark's chaingun and a cannon do not
+  trip. A gun tank's active protection (the `PointDefenseService` bounds of
+  radius, rate and capacity, on the hull) or smoke would fit. Either would also
+  cut the AT SRM-15 in the street, so the stock Bulwark's street rows would need
+  re-reading. Not chosen yet.
 
 ## Missile warheads
 
