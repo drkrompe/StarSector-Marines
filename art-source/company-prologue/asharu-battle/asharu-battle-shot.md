@@ -1,8 +1,8 @@
 # Asharu battle: the wreckfall
 
-Status: DRAFT — round 3 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
+Status: DRAFT — round 4 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
 Written: 2026-10-19
-Updated: 2026-10-19 — round 3: the Enforcer is cut, a Lasher leads the escort, and the finished Kite (P), Hound (P) and independent Lasher and Hound replace their stand-ins.
+Updated: 2026-10-19 — round 4: the Falcon (P) and the Wolf in both liveries replace their stand-ins (builds awaiting the owner's acceptance); the Wolf is 75 m, not 86.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -118,18 +118,18 @@ Colossus 108 m, Onslaught 301 m.
 | Buffalo x2 | small freighters; get away | 58 m (est.) | a Hound | stand-in |
 | Dram | small tanker; gets away | 48 m (est.) | 0.8 Hound | stand-in |
 | Lasher x3 | escort lead and escort frigates | 90 m | 1.5 Hounds | **finished** (independent livery) |
-| Wolf | point escort frigate | 86 m (est.) | 1.4 Hounds | from the Wolf (P) build, with a merchant livery |
+| Wolf | point escort frigate | 75 m | 1.2 Hounds | **finished** (merchant livery of the Wolf build) |
 | Hound | rear escort | 61 m | the reference | **finished** (independent livery) |
 
 ### Pirate raiders (11 hulls)
 
 | Hull | Role | Length | Against known ships | Model |
 |---|---|---|---|---|
-| Falcon (P) | flagship, light cruiser | 159 m (est.) | 1.5 Colossus; half an Onslaught | ordered |
+| Falcon (P) | flagship, light cruiser | 174 m | 1.6 Colossus; 0.6 Onslaught | **finished** |
 | Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 107 m (est.) | the Colossus's twin | ordered, from the Colossus geometry |
 | Manticore (P) | long-range destroyer that breaks the screen | 96 m (est.) | 0.9 Colossus | ordered |
 | Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
-| Wolf (P) x2 | fast frigates that cut the column | 86 m (est.) | 1.4 Hounds | ordered |
+| Wolf (P) x2 | fast frigates that cut the column | 75 m | 1.2 Hounds | **finished** |
 | Hound (P) x2 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
 | Kite (P) x2 | boarding shuttles | 52 m | 0.9 Hound | **finished** |
 
@@ -186,7 +186,8 @@ ordered from this blockout without the owner asking.
 roster sheets (from above and broadside, every hull at true relative size) and
 the orbit diagram. Hulls come from `build/asharu-battle/inputs/` (ignored): the
 finished Colossus and Shepherd builds (`colossus-cinematic`,
-`shepherd-cinematic`) and the Drive builds `kite-p/a48f8757b`, `hound-p/33114de`,
+`shepherd-cinematic`) and the Drive builds `falcon-p/0044413fc`, `wolf-p/cec776a`,
+`wolf/cec776a`, `kite-p/a48f8757b`, `hound-p/33114de`,
 `lasher-independent/7805d3b` and `hound-independent/1e91821`, each placed
 through its manifest. A stand-in is the sprite's silhouette raised into a lens
 shape and painted with the sprite. It reads as the right hull at the right size
