@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "120",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Interior of an old cargo spaceship passenger compartment, steady low engine hum carried through the hull, air recycler ventilation hiss, faint electrical buzz, calm, no voices, no music",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "264815df4563f84c97ccaec5e80d4e9c0d4f60138a55038ff647006db7ab3429",
+  "durationSeconds": 12.0,
+  "peakDb": -16.9,
+  "integratedLufs": -30.3
+}

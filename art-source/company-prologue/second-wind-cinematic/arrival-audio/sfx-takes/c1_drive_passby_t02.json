@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Deep spaceship engine rumble swelling slowly as it passes close, low frequency drone rising then fading away, heavy and muffled, no high frequencies",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "fbcea747e1109e739bc493e0fc821632a65c560a9295b01d2b2eefaad15e0cbf",
+  "durationSeconds": 10.0,
+  "peakDb": -0.5,
+  "integratedLufs": -12.5
+}

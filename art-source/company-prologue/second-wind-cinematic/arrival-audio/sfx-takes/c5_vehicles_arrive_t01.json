@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "60",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy utility vehicles pulling up and stopping on a concrete yard, low engine idle, air brake hiss",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "638a2a9b564e6920dbebc2bf25a9c999f20a0e77c3b408b1035ae54ed7e7d8ad",
+  "durationSeconds": 6.0,
+  "peakDb": -0.9,
+  "integratedLufs": -16.0
+}

@@ -1,0 +1,23 @@
+Repaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.
+
+Hard rules:
+- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.
+- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.
+- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.
+- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.
+- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.
+- Fill the whole frame edge to edge. No border.
+
+Setting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.
+
+This image is the exception to "no vehicles": it is a sheet of vehicle roofs, each seen from directly above, and every shape on it IS a vehicle to be painted. The sheet is 32 m wide by 21.3 m tall, so one pixel is about 2 cm. Every vehicle faces right: its front is the right-hand end. These are the working vehicles of the public spaceport at Greywater Down, a Hegemony port on a rainy jungle world: hard-used, dusty, sun-faded and patched, never new and never glossy.
+
+Keep the plain flat grey background exactly as it is, empty and untextured: it is not ground. Paint only inside each vehicle's outline, and keep each outline exactly where it is. The small black blocks poking out at the sides are tyres: paint them as worn black rubber seen from above.
+
+What each shape is (top row left to right, then the middle row, then the bottom row):
+- Top left, the long dark grey strip with a small orange square at its right end: a container-yard terminal tractor with an empty skeletal container chassis behind it. The orange square is the tractor's cab roof: faded safety orange, a roof hatch, a windscreen edge along the right side, an exhaust stack. The long dark grey strip is the bare steel chassis seen from above: two rails, cross members, twist-lock corners, rust and grease.
+- Top right, the long white block with a thin orange stripe along its middle: the port's passenger bus. White paint gone dusty, the orange stripe is the Hegemony livery band running down the roof, roof hatches, an air-conditioning pod, a windscreen edge at the right end, rain streaks.
+- Middle left, the shape with a coloured square at its right end and a coloured box over most of its length: a rigid container truck carrying a 20-foot shipping container. The square is the cab roof (faded paint, roof hatch, windscreen edge on the right); the long box is the container's roof: corrugated painted steel with corner castings, dents, rust streaks, faded stencil-free paint. A strip of dark steel chassis shows between them.
+- Middle right, the small dark blue block: a MuniSec patrol car, the port's municipal security. Dark blue paint with a white roof panel, a light bar painted across the roof just behind its middle (blue and amber lenses), a windscreen edge at the right end and a rear window at the left. Cleaner than the working vehicles but dusty.
+- Bottom left, the small blue block: a baggage and cargo tug, a small open tow tractor. Faded blue paint, a light sun canopy over the driver's seat, engine cover vents, a tow hitch at the left end.
+- Bottom centre, the small grey block with a coloured box on it: a cargo dolly, a towed steel platform carrying a cargo module. The grey is the steel deck with its rails; the box is the module's roof: ribbed painted steel, scuffed, rusty at the edges.

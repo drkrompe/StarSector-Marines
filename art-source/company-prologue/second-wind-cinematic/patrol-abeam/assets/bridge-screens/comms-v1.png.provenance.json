@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154c8-c5c5-7c72-be29-a553f240a67a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c8-c5c5-7c72-be29-a553f240a67a\\exec-ffffe160-27f2-4b6a-b43f-4484883d3afc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\comms-v1.png",
+    "sha256": "33563e456e86bee2f603e94e044d5429f5a56eb6be8349c0e69dfe50ae6438ba",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-comms-v1.txt",
+  "promptSha256": "5b08031684db8e9a1999e0efc018ca2d07e82452e32d1704376fee737cf721ef",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nWide landscape canvas (about 2:1). The communications page: a scrolling frequency waterfall (spectrogram) filling the left half with a few bright carrier lines and noise speckle; on the right a channel list (GUARD, HG TRAFFIC CTL, FLEET COMMON, JANGALA PORT) with signal-strength bars, one channel marked TRANSMIT in amber, an audio level meter, and a short message-log panel of a few text lines.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image matching the freighter communications display.\n"
+  ],
+  "usage": {
+    "input_tokens": 37027,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 469,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.8
+}

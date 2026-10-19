@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "gpt-6-astra",
+  "effort": "ultra",
+  "thread": "01a154c8-f354-7341-a578-663a2f996b0d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c8-f354-7341-a578-663a2f996b0d\\exec-694e8efa-cb6f-4e16-809f-90e7aa75e0e8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\castle-figure\\face-texture\\generated\\view-right.png",
+    "sha256": "af44f7f2306359101a832fea2c1155c1950c73fcc148f28ed4208674539d1f6d",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\castle-figure\\face-texture\\prompts\\view-right.txt",
+  "promptSha256": "020ca42b3f7ddd11189e4ed72d872e54dc9a8a9ae89bb1b38a29259e84da2583",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority: the exact canvas, framing and feature positions to repaint in place; never move anything\nImage 2: Identity reference: her skin tone, age and character only; not layout, not lighting, not hair or clothing\nImage 3: Skin reference: this head's front view already repainted; match its skin exactly, not its layout\n\nRepaint a render of a 3D head so its skin is that of Castle, the woman in the identity reference, as an albedo (colour-only) texture source that will be projected back onto the same 3D head.\n\nImage 1 is the render: a flat-lit, three-quarter orthographic view (about 35 degrees round to her right) of the head with no hair, eyebrows or eyelashes, on a plain grey background. It is the exact layout authority: keep the same canvas, framing, head outline, ears, neck, and every feature (eyes, nose, nostrils, lips, chin, jaw line) at exactly the same pixel position, size and shape. Do not move, resize, turn or reshape the face, and do not change the expression.\n\nRepaint the skin so it reads as her, a woman in her early fifties: warm, pale olive, lightly sun-weathered skin; fine lines at the outer eye corners (crow's feet) and across the forehead; soft nasolabial folds; a few faint freckles and sun spots on the cheeks and nose; natural, slightly muted rose lips with no lipstick; the slightly darker, thinner skin of the eyelids. Keep the eyes as they are (pale grey-green). On the scalp, paint scalp skin under very short dark-brown hair roots, silver at the temples, as a base under her real hair.\n\nFlat, even, shadowless lighting like the render: no directional light, no shadows, no highlights or shine, no ambient occlusion. Still no hair, no eyebrow hairs, no eyelashes, no headset, no clothing changes. Keep the grey background. No text or border. Natural photographic skin detail.\n\nImage 3 is the front view already repainted for this same head: match its skin tone, colour, texture and markings exactly, so the views agree where they overlap.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\castle-figure\\face-texture\\guides\\view-right.png",
+      "sha256": "1e5ede9cc7881534acd7670d39e21c67391737556cf92026db9137c2bdd719c5",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Layout authority: the exact canvas, framing and feature positions to repaint in place; never move anything"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity reference: her skin tone, age and character only; not layout, not lighting, not hair or clothing"
+    },
+    {
+      "path": "art-source\\company-prologue\\castle-figure\\face-texture\\generated\\view-front.png",
+      "sha256": "d094bb53519483a5f95bdbdab2056efc43379b4d8664b1c7dfe7dcc6f2ba4b70",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Skin reference: this head's front view already repainted; match its skin exactly, not its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to repaint the skin, keeping Image 1’s layout fixed and matching Image 3’s skin.\n"
+  ],
+  "usage": {
+    "input_tokens": 46698,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 699,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.8
+}

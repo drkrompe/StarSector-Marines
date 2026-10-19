@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "50",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Steam venting from a vehicle hull, two pressurised hiss bursts, outdoors",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "e31346d3fbfdd5491257563222ee22f4bcf0a5d892d33cda588391d9352d3cc7",
+  "durationSeconds": 5.0,
+  "peakDb": -18.1,
+  "integratedLufs": -32.8
+}
