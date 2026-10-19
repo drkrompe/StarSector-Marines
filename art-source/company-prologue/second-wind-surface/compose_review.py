@@ -200,6 +200,11 @@ d.text((16, y), 'Close-ups textured: ' + line, fill=(230, 230, 230), font=SMALL)
 sheet.save(OUT / 'coverage.png')
 
 # --- seams -----------------------------------------------------------------------
+if not len(PART_ORDER):
+    # A hull with no part tiles (the Paragon's first, swatch-only round) has no part
+    # boundaries to show.
+    print('no parts: seams sheet skipped')
+    sys.exit(0)
 sheet = Image.new('RGB', (1920, 1080), (30, 30, 30))
 d = ImageDraw.Draw(sheet)
 pv = 'port-quarter' if 'port-quarter' in idmaps else next(iter(idmaps))

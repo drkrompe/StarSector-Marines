@@ -2,7 +2,7 @@
 
 Status: DRAFT — direction agreed (overhead landing, pull-out, title); Castle's closing redrafted and chosen provisionally, to be judged against picture; review takes recorded, none shipped.
 Written: 2026-10-18
-Updated: 2026-10-19 — the rise and title are in the layout scene, and the port around Kilo Nine is staffed (`port_people.py`).
+Updated: 2026-10-19 — C4 and C5 are one shot (C5 pushes in from C4's last view); the port around Kilo Nine is staffed (`port_people.py`).
 
 C5 in `storyboard-v3.md` is an 8 s push-in on the ship in Nessa's cradle, cut
 straight into the yard report. v2 makes it the cinematic's ending: the ship
@@ -80,8 +80,15 @@ drive spools down. Once the dust thins the yard goes to work. The tug, bowser
 and crew carrier move in from their stand-offs, and the scaffold arms swing in
 to the hull. Hands in hi-vis head out from the workshop. The customs car comes
 in through the gate behind them. C4 ends with the ship down and the yard
-moving. C5 opens on the same straight-down view a step closer, and the cut
-reads as one continuous move. The wide reveal
+moving.
+
+**C4 and C5 are one shot** (owner, 2026-10-19): there is no cut. C5 picks up
+C4's camera exactly where it stops, straight down over the yard on its wide
+lens, and over the first 4 s pushes in to the long-lens view of the ramp, the
+ground in frame shrinking at a steady rate while the lens lengthens. The yard's
+vehicles are still rolling in as the push begins, and their crews climb out once
+they stop. Nothing appears or vanishes at the join: whoever stood about the yard
+in C4 is still standing there in C5. The wide reveal
 (the yard as a small corner of a big working port, the ship one patched hull
 among the freighters) is kept for C5's pull-out under the title, so it is seen
 once and lands as the closing image. The public berths are seen passing

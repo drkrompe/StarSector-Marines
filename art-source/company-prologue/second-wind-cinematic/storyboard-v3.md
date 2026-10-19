@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-18 — C4 is now the sky camera ending in the landing at Kilo Nine; C5 replaced by the v2 closing; dialogue arc revised (`c5-v2-closing.md`).
+Updated: 2026-10-19 — C4 and C5 are one shot, C5 pushing in from C4's last view (`c5-v2-closing.md`).
 
 ## What changed from v2
 
@@ -178,7 +178,10 @@ the shot is too short to carry it, and Y1 introduces Nessa anyway.
 are Wayline's kind of drivers, on the kind of road the company will defend in
 Relief.
 
-### C5 — WE'RE DOWN (about 30 s)
+### C5 — WE'RE DOWN (about 34 s)
+
+**One shot with C4** (owner, 2026-10-19): no cut between them. C5 carries on
+from C4's last camera and pushes in to the ramp over its first 4 s.
 
 Replaced by v2: `c5-v2-closing.md` holds the picture, the beats and Castle's
 closing lines. In short: overhead on the ship in Nessa's yard, the families walk

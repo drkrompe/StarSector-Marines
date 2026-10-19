@@ -11,6 +11,8 @@ second-wind-projection-spike/review-sheet*.png
 second-wind-cinematic/second-wind-states/**/*.png
 hound-surface/review/
 hound-surface/textures/
+paragon-surface/review/
+paragon-surface/textures/
 
 # Cinematic: anything a script of ours can regenerate (owner, 2026-10-18).
 # What stays tracked is the shipped video, scripts and text, Codex/ImageGen
