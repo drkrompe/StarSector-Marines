@@ -22,9 +22,14 @@ WS 025 is a decorative hardpoint on the command dome; os_fittings puts the
 sensor mast there.
 """
 import math
+import sys
+from pathlib import Path
 import bpy
 from mathutils import Vector
 import os_kit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+import turret_kit as tk
 
 SLOTS = [  # onslaught.ship (the XIV skin changes no slot), with the onslaught_xiv_Elite weapon
     ('WS 001', (158, 71), 70, 150, 'MEDIUM', 'BALLISTIC', 'heavyac'),
@@ -56,6 +61,8 @@ DECORATIVE = [('WS 025', (17, 0), 0, 120, 'SMALL', 'DECORATIVE', 'sensor mast')]
 RING = {'LARGE': 11.0, 'MEDIUM': 7.0, 'SMALL': 4.2}   # read off the sprite's turret rings
 GAP = .08
 PIVOT_Z = {}
+MUZZLES = {}
+KIT_WEAPON = {'multineedler': 'needler'}   # Onslaught Elite weapon -> turret-kit catalogue entry
 
 
 def _place(ob, pivot, loc, rot=(0, 0, 0)):
@@ -639,7 +646,7 @@ def _envelope(mount, pivot):
     dg = bpy.context.evaluated_depsgraph_get()
     inv = mount.matrix_world.inverted()
     env = {}
-    for c in pivot.children:
+    for c in pivot.children_recursive:
         if c.type != 'MESH':
             continue
         ev = c.evaluated_get(dg)
@@ -704,14 +711,12 @@ def build(kit):
         pivot['arc'] = arc
         bpy.context.view_layer.update()
         weapon = slot[6]
-        if weapon == 'typhoon':
-            _launcher(kit, slot, pivot, r)
-        elif weapon == 'multineedler':
-            _needler(kit, slot, pivot, r)
-        elif size == 'SMALL':
-            _small(kit, slot, pivot, r)
-        else:
-            _gun(kit, slot, pivot, r)
+        # The trainable turret is the shared turret kit's (turret-kit/turret_kit.py), as on the
+        # Legion: the approved family of guns with its own weathered sprite paint. The kit has no
+        # Multi-Needler; WS 019 carries its Needler, proportioned to the large ring.
+        t = tk.build(KIT_WEAPON.get(weapon, weapon), f'Weapon {sid}', pivot, r,
+                     {'armour': kit.orange, 'plate': kit.plate, 'steel': kit.steel, 'dark': kit.dark}, kit.mpu)
+        MUZZLES[sid] = len(t['muzzles'])
         # The barrels must clear the deck across the arc: raise the seat as far as that needs.
         seat = _clear_seat(p, basis, r, angle, arc, seat, _envelope(mount, pivot))
         origin = p+basis.col[2]*seat
@@ -739,7 +744,10 @@ def records():
         out.append({'id': sid, 'mount': 'TURRET', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'ring_radius': RING[size],
                     'pivot': f'Weapon {sid} pivot', 'mount_empty': f'Weapon {sid} mount', 'objects': f'Weapon {sid} ...',
-                    'trains': 'rotate the pivot about its local Z (the hull normal under it); rest is the slot angle'})
+                    'trains': 'rotate the pivot about its local Z (the hull normal under it); rest is the slot angle',
+                    'elevates': f'Weapon {sid} elevation (local Y, negative lifts)',
+                    'muzzle_anchors': [f'Weapon {sid} muzzle anchor {k+1}' for k in range(MUZZLES.get(sid, 0))],
+                    'built_by': 'turret-kit/turret_kit.py' + (f' ({KIT_WEAPON[weapon]})' if weapon in KIT_WEAPON else '')})
     for sid, loc, angle, arc, size, typ, weapon in HARDPOINTS:
         out.append({'id': sid, 'mount': 'HARDPOINT', 'location': [*loc, round(PIVOT_Z[sid], 2)], 'angle': angle,
                     'arc': arc, 'size': size, 'type': typ, 'weapon': weapon, 'objects': f'Weapon {sid} ...',
