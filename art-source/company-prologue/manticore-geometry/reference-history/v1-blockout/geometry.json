@@ -1,0 +1,1027 @@
+{
+  "status": "Pass 1 blockout: silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights.",
+  "hull": {
+    "name": "Manticore (P)",
+    "hullId": "manticore",
+    "skinHullId": "manticore_pirates",
+    "size": "DESTROYER",
+    "style": "LOW_TECH",
+    "tech": "Pirate (skin of the Low Tech manticore)",
+    "designation": "Destroyer",
+    "livery": "pirate (manticore_pirates.skin, sprite manticore_pirate.png): blood-red armour, brown gunmetal, pale command dome",
+    "source": {
+      "ship": "data/hulls/manticore.ship",
+      "skin": "data/hulls/skins/manticore_pirates.skin",
+      "sprite": "graphics/ships/manticore/manticore_pirate.png",
+      "lights": "none (the hull has no lights layer)",
+      "ship_data": "data/hulls/ship_data.csv (row id manticore)",
+      "variant": "data/variants/manticore/manticore_pirates_Support.variant (weapons modelled)"
+    },
+    "built_in_mods": [
+      "ballistic_rangefinder"
+    ],
+    "built_in_weapons": [],
+    "ship_system": "canister_flak",
+    "shield": "OMNI 150 deg (not modelled)",
+    "crew": [
+      50,
+      80
+    ],
+    "cargo": 80,
+    "fuel": 50,
+    "role": "Asharu battle: the long-range destroyer that opens the fight and breaks the escort screen"
+  },
+  "provenance": "verified against the installed data/hulls/manticore.ship and data/hulls/skins/manticore_pirates.skin",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.62,
+  "scale": {
+    "method": "provisional: asharu-battle/roster.py option C plan-area estimate (96 m)",
+    "published_metres_per_unit": 0.62,
+    "measured_this_build": {
+      "enclosed_units3": 163199,
+      "solids": [
+        "Hull bow head",
+        "Hull neck",
+        "Hull core",
+        "Hull wing body",
+        "Hull aft body",
+        "Hull ventral keel",
+        "Bridge command dome"
+      ]
+    },
+    "size_m": [
+      94.2,
+      99.7,
+      23.1
+    ],
+    "person_1_8_m_in_units": 2.9,
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
+  },
+  "sprite": {
+    "size": [
+      164,
+      154
+    ],
+    "center": [
+      82,
+      67
+    ],
+    "pixel_to_model": "col c, row r (from the top) covers X 86-r..87-r, Y 81-c..82-c"
+  },
+  "dimensions": {
+    "min": [
+      -66.3,
+      -80.42,
+      -12.5
+    ],
+    "max": [
+      85.63,
+      80.42,
+      24.82
+    ],
+    "size": [
+      151.93,
+      160.83,
+      37.32
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 000",
+      "location": [
+        21,
+        0,
+        14.0
+      ],
+      "angle": 0,
+      "arc": 90,
+      "mount": "TURRET",
+      "size": "LARGE",
+      "type": "BALLISTIC",
+      "weapon": "mark9",
+      "variant_weapon": "mark9",
+      "pivot": "Weapon WS 000 pivot",
+      "anchor": null
+    },
+    {
+      "id": "WS 001",
+      "location": [
+        23,
+        65,
+        7.4
+      ],
+      "angle": 80,
+      "arc": 235,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "lightac",
+      "variant_weapon": "lightag",
+      "pivot": "Weapon WS 001 pivot",
+      "anchor": null
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        73,
+        0,
+        9.7
+      ],
+      "angle": 0,
+      "arc": 235,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "needler",
+      "variant_weapon": "lightneedler",
+      "pivot": "Weapon WS 002 pivot",
+      "anchor": null
+    },
+    {
+      "id": "WS 003",
+      "location": [
+        23,
+        -65,
+        7.4
+      ],
+      "angle": -80,
+      "arc": 235,
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "lightac",
+      "variant_weapon": "lightag",
+      "pivot": "Weapon WS 003 pivot",
+      "anchor": null
+    },
+    {
+      "id": "WS 004",
+      "location": [
+        32,
+        43,
+        5.5
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "weapon": "harpoonpod",
+      "variant_weapon": "harpoonpod",
+      "pivot": "Weapon WS 004 pivot",
+      "anchor": null
+    },
+    {
+      "id": "WS 005",
+      "location": [
+        32,
+        -43,
+        5.5
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HARDPOINT",
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "weapon": "harpoonpod",
+      "variant_weapon": "harpoonpod",
+      "pivot": "Weapon WS 005 pivot",
+      "anchor": null
+    },
+    {
+      "id": "WS 006",
+      "location": [
+        36,
+        -20,
+        9.96
+      ],
+      "angle": -45,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "weapon": null,
+      "variant_weapon": null,
+      "pivot": null,
+      "anchor": "Weapon WS 006 anchor"
+    },
+    {
+      "id": "WS 007",
+      "location": [
+        36,
+        21,
+        9.09
+      ],
+      "angle": 45,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "weapon": null,
+      "variant_weapon": null,
+      "pivot": null,
+      "anchor": "Weapon WS 007 anchor"
+    },
+    {
+      "id": "WS 008",
+      "location": [
+        -19,
+        40,
+        5.8
+      ],
+      "angle": 135,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "weapon": null,
+      "variant_weapon": null,
+      "pivot": null,
+      "anchor": "Weapon WS 008 anchor"
+    },
+    {
+      "id": "WS 009",
+      "location": [
+        -19,
+        -40,
+        5.8
+      ],
+      "angle": 225,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "weapon": null,
+      "variant_weapon": null,
+      "pivot": null,
+      "anchor": "Weapon WS 009 anchor"
+    }
+  ],
+  "turrets": [
+    {
+      "index": 1,
+      "slot": "WS 000",
+      "mount": "TURRET",
+      "weapon": "mark9",
+      "variant_weapon": "mark9",
+      "kind": "gun",
+      "size": "LARGE",
+      "type": "BALLISTIC",
+      "ring_radius": 13.0,
+      "pivot": "Weapon WS 000 pivot",
+      "elevation": "Weapon WS 000 elevation",
+      "location": [
+        21,
+        0,
+        14.0
+      ],
+      "seat_z": 11.4,
+      "lift": 2.6,
+      "rest_angle_deg": 0,
+      "arc_deg": 90,
+      "vfx_scale": 3.64,
+      "trainable": true,
+      "muzzles": [
+        {
+          "tag": "barrel 1",
+          "anchor": "Anchor turret 1 barrel 1 muzzle",
+          "geometry_anchor": "Weapon WS 000 muzzle anchor 1",
+          "at": [
+            50.12,
+            -4.16,
+            19.824
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "tag": "barrel 2",
+          "anchor": "Anchor turret 1 barrel 2 muzzle",
+          "geometry_anchor": "Weapon WS 000 muzzle anchor 2",
+          "at": [
+            50.12,
+            4.16,
+            19.824
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "elevation_limits_deg": null
+    },
+    {
+      "index": 2,
+      "slot": "WS 001",
+      "mount": "TURRET",
+      "weapon": "lightac",
+      "variant_weapon": "lightag",
+      "kind": "gun",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 001 pivot",
+      "elevation": "Weapon WS 001 elevation",
+      "location": [
+        23,
+        65,
+        7.4
+      ],
+      "seat_z": 6.0,
+      "lift": 1.4,
+      "rest_angle_deg": 80,
+      "arc_deg": 235,
+      "vfx_scale": 1.54,
+      "trainable": true,
+      "muzzles": [
+        {
+          "tag": "barrel 1",
+          "anchor": "Anchor turret 2 barrel 1 muzzle",
+          "geometry_anchor": "Weapon WS 001 muzzle anchor 1",
+          "at": [
+            25.21,
+            77.534,
+            9.996
+          ],
+          "axis": [
+            0.174,
+            0.985,
+            0.0
+          ]
+        }
+      ],
+      "elevation_limits_deg": null
+    },
+    {
+      "index": 3,
+      "slot": "WS 002",
+      "mount": "TURRET",
+      "weapon": "needler",
+      "variant_weapon": "lightneedler",
+      "kind": "gun",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "ring_radius": 6.0,
+      "pivot": "Weapon WS 002 pivot",
+      "elevation": "Weapon WS 002 elevation",
+      "location": [
+        73,
+        0,
+        9.7
+      ],
+      "seat_z": 8.5,
+      "lift": 1.2,
+      "rest_angle_deg": 0,
+      "arc_deg": 235,
+      "vfx_scale": 1.08,
+      "trainable": true,
+      "muzzles": [
+        {
+          "tag": "barrel 1",
+          "anchor": "Anchor turret 3 barrel 1 muzzle",
+          "geometry_anchor": "Weapon WS 002 muzzle anchor 1",
+          "at": [
+            83.737,
+            -1.895,
+            12.454
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "tag": "barrel 2",
+          "anchor": "Anchor turret 3 barrel 2 muzzle",
+          "geometry_anchor": "Weapon WS 002 muzzle anchor 2",
+          "at": [
+            83.737,
+            1.895,
+            12.454
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "elevation_limits_deg": null
+    },
+    {
+      "index": 4,
+      "slot": "WS 003",
+      "mount": "TURRET",
+      "weapon": "lightac",
+      "variant_weapon": "lightag",
+      "kind": "gun",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "ring_radius": 7.0,
+      "pivot": "Weapon WS 003 pivot",
+      "elevation": "Weapon WS 003 elevation",
+      "location": [
+        23,
+        -65,
+        7.4
+      ],
+      "seat_z": 6.0,
+      "lift": 1.4,
+      "rest_angle_deg": -80,
+      "arc_deg": 235,
+      "vfx_scale": 1.54,
+      "trainable": true,
+      "muzzles": [
+        {
+          "tag": "barrel 1",
+          "anchor": "Anchor turret 4 barrel 1 muzzle",
+          "geometry_anchor": "Weapon WS 003 muzzle anchor 1",
+          "at": [
+            25.21,
+            -77.534,
+            9.996
+          ],
+          "axis": [
+            0.174,
+            -0.985,
+            0.0
+          ]
+        }
+      ],
+      "elevation_limits_deg": null
+    },
+    {
+      "index": 5,
+      "slot": "WS 004",
+      "mount": "HARDPOINT",
+      "weapon": "harpoonpod",
+      "variant_weapon": "harpoonpod",
+      "kind": "launcher",
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "ring_radius": 7.5,
+      "pivot": "Weapon WS 004 pivot",
+      "elevation": "Weapon WS 004 elevation",
+      "location": [
+        32,
+        43,
+        5.5
+      ],
+      "seat_z": 4.0,
+      "lift": 1.5,
+      "rest_angle_deg": 0,
+      "arc_deg": 5,
+      "vfx_scale": 4.091,
+      "trainable": false,
+      "muzzles": [
+        {
+          "tag": "tube 1",
+          "anchor": "Anchor turret 5 tube 1 muzzle",
+          "geometry_anchor": "Weapon WS 004 muzzle anchor 1",
+          "at": [
+            38.075,
+            41.178,
+            9.636
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "tag": "tube 2",
+          "anchor": "Anchor turret 5 tube 2 muzzle",
+          "geometry_anchor": "Weapon WS 004 muzzle anchor 2",
+          "at": [
+            38.075,
+            43.0,
+            9.636
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "tag": "tube 3",
+          "anchor": "Anchor turret 5 tube 3 muzzle",
+          "geometry_anchor": "Weapon WS 004 muzzle anchor 3",
+          "at": [
+            38.075,
+            44.822,
+            9.636
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "elevation_limits_deg": null
+    },
+    {
+      "index": 6,
+      "slot": "WS 005",
+      "mount": "HARDPOINT",
+      "weapon": "harpoonpod",
+      "variant_weapon": "harpoonpod",
+      "kind": "launcher",
+      "size": "MEDIUM",
+      "type": "MISSILE",
+      "ring_radius": 7.5,
+      "pivot": "Weapon WS 005 pivot",
+      "elevation": "Weapon WS 005 elevation",
+      "location": [
+        32,
+        -43,
+        5.5
+      ],
+      "seat_z": 4.0,
+      "lift": 1.5,
+      "rest_angle_deg": 0,
+      "arc_deg": 5,
+      "vfx_scale": 4.091,
+      "trainable": false,
+      "muzzles": [
+        {
+          "tag": "tube 1",
+          "anchor": "Anchor turret 6 tube 1 muzzle",
+          "geometry_anchor": "Weapon WS 005 muzzle anchor 1",
+          "at": [
+            38.075,
+            -44.822,
+            9.636
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "tag": "tube 2",
+          "anchor": "Anchor turret 6 tube 2 muzzle",
+          "geometry_anchor": "Weapon WS 005 muzzle anchor 2",
+          "at": [
+            38.075,
+            -43.0,
+            9.636
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "tag": "tube 3",
+          "anchor": "Anchor turret 6 tube 3 muzzle",
+          "geometry_anchor": "Weapon WS 005 muzzle anchor 3",
+          "at": [
+            38.075,
+            -41.178,
+            9.636
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "elevation_limits_deg": null
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot": 0,
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "glow_anchor": "Engine 1 drive glow anchor",
+      "location": [
+        -66,
+        17,
+        0.0
+      ],
+      "width": 20,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 6.0,
+      "bell": "Engine 1 aft-facing bell",
+      "lip": "Engine 1 mouth lip",
+      "throat": "Engine 1 dark throat",
+      "can": "Engine 1 drive can"
+    },
+    {
+      "index": 2,
+      "slot": 1,
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "glow_anchor": "Engine 2 drive glow anchor",
+      "location": [
+        -62,
+        0,
+        0.0
+      ],
+      "width": 20,
+      "length": 48,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 6.0,
+      "bell": "Engine 2 aft-facing bell",
+      "lip": "Engine 2 mouth lip",
+      "throat": "Engine 2 dark throat",
+      "can": "Engine 2 drive can"
+    },
+    {
+      "index": 3,
+      "slot": 2,
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "glow_anchor": "Engine 3 drive glow anchor",
+      "location": [
+        -66,
+        -16,
+        0.0
+      ],
+      "width": 20,
+      "length": 64,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 6.0,
+      "bell": "Engine 3 aft-facing bell",
+      "lip": "Engine 3 mouth lip",
+      "throat": "Engine 3 dark throat",
+      "can": "Engine 3 drive can"
+    },
+    {
+      "index": 4,
+      "slot": 3,
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "glow_anchor": "Engine 4 drive glow anchor",
+      "location": [
+        -62,
+        30,
+        0.0
+      ],
+      "width": 12,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 3.6,
+      "bell": "Engine 4 aft-facing bell",
+      "lip": "Engine 4 mouth lip",
+      "throat": "Engine 4 dark throat",
+      "can": "Engine 4 drive can"
+    },
+    {
+      "index": 5,
+      "slot": 4,
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "glow_anchor": "Engine 5 drive glow anchor",
+      "location": [
+        -62,
+        -30,
+        0.0
+      ],
+      "width": 12,
+      "length": 32,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 3.6,
+      "bell": "Engine 5 aft-facing bell",
+      "lip": "Engine 5 mouth lip",
+      "throat": "Engine 5 dark throat",
+      "can": "Engine 5 drive can"
+    }
+  ],
+  "running_lights": [
+    {
+      "name": "Light port wing tip 1",
+      "position": [
+        23,
+        78.8,
+        1.5
+      ],
+      "colour": "red",
+      "role": "port side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard wing tip 1",
+      "position": [
+        23,
+        -78.8,
+        1.5
+      ],
+      "colour": "green",
+      "role": "starboard side light (extremity)",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre stern 1",
+      "position": [
+        -48,
+        0,
+        10.35
+      ],
+      "colour": "white",
+      "role": "stern light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre prow 1",
+      "position": [
+        83,
+        0,
+        6.51
+      ],
+      "colour": "white",
+      "role": "prow anti-collision strobe",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.4,
+        "duty": 0.18
+      }
+    }
+  ],
+  "asset": {
+    "file": "manticore.blend",
+    "collection": "MANTICORE",
+    "root": "MANTICORE | root",
+    "anchors_collection": "MANTICORE | anchors",
+    "baked": "every modifier applied; no live booleans or bevels",
+    "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
+    "triangles": 45402,
+    "objects": 114,
+    "materials": [
+      "Manticore grey plate",
+      "Manticore gunmetal machinery",
+      "Manticore pale command plating",
+      "Manticore pirate red armour",
+      "Manticore recess",
+      "Manticore running light green",
+      "Manticore running light red",
+      "Manticore running light white",
+      "Missile body (0.5, 0.6, 0.5)",
+      "Turret lightac metal 0.1100,0.1106,0.1089",
+      "Turret lightac paint 0.1019,0.1050,0.0988",
+      "Turret lightac plate 0.2468,0.2499,0.2404",
+      "Turret mark9 accent 0.1087,0.0948,0.0932",
+      "Turret mark9 mark 0.4191,0.0673,0.0516",
+      "Turret mark9 metal 0.1107,0.1103,0.1103",
+      "Turret mark9 paint 0.1692,0.1281,0.1091",
+      "Turret mark9 plate 0.3237,0.3163,0.3067",
+      "Turret needler accent 0.1323,0.1292,0.0949",
+      "Turret needler metal 0.1115,0.1101,0.1096",
+      "Turret needler paint 0.1832,0.1720,0.1439",
+      "Turret needler plate 0.2724,0.2678,0.2523",
+      "Turret steel Manticore gunmetal machinery"
+    ]
+  },
+  "object_names": {
+    "Hull ...": "bow head, neck, core, wing body, aft body, ventral keel, turret pods, launcher housings and cheeks, turret rings, detail",
+    "Bridge ...": "the pale command dome and its glazing",
+    "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, drive glow anchor",
+    "Weapon <slot id> ...": "barbette (fixed); pivot (trains about local Z), elevation (local Y, negative lifts), turret-kit house and gun parts, muzzle anchor <k>",
+    "Anchor turret <i> barrel|tube <k> muzzle": "the VFX kit's declared muzzles, mount i in turrets order; scale and kind properties",
+    "Weapon WS 006..009 anchor": "hidden system slots (canister flak), anchor only",
+    "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        10,
+        0,
+        220
+      ],
+      "orthographic_scale": 290,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        10,
+        260,
+        0
+      ],
+      "orthographic_scale": 172,
+      "rotation": "looks at [10.0, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        260,
+        0,
+        0
+      ],
+      "orthographic_scale": 176,
+      "rotation": "looks at [10.0, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        170,
+        200,
+        130
+      ],
+      "orthographic_scale": 215,
+      "rotation": "looks at [10.0, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -260,
+        0,
+        0
+      ],
+      "orthographic_scale": 176,
+      "rotation": "looks at [10.0, 0.0, 0.0]"
+    }
+  ],
+  "closeups": [
+    {
+      "name": "bow-detail",
+      "position": [
+        150,
+        80,
+        70
+      ],
+      "target": [
+        64,
+        0,
+        6
+      ],
+      "orthographic_scale": 70
+    },
+    {
+      "name": "turret-detail",
+      "position": [
+        75,
+        70,
+        65
+      ],
+      "target": [
+        21,
+        0,
+        12
+      ],
+      "orthographic_scale": 62
+    },
+    {
+      "name": "engine-detail",
+      "position": [
+        -135,
+        70,
+        45
+      ],
+      "target": [
+        -58,
+        8,
+        0
+      ],
+      "orthographic_scale": 72
+    },
+    {
+      "name": "stern-detail",
+      "position": [
+        -140,
+        -95,
+        70
+      ],
+      "target": [
+        -38,
+        0,
+        2
+      ],
+      "orthographic_scale": 112
+    },
+    {
+      "name": "wing-detail",
+      "position": [
+        70,
+        125,
+        60
+      ],
+      "target": [
+        24,
+        54,
+        4
+      ],
+      "orthographic_scale": 64
+    }
+  ],
+  "shot_checks": [
+    {
+      "name": "shot-s5-1500m",
+      "distance_m": 1500.0,
+      "lens_mm": 85,
+      "sensor_mm": 36,
+      "view_direction": [
+        -0.932,
+        0.301,
+        -0.201
+      ],
+      "sun_direction": [
+        0.736,
+        -0.618,
+        0.276
+      ],
+      "sun": "asharu-battle battle_blockout.py SUN_EL 16 / SUN_AZ -40, hull heading world +X"
+    },
+    {
+      "name": "shot-s4-4000m",
+      "distance_m": 4000.0,
+      "lens_mm": 35,
+      "sensor_mm": 36,
+      "view_direction": [
+        -0.151,
+        0.964,
+        -0.221
+      ],
+      "sun_direction": [
+        0.736,
+        -0.618,
+        0.276
+      ],
+      "sun": "asharu-battle battle_blockout.py SUN_EL 16 / SUN_AZ -40, hull heading world +X"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9482,
+    "sprite_uncovered": 0.0187,
+    "model_outside_sprite": 0.0349,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 6.62 px per unit"
+  },
+  "shot_extent_px": {
+    "shot-s5-1500m": {
+      "width_px": 289,
+      "height_px": 84
+    },
+    "shot-s4-4000m": {
+      "width_px": 46,
+      "height_px": 15
+    }
+  }
+}
