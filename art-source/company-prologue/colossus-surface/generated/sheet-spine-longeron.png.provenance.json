@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154da-0aa8-7be2-95fe-cb8da58e2ebf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154da-0aa8-7be2-95fe-cb8da58e2ebf\\exec-9972b113-b067-441e-8c4d-6552d0b30f9f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-spine\\colossus-surface\\generated\\sheet-spine-longeron.png",
+    "sha256": "7619f49406c6fc644b685fbe3529ec44836c72e9a7ecd90e211404b4d6dca47e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-spine\\colossus-surface\\prompts\\sheet-spine-longeron.prompt.txt",
+  "promptSha256": "e274afc564721c0fe902c3b713b6b564843e626476528fdb008599e8b3a5ec63",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: each tile's exact shape, position and colour regions; never move\nImage 2: Material and finish only: paint colours, seams, fasteners, wear; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Domain-era Colossus-class heavy freighter, an old frontier bulk hauler still in service), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the top flange of a long box-girder longeron seen from directly above, bow to the right: one long thin off-white strip; paint it as the girder's flat top flange with transverse butt seams every so often along its length and rows of small fasteners along both long edges;\ntop-right: the girder's outboard web seen from the side, bow to the left: a large off-white rectangle with a row of small round lightening holes along its top edge (the round discs, each a slightly recessed hole); keep every disc exactly where it is and paint each as a simple round hole rimmed by a thin welded collar, and paint the web as large vertical girder plates joined by welded seams with fastener rows;\nbottom-left: the same girder's inboard web seen from the other side, bow to the right: a large plain off-white rectangle; paint it as large vertical girder plates joined by welded seams with fastener rows, matching the outboard web;\nbottom-right: the keel spine's top plate seen from directly above, bow at the top: a dusty pink-red square plate with a recessed square well in its middle (same pink-red, a slightly sunken floor) and four small dark grey square recesses, two at each side; keep the dark squares dark and the well where it is.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: dusty pink-red areas are a dusty oxide-red enamel; off-white areas are a pale weathered light-grey paint; dark grey areas are near-black dull steel recesses and seam grooves. Do not repaint any part of a shape another colour: no stripes, no bands, no differently coloured patches and no repair plates.\n- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust streaks, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-spine\\colossus-surface\\guide\\sheet-spine-longeron-guide.png",
+      "sha256": "e3d5093b22b2adfd04ba8258742d5cbe2f3bd9cd34f55165555c3015b0a4de7f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: each tile's exact shape, position and colour regions; never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-spine\\colossus-surface\\reference\\finish-reference.png",
+      "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only: paint colours, seams, fasteners, wear; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed layout and Image 2 only as the finish reference, generating one image."
+  ],
+  "usage": {
+    "input_tokens": 47118,
+    "cached_input_tokens": 12416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 980,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.4
+}

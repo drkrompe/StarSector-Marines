@@ -184,6 +184,13 @@ def boolean(target, cutter, op='DIFFERENCE', keep=False):
     if not keep:
         bpy.data.objects.remove(cutter, do_unlink=True)
     planar(target)
+    # A live bevel on a cut mesh folds back over the short edges the cut leaves and turns
+    # faces inside out (the hatch cover's deck rendered as a dark inverted wedge; the aft
+    # body, hold keel and module keels in patches). No miter or corner setting cleared every
+    # object, and at 0.12 units (6 cm) on hulls 100 units across the chamfer does not read:
+    # a cut mesh keeps its section chamfers and loses the modifier.
+    for m in [m for m in target.modifiers if m.type == 'BEVEL']:
+        target.modifiers.remove(m)
 
 
 def planar(obj):
