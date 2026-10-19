@@ -172,22 +172,40 @@
    "ok": true,
    "detail": []
   },
+  "point defence never fires on the main target": {
+   "ok": true,
+   "detail": [
+    "ws011",
+    "ws016",
+    "ws017",
+    "ws022",
+    "ws023"
+   ]
+  },
   "aft turrets hold fire on a target ahead": {
    "ok": true,
    "detail": [
     "ws001",
     "ws002",
     "ws005",
-    "ws006",
-    "ws011",
-    "ws017"
+    "ws006"
    ]
+  },
+  "point defence engages missiles in reach along clear lines": {
+   "ok": true,
+   "detail": {
+    "ws011": 1,
+    "ws016": 4,
+    "ws017": 2,
+    "ws022": 3,
+    "ws023": 4
+   }
   },
   "no fired beam cuts the hull": {
    "ok": true,
    "detail": {
-    "ahead": 6,
-    "port bow": 8
+    "ahead": 4,
+    "port bow": 5
    }
   },
   "root carries the effects": {

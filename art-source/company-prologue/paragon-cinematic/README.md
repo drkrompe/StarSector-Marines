@@ -75,10 +75,13 @@ root = bpy.data.objects['PARAGON | clean | root']
   vanilla arc holds the target and returns which beams may fire, their
   lengths, and why the rest hold: outside the arc, unable to lay on it within
   the elevation limits, or a line from the muzzle to the target that crosses
-  the ship (`swfx_beams.clear_line`). A beam never cuts the hull. Dead ahead
-  6 of 17 bear (the bow lances, the forward gravitons, two PD lasers; the
-  turret lances are masked by the needler turrets in front of them); high on
-  the port bow 8 bear. Fire only what `engage` returns.
+  the ship (`swfx_beams.clear_line`). A beam never cuts the hull. The five PD
+  lasers (vanilla's only PD-hinted weapon here) never take the main target:
+  `aim.point_defense(man, threats)` gives each the nearest incoming missile or
+  fighter inside its 500-unit reach, arc and a clear line. Dead ahead 4 of 12
+  main weapons bear (the bow lances and the forward gravitons; the turret
+  lances are masked by the needler turrets in front of them); high on the port
+  bow 5 bear. Fire only what `engage` and `point_defense` return.
 
   Everything is animatable from `SWFX controls` (`thr_*`, `smk_*`, `gun_*`,
   `beam_*`, `shield_*`; see `../second-wind-vfx/README.md`). Append it in the same load as
@@ -114,7 +117,9 @@ fortressshield system's), no lamps and no RCS.
    drives; a 2x crop of the formation frame), `review/formation-1.5km.png`,
    `review/beams.png`, `review/beam-broadside.png`, `review/beam-bow.png` and
    `review/beam-port.png` (`aim.engage` on a point 870 m ahead and on one
-   high on the port bow, every beam that can bear fired at it), and
+   high on the port bow, every main weapon that can bear fired at it),
+   `review/beam-pd.png` (`aim.point_defense`: the PD lasers alone against
+   seven incoming missiles, one beyond reach),
    `review/lance-sequence.png` (the bow lances through one shot), and
    `review/shield.png` with `review/shield-half.png`, `shield-raised.png`
    and `shield-fortress.png` (`--shield`: half raised, raised with two hits,
@@ -143,9 +148,11 @@ its exhaust and sized to its mouth; four gun anchors; all 17 beams dark until
 fired, and fired, running from the muzzle along the line of fire to their
 range with the impact glow at the end; a beam training with its turret; the
 lance's charge lighting the emitter before the beam; on a target ahead and
-one on the port bow, the aft turrets holding fire ahead and a ray along every
-fired beam meeting no part of the ship but its own weapon; the shield: its
-bubble on `Shield emitter` at the vanilla radius, dark (and the nodes unlit)
+one on the port bow, the PD lasers never taking the main target, the aft
+turrets holding fire ahead and a ray along every fired beam meeting no part of
+the ship but its own weapon; at least four PD lasers engaging missiles inside
+their reach along clear lines while one beyond reach is left alone; the shield:
+its bubble on `Shield emitter` at the vanilla radius, dark (and the nodes unlit)
 until raised, the ten nodes fully lit a third of the way up, the Fortress
 Shield burning them hotter in its own colour, a hit aimed by azimuth and
 elevation landing on the bubble in the hull frame whatever the facing (and

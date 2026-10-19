@@ -145,7 +145,7 @@ man['gun_rigs'] = rigs
 man['gun_rigs_note'] = ('Kit gun rig numbers (swfx_guns.fire(ctx, rig, ...)), not slot numbers: the two heavy '
                         'needlers. The Reaper torpedo racks have no rig.')
 man['beams'] = [{k: b[k] for k in ('id', 'slot', 'mount', 'weapon', 'muzzle', 'width', 'range', 'chargeup',
-                                   'chargedown', 'burst')} for b in vfx_hull.BEAMS]
+                                   'chargedown', 'burst', 'pd')} for b in vfx_hull.BEAMS]
 man['beams_note'] = ('swfx_beams.fire_beam(ctx, id, start_frame, hold_s) keys a shot with the weapon\'s own timing; '
                      'beam_len_<id> is the length in hull units (the distance to the target).')
 sh = vfx_hull.SHIELD

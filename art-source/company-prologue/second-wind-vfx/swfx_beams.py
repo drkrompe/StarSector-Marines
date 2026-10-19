@@ -293,17 +293,19 @@ def fire_beam(ctx, beam_id, start_frame, hold_s=None, fps=swfx_core.FPS):
     return dark
 
 
-def clear_line(origin, target, ignore=(), scene=None, start=0.5):
+def clear_line(origin, target, ignore=(), scene=None, start=0.5, short=0.0):
     """Whether a beam from origin reaches target without crossing the ship:
     returns (True, None) or (False, name of the first object in the way).
     Objects whose names start with any prefix in `ignore` (the firing weapon's
-    own parts) and the kit's own objects are passed through. A beam must not
-    cut through its own hull: a shot fires a weapon only along a clear line."""
+    own parts) and the kit's own objects are passed through; the ray stops
+    `short` units before the target, so a target with a body (a missile, a
+    fighter) is not its own obstruction. A beam must not cut through its own
+    hull: a shot fires a weapon only along a clear line."""
     scene = scene or bpy.context.scene
     dg = bpy.context.evaluated_depsgraph_get()
     o, t = Vector(origin), Vector(target)
     d = (t - o).normalized()
-    left = (t - o).length - start
+    left = (t - o).length - start - short
     o = o + d * start
     skip = ('SWFX',) + tuple(ignore)
     while left > 0:

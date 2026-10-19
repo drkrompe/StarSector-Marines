@@ -14,7 +14,10 @@ geometry, never a per-shot exception:
 - elevation: the turret kit's `elevation_min_deg`/`elevation_max_deg` on the
   elevation empty;
 - clear line: a ray from the muzzle to the target meets no part of the ship
-  but the weapon's own (`swfx_beams.clear_line`). A beam never cuts the hull.
+  but the weapon's own (`swfx_beams.clear_line`). A beam never cuts the hull;
+- role: point defence (the PD lasers, vanilla's PD hint) engages missiles and
+  fighters inside its range (`point_defense`), never the main target
+  (`engage`).
 """
 import math
 import sys
@@ -28,6 +31,7 @@ import swfx_beams  # noqa: E402
 
 AIM_TOLERANCE_DEG = 1.0     # a trained turret must be on the target to this
 HARDPOINT_TOLERANCE_DEG = 6.0
+THREAT_RADIUS = 6.0          # a missile or fighter's own body, not an obstruction
 
 
 def upd():
@@ -81,6 +85,59 @@ def train(slot, target):
     upd()
 
 
+def _can_fire(man, s, b, muz, target, short=0.0):
+    """(ok, reason) for a beam whose turret is already trained."""
+    fire = (muz.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized()
+    to = target - muz.matrix_world.translation
+    ok, off = in_arc(man, s, target)
+    if not ok:
+        return False, f'outside arc ({off:+.0f} deg of {s["angle_deg"]} +/- {s["arc_deg"] / 2:.0f})'
+    tol = AIM_TOLERANCE_DEG if b['mount'] == 'TURRET' else HARDPOINT_TOLERANCE_DEG
+    miss = math.degrees(fire.angle(to))
+    if miss > tol:
+        return False, f'cannot lay on target ({miss:.1f} deg off: elevation limit)'
+    clear, blocker = swfx_beams.clear_line(muz.matrix_world.translation, target, ignore=(f"Weapon {b['slot']}",),
+                                           short=short)
+    if not clear:
+        return False, f'line blocked by {blocker}'
+    return True, None
+
+
+def point_defense(man, threats):
+    """Each PD beam takes the nearest threat (incoming missile or fighter, world
+    points) inside its range, its arc and a clear line, trains on it and fires.
+    Returns {'firing': {beam id: threat index}, 'held': {id: reason},
+    'length': {id: hull units}}. A PD laser with no threat in reach holds."""
+    by_id = {s['id']: s for s in man['weapon_slots']}
+    threats = [Vector(t) for t in threats]
+    out = {'firing': {}, 'held': {}, 'length': {}}
+    for b in man['beams']:
+        if not b.get('pd'):
+            continue
+        s, muz = by_id[b['slot']], bpy.data.objects[b['muzzle']]
+        rest = (bpy.data.objects[s['pivot']].matrix_basis.copy(), bpy.data.objects[s['elevation']].matrix_basis.copy())
+        reasons = []
+        for k in sorted(range(len(threats)), key=lambda k: (threats[k] - muz.matrix_world.translation).length):
+            t = threats[k]
+            if (t - muz.matrix_world.translation).length > b['range']:
+                break
+            if not in_arc(man, s, t)[0]:
+                reasons.append(f'threat {k + 1} outside its arc')
+                continue
+            train(s, t)
+            ok, why = _can_fire(man, s, b, muz, t, short=THREAT_RADIUS)
+            if ok:
+                out['firing'][b['id']] = k
+                out['length'][b['id']] = (t - muz.matrix_world.translation).length
+                break
+            reasons.append(f'threat {k + 1}: {why}')
+            bpy.data.objects[s['pivot']].matrix_basis, bpy.data.objects[s['elevation']].matrix_basis = rest
+            upd()
+        if b['id'] not in out['firing']:
+            out['held'][b['id']] = '; '.join(reasons) or 'no threat in range'
+    return out
+
+
 def engage(man, target, slots=None):
     """Train every turret (or those in `slots`) whose arc holds the target, and
     decide which beams can fire. Returns {'firing': [beam ids], 'held': {id:
@@ -89,31 +146,24 @@ def engage(man, target, slots=None):
     target = Vector(target)
     by_id = {s['id']: s for s in man['weapon_slots']}
     for s in man['weapon_slots']:
-        if s['mount'] == 'TURRET' and (slots is None or s['id'] in slots) and in_arc(man, s, target)[0]:
+        if s['mount'] == 'TURRET' and (slots is None or s['id'] in slots) and in_arc(man, s, target)[0] \
+                and not all(b.get('pd') for b in man['beams'] if b['slot'] == s['id']):
             train(s, target)
     upd()
     out = {'firing': [], 'held': {}, 'length': {}}
     for b in man['beams']:
         if slots is not None and b['slot'] not in slots:
             continue
+        if b.get('pd'):
+            out['held'][b['id']] = 'point defence: missiles and fighters only'
+            continue
         s = by_id[b['slot']]
         muz = bpy.data.objects[b['muzzle']]
         fire = (muz.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized()
-        to = target - muz.matrix_world.translation
-        out['length'][b['id']] = max(50.0, to.dot(fire))
-        ok, off = in_arc(man, s, target)
+        out['length'][b['id']] = max(50.0, (target - muz.matrix_world.translation).dot(fire))
+        ok, why = _can_fire(man, s, b, muz, target)
         if not ok:
-            out['held'][b['id']] = f'outside arc ({off:+.0f} deg of {s["angle_deg"]} +/- {s["arc_deg"] / 2:.0f})'
-            continue
-        tol = AIM_TOLERANCE_DEG if b['mount'] == 'TURRET' else HARDPOINT_TOLERANCE_DEG
-        miss = math.degrees(fire.angle(to))
-        if miss > tol:
-            out['held'][b['id']] = f'cannot lay on target ({miss:.1f} deg off: elevation limit)'
-            continue
-        clear, blocker = swfx_beams.clear_line(muz.matrix_world.translation, target,
-                                               ignore=(f"Weapon {b['slot']}",))
-        if not clear:
-            out['held'][b['id']] = f'line blocked by {blocker}'
+            out['held'][b['id']] = why
             continue
         out['firing'].append(b['id'])
     return out

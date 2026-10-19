@@ -11,8 +11,9 @@ beside this script (ignored; renders are never committed):
   formation-1.5km.png  the space-lit formation frame with effects, as rendered
   beams.png            the beams that can bear (arc, elevation, clear line; aim.py) on a
                        point ahead (the whole line, and the bow close) and on a point
-                       high on the port bow
-  beam-broadside.png, beam-bow.png, beam-port.png   the same frames full size
+                       high on the port bow; and the PD lasers alone against incoming
+                       missiles
+  beam-broadside.png, beam-bow.png, beam-port.png, beam-pd.png   the same frames full size
   lance-sequence.png   the bow tachyon lances through one shot, six stills
   shield.png           the Fortress Shield half raised, raised with two hits, and in
                        fortress mode with one
@@ -42,7 +43,7 @@ font = font or ImageFont.load_default()
 PAGES = {
     'whole': ['three-quarter', 'stern-quarter', 'three-quarter-fx', 'stern-quarter-fx'],
     'effects': ['engine-detail-fx', 'engine-detail-fx-dark', 'stern-quarter-fx-dark', 'formation-1.5km-fx@crop'],
-    'beams': ['beam-broadside-fx', 'beam-bow-fx', 'beam-port-fx'],
+    'beams': ['beam-broadside-fx', 'beam-bow-fx', 'beam-port-fx', 'beam-pd-fx'],
     'shield': ['shield-half', 'shield-raised', 'shield-fortress'],
 }
 NOTES = {'-dark': '  (studio off: the ship glow and the drives)', '-fx': '  (SWFX effects)',
@@ -77,7 +78,7 @@ for name, views in PAGES.items():
 for n in ('shield-half', 'shield-raised', 'shield-fortress'):
     if (src / f'{n}.png').exists():
         shutil.copyfile(src / f'{n}.png', out / f'{n}.png')
-for n in ('formation-1.5km', 'beam-broadside', 'beam-bow', 'beam-port'):
+for n in ('formation-1.5km', 'beam-broadside', 'beam-bow', 'beam-port', 'beam-pd'):
     f = src / f'{n}-fx.png' if n != 'formation-1.5km' else src / 'formation-1.5km-fx.png'
     if f.exists():
         shutil.copyfile(f, out / f'{n}.png')
