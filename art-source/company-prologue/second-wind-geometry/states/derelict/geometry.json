@@ -1598,8 +1598,17 @@
       "Bridge display starboard systems bank 1: Scar dead lamp (ship-power)",
       "Bridge display starboard systems bank 2: Scar dead lamp (ship-power)",
       "Bridge display starboard systems bank 3: Scar dead lamp (ship-power)",
+      "Bridge overhead panel lamps: Scar dead lamp (ship-power)",
       "Bridge port annunciator 1: Scar dead lamp (ship-power)",
       "Bridge port annunciator 2: Scar dead lamp (ship-power)",
+      "Bridge port chamfer console status lamps: Scar dead lamp (ship-power)",
+      "Bridge port chamfer console warning lamps: Scar dead lamp (ship-power)",
+      "Bridge port comms bank status lamps: Scar dead lamp (ship-power)",
+      "Bridge port comms bank warning lamps: Scar dead lamp (ship-power)",
+      "Bridge starboard chamfer console status lamps: Scar dead lamp (ship-power)",
+      "Bridge starboard chamfer console warning lamps: Scar dead lamp (ship-power)",
+      "Bridge starboard systems bank status lamps: Scar dead lamp (ship-power)",
+      "Bridge starboard systems bank warning lamps: Scar dead lamp (ship-power)",
       "Command deck running light: Scar dead lamp (ship-power)",
       "Command deck running light.001: Scar dead lamp (ship-power)",
       "Command deck viewport slits: Scar unlit glazing (ship-power)",
@@ -1628,7 +1637,7 @@
       "Engine 3 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)",
       "Engine 4 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)"
     ],
-    "cut_objects": 104,
+    "cut_objects": 107,
     "sites": {
       "aft-deck-cluster": [
         {
