@@ -151,18 +151,12 @@ def fighter_bearing_deg(t):
 #   duck    the fighters fly above our eye, so from the dais they skim the top of the slit and
 #           go behind the visor brow at about 2.8 s: the person ducks lower over the console
 #           and closer to the glass to keep them in sight, and comes back up after.
-#   castle  Castle in passing only (owner, 2026-10-19: ground the shot in the Legion, no turn
-#           onto her): as the deck tips for the de-orbit the person steps back half a pace from
-#           the bank and braces, without turning, so her right shoulder and the hand at her
-#           earpiece sit in the left edge of the frame during her read-back.
 
 CAMERA = set(filter(None, os.environ.get("C2_CAMERA", "").split(",")))
-CAMERA_OPTIONS = ("walk", "breath", "frame", "lean", "lens", "duck", "castle")
+CAMERA_OPTIONS = ("walk", "breath", "frame", "lean", "lens", "duck")
 DAIS_STEP = (16.05, 1.65)        # on the dais at the head of the step (its tread is at y 1.65)
 STEP_FOOT = (15.15, 1.85)        # on the main floor at its foot; the grab pole is 0.8 to port
 WALK = (4.6, 6.6)                # after the second flight (4.2 s), settled before abeam
-CASTLE_SETTLE = (12.2, 2.45)     # half a pace back from the bank: Castle (root 10.9, 3.25) at the left edge
-CASTLE_STEP = (9.6, 10.6)        # with the pitch-down, a moment into her read-back (9.76)
 
 
 def _walk_point(u):
@@ -220,11 +214,6 @@ def head_full(t, options=None):
         k = smooth((t - 6.6) / 1.2) * (1.0 - smooth((t - 9.4) / 1.4))
         pos = (pos[0], pos[1] + 0.38 * k, pos[2] - 0.06 * k)
         pitch -= 2.0 * k
-    if "castle" in opts:
-        a, b = CASTLE_STEP
-        k = smooth((t - a) / (b - a))
-        pos = (pos[0] + (CASTLE_SETTLE[0] - pos[0]) * k, pos[1] + (CASTLE_SETTLE[1] - pos[1]) * k,
-               pos[2] - 0.025 * math.sin(math.pi * min(1.0, max(0.0, (t - a) / (b - a)))))
     if "lens" in opts:
         lens += 5.0 * smooth((t - 5.5) / 2.5) * (1.0 - smooth((t - 10.0) / 2.0))
     if "breath" in opts:
