@@ -48,6 +48,8 @@ class WarshipTacticsTest {
         // Due east of the Venture, toward the Wolf, clear of the Venture's beam.
         assertTrue(cx > venture.centerX() + 0.5f * venture.widthCells, "on the threat side, beyond the charge's beam");
         assertTrue(cx < wolf.centerX(), "short of the threat");
+        float out = (float) Math.hypot(cx - venture.centerX(), cy - venture.centerY());
+        assertTrue(out >= WarshipEscort.roundingRadius(venture, hound) - 1e-3f, "clear of the charge however it turns");
         float lx = wolf.centerX() - venture.centerX();
         float ly = wolf.centerY() - venture.centerY();
         float cross = (cx - venture.centerX()) * ly - (cy - venture.centerY()) * lx;
