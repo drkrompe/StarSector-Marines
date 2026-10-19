@@ -1,0 +1,1126 @@
+{
+ "wall-f-hi-port": {
+  "what": "fore cargo module port outboard wall, upper band (the upper cargo door row), bow to the left",
+  "sheet": "modules-wall",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Cargo port fore module",
+    "seed": {
+     "box": [
+      [
+       36.0,
+       63.5,
+       -10.75
+      ],
+      [
+       79.0,
+       64.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     22,
+     23,
+     24,
+     28,
+     29,
+     32,
+     33,
+     94,
+     103,
+     104,
+     105
+    ]
+   },
+   {
+    "object": "Cargo port fore module cargo door leaves",
+    "seed": {
+     "box": [
+      [
+       36.0,
+       63.5,
+       -10.75
+      ],
+      [
+       79.0,
+       64.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     3,
+     9
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 1017.29,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   41.86,
+   21.65
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -57.80000114440918,
+    0.17500019073486328
+   ],
+   "ortho_width": 48.674423750056775
+  },
+  "native_texels_per_unit": 16.3
+ },
+ "skirt-f-port": {
+  "what": "fore cargo module port armour skirt: a row of heavy welded plates, bow to the left",
+  "sheet": "modules-wall",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Refit side skirt plates",
+    "seed": {
+     "box": [
+      [
+       33.0,
+       64.8,
+       -36.0
+      ],
+      [
+       91.0,
+       66.5,
+       -2.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     11,
+     12,
+     19,
+     20,
+     27,
+     28
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 728.31,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   40.0,
+   30.23
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -67.3499984741211,
+    -18.982529759407043
+   ],
+   "ortho_width": 62.49080086247249
+  },
+  "native_texels_per_unit": 12.7
+ },
+ "deck-f-port": {
+  "what": "fore cargo module port deck from above, bow to the right, outboard up",
+  "sheet": "modules-deck",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Cargo port fore module",
+    "seed": {
+     "box": [
+      [
+       33.0,
+       46.0,
+       13.0
+      ],
+      [
+       91.0,
+       64.5,
+       15.0
+      ]
+     ]
+    },
+    "faces": [
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     58,
+     59,
+     64,
+     65,
+     70,
+     71,
+     81
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 536.48,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   51.45,
+   11.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    61.77499961853027,
+    55.75
+   ],
+   "ortho_width": 59.82558228248774
+  },
+  "native_texels_per_unit": 13.3
+ },
+ "keel-f-port": {
+  "what": "fore cargo module port keel flat from below, bow to the left, outboard up",
+  "sheet": "modules-deck",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Cargo port fore module",
+    "seed": {
+     "box": [
+      [
+       33.0,
+       46.0,
+       -47.0
+      ],
+      [
+       91.0,
+       64.5,
+       -44.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     178,
+     185,
+     198,
+     199,
+     200,
+     201,
+     202,
+     203
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 92.27,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   45.0,
+   2.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -63.100250244140625,
+    55.75
+   ],
+   "ortho_width": 52.32616690702217
+  },
+  "native_texels_per_unit": 15.2
+ },
+ "wall-a-hi-port": {
+  "what": "aft cargo module port outboard wall, upper band (the upper cargo door row), bow to the left",
+  "sheet": "modules-wall",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Cargo port aft module",
+    "seed": {
+     "box": [
+      [
+       -8.0,
+       63.5,
+       -10.75
+      ],
+      [
+       31.0,
+       64.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     18,
+     19,
+     22,
+     25,
+     26,
+     27,
+     30,
+     31,
+     34,
+     35,
+     36,
+     37,
+     38,
+     103,
+     113,
+     119,
+     120,
+     121
+    ]
+   },
+   {
+    "object": "Cargo port aft module cargo door leaves",
+    "seed": {
+     "box": [
+      [
+       -8.0,
+       63.5,
+       -10.75
+      ],
+      [
+       31.0,
+       64.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     3,
+     9
+    ]
+   }
+  ],
+  "face_count": 20,
+  "area_units2": 999.68,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   38.46,
+   21.65
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -11.499999761581421,
+    0.17500019073486328
+   ],
+   "ortho_width": 44.75452117525638
+  },
+  "native_texels_per_unit": 17.7
+ },
+ "skirt-a-port": {
+  "what": "aft cargo module port armour skirt: a row of heavy welded plates, bow to the left",
+  "sheet": "modules-wall",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Refit side skirt plates",
+    "seed": {
+     "box": [
+      [
+       -21.0,
+       64.8,
+       -36.0
+      ],
+      [
+       33.0,
+       66.5,
+       -2.0
+      ]
+     ]
+    },
+    "faces": [
+     35,
+     36,
+     43,
+     44
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 429.72,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   22.5,
+   29.61
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    4.6000001430511475,
+    -18.758885502815247
+   ],
+   "ortho_width": 61.21604929290692
+  },
+  "native_texels_per_unit": 13.0
+ },
+ "deck-a-port": {
+  "what": "aft cargo module port deck from above, bow to the right, outboard up",
+  "sheet": "modules-deck",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Cargo port aft module",
+    "seed": {
+     "box": [
+      [
+       -21.0,
+       46.0,
+       13.0
+      ],
+      [
+       33.0,
+       64.5,
+       15.0
+      ]
+     ]
+    },
+    "faces": [
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     65,
+     66,
+     71,
+     72,
+     77,
+     78,
+     88
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 488.48,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   46.95,
+   11.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    5.925000190734863,
+    55.75
+   ],
+   "ortho_width": 54.5930219251056
+  },
+  "native_texels_per_unit": 14.5
+ },
+ "keel-a-port": {
+  "what": "aft cargo module port keel flat from below, bow to the left, outboard up",
+  "sheet": "modules-deck",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Cargo port aft module",
+    "seed": {
+     "box": [
+      [
+       -21.0,
+       46.0,
+       -47.0
+      ],
+      [
+       33.0,
+       64.5,
+       -44.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     195,
+     207,
+     208,
+     209,
+     210,
+     213,
+     214,
+     270
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 94.17,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   39.0,
+   3.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -6.499999046325684,
+    56.30025291442871
+   ],
+   "ortho_width": 45.34883499145508
+  },
+  "native_texels_per_unit": 17.5
+ },
+ "wall-f-hi-stbd": {
+  "what": "fore cargo module starboard outboard wall, upper band (the upper cargo door row), bow to the left (mirror of port)",
+  "sheet": "modules-wall",
+  "tile": 0,
+  "skin_from": "wall-f-hi-port",
+  "members": [
+   {
+    "object": "Cargo starboard fore module",
+    "seed": {
+     "box": [
+      [
+       36.0,
+       -61.5,
+       -10.75
+      ],
+      [
+       79.0,
+       -60.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     15,
+     16,
+     20,
+     21,
+     22,
+     25,
+     26,
+     90,
+     103,
+     104,
+     105
+    ]
+   },
+   {
+    "object": "Cargo starboard fore module cargo door leaves",
+    "seed": {
+     "box": [
+      [
+       36.0,
+       -61.5,
+       -10.75
+      ],
+      [
+       79.0,
+       -60.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     2,
+     8
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 1017.29,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   41.86,
+   21.65
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    57.80000114440918,
+    0.17500019073486328
+   ],
+   "ortho_width": 48.674423750056775
+  },
+  "native_texels_per_unit": 16.3
+ },
+ "skirt-f-stbd": {
+  "what": "fore cargo module starboard armour skirt: a row of heavy welded plates, bow to the left (mirror of port)",
+  "sheet": "modules-wall",
+  "tile": 1,
+  "skin_from": "skirt-f-port",
+  "members": [
+   {
+    "object": "Refit side skirt plates",
+    "seed": {
+     "box": [
+      [
+       33.0,
+       -63.5,
+       -36.0
+      ],
+      [
+       91.0,
+       -61.8,
+       -2.0
+      ]
+     ]
+    },
+    "faces": [
+     51,
+     52,
+     59,
+     60,
+     67,
+     68,
+     75,
+     76,
+     83,
+     84
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 888.41,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   53.2,
+   29.43
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    60.75,
+    -19.06665849685669
+   ],
+   "ortho_width": 61.860461567723476
+  },
+  "native_texels_per_unit": 12.8
+ },
+ "deck-f-stbd": {
+  "what": "fore cargo module starboard deck from above, bow to the right, outboard up (mirror of port)",
+  "sheet": "modules-deck",
+  "tile": 0,
+  "skin_from": "deck-f-port",
+  "members": [
+   {
+    "object": "Cargo starboard fore module",
+    "seed": {
+     "box": [
+      [
+       33.0,
+       -61.5,
+       13.0
+      ],
+      [
+       91.0,
+       -43.0,
+       15.0
+      ]
+     ]
+    },
+    "faces": [
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     53,
+     54,
+     59,
+     60,
+     65,
+     66,
+     77
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 536.48,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   51.45,
+   11.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -61.77499961853027,
+    52.75
+   ],
+   "ortho_width": 59.82558228248774
+  },
+  "native_texels_per_unit": 13.3
+ },
+ "keel-f-stbd": {
+  "what": "fore cargo module starboard keel flat from below, bow to the left, outboard up (mirror of port)",
+  "sheet": "modules-deck",
+  "tile": 2,
+  "skin_from": "keel-f-port",
+  "members": [
+   {
+    "object": "Cargo starboard fore module",
+    "seed": {
+     "box": [
+      [
+       33.0,
+       -61.5,
+       -47.0
+      ],
+      [
+       91.0,
+       -43.0,
+       -44.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     169,
+     182,
+     197,
+     198,
+     199,
+     200,
+     201,
+     204
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 94.69,
+  "view_dir": [
+   0.0,
+   -0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   42.9,
+   4.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    62.04999923706055,
+    53.80025291442871
+   ],
+   "ortho_width": 49.883722704510355
+  },
+  "native_texels_per_unit": 15.9
+ },
+ "wall-a-hi-stbd": {
+  "what": "aft cargo module starboard outboard wall, upper band (the upper cargo door row), bow to the left (mirror of port)",
+  "sheet": "modules-wall",
+  "tile": 2,
+  "skin_from": "wall-a-hi-port",
+  "members": [
+   {
+    "object": "Cargo starboard aft module",
+    "seed": {
+     "box": [
+      [
+       -8.0,
+       -61.5,
+       -10.75
+      ],
+      [
+       31.0,
+       -60.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     22,
+     23,
+     25,
+     27,
+     28,
+     30,
+     34,
+     35,
+     38,
+     39,
+     40,
+     41,
+     42,
+     107,
+     117,
+     123,
+     124,
+     125
+    ]
+   },
+   {
+    "object": "Cargo starboard aft module cargo door leaves",
+    "seed": {
+     "box": [
+      [
+       -8.0,
+       -61.5,
+       -10.75
+      ],
+      [
+       31.0,
+       -60.5,
+       11.5
+      ]
+     ],
+     "pad": 0.2
+    },
+    "faces": [
+     2,
+     8
+    ]
+   }
+  ],
+  "face_count": 20,
+  "area_units2": 999.68,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   38.46,
+   21.65
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    11.499999761581421,
+    0.17500019073486328
+   ],
+   "ortho_width": 44.75452117525638
+  },
+  "native_texels_per_unit": 17.7
+ },
+ "skirt-a-stbd": {
+  "what": "aft cargo module starboard armour skirt: a row of heavy welded plates, bow to the left (mirror of port)",
+  "sheet": "modules-wall",
+  "tile": 3,
+  "skin_from": "skirt-a-port",
+  "members": [
+   {
+    "object": "Refit side skirt plates",
+    "seed": {
+     "box": [
+      [
+       -21.0,
+       -63.5,
+       -36.0
+      ],
+      [
+       33.0,
+       -61.8,
+       -2.0
+      ]
+     ]
+    },
+    "faces": [
+     91,
+     92
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 214.55,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   7.3,
+   29.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    3.0000000596046448,
+    -18.532015919685364
+   ],
+   "ortho_width": 60.57266462064836
+  },
+  "native_texels_per_unit": 13.1
+ },
+ "deck-a-stbd": {
+  "what": "aft cargo module starboard deck from above, bow to the right, outboard up (mirror of port)",
+  "sheet": "modules-deck",
+  "tile": 1,
+  "skin_from": "deck-a-port",
+  "members": [
+   {
+    "object": "Cargo starboard aft module",
+    "seed": {
+     "box": [
+      [
+       -21.0,
+       -61.5,
+       13.0
+      ],
+      [
+       33.0,
+       -43.0,
+       15.0
+      ]
+     ]
+    },
+    "faces": [
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     68,
+     69,
+     74,
+     75,
+     80,
+     81,
+     91
+    ]
+   }
+  ],
+  "face_count": 15,
+  "area_units2": 488.48,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   46.95,
+   11.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -5.925000190734863,
+    52.75
+   ],
+   "ortho_width": 54.5930219251056
+  },
+  "native_texels_per_unit": 14.5
+ },
+ "keel-a-stbd": {
+  "what": "aft cargo module starboard keel flat from below, bow to the left, outboard up (mirror of port)",
+  "sheet": "modules-deck",
+  "tile": 3,
+  "skin_from": "keel-a-port",
+  "members": [
+   {
+    "object": "Cargo starboard aft module",
+    "seed": {
+     "box": [
+      [
+       -21.0,
+       -61.5,
+       -47.0
+      ],
+      [
+       33.0,
+       -43.0,
+       -44.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     187,
+     197,
+     209,
+     210,
+     211,
+     212,
+     215,
+     218
+    ]
+   }
+  ],
+  "face_count": 14,
+  "area_units2": 80.52,
+  "view_dir": [
+   0.0,
+   -0.0,
+   -1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.8,
+  "extent_units": [
+   40.1,
+   2.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    5.949746608734131,
+    52.75
+   ],
+   "ortho_width": 46.62849182306334
+  },
+  "native_texels_per_unit": 17.0
+ }
+}

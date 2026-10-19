@@ -1,0 +1,82 @@
+{
+ "asset": "phaeton.blend",
+ "collection": "PHAETON",
+ "root": "PHAETON | root",
+ "objects": 1223,
+ "meshes": 1190,
+ "images": 30,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    1190,
+    1190
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "six main drive anchors": {
+   "ok": true
+  },
+  "drives running": {
+   "ok": true
+  },
+  "hull_rest is rest position": {
+   "ok": true
+  },
+  "turret 1 pivot trains": {
+   "ok": true,
+   "detail": 8e-06
+  },
+  "turret 2 pivot trains": {
+   "ok": true,
+   "detail": 4e-06
+  },
+  "turret 3 pivot trains": {
+   "ok": true,
+   "detail": 5e-06
+  },
+  "turret 4 pivot trains": {
+   "ok": true,
+   "detail": 4e-06
+  },
+  "four turrets": {
+   "ok": true
+  },
+  "launcher WS 005 muzzle": {
+   "ok": true
+  },
+  "launcher WS 006 muzzle": {
+   "ok": true
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 6.1e-05
+  }
+ }
+}

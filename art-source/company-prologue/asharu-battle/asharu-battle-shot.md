@@ -1,8 +1,8 @@
 # Asharu battle: the wreckfall
 
-Status: DRAFT — round 5 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
+Status: DRAFT — round 6 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
 Written: 2026-10-19
-Updated: 2026-10-19 — round 5: the Tarsus is a finished build, clean until she is boarded and boarded from S7 on (awaiting the owner's review); she is 94 m, not 106.
+Updated: 2026-10-19 — round 6: the Colossus Mk.III is a finished build (awaiting the owner's acceptance), with grapples half down in S8-S9 and the Tarsus truly clamped in S10.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -126,7 +126,7 @@ Colossus 108 m, Onslaught 301 m.
 | Hull | Role | Length | Against known ships | Model |
 |---|---|---|---|---|
 | Falcon (P) | flagship, light cruiser | 174 m | 1.6 Colossus; 0.6 Onslaught | **finished** |
-| Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 107 m (est.) | the Colossus's twin | ordered, from the Colossus geometry |
+| Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 110 m | the Colossus's twin | **finished**; grapples from stowed to clamped, fitted to the Tarsus |
 | Manticore (P) | long-range destroyer that breaks the screen | 96 m (est.) | 0.9 Colossus | ordered |
 | Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
 | Wolf (P) x2 | fast frigates that cut the column | 75 m | 1.2 Hounds | **finished** |
@@ -186,7 +186,8 @@ ordered from this blockout without the owner asking.
 roster sheets (from above and broadside, every hull at true relative size) and
 the orbit diagram. Hulls come from `build/asharu-battle/inputs/` (ignored): the
 finished Colossus and Shepherd builds (`colossus-cinematic`,
-`shepherd-cinematic`) and the Drive builds `tarsus/750fb3374` (clean in S1-S6,
+`shepherd-cinematic`) and the Drive builds `colossus-mk3/005c3b11b` (grapples
+set per frame through its control knob), `tarsus/750fb3374` (clean in S1-S6,
 boarded in S7 and S10), `falcon-p/0044413fc`, `wolf-p/cec776a`,
 `wolf/cec776a`, `kite-p/a48f8757b`, `hound-p/33114de`,
 `lasher-independent/7805d3b` and `hound-independent/1e91821`, each placed
