@@ -39,6 +39,12 @@ timeout, and:
   reference's role, hashes, dimensions, Codex version, token usage and
   elapsed time.
 
+`--model <slug>` (or `$CODEX_IMAGEGEN_MODEL`) picks the Codex agent model that drives
+the call; without it Codex uses its configured default. A ChatGPT login refuses some
+defaults outright ("not supported when using Codex with a ChatGPT account"), and a model
+that runs may still not be offered `image_gen` at all: the agent then answers that the tool
+is unavailable and the wrapper reports that no image was made (nothing is spent).
+
 `--adopt-thread <id>` records provenance for an image an earlier run produced,
 without generating again. Find the id in that run's `thread.started` event.
 
