@@ -40,6 +40,8 @@ public class BicycleBody extends GroundBody {
     private final float accel;
     private final float brakingAccel;
     private final float maxSpeed;
+    /** Reverse speed cap as a fraction of {@link #maxSpeed}. */
+    private final float reverseFraction;
 
     /** Current steering angle, radians; positive = left turn. Slewed toward desired each tick. */
     private float steeringRad;
@@ -47,6 +49,17 @@ public class BicycleBody extends GroundBody {
     public BicycleBody(float wheelbaseCells,
                        float maxSteeringDeg, float steeringSlewDegPerSec,
                        float accel, float brakingAccel, float maxSpeed) {
+        this(wheelbaseCells, maxSteeringDeg, steeringSlewDegPerSec, accel, brakingAccel, maxSpeed, .5f);
+    }
+
+    /** As the six-argument body, reversing at {@code reverseFraction} of forward top speed instead of half. */
+    public BicycleBody(float wheelbaseCells,
+                       float maxSteeringDeg, float steeringSlewDegPerSec,
+                       float accel, float brakingAccel, float maxSpeed, float reverseFraction) {
+        if (!(reverseFraction > 0f && reverseFraction <= 1f)) {
+            throw new IllegalArgumentException("Reverse fraction must be in (0, 1]: " + reverseFraction);
+        }
+        this.reverseFraction = reverseFraction;
         this.wheelbaseCells = wheelbaseCells;
         this.maxSteeringRad = (float) Math.toRadians(maxSteeringDeg);
         this.steeringSlewRadPerSec = (float) Math.toRadians(steeringSlewDegPerSec);
@@ -102,7 +115,7 @@ public class BicycleBody extends GroundBody {
         }
         throttle = Math.max(-1f, Math.min(1f, throttle));
         steering = Math.max(-1f, Math.min(1f, steering));
-        float targetSpeed = throttle * maxSpeed * (throttle < 0f ? .5f : 1f);
+        float targetSpeed = throttle * maxSpeed * (throttle < 0f ? reverseFraction : 1f);
         integrateSteering(steering * maxSteeringRad, targetSpeed, dt);
     }
 
@@ -114,8 +127,8 @@ public class BicycleBody extends GroundBody {
         if (dSteer < -steeringStep) dSteer = -steeringStep;
         steeringRad += dSteer;
 
-        // Adjust speed toward targetSpeed. Reverse is capped at half forward max.
-        float maxReverse = maxSpeed * 0.5f;
+        // Adjust speed toward targetSpeed. Reverse is capped at a fraction of forward max.
+        float maxReverse = maxSpeed * reverseFraction;
         float clampedTarget = Math.max(-maxReverse, Math.min(maxSpeed, targetSpeed));
         float dv = clampedTarget - speed;
         float speedStep = (dv >= 0f) ? accel * dt : brakingAccel * dt;

@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15196-2c97-7c00-81e2-d652b34d671a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15196-2c97-7c00-81e2-d652b34d671a\\exec-ae35b6d9-9877-4001-9595-aea2fda5dd8a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\01-stencil.png",
+    "sha256": "58a4f1adc9c32e38a98d17ec1bb6c3df205e84942dea521d3e97c04c00a45c80",
+    "dimensions": [
+      2048,
+      768
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\01-stencil.txt",
+  "promptSha256": "46adb11924e422e4c8973045e0535aa0cfc62c8dd94d4166328e7111d23e1adb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Direction: military stencil. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station, landing on a jungle world. The mark is a spray-painted military stencil, as if sprayed through a cut card onto a crate: heavy condensed stencil capitals with the characteristic bridges breaking each letter, slightly uneven overspray halo, a few drips and missed edges, slightly worn. MARINES in off-white bone paint with a thin dark charcoal outer edge for contrast; STARSECTOR above it in smaller widely spaced stencil capitals, centred, with a short stencilled bar on each side of it. Restrained palette: bone white and charcoal only. Hopeful but humble, functional, hand-made, not glossy. No metallic shine, no gradients, no 3D bevel.\n\nLettering must be spelled exactly, in capital letters: the setting name STARSECTOR, small, and the mod's name MARINES, large and dominant; MARINES is the identity of the mark and STARSECTOR is a modest subtitle. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one transparent stencil logo using your exact lettering and palette."
+  ],
+  "usage": {
+    "input_tokens": 37010,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 437,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.9
+}

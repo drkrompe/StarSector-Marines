@@ -45,6 +45,11 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.LRM_5, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.SRM_15, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.LRM_15, EquipmentAccessTier.ADVANCED);
+        // A fragmentation rack is a sidegrade of its anti-armor rack: same tier, same room.
+        WEAPON_TIERS.put(MechWeaponComponent.SRM_5_FRAG, EquipmentAccessTier.COMMON);
+        WEAPON_TIERS.put(MechWeaponComponent.LRM_5_FRAG, EquipmentAccessTier.COMMON);
+        WEAPON_TIERS.put(MechWeaponComponent.SRM_15_FRAG, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.LRM_15_FRAG, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.DUAL_LINEAR_CANNONS, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.SINGLE_HEAVY_CANNON, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.DEMOLITION_CANNON, EquipmentAccessTier.ADVANCED);
@@ -72,13 +77,15 @@ public record MechPattern(Kind kind, String definitionId) {
     }
 
     /**
-     * What a new company knows: the Hound, the two weapons Wayward teaches, and the stock
-     * frame's internals every chassis is built with.
+     * What a new company knows: the Hound, the weapons Wayward teaches (the nose chaingun and
+     * both SRM-5 warheads, so the first rack can answer men and the first armor alike), and the
+     * stock frame's internals every chassis is built with.
      */
     public static final List<MechPattern> STARTER = List.of(
             of(MechVariant.HOUND),
             of(MechWeaponComponent.NOSE_CHAINGUN),
             of(MechWeaponComponent.SRM_5),
+            of(MechWeaponComponent.SRM_5_FRAG),
             of(MechInternal.INDUSTRIAL_ENGINE),
             of(MechInternal.FACTORY_PLATING),
             of(MechInternal.FACTORY_HEAT_SINK));

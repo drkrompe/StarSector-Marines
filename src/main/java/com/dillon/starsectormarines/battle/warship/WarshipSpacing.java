@@ -328,8 +328,10 @@ public final class WarshipSpacing {
             float gNow = now[0];
             float gThen = then[0];
             float g = Math.min(gNow, gThen);
-            // A formation is spaced by its own geometry; within it the helm keeps a narrower gap.
-            float keep = formation(ship, other) ? FORMATION_TOUCH_CELLS : want;
+            // A formation is spaced by its own geometry; within it the helm keeps a narrower gap, except that an
+            // escort gives its own charge the whole clearance: the charge flies its fight, the screen makes way.
+            boolean charge = WarshipEscort.CLEARS_CHARGE && WarshipEscort.liveLead(ship) == other;
+            float keep = !charge && formation(ship, other) ? FORMATION_TOUCH_CELLS : want;
             if (g >= keep) continue;
             float depth = Math.min(1f, (keep - g) / keep);
             // The axis between them where they are closest: now, or at closest approach.
