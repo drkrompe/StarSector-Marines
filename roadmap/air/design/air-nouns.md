@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a mission may hold the battle open until a hull's part concludes (gone off the map, or its wreck at rest); at Black Sluice the Greyhook fights, then runs for her south edge on Voss's order and the battle waits for her escape or her wreck.
+Updated: 2026-10-19 — a turret stays inside its slot's arc and stays laid on the hull it fights between rounds, resting only with no hull in reach.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1972,7 +1972,17 @@ A ship is heard in the game's own sounds, never a mod clip: the weapon's fire so
 A turret traverses within its slot's arc and a hardpoint fires where the nose
 points, so which guns reach a target is a fact about the ship's heading. The
 Onslaught's heavy turrets are port and starboard; ahead of it only its
-hardpoints and bow guns answer. Choosing a heading that brings the battery to
+hardpoints and bow guns answer. A barrel never leaves its slot's arc: a bearing
+beyond it is met at the nearer stop, and a swing between stops goes round
+inside the arc, never through the hull. **A turret stays laid on the hull it
+fights.** Between rounds (cooling down, venting, waiting on the volley or a
+missile's window, holding for a friend in its line) it keeps tracking where it
+would aim at the hull it reaches and bears on, and rests along its slot only
+when no hull is in its reach and arc. A barrel that swung home for every
+cooldown spent most of a hull fight re-laying: on the hull fight's long clock a
+slow heavy gun drifted twenty degrees off and took seconds to come back, and was
+on its target a fifth of the time. Ground orders keep their own aim; the hull's
+lay only replaces rest. `-Dbattle.warship.layBetweenRounds=false` is the control. Choosing a heading that brings the battery to
 bear is the director's job and part of what makes a capital worth positioning.
 
 **A warship takes orders, and an area order leaves the choosing to the ship.**

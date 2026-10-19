@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15512-8d7a-7eb2-ad76-8f8d1cc24709",
+  "source": "/Users/dillon/.codex/generated_images/01a15512-8d7a-7eb2-ad76-8f8d1cc24709/exec-28b10258-4c69-4ec4-a093-395b2c42d2d0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/paragon-surface/generated/sheet-ends-a.png",
+    "sha256": "15e8c633dec67b7cf5f7c6c77c85533e83ae09cce9b332e899993060f5e90b00",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/paragon-surface/prompts/sheet-ends-a.prompt.txt",
+  "promptSha256": "cc230db7396aee7cf6a75ce441ac6c7e9a76df16b8e6bf3d0a0094888c2e3cfb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority: every shape stays in its pixels\nImage 2: Material and finish only; not layout\n\nUse case: precise-object-edit / texture finish layer over a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of the hull of one 3D spacecraft (the Paragon, a 310 m Tri-Tachyon battleship), each seen square-on, on a plain flat mid-blue background. Each tile is a crop of a much larger ship:\ntop-left: the stern face seen straight on: the drive mouths (the dark rounded and square openings) along the lower middle. Heavy soot round every drive mouth, fanning out and streaking UPWARD and outward from the mouths; heat tint on the drive blocks;\ntop-right: the bow face seen straight on: the projector bay mouth (the dark square) and the prow. Strong heat tint round the bay mouth; grime in the recesses;\nbottom-left: the flank aft seen from the side, the stern at the LEFT: pod and ring walls. Soot streaks trailing LEFT (aft) from the drive end at the left; grime along the lower edge and round the windows;\nbottom-right: the flank forward seen from the side, the bow at the RIGHT: ring and bow walls. Heat tint near the bow at the right; grime round the windows and along the lower edge.\nINPUT 2 is the SAME ship, already finished: it is the finish to match (its ceramic colours, satin sheen, grime). Never copy INPUT 2's composition, view or shapes.\n\nThis image is a FINISH LAYER: it will be cut into its tiles and multiplied over the 3D model, which already carries its own hexagonal tile pattern, seams and panel lines as geometry. So:\n- Do NOT paint any hexagons, tiles, plates, seams, panel lines, fasteners or hatches. The hexagonal pattern visible in INPUT 1 belongs to the model: paint over it, so every shape becomes a smooth, continuous, pattern-free surface of its own colour carrying only the finish described below.\n- Keep the tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline; every gap, hole or slot between and inside shapes stays plain background blue. Do not join separate shapes and do not fill the blue between them.\n- Keep each region's colour: blue-grey ceramic stays cool blue-grey, pale and white ceramic stay pale, dark slate stays dark slate, light steel stays light grey steel, near-black stays near-black. No stripes, no different-coloured plates, no repair patches, no lettering, numbers, markings or logos.\n- The finish, clearly visible and placed where it belongs:\n  - all over: cloudy mottling in the glaze and soft drifts of grey-brown grime, heavier in recesses, along the edges of raised parts and round every hatch, vent and service field;\n  - SOOT: dark soot around every drive mouth and drive block, fanning out and trailing in streaks in the direction stated for each tile;\n  - HEAT TINT: a cool blue-violet heat tint (with a faint straw-bronze inner ring on steel) around every emitter, gun well, glowing line and projector bay;\n  - concentrated where the tile description says; elsewhere light.\n- Lighting: flat, even, shadowless, like an albedo texture map. No cast shadows, no ambient-occlusion darkening, no highlights, no reflections, no gradients from lighting.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/paragon-surface/guide/sheet-ends-a-guide.png",
+      "sha256": "644a90dc7921f6e2a801e1caf64411b427294e1eef8b19a489586e27decabb8f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Layout authority: every shape stays in its pixels"
+    },
+    {
+      "path": "art-source/company-prologue/paragon-surface/reference/finish-reference.png",
+      "sha256": "7edfef7dde8887c201b53aa7b7fc65ab58ebf9a05742349948ec667c1e80b542",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed layout and Image 2 only as the finish reference, applying the imagegen skill for this edit."
+  ],
+  "usage": {
+    "input_tokens": 119481,
+    "cached_input_tokens": 97664,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1067,
+    "reasoning_output_tokens": 64
+  },
+  "elapsedSeconds": 59.5
+}

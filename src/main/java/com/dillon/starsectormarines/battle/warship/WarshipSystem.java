@@ -2006,7 +2006,7 @@ public final class WarshipSystem {
         }
         if (!m.aimed && !ship.areasFor(m).isEmpty()) m.aimed = pickTarget(sim, ship, m) != null;
         if (!m.aimed) {
-            traverse(dt, ship, m, rest);
+            traverse(dt, ship, m, idleBearing(m, rest));
             return;
         }
         float bearing = AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m));
@@ -2082,7 +2082,7 @@ public final class WarshipSystem {
         WarshipOrder.FireOnArea area = null;
         if (!ship.groundFireAllowed(m) || ship.areasFor(m).isEmpty() || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
                 || !ship.hasOrdnance(m) || !ship.fluxPool().canStartFire() || (area = pickTarget(sim, ship, m)) == null) {
-            traverse(dt, ship, m, rest);
+            traverse(dt, ship, m, idleBearing(m, rest));
             return;
         }
         float mx = ship.mountX(m);
@@ -2099,13 +2099,13 @@ public final class WarshipSystem {
         float start = Math.max(-halfArc, wrapRadians(centre - half - slotWorld));
         float end = Math.min(halfArc, wrapRadians(centre + half - slotWorld));
         if (end - start < 0.05f) {
-            traverse(dt, ship, m, rest);
+            traverse(dt, ship, m, idleBearing(m, rest));
             return;
         }
         float rate = Math.max(LANCE_MIN_SWEEP_RATE, w.turnRateDegPerSec());
         float burn = Math.max(1f, (float) Math.toDegrees(end - start) / rate);
         if (!ship.fluxPool().canStart(w.fluxPerSecond() * burn)) {
-            traverse(dt, ship, m, rest);
+            traverse(dt, ship, m, idleBearing(m, rest));
             return;
         }
         LanceSweep sweep = new LanceSweep(0L, ship.faction, mx, my,
@@ -2130,9 +2130,20 @@ public final class WarshipSystem {
     }
 
     /**
-     * Swings the barrel toward {@code bearing} at the weapon's own traverse rate.
-     * A fixed mount, a hardpoint or a weapon with no traverse, points where the
-     * hull points it.
+     * Where a mount with nothing of its own to swing to points: on the hull it is holding its next round for, when the
+     * hull fire laid it ({@link WarshipShipFire}), else at rest along its slot.
+     */
+    private static float idleBearing(Warship.Mount m, float rest) {
+        return m.hullLaid ? m.hullLayBearing : rest;
+    }
+
+    /**
+     * Swings the barrel toward {@code bearing} at the weapon's own traverse rate,
+     * inside its slot's arc. A fixed mount, a hardpoint or a weapon with no
+     * traverse, points where the hull points it. A bearing outside the arc is
+     * met at the arc's nearer stop, and the barrel swings the way round that
+     * stays inside the arc rather than through the hull; a barrel the hull's own
+     * turn has carried past a stop is held at it.
      */
     static void traverse(float dt, Warship ship, Warship.Mount m, float bearing) {
         float rest = ship.facingDegrees + m.slot.angleDegrees();
@@ -2142,9 +2153,23 @@ public final class WarshipSystem {
             return;
         }
         float step = rate * dt;
-        float error = WarshipFacing.wrap(bearing - m.headingDegrees);
-        m.headingDegrees = Math.abs(error) <= step
-                ? bearing : WarshipFacing.wrap(m.headingDegrees + Math.signum(error) * step);
+        float half = Math.max(m.slot.arcDegrees(), 1f) * 0.5f;
+        if (half >= 180f) {
+            float error = WarshipFacing.wrap(bearing - m.headingDegrees);
+            m.headingDegrees = Math.abs(error) <= step
+                    ? bearing : WarshipFacing.wrap(m.headingDegrees + Math.signum(error) * step);
+            return;
+        }
+        // Measured about the slot, so the swing never takes the short way round through the dead arc.
+        float now = clamp(WarshipFacing.wrap(m.headingDegrees - rest), -half, half);
+        float want = clamp(WarshipFacing.wrap(bearing - rest), -half, half);
+        float error = want - now;
+        float offset = Math.abs(error) <= step ? want : now + Math.signum(error) * step;
+        m.headingDegrees = WarshipFacing.wrap(rest + offset);
+    }
+
+    private static float clamp(float v, float lo, float hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 
     /**

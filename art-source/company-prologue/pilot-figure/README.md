@@ -20,22 +20,28 @@ How he is built:
 
 - **The helm yoke** (owner, 2026-10-19: a futuristic steering wheel, as on the Rodger Young
   or the Aliens dropship) is part of this package because it moves with him: a housing
-  bolted to the forward console's face, a column that slides out of it, and a wheel with two
-  rubber grips (his left one taped). It turns to roll and pushes or pulls to pitch.
+  bolted under the forward console's sloped face (clear of the helm's screen), a graduated
+  column that telescopes out of it rising toward him, and on its head a wheel with two rubber
+  grips (his left one taped). It turns to roll and pushes or pulls to pitch. The column is how
+  the helm fits its pilot (owner, 2026-10-19: a pilot sits there for hours): stowed against the
+  console, drawn out to where his hands rest with his back in the seat.
 - **Solved poses and the moves between them.** Relaxed: sat back against the seat,
-  forearms on the armrests, hands loose over their ends. At the helm he scoots forward on the
-  pan and leans in from the hips, so his elbows stay bent (owner, 2026-10-19: fully extended
-  arms read badly), hands round the yoke's grips; the yoke pushed and turned are poses of
-  their own, so his hands follow it. Each limb is a two-bone solve to an ankle on the dais or
-  a wrist target.
+  forearms on the armrests, hands loose over their ends. Reaching: leaned in to take the
+  stowed wheel. Flying: sat back with his elbows bent at his sides (owner, 2026-10-19: fully
+  extended arms read badly), hands round the grips of the drawn-out yoke; the yoke pushed and
+  turned are poses of their own, so his hands follow it, and a half-drawn pose keeps them on
+  the grips while he draws it out. Each limb is a two-bone solve to an ankle on the dais or a
+  wrist target.
 - **The action** is keyed on every frame of C2 and its entry (24 fps, frame = C2 seconds x
-  24), eased, on the rig and the yoke together: relaxed; in to the yoke over 8.3-9.3 s; pushed
-  over 9.5-10.4 s as the de-orbit starts at 9.6 s; a small turn to port and back over
-  10.7-12.5 s; eased back over 12.5-13.2 s as the pitch-down ends; sat back over 13.5-14.7 s.
+  24), eased, on the rig and the yoke together: relaxed with the yoke stowed; leaning in to it
+  over 8.3-8.8 s; drawing it out as he sits back over 8.8-9.45 s; pushed over 9.5-10.4 s as the
+  de-orbit starts at 9.6 s; a small turn to port and back over 10.7-12.5 s; eased back over
+  12.5-13.2 s as the pitch-down ends; letting go and settling over 13.5-14.7 s, the yoke left
+  drawn out where he set it.
   The windows are constants in `build_pilot.py`. The C2 blockout and render set the scene
   frame per sample, so the bridge shots play it; the bridge review takes `--frame`.
 - **Modelled parts:** the collar, the harness, the belt, the headset and the patches. They are
-  fitted to the working pose. The harness, belt, collar and patches are then skinned to the rig
+  fitted to the flying pose. The harness, belt, collar and patches are then skinned to the rig
   with the weights of the nearest coverall vertex, so they follow the cloth in both poses; the
   headset rides the head bone. The patches are cut from the coverall's own surface.
 - **Getting the .blend:** rebuild it, or copy it from Drive (`starsector/builds/pilot/<commit>/`).
