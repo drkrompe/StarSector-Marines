@@ -1,0 +1,59 @@
+{
+ "part": "glacis-grey-aft-stbd",
+ "sheet": "top-bridge",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9964,
+ "raw_iou": 0.9923,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9943,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9923
+  },
+  "bounds_affine": {
+   "scale": [
+    0.99744,
+    1.00227
+   ],
+   "offset_px": [
+    1.17,
+    -0.08
+   ],
+   "iou": 0.9926
+  },
+  "iou_refined_affine": {
+   "scale": [
+    0.99844,
+    1.00277
+   ],
+   "offset_px": [
+    0.92,
+    -0.08
+   ],
+   "iou": 0.9943
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.56,
+  "p95_px": 1.41,
+  "max_px": 2.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.4,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

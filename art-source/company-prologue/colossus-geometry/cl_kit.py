@@ -40,6 +40,7 @@ class Kit:
         self.blue = material('Faded blue panel band', (.16, .30, .45), .2)
         self.steel = material('Gunmetal machinery', (.16, .16, .17), .65)
         self.dark = material('Recess and lattice', (.04, .04, .045), .5)
+        self.tile = material('Ceramic heat-shield tile', (.075, .072, .07), .05, .85)
         self.glass = material('Bridge glazing', (.05, .08, .09), .2, .15, emission=(.9, .75, .4), strength=3.0)
         self.lamp = material('Running lamp', (.2, .2, .15), 0, .4, emission=(1.0, .9, .6), strength=6.0)
         self.hull = []  # objects the downward ray-cast seats parts on

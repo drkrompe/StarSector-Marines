@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1546c-eb26-7200-a565-08f231c8fbbf",
+  "source": "/Users/dillon/.codex/generated_images/01a1546c-eb26-7200-a565-08f231c8fbbf/exec-8d3ccd1c-4821-40ef-b266-d924b6799939.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-top-bridge.png",
+    "sha256": "e0b23348869de43aaacf6b95f2d03560112e86c36c5d30521944b6fda406dcd7",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-top-bridge.prompt.txt",
+  "promptSha256": "5c8e5f4495f1b01ad843de2b6a9a278e0fdbcaaadc9a4277fa956ef0161f675c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of dorsal hull surfaces of one 3D spacecraft (an Onslaught-class Hegemony battleship, a huge low-tech armoured capital ship), each surface seen square-on and drawn alone as flat-coloured shapes on a plain flat mid-blue background. The flat colours mark materials:\n- near-white areas are a warm bone-white enamel; light grey panels are pale bone-grey steel; black rings, slots and outlines are near-black recesses and seams;\n- the large dark charcoal-grey areas are dark grey armour; the pale grey inset panels are light grey painted steel plates; the dark blue-grey inset panels are blue-grey steel plates; the small mid-grey blocks are gunmetal hatches and handles; black outlines are near-black seams;\nThe four tiles:\ntop-left: half of a round armoured command dome seen from above: a bone-white outer ring and rim with small raised tabs, an inner ring of curved panels alternating bone-white and light bone-grey in black outlines, a few small dark boxes;\ntop-right: half of a second round bone-white dome seen from above: a bone-white rim ring with five small black ledge hatches, a bone-white dome face with raised bone-white ribs radiating from the centre;\nbottom-left: a long bone-white armoured spine seen from above, bow to the right: a near-black ring-shaped recess at the left on a raised bone-white pod, bone-white chevron ribs pointing right, bone-white side steps along both edges;\nbottom-right: a dark charcoal-grey armour band seen square-on with inset panels: pale light-grey panels, dark blue-grey steel panels, one mid-grey hatch block, a separate dark blue-grey steel panel at the right, scattered fastener dots;\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its heavy semi-matte industrial enamel, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four tiles in INPUT 1 as those working armour plates. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline; every gap between separate plates stays plain background blue.\n- Each shape is a flat painted heavy armour plate. Add painted surface detail inside its outline only: crisp plate seams and weld lines, neat rows of large fasteners, flush access covers, subtle tone variation within a plate, a light even film of dust and grime packed into the seams, and lightly scuffed plate edges. Nothing may stand out from the surface or cross the outline.\n- Keep each plate its OWN colour exactly as INPUT 1 marks it. The ship's plating alternates tones on purpose: never even them out, never blend one plate's tone into its neighbour, never repaint a plate another colour. No stripes, no differently coloured patches, no repair plates.\n- The ship is a picket flagship on station, properly maintained. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-top-bridge-guide.png",
+      "sha256": "1646f721ba51a57b9cf979257a5fd70af6a9dd9997f7dcabdadc84475c113caa",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the four-tile layout and plate colours."
+  ],
+  "usage": {
+    "input_tokens": 107319,
+    "cached_input_tokens": 87808,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1120,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 63.0
+}

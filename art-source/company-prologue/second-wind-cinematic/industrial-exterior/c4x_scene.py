@@ -229,6 +229,7 @@ def stack(bm, x, y, h, r):
 
 STACKS = []       # (x, y, top height) for the steam plumes
 WAREHOUSES = []   # (x, y, w, d, h) footprints, for roof detail and loading docks
+CROSS_STREETS = (-300.0, 0.0, 300.0)   # north-south streets from the freight road through to the port
 
 
 def plane(name, x0, x1, y0, y1, mat, z=0.0):
@@ -314,7 +315,7 @@ def add_yard():
     plane('Container yard', -600, 600, 215, 335, concrete, 0.05)
     plane('Loading strip', -600, 600, 336, 358, asphalt, 0.07)
     plane('Port apron', -2000, 2000, 360, 2500, material('Apron', (0.18, 0.18, 0.17), 0.9), 0.04)
-    for x in (-300, 0, 300):
+    for x in CROSS_STREETS:
         plane('Cross street %d' % x, x - 7, x + 7, -75, 360, asphalt, 0.06)
     roofs = [material('Roof rust', (0.42, 0.22, 0.12), 0.7, 0.3),
              material('Roof grey', (0.38, 0.40, 0.42), 0.5, 0.5),
@@ -348,9 +349,14 @@ def add_yard():
         x = -560
         while x < 560:
             if rng.random() < 0.85 and all(abs(x + 6 - a) > 13 for a in aisles):
+                # The cross streets run on through the yard to the loading strip: nothing stands on
+                # them. A slot there still draws its numbers, so every other stack stays as it was.
+                on_street = any(abs(x + 6 - s) < 14 for s in CROSS_STREETS)
                 for level in range(rng.randrange(1, 4)):
-                    box(cms[rng.randrange(len(colours))], (12, 2.4, 2.6),
-                        (x + 6, y + rng.choice((-2, 2)), 1.3 + 2.6 * level))
+                    c = cms[rng.randrange(len(colours))]
+                    pos = (x + 6, y + rng.choice((-2, 2)), 1.3 + 2.6 * level)
+                    if not on_street:
+                        box(c, (12, 2.4, 2.6), pos)
             x += 12.6
     for i, (bm, c) in enumerate(zip(cms, colours)):
         mesh('Containers %d' % i, bm, material('Container %d' % i, c, 0.6, 0.2))

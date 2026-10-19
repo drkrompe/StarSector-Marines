@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a15469-c8bb-7db0-bef8-07c90c5277e8",
+  "source": "/Users/dillon/.codex/generated_images/01a15469-c8bb-7db0-bef8-07c90c5277e8/exec-3dbf96ea-1b3c-4a4b-b648-9f1d8ed2b980.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-arms-deck-aft.png",
+    "sha256": "877da15f4c4fa6de69bfc3b9221af9c9f6aee214e3f1b47dbb416b573edf6d65",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-arms-deck-aft.prompt.txt",
+  "promptSha256": "05a55aa14374bad656600a7690234d353b1f59f0d4bf59daf42a92e2595461ed",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of one gun arm of a 3D spacecraft (a Hegemony XIV Onslaught-class battleship, a heavily armoured low-tech capital ship, properly maintained picket flagship on station), each seen from directly above, bow at the top of the tile, each drawn alone as flat-coloured shapes on a plain flat mid-blue background:\ntop-left: the arm's aft root: a round brown-grey flak sponson cap in an octagonal brown-grey ring on the left, beside a large bright orange armour fin top with a round grey hatch lid and a narrow strip of weathered burnt orange;\ntop-right: the root deck: a large bright orange broadside fin top with three small dark grey slots, brown-grey and dark brown plates and dark grey frames in a strip on the left, small orange and bone-brown slivers at far left;\nbottom-left: the deck beside the fin: brown-grey, dark brown and bone-brown deck plates with near-black seams, a round grey hatch lid, a dark grey wedge plate at the top, a bright orange triangular fin plate at lower right, and an orange strip with burnt-orange plates down the left edge;\nbottom-right: the deck round the big turret: a large round brown-grey devastator turret housing with a dark interior in the middle, dark brown and bone-brown plates round it, and an orange plate and dark brown plates down the left edge.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its maintained service finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that maintained armoured surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot stays plain background blue. Thin isolated slivers and strips stay where they are.\n- Every shape is a flat painted steel armour plate. Add painted surface detail inside each plate's outline only: crisp plate seams and welded joints, neat rows of small fasteners and rivets, flush access panels, a light even film of dust and grime in the seams and a few small scuffs on plate edges. Nothing may stand out from the surface or cross an outline.\n- Keep EVERY plate its own colour exactly as INPUT 1 shows it. The alternating plate tones are deliberate and must stay distinct, never evened out or blended: warm brown-grey plates stay warm brown-grey; dark brown plates stay dark chocolate brown; bone-brown plates stay a light warm tan; bright orange plates stay saturated Hegemony orange enamel; the duller darker orange plates stay a weathered burnt orange; dark grey armour (straps, frames, coamings, sponson plates) stays dark charcoal grey; blue-grey steel plates stay a cool blue-grey steel; near-black recesses and seams stay near-black. Do not repaint any plate another colour, add no stripes and no differently coloured patches.\n- The ship is maintained, not battered. Weathering is light and even across every plate. No rust, no repair patches, no soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-arms-deck-aft-guide.png",
+      "sha256": "1c7ad9f103eeb9c42b7948220e4150551a361d4cc0e6f36023a20107fc45bfea",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned sheet, preserving Image 1’s layout and plate colours and using Image 2 for the surface finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 47353,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 832,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.3
+}

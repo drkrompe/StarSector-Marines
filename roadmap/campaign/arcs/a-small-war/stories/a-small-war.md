@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-18 — Rusk's family lends two Hegemony Enforcers rather than two Wolfs (owner); the Greyhook fights them alone and loses on every measured seed; the duel's radio lines and debrief name the Enforcers (draft, text only).
+Updated: 2026-10-19 — Rusk's family lends an Enforcer and a Wolf (owner: not an even fight, one fun to watch); the Greyhook goes for the Wolf and Rusk wins every measured seed; radio beats renamed `small_war.rusk_*` with a new one for the first of his ships going down (draft, text only).
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -383,7 +383,7 @@ from the map or announce an unseen force roster.
 
 The map has a causeway customs block, a sheltered fuel-control house and the
 dispatch pier. West of the landing apron lies open approach ground, the basin's
-flats and rim country, which Rusk's Enforcers fly in across; nothing of the ground fight
+flats and rim country, which Rusk's ships fly in across; nothing of the ground fight
 is out there, and the company's boats come in over the north edge. Service galleries provide infantry flanks around exposed road
 approaches. Fuel storage is an explicit preservation objective; its controls are
 a seizure target, not an invitation to destroy the district's usable supply.
@@ -412,46 +412,50 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 **The duel overhead.** When Voss orders the withdrawal, the *Greyhook*, Voss's own
 Venture with Voss aboard, lifts alone from her cradle on the pads south of the ridge
-and turns to fight: the Enforcers are faster than she is, so she does not run. The pair of
-Hegemony Enforcer destroyers Rusk's family has lent from Citadel Arcadia flies in across the
-west edge to stop her. What follows is a slugging match in atmosphere that goes wherever the
+and turns to fight: Rusk's ships are faster than she is, so she does not run. The pair
+Rusk's family has lent from Citadel Arcadia, a Hegemony Enforcer destroyer and Rusk's own Wolf,
+flies in across the west edge to stop her. What follows is a slugging match in atmosphere that goes wherever the
 fighting takes it, over the basin and the company's fight alike, in full view of it:
 plating torn away, hulls crippled and driven down.
 
-The matchup is the drama: two destroyers against a cruiser. The Enforcers are slow,
-armoured Hegemony line ships with omni shields and longer guns than hers, fitted as the
-Hegemony fits them (the base game's Balanced Enforcer: Arbalests and Heavy Mortars,
-Harpoons and Reapers); the Greyhook is a heavier, slower broadside ship with a cruiser's
-plate and pool that turns slowly. Two Enforcers on one hull fight her as a pack relay:
-one holds her guns with its shield on her while the other strikes, and they trade places
-to vent. Rusk's Enforcers carry his refit (`BlackSluiceDuel.RUSK_REFIT`: a larger pool, a
-cheaper and wider shield, nothing to their guns or plate), the one thing the mission
-tunes. The owner removed her two Hound (P) escorts on 2026-10-18 ("we plainly have a bad
-matchup"), and replaced the Wolfs with Enforcers the same day; the frigate pads either
-side of her cradle stand empty. Her fitting carries no wing and a warship over a ground
+The matchup is the drama, and it is not even (owner, 2026-10-19: "We don't need this to
+be an even fight. We could have an enforcer and a wolf even"; later, "We're just going
+for something that's fun to watch"). The Enforcer is a slow, armoured Hegemony line ship
+with an omni shield and longer guns than hers, fitted as the Hegemony fits it (the base
+game's Balanced Enforcer: Arbalests and Heavy Mortars, Harpoons and Reapers); the Wolf is
+Rusk's hunter (`wolf_hegemony_Rusk`), fast and fragile; the Greyhook is a heavier, slower
+broadside ship with a cruiser's plate and pool that turns slowly. The pair fight her as a
+pack relay: the sturdier Enforcer holds her guns with its shield on her while the Wolf
+darts in on her quarter and breaks off to vent. Her autocannons glance off the
+Enforcer's plate, so she goes for the Wolf. Refits are the one thing the mission tunes
+(`BlackSluiceDuel.RUSK_REFIT` on the Enforcer, `GREYHOOK_REFIT` on her; the Wolf flies as
+fitted): pools and shields, never guns or plate. The owner removed her two Hound (P)
+escorts on 2026-10-18 ("we plainly have a bad matchup"), replaced the Wolfs with two
+Enforcers the same day, and made the pair an Enforcer and a Wolf the next; the frigate
+pads either side of her cradle stand empty. Her fitting carries no wing and a warship over a ground
 battle never launches one, so the fight stays gun against gun.
 
 - The player's fleet stays out of the sky. The company has no air role in the
-  duel and cannot order the Enforcers; they are the family's ships, not a support power.
-- The Enforcers fight the Greyhook, not Black Sluice's ground garrison. They
+  duel and cannot order Rusk's ships; they are the family's, not a support power.
+- Rusk's ships fight the Greyhook, not Black Sluice's ground garrison. They
   answer no calls for fire and make no ground objective easier by existing. Stray
   fire and falling wreckage are real on the ground in both directions.
 - Nothing about the duel is scripted, and nobody breaks off (owner, 2026-10-18:
   "she stays and fights ... until one side is dead"). The fight ends only
-  when the Greyhook or both Enforcers are shot down onto the basin; the winners stay overhead,
+  when the Greyhook or both of Rusk's ships are shot down onto the basin; the winners stay overhead,
   and nobody leaves the map. The Greyhook can hold the sky or be shot down; if she
   is, Voss walks out of the wreck, so her last line stands on either ending. The
   debrief reports what actually happened, and ground victory never depends on it.
   If the ground fight finishes first the chapter ends there, with the duel still
   being fought, and the debrief says so.
-- Two destroyers, one visit. Rusk's letter after Chapter 4 explains their arrival;
+- Two ships, one visit. Rusk's letter after Chapter 4 explains their arrival;
   they stay to the end of the fight they came for. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
 - Ship-versus-ship fighting is built (`air-nouns.md`, Overhead ships): hull fire
   is held until Voss's withdrawal beat, and none of the duel's hulls fires at the
   ground. No area is declared for the fight (owner, 2026-10-18); every warship is
   kept off the map's edges by the standing edge pressure.
-- Nothing warps in or out. The Enforcers' edge is the west, the side the company landed
+- Nothing warps in or out. Rusk's edge is the west, the side the company landed
   on and the far side of the basin, which they fly in across already under way;
   Greyhook's ships lift from their pads. Nobody flies out across any edge.
 
@@ -733,25 +737,23 @@ Still open inside this story:
   break-off (2026-10-18) every hull holds the field and the fight runs to destruction.
   With her two Hounds the Greyhook's side won every seed untouched, so the owner
   removed them; against two Wolfs alone she then won every seed after 8 to 21 minutes,
-  so the owner replaced the Wolfs with two Hegemony Enforcers (the base game's Balanced
-  fit, in Rusk's refit). Fought as a pack relay, the Enforcers now win every measured
-  seed: the first hit comes 75 to 85 seconds after Voss's order and the Greyhook is shot
-  down 221 to 365 seconds after it (296 to 442 after the order, eight seeds), breached 20
-  to 46 times and with up to two mounts knocked out, while neither Enforcer loses any hull.
-  The owner asked for mixed winners and that is not reachable by the mission's levers: her
-  Heavy Autocannons' kinetic rounds glance off an Enforcer's nine hundred of armour and her
-  one pulse laser barely marks it, so no refit of either side's flux or shield lets her
-  kill one (measured against Assault-fitted Enforcers with their pools cut to 0.3 at three
-  times the flux per point and hers doubled, she took 336 hull off one of them in eight
-  and a half minutes). A mixed duel needs a different Greyhook armament or a change to the hull-fight
-  rules, open for the owner (`warship-behaviours.md`, the Greyhook fights alone). In the
-  chapter the ground fight still ends first: the handover completes 111 to 136 seconds
-  after Voss's order, a minute after the first hit and minutes before she falls (at 120
-  seconds she has 79 to 100 percent of her hull), so the battle ends with the duel
-  undecided and Castle's debrief says the Greyhook was still fighting when we finished.
-  The radio lines (`small_war.enforcers_sighted`, `small_war.enforcers_closing`,
-  `small_war.greyhook_down`, `small_war.enforcers_down`) and Voss's closing line are
-  drafts, text only.
+  so the owner replaced the Wolfs with two Hegemony Enforcers, which won every seed
+  untouched (her Heavy Autocannons glance off an Enforcer's nine hundred of armour), and
+  then, wanting a fight that is fun to watch rather than an even one, made the pair one
+  Enforcer and one Wolf (2026-10-19; `warship-behaviours.md`, Rusk's Enforcer and Wolf).
+  The Enforcer tanks in Rusk's refit, the Wolf strikes as fitted, the Greyhook carries a
+  modest refit of her own and goes for the Wolf. Over eight seeds Rusk wins every one: the
+  first hit comes 66 seconds after Voss's order and the Greyhook is shot down 428 to 623
+  seconds after it, breached 31 to 51 times; on one seed she takes the Wolf with her
+  twenty seconds before she falls, elsewhere the Wolf ends at 9 to 63 percent of its hull;
+  the Enforcer is never marked. That is longer than the three to six minutes asked for.
+  In the chapter the ground fight still ends first: the handover completes 111 to 136
+  seconds after Voss's order, a minute after the first hit and minutes before she falls
+  (at 120 seconds she has all her hull and the Wolf 92 to 94 percent), so the battle ends
+  with the duel undecided and Castle's debrief says the Greyhook was still fighting when
+  we finished. The radio lines (`small_war.rusk_sighted`, `small_war.rusk_closing`,
+  `small_war.rusk_first_down`, `small_war.greyhook_down`, `small_war.rusk_down`) and
+  Voss's closing line are drafts, text only.
   If she is shot down Voss walks out of the wreck, so her last line stands. On the
   ground the
   wider map changed timing, not outcome: every `black-sluice` fixture ends as it

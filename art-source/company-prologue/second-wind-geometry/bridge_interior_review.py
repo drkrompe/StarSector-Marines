@@ -107,9 +107,15 @@ VIEWS = {
     '06-plan': (above_room, dict(pos=(13.45, 0, 40.0), target=(13.45, 0, 0), ortho=17.5)),
     '07-exterior-port-quarter': (lambda o: False, dict(pos=(100, 130, 100), target=(5, 0, 1), ortho=163)),
     '08-exterior-bridge': (lambda o: False, dict(pos=(60, 60, 50), target=(12, 0, 14), ortho=55)),
+    # Castle at the comms bank: from the port station turned aft onto her, and from across the
+    # plot table (the MakeHuman figure when castle-figure.blend is built; see figures()).
+    '09-castle-from-port-station': (glazing, dict(pos=(13.0, 3.6, 19.2), target=(10.9, 3.4, 18.85), lens=24)),
+    '10-castle-across-the-room': (glazing, dict(pos=(13.4, -1.4, 19.1), target=(10.9, 3.4, 18.0), lens=24)),
 }
 wanted = opts['views'].split(',') if opts['views'] else [v for v in VIEWS if not opts['exterior_only']
                                                        or v.startswith('07') or v.startswith('08')]
+if not opts['views'] and not opts['figures']:
+    wanted = [v for v in wanted if not v.startswith(('09', '10'))]
 for name in wanted:
     hide, kw = VIEWS[name]
     show(hide)

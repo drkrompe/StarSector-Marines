@@ -39,7 +39,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 1128836,
+      "units3": 1126255,
       "crew_max": 200,
       "cargo": 900,
       "fuel": 120,
@@ -75,9 +75,9 @@
     "contents_total_m3": 61980,
     "machinery_share": 0.32,
     "enclosed_m3": 91147,
-    "solved_metres_per_unit": 0.432,
+    "solved_metres_per_unit": 0.433,
     "range": {
-      "habitable_273": 0.419,
+      "habitable_273": 0.42,
       "habitable_328": 0.445
     },
     "enclosed_m3_per_person_at_max_crew": 456,
@@ -85,15 +85,15 @@
     "fittings_m": {
       "personnel hatch w x h": [
         0.95,
-        2.07
+        2.08
       ],
       "side cargo door w x h": [
-        6.48,
-        6.05
+        6.49,
+        6.06
       ],
       "bow cargo door w x h": [
-        17.72,
-        9.94
+        17.73,
+        9.95
       ],
       "bridge door w x h": [
         0.95,
@@ -103,7 +103,7 @@
     "published_metres_per_unit": 0.5,
     "published_note": "owner override, 2026-10-18: kept at 0.50 (108 m) after the thick cargo front deepened the block; option C solves 0.431 (94 m) with the round-2 container bays",
     "measured_this_build": {
-      "enclosed_units3": 1128836,
+      "enclosed_units3": 1123756,
       "solids": [
         "Bridge deckhouse",
         "Cargo port aft module",
@@ -115,12 +115,12 @@
         "Hull hold hatch cover",
         "Hull keel spine"
       ],
-      "cargo_body_units3": 991185,
-      "cargo_body_m3": 123898,
+      "cargo_body_units3": 986222,
+      "cargo_body_m3": 123278,
       "cargo_body_share": 0.878
     },
     "size_m": [
-      108.2,
+      108.5,
       88.8,
       42.8
     ],
@@ -144,9 +144,9 @@
   },
   "dimensions": {
     "min": [
-      -125.3,
+      -126.07,
       -87.35,
-      -50.5
+      -50.57
     ],
     "max": [
       91.0,
@@ -154,9 +154,9 @@
       35.0
     ],
     "size": [
-      216.3,
+      217.07,
       177.7,
-      85.5
+      85.57
     ]
   },
   "weapon_slots": [
@@ -475,6 +475,340 @@
       ]
     }
   ],
+  "lift_thrusters": [
+    {
+      "index": 1,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 1 exhaust anchor",
+      "host": "Hull central cargo hold",
+      "well_radius": 7.0,
+      "anchor_location": [
+        24.5,
+        1.5,
+        -48.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 2,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 2 exhaust anchor",
+      "host": "Hull central cargo hold",
+      "well_radius": 7.0,
+      "anchor_location": [
+        46.5,
+        1.5,
+        -48.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 3,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 3 exhaust anchor",
+      "host": "Cargo port fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        61.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 4,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 4 exhaust anchor",
+      "host": "Cargo port fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        76.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 5,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 5 exhaust anchor",
+      "host": "Cargo port aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        61.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 6,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 6 exhaust anchor",
+      "host": "Cargo port aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        76.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 7,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 7 exhaust anchor",
+      "host": "Cargo starboard fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        -58.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 8,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 8 exhaust anchor",
+      "host": "Cargo starboard fore module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        53.5,
+        -73.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 9,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 9 exhaust anchor",
+      "host": "Cargo starboard aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        -58.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "index": 10,
+      "objects": "Lift thruster ...",
+      "anchor": "Lift thruster 10 exhaust anchor",
+      "host": "Cargo starboard aft module",
+      "well_radius": 3.6,
+      "anchor_location": [
+        5.0,
+        -73.0,
+        -44.9
+      ],
+      "exhaust_direction": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    }
+  ],
+  "landing_gear": [
+    {
+      "index": 1,
+      "objects": "Hull landing leg 1 ...",
+      "extension_empty": "Hull landing leg 1 extension",
+      "upper_stage_empty": "Hull landing leg 1 upper stage extension",
+      "host": "Hull central cargo hold",
+      "pad_radius": 5.0,
+      "location": [
+        2.0,
+        23.0,
+        -50.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 9.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 2,
+      "objects": "Hull landing leg 2 ...",
+      "extension_empty": "Hull landing leg 2 extension",
+      "upper_stage_empty": "Hull landing leg 2 upper stage extension",
+      "host": "Hull central cargo hold",
+      "pad_radius": 5.0,
+      "location": [
+        2.0,
+        -20.0,
+        -50.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 9.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 3,
+      "objects": "Hull landing leg 3 ...",
+      "extension_empty": "Hull landing leg 3 extension",
+      "upper_stage_empty": "Hull landing leg 3 upper stage extension",
+      "host": "Hull central cargo hold",
+      "pad_radius": 5.0,
+      "location": [
+        72.0,
+        23.0,
+        -50.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 9.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 4,
+      "objects": "Hull landing leg 4 ...",
+      "extension_empty": "Hull landing leg 4 extension",
+      "upper_stage_empty": "Hull landing leg 4 upper stage extension",
+      "host": "Hull central cargo hold",
+      "pad_radius": 5.0,
+      "location": [
+        72.0,
+        -20.0,
+        -50.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 9.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 5,
+      "objects": "Hull landing leg 5 ...",
+      "extension_empty": "Hull landing leg 5 extension",
+      "upper_stage_empty": "Hull landing leg 5 upper stage extension",
+      "host": "Cargo port fore module",
+      "pad_radius": 3.6,
+      "location": [
+        79.3,
+        68.5,
+        -46.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 13.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 6,
+      "objects": "Hull landing leg 6 ...",
+      "extension_empty": "Hull landing leg 6 extension",
+      "upper_stage_empty": "Hull landing leg 6 upper stage extension",
+      "host": "Cargo port aft module",
+      "pad_radius": 3.6,
+      "location": [
+        22.0,
+        68.5,
+        -46.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 13.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 7,
+      "objects": "Hull landing leg 7 ...",
+      "extension_empty": "Hull landing leg 7 extension",
+      "upper_stage_empty": "Hull landing leg 7 upper stage extension",
+      "host": "Cargo starboard fore module",
+      "pad_radius": 3.6,
+      "location": [
+        79.3,
+        -65.5,
+        -46.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 13.55,
+      "ground_z": -60.0
+    },
+    {
+      "index": 8,
+      "objects": "Hull landing leg 8 ...",
+      "extension_empty": "Hull landing leg 8 extension",
+      "upper_stage_empty": "Hull landing leg 8 upper stage extension",
+      "host": "Cargo starboard aft module",
+      "pad_radius": 3.6,
+      "location": [
+        22.0,
+        -65.5,
+        -46.0
+      ],
+      "open_axis": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "travel": 13.55,
+      "ground_z": -60.0
+    }
+  ],
   "object_names": {
     "Hull ...": "central cargo hold, hatch cover, longerons, keel spine, aft machinery body",
     "Cargo <side> fore|aft module": "the four side cargo modules (tear-apart units)",
@@ -482,6 +816,8 @@
     "Bridge ...": "deckhouse, windscreen, wing ports, mast",
     "Drive pod <side> casing": "the two drive pods",
     "Engine <i> ...": "bell / mouth lip / dark throat / exhaust anchor",
+    "Lift thruster ...": "ten ventral lift thrusters; per-thruster exhaust anchors point down",
+    "Hull landing leg <i> ...": "eight telescoping legs, built stowed; footpad, hub and piston parented to the extension empty",
     "Turret <i> WS 00n ... / Launcher <i> WS 00n flare launcher ...": "mounts; pivot and muzzle empties",
     "Scar <id> ...": "reserved for condition states (crashed / broken); not built"
   },
@@ -555,9 +891,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9639,
-    "sprite_uncovered": 0.0114,
-    "model_outside_sprite": 0.0257,
+    "iou": 0.9625,
+    "sprite_uncovered": 0.011,
+    "model_outside_sprite": 0.0276,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 5.65 px per unit"
   }
 }
