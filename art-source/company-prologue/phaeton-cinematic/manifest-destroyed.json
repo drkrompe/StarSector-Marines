@@ -610,5 +610,5 @@
   ],
   "staging": "Append PHAETON and PHAETON WRECK at the same root transform; set break_frame; show PHAETON before it and PHAETON WRECK from it. The swap is seamless: the wreck is in the intact pose at break_frame, under the flash."
  },
- "asset_sha256": "73c37e44dae983c19220ab36c250086d7a3fa38f53c04c929a89567c1593e18c"
+ "asset_sha256": "7c9be7389b984b0168b57a7c4f8c18fedb8b3558cc86dfa0bd2256aef5fc859e"
 }

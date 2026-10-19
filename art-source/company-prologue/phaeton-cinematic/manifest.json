@@ -1141,5 +1141,5 @@
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres.",
   "turrets": "Rotate Turret <i> pivot about its local Z to train within its arc about the slot angle; the rest pose is the slot angle. The two flare launchers are fixed."
  },
- "asset_sha256": "8d699e691758fdf4c30a391f6daadd20f6e46c66ccfc2514485c531f07322a08"
+ "asset_sha256": "f674f4f43777f70e5ea997d770fec5550258127cedf5669422ed141c73c1d48d"
 }
