@@ -5,7 +5,7 @@
  "effects_collection": "SWFX",
  "objects": 1728,
  "meshes": 1615,
- "effects_objects": 233,
+ "effects_objects": 234,
  "images": 18,
  "passed": true,
  "failed": [],
@@ -72,8 +72,8 @@
   "SWFX present": {
    "ok": true,
    "detail": [
-    233,
-    233
+    234,
+    234
    ]
   },
   "plumes leave every bell aft, sized to it": {
@@ -118,17 +118,9 @@
     0
    ]
   },
-  "shield bubble on the emitter at the vanilla radius": {
+  "shield shell fits the hull, clear of every vertex": {
    "ok": true,
-   "detail": [
-    270.0,
-    270.0,
-    [
-     1.0,
-     0.0,
-     -0.0
-    ]
-   ]
+   "detail": "clearance 6.1..180.7 units (margin 12.0); half extents [227.3, 167.5, 63.1] vs the vanilla 270 sphere; mean radius 87.89"
   },
   "emitter nodes are lit a third of the way up": {
    "ok": true,
@@ -148,7 +140,7 @@
     ]
    ]
   },
-  "shield hits land on the bubble in the hull frame": {
+  "shield hits land on the shell in the hull frame; facing turns the unfold": {
    "ok": true,
    "detail": [
     [
@@ -157,6 +149,7 @@
      0.0
     ],
     [
+     "SWFX shield facing",
      "SWFX shield hit 1",
      "SWFX shield hit 2",
      "SWFX shield hit 3",
@@ -166,7 +159,7 @@
   },
   "the shield encloses every drive and turret": {
    "ok": true,
-   "detail": "10/10 drives, 21/21 turrets, 100.00% of hull vertices"
+   "detail": "10/10 drives, 21/21 turrets"
   },
   "drivers valid": {
    "ok": true,

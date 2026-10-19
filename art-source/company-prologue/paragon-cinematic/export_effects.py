@@ -150,6 +150,8 @@ man['beams_note'] = ('swfx_beams.fire_beam(ctx, id, start_frame, hold_s) keys a 
                      'beam_len_<id> is the length in hull units (the distance to the target).')
 sh = vfx_hull.SHIELD
 man['shield_fx'] = {'bubble': ctx.records['shield']['bubble'], 'anchor': sh['anchor'], 'radius': sh['radius'],
+                    'centre': ctx.records['shield']['centre'], 'fit': ctx.records['shield']['fit'],
+                    'mean_radius': ctx.records['shield']['mean_radius'],
                     'arc': sh['arc'], 'nodes': ctx.records['shield']['nodes'],
                     'node_lights': ctx.records['shield']['lights'], 'hits': ctx.records['shield']['hits'],
                     'colours': {k: sh[k] for k in ('ring', 'inner', 'inner_alpha', 'fortress_ring',

@@ -446,18 +446,28 @@ builds never run it. A hull whose profile declares `SHIELD` asks for it:
 shieldCenter, the radius and arc, the emitter-node empties, the vanilla ring
 and inner colours (the hull style's) and, for a SHIELD_MOD ship system such as
 the Fortress Shield, the colours it turns the shield to, plus raise and
-system charge timings.
+system charge timings. With `fit` (`{'margin': units}`) the bubble is a shell
+fitted to the hull instead of the vanilla sphere: rays from the centre (the
+anchor in plan, the hull's mid-height) to the hull's convex hull, pushed out
+by the margin, smoothed, and swelled again round any hull corner that ends up
+closer than half the margin. A flat hull's vanilla circle is a sphere many
+times its size in 3D; the fit is what reads as a shield round the ship.
 
-Dark until raised: a sphere of the vanilla radius, additive, faint inner
+Dark until raised: a sphere of the vanilla radius (or the fitted shell), additive, faint inner
 colour across the face thickening toward a ring-coloured rim, with a slow
 ripple; raising it unfolds an arc from the facing direction both ways, led by
 a bright edge, the way an OMNI shield opens in the game. Four hit flashes in
 the ring colour, each an empty aimed by azimuth and elevation about the
-anchor in the hull frame. On each emitter node a glow and a point light,
+centre in the hull frame and held on the surface by a shrinkwrap constraint;
+a hit also filters the light through it toward the inner colour.
+`shield_facing` turns only where the unfold starts (the shader reads a facing
+empty); the shell itself never turns. On each emitter node a glow and a point light,
 fully lit a third of the way up.
 
 - Knobs: `shield_t` (raise envelope), `shield_fortress` (system intensity:
-  colour blend, brighter face and rim, ripple settled, nodes x1.8),
+  colour blend; face nearly clear and rim dimmed, ripple settled, so the
+  colour lives in the hits, which spread twice as wide and darken what is
+  behind them; nodes x1.8),
   `shield_facing` (degrees about +Z), `shield_hit_<k>` with
   `shield_hit_az_<k>` / `shield_hit_el_<k>` (k 1-4), and the group's
   `shield_gain`, `shield_rim`, `shield_hit_size`, `shield_light`.

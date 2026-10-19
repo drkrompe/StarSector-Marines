@@ -18,12 +18,17 @@ A profile's SHIELD is a dict:
   fortress_ring, fortress_inner, fortress_alpha   the ship system's
              shieldRingColor / shieldInnerColor when it is a SHIELD_MOD
              (fortressshield): what the bubble blends to at shield_fortress 1
+  fit        optional: {'margin': hull units}. The bubble becomes a shell that
+             fits the hull instead of the vanilla sphere: the hull's convex
+             hull seen from the centre, pushed out by margin and smoothed,
+             centred on the anchor in plan and on the hull's mid-height
   raise_s, lower_s   seconds to raise and drop the shield
   fortress_up_s, fortress_down_s   the system's charge up / down (ship_systems.csv)
 
 build() makes, dark until raised:
 
-  bubble    a sphere of the vanilla radius on the anchor, additive (transparent
+  bubble    a sphere of the vanilla radius on the anchor (or with `fit`, a
+            shell fitted to the hull), additive (transparent
             + emission): the inner colour faint across its face and the ring
             colour bright at its silhouette (a fresnel rim), with a slow noise
             ripple that settles out in fortress mode (vanilla's
@@ -32,7 +37,8 @@ build() makes, dark until raised:
             the facing direction (shield_facing) and closes behind the ship,
             led by a bright unfolding edge.
   hits      HITS hit points on the bubble, each an empty a shot aims by
-            azimuth and elevation about the anchor (shield_hit_az_<k>,
+            azimuth and elevation about the bubble's centre, held on its
+            surface by a shrinkwrap constraint (shield_hit_az_<k>,
             shield_hit_el_<k>, degrees, hull frame; 0/0 is the bow): a flash
             in the ring colour, spreading over the bubble round that point.
   nodes     on each emitter node, an additive glow and a point light in the
@@ -71,7 +77,12 @@ KNOBS = [
 # under AgX and the bubble's colour is the point of it.
 # The face is seen twice (the near and the far wall add), so it is the faintest.
 FACE_PEAK, RIM_PEAK, EDGE_PEAK, HIT_PEAK = .16, 1.3, 2.2, 4.0
-FORTRESS_GAIN = 1.0     # extra face and rim brightness at shield_fortress 1
+# Fortress mode keeps the bubble nearly clear: the face fades to this share and
+# the rim to RIM_FORTRESS; the colour lives in the hits, which spread wider
+# (HIT_SPREAD) and darken what lies behind them (HIT_SHADE, HIT_SHADE_FORTRESS:
+# how far a hit's centre filters the light through it, toward the inner colour).
+FACE_FORTRESS, RIM_FORTRESS, HIT_SPREAD = .12, .55, 1.0
+HIT_SHADE, HIT_SHADE_FORTRESS = .25, .7
 NODE_W = 1500.0         # node light (W) at envelope 1
 EDGE_W = .035           # unfolding edge half-width as a fraction of the arc
 
@@ -101,7 +112,7 @@ class _G:
         return n.outputs[2]
 
 
-def _additive(nodes, links, colour, strength):
+def _additive(nodes, links, colour, strength, transmit=None):
     out = nodes.new('ShaderNodeOutputMaterial')
     em = nodes.new('ShaderNodeEmission')
     if hasattr(colour, 'node'):
@@ -110,6 +121,8 @@ def _additive(nodes, links, colour, strength):
         em.inputs['Color'].default_value = (*colour, 1)
     links.new(strength, em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
+    if transmit is not None:
+        links.new(transmit, tr.inputs['Color'])
     add = nodes.new('ShaderNodeAddShader')
     links.new(tr.outputs[0], add.inputs[0])
     links.new(em.outputs[0], add.inputs[1])
@@ -124,10 +137,9 @@ def _blended(m):
     return m
 
 
-def _bubble_material(ctx, s, hits):
+def _bubble_material(ctx, s, hits, R, facing):
     m, nodes, links = swfx_core.node_material(f'{PREFIX} bubble')
     g = _G(nodes, links)
-    R = float(s['radius'])
     fort = swfx_core.value_node(ctx, nodes, 'fortress', 'shield_fortress', ('shield_fortress',))
     # Face: the inner colour at its vanilla alpha. Rim: the ring colour, a fresnel
     # edge (Facing is 0 face-on, 1 at the silhouette).
@@ -144,11 +156,14 @@ def _bubble_material(ctx, s, hits):
     links.new(tc.outputs['Object'], noise.inputs['Vector'])
     links.new(swfx_core.value_node(ctx, nodes, 'shield time', 'frame / 30.0'), noise.inputs['W'])
     ripple = g.add(1.0, g.mul(g.sub(noise.outputs['Fac'], .5), g.mul(g.sub(1.0, fort), 1.2)))
-    # Unfolding: the angle from the facing direction (local +X), as a fraction
-    # of the half-arc; the shield covers what is within shield_t of it.
+    # Unfolding: the angle from the facing direction (the facing empty's +X,
+    # at the centre), as a fraction of the half-arc; the shield covers what is
+    # within shield_t of it.
+    ftc = nodes.new('ShaderNodeTexCoord')
+    ftc.object = facing
     nrm = nodes.new('ShaderNodeVectorMath')
     nrm.operation = 'NORMALIZE'
-    links.new(tc.outputs['Object'], nrm.inputs[0])
+    links.new(ftc.outputs['Object'], nrm.inputs[0])
     sep = nodes.new('ShaderNodeSeparateXYZ')
     links.new(nrm.outputs[0], sep.inputs[0])
     half_arc = math.radians(float(s.get('arc', 360))) / 2
@@ -163,7 +178,8 @@ def _bubble_material(ctx, s, hits):
     edge = g.mul(g.mul(band, opening), EDGE_PEAK)
     env = swfx_core.value_node(ctx, nodes, 'shield env', 'shield_gain * (shield_t > 0.001)',
                                ('shield_gain', 'shield_t'))
-    boost = g.add(1.0, g.mul(fort, FORTRESS_GAIN))
+    face_k = g.add(1.0, g.mul(fort, FACE_FORTRESS - 1.0))
+    rim_f = g.add(1.0, g.mul(fort, RIM_FORTRESS - 1.0))
     rimk = swfx_core.value_node(ctx, nodes, 'rim', 'shield_rim', ('shield_rim',))
     inner_a = g.add(s['inner_alpha'], g.mul(fort, s['fortress_alpha'] - s['inner_alpha']))
     # Thinner face-on, thickening toward the silhouette (the vanilla shield's gradient).
@@ -173,7 +189,9 @@ def _bubble_material(ctx, s, hits):
     inner_c = g.mix_rgb(fort, s['inner'], s['fortress_inner'])
     ring_c = g.mix_rgb(fort, s['ring'], s['fortress_ring'])
     # Hits: a flash in the ring colour where the bubble is nearest each hit empty.
-    size = swfx_core.value_node(ctx, nodes, 'hit size', f'shield_hit_size * {R}', ('shield_hit_size',))
+    size = swfx_core.value_node(ctx, nodes, 'hit size',
+                                f'shield_hit_size * {R} * (1.0 + {HIT_SPREAD} * shield_fortress)',
+                                ('shield_hit_size', 'shield_fortress'))
     hit_s = None
     for k, hit_ob in enumerate(hits, 1):
         htc = nodes.new('ShaderNodeTexCoord')
@@ -187,11 +205,21 @@ def _bubble_material(ctx, s, hits):
         one = g.mul(fall, amt)
         hit_s = one if hit_s is None else g.add(hit_s, one)
     # Colour: inner across the face, ring at the rim, the edge and the hits.
-    ring_w = g.clamp01(g.mul(g.add(g.add(rim_s, edge), g.mul(hit_s, HIT_PEAK)), .5))
+    rim_s = g.mul(rim_s, rim_f)
+    # In fortress mode a hit glows in the inner colour rather than white.
+    hit_w = g.mul(g.mul(hit_s, HIT_PEAK), g.sub(1.0, g.mul(fort, .75)))
+    ring_w = g.clamp01(g.mul(g.add(g.add(rim_s, edge), hit_w), .5))
     colour = g.mix_rgb(ring_w, inner_c, ring_c)
-    body = g.mul(g.add(face_s, rim_s), boost)
+    body = g.add(g.mul(face_s, face_k), rim_s)
     strength = g.mul(g.add(g.mul(g.add(body, edge), cover), g.mul(g.mul(hit_s, HIT_PEAK), cover)), env)
-    _additive(nodes, links, colour, strength)
+    # A hit also filters what is behind it (darker, in the inner colour), most in fortress mode.
+    on = swfx_core.value_node(ctx, nodes, 'shield on', '(shield_t > 0.001) * 1.0', ('shield_t',))
+    shade = g.mul(g.mul(g.clamp01(g.mul(hit_s, cover)), on),
+                  g.add(HIT_SHADE, g.mul(fort, HIT_SHADE_FORTRESS - HIT_SHADE)))
+    tint = g.mix_rgb(shade, (1.0, 1.0, 1.0), tuple(.35 * c for c in s['inner']))
+    tint_f = g.mix_rgb(shade, (1.0, 1.0, 1.0), tuple(.35 * c for c in s['fortress_inner']))
+    transmit = g.mix_rgb(fort, tint, tint_f)
+    _additive(nodes, links, colour, strength, transmit)
     return _blended(m)
 
 
@@ -221,11 +249,100 @@ def _sphere(name, coll, radius, mat, u=24, v=12):
     bm.free()
     for p in me.polygons:
         p.use_smooth = True
-    me.materials.append(mat)
+    if mat is not None:
+        me.materials.append(mat)
     ob = bpy.data.objects.new(name, me)
     coll.objects.link(ob)
     ob.visible_shadow = False
     return ob
+
+
+def _hull_points(anchor):
+    """World positions of every mesh vertex of the ship the anchor belongs to."""
+    import numpy as np
+    root = anchor
+    while root.parent:
+        root = root.parent
+    pts = []
+    for o in bpy.data.objects:
+        if o.type != 'MESH' or o.name.startswith('SWFX'):
+            continue
+        top = o
+        while top.parent:
+            top = top.parent
+        if top != root:
+            continue
+        n = len(o.data.vertices)
+        a = np.empty(n * 3)
+        o.data.vertices.foreach_get('co', a)
+        M = np.array(o.matrix_world)
+        pts.append(a.reshape(-1, 3) @ M[:3, :3].T + M[:3, 3])
+    return np.concatenate(pts)
+
+
+def _shell(name, coll, centre, pts, margin, u=128, v=64, smooth=40):
+    """A closed shell round pts (world), in centre's local frame: a unit sphere
+    pushed out along each direction to the convex hull of pts plus margin, then
+    smoothed and pushed back out wherever smoothing cut inside half the margin.
+    Returns the object and its mean radius."""
+    import numpy as np
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    inv = np.array(centre.matrix_world.inverted())
+    local = pts @ inv[:3, :3].T + inv[:3, 3]
+    hb = bmesh.new()
+    for p in local:
+        hb.verts.new(p)
+    bmesh.ops.convex_hull(hb, input=hb.verts)
+    for vt in [vt for vt in hb.verts if not vt.link_faces]:
+        hb.verts.remove(vt)
+    tree = BVHTree.FromBMesh(hb)
+    corners = [Vector(vt.co) for vt in hb.verts]
+    hb.free()
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
+    bm.verts.ensure_lookup_table()
+    dirs = [vt.co.normalized() for vt in bm.verts]
+    reach = []
+    for d in dirs:
+        hit = tree.ray_cast(Vector((0, 0, 0)), d)
+        reach.append((hit[3] if hit[0] is not None else 0.0) + margin)
+    reach = np.array(reach)
+    rad = reach.copy()
+    nbr = [[e.other_vert(vt).index for e in vt.link_edges] for vt in bm.verts]
+    for _ in range(smooth):
+        rad = np.array([.5 * rad[i] + .5 * rad[n].mean() for i, n in enumerate(nbr)])
+        rad = np.maximum(rad, reach - .5 * margin)
+    # Sampled directions can miss a narrow feature (a prong tip) between them:
+    # test every convex-hull corner against the shell and swell it smoothly
+    # round any corner that sits closer than half the margin.
+    D = np.array([tuple(d) for d in dirs])
+    for _ in range(4):
+        for vt, d, r in zip(bm.verts, dirs, rad):
+            vt.co = d * float(r)
+        shell = BVHTree.FromBMesh(bm)
+        bump = np.zeros(len(rad))
+        for c in corners:
+            n = c.normalized()
+            hit = shell.ray_cast(Vector((0, 0, 0)), n)
+            short = c.length + .5 * margin - (hit[3] if hit[0] is not None else 0.0)
+            if short > 0:
+                ang = np.arccos(np.clip(D @ np.array(tuple(n)), -1, 1))
+                bump = np.maximum(bump, (short * 1.2) * np.exp(-(ang / math.radians(8)) ** 2))
+        if not bump.any():
+            break
+        rad += bump
+    for vt, d, r in zip(bm.verts, dirs, rad):
+        vt.co = d * float(r)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    for p in me.polygons:
+        p.use_smooth = True
+    ob = bpy.data.objects.new(name, me)
+    coll.objects.link(ob)
+    ob.visible_shadow = False
+    return ob, float(rad.mean())
 
 
 def build(ctx, **options):
@@ -253,23 +370,46 @@ def build(ctx, **options):
     # Radius and offsets are hull units: cancel any scale the anchor carries.
     sc = anchor.matrix_world.to_scale()
     rig.scale = (1 / sc.x, 1 / sc.y, 1 / sc.z)
-    # Facing turns the unfolding direction only; the hits stay in the hull frame.
+    # The bubble's centre: the anchor, or with a fit, the anchor in plan at the
+    # hull's mid-height.
+    fit = s.get('fit')
+    centre = swfx_core.empty(f'{PREFIX} centre', coll, R * .1, 'PLAIN_AXES')
+    swfx_core.attach(centre, rig)
+    pts = None
+    if fit:
+        pts = _hull_points(anchor)
+        zmid = .5 * (pts[:, 2].min() + pts[:, 2].max())
+        centre.location = (0, 0, zmid - anchor.matrix_world.translation.z)
+    bpy.context.view_layer.update()
+    # Facing turns the unfolding direction only (the shader reads it); the
+    # bubble and the hits stay in the hull frame.
     facing = swfx_core.empty(f'{PREFIX} facing', coll, R * .2)
-    swfx_core.attach(facing, rig)
+    swfx_core.attach(facing, centre)
     ctx.drive(facing, 'rotation_euler', 'radians(shield_facing)', ('shield_facing',), index=2)
+    if fit:
+        bubble, R = _shell(f'{PREFIX} bubble', coll, centre, pts, float(fit.get('margin', 12.0)))
+    else:
+        bubble = _sphere(f'{PREFIX} bubble', coll, R, None, u=96, v=48)
+    swfx_core.attach(bubble, centre)
     hits = []
     for k in range(1, HITS + 1):
         pivot = swfx_core.empty(f'{PREFIX} hit {k} pivot', coll, R * .05, 'PLAIN_AXES')
-        swfx_core.attach(pivot, rig)
+        swfx_core.attach(pivot, centre)
         # XYZ order: the elevation (Y) applies before the azimuth (Z).
         ctx.drive(pivot, 'rotation_euler', f'radians(shield_hit_az_{k})', (f'shield_hit_az_{k}',), index=2)
         ctx.drive(pivot, 'rotation_euler', f'-radians(shield_hit_el_{k})', (f'shield_hit_el_{k}',), index=1)
         h = swfx_core.empty(f'{PREFIX} hit {k}', coll, R * .05, 'SPHERE')
-        swfx_core.attach(h, pivot, local=(R, 0, 0))
+        # Out past the bubble, then projected back in along -X onto its surface.
+        swfx_core.attach(h, pivot, local=(3 * R, 0, 0))
+        sw = h.constraints.new('SHRINKWRAP')
+        sw.target = bubble
+        sw.shrinkwrap_type = 'PROJECT'
+        sw.project_axis = 'NEG_X'
+        sw.project_axis_space = 'LOCAL'
+        sw.project_limit = 0.0
         hits.append(h)
         record['hits'].append(h.name)
-    bubble = _sphere(f'{PREFIX} bubble', coll, R, _bubble_material(ctx, s, hits), u=96, v=48)
-    swfx_core.attach(bubble, facing)
+    bubble.data.materials.append(_bubble_material(ctx, s, hits, R, facing))
     # The bubble lights nothing by itself (the node lights do): keeps it clean
     # of sampling noise on the hull.
     bubble.visible_diffuse = bubble.visible_glossy = False
@@ -298,7 +438,10 @@ def build(ctx, **options):
             ctx.drive(lt.data, 'color', f'{a:.4f} + ({b - a:.4f}) * shield_fortress', ('shield_fortress',), index=i)
         record['nodes'].append(g.name)
         record['lights'].append(lt.name)
-    record['radius'] = R
+    record['radius'] = float(s['radius'])
+    record['mean_radius'] = round(R, 2)
+    record['fit'] = dict(fit) if fit else None
+    record['centre'] = centre.name
     record['anchor'] = anchor.name
     return record
 
