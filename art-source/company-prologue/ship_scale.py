@@ -200,15 +200,23 @@ HULLS = {
                                                     'side cargo door w x h': [15, 14],
                                                     'bow cargo door w x h': [41, 23],
                                                     'bridge door w x h': [2.2, 4.6]}),
+    # The Colossus Mk.III (pirate refit of the Colossus): the Colossus's hull with the side
+    # modules cut down and a launch bay cut into the hold. Published at 0.495 (107 m), the
+    # Asharu battle plan's size for the Colossus's twin; fittings are the Colossus's doors.
+    'Colossus Mk.III': dict(units3=786639, crew_max=160, cargo=300, fuel=60, cls='freighter', length_units=216.7,
+                            sprite_px=224, fittings_units={'personnel hatch w x h': [2.2, 4.8],
+                                                           'side cargo door w x h': [10, 14],
+                                                           'launch bay mouth w x h': [34, 30],
+                                                           'bridge door w x h': [2.2, 4.6]}),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
-                 'Colossus': 'measured (SOLIDS)'}
+                 'Colossus': 'measured (SOLIDS)', 'Colossus Mk.III': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Colossus Mk.III': .495}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -270,6 +278,14 @@ SOLIDS = {
                      'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
                      'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
                      'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
+    # The Colossus Mk.III (.blend a build output; the driver re-measures every build): the
+    # Colossus's solids, with the side modules cut down and the
+    # launch bay (open to space) cut out of the hold; sponsons, tubs and refit armour excluded.
+    'colossus-mk3': {'blend': '../../build/colossus-mk3/geo/colossus-mk3-geometry.blend', 'step': 1.0,
+                     'include': lambda n: n in (
+                         'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
+                         'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
+                         'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
