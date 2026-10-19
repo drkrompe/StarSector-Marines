@@ -10,7 +10,7 @@ shoulders and the back of his head.
 | File | What it is |
 |---|---|
 | `build_pilot.py` | Builds him headless and writes `pilot-figure.blend` (gitignored). `python build_pilot.py [--out PATH]`. |
-| `pilot_review.py` | Review sheets, 1920x1080: a turnaround at a grey stand-in of the helm, head and shoulders, then the bridge views of him (helm close-up, C2's forward and port stations turned onto him). `python pilot_review.py --out DIR [--blend PATH] [--engine workbench\|eevee] [--prefix NAME-] [--no-bridge]`. |
+| `pilot_review.py` | Review sheets, 1920x1080: per pose a turnaround at a grey stand-in of the helm and head and shoulders, then the bridge views of him (helm close-up, C2's forward and port stations turned onto him). `python pilot_review.py --out DIR [--blend PATH] [--engine workbench\|eevee] [--prefix NAME-] [--no-bridge] [--video]`: both poses, a strip of the move, and with `--video` an mp4 of it. |
 
 `sw_bridge_interior.figures` puts him on the helm seat whenever `pilot-figure.blend` exists,
 and uses the mannequin otherwise. The package's root is on the dais plating at the seat's axis,
@@ -18,14 +18,26 @@ in metres, and he faces +X.
 
 How he is built:
 
-- **The pose is solved.** His hips are placed on the seat's pan. Each leg is a two-bone solve
-  to an ankle on the dais, and each arm is a two-bone solve to a wrist on the forward console's
-  sloped face, with the hand turned flat onto it.
-- **Skin, eyes, brows and lashes** are textured through `castle-figure/castle_face.py`'s
-  material helpers.
+- **The helm yoke** (owner, 2026-10-19: a futuristic steering wheel, as on the Rodger Young
+  or the Aliens dropship) is part of this package because it moves with him: a housing
+  bolted to the forward console's face, a column that slides out of it, and a wheel with two
+  rubber grips (his left one taped). It turns to roll and pushes or pulls to pitch.
+- **Solved poses and the moves between them.** Relaxed: sat back against the seat,
+  forearms on the armrests, hands loose over their ends. At the helm he scoots forward on the
+  pan and leans in from the hips, so his elbows stay bent (owner, 2026-10-19: fully extended
+  arms read badly), hands round the yoke's grips; the yoke pushed and turned are poses of
+  their own, so his hands follow it. Each limb is a two-bone solve to an ankle on the dais or
+  a wrist target.
+- **The action** is keyed on every frame of C2 and its entry (24 fps, frame = C2 seconds x
+  24), eased, on the rig and the yoke together: relaxed; in to the yoke over 8.3-9.3 s; pushed
+  over 9.5-10.4 s as the de-orbit starts at 9.6 s; a small turn to port and back over
+  10.7-12.5 s; eased back over 12.5-13.2 s as the pitch-down ends; sat back over 13.5-14.7 s.
+  The windows are constants in `build_pilot.py`. The C2 blockout and render set the scene
+  frame per sample, so the bridge shots play it; the bridge review takes `--frame`.
 - **Modelled parts:** the collar, the harness, the belt, the headset and the patches. They are
-  fitted to the posed body and parented to bones. The patches are cut from the coverall's own
-  surface, so they follow the cloth.
+  fitted to the working pose. The harness, belt, collar and patches are then skinned to the rig
+  with the weights of the nearest coverall vertex, so they follow the cloth in both poses; the
+  headset rides the head bone. The patches are cut from the coverall's own surface.
 - **Getting the .blend:** rebuild it, or copy it from Drive (`starsector/builds/pilot/<commit>/`).
   The build needs MPFB 2.0.17 and the MakeHuman system-asset pack.
 
@@ -34,6 +46,7 @@ How he is built:
 Everything MakeHuman supplies here is CC0, from the system-asset pack MPFB installs:
 
 - **Body:** the base mesh, the default rig and its weights, and the face targets.
+- **Modelled here:** the yoke, collar, harness, belt, patches and headset.
 - **Assets:** `high-poly` eyes with the `brown` eye texture, `eyebrow009`, `eyelashes01`,
   `short01` hair, the `male_casualsuit02` top and trousers as the coverall, and `shoes03` boots.
 - **Skin:** the `middleage_caucasian_male` texture.

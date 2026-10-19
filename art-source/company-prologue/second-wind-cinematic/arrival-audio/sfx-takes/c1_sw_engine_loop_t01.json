@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Deep bassy spaceship engine drone, heavy low throbbing rumble, steady and powerful, sub bass, no high frequencies",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "0bb1c3aba5d2f5d7783cf06c19a08cbff4c52a9803d2a6733583cc8e62d1b4ea",
+  "durationSeconds": 10.0,
+  "peakDb": -0.3,
+  "integratedLufs": -10.1
+}

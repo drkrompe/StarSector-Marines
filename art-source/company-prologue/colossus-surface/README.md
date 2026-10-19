@@ -1,6 +1,6 @@
 # Colossus: surfacing
 
-Status: IN REVIEW (pass 6 round 1 posted 2026-10-19).
+Status: DONE (pass 6 accepted 2026-10-19 at round 1: colours, longeron density and plate tone steps all accepted by the owner).
 Written: 2026-10-19
 
 This is the Colossus's folder for the shared surfacing harness
@@ -77,8 +77,9 @@ target:
   (7.4);
 - the stern face, the decks and the hatch cover's fore leaf (9.8 to 11.7).
 
-Everything else is 13.7 to 23.3. Splitting the longeron polygons in the
-geometry would let box seeds cut them.
+Everything else is 13.7 to 23.3. The owner accepted the soft longerons as they
+are; splitting their polygons in the geometry would let box seeds cut them if a
+close shot ever needs it.
 
 ## Condition states (pass 5)
 
