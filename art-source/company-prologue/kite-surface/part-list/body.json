@@ -1,0 +1,364 @@
+{
+ "fuse-top": {
+  "what": "fuselage deck, shoulder rolls and glacis from above",
+  "sheet": "body",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull fuselage",
+    "seed": [
+     5.0,
+     15.0,
+     5.0
+    ],
+    "faces": [
+     66,
+     69,
+     72,
+     75,
+     80,
+     81,
+     83,
+     84,
+     85,
+     86
+    ]
+   },
+   {
+    "object": "Hull fuselage",
+    "seed": [
+     20.0,
+     0.0,
+     6.0
+    ],
+    "faces": [
+     66,
+     69,
+     72,
+     75,
+     80,
+     81,
+     83,
+     84,
+     85,
+     86
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 2049.56,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   39.0,
+   59.03
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    7.5121612548828125
+   ],
+   "ortho_width": 122.0306475341166
+  },
+  "native_texels_per_unit": 6.5
+ },
+ "fuse-side-port": {
+  "what": "fuselage port neck flank with the crew door",
+  "sheet": "body",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull fuselage",
+    "seed": [
+     22.0,
+     13.0,
+     -1.0
+    ],
+    "faces": [
+     6,
+     10,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     65
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 400.25,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   53.0,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -6.0,
+    0.0
+   ],
+   "ortho_width": 61.627906976744185
+  },
+  "native_texels_per_unit": 12.9
+ },
+ "fuse-side-stbd": {
+  "what": "fuselage starboard neck flank (mirror)",
+  "sheet": "body",
+  "tile": 1,
+  "skin_from": "fuse-side-port",
+  "members": [
+   {
+    "object": "Hull fuselage",
+    "seed": [
+     22.0,
+     -13.0,
+     -1.0
+    ],
+    "faces": [
+     17,
+     21,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     76
+    ]
+   }
+  ],
+  "face_count": 12,
+  "area_units2": 398.79,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   52.86,
+   12.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    6.071750640869141,
+    0.0
+   ],
+   "ortho_width": 61.46104502123456
+  },
+  "native_texels_per_unit": 12.9
+ },
+ "fuse-nose": {
+  "what": "the nose seen from ahead, cheeks and chin",
+  "sheet": "body",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull fuselage",
+    "seed": [
+     37.5,
+     0.0,
+     0.5
+    ],
+    "faces": [
+     1,
+     2,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     77,
+     78,
+     79,
+     82
+    ]
+   }
+  ],
+  "face_count": 19,
+  "area_units2": 196.22,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   16.0,
+   9.81
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    -1.0963486433029175
+   ],
+   "ortho_width": 20.273493981176568
+  },
+  "native_texels_per_unit": 39.2
+ },
+ "spine-side-port": {
+  "what": "cabin spine and hump port walls with the cabin windows",
+  "sheet": "body",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull dorsal spine",
+    "seed": [
+     15.0,
+     5.6,
+     7.0
+    ],
+    "faces": [
+     75
+    ]
+   },
+   {
+    "object": "Hull aft hump",
+    "seed": [
+     -10.0,
+     10.5,
+     6.2
+    ],
+    "faces": [
+     3,
+     14,
+     15,
+     16
+    ]
+   }
+  ],
+  "face_count": 5,
+  "area_units2": 24.62,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.3,
+   2.85
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    2.3500003814697266,
+    6.424999952316284
+   ],
+   "ortho_width": 43.37209213611692
+  },
+  "native_texels_per_unit": 18.3
+ },
+ "spine-side-stbd": {
+  "what": "cabin spine and hump starboard walls (mirror)",
+  "sheet": "body",
+  "tile": 3,
+  "skin_from": "spine-side-port",
+  "members": [
+   {
+    "object": "Hull dorsal spine",
+    "seed": [
+     15.0,
+     -5.6,
+     7.0
+    ],
+    "faces": [
+     110
+    ]
+   },
+   {
+    "object": "Hull aft hump",
+    "seed": [
+     -10.0,
+     -10.5,
+     6.2
+    ],
+    "faces": [
+     10,
+     21,
+     22,
+     23
+    ]
+   }
+  ],
+  "face_count": 5,
+  "area_units2": 24.62,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   37.3,
+   2.85
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -2.3500003814697266,
+    6.424999952316284
+   ],
+   "ortho_width": 43.37209213611692
+  },
+  "native_texels_per_unit": 18.3
+ }
+}

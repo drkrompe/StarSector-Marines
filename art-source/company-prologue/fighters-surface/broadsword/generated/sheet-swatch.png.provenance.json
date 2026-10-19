@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1559a-e83d-7ea3-84c6-f755e1cc4996",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1559a-e83d-7ea3-84c6-f755e1cc4996\\exec-3462c41b-b611-4eab-817b-b01443273693.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\fighters-surface\\broadsword\\generated\\sheet-swatch.png",
+    "sha256": "e5a3f18e796f266ef95232f63f602e3fac62ca0bb341828ec448190936cf35f8",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\fighters-surface\\broadsword\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "f07db47374cffb4ca4cb55a38a808b6eb09c904ad1bc1646270ed7f41ed5fe53",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the layout sheet of squares to paint (layout authority)\nImage 2: INPUT 2: the same craft already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of 4 flat-coloured squares in two rows of two on a plain light grey background. Each square is one material of one single-seat heavy space fighter (a Broadsword, about 15 metres long), in good front-line order, to be painted as a flat, square-on texture sample of that material:\ntop-left square: the pale yellowed khaki armour enamel;\ntop-right square: dark gunmetal grey steel structure;\nbottom-left square: brighter polished steel, as on gun barrels, bands and exhaust lips;\nbottom-right square: the recess and machinery material, near-black dull steel;\nINPUT 2 is the SAME craft, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly as named. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\broadsword\\guide\\sheet-swatch-guide.png",
+      "sha256": "2b03a97f5d09b930c896d2b353f6800741877db4dbbe13516db91f67d33305c3",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the layout sheet of squares to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\fighters-surface\\broadsword\\reference\\finish-reference.png",
+      "sha256": "bd61a69eb3c5b09d89c5f1ac9d590ff7c508d827167f446b597f4b482c0ae78b",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same craft already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet using Image 1’s exact layout and Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 46931,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 630,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.7
+}

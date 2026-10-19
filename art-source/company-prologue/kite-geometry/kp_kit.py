@@ -36,6 +36,13 @@ class Kit:
         self.dark = material('Recess and machinery', (.045, .05, .058), .5)
         self.glass = material('Cockpit glazing', (.03, .05, .06), .2, .12, emission=(.35, .5, .55), strength=.25)
         self.lamp = material('Running lamps', (.8, .75, .5), emission=(1.0, .9, .6), strength=3)
+        # Pass 2: the cabin windows' warm interior glow, the belly's entry
+        # heat shield, the pirate crew's welded scrap plate, navigation lamps.
+        self.window = material('Cabin window glow', (.05, .045, .035), .1, .2, emission=(1.0, .78, .45), strength=1.5)
+        self.shield = material('Heat shield tile', (.075, .07, .068), .1, .8)
+        self.scrap = material('Pirate scrap plate', (.30, .26, .22), .45, .6)
+        self.nav_red = material('Nav lamp red', (.5, .05, .04), emission=(1.0, .08, .05), strength=6)
+        self.nav_green = material('Nav lamp green', (.05, .5, .1), emission=(.1, 1.0, .25), strength=6)
         self.hull = None
 
     def finish(self, obj, name, mat, bevel=0):

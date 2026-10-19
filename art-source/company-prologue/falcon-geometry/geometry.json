@@ -37,11 +37,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.8,
+  "metres_per_unit": 0.81,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 231104,
+      "units3": 227910,
       "crew_max": 180,
       "cargo": 120,
       "fuel": 100,
@@ -77,17 +77,17 @@
     "contents_total_m3": 59790,
     "machinery_share": 0.5,
     "enclosed_m3": 119580,
-    "solved_metres_per_unit": 0.803,
+    "solved_metres_per_unit": 0.807,
     "range": {
-      "habitable_273": 0.778,
-      "habitable_328": 0.827
+      "habitable_273": 0.782,
+      "habitable_328": 0.831
     },
     "enclosed_m3_per_person_at_max_crew": 664,
-    "length_m": 172.6,
+    "length_m": 173.4,
     "fittings_m": {},
-    "published_metres_per_unit": 0.8,
+    "published_metres_per_unit": 0.81,
     "measured_this_build": {
-      "enclosed_units3": 231104,
+      "enclosed_units3": 227910,
       "solids": [
         "Hull port prong",
         "Hull starboard prong",
@@ -98,15 +98,15 @@
       ]
     },
     "size_m": [
-      168.9,
-      129.7,
-      28.2
+      174.4,
+      131.3,
+      28.7
     ],
-    "person_1_8_m_in_units": 2.25,
+    "person_1_8_m_in_units": 2.22,
     "against_known_ships": {
-      "Hound (A)": 2.77,
-      "Colossus": 1.56,
-      "Onslaught": 0.56
+      "Hound (A)": 2.86,
+      "Colossus": 1.61,
+      "Onslaught": 0.58
     },
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
@@ -128,14 +128,14 @@
       -10.5
     ],
     "max": [
-      126.92,
+      131.1,
       81.05,
-      24.75
+      24.9
     ],
     "size": [
-      211.12,
+      215.3,
       162.1,
-      35.25
+      35.4
     ]
   },
   "weapon_slots": [
@@ -192,7 +192,7 @@
       "location": [
         14,
         38,
-        14.37
+        14.53
       ],
       "anchor": "Weapon WS 005 anchor",
       "muzzle_anchors": [
@@ -222,7 +222,7 @@
       "location": [
         14,
         -38,
-        14.36
+        14.53
       ],
       "anchor": "Weapon WS 006 anchor",
       "muzzle_anchors": [
@@ -354,7 +354,7 @@
       "location": [
         14,
         38,
-        14.37
+        14.53
       ],
       "anchor": "Weapon WS 005 anchor",
       "muzzle_anchors": [
@@ -384,7 +384,7 @@
       "location": [
         14,
         -38,
-        14.36
+        14.53
       ],
       "anchor": "Weapon WS 006 anchor",
       "muzzle_anchors": [
@@ -877,8 +877,8 @@
     "anchors_collection": "FALCON (P) | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'FALCON (P)'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 52672,
-    "objects": 187,
+    "triangles": 64740,
+    "objects": 240,
     "materials": [
       "Falcon bare engine metal",
       "Falcon bridge glazing",
@@ -886,6 +886,7 @@
       "Falcon gunmetal machinery",
       "Falcon hazard yellow",
       "Falcon khaki armour",
+      "Falcon pirate red panel",
       "Falcon recess",
       "Falcon running lamp",
       "Missile body (0.4, 0.4, 0.5)",
@@ -1045,14 +1046,14 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9363,
-    "sprite_uncovered": 0.0356,
-    "model_outside_sprite": 0.0301,
+    "iou": 0.935,
+    "sprite_uncovered": 0.0338,
+    "model_outside_sprite": 0.0334,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 8.14 px per unit"
   },
   "shot_extent_px": {
     "shot-s4": {
-      "width_px": 99,
+      "width_px": 102,
       "height_px": 25
     },
     "shot-s6": {
@@ -1060,8 +1061,8 @@
       "height_px": 15
     },
     "shot-s10": {
-      "width_px": 642,
-      "height_px": 286
+      "width_px": 656,
+      "height_px": 288
     }
   }
 }

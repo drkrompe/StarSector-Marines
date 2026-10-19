@@ -34,9 +34,8 @@ import bmesh
 import bpy
 from wf_kit import facet_normal, plane_cut, prism, section, sym, revolve_x
 
-FORK = sym([(47.5, 10), (43, 10), (43, 9.6)])
+FORK = sym([(47.5, 9.4), (43, 9.4), (43, 9.0)])
 OUTER_TINE = [(53.8, 6.4), (53.8, 8.6), (51, 10), (44, 10), (44, 5.3), (51, 5.3)]
-INNER_TINE = [(53.4, 2.3), (53.4, 3.8), (50, 4.3), (45, 4.3), (45, 1.9), (50, 1.9)]
 HEAD = sym([(43.6, 8.5), (42.5, 10), (31, 10), (30.5, 9)])
 OUTRIGGER = [(43.5, 12.4), (43.5, 13.9), (42.0, 15.3), (40.6, 16.2), (32.5, 16.2), (30.6, 15.8), (30.6, 10.4),
              (42, 10.4)]
@@ -52,14 +51,14 @@ DOME = (-13.6, 12.4, 5.2)            # centre X, |Y|, plan radius of the armour 
 
 # Heights (proposed art; the game gives none). One keel chamfer, one wall,
 # one shoulder chamfer per section.
-FORK_Z = (-3.2, 3.2)
-HEAD_Z = (-5.0, 4.6)
-OUTRIGGER_Z = (-3.0, 3.4)
-NECK_Z = (-5.2, 3.2)
-MAIN_Z = (-6.8, 3.4)
-POD_Z = (-3.4, 3.0)
-AFT_Z = (-6.4, 3.6)
-ENGINE_Z = (-6.0, 5.0)
+FORK_Z = (-4.4, 3.2)
+HEAD_Z = (-7.0, 4.6)
+OUTRIGGER_Z = (-5.0, 3.4)
+NECK_Z = (-8.0, 3.2)
+MAIN_Z = (-9.6, 3.4)
+POD_Z = (-6.0, 3.0)
+AFT_Z = (-9.0, 3.6)
+ENGINE_Z = (-8.5, 5.0)
 SPINE_TOP = 6.0
 
 
@@ -144,10 +143,8 @@ def build(kit):
         plane_cut(t, f'{side} outer tine chin', (50, 0, -2.6), (math.sin(math.radians(20)), 0,
                                                               -math.cos(math.radians(20))))
         tines.append(t)
-    for side, s, plan in sides(INNER_TINE):
-        t = prism(kit, f'Hull bow {side} inner tine', plan, section(-1.8, 2.0, .6, .8), steel)
-        plane_cut(t, f'{side} inner tine tip rake', (50, 0, 2.0), facet_normal((1, 0), 15))
-        tines.append(t)
+    # The sprite's inner tines (Y +-2..4) are the WS 004 mining blaster's prongs
+    # (wf_mounts): the gun is the claw's middle, sunk in a bay in the fork base.
 
     # --- Head, outriggers. ---
     head = shear(prism(kit, 'Hull head', ccw(HEAD), section(*HEAD_Z, 1.5, 1.8), steel), 4.0, .22)
@@ -191,9 +188,26 @@ def build(kit):
     kit.hull.append(aft)
     domes = []
     x, y, r = DOME
-    for side, s in (('port', 1), ('starboard', -1)):
+    import wf_kit
+    for side, s in (('port', 1), ('starboard', -1)) if wf_kit.VARIANT == 'pirate' else ():
+        # The pirate skin's armour over the removed WS 002 / WS 003 rings; the base
+        # hull keeps its turrets there (wf_mounts).
         z0 = seat(kit, x, s*y, AFT_Z[1])
         domes.append(dome(kit, f'Hull {side} armour dome', x, s*y, r, z0-.6, 3.4, red))
+    if wf_kit.VARIANT == 'merchant':
+        # The base hull's aft turret wells (wolf_base.png rows 63-72: round rings
+        # reaching Y +-18, the silhouette the pirate domes keep): a full-depth
+        # armoured drum built into each flank, keel to a level ring deck, so the
+        # WS 002 / WS 003 turrets stand on structure as deep as the hull, not on
+        # its sloping edge.
+        for side, s in (('port', 1), ('starboard', -1)):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=r+.4, depth=AFT_Z[1]+1.2-(AFT_Z[0]+.4),
+                                                location=(x, s*y, (AFT_Z[1]+1.2+AFT_Z[0]+.4)/2))
+            drum = bpy.context.object
+            kit.finish(drum, f'Hull {side} turret foundation', red, .3)
+            ring_z = AFT_Z[1]+1.2
+            kit.cylinder(f'Hull {side} turret foundation ring', (x, s*y, ring_z+.15), r-.3, .3, steel, 'Z', 24, .08)
+            domes.append(drum)
     eng = shear(prism(kit, 'Hull engine block', ccw(ENGINE_BLOCK), section(*ENGINE_Z, 2.0, 2.2), steel), 5.0, .2)
     plane_cut(eng, 'engine block aft rake', (-33, 0, ENGINE_Z[1]), facet_normal((-1, 0), 36))
 
@@ -201,7 +215,7 @@ def build(kit):
     spine = prism(kit, 'Hull dorsal spine fore', ccw(sym([(32, 4.2), (17.5, 4.6), (16.2, 3.4)])),
                   section(0, SPINE_TOP, 0, 1.4), steel)
     plane_cut(spine, 'spine fore rake', (29, 0, SPINE_TOP), facet_normal((1, 0), 35))
-    plane_cut(spine, 'spine fore aft rake', (21.5, 0, SPINE_TOP), facet_normal((-1, 0), 40))
+    plane_cut(spine, 'spine fore aft rake', (25.0, 0, SPINE_TOP), facet_normal((-1, 0), 40))
     spine_aft = prism(kit, 'Hull dorsal spine aft', ccw(sym([(-2.5, 3.0), (-6, 3.6), (-33, 3.6)])),
                       section(0, SPINE_TOP-.6, 0, 1.3), steel)
     plane_cut(spine_aft, 'spine aft rake', (-29, 0, SPINE_TOP-.6), facet_normal((-1, 0), 30))
@@ -215,8 +229,8 @@ def build(kit):
     sensor = dome(kit, 'Hull neck sensor dome', 26.5, 0, 3.0, zs-.4, 2.2, steel, 14, 3)
     kit.hull += [canopy, sensor]
     keel = prism(kit, 'Hull ventral keel', ccw(sym([(27, 3.2), (24, 5.0), (-16, 5.0), (-20, 3.6)])),
-                 section(-8.8, -5.0, 1.4, 0), steel)
-    plane_cut(keel, 'keel fore rake', (24, 0, -8.8), (.5, 0, -.866))
-    plane_cut(keel, 'keel aft rake', (-15, 0, -8.8), (-.5, 0, -.866))
+                 section(-12.0, -8.0, 1.6, 0), steel)
+    plane_cut(keel, 'keel fore rake', (24, 0, -12.0), (.5, 0, -.866))
+    plane_cut(keel, 'keel aft rake', (-15, 0, -12.0), (-.5, 0, -.866))
     kit.hull += [fork, *tines, head, *outriggers.values(), neck, main, *pods.values(), aft, *domes, eng, spine, spine_aft]
     return keel

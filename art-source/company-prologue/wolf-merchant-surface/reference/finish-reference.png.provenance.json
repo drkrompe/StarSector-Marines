@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155c9-8b77-7ef2-ad08-975d72183531",
+  "source": "/Users/dillon/.codex/generated_images/01a155c9-8b77-7ef2-ad08-975d72183531/exec-ad74b126-ad2d-4b36-87a5-78181e5887ef.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/wolf-merchant-surface/reference/finish-reference.png",
+    "sha256": "d849b8aed48d5b60cebe0be0c45e91ac5e73a3355abadb34f845a001133bbd9e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/wolf-merchant-surface/prompts/finish-reference.prompt.txt",
+  "promptSha256": "fda629725df7a252c9780dbc0b096954831262c0e4ded1969c81463958d4d7cf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the render to repaint (layout authority)\nImage 2: INPUT 2: the game sprite (paint scheme and colours only)\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one small spacecraft, an independent Wolf-class frigate (a fast high-tech warship serving as a merchant convoy's escort), seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: pale blue-grey painted armour on the rounded hull decks and flanks; warm mid-grey machinery steel on the bow fork, head, outriggers, missile pods and the finned engine block; near-black recesses, slots and seams; small pale glazed canopies and ports. The green, dark and sand-yellow weapons, the small glowing lamps and the orange vent are separate fittings: leave their colours as they are.\nINPUT 2 is the game's top-down pixel sprite of this exact ship: use it ONLY for the paint scheme and colours (its pale blue-grey and warm grey). Never copy its view, composition or pixel style.\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every panel, turret, vent, dome, fin and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material: the pale armour stays a pale cool blue-grey enamel (as INPUT 2's pale blue-grey), grey machinery stays a warm mid-grey painted steel, recesses stay near black, glazing stays pale tinted glass. Do not swap or invent colours, stripes, logos or patches.\n- Finish: a well-run working escort. Semi-matte industrial enamel with crisp plate seams, fastener rows, access panels and subtle plate-to-plate tone differences. Light, even service wear only: faint edge scuffs on exposed corners, a thin film of grime in seams, a little soot near the aft drives. No rust holes, no burn craters, no dents, no torn metal, no repair plates, no large single stains, no lettering or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/wolf-merchant-surface/guide/reference-guide.png",
+      "sha256": "719514a35897f467d6a1ef68efd36c5a4be7a77fb7f92318ff4514ac194e301c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the render to repaint (layout authority)"
+    },
+    {
+      "path": "art-source/company-prologue/wolf-merchant-surface/build/sprite-livery.png",
+      "sha256": "778f179c3cf6eb9b15ca2dfa787818d7298f4ba8c036ea2799e047ee24fe9b3d",
+      "dimensions": [
+        768,
+        416
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the game sprite (paint scheme and colours only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the render, preserving its geometry, composition, and material colours."
+  ],
+  "usage": {
+    "input_tokens": 150507,
+    "cached_input_tokens": 119168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 812,
+    "reasoning_output_tokens": 55
+  },
+  "elapsedSeconds": 51.1
+}

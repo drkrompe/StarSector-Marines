@@ -44,20 +44,41 @@ PROLOGUE = HERE.parent
 GEOM_JSON = PROLOGUE / 'hound-geometry' / 'geometry.json'
 VFX = PROLOGUE / 'second-wind-vfx'
 
+# Liveries: (asset name, surfacing folder, asset file stem, geometry state). The Hegemony
+# auxiliary is the original asset, names unchanged. Each livery is its own collection,
+# so two can be appended into one scene. The pirate livery is the Hound (P): its
+# geometry is hound-geometry's pirate state (armour slabs, chaingun, twin MG, scars).
+LIVERIES = {
+    'hegemony': ('HOUND (A)', 'hound-surface', 'hound-a', 'clean'),
+    'independent': ('HOUND (independent)', 'hound-surface-independent', 'hound-independent', 'clean'),
+    'pirate': ('HOUND (P)', 'hound-surface-pirate', 'hound-p', 'pirate'),
+}
 ap = argparse.ArgumentParser()
-ap.add_argument('--state', default='clean', choices=('clean',))   # reserved: battle-damaged, wrecked
+ap.add_argument('--state', default='clean', choices=('clean', 'pirate'))   # reserved: battle-damaged, wrecked
+ap.add_argument('--livery', default='hegemony', choices=sorted(LIVERIES),
+                help='paint scheme; pirate is the Hound (P), whose geometry is the pirate state')
+ap.add_argument('--geometry', help='geometry.json of the build the skin was applied to (default: the livery\'s)')
 ap.add_argument('--skinned')
 ap.add_argument('--out', default=str(HERE))
 ap.add_argument('--no-effects', action='store_true')
 ap.add_argument('--no-save', action='store_true')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-STATE = args.state
-SKINNED = Path(args.skinned or PROLOGUE / 'hound-surface' / 'build' / 'skinned.blend').resolve()
-OUT = Path(args.out).resolve() / STATE
-NAME = 'HOUND (A)'
+NAME, SURFACE, STEM, GEOM_STATE = LIVERIES[args.livery]
+STATE = GEOM_STATE if args.livery == 'pirate' else args.state
+assert STATE == GEOM_STATE, f'the {args.livery} livery is built on the {GEOM_STATE} geometry'
+SKINNED = Path(args.skinned or PROLOGUE / SURFACE / 'build' / 'skinned.blend').resolve()
+# Output folder: <state>/ for the Hegemony asset (as before), <livery>[-<state>]/ otherwise.
+OUT = Path(args.out).resolve() / (STATE if args.livery == 'hegemony' else
+                                  args.livery if STATE in ('clean', args.livery) else f'{args.livery}-{STATE}')
 COLL = f'{NAME} | {STATE}'
 ROOT = f'{COLL} | root'
-ASSET = f'hound-a-{STATE}.blend'
+ASSET = f'{STEM}-{STATE}.blend'
+if args.geometry:
+    GEOM_JSON = Path(args.geometry).resolve()
+elif GEOM_STATE != 'clean':
+    GEOM_JSON = PROLOGUE.parents[1] / 'build' / f'{STEM}-geom' / 'geometry.json'   # build_hound.py --state <s> --out
+_skin = PROLOGUE / SURFACE / 'skin-manifest.json'
+WEAR = json.loads(_skin.read_text())['wear']['state'] if _skin.exists() else 'service'
 HULL_OBJECT = 'Hull cargo body'
 TURRET = 'WS 002'
 RAMP_HINGE = 'Hull aft ventral ramp hinge'
@@ -158,6 +179,7 @@ for ob in geo_anchors:
 bpy.context.view_layer.update()
 root['asset'] = NAME
 root['state'] = STATE
+root['livery'] = args.livery
 root['metres_per_unit'] = MPU
 root['hull_object'] = HULL_OBJECT
 by_name = {o.name: o for o in ship}
@@ -193,19 +215,25 @@ for slot_id, slot in SLOTS.items():
                         'rest_angle_deg': slot['angle'], 'trained_parts': len(trained),
                         'fixed_parts': len(parts) - len(trained)}
         bpy.context.view_layer.update()
-    brake = by_name.get(f'Weapon {slot_id} muzzle brake')
-    if brake is not None:
+    # One muzzle brake, or a twin mount's numbered brakes (`... muzzle brake <k>`,
+    # the Hound (P)'s light dual MG), each giving `Anchor weapon <slot> muzzle[ <k>]`.
+    brakes = ([(None, by_name[f'Weapon {slot_id} muzzle brake'])] if f'Weapon {slot_id} muzzle brake' in by_name else
+              [(k, by_name[f'Weapon {slot_id} muzzle brake {k}']) for k in range(1, 9)
+               if f'Weapon {slot_id} muzzle brake {k}' in by_name])
+    rec['muzzles'] = []
+    for k, brake in brakes:
         pts = [brake.matrix_world @ v.co for v in brake.data.vertices]
         reach = max(p.dot(axis) for p in pts)
         lo, hi = bbox(brake)
         mid = (lo + hi) / 2
         tip = mid + axis * (reach - mid.dot(axis))
         scale = 1.3 if slot['size'] == 'MEDIUM' else 1.0
-        a = empty(f'Anchor weapon {slot_id} muzzle', anchors_coll, 1.0, 'SINGLE_ARROW', holder,
-                  Matrix.Translation(tip) @ frame(axis).to_4x4())
+        a = empty(f'Anchor weapon {slot_id} muzzle' + (f' {k}' if k else ''), anchors_coll, 1.0, 'SINGLE_ARROW',
+                  holder, Matrix.Translation(tip) @ frame(axis).to_4x4())
         a['slot'] = slot_id
         a['scale'] = scale
-        rec['muzzle'] = {'anchor': a.name, 'at': rounded(tip), 'axis': rounded(axis), 'scale': scale}
+        rec['muzzles'].append({'anchor': a.name, 'at': rounded(tip), 'axis': rounded(axis), 'scale': scale})
+    rec['muzzle'] = rec['muzzles'][0] if rec['muzzles'] else None
     weapons.append(rec)
 
 # 5. Engines: the geometry's declared mouth anchors, +X aft.
@@ -273,10 +301,13 @@ if not args.no_effects:
     import swfx  # noqa: E402
     import swfx_core  # noqa: E402
     groups = ('thrusters', 'smoke', 'guns')
-    ctx = swfx.apply(state=STATE, groups=groups, rcs=False, dust=False)
+    # The kit's states are the Second Wind's conditions; the Hound (P)'s drives and guns
+    # are healthy (its scars are light hull damage), so its effects are the kit's clean ones.
+    FX_STATE = 'clean' if STATE == 'pirate' else STATE
+    ctx = swfx.apply(state=FX_STATE, groups=groups, rcs=False, dust=False)
     fx = bpy.data.collections[swfx_core.ROOT]
     found = ctx.records['anchors']
-    assert len(found['engines']) == len(engines) and len(found['guns']) == sum(bool(w['muzzle']) for w in weapons), found
+    assert len(found['engines']) == len(engines) and len(found['guns']) == sum(len(w['muzzles']) for w in weapons), found
 
     def summary(rec):
         if isinstance(rec, dict):
@@ -285,7 +316,7 @@ if not args.no_effects:
         return rec
 
     effects = {'collection': swfx_core.ROOT, 'objects': len(fx.all_objects),
-               'kit': f"second-wind-vfx (swfx.apply state '{STATE}', groups {', '.join(groups)}; rcs and landing dust "
+               'kit': f"second-wind-vfx (swfx.apply state '{FX_STATE}', groups {', '.join(groups)}; rcs and landing dust "
                       'off: the Hound has no RCS quads and the dust is the Second Wind\'s; no rig preset)',
                'metres_per_unit_used': swfx_core.METRES_PER_UNIT,
                'anchors': {'engines': len(found['engines']), 'guns': len(found['guns'])},
@@ -306,6 +337,7 @@ manifest = {
     'hull': geom['hull']['name'],
     'skin_hull_id': geom['hull']['skinHullId'],
     'state': STATE,
+    'livery': args.livery,
     'append_collection': COLL,
     'root': ROOT,
     'anchors_collection': anchors_coll.name,
@@ -326,9 +358,10 @@ manifest = {
     'baked_meshes': len(baked),
     'left_out_objects': left_out,
     'images': sorted(i.name for i in bpy.data.images if i.packed_file),
-    'wear': 'hound-surface/wear.json row `service` (wear.py group `SW wear service`), on skins and swatches',
+    'wear': (f'{SURFACE}/wear.json row `{WEAR}` (wear.py group `SW wear {WEAR}`), on skins and swatches'),
     'effects': effects,
-    'sources': {'skinned_blend': str(SKINNED.relative_to(PROLOGUE)).replace('\\', '/'),
+    'sources': {'skinned_blend': str(SKINNED.relative_to(PROLOGUE.parents[1])).replace('\\', '/'),
+                'geometry_json': str(GEOM_JSON.relative_to(PROLOGUE.parents[1])).replace('\\', '/'),
                 'geometry_json_sha256': sha(GEOM_JSON)},
     'conventions': {
         'root': 'Every ship part and anchor descends from the root; move, rotate or scale the root only.',
@@ -340,7 +373,7 @@ manifest = {
     },
 }
 print('EXPORT', NAME, STATE, len(ship), 'objects', manifest['polygons'], 'polys; baked', len(baked),
-      'engines', len(engines), 'muzzles', sum(bool(w['muzzle']) for w in weapons), 'lamps', len(lamps),
+      'engines', len(engines), 'muzzles', sum(len(w['muzzles']) for w in weapons), 'lamps', len(lamps),
       'effects', effects and effects['objects'])
 if not args.no_save:
     OUT.mkdir(parents=True, exist_ok=True)

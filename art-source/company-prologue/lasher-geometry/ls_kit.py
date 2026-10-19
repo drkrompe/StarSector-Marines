@@ -55,13 +55,27 @@ def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2
     return m
 
 
+# Liveries: (armour name, armour albedo, accent name or None, accent albedo).
+# Hegemony is read off lasher_base.png (the Hegemony fleets fly the base hull):
+# terracotta orange armour (sprite median sRGB 189,97,70, darkened for albedo);
+# its accent parts take the armour material itself. Independent is the Asharu
+# convoy's escort scheme (owner to accept): the independent faction's grey
+# (independent.faction colour 150,150,150) as pale warm-grey armour, with a
+# slate-blue accent on the strakes, spine ridge, gunhouses, gun-pod spine
+# plates and drive lips, so it reads apart from Hegemony orange and pirate red.
+LIVERIES = {
+    'hegemony': ('Lasher Hegemony armour', (.40, .105, .052), None, None),
+    'independent': ('Lasher independent armour', (.25, .245, .232),
+                    'Lasher independent accent', (.045, .075, .12)),
+}
+
+
 class Kit:
-    def __init__(self):
-        # Hegemony scheme read off lasher_base.png (the Hegemony fleets fly
-        # the base hull): terracotta orange armour (sprite median sRGB
-        # 189,97,70, darkened for albedo), warm gunmetal machinery
-        # (91,77,68), near-black recesses, warm lamps.
-        self.orange = material('Lasher Hegemony armour', (.40, .105, .052), .25, .55, wear=.22)
+    def __init__(self, livery='hegemony'):
+        # Warm gunmetal machinery (91,77,68), near-black recesses, warm lamps.
+        name, colour, accent_name, accent = LIVERIES[livery]
+        self.orange = material(name, colour, .25, .55, wear=.22)
+        self.accent = material(accent_name, accent, .25, .5, wear=.2) if accent_name else self.orange
         self.steel = material('Lasher gunmetal machinery', (.10, .085, .075), .6, .5, wear=.18)
         self.dark = material('Lasher recess', (.025, .022, .02), .4, .6)
         self.glass = material('Lasher bridge glazing', (.03, .03, .025), .2, .15,

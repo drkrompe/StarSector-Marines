@@ -34,7 +34,8 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 with bpy.data.libraries.load(str(BLEND), link=False) as (src, dst):
     assert 'SWFX' in src.collections, 'run export_effects.py first'
-    dst.collections = ['LASHER', 'SWFX']
+    ship = next(c for c in src.collections if c.startswith('LASHER') and not c.endswith('| anchors'))
+    dst.collections = [ship, 'SWFX']
 for c in dst.collections:
     if not any(c.name in [ch.name for ch in p.children] for p in dst.collections):
         scene.collection.children.link(c)

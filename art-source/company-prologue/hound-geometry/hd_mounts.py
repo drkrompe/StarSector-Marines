@@ -84,7 +84,9 @@ def _face_plate(kit, name, quad, out, t, inset, mat, bevel=.04):
 
 # --- WS 001: fixed medium gun in the fork ---
 
-def hardpoint(kit, slot):
+def hardpoint(kit, slot, gun=None):
+    """gun: None for the naval medium gun, else fn(kit, slot, x, y, z, light) that
+    builds a different weapon on the same cradle, breech, mantlet and feed."""
     x, y = slot['location']
     z = .4
     t = slot['id']
@@ -104,18 +106,21 @@ def hardpoint(kit, slot):
     kit.box(f'Weapon {t} gun mantlet', (x-4.0, y, z+.1), (2.8, 4.5, 2.2), kit.steel, .14)
     bolts(kit, f'Weapon {t} gun mantlet bolts', [(x-4.0+dx, y+dy, z+1.2) for dx in (-.9, .9) for dy in (-1.8, 1.8)],
           (0, 0, 1), kit.steel, .11, .08)
-    kit.cylinder(f'Weapon {t} recoil sleeve', (x-2.25, y, z), .95, .9, kit.steel, 'X', 12, .06)
-    for name, cx, ln, dz in (('upper', x-4.2, 4.6, 1.25), ('lower', x-3.0, 3.0, -1.15)):
-        kit.cylinder(f'Weapon {t} recoil cylinder {name}', (cx, y, z+dz), .34, ln, light, 'X', 8, .03)
-    # Thick barrel with a jacket and a ported brake; muzzle at the tine points.
-    kit.cylinder(f'Weapon {t} barrel', (x+.6, y, z), .58, 8.4, light, 'X', 12, .03)
-    kit.cylinder(f'Weapon {t} barrel jacket', (x-1.6, y, z), .8, 3.6, kit.steel, 'X', 12, .04)
-    for k, bx in enumerate((x-3.35, x+.15), 1):
-        kit.cylinder(f'Weapon {t} jacket band {k}', (bx, y, z), .9, .3, kit.steel, 'X', 12, .02)
-    brake = kit.box(f'Weapon {t} muzzle brake', (x+4.85, y, z), (1.1, 1.5, 1.25), kit.steel, 0)
-    for px in (x+4.65, x+5.05):
-        boolean(brake, kit.box('Temporary brake port', (px, y, z), (.2, 3, .7), kit.dark, 0))
-    kit.cylinder(f'Weapon {t} muzzle bore', (x+5.41, y, z), .32, .06, kit.dark, 'X', 12, 0)
+    if gun is None:
+        kit.cylinder(f'Weapon {t} recoil sleeve', (x-2.25, y, z), .95, .9, kit.steel, 'X', 12, .06)
+        for name, cx, ln, dz in (('upper', x-4.2, 4.6, 1.25), ('lower', x-3.0, 3.0, -1.15)):
+            kit.cylinder(f'Weapon {t} recoil cylinder {name}', (cx, y, z+dz), .34, ln, light, 'X', 8, .03)
+        # Thick barrel with a jacket and a ported brake; muzzle at the tine points.
+        kit.cylinder(f'Weapon {t} barrel', (x+.6, y, z), .58, 8.4, light, 'X', 12, .03)
+        kit.cylinder(f'Weapon {t} barrel jacket', (x-1.6, y, z), .8, 3.6, kit.steel, 'X', 12, .04)
+        for k, bx in enumerate((x-3.35, x+.15), 1):
+            kit.cylinder(f'Weapon {t} jacket band {k}', (bx, y, z), .9, .3, kit.steel, 'X', 12, .02)
+        brake = kit.box(f'Weapon {t} muzzle brake', (x+4.85, y, z), (1.1, 1.5, 1.25), kit.steel, 0)
+        for px in (x+4.65, x+5.05):
+            boolean(brake, kit.box('Temporary brake port', (px, y, z), (.2, 3, .7), kit.dark, 0))
+        kit.cylinder(f'Weapon {t} muzzle bore', (x+5.41, y, z), .32, .06, kit.dark, 'X', 12, 0)
+    else:  # a different weapon on the same mount (hd_pirate)
+        gun(kit, slot, x, y, z, light)
     # Belt chute out of the shielded hold into the top of the breech.
     house = bpy.data.objects.get('Hull shielded hold deckhouse')
     xa = 18.4
@@ -153,7 +158,9 @@ def hardpoint(kit, slot):
 
 # --- WS 002: small naval turret on an armoured barbette ---
 
-def turret(kit, slot):
+def turret(kit, slot, gun=None):
+    """gun: None for the single naval gun, else fn(kit, slot, x, y, gz) that builds
+    a different weapon in front of the mantlet, at rest along +X, before training."""
     x, y = slot['location']
     t = slot['id']
     glass = material('Vision block glass', (.03, .05, .06), .3, .1)
@@ -219,10 +226,13 @@ def turret(kit, slot):
     kit.box(f'Weapon {t} mantlet', (x+3.15, y, gz), (.55, 1.7, 1.45), kit.rust, .1)
     for name, s in (('port', 1), ('starboard', -1)):
         kit.cylinder(f'Weapon {t} trunnion {name}', (x+2.4, y+s*1.12, gz), .5, .26, kit.steel, 'Y', 8, .03)
-    kit.cylinder(f'Weapon {t} barrel', (x+5.6, y, gz), .42, 4.9, kit.steel, 'X', 12, .03)
-    kit.cylinder(f'Weapon {t} barrel jacket', (x+4.2, y, gz), .58, 1.6, kit.steel, 'X', 12, .03)
-    brake = kit.box(f'Weapon {t} muzzle brake', (x+8.35, y, gz), (.8, 1.05, .9), kit.steel, 0)
-    boolean(brake, kit.box('Temporary brake port', (x+8.35, y, gz), (.22, 2, .42), kit.dark, 0))
+    if gun is None:
+        kit.cylinder(f'Weapon {t} barrel', (x+5.6, y, gz), .42, 4.9, kit.steel, 'X', 12, .03)
+        kit.cylinder(f'Weapon {t} barrel jacket', (x+4.2, y, gz), .58, 1.6, kit.steel, 'X', 12, .03)
+        brake = kit.box(f'Weapon {t} muzzle brake', (x+8.35, y, gz), (.8, 1.05, .9), kit.steel, 0)
+        boolean(brake, kit.box('Temporary brake port', (x+8.35, y, gz), (.22, 2, .42), kit.dark, 0))
+    else:  # a different weapon in the same house, built at rest along +X (hd_pirate)
+        gun(kit, slot, x, y, gz)
     # Roof: loader's hatch, commander's cupola with vision blocks, gunner's sight.
     zr = zb+HOUSE_H
     kit.cylinder(f'Weapon {t} roof hatch', (x-1.4, y-.85, zr+.08), .55, .16, kit.steel, 'Z', 12, .04)
@@ -316,9 +326,13 @@ def flare_launcher(kit, slot):
     kit.empty(f'Weapon {t} anchor', (x, y, z), slot['angle'])
 
 
-def build(kit):
+def build(kit, guns=None):
+    """guns: optional {slot id: gun builder} replacing a slot's weapon on its mount
+    (the Hound (P) state passes hd_pirate.GUNS); None builds the clean ship."""
     for slot in SLOTS:
-        {'HARDPOINT': hardpoint, 'TURRET': turret, 'HIDDEN': flare_launcher}[slot['mount']](kit, slot)
+        fn = {'HARDPOINT': hardpoint, 'TURRET': turret, 'HIDDEN': flare_launcher}[slot['mount']]
+        gun = (guns or {}).get(slot['id'])
+        fn(kit, slot) if gun is None else fn(kit, slot, gun)
     for sid, hits in CLASHES.items():
         print(f'CHECK {sid} gun overlap: {hits if hits else "clear"}')
     for slot in SLOTS:

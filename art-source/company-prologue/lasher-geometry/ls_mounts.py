@@ -55,7 +55,7 @@ def turret(kit, i, slot):
     pivot.rotation_euler = (0, 0, 0)
     # Trainable top, built pointing +X about the pivot, then parented and turned.
     parts = [
-        kit.cylinder(f'Turret {i} gunhouse', (x-.3, y, top+.9), 3.8, 1.8, kit.orange, vertices=8, bevel=.15),
+        kit.cylinder(f'Turret {i} gunhouse', (x-.3, y, top+.9), 3.8, 1.8, kit.accent, vertices=8, bevel=.15),
         kit.box(f'Turret {i} mantlet', (x+3.5, y, top+1.0), (1.2, 3.0, 1.4), kit.steel, .1),
     ]
     muzzles = []

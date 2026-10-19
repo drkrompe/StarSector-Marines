@@ -29,7 +29,7 @@ from kp_kit import prism, section, boolean, facet, plane_cut, crisp, mirror, bx
 
 KEEL = -6.0           # fuselage keel
 FUSE_DECK = 6.0       # fuselage roof
-SPINE_DECK = 8.5      # dorsal cabin spine roof
+SPINE_DECK = 9.5      # dorsal cabin spine roof (its side walls carry the cabin windows)
 HUMP_DECK = 7.5       # aft hump round the turret
 WING_KEEL, WING_DECK = -3.6, 0.8
 
@@ -38,12 +38,12 @@ FUSE_PLAN = mirror([(37.6, 0), (37.4, 1.6), (36.2, 3.6), (34.5, 5.6), (32.5, 8.0
                     (-20.5, 19.5), (-22.5, 16.0), (-24.5, 7.5), (-25.0, 0)])
 WING_PLAN = mirror([(16.0, 0), (16.0, 17.5), (14.0, 20.0), (11.0, 28.0), (4.5, 29.0), (3.5, 30.0),
                     (-1.5, 30.5), (-3.0, 31.8), (-4.0, 33.5), (-5.0, 36.0), (-6.0, 38.0), (-7.0, 39.4),
-                    (-8.0, 40.0), (-15.8, 40.0), (-16.2, 33.0), (-20.6, 33.0), (-21.0, 32.0),
+                    (-8.0, 40.0), (-15.8, 40.0), (-16.2, 33.0), (-20.8, 33.0),
                     (-21.4, 23.0), (-22.0, 19.0), (-22.0, 0)])
 # A plate a metre thick at the edge: a short keel chamfer, the edge wall and a
 # broad shoulder chamfer rising to the deck (the tips are under 8 units deep,
 # so the shoulder inset stays under half that).
-WING_SECTION = [(1.2, WING_KEEL), (0.0, WING_KEEL+1.2), (0.0, WING_KEEL+2.4), (3.0, WING_DECK)]
+WING_SECTION = [(1.2, WING_KEEL), (0.0, WING_KEEL+1.2), (0.0, WING_KEEL+2.4), (2.4, WING_DECK)]
 SPINE_PLAN = mirror([(32.0, 0), (31.5, 2.5), (30.0, 4.6), (27.0, 5.6), (0.0, 5.6), (-2.0, 4.0), (-2.0, 0)])
 HUMP_PLAN = mirror([(3.0, 0), (3.0, 7.5), (0.0, 10.5), (-17.0, 10.5), (-21.0, 8.0), (-22.5, 4.5), (-22.5, 0)])
 SPONSON_X = (4.5, 14.0)
@@ -81,7 +81,7 @@ def build_wing(kit):
 
 
 def build_spine(kit):
-    spine = prism(kit, 'Hull dorsal spine', SPINE_PLAN, section(FUSE_DECK-1.0, SPINE_DECK-2.0, SPINE_DECK, .5, 2.4),
+    spine = prism(kit, 'Hull dorsal spine', SPINE_PLAN, section(FUSE_DECK-2.5, SPINE_DECK-1.5, SPINE_DECK, .5, 1.8),
                   kit.cream)
     plane_cut(spine, *facet('Spine nose fall', (29.5, 0, SPINE_DECK), (1, 0), 38))
     plane_cut(spine, *facet('Spine aft fall', (-.5, 0, SPINE_DECK), (-1, 0), 45))

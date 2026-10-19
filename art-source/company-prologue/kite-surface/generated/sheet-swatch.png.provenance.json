@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155b9-a3b0-7083-935a-72fbce37cb24",
+  "source": "/Users/dillon/.codex/generated_images/01a155b9-a3b0-7083-935a-72fbce37cb24/exec-3e4e81d4-24c6-43bb-ba71-e8eb2d28a4f5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source/company-prologue/kite-surface/generated/sheet-swatch.png",
+    "sha256": "b070d58c1df44ebccfcec2ea59e9132c7f597275a229636d24ec83551bdb0e78",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source/company-prologue/kite-surface/prompts/sheet-swatch.prompt.txt",
+  "promptSha256": "da7cb040b32f99970edf9534a89a49661c3cdb29f1e4dda5cc8246e36542851c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: paint these exact squares, nothing moves\nImage 2: Material, colour and wear finish only; not layout\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of FIVE flat-coloured squares on a plain flat mid-blue background. Each square is one hull material of a single 3D spacecraft (a Kite-class pirate boarding shuttle, heavily used and poorly maintained by its pirate crew), to be painted as a flat, square-on texture sample of that material, in reading order (left to right, top row first):\n1: grimy yellowed bone-cream enamel hull plate;\n2: very dark warm brown-grey pirate hull enamel;\n3: dark gunmetal grey steel;\n4: the recess and machinery material, near-black dull steel;\n5: dull rust-brown raw welded scrap steel plate.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, fine seams and fasteners and its heavy, even wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of worn industrial plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, scattered small worn spots, an even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly as listed. No colour changes, no patches of another colour.\n- Wear is even across each whole square. No holes, burns, impact damage, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source/company-prologue/kite-surface/guide/sheet-swatch-guide.png",
+      "sha256": "9a7806e8fa43e29cbb1e64616a5acfac3bd9918ebd2f33234a3f5ef96d589e0f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: paint these exact squares, nothing moves"
+    },
+    {
+      "path": "art-source/company-prologue/kite-surface/reference/finish-reference.png",
+      "sha256": "a85e6fff71e4bb857038eff36bf3533a2b58b794178af8a1ef98bb83f19824de",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, colour and wear finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the five swatches while preserving the exact layout and blue gutters."
+  ],
+  "usage": {
+    "input_tokens": 44709,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 563,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 38.1
+}
