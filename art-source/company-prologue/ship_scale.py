@@ -230,6 +230,14 @@ HULLS['Manticore (P)'] = dict(units3=163199, crew_max=80, cargo=80, fuel=50, cls
                                                             'bridge glazing band h': [1.67]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
 PUBLISHED['Manticore (P)'] = .66
+# The Kite (P), pirate boarding shuttle for the Asharu battle (kite_pirates.skin on kite;
+# designation Shuttle, so the freighter class): fuselage, wing body, cabin spine and aft hump
+# (SOLIDS['kite']). Drive cans, missile sponsons and launchers are excluded. Its 30 crew are
+# the boarding party's seats. Fittings: the neck's crew door and a cabin window.
+HULLS['Kite (P)'] = dict(units3=25690, crew_max=30, cargo=30, fuel=15, cls='freighter', length_units=64.6,
+                         sprite_px=66, fittings_units={'crew door w x h': [3.2, 3.9], 'cabin window w x h': [1.5, 1.0]})
+VOLUME_SOURCE['Kite (P)'] = 'measured (SOLIDS)'
+PUBLISHED['Kite (P)'] = .80
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -308,6 +316,10 @@ SOLIDS = {
                  'include': lambda n: n in ('Hull port prong', 'Hull starboard prong', 'Hull central body',
                                             'Bridge command dome', 'Hull port waist deck',
                                             'Hull starboard waist deck')},
+    # The Kite (P)'s .blend is a build output (kite-geometry/kite-geometry.blend, ignored);
+    # its driver re-measures these solids on every build, before the drives cut their bores.
+    'kite': {'blend': 'kite-geometry/kite-geometry.blend', 'step': .5,
+             'include': lambda n: n in ('Hull fuselage', 'Hull wing body', 'Hull dorsal spine', 'Hull aft hump')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},

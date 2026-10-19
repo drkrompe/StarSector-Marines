@@ -48,8 +48,8 @@ for label, blend, gj in HULLS:
     bpy.context.view_layer.update()
     for ob in root.children_recursive:
         if ob.type == 'MESH':
-            for c in ob.bound_box:
-                w = ob.matrix_world @ Vector(c)
+            for v in ob.data.vertices:      # vertices, not bound_box: a joined object's box can be stale
+                w = ob.matrix_world @ v.co
                 lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
     # Sterns at x_off, keels on Z 0, centred on Y 0.
     root.location = (x_off - lo.x, -(lo.y + hi.y)/2, -lo.z)

@@ -57,7 +57,7 @@ SLOTS = [
 ]
 RING = 4.2            # turret ring radius, units (sprite ring about 5 with its coaming)
 LIFT = 1.2            # barbette drum above the hump deck
-MPU = .86             # blockout guess for the kit's fittings; pass 4 publishes the hull's value
+MPU = .80             # the hull's metres_per_unit (build_kite.METRES_PER_UNIT): the kit sizes its fittings from it
 FACE = 10.2           # launcher face, X: just inside the mouth of the sprite's gap (open from X 10.5)
 TWIN = 2.0            # lightdualmg.wpn turretOffsets y, sprite px either side of the mount's centre
 GUN_RAISE = .8        # the twin cradle rides this many sprite px higher than the single gun
