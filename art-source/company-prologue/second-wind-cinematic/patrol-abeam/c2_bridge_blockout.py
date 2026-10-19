@@ -231,8 +231,9 @@ def blender_main(argv):
     sys.path.insert(0, p["sw_dir"])
     import sw_bridge_interior
     for root in sw_bridge_interior.figures(p["sw_mpu"], parent=sw_root):
-        for ch in root.children_recursive:
-            ch.color = ch.data.materials[0].diffuse_color
+        for ch in root.children_recursive:      # the MakeHuman Castle also holds a rig and empties
+            if ch.type == "MESH" and ch.data.materials:
+                ch.color = ch.data.materials[0].diffuse_color
 
     # Legion: appended, rooted, scaled to metres.
     with bpy.data.libraries.load(p["legion_blend"], link=False) as (src, dst):

@@ -112,3 +112,5 @@ Status
   raised gallery, terrace or fin it is built at 88-94% of the ring (kit_scale in
   geometry.json). WS 019 carries the kit's Needler (it has no Multi-Needler); the
   built-in TPC hardpoints stay this package's.
+  Pass 6 texturing lives in ../onslaught-surface/ (shared harness, Hegemony XIV
+  livery); export_onslaught.py run on its build/skinned.blend packs the images.

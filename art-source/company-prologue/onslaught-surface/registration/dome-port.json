@@ -1,0 +1,59 @@
+{
+ "part": "dome-port",
+ "sheet": "top-bridge",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9934,
+ "raw_iou": 0.991,
+ "best_fit": "identity",
+ "fitted_iou": 0.991,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.991
+  },
+  "bounds_affine": {
+   "scale": [
+    0.99617,
+    1.00573
+   ],
+   "offset_px": [
+    0.24,
+    -2.47
+   ],
+   "iou": 0.9825
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00017,
+    1.00173
+   ],
+   "offset_px": [
+    0.24,
+    -0.47
+   ],
+   "iou": 0.991
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.5,
+  "p95_px": 1.0,
+  "max_px": 3.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.5,
+  "p95_px": 1.0,
+  "max_px": 3.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

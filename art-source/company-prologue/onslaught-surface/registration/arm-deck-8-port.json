@@ -1,0 +1,59 @@
+{
+ "part": "arm-deck-8-port",
+ "sheet": "arms-pale-v3",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9935,
+ "raw_iou": 0.9877,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9901,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9877
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00256,
+    1.00454
+   ],
+   "offset_px": [
+    -0.67,
+    -1.16
+   ],
+   "iou": 0.9898
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00281,
+    1.00554
+   ],
+   "offset_px": [
+    -0.67,
+    -1.16
+   ],
+   "iou": 0.9901
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 3.14,
+  "p95_px": 20.28,
+  "max_px": 81.01
+ },
+ "boundary_fitted_px": {
+  "mean_px": 2.93,
+  "p95_px": 19.77,
+  "max_px": 80.13
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

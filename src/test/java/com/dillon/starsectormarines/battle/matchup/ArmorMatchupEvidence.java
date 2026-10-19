@@ -51,6 +51,7 @@ class ArmorMatchupEvidence {
     static final List<VehicleType> LADDER_VEHICLES = Stream.of(
                     VehicleType.HEAVY_APC, VehicleType.UP_ARMORED_APC, VehicleType.FIRE_SUPPORT_APC,
                     VehicleType.ESCORT_APC, VehicleType.BREAKTHROUGH_TANK, VehicleType.HEAVY_GUN_TANK,
+                    VehicleType.SCREENED_TANK,
                     VehicleType.DOZER_BREACHER, VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
                     VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL)
             .filter(VehicleType::hasTurretWeapon)
@@ -286,7 +287,7 @@ class ArmorMatchupEvidence {
                 .append("hit to the decision, over decided fights. Range is the median distance between the nearest two ")
                 .append("opposing machines from the first hit on, the range the fight was fought at. Left is machines standing; integrity is the ")
                 .append("armor+structure a side kept. Damage by weapon is the side's dealt damage apportioned by ")
-                .append("hits times nominal damage, with each weapon's hit rate; heat-limited is seconds a mech ")
+                .append("hits times nominal damage (a contact warhead counted at its payload), with each weapon's hit rate; heat-limited is seconds a mech ")
                 .append("spent cooling or venting (autonomous fire held). Per-fight detail, survivors' sections ")
                 .append("included, is in `runs.csv`. Counts are one machine a side unless the matchup says `Nx`; ")
                 .append("no cost or lift parity is applied.\n\nScenarios:\n");

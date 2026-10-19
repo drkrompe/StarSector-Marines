@@ -92,12 +92,13 @@ public final class ArmorPlay {
     /**
      * One side after the fight. Integrity is armor plus structure summed over the side's machines (a dead machine
      * counts zero); damage dealt is the integrity the other side lost, so overkill is not credited. {@code weapons}
-     * apportions that damage among the side's weapons by hits times the weapon's nominal damage, since the
+     * apportions that damage among the side's weapons by hits times the weapon's nominal damage (a contact warhead's payload where it has one), since the
      * simulation credits damage to the shooter and not to the gun.
      */
     public record SideStats(String label, int start, int left, float integrityStart, float integrityLeft,
                             float damageDealt, int shots, int hits, int mountsLost, int legsCrippled,
-                            float heatLimitedSeconds, Map<String, WeaponStats> weapons, String survivors) {
+                            float heatLimitedSeconds, Map<String, WeaponStats> weapons, String survivors,
+                            int roundsEngaged, int roundsStopped) {
 
         public float hitRate() {
             return shots == 0 ? 0f : (float) hits / shots;
@@ -253,6 +254,9 @@ public final class ArmorPlay {
         boolean dead;
         boolean crippled;
         int mountsLost;
+        /** Hostile rounds this hull's active protection engaged and stopped. */
+        int roundsEngaged;
+        int roundsStopped;
         int heatLimitedTicks;
         long lastOrderCell = Long.MIN_VALUE;
         final Set<Long> refusedCells = new HashSet<>();
@@ -358,6 +362,9 @@ public final class ArmorPlay {
                 if (b.vehicle) {
                     GroundTurret turret = sim.convoy().turret(b.id);
                     b.mountsLost = turret != null && turret.destroyed() ? 1 : 0;
+                    int[] intercepts = sim.pointDefense().hullInterceptions(b.id);
+                    b.roundsEngaged = intercepts[0];
+                    b.roundsStopped = intercepts[1];
                 }
                 if (!b.vehicle && sim.world().hasMechLoadout(b.id)) {
                     MechLoadoutComponent loadout = sim.world().mechLoadout(b.id);
@@ -377,14 +384,16 @@ public final class ArmorPlay {
             for (ShotEvent shot : sim.getShotsThisFrame()) {
                 Body shooter = byId.get(shot.shooterId);
                 if (shooter == null) continue;
-                shooter.shots++;
                 WeaponDef weapon = weaponOf(shot);
+                // A hull's active protection posts its bursts as shots; they are not the machine's fire.
+                if (weapon != null && weapon.damage <= 0f && weapon.contactDamage <= 0f) continue;
+                shooter.shots++;
                 String key = weapon != null ? weaponKey(weapon.id) : "unknown";
                 int[] counts = shotsByWeapon.computeIfAbsent(key, k -> new int[2]);
                 counts[0]++;
                 if (shot.hit) {
                     counts[1]++;
-                    hitWeight.merge(key, weapon != null ? Math.max(1f, weapon.damage) : 1f, Float::sum);
+                    hitWeight.merge(key, weapon != null ? Math.max(1f, Math.max(weapon.damage, weapon.contactDamage)) : 1f, Float::sum);
                 }
             }
         }
@@ -556,13 +565,15 @@ public final class ArmorPlay {
         }
 
         SideStats stats(BattleSimulation sim, float damageDealt) {
-            int left = 0, mounts = 0, legs = 0, heat = 0;
+            int left = 0, mounts = 0, legs = 0, heat = 0, engaged = 0, stopped = 0;
             float start = 0f, now = 0f;
             List<String> survivors = new ArrayList<>();
             for (Body b : ids) {
                 start += b.integrityStart;
                 now += b.integrity;
                 mounts += b.mountsLost;
+                engaged += b.roundsEngaged;
+                stopped += b.roundsStopped;
                 if (b.crippled) legs++;
                 heat += b.heatLimitedTicks;
                 if (!b.dead && isAlive(sim, b)) {
@@ -581,7 +592,7 @@ public final class ArmorPlay {
                 hits += e.getValue()[1];
             }
             return new SideStats(side.label(), ids.size(), left, start, now, damageDealt, shots, hits, mounts, legs,
-                    heat / (float) TICKS_PER_SECOND, weapons, String.join(" ", survivors));
+                    heat / (float) TICKS_PER_SECOND, weapons, String.join(" ", survivors), engaged, stopped);
         }
 
         private static String survivorText(Body b) {

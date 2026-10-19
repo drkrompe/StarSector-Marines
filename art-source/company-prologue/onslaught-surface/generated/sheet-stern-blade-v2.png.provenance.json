@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1546a-d2b6-79a3-bda3-c34c445365eb",
+  "source": "/Users/dillon/.codex/generated_images/01a1546a-d2b6-79a3-bda3-c34c445365eb/exec-63833765-093f-424d-a34a-e3df50d85cbd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-stern-blade-v2.png",
+    "sha256": "a3c5bee50a467b71809ff31dfa5923fd37c95511c6cbc5092f4f9fc6695369b6",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-stern-blade-v2.prompt.txt",
+  "promptSha256": "0a57d9a1c7b85b103bb1a15621b85055bee2d8cebe8c038bfe62cf82651ea7e4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Hegemony Onslaught-class battleship, a heavy low-tech capital warship; these faces are from its stern: the port aft blade, a long armoured leg running aft), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the blade's top seen from directly above: a long slanted muted warm brown-grey plate; set along it a row of five inset plates in frames, alternating mid tan bone-brown and dark brown, three of them carrying a dark gunmetal louvred grille; a small round brown-grey fitting near the right end; a few thin stray fittings and slivers near the left end;\ntop-right: the blade's outboard upper slope: a long tapering muted warm brown-grey plate with a row of five framed inset plates along its lower right, alternating mid tan bone-brown and dark brown;\nbottom-left: the blade's inboard glacis: a long slanted strip that is mostly a wide saturated Hegemony orange armour band running its full length, with thin brown-grey hull edges above and below it and a brown-grey tapering end at the right;\nbottom-right: the blade's aft outboard facet: one plain muted warm brown-grey plate with an irregular outline.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its heavy warship finish, its seam and fastener treatment and its light service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that heavy warship hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, grime packed into the seams, a light even film of dust and a few tiny scuffs on edges. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour and keep every plate its own tone, never evened out: muted warm brown-grey areas are a warm brown-grey enamel hull plate; pale bone-brown plates stay a mid tan bone-brown enamel, only moderately lighter than the brown-grey hull and clearly darker and browner than any bone-white or cream (never cream, never off-white); dark brown plates stay a darker red-brown enamel; orange areas are a saturated Hegemony orange enamel armour band; dark charcoal areas are dark charcoal-grey painted armour; mid grey areas are dark gunmetal grey steel; red-brown fins stay red-brown; near-black areas are near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in service and properly maintained, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-stern-blade-guide.png",
+      "sha256": "4cca36cfdef884e9f15ff62f3ac56659614c5920ca0fd11d93daa14ad9d2026c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to paint the four faces, keeping Image 1’s layout and matching Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 45545,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 681,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.8
+}

@@ -1,0 +1,59 @@
+{
+ "part": "bilge-5-port",
+ "sheet": "hull-bilge-b",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9967,
+ "raw_iou": 0.9943,
+ "best_fit": "identity",
+ "fitted_iou": 0.9943,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9943
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0,
+    0.9924
+   ],
+   "offset_px": [
+    0.0,
+    1.95
+   ],
+   "iou": 0.9906
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0,
+    0.9939
+   ],
+   "offset_px": [
+    0.0,
+    0.95
+   ],
+   "iou": 0.9942
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.53,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.53,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

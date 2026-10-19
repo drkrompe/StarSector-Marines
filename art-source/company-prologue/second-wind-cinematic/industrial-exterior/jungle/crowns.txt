@@ -1,0 +1,13 @@
+Paint a production texture sheet of sixteen jungle tree crowns seen from directly above, using the attached silhouette guide.
+
+The guide is a 4 x 4 grid of flat grey silhouettes on white. It is the exact layout authority: each crown fills exactly its grey silhouette, at exactly its position, size and outline, with its leafy edge following the silhouette's edge closely (small leaves may break the outline by a few pixels). Do not move, merge, resize or add crowns. Keep the same square canvas and the same grid.
+
+What they are: tropical rainforest canopy on Jangala, a hot, humid, rainy jungle world, photographed straight down from a survey aircraft a few hundred metres up. Real botanical detail, photographic, not stylised or cartoon.
+- Top row: rounded broadleaf canopy trees, dense masses of glossy waxy leaves in clumped rosettes, each crown a different green: deep olive, dark forest green, a yellower sunlit green, one with a few pale new-growth leaves.
+- Second row: large emergent rainforest trees whose crowns are several separate leafy clumps; small dark gaps between clumps where a branch shows through; slightly blue-grey green, one with a faint rust-brown tinge of dying leaves.
+- Third row: palms seen from above: long feathery pinnate fronds radiating from a small dark crown centre, each frond with a midrib and fine paired leaflets, olive to yellow-green, a few older fronds browner at the tips.
+- Bottom row: tree ferns and understory plants seen from above: rosettes of finely divided lacy fern fronds, darker and bluer green, with a tight curled centre.
+
+Lighting: soft, even light from straight overhead, as on a bright overcast day. Gentle natural self-shading inside each crown (darker deep gaps between leaf clusters, lighter leaf tops) so the crown has volume, but no directional sun, no highlight on one side, no cast shadow beyond the crown, no shadow on the ground.
+
+Background: genuinely transparent (zero alpha) everywhere outside the crowns, including the gaps between fronds. If true transparency is impossible, use perfectly flat pure white (#FFFFFF) instead. No ground, soil, grass, shadow, border, grid lines, labels, numbers or text.

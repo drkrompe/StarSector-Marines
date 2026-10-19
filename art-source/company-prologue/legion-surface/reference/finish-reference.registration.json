@@ -1,0 +1,66 @@
+{
+ "source": "reference/finish-reference.png",
+ "view": "three-quarter",
+ "native_size": [
+  1672,
+  941
+ ],
+ "guide_size": [
+  1920,
+  1080
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9978,
+ "generated_background_rgb": [
+  69.0,
+  109.0,
+  168.0
+ ],
+ "best_fit": "iou_refined_affine",
+ "fits": {
+  "identity": {
+   "T_guide_to_generated": {
+    "scale": [
+     1.0,
+     1.0
+    ],
+    "offset_px": [
+     0.0,
+     0.0
+    ]
+   },
+   "iou": 0.9942581655366355,
+   "boundary_mean_px": 0.7669166922569275,
+   "boundary_p95_px": 2.0
+  },
+  "bounds_affine": {
+   "T_guide_to_generated": {
+    "scale": [
+     1.0,
+     1.002808988764045
+    ],
+    "offset_px": [
+     0.0,
+     -1.6460674157303572
+    ]
+   },
+   "iou": 0.9964834440789027,
+   "boundary_mean_px": 0.46921831369400024,
+   "boundary_p95_px": 1.0
+  },
+  "iou_refined_affine": {
+   "T_guide_to_generated": {
+    "scale": [
+     1.0005,
+     1.003308988764045
+    ],
+    "offset_px": [
+     -0.125,
+     -1.6460674157303572
+    ]
+   },
+   "iou": 0.9968832983504619,
+   "boundary_mean_px": 0.4185277819633484,
+   "boundary_p95_px": 1.0
+  }
+ }
+}
