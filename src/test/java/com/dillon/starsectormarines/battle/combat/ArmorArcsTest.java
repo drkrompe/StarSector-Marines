@@ -79,6 +79,14 @@ class ArmorArcsTest {
     }
 
     @Test
+    void aScreenIsSpentBeforeThePlate() {
+        DurabilityModel.Resolution out = new DurabilityModel.Resolution();
+        DurabilityModel.resolvePlatedInto(50f, 40f, 30f, 100f, 18f, 2f, 300f, out);
+        assertEquals(30f, out.mitigatedDamage(), EPS);
+        assertEquals(10f, out.armorDamage(), EPS);
+    }
+
+    @Test
     void thinPlateBreaksSoonerAndPassesTheRestToStructure() {
         DurabilityModel.Resolution out = new DurabilityModel.Resolution();
         DurabilityModel.resolvePlatedInto(100f, 40f, 100f, 18f, .5f, 300f, out);

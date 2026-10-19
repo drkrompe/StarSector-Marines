@@ -76,9 +76,10 @@ public final class ArmorPlay {
     static final String MECH_ORDER = System.getProperty("armorMatchup.mechOrder", "engage");
 
     /**
-     * Degrees a defending machine is turned from facing the attackers when it is set down ({@code -PdefenderFacing}):
-     * 0 (default) faces them, 90 shows them its flank, 180 its rear. A holding machine turns only as its doctrine
-     * moves it, so this asks what being caught off its front costs.
+     * Degrees a defending hull is turned from facing the attackers when it is set down ({@code -PdefenderFacing}):
+     * 0 (default) faces them, 90 shows them its flank, 180 its rear. A holding hull turns only as its doctrine
+     * drives it, so this asks what being caught off its front costs. Mechs are not turned: a standing mech pivots
+     * onto its target at once.
      */
     static final float DEFENDER_FACING = Float.parseFloat(System.getProperty("armorMatchup.defenderFacing", "0"));
     /** {@code attack-move} also restores the old steering of mechs: brought closer like a hull, in sight or not. */

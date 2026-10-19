@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — facing: a hull's plate depends on the arc it is hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -713,6 +713,17 @@ shared hull profile is front 1.0 rating / 1.1 plate, side 0.9 / 0.9, rear
   APC) against each tank win as often as without arcs, and kill 2-8 s sooner.
   The harness drives every attacker off the same approach, so it never sets up a
   real pincer; flanking is the player's move.
+- **The mech torso** has arcs too (`mechs-nouns.md`, the torso's plate depends
+  on its arc): front as the chassis rating stands, sides 0.95 / 0.85, rear
+  0.75 / 0.6, with `-Dbattle.mech.armorArcs=false` the control. Over the mech and
+  mixed ladders (8 seeds, both roles), 202 of 291 rows are identical to the
+  control and no pairing moves past noise. Two-on-one mech fights (`2x` Hound,
+  Sirocco and Bulwark, Hound+Sirocco, two breakthrough tanks against a Bulwark,
+  a refit Bulwark and a Sirocco) win exactly as often, and only a few kill a
+  second or two sooner. A mech's torso follows the machine it is shooting, and
+  two attackers on one approach both stay inside its ninety-degree front.
+  Flanking changes a mech-versus-mech outcome only when the player puts a
+  machine behind the torso. The harness never does.
 
 ## Missile warheads
 
