@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "99",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Space shuttle launch heard from nearby: thunderous deep bass rocket engine roar, burning rocket fuel, violent crackling exhaust, low rumble shaking the ground, sustained full thrust, no hiss, no voices",
+    "duration_seconds": 9.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "3a4d45d9ebf27d933b540f2929c2c033f0ac2615cf0f1ceed0630f2c08ccf495",
+  "durationSeconds": 9.0,
+  "peakDb": -0.2,
+  "integratedLufs": -7.3
+}

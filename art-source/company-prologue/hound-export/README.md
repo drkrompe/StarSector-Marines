@@ -76,6 +76,22 @@ overlapping volumes entered through coplanar faces. The kit now pads each
 engine's boxes differently, and sizes the haze box past its falloff (see the
 kit README, Smoke and atmosphere). Re-export to pick up the fix.
 
+## Liveries
+
+`--livery hegemony|independent|pirate` (default hegemony, the asset above,
+unchanged). Each livery is its own collection, so two can share a scene:
+
+| Livery | Collection | Folder | Skin from |
+|---|---|---|---|
+| hegemony | `HOUND (A) \| clean` | `clean/` | `hound-surface/` |
+| independent | `HOUND (independent) \| clean` | `independent/` | `hound-surface-independent/` (Asharu convoy rear escort) |
+| pirate | `HOUND (P) \| pirate` | `pirate/` | `hound-surface-pirate/` on hound-geometry's pirate state |
+
+Verify, review and encode take the folder as `--state` (`--state independent`).
+A twin mount's numbered muzzle brakes (`Weapon <slot> muzzle brake <k>`) give
+numbered anchors (`Anchor weapon <slot> muzzle <k>`), which the VFX kit reads as
+barrels.
+
 ## Not built
 
 Damaged states are reserved and not built: `--state battle-damaged|wrecked`,
