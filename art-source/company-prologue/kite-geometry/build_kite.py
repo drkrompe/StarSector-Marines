@@ -33,8 +33,8 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import kp_kit, kp_hull, kp_engines, kp_weapons
-MODULES = (kp_kit, kp_hull, kp_engines, kp_weapons)
+import kp_kit, kp_hull, kp_cabin, kp_engines, kp_weapons
+MODULES = (kp_kit, kp_hull, kp_cabin, kp_engines, kp_weapons)
 for module in MODULES:
     importlib.reload(module)
 
@@ -51,8 +51,9 @@ args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv
 # Pass 4 publishes the hull's one real-world scale here; until then this is
 # option C's estimate (55 m over the sprite's 64-pixel length).
 METRES_PER_UNIT = 0.86
-STATUS = 'Pass 1 blockout.'
-PASSES = {'1 blockout': 'built'}
+STATUS = 'Pass 2 plausible detail.'
+PASSES = {'1 blockout': 'built; v1-blockout renders regenerate from commit 0af310a38',
+          '2 plausible detailing': 'built: hull and cabin here, engines and weapons by one Opus agent each'}
 RENDERS = Path(args.out).resolve() if args.out else HERE/'renders'
 SAVE_DIR = Path(args.out).resolve() if args.out else HERE
 RENDERS.mkdir(parents=True, exist_ok=True)
@@ -118,9 +119,12 @@ def build_module(module):
         ob['module'] = module.__name__
 
 
-for module in (kp_hull, kp_engines, kp_weapons):
+for module in (kp_hull, kp_cabin):
     build_module(module)
+# Measured before the drives cut their bores, so drive cans stay out of it.
 envelope_u3 = union_volume(HABITABLE)
+for module in (kp_engines, kp_weapons):
+    build_module(module)
 print('VOLUME', round(envelope_u3))
 
 if args.figure:
