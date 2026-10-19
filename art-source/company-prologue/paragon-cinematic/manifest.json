@@ -1187,7 +1187,7 @@
  "sources": {
   "geometry_json_sha256": "70f44aca37042d223d932cda96c9eca307da2aee5cf1b54410a5a67e50d41280",
   "base_export": "paragon-cinematic/build/export/paragon.blend",
-  "vfx_hull_sha256": "1ae5d5dfcab3da7955bab1bc7b12a9759783dbb1e668d7c6bf1dc7fdb5d3796d"
+  "vfx_hull_sha256": "63d5b76405796c03445a910d1ee1ce51c79dcd1c3e9e85d3dc41ae7c85916b43"
  },
  "conventions": {
   "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only. Scale it by metres_per_unit for metres.",
@@ -1534,6 +1534,11 @@
   "bubble": "SWFX shield bubble",
   "anchor": "Shield emitter",
   "radius": 270.0,
+  "centre": "SWFX shield centre",
+  "fit": {
+   "margin": 12.0
+  },
+  "mean_radius": 87.89,
   "arc": 360.0,
   "nodes": [
    "SWFX shield Shield emitter node 1",
@@ -1603,7 +1608,7 @@
   "defaults": {
    "smk_atmosphere": 0.0
   },
-  "objects": 233,
+  "objects": 234,
   "anchors": {
    "engines": 10,
    "guns": 4,
@@ -1705,10 +1710,13 @@
     "lights": 10,
     "missing": 0,
     "radius": 270.0,
+    "mean_radius": 87.89,
+    "fit": 1,
+    "centre": "SWFX shield centre",
     "anchor": "Shield emitter"
    }
   },
   "append": "load both 'PARAGON | clean' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "ccd107e64620e3d838310f4af2a57858aece50f6abebb5b9d1ac222aa5656b1a"
+ "asset_sha256": "571fa7bc625638860bf3672ed4d6e374ab45425c5c7ca59b7456727b85f4c721"
 }

@@ -27,7 +27,8 @@ crew carrier wait clear of the downwash and move in once the dust thins, and a H
 car comes over from the public side and in through her gate, lights going.
 
 World frame, metres: +Y toward the port; +Z up; ground at z = 0.
-Inputs: build/c1v2/inputs/{second-wind-patched,mudskipper-skinned,hound-skinned}.blend.
+Inputs: build/c1v2/inputs/{second-wind-patched,mudskipper-skinned,hound-skinned}.blend, and the
+port's other hulls as `port_fleet.py` lists them.
 Outputs under build/c4x/.
 """
 import json
@@ -1542,69 +1543,13 @@ def add_k9_vehicles():
 
 
 def add_port_traffic():
-    """Real 3D hulls at the port: Hounds working the freighter berths, the Mudskipper ferry by the
-    arrivals hall, Hermes lighters on their row, some lifting for orbit and some coming down."""
-    def instancer(path, mpu):
-        coll = append_collection(path, 'Collection')
-        bpy.context.view_layer.layer_collection.children[coll.name].exclude = True
-        # The hull files' own lamps blow out from 700 m in daylight. The ship's drive lights are
-        # added after this, so at this point every lamp but the sun came from a hull file.
-        for o in [o for o in bpy.data.objects if o.type == 'LIGHT' and o.name != 'Sun']:
-            bpy.data.objects.remove(o)
+    """Real 3D hulls at the port and over it: `port_fleet.py` says which hull works each berth, the
+    Colossus in the heavy berth, the Hermes lighters, and the ships lifting and letting down."""
+    if str(BASE) not in sys.path:
+        sys.path.insert(0, str(BASE))
+    import port_fleet
+    port_fleet.add(sys.modules[__name__])
 
-        def place(label):
-            e = link(bpy.data.objects.new(label, None))
-            e.instance_type = 'COLLECTION'
-            e.instance_collection = coll
-            e.scale = (mpu,) * 3
-            return e
-        return place
-    mud = instancer(INPUTS / 'mudskipper-skinned.blend', 0.85)
-    hound = instancer(INPUTS / 'hound-skinned.blend', 0.88)
-    hermes = instancer(CINE.parent / 'hermes-geometry' / 'hermes-geometry.blend', 0.11)
-
-    def tinted(path, mpu, hue, sat, val):
-        """Another copy of a hull with every base colour shifted: a different operator's livery."""
-        before = set(bpy.data.materials)
-        place = instancer(path, mpu)
-        for m in set(bpy.data.materials) - before:
-            if not m.use_nodes:
-                continue
-            nt = m.node_tree
-            for n in [n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED']:
-                inp = n.inputs['Base Color']
-                hs = nt.nodes.new('ShaderNodeHueSaturation')
-                hs.inputs['Hue'].default_value = hue
-                hs.inputs['Saturation'].default_value = sat
-                hs.inputs['Value'].default_value = val
-                if inp.links:
-                    nt.links.new(inp.links[0].from_socket, hs.inputs['Color'])
-                else:
-                    hs.inputs['Color'].default_value = inp.default_value
-                nt.links.new(hs.outputs['Color'], inp)
-        return place
-    liveries = {'unloading': tinted(INPUTS / 'hound-skinned.blend', 0.88, 1.0, 0.55, 0.9),     # dull blue
-                'fuelling': tinted(INPUTS / 'hound-skinned.blend', 0.88, 0.5, 0.12, 1.15)}    # bare grey
-    for i, (x, off, who) in enumerate(BERTHS):
-        if who == 'empty':
-            continue
-        e = (mud if who == 'ferry' else liveries.get(who, hound))('%s at berth %d' % (who.title(), i))
-        e.location = (x, BERTH_Y + BERTH_DY[x], 11)
-        if who == 'lifting':
-            for f, z in ((0, 11.0), (FRAMES - 1, 11.0 + 4.0 * DURATION)):
-                e.location.z = z
-                e.keyframe_insert('location', frame=f)
-        e.rotation_euler = (0, 0, ROW_HEADING + math.radians(off) + STERN_FIRST)
-    for i, (x, who) in enumerate(LIGHTERS):
-        if who == 'empty':
-            continue
-        e = hermes('Lighter %d %s' % (i, who))
-        e.rotation_euler = (0, 0, math.pi / 2 + math.radians((i * 37) % 9 - 4))
-        z0, z1 = {'parked': (2.5, 2.5), 'lifting': (2.5, 2.5 + 9.0 * DURATION),
-                  'landing': (2.5 + 12.0 * DURATION, 2.5)}[who]
-        for f, z in ((0, z0), (FRAMES - 1, z1)):
-            e.location = (x, LIGHTER_Y, z)
-            e.keyframe_insert('location', frame=f)
 
 # ---------------------------------------------------------------- light, camera, render
 
@@ -1682,6 +1627,7 @@ def build():
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
     import port_life                                    # the public port at work, on through C5
+    import port_fleet                                   # its hulls (placed by add_port_traffic)
     port_life.add(sys.modules[__name__])
     import c4_farm                                       # the farmland at work: field detail, machines, traffic
     c4_farm.add(sys.modules[__name__])
@@ -1699,7 +1645,7 @@ def build():
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
     add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
-             | port_life.HAZE_SKIP)
+             | port_life.HAZE_SKIP | port_fleet.HAZE_SKIP)
     add_camera(scene)
     sys.path.insert(0, str(CINE / 'thrust-markers'))
     import thrust_shots                                  # every craft's nozzles marked, through C5

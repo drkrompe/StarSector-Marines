@@ -31,11 +31,12 @@ in the same load) into a factory scene and renders 1920x1080 at 100% in Cycles:
 - --lance-sequence: the bow lances only, six stills through one shot (charge
   building, full charge, beam on, beam held, charge-down, dark again) from the
   `beam-bow` camera, as lance-<k>.png.
-- --shield: the Fortress Shield (swfx_shield) from high on the port bow,
+- --shield: the Fortress Shield (swfx_shield, fitted to the hull) from high on the port bow,
   space-lit, three stills: `shield-half` (shield_t 0.5: the bubble unfolding
   from the bow, its edge still opening, the emitter nodes already lit),
   `shield-raised` (fully raised, two hits flashing: port bow and dorsal aft)
-  and `shield-fortress` (the same with the Fortress Shield on, one hit).
+  and `shield-fortress` (the Fortress Shield on: nearly clear, three hits
+  carrying its colour).
 
 Outputs go to build/review/ beside this script (ignored) as
 <view>[-fx][-dark].png.
@@ -91,13 +92,13 @@ BEAM_VIEWS = {
     'beam-port': (Vector((-760, -700, 520)), Vector((260, 200, 70)), 26.0),
     'beam-pd': (Vector((260, -780, 760)), Vector((-10, 0, 40)), 36.0),
     'beam-bow': (Vector((330, 170, 95)), Vector((150, 0, 20)), 28.0),
-    'shield': (Vector((720, 820, 470)), Vector((0, 0, 0)), 30.0),
+    'shield': (Vector((390, 470, 260)), Vector((10, 0, 25)), 30.0),
 }
 # Shield stills: (shield_t, shield_fortress, [(hit, azimuth, elevation, strength), ...]).
 SHIELD_STILLS = {
     'shield-half': (.5, 0.0, []),
     'shield-raised': (1.0, 0.0, [(1, 35, 10, 1.0), (2, 160, 40, .7)]),
-    'shield-fortress': (1.0, 1.0, [(1, 35, 10, 1.0)]),
+    'shield-fortress': (1.0, 1.0, [(1, 35, 10, 1.0), (2, 70, -15, .8), (3, -20, 25, .6)]),
 }
 
 bpy.ops.wm.read_factory_settings(use_empty=True)

@@ -24,6 +24,8 @@ read from build/c1v2/inputs/ under the repository root:
     legion-geometry.blend       legion-geometry/legion-geometry.blend
     onslaught.blend             Drive builds/onslaught/e210771c0 or later (with onslaught-manifest.json)
     lasher.blend                Drive builds/lasher/4e2ed50 (with lasher-geometry.json)
+    colossus.blend              colossus-cinematic (finalize.sh), optional colossus-manifest.json
+    shepherd.blend              shepherd-cinematic (finalize.sh), optional shepherd-manifest.json
 """
 import json
 import math
@@ -515,6 +517,9 @@ def add_traffic(scene):
     # Customs: a Hegemony Hound crosses between camera and hero during hail 03.
     fly(customs_hound(scene), 23.0, 32.0, Vector((-300, 220, -70)), Vector((260, 270, -30)),
         roll=math.radians(-24))
+    # Civilian freight in the lanes and queuing at the station: the published freighter hulls.
+    import c1_fleet
+    c1_fleet.add(sys.modules[__name__])
 
 
 def customs_hound(scene):
@@ -551,7 +556,7 @@ def grey(name, value):
 
 def add_cards(scene):
     card(scene, 'station-v2.png', 790, 250, 290, 9000.0, 'Card | Jangala Station')
-    card(scene, 'traffic-atlas-v3.png', 170, 90, 120, 5200.0, 'Card | Atlas outbound')
+    # The Atlas card's place (170, 90 at 5.2 km) now holds a 3D Colossus: c1_fleet.LANE.
 
 
 def add_camera(scene):

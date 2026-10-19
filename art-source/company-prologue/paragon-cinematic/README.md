@@ -1,6 +1,6 @@
 # Paragon: cinematic asset
 
-Status: REVIEW (drives, beams and point defence accepted by the owner 2026-10-19; the Fortress Shield still in progress)
+Status: DONE (pass 7 accepted by the owner 2026-10-19: drives, beams and point defence; the Fortress Shield on round 2, owner: looks good)
 Written: 2026-10-19
 
 Source art for cinematics; nothing here ships in the mod. This folder makes
@@ -59,14 +59,19 @@ root = bpy.data.objects['PARAGON | clean | root']
     vanilla colours, widths, ranges and charge timings, dark until fired.
     `swfx_beams.fire_beam(ctx, 'ws003', frame)` keys a shot; `beam_len_<id>`
     is the distance to the target. `manifest.json` `beams` lists every id;
-  - the Fortress Shield (`swfx_shield`, dark until raised): a 270-unit
-    (235 m) bubble on `Shield emitter` in the vanilla colours (HIGH_TECH ring
+  - the Fortress Shield (`swfx_shield`, dark until raised): a shell fitted to
+    the hull (its convex hull pushed out 12 units, about 10 m, and smoothed:
+    227 x 167 x 63 half-extents against the game's 270-unit circle, which in
+    3D would be a sphere far larger than the flat ship), centred on
+    `Shield emitter` in plan, in the vanilla colours (HIGH_TECH ring
     255,255,255 and inner 125,125,255; the fortressshield system's inner
     255,100,255), unfolding from the bow both ways and closing aft as an OMNI
     shield does in the game; four aimable hit flashes; a glow and a light on
     each of the ten emitter nodes, which light first. `shield_t` raises it,
-    `shield_fortress` blends to the Fortress Shield (brighter, steadier,
-    magenta, nodes hotter), `shield_facing` turns where it unfolds from.
+    `shield_fortress` blends to the Fortress Shield: the shell goes nearly
+    clear and steady, and the magenta lives in the hits, which spread wider
+    and darken what lies behind them; the nodes burn hotter.
+    `shield_facing` turns where it unfolds from.
     `swfx_shield.raise_shield(ctx, frame, hold_s)`, `fortress(ctx, frame,
     hold_s)` (the system's 1.5 s charge up and down) and `hit(ctx, k, frame,
     azimuth, elevation)` key them; `manifest.json` `shield_fx` lists the
@@ -123,7 +128,7 @@ fortressshield system's), no lamps and no RCS.
    `review/lance-sequence.png` (the bow lances through one shot), and
    `review/shield.png` with `review/shield-half.png`, `shield-raised.png`
    and `shield-fortress.png` (`--shield`: half raised, raised with two hits,
-   and the Fortress Shield with one).
+   and the Fortress Shield with three).
 
 `--samples S` changes the samples, `--no-review` stops after verification.
 Renders go to `build/review/`, sheets to `review/`; both are ignored.
@@ -152,12 +157,13 @@ one on the port bow, the PD lasers never taking the main target, the aft
 turrets holding fire ahead and a ray along every fired beam meeting no part of
 the ship but its own weapon; at least four PD lasers engaging missiles inside
 their reach along clear lines while one beyond reach is left alone; the shield:
-its bubble on `Shield emitter` at the vanilla radius, dark (and the nodes unlit)
-until raised, the ten nodes fully lit a third of the way up, the Fortress
+its shell centred on `Shield emitter` in plan, clear of every hull vertex by at
+least a quarter of its margin and inside the vanilla sphere, dark (and the
+nodes unlit) until raised, the ten nodes fully lit a third of the way up, the Fortress
 Shield burning them hotter in its own colour, a hit aimed by azimuth and
-elevation landing on the bubble in the hull frame whatever the facing (and
-read by the bubble's shader), and the bubble enclosing every drive and
-turret (and all of the hull); every driver valid; and the root carrying the
+elevation landing on the shell in the hull frame whatever the facing,
+facing turning the unfold (both read by the bubble's shader), and the shell
+enclosing every drive and turret; every driver valid; and the root carrying the
 effects and the shield.
 
 ## Left out

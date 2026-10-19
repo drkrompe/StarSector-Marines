@@ -30,6 +30,9 @@ array. Colours are vanilla: the HIGH_TECH hull style's shieldRingColor
 (255,255,255) and shieldInnerColor (125,125,255, alpha 75); the Fortress
 Shield system's (fortressshield.system) ring 255,255,255 and inner
 255,100,255 (alpha 75), charge up and down 1.5 s (ship_systems.csv).
+The bubble is fitted to the hull (`fit`: the convex hull pushed out 12 units,
+about 10 m, and smoothed) rather than the game's 270-unit circle, which in 3D
+is a sphere far larger than the flat ship; the vanilla radius stays on record.
 Raise and lower times are the cinematic's own (the game's unfold rate is not
 a data column).
 
@@ -127,5 +130,7 @@ SHIELD = dict(
     nodes=[n['name'] for n in _geom['shield']['emitter_nodes']],
     ring=_rgb(255, 255, 255), inner=_rgb(125, 125, 255), inner_alpha=round(75 / 255, 4),
     fortress_ring=_rgb(255, 255, 255), fortress_inner=_rgb(255, 100, 255), fortress_alpha=round(75 / 255, 4),
+    # A shell fitted to the hull, ~10 m clear of it, in place of the 235 m sphere.
+    fit=dict(margin=12.0),
     raise_s=1.0, lower_s=1.0, fortress_up_s=1.5, fortress_down_s=1.5,
 )

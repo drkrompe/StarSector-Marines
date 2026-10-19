@@ -35,13 +35,15 @@ Ship with effects (`PARAGON | clean` + `SWFX` in one load):
 - point defence against five missiles: at least four PD lasers engage, each a
   missile inside its 500-unit reach along a clear line, and the missile beyond
   every PD laser's reach is left alone;
-- the shield: a bubble of the vanilla radius centred on `Shield emitter`,
-  dark (collapsed, nodes unlit) until raised; a third of the way up the ten
+- the shield: a shell fitted to the hull, centred on `Shield emitter` in
+  plan, clear of every hull vertex by at least a quarter of its margin and
+  inside the vanilla 270-unit sphere; dark (collapsed, nodes unlit) until
+  raised; a third of the way up the ten
   emitter nodes are fully lit; fortress mode burns them hotter and turns their
   light toward the fortressshield colour; a hit aimed by azimuth and
-  elevation lands on the bubble's surface in the hull frame whatever the
-  shield's facing, and the bubble's hit shader reads that hit; the bubble
-  encloses every drive and turret;
+  elevation lands on the shell's surface in the hull frame whatever the
+  shield's facing, facing turns the unfold, and the bubble's shader reads the
+  hits and the facing; the shell encloses every drive and turret;
 - every driver in SWFX is valid;
 - moving the root carries every plume and the shield with the ship.
 """
@@ -51,6 +53,7 @@ import math
 import sys
 import bpy
 from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 man = json.loads((HERE / 'manifest.json').read_text())
@@ -303,12 +306,30 @@ check('shield dark until raised', bub.matrix_world.to_scale().x < 1e-3 and
       [round(bub.matrix_world.to_scale().x, 4), sum(light_on(lo) for lo in nlights)])
 knobs(shield_t=1.0)
 c0 = sanc.matrix_world.translation
-pts = [bub.matrix_world @ v.co for v in bub.data.vertices]
-rad = sum((p - c0).length for p in pts) / len(pts)
-cen = sum(pts, Vector()) / len(pts)
-check('shield bubble on the emitter at the vanilla radius', abs(rad - sf['radius']) < .01 * sf['radius']
-      and (cen - c0).length < .5 and (c0.xy - Vector(geom['shield']['center'][:2])).length < 1e-3,
-      [round(rad, 2), sf['radius'], [round(c, 2) for c in cen]])
+cen_ob = bpy.data.objects[sf['centre']]
+cc = cen_ob.matrix_world.translation.copy()
+dg = bpy.context.evaluated_depsgraph_get()
+shell = BVHTree.FromObject(bub, dg)       # in the bubble's local frame (origin at the centre)
+binv = bub.matrix_world.inverted()
+
+
+def shell_reach(p):
+    """Distance from the centre to the shell toward world point p, and the
+    distance to p itself (both in the bubble's frame, hull units)."""
+    q = binv @ p
+    hit = shell.ray_cast(Vector((0, 0, 0)), q.normalized())
+    return (hit[3] if hit[0] is not None else 0.0), q.length
+
+
+hull_v = [o.matrix_world @ v.co for o in ship_c.all_objects if o.type == 'MESH' for v in o.data.vertices]
+clear = [r - d for r, d in (shell_reach(p) for p in hull_v)]
+margin = sf['fit']['margin']
+ext = [max(abs(v.co[i]) for v in bub.data.vertices) for i in range(3)]
+check('shield shell fits the hull, clear of every vertex',
+      min(clear) > .25 * margin and (cc.xy - c0.xy).length < 1e-3
+      and (c0.xy - Vector(geom['shield']['center'][:2])).length < 1e-3 and max(ext) < sf['radius'],
+      f"clearance {min(clear):.1f}..{max(clear):.1f} units (margin {margin}); half extents "
+      f"{[round(e, 1) for e in ext]} vs the vanilla 270 sphere; mean radius {sf['mean_radius']}")
 full = [lo.data.energy for lo in nlights]
 knobs(shield_t=.34)
 lead = [lo.data.energy for lo in nlights]
@@ -323,26 +344,27 @@ check('fortress mode burns the nodes hotter, in the fortress colour',
       [round(fort[0] / full[0], 2), [round(c, 3) for c in col]])
 knobs(shield_fortress=0.0)
 bad = []
+facing_ob = bpy.data.objects['SWFX shield facing']
 for facing in (0.0, 90.0):
     knobs(shield_facing=facing, shield_hit_az_2=120.0, shield_hit_el_2=30.0)
     h = bpy.data.objects[sf['hits'][1]]
     a, e = math.radians(120), math.radians(30)
-    want = c0 + sf['radius'] * Vector((math.cos(a) * math.cos(e), math.sin(a) * math.cos(e), math.sin(e)))
-    if (h.matrix_world.translation - want).length > .05:
+    d = Vector((math.cos(a) * math.cos(e), math.sin(a) * math.cos(e), math.sin(e)))
+    want = cc + shell_reach(cc + d)[0] * d
+    if (h.matrix_world.translation - want).length > .5:
         bad.append((facing, [round(c, 2) for c in h.matrix_world.translation], [round(c, 2) for c in want]))
-fwd = (bub.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized()
+fwd = (facing_ob.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized()
 knobs(shield_facing=0.0, shield_hit_az_2=0.0, shield_hit_el_2=0.0)
 bound = {n.object.name for n in bub.data.materials[0].node_tree.nodes if n.type == 'TEX_COORD' and n.object}
-check('shield hits land on the bubble in the hull frame', not bad and fwd.y > .999 and bound == set(sf['hits']),
-      bad or [[round(c, 3) for c in fwd], sorted(bound)])
-inside = [e['index'] for e in man['engines'] if (Vector((e['mouth_x'], e['slot_location'][1], e['axis_z'])) - c0).length
-          < sf['radius']]
+check('shield hits land on the shell in the hull frame; facing turns the unfold', not bad and fwd.y > .999
+      and bound == set(sf['hits']) | {facing_ob.name}, bad or [[round(c, 3) for c in fwd], sorted(bound)])
 pivs = [s['pivot'] for s in man['weapon_slots'] if s['mount'] == 'TURRET']
-pin = [p for p in pivs if (bpy.data.objects[p].matrix_world.translation - c0).length < sf['radius']]
-hull_v = [o.matrix_world @ v.co for o in ship_c.all_objects if o.type == 'MESH' for v in o.data.vertices]
-vin = sum((p - c0).length < sf['radius'] for p in hull_v) / len(hull_v)
+inside = [e['index'] for e in man['engines']
+          if shell_reach(Vector((e['mouth_x'], e['slot_location'][1], e['axis_z'])))[0]
+          > shell_reach(Vector((e['mouth_x'], e['slot_location'][1], e['axis_z'])))[1]]
+pin = [p for p in pivs if (lambda r: r[0] > r[1])(shell_reach(bpy.data.objects[p].matrix_world.translation))]
 check('the shield encloses every drive and turret', len(inside) == 10 and len(pin) == len(pivs),
-      f'{len(inside)}/10 drives, {len(pin)}/{len(pivs)} turrets, {vin:.2%} of hull vertices')
+      f'{len(inside)}/10 drives, {len(pin)}/{len(pivs)} turrets')
 knobs(shield_t=0.0)
 inval = []
 for o in fx:
