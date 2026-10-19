@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15199-ca59-7f31-972a-ba8514e83216",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15199-ca59-7f31-972a-ba8514e83216\\exec-d81a8b5c-fbd3-4571-a43f-0de2bda41a09.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\02-stamped-plate-v2.png",
+    "sha256": "991b724bb1b58af5ab0025e71ba7a277bbed28180a9aac54a39c5283586ac693",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\02-stamped-plate-v2.txt",
+  "promptSha256": "931dc99dfc33c76f3d1a1d58d32317742ea5a996f51efd9740631cde3c917a56",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station who arrive on a jungle world in a patched old ship. Direction: worn stamped metal nameplate. The mark is a wide, low riveted steel nameplate of the kind bolted to old industrial machinery: a horizontal plate with chamfered corners and four rivets. STARSECTOR is raised and embossed from the plate across its full width in heavy squared industrial capitals, the raised faces rubbed bright where paint has worn off, the recessed field painted a dark gunmetal grey that is chipped and scratched. MARINES is smaller, stamped into a narrow band along the bottom edge of the plate. Warm daylight from the upper left, subtle realistic metal, gentle wear and a touch of rust at the rivets; not chrome, not shiny, not a video-game bevel. The plate itself is the logo shape; everything outside the plate is transparent.\n\nLettering must be spelled exactly, in capital letters: STARSECTOR, large and dominant, the main word of the title; and MARINES, clearly smaller, as the subtitle that names this particular game. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface, layout or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and the smaller word must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image with the worn steel nameplate, exact lettering, and a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 36930,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 471,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 42.9
+}

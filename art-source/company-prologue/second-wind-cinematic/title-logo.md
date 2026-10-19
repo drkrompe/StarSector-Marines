@@ -1,7 +1,8 @@
 # Title logo — STARSECTOR: MARINES
 
-Status: DRAFT — brief written and six first directions made for the owner to choose from; none chosen.
+Status: DRAFT — word order decided (STARSECTOR big, MARINES small); six directions made in that order; no direction chosen.
 Written: 2026-10-18
+Updated: 2026-10-18 — owner flipped the hierarchy after the first round; second round made to match.
 
 The title comes up at the end of the Jangala arrival cinematic, in the last six
 seconds of C5 (`c5-v2-closing.md`, beats 26–32 s). It is the first time the
@@ -55,25 +56,29 @@ Keep it simple and let the music do the work.
 - **It is a fan mod.** It must not copy, trace or echo Fractal Softworks' own
   Starsector logo — its lettering, layout or emblem — or look like an official
   release. No trademark symbols.
-- "Starsector" may appear, as the name of the setting, and smaller. **MARINES
-  carries the identity**: it is the big word, and the mark should be recognisably
-  this mod's even with "Starsector" covered up.
+- **STARSECTOR is the big word and MARINES the smaller one** (owner,
+  2026-10-18, after the first round, which had it the other way): Starsector is
+  the draw, and MARINES names this particular game. Because the big word is the
+  game's own name, the look has to be clearly ours, so the lettering, layout and
+  treatment must stay well away from the official logo. Our styles (stencil,
+  riveted plate, hull paint, patch) do the work that a big MARINES did before.
 - No other words, taglines, version numbers or credits in the mark itself.
 - Nothing that needs the cinematic to read: it must also work alone on a plain
   screen.
 
-## The first six directions
+## The six directions
 
 Each was made with ImageGen from the brief in `title-logo/prompts/` and put over
 the end frame of C4's port pan, the same wide view the C5 pull-out ends on, by
-`title-logo/compose_title.py`.
+`title-logo/compose_title.py`. The first round (`<name>.txt`) had MARINES big;
+the second (`<name>-v2.txt`) is the same six ideas with STARSECTOR big.
 
 | # | Direction | Idea |
 |---|---|---|
 | 1 | Stencil | Spray-painted through a cut stencil, like crate markings. Bone white and charcoal. |
 | 2 | Stamped plate | A riveted steel nameplate from old machinery, letters raised and worn bright. |
 | 3 | Unit patch | An embroidered company patch (a boat coming down to a planet) beside a clean wordmark. |
-| 4 | Hull paint | MARINES hand-painted on patched hull plating, like the ship's own name. |
+| 4 | Hull paint | The title hand-painted on patched hull plating, like the ship's own name. |
 | 5 | Clean horizon | Quiet and airy: thin wide letters over a planet's curve at dawn. |
 | 6 | Hazard industrial | Port signage: a dark bar with worn orange-and-black hazard stripes. |
 

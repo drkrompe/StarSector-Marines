@@ -1,10 +1,12 @@
 """Put each title-logo direction over a C5 port frame, at 1920x1080, for review.
 
     python compose_title.py --bg <frame.png> [--out build/title-logo/review] [--width 0.5]
+                            [--masters '*-v2.png']
 
-Reads every master in masters/ (transparent PNGs from tools/codex_imagegen.py, one per
-prompts/<name>.txt), trims it to its visible pixels, scales it to --width of the frame,
-and centres it a little above the middle of the shot (`title-logo.md`, "Where it sits").
+Reads the masters in masters/ (transparent PNGs from tools/codex_imagegen.py, one per
+prompts/<name>.txt; by default the first round, and --masters picks a later one such as
+'*-v2.png'), trims each to its visible pixels, scales it to --width of the frame, and
+centres it a little above the middle of the shot (`title-logo.md`, "Where it is seen").
 
 Behind the logo goes what the brief allows for legibility over a bright, busy overhead
 view: a soft darkening of the ground under the title (a wide blurred ellipse, at most
@@ -69,6 +71,7 @@ def main():
     ap.add_argument('--out', default=str(HERE.parents[3] / 'build' / 'title-logo' / 'review'))
     ap.add_argument('--width', type=float, default=0.5, help='logo width as a share of the frame')
     ap.add_argument('--scrim', type=float, default=0.35, help='darkening under the title, 0-1')
+    ap.add_argument('--masters', default='*.png', help='which masters, as a glob (e.g. *-v2.png)')
     args = ap.parse_args()
 
     bg = Image.open(args.bg).convert('RGB')
@@ -77,7 +80,8 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    masters = sorted((HERE / 'masters').glob('*.png'))
+    masters = sorted((HERE / 'masters').glob(args.masters))
+    masters = [m for m in masters if args.masters != '*.png' or not m.stem.endswith(tuple(f'-v{n}' for n in range(2, 10)))]
     frames = []
     for i, m in enumerate(masters, 1):
         f = compose(bg, trimmed(m), args.width, args.scrim)
