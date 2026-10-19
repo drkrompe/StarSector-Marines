@@ -1,0 +1,19 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of dorsal hull surfaces of one 3D spacecraft (an Onslaught-class Hegemony battleship, a huge low-tech armoured capital ship), each surface seen square-on and drawn alone as flat-coloured shapes on a plain flat mid-blue background. The flat colours mark materials:
+- bright orange areas are warm saturated Hegemony orange enamel armour; darker rust-orange plates are a weathered, duller and darker orange enamel (keep them clearly darker than the bright orange plates); black lines and strips are near-black plate seams and recesses;
+- mid brown plates are a muted warm brown-grey enamel; dark brown plates are a darker chocolate brown enamel; pale tan plates are a lighter bone-brown enamel; dark blue-grey plates are blue-grey steel; black outlines are near-black seams;
+The four tiles:
+top-left: bright orange prow shoulder armour with a black-outlined inset panel and a small black slot, plus a few separate small brown-grey and dark blue-grey plates at the upper left;
+top-right: separate rectangular deck plates of a stepped deck: mostly mid brown-grey plates in black outlines, one small dark blue-grey steel plate at the right;
+bottom-left: separate deck plates round a raised citadel: mid brown plates, darker chocolate-brown plates, a few pale tan bone-brown plates, and a curved dark blue-grey steel apron plate in two segments, all in black outlines;
+bottom-right: separate deck plates of the other side: mid brown and dark chocolate-brown plates, long narrow brown strips, and a pale tan bone-brown plate at the lower left, all in black outlines;
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its heavy semi-matte industrial enamel, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four tiles in INPUT 1 as those working armour plates. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline; every gap between separate plates stays plain background blue.
+- Each shape is a flat painted heavy armour plate. Add painted surface detail inside its outline only: crisp plate seams and weld lines, neat rows of large fasteners, flush access covers, subtle tone variation within a plate, a light even film of dust and grime packed into the seams, and lightly scuffed plate edges. Nothing may stand out from the surface or cross the outline.
+- Keep each plate its OWN colour exactly as INPUT 1 marks it. The ship's plating alternates tones on purpose: never even them out, never blend one plate's tone into its neighbour, never repaint a plate another colour. No stripes, no differently coloured patches, no repair plates.
+- The ship is a picket flagship on station, properly maintained. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

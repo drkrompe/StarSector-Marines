@@ -535,7 +535,8 @@
         "Weapon WS 003 muzzle anchor 1"
       ],
       "weapon": "tachyonlance",
-      "elite_variant": "tachyonlance"
+      "elite_variant": "tachyonlance",
+      "elevation": "Weapon WS 003 elevation"
     },
     {
       "id": "WS 004",
@@ -565,7 +566,8 @@
         "Weapon WS 004 muzzle anchor 1"
       ],
       "weapon": "tachyonlance",
-      "elite_variant": "tachyonlance"
+      "elite_variant": "tachyonlance",
+      "elevation": "Weapon WS 004 elevation"
     },
     {
       "id": "WS 005",
@@ -595,7 +597,8 @@
         "Weapon WS 005 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
-      "elite_variant": "gravitonbeam"
+      "elite_variant": "gravitonbeam",
+      "elevation": "Weapon WS 005 elevation"
     },
     {
       "id": "WS 006",
@@ -625,7 +628,8 @@
         "Weapon WS 006 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
-      "elite_variant": "gravitonbeam"
+      "elite_variant": "gravitonbeam",
+      "elevation": "Weapon WS 006 elevation"
     },
     {
       "id": "WS 007",
@@ -656,7 +660,8 @@
         "Weapon WS 007 muzzle anchor 2"
       ],
       "weapon": "needler",
-      "elite_variant": "heavyneedler"
+      "elite_variant": "heavyneedler",
+      "elevation": "Weapon WS 007 elevation"
     },
     {
       "id": "WS 008",
@@ -687,7 +692,8 @@
         "Weapon WS 008 muzzle anchor 2"
       ],
       "weapon": "needler",
-      "elite_variant": "heavyneedler"
+      "elite_variant": "heavyneedler",
+      "elevation": "Weapon WS 008 elevation"
     },
     {
       "id": "WS 009",
@@ -717,7 +723,8 @@
         "Weapon WS 009 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
-      "elite_variant": "gravitonbeam"
+      "elite_variant": "gravitonbeam",
+      "elevation": "Weapon WS 009 elevation"
     },
     {
       "id": "WS 010",
@@ -747,7 +754,8 @@
         "Weapon WS 010 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
-      "elite_variant": "gravitonbeam"
+      "elite_variant": "gravitonbeam",
+      "elevation": "Weapon WS 010 elevation"
     },
     {
       "id": "WS 011",
@@ -777,7 +785,12 @@
         "Weapon WS 011 muzzle anchor 1"
       ],
       "weapon": "pdlaser",
-      "elite_variant": "pdlaser"
+      "elite_variant": "pdlaser",
+      "elevation": "Weapon WS 011 elevation",
+      "elevation_limits_deg": [
+        -5,
+        75
+      ]
     },
     {
       "id": "WS 012",
@@ -807,7 +820,8 @@
         "Weapon WS 012 muzzle anchor 1"
       ],
       "weapon": "reaper",
-      "elite_variant": "reaper"
+      "elite_variant": "reaper",
+      "elevation": "Weapon WS 012 elevation"
     },
     {
       "id": "WS 013",
@@ -837,7 +851,8 @@
         "Weapon WS 013 muzzle anchor 1"
       ],
       "weapon": "taclaser",
-      "elite_variant": "taclaser"
+      "elite_variant": "taclaser",
+      "elevation": "Weapon WS 013 elevation"
     },
     {
       "id": "WS 014",
@@ -867,7 +882,8 @@
         "Weapon WS 014 muzzle anchor 1"
       ],
       "weapon": "reaper",
-      "elite_variant": "reaper"
+      "elite_variant": "reaper",
+      "elevation": "Weapon WS 014 elevation"
     },
     {
       "id": "WS 015",
@@ -897,7 +913,8 @@
         "Weapon WS 015 muzzle anchor 1"
       ],
       "weapon": "taclaser",
-      "elite_variant": "taclaser"
+      "elite_variant": "taclaser",
+      "elevation": "Weapon WS 015 elevation"
     },
     {
       "id": "WS 016",
@@ -927,7 +944,12 @@
         "Weapon WS 016 muzzle anchor 1"
       ],
       "weapon": "pdlaser",
-      "elite_variant": "pdlaser"
+      "elite_variant": "pdlaser",
+      "elevation": "Weapon WS 016 elevation",
+      "elevation_limits_deg": [
+        -5,
+        75
+      ]
     },
     {
       "id": "WS 017",
@@ -957,7 +979,12 @@
         "Weapon WS 017 muzzle anchor 1"
       ],
       "weapon": "pdlaser",
-      "elite_variant": "pdlaser"
+      "elite_variant": "pdlaser",
+      "elevation": "Weapon WS 017 elevation",
+      "elevation_limits_deg": [
+        -5,
+        75
+      ]
     },
     {
       "id": "WS 018",
@@ -987,7 +1014,8 @@
         "Weapon WS 018 muzzle anchor 1"
       ],
       "weapon": "reaper",
-      "elite_variant": "reaper"
+      "elite_variant": "reaper",
+      "elevation": "Weapon WS 018 elevation"
     },
     {
       "id": "WS 019",
@@ -1017,7 +1045,8 @@
         "Weapon WS 019 muzzle anchor 1"
       ],
       "weapon": "taclaser",
-      "elite_variant": "taclaser"
+      "elite_variant": "taclaser",
+      "elevation": "Weapon WS 019 elevation"
     },
     {
       "id": "WS 020",
@@ -1047,7 +1076,8 @@
         "Weapon WS 020 muzzle anchor 1"
       ],
       "weapon": "reaper",
-      "elite_variant": "reaper"
+      "elite_variant": "reaper",
+      "elevation": "Weapon WS 020 elevation"
     },
     {
       "id": "WS 021",
@@ -1077,7 +1107,8 @@
         "Weapon WS 021 muzzle anchor 1"
       ],
       "weapon": "taclaser",
-      "elite_variant": "taclaser"
+      "elite_variant": "taclaser",
+      "elevation": "Weapon WS 021 elevation"
     },
     {
       "id": "WS 022",
@@ -1107,7 +1138,12 @@
         "Weapon WS 022 muzzle anchor 1"
       ],
       "weapon": "pdlaser",
-      "elite_variant": "pdlaser"
+      "elite_variant": "pdlaser",
+      "elevation": "Weapon WS 022 elevation",
+      "elevation_limits_deg": [
+        -5,
+        75
+      ]
     },
     {
       "id": "WS 023",
@@ -1137,7 +1173,12 @@
         "Weapon WS 023 muzzle anchor 1"
       ],
       "weapon": "pdlaser",
-      "elite_variant": "pdlaser"
+      "elite_variant": "pdlaser",
+      "elevation": "Weapon WS 023 elevation",
+      "elevation_limits_deg": [
+        -5,
+        75
+      ]
     }
   ],
   "firing_lines": {
@@ -1708,76 +1749,6 @@
         0
       ],
       "orthographic_scale": 300
-    },
-    {
-      "name": "turret-large",
-      "position": [
-        60.0,
-        -170.0,
-        80.0
-      ],
-      "target": [
-        3.0,
-        -99.0,
-        30.0
-      ],
-      "orthographic_scale": 45.0
-    },
-    {
-      "name": "turret-bow",
-      "position": [
-        190.0,
-        -120.0,
-        70.0
-      ],
-      "target": [
-        110.0,
-        -55.0,
-        25.0
-      ],
-      "orthographic_scale": 70.0
-    },
-    {
-      "name": "turret-aft",
-      "position": [
-        -60.0,
-        -170.0,
-        70.0
-      ],
-      "target": [
-        -75.0,
-        -95.0,
-        20.0
-      ],
-      "orthographic_scale": 60.0
-    },
-    {
-      "name": "turret-needler",
-      "position": [
-        110.0,
-        -150.0,
-        70.0
-      ],
-      "target": [
-        51.0,
-        -90.0,
-        20.0
-      ],
-      "orthographic_scale": 45.0
-    },
-    {
-      "name": "turret-pd",
-      "position": [
-        160.0,
-        -120.0,
-        60.0
-      ],
-      "target": [
-        106.0,
-        -69.0,
-        20.0
-      ],
-      "orthographic_scale": 30.0
     }
   ],
   "silhouette": {
@@ -1787,10 +1758,10 @@
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.569,
-    "white": 0.512,
-    "dark": 0.415,
-    "agreement": 0.656,
+    "skin": 0.57,
+    "white": 0.513,
+    "dark": 0.416,
+    "agreement": 0.657,
     "silhouette": 0.962,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }

@@ -557,6 +557,10 @@ def build(weapon, prefix, pivot, r, mats, mpu, detail='near', **over):
         muzzles = _cluster(gun, f, s, r, trunnion, extra)
     else:
         muzzles = _cannons(gun, f, s, r, trunnion, extra)
+    lim = (extra or {}).get('elevation_limits') if isinstance(extra, dict) else None
+    if lim:
+        # Degrees of elevation, positive up; the empty lifts the muzzles with negative Y rotation.
+        elev['elevation_min_deg'], elev['elevation_max_deg'] = lim
     anchors = []
     for k, (x, y, z) in enumerate(muzzles):
         a = bpy.data.objects.new(f'{prefix} muzzle anchor {k+1}', None)
@@ -930,6 +934,14 @@ def _sprite_mats(s, mats):
     out.setdefault('lamp_blue', lamp_material('Turret lamp blue-white', (.35, .62, 1.0), 2.0))
     out.setdefault('lamp_red', lamp_material('Turret lamp red', (1.0, .15, .1), 3.0))
     out.setdefault('lamp_core', lamp_material('Turret lamp gold core', (.95, .85, .5), 1.6))
+    cable = bpy.data.materials.get('Turret power cable')
+    if cable is None:
+        cable = bpy.data.materials.new('Turret power cable')
+        cable.use_nodes = True
+        cb = cable.node_tree.nodes['Principled BSDF']
+        cb.inputs['Base Color'].default_value = (.025, .025, .028, 1)
+        cb.inputs['Roughness'].default_value = .55
+    out.setdefault('cable', cable)
     return out
 
 
@@ -2481,38 +2493,116 @@ def _house_reaper(g, f, s, r, z0):
     return (1.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
 
 
+def _cable(m, ctrl, r, k, z0, n=12, segs=16, t0=0.0, t1=1.0):
+    """A cable swept along a cubic Bezier ctrl = 4 points (x, y, z) in sprite pixels (z above z0),
+    from parameter t0 to t1: round, capped, its rings kept square to the run."""
+    P = [Vector(c) for c in ctrl]
+
+    def at(t):
+        u = 1-t
+        return u**3*P[0]+3*u*u*t*P[1]+3*u*t*t*P[2]+t**3*P[3]
+
+    def tan(t):
+        u = 1-t
+        return (3*u*u*(P[1]-P[0])+6*u*t*(P[2]-P[1])+3*t*t*(P[3]-P[2])).normalized()
+    rings, ref = [], Vector((0, 0, 1))
+    for i in range(segs+1):
+        t = t0+(t1-t0)*i/segs
+        c, tv = at(t), tan(t)
+        side = tv.cross(ref)
+        if side.length < 1e-4:
+            side = tv.cross(Vector((0, 1, 0)))
+        side.normalize()
+        up = side.cross(tv).normalized()
+        ref = up
+        rings.append([m.bm.verts.new(m.base @ Vector(((c.x+r*(math.cos(a)*side.x+math.sin(a)*up.x))*k,
+                                                      (c.y+r*(math.cos(a)*side.y+math.sin(a)*up.y))*k,
+                                                      z0+(c.z+r*(math.cos(a)*side.z+math.sin(a)*up.z))*k)))
+                      for a in (2*math.pi*j/n for j in range(n))])
+    for a, b in zip(rings, rings[1:]):
+        for j in range(n):
+            m.bm.faces.new((a[j], a[(j+1) % n], b[(j+1) % n], b[j]))
+    m.bm.faces.new(rings[0])
+    m.bm.faces.new(rings[-1][::-1])
+
+
 def _house_pdlaser(g, f, s, r, z0):
-    """pd_laser_turret_base.png. A rounded dark housing aft (its light knob on the
-    crown); round its middle a red armoured collar with a louvred vent on top (the
+    """pd_laser_turret_base.png. A rounded dark housing aft, lofted to the sprite's
+    plan (its light knob on the crown); round its middle a red armoured collar with a louvred vent on top (the
     light and dark stripes); forward, the light emitter drum lying along the line of
     fire, a collar band round it and the lens in its face. A point-defence mount:
-    low, compact and fast to train."""
+    low, compact and quick, and busy in a fight, so the drum rides a gimbal: a yoke
+    of two arms off the collar carries it on trunnion hubs, and it elevates from
+    5 degrees down to 75 up (ELEVATION_LIMITS). It is a laser / plasma mount, so its
+    power is heavy cabling: a junction box on the housing's crown feeds two armoured
+    cables a side over the collar's shoulders into the trunnion hubs, where slip
+    rings carry it across the elevation axis (the cables never flex with the drum).
+    Everything stands on a round chamfered turntable, not on a plate cut to the
+    sprite's outline."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    d = .5
-    _tt_deck(g, sp, k, z0, d)
-    prof = [(math.cos(a)*6.0, math.sin(a)*3.4) for a in (math.radians(t) for t in range(0, 91, 10))]
-    g['paint'].lathe([(6.0*k, 0)]+[(x*k, z*k) for x, z in prof[1:-1]]+[(0, 3.4*k)], 32, (-2.6*k, 0, z0+d*k))
-    g['metal'].cyl((-3.4*k, 0, z0+(d+3.4)*k), .9*k, .5*k, 'Z', n=24, bevel=.1*k)
-    collar = [(-1.6, 6.4, 3.2), (.2, 6.6, 3.6), (2.6, 5.6, 3.4)]
-    band = g['accent']
-    _loft(band, [(x, section(hw, d, h, .8, 0, .4, 2)) for x, hw, h in
-                 ((x, *_cr(collar, x)) for x in (-1.6, -1.0, -.2, .6, 1.4, 2.0, 2.6))], k, z0)
+    d = .6
+    # Turntable: a chamfered disc under the whole mount, a seam ring round its top.
+    g['steel'].lathe([(5.6*k, 0), (5.6*k, .3*k), (5.25*k, d*k), (0, d*k)], 64, (-1.0*k, 0, z0))
+    g['dark'].ring((-1.0*k, 0, z0+(d+.02)*k), 4.7*k, 4.9*k, .06*k, 'Z', n=64)
+    # Housing: a rounded body lofted to the sprite's plan (wide at the collar, a blunt
+    # rounded tail), crowned highest just behind the collar.
+    body = [(-6.7, 2.2, 1.0), (-6.3, 4.2, 1.7), (-5.4, 5.6, 2.4), (-4.0, 6.4, 3.0), (-2.4, 6.7, 3.4),
+            (-.8, 6.8, 3.55), (1.0, 6.6, 3.4), (2.6, 6.0, 3.0)]
+    _loft(g['paint'], [(x, section(hw, d, d+h, min(1.6, .45*h), 0, .5, 3)) for x, hw, h in
+                       ((x, *_cr(body, x)) for x in [-6.7+i*.4675 for i in range(21)])], k, z0)
+    g['metal'].cyl((-3.4*k, 0, z0+(d+3.3)*k), .9*k, .5*k, 'Z', n=24, bevel=.1*k)
+    collar = [(-1.6, 7.3, 3.4), (.2, 7.5, 3.8), (2.6, 6.4, 3.5)]
+    _loft(g['accent'], [(x, section(hw, d, h, .8, 0, .4, 2)) for x, hw, h in
+                        ((x, *_cr(collar, x)) for x in (-1.6, -1.0, -.2, .6, 1.4, 2.0, 2.6))], k, z0)
     for yy in (-2.2, -1.0, .2, 1.4):
         g['metal'].box((.4*k, yy*k, z0+(d+3.62)*k), (2.6*k, .55*k, .3*k), .05*k)
     g['dark'].box((.4*k, -.4*k, z0+(d+3.52)*k), (2.8*k, 4.4*k, .1*k))
-    # The emitter drum: an elliptical body along the line of fire (as wide as the
-    # sprite draws it, about half as tall), stepped down to the lens at its face.
-    zc, za = d+1.9, z0+(d+1.9)*k
+    # Gimbal: the yoke's arms rise off the turntable either side of the drum, their
+    # trunnion hubs (slip-ring band in red) on the elevation axis.
+    xt, zt = 5.2, 3.4
+    for sy in (1, -1):
+        g['steel'].loft_x([(x*k, [(sy*y*k, z0+z*k) for y, z in ((3.65, d), (4.3, d), (4.3, zt+.7), (3.65, zt+.7))])
+                           for x in (4.2, 6.2)])
+        g['steel'].cyl((xt*k, sy*4.2*k, z0+zt*k), 1.0*k, .9*k, 'Y', n=32, bevel=.1*k)
+        g['lamp_red'].ring((xt*k, sy*4.2*k, z0+zt*k), 1.0*k, 1.1*k, .25*k, 'Y', n=32)
+        g['dark'].cyl((xt*k, sy*4.68*k, z0+zt*k), .5*k, .08*k, 'Y', n=24)
+    # Power: junction box aft, two armoured cables a side over the collar's shoulders,
+    # sleeved and clamped, into the back of each hub through a gland.
+    g['steel'].box((-5.8*k, 0, z0+3.4*k), (1.8*k, 8.6*k, 1.4*k), .2*k)
+    g['dark'].box((-6.72*k, 0, z0+3.4*k), (.05*k, 6.0*k, .7*k))
+    for sy in (1, -1):
+        for dy, rr, lift, end in ((3.0, .5, 0.0, (4.3, 4.0, 4.3)), (4.1, .36, -.25, (4.55, 4.5, 3.85))):
+            y0 = sy*dy
+            ex, ey, ez = end
+            ctrl = [(-4.85, y0, 3.65+lift), (-1.5, y0*1.02, 5.1+lift), (2.2, sy*ey, 5.3+lift), (ex, sy*ey, ez)]
+            _cable(g['cable'], ctrl, rr, k, z0)
+            _cable(g['steel'], ctrl, rr+.18, k, z0, segs=2, t0=0.0, t1=.06)
+            _cable(g['steel'], ctrl, rr+.18, k, z0, segs=2, t0=.9, t1=1.0)
+            for t in (.22, .38, .62):
+                _cable(g['steel'], ctrl, rr+.1, k, z0, segs=1, t0=t, t1=t+.025)
+        g['steel'].box((.4*k, sy*3.65*k, z0+4.65*k), (.7*k, 2.6*k, .35*k), .05*k)
+        for yy in (2.5, 4.8):
+            g['steel'].box((.4*k, sy*yy*k, z0+4.3*k), (.7*k, .3*k, 1.0*k), .05*k)
+    za = z0+zt*k
 
-    def drum(hw, hz, n=24):
-        return [(hw*math.cos(2*math.pi*i/n), zc+hz*math.sin(2*math.pi*i/n)) for i in range(n)]
-    _loft(g['accent2'], [(3.0, drum(3.4, 1.85)), (4.1, drum(3.6, 1.95)), (4.4, drum(3.3, 1.8)), (5.6, drum(3.3, 1.8)),
-                         (6.0, drum(2.9, 1.6)), (6.9, drum(2.9, 1.6)), (7.2, drum(2.4, 1.35))], k, z0)
-    _loft(g['steel'], [(x, drum(3.5, 1.95)) for x in (4.85, 5.15)], k, z0)
-    _loft(g['dark'], [(x, drum(2.0, 1.1)) for x in (7.15, 7.3)], k, z0)
-    _loft(g['lamp_blue'], [(7.25, drum(1.7, .95)), (7.5, drum(1.2, .65)), (7.6, drum(.5, .3))], k, z0)
-    return (3.2*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'muzzles': _tt_muzzles(sp, k, za)}
+    def gun_parts(gg, _za):
+        """The drum on the elevation empty: an elliptical body along the line of fire
+        (as wide as the sprite draws it, about half as tall), its band, stepped down
+        to the lens, trunnion pins into the hubs, coolant ports on its flanks."""
+        def drum(hw, hz, n=24):
+            return [(hw*math.cos(2*math.pi*i/n), zt+hz*math.sin(2*math.pi*i/n)) for i in range(n)]
+        _loft(gg['accent2'], [(3.8, drum(2.9, 1.75)), (4.4, drum(3.25, 1.9)), (4.7, drum(3.1, 1.8)),
+                              (5.8, drum(3.1, 1.8)), (6.15, drum(2.9, 1.6)), (6.95, drum(2.9, 1.6)),
+                              (7.25, drum(2.4, 1.35))], k, z0)
+        _loft(gg['steel'], [(x, drum(3.2, 1.9)) for x in (5.05, 5.35)], k, z0)
+        _loft(gg['dark'], [(x, drum(2.0, 1.1)) for x in (7.2, 7.35)], k, z0)
+        _loft(gg['lamp_blue'], [(7.3, drum(1.7, .95)), (7.55, drum(1.2, .65)), (7.65, drum(.5, .3))], k, z0)
+        gg['metal'].cyl((xt*k, 0, za), .5*k, 7.6*k, 'Y', n=24)
+        for sy in (1, -1):
+            gg['steel'].cyl((6.55*k, sy*2.7*k, za+.5*k), .45*k, .6*k, 'Y', n=16)
+    return (xt*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts,
+                             'muzzles': _tt_muzzles(sp, k, za), 'elevation_limits': (-5, 75)}
 
 
 HANDS = {'heavyac': _house_heavyac2, 'flak': _house_flak2, 'vulcan': _house_vulcan, 'lightac': _house_lightac,

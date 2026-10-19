@@ -3,7 +3,7 @@
 Status: ACTIVE — slices 1 (spacing and soft hull contact), 2 (group roles and manoeuvres) and 3 (hull-fight tempo D1, mount repair D2) built; slice 4 (equal fights resolve: standoff, pressing), slice 5 (fights at range, to the death), slice 6 (one-on-one duels flown for position), slice 7 (the pack relay) and slice 8 (missile behaviour) built
 
 Written: 2026-10-16
-Updated: 2026-10-19 — slice 8: missiles launched into windows by role, salvos, hull-run flight shape, point defence in the hull fight's geometry, magazine reloads
+Updated: 2026-10-19 — slice 8 missile behaviour; a mismatched pack tanks with its sturdier hull and a ship goes for the hull its guns can hurt; Black Sluice is fought by an Enforcer and a Wolf
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -652,6 +652,40 @@ The control, with `packRelay=false`, takes 658 to 940 s and fails `friendly-hull
 threat targeting off as well, two seeds are unresolved at 1,500 s. The relay is what brings the fight inside minutes.
 The Greyhook never takes an Enforcer's hull: her kinetic Heavy Autocannons glance off its plate.
 
+### A mismatched pack, and Black Sluice with an Enforcer and a Wolf
+
+Rusk's pair at Black Sluice became one Enforcer and one Wolf (`a-small-war.md`; `warship-behaviours.md`, Rusk's
+Enforcer and Wolf), which showed two places the relay and the target choice assumed hulls of a kind. Both fixes are
+general.
+
+- **The tank is the sturdier hull.** A pack with a hull at least half again as sturdy as each partner (remaining hull
+  over the share of a middling round its armour lets through, plus what its shield's pool absorbs;
+  `WarshipTactics.sturdiness`) gives it the target first, lets a lighter partner relieve it only when its shield is
+  going, and hands the target back to it from a lighter tank as soon as it is fresh. Before, the Wolf tanked whenever
+  the Greyhook happened to look at it, 20 to 45 percent of the fight; now the Enforcer holds her eye throughout.
+- **A ship goes for the hull its guns can hurt.** With two or more hulls to choose from, the share of a chooser's
+  anti-ship gun battery a hull's armour turns away costs up to two reaches of range (`WarshipTactics.bite`;
+  `-Dbattle.warship.biteTargeting=false` is the control). The Greyhook's autocannons glance off the Enforcer, so she
+  turns on the Wolf 93 to 98 percent of the time; with the control she is on the Enforcer 62 to 81 percent of it and
+  two of five seeds are still undecided at the twenty-five-minute bound.
+
+`WarshipPackRelayTest` pins both. The warship scene set and `greyhook-duel` (166 loops) stay green. `greyhook-duel`,
+eight seeds, production refits (the Enforcer in `RUSK_REFIT`, the Wolf as fitted, the Greyhook in `GREYHOOK_REFIT`):
+
+| seed | first hit after the order | Greyhook down, after first hit | Wolf | Greyhook breaches / mounts out | Wolf vents | Enforcer hull |
+| --- | --- | --- | --- | --- | --- | --- |
+| 15305 | 66s | 472s | 45% | 51 / 0 | 4 | 100% |
+| 16205 | 66s | 623s | 49% | 43 / 0 | 6 | 100% |
+| 16206 | 66s | 527s | 50% | 31 / 1 | 4 | 100% |
+| 20261016 | 66s | 428s | down at 474s after the order, 20s before her | 47 / 0 | 5 | 100% |
+| 31337 | 66s | 556s | 9% | 37 / 0 | 5 | 100% |
+| 1 | 66s | 471s | 63% | 36 / 0 | 4 | 100% |
+| 2 | 66s | 522s | 40% | 47 / 0 | 5 | 100% |
+| 777 | 66s | 448s | 62% | 40 / 0 | 3 | 100% |
+
+The relay makes no swaps: the refitted Enforcer never has to break off. The fight is longer than the three to six
+minutes asked for. She fires 94 to 187 rounds to their 772 to 1,188, in bursts between shield lockouts.
+
 ## Slice 8: missile behaviour
 
 The owner wants missile exchanges between hulls to be tactical and fun to watch. Before this slice a missile
@@ -738,7 +772,8 @@ Greyhook falls 174 to 293 seconds after the first hit (221 to 334 before), neith
    hull fight.
 6. **One-on-one duels flown for position.** Approach for the quarter, orbit, cross the T, counter, break;
    `warship-mirrors`, with `-Dbattle.warship.duelManoeuvres=false` as the control.
-7. **The pack relay.** Tank, striker, swap and vent, and threat-aware target choice for a ship set upon;
+7. **The pack relay.** Tank, striker, swap and vent, the sturdier hull as tank, threat-aware target choice for a ship
+   set upon, and a chooser going for the hull its guns can hurt;
    `warship-tactics`' Wolf-pair loops against their controls, `-Dbattle.warship.packRelay=false` and
    `-Dbattle.warship.threatTargeting=false`.
 8. **Missile behaviour.** Launch windows by role and salvos, the hull run's flight shape, point defence in the hull

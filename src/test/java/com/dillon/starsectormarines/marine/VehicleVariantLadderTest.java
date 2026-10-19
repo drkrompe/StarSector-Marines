@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehicleVariantLadderTest {
 
     private static final List<VehicleType> VARIANTS = List.of(VehicleType.UP_ARMORED_APC,
-            VehicleType.FIRE_SUPPORT_APC, VehicleType.HEAVY_GUN_TANK, VehicleType.DOZER_BREACHER);
+            VehicleType.FIRE_SUPPORT_APC, VehicleType.HEAVY_GUN_TANK, VehicleType.DOZER_BREACHER,
+            VehicleType.SCREENED_TANK);
 
     @Test
     void eachVariantIsItsOwnVehiclePatternAtAnAuthoredTier() {
@@ -30,6 +31,7 @@ class VehicleVariantLadderTest {
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.FIRE_SUPPORT_APC).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.HEAVY_GUN_TANK).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.DOZER_BREACHER).accessTier());
+        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.SCREENED_TANK).accessTier());
         for (VehicleType type : VARIANTS) {
             MechPattern pattern = MechPattern.of(type);
             assertEquals(MechPattern.Kind.VEHICLE, pattern.kind());
@@ -45,6 +47,7 @@ class VehicleVariantLadderTest {
         assertEquals(LiftClass.MEDIUM, VehicleType.FIRE_SUPPORT_APC.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.HEAVY_GUN_TANK.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.DOZER_BREACHER.liftClass());
+        assertEquals(LiftClass.HEAVY, VehicleType.SCREENED_TANK.liftClass());
         for (VehicleType type : VARIANTS) {
             assertEquals(type.liftClass().name(), MechPattern.weightClass(type).name(), type.name());
         }
@@ -75,6 +78,7 @@ class VehicleVariantLadderTest {
         assertTrue(total(VehicleType.FIRE_SUPPORT_APC) > total(VehicleType.HEAVY_APC));
         assertTrue(total(VehicleType.HEAVY_GUN_TANK) > total(VehicleType.BREAKTHROUGH_TANK));
         assertTrue(total(VehicleType.DOZER_BREACHER) > total(VehicleType.BREAKTHROUGH_TANK));
+        assertTrue(total(VehicleType.SCREENED_TANK) > total(VehicleType.BREAKTHROUGH_TANK));
     }
 
     @Test
@@ -96,6 +100,10 @@ class VehicleVariantLadderTest {
         VehicleType dozer = VehicleType.DOZER_BREACHER;
         assertTrue(dozer.maxArmor > tank.maxArmor && dozer.maxSpeed < tank.maxSpeed);
         assertEquals(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, dozer.turretStructureId);
+        VehicleType screened = VehicleType.SCREENED_TANK;
+        assertEquals(tank.turretStructureId, screened.turretStructureId);
+        assertTrue(screened.activeProtectionStructureId() != null && tank.activeProtectionStructureId() == null);
+        assertTrue(screened.maxSpeed < tank.maxSpeed);
     }
 
     /** Among hulls on the same lift with the same gun, none is at least as good at everything. */
@@ -155,7 +163,8 @@ class VehicleVariantLadderTest {
 
     private static boolean dominates(VehicleType a, VehicleType b) {
         return a.maxStructure >= b.maxStructure && a.maxArmor >= b.maxArmor
-                && a.armorRating >= b.armorRating && a.maxSpeed >= b.maxSpeed && a.capacity >= b.capacity;
+                && a.armorRating >= b.armorRating && a.maxSpeed >= b.maxSpeed && a.capacity >= b.capacity
+                && (b.activeProtectionStructureId() == null || a.activeProtectionStructureId() != null);
     }
 
     private static int total(VehicleType type) {

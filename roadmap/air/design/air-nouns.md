@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hit reads as what it met: shield flares and ripples, hull fire, breaches, strain and collapse (`WarshipHitFx`).
+Updated: 2026-10-19 — a hit reads as what it met (`WarshipHitFx`); Rusk lends an Enforcer and a Wolf at Black Sluice; a relay's tank is the decidedly sturdier hull, and a ship choosing between hulls weighs how much of its battery each one's armour turns away.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1833,13 +1833,25 @@ for one mission:
   that turns its guns away, or opens the range, lets the chooser's attention go to the one in
   front of it. A ship in an even fight never drops the hull it is wearing down for another.
   `-Dbattle.warship.threatTargeting=false` is the control.
+- **A ship choosing between hulls goes for the one its guns can hurt.** With two or more hulls
+  to choose from, a hull costs the chooser more the more of its anti-ship gun battery that
+  hull's armour turns away by the armour rule (up to two reaches of range for a hull its whole
+  battery glances off). A cruiser whose autocannons bounce off a destroyer's plate turns on the
+  frigate beside it, and keeps its pulse laser on whatever it can. One hull alone is fought
+  whatever it is. `-Dbattle.warship.biteTargeting=false` is the control.
 - **Two or more bow ships on one hull fight it as a relay** (`warship-tactics.md`, slice 7).
   One is the **tank**: it holds the target's attention from nearest and nose-on, on the
   target's battery side, its shield on the target, and fires only while the hard flux its
   shield holds stays under half its pool (its own guns' flux is soft and vents behind the
   shield, so it does not count against the tank). The others are **strikers**: they work the target's quarter, round
   from the tank and off its shield arc where they can, at full fire, since nothing is
-  shooting at them. The ship with the most flux to spare holds the target. When the tank's
+  shooting at them. The ship with the most flux to spare holds the target, unless the pack
+  has a **decidedly sturdier** hull (half again what each partner can stand, read off its
+  remaining hull, its armour and the damage its shield's pool can absorb): that hull is the
+  tank, a lighter partner relieves it only when its shield is going, and it takes the target
+  back from a lighter tank as soon as it is fresh again. A destroyer and a frigate on one
+  target fight as anvil and hammer; a worn destroyer can fall below a fresh frigate, and two
+  of a kind relay on flux alone. When the tank's
   pool runs high and a partner inside its reach is fresh, they **swap**: the partner closes to
   catch the target's eye while the old tank backs off nose-on, holding its fire; once the
   partner is nearer and has its battery on, the old tank turns away (this is the one place a
@@ -2318,21 +2330,23 @@ stage a duel through an optional seam on its referee: hulls stand quiet under a
 hull-fire hold until the chapter's moment comes, the duel then runs on its own, and the debrief reads its
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
 only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
-landed alone in her cradle south of the ridge (the frigate pads beside her empty), two
-Hegemony Enforcers lent by Rusk's family arriving when Voss orders the withdrawal. Their
+landed alone in her cradle south of the ridge (the frigate pads beside her empty), and a
+Hegemony Enforcer and a Wolf lent by Rusk's family arriving when Voss orders the withdrawal
+(owner, 2026-10-19: "We don't need this to be an even fight"). Their
 edge is the west, the side the company landed on and
 the far side of the basin, so they fly in across it heading east and their whole approach
 is in sight before a gun bears; Greyhook's side has no edge, since its hulls lift from their
 pads and never leave. No area is declared; the fight goes where it goes, held off the edges
 only by the standing pressure. The map is sized for the fight, not only for the ground: open
 approach ground west of the station puts Greyhook's pads outside an Enforcer's reach as it
-crosses the edge, so the Enforcers close for most of a minute in sight before a gun bears, and
+crosses the edge, so Rusk's ships close for most of a minute in sight before a gun bears, and
 the standoff fits along the map with the edge margins clear. The *Greyhook* does not run:
-the Enforcers are faster than she is (owner, 2026-10-18: she stays and fights until one side is
+Rusk's ships are faster than she is (owner, 2026-10-18: she stays and fights until one side is
 dead). She lifts and fights alone under the ordinary doctrine and tactics, and every hull of
 the duel holds the field, so nobody withdraws, nobody leaves the map, and the fight ends only
-when she or both Enforcers are destroyed; the winners stay overhead. Two destroyers on one
-cruiser fight her as a pack relay, and the mission refits them.
+when she or both of Rusk's ships are destroyed; the winners stay overhead. The pair fight her
+as a pack relay, the Enforcer her anvil and the Wolf darting at her quarter, and the
+mission refits the Enforcer and her.
 
 **A mission may refit a hull for one fight.** A **refit** (`HullRefit`) is named, given to
 one hull by the mission that fits it, and touches only what a shielded hull fights on: its
@@ -2340,9 +2354,11 @@ flux pool's capacity and dissipation (the variant's capacitors and vents include
 shield's arc, upkeep, and the flux each absorbed point costs. It never touches a gun, the
 plate or the hull, never the hull table or a variant another fight reads, and never the
 rules every hull fight shares, so the balance law still holds everywhere a mission has not
-named a refit. Rusk's Enforcers at Black Sluice are the first (`BlackSluiceDuel.RUSK_REFIT`). The fight reaches the radio as story beats (the Enforcers
-sighted as they cross the edge, closing, the first hull fire, the Greyhook down, both Enforcers
-down). A ground battle that finishes first ends the duel where it stands, and the debrief
+named a refit. Black Sluice is the first: Rusk's Enforcer flies in his refit
+(`BlackSluiceDuel.RUSK_REFIT`) and the Greyhook in hers (`BlackSluiceDuel.GREYHOOK_REFIT`),
+while the Wolf flies as fitted. The fight reaches the radio as story beats (Rusk's ships
+sighted as they cross the edge, closing, the first hull fire, the first of them down while
+the Greyhook still flies, the Greyhook down, the last of them down). A ground battle that finishes first ends the duel where it stands, and the debrief
 says it was still being fought. A
 warship over a ground battle never launches a wing from its bays (bays only classify the
 hull), and the Greyhook's fitting carries none, so it stays gun against gun.

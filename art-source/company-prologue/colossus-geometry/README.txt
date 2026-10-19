@@ -111,6 +111,22 @@ Pass 3 round 5 (owner: clamps "read as low poly", the tug engine sections and
   roof, a ribbed dish on a yoke, a navigation scanner, a sensor dome, whips and
   life-raft canisters. Close-up cameras added: keel-docking, clamp-detail,
   aft-bulkhead, pod-quarter, bridge-quarter. IoU 0.9625; 1.129 M units3.
+Pass 3 round 6 (owner: "bottom is the weakest on the main hull", and "some kind
+  of bottom thrust for lifting off the ground"): ten ventral lift thrusters
+  (cl_hull.lift, LIFT), two large on the hold centreline between the cargo
+  hatches and a pair across each side module's keel. Each is a well cut up into
+  the keel with a down-facing bell (lip, two cooling hoops, dark throat),
+  vectoring vanes across the mouth, a bolted heat-shield collar and a hazard
+  ring; 'Lift thruster <i> exhaust anchor' points down (+X), listed in
+  geometry.json under lift_thrusters. Ceramic heat-shield tile fields
+  (heat_tiles) surround them; bolted landing skids with wear shoes run along
+  the hold keel (skids), and replace the plain keel strakes. IoU 0.9625;
+  1.126 M units3.
+Pass 3 round 7 (owner: thin skids "would concentrate a lot of weight on a wedge
+  / line"; telescoping legs were tried and rejected as more concentrated still):
+  the keel skids are broad flat-soled runners, 8 units (4 m) wide and 96 long,
+  with a segmented wear shoe, side stiffeners and mounting blocks; the tile
+  field stops inside them. IoU 0.9625; 1.126 M units3.
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]

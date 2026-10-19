@@ -1,0 +1,59 @@
+{
+ "part": "pod-port",
+ "sheet": "stern-drive",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9985,
+ "raw_iou": 0.9911,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9985,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9911
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00255,
+    1.00433
+   ],
+   "offset_px": [
+    -1.16,
+    -1.61
+   ],
+   "iou": 0.9956
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00255,
+    1.00433
+   ],
+   "offset_px": [
+    -0.16,
+    -2.11
+   ],
+   "iou": 0.9985
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.74,
+  "p95_px": 2.0,
+  "max_px": 2.83
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.12,
+  "p95_px": 1.0,
+  "max_px": 1.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
