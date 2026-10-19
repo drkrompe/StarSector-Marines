@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154dd-0784-7511-a53e-2b3582d5be59",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154dd-0784-7511-a53e-2b3582d5be59\\exec-19b6e62f-c789-4d8d-94ab-fae81233ab79.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-hold\\colossus-surface\\generated\\sheet-hold-deck.png",
+    "sha256": "b8ab3ffa63378a0a807cc8f0d9ae6d0287bea587d1a75982d1ddda006e6b1f0f",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-hold\\colossus-surface\\prompts\\sheet-hold-deck.prompt.txt",
+  "promptSha256": "8ec83f97f50a1774a7689d1b04880b315d007a5c01ae8692e2476dfcb534176f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: each tile's exact shape, position and colour regions; never move\nImage 2: Material and finish only: paint colours, seams, fasteners, wear; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of hull faces of one 3D spacecraft (a Domain-era Colossus heavy freighter: a long boxy cargo hauler with a big central cargo hold under a lidded hatch cover), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: part of the cargo-hold hatch cover's lid seen from directly above, bow to the right: three tall dusty-red lid panels side by side with narrow blue gaps between them, and a thin near-black groove along their top edge;\ntop-right: the next row of the same hatch-cover lid seen from directly above, bow to the right: three tall dusty-red lid panels side by side with narrow blue gaps, the left one with a clipped upper-left corner;\nbottom-left: the forward part of the hatch cover seen from directly above, bow at the top: one wide dusty-red lid leaf with clipped top corners and a faint fine line across its upper middle, a thin seam line across it near the bottom, and below that a row of four smaller dusty-red panels divided by near-black grooves and a blue gap;\nbottom-right: half of the freighter's bow face seen from straight ahead, turned on its side: a thin dusty-red strip at the far left, a row of four dusty-red armour plates of different widths along the top, and one large dusty-red cargo-door leaf below them.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the shapes in INPUT 1 as that working hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep every tile exactly where it is, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap, notch or slot in a shape stays plain background blue. Each separate plate stays a separate plate with the same blue gap round it.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners along plate edges, a few flush access panels, subtle plate-to-plate tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: the dusty red areas are a dusty oxide-red enamel, the same red as the hold in INPUT 2; the near-black grey lines and squares are dark recessed grooves and a dark recessed hatch, near-black dull steel. Do not repaint any part of a shape another colour: no stripes, no orange or blue bands, no grey plates, no differently coloured patches and no repair plates.\n- The ship is an old freighter in service, not battered. Weathering is light and even across each whole shape. No rust streaks, soot, scorch marks, burns, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-hold\\colossus-surface\\guide\\sheet-hold-deck-guide.png",
+      "sha256": "1cb462ff867efcc4a6868850dd732376f08a59af622b7cb721ae8fbd2b9eb16c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: each tile's exact shape, position and colour regions; never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-hold\\colossus-surface\\reference\\finish-reference.png",
+      "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only: paint colours, seams, fasteners, wear; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to apply the reference finish while preserving the first image’s layout and blue gaps."
+  ],
+  "usage": {
+    "input_tokens": 47831,
+    "cached_input_tokens": 35840,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 793,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.9
+}

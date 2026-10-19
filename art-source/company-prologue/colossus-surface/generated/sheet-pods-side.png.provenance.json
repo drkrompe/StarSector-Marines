@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154de-fdd6-7e62-9b13-83a86a370d89",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154de-fdd6-7e62-9b13-83a86a370d89\\exec-c81a9685-0d04-418d-a0f1-af051d5aa677.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\generated\\sheet-pods-side.png",
+    "sha256": "6509ca2b369f1ccf9b8e942d83966a2650e57182cb1a5046e413a58fef344ba2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\prompts\\sheet-pods-side.prompt.txt",
+  "promptSha256": "5fc1d1b605bc289ae18dbc03fe5ee2de3aefc9b2fe1c031ae51d7f667f97caf0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: each tile's exact shape, position and colour regions; never move\nImage 2: Material and finish only: paint colours, seams, fasteners, wear; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Colossus-class heavy freighter, a huge low-tech Domain-era cargo hauler; these faces belong to one of its two long drive pods), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the aft half of the drive pod's outboard flank seen from the side, bow to the left: rows of dusty rose plates divided by thin dark grey vertical grooves, crossed by two long horizontal blue gaps (channels that stay background blue), one thin dark grey horizontal groove low down, a raised dusty rose rectangular cover plate, a pale pink plate at the top right (the worn aft deck plate's edge) and a small dark grey block at the lower right;\ntop-right: the forward half of the same outboard flank seen from the side, bow to the left: dusty rose plates tapering to the bow on the left, divided by thin dark grey vertical grooves and two long dark grey horizontal grooves, with a tilted white rectangle near the top middle (the outboard face of a pale band);\nbottom-left: a stretch of the pod's top casing seen from directly above, bow at the top: dusty rose plates with a broad white band running diagonally across from the upper left to the lower right;\nbottom-right: the pod's casing bottom seen from directly below, bow to the left: one long dusty rose plate run tapering at the bow end on the left, divided by thin dark grey vertical grooves, and a separate small dusty rose piece at the far right (the stern face).\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its working finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that working hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface of an old, hard-worked freighter. Add painted surface detail inside its outline only: crisp plate seams and welded joints, neat rows of small fasteners, flush access panels, subtle panel-to-panel tone differences, a light even film of dust and service grime in the seams and a few tiny scuffs. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: the dusty rose areas of INPUT 1 are a dark maroon red-brown enamel (as INPUT 2's drive pods); the pale pink area is a lighter, worn, dusty oxide-red enamel; the white areas are a pale weathered warm-grey paint (as INPUT 2's diagonal pod bands); the dark grey strips and blocks are near-black recessed grooves. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is in service, not battered. Weathering is light and even across each whole shape. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\guide\\sheet-pods-side-guide.png",
+      "sha256": "db7131cca1e5f504741d20f53f1b13cb5e8fbeaa07eadfd616131a7e8ed862f8",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: each tile's exact shape, position and colour regions; never move"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines--claude-worktrees-blissful-mendeleev-ec1db1\\6b7d6cd6-57e5-43e1-8f6c-2da30222667d\\scratchpad\\p6-pods\\colossus-surface\\reference\\finish-reference.png",
+      "sha256": "769afe8b540865cbe46bbbc303a4c78f2154e9a4ac9fc39a920cbd9706460883",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish only: paint colours, seams, fasteners, wear; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to apply the reference finish while preserving the four-tile layout and blue gaps.\n"
+  ],
+  "usage": {
+    "input_tokens": 46371,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 908,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.3
+}

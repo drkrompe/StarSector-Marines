@@ -1,0 +1,42 @@
+{
+ "bridge-roof": {
+  "raw_iou": 0.995,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.998,
+  "scale": [
+   1.00128,
+   1.00321
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bridge-wall-port": {
+  "raw_iou": 0.9922,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9963,
+  "scale": [
+   1.00333,
+   1.00412
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bridge-front": {
+  "raw_iou": 0.9837,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9848,
+  "scale": [
+   1.00283,
+   1.0
+  ],
+  "boundary_p95_px": 22.0
+ },
+ "bridge-aft": {
+  "raw_iou": 0.9936,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9987,
+  "scale": [
+   1.00183,
+   0.99702
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

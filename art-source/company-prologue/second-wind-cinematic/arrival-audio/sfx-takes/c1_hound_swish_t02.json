@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "40",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Fast small spaceship fly-by, sharp engine roar and whoosh swish passing close left to right",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "4cf71a2f87ac207c21fc45e40a60cf9eb453bbe4208a0e315e775d9136b5b7ae",
+  "durationSeconds": 4.0,
+  "peakDb": 0.0,
+  "integratedLufs": -9.8
+}
