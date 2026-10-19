@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — Rusk's ships at Black Sluice are two Hegemony Enforcers, not Wolfs; a relay tank's fire ceiling counts the hard flux its shield holds, and a venting ship holds inside its edge margin, short of full reach where the map has no room. Earlier the same day: two or more bow ships on one hull fight it as a relay (a tank holds the target's attention while strikers work its quarter, swapping to vent), and a ship set upon by several hulls answers the one that threatens it. Earlier the same day: a raised shield holds only the hard flux its absorbed hits put in the pool (the guns' and the upkeep's soft flux vents behind it, as in the base game), and no salvo is started that would carry the pool past the ship's own automatic shield's drop level; escorts give their charge the whole clearance and come round it to change sides. Earlier the same day: the Greyhook fights Black Sluice's Wolfs alone, and a mission may refit a hull's flux and shield for one fight (`HullRefit`; Rusk's Wolfs carry one). Earlier the same day: the Greyhook no longer breaks off at Black Sluice: every hull of that duel holds the field, so the fight ends only when one side is destroyed (owner). Earlier the same day: Black Sluice is sized for its hull fight: open approach ground west of the station puts Greyhook's pads outside a Wolf's reach as it crosses the edge; a hull lasts three times as long against another hull's guns (hull-fight durability, after the armour rule; shields untouched). Earlier the same day: no declared airspace: every warship flies with a soft map-edge pressure, and a mission may give each side an approved edge its hulls fly in and out across (Black Sluice: Wolfs west, Greyhook east), nothing warping in or out. Earlier 2026-10-16: a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-19 — a hit reads as what it met: shield flares and ripples, hull fire, breaches, strain and collapse (`WarshipHitFx`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2133,6 +2133,28 @@ origin by the hull reach share: hulls are drawn larger against their guns' reach
 game, and from the mount itself a fixed gun out toward a beam would never bear on the target the
 nose is laid on. `-Dbattle.warship.platingGrid=false`
 restores the flat rule and the old whole-hull darkening.
+
+**A hit reads as what it met** (`WarshipHitFx`). Every round a hull fight lands leaves a
+**hit mark** beside the ships: presentation state, made after damage and flux are decided,
+read by nothing in the simulation and drawing nothing from its random stream. A mark is held
+in the struck hull's own frame, so it rides with a ship coming about; it carries the round's
+base-game damage type, its weapon's colours and a size that is the weapon's own hit glow at the
+hull's drawn scale, so a hit is as large against the ship as in the base game and reads from the
+duel camera. A round a shield absorbs marks the point on the bubble toward its source: light on
+the shield (a cold flare, a ripple running along the rim, sparks skipping off at the angle of
+reflection), never fire, and never the ground blast a heavy round brings to metal. A round that
+reaches the plate is fire and matter: a flash, sparks thrown back, chips of the hull's own metal,
+smoke and a cooling scorch. Kinetic flares hardest on a shield and throws the longest sparks;
+high explosive is a fireball on metal and a dull splash on a shield; energy sears and leaves the
+plate molten; fragmentation sprays. A round that holes a cell marks a **breach** (a second blast
+and a shockwave), a mount lost with its plate goes up, and the shield's own moments are marks
+too: it **shatters** when an overload takes it and **gutters out** when an automatic shield locks
+itself down at its drop level. Between hits a shield shows its **strain**, warming from blue to
+violet and shivering and crackling as the pool fills past half, an overloaded ship crawls with
+arcs, an open breach vents vapour and fire from the rim of each hole, and a holed ship under way
+trails smoke left in the world behind it. An omni shield narrower than all round is drawn turned on
+its hull target, as the base game's tracks the threat; what it absorbs is still the model's every
+bearing.
 
 **A hostile hull is a target for a ship's guns, in any mission.** Warships of
 opposing sides overhead fight each other by default, in an ordinary or generated
