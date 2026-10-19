@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-19 — the torso has front, side and rear arcs (a thinner back), read against the upper torso's facing; earlier: anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -246,6 +246,22 @@ increasing an encounter's total armored threat.
   sections' totals, so whole-chassis readers see one body. Plating may later
   shift capacity between sections; that is the fitting decision sections make
   possible.
+  **The torso's plate depends on its arc** (`ArmorArcs`, `MechSections.TORSO_ARCS`).
+  The arc is read from the hit's shooter against the upper torso's facing, the
+  frame the shoulder side is read in: front 45 degrees either side of the torso's
+  nose, rear 45 degrees either side of its back, and the sides between. The front
+  is the chassis rating as it stands. The flanks are 0.95 of the rating with each
+  point of torso armor counting 0.85. The back, where the reactor and its cooling
+  sit, is 0.75 of the rating at 0.6 plate, so a round from behind strips torso
+  armor two thirds faster. The arc governs the torso's own plate whether a hit
+  lands on the torso or spills into it. Legs, arms and head meet the chassis rating
+  from every side: a limb is hit on whatever face it shows, and a second set of
+  arcs per section would buy little. Every chassis shares the one profile. A hit
+  with no shooter to read meets the front. `-Dbattle.mech.armorArcs=false` is the
+  control. **Facing is mostly kept.** A standing mech pivots its hips onto its
+  target and its torso twists 145 degrees, so the mech it is shooting nearly
+  always meets the front. The back is for the second machine, the one its torso
+  is not following (`heavy-equipment-progression.md`, facing).
   **Shares are tuned against the whole-body control.** Sections are allowed to
   move a mech's time to kill, not reinvent it. `sceneEvidence -Pscene=mech-time-to-kill`
   stands each stock chassis under one fire team (field rifles, pulse, DMR, two

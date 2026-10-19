@@ -881,7 +881,8 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   carries no mission order of its own, so doctrine (and its duel range against armor) decides where it fights;
   `-PmechOrder=attack-move` restores the old attack-move onto the defenders' ground and the old steering, which
   together walked every attacking mech into contact. Both sides are set down facing each other;
-  `-PdefenderFacing=90|180` turns the defenders side-on or rear-on, the question facing-dependent armor asks
+  `-PdefenderFacing=90|180` turns the defending hulls side-on or rear-on (a standing mech pivots onto its
+  target at once, so mechs are not turned), the question facing-dependent armor asks
   (`-Dbattle.vehicle.armorArcs=false` is its control). The Range column is the median distance between the nearest
   opposing machines from the first hit. The default ladder (`-Pladder=control,mech,mixed,vehicle`): stock Hound vs
   stock Hound (the control), every chassis at stock and refit against every other both ways, each stock chassis

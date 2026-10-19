@@ -114,10 +114,23 @@ public final class DurabilityModel {
                                          float plate,
                                          float currentStructure,
                                          Resolution out) {
+        resolvePlatedInto(postCoverDamage, penetration, 0f, currentArmor, armorRating, plate, currentStructure, out);
+    }
+
+    /** {@link #resolvePlatedInto(float, float, float, float, float, float, Resolution)} with a screen in play. */
+    public static void resolvePlatedInto(float postCoverDamage,
+                                         float penetration,
+                                         float mitigationSoak,
+                                         float currentArmor,
+                                         float armorRating,
+                                         float plate,
+                                         float currentStructure,
+                                         Resolution out) {
         if (!(plate > 0f) || !Float.isFinite(plate)) {
             throw new IllegalArgumentException("plate must be positive and finite");
         }
-        resolveInto(postCoverDamage, penetration, currentArmor * plate, armorRating, currentStructure, out);
+        resolveInto(postCoverDamage, penetration, mitigationSoak, currentArmor * plate, armorRating,
+                currentStructure, out);
         if (plate != 1f) out.armorDamage = Math.min(currentArmor, out.armorDamage / plate);
     }
 

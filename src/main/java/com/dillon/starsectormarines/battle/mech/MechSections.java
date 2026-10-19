@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.combat.BodyPart;
+import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 
 /**
@@ -138,6 +139,24 @@ public final class MechSections {
         return plan.section(band, fromLeft, armRoll, fitted);
     }
 
+    /** {@code -Dbattle.mech.armorArcs=false} is the control: the torso's plate is the same on every arc. */
+    public static final String ARMOR_ARCS_PROPERTY = "battle.mech.armorArcs";
+
+    private static final boolean ARMOR_ARCS =
+            Boolean.parseBoolean(System.getProperty(ARMOR_ARCS_PROPERTY, "true"));
+
+    /**
+     * The torso's arcs, every chassis alike, read against the upper torso's facing: a front as the chassis rating
+     * stands, slightly thinner flanks, and a thin back where the reactor and its cooling sit. Only the torso has
+     * arcs; legs, arms and head meet the chassis rating from every side.
+     */
+    public static final ArmorArcs.Profile TORSO_ARCS = new ArmorArcs.Profile(1f, 1f, .95f, .85f, .75f, .6f);
+
+    /** The torso's arcs, or {@link ArmorArcs.Profile#FLAT} under the control. */
+    public static ArmorArcs.Profile torsoArcs() {
+        return ARMOR_ARCS ? TORSO_ARCS : ArmorArcs.Profile.FLAT;
+    }
+
     /**
      * Whether a round from {@code (dx, dy)} away, relative to the mech, arrives on its left, read
      * against the upper torso's facing: the frame the shoulder mounts are drawn in
@@ -165,11 +184,23 @@ public final class MechSections {
      */
     public void resolve(MechSection section, float damage, float penetration, float mitigationSoak,
                         float armorRating, DurabilityModel.Resolution scratch, Hit out) {
+        resolve(section, damage, penetration, mitigationSoak, armorRating, armorRating, 1f, scratch, out);
+    }
+
+    /**
+     * {@link #resolve(MechSection, float, float, float, float, DurabilityModel.Resolution, Hit)} with the torso's
+     * plate on the arc the hit arrives on ({@link #TORSO_ARCS}): {@code torsoRating} and {@code torsoPlate} are what
+     * the torso's armor is worth on that arc, whether the hit lands on the torso or spills into it. Every other
+     * section meets {@code armorRating} on every arc.
+     */
+    public void resolve(MechSection section, float damage, float penetration, float mitigationSoak,
+                        float armorRating, float torsoRating, float torsoPlate,
+                        DurabilityModel.Resolution scratch, Hit out) {
         int i = section.ordinal();
         float torsoBefore = structure[TORSO];
         if (i == TORSO) {
-            DurabilityModel.resolveInto(damage, penetration, mitigationSoak,
-                    armor[TORSO], armorRating, torsoBefore, scratch);
+            DurabilityModel.resolvePlatedInto(damage, penetration, mitigationSoak,
+                    armor[TORSO], torsoRating, torsoPlate, torsoBefore, scratch);
             armor[TORSO] = Math.max(0f, armor[TORSO] - scratch.armorDamage());
             structure[TORSO] = Math.max(0f, torsoBefore - scratch.structureDamage());
             boolean torsoNowDestroyed = torsoBefore > 0f && structure[TORSO] <= 0f;
@@ -207,7 +238,8 @@ public final class MechSections {
         float torsoArmorDamage = 0f;
         float spill = 0f;
         if (overflow > 0f && torsoBefore > 0f) {
-            DurabilityModel.resolveInto(overflow, penetration, 0f, armor[TORSO], armorRating, torsoBefore, scratch);
+            DurabilityModel.resolvePlatedInto(overflow, penetration, 0f, armor[TORSO], torsoRating, torsoPlate,
+                    torsoBefore, scratch);
             torsoArmorDamage = scratch.armorDamage();
             spill = scratch.structureDamage();
             armor[TORSO] = Math.max(0f, armor[TORSO] - torsoArmorDamage);
