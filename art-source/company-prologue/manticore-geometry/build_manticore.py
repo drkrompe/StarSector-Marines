@@ -70,7 +70,7 @@ NAME = 'Manticore (P)'
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
 # pods, launcher housings or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = ('Pass 2 detail: wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, '
+STATUS = ('Pass 2 detail + pass 4 scale (0.66 m/u, ship_scale.py option C): wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, '
           'glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, '
           'turret-kit weapons, anchors and running lights).')
 SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft body', 'Hull ventral keel',

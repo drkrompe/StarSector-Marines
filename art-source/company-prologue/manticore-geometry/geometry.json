@@ -1,5 +1,5 @@
 {
-  "status": "Pass 2 detail: wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights).",
+  "status": "Pass 2 detail + pass 4 scale (0.66 m/u, ship_scale.py option C): wing armour plates and strakes, pod spars, sensor domes, neck ribs, main-ring collar, glazing, vents and canister-flak hatches on the pass 1 blockout (silhouette, sections, slots, drives, turret-kit weapons, anchors and running lights).",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
@@ -38,10 +38,63 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.62,
+  "metres_per_unit": 0.66,
   "scale": {
-    "method": "provisional: asharu-battle/roster.py option C plan-area estimate (96 m)",
-    "published_metres_per_unit": 0.62,
+    "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
+    "inputs": {
+      "units3": 163199,
+      "crew_max": 80,
+      "cargo": 80,
+      "fuel": 50,
+      "cls": "destroyer",
+      "length_units": 151.9,
+      "sprite_px": 154,
+      "volume_source": "measured (SOLIDS)"
+    },
+    "constants": {
+      "habitable_m3_per_person": 300.0,
+      "class": {
+        "habitable_factor": 1.05,
+        "hangar_box_factor": 2.6,
+        "shares": {
+          "armour": 0.08,
+          "drive": 0.2,
+          "weapons": 0.07,
+          "structure": 0.12
+        }
+      },
+      "cargo_m3_per_unit": 2.0,
+      "fuel_m3_per_unit": 1.5,
+      "boat_bay_m3": 960.0,
+      "spares_per_wing": 1
+    },
+    "contents_m3": {
+      "crew": 25200,
+      "cargo": 160,
+      "fuel": 75,
+      "hangar": 0,
+      "boat_bays": 0
+    },
+    "contents_total_m3": 25435,
+    "machinery_share": 0.47,
+    "enclosed_m3": 47991,
+    "solved_metres_per_unit": 0.665,
+    "range": {
+      "habitable_273": 0.645,
+      "habitable_328": 0.685
+    },
+    "enclosed_m3_per_person_at_max_crew": 600,
+    "length_m": 101.0,
+    "fittings_m": {
+      "viewport w x h": [
+        1.01,
+        0.8
+      ],
+      "bridge glazing band h": [
+        1.11
+      ]
+    },
+    "published_metres_per_unit": 0.66,
     "measured_this_build": {
       "enclosed_units3": 163199,
       "solids": [
@@ -55,11 +108,11 @@
       ]
     },
     "size_m": [
-      94.2,
-      99.7,
-      23.1
+      100.3,
+      106.1,
+      24.6
     ],
-    "person_1_8_m_in_units": 2.9,
+    "person_1_8_m_in_units": 2.73,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -812,7 +865,7 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 50278,
+    "triangles": 50798,
     "objects": 207,
     "materials": [
       "Manticore bridge glazing",
@@ -1018,12 +1071,12 @@
   },
   "shot_extent_px": {
     "shot-s5-1500m": {
-      "width_px": 289,
-      "height_px": 88
+      "width_px": 308,
+      "height_px": 93
     },
     "shot-s4-4000m": {
-      "width_px": 46,
-      "height_px": 15
+      "width_px": 49,
+      "height_px": 17
     }
   }
 }
