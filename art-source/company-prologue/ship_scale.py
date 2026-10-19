@@ -200,15 +200,26 @@ HULLS = {
                                                     'side cargo door w x h': [15, 14],
                                                     'bow cargo door w x h': [41, 23],
                                                     'bridge door w x h': [2.2, 4.6]}),
+    # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
+    # fork, head outriggers, missile pods, armour domes and the engine block (the drive
+    # section) are outside SOLIDS.
+    'Wolf (P)': dict(units3=19800, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
+                     sprite_px=96),
+    # The Falcon (P) pirate light cruiser (Asharu battle flagship): the two prongs, central
+    # body, bridge dome and waist decks; the drive blocks, outrigger thruster pods, bow
+    # forks and the tanks laid on the waist excluded. No fighter bays.
+    'Falcon (P)': dict(units3=231104, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
+                       sprite_px=222),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
-                 'Colossus': 'measured (SOLIDS)'}
+                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)',
+                 'Falcon (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .80}
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -270,6 +281,23 @@ SOLIDS = {
                      'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
                      'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
                      'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
+    # The Wolf (P)'s .blend is a build output (build/wolf-p/wolf-p.blend), never tracked; its
+    # driver re-measures these solids on every build. The bow fork is open structure round
+    # the hardpoint, the outriggers and missile pods machinery and weapon pods, the domes
+    # armour over the hull, the engine block the drive section: all excluded.
+    'wolf-p': {'blend': '../../build/wolf-p/wolf-p.blend', 'step': .5,
+               'include': lambda n: n in ('Hull head', 'Hull neck', 'Hull main body', 'Hull aft body',
+                                          'Hull dorsal spine fore', 'Hull dorsal spine aft', 'Hull ventral keel',
+                                          'Hull centre hump', 'Hull neck port flank', 'Hull neck starboard flank',
+                                          'Hull wing port root', 'Hull wing starboard root')},
+    # The Falcon (P)'s .blend is a build output (build/falcon-p/falcon-p.blend, ignored); its
+    # driver re-measures these solids on every build. Drive blocks and outrigger pods are
+    # drive housings, the bow forks armour round the hardpoints, the waist tanks laid on
+    # the deck: all excluded.
+    'falcon-p': {'blend': '../../build/falcon-p/falcon-p.blend', 'step': 1.0,
+                 'include': lambda n: n in ('Hull port prong', 'Hull starboard prong', 'Hull central body',
+                                            'Bridge command dome', 'Hull port waist deck',
+                                            'Hull starboard waist deck')},
     'second-wind': {'blend': 'second-wind-geometry/second-wind-geometry.blend', 'step': .5,
                     'include': lambda n: n in ('Main hull - level datum Z0', 'Command deck housing',
                                                'Spine waist housing')},
