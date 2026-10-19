@@ -1,0 +1,122 @@
+{
+ "side-fore-hi": {
+  "raw_iou": 0.9471,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9526,
+  "scale": [
+   1.00255,
+   1.00487
+  ],
+  "boundary_p95_px": 30.41
+ },
+ "side-mid-hi": {
+  "raw_iou": 0.9579,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.9656,
+  "scale": [
+   1.00255,
+   1.0
+  ],
+  "boundary_p95_px": 38.91
+ },
+ "side-aft-hi": {
+  "raw_iou": 0.9797,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9826,
+  "scale": [
+   1.0021,
+   1.00812
+  ],
+  "boundary_p95_px": 4.0
+ },
+ "bow-hi": {
+  "raw_iou": 0.8962,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9014,
+  "scale": [
+   1.00155,
+   1.00722
+  ],
+  "boundary_p95_px": 3.0
+ },
+ "side-fore-lo": {
+  "raw_iou": 0.9679,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9742,
+  "scale": [
+   0.99993,
+   1.00223
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "side-mid-lo": {
+  "raw_iou": 0.9279,
+  "best_fit": "bounds_affine",
+  "fitted_iou": 0.938,
+  "scale": [
+   1.00134,
+   1.00905
+  ],
+  "boundary_p95_px": 6.0
+ },
+ "side-aft-lo": {
+  "raw_iou": 0.937,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9459,
+  "scale": [
+   1.00283,
+   1.00699
+  ],
+  "boundary_p95_px": 29.0
+ },
+ "bow-lo": {
+  "raw_iou": 0.9265,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9376,
+  "scale": [
+   1.00419,
+   1.006
+  ],
+  "boundary_p95_px": 24.0
+ },
+ "stern-in-hi": {
+  "raw_iou": 0.9898,
+  "best_fit": "identity",
+  "fitted_iou": 0.9898,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 1.41
+ },
+ "stern-in-lo": {
+  "raw_iou": 0.9601,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9604,
+  "scale": [
+   1.00278,
+   1.00639
+  ],
+  "boundary_p95_px": 11.0
+ },
+ "stern-out-hi": {
+  "raw_iou": 0.9681,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9753,
+  "scale": [
+   1.00283,
+   1.002
+  ],
+  "boundary_p95_px": 24.21
+ },
+ "stern-out-lo": {
+  "raw_iou": 0.9296,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9478,
+  "scale": [
+   1.00028,
+   1.00122
+  ],
+  "boundary_p95_px": 9.0
+ }
+}

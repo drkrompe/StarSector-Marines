@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.warship.WarheadStrike;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
 import com.dillon.starsectormarines.battle.warship.WarshipEngine;
+import com.dillon.starsectormarines.battle.warship.WarshipHitFx;
 import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipShell;
@@ -119,6 +120,8 @@ public final class WarshipRenderSystem implements RenderSystem {
     private int tailPuffs = TAIL_PUFFS;
 
     private final ShipAtmosphereFx atmosphereFx;
+    /** The battle's hit marks, read from the simulation each frame. */
+    private WarshipHitFx hitFx;
     /** What the world's surface tints the cloud, the re-entry glow and the dust; read from the battle each frame. */
     private WarshipAtmosphere.Tint tint = WarshipAtmosphere.Tint.forPalette(null);
 
@@ -150,6 +153,8 @@ public final class WarshipRenderSystem implements RenderSystem {
                 : engineClockSeconds + Math.max(0f, ctx.realDt);
         sprites.ensureEngineFxSprites();
         battleSeconds = ctx.sim.warships().clock();
+        hitFx = ctx.sim.warships().hitFx();
+        boolean hitDetail = ZoomDetail.swarmDetailVisible(cam);
         for (Warship ship : ctx.sim.warships().ships()) {
             // The dust a ship's wash kicks and the ring its arrival sends out lie on the ground, under it.
             atmosphereFx.ground(out, cam, cellPx, ctx.alphaMult, ship, tint);
@@ -167,10 +172,19 @@ public final class WarshipRenderSystem implements RenderSystem {
                 drawMount(out, cam, cellPx, armed, ship, m);
                 drawMuzzleFlash(out, cam, cellPx, armed, ship, m);
             }
-            if (!ship.berthed()) drawShield(out, cam, cellPx, seen, ship);
+            // What the hull has taken: blasts, sparks and chips over the plate, and the open holes venting.
+            WarshipHitFxRenderer.breachVents(out, cam, sprites, ship, seen, battleSeconds);
+            WarshipHitFxRenderer.hullMarks(out, cam, sprites, hitFx, ship, seen, battleSeconds, hitDetail);
+            if (!ship.berthed()) {
+                drawShield(out, cam, cellPx, seen, ship);
+                WarshipHitFxRenderer.shieldMarks(out, cam, sprites, hitFx, ship, seen, battleSeconds, hitDetail);
+                WarshipHitFxRenderer.overloadArcs(out, cam, sprites, ship, seen, battleSeconds);
+            }
             // Cloud and heat over the hull: the deck it is dropping through, the burn of coming down.
             atmosphereFx.sky(out, cam, cellPx, ctx.alphaMult, ship, tint);
         }
+        // The smoke a holed ship trails hangs where it was let go, over every hull.
+        WarshipHitFxRenderer.trailSmoke(out, cam, sprites, hitFx, ctx.alphaMult, battleSeconds);
         for (WarshipWreck wreck : ctx.sim.warships().wrecks()) drawWreck(out, cam, cellPx, ctx.alphaMult, wreck);
         ViewCull cull = ViewCull.of(cam);
         List<WarshipShell> shells = ctx.sim.warships().shells();
@@ -398,12 +412,20 @@ public final class WarshipRenderSystem implements RenderSystem {
         float cx = ship.shieldCentreX();
         float cy = ship.shieldCentreY();
         float strength = Math.max(level, drop);
-        Color base = drop > 0.01f && level < 1f ? SHIELD_COLLAPSE : SHIELD_TINT;
-        float mix = Math.min(1f, hit);
+        // The fuller the pool, the more the bubble strains: it warms toward violet, shivers and flickers.
+        float strain = WarshipHitFxRenderer.strain(ship.fluxFraction());
+        float[] tint = WarshipHitFxRenderer.shieldColour(strain);
+        Color base = drop > 0.01f && level < 1f ? SHIELD_COLLAPSE
+                : new Color(tint[0], tint[1], tint[2]);
+        // The whole bubble only brightens a little on a hit: the flare at the point struck carries it.
+        float mix = Math.min(1f, hit) * 0.5f;
         float r = lerp(base.getRed(), SHIELD_HIT.getRed(), mix) / 255f;
         float g = lerp(base.getGreen(), SHIELD_HIT.getGreen(), mix) / 255f;
         float b = lerp(base.getBlue(), SHIELD_HIT.getBlue(), mix) / 255f;
-        float a = alpha * strength;
+        float shiver = 1f - strain * (0.3f + 0.3f * (float) Math.sin(battleSeconds * 37f)
+                * (float) Math.sin(battleSeconds * 11f + ship.lengthCells));
+        float a = alpha * strength * shiver;
+        hit *= 0.5f;
         float diameterPx = radius * 2f * cellPx;
         float sx = cam.cellToScreenX(cx);
         float sy = cam.cellToScreenY(cy);
@@ -419,14 +441,18 @@ public final class WarshipRenderSystem implements RenderSystem {
         }
         float lineWidth = Math.max(2f, 0.22f * cellPx);
         int segments = Math.max(8, (int) Math.ceil(arc / SHIELD_SEGMENT_DEGREES));
-        float start = ship.shieldFacingDegrees() - arc * 0.5f;
+        float start = WarshipHitFxRenderer.shieldFacing(ship, hitFx) - arc * 0.5f;
         float step = arc / segments;
         float lastX = 0f;
         float lastY = 0f;
         for (int i = 0; i <= segments; i++) {
             double rad = Math.toRadians(start + step * i);
-            float px = cam.cellToScreenX(cx - (float) Math.sin(rad) * radius);
-            float py = cam.cellToScreenY(cy + (float) Math.cos(rad) * radius);
+            // A strained rim shivers: a ripple running round it, quicker and deeper the fuller the pool.
+            double around = Math.toRadians(step * i);
+            float rr = radius * (1f + strain * 0.012f * (float) Math.sin(around * 9.0 - battleSeconds * 14f)
+                    + strain * 0.006f * (float) Math.sin(around * 23.0 + battleSeconds * 31f));
+            float px = cam.cellToScreenX(cx - (float) Math.sin(rad) * rr);
+            float py = cam.cellToScreenY(cy + (float) Math.cos(rad) * rr);
             if (i > 0 && ring == null) {
                 out.addLine(RenderLayer.SHUTTLES, lastX, lastY, px, py, lineWidth * 3.5f,
                         r, g, b, (0.07f + 0.2f * hit) * a);
@@ -438,6 +464,7 @@ public final class WarshipRenderSystem implements RenderSystem {
             lastX = px;
             lastY = py;
         }
+        WarshipHitFxRenderer.strainCrackle(out, cam, hitFx, ship, strain, alpha, battleSeconds);
     }
 
     private static float lerp(float from, float to, float t) {

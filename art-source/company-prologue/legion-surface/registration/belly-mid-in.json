@@ -1,0 +1,59 @@
+{
+ "part": "belly-mid-in",
+ "sheet": "belly-b",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9649,
+ "raw_iou": 0.9223,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.929,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9223
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00449,
+    1.01134
+   ],
+   "offset_px": [
+    -2.55,
+    -3.41
+   ],
+   "iou": 0.9245
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00449,
+    1.00934
+   ],
+   "offset_px": [
+    -2.55,
+    -1.91
+   ],
+   "iou": 0.929
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 21.25,
+  "p95_px": 113.0,
+  "max_px": 154.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 20.74,
+  "p95_px": 111.77,
+  "max_px": 152.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

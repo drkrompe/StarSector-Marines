@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a1546e-ab79-7d70-9b1b-00f86a50c2ac",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1546e-ab79-7d70-9b1b-00f86a50c2ac\\exec-5383d139-4326-49f8-b935-342dace32c03.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-swatch.png",
+    "sha256": "bff9f922578119c86ea3a0dc0f786a713fa18aa81e1fc94724d9f899bfd20b10",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "6ce3053d304c10472f6ccf899fd5bbaa24c3e4a4596f3c17c21ed2042a5af9f8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of SIX flat-coloured squares in two rows of three on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (a Legion-class battlecarrier, a 290 m Hegemony capital ship of the XIV Battlegroup), to be painted as a flat, square-on texture sample of that material:\ntop-left square: warm mid-grey military enamel hull plate;\ntop-middle square: the XIV Battlegroup's burnt orange armour enamel;\ntop-right square: warm sandy tan enamel armour plate;\nbottom-left square: chalky bone-white enamel plate;\nbottom-middle square: dark gunmetal grey steel;\nbottom-right square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the six squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of well kept military plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: grey stays warm mid-grey, orange stays burnt orange, tan stays sandy tan, bone stays chalky bone white, gunmetal stays dark grey steel, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-swatch-guide.png",
+      "sha256": "64102a1c36623a4c1f152cf3697d3d4a8ddd6e128ff1325ce6983427c42c40d1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of faces to paint (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "0a21b27e36f2066f89110b9066d2dc2a48e5e6c7b66be6d423c5c914308099f7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet using Image 1’s exact layout and Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 45497,
+    "cached_input_tokens": 34688,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 749,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.8
+}

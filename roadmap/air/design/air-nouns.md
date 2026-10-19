@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — Rusk lends an Enforcer and a Wolf at Black Sluice; a relay's tank is the decidedly sturdier hull when the pack has one, and a ship choosing between hulls weighs how much of its battery each one's armour turns away.
+Updated: 2026-10-19 — a hit reads as what it met (`WarshipHitFx`); Rusk lends an Enforcer and a Wolf at Black Sluice; a relay's tank is the decidedly sturdier hull, and a ship choosing between hulls weighs how much of its battery each one's armour turns away.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1744,7 +1744,8 @@ for one mission:
   thresholds whatever its posture, so air superiority's sparing flux pair never holds a
   hull fight's guns silent. Damage, armour, shields and hit points are the base game's,
   so every matchup keeps its balance and only takes longer. Ground fire, air fire and point
-  defence keep their own clocks.
+  defence keep their own clocks, except point defence against a missile aimed at a hull, which
+  answers it on the hull fight's clock and at its hull reach (below).
 - **A hull lasts three times as long against another hull's guns** (owner, 2026-10-18:
   "things are going down seemingly very fast"; `warship-behaviours.md`, Decided: hull-fight
   durability). A round one warship lands on another meets the shield and the armour exactly
@@ -2145,6 +2146,28 @@ game, and from the mount itself a fixed gun out toward a beam would never bear o
 nose is laid on. `-Dbattle.warship.platingGrid=false`
 restores the flat rule and the old whole-hull darkening.
 
+**A hit reads as what it met** (`WarshipHitFx`). Every round a hull fight lands leaves a
+**hit mark** beside the ships: presentation state, made after damage and flux are decided,
+read by nothing in the simulation and drawing nothing from its random stream. A mark is held
+in the struck hull's own frame, so it rides with a ship coming about; it carries the round's
+base-game damage type, its weapon's colours and a size that is the weapon's own hit glow at the
+hull's drawn scale, so a hit is as large against the ship as in the base game and reads from the
+duel camera. A round a shield absorbs marks the point on the bubble toward its source: light on
+the shield (a cold flare, a ripple running along the rim, sparks skipping off at the angle of
+reflection), never fire, and never the ground blast a heavy round brings to metal. A round that
+reaches the plate is fire and matter: a flash, sparks thrown back, chips of the hull's own metal,
+smoke and a cooling scorch. Kinetic flares hardest on a shield and throws the longest sparks;
+high explosive is a fireball on metal and a dull splash on a shield; energy sears and leaves the
+plate molten; fragmentation sprays. A round that holes a cell marks a **breach** (a second blast
+and a shockwave), a mount lost with its plate goes up, and the shield's own moments are marks
+too: it **shatters** when an overload takes it and **gutters out** when an automatic shield locks
+itself down at its drop level. Between hits a shield shows its **strain**, warming from blue to
+violet and shivering and crackling as the pool fills past half, an overloaded ship crawls with
+arcs, an open breach vents vapour and fire from the rim of each hole, and a holed ship under way
+trails smoke left in the world behind it. An omni shield narrower than all round is drawn turned on
+its hull target, as the base game's tracks the threat; what it absorbs is still the model's every
+bearing.
+
 **A hostile hull is a target for a ship's guns, in any mission.** Warships of
 opposing sides overhead fight each other by default, in an ordinary or generated
 mission as much as a story chapter. A ship's **ship-fire order** (`ShipFireOrder`)
@@ -2202,9 +2225,54 @@ launches the next round of its volley sooner than a quarter second, so a pair of
 launchers fires left, right, left. A missile's own damage, flight and warheads are its
 weapon's.
 
-**Point defence watches what is coming.** A point-defence mount with nothing in its reach
-lays its barrel on the nearest hostile round it bears on within four times its reach, so a
-fast missile that is inside the reach for a few ticks meets a barrel already on it.
+**A missile at a hull is a resource, launched into a window** (`warship-tactics.md`, missile
+behaviour). Each launcher has a **role**, read off the weapon table's own role column and the
+spec, never named per weapon: a **torpedo** (Reaper, Hammer, Atropos), a **finisher** (Harpoon),
+an **anti-shield** missile (Sabot), a **saturation** launcher (a multi-warhead carrier, or a
+torpedo launcher with a deep magazine such as the Typhoon's), or **general** (everything else,
+which fires as it reaches). A **window** is a fact about the target read from where the
+launcher stands at the moment of launch: it is overloaded, its shield is down or locked out,
+the launcher is outside its shield's arc (the **flank**), its pool is running high, its hull is
+worn, the pack's tank holds its attention (a striker's **strike**), or a packmate's **salvo** is
+already on its way. A torpedo goes only into an overload, a lowered shield, the flank or a hull
+with no shield; a finisher adds a worn hull and waits for one even against a shieldless hull; an
+anti-shield missile goes into a raised shield, best a full one, and is held while the shield is
+down; a saturation launcher goes with a salvo or into any opening. A launch into an opening
+holds a **salvo** open on that target for the side's other launchers for a few seconds of the
+hull fight's clock, so packmates' racks join it and the missiles arrive together, which is what
+beats point defence by numbers. Nothing about the missile changes: when it goes is the only
+choice. `-Dbattle.warship.missileWindows=false` is the control (launch at reach, a finisher held
+for a worn or overloaded hull).
+
+**A missile at a hull flies a readable run.** It leaves the tube along the barrel's bearing and
+swings onto its line in a **launch arc**, weaves through the middle of its flight, and flies the
+last quarter straight in (its **terminal run**). A heavy body (a torpedo, a Harpoon) is pointed
+rather than swung: a short arc, barely a weave and a long straight run-in over nearly half its
+flight, a slow blow a defender sees coming. The motor's boost, cruise and coast along the line,
+and so its timing and landing, are its spec's as before; only the shape across the line is the
+hull run's. `-Dbattle.warship.missileFlight=false` is the control.
+
+**A magazine at a hull is the base game's, refills included.** On the duel footing each missile
+mount carries the weapon table's `ammo`, and a magazine the base game regains (`ammo/sec`, in its
+`reload size`) refills at that rate on the hull fight's clock, never past its size; a full
+magazine earns nothing toward the next reload. Nothing else refills a rack over a battle.
+
+**Point defence watches what is coming, and answers what is coming at its own hull first.** A
+point-defence mount with nothing in its reach lays its barrel on the nearest hostile round it
+bears on within four times its reach, so a fast missile that is inside the reach for a few ticks
+meets a barrel already on it. A missile or warhead aimed at a hull flies the hull fight's
+geometry (the hull reach's distance at the hull range's speed), and point defence answers it in
+the same geometry: it reaches it at the mount's hull reach, judges the shot as the base game
+would at the base game's distance and speed, and cycles on the hull fight's clock, so a mount
+has the base game's shots at a missile crossing its umbrella and a salvo is thinned as it is in
+the base game (`-Dbattle.warship.pdHullReach=false` is the control; without it a mount's
+umbrella is a sliver of a hull's length that a hull missile crosses in a tick or two, and nearly
+every salvo landed whole). Against ground ordnance and aircraft a mount keeps its own reach and
+clock. Choosing among rounds it can shoot, it weighs one aimed at its own hull as half as far
+off, so a salvo coming at the ship is answered before rounds merely passing
+(`-Dbattle.warship.pdThreatFirst=false` is the control). There are no flares or evasive turns:
+no fit flown over a battle carries a flare system, and a heavy hull cannot move its own length
+in a missile's flight, so point defence and the shield are a ship's answer to a salvo.
 
 **A pack divides a hunt; an escort interposes.** When two or more ships of a side hunt
 hulls with their duel helm and a hostile hull is being escorted, the hunter nearest that
