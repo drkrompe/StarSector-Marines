@@ -46,7 +46,10 @@ WING_DECK, WING_KEEL = 9.0, -9.0
 AFT_DECK, AFT_KEEL = 12.0, -18.0
 BRIDGE_DECK = 16.5   # the bridge plinth's roof, just above the core deck (owner: never a taller bridge)
 MAIN_WELL = (17.5, 7.4)   # the main gun stands in a well (radius, depth below the core deck)
-POD = (23, 65, 13.5)   # outer turret pod: centre x, |y|, radius
+POD = (23, 65, 13.5)
+# The nacelle's lofted stations (x, half-width, deck, keel), before the wing droop.
+POD_STATIONS = [(42, 2, 3, -6), (36, 7.5, 9, -11), (29, 10.5, 11, -13), (17, 10.5, 11, -13), (10, 8, 9, -10),
+                (6, 4, 6, -6)]   # outer turret pod: centre x, |y|, radius
 # Owner, round 3 (a bird of prey): the arms bend down toward their tips, 0.16
 # per unit outboard of |Y| 24 and 0.42 outboard of |Y| 46. Round 4 (owner: the
 # neck still climbs; the central hull can go down): the whole forward hull
@@ -135,7 +138,7 @@ def facets(hw, top, bot, flat=.5, keel=.45, up=.45, down=.55):
 # low; the neck is a glacis climbing aft to the main gun's deck, so the main
 # gun superfires over the bow gun; the deck drops in a steep step ahead of the
 # main gun's well, so its barrel overhangs the fall rather than lying on it; the core reaches far below its deck.
-HEAD_STATIONS = [(86.5, 7, 2.5, -3), (83, 14, 6, -7), (78, 20, 8, -10), (66, 21, 8, -12), (61, 17, 8.5, -13)]
+HEAD_STATIONS = [(87.5, 4, 2.5, -4), (83, 14, 6, -7), (78, 20, 8, -10), (66, 21, 8, -12), (61, 17, 8.5, -13)]
 NECK_STATIONS = [(63, 16.5, 8.5, -13), (58, 16, 9, -15), (50, 18, 9.2, -17), (43, 19.5, 9.5, -19)]
 # Round 5 (owner: the belly is too fat): the core's underside is a slender V,
 # its keel a quarter of the beam wide and no deeper than -18.
@@ -157,35 +160,23 @@ def build(kit):
     head = droop(lofted(kit, 'Hull bow head', HEAD_STATIONS, kit.steel))
     for s in (1, -1):
         side = 'port' if s > 0 else 'starboard'
-        # Armour horn (owner, round 1: a better head than a red block): a red
-        # wedge wrapping each forward shoulder, its top falling outboard and
-        # forward from a ridge along its inboard edge, its chin cut back.
-        horn = prism(kit, f'Hull bow {side} horn', ccw([(85, s*9), (85, s*16), (80, s*21.5), (69, s*21.5),
-                                                         (67.5, s*15), (72, s*8.5)]),
-                     section(HEAD_DECK-16.0, HEAD_DECK+4.4, 2.6, .9), kit.red, .15)
-        plane_cut(horn, f'{side} horn outboard fall', (76, s*12, HEAD_DECK+4.4), facet_normal((0, s), 34))
-        plane_cut(horn, f'{side} horn forward rake', (78, s*12, HEAD_DECK+4.4), facet_normal((1, 0), 36))
-        plane_cut(horn, f'{side} horn aft rake', (71, s*12, HEAD_DECK+4.4), facet_normal((-1, 0), 40))
-        n = facet_normal((1, 0), 40)
-        plane_cut(horn, f'{side} horn chin', (80, s*12, HEAD_DECK-16.0), (n[0], 0, -n[2]))
+        # Bow armour strake (owner, round 6: the front needs cohesion): one red
+        # armour piece a side runs from the core down the neck and wraps the
+        # head's shoulder to the beak's tip, where the two converge, its top
+        # falling outboard from a ridge along its inboard edge. It replaces round
+        # 1's separate horns, neck rails and prow block.
+        horn = prism(kit, f'Hull bow {side} horn', ccw([(88, s*2.5), (86.5, s*7), (81, s*21.5), (67, s*22.5),
+                                                         (60, s*18), (52, s*19), (43, s*20.5), (43, s*15.5),
+                                                         (52, s*13), (62, s*11), (72, s*9.5), (82, s*5)]),
+                     section(-9.0, 11.2, 2.6, .9), kit.red, .15)
+        plane_cut(horn, f'{side} horn outboard fall', (60, s*13, 11.2), facet_normal((0, s), 30))
+        plane_cut(horn, f'{side} horn beak rake', (82, 0, 11.2), facet_normal((1, 0), 32))
+        n = facet_normal((1, 0), 38)
+        plane_cut(horn, f'{side} horn chin', (82, 0, -9.0), (n[0], 0, -n[2]))
         kit.hull.append(droop(horn))
-        # Neck rail: the long red strake down each side of the neck (rows 26-45),
-        # riding the glacis.
-        rail = prism(kit, f'Hull neck {side} rail', ccw([(64, s*10.5), (64, s*15), (52, s*17.5), (43, s*19),
-                                                          (43, s*14.5), (52, s*12.5)]),
-                     section(NECK_KEEL+3.0, 17.0, 1.0, .7), kit.red, .15)
-        plane_cut(rail, f'{side} rail glacis', (63, 0, 10.0), facet_normal((1, 0), 2))
-        plane_cut(rail, f'{side} rail outboard fall', (52, s*13, 10.4), facet_normal((0, s), 26))
-        kit.hull.append(droop(rail))
     crossbar = prism(kit, 'Hull bow crossbar', ccw(sym([(66.5, 7.5), (64, 9.5), (61, 8.5), (60.5, 4)])),
                      section(4.0, HEAD_DECK+1.6, .5, 1.3), kit.red, .15)
-    # The prow block stands proud of the head's stem face: coincident faces shade black.
-    prow = prism(kit, 'Hull bow prow block', ccw(sym([(87.3, 6), (84.8, 8.5), (80, 8.5), (80, 4)])),
-                 section(-6.0, 4.5, 2.0, 1.6), kit.plate, .15)
-    plane_cut(prow, 'prow face rake', (85.8, 0, 4.5), facet_normal((1, 0), 40))
-    n = facet_normal((1, 0), 40)
-    plane_cut(prow, 'prow chin rake', (84.8, 0, -6.0), (n[0], 0, -n[2]))
-    kit.hull += [droop(prow), droop(crossbar)]
+    kit.hull += [droop(crossbar)]
 
     neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
     core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red, keel=.25, down=.8))
@@ -206,17 +197,27 @@ def build(kit):
     lx, ly = LAUNCHER
     ldrop = wing_drop(ly)
     for side, s in (('port', 1), ('starboard', -1)):
-        pod = prism(kit, f'Hull {side} turret pod', ccw(octagon_plan(x, s*y, r)),
-                    section(-14.0-drop, 11.0-drop, 5.0, 3.4), kit.steel)
+        # Gun nacelle (owner, round 6: the arm ends were oddly cylindrical): a
+        # faceted armoured nacelle tapering to a point forward and a short
+        # stern, flat only under the turret ring.
+        pod = loft_x(kit, f'Hull {side} turret pod',
+                     [(px, [(s*y+yy, zz-drop) for yy, zz in facets(hw, top, bot, flat=.68, keel=.3, up=.7, down=.8)])
+                      for px, hw, top, bot in POD_STATIONS], kit.steel)
         kit.hull.append(droop(pod))
-        # The red armour collar round the pod's outboard half (the sprite's red crescents).
-        collar = prism(kit, f'Hull {side} pod armour collar', ccw(octagon_plan(x, s*y, r+1.0)),
-                       section(-8.0-drop, 8.6-drop, 2.0, 1.4), kit.red, .12)
-        hole = prism(kit, f'Temporary {side} pod collar cutter', ccw(octagon_plan(x, s*y, r-1.2)),
-                     section(-40, 40, 0, 0), kit.red)
-        boolean(collar, hole)
-        plane_cut(collar, f'{side} collar inboard half', (x, s*(y-3), 0), (.35, -s, 0))
-        kit.hull.append(droop(collar))
+        # Angular armour on the nacelle (after the Onslaught's layered plate):
+        # an outboard flank plate with a raked face, and a chevron glacis on
+        # the nacelle's nose.
+        flank = prism(kit, f'Hull {side} pod armour collar',
+                      ccw([(38, s*(y+4.5)), (31, s*(y+11.2)), (12, s*(y+11.2)), (7.5, s*(y+6.5))]),
+                      section(-11.0-drop, 7.5-drop, 2.4, 1.6), kit.red, .12)
+        plane_cut(flank, f'{side} flank outboard fall', (22, s*(y+8.5), 7.5-drop), facet_normal((0, s), 38))
+        plane_cut(flank, f'{side} flank forward rake', (33, s*(y+8), 7.5-drop), facet_normal((1, .4*s), 40))
+        kit.hull.append(droop(flank))
+        glacis = prism(kit, f'Hull {side} pod nose glacis',
+                       ccw([(42.5, s*y), (36, s*(y+6.5)), (32, s*(y+6)), (32, s*(y-6)), (36, s*(y-6.5))]),
+                       section(-6.0-drop, 8.6-drop, 2.0, .8), kit.red, .12)
+        plane_cut(glacis, f'{side} glacis rake', (34, s*y, 8.6-drop), facet_normal((1, 0), 30))
+        kit.hull.append(droop(glacis))
         # Launcher well (round 5: inset, not a raised housing): the Harpoon rack
         # sits down in a pocket in the wing, open forward through the leading
         # edge so its tubes have a clear channel ahead.

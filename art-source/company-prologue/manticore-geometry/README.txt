@@ -41,6 +41,19 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 6 (2026-10-19)
+"Remove the hockey pucks from the two harpoon pods", "the arm ends are oddly
+cylinderish", "the front needs cohesion work", "angular armor ... reminiscent
+of the Onslaught"; the stern was accepted. The Harpoon hardpoints never train,
+so they get no barbette and no kit turntable: each rack stands on its pocket
+floor (mt_mounts). The octagonal gun pods are now faceted nacelles lofted to a
+point forward, with a raked red flank plate and a chevron glacis on the nose.
+One red armour strake a side now runs from the core down the neck and wraps
+the head to the beak's tip, where the two converge (replacing the separate
+horns, neck rails and prow block), and a thick raked red plate armours each
+arm's root leading edge. All six mounts still bear dead ahead and 10 deg below
+ahead; 0.59 m/u stands (228,901 units3).
+
 Owner review round 5 (2026-10-19)
 "The missile pods ... inset into the hull", "the back near the engines less
 blocky", "the central underside too fat ... slender ... lean into this
