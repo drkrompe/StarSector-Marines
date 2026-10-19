@@ -278,6 +278,11 @@ public final class WarshipSystem {
         return shipFire;
     }
 
+    /** The group layer over hull fights, for a scene's control loop to switch its parts. */
+    WarshipTactics tactics() {
+        return tactics;
+    }
+
     private final List<HullFireHold> hullFireHolds = new ArrayList<>();
 
     /** Each side's approved edge, the one way its warships come on and go off; a side absent has none. */
