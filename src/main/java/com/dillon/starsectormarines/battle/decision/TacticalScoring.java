@@ -803,7 +803,9 @@ public final class TacticalScoring {
             if (selfSquadId != Squad.NO_SQUAD) {
                 Squad squad = scoring.roster.getSquad(selfSquadId);
                 if (squad != null) {
-                    for (BelievedContact contact : squad.believedContacts()) {
+                    List<BelievedContact> contacts = squad.believedContacts();
+                    for (int i = 0, n = contacts.size(); i < n; i++) {
+                        BelievedContact contact = contacts.get(i);
                         believed.add(contact.unitId());
                         // The existing scorer reads the live position of a believed identity.
                         // Use that same position only to bound enumeration, not last-seen cells
@@ -2066,7 +2068,9 @@ public final class TacticalScoring {
     public float believedHostilePresenceWithin(Squad squad, int cx, int cy,
                                                 float radius) {
         float presence = 0f;
-        for (BelievedContact contact : squad.believedContacts()) {
+        List<BelievedContact> contacts = squad.believedContacts();
+        for (int i = 0, n = contacts.size(); i < n; i++) {
+            BelievedContact contact = contacts.get(i);
             long id = contact.unitId();
             if (!roster.isAliveById(id) || !roster.identity().has(id)) continue;
             if (!squad.faction.hostileTo(roster.identity().faction(id))) continue;
@@ -2120,7 +2124,9 @@ public final class TacticalScoring {
         BelievedContact primary = null;
         float primaryDistance = Float.MAX_VALUE;
 
-        for (BelievedContact contact : squad.believedContacts()) {
+        List<BelievedContact> contacts = squad.believedContacts();
+        for (int i = 0, n = contacts.size(); i < n; i++) {
+            BelievedContact contact = contacts.get(i);
             long id = contact.unitId();
             if (!roster.isAliveById(id)
                     || !roster.identity().has(id)
