@@ -239,7 +239,8 @@ sw_bridge_interior.py: the bridge room (owner brief 2026-10-18), cut out of the 
   consoles, the port comms bank (Castle's), the starboard systems bank, a plot table, the
   dais rail and the aft hatch; dress(state) adds the jury-rigged details of 'patched' (and
   'derelict', 'refit'). figures() builds the seated pilot and standing Castle mannequins for
-  review renders and shots; they are never saved. Outer faces keep their positions and
+  review renders and shots (Castle is the MakeHuman figure from ../castle-figure/ when its
+  .blend is built); they are never saved. Outer faces keep their positions and
   normals under the cut.
 bridge_interior_review.py: Workbench review of the room at 1920x1080 (the C2 stations,
   the room from helm and hatch, a cutaway, a plan) plus two exterior views for diffs:
