@@ -5,7 +5,7 @@
  "append_collection": "WOLF_P",
  "root": "WOLF_P | root",
  "anchors_collection": "WOLF_P | anchors",
- "metres_per_unit": 0.76,
+ "metres_per_unit": 0.75,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -20,16 +20,16 @@
   [
    57.98,
    26.183,
-   11.727
+   14.727
   ]
  ],
  "size_m": [
-  74.6,
-  39.8,
-  22.6
+  73.6,
+  39.3,
+  24.5
  ],
  "meshes": 151,
- "polygons": 9075,
+ "polygons": 9067,
  "images": 20,
  "engines": [
   {
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    7.6
+    10.6
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -159,7 +159,7 @@
    "location": [
     45,
     0,
-    -0.5
+    -4.0
    ],
    "k": 0.55,
    "bay": {
@@ -169,8 +169,8 @@
     ],
     "half_width": 5.3,
     "z": [
-     -3.3,
-     3.1
+     -6.8,
+     -0.3999999999999999
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -199,7 +199,7 @@
    "location": [
     11,
     20,
-    -1.8
+    -3.2
    ],
    "k": 0.6,
    "bay": null,
@@ -233,7 +233,7 @@
    "location": [
     11,
     -19,
-    -1.8
+    -3.2
    ],
    "k": 0.6,
    "bay": null,
@@ -336,7 +336,7 @@
    "location": [
     11,
     0,
-    7.6
+    10.6
    ],
    "angle": 0,
    "arc": 150,
@@ -353,7 +353,7 @@
    "location": [
     45,
     0,
-    -0.5
+    -4.0
    ],
    "angle": 0,
    "arc": 5,
@@ -370,7 +370,7 @@
    "location": [
     11,
     20,
-    -1.8
+    -3.2
    ],
    "angle": 0,
    "arc": 5,
@@ -391,7 +391,7 @@
    "location": [
     11,
     -19,
-    -1.8
+    -3.2
    ],
    "angle": 0,
    "arc": 5,
@@ -485,7 +485,7 @@
    "position": [
     -30,
     0,
-    7.85
+    8.67
    ],
    "colour": "white",
    "role": "stern light",
@@ -500,7 +500,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "2aacfde2eb7e92edb8b3877fd01114aa5f854d62f584ee06d68ffcd4e1828127"
+  "vfx_hull_sha256": "f41a904c749bb4083b2e68f9207847186a53ed57d4419d6ab394a94cde63980a"
  },
  "state": "clean",
  "engines_running": [
@@ -704,5 +704,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "350911d7dd591ab2a8596aa33548e1d0683eb3c3b2b18d7d82329f39e3757746"
+ "asset_sha256": "4e2ca6467bbdede849e23511e892cc1a0e77b26fa2b8d2fce8f8b0db2e7c29aa"
 }

@@ -550,7 +550,7 @@
      4.0
     ],
     "section": null,
-    "size_m": 26.0,
+    "size_m": 20.0,
     "delay_s": 0.0
    },
    {
@@ -561,7 +561,7 @@
      14.0
     ],
     "section": "stern",
-    "size_m": 12.0,
+    "size_m": 10.0,
     "delay_s": 0.35
    },
    {
@@ -572,7 +572,7 @@
      16.0
     ],
     "section": "bow",
-    "size_m": 13.0,
+    "size_m": 11.0,
     "delay_s": 0.6
    }
   ],
@@ -610,5 +610,5 @@
   ],
   "staging": "Append PHAETON and PHAETON WRECK at the same root transform; set break_frame; show PHAETON before it and PHAETON WRECK from it. The swap is seamless: the wreck is in the intact pose at break_frame, under the flash."
  },
- "asset_sha256": "7c9be7389b984b0168b57a7c4f8c18fedb8b3558cc86dfa0bd2256aef5fc859e"
+ "asset_sha256": "b69646885031bff8749446c73332a4771bba025bb1eb9332ca8a2fc217b533a0"
 }

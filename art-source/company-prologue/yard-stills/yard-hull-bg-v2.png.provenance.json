@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1566a-197a-7e01-9ca9-5ec288569b92",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1566a-197a-7e01-9ca9-5ec288569b92\\exec-f077038d-451b-4eb8-9180-06059584d5c1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v2.png",
+    "sha256": "deb77ba3e2cff101c043a4bb3580eb8c376e310169df5bbd9a4a3cb21d3c59bf",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v2.prompt.txt",
+  "promptSha256": "2cdb9114394df542f5a2d45dcea12be02af614a23c53fcb293fcca53a23daa19",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority for the ship, pad, vehicles and awning; its camera height is too low, follow the brief's eye-level camera; remove the foreground figure\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nCAMERA, MOST IMPORTANT: the viewer is an adult STANDING on the yard gravel, eyes 1.6 metres above the ground, looking level across the yard: an ordinary eye-level photograph, not a low-angle or ground-level shot. The horizon is a level line about 45 percent down from the top of the frame, and it passes through the heads of the yard hands in the middle distance. The ground in front of the viewer fills only the bottom third of the frame and is seen at a normal walking glance: no close-up stones, puddles or grass in sharp detail, no macro foreground, no worm's-eye perspective. Ordinary 24-28 mm field of view, no wide-angle distortion.\n\nThis picture is a BACKGROUND LAYER. A character will be composited over it later, so it must contain NO foreground person.\n\nReference 1 is the GEOMETRY AND LAYOUT AUTHORITY: a rough render of the actual scene. Repaint it; keep its camera position and direction, the ship's shape, pose, size and position, the ring pad, the vehicles, the awning frame at the right edge and the lighting direction exactly. Do not move or resize large objects. Two exceptions:\n- The tall figure in a long yellow coat standing in the lower right foreground is only a placeholder: REMOVE HER COMPLETELY. Paint that area as empty open gravel and the shadow under the awning's edge, with nothing standing there, so a figure can be placed there later.\n- The small people in the middle distance are crude placement guides: paint them as real yard hands, and add a few more of them at work around the ship's stern, the ramp and the vehicles (four to eight in all, all small at this distance).\n\nScene: Kilo Nine, a small fenced private repair yard on the east edge of a working spaceport on the humid jungle world Jangala, late morning, high hazy sun behind the viewer and to the left, humid air with soft haze. Open air: no hangar, no roof over the ship; the only roof is the workshop awning at the right edge of the frame, seen from just under its corner. Second Wind, a battered, patched freighter about 66 metres long in rust-orange and dirty cream plate over grey steel, sits on a low concrete ring pad with yellow-painted edges, drives dark; it is enormous next to the people. The yard's vehicles stand near its stern where the guide puts them: a small tug, a fuel bowser and a cream crew carrier. Yard hands wear grey coveralls with orange hi-vis vests and dark biofilter masks; one or two carry tool cases, one guides at the ramp, one works at a hull panel from a short ladder, small arc-welding sparks at a seam. Beyond: the port's low warehouses and cranes at the left, a light freighter climbing out in the distant sky, the yard's fence and dark-green jungle canopy at the far right under a pale sky. The gravel in front of the viewer is damp, with faint tyre tracks, kept simple.\n\nMood: a working yard, a favour between old friends, practical and unglamorous.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\guides\\y1-guide-v4.png",
+      "sha256": "1b9e2f79d4f0bbe82f2890d33e948cf27c7b517cdbd35f7ed40ad901968d245e",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGB",
+      "role": "Layout authority for the ship, pad, vehicles and awning; its camera height is too low, follow the brief's eye-level camera; remove the foreground figure"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image from the reference, raising the view to standing eye level and leaving the foreground empty."
+  ],
+  "usage": {
+    "input_tokens": 38624,
+    "cached_input_tokens": 25856,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 780,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.1
+}
