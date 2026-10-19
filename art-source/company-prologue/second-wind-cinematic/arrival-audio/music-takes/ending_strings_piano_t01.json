@@ -1,0 +1,65 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "prompt": null,
+  "request": {
+    "composition_plan": {
+      "positive_global_styles": [
+        "cinematic string ensemble score with a soft felt piano melody on top",
+        "cellos, violas and violins in long bowed notes",
+        "a distant muted horn joins at the peak",
+        "slow, around 60 BPM, D major",
+        "emotional, hopeful, fragile, worn and human"
+      ],
+      "negative_global_styles": [
+        "vocals",
+        "choir",
+        "lyrics",
+        "epic trailer drums",
+        "brass fanfare",
+        "triumphant",
+        "electronic dance beat",
+        "fast tempo"
+      ],
+      "sections": [
+        {
+          "section_name": "Gathering",
+          "positive_local_styles": [
+            "hushed low strings, slow and patient, under speech",
+            "a gradual, steadily rising build over the whole section: more players join, the line climbs",
+            "tension resolving into hope, an emotional crescendo still held back"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 20000,
+          "lines": []
+        },
+        {
+          "section_name": "Title",
+          "positive_local_styles": [
+            "the emotional peak: the full string section swells and lands on a warm open major chord",
+            "broad, heartfelt, not triumphant"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 6000,
+          "lines": []
+        },
+        {
+          "section_name": "Back to the game",
+          "positive_local_styles": [
+            "the chord thins out and decays slowly to silence",
+            "a long gentle fade, ending in complete silence"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 7500,
+          "lines": []
+        }
+      ]
+    },
+    "respect_sections_durations": true
+  },
+  "audioSha256": "90a2a81e1a37ff4ca5c6085c514f533e5cd5eda931781d4f3e1ad55ad3c05c80",
+  "durationSeconds": 33.52,
+  "peakDb": -1.3,
+  "integratedLufs": -13.9
+}

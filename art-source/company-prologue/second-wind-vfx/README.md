@@ -56,7 +56,7 @@ group's review into `build/<group>/`.
 | `swfx_smoke.py` | exhaust haze, landing dust, seal-leak wisps, weld smoke and sparks, conduit sparks |
 | `swfx_guns.py` | muzzle flash, flash light, tracers, muzzle puffs, brass |
 | `swfx_beams.py` | energy beams for a hull whose profile declares `BEAMS` (opt-in group; the Second Wind has none) |
-| `swfx_shield.py` | a shield bubble for a hull whose profile declares `SHIELD` (opt-in group; the Second Wind has none) |
+| `swfx_shield.py` | a shield for a hull whose profile declares `SHIELD`: OMNI or FRONT arc, faction colour schemes, strength (opt-in group; the Second Wind has none) |
 | `swfx_lighting.py` | ship lamps per state, and the four rig presets |
 | `build_vfx.py` | CLI: build the ship, apply the kit, render group reviews, save |
 | `check_kit.py` | integration check for one state (see Verification) |
@@ -475,6 +475,47 @@ fully lit a third of the way up.
   and `hit(ctx, k, frame, azimuth, elevation, strength, decay_s)` key them.
 - The face is seen twice (near and far wall add), so it is kept far fainter
   than the rim; push `shield_gain` and the bubble goes white under AgX.
+
+**Front shields.** Most hulls carry a FRONT shield: an arc of a set width
+centred on a facing that turns. `SHIELD['type'] = 'FRONT'` keeps the same
+fitted shell and measures the arc in plan, about +Z, so the arc covers the
+hull's whole height across its width; at full raise it stops at half the arc
+either side of `shield_facing`, its ends keeping a dimmer edge. It unfolds
+from the facing both ways as `shield_t` rises, and the hits land on it exactly
+as on the Paragon (a hit outside the open arc does not show; `in_arc(azimuth,
+facing, t)` tells a shot whether a round lands on the shield or goes on to the
+hull). `center` places
+the shell's centre at the vanilla shieldCenter when the anchor is the hull's
+root. The Onslaught, Legion and Colossus profiles carry their vanilla FRONT
+shields (180, 180, 150 degrees, efficiency 1.0); their own exports do not ask
+for the group, so a shot adds `'shield'` to its groups. OMNI (the default)
+stays the Paragon's 3D unfold, unchanged.
+
+**Colour schemes.** `swfx_shield.SCHEMES` holds the vanilla hull-style shield
+colours (`hull_styles.json`: LOW_TECH inner 255,125,125, MIDLINE and
+HIGH_TECH 125,125,255, OMEGA, THREAT and DWELLER; ring white and inner alpha
+75 everywhere; no `.ship` file overrides them) as `low-tech`, `midline`,
+`high-tech`, and faction schemes (`hegemony`, `tritachyon`, `independent`,
+`sindrian_diktat`, `luddic_church`, `pirates`): the faction's hull style with
+ring and inner leaned toward its `.faction` colour. Vanilla tells midline and
+high tech apart by nothing, so the faction lean is what separates Tri-Tachyon
+from the independents. A profile names one with `scheme`; a shot overrides it
+with `swfx.apply(..., shield_scheme=NAME)` (and `shield_arc`, `shield_type`).
+`vanilla_styles(install)` reads the install's `hull_styles.json` to check
+the table.
+
+**Strength.** `shield_strength` (0-1.5) is one knob for how solid the shield
+reads: 1.0 is the Paragon's accepted look exactly (every strength term is 1
+there). Lower thins the face and rim, wavers the whole shield and drops it out
+in moving patches; higher brightens it and filters what lies behind it toward
+the inner colour. Its default comes from the profile's `efficiency` (vanilla
+shield efficiency) through `strength_from_efficiency`: 0.6, the best in
+vanilla, is 1.0, the Onslaught's 1.0 is 0.6. Key it per shot like any knob.
+
+`review_shields.py` renders a hull's front arcs (closed, half, full, turned),
+the scheme strip, the strength strip and a flicker strip, and the Paragon's
+stills for an A/B against another checkout's kit (`--kit`);
+`compose_shields.py` makes the 1920x1080 sheets.
 
 ### Lighting (`swfx_lighting`)
 

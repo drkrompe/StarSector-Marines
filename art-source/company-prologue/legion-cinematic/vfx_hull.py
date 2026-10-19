@@ -57,3 +57,15 @@ RCS_QUADS = {}
 # the colour geometry.json gives it. Their blink is on the lamps (export).
 LAMPS = [(l['object'], 'running' if l['colour'] == 'red' else 'masthead', tuple(l['rgb']))
          for l in _man['lamps']]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla FRONT, arc 180, radius 190,
+# shieldCenter (0, 0) (legion.ship, ship_data.csv), efficiency 1.0. Not in this
+# export's groups: a shot asks for it with groups=(..., 'shield'). The arc is
+# fitted to the hull ~10 m clear (margin 10.1 units at 0.99 m/u) like the
+# Paragon's, centred on the root at the shieldCenter. Colours: the 'hegemony'
+# scheme (a Hegemony XIV capital); a shot may pass shield_scheme to swfx.apply.
+SHIELD = dict(
+    type='FRONT', anchor='LEGION | root', center=(0, 0), radius=190.0, arc=180.0, nodes=[],
+    scheme='hegemony', efficiency=1.0, fit=dict(margin=10.1), raise_s=1.0, lower_s=1.0,
+)
