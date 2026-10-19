@@ -601,6 +601,7 @@ def seat(kit, name, x, y, facing_deg, base=FLOOR, pan_h=1.18):
         kit.cylinder(name + ' foot ring', (ring_x, ring_y, FLOOR + .55), .35, .06, kit.steel, vertices=20, bevel=0)
 
 
+CASTLE_AT = (14.4, 3.25, FLOOR)            # Castle's feet at the forward panel of the port comms bank
 FLIGHT_SEAT_X, FLIGHT_SEAT_PAN = 16.3, .5      # pan about 35 cm up: a seated eye mid-slit (z ~19.35)
 
 
@@ -1151,9 +1152,11 @@ def figures(metres_per_unit, parent=None, castle=True, pilot=True):
         roots.append(real)
     else:
         person('Bridge figure pilot', (FLIGHT_SEAT_X - .05, -1.7, STEP + FLIGHT_SEAT_PAN + .08 - .84 / m), 0, seated)
-    real = castle and castle_figure('Bridge figure Castle', (10.9, 3.25, FLOOR), 90, m, parent)
+    # Castle works the forward panel of her bank (owner, 2026-10-19: she is seen in passing): the
+    # C2 eye, stepping down off the dais, squeezes past behind her and settles at the middle panel.
+    real = castle and castle_figure('Bridge figure Castle', CASTLE_AT, 90, m, parent)
     if real:
         roots.append(real)
     else:
-        person('Bridge figure Castle', (10.9, 3.25, FLOOR), 90, standing)
+        person('Bridge figure Castle', CASTLE_AT, 90, standing)
     return roots

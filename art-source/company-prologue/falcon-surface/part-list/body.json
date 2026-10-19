@@ -1,0 +1,2557 @@
+{
+ "spine": {
+  "what": "grey central body top with the dorsal spine machinery housing, radiator fins and pipe runs, stern airlock",
+  "sheet": "body-centre",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull central body",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       19.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     18,
+     19,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     113,
+     114,
+     115,
+     116,
+     117
+    ]
+   },
+   {
+    "object": "Hull spine machinery housing",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       19.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23
+    ]
+   },
+   {
+    "object": "Hull spine pipe runs",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       19.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     5,
+     15,
+     62,
+     63,
+     74
+    ]
+   },
+   {
+    "object": "Hull spine radiator fins",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       19.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47,
+     53,
+     59,
+     65,
+     71,
+     77,
+     83,
+     89,
+     95
+    ]
+   },
+   {
+    "object": "Hull stern airlock frame",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       19.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23
+    ]
+   },
+   {
+    "object": "Hull stern airlock door",
+    "seed": {
+     "box": [
+      [
+       -50.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       19.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 62,
+  "area_units2": 2215.17,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   64.84,
+   26.79
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -15.028033256530762,
+    0.0
+   ],
+   "ortho_width": 75.39992443350859
+  },
+  "native_texels_per_unit": 10.5
+ },
+ "dome-port": {
+  "what": "grey bridge dome crown with its gunmetal bands and mast (port)",
+  "sheet": "body-centre",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge command dome",
+    "seed": {
+     "box": [
+      [
+       -12.0,
+       0.0,
+       -40.0
+      ],
+      [
+       20.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     0,
+     1,
+     2,
+     7,
+     8,
+     9,
+     14,
+     15,
+     16,
+     21,
+     22,
+     23,
+     28,
+     29,
+     30,
+     35,
+     36,
+     37,
+     42,
+     43,
+     44,
+     49,
+     50,
+     51,
+     56,
+     57,
+     58,
+     63,
+     64,
+     65
+    ]
+   },
+   {
+    "object": "Bridge dome bands",
+    "seed": {
+     "box": [
+      [
+       -12.0,
+       0.0,
+       -40.0
+      ],
+      [
+       20.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     49,
+     120,
+     121,
+     122,
+     123,
+     124,
+     125,
+     126,
+     127,
+     128,
+     129,
+     176,
+     177,
+     178,
+     179,
+     180,
+     181,
+     182,
+     183,
+     193
+    ]
+   },
+   {
+    "object": "Bridge crown mast",
+    "seed": {
+     "box": [
+      [
+       -12.0,
+       0.0,
+       -40.0
+      ],
+      [
+       20.0,
+       16.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   }
+  ],
+  "face_count": 59,
+  "area_units2": 263.65,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   25.8,
+   14.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    4.0,
+    5.649999797344208
+   ],
+   "ortho_width": 29.9999991128611
+  },
+  "native_texels_per_unit": 26.5
+ },
+ "dome-starboard": {
+  "what": "grey bridge dome crown with its gunmetal bands and mast (starboard, mirror of port)",
+  "sheet": "body-centre",
+  "tile": 1,
+  "skin_from": "dome-port",
+  "members": [
+   {
+    "object": "Bridge command dome",
+    "seed": {
+     "box": [
+      [
+       -12.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       20.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     70,
+     71,
+     72,
+     77,
+     78,
+     79,
+     84,
+     85,
+     86,
+     91,
+     92,
+     93,
+     98,
+     99,
+     100,
+     105,
+     106,
+     107,
+     112,
+     113,
+     114,
+     119,
+     120,
+     121,
+     126,
+     127,
+     128,
+     133,
+     134,
+     135
+    ]
+   },
+   {
+    "object": "Bridge dome bands",
+    "seed": {
+     "box": [
+      [
+       -12.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       20.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     130,
+     131,
+     132,
+     133,
+     134,
+     135,
+     136,
+     137,
+     138,
+     139,
+     184,
+     185,
+     186,
+     187,
+     188,
+     189,
+     190,
+     191
+    ]
+   },
+   {
+    "object": "Bridge crown mast",
+    "seed": {
+     "box": [
+      [
+       -12.0,
+       -16.0,
+       -40.0
+      ],
+      [
+       20.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     35
+    ]
+   }
+  ],
+  "face_count": 59,
+  "area_units2": 265.73,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   25.8,
+   14.7
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -4.0,
+    5.549999833106995
+   ],
+   "ortho_width": 30.387596012085908
+  },
+  "native_texels_per_unit": 26.1
+ },
+ "waist-port": {
+  "what": "grey waist deck with the bare-metal tank on its saddles, gunmetal tank bands and pipework (port)",
+  "sheet": "body-centre",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port waist deck",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       8.0,
+       -40.0
+      ],
+      [
+       10.0,
+       46.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     15,
+     16,
+     17,
+     18,
+     19,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78
+    ]
+   },
+   {
+    "object": "Hull port waist tank",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       8.0,
+       -40.0
+      ],
+      [
+       10.0,
+       46.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     12,
+     16,
+     17,
+     18,
+     21,
+     22,
+     23,
+     27
+    ]
+   },
+   {
+    "object": "Hull port waist tank bands",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       8.0,
+       -40.0
+      ],
+      [
+       10.0,
+       46.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     22,
+     23,
+     24,
+     25,
+     86,
+     87,
+     88,
+     89,
+     150,
+     151,
+     152,
+     153,
+     214,
+     215,
+     216,
+     217,
+     278,
+     279,
+     280,
+     281,
+     342,
+     343,
+     344,
+     345,
+     388,
+     389
+    ]
+   },
+   {
+    "object": "Hull port waist tank saddles",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       8.0,
+       -40.0
+      ],
+      [
+       10.0,
+       46.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   },
+   {
+    "object": "Hull port waist pipework",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       8.0,
+       -40.0
+      ],
+      [
+       10.0,
+       46.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     5,
+     16,
+     17,
+     27,
+     28,
+     37,
+     38
+    ]
+   }
+  ],
+  "face_count": 75,
+  "area_units2": 1705.93,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   60.01,
+   33.83
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -22.08914303779602,
+    26.999999523162842
+   ],
+   "ortho_width": 69.9334216056252
+  },
+  "native_texels_per_unit": 11.4
+ },
+ "waist-starboard": {
+  "what": "grey waist deck with the bare-metal tank on its saddles, gunmetal tank bands and pipework (starboard, mirror of port)",
+  "sheet": "body-centre",
+  "tile": 2,
+  "skin_from": "waist-port",
+  "members": [
+   {
+    "object": "Hull starboard waist deck",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       -46.0,
+       -40.0
+      ],
+      [
+       10.0,
+       -8.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     15,
+     16,
+     17,
+     18,
+     19,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78
+    ]
+   },
+   {
+    "object": "Hull starboard waist tank",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       -46.0,
+       -40.0
+      ],
+      [
+       10.0,
+       -8.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     12,
+     16,
+     17,
+     18,
+     21,
+     22,
+     23,
+     27
+    ]
+   },
+   {
+    "object": "Hull starboard waist tank bands",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       -46.0,
+       -40.0
+      ],
+      [
+       10.0,
+       -8.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     22,
+     23,
+     24,
+     25,
+     86,
+     87,
+     88,
+     89,
+     150,
+     151,
+     152,
+     153,
+     214,
+     215,
+     216,
+     217,
+     278,
+     279,
+     280,
+     281,
+     342,
+     343,
+     344,
+     345,
+     388,
+     389
+    ]
+   },
+   {
+    "object": "Hull starboard waist tank saddles",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       -46.0,
+       -40.0
+      ],
+      [
+       10.0,
+       -8.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   },
+   {
+    "object": "Hull starboard waist pipework",
+    "seed": {
+     "box": [
+      [
+       -55.0,
+       -46.0,
+       -40.0
+      ],
+      [
+       10.0,
+       -8.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     5,
+     16,
+     17,
+     27,
+     28,
+     37,
+     38
+    ]
+   }
+  ],
+  "face_count": 75,
+  "area_units2": 1705.93,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   60.01,
+   33.83
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    22.08914303779602,
+    26.999999523162842
+   ],
+   "ortho_width": 69.9334216056252
+  },
+  "native_texels_per_unit": 11.4
+ },
+ "drive-top-port": {
+  "what": "gunmetal drive block top: the exposed bare engine core in its grey cradle, red patch plates, fins and cable bundle (port)",
+  "sheet": "body-aft",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port drive block",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     5,
+     6,
+     8,
+     17,
+     18,
+     20,
+     24,
+     25,
+     27,
+     29,
+     33,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     78,
+     80,
+     81,
+     82,
+     84,
+     85,
+     86,
+     87,
+     88,
+     91,
+     94,
+     95,
+     97,
+     102,
+     103,
+     106,
+     115,
+     116,
+     117,
+     122,
+     124,
+     127
+    ]
+   },
+   {
+    "object": "Hull port drive block cable bundle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     13,
+     14,
+     23,
+     24,
+     35,
+     41,
+     47
+    ]
+   },
+   {
+    "object": "Hull port drive block core cradle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   },
+   {
+    "object": "Hull port drive block core rings",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192,
+     267,
+     268,
+     269,
+     270,
+     271,
+     272,
+     347,
+     348,
+     349,
+     350,
+     351,
+     352
+    ]
+   },
+   {
+    "object": "Hull port drive block patch plates",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   },
+   {
+    "object": "Hull port drive block radiator fins",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47
+    ]
+   },
+   {
+    "object": "Hull port drive block thrust collars",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       6.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       50.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192
+    ]
+   }
+  ],
+  "face_count": 127,
+  "area_units2": 1494.11,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   38.97,
+   38.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -59.50000190734863,
+    27.499608516693115
+   ],
+   "ortho_width": 80.56119578753331
+  },
+  "native_texels_per_unit": 9.9
+ },
+ "drive-top-starboard": {
+  "what": "gunmetal drive block top: the exposed bare engine core in its grey cradle, red patch plates, fins and cable bundle (starboard, mirror of port)",
+  "sheet": "body-aft",
+  "tile": 0,
+  "skin_from": "drive-top-port",
+  "members": [
+   {
+    "object": "Hull starboard drive block",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     8,
+     9,
+     11,
+     15,
+     17,
+     19,
+     20,
+     24,
+     28,
+     30,
+     31,
+     33,
+     70,
+     72,
+     73,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80,
+     81,
+     82,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     92,
+     94,
+     96,
+     98,
+     108,
+     109,
+     110,
+     111,
+     112,
+     115,
+     118,
+     124,
+     125,
+     128
+    ]
+   },
+   {
+    "object": "Hull starboard drive block cable bundle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     13,
+     14,
+     23,
+     24,
+     35,
+     41,
+     47
+    ]
+   },
+   {
+    "object": "Hull starboard drive block core cradle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   },
+   {
+    "object": "Hull starboard drive block core rings",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192,
+     267,
+     268,
+     269,
+     270,
+     271,
+     272,
+     347,
+     348,
+     349,
+     350,
+     351,
+     352
+    ]
+   },
+   {
+    "object": "Hull starboard drive block patch plates",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   },
+   {
+    "object": "Hull starboard drive block radiator fins",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     11,
+     17,
+     23,
+     29,
+     35,
+     41,
+     47
+    ]
+   },
+   {
+    "object": "Hull starboard drive block thrust collars",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -50.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -6.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112,
+     187,
+     188,
+     189,
+     190,
+     191,
+     192
+    ]
+   }
+  ],
+  "face_count": 128,
+  "area_units2": 1495.32,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   39.0,
+   39.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    59.500762939453125,
+    27.49995708465576
+   ],
+   "ortho_width": 80.61366118201913
+  },
+  "native_texels_per_unit": 9.9
+ },
+ "drive-side-port": {
+  "what": "gunmetal drive block outboard wall with its thrust collars (port)",
+  "sheet": "body-aft",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port drive block",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     13,
+     19,
+     45,
+     46,
+     49,
+     58,
+     59,
+     60,
+     62,
+     112,
+     114,
+     126
+    ]
+   },
+   {
+    "object": "Hull port drive block cable bundle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull port drive block core cradle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull port drive block core rings",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull port drive block patch plates",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     12,
+     14,
+     24,
+     39,
+     41,
+     47
+    ]
+   },
+   {
+    "object": "Hull port drive block radiator fins",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     1,
+     7,
+     13,
+     19,
+     25,
+     31,
+     37,
+     43
+    ]
+   },
+   {
+    "object": "Hull port drive block thrust collars",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       36.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       60.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     22,
+     23,
+     24,
+     25,
+     26
+    ]
+   }
+  ],
+  "face_count": 31,
+  "area_units2": 450.8,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   38.96,
+   14.41
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    59.50092887878418,
+    0.9930713176727295
+   ],
+   "ortho_width": 45.30592186506404
+  },
+  "native_texels_per_unit": 17.5
+ },
+ "drive-side-starboard": {
+  "what": "gunmetal drive block outboard wall with its thrust collars (starboard, mirror of port)",
+  "sheet": "body-aft",
+  "tile": 1,
+  "skin_from": "drive-side-port",
+  "members": [
+   {
+    "object": "Hull starboard drive block",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     4,
+     10,
+     48,
+     49,
+     51,
+     61,
+     62,
+     63,
+     65,
+     102,
+     106,
+     121
+    ]
+   },
+   {
+    "object": "Hull starboard drive block cable bundle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull starboard drive block core cradle",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull starboard drive block core rings",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": []
+   },
+   {
+    "object": "Hull starboard drive block patch plates",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     17,
+     18,
+     22,
+     35,
+     42,
+     50
+    ]
+   },
+   {
+    "object": "Hull starboard drive block radiator fins",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     9,
+     15,
+     21,
+     27,
+     33,
+     39,
+     45
+    ]
+   },
+   {
+    "object": "Hull starboard drive block thrust collars",
+    "seed": {
+     "box": [
+      [
+       -82.0,
+       -60.0,
+       -40.0
+      ],
+      [
+       -38.0,
+       -36.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     33,
+     34,
+     35,
+     36,
+     37
+    ]
+   }
+  ],
+  "face_count": 31,
+  "area_units2": 449.99,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   39.0,
+   14.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -59.50010299682617,
+    0.9992365837097168
+   ],
+   "ortho_width": 45.34410875897075
+  },
+  "native_texels_per_unit": 17.5
+ },
+ "pod-top-port": {
+  "what": "gunmetal outrigger pod top under grey plating (port)",
+  "sheet": "body-aft",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port outrigger pod",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       56.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       82.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     6,
+     13,
+     17,
+     23,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     164,
+     165,
+     166,
+     167,
+     214,
+     222,
+     227,
+     228,
+     231
+    ]
+   },
+   {
+    "object": "Hull port outrigger pod plating",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       56.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       82.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     16,
+     19,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 797.72,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   31.96,
+   20.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -23.995127201080322,
+    69.5001220703125
+   ],
+   "ortho_width": 43.34265736030361
+  },
+  "native_texels_per_unit": 18.3
+ },
+ "pod-top-starboard": {
+  "what": "gunmetal outrigger pod top under grey plating (starboard, mirror of port)",
+  "sheet": "body-aft",
+  "tile": 2,
+  "skin_from": "pod-top-port",
+  "members": [
+   {
+    "object": "Hull starboard outrigger pod",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       -82.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       -56.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     5,
+     12,
+     18,
+     23,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     174,
+     175,
+     176,
+     183,
+     221,
+     222,
+     227,
+     228,
+     231
+    ]
+   },
+   {
+    "object": "Hull starboard outrigger pod plating",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       -82.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       -56.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     16,
+     23,
+     34,
+     36,
+     38,
+     43,
+     46
+    ]
+   }
+  ],
+  "face_count": 34,
+  "area_units2": 797.72,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   31.96,
+   20.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    23.995127201080322,
+    69.5001220703125
+   ],
+   "ortho_width": 43.34265736030361
+  },
+  "native_texels_per_unit": 18.3
+ },
+ "pod-side-port": {
+  "what": "gunmetal outrigger pod outboard face with grey plating (port)",
+  "sheet": "body-aft",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port outrigger pod",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       70.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       90.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     11,
+     20,
+     22,
+     36,
+     38,
+     47,
+     49,
+     51,
+     52,
+     53,
+     58,
+     59,
+     178,
+     185,
+     196,
+     197,
+     198,
+     200
+    ]
+   },
+   {
+    "object": "Hull port outrigger pod plating",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       70.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       90.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     11,
+     12,
+     13,
+     14,
+     24
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 178.11,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   23.76,
+   8.43
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    24.86668300628662,
+    0.23313140869140625
+   ],
+   "ortho_width": 27.626607584398847
+  },
+  "native_texels_per_unit": 28.7
+ },
+ "pod-side-starboard": {
+  "what": "gunmetal outrigger pod outboard face with grey plating (starboard, mirror of port)",
+  "sheet": "body-aft",
+  "tile": 3,
+  "skin_from": "pod-side-port",
+  "members": [
+   {
+    "object": "Hull starboard outrigger pod",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       -90.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       -70.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     2,
+     3,
+     15,
+     17,
+     37,
+     39,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     142,
+     152,
+     154,
+     155,
+     166,
+     178
+    ]
+   },
+   {
+    "object": "Hull starboard outrigger pod plating",
+    "seed": {
+     "box": [
+      [
+       -42.0,
+       -90.0,
+       -40.0
+      ],
+      [
+       -6.0,
+       -70.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     9,
+     17,
+     18,
+     19,
+     22
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 178.11,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "cone_cos": 0.7,
+  "extent_units": [
+   23.76,
+   8.43
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -24.86668300628662,
+    0.23313140869140625
+   ],
+   "ortho_width": 27.626607584398847
+  },
+  "native_texels_per_unit": 28.7
+ },
+ "fork-port": {
+  "what": "khaki bow fork jaws ahead of the prong with gunmetal probes (port)",
+  "sheet": "body-centre",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull port bow fork inner jaw",
+    "seed": {
+     "box": [
+      [
+       100.0,
+       0.0,
+       -40.0
+      ],
+      [
+       140.0,
+       80.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     14,
+     15,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63
+    ]
+   },
+   {
+    "object": "Hull port bow fork outer jaw",
+    "seed": {
+     "box": [
+      [
+       100.0,
+       0.0,
+       -40.0
+      ],
+      [
+       140.0,
+       80.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     14,
+     15,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63
+    ]
+   },
+   {
+    "object": "Hull port bow fork probes",
+    "seed": {
+     "box": [
+      [
+       100.0,
+       0.0,
+       -40.0
+      ],
+      [
+       140.0,
+       80.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     13,
+     14,
+     43,
+     44,
+     53,
+     54
+    ]
+   }
+  ],
+  "face_count": 44,
+  "area_units2": 291.9,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   27.03,
+   21.36
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    117.58535766601562,
+    20.75
+   ],
+   "ortho_width": 44.152098663093504
+  },
+  "native_texels_per_unit": 18.0
+ },
+ "fork-starboard": {
+  "what": "khaki bow fork jaws ahead of the prong with gunmetal probes (starboard, mirror of port)",
+  "sheet": "body-centre",
+  "tile": 3,
+  "skin_from": "fork-port",
+  "members": [
+   {
+    "object": "Hull starboard bow fork inner jaw",
+    "seed": {
+     "box": [
+      [
+       100.0,
+       -80.0,
+       -40.0
+      ],
+      [
+       140.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     14,
+     15,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63
+    ]
+   },
+   {
+    "object": "Hull starboard bow fork outer jaw",
+    "seed": {
+     "box": [
+      [
+       100.0,
+       -80.0,
+       -40.0
+      ],
+      [
+       140.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     10,
+     13,
+     14,
+     15,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63
+    ]
+   },
+   {
+    "object": "Hull starboard bow fork probes",
+    "seed": {
+     "box": [
+      [
+       100.0,
+       -80.0,
+       -40.0
+      ],
+      [
+       140.0,
+       -0.0,
+       60.0
+      ]
+     ]
+    },
+    "faces": [
+     3,
+     4,
+     13,
+     14,
+     43,
+     44,
+     53,
+     54
+    ]
+   }
+  ],
+  "face_count": 44,
+  "area_units2": 291.9,
+  "view_dir": [
+   0.0,
+   -0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   27.03,
+   21.36
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -117.58535766601562,
+    20.75
+   ],
+   "ortho_width": 44.152098663093504
+  },
+  "native_texels_per_unit": 18.0
+ }
+}

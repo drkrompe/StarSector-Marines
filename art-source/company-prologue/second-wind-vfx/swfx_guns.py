@@ -57,6 +57,12 @@ Other hulls' mounts (swfx_hull MOUNTS, swfx_anchors.GunAnchor):
              motor burning, out to gun_missile_range, shedding motor smoke
              along its first stretch. The launcher knobs exist only when a
              launcher does, so a hull without one keeps the gun knobs alone.
+  energy     an energy projectile mount (MOUNTS kind 'energy': an ion cannon,
+             a blaster) gets the gun rig and knobs, but its flash, flash light
+             and bolt take the weapon's own colour (the profile's
+             ENERGY_COLOURS {mount index: linear rgb}, else ion blue) running
+             to white where hottest, instead of a blackbody flame; it throws no
+             propellant puff and no brass. Opt-in: 'gun' mounts are untouched.
 """
 import math
 import random
@@ -65,6 +71,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 import swfx_core
+import swfx_hull
 
 GROUP = 'Guns'
 PREFIX = 'SWFX guns'
@@ -288,7 +295,17 @@ def gun_label(anchor):
 
 
 # --- materials ---------------------------------------------------------------
-def _flash_material(ctx, label):
+ENERGY_DEFAULT = (.39, .78, 1.0)     # ion blue (vanilla ion cannon glow 100, 200, 255)
+
+
+def energy_tint(a):
+    """An energy mount's colour (linear rgb), or None for a gun or launcher."""
+    if getattr(a, 'kind', 'gun') != 'energy':
+        return None
+    return tuple(swfx_hull.get('ENERGY_COLOURS', {}).get(a.turret, ENERGY_DEFAULT))
+
+
+def _flash_material(ctx, label, tint=None):
     """Emission-only volume: mouth core + forward tongue + brake side jets,
     broken up by seeded noise. Object coordinates are mount units (the box
     is scaled by the mount scale), origin at the brake mouth, +X downrange."""
@@ -347,19 +364,29 @@ def _flash_material(ctx, label):
     # Hot frames are white-yellow; decay frames and the fringe cool to orange.
     hot = g.clamp01(g.mul(field, env))
     temp = g.add(1300.0, g.mul(g.pow(hot, .6), 3600.0))
-    bb = nodes.new('ShaderNodeBlackbody')
-    links.new(temp, bb.inputs[0])
     em = nodes.new('ShaderNodeEmission')
-    links.new(bb.outputs[0], em.inputs['Color'])
+    if tint is None:
+        bb = nodes.new('ShaderNodeBlackbody')
+        links.new(temp, bb.inputs[0])
+        links.new(bb.outputs[0], em.inputs['Color'])
+    else:
+        # An energy discharge: the weapon's colour, white only in its hottest core.
+        mix = nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        links.new(g.clamp01(g.mul(g.pow(hot, 1.5), .75)), mix.inputs['Factor'])
+        mix.inputs['A'].default_value = (*tint, 1)
+        mix.inputs['B'].default_value = (1, 1, 1, 1)
+        links.new(mix.outputs['Result'], em.inputs['Color'])
     links.new(g.mul(g.mul(field, env), 45.0), em.inputs['Strength'])
     links.new(em.outputs[0], out.inputs['Volume'])
     return m
 
 
-def _tracer_material(ctx):
+def _tracer_material(ctx, tint=None):
     """Additive soft rod: transparent + emission, bright head, fading tail.
-    Object colour R carries the per-tracer burn (keyed)."""
-    name = f'{PREFIX} tracer'
+    Object colour R carries the per-tracer burn (keyed). With a tint it is an
+    energy bolt: the weapon's colour along the tail, near-white at the head."""
+    name = f'{PREFIX} tracer' if tint is None else f'{PREFIX} bolt ' + '-'.join(f'{c:.3f}' for c in tint)
     m = bpy.data.materials.get(name)
     if m:
         return m
@@ -384,8 +411,9 @@ def _tracer_material(ctx):
     mix = nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
     links.new(g.clamp01(g.add(g.mul(head, 1.2), g.mul(along, .25))), mix.inputs['Factor'])
-    mix.inputs['A'].default_value = (1.0, .28, .06, 1)
-    mix.inputs['B'].default_value = (1.0, .82, .55, 1)
+    mix.inputs['A'].default_value = (1.0, .28, .06, 1) if tint is None else (*tint, 1)
+    mix.inputs['B'].default_value = (1.0, .82, .55, 1) if tint is None else \
+        (*(.55 + .45 * c for c in tint), 1)
     links.new(mix.outputs['Result'], em.inputs['Color'])
     links.new(strength, em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
@@ -521,14 +549,16 @@ def build(ctx, fire=None, **options):
         s = a.scale
         ctx.prop(f'gun_flash_{label}', 0.0, 0.0, 2.0, f'turret {a.turret} {a.tag} flash envelope (keyed by fire())')
         ctx.prop(f'gun_seed_{label}', 0.0, 0.0, 1.0, f'turret {a.turret} {a.tag} per-shot flash shape seed')
-        mat = _flash_material(ctx, label)
+        tint = energy_tint(a)
+        mat = _flash_material(ctx, label, tint)
         box = swfx_core.box_volume(f'{PREFIX} flash {label}', coll, -1.3, 4.4, 2.6, 1.2, mat,
                                    **({'pad': .012 * (a.barrel - 1)} if getattr(a, 'barrel', None) else {}))
         swfx_core.attach(box, a.empty)
         box.scale = (s, s, s)
         box.visible_shadow = False
         box.hide_render = True       # only exists on flash frames (cheap)
-        light = swfx_core.point_light(f'{PREFIX} flash light {label}', coll, (1.0, .72, .42), 0.0, radius=.35 * s)
+        light = swfx_core.point_light(f'{PREFIX} flash light {label}', coll, tint or (1.0, .72, .42), 0.0,
+                                      radius=.35 * s)
         swfx_core.attach(light, a.empty, local=(1.0 * s, 0, .25 * s))
         env = f'gun_flash_{label}'
         ctx.drive(light.data, 'energy', f'{env}*gun_flash_gain*gun_flash_light', (env, 'gun_flash_gain', 'gun_flash_light'))
@@ -603,7 +633,9 @@ def _shot(ctx, a, frame, shot_no):
         speed = swfx_core.units(_knob(ctx, 'gun_muzzle_velocity'))
         rng = swfx_core.units(_knob(ctx, 'gun_tracer_range'))
         life = max(2, int(math.ceil(rng / speed * fps)))
-        tmesh = _cylinder_mesh(f'{PREFIX} tracer mesh', .085, -4.5, 0.0, 8, _tracer_material(ctx))
+        tint = energy_tint(a)
+        tmesh = _cylinder_mesh(f'{PREFIX} tracer mesh', .085, -4.5, 0.0, 8, _tracer_material(ctx)) if tint is None \
+            else _cylinder_mesh(f'{PREFIX} bolt mesh {label}', .55, -5.0, 0.0, 10, _tracer_material(ctx, tint))
         tr = bpy.data.objects.new(f'{PREFIX} tracer {label} f{frame:04d}', tmesh)
         coll.objects.link(tr)
         swfx_core.attach(tr, a.empty)
@@ -623,6 +655,9 @@ def _shot(ctx, a, frame, shot_no):
         tr.color = (1, 0, 0, 1)
         _visible_between(tr, frame, frame + life)
         rec['tracer'] = tr.name
+
+    if energy_tint(a) is not None:     # an energy bolt: no propellant gas, no brass
+        return rec
 
     # Muzzle puff.
     atm = _knob(ctx, 'gun_atmosphere')

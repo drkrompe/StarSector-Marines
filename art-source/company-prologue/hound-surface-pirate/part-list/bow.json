@@ -1,0 +1,791 @@
+{
+ "bow-fork-tine-side": {
+  "what": "starboard gun-fork tine, outboard (starboard) wall: weathered brown plate",
+  "sheet": "bow",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Fork starboard tine",
+    "seed": [
+     32,
+     -16,
+     0
+    ],
+    "faces": [
+     1,
+     4,
+     5,
+     11,
+     22,
+     23,
+     24
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 106.51,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.0,
+   9.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    33.0,
+    0.3000001907348633
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ },
+ "bow-fork-tine-side-port-stbd": {
+  "what": "port tine, starboard-facing wall (into the gun gap)",
+  "sheet": "bow",
+  "tile": 0,
+  "skin_from": "bow-fork-tine-side",
+  "members": [
+   {
+    "object": "Fork port tine",
+    "seed": [
+     32,
+     -3,
+     0
+    ],
+    "faces": [
+     1,
+     4,
+     5,
+     11,
+     22,
+     23,
+     24
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 106.51,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.0,
+   9.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    33.0,
+    0.3000001907348633
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ },
+ "bow-fork-tine-side-stbd-port": {
+  "what": "starboard tine, port-facing wall (into the gun gap)",
+  "sheet": "bow",
+  "tile": 0,
+  "skin_from": "bow-fork-tine-side",
+  "members": [
+   {
+    "object": "Fork starboard tine",
+    "seed": [
+     32,
+     -9,
+     0
+    ],
+    "faces": [
+     2,
+     8,
+     9,
+     12,
+     25,
+     26,
+     27
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 106.51,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.0,
+   9.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -33.0,
+    0.3000001907348633
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ },
+ "bow-fork-tine-side-port-port": {
+  "what": "port tine, port wall (behind the capsule cage)",
+  "sheet": "bow",
+  "tile": 0,
+  "skin_from": "bow-fork-tine-side",
+  "members": [
+   {
+    "object": "Fork port tine",
+    "seed": [
+     32,
+     3,
+     0
+    ],
+    "faces": [
+     2,
+     8,
+     9,
+     12,
+     25,
+     26,
+     27
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 106.51,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.0,
+   9.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -33.0,
+    0.3000001907348633
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ },
+ "bow-capsule-nose": {
+  "what": "bridge capsule nose shell, cream, seen from ahead",
+  "sheet": "bow",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge capsule nose",
+    "seed": [
+     42.6,
+     9.2,
+     1.5
+    ],
+    "faces": [
+     1,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37
+    ]
+   }
+  ],
+  "face_count": 25,
+  "area_units2": 107.91,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.3,
+  "extent_units": [
+   9.08,
+   9.08
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.199999809265137,
+    1.4999998807907104
+   ],
+   "ortho_width": 18.76941109196468
+  },
+  "native_texels_per_unit": 42.3
+ },
+ "bow-cage-ring-fore": {
+  "what": "crash-cage ring 4, forward face: gunmetal elliptical frame",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bridge cage ring 4",
+    "seed": [
+     34.7,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     3,
+     7,
+     11,
+     15,
+     19,
+     23,
+     27,
+     31,
+     35,
+     39,
+     43,
+     47,
+     51,
+     55,
+     59,
+     63
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-fork-base-side": {
+  "what": "gun-fork base, starboard side wall aft of the tine: orange armour",
+  "sheet": "bow",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Fork base",
+    "seed": [
+     22.5,
+     -16,
+     0
+    ],
+    "faces": [
+     1,
+     6,
+     7,
+     8,
+     13,
+     28
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 83.81,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   9.9,
+   9.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    24.449999809265137,
+    -0.09999990463256836
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ },
+ "bow-cage-ring-1-fore": {
+  "what": "crash-cage ring 1, forward face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 1",
+    "seed": [
+     22.2,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     3,
+     7,
+     11,
+     15,
+     19,
+     23,
+     27,
+     31,
+     35,
+     39,
+     43,
+     47,
+     51,
+     55,
+     59,
+     63
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-cage-ring-1-aft": {
+  "what": "crash-cage ring 1, aft face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 1",
+    "seed": [
+     20.8,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     2,
+     6,
+     10,
+     14,
+     18,
+     22,
+     26,
+     30,
+     34,
+     38,
+     42,
+     46,
+     50,
+     54,
+     58,
+     62
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-cage-ring-2-fore": {
+  "what": "crash-cage ring 2, forward face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 2",
+    "seed": [
+     26.7,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     3,
+     7,
+     11,
+     15,
+     19,
+     23,
+     27,
+     31,
+     35,
+     39,
+     43,
+     47,
+     51,
+     55,
+     59,
+     63
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-cage-ring-2-aft": {
+  "what": "crash-cage ring 2, aft face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 2",
+    "seed": [
+     25.3,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     2,
+     6,
+     10,
+     14,
+     18,
+     22,
+     26,
+     30,
+     34,
+     38,
+     42,
+     46,
+     50,
+     54,
+     58,
+     62
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-cage-ring-3-fore": {
+  "what": "crash-cage ring 3, forward face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 3",
+    "seed": [
+     30.7,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     3,
+     7,
+     11,
+     15,
+     19,
+     23,
+     27,
+     31,
+     35,
+     39,
+     43,
+     47,
+     51,
+     55,
+     59,
+     63
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-cage-ring-3-aft": {
+  "what": "crash-cage ring 3, aft face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 3",
+    "seed": [
+     29.3,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     2,
+     6,
+     10,
+     14,
+     18,
+     22,
+     26,
+     30,
+     34,
+     38,
+     42,
+     46,
+     50,
+     54,
+     58,
+     62
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ },
+ "bow-cage-ring-4-aft": {
+  "what": "crash-cage ring 4, aft face",
+  "sheet": "bow",
+  "tile": 2,
+  "skin_from": "bow-cage-ring-fore",
+  "members": [
+   {
+    "object": "Bridge cage ring 4",
+    "seed": [
+     33.3,
+     9.2,
+     7.7
+    ],
+    "faces": [
+     2,
+     6,
+     10,
+     14,
+     18,
+     22,
+     26,
+     30,
+     34,
+     38,
+     42,
+     46,
+     50,
+     54,
+     58,
+     62
+    ]
+   }
+  ],
+  "face_count": 16,
+  "area_units2": 106.69,
+  "view_dir": [
+   -1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   19.4,
+   14.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -9.199999809265137,
+    1.500000238418579
+   ],
+   "ortho_width": 29.354005759384588
+  },
+  "native_texels_per_unit": 27.1
+ }
+}

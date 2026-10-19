@@ -1,0 +1,491 @@
+{
+ "asset": "broadsword.blend",
+ "append_collection": "BROADSWORD",
+ "root": "BROADSWORD | root",
+ "anchors_collection": "BROADSWORD | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.5,
+ "axes": {
+  "+X": "nose",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -11.9,
+   -14.08,
+   -3.29
+  ],
+  [
+   19.05,
+   14.08,
+   3.22
+  ]
+ ],
+ "size_metres_rest": [
+  15.5,
+  14.1,
+  3.3
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "side": "port",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -11.9,
+    5.5,
+    -0.7
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 1.8,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "side": "starboard",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -11.9,
+    -5.5,
+    -0.7
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 1.8,
+   "width": 12,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2
+ ],
+ "guns": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "weapon": "lightmg",
+   "mount": "fixed (hidden hardpoint)",
+   "anchor": "Anchor turret 1 gun muzzle",
+   "geometry_muzzle": "Weapon WS 001 muzzle",
+   "at": [
+    9.1,
+    9.4,
+    0.35
+   ],
+   "axis": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "arc_deg": 5,
+   "linked": true
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "weapon": "lightmg",
+   "mount": "fixed (hidden hardpoint)",
+   "anchor": "Anchor turret 2 gun muzzle",
+   "geometry_muzzle": "Weapon WS 002 muzzle",
+   "at": [
+    9.1,
+    -9.4,
+    0.35
+   ],
+   "axis": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "arc_deg": 5,
+   "linked": true
+  }
+ ],
+ "control": {
+  "object": "Broadsword control",
+  "knobs": [
+   "gear_down"
+  ],
+  "hinges": [
+   {
+    "pivot": "Hull nose gear hinge",
+    "axis": "local Y",
+    "angle_at_0_deg": 90.0,
+    "angle_at_1_deg": 0.0
+   },
+   {
+    "pivot": "Hull nose gear door port hinge",
+    "axis": "local X",
+    "angle_at_0_deg": 0.0,
+    "angle_at_1_deg": 88.0,
+    "full_at": 0.333
+   },
+   {
+    "pivot": "Hull nose gear door starboard hinge",
+    "axis": "local X",
+    "angle_at_0_deg": 0.0,
+    "angle_at_1_deg": -88.0,
+    "full_at": 0.333
+   },
+   {
+    "pivot": "Hull port main gear hinge",
+    "axis": "local Y",
+    "angle_at_0_deg": 90.0,
+    "angle_at_1_deg": 0.0
+   },
+   {
+    "pivot": "Hull port main gear door port hinge",
+    "axis": "local X",
+    "angle_at_0_deg": 0.0,
+    "angle_at_1_deg": 88.0,
+    "full_at": 0.333
+   },
+   {
+    "pivot": "Hull port main gear door starboard hinge",
+    "axis": "local X",
+    "angle_at_0_deg": 0.0,
+    "angle_at_1_deg": -88.0,
+    "full_at": 0.333
+   },
+   {
+    "pivot": "Hull starboard main gear hinge",
+    "axis": "local Y",
+    "angle_at_0_deg": 90.0,
+    "angle_at_1_deg": 0.0
+   },
+   {
+    "pivot": "Hull starboard main gear door port hinge",
+    "axis": "local X",
+    "angle_at_0_deg": 0.0,
+    "angle_at_1_deg": 88.0,
+    "full_at": 0.333
+   },
+   {
+    "pivot": "Hull starboard main gear door starboard hinge",
+    "axis": "local X",
+    "angle_at_0_deg": 0.0,
+    "angle_at_1_deg": -88.0,
+    "full_at": 0.333
+   }
+  ],
+  "saved_pose": {
+   "gear_down": 0.0
+  }
+ },
+ "landing": {
+  "ground_z": -5.2,
+  "note": "rest is gear up (flight); at gear_down 1 the soles stand on ground_z in hull space",
+  "sole_anchors": [
+   {
+    "leg": "Hull nose gear",
+    "anchor": "Anchor gear nose gear sole",
+    "sole_z_down": -5.2
+   },
+   {
+    "leg": "Hull port main gear",
+    "anchor": "Anchor gear port main gear sole",
+    "sole_z_down": -5.2
+   },
+   {
+    "leg": "Hull starboard main gear",
+    "anchor": "Anchor gear starboard main gear sole",
+    "sole_z_down": -5.2
+   }
+  ]
+ },
+ "running_lights": [
+  {
+   "name": "Light port blade tip 1",
+   "position": [
+    1.6,
+    13.86,
+    0.1
+   ],
+   "colour": "red",
+   "role": "port side light (extremity)",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light starboard blade tip 1",
+   "position": [
+    1.6,
+    -13.86,
+    0.1
+   ],
+   "colour": "green",
+   "role": "starboard side light (extremity)",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light centre tail 1",
+   "position": [
+    -7.02,
+    0,
+    0.5
+   ],
+   "colour": "white",
+   "role": "tail light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light centre dorsal 1",
+   "position": [
+    3.2,
+    0,
+    2.05
+   ],
+   "colour": "white",
+   "role": "anti-collision strobe",
+   "blink": {
+    "period_s": 1.2,
+    "phase_s": 0.3,
+    "duty": 0.18
+   }
+  }
+ ],
+ "lamps_lit": 4,
+ "lamps": [
+  {
+   "object": "Light centre dorsal 1",
+   "material": "Broadsword running light white",
+   "lit": true,
+   "at": [
+    3.2,
+    0.0,
+    2.05
+   ]
+  },
+  {
+   "object": "Light centre tail 1",
+   "material": "Broadsword running light white",
+   "lit": true,
+   "at": [
+    -7.02,
+    0.0,
+    0.5
+   ]
+  },
+  {
+   "object": "Light port blade tip 1",
+   "material": "Broadsword running light red",
+   "lit": true,
+   "at": [
+    1.6,
+    13.86,
+    0.1
+   ]
+  },
+  {
+   "object": "Light starboard blade tip 1",
+   "material": "Broadsword running light green",
+   "lit": true,
+   "at": [
+    1.6,
+    -13.86,
+    0.1
+   ]
+  }
+ ],
+ "objects": 179,
+ "polygons": 8266,
+ "baked_meshes": 126,
+ "images": [
+  "Skin forward-top",
+  "Skin fuselage-side-port",
+  "Skin nacelle-top-port",
+  "Skin nose-front",
+  "Skin spine-top",
+  "Skin underside",
+  "Skin wing-side-port",
+  "Skin wing-top-port",
+  "Swatch bright",
+  "Swatch dark",
+  "Swatch khaki",
+  "Swatch steel"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile broadsword-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 30,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 1.8,
+     "mouth": [
+      -11.9,
+      5.5,
+      -0.7
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "starboard",
+     "radius": 1.8,
+     "mouth": [
+      -11.9,
+      -5.5,
+      -0.7
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "gun",
+     "muzzle": [
+      9.1,
+      9.4,
+      0.35
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "gun",
+     "muzzle": [
+      9.1,
+      -9.4,
+      0.35
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Light port blade tip 1",
+     "role": "running-port",
+     "at": [
+      1.6,
+      13.86,
+      0.1
+     ]
+    },
+    {
+     "name": "Light starboard blade tip 1",
+     "role": "running-starboard",
+     "at": [
+      1.6,
+      -13.86,
+      0.1
+     ]
+    },
+    {
+     "name": "Light centre tail 1",
+     "role": "masthead",
+     "at": [
+      -7.02,
+      0.0,
+      0.5
+     ]
+    },
+    {
+     "name": "Light centre dorsal 1",
+     "role": "beacon",
+     "at": [
+      3.2,
+      0.0,
+      2.049
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -11.9,
+     -14.08,
+     -3.29
+    ],
+    [
+     19.05,
+     14.08,
+     3.22
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 2,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 2,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 2,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'BROADSWORD' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "fighters-surface/broadsword/build/skinned.blend",
+  "geometry_json_sha256": "709b3a52124427c3bf5114665b192c41af55dcb22388a034704affe42a360a32",
+  "skin_manifest_sha256": "86b31670b178ce494ebc07613ed686c7160465321b7b85c3d0709e8041ad09e2"
+ },
+ "conventions": {
+  "root": "Every part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; down for gear soles); +Z as near hull-dorsal as that allows.",
+  "guns": "The two light machine guns are fixed and linked; aim the fighter, not the gun.",
+  "control": "Animate gear_down on the 'Broadsword control' empty (0..1). Rest (0) is gear up for flight; at 1 the gear stands on landing.ground_z in hull space: place the root that far above a deck.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "986fb0ded235dbe8882cbabed2b5eedb55a6c44e6454d8f75fa918bb36f4b10b"
+}
