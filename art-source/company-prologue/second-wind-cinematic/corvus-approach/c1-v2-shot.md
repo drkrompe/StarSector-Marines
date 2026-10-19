@@ -2,7 +2,7 @@
 
 Status: DRAFT — layout animatic in progress (`c1v2_scene.py`); sun decided.
 Written: 2026-10-18
-Updated: 2026-10-18 — picket moved out by the station, inbound toward the player; Broadsword wing added.
+Updated: 2026-10-19 — the customs Hound flies with its drives lit.
 
 C1 v1 is a locked-off parallax plate: the whole system laid out at once, Second
 Wind a card drifting into it. It works as a picture and fails as an opening,
@@ -96,7 +96,9 @@ attitude of its own; hulls are appended once and instanced. In formation order:
 Each published hull carries a stand-in orange drive glow per engine, read from
 its exhaust anchors and hung on its root, and its running lights are capped so
 they do not bloom past the hull at picket range. A further Hound (A) crosses
-close in hail 03 (customs).
+close in hail 03 (customs) under thrust: it is the `hound-export` asset with the
+VFX kit's plumes on both drives, and none of the kit's exhaust haze, which is
+smoke in air.
 
 Still painted imposters: the station and the distant freighter traffic.
 Textures for the Legion are wanted if it is ever framed closer than the

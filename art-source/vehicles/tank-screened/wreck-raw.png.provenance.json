@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a15499-0727-72d1-9917-9261e6413c04",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15499-0727-72d1-9917-9261e6413c04\\exec-4ac4bdfb-d3b2-45ec-b9dc-d0a348fb6871.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-screened\\wreck-raw.png",
+    "sha256": "d70a5862386fff4ce0a3dd3fffbca2071c903f06810c772f8b934a8e3d0e35d1",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-screened\\wreck-prompt.txt",
+  "promptSha256": "150c1b49f934f7cb1ec9f23ecedc467dd0ca569606a55379f25af0c5613c9274",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: identity, material, damage, canvas, pose and scale authority for the wrecked turret\nImage 2: Geometry authority for the wrecked interceptor launchers, sensor panels and mast stub; flat colours are placeholders, not material\n\nEdit image 1, an approved painted top-down DESTROYED tank turret sprite on a wide transparent canvas. Image 2 is the geometry guide: the same wrecked turret with an ACTIVE PROTECTION (interceptor) fit blocked in as flat-colour shapes. Keep the battered angular housing, cracked cheek wedges, bent short cannon, burnt-out hatch, rear bustle, scorch, torn plate, small fragments, overhead camera, lighting and palette of image 1 exactly as they are, at the same position and scale on the same canvas.\nChange ONLY where the guide has flat blocks, and fill exactly those silhouettes, wrecked to match:\n- the two dark rectangles on the rear flanks become two compact armored interceptor launcher boxes on the turret sides, each top face a 2x3 cluster of round launch-tube mouths; soot-blackened, dented and blistered, several tubes empty and scorched, the upper launcher knocked askew on its bracket;\n- the two slanted plates on the cheek wedges become flat sensor panels, cracked and blackened, lenses shattered;\n- the small round block on the rear roof becomes a snapped sensor mast stub on its plate.\nLarge legible soot-dark damage against surviving faded khaki/olive paint, not a uniform black tint.\nNo painted flames, embers, smoke, glow, dust, ground shadow or scenery. Strict 90-degree overhead orthographic, no perspective tilt. Exactly one object: the turret; no hull, labels, background, checkerboard or border. True transparent background with genuine alpha outside the silhouette; internal dark recesses are opaque paint, not alpha holes. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-screened\\wreck-target.png",
+      "sha256": "3c731c0f674d1b36c84af0d3550b4a6b3e5419ffe6f9229a7f8a2e55ecd3e191",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Edit target: identity, material, damage, canvas, pose and scale authority for the wrecked turret"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-screened\\wreck-guide.png",
+      "sha256": "339498416e3e54192118dfd6fc7d6d18d871a84aa710a8b9baf03ffab9cade0d",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority for the wrecked interceptor launchers, sensor panels and mast stub; flat colours are placeholders, not material"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to apply the wrecked protection equipment within the guide silhouettes, preserving the turret and transparent canvas."
+  ],
+  "usage": {
+    "input_tokens": 45141,
+    "cached_input_tokens": 34560,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 541,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.0
+}

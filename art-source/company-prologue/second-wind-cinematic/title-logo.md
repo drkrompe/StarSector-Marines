@@ -1,8 +1,8 @@
 # Title logo — STARSECTOR: MARINES
 
-Status: ACTIVE — direction A approved (the game's wordmark with white MARINES): size, MARINES and reveal timing agreed; not yet in the cinematic.
+Status: ACTIVE — direction A approved (the game's wordmark with white MARINES): size, MARINES and reveal timing agreed; laid over C5's layout sketch by `industrial-exterior/c5_title.py`, not yet timed to music.
 Written: 2026-10-18
-Updated: 2026-10-18 — owner approved A's size, white MARINES and reveal timing.
+Updated: 2026-10-19 — the title is in C5's layout sketch, over the real camera rise.
 
 The title comes up at the end of the Jangala arrival cinematic, in the last six
 seconds of C5 (`c5-v2-closing.md`, beats 26–32 s). It is the first time the

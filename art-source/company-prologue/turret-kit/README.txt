@@ -97,11 +97,15 @@ Built from the game's sprites (house='hand')
 Tri-Tachyon energy weapons (house='hand')
   tachyonlance, gravitonbeam, taclaser, the reaper launcher and the pdlaser,
   the Paragon's Elite fit (with the kit's needler). A beam has no gun sprite,
-  so the whole weapon trains and the
-  elevation empty carries only the muzzle anchors (at the .wpn's offsets).
-  Each stands on a thin deck cut to the sprite's outline (`bodies`, which keeps
-  both halves of the lance either side of its open beam slot, plus the thin
-  `prongs`); that holds the silhouette. Over it the sprite is read as solids,
+  so the whole weapon trains and the elevation empty carries only the muzzle
+  anchors (at the .wpn's offsets). Each trains on a round chamfered turntable
+  (_turntable), and everything the sprite shows is a part: blades, a nose and
+  rails cantilever past it, their undersides lifting toward the tips, and the
+  sprite's dark masses are machinery blocks, fairings and webbed roots, not a
+  plate cut to the outline (owner, 2026-10-19: the outline board read strange).
+  A catalogue `roller` (x ring radius, default .9) shrinks the kit's traverse
+  roller where it would show (the lance's sits under its small turntable).
+  The sprite is read as solids,
   not as layers of plate: a lit column is a crest with faces falling away
   either side, a dark band beside it a steep wall or a gap, a highlight running
   across a part says the part lies across. So the lance is two keel blades,
@@ -120,8 +124,8 @@ Tri-Tachyon energy weapons (house='hand')
   sprite-pixel scale (a lance is about 60 m across; true-metre bolts would
   vanish): cooling rings, vent slats, rims, dome plate seams cut through a
   shell to its core, skirt bands. Lamps are 'lamp_blue', 'lamp_red' and
-  'lamp_core'. Silhouette IoU 0.92 (lance), 0.95 (graviton), 0.92 (tactical
-  laser), 0.86 (reaper).
+  'lamp_core'. Silhouette IoU 0.86 (lance), 0.88 (graviton), 0.87 (tactical
+  laser; sensor lugs on its flanks, a rear cap, a neck cowl), 0.86 (reaper).
   The PD laser (pdlaser, common tech) is the same family, built for busy
   scenes. A round chamfered turntable carries it (not a plate cut to the
   sprite's outline); a dark housing lofted to the sprite's plan, a red armoured
