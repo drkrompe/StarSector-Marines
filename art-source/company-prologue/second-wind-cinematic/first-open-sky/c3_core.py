@@ -12,7 +12,7 @@ CIN = BASE.parent
 ROOT = BASE.parents[3]
 
 W, H, FPS = 1920, 1080, 24
-DURATION = 12.0
+DURATION = 16.0
 
 # --- camera: the reveal camera's eye point and lens, re-pitched (c3_cabin_guide.py)
 LENS_MM, SENSOR_MM = 26.0, 36.0
@@ -20,25 +20,144 @@ F_PX = W * LENS_MM / SENSOR_MM                 # 1386.7 px at 1920
 PITCH_DEG = -9.0                               # the reveal camera is -19.29
 HORIZON_Y = H / 2 - F_PX * math.tan(math.radians(-PITCH_DEG))   # 320.4
 
-# --- flight: low approach toward Greywater Down, port-side window, bow to screen right
-ALTITUDE_M = 400.0        # above the canopy tops under the river valley
-GROUND_SPEED = 20.0       # m/s, along screen right; the world therefore slides left
-SINK_RATE = 2.0           # m/s descent; the ground rises in frame at its own rate
+# --- flight: low approach toward Greywater Down, port-side window, bow to screen right.
+# C3 opens with the ship still coming down out of the entry, nose low, and flattening
+# out: the speeds and the attitude ease from their entry values to level cruise over
+# LEVEL_SPAN, and the rest of the shot is the level slide.
+ALTITUDE_M = 400.0        # above the canopy tops under the river valley (at level-off)
+GROUND_SPEED = 16.0       # m/s level, along screen right; the world therefore slides left
+SINK_RATE = 2.0           # m/s descent once level; the ground rises in frame at its own rate
+ENTRY_SPEED = 30.0        # m/s along at C3 frame 0, still braking out of the descent
+ENTRY_SINK = 16.0         # m/s down at C3 frame 0
+NOSE_DOWN_DEG = 8.0       # attitude at frame 0. Through a port window a nose-down pitch is a
+                          # roll of the picture: the horizon rises toward the bow (right)
+LEVEL_SPAN = (0.4, 5.6)   # seconds: the attitude, sink and speed ease to level over this
+LEVEL_OVERSHOOT_DEG = 0.7 # the nose comes up a touch past level and settles, ~5-7 s
 
 # --- the lean: the passenger leans 5 cm toward the glass (cabin glass at ~1.2 m)
 LEAN_M = 0.05
 CABIN_DEPTH_M = 1.2
-LEAN_SPAN = (3.5, 9.5)    # seconds; eased
+LEAN_SPAN = (6.5, 12.5)   # seconds; eased; after the ship is level, under Castle's line
+
+# Castle, over the nature view (moved here from C4, owner 2026-10-19):
+# "Like the travel reels they ran in the canteen... except this one doesn't loop."
+# Take c4_reels_t06 (5.12 s). It starts once the ship is level and the shake has gone.
+CASTLE_REELS_AT = 7.0
+CASTLE_REELS_TAKE = ("c4_reels_t06", 5.12)
+
+
+def smoother(u):
+    u = min(1.0, max(0.0, u))
+    return u * u * u * (u * (6 * u - 15) + 10)
+
+
+def level_u(t):
+    """0 at frame 0 (descending, nose down) to 1 once level (LEVEL_SPAN)."""
+    return smoother((t - LEVEL_SPAN[0]) / (LEVEL_SPAN[1] - LEVEL_SPAN[0]))
+
+
+def speed(t):
+    """(along m/s, sink m/s) at C3 time t."""
+    u = level_u(t)
+    return ENTRY_SPEED + (GROUND_SPEED - ENTRY_SPEED) * u, ENTRY_SINK + (SINK_RATE - ENTRY_SINK) * u
+
+
+def nose_down_deg(t):
+    """The ship's nose-down attitude: NOSE_DOWN_DEG at frame 0, easing level, with the
+    flare carrying the nose a touch past level before it settles."""
+    flare = math.sin(math.pi * min(1.0, max(0.0, (t - 3.6) / 3.6))) ** 2
+    return NOSE_DOWN_DEG * (1 - level_u(t)) - LEVEL_OVERSHOOT_DEG * flare
+
+
+_TRACK_DT = 1.0 / 240
+
+
+def _track():
+    xs, zs, x, z, t = [0.0], [0.0], 0.0, 0.0, 0.0
+    while t < DURATION + 1.0:
+        a0, s0 = speed(t)
+        a1, s1 = speed(t + _TRACK_DT)
+        x += (a0 + a1) / 2 * _TRACK_DT
+        z += (s0 + s1) / 2 * _TRACK_DT
+        t += _TRACK_DT
+        xs.append(x)
+        zs.append(z)
+    return xs, zs
+
+
+_XS, _ZS = _track()
+
+
+def travelled(t):
+    """(metres along, metres down) since C3 frame 0."""
+    k = max(0.0, t) / _TRACK_DT
+    i = min(int(k), len(_XS) - 2)
+    f = k - i
+    return _XS[i] * (1 - f) + _XS[i + 1] * f, _ZS[i] * (1 - f) + _ZS[i + 1] * f
+
+
+def truck_at(t, distance_m):
+    """Screen slide by time t for a body at this slant distance (px, leftward)."""
+    return F_PX * travelled(t)[0] / distance_m
+
+
+def rise_at(t, distance_m):
+    """Screen rise by time t from the descent (px, upward), for ground bodies."""
+    return F_PX * travelled(t)[1] / distance_m
 
 
 def truck_px(distance_m):
     """Screen slide over the whole shot for a body at this slant distance (px, leftward)."""
-    return F_PX * GROUND_SPEED * DURATION / distance_m
+    return truck_at(DURATION, distance_m)
 
 
 def rise_px(distance_m):
-    """Screen rise over the shot from the sink rate (px, upward), for ground bodies."""
-    return F_PX * SINK_RATE * DURATION / distance_m
+    """Screen rise over the shot from the descent (px, upward), for ground bodies."""
+    return rise_at(DURATION, distance_m)
+
+
+# --- shake. Seconds `s` are counted from the start of the entry transition, so the
+# entry (patrol-abeam/compose_entry.py) and C3 share one shake and the cut cannot show.
+ENTRY_LEN = 7.0           # the entry transition's length; C3 frame 0 is s = ENTRY_LEN
+
+
+def shake_envelope(s):
+    """Camera shake amplitude in px: rising through the heat, peaking in the cloud, then
+    easing away through C3's level-off (gone by about C3 5 s)."""
+    rise = smooth((s - 0.6) / 3.4)
+    fall = math.exp(-max(0.0, s - 5.2) / 1.8)
+    return 0.6 + 8.4 * rise * fall if s < 5.2 else 0.6 * math.exp(-max(0.0, s - 5.2) / 2.5) + 8.4 * fall
+
+
+def _noise(s, rate, seed):
+    """Smooth 1-D value noise in -1..1 at `rate` keys per second (deterministic)."""
+    k = s * rate
+    i = math.floor(k)
+    f = k - i
+    f = f * f * (3 - 2 * f)
+
+    def key(n):
+        h = (n * 374761393 + seed * 668265263) & 0xFFFFFFFF
+        h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
+        return ((h ^ (h >> 16)) & 0xFFFF) / 32767.5 - 1.0
+    return key(i) * (1 - f) + key(i + 1) * f
+
+
+def camera_shake(s):
+    """(dx px, dy px, roll degrees, zoom) of the whole picture, cabin included, at entry
+    second s: a fast buffet, a slower heave, and enough zoom that no edge shows."""
+    a = shake_envelope(s)
+    dx = a * (0.75 * _noise(s, 13.0, 1) + 0.35 * _noise(s, 2.7, 2))
+    dy = a * (0.85 * _noise(s, 11.0, 3) + 0.45 * _noise(s, 2.1, 4))
+    rot = a * 0.045 * (_noise(s, 7.0, 5) + 0.5 * _noise(s, 1.6, 6))
+    zoom = 1.0 + (1.6 * a + abs(rot) * 0.0175 * 1100) / 540.0
+    return dx, dy, rot, zoom
+
+
+def world_buffet(s):
+    """The airframe moving under the eye: a small extra jitter of the world alone."""
+    a = 0.35 * shake_envelope(s)
+    return a * _noise(s, 17.0, 7), a * 0.7 * _noise(s, 15.0, 8)
 
 
 def ground_distance_at_row(y):

@@ -131,8 +131,8 @@ CUES = {
         "light breeze, faint far machinery, no voices, no music",
         12.0, True, 0.4),
     "c5_port_wide": (
-        "Wide busy spaceport heard from above, distant cranes, a far lifter engine rumble, trucks, horns, "
-        "industrial activity spread over a large area, outdoors",
+        "Wide busy spaceport heard from above, distant cranes, a far lifter engine rumble, trucks, "
+        "industrial activity spread over a large area, outdoors, no horns",
         12.0, True, 0.4),
     "c5_hull_ticks": (
         "Hot metal hull cooling after landing, sparse ticks, pings and small creaks",
@@ -197,7 +197,7 @@ CUES = {
         12.0, True, 0.4),
     "c4_port_heavy": (
         "Heavy industrial cargo port, container cranes clanking, metal containers banging, heavy machinery, "
-        "ship horns, forklifts beeping, busy",
+        "forklifts beeping, busy, no horns, no ship horns",
         12.0, True, 0.4),
     "c4_landing_rocket": (
         "Huge rocket engine landing burn, deep bass roar, rumbling intense thrust, ground shaking, "

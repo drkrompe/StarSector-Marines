@@ -1,0 +1,119 @@
+{
+ "skin": {
+  "parts": 8,
+  "max_pair_dE_before": 6.49,
+  "max_pair_dE_after": 8.35,
+  "L_range_before": [
+   64.5,
+   70.9
+  ],
+  "L_range_after": [
+   60.4,
+   60.4
+  ]
+ },
+ "pale": {
+  "parts": 5,
+  "max_pair_dE_before": 9.88,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   72.6,
+   82.5
+  ],
+  "L_range_after": [
+   62.0,
+   62.0
+  ]
+ },
+ "white": {
+  "parts": 7,
+  "max_pair_dE_before": 13.95,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   75.8,
+   89.7
+  ],
+  "L_range_after": [
+   84.7,
+   84.7
+  ]
+ },
+ "slate": {
+  "parts": 8,
+  "max_pair_dE_before": 15.47,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   34.4,
+   49.5
+  ],
+  "L_range_after": [
+   29.9,
+   29.9
+  ]
+ },
+ "substrate": {
+  "parts": 3,
+  "max_pair_dE_before": 3.0,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   45.9,
+   48.9
+  ],
+  "L_range_after": [
+   31.9,
+   31.9
+  ]
+ },
+ "steel": {
+  "parts": 8,
+  "max_pair_dE_before": 22.26,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   68.8,
+   90.0
+  ],
+  "L_range_after": [
+   75.0,
+   75.0
+  ]
+ },
+ "dark": {
+  "parts": 8,
+  "max_pair_dE_before": 9.39,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   21.0,
+   30.2
+  ],
+  "L_range_after": [
+   20.2,
+   20.2
+  ]
+ },
+ "bore": {
+  "parts": 4,
+  "max_pair_dE_before": 25.44,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   40.1,
+   64.8
+  ],
+  "L_range_after": [
+   33.1,
+   33.1
+  ]
+ },
+ "bore_light": {
+  "parts": 2,
+  "max_pair_dE_before": 4.78,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   73.8,
+   78.5
+  ],
+  "L_range_after": [
+   46.3,
+   46.3
+  ]
+ }
+}
