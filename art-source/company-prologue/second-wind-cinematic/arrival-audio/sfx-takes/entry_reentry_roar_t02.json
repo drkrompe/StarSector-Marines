@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "60",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Atmospheric re-entry heard from inside a spacecraft cabin, a muffled roar building quickly, heavy rumble, buffeting, plasma hiss through the hull",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.4,
+    "loop": false
+  },
+  "audioSha256": "8477d3e97edd1859531bd3f85c56b904b471d17885ce663ed93ade739259139e",
+  "durationSeconds": 6.0,
+  "peakDb": -0.4,
+  "integratedLufs": -11.2
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "40",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Two short bursts of a gas thruster heard muffled through a metal hull, a soft thump and hiss each, with a pause between",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "a30484ab0dc2a09a1b56c63b602797aec4c435f5874583a2aa3b67e0b623d52f",
+  "durationSeconds": 4.0,
+  "peakDb": -3.2,
+  "integratedLufs": -23.3
+}

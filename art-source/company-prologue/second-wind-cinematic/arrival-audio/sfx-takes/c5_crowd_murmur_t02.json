@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "100",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Small crowd of families murmuring quietly outdoors, unintelligible walla, soft relieved voices, a child, no clear words",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.3,
+    "loop": true
+  },
+  "audioSha256": "924eb7f3b53f6bba45f756c3cd699b0a54aca885d8d28b03452bd78375ef508a",
+  "durationSeconds": 10.0,
+  "peakDb": -22.7,
+  "integratedLufs": -39.7
+}
