@@ -88,8 +88,9 @@ class MissileCarrierVehiclesTest {
     /** The hull's racks are the mech's anti-armor racks, warhead and reach, on a turret mount. */
     @Test
     void theRacksFireTheMechAntiArmorWarheads() {
-        assertSameRack("weapon.mech-lrm-artillery", VehicleType.LRM_CARRIER.turretStructure().mount.weapon);
-        assertSameRack("weapon.mech-srm-pod", VehicleType.SRM_TECHNICAL.turretStructure().mount.weapon);
+        // The carrier's two racks ripple as one salvo; the rig's pod is one rack.
+        assertSameRack("weapon.mech-lrm-artillery", VehicleType.LRM_CARRIER.turretStructure().mount.weapon, 2);
+        assertSameRack("weapon.mech-srm-pod", VehicleType.SRM_TECHNICAL.turretStructure().mount.weapon, 1);
         assertTrue(VehicleType.LRM_CARRIER.turretStructure().mount.weapon.indirectFire);
         assertFalse(VehicleType.SRM_TECHNICAL.turretStructure().mount.weapon.indirectFire);
     }
@@ -110,12 +111,12 @@ class MissileCarrierVehiclesTest {
         }
     }
 
-    private static void assertSameRack(String mechId, WeaponDef rack) {
+    private static void assertSameRack(String mechId, WeaponDef rack, int racks) {
         WeaponDef mech = WeaponRegistry.require(mechId);
         assertEquals(mech.range, rack.range, 1e-4f, rack.id);
         assertEquals(mech.contactDamage, rack.contactDamage, 1e-4f, rack.id);
         assertEquals(mech.contactPenetration, rack.contactPenetration, 1e-4f, rack.id);
-        assertEquals(mech.burstCount, rack.burstCount, rack.id);
+        assertEquals(mech.burstCount * racks, rack.burstCount, rack.id);
         assertEquals(mech.cooldown, rack.cooldown, 1e-4f, rack.id);
     }
 

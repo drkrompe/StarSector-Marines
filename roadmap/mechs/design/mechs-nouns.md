@@ -114,15 +114,18 @@ increasing an encounter's total armored threat.
   hover and drone coded: the **hover scout** (`HOVER_SCOUT`, Advanced, Light lift) and
   the **drone skimmer** (`DRONE_SKIMMER`, Prestige, Medium lift), each with a drone bay, carry a Tri-Tachyon
   pattern provenance and are weighted up by Tri-Tachyon alone (`convoy-nouns.md`, the
-  hover line).
+  hover line). The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field
+  rig too: the pickup carrying a mech SRM-5 anti-armor pod.
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
-  Medium lift) are Advanced; the breakthrough tank's heavy-gun tank and dozer
+  Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
+  where the troop bay was, no seats, Medium lift, spotted indirect fire;
+  `convoy-nouns.md`, the missile carriers); the breakthrough tank's heavy-gun tank and dozer
   breacher are Prestige and Heavy lift. A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
-  the variant it is known for (Hegemony the up-armored APC, the Lion's Guard the
+  the variant it is known for (Hegemony the up-armored APC and the LRM carrier, the Lion's Guard the
   fire-support APC, the Luddic Path the dozer). Tri-Tachyon weights its own hover line,
   not anybody's tank.
   Every variant now has its own hull and turret art and is offered. The dozer
