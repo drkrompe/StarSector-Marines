@@ -205,21 +205,15 @@ HULLS = {
     # section) are outside SOLIDS.
     'Wolf (P)': dict(units3=19800, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
                      sprite_px=96),
-    # The Falcon (P) pirate light cruiser (Asharu battle flagship): the two prongs, central
-    # body, bridge dome and waist decks; the drive blocks, outrigger thruster pods, bow
-    # forks and the tanks laid on the waist excluded. No fighter bays.
-    'Falcon (P)': dict(units3=231104, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
-                       sprite_px=222),
     'Second Wind (Cerberus)': dict(units3=78443, crew_max=50, cargo=100, fuel=40, cls='freighter', boat_bays=2,
                                    length_units=101.5, fittings_units={'boat bay length x clear h': [23.1, 9.1]}),
 }
 VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SOLIDS)',
                  'Second Wind (Cerberus)': 'measured (SOLIDS)', 'Onslaught': 'measured (SOLIDS)',
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
-                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)',
-                 'Falcon (P)': 'measured (SOLIDS)'}
+                 'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95, 'Falcon (P)': .80}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .95}
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
 # wing body, aft engine block, ventral keel and command dome (SOLIDS['manticore']). The drive
 # cans, outer turret pods, launcher housings, armour plates and weapons are excluded. Fittings:
@@ -238,6 +232,14 @@ HULLS['Kite (P)'] = dict(units3=25690, crew_max=30, cargo=30, fuel=15, cls='frei
                          sprite_px=66, fittings_units={'crew door w x h': [3.2, 3.9], 'cabin window w x h': [1.5, 1.0]})
 VOLUME_SOURCE['Kite (P)'] = 'measured (SOLIDS)'
 PUBLISHED['Kite (P)'] = .80
+# The Falcon (P), pirate light cruiser and the Asharu battle's flagship (falcon_p.skin on
+# falcon): the two prongs, central body, bridge dome and waist decks (SOLIDS['falcon-p']).
+# The drive blocks, outrigger thruster pods, bow forks and the tanks laid on the waist are
+# excluded. No fighter bays.
+HULLS['Falcon (P)'] = dict(units3=227910, crew_max=180, cargo=120, fuel=100, cls='cruiser', length_units=215.0,
+                           sprite_px=222)
+VOLUME_SOURCE['Falcon (P)'] = 'measured (SOLIDS)'
+PUBLISHED['Falcon (P)'] = .81
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
