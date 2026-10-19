@@ -200,6 +200,14 @@ HULLS = {
                                                     'side cargo door w x h': [15, 14],
                                                     'bow cargo door w x h': [41, 23],
                                                     'bridge door w x h': [2.2, 4.6]}),
+    # The Colossus Mk.III (pirate refit of the Colossus): the Colossus's hull with the side
+    # modules cut down and a launch bay cut into the hold. Published at 0.495 (107 m), the
+    # Asharu battle plan's size for the Colossus's twin; fittings are the Colossus's doors.
+    'Colossus Mk.III': dict(units3=786639, crew_max=160, cargo=300, fuel=60, cls='freighter', length_units=216.7,
+                            sprite_px=224, fittings_units={'personnel hatch w x h': [2.2, 4.8],
+                                                           'side cargo door w x h': [10, 14],
+                                                           'launch bay mouth w x h': [34, 30],
+                                                           'bridge door w x h': [2.2, 4.6]}),
     # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
     # fork, head outriggers, missile pods, armour domes and the engine block (the drive
     # section) are outside SOLIDS.
@@ -261,6 +269,9 @@ HULLS['Tarsus'] = dict(units3=291623, crew_max=80, cargo=350, fuel=80, cls='frei
                       sprite_px=204, fittings_units={'Kite collar hatch d': [5.2], 'grapple receiver plate d': [5.2]})
 VOLUME_SOURCE['Tarsus'] = 'measured (SOLIDS)'
 PUBLISHED['Tarsus'] = .50
+# The Colossus Mk.III (pirate refit of the Colossus), its own statements like the siblings'.
+VOLUME_SOURCE['Colossus Mk.III'] = 'measured (SOLIDS)'
+PUBLISHED['Colossus Mk.III'] = .495
 FRIGATES = ('Hound (A)', 'Lasher')
 
 # What counts as enclosed volume, one way for every hull: the pressure hull with
@@ -322,6 +333,14 @@ SOLIDS = {
                      'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
                      'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
                      'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
+    # The Colossus Mk.III (.blend a build output; the driver re-measures every build): the
+    # Colossus's solids, with the side modules cut down and the
+    # launch bay (open to space) cut out of the hold; sponsons, tubs and refit armour excluded.
+    'colossus-mk3': {'blend': '../../build/colossus-mk3/geo/colossus-mk3-geometry.blend', 'step': 1.0,
+                     'include': lambda n: n in (
+                         'Hull central cargo hold', 'Hull hold hatch cover', 'Cargo port fore module',
+                         'Cargo port aft module', 'Cargo starboard fore module', 'Cargo starboard aft module',
+                         'Hull keel spine', 'Hull aft machinery body', 'Bridge deckhouse')},
     # The Wolf (P)'s .blend is a build output (build/wolf-p/wolf-p.blend), never tracked; its
     # driver re-measures these solids on every build. The bow fork is open structure round
     # the hardpoint, the outriggers and missile pods machinery and weapon pods, the domes

@@ -215,3 +215,19 @@ tarsus-surface/guide/*
 # tarsus-cinematic: the per-state .blend is rebuilt by finalize.sh; manifest and validation stay tracked.
 tarsus-cinematic/*/tarsus.blend
 tarsus-cinematic/*/tarsus.blend1
+# colossus-mk3 (pirate Colossus Mk.III): the same outputs as the Colossus's packages
+colossus-mk3-geometry/*.png
+colossus-mk3-geometry/*.blend
+colossus-mk3-geometry/*.blend1
+colossus-mk3-geometry/reference-history/
+colossus-mk3-surface/review/
+colossus-mk3-surface/textures/
+colossus-mk3-surface/grading/
+colossus-mk3-surface/skin-manifest.json
+colossus-mk3-surface/guide/*
+!colossus-mk3-surface/guide/sheet-*-guide.png
+!colossus-mk3-surface/guide/reference-guide.png
+!colossus-mk3-surface/guide/reference-mask.png
+colossus-mk3-cinematic/*.blend
+colossus-mk3-cinematic/*.blend1
+colossus-mk3-cinematic/review/
