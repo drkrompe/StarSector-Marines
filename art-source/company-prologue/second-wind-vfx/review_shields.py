@@ -1,7 +1,7 @@
 """Review the kit's shields on any hull: front arcs, colour schemes, strength.
 
   blender --background --factory-startup --python review_shields.py --
-      --hull DIR --blend PATH --collection NAME --set front|tech|schemes|strength|flicker|paragon
+      --hull DIR --blend PATH --collection NAME --set front|hero|tech|schemes|strength|flicker|paragon
       [--out DIR] [--samples 32] [--kit DIR] [--distance 1.02] [--device GPU|CPU]
 
 Appends one hull's ship collection (from its built cinematic .blend, without
@@ -12,6 +12,7 @@ world) from high on the port bow:
 
 - front:    the shield closed (just opening, shield_t .06), half (.5) and
             fully open, then fully open turned 40 degrees to port with two hits;
+- hero:     one still, fully open with one hit at strength 1 (the profile as it is);
 - tech:     fully open with one hit at strength 1, once per shield technology
             (low tech, midline, high tech: TECH_SHOWN), so only the scheme differs;
 - schemes:  the same, once per scheme in SCHEMES_SHOWN (factions included);
@@ -38,7 +39,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--hull', required=True)
 ap.add_argument('--blend', required=True)
 ap.add_argument('--collection', required=True)
-ap.add_argument('--set', required=True, choices=('front', 'tech', 'schemes', 'strength', 'flicker', 'paragon'))
+ap.add_argument('--set', required=True, choices=('front', 'hero', 'tech', 'schemes', 'strength', 'flicker', 'paragon'))
 ap.add_argument('--out', default=None)
 ap.add_argument('--samples', type=int, default=32)
 ap.add_argument('--kit', default=str(HERE))
@@ -165,6 +166,9 @@ if args.set in ('front', 'paragon'):
     for i, s in enumerate(FRONT if args.set == 'front' else PARAGON, 1):
         name = f'front-{i}-{s[0]}' if args.set == 'front' else s[0]
         still(ctrl, name, *s[1:])
+elif args.set == 'hero':
+    ctx, ctrl = build()
+    still(ctrl, 'hero', 1.0, 0.0, [(1, 15, 10, .8)], {'shield_strength': 1.0}, 1)
 elif args.set in ('tech', 'schemes'):
     for i, scheme in enumerate(TECH_SHOWN if args.set == 'tech' else SCHEMES_SHOWN, 1):
         ctx, ctrl = build(shield_scheme=scheme)

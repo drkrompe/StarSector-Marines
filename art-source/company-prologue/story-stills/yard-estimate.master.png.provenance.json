@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155a3-0d00-7d10-af03-1481dc24ab85",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155a3-0d00-7d10-af03-1481dc24ab85\\exec-6820487e-8e44-4da7-aafe-f3fa9f249c89.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\v2\\yard-estimate.raw.png",
+    "sha256": "8f2fb2bd9ce117f705906c51235d7fca61c94dd63a7f096e3ac700c88782e264",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\v2\\yard-estimate.brief.txt",
+  "promptSha256": "3aa30d374ad972966a18e67a5bdea40e405eff6bb91df0f44219bca1b0d78721",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the real forward console, camera; repaint, never move\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nScene: close still life at the Second Wind's forward flight console, seen from the flight seat. A yard has sent its estimate; the company has somewhere to go.\n\nReference 1 is a render of the real forward console and is the authority: keep its camera, perspective, the sloped grey-green console with its four screens, keypad, knobs, toggle rows, the chrome grab rail along its lip, the drawer fronts below, and the narrow slit windows with their heavy posts above. Paint it as the same worn grey-green metal with screen glow on it. Screens show abstract glowing navigation graphics only, nothing readable.\n\nOn the flat lip of the console, painted in: a yard estimate (a few sheets of off-white paper covered in unreadable handwritten marks and small compartment sketches of a ship) lying on top of an older, creased worker shift roster printed with an unreadable grid and a small generic company crest. A woman's weathered hand in the sleeve of a charcoal-olive duty jacket rests flat on the papers, palm over the crest, as if about to slide them aside. Around them: two chipped enamel mugs, a dented metal cash lockbox, a stub pencil and a worn rubber pressure gasket. Only the hand and forearm of the person; no face.\n\nThrough the slit windows: a distant green planet glowing in black space.\n\nPractical commitment to a new life. Warm amber from a lamp overhead, cool green from the screens.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p8-forward-console.png",
+      "sha256": "0663c69a2c21b07997f8adcb0dcfd7ee4f7737b16d9916f393970c1ca5ac8514",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the real forward console, camera; repaint, never move"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference’s exact camera and console layout."
+  ],
+  "usage": {
+    "input_tokens": 41253,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 598,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.8
+}

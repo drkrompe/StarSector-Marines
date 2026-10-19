@@ -72,7 +72,7 @@ them: the faction's hull style, with ring and inner leaned toward the faction's
 own colour (its .faction "color"). Vanilla .ship files carry no shield colours
 of their own, so the hull style is the vanilla answer. Each scheme also carries
 a finish (FINISHES): high tech is the Paragon's look exactly; midline and low
-tech ripple harder and coarser with a dimmer rim, so high tech reads as better
+tech ripple harder and coarser with a dim rim and a murkier face, so high tech reads as better
 tech though vanilla gives it midline's blue. The faction schemes stay
 available but are no profile's default. vanilla_styles() reads hull_styles.json from an install to check them.
 `swfx.apply(..., shield_scheme=NAME, shield_arc=DEG, shield_type=T)` overrides
@@ -149,20 +149,22 @@ STYLES = {
     'THREAT': dict(ring=(255, 255, 255), inner=(156, 186, 174), inner_alpha=75),
     'DWELLER': dict(ring=(255, 255, 255), inner=(255, 0, 50), inner_alpha=75),
 }
-# Finish by shield technology: ripple (amplitude), grain (noise frequency)
-# and rim (brightness), each a multiplier on the Paragon's accepted look. Vanilla
+# Finish by shield technology: ripple (amplitude), grain (noise frequency),
+# rim (brightness) and face (density of the face), each a multiplier on the Paragon's accepted look. Vanilla
 # gives midline and high tech the same blue; what separates them here is the
 # finish. High tech is the Paragon itself, the reference (all 1): steady, even,
-# a bright rim. Midline and low tech are busier, coarser and dimmer at the rim,
-# the shield of an older emitter rather than a different paint.
-IDENTITY = dict(ripple=1.0, grain=1.0, rim=1.0)
+# a bright rim. Midline and low tech are rougher and coarser, with a dim rim and
+# a murkier face: the shield of an older emitter rather than a different paint.
+IDENTITY = dict(ripple=1.0, grain=1.0, rim=1.0, face=1.0)
 FINISHES = {
     'HIGH_TECH': IDENTITY,
     'OMEGA': IDENTITY,
-    'MIDLINE': dict(ripple=1.9, grain=1.7, rim=.8),
-    'LOW_TECH': dict(ripple=2.3, grain=2.0, rim=.75),
-    'THREAT': dict(ripple=2.3, grain=2.0, rim=.75),
-    'DWELLER': dict(ripple=1.9, grain=1.7, rim=.8),
+    # Owner's pick (round 3, candidate C): rough, a dim rim and a murky face.
+    # Low tech shares it; its pink-red is what tells it apart.
+    'MIDLINE': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+    'LOW_TECH': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+    'THREAT': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
+    'DWELLER': dict(ripple=3.0, grain=2.6, rim=.5, face=1.8),
 }
 # Factions (not defaults: colour follows the shield's technology, the hull
 # style, and the owner keys schemes on that): (hull style, the faction's
@@ -371,7 +373,7 @@ def _bubble_material(ctx, s, hits, R, facing):
     inner_a = g.add(s['inner_alpha'], g.mul(fort, s['fortress_alpha'] - s['inner_alpha']))
     # Thinner face-on, thickening toward the silhouette (the vanilla shield's gradient).
     grad = g.add(.35, g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65))
-    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3), ripple), grad)
+    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3 * fin['face']), ripple), grad)
     rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'])
     # Strength: every term is exactly 1 (or 0) at shield_strength 1, the
     # Paragon's look. The face thins with it, the rim less so.

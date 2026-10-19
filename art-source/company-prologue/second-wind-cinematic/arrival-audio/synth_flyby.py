@@ -18,6 +18,7 @@ Every knob is in PASSES. Output is regenerable, so it goes under build/; `sfx_mi
 Seeded and deterministic. Requires numpy.
 """
 import argparse
+import subprocess
 import wave
 from pathlib import Path
 
@@ -122,9 +123,17 @@ HOUND = dict(start=21.5, end=34.5, path=straight(23.0, 32.0, (-300.0, 220.0, -70
              thrust=None,             # optional [(t, gain)] throttle curve
              thumps=(),               # ignition thumps, shot seconds
              rcs=())                  # thruster bursts: (t, seconds, gain)
+# Thruster sizes (owner, 2026-10-19, from audition_engines.py): SMALL is a small thruster close
+# (audition 01); MEDIUM_RANGE a medium drive muffled by distance or hull (03); HEAVY_RANGE a heavy
+# drive at range (02); the generated c4_launch_burn takes are a medium thruster close (t01) and a
+# single heavy thruster (t02).
+SMALL = dict(muffle_near=900.0, bass=2.6, crackle=0.9, rush_gain=0.1)
+MEDIUM_RANGE = dict(muffle_far=70.0, muffle_near=320.0, bass=2.2, crackle=0.4, rush_gain=0.15)
+HEAVY_RANGE = dict(muffle_far=120.0, muffle_near=180.0, bass=2.4, crackle=0.45, rush_gain=0.0)
 FIGHTER = dict(HOUND, start=0.0, end=7.0, sound_speed=330.0, muffle_far=150.0, muffle_near=2600.0,
                bass=0.8, crackle=0.6, rush_gain=0.7, rush_low=250.0, rush_high=5000.0,
                distance_power=2.0, pan="c2", pan_width=1.0)
+FIGHTER = dict(FIGHTER, **SMALL)                       # Broadswords: small thrusters
 LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, muffle_near=380.0,
               bass=3.0, crackle=0.25, rush_gain=0.05, distance_power=1.4, pan="c2", pan_width=0.5)
 # The two ships trim to look at each other (c2_bridge_blockout): the Legion's attitude thrusters
@@ -132,7 +141,7 @@ LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, mu
 LEGION_RCS = ((1.6, 0.5, 0.8), (3.4, 0.35, 0.6), (5.1, 0.8, 1.0), (6.3, 0.4, 0.7), (7.2, 1.1, 1.0),
               (8.9, 0.45, 0.8), (10.4, 0.7, 0.9), (12.0, 0.5, 0.7))
 PASSES = {
-    "hound_flyby_a": HOUND,
+    "hound_flyby_a": dict(HOUND, **SMALL),                # the customs Hound: a small thruster
     # Heavier and more muffled: more bass, a darker roar, a slower swell.
     "hound_flyby_b": dict(HOUND, muffle_near=280.0, bass=2.2, crackle=0.25, rush_gain=0.2,
                           distance_power=1.2, seed=12),
@@ -143,9 +152,9 @@ PASSES = {
                              rush_gain=0.15, distance_power=0.7, pan_width=0.15, seed=13),
     # C2. The Legion: main drives at its stern (it comes bow first, so they arrive last and
     # loudest just past the beam), a forward cluster, and attitude thrusters along the hull.
-    "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21),
-    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), muffle_near=300.0, bass=2.4, seed=22,
-                           rcs=LEGION_RCS),
+    # Its main drives: the generated single heavy thruster (c4_launch_burn_t02) flown along the hull.
+    "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02"),
+    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), seed=22, rcs=LEGION_RCS, **HEAVY_RANGE),
     # The fighters: two vics of three, a hard thruster roar each, abeam at 3.0 and 4.2 s.
     **{"fighter_%d%d" % (flight, n): dict(FIGHTER, path=fighter(t_pass + back / 160.0, out + dy, up + dz),
                                           seed=30 + 3 * flight + n)
@@ -158,10 +167,23 @@ PASSES = {
     # 'Colossus outbound'), drives burning throughout: a huge, slow, muffled freighter drive, closest
     # (about 190 m) at C5 18-19.5 and about 1.5 km off under the title. Joined C4-C5 clock.
     "colossus_outbound": dict(HOUND, start=C4_SECONDS + 9.0, end=C4_SECONDS + 33.5, path=colossus_outbound,
+                              source="c4_launch_burn_t02",       # heavy thrusters, muffled by distance
                               sound_speed=340.0, muffle_far=45.0, muffle_near=260.0, bass=3.4, crackle=0.18,
                               rush_gain=0.08, rush_low=80.0, rush_high=500.0, distance_power=1.3,
                               pan="c1", pan_width=0.7, seed=51,
                               thrust=[(C4_SECONDS + 9.0, 0.0), (C4_SECONDS + 11.0, 0.9), (C4_SECONDS + 33.5, 0.9)]),
+    # C4 (joined C4-C5 clock): Second Wind seen from the sky camera, 450-800 m above it. Its main drive
+    # burns full until touchdown at 16.4 and is out by 17.9; the belly lift jets light at 10.0, are full
+    # 12.0-16.4 and out by 17.4 (thrust_shots.mark_c4). Burning-gas rockets, broadband: no hum.
+    "second_wind_c4_drive": dict(HOUND, start=0.0, end=19.4, path=fixed(0.0, 60.0, -600.0), sound_speed=340.0,
+                                 muffle_far=320.0, muffle_near=320.0, bass=2.2, crackle=0.4, rush_gain=0.0,
+                                 distance_power=1.0, pan_width=0.0, seed=61,         # medium, at range
+                                 thrust=[(0.0, 0.0), (1.0, 0.8), (16.4, 0.8), (17.9, 0.0)]),
+    "second_wind_c4_lift": dict(HOUND, start=9.5, end=18.4, path=fixed(0.0, 60.0, -500.0), sound_speed=340.0,
+                                source="c4_launch_burn_t01",     # a medium thruster, close
+                                muffle_far=1500.0, muffle_near=1500.0, bass=1.6, crackle=0.0, rush_gain=0.0,
+                                distance_power=1.0, pan_width=0.1, seed=62,
+                                thrust=[(9.5, 0.0), (10.0, 0.05), (12.0, 1.0), (16.4, 1.0), (17.4, 0.0)]),
     "second_wind_interior": dict(HOUND, start=0.0, end=24.0, path=fixed(-40.0, 0.0, -6.0), sound_speed=340.0,
                                  muffle_far=140.0, muffle_near=140.0, bass=2.6, crackle=0.3, rush_gain=0.0,
                                  distance_power=1.0, pan_width=0.0, seed=41,
@@ -196,12 +218,50 @@ def coloured(n, rng, slope):
 
 
 def rocket(n, rng, crackle):
-    """The engine as it would sound in the open: a brown roar with sparse crackle."""
-    roar = coloured(n, rng, 2.0) + 0.35 * coloured(n, rng, 1.0)
-    pops = (rng.random(n) < 45.0 / SR) * rng.uniform(-1, 1, n)
-    kernel = np.exp(-np.arange(int(0.004 * SR)) / (0.0008 * SR))
-    pops = np.convolve(pops, kernel)[:n]
-    return roar / np.abs(roar).max() + crackle * pops / max(1e-9, np.abs(pops).max())
+    """The engine as a launch sounds (owner, 2026-10-19: "bass with burning rocket fuel like a shuttle
+    launch", not compressed air): a deep turbulent rumble that surges and breathes, and the crackle
+    of burning exhaust as separate shock pops. Returns (rumble, crackle) so distance can dull the
+    rumble and the crackle differently."""
+    # A brown rumble with a pink roar on top: the roar is the 100-800 Hz body a launch has.
+    rumble = coloured(n, rng, 2.0) + 0.7 * coloured(n, rng, 1.0)
+    # Nothing below about 28 Hz: it is felt in a theatre at best, and here it only ate the headroom.
+    for _ in range(3):
+        rumble = rumble - one_pole(rumble, 28.0)
+    # Turbulence: the rumble surges and breathes a few times a second instead of holding steady.
+    surge = coloured(n, rng, 2.0)
+    surge = surge - surge.mean()
+    surge = one_pole(surge, 4.0)
+    surge /= max(1e-9, np.abs(surge).max())
+    rumble = rumble * np.clip(1.0 + 0.45 * surge, 0.25, None)
+    # Saturation: a launch overdrives the air and every microphone near it.
+    rumble = np.tanh(3.0 * rumble / max(1e-9, np.abs(rumble).max()))
+    # Crackle: dense shock waves, each a hard positive spike with a slower negative recovery, with
+    # heavy-tailed sizes so a few pops cut through the roar.
+    hits = (rng.random(n) < 500.0 / SR) * (rng.pareto(2.0, n) + 0.3)
+    k = np.arange(int(0.006 * SR))
+    shock = np.exp(-k / (0.00035 * SR)) - 0.55 * np.exp(-k / (0.0018 * SR))
+    pops = np.convolve(hits, shock)[:n]
+    pops /= max(1e-9, np.abs(pops).max())
+    return rumble, crackle * pops
+
+
+TAKES = Path(__file__).resolve().parent / "sfx-takes"
+
+
+def take_loop(name, n):
+    """A generated engine take (sfx-takes/<name>.mp3) as an engine source: mono, looped with
+    one-second crossfades to n samples, so a recorded-sounding burn can still fly a path."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(TAKES / (name + ".mp3")), "-ac", "1", "-ar", str(SR),
+                          "-f", "f32le", "-"], check=True, capture_output=True).stdout
+    x = np.frombuffer(raw, np.float32).astype(np.float64)
+    x = x[int(0.3 * SR):len(x) - int(0.3 * SR)]           # skip the take's own fade in and out
+    fade = min(SR, len(x) // 4)
+    ramp = np.linspace(0, 1, fade)
+    out = x.copy()
+    while len(out) < n:
+        out = np.concatenate([out[:-fade], out[-fade:] * ramp[::-1] + x[:fade] * ramp, x[fade:]])
+    out = out[:n]
+    return out / max(1e-9, np.abs(out).max())
 
 
 def render(spec):
@@ -215,18 +275,30 @@ def render(spec):
     # The source runs on its own clock and is read at the emission time: that read carries the
     # pitch drop. Pad it so the earliest emission time still has signal.
     origin = te.min() - 0.1
-    src = rocket(int((te.max() - origin + 0.2) * SR), rng, spec["crackle"])
-    voice = np.interp((te - origin) * SR, np.arange(len(src)), src)
+    rumble, pops = rocket(int((te.max() - origin + 0.2) * SR), rng, spec["crackle"])
+    if spec.get("source"):
+        rumble, pops = take_loop(spec["source"], len(rumble)), np.zeros(len(rumble))
+    at = (te - origin) * SR
+    grid = np.arange(len(rumble))
+    voice, crack = np.interp(at, grid, rumble), np.interp(at, grid, pops)
     corner = spec["muffle_far"] + (spec["muffle_near"] - spec["muffle_far"]) * near
     muffled = one_pole(one_pole(voice, corner), corner)                     # two poles: properly dull
-    sub = one_pole(one_pole(voice, 90.0), 90.0)
-    engine = muffled + spec["bass"] * sub
-    engine /= max(1e-9, np.abs(engine).max())
+    sub = one_pole(one_pole(voice, 70.0), 70.0)
+    for _ in range(2):
+        sub = sub - one_pole(sub, 28.0)
+    # The crackle carries further than the rumble's top end: dulled by distance, never removed.
+    crack_corner = np.minimum(4000.0, 3.0 * corner + 300.0)
+    crack = one_pole(one_pole(crack, crack_corner), crack_corner)
+    crack *= spec["crackle"] / max(1e-9, np.abs(crack).max())
+    engine = muffled / max(1e-9, np.abs(muffled).max()) + 0.45 * spec["bass"] * sub / max(1e-9, np.abs(sub).max())
+    engine = engine / max(1e-9, np.abs(engine).max()) + 1.4 * crack * np.sqrt(near)
+    engine = np.tanh(1.6 * engine / max(1e-9, np.abs(engine).max()))
 
     noise = coloured(len(t), rng, 1.0)
     low = one_pole(noise, spec["rush_low"])
     band = one_pole(noise - low, spec["rush_low"] + (spec["rush_high"] - spec["rush_low"]) * near)
-    rush = spec["rush_gain"] * band / max(1e-9, np.abs(band).max()) * near
+    # Kept low: a strong air rush is what made the old engines read as compressed air.
+    rush = 0.4 * spec["rush_gain"] * band / max(1e-9, np.abs(band).max()) * near
 
     mono = (engine + rush) * near
     if spec["thrust"]:
