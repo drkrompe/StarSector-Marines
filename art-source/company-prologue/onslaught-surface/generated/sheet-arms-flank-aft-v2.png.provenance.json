@@ -1,0 +1,54 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.160.0",
+  "model": "codex default",
+  "thread": "01a1546e-07b0-72d0-acf4-eb4a67dda205",
+  "source": "/Users/dillon/.codex/generated_images/01a1546e-07b0-72d0-acf4-eb4a67dda205/exec-383a5adf-3911-41a4-a287-51eb63f63d17.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated/sheet-arms-flank-aft-v2.png",
+    "sha256": "c7dfe311d5fcfb510affbdb2078fb0740615741338d7d326c9edfa23c2785fb2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts/sheet-arms-flank-aft-v2.prompt.txt",
+  "promptSha256": "8393af9ce4389a99a68344f30677d957883c3de59c856fbbfbf9d8feb49c83e0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of four faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of parts of one gun arm of a 3D spacecraft (a Hegemony XIV Onslaught-class battleship, a heavily armoured low-tech capital ship, properly maintained picket flagship on station), each seen square-on from the port side, bow to the left, each drawn alone as flat-coloured shapes on a plain flat mid-blue background:\ntop-left: the aft root seen from port: bright orange fin armour on the left, a large warm brown-grey face to the right with a dark brown wedge and a dark grey vertical strap;\ntop-right: the fin and deck edge: bright orange fin plates at the top, a long warm brown-grey band with a large dark brown plate and a large mid-tan bone-brown plate, thin dark strips above and below, and weathered burnt-orange plates along the bottom;\nbottom-left: the aft belt rail: a large bright orange armour rail face with one dark grey vertical strap, weathered burnt-orange plates bolted on it, and dark grey and dark brown pieces at the lower corners;\nbottom-right: the belt rail amidships: a long warm brown-grey upper band with dark brown and bone-brown plates, then a long bright orange rail along the bottom with one dark grey strap and weathered burnt-orange plates at its left end.\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its maintained service finish, its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint every shape in INPUT 1 as that maintained armoured surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or slot stays plain background blue. Thin isolated slivers and strips stay where they are.\n- Every shape is a flat painted steel armour plate. Add painted surface detail inside each plate's outline only: crisp plate seams and welded joints, neat rows of small fasteners and rivets, flush access panels, a light even film of dust and grime in the seams and a few small scuffs on plate edges. Nothing may stand out from the surface or cross an outline.\n- Keep EVERY plate its own colour exactly as INPUT 1 shows it. The alternating plate tones are deliberate and must stay distinct, never evened out or blended: warm brown-grey plates stay warm brown-grey; dark brown plates stay dark chocolate brown; bone-brown plates stay a MEDIUM dusty greyish tan: clearly darker than bone white, never cream, off-white or pale, about halfway between the warm brown-grey plates and bone white (INPUT 1 draws them lighter than the paint really is: the pale tan plates in INPUT 1 are this medium tan); bright orange plates stay saturated Hegemony orange enamel; the duller darker orange plates stay a weathered burnt orange; dark grey armour (straps, frames, coamings, sponson plates) stays dark charcoal grey; blue-grey steel plates stay a cool blue-grey steel; near-black recesses and seams stay near-black. Do not repaint any plate another colour, add no stripes and no differently coloured patches.\n- The ship is maintained, not battered. Weathering is light and even across every plate. No rust, no repair patches, no soot, scorch marks, burns, streaks, impact damage, dents, holes, large stains, chipped bare metal, or any single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide/sheet-arms-flank-aft-v2-guide.png",
+      "sha256": "f7e9b0ae1b9a54f1ffde7b57b890370eb356a64c7a4bec1ed6ce67a0493b61ef",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of four faces to paint (layout authority)"
+    },
+    {
+      "path": "reference/finish-reference.png",
+      "sha256": "6e8f55d0ee8c962ed0d58c88f8e6142c9846d0d10c55cea41ca834ef5d45763a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned sheet, preserving Image 1’s layout and using Image 2 only for the surface finish."
+  ],
+  "usage": {
+    "input_tokens": 116576,
+    "cached_input_tokens": 95488,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1076,
+    "reasoning_output_tokens": 71
+  },
+  "elapsedSeconds": 56.4
+}
