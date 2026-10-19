@@ -1,0 +1,33 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "thread": "01a154c8-c627-7240-a29f-ebeab5f01c7a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a154c8-c627-7240-a29f-ebeab5f01c7a\\exec-bc84ccf7-4d4b-4fac-92ee-3946cb4c8729.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\bridge-screens\\systems-v1.png",
+    "sha256": "e4c6d38407f1d286f328b36c0f918ce80fe6fb76a1aabb1e82ab2f745a076aa5",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\bridge-screen-systems-v1.txt",
+  "promptSha256": "661df0de952a876bc7d4b71abf974586965b3392aa832a18249bd2b1637c3323",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA flat, straight-on capture of one working display page from the bridge console of an old, patched-up interplanetary freighter: a practical, utilitarian ship's instrument, not a movie hologram. Teal-green phosphor (around #3aa58a) and dimmer teal on a near-black screen, with only a few small amber accents and at most one small red warning, like a real avionics or industrial control display. Thin vector lines, simple blocky sans-serif labels in uppercase English, short and sparse, plus numeric readouts; a little faint scanline texture and slight phosphor bloom on the brightest lines. Mostly dark background so the content glows. The page fills the whole canvas edge to edge. No monitor bezel, no screen frame, no room, no hands, no reflections, no perspective or curvature, no watermark, no logos.\n\nWide landscape canvas (about 2:1). The ship systems page: a power-bus schematic of a freighter (reactor, two main buses, breakers drawn as small boxes, some open) as a line diagram, with bar gauges for REACTOR, DRIVE, LIFE SUPPORT, CARGO BAY, and tank levels; a few breakers flagged amber as JURY-RIGGED or BYPASS, one small red OFFLINE flag for a damaged section, and a fault list of three short lines at the bottom.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image using the imagegen skill and stop after it’s returned."
+  ],
+  "usage": {
+    "input_tokens": 52398,
+    "cached_input_tokens": 48768,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 526,
+    "reasoning_output_tokens": 7
+  },
+  "elapsedSeconds": 56.6
+}

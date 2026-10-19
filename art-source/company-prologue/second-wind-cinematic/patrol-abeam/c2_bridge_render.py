@@ -82,6 +82,33 @@ SCREEN_GLOW_SPREAD = 70.0                  # deg: toward the operator, not acros
 HELM_FILL = ((16.45, -1.2, 19.88), (0.5, 0.9), (16.3, -1.7, 18.4), 8.0, (0.9, 0.45, 0.12))
 
 
+# What the bridge's screens show (owner, 2026-10-19: "plausible things on these screens"): Codex
+# ImageGen pages under assets/bridge-screens/, briefs in prompts/bridge-screen-*.txt. Per screen
+# object: (page, crop centre u, v, crop scale), the crop being the largest window of the screen's
+# own aspect that fits the page, scaled; so one page can serve two screens without repeating.
+# 'face' says which side of the object's local box is the screen and which way is up on it.
+SCREEN_PAGES = {
+    "Bridge display forward console 1": ("traffic", .5, .5, 1.0),
+    "Bridge display forward console 2": ("nav", .5, .5, 1.0),
+    "Bridge display forward console 3": ("flight", .5, .5, 1.0),
+    "Bridge display forward console 4": ("systems", .5, .3, 1.0),
+    "Bridge display port chamfer console 1": ("sensors", .5, .5, 1.0),
+    "Bridge display starboard chamfer console 1": ("traffic", .78, .5, 1.0),
+    "Bridge display port comms bank 1": ("comms", .5, .5, 1.0),
+    "Bridge display port comms bank 2": ("sensors", .3, .5, .75),
+    "Bridge display port comms bank 3": ("comms", .72, .4, .65),
+    "Bridge display starboard systems bank 1": ("systems", .28, .45, .62),
+    "Bridge display starboard systems bank 2": ("systems", .5, .5, 1.0),
+    "Bridge display starboard systems bank 3": ("systems", .74, .6, .62),
+    "Bridge display salvaged": ("flight", .5, .5, .55),
+    "Bridge display plot": ("plot", .5, .5, 1.0),
+    "Bridge display overhead": ("overhead", .5, .5, 1.0),
+}
+SCREEN_FACE = {"Bridge display salvaged": "aft", "Bridge display plot": "up", "Bridge display overhead": "down"}
+SCREEN_STRENGTH = 3.0                       # emission of a page's brightest pixel
+SCREEN_DIR = BASE / "assets" / "bridge-screens"
+
+
 def bridge_practicals(powered):
     """[(name, location, (size_x, size_y), aim point or None for straight down, energy W, rgb,
     spread deg)]."""
@@ -119,6 +146,8 @@ def plan(frames, fps, samples_n, state=SW_STATE):
         "fps": fps, "cycles_samples": samples_n, "sw_state": state,
         "sw_state_blend": str(BASE.parent / "second-wind-states" / state / ("second-wind-%s.blend" % state)),
         "practicals": bridge_practicals(state != "derelict"),
+        "screen_pages": SCREEN_PAGES if state != "derelict" else {},
+        "screen_face": SCREEN_FACE, "screen_dir": str(SCREEN_DIR), "screen_strength": SCREEN_STRENGTH,
         "albedo": str(C1_ASSETS / "planet-albedo-detail-v1.png"),
         "clouds": str(C1_ASSETS / "planet-clouds-detail-v1.png"),
         "running_lights": lg.get("running_lights", []), "orbital_speed": C.ORBITAL_SPEED,
@@ -269,6 +298,21 @@ def blender_main(argv):
         if aim is not None:
             d = Vector(aim) - Vector(loc)
             lamp.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
+    pages = {}
+    for name, (page, cu, cv, k) in p["screen_pages"].items():
+        if page not in pages:
+            img = bpy.data.images.load(str(Path(p["screen_dir"]) / ("%s-v1.png" % page)))
+            mat = bpy.data.materials.new("C2B | bridge screen %s" % page)
+            mat.use_nodes = True
+            bs = mat.node_tree.nodes["Principled BSDF"]
+            bs.inputs["Base Color"].default_value = (.01, .015, .015, 1)
+            bs.inputs["Roughness"].default_value = .25
+            tex = mat.node_tree.nodes.new("ShaderNodeTexImage")
+            tex.image, tex.extension = img, "EXTEND"
+            mat.node_tree.links.new(tex.outputs["Color"], bs.inputs["Emission Color"])
+            bs.inputs["Emission Strength"].default_value = p["screen_strength"]
+            pages[page] = (mat, img.size[0] / img.size[1])
+        screen_page(bpy.data.objects[name], *pages[page], cu, cv, k, p["screen_face"].get(name, "operator"))
     sys.path.insert(0, p["sw_dir"])
     import sw_bridge_interior
     sw_bridge_interior.figures(p["sw_mpu"], parent=sw)
@@ -531,6 +575,42 @@ def blender_main(argv):
         meta_path.write_text(json.dumps({"rendered": sorted(done), "samples": p["cycles_samples"]}), encoding="utf-8")
     if times:
         print("Render: %d frames, mean %.1fs" % (len(times), sum(times) / len(times)))
+
+
+def screen_page(obj, mat, page_aspect, cu, cv, k, face):
+    """Show a crop of a page on a screen: UVs from the object's local box, its own material.
+
+    face: 'operator' (top of the box, the operator at local -Y, the page's top toward +Y),
+    'aft' (the -X side, for a pilot facing +X), 'up' or 'down' (read from aft, top forward)."""
+    me = obj.data
+    xs, ys, zs = zip(*(v.co for v in me.vertices))
+    lo = (min(xs), min(ys), min(zs))
+    hi = (max(xs), max(ys), max(zs))
+    def uv_of(co):
+        f = [(co[i] - lo[i]) / max(hi[i] - lo[i], 1e-9) for i in range(3)]
+        if face == "operator":
+            return f[0], f[1]
+        if face == "aft":
+            return 1 - f[1], f[2]
+        return 1 - f[1], f[0]                          # up / down: the page's top is forward
+    dims = {"operator": (hi[0] - lo[0], hi[1] - lo[1]), "aft": (hi[1] - lo[1], hi[2] - lo[2])}
+    w, h = dims.get(face, (hi[1] - lo[1], hi[0] - lo[0]))
+    aspect = w / h
+    # The largest window of the screen's aspect inside the page, scaled by k, centred on (cu, cv)
+    # and kept on the page.
+    if aspect > page_aspect:
+        cw, ch = 1.0, page_aspect / aspect
+    else:
+        cw, ch = aspect / page_aspect, 1.0
+    cw, ch = cw * k, ch * k
+    u0 = min(max(cu - cw / 2, 0), 1 - cw)
+    v0 = min(max(cv - ch / 2, 0), 1 - ch)
+    uv = me.uv_layers.active or me.uv_layers.new()
+    for loop in me.loops:
+        a, b = uv_of(me.vertices[loop.vertex_index].co)
+        uv.data[loop.index].uv = (u0 + a * cw, v0 + b * ch)
+    me.materials.clear()
+    me.materials.append(mat)
 
 
 def _fcurves(action):

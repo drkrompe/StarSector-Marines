@@ -296,6 +296,19 @@ public final class ChokePointHold implements Action {
     private static int parseSlotIdx(String slotName) {
         int colon = slotName.indexOf(':');
         if (colon < 0) return -1;
+        int digits = slotName.length() - colon - 1;
+        if (digits < 1 || digits > 9) return parseSlowSlotIdx(slotName, colon);
+        int value = 0;
+        for (int i = colon + 1; i < slotName.length(); i++) {
+            int digit = slotName.charAt(i) - '0';
+            if (digit < 0 || digit > 9) return parseSlowSlotIdx(slotName, colon);
+            value = value * 10 + digit;
+        }
+        return value;
+    }
+
+    /** The general case (sign, non-ASCII digits, overlong): same answers as before. */
+    private static int parseSlowSlotIdx(String slotName, int colon) {
         try {
             return Integer.parseInt(slotName.substring(colon + 1));
         } catch (NumberFormatException e) {

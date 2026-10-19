@@ -18,4 +18,16 @@ package com.dillon.starsectormarines.battle.decision;
  *        reflexes exist for exactly that case.
  */
 public record ReflexContext(boolean opportunityFirePermitted) {
+
+    private static final ReflexContext PERMITTED = new ReflexContext(true);
+    private static final ReflexContext WITHHELD = new ReflexContext(false);
+
+    /**
+     * The shared instance for {@code opportunityFirePermitted}. A context holds
+     * one boolean and is built for every unit every tick, so it is handed out
+     * rather than allocated.
+     */
+    public static ReflexContext of(boolean opportunityFirePermitted) {
+        return opportunityFirePermitted ? PERMITTED : WITHHELD;
+    }
 }
