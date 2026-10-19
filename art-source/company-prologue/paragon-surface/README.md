@@ -1,6 +1,6 @@
 # Paragon: surfacing
 
-Status: REVIEW (pass 6 round 3 posted 2026-10-19).
+Status: ACCEPTED (pass 6 round 3, accepted by the owner 2026-10-19).
 Written: 2026-10-19
 
 The Paragon's folder for the shared surfacing harness
