@@ -49,6 +49,12 @@ scope unless the owner asks for it.
 |---|---|---|---|
 | Fleet scale lineup | `fleet-scale/` | review: `fleet_lineup.py` renders every hull at its published option C scale, with real-world references (container, 747, ISS, Eiffel Tower, Nimitz, football pitch): broadside, top-down, the Hound at and in a Legion hangar lane, walkway eye level, fighters in the lane, Legion, Onslaught and Paragon side by side, plus a sizes table | Owner judges the final C sizes; rerun after any rescale or new hull |
 
+## Shared effects
+
+| Asset | Package | State | Next |
+|---|---|---|---|
+| Shield kit (`swfx_shield`) | `second-wind-vfx/` | done (round 2, 2026-10-19; decisions by the coordinator for the owner, who can override): the Paragon's Fortress Shield generalised. FRONT arcs of any width (a pie slice from the shield centre, as the game draws it) on the shell fitted ~10 m clear, unfolding from and turning with the facing, hits as on the Paragon; colour follows the shield's technology (vanilla hull style): low tech pink-red, midline blue, high tech the same blue with the Paragon's steadier, brighter finish (the Paragon is the high-tech reference); Onslaught, Legion and Colossus `low-tech`; faction schemes kept in the kit, not default; one `shield_strength` knob from vanilla shield efficiency (0.6 is 1.0, capitals' 1.0 is 0.8); the Paragon unchanged (A/B within render noise, verify passes); review/shield-kit/2026-10-19_directional-shields-round2_windows | Onslaught, Legion and Colossus exports add `shield` to their SWFX groups when a shot needs shields |
+
 ## Standing decisions
 
 - Every hull has its own real-life scale (`metres_per_unit` in its
