@@ -22,6 +22,18 @@ A profile's SHIELD is a dict:
              fits the hull instead of the vanilla sphere: the hull's convex
              hull seen from the centre, pushed out by margin and smoothed,
              centred on the anchor in plan and on the hull's mid-height
+  type       optional: 'OMNI' (default) or 'FRONT'. An OMNI shield unfolds as
+             a cone about the facing and closes behind the ship (the Paragon).
+             A FRONT shield is an arc in plan: everything within arc/2 of the
+             facing, measured about +Z, so it covers the hull's full height
+             over its width; its ends stay lit when fully open
+  center     optional (x, y) hull units: the vanilla shieldCenter, an offset
+             from the anchor in plan (for a hull whose anchor is its root)
+  scheme     optional name in SCHEMES: fills ring / inner / inner_alpha (and
+             the fortress colours) that the profile leaves out
+  efficiency optional vanilla shield efficiency (flux per damage,
+             ship_data.csv): sets shield_strength's default through
+             strength_from_efficiency; without it the default is 1.0
   raise_s, lower_s   seconds to raise and drop the shield
   fortress_up_s, fortress_down_s   the system's charge up / down (ship_systems.csv)
 
@@ -45,11 +57,34 @@ build() makes, dark until raised:
             inner colour. They lead the raise (fully lit by a third of it), so
             the emitter array lights before the bubble closes.
 
+Strength: shield_strength (0..1.5) is one control for how solid the shield
+reads. 1.0 is the Paragon's accepted look exactly. Lower is thinner and
+flickers: the face and rim fade, the whole shield wavers and patches of it
+drop out, moving fast. Higher is denser: brighter, and it filters what lies
+behind it toward the inner colour. strength_from_efficiency maps the vanilla
+stat onto it (0.6, the best shield in vanilla, is 1.0; 1.0 is 0.8), and a shot keys it
+like any knob, e.g. down as the ship's flux climbs.
+
+Colour schemes follow the shield's technology, the hull style. SCHEMES holds the vanilla hull-style shield colours
+(hull_styles.json: LOW_TECH inner 255,125,125; MIDLINE and HIGH_TECH inner
+125,125,255; ring white, inner alpha 75 for all) and faction schemes built on
+them: the faction's hull style, with ring and inner leaned toward the faction's
+own colour (its .faction "color"). Vanilla .ship files carry no shield colours
+of their own, so the hull style is the vanilla answer. Each scheme also carries
+a finish (FINISHES): high tech is the Paragon's look exactly; midline and low
+tech ripple harder and coarser with a dimmer rim, so high tech reads as better
+tech though vanilla gives it midline's blue. The faction schemes stay
+available but are no profile's default. vanilla_styles() reads hull_styles.json from an install to check them.
+`swfx.apply(..., shield_scheme=NAME, shield_arc=DEG, shield_type=T)` overrides
+the profile for one build.
+
 Knobs on SWFX controls: shield_t (raise envelope 0..1), shield_fortress
-(fortress-mode intensity 0..1), shield_facing (degrees about +Z, 0 the bow),
+(fortress-mode intensity 0..1), shield_strength (0..1.5, 1 the Paragon),
+shield_facing (degrees about +Z, 0 the bow),
 shield_hit_<k> (flash 0..1), shield_hit_az_<k>, shield_hit_el_<k>, and the
 group's shield_gain, shield_rim, shield_hit_size and shield_light.
-raise_shield(), fortress() and hit() key them with the vanilla timings; a shot
+raise_shield(), fortress() and hit() key them with the vanilla timings
+(in_arc() says whether a hit lands on an open FRONT arc); a shot
 may key them by hand instead. In the game a Fortress Shield ship cannot fire
 while the system is on (noFiring): a shot that shows it should keep the beams
 dark.
@@ -85,6 +120,136 @@ FACE_FORTRESS, RIM_FORTRESS, HIT_SPREAD = .12, .55, 1.0
 HIT_SHADE, HIT_SHADE_FORTRESS = .25, .7
 NODE_W = 1500.0         # node light (W) at envelope 1
 EDGE_W = .035           # unfolding edge half-width as a fraction of the arc
+# A FRONT shield's ends keep this share of the unfolding edge once fully open,
+# so where the arc stops reads as an edge rather than a fade.
+END_GLOW = .45
+FLAT_EDGE = .2          # share of that edge left where the shell faces up or down
+# Strength: below 1 the shield wavers by up to WAVER of its brightness and
+# patches drop out (DROPOUT of it at most, over noise DROP_SCALE / R, moving
+# FLICKER_RATE times faster than the ripple); above 1, DENSE_SHADE of the extra
+# filters what lies behind it toward the inner colour.
+STRENGTH_MAX = 1.5
+WAVER, DROPOUT, DROP_SCALE, FLICKER_RATE, DENSE_SHADE = 1.4, 1.8, 2.2, 7.0, .45
+BEST_EFFICIENCY = .6    # the best vanilla shield efficiency (Paragon, Medusa): strength 1
+STRENGTH_PER_EFFICIENCY = .5   # strength lost per unit of efficiency above that: 1.0 reads 0.8
+
+
+def _rgb(*c):
+    return tuple(round(v / 255, 4) for v in c)
+
+
+# Vanilla shield colours by hull style (hull_styles.json shieldRingColor /
+# shieldInnerColor, Starsector 0.98a). Ring alpha is 255 and inner alpha 75 in
+# every style; .ship files carry no overrides.
+STYLES = {
+    'LOW_TECH': dict(ring=(255, 255, 255), inner=(255, 125, 125), inner_alpha=75),
+    'MIDLINE': dict(ring=(255, 255, 255), inner=(125, 125, 255), inner_alpha=75),
+    'HIGH_TECH': dict(ring=(255, 255, 255), inner=(125, 125, 255), inner_alpha=75),
+    'OMEGA': dict(ring=(255, 255, 255), inner=(150, 125, 255), inner_alpha=75),
+    'THREAT': dict(ring=(255, 255, 255), inner=(156, 186, 174), inner_alpha=75),
+    'DWELLER': dict(ring=(255, 255, 255), inner=(255, 0, 50), inner_alpha=75),
+}
+# Finish by shield technology: ripple (amplitude), grain (noise frequency)
+# and rim (brightness), each a multiplier on the Paragon's accepted look. Vanilla
+# gives midline and high tech the same blue; what separates them here is the
+# finish. High tech is the Paragon itself, the reference (all 1): steady, even,
+# a bright rim. Midline and low tech are busier, coarser and dimmer at the rim,
+# the shield of an older emitter rather than a different paint.
+IDENTITY = dict(ripple=1.0, grain=1.0, rim=1.0)
+FINISHES = {
+    'HIGH_TECH': IDENTITY,
+    'OMEGA': IDENTITY,
+    'MIDLINE': dict(ripple=1.9, grain=1.7, rim=.8),
+    'LOW_TECH': dict(ripple=2.3, grain=2.0, rim=.75),
+    'THREAT': dict(ripple=2.3, grain=2.0, rim=.75),
+    'DWELLER': dict(ripple=1.9, grain=1.7, rim=.8),
+}
+# Factions (not defaults: colour follows the shield's technology, the hull
+# style, and the owner keys schemes on that): (hull style, the faction's
+# .faction "color"). The scheme is the
+# style's colours leaned toward the faction colour (brightened to full): the
+# ring by RING_LEAN, the inner by INNER_LEAN.
+FACTIONS = {
+    'hegemony': ('LOW_TECH', (245, 150, 30)),
+    'tritachyon': ('HIGH_TECH', (135, 206, 255)),
+    'independent': ('MIDLINE', (150, 150, 150)),
+    'sindrian_diktat': ('MIDLINE', (180, 0, 120)),
+    'luddic_church': ('LOW_TECH', (5, 115, 10)),
+    'pirates': ('LOW_TECH', (255, 0, 0)),
+}
+RING_LEAN, INNER_LEAN = .3, .4
+
+
+def _scheme(ring, inner, alpha, style, source):
+    return dict(ring=_rgb(*ring), inner=_rgb(*inner), inner_alpha=round(alpha / 255, 4),
+                finish=dict(FINISHES[style]), source=source)
+
+
+def _lean(a, b, k):
+    # Toward the faction colour's hue at full brightness, so a dark faction
+    # colour (the Church's green) tints the shield instead of muddying it.
+    top = max(b) or 1
+    return tuple(round(x + (y * 255 / top - x) * k) for x, y in zip(a, b))
+
+
+SCHEMES = {name.lower().replace('_', '-'): _scheme(s['ring'], s['inner'], s['inner_alpha'], name,
+                                                  f'vanilla hull style {name}')
+           for name, s in STYLES.items()}
+for _f, (_style, _col) in FACTIONS.items():
+    _s = STYLES[_style]
+    SCHEMES[_f] = _scheme(_lean(_s['ring'], _col, RING_LEAN), _lean(_s['inner'], _col, INNER_LEAN),
+                          _s['inner_alpha'], _style, f'{_style} leaned toward the {_f} faction colour {_col}')
+
+
+def strength_from_efficiency(efficiency):
+    """shield_strength for a vanilla shield efficiency (flux per damage absorbed;
+    lower is better), linear: 0.6, the best in vanilla, is exactly 1.0; the
+    capitals' 1.0 (Onslaught, Legion) is 0.8; the Conquest's 1.4 is 0.6."""
+    s = 1.0 - STRENGTH_PER_EFFICIENCY * (float(efficiency) - BEST_EFFICIENCY)
+    return max(0.0, min(STRENGTH_MAX, s))
+
+
+def vanilla_styles(install):
+    """The shield colours in an install's hull_styles.json, {style: dict(ring,
+    inner, inner_alpha)} in 0..255, to check STYLES against (read only)."""
+    import re
+    from pathlib import Path
+    text = (Path(install) / 'starsector-core' / 'data' / 'config' / 'hull_styles.json').read_text(encoding='utf-8')
+    out = {}
+    for m in re.finditer(r'"([A-Z_]+)"\s*:\s*\{(.*?)\n\t\}', text, re.S):
+        body = m.group(2)
+        ring = re.search(r'"shieldRingColor"\s*:\s*\[([^\]]*)\]', body)
+        inner = re.search(r'"shieldInnerColor"\s*:\s*\[([^\]]*)\]', body)
+        if ring and inner:
+            r = [int(v) for v in ring.group(1).split(',')]
+            i = [int(v) for v in inner.group(1).split(',')]
+            out[m.group(1)] = dict(ring=tuple(r[:3]), inner=tuple(i[:3]), inner_alpha=i[3])
+    return out
+
+
+def resolve(spec, scheme=None, arc=None, shield_type=None):
+    """A profile's SHIELD with its scheme's colours filled in (explicit colours
+    win) and any per-build overrides applied."""
+    s = dict(spec)
+    name = scheme or s.get('scheme')
+    if scheme:
+        for k in ('ring', 'inner', 'inner_alpha', 'fortress_ring', 'fortress_inner', 'fortress_alpha', 'finish'):
+            s.pop(k, None)
+    if name:
+        c = SCHEMES[name]
+        s['scheme'] = name
+        for k in ('ring', 'inner', 'inner_alpha', 'finish'):
+            s.setdefault(k, c[k])
+    s['finish'] = dict(IDENTITY, **s.get('finish', {}))
+    s.setdefault('fortress_ring', s['ring'])
+    s.setdefault('fortress_inner', s['inner'])
+    s.setdefault('fortress_alpha', s['inner_alpha'])
+    if arc is not None:
+        s['arc'] = float(arc)
+    if shield_type:
+        s['type'] = shield_type
+    s['type'] = s.get('type', 'OMNI').upper()
+    return s
 
 
 class _G:
@@ -151,30 +316,52 @@ def _bubble_material(ctx, s, hits, R, facing):
     tc = nodes.new('ShaderNodeTexCoord')
     noise = nodes.new('ShaderNodeTexNoise')
     noise.noise_dimensions = '4D'
-    noise.inputs['Scale'].default_value = 3.0 / R
+    fin = s['finish']
+    noise.inputs['Scale'].default_value = 3.0 * fin['grain'] / R
     noise.inputs['Detail'].default_value = 2.0
     links.new(tc.outputs['Object'], noise.inputs['Vector'])
-    links.new(swfx_core.value_node(ctx, nodes, 'shield time', 'frame / 30.0'), noise.inputs['W'])
-    ripple = g.add(1.0, g.mul(g.sub(noise.outputs['Fac'], .5), g.mul(g.sub(1.0, fort), 1.2)))
+    clock = swfx_core.value_node(ctx, nodes, 'shield time', 'frame / 30.0')
+    links.new(clock, noise.inputs['W'])
+    ripple = g.add(1.0, g.mul(g.sub(noise.outputs['Fac'], .5), g.mul(g.sub(1.0, fort), 1.2 * fin['ripple'])))
     # Unfolding: the angle from the facing direction (the facing empty's +X,
     # at the centre), as a fraction of the half-arc; the shield covers what is
-    # within shield_t of it.
+    # within shield_t of it. OMNI measures it in 3D (a cone that closes behind
+    # the ship); FRONT measures it in plan, about +Z, so the arc spans the
+    # hull's whole height.
     ftc = nodes.new('ShaderNodeTexCoord')
     ftc.object = facing
-    nrm = nodes.new('ShaderNodeVectorMath')
-    nrm.operation = 'NORMALIZE'
-    links.new(ftc.outputs['Object'], nrm.inputs[0])
     sep = nodes.new('ShaderNodeSeparateXYZ')
-    links.new(nrm.outputs[0], sep.inputs[0])
     half_arc = math.radians(float(s.get('arc', 360))) / 2
-    frac = g.mul(g.op('ARCCOSINE', g.op('MINIMUM', g.op('MAXIMUM', sep.outputs['X'], -1.0), 1.0)), 1.0 / half_arc)
+    front = s.get('type', 'OMNI') == 'FRONT'
+    if front:
+        links.new(ftc.outputs['Object'], sep.inputs[0])
+        frac = g.mul(g.op('ABSOLUTE', g.op('ARCTAN2', sep.outputs['Y'], sep.outputs['X'])), 1.0 / half_arc)
+    else:
+        nrm = nodes.new('ShaderNodeVectorMath')
+        nrm.operation = 'NORMALIZE'
+        links.new(ftc.outputs['Object'], nrm.inputs[0])
+        links.new(nrm.outputs[0], sep.inputs[0])
+        frac = g.mul(g.op('ARCCOSINE', g.op('MINIMUM', g.op('MAXIMUM', sep.outputs['X'], -1.0), 1.0)),
+                     1.0 / half_arc)
     t = swfx_core.value_node(ctx, nodes, 'raise', 'shield_t', ('shield_t',))
-    reach = g.mul(t, 1.0 + 2 * EDGE_W)
+    # A FRONT arc stops at its half-arc when fully open; an OMNI one overshoots
+    # so it closes behind the ship.
+    reach = g.mul(t, 1.0 + (1 if front else 2) * EDGE_W)
     cover = g.clamp01(g.mul(g.sub(reach, frac), 1.0 / EDGE_W))
-    # A bright band at the unfolding edge while the arc is still opening.
+    # A bright band at the unfolding edge while the arc is still opening (and,
+    # on a FRONT arc, a dimmer one that stays at its ends).
     d = g.mul(g.sub(frac, g.sub(reach, EDGE_W)), 1.0 / EDGE_W)
     band = g.op('EXPONENT', g.mul(g.mul(d, d), -1.0))
     opening = g.clamp01(g.mul(g.sub(1.0, t), 20.0))
+    if front:
+        opening = g.add(opening, g.mul(g.sub(1.0, opening), END_GLOW))
+        # The arc's edge is a radial line across the shell's top and bottom
+        # (the game fills its arc from the centre, a pie slice): keep the band
+        # bright on the walls and faint there, or it reads as a beam.
+        nsep = nodes.new('ShaderNodeSeparateXYZ')
+        links.new(tc.outputs['Normal'], nsep.inputs[0])
+        nz = g.op('ABSOLUTE', nsep.outputs['Z'])
+        opening = g.mul(opening, g.sub(1.0, g.mul(g.mul(nz, nz), 1.0 - FLAT_EDGE)))
     edge = g.mul(g.mul(band, opening), EDGE_PEAK)
     env = swfx_core.value_node(ctx, nodes, 'shield env', 'shield_gain * (shield_t > 0.001)',
                                ('shield_gain', 'shield_t'))
@@ -185,7 +372,30 @@ def _bubble_material(ctx, s, hits, R, facing):
     # Thinner face-on, thickening toward the silhouette (the vanilla shield's gradient).
     grad = g.add(.35, g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65))
     face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3), ripple), grad)
-    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK)
+    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'])
+    # Strength: every term is exactly 1 (or 0) at shield_strength 1, the
+    # Paragon's look. The face thins with it, the rim less so.
+    sig = swfx_core.value_node(ctx, nodes, 'strength', 'shield_strength', ('shield_strength',))
+    weak = g.op('MAXIMUM', g.sub(1.0, sig), 0.0)
+    dense = g.op('MAXIMUM', g.sub(sig, 1.0), 0.0)
+    face_s = g.mul(face_s, sig)
+    rim_s = g.mul(rim_s, g.sub(1.0, g.mul(g.sub(1.0, sig), .6)))
+    # A weak shield wavers as a whole and drops out in patches, both fast.
+    fast = g.mul(clock, FLICKER_RATE)
+    wn = nodes.new('ShaderNodeTexNoise')
+    wn.noise_dimensions = '1D'
+    wn.inputs['Scale'].default_value = 1.0
+    links.new(fast, wn.inputs['W'])
+    waver = g.op('MAXIMUM', g.add(1.0, g.mul(g.mul(weak, WAVER), g.sub(wn.outputs['Fac'], .5))), 0.0)
+    dn = nodes.new('ShaderNodeTexNoise')
+    dn.noise_dimensions = '4D'
+    dn.inputs['Scale'].default_value = DROP_SCALE / R
+    dn.inputs['Detail'].default_value = 3.0
+    links.new(tc.outputs['Object'], dn.inputs['Vector'])
+    links.new(g.mul(fast, .5), dn.inputs['W'])
+    hole = g.clamp01(g.mul(g.sub(.55, dn.outputs['Fac']), 4.0))
+    drop = g.clamp01(g.sub(1.0, g.mul(g.mul(weak, DROPOUT), hole)))
+    solid = g.mul(waver, drop)
     inner_c = g.mix_rgb(fort, s['inner'], s['fortress_inner'])
     ring_c = g.mix_rgb(fort, s['ring'], s['fortress_ring'])
     # Hits: a flash in the ring colour where the bubble is nearest each hit empty.
@@ -211,7 +421,8 @@ def _bubble_material(ctx, s, hits, R, facing):
     ring_w = g.clamp01(g.mul(g.add(g.add(rim_s, edge), hit_w), .5))
     colour = g.mix_rgb(ring_w, inner_c, ring_c)
     body = g.add(g.mul(face_s, face_k), rim_s)
-    strength = g.mul(g.add(g.mul(g.add(body, edge), cover), g.mul(g.mul(hit_s, HIT_PEAK), cover)), env)
+    strength = g.mul(g.add(g.mul(g.mul(g.add(body, edge), solid), cover),
+                           g.mul(g.mul(g.mul(hit_s, HIT_PEAK), waver), cover)), env)
     # A hit also filters what is behind it (darker, in the inner colour), most in fortress mode.
     on = swfx_core.value_node(ctx, nodes, 'shield on', '(shield_t > 0.001) * 1.0', ('shield_t',))
     shade = g.mul(g.mul(g.clamp01(g.mul(hit_s, cover)), on),
@@ -219,6 +430,9 @@ def _bubble_material(ctx, s, hits, R, facing):
     tint = g.mix_rgb(shade, (1.0, 1.0, 1.0), tuple(.35 * c for c in s['inner']))
     tint_f = g.mix_rgb(shade, (1.0, 1.0, 1.0), tuple(.35 * c for c in s['fortress_inner']))
     transmit = g.mix_rgb(fort, tint, tint_f)
+    # A dense shield filters what lies behind it toward the inner colour.
+    thick = g.mul(g.mul(g.mul(dense, DENSE_SHADE), cover), on)
+    transmit = g.mix_rgb(thick, transmit, tuple(.5 * c for c in s['inner']))
     _additive(nodes, links, colour, strength, transmit)
     return _blended(m)
 
@@ -345,12 +559,12 @@ def _shell(name, coll, centre, pts, margin, u=128, v=64, smooth=40):
     return ob, float(rad.mean())
 
 
-def build(ctx, **options):
+def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options):
     coll = ctx.collection(GROUP)
     record = {'bubble': None, 'hits': [], 'nodes': [], 'lights': [], 'missing': []}
     if SHIELD is None or not ctx.spec.get('powered', True):
         return record
-    s = SHIELD
+    s = resolve(SHIELD, shield_scheme, shield_arc, shield_type)
     anchor = bpy.data.objects.get(s['anchor'])
     if anchor is None:
         record['missing'].append(s['anchor'])
@@ -360,6 +574,10 @@ def build(ctx, **options):
     ctx.prop('shield_t', 0.0, 0, 1, 'shield raise envelope (0 down, 1 fully raised)')
     ctx.prop('shield_fortress', 0.0, 0, 1, 'Fortress Shield intensity (0 off, 1 on)')
     ctx.prop('shield_facing', 0.0, -180, 180, 'direction the shield unfolds from, degrees about +Z (0 the bow)')
+    eff = s.get('efficiency')
+    strength = strength_from_efficiency(eff) if eff else 1.0
+    ctx.prop('shield_strength', strength, 0, STRENGTH_MAX,
+             'how solid the shield reads: 1 the Paragon, lower thinner and flickering, higher denser')
     for k in range(1, HITS + 1):
         ctx.prop(f'shield_hit_{k}', 0.0, 0, 1, f'hit {k}: flash strength')
         ctx.prop(f'shield_hit_az_{k}', 0.0, -180, 180, f'hit {k}: azimuth about +Z, degrees (0 the bow, 90 port)')
@@ -380,6 +598,9 @@ def build(ctx, **options):
         pts = _hull_points(anchor)
         zmid = .5 * (pts[:, 2].min() + pts[:, 2].max())
         centre.location = (0, 0, zmid - anchor.matrix_world.translation.z)
+    if s.get('center'):
+        cx, cy = s['center'][:2]
+        centre.location = (cx, cy, centre.location.z)
     bpy.context.view_layer.update()
     # Facing turns the unfolding direction only (the shader reads it); the
     # bubble and the hits stay in the hull frame.
@@ -439,6 +660,12 @@ def build(ctx, **options):
         record['nodes'].append(g.name)
         record['lights'].append(lt.name)
     record['radius'] = float(s['radius'])
+    record['type'] = s['type']
+    record['arc'] = float(s.get('arc', 360))
+    record['scheme'] = s.get('scheme')
+    record['colours'] = {k: s[k] for k in ('ring', 'inner', 'inner_alpha')}
+    record['finish'] = s['finish']
+    record['strength'] = round(strength, 3)
     record['mean_radius'] = round(R, 2)
     record['fit'] = dict(fit) if fit else None
     record['centre'] = centre.name
@@ -495,3 +722,13 @@ def direction(azimuth, elevation=0.0):
     """Unit vector (hull frame) of a hit at (azimuth, elevation) degrees."""
     a, e = math.radians(azimuth), math.radians(elevation)
     return (math.cos(a) * math.cos(e), math.sin(a) * math.cos(e), math.sin(e))
+
+
+def in_arc(azimuth, facing=0.0, t=1.0, arc=None):
+    """True when a hit from azimuth (degrees, hull frame) lands on the open
+    shield: within t of half the arc either side of facing. An OMNI shield of
+    360 degrees takes every azimuth once fully raised. A shot uses it to send
+    a round that misses the arc on to the hull instead."""
+    arc = float(arc if arc is not None else (SHIELD or {}).get('arc', 360))
+    off = abs((azimuth - facing + 180.0) % 360.0 - 180.0)
+    return off <= t * arc / 2
