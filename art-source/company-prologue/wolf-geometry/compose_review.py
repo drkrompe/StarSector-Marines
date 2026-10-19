@@ -89,7 +89,8 @@ over.convert('RGB').save(src/'top-overlay.png')
 manifest['silhouette'] = {'iou': round(float(iou), 4), 'sprite_uncovered': round(float(missing), 4),
                           'model_outside_sprite': round(float(extra), 4),
                           'method': 'top render alpha vs sprite alpha (>127), nearest-sampled into the '
-                                    f'top camera frame at {k:.2f} px per unit'}
+                                    f'top camera frame at {k:.2f} px per unit; the hardpoint guns (Weapon WS ...) '
+                                    'are hidden in the top render: the hull sprite draws no weapons'}
 print(f'IoU {iou:.4f}  uncovered {missing:.3%}  outside {extra:.3%}')
 
 # Shot checks: frame extent from alpha, and a sheet with 8x nearest insets.

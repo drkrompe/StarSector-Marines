@@ -9,7 +9,8 @@ wolf.ship are model XY unchanged. Heights are proposed art.
 One module per area: wf_hull (bow fork, head and outriggers, neck, main
 body and missile pods, aft body and armour domes, engine block, spine),
 wf_engines (the three drives), wf_mounts (the four slots the pirate skin
-keeps), wf_lights (hull lamps and running lights); wf_kit holds the helpers.
+keeps), wf_lights (hull lamps and running lights), wf_detail (pass 2 detail read off
+the sprites); wf_kit holds the helpers.
 
 Options after a literal "--":
   --out DIR      write renders, geometry.json and wolf-p.blend to DIR
@@ -50,8 +51,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights
-for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights):
+import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail
+for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -138,14 +139,15 @@ wf_hull.build(kit)
 wf_engines.build(kit)
 wf_mounts.build(kit)
 wf_lights.build(kit)
+wf_detail.build(kit)
 bpy.context.view_layer.update()
 
+trained = [n for t in wf_mounts.TURRETS for n in t['trained']
+           if bpy.data.objects[n].type == 'MESH']
 clash = wf_mounts.clearance(
-    [o.name for o in bpy.data.objects if o.name.startswith('Turret ') and ' barrel ' in o.name
-     and o.type == 'MESH'],
-    [o.name for o in bpy.data.objects if o.type == 'MESH' and (o.name.startswith(('Hull ', 'Pod ')))])
+    trained, [o.name for o in bpy.data.objects if o.type == 'MESH' and (o.name.startswith(('Hull ', 'Pod ')))])
 if clash:
-    raise RuntimeError(f'turret barrels clash at rest: {clash}')
+    raise RuntimeError(f'turret clashes with the hull at rest: {clash}')
 
 
 # --- Bake: every modifier applied, so the asset costs nothing to evaluate. ---
@@ -160,7 +162,9 @@ def bake():
         me.name = old.name
         bpy.data.meshes.remove(old)
     for ob in bpy.data.objects:
-        if ob.type == 'MESH':
+        # The hull is flat shaded; the turret kit's guns keep their own smoothing
+        # (smooth with sharp creases past 32 degrees).
+        if ob.type == 'MESH' and not ob.name.startswith(('Turret ', 'Weapon ')):
             for p in ob.data.polygons:
                 p.use_smooth = False
 
@@ -337,6 +341,12 @@ for name in wanted:
     # top's alpha is the silhouette compose_review.py measures IoU from, the
     # shots' alpha is the measured frame extent.
     scene.render.film_transparent = name == 'top' or shot
+    # The top view is the IoU silhouette: the hull sprite draws no weapons, and the
+    # hardpoint guns stand proud of the bow and pods as the game draws them, so
+    # they are left out of it (every other view shows them).
+    for ob in bpy.data.objects:
+        if ob.name.startswith('Weapon WS ') and ob.type == 'MESH':
+            ob.hide_render = name == 'top'
     scene.render.filepath = str(OUT/(name+'.png'))
     bpy.ops.render.render(write_still=True)
 
@@ -372,6 +382,8 @@ if not args.no_save:
                               anchor=f"Weapon {s['id']} anchor", muzzles=wf_mounts.MUZZLES.get(s['id'], []))
                          for s in wf_mounts.SLOTS],
         'turrets': wf_mounts.TURRETS,
+        'hardpoints': wf_mounts.HARDPOINTS,
+        'vfx_mounts': wf_mounts.mounts(),
         'engines': wf_engines.records(),
         'running_lights': wf_lights.records(),
         'asset': {'file': 'wolf-p.blend', 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',
