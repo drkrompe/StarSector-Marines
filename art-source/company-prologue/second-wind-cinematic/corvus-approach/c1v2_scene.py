@@ -18,6 +18,8 @@ Inputs the scene appends are build outputs of other packages (ignored, not in Gi
 read from build/c1v2/inputs/ under the repository root:
     second-wind-patched.blend   second-wind-cinematic/second-wind-states/patched
     hound-skinned.blend         hound-surface/build/skinned.blend
+    hound-a-clean.blend         hound-export (export_hound.py, with the VFX kit's SWFX), and its
+                                manifest as hound-a-clean-manifest.json
     mudskipper-skinned.blend    mudskipper-surface/build/skinned.blend
     legion-geometry.blend       legion-geometry/legion-geometry.blend
     onslaught.blend             Drive builds/onslaught/e210771c0 or later (with onslaught-manifest.json)
@@ -511,8 +513,30 @@ def add_traffic(scene):
     mud = rooted(INPUTS / 'mudskipper-skinned.blend', 'Mudskipper', 0.85)
     fly(mud, 13.0, 23.0, Vector((520, 980, -110)), Vector((-280, 900, -20)), roll=math.radians(18))
     # Customs: a Hegemony Hound crosses between camera and hero during hail 03.
-    hound = instance(*hulls['hound'], 'Hound | customs')
-    fly(hound, 23.0, 32.0, Vector((-300, 220, -70)), Vector((260, 270, -30)), roll=math.radians(-24))
+    fly(customs_hound(scene), 23.0, 32.0, Vector((-300, 220, -70)), Vector((260, 270, -30)),
+        roll=math.radians(-24))
+
+
+def customs_hound(scene):
+    """The one Hound close enough to see its drives: the hound-export asset with the VFX kit's
+    SWFX effects appended in the same load, so the plumes ride its exhaust anchors.
+
+    It is linked into the scene rather than instanced, because the effects hang off anchors in
+    the hull's hierarchy. Both drives run at full throttle."""
+    manifest = json.loads((INPUTS / 'hound-a-clean-manifest.json').read_text())
+    with bpy.data.libraries.load(str(INPUTS / 'hound-a-clean.blend'), link=False) as (src, dst):
+        dst.collections = [manifest['append_collection'], 'SWFX']
+    for coll in dst.collections:
+        scene.collection.children.link(coll)
+    controls = bpy.data.objects['SWFX controls']
+    controls['thr_throttle'] = 1.0
+    # The kit's exhaust haze is smoke in air; in vacuum it is left out entirely, not dialled down.
+    for obj in bpy.data.collections['SWFX | Smoke'].all_objects:
+        obj.hide_render = obj.hide_viewport = True
+    root = bpy.data.objects[manifest['root']]
+    root.scale = (manifest['metres_per_unit'],) * 3
+    root.rotation_mode = 'XYZ'
+    return root
 
 
 def grey(name, value):

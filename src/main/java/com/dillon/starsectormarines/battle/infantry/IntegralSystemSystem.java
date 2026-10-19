@@ -155,6 +155,8 @@ public final class IntegralSystemSystem {
     private final Random rng;
     private final LongBucket nearbySquadmates = new LongBucket();
     private final TreeMap<Integer, PodCandidate> podCandidates = new TreeMap<>();
+    /** Reused by the serial per-carrier pass; no policy keeps it past its own call. */
+    private final PolicyMotion motionScratch = new PolicyMotion(false, 0f, 0f);
 
     private record PodCandidate(long shooter, long target, float bodyBearing,
                                 MissilePodMountGeometry.Pose mount, IntegralSystemDef def,
@@ -203,7 +205,7 @@ public final class IntegralSystemSystem {
                 manualStep = movement.previewDirect(id, sim.getGrid(), intent.moveX(),
                         intent.moveY(), sim.physicalRadius(id), dt);
             }
-            PolicyMotion motion = policyMotion(id, movement, manualStep, dt);
+            PolicyMotion motion = policyMotion(motionScratch, id, movement, manualStep, dt);
             switch (def.aiPolicy()) {
                 case EXPOSED_UNDER_FIRE -> {
                     if (exposedUnderFire(id, def.exposedUnderFire(), sim, motion)) {
@@ -385,7 +387,28 @@ public final class IntegralSystemSystem {
     }
 
     /** Facts for the early policy pass; manual preview never mutates movement. */
-    record PolicyMotion(boolean underway, float vx, float vy) {}
+    static final class PolicyMotion {
+        private boolean underway;
+        private float vx;
+        private float vy;
+
+        PolicyMotion(boolean underway, float vx, float vy) {
+            set(underway, vx, vy);
+        }
+
+        PolicyMotion set(boolean underway, float vx, float vy) {
+            this.underway = underway;
+            this.vx = vx;
+            this.vy = vy;
+            return this;
+        }
+
+        boolean underway() { return underway; }
+
+        float vx() { return vx; }
+
+        float vy() { return vy; }
+    }
 
     /** Only the supported shield is player-owned; unrelated suit policies continue normally. */
     static boolean permitsAutonomousActivation(IntegralSystemDef def, boolean controlled) {
@@ -394,13 +417,19 @@ public final class IntegralSystemSystem {
 
     static PolicyMotion policyMotion(long id, MovementService movement,
                                      ManualTerrainMotion.Result manualStep, float dt) {
+        return policyMotion(new PolicyMotion(false, 0f, 0f), id, movement, manualStep, dt);
+    }
+
+    /** As above, filling {@code out} so the per-carrier pass allocates nothing. */
+    static PolicyMotion policyMotion(PolicyMotion out, long id, MovementService movement,
+                                     ManualTerrainMotion.Result manualStep, float dt) {
         if (manualStep == null) {
-            if (!movement.has(id)) return new PolicyMotion(false, 0f, 0f);
-            return new PolicyMotion(!movement.settled(id), movement.velX(id), movement.velY(id));
+            if (!movement.has(id)) return out.set(false, 0f, 0f);
+            return out.set(!movement.settled(id), movement.velX(id), movement.velY(id));
         }
         float vx = dt > 0f ? manualStep.dx() / dt : 0f;
         float vy = dt > 0f ? manualStep.dy() / dt : 0f;
-        return new PolicyMotion(Math.abs(vx) > MOVING_EPSILON
+        return out.set(Math.abs(vx) > MOVING_EPSILON
                 || Math.abs(vy) > MOVING_EPSILON, vx, vy);
     }
 

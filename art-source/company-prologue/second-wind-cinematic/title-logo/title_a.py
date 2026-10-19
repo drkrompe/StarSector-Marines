@@ -1,4 +1,4 @@
-"""Direction A, developed: the game's own wordmark, sharpened, with MARINES in warm white.
+"""Direction A, developed: the game's own wordmark, sharpened, with MARINES MOD in warm white.
 
     python title_a.py --bg <frame.png> [--out build/title-logo/a] [--no-video]
 
@@ -32,6 +32,8 @@ SCALE = 2.4                 # the wordmark at about 53% of the screen width
 SUPER = 4                   # worked at four times the final size, then reduced
 GLOW = (0.0, 72 / 255, 1.0)  # the wordmark's own dark-blue halo
 FPS = 30
+
+SUBTITLE, SUBTITLE_WIDTH = 'MARINES MOD', 0.62   # the line under the wordmark, as a share of its width
 
 # The reveal, in seconds from the moment Castle's last line ends (`title-logo.md`).
 STARSECTOR_IN = (1.0, 3.0)
@@ -84,8 +86,9 @@ def wordmark_plain(scale=SCALE):
 
 
 def layout(mark):
-    """Wordmark and MARINES with their places in a 1920x1080 frame."""
-    sub = marines('ours', mark)
+    """Wordmark and MARINES MOD with their places in a 1920x1080 frame. MOD says plainly that this
+    is a mod of the game whose name sits above it (owner, 2026-10-19)."""
+    sub = marines('ours', mark, SUBTITLE, SUBTITLE_WIDTH)
     gap = round(mark.height * 0.35)
     total = mark.height + gap + sub.height
     top = round(H * 0.46 - total / 2)

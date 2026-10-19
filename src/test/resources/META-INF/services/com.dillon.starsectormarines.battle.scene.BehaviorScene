@@ -50,6 +50,7 @@ com.dillon.starsectormarines.battle.warship.HostileShipSupportScene
 com.dillon.starsectormarines.battle.warship.ShipArrivalScene
 com.dillon.starsectormarines.battle.warship.ShipLowPassScene
 com.dillon.starsectormarines.battle.warship.HullBroadsideScene
+com.dillon.starsectormarines.battle.warship.WarshipScreenScene
 
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsScene
 com.dillon.starsectormarines.battle.shield.ShieldDomeScene

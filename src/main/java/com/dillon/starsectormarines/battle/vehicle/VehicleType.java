@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.LiftClass;
+import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -99,6 +100,7 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .18f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
     },
     /**
      * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
@@ -115,6 +117,7 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .24f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
     },
     /**
      * The breakthrough tank with a hull interceptor system: the same hull, twin cannons and plate, plus active
@@ -135,6 +138,7 @@ public enum VehicleType {
         @Override public float turretRecoilCells() { return .18f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public String activeProtectionStructureId() { return SCREENED_TANK_ACTIVE_PROTECTION; }
     },
     /**
@@ -151,6 +155,7 @@ public enum VehicleType {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.8f, 30f, 80f, accel, brakingAccel, maxSpeed);
         }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
     },
     /**
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
@@ -311,6 +316,30 @@ public enum VehicleType {
      * turret section and stays one body.
      */
     public float turretPoolShare() { return 0f; }
+
+    /**
+     * What this hull's plate is worth on each arc a hit can arrive on ({@link ArmorArcs}): one shared profile, the
+     * front strongest and the rear weakest, with the tank line and the dozer on a steeper one of their own. The turret
+     * of an armed hull meets the same profile on its own facing. {@code -Dbattle.vehicle.armorArcs=false} is the
+     * control: every arc the hull's one plate.
+     */
+    public ArmorArcs.Profile armorArcs() { return arcs(HULL_ARCS); }
+
+    /** {@code false} is the control: a hull's plate is the same on every arc. */
+    public static final String ARMOR_ARCS_PROPERTY = "battle.vehicle.armorArcs";
+
+    private static final boolean ARMOR_ARCS =
+            Boolean.parseBoolean(System.getProperty(ARMOR_ARCS_PROPERTY, "true"));
+
+    /** Every hull's arcs unless it authors its own: a modest front, thinner sides, a thin rear. */
+    static final ArmorArcs.Profile HULL_ARCS = new ArmorArcs.Profile(1f, 1.1f, .9f, .9f, .75f, .7f);
+
+    /** The tank line's and the dozer's: thick sloped glacis, much thinner flanks and engine deck. */
+    static final ArmorArcs.Profile TANK_ARCS = new ArmorArcs.Profile(1f, 1.15f, .85f, .85f, .6f, .6f);
+
+    private static ArmorArcs.Profile arcs(ArmorArcs.Profile authored) {
+        return ARMOR_ARCS ? authored : ArmorArcs.Profile.FLAT;
+    }
 
     /**
      * The turret-catalog structure of this hull's active protection, or null for a hull that carries none. Its mount
