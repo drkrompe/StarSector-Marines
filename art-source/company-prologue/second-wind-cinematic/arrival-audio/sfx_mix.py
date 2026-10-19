@@ -125,22 +125,32 @@ SHOTS = {
         sfx("c1_hull_creaks", 10.8, -14, offset=5.0, until=12.3),
         squelch("open", 0.3), hail(7, 0.46), squelch("close", 8.94), hail(8, 9.76),
     ]),
-    "entry": (3.0, [
-        synth("second_wind_interior", -8, offset=15.0, until=3.0, fade_out=0.6),
-        sfx("entry_reentry_roar", 0.0, -10, env=[(0, -4), (2.6, 0), (3.0, 8)]),
-        sfx("entry_buffet", 1.3, -10, until=3.0, fade_in=0.4),
+    # The entry, 7 s (c2_core HEAT/SMOKE/CLOUD_IN/WHITE/BLOOM, 2026-10-19): clear space to 1.2,
+    # heat from the bottom right filling the glass by 2.4, smoke 1.6-5.6, cloud 4.1-5.4, white
+    # 5.4-6.0, bloom to the cut. The shake (c3_core.shake_envelope) is under a pixel to 0.6 s,
+    # peaks at about 9 px from 4.0 to 5.2 s and decays; the buffet follows it in dB.
+    "entry": (7.0, [
+        synth("second_wind_interior", -8, offset=15.0, until=7.0, env=[(0, 0), (5.4, 0), (7.0, -4)]),
+        sfx("entry_reentry_roar", 1.2, -3, env=[(1.2, -10), (3.0, -4), (4.0, 0), (5.2, 0), (7.0, -2)]),
+        sfx("entry_buffet", 0.6, -4, until=7.0, loop=True, fade_in=0.3,
+            env=[(0.6, -24), (2.4, -10), (4.0, 0), (5.2, 0), (6.0, -5), (7.0, -9.5)]),
+        sfx("c1_hull_creaks", 3.6, -10, offset=5.0, until=5.1),
         voice(("castle", CASTLE["entry"]), 0.16),
     ]),
-    "c3": (12.0, [
-        sfx("entry_reentry_roar", 0.0, -2, offset=3.0, until=1.5, fade_out=1.4),
-        sfx("entry_buffet", 0.0, -10, offset=1.7, until=2.0, env=[(0, 0), (2.0, -18)]),
-        sfx("c3_wind_easing", 0.0, -6, until=12.0, env=[(0, 0), (0.9, -4), (2.7, -8), (5, -10), (12, -12)]),
-        sfx("c3_frame_settle", 1.0, -14),
-        sfx("c3_cabin_flight_bed", 0.0, -16, until=12.0, fade_in=0.8),
-        # The world below, through the glass: muffled, and in once the buffeting has gone.
-        sfx("c3_nature_muffled", 1.5, -16, until=12.0, af="lowpass=f=1800:p=2", fade_in=2.0),
-        sfx("c3_river_muffled", 1.5, -18, until=12.0, af="lowpass=f=1200:p=2", fade_in=2.5),
-        voice(("castle", CASTLE["c4_reels"]), 4.0),
+    # C3, 16 s (c3_core): still shaking at the start (about 3 px, 1 px by 2 s, gone by 5 s), the
+    # horizon levelling over 0.4-5.6 s with a settle at 5-7 s; Castle's travel-reels line at 7.0.
+    "c3": (16.0, [
+        synth("second_wind_interior", -10, offset=22.0, until=2.0, fade_out=2.0),
+        sfx("entry_reentry_roar", 0.0, -6, offset=5.8, until=1.5, fade_out=1.0),
+        sfx("entry_buffet", 0.0, -8, until=5.5, loop=True, env=[(0, -9.5), (2.0, -19), (5.0, -36)]),
+        sfx("c3_wind_easing", 0.0, -6, until=16.0, loop=True,
+            env=[(0, 0), (2.0, -3), (5.5, -9), (8, -11), (16, -12)]),
+        sfx("c3_frame_settle", 5.6, -14),
+        sfx("c3_cabin_flight_bed", 0.0, -16, until=16.0, fade_in=0.8),
+        # The world below, through the glass: muffled, and in once the shaking has gone.
+        sfx("c3_nature_muffled", 4.0, -16, until=16.0, af="lowpass=f=1800:p=2", fade_in=2.5),
+        sfx("c3_river_muffled", 4.0, -18, until=16.0, af="lowpass=f=1200:p=2", fade_in=3.0),
+        voice(("castle", CASTLE["c4_reels"]), 7.0),
     ]),
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
     "c4c5": (C4_LENGTH + 33.5, [
