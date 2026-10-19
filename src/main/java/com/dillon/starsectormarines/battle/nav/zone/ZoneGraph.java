@@ -46,9 +46,20 @@ public final class ZoneGraph {
     /** Absorbed (emptied) zone slots kept to hold {@code zoneId == index} stable — see
      *  {@link #applyCellsOpened}'s self-healing compaction, which bounds them. */
     private int tombstoneCount = 0;
+    /**
+     * Bumped whenever the partition of cells into zones can have changed — a rebuild or an
+     * incremental merge — so a caller holding something derived from the partition can tell it
+     * has gone stale without comparing the partition itself.
+     */
+    private int revision = 0;
 
     public ZoneGraph(NavigationGrid grid) {
         this.grid = grid;
+    }
+
+    /** Changes whenever {@link #rebuild()} or {@link #applyCellsOpened} has run; see the field note. */
+    public int revision() {
+        return revision;
     }
 
     /** Rebuilds the entire zone + portal graph from the current grid state (O(W×H)). Produces a
@@ -60,6 +71,7 @@ public final class ZoneGraph {
         this.doorwayCells = PortalDetector.collectDoorwayCells(grid);
         this.portals = PortalDetector.detect(grid, cellToZoneId, doorwayCells);
         this.tombstoneCount = 0;
+        revision++;
         indexPortalsOnZones();
     }
 
@@ -81,6 +93,7 @@ public final class ZoneGraph {
         if (cellToZoneId.length != grid.getWidth() * grid.getHeight()) { rebuild(); return; }
         if (tombstoneCount * 2 > zones.size()) { rebuild(); return; }   // compact (rebuild folds the opened cells via the grid)
         for (int c : openedCells) openCell(c);
+        revision++;
         this.portals = PortalDetector.detect(grid, cellToZoneId, doorwayCells);
         indexPortalsOnZones();
     }
