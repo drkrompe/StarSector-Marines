@@ -2,7 +2,7 @@
 
 Status: DRAFT — layout animatic in progress (`c1v2_scene.py`); sun decided.
 Written: 2026-10-18
-Updated: 2026-10-19 — finished ship builds wired in; Cycles final mode added.
+Updated: 2026-10-19 — Second Wind final with its own effects; every ship final.
 
 C1 v1 is a locked-off parallax plate: the whole system laid out at once, Second
 Wind a card drifting into it. It works as a picture and fails as an opening,
@@ -43,9 +43,12 @@ Blender scene** with the camera at the centre:
   pure rotation, anything far away keeps a correct perspective whatever it is,
   so distant objects can stay cheap.
 - **Hero ship.** Second Wind in its `patched` state, appended from
-  `second-wind-states/patched`, at 0.65 m per hull unit, with the VFX kit: the
-  two running engines, RCS puffs on its anchors and the conduit sparks. Its
-  path is a real trajectory with real speed past the camera.
+  `second-wind-states/patched` (final export, Drive `builds/second-wind/80c78dfac/`),
+  at 0.65 m per hull unit, with its own VFX kit effects: the two running
+  engines, RCS puffs on five attitude corrections during the pass (`HERO_RCS`),
+  the conduit sparks and the seal wisps; the exhaust haze and landing dust are
+  smoke in air and stay out. Its path is a real trajectory with real speed past
+  the camera.
 - **Traffic, 3D.** Every ship is a modelled hull at its own scale (see Ship
   orders). Finished cinematic exports that carry the VFX kit's effects (drive
   plumes, gun rigs, lamps) are linked one copy each; hulls that appear several
