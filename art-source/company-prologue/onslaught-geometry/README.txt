@@ -114,3 +114,6 @@ Status
   built-in TPC hardpoints stay this package's.
   Pass 6 texturing lives in ../onslaught-surface/ (shared harness, Hegemony XIV
   livery); export_onslaught.py run on its build/skinned.blend packs the images.
+  Pass 7 (effects and the cinematic asset) lives in ../onslaught-cinematic/.
+  DONE: every pass accepted by the owner (texturing and pass 7 on 2026-10-19).
+  Condition states are not built; add them only when a cinematic needs them.

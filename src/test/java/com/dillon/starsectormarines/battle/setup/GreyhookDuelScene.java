@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.HullContactReadings;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.HullRefit;
 import com.dillon.starsectormarines.battle.warship.MapEdge;
@@ -390,6 +391,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         var fire = t.sim.warships().shipFire();
         metrics.put("roundsAtHulls", fire.roundsFired());
         metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
+        HullContactReadings.put(metrics, fire);
         metrics.put("minFriendlyGapCells", Math.round(t.minFriendlyGap * 10f) / 10f);
         metrics.put("friendlyOverlapTicks", t.friendlyOverlapTicks);
         int swaps = 0, vents = 0;

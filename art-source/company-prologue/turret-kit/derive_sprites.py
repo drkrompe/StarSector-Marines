@@ -41,6 +41,7 @@ WEAPONS = {   # kit id -> .wpn id
     # Tri-Tachyon (the Paragon's Elite fit): beams have no gun sprite, the reaper is drawn loaded.
     'tachyonlance': 'tachyonlance', 'gravitonbeam': 'gravitonbeam', 'taclaser': 'taclaser', 'reaper': 'reaper',
     'pdlaser': 'pdlaser',
+    'autopulse': 'autopulse',   # its colours, for the hardpoint mount (HARDPOINT_WEAPONS)
 }
 ALPHA = 40
 # Second paints, sRGB, read off each base sprite; MAIN_HINT is its body paint
