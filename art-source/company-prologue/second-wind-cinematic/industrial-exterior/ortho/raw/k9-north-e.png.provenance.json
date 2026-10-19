@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a151b2-a833-7db0-a5d7-113d819188ad",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a151b2-a833-7db0-a5d7-113d819188ad\\exec-0128a877-4191-4c5e-ba5b-22474d35284f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\raw\\k9-north-e.png",
+    "sha256": "d7b5291fc6a55319cb9b85a5aa1dfaea0dc1116b6cf7c775f549aaa06aea196d",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\raw\\k9-north-e.prompt.txt",
+  "promptSha256": "a215df29e6433e987ffd7b4b0e189831fcd29856e0d84194f0659878b0875eb9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: EDIT TARGET: the overhead guide to repaint; keep every edge where it is\nImage 2: STYLE REFERENCE: an already painted neighbouring tile of the same place. Match its materials, colours, wear and finish exactly; do not copy its layout\n\nRepaint the attached EDIT TARGET image. It is a flat-colour layout guide of a place seen from directly above (a straight-down orthographic aerial view, north at the top), and you are turning it into the surface paint for that place: a realistic, high-detail aerial survey photograph of the same ground, as an albedo texture.\n\nHard rules:\n- Keep the exact framing, scale and pixel dimensions of the guide. Every shape stays exactly where it is, at exactly its size and angle. Do not move, add, remove, merge, straighten or resize anything. No perspective: nothing leans, no walls or sides become visible.\n- Each flat colour region becomes a real material of roughly that colour (described below). Keep the boundaries between regions crisp and in place.\n- The thin dark outlines in the guide are construction lines, not paint. Do not draw them.\n- Shadowless, evenly lit albedo: no cast shadows, no ambient-occlusion darkening at edges, no sun highlights or glare, no vignette. A 3D renderer adds the sun and the shadows later.\n- No people, vehicles, aircraft, ships or animals. No text, letters, numbers, logos or watermarks, except painted markings that already exist in the guide.\n- Fill the whole frame edge to edge. No border.\n\nSetting: Greywater Down spaceport on Jangala, a humid, rainy jungle world in the Starsector setting. Hard-used industrial ground under a hot sun after recent rain: worn, patched, stained and practical, never pristine and never sci-fi glossy. Colours stay close to the guide's, a little desaturated and earthy.\n\nThis tile: 144 m wide by 96 m tall, so one pixel is about 9.4 cm. It is part of Kilo Nine, a private ship repair yard run by one tough salvage engineer, fenced, at the edge of the port, with the jungle beyond its east fence. This is the north-east corner: the yard's generators and fuel tanks, the scrap heap, and the fence corner.\n\nWhat the regions are:\n- Brown-grey ground everywhere between things: the yard's surface of compacted gravel and dirt. Tyre ruts, oil and fuel stains, damp patches and shallow puddles, scattered grit, a few weeds and grass tufts where nothing drives.\n- The dark grey rectangle at the top left: the turning ground, packed dark gravel and broken asphalt with curved tyre tracks and oil.\n- The long thin yellow straight lines running north-south: the rails of an overhead plate crane, heavy steel rails on a concrete ground beam painted safety yellow, worn.\n- The grey rectangles in rows between the crane rails: stacked steel plate and salvaged hull sections, grey primer and bare steel, weld scars, rust bloom, scorch marks.\n- The three long pale green rectangles and the small green square: the roofs of the yard's diesel generator sets and a switchgear cabinet, faded green painted steel with exhaust soot around the stacks and louvred vents.\n- The two white discs: the tops of two round fuel day tanks, white paint, dirty and streaked, with a filler hatch.\n- The scatter of grey slabs at the top right: a scrap heap of cut hull plate, twisted pieces and junk, grey and rust-brown, overlapping.\n- The small squares at the left edge: the roofs of cargo modules.\n- The thin dark vertical line with small light dots near the right: the yard's east fence, a chain-link fence on steel posts, seen from above as a thin dark line. Keep it thin and straight. The grey strip just east of it: a muddy service track along the fence.\n- Dark green beyond the fence: jungle undergrowth, dense broad-leaved plants and ferns, wet. The large brown patches in it: bare red-brown earth and burnt clearings, with fallen leaves and stumps.\n- Round dark green blobs: the crowns of jungle trees seen from above, dense leafy canopy.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\guides\\k9-north-e.png",
+      "sha256": "0684cfd11984b1483d4c4c78e87d847c697576e170c5400a5f8d0dcadf8b4e03",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "EDIT TARGET: the overhead guide to repaint; keep every edge where it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\c1-corvus-v2\\art-source\\company-prologue\\second-wind-cinematic\\industrial-exterior\\ortho\\raw\\k9-south.png",
+      "sha256": "8a705f8edc801c02899ba37da19f1923a6f2a30417e0df2b5c91b2bc3265d33c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "STYLE REFERENCE: an already painted neighbouring tile of the same place. Match its materials, colours, wear and finish exactly; do not copy its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll repaint the guide with the neighbouring tile’s materials and wear, preserving the exact overhead layout and dimensions."
+  ],
+  "usage": {
+    "input_tokens": 46345,
+    "cached_input_tokens": 37504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1056,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 96.0
+}

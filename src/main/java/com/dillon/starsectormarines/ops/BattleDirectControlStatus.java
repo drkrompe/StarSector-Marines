@@ -176,7 +176,7 @@ final class BattleDirectControlStatus {
         if (sim.directControl().controlledVehicleId() == id) {
             var turret = sim.convoy().turret(id);
             var structure = sim.convoy().vehicleType(id).turretStructure();
-            List<WeaponStatus> weapons = turret != null && structure != null
+            List<WeaponStatus> weapons = turret != null && structure != null && !turret.destroyed()
                     ? List.of(vehicleWeapon(turret, structure.mount)) : List.of();
             return new Snapshot(id, name, Carrier.VEHICLE, durability, weapons);
         }

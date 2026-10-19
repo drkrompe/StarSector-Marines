@@ -1,8 +1,8 @@
 # Title logo — STARSECTOR: MARINES
 
-Status: DRAFT — direction A chosen (the game's wordmark with white MARINES) and developed: sharpened, menu version and reveal timing made; not yet in the cinematic.
+Status: ACTIVE — direction A approved (the game's wordmark with white MARINES): size, MARINES and reveal timing agreed; not yet in the cinematic.
 Written: 2026-10-18
-Updated: 2026-10-18 — owner chose A; developed it (see "Direction A").
+Updated: 2026-10-18 — owner approved A's size, white MARINES and reveal timing.
 
 The title comes up at the end of the Jangala arrival cinematic, in the last six
 seconds of C5 (`c5-v2-closing.md`, beats 26–32 s). It is the first time the
@@ -107,7 +107,8 @@ that looks most like the base game, so MARINES has to make it clearly the mod.
 
 ## Direction A (chosen)
 
-Chosen by the owner on 2026-10-18 from the labelled set: **the game's own
+Chosen by the owner on 2026-10-18 from the labelled set, and approved the same
+day once developed, with size, MARINES and reveal timing as described below: **the game's own
 wordmark with MARINES in warm white beneath it**. The white MARINES won over the
 cyan one because it reads as this mod's voice under the game's name.
 `title-logo/title_a.py` builds it.
@@ -128,7 +129,8 @@ cyan one because it reads as this mod's voice under the game's name.
   it; MARINES follows 1.6 seconds after it starts; both hold about four seconds;
   then the whole picture fades to black over a second and a half, with the yard
   sound. The camera is still settling, so the port eases out the last few
-  percent behind it. Timing against the actual music is still to do.
+  percent behind it. Timing against the actual music is still to do: the
+  approved timing is the starting point, moved to land on the music's swell.
 
 Open:
 - **How it gets into the game.** If the cinematic ships as finished video, the

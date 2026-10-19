@@ -1167,7 +1167,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // deathsThisFrame list (read post-advance by the death-voice
                 // consumers via identity()/world() by-id — IDENTITY survives release).
                 id -> deathsThisFrame.add(id), deathDispatcher, () -> simTickIndex, rng);
-        this.bodyDamageResolver = new BodyDamageResolver(rosterService);
+        this.bodyDamageResolver = new BodyDamageResolver(rosterService, rng);
         this.engagement = new EngagementService(rosterService);
         this.damageService = new DamageService(
                 (target, attacker, damage, penetration, moraleImpact, part) -> {

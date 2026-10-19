@@ -86,6 +86,16 @@ Pass 3 round 2 (owner: the hull as a thin wrapper round stacked containers; the
   the cell-guide post between the stacks, so the push lands on the frame, and
   the pod collar truss stops at the hull lip. The open bays are outside the
   enclosed volume (1.13 M units3; solve 0.431, published 0.50 by override).
+Pass 3 round 4 (owner: "keep adding detail", without more containers): the
+  hold's aft face below the waist is a plated thrust bulkhead (seams, strata, a
+  dogged service hatch, 'Hull aft bulkhead ...'); two ventral cargo hatches in
+  the keel with hazard-striped frames ('Hull ventral cargo hatch ...') and four
+  docking clamp hardpoints on the side-module keels; fender rails with brackets
+  along each outboard wall between the door rows ('Cargo fender rails').
+  Fix: crossing seam cutters gathered into one mesh self-intersect and tore the
+  keel faces (dark spikes); cl_hull._cut now splits overlapping shells into
+  separate passes, and cl_kit.boolean splits any warped n-gon it leaves. IoU
+  0.964; enclosed volume 1.129 M units3 (solve 0.431, published 0.50).
 
 Build (from this folder)
   sh ../../blender.sh --background --factory-startup --python build_colossus.py -- [--views ...] [--samples N]
