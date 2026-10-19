@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -239,6 +240,27 @@ class GroundVehicleTurretSystemTest {
         assertEquals(f.mountY() + f.mount.mount.muzzleOffsetCells, first.fromY, .001f);
         assertTrue(f.weapon.contactDamage > f.weapon.damage);
         assertTrue(f.weapon.contactPenetration > f.weapon.penetration);
+    }
+
+    @Test
+    void aShotAwayGunNeitherFiresNorTraversesAndTheHullReadsUnarmed() {
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
+        if (f.turret.section == null) return;
+        DurabilityModel.Resolution scratch = new DurabilityModel.Resolution();
+        HullTurretSection.Hit hit = new HullTurretSection.Hit();
+        f.turret.section.resolve(true, 10000f, 100f, f.type.armorRating,
+                f.type.maxArmor, f.type.maxStructure, scratch, hit);
+        assertTrue(f.turret.destroyed());
+        assertFalse(f.roster.convoy().isArmed(f.id));
+        assertEquals(0f, f.roster.convoy().weaponRange(f.id));
+        f.turret.facingDeg = 35f;
+        long enemy = f.enemy(20, 40);
+        for (int i = 0; i < 120; i++) f.tick(f.north(), true);
+        f.turret.targetId = enemy;
+        for (int i = 0; i < 120; i++) f.tick(null, false);
+        assertTrue(f.shots.getActiveShots().isEmpty());
+        assertEquals(35f, f.turret.facingDeg);
+        assertEquals(0L, f.turret.targetId);
     }
 
     private static final class Fixture {

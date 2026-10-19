@@ -460,7 +460,9 @@ hardware identities; any deployed chassis may receive any of these doctrines:
 **Duel range.** Against armor — another mech or a ground vehicle — every
 doctrine fights from a **duel band** chosen from the mech's own installed,
 loaded weapons read against the target's (`MechDuelBand`): expected damage per
-second at a distance, given against received. A mech that out-reaches its
+second at a distance, given against received. A tank whose gun has been shot away
+(`convoy-nouns.md`, the turret section) has no weapons to read, so a mech
+treats it as unarmed armor. A mech that out-reaches its
 target by four cells or more **stands off**, holding just outside the target's
 reach and inside its own, whatever its role. Otherwise it **closes** to a
 shorter band of its own only when that band trades clearly better than its

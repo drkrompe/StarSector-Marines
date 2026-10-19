@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
 import java.util.function.LongConsumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -142,7 +143,7 @@ public class BodyCarrierRegistryTest {
         long sentry = mintBody(roster, 20.5f, 20.5f, 30f);
         SentryPost carrier = new SentryPost(sentry);
         roster.bodies().register(carrier);
-        BodyDamageResolver resolver = new BodyDamageResolver(roster);
+        BodyDamageResolver resolver = new BodyDamageResolver(roster, new Random(1L));
 
         resolver.resolve(carrier, sentry, 0L, 10f, 0f);
         assertEquals(20f, roster.world().hp(sentry), 1e-4f,

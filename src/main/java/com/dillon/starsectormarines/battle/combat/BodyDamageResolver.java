@@ -1,9 +1,14 @@
 package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
+
+import java.util.Random;
 
 /**
  * Applies the shared armour/structure law to a body that is not a roster unit.
@@ -21,16 +26,25 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  * drop, squad-leader promotion, the death mailbox) has nothing to do for either
  * of these.
  *
+ * <p>A hull whose turret is a section of it ({@link HullTurretSection}) is
+ * resolved by section: a roll on the battle's random stream decides whether the
+ * hit lands on the turret, and only the hull's own structure decides death. The
+ * roll is drawn only for such a hull, so a battle without one, or with
+ * {@code -Dbattle.vehicle.turretDamage=false}, draws exactly what it drew before.
+ *
  * <p>Serial only: it holds one reusable {@link DurabilityModel.Resolution},
  * which is the shape both resolvers it replaces already had.
  */
 public final class BodyDamageResolver {
 
     private final UnitRosterService roster;
+    private final Random rng;
     private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
+    private final HullTurretSection.Hit sectionHit = new HullTurretSection.Hit();
 
-    public BodyDamageResolver(UnitRosterService roster) {
+    public BodyDamageResolver(UnitRosterService roster, Random rng) {
         this.roster = roster;
+        this.rng = rng;
     }
 
     public void resolve(BodyCarrier carrier, long targetId, long attackerId,
@@ -56,15 +70,28 @@ public final class BodyDamageResolver {
         World world = roster.world();
         float hpBefore = world.hp(targetId);
         float armorBefore = world.armor(targetId);
-        DurabilityModel.resolveInto(damage * world.damageTakenMult(targetId), penetration,
-                armorBefore, world.armorRating(targetId), hpBefore, durability);
-        if (durability.armorDamage() > 0f) {
-            world.setArmor(targetId, Math.max(0f, armorBefore - durability.armorDamage()));
+        float postCover = damage * world.damageTakenMult(targetId);
+        HullTurretSection section = turretSection(carrier, targetId);
+        float armorDamage;
+        float hpAfter;
+        if (section != null) {
+            section.resolve(section.struck(rng.nextFloat()), postCover, penetration,
+                    world.armorRating(targetId), armorBefore, hpBefore, durability, sectionHit);
+            armorDamage = sectionHit.armorDamage();
+            // The hull's own structure is the only death; the turret's remainder goes with it.
+            hpAfter = sectionHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - sectionHit.structureDamage());
+        } else {
+            DurabilityModel.resolveInto(postCover, penetration,
+                    armorBefore, world.armorRating(targetId), hpBefore, durability);
+            armorDamage = durability.armorDamage();
+            hpAfter = Math.max(0f, hpBefore - durability.structureDamage());
         }
-        float hpAfter = Math.max(0f, hpBefore - durability.structureDamage());
+        if (armorDamage > 0f) {
+            world.setArmor(targetId, Math.max(0f, armorBefore - armorDamage));
+        }
         world.setHp(targetId, hpAfter);
 
-        float applied = durability.armorDamage() + (hpBefore - hpAfter);
+        float applied = armorDamage + (hpBefore - hpAfter);
         CombatTelemetryService telemetry = roster.telemetry();
         if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
             boolean friendly = roster.identity().faction(attackerId)
@@ -73,5 +100,11 @@ public final class BodyDamageResolver {
             if (hpAfter <= 0f && !friendly) telemetry.recordKill(attackerId);
         }
         if (hpAfter <= 0f) carrier.destroy(targetId);
+    }
+
+    private static HullTurretSection turretSection(BodyCarrier carrier, long id) {
+        if (!(carrier instanceof ConvoyService convoy)) return null;
+        GroundTurret turret = convoy.turret(id);
+        return turret != null ? turret.section : null;
     }
 }
