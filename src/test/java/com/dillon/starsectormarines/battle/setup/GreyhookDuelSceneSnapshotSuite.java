@@ -13,6 +13,9 @@ public final class GreyhookDuelSceneSnapshotSuite extends BehaviorSceneSnapshotS
 
     @Override protected boolean showUnitShadows() { return true; }
 
+    /** The adaptive palette: the compact cube posterised hull plate, glow and smoke into a few dozen bands. */
+    @Override protected boolean colourAnimation() { return true; }
+
     /** Follows the hulls rather than framing the whole map; {@code -Dsnapshot.duelCamera=false} restores the map. */
     @Override protected boolean followWarships() { return true; }
 
