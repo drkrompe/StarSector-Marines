@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a155ff-d9b8-7083-ab4f-a9836d3ea0d3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155ff-d9b8-7083-ab4f-a9836d3ea0d3\\exec-e538390f-8836-41ed-b9f2-118b9548e11c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\colossus-mk3-surface\\generated\\sheet-pods-top.png",
+    "sha256": "3d86174f6a47d21eb65dd4e4095817023b77c93c3a167ff807ff24e7ee900bd4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\colossus-mk3-surface\\prompts\\sheet-pods-top.prompt.txt",
+  "promptSha256": "89551d64abbc93d7c39c7c53d9eafbf99c5e206beea707c4e0db873ca7e22c53",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels\nImage 2: Material and finish reference only: paint colours, wear and detail; not layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Colossus Mk.III: a huge, boxy, low-tech Domain-era heavy freighter taken by pirates and refitted as an armed raider; these faces are the top of one of its two long drive pods), each face seen square-on from directly above, bow at the top of each tile, and drawn alone as a flat-coloured shape on a plain flat mid-blue background:\ntop-left: the aft end of the drive pod from above: a broad salmon-red plate with an angled left end (the worn aft deck plate), carrying a grey-brown trapezoid (the drive housing's aft slope) with a smaller grey-brown rectangle inside it (a tail hatch) and a small grey-brown quadrilateral to its right (a cover plate); a thin dark grey strip along its top edge; below the pink plate, two grey-brown legs (the casing's stern corners) either side of a blue gap;\ntop-right: the drive housing on the pod top from above: wide grey-brown casing plates left and right, a grey-brown block over the middle (the housing top) with a white band crossing it horizontally, interrupted by a grey-brown rectangle (a top cover); a tall dark grey rectangle (a recess) towards the right and thin dark grey strips along the top edge;\nbottom-left: a stretch of the pod's top casing from above: grey-brown plates divided by one horizontal and one vertical thin dark grey groove, with a square grey-brown service cover and a small white triangle (the corner of a pale band) at the top right;\nbottom-right: the forward end of the pod's top casing from above: grey-brown plates divided by one horizontal thin dark grey groove, with a rectangular grey-brown access hatch in the lower plate.\nINPUT 2 is the SAME ship, already painted in its pirate livery: it is the finish to match. Use its paint colours, its battered, grimy finish, its seam, fastener and weld treatment and its wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the shapes in INPUT 1 as that working hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep every tile exactly where it is, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap, notch or slot in a shape stays plain background blue. Each separate plate stays a separate plate with the same blue gap round it.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of heavy fasteners along plate edges, a few flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: the grey-brown areas are a blackened, sooty rust-brown enamel, as INPUT 2's side modules and drive pods; the salmon-red areas are RED: a deep, dirty crimson enamel, the same crimson as the hold in INPUT 2, as the crimson blocks on INPUT 2's pod aft plates; they must not be painted grey, white, cream, brown or bare metal; the white areas are a pale, dirty, weathered warm-grey paint (as INPUT 2's longerons and bridge; not white), as INPUT 2's diagonal pod bands; the dark grey strips and blocks are near-black dull steel recesses and seam grooves. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is a pirate raider kept fighting long past its service life and never properly repaired. Weathering is heavy but even across each whole shape: faded, dirty enamel, fine chips and scuffs worn through to dark bare steel along plate edges and fastener rows, oily grime in the seams, thin soot streaking. No single concentrated area of wear, no large bare patches, no holes, dents, burns, scorch marks, impact damage or repair plates. No lettering, numbers, markings, decals, graffiti, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\guide\\sheet-pods-top-guide.png",
+      "sha256": "232f6b31f8e7b408cfbc701312cab895a5525706cc4c6548c88f544289503c2f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every tile, outline, gap and line stays in exactly these pixels"
+    },
+    {
+      "path": "art-source\\company-prologue\\colossus-mk3-surface\\reference\\finish-reference.png",
+      "sha256": "74371d570280499c86a6140acd689532b485cfccd4636d86bd6654f884705379",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and finish reference only: paint colours, wear and detail; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to reskin the four faces, preserving the guide’s layout and colour regions."
+  ],
+  "usage": {
+    "input_tokens": 86125,
+    "cached_input_tokens": 65664,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 984,
+    "reasoning_output_tokens": 18
+  },
+  "elapsedSeconds": 67.8
+}

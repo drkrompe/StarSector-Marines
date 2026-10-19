@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15693-e034-7722-aeaa-e7adce07df5b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15693-e034-7722-aeaa-e7adce07df5b\\exec-893aa94a-6be9-4530-83d1-dad0273768d6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\nessa-y1-cutout-v1.png",
+    "sha256": "4493c900976cd28f5fb1686527b37359d1d5af7d2afe32b2744fdf9a0c70f31b",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\nessa-y1-cutout-v1.prompt.txt",
+  "promptSha256": "50b3c5eb04fe459fd7402b50bf3aaf4c6102221fff8ca5b7ecbd7f9769ed662f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Placement and pose authority: exact size and position on the canvas\nImage 2: Identity only: face, hair, skin\nImage 3: Light and style only: do not paint its content\n\nOne landscape 1536x1024 (3:2) image: a single painted character cut-out on a TRUE TRANSPARENT BACKGROUND (alpha), for compositing over a story illustration. Everything except the character is fully transparent: no ground, no cast shadow slab, no background, no border, no text.\n\nReference roles:\n- Reference 1 is the PLACEMENT AND POSE AUTHORITY: a flat grey stand-in figure on transparency, at the exact size and position she must occupy on the 1536x1024 canvas. Paint her over it so her outline, head position, height, shoulders, the way she stands and the slate in her right hand match it. Keep her in exactly that place on the canvas; do not centre, enlarge or move her. Do not copy the stand-in's smooth grey modelling, face or clothes.\n- Reference 2 is IDENTITY ONLY: Nessa's face, short iron-grey hair, warm brown skin, brows, the broken nose and her level, appraising look. It is a portrait, not a pose.\n- Reference 3 is LIGHT AND STYLE ONLY: the background she will stand in front of. Match its daylight (high hazy sun behind the viewer and to the left, so her face and the left of her body catch warm daylight and her right side falls into soft cool shade), its colour, haze and its restrained realistic painted finish, so she sits in it. Do not paint any of its content.\n\nCharacter: Nessa Venn, about 52, forewoman of a small private ship-repair yard on a humid jungle world. Solid and square, broad shoulders, a yard worker's hands. Seen from about the knees up as in reference 1, facing the viewer at a slight angle, eyes on the viewer as if handing over an estimate. Dressed in layers, practical and lived-in, distinct from her crew's grey without being loud: faded olive-drab work coveralls, over them a worn, weathered tan-brown canvas work coat, open, sleeves pushed up, scuffed at the cuffs and pockets; a compact dark biofilter half-mask hanging round her neck on its strap; a stylus behind one ear. In her right hand a scratched, chunky work slate held out toward the viewer, its screen showing only abstract soft light, no readable text. Her left hand loose at her side. No helmet, no jewellery, no weapons.\n\nHand-painted, restrained realism, natural proportions, crisp clean edges against the transparency including round the hair, hands and slate.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\guides\\nessa-y1-silhouette.png",
+      "sha256": "177948f5656855058515832e1724cb1f758b22d40280a1d30f3ac22205eaed22",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Placement and pose authority: exact size and position on the canvas"
+    },
+    {
+      "path": "art-source\\portraits\\nessa-venn.master.png",
+      "sha256": "8ac9312dae6dc1d0c871bbd15a24361572cd18d1d54225bc01012c19e5bc96ec",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: face, hair, skin"
+    },
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+      "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Light and style only: do not paint its content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent character cut-out, matching Image 1’s placement and pose and using the other references for identity and lighting."
+  ],
+  "usage": {
+    "input_tokens": 49612,
+    "cached_input_tokens": 36736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 739,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.6
+}

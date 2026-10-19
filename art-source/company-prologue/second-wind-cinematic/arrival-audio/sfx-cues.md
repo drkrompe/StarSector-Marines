@@ -94,7 +94,7 @@ over 3.5 s, and the Legion clears the slits at about 14.
 ## Entry — the heat and the cloud (7.0 s)
 
 Longer since the owner's review (`c2_core` HEAT, SMOKE, CLOUD_IN, WHITE, BLOOM). Castle's
-"Cleared. Everybody breathe." from 0.16 s, off channel, no squelch, over clear space to 1.2.
+"We've got a few days planetside before we'll need to move along, Commander." 0.16–4.0, off channel, no squelch, over clear space to 1.2.
 Heat from the bottom right fills the glass by 2.4, flames streaming to the top left; smoke
 1.6–5.6; cloud 4.1–5.4; white 5.4–6.0; bloom to the cut at 7.0. The camera and window shake
 (`c3_core.shake_envelope`) stay under a pixel to 0.6 s, peak at about 9 px from 4.0 to 5.2 s,
@@ -123,7 +123,7 @@ Longer since the owner's review (`c3_core`): it opens still descending and shaki
 | `c3_cabin_flight_bed` | The cabin in steady flight: air over the hull, ventilation, a low drone | 0–16, under everything; into C4's first second | Bed | −16 | Gen; existing `jangala_arrival_cabin_bed` |
 | `c3_nature_muffled` | The jungle below heard through the glass, low-passed at 1.8 kHz | 4–16, in once the shaking has gone | Bed | −16 | Gen |
 | `c3_river_muffled` | The river's rush, far off, low-passed at 1.2 kHz | 4–16 | Bed | −18 | Gen |
-| Castle | "Like the travel reels they ran in the canteen... except this one doesn't loop." | 7.0–12.1 | Voice | 0 | `c4_reels` take |
+| Castle | "So much greenery and life... it's like the travel reels from the canteen." | 7.0–12.2 | Voice | 0 | `v4_c3_reels` take, trimmed to its first read |
 
 ## C4–C5 — THE ROAD, THE PORT AND WE'RE DOWN (one shot, 61.4 s)
 
@@ -136,9 +136,8 @@ joined clock, and C5's own beats are at their C5 time + 21.4.
 The approach is slower (owner: she named the landing zone after we were already landing).
 C5 is 40 s (owner, 2026-10-19: linger on the title, more of the port at work): the title rises from C5 24, holds to 38.0 and fades to black over 38.0–39.5. The port beds carry the hold and go out with the fade; Ending A (`ending_strings_piano_t02`, 40 s) swells at the title, carries the hold and resolves into the black. Rows below give the 33.5 s timings where they differ.
 
-Castle's in-flight lines are both over before the ship starts down: "Greywater's past the
-cranes. Let me do the talking." 0.5–3.9, then "Look for the fenced yard on the east side.
-Kilo Nine. Mind your manners down there; it's a favour." 4.6–10.9. Second Wind brakes into a
+Castle's one C4 line is over before the ship starts down: "Set us down in that fenced yard on the
+east side. Nessa called in a favour to get us a berth for refit. Best behaviour." 1.0–8.2. Second Wind brakes into a
 hover at 12.0, touches down at 16.4 in a ring of dust, and its drive winds down by 17.9. The
 burn builds from under the end of her line into the touchdown. The yard vehicles roll from
 19.6 and stop at 23.9, 24.9, 25.9 and 26.4. Her all-hands is on the loudspeaker from 26.4,
@@ -154,19 +153,19 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c4_port_heavy` | The industrial port at work: cranes, containers banging, machinery, forklifts. **No horns** (owner: too much horn; the chosen take measures none) | 3.5–53.9; full from 7, ducked 6 dB under the announcement, up at the top of the rise, out under the title | Bed | −12 (−22 to −10) | Gen |
 | `c4_port_ambience` | A lighter port layer under it: distant machinery, reversing beepers | 5–39.4 | Bed | −18 | Gen |
 | `second_wind_c4_drive` | Second Wind's main drive heard from the sky camera: a muffled burning-gas rocket, broadband, **no hum** (owner, 2026-10-19: "burning gas thrusters, heavy lift"). Full until touchdown, out by 17.9 (thruster markers) | 0–17.9 | Bed | −12 (−16 throughout, under the lines and the landing roar) | Code (`synth_flyby.py`) |
-| `landing_roar` | The belly lift jets: broadband crackling combustion with heavy low end, an ignition whump at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down until Kilo Nine ends | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`, broadband rebuild) |
+| `landing_roar` | The belly lift jets: broadband crackling combustion with heavy low end, an ignition whump at 10.0, full 12.0–16.4, rougher as the hull nears the pad, out by 17.4. Held 6 dB down under the early lift | 9.5–17.4 | Spot | −5 | Code (`synth_landing.py`, broadband rebuild) |
 | `landing_grit` | Sand and grit blasted across the pad, building from about 13, peaking at touchdown; noise only, no pings | 13–17.4 | Spot | −11 | Code |
 | `landing_thump` | Touchdown: the legs at 16.4 and 16.57, a noise thump with no tone | 16.4 | Spot | −2 | Code |
 | `landing_spool` | Burner shutdown: sputtering coughs, pops and gas hiss after the cut-off | 16.6–18.5 | Transition | −8 | Code |
 | `landing_settle` | Dust washing back down and the last grit | 16.9–21.4 | Spot | −14 | Code |
 | `lighter_six` | Lighter 6 (`port_life`), a Hermes letting down from 200 m onto a pad about 270 m west of the yard: a small thruster, building as it slows to touchdown, cut at about C5 22.3 | 30.9–44.0, touchdown 43.4 | Spot | −14 | Code |
-| `colossus_lift`, `colossus_mains` | The Colossus at the heavy berth lifting out (`port_fleet`), about 480 m from the camera: its ten lift jets spool up from C5 12 (40%) to full at 15 as it leaves the deck (the generated heavy burn, muffled by distance), then its six mains light at C5 24 with an ignition thump, full by 25.5, as it accelerates west under the title (the dark code-built heavy drive). Kept under the music and title | Lift from 33.4, mains from 45.4, to the end | Spot | −10 and −12, 3 dB down under the title | Gen + Code |
+| `colossus_lift`, `colossus_mains` | The Colossus at the heavy berth lifting out (`port_fleet`), about 480 m from the camera: its ten lift jets spool up from C5 12 (40%) to full at 15 as it leaves the deck (the generated heavy burn, muffled by distance), then its six mains light at C5 19.5 with an ignition thump, full by 21, as it turns south-west and climbs away (the dark code-built heavy drive). Kept under the music and title | Lift from 33.4, mains from 40.9, to the end | Spot | −10 and −12, 3 dB down under the title | Gen + Code |
 | `c5_vehicles_arrive` | The tug, crew carrier, bowser and customs car rolling in and stopping one by one, each with its air-brake hiss on its stop (`c5_scene`: stops at C5 2.5, 3.5, 4.5 and 5.0) | 19.9–28.4, hisses at 23.9, 24.9, 25.9, 26.4 | Spot | −14 to −18 | Gen |
 | `c5_yard_bed` | The yard at the jungle's edge: insects in the tree line, birds, breeze | 17.4–54.9; full to 39.4, thinning under the rise, out by 52.4 | Bed | −14 | Gen; existing `c5_yard_jungle_bed` |
 | `c5_hull_ticks` | The hull ticking and pinging as it cools | 21.9–35.4 | Spot | −14 | Gen; existing `c5_yard_hull_ticks` |
 | `c5_car_doors` | A door 0.6 s after each vehicle stops; the customs car's two doors last | 24.5, 25.5, 26.5, 27.0 and 28.5 | Spot | −16, −14 for the customs car | Gen |
 | `c5_steam_vent` | Steam venting off the hull as the engines go dark | 25.4–30.0 | Spot | −14 | Gen; existing `c5_yard_steam_vent` |
-| `c5_pa_click` | The loudspeaker switched on before "All hands", and off after the announcement. A clean click and a speaker thump; **no squelch** | 26.15, 35.2 | Spot | −10 | Gen |
+| `c5_pa_click` | The loudspeaker switched on before "All hands", and off after the announcement. A clean click and a speaker thump; **no squelch** | 26.15, 33.45 | Spot | −10 | Gen |
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
 | `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
@@ -188,3 +187,17 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 - **Runtime.** The arrival is played as cues by the game's player (`runtime-contract.md`).
   Chosen takes are encoded the way the hail is (`audio.json`, `:asset-pipeline:processAudio`)
   when the owner accepts them; this sheet's times become each shot's `cues`.
+
+## Castle's lines (owner's script, 2026-10-19)
+
+Jangala is a stop, not a home: the crew are not Hegemony citizens. The hail (01–08) is
+unchanged; line 09 ("Somebody knows we're here") is dropped from the arrival. Castle then
+speaks to the Commander, with one turn away to the ship's PA.
+
+| Shot | Line | Time | Take |
+|---|---|---|---|
+| Entry | "We've got a few days planetside before we'll need to move along, Commander." | 0.16–4.0 | `v4_entry_t02` |
+| C3 | "So much greenery and life... it's like the travel reels from the canteen." | 7.0–12.2 | `v4_c3_reels_t03` |
+| C4 | "Set us down in that fenced yard on the east side. Nessa called in a favour to get us a berth for refit. Best behaviour." | 1.0–8.2 | `v4_c4_yard_t02` |
+| C5 (PA) | "All hands, get some rest, see the sights, but keep your identification on you. We regroup at the yard tomorrow." | 5.0–11.95 | `v4_c5_announce_t01` |
+| C5 | "Hard part starts now, Commander. From here, we find our own way." | 19.6–24.0 | `v4_c5_last_t03` |

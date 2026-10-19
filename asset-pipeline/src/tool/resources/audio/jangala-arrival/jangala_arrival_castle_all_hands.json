@@ -1,0 +1,11 @@
+{
+  "requestId": "UiyuUjiNQdkuFPna6is8",
+  "characterCost": "78",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "synthesisText": "[calm, confident, warm ship's announcement, a captain in control] All hands, get some rest, see the sights, but keep your identification on you. We regroup at the yard tomorrow.",
+  "audioSha256": "85badb83d7192fa633ff9d8392508fd760c683e55c89203cd0a71db94f2e17f9",
+  "durationSeconds": 6.88,
+  "take": "v4_c5_announce_t01",
+  "outputFormat": "mp3_44100_128"
+}

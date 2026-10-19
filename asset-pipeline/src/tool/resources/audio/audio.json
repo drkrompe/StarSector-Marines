@@ -781,7 +781,13 @@
     {"id": "jangala_arrival_hail_04", "source": "jangala-arrival/jangala_arrival_hail_04.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
     {"id": "jangala_arrival_hail_07", "source": "jangala-arrival/jangala_arrival_hail_07.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
     {"id": "jangala_arrival_hail_08", "source": "jangala-arrival/jangala_arrival_hail_08.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
-    {"id": "jangala_arrival_hail_09", "source": "jangala-arrival/jangala_arrival_hail_09.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    // Castle's lines from the entry to C5 (owner's script, 2026-10-19; arrival-audio/sfx-cues.md): the intercom,
+    // the ship's loudspeaker heard from the yard, and clean beside the Commander for the last.
+    {"id": "jangala_arrival_castle_planetside", "source": "jangala-arrival/jangala_arrival_castle_planetside.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_castle_reels", "source": "jangala-arrival/jangala_arrival_castle_reels.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_castle_yard", "source": "jangala-arrival/jangala_arrival_castle_yard.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_castle_all_hands", "source": "jangala-arrival/jangala_arrival_castle_all_hands.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "ship_pa"},
+    {"id": "jangala_arrival_castle_own_way", "source": "jangala-arrival/jangala_arrival_castle_own_way.mp3", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "c5_yard_steam_vent", "source": "jangala-yard/c5_yard_steam_vent.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "c5_yard_hull_ticks", "source": "jangala-yard/c5_yard_hull_ticks.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "c5_yard_crane_horn", "source": "jangala-yard/c5_yard_crane_horn.wav", "kind": "ui", "out": "story/jangala-arrival"},
@@ -795,7 +801,6 @@
     {"id": "jangala_cabin_bed", "source": "jangala-arrival/cabin_bed.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "jangala_squelch_open", "source": "jangala-arrival/squelch_open.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "jangala_squelch_close", "source": "jangala-arrival/squelch_close.wav", "kind": "ui", "out": "story/jangala-arrival"},
-    {"id": "jangala_arrival_nessa", "source": "jangala-arrival/jangala_arrival_nessa.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "dialogue"},
     // Arrival cinematic ambience, cued by the shot composers (runtime-contract.md). Sources
     // are built by first-open-sky/c3_audio.py: a seamless cabin-bed loop and one exterior wind pass.
     {"id": "jangala_arrival_cabin_bed", "source": "jangala-arrival/jangala_arrival_cabin_bed.flac", "kind": "ui", "out": "story/jangala-arrival"},

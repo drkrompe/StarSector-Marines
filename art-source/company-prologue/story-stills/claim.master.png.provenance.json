@@ -3,43 +3,63 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a155d5-a91f-7910-96f4-5d36468451d4",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155d5-a91f-7910-96f4-5d36468451d4\\exec-33d086cd-5ae4-4f66-8431-adadf70add39.png",
+  "thread": "01a1568f-fbd1-75c3-b70f-2ad18e727c69",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1568f-fbd1-75c3-b70f-2ad18e727c69\\exec-e551b1fe-cfcc-41f1-9b69-6a3472946e86.png",
   "otherImagesInThread": [],
   "output": {
-    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v3.png",
-    "sha256": "e8ba317549f4332198aeaf238dd4fd23b15ba3d90fa857a15dd92374e0b487ee",
+    "path": "art-source\\company-prologue\\story-stills\\candidates\\claim-v6.png",
+    "sha256": "13bbd6f9cb50328a08ee3afaf5509ae1f58cbaff6376f8d739a3bfec2ab86c27",
     "dimensions": [
       1536,
       1024
     ],
     "mode": "RGB"
   },
-  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v3.txt",
-  "promptSha256": "2390e5838334f25192566c2f33c980015537578981187f8043afbc7f9b48f46f",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Style and finish only: a page from the same set; not content\n\nUse case: illustration-story. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: Harker's Claim, an asteroid mine, is being quietly emptied by its operator. Every month the manifests said ore. They weren't failing; they were packing.\n\nScene: night shift on the cargo floor of the Claim's loading hall, inside the pressurized asteroid habitat. Centre of the frame: a big steel freight container stencilled with crude ore-hazard chevrons and mining-grade markings (no readable words), its doors half open. Inside, packed in foam and strapped down, is not ore but the colony clinic's medical scanner: a pale curved diagnostic ring and its padded bed, still with a faded red medical cross on its side panel. Beside it, more crates marked the same way, one with its lid askew showing reactor fuel canisters and coiled drill heads. Two company loaders in clean company overalls close and seal the doors without looking inside, a forklift waiting.\n\nForeground left, on a manifest clerk's standing desk at the edge of the floor: a thick open manifest ledger with columns of unreadable handwritten entries, a rubber stamp and ink pad, a lamp, and a weathered woman's hand in the cuff of a charcoal-olive duty jacket resting flat beside the ledger, as if she has just stopped writing. Only the hand; no face.\n\nBackground: cold rock walls, gantries, amber lamps, and through a heavy sealed observation window the dark hull of a waiting company carrier. Quiet, damning, no drama.\n",
+  "promptFile": "art-source\\company-prologue\\story-stills\\claim.brief-v6.txt",
+  "promptSha256": "9ea226f77bd1eeb3ae5ea12f6ea1d7e881bab7471d4d7abdcce231cb5489b349",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: camera, room, boats, and every person's place, size and pose; not lighting\nImage 2: Identity only: Castle's face, hair and jacket; not layout or style\nImage 3: Material only: the boats' plating and details; not layout\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nStory: the writing on the wall at Harker's Claim, an asteroid mine. Upper management know the colony is finished. They are getting their own people out on the two company boats, and telling everyone else there will be another boat.\n\nReference 1 is a grey blockout of the scene and is the authority for the camera, the room, every object's place and size, and every person's place, size, height and pose. Repaint it fully; do not move, add or resize anything. Its lighting is NOT the authority: the gallery is dim, lit by warm amber ceiling lamps, and the bright light is out in the bay.\n\n- The departure gallery of a habitat cut into rock: dark worn steel walls and ceiling, a scuffed deck.\n- The wide window of three tall panes with heavy bolted mullions and real glass with faint reflections. Beyond it, a launch bay cut into raw asteroid rock, lit by hard floodlights on masts. On their round landing pads stand two small company boats, exactly the shapes in the blockout, standing level on their landing legs: short boxy 9-metre shuttles in pale grey and off-white plating with dark window bands at the nose, a small turret on top, a side boarding door. Reference 3 is what they look like up close (material only). Two boats, a handful of seats.\n- Right: the guarded gate in the wall with a lit gangway behind it and a departures board above it as blank glowing panels. The two grey figures beside the gate are company security guards in dark grey uniforms and visored caps. The three walking into the gate are an administrator in a good overcoat, his wife in a cream coat, and their child, with hard-shell luggage. The box left of the gate is a porter's trolley stacked with sealed company cases.\n- Centre: the light grey figure with raised open hands is the company manager, mid-forties, clean well-cut charcoal overcoat with a small company pin, a practised reassuring smile, palms out: \"there will be another boat\".\n- Left: the brown figures behind the stanchions and yellow tape are miners and their families in worn, patched coveralls and jackets, worried and unconvinced. The olive figure in front with folded arms is Castle, exactly the woman in Reference 2 (her face, age, greying dark hair in a short bun, charcoal-olive high-collared duty jacket, earpiece), arms folded over a thick manifest ledger, her face turned toward the gate, watching the luggage go through, not the manager.\n\nQuiet betrayal, no violence.\n",
   "adopted": false,
   "references": [
     {
-      "path": "art-source\\company-prologue\\story-stills\\second-wind.master.png",
-      "sha256": "17d47861914a2ae8e5d08dd47c3ede4fc97dbac3b8c7d371af41666edc123bc9",
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p2-scene.png",
+      "sha256": "94656f4fd2184da47216d45ee6682e7526d8e64807d178cdd9776fab78145e95",
       "dimensions": [
-        1536,
-        1024
+        768,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: camera, room, boats, and every person's place, size and pose; not lighting"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
       ],
       "mode": "RGB",
-      "role": "Style and finish only: a page from the same set; not content"
+      "role": "Identity only: Castle's face, hair and jacket; not layout or style"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\hermes-p2.png",
+      "sha256": "a5556bd436cf562189c9f1816e9ffbd0bbd159a5e4e38d29baa083b1c11aff41",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Material only: the boats' plating and details; not layout"
     }
   ],
   "agentMessages": [
-    "I’ll generate one image with the reference’s worn industrial finish and the quietly incriminating cargo scene."
+    "I’ll generate one image using the blockout’s layout, Castle’s identity, and the boats’ material reference.\n"
   ],
   "usage": {
-    "input_tokens": 41307,
-    "cached_input_tokens": 32640,
+    "input_tokens": 44607,
+    "cached_input_tokens": 34048,
     "cache_write_input_tokens": 0,
-    "output_tokens": 655,
+    "output_tokens": 998,
     "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 64.1
+  "elapsedSeconds": 64.9
 }

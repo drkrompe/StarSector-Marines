@@ -67,7 +67,16 @@ STAR_FLOOR, STAR_GAIN = 0.05, 2.5          # faintest star, and the brightest's 
 # emissive part is dark, so there none of these exist. Area lights are hidden from camera rays:
 # a floating rectangle in shot would read as a pane of light, not as the screen that makes it.
 CEILING_STRIPS = [((13.2, y, 20.1), (2.5, 0.45)) for y in (-1.6, 1.6)]   # under the two caged lamps
-CEILING_ENERGY, CEILING_RGB = 14.0, (1.0, 0.82, 0.6)                       # W per strip
+CEILING_ENERGY, CEILING_RGB = 24.0, (1.0, 0.82, 0.6)                       # W per strip
+# A soft overhead fill over the forward station (owner, 2026-10-19: the consoles and frames should
+# read and the fighters be easy to find, the view outside still the brightest thing in shot). It
+# lights the room without being seen in the glass itself (hidden from glossy rays).
+ROOM_FILL = ((14.8, 0.0, 20.0), (5.0, 6.0), 36.0, (1.0, 0.9, 0.78))         # loc, size, W, rgb
+# The slits' glass reflects the room faintly, not as a mirror (owner, 2026-10-19): the glazing's
+# Fresnel IOR 1.9 (about 10% straight on) is lowered to an anti-reflective 1.25 (about 1%), and
+# the whole reflection scaled by GLASS_REFLECT, since at a slant Fresnel climbs whatever the IOR:
+# at the end (14.5 s) a console strip still read mid-view with the IOR alone.
+GLASS_MATERIAL, GLASS_FRESNEL_IOR, GLASS_REFLECT = "Bridge smoked viewport glazing", 1.25, 0.35
 SCREEN_RGB = (0.22, 0.62, 0.5)                                            # 'Bridge display' emission
 CONSOLE_TOP = 18.25
 # (name, footprint centre, yaw_deg, screens (u along the run, width)) as sw_bridge_interior.build
@@ -136,6 +145,8 @@ def bridge_practicals(powered):
                     SCREEN_GLOW_SPREAD))
     loc, size, aim, energy, rgb = HELM_FILL
     out.append(("helm overhead fill", loc, size, aim, energy, rgb, 120.0))
+    loc, size, energy, rgb = ROOM_FILL
+    out.append(("bridge room fill", loc, size, None, energy, rgb, 160.0))
     return out
 
 
@@ -150,6 +161,8 @@ def plan(frames, fps, samples_n, state=SW_STATE):
         "fps": fps, "cycles_samples": samples_n, "sw_state": state,
         "sw_state_blend": str(BASE.parent / "second-wind-states" / state / ("second-wind-%s.blend" % state)),
         "practicals": bridge_practicals(state != "derelict"),
+        "glass_material": GLASS_MATERIAL, "glass_fresnel_ior": GLASS_FRESNEL_IOR,
+        "glass_reflect": GLASS_REFLECT,
         "screen_pages": SCREEN_PAGES if state != "derelict" else {},
         "screen_face": SCREEN_FACE, "screen_version": SCREEN_VERSION, "screen_dir": str(SCREEN_DIR), "screen_strength": SCREEN_STRENGTH,
         "albedo": str(C1_ASSETS / "planet-albedo-detail-v1.png"),
@@ -298,6 +311,19 @@ def blender_main(argv):
         o.animation_data_clear()
     if not any(o.name.startswith("Bridge deck plating") for o in sw.children_recursive):
         raise RuntimeError("%s has no bridge interior: rebuild the %s state export" % (p["sw_state_blend"], p["sw_state"]))
+    glazing = bpy.data.materials.get(p["glass_material"])
+    fresnel = [n for n in glazing.node_tree.nodes if n.type == "FRESNEL"] if glazing else []
+    if len(fresnel) != 1:
+        raise RuntimeError("the bridge glazing %r has no single Fresnel to lower" % p["glass_material"])
+    fresnel[0].inputs["IOR"].default_value = p["glass_fresnel_ior"]
+    nt = glazing.node_tree
+    link = next(l for l in nt.links if l.from_node == fresnel[0])
+    scale = nt.nodes.new("ShaderNodeMath")
+    scale.operation, scale.inputs[1].default_value = "MULTIPLY", p["glass_reflect"]
+    to = link.to_socket
+    nt.links.remove(link)
+    nt.links.new(fresnel[0].outputs["Fac"], scale.inputs[0])
+    nt.links.new(scale.outputs[0], to)
     # The room's practicals (bridge_practicals): a strip under each caged ceiling lamp, a soft
     # screen-coloured glow off every console's displays toward its operator, and the overhead
     # amber display's spill onto the helm seat. None in the derelict state: the power is off.
@@ -307,6 +333,7 @@ def blender_main(argv):
         lamp.data.shape, lamp.data.size, lamp.data.size_y = "RECTANGLE", sx, sy
         lamp.data.energy, lamp.data.color, lamp.data.spread = energy, rgb, math.radians(spread)
         lamp.visible_camera = False
+        lamp.visible_glossy = not name.endswith("room fill")
         scene.collection.objects.link(lamp)
         lamp.parent = sw
         lamp.location = loc

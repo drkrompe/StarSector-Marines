@@ -73,11 +73,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.76,
+  "metres_per_unit": 0.75,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 38632,
+      "units3": 40988,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
@@ -113,17 +113,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.759,
+    "solved_metres_per_unit": 0.744,
     "range": {
-      "habitable_273": 0.736,
-      "habitable_328": 0.782
+      "habitable_273": 0.722,
+      "habitable_328": 0.767
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 71.4,
+    "length_m": 70.0,
     "fittings_m": {},
-    "published_metres_per_unit": 0.76,
+    "published_metres_per_unit": 0.75,
     "measured_this_build": {
-      "enclosed_units3": 38632,
+      "enclosed_units3": 40988,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -131,20 +131,15 @@
         "Hull aft body",
         "Hull dorsal spine fore",
         "Hull dorsal spine aft",
-        "Hull ventral keel",
-        "Hull centre hump",
-        "Hull neck port flank",
-        "Hull neck starboard flank",
-        "Hull wing port root",
-        "Hull wing starboard root"
+        "Hull ventral keel"
       ]
     },
     "size_m": [
-      74.6,
-      39.8,
-      22.6
+      73.6,
+      39.3,
+      24.4
     ],
-    "person_1_8_m_in_units": 2.37,
+    "person_1_8_m_in_units": 2.4,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -167,12 +162,12 @@
     "max": [
       57.98,
       26.18,
-      11.73
+      14.57
     ],
     "size": [
       98.18,
       52.37,
-      29.73
+      32.57
     ]
   },
   "weapon_slots": [
@@ -181,7 +176,7 @@
       "location": [
         11,
         0,
-        7.6
+        10.44
       ],
       "angle": 0,
       "arc": 150,
@@ -198,7 +193,7 @@
       "location": [
         45,
         0,
-        -0.5
+        -4.0
       ],
       "angle": 0,
       "arc": 5,
@@ -215,7 +210,7 @@
       "location": [
         11,
         20,
-        -1.8
+        -3.2
       ],
       "angle": 0,
       "arc": 5,
@@ -236,7 +231,7 @@
       "location": [
         11,
         -19,
-        -1.8
+        -3.2
       ],
       "angle": 0,
       "arc": 5,
@@ -263,7 +258,7 @@
       "location": [
         11,
         0,
-        7.6
+        10.44
       ],
       "rest_angle_deg": 0,
       "arc_deg": 150,
@@ -298,7 +293,7 @@
       "location": [
         45,
         0,
-        -0.5
+        -4.0
       ],
       "k": 0.55,
       "bay": {
@@ -308,8 +303,8 @@
         ],
         "half_width": 5.3,
         "z": [
-          -3.3,
-          3.1
+          -6.8,
+          -0.3999999999999999
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -338,7 +333,7 @@
       "location": [
         11,
         20,
-        -1.8
+        -3.2
       ],
       "k": 0.6,
       "bay": null,
@@ -372,7 +367,7 @@
       "location": [
         11,
         -19,
-        -1.8
+        -3.2
       ],
       "k": 0.6,
       "bay": null,
@@ -558,7 +553,7 @@
       "position": [
         26,
         11.5,
-        5.88
+        5.66
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -573,7 +568,7 @@
       "position": [
         26,
         -11.5,
-        5.88
+        5.66
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -618,7 +613,7 @@
       "position": [
         -30,
         0,
-        7.85
+        8.67
       ],
       "colour": "white",
       "role": "stern light",
@@ -636,8 +631,8 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 19860,
-    "objects": 151,
+    "triangles": 24364,
+    "objects": 144,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",
@@ -772,8 +767,8 @@
   ],
   "silhouette": {
     "iou": 0.9332,
-    "sprite_uncovered": 0.0386,
-    "model_outside_sprite": 0.0302,
+    "sprite_uncovered": 0.0399,
+    "model_outside_sprite": 0.0288,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit; the hardpoint guns (Weapon WS ...) are hidden in the top render: the hull sprite draws no weapons"
   },
   "shot_extent_px": {

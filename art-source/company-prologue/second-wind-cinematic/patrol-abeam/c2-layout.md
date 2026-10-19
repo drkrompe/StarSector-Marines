@@ -106,8 +106,14 @@ cannot drift apart:
 - Second Wind is the patched state from `second-wind-states`. The .blend is built, not
   committed: copy it from Drive `builds/second-wind/<commit>/patched/`. The script
   refuses a copy whose sha256 differs from the committed manifest's. The bridge slits
-  are real glass and no shot hides them.
-- The bridge is painted steel with console screens and one low warm ceiling light. A
+  are real glass and no shot hides them. Their reflection is kept but faint (owner,
+  2026-10-19): the shot lowers the glazing to about 1% straight on and scales the whole
+  reflection to 35%. At full strength the console strips and ceiling lamps lay across the
+  Legion.
+- The bridge is painted steel with console screens and warm ceiling light, plus a soft
+  overhead fill over the forward station that the glass does not show. It is lit just
+  enough for the consoles and frames to read and the fighters to be found at 3.0 s; the
+  view outside stays the brightest thing in shot (owner, 2026-10-19). A
   light strip at the top of the slits was tried and dropped: 65 cm from the eye, even
   dimmed, it read as a band across the view.
 - The Legion keeps its own materials, with its throats and running lights as in the cabin
@@ -490,10 +496,9 @@ Production decisions that supersede the plan above:
   per the C3 hand-off), and C3 picks up one frame later on the same shake. The entry
   is drawn through C3's window and camera throughout, so there is no camera change.
 - **Audio cues** (player dicts). C2: squelch open, line 7, squelch close, line 8.
-  Entry: line 9 at 0.16 s (no squelch), wind from 0.35 s. Neither adds a bed: C1's
-  cabin bed runs under the whole hail. Line 9 is placed by its own rule, 1.4 s after
-  line 8 ends. `build_hail_preview.timeline()` now gives that gap to the catalog's last
-  line, C4's Nessa memory.
+  Entry: Castle's first line to the Commander at 0.16 s (no squelch;
+  `arrival-audio/castle_lines.py`), wind from 0.35 s. Neither adds a bed: C1's cabin bed
+  runs under the whole hail. Hail line 9 was dropped with the owner's script of 2026-10-19.
 - **Packaging.** `cinematic_export.py --shot c2` / `--shot entry` writes
   `mod/cinematic/jangala-arrival/{c2,entry}.mp4` and their timelines.
 

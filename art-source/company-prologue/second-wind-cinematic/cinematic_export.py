@@ -61,8 +61,9 @@ SPEAKERS = {
 }
 STRINGS = MOD / "data" / "strings" / "strings.json"
 HAIL_CATALOG = MOD / "data" / "marines" / "jangala_arrival_hail.json"
-# Catalog lines whose words already live under another strings.json key.
-KEY_OVERRIDES = {"jangala_arrival_nessa": "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"}
+# Catalog lines whose words already live under another strings.json key (none since Castle's lines of
+# 2026-10-19 replaced the Nessa memory; each catalog line, hail or Castle's, has its own key).
+KEY_OVERRIDES = {}
 
 
 def caption_key(line_id):

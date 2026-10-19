@@ -35,9 +35,9 @@ DIALOGUE_LUFS = -19.0
 # fresh worktree may need --hail pointing at a checkout that has built it).
 HAIL = ROOT / "mod/sounds/story/jangala-arrival"
 # Castle's review takes (record_castle_lines.py treat): the owner's "a" takes from the review set.
-CASTLE = {"entry": "entry_t06", "c4_reels": "c4_reels_t06", "c4_greywater": "c4_greywater_t01",
-          "c4_kilo_nine": "c4_kilo_nine_t01",
-          "c5_announce": "c5v3_announce_t01", "c5_last": "c5v3_last_t01"}
+# The owner's script of 2026-10-19 (record_castle_lines.py v4): a stop, not a home.
+CASTLE = {"entry": "v4_entry_t02", "c3_reels": "v4_c3_reels_t03", "c4_yard": "v4_c4_yard_t02",
+          "c5_announce": "v4_c5_announce_t01", "c5_last": "v4_c5_last_t03"}
 LOW = "lowpass=f=220:p=2"   # cues felt through the hull stay under the voice band
 
 # Picture sketches: the newest review video of each shot, as of the cue sheet's date.
@@ -46,8 +46,10 @@ PICTURES = {
     "c1-hound-b": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c1": DRIVE / "cinematic-c1/2026-10-18_picket-inbound-fighters_windows/01-c1v2-1fps-with-hail.mp4",
     "c2": DRIVE / "cinematic-c2/2026-10-19_camera-chosen-sketch_windows/01-c2-bridge-sketch.mp4",
-    "entry": ROOT / "mod/cinematic/jangala-arrival/entry.mp4",
-    "c3": ROOT / "mod/cinematic/jangala-arrival/c3.mp4",
+    # The entry and C3 through one window (entry-and-c3, 2026-10-19): one 23 s sketch, the entry its
+    # first 7 s and C3 the 16 s after. A (path, start) picture plays from that second.
+    "entry": DRIVE / "cinematic-entry/2026-10-19_one-window_windows/07-entry-into-c3.mp4",
+    "c3": (DRIVE / "cinematic-entry/2026-10-19_one-window_windows/07-entry-into-c3.mp4", 7.0),
     # C4 and C5 are one shot now; until it is rendered as one, the two sketches play back to back.
     "c4c5": DRIVE / "cinematic-c4c5/2026-10-19_slower-approach_windows/01-c4c5-slower-approach-1fps.mp4",
 }
@@ -167,7 +169,7 @@ SHOTS = {
         # The world below, through the glass: muffled, and in once the shaking has gone.
         sfx("c3_nature_muffled", 4.0, -16, until=16.0, af="lowpass=f=1800:p=2", fade_in=2.5),
         sfx("c3_river_muffled", 4.0, -18, until=16.0, af="lowpass=f=1200:p=2", fade_in=3.0),
-        voice(("castle", CASTLE["c4_reels"]), 7.0),
+        voice(("castle", CASTLE["c3_reels"]), 7.0),
     ]),
     # C4 and C5 joined: the sky pan, the landing and the yard, one camera.
     "c4c5": (C4_LENGTH + 40.0, [   # C5 is 40 s (owner: linger on the title, more of the port)
@@ -199,11 +201,11 @@ SHOTS = {
         sfx("c5_yard_bed", 17.4, -14, until=61.4,
             env=[(17.4, 0), (39.4, 0), (47.4, -8), (59.4, -10), (60.9, -30)], fade_in=2.0),
         # The Colossus at the heavy berth lifting out (port_fleet): lift jets from C5 12, off the deck
-        # at 15 with its dust, mains lit at 24 as the title comes up. Kept under the music and title.
+        # at 15 with its dust, mains lit at 19.5 as it turns south-west and climbs away. Kept under the music and title.
         synth("colossus_lift", -10, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
         synth("colossus_mains", -12, env=[(C4_LENGTH + 24.0, 0), (C4_LENGTH + 26.0, -3)]),
-        voice(("castle", CASTLE["c4_greywater"]), 0.5),
-        voice(("castle", CASTLE["c4_kilo_nine"]), 4.6),
+        # One line, done before the landing burn at 9.5 (owner: C4 is too short for more).
+        voice(("castle", CASTLE["c4_yard"]), 1.0),
     ] + shifted([
         sfx("c5_hull_ticks", 0.5, -14, until=14.0, loop=True, fade_out=1.5),
         # The yard's vehicles roll in from C4 and stop one by one (c5_scene, 2026-10-19): the tug at
@@ -220,7 +222,7 @@ SHOTS = {
         sfx("c5_steam_vent", 4.0, -14, until=6.5),
         sfx("c5_steam_vent", 6.4, -16, until=8.6),
         sfx("c5_pa_click", 4.75, -10, until=5.2),
-        sfx("c5_pa_click", 13.8, -10, until=14.25),
+        sfx("c5_pa_click", 12.05, -10, until=12.5),   # the announcement ends at 11.95
         sfx("c5_ramp_drop", 5.6, -8),
         # From 220 m up the families are a far murmur, not footsteps (owner, 2026-10-19).
         sfx("c5_crowd_murmur", 8.5, -24, until=25.0, af="highpass=f=150,lowpass=f=900:p=2",
@@ -344,8 +346,9 @@ def mix(shot, picture, dirs, chosen, out, extra=(), tag=None):
     write(effects, out / (name + "-sfx-only.mp3"), [*LIMIT, "-c:a", "libmp3lame", "-q:a", "2"])
     video = out / (name + ".mp4")
     parts = picture if isinstance(picture, list) else [picture] if picture else []
-    if parts and all(part.exists() for part in parts):
-        inputs = [arg for part in parts for arg in ("-i", str(part))]
+    parts = [part if isinstance(part, tuple) else (part, 0.0) for part in parts]
+    if parts and all(part.exists() for part, _ in parts):
+        inputs = [arg for part, at in parts for arg in ("-ss", "%.3f" % at, "-i", str(part))]
         graph = "".join("[%d:v]fps=24,scale=1920:1080,setsar=1[v%d];" % (i, i) for i in range(len(parts)))
         graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
         subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-i", str(out / (name + ".mp3")),
@@ -430,20 +433,21 @@ def player_kit(scores, pictures, dirs, chosen, out, width=960, repicture=False):
     for shot in ARRIVAL:
         picture = pictures.get(shot)
         picture = picture[0] if isinstance(picture, list) else picture
+        picture, at = picture if isinstance(picture, tuple) else (picture, 0.0)
         if not (picture and picture.exists()):
-            picture = FALLBACK_PICTURES.get(shot)
-        parts.append((picture, SHOTS[shot][0]))
-    inputs = [arg for picture, _ in parts for arg in ("-i", str(picture))]
+            picture, at = FALLBACK_PICTURES.get(shot), 0.0
+        parts.append((picture, SHOTS[shot][0], at))
+    inputs = [arg for picture, _, at in parts for arg in ("-ss", "%.3f" % at, "-i", str(picture))]
     graph = "".join("[%d:v]fps=12,scale=%d:%d,setsar=1,tpad=stop_mode=clone:stop_duration=120,"
                     "trim=duration=%.3f,setpts=PTS-STARTPTS[v%d];" % (i, width, width * 9 // 16, length, i)
-                    for i, (_, length) in enumerate(parts))
+                    for i, (_, length, _) in enumerate(parts))
     graph += "".join("[v%d]" % i for i in range(len(parts))) + "concat=n=%d:v=1:a=0[v]" % len(parts)
     subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", graph, "-map", "[v]",
                     "-c:v", "libx264", "-preset", "veryfast", "-crf", "30", "-pix_fmt", "yuv420p",
                     "-movflags", "+faststart", "-an", "-t", "%.3f" % (len(whole) / SR), str(out / "picture.mp4")],
                    check=True)
     print("player kit %5.1fs  %d tracks  pictures: %s" % (
-        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _ in parts)), flush=True)
+        len(whole) / SR, len(tracks), ", ".join(str(p) for p, _, _ in parts)), flush=True)
 
 
 BEDS = set()
