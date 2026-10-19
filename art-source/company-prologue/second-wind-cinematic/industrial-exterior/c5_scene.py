@@ -179,6 +179,9 @@ def setup(body):
             print('C5_REPORT ' + ' '.join(row), flush=True)
     inside = crowd.clip_report(nav, walkers)
     print('C5_CROWD walkers=%d inside-something=%d' % (len(walkers), inside), flush=True)
+    caught = set()
+    run_over = crowd.mover_clips(walkers, crowd.moving_vehicles(C4_END, C4_END + FRAMES), C4_END, caught)
+    print('C5_CROWD run-over=%d (walker-frames under a moving vehicle) %s' % (run_over, sorted(caught)[:6]), flush=True)
     OUT.mkdir(parents=True, exist_ok=True)
     crowd.save_map(nav, walkers, OUT / 'walk-map.png')
     if body == 'sprite':

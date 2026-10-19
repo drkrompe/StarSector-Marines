@@ -271,18 +271,26 @@ def moving_vehicles(f0, f1, step=3, top=2.2):
     return out
 
 
-def mover_clips(walkers, movers, frame0):
-    """Walker-frames in which a moving vehicle's footprint covers somebody (sampled at the
-    vehicles' own step): should be 0, since their lanes are blocked on the walk map."""
+def mover_clips(walkers, movers, frame0, names=None):
+    """Walker-frames in which a vehicle that is moving covers somebody (sampled at the vehicles'
+    own step): should be 0, since their lanes are blocked on the walk map. A vehicle standing
+    still is not counted: once parked it is on the walk map like a wall, and the clip report covers
+    it. `names` (optional set) collects who was caught, for finding them."""
     n = 0
     for name, (x0, x1, y0, y1), track in movers:
-        for f, x, y, h in track:
+        for i, (f, x, y, h) in enumerate(track):
+            near = track[max(i - 1, 0):i + 2]
+            if all(abs(q[1] - x) + abs(q[2] - y) < 0.05 and abs(q[3] - h) < 0.01 for q in near):
+                continue
             for w in walkers:
                 k = f - frame0
                 if 0 <= k < len(w.track) and w.track[k][5]:
                     px, py = w.track[k][1] - x, w.track[k][2] - y
                     u, v = px * math.cos(h) + py * math.sin(h), -px * math.sin(h) + py * math.cos(h)
-                    n += x0 - RADIUS <= u <= x1 + RADIUS and y0 - RADIUS <= v <= y1 + RADIUS
+                    if x0 - RADIUS <= u <= x1 + RADIUS and y0 - RADIUS <= v <= y1 + RADIUS:
+                        n += 1
+                        if names is not None:
+                            names.add((w.name, name, k))
     return n
 
 
