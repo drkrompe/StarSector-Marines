@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15199-ca7d-7961-9eea-98487d12cb7a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15199-ca7d-7961-9eea-98487d12cb7a\\exec-acaf67f0-55cd-417b-a388-12037395c30e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\06-hazard-industrial-v2.png",
+    "sha256": "b8ecf800dbc020d1471ed08ddd3ae3d3ca9da0a57dfb47e1f4798d6a8ee508fd",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\06-hazard-industrial-v2.txt",
+  "promptSha256": "d1c540942cd10adab5085c0a27add483f13695789ad06a0497144e89f1d3dab1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station who arrive on a jungle world in a patched old ship. Direction: worn industrial safety marking, as on a working spaceport run by a stern industrial government whose colour is safety orange. STARSECTOR in very bold, tightly set condensed industrial capitals in off-white with a charcoal outline, on a long dark charcoal bar; along the bottom of the bar a strip of diagonal orange and black hazard chevrons, worn and scuffed as if painted on a dock edge years ago. MARINES is smaller, in white capitals, on a short tab hanging below the right end of the bar like a section marker. Flat painted look with grime and scuffs, not glossy, not 3D. The bar and tab are the logo shape; everything outside them is transparent.\n\nLettering must be spelled exactly, in capital letters: STARSECTOR, large and dominant, the main word of the title; and MARINES, clearly smaller, as the subtitle that names this particular game. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface, layout or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and the smaller word must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one transparent logo with the industrial hazard-marking treatment and exact title lettering."
+  ],
+  "usage": {
+    "input_tokens": 36944,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 506,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.7
+}

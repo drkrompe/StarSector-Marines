@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a15196-2ca4-7e73-8ef6-e62425e7e2fe",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15196-2ca4-7e73-8ef6-e62425e7e2fe\\exec-808e8fc9-2574-40cb-a483-7dc02c2c00a0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\masters\\05-clean-horizon.png",
+    "sha256": "11e5c96d35063c6a5e0fedf69a6c4072b6cfa59ff8bc15f66e3b38f58eef0122",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\title-logo\\prompts\\05-clean-horizon.txt",
+  "promptSha256": "3c07ef384e5cab6abedd0293373f654430bb65affc2bf903b761113eb130679a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: title logo for the end of a game cinematic. Direction: clean, quiet science-fiction title. Starsector Marines is a grounded game about a small mercenary marine company of refugees from a failing mining station who see open sky for the first time on a jungle world. The mark is a restrained, elegant title: MARINES in a wide, light-to-medium weight extended geometric sans-serif with generous letter spacing, warm white; STARSECTOR above it in very small, very widely spaced capitals. Below the word a single thin horizontal line that bends very gently into the arc of a planet's horizon, with a soft warm dawn glow along the arc, as if the sun is just coming up. Minimal, airy, hopeful but fragile; lots of space; letters crisp. A thin dark hairline edge around the white letters is allowed for legibility. No chrome, no bevel, no lens flare, no heavy glow.\n\nLettering must be spelled exactly, in capital letters: the setting name STARSECTOR, small, and the mod's name MARINES, large and dominant; MARINES is the identity of the mark and STARSECTOR is a modest subtitle. No other words, numbers or letters anywhere. This is an original logo for a fan-made game mod: do not imitate the logo, typeface or emblem of any existing game, studio or franchise, and do not add trademark symbols. True transparent background, including the spaces inside and between letters; no ground, no backdrop, no drop shadow slab, no border, no frame, no mockup, no watermark. Wide landscape canvas. The whole mark centred with generous empty margin around it. Flat-on front view, not in perspective, not on an object. It will be composited over a bright aerial photograph of grey concrete and green jungle, so it needs strong value contrast at its edges and must stay legible at a quarter of screen width.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one transparent title mark with crisp lettering and a restrained dawn arc."
+  ],
+  "usage": {
+    "input_tokens": 36896,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 458,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 35.0
+}

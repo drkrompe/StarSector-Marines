@@ -42,7 +42,7 @@
         "cooldown": 4.8,
         "penetration": 8.0,
         "contact": {
-          "damage": 150.0,
+          "damage": 75.0,
           "penetration": 28.0
         },
         "hitSpread": 0.14,
@@ -208,13 +208,13 @@
         "designationTiered": false
       },
       "sim": {
-        "range": 44.0,
+        "range": 40.0,
         "damage": 95.0,
         "accuracy": 0.72,
         "cooldown": 7.0,
         "penetration": 12.0,
         "contact": {
-          "damage": 260.0,
+          "damage": 135.0,
           "penetration": 40.0
         },
         "hitSpread": 0.1,

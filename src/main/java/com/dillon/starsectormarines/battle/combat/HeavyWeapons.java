@@ -285,7 +285,19 @@ public class HeavyWeapons {
                 : weapon.aoeRadius <= 0f ? weapon.damage : 0f;
         float contactPenetration = weapon.contactDamage > 0f
                 ? weapon.contactPenetration : weapon.penetration;
-        if (contactDamage > 0f) {
+        // A rocket's contact warhead rides its detonation, so point defence that stops the
+        // rocket stops the shaped charge too. A gun round's contact is the shell itself.
+        boolean contactRidesRocket = weapon.contactDamage > 0f && weapon.aoeRadius > 0f
+                && weapon.interceptableProjectile;
+        long rocketContactId = 0L;
+        float rocketContactDamage = 0f;
+        if (contactRidesRocket && !res.bodyHits().isEmpty()) {
+            BallisticResolver.BodyHit first = res.bodyHits().get(0);
+            rocketContactId = first.victimId();
+            rocketContactDamage = first.friendly()
+                    ? contactDamage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT : contactDamage;
+        }
+        if (contactDamage > 0f && !contactRidesRocket) {
             for (BallisticResolver.BodyHit bodyHit : res.bodyHits()) {
                 float appliedDamage = bodyHit.friendly()
                         ? contactDamage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
@@ -299,7 +311,7 @@ public class HeavyWeapons {
         // An area round's structure damage is its detonation's; only a direct payload wears what it stopped in.
         if (weapon.aoeRadius <= 0f) shots.queueStrike(res, shooter, contactDamage, contactPenetration);
 
-        long[] areaExclusions = new long[contactDamage > 0f ? res.bodyHits().size() : 0];
+        long[] areaExclusions = new long[contactDamage > 0f && !contactRidesRocket ? res.bodyHits().size() : 0];
         for (int i = 0; i < areaExclusions.length; i++) {
             areaExclusions[i] = res.bodyHits().get(i).victimId();
         }
@@ -313,7 +325,9 @@ public class HeavyWeapons {
                             weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
                             weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                             /*friendlyFireImmune*/ false,
-                            0L, 0f, 0f, /*authoredAftermath*/ false,
+                            rocketContactId, rocketContactDamage,
+                            rocketContactId != 0L ? contactPenetration : 0f,
+                            /*authoredAftermath*/ false,
                             areaExclusions)
                     : null;
             // Rocket-class rounds own a Projectile so future point defense can
@@ -353,19 +367,34 @@ public class HeavyWeapons {
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, rng);
-        launchArc(shooter, weapon, ep, hit, fromX, fromY, shooterFaction, moraleImpact);
+        launchArc(shooter, weapon, ep, hit, fromX, fromY, shooterFaction, moraleImpact,
+                hit && weapon.contactDamage > 0f ? target : 0L);
     }
 
     /** The flight and the delayed detonation of an arcing round whose endpoint has been decided. */
     private void launchArc(long shooter, WeaponDef weapon, ShotEndpoint.Endpoint ep, boolean hit,
                            float fromX, float fromY, Faction shooterFaction, float moraleImpact) {
+        launchArc(shooter, weapon, ep, hit, fromX, fromY, shooterFaction, moraleImpact, 0L);
+    }
+
+    /**
+     * As above; a guided warhead that hit its roll lands its contact payload on
+     * {@code contactTarget} when it detonates, and that body takes no share of the area.
+     */
+    private void launchArc(long shooter, WeaponDef weapon, ShotEndpoint.Endpoint ep, boolean hit,
+                           float fromX, float fromY, Faction shooterFaction, float moraleImpact,
+                           long contactTarget) {
         PendingDetonation onArrival = new PendingDetonation(
                 shooter,
                 ep.x(), ep.y(), weapon.flightSec,
                 weapon.aoeRadius, weapon.damage, weapon.penetration,
                 weapon.wallDamage, shooterFaction, /*aerialDelivery*/ true,
                 weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
-                /*friendlyFireImmune*/ false);
+                /*friendlyFireImmune*/ false,
+                contactTarget, contactTarget != 0L ? weapon.contactDamage : 0f,
+                contactTarget != 0L ? weapon.contactPenetration : 0f,
+                /*authoredAftermath*/ false,
+                contactTarget != 0L ? new long[] {contactTarget} : new long[0]);
         shots.queueProjectile(new Projectile(
                 fromX, fromY, ep.x(), ep.y(),
                 weapon.boostRamp, weapon.arcHeight,
@@ -448,7 +477,7 @@ public class HeavyWeapons {
 
                 WeaponDef weapon = mount.weaponDef();
                 float accuracyMult = 1f;
-                if (WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(weapon.id)) {
+                if (weapon.indirectFire) {
                     boolean hasLos = grid.hasLineOfFire(
                             world.x(u), world.y(u),
                             world.x(target), world.y(target));

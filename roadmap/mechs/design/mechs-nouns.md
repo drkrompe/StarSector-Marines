@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — duel range against armor (stand off, close, or duel from the outer band; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-18 — anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
 
 ## Purpose
 
@@ -198,8 +198,9 @@ increasing an encounter's total armored threat.
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
   its access tier, plus a build weight for a weapon whose carriage is the cost
-  (the heavy cannon's breech and recoil mounting, so a Bulwark carrying it gives
-  up a frame part; `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
+  (the heavy cannon's breech and recoil mounting and the bastion autocannons'
+  feed, so a Bulwark carrying either gives up a frame part;
+  `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
   engine carries its own, since every CORE socket already takes the largest
   engine and its footprint costs nothing. A refit is refused
   when the result is over budget, unless it is no further over than the current
@@ -387,8 +388,8 @@ increasing an encounter's total armored threat.
 ## Family and doctrine
 
 The Bulwark is the durable all-band anchor and compatibility control case. Its
-neutral production fit carries paired chaingun arms and twin close-saturation
-SRM shoulders. Tri-Tachyon issue replaces the arms with paired rapid pulse-laser
+neutral production fit carries paired chaingun arms and twin anti-armor
+SRM shoulders (Missile warheads). Tri-Tachyon issue replaces the arms with paired rapid pulse-laser
 arrays and the right omni shoulder with a long-cooldown direct laser cannon whose
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
@@ -459,12 +460,19 @@ hardware identities; any deployed chassis may receive any of these doctrines:
 **Duel range.** Against armor — another mech or a ground vehicle — every
 doctrine fights from a **duel band** chosen from the mech's own installed,
 loaded weapons read against the target's (`MechDuelBand`): expected damage per
-second at a distance, given against received. A mech that out-reaches its
+second at a distance, given against received. A tank whose gun has been shot away
+(`convoy-nouns.md`, the turret section) has no weapons to read, so a mech
+treats it as unarmed armor. A mech that out-reaches its
 target by four cells or more **stands off**, holding just outside the target's
 reach and inside its own, whatever its role. Otherwise it **closes** to a
 shorter band of its own only when that band trades clearly better than its
 longest one — a Brawler on a small edge, Balanced and Frontline Support on a
-clear one, Long-Range Support never — and nobody closes on a tie. Failing
+clear one, Long-Range Support never — and nobody closes on a tie, with one
+exception: a band that brings a loaded **anti-armor rack** to bear closes when
+it trades merely as well as the longest band. Between equal machines that rack
+would otherwise never fire, and its warhead was fitted for exactly this target
+(`-Dbattle.mech.closeOnAntiArmorTie=false` is the control). A rack that has run
+dry leaves the reading, so a mech with empty magazines walks back out. Failing
 both, it **duels** from the outer part of its longest band (about 72–92% of
 reach) rather than walking inside it for no reason: two equal machines meet
 there, not at contact. In band with a clear shot it holds and fires, stepping
@@ -498,7 +506,8 @@ armed hull between orders takes the same band against armor
 (`convoy-nouns.md`, deployed vehicles). A player's move order still wins over
 any band, for a hull as for a mech. Pressure
 leaves out penetration, heat and ammunition depth on purpose: they scale both
-sides of a trade alike far more often than they reverse it.
+sides of a trade alike far more often than they reverse it. A missile rack is the
+exception and is read by its warhead (Missile warheads).
 `-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the
 acceptance.
 
@@ -574,6 +583,55 @@ ticks retains the newest landing and any lift still in progress, discarding
 finished pneumatic strokes. Only nearby, visible events reach the mix, with the
 closest events taking a bounded share of each phase's presentation budget.
 Both battlefield hosts consume the same per-foot gait.
+
+## Missile warheads
+
+Every SRM and LRM rack size comes with two warheads. A rack's size, footprint,
+cycle, heat, ammunition and replenisher are the same for both; only the warhead
+differs. A mech's arm guns are its weapons against men, and its racks are its
+weapons against armor (owner, 2026-10-18), so the plain SRM-5, SRM-15, LRM-5 and
+LRM-15 are the anti-armor racks.
+
+- An **anti-armor (AT) rack** fires a shaped charge. Most of its damage is a
+  contact payload at high penetration, landing only on the body the rocket
+  strikes, with a small, weak splash for a near miss. The AI fires it only at a
+  hardened target (`TacticalScoring.isHardened`: mechs, ground vehicles,
+  turrets, drone hubs), the same gate infantry rockets use. Against men,
+  power-suited men included, it holds its pack and leaves the reservoir to the
+  arms. Manual fire is not gated: a player who aims a rack at a man spends it.
+- A **fragmentation (Frag) rack** has no contact payload. All of its damage is
+  area damage at low penetration over a wider blast. It fires at anything and
+  strips little plate.
+- A rocket's contact payload travels with its detonation, so point defence that
+  stops the rocket stops the charge too. A guided LRM that makes its hit roll
+  lands its contact payload on the target it was fired at when it detonates.
+- **Target choice.** Beyond the ten-cell close-threat radius, which still wins as
+  self-defence, a mech aims its torso at the believed, engageable target its
+  loaded mounts can hurt most per second (`MechTargetPressure`). Each mount counts
+  its warhead at its armor efficiency, and an AT rack counts nothing against a
+  soft target. A held target is kept unless another would take a quarter more.
+  So a chaingun Bulwark with loaded AT racks turns to a tank behind an infantry
+  screen, and turns back to the men while the racks replenish.
+  `-Dbattle.mech.damageAwareTargeting=false` restores nearest-target choice.
+- **Duel band.** The band reads a rack by its warhead against the target's
+  plate: an AT rack at its contact payload, a Frag rack at its armor efficiency.
+  This is the one place penetration enters the band (Family and doctrine, duel
+  range), because penetration is what a warhead is chosen for.
+- **Patterns.** A Frag rack is a sidegrade of its AT rack: the same tier, the
+  same footprint and so the same mass, and a slightly smaller rare-metal bill.
+  The navies (Hegemony, Tri-Tachyon) weight up the Advanced AT racks. Pirates,
+  independents and the Luddic Path weight up the Frag racks. A new company knows
+  both SRM-5s, and Castle's recovered spare for Wayward is the Frag one, since
+  the first operations are fought against men.
+- **Factory fits.** The Bulwark keeps twin AT SRM-15s behind its chainguns. The
+  Hound keeps an AT SRM-5. The Sirocco ships Frag LRM-5s: its heavy cannon is
+  its answer to armor, and its racks are artillery against men.
+
+`-Dbattle.mech.missileVariants=false` is the control: the AT ids fire the
+single-warhead rack every SRM and LRM was before the split (area damage at
+penetration 14 and 16), at any target. Readings are in
+`heavy-equipment-progression.md` (missile warheads); `MechVersusInfantryScene`
+is the infantry acceptance and `armorMatchup` the armor one.
 
 ## Ground clearance and arrival
 
@@ -1059,6 +1117,19 @@ to complete even if the chassis becomes hot. Blocked/unaimed first rounds spend
 nothing; cancelled packets retain spent heat and ammo. Cooling runs once in the
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
+
+**Against a machine, the mount that best defeats its armor fires first.** The
+reservoir admits one packet at a time, so whichever mount an autonomous mech tries
+first after a release takes the heat. Against a mech or a ground vehicle, mounts
+are tried in order of armor efficiency against that target's rating
+(`clamp(penetration / rating, 0, 1)`, the better of a weapon's payloads), with
+slot order kept on ties (`MechFireOrder`). Against anything else the slot order
+stands: arms, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
+anti-armor weapons, are no longer starved by the chaingun against a machine,
+while its fire at infantry is exactly what it was. An anti-armor rack (penetration 30) defeats any mech's plate outright, so a
+heavy cannon, which also does, keeps its slot ahead of it, a bastion yields to
+it, and a fragmentation rack (penetration 4) goes after every arm gun. Manual fire follows the player's groups, not this order.
+`-Dbattle.mech.armorFireOrder=false` is the control.
 
 Thresholds are fractions of capacity, quoted here at the stock 100. AI refuses a
 trigger that would exceed 90 heat. At 75 it holds further triggers until 40,

@@ -104,7 +104,7 @@
     },
     "published_metres_per_unit": 0.86,
     "measured_this_build": {
-      "enclosed_units3": 2478105,
+      "enclosed_units3": 2479610,
       "solids": [
         "Bridge aft dome",
         "Bridge command dome",
@@ -126,7 +126,7 @@
         "Hull starboard waist",
         "Hull tail"
       ],
-      "with_drive_pods_units3": 2480744
+      "with_drive_pods_units3": 2482249
     },
     "size_m": [
       302.4,
@@ -171,7 +171,7 @@
       "location": [
         158,
         71,
-        -5.09
+        -4.31
       ],
       "angle": 70,
       "arc": 150,
@@ -182,7 +182,15 @@
       "pivot": "Weapon WS 001 pivot",
       "mount_empty": "Weapon WS 001 mount",
       "objects": "Weapon WS 001 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 001 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 001 muzzle anchor 1",
+        "Weapon WS 001 muzzle anchor 2",
+        "Weapon WS 001 muzzle anchor 3"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 002",
@@ -190,7 +198,7 @@
       "location": [
         134,
         74,
-        -1.81
+        -1.41
       ],
       "angle": 65,
       "arc": 120,
@@ -201,7 +209,14 @@
       "pivot": "Weapon WS 002 pivot",
       "mount_empty": "Weapon WS 002 mount",
       "objects": "Weapon WS 002 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 002 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 002 muzzle anchor 1",
+        "Weapon WS 002 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 003",
@@ -209,7 +224,7 @@
       "location": [
         158,
         -71,
-        -5.09
+        -4.31
       ],
       "angle": -70,
       "arc": 150,
@@ -220,7 +235,15 @@
       "pivot": "Weapon WS 003 pivot",
       "mount_empty": "Weapon WS 003 mount",
       "objects": "Weapon WS 003 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 003 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 003 muzzle anchor 1",
+        "Weapon WS 003 muzzle anchor 2",
+        "Weapon WS 003 muzzle anchor 3"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 004",
@@ -228,7 +251,7 @@
       "location": [
         134,
         -74,
-        -1.81
+        -1.41
       ],
       "angle": -65,
       "arc": 120,
@@ -239,7 +262,14 @@
       "pivot": "Weapon WS 004 pivot",
       "mount_empty": "Weapon WS 004 mount",
       "objects": "Weapon WS 004 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 004 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 004 muzzle anchor 1",
+        "Weapon WS 004 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 005",
@@ -247,7 +277,7 @@
       "location": [
         114,
         78,
-        0.12
+        0.52
       ],
       "angle": 75,
       "arc": 120,
@@ -258,7 +288,14 @@
       "pivot": "Weapon WS 005 pivot",
       "mount_empty": "Weapon WS 005 mount",
       "objects": "Weapon WS 005 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 005 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 005 muzzle anchor 1",
+        "Weapon WS 005 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 006",
@@ -266,7 +303,7 @@
       "location": [
         114,
         -78,
-        0.12
+        0.52
       ],
       "angle": -75,
       "arc": 120,
@@ -277,7 +314,14 @@
       "pivot": "Weapon WS 006 pivot",
       "mount_empty": "Weapon WS 006 mount",
       "objects": "Weapon WS 006 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 006 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 006 muzzle anchor 1",
+        "Weapon WS 006 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 007",
@@ -285,7 +329,7 @@
       "location": [
         187,
         0,
-        8.27
+        8.34
       ],
       "angle": 0,
       "arc": 150,
@@ -296,7 +340,14 @@
       "pivot": "Weapon WS 007 pivot",
       "mount_empty": "Weapon WS 007 mount",
       "objects": "Weapon WS 007 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 007 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 007 muzzle anchor 1",
+        "Weapon WS 007 muzzle anchor 2"
+      ],
+      "kit_scale": 0.94,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 008",
@@ -304,7 +355,7 @@
       "location": [
         150,
         -12,
-        16.6
+        17.43
       ],
       "angle": -20,
       "arc": 90,
@@ -315,7 +366,13 @@
       "pivot": "Weapon WS 008 pivot",
       "mount_empty": "Weapon WS 008 mount",
       "objects": "Weapon WS 008 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 008 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 008 muzzle anchor 1"
+      ],
+      "kit_scale": 0.88,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 009",
@@ -323,7 +380,7 @@
       "location": [
         150,
         12,
-        16.6
+        17.42
       ],
       "angle": 20,
       "arc": 90,
@@ -334,7 +391,13 @@
       "pivot": "Weapon WS 009 pivot",
       "mount_empty": "Weapon WS 009 mount",
       "objects": "Weapon WS 009 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 009 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 009 muzzle anchor 1"
+      ],
+      "kit_scale": 0.88,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 010",
@@ -342,7 +405,7 @@
       "location": [
         -3,
         -112,
-        14.59
+        15.73
       ],
       "angle": 250,
       "arc": 180,
@@ -353,7 +416,13 @@
       "pivot": "Weapon WS 010 pivot",
       "mount_empty": "Weapon WS 010 mount",
       "objects": "Weapon WS 010 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 010 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 010 muzzle anchor 1"
+      ],
+      "kit_scale": 0.88,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 011",
@@ -361,7 +430,7 @@
       "location": [
         -3,
         112,
-        14.59
+        15.73
       ],
       "angle": 110,
       "arc": 180,
@@ -372,7 +441,13 @@
       "pivot": "Weapon WS 011 pivot",
       "mount_empty": "Weapon WS 011 mount",
       "objects": "Weapon WS 011 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 011 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 011 muzzle anchor 1"
+      ],
+      "kit_scale": 0.88,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 012",
@@ -380,7 +455,7 @@
       "location": [
         49,
         18,
-        35.78
+        36.62
       ],
       "angle": 60,
       "arc": 140,
@@ -391,7 +466,13 @@
       "pivot": "Weapon WS 012 pivot",
       "mount_empty": "Weapon WS 012 mount",
       "objects": "Weapon WS 012 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 012 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 012 muzzle anchor 1"
+      ],
+      "kit_scale": 0.94,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 013",
@@ -399,7 +480,7 @@
       "location": [
         49,
         -18,
-        35.83
+        36.68
       ],
       "angle": -60,
       "arc": 140,
@@ -410,7 +491,13 @@
       "pivot": "Weapon WS 013 pivot",
       "mount_empty": "Weapon WS 013 mount",
       "objects": "Weapon WS 013 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 013 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 013 muzzle anchor 1"
+      ],
+      "kit_scale": 0.94,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 014",
@@ -418,7 +505,7 @@
       "location": [
         -9,
         22,
-        35.13
+        35.33
       ],
       "angle": 170,
       "arc": 120,
@@ -429,7 +516,15 @@
       "pivot": "Weapon WS 014 pivot",
       "mount_empty": "Weapon WS 014 mount",
       "objects": "Weapon WS 014 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 014 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 014 muzzle anchor 1",
+        "Weapon WS 014 muzzle anchor 2",
+        "Weapon WS 014 muzzle anchor 3"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 015",
@@ -437,7 +532,7 @@
       "location": [
         -9,
         -22,
-        35.13
+        35.33
       ],
       "angle": 190,
       "arc": 120,
@@ -448,7 +543,15 @@
       "pivot": "Weapon WS 015 pivot",
       "mount_empty": "Weapon WS 015 mount",
       "objects": "Weapon WS 015 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 015 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 015 muzzle anchor 1",
+        "Weapon WS 015 muzzle anchor 2",
+        "Weapon WS 015 muzzle anchor 3"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 018",
@@ -456,7 +559,7 @@
       "location": [
         77,
         88,
-        2.83
+        3.77
       ],
       "angle": 80,
       "arc": 135,
@@ -467,7 +570,15 @@
       "pivot": "Weapon WS 018 pivot",
       "mount_empty": "Weapon WS 018 mount",
       "objects": "Weapon WS 018 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 018 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 018 muzzle anchor 1",
+        "Weapon WS 018 muzzle anchor 2",
+        "Weapon WS 018 muzzle anchor 3"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 019",
@@ -475,7 +586,7 @@
       "location": [
         126,
         0,
-        27.54
+        27.12
       ],
       "angle": 0,
       "arc": 150,
@@ -486,7 +597,14 @@
       "pivot": "Weapon WS 019 pivot",
       "mount_empty": "Weapon WS 019 mount",
       "objects": "Weapon WS 019 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 019 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 019 muzzle anchor 1",
+        "Weapon WS 019 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py (needler)"
     },
     {
       "id": "WS 020",
@@ -494,7 +612,7 @@
       "location": [
         77,
         -87,
-        3.09
+        4.04
       ],
       "angle": -80,
       "arc": 135,
@@ -505,7 +623,15 @@
       "pivot": "Weapon WS 020 pivot",
       "mount_empty": "Weapon WS 020 mount",
       "objects": "Weapon WS 020 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 020 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 020 muzzle anchor 1",
+        "Weapon WS 020 muzzle anchor 2",
+        "Weapon WS 020 muzzle anchor 3"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 021",
@@ -524,7 +650,14 @@
       "pivot": "Weapon WS 021 pivot",
       "mount_empty": "Weapon WS 021 mount",
       "objects": "Weapon WS 021 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 021 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 021 muzzle anchor 1",
+        "Weapon WS 021 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 022",
@@ -543,7 +676,14 @@
       "pivot": "Weapon WS 022 pivot",
       "mount_empty": "Weapon WS 022 mount",
       "objects": "Weapon WS 022 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 022 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 022 muzzle anchor 1",
+        "Weapon WS 022 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 023",
@@ -562,7 +702,14 @@
       "pivot": "Weapon WS 023 pivot",
       "mount_empty": "Weapon WS 023 mount",
       "objects": "Weapon WS 023 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 023 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 023 muzzle anchor 1",
+        "Weapon WS 023 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 024",
@@ -581,7 +728,14 @@
       "pivot": "Weapon WS 024 pivot",
       "mount_empty": "Weapon WS 024 mount",
       "objects": "Weapon WS 024 ...",
-      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle"
+      "trains": "rotate the pivot about its local Z (the hull normal under it); rest is the slot angle",
+      "elevates": "Weapon WS 024 elevation (local Y, negative lifts)",
+      "muzzle_anchors": [
+        "Weapon WS 024 muzzle anchor 1",
+        "Weapon WS 024 muzzle anchor 2"
+      ],
+      "kit_scale": 1.0,
+      "built_by": "turret-kit/turret_kit.py"
     },
     {
       "id": "WS 016",
@@ -1335,59 +1489,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9556,
-    "sprite_uncovered": 0.0159,
-    "model_outside_sprite": 0.0298,
+    "iou": 0.955,
+    "sprite_uncovered": 0.0151,
+    "model_outside_sprite": 0.0313,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.56 px per unit"
-  },
-  "formation_extent": {
-    "formation-abeam-1.5km": {
-      "size_px": [
-        269,
-        108
-      ]
-    },
-    "formation-bow-1.5km": {
-      "size_px": [
-        215,
-        102
-      ]
-    },
-    "formation-high-1.5km": {
-      "size_px": [
-        220,
-        203
-      ]
-    },
-    "formation-quarter-1.5km": {
-      "size_px": [
-        241,
-        135
-      ]
-    },
-    "formation-abeam-3km": {
-      "size_px": [
-        133,
-        53
-      ]
-    },
-    "formation-bow-3km": {
-      "size_px": [
-        108,
-        50
-      ]
-    },
-    "formation-high-3km": {
-      "size_px": [
-        110,
-        102
-      ]
-    },
-    "formation-quarter-3km": {
-      "size_px": [
-        120,
-        66
-      ]
-    }
   }
 }

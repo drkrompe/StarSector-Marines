@@ -1,8 +1,8 @@
 # C1 v2 — CORVUS, the turn-around
 
 Status: DRAFT — layout animatic in progress (`c1v2_scene.py`); sun decided.
-Updated: 2026-10-18 — Onslaught and Lashers now in the picket.
 Written: 2026-10-18
+Updated: 2026-10-18 — picket moved out by the station, inbound toward the player; Broadsword wing added.
 
 C1 v1 is a locked-off parallax plate: the whole system laid out at once, Second
 Wind a card drifting into it. It works as a picture and fails as an opening,
@@ -31,7 +31,7 @@ Times are the shipped hail takes (`c1.json`); the shot stays about 38 s.
 | 0.0 – 3.1 | Cabin bed, then squelch | Black space and stars. Second Wind, small and bow-on, comes at us out of the dark, its deck catching the sun and its running lights on. Its engines face away; they are not seen until it has passed. | Locked, facing back up the lane. |
 | 3.1 – 12.3 | **Hail 01** — "Cerberus on the inbound lane… a decommissioned mining escort. State your business." | The ship closes and fills the frame: dorsal rips, the crushed port engine, the dead turrets, sparks at the conduit breaks, RCS correcting. It slides past the camera's left at close range. | Slow tilt and pan to hold it as it passes; slight shake is **not** used (vacuum). |
 | 12.6 – 23.6 | **Hail 02** — "This is Second Wind. Civilian. Crew and families aboard… Greywater Down, private cradle Kilo Nine." | The turn completes. Jangala swings into frame beyond the ship's stern; the station and lanes come with it. The ship's two engines now point at us as it pulls away toward the planet. | The 180-degree pan, eased, peaking near 15 s so **the planet lands on "Civilian. Crew and families"**. |
-| 23.8 – 32.2 | **Hail 03** — customs: "AI cores… heavy armaments." | Scrutiny. A Hegemony Hound crosses close, between camera and ship; the Legion and escorts hold station mid-distance. | Small follow on the Hound, then back to the ship. |
+| 23.8 – 32.2 | **Hail 03** — customs: "AI cores… heavy armaments." | Scrutiny. A Hegemony Hound crosses close, between camera and ship; the picket comes on down the lane beside the station. | Small follow on the Hound, then back to the ship. |
 | 32.5 – 37.7 | **Hail 04** — "Nothing to declare, Approach. Ore dust and tired people." | The ship small against the planet, one patched hull among working ships. Hold. | Settles; near-still at the cut to C2. |
 
 ## How it is built
@@ -58,27 +58,40 @@ Blender scene** with the camera at the centre:
   a separate layer.
 - **Sky.** A full 360-degree star field and galactic band. v1's star plate is a
   single frame and cannot cover a 180-degree turn. Procedural in Blender, or
-  an equirectangular ImageGen plate.
+  an equirectangular ImageGen plate. The procedural stars are judged by their
+  angle from the view direction, never by distance from the sky sphere: the
+  latter sorted them into rings straight down the lane (owner, 2026-10-18).
 - **Delivery unchanged.** Frames to `build/cinematic/c1-corvus/frames/`,
   captions and the planet lock as runtime data, `cinematic_export.py --shot c1`.
   The lock appears once the planet is in frame.
 
 ## Ship orders
 
-The Hegemony picket is 3D, not v1's painted flotilla cards. It sits upper left
-of the final framing, 2.1–3.0 km out, every hull at its own range and attitude,
-all drifting on one heading toward the left of the frame. Hulls are appended
-once and instanced. In formation order along that heading:
+The Hegemony picket is 3D, not v1's painted flotilla cards. It is **out by the
+station, 5.8–7.4 km off**, left of it in the final framing: it has come out to
+meet the inbound lane and is heading back down it toward the player, bows on
+but about 20 degrees off head-on, at 30 m/s. Over the shot it grows a little
+and slides toward the lane. This sets up C2, where the Legion meets Second Wind
+bow first, nearly head-on (owner, 2026-10-18: the earlier picket, 2–3 km off and
+crossing broadside, read as comical). Every hull keeps its own range and a small
+attitude of its own; hulls are appended once and instanced. In formation order:
 
-1. **Onslaught**, the flagship, leads at 2.7 km: Drive
-   `starsector/builds/onslaught/85faadc8f/onslaught.blend` (detail pass 1;
-   earlier builds are superseded), collection `ONSLAUGHT | clean`, 0.86 m per
-   unit (about 301 m).
-2. **Lashers**, four frigates screening ahead of and below the flagship,
-   2.15–2.5 km: Drive `starsector/builds/lasher/4e2ed50/lasher.blend`,
+1. **Onslaught**, the flagship, leads at 6.0 km: Drive
+   `starsector/builds/onslaught/e210771c0/onslaught.blend` (detail pass 2) or any
+   later build; 85faadc8f and earlier are superseded. Collection
+   `ONSLAUGHT | clean`, 0.86 m per unit (about 301 m).
+2. **Lashers**, four frigates screening ahead of and around the flagship,
+   5.8–6.2 km: Drive `starsector/builds/lasher/4e2ed50/lasher.blend`,
    collection `LASHER`, 0.95 m per unit (about 90 m).
-3. **Legion**, second line, below and behind the flagship at 3.0 km.
-4. **Hound (A)** pair closing up the rear, 2.6–2.9 km, beside the station.
+3. **Legion**, second line, above and behind the flagship at 6.9 km.
+4. **Hound (A)** pair closing up the rear, 7.3–7.4 km.
+5. **Broadswords**, the Legion's air wing (owner, 2026-10-18): four pairs flying
+   loops of 450–950 m round the Legion and the flagship, each loop in its own
+   tilted plane, banked into the turn and carried along with the formation.
+   The repo's `broadsword-geometry` at its 0.5 m per unit (about 15.5 m). At
+   picket range a fighter is a few pixels, so each engine carries a bright bead
+   larger than the bell: the wing reads as sparks working round the fleet,
+   which gives the capitals their scale.
 
 Each published hull carries a stand-in orange drive glow per engine, read from
 its exhaust anchors and hung on its root, and its running lights are capped so
@@ -87,7 +100,7 @@ close in hail 03 (customs).
 
 Still painted imposters: the station and the distant freighter traffic.
 Textures for the Legion are wanted if it is ever framed closer than the
-picket's 2–3 km.
+picket's 6–7 km.
 
 ## Light
 

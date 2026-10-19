@@ -59,6 +59,8 @@ HULLS = [
     dict(key='lasher', name='Lasher', kind='ship', scale_key='Lasher', vanilla='lasher',
          drive_build=('lasher', 'lasher.blend', 'LASHER', 'LASHER | root'),
          geometry=('lasher-geometry/lasher-geometry.blend', None), json='lasher-geometry/geometry.json'),
+    dict(key='colossus', name='Colossus', kind='ship', scale_key='Colossus', vanilla='colossus',
+         geometry=('colossus-geometry/colossus-geometry.blend', None), json='colossus-geometry/geometry.json'),
     dict(key='hound', name='Hound (A)', kind='ship', scale_key='Hound (A)',
          export=('hound-export/clean/hound-a-clean.blend', 'HOUND (A) | clean', 'HOUND (A) | clean | root'),
          geometry=('hound-geometry/hound-geometry.blend', None), json='hound-geometry/geometry.json'),

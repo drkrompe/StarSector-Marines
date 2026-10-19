@@ -53,6 +53,11 @@ public final class GroundVehicleTurretSystem {
             VehicleType type = convoy.vehicleType(id);
             if (!type.hasTurretWeapon()) continue;
             GroundTurret turret = convoy.turret(id);
+            if (turret.destroyed()) {
+                // A shot-away gun neither fires nor traverses; it stays where it last pointed.
+                turret.clearQueuedFire();
+                continue;
+            }
             GroundBody body = convoy.body(id);
             StructureDef structure = type.turretStructure();
             float radians = (float) Math.toRadians(body.facingDegrees);

@@ -391,9 +391,9 @@ public final class MechLoadoutComponent {
         float range = 0f;
         for (MechWeaponMount mount : mounts) {
             if (mount != null && mount.hasAmmo()
-                    && !WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
+                    && !WeaponRegistry.isMechLrm(mount.weaponId())) {
                 range = Math.max(range, mount.weaponDef().range);
-                if (WeaponRegistry.MECH_SRM_POD_ID.equals(mount.weaponId())) {
+                if (WeaponRegistry.isMechSrm(mount.weaponId())) {
                     missileRange = Math.max(missileRange, mount.weaponDef().range);
                 }
             }
@@ -410,7 +410,7 @@ public final class MechLoadoutComponent {
         float longest = 0f;
         for (MechWeaponMount mount : mounts) {
             if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)
-                    && !WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
+                    && !WeaponRegistry.isMechLrm(mount.weaponId())) {
                 longest = Math.max(longest, mount.weaponDef().range);
             }
         }
@@ -428,7 +428,7 @@ public final class MechLoadoutComponent {
     public boolean resupplyOne() {
         for (MechWeaponMount mount : mounts) {
             if (mount != null
-                    && WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())
+                    && WeaponRegistry.isMechLrm(mount.weaponId())
                     && mount.resupplyOne()) return true;
         }
         for (MechWeaponMount mount : mounts) {

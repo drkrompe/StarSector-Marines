@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — the heavy cannon's contact hit is fixed; it is balanced on carriage cost.
+Updated: 2026-10-18 — a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
 
 ## Purpose
 
@@ -388,6 +388,12 @@ armor, structure, rating, and penetration presentation.
 - Resolved damage is clamped capacity loss; resisted or overkill damage is not
   credited output.
 - Cover resolves before armor; walls retain their separate durability model.
+- A contact payload and an area payload are separate tools, chosen per weapon:
+  contact at high penetration answers plate and needs a hit, area at low
+  penetration answers men and forgives a miss. The mech racks are the worked
+  pair (`mechs-nouns.md`, Missile warheads). A rocket's contact payload travels
+  with its detonation, so whatever intercepts the rocket stops both; the struck
+  body takes the contact payload and no share of the splash.
 - Rounds wear the environment by one law — penetration against a material
   rating — and only through the map-structure channel. No weapon class is
   named in that law; a rifle leaves a wall standing because its penetration is
@@ -416,7 +422,10 @@ armor, structure, rating, and penetration presentation.
   segments. Mechs are the deliberate exception, by their own model: a chassis
   divides its armor capacity and structure into section pools
   (`mechs-nouns.md`), each resolved by the same calculation with the chassis's
-  one armor rating, and only the torso's structure decides death.
+  one armor rating, and only the torso's structure decides death. A hull that
+  authors a turret section is the same exception with one section: the turret
+  holds a share of the hull's pools and loses only the gun at zero, and only the
+  hull's own structure decides death (`convoy-nouns.md`).
 - Armor does not alter hit chance. Movement and incoming-accuracy modifiers
   remain independently authored profile traits.
 - The queued damage path remains allocation-free and deterministic.

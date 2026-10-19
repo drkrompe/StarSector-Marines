@@ -26,6 +26,7 @@ HEX_M = {
     'Hull command deck upper': 2.0, 'Hull command spine': 2.0, 'Bridge tower': 1.8,
 }
 DEFAULT_M = 2.6
+WEAPON_M = 1.0   # the guns' housings take small plates
 STEEP_FACTOR = .6
 BASE = {'skin': (.40, .45, .50), 'pale': (.58, .62, .66), 'white': (.80, .81, .82)}
 
@@ -176,10 +177,14 @@ def apply(kit):
     # The bore's exposed machinery plating, in the sprite's mid and light greys.
     kit.bore_mid = K.material('Bore plating mid grey', (.20, .22, .25), .45, .45)
     kit.bore_light = K.material('Bore plating light grey', (.40, .42, .45), .35, .45)
+    # The guns' blue-white armour (the weapon sprites' pale blue) and their red status lamps.
+    kit.weapon_blue = K.material('Tri-Tachyon weapon blue plate', (.42, .56, .66), .3, .4, coat=.2)
+    kit.glow_red = K.material('Weapon status lamp red', (.2, .02, .02), .0, .4, emission=(1.0, .15, .1), strength=6.0)
     kit.hatch = K.material('Tri-Tachyon hatch ceramic', (.72, .74, .77), .0, .32, coat=.3)
 
 
 def assign_sizes(kit):
     for ob in bpy.context.scene.objects:
         if ob.type == 'MESH':
-            ob['hex_u'] = HEX_M.get(ob.name, DEFAULT_M)/kit.mpu
+            m = HEX_M.get(ob.name, WEAPON_M if ob.name.startswith('Weapon ') else DEFAULT_M)
+            ob['hex_u'] = m/kit.mpu

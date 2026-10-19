@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -93,7 +94,7 @@ public final class ConvoyService implements BodyCarrier {
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon()
-                ? new GroundTurret(type.turretStructure().mount.ammoCapacity) : null;
+                ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
         // GROUND_TURRET is present only when armed.
@@ -238,7 +239,7 @@ public final class ConvoyService implements BodyCarrier {
     @Override
     public float weaponRange(long id) {
         VehicleType type = vehicleType(id);
-        if (type == null || !type.hasTurretWeapon()) return 0f;
+        if (!isArmed(id)) return 0f;
         StructureDef structure = type.turretStructure();
         return structure != null ? structure.mount.weapon.range : 0f;
     }
@@ -325,6 +326,17 @@ public final class ConvoyService implements BodyCarrier {
         return world.has(id, c.VEHICLE_CONTROL)
                 ? (VehicleControlComponent) world.getObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE)
                 : null;
+    }
+
+    /**
+     * Whether the hull at {@code id} has a gun it can still fire: a turret weapon whose turret damage has not
+     * destroyed it ({@link GroundTurret#destroyed()}). An empty magazine is still armed; it is a different fact.
+     */
+    public boolean isArmed(long id) {
+        VehicleType type = vehicleType(id);
+        if (type == null || !type.hasTurretWeapon()) return false;
+        GroundTurret turret = turret(id);
+        return turret == null || !turret.destroyed();
     }
 
     /** The vehicle's live turret state, or {@code null} if unarmed / not a live ground craft (has-gated, presence == armed). */

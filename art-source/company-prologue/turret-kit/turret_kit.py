@@ -818,9 +818,40 @@ def paint_material(name, rgb, finish='paint', base=None):
     return m
 
 
+# Military livery: how much of the sprite's paint survives on a working gun.
+# The sprites are bright game art; on a cinematic hull every turret wearing
+# its sprite's full colour reads as a patchwork of toys. Each paint keeps a
+# hint of its sprite's hue at service-paint values: its chroma is blended
+# `hint` of the way from neutral grey, and its luminance compressed into the
+# range real field greys, olives and tans sit in. Markings keep most of their
+# colour (they are meant to be seen); barrels and gun metal go to gunmetal.
+#   key: (hint, luminance scale, luminance floor)
+LIVERY = {'paint': (.35, .38, .05), 'plate': (.3, .4, .06), 'armour': (.35, .38, .05),
+          'accent': (.45, .42, .05), 'accent2': (.45, .42, .05), 'mark': (.8, .7, .04),
+          'missile': (.35, .5, .04)}
+GUNMETAL = (.11, .11, .115)
+METAL_HINT = .15
+
+
+def _lum(c):
+    return .2126*c[0]+.7152*c[1]+.0722*c[2]
+
+
+def livery(rgb, key):
+    """A sprite paint (linear RGB) brought to military service colour (LIVERY)."""
+    if key in ('metal', 'steel'):
+        g = _lum(GUNMETAL)
+        tint = [c/max(_lum(rgb), 1e-4) for c in rgb]
+        return tuple(round(g*((1-METAL_HINT)+METAL_HINT*t), 4) for t in tint)
+    hint, scale, floor = LIVERY[key]
+    L = _lum(rgb)
+    L2 = floor+scale*L
+    return tuple(round(min(1.0, L2*((1-hint)+hint*c/max(L, 1e-4))), 4) for c in rgb)
+
+
 def paint_targets(s):
-    """The weapon's paints off its sprite, linear RGB by material key, as the game
-    shows them on any hull. A catalogue entry's `paints` names colours where the
+    """The weapon's paints off its sprite, linear RGB by material key, in service
+    livery (LIVERY). A catalogue entry's `paints` names sprite colours where the
     measured one is wrong or the builder needs another (the flak's yellow);
     plate, steel and armour stay the hull's own unless `paints` names them."""
     sp = sprite(s.get('sprite', s['weapon']))
@@ -835,7 +866,7 @@ def paint_targets(s):
     for key in ('armour', 'plate', 'steel'):
         if key in over:
             out[key] = tuple(over[key])
-    return out
+    return {key: livery(rgb, key) for key, rgb in out.items()}
 
 
 def _sprite_mats(s, mats):
@@ -2408,7 +2439,8 @@ def _missile_mat(rgb, painted=False):
     """A loaded round's body. painted=True: a sprite-calibrated weathered paint,
     for the hand-built launchers whose rounds the game sprite draws."""
     if painted:
-        return paint_material(f'Missile body {_key(rgb)}', tuple(rgb))
+        rgb = livery(rgb, 'missile')
+        return paint_material(f'Missile body {_key(rgb)}', rgb)
     key = tuple(round(c, 3) for c in rgb)
     if key not in _MCACHE or _MCACHE[key].name not in bpy.data.materials:
         m = bpy.data.materials.new(f'Missile body {key}')
