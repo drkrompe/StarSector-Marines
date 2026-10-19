@@ -107,10 +107,11 @@ class Parts:
     """Many closed shells gathered into one mesh object."""
 
     def __init__(self):
-        self.v, self.f = [], []
+        self.v, self.f, self.shells = [], [], []
 
     def _add(self, verts, faces):
         o = len(self.v)
+        self.shells.append((o, len(verts), len(self.f), len(faces)))
         self.v += [tuple(p) for p in verts]
         self.f += [tuple(i+o for i in fc) for fc in faces]
         return self
@@ -169,9 +170,26 @@ def obj(name):
 
 
 def _cut(kit, target, parts, mat):
-    """Subtract one gathered cutter (disjoint shells) from target; the new faces take mat."""
-    if parts.v:
-        boolean(target, parts.build(kit, 'Temporary cargo body cutter', mat))
+    """Subtract gathered cutter shells from target; the new faces take mat.
+
+    Shells that overlap (crossing seams) would make one self-intersecting cutter,
+    which the MANIFOLD solver turns into torn, wrongly-coloured keel faces, so
+    they are split into passes whose shells are pairwise disjoint."""
+    passes = []                                   # [(Parts, [aabb...])]
+    for o, nv, fo, nf in parts.shells:
+        vs = parts.v[o:o+nv]
+        lo = [min(p[i] for p in vs) for i in range(3)]
+        hi = [max(p[i] for p in vs) for i in range(3)]
+        for g, boxes in passes:
+            if not any(all(lo[i] < b1[i] and b0[i] < hi[i] for i in range(3)) for b0, b1 in boxes):
+                break
+        else:
+            g, boxes = Parts(), []
+            passes.append((g, boxes))
+        boxes.append((lo, hi))
+        g._add(vs, [tuple(i-o for i in fc) for fc in parts.f[fo:fo+nf]])
+    for g, _ in passes:
+        boolean(target, g.build(kit, 'Temporary cargo body cutter', mat))
 
 
 def _hazard(p, u0, u1, z0, z1, band, face, depth, s, along='X'):
@@ -595,12 +613,14 @@ def belly(kit):
     g = Parts()
     for x in (-4.0, 13.0, 35.5, 57.0, 79.0):
         g.box(x-.3, x+.3, y(HOLD_Y-8, 1), y(HOLD_Y-8, -1), z-1, z+.6)
+    _cut(kit, hold, g, kit.dark)          # crossing seams in one cutter overlap and break the boolean
+    g = Parts()
     for r in (-17.0, 0.0, 17.0):
         g.box(HOLD_AFT+8, FRONT-8, YC+r-.3, YC+r+.3, z-1, z+.6)
     _cut(kit, hold, g, kit.dark)
     strakes = Parts()
     for r0, r1 in ((-15.0, -2.0), (2.0, 15.0)):
-        for x0, x1 in ((-11.0, 12.4), (13.6, 34.9), (36.1, 56.4), (57.6, 78.4)):
+        for x0, x1 in ((13.6, 34.9), (36.1, 56.4)):        # the end bays take the ventral hatches
             strakes.box(x0, x1, YC+r0, YC+r1, z-.5, z+.2)
     strakes.build(kit, 'Hull keel armour strakes', kit.steel, .2)
     for side, s in SIDES:
@@ -608,9 +628,102 @@ def belly(kit):
             g = Parts()
             for x in seams:
                 g.rbox(x-.3, x+.3, SIDE_Y[0]+7, SIDE_Y[1]-7, SIDE_KEEL-1, SIDE_KEEL+.6, s)
+            _cut(kit, obj(f'Cargo {side} {part} module'), g, kit.dark)
+            g = Parts()
             g.rbox(SIDE_SPLIT+8 if part == 'fore' else HOLD_AFT+8, FRONT-8 if part == 'fore' else SIDE_SPLIT-8,
                    66.7, 67.3, SIDE_KEEL-1, SIDE_KEEL+.6, s)
             _cut(kit, obj(f'Cargo {side} {part} module'), g, kit.dark)
+
+
+def aft_bulkhead(kit):
+    """The hold's aft face between the drive pods, below the waist: a plated thrust bulkhead."""
+    hold = obj('Hull central cargo hold')
+    f = HOLD_AFT
+    g = Parts()
+    for r in (-24.0, -12.0, 0.0, 12.0, 24.0):                          # vertical plate seams
+        g.box(f-1, f+.6, YC+r-.25, YC+r+.25, HOLD_KEEL+8, -16.5)
+    _cut(kit, hold, g, kit.dark)
+    g = Parts()
+    for z in (-24.0, -33.0):                                             # horizontal strata
+        g.box(f-1, f+.6, YC-HOLD_Y+.5, YC+HOLD_Y-.5, z-.25, z+.25)
+    _cut(kit, hold, g, kit.dark)
+    g = Parts().box(f-1, f+1.1, YC-5.5, YC+5.5, -39.0, -27.5)             # service hatch recess, deeper than the seams
+    _cut(kit, hold, g, kit.dark)
+    Parts().box(f+.3, f+.7, YC-5.0, YC+5.0, -38.5, -28.0).build(kit, 'Hull aft bulkhead service hatch', kit.steel, .1)
+    dogs = Parts()
+    for u in (-3.5, 0.0, 3.5):
+        for z in (-38.0, -28.5):
+            dogs.box(f, f+.3, YC+u-.4, YC+u+.4, z-.2, z+.2)
+    for z in (-36.5, -30.0):
+        dogs.box(f, f+.3, YC-4.6, YC-4.2, z-.4, z+.4).box(f, f+.3, YC+4.2, YC+4.6, z-.4, z+.4)
+    dogs.build(kit, 'Hull aft bulkhead hatch dogs', kit.pale)
+    # Two thrust frames: the heavy vertical ribs that take the waist's loads into the bulkhead.
+    ribs = Parts()
+    for r in (-17.0, 17.0):
+        ribs.box(f-1.4, f+.2, YC+r-1.2, YC+r+1.2, HOLD_KEEL+9, -16.0)
+    ribs.build(kit, 'Hull aft bulkhead thrust frames', kit.steel, .15)
+
+
+def docking(kit):
+    """Under the keel: two ventral cargo hatches and four docking clamp hardpoints, for loading
+    at a station or a freight lighter (owner, pass 3 round 4)."""
+    hold = obj('Hull central cargo hold')
+    z = HOLD_KEEL
+    hatches = ((-9.0, 9.0), (59.0, 77.0))                               # between the strakes' seams
+    g = Parts()
+    for x0, x1 in hatches:
+        g.box(x0-.6, x1+.6, YC-11.6, YC+11.6, z-1, z+1.1)     # deeper than the keel seams
+    _cut(kit, hold, g, kit.dark)
+    leaves, frame, stripes = Parts(), Parts(), Parts()
+    for x0, x1 in hatches:
+        for a, b in ((YC-11.0, YC-.15), (YC+.15, YC+11.0)):
+            leaves.box(x0, x1, a, b, z+.6, z+.9)
+        for zz in (-.05,):
+            frame.box(x0-1.4, x1+1.4, YC-12.4, YC-11.6, z+zz-.25, z+zz)
+            frame.box(x0-1.4, x1+1.4, YC+11.6, YC+12.4, z+zz-.25, z+zz)
+            frame.box(x0-1.4, x0-.6, YC-11.6, YC+11.6, z+zz-.25, z+zz)
+            frame.box(x1+.6, x1+1.4, YC-11.6, YC+11.6, z+zz-.25, z+zz)
+        u = x0-1.4
+        while u < x1+1.0:
+            for r in (-12.4, 11.6):
+                stripes.box(u, u+.5, YC+r, YC+r+.8, z-.32, z-.27)
+            u += 1.6
+    leaves.build(kit, 'Hull ventral cargo hatch leaves', kit.maroon, .08)
+    frame.build(kit, 'Hull ventral cargo hatch frames', kit.orange)
+    stripes.build(kit, 'Hull ventral cargo hatch hazard stripes', kit.dark)
+    # Docking clamp hardpoints: a bolted base, a clamp head and two jaws, on the side-module keels.
+    base, head, bolts = Parts(), Parts(), Parts()
+    zk = SIDE_KEEL
+    for side, s in SIDES:
+        for x in (-2.0, 70.0):
+            c = y(67.0, s)
+            base.box(x-3.0, x+3.0, c-3.0, c+3.0, zk-.6, zk+.2)
+            head.box(x-1.6, x+1.6, c-1.6, c+1.6, zk-2.4, zk-.6)
+            for dx in (-1.9, 1.9):
+                head.box(x+dx-.35, x+dx+.35, c-1.2, c+1.2, zk-3.4, zk-1.6)
+            for bx in (-2.4, 2.4):
+                for by in (-2.4, 2.4):
+                    bolts.box(x+bx-.25, x+bx+.25, c+by-.25, c+by+.25, zk-.85, zk-.6)
+    base.build(kit, 'Hull docking clamp bases', kit.steel, .15)
+    head.build(kit, 'Hull docking clamp heads', kit.dark, .1)
+    bolts.build(kit, 'Hull docking clamp bolts', kit.pale)
+
+
+def fenders(kit):
+    """Fender rails along the outboard walls: the berthing strakes a freighter lies against a
+    station with, carried on stand-off brackets over the thin wall skin (owner, pass 3 round 4)."""
+    rails, brackets = Parts(), Parts()
+    w = SIDE_Y[1]
+    for side, s in SIDES:
+        for z in (-11.0, -36.0):                  # between the two door rows, and below them
+            for x0, x1 in ((SIDE_SPLIT+1.2, FRONT-6.5), (-11.0, SIDE_SPLIT-1.2)):
+                rails.rbox(x0, x1, w+.25, w+.85, z-.6, z+.6, s)
+                x = x0+2.0
+                while x < x1-1.0:
+                    brackets.rbox(x-.4, x+.4, w-.1, w+.3, z-.9, z+.9, s)
+                    x += 6.0
+    rails.build(kit, 'Cargo fender rails', kit.dark, .2)
+    brackets.build(kit, 'Cargo fender rail brackets', kit.steel)
 
 
 def detail(kit):
@@ -626,3 +739,6 @@ def detail(kit):
         for part in ('fore', 'aft'):
             module(kit, side, s, part)
     belly(kit)
+    aft_bulkhead(kit)
+    docking(kit)
+    fenders(kit)
