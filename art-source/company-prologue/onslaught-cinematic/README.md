@@ -1,6 +1,6 @@
 # Onslaught (XIV): cinematic asset
 
-Status: REVIEW (pass 7: effects, lighting and cinematic export; owner review pending)
+Status: DONE (pass 7 accepted by the owner 2026-10-19)
 Written: 2026-10-19
 
 Source art for cinematics; nothing here ships in the mod. This folder makes
