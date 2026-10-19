@@ -172,16 +172,15 @@ SHOTS = {
         # The landing (c4x_scene, 2026-10-19): the approach runs under both of Castle's lines,
         # the hover starts at 12.0 once Kilo Nine (4.6-10.9) is done, touchdown at 16.4 and the
         # drive spools down to 17.9. The drive is bass the whole way and opens up for the burn.
-        sfx("c1_sw_engine_loop", 3.0, -10, until=17.9, af=LOW,
-            env=[(3, -8), (10.9, -8), (12.0, -8), (16.0, -4), (16.4, -1), (17.9, -8)], fade_in=1.5, fade_out=1.0),
-        # The landing itself is synthesised from c4x_scene's timing (synth_landing.py): the belly
-        # jets' roar, sand and grit, the touchdown, the spool-down and the settling dust. The roar is
-        # held down until Kilo Nine ends at 10.9.
-        landing("landing_roar", -5, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
-        landing("landing_grit", -11),
-        landing("landing_thump", -2),
-        landing("landing_spool", -8),
-        landing("landing_settle", -14),
+        # Owner, 2026-10-19: burning-gas thrusters, heavy lift; no hum, no chimes. Until the landing
+        # session's broadband stems land, Second Wind's drive and lift jets are synthesised here in
+        # the same rocket voice as C1-C2, with the generated touchdown and dust (both noise, no tone).
+        # Out for being tonal: the generated bass loop (a 76 Hz hum) and synth_landing's grit and
+        # settle pings, spool whine, strut groan and the roar's 70 Hz body.
+        synth("second_wind_c4_drive", -12, env=[(0, -4), (10.9, -4), (12.0, 0)]),
+        synth("second_wind_c4_lift", -4, env=[(9.5, -6), (10.9, -6), (11.6, 0)]),
+        sfx("c4_touchdown", 16.4, -2),
+        sfx("c4_dust_hiss", 16.4, -10),
         sfx("c5_yard_bed", 17.4, -14, until=54.9,
             env=[(17.4, 0), (39.4, 0), (47.4, -8), (52.4, -30)], fade_in=2.0),
         # A second Colossus leaving low past Kilo Nine (port_fleet 'Colossus outbound'), closest at
