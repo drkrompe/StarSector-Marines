@@ -171,3 +171,7 @@ wolf-surface/review/
 wolf-surface/textures/
 wolf-surface/grading/
 wolf-surface/skin-manifest.json
+# Wolf (P) cinematic: the .blend is rebuilt by finalize.sh; manifest and validation stay tracked.
+wolf-cinematic/*.blend
+wolf-cinematic/*.blend1
+wolf-cinematic/review/
