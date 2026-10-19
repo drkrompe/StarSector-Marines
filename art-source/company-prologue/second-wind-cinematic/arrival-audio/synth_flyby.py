@@ -124,11 +124,12 @@ PASSES = {
        for flight, (t_pass, out, up) in enumerate(((3.0, 55.0, 7.0), (4.2, 80.0, 9.0)))
        for n, (back, dy, dz) in enumerate(((0.0, 0.0, 0.0), (22.0, -14.0, -2.0), (22.0, 14.0, 1.5)))},
     # Second Wind's own drive from its bridge: idling under the room hum, then the de-orbit burn
-    # lights at 9.6 s and the same engine opens up, on through the entry (C2 0-15, entry 15-18).
-    "second_wind_interior": dict(HOUND, start=0.0, end=18.0, path=fixed(-40.0, 0.0, -6.0), sound_speed=340.0,
+    # lights at 9.6 s and the same engine opens up, on through the entry and into C3's first
+    # seconds (C2 0-15, entry 15-22, C3 22-24).
+    "second_wind_interior": dict(HOUND, start=0.0, end=24.0, path=fixed(-40.0, 0.0, -6.0), sound_speed=340.0,
                                  muffle_far=140.0, muffle_near=140.0, bass=2.6, crackle=0.3, rush_gain=0.0,
                                  distance_power=1.0, pan_width=0.0, seed=41,
-                                 thrust=[(0.0, 0.22), (9.55, 0.22), (9.8, 0.75), (11.5, 1.0), (18.0, 1.0)],
+                                 thrust=[(0.0, 0.22), (9.55, 0.22), (9.8, 0.75), (11.5, 1.0), (24.0, 1.0)],
                                  thumps=(9.6,)),
 }
 
