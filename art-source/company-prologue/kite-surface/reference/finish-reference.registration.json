@@ -1,0 +1,66 @@
+{
+ "source": "reference/finish-reference.png",
+ "view": "port-quarter",
+ "native_size": [
+  1672,
+  941
+ ],
+ "guide_size": [
+  1920,
+  1080
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9974,
+ "generated_background_rgb": [
+  67.0,
+  109.0,
+  170.0
+ ],
+ "best_fit": "iou_refined_affine",
+ "fits": {
+  "identity": {
+   "T_guide_to_generated": {
+    "scale": [
+     1.0,
+     1.0
+    ],
+    "offset_px": [
+     0.0,
+     0.0
+    ]
+   },
+   "iou": 0.6555698249619483,
+   "boundary_mean_px": 63.12181854248047,
+   "boundary_p95_px": 118.43057250976562
+  },
+  "bounds_affine": {
+   "T_guide_to_generated": {
+    "scale": [
+     1.2295390404515523,
+     1.2327746741154562
+    ],
+    "offset_px": [
+     -221.3443085606774,
+     -75.60707635009311
+    ]
+   },
+   "iou": 0.9948963401734715,
+   "boundary_mean_px": 0.6794725656509399,
+   "boundary_p95_px": 2.0
+  },
+  "iou_refined_affine": {
+   "T_guide_to_generated": {
+    "scale": [
+     1.2300390404515522,
+     1.2327746741154562
+    ],
+    "offset_px": [
+     -222.0943085606774,
+     -75.60707635009311
+    ]
+   },
+   "iou": 0.9952045636008581,
+   "boundary_mean_px": 0.644753098487854,
+   "boundary_p95_px": 1.4142135381698608
+  }
+ }
+}

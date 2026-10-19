@@ -48,15 +48,33 @@ Modules
               WS 007/008 (annihilator pod)
   fc_lights   running lights and the bridge glazing
 
-Scale (pass 4): 0.80 m per unit
+Scale (pass 4): 0.81 m per unit
 From the shared sizing basis, ../ship_scale.py (option C), never set here:
 180 crew, 120 cargo, 100 fuel, cruiser class, no fighter bays. Enclosed volume
 is the union of ship_scale.SOLIDS['falcon-p']: both prongs, the central body,
 the bridge dome and the waist decks (the drive blocks and outrigger pods are
 drive housings, the bow forks armour round the hardpoints, the waist tanks
-laid on the deck: all excluded), 231,104 units3, which solves to 0.803 (range
-0.778-0.827). The hull is 169 m long overall (bow forks to drive bells): 1.56
-Colossi (108 m), 0.56 of an Onslaught (301 m), 2.8 Hounds (61 m). The sprite
+laid on the deck: all excluded), 227,910 units3, which solves to 0.807 (range
+0.782-0.831). The hull is 174 m long overall (bow probes to drive lips),
+131 m across the outrigger pods and 29 m keel to turret top: 1.6 Colossi
+(108 m), 0.58 of an Onslaught (301 m), 2.9 Hounds (61 m). The sprite
 plan-area estimate the battle blockout used was 159 m; the built hull is a
-little slimmer than that estimate assumes. The driver re-measures the union on
-every build and fails if it drifts more than 2% from ship_scale.HULLS.
+little slimmer than that estimate assumes. The blockout measured 0.80; pass 2
+opened the waist aft of the bridge (the prongs' inner aft edge runs out
+diagonally, as the sprite shows), which moved it to 0.81. The driver
+re-measures the union on every build and fails if it drifts more than 2% from
+ship_scale.HULLS. A 1.8 m person is 2.2 units (--figure).
+
+Detail (pass 2, fc_detail)
+Built for S10, which looks over the Falcon's port quarter from behind and
+above: plated prong decks, glacis and belts with seam gaps (plates laid on
+the loft's own facets; bare aprons round the turrets), a ridge cap on the
+turret line, red pirate patch slabs bolted over the aft decks, two decks of
+lit viewports on each prong's inner wall, sensor housings, vents and hatches;
+bridge dome bands, crown hatch and mast; the dorsal spine's radiator fins and
+pipe runs; banded waist tanks on saddles with pipework to the drive blocks
+and across the waist; the drive blocks cut back so the six drives stand proud
+as banded cylinders (each main drive's shroud runs its can out to the lip),
+a trough exposing the inboard engine's bare core in its cradle, fins, patch
+plates and cable bundles on top; outrigger plating and struts; probes at the
+bow forks; a stern airlock. Silhouette IoU 0.935 (blockout 0.936).

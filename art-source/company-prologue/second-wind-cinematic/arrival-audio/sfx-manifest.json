@@ -936,6 +936,27 @@
       "seconds": 10.0,
       "loop": false,
       "promptInfluence": 0.5
+    },
+    "c4_launch_burn": {
+      "chosen": null,
+      "takes": {
+        "c4_launch_burn_t01": {
+          "durationSeconds": 9.0,
+          "peakDb": -0.2,
+          "integratedLufs": -7.3,
+          "characterCost": "99"
+        },
+        "c4_launch_burn_t02": {
+          "durationSeconds": 9.0,
+          "peakDb": -0.1,
+          "integratedLufs": -5.4,
+          "characterCost": "99"
+        }
+      },
+      "prompt": "Space shuttle launch heard from nearby: thunderous deep bass rocket engine roar, burning rocket fuel, violent crackling exhaust, low rumble shaking the ground, sustained full thrust, no hiss, no voices",
+      "seconds": 9.0,
+      "loop": false,
+      "promptInfluence": 0.6
     }
   }
 }
