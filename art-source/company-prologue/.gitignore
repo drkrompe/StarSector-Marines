@@ -166,3 +166,13 @@ nessa-figure/*.blend1
 # Kite (P): the .blend is a build output of build_kite.py, rebuilt from the scripts.
 kite-geometry/**/*.blend
 kite-geometry/**/*.blend1
+
+# falcon-surface: script outputs
+falcon-surface/review/
+falcon-surface/textures/
+falcon-surface/grading/
+falcon-surface/skin-manifest.json
+falcon-surface/guide/*
+!falcon-surface/guide/sheet-*-guide.png
+!falcon-surface/guide/reference-guide.png
+!falcon-surface/guide/reference-mask.png

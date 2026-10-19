@@ -78,3 +78,26 @@ as banded cylinders (each main drive's shroud runs its can out to the lip),
 a trough exposing the inboard engine's bare core in its cradle, fins, patch
 plates and cable bundles on top; outrigger plating and struts; probes at the
 bow forks; a stern airlock. Silhouette IoU 0.935 (blockout 0.936).
+
+Texture (pass 6, ../falcon-surface)
+The shared surfacing harness with this hull's inputs: a pirate-livery finish
+reference and six Codex part sheets (prong decks and glacis per side, belts,
+inner walls, body centre, body aft) plus a class swatch sheet, graded to the
+reference's palette, applied with the `pirate` wear row. The deck and glacis
+plates carry the sprite's red and sand repaint per plate (fc_detail.Livery).
+build_falcon.py saves falcon-p-geometry.blend (the review scene the harness
+opens) beside falcon-p.blend; export_falcon.py makes the packed asset from a
+build or from the harness's skinned.blend.
+
+Effects and export (pass 7)
+vfx_hull.py is this hull's profile for the shared VFX kit (../second-wind-vfx):
+twelve MIDLINE drives (1-6 main, 7-12 manoeuvring), the eight weapon slots in
+manifest order as mounts (launchers for the swarmers, typhoons and annihilator
+pods, guns for the IR pulse lasers) and six lamps. export_falcon.kit_muzzles
+adds the kit's declared muzzles, `Anchor turret <i> tube|barrel <k> muzzle`,
+parented to each `Weapon <id> muzzle anchor <k>`, so a trained turret carries
+them. export_effects.py adds the `SWFX` collection beside `FALCON (P)`;
+verify_asset.py appends the asset, checks roots, anchors, packed images and
+muzzles, trains every turret through its arc and instances it three times.
+review_effects.py renders the effects (`--views`, `--percent`, `--samples`
+keep a check cheap); a shot fires mounts with swfx_guns.fire(ctx, <mount>, ...).

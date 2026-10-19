@@ -1,0 +1,59 @@
+{
+ "part": "top-3-port",
+ "sheet": "prongs-top-port",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9982,
+ "raw_iou": 0.9939,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9984,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9939
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00495,
+    0.99773
+   ],
+   "offset_px": [
+    -1.76,
+    1.08
+   ],
+   "iou": 0.994
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00395,
+    1.00173
+   ],
+   "offset_px": [
+    -1.76,
+    0.08
+   ],
+   "iou": 0.9984
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.59,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.15,
+  "p95_px": 1.0,
+  "max_px": 1.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
