@@ -532,7 +532,7 @@
       "well_depth": 4.2,
       "barbette": "Weapon WS 003 barbette",
       "muzzles": [
-        "Weapon WS 003 muzzle"
+        "Weapon WS 003 muzzle anchor 1"
       ],
       "weapon": "tachyonlance",
       "elite_variant": "tachyonlance"
@@ -562,7 +562,7 @@
       "well_depth": 4.2,
       "barbette": "Weapon WS 004 barbette",
       "muzzles": [
-        "Weapon WS 004 muzzle"
+        "Weapon WS 004 muzzle anchor 1"
       ],
       "weapon": "tachyonlance",
       "elite_variant": "tachyonlance"
@@ -592,7 +592,7 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 005 barbette",
       "muzzles": [
-        "Weapon WS 005 muzzle"
+        "Weapon WS 005 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
       "elite_variant": "gravitonbeam"
@@ -622,7 +622,7 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 006 barbette",
       "muzzles": [
-        "Weapon WS 006 muzzle"
+        "Weapon WS 006 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
       "elite_variant": "gravitonbeam"
@@ -652,7 +652,7 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 007 barbette",
       "muzzles": [
-        "Weapon WS 007 muzzle"
+        "Weapon WS 007 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
       "elite_variant": null
@@ -682,7 +682,7 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 008 barbette",
       "muzzles": [
-        "Weapon WS 008 muzzle"
+        "Weapon WS 008 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
       "elite_variant": null
@@ -712,7 +712,7 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 009 barbette",
       "muzzles": [
-        "Weapon WS 009 muzzle"
+        "Weapon WS 009 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
       "elite_variant": "gravitonbeam"
@@ -742,7 +742,7 @@
       "well_depth": 3.8,
       "barbette": "Weapon WS 010 barbette",
       "muzzles": [
-        "Weapon WS 010 muzzle"
+        "Weapon WS 010 muzzle anchor 1"
       ],
       "weapon": "gravitonbeam",
       "elite_variant": "gravitonbeam"
@@ -772,7 +772,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 011 barbette",
       "muzzles": [
-        "Weapon WS 011 muzzle"
+        "Weapon WS 011 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": null
@@ -802,7 +802,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 012 barbette",
       "muzzles": [
-        "Weapon WS 012 muzzle"
+        "Weapon WS 012 muzzle anchor 1"
       ],
       "weapon": "reaper",
       "elite_variant": "reaper"
@@ -832,7 +832,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 013 barbette",
       "muzzles": [
-        "Weapon WS 013 muzzle"
+        "Weapon WS 013 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": "taclaser"
@@ -862,7 +862,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 014 barbette",
       "muzzles": [
-        "Weapon WS 014 muzzle"
+        "Weapon WS 014 muzzle anchor 1"
       ],
       "weapon": "reaper",
       "elite_variant": "reaper"
@@ -892,7 +892,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 015 barbette",
       "muzzles": [
-        "Weapon WS 015 muzzle"
+        "Weapon WS 015 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": "taclaser"
@@ -922,7 +922,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 016 barbette",
       "muzzles": [
-        "Weapon WS 016 muzzle"
+        "Weapon WS 016 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": null
@@ -952,7 +952,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 017 barbette",
       "muzzles": [
-        "Weapon WS 017 muzzle"
+        "Weapon WS 017 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": null
@@ -982,7 +982,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 018 barbette",
       "muzzles": [
-        "Weapon WS 018 muzzle"
+        "Weapon WS 018 muzzle anchor 1"
       ],
       "weapon": "reaper",
       "elite_variant": "reaper"
@@ -1012,7 +1012,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 019 barbette",
       "muzzles": [
-        "Weapon WS 019 muzzle"
+        "Weapon WS 019 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": "taclaser"
@@ -1042,7 +1042,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 020 barbette",
       "muzzles": [
-        "Weapon WS 020 muzzle"
+        "Weapon WS 020 muzzle anchor 1"
       ],
       "weapon": "reaper",
       "elite_variant": "reaper"
@@ -1072,7 +1072,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 021 barbette",
       "muzzles": [
-        "Weapon WS 021 muzzle"
+        "Weapon WS 021 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": "taclaser"
@@ -1102,7 +1102,7 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 022 barbette",
       "muzzles": [
-        "Weapon WS 022 muzzle"
+        "Weapon WS 022 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": null
@@ -1132,18 +1132,12 @@
       "well_depth": 3.2,
       "barbette": "Weapon WS 023 barbette",
       "muzzles": [
-        "Weapon WS 023 muzzle"
+        "Weapon WS 023 muzzle anchor 1"
       ],
       "weapon": "taclaser",
       "elite_variant": null
     }
   ],
-  "gun_sprite_iou": {
-    "tachyonlance": 0.948,
-    "gravitonbeam": 0.975,
-    "taclaser": 0.947,
-    "reaper": 0.974
-  },
   "firing_lines": {
     "method": "pg_arcs: rays across each slot arc at the barrel line (level and 1.5 deg depressed) from a mount sitting low in its dimpled well",
     "barrel_line_above_rim": {
@@ -1539,7 +1533,7 @@
     "Hull ...": "belt, main ring, bore lining, prow (grille block with the capital-mount bays), bow module, port/starboard bow horn, command deck (+ upper), core trench (the deck gantry), aft body, port/starboard pod, reactor well and dome",
     "Bridge ...": "tower and glazing on the command deck",
     "Engine <i> ...": "drive pod, aft-facing bell, mouth lip, dark throat; exhaust anchor (empty, +X along the exhaust)",
-    "Weapon <slot> ...": "turrets: barbette (fixed) and pivot (empty) parenting the housing, emitters and muzzle empties; hardpoints: hardpoint anchor, housing, emitter and muzzle",
+    "Weapon <slot> ...": "turrets: barbette (fixed) and pivot (empty) parenting the turret kit gun (house parts, elevation, muzzle anchor <k>); hardpoints: hardpoint anchor, housing, emitter and muzzle",
     "Shield emitter ...": "the shield anchor at shieldCenter, emitter nodes on the bore lining"
   },
   "cameras": [
@@ -1791,10 +1785,10 @@
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
   },
   "gauntlet": {
-    "skin": 0.596,
+    "skin": 0.591,
     "white": 0.553,
-    "dark": 0.412,
-    "agreement": 0.672,
+    "dark": 0.409,
+    "agreement": 0.668,
     "silhouette": 0.962,
     "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
