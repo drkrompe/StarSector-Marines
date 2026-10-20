@@ -145,8 +145,8 @@ def _bevel_hard_edges(bm):
     bm.faces.ensure_lookup_table()
     groups = {}
     for e in bm.edges:
-        if len(e.link_faces) != 2:
-            continue
+        if len(e.link_faces) != 2 or not all(v.is_manifold for v in e.verts):
+            continue                     # only clean edges: a bevel through a junction tears it
         f1, f2 = e.link_faces
         if f1.normal.length < .5 or f2.normal.length < .5 or f1.normal.angle(f2.normal) < math.radians(70):
             continue
@@ -207,6 +207,9 @@ def _refine_loops(stations, rounds=4):
                 if not (math.radians(2) < ti < math.radians(32) and math.radians(2) < tj < math.radians(32)):
                     continue
                 L = math.dist(loop[i], loop[j])
+                nb = max(math.dist(loop[i-1], loop[i]), math.dist(loop[j], loop[(j+1) % n]))
+                if L > 3*nb:
+                    continue                     # a flat between two rounds, not part of a curve
                 th = (ti+tj)/2
                 R = L/(2*math.sin(th/2))
                 if R*(1-math.cos(th/2)) > lim:
@@ -220,8 +223,18 @@ def _refine_loops(stations, rounds=4):
                 new.append(loop[i])
                 if i in split:
                     p0, p1, p2, p3 = loop[i-1], loop[i], loop[(i+1) % n], loop[(i+2) % n]
-                    new.append(tuple(.5*(2*b+(-a+c)*.5+(2*a-5*b+4*c-d)*.25+(-a+3*b-3*c+d)*.125)
-                                     for a, b, c, d in zip(p0, p1, p2, p3)))
+                    soft = all(math.radians(.5) < turn(loop, q) < math.radians(32) for q in (i, (i+1) % n))
+                    if soft:          # this loop rounds here too: the arc's midpoint, bulged by its sag
+                        th = (turn(loop, i)+turn(loop, (i+1) % n))/2
+                        dx, dy = p2[0]-p1[0], p2[1]-p1[1]
+                        L = math.hypot(dx, dy)
+                        R = L/(2*math.sin(th/2))
+                        sg = R*(1-math.cos(th/2))
+                        v1 = (p1[0]-p0[0], p1[1]-p0[1])
+                        side = 1.0 if v1[0]*dy-v1[1]*dx > 0 else -1.0
+                        new.append(((p1[0]+p2[0])/2+side*dy/L*sg, (p1[1]+p2[1])/2-side*dx/L*sg))
+                    else:             # it has a corner or a flat here: a straight midpoint, no overshoot
+                        new.append(((p1[0]+p2[0])/2, (p1[1]+p2[1])/2))
             out.append((x, new))
         stations = out
     # Along the loft: where a line through the stations rounds gently (a dome's crown, a
@@ -263,8 +276,14 @@ def _refine_loops(stations, rounds=4):
 
                 def cr(p0, p1, p2, p3):
                     return .5*(2*p1+(-p0+p2)*.5+(2*p0-5*p1+4*p2-p3)*.25+(-p0+3*p1-3*p2+p3)*.125)
-                x = cr(a[0], b[0], c[0], d[0])
-                loop = [(cr(pa[0], pb[0], pc[0], pd[0]), cr(pa[1], pb[1], pc[1], pd[1]))
+                x = .5*(b[0]+c[0])            # stations stay in order: only the shape is curved
+                def cr_clamped(p0, p1, p2, p3):
+                    v = cr(p0, p1, p2, p3)
+                    lo, hi = min(p1, p2), max(p1, p2)
+                    pad = .25*(hi-lo)
+                    return min(max(v, lo-pad), hi+pad)     # never past its neighbours by more than a quarter
+                loop = [(cr_clamped(pa[0], pb[0], pc[0], pd[0]), cr_clamped(pa[1], pb[1], pc[1], pd[1]))
+                        if i > 0 and i+2 < m else ((pb[0]+pc[0])/2, (pb[1]+pc[1])/2)
                         for pa, pb, pc, pd in zip(a[1], b[1], c[1], d[1])]
                 out.append((x, loop))
         stations = out
@@ -396,7 +415,9 @@ class Mesh:
             # Rounds segmented by the rule can give stations different point counts:
             # resample each loop to the most, by arc length, so the faces still join.
             stations = [(x, loop if len(loop) == n else _resample_loop(loop, n)) for x, loop in stations]
-        stations = _refine_loops(stations)
+        if not self.cutter:
+            stations = _refine_loops(stations)
+        n = len(stations[0][1])
         rings = [[self.bm.verts.new(self.base @ Vector((x, y, z))) for y, z in loop] for x, loop in stations]
         for a, b in zip(rings, rings[1:]):
             for k in range(n):
@@ -410,8 +431,8 @@ class Mesh:
             return None
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
         bmesh.ops.recalc_face_normals(self.bm, faces=self.bm.faces)
-        if not self.cutter:
-            _bevel_hard_edges(self.bm)
+        if not self.cutter and (self._cut is None or not self._cut.bm.faces):
+            _bevel_hard_edges(self.bm)      # a part cut by a boolean keeps the edges its builder gave it
         me = bpy.data.meshes.new(name)
         self.bm.to_mesh(me)
         self.bm.free()
@@ -433,6 +454,11 @@ class Mesh:
             bpy.context.view_layer.update()
             carved = bpy.data.meshes.new_from_object(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()))
             ob.modifiers.remove(mod)
+            bm2 = bmesh.new()                 # the carved part's hard edges, bevelled like any other
+            bm2.from_mesh(carved)
+            _bevel_hard_edges(bm2)
+            bm2.to_mesh(carved)
+            bm2.free()
             ob.data = carved
             bpy.data.meshes.remove(me)
             carved.name = name
@@ -2085,7 +2111,7 @@ def _house_dualflak(g, f, s, r, z0):
             st = []
             for x, w, h in ((-6.4, 2.2, 4.4), (-5.6, 3.0, 5.4), (6.0, 3.0, 5.4), (8.8, 2.6, 4.8)):
                 st.append((x*k, [(y+yy, zz) for yy, zz in section(w*k, za-2.4*k, za-2.4*k+h*k, 1.0*k, .2*k,
-                                                                           .7*k)]))
+                                                                           .7*k, 1)]))
             drum = gg[f'paint#drum{b["y"]}']
             drum.loft_x(st)
             # The amber chamber: the sprite's brightest pixels, behind the barrel
