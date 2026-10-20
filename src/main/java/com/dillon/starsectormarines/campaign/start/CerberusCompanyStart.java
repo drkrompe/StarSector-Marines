@@ -131,6 +131,11 @@ public final class CerberusCompanyStart implements Script {
         Object id = Global.getSector().getPersistentData().get(SHIP_KEY);
         return id instanceof String value ? value : null;
     }
+    /** The start port's market id, locked when the start ran, or null for an ordinary start or an older save. */
+    public static String startPortMarketId() {
+        if (Global.getSector() == null) return null;
+        return Global.getSector().getPersistentData().get(START_PORT_KEY) instanceof String id ? id : null;
+    }
     public static boolean pendingDesignation() {
         if (startingShipId() == null) return false;
         var script = MarineRosterScript.getInstance();
