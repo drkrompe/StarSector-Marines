@@ -115,7 +115,7 @@
     "size_m": [
       72.3,
       39.5,
-      24.8
+      25.5
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -140,12 +140,12 @@
     "max": [
       54.91,
       25.98,
-      14.57
+      15.61
     ],
     "size": [
       95.11,
       51.97,
-      32.57
+      33.61
     ]
   },
   "weapon_slots": [
@@ -281,9 +281,13 @@
       "trained": [
         "Turret 1 house dark",
         "Turret 1 house steel",
-        "Turret 1 house accent#shell",
-        "Turret 1 house paint",
+        "Turret 1 house paint#casing",
+        "Turret 1 house paint#arms",
         "Turret 1 house lamp_blue",
+        "Turret 1 house accent#drum",
+        "Turret 1 house steel#hub",
+        "Turret 1 gun accent#breech",
+        "Turret 1 gun steel",
         "Turret 1 gun accent",
         "Turret 1 gun dark",
         "Turret 1 gun lamp_blue"
@@ -749,8 +753,8 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 42738,
-    "objects": 150,
+    "triangles": 47218,
+    "objects": 154,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",

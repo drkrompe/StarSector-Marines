@@ -20,16 +20,16 @@
   [
    54.912,
    25.983,
-   14.57
+   15.615
   ]
  ],
  "size_m": [
   72.3,
   39.5,
-  24.8
+  25.5
  ],
- "meshes": 128,
- "polygons": 11001,
+ "meshes": 132,
+ "polygons": 12893,
  "images": 19,
  "engines": [
   {
@@ -135,9 +135,13 @@
    "trained": [
     "Turret 1 house dark",
     "Turret 1 house steel",
-    "Turret 1 house accent#shell",
-    "Turret 1 house paint",
+    "Turret 1 house paint#casing",
+    "Turret 1 house paint#arms",
     "Turret 1 house lamp_blue",
+    "Turret 1 house accent#drum",
+    "Turret 1 house steel#hub",
+    "Turret 1 gun accent#breech",
+    "Turret 1 gun steel",
     "Turret 1 gun accent",
     "Turret 1 gun dark",
     "Turret 1 gun lamp_blue"
@@ -500,7 +504,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "76f0fc185258ef3bc3567c65a79a32d2b180ff54ed5bb09507f68ebed813622b"
+  "vfx_hull_sha256": "600c9d91f89462c38f84defdbcf89f3a534543338b1419249659c8888f866d09"
  },
  "state": "clean",
  "engines_running": [
@@ -704,5 +708,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "d76ad086b863617badac0bcc81ac3798d2c9811ca34093343379c95fb05198fb"
+ "asset_sha256": "45dd9e3fe837a2fdd44f0cbbc9f92db7498869d5d7cab528184536cc9f52e607"
 }
