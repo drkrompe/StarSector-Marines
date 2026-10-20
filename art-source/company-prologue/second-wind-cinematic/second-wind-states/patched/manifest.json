@@ -554,20 +554,55 @@
     20.0,
     18.6
    ],
-   "rest_angle_deg": 114.0,
-   "elevation": null,
-   "elevation_limits_deg": null,
-   "recoil": [],
-   "trained_parts": 0,
+   "rest_angle_deg": 90.0,
+   "elevation": "Turret 1 elevation",
+   "elevation_limits_deg": [
+    null,
+    null
+   ],
+   "recoil": [
+    "Turret 1 recoil 1",
+    "Turret 1 recoil 2"
+   ],
+   "trained_parts": 11,
    "fixed_parts": 1,
-   "status": "open",
+   "status": "patched",
    "present": true,
-   "trainable": false,
-   "seized": true,
-   "jammed": true,
-   "jam_deg": 24.0,
-   "wreck_parts": 3,
-   "muzzles": []
+   "trainable": true,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 1 barrel 1 muzzle",
+     "at": [
+      -9.473,
+      27.636,
+      19.929
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 1 barrel 2 muzzle",
+     "at": [
+      -12.527,
+      27.636,
+      19.929
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    }
+   ]
   },
   {
    "index": 2,
@@ -634,14 +669,14 @@
   {
    "index": 3,
    "slot": "WS 003",
-   "weapon": "railgun",
+   "weapon": "empty",
    "size": "SMALL",
    "arc_deg": 210.0,
    "pivot": "Turret 3 pivot",
    "pivot_at": [
     41.0,
     11.0,
-    18.3
+    16.1
    ],
    "rest_angle_deg": 30.0,
    "elevation": null,
@@ -661,7 +696,7 @@
   {
    "index": 4,
    "slot": "WS 004",
-   "weapon": "heavymauler",
+   "weapon": "empty",
    "size": "MEDIUM",
    "arc_deg": 290.0,
    "pivot": "Turret 4 pivot",
@@ -671,40 +706,19 @@
     16.3
    ],
    "rest_angle_deg": -30.0,
-   "elevation": "Turret 4 elevation",
-   "elevation_limits_deg": [
-    null,
-    null
-   ],
-   "recoil": [
-    "Turret 4 recoil 1",
-    "Turret 4 recoil 2"
-   ],
-   "trained_parts": 15,
+   "elevation": null,
+   "elevation_limits_deg": null,
+   "recoil": [],
+   "trained_parts": 0,
    "fixed_parts": 1,
    "status": "patched",
-   "present": true,
-   "trainable": true,
+   "present": false,
+   "trainable": false,
    "seized": false,
    "jammed": false,
    "jam_deg": 0.0,
    "wreck_parts": 0,
-   "muzzles": [
-    {
-     "tag": "barrel 1",
-     "anchor": "Anchor turret 4 barrel 1 muzzle",
-     "at": [
-      47.486,
-      -22.632,
-      19.071
-     ],
-     "axis": [
-      0.866,
-      -0.5,
-      0.0
-     ]
-    }
-   ]
+   "muzzles": []
   }
  ],
  "sparks": [
@@ -760,9 +774,9 @@
    "anchor": "Scar sp-turret-3 spark anchor",
    "scar": "sp-turret-3",
    "at": [
-    34.526,
-    13.791,
-    19.826
+    38.534,
+    13.366,
+    15.966
    ],
    "spray_dir": [
     -0.37155,
@@ -999,16 +1013,6 @@
     48.12,
     25.3,
     9.4
-   ]
-  },
-  {
-   "object": "Turret 3 house glow",
-   "material": "Scar dead lamp",
-   "lit": false,
-   "at": [
-    39.68,
-    10.24,
-    19.71
    ]
   }
  ],
@@ -1311,7 +1315,7 @@
   {
    "id": "sp-turret-1",
    "kind": "turret",
-   "status": "open"
+   "status": "patched"
   },
   {
    "id": "sp-turret-2",
@@ -2633,8 +2637,8 @@
    },
    {
     "p": [
-     27.702,
-     -8.808,
+     31.387,
+     -9.883,
      15.17
     ],
     "n": [
@@ -2671,8 +2675,8 @@
    },
    {
     "p": [
-     27.702,
-     -8.808,
+     31.387,
+     -9.883,
      15.17
     ],
     "n": [
@@ -2680,7 +2684,7 @@
      0.0,
      1.0
     ],
-    "r": 0.282
+    "r": 0.395
    }
   ],
   "fb-stbd-flank-dent": [
@@ -4650,16 +4654,16 @@
   },
   "sp-turret-1": {
    "centre": [
-    -11.325,
-    22.253,
-    19.985
+    -11.0,
+    20.0,
+    18.71
    ],
    "extent": [
-    8.286,
-    13.822,
-    2.81
+    7.998,
+    7.998,
+    0.24
    ],
-   "objects": 14
+   "objects": 3
   },
   "sp-turret-2": {
    "centre": [
@@ -4676,27 +4680,27 @@
   },
   "sp-turret-3": {
    "centre": [
-    38.319,
-    10.236,
-    20.014
+    39.276,
+    12.466,
+    16.477
    ],
    "extent": [
-    9.491,
-    11.273,
-    1.5
+    2.573,
+    2.573,
+    1.975
    ],
-   "objects": 6
+   "objects": 5
   },
   "sp-turret-4": {
    "centre": [
     36.0,
     -16.0,
-    16.415
+    16.49
    ],
    "extent": [
     13.186,
     13.186,
-    0.23
+    0.38
    ],
    "objects": 2
   },
@@ -4771,10 +4775,10 @@
   "Turbopump vent slot.001": "pod-starboard-pumps",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 154,
- "objects": 1120,
- "polygons": 234433,
- "baked_meshes": 856,
+ "left_out_objects": 149,
+ "objects": 1097,
+ "polygons": 233378,
+ "baked_meshes": 845,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4823,7 +4827,7 @@
   "materials": {
    "base": 77,
    "steel": 6,
-   "torn": 8,
+   "torn": 5,
    "salvage": 6,
    "replacement": 1,
    "weld": 1
@@ -4871,20 +4875,12 @@
    "Scar cut steel end",
    "Scar dead lamp",
    "Scar deck frame primer",
-   "Scar fracture bright steel",
    "Scar fresh fracture",
    "Scar oxidised copper",
    "Scar pipe lagging",
    "Scar plate back primer",
    "Scar salvaged sensor window",
    "Starboard running light",
-   "Turret heavymauler accent 0.0717,0.0704,0.0584",
-   "Turret heavymauler metal 0.1110,0.1104,0.1086",
-   "Turret heavymauler paint 0.1054,0.1041,0.0944",
-   "Turret heavymauler plate 0.3215,0.3185,0.2978",
-   "Turret railgun accent 0.2145,0.1195,0.0974",
-   "Turret railgun accent2 0.3172,0.3261,0.3350",
-   "Turret railgun paint 0.1587,0.1662,0.1679",
    "Turret steel Engine collars",
    "Turret vulcan metal 0.1107,0.1104,0.1093",
    "Turret vulcan paint 0.1236,0.0973,0.0737",
@@ -4899,7 +4895,7 @@
  "effects": {
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
-  "objects": 92,
+  "objects": 95,
   "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
   "groups": {
    "thrusters": {
@@ -4918,7 +4914,7 @@
    },
    "guns": {
     "state": "patched",
-    "guns": 3,
+    "guns": 4,
     "shots": 0,
     "built": true
    },
@@ -4930,7 +4926,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-patched.blend",
-  "geometry_json_sha256": "90ef3168817531ca206c39e689d0bd7bfe588956315f0a3c0cf9fad1b102476e",
+  "geometry_json_sha256": "3be73a9b83ec32bafacf3fba885537fc849225271cd3ac3d5232c4d419a2ca5d",
   "wear_params_sha256": "c7be319d59ae4a855bee19129b0226cbd57d8b20a99cde28f88bfa9e60cff162"
  },
  "conventions": {
@@ -4941,5 +4937,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "7c9585ec2931b2b5e8bdceb1f6698f429cce66b39e149f642b44839309601760"
+ "asset_sha256": "ed0d6ee4e33d39d62930d8fe956d77bca85ecb702df7f2b0f4f86a368399c806"
 }

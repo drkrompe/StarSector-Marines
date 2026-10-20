@@ -64,6 +64,11 @@ OUT = REPO / 'build' / 'c1v2'
 FINAL_FRAMES = REPO / 'build' / 'cinematic' / 'c1-corvus' / 'frames'   # the C1 delivery folder
 ASSETS = BASE / 'assets'
 STATES = BASE.parent / 'second-wind-states' / 'patched'
+# The Second Wind build this shot renders: its .blend input is that build's patched state, and its
+# manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
+# manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
+SW_PIN = '80c78dfac'
+SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
 TIMELINE = REPO / 'mod' / 'data' / 'cinematic' / 'jangala-arrival' / 'c1.json'
 
 FPS = 24
@@ -312,7 +317,7 @@ def add_hero(scene):
     """Second Wind, patched, with its own effects when the export carries them: the two running
     drives, RCS corrections on the pass, the conduit sparks and seal wisps. The exhaust haze and
     landing dust are smoke in air and stay out."""
-    manifest = json.loads((STATES / 'manifest.json').read_text())
+    manifest = json.loads(SW_MANIFEST.read_text())
     ship, fx = load_with_effects(scene, INPUTS / 'second-wind-patched.blend', manifest)
     root = bpy.data.objects[manifest['root']]
     root.scale = (manifest['metres_per_unit'],) * 3

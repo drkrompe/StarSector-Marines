@@ -3,8 +3,8 @@
  "asset": "second-wind-restored.blend",
  "collection": "SECOND WIND | restored",
  "root": "SECOND WIND | restored | root",
- "objects": 1052,
- "meshes": 996,
+ "objects": 1020,
+ "meshes": 973,
  "images": 41,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    996,
-    996
+    973,
+    973
    ]
   },
   "polygon count": {
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 88,
+    "materials": 85,
     "missing": []
    }
   },
@@ -76,18 +76,18 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 5e-06
+   "detail": 3e-06
   },
   "turret guns elevate": {
    "ok": true,
    "detail": {
-    "err": 2e-06,
+    "err": 0.0,
     "bad": [],
     "muzzles": {
      "1": 2,
      "2": 2,
-     "3": 1,
-     "4": 1
+     "3": 0,
+     "4": 0
     }
    }
   },

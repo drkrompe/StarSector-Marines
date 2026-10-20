@@ -5,6 +5,13 @@
     python battle_blockout.py --samples 16    # quicker, noisier
     python battle_blockout.py --post windows  # ... and post the run to the Drive review folder
     python battle_blockout.py --skip-render   # relabel the last raw renders
+    python battle_blockout.py --run r7        # output under build/asharu-battle/r7/ instead of today's date;
+                                              # --post then dates the review folder by the day r7 began
+    python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
+
+A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
+is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
+name for a job that may resume on another day.
 
 Run as plain Python it is the driver: it launches Blender on itself (blender_path.py), then
 labels the frames with Pillow, draws the orbit diagram and writes NOTES.md. Inside Blender it
@@ -90,6 +97,29 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
     'kite-p-b': (-6700, 450, -3150, 3, 14, 2, 1),
 }
 
+PLATFORM = (-9500, 1200, -4300)   # the derelict Asharu platform: about 4 km lower and 10 km astern
+
+
+def moored(offset, throttle=0.0):
+    """A pirate hull lying cold along the platform's flank: offset in metres from its centre,
+    heading prograde with it, drives at throttle (0 is dark)."""
+    return (PLATFORM[0] + offset[0], PLATFORM[1] + offset[1], PLATFORM[2] + offset[2], 0, 0, 0, throttle)
+
+
+PIRATES_MOORED = {   # running dark among the platform's stripped hulks; the Falcon (P) lights first
+    'falcon-p': moored((-150, 105, 0), .15),
+    'manticore-p': moored((80, 110, -20)),
+    'colossus3': moored((120, -110, 0)),
+    'buffalo2-a': moored((230, 100, 10)),
+    'buffalo2-b': moored((-300, -105, 0)),
+    'wolf-p-a': moored((-60, -120, 35)),
+    'wolf-p-b': moored((60, 135, 35)),
+    'hound-p-a': moored((-200, -130, -30)),
+    'hound-p-b': moored((220, -120, -35)),
+    'kite-p-a': moored((-330, 120, -15)),
+    'kite-p-b': moored((340, 120, -20)),
+}
+
 # Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
 # grapples.tarsus_origin_units (20.398, 0.49, -78.254) at 0.495 m/u, axes aligned.
 CLAMP_TARSUS_M = (10.10, 0.24, -38.74)
@@ -121,13 +151,22 @@ KEYFRAMES = {
         ships=CONVOY,
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
+    'k1b': dict(
+        shot='S3', title='Running dark',
+        caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
+                'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
+                'up. Eleven more lie cold beside her.',
+        camera=dict(loc=(-1600, -120, 90), target=PLATFORM, lens=135),
+        ships=PIRATES_MOORED,
+        platform=PLATFORM,
+        labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
         camera=dict(loc=(-4800, -2600, -1700), target=(-6500, 200, -3100), lens=35),
         ships={**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING},
-        platform=(-9500, 1200, -4300),
+        platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
     'k3': dict(
         shot='S6', title='The screen breaks',
@@ -996,15 +1035,40 @@ def blender_main(cfg):
             labels[kf] = lab
         else:
             labels[kf] = roster_sheet(kf)
-        scene.render.filepath = str(raw / f'{kf}.png')
+        partial = raw / f'{kf}.partial.png'
+        scene.render.filepath = str(partial)
         bpy.ops.render.render(write_still=True)
+        os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
+        store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
+        old = json.loads(store.read_text()) if store.exists() else {}
+        store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
+        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'])))
         print('ASHARU rendered', kf, flush=True)
-    store = raw / 'labels.json'   # a partial render keeps the other frames' labels
-    old = json.loads(store.read_text()) if store.exists() else {}
-    store.write_text(json.dumps({**old, **labels}, indent=1))
 
 
 # ======================================================================================= driver
+
+def frame_meta(samples):
+    """What a finished frame was rendered with: its samples and the staging source it came from."""
+    import hashlib
+    h = hashlib.sha256()
+    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
+        h.update(f.read_bytes())
+    return {'samples': samples, 'source_sha256': h.hexdigest()}
+
+
+def finished(raw, kf, samples):
+    """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
+    png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
+    try:
+        if json.loads(meta.read_text()) != frame_meta(samples) or kf not in json.loads(store.read_text()):
+            return False
+        with open(png, 'rb') as fh:
+            fh.seek(-12, 2)
+            return fh.read(12)[4:8] == b'IEND'
+    except (OSError, ValueError):
+        return False
+
 
 def git_commit():
     try:
@@ -1336,13 +1400,23 @@ def main():
         return argv[argv.index(flag) + 1] if flag in argv else default
 
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
-    run = REPO / 'build' / 'asharu-battle' / date.today().isoformat()
+    run = REPO / 'build' / 'asharu-battle' / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
+    started = run / 'run-date.txt'      # the day the run began: a resume after midnight posts under it
+    if not started.exists():
+        started.write_text(date.today().isoformat())
+    run_date = started.read_text().strip()
+    samples = int(opt('--samples', 48))
     if '--skip-render' not in argv:
-        from blender_path import BLENDER
-        cfg = dict(out=str(run), frames=frames, samples=int(opt('--samples', 48)))
-        env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
-        subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
+        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples)]
+        done = [kf for kf in frames if kf not in todo]
+        if done:
+            print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
+        if todo:
+            from blender_path import BLENDER
+            cfg = dict(out=str(run), frames=todo, samples=samples)
+            env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
+            subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)
     print('\n'.join(str(run / o) for o in outputs))
     post = opt('--post')
@@ -1350,7 +1424,7 @@ def main():
         import shutil
         drive = Path('G:/My Drive/starsector') if os.name == 'nt' else next(
             Path.home().glob('Library/CloudStorage/GoogleDrive-*/My Drive/starsector'))
-        dest = drive / 'review' / 'cinematic-asharu-battle' / f"{date.today().isoformat()}_{opt('--what', 'blockout')}_{post}"
+        dest = drive / 'review' / 'cinematic-asharu-battle' / f"{run_date}_{opt('--what', 'blockout')}_{post}"
         dest.mkdir(parents=True, exist_ok=False)
         for o in outputs:
             shutil.copy2(run / o, dest / o)

@@ -167,8 +167,11 @@
       ],
       "rest_angle_deg": 90,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 1 pivot",
+      "fixed": [
+        "Turret 1 barbette"
+      ],
+      "k": 0.7636,
       "elevation": "Turret 1 elevation",
       "trunnion": [
         -11.0,
@@ -178,9 +181,6 @@
       "elevation_limits": [
         null,
         null
-      ],
-      "fixed": [
-        "Turret 1 barbette"
       ],
       "trained": [
         "Turret 1 house dark",
@@ -224,8 +224,11 @@
       ],
       "rest_angle_deg": -90,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 2 pivot",
+      "fixed": [
+        "Turret 2 barbette"
+      ],
+      "k": 0.7636,
       "elevation": "Turret 2 elevation",
       "trunnion": [
         -11.0,
@@ -235,9 +238,6 @@
       "elevation_limits": [
         null,
         null
-      ],
-      "fixed": [
-        "Turret 2 barbette"
       ],
       "trained": [
         "Turret 2 house dark",
@@ -269,62 +269,42 @@
       "index": 3,
       "slot": "WS 003",
       "size": "SMALL",
-      "weapon": "railgun",
+      "weapon": "empty",
       "ring": 4.2,
-      "lift": 3.8,
+      "lift": 1.6,
       "seat": 14.5,
-      "top": 18.3,
+      "top": 16.1,
       "location": [
         41,
         11,
-        18.3
+        16.1
       ],
       "rest_angle_deg": 30,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 3 pivot",
-      "elevation": "Turret 3 elevation",
-      "trunnion": [
-        41.992,
-        11.573,
-        20.011
-      ],
-      "elevation_limits": [
-        null,
-        null
-      ],
       "fixed": [
-        "Turret 3 barbette"
+        "Turret 3 barbette",
+        "Turret 3 blanking cap",
+        "Turret 3 blanking cap boss"
       ],
-      "trained": [
-        "Turret 3 house dark",
-        "Turret 3 house paint#body",
-        "Turret 3 house accent2",
-        "Turret 3 house steel",
-        "Turret 3 house glow",
-        "Turret 3 house accent#breech",
-        "Turret 3 house accent2#bulb",
-        "Turret 3 recoil 1 accent",
-        "Turret 3 recoil 1 dark",
-        "Turret 3 recoil 1 paint",
-        "Turret 3 recoil 1 accent2",
-        "Turret 3 recoil 1 steel"
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        41,
+        11,
+        16.1
       ],
-      "recoil": [
-        "Turret 3 recoil 1"
-      ],
-      "kit_muzzles": [
-        "Turret 3 muzzle anchor 1"
-      ],
-      "muzzles": [
-        "Anchor turret 3 barrel 1 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     },
     {
       "index": 4,
       "slot": "WS 004",
       "size": "MEDIUM",
-      "weapon": "heavymauler",
+      "weapon": "empty",
       "ring": 7.0,
       "lift": 1.8,
       "seat": 14.5,
@@ -336,48 +316,24 @@
       ],
       "rest_angle_deg": -30,
       "arc_deg": 290,
-      "k": 0.7368,
       "pivot": "Turret 4 pivot",
-      "elevation": "Turret 4 elevation",
-      "trunnion": [
-        37.276,
-        -16.737,
-        19.071
-      ],
-      "elevation_limits": [
-        null,
-        null
-      ],
       "fixed": [
-        "Turret 4 barbette"
+        "Turret 4 barbette",
+        "Turret 4 blanking cap",
+        "Turret 4 blanking cap boss"
       ],
-      "trained": [
-        "Turret 4 house dark",
-        "Turret 4 house paint#body",
-        "Turret 4 house plate",
-        "Turret 4 house steel",
-        "Turret 4 house accent#flank1",
-        "Turret 4 house accent#flank-1",
-        "Turret 4 house metal",
-        "Turret 4 house metal#brake",
-        "Turret 4 gun steel",
-        "Turret 4 gun plate",
-        "Turret 4 gun dark",
-        "Turret 4 recoil 1 steel",
-        "Turret 4 recoil 1 dark",
-        "Turret 4 recoil 2 steel",
-        "Turret 4 recoil 2 dark"
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        36,
+        -16,
+        16.3
       ],
-      "recoil": [
-        "Turret 4 recoil 1",
-        "Turret 4 recoil 2"
-      ],
-      "kit_muzzles": [
-        "Turret 4 muzzle anchor 1"
-      ],
-      "muzzles": [
-        "Anchor turret 4 barrel 1 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     }
   ],
   "bay_state": {
@@ -1092,14 +1048,14 @@
     {
       "name": "Scar sp-turret-3 spark anchor",
       "position": [
-        34.5258,
-        13.7912,
-        19.8258
+        38.534,
+        13.3664,
+        15.9657
       ],
       "position_m": [
-        22.4418,
-        8.9643,
-        12.8867
+        25.0471,
+        8.6882,
+        10.3777
       ],
       "spray_dir": [
         -0.37155,
@@ -1532,7 +1488,7 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new Vulcan on an adapter ring in restoration."
+        "note": "Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the traverse seized; freed, straightened and refitted on a welded adapter ring for the flight; ring painted over in restoration."
       },
       {
         "id": "sp-turret-2",
@@ -1546,14 +1502,14 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Railgun house holed and its rails snapped: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new railgun in restoration."
+        "note": "Empty housing holed through its blanking cap: left. The mount feed torn under it went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new cap in restoration."
       },
       {
         "id": "sp-turret-4",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Heavy mauler stripped; its own gun recovered from the gantry and reinstalled on an adapter ring; ring painted over."
+        "note": "Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a salvage cap bolted on for the flight; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1717,21 +1673,8 @@
       "Turret 2 recoil 2 dark": "sp-turret-2",
       "Turret 2 recoil 2 metal": "sp-turret-2",
       "Turret 2 recoil 2 steel": "sp-turret-2",
-      "Turret 4 gun dark": "sp-turret-4",
-      "Turret 4 gun plate": "sp-turret-4",
-      "Turret 4 gun steel": "sp-turret-4",
-      "Turret 4 house accent#flank-1": "sp-turret-4",
-      "Turret 4 house accent#flank1": "sp-turret-4",
-      "Turret 4 house dark": "sp-turret-4",
-      "Turret 4 house metal": "sp-turret-4",
-      "Turret 4 house metal#brake": "sp-turret-4",
-      "Turret 4 house paint#body": "sp-turret-4",
-      "Turret 4 house plate": "sp-turret-4",
-      "Turret 4 house steel": "sp-turret-4",
-      "Turret 4 recoil 1 dark": "sp-turret-4",
-      "Turret 4 recoil 1 steel": "sp-turret-4",
-      "Turret 4 recoil 2 dark": "sp-turret-4",
-      "Turret 4 recoil 2 steel": "sp-turret-4",
+      "Turret 4 blanking cap": "sp-turret-4",
+      "Turret 4 blanking cap boss": "sp-turret-4",
       "Whip antenna.001": "sp-mast"
     },
     "shape_keys": [
@@ -1826,14 +1769,12 @@
       "Masthead light: Scar dead lamp (ship-power)",
       "Roof beacon: Scar dead lamp (ship-power)",
       "Sponson bow work light: Scar dead lamp (ship-power)",
-      "Turret 3 house glow: Scar dead lamp (ship-power)",
       "Engine 1 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
       "Engine 2 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
       "Engine 3 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)",
-      "Engine 4 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)",
-      "Turret 3 house glow: Scar dead lamp (sp-turret-3)"
+      "Engine 4 aft-facing bell: Scar cold scorched bell.001 (pod-starboard-drive)"
     ],
-    "cut_objects": 111,
+    "cut_objects": 107,
     "sites": {
       "aft-deck-cluster": [
         {
@@ -3063,8 +3004,8 @@
         },
         {
           "p": [
-            27.702,
-            -8.808,
+            31.387,
+            -9.883,
             15.17
           ],
           "n": [
@@ -3101,8 +3042,8 @@
         },
         {
           "p": [
-            27.702,
-            -8.808,
+            31.387,
+            -9.883,
             15.17
           ],
           "n": [
@@ -3110,7 +3051,7 @@
             0.0,
             1.0
           ],
-          "r": 0.282
+          "r": 0.395
         }
       ],
       "fb-stbd-flank-dent": [

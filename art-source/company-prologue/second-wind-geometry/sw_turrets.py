@@ -1,17 +1,17 @@
-"""The four weapon mounts, armed as the Second Wind's game loadout from the shared turret kit.
+"""The four weapon mounts: two Vulcans from the shared turret kit, and two empty housings.
 
-The Second Wind is the vanilla `cerberus_Standard` variant (the new-game
-`NGCAddShip cerberus_Standard` and the Nexerelin start, `SecondWindNexStart`),
-on warhound.ship's slots:
-  WS 001  TURRET  SMALL   BALLISTIC  (-11, 20)   90   arc 210   Turret 1  vulcan
-  WS 002  TURRET  SMALL   BALLISTIC  (-11, -20)  -90  arc 210   Turret 2  vulcan
-  WS 003  TURRET  SMALL   BALLISTIC  (41, 11)    30   arc 210   Turret 3  railgun
-  WS 004  TURRET  MEDIUM  BALLISTIC  (36, -16)   -30  arc 290   Turret 4  heavymauler
-The weak stock fit the ship really carries: a pair of Vulcans, a railgun and a
-heavy mauler. No slot is empty in the variant; the derelict's stripped mounts
-(2 and 4) are its scars (sw_scars_spine), not its loadout.
+warhound.ship's slots, fitted as the game's start variant `sm_second_wind_start`
+(the Cerberus (D) the campaign hands out: `CerberusCompanyStart`) carries them,
+the same in every condition state:
+  WS 001  TURRET  SMALL   BALLISTIC  (-11, 20)   90   arc 210   Turret 1  vulcan (port)
+  WS 002  TURRET  SMALL   BALLISTIC  (-11, -20)  -90  arc 210   Turret 2  vulcan (starboard)
+  WS 003  TURRET  SMALL   BALLISTIC  (41, 11)    30   arc 210   Turret 3  empty housing
+  WS 004  TURRET  MEDIUM  BALLISTIC  (36, -16)   -30  arc 290   Turret 4  empty housing
+The two Vulcans nobody took, broadside on the pods. The derelict's jammed
+turret 1, stripped turret 2 and holed cap on 3 are its scars (sw_scars_spine),
+not its loadout.
 
-Every gun is `tk.build(weapon)` from ../turret-kit on a kit barbette, as the
+A gun is `tk.build(weapon)` from ../turret-kit on a kit barbette, as the
 Legion, Paragon and Wolf mount theirs. `Turret <i> pivot` is an empty at the
 top of the barbette: turn it about hull +Z to train (it rests at the slot
 angle, `rest_angle_deg`); `Turret <i> elevation` lifts the guns with a
@@ -20,11 +20,18 @@ recoil <k>`. `Anchor turret <i> barrel <k> muzzle` rides the kit's own muzzle
 anchor, +X along the line of fire, for the VFX kit (DECLARED_MUZZLES) and the
 cinematic export. Everything the turret trains is named `Turret <i> house ...`,
 `Turret <i> gun ...` or `Turret <i> recoil <k> ...`; the fixed part is
-`Turret <i> barbette` (with its `... plinth` where the foot is deep).
+`Turret <i> barbette` (with its `... plinth` where the foot is deep). A small
+gun on a medium drum would stand on `Turret <i> reducer plate`, a fixed
+adapter (no slot uses it in this fit).
+
+An empty housing is the same kit barbette closed by `Turret <i> blanking
+cap` (a bolted plate) and `Turret <i> blanking cap boss` (the plugged feed
+trunk at its centre); its pivot is kept, empty, so every slot has one.
 
 Rings are in hull units: the small mounts on 4.2, so the kit's flange (1.1
 ring) lands inside the pods' octagonal seats for 1 and 2 (4.62 to the flats),
-a little inside the sprite's own small ring; turret 4 on 7.0, the sprite's.
+a little inside the sprite's own small ring; turret 4's drum on 7.0, the
+sprite's.
 """
 import math
 import sys
@@ -38,20 +45,21 @@ import turret_kit as tk  # noqa: E402
 # faces port), mount scale (the VFX kit's flash scale and the scars' strike
 # scale: 1.0 small, 1.3 medium), twin (no mount fires a paired port/starboard
 # gun any more: each gun declares its barrels).
+# The scars' keep-out reads the housing's scale, so turret 4 stays 1.3.
 MOUNTS = [(-11, 20, 90, 1.0, False), (-11, -20, -90, 1.0, False), (41, 11, 30, 1.0, False), (36, -16, -30, 1.3, False)]
 SLOTS = ['WS 001', 'WS 002', 'WS 003', 'WS 004']
 ARC = [210, 210, 210, 290]
 SIZE = ['SMALL', 'SMALL', 'SMALL', 'MEDIUM']
-LOADOUT = ['vulcan', 'vulcan', 'railgun', 'heavymauler']   # cerberus_Standard
-RING = [4.2, 4.2, 4.2, 7.0]
-# Barbette drum above its seat. Turret 3's line crosses the port grapple arm
-# stowed beside it, so it stands superfiring over the arm, as before.
-LIFT = [1.6, 1.6, 3.8, 1.8]
-# The VFX kit's mounts (swfx_anchors): the railgun's effects are the 'energy'
-# kind (flash and bolt in its glow colour, no propellant puff or brass).
-VFX_MOUNTS = [m+(k,) for m, k in zip(MOUNTS, ('gun', 'gun', 'energy', 'gun'))]
-# railgun.wpn glowColor (200, 200, 255), linear.
-ENERGY_COLOURS = {3: (.58, .58, 1.0)}
+LOADOUT = ['vulcan', 'vulcan', None, None]   # sm_second_wind_start; None: an empty housing
+RING = [4.2, 4.2, 4.2, 7.0]                   # the barbette
+GUN_RING = 4.2                                # every gun is a small Vulcan
+REDUCER_H = .3                                # turret 4's adapter plate under its Vulcan
+# Barbette drum above its seat. Turret 3 carries no gun, so it no longer stands
+# superfiring over the stowed port grapple arm.
+LIFT = [1.6, 1.6, 1.6, 1.8]
+# The VFX kit's mounts (swfx_anchors), flash scale 1.0: both guns are small.
+VFX_MOUNTS = [(x, y, a, 1.0, False, 'gun') for x, y, a, _, _ in MOUNTS]
+ENERGY_COLOURS = {}
 
 BUILT = {}   # index -> record, filled by build(); the scars and geometry.json read it
 
@@ -95,23 +103,38 @@ def build(kit):
                     location=(x, y, top_hull))
         top = top_hull+lift
         pivot = empty(f'Turret {i} pivot', (x, y, top), math.radians(angle), 2.5, 'SINGLE_ARROW')
-        pivot['slot'], pivot['weapon'], pivot['rest_angle_deg'] = sid, weapon, float(angle)
+        pivot['slot'], pivot['weapon'], pivot['rest_angle_deg'] = sid, weapon or 'empty', float(angle)
         pivot['arc_deg'], pivot['train_axis'] = float(arc), 'hull +Z'
-        t = tk.build(weapon, f'Turret {i}', pivot, ring, mats(kit), mpu)
+        rec = {'index': i, 'slot': sid, 'size': size, 'weapon': weapon or 'empty', 'ring': ring, 'lift': lift,
+               'seat': top_hull, 'top': top, 'location': [x, y, round(top, 3)], 'rest_angle_deg': angle,
+               'arc_deg': arc, 'pivot': pivot.name, 'fixed': [f'Turret {i} barbette']}
+        if weapon is None:
+            # Blanking cap: a bolted plate over the drum's crown and the plugged feed trunk.
+            cap = kit.cylinder(f'Turret {i} blanking cap', (x, y, top+.15), ring-.45, .3, kit.steel, 'Z', 32, .05)
+            boss = kit.cylinder(f'Turret {i} blanking cap boss', (x, y, top+.45), .32*ring, .35, kit.steel, 'Z', 16, .05)
+            rec.update(k=GUN_RING/tk.NOMINAL_RING['SMALL'], elevation=None, trunnion=[x, y, top],
+                       elevation_limits=None, fixed=rec['fixed']+[cap.name, boss.name], trained=[], recoil=[],
+                       kit_muzzles=[], muzzles=[])
+            BUILT[i] = rec
+            continue
+        if ring > GUN_RING:
+            plate = kit.cylinder(f'Turret {i} reducer plate', (x, y, top+REDUCER_H/2), GUN_RING*1.1, REDUCER_H,
+                                 kit.steel, 'Z', 32, .05)
+            pivot.location.z = top+REDUCER_H
+            rec['fixed'].append(plate.name)
+        t = tk.build(weapon, f'Turret {i}', pivot, GUN_RING, mats(kit), mpu)
         muzzles = []
         for k, m in enumerate(t['muzzles'], 1):
             a = empty(f'Anchor turret {i} barrel {k} muzzle', (0, 0, 0), 0, .6, 'SINGLE_ARROW', m)
             muzzles.append(a.name)
         bpy.context.view_layer.update()
         elev = t['elevation']
-        BUILT[i] = {'index': i, 'slot': sid, 'size': size, 'weapon': weapon, 'ring': ring, 'lift': lift,
-                    'seat': top_hull, 'top': top, 'location': [x, y, round(top, 3)], 'rest_angle_deg': angle,
-                    'arc_deg': arc, 'k': ring/tk.NOMINAL_RING[size], 'pivot': pivot.name, 'elevation': elev.name,
-                    'trunnion': list(elev.matrix_world.translation),
-                    'elevation_limits': [elev.get('elevation_min_deg'), elev.get('elevation_max_deg')],
-                    'fixed': [f'Turret {i} barbette'], 'trained': [o.name for o in t['parts']],
-                    'recoil': [e.name for e in t['moving']], 'kit_muzzles': [m.name for m in t['muzzles']],
-                    'muzzles': muzzles}
+        rec.update(k=GUN_RING/tk.NOMINAL_RING['SMALL'], elevation=elev.name,
+                   trunnion=list(elev.matrix_world.translation),
+                   elevation_limits=[elev.get('elevation_min_deg'), elev.get('elevation_max_deg')],
+                   trained=[o.name for o in t['parts']], recoil=[e.name for e in t['moving']],
+                   kit_muzzles=[m.name for m in t['muzzles']], muzzles=muzzles)
+        BUILT[i] = rec
 
 
 def records():

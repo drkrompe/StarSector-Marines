@@ -24,7 +24,8 @@ port's east edge against the jungle, with repair scaffold, a derrick over the sa
 and the workshop the families will walk into, and the works that mend hulls at its north end.
 Its one gate is on the port road, and a haul road runs from it up the yard. Her tug, bowser and
 crew carrier wait clear of the downwash and move in once the dust thins, and a Hegemony customs
-car comes over from the public side and in through her gate, lights going.
+car comes over from the public side and in through her gate, lights going. K9_ORIGINS=1 starts
+them where they live instead (a proposal, `yard-vehicles.md`).
 
 World frame, metres: +Y toward the port; +Z up; ground at z = 0.
 Inputs: build/c1v2/inputs/{second-wind-patched,mudskipper-skinned,hound-skinned}.blend, and the
@@ -48,6 +49,11 @@ REPO = BASE.parents[3]
 INPUTS = REPO / 'build' / 'c1v2' / 'inputs'
 OUT = REPO / 'build' / 'c4x'
 STATES = CINE / 'second-wind-states' / 'patched'
+# The Second Wind build this shot renders: its .blend input is that build's patched state, and its
+# manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
+# manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
+SW_PIN = '80c78dfac'
+SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
 
 FPS = 24
 # The approach is LATE seconds slower than the first cut (owner, 2026-10-19: Castle names Kilo Nine
@@ -672,7 +678,7 @@ def ship_path(t):
 
 
 def add_ship():
-    manifest = json.loads((STATES / 'manifest.json').read_text())
+    manifest = json.loads(SW_MANIFEST.read_text())
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
     # The exhaust anchors are the root's children in a collection that never reaches the scene, so
@@ -1489,6 +1495,61 @@ K9_ROLL_IN = {n: (go + LATE, stop + LATE) for n, (go, stop) in
               {'Tug': (14.2, 18.5), 'Crew carrier': (14.5, 19.5), 'Fuel bowser': (14.8, 20.5)}.items()}
 CUSTOMS_ARRIVE = 21.0 + LATE
 
+# K9_ORIGINS=1 (a proposal awaiting the owner, off by default): the yard's vehicles start where they
+# live and wait out the landing there, instead of hopping to stand-offs on open dirt (where the tug
+# came out through the hangar wall and its run in drove through a scaffold leg). The tug stands at the
+# workshop's garage bay; the crew carrier on the south apron beside the bowser, which tops up at the
+# yard's fuel tanks. Each drives one short run to the same spot at the hull, stopping at the same
+# second as before, so nothing C5 reads changes: name: (start, heading, turn-in points, go).
+K9_ORIGINS = bool(os.environ.get('K9_ORIGINS'))
+K9_HOMES = {'Tug': ((357.0, 405.0), math.pi / 2, (), 18.4),
+            'Crew carrier': ((393.0, 401.0), math.pi / 2, ((393.0, 411.0),), 18.9),
+            'Fuel bowser': ((434.0, 400.0), math.pi / 2, (), 19.4)}
+if K9_ORIGINS:
+    K9_ROLL_IN = {n: (K9_HOMES[n][3], stop) for n, (_, stop) in K9_ROLL_IN.items()}
+
+
+def run_profile(t, go, stop, ramp=1.6):
+    """Fraction of a run covered at t: speeding up over `ramp` seconds, steady, then slowing to a stop."""
+    T = stop - go
+    ramp = min(ramp, T / 2)
+    v = 1.0 / (T - ramp)                     # the steady speed, as a fraction of the run per second
+    u = min(max(t - go, 0.0), T)
+    if u < ramp:
+        return 0.5 * v / ramp * u * u
+    if u > T - ramp:
+        w = T - u
+        return 1.0 - 0.5 * v / ramp * w * w
+    return 0.5 * v * ramp + v * (u - ramp)
+
+
+def k9_home_runs(parts_of):
+    """The K9_ORIGINS runs: each vehicle parked at home until its go, then along a rounded path to the
+    hull. `parts_of[name]` is its part list."""
+    if str(BASE) not in sys.path:
+        sys.path.insert(0, str(BASE))
+    import port_life
+    kx, ky = K9
+    kh = k9_heading()
+    ends = {'Tug': (-46, 22), 'Crew carrier': (-50, 4), 'Fuel bowser': (0, -40)}
+    for name, (home, h0, via, _) in K9_HOMES.items():
+        go, stop = K9_ROLL_IN[name]
+        xb, yb, _ = at(kx, ky, kh, *ends[name])
+        rt = port_life.Route(name, [home, *via, (xb, yb)], closed=False, radius=10.0, step=0.25)
+        keys, heads = [], []
+        for f in range(0, FRAMES + round(8.0 * FPS), 2):
+            x, y, hd = rt.at(rt.L * run_profile(f / FPS, go, stop))
+            keys.append((f, float(x), float(y)))
+            heads.append((f, h0 if f / FPS <= go else float(hd)))
+        ob = vehicle(name, parts_of[name], keys, heads)
+        for fc in port_life.fcurves(ob):
+            for kp in fc.keyframe_points:
+                kp.interpolation = 'LINEAR'
+    # The yard's fuel point: a pump beside the tanks, at the bowser's side (keyed once, as a parked
+    # vehicle is, so the overhead paint leaves it alone).
+    vehicle('Yard fuel pump', [((1.4, 1.0, 1.8), (0, 0, 0.9), bpy.data.materials['Steel'])],
+            [(0, 439.0, 401.5)], [(0, 0.0)])
+
 
 def add_k9_vehicles():
     """Nessa's tug, bowser and crew carrier roll out once the ship is close; customs comes over
@@ -1501,7 +1562,9 @@ def add_k9_vehicles():
     # Out of the hangar and the workshop to a stand-off clear of the downwash, then in to the hull
     # once the dust thins.
     sec = lambda t: round((t + LATE) * FPS)              # timed against the first cut, moved by LATE
-    for name, parts, a, s, (u1, v1) in (
+    if K9_ORIGINS:
+        k9_home_runs({'Tug': tug_parts(yellow), 'Fuel bowser': bowser_parts(white), 'Crew carrier': carrier_parts(cream)})
+    for name, parts, a, s, (u1, v1) in () if K9_ORIGINS else (
             ('Tug', tug_parts(yellow), (342, 528), (342, 507), (-46, 22)),
             ('Fuel bowser', bowser_parts(white), (470, 405), (462, 418), (0, -40)),
             ('Crew carrier', carrier_parts(cream), (322, 430), (336, 430), (-50, 4))):
@@ -1664,7 +1727,7 @@ def build():
     import vehicle_paint                                 # painted vehicle tops, once accepted
     vehicle_paint.apply()
     import ortho_paint                                  # painted overhead tiles, where accepted
-    manifest = json.loads((STATES / 'manifest.json').read_text())
+    manifest = json.loads(SW_MANIFEST.read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, ({o.name for o in ship.all_objects} if ship else set()) | port_fleet.hull_part_names())
     darken_pads()

@@ -64,23 +64,26 @@ root = bpy.data.objects['SECOND WIND | patched | root']
 - **RCS.** `RCS <cluster> <axis> anchor` empties (24, in 8 clusters), +X down
   each thruster's exhaust, with `working` for this state (`manifest.json`
   `rcs`, `rcs_working`).
-- **Turrets.** The guns of its game loadout (vanilla `cerberus_Standard`), from
-  the shared turret kit (`../../turret-kit/`, `sw_turrets`): Vulcans on turrets
-  1 and 2 (WS 001/002), the railgun on 3 (WS 003), the heavy mauler on 4
-  (WS 004), each on a kit barbette. `Turret <i> pivot` turns about its local Z
-  to train; the rest pose is the slot angle (`rest_angle_deg`, arc in
+- **Turrets.** The game's start variant `sm_second_wind_start`, the same fit
+  in every state: two Vulcans from the shared turret kit (`../../turret-kit/`,
+  `sw_turrets`) on turret 1 (WS 001, port) and turret 2 (WS 002, starboard),
+  broadside on the pods; turrets 3 and 4 (WS 003, WS 004) are empty housings,
+  kit barbettes closed by a blanking cap. `Turret <i> pivot` turns about its
+  local Z to train; the rest pose is the slot angle (`rest_angle_deg`, arc in
   `arc_deg`). `Turret <i> elevation` lifts the guns with a negative rotation
   about its local Y; each barrel recoils on `Turret <i> recoil <k>` (slide
   along its local -X). The barbette stays. `Anchor turret <i> barrel <k>
-  muzzle` rides each barrel, +X along the line of fire: two on a Vulcan, one
-  on the railgun and the mauler. A **seized** mount (`seized` on the pivot and
-  in the manifest) carries nothing and has no muzzle anchor: turret 1's Vulcan
-  is jammed 24 degrees off its slot (`jam_deg`; `rest_angle_deg` 114, the slew
-  already in the mesh) with both barrels bent, and turret 3's railgun is holed
-  with its rails snapped, in derelict, patched and refit. Their parts stay on
-  the root. The derelict's turrets 2 and 4 are stripped (empty barbettes with
-  a bare stud ring): their pivots carry nothing either. Restored has all four
-  guns back and trainable.
+  muzzle` rides each barrel, +X along the line of fire, two per Vulcan. An
+  empty housing's pivot carries nothing. A **seized** mount (`seized` on the
+  pivot and in the manifest) carries nothing and has no muzzle anchor: in
+  derelict, turret 1's Vulcan is jammed 24 degrees off its slot (`jam_deg`;
+  `rest_angle_deg` 114, the slew already in the mesh) with both barrels bent;
+  turret 3's cap is holed over a torn feed in derelict, patched and refit.
+  Their parts stay on the root. In derelict turret 2's Vulcan and turret 4's
+  cap are stripped (a bare stud ring). From patched on both Vulcans work:
+  turret 1 freed and refitted on a welded adapter ring, turret 2 back from the
+  gantry in another owner's primer, and turret 4 capped. Restored repaints
+  the rings and fits a new cap on 3.
 - **Sparks.** `Scar <id> spark anchor` / `spark-2 anchor` empties at torn
   conduits, +X along the spray, with `sparking` and `radius_m`
   (`manifest.json` `sparks`, `sparking`). Live only in patched, where the crew
@@ -127,8 +130,8 @@ and `hull_normal` (face normal, hull space); the base wear also reads its own
 
 | State | Geometry (scar table) | Overlay |
 |---|---|---|
-| derelict | open craters, five dorsal deck rips, torn plates, turrets 1 and 3 wrecked (1 jammed, 3 holed), 2 and 4 stripped, sheared mast, smashed can, Engine 1 crushed, port engine bay smashed (aft drum band and fins flattened, heat sink cut, housing corner torn); every lamp dead | old dark scorch at every open strike; torn metal and backing aged hardest; no running soot |
-| patched | salvage plates, welds, splints, cable runs, forward deck rip pressure-plated, starboard jury coil, port pod capped, turrets 1 and 3 still wrecked; four live spark anchors | the derelict's paint wear unchanged (nobody repaints before the restoration); dark burns at the still-open strikes, heat-tint rings round patched welds; fresh soot on drives 3, 4; salvage plates and welds newly fitted (little grime) |
+| derelict | open craters, five dorsal deck rips, torn plates, turret 1 jammed and 3's cap holed, 2 and 4 stripped, sheared mast, smashed can, Engine 1 crushed, port engine bay smashed (aft drum band and fins flattened, heat sink cut, housing corner torn); every lamp dead | old dark scorch at every open strike; torn metal and backing aged hardest; no running soot |
+| patched | salvage plates, welds, splints, cable runs, forward deck rip pressure-plated, starboard jury coil, port pod capped, turret 1 refitted on a welded ring, 3's cap still holed; four live spark anchors | the derelict's paint wear unchanged (nobody repaints before the restoration); dark burns at the still-open strikes, heat-tint rings round patched welds; fresh soot on drives 3, 4; salvage plates and welds newly fitted (little grime) |
 | refit | proper replacement plates with fresh seams: both waist rips, the forward deck rip, the port bow cheek, the starboard bow deck cluster and three torn or loose deck plates; the rest as patched, sparks dead | as patched (grime 0.9), but replaced plates are clean shop primer: no scorch, no wear, smooth primer detail |
 | restored | structurally whole; scars faded under paint; Engine 1's can renewed; all four guns back; both pods running | one coat over cream, oxide, pale and the gunmetal collars (heat enamel, 0.7 tone); old seams, dents and the belt wear read through it as tone; plates mismatched by about 7%; light working soot on all four drives |
 

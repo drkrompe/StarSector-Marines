@@ -72,7 +72,7 @@ RUNNING = {'running', 'jury'}
 PORT_ENGINES, STBD_ENGINES = (1, 2), (3, 4)   # sw_engines.ENGINES order: +Y is port
 # Scar parts that sit on the collar (stripped studs, a refitted adapter ring):
 # they do not make a mount seized.
-COLLAR_SCAR_PARTS = ('bare stud', 'adapter ring', 'adapter bolts')
+COLLAR_SCAR_PARTS = ('bare stud', 'adapter ring', 'adapter bolts', 'repair weld')
 MOUTH_KEYS = ('mouth_deformed', 'mouth_minor_m', 'mouth_major_m', 'mouth_round_m', 'mouth_minor_dir',
               'mouth_axis_dir', 'mouth_tilt_deg', 'mouth_centre_offset_m')
 

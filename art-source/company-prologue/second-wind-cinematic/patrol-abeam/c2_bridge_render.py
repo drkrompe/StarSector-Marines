@@ -1,7 +1,7 @@
 """C2 from Second Wind's bridge, lit: Cycles frames of the pass c2_bridge_blockout.py plans.
 
     python c2_bridge_render.py [--fps 24] [--frames 0,72,192] [--samples 64] [--resume]
-                               [--only A:B] [--out DIR] [--state patched|derelict|...]
+                               [--only A:B] [--out DIR] [--state patched|derelict|...] [--half] [--bulkhead]
     python c2_bridge_render.py --movie [--out DIR]     # c2-bridge.mp4 with captions and cues
 
 The motion is the blockout's (`c2_bridge_blockout`: the Legion's track and bank, the
@@ -9,8 +9,9 @@ Broadsword screen, the bridge camera's head turn, Second Wind's nose-down pitch 
 de-orbit), imported, so the sketch and the render cannot disagree. This script only dresses
 and lights it:
 
-- Second Wind is the patched state (`second-wind-states/patched`, appended collection, as C1
-  and C5 use it), under a ship frame that carries the bridge interior and the camera, so
+- Second Wind is the patched state of the pinned build SW_PIN (manifest in `../pins/`; the .blend is
+  copied from Drive into `second-wind-states/patched`), appended as a collection as C1 and C5 use it,
+  under a ship frame that carries the bridge interior and the camera, so
   pitching the ship pitches all three together against a fixed sun and planet.
 - The command deck's interior is the model's own (second-wind-geometry/sw_bridge_interior),
   so the patched state export must have been rebuilt since it landed; the script refuses a
@@ -28,6 +29,8 @@ and lights it:
   It turns at the true orbital rate, aft.
 - One sun, c2_core.SUN at C1's strength, and Jangala's planet-shine from below. No world light:
   the sky holds a procedural star field that only camera rays see.
+- Optional (`--bulkhead`, or C2_BULKHEAD_DETAIL=1; off by default until the owner accepts it):
+  c2_bulkhead's dressing, which frames the slits as windows cut through an armoured bulkhead.
 - Inside, the bridge's own practicals (bridge_practicals): the two ceiling lamp strips, a soft
   screen-coloured glow off each console toward its operator, and the overhead amber display's
   spill on the helm seat. They are ship's power, so `--state derelict` has none.
@@ -52,6 +55,10 @@ from blender_path import BLENDER  # noqa: E402
 import c2_bridge_blockout as BB  # noqa: E402
 
 SW_STATE = "patched"                      # C2's; --state picks another for a lighting check
+# The Second Wind build this shot renders: its manifest, copied from Drive builds/second-wind/<commit>/
+# and committed under ../pins/. The shot is pinned to it and does not follow second-wind-states/'s
+# manifest, which moves with every new candidate build; adopting a new build means changing this.
+SW_PIN = "80c78dfac"
 C1_ASSETS = BASE.parent / "corvus-approach" / "assets"
 SUN_STRENGTH = 4.5                        # C1's key, as render_patrol_sequence.py
 SHINE_COLOR = (0.55, 0.75, 1.0)
@@ -174,10 +181,13 @@ def plan(frames, fps, samples_n, state=SW_STATE):
     return base
 
 
-def check_state(path):
-    """Refuse a Second Wind state .blend that is missing or is not the build its committed
-    manifest describes (copy it from Drive builds/second-wind/<commit>/<state>/)."""
-    man = json.loads((Path(path).parent / "manifest.json").read_text(encoding="utf-8"))
+def check_state(path, state=SW_STATE):
+    """Refuse a Second Wind state .blend that is missing or is not the pinned build (SW_PIN). Copy
+    it from Drive builds/second-wind/<SW_PIN>/<state>/ to the path given."""
+    pin = BASE.parent / "pins" / ("second-wind-%s-%s.manifest.json" % (SW_PIN, state))
+    if not pin.exists():
+        raise SystemExit("no pinned manifest %s: copy it from Drive builds/second-wind/%s/%s/" % (pin, SW_PIN, state))
+    man = json.loads(pin.read_text(encoding="utf-8"))
     BB.check_broadsword(path, man["asset_sha256"])
 
 
@@ -209,6 +219,7 @@ def launch(argv):
         return
     fps, frames, samples_n, resume, only, out, state = 24.0, None, 64, False, None, OUT, SW_STATE
     half = False
+    bulkhead = os.environ.get("C2_BULKHEAD_DETAIL", "") == "1"
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -218,6 +229,10 @@ def launch(argv):
             continue
         if a == "--half":                           # 960x540 for a review pass, scaled up to view
             half = True
+            i += 1
+            continue
+        if a == "--bulkhead":                       # c2_bulkhead's dressing (also C2_BULKHEAD_DETAIL=1)
+            bulkhead = True
             i += 1
             continue
         v = argv[i + 1]
@@ -247,8 +262,13 @@ def launch(argv):
             frames = list(range(a, min(b + 1, n + 1)))
     p = plan(frames, fps, samples_n, state)
     BB.check_broadsword(p["broadsword_blend"], p["broadsword_sha256"])
-    check_state(p["sw_state_blend"])
+    check_state(p["sw_state_blend"], state)
     p["out"], p["resume"], p["percentage"] = str(out), resume, 50 if half else 100
+    p["bulkhead"] = bulkhead
+    if bulkhead:                                    # the whole shot's eye path, for c2_bulkhead
+        path = BB.plan([k / 8.0 for k in range(int(C.C2_LEN * 8) + 1)], [1920, 1080])["samples"]
+        p["bulkhead_eyes"] = [(s["cam_pos_u"][:2], s["cam_yaw"], math.degrees(math.atan(18.0 / s["lens_mm"])) + 6.0)
+                              for s in path]
     p["render"] = render if render is not None else [f for f in frames if f < n]
     out.mkdir(parents=True, exist_ok=True)
     tag = "" if not only else "-" + only.replace(":", "-")
@@ -358,6 +378,9 @@ def blender_main(argv):
     sys.path.insert(0, p["sw_dir"])
     import sw_bridge_interior
     sw_bridge_interior.figures(p["sw_mpu"], parent=sw)
+    if p.get("bulkhead"):                           # opt-in until the owner accepts it (c2_bulkhead)
+        import c2_bulkhead
+        print("C2B bulkhead detail: %d objects" % len(c2_bulkhead.build(sw, p["bulkhead_eyes"])))
 
     cam = bpy.data.objects.new("C2B | bridge camera", bpy.data.cameras.new("C2B | bridge camera"))
     scene.collection.objects.link(cam)

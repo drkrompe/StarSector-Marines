@@ -103,9 +103,14 @@ half-size review at 8 fps, not the final render. `c2_bridge_render.py` dresses t
 blockout's motion for Cycles at 24 fps with 180° motion blur, importing it so the two
 cannot drift apart:
 
-- Second Wind is the patched state from `second-wind-states`. The .blend is built, not
-  committed: copy it from Drive `builds/second-wind/<commit>/patched/`. The script
-  refuses a copy whose sha256 differs from the committed manifest's. The bridge slits
+- Second Wind is the patched state of one pinned build, `c2_bridge_render.SW_PIN` (now
+  `80c78dfac`, the build C1 and C5 share). Its manifest is committed under
+  `second-wind-cinematic/pins/`. The .blend is built, not committed: copy it from Drive
+  `builds/second-wind/<SW_PIN>/patched/` into `second-wind-states/patched/`. The script
+  refuses a copy whose sha256 differs from the pinned manifest's. The shot does not follow
+  `second-wind-states/`'s manifest, which moves with every candidate build. Adopting a new
+  Second Wind build for C2 means changing `SW_PIN` and committing that build's manifest
+  beside it. The bridge slits
   are real glass and no shot hides them, reflecting the room at the model's own strength
   (about 10% straight on). A faint version (1%, scaled to 35%) was tried and dropped: the
   slits stopped reading as windows (owner, 2026-10-20).
@@ -186,6 +191,20 @@ half a metre off (nearest 45 cm, at most 15% of the frame), looking out at the L
 width: about 3 points more glass) and declined; the posts stay as modelled. With walk, duck, breath, frame and lean: glass at abeam 37% to 50%, the fighters
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
+
+**Bulkhead detail (2026-10-20, owner review pending; off by default).** The posts and walls round
+the slits fill much of the frame and read flat, so `c2_bulkhead.py` frames the slits as windows
+cut through an armoured bulkhead, on the room side only. It adds an embrasure behind each mullion
+(rib, bolts, seams, frame plate), a shallow bolted sill and a header beam with a fascia,
+retaining strips and gaskets round every pane, bolted stiffeners carrying the posts' frame lines
+up and down the walls, and a conduit with a junction box. It is C2 dressing, not the ship model. The
+openings, glass, mullion widths and camera are untouched. Each casing is the intersection of
+what its mullion already hides from every camera position in the shot that sees it, so no frame
+shows less glass (a casing square to the wall stands nearer the eye than its mullion and hid the
+Legion's bow mid-walk). The sill stays shallow because the consoles' lamp rows sit just under it. At
+abeam (8-10 s) the camera is at the glass and no wall is in frame, so those frames are unchanged.
+`c2_bridge_render.py --bulkhead` (or `C2_BULKHEAD_DETAIL=1`) builds it; without either, the
+render is the approved shot. Review: `review/cinematic-c2/2026-10-20_bridge-bulkhead-detail_windows/`.
 
 **Open for the owner.** Whether the bridge's glazing stays this
 narrow (the model's slits make a letterbox, with posts that take a good share of the

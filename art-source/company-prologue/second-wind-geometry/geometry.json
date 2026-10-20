@@ -167,8 +167,11 @@
       ],
       "rest_angle_deg": 90,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 1 pivot",
+      "fixed": [
+        "Turret 1 barbette"
+      ],
+      "k": 0.7636,
       "elevation": "Turret 1 elevation",
       "trunnion": [
         -11.0,
@@ -178,9 +181,6 @@
       "elevation_limits": [
         null,
         null
-      ],
-      "fixed": [
-        "Turret 1 barbette"
       ],
       "trained": [
         "Turret 1 house dark",
@@ -224,8 +224,11 @@
       ],
       "rest_angle_deg": -90,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 2 pivot",
+      "fixed": [
+        "Turret 2 barbette"
+      ],
+      "k": 0.7636,
       "elevation": "Turret 2 elevation",
       "trunnion": [
         -11.0,
@@ -235,9 +238,6 @@
       "elevation_limits": [
         null,
         null
-      ],
-      "fixed": [
-        "Turret 2 barbette"
       ],
       "trained": [
         "Turret 2 house dark",
@@ -269,62 +269,42 @@
       "index": 3,
       "slot": "WS 003",
       "size": "SMALL",
-      "weapon": "railgun",
+      "weapon": "empty",
       "ring": 4.2,
-      "lift": 3.8,
+      "lift": 1.6,
       "seat": 14.5,
-      "top": 18.3,
+      "top": 16.1,
       "location": [
         41,
         11,
-        18.3
+        16.1
       ],
       "rest_angle_deg": 30,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 3 pivot",
-      "elevation": "Turret 3 elevation",
-      "trunnion": [
-        41.992,
-        11.573,
-        20.011
-      ],
-      "elevation_limits": [
-        null,
-        null
-      ],
       "fixed": [
-        "Turret 3 barbette"
+        "Turret 3 barbette",
+        "Turret 3 blanking cap",
+        "Turret 3 blanking cap boss"
       ],
-      "trained": [
-        "Turret 3 house dark",
-        "Turret 3 house paint#body",
-        "Turret 3 house accent2",
-        "Turret 3 house steel",
-        "Turret 3 house glow",
-        "Turret 3 house accent#breech",
-        "Turret 3 house accent2#bulb",
-        "Turret 3 recoil 1 accent",
-        "Turret 3 recoil 1 dark",
-        "Turret 3 recoil 1 paint",
-        "Turret 3 recoil 1 accent2",
-        "Turret 3 recoil 1 steel"
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        41,
+        11,
+        16.1
       ],
-      "recoil": [
-        "Turret 3 recoil 1"
-      ],
-      "kit_muzzles": [
-        "Turret 3 muzzle anchor 1"
-      ],
-      "muzzles": [
-        "Anchor turret 3 barrel 1 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     },
     {
       "index": 4,
       "slot": "WS 004",
       "size": "MEDIUM",
-      "weapon": "heavymauler",
+      "weapon": "empty",
       "ring": 7.0,
       "lift": 1.8,
       "seat": 14.5,
@@ -336,48 +316,24 @@
       ],
       "rest_angle_deg": -30,
       "arc_deg": 290,
-      "k": 0.7368,
       "pivot": "Turret 4 pivot",
-      "elevation": "Turret 4 elevation",
-      "trunnion": [
-        37.276,
-        -16.737,
-        19.071
-      ],
-      "elevation_limits": [
-        null,
-        null
-      ],
       "fixed": [
-        "Turret 4 barbette"
+        "Turret 4 barbette",
+        "Turret 4 blanking cap",
+        "Turret 4 blanking cap boss"
       ],
-      "trained": [
-        "Turret 4 house dark",
-        "Turret 4 house paint#body",
-        "Turret 4 house plate",
-        "Turret 4 house steel",
-        "Turret 4 house accent#flank1",
-        "Turret 4 house accent#flank-1",
-        "Turret 4 house metal",
-        "Turret 4 house metal#brake",
-        "Turret 4 gun steel",
-        "Turret 4 gun plate",
-        "Turret 4 gun dark",
-        "Turret 4 recoil 1 steel",
-        "Turret 4 recoil 1 dark",
-        "Turret 4 recoil 2 steel",
-        "Turret 4 recoil 2 dark"
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        36,
+        -16,
+        16.3
       ],
-      "recoil": [
-        "Turret 4 recoil 1",
-        "Turret 4 recoil 2"
-      ],
-      "kit_muzzles": [
-        "Turret 4 muzzle anchor 1"
-      ],
-      "muzzles": [
-        "Anchor turret 4 barrel 1 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     }
   ],
   "bay_state": {

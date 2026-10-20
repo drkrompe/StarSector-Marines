@@ -24,9 +24,10 @@ X, Y, Z = V((1,0,0)), V((0,1,0)), V((0,0,1))
 # patched and plated in refit.
 PRESSURE_ZONE = (-6, 32, -8.6, 8.6, 14)
 
-# Gun-house parts that carry the other owner's paint on the mismatched mount
-# (the kit's paint and accent shells; the barbette stays bolted down in every state).
-TURRET_HOUSE = (' house paint', ' house accent')
+# Parts that carry the other owner's paint on the mismatched mount: the kit's
+# paint and accent shells, or an empty housing's cap (the barbette stays bolted
+# down in every state).
+TURRET_HOUSE = (' house paint', ' house accent', ' blanking cap')
 # Mast parts lost when it sheared (all reinstalled with the new mast in refit).
 MAST_LOST = ('Mast crosstree', 'Scanner turntable', 'Search radar scanner bar',
              'Masthead light', 'Crosstree signal light')
@@ -88,17 +89,18 @@ def kind_sealed_cluster(d, scar, status):
 
 
 # ---- turrets ---------------------------------------------------------------
-# Story. Point defence was worth money, so the salvagers lifted every gun they
-# could sell. Two they could not: the port (windward) mounts took drift
-# strikes. Turret 1's Vulcan had both barrels bent and the blow slewed it off
-# its slot until the traverse ring seized, so it will not lift off the
-# barbette; turret 3's railgun was holed through the house and its rails
-# snapped. Both were left as scrap. The escape crew bolted the two good guns
-# back on from the salvagers' gantry (turret 2's Vulcan from another hull, in
-# that owner's primer) and re-energised the mount bus for them, which put the
-# feed torn inside turret 3's holed house live: reaching it means cutting the
-# house open, so it was left. The conversion isolated it; the restoration
-# fitted new guns on 1 and 3.
+# Story. The ship carries two Vulcans, broadside on the pods (turrets 1 and
+# 2, as the game's start variant sm_second_wind_start); housings 3 and 4 are
+# empty, closed by blanking caps. Point defence was worth money, so the
+# salvagers lifted what they could sell: turret 2's Vulcan, and turret 4's cap
+# for its plate. Turret 1's Vulcan took a drift strike that bent both barrels
+# and slewed it off its slot until the traverse seized; another holed turret
+# 3's cap and tore the mount feed under it. The escape crew freed turret 1,
+# straightened and refitted it on a welded adapter ring, bolted turret 2's
+# Vulcan back from the gantry (in another owner's primer), capped 4, and
+# re-energised the mount bus, which put turret 3's torn feed live: left, as
+# reaching it means cutting the cap away. The conversion isolated it; the
+# restoration fitted new caps on 3 and 4.
 #
 # The guns are the shared turret kit's (sw_turrets): a fixed `Turret <i>
 # barbette`, and everything above it (`Turret <i> house ...`, `gun ...`,
@@ -220,7 +222,7 @@ def turret_jam(d, scar, i, T, deg, bend):
     return slew
 
 
-def turret_house_strike(d, scar, i, T, house_label, origin, target, r, depth, holed, slew=None):
+def turret_house_strike(d, scar, i, T, house_label, origin, target, r, depth, holed, slew=None, under=()):
     """A strike on the gun house, cast on the clean house. A dent keeps its
     floor and crushes its lips out; a hole punches into the house's dark
     interior with the plate tongues bent in along the strike and two frame
@@ -242,6 +244,8 @@ def turret_house_strike(d, scar, i, T, house_label, origin, target, r, depth, ho
     el = 1.2
     cut = strike_basin(rng, p, n, u, v, r, depth, el)
     d.cut(moved(cut, slew), [house.name], d.dark if holed else d.torn(d.base_mat(house)))
+    for ob in under:        # what lies beneath a holed plate: the hole runs on into it, dark
+        d.cut(moved(cut, slew), [ob.name], d.dark)
     lips = torn_lips(rng, p, n, u, v, r, el, 7 if holed else 6, holed)
     # A tongue whose root is off the house (past an edge) has nothing to tear
     # from: drop it rather than leave it in the air.
@@ -276,39 +280,6 @@ def turret_house_strike(d, scar, i, T, house_label, origin, target, r, depth, ho
     return p, n, u, v
 
 
-def turret_snap(d, scar, i, T, at):
-    """The railgun's rails snapped at `at` px: everything on the gun ahead of
-    the break (rails, core, guide fins) lost to the drift, the stubs ending
-    in a jagged crown of bright fracture faces."""
-    gun = [o.name for o in turret_parts(d, i) if ' recoil ' in o.name]
-    if not gun:
-        return
-    k, f, l = T['k'], T['f'], T['l']
-    axis_at = lambda px: T['L'](px, 0, T['za'])
-    fracture = d.m('Scar fracture bright steel', (.72, .71, .68), .55, .5)
-    rng = random.Random(scar.id+' snap')
-    sides = 13
-    up = Z-f*f.dot(Z)
-    up.normalize()
-    rim0, rim1 = [], []
-    for j in range(sides):
-        a = TAU*j/sides
-        radial = l*math.cos(a)+up*math.sin(a)
-        # An oblique break, its face turned up where the strike bent the rails
-        # down until the top tore, a ragged tongue left at each side.
-        st = at+(-.9*math.sin(a)+(.7 if j in (1, 11) else 0)+rng.uniform(-.3, .3))
-        rim0.append(axis_at(st)+radial*5.5*k)
-        rim1.append(axis_at(at+12)+radial*5.5*k)
-    geo = Geo()
-    c0, c1 = axis_at(at), axis_at(at+12)
-    verts = [c0]+rim0+rim1+[c1]
-    faces = [(0, 1+(j+1) % sides, 1+j) for j in range(sides)]
-    faces += [(1+j, 1+(j+1) % sides, 1+sides+(j+1) % sides, 1+sides+j) for j in range(sides)]
-    faces += [(2*sides+1, 1+sides+j, 1+sides+(j+1) % sides) for j in range(sides)]
-    geo.add(verts, faces)
-    d.cut(geo, gun, fracture)
-
-
 def turret_feed(d, scar, i, T, site, state):
     """The mount's power feed, torn inside the holed house: two severed
     conductors hanging out of the hole over the side, bright copper ends.
@@ -337,26 +308,27 @@ def turret_feed(d, scar, i, T, site, state):
 
 
 def kind_turret(d, scar, status):
-    """A gun mount (sw_turrets: the shared kit's gun on its barbette).
-    params: index (1..4), mismatched (the gun came in another owner's
-    primer), wreck: None, or 'jammed' (both Vulcan barrels bent at KINK by
-    bend=(yaw, droop) degrees, house dented and slewed jam_deg off its slot
-    until the traverse seized) or 'holed' (railgun house holed, rails snapped
-    at snap_at px, the mount's power feed torn inside the hole).
-    open: a sound gun stripped; the barbette remains with a bare stud ring on
-    its crown. A wrecked gun was left in place, damaged and its lamps dead.
-    patched: a sound gun is the gantry mount carried aboard and bolted back
-    on a bare adapter ring with fresh bolts; a wreck's ladder never uses it.
-    replaced: not used. faded: a new or reinstalled gun on the adapter ring,
-    ring and any mismatched or new house repainted to a near match. The
-    barbette is tagged jammed / jam_deg for this state so the export can set
-    its pivot's rest angle (slot angle + jam_deg)."""
+    """A mount (sw_turrets): a kit Vulcan on its barbette, or an empty housing
+    closed by a blanking cap. params: index (1..4), mismatched (the gun or cap
+    came in another owner's primer), wreck: None, or 'jammed' (both Vulcan
+    barrels bent at KINK by bend=(yaw, droop) degrees, house dented and slewed
+    jam_deg off its slot until the traverse seized) or 'holed' (an empty
+    housing's cap holed through, the mount's power feed torn under it).
+    open: a sound gun or cap stripped; the barbette remains with a bare stud
+    ring on its crown. A wrecked mount was left in place, damaged, its lamps
+    dead. patched: the gantry gun, or a salvage cap, bolted back on a bare
+    adapter ring with fresh bolts; a wreck's ladder never uses it. replaced:
+    not used. faded: a new or reinstalled gun or cap on the adapter ring, ring
+    and any mismatched or new part repainted to a near match. The barbette is
+    tagged jammed / jam_deg for this state so the export can set its pivot's
+    rest angle (slot angle + jam_deg)."""
     i = scar.params['index']
     T = turret_frame(d, i)
     if T is None:
         return
     barbette = T['barbette']
     wreck = scar.params.get('wreck')
+    empty = T['weapon'] == 'empty'
     jam = scar.params.get('jam_deg', 0.) if wreck == 'jammed' and status == 'open' else 0.
     d.tag(barbette, 'jammed', bool(jam), scar)
     d.tag(barbette, 'jam_deg', float(jam), scar)
@@ -365,15 +337,22 @@ def kind_turret(d, scar, status):
         for ob in turret_parts(d, i):
             if ob.name.endswith(' glow'):
                 d.override(ob, d.dead, scar)
+    if status in ('patched', 'replaced') and wreck == 'jammed':
+        # Put back in service: the welded seam where the freed gun's adapter
+        # ring was run down onto the barbette.
+        weld = Geo()
+        ring = [V((c.x+(R-.3)*math.cos(TAU*j/24), c.y+(R-.3)*math.sin(TAU*j/24), top+.02)) for j in range(25)]
+        for q0, q1 in zip(ring, ring[1:]):
+            weld.bead(q0, q1, Z, .1)
+        d.part(scar, 'repair weld', d.weld, .005).add(weld.v, weld.f)
     if status == 'open' and wreck == 'jammed':
         slew = turret_jam(d, scar, i, T, jam, scar.params.get('bend', (16, 9)))
         turret_house_strike(d, scar, i, T, 'house paint#dome', (1.0, -8.0, top+8), (0.0, -2.0, top+1.5),
                             .9, .55, False, slew)
         return
     if status == 'open' and wreck == 'holed':
-        site = turret_house_strike(d, scar, i, T, 'house paint#body', (-6.0, 10.0, top+7), (-5.6, 4.8, top+1.0),
-                                   1.15, 1.4, True)
-        turret_snap(d, scar, i, T, scar.params.get('snap_at', 6.5))
+        site = turret_house_strike(d, scar, i, T, 'blanking cap', (-2.0, 9.0, top+7), (-1.0, 3.0, top+.2),
+                                   1.0, 1.2, True, under=(barbette,))
         if site:
             turret_feed(d, scar, i, T, site, d.state)
         return
@@ -389,9 +368,11 @@ def kind_turret(d, scar, status):
     ring_mat = d.repaint(d.base_mat(barbette)) if faded else d.salvage[1]
     d.part(scar, 'adapter ring', ring_mat, .02).disc((c.x, c.y, top+.07), Z, R-.35, .14, 24)
     bolts = d.part(scar, 'adapter bolts', ring_mat if faded else d.steel, .005)
+    # A cap's fresh bolts are on its plate; a gun's on the ring outside its roller.
+    rb, zb = (R-.8, top+.34) if empty else (R-.6, top+.19)
     for j in range(16):
         a = TAU*(j+.5)/16
-        bolts.disc((c.x+(R-.6)*math.cos(a), c.y+(R-.6)*math.sin(a), top+.19), Z, .08, .08, 6)
+        bolts.disc((c.x+rb*math.cos(a), c.y+rb*math.sin(a), zb), Z, .08, .08, 6)
     if scar.params.get('mismatched') or (faded and wreck):
         for ob in turret_parts(d, i):
             if any(k in ob.name for k in TURRET_HOUSE):
@@ -659,26 +640,26 @@ SCARS = [
     Scar('sp-mast', 'mast', 'open patched replaced faded',
          'Mast sheared above the pedestal; jury whip and salvaged nav sensor for the flight; '
          'the command conversion fits a proper flanged upper section and scanner.'),
-    # Point defence. The salvagers sold the two sound guns (2, 4); the two
-    # windward mounts (1, 3) were wrecked by drift strikes and left as scrap.
-    # The escape crew bolted the sound guns back on from the gantry; the
-    # restoration fitted new guns on the wrecks.
-    Scar('sp-turret-1', 'turret', 'open open open faded',
+    # Point defence: Vulcans on 1 and 2, empty capped housings on 3 and 4. The
+    # salvagers sold 2's Vulcan and 4's cap; drift strikes jammed 1's Vulcan and
+    # holed 3's cap. The escape crew freed and refitted 1, put 2 back, capped 4;
+    # the restoration fitted new caps.
+    Scar('sp-turret-1', 'turret', 'open patched patched faded',
          'Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the '
-         'traverse seized, so it would not lift off: left as scrap, flown dead and jammed; '
-         'new Vulcan on an adapter ring in restoration.',
+         'traverse seized; freed, straightened and refitted on a welded adapter ring for the '
+         'flight; ring painted over in restoration.',
          index=1, wreck='jammed', jam_deg=24., bend=(24, 14)),
     Scar('sp-turret-2', 'turret', 'open patched patched faded',
-         'Vulcan stripped; a gantry Vulcan from another hull bolted back in its owner\'s '
-         'primer; repainted to near match.', index=2, mismatched=True),
+         'Vulcan stripped; a gantry Vulcan from another hull bolted back in its owner\'s primer; '
+         'repainted to near match.', index=2, mismatched=True),
     Scar('sp-turret-3', 'turret', 'open open open faded',
-         'Railgun house holed and its rails snapped: left as scrap. Its feed, torn inside '
-         'the hole, went live when the crew powered the mount bus (sparks); isolated and '
-         'booted in the conversion; new railgun in restoration.',
-         index=3, wreck='holed', snap_at=6.5),
+         'Empty housing holed through its blanking cap: left. The mount feed torn under it went '
+         'live when the crew powered the mount bus (sparks); isolated and booted in the '
+         'conversion; new cap in restoration.',
+         index=3, wreck='holed'),
     Scar('sp-turret-4', 'turret', 'open patched patched faded',
-         'Heavy mauler stripped; its own gun recovered from the gantry and reinstalled on an '
-         'adapter ring; ring painted over.', index=4),
+         'Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a '
+         'salvage cap bolted on for the flight; ring painted over.', index=4),
     # Salvagers torch-cut two waist runs for their contents.
     Scar('sp-waist-line-cut', 'torch', 'open patched patched faded',
          'Protected waist line cut for its contents: sleeved for the flight, spooled in restoration.',

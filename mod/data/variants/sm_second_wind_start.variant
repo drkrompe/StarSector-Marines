@@ -1,0 +1,28 @@
+{
+    "displayName": "Second Wind",
+    "fluxCapacitors": 0,
+    "fluxVents": 5,
+    "hullId": "cerberus_d",
+    "hullMods": [
+        "comp_structure",
+        "degraded_engines",
+        "increased_maintenance"
+    ],
+    "permaMods": [
+        "comp_structure",
+        "degraded_engines",
+        "increased_maintenance"
+    ],
+    "sMods": [],
+    "variantId": "sm_second_wind_start",
+    "weaponGroups": [
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 001": "vulcan",
+                "WS 002": "vulcan"
+            }
+        }
+    ]
+}

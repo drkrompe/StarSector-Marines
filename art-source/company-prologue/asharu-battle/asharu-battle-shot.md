@@ -2,7 +2,7 @@
 
 Status: DRAFT — blockout round 7 in code, not yet rendered (last posted run: round 6). Hull builds nearly all finished.
 Written: 2026-10-19
-Updated: 2026-10-20 — round 7 staged on Windows: --check clean, Colossus is colossus/139e8b8b6, render cost measured (S6 about 1.5-2 h).
+Updated: 2026-10-20 — the render is held (owner); S3 is now the running-dark beat with its own key frame (k1b); radio traffic and the place card drafted.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -73,8 +73,13 @@ shows both scales.
 
 1. **Caught slow.** The convoy is committed to its descent burn: slowed, low,
    with nowhere to run.
-2. **Ambush from behind and below.** The pirates light up inside the platform
-   the convoy has just passed and climb out of it, closing from astern.
+2. **Ambush from behind and below.** The pirates have been lying in the
+   platform the convoy has just passed, running dark: reactors down, no
+   transponders, no drive light. Cold among the platform's stripped hulks,
+   each one reads on a scan as one more piece of salvage. Starsector players
+   know the move as Go Dark. No asteroid field or other hiding place is
+   invented: the platform is the game's own. They light up and climb out of
+   it, closing from astern.
 3. **The screen goes first.** The Manticore (P) and the Falcon (P) open at long
    range. The Phaeton tanker, at the convoy's tail, goes up. A Lasher burns.
    The lead Lasher turns back into the fire and is shot up.
@@ -160,13 +165,13 @@ the shooter's real mounts and prints "bears" or "CANNOT BEAR" with how far short
 
 ## Shot list
 
-About 95 seconds. **K** marks a shot with a blockout key frame in the review run.
+About 94 seconds. **K** marks a shot with a blockout key frame in the review run.
 
 | Shot | Length | Picture | Ships seen closest | Camera |
 |---|---|---|---|---|
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m |
-| S3 | 5 s | Long lens back down at the derelict platform below: dark, stripped. Then drive lights come on in its hangars. | the platform | 135 mm from the convoy's tail |
+| S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) |
 | S4 **K** | 6 s | First contact: twelve hulls climbing out of the platform toward the column, drives lit, the desert behind them. | Falcon (P), Wolves, Hounds (P), Kites (P) | 35 mm, off their flank |
 | S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire |
 | S6 **K** | 8 s | The screen breaks: the Phaeton tanker is struck in the first 2 s and cooks off through the rest, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy |
@@ -176,6 +181,79 @@ About 95 seconds. **K** marks a shot with a blockout key frame in the review run
 | S10 **K** | 10 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above |
 | S11 | 10 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. | Colossus, Morrow | 50 mm, chase |
 | S12 **K** | 10 s | Two trails down the track toward the horizon and the canyon country. Hold. End. | (trails only) | 50 mm from the pirates' orbit |
+
+## Radio traffic (draft)
+
+The convoy and the pirates talk throughout, as captions with a speaker tag over the picture.
+That is the arrival cinematic's caption track: `CinematicShot` captions name a `strings.json`
+key and a speaker, and the player pages them (`CaptionPager`). No English is baked into the
+frames.
+
+Rules:
+- **Speakers are ships, not people:** "Colossus", "Morrow", "Escort lead". The story keeps
+  Morrow's original crew, and every other crew, unnamed (`shepherd-recovery-dialogue.md`), so no
+  character is invented here.
+- **Nobody names the cargo**, the owner or the buyer, and nobody gives a reason the convoy
+  matters. The pirates want what is in the holds and never say what it is.
+- **Working voices.** Short, procedural, a little tired, and frightened only once it goes bad.
+  This is ordinary traffic and an ordinary raid.
+- **Silence is a beat.** S3 has no convoy traffic, and S11-S12 lose the radio to plasma and
+  then to distance.
+
+| Shot | Speaker | Line |
+|---|---|---|
+| S1 | Colossus | Convoy, Colossus. Window opens in forty. All ships ease to two-thirds. |
+| S1 | Escort lead | Lead copies. Escorts, close up the column. |
+| S2 | Morrow | Morrow, standing off your starboard quarter. Drones stowed. |
+| S3 | (pirate channel, low) | Hold. ... Hold. ... Light them. |
+| S4 | Rear escort | Lead, rear. Drives behind us. Low, off that old station. A lot of them. |
+| S4 | Escort lead | Say again. |
+| S4 | Rear escort | Twelve. Climbing. |
+| S5 | Escort lead | Escorts, come about. Convoy, full burn, now. |
+| S5 | Colossus | We're committed to the window. We can't outrun them from here. |
+| S6 | Phaeton | Phaeton, we're hit, we're venting, we're — |
+| S6 | Escort lead | Lead turning back. Cover the tail. |
+| S7 | Pirate (Kite) | Tarsus. Open your locks and you all walk away. |
+| S7 | Tarsus | Drives are gone. They're alongside. Boarders, boarders — |
+| S8 | Colossus | Port pod's gone. Morrow, get under us. |
+| S9 | Morrow | Under you. Taking the weight. |
+| S9 | Pirate (Mk.III) | Colossus. Heave to. You're next. |
+| S10 | Pirate (Falcon) | Let her go. She's going down anyway. Take the Tarsus. |
+| S10 | Colossus | We're losing the orbit. Morrow, break off. |
+| S10 | Morrow | Staying with you. |
+| S11 | (both) | static; the plasma takes the channel |
+
+Open for the owner:
+- Morrow's "Staying with you" makes her going down with the Colossus a choice. The plan
+  currently draws both ships as lost, not dived. Keep the line, or drop it so the fall stays
+  ambiguous.
+- Whether the pirate lines are heard at all: hearing them tells the audience the trap is set,
+  and silence keeps the pirates faceless.
+
+## On-screen place and time
+
+S1 opens on a place card, so the audience knows where and when they are before anything happens:
+
+> **ASHARU** Corvus
+> Low orbit / three cycles ago
+
+- **Relative time, not a date.** The campaign's year depends on the player's save, so a fixed
+  cycle number would be wrong for most players. "Three cycles ago" is how every character in the
+  arc counts it ("three cycles back", Vale).
+- **Drawn by the player, not baked** into the frames, like the captions, so it localises.
+- **Two ways to draw it:**
+  - the C1 planet lock: a sensor lock on Asharu's limb, titled ASHARU with the rest as its
+    detail line. That echoes the arrival cinematic's opening on Jangala, but a lock implies
+    somebody's sensor, and here it is nobody's;
+  - a plain card, lower left, in for about 4 s from 1.5 s. This needs a new overlay kind, and
+    `CinematicShot` already skips kinds it does not know.
+- I'd take the plain card: this is a memory, not anybody's sensor view.
+- **Sensor locks inside the fight** are a natural use of the same overlay. For example, the
+  pirates' lock on the Colossus as they climb in S4, titled with her hull class and never her
+  cargo, and the rear escort's lock on the climbing contacts.
+- **Not decided:** where the cinematic plays in the game (the Shepherd-recovery arc's opening, a
+  codex entry, or a recovered recording Basin found in the Colossus). That decides whether the
+  card says "three cycles ago" or carries a recording's own timestamp.
 
 The crash against the canyon wall is a separate shot. It needs both ships'
 deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
@@ -219,7 +297,7 @@ Each manifest is the build folder's `manifest.json`, renamed as shown. When a bu
 - **Stand-ins** are the sprite's silhouette raised into a lens shape and painted with the sprite. A stand-in reads as the right hull at the right size and nothing more.
 - **Effects** (tracers, placeholder blasts, drive plumes, entry plasma) are placeholders for the VFX kit.
 
-To check a scene without rendering, run `python battle_blockout.py --check`. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
+To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames; a frame already finished in the run folder is skipped, so a stopped job resumes (`--run <name>` fixes the folder across days, `--rerender` forces every frame); and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 
 ## Where it stands, and the next step
 
@@ -243,10 +321,15 @@ To check a scene without rendering, run `python battle_blockout.py --check`. It 
     each frame adds about 5 min.
   - **Windows: about 2 h. Mac: about 3 h**, from C1's measured rate there (about 200 s a frame,
     against 2-3 min on Windows), and not timed directly.
+- **Held (owner, 2026-10-20): not ready for a production render.** The fight is reviewed
+  as layout diagrams first: `python fight_layout.py` draws an overview and one sheet per key
+  frame (the camera's frame as a schematic, plan and side views, every line of fire) from this
+  script's own staging, with no render, into `build/asharu-battle/layout/`.
 - **Next step:**
-  1. Render the set above, by night, through the owner.
-  2. Post with `--what round7-gunnery-cookoff`, then prune.
-  3. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
+  1. Settle the staging on the layout sheets.
+  2. Then render the set above, by night, through the owner.
+  3. Post with `--what round7-gunnery-cookoff`, then prune.
+  4. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
 
 ## Open for the owner
 

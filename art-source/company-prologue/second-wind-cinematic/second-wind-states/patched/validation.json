@@ -3,8 +3,8 @@
  "asset": "second-wind-patched.blend",
  "collection": "SECOND WIND | patched",
  "root": "SECOND WIND | patched | root",
- "objects": 1169,
- "meshes": 1120,
+ "objects": 1148,
+ "meshes": 1097,
  "images": 41,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1120,
-    1120
+    1097,
+    1097
    ]
   },
   "polygon count": {
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 99,
+    "materials": 96,
     "missing": []
    }
   },
@@ -74,18 +74,18 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 5e-06
+   "detail": 3e-06
   },
   "turret guns elevate": {
    "ok": true,
    "detail": {
-    "err": 2e-06,
+    "err": 0.0,
     "bad": [],
     "muzzles": {
-     "1": 0,
+     "1": 2,
      "2": 2,
      "3": 0,
-     "4": 1
+     "4": 0
     }
    }
   },
@@ -93,7 +93,6 @@
    "ok": true,
    "detail": {
     "seized": [
-     1,
      3
     ],
     "bad": []
@@ -119,7 +118,7 @@
   },
   "root moves the ship rigidly": {
    "ok": true,
-   "detail": 3.1e-05
+   "detail": 6.1e-05
   }
  }
 }
