@@ -412,7 +412,7 @@ or by the render queue as a drive input (`queue_jobs.py`), pinned by its blend's
 | Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3` | **accepted** |
 | Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton`, `phaeton-destroyed` | **accepted** (both states, including the eight-blast cook-off) |
 | Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` | `tarsus`, `tarsus-boarded` | **accepted** (owner, 2026-10-20) |
-| Wolf (P) x2, merchant Wolf | `wolf-p/f60641f63`, `wolf/f60641f63` | `wolf-p`, `wolf` | finished; size not settled (70 m); textured builds with effects are due |
+| Wolf (P) x2, merchant Wolf | `wolf-p/968fc1a01`, `wolf/968fc1a01` (`manifest-merchant.json`) | `wolf-p`, `wolf` | **accepted** (textured, with effects; lift jets idle); size not settled (70 m) |
 | Manticore (P) | `manticore-p/056e05c26` | `manticore-p` | **accepted** (textured final; Hellbore and two Harpoon pods; no RCS, lens glow or shield yet) |
 
 Shots leave from the muzzle of the mount that bears (`--check`'s choice), read from each build's
@@ -442,10 +442,11 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 - **Round 7** (r7c) was queued from a flat inputs folder on the Windows worktree.
 - **Round 8 (2026-10-20): the newest builds.** The Lasher and Kite (P) kit rebuilds
   (`0cb9d83`), the close-shot rebuilds of both Hounds, the Falcon (P) and the Shepherd (dark
-  glazing, fewer lit lamps), and the textured Manticore (P) final, which replaces her stand-in.
-  Shots now leave from the bearing mount's muzzle, and missiles from a launcher when one bears. `--check` is clean: all 22 tracers and missiles bear. Queued as two
-  review jobs (the cook-off k3 alone; k3b, k4, r1, r2 together) with `--run r8`, frame resume and
-  drive inputs pinned by sha256. They need the Starsector install, so they run on Windows.
+  glazing, fewer lit lamps), the textured Wolfs, and the textured Manticore (P) final, which
+  replaces her stand-in.
+  Shots now leave from the bearing mount's muzzle, and missiles from a launcher when one bears. `--check` is clean: all 22 tracers and missiles bear. Queued as five
+  single-frame review jobs (k3, k3b, k4, r1, r2) with `--run r8b`, frame resume and
+  drive inputs pinned by sha256. Either machine may take a frame; both have the Starsector install.
 - **Render cost** of `--frames k3,k3b,k4,r1,r2 --samples 48`, extrapolated from quarter-size and
   half-size samples on the RTX 3080 (k3b was not sampled):
   - k3 (S6) is nearly all of it. The cook-off's volumes scale linearly with pixels times samples:

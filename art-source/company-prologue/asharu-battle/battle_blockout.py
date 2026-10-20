@@ -58,7 +58,7 @@ def build_file(f):
 
 
 def build_manifest(f):
-    return json.loads((BUILDS / f['dir'] / 'manifest.json').read_text())
+    return json.loads((BUILDS / f['dir'] / f.get('manifest', 'manifest.json')).read_text())
 W, H = 1920, 1080
 
 # Asharu and the orbit. Asharu's real size is not given anywhere in the game or the story; a
