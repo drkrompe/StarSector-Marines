@@ -60,6 +60,13 @@ lead, or silhouette-conditioned hit roll. Accuracy, equipment, stance, spread,
 and smoke change the size of a sampled angular error disk before contacts are
 traced. Dispersion and smoke depth are calibrated along the bearing at weapon
 range, so cursor distance cannot improve distant accuracy or shorten flight.
+A player's own cursor on a controlled marine samples a **controlled**
+dispersion: authored spread keeps its full weight, but the abstract accuracy
+figure (tuned as an autonomous hit chance) widens the disk about a third as
+much, and rounds cluster toward the cursor rather than fill the disk evenly.
+Spread therefore carries a weapon's character under manual fire. Automated
+point fire (wall breaching, vehicle turrets, mech mounts) keeps the full-weight,
+evenly filled disk.
 A point round remains live to the same full modeled reach as a stray round;
 all body contacts are incidental and retain ordinary friendly-catch rules.
 Its trigger is allowed toward an obstructed or empty lane: a wall stops the
