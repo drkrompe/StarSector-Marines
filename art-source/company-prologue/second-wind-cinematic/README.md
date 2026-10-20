@@ -52,7 +52,7 @@ without losing finished frames.
 
 | # | Shot | Machine | What | Cost |
 |---|---|---|---|---|
-| 1 | C1 650-904 | Windows | Finish the remaining frames (650-788 were done at 10:30). Then copy them into the C1 Drive folder. | 2-3 min a frame |
+| 1 | C1 650-904 | Windows | Finish the remaining frames. 650-790 are already copied to Drive `builds/c1-final/9e98802f0/`; tonight's C2 job copies the rest (copy, never move: the render skips frames on disk). | 2-3 min a frame |
 | 2 | C1 0-649 | Mac | Finish its half (0-521 done at 10:30). Frames stay in the Mac's `render-c1-9e98802f0` checkout; a watcher copies all 650 to Drive `builds/c1-final/9e98802f0/` once every one exists. | about 200 s a frame, about 7 h left |
 | 3 | C2 | Windows, after 1 | **Queued** (owner passed the glass, 2026-10-20). Full re-render with the glass at the model's own reflection (8122dc22d). Windows scheduled task *Starsector C2 overnight* runs `build/overnight/c2-overnight.ps1` in the c1-corvus-v2 worktree daily at 22:00: it waits for C1's Windows half, renders to `build/cinematic/c2-bridge/lit-glass/` with `--resume`, stops itself at 08:00 and resumes the next night, then builds the movie and copies frames and movie to Drive `builds/c2-final-glass-8122dc22d/`. Log: `build/overnight/c2-overnight.log`; `done.txt` there when finished. Then delete the task (`schtasks /Delete /TN "Starsector C2 overnight" /F`). | about 4.3 h at 64 samples |
 | 4 | C4 | Mac, after 2 | Only once the owner has passed the joined C4+C5 check. Renders like C5. | EEVEE, short |
