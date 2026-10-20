@@ -322,7 +322,7 @@ Hound. Penetration was left alone: at 18 it already defeats every mech rating
 control. It now lands a contact hit of 100 on the body it strikes, over its
 unchanged 45 splash, as the Hephaestus turret cannon does, and takes 37 and
 51 s. That contact hit is fixed: the cannon is equipment any 3x2 arms socket
-takes, so it is balanced by what carrying it costs (mass, heat), never by its
+takes, so it is balanced by what carrying it costs (mass, flux), never by its
 damage (`heavy-equipment-progression.md`, the heavy cannon). Against hard targets (`hard-target-time-to-kill`, four seeds) both now
 need about one magazine or a few rounds per emplacement or drone hub, and the
 AMR still needs about eight magazines for a tank. Rockets remain the fastest

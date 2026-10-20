@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
-import com.dillon.starsectormarines.battle.mech.MechHeat;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -38,7 +38,7 @@ final class BattleDirectControlHudModel {
         this.select = select;
         this.copy = copy;
         for (String key : List.of("healthStyle", "healthClasses", "armorStyle", "weaponsClasses",
-                "allLabel", "allClasses", "exitLabel", "pauseLabel", "heatClasses", "heatStyle", "heatLabel", "heatState")) {
+                "allLabel", "allClasses", "exitLabel", "pauseLabel", "fluxClasses", "fluxStyle", "fluxLabel", "fluxState")) {
             MutableSignal<String> signal = reactor.signal("");
             text.put(key, signal);
             if (key.equals("exitLabel") || key.equals("pauseLabel")) actionsProps.put(key, signal);
@@ -63,22 +63,23 @@ final class BattleDirectControlHudModel {
                 || snapshot.carrier() == BattleDirectControlStatus.Carrier.TENDER) && snapshot.warship() != null;
         var durability = snapshot.durability();
         reactor.untracked(() -> {
-            var heat = snapshot.heat();
-            float heatValue = heat == null ? 0f : heat.value();
-            float heatCapacity = heat == null ? MechHeat.CAPACITY : heat.capacity();
-            float heatPercent = heatValue * MechHeat.CAPACITY / heatCapacity;
-            boolean venting = heat != null && heat.venting();
-            set("heatClasses", mech || ship ? "heat" : "heat heat-hidden");
+            set("fluxClasses", mech || ship ? "flux" : "flux flux-hidden");
             if (ship) {
-                var flux = snapshot.warship().flux();
-                set("heatLabel", flux.label());
-                set("heatState", flux.state());
-                set("heatStyle", width(flux.fraction()) + " background-color: " + toneColor(flux.tone()) + ";");
+                var gauge = snapshot.warship().flux();
+                set("fluxLabel", gauge.label());
+                set("fluxState", gauge.state());
+                set("fluxStyle", width(gauge.fraction()) + " background-color: "
+                        + (gauge.tone() == BattleDirectControlStatus.Tone.READY ? FLUX_FILL : toneColor(gauge.tone())) + ";");
             } else {
-                set("heatLabel", "HEAT " + Math.round(heatPercent) + "%");
-                set("heatState", venting ? "VENTING" : heatPercent >= 75f ? "HOT - EASE FIRE" : "BURST RESERVE");
-                set("heatStyle", width(heatPercent / 100f) + " background-color: "
-                        + (venting ? "#ef7962" : heatPercent >= 75f ? "#eab152" : "#b6c79b") + ";");
+                var flux = snapshot.flux();
+                float fluxValue = flux == null ? 0f : flux.value();
+                float fluxCapacity = flux == null ? MechFlux.CAPACITY : flux.capacity();
+                float fluxPercent = fluxValue * MechFlux.CAPACITY / fluxCapacity;
+                boolean venting = flux != null && flux.venting();
+                set("fluxLabel", "FLUX " + Math.round(fluxPercent) + "%");
+                set("fluxState", venting ? "VENTING" : fluxPercent >= 75f ? "HIGH - EASE FIRE" : "BURST RESERVE");
+                set("fluxStyle", width(fluxPercent / 100f) + " background-color: "
+                        + (venting ? "#ef7962" : fluxPercent >= 75f ? "#eab152" : FLUX_FILL) + ";");
             }
             set("healthStyle", width(durability.hpFraction()));
             set("healthClasses", "health-fill" + (durability.hpFraction() <= .25f ? " capacity-low" : ""));
@@ -104,11 +105,11 @@ final class BattleDirectControlHudModel {
                     state = (mech ? weapon.mechanism() + " " : "")
                             + String.format(Locale.ROOT, "%.1fs", weapon.cooldownSeconds());
                 }
-                boolean thermal = enabled && weapon.thermalBlocked()
+                boolean fluxHeld = enabled && weapon.fluxBlocked()
                         && weapon.state() != BattleDirectControlStatus.WeaponState.BURST
                         && weapon.state() != BattleDirectControlStatus.WeaponState.EMPTY;
-                if (thermal) state = "HEAT";
-                String stateClasses = "weapon-state" + (thermal ? " weapon-empty" : "");
+                if (fluxHeld) state = "FLUX";
+                String stateClasses = "weapon-state" + (fluxHeld ? " weapon-empty" : "");
                 if (weapon.state() == BattleDirectControlStatus.WeaponState.EMPTY) stateClasses += " weapon-empty";
                 else if (weapon.state() != BattleDirectControlStatus.WeaponState.LOADED) stateClasses += " weapon-busy";
                 String style = "opacity: " + (enabled ? "1" : "0.6") + ";";
@@ -158,6 +159,9 @@ final class BattleDirectControlHudModel {
                 detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
                 : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
     }
+
+    /** The flux gauge's resting fill, mech or warship: the violet the game's own flux reads in. */
+    private static final String FLUX_FILL = "#a594f9";
 
     private static String toneColor(BattleDirectControlStatus.Tone tone) {
         return switch (tone) {

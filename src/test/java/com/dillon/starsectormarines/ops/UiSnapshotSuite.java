@@ -2657,8 +2657,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
                 new SnapshotArtifact("mech-internal-plating-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-plating")),
-                new SnapshotArtifact("mech-internal-heat-sink-1920x1080.png",
-                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-heat")),
+                new SnapshotArtifact("mech-internal-capacitor-bank-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-flux")),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
                 SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
@@ -2753,7 +2753,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.selectPlating();
             viewModel.hoverInternal(MechInternal.HEAVY_PLATING);
         }
-        if ("internal-heat".equals(materialHint)) {
+        if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.AMMO_RESERVE);
         }
