@@ -1,4 +1,4 @@
-<template props="scope,hint,defendClasses,defendScope,defend">
+<template props="scope,hint,defendClasses,defendScope,defend,garrisonClasses,garrisonDetail,garrison">
   <div id="battle-order-overlay" class="order-bar">
     <div id="battle-order-header" class="order-header">
       <div id="battle-order-scope" class="scope">{scope}</div>
@@ -8,6 +8,10 @@
       <button id="battle-order-defend" class="{defendClasses}" onclick="{defend}">
         <div id="battle-order-defend-name" class="order-name">[F] DEFEND AREA</div>
         <div id="battle-order-defend-scope" class="order-detail">{defendScope}</div>
+      </button>
+      <button id="battle-order-garrison" class="{garrisonClasses}" onclick="{garrison}">
+        <div id="battle-order-garrison-name" class="order-name">[G] GARRISON</div>
+        <div id="battle-order-garrison-detail" class="order-detail">{garrisonDetail}</div>
       </button>
     </div>
   </div>

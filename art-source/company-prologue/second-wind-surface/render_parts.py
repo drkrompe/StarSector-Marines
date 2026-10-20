@@ -18,6 +18,7 @@ Only source parts (those in a sheet) are rendered; skin_from parts reuse one.
 """
 from pathlib import Path
 import json
+import os
 import sys
 import bpy
 import bmesh
@@ -177,6 +178,8 @@ def save(arr, path):
     bpy.data.images.remove(im)
 
 
+# SURF_GUIDE_SAMPLES (opt-in): a cheaper lit guide for a queued light job; unset keeps 64.
+GUIDE_SAMPLES = int(os.environ.get('SURF_GUIDE_SAMPLES', 64))
 bg = np.array(P.BACKGROUND, np.float32) / 255
 for part in MINE:
     if P.source_part(part) != part or (ONLY and part not in ONLY):

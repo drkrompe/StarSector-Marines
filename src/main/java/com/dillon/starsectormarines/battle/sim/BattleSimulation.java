@@ -205,6 +205,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningService;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -214,6 +216,7 @@ import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.mech.MechSectionFxSystem;
+import com.dillon.starsectormarines.battle.assault.MachineAssaults;
 import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -532,6 +535,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
             new SquadMoveOrderSystem(squadMoveOrders);
+    /** The player's GARRISON stance: opted-in squads man nearby places their side believes pressed. */
+    private final ReactiveManningService reactiveManning = new ReactiveManningService();
+    private final ReactiveManningSystem reactiveManningSystem =
+            new ReactiveManningSystem(reactiveManning, squadMoveOrderSystem, squadMoveOrders);
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -1316,6 +1323,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
                 (side, x, y) -> commsSees(side, x, y)));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
@@ -1645,6 +1653,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
     public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
+
+    /** Which player squads stand in the GARRISON stance, and what each is doing about it. */
+    public ReactiveManningService getReactiveManning() { return reactiveManning; }
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
@@ -2960,6 +2971,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechDoctrineSystem.tick(this);
         mechMoveOrderSystem.tick(this);
         squadMoveOrderSystem.tick(this);
+        // After the player's own orders, so a click this tick already stands and the stance yields to it.
+        reactiveManningSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
@@ -3269,6 +3282,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.
+        // Standing assaults on garrisonables end or aim their turrets, from the side's beliefs, first.
+        MachineAssaults.tickVehicles(this);
         groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response

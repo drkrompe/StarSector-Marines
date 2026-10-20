@@ -121,14 +121,185 @@ ALIASES = {'heavy_ac': 'heavyac', 'light_ac': 'lightac', 'hvd': 'hveldriver', 'h
 CHAMFER_M = .1     # the largest edge chamfer anywhere, in metres: crisp plate, not pillows
 _CAP = [1e9]       # CHAMFER_M in units, set per build
 
-# Close-view detail (owner, 2026-10-20: "getting the rough shape right, but need to
-# add detail"). Every round part (a lathe of 18 or more sides; fewer means plates on
-# purpose, a ten-plate dome, a hex bolt) gets enough segments that a facet is no
-# longer than ROUND_CHORD_M round its rim, and every box or cylinder left without a
-# bevel gets EDGE_BEVEL_M (bevel=-1 keeps an edge dead sharp). Cutters are left alone.
-ROUND_CHORD_M = .22
-ROUND_MAX = 96
-EDGE_BEVEL_M = .035
+# Close-view detail: the shared rule (ship-detail-guide.md, Edge treatment; the code is
+# ship-detail-kit/ship_detail_kit.py, so the hulls and the kit meet one standard).
+# Segment rule: every round from 5 cm radius up gets the segments that keep its chord
+# within 5 mm of the arc (12-96, a multiple of 4; 8 under 5 cm); hex heads (6 sides)
+# and lathes built as deliberate plates (lathe(..., plates=True): a ten-plate dome, a
+# sixteen-sided bastion) are exempt. Bevels by the size of the part's smallest face:
+# hull plates 0.12 m, modules/houses/barbettes 0.06 m, fittings 0.03 m, small parts
+# 0.015 m, one segment; a box or cylinder given no bevel gets its tier (bevel=-1
+# keeps an edge dead sharp). Cutters are left unbevelled.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ship-detail-kit'))
+import ship_detail_kit as sdk  # noqa: E402
+
+
+def _bevel_hard_edges(bm):
+    """Angle-limited bevel, one segment (ship-detail-guide.md, Edge treatment): every convex
+    edge sharper than 60 deg not already chamfered gets the tier of its size (the shorter of
+    its two faces' spans: hull 0.12 m over 5 m, module 0.06 m over 1 m, fitting 0.03 m over
+    0.3 m, small 0.015 m), so no lofted, lathed or prism form is left with a hard edge."""
+    u = _units_per_metre()
+    if u is None:
+        return
+    def candidates():
+        groups = {}
+        for e in bm.edges:
+            if len(e.link_faces) != 2 or not all(v.is_manifold for v in e.verts):
+                continue                     # only clean edges: a bevel through a junction tears it
+            f1, f2 = e.link_faces
+            if f1.normal.length < .5 or f2.normal.length < .5 or f1.normal.angle(f2.normal) < math.radians(70):
+                continue
+            if (f2.calc_center_median()-f1.calc_center_median()).dot(f1.normal) > 0:
+                continue                     # concave: a recess or a seam, left sharp
+            span = min(math.sqrt(max(f.calc_area(), 0.0))*1.2 for f in (f1, f2))/u
+            kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
+            groups.setdefault(kind, []).append(e)
+        return groups
+    # Tier by tier, rescanning after each: a bevel rebuilds the faces round it, so the edges
+    # found before it may be gone and new ones (the far side of a thin part) appear.
+    for kind in ('hull', 'module', 'fitting', 'small'):
+        bm.normal_update()
+        edges = candidates().get(kind, [])
+        if edges:
+            bmesh.ops.bevel(bm, geom=edges, offset=min(sdk.BEVEL_M[kind]*u, _CAP[0]), offset_type='OFFSET',
+                            segments=1, profile=.5, affect='EDGES', clamp_overlap=True)
+
+
+def _resample_loop(loop, n):
+    """A closed YZ loop resampled to n points evenly by arc length, starting at its first point."""
+    pts = list(loop)+[loop[0]]
+    seg = [math.dist(a, b) for a, b in zip(pts, pts[1:])]
+    total = sum(seg) or 1.0
+    out, acc, i = [], 0.0, 0
+    for k in range(n):
+        target = total*k/n
+        while i < len(seg)-1 and acc+seg[i] < target:
+            acc += seg[i]
+            i += 1
+        t = (target-acc)/(seg[i] or 1.0)
+        a, b = pts[i], pts[i+1]
+        out.append((a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t))
+    return out
+
+
+def _refine_loops(stations, rounds=4):
+    """Subdivide the rounded stretches of a loft's YZ loops until each meets the segment
+    rule (chord sag within 5 mm). A stretch is rounded where the loop turns gently at both
+    ends of an edge (2-32 deg); chamfer corners and flats are left as they are. The same
+    edges are split in every loop (Catmull-Rom midpoints), so the loft still joins."""
+    u = _units_per_metre()
+    if u is None or not stations:
+        return stations
+    lim = sdk.SAG_M*u
+
+    def turn(loop, i):
+        a, b, c = loop[i-1], loop[i], loop[(i+1) % len(loop)]
+        v1, v2 = (b[0]-a[0], b[1]-a[1]), (c[0]-b[0], c[1]-b[1])
+        l1, l2 = math.hypot(*v1), math.hypot(*v2)
+        if l1 < 1e-9 or l2 < 1e-9:
+            return 0.0
+        cs = max(-1.0, min(1.0, (v1[0]*v2[0]+v1[1]*v2[1])/(l1*l2)))
+        return math.acos(cs)
+    for _ in range(rounds):
+        n = len(stations[0][1])
+        split = set()
+        for _, loop in stations:
+            for i in range(n):
+                j = (i+1) % n
+                ti, tj = turn(loop, i), turn(loop, j)
+                if not (math.radians(2) < ti < math.radians(32) and math.radians(2) < tj < math.radians(32)):
+                    continue
+                L = math.dist(loop[i], loop[j])
+                nb = max(math.dist(loop[i-1], loop[i]), math.dist(loop[j], loop[(j+1) % n]))
+                if L > 3*nb:
+                    continue                     # a flat between two rounds, not part of a curve
+                th = (ti+tj)/2
+                R = L/(2*math.sin(th/2))
+                if R*(1-math.cos(th/2)) > lim:
+                    split.add(i)
+        if not split:
+            break
+        out = []
+        for x, loop in stations:
+            new = []
+            for i in range(n):
+                new.append(loop[i])
+                if i in split:
+                    p0, p1, p2, p3 = loop[i-1], loop[i], loop[(i+1) % n], loop[(i+2) % n]
+                    soft = all(math.radians(.5) < turn(loop, q) < math.radians(32) for q in (i, (i+1) % n))
+                    if soft:          # this loop rounds here too: the arc's midpoint, bulged by its sag
+                        th = (turn(loop, i)+turn(loop, (i+1) % n))/2
+                        dx, dy = p2[0]-p1[0], p2[1]-p1[1]
+                        L = math.hypot(dx, dy)
+                        R = L/(2*math.sin(th/2))
+                        sg = R*(1-math.cos(th/2))
+                        v1 = (p1[0]-p0[0], p1[1]-p0[1])
+                        side = 1.0 if v1[0]*dy-v1[1]*dx > 0 else -1.0
+                        new.append(((p1[0]+p2[0])/2+side*dy/L*sg, (p1[1]+p2[1])/2-side*dx/L*sg))
+                    else:             # it has a corner or a flat here: a straight midpoint, no overshoot
+                        new.append(((p1[0]+p2[0])/2, (p1[1]+p2[1])/2))
+            out.append((x, new))
+        stations = out
+    # Along the loft: where a line through the stations rounds gently (a dome's crown, a
+    # pod's nose), add stations between, interpolated the same way, until it meets the rule.
+    for _ in range(rounds):
+        m = len(stations)
+        if m < 3:
+            break
+        n = len(stations[0][1])
+        lines = [[(x, *loop[j]) for x, loop in stations] for j in range(n)]
+
+        def turn3(a, b, c):
+            v1 = [q-p for p, q in zip(a, b)]
+            v2 = [q-p for p, q in zip(b, c)]
+            l1, l2 = math.sqrt(sum(t*t for t in v1)), math.sqrt(sum(t*t for t in v2))
+            if l1 < 1e-9 or l2 < 1e-9:
+                return 0.0
+            return math.acos(max(-1.0, min(1.0, sum(p*q for p, q in zip(v1, v2))/(l1*l2))))
+        split = set()
+        for ln in lines:
+            for i in range(m-1):
+                ti = turn3(ln[i-1], ln[i], ln[i+1]) if i > 0 else None
+                tj = turn3(ln[i], ln[i+1], ln[i+2]) if i+2 < m else None
+                ts = [t for t in (ti, tj) if t is not None]
+                if not ts or not all(math.radians(2) < t < math.radians(45) for t in ts):
+                    continue
+                L = math.dist(ln[i], ln[i+1])
+                th = sum(ts)/len(ts)
+                R = L/(2*math.sin(th/2))
+                if R*(1-math.cos(th/2)) > lim:
+                    split.add(i)
+        if not split:
+            break
+        out = []
+        for i in range(m):
+            out.append(stations[i])
+            if i in split:
+                a, b, c, d = stations[max(i-1, 0)], stations[i], stations[i+1], stations[min(i+2, m-1)]
+
+                def cr(p0, p1, p2, p3):
+                    return .5*(2*p1+(-p0+p2)*.5+(2*p0-5*p1+4*p2-p3)*.25+(-p0+3*p1-3*p2+p3)*.125)
+                x = .5*(b[0]+c[0])            # stations stay in order: only the shape is curved
+                def cr_clamped(p0, p1, p2, p3):
+                    v = cr(p0, p1, p2, p3)
+                    lo, hi = min(p1, p2), max(p1, p2)
+                    pad = .25*(hi-lo)
+                    return min(max(v, lo-pad), hi+pad)     # never past its neighbours by more than a quarter
+                loop = [(cr_clamped(pa[0], pb[0], pc[0], pd[0]), cr_clamped(pa[1], pb[1], pc[1], pd[1]))
+                        if i > 0 and i+2 < m else ((pb[0]+pc[0])/2, (pb[1]+pc[1])/2)
+                        for pa, pb, pc, pd in zip(a[1], b[1], c[1], d[1])]
+                out.append((x, loop))
+        stations = out
+    return stations
+
+
+def _arc_points(r_units, quarter=True):
+    """Points a rounded arc of this radius needs by the segment rule (a quarter turn, or half)."""
+    u = _units_per_metre()
+    if u is None or r_units <= 0:
+        return 0
+    return sdk.segments(r_units/u)//(4 if quarter else 2)
 
 
 def _units_per_metre():
@@ -137,16 +308,19 @@ def _units_per_metre():
 
 def _round_segments(r, n):
     u = _units_per_metre()
-    if u is None or r <= 0:
+    if u is None or r <= 0 or (n == sdk.BOLT_SEGMENTS and r/u < .1):   # a hex head
         return n
-    need = math.ceil(2*math.pi*(r/u)/ROUND_CHORD_M)
-    need = min(ROUND_MAX, -(-need//4)*4)
-    return max(n, need)
+    return max(n, sdk.segments(r/u))
 
 
-def _detail_bevel():
+def _detail_bevel(size):
+    """The bevel (units) for a part whose smallest face spans `size` units."""
     u = _units_per_metre()
-    return EDGE_BEVEL_M*u if u is not None else 0.0
+    if u is None:
+        return 0.0
+    m = size/u
+    kind = 'hull' if m > 5 else 'module' if m > 1 else 'fitting' if m > .3 else 'small'
+    return sdk.BEVEL_M[kind]*u
 
 
 AX = {'X': Matrix.Rotation(math.pi/2, 4, 'Y'), 'Y': Matrix.Rotation(-math.pi/2, 4, 'X'), 'Z': Matrix.Identity(4)}
@@ -183,20 +357,20 @@ class Mesh:
         m = self._m(c, rot=rot) @ Matrix.Diagonal((*d, 1))
         verts = bmesh.ops.create_cube(self.bm, size=1.0, matrix=m)['verts']
         if bevel == 0.0 and not self.cutter:
-            bevel = _detail_bevel()                 # no bare box: every edge catches a highlight
+            bevel = _detail_bevel(sorted(d)[1])     # no bare box: every edge catches a highlight
         b = min(max(bevel, 0.0), .45*min(d), _CAP[0])
         if b > 1e-4:
             edges = list({e for v in verts for e in v.link_edges})
             bmesh.ops.bevel(self.bm, geom=verts+edges, offset=b, offset_type='OFFSET', segments=seg,
                             profile=.5, affect='EDGES', clamp_overlap=True)
 
-    def lathe(self, profile, n, c=(0, 0, 0), axis='Z', phase=0.0, loop=False, rot=None):
+    def lathe(self, profile, n, c=(0, 0, 0), axis='Z', phase=0.0, loop=False, rot=None, plates=False):
         """Solid of revolution about the local axis from [(radius, along), ...].
         Ends are capped (a zero radius just marks a closed end); loop=True joins
         the last point to the first for a ring with a hole and no caps."""
         m = self._m(c, axis, rot)
         pts = [p for p in profile if loop or p[0] > 1e-6]
-        if n >= 18:                                  # a round part, not a ring of plates: no facets
+        if not plates:                               # a round part, not a ring of plates: no facets
             n = _round_segments(max(r for r, _ in pts), n)
         ang = [phase+2*math.pi*i/n for i in range(n)]
         rings = [[self.bm.verts.new(m @ Vector((r*math.cos(a), r*math.sin(a), z))) for a in ang] for r, z in pts]
@@ -209,8 +383,8 @@ class Mesh:
             self.bm.faces.new(rings[-1])
 
     def cyl(self, c, r, depth, axis='X', n=24, bevel=0.0, rot=None):
-        if bevel == 0.0 and not self.cutter and n >= 8:
-            bevel = .6*_detail_bevel()
+        if bevel == 0.0 and not self.cutter and n > sdk.BOLT_SEGMENTS:
+            bevel = _detail_bevel(min(2*r, depth) if depth < 2*r else 2*r)
         b = min(max(bevel, 0.0), .45*r, .45*depth, _CAP[0])
         h = depth/2
         prof = [(r-b, -h), (r, -h+b), (r, h-b), (r-b, h)] if b > 1e-4 else [(r, -h), (r, h)]
@@ -240,8 +414,15 @@ class Mesh:
 
     def loft_x(self, stations):
         """Closed solid through YZ loops [(x, [(y, z), ...]), ...], capped at both ends."""
+        n = max(len(loop) for _, loop in stations)
+        if any(len(loop) != n for _, loop in stations):
+            # Rounds segmented by the rule can give stations different point counts:
+            # resample each loop to the most, by arc length, so the faces still join.
+            stations = [(x, loop if len(loop) == n else _resample_loop(loop, n)) for x, loop in stations]
+        if not self.cutter:
+            stations = _refine_loops(stations)
+        n = len(stations[0][1])
         rings = [[self.bm.verts.new(self.base @ Vector((x, y, z))) for y, z in loop] for x, loop in stations]
-        n = len(rings[0])
         for a, b in zip(rings, rings[1:]):
             for k in range(n):
                 self.bm.faces.new((a[k], a[(k+1) % n], b[(k+1) % n], b[k]))
@@ -254,6 +435,8 @@ class Mesh:
             return None
         bmesh.ops.remove_doubles(self.bm, verts=self.bm.verts, dist=1e-5)
         bmesh.ops.recalc_face_normals(self.bm, faces=self.bm.faces)
+        if not self.cutter and (self._cut is None or not self._cut.bm.faces):
+            _bevel_hard_edges(self.bm)      # a part cut by a boolean keeps the edges its builder gave it
         me = bpy.data.meshes.new(name)
         self.bm.to_mesh(me)
         self.bm.free()
@@ -275,6 +458,11 @@ class Mesh:
             bpy.context.view_layer.update()
             carved = bpy.data.meshes.new_from_object(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()))
             ob.modifiers.remove(mod)
+            bm2 = bmesh.new()                 # the carved part's hard edges, bevelled like any other
+            bm2.from_mesh(carved)
+            _bevel_hard_edges(bm2)
+            bm2.to_mesh(carved)
+            bm2.free()
             ob.data = carved
             bpy.data.meshes.remove(me)
             carved.name = name
@@ -336,8 +524,8 @@ def section(hw, z0, z1, top=0.0, bot=0.0, tumble=0.0, round_=0):
     """A YZ loop: half-width hw at the base narrowing by `tumble` at the top,
     chamfered `top` and `bot`, each chamfer rounded through `round_` extra points."""
     def arc(cy, cz, ry, rz, a0, a1):
-        return [(cy+ry*math.cos(a0+(a1-a0)*t/(round_+1)), cz+rz*math.sin(a0+(a1-a0)*t/(round_+1)))
-                for t in range(round_+2)]
+        m = max(round_+1, _arc_points(max(ry, rz))) if round_ else 1   # rounds keep to the segment rule
+        return [(cy+ry*math.cos(a0+(a1-a0)*t/m), cz+rz*math.sin(a0+(a1-a0)*t/m)) for t in range(m+1)]
     ht = hw-tumble
     pts = []
     pts += arc(-hw+bot, z0+bot, bot, bot, math.pi, 1.5*math.pi) if bot else [(-hw, z0)]
@@ -547,7 +735,7 @@ def barbette(name, r, lift, mats, mpu, detail='near', foot=None, location=(0, 0,
         top, base = 1.16*r, 1.16*r+min(.35*foot, .5*r)
         c = min(.06*r, .25*foot)
         p.lathe([(0, -foot), (base, -foot), (base, -foot+.25*foot), (top, -.2*foot+c), (top, -c), (top-c, 0),
-                 (0, 0)], 16, phase=math.pi/16)
+                 (0, 0)], 48, phase=math.pi/48)   # round, by the segment rule
         for t in (.45, .72):                                   # plate courses
             zc = -foot*t
             rc = top+(base-top)*max(0, (t-.2)/.55)
@@ -716,7 +904,7 @@ def _dome(g, f, s, r, z0):
     u = f.u
     prof = [(.8*r, z0), (.8*r, z0+.14*r), (.77*r, z0+.24*r), (.7*r, z0+.33*r), (.58*r, z0+.42*r),
             (.42*r, z0+.49*r), (.22*r, z0+.53*r), (0, z0+.54*r)]
-    g['plate'].lathe(prof, 10, phase=math.pi/10)          # ten welded plates, sharp at the joins
+    g["plate"].lathe(prof, 10, phase=math.pi/10)   # ten welded plates, rounded to the segment rule; welds mark the joins
     g['armour'].lathe([(.82*r, z0), (.82*r, z0+.07*r), (.8*r, z0+.09*r), (0, z0+.09*r)], 48)
     for k in range(10):                                      # weld beads up the plate joins
         a = 2*math.pi*k/10
@@ -1209,7 +1397,7 @@ def _dC_block(m, x0, x1, yc, hw, z0, z1, ch, tumble=0.0, bot=0.0):
     bot = min(bot, .45*hw) if bot else 0.0
 
     def sec(w, top_z, c):
-        return [(yc+y, z) for y, z in section(w, z0, top_z, c, bot, min(tumble, .3*w))]
+        return [(yc+y, z) for y, z in section(w, z0, top_z, c, bot, min(tumble, .3*w), 1)]
     end = sec(hw-ch, z1-ch, ch*.5)
     mid = sec(hw, z1, ch)
     m.loft_x([(x0, end), (x0+ch, mid), (x1-ch, mid), (x1, end)])
@@ -1927,7 +2115,7 @@ def _house_dualflak(g, f, s, r, z0):
             st = []
             for x, w, h in ((-6.4, 2.2, 4.4), (-5.6, 3.0, 5.4), (6.0, 3.0, 5.4), (8.8, 2.6, 4.8)):
                 st.append((x*k, [(y+yy, zz) for yy, zz in section(w*k, za-2.4*k, za-2.4*k+h*k, 1.0*k, .2*k,
-                                                                           .7*k)]))
+                                                                           .7*k, 1)]))
             drum = gg[f'paint#drum{b["y"]}']
             drum.loft_x(st)
             # The amber chamber: the sprite's brightest pixels, behind the barrel
@@ -2117,6 +2305,8 @@ def _dd_revolve(m, c, axis, loop, a0, a1, n):
     """Sweep a closed (radius, along-axis) loop about `axis` through c from angle a0 to a1,
     capped at both ends: an arch, a sector plate, a hoop."""
     M = m._m(c, axis)
+    rmax = max(rr for rr, _ in loop)
+    n = max(n, math.ceil(_round_segments(rmax, 12)*abs(a1-a0)/(2*math.pi)))   # the segment rule
     rings = []
     for i in range(n+1):
         a = a0+(a1-a0)*i/n
@@ -2217,7 +2407,7 @@ def _house_squall(g, f, s, r, z0):
     # Rear housing: dark, lofted with a bevelled tail, louvred aft, the pale-blue band on top, feet aft.
     rear = g['paint#rear']
     _plan_loft(rear, [(-12.6, 9.5, 3.1), (-12.2, 10.0, 3.6), (-4.9, 10.0, 3.6), (-4.5, 9.6, 3.2)],
-               z0+1.2*k, k, .45, .1, .25)
+               z0+1.2*k, k, .45, .1, .25, round_=1)
     for i in range(4):                                       # louvre slots across its tail
         zz = z0+(2.6+.55*i)*k
         rear.cut().box((-12.6*k, 0, zz), (.9*k, 15.0*k, .32*k), .02*k)
@@ -2370,7 +2560,7 @@ def _house_hurricane(g, f, s, r, z0):
     hoops over the MIRV lying between them."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    g.mats = dict(g.mats, cyan=lamp_material('Turret lamp cyan', (0.0, .5, .5)))
+    g.mats = dict(g.mats, lamp_cyan=lamp_material('Turret lamp cyan', (0.0, .5, .5)))
     xc, R = -1.0*k, 14.3*k
     hd = 3.6*k
     drum = g['paint#drum']
@@ -2408,7 +2598,7 @@ def _house_hurricane(g, f, s, r, z0):
         g['steel'].lathe([(0, 0), (.7*k, 0), (.7*k, sy*.25*k), (.3*k, sy*.35*k), (.3*k, sy*.95*k),
                           (.55*k, sy*1.05*k), (.55*k, sy*1.45*k), (0, sy*1.45*k)], 20,
                          (xc-5.5*k, sy*13.05*k, z0+2.0*k), 'Y')
-        g['cyan'].cyl((xc-5.5*k, sy*14.55*k, z0+2.0*k), .4*k, .14*k, 'Y', n=20)
+        g['lamp_cyan'].cyl((xc-5.5*k, sy*14.55*k, z0+2.0*k), .4*k, .14*k, 'Y', n=20)
     g['plate'].lathe([(3.0*k, 0), (3.0*k, .35*k), (2.8*k, .5*k), (2.0*k, .5*k), (2.0*k, .55*k), (0, .55*k)], 40,
                      (-2.0*k, 0, z0+hd+1.4*k))
     f.bolts(g['steel'], (-2.0*k, 0, 0), 2.45*k, z0+hd+1.95*k, spacing=.6, r=.06, h=.05)
@@ -2546,6 +2736,7 @@ def _dome_section(hw, z0, h, p=.5, n=16, yc=0.0):
     """A YZ loop rounded over the top: a superellipse arch of half-width hw and
     height h on a flat base (p 1 is a diamond, .5 a half-ellipse, lower squarer)."""
     pts = []
+    n = max(n, _arc_points(max(hw, h), quarter=False))
     for i in range(n+1):
         a = math.pi*i/n
         c, sn = math.cos(a), math.sin(a)
@@ -2584,12 +2775,12 @@ def _dome_z(y, hw, h, p=.5):
     return h*max(1-c*c, 0)**(p/2)
 
 
-def _plan_loft(m, table, z0, k, top, bot=.1, tumble=.4, yc=0.0):
+def _plan_loft(m, table, z0, k, top, bot=.1, tumble=.4, yc=0.0, round_=0):
     """Loft a house from a plan table [(x, half_width, height), ...] in sprite px."""
     st = []
     for x, w, h in table:
         loop = [(yc*k+yy, zz) for yy, zz in section(w*k, z0, z0+h*k, min(top, .45*h, .45*w)*k, bot*k,
-                                                     min(tumble, .3*w)*k)]
+                                                     min(tumble, .3*w)*k, round_)]
         st.append((x*k, loop))
     m.loft_x(st)
 
@@ -2993,7 +3184,7 @@ def _house_mark9(g, f, s, r, z0):
     for sy in (1, -1):
         st = []                                                                           # copper side block
         for x, w, h in ((1.6, 1.6, H-2.2), (2.6, 2.6, H-1.2), (8.6, 2.6, H-1.4), (9.8, 1.6, H-2.4)):
-            loop = [(sy*17.4*k+yy, zz) for yy, zz in section((w+.8)*k, z0, z0+h*k, .9*k, .1*k, .7*k)]
+            loop = [(sy*17.4*k+yy, zz) for yy, zz in section((w+.8)*k, z0, z0+h*k, .9*k, .1*k, .7*k, 1)]
             st.append((x*k, loop if sy > 0 else loop[::-1]))
         g['paint'].loft_x(st)
         # A louvred cooling vent in its crown, and bolts down its inboard edge.
@@ -3861,6 +4052,7 @@ def _house_reaper(g, f, s, r, z0):
 def _cable(m, ctrl, r, k, z0, n=12, segs=16, t0=0.0, t1=1.0):
     """A cable swept along a cubic Bezier ctrl = 4 points (x, y, z) in sprite pixels (z above z0),
     from parameter t0 to t1: round, capped, its rings kept square to the run."""
+    n = _round_segments(r*k, n)
     P = [Vector(c) for c in ctrl]
 
     def at(t):

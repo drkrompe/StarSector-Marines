@@ -177,7 +177,13 @@ public record ConquestFrontSnapshot(
         /** An assault-element squad holding the aspect it has taken until the next pick. */
         ASSAULT_HOLD,
         /** A squad of an assault plan in position to open the wall section of a breach, at range or at its foot. */
-        ASSAULT_BREACH
+        ASSAULT_BREACH,
+        /** A lane squad sent to man a run of a fort its side has taken, because a counter-attack is believed near it. */
+        HOLD_GROUND_MAN,
+        /** A squad continuing to man a taken fort's run while its believed pressure stays up, or until the dwell ends. */
+        HOLD_GROUND_STAND,
+        /** A holder of a taken fort's run whose ground was breached or which fell below useful strength, withdrawn to the works. */
+        HOLD_GROUND_FALL_BACK
     }
 
     public record TrackState(

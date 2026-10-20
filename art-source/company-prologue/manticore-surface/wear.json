@@ -1,0 +1,19 @@
+{
+ "_doc": "Owned per-state wear weights (wear.py), the Second Wind's scale: 0 = none, 1 = its derelict ceiling. The Manticore (P), a pirate destroyer that opens the Asharu fight: `battle` is what the build ships, the same row as the Colossus Mk.III (`battle`) and near the Kite (P), Falcon (P) and Hound (P) (`pirate`), so the pirate fleet wears one standard: scuffed and pitted, the scarlet overpaint faded, heavy grime and soot round five drives, never properly maintained.",
+ "clean": {
+  "abrasion": 0.0,
+  "pitting": 0.0,
+  "fade": 0.0,
+  "grime": 0.0,
+  "soot": 0.0,
+  "neglect": 0.0
+ },
+ "battle": {
+  "abrasion": 0.58,
+  "pitting": 0.45,
+  "fade": 0.45,
+  "grime": 0.6,
+  "soot": 0.75,
+  "neglect": 0.4
+ }
+}

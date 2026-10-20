@@ -4,7 +4,7 @@ Status: SHIPPED — the campaign-start and first-contract dialogue register, and
 
 Written: 2026-10-14
 
-Updated: 2026-10-20 — Relief's ore-dust cover story: the company rides up on Wayline's truck; turn 4, Sabine's briefing and Mara's first radio turn re-recorded.
+Updated: 2026-10-20 — Prologue rewritten to seven pages; every forward button is the Commander's line, and the old eighth page folds into A WAY TO SURVIVE.
 
 ## How to read this script
 
@@ -29,8 +29,11 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
 ## Owner calls
 
 1. **Nessa and Mara are sisters.** Castle hears of Wayline through Nessa; the yard
-   visit carries the bridge. Players starting at a fallback port never meet Nessa,
-   so every line that depends on the relationship is Jangala-only.
+   visit carries the bridge. There is one story for every start port (owner,
+   2026-10-20): a start that lands at a fallback port because Jangala is
+   unavailable still meets Nessa, and Castle's, Nessa's and Mara's lines say
+   Jangala. Only course, objective, Intel and mission text that names a place
+   uses the port actually chosen.
 2. **The founding field commander came off the Claim, and so did her squad.** She
    commanded the mine's escort section; twelve of them stayed with her. She is
    renamed **Sabine Hale** so she cannot be confused with Mara in
@@ -175,28 +178,36 @@ voices:
 
 ## 1 — Prologue
 
-Eight illustrated pages: a narration paragraph, then Castle. The present-day
-bridge opens it; pages two to four go back to show how the Claim died and how
-Second Wind was raised out of it; page five returns to the bridge. **THE WRITING
-ON THE WALL** and **RAISING HER** are new pages (title, narration and Castle line
-are new strings); the rest replace existing text.
+Seven illustrated pages (owner, 2026-10-20): a narration paragraph, then Castle,
+then the Commander's answer, which is the page's forward button. There is no
+"Continue": every page turns on a line the player says. The present-day bridge
+opens it; pages two to four go back to show how the Claim died and how Second Wind
+was raised out of it; page five returns to the bridge, and six and seven carry
+the ship to its berth. The last answer, "Take us to {0}.", is the one line that
+names the port the start actually chose; the story and Castle's voice say
+Jangala everywhere.
 
 Facts these pages establish: Harker's Claim is a remote asteroid mine, three
 weeks' haul from the nearest port, that dug transplutonic ore (the game's
 `rare_ore`, refined into Transplutonics) and was worth the trip while the good
-seams lasted. Its operator ran it down quietly over years
-while telling the workers output was falling, then posted a date when facility
-support (air, heat, power) would end. The last carrier left eleven days before
-that date with the administrators and the payroll; worker passage was priced in
-credits nobody paid in scrip could raise. The Cerberus by the loading locks was
-the old escort hull, laid up and stripped for eleven years; Sabine's section had
-ridden the carriers since. Tethered at the locks with no shields up and no point
-defence running, she spent those years taking the belt's debris one strike at a
-time: that is where the sealed bunkrooms, the holed mess, the torn mech bay and
-the jammed second boat bay come from. The crew kept a chalk count of the days left on her
-hull, and lit her drive with four days on it.
+seams lasted. Its operator ran it down quietly over years, then posted a date
+when facility support (air, heat, power) would end. The last carrier left eleven
+days before that date with the administrators and the payroll; worker passage
+was priced in credits nobody paid in scrip could raise. Castle signed for every
+carrier and knew what they carried. The Cerberus had been the Claim's escort
+until a raid holed her reactor shroud; the operator stripped her best guns and
+moored her out in the belt, where years of drifting grit warped her frame and
+left her drive rough and hungry for spares: that is where the sealed bunkrooms,
+the holed mess, the torn mech bay and the jammed second boat bay come from. The
+crew towed her in with an ore tug, gave her the lower habs' air plant to seal
+her, and lit her drive on the third try, with five days left on the chalk count
+beside her airlock. They set out for Jangala from the start, on the strength of
+Castle's one contact there, Nessa Venn at Greywater Down. Everyone aboard holds
+worthless company scrip; the real credits Castle quietly saved over the years are
+what pay for the yard, and nobody else knows how little that is. Forty-five
+people are aboard.
 
-**SECOND WIND**
+**SECOND WIND** (`second-wind`)
 
 `openingCompanyPrologueTheAlarmAboveTheHatchHasFinally`
 > The hatch alarm stopped an hour ago. Castle still looks up at it whenever the
@@ -206,29 +217,34 @@ hull, and lit her drive with four days on it.
 
 `openingCompanyPrologueYouCanLetGoOfTheChair` — Castle
 > You can let go of the chair, Commander. She's holding. I sent everyone I could
-> spare to get some sleep. They keep asking me where we're headed, and what
-> happens when we get there. I told them you'd already picked a direction. Don't
-> make a liar of me.
+> spare to get some sleep. Half of them are in the galley instead, asking each
+> other what Jangala's like. None of them have been past the Claim's beacon. I'm
+> the only one aboard who's seen it, and that was a long time ago.
 
-**THE WRITING ON THE WALL** (new page)
+`openingCompanyPrologueThenGoAndGetSomeSleepYourself` — Commander
+> Then go and get some sleep yourself.
 
-New narration
+**THE WRITING ON THE WALL** (`claim`)
+
+`openingCompanyPrologueHarkerSClaimWasThreeWeeksHaul`
 > Harker's Claim was three weeks' haul from the nearest port, and the
 > transplutonic ore in its seams was worth every day of it. Then the good seams
-> thinned, and slowly the Claim stopped paying. The second shaft was "suspended pending
-> survey." The drill rigs went out on the carriers "for refurbishment" and never
-> came back. The clinic lost its surgeon to a transfer nobody had applied for.
-> Carriers came monthly instead of weekly, and left heavier than they arrived. The
-> notice that finally went up in the canteen was two lines long and ended with a
-> date.
+> thinned, and slowly the Claim stopped paying. The second shaft was "suspended
+> pending survey." The drill rigs went out on the carriers "for refurbishment" and
+> never came back. The clinic lost its surgeon to a transfer nobody had applied
+> for. Carriers came monthly instead of weekly, and left heavier than they
+> arrived. The notice that finally went up in the canteen was two lines long and
+> ended with a date.
 
-New — Castle
-> I ran the Claim's manifests for nine years. Every month they told us output was
-> down, outbound tonnage went up. Spare rigs, reactor stock, the clinic's
-> scanner, all listed as ore. They weren't failing, Commander. They were
-> packing.
+`openingCompanyPrologueISignedForEveryOneOfThoseCarriers` — Castle
+> I signed for every one of those carriers, Commander. Nine years of manifests,
+> and I knew a reactor stack from a crate of ore. I told myself it wasn't mine to
+> ask. That's the part I keep coming back to.
 
-**WHAT WE LEFT BEHIND**
+`openingCompanyPrologueYouWerenTTheOneWhoLeft` — Commander
+> You weren't the one who left.
+
+**WHAT WE LEFT BEHIND** (`last-carrier`)
 
 `openingCompanyPrologueTheLastOreCarrierTookTheMine`
 > The date was when facility support would end: air, heat, power. The last ore
@@ -237,128 +253,101 @@ New — Castle
 > could raise. The rest of the Claim kept reporting for shifts until the ration
 > counter stopped taking company scrip.
 
-`openingCompanyPrologueStillHadAMonthSPayOn` — Castle, `{0}` one of the next two
-> Still had a month's pay on my account at the Claim. Kept the chit. Couldn't tell
-> you why. {0}What's left in the ship's account is everybody's. Make it last.
+`openingCompanyPrologueEveryoneAboardHasAPocketfulOfScrip` — Castle
+> Everyone aboard has a pocketful of scrip, and it spends at one counter in the
+> sector, and that counter's dark. Over the years I kept back a little in real
+> credits, the kind that spend anywhere. Not much. It's what gets us a yard.
+> Nobody else knows how little it is.
 
-`openingCompanyPrologueTheRealMoneySMostlySpokenFor` (yard payment held)
-> The real money's spoken for. The yard payment's locked away where nobody can
-> borrow against it, and the shuttle parts and the squad's kit are paid.
+`openingCompanyPrologueThenItStaysBetweenUsUntilWeLand` — Commander
+> Then it stays between us until we land.
 
-`openingCompanyPrologueIVePaidForShuttlePartsAnd` (no held payment)
-> Shuttle parts and the squad's kit are paid for. The yard money has to come out
-> of what's left.
+**RAISING HER** (`raising-her`)
 
-**RAISING HER** (new page)
+`openingCompanyPrologueTheCerberusHadBeenTheClaimSEscort`
+> The Cerberus had been the Claim's escort until the run she came home with her
+> reactor shroud holed and half her crew in the clinic. Raiders, the report said,
+> and never said whose. Fixing her would have cost more than she was worth, so
+> the operator stripped her best guns, moored her out in the belt and stopped
+> thinking about her. Years of drifting grit did the rest: her frame never sat
+> true again, her drive ran rough, and everything aboard ate spares. You towed
+> her in to the locks with an ore tug. The first time you lit her drive, the
+> coils blew and took the inspection lamps with them. The second time, nothing at
+> all. The days chalked beside her airlock went from twelve to five while you
+> pulled coil out of a hauler that hadn't flown since before the Claim had a
+> name.
 
-New narration
-> The Cerberus by the loading locks had been the Claim's escort hull until the
-> operator decided ore didn't need escorting. For eleven years she was a parts
-> bin, tethered at the locks with her shields cold and her point defence
-> stripped, and the belt's small rocks found her one at a time. Someone chalked the days left beside her airlock, and someone else kept the
-> count honest. You took drive coil from a hauler that hadn't flown since before
-> the Claim had a name, pressure seals off the doors of habs nobody would need
-> again, and a navigation core out of the administrator's empty office. Sabine's
-> section unbolted the point-defence mounts from the gantries and carried them
-> aboard by hand. You still have the list of everything you couldn't replace. It
-> is longer than the list of what you could.
+`openingCompanyPrologueWeGaveHerTheLowerHabsAirPlant` — Castle
+> We gave her the lower habs' air plant to get her sealed. After that there was
+> no going back down. If she hadn't lit on the third try, I'd have been standing
+> in the dark with everyone asking me what next.
 
-New — Castle
-> Four days left on the chalk when you lit her drive. I watched the whole loading
-> dock hold its breath. Nobody asked whether she'd fly, Commander. Not once. They
-> asked what to carry next.
+`openingCompanyPrologueSheLit` — Commander
+> She lit.
 
-**THE DEPARTURE ROSTER**
+**THE DEPARTURE ROSTER** (`departure-roster`)
 
 `openingCompanyPrologueTheDepartureRosterIsInYourHandwriting`
 > The departure roster is in your handwriting. Castle's additions run down the
 > margin in a smaller hand: fuel, seals, filters, one more person who needed a
 > berth, then another. Near the bottom, in block capitals, Sabine Hale has added
-> her escort section: fifteen names, two struck through. Nobody held a vote
-> about the command chair. While you were checking the last pressure patch,
-> someone painted SECOND WIND over the old registry and didn't sign it.
+> her escort section: fifteen names, two struck through. While you were checking
+> the last pressure patch, someone painted SECOND WIND over the old registry and
+> didn't sign it.
 
-`openingCompanyPrologueYouRememberTheNightTheyShutOff` — Castle
-> Remember the night they cut power to the lower habs? You were down there
-> running cable out of this wreck. That's when people started bringing me their
-> names. Not when we lit the drive. So you can stop looking at me every time
-> somebody says "Commander."
+`openingCompanyPrologueSabineDidnTAskIfThereWasRoom` — Castle
+> Sabine didn't ask if there was room. She asked where her people should stand.
+> The two she struck off were down the lower shaft when it went dark. She hasn't
+> said their names since, and I haven't asked.
 
-**SOMEWHERE TO DOCK**
+`openingCompanyPrologueThenNobodyElseGetsLeft` — Commander
+> Then nobody else gets left.
 
-`openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic` (Jangala)
-> Corvus has working yards, steady freight and Hegemony patrols crawling across
-> the navigation display. Castle scrolls past the public yard listings to a
-> private address: Nessa Venn, Jangala. The last message in the thread is years
-> old and ends in the middle of an argument. Castle reads it twice before she
-> starts a new one.
+**SOMEWHERE TO DOCK** (`somewhere-to-dock`)
 
-`openingCompanyPrologueCastleSearchesThePortListingsForSomewhere` (fallback)
-> Castle works down the port listings for anywhere that will berth a civilian
-> hull and has a yard that can actually do the work. Half of them want a deposit
-> just to reply. A published berth and a working yard are worth more than anyone's
-> promise.
+`openingCompanyPrologueCorvusFillsTheNavigationDisplay`
+> Corvus fills the navigation display: working yards, steady freight, Hegemony
+> patrols crawling along the lanes. You plotted for it before the Claim was out of
+> sight, on the strength of one name. Now the relay finally answers, and Castle
+> opens a thread that is years old and ends in the middle of an argument: Nessa
+> Venn, Jangala.
 
-`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (Jangala)
+`openingCompanyPrologueAnOldFriendIOweHerMore` — Castle (arrival cinematic ahead)
+> An old friend. I owe her more than she'll let me say. If she's still at
+> Greywater Down, she'll find us a cradle. If she isn't, we're a long way from
+> anyone else who owes me anything. I'll tell you the rest on the way down.
+
+`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (no arrival
+cinematic, so the memory is told here)
 > Nessa Venn. We ran ore together before she settled into the yards on Jangala.
 > Once spent three days towing my dead freighter home and swore she'd cut me loose
-> at every buoy. Never did. She'll have opinions about this ship. Let me talk
-> first.
+> at every buoy. Never did. If she's still at Greywater Down, she'll find us a
+> cradle. If she isn't, we're a long way from anyone else who owes me anything.
 
-`openingCompanyPrologueHasAWorkingYardIDonT` — Castle (fallback)
-> {0} has a working yard. I don't know a soul there. We ask for a berth and a
-> written estimate, and we keep our story short.
+`openingCompanyPrologueSendIt` — Commander
+> Send it.
 
-`openingCompanyPrologueNoAnswerFromAYardWeCan` — Castle (no port)
-> No yard in reach is answering. I'll keep trying. We didn't come all this way to
-> live on emergency power.
+**A WAY TO SURVIVE** (`cargo-billets`)
 
-**A WAY TO EARN**
-
-`openingCompanyPrologueACargoHandSleepsBesideTheBridge`
+`openingCompanyPrologueACargoHandSleepsAgainstTheBridgeHatch`
 > A cargo hand sleeps against the bridge hatch with her boots on. The crew take
-> turns in the bunks that still hold pressure. In the cargo hold, Sabine's twelve
-> sleep in shifts beside their stacked rifles, the way they did on the ore runs.
-> Below decks are two wrecked Hermes and compartments you haven't dared put back
-> on the power bus. Castle has been reading surface security notices: depots,
-> convoy stops, freight roads that need guarding and can't afford anyone
-> established.
+> turns in the bunks that still hold pressure. In the hold, Sabine's twelve sleep
+> in shifts beside their stacked rifles. Below decks are two wrecked Hermes
+> shuttles and compartments you haven't dared put back on the power bus.
 
-`openingCompanyPrologueYouSaidWeCouldTakeContractWork` — Castle
-> You said once we were clear we'd take contract work. I've been looking. A proper
-> company carries a Hegemony review-board licence; the fee alone is more than this
-> ship is worth. So we take work from people who can't afford licensed companies
-> either. There are plenty of them. Sabine's people haven't been paid in four
-> months and they still stand watch. One shuttle. One squad on the roll, kitted
-> and fed. Then we see.
+`openingCompanyPrologueNessaAnsweredSheSHeldACradle` — Castle
+> Nessa answered. She's held a cradle for us, and she'll do the work for what
+> I've saved: bunks and a proper fit, nothing more. After that we're forty-five
+> people in a yard with an empty galley. We'll need work, Commander, and soon.
 
-**THE FIRST STEP**
+`openingCompanyPrologueTakeUsTo` — Commander, `{0}` the start port; plots the
+course and closes the prologue (`openingCompanyPrologueTakeCommand` when no port
+is reachable at all)
+> Take us to {0}.
 
-`openingCompanyPrologueCastlePutsTheYardEstimateBesideThe`
-> Castle lays the yard estimate on top of the old shift roster. For a moment she
-> holds it flat, her palm over the operator's crest. Then she slides both aside so
-> you can reach the navigation controls.
-
-`openingCompanyPrologueThenWeGetABoatFlyingAnd` — Castle, `{0}` a destination
-part then a payment part
-> {0}Then we get a boat flying and Sabine's people aboard her. After that...
-> well. We might actually be a company, Commander.
-
-`openingCompanyPrologueNessaSentAnEstimateCalledTheJob` (Jangala)
-> Nessa sent an estimate. She called the job "ambitious" twice, which beats
-> "scrap." Five thousand for the conversion, and she's found room in her stores
-> for ours.
-
-`openingCompanyPrologueWeLlGetTheYardAtTo` (fallback)
-> The yard at {0} will do the conversion. Five thousand, if they hold to the
-> estimate.
-
-`openingCompanyPrologueWeLlFindABerthThenBunks` (no port)
-> We find a berth. Then bunks, a workshop, and someone who can tell us which of
-> those shuttles is worth saving.
-
-`openingCompanyPrologueIVeKeptThePaymentSafe` / `…WeLlHaveToWatchThatYard`
-> The payment's safe. / We'll be watching that yard money.
+The strip under the picture reads `openingCompanyPrologueCrewAboardSpendableCredits`
+("Crew {0} / 45 aboard / {1} spendable credits"), then the held-payment line and
+the course objective.
 
 ### Ship survey: where the damage came from
 
@@ -396,8 +385,8 @@ work: the bill, the runway it leaves, the road up, and the cover story. Page 1's
 Next pays and installs; after that the pages are a straight click-through. There
 is no Skip or "Return to port" on these pages, and Back is off on pages 1 and 2, so
 the bill cannot be reached again once it is paid. Each Next button carries the
-Commander's reply. A non-Jangala yard plays pages 1 and 2 only, with Nessa's name
-taken out.
+Commander's reply. Second Wind's conversion plays all four pages, with Nessa, at
+whichever port the start chose.
 
 The figures (owner, 2026-10-20) are stated in days of runway, not rescaled. The
 story's daily board-and-berth burn for the forty-five aboard is about 21.34
@@ -451,7 +440,7 @@ Commander (Next): *We'll need to make a living somehow.*
 
 The figures box reads the live account and works the days out from it.
 
-**Page 3 — THE ROAD UP** (`yard-road`, Jangala only)
+**Page 3 — THE ROAD UP** (`yard-road`)
 > Nessa's racks are half empty. Most of her parts come up the Wayline road from the
 > highland depots, and raiders have held that road for a month. The drivers'
 > cooperative that runs it has lost its director, a third of its trucks and most of
@@ -474,7 +463,7 @@ Castle:
 
 Commander (Next): *Then we roll the dice. Find us a way in.*
 
-**Page 4 — ORE DUST** (`yard-ore-dust`, Jangala only)
+**Page 4 — ORE DUST** (`yard-ore-dust`)
 
 Castle:
 > Our papers say visitors. Visitors berth, eat and spend. They don't work, not for
@@ -500,12 +489,12 @@ The last page's objective line points at Marine operations and the prepaid depot
 Any later conversion, and the planet menu's own yard entry, still report in the
 interaction panel:
 
-`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Jangala)
+`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Second Wind)
 > Nessa met us at the berth. Took one look at the patch under the collar and asked
 > if I'd done it myself. I said I'd supervised. She remembers what that means.
 > Here's her estimate, Commander. She held to it.
 
-`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (fallback)
+`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (any other Cerberus)
 > The yard will clear space for bunks and a workshop. I asked them to leave the
 > compartments that still hold pressure alone. Look the estimate over, Commander.
 > We only get to do this once.
@@ -514,13 +503,13 @@ interaction panel:
 > I've kept this payment apart since we left the Claim. It doesn't touch the
 > ship's account. Shuttle parts and the squad's kit are paid as well.
 
-`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (fallback
+`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (every
 completion)
 > The yard's done. Eighteen more berths, a proper command fit and a workshop
 > gantry, for twenty-five units of hold we're going to miss. It's permanent work,
 > Commander. No taking it back.
 
-`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Jangala completion)
+`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Second Wind completion)
 > Nessa's hanging the old pressure seals on her office wall. Says I have a
 > reputation to keep up. She stayed for the pressure test herself and left it off
 > the bill. Don't mention it. She'll deny it.
@@ -622,7 +611,7 @@ Counterattack's briefing, with no airworthy boat, adds: "The depot is the
 company's first ferry job. Repair our first Hermes on the Boat Deck."
 
 The conversion line names no figure; the yard page states it. It says "the
-yard", not "Nessa", because a fallback start never meets her.
+yard", not "Nessa".
 
 ## 4 — Sabine
 

@@ -44,7 +44,7 @@ for i, slot in ((1, 'WS 005'), (2, 'WS 006'), (3, 'WS 007')):
     assert f'Turret {i} barbette' in names, slot
 for sid in ('WS 00%d' % k for k in range(1, 10)):
     assert f'Weapon {sid} anchor' in names, sid
-lights = [n for n in names if n.startswith('Light ')]
+lights = [n for n in names if n.startswith('Light ') and not n.endswith((' housing', ' bracket'))]   # the lenses; housings and brackets ride them
 assert len(lights) == 4, lights
 scene = bpy.context.scene
 for k in range(3):  # a formation: three instances, each scaled to metres

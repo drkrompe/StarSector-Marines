@@ -13,21 +13,19 @@ import java.util.Map;
 
 /**
  * Second Wind's founding conversion as a storybook, using the prologue's document and host renderer:
- * the bill (paid by the first page's Next), the runway it leaves, and at Jangala the road up and the
- * papers that let the company take it. A straight click-through, so the footer Skip is off.
+ * the bill (paid by the first page's Next), the runway it leaves, the road up and the papers that let
+ * the company take it. The story is Jangala's at whichever port the start chose. A straight click-through,
+ * so the footer Skip is off.
  */
 public final class CompanyYardScreen extends MissionFlowMlxScreen {
     /** Story board and berth for the forty-five aboard, in hundredths of a credit a day (story only; never charged). */
     static final int STORY_DAILY_BURN_CENTS = 2134;
     private final FleetMemberAPI ship;
-    private final boolean jangala;
-    private final CompanyYardReview review;
+    private final CompanyYardReview review = new CompanyYardReview();
 
-    public CompanyYardScreen(FleetMemberAPI ship, boolean jangala) {
+    public CompanyYardScreen(FleetMemberAPI ship) {
         super(CompanyPrologueScreen.ROOT, CompanyPrologueScreen.COMPONENTS);
         this.ship = ship;
-        this.jangala = jangala;
-        this.review = new CompanyYardReview(jangala);
     }
     @Override protected List<String> requiredElementIds() {
         return List.of("prologue-root", "prologue-next", "prologue-skip", "prologue-dialogue");
@@ -35,7 +33,7 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
     @Override protected Map<String, Object> props() {
         int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
         String refusal = review.stage() == Stage.COST ? CompanyYard.refusal(ship, CompanyYard.dockedMarket()) : null;
-        return model(review.stage(), jangala, ship.getShipName(), credits, CompanyYard.reservedCredits(ship),
+        return model(review.stage(), ship.getShipName(), credits, CompanyYard.reservedCredits(ship),
                 refusal, review.failure(), CerberusCompanyStart.depot() != null,
                 this::next, this::back, () -> dismissDialog.run());
     }
@@ -53,10 +51,10 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
      * {@code reserved}: Castle's founding reserve still unspent, which pays the bill on the first page.
      * {@code credits}: the ship's account as it stands, so after payment on the later pages.
      */
-    static Map<String, Object> model(Stage stage, boolean jangala, String shipName, int credits, int reserved,
+    static Map<String, Object> model(Stage stage, String shipName, int credits, int reserved,
                                      String refusal, String failure, boolean depot,
                                      Runnable next, Runnable back, Runnable leave) {
-        int pages = jangala ? Stage.values().length : Stage.RUNWAY.ordinal() + 1;
+        int pages = Stage.values().length;
         boolean last = stage.ordinal() == pages - 1;
         var props = new LinkedHashMap<String, Object>();
         props.put("heading", Strings.get("openingYardHeading"));
@@ -72,11 +70,11 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
                 int available = Math.max(0, credits);
                 props.put("title", Strings.get("openingYardCostTitle"));
                 props.put("image", CompanyPrologueScreen.image("yard-chits"));
-                props.put("caption", Strings.get(jangala ? "openingYardCostCaption" : "openingYardCostCaptionFallback"));
-                String estimate = Strings.get(jangala ? "openingYardCostNarrative" : "openingYardCostNarrativeFallback");
+                props.put("caption", Strings.get("openingYardCostCaption"));
+                String estimate = Strings.get("openingYardCostNarrative");
                 props.put("narrative", reserved > 0 ? estimate + "\n\n" + Strings.get("openingYardCostChits") : estimate);
                 props.put("dialogue", Strings.get(reserved <= 0 ? "openingYardCashDialogue"
-                        : jangala ? "openingYardCostDialogue" : "openingYardCostDialogueFallback"));
+                        : "openingYardCostDialogue"));
                 props.put("manifest", Strings.get("openingYardConversionFacts"));
                 props.put("reserve", reserved > 0
                         ? Strings.format("openingYardCostBillReserved", MercenaryCompanyConversion.CREDIT_COST, reserved,
@@ -85,14 +83,14 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
                                 available, Math.max(0, cash - available)));
                 if (failure != null || refusal != null) props.put("destination", failure != null ? failure : refusal);
                 props.put("note", Strings.get("openingYardCostNote"));
-                props.put("nextLabel", Strings.get(jangala ? "openingYardCostNext" : "openingYardCostNextFallback"));
+                props.put("nextLabel", Strings.get("openingYardCostNext"));
             }
             case RUNWAY -> {
                 props.put("title", Strings.get("openingYardRunwayTitle"));
                 props.put("image", CompanyPrologueScreen.image("yard-tally"));
                 props.put("caption", Strings.get("openingYardRunwayCaption"));
                 props.put("narrative", Strings.get("openingYardRunwayNarrative"));
-                props.put("dialogue", Strings.get(jangala ? "openingYardRunwayDialogue" : "openingYardRunwayDialogueFallback"));
+                props.put("dialogue", Strings.get("openingYardRunwayDialogue"));
                 props.put("reserve", Strings.format("openingYardRunwayBill", Math.max(0, credits), runwayDays(credits)));
                 props.put("nextLabel", Strings.get("openingYardRunwayNext"));
             }

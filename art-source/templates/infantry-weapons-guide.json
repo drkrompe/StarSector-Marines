@@ -103,5 +103,24 @@
         1312
       ]
     }
+  ],
+  "packedFrames": [
+    {
+      "name": "rocket-launcher-packed",
+      "size": [
+        45,
+        144
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "rect": [
+        64,
+        64,
+        424,
+        1216
+      ]
+    }
   ]
 }

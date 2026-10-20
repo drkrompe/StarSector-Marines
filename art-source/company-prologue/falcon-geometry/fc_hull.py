@@ -31,7 +31,7 @@ none.
 """
 import math
 import bpy
-from fc_kit import loft_x, prism, section, sym, mirror_y, revolve_x, boolean, plane_cut
+from fc_kit import loft_x, prism, section, sym, mirror_y, revolve_x, boolean, plane_cut, sdk, SMOOTH
 
 # Prong stations: x, inner wall y, outer edge y, deck z, keel z.
 PRONG = [(108, 9.5, 33, 5.0, -5.0), (80, 10.5, 42, 7.0, -7.0), (47, 12, 50, 9.0, -8.5),
@@ -68,9 +68,10 @@ def prongs(kit):
 def central_body(kit):
     plan = sym([(17.5, 6), (14.5, 11), (6, 13.5), (-12, 13.5), (-44, 10), (-47, 6)])
     body = prism(kit, 'Hull central body', plan, section(-9.0, 9.5, 2.0, 2.5), kit.plate, bevel=.15)
-    # The bridge dome: a low faceted revolve about Z at X 5, its crown at Z 18.
+    # The bridge dome: a low revolve about Z at X 5, its crown at Z 18, round by the
+    # segment rule and smooth-shaded (its profile's creases stay sharp).
     prof = [(0, 18.0), (4.5, 17.6), (8.0, 16.2), (10.8, 13.8), (12.6, 10.8), (13.2, 8.0), (13.0, 6.0), (0, 6.0)]
-    n = 20
+    n = sdk.segments(13.2*kit.mpu)
     verts, faces = [], []
     for k in range(n):
         a = 2*math.pi*k/n
@@ -91,6 +92,8 @@ def central_body(kit):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
+    sdk.smooth(dome)
+    SMOOTH.add(dome.name)
     return body, dome
 
 

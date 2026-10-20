@@ -149,7 +149,7 @@ def build_well(kit):
     kit.box('Hoist housing roof plate', (-21,0,top+1.65), (2.6,4.6,.15), kit.cream, .05)
     kit.cylinder('Hoist cable drum', (-21,0,top+.15), .55, 5.0, kit.dark, 'Y', 12, .05)
     for y in (-1.2,1.2):
-        kit.cylinder('Hoist fall', (-21,y,(WELL_FLOOR+top)/2), .12, top-WELL_FLOOR, kit.dark, 'Z', 6, 0)
+        kit.cylinder('Hoist fall', (-21,y,(WELL_FLOOR+top)/2), .12, top-WELL_FLOOR, kit.dark, 'Z', 12, 0)
     kit.box('Hoist hook block', (-21,0,WELL_FLOOR+1.6), (1.0,3.2,.7), kit.steel, .08)
 
 
@@ -157,11 +157,20 @@ def build_stern(kit):
     # Bolted cross girder on the deck's aft edge, overhanging the plant face.
     kit.box('Stern cross girder', (-28.4,0,DECK-.6), (2.2,22.6,2.2), kit.steel, .15)
     for y in (-8.5,-4.2,0,4.2,8.5):
-        kit.cylinder('Girder bolt head', (-28.4,y,DECK+.55), .35, .25, kit.steel, 'Z', 6, .03)
+        kit.cylinder('Girder bolt head', (-28.4,y,DECK+.55), .23, .25, kit.steel, 'Z', 6, .03)   # 0.15 m hex
     # Engine-room aft bulkhead under the girder: a deep plinth, an upper
     # face stepped in above it, stiffeners and a door onto the cradle beam.
     kit.box('Plant aft plinth', (-29.4,0,-1.2), (2.8,19.2,6.6), kit.steel, .2)
     kit.box('Plinth shadow seam', (-30.75,0,2.1), (.2,18.6,.25), kit.dark, 0)
+    # The plinth's aft face below the cradle beam: the bulkhead stiffeners carried
+    # down to the keel and two bolted service covers between them.
+    for y in (-6.6,6.6):
+        kit.box('Plinth stiffener', (-30.95,y,-1.3), (.5,.8,6.2), kit.steel, .08)
+    for y in (-3.3,3.3):
+        kit.box('Plinth service cover', (-30.88,y,-1.9), (.25,3.2,2.6), kit.steel, .06)
+        for dy in (-1.3,1.3):
+            for dz in (-1.0,1.0):
+                kit.cylinder('Plinth cover bolt', (-31.05,y+dy,-1.9+dz), .12, .12, kit.steel, 'X', 6, 0)
     kit.box('Plant aft bulkhead', (-29.1,0,7.3), (2.2,18.4,10.4), kit.steel, .2)
     kit.box('Bulkhead door recess', (-30.15,0,8.6), (.2,4.6,4.6), kit.dark, 0)
     kit.box('Bulkhead door', (-30.2,0,8.4), (.25,3.8,4.0), kit.steel, .08)

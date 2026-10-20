@@ -10,7 +10,7 @@ Fixture field `airDefence` (additive, default false) stamps the trial fort with 
 
 ## Intent
 
-Commander and garrison work (`reactive-garrisons.md`, the muster, structure
+Commander and garrison work (reactive manning in `garrisonables.md`, the muster, structure
 planning) is currently measured on the full 560x336 Conquest map, whose lanes and
 city generation are unfinished. A swing there can come from the map as easily as
 from the behaviour under test, and single runs move by hundreds of samples.

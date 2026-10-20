@@ -246,8 +246,8 @@ def camera_panel(im, dr, F, kf, spec, box, labelled=True):
         if x0 <= c[0] <= x1 and y0 <= c[1] <= y1:
             lab.put(c, name(key), (200, 190, 175) if key == 'platform' else colour(key), dy=12)
     off = [name(k) for k in ships if (lambda q: q is None or not (0 <= q[0] <= W and 0 <= q[1] <= H))(cam.project(ships[k][:3]))]
-    dr.text((x0, y1 + 6), f"Camera frame ({cam.lens} mm, looking {abs(cam.pitch):.0f} deg {'down' if cam.pitch < 0 else 'up'})"
-            + ('' if not off else f"; out of frame: {', '.join(off)}"), font=F['small'], fill=(170, 170, 180))
+    return (x0, y1 + 6), (f"Camera frame ({cam.lens} mm, looking {abs(cam.pitch):.0f} deg {'down' if cam.pitch < 0 else 'up'})"
+                          + ('' if not off else f"; out of frame: {', '.join(off)}"))
 
 
 def map_panel(dr, F, spec, box, axes, title):
@@ -369,7 +369,11 @@ def sheet(kf, n):
     dr = ImageDraw.Draw(im, 'RGBA')
     dr.text((24, 16), f"{spec['shot']}  {spec['title']}", font=F['title'], fill=(255, 255, 255))
     dr.text((W - 560, 24), 'Layout diagram, not a render', font=F['head'], fill=(170, 170, 180))
-    camera_panel(im, dr, F, kf, spec, (24, 66, 24 + 1120, 66 + 630))
+    box = (24, 66, 24 + 1120, 66 + 630)
+    layer = im.copy()      # drawn whole, then clipped to its box: a hull off the frame's edge stays off it
+    at, footer = camera_panel(layer, ImageDraw.Draw(layer, 'RGBA'), F, kf, spec, box)
+    im.paste(layer.crop((box[0], box[1], box[2] + 1, box[3] + 1)), box[:2])
+    dr.text(at, footer, font=F['small'], fill=(170, 170, 180))
     map_panel(dr, F, spec, (1168, 66, W - 24, 66 + 446), ('x', 'y'), 'From above')
     map_panel(dr, F, spec, (1168, 524, W - 24, 1056), ('x', 'z'), 'From the side (south flank)')
     y = 730
@@ -403,15 +407,19 @@ def sheet(kf, n):
 SHOTS = [('S1', 8, 'Establishing: the convoy over the day side', 'k1'),
          ('S2', 6, 'Alongside the Colossus, Morrow at her quarter', None),
          ('S3', 8, 'Running dark: the platform, then a hulk lights up', 'k1b'),
-         ('S4', 6, 'First contact: twelve hulls climb out of the platform', 'k2'),
+         ('S4', 6, 'First contact: twelve hulls climb out', 'k2'),
          ('S5', 6, 'The Manticore (P) opens at long range', None),
-         ('S6', 8, 'The screen breaks: Phaeton cooks off, Lashers hit', 'k3'),
+         ('S6', 8, 'The screen breaks: Phaeton cooks off', 'k3'),
+         ('S6b', 8, 'The escorts answer: a Buffalo Mk.II breaks up', 'k3c'),
+         ('S6c', 8, 'The column is cut: Wolves (P) blink through', 'k3d'),
+         ('S6d', 6, 'The rear guard: Hound against Hounds (P)', 'k3e'),
          ('S7', 8, 'Boarding the Tarsus', 'k3b'),
          ('S8', 6, 'Close on the Colossus: port pod shot out', 'k4'),
-         ('S9', 8, 'She will not be taken: the Mk.III on her side', 'k4'),
-         ('S10', 10, 'The prize taken; the Colossus losing her orbit', 'k5'),
-         ('S11', 10, 'Entry: plasma round both hulls', None),
-         ('S12', 10, 'Two trails toward the canyons. End.', 'k6')]
+         ('S9', 8, 'She will not be taken', 'k4'),
+         ('S9b', 8, "The lead's last run: the Falcon overloads", 'k4b'),
+         ('S10', 8, 'The prize taken; the Colossus falling', 'k5'),
+         ('S11', 8, 'Entry: plasma round both hulls', None),
+         ('S12', 8, 'Two trails toward the canyons. End.', 'k6')]
 
 
 def overview():
@@ -472,6 +480,7 @@ def overview():
     arrow(dr, Q((-200, 0, 0)), Q((2600, 0, 0)), MERCHANT_C, 3, 16)
     notes = [('k1b', 'S3: running dark among the hulks', (-330, 100)),
              ('k3', 'S6: screen breaks, Phaeton cooks off', (-330, 150)),
+             ('k3d', 'S6b-S6d: the brawl along the column', (-330, 175)),
              ('k3b', 'S7: Tarsus boarded, falls astern', (-330, 200)),
              ('k4', 'S8-S9: the Mk.III on the Colossus', (-330, 250)),
              ('k5', 'S10: Tarsus clamped; Colossus falling', (-330, 300))]
@@ -548,11 +557,73 @@ def ui_mock(kf='k1', speaker='COLOSSUS', rows=('Convoy, Colossus. Window opens i
     return out
 
 
+CHANNELS = ('COLOSSUS', 'ESCORT LEAD', 'MORROW', 'PHAETON', 'TARSUS', 'MULE', 'REAR ESCORT')
+
+
+def recording_mock():
+    """S0: the recording screen the cinematic opens on, audio only. A storytelling device, not an
+    object in the plot: no source line, just where, when, and who is on the channel."""
+    import random
+    from PIL import ImageFont
+    F = fonts()
+    im = Image.new('RGB', (W, H), (4, 5, 8))
+    dr = ImageDraw.Draw(im, 'RGBA')
+    try:
+        big = ImageFont.truetype(str(ORBITRON), 64)
+        big.set_variation_by_axes([700])
+        mid = ImageFont.truetype(str(ORBITRON), 22)
+        mid.set_variation_by_axes([600])
+        small = ImageFont.truetype(str(ORBITRON), 17)
+        small.set_variation_by_axes([500])
+    except (OSError, ValueError):
+        big, mid, small = F['title'], F['head'], F['text']
+    blue, text, dim = (170, 222, 255), (238, 242, 246), (90, 100, 115)
+    x0 = 300
+    dr.text((x0, 250), 'ASHARU', font=big, fill=text)
+    dr.text((x0 + dr.textlength('ASHARU', font=big) + 24, 282), 'CORVUS  /  LOW ORBIT', font=mid, fill=blue)
+    dr.text((x0, 340), 'c203.05.14   06:41:12', font=mid, fill=(200, 205, 210))
+    dr.text((x0 + 330, 344), '(the arrival date minus three cycles, computed in play)', font=F['small'], fill=dim)
+    # channels: one row per voice, the speaking one lit
+    for j, ch in enumerate(CHANNELS):
+        y = 430 + j * 38
+        live = ch == 'COLOSSUS'
+        dr.ellipse((x0, y + 5, x0 + 12, y + 17), fill=(120, 230, 150) if live else (40, 46, 56))
+        dr.text((x0 + 28, y), ch, font=small, fill=text if live else dim)
+    # the waveform of the speaking channel
+    rnd = random.Random(7)
+    wx0, wx1, wy = x0 + 300, W - 300, 560
+    pts = []
+    for i in range(wx1 - wx0):
+        env = math.sin(math.pi * i / (wx1 - wx0)) ** .6
+        pts.append((wx0 + i, wy + rnd.gauss(0, 1) * 60 * env * (.4 + .6 * abs(math.sin(i / 23)))))
+    dr.line(pts, fill=(120, 230, 150, 200), width=2)
+    dr.line((wx0, wy, wx1, wy), fill=(60, 70, 80), width=1)
+    # caption: the same tag and row the picture uses
+    row_f = review_font(30)
+    try:
+        tag_f = ImageFont.truetype(str(ORBITRON), 17)
+        tag_f.set_variation_by_axes([700])
+    except (OSError, ValueError):
+        tag_f = F['head']
+    tw = dr.textlength('COLOSSUS', font=tag_f)
+    dr.text((W / 2 - tw / 2, 912 - 20), 'COLOSSUS', font=tag_f, fill=blue)
+    row = 'Convoy, Colossus. Window opens in forty.'
+    dr.text((W / 2 - dr.textlength(row, font=row_f) / 2, 942 - 26), row, font=row_f, fill=text)
+    dr.text((24, 16), 'S0 mock: the recording the cinematic opens on (audio only, before any picture)',
+            font=F['head'], fill=(170, 170, 180))
+    dr.text((24, 44), 'A storytelling device, not an object in the story. The date is a placeholder; '
+            'the player computes the real one.', font=F['small'], fill=(150, 150, 160))
+    out = OUT / '89-recording-mock-s0.png'
+    im.save(out)
+    return out
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     outs = [overview()]
     for n, kf in enumerate((k for k in bb.KEYFRAMES if bb.KEYFRAMES[k]['ships']), start=1):
         outs.append(sheet(kf, n))
+    outs.append(recording_mock())
     outs.append(ui_mock())
     print('\n'.join(str(o) for o in outs))
 

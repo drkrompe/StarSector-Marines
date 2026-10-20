@@ -8,8 +8,13 @@ so the pose layouts in unit-layer-layouts.appearance.json and the special-equipm
 working unchanged. The red tick on each frame's edge in the review overlay marks its pivot: the firing
 hand for a primary, the shoulder for the launcher.
 
-  infantry-weapons-guide.png   one sheet of six frames side by side, 64 px gutters, transparent ground.
-  infantry-weapons-guide.json  the frames: name, output size, pivot fraction, rectangle on the sheet.
+  infantry-weapons-guide.png         one sheet of six frames side by side, 64 px gutters, transparent ground.
+  infantry-weapons-guide.json        the frames: name, output size, pivot fraction, rectangle on the sheet;
+                                     packedFrames for the packed sheet.
+  infantry-weapons-grades-guide.png  the rifle and DMR frames only (surplus and masterwork reskins).
+  infantry-weapons-laser-guide.png   the pulse rifle's second geometry, on the first sheet's layout.
+  infantry-weapons-packed-guide.png  the rocket launcher stowed on the back (special.rocket-launcher's
+                                     packedLayer), its own one-frame sheet.
 
 The surplus rifle and masterwork DMR reuse the rifle and DMR frames; they are reskins of the same
 geometry, not separate silhouettes (see art-source/infantry-weapons/).
@@ -33,6 +38,8 @@ FRAMES = [
     ('anti-materiel-rifle', (79, 144), (0.5, 0.75)),
     ('rocket-launcher', (64, 156), (0.5, 0.5385)),
 ]
+# The launcher stowed on the back: its own sheet, at the packed layer's carrier size.
+PACKED_FRAMES = [('rocket-launcher-packed', (45, 144), (0.5, 0.5))]
 
 # Guide greys: each distinct part a distinct tone, so the reskin can tell them apart.
 DARK = '#2b3034'      # barrel steel, grips, rails
@@ -43,6 +50,8 @@ GLASS = '#3d6f8f'     # optics lenses
 GLOW_BLUE = '#3fb4ff'
 GLOW_GREEN = '#5dff7a'
 HAZARD = '#c9962a'
+COPPER = '#a8693a'
+WEBBING = '#c8c2a8'
 
 
 class Pen:
@@ -98,7 +107,30 @@ def rifle(p):
 
 
 def laser_gun(p):
-    """Pulse rifle (LASER_GUN family): a lens emitter, a focusing barrel with three wide heat-sink fin
+    """Pulse rifle (LASER_GUN family): a squared prism emitter head, a slim barrel wound with six copper
+    focusing coils, two radiator plates along its sides, a ceramic body and a side power cell. The glow
+    is kept to the lens and two small indicators; the coils are metal, not light."""
+    p.bar(11, 0, 9, PALE, 1.5)                    # prism emitter housing
+    p.bar(5, 0.5, 2.5, GLOW_GREEN, 1)             # lens
+    p.bar(6, 9, 38, MID, 1)                       # barrel
+    for y in (12, 16, 20, 24, 28, 32):
+        p.bar(9, y, y + 2.2, COPPER, 0.8)         # focusing coils, wound round the barrel
+    for x in (-7, 7):
+        p.bar(3, 13, 34, LIGHT, 1, dx=x)          # radiator plates either side
+        p.bar(3.6, 22, 25, DARK, 0.6, dx=x)       # plate clamp to the barrel
+    p.bar(13, 36, 72, LIGHT, 2.5)                 # body
+    p.bar(6, 42, 60, DARK, 2)                     # top optic
+    p.bar(4, 42, 45, GLASS, 1.5)
+    p.bar(2.4, 64, 67, GLOW_GREEN, 1)             # charge indicator
+    p.box(6.5, 50, 10.5, 66, DARK, 1)             # power cell, right side
+    p.box(7.6, 62, 9.4, 64.5, GLOW_GREEN, 0.6)    # cell indicator
+    p.bar(6, 70, 79, DARK, 1.5)                   # grip
+    p.bar(11, 78, 98, MID, 3)                     # stock block
+    p.bar(5, 82, 94, DARK, 2)                     # stock cut-out
+
+
+def laser_gun_v1(p):
+    """First pulse rifle geometry, kept because infantry-weapons.raw.png was reskinned from it: a lens emitter, a focusing barrel with three wide heat-sink fin
     pairs that give it its silhouette, a glowing coil along the body and a side power cell."""
     p.bar(9, 0, 5, PALE, 2)                       # emitter shroud
     p.bar(5, 0.5, 3, GLOW_GREEN, 1.5)             # lens
@@ -196,16 +228,33 @@ def rocket_launcher(p):
     p.bar(34, 147, 154, '#1a1d1f', 3)
 
 
+def rocket_launcher_packed(p):
+    """The launcher stowed across the wearer's back: the same tube with both ends capped, two webbing
+    straps crossing it with buckles, the sight housing folded flat along the right side. Drawn at its
+    own carrier size; the packed layer slings it diagonally over the body."""
+    p.bar(26, 6, 138, LIGHT, 3)                   # tube
+    p.bar(30, 0, 10, DARK, 4)                     # front end cap
+    p.bar(30, 134, 144, DARK, 4)                  # rear end cap
+    for y in (14, 126):
+        p.bar(27, y, y + 3, HAZARD)               # hazard bands
+    for y in (34, 100):
+        p.bar(45, y, y + 9, WEBBING, 1.5)         # sling straps, running off under the body
+        p.bar(10, y - 1, y + 10, DARK, 1.5, dx=-17)   # buckles
+    p.box(13, 56, 20, 88, MID, 2)                 # folded sight housing, right
+    p.box(14.5, 60, 18.5, 67, GLASS, 1)
+
+
 DRAW = {
     'rifle': rifle, 'laser-gun': laser_gun, 'smg': smg, 'dmr': dmr,
     'anti-materiel-rifle': anti_materiel_rifle, 'rocket-launcher': rocket_launcher,
+    'rocket-launcher-packed': rocket_launcher_packed,
 }
 
 
-def layout():
+def layout(frame_list=FRAMES):
     x, frames = GUTTER, []
-    height = max(s[1] for _, s, _ in FRAMES) * SCALE
-    for name, size, pivot in FRAMES:
+    height = max(s[1] for _, s, _ in frame_list) * SCALE
+    for name, size, pivot in frame_list:
         w, h = size[0] * SCALE, size[1] * SCALE
         frames.append({'name': name, 'size': list(size), 'pivot': list(pivot),
                        'rect': [x, GUTTER, x + w, GUTTER + h]})
@@ -213,24 +262,29 @@ def layout():
     return frames, (x, height + 2 * GUTTER)
 
 
-def render(names=None, draw_names=None):
-    """The sheet, optionally restricted to some frames (blank elsewhere) -- the variant guides."""
-    frames, size = layout()
+def render(names=None, draw=None, frame_list=FRAMES):
+    """A sheet, optionally restricted to some frames (blank elsewhere), with per-frame drawing overrides."""
+    frames, size = layout(frame_list)
     im = Image.new('RGBA', size)
     d = ImageDraw.Draw(im)
     for f in frames:
         if names is None or f['name'] in names:
-            DRAW[f['name']](Pen(d, f['rect'][:2], f['size']))
+            (draw or {}).get(f['name'], DRAW[f['name']])(Pen(d, f['rect'][:2], f['size']))
     return im, frames
 
 
 def main():
-    im, frames = render()
+    # The first sheet and its grades keep the geometry their retained raws were reskinned from.
+    first = {'laser-gun': laser_gun_v1}
+    im, frames = render(draw=first)
     im.save(OUT / 'infantry-weapons-guide.png')
-    (OUT / 'infantry-weapons-guide.json').write_text(json.dumps({'scale': SCALE, 'frames': frames}, indent=2) + '\n')
-    # Grade variants: same geometry, only the rifle and DMR frames drawn.
-    var, _ = render({'rifle', 'dmr'})
-    var.save(OUT / 'infantry-weapons-grades-guide.png')
+    packed_frames = layout(PACKED_FRAMES)[0]
+    (OUT / 'infantry-weapons-guide.json').write_text(json.dumps(
+        {'scale': SCALE, 'frames': frames, 'packedFrames': packed_frames}, indent=2) + '\n')
+    render({'rifle', 'dmr'}, first)[0].save(OUT / 'infantry-weapons-grades-guide.png')
+    # The pulse rifle's second geometry, on the first sheet's layout so its frame rect is shared.
+    render({'laser-gun'})[0].save(OUT / 'infantry-weapons-laser-guide.png')
+    render(frame_list=PACKED_FRAMES)[0].save(OUT / 'infantry-weapons-packed-guide.png')
     print(im.size, [f['name'] for f in frames])
 
 

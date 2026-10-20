@@ -18,19 +18,29 @@ bosses on the cheeks, a mantlet with blast gaiters, twin barrels with
 jackets and slotted muzzle brakes, a roof sight hood and commander's hatch,
 and a belt feed chute running from a side ready-use box into the house.
 
-WS 008 is a fixed armoured universal mount sunk into the gantry's forward
-bed (bed top z 5.5): a module cradle bolted to the bed, an armoured housing
-with a chamfered glacis, a recoil sleeve and a shrouded barrel, and the
-slot's standard quick-change module plate with its coupling block.
+WS 008 is the shared turret kit's hardpoint (../turret-kit, tk.build_hardpoint) for the
+stock fit the campaign flies, shepherd_Frontier: the Swarmer SRM pack, four tubes from
+a breech housing, a round on each 'missile k' empty. It is built on the slot's pivot at
+HARDPOINT_K hull units per weapon-sprite pixel and sunk in the gantry drum's well, which
+sh_gantry cuts to the kit's own bay (hardpoint_bay) with the housing standing on the
+bed at its floor.
 
 Names: 'Turret 1 WS 007 ...', 'Hardpoint 1 WS 008 ...', with a
-'<prefix> pivot' empty at the traverse centre and a '<prefix> muzzle' empty
-whose +X is the slot angle.
+'<prefix> pivot' empty at the traverse centre (the hardpoint: on its axis at the
+slot) and a '<prefix> muzzle' empty whose +X is the slot angle (the hardpoint: at
+its first tube's mouth; the kit adds '<prefix> muzzle anchor 1-4', one per tube).
 """
 import math
+import sys
+from pathlib import Path
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix
 from sh_kit import loft_x, octagon
+
+_PROLOGUE = Path(__file__).resolve().parent.parent
+sys.path[:0] = [p for p in (str(_PROLOGUE), str(_PROLOGUE/'turret-kit')) if p not in sys.path]
+import ship_scale  # noqa: E402
+import turret_kit as tk  # noqa: E402
 
 SLOTS = [
     {'id': 'WS 007', 'location': (-3, -23), 'angle': -75, 'arc': 200, 'mount': 'TURRET', 'size': 'SMALL',
@@ -47,7 +57,42 @@ MUZZLES = {}    # slot id -> muzzle location
 # limits and every 10 deg between (BVH sweep). Raise this, never move the
 # slot, if a neighbour grows into the arc.
 BARBETTE_LIFT = 1.0
-HARDPOINT_BED = 'Gantry forward hardpoint bed'
+# WS 008 is armed as shepherd_Frontier, the stock variant the campaign creates for Morrow
+# (TenderLoadout.STOCK_VARIANT; the kit's README lists the Swarmer as the Shepherd
+# Frontier's). The pack is built at HARDPOINT_K hull units per sprite pixel, so its
+# 16 px sprite width (8.4 px half-bay) sits in the 12-unit drum with walls either side.
+HARDPOINT_VARIANT = 'shepherd_Frontier'
+HARDPOINT_WEAPON = 'swarmer'
+HARDPOINT_K = .45
+METRES_PER_UNIT = ship_scale.PUBLISHED['Shepherd']
+# The well's floor: the top of 'Gantry forward hardpoint bed' (sh_gantry.BED_TOP), where
+# the kit's housing (its underside 2.6 px below the axis) stands, sunk HOUSING_SINK into it.
+HARDPOINT_FLOOR_Z = 2.62
+HOUSING_UNDERSIDE = -2.6
+HOUSING_SINK = .05
+# The tubes' line of fire on over the drum's falling nose, cut as a lined trough: from
+# just inside the collars' mouths (12 px ahead of the slot) to TROUGH_END hull units
+# ahead of it, as wide as the tube bank with its collars and floored under them.
+TROUGH_PX = (11.8, 6.9, -1.9)     # x0, half-width, floor below the axis (sprite px, times k)
+TROUGH_END = 8.5
+HARDPOINT_RECORD = {}   # slot id -> what the kit built, for geometry.json
+
+
+def axis_z():
+    """The hardpoint's axis height: its housing standing on the well floor."""
+    return HARDPOINT_FLOOR_Z-HOUSING_UNDERSIDE*HARDPOINT_K-HOUSING_SINK
+
+
+def hardpoint_bay():
+    """The well and trough sh_gantry cuts for WS 008, in hull units: the kit's own bay
+    tuple (x0, x1 along the fire line, half-width, floor below the axis) scaled by k."""
+    x, y = SLOTS[1]['location']
+    x0, x1, hw, floor = (v*HARDPOINT_K for v in tk.HARDPOINT_WEAPONS[HARDPOINT_WEAPON]['bay'])
+    c = axis_z()
+    tx0, thw, tfl = (v*HARDPOINT_K for v in TROUGH_PX)
+    tx1 = TROUGH_END
+    return {'x': (x+x0, x+x1), 'y': y, 'half_width': hw, 'floor': c+floor, 'axis': c,
+            'trough_x': (x+tx0, x+tx1), 'trough_half_width': thw, 'trough_floor': c+tfl}
 
 
 def train(objs, x, y, angle):
@@ -64,23 +109,6 @@ def _ring(kit, name, x, y, z, r, n, size, mat, phase=0.0):
         a = phase+2*math.pi*i/n
         out.append(kit.cylinder(f'{name} {i+1}', (x+r*math.cos(a), y+r*math.sin(a), z+size/2), size, size, mat, 'Z', 6, 0))
     return out
-
-
-def _seat(kit, x, y, names=()):
-    """Highest point under (x, y) on the kit's hull plus the named objects."""
-    best = kit.surface(x, y)
-    z = best[0].z if best else 0.0
-    dg = bpy.context.evaluated_depsgraph_get()
-    for n in names:
-        ob = bpy.data.objects.get(n)
-        if ob is None:
-            continue
-        ev = ob.evaluated_get(dg)
-        inv = ev.matrix_world.inverted()
-        hit, p, _, _ = ev.ray_cast(inv @ Vector((x, y, 60)), (inv.to_3x3() @ Vector((0, 0, -1))).normalized())
-        if hit:
-            z = max(z, (ev.matrix_world @ p).z)
-    return z
 
 
 def _turret(kit, s):
@@ -122,6 +150,9 @@ def _turret(kit, s):
         (x-3.4, octagon(y-1.4, y+1.4, g+.9, g+2.1, .35)),
         (x-2.2, octagon(y-1.5, y+1.5, g+.8, g+2.15, .35)),
     ], kit.tan, .05))
+    # Its chamfers are plate (45 deg): the bevel takes only the square edges, so the
+    # chamfered box does not read as a sixteen-sided round.
+    trained[-1].modifiers['Plate edge chamfer'].angle_limit = math.radians(50)
     trained.append(kit.box(f'{p} bustle loading door', (x-3.42, y, g+1.5), (.06, 1.6, .8), kit.steel, 0))
     trained += [kit.box(f'{p} bustle door hinge {i}', (x-3.45, y+dy, g+1.5), (.1, .12, .9), kit.dark, 0)
                 for i, dy in ((1, .85), (2, -.85))]
@@ -179,76 +210,36 @@ def _chute(x0, y0, z0, x1, y1, z1, w=.32, n=5):
 
 
 def _hardpoint(kit, s):
+    """WS 008: the shared turret kit's hardpoint for the stock fit (HARDPOINT_WEAPON), built
+    on the slot's pivot empty at HARDPOINT_K hull units per weapon-sprite pixel and seated
+    on the bed of the well sh_gantry cuts to the kit's own bay (hardpoint_bay)."""
     x, y = s['location']
     p = s['prefix']
-    z = _seat(kit, x, y, (HARDPOINT_BED,))
-    c = z+1.0  # bore axis
-    # Universal-slot cradle bolted to the bed top, and its quick-change plate.
-    kit.box(f'{p} module cradle', (x+.3, y, z+.15), (5.6, 3.8, .3), kit.grey, .05)
-    for i, (dx, dy) in enumerate(((-2.2, 1.6), (2.8, 1.6), (-2.2, -1.6), (2.8, -1.6)), 1):
-        kit.cylinder(f'{p} cradle bolt {i}', (x+dx, y+dy, z+.36), .14, .14, kit.steel, 'Z', 6, 0)
-    kit.box(f'{p} module plate', (x-2.15, y, c), (.3, 2.8, 1.7), kit.cream, .05)
-    kit.box(f'{p} module coupling', (x-2.5, y, c-.2), (.4, 1.2, .7), kit.dark, .04)
-    kit.box(f'{p} module plate stripe', (x-2.31, y, c+.55), (.02, 2.4, .18), kit.orange, 0)
-    # Armoured housing: chamfered octagon section narrowing into a glacis.
-    kit.box(f'{p} housing', (x+.5, y, c), (4.2, 3.2, 1.7), kit.steel, .2)  # core, kept for its name
-    loft_x(kit, f'{p} housing armour', [
-        (x-2.0, octagon(y-1.75, y+1.75, z+.25, c+1.0, .5, .25)),
-        (x+1.8, octagon(y-1.75, y+1.75, z+.25, c+1.0, .5, .25)),
-        (x+3.0, octagon(y-1.2, y+1.2, z+.3, c+.6, .35, .2)),
-    ], kit.tan, .05)
-    for i in range(1, 4):  # cooling fins along both cheeks: the universal module's heat sink
-        for side, dy in (('port', 1.85), ('starboard', -1.85)):
-            kit.box(f'{p} cooling fin {side} {i}', (x-1.6+.45*i, y+dy, c+.1), (.12, .25, 1.1), kit.dark, 0)
-    kit.box(f'{p} housing seam', (x+.2, y, c+1.01), (.08, 2.6, .04), kit.dark, 0)
-    kit.box(f'{p} service cover', (x-.9, y, c+1.02), (1.2, 1.4, .06), kit.grey, .02)
-    for i, (dx, dy) in enumerate(((-1.4, .6), (-.4, .6), (-1.4, -.6), (-.4, -.6)), 1):
-        kit.cylinder(f'{p} cover bolt {i}', (x+dx, y+dy, c+1.06), .07, .06, kit.dark, 'Z', 6, 0)
-    kit.box(f'{p} cheek plate port', (x+1.3, y+1.8, c-.1), (1.4, .1, 1.0), kit.grey, .02)
-    kit.box(f'{p} cheek plate starboard', (x+1.3, y-1.8, c-.1), (1.4, .1, 1.0), kit.grey, .02)
-    # Recoil sleeve, shroud and barrel.
-    kit.box(f'{p} recoil sleeve', (x+3.4, y, c), (1.0, 1.3, 1.3), kit.dark, .1)
-    kit.cylinder(f'{p} recoil collar', (x+4.0, y, c), .55, .3, kit.steel, 'X', 12, .03)
-    kit.cylinder(f'{p} barrel shroud', (x+4.9, y, c), .45, 1.6, kit.steel, 'X', 8, .04)
-    for i in range(1, 4):  # cooling slots in the shroud
-        kit.box(f'{p} shroud slot {i}', (x+4.35+.4*i, y, c+.4), (.18, .5, .1), kit.dark, 0)
-    kit.cylinder(f'{p} barrel', (x+5.3, y, c), .24, 2.4, kit.dark, 'X', 12, .03)
-    kit.cylinder(f'{p} muzzle ring', (x+6.4, y, c), .3, .2, kit.steel, 'X', 10, .02)
-    _hardpoint_detail(kit, p, x, y, z, c)
-    kit.empty(f'{p} muzzle', (x+6.5, y, c), s['angle'])
-    kit.empty(f'{p} pivot', (x, y, c), s['angle'])
+    c = axis_z()
+    pivot = kit.empty(f'{p} pivot', (x, y, c), s['angle'])
+    hp = tk.build_hardpoint(HARDPOINT_WEAPON, p, pivot, _hardpoint_mats(kit), METRES_PER_UNIT, k=HARDPOINT_K)
+    bpy.context.view_layer.update()
+    # The hull's own muzzle tag rides the first tube's mouth (the kit's muzzle anchor 1),
+    # +X along the slot angle; the kit's four anchors stay as the per-tube fire points.
+    first = hp['muzzles'][0].matrix_world.translation.copy()
+    kit.empty(f'{p} muzzle', tuple(first), s['angle'])
     ANCHOR_Z[s['id']] = c
-    MUZZLES[s['id']] = (x+6.5, y, round(c, 3))
+    MUZZLES[s['id']] = tuple(round(v, 3) for v in first)
+    HARDPOINT_RECORD[s['id']] = {
+        'weapon': HARDPOINT_WEAPON, 'variant': HARDPOINT_VARIANT,
+        'built_by': 'turret-kit/turret_kit.py build_hardpoint', 'k': HARDPOINT_K,
+        'bay': {k: [round(v, 3) for v in b] if isinstance(b, tuple) else round(b, 3)
+                for k, b in hardpoint_bay().items()},
+        'parts': sorted(o.name for o in hp['parts']), 'moving': sorted(e.name for e in hp['moving']),
+        'muzzles': [m.name for m in hp['muzzles']],
+        'muzzle_locations': [[round(v, 3) for v in m.matrix_world.translation] for m in hp['muzzles']],
+    }
 
 
-def _hardpoint_detail(kit, p, x, y, z, c):
-    """Pass 3 finer detail on the recessed WS 008 mount (owner: keep the mount, detail it)."""
-    # Traverse race under the cradle (the slot's 20 deg arc), with its bolt circle.
-    kit.cylinder(f'{p} traverse race', (x, y, z+.05), 2.3, .1, kit.dark, 'Z', 24, 0)
-    _ring(kit, f'{p} traverse race bolt', x, y, z+.08, 2.05, 16, .1, kit.steel)
-    # Trunnion blocks either side of the housing, with their pins.
-    for side, s in (('port', 1), ('starboard', -1)):
-        kit.box(f'{p} trunnion block {side}', (x+1.0, y+s*1.95, c-.15), (1.0, .35, 1.1), kit.steel, .04)
-        kit.cylinder(f'{p} trunnion pin {side}', (x+1.0, y+s*2.17, c-.05), .26, .14, kit.grey, 'Y', 10, .02)
-        # Elevation ram from the cradle to under the glacis.
-        kit.cylinder(f'{p} elevation ram {side}', (x+2.35, y+s*1.1, z+.62), .16, .7, kit.grey, 'Z', 8, 0)
-        kit.cylinder(f'{p} elevation ram rod {side}', (x+2.35, y+s*1.1, z+1.05), .08, .3, kit.cream, 'Z', 6, 0)
-    # Blast seal boot round the recoil sleeve, and a ported muzzle brake.
-    kit.cylinder(f'{p} blast seal boot', (x+3.0, y, c), .78, .22, kit.dark, 'X', 12, .03)
-    kit.box(f'{p} muzzle brake', (x+6.3, y, c), (.5, .62, .5), kit.steel, .04)
-    for side, s in (('port', 1), ('starboard', -1)):
-        kit.box(f'{p} muzzle brake port {side}', (x+6.3, y+s*.32, c), (.22, .04, .3), kit.dark, 0)
-    # Sight / fire-control head on the housing roof, its lens forward.
-    kit.box(f'{p} sight head', (x-.2, y+1.05, c+1.25), (.9, .55, .5), kit.steel, .04)
-    kit.box(f'{p} sight lens', (x+.27, y+1.05, c+1.28), (.04, .36, .26), kit.glass, 0)
-    # Lifting eyes and a row of armour bolts along the glacis.
-    for i, dy in enumerate((-1.0, 1.0), 1):
-        kit.box(f'{p} lifting eye {i}', (x+1.2, y+dy*.7, c+1.1), (.32, .1, .28), kit.grey, 0)
-    for i in range(5):
-        kit.cylinder(f'{p} glacis bolt {i+1}', (x+2.15, y-1.0+i*.5, c+.86), .06, .06, kit.dark, 'Z', 6, 0)
-    # Power and feed conduit from the module plate down to the well floor.
-    v, f = _chute(x-2.4, y-.9, c-.4, x-2.8, y-1.9, z+.2, .28, 5)
-    kit.mesh(f'{p} feed conduit', v, f, kit.orange, 0)
+def _hardpoint_mats(kit):
+    """The hull's materials for the kit's hardpoint keys; the weapon's own paints are laid
+    over them by the kit (its sprite colours, weathered)."""
+    return {'armour': kit.tan, 'plate': kit.steel, 'steel': kit.steel, 'dark': kit.dark}
 
 
 def build(kit):

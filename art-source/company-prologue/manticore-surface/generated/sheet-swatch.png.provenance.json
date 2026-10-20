@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15acd-b910-74d3-9b51-71645edc1a49",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15acd-b910-74d3-9b51-71645edc1a49\\exec-c8388b3a-a497-4614-bb9b-f172a76b0d35.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\manticore-surface\\generated\\sheet-swatch.png",
+    "sha256": "6ccd566a3b51b7b53cef694ee25d443c578a991ff94e60670697fa33fff3e7ea",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\manticore-surface\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "629b96e6d728ca748d3068e0c82638ad83b5631bd6ca1144a6195deccda65866",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every tile, shape, outline and gutter stays exactly where it is\nImage 2: Material/finish only: paint colours, wear, seams and bolts; not layout or shapes\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of FOUR flat-coloured squares on a plain flat mid-blue background. Each square is one hull material of one 3D spacecraft (a Manticore: a squat, heavily armoured low-tech destroyer taken by pirates), to be painted as a flat, square-on texture sample of that material, in reading order:\nfirst square: hot scarlet enamel armour plate;\nsecond square: dark, oily brown-grey gunmetal steel structure and machinery;\nthird square: dull mid-grey painted steel service plate;\nfourth square: dirty off-white painted plate.\nINPUT 2 is the SAME ship, already painted in its pirate livery: it is the finish to match. Use its paint colours, sheen, seams, bolt heads and its heavy wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the four squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of old, hard-fought pirate warship plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered bolt heads, fine even chips and scuffs to dark steel, a thin even film of grime and soot. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large bolt rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: scarlet stays scarlet, gunmetal stays dark brown-grey steel, mid-grey stays mid-grey, off-white stays off-white. No colour changes, no repair patches, no different-coloured plates.\n- Wear is heavy but even across each whole square. No rust holes, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\manticore-surface\\guide\\sheet-swatch-guide.png",
+      "sha256": "cf9cdfb3185383f9428149fa242d639e517fd603c31bd3540fcd579b13733659",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every tile, shape, outline and gutter stays exactly where it is"
+    },
+    {
+      "path": "art-source\\company-prologue\\manticore-surface\\reference\\finish-reference.png",
+      "sha256": "22c148d858fb0e5d0ce2adfcf01713a6bd935ead876bd3e2e592e60e126e4774",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material/finish only: paint colours, wear, seams and bolts; not layout or shapes"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet, preserving Image 1’s layout and using Image 2 only for the material finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 47194,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 676,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.0
+}

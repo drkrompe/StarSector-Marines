@@ -432,7 +432,12 @@ action. E and G keep working.
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground
 burst uses (`ballistics-nouns.md`), with no hit roll. It flies over walls as its
-autonomous fire does. Every mount keeps one clock and resource stream under the ordinary
+autonomous fire does. A point nearer the chassis centre than eight cells (or the
+weapon's authored minimum, where larger) is **too close**: the rack's trigger is
+refused without spending ammunition, flux or its cycle, while the other mounts
+on the same button still fire. Its HUD row reads TOO CLOSE, the hint on the
+header of the button that fires it reads TOO CLOSE in red, and the scatter ring
+turns red. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the

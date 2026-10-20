@@ -87,7 +87,7 @@
     "fittings_m": {},
     "published_metres_per_unit": 0.81,
     "measured_this_build": {
-      "enclosed_units3": 227910,
+      "enclosed_units3": 227967,
       "solids": [
         "Hull port prong",
         "Hull starboard prong",
@@ -150,15 +150,68 @@
       "location": [
         -17,
         69,
-        6.1
+        3.2
       ],
       "anchor": "Weapon WS 001 anchor",
       "muzzle_anchors": [
         "Weapon WS 001 muzzle anchor 1",
         "Weapon WS 001 muzzle anchor 2",
-        "Weapon WS 001 muzzle anchor 3"
+        "Weapon WS 001 muzzle anchor 3",
+        "Weapon WS 001 muzzle anchor 4"
       ],
-      "built_by": "fc_mounts.hardpoint (box launcher)"
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "kit_weapon": "swarmer",
+      "k": 1.0,
+      "mount_empty": "Weapon WS 001 mount",
+      "mount_location": [
+        -17,
+        69,
+        3.2
+      ],
+      "bay": {
+        "x": [
+          -23.0,
+          -4.6
+        ],
+        "y": [
+          58.75,
+          77.4
+        ],
+        "floor_z": 0.3,
+        "cut_from": [
+          "Hull port outrigger pod",
+          "Hull port outrigger pod plating"
+        ],
+        "prong_pocket": null
+      },
+      "moving": [
+        "Weapon WS 001 missile 1",
+        "Weapon WS 001 missile 2",
+        "Weapon WS 001 missile 3",
+        "Weapon WS 001 missile 4"
+      ],
+      "muzzle_locations": [
+        [
+          -5.0,
+          73.5,
+          3.2
+        ],
+        [
+          -5.0,
+          70.5,
+          3.2
+        ],
+        [
+          -5.0,
+          67.5,
+          3.2
+        ],
+        [
+          -5.0,
+          64.5,
+          3.2
+        ]
+      ]
     },
     {
       "id": "WS 002",
@@ -171,15 +224,77 @@
       "location": [
         -17,
         -68,
-        6.1
+        3.2
       ],
       "anchor": "Weapon WS 002 anchor",
       "muzzle_anchors": [
         "Weapon WS 002 muzzle anchor 1",
         "Weapon WS 002 muzzle anchor 2",
-        "Weapon WS 002 muzzle anchor 3"
+        "Weapon WS 002 muzzle anchor 3",
+        "Weapon WS 002 muzzle anchor 4"
       ],
-      "built_by": "fc_mounts.hardpoint (box launcher)"
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "kit_weapon": "swarmer",
+      "k": 1.0,
+      "mount_empty": "Weapon WS 002 mount",
+      "mount_location": [
+        -17,
+        -68,
+        3.2
+      ],
+      "bay": {
+        "x": [
+          -23.0,
+          -4.6
+        ],
+        "y": [
+          -76.4,
+          -58.75
+        ],
+        "floor_z": 0.3,
+        "cut_from": [
+          "Hull starboard outrigger pod",
+          "Hull starboard outrigger pod plating",
+          "Hull starboard prong",
+          "Hull starboard prong belt plating"
+        ],
+        "prong_pocket": [
+          -4.3,
+          2.8,
+          6.28,
+          9.26,
+          -3.0,
+          2.04
+        ]
+      },
+      "moving": [
+        "Weapon WS 002 missile 1",
+        "Weapon WS 002 missile 2",
+        "Weapon WS 002 missile 3",
+        "Weapon WS 002 missile 4"
+      ],
+      "muzzle_locations": [
+        [
+          -5.0,
+          -63.5,
+          3.2
+        ],
+        [
+          -5.0,
+          -66.5,
+          3.2
+        ],
+        [
+          -5.0,
+          -69.5,
+          3.2
+        ],
+        [
+          -5.0,
+          -72.5,
+          3.2
+        ]
+      ]
     },
     {
       "id": "WS 005",
@@ -252,14 +367,69 @@
       "location": [
         119,
         22,
-        0.3
+        0.6
       ],
       "anchor": "Weapon WS 007 anchor",
       "muzzle_anchors": [
         "Weapon WS 007 muzzle anchor 1",
-        "Weapon WS 007 muzzle anchor 2"
+        "Weapon WS 007 muzzle anchor 2",
+        "Weapon WS 007 muzzle anchor 3",
+        "Weapon WS 007 muzzle anchor 4",
+        "Weapon WS 007 muzzle anchor 5"
       ],
-      "built_by": "fc_mounts.hardpoint (box launcher)"
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "kit_weapon": "annihilator",
+      "k": 0.6,
+      "mount_empty": "Weapon WS 007 mount",
+      "mount_location": [
+        119,
+        22,
+        0.6
+      ],
+      "bay": {
+        "x": [
+          114.16,
+          126.24
+        ],
+        "y": [
+          16.56,
+          27.44
+        ],
+        "floor_z": -5.2,
+        "cut_from": [
+          "Hull port bow fork outer jaw",
+          "Hull port bow fork probes"
+        ],
+        "prong_pocket": null
+      },
+      "moving": [],
+      "muzzle_locations": [
+        [
+          125.18,
+          19.6,
+          0.6
+        ],
+        [
+          125.18,
+          20.8,
+          0.6
+        ],
+        [
+          125.18,
+          22.0,
+          0.6
+        ],
+        [
+          125.18,
+          23.2,
+          0.6
+        ],
+        [
+          125.18,
+          24.4,
+          0.6
+        ]
+      ]
     },
     {
       "id": "WS 008",
@@ -272,14 +442,70 @@
       "location": [
         119,
         -21,
-        0.3
+        0.6
       ],
       "anchor": "Weapon WS 008 anchor",
       "muzzle_anchors": [
         "Weapon WS 008 muzzle anchor 1",
-        "Weapon WS 008 muzzle anchor 2"
+        "Weapon WS 008 muzzle anchor 2",
+        "Weapon WS 008 muzzle anchor 3",
+        "Weapon WS 008 muzzle anchor 4",
+        "Weapon WS 008 muzzle anchor 5"
       ],
-      "built_by": "fc_mounts.hardpoint (box launcher)"
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "kit_weapon": "annihilator",
+      "k": 0.6,
+      "mount_empty": "Weapon WS 008 mount",
+      "mount_location": [
+        119,
+        -21,
+        0.6
+      ],
+      "bay": {
+        "x": [
+          114.16,
+          126.24
+        ],
+        "y": [
+          -26.44,
+          -15.56
+        ],
+        "floor_z": -5.2,
+        "cut_from": [
+          "Hull starboard bow fork inner jaw",
+          "Hull starboard bow fork outer jaw",
+          "Hull starboard bow fork probes"
+        ],
+        "prong_pocket": null
+      },
+      "moving": [],
+      "muzzle_locations": [
+        [
+          125.18,
+          -23.4,
+          0.6
+        ],
+        [
+          125.18,
+          -22.2,
+          0.6
+        ],
+        [
+          125.18,
+          -21.0,
+          0.6
+        ],
+        [
+          125.18,
+          -19.8,
+          0.6
+        ],
+        [
+          125.18,
+          -18.6,
+          0.6
+        ]
+      ]
     },
     {
       "id": "WS 009",
@@ -877,8 +1103,8 @@
     "anchors_collection": "FALCON (P) | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'FALCON (P)'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 64740,
-    "objects": 240,
+    "triangles": 350362,
+    "objects": 266,
     "materials": [
       "Falcon bare engine metal",
       "Falcon bridge glazing",
@@ -889,7 +1115,11 @@
       "Falcon pirate red panel",
       "Falcon recess",
       "Falcon running lamp",
+      "Falcon sand panel",
       "Missile body (0.4, 0.4, 0.5)",
+      "Missile body 0.2516,0.2217,0.1513",
+      "Turret annihilator mark 0.6122,0.4277,0.1509",
+      "Turret annihilator paint 0.1989,0.1880,0.1718",
       "Turret lamp blue-white",
       "Turret lamp red",
       "Turret pdlaser accent 0.2423,0.0963,0.0817",
@@ -897,7 +1127,12 @@
       "Turret pdlaser metal 0.1103,0.1103,0.1108",
       "Turret pdlaser paint 0.1259,0.1259,0.1347",
       "Turret power cable",
-      "Turret steel Falcon gunmetal machinery"
+      "Turret steel Falcon gunmetal machinery",
+      "Turret swarmer accent 0.2384,0.1241,0.1156",
+      "Turret swarmer mark 0.6139,0.6139,0.6019",
+      "Turret swarmer metal 0.1103,0.1103,0.1113",
+      "Turret swarmer paint 0.1965,0.1016,0.0982",
+      "Turret swarmer plate 0.2482,0.2513,0.2545"
     ]
   },
   "object_names": {

@@ -1,5 +1,5 @@
-LONGBOW | geometry: 116 meshes, 88 pass-2 detail
-detail meeting detail within one fitting: 62 pairs (counted, not listed)
+LONGBOW | geometry: 168 meshes, 140 pass-2 detail
+detail meeting detail within one fitting: 138 pairs (counted, not listed)
 detail crossing detail across fittings: 2 pairs
     Canopy frame sill | Hull nose strip
     Hull nose lamp | Hull nose strip
@@ -103,15 +103,51 @@ detail bedded into body (part: body parts it meets):
     Hull dorsal antenna: Hull fuselage
     Hull dorsal sensor housing: Hull fuselage
     Hull nose strip: Hull fuselage
-    Hull port aft leg brace: Hull aft web, Wing port aft arm
-    Hull port aft leg strut: Hull aft web, Wing port aft arm
-    Hull port fore leg brace: Hull fuselage, Wing port fore arm
-    Hull port fore leg strut: Hull fore web, Wing port fore arm
+    Hull port aft leg ankle cheek port: Hull fuselage, Wing port aft arm
+    Hull port aft leg ankle cheek starboard: Hull aft web, Hull fuselage
+    Hull port aft leg ankle pin: Hull fuselage
+    Hull port aft leg bay liner: Hull fuselage
+    Hull port aft leg brace: Hull aft web
+    Hull port aft leg claw 1: Hull fuselage, Wing port aft arm
+    Hull port aft leg claw 2: Hull fuselage, Wing port aft arm
+    Hull port aft leg claw 3: Hull aft web, Hull fuselage
+    Hull port aft leg door inboard: Hull fuselage
+    Hull port aft leg lower sleeve: Hull fuselage
+    Hull port aft leg pad: Hull aft web, Hull fuselage, Wing port aft arm
+    Hull port aft leg sleeve collar: Hull aft web
+    Hull port aft leg upper sleeve: Hull aft web
+    Hull port fore leg ankle cheek starboard: Hull fore web
+    Hull port fore leg bay liner: Hull fore web
+    Hull port fore leg brace: Hull fore web
+    Hull port fore leg claw 1: Hull fore web
+    Hull port fore leg lower sleeve: Hull fore web
+    Hull port fore leg pad: Hull fore web, Wing port fore arm
+    Hull port fore leg sleeve collar: Hull fore web
+    Hull port fore leg trunnion: Hull fore web
+    Hull port fore leg upper sleeve: Hull fore web
     Hull port prong sensor fairing: Hull port prong
-    Hull starboard aft leg brace: Hull aft web, Wing starboard aft arm
-    Hull starboard aft leg strut: Hull aft web, Wing starboard aft arm
-    Hull starboard fore leg brace: Hull fuselage, Wing starboard fore arm
-    Hull starboard fore leg strut: Weapon WS 002 inner plate, Wing starboard fore arm
+    Hull starboard aft leg ankle cheek port: Hull aft web, Hull fuselage, Wing starboard aft arm
+    Hull starboard aft leg ankle cheek starboard: Hull fuselage, Wing starboard aft arm
+    Hull starboard aft leg ankle pin: Hull fuselage
+    Hull starboard aft leg bay liner: Hull aft web, Hull fuselage
+    Hull starboard aft leg brace: Hull aft web
+    Hull starboard aft leg claw 1: Hull fuselage, Wing starboard aft arm
+    Hull starboard aft leg claw 2: Hull aft web, Hull fuselage
+    Hull starboard aft leg claw 3: Hull fuselage, Wing starboard aft arm
+    Hull starboard aft leg door inboard: Hull aft web, Hull fuselage
+    Hull starboard aft leg door outboard: Hull aft web
+    Hull starboard aft leg hinge pin: Hull aft web
+    Hull starboard aft leg lower sleeve: Hull fuselage, Wing starboard aft arm
+    Hull starboard aft leg pad: Hull aft web, Hull fuselage, Wing starboard aft arm
+    Hull starboard aft leg sleeve collar: Hull aft web, Wing starboard aft arm
+    Hull starboard aft leg trunnion: Hull aft web, Wing starboard aft arm
+    Hull starboard aft leg upper sleeve: Hull aft web, Wing starboard aft arm
+    Hull starboard fore leg bay liner: Weapon WS 002 inner plate, Wing starboard fore arm
+    Hull starboard fore leg door inboard: Weapon WS 002 inner plate, Wing starboard fore arm
+    Hull starboard fore leg door outboard: Weapon WS 002 inner plate, Wing starboard fore arm
+    Hull starboard fore leg hinge pin: Hull fore web, Weapon WS 002 inner plate
+    Hull starboard fore leg trunnion: Hull fore web, Weapon WS 002 inner plate
+    Hull starboard fore leg upper sleeve: Weapon WS 002 inner plate
     Hull starboard prong sensor fairing: Hull starboard prong
     Weapon WS 001 emitter coil 1: Weapon WS 001 emitter
     Weapon WS 001 emitter coil 2: Weapon WS 001 emitter

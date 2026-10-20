@@ -33,7 +33,8 @@ when shipped.
 The closed Thunder Run freight account opens the arc, including exhausted
 failure. Recurring arrangements retain their original sites. Defeat retries the
 same chapter; accepted victory advances to the next actual planet. A missing
-destination pauses work instead of relocating it.
+destination pauses work instead of relocating it, and HQ says so: the chapter
+reads as paused and names the planet Wayline cannot find in Corvus.
 
 | Chapter | Destination and tactical objective | Accepted victory reward | Delivery state |
 |---|---|---|---|

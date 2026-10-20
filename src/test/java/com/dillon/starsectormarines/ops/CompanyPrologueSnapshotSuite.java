@@ -37,7 +37,7 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
             frames.add(frame(loader, renderer, page, "Jangala"));
         }
         frames.add(frame(loader, renderer, 5, "Independent Port"));
-        frames.add(frame(loader, renderer, 7, null));
+        frames.add(frame(loader, renderer, CompanyPrologue.PAGE_COUNT - 1, null));
         for (Stage stage : Stage.values()) frames.add(yardFrame(loader, renderer, stage, true, null));
         frames.add(yardFrame(loader, renderer, Stage.COST, false, null));
         frames.add(yardFrame(loader, renderer, Stage.COST, false,
@@ -45,20 +45,20 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
         return frames;
     }
     /**
-     * Jangala frames follow the protected start: Castle's chits pay the bill, and the account is the starting one.
-     * Fallback frames pay from the account: a covered order, and a refused one.
+     * Reserved frames follow the protected start: Castle's chits pay the bill, and the account is the starting one.
+     * Account frames pay from the ship's account: a covered order, and a refused one.
      */
     private SnapshotArtifact yardFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Stage stage,
-                                       boolean jangala, String refusal) {
-        int reserve = jangala && stage == Stage.COST ? FoundingReserve.CREDITS : 0;
-        int credits = jangala ? CerberusCompanyStart.STARTING_CREDITS : refusal == null ? 6000 : 2500;
-        var props = CompanyYardScreen.model(stage, jangala, "Second Wind", credits,
+                                       boolean reserved, String refusal) {
+        int reserve = reserved && stage == Stage.COST ? FoundingReserve.CREDITS : 0;
+        int credits = reserved ? CerberusCompanyStart.STARTING_CREDITS : refusal == null ? 6000 : 2500;
+        var props = CompanyYardScreen.model(stage, "Second Wind", credits,
                 reserve, refusal, null, true, () -> {}, () -> {}, () -> {});
         return renderFrame(loader, renderer, props, "yard-" + (stage.ordinal() + 1) + "-" + stage.name().toLowerCase()
-                + (jangala ? "-jangala" : "-fallback") + (refusal == null ? "" : "-refused") + "-100.png");
+                + (reserved ? "-reserve" : "-account") + (refusal == null ? "" : "-refused") + "-100.png");
     }
     private SnapshotArtifact frame(MarkupLoader loader, HeadlessUiRenderer renderer, int page, String port) {
-        var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 473, 4862, () -> {}, () -> {}, () -> {});
+        var props = CompanyPrologueScreen.model(page, port, 25, 473, 4862, () -> {}, () -> {}, () -> {});
         return renderFrame(loader, renderer, props, "page-" + (page + 1) + "-" + (port == null ? "unavailable" : port.replace(' ', '-')) + "-100.png");
     }
     private SnapshotArtifact renderFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Map<String, Object> props, String name) {

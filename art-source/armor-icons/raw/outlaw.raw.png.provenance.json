@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ad9-ff47-7542-bf89-19119b379bd7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ad9-ff47-7542-bf89-19119b379bd7\\exec-b630f051-6e5b-4c75-a8b2-07328a3e4792.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\outlaw.raw.png",
+    "sha256": "d1e061b518f8883b041ce22531e19a0a851ee5aba2a2442eccdc6e7b2ffeabb1",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\outlaw.prompt.txt",
+  "promptSha256": "4aa9dfabbf3cd0e907e17167772f8f13a151e6463149d261d3722897a6cbcca5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: a torso vest or cuirass standing upright, its helmet set down in front at the lower left, a pair of gloves and a few pouches at the lower right.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nBlackforge patchwork rig: cut-down security armour, industrial exoframe, ship plate and hand-fitted seals from pirate shops. Asymmetric: faded brick-red and oxblood plates on one side, oxidised brown and soot-black on the other, a black heavy collar ring, mismatched bolts, welded repairs, a small stencilled number on one shoulder plate, and tiny scavenged cyan lamps. The helmet is red-orange on one half and soot-black steel on the other, with a pale scratched panel and small cyan side lamps, matching the overhead helmet. Grimy black gloves. Hard-used and rebuilt, never comedic: no spikes, skulls or chains.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-2-scout.png",
+      "sha256": "204efa40df1395f235d92a795a666cd3a49163487d35ed8c95146e7be63e19b4",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\outlaw-identity.png",
+      "sha256": "d077322ab66b64ad8f16f9eb6305643e7b8f55ed4d976cdaea8fd3f7a2a4bf05",
+      "dimensions": [
+        1280,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent product render using Image 1’s composition and Image 2’s armour identity.\n"
+  ],
+  "usage": {
+    "input_tokens": 38912,
+    "cached_input_tokens": 31488,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 510,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.7
+}

@@ -5,7 +5,7 @@
 Opens falcon-p.blend (default ../falcon-surface/build/export/falcon-p.blend,
 the skinned, packed asset rebuild.sh exports), runs the kit's own `swfx.apply`
 with this folder's hull profile (vfx_hull.py: twelve MIDLINE drives, eight
-mounts with sixteen declared muzzles, six lamps; ../second-wind-vfx/swfx_hull.py)
+mounts with twenty-four declared muzzles, six lamps; ../second-wind-vfx/swfx_hull.py)
 for the clean state, without a lighting-rig preset (that is the shot's), and
 saves in place. The kit's `SWFX` collection then sits beside `FALCON (P)`:
 
@@ -32,7 +32,7 @@ bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 ctx = swfx.apply(state='clean', groups=GROUPS, hull=HERE)
 a = ctx.anchors
 assert len(a.engines) == 12, [e.index for e in a.engines]
-assert len(a.guns) == 16, [(g.turret, g.tag) for g in a.guns]
+assert len(a.guns) == 24, [(g.turret, g.tag) for g in a.guns]
 assert len(a.lamps) == 6, [l.name for l in a.lamps]
 coll = bpy.data.collections[swfx_core.ROOT]
 objs = list(coll.all_objects)
