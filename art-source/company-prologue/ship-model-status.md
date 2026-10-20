@@ -65,6 +65,13 @@ scope unless the owner asks for it.
 
 ## Standing decisions
 
+- Render scenes, not models (owner, 2026-10-20: "I only care about
+  rendering actual scenes at this point"). Ship sessions make no look or
+  review renders; they prove work with the verify scripts, `check_detail.py`,
+  `check_hardpoints.py` and IoU, and report in text with crops of existing
+  images. Texture guide renders that feed Codex are inputs and stay allowed,
+  at minimum samples in as few queue jobs as possible. The owner judges ships
+  in the cinematic scene renders.
 - Rough shape is not a finished model (owner, 2026-10-20: "we're getting
   the rough shape right, but need to add detail"). Every visible part must
   hold up at a close view: curved forms with enough segments that no facets
