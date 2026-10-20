@@ -1,6 +1,6 @@
 """Select every part's faces on the clean build and render each source part alone.
 
-  blender --background --factory-startup --python render_parts.py [-- --group g[,g]] [--only part,part]
+  blender --background --factory-startup --python render_parts.py [-- --group g[,g]] [--only part,part] [--samples N]
 
 Needs the hull's clean geometry build (hull.py BLEND; the Second Wind's is
 build/geom/second-wind-geometry.blend, rebuild.sh step 1, imported, never edited). Selection runs over every group's
@@ -31,6 +31,8 @@ import hull as H
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 ONLY = argv[argv.index('--only') + 1].split(',') if '--only' in argv else None
+# The shaded guide's Cycles samples (default 64); a render-queue light job passes 16.
+GUIDE_SAMPLES = int(argv[argv.index('--samples') + 1]) if '--samples' in argv else 64
 GROUPS = P.group_arg(argv)
 MINE = P.parts_in(GROUPS)
 DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
@@ -186,7 +188,7 @@ for part in MINE:
     place_camera(part)
     scene.view_settings.view_transform = 'Standard'
     scene.world.node_tree.nodes['Background'].inputs[1].default_value = 1.6
-    render(TILES / f'{part}-rgba.png', 64)
+    render(TILES / f'{part}-rgba.png', GUIDE_SAMPLES)
     rgba = load(TILES / f'{part}-rgba.png')
     a = rgba[..., 3:4]
     save(rgba[..., :3] * a + bg * (1 - a), GUIDE / f'{part}-guide.png')
