@@ -153,7 +153,13 @@ boarding hatch with a ladder housing, service hatches, drain and vent grilles,
 wing seams and panels, outrigger sensor windows and down-firing RCS. The build
 checks the deployed pose (keel shoes and wedge soles on the ground, everything
 else clear of it, no wedge through the ground) and records `landing_gear` in
-geometry.json. Round 7 leftovers brought up: lamp lenses
+geometry.json. Against ship-detail-guide.md (ship-detail-kit/check_detail.py,
+--mpu 0.76, turrets excluded) both variants pass every gate: 0 faceted (hull
+lofts at 48 sections, pods 64, armour domes 64 sides, merchant turret sponsons
+64), 0.0 m unbevelled per 100 m2 (the skinned hull bodies take the guide's
+0.12 m plate bevel on edges of 55 degrees and sharper), no emissive off a lamp
+(the outrigger vent slats no longer glow: the Wolf has no lights layer), no
+unframed glazing. Round 7 leftovers brought up: lamp lenses
 halved, a rounded sensor housing with a framed recessed window, a round roof
 hatch with coaming, hinge and handwheel, and radiator and exchanger panels as
 angled vanes in framed, rounded wells. About 102k polygons (pirate), 111k
