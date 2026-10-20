@@ -10,6 +10,7 @@
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
     python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
+    python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -626,8 +627,11 @@ def blender_main(cfg):
                 continue
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
-        knobs = ({k['name']: m['control']['saved_pose'].get(k['name'], 0.0) for k in m['control']['knobs']}
-                 if ctl and 'control' in m else {})
+        knobs = {}
+        if ctl and 'control' in m:      # knobs: a list of {name, ...}, or a dict of name -> description
+            ks = m['control'].get('knobs') or []
+            pose = m['control'].get('saved_pose') or {}
+            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
         return dict(coll=coll, fx=fx, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl,
                     knobs=knobs)
 
@@ -1112,6 +1116,9 @@ def blender_main(cfg):
             labels[kf] = lab
         else:
             labels[kf] = roster_sheet(kf)
+        if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
+            print('ASHARU staged', kf, flush=True)
+            continue
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         scene.render.use_file_extension = False
         scene.render.filepath = str(partial)
@@ -1507,6 +1514,12 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    if '--stage-only' in argv:      # the whole Blender scene build for these frames, CPU only, nothing written
+        from blender_path import BLENDER
+        env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True)))
+        subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
+                               '--python', __file__], env=env)
+        return
     if '--skip-render' not in argv:
         todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples)]
         done = [kf for kf in frames if kf not in todo]
