@@ -93,11 +93,17 @@ equipment-park bays the rings cross, and the pad crews. Removed roads and moved 
 covered with patches cut from plain painted apron: the overhead painting still shows the old
 layout underneath.
 
+**Nothing off the roads changes.** Clutter a road displaces still makes its random draws and keeps
+its ground, the removed roads stay clear, and the approved loops stay kept clear, so every other
+placement, the bonded stores and the roof plant on every warehouse (Kilo Nine's included) are the
+approved scene's. `PORT_DETAIL_TRACE=1` prints the random stream after each zone to show it: on and
+off agree zone for zone. Two apron light masts that would stand on a road are not placed.
+
 **Traffic by job.** The belt and port-west / port-mid loops run on the loading strip (keeping
 right). The heavy berth's tugs and dollies go down the heavy berth road, round pad 5's ring, east
 along the port road, round pad 95's ring and back up, stopping on the far side of each pad. The
 port road carries trips: the second bowser from the west, round pad 5's ring and up the gap to
-berth -40 (it used to appear in the gap), and three trucks for the truck park, two in by the west
+berth -40 (it used to appear in the gap; at the shot's end it is still driving up the gap), and three trucks for the truck park, two in by the west
 connector and the back road and one out to the container yard. The terminal loop is unchanged; its
 east side now runs on the terminal road.
 
