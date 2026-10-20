@@ -4,7 +4,7 @@
 
 Status: IN PROGRESS — dolls, colouring and the HUD plate shipped; waits on located vehicle armor
 Written: 2026-10-20
-Updated: 2026-10-20 — redrawn as MWO-style tiled panels; Hound/Sirocco/Bulwark read as Locust/Catapult/Fafnir
+Updated: 2026-10-20 — MWO-style panels; Hound and Sirocco pods in thirds (side thirds are the shoulder sections), nose guns, one outline per leg
 
 Read `direct-control-nouns.md` and `ui-nouns.md` first. The locations the doll
 draws are owned by `d5-located-armor.md`.
@@ -45,7 +45,11 @@ as goofy). Each part of the outline is a location, coloured by its state.
   the first passes overlapped parts and read as childish). A faint fixed outline
   keeps an unfitted location's shape.
 - Mech silhouettes follow the owner's references: the Hound a Locust, the
-  Sirocco a Catapult, the Bulwark a Fafnir.
+  Sirocco a Catapult, the Bulwark a Fafnir. Every outline is one damageable
+  location and thinner lines inside it are detail; a leg is one outline. A
+  pod-bodied mech's hull is three panels: the torso in the middle and its
+  shoulder sections either side, each carrying its mount (the Hound's rocket
+  pod, the Sirocco's missile boxes); the nose gun under it is the ARMS location.
 - Outlines are drawn, not traced, from proportions measured off the shipped
   top-down sprites (`art-source/dolls/build_dolls.py` writes every doll); a
   traced alpha edge is jagged at HUD size.
