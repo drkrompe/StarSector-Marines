@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssault;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,11 +40,25 @@ public final class MechMoveOrderService {
      * clicked; destination coordinates name the nearest reachable cell the
      * mech will actually occupy. {@code facingDegrees} is the hip heading the
      * player dragged out for it to stand on once there, or {@code NaN}.
+     *
+     * <p>With an {@code assault}, the click was on a garrisonable the side believes is
+     * enemy-held: the destination is the assault's stand-off, and the order does not end on
+     * arrival but holds the mech there, firing on the place, until the assault is over
+     * ({@code MachineAssaults}).
      */
     public record ActiveOrder(int requestedX, int requestedY,
-                              int destinationX, int destinationY, float facingDegrees) {
+                              int destinationX, int destinationY, float facingDegrees,
+                              MachineAssault assault) {
+
+        /** A plain move with no dragged facing. */
         public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY) {
-            this(requestedX, requestedY, destinationX, destinationY, Float.NaN);
+            this(requestedX, requestedY, destinationX, destinationY, Float.NaN, null);
+        }
+
+        /** A plain move standing on {@code facingDegrees} once there. */
+        public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY,
+                           float facingDegrees) {
+            this(requestedX, requestedY, destinationX, destinationY, facingDegrees, null);
         }
     }
 
@@ -117,5 +133,15 @@ public final class MechMoveOrderService {
 
     Iterable<Map.Entry<Long, ActiveOrder>> activeEntries() {
         return active.entrySet();
+    }
+
+    /** Whether any order is accepted, so a per-tick pass with nothing to serve allocates nothing. */
+    public boolean hasActiveOrders() {
+        return !active.isEmpty();
+    }
+
+    /** Accepted orders, snapshotted, for the serial passes that serve them (wall fire, highlights). */
+    public List<Map.Entry<Long, ActiveOrder>> activeOrders() {
+        return new ArrayList<>(active.entrySet());
     }
 }

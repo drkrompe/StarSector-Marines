@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.mech.MechTargeting;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -30,6 +32,8 @@ public final class GroundVehicleTurretSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private SideSpotting spotting = SideSpotting.NONE;
+    /** Standing assaults whose fire directives this pass serves; null when none are given. */
+    private VehicleMoveOrderService assaults;
 
     /** Seconds between a launcher's looks for a new target ({@link #tickLauncher}). */
     static final float LAUNCHER_RELOOK_SECONDS = 0.5f;
@@ -48,6 +52,11 @@ public final class GroundVehicleTurretSystem {
     /** Who calls targets for an indirect-fire launcher that cannot see them itself. */
     public void setSpotting(SideSpotting spotting) {
         this.spotting = spotting != null ? spotting : SideSpotting.NONE;
+    }
+
+    /** The order mailbox whose standing assaults direct autonomous turrets ({@code MachineAssaults}). */
+    public void setAssaults(VehicleMoveOrderService orders) {
+        this.assaults = orders;
     }
 
     public void cancelQueuedFire(long id) {
@@ -177,6 +186,21 @@ public final class GroundVehicleTurretSystem {
             return;
         }
 
+        long held = roster.isAliveById(turret.targetId) ? turret.targetId : 0L;
+        MachineAssault assault = assaults != null ? assaults.assault(id) : null;
+        // An assault directs the gun ahead of the ordinary pick, except that a visible enemy
+        // close enough to be self-defence keeps the gun: the believed occupant first, then the
+        // wall that shelters one when this gun can bring it down.
+        if (assault != null && !closeThreat(held, mountX, mountY)) {
+            long occupant = assault.occupantId();
+            if (occupant != 0L && roster.isAliveById(occupant)) {
+                held = occupant;
+            } else if (assault.hasWall() && weapon.wallDamage > 0) {
+                tickAssaultWall(id, turret, body, structure, mountX, mountY, dt, assault);
+                return;
+            }
+        }
+
         TurretAim.State aim = new TurretAim.State();
         aim.originCellX = (int) Math.floor(mountX);
         aim.originCellY = (int) Math.floor(mountY);
@@ -189,7 +213,7 @@ public final class GroundVehicleTurretSystem {
         aim.minRange = weapon.minRange;
         aim.cooldownTimer = turret.cooldownTimer;
         aim.attackCooldown = weapon.cooldown;
-        aim.target = roster.isAliveById(turret.targetId) ? turret.targetId : 0L;
+        aim.target = held;
         float agedCooldown = turret.cooldownTimer > 0f ? turret.cooldownTimer - dt : turret.cooldownTimer;
         TurretAim.tick(aim, scoring, grid, world, roster.vision(), dt);
         turret.facingDeg = aim.facingDegrees;
@@ -213,6 +237,32 @@ public final class GroundVehicleTurretSystem {
                 turret.burstTargetId = aim.target;
             }
         }
+    }
+
+    private boolean closeThreat(long target, float mountX, float mountY) {
+        return target != 0L && Math.hypot(world.x(target) - mountX, world.y(target) - mountY)
+                <= MechTargeting.CLOSE_THREAT_AGGRO_RANGE;
+    }
+
+    /**
+     * One autonomous round at the wall an assault names: the gun slews onto the cell and fires a single round
+     * through the point-fire path a controlled turret uses, on the weapon's own cadence and magazine. No burst
+     * is queued; the next round is the next directive's.
+     */
+    private void tickAssaultWall(long id, GroundTurret turret, GroundBody body, StructureDef structure,
+                                 float mountX, float mountY, float dt, MachineAssault assault) {
+        WeaponDef weapon = structure.mount.weapon;
+        turret.targetId = 0L;
+        PointFireAim aim = new PointFireAim(assault.wallX() + .5f, assault.wallY() + .5f);
+        if (aim.validFrom(mountX, mountY)) {
+            turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
+                    TurretAim.bearingTo(mountX, mountY, aim.x(), aim.y()),
+                    structure.mount.turnRateDegPerSec * dt);
+        }
+        if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
+        if (turret.cooldownTimer > 0f || !firePoint(id, turret, body, structure, mountX, mountY, aim, 0)) return;
+        turret.ammo--;
+        turret.cooldownTimer = weapon.cooldown;
     }
 
     /**

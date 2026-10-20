@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.breach;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -14,6 +16,8 @@ import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,6 +39,10 @@ import java.util.Set;
  * and a member that has a body to fight uses his weapons on it first: this pass runs after the ordinary firing passes
  * and takes what they left. It only ever fires at a wall cell the order named and that is still standing, so it can not
  * be used to shoot at anything else, and it names no hostile.
+ *
+ * <p>The same pass serves a mech's standing <b>assault</b> on a garrisonable ({@code MachineAssaults}): when the
+ * assault named the wall sheltering a believed occupant this tick, and the chassis has no body to fight, its mounts
+ * that do wall damage fire at that wall exactly as they would at an ordered breach.
  *
  * <p>Untuned simplification: a marine's launcher or tool is used without the aim or channel animation an ordinary
  * special goes through, on its ordinary cooldown.
@@ -77,6 +85,18 @@ public final class WallBreachSystem {
                     breachWithKit(sim, grid, world, member, cellX, cellY);
                 }
             }
+        }
+        List<Map.Entry<Long, ActiveOrder>> orders = sim.getMechMoveOrderService().hasActiveOrders()
+                ? sim.getMechMoveOrderService().activeOrders() : List.of();
+        for (Map.Entry<Long, ActiveOrder> entry : orders) {
+            MachineAssault assault = entry.getValue().assault();
+            long mech = entry.getKey();
+            if (assault == null || !assault.hasWall() || aimedNow.contains(mech)
+                    || !world.isAlive(mech) || !world.hasMechLoadout(mech) || world.targetId(mech) != 0L) continue;
+            int cellX = assault.wallX();
+            int cellY = assault.wallY();
+            if (!grid.inBounds(cellX, cellY) || grid.isWalkable(cellX, cellY)) continue;
+            if (breachWithMech(sim, grid, world, mech, cellX, cellY)) aimedNow.add(mech);
         }
         for (long member : aiming) {
             if (aimedNow.contains(member) || sim.resolveUnit(member) == 0L || !world.hasMechLoadout(member)) continue;

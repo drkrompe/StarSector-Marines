@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -60,7 +61,10 @@ public final class CorvusWaylineCampaign {
         return progress.chapter().mission(progress.missionId(), planetName, introduction(route));
     }
     public static String introduction(BrokenSupplyRouteProgress route) {
-        if (route == null) return "Our dispatch records point beyond Jangala.";
+        if (route == null) {
+            PlanetAPI start = CerberusCompanyStart.destination();
+            return "Our dispatch records point beyond " + (start == null ? "Jangala" : start.getName()) + ".";
+        }
         if (!route.readable() || !route.closed()) return route.status();
         String recovery;
         if (route.freight() != null) {

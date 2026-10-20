@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssault;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,6 +95,12 @@ public final class VehicleMoveOrderService {
     private final Map<Long, RefusedOrder> refused = new ConcurrentHashMap<>();
     private final Set<Long> suspended = ConcurrentHashMap.newKeySet();
     private final Map<Long, RequestedOrder> retained = new ConcurrentHashMap<>();
+    /**
+     * Standing assaults on a garrisonable ({@code MachineAssaults}). An assault outlives the move
+     * that drove the hull to its stand-off: it holds the hull there and directs its turret until
+     * the side believes nobody is left inside, or another order supersedes it.
+     */
+    private final Map<Long, MachineAssault> assaults = new ConcurrentHashMap<>();
 
     /** Queues a one-shot move request for resolution on the next fixed tick. */
     public void requestMove(long vehicleId, int cellX, int cellY) {
@@ -120,11 +128,29 @@ public final class VehicleMoveOrderService {
 
     public boolean isSuspended(long vehicleId) { return suspended.contains(vehicleId); }
 
+    /** The hull's standing assault, or {@code null}. */
+    public MachineAssault assault(long vehicleId) { return assaults.get(vehicleId); }
+
+    /** Ends a standing assault; the hull is idle where it stands. */
+    public void endAssault(long vehicleId) { assaults.remove(vehicleId); }
+
+    /** Whether any hull stands under an assault, so the per-tick pass with none allocates nothing. */
+    public boolean hasAssaults() { return !assaults.isEmpty(); }
+
+    /** Standing assaults, snapshotted, for the serial pass that directs their turrets. */
+    public List<Map.Entry<Long, MachineAssault>> assaultEntries() {
+        return new ArrayList<>(assaults.entrySet());
+    }
+
+    void beginAssault(long vehicleId, MachineAssault assault) { assaults.put(vehicleId, assault); }
+
     /** Current requested destination awaiting handback, without a stale route proof. */
     public RequestedOrder suspendedOrder(long vehicleId) { return retained.get(vehicleId); }
 
     void suspend(long vehicleId) {
         if (!suspended.add(vehicleId)) return;
+        // Direct control is a new owner for the hull; the assault it was under does not survive it.
+        assaults.remove(vehicleId);
         ActiveOrder order = active.remove(vehicleId);
         if (order != null) retain(vehicleId, order.requestedX(), order.requestedY(), order.facingDegrees());
         retainLatestPending(vehicleId);
@@ -182,6 +208,7 @@ public final class VehicleMoveOrderService {
         refused.remove(vehicleId);
         suspended.remove(vehicleId);
         retained.remove(vehicleId);
+        assaults.remove(vehicleId);
         pending.removeIf(order -> order.vehicleId == vehicleId);
     }
 
