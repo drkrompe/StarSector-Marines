@@ -238,10 +238,10 @@ PUBLISHED['Phaeton'] = .33   # the rule solves 0.326 (75.7 m): published at two 
 # cans, outer turret pods, armour plates and weapons are excluded. Fittings:
 # the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
 # its own statements so sibling hulls added at the same time do not collide in one line.
-# Published at 0.59 (91 m) by owner override (2026-10-20): round 11 opened the wings behind
-# the forward glacis into exposed framework, which is not enclosed volume, and the rule
-# now solves about 0.66 (101 m). A reshape never resizes a hull; the size is the owner's.
-HULLS['Manticore (P)'] = dict(units3=164819, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+# Published at 0.59 (91 m) by owner override (2026-10-20): rounds 11-12 opened the wings
+# behind the forward armour into exposed framework, which is not enclosed volume, and the
+# rule now solves about 0.65 (99 m). A reshape never resizes a hull; the size is the owner's.
+HULLS['Manticore (P)'] = dict(units3=176949, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
                              sprite_px=154, fittings_units={'viewport w x h': [1.85, 1.48],
                                                             'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
