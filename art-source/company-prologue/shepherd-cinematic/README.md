@@ -46,9 +46,12 @@ and `validation.json` are tracked.
   - `Anchor turret 1 port|starboard gun muzzle` ride the barrels, +X along
     the line of fire. Port is the barrel left of the line of fire, the kit's
     twin-mount tag.
-- **Hardpoint.** WS 008, the universal mount on the gantry's bow bed, is
-  fixed. `Anchor turret 2 gun muzzle` sits on its barrel, +X forward. The kit
-  numbers every declared muzzle as a turret, so this is gun rig 2.
+- **Hardpoint.** WS 008 is fixed: the turret kit's four-tube Swarmer pack
+  (`shepherd_Frontier`, the stock fit), sunk in the gantry drum's well.
+  `Anchor turret 2 gun muzzle` sits on its first tube's mouth and `Anchor
+  turret 2 tube 2|3|4 muzzle` on the others, +X forward; each loaded round is
+  `Hardpoint 1 WS 008 missile <k>`. The kit numbers every declared muzzle as a
+  turret, so this is gun rig 2, a launcher in the effects.
 - **Drone bay.** WS 003 has three openings. Each one has a `Drone bay WS 003
   opening <i> mouth` at the rim and a `launch point <i>` on the floor. A
   drone lifts out along +Z, then turns forward. The manifest records the
@@ -63,7 +66,7 @@ and `validation.json` are tracked.
   with this folder's `vfx_hull.py` profile). It provides:
   - LOW_TECH orange plumes, cores and bell glow on both drives;
   - cold-gas puffs on the four jets, and exhaust haze;
-  - muzzle effects on the turret's two barrels and the hardpoint;
+  - muzzle effects on the turret's two barrels and launches from the hardpoint's four tubes;
   - the running lamps, masthead, boom beacon and the bay floodlights as
     lights.
 

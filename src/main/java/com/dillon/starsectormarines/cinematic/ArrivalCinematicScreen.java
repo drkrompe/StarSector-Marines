@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.cinematic.CinematicShot.LockOverlay;
 import com.dillon.starsectormarines.cinematic.CinematicShot.Speaker;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
+import com.dillon.starsectormarines.ops.MenuTheme;
 import com.dillon.starsectormarines.ops.Screen;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -131,6 +132,8 @@ public final class ArrivalCinematicScreen implements Screen {
             openShot(0, WINDOW);
             shot = 0;
             pump.attach(decoders[0]);
+            // The arrival's score is its own; the menu theme must not play under it.
+            MenuTheme.shared().silence();
             Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
             musicPaused = 1;
         } catch (RuntimeException e) {

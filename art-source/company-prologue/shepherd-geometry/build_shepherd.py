@@ -363,7 +363,8 @@ if not args.no_save:
         'weapon_slots': [dict({k: v for k, v in s.items() if k != 'prefix'},
                               location=[*s['location'], round(sh_mounts.ANCHOR_Z[s['id']], 2)],
                               objects=f"{s['prefix']} ...", pivot=f"{s['prefix']} pivot",
-                              muzzle=f"{s['prefix']} muzzle", muzzle_location=list(sh_mounts.MUZZLES[s['id']]))
+                              muzzle=f"{s['prefix']} muzzle", muzzle_location=list(sh_mounts.MUZZLES[s['id']]),
+                              **({'hardpoint': sh_mounts.HARDPOINT_RECORD[s['id']]} if s['id'] in sh_mounts.HARDPOINT_RECORD else {}))
                          for s in sh_mounts.SLOTS],
         'engines': [{'index': i, 'role': 'main drive' if i <= 2 else 'maneuvering jet',
                      'objects': f'Engine {i} ...', 'anchor': f'Engine {i} exhaust anchor',

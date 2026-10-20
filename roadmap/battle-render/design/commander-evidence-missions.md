@@ -176,7 +176,11 @@ question; the city map is unfinished. Each fixture's fighting-position block car
 stands at a fort and how many of them have no marine within thirty cells, how
 often a rallied squad's post moved and how often it moved back to the one before,
 and the defender's marches (a new order cell thirty or more cells off) with
-those of a thousand ticks or more, arrivals and members lost on the way.
+those of a thousand ticks or more, arrivals and members lost on the way. A `MARINE holds taken ground` line (and `attackerHold` in
+`summary.json`) says when the fort was whole in marine hands and whether it was
+won back, and how the attacker held its belt: manning orders, holder
+squad-samples, the most at once, dug-in member-samples and fall backs;
+`-Dbattle.conquest.attackerHoldsGround=false` is its control.
 
 ## Conquest fixtures and fort control
 

@@ -1315,6 +1315,19 @@ bay and Mech Lab stay damaged. The planet interaction remains alive as the docki
 and depot authority, and its ordinary menu returns when the storybook closes. Until the
 founding conversion is installed, no alternative hull can bypass company designation.
 
+**The menu theme.** The opening storybook (the prologue's pages and the yard's) plays
+the same looping Marines theme as Marine operations, never vanilla's campaign music,
+and it is one track rather than two players (`MenuTheme`): every surface that wants it
+holds it while shown, the first holder starts it and the last one out fades it and
+restores default music. A hand-over between holders therefore neither restarts the
+track nor lets vanilla in. The yard pages hand it to the port they return to, which
+keeps it through that port's menu and into Marine operations until the player
+undocks. The Jangala arrival plays its own score: it fades the theme out rather than
+under it, and the next storybook page brings it back. The battle likewise replaces
+the track and the next ordinary screen restarts it. A game load forgets every holder
+and lifts the suspension, so a dialog torn down without its dismissal cannot leave a
+campaign silent.
+
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted
 this start's Cerberus. Its contents derive from one Hermes recipe and one standard
 squad-founding bill. It is issued once, saved independently of cargo, and never

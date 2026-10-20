@@ -32,8 +32,9 @@ well, append `HOUND (A) | clean` and `SWFX` in one load.
   - +X points aft.
   - Each carries `running`, `bell_radius` (5.2 units) and `radius_m` (4.58 m).
 - **WS 001.**
-  - Medium ballistic hardpoint, fixed, slot angle 0.
-  - `Anchor weapon WS 001 muzzle` sits at the brake mouth, with +X on the line of fire.
+  - Medium ballistic hardpoint, fixed, slot angle 0: the turret kit's chaingun on `Weapon WS 001 mount`.
+  - The barrel cluster spins on `Weapon WS 001 rotor` (local X) inside `Weapon WS 001 recoil 1` (slide it aft to recoil).
+  - `Anchor weapon WS 001 muzzle` sits on the kit's `Weapon WS 001 muzzle anchor 1`, on the cluster axis, with +X on the line of fire.
 - **WS 002.**
   - Small turret. `Weapon WS 002 pivot` turns about its local Z and rests at the slot angle, 145 degrees (arc 290).
   - Everything above the traverse gap rides the pivot, along with the slot anchor and `Anchor weapon WS 002 muzzle`.
@@ -87,7 +88,8 @@ unchanged). Each livery is its own collection, so two can share a scene:
 | independent | `HOUND (independent) \| clean` | `independent/` | `hound-surface-independent/` (Asharu convoy rear escort) |
 | pirate | `HOUND (P) \| pirate` | `pirate/` | `hound-surface-pirate/` on hound-geometry's pirate state |
 
-Verify, review and encode take the folder as `--state` (`--state independent`).
+Verify, review and encode take the folder as `--state` (`--state independent`);
+verify also takes `--dir BUILD` to check an export written elsewhere (`--out`).
 A twin mount's numbered muzzle brakes (`Weapon <slot> muzzle brake <k>`) give
 numbered anchors (`Anchor weapon <slot> muzzle <k>`), which the VFX kit reads as
 barrels.

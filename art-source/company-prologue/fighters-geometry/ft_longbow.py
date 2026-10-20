@@ -14,7 +14,10 @@ Y +-4.5, pods centred on Y +-9).
 """
 import math
 import bpy
+from mathutils import Matrix, Vector
 import fg_kit as K
+import fg_gear
+from fg_gear import fold
 from fg_kit import prism, section, mirror_y, section_loft
 
 NAME = 'Longbow'
@@ -234,18 +237,41 @@ def build(kit):
 # Bends and landing (owner, 2026-10-18: the fighters read flat). The X-frame
 # folds down along both sides of the fuselage, so arms, webs, launchers and
 # pods all droop outboard like a gull and the pods roll outward with them.
-# The bomber lands on four short splayed lander legs, one under each arm root
-# beside the fuselage, each with a round foot pad and an inboard brace: four
-# because three under so narrow a fuselage would tip with the arms' weight.
-# The arms and launchers carry no load. The plan view is unchanged.
+# The bomber lands on four splayed lander legs, one under each arm root beside
+# the fuselage: four because three under so narrow a fuselage would tip with
+# the arms' weight. Each is a box-section shock strut on a broad pad with
+# three claws (owner, 2026-10-20: no thin pistons, no puck feet). Each folds
+# flat along the arm above it, the fore legs out along the fore arms and the
+# aft legs in along the aft arms toward the fuselage, under a pair of doors
+# hinged on the bay's long edges; the claws curl up beside the strut as it
+# lifts. The arms and launchers carry no load. The plan view is unchanged.
 FOLD_Y = 3.6             # the fuselage's half width: the frame folds outboard of it
 FOLD_DEG = 8.0
 DECK_Z = -4.2            # parked deck, level in the hull frame
-PAD_R, PAD_T = 1.0, .3
-# (name, hip x, hip y, hip z on the arm's underside, foot splay outboard)
-LEGS = [('Hull port fore leg', 5.0, 5.4, -1.0, .9), ('Hull starboard fore leg', 5.0, -5.4, -1.0, .9),
-        ('Hull port aft leg', -4.6, 5.3, -1.0, .9), ('Hull starboard aft leg', -4.6, -5.3, -1.0, .9)]
-FEET = [f'{leg[0]} pad' for leg in LEGS]
+SPLAY = .9               # each foot stands this far outboard of its hip
+# (name, hip x, hip y, hinge z inside the arm, stowed direction (x, outboard y), bay solids)
+LEGS = [('Hull port fore leg', 5.0, 5.4, -.75, (.739, .673), ('Wing port fore arm', 'Hull fore web',
+                                                                'Weapon WS 001 housing')),
+        ('Hull starboard fore leg', 5.0, -5.4, -.75, (.739, .673), ('Wing starboard fore arm', 'Hull fore web',
+                                                                     'Weapon WS 002 inner plate')),
+        ('Hull port aft leg', -4.6, 5.3, -.85, (.721, -.693), ('Wing port aft arm', 'Hull aft web', 'Hull fuselage')),
+        ('Hull starboard aft leg', -4.6, -5.3, -.85, (.721, -.693),
+         ('Wing starboard aft arm', 'Hull aft web', 'Hull fuselage'))]
+STRUT = (.8, .68)        # strut width (along the hinge axis) and depth, units
+PAD = (1.0, 1.0, .4)     # pad sole length, width and height
+CLAW = (.8, .34, .3)     # claw length, root width and root height
+CLAW_CURL = 100.0        # how far each claw curls up, stowed
+BRACE_RUN = 1.2          # the brace's reach toward the fold
+BAY_HALF = .8            # half the bay's width: each door's width
+OUTBOARD_DOOR_DEG = 160.0
+GEAR_NOTES = ('Retractable since 2026-10-20 (fg_gear). The thin splayed legs and round pads are replaced by box-'
+              'section shock struts on broad pads with three claws each. Each leg folds about an axis that lays it '
+              'flat along the arm above it (fore legs out along the fore arms, aft legs in along the aft arms '
+              'toward the fuselage); the claws curl up beside the strut as it lifts and uncurl onto the deck over '
+              'the last 15% of the knob. Each bay is a strip along the arm with a dark liner and two doors on its '
+              'long edges; the outboard door opens to 160 degrees, back up toward the skin, because the strut '
+              'swings in a plane tilted by its splay. The feet stand where the pads stood.')
+FEET = [f'{leg[0]} {p}' for leg in LEGS for p in ('pad', 'claw 1', 'claw 2', 'claw 3')]
 LEG_PARTS = tuple(leg[0] for leg in LEGS)
 
 
@@ -274,18 +300,50 @@ def fold_frame():
 
 
 def lander_legs(kit):
-    """Four splayed legs: a main strut with its piston, an inboard brace to the fuselage, a round pad."""
-    S, B, D = kit.steel, kit.bright, kit.dark
-    for name, x, y, top, splay in LEGS:
+    """Four splayed shock struts on clawed feet, each folding flat along the arm above it."""
+    g = kit.gear
+    ob = bpy.data.objects
+    for name, x, y, hinge_z, stow, hosts in LEGS:
         s = 1 if y > 0 else -1
-        hip = (x, y, top-fold_drop(y)+.3)
-        foot = (x, y+s*splay, DECK_Z+PAD_T)
-        knee = tuple(h+(f-h)*.5 for h, f in zip(hip, foot))
-        kit.rod(f'{name} strut', hip, knee, .2, S, 12)
-        kit.rod(f'{name} piston', tuple(h+(f-h)*.4 for h, f in zip(hip, foot)), (foot[0], foot[1], foot[2]-.1),
-                .12, B, 12)
-        kit.rod(f'{name} brace', (x, s*(FOLD_Y-.3), -1.2), knee, .07, S, 8)
-        kit.cylinder(f'{name} pad', (foot[0], foot[1], DECK_Z+PAD_T/2), PAD_R, PAD_T, D, 'Z', 16, .04)
+        hip = Vector((x, y, hinge_z))
+        sole = Vector((x, y+s*SPLAY, DECK_Z))
+        ankle = sole+Vector((0, 0, PAD[2]+.22))
+        d = Vector((stow[0], s*stow[1], 0)).normalized()   # where the leg lies when stowed, along its arm
+        axis, deg = fold(ankle-hip, d)
+        parts = g.strut(name, hip, ankle, axis, *STRUT)
+        parts.append(g.beam(f'{name} brace', hip.lerp(ankle, .5), hip+d*BRACE_RUN+Vector((0, 0, -.45)), axis,
+                            (.32, .27), (.27, .22), kit.steel))
+        out = Vector((0, s, 0))
+        parts.append(g.wedge(f'{name} pad', sole, out, out.cross(Vector((0, 0, 1))), PAD[0], PAD[1], PAD[2],
+                             kit.steel, .3, .3, .66))
+        h = g.hinge(f'{name} hinge', hip, axis, deg, 0.0)
+        g.adopt(h, parts)
+        # Three claws round the pad, one outboard and two raked fore and aft inboard; each curls up
+        # beside the strut as the leg lifts, and uncurls onto the deck as the foot comes down.
+        for k, a in enumerate((0.0, 125.0, -125.0), 1):
+            c = Matrix.Rotation(math.radians(a), 3, 'Z') @ out
+            root = sole+c*(PAD[0]*.42)
+            claw = g.talon(f'{name} claw {k}', root, c, c.cross(Vector((0, 0, 1))), *CLAW, kit.dark)
+            ch = g.hinge(f'{name} claw {k} hinge', root+Vector((0, 0, CLAW[2]*.5)), c.cross(Vector((0, 0, 1))),
+                         CLAW_CURL, 0.0, fg_gear.CLAW_SPAN, parent=h)
+            g.adopt(ch, [claw])
+        rec = g.leg(name, h, [ob[n] for n in hosts])
+        # The bay: a strip along the arm from behind the trunnion to past the folded foot, a pair of
+        # doors over it hinged on its long edges.
+        reach = (ankle-hip).length+PAD[2]+.35
+        e = Vector((-d.y, d.x, 0))
+        p0, p1 = hip.xy-d.xy*.62, hip.xy+d.xy*reach
+        hw = BAY_HALF
+        quad = [tuple(p1-e.xy*hw), tuple(p0-e.xy*hw), tuple(p0+e.xy*hw), tuple(p1+e.xy*hw)]
+        bay_hosts = [ob[n] for n in hosts]
+        g.liner(rec, f'{name} bay liner', quad, bay_hosts)
+        # The strut swings in a plane tilted outboard by its splay, so the outboard door opens past
+        # square, back up toward the skin beside the bay, to let the foot by.
+        for side, sg in (('outboard', 1), ('inboard', -1)):
+            sg *= 1 if e.y*s > 0 else -1
+            quad = [tuple(p1), tuple(p0), tuple(p0+e.xy*sg*hw), tuple(p1+e.xy*sg*hw)]
+            g.door(rec, f'{name} door {side}', quad, (2, 3), bay_hosts, kit.armour,
+                   OUTBOARD_DOOR_DEG if side == 'outboard' else 95.0)
 
 
 def detail(kit):

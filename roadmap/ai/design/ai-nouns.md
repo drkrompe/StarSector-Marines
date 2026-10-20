@@ -2174,6 +2174,13 @@ fort: a quiet belt left empty, a pressed stretch manned on the pulse its pressur
 is believed, dug in and given back after the attack passes, and a breached
 garrison falling back to the works.
 
+The attacker holds what it takes by the same assignment: the belt of a fort it
+has taken is manned from its lane pool while it believes a counter-attack near
+it, never from a company or a capture, never more than a quarter of the lane
+pool at once, and never in the convergence phases. Only a believed mover, not a
+nest left standing, presses taken ground (`garrisonables.md`, holding taken
+ground; scene `attacker-holds-ground`).
+
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
 a dug-in damage bonus would count the same ground twice. (A trench covers the
@@ -2285,6 +2292,31 @@ machines open the place from outside and stand down by themselves once nobody is
 believed left in it. A trench has no walls to bring down; it is assaulted by
 direct fire alone. The scene `machine-assault` is the acceptance
 (`MachineAssaults`).
+
+**A player's squad may opt into reactive manning: the GARRISON stance.** It is a
+per-squad switch on the order bar (`[G] GARRISON`, and the `G` key), never a
+default, and infantry only. The stance is a standing permission, not an order:
+a squad in it acts only while it carries no player order. It watches a ring the
+size of a defend area round its **anchor** — where it stood when the stance was
+turned on, or when a player order it carried ended — and mans the
+fighting-position run or held building inside the ring that its side believes
+most pressed, by the commander's own law (`garrisonables.md`): the defender's
+start and release levels and dwell, never released in a fight, never sent below
+useful strength, a breach near it a fall back with that place left alone for a
+while, belief only. It considers only the side's own ground — nothing inside a
+compound the marines do not hold, nothing believed to hold an enemy, nothing
+another marine squad already mans or has been sent to. Manning is the order a
+click gives (occupy on a trench, hold on a building); release and fall back walk
+the squad back to its anchor and it watches again. A squad the mission commander
+walks out of its ring re-anchors where it stands, so the stance never marches a
+squad across the map. Any player order replaces the stance's own at once and
+the stance stands aside while it stands, then watches from wherever that order
+left the squad, so a player can move a squad to a corner and have it watch there;
+turning the stance off ends only the order the stance gave. The order bar's card says what the stance is doing
+(watching, manning a trench, holding a building, returning, under orders) and the
+selected squad's watch ring and manned place are drawn on the map. The scene
+`player-reactive-manning` is the acceptance (`ReactiveWatch`,
+`ReactiveManningSystem`).
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

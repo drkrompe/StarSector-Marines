@@ -1,5 +1,5 @@
-TALON | geometry: 102 meshes, 84 pass-2 detail
-detail meeting detail within one fitting: 58 pairs (counted, not listed)
+TALON | geometry: 114 meshes, 96 pass-2 detail
+detail meeting detail within one fitting: 84 pairs (counted, not listed)
 detail crossing detail across fittings: 1 pairs
     Canopy frame sill | Hull cockpit pod dorsal strip
 floating detail (touches nothing): 0
@@ -72,22 +72,24 @@ detail bedded into body (part: body parts it meets):
     Hull cockpit pod dorsal vent: Hull cockpit pod
     Hull cockpit pod nose strip: Hull cockpit pod
     Hull cockpit pod sensor fairing: Hull cockpit pod
-    Hull port runner aft strut: Engine 1 port drive drum
-    Hull port runner fore strut: Hull gun nacelle
+    Hull port runner: Engine 1 port drive drum
+    Hull port runner aft shoe: Engine 1 port drive drum
     Hull port shoulder intake slat 1: Hull gun nacelle
     Hull port shoulder intake slat 2: Hull gun nacelle
     Hull port shoulder intake slat 3: Hull gun nacelle
     Hull port shoulder intake slat 4: Hull gun nacelle
     Hull port shoulder intake slat 5: Hull gun nacelle
     Hull port shoulder intake well: Hull gun nacelle
-    Hull starboard runner aft strut: Engine 2 starboard drive drum
-    Hull starboard runner fore strut: Hull cockpit pod
+    Hull port skid fairing: Engine 1 port drive drum, Hull aft body, Hull gun nacelle
+    Hull starboard runner: Engine 2 starboard drive drum
+    Hull starboard runner aft shoe: Engine 2 starboard drive drum
     Hull starboard shoulder intake slat 1: Hull cockpit pod
     Hull starboard shoulder intake slat 2: Hull cockpit pod
     Hull starboard shoulder intake slat 3: Hull cockpit pod
     Hull starboard shoulder intake slat 4: Hull cockpit pod
     Hull starboard shoulder intake slat 5: Hull cockpit pod
     Hull starboard shoulder intake well: Hull cockpit pod
+    Hull starboard skid fairing: Engine 2 starboard drive drum, Hull aft body, Hull cockpit pod
     Weapon WS 001 vulcan barrel 1: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
     Weapon WS 001 vulcan barrel 2: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
     Weapon WS 001 vulcan barrel 3: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
