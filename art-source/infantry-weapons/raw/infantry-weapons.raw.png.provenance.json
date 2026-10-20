@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15aaf-b732-78c2-8d5f-32fa4b0e5b80",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15aaf-b732-78c2-8d5f-32fa4b0e5b80\\call_0b9f673c839448a0a3f79c137db12fdf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapons.raw.png",
+    "sha256": "9a30448811f651a2a9765050ac1db38085d62006b35a8950cded0965f2a8e593",
+    "dimensions": [
+      1612,
+      976
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapons.prompt.txt",
+  "promptSha256": "e479d707e004adaf241fdb11e1738856592813fef43e6b53725b8ea84a4a499b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: exact silhouettes, parts and positions\nImage 2: Material, finish and lighting reference only; not layout or content\n\nUse case: sketch-to-render. Asset: a sheet of six infantry weapons for a gritty military dark-science-fiction tactical game, each seen from STRAIGHT OVERHEAD (looking down at the top of the gun as it lies flat, muzzle pointing up the image), drawn as a held layer under a top-down soldier sprite. In play each gun is only 15 to 30 pixels long over olive, grey and blue-steel armour, so each must read at a glance: bold value contrast, crisp light edge highlights on dark metal, clear separate parts.\n\nImage 1 is the authoritative geometry guide and edit target. Reskin these exact six objects into finished painted game sprites, preserving every silhouette, part, proportion and position exactly, with all transparent empty space and gaps (including the opening in the fourth weapon's stock and the gap between its rails) left transparent. Do not move, add, merge or remove parts; do not add slings, hands, ground or shadows. Left to right:\n1. Field rifle: matte black steel flash hider and barrel, a tan-olive polymer vented handguard and solid stock, a dark gunmetal receiver, a black scope with blue-tinted glass, a pale steel charging lug on the right, black rubber butt pad. Reliable, plain, mass-produced.\n2. Pulse laser rifle: a pale ceramic emitter shroud with a glowing green lens, three black finned heat sinks crossing the barrel, a white-grey ceramic body with a glowing green coil window down its spine and a green-lit power cell on the right side, dark grip, grey stock. Clean high-tech.\n3. Pirate submachine gun: worn rust-brown and bare scratched steel, a perforated shroud, a black box magazine jutting out to the left, a small reflex sight, a folding wire stock of two thin struts. Rough, salvaged, a strip of hazard tape on the shroud.\n4. Railgun marksman rifle: two long black rails with a glowing pale-blue field between them, pale steel braces, a navy-blue and off-white capacitor housing with dark bands, a long black scope with blue glass, a pale grey skeleton stock. Precise, expensive, naval.\n5. Anti-materiel rifle: a heavy dark gunmetal ported muzzle brake and thick barrel, the bipod legs folded back along the barrel in pale steel, a big black scope, a gunmetal receiver, a pale olive box magazine on the right, a heavy padded olive stock with black recoil pad. Massive and brutal.\n6. Rocket launcher: an olive-drab composite tube with black flared muzzle and rear venturi, yellow-and-black hazard bands at both ends, a dark grey sight-and-trigger housing on the right with a blue-glass sight, a pale steel folding front sight on the left, a black shoulder pad.\n\nStraight top-down orthographic camera, no perspective, no side view, no cast shadow, no ground, no text, labels, numbers, borders or watermark. True transparent background outside every silhouette, including negative spaces. Hand-painted Starsector-like game sprite finish with subtle top-left lighting, utilitarian science fiction. Image 2 is a finished soldier armour sprite from the same game: material, finish and lighting reference only, not layout or content. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapons-guide.png",
+      "sha256": "3f1b846bbf39d843faa7c34388543456ce6b3d4efa342fd9d8e65de69d471599",
+      "dimensions": [
+        2272,
+        1376
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: exact silhouettes, parts and positions"
+    },
+    {
+      "path": "mod\\graphics\\battle\\marine-modular-topdown\\variants\\armor\\specter-heavy\\body.png",
+      "sha256": "659df3f4fc08ad4fa24191c2e963d20ac0ed4e785ff6ea7f6ab35f836ec89bcf",
+      "dimensions": [
+        150,
+        95
+      ],
+      "mode": "RGBA",
+      "role": "Material, finish and lighting reference only; not layout or content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one sheet, preserving the guide’s geometry and transparent gaps."
+  ],
+  "usage": {
+    "input_tokens": 52024,
+    "cached_input_tokens": 4736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 742,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.0
+}
