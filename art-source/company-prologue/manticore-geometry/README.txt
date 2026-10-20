@@ -289,3 +289,24 @@ now has 24 to 48 sides with smooth shading below 30 deg, every bevelled box a
 two-segment rounded edge with hardened normals, and the sensor domes and
 running lights are smooth spheres. The lofted hull sections stay faceted on
 purpose (round 9).
+
+Owner review round 15 (2026-10-20)
+"You had complaints already. Also the wing tips near the turrets have weird
+hull still." Round 14's own flags are fixed: the glass is a near-black
+absorbing tint with a low specular level and only a trace of interior glow, so
+it reads dark under the grey studio world. The red armour is laid in plates
+(mt_kit.armour_plates): planes across each part split its faces where a plate
+break belongs (the core at X 34, 8, -3, -14, -26; the glacis bands at Y 33, 43
+and 53; the wing armour at Y 30 and 46; the strakes at X 55 and 70; the pods
+at X 11.3 and 22.5; the plinth at X -8 and -17), then every armour face is
+inset and lifted 0.3, leaving a dark V-groove either side of every crease and
+break and an edge thickness on every plate. The decks fittings stand on stay
+whole. Round 13's seam lines on the armour are now raised weld beads in those
+breaks. The gun nacelles are rebuilt to the sprite's plan: a blunt chamfered
+nose at X 37 and the outboard edge at Y 77.5, where round 11 ran a point out
+to X 42 beyond the sprite with a separate collar and nose glacis standing
+below the deck. Each is one lofted body (mt_hull.pod_section): a flat turret
+deck, a raised armour coaming along its outboard edge, a vertical outboard
+wall, a nose rake and chin, red armour on the nose and outboard side and the
+dark structure inboard where it meets the wing framework. Raw IoU rose to
+0.897 with it.
