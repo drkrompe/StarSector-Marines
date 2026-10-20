@@ -137,6 +137,25 @@ struts on a hub, trunnion and turntable; masts are tapered and round; every
 lamp is a smooth lens in a bezel turned to the hull. About 58k polygons
 (pirate), 67k (merchant).
 
+Round 8, the underside and landing ("Underside and landing needs to be figured
+out for this ship"), wf_gear.py, whose docstring carries the reasoning: four
+telescoping legs in flat-bottomed gear sponsons under the main body (X 20 and
+-14), each sponson on a gear frame to the keel's side wall; the round foot pad
+is the armoured plug that closes the well flush when stowed, so there are no
+hinged doors on a belly that takes fire. Four ventral lift thrusters in rings of
+heat-shield tiles (two under the neck, two under the drive section), because
+the drives only push aft. Parked on GROUND_Z -22 the keel stands 3.4 units
+(2.6 m) clear. Also: keel frames, a rubbing strake and a heat-shield tile field
+on the keel, a ventral boarding hatch with a ladder housing, service hatches,
+drain and vent grilles, wing seams and panels, outrigger sensor windows and
+down-firing RCS. The build checks the deployed pose (every sole on the ground,
+nothing else within a unit of it, no oleo or pad through the hull) and records
+`landing_gear` in geometry.json. Round 7 leftovers brought up: lamp lenses
+halved, a rounded sensor housing with a framed recessed window, a round roof
+hatch with coaming, hinge and handwheel, and radiator and exchanger panels as
+angled vanes in framed, rounded wells. About 102k polygons (pirate), 111k
+(merchant).
+
 Variants
 --variant merchant builds the convoy's own Wolf on the same hull and scale:
 no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
@@ -168,7 +187,7 @@ under starsector/builds/wolf-p/<short-commit>/.
 
 Files
 build_wolf.py (driver), wf_kit.py, wf_hull.py, wf_engines.py, wf_mounts.py,
-wf_lights.py, wf_detail.py, wf_fittings.py (one module per area), compose_review.py (IoU, shot extents,
+wf_lights.py, wf_detail.py, wf_fittings.py, wf_gear.py (one module per area), compose_review.py (IoU, shot extents,
 review sheet), compare_lineup.py (true-scale lineup against the Hound and
 Colossus), geometry.json (identity, slots, engines, turrets, lamps, scale
 record, asset contract, IoU, shot extents).
