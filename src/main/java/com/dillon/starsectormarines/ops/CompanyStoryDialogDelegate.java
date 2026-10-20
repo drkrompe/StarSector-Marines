@@ -8,9 +8,14 @@ import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.List;
 
-/** Shared full-canvas host for the opening story and its planetary yard visit. */
+/**
+ * Shared full-canvas host for the opening story, its planetary yard visit and the Jangala arrival.
+ * A storybook host holds the {@link MenuTheme} from its first attach until it is dismissed, by its
+ * own controls or Escape alike; the arrival plays its own score and holds nothing.
+ */
 public final class CompanyStoryDialogDelegate implements CustomVisualDialogDelegate {
     private final Screen screen;
+    private final boolean playsTheme;
     private final Runnable onDismissed;
     private Runnable dismiss;
     private PositionAPI position;
@@ -22,12 +27,25 @@ public final class CompanyStoryDialogDelegate implements CustomVisualDialogDeleg
         @Override public void processInput(List<InputEventAPI> events) { screen.processInput(events); }
     };
 
-    public CompanyStoryDialogDelegate(Screen screen, Runnable onDismissed) {
+    /** A storybook: plays the Marines menu theme while shown. */
+    public static CompanyStoryDialogDelegate storybook(Screen screen, Runnable onDismissed) {
+        return new CompanyStoryDialogDelegate(screen, true, onDismissed);
+    }
+
+    /** A screen that plays its own score (the arrival), so holds no theme. */
+    public static CompanyStoryDialogDelegate scored(Screen screen, Runnable onDismissed) {
+        return new CompanyStoryDialogDelegate(screen, false, onDismissed);
+    }
+
+    private CompanyStoryDialogDelegate(Screen screen, boolean playsTheme, Runnable onDismissed) {
         this.screen = screen;
+        this.playsTheme = playsTheme;
         this.onDismissed = onDismissed;
     }
     private void attach() {
-        if (!closed && position != null && dismiss != null) screen.attach(position, null, dismiss);
+        if (closed || position == null || dismiss == null) return;
+        screen.attach(position, null, dismiss);
+        if (playsTheme) MenuTheme.shared().hold(this);
     }
     @Override public void init(CustomPanelAPI panel, DialogCallbacks callbacks) {
         dismiss = callbacks::dismissDialog;
@@ -41,6 +59,11 @@ public final class CompanyStoryDialogDelegate implements CustomVisualDialogDeleg
         if (closed) return;
         closed = true;
         screen.detach();
-        onDismissed.run();
+        // After the callback, so a hold it hands the theme to (the port behind the yard) lands first.
+        try {
+            onDismissed.run();
+        } finally {
+            if (playsTheme) MenuTheme.shared().release(this);
+        }
     }
 }

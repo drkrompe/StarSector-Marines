@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
-import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
@@ -11,6 +10,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
+import com.dillon.starsectormarines.ops.EquipmentIcons;
 
 import java.awt.Color;
 import java.util.List;
@@ -57,12 +57,8 @@ public final class ArmoryLoadoutPreviewComposer {
         float usable = Math.max(0f, height - socketSize - 20f);
         float[] socketY = {10f, 10f + usable * 0.5f, 10f + usable};
 
-        LayeredArmorFamily armorFamily = billet.armorDef().appearanceFamily();
-        LayeredUnitAssets layered = assets.layered(armorFamily);
         LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
-        LayeredSpriteCache primary = layered != null
-                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primaryDef()), billet.grade())
-                : null;
+        LayeredSpriteCache primary = assets.icon(EquipmentIcons.primary(billet.primaryDef(), billet.grade()));
         SpecialEquipmentDef special = billet.specialDef();
         LayeredSpriteCache specialIcon = special != null
                 ? assets.icon(special.armoryIconPath()) : null;
@@ -132,11 +128,8 @@ public final class ArmoryLoadoutPreviewComposer {
         float socketWidth = (divider - margin * 2f - gap * 2f) / 3f;
         float socketHeight = Math.max(36f, height - margin * 2f);
 
-        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
         LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
-        LayeredSpriteCache primary = layered != null
-                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primaryDef()), billet.grade())
-                : null;
+        LayeredSpriteCache primary = assets.icon(EquipmentIcons.primary(billet.primaryDef(), billet.grade()));
         SpecialEquipmentDef special = billet.specialDef();
         LayeredSpriteCache specialIcon = special != null
                 ? assets.icon(special.armoryIconPath()) : null;

@@ -188,7 +188,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                 ? new BattlePowerOverlay(powerTarget::set, powerTarget::get)
                 : new BattlePowerOverlay(picker::toggle, picker::targetingPowerId,
                         picker::pickerRows, picker::togglePick);
-        BattleOrderOverlay orders = new BattleOrderOverlay(selection, () -> Mode.NONE, ignored -> {});
+        BattleOrderOverlay orders = new BattleOrderOverlay(selection, () -> Mode.NONE, ignored -> {}, () -> {});
         ShipOrderTargetingPanel targeter = new ShipOrderTargetingPanel(ui, (x, y) -> false);
         BattleShipCommandController controller = new BattleShipCommandController(() -> sim, selection, targeter,
                 powerTarget::set, powerTarget::get, () -> {});

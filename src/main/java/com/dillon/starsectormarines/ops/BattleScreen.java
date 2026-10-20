@@ -102,6 +102,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -943,7 +944,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedPowerOverlay.attach(position, sim);
         if (retainedOrderOverlay == null) {
             retainedOrderOverlay = new BattleOrderOverlay(selection,
-                    () -> squadOrderTargeting.mode(), this::toggleSquadOrderTargeting);
+                    () -> squadOrderTargeting.mode(), this::toggleSquadOrderTargeting, this::toggleGarrisonStance);
         }
         retainedOrderOverlay.attach(position, sim, retainedPowerOverlay.occupiedHeight());
         if (shipCommandController == null) {
@@ -977,6 +978,24 @@ public class BattleScreen implements Screen, BattleUiContext {
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
         squadOrderTargeting.toggle(selection.getSelectedSquadId(), mode);
+    }
+
+    /**
+     * The order bar's GARRISON card and the G key: the selected infantry squads into the stance, or all of them out of
+     * it when all are already in. Mechs never man a place, so a lance in the selection takes no part.
+     */
+    private void toggleGarrisonStance() {
+        BattleSimulation sim = getSim();
+        if (sim == null || sim.isComplete()) return;
+        List<Integer> infantry = new ArrayList<>();
+        for (int id : selection.getSelectedSquadIds()) {
+            Squad squad = sim.getSquad(id);
+            if (squad != null && !squad.isMechSquad() && !squad.isDroneSquad()
+                    && SquadOrderTargetingPanel.canOrderSquad(sim, id)) {
+                infantry.add(id);
+            }
+        }
+        if (!infantry.isEmpty()) sim.getReactiveManning().toggle(infantry);
     }
 
     private void toggleCommandPowerTargeting(String powerId) {
