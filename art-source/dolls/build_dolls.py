@@ -24,9 +24,9 @@ Every outline is one damageable location; thinner lines inside it are detail (se
 gun tubes). A leg is one outline, not a stack of panels.
 
 The mechs follow the owner's references (2026-10-20): the Hound is a Locust (a
-pod in three thirds on long bird legs, the chaingun under its nose, one rocket pod
+pod in three thirds on straight, heavy legs, the chaingun under its nose, one rocket pod
 on top), the Sirocco a Catapult (a flat pod whose side thirds carry the missile
-boxes, a cannon under the nose, bird legs), the Bulwark a Fafnir (one wide shell
+boxes, a cannon under the nose, heavy legs), the Bulwark a Fafnir (one wide shell
 with missile pods on its top corners, guns held at the chest, thick short legs).
 A pod's side thirds are its shoulder sections: a shoulder mount lives in its side
 of the hull, as MWO's side torsos carry their weapons.
@@ -274,14 +274,12 @@ def hauler(name):
 # the outside, legs beneath. Rear: the centre torso's back plate between the side
 # torsos, nothing else.
 
-def bird_leg(d, cx, hip_in, hip_out, knee, ankle, foot):
-    """One reverse-jointed leg as one outline: thigh out to the knee, shin back in, a splayed toe."""
-    kx, ky = knee
-    ax, ay = ankle
-    top = 80
-    points = [(hip_out, top), (hip_in, top), (kx + 10, ky + 2), (ax + 5, ay), (ax + foot, ay + 2),
-              (ax + foot + 2, 146), (ax - foot - 2, 146), (ax - foot, ay + 2), (ax - 5, ay), (kx - 2, ky - 2)]
-    seams = [((kx - 2, ky - 2), (kx + 10, ky + 2)), ((ax - 5, ay), (ax + 5, ay))]
+def bird_leg(d, cx, inner, width):
+    """One leg as one outline: a straight, heavy column from the hip, a broad knee, a planted foot."""
+    o = inner - width
+    points = [(o, 80), (inner, 80), (inner + 1, 108), (inner - 1, 134), (inner + 4, 137), (inner + 6, 146),
+              (o - 6, 146), (o - 4, 137), (o + 1, 134), (o - 2, 108)]
+    seams = [((o - 2, 108), (inner + 1, 108)), ((o + 1, 134), (inner - 1, 134))]
     d.mirrored("LEGS", "LEGS", points, cx, seams)
 
 
@@ -322,7 +320,7 @@ def hound(name):
             continue
         d.panel("HEAD", [(-10, 36), (10, 36), (12, 46), (-12, 46)], cx)
         d.shape("ARMS", [(-7, 78), (7, 78), (5, 90), (-5, 90)], cx, [((-3, 86), (3, 86)), ((0, 80), (0, 90))])
-        bird_leg(d, cx, hip_in=-14, hip_out=-26, knee=(-32, 106), ankle=(-24, 134), foot=8)
+        bird_leg(d, cx, inner=-10, width=16)
     return d.write()
 
 
@@ -339,7 +337,7 @@ def sirocco(name):
             continue
         d.panel("HEAD", [(-9, 46), (9, 46), (12, 56), (-12, 56)], cx)
         d.shape("ARMS", [(-6, 80), (6, 80), (5, 98), (-5, 98)], cx, [((-3, 94), (3, 94)), ((0, 82), (0, 98))])
-        bird_leg(d, cx, hip_in=-16, hip_out=-28, knee=(-36, 108), ankle=(-28, 134), foot=9)
+        bird_leg(d, cx, inner=-12, width=18)
     return d.write()
 
 
