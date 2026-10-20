@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.CompoundPreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
@@ -78,8 +80,18 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
         // Snapshot the initial node list — appending while iterating would
         // re-process the GUARDPOSTs we just emitted.
         List<TacticalNode> initial = new ArrayList<>(tactical);
+        VehicleCorridor corridor = ctx.get(BspKeys.VEHICLE_CORRIDOR);
+        CompoundPreparedGround.KeepClear keepClear = (x, y) -> isReserved(reserved, x, y)
+                || (corridor != null && corridor.contains(x, y));
+        int towardX = axis == TraversalAxis.WEST_TO_EAST ? -1 : 0;
+        int towardY = axis == TraversalAxis.WEST_TO_EAST ? 0 : -1;
         for (TacticalNode node : initial) {
             if (!isCompoundKind(node.kind)) continue;
+            CompoundPreparedGround.Apron apron = CompoundPreparedGround.layFacing(ctx, node, towardX, towardY, keepClear);
+            if (apron != null) {
+                tactical.add(picketOn(apron));
+                continue;
+            }
             int[] anchor = pickGuardpostAnchor(node, axis, grid, reserved);
             if (anchor == null) continue;
             tactical.add(new TacticalNode(TacticalNode.Kind.GUARDPOST,
@@ -89,6 +101,30 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
                     PERIMETER_GUARDPOST_PRIORITY,
                     PERIMETER_GUARDPOST_GARRISON));
         }
+    }
+
+    /**
+     * The lookout seated behind the apron at its entrance, by the place model a fort belt's picket uses: stand
+     * positions on the cells behind the bags, nearest the door first, and a footprint round the course. The rest of the
+     * apron is empty; the defender commander mans it from its mobile pool when the attack presses it.
+     */
+    private static TacticalNode picketOn(CompoundPreparedGround.Apron apron) {
+        List<TacticalNode.StandPosition> stands = new ArrayList<>();
+        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+        for (int[] cell : apron.behind()) {
+            stands.add(new TacticalNode.StandPosition(cell[0], cell[1]));
+        }
+        List<int[]> all = new ArrayList<>(apron.behind());
+        for (CompoundPreparedGround.Bag bag : apron.bags()) all.add(new int[]{bag.x(), bag.y()});
+        for (int[] cell : all) {
+            left = Math.min(left, cell[0]);
+            top = Math.min(top, cell[1]);
+            right = Math.max(right, cell[0]);
+            bottom = Math.max(bottom, cell[1]);
+        }
+        int[] first = apron.behind().get(0);
+        return new TacticalNode(TacticalNode.Kind.GUARDPOST, first[0], first[1], left, top, right, bottom,
+                Faction.DEFENDER, PERIMETER_GUARDPOST_PRIORITY, PERIMETER_GUARDPOST_GARRISON, stands);
     }
 
     /**
@@ -142,9 +178,7 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
     }
 
     private static boolean isCompoundKind(TacticalNode.Kind kind) {
-        return kind == TacticalNode.Kind.COMMAND_POST
-                || kind == TacticalNode.Kind.BARRACKS
-                || kind == TacticalNode.Kind.ARMORY;
+        return CompoundPreparedGround.isCompoundKind(kind);
     }
 
     /** Whether the reservation claims this cell. A null mask claims nothing. */

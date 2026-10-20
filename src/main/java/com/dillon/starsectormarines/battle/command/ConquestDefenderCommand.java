@@ -361,6 +361,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
 
         GarrisonableRegistry places = frame.facts().garrisonables();
+        compoundsThisPlan = frame.facts().compounds();
         boolean reactive = reactiveManning(places, influence);
         List<GarrisonDirector.Garrison> held = new ArrayList<>();
         Map<Integer, PlanningSquad> heldSquads = new TreeMap<>();
@@ -406,6 +407,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     continue;
                 }
                 stagers.remove(squad.id);
+            }
+            if (keepsInside(squad, influence)) {
+                directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK));
+                continue;
             }
             if (squad.localContact) {
                 clearMissionRally(squad);
@@ -893,6 +898,30 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * shown carrying the order is still counted. The place is found again by its centre cell on the current index, so a
      * run renumbered or shortened by shelling is followed; a place that is gone releases a squad free to move.
      */
+    /** Largest circle of the area defence a squad driven off a compound's apron holds inside the building. UNTUNED. */
+    static final int INSIDE_RADIUS_CELLS = 6;
+
+    /** The compounds this plan was made against, for the fall back from an apron into its building. */
+    private List<ConquestCommandFacts.Compound> compoundsThisPlan = List.of();
+
+    /** Plans a squad that fell back inside a compound stays there once its building is quiet. UNTUNED. */
+    static final int INSIDE_COOL_PLANS = 8;
+
+    /** A squad driven off a compound's apron into the building it fronts: the order it holds there and the building. */
+    private static final class Inside {
+        final ObjectiveAssignment order;
+        final TacticalNode building;
+        int quietPlans;
+
+        Inside(ObjectiveAssignment order, TacticalNode building) {
+            this.order = order;
+            this.building = building;
+        }
+    }
+
+    /** Squads holding inside a compound after falling back off its apron, by squad id. */
+    private final Map<Integer, Inside> insideFallBacks = new TreeMap<>();
+
     private GarrisonDirector.Garrison garrisonOf(PlanningSquad squad, GarrisonableRegistry places) {
         ObjectiveAssignment order = squad.assignedObjective;
         int cellX;
@@ -996,6 +1025,41 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 && order.targetCellX() == post.order.targetCellX() && order.targetCellY() == post.order.targetCellY();
     }
 
+    /**
+     * Whether a squad that fell back off a compound's apron still holds inside the building: while it carries the order
+     * it was given there, the marines have not taken the compound, and the building has not been quiet for
+     * {@link #INSIDE_COOL_PLANS} plans (never released in a fight). A squad that stops holding is forgotten and planned
+     * like any other patrol.
+     */
+    private boolean keepsInside(PlanningSquad squad, CommanderInfluenceSnapshot influence) {
+        Inside inside = insideFallBacks.get(squad.id);
+        if (inside == null) return false;
+        if (!inside.order.equals(squad.assignedObjective)) {
+            insideFallBacks.remove(squad.id);
+            return false;
+        }
+        boolean lost = false;
+        for (ConquestCommandFacts.Compound compound : compoundsThisPlan) {
+            if (compound.node() == inside.building) lost = compound.state() == CompoundService.CompoundState.MARINE_HELD;
+        }
+        boolean quiet = influence == null || placePressure(influence,
+                inside.building.anchorX / influence.blockSize(), inside.building.anchorY / influence.blockSize())
+                < GarrisonDirector.RELEASE_PRESSURE;
+        inside.quietPlans = quiet && !squad.localContact ? inside.quietPlans + 1 : 0;
+        if (lost || inside.quietPlans >= INSIDE_COOL_PLANS) {
+            insideFallBacks.remove(squad.id);
+            squad.assignedObjective = null;
+            return false;
+        }
+        return true;
+    }
+
+    /** Whether this order is the one a squad was given inside a compound when it fell back off the apron. */
+    private boolean isInsideFallBack(PlanningSquad squad) {
+        Inside inside = insideFallBacks.get(squad.id);
+        return inside != null && inside.order.equals(squad.assignedObjective);
+    }
+
     /** The works (lowest cell) of each fort this side holds, by fort id. */
     private Map<Integer, DefenceStructureFact> heldWorks(Faction perspective) {
         Map<Integer, DefenceStructureFact> works = new TreeMap<>();
@@ -1086,6 +1150,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     /** Forgets waiting patrols whose squad is gone. */
     private void dropDeadStagers(Map<Integer, PlanningSquad> allSquads) {
+        insideFallBacks.keySet().removeIf(id -> {
+            PlanningSquad squad = allSquads.get(id);
+            return squad == null || squad.aliveMembers <= 0;
+        });
         stagers.keySet().removeIf(id -> {
             PlanningSquad squad = allSquads.get(id);
             return squad == null || squad.aliveMembers <= 0;
@@ -1346,14 +1414,26 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     /**
      * Where a garrison whose ground is lost withdraws to: an area defence at the doorstep of the nearest standing work
-     * of the same fort this side holds, or {@code null} when the place belongs to no fort or no work of it stands, in
-     * which case the squad is released to the pool instead. Squad-tier movement under the commander's authority; the
+     * of the same fort this side holds; for a compound's apron, an area defence inside the compound's own building while the
+     * marines have not taken it; or {@code null} when the place belongs to neither or nothing of it stands, in which
+     * case the squad is released to the pool instead. Squad-tier movement under the commander's authority; the
      * order is the ordinary area defence.
      */
     private ObjectiveAssignment fallBackPost(PlanningSquad squad, int place, GarrisonableRegistry places,
                                              CommandTopology topology, Faction perspective) {
         int fort = places.fortId(place);
-        if (fort < 0) return null;
+        if (fort < 0) {
+            // A compound's apron is the layer in front of its building: driven off it, the squad goes inside and holds
+            // it, while its own side still does.
+            ConquestCommandFacts.Compound compound = CompoundGround.frontedBy(places, place, compoundsThisPlan);
+            if (compound == null || compound.state() == CompoundService.CompoundState.MARINE_HELD) return null;
+            TacticalNode building = compound.node();
+            int radius = Math.max(2, Math.min(INSIDE_RADIUS_CELLS,
+                    Math.min(building.right - building.left, building.bottom - building.top) / 2));
+            ObjectiveAssignment inside = ObjectiveAssignment.defendArea(squad.id, building.anchorX, building.anchorY, radius);
+            insideFallBacks.put(squad.id, new Inside(inside, building));
+            return inside;
+        }
         DefenceStructureFact works = null;
         long best = Long.MAX_VALUE;
         for (DefenceStructureFact structure : structures) {
@@ -1623,6 +1703,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     && planned.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK
                     && !planned.assignedObjective.isGarrison()
                     && !isStagePost(planned)
+                    && !isInsideFallBack(planned)
                     && !DefenceStructureTactics.isTask(planned.assignedObjective, structures)) {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND, reason));

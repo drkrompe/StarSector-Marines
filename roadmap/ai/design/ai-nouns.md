@@ -2174,8 +2174,20 @@ fort: a quiet belt left empty, a pressed stretch manned on the pulse its pressur
 is believed, dug in and given back after the attack passes, and a breached
 garrison falling back to the works.
 
+A compound's sandbagged door (`mapgen-nouns.md`, prepared ground) is the same
+kind of place and is manned the same way: its two-man lookout stands behind the
+bags from the first tick and the rest of the apron is empty until the commander
+believes it pressed. It is the layer in front of its building, so a garrison
+driven off it falls back inside the building the apron fronts and holds it as an
+area defence, never released in a fight, until the building has been quiet for a
+while or the marines have taken the compound; then it returns to the pool. A
+place fronts a compound when it stands within a few cells of the compound
+building's box and is no fort's belt (`CompoundGround`). The scene
+`compound-apron` plays it: a quiet apron empty, a pressed one manned and dug in,
+a breached garrison inside its barracks.
+
 The attacker holds what it takes by the same assignment: the belt of a fort it
-has taken is manned from its lane pool while it believes a counter-attack near
+has taken, and the apron at the door of a compound it has taken, is manned from its lane pool while it believes a counter-attack near
 it, never from a company or a capture, never more than a quarter of the lane
 pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken

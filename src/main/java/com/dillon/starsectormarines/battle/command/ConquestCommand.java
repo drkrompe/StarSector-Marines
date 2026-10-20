@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.IntPredicate;
 import java.util.TreeSet;
 
 /**
@@ -1151,7 +1152,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     /**
-     * Sends lane squads to the runs of forts this side has taken that it believes a counter-attack is pressing. The
+     * Sends lane squads to the runs of forts this side has taken, and to the aprons at the doors of compounds it has
+     * taken, that it believes a counter-attack is pressing. The
      * attack keeps its momentum: only squads the muster and the capture pass left are offered, never a crew, a
      * machine, a demolition squad, a named officer's group or one just given back; at most
      * {@link HeldGround#cap} of the offered pool holds at once, and the director's arrival bound sends only a squad
@@ -1172,7 +1174,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
             free.add(holdBody(squad));
         }
         hold.cap = HeldGround.cap(free.size() + hold.holders);
-        for (HeldGround.Sent man : heldGround.man(places, free, hold.cap - hold.holders, taken,
+        List<ConquestCommandFacts.Compound> compounds = frame.facts().compounds();
+        IntPredicate takenCompound = place -> {
+            ConquestCommandFacts.Compound compound = CompoundGround.frontedBy(places, place, compounds);
+            return compound != null && compound.state() == CompoundService.CompoundState.MARINE_HELD;
+        };
+        for (HeldGround.Sent man : heldGround.man(places, free, hold.cap - hold.holders, taken, takenCompound,
                 (sx, sy, x, y) -> frame.topology().inBounds(sx, sy) && frame.topology().isWalkable(sx, sy)
                         && (sx == x && sy == y || frame.topology().reachable(sx, sy, x, y)))) {
             PlanningSquad squad = allSquads.get(man.squadId());

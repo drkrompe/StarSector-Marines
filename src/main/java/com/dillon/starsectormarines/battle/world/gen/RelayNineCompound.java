@@ -55,6 +55,8 @@ public final class RelayNineCompound {
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
                     p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, i == 2 ? 8 : 6));
         }
+        // The compounds' sandbagged doors face the landing: positions the defence and a company that takes them can man.
+        CompoundPreparedGround.layForSites(c, sites, 21, 64);
         List<TacticalNode> tactical = new ArrayList<>(sites);
         tactical.addAll(HeldPlaces.fromBuildingsNotIn(c.pois, sites, poi -> Faction.DEFENDER));
         MapResult map = new MapResult(c.grid, c.topology, 21, 64, 174, 62,
