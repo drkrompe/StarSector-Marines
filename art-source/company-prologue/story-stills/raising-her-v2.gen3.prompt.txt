@@ -1,0 +1,6 @@
+Use case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, as little as possible: two small clean-ups on the freighter's two gun turrets. Keep every other pixel of the image as it is: the dock, rock, figures, lights, the ship's hull, the bridge dome, the big capped round mount on the right, the camera and the composition.
+
+1. The grey-green primer turret mid-deck, in front of the bridge dome, is a small Vulcan point-defence gun: its gun is one short, neat gatling cluster of several stubby barrels bundled round one axis, pointing right, ending in one muzzle ring. Remove the extra loose barrel pieces and the claw-like bits trailing behind and beside the cluster, so the turret reads as one dome with one short barrel bundle. Do not lengthen the barrels.
+2. The dark aft turret at the left, also a Vulcan with its short barrel bundle pointing left, keeps its shape; only remove the small white scribble on its side.
+
+Reference 2 is a plain render of the same ship from the same camera, for the turrets' shape only. Same restrained hand-painted realism and light. No new text.
