@@ -332,21 +332,22 @@ def hound(name):
 
 
 def sirocco(name):
-    """A Catapult: an arrowhead hull in three thirds, wider than its legs, a round-topped missile pod
-    standing on each wing and a cannon under the point."""
+    """A Catapult: a hull much wider than its legs, in three thirds of even depth, a round-topped
+    missile pod standing on each wing and a cannon under the nose. Seen from in front or behind the
+    arrowhead plan does not show: the hull is one level band."""
     d = Doll(name)
-    # Each wing carries an upright, round-topped missile pod as one outline; its lower edge runs in to the point.
-    side = ([(-12, 80), (-52, 62), (-52, 56), (-46, 56)] + arc(-40, 34, 6, 180, 270)
+    # Each wing carries an upright, round-topped missile pod as one outline.
+    side = ([(-12, 80), (-47, 80), (-52, 74), (-52, 56), (-46, 56)] + arc(-40, 34, 6, 180, 270)
             + arc(-30, 34, 6, 270, 360) + [(-24, 56), (-12, 56)])
     pod = [((-44.5, 56), (-25.5, 56))] + tubes(-44, 30, -26, 54, 2, 3)
     for cx, rear in views():
         sl, sr = shoulders(rear)
-        d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (0, 86), (-12, 80)], cx)
+        d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (-12, 80)], cx)
         d.mirrored(sl, sr, side, cx, pod)
         if rear:
             continue
         d.panel("HEAD", [(-9, 46), (9, 46), (12, 56), (-12, 56)], cx)
-        d.shape("ARMS", [(-5, 88), (5, 88), (4, 102), (-4, 102)], cx, [((-3, 98), (3, 98)), ((0, 90), (0, 102))])
+        d.shape("ARMS", [(-5, 80), (5, 80), (4, 96), (-4, 96)], cx, [((-3, 92), (3, 92)), ((0, 82), (0, 96))])
         bird_leg(d, cx, inner=-12, width=18, top=84)
     return d.write()
 
