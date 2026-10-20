@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
+import com.dillon.starsectormarines.battle.assault.MachineGuard;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -101,6 +102,12 @@ public final class VehicleMoveOrderService {
      * the side believes nobody is left inside, or another order supersedes it.
      */
     private final Map<Long, MachineAssault> assaults = new ConcurrentHashMap<>();
+    /**
+     * Standing guards over a garrisonable the hull's own side mans ({@code MachineGuards}). Like an assault, a guard
+     * outlives the move that drove the hull to its cell: it holds the hull there, beside the garrison, until the
+     * garrison has gone or another order supersedes it. It names no target; the turret keeps its own pick.
+     */
+    private final Map<Long, MachineGuard> guards = new ConcurrentHashMap<>();
 
     /** Queues a one-shot move request for resolution on the next fixed tick. */
     public void requestMove(long vehicleId, int cellX, int cellY) {
@@ -144,6 +151,25 @@ public final class VehicleMoveOrderService {
 
     void beginAssault(long vehicleId, MachineAssault assault) { assaults.put(vehicleId, assault); }
 
+    /** The hull's standing guard, or {@code null}. */
+    public MachineGuard guard(long vehicleId) { return guards.get(vehicleId); }
+
+    /** Ends a standing guard; the hull is idle where it stands. */
+    public void endGuard(long vehicleId) { guards.remove(vehicleId); }
+
+    /** Whether any hull stands guard, so the per-tick pass with none allocates nothing. */
+    public boolean hasGuards() { return !guards.isEmpty(); }
+
+    /** Standing guards, snapshotted, for the serial pass that keeps their axes current. */
+    public List<Map.Entry<Long, MachineGuard>> guardEntries() {
+        return new ArrayList<>(guards.entrySet());
+    }
+
+    void beginGuard(long vehicleId, MachineGuard guard) { guards.put(vehicleId, guard); }
+
+    /** Whether the hull stands under an assault or a guard: an order that holds it at a cell of its own choosing. */
+    boolean holdsStation(long vehicleId) { return assaults.containsKey(vehicleId) || guards.containsKey(vehicleId); }
+
     /** Current requested destination awaiting handback, without a stale route proof. */
     public RequestedOrder suspendedOrder(long vehicleId) { return retained.get(vehicleId); }
 
@@ -151,6 +177,7 @@ public final class VehicleMoveOrderService {
         if (!suspended.add(vehicleId)) return;
         // Direct control is a new owner for the hull; the assault it was under does not survive it.
         assaults.remove(vehicleId);
+        guards.remove(vehicleId);
         ActiveOrder order = active.remove(vehicleId);
         if (order != null) retain(vehicleId, order.requestedX(), order.requestedY(), order.facingDegrees());
         retainLatestPending(vehicleId);
@@ -209,6 +236,7 @@ public final class VehicleMoveOrderService {
         suspended.remove(vehicleId);
         retained.remove(vehicleId);
         assaults.remove(vehicleId);
+        guards.remove(vehicleId);
         pending.removeIf(order -> order.vehicleId == vehicleId);
     }
 

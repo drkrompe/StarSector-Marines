@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignUIAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.impl.campaign.abilities.BaseAbilityPlugin;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
+import com.fs.starfarer.api.util.Misc;
 import org.apache.log4j.Logger;
 
 /**
@@ -49,6 +51,13 @@ public class CompanyViewAbility extends BaseAbilityPlugin {
         // rely on the HUD having been hidden.
         if (ui == null || ui.isShowingDialog()) return;
 
+        // While the Second Wind is away, the company has no home to open: say how to get her back instead.
+        String away = SecondWindKeeper.awayInstructions();
+        if (away != null) {
+            ui.showMessageDialog(away);
+            return;
+        }
+
         // Null planet: this host is deliberately planet-free. CompanyHqScreen is the
         // only destination that tolerates it — see MarineOpsPanelPlugin's routing note.
         boolean shown = ui.showInteractionDialog(
@@ -75,6 +84,8 @@ public class CompanyViewAbility extends BaseAbilityPlugin {
     public void createTooltip(TooltipMakerAPI tooltip, boolean expanded) {
         tooltip.addTitle(Strings.get("companyAbilityTitle"));
         tooltip.addPara(Strings.get("companyAbilityTooltip"), 10f);
+        String away = SecondWindKeeper.awayInstructions();
+        if (away != null) tooltip.addPara(away, Misc.getNegativeHighlightColor(), 10f);
     }
 
     @Override

@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
+Updated: 2026-10-20 — conquest-trial reports the defender's fort counter-attack.
+
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
 ## Relief
@@ -187,6 +189,10 @@ those of a thousand ticks or more, arrivals and members lost on the way. A `MARI
 won back, and how the attacker held its belt: manning orders, holder
 squad-samples, the most at once, dug-in member-samples and fall backs;
 `-Dbattle.conquest.attackerHoldsGround=false` is its control.
+A `DEFENDER counter-attacks its lost fort` line (and `counterattack` in `summary.json`) counts the
+defender's counter-attack reserves, musters and launches (squads and strength at each launch against
+the strength it believed it needed), retakes, failed attempts and forts abandoned, with the first tick
+of each; `-Dbattle.conquest.fortCounterattack=false` is its control.
 
 ## Conquest fixtures and fort control
 

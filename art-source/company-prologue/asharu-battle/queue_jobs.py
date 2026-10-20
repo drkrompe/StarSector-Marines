@@ -9,9 +9,11 @@ Each argument after the options is one job's frame set. Every job:
 - posts its labelled stills to review/cinematic-asharu-battle/<run date>_<what>_<machine>; two jobs
   of one run share that folder.
 
-It needs the Starsector install (stand-in sprites and the desert map are read from it), so the
-jobs require the `starsector` tag, which only the Windows machine has. Submit each written job
-with tools/render_queue.py submit <job.json> --commit <commit>.
+Stand-in sprites, hull data and the desert map are read from the Starsector install, which both
+machines have at their platform default (identical files), so jobs are `machine: any` by default
+and either runner can take a frame; give each frame its own set to let both machines share a
+round. A machine posts to its own run folder. Submit each written job with
+tools/render_queue.py submit <job.json> --commit <commit>.
 """
 import argparse
 import hashlib
@@ -41,7 +43,7 @@ def inputs():
         src = DRIVE / f['drive']
         out.append({'kind': 'drive', 'from': '{drive}/' + f['drive'],
                     'to': '{checkout}/build/asharu-battle/builds/' + f['dir'],
-                    'sha256': {name: sha256(src / name) for name in (f['file'], 'manifest.json')}})
+                    'sha256': {name: sha256(src / name) for name in (f['file'], f.get('manifest', 'manifest.json'))}})
     return out
 
 
@@ -51,6 +53,7 @@ def main():
     ap.add_argument('--what', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--samples', type=int, default=48)
+    ap.add_argument('--machine', default='any', choices=('any', 'windows', 'mac'))
     ap.add_argument('--date', required=True, help='the job id date, YYYY-MM-DD')
     ap.add_argument('sets', nargs='+')
     a = ap.parse_args()
@@ -59,14 +62,14 @@ def main():
         names = frames.split(',')
         job = {
             'id': f"asharu-{a.run}-{'-'.join(names)}-{a.date}",
-            'machine': 'windows',
+            'machine': a.machine,
             'lane': 'review',
             'priority': 0,
             'after': [],
-            'requires': ['gpu', 'starsector'],
+            'requires': ['gpu'],
             'cwd': '{checkout}/art-source/company-prologue/asharu-battle',
             'command': ['{python}', 'battle_blockout.py', '--frames', frames, '--samples', str(a.samples),
-                        '--root', '{work}', '--run', a.run, '--post', '{machine}', '--what', a.what],
+                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what],
             'env': {},
             'inputs': ins,
             'frames': {'dir': '{work}/' + a.run + '/raw',

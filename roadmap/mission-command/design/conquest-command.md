@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — the muster switches are gone: muster with plans is standing behaviour and the trickle is a mission's own declaration (`AssaultStyle`); Conquest also carries a mission-declared fire support kit and marine air pool (`phased-assault.md`).
+Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`); see "A fort the defender loses is counter-attacked in proportion" under Defender command.
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -492,6 +492,80 @@ is and nothing about which lane is contested; the chain says exactly that.
 Which place changed hands last is a claim about order rather than a snapshot, so
 the reinforcement recompute remembers what it saw. A position on no lane keeps
 the band reading, which is what a settlement's guard post has and should have.
+
+**A fort the defender loses is counter-attacked in proportion, or not at
+all.** Retaking a lost fort is the structure planner's question (`ai-nouns.md`,
+place alarms), and the answer is one group at a time, the defender's side of
+the attacker's company (`phased-assault.md`) without its foothold, lane shares or
+stamp plan (`FortCounterattack`):
+
+- **The reserve is the counter-attack's.** While a fort of the defender's is
+  alarmed or lost, the reserve law's share of the mobile pool waits at a staging
+  cell behind it: on the line from the keep, short of the fort by the company's
+  staging stand-off and clear of believed contact. It counts as the reserve, not
+  in addition to it, and it is not spent at the fort by manning or staging. That
+  is what leaves the defender anything to counter-attack with: before it, the
+  pool on the trial ground was gone by the time the bunker fell.
+- **A turned fort is nobody else's.** From the moment a fort's most critical
+  aspect is held by the enemy (the bunker of a battery fort, the plant of a
+  shield fort) its ground, within the company's contact radius of its centre, is
+  left to the counter-attack: believed contacts there raise no track threat and
+  no flow area, its alarm threatens no track, its belt is not manned, and its
+  enemy-held aspects are withheld from single-squad structure work. A lost fort is
+  never fed squad by squad.
+- **Worth it.** The fort must lie within reach of the keep, the keep must not be
+  believed threatened (a believed mover near it dissolves anything not launched:
+  the keep outranks every fort), the fort must not have been given up, and what
+  the side can raise — the reserve and the free patrols, less the reserve law's
+  floor of one — must reach a commit share of what the fort is believed to take:
+  three patrols, or as many marines as it believes are at the fort, whichever is
+  more, raised a quarter for each failed attempt. Short of that the reserve keeps
+  waiting, which is how it waits for the attack to move on.
+- **Muster, stage, launch.** Pickets come first: every threatened track has its
+  first responder before the group recruits, and the group outranks only
+  concentration. Recruits are the nearest free patrols at useful strength; the
+  group gathers at the staging cell and is launched as one push, every member on
+  the same pulse with the company's massed commit
+  (`DefenceStructureTactics.planMassed`), when what stands there reaches what the
+  fort takes, when everything it could raise has arrived above the commit share,
+  or at a timeout above it. A muster that times out below the share stands down.
+- **Give up.** A launched group worn below a fraction of what it launched with,
+  or one that has not won the critical aspect back within a bound, has failed
+  (never while its own capture of the aspect is under way: a group is not called
+  off in the room). Its survivors fall back to the staging cell as the reserve,
+  the fort is left for a while, and after two failures (a stand-down is one) it is
+  given up for good, until it is won back by whoever is still in it.
+
+Belief only: which aspects are lost is an own-force fact about the defender's
+own places, the strength a fort takes is the movers it believes there, and the
+keep's safety is the movers it believes near the keep.
+`-Dbattle.conquest.fortCounterattack=false` is the same-build control. The scene
+`fort-counterattack` plays it on a production fort handed to the marines: a
+quiet fort holds nobody back; a lost one musters to what it believes the fort
+takes, stages and launches together with nobody sent at the fort first; and a
+counter-attack against holders who cannot be killed falls back, waits, tries
+again and gives the fort up.
+
+On the trial ground (the on-path fort, seeds 41 to 49, the combined-arms force,
+against the same-build control) it is a defender of its strength, not a
+script. At the default garrison it never launched: the reserve formed in two
+battles at one squad, and what it could raise never reached three patrols, so
+the fort was left, as the rule says. Leaving the turned fort to it still changed
+those battles, since the patrols the track response and the belt used to feed
+into the lost works now stayed home: seven marine wins and two timeouts against
+nine wins, the objective compound never taken in either timeout, marines losing
+57 on the mean against 52 and defenders 51 against 56. With ninety militia it
+mustered and launched in five of nine, every time three patrols at the
+eighteen it believed the fort took; one retook the bunker 1,875 ticks after
+launching with eleven of eighteen left, in a battle where the marines never held
+the fort whole and ran out of time; four broke at four to six of eighteen and
+fell back; in the other four a believed mover near the keep dissolved the
+reserve before it mustered. Seven marine wins against eight, the fort whole in
+marine hands in eight against nine and won back in one against none, marines
+losing 59 against 56 and defenders 97 against 105; the attacker's hold manned
+its belt less (18 orders against 26), because there was less belt left to man.
+Inside seed noise on who wins; what it buys is a fort that is contested in about
+half the battles that can afford it, and never one fed piecemeal.
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen

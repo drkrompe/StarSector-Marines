@@ -33,7 +33,7 @@ Everything stays inside the pass-1 plan footprint or the sprite outline.
 import math
 import bpy
 from mathutils import Euler, Vector
-from hd_kit import boolean, loft_x, material, octagon
+from hd_kit import boolean, loft_x, material, octagon, round_shading, sides
 
 ENGINES = [(-25, 22, 16), (-25, -22, 16)]
 BELL_R = .325 * 16
@@ -108,7 +108,9 @@ class Batch:
         self.hexa(pts)
 
     def peg(self, c, r, h, axis='Z', n=6, phase=0.0):
-        """n-sided prism of radius r and length h along an axis, centred at port-side c."""
+        """A round prism (at least n sides, by the segment rule) of radius r and length h
+        along an axis, centred at port-side c."""
+        n = sides(r, n)
         cx, cy, cz = self.p(*c)
         b = len(self.v)
         for w in (-h/2, h/2):
@@ -122,7 +124,8 @@ class Batch:
         self.f += [(b+k, b+(k+1) % n, b+n+(k+1) % n, b+n+k) for k in range(n)]
 
     def ring(self, c, r0, r1, h, axis='X', n=12, phase=math.pi/12):
-        """A faceted annulus: n flat-sided blocks forming one closed ring."""
+        """An annulus of blocks forming one closed ring, at least n of them (segment rule)."""
+        n = sides(r1, n)
         cx, cy, cz = self.p(*c)
         for k in range(n):
             pts = []
@@ -135,7 +138,8 @@ class Batch:
             self.hexa(pts)
 
     def build(self, kit, name, mat, bevel=0):
-        return kit.mesh(name, self.v, self.f, mat, bevel)
+        # Smooth with creases over 35 degrees sharp: the pegs read round, the boxes stay plate.
+        return round_shading(kit.mesh(name, self.v, self.f, mat, bevel))
 
 
 def solid_ring_x(kit, name, x0, x1, outer, inner, side, mat):
@@ -165,21 +169,24 @@ def build(kit):
             st = [(min(max(x, lo+SEAM/2), hi-SEAM/2) if name not in ('reinforcing band', 'intake cap') else x,
                    oct_yz(s, side)) for x, s in stations]
             parts[name] = loft_x(kit, f'{P} {name}', st, getattr(kit, mat))
+            for m in parts[name].modifiers:  # the pod sections keep their pass-1 chamfer rounding (30 deg)
+                if m.type == 'BEVEL':
+                    m.angle_limit = math.radians(30)
         # Dorsal vent housing on the collar: the ring the sprite shows there.
         kit.cylinder(f'{P} dorsal vent housing', (-.5, Y(22), 7.6), 4.2, 1.6, kit.rust, 'Z', 8, .12)
         kit.cylinder(f'{P} dorsal vent grille', (-.5, Y(22), 8.35), 3.0, .3, kit.dark, 'Z', 8, 0)
         loft_x(kit, f'{P} dark core', [(-24, oct_yz(CORE, side)), (11.5, oct_yz(CORE, side))], kit.dark, 0)
-        # Engine can: a twelve-sided shroud whose aft face is the exhaust,
+        # Engine can: a round shroud (segment rule) whose aft face is the exhaust,
         # with the bell sunk into it rather than a nozzle poking out.
         cx = sum(CAN_X)/2
         can = kit.cylinder(f'{P} engine can', (cx, ey, 0), CAN_R, CAN_X[1]-CAN_X[0], kit.steel, 'X', 12, .1)
-        bpy.ops.mesh.primitive_cone_add(vertices=12, radius1=BELL_R, radius2=BELL_R*.45, depth=1.6,
+        bpy.ops.mesh.primitive_cone_add(vertices=sides(BELL_R, 12), radius1=BELL_R, radius2=BELL_R*.45, depth=1.6,
                                         location=(CAN_X[0]+.6, ey, 0), rotation=(0, 1.5707963, 0))
         bore = bpy.context.object
         boolean(can, bore)
-        bpy.ops.mesh.primitive_cone_add(vertices=12, radius1=BELL_R-.15, radius2=BELL_R*.4, depth=1.4,
+        bpy.ops.mesh.primitive_cone_add(vertices=sides(BELL_R, 12), radius1=BELL_R-.15, radius2=BELL_R*.4, depth=1.4,
                                         location=(CAN_X[0]+.75, ey, 0), rotation=(0, 1.5707963, 0))
-        kit.finish(bpy.context.object, f'{P} exhaust bell', kit.dark)
+        kit.finish(round_shading(bpy.context.object), f'{P} exhaust bell', kit.dark)
         kit.empty(f'{P} exhaust anchor', (ex, ey, 0), 180)
 
         detail_intake(kit, P, side, parts['intake cap'], light_steel)

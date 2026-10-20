@@ -123,7 +123,7 @@
     "fittings_m": {},
     "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 38935,
+      "enclosed_units3": 38933,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -307,7 +307,7 @@
           43.4,
           55.5
         ],
-        "half_width": 3.7,
+        "half_width": 4.1,
         "z": [
           -6.5,
           8.4
@@ -944,7 +944,7 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 242332,
+    "triangles": 274228,
     "objects": 421,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",

@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, and the player's machine assault on a believed-held garrisonable is built; other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, on both Conquest sides (the defender's own belts and compound aprons, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); building envelopes and other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches), closing the open question of garrisons left on a stretch the attack has moved away from.
+Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches); the defender counter-attacks a lost fort in proportion (`conquest-command.md`); compounds offer prepared ground (sandbagged doors) manned like a belt; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -27,8 +27,10 @@ It is a kind of place, not a kind of order. Kinds, in the order they are
 expected to arrive:
 
 - a **fighting-position run** — trench and parapet cells (built; see
-  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`), garrisoned a
-  **stretch** at a time (below);
+  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`): a fort's belt, a
+  story map's dug line, and a compound's **sandbagged door**, the apron laid
+  in front of the entrance each compound place is attacked through; garrisoned
+  a **stretch** at a time (below);
 - a **building envelope** — the apertures and stance cells the defense frontage
   already derives (`ai-nouns.md`, frontage and standing to);
 - a **compound perimeter** — the outer envelope at compound scope, which frontage
@@ -232,9 +234,11 @@ noise, so the share does not cost the attack its momentum, and it does not yet
 buy anything measurable either. Every fixture in which it never fired (the
 four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
-out exactly as its control. The question for later
-is a defender that actually counter-attacks a lost fort harder than one
-retaking squad.
+out exactly as its control. The defender now
+counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
+Defender command); with ninety militia it won the fort back once in nine and
+broke on the hold four times, and the hold manned less because the defender no
+longer fed squads into the works one at a time.
 
 ## How it fits what exists
 
@@ -265,8 +269,11 @@ held place covers. Three things it shows shape the work ahead:
   have windows, but nothing names a place a garrison could hold, so neither the
   defender commander nor a player's occupy order can use them. Held places on
   those maps are the precondition for everything in this doc.
-- Fighting-position runs are almost absent outside forts; Relief now digs one
-  behind its gate.
+- Fighting-position runs were almost absent outside forts. Relief digs one
+  behind its gate, and compounds now lay a sandbagged door at each place's
+  attack-facing entrance: on five Conquest seeds 98 aprons on 138 compound
+  places, where there had been none, and three on Relay Nine where there were
+  none (`compound-prepared-ground.md`).
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
@@ -276,9 +283,11 @@ publishing one changes nothing until somebody is sent to it. That is
 deliberate: a building is manned in answer to threat or by order, by the same
 law as a trench. Every story map publishes them through `HeldPlaces`: authored
 maps with a garrison layout keep their garrison nodes and add held places only
-for the buildings those nodes do not already stand on, fort maps included. Silent Colony, a
-procedural city, adds them at setup. A story map with no buildings (Missile AA)
-has none, and the Veteran's Job raid keeps the procedural city's garrison nodes alone. The first consumer is the player's occupy
+for the buildings those nodes do not already stand on, fort maps included. Procedural cities add them at setup: Silent Colony and civilian rescue civilian-held, Assault, Sabotage,
+Raid (the Veteran's Job included) and Extraction defender-held, keeping their garrison nodes. A held place nobody is
+posted to (`HeldPlaces.isUnposted`) is not somewhere the defence lives: defender allocation, the assault
+commander's strongpoints, patrol waypoints and the garrison map feature all skip it. A story map with
+no buildings (Missile AA) has none. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
 at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
 consumer.
@@ -290,8 +299,9 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 - **Attackers hold what they take.** Captured ground is a garrisonable like any
   other: the attacking commander uses the same reactive assignment to man a
   taken belt, trench or building against the counter-attack, not only manual
-  orders. Built for taken fort belts (see Holding taken ground); runs of no
-  fort and building envelopes wait for those kinds to reach the tier.
+  orders. Built for taken fort belts (see Holding taken ground) and for the
+  aprons of taken compounds; building envelopes wait for that kind to reach the
+  tier.
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
   Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
@@ -310,6 +320,17 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   its side believes is enemy-held gets ASSAULT (`ai-nouns.md`, machine assault
   under fighting positions). A commander's use of machines against a garrison
   is not.
+- **Machines screen the places their side mans.** Owner, 2026-10-20 ("seems
+  reasonable"): a mech, lance or armed vehicle stands beside a garrison as its
+  heavy support — on a cell outside the place, off the garrison's lanes of
+  fire, covering the believed threat axis with its own doctrine or turret, never
+  entering — for the player as a GUARD order on a place the side mans, and for
+  the commanders as a bounded attachment of a free machine to a manned, pressed
+  place. Built (`ai-nouns.md`, machine guard under fighting positions; scene
+  `machine-guard`): the fun is a tank and a rifle squad reading as one position,
+  and a defending lance walking up beside the trench the attack leans on. A
+  guard screens the stretch of a run under the click, not the whole belt, which
+  is the same finer place the open question below asks for.
 
 ## Stretches on the trial ground
 
@@ -361,8 +382,6 @@ the battle and never mans the new ground.
   stretches nearest the works being lost is open.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
-- Whether a machine screens a manned place it cannot man (stands beside a
-  garrison as its heavy support).
 
 ## Stories
 

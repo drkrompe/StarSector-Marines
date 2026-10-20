@@ -165,7 +165,13 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 return List.copyOf(frames);
             }
             overlay.select(mess.id()); overlay.update(0f, ship, canvas);
-            canvas.camera().zoomAt(2f, canvas.toCameraX(800f), canvas.toCameraY(450f));
+            // Zoom on the mess itself, wherever the hull keeps it, so the
+            // projection is checked on a marker that stays on the stage.
+            Rect messMarker = markup.requireElement("survey-room-" + mess.id()).box().borderBox();
+            float messX = messMarker.x() + messMarker.width() / 2f, messY = messMarker.y() + messMarker.height() / 2f;
+            var deckMetrics = document.canvasMetrics(markup.requireElement("ship-view-deck"), 1f);
+            canvas.camera().zoomAt(2f, canvas.toCameraX(deckMetrics.toCanvasX(messX)),
+                    canvas.toCameraY(deckMetrics.toCanvasY(messY)));
             canvas.camera().panByCells(6f, 4f);
             overlay.update(0f, ship, canvas);
             frames.add(new SnapshotArtifact("06-pan-zoom.png", renderer.render(document, 1920, 1080)));

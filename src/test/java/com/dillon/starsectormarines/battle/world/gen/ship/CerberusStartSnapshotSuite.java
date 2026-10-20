@@ -84,6 +84,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                         if (map.gantries.stream().filter(g -> g.holds == Gantry.Holds.BOAT).count() != (state == BoatBayState.DAMAGED ? 1 : 2))
                             throw new AssertionError("Working berth count must match condition");
                         if (!graph.unplaced().isEmpty()) throw new AssertionError("Unplaced " + graph.unplaced());
+                        bothBaysInTheWaist(graph, generator.getLastDeckProfile(), state, seed);
                     }
                     if (conversion && state == BoatBayState.DAMAGED) {
                         var restored = ship.withBoatBay(BoatBayState.RESTORED);
@@ -294,6 +295,32 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
             if (room.doors().stream().noneMatch(d -> reached[d.x()][d.y()]))
                 throw new AssertionError("Restoration isolated preparation room " + room.id() + " " + room.purpose());
         }
+    }
+
+    /**
+     * Her model cuts one lateral bay through each flank of the waist, centred
+     * about 43% of her length from the bow, open to port and sealed to
+     * starboard. The deck has to agree at every seed.
+     */
+    private static void bothBaysInTheWaist(DeckGraph graph, DeckProfile profile, BoatBayState state, long seed) {
+        var bays = graph.compartments().stream().filter(r -> r.purpose() == RoomPurpose.HANGAR).toList();
+        if (bays.size() != 2) throw new AssertionError("Seed " + seed + ": two bays, found " + bays.size());
+        var port = bays.stream().filter(r -> r.side() == DeckSide.PORT).findFirst()
+                .orElseThrow(() -> new AssertionError("Seed " + seed + ": no bay to port"));
+        var starboard = bays.stream().filter(r -> r.side() == DeckSide.STARBOARD).findFirst()
+                .orElseThrow(() -> new AssertionError("Seed " + seed + ": no bay to starboard"));
+        if (port.foreFrame() != starboard.foreFrame() || port.aftFrame() != starboard.aftFrame())
+            throw new AssertionError("Seed " + seed + ": bays are not abreast");
+        float centre = (port.foreFrame() + port.aftFrame()) / 2f / (profile.frames() - 1);
+        if (centre < 0.38f || centre > 0.50f)
+            throw new AssertionError("Seed " + seed + ": bays centred at " + centre + " of her length, not in the waist");
+        for (var aperture : graph.apertures()) {
+            var bay = aperture.compartmentId() == port.id() ? port : starboard;
+            if (aperture.outDx() != 0 || aperture.outDy() != (bay == port ? -1 : 1))
+                throw new AssertionError("Seed " + seed + ": a bay opens other than through its own flank");
+        }
+        if (state == BoatBayState.DAMAGED && (!graph.damaged(starboard.id()) || graph.damaged(port.id())))
+            throw new AssertionError("Seed " + seed + ": the sealed reserve bay must be the starboard one");
     }
 
     private static List<String> wear(MapResult map) {

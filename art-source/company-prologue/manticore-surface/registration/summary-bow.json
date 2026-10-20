@@ -1,0 +1,32 @@
+{
+ "horn-out-port": {
+  "raw_iou": 0.9473,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9552,
+  "scale": [
+   1.00349,
+   1.00438
+  ],
+  "boundary_p95_px": 106.0
+ },
+ "horn-in-port": {
+  "raw_iou": 0.9585,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9691,
+  "scale": [
+   1.00272,
+   1.00685
+  ],
+  "boundary_p95_px": 123.04
+ },
+ "horn-top-port": {
+  "raw_iou": 0.9461,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9606,
+  "scale": [
+   1.01342,
+   1.00619
+  ],
+  "boundary_p95_px": 34.99
+ }
+}

@@ -100,5 +100,8 @@ com.dillon.starsectormarines.battle.vehicle.HoverLineScene
 com.dillon.starsectormarines.battle.vehicle.StrikeSpacingScene
 com.dillon.starsectormarines.battle.command.ReactiveBeltScene
 com.dillon.starsectormarines.battle.command.AttackerHoldsGroundScene
+com.dillon.starsectormarines.battle.command.FortCounterattackScene
 com.dillon.starsectormarines.battle.assault.MachineAssaultScene
 com.dillon.starsectormarines.battle.squad.PlayerReactiveManningScene
+com.dillon.starsectormarines.battle.command.CompoundApronScene
+com.dillon.starsectormarines.battle.command.MachineGuardScene

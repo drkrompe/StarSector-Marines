@@ -115,6 +115,7 @@ public final class ShipDeckGenerator {
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
         ctx.put(ShipKeys.ROOM_PROGRAM, plan.rooms());
         ctx.put(ShipKeys.SHIPS_BOATS, plan.boats());
+        if (plan.arrangement() != null) ctx.put(ShipKeys.DECK_ARRANGEMENT, plan.arrangement());
 
         deckRecipe.run(ctx);
 
