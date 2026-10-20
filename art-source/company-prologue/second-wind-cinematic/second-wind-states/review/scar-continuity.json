@@ -1426,7 +1426,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 2.52
+   "footprint_spread_units": 0.0
   },
   {
    "row": 62,
@@ -1448,7 +1448,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 0.64
+   "footprint_spread_units": 2.27
   },
   {
    "row": 63,
@@ -1470,7 +1470,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 3.44
+   "footprint_spread_units": 1.83
   },
   {
    "row": 64,
@@ -1800,7 +1800,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 2.49
+   "footprint_spread_units": 0.65
   }
  ]
 }
