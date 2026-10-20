@@ -2392,7 +2392,9 @@ a squad in it acts only while it carries no player order. It watches a ring the
 size of a defend area round its **anchor** — where it stood when the stance was
 turned on, or when a player order it carried ended — and mans the
 stretch of fighting-position run or held building inside the ring that its side believes
-most pressed, by the commander's own law (`garrisonables.md`): the defender's
+most pressed — a building being any held place or compound building its side
+may enter, offered as a building envelope on every map that publishes held
+places — by the commander's own law (`garrisonables.md`): the defender's
 start and release levels and dwell, never released in a fight, never sent below
 useful strength, a breach near it a fall back with that place left alone for a
 while, belief only. It considers only the side's own ground — nothing inside a
@@ -2407,8 +2409,9 @@ left the squad, so a player can move a squad to a corner and have it watch there
 turning the stance off ends only the order the stance gave. The order bar's card says what the stance is doing
 (watching, manning a trench, holding a building, returning, under orders) and the
 selected squad's watch ring and manned place are drawn on the map. The scene
-`player-reactive-manning` is the acceptance (`ReactiveWatch`,
-`ReactiveManningSystem`).
+`player-reactive-manning` is the acceptance, and `mission-envelopes` plays the
+stance on a held building of each procedural mission's map and a story map
+(`ReactiveWatch`, `ReactiveManningSystem`).
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

@@ -307,9 +307,14 @@ held place covers. Three things it shows shape the work ahead:
   (43 on 110 compound places over five fixture seeds with forts; none of them
   read as a fort's belt).
 - Buildings were garrisonable only through a held place's occupy order. Every
-  compound place now offers its envelope: on those five seeds 110 of 110, with a
-  median of four posts. Story maps that offered no envelopes offer seven to forty
-  each (`gradlew.bat garrisonEvidence`, `CompoundEnvelopeEvidence`).
+  held place and compound place whose building has a frontage now offers its
+  envelope: on the five Conquest seeds 110 of 110 compound places, with a median
+  of four posts; on the story maps three to forty each; on the procedural
+  missions every held place — Raid 33 (235 posts), Assault 44 (245), Sabotage
+  36 (209), Extraction 41 (263), civilian rescue 36 (205). What offers none is
+  what has no frontage (a beachhead, the smallest guard posts and bunkers) and
+  the guard posts and gates that keep a garrison of their own
+  (`gradlew.bat garrisonEvidence`, `CompoundEnvelopeEvidence`).
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
@@ -325,8 +330,13 @@ posted to (`HeldPlaces.isUnposted`) is not somewhere the defence lives: defender
 commander's strongpoints, patrol waypoints and the garrison map feature all skip it. A story map with
 no buildings (Missile AA) has none. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
-at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
-consumer.
+at its windows (`ai-nouns.md`, occupy). The second is the GARRISON stance, which
+mans those buildings under pressure by that same order on every such map
+(scene `mission-envelopes`: Raid, Assault, Sabotage, Extraction, civilian
+rescue and a story map). Reactive manning by the AI commanders is Conquest's
+alone so far: the other missions' defenders keep their authored posts and
+alarm responses, and offering envelopes there leaves their battles byte for
+byte as they were.
 
 ## Decided direction
 
@@ -421,6 +431,9 @@ the battle and never mans the new ground.
   apron, against seven in ten on a stock map: the places' circulation roads run
   close to their doors. Whether to let an apron stand on a circulation road the
   attack does not use is open.
+- **Mission defenders.** Whether the Raid, Assault, Sabotage and Extraction
+  defenders should man held buildings reactively, as Conquest's does, or keep
+  their authored posts.
 - **Machines and envelopes.** Machines guard the runs their side mans, not the
   buildings; whether a manned building should draw a machine guard is open.
 
