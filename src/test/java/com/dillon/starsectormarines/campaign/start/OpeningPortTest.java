@@ -85,6 +85,14 @@ class OpeningPortTest {
         assertFalse(CerberusCompanyStart.lost(stub(MarketAPI.class, disrupted), player()));
     }
 
+    @Test void crossingFuelIsExactlyWhatTheFleetStillNeedsWithinItsTanks() {
+        assertEquals(13, CerberusCompanyStart.crossingFuel(6.2f, 2f, 0f, 40f), "6.2 ly at 2 a light year, rounded up");
+        assertEquals(3, CerberusCompanyStart.crossingFuel(6.2f, 2f, 10f, 40f), "only the shortfall");
+        assertEquals(0, CerberusCompanyStart.crossingFuel(6.2f, 2f, 20f, 40f), "already enough aboard");
+        assertEquals(5, CerberusCompanyStart.crossingFuel(30f, 2f, 35f, 40f), "never past the tanks");
+        assertEquals(0, CerberusCompanyStart.crossingFuel(0f, 2f, 0f, 40f));
+    }
+
     @Test void aRelocatedDepotKeepsWhatIsLeftAndAddsNothing() {
         var depot = new PreparationDepot("jangala", true);
         int before = depot.stock().values().stream().mapToInt(Integer::intValue).sum();

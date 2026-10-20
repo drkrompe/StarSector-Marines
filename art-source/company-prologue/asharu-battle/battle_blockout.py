@@ -188,6 +188,42 @@ KEYFRAMES = {
             ('fire_on', 'lasher-a', (-20, 10, 6)),
             ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
+    'k3c': dict(
+        shot='S6b', title='The escorts answer',
+        caption='Lasher B and the merchant Wolf turn back and roll over onto the climbing raiders, firing down. '
+                'A Buffalo Mk.II takes the full Ammo Feeder burst and breaks up: the convoy draws blood.',
+        camera=dict(loc=(-900, 700, 150), target=(-1600, 300, -350), lens=50),
+        ships={'lasher-b': (-1300, 450, -150, 185, -15, 150, 1), 'wolf-m': (-1420, 560, -120, 175, -18, -140, 1),
+               'buffalo2-b': (-1800, 300, -500, 5, 12, -4, .4), 'buffalo2-a': (-2600, -150, -800, 3, 10, 3, 1),
+               'manticore-p': (-3000, -800, -900, 8, 6, 4, 1)},
+        fx=[('tracer', 'lasher-b', 'buffalo2-b'), ('tracer', 'wolf-m', 'buffalo2-b'),
+            ('tracer', 'buffalo2-a', 'lasher-b'),
+            ('blast_on', 'buffalo2-b', 22, (0, 0, 0)), ('debris', 'buffalo2-b', 60, (0, 0, 0))],
+        labels=['lasher-b', 'wolf-m', 'buffalo2-b', 'buffalo2-a']),
+    'k3d': dict(
+        shot='S6c', title='The column is cut',
+        caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
+                'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
+                'shields flare on both sides.',
+        camera=dict(loc=(-250, -760, 90), target=(-200, 20, -10), lens=28),
+        ships={**{k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')},
+               'wolf-p-a': (-380, -60, -30, 75, 6, -60, 1), 'wolf-p-b': (-180, 80, 10, 95, 4, -70, 1),
+               'wolf-m': (-560, -300, -60, 70, 4, -20, 1)},
+        fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
+            ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
+            ('fire_on', 'tarsus', (-40, 0, 6))],
+        labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
+    'k3e': dict(
+        shot='S6d', title='The rear guard',
+        caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
+                'and takes the second\'s fire full on, flares going out as she falls back on the column.',
+        camera=dict(loc=(-1450, 120, 160), target=(-1650, -180, 20), lens=35),
+        ships={'hound-m': (-1500, -150, 110, 200, -25, 110, 1),
+               'hound-p-a': (-1700, -50, -20, 10, 20, 0, .4), 'hound-p-b': (-1680, -380, 20, 30, 16, 0, 1)},
+        fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
+            ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
+            ('fire_on', 'hound-m', (-12, 4, 3)), ('flares', 'hound-m')],
+        labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
@@ -218,6 +254,17 @@ KEYFRAMES = {
             ('tracer', 'colossus', 'kite-p-a'), ('tracer', 'colossus', 'colossus3'),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0))],
         labels=['colossus', 'morrow', 'colossus3', 'kite-p-a', 'wolf-p-a']),
+    'k4b': dict(
+        shot='S9b', title='The lead\'s last run',
+        caption='Smoking from S6, the lead Lasher makes one more run over the Falcon (P), rolled onto her back. '
+                'She presses the flagship\'s shield into overload and walks her guns down the open flank. The '
+                'Falcon is hit hard, and her broadside answers.',
+        camera=dict(loc=(-560, 900, -60), target=(-620, 280, -130), lens=28),
+        ships={'falcon-p': (-700, 200, -100, 10, 6, -4, .8), 'lasher-lead': (-560, 380, 30, 200, -20, 160, 1)},
+        fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead'),
+            ('blast_on', 'falcon-p', 18, (-20, -14, 4)), ('fire_on', 'lasher-lead', (-20, 10, 6)),
+            ('debris', 'lasher-lead', 25, (-10, 8, 0))],
+        labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
         shot='S10', title='The prize taken',
         caption='The pirates have their prize: the captured Tarsus is clamped to the Colossus Mk.III, with a Kite (P) '

@@ -225,7 +225,12 @@ alpha masks: IoU 0.950 after the detail pass (0.6% of the sprite uncovered,
 4.6% model outside it, mostly the hardpoint barrels and running lights the
 hull sprite does not draw, chamfer overhang at the pod corners, and the
 pod bridge frames and aft fairings at the pods' edges); 0.953 before it.
-With the kit hardpoints 0.892 (11.4% outside): the launch rails and LAG
+With the kit hardpoints 0.892 (11.4% outside); on the shared detail rule
+(ship-detail-guide.md) check_detail reads faceted 0, unbevelled 0.90 m per
+100 m2 and no emissive off the lights layer. Hull rounds follow the segment
+rule (ls_kit cylinder and revolve_x), every hull part without a chamfer of its
+own gets an angle-limited bevel by tier before the bake (bevel_hard_edges),
+and the kit's parts and the lamps keep their smooth shading through the bake: the launch rails and LAG
 barrels reach past the pods, where the game draws its hardpoint sprites over
 empty space; the hull itself is unchanged (0.62% of the sprite uncovered).
 

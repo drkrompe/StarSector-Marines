@@ -43,9 +43,10 @@ yard waives the estimate's 124-credit pressure test when it pays), minimum
 crew plus five, 25 travel supplies and no fuel (owner, 2026-10-20). Fuel burns only in hyperspace.
 The start sets the fleet down in its port's own system, and the yard, Mara Venn's office and the
 depot all start in it; a re-pick after the port is lost keeps to that system while any qualifying
-port remains there. Only losing every qualifying port in the start's system would need a hyperspace
-crossing, and then no fixed amount covers an arbitrary sector; vanilla's own out-of-fuel recovery
-applies. Fuel is bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
+port remains there. When a re-pick during the opening (conversion unpaid or depot stores left) does
+land across hyperspace, Castle tops the tank up to exactly what the fleet's own fuel use per light
+year needs to reach it, only the shortfall, within its tanks, once per replacement port, and says so
+in one line. Fuel is otherwise bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
 which is why the story Relief carries no squad cap: the depot founds Sabine's squad only, any other
 pays the full founding bill from the hold, and selling every crewman and both guns at the most
 favourable vanilla prices still falls short (`SecondSquadAffordabilityTest`). Money earned through

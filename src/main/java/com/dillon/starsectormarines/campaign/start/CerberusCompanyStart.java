@@ -15,6 +15,7 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberType;
 import com.fs.starfarer.api.impl.campaign.tutorial.GalatianAcademyStipend;
+import com.fs.starfarer.api.util.Misc;
 import org.apache.log4j.Logger;
 
 /** Runs once, after vanilla's ordinary skip-tutorial setup, only for this selected start. */
@@ -31,6 +32,8 @@ public final class CerberusCompanyStart implements Script {
     private static final String START_PORT_KEY = "sm_start_port_market";
     /** The start port's planet, which outlives its market, so its system is known after the port is lost. */
     private static final String START_PLANET_KEY = "sm_start_port_planet";
+    /** The replacement port the last crossing fuel was granted for, so each re-pick grants once. */
+    private static final String CROSSING_FUEL_KEY = "sm_start_port_crossing_fuel_for";
     private static final Logger LOG = Global.getLogger(CerberusCompanyStart.class);
     /** The pooled ship's account: about twenty-two days of board and berth at Kilo Nine. */
     public static final int STARTING_CREDITS = 473;
@@ -202,10 +205,50 @@ public final class CerberusCompanyStart implements Script {
         Object locked = sector.getPersistentData().get(START_PORT_KEY);
         if (locked instanceof String id) {
             MarketAPI market = sector.getEconomy().getMarket(id);
-            if (OpeningPort.eligible(market, sector.getPlayerFaction(), Use.YARD)) return market.getPlanetEntity();
+            if (OpeningPort.eligible(market, sector.getPlayerFaction(), Use.YARD)) {
+                // A lost depot sends the company back to the start port, which may be a system away.
+                if (depot() != null) provisionCrossing(market);
+                return market.getPlanetEntity();
+            }
         }
         MarketAPI market = OpeningPort.resolve(sector, Use.YARD, homeSystem());
-        return market == null ? null : market.getPlanetEntity();
+        if (market == null) return null;
+        if (locked != null) provisionCrossing(market);
+        return market.getPlanetEntity();
+    }
+    /**
+     * The start carries no fuel, which is safe while the company's port is in the system it stands in. When the
+     * locked port is lost during the opening and the replacement lies across hyperspace, Castle tops the tank up to
+     * exactly what the fleet burns to reach it, once per replacement, and says so.
+     */
+    private static void provisionCrossing(MarketAPI market) {
+        var sector = Global.getSector();
+        CampaignFleetAPI fleet = sector.getPlayerFleet();
+        PlanetAPI planet = market.getPlanetEntity();
+        if (fleet == null || planet == null || !openingUnderway()
+                || fleet.getContainingLocation() == planet.getContainingLocation()
+                || market.getId().equals(sector.getPersistentData().get(CROSSING_FUEL_KEY))) return;
+        sector.getPersistentData().put(CROSSING_FUEL_KEY, market.getId());
+        var cargo = fleet.getCargo();
+        int grant = crossingFuel(Misc.getDistanceLY(fleet, planet), fleet.getLogistics().getFuelCostPerLightYear(),
+                cargo.getFuel(), cargo.getMaxFuel());
+        if (grant <= 0) return;
+        cargo.addFuel(grant);
+        LOG.info("Second Wind start: port re-picked to " + market.getId() + " across hyperspace; granted " + grant + " fuel");
+        if (sector.getCampaignUI() != null)
+            sector.getCampaignUI().addMessage(Strings.format("openingCerberusCompanyStartCrossingFuel", planet.getName(), grant));
+    }
+    /** Whole fuel units the fleet still needs to cross {@code distanceLy}, within the space its tanks have left. */
+    static int crossingFuel(float distanceLy, float fuelPerLy, float aboard, float capacity) {
+        int needed = (int) Math.ceil(Math.max(0f, distanceLy) * Math.max(0f, fuelPerLy));
+        int room = (int) Math.floor(Math.max(0f, capacity - aboard));
+        return Math.max(0, Math.min(room, needed - (int) Math.floor(Math.max(0f, aboard))));
+    }
+    /** Until the conversion is paid and the depot's stores are drawn, the opening still has somewhere to send the company. */
+    private static boolean openingUnderway() {
+        if (conversionRequired()) return true;
+        PreparationDepot depot = depot();
+        return depot != null && depot.stock().values().stream().anyMatch(quantity -> quantity > 0);
     }
     /** The start port's star system, or null before the start has locked one (or for an ordinary start). */
     public static StarSystemAPI homeSystem() {
