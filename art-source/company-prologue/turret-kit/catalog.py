@@ -93,7 +93,7 @@ for j, w in enumerate(hps):
     mod.operation, mod.object = 'DIFFERENCE', cut
     cut.hide_render = cut.hide_viewport = True
     block.data.materials.append(MATS['armour'])
-    placed.append((w, mount.location.copy(), 9.5, h))
+    placed.append((f'hp-{w}', mount.location.copy(), 9.5, h))
     print(f'{w}: {len(h["parts"])} objects, {sum(len(p.data.polygons) for p in h["parts"])} faces, '
           f'{len(h["muzzles"])} muzzles')
 
