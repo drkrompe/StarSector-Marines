@@ -80,11 +80,18 @@ pressure tests herself. The owner signs the cheques; she decides what gets mende
 
 - **Figure.** `build_nessa.py` is a placement guide only (owner, 2026-10-19: no more 3D
   character work); ImageGen paints her.
-- **Portrait.** `mod/graphics/portraits/nessa-venn.png`, in Castle's and Mara's style.
+- **Portrait.** `mod/graphics/portraits/nessa-venn.png`, in Castle's and Mara's style. Shipped but
+  not used yet: no dialogue line is hers (open).
 - **Yard pictures are layered** (owner, 2026-10-19). Y1 and Y2 are painted as backgrounds
   with no Nessa in them, with room left where she would stand; she is a separate cut-out
   figure with transparency, composited over the background, so she can change or be left
-  out without repainting the yard.
+  out without repainting the yard. Y1 ships that way (`yard-stills/README.md`).
+
+## Open
+
+- Her portrait in dialogue, once she has a line of her own.
+- Her wall of old pressure seals has no picture.
+- C5's crowd still draws its own dark-coated stand-in for her.
 
 ## Owner's answers (2026-10-19)
 
