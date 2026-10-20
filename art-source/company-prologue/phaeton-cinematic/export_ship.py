@@ -29,8 +29,10 @@ What the export does to the build (the Colossus's export is the pattern):
    empty is driven from the intact pose (before break_frame) to ph_damage's
    wreck pose at break_s = 4 s and keeps drifting at that rate, and the S04
    shell fragments and S06 debris fly out from the strike point on the same
-   clock. `Scar S04 explosion anchor main` (on the root, at the strike) and two
-   secondary tank blasts (on their sections) are the kit's explosion anchors;
+   clock. `Scar S04 explosion anchor main` (on the root, at the strike) and the
+   cook-off (seven later blasts on their sections over ~6 s: tank 2's
+   flashback, fuel lines, machinery, tanks 1 and 3, the drive block) are the
+   kit's explosion anchors;
    the effects export links the kit's fir_exp_frame to break_frame.
 
 Staging intact -> destroyed in a shot: append both collections at the same
@@ -74,11 +76,24 @@ ASSET = 'phaeton-destroyed.blend' if WRECK else 'phaeton.blend'
 MANIFEST = 'manifest-destroyed.json' if WRECK else 'manifest.json'
 BREAK_S = 4.0                       # seconds from detonation to ph_damage's wreck pose
 STRIKE = (44.0, 4.0, 4.0)           # S04: the missile strike on tank 2 (ph_damage.CRATER)
-# (name, at, parent section or None for the root, size_m, delay_s): the main blast and the
-# two ruptured tanks going up a beat later.
-BLASTS = [('Scar S04 explosion anchor main', STRIKE, None, 20.0, 0.0),
-          ('Scar S03 explosion anchor tank 1', (8.0, 6.0, 14.0), 'stern', 10.0, .35),
-          ('Scar S05 explosion anchor tank 3', (80.0, -3.0, 16.0), 'bow', 11.0, .6)]
+# The cook-off, in ship-local intact coordinates: (name, at, parent section or None for the
+# root, size_m, delay_s, lesser-blast props). The missiles open tank 2 (the main blast); its
+# remnant flashes back; burning fuel works along the broken lines and machinery, and the two
+# ruptured tanks cook off in turn as the sections drift apart, tank 3 the biggest; the drive
+# block's own tankage goes last. Lesser pops carry no shock ring, a weaker flash, fewer embers.
+POP = {'ring': 0.0, 'flash': .3, 'embers': 40}
+BLASTS = [('Scar S04 explosion anchor main', STRIKE, None, 20.0, 0.0, {}),
+          ('Scar S04 explosion anchor tank 2 flashback', (44.0, -8.0, 8.0), 'mid', 11.0, .5,
+           {'ring': 0.0, 'flash': .5, 'embers': 60}),
+          ('Scar S02 explosion anchor aft fuel line', (24.0, 10.0, 0.0), 'stern', 6.0, 1.2, POP),
+          ('Scar S03 explosion anchor tank 1', (8.0, 6.0, 14.0), 'stern', 16.0, 1.9,
+           {'ring': .6, 'flash': .8, 'embers': 100}),
+          ('Scar S02 explosion anchor machinery', (-30.0, -28.0, 6.0), 'stern', 7.0, 2.7, POP),
+          ('Scar S01 explosion anchor fore fuel line', (68.0, -12.0, -2.0), 'bow', 6.0, 3.4, POP),
+          ('Scar S05 explosion anchor tank 3', (80.0, -3.0, 16.0), 'bow', 18.0, 4.2,
+           {'ring': .7, 'flash': 1.0, 'embers': 120}),
+          ('Scar S02 explosion anchor drive block', (-80.0, 0.0, 4.0), 'stern', 9.0, 5.6,
+           {'ring': 0.0, 'flash': .5, 'embers': 60})]
 
 geom = json.loads(GEOM_JSON.read_text())
 MPU = geom['metres_per_unit']
@@ -299,12 +314,15 @@ if WRECK:
         for k in range(3):
             drive(ob, 'location', k, f'{p0[k]:.4f}+({p[k] - p0[k]:.4f})*{s_expr}')
         flyers.append(ob.name)
-    for name, at, section, size, delay in BLASTS:
+    for name, at, section, size, delay, props in BLASTS:
         par = root if section is None else bpy.data.objects[sections[section]['empty']]
         a = empty(name, anchors_coll, 6, 'SPHERE', par, Matrix.Translation(at))
         a['size_m'] = size
         a['delay_s'] = delay
-        blasts.append({'anchor': a.name, 'at': list(at), 'section': section, 'size_m': size, 'delay_s': delay})
+        for k, v in props.items():
+            a[k] = v
+        blasts.append({'anchor': a.name, 'at': list(at), 'section': section, 'size_m': size, 'delay_s': delay,
+                       **props})
     # Fire and vent sizes vary by anchor (stable per name): small burning breaches
     # to big fires at the break faces; vents of different reach.
     for ob in movers:

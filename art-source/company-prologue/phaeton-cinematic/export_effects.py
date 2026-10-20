@@ -9,7 +9,7 @@ The kit's `SWFX` collection then sits beside the ship's:
 - clean: the six drives, guns and lamps (groups thrusters, smoke, guns,
   lighting): the working tanker in the column;
 - destroyed: the opt-in 'fire' group on the wreck's scar anchors (22 fires,
-  6 vents) and its three explosion anchors. The kit's `fir_exp_frame` is
+  6 vents) and its eight explosion anchors (the cook-off). The kit's `fir_exp_frame` is
   driven from `PHAETON WRECK | controls`'s `break_frame`, so one knob stages
   the detonation, the fireball, the break-up and the fires coming up.
 

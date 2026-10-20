@@ -468,68 +468,61 @@ def ventral_keel(kit):
     strakes.build(kit, 'Hull ventral keel strakes', kit.steel, .06)
 
 
+def _facet_grooves(cx, cy, circ, n, bands, inward=.35, outward=1.2):
+    """Seam-groove cutters round an n-gon sponson's wall: one thin band per (z0, z1)."""
+    g = Parts()
+    for k in range(n):
+        a0, a1 = 2*math.pi*(k+.5)/n, 2*math.pi*(k+1.5)/n
+        p0 = (math.cos(a0), math.sin(a0))
+        p1 = (math.cos(a1), math.sin(a1))
+        for z0, z1 in bands:
+            quad = [(cx+p0[0]*(circ-inward), cy+p0[1]*(circ-inward), z0), (cx+p1[0]*(circ-inward), cy+p1[1]*(circ-inward), z0),
+                    (cx+p1[0]*(circ+outward), cy+p1[1]*(circ+outward), z0), (cx+p0[0]*(circ+outward), cy+p0[1]*(circ+outward), z0)]
+            g.slab(quad, (0, 0, z1-z0))
+    return g
+
+
 def drums(kit):
-    """Each aft drum tower as a heavy ribbed casting fitted to its faceted profile."""
+    """Each aft turret sponson: plated like the aft body, with a rust barbette deck plate."""
     red = _mat('Hazard red mark', (.5, .07, .04), .2, .55)
-    nf = 28
-    R = H.DRUM_R
-    apo = R*math.cos(math.pi/nf)                       # flat-to-centre distance of the girth
-    zg0, zg1 = H.DRUM_KEEL+4.0, H.DRUM_DECK-3.5       # girth: the straight faceted band
+    n, circ = H.DRUM_N, H.DRUM_CIRC
+    wall0, wall1 = H.DRUM_KEEL+H.DRUM_KEEL_C, H.DRUM_DECK-H.DRUM_SHOULDER_C
     top = H.DRUM_DECK
-    rtop = H.DRUM_PROFILE[-1][0]
+    top_circ = circ-H.DRUM_SHOULDER_C/math.cos(math.pi/n)
     for side, s in H.SIDES:
         d = obj(f'Hull {side} aft drum')
         cx, cy = H.DRUM_X, y(H.DRUM_REL, s)
+        mid = (wall0+wall1)/2
+        cut(kit, d, _facet_grooves(cx, cy, circ, n, [(mid-.25, mid+.25), (wall1-.6, wall1-.15)]), kit.dark)
+        # Corner strakes: a plated rib up each exposed outboard corner, wall and shoulder.
         out = math.pi/2*s
-        g = Parts()
-        for k in range(nf):                            # a flute down each exposed outboard facet
-            a = 2*math.pi*(k+1)/nf
-            if math.cos(a-out) < .42:
+        gus = Parts()
+        for k in range(n):
+            a = 2*math.pi*(k+.5)/n
+            if math.cos(a-out) < .2:
                 continue
             ux, uy = math.cos(a), math.sin(a)
-            vx, vy = -uy*.3, ux*.3
-            p0 = (cx+ux*(apo-.4), cy+uy*(apo-.4))
-            p1 = (cx+ux*(R+1), cy+uy*(R+1))
-            g.slab([(p0[0]-vx, p0[1]-vy, zg0+1.5), (p0[0]+vx, p0[1]+vy, zg0+1.5),
-                    (p1[0]+vx, p1[1]+vy, zg0+1.5), (p1[0]-vx, p1[1]-vy, zg0+1.5)], (0, 0, zg1-zg0-3.6))
-        cut(kit, d, g, kit.dark)
-        rings = Parts()
-        for zc in (zg1-1.0, zg0+.8):                   # strata at the head and foot of the flutes
-            _annulus(rings, cx, cy, apo-.4, R+1, zc-.25, zc+.25)
-        cut(kit, d, rings, kit.dark)
-        # Crown buttresses: wedge ribs on every other facet of the crown chamfer.
-        gus = Parts()
-        for k in range(0, nf, 2):
-            a = 2*math.pi*(k+1)/nf
-            ux, uy = math.cos(a), math.sin(a)
-            vx, vy = -uy*.35, ux*.35
-
-            def P(r, z):
-                return (cx+ux*r-vx, cy+uy*r-vy, z)
-            gus.slab([P(rtop-.3, top-.05), P(apo+.25, zg1-.2), P(apo+.25, top-.4)], (vx*2, vy*2, 0))
-        gus.build(kit, f'Hull {side} aft drum crown buttresses', kit.rust)
+            gus.beam((cx+ux*(circ+.1), cy+uy*(circ+.1), wall0+.4), (cx+ux*(circ+.1), cy+uy*(circ+.1), wall1), .7, .7)
+            gus.beam((cx+ux*(circ+.05), cy+uy*(circ+.05), wall1), (cx+ux*(top_circ+.2), cy+uy*(top_circ+.2), top-.1), .6, .6)
+        gus.build(kit, f'Hull {side} aft drum crown buttresses', kit.ochre)
+        # The sprite's brown disc: a rust barbette deck plate the turret stands in.
+        plate_r = 7.6
         lip = Parts()
-        _annulus(lip, cx, cy, rtop-1.5, rtop-.05, top, top+.7, nf)
-        lip.build(kit, f'Hull {side} aft drum top lip', kit.rust)
-        ribs, bolts = Parts(), Parts()
-        for k in range(14):
-            a = 2*math.pi*(k+.5)/14
-            ux, uy = math.cos(a), math.sin(a)
-            ribs.beam((cx+ux*5.0, cy+uy*5.0, top+.5), (cx+ux*(rtop-1.4), cy+uy*(rtop-1.4), top+.5), .8, 1.0)
-        for k in range(28):
-            a = 2*math.pi*(k+.5)/28
-            bolts.cyl((cx+math.cos(a)*(rtop-.75), cy+math.sin(a)*(rtop-.75), top+.7), .25, .18, 'Z', 6)
-            if k % 2 == 0:
-                bolts.cyl((cx+math.cos(a)*4.4, cy+math.sin(a)*4.4, top), .25, .25, 'Z', 6)
-        ribs.build(kit, f'Hull {side} aft drum radial ribs', kit.rust, .06)
+        lip.slab([(cx+plate_r*math.cos(2*math.pi*(i+.5)/n), cy+plate_r*math.sin(2*math.pi*(i+.5)/n), top-.05)
+                  for i in range(n)], (0, 0, .4))
+        lip.build(kit, f'Hull {side} aft drum top lip', kit.rust, .05)
+        bolts = Parts()
+        for k in range(24):
+            a = 2*math.pi*(k+.5)/24
+            bolts.cyl((cx+math.cos(a)*(plate_r-.9), cy+math.sin(a)*(plate_r-.9), top+.35), .22, .16, 'Z', 6)
         bolts.build(kit, f'Hull {side} aft drum bolts', kit.steel)
         ring = Parts()
-        _annulus(ring, cx, cy, 8.0, 8.6, top, top+.25, nf)
+        _annulus(ring, cx, cy, 4.6, 5.2, top+.3, top+.55, 32)
         ring.build(kit, f'Hull {side} aft drum race ring', kit.steel)
-        # The sprite's small red marks on the forward crown (X -31, Y +32..38 / -33..-36).
+        # The sprite's small red marks on the forward edge of the turret deck.
         marks = Parts()
-        for rr in (33.0, 35.5):
-            marks.box(-32.2, -30.8, y(rr, s)-.7, y(rr, s)+.7, top, top+.12)
+        for rr in (34.0, 39.0):
+            marks.box(H.DRUM_X+5.6, H.DRUM_X+6.8, y(rr, s)-.6, y(rr, s)+.6, top+.33, top+.45)
         marks.build(kit, f'Hull {side} aft drum red marks', red)
 
 
