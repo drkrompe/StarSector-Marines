@@ -47,7 +47,7 @@ Names: 'Gantry ...' and 'Frame starboard ...'.
 import math
 import bpy
 from mathutils import Vector
-from sh_kit import prism, section, material, loft_x, octagon, pod, ngon, boolean
+from sh_kit import prism, section, material, loft_x, octagon, pod, ngon, boolean, seg
 import sh_mounts
 
 Z0 = -12.0                                 # base deck height (ENVELOPE.md)
@@ -108,6 +108,7 @@ class _Parts:
         self._hexa([a-u-v, a+u-v, a+u+v, a-u+v, b-u-v, b+u-v, b+u+v, b-u+v])
 
     def cyl(self, c, r, depth, axis='Z', n=10):
+        n = seg(r, n)
         c = Vector(c)
         ax = {'X': Vector((1, 0, 0)), 'Y': Vector((0, 1, 0)), 'Z': Vector((0, 0, 1))}[axis]
         e1 = Vector((0, 0, 1)) if axis != 'Z' else Vector((1, 0, 0))
@@ -181,7 +182,7 @@ def _skin(core, x, y):
     return p.z if hit else None
 
 
-def _rim(kit, name, core, edges, w, h, mat, step=.25):
+def _rim(kit, name, core, edges, w, h, mat, step=.1):
     """One continuous coaming band laid on the skin along each edge [(a, b), ...]:
     w wide, standing h proud, its foot sunk a little so it never floats."""
     verts, faces = [], []

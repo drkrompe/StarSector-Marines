@@ -150,6 +150,9 @@ def _turret(kit, s):
         (x-3.4, octagon(y-1.4, y+1.4, g+.9, g+2.1, .35)),
         (x-2.2, octagon(y-1.5, y+1.5, g+.8, g+2.15, .35)),
     ], kit.tan, .05))
+    # Its chamfers are plate (45 deg): the bevel takes only the square edges, so the
+    # chamfered box does not read as a sixteen-sided round.
+    trained[-1].modifiers['Plate edge chamfer'].angle_limit = math.radians(50)
     trained.append(kit.box(f'{p} bustle loading door', (x-3.42, y, g+1.5), (.06, 1.6, .8), kit.steel, 0))
     trained += [kit.box(f'{p} bustle door hinge {i}', (x-3.45, y+dy, g+1.5), (.1, .12, .9), kit.dark, 0)
                 for i, dy in ((1, .85), (2, -.85))]
