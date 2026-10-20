@@ -94,6 +94,7 @@ parser.add_argument('--views', default='top,port-side,front,three-quarter,stern'
 parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
+parser.add_argument('--keep-studio', action='store_true', help='keep the cameras and studio lamps in the saved .blend (the surface harness renders from them)')
 parser.add_argument('--manifest', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
 parser.add_argument('--ahead', action='store_true', help='train every mount dead ahead for the review renders')
@@ -531,7 +532,8 @@ if not args.no_save:
         shutil.copy(manifest_path, HERE/'geometry.json')
 
     # --- The appendable asset: one collection, one root, nothing but the ship. ---
-    for ob in [o for o in bpy.data.objects if o.type in ('CAMERA', 'LIGHT')]:
+    sun.hide_render = True   # a kept studio is the review studio, not the shot sun
+    for ob in [o for o in bpy.data.objects if o.type in ('CAMERA', 'LIGHT') and not args.keep_studio]:
         bpy.data.objects.remove(ob, do_unlink=True)
     coll = bpy.data.collections.new(COLL)
     scene.collection.children.link(coll)

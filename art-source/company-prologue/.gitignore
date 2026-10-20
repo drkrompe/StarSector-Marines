@@ -244,3 +244,12 @@ phaeton-surface/guide/*
 phaeton-cinematic/*.blend
 phaeton-cinematic/*.blend1
 phaeton-cinematic/review/
+
+# Manticore (P) surfacing and cinematic export: outputs are rebuilt by rebuild.sh / finalize.sh.
+manticore-surface/review/
+manticore-surface/textures/
+manticore-surface/grading/
+manticore-surface/skin-manifest.json
+manticore-cinematic/*.blend
+manticore-cinematic/*.blend1
+manticore-cinematic/review/
