@@ -185,9 +185,27 @@ instead of its declared role would be a secret convention; the role travels
 with the art through authoring and export. `ai-nouns.md` owns what occupying one
 means.
 
+A compound's places are given prepared ground of their own: a **sandbagged
+door** (`CompoundPreparedGround`). One course of the fort's thick parapet stands
+three cells off the entrance a place is attacked through, with a gap exactly the
+door's width in front of it and each wing turning back toward the wall, so the
+way in stays straight and open and the cells behind the bags are covered from
+the front and the flank. A place with no door on its attack-facing side gets the
+course across that face instead, on the first open ground past its wall; a door
+facing away from the attack gets none, and a door wider than two cells is a
+vehicle entrance. An apron is laid whole or not at all, and only where what it
+leaves is a full run, so every apron is a fighting position and none is a stub
+of cover that reads like one. It refuses rather than repairs: no bag on a
+doorway, a wall, a fixture, reserved road or a vehicle corridor, or beside
+another door, and the door's lane and the cells behind the bags must be open
+floor. Conquest's compound places each try for one, facing the landing; story
+compound maps lay theirs facing where the attack lands. The compound's lookout
+is seated behind it. `-Dbattle.mapgen.compoundPreparedGround=false` is the
+control.
+
 A stand position may be authored on prepared ground: a fort belt's nests
 publish garrison places whose stand positions are the belt's own trench and
-sandbag cells. Because the fort stage runs after the tactical map is linked, its
+sandbag cells, and a compound's lookout stands on the cells behind its apron. Because the fort stage runs after the tactical map is linked, its
 places are added to the finished map; a node left on the generation context at
 that point never reaches the battle, silently.
 

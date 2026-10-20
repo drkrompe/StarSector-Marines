@@ -8,7 +8,8 @@ every hardpoint mesh this tests whether it lies inside another solid of the ship
 odd number of crossings along a ray) deeper than --tol units below that solid's
 surface. Touching the bay it is sunk in is not a clash; passing through a pod wall,
 a frame, the neck or another weapon is. Prints one line per mount and exits non-zero
-when anything clips; a hull build imports it and calls clashes() after its bake (build_lasher.py
+when anything clips (2 when it finds no mount at all, so a file with nothing to check cannot
+pass silently); a hull build imports it and calls clashes() after its bake (build_lasher.py
 fails on any clip). The turrets have their own arc
 sweep (each hull's mounts module); this is the same guarantee for fixed mounts.
 """
@@ -26,10 +27,15 @@ def clashes(tol=.15, scene=None):
     dg = bpy.context.evaluated_depsgraph_get()
     mounts = {}
     for ob in scene.objects:
-        if ob.type == 'MESH' and ' hardpoint ' in ob.name and ob.parent is not None \
-                and ob.parent.type == 'EMPTY' and not ob.parent.name.endswith('root') and ob.parent.parent is not None:
-            m = ob.parent          # a mount empty under the hull's root, not the root (a hull's 'hardpoint well' parts)
-            mounts.setdefault(m.name, set()).update(m.children_recursive)
+        # A kit hardpoint is '<prefix> hardpoint <key>' on a mount empty whose own name starts
+        # with that prefix ('Weapon WS 004 mount', 'Hardpoint 1 WS 008 pivot'), at the top level
+        # or under a hull root alike. A hull part that merely says 'hardpoint' ('Hull gantry
+        # hardpoint well', parented to the root) is not one.
+        if ob.type == 'MESH' and ' hardpoint ' in ob.name and ob.parent is not None and ob.parent.type == 'EMPTY':
+            prefix = ob.name.split(' hardpoint ')[0]
+            if ob.parent.name.startswith(prefix+' '):
+                m = ob.parent
+                mounts.setdefault(m.name, set()).update(m.children_recursive)
     weapon = set().union(*mounts.values()) if mounts else set()
     solids = {}
     fx = {o for c in bpy.data.collections if c.name.startswith('SWFX') for o in c.all_objects}
@@ -89,6 +95,10 @@ if __name__ == '__main__':
     ap.add_argument('--json', default='')
     args = ap.parse_args(argv)
     res = clashes(args.tol)
+    if not res:
+        print('NO MOUNTS: no kit hardpoint (a \'<prefix> hardpoint <key>\' mesh on a \'<prefix> ...\' empty) '
+              'in this file, so nothing was checked')
+        sys.exit(2)
     bad = 0
     for m, r in res.items():
         if r['clips']:

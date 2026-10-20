@@ -26,7 +26,7 @@ from starsector_path import GAME_CORE  # noqa: E402
 # Finished cinematic builds this scene appends. Each build is one Drive folder, copied whole to
 # build/asharu-battle/builds/<dir>/ (ignored) by hand or as a render-queue drive input:
 #   dir: the local folder; drive: its source under Drive starsector/; file: the .blend in it (the
-#   manifest is the folder's manifest.json); length_m: the settled hull length.
+#   manifest is the folder's manifest.json unless 'manifest' names another); length_m: the settled hull length.
 FINISHED = {
     'colossus': dict(dir='colossus', drive='builds/colossus/139e8b8b6', file='colossus.blend', length_m=108.5),
     'shepherd': dict(dir='shepherd', drive='builds/shepherd/c85fb19b6', file='shepherd.blend', length_m=67.1),
@@ -38,8 +38,9 @@ FINISHED = {
     'kite-p': dict(dir='kite-p', drive='builds/kite-p/0cb9d83', file='kite-p.blend', length_m=52.2),
     'falcon-p': dict(dir='falcon-p', drive='builds/falcon-p/06784b46f', file='falcon-p.blend', length_m=174.4),
     'manticore-p': dict(dir='manticore-p', drive='builds/manticore-p/056e05c26', file='manticore-p.blend', length_m=91.3),
-    'wolf-p': dict(dir='wolf-p', drive='builds/wolf-p/f60641f63', file='wolf-p.blend', length_m=70.0),
-    'wolf': dict(dir='wolf', drive='builds/wolf/f60641f63', file='wolf.blend', length_m=70.0),
+    'wolf-p': dict(dir='wolf-p', drive='builds/wolf-p/968fc1a01', file='wolf-p.blend', length_m=70.0),
+    'wolf': dict(dir='wolf', drive='builds/wolf/968fc1a01', file='wolf.blend', manifest='manifest-merchant.json',
+                 length_m=70.0),
     'colossus-mk3': dict(dir='colossus-mk3', drive='builds/colossus-mk3/005c3b11b', file='colossus-mk3.blend',
                          length_m=109.6),
     'phaeton': dict(dir='phaeton', drive='builds/phaeton/e9ab52297/intact', file='phaeton.blend', length_m=76.6),

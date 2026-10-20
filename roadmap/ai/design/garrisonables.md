@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs on both Conquest sides (the defender's own belts and compound aprons, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); building envelopes and other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion; machines screen the places their side mans (owner decision; the machine guard is built); earlier: the attacker holds what it takes; fort-belt reactive manning; the player's machine assault and opt-in GARRISON stance.
+Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion (`conquest-command.md`); compounds offer prepared ground (sandbagged doors) manned like a belt, with a fall back into the building (`compound-apron` scene); machines screen the places their side mans; the attacker holds taken belts and taken compounds' aprons.
 
 ## Why this exists
 
@@ -27,7 +27,9 @@ It is a kind of place, not a kind of order. Kinds, in the order they are
 expected to arrive:
 
 - a **fighting-position run** — trench and parapet cells (built; see
-  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`);
+  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`): a fort's belt, a
+  story map's dug line, and a compound's **sandbagged door**, the apron laid
+  in front of the entrance each compound place is attacked through;
 - a **building envelope** — the apertures and stance cells the defense frontage
   already derives (`ai-nouns.md`, frontage and standing to);
 - a **compound perimeter** — the outer envelope at compound scope, which frontage
@@ -231,8 +233,11 @@ held place covers. Three things it shows shape the work ahead:
   have windows, but nothing names a place a garrison could hold, so neither the
   defender commander nor a player's occupy order can use them. Held places on
   those maps are the precondition for everything in this doc.
-- Fighting-position runs are almost absent outside forts; Relief now digs one
-  behind its gate.
+- Fighting-position runs were almost absent outside forts. Relief digs one
+  behind its gate, and compounds now lay a sandbagged door at each place's
+  attack-facing entrance: on five Conquest seeds 98 aprons on 138 compound
+  places, where there had been none, and three on Relay Nine where there were
+  none (`compound-prepared-ground.md`).
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
@@ -258,8 +263,9 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 - **Attackers hold what they take.** Captured ground is a garrisonable like any
   other: the attacking commander uses the same reactive assignment to man a
   taken belt, trench or building against the counter-attack, not only manual
-  orders. Built for taken fort belts (see Holding taken ground); runs of no
-  fort and building envelopes wait for those kinds to reach the tier.
+  orders. Built for taken fort belts (see Holding taken ground) and for the
+  aprons of taken compounds; building envelopes wait for that kind to reach the
+  tier.
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
   Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
