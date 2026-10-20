@@ -20,8 +20,9 @@ import java.util.TreeSet;
  *
  * <p>One group at a time, for one fort, through three stages:
  * <ul>
- *   <li><b>Reserve.</b> While a fort of the side is alarmed or lost, the reserve share of the mobile pool waits at a
- *       staging cell behind it, on the line from the keep and clear of believed contact
+ *   <li><b>Reserve.</b> From the first believed contact of the battle (or a fort's alarm), while a fort of the side is
+ *       within reach of the keep, {@link #RESERVE_SHARE} of the mobile pool waits at a staging cell behind it, on
+ *       the line from the keep and clear of believed contact
  *       ({@link AssaultMuster#rallyCell}), rather than being spent at the fort. It is the counter-attack's core.</li>
  *   <li><b>Muster.</b> Once the fort's most critical aspect is held by the enemy and the fort is {@link #worth} it, the
  *       group recruits the nearest free squads at useful strength until it holds what the fort is believed to take,
@@ -54,8 +55,11 @@ final class FortCounterattack {
     static final int KEEP_GUARD_CELLS = 40;
     /** Believed movers within this many cells of a fort's centre are the strength it is believed held by. */
     static final int CONTACT_RADIUS_CELLS = AssaultMuster.CONTACT_RADIUS_CELLS;
-    /** The least a fort is believed to take, whoever is seen in it: three patrols. UNTUNED. */
-    static final int MIN_STRENGTH = 18;
+    /**
+     * The least a fort is believed to take, whoever is seen in it: two patrols. Three left the trial ground's default
+     * garrison (four patrols) unable to go at all.
+     */
+    static final int MIN_STRENGTH = 12;
     /** Marines the group brings for each believed hostile at the fort: a proportionate answer, not a crushing one. UNTUNED. */
     static final float STRENGTH_RATIO = 1.0f;
     /** Each failed attempt raises what the fort is believed to take by this fraction. */
@@ -79,7 +83,49 @@ final class FortCounterattack {
     /** Free squads a muster never recruits: the reserve law's floor. */
     static final int RESERVE_FLOOR = 1;
     /** The least mobile pool, in squads, that holds a reserve for a counter-attack at all. */
-    static final int MIN_POOL_SQUADS = 3;
+    static final int MIN_POOL_SQUADS = 2;
+    /**
+     * The counter-attack's reserve as a share of the mobile pool, above the reserve law's quarter: on a four-patrol
+     * garrison a quarter is one patrol, which is no counter-attack.
+     */
+    static final float RESERVE_SHARE = 0.5f;
+
+    /*
+     * Evidence knobs (`-Dbattle.conquest.fortCounterattack.<name>`), read once, so a tuning variant is one command away
+     * from its control. The defaults are the constants above.
+     */
+    private static final String KNOB = PROPERTY + ".";
+    /** The counter-attack's reserve, as a share of the mobile pool, when larger than the reserve law's. */
+    static volatile float reserveShare = knob("reserveShare", RESERVE_SHARE);
+    /** The least a fort is believed to take. */
+    static volatile int minStrength = (int) knob("minStrength", MIN_STRENGTH);
+    /** When positive, the floor is at most this share of the largest mobile pool the side has fielded. */
+    static volatile float floorShare = knob("floorShare", 0f);
+    /** The share of what the fort takes the side must raise to go. */
+    static volatile float commitShare = knob("commitShare", COMMIT_SHARE);
+    /** The least mobile pool, in squads, that holds a reserve at all. */
+    static volatile int minPoolSquads = (int) knob("minPoolSquads", MIN_POOL_SQUADS);
+    /**
+     * Whether the reserve forms behind a held fort once any hostile mover has been believed this battle, not only on the
+     * fort's alarm: by the alarm, the patrols that meet the landing are already spent.
+     */
+    static volatile boolean formOnContact = knob("formOnContact", 1f) > 0f;
+    /** Whether the reserve above the law's share may be lent to man its own fort's pressed belt while the fort holds. */
+    static volatile boolean lendToBelt = knob("lendToBelt", 1f) > 0f;
+
+    /** This pulse's lendable members ({@link #lendable()}). */
+    private List<Integer> lendable = List.of();
+
+    private static float knob(String name, float fallback) {
+        String value = System.getProperty(KNOB + name);
+        return value == null ? fallback : Float.parseFloat(value);
+    }
+
+    /** Whether any hostile mover has been believed this battle: the attack has begun, and a quiet pulse does not end it. */
+    private boolean contactSeen;
+
+    /** The largest mobile pool strength seen, in marine-equivalents: what a garrison-scaled floor is measured against. */
+    private float peakPool;
 
     enum Stage { RESERVE, MUSTER, LAUNCHED }
 
@@ -147,6 +193,26 @@ final class FortCounterattack {
     }
 
     /** Whether this squad belongs to the group, in any stage. */
+    /**
+     * Reserve members above the reserve law's share, while the group waits behind a fort it still holds: the fort's own
+     * belt may borrow them to man a pressed place. A fort being defended is the reserve's purpose too; the track response
+     * and every other draw may not.
+     */
+    List<Integer> lendable() {
+        return lendable;
+    }
+
+    /** The fort the group stands for, or -1. */
+    int fortId() {
+        return group == null ? -1 : group.fortId;
+    }
+
+    /** A lent member has gone to man its fort's belt: it leaves the group. */
+    void lend(int squadId) {
+        if (group != null) group.members.remove(squadId);
+        lendable = lendable.stream().filter(id -> id != squadId).toList();
+    }
+
     boolean claims(int squadId) {
         return group != null && group.members.contains(squadId);
     }
@@ -240,13 +306,23 @@ final class FortCounterattack {
 
     /** What a fort is believed to take, in marine-equivalents: a floor, or the believed hostiles in it, raised per failure. */
     static int required(int believedHostiles, int failures) {
-        float base = Math.max(MIN_STRENGTH, STRENGTH_RATIO * Math.max(0, believedHostiles));
+        return required(believedHostiles, failures, minStrength);
+    }
+
+    static int required(int believedHostiles, int failures, int floor) {
+        float base = Math.max(floor, STRENGTH_RATIO * Math.max(0, believedHostiles));
         return (int) Math.ceil(base * (1f + FAILURE_GROWTH * Math.max(0, failures)));
+    }
+
+    /** The floor this side's fort is believed to take: the constant, or a share of the largest pool it has fielded. */
+    private int floor() {
+        if (floorShare <= 0f) return minStrength;
+        return Math.min(minStrength, Math.max(6, Math.round(floorShare * peakPool)));
     }
 
     /** Whether what the side can raise is enough to go: at least {@link #COMMIT_SHARE} of what the fort takes. */
     static boolean worth(float raisable, int required) {
-        return raisable > 0f && raisable >= COMMIT_SHARE * required;
+        return raisable > 0f && raisable >= commitShare * required;
     }
 
     /**
@@ -263,6 +339,7 @@ final class FortCounterattack {
     Result plan(int tick, Faction side, List<DefenceStructureFact> structures, Alarms alarms, int[] keep,
                 List<int[]> hostiles, List<Body> members, List<Body> free, int reserveTarget, int poolSquads,
                 CommandTopology topology) {
+        lendable = List.of();
         Map<Integer, Order> orders = new TreeMap<>();
         List<Integer> recruited = new ArrayList<>();
         List<Integer> released = new ArrayList<>();
@@ -275,14 +352,18 @@ final class FortCounterattack {
         for (Map.Entry<Integer, List<DefenceStructureFact>> entry : forts.entrySet()) {
             if (status(side, entry.getValue()) == Status.HELD) abandoned.remove(entry.getKey());
         }
+        peakPool = Math.max(peakPool, strength(members) + strength(free));
+        if (!hostiles.isEmpty()) contactSeen = true;
+        int lawTarget = reserveTarget;
+        if (reserveShare > 0f) reserveTarget = Math.max(reserveTarget, Math.round(poolSquads * reserveShare));
         boolean keepThreatened = keep != null && anyWithin(hostiles, keep[0], keep[1], KEEP_GUARD_CELLS);
         int[] home = keep != null ? keep : centroid(members, free);
 
         if (group != null) {
             group.members.retainAll(byId.keySet());
-            review(tick, side, forts, alarms, keepThreatened, byId, released, notes);
+            review(tick, side, forts, alarms, keepThreatened, byId, released, notes, contactSeen);
         }
-        if (group == null && !keepThreatened && home != null && poolSquads >= MIN_POOL_SQUADS && reserveTarget > 0) {
+        if (group == null && !keepThreatened && home != null && poolSquads >= minPoolSquads && reserveTarget > 0) {
             form(tick, side, forts, alarms, home, keep, hostiles, topology, notes);
         }
         if (group == null) return new Result(orders, recruited, released, notes);
@@ -302,10 +383,11 @@ final class FortCounterattack {
         List<Body> recruitable = recruitable(free, byId.keySet(), topology);
         if (group.stage == Stage.RESERVE) {
             topUp(reserveTarget, centre, recruitable, byId, recruited);
+            if (lendToBelt && status(side, fort) == Status.HELD) lendable = frontmost(lawTarget, centre, byId);
             recruitable.removeIf(body -> group.members.contains(body.squadId()));
             Status status = status(side, fort);
             if (status != Status.HELD && tick >= retryAt.getOrDefault(group.fortId, Integer.MIN_VALUE)) {
-                int required = required(believedNear(hostiles, centre), failures(group.fortId));
+                int required = required(believedNear(hostiles, centre), failures(group.fortId), floor());
                 float raisable = strength(group.members, byId) + strength(recruitable.subList(0,
                         Math.max(0, recruitable.size() - RESERVE_FLOOR)));
                 group.raisable = raisable;
@@ -322,7 +404,7 @@ final class FortCounterattack {
             }
         }
         if (group.stage == Stage.MUSTER) {
-            group.required = Math.max(group.required, required(believedNear(hostiles, centre), failures(group.fortId)));
+            group.required = Math.max(group.required, required(believedNear(hostiles, centre), failures(group.fortId), floor()));
             muster(tick, recruitable, byId, recruited, released, notes);
         }
         if (group == null) return new Result(orders, recruited, released, notes);
@@ -340,7 +422,7 @@ final class FortCounterattack {
 
     /** Ends or advances the group already standing: success, failure, the keep, a fort back in hand and quiet. */
     private void review(int tick, Faction side, Map<Integer, List<DefenceStructureFact>> forts, Alarms alarms,
-                        boolean keepThreatened, Map<Integer, Body> byId, List<Integer> released, List<String> notes) {
+                        boolean keepThreatened, Map<Integer, Body> byId, List<Integer> released, List<String> notes, boolean contact) {
         List<DefenceStructureFact> fort = forts.get(group.fortId);
         if (fort == null) {
             dissolve(released, notes, "nothing of it is left to retake");
@@ -373,7 +455,7 @@ final class FortCounterattack {
         } else if (status == Status.HELD && group.stage == Stage.MUSTER) {
             group.stage = Stage.RESERVE;
             notes.add("counter-attack for fort " + group.fortId + " stands back to reserve: the fort is held again");
-        } else if (status == Status.HELD && !alarms.alarmed(group.fortId)) {
+        } else if (status == Status.HELD && !alarms.alarmed(group.fortId) && !(formOnContact && contact)) {
             dissolve(released, notes, "the fort is held and quiet");
         }
     }
@@ -395,7 +477,8 @@ final class FortCounterattack {
         for (Map.Entry<Integer, List<DefenceStructureFact>> entry : forts.entrySet()) {
             int id = entry.getKey();
             if (abandoned.contains(id)) continue;
-            if (status(side, entry.getValue()) == Status.HELD && !alarms.alarmed(id)) continue;
+            if (status(side, entry.getValue()) == Status.HELD && !alarms.alarmed(id)
+                    && !(formOnContact && contactSeen)) continue;
             int[] centre = centre(entry.getValue());
             double gap = Math.hypot(centre[0] - home[0], centre[1] - home[1]);
             if (keep != null && gap > MAX_RETAKE_CELLS) continue;
@@ -437,7 +520,9 @@ final class FortCounterattack {
         }
         boolean allArrived = arrivedSquads == group.members.size() && !group.members.isEmpty();
         String why = null;
-        if (arrived >= group.required) {
+        if (arrived >= group.required && allArrived) {
+            // Ready only once the whole group stands at the staging cell: a straggler still walking up is waited for
+            // (to the muster's bound), so the push goes in together rather than with its last squad behind it.
             why = "ready";
         } else if (allArrived && exhausted && worth(arrived, group.required)) {
             why = "everything it can raise is at the staging cell";
@@ -522,6 +607,15 @@ final class FortCounterattack {
         }
     }
 
+    /** The members above the law's share, nearest the fort first: the ones its belt may borrow. */
+    private List<Integer> frontmost(int keep, int[] centre, Map<Integer, Body> byId) {
+        if (group.members.size() <= keep) return List.of();
+        List<Integer> order = new ArrayList<>(group.members);
+        order.sort(Comparator.<Integer>comparingDouble(id -> Math.hypot(byId.get(id).x() - centre[0],
+                byId.get(id).y() - centre[1])).thenComparingInt(id -> id));
+        return List.copyOf(order.subList(0, group.members.size() - keep));
+    }
+
     private void take(Body body, Map<Integer, Body> byId, List<Integer> recruited) {
         group.members.add(body.squadId());
         byId.put(body.squadId(), body);
@@ -557,7 +651,7 @@ final class FortCounterattack {
         return String.format(Locale.ROOT, "counter-attack fort %d %s: %d squads, strength %.0f, believes it takes %d "
                         + "(%d hostiles believed near it), staging (%d,%d), could raise %.0f from %d free%s", group.fortId,
                 group.stage.name().toLowerCase(Locale.ROOT), group.members.size(), strength(group.members, byId),
-                group.stage == Stage.RESERVE ? required(believedNear(hostiles, centre), failures(group.fortId)) : group.required,
+                group.stage == Stage.RESERVE ? required(believedNear(hostiles, centre), failures(group.fortId), floor()) : group.required,
                 believedNear(hostiles, centre), group.stageX, group.stageY, group.raisable, group.recruitable,
                 group.stage == Stage.LAUNCHED ? ", launched at tick " + group.launchTick : "");
     }

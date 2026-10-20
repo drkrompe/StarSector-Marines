@@ -131,7 +131,10 @@ class FortCounterattackTest {
         List<Body> free = pool(150);
         Result result = counter.plan(0, D, fort(D, D, D), ALARMED, KEEP, List.of(), List.of(), free, 2, 8, topology);
         assertEquals(Stage.RESERVE, counter.stage());
-        assertEquals(2, result.recruited().size(), "the reserve law's share and no more");
+        assertEquals(Math.round(8 * FortCounterattack.RESERVE_SHARE), result.recruited().size(),
+                "the counter-attack's share of the pool and no more");
+        assertEquals(result.recruited().size() - 2, counter.lendable().size(),
+                "what is held above the law's share may be lent to the fort's own belt while it holds");
         for (FortCounterattack.Order order : result.orders().values()) {
             assertEquals(AssignmentKind.DEFEND_AREA, order.assignment().kind());
             int y = order.assignment().targetCellY();
@@ -139,7 +142,27 @@ class FortCounterattackTest {
         }
         FortCounterattack quiet = new FortCounterattack();
         quiet.plan(0, D, fort(D, D, D), QUIET, KEEP, List.of(), List.of(), pool(150), 2, 8, topology);
-        assertNull(quiet.stage(), "a quiet fort of ours holds nobody back");
+        assertNull(quiet.stage(), "a quiet fort of ours holds nobody back before the battle reaches the side");
+    }
+
+    @Test
+    void onceTheBattleReachesTheSideTheReserveFormsBehindAHeldFortAndLendsOnlyAboveTheLawsShare() {
+        FortCounterattack counter = new FortCounterattack();
+        List<Body> free = pool(150);
+        List<int[]> far = List.of(new int[] {100, 5});
+        Result result = counter.plan(0, D, fort(D, D, D), QUIET, KEEP, far, List.of(), free, 2, 8, topology);
+        assertEquals(Stage.RESERVE, counter.stage(), "a believed mover anywhere: the battle has begun");
+        assertEquals(Math.round(8 * FortCounterattack.RESERVE_SHARE), result.recruited().size());
+        List<Integer> lent = counter.lendable();
+        assertEquals(result.recruited().size() - 2, lent.size());
+        counter.lend(lent.get(0));
+        assertFalse(counter.claims(lent.get(0)), "a squad lent to the belt leaves the reserve");
+        Result quiet = counter.plan(75, D, fort(D, D, D), QUIET, KEEP, List.of(), members(result, free, null),
+                without(free, result.orders().keySet()), 2, 8, topology);
+        assertEquals(Stage.RESERVE, counter.stage(), "a quiet pulse does not end a battle already begun: " + quiet.notes());
+        FortCounterattack lost = new FortCounterattack();
+        lost.plan(0, D, fort(M, M, M), ALARMED, KEEP, hostilesAtFort(15), List.of(), pool(150), 2, 8, topology);
+        assertTrue(lost.lendable().isEmpty(), "nothing is lent to a fort the enemy holds");
     }
 
     // ------------------------------------------------------------------------------------------------- muster and launch
@@ -303,7 +326,8 @@ class FortCounterattackTest {
         Result launch = launched(counter, all, 0);
         Result won = counter.plan(600, D, fort(D, M, M), QUIET, KEEP, hostilesAtFort(2), worn(launch, 5),
                 without(all, launch.orders().keySet()), 2, 8, topology);
-        assertNull(counter.stage(), String.join("\n", won.notes()));
+        // The group is done; with hostiles still believed about, a fresh reserve may wait behind the fort again.
+        assertTrue(counter.stage() == null || counter.stage() == Stage.RESERVE, String.join("\n", won.notes()));
         assertEquals(launch.orders().keySet(), new TreeSet<>(won.released()));
         assertEquals(0, counter.failures(0));
         assertNotNull(won.notes().stream().filter(n -> n.contains("retook")).findFirst().orElse(null));

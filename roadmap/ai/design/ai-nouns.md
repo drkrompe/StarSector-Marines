@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
+Updated: 2026-10-20 — the counter-attack reserve forms at first contact and lends to its own belt; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2164,6 +2164,9 @@ fort's most critical aspect falls, its ground — a turned fort, lost cause or
 not — is the counter-attack's alone. The track response does not rally into it,
 flow does not stage toward it, its belt is not manned and no single squad is sent
 to retake it; the commander retakes it in proportion, as one push, or not at all.
+Its reserve forms behind a fort the defender holds from the battle's first
+believed contact, and what it holds above the reserve law's share may man that
+fort's own pressed belt and do nothing else.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
