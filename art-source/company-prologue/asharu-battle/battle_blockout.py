@@ -9,6 +9,7 @@
                                               # --post then dates the review folder by the day r7 began
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
+    python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -329,7 +330,7 @@ def blender_main(cfg):
     scene.view_settings.look = 'AgX - Base Contrast'
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
-        for kind in ('OPTIX', 'CUDA'):
+        for kind in ('OPTIX', 'CUDA', 'METAL'):
             try:
                 prefs.compute_device_type = kind
                 prefs.get_devices()
@@ -1501,7 +1502,7 @@ def main():
     run.mkdir(parents=True, exist_ok=True)
     started = run / 'run-date.txt'      # the day the run began: a resume after midnight posts under it
     if not started.exists():
-        started.write_text(date.today().isoformat())
+        started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
     if '--skip-render' not in argv:

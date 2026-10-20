@@ -403,12 +403,12 @@ or by the render queue as a drive input (`queue_jobs.py`), pinned by its blend's
 | Hull | Build (Drive `builds/...`) | Local folder | State |
 |---|---|---|---|
 | Colossus | `colossus/139e8b8b6` | `colossus` | finished |
-| Shepherd "Morrow" | `shepherd/0cb9d83` | `shepherd` | finished (kit rebuild) |
+| Shepherd "Morrow" | `shepherd/c85fb19b6` | `shepherd` | finished (close-shot rebuild; dark glazing, 27 lit lamps, blue ring unlit) |
 | Lasher x3 | `lasher-independent/0cb9d83` (`lasher.blend`) | `lasher-independent` | finished (kit rebuild); awaiting the owner's review |
 | Hound | `hound-independent/0cb9d83` | `hound-independent` | **accepted** (kit rebuild: chaingun muzzle moved aft) |
 | Hound (P) x2 | `hound-p/0cb9d83` | `hound-p` | **accepted** (kit rebuild) |
 | Kite (P) x2 | `kite-p/0cb9d83` | `kite-p` | **accepted** (kit rebuild: hammer, swarmer as a row of four) |
-| Falcon (P) | `falcon-p/0cb9d83` | `falcon-p` | **accepted** (kit rebuild: swarmer and annihilator muzzles) |
+| Falcon (P) | `falcon-p/06784b46f` | `falcon-p` | **accepted** (close-shot rebuild; bridge glazing now dark glass, so S10 loses that glow) |
 | Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3` | **accepted** |
 | Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton`, `phaeton-destroyed` | **accepted** (both states, including the eight-blast cook-off) |
 | Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` | `tarsus`, `tarsus-boarded` | **accepted** (owner, 2026-10-20) |
