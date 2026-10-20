@@ -91,7 +91,7 @@ pressure tests herself. The owner signs the cheques; she decides what gets mende
 
 - Her portrait in dialogue, once she has a line of her own.
 - Her wall of old pressure seals has no picture.
-- C5's crowd still draws its own dark-coated stand-in for her.
+- C5's crowd still draws its own dark-coated stand-in for her; `C5_NESSA=1` (`c5_scene.py`) dresses it in her coat, grey hair and folded arms, awaiting the owner.
 
 ## Owner's answers (2026-10-19)
 
