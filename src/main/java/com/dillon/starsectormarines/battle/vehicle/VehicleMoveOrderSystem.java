@@ -90,7 +90,7 @@ public final class VehicleMoveOrderSystem {
         }
         for (PendingOrder request : service.drainPending()) {
             if (service.isSuspended(request.vehicleId)) {
-                service.retain(request.vehicleId, request.cellX, request.cellY);
+                service.retain(request.vehicleId, request.cellX, request.cellY, request.facingDegrees);
                 continue;
             }
             // Right-clicking a loaded transport on itself is "everybody out",
@@ -116,11 +116,17 @@ public final class VehicleMoveOrderSystem {
                 continue;
             }
             if (route[0].length == 0) {
-                service.complete(request.vehicleId);
-                continue;
+                // Already there. A plain click has nothing left to do; a dragged facing still has the turn to make,
+                // which the docking maneuver makes on the spot from a route that ends where the hull stands.
+                if (Float.isNaN(request.facingDegrees)) {
+                    service.complete(request.vehicleId);
+                    continue;
+                }
+                GroundBody body = convoy.body(request.vehicleId);
+                route = new float[][]{{body.x, body.x}, {body.y, body.y}};
             }
-            service.activate(request.vehicleId,
-                    new ActiveOrder(request.cellX, request.cellY, route[0], route[1]));
+            service.activate(request.vehicleId, new ActiveOrder(request.cellX, request.cellY,
+                    route[0], route[1], request.facingDegrees));
         }
     }
 
@@ -143,7 +149,8 @@ public final class VehicleMoveOrderSystem {
             return false;
         }
 
-        controlSystem.tick(id, dt, order.routeXs(), order.routeYs(), VehicleLeg.MOVE_ORDER);
+        controlSystem.tick(id, dt, order.routeXs(), order.routeYs(), VehicleLeg.MOVE_ORDER,
+                order.facingDegrees());
         if (controlSystem.consumeArrived(id)) {
             // A move order does not snap onto its endpoint, so the distance gate can call arrival with the body
             // still rolling. Nothing integrates a deployed hull once its order is done, so that speed would never

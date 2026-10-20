@@ -1231,7 +1231,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         facingSystem.setTreatmentPatients(squadMedics::treatingPatientOf);
         this.systemFxSystem = new SystemFxSystem(rosterService);
         this.mechLocomotionSystem = new MechLocomotionSystem(
-                entityWorld, battleComponents, rosterService);
+                entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);

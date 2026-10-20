@@ -28,7 +28,7 @@ open bays are not enclosed volume, and the scale's volume check allows 2%.
 import math
 import bpy
 from mathutils import Matrix, Vector
-from mt_kit import armour_plates, boolean, facet_normal, loft_x, plane_cut, prism, shade_round
+from mt_kit import FITTING_BEVEL, MODULE_BEVEL, SMALL_BEVEL, edge_bevel, armour_plates, boolean, facet_normal, loft_x, plane_cut, prism, shade_round
 from mt_hull import POD, POD_STATIONS, LAUNCHER, WING_DECK, ccw, droop, nose_drop, shear, wing_drop
 from mt_detail import SWEEP_N, SWEEP_T, TE_ROOT
 
@@ -60,7 +60,11 @@ def struts(kit, name, segs, mat):
         faces.append(tuple(base+sides+k for k in range(sides)))
         faces += [(base+k, base+(k+1) % sides, base+sides+(k+1) % sides, base+sides+k) for k in range(sides)]
     ob = kit.mesh(name, verts, faces, mat, 0)
-    return ob if name.startswith('Temporary') else shade_round(ob)
+    if name.startswith('Temporary'):
+        return ob
+    thin = min(min(seg[2], seg[3]) for seg in segs)
+    width = MODULE_BEVEL if thin >= .45 else FITTING_BEVEL if thin >= .15 else SMALL_BEVEL
+    return edge_bevel(shade_round(ob), min(width, thin*.3))
 
 
 def te(sv, tv, s):
@@ -140,7 +144,7 @@ def vent_bay(kit, side, s, core):
         segs.append(((xf-.3, s*y, core_deck(xf)-.9), (-40.0, s*y, core_deck(-40)-.9), .3, .5))
         segs.append(((-40.0, s*y, core_deck(-40)-.9), (xa+.3, s*y, core_deck(xa)-.9), .3, .5))
     struts(kit, f'Hull aft {side} vent bay frames', segs, kit.steel)
-    for k, y in enumerate((5.6, 7.25, 8.9), 1):  # the glowing slats between the frames
+    for k, y in enumerate((5.6, 7.25, 8.9), 1):  # the heat-stained slats between the frames
         kit_slat = [((xf-.6, s*y, core_deck(xf)-depth+.25), (-40.0, s*y, core_deck(-40)-depth+.25), .25, .12),
                     ((-40.0, s*y, core_deck(-40)-depth+.25), (xa+.6, s*y, core_deck(xa)-depth+.25), .25, .12)]
         struts(kit, f'Hull aft {side} heat vent slat {k}', kit_slat, kit.vent)
@@ -246,7 +250,7 @@ def baked(ob):
 
 
 def slab(kit, name, plan, z0, z1, mat):
-    return prism(kit, name, ccw(plan), [(0, z0), (0, z1)], mat, 0)
+    return edge_bevel(prism(kit, name, ccw(plan), [(0, z0), (0, z1)], mat, 0), min(MODULE_BEVEL, abs(z1-z0)*.3))
 
 
 def wing_armour(kit, side, s, wing):
