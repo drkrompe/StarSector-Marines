@@ -142,23 +142,27 @@ def _bevel_hard_edges(bm):
     u = _units_per_metre()
     if u is None:
         return
-    bm.faces.ensure_lookup_table()
-    groups = {}
-    for e in bm.edges:
-        if len(e.link_faces) != 2 or not all(v.is_manifold for v in e.verts):
-            continue                     # only clean edges: a bevel through a junction tears it
-        f1, f2 = e.link_faces
-        if f1.normal.length < .5 or f2.normal.length < .5 or f1.normal.angle(f2.normal) < math.radians(70):
-            continue
-        if (f2.calc_center_median()-f1.calc_center_median()).dot(f1.normal) > 0:
-            continue                     # concave: a recess or a seam, left sharp
-        span = min(math.sqrt(max(f.calc_area(), 0.0))*1.2 for f in (f1, f2))/u
-        kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
-        groups.setdefault(kind, []).append(e)
-    for kind, edges in groups.items():
-        live = [e for e in edges if e.is_valid]
-        if live:
-            bmesh.ops.bevel(bm, geom=live, offset=min(sdk.BEVEL_M[kind]*u, _CAP[0]), offset_type='OFFSET',
+    def candidates():
+        groups = {}
+        for e in bm.edges:
+            if len(e.link_faces) != 2 or not all(v.is_manifold for v in e.verts):
+                continue                     # only clean edges: a bevel through a junction tears it
+            f1, f2 = e.link_faces
+            if f1.normal.length < .5 or f2.normal.length < .5 or f1.normal.angle(f2.normal) < math.radians(70):
+                continue
+            if (f2.calc_center_median()-f1.calc_center_median()).dot(f1.normal) > 0:
+                continue                     # concave: a recess or a seam, left sharp
+            span = min(math.sqrt(max(f.calc_area(), 0.0))*1.2 for f in (f1, f2))/u
+            kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
+            groups.setdefault(kind, []).append(e)
+        return groups
+    # Tier by tier, rescanning after each: a bevel rebuilds the faces round it, so the edges
+    # found before it may be gone and new ones (the far side of a thin part) appear.
+    for kind in ('hull', 'module', 'fitting', 'small'):
+        bm.normal_update()
+        edges = candidates().get(kind, [])
+        if edges:
+            bmesh.ops.bevel(bm, geom=edges, offset=min(sdk.BEVEL_M[kind]*u, _CAP[0]), offset_type='OFFSET',
                             segments=1, profile=.5, affect='EDGES', clamp_overlap=True)
 
 
@@ -731,7 +735,7 @@ def barbette(name, r, lift, mats, mpu, detail='near', foot=None, location=(0, 0,
         top, base = 1.16*r, 1.16*r+min(.35*foot, .5*r)
         c = min(.06*r, .25*foot)
         p.lathe([(0, -foot), (base, -foot), (base, -foot+.25*foot), (top, -.2*foot+c), (top, -c), (top-c, 0),
-                 (0, 0)], 16, phase=math.pi/16, plates=True)
+                 (0, 0)], 48, phase=math.pi/48, plates=True)   # plated, fine enough to pass the 25 mm sag gate
         for t in (.45, .72):                                   # plate courses
             zc = -foot*t
             rc = top+(base-top)*max(0, (t-.2)/.55)
