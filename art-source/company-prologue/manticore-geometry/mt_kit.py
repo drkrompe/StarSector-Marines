@@ -335,3 +335,28 @@ def facet_normal(down, angle):
     dx, dy = down
     length = (dx*dx+dy*dy)**.5
     return (dx/length*math.sin(a), dy/length*math.sin(a), math.cos(a))
+
+
+def sweep(kit, name, path, profile, mat, s=1, bevel=.12):
+    """One constant cross-section carried along an open plan polyline, mitred at
+    every bend, so each face of the section is one long unbroken panel and each
+    corner of it one straight crease the whole length of the path.
+    `profile` is a closed list of (d, z): d is the distance to the left of the
+    direction of travel (to the right when s is -1, for a mirrored path)."""
+    n, m = len(path), len(profile)
+    normals = []
+    for a, b in zip(path, path[1:]):
+        dx, dy = b[0]-a[0], b[1]-a[1]
+        ln = math.hypot(dx, dy)
+        normals.append((-dy/ln*s, dx/ln*s))
+    verts = []
+    for i, (x, y) in enumerate(path):
+        n0 = normals[max(i-1, 0)]
+        n1 = normals[min(i, len(normals)-1)]
+        k = 1/(1+n0[0]*n1[0]+n0[1]*n1[1])
+        mx, my = (n0[0]+n1[0])*k, (n0[1]+n1[1])*k
+        verts += [(x+mx*d, y+my*d, z) for d, z in profile]
+    faces = [tuple(range(m)), tuple(reversed(range((n-1)*m, n*m)))]
+    for i in range(n-1):
+        faces += [(i*m+j, (i+1)*m+j, (i+1)*m+(j+1) % m, i*m+(j+1) % m) for j in range(m)]
+    return kit.mesh(name, verts, faces, mat, bevel)  # mesh() makes the normals face out
