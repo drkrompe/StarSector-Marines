@@ -219,13 +219,41 @@ are released, per the owner.
   numbers aren't; tracer speeds are cinematic (the kit's `gun_muzzle_velocity` note).
 - **10 GB on Windows.** Volume-heavy tests go to the Mac.
 
-## Taste questions for the owner (not blocking tonight)
+## The owner's answers (2026-10-20)
 
-1. The Manticore's main gun: the modelled Hellbore (an orange slug and a huge flash), or the
-   variant's Mark IX (green-white four-round bursts)?
-2. Shields: always faintly visible when up, or seen only where struck?
-3. How hard the realism pushes: a muzzle flash gone in two frames, or the game's lingering
-   particles?
-4. Missile curves: as wide as the game (Harpoons nearly sideways off the pod), or tightened for
-   the frame?
-5. Overload: arcs over the hull (Starsector's EMP look), or a broken-glass shatter of the shell?
+1. **Main gun:** the Hellbore (the turret kit's model, already on the build) is the leaning.
+2. **Shields:**
+   - visible while up (a faint rim, and the direction reads);
+   - opacity tied to hits, with ripple rings spreading along the surface;
+   - raising takes time (the kit's unfold);
+   - collapse: see 5.
+3. **Flashes** linger a little for spectacle.
+4. **Missiles:** guided ones are chase missiles that hunt and curve, which is harder for PD.
+   Torpedoes and rockets fly straight. Launches are cold-ejected, then lit.
+5. **Overload:** the shield is a film of suspended plasma consumed by what it absorbs and
+   replenished by the emitters. Flux thins it: wider ripples, patchy thin spots, soap-film
+   banding, hits leaking through. Overload tears it open from the last hit and it shatters into
+   fading shards. The tech finishes (smooth high tech, rough midline and low tech) are the film's
+   quality.
+
+`asharu-effects.md` carries the full treatment. For W1 this replaces the "brightens toward white"
+flux idea with **thinning**: `shield_flux` drives patchiness, ripple spread and leak-through.
+`shield_overload` is tear, shatter and arcs to the nodes, and recovery repaints from the nodes.
+
+## References (web, 2026-10-20)
+
+- **Shield construction:** a Fresnel rim, a surface pattern, flowing noise, a noise-threshold
+  dissolve with a glowing edge for appear and collapse, and hits as rings whose radius grows with
+  time, measured along the sphere's surface ([pmndrs, Flow shield](https://pmnd.rs/blog/creating-flow-shield);
+  [GameDev.net shader lab](https://gamedev.net/shaderlab/35-energy-shield/);
+  [Godot shield with impacts](https://godotshaders.com/shader/energy-shield-with-impact-effect/)).
+  The kit's four shrinkwrapped hit empties are this ring buffer.
+- **Opacity:** most of a shield's read comes from a Fresnel term on opacity
+  ([Halo shield recreation](https://brendansullivan.artstation.com/projects/nJq6X1)).
+- **Thin-film banding** on a thinning bubble: film thickness drives the colour, near-black below
+  ~100 nm and saturated bands at 200-600 nm. Animate thickness down to sell thinning. Cycles'
+  Principled BSDF has a Thin Film input
+  ([Blender Market thin-film docs](https://superhivemarket.com/products/thin-film/docs)).
+- **Missile launches:** in *The Expanse* missiles are passively ejected before their drives
+  ignite ([The Companion, CQB](https://thecompanion.app/the-expanse-cqb-space-battle/);
+  [Spine VFX breakdown reel](https://digitalproduction.com/2021/05/31/the-expanse-vfx-breakdown/)).
