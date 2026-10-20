@@ -46,7 +46,7 @@ Names: 'Drone bay ...' and 'Frame port ...'.
 import math
 import bpy
 from mathutils import Vector
-from sh_kit import pod, boolean, material
+from sh_kit import pod, boolean, material, seg, S
 
 SLOT = {'id': 'WS 003', 'locations': [(-3, 19), (12, 19), (26, 19)], 'angle': 0, 'arc': 5,
         'mount': 'HIDDEN', 'size': 'SMALL', 'type': 'LAUNCH_BAY'}
@@ -165,6 +165,7 @@ def _rim_path(step=.5):
         return [(a[0]+(b[0]-a[0])*k/n, a[1]+(b[1]-a[1])*k/n) for k in range(n)]
 
     def arc(c, r, a0, a1, n=10):
+        n = max(n, math.ceil(seg(r, 4)*abs(a1-a0)/(2*math.pi)))
         return [(c[0]+r*math.cos(a0+(a1-a0)*k/n), c[1]+r*math.sin(a0+(a1-a0)*k/n)) for k in range(n)]
     pts = arc((x0+ri, WALL_Y+ri), ri, -math.pi/2, -math.pi)
     pts += line((x0, WALL_Y+ri), (x0, COAMING_Y-ro))
@@ -251,7 +252,7 @@ def build(kit):
     amber = material('Drone bay amber lamp', (.5, .3, .05), .1, .4, emission=(1.0, .55, .12), strength=8.0)
     lamp = material('Drone bay deck light', (.6, .55, .45), .1, .4, emission=(1.0, .82, .55), strength=6.0)
     hazard = material('Drone bay hazard yellow', (.62, .44, .04), .15, .5)
-    ring_blue = material('Drone bay turntable ring blue', (.08, .17, .20), .45, .45, emission=(.2, .5, .65), strength=.6)
+    ring_blue = material('Drone bay turntable ring blue', (.08, .17, .20), .45, .45)   # painted, not lit
     rubber = material('Frame port fender rubber', (.025, .025, .025), 0, .9)
 
     # --- the bay tubs: closed solids with the open bay cut out of them ---
@@ -404,12 +405,12 @@ def build(kit):
         _hexes(kit, f'{pre} launch cradle', cr, kit.steel, .03)
         _hexes(kit, f'{pre} launch cradle hazard edge',
                [_box((x-2.6+1.3*j, y+s*2.72, cdeck+.01), (.65, .16, .03)) for s in (-1, 1) for j in range(5)], hazard)
-        _hexes(kit, f'{pre} charging contact', [_box((x, y, cdeck+.04), (1.2, 1.2, .08))], kit.bay_glow)
+        _hexes(kit, f'{pre} charging contact', [_box((x, y, cdeck+.04), (1.2, 1.2, .08))], kit.steel)
         # Servicing arm folded against the back wall, and the charging umbilical.
         arm = [_box((x+2.4, WALL_Y+.35, -.5), (1.0, .7, 1.4))]
         arm += _path([(x+2.4, WALL_Y+.8, -.5), (x+.9, WALL_Y+1.0, 2.6), (x-1.2, WALL_Y+1.1, .4)], .45)
         arm.append(_box((x-1.2, WALL_Y+1.1, .0), (.7, .7, .7)))
-        _hexes(kit, f'{pre} servicing arm', arm, kit.grey)
+        _hexes(kit, f'{pre} servicing arm', arm, kit.grey, S.bevel('fitting'))
         um = [_box((x-2.0, WALL_Y+.3, WELL_FLOOR+2.0), (1.0, .6, 1.0))]
         um += _path([(x-2.0, WALL_Y+.5, WELL_FLOOR+1.5), (x-2.0, WALL_Y+.9, DECK+.12), (x-2.0, y-2.85, DECK+.12),
                      (x-2.0, y-2.85, cdeck-.1)], .26)
@@ -461,7 +462,9 @@ def build(kit):
            [_box((fx+.07, y0, z), (.2, w, h)) for y0, w in ((13.5, 4.6), (18.75, 5.4), (24.0, 4.6))
             for z, h in ((4.6, 5.6), (-9.6, 3.8))], armour)
     for j, y0 in enumerate((14.2, 23.3), 1):
-        kit.box(f'Drone bay service block floodlight {j}', (fx+.35, y0, 2.1), (.4, .9, .45), lamp, .04)
+        # A housing with its lens set in the face: only the lens is lit (the guide's lamps).
+        kit.box(f'Drone bay service block floodlight {j}', (fx+.35, y0, 2.1), (.4, .9, .45), kit.steel, .04)
+        kit.box(f'Drone bay service block lamp lens {j}', (fx+.56, y0, 2.1), (.04, .7, .3), lamp, .01)
 
     # --- port outrigger: a lattice box truss in three frames ---
     # Kept low, under the open side, so it frames the bay without walling it in.
@@ -493,7 +496,7 @@ def build(kit):
             if top_battens is None:
                 ya, yb = (YI, yo) if j % 2 == 0 else (yo, YI)
                 m.append(_beam((xa, ya, TOP), (xb, yb, TOP), .5))  # top face Warren
-        _hexes(kit, f'Frame port outrigger {name} truss', m, kit.steel)
+        _hexes(kit, f'Frame port outrigger {name} truss', m, kit.steel, S.bevel('fitting'))
         if deck:
             d = [_box(((x0+x1)/2, (YI+yo)/2, BOT+.55), (x1-x0-.6, yo-YI-.9, .25))]
             d += [_box((x, (YI+yo)/2, BOT+.75), (.2, yo-YI-.9, .15)) for x in

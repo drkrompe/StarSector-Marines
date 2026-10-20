@@ -26,7 +26,7 @@ Names: 'Bridge ...' and 'Mast ...'. Only the bridge hull joins kit.hull
 import math
 import bpy
 from mathutils import Vector
-from sh_kit import prism, section, revolve_x, material
+from sh_kit import prism, section, revolve_x, material, seg
 
 BRIDGE_X = (3.8, 34.8)        # aft and forward ends (the chin lands on the bow here)
 BRIDGE_CY = -2.5              # plan centreline (Y -10..+5)
@@ -103,6 +103,7 @@ class _Acc:
         self.obox((p0+p1)/2, ax, side, nrm, ax.length/2, w/2, (d or w)/2)
 
     def cyl(self, c, axis, r, half, n=10):
+        n = seg(r, n)
         c, w = Vector(c), Vector(axis).normalized()
         u = w.orthogonal().normalized()
         v = w.cross(u)
@@ -114,6 +115,7 @@ class _Acc:
 
     def dome(self, c, r, h, n=12, rings=3):
         """Faceted dome on a flat base at c (z up)."""
+        n = seg(r, n)
         c = Vector(c)
         pts, faces = [], []
         for k in range(rings):
@@ -130,6 +132,7 @@ class _Acc:
 
     def dish(self, c, axis, r, depth, t=.1, n=14):
         """Shallow parabolic-ish dish facing `axis`, its rim centred at c."""
+        n = seg(r, n)
         c, w = Vector(c), Vector(axis).normalized()
         u = w.orthogonal().normalized()
         v = w.cross(u)
@@ -254,7 +257,7 @@ def _hull_mesh(kit):
     x0, x1 = BRIDGE_X
     n = 34
     xs = [x0+.05+(x1-x0-.1)*(k/n) for k in range(n+1)]
-    m = 18
+    m = 36
     ts = [math.pi*j/m for j in range(m+1)]
     verts, faces = [], []
     for x in xs:
@@ -301,8 +304,9 @@ def build(kit):
     nt.links.new(sep.outputs['Y'], diag.inputs[0])
     nt.links.new(sep.outputs['Z'], diag.inputs[2])
     nt.links.new(diag.outputs[0], ramp.inputs['Fac'])
-    nt.links.new(ramp.outputs['Color'], bsdf.inputs['Emission Color'])
-    bsdf.inputs['Emission Strength'].default_value = 1.0
+    # The streaks are reflectance, not light: the panes stay dark glass (the guide's
+    # Windows and glazing; the hull has no lights layer to light a pane from).
+    nt.links.new(ramp.outputs['Color'], bsdf.inputs['Base Color'])
     red = material('Running lamp red', (.3, .02, .02), 0, .3, emission=(1, .08, .05), strength=8)
     green = material('Running lamp green', (.02, .3, .08), 0, .3, emission=(.1, 1, .3), strength=8)
     white = material('Running lamp white', (.6, .6, .55), 0, .3, emission=(1, .95, .85), strength=8)

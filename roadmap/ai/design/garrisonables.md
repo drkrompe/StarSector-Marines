@@ -240,9 +240,10 @@ publishing one changes nothing until somebody is sent to it. That is
 deliberate: a building is manned in answer to threat or by order, by the same
 law as a trench. Every story map publishes them through `HeldPlaces`: authored
 maps with a garrison layout keep their garrison nodes and add held places only
-for the buildings those nodes do not already stand on, fort maps included. Silent Colony, a
-procedural city, adds them at setup. A story map with no buildings (Missile AA)
-has none, and the Veteran's Job raid keeps the procedural city's garrison nodes alone. The first consumer is the player's occupy
+for the buildings those nodes do not already stand on, fort maps included. Silent Colony and
+the Veteran's Job raid, procedural cities, add them at setup (civilian-held and
+defender-held respectively; the raid keeps its garrison nodes). A story map with
+no buildings (Missile AA) has none. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
 at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
 consumer.

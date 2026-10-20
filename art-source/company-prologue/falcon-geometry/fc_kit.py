@@ -12,9 +12,18 @@ its dorsal and aft surfaces need real detail. Flat shading, one-segment
 chamfers that the export bakes.
 """
 import math
+import sys
+from pathlib import Path
 import bmesh
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'ship-detail-kit'))
+import ship_detail_kit as sdk
+
+# Objects whose rounds keep smooth shading (sharp from 35 deg) through the bake:
+# the hull's own revolves (tanks, drives, the bridge dome). Plate stays flat.
+SMOOTH = set()
 
 
 def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2.0, wear=0.0):
@@ -74,8 +83,9 @@ class Kit:
         self.bare = material('Falcon bare engine metal', (.42, .40, .45), .85, .35, wear=.15)
         self.dark = material('Falcon recess', (.022, .02, .019), .4, .6)
         self.hazard = material('Falcon hazard yellow', (.55, .42, .02), .1, .5, wear=.3)
-        self.glass = material('Falcon bridge glazing', (.02, .025, .03), .2, .08,
-                              emission=(1.0, .62, .3), strength=.6)
+        # Dark glass: falcon_p.png has no lights layer, so no pane glows (detail rule:
+        # emissives only on the lights layer); the panes read as recessed dark glazing.
+        self.glass = material('Falcon bridge glazing', (.02, .025, .03), .2, .08)
         self.lamp = material('Falcon running lamp', (.05, .04, .03), .2, .3,
                              emission=(1.0, .55, .15), strength=12.0)
         self.vent = material('Falcon heat vent glow', (.05, .03, .02), .3, .5,
@@ -105,6 +115,8 @@ class Kit:
         return self.finish(obj, name, mat, bevel)
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
+        if vertices != 6:                       # hex heads keep six sides; every other round meets the rule
+            vertices = max(vertices, sdk.segments(radius*self.mpu))
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
@@ -112,6 +124,8 @@ class Kit:
         elif axis == 'Y':
             obj.rotation_euler[0] = math.pi / 2
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+        sdk.smooth(obj)
+        SMOOTH.add(name)
         return self.finish(obj, name, mat, bevel)
 
     def mesh(self, name, verts, faces, mat, bevel=0):
@@ -172,7 +186,10 @@ def sym(port):
 
 def revolve_x(kit, name, profile, y, z, mat, n=12):
     """Closed solid of revolution about an X-parallel axis through (y, z):
-    profile is [(x, r), ...] round the section, closed."""
+    profile is [(x, r), ...] round the section, closed. Segmented by the shared
+    segment rule (ship-detail-kit: chord within 5 mm of the arc) at least, and
+    smooth-shaded through the bake."""
+    n = max(n, sdk.segments(max(r for _, r in profile)*kit.mpu))
     m = len(profile)
     verts = []
     for k in range(n):
@@ -194,6 +211,8 @@ def revolve_x(kit, name, profile, y, z, mat, n=12):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
+    sdk.smooth(ob)
+    SMOOTH.add(name)
     return ob
 
 

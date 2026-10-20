@@ -48,6 +48,16 @@ class CompanyPrologueTest {
         assertEquals(0, CompanyPrologue.page(saved));
     }
 
+    @Test void aSaveLeftOnTheRetiredEighthPageOpensTheLastPage() {
+        var saved = new HashMap<String, Object>(Map.of(CerberusCompanyStart.SHIP_KEY, "second-wind",
+                "sm_company_prologue_page", 7));
+        assertTrue(CompanyPrologue.pending(saved));
+        assertEquals(6, CompanyPrologue.page(saved));
+        assertEquals(CompanyPrologue.PAGE_COUNT - 1, CompanyPrologue.page(saved));
+        saved.put("sm_company_prologue_page", 42);
+        assertEquals(CompanyPrologue.PAGE_COUNT - 1, CompanyPrologue.page(saved));
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> roundTrip(Map<String, Object> saved) throws Exception {
         var bytes = new ByteArrayOutputStream();

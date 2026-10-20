@@ -115,6 +115,7 @@ provenance = check_against_install()
 
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
+hd_kit.MPU = METRES_PER_UNIT  # the segment rule and bevel tiers read it
 kit = hd_kit.Kit()
 hd_hull.build(kit)
 hd_wheelhouse.build(kit)
@@ -123,6 +124,7 @@ hd_bridge.build(kit)
 hd_engines.build(kit)
 hd_mounts.build(kit, hd_pirate.GUNS if args.state == 'pirate' else None)
 pirate = hd_pirate.build(kit) if args.state == 'pirate' else None
+hd_kit.edge_treatment(kit)  # the detail rule's bevel tiers, on every part without a chamfer
 if args.figure:
     hd_wheelhouse.scale_figure(kit)
 if args.ramp_open:
