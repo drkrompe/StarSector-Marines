@@ -18,6 +18,7 @@ def lamp(kit, name, loc, colour, role, period, phase, mats, r=.45):
     surface normal (a lamp at a mast head takes the mast as its mount, pointing up)."""
     from mathutils import Matrix, Vector
     import wf_fittings
+    r *= .5                       # round 8: lenses at half the round 7 size, to read as lamps, not discs
     bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=r, location=loc)
     ob = bpy.context.object
     kit.finish(ob, name, mats[colour])

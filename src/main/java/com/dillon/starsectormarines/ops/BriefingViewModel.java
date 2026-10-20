@@ -372,7 +372,9 @@ final class BriefingViewModel {
         if (mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND) {
             title = "Company already ashore";
             capacity = selectedPersonnel + " selected ready marines";
-            schedule = "Secured receiving apron / no insertion flights";
+            schedule = OpeningOperationKind.fromMission(mission) == OpeningOperationKind.RELIEF
+                    ? "Off Wayline's truck at the rear apron / no insertion flights"
+                    : "Secured receiving apron / no insertion flights";
             note = boats.isEmpty() ? "Boats are optional for this ground mobilization."
                     : boats.size() + " fitted company boats remain in reserve; no inbound passengers.";
         } else if (local) {

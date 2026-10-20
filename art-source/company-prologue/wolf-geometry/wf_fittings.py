@@ -227,10 +227,25 @@ def bridge(kit):
         kit.finish(bpy.context.object, f'Hull bridge {side_} whip antenna', steel)
         kit.cylinder(f'Hull bridge {side_} whip antenna base', (36.2, s*4.4, zr+.15), .25, .3, steel, 'Z', 24, .04)
         kit.cylinder(f'Hull bridge {side_} whip antenna spring', (36.2, s*4.4, zr+.35), .11, .25, kit.dark, 'Z', 16, .02)
-    kit.box('Hull bridge sensor box', (28.6, 2.4, zr+.35), (1.6, 1.2, .8), steel, .08)
-    kit.box('Hull bridge sensor window', (29.42, 2.4, zr+.45), (.06, .8, .35), glass, 0)
+    # Sensor housing: a rounded fairing, its window set back in a framed recess.
+    hb = kit.box('Hull bridge sensor housing', (28.6, 2.4, zr+.4), (1.7, 1.3, .9), steel, 0)
+    b = hb.modifiers.new('Rounded housing', 'BEVEL')
+    b.width, b.segments, b.limit_method = .32, 4, 'ANGLE'
+    from wf_kit import boolean
+    boolean(hb, kit.box('Temporary sensor window recess', (29.5, 2.4, zr+.5), (.4, .86, .42), steel, 0))
+    kit.box('Hull bridge sensor window', (29.33, 2.4, zr+.5), (.04, .84, .4), glass, 0)
+    fr = kit.box('Hull bridge sensor window frame', (29.42, 2.4, zr+.5), (.06, 1.0, .56), steel, 0)
+    boolean(fr, kit.box('Temporary sensor frame hole', (29.42, 2.4, zr+.5), (.4, .84, .4), steel, 0))
+    # Roof hatch: a round hatch with a raised coaming, a hinge barrel and a handwheel.
     p, n = down(kit, 34.8, -2.8)
-    plate(kit, 'Hull bridge roof hatch', frame(p, n), 1.2, 1.2, steel)
+    m = frame(p, n)
+    put(kit.cylinder('Hull bridge roof hatch coaming', (0, 0, .12), .78, .24, steel, 'Z', 48, .04), m)
+    put(kit.cylinder('Hull bridge roof hatch', (0, 0, .28), .66, .12, steel, 'Z', 48, .03), m)
+    put(kit.cylinder('Hull bridge roof hatch hinge', (-.74, 0, .3), .09, .7, steel, 'Y', 16, .02), m)
+    bpy.ops.mesh.primitive_torus_add(major_radius=.28, minor_radius=.035, major_segments=32, minor_segments=8,
+                                     location=(0, 0, .42))
+    put(kit.finish(bpy.context.object, 'Hull bridge roof hatch handwheel', steel), m)
+    put(kit.cylinder('Hull bridge roof hatch handwheel hub', (0, 0, .38), .08, .1, steel, 'Z', 16, .01), m)
 
 
 def drive_section(kit):
@@ -239,21 +254,45 @@ def drive_section(kit):
     for side_, s in SIDES:
         p, n = down(kit, -23.2, s*7.2)
         m = frame(p, n)
-        put(kit.box(f'Hull engine {side_} radiator well', (0, 0, .05), (5.4, 3.0, .2), dark, 0), m)
-        fins = [put(kit.box(f'Hull engine {side_} radiator fin', (-2.2+i*.55, 0, .25), (.14, 2.7, .45), steel, 0), m)
-                for i in range(9)]
+        # Round 8: a framed well with rounded lips; the fins are angled vanes with
+        # rolled edges, standing in the well rather than lying on the deck.
+        put(kit.box(f'Hull engine {side_} radiator well', (0, 0, .02), (5.2, 2.8, .1), dark, 0), m)
+        fins = []
+        for i in range(10):
+            f = kit.box('fin', (-2.25+i*.5, 0, .3), (.1, 2.6, .5), steel, 0)
+            f.matrix_world = Matrix.Translation(f.location) @ Matrix.Rotation(math.radians(28), 4, 'Y')
+            bev = f.modifiers.new('Rolled edge', 'BEVEL')
+            bev.width, bev.segments = .04, 2
+            fins.append(put(f, m))
         join(fins, f'Hull engine {side_} radiator fins')
-        put(kit.box(f'Hull engine {side_} radiator frame', (0, 0, .3), (5.8, 3.4, .12), steel, 0), m)
+        rf = kit.box(f'Hull engine {side_} radiator frame', (0, 0, .3), (6.0, 3.6, .5), steel, 0)
+        from wf_kit import boolean
+        boolean(rf, kit.box('Temporary radiator opening', (0, 0, .3), (5.3, 2.9, 1.2), steel, 0))
+        bev = rf.modifiers.new('Rounded lip', 'BEVEL')
+        bev.width, bev.segments, bev.limit_method = .1, 3, 'ANGLE'
+        put(rf, m)
         # Louvred exchanger panels on the flank, behind the aft body.
         for k, x in enumerate((-22.0, -26.0), 1):
             p, n = side(kit, x, 1.0, s)
             if p is None:
                 continue
             m = frame(p, n)
-            put(kit.box(f'Hull engine {side_} exchanger {k} well', (0, 0, .05), (3.2, 3.0, .2), dark, 0), m)
-            louvres = [put(kit.box(f'Hull engine {side_} exchanger louvre', (0, -1.1+j*.45, .2), (2.9, .16, .3),
-                                   steel, 0), m) for j in range(6)]
+            m = frame(p - n*.2, n)                       # set into the flank
+            put(kit.box(f'Hull engine {side_} exchanger {k} well', (0, 0, .02), (3.0, 2.8, .1), dark, 0), m)
+            louvres = []
+            for j in range(7):
+                lv = kit.box('louvre', (0, -1.2+j*.4, .22), (2.8, .34, .06), steel, 0)
+                lv.matrix_world = Matrix.Translation(lv.location) @ Matrix.Rotation(math.radians(-38), 4, 'X')
+                bev = lv.modifiers.new('Rolled edge', 'BEVEL')
+                bev.width, bev.segments = .025, 2
+                louvres.append(put(lv, m))
             join(louvres, f'Hull engine {side_} exchanger {k} louvres')
+            ef = kit.box(f'Hull engine {side_} exchanger {k} frame', (0, 0, .25), (3.5, 3.3, .45), steel, 0)
+            from wf_kit import boolean
+            boolean(ef, kit.box('Temporary exchanger opening', (0, 0, .25), (2.95, 2.75, 1.2), steel, 0))
+            bev = ef.modifiers.new('Rounded lip', 'BEVEL')
+            bev.width, bev.segments, bev.limit_method = .08, 3, 'ANGLE'
+            put(ef, m)
 
 
 def rcs(kit):

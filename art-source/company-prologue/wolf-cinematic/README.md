@@ -57,6 +57,15 @@ manifest.
   (`swfx.apply(state='clean', hull=<this folder>)`) and fires with
   `swfx.module('guns').fire(ctx, mount, start_frame, shots, interval)`, as
   `review_ship.py --fire` does.
+- **Landing gear (round 8).** `WOLF_P control` (`WOLF control` for the merchant)
+  carries one knob, `gear_down`: 0 stowed (flight, the built state, pads flush in
+  their sponsons), 1 deployed (every `Anchor gear <leg> sole` on
+  `landing.ground_z_units`). Place the root that far above the ground, times
+  `metres_per_unit`. A knob set from Python needs `control.update_tag()` before
+  the frame is re-evaluated; a keyframed knob needs nothing. Four
+  `Lift <i> exhaust anchor` empties under the hull point down (local +X) for
+  ventral lift-thruster effects; they are in the manifest as `lift_thrusters`
+  and not yet wired into SWFX.
 - **Lamps.** Eight: two amber neck lamps (the sprite's), red and green pod-tip
   lights, a white stern light, and from the round 7 fittings a white masthead
   on the bridge mast and two white ventral docking lights.
