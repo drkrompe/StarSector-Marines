@@ -402,11 +402,20 @@ public final class BallisticResolver {
                                    float finalAccuracy, float effectiveSpread,
                                    float roundVelocity, float maximumTargetingRange,
                                    Random rng) {
+        return resolvePoint(shooter, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, PointAimDispersion.WEAPON, rng);
+    }
+
+    /** As above, with the dispersion profile chosen by the caller (a player's cursor is {@code CONTROLLED}). */
+    public Resolution resolvePoint(long shooter, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   PointAimDispersion dispersion, Random rng) {
         World world = roster.world();
         return resolvePoint(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
                         0f, roster.identity().faction(shooter)),
                 aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, 0, rng);
+                maximumTargetingRange, 0, dispersion, rng);
     }
 
     public Resolution resolvePoint(Source source, float aimX, float aimY,
@@ -432,6 +441,14 @@ public final class BallisticResolver {
                                    float finalAccuracy, float effectiveSpread,
                                    float roundVelocity, float maximumTargetingRange,
                                    int bodyPenetrations, Random rng) {
+        return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, rng);
+    }
+
+    private Resolution resolvePoint(Source source, float aimX, float aimY,
+                                    float finalAccuracy, float effectiveSpread,
+                                    float roundVelocity, float maximumTargetingRange,
+                                    int bodyPenetrations, PointAimDispersion dispersion, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
@@ -458,7 +475,7 @@ public final class BallisticResolver {
                         source.x() + baseDirX * sightDistance,
                         source.y() + baseDirY * sightDistance));
         PointAim.Sample aim = PointAim.sample(obscuredAccuracy, effectiveSpread,
-                maximumTargetingRange, rng);
+                maximumTargetingRange, dispersion, rng);
         float dirX = baseDirX - baseDirY * aim.lateralSlope();
         float dirY = baseDirY + baseDirX * aim.lateralSlope();
         float directionLength = (float) Math.hypot(dirX, dirY);
