@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — direct-control HUD split into a labelled status panel (bottom left) and weapon groups by button (bottom right).
+Updated: 2026-10-20 — boxless takeover HUD and objectives; `text-shadow`; theme cascades after component sheets.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -60,6 +60,10 @@ them.
   owns OpenGL state and host-space conversion.
 - A **theme** maps semantic component roles and interaction states to typography,
   color, spacing, and decoration. Domain screens do not own a second palette.
+  The theme layer cascades after a component's own sheet, so for any property the
+  theme sets (the root fill, `button`, `.panel`) it wins over component rules;
+  only an element's inline `style` outranks it. A surface that must not wear the
+  theme's console material, such as the boxless battle HUD, says so inline.
 - A **binding** is an explicit invalidation edge from view-model state to one
   element mutation. It updates retained identity rather than rebuilding the
   document.
@@ -327,6 +331,10 @@ to authored copy: all caps is a heading treatment, not a global font policy. Hor
 For composed controls, `align-items` places row or column children on the cross
 axis with `start`, `center`, `end`, or `stretch`. Centered legends use their
 intrinsic line height, so padding does not become a second alignment authority.
+`text-shadow` takes one colour and stamps a one-pixel halo of it behind every line,
+inherited like `color`. It exists for text with nothing behind it: the takeover HUD
+floats over the battle, and a halo keeps a pale label readable over pale ground from
+any direction.
 
 ## Console materials
 
@@ -669,8 +677,13 @@ A status panel at bottom left names the body and reads HULL (or HEALTH), ARMOR,
 FLUX and a Marine's STAMINA as labelled bars with percentages, beside a Mech's
 section doll. A weapon-groups panel at bottom right lists equipment under the
 button that fires it, each group headed by an LMB, RMB or KEYS badge. Both panels
-measure their rows and hug the bottom edge; text uses the game's Insignia face
-for values and names. Filled lengths read the exact controlled body; armor
+measure their rows, hug the bottom edge and draw no backing box; text carries a
+dark halo and uses the game's Insignia face for values and names. Bars sit in dark
+translucent tracks with quarter ticks, and the flux bar marks its 75% and 95%
+thresholds. The top-left objectives readout follows the same rule: a heading with
+the completed count over a fading rule, then each objective as a state mark, name
+and phase, its steps, instruction, step progress and any blocker, with empty
+progress and blocker lines collapsed. Filled lengths read the exact controlled body; armor
 depletion empties its bar without changing health, and armorless bodies have no
 armor row. Equipped Marine shield and smoke rows sit under KEYS, marked E and G;
 the rows are readouts, so pointing at them does not choose a smoke target. They display the

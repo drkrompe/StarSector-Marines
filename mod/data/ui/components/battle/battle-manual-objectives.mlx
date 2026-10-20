@@ -1,40 +1,56 @@
 <template props="cards,score">
-  <div id="manual-objectives" class="manual-objectives">
+  <div id="manual-objectives" class="manual-objectives" style="background-color: transparent; background-image: none; border-width: 0px;">
     <div id="manual-objective-heading" class="manual-heading">
-      <div id="manual-objective-title" class="heading">MISSION OBJECTIVES</div>
+      <div id="manual-objective-title" class="manual-title">OBJECTIVES</div>
       <div id="manual-objective-score" class="score">{score}</div>
     </div>
+    <div id="manual-objective-rule" class="rule"></div>
     <div id="manual-objective-list" class="manual-list">
-      <div each="card in cards" key="{card.id}" id="{card.id}" class="{card.classes}">
-        <div id="{card.nameId}" class="heading mission-name">{card.name}</div>
-        <div id="{card.phaseId}" class="mission-phase">{card.phase}</div>
-        <div id="{card.stepsId}" class="mission-steps">{card.steps}</div>
-        <div id="{card.instructionId}" class="mission-instruction">{card.instruction}</div>
-        <div id="{card.progressTextId}" class="mission-progress-text">{card.progressText}</div>
-        <div id="{card.trackId}" class="mission-track" style="{card.trackStyle}">
-          <div id="{card.progressId}" class="mission-fill" style="{card.progressStyle}" />
+      <div each="card in cards" key="{card.id}" id="{card.id}" class="{card.objClasses}">
+        <div id="{card.headId}" class="obj-head">
+          <div id="{card.markId}" class="obj-mark"></div>
+          <div id="{card.nameId}" class="obj-name">{card.name}</div>
+          <div id="{card.phaseId}" class="obj-phase">{card.phase}</div>
         </div>
-        <div id="{card.blockerId}" class="mission-blocker">{card.blocker}</div>
+        <div id="{card.stepsId}" class="obj-steps">{card.steps}</div>
+        <div id="{card.instructionId}" class="obj-instruction">{card.instruction}</div>
+        <div id="{card.progressRowId}" class="{card.progressRowClasses}">
+          <div id="{card.progressTextId}" class="obj-progress-text">{card.progressText}</div>
+          <div id="{card.trackId}" class="obj-track" style="{card.trackStyle}">
+            <div id="{card.progressId}" class="obj-fill" style="{card.progressStyle}" />
+          </div>
+        </div>
+        <div id="{card.blockerId}" class="{card.blockerClasses}">{card.blocker}</div>
       </div>
     </div>
   </div>
 </template>
 <style>
-  .manual-objectives { width: 344px; height: 374px; padding: 7px; gap: 6px; border-width: 1px; border-color: #727b79; background-color: #141e19ee; }
-  .manual-heading { width: 100%; height: 18px; flex-direction: row; gap: 4px; }
-  .heading { font-family: heading; color: #d4ddd5; }
-  .score { flex-grow: 1; text-align: right; color: #78d494; }
-  .manual-list { width: 100%; height: 350px; gap: 6px; overflow: scroll; }
-  .mission-card { width: 100%; height: 156px; padding: 5px; gap: 3px; border-width: 1px; border-color: #806b35; background-color: #15231fee; }
-  .mission-name { width: 100%; height: 18px; overflow: hidden; }
-  .mission-phase { width: 100%; height: 15px; font-family: heading; color: #ffd464; }
-  .mission-steps { width: 100%; height: 15px; color: #a7ccc4; overflow: hidden; }
-  .mission-instruction { width: 100%; height: 36px; white-space: normal; overflow: hidden; color: #d4ddd5; }
-  .mission-progress-text { width: 100%; height: 15px; color: #a8b6c6; }
-  .mission-track { width: 100%; height: 3px; flex-direction: row; background-color: #29352f; }
-  .mission-fill { height: 3px; background-color: #ffd464; }
-  .mission-blocker { width: 100%; height: 30px; white-space: normal; overflow: hidden; color: #efb283; }
-  .mission-complete { border-color: #78d494; }
-  .mission-complete .mission-phase { color: #78d494; }
-  .mission-failed { border-color: #e98b83; }
+  .manual-objectives { width: 344px; height: 374px; padding: 2px 4px; gap: 4px; text-shadow: #000000d9; }
+  .manual-heading { width: 100%; height: 18px; flex-direction: row; gap: 8px; align-items: center; }
+  .manual-title { font-family: heading; color: #e9efe9; white-space: nowrap; }
+  .score { width: 0px; flex-grow: 1; text-align: right; font-family: heading; color: #8fe0a8; white-space: nowrap; }
+  .rule { width: 100%; height: 1px; background-image: linear-gradient(to right, #d6c27acc 0%, #d6c27a40 55%, #d6c27a00 100%); }
+  .manual-list { width: 100%; height: 340px; padding-right: 10px; gap: 10px; overflow: scroll; }
+  .obj { width: 100%; gap: 2px; padding: 2px 0px; }
+  .obj-head { width: 100%; height: 18px; flex-direction: row; gap: 7px; align-items: center; }
+  .obj-mark { width: 7px; height: 7px; border-width: 1px; }
+  .obj-name { width: 0px; flex-grow: 1; font-family: heading; color: #f2f5f0; white-space: nowrap; overflow: hidden; }
+  .obj-phase { font-family: heading; white-space: nowrap; }
+  .obj-steps { font-family: body; width: 100%; height: 15px; padding-left: 14px; color: #b9d8d0; white-space: nowrap; overflow: hidden; }
+  .obj-instruction { width: 100%; height: 32px; padding-left: 14px; white-space: normal; overflow: hidden; color: #e4e9e2; }
+  .obj-progress { width: 100%; height: 16px; padding-left: 14px; flex-direction: row; gap: 8px; align-items: center; }
+  .obj-progress-text { color: #cfd8e2; white-space: nowrap; }
+  .obj-track { width: 0px; flex-grow: 1; height: 4px; flex-direction: row; border-width: 1px; border-color: #00000099; background-color: #00000066; }
+  .obj-fill { height: 100%; background-color: #ffd464; background-image: linear-gradient(to bottom, #ffffff55 0%, #ffffff00 70%); }
+  .obj-blocker { width: 100%; height: 30px; padding-left: 14px; white-space: normal; overflow: hidden; color: #f5b98c; }
+  .obj-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; overflow: hidden; }
+  .obj-active .obj-mark { border-color: #ffd464; background-color: #ffd46455; }
+  .obj-active .obj-phase { color: #ffd464; }
+  .obj-complete .obj-mark { border-color: #78d494; background-color: #78d494; }
+  .obj-complete .obj-phase { color: #8fe0a8; }
+  .obj-complete .obj-fill { background-color: #78d494; }
+  .obj-complete .obj-name { color: #b9c9bd; }
+  .obj-failed .obj-mark { border-color: #e98b83; background-color: #e98b8355; }
+  .obj-failed .obj-phase { color: #f0968d; }
 </style>
