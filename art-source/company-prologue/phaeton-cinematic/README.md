@@ -1,6 +1,6 @@
 # Phaeton: cinematic export
 
-Status: DONE (both states accepted 2026-10-19; fireball tuned to a white flash cooling to orange).
+Status: DONE (both states accepted 2026-10-19, with the multistage fuel cook-off).
 Written: 2026-10-19
 
 The Asharu convoy's tanker (`asharu-battle/asharu-battle-shot.md`): in the

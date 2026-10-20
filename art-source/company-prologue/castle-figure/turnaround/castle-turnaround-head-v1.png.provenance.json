@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1567d-e8c7-70e2-839c-b96539406e9e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1567d-e8c7-70e2-839c-b96539406e9e\\exec-f9d9ef1e-8749-4a55-b635-6a796b4889e7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\castle-figure\\turnaround\\castle-turnaround-head-v1.png",
+    "sha256": "9bb30a4f5d596b1f62035779990ae727303a2c7c734acc05d5bad1db4a60c60e",
+    "dimensions": [
+      1983,
+      793
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\castle-figure\\turnaround\\castle-turnaround-head.brief.txt",
+  "promptSha256": "19299ac200b55c1dd16a6cafb3a4e0c6bf7dd820e88cabfd22e6f56a2719783c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Face and hair authority: same woman, same features, hair and silver temples; not framing or lighting\nImage 2: Costume reference for the jacket collar and undershirt only\n\nHead and shoulders turnaround sheet of Castle, for a 3D modeller building her hair and face: the same woman shown four times side by side at the same scale on one sheet, head level, neutral calm expression with the faint wry half-smile of reference 1. Left to right: front view, three-quarter from her right, back view, profile from her left. Orthographic-looking, level camera at eye height, heads on one line.\n\nShe is exactly the woman of reference 1 (face and hair authority): early fifties, warm pale olive skin, fine expression lines, strong straight brows, defined cheekbones, grey-green eyes, a long straight nose. Hair: dark brown, thick and slightly wavy, swept back off the forehead from a soft side parting, silver-grey streaks at both temples (more on her right), gathered loosely into a short twisted bun high on the back of the crown, with a few loose strands falling at the temples, in front of the ears and at the nape. The back view must show clearly how the hair is drawn up from the nape and the sides into the bun. Small earpiece with a short boom microphone on her right ear. Shoulders in the worn charcoal-olive jacket with its high stand collar over a faded cream crew-neck undershirt, as in reference 2.\n\nEven, neutral studio light from the front-left with soft fill; plain flat mid-grey background. Painted restrained realism matching reference 1. Widest landscape canvas. No text, no labels, no arrows, no extra people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Face and hair authority: same woman, same features, hair and silver temples; not framing or lighting"
+    },
+    {
+      "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+      "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Costume reference for the jacket collar and undershirt only"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one turnaround sheet using your face, hair, and collar references."
+  ],
+  "usage": {
+    "input_tokens": 43528,
+    "cached_input_tokens": 33664,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 642,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.5
+}
