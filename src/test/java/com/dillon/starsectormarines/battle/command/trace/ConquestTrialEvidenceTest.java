@@ -263,6 +263,53 @@ class ConquestTrialEvidenceTest {
     }
 
     /**
+     * The defender's counter-attacks on its lost fort, counted from the notes its commander writes into its plan summaries:
+     * reserves formed, musters, launches (with the squads and strength they went with), retakes, give-ups and the forts
+     * given up for good. Readings against the {@code -Dbattle.conquest.fortCounterattack=false} control, never assertions.
+     */
+    static JSONObject counterattackNotes(String trace) throws JSONException {
+        Pattern tickOf = Pattern.compile("\"tick\":(\\d+)");
+        Pattern launch = Pattern.compile("launches \\(([^)]*)\\): (\\d+) squads, strength (\\d+) against (\\d+) believed");
+        int reserves = 0, musters = 0, launches = 0, launchSquads = 0, launchStrength = 0, retook = 0, gaveUp = 0, abandoned = 0;
+        int firstReserve = -1, firstMuster = -1, firstLaunch = -1, firstRetook = -1;
+        JSONArray launchList = new JSONArray();
+        for (String line : trace.split("\n")) {
+            if (!line.contains("\"perspective\":\"DEFENDER\"") || !line.contains("counter-attack")) continue;
+            Matcher t = tickOf.matcher(line);
+            int tick = t.find() ? Integer.parseInt(t.group(1)) : -1;
+            if (line.contains("counter-attack reserve for fort")) {
+                reserves++;
+                if (firstReserve < 0) firstReserve = tick;
+            }
+            if (line.contains(" musters: ")) {
+                musters++;
+                if (firstMuster < 0) firstMuster = tick;
+            }
+            Matcher m = launch.matcher(line);
+            while (m.find()) {
+                launches++;
+                launchSquads += Integer.parseInt(m.group(2));
+                launchStrength += Integer.parseInt(m.group(3));
+                if (firstLaunch < 0) firstLaunch = tick;
+                launchList.put(new JSONObject().put("tick", tick).put("why", m.group(1))
+                        .put("squads", Integer.parseInt(m.group(2))).put("strength", Integer.parseInt(m.group(3)))
+                        .put("required", Integer.parseInt(m.group(4))));
+            }
+            if (line.contains(" retook it at tick ")) {
+                retook++;
+                if (firstRetook < 0) firstRetook = tick;
+            }
+            if (line.contains(" gives up (")) gaveUp++;
+            if (line.contains("fort abandoned after")) abandoned++;
+        }
+        return new JSONObject().put("reserves", reserves).put("musters", musters).put("launches", launches)
+                .put("launchSquads", launchSquads).put("launchStrength", launchStrength).put("retook", retook)
+                .put("gaveUp", gaveUp).put("abandoned", abandoned).put("firstReserveTick", firstReserve)
+                .put("firstMusterTick", firstMuster).put("firstLaunchTick", firstLaunch).put("firstRetookTick", firstRetook)
+                .put("launchList", launchList);
+    }
+
+    /**
      * How often, and from when, the marine commander's plan went after a fort for the sky: its notes name the sensors ("blind their air")
      * or the anti-air yard ("open the sky") as the reason, and its company is formed for an off-lane fort because of one.
      */
@@ -404,7 +451,7 @@ class ConquestTrialEvidenceTest {
                             + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
                             life[0], life[1], life[2], life[3], life[4], life[5], life[6])
                     + mechs.describe() + forts.describe(sim) + fireSupport.describe(sim) + contested.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
-                    + positionUse.describe() + holdProbe.describe();
+                    + positionUse.describe() + holdProbe.describe() + describeCounterattack(counterattackNotes(trace));
             JSONObject json = new JSONObject().put("fixture", f).put("winner", winner).put("ticks", ticks)
                     .put("objectiveTakenTick", objectiveTaken).put("keepTakenTick", keepTaken)
                     .put("firstMarineAtFortTick", firstAtFort).put("peakMarinesAtFort", peakAtFort)
@@ -427,6 +474,7 @@ class ConquestTrialEvidenceTest {
                     .put("bunker", bunkerProbe.json())
                     .put("mechs", mechs.json())
                     .put("attackerHold", holdProbe.json())
+                    .put("counterattack", counterattackNotes(trace))
                     .put("wallChargesSet", wallCharges.size())
                     .put("potCloudsStood", screenClouds.size())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
@@ -467,6 +515,14 @@ class ConquestTrialEvidenceTest {
             }
             mission.marineLoadout = mission.cycleLoadouts[Math.min(Math.max(mission.currentCycle, 0), mission.cycleLoadouts.length - 1)];
         }
+    }
+
+    private static String describeCounterattack(JSONObject c) throws JSONException {
+        return String.format(Locale.ROOT, "- DEFENDER counter-attacks its lost fort: reserves formed %d (first %d), musters %d, "
+                        + "launches %d (first %d; %d squads, strength %d in all), retook %d (first %d), gave up %d, abandoned %d%n",
+                c.getInt("reserves"), c.getInt("firstReserveTick"), c.getInt("musters"), c.getInt("launches"),
+                c.getInt("firstLaunchTick"), c.getInt("launchSquads"), c.getInt("launchStrength"), c.getInt("retook"),
+                c.getInt("firstRetookTick"), c.getInt("gaveUp"), c.getInt("abandoned"));
     }
 
     private static boolean held(CompoundService compounds, TacticalNode node) {

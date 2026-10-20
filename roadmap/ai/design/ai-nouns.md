@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters; see machine assault under "Fighting positions".
+Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2157,7 +2157,12 @@ pressure floor on the fort's blocks that fades with a long half-life and is
 refreshed by each new trigger: conflict retained on ground the commander holds
 to matter, and nowhere else. A fort whose every aspect is held by the enemy is a
 **lost cause**; its alarm is dropped, so squads are no longer fed into it
-piecemeal, and retaking it is the structure planner's question.
+piecemeal, and retaking it is the structure planner's question. Its answer is a
+**counter-attack** (`conquest-command.md`, Defender command): from the moment a
+fort's most critical aspect falls, its ground — a turned fort, lost cause or
+not — is the counter-attack's alone. The track response does not rally into it,
+flow does not stage toward it, its belt is not manned and no single squad is sent
+to retake it; the commander retakes it in proportion, as one push, or not at all.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,

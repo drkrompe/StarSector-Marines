@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions 
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — the attacker holds what it takes (`attacker-holds-ground` scene); fort-belt reactive manning shipped; owner decisions on attackers, player opt-in and machines; the player's machine assault and the player's opt-in GARRISON stance are built.
+Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion; the attacker holds what it takes (`attacker-holds-ground` scene); fort-belt reactive manning shipped; owner decisions on attackers, player opt-in and machines; the player's machine assault and the player's opt-in GARRISON stance are built.
 
 ## Why this exists
 
@@ -196,9 +196,11 @@ noise, so the share does not cost the attack its momentum, and it does not yet
 buy anything measurable either. Every fixture in which it never fired (the
 four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
-out exactly as its control. The question for later
-is a defender that actually counter-attacks a lost fort harder than one
-retaking squad.
+out exactly as its control. The defender now
+counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
+Defender command); with ninety militia it won the fort back once in nine and
+broke on the hold four times, and the hold manned less because the defender no
+longer fed squads into the works one at a time.
 
 ## How it fits what exists
 
