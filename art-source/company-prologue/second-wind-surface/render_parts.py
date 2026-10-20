@@ -179,7 +179,9 @@ def save(arr, path):
 
 
 # SURF_GUIDE_SAMPLES (opt-in): a cheaper lit guide for a queued light job; unset keeps 64.
-GUIDE_SAMPLES = int(os.environ.get('SURF_GUIDE_SAMPLES', 64))
+# An explicit --samples wins over it.
+if '--samples' not in argv:
+    GUIDE_SAMPLES = int(os.environ.get('SURF_GUIDE_SAMPLES', 64))
 bg = np.array(P.BACKGROUND, np.float32) / 255
 for part in MINE:
     if P.source_part(part) != part or (ONLY and part not in ONLY):
