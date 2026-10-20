@@ -50,8 +50,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import mt_kit, mt_hull, mt_detail, mt_engines, mt_mounts, mt_lights
-for module in (mt_kit, mt_hull, mt_detail, mt_engines, mt_mounts, mt_lights):
+import mt_kit, mt_hull, mt_detail, mt_frames, mt_engines, mt_mounts, mt_lights
+for module in (mt_kit, mt_hull, mt_detail, mt_frames, mt_engines, mt_mounts, mt_lights):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -136,6 +136,7 @@ kit = mt_kit.Kit()
 kit.mpu = METRES_PER_UNIT
 mt_hull.build(kit)
 mt_detail.build(kit)
+mt_frames.build(kit)
 mt_engines.build(kit)
 mt_mounts.build(kit)
 mt_lights.build(kit)

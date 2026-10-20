@@ -15,9 +15,8 @@ heat glow follow its shading and a low-tech destroyer's needs):
   flank viewports for the crew decks (low tech: few, small).
 - Command dome: a glazed band across its forward face under a visor brow,
   a sensor mast and dish on its roof.
-- Aft body: longitudinal machinery ribs and two heat-vent wells either side
-  of the centreline (the sprite's dark slatted blocks, rows 125-140), and the
-  canister-flak hatches at the hidden system slots WS 006-009.
+- Aft body: (round 10) its machinery and heat-vent bays are in mt_frames;
+  here, the canister-flak hatches at the hidden system slots WS 006-009.
 Every part is named `Hull ...` or `Bridge ...`, and none crosses the
 silhouette by more than a cell, so the top-view IoU holds.
 """
@@ -77,7 +76,7 @@ def build(kit):
             # A quadrilateral in plan, s inboard of the trailing edge, t along it inboard.
             return [(TE_ROOT[0]+SWEEP_N[0]*sv+SWEEP_T[0]*tv, s*(TE_ROOT[1]+SWEEP_N[1]*sv+SWEEP_T[1]*tv))
                     for sv, tv in ((s_lo, t0), (s_hi, t0), (s_hi, t1), (s_lo, t1))]
-        for k, (s_lo, s_hi, t0, t1) in enumerate(((12.5, 19.5, 11, 48), (4.0, 10.0, 12, 31)), 1):
+        for k, (s_lo, s_hi, t0, t1) in enumerate(((13.5, 19.5, 11, 36), (6.8, 12.0, 12, 31)), 1):
             z0 = WING_DECK-.6   # unsheared; `shear` lays it on the drooping deck
             plate = prism(kit, f'Hull wing {side} armour plate {k}', ccw(swept(s_lo, s_hi, t0, t1)),
                           section(z0, z0+2.6, .2, .8), kit.red, .12)
@@ -102,14 +101,7 @@ def build(kit):
         for k, x in enumerate((-1, -5, -9, -15, -19), 1):
             for row, z in enumerate((CORE_DECK-.75,)):
                 kit.box(f'Hull core {side} viewport {k}.{row+1}', (x, s*16.35, z), (vp[0], .3, vp[1]), kit.glass, 0)
-        # --- aft body: machinery ribs and heat-vent wells ---
-        for k, y in enumerate((27, 32), 1):
-            kit.box(f'Hull aft {side} machinery rib {k}', (-40, s*y, seat(kit, -40, s*y, AFT_DECK)+.2), (26, 1.4, .9),
-                    kit.steel, .1)
-        zv = seat(kit, -42, s*8, CORE_DECK)
-        kit.box(f'Hull aft {side} heat vent well', (-42, s*8, zv-.15), (10, 5.0, .5), kit.dark, 0)
-        for k, y in enumerate((6.6, 8.0, 9.4), 1):
-            kit.box(f'Hull aft {side} heat vent slat {k}', (-42, s*y, zv+.08), (8.5, .4, .25), kit.vent, 0)
+        # (Round 10: the aft machinery and heat vents are exposed bays in mt_frames.)
         # --- canister-flak hatches at the hidden system slots ---
         for sid, (x, y) in (('WS 007' if s > 0 else 'WS 006', (36, 21)), ('WS 008' if s > 0 else 'WS 009', (-19, 40))):
             z = seat(kit, x, s*y, 5.0)
