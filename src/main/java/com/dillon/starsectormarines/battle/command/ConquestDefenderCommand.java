@@ -1645,8 +1645,17 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (PlanningSquad squad : staged.values()) {
             free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true, squad.aliveMembers, squad.originalMembers));
         }
+        // The counter-attack's reserve above the law's share may man its own fort's belt, and nothing else.
+        Set<Integer> lent = new HashSet<>(counter.lendable());
+        for (int id : lent) {
+            PlanningSquad squad = allSquads.get(id);
+            if (squad == null || squad.crew || squad.machine) continue;
+            free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true, squad.aliveMembers, squad.originalMembers));
+        }
+        int counterFort = counter.fortId();
         List<GarrisonDirector.Man> sent = garrisons.assign(free, (squadId, place) -> {
             if (turnedForts.containsKey(places.fortId(place))) return false;
+            if (lent.contains(squadId) && places.fortId(place) != counterFort) return false;
             PlanningSquad squad = allSquads.get(squadId);
             int x = places.centreX(place);
             int y = places.centreY(place);
@@ -1663,6 +1672,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         });
         for (GarrisonDirector.Man man : sent) {
             PlanningSquad squad = allSquads.get(man.squadId());
+            if (lent.contains(squad.id)) counter.lend(squad.id);
             squad.assignedObjective = runOrder(squad.id, man.garrisonable(), places);
             int home = homeTrack(squad);
             directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_MAN));

@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-20 — building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks a lost fort in proportion and its reserve lends to its own belt (`conquest-command.md`); compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -259,9 +259,10 @@ four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
 out exactly as its control. The defender now
 counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
-Defender command); with ninety militia it won the fort back once in nine and
-broke on the hold four times, and the hold manned less because the defender no
-longer fed squads into the works one at a time.
+Defender command); on the trial ground it launched against the hold in six of
+nine at the default garrison and retook the bunker once, before the hold was
+whole, and the defender's reserve may man its own fort's belt only from what it
+holds above the reserve law's share.
 
 ## How it fits what exists
 
