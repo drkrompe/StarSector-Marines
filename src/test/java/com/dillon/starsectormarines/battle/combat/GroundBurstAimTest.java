@@ -11,7 +11,7 @@ class GroundBurstAimTest {
     @Test
     void insideRangeTheDiskMatchesPointAimAndPastItGrowsFasterThanDistance() {
         float atRange = GroundBurstAim.errorRadius(0.55f, 0f, 18f, 18f);
-        assertEquals(PointAim.BASE_ERROR_CELLS + PointAim.ACCURACY_ERROR_CELLS * 0.45f, atRange, 1e-5f);
+        assertEquals(PointAim.BASE_ERROR_CELLS + PointAimDispersion.WEAPON.accuracyErrorCells * 0.45f, atRange, 1e-5f);
         assertEquals(atRange * 0.5f, GroundBurstAim.errorRadius(0.55f, 0f, 18f, 9f), 1e-5f);
         float doubled = GroundBurstAim.errorRadius(0.55f, 0f, 18f, 36f);
         assertEquals(atRange * 2f * (1f + GroundBurstAim.OVER_RANGE_GROWTH), doubled, 1e-4f);

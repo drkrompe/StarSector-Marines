@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -36,7 +37,7 @@ public final class LastLiftCompound {
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
                 new FinalizeStage(), new OutdoorLandscapeStage(96, 20, 152, 64))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, 96, 20, 152, 64,
-                c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS),
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS),
                 List.of(), new RoadGraph(List.of(), List.of()), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Last Lift berth obstructed");

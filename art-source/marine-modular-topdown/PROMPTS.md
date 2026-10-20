@@ -1,5 +1,8 @@
 # Successful ImageGen prompt recipes
 
+> The weapon recipes below are history: held weapons are now geometry-first reskins in
+> `art-source/infantry-weapons/` and their old masters were removed.
+
 All assets were generated with the built-in ImageGen tool on a flat `#ff00ff` background,
 then converted to alpha locally.
 
