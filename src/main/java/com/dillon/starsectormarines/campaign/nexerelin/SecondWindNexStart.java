@@ -37,7 +37,6 @@ public final class SecondWindNexStart extends CustomStart {
     public static final float STARTING_Y = 3000f;
     /** Nexerelin's override of its post-time-pass fleet placement; an entity id. */
     public static final String START_LOCATION_KEY = "$nex_startLocation";
-    public static final String FALLBACK_START_ENTITY = "jangala";
 
     @Override
     public void execute(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
@@ -54,10 +53,11 @@ public final class SecondWindNexStart extends CustomStart {
 
         // Creation scripts run before Nexerelin's post-time-pass placement, which would otherwise move a free start to
         // a random friendly market. Point it at the opening's yard, then restore the opening's approach once play begins.
+        // With no yard open anywhere, Nexerelin's own friendly market is a better place to wait than a forced Jangala.
         data.addScript(() -> {
             PlanetAPI planet = CerberusCompanyStart.destination();
-            Global.getSector().getMemoryWithoutUpdate().set(START_LOCATION_KEY,
-                    startEntityId(planet == null ? null : planet.getId()), 15);
+            String entity = startEntityId(planet == null ? null : planet.getId());
+            if (entity != null) Global.getSector().getMemoryWithoutUpdate().set(START_LOCATION_KEY, entity, 15);
         });
         data.addScript(new CerberusCompanyStart());
         data.addScript(() -> Global.getSector().addTransientScript(new Approach()));
@@ -65,9 +65,9 @@ public final class SecondWindNexStart extends CustomStart {
         FireBest.fire(null, dialog, memoryMap, "NewGameBackgroundSelection");
     }
 
-    /** The entity Nexerelin should place the fleet at: the opening's own yard, else Jangala. */
+    /** The entity Nexerelin should place the fleet at: the opening's own yard, else null to leave it to Nexerelin. */
     public static String startEntityId(String destinationId) {
-        return destinationId == null || destinationId.isEmpty() ? FALLBACK_START_ENTITY : destinationId;
+        return destinationId == null || destinationId.isEmpty() ? null : destinationId;
     }
 
     /** Re-applies the opening's approach once, after Nexerelin has finished placing the fleet. */

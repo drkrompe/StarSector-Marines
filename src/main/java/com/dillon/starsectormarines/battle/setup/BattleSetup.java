@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
@@ -1095,6 +1096,13 @@ public final class BattleSetup {
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         precincts.objective().fortification())
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
+        // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
+        // building is a place the player may order held once taken.
+        if (type == MissionType.RAID && !coldAccount && map.tacticalMap != null) {
+            for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(map.pointsOfInterest,
+                    map.tacticalMap.all(), poi -> Faction.DEFENDER))
+                map.tacticalMap.add(place);
+        }
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -2593,6 +2601,9 @@ public final class BattleSetup {
             MapScale scale = MapScale.forRisk(risk);
             MapResult map = MAP_GEN.generate(scale.width, scale.height,
                     scenarioSeed, null, TargetProfile.NEUTRAL);
+            // A colony is not an objective, but its buildings are still places the player may order held.
+            for (TacticalNode place : HeldPlaces.fromBuildings(map.pointsOfInterest, poi -> Faction.CIVILIAN))
+                map.tacticalMap.add(place);
             Random scenarioRng = new Random(
                     scenarioSeed ^ 0x4155544F4D415445L);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssaults;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.OccupyPositionDecision;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.i18n.Strings;
 
 /**
@@ -42,7 +44,12 @@ public enum TacticalOrderIntent {
     /** A held building the squad believes holds an enemy: the same hold, which clears it first. */
     CLEAR("battleOrderClearPlace", true, true),
     /** An uncaptured compound: the click secures it, taking the room by force. */
-    SECURE("battleOrderSecureCompound", true, true);
+    SECURE("battleOrderSecureCompound", true, true),
+    /**
+     * A mech, a lance or an armed vehicle over a trench or a held building the side believes is
+     * enemy-held: an assault by fire from a stand-off, never by entering ({@code MachineAssaults}).
+     */
+    ASSAULT("battleOrderAssaultPlace", true, true);
 
     private final String label;
     private final boolean actionable;
@@ -66,7 +73,7 @@ public enum TacticalOrderIntent {
     public boolean actionable() { return actionable; }
 
     /** Whether the click sends the squad into ground the enemy holds, which the cursor says in red. */
-    public boolean assault() { return this == CLEAR || this == SECURE; }
+    public boolean assault() { return this == CLEAR || this == SECURE || this == ASSAULT; }
 
     /**
      * Resolves what a right-click at ({@code cellX}, {@code cellY}) would mean
@@ -82,18 +89,25 @@ public enum TacticalOrderIntent {
             if (sim.transport().pointsAt(vehicle, cellX, cellY)) {
                 return sim.transport().manifest(vehicle).isEmpty() ? NONE : DISMOUNT;
             }
-            return MOVE;
+            // An armed hull assaults a garrisonable its side believes is enemy-held; an unarmed one only moves.
+            return MachineAssaults.vehicleArmed(sim, vehicle)
+                    ? assaultOrMove(sim, sim.convoy().faction(vehicle), cellX, cellY) : MOVE;
         }
 
         if (selection.squadCount() > 1) return GROUP_ORDER;
 
         long mech = selection.getSelectedUnitEntityId();
-        if (mech != 0L && sim.world().hasMechLoadout(mech)) return MOVE;
+        if (mech != 0L && sim.world().hasMechLoadout(mech)) {
+            return assaultOrMove(sim, sim.identity().faction(mech), cellX, cellY);
+        }
 
         int squadId = selection.getSelectedSquadId();
         if (squadId == Selection.NONE) return NONE;
         Squad squad = sim.getSquad(squadId);
         if (squad == null) return NONE;
+        // A lance's click goes to its members' own move orders, so it neither rides nor secures:
+        // it assaults a garrisonable the side believes is enemy-held, and otherwise moves.
+        if (squad.isMechSquad()) return assaultOrMove(sim, squad.faction, cellX, cellY);
 
         int size = sim.squadMemberCount(squadId);
         if (sim.transport().mountableVehicleFor(cellX, cellY, squad.faction, size) != 0L) {
@@ -106,7 +120,6 @@ public enum TacticalOrderIntent {
             return MOUNT_BLOCKED;
         }
         if (SquadMoveOrderSystem.insideUncapturedCompound(cellX, cellY, sim)) return SECURE;
-        if (squad.isMechSquad()) return MOVE;
         if (OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
                 DigInSystem.isEnabled(), cellX, cellY) >= 0) {
             return OCCUPY;
@@ -114,5 +127,10 @@ public enum TacticalOrderIntent {
         TacticalNode place = HoldPlaceDecision.placeUnderClick(sim.getTacticalMap(), cellX, cellY);
         if (place == null) return MOVE;
         return HoldPlaceDecision.believedOccupied(squad, place) ? CLEAR : OCCUPY;
+    }
+
+    private static TacticalOrderIntent assaultOrMove(BattleSimulation sim, Faction side,
+                                                     int cellX, int cellY) {
+        return MachineAssaults.targetUnderClick(sim, side, cellX, cellY) != null ? ASSAULT : MOVE;
     }
 }

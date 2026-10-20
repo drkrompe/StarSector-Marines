@@ -20,6 +20,7 @@ import bpy
 from mathutils import Vector
 import fg_kit as K
 from fg_kit import prism, section
+from fg_gear import fold
 
 NAME = 'Dagger'
 HULL_ID = 'dagger'
@@ -169,8 +170,11 @@ LIP_R = 1.6
 # wing. The bends are applied after detail, so everything built on a wing
 # moves with it, and the plan view the sprite draws is unchanged.
 # The bomber lands on three legs kept inside the hull's own plan: a main leg
-# under each prong root and a tail leg under the drive block, each an oleo
-# strut with a drag brace on a foot pad. The wings carry no load.
+# under each prong root and a tail leg under the drive block. Each is a
+# box-section shock strut on a broad wedge shoe (owner, 2026-10-20: no thin
+# pistons, no puck feet) and folds into the solid above it, the mains aft
+# into the prongs and the tail leg forward into the drive block, under a pair
+# of doors hinged on the bay's long edges. The wings carry no load.
 WING_ROOT_Y = 7.0          # the prongs' outer wall: every wing bends from here
 PRONG_ANHEDRAL_DEG = 6.0   # the prongs' decks fall toward their outer walls
 PYLON_DROOP_DEG = 30.0     # port pylon, prong to pod
@@ -181,12 +185,20 @@ _t = lambda d: math.tan(math.radians(d))
 POD_DROP = _t(PYLON_DROOP_DEG)*(8.2-WING_ROOT_Y)
 FIN_DROP = {'port': POD_DROP+_t(STRUT_DROOP_DEG)*(13.1-11.7), 'starboard': _t(STUB_DROOP_DEG)*(9.0-WING_ROOT_Y)}
 DECK_Z = -3.4              # parked deck, level in the hull frame
-PAD_T = .3
-# (name, x, y, z where the strut enters the hull, drag brace run fore (+) or aft (-))
-GEAR = [('Hull port main gear', 7.0, 3.9, -1.0, -2.2),
-        ('Hull starboard main gear', 7.0, -3.9, -1.0, -2.2),
-        ('Hull tail gear', -11.6, 0.0, -1.7, 2.2)]
-FEET = [f'{g[0]} pad' for g in GEAR]
+# (name, x, y, hinge z inside the host, fold direction along X, host, shoe (L, W, H))
+GEAR = [('Hull port main gear', 7.0, 3.9, -.2, -1, 'Hull port prong', (1.7, 1.15, .45)),
+        ('Hull starboard main gear', 7.0, -3.9, -.2, -1, 'Hull starboard prong', (1.7, 1.15, .45)),
+        ('Hull tail gear', -11.6, 0.0, -.95, 1, 'Engine 1 drive block', (1.3, 1.0, .4))]
+STRUT = (.84, .72)         # strut width (across, along the hinge) and depth, units
+BRACE_RUN = 1.1            # the brace's reach along X toward the fold
+BAY_HALF = .68             # half the bay's width: each door's width
+GEAR_NOTES = ('Retractable since 2026-10-20 (fg_gear). The thin oleo legs and pads are replaced by box-section '
+              'shock struts (upper sleeve, bright slide, lower sleeve, ankle clevis) on broad wedge shoes, each '
+              'with a raked brace on its fold side. The mains fold aft 90 degrees into the prongs, the tail leg '
+              'forward into the drive block; each bay has a dark liner and a pair of doors hinged on its long edges'
+              ' that open over the first 30% of the knob, before the legs move. The shoes stand where the pads '
+              'stood.')
+FEET = [f'{g[0]} shoe' for g in GEAR]
 LEG_PARTS = tuple(g[0] for g in GEAR)
 
 
@@ -289,16 +301,34 @@ def bend_wings():
 
 
 def landing_gear(kit):
-    """Three oleo legs under the hull: a strut cylinder from the belly, its piston, a drag brace and a foot pad."""
-    S, B, D = kit.steel, kit.bright, kit.dark
-    for name, x, y, top, brace in GEAR:
-        sole = DECK_Z+PAD_T
-        knee = top+(sole-top)*.45
-        kit.rod(f'{name} strut', (x, y, top+.4), (x, y, knee), .24, S, 12)
-        kit.rod(f'{name} piston', (x, y, knee+.2), (x, y, sole-.1), .14, B, 12)
-        kit.rod(f'{name} gland', (x, y, knee+.12), (x, y, knee-.12), .29, D, 12)
-        kit.rod(f'{name} drag brace', (x+brace, y, top+.3), (x, y, knee+.1), .08, S, 8)
-        kit.box(f'{name} pad', (x, y, DECK_Z+PAD_T/2), (2.0, 1.5, PAD_T), D, .06)
+    """Three box-section shock struts on broad wedge shoes, each folding into the solid above it."""
+    g = kit.gear
+    ob = bpy.data.objects
+    for name, x, y, hinge_z, toward, host_name, shoe in GEAR:
+        host = ob[host_name]
+        L, W, H = shoe
+        top = Vector((x, y, hinge_z))
+        ankle = Vector((x, y, DECK_Z+H+.18))
+        parts = g.strut(name, top, ankle, (0, 1, 0), *STRUT)
+        # A raked brace on the side the leg folds toward, rigid with the strut: it swings up into the bay.
+        parts.append(g.beam(f'{name} brace', Vector((x, y, (hinge_z+ankle.z)/2)),
+                            Vector((x+toward*BRACE_RUN, y, hinge_z-.6)), (0, 1, 0), (.36, .3), (.3, .24), kit.steel))
+        parts.append(g.wedge(f'{name} shoe', (x, y, DECK_Z), (1, 0, 0), (0, 1, 0), L, W, H, kit.steel,
+                             .36, .24, .7))
+        axis, deg = fold(Vector((0, 0, -1)), Vector((toward, 0, 0)))
+        h = g.hinge(f'{name} hinge', top, axis, deg, 0.0)
+        g.adopt(h, parts)
+        rec = g.leg(name, h, [host])
+        # The bay: from just ahead of the trunnion to past the folded shoe, a pair of doors over it
+        # hinged on their long edges.
+        reach = hinge_z-DECK_Z+H*.2
+        x_a, x_b = x-toward*.62, x+toward*(reach+.2)
+        x0, x1 = min(x_a, x_b), max(x_a, x_b)
+        hw = BAY_HALF
+        g.liner(rec, f'{name} bay liner', [(x1, y-hw), (x0, y-hw), (x0, y+hw), (x1, y+hw)], [host])
+        for side, s in (('port', 1), ('starboard', -1)):
+            quad = [(x1, y), (x0, y), (x0, y+s*hw), (x1, y+s*hw)]
+            g.door(rec, f'{name} door {side}', quad, (2, 3), [host], kit.armour)
 
 
 def detail(kit):

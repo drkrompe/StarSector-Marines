@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ac0-dbda-75e0-93d8-e31a2cda4dae",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ac0-dbda-75e0-93d8-e31a2cda4dae\\exec-6f96d9d1-0ad6-4473-b599-7521c6391404.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapons-laser.raw.png",
+    "sha256": "19f8859f400d0ac8e61619aaa0160962398fc6b6938d282597cd2e2c4e04ec1e",
+    "dimensions": [
+      1612,
+      976
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapons-laser.prompt.txt",
+  "promptSha256": "b52574e30b35f9b51df4abcbd865416db397607732111e2d16eaf7c3484a7334",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target; empty canvas stays transparent\nImage 2: Finished weapon sheet: painting style, lighting and detail level reference only; not layout\n\nUse case: sketch-to-render. Asset: one pulse laser rifle for a gritty military dark-science-fiction tactical game, seen from STRAIGHT OVERHEAD (looking down at the top of the gun as it lies flat, muzzle pointing up the image), drawn as a held layer under a top-down soldier sprite and only about 20 pixels long in play, so it needs bold value contrast and crisp light edges rather than fine detail.\n\nImage 1 is the authoritative geometry guide and edit target: only one frame is drawn on it, the rest of the canvas is empty and must stay fully transparent. Reskin this exact object, preserving its silhouette, parts, proportions and position exactly. Top to bottom: a squared pale ceramic prism emitter housing with a small lens; a slim dark barrel wound with six raised COPPER focusing coils (bare brushed copper wire windings, metallic orange-brown, NOT glowing); two pale grey radiator plates running along either side of the coils, clamped to the barrel; a white-grey ceramic body with a black top optic and blue glass; a dark power cell on the right side; a dark grip; a gunmetal stock with a dark cut-out.\n\nColour discipline, important: the gun is mostly neutral ceramic white-grey, gunmetal and copper. Light is used sparingly: only the small lens at the very tip, one small charge indicator on the body and one tiny indicator on the cell glow, in a cool pale green-cyan, small and contained, no bloom, no glowing tubes or strips, no green tint on the metal.\n\nImage 2 is the finished sheet this weapon belongs to: match its painting style, lighting, edge treatment and level of detail exactly; it is material and style reference only, not layout, and its green laser rifle is the design being replaced, do not copy it. Straight top-down orthographic camera, no perspective, no cast shadow, no ground, no text, borders or watermark. True transparent background outside the silhouette. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapons-laser-guide.png",
+      "sha256": "a6a69af376fd84f3663bd40b99394edd79061349716260dcd33baee0c0dcb3fe",
+      "dimensions": [
+        2272,
+        1376
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target; empty canvas stays transparent"
+    },
+    {
+      "path": "art-source\\infantry-weapons\\raw\\infantry-weapons.raw.png",
+      "sha256": "9a30448811f651a2a9765050ac1db38085d62006b35a8950cded0965f2a8e593",
+      "dimensions": [
+        1612,
+        976
+      ],
+      "mode": "RGBA",
+      "role": "Finished weapon sheet: painting style, lighting and detail level reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the rifle with the guide’s exact geometry and a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 88308,
+    "cached_input_tokens": 62208,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 646,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 56.9
+}

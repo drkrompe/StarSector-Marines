@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15adc-f0b8-7dc0-95e4-29a5197b969f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15adc-f0b8-7dc0-95e4-29a5197b969f\\exec-ed952371-af92-4e96-bc10-ded1e3f36e4a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\lions-mantle.raw.png",
+    "sha256": "b9aad0fdb387dc704c7b21b7d867e6bc1d854f8c8af04f6f34d8fbe51b9b1fa3",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\lions-mantle.prompt.txt",
+  "promptSha256": "65da48472d64e8990949fa0675a069d8547cd6809ed63a30dc2a126a7bdb08f1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: a massive powered-armour cuirass with its pauldrons standing upright at the upper right, its helmet set down in front at the lower left, and the two armoured gauntlets and forearms laid at the lower right.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nLion's Mantle guard battlesuit: the Sindrian Lion's Guard's prestigious walking tank. Deep polished crimson layered sacrificial plate, enormous angular pauldrons, blackened gunmetal frame, oversized black cooling loops, heat-stained copper heat exchangers, polished brass edge guards and trim lines, tiny amber indicators, and a restrained abstract golden mane chevron on the chest. The helmet is a crimson guard helmet with a gunmetal rim, brass edge guards and copper channels, matching the overhead helmet. Broad, conspicuous, top-heavy and privileged, formal yet battle-ready; no literal lion, cape, crown or flames.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-4-heavy.png",
+      "sha256": "4a08857d0fa292e29ea6a8a2cd3296cdf1901a008344580412ff08a4b102b72a",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\lions-mantle-identity.png",
+      "sha256": "3d3e64102f07c52eaddcfa1f0d225e080ca8d752572deb86903422a19035703a",
+      "dimensions": [
+        1262,
+        649
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one transparent product render, matching Image 1’s composition and Image 2’s suit identity."
+  ],
+  "usage": {
+    "input_tokens": 75585,
+    "cached_input_tokens": 40576,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 765,
+    "reasoning_output_tokens": 20
+  },
+  "elapsedSeconds": 64.1
+}

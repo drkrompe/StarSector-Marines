@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
@@ -138,7 +139,7 @@ public final class BlackSluice {
                         SITES.get(0).x(), SITES.get(0).y(), SITES.get(1).x(), SITES.get(1).y(), SITES.get(2).x(), SITES.get(2).y(),
                         SERVICE_INGRESS_X, SERVICE_INGRESS_Y, PIER_INGRESS_X, PIER_INGRESS_Y, GATE_X, GATE_Y, BERTH_ROAD_X, 110))).run(c);
         var map = new MapResult(c.grid, c.topology, LANDING_X, LANDING_Y, PIER_INGRESS_X, PIER_INGRESS_Y,
-                c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
         for (var site : SITES)
             if (GridPathfinder.findPath(map.grid, LANDING_X, LANDING_Y, site.x(), site.y()).length == 0)
                 throw new IllegalStateException("Disconnected Black Sluice objective: " + site.name());

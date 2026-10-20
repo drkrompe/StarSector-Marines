@@ -451,13 +451,14 @@ def ramp(kit, body):
     x0, x1, h = RAMP_OPENING
     well = bx(kit, 'Temporary ramp well', x0, x1, -h, h, KEEL-1, RAMP_WELL_TOP, kit.dark, 0)
     boolean(body, well)
-    # Dark well lining, and a lit strip in its roof (the hold beyond).
+    # Dark well lining, and a work-light strip in its roof (the hold beyond; unlit).
     zt = RAMP_WELL_TOP
     blocks(kit, 'Hull aft cargo well liner',
            [(x0+.02, x1-.02, -h+.02, h-.02, zt-.1, zt-.02),
             (x0+.02, x0+.1, -h+.02, h-.02, KEEL-.1, zt-.02), (x1-.1, x1-.02, -h+.02, h-.02, KEEL-.1, zt-.02),
             (x0+.02, x1-.02, -h+.02, -h+.1, KEEL-.1, zt-.02), (x0+.02, x1-.02, h-.1, h-.02, KEEL-.1, zt-.02)], kit.dark)
-    work = material('Hull ramp work light', (.3, .3, .28), 0, .3, emission=(1.0, .92, .75), strength=4)
+    # Unlit lenses: hound_lights.png has no light under the stern (ship-detail-guide.md, Lamps).
+    work = material('Hull ramp work light', (.3, .3, .28), 0, .3)
     bx(kit, 'Hull aft cargo well light', x0+1.0, x1-1.0, -.3, .3, zt-.18, zt-.1, work, 0)
     # Frame round the opening, with hazard bars and jamb lights at its corners.
     w = .45

@@ -31,7 +31,15 @@ Shared here:
   whole folded Longbow arm read as hidden. Planar hulls keep the old test.
 - **Landing gear takes swatches.** Legs, runners, wheels and pads are built in
   the kit's steel, bright and dark materials and belong to no part, so they
-  take the graded class swatches.
+  take the graded class swatches. Since the gear retracts (2026-10-20,
+  `../fighters-geometry/fg_gear.py`), its bay doors and the Talon's skid
+  fairings are built in the armour material and take the armour class
+  swatch, and the bay liners take the dark one. The hull skins did not move:
+  part faces are selected per object, so the new objects change no
+  selection, and re-registering the committed generations reproduced every
+  registration file. The surfacing build is made with the gear down
+  (`build_fighter.py --gear-knob 1`), as the parts were authored; the
+  packaged build is saved flying (`package_build.py`).
 - **Glass keeps its own material.** The swatch grader scales a coloured
   class's chroma about its source square, and no square is cyan, so a graded
   glass swatch came back neutral grey. Canopies, sensor windows and lamps keep

@@ -44,7 +44,7 @@ import math
 import bmesh
 import bpy
 from mathutils import Vector
-from sh_kit import prism, section, boolean, plane_cut, loft_x, material
+from sh_kit import prism, section, boolean, plane_cut, loft_x, material, seg
 
 # Planform of the central body (CCW, +X bow, +Y port), read off the sprite:
 # the tan body is Y -10..+5 forward of the crossbeam, widening aft into the
@@ -115,6 +115,7 @@ class _Parts:
         return self
 
     def cyl(self, c, r, length, axis=(0, 0, 1), n=10, r2=None):
+        n = seg(max(r, r if r2 is None else r2), n)
         a = Vector(axis).normalized()
         u = a.orthogonal().normalized()
         w = a.cross(u)
@@ -131,6 +132,7 @@ class _Parts:
         return self
 
     def ring(self, c, r_in, r_out, z0, z1, n=20):
+        n = seg(r_out, n)
         cx, cy = c
         verts = []
         for z in (z0, z1):

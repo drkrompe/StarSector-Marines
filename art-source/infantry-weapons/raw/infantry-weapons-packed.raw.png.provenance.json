@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ac0-dbcf-7b72-81ce-4e4f35bf6d58",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ac0-dbcf-7b72-81ce-4e4f35bf6d58\\exec-3235ea34-5c64-48eb-9a8d-04c436754369.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapons-packed.raw.png",
+    "sha256": "c465dabe2a46651b812ce945b9aba39c99e285c0db1b64989ce8396d9af8e80a",
+    "dimensions": [
+      774,
+      2031
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapons-packed.prompt.txt",
+  "promptSha256": "8039a34419e84d7860a89172c2f65529fd2fd990984d0d918c79810315ae5628",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target; empty canvas stays transparent\nImage 2: Finished weapon sheet: painting style, lighting and detail level reference only; not layout\n\nUse case: sketch-to-render. Asset: a shoulder rocket launcher STOWED for carrying, slung on a soldier's back, seen from straight overhead, for a gritty military dark-science-fiction tactical game. It is drawn diagonally across a top-down soldier's back and is only about 40 pixels long in play, so it must read at a glance as \"this soldier carries a rocket launcher\": bold value contrast, crisp light edges, clear separate parts.\n\nImage 1 is the authoritative geometry guide and edit target: one frame, the rest of the canvas empty and fully transparent. Reskin this exact object, preserving its silhouette, parts, proportions and position exactly: a straight olive-drab composite launch tube; a black rubber protective end cap closing each end (closed, no open bore); a thin yellow-and-black hazard band near each end; two pale khaki nylon carrying straps crossing the tube with black metal buckles on the left; the dark grey sight housing folded flat along the right side with a small covered blue sight glass.\n\nMaterial: matching the hand-held launcher in image 2 (olive-drab composite tube with light scuffs and worn edges, matte black rubber, pale khaki webbing with stitched edges, dark grey housing). Image 2 is the finished weapon sheet this belongs to: match its painting style, lighting, edge treatment and detail level exactly, and the rocket launcher in it is the same weapon unpacked; it is material and style reference only, not layout. Straight top-down orthographic camera, no perspective, no cast shadow, no ground, no text, borders or watermark. True transparent background outside the silhouette. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapons-packed-guide.png",
+      "sha256": "f24dc0bfc633e8a6ee5a978170aa396aa3f7fbb8cb0dd3e4d6e7acae54e130d6",
+      "dimensions": [
+        488,
+        1280
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target; empty canvas stays transparent"
+    },
+    {
+      "path": "art-source\\infantry-weapons\\raw\\infantry-weapons.raw.png",
+      "sha256": "9a30448811f651a2a9765050ac1db38085d62006b35a8950cded0965f2a8e593",
+      "dimensions": [
+        1612,
+        976
+      ],
+      "mode": "RGBA",
+      "role": "Finished weapon sheet: painting style, lighting and detail level reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the launcher using Image 1’s exact geometry and Image 2’s materials and painting style, with a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 43148,
+    "cached_input_tokens": 33536,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 556,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.0
+}

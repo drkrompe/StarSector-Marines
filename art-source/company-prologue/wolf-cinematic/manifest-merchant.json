@@ -18,18 +18,18 @@
    -22.09
   ],
   [
-   54.912,
+   54.7,
    25.825,
-   21.664
+   20.965
   ]
  ],
  "size_m": [
-  72.3,
+  72.1,
   39.3,
-  33.3
+  32.7
  ],
- "meshes": 435,
- "polygons": 110506,
+ "meshes": 503,
+ "polygons": 152294,
  "images": 23,
  "engines": [
   {
@@ -164,7 +164,7 @@
    "location": [
     -13,
     12,
-    7.66
+    7.7
    ],
    "rest_angle_deg": 90,
    "arc_deg": 200,
@@ -202,7 +202,7 @@
    "location": [
     -13,
     -11,
-    7.67
+    7.74
    ],
    "rest_angle_deg": -90,
    "arc_deg": 200,
@@ -236,14 +236,14 @@
   {
    "slot": "WS 004",
    "weapon": "heavyblaster",
-   "built_as": "miningblaster",
+   "built_as": "heavyblaster",
    "mount": "Weapon WS 004 mount",
    "location": [
     45,
     0,
     -3.6
    ],
-   "k": 0.42,
+   "k": 0.3,
    "bay": {
     "x": [
      43.4,
@@ -259,12 +259,26 @@
     ]
    },
    "parts": [
-    "Weapon WS 004 hardpoint paint#body",
+    "Weapon WS 004 hardpoint steel#sled",
     "Weapon WS 004 hardpoint dark",
-    "Weapon WS 004 hardpoint metal",
     "Weapon WS 004 hardpoint steel",
-    "Weapon WS 004 hardpoint accent#prong",
-    "Weapon WS 004 hardpoint lamp_red"
+    "Weapon WS 004 hardpoint paint#housing",
+    "Weapon WS 004 hardpoint plate",
+    "Weapon WS 004 hardpoint accent2",
+    "Weapon WS 004 hardpoint accent#cells",
+    "Weapon WS 004 hardpoint lamp_blaster",
+    "Weapon WS 004 hardpoint accent2#clamp",
+    "Weapon WS 004 hardpoint metal#coupling",
+    "Weapon WS 004 hardpoint cable",
+    "Weapon WS 004 hardpoint accent",
+    "Weapon WS 004 hardpoint steel#cclamp1",
+    "Weapon WS 004 hardpoint steel#cclamp-1",
+    "Weapon WS 004 hardpoint accent#coil",
+    "Weapon WS 004 hardpoint steel#cradle",
+    "Weapon WS 004 hardpoint paint#cheek1",
+    "Weapon WS 004 hardpoint paint#cheek-1",
+    "Weapon WS 004 hardpoint plate#head",
+    "Weapon WS 004 hardpoint steel#bands"
    ],
    "kit_muzzles": [
     "Weapon WS 004 muzzle anchor 1"
@@ -276,73 +290,121 @@
   {
    "slot": "WS 005",
    "weapon": "harpoon",
-   "built_as": "annihilator",
+   "built_as": "harpoon",
    "mount": "Weapon WS 005 mount",
    "location": [
     11,
     20,
-    4.63
+    3.53
    ],
-   "k": 0.6,
+   "k": 0.3,
    "bay": null,
    "parts": [
-    "Weapon WS 005 hardpoint paint#shell",
-    "Weapon WS 005 hardpoint steel#collar",
-    "Weapon WS 005 hardpoint dark",
+    "Weapon WS 005 hardpoint paint#bed",
+    "Weapon WS 005 hardpoint plate#rail0",
     "Weapon WS 005 hardpoint steel",
-    "Weapon WS 005 hardpoint paint#cheek",
-    "Weapon WS 005 hardpoint steel#tubes",
-    "Weapon WS 005 hardpoint mark"
+    "Weapon WS 005 hardpoint plate#rail1",
+    "Weapon WS 005 hardpoint plate#rail2",
+    "Weapon WS 005 hardpoint plate#rail3",
+    "Weapon WS 005 hardpoint steel#saddle6.0",
+    "Weapon WS 005 hardpoint steel#saddle12.5",
+    "Weapon WS 005 hardpoint paint#rear",
+    "Weapon WS 005 hardpoint dark",
+    "Weapon WS 005 hardpoint glow",
+    "Weapon WS 005 hardpoint cable",
+    "Weapon WS 005 hardpoint accent2#lug4.61",
+    "Weapon WS 005 hardpoint plate",
+    "Weapon WS 005 hardpoint accent2#lug4.6-1",
+    "Weapon WS 005 hardpoint accent2#lug-0.81",
+    "Weapon WS 005 hardpoint accent2#lug-0.8-1",
+    "Weapon WS 005 missile 1 missile#body",
+    "Weapon WS 005 missile 1 dark",
+    "Weapon WS 005 missile 1 plate",
+    "Weapon WS 005 missile 1 steel",
+    "Weapon WS 005 missile 1 glow",
+    "Weapon WS 005 missile 1 missile#fins",
+    "Weapon WS 005 missile 2 missile#body",
+    "Weapon WS 005 missile 2 dark",
+    "Weapon WS 005 missile 2 plate",
+    "Weapon WS 005 missile 2 steel",
+    "Weapon WS 005 missile 2 glow",
+    "Weapon WS 005 missile 2 missile#fins",
+    "Weapon WS 005 missile 3 missile#body",
+    "Weapon WS 005 missile 3 dark",
+    "Weapon WS 005 missile 3 plate",
+    "Weapon WS 005 missile 3 steel",
+    "Weapon WS 005 missile 3 glow",
+    "Weapon WS 005 missile 3 missile#fins"
    ],
    "kit_muzzles": [
     "Weapon WS 005 muzzle anchor 1",
     "Weapon WS 005 muzzle anchor 2",
-    "Weapon WS 005 muzzle anchor 3",
-    "Weapon WS 005 muzzle anchor 4",
-    "Weapon WS 005 muzzle anchor 5"
+    "Weapon WS 005 muzzle anchor 3"
    ],
    "muzzles": [
     "Anchor turret 5 tube 1 muzzle",
     "Anchor turret 5 tube 2 muzzle",
-    "Anchor turret 5 tube 3 muzzle",
-    "Anchor turret 5 tube 4 muzzle",
-    "Anchor turret 5 tube 5 muzzle"
+    "Anchor turret 5 tube 3 muzzle"
    ]
   },
   {
    "slot": "WS 006",
    "weapon": "harpoon",
-   "built_as": "annihilator",
+   "built_as": "harpoon",
    "mount": "Weapon WS 006 mount",
    "location": [
     11,
     -19,
-    4.57
+    3.45
    ],
-   "k": 0.6,
+   "k": 0.3,
    "bay": null,
    "parts": [
-    "Weapon WS 006 hardpoint paint#shell",
-    "Weapon WS 006 hardpoint steel#collar",
-    "Weapon WS 006 hardpoint dark",
+    "Weapon WS 006 hardpoint paint#bed",
+    "Weapon WS 006 hardpoint plate#rail0",
     "Weapon WS 006 hardpoint steel",
-    "Weapon WS 006 hardpoint paint#cheek",
-    "Weapon WS 006 hardpoint steel#tubes",
-    "Weapon WS 006 hardpoint mark"
+    "Weapon WS 006 hardpoint plate#rail1",
+    "Weapon WS 006 hardpoint plate#rail2",
+    "Weapon WS 006 hardpoint plate#rail3",
+    "Weapon WS 006 hardpoint steel#saddle6.0",
+    "Weapon WS 006 hardpoint steel#saddle12.5",
+    "Weapon WS 006 hardpoint paint#rear",
+    "Weapon WS 006 hardpoint dark",
+    "Weapon WS 006 hardpoint glow",
+    "Weapon WS 006 hardpoint cable",
+    "Weapon WS 006 hardpoint accent2#lug4.61",
+    "Weapon WS 006 hardpoint plate",
+    "Weapon WS 006 hardpoint accent2#lug4.6-1",
+    "Weapon WS 006 hardpoint accent2#lug-0.81",
+    "Weapon WS 006 hardpoint accent2#lug-0.8-1",
+    "Weapon WS 006 missile 1 missile#body",
+    "Weapon WS 006 missile 1 dark",
+    "Weapon WS 006 missile 1 plate",
+    "Weapon WS 006 missile 1 steel",
+    "Weapon WS 006 missile 1 glow",
+    "Weapon WS 006 missile 1 missile#fins",
+    "Weapon WS 006 missile 2 missile#body",
+    "Weapon WS 006 missile 2 dark",
+    "Weapon WS 006 missile 2 plate",
+    "Weapon WS 006 missile 2 steel",
+    "Weapon WS 006 missile 2 glow",
+    "Weapon WS 006 missile 2 missile#fins",
+    "Weapon WS 006 missile 3 missile#body",
+    "Weapon WS 006 missile 3 dark",
+    "Weapon WS 006 missile 3 plate",
+    "Weapon WS 006 missile 3 steel",
+    "Weapon WS 006 missile 3 glow",
+    "Weapon WS 006 missile 3 missile#fins"
    ],
    "kit_muzzles": [
     "Weapon WS 006 muzzle anchor 1",
     "Weapon WS 006 muzzle anchor 2",
-    "Weapon WS 006 muzzle anchor 3",
-    "Weapon WS 006 muzzle anchor 4",
-    "Weapon WS 006 muzzle anchor 5"
+    "Weapon WS 006 muzzle anchor 3"
    ],
    "muzzles": [
     "Anchor turret 6 tube 1 muzzle",
     "Anchor turret 6 tube 2 muzzle",
-    "Anchor turret 6 tube 3 muzzle",
-    "Anchor turret 6 tube 4 muzzle",
-    "Anchor turret 6 tube 5 muzzle"
+    "Anchor turret 6 tube 3 muzzle"
    ]
   }
  ],
@@ -421,9 +483,7 @@
    "muzzles": [
     "Anchor turret 5 tube 1 muzzle",
     "Anchor turret 5 tube 2 muzzle",
-    "Anchor turret 5 tube 3 muzzle",
-    "Anchor turret 5 tube 4 muzzle",
-    "Anchor turret 5 tube 5 muzzle"
+    "Anchor turret 5 tube 3 muzzle"
    ]
   },
   {
@@ -440,9 +500,7 @@
    "muzzles": [
     "Anchor turret 6 tube 1 muzzle",
     "Anchor turret 6 tube 2 muzzle",
-    "Anchor turret 6 tube 3 muzzle",
-    "Anchor turret 6 tube 4 muzzle",
-    "Anchor turret 6 tube 5 muzzle"
+    "Anchor turret 6 tube 3 muzzle"
    ]
   }
  ],
@@ -469,7 +527,7 @@
    "location": [
     -13,
     12,
-    7.66
+    7.7
    ],
    "angle": 90,
    "arc": 200,
@@ -486,7 +544,7 @@
    "location": [
     -13,
     -11,
-    7.67
+    7.74
    ],
    "angle": -90,
    "arc": 200,
@@ -520,7 +578,7 @@
    "location": [
     11,
     20,
-    4.63
+    3.53
    ],
    "angle": 0,
    "arc": 5,
@@ -531,9 +589,7 @@
    "muzzles": [
     "Anchor turret 5 tube 1 muzzle",
     "Anchor turret 5 tube 2 muzzle",
-    "Anchor turret 5 tube 3 muzzle",
-    "Anchor turret 5 tube 4 muzzle",
-    "Anchor turret 5 tube 5 muzzle"
+    "Anchor turret 5 tube 3 muzzle"
    ]
   },
   {
@@ -541,7 +597,7 @@
    "location": [
     11,
     -19,
-    4.57
+    3.45
    ],
    "angle": 0,
    "arc": 5,
@@ -552,9 +608,7 @@
    "muzzles": [
     "Anchor turret 6 tube 1 muzzle",
     "Anchor turret 6 tube 2 muzzle",
-    "Anchor turret 6 tube 3 muzzle",
-    "Anchor turret 6 tube 4 muzzle",
-    "Anchor turret 6 tube 5 muzzle"
+    "Anchor turret 6 tube 3 muzzle"
    ]
   }
  ],
@@ -567,18 +621,14 @@
   "WS 005": "harpoon",
   "WS 006": "harpoon"
  },
- "built_as": {
-  "WS 004": "miningblaster",
-  "WS 005": "annihilator",
-  "WS 006": "annihilator"
- },
+ "built_as": {},
  "running_lights": [
   {
    "name": "Light port neck lamp 1",
    "position": [
     26,
     11.5,
-    5.66
+    5.71
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -593,7 +643,7 @@
    "position": [
     26,
     -11.5,
-    5.66
+    5.71
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -726,15 +776,15 @@
     "hinge": "Hull port fore wedge hinge",
     "H": [
      12.6,
-     -12.3714
+     -12.4046
     ],
-    "stow_deg": 134.005,
+    "stow_deg": 133.715,
     "x": [
      15.0,
      24.0
     ],
     "sole": "Hull port fore wedge sole",
-    "sole_y": 17.0396,
+    "sole_y": 17.0795,
     "rams": [
      {
       "pivot": "Hull port fore wedge ram 1 pivot",
@@ -744,10 +794,10 @@
        2.0
       ],
       "W": [
-       15.5428,
-       -15.1369
+       15.6316,
+       -15.3467
       ],
-      "base": -1.156165
+      "base": -1.156334
      },
      {
       "pivot": "Hull port fore wedge ram 2 pivot",
@@ -757,10 +807,10 @@
        2.0
       ],
       "W": [
-       15.5428,
-       -15.1369
+       15.6316,
+       -15.3467
       ],
-      "base": -1.156165
+      "base": -1.156334
      }
     ]
    },
@@ -769,15 +819,15 @@
     "hinge": "Hull starboard fore wedge hinge",
     "H": [
      -12.6,
-     -12.3727
+     -12.4057
     ],
-    "stow_deg": -134.002,
+    "stow_deg": -133.712,
     "x": [
      15.0,
      24.0
     ],
     "sole": "Hull starboard fore wedge sole",
-    "sole_y": -17.0399,
+    "sole_y": -17.0799,
     "rams": [
      {
       "pivot": "Hull starboard fore wedge ram 1 pivot",
@@ -787,10 +837,10 @@
        2.0
       ],
       "W": [
-       -15.5428,
-       -15.1382
+       -15.6315,
+       -15.3479
       ],
-      "base": -1.9854
+      "base": -1.985226
      },
      {
       "pivot": "Hull starboard fore wedge ram 2 pivot",
@@ -800,10 +850,10 @@
        2.0
       ],
       "W": [
-       -15.5428,
-       -15.1382
+       -15.6315,
+       -15.3479
       ],
-      "base": -1.9854
+      "base": -1.985226
      }
     ]
    },
@@ -812,15 +862,15 @@
     "hinge": "Hull port aft wedge hinge",
     "H": [
      12.6,
-     -12.804
+     -12.8345
     ],
-    "stow_deg": 116.136,
+    "stow_deg": 115.888,
     "x": [
      -17.5,
      -8.5
     ],
     "sole": "Hull port aft wedge sole",
-    "sole_y": 17.0999,
+    "sole_y": 17.1244,
     "rams": [
      {
       "pivot": "Hull port aft wedge ram 1 pivot",
@@ -830,10 +880,10 @@
        2.0
       ],
       "W": [
-       15.6287,
-       -14.9041
+       15.7395,
+       -14.9789
       ],
-      "base": -1.146867
+      "base": -1.143103
      },
      {
       "pivot": "Hull port aft wedge ram 2 pivot",
@@ -843,10 +893,10 @@
        2.0
       ],
       "W": [
-       15.6287,
-       -14.9041
+       15.7395,
+       -14.9789
       ],
-      "base": -1.146867
+      "base": -1.143103
      }
     ]
    },
@@ -855,15 +905,15 @@
     "hinge": "Hull starboard aft wedge hinge",
     "H": [
      -12.6,
-     -12.8027
+     -12.8332
     ],
-    "stow_deg": -116.121,
+    "stow_deg": -115.886,
     "x": [
      -17.5,
      -8.5
     ],
     "sole": "Hull starboard aft wedge sole",
-    "sole_y": -17.1009,
+    "sole_y": -17.1237,
     "rams": [
      {
       "pivot": "Hull starboard aft wedge ram 1 pivot",
@@ -873,10 +923,10 @@
        2.0
       ],
       "W": [
-       -15.6294,
-       -14.9019
+       -15.7396,
+       -14.9775
       ],
-      "base": -1.994806
+      "base": -1.998523
      },
      {
       "pivot": "Hull starboard aft wedge ram 2 pivot",
@@ -886,10 +936,10 @@
        2.0
       ],
       "W": [
-       -15.6294,
-       -14.9019
+       -15.7396,
+       -14.9775
       ],
-      "base": -1.994806
+      "base": -1.998523
      }
     ]
    }
@@ -1122,7 +1172,7 @@
    "location": [
     32.0,
     5.2,
-    -12.986
+    -13.043
    ],
    "exhaust_direction": [
     0,
@@ -1137,7 +1187,7 @@
    "location": [
     32.0,
     -5.2,
-    -12.986
+    -13.043
    ],
    "exhaust_direction": [
     0,
@@ -1249,20 +1299,6 @@
    "anchor": "SWFX anchor turret 5 tube 3"
   },
   {
-   "mount": 5,
-   "tag": "tube 4",
-   "kind": "launcher",
-   "scale": 0.7,
-   "anchor": "SWFX anchor turret 5 tube 4"
-  },
-  {
-   "mount": 5,
-   "tag": "tube 5",
-   "kind": "launcher",
-   "scale": 0.7,
-   "anchor": "SWFX anchor turret 5 tube 5"
-  },
-  {
    "mount": 6,
    "tag": "tube 1",
    "kind": "launcher",
@@ -1282,20 +1318,6 @@
    "kind": "launcher",
    "scale": 0.7,
    "anchor": "SWFX anchor turret 6 tube 3"
-  },
-  {
-   "mount": 6,
-   "tag": "tube 4",
-   "kind": "launcher",
-   "scale": 0.7,
-   "anchor": "SWFX anchor turret 6 tube 4"
-  },
-  {
-   "mount": 6,
-   "tag": "tube 5",
-   "kind": "launcher",
-   "scale": 0.7,
-   "anchor": "SWFX anchor turret 6 tube 5"
   }
  ],
  "gun_rigs_note": "Kit mount numbers in vfx_mounts order. Pirate (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, five-tube launchers.",
@@ -1371,10 +1393,10 @@
   "defaults": {
    "smk_atmosphere": 0.0
   },
-  "objects": 80,
+  "objects": 68,
   "anchors": {
    "engines": 3,
-   "guns": 14,
+   "guns": 10,
    "lamps": 8,
    "sparks": 0,
    "bounds": 2
@@ -1419,7 +1441,7 @@
     "guns": 4,
     "shots": 0,
     "built": true,
-    "launchers": 10
+    "launchers": 6
    },
    "lighting": {
     "ship": 4
@@ -1427,5 +1449,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "4f1c449ab52b4cd9561e6ffc409570b4dc313ce3f3476e43715eb1ff345eb8c5"
+ "asset_sha256": "38ab9cde71214466250322926b02bb8dd9f24c0ca7f65d812467827d9e69fe34"
 }

@@ -39,8 +39,8 @@ manifest.
   sunk into low faired sponsons, an independent pale blue-grey livery, service wear; manifest-merchant.json,
   validation-merchant.json). `finalize.sh --variant merchant` builds the second.
   The merchant's WS 004 and WS 005 / WS 006 carry the vanilla wolf_Assault
-  heavy blaster and Harpoons, built with the mining blaster and Annihilator
-  forms until the turret kit has their own (manifest `built_as`).
+  heavy blaster and Harpoons, from the turret kit's own hardpoints (round 8;
+  before that the mining blaster and Annihilator forms stood in).
 - **Engines.** `Engine 1-3 exhaust anchor` at the three bell mouths, local +X
   down the exhaust: 1 port, 2 centre, 3 starboard, HIGH_TECH blue.
 - **Turret.** `Turret 1 pivot` (WS 001, the ion cannon) trains about its local

@@ -147,6 +147,27 @@ fc_lights.build(kit)
 bpy.context.view_layer.update()
 
 
+# --- Edge treatment (ship-detail-guide.md): the shared bevel table before the bake. ---
+def bevel_hard_edges():
+    """Every hull part without an edge chamfer of its own gets an angle-limited, one-segment
+    bevel sized by its part (hull plates 0.12 m, modules 0.06 m, fittings 0.03 m, small parts
+    0.015 m). Turrets and hardpoints are the turret kit's; glazing, recesses and lamps stay sharp."""
+    for ob in bpy.data.objects:
+        if ob.type != 'MESH' or ob.name.startswith(('Weapon ', 'Turret ', 'Temporary ', 'Light ')):
+            continue
+        if any(m.type == 'BEVEL' for m in ob.modifiers) or (ob.name not in fc_kit.SMOOTH and any(p.use_smooth for p in ob.data.polygons[:1])):
+            continue          # a chamfer of the part's own (or the turret kit's, on a kit-built part)
+        mats = {m.name for m in ob.data.materials if m}
+        if mats and mats <= {kit.glass.name, kit.dark.name}:
+            continue          # glazing and near-black recesses: a chamfer there catches no highlight
+        span = sorted(ob.dimensions)[1]*METRES_PER_UNIT
+        kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
+        b = ob.modifiers.new('Edge treatment', 'BEVEL')
+        b.width, b.segments, b.limit_method = fc_kit.sdk.BEVEL_M[kind]/METRES_PER_UNIT, 1, 'ANGLE'
+        b.angle_limit = math.radians(55)   # every edge the check calls hard (60 deg and up); rounds' soft creases stay
+        b.use_clamp_overlap = True
+
+
 # --- Bake: every modifier applied, so the asset costs nothing to evaluate. ---
 def bake():
     dg = bpy.context.evaluated_depsgraph_get()
@@ -159,11 +180,17 @@ def bake():
         me.name = old.name
         bpy.data.meshes.remove(old)
     for ob in bpy.data.objects:
-        if ob.type == 'MESH':
-            for p in ob.data.polygons:
-                p.use_smooth = False
+        # Plate is flat-shaded; the hull's rounds (fc_kit.SMOOTH) and the kit-built parts keep
+        # the smooth shading their builders gave them, sharp from angle so plate edges stay crisp.
+        if ob.type != 'MESH':
+            continue
+        if ob.name in fc_kit.SMOOTH:
+            fc_kit.sdk.smooth(ob)
+        elif any(p.use_smooth for p in ob.data.polygons) and not ob.name.startswith(('Weapon ', 'Turret ')):
+            fc_kit.sdk.smooth(ob, 32.0)
 
 
+bevel_hard_edges()
 bake()
 leftover = [o.name for o in bpy.data.objects if o.name.startswith('Temporary ')]
 assert not leftover, f'cutters left in the scene: {leftover}'

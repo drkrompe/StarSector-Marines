@@ -26,13 +26,15 @@ def clashes(tol=.15, scene=None):
     dg = bpy.context.evaluated_depsgraph_get()
     mounts = {}
     for ob in scene.objects:
-        if ob.type == 'MESH' and ' hardpoint ' in ob.name and ob.parent is not None:
-            m = ob.parent
+        if ob.type == 'MESH' and ' hardpoint ' in ob.name and ob.parent is not None \
+                and ob.parent.type == 'EMPTY' and not ob.parent.name.endswith('root') and ob.parent.parent is not None:
+            m = ob.parent          # a mount empty under the hull's root, not the root (a hull's 'hardpoint well' parts)
             mounts.setdefault(m.name, set()).update(m.children_recursive)
     weapon = set().union(*mounts.values()) if mounts else set()
     solids = {}
+    fx = {o for c in bpy.data.collections if c.name.startswith('SWFX') for o in c.all_objects}
     for ob in scene.objects:
-        if ob.type != 'MESH' or ob in weapon:
+        if ob.type != 'MESH' or ob in weapon or ob in fx:   # the effects kit's flashes wrap muzzles by design
             continue
         ev = ob.evaluated_get(dg)
         me = ev.to_mesh()

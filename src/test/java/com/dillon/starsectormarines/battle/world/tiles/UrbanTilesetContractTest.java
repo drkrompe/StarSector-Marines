@@ -12,9 +12,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * What {@code urban-tileset} must still contain, whoever writes it.
@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>The sheet is hand-maintained today, and its authoring document has adopted
  * every last id so that it can one day be generated instead. A generated sheet
  * is packed afresh on each export, which makes ids the only thing that survives
- * one; this pins the ids that have to. {@code urban.mapping.json} names
- * eighteen of these doodads in its pools and
- * {@link GenMappingRegistry#validateReferences()} throws on an id it cannot
- * resolve, so dropping one is a startup crash rather than a missing crate.
+ * one; this pins the ids that have to. The generation fittings name these
+ * doodads directly (berthing kit, armory benches, boat-bay stores), and
+ * {@link GenMappingRegistry#validateReferences()} throws on any mapping id it
+ * cannot resolve, so a dropped id is a startup crash rather than a missing crate.
  *
  * <p>Cover and half-height are pinned beside them because they are combat
  * numbers that an export can change without changing anything a reader would
@@ -141,9 +141,10 @@ class UrbanTilesetContractTest {
             }
             mapping.validateReferences();
 
-            // Not a formality: these are the pools that name urban-tileset ids.
-            assertTrue(mapping.doodadPoolIds("MIXED").contains("doodad.box"),
-                    "the MIXED pool should still reach the urban sheet");
+            // Not a formality: validation over empty pools would prove nothing. The district pools
+            // have named colony-furnishings ids, not urban-tileset ones, since the furnishing pass.
+            assertFalse(mapping.doodadPoolIds("MIXED").isEmpty(),
+                    "the MIXED pool should resolve to real doodads");
         } finally {
             TileRegistry.install(previous);
         }

@@ -419,6 +419,16 @@ final class GarrisonDirector {
      * before it reaches for anybody else. {@code null} means no preference.
      */
     List<Man> assign(List<Free> free, Eligibility eligible, Eligibility reserved) {
+        return assign(free, eligible, reserved, MAX_NEW_PER_PULSE);
+    }
+
+    /**
+     * As {@link #assign(List, Eligibility, Eligibility)}, sending at most {@code budget} squads this pulse (never more
+     * than {@link #MAX_NEW_PER_PULSE}): a caller that may only spend part of its force on holding ground says how much
+     * is left of that share. Pickets before massing still holds within the budget.
+     */
+    List<Man> assign(List<Free> free, Eligibility eligible, Eligibility reserved, int budget) {
+        int most = Math.max(0, Math.min(MAX_NEW_PER_PULSE, budget));
         this.pulseReserved = reserved;
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile != null ? System.nanoTime() : 0L;
@@ -433,7 +443,7 @@ final class GarrisonDirector {
             for (int i = 0; i < hotCount; i++) {
                 int g = hot[i];
                 if (have.getOrDefault(g, 0) > 0 || lockedOut(pulseRegistry.centreX(g), pulseRegistry.centreY(g))) continue;
-                if (out.size() >= MAX_NEW_PER_PULSE) {
+                if (out.size() >= most) {
                     capped = true;
                     break;
                 }
@@ -449,7 +459,7 @@ final class GarrisonDirector {
                 out.add(new Man(free.get(pick).squadId(), g));
             }
             if (!capped) {
-                for (int i = 0; i < hotCount && out.size() < MAX_NEW_PER_PULSE; i++) {
+                for (int i = 0; i < hotCount && out.size() < most; i++) {
                     int g = hot[i];
                     if (have.getOrDefault(g, 0) != 1 || !wantsSecond(g)
                             || lockedOut(pulseRegistry.centreX(g), pulseRegistry.centreY(g))) continue;

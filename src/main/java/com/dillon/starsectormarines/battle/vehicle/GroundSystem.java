@@ -107,6 +107,7 @@ public class GroundSystem {
                 moveOrders, convoy, navigation, controlSystem, transport);
         this.turrets = new GroundVehicleTurretSystem(convoy, roster, tacticalScoring,
                 navigation.getGrid(), world, fireSink);
+        this.turrets.setAssaults(moveOrders);
         this.engagement = new VehicleEngagement(convoy, roster, navigation, controlSystem);
     }
 
@@ -114,6 +115,11 @@ public class GroundSystem {
     public void setSpotting(SideSpotting spotting) {
         turrets.setSpotting(spotting);
         engagement.setSpotting(spotting);
+    }
+
+    /** How a click is told apart from a move when it lands on a garrisonable the side believes is enemy-held. */
+    public void setAssaultPlanner(VehicleMoveOrderSystem.AssaultPlanner planner) {
+        moveOrderSystem.setAssaultPlanner(planner);
     }
 
     /** Gives bladed hulls the blade that opens ground ahead of them. */

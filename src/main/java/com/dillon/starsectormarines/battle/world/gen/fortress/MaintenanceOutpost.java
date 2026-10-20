@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -108,8 +112,10 @@ public final class MaintenanceOutpost {
                 new DoorwayClearanceStage(),
                 new OutdoorLandscapeStage(marineX, marineY, gate[0], gate[1]),
                 MaintenanceOutpostLandscape::fields, new InteriorAnchorFitStage())).run(c);
+        TacticalMap held = c.get(BspKeys.TACTICAL_MAP);
+        for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(c.pois, held.all(), poi -> Faction.DEFENDER)) held.add(place);
         var result = new MapResult(c.grid, c.topology, marineX, marineY, gate[0], gate[1],
-                c.pois, c.doodads, c.get(BspKeys.TACTICAL_MAP), c.get(BspKeys.BUILDINGS),
+                c.pois, c.doodads, held, c.get(BspKeys.BUILDINGS),
                 c.defensePosts, c.get(BspKeys.ROAD_GRAPH), c.landingPads, List.of(), null,
                 c.gantries, c.fixtureTasks);
         for (var poi : result.pointsOfInterest)

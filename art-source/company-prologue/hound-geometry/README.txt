@@ -71,9 +71,10 @@ Reading of the sprite
 - Drive pods: whole drive units, not nozzles in the hull. Each is a domed
   intake cap, a forward casing, an orange armour collar (the widest band,
   with the dorsal vent ring the sprite shows), an aft casing with a
-  reinforcing band, a thrust housing and one twelve-sided engine can. The
+  reinforcing band, a thrust housing and one round engine can. The
   bell is sunk into the can's aft face. Seams open onto a dark core.
-- Bridge capsule (port bow): a twelve-sided capsule with a cream glazed nose
+- Bridge capsule (port bow): a round capsule (twelve-sided until the detail
+  rule pass) with a cream glazed nose
   (the lit lamps) inside an elliptical crash cage. The cage is four ring
   frames at the sprite's proud rows and five fore-aft bars.
 - Gun fork (starboard bow): the H around WS 001. A base, two tines with twin
@@ -112,9 +113,15 @@ Every lamp is where hound_lights.png shows light.
 - Fork and mounts (hd_fork, hd_mounts): channel-section tines with dark
   webs, ribs and cream tip caps, an I-beam cross bar with a targeting
   sensor, a gun trough with cradle rails, plated base with hatches.
-  WS 001 is a naval breech on a recoil slide with recoil cylinders, a
-  jacketed barrel and ported brake (muzzle X 40.44), fed by a belt chute
-  from the shielded hold. WS 002 is a small naval turret: bolted armour
+  WS 001 is the shared turret kit's chaingun hardpoint (2026-10-20; it
+  replaced the hull's own naval gun and the Hound (P)'s own chaingun):
+  tk.build_hardpoint('chaingun') at k 0.5 on the empty 'Weapon WS 001
+  mount' (X 24.95, axis Z 0.2), sunk in a bay cut from the fork base and
+  the tine roots (hd_mounts.BAY; the old trough fittings are removed). The
+  six-barrel cluster rides 'Weapon WS 001 rotor' inside 'Weapon WS 001
+  recoil 1'; one muzzle, 'Weapon WS 001 muzzle anchor 1', on the cluster
+  axis at X 39.45. Both states carry it. turret-kit/check_hardpoints.py
+  must report it clear. WS 002 is a small naval turret: bolted armour
   collar, glacis, mantlet and trunnions, cupola with vision blocks, sight
   and ready-round box. WS 003 is an armoured, hazard-framed shutter with a
   4x3 tube grid. Both guns pass a BVH clearance check on every build.
@@ -160,6 +167,25 @@ freighter")
   Neither is saved in the committed .blend.
 - IoU unchanged at 0.942: nothing new leaves the existing plan outline.
 
+Detail rule (close-shot pass, 2026-10-20)
+The hull meets ship-detail-guide.md at a close view. check_detail (turrets
+and SWFX excluded, against hound_lights.png) on the Hound (A) export went
+faceted 81 -> 0, unbevelled 1.70 -> 0.83 m per 100 m2, emissive off the
+lights layer 11 -> 0 (Hound (P): 91 -> 2, 1.64 -> 0.84, 11 -> 0). Every round
+the hull builds (hd_kit.Kit.cylinder, the engines' pegs, rings and bells, the
+bridge capsule, its panels and cage rings) takes at least the segment rule's
+count (hd_kit.sides; hex heads up to 0.15 m keep six) and is smooth-shaded
+with sharp caps; the capsule is round, its panels on 5-degree stations. Own
+chamfers are angle-limited at 50 degrees so a designed 45-degree chamfer stays
+one facet; every part without one gets the guide's tiered bevel
+(hd_kit.edge_treatment, edges over 70 degrees). The bridge glazing, mast yard
+lamps and ramp work lights are not on the lights layer and are now dark
+(material 'Wheelhouse glazing', glass class in hound-surface); the lit lenses
+are the capsule's, the deckhouse's three amber lamps and the pod heat vents.
+Kept: two pirate slabs' torch-cut corners (starboard deck 3, starboard pod 1),
+which read to the check as 1.3-1.5 m rounds. Names, anchors and the plan
+outline are unchanged (plan IoU 0.9372 -> 0.9371); tris 77k -> 140k.
+
 Silhouette check
 compose_review.py lays the sprite into the top camera frame and compares
 its alpha with the render's alpha. Pass 3: IoU 0.942 (pass 2: 0.942, pass 1: 0.940);
@@ -199,18 +225,13 @@ armour. --state clean (the default) is the committed Hound (A), unchanged.
   bead round its foot), '... bolts', '... lugs' on three; starboard deck 1
   and port pod 2 have a cut-out showing the original plate. Material
   'Pirate scrap armour'; welds 'Recess and machinery'.
-- Guns (hd_mounts.build(kit, hd_pirate.GUNS) replaces only the barrel
-  groups; mounts, cradle, breech, mantlet, feed, houses are the clean ones):
-  WS 001 chaingun: 'Weapon WS 001 motor housing', '... drive motor',
-  '... ammo feed' (+ drop), and under the empty 'Weapon WS 001 rotor'
-  (local X = spin axis) the spindle, barrel 1-6, rear barrel clamp, barrel
-  clamp, muzzle bores and 'Weapon WS 001 muzzle brake' (the muzzle plate).
+- Guns (hd_mounts.build(kit, hd_pirate.GUNS) replaces only WS 002's barrel
+  group; WS 001 is the kit chaingun of the clean state, see above).
   WS 002 twin light MG: 'Weapon WS 002 twin cradle', barrel 1-2,
   perforated barrel jacket 1-2, muzzle brake 1-2 and muzzle bore 1-2 (no
   plain '... muzzle brake'); trained with the house above the traverse gap.
-  WS 003 unchanged. Absent in this state: WS 001 recoil sleeve, recoil
-  cylinders, barrel, barrel jacket, jacket bands, muzzle bore and the old
-  muzzle brake; WS 002 barrel, barrel jacket and muzzle brake.
+  WS 003 unchanged. Absent in this state: WS 002 barrel, barrel jacket and
+  muzzle brake.
 - Scars: hd_pirate.SCARS, light wear, stable ids HD01-HD11, each placed by a
   ray-cast: scorches HD01 (port pod skirt), HD05 (deckhouse front, feed-port
   armour), HD07 (deck forward of the turret), HD09 (bridge capsule aft

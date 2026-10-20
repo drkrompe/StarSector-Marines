@@ -72,7 +72,7 @@ Slots (exactly as shepherd.ship)
   WS 007  TURRET    SMALL BALLISTIC  (-3, -23)   angle -75, arc 200
           -> 'Turret 1 WS 007 ...', trained to -75 above the traverse gap
   WS 008  HARDPOINT SMALL UNIVERSAL  (27, -19)   angle 0, arc 20
-          -> 'Hardpoint 1 WS 008 ...', in the repair gantry's forward bed
+          -> 'Hardpoint 1 WS 008 ...', in the repair gantry's forward well
   WS 003  HIDDEN    SMALL LAUNCH_BAY (-3,19) (12,19) (26,19) angle 0, arc 5
           -> the drone bay: three dorsal openings, one per launch location
 Each mount has '<prefix> pivot' and '<prefix> muzzle' empties.
@@ -153,7 +153,12 @@ offered in this harness)
   Mounts   WS 007 naval turret (barbette, chamfered gun house, trunnions,
            twin barrels with jackets and muzzle brakes, sight, ready box and
            feed), lifted 1 unit so the barrels clear the crossbeam through
-           the whole arc; WS 008 armoured universal hardpoint on the bed.
+           the whole arc. WS 008 (2026-10-20): the shared turret kit's
+           hardpoint for shepherd_Frontier, the Swarmer pack
+           (tk.build_hardpoint at k 0.5 on 'Hardpoint 1 WS 008 pivot'), its
+           well cut to the kit's bay and its housing standing on the bed;
+           '<prefix> muzzle' rides tube 1, '<prefix> muzzle anchor 1-4' the
+           four tubes. check_hardpoints.py: no clips.
 Checks: check_clashes.py (cross-module overlaps: the remaining hits are
 deliberate embedding) and check_turret_arc.py (WS 007 at rest, both arc
 limits and every 10 deg; no clashes), both run inside Blender after a build:
@@ -202,3 +207,20 @@ Pass 6 accepted 2026-10-18. Pass 7 (appendable export, effects) is ../shepherd-c
 Pass 7 accepted 2026-10-18 (shipped for now). Pass 5 (grounded/damaged, recovered)
 stays deferred until a cinematic needs it: the battle over the planet where the
 Shepherd and the Colossus went down.
+
+Detail rule (2026-10-20, close-shot pass)
+On ship-detail-kit/check_detail.py (whole build, turrets included) the
+Shepherd read faceted 37, unbevelled 2.71 m per 100 m2 and 14 emissives off
+the lights layer; it now reads faceted 0, unbevelled 0.21, emissive 0 and no
+unframed glazing (top-view IoU 0.9362 -> 0.9361). Every round follows the
+segment rule through sh_kit.seg (kit.cylinder, revolve_x and each module's
+cyl/ring/dome/dish/arc; 6-sided bolt heads stay hexagonal) and curved bodies
+are smooth-shaded; the bridge hull's section is drawn at 36 steps, not 18;
+the outrigger trusses and servicing arms take a fitting bevel; the turret's
+bustle chamfers stay plate (bevel on its square edges only). The hull has no
+lights layer, so its glass is dark (the bridge streaks are reflectance), the
+turntable ring is paint, the charging contacts are steel and each bay
+floodlight is a housing with a lit 'Drone bay service block lamp lens <j>'.
+Pods, drum and decks over 5 m radius remain the designed faceted lofts the
+check lists as hull facets. Readings left: the gantry base deck and turret
+deck undersides (236 and 146 m2 bare).

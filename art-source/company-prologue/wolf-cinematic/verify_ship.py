@@ -12,7 +12,7 @@ counts match the manifest; three `Engine <i> exhaust anchor` empties at the
 slot mouths pointing aft; Turret 1 (WS 001) trains about its pivot (its muzzle
 swings with it, its barbette stays) and elevates; the three hardpoints' muzzles
 point along the bow; every declared VFX muzzle rides a turret-kit muzzle at
-zero offset (12: one ion, one blaster, five tubes a pod); eight lamps with
+zero offset, one per kit barrel and tube (12 on the pirate, 10 on the merchant); eight lamps with
 blink properties; the gear_down knob swings the four wedges from up the hull
 side down to the ground plane beside the fixed keel shoes, every ram following
 its wedge, and the four lift thruster anchors point down; moving the root moves every part rigidly.
@@ -142,7 +142,11 @@ check('hardpoint muzzles point along the bow', not bad and len(man['hardpoints']
 declared = [n for m in man['vfx_mounts'] for n in m['muzzles']]
 bad = [n for n in declared if not (anchors.get(n) and anchors[n].parent and anchors[n].parent.type == 'EMPTY'
                                     and maxdiff(anchors[n].matrix_world, anchors[n].parent.matrix_world) < 1e-4)]
-check('declared VFX muzzles ride the kit muzzles', not bad and len(declared) >= 12, bad or f'{len(declared)} muzzles')
+# One per barrel and tube the kit built: 12 on the pirate (five tubes a launcher
+# head), 10 on the merchant (three Harpoons a launcher).
+kit = sum(len(m['kit_muzzles']) for m in man['turrets'] + man['hardpoints'])
+check('declared VFX muzzles ride the kit muzzles', not bad and declared and len(declared) == kit,
+      bad or f'{len(declared)} declared, {kit} kit muzzles')
 
 bad = [l['name'] for l in man['running_lights'] if not bpy.data.objects.get(l['name'])]
 check('lamps', not bad and len(man['running_lights']) == 8, bad)

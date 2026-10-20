@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.ops.CompanyStoryDialogDelegate;
 import com.dillon.starsectormarines.ops.CompanyYardScreen;
+import com.dillon.starsectormarines.ops.MenuTheme;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
@@ -44,7 +45,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
             FleetMemberAPI ship = selected(local);
             String failure = CompanyYard.install(ship, CompanyYard.dockedMarket());
             portrait(dialog);
-            if (failure == null && personalYard(ship))
+            if (failure == null && secondWind(ship))
                 dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDNessaSaysSheLlKeepTheOld"));
             dialog.getTextPanel().addPara(failure != null ? failure
                     : Strings.get("openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces"));
@@ -68,7 +69,9 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(Global.getSettings().getScreenWidth(), Global.getSettings().getScreenHeight(),
-                new CompanyStoryDialogDelegate(new CompanyYardScreen(ship, personalYard(ship)), () -> {
+                CompanyStoryDialogDelegate.storybook(new CompanyYardScreen(ship), () -> {
+                    // The theme carries on over the port menu into Marine operations; undocking ends it.
+                    MenuTheme.shared().holdWhileOpen(dialog);
                     dialog.showTextPanel();
                     dialog.showVisualPanel();
                     FireBest.fire(null, dialog, memoryMap, "OpenInteractionDialog");
@@ -89,19 +92,18 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         dialog.getTextPanel().addImage(CompanyManagementGuide.portrait());
         dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDCastleCompanyOfficer"));
     }
-    private static boolean personalYard(FleetMemberAPI ship) {
-        var market = CompanyYard.dockedMarket();
-        return ship != null && ship.getId().equals(CerberusCompanyStart.startingShipId())
-                && market != null && "jangala".equals(market.getPlanetEntity().getId());
+    /** Second Wind's own conversion is Nessa's job at whichever port the start chose; any other Cerberus gets the yard. */
+    private static boolean secondWind(FleetMemberAPI ship) {
+        return ship != null && ship.getId().equals(CerberusCompanyStart.startingShipId());
     }
     private static void review(InteractionDialogAPI dialog, FleetMemberAPI ship) {
         portrait(dialog);
         if (CerberusCompanyStart.conversionRequired()) {
-            dialog.getTextPanel().addPara(personalYard(ship)
+            dialog.getTextPanel().addPara(secondWind(ship)
                     ? Strings.get("openingCompanyYardCMDNessaVennMetUsAtTheBerth")
                     : Strings.get("openingCompanyYardCMDTheYardCanMakeRoomForBunks"));
-            // Jangala only: the player meets Mara through her sister's yard.
-            if (personalYard(ship)) dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDHerRacksAreHalfEmptyMostOf"));
+            // The player meets Mara through her sister's yard.
+            if (secondWind(ship)) dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDHerRacksAreHalfEmptyMostOf"));
         }
         dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDMercenaryCompanyConversion", (ship == null ? "" : " - " + ship.getShipName())));
         dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDPermanentInstallationPersonnelCapacityCargoCapacityExpanded"));

@@ -1,6 +1,6 @@
 """Add the shared VFX kit's effects to the exported Shepherd as an optional collection.
 
-  blender --background --factory-startup --python export_effects.py
+  blender --background --factory-startup --python export_effects.py [-- --dir DIR]
 
 Opens shepherd.blend, runs the kit's own `swfx.apply` with this folder's
 hull profile (vfx_hull.py: three MIDLINE drives, two maneuvering jets as RCS,
@@ -21,12 +21,15 @@ import sys
 import bpy
 
 HERE = Path(__file__).resolve().parent
+# --dir DIR reads and writes the asset, manifest and validation there (default: here).
+_argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+OUT = Path(_argv[_argv.index('--dir') + 1]).resolve() if '--dir' in _argv else HERE
 VFX = HERE.parent / 'second-wind-vfx'
 sys.path.insert(0, str(VFX))
 import swfx  # noqa: E402
 import swfx_core  # noqa: E402
 
-BLEND = HERE / 'shepherd.blend'
+BLEND = OUT / 'shepherd.blend'
 GROUPS = ('thrusters', 'smoke', 'guns', 'lighting')
 bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 ctx = swfx.apply(state='clean', groups=GROUPS, hull=HERE)
@@ -46,7 +49,7 @@ def summary(rec):
     return rec
 
 
-man_path = HERE / 'manifest.json'
+man_path = OUT / 'manifest.json'
 man = json.loads(man_path.read_text())
 man['effects'] = {
     'collection': swfx_core.ROOT,

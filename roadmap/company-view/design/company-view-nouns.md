@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — The first Hermes is repaired after Relief, in Castle's first-lift lesson; preparation is ship, Sabine, squad, assignment.
+Updated: 2026-10-20 — The Second Wind prologue is seven pages, each turned on the Commander's answer; Castle's saved credits pay for the yard.
 
 ## Purpose
 
@@ -1263,13 +1263,16 @@ wreck's five d-mods and only two Vulcans in its small mounts, the guns nobody st
 Vanilla and Nexerelin starts hand out the same variant (`CerberusCompanyStart.START_VARIANT_ID`);
 restoring and arming her are ordinary yard work, not part of the opening.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
-A new selection first opens **Second Wind**, a skippable eight-scene illustrated prologue
-with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an
+A new selection first opens **Second Wind**, a skippable seven-page illustrated prologue
+with Castle's portrait and readable dialogue; each page turns on the Commander's own
+answer to her, and the last one, "Take us to" the start port, plots the course. The crew escaped **Harker's Claim**, an
 independent mining asteroid, after its operator withdrew. Company scrip became
 worthless as the colony's supplies ran out. They restored a grounded Cerberus; the player
 earned command by organizing the escape, while Castle supplied port and convoy
-logistics experience. Earlier player biography remains open. Pooled savings and
-Castle's finite prepaid consignment explain the starting means. Castle holds the
+logistics experience. Earlier player biography remains open. They set out for
+Jangala from the start, on Castle's one contact there, Nessa Venn at Greywater Down.
+Everyone aboard holds worthless company scrip; the real credits Castle quietly saved
+are what pay for the yard, and her finite prepaid consignment explains the stores. Castle holds the
 4,862-credit conversion payment (her chits) separately from the fleet account, usable only for
 the original ship's yard conversion. It falls short of the 4,986 estimate by exactly
 the pressure test, which the yard waives whenever the reserve pays, so spending the
@@ -1283,15 +1286,17 @@ disabled freighter home despite repeated threats to leave her behind; their fami
 barbs and her attention to the repairs carry that relationship into the yard visit.
 This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
 are authored backstory, not new sector entities or additional mission prerequisites.
-The prologue uses the actual accessible
-destination and adjusts its copy if Jangala is unavailable. Its final action plots
+There is one story for every start port (owner, 2026-10-20): when the start
+lands elsewhere because Jangala is unavailable, Castle, Nessa and Mara still speak
+of Jangala, and only the course, objective, Intel and mission text that names a
+place uses the actual accessible destination. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
 survive saves; ordinary starts and pre-prologue saves do not opt in on load.
 The opening grants no resources, repairs, conversion, recruits or mission progress.
 Its illustrations are presentation, not a new hull-condition authority. Each beat
 has its own image: bridge, Claim, last carrier, emergency repairs, boarding,
-port approach, makeshift sleeping space and the estimate. Exterior workers wear
+port approach and makeshift sleeping space. Exterior workers wear
 sealed industrial EVA suits; boarding takes place inside a pressurized loading dock.
 Exterior views use an upscaled vanilla Cerberus sprite as their identity reference.
 Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay outside `mod/`.
@@ -1304,14 +1309,27 @@ The Cerberus opening names **Mercenary Company Conversion** explicitly and direc
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
 At an accessible planetary port that entry opens the founding conversion first as
 a four-page storybook on the prologue's retained document and custom visual host:
-the bill, paid by page 1's Next; the runway the account leaves; and, at Jangala, the
-road up and the ore-dust papers that send the company to work (`opening-dialogue.md`
+the bill, paid by page 1's Next; the runway the account leaves; the
+road up; and the ore-dust papers that send the company to work (`opening-dialogue.md`
 §2). Nothing is spent before that Next. After it the pages are a straight
 click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second
 bay and Mech Lab stay damaged. The planet interaction remains alive as the docking
 and depot authority, and its ordinary menu returns when the storybook closes. Until the
 founding conversion is installed, no alternative hull can bypass company designation.
+
+**The menu theme.** The opening storybook (the prologue's pages and the yard's) plays
+the same looping Marines theme as Marine operations, never vanilla's campaign music,
+and it is one track rather than two players (`MenuTheme`): every surface that wants it
+holds it while shown, the first holder starts it and the last one out fades it and
+restores default music. A hand-over between holders therefore neither restarts the
+track nor lets vanilla in. The yard pages hand it to the port they return to, which
+keeps it through that port's menu and into Marine operations until the player
+undocks. The Jangala arrival plays its own score: it fades the theme out rather than
+under it, and the next storybook page brings it back. The battle likewise replaces
+the track and the next ordinary screen restarts it. A game load forgets every holder
+and lifts the suspension, so a dialog torn down without its dismissal cannot leave a
+campaign silent.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted
 this start's Cerberus. Its contents derive from one Hermes recipe and one standard

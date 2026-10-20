@@ -24,8 +24,9 @@ doors, so there is no control empty):
    the geometry marks `trained` rides it, the deck ring and barbette stay;
    `Anchor turret 1 port|starboard gun muzzle` sit on its twin muzzle brakes
    (port is left of the line of fire, the kit's twin-mount tags). The fixed
-   WS 008 hardpoint gets `Anchor turret 2 gun muzzle` (the kit's gun rigs
-   number every declared muzzle as a turret);
+   WS 008 hardpoint (the turret kit's Swarmer pack) gets `Anchor turret 2 gun
+   muzzle` on its first tube and `Anchor turret 2 tube 2|3|4 muzzle` on the
+   others (the kit's gun rigs number every declared muzzle as a turret);
 6. `Engine 1|2 exhaust anchor` at the two main drive mouths and `RCS
    <side> <forward|aft> jet anchor` at the four maneuvering jets (the
    geometry's own `Engine 3-6` empties are replaced); the drone bay's three
@@ -37,6 +38,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import sys
 import bpy
 from mathutils import Matrix, Vector
@@ -198,12 +200,25 @@ turrets.append({'index': 1, 'slot': slot['id'], 'size': slot['size'], 'pivot': p
 hp = next(s for s in geom['weapon_slots'] if s['mount'] == 'HARDPOINT')
 hm = bpy.data.objects[hp['muzzle']]
 hfire = Vector((math.cos(math.radians(hp['angle'])), math.sin(math.radians(hp['angle'])), 0))
+# The geometry's own muzzle (on the first tube's mouth) keeps the rig's single-gun name;
+# the turret kit's anchors on the other tubes are 'tube <k>' of the same rig 2.
 ha = empty('Anchor turret 2 gun muzzle', anchors_coll, .8, 'SINGLE_ARROW', root,
            Matrix.Translation(hm.matrix_world.translation) @ frame(hfire).to_4x4())
+kit = hp.get('hardpoint') or {}
+tubes = [{'tag': 'gun', 'anchor': ha.name, 'rides': hm.name, 'at': [round(c, 3) for c in hm.matrix_world.translation]}]
+for k, name in enumerate(kit.get('muzzles', [])[1:], 2):
+    src = bpy.data.objects[name]
+    a = empty(f'Anchor turret 2 tube {k} muzzle', anchors_coll, .8, 'SINGLE_ARROW', root,
+              Matrix.Translation(src.matrix_world.translation) @ frame(hfire).to_4x4())
+    tubes.append({'tag': f'tube {k}', 'anchor': a.name, 'rides': src.name,
+                  'at': [round(c, 3) for c in src.matrix_world.translation]})
 hardpoints = [{'slot': hp['id'], 'mount': 'HARDPOINT', 'fixed': True, 'angle_deg': hp['angle'], 'arc_deg': hp['arc'],
+               'weapon': kit.get('weapon'), 'variant': kit.get('variant'), 'kind': 'launcher' if kit else 'gun',
                'anchor': ha.name, 'at': [round(c, 3) for c in hm.matrix_world.translation],
-               'axis': [round(c, 3) for c in hfire],
-               'note': "the kit numbers every declared muzzle as a turret: this is gun rig 2, which never trains"}]
+               'axis': [round(c, 3) for c in hfire], 'muzzles': tubes,
+               'rounds': kit.get('moving', []),
+               'note': "the kit numbers every declared muzzle as a turret: this is gun rig 2, which never trains; "
+                       "'gun' is tube 1, the hull's own muzzle"}]
 
 # 6. Drive and jet anchors at the slot mouths; drone bay anchors.
 engines, rcs = [], []
@@ -303,7 +318,7 @@ manifest = {
     'baked_meshes': len(baked),
     'images': sorted(i.name for i in bpy.data.images if i.packed_file),
     'effects': None,
-    'sources': {'skinned_blend': str(SKINNED.relative_to(PROLOGUE)).replace('\\', '/'),
+    'sources': {'skinned_blend': os.path.relpath(SKINNED, PROLOGUE).replace('\\', '/'),
                 'geometry_json_sha256': sha(GEOM_JSON),
                 'skin_manifest_sha256': sha(SURFACE / 'skin-manifest.json')},
     'conventions': {
@@ -316,7 +331,7 @@ manifest = {
     },
 }
 print('EXPORT', len(ship), 'objects', polys, 'polys; engines', len(engines), 'rcs', len(rcs),
-      'turret parts trained', len(trained), 'muzzles', len(muzzles) + 1, 'openings', len(openings), 'lamps', len(lamps))
+      'turret parts trained', len(trained), 'muzzles', len(muzzles) + len(tubes), 'openings', len(openings), 'lamps', len(lamps))
 if not args.no_save:
     OUT.mkdir(parents=True, exist_ok=True)
     bpy.context.preferences.filepaths.save_version = 0

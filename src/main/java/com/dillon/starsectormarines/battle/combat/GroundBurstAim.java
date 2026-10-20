@@ -26,7 +26,7 @@ final class GroundBurstAim {
         }
         float clampedAccuracy = Math.max(0f, Math.min(1f, accuracy));
         float atRange = PointAim.BASE_ERROR_CELLS + Math.max(0f, effectiveSpread)
-                + PointAim.ACCURACY_ERROR_CELLS * (1f - clampedAccuracy);
+                + PointAimDispersion.WEAPON.accuracyErrorCells * (1f - clampedAccuracy);
         float fraction = Math.max(0f, distance) / weaponRange;
         return atRange * fraction * (1f + OVER_RANGE_GROWTH * Math.max(0f, fraction - 1f));
     }

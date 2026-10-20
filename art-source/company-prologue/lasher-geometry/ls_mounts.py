@@ -217,11 +217,20 @@ def _cut_bay(kit, sid, mount, box, keep, pods_only=True):
         if pods_only and not ob.name.startswith('Pod ') and any(min(c[i] for c in bb) < lo[i]-6 or max(c[i] for c in bb) > hi[i]+6
                                                   for i in range(2)):
             continue
+        for bm_ in ob.modifiers:          # its own chamfer, held to hard edges as the build does
+            if bm_.type == 'BEVEL' and bm_.limit_method == 'ANGLE':
+                bm_.angle_limit = max(bm_.angle_limit, math.radians(65))
         mod = ob.modifiers.new('bay', 'BOOLEAN')
         mod.operation, mod.solver, mod.object = 'DIFFERENCE', 'EXACT', cutter
         bpy.context.view_layer.update()
         dg = bpy.context.evaluated_depsgraph_get()
         me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        import bmesh
+        bm = bmesh.new()                 # merge the boolean's near-coplanar slivers back into faces
+        bm.from_mesh(me)
+        bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(1.5), verts=bm.verts, edges=bm.edges)
+        bm.to_mesh(me)
+        bm.free()
         own = next((m for m in me.materials if m is not None), None)
         for i, m in enumerate(me.materials):     # the cut faces take the part's own finish
             if m is None:

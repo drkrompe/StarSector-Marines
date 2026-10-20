@@ -329,6 +329,7 @@ class ConquestTrialEvidenceTest {
             ContestedAirProbe contested = new ContestedAirProbe(fortCentre[0], fortCentre[1], FORT_REACH);
             BunkerProbe bunkerProbe = new BunkerProbe();
             MechTimeToKillProbe mechs = new MechTimeToKillProbe();
+            AttackerHoldProbe holdProbe = new AttackerHoldProbe();
             int wallOpenAtStart = openedWallCells(sim, ground);
             FightingPositionIndex startPositions = sim.fightingPositions();
             assertTrue(startPositions.runCount() > 0, "the trial fort stands a belt of fighting positions");
@@ -353,6 +354,7 @@ class ConquestTrialEvidenceTest {
                 contested.sample(sim);
                 bunkerProbe.sample(sim);
                 mechs.sample(sim);
+                holdProbe.sample(sim);
                 for (SatchelChargeService.ChargeView charge : sim.satchelCharges().activeCharges()) {
                     if (charge.targetId() == 0L) wallCharges.add(charge.id());
                 }
@@ -402,7 +404,7 @@ class ConquestTrialEvidenceTest {
                             + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
                             life[0], life[1], life[2], life[3], life[4], life[5], life[6])
                     + mechs.describe() + forts.describe(sim) + fireSupport.describe(sim) + contested.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
-                    + positionUse.describe();
+                    + positionUse.describe() + holdProbe.describe();
             JSONObject json = new JSONObject().put("fixture", f).put("winner", winner).put("ticks", ticks)
                     .put("objectiveTakenTick", objectiveTaken).put("keepTakenTick", keepTaken)
                     .put("firstMarineAtFortTick", firstAtFort).put("peakMarinesAtFort", peakAtFort)
@@ -424,6 +426,7 @@ class ConquestTrialEvidenceTest {
                     .put("skyNotes", skyNotes(trace))
                     .put("bunker", bunkerProbe.json())
                     .put("mechs", mechs.json())
+                    .put("attackerHold", holdProbe.json())
                     .put("wallChargesSet", wallCharges.size())
                     .put("potCloudsStood", screenClouds.size())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())

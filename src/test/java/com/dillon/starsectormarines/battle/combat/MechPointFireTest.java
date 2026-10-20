@@ -35,20 +35,24 @@ class MechPointFireTest {
     private static final PointFireAim EAST = new PointFireAim(60.5f, 20.5f);
 
     @Test
-    void directMountsKeepIndependentResourcesAndIndirectMountNeverTriggers() {
+    void everyMountKeepsIndependentResourcesAndTheArcingRackDropsOnThePoint() {
         Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         MechWeaponMount lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         f.fire(NORTH);
-        assertEquals(2, f.shots.getActiveShots().size());
+        assertEquals(3, f.shots.getActiveShots().size());
         assertEquals(arms.component.cycleSeconds() - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
         assertEquals(srm.component.cycleSeconds() - BattleSimulation.TICK_DT, srm.cycleRemaining, 0.00001f);
         assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
-        assertEquals(lrm.component.ammoCapacity, lrm.ammo);
-        assertEquals(0f, lrm.cycleRemaining);
-        assertEquals(0, lrm.burstRemaining);
+        assertEquals(lrm.component.ammoCapacity - 1, lrm.ammo);
+        assertEquals(lrm.component.cycleSeconds() - BattleSimulation.TICK_DT, lrm.cycleRemaining, 0.00001f);
+        Projectile salvo = f.shots.getActiveProjectiles().stream()
+                .filter(p -> p.sourceWeaponId.equals(lrm.weaponDef().id)).findFirst().orElseThrow();
+        assertNotNull(salvo.onArrival, "an LRM round always lands");
+        assertEquals(NORTH.x(), salvo.onArrival.endpointX, 0.001f);
+        assertEquals(NORTH.y(), salvo.onArrival.endpointY, 0.001f);
         assertEquals(11, arms.burstRemaining);
         assertEquals(1, srm.burstRemaining, "the installed small rack owns packet size");
         assertEquals(NORTH, arms.burstPointAim);
@@ -72,7 +76,8 @@ class MechPointFireTest {
         assertEquals(1, srm.burstRemaining);
         assertEquals(0f, lrm.cycleRemaining);
         assertEquals(lrm.component.ammoCapacity, lrm.ammo);
-        assertFalse(HeavyWeapons.supportsPointFire(lrm));
+        assertTrue(HeavyWeapons.supportsPointFire(lrm));
+        assertFalse(HeavyWeapons.firesFlat(lrm));
         for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, 2);
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
         assertEquals(ammo - 1, srm.ammo, "selection does not split or reprice the authored trigger pack");
@@ -117,6 +122,21 @@ class MechPointFireTest {
         assertTrue(f.shots.getActiveShots().isEmpty());
         assertEquals(0f, arms.cycleRemaining);
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
+    }
+
+    @Test
+    void anLrmRackRefusesAPointInsideItsMinimumWithoutSpendingWhileRocketsStillFire() {
+        Fixture f = new Fixture(null, MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
+        MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        MechWeaponMount lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
+        float flux = f.loadout.flux.value();
+        f.fire(new PointFireAim(20.5f, 20.5f + HeavyWeapons.MIN_MANUAL_ARC_RANGE_CELLS - 1f));
+        assertEquals(lrm.component.ammoCapacity, lrm.ammo);
+        assertEquals(0f, lrm.cycleRemaining);
+        assertEquals(0, lrm.burstRemaining);
+        assertEquals(srm.component.ammoCapacity - 1, srm.ammo, "the rocket rack on the same button still fires");
+        assertTrue(f.loadout.flux.value() - flux <= srm.component.fluxPerTrigger() + 1e-4f,
+                "the refused rack reserves no flux");
     }
 
     @Test
