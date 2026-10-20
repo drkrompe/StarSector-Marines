@@ -43,6 +43,9 @@ GIMBAL = {
     'reaper': dict(kind='off'), 'pdlaser': dict(kind='off'),
     'ioncannon': dict(feed='cable'), 'railgun': dict(feed='cable', sleeves=False),
     'lightmg': dict(kind='open'),
+    # The heavy autocannon's fingers are its elevating mass, hinged in the house
+    # (_house_heavyac2): sleeves on the barrels only.
+    'heavyac': dict(kind='fingers'),
     'squall': dict(kind='off'), 'hurricane': dict(kind='off'),
 }
 ENERGY = {'ioncannon', 'railgun'}
@@ -197,9 +200,13 @@ def fit(tk, prefix, pivot, elev, s, f, r, trunnion, parts, moving, mats):
         kind = 'open'
 
     elev['gimbal'] = kind
+    if kind == 'fingers':
+        front = max([p.x for p in body if abs(p.z-tz) < ch*2] or [tx])
     if __debug__ and False:
         print('GIMBAL-DEBUG', s['weapon'], 'tx', round(tx/r, 3), 'tz', round(tz/r, 3), 'face', face and round(face/r, 3), 'raw', [e and round(e/r, 3) for e in [face_x(b[0], b[1]) for b in barrels]], 'x0', [round(b[2]/r, 3) for b in barrels], 'rb', round(rb/r, 3))
-    if kind == 'enclosed':
+    if kind == 'fingers':
+        pass
+    elif kind == 'enclosed':
         # A mantlet struck about the trunnion axis, proud of the face: the gun pivots in its port.
         # Sunk a little into the face so it reads as seated in its port; a face far out
         # is a fairing, not the port. A cast shield, thick enough to read at range.

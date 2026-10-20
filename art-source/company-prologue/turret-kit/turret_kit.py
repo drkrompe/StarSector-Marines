@@ -1756,10 +1756,13 @@ def _plan_loft(m, table, z0, k, top, bot=.1, tumble=.4, yc=0.0):
 
 def _house_heavyac2(g, f, s, r, z0):
     """heavy_autocannon_turret_base.png: an egg-shaped house, rounded at the
-    rear, with three rounded sleeve housings merged into its front. The three
-    cannon shafts run on back into the turret under raised fairings, the roof
-    dimpled down between them, and vent streaks cross the rear between the
-    fairings in three ranks; a darker rim band."""
+    rear, with three rounded sleeve housings merged into its front. Each cannon
+    lies in its own finger: the sleeve housing forward and the raised fairing
+    carrying its shaft back over the roof. The fingers are the elevating mass
+    (owner, 2026-10-20: "push UP the individual fingers"): they hinge at the
+    fairings' aft ends and lift out of troughs pressed into the roof, the house
+    ending in a front face under them. Vent streaks cross the fairings; a darker
+    rim band round the house."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
     H = 3.4
@@ -1772,37 +1775,48 @@ def _house_heavyac2(g, f, s, r, z0):
     zt = z0+(H+.7)*k
     za = z0+3.4*k
     rb = 1.7                                                                          # rib radius
-    sleeves, ribs = g['plate#sleeves'], g['plate#ribs']
+    xh = -7.6                                                                         # the fingers' hinge
+    # The house under the fingers: a trough pressed into the roof under each, its floor
+    # dark, and the front cut back to a face behind the sleeve housings.
     for y in (5.0, 0.0, -5.0):
-        # Sleeve housing: a rounded lobe forward, the rib's front end, bored
-        # for the cannon (the sprite's dark sleeve mouths, rows 11-13).
-        st = []
-        xf = 9.6 if y == 0 else 9.2
-        for x, w, h in ((3.0, 2.3, 4.4), (6.5, 2.3, 4.3), (8.6, 2.1, 4.1), (xf, 1.6, 3.8)):
-            st.append((x*k, [(y*k+yy, zz) for yy, zz in section(w*k, z0+.7*k, z0+(.7+h)*k, 1.0*k, .1*k, .9*k)]))
-        sleeves.loft_x(st)
-        sleeves.cut().cyl(((xf-.6)*k, y*k, za), 1.1*k, 1.6*k, 'X', n=24)
-        g['dark'].cyl(((xf-1.35)*k, y*k, za), 1.12*k, .1*k, 'X', n=24)                  # the bore's back
-        # Rib: the cannon's shaft carried back into the turret, proud of the roof,
-        # the track the gun presses back along when it fires.
-        x0, x1 = -9.0 if y == 0 else -8.2, 3.5
-        ribs.lathe([(0, 0), (1.2*k, .2*k), (rb*k, .9*k), (rb*k, (x1-x0)*k), (0, (x1-x0)*k)], 24,
-                   (x0*k, y*k, za), 'X')
-        for sy in (1, -1):                       # the dimple round it: a groove pressed into the roof
-            shell.cut().box(((x0+x1)/2*k, (y+sy*1.75)*k, zt), ((x1-x0-.6)*k, .35*k, .5*k), .05*k)
-        for x in (-2.5, -4.0, -5.5, -7.0):       # vents: slots cut across the rib, dark at the bottom
-            ribs.cut().box((x*k, y*k, za+rb*k), (.45*k, 1.9*k, 1.0*k), .04*k)
-            g['dark'].box((x*k, y*k, za+(rb-.48)*k), (.45*k, 1.6*k, .06*k))
+        shell.cut().box(((xh-1.6+7.0)/2*k, y*k, za+.5*k), ((7.0-xh+1.6)*k, (2*rb+.5)*k, (2*rb+.4)*k))
+        g['dark'].box(((xh-1.4+7.0)/2*k, y*k, za-(rb-.2)*k), ((7.0-xh+1.2)*k, (2*rb+.4)*k, .1*k))
+    shell.cut().box((11.0*k, 0, z0+3*k), (8.6*k, 30*k, 8*k))                         # front face at x 2.7
+    g['steel'].box((2.75*k, 0, z0+1.5*k), (.3*k, 16.0*k, 1.6*k), .08*k)               # its sill
+
+    def gun_parts(gg, za):
+        sleeves, ribs = gg['plate#sleeves'], gg['plate#ribs']
+        for y in (5.0, 0.0, -5.0):
+            # Sleeve housing: a rounded lobe forward, the rib's front end, bored for the
+            # cannon (the sprite's dark sleeve mouths, rows 11-13).
+            st = []
+            xf = 9.6 if y == 0 else 9.2
+            for x, w, h in ((3.0, 2.3, 4.4), (6.5, 2.3, 4.3), (8.6, 2.1, 4.1), (xf, 1.6, 3.8)):
+                st.append((x*k, [(y*k+yy, zz) for yy, zz in section(w*k, z0+1.0*k, z0+(.7+h)*k, 1.0*k, .1*k,
+                                                                     .9*k)]))
+            sleeves.loft_x(st)
+            sleeves.cut().cyl(((xf-.6)*k, y*k, za), 1.1*k, 1.6*k, 'X', n=24)
+            gg['dark'].cyl(((xf-1.35)*k, y*k, za), 1.12*k, .1*k, 'X', n=24)              # the bore's back
+            # Rib: the cannon's shaft carried back over the roof to the hinge.
+            x0, x1 = xh-.6, 3.5
+            ribs.lathe([(0, 0), (1.2*k, .2*k), (rb*k, .9*k), (rb*k, (x1-x0)*k), (0, (x1-x0)*k)], 24,
+                       (x0*k, y*k, za), 'X')
+            for x in (-2.5, -4.0, -5.5):          # vents: slots cut across the rib, dark at the bottom
+                ribs.cut().box((x*k, y*k, za+rb*k), (.45*k, 1.9*k, 1.0*k), .04*k)
+                gg['dark'].box((x*k, y*k, za+(rb-.48)*k), (.45*k, 1.6*k, .06*k))
+            # The hinge knuckle at the finger's root, on the shared elevation axis.
+            gg['steel'].cyl((xh*k, y*k, za), 1.25*k, (2*rb+.2)*k, 'Y', n=24, bevel=.1*k)
+        gg['metal'].cyl((xh*k, 0, za), .6*k, 15.4*k, 'Y', n=20)                         # the hinge shaft
+    for sy in (1, -1):                       # its bearings in the house, either side
+        g['steel'].cyl((xh*k, sy*7.75*k, za), 1.3*k, .9*k, 'Y', n=24, bevel=.1*k)
     # Rear lugs: the two light pixels between dark ones at the tail (row 32,
     # a pixel and a half either side of the centre rib's line), eyes aft.
     for sy in (1, -1):
         g['steel'].box((-11.3*k, sy*2.5*k, z0+1.6*k), (.9*k, .6*k, 1.1*k), .1*k)
         f.eye(g['steel'], (-11.75*k, sy*2.5*k, z0+1.7*k), 'X')
-
-    def gun_parts(gg, za):
-        pass
-    return (8.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
-                              'barrel_scale': .72, 'muzzle_ring': True, 'barrel_root': 4.0}
+    return (xh*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
+                             'barrel_scale': .72, 'muzzle_ring': True, 'barrel_root': 4.0,
+                             'elevation_limits': (0, 30)}
 
 
 def _house_flak2(g, f, s, r, z0):
