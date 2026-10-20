@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -119,7 +120,7 @@ public final class LatchkeyYard {
                 GUARD_POST.x(), GUARD_POST.y(), PARTY_START.x(), PARTY_START.y()));
         new GenRecipe(terms ? "Latchkey Yard / Terms of Protection" : "Latchkey Yard", stages).run(c);
         var map = new MapResult(c.grid, c.topology, LANDING_X, LANDING_Y, CINDER_LANE.x(), CINDER_LANE.y(),
-                c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
         for (var pad : map.landingPads)
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Latchkey berth obstructed");
         for (var site : SITES) requireRoute(map, site.x(), site.y(), site.name());

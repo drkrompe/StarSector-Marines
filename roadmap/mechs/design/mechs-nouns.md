@@ -402,7 +402,12 @@ increasing an encounter's total armored threat.
   picture. The clicked ground selects a provisional walkable cell in coarse
   connectivity; the actual chassis must still prove a route to a legal point
   within that cell. Arrival or proof refusal releases the order back to ordinary
-  behavior.
+  behavior. A right-drag instead of a click gives the order a **held heading**:
+  the mech goes to where the drag began and, on arrival, stands with its hips
+  the way the drag went. The heading outranks the combat target for the hips
+  only — the torso still twists onto the fight — so the legs and their armour
+  point where the player put them while the guns keep working. It lasts while
+  the mech stands: the next route it walks, a new order, or a cancel ends it.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions

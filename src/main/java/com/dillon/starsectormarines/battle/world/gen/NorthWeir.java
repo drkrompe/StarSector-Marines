@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -62,7 +63,7 @@ public final class NorthWeir {
                 NorthWeir::facilities, new FinalizeStage(),
                 new OutdoorLandscapeStage(24,59,64,59,81,42,81,75,108,88,170,88,170,94,134,FLANK_Y))).run(c);
         var map = new MapResult(c.grid, c.topology, LANDING_X, LANDING_Y, 164, 88, c.pois, c.doodads,
-                new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
+                new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
         for (var place : PLACES) if (GridPathfinder.findPath(map.grid, LANDING_X, LANDING_Y, place.x(), place.y()).length == 0)
             throw new IllegalStateException("North Weir destination disconnected: " + place.label());
         return map;

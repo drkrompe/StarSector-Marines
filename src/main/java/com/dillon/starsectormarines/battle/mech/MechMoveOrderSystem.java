@@ -54,7 +54,7 @@ public final class MechMoveOrderSystem {
                     request.cellX, request.cellY, sim);
             if (destination == null) continue;
             ActiveOrder order = new ActiveOrder(request.cellX, request.cellY,
-                    destination[0], destination[1]);
+                    destination[0], destination[1], request.facingDegrees);
             service.activate(request.mechId, order);
             sim.clearPath(request.mechId);
         }
@@ -93,6 +93,7 @@ public final class MechMoveOrderSystem {
         if (sim.movement().atCell(mech,
                 order.destinationX(), order.destinationY())) {
             service.release(mech, order);
+            service.holdFacing(mech, order.facingDegrees());
             if (!Paths.isEmpty(sim.world().path(mech))) sim.clearPath(mech);
             return false;
         }
