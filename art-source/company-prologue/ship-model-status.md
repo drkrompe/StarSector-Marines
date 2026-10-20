@@ -64,6 +64,12 @@ scope unless the owner asks for it.
 
 ## Standing decisions
 
+- Sizes must make logical sense relative to each other and to each hull's
+  role (owner, 2026-10-20). `ship_scale.py` option C is a starting estimate,
+  not a law: a reshape that changes a hull's volume does not shrink or grow
+  it. A size changes only on the owner's decision, argued from role and from
+  the neighbouring hulls (frigates below destroyers below cruisers, a
+  tender or freighter sized for its job).
 - Every hull has its own real-life scale (`metres_per_unit` in its
   `geometry.json`). Shots derive lengths from it and never borrow another
   hull's.
