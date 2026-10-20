@@ -41,6 +41,12 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 8 (2026-10-19)
+"I don't like how the hull juts out for the missiles." The launcher bay no
+longer grows forward of the arm: it ends at the leading edge with its face
+raked 45 deg like the leading-edge armour beside it, and the Harpoon rack sits
+in its recess, open through the edge. All six mounts still bear ahead.
+
 Owner review round 7 (2026-10-19)
 "The missile hookup ... like we just cut a wedge into the hull", and "cohesive
 angling ... very wobbly in places". Each Harpoon slot sits on the arm's
