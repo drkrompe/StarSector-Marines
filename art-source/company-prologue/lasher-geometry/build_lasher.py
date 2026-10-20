@@ -154,7 +154,9 @@ def bake():
         me.name = old.name
         bpy.data.meshes.remove(old)
     for ob in bpy.data.objects:
-        if ob.type == 'MESH':
+        # The hull is flat-shaded plate; the kit's turrets, hardpoints and the lamps keep the
+        # smooth shading (sharp from angle) their builders gave their round parts.
+        if ob.type == 'MESH' and not ob.name.startswith(('Turret ', 'Weapon ', 'Light ')):
             for p in ob.data.polygons:
                 p.use_smooth = False
 
