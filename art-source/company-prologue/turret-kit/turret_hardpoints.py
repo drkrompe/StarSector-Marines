@@ -429,6 +429,314 @@ def _hp_harpoonpod(g, f, s, k=1.0):
     return mouths
 
 
+def _hb_oval(hw, hz, n=48, p=2.6, zc=0.0):
+    """A superellipse YZ loop: flat-shouldered like a machined casting, round at the corners."""
+    pts = []
+    for i in range(n):
+        a = 2*math.pi*i/n
+        c, s_ = math.cos(a), math.sin(a)
+        pts.append((hw*math.copysign(abs(c)**(2/p), c), zc+hz*math.copysign(abs(s_)**(2/p), s_)))
+    return pts
+
+
+def _hb_oval_z(y, hw, hz, p=2.6):
+    """Height of a _hb_oval's top at y."""
+    t = min(abs(y)/hw, 1.0)
+    return hz*(1-t**p)**(1/p)
+
+
+def _hb_loft(m, stations, k, n=48, p=2.6, zc=0.0):
+    """loft_x through oval stations [(x, hw, hz), ...] in sprite pixels."""
+    m.loft_x([(x*k, [(y*k, z*k) for y, z in _hb_oval(hw, hz, n, p, zc)]) for x, hw, hz in stations])
+
+
+def _hb_band(m, x0, x1, hw, hz, k, ch=.12):
+    """A chamfered oval band (a clamp ring round an oval casting)."""
+    _hb_loft(m, [(x0, hw-ch, hz-ch), (x0+ch, hw, hz), (x1-ch, hw, hz), (x1, hw-ch, hz-ch)], k)
+
+
+def _hb_plan(pts, k, sy=1):
+    """A plan polygon in sprite pixels, mirrored to starboard by sy, counter-clockwise, scaled."""
+    return tk._ccw([(x*k, sy*y*k) for x, y in pts])
+
+
+def _hp_heavyblaster(g, f, s, k=1.0):
+    """blaster_hardpoint_base.png (28 x 48 px; the merchant Wolf's bow WS 004, the Heavy
+    Blaster). The slot is 12 px up from the sprite's back, so the gun runs from its power
+    coupling 9 px behind the slot to its emitter head 24 px ahead; the fire point is 15 px
+    ahead (hardpointOffsets), where the lens sits at the bottom of the head's open bore.
+    - On a steel sled on the bay floor (rails, notched flanks, hold-down lugs), the armoured
+      capacitor housing (the sprite's body rows 30-41): a glacis-roofed casting with a
+      trough in its roof holding the capacitor bank (five blue cells, the sprite's light
+      stripes, in a clamp block with charge lamps in grooves), cable channels down both
+      flanks, flank seams and an inspection door each side.
+    - Behind it the oval power coupling (rows 42-44: fin grooves, a bolted flange, the
+      reactor feed socket); two armoured power cables a side leave its crown through glands,
+      run forward in the flank channels through a clamp block (the sprite's widest rows) and
+      plug into the yoke cheeks.
+    - The neck (rows 23-29): the blue field coil, wound and grooved, in a saddle cradle
+      between the two yoke cheeks, each with a trunnion boss lit in the blaster's blue.
+    - The emitter head (rows 12-22): an oval casting with two clamp bands, fin grooves
+      round its front (the sprite's dark ribs), four lit vent slots over the chamber; its
+      bore is open to the front, lined dark, four focusing vanes along its wall and the lens
+      glowing in the bolt's colour (glowColor / fringe 100, 100, 255) at the fire point."""
+    if 'lamp_blaster' not in g.mats:
+        g.mats['lamp_blaster'] = tk.lamp_material('Turret lamp blaster blue', (.13, .13, 1.0), 3.0)
+    LB = 'lamp_blaster'
+    u = f.u
+    # -- the sled on the bay floor, its rails and hold-down lugs.
+    sled = g['steel#sled']
+    _glacis(sled, _hb_plan([(-6.0, -8.2), (-5.2, -9.0), (11.8, -9.0), (12.6, -8.2), (12.6, 8.2), (11.8, 9.0),
+                            (-5.2, 9.0), (-6.0, 8.2)], k), -7.0*k, -5.8*k, .3*k, -5.3*k)
+    for x in (-2.6, 1.4, 5.4, 9.4):                                    # lightening notches in the flanks
+        for sy in (1, -1):
+            sled.cut().box((x*k, sy*9.0*k, -6.4*k), (2.0*k, 1.2*k, .7*k))
+    for sy in (1, -1):
+        g['dark'].box((3.3*k, sy*6.4*k, -7.25*k), (19.0*k, 1.4*k, .7*k), .1*k)      # rails
+        for x in (-4.4, 11.2):                                         # hold-down lugs, a bolt each
+            g['steel'].box((x*k, sy*9.5*k, -6.6*k), (1.4*k, 1.4*k, .9*k), .12*k)
+            g['steel'].cyl((x*k, sy*9.7*k, -6.05*k), .3*k, .25*k, 'Z', n=16, bevel=.04*k)
+        f.bolt_row(g['steel'], (-.6*k, sy*9.03*k, -6.4*k), (7.4*k, sy*9.03*k, -6.4*k), spacing=3.8, axis='Y')
+    # -- the capacitor housing: a glacis-roofed casting, trough and cable channels cut in.
+    hs = g['paint#housing']
+    _glacis(hs, _hb_plan([(-6.2, -10.4), (-5.0, -12.0), (6.4, -12.0), (6.8, -11.4), (6.8, 11.4), (6.4, 12.0),
+                          (-5.0, 12.0), (-6.2, 10.4)], k), -5.6*k, 2.6*k, 1.2*k, 3.8*k)
+    hs.cut().box((.55*k, 0, 4.0*k), (10.1*k, 14.6*k, 4.8*k))           # the capacitor trough (floor 1.6)
+    for sy in (1, -1):
+        hs.cut().box((.3*k, sy*10.25*k, 4.0*k), (14.2*k, 2.6*k, 4.0*k))  # cable channel (floor 2.0)
+        hs.cut().box((.3*k, sy*12.0*k, -1.6*k), (12.4*k, .5*k, .3*k))    # flank seam
+        hs.cut().box((3.4*k, sy*12.0*k, -3.4*k), (.3*k, .5*k, 4.2*k))    # plate joint
+        f.hatch(g, (-1.6*k, sy*12.0*k, -5.3*k), axis='+Y' if sy > 0 else '-Y')
+    hs.cut().box((-5.4*k, 0, 3.8*k), (.3*k, 15.6*k, .6*k))             # roof seam behind the trough
+    # Trough coamings (the sprite's pale lines either side of the bank), bolted down.
+    for sy in (1, -1):
+        g['accent2'].box((.55*k, sy*7.55*k, 3.95*k), (10.1*k, .5*k, .4*k), .1*k)
+        f.bolt_row(g['steel'], (-4.0*k, sy*7.55*k, 4.15*k), (5.2*k, sy*7.55*k, 4.15*k))
+    # The capacitor bank: five cells in the trough, grooves cut round them, a charge lamp
+    # in one groove each, a bus bar over their rear terminals, a clamp block over the front.
+    cells = g['accent#cells']
+    CY, CR, CZ = (5.2, 2.6, 0.0, -2.6, -5.2), 1.15, 2.75
+    for y in CY:
+        cells.lathe([(.85*k, 0), (CR*k, .3*k), (CR*k, 7.9*k), (.85*k, 8.2*k)], 40, (-3.3*k, y*k, CZ*k), 'X')
+        for x in (-1.6, .4, 2.4):
+            cells.cut().ring((x*k, y*k, CZ*k), (CR-.14)*k, (CR+.4)*k, .24*k, 'X', n=40)
+        g[LB].ring((.4*k, y*k, CZ*k), (CR-.2)*k, (CR-.08)*k, .16*k, 'X', n=40)
+        g['steel'].cyl((-3.65*k, y*k, CZ*k), .45*k, .8*k, 'X', n=20, bevel=.06*k)         # terminal
+    g['accent2'].box((-4.05*k, 0, CZ*k), (.5*k, 12.4*k, .9*k), .1*k)                     # rear bus bar
+    for y in CY:
+        g['steel'].cyl((-4.05*k, y*k, (CZ+.5)*k), .3*k, .2*k, 'Z', n=16)
+    clamp = g['accent2#clamp']
+    _glacis(clamp, _hb_plan([(4.2, -7.0), (5.8, -7.0), (5.8, 7.0), (4.2, 7.0)], k), 1.6*k, 3.9*k, .25*k, 4.3*k)
+    for y in CY:
+        clamp.cut().cyl((5.0*k, y*k, CZ*k), (CR+.04)*k, 3.0*k, 'X', n=40)
+    f.bolt_row(g['steel'], (5.0*k, -6.4*k, 4.3*k), (5.0*k, 6.4*k, 4.3*k))
+    # -- the power coupling behind the housing: an oval casting into the bay's rear wall.
+    cp = g['metal#coupling']
+    _hb_loft(cp, [(-9.3, 4.5, 3.4), (-9.0, 5.2, 3.9), (-7.25, 5.2, 3.9), (-7.0, 6.3, 4.4), (-6.7, 6.8, 4.6),
+                  (-4.8, 6.8, 4.6)], k)
+    for y in (4.5, 2.5, 0.0, -2.5, -4.5):                              # fin grooves (the sprite's rows 42-44)
+        zt = _hb_oval_z(y, 5.2, 3.9)
+        for sz in (1, -1):
+            cp.cut().box((-8.1*k, y*k, sz*zt*k), (1.5*k, .5*k, 1.4*k))
+    cp.cut().cyl((-9.3*k, 0, 0), 1.7*k, 1.2*k, 'X', n=40)              # the reactor feed socket
+    g['dark'].cyl((-8.75*k, 0, 0), 1.7*k, .1*k, 'X', n=40)
+    g['steel'].ring((-9.25*k, 0, 0), 1.7*k, 2.3*k, .3*k, 'X', n=40)
+    for i in range(12):                                                 # flange bolts round the socket
+        a = 2*math.pi*(i+.5)/12
+        g['steel'].cyl((-9.33*k, 3.2*math.cos(a)*k, 2.4*math.sin(a)*k), .2*k, .16*k, 'X', n=12)
+    # -- heavy power cabling: two cables a side out of the coupling's crown through glands,
+    # forward along the flank channels through a clamp block, into the yoke cheeks.
+    for sy in (1, -1):
+        for ys, ye in ((1.6, 9.65), (3.0, 10.95)):
+            a = [(-7.7, sy*ys, 2.6), (-7.7, sy*(ye-1.8), 4.9), (-6.6, sy*ye, 2.6), (-4.2, sy*ye, 2.6)]
+            b = [(-4.2, sy*ye, 2.6), (-.4, sy*ye, 2.6), (3.6, sy*ye, 2.6), (7.6, sy*ye, 2.6)]
+            tk._cable(g['cable'], a, .5, k, 0, n=16, segs=20)
+            tk._cable(g['cable'], b, .5, k, 0, n=16, segs=12)
+            tk._cable(g['steel'], a, .72, k, 0, n=16, segs=2, t0=.05, t1=.17)          # gland
+            for t0, t1 in ((.05, .42), (.6, .86)):                                      # armour sleeves
+                tk._cable(g['accent'], b, .62, k, 0, n=16, segs=4, t0=t0, t1=t1)
+            tk._cable(g['steel'], b, .72, k, 0, n=16, segs=2, t0=.9, t1=.97)            # gland at the cheek
+        cc = g[f'steel#cclamp{sy}']
+        _glacis(cc, _hb_plan([(-2.6, 8.6), (1.4, 8.6), (1.4, 11.9), (.9, 12.6), (-2.1, 12.6), (-2.6, 11.9)], k, sy),
+                1.8*k, 3.6*k, .3*k, 3.95*k)
+        for ye in (9.65, 10.95):
+            cc.cut().cyl((-.6*k, sy*ye*k, 2.6*k), .52*k, 4.2*k, 'X', n=24)
+        f.bolt_row(g['steel'], (-2.0*k, sy*10.3*k, 3.97*k), (.8*k, sy*10.3*k, 3.97*k))
+    # -- the neck: the field coil in its cradle between the yoke cheeks.
+    coil = g['accent#coil']
+    coil.cyl((9.5*k, 0, 0), 5.0*k, 6.4*k, 'X', n=48, bevel=.1*k)
+    for x in (7.6, 8.55, 9.5, 10.45, 11.4):                            # winding grooves
+        coil.cut().ring((x*k, 0, 0), 4.7*k, 5.4*k, .3*k, 'X', n=48)
+    for x in (6.95, 12.05):
+        g['steel'].ring((x*k, 0, 0), 4.9*k, 5.5*k, .5*k, 'X', n=48)
+    cr = g['steel#cradle']
+    _glacis(cr, _hb_plan([(7.4, -4.8), (11.8, -4.8), (11.8, 4.8), (7.4, 4.8)], k), -5.6*k, -4.0*k, .2*k, -3.7*k)
+    cr.cut().cyl((9.6*k, 0, 0), 5.0*k, 6.0*k, 'X', n=48)
+    for sy in (1, -1):
+        ch = g[f'paint#cheek{sy}']
+        _glacis(ch, _hb_plan([(6.4, 5.3), (12.9, 5.3), (12.9, 10.3), (12.3, 11.1), (7.0, 11.1), (6.4, 10.5)], k, sy),
+                -5.6*k, 2.4*k, .6*k, 3.2*k)
+        ch.cut().box((9.65*k, sy*11.1*k, -2.2*k), (6.0*k, .4*k, .25*k))   # seam round the cheek
+        ch.cut().box((12.9*k, sy*8.2*k, .4*k), (.5*k, 4.2*k, .25*k))
+        # Trunnion boss on the cheek's outer face: bolted, a blue charge ring, its cap.
+        g['steel'].cyl((9.6*k, sy*11.65*k, -.6*k), 2.3*k, 1.3*k, 'Y', n=48, bevel=.1*k)
+        g[LB].ring((9.6*k, sy*12.3*k, -.6*k), 1.45*k, 1.75*k, .2*k, 'Y', n=40)
+        g['accent2'].cyl((9.6*k, sy*12.35*k, -.6*k), 1.3*k, .3*k, 'Y', n=40, bevel=.06*k)
+        for i in range(8):
+            a = 2*math.pi*(i+.5)/8
+            g['steel'].cyl((9.6*k+1.98*math.cos(a)*k, sy*12.33*k, (-.6+1.98*math.sin(a))*k), .14*k, .14*k, 'Y', n=12)
+        f.bolt_row(g['steel'], (7.2*k, sy*8.2*k, 3.22*k), (12.2*k, sy*8.2*k, 3.22*k))
+    # -- the emitter head: an oval casting, open bore to the front, lens at the fire point.
+    head = g['plate#head']
+    HD = [(12.3, 7.2, 5.3), (12.7, 7.9, 5.9), (18.9, 7.9, 5.9), (19.2, 7.6, 5.6), (19.4, 7.0, 5.2), (22.4, 7.0, 5.2),
+          (22.9, 6.4, 4.8), (23.4, 5.8, 4.4), (23.9, 5.0, 4.0)]
+    _hb_loft(head, HD, k)
+    head.cut().cyl((20.0*k, 0, 0), 3.7*k, 10.0*k, 'X', n=48)            # the bore, x 15 .. 25
+    for y in (4.5, 1.5, -1.5, -4.5):                                    # vent slots over the chamber
+        zt = _hb_oval_z(y, 7.9, 5.9)
+        for sz in (1, -1):
+            head.cut().box((16.75*k, y*k, sz*zt*k), (2.5*k, .75*k, 2.0*k))
+        g[LB].box((16.75*k, y*k, (zt-.95)*k), (2.3*k, .55*k, .3*k))
+    for y in (4.5, 2.5, 0.0, -2.5, -4.5):                               # fin grooves round the front
+        zt = _hb_oval_z(y, 7.0, 5.2)
+        for sz in (1, -1):
+            head.cut().box((21.0*k, y*k, sz*zt*k), (2.4*k, .5*k, 1.4*k))
+    for i in range(6):                                                  # and down its flanks
+        a = math.radians(-50+20*i)
+        for sy in (1, -1):
+            yy, zz = _hb_oval(7.0, 5.2, 360)[int(round(math.degrees(a))) % 360]
+            head.cut().box((21.0*k, sy*yy*k, zz*k), (2.4*k, 1.4*k, .5*k))
+    bands = g['steel#bands']
+    _hb_band(bands, 19.15, 19.85, 7.35, 5.5, k)
+    _hb_band(bands, 22.45, 23.05, 7.15, 5.3, k)
+    if f.near:                                                          # bolts along the rear band's crown
+        for i in range(9):
+            y = -4.8+1.2*i
+            g['steel'].cyl((19.5*k, y*k, (_hb_oval_z(y, 7.35, 5.5)+.02)*k), .09*k, .1*k, 'Z', n=12)
+    # In the bore: a dark liner, the focusing vanes along its wall (lit edges), the lens.
+    g['dark'].ring((19.5*k, 0, 0), 3.55*k, 3.72*k, 8.8*k, 'X', n=48)
+    g['dark'].cyl((15.05*k, 0, 0), 3.7*k, .1*k, 'X', n=48)
+    for i in range(4):
+        a = math.pi/4+i*math.pi/2
+        rot = Matrix.Rotation(a, 4, 'X')
+        g['accent2'].box((19.7*k, 3.15*math.cos(a)*k, 3.15*math.sin(a)*k), (7.2*k, 1.1*k, .55*k), .1*k, rot=rot)
+        g[LB].box((19.7*k, 2.58*math.cos(a)*k, 2.58*math.sin(a)*k), (6.4*k, .08*k, .2*k), rot=rot)
+    g['steel'].ring((15.3*k, 0, 0), 2.8*k, 3.7*k, .5*k, 'X', n=48)            # lens retaining ring
+    g[LB].lathe([(2.85*k, 0), (2.5*k, .35*k), (1.5*k, .65*k), (0, .8*k)], 48, (15.0*k, 0, 0), 'X')
+    return [(15.0*k, 0.0, 0.0)]
+
+
+def _hp_harpoon(g, f, s, k=1.0):
+    """missile_rack_open_m_3x_hardpoint_base.png (26 x 40 px; the merchant Wolf's WS 005 /
+    WS 006, the Harpoon MRM). An open three-round launch rack, the rounds drawn loaded
+    (RENDER_LOADED_MISSILES): the slot is 10 px up from the sprite's back, the rack runs
+    from 2.5 px behind it to its rail tips 17 ahead.
+    - A grey bed (the sprite's mid-grey lane floors) with three round troughs cut down it
+      at y -6 / 0 / 6 (the fire points), windows cut through its floor where the sprite is
+      open (rows 19-20 and 28-29), a seam along its flanks.
+    - Four pale launch rails between the lanes (the sprite's bright columns), each a lofted
+      bar rising at the front into a guide post (rows 13-14), lightening holes through the
+      outer two, a guide groove along the inner two; a tie bar under the posts.
+    - Two saddles cross the lanes under the rounds; restraint latches on the rails; the rear
+      blast plate with an exhaust recess per lane, a ready lamp over each and an umbilical
+      from a socket in its face to each round's flank.
+    - Hold-down lugs (the sprite's dark brown ears, rows 21-25 and 27-30) on both flanks,
+      bolted down, trunnion pins through them.
+    - In each lane a Harpoon (22 long, its centre 12 px from its tail on its fire point, as
+      the game draws it), on its own 'missile k' empty at the fire point: body and seeker
+      section with cut joints, swept fins rolled clear of the rails, a pale nose cap, its
+      seeker window lit, a dark nozzle. Rounds and muzzle anchors are in the .wpn's order
+      (y -6, 6, 0); the anchors sit on the fire points (15 px ahead)."""
+    LANES = (-6.0, 6.0, 0.0)
+    RAILS = ((8.5, .55), (3.0, .95), (-3.0, .95), (-8.5, .55))
+    # -- the bed: three troughs and the open windows cut in it.
+    bed = g['paint#bed']
+    _glacis(bed, _hb_plan([(-2.0, -9.2), (-1.3, -9.9), (14.3, -9.9), (15.0, -9.2), (15.0, 9.2), (14.3, 9.9),
+                           (-1.3, 9.9), (-2.0, 9.2)], k), -3.4*k, -1.9*k, .3*k, -1.6*k)
+    for y in LANES:
+        bed.cut().cyl((6.5*k, y*k, 0), 2.2*k, 18.0*k, 'X', n=48)
+        for x in (10.25, 1.0):
+            bed.cut().box((x*k, y*k, -2.6*k), (1.6*k, 2.0*k, 2.0*k))
+    for sy in (1, -1):
+        bed.cut().box((6.5*k, sy*9.9*k, -2.7*k), (16.0*k, .4*k, .25*k))      # flank seam
+        bed.cut().box((4.0*k, sy*9.9*k, -2.5*k), (.25*k, .4*k, 2.0*k))       # plate joint
+    # -- the rails: lofted bars rising into guide posts at the front.
+    prof = [(-1.4, .1), (-1.0, .5), (13.8, .5), (14.5, 1.5), (16.5, 1.5), (17.0, .7), (17.2, .2)]
+    for i, (yr, hw) in enumerate(RAILS):
+        rail = g[f'plate#rail{i}']
+        rail.loft_x([(x*k, [(yr*k+y*k, z*k) for y, z in tk.section(hw, -2.0, zt, min(.3, .3*(zt+2.0)), .1, .12, 2)])
+                     for x, zt in prof])
+        if abs(yr) > 5:                                                    # lightening holes, outer rails
+            for x in (1.0, 3.4, 5.8, 8.2, 10.6):
+                rail.cut().cyl((x*k, yr*k, -.8*k), .5*k, 2.0*k, 'Y', n=24)
+        else:                                                              # guide groove, inner rails
+            rail.cut().box((6.4*k, yr*k, .5*k), (14.6*k, .3*k, .4*k))
+        yb = yr if abs(yr) > 5 else yr+math.copysign(.42, yr)            # beside the groove
+        f.bolt_row(g['steel'], (0*k, yb*k, .52*k), (12.8*k, yb*k, .52*k), spacing=1.1)
+        g['steel'].cyl((15.5*k, yr*k, 1.52*k), .3*k, .1*k, 'Z', n=16, bevel=.03*k)   # post cap bolt
+    g['steel'].box((16.0*k, 0, -1.7*k), (1.0*k, 17.8*k, .7*k), .12*k)           # tie under the posts
+    # -- saddles across the lanes under the rounds, restraint latches on the rails.
+    for x in (6.0, 12.5):
+        sd = g[f'steel#saddle{x}']
+        _glacis(sd, _hb_plan([(x-.5, -8.0), (x+.5, -8.0), (x+.5, 8.0), (x-.5, 8.0)], k), -2.2*k, -.9*k, .12*k, -.7*k)
+        for y in LANES:
+            sd.cut().cyl((x*k, y*k, 0), 1.32*k, 2.0*k, 'X', n=48)
+    for y in LANES:
+        for sy in (1, -1):
+            g['steel'].box((7.4*k, (y+sy*1.75)*k, .5*k), (1.0*k, 1.1*k, .36*k), .1*k)   # reaches the round
+            g['steel'].cyl((7.4*k, (y+sy*2.1)*k, .72*k), .18*k, .12*k, 'Z', n=12)
+    # -- the rear blast plate: exhaust recesses, ready lamps, umbilical sockets.
+    rp = g['paint#rear']
+    _glacis(rp, _hb_plan([(-2.6, -10.0), (-.9, -10.0), (-.9, 10.0), (-2.6, 10.0)], k), -3.4*k, .8*k, .3*k, 1.2*k)
+    for y in LANES:
+        rp.cut().cyl((-.9*k, y*k, 0), 1.15*k, 1.0*k, 'X', n=40)
+        g['dark'].cyl((-1.38*k, y*k, 0), 1.15*k, .06*k, 'X', n=40)
+        g['steel'].ring((-.84*k, y*k, 0), 1.15*k, 1.5*k, .14*k, 'X', n=40)
+        g['glow'].lathe([(.35*k, 0), (.3*k, .18*k), (0, .3*k)], 24, (-1.75*k, (y-1.4)*k, 1.15*k), 'Z')
+        g['steel'].ring((-1.75*k, (y-1.4)*k, 1.2*k), .35*k, .5*k, .14*k, 'Z', n=24)
+        g['steel'].cyl((-.75*k, (y+1.55)*k, .9*k), .38*k, .4*k, 'X', n=24, bevel=.05*k)   # socket
+        tk._cable(g['cable'], [(-.6, y+1.55, .9), (1.4, y+1.9, 1.7), (3.0, y+1.3, 1.5), (4.0, y+.95, .9)],
+                  .2, k, 0, n=16, segs=16)
+    f.bolt_row(g['steel'], (-1.75*k, -9.0*k, 1.22*k), (-1.75*k, 9.0*k, 1.22*k), spacing=1.4)
+    # -- hold-down lugs on both flanks, bolted down, trunnion pins through them.
+    for x0, x1 in ((4.6, 9.2), (-.8, 3.2)):
+        for sy in (1, -1):
+            lug = g[f'accent2#lug{x0}{sy}']
+            _glacis(lug, _hb_plan([(x0, 9.4), (x1, 9.4), (x1, 11.4), (x1-.8, 12.2), (x0+.8, 12.2), (x0, 11.4)], k, sy),
+                    -3.4*k, -.9*k, .3*k, -.6*k)
+            lug.cut().box(((x0+x1)/2*k, sy*12.2*k, -2.0*k), ((x1-x0-1.2)*k, .5*k, .25*k))
+            g['plate'].cyl(((x1-1.0)*k, sy*12.25*k, -1.9*k), .8*k, .5*k, 'Y', n=32, bevel=.08*k)
+            g['steel'].cyl(((x1-1.0)*k, sy*12.55*k, -1.9*k), .45*k, .25*k, 'Y', n=6)
+            g['plate'].cyl(((x0+.9)*k, sy*10.4*k, -.55*k), .5*k, .2*k, 'Z', n=24, bevel=.05*k)
+            g['plate'].cyl(((x1-1.0)*k, sy*10.4*k, -.55*k), .5*k, .2*k, 'Z', n=24, bevel=.05*k)
+    # -- the loaded Harpoons.
+    mouths = []
+    for i, y in enumerate(LANES):
+        m = g.sub(f'missile {i+1}', (15.0*k, y*k, 0), 1.5*k)
+        c = (3.0*k, y*k, 0)
+        body = m['missile#body']
+        body.lathe([(.75*k, 0), (1.05*k, .25*k), (1.18*k, .6*k), (1.18*k, 8.6*k), (1.3*k, 9.0*k), (1.3*k, 17.4*k),
+                    (1.22*k, 18.2*k), (1.0*k, 19.6*k), (.7*k, 20.6*k), (.4*k, 21.3*k)], 40, c, 'X')
+        for a in (5.0, 13.2):                                              # section joints
+            body.cut().ring(((3.0+a)*k, y*k, 0), 1.2*k, 1.6*k, .14*k, 'X', n=40)
+        body.cut().cyl((3.0*k, y*k, 0), .55*k, .9*k, 'X', n=24)            # nozzle
+        m['dark'].cyl((3.42*k, y*k, 0), .55*k, .06*k, 'X', n=24)
+        m['plate'].lathe([(.42*k, 21.25*k), (.3*k, 21.65*k), (.14*k, 21.92*k), (.05*k, 22.0*k)], 32, c, 'X')
+        m['steel'].ring((20.4*k, y*k, 0), 1.3*k, 1.37*k, .3*k, 'X', n=40)  # warhead band
+        m['glow'].box((22.9*k, y*k, .72*k), (.6*k, .32*k, .14*k), .03*k)   # seeker window
+        for x0, x1, ro in ((9.0, 11.4, 2.05), (3.4, 5.4, 1.9)):            # swept fins, rolled 45 degrees
+            fin = m['missile#fins']
+            for j in range(4):
+                a = math.pi/4+j*math.pi/2
+                ca, sa = math.cos(a), math.sin(a)
+
+                def loop(r0, r1, t=.07):
+                    return [((y+r*ca-tt*sa)*k, (r*sa+tt*ca)*k) for r, tt in ((r0, -t), (r1, -t), (r1, t), (r0, t))]
+                fin.loft_x([(x0*k, loop(1.0, ro)), ((x1-.9)*k, loop(1.0, ro)), (x1*k, loop(1.0, 1.25))])
+        mouths.append((15.0*k, y*k, 0.0))
+    return mouths
+
+
 HARDPOINTS = {
     # The Lasher's stock fit (lasher_Standard): light assault guns in its gun pods,
     # heatseekers (Salamander MRM) in its missile pods. Paints off the sprites: the
@@ -471,6 +779,21 @@ HARDPOINTS = {
                        paints={'paint': (.22, .2, .16), 'accent': (.38, .31, .23), 'plate': (.73, .66, .53),
                                'accent2': (.16, .13, .1), 'mark': (.49, .22, .04)},
                        bay=(-6.4, 14.6, 15.4, -3.4)),
+    # The merchant Wolf's stock fit: heavy blaster (WS 004) and Harpoon MRM racks (WS 005 / WS 006).
+
+    # The merchant Wolf's fit: the Heavy Blaster in its bow (WS 004) and Harpoon racks
+    # (WS 005 / 006). Paints off the sprites (linear medians): the blaster's dark grey
+    # housing, pale head, blue-grey capacitor cells and pale trim; the rack's mid-grey bed,
+    # pale rails, dark brown lugs and the Harpoon's green-grey body.
+    'heavyblaster': dict(builder=_hp_heavyblaster,
+                         paints={'paint': (.082, .087, .093), 'plate': (.456, .462, .474),
+                                 'accent': (.349, .418, .515), 'accent2': (.552, .565, .584),
+                                 'metal': (.15, .153, .153)},
+                         bay=(-9.6, 13.0, 12.8, -7.8)),
+    'harpoon': dict(builder=_hp_harpoon, mcol=(.178, .236, .162),
+                    paints={'paint': (.165, .165, .175), 'plate': (.518, .512, .539),
+                            'accent2': (.019, .011, .012)},
+                    bay=(-2.8, 17.4, 12.6, -3.8)),
 }
 
 
