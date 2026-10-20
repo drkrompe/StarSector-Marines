@@ -260,6 +260,175 @@ def _hp_hammer(g, f, s, k=1.0):
     return noses
 
 
+def _hp_chaingun(g, f, s, k=1.0):
+    """rotary/rotary_cannon_hardpoint_base00..03.png (30 x 42 px; the Hound (A)'s spine
+    gun, the Assault Chaingun). A tan armoured breech housing sunk in its bay from 8.5 px
+    behind the slot to its glacis 9.8 ahead, wider to port where the brown ribbed drive
+    motor lies along its flank (the sprite's brown lobe), a feed well cut into its
+    starboard top with the feed sprocket and the belt of rounds in it, fed by the covered
+    chute that runs out to starboard to the ammunition box at its end (the sprite's tan
+    arm, rows 23..27). The front is the fixed finned cooling jacket (rows 17..21) the
+    rotor turns in. The six-barrel cluster (the sprite's 8 px barrel block, x 14.5..28.5)
+    is a 'rotor' group spinning about +X, carried on 'recoil 1' so the whole assembly
+    can kick back through the jacket: a hub, three scalloped clamps and the barrels with
+    their bores open. One muzzle anchor on the cluster's axis at the fire point (29 px
+    ahead, hardpointOffsets); the barrels take turns firing past it."""
+    # -- the housing: a faceted shell off the sprite's body outline, glacis all round.
+    sh = g['paint#housing']
+    plan = tk._ccw([(-8.5, -3.0), (-6.5, -4.6), (-2.5, -6.0), (0.5, -7.2), (3.5, -8.0), (8.5, -6.6),
+                    (9.8, -5.4), (9.8, 6.4), (8.5, 7.2), (-5.5, 7.2), (-7.6, 6.4), (-8.5, 3.6)])
+    _glacis(sh, [(x*k, y*k) for x, y in plan], -4.4*k, 2.4*k, .9*k, 3.4*k)
+    sh.cut().box((1.8*k, -3.4*k, 3.3*k), (9.0*k, 4.6*k, 2.8*k))          # the feed well (floor 1.9)
+    sh.cut().box((6.0*k, -6.6*k, 2.9*k), (2.6*k, 2.6*k, 1.6*k))          # the chute's throat into it
+    sh.cut().cyl((9.9*k, 0, 0), 3.6*k, 1.6*k, 'X', n=32)                  # socket the rotor hub turns in
+    for x in (-6.0, -2.8):                                               # plate seams across the roof
+        sh.cut().box((x*k, 1.8*k, 3.4*k), (.3*k, 8.0*k, .5*k))
+    for x in (-7.0, -5.6, -4.2):                                         # louvres in the rear glacis
+        sh.cut().box((x*k, 4.6*k, 3.0*k), (.5*k, 2.4*k, .8*k))
+    f.weld(g['steel'], (-8.52*k, -2.6*k, 1.0*k), (-8.52*k, 3.2*k, 1.0*k))
+    f.hatch(g, (-5.0*k, -2.6*k, 3.4*k), size=1.6)
+    # Port roof rail (the sprite's pale column at y +5.5) and bolt rows along the eaves.
+    g['steel'].box((1.0*k, 5.4*k, 3.6*k), (13.0*k, .7*k, .4*k), .08*k)
+    f.bolt_row(g['steel'], (-5.0*k, 5.4*k, 3.82*k), (7.0*k, 5.4*k, 3.82*k))
+    f.bolt_row(g['steel'], (-7.0*k, 6.9*k, 2.0*k), (8.0*k, 6.9*k, 2.0*k), axis='Y')
+    # In the feed well: the sprocket drum and the belt crossing from the chute's throat.
+    g['steel'].cyl((-.6*k, -3.4*k, 2.6*k), 1.0*k, 3.8*k, 'Y', n=20, bevel=.1*k)
+    for yy in (-4.6, -3.4, -2.2):
+        g['dark'].ring((-.6*k, yy*k, 2.6*k), .95*k, 1.04*k, .3*k, 'Y', n=20)
+    for i in range(5):                                                   # rounds in their links
+        yy = -5.4+.95*i
+        g['accent2'].cyl((3.6*k, yy*k, 2.3*k), .38*k, 2.6*k, 'X', n=10)
+        g['accent2'].lathe([(.38*k, 0), (.2*k, .5*k), (0, .7*k)], 10, (4.9*k, yy*k, 2.3*k), 'X')
+        g['dark'].box((3.6*k, yy*k, 1.95*k), (1.6*k, .7*k, .12*k))
+    # -- the feed chute out to starboard (the sprite's tan arm) and the ammunition box
+    # at its end; the top of the chute is open over the belt.
+    ch = g['plate#chute']
+    ch.box((6.0*k, -9.5*k, 2.6*k), (2.6*k, 5.0*k, 1.6*k), .1*k)
+    ch.cut().box((6.0*k, -9.5*k, 3.4*k), (1.4*k, 6.0*k, 1.0*k))
+    for yy in (-7.9, -9.5, -11.1):
+        g['steel'].box((6.0*k, yy*k, 2.6*k), (2.9*k, .35*k, 1.9*k), .05*k)
+    for i in range(5):
+        yy = -7.6-.9*i
+        g['accent2'].cyl((6.0*k, yy*k, 3.1*k), .32*k, 1.3*k, 'X', n=10)
+    box = g['plate#box']
+    box.box((6.0*k, -12.6*k, 1.4*k), (5.0*k, 3.6*k, 5.0*k), .12*k)
+    box.cut().box((6.0*k, -12.8*k, 3.95*k), (4.0*k, 2.6*k, .5*k))           # the lid sunk in its rim
+    g['steel'].box((6.0*k, -12.8*k, 3.75*k), (3.6*k, 2.2*k, .12*k), .04*k)
+    g['steel'].box((6.0*k, -13.6*k, 3.95*k), (2.0*k, .25*k, .25*k))          # handle
+    for x in (4.4, 7.6):                                                   # latches
+        g['steel'].box((x*k, -14.45*k, 3.0*k), (.6*k, .2*k, 1.0*k), .04*k)
+    g['mark'].box((6.0*k, -14.42*k, 1.4*k), (2.4*k, .06*k, .6*k))
+    # -- the drive motor along the port flank: ribbed, an end cap, a cable into the hull.
+    mot = g['accent#motor']
+    mot.cyl((1.5*k, 8.3*k, -.6*k), 2.1*k, 9.0*k, 'X', n=28, bevel=.2*k)
+    for x in (-1.6, -.4, .8, 2.0, 3.2, 4.4):                             # cooling grooves turned in
+        mot.cut().ring((x*k, 8.3*k, -.6*k), 1.85*k, 2.3*k, .35*k, 'X', n=28)
+    g['steel'].cyl((-3.3*k, 8.3*k, -.6*k), 1.6*k, .8*k, 'X', n=24, bevel=.1*k)
+    g['steel'].cyl((6.3*k, 8.3*k, -.6*k), 1.2*k, .9*k, 'X', n=24, bevel=.1*k)
+    g['dark'].cyl((6.8*k, 8.3*k, -.6*k), .55*k, .2*k, 'X', n=12)
+    g['steel'].box((1.5*k, 7.0*k, -2.9*k), (7.0*k, 1.8*k, .7*k), .1*k)       # its saddle
+    tk._cable(g['cable'], [(-3.6, 8.3, -.6), (-5.6, 8.3, -.6), (-6.6, 7.0, -2.0), (-7.4, 6.0, -3.6)], .45, k, 0)
+    # -- the cooling jacket: fixed sleeve and fins the rotor turns in, a lipped front bearing.
+    jac = g['steel#jacket']
+    jac.lathe([(3.55*k, 0), (5.1*k, 0), (5.1*k, 1.0*k), (4.4*k, 1.4*k), (4.4*k, 4.2*k), (5.2*k, 4.5*k),
+               (5.2*k, 5.0*k), (3.55*k, 5.0*k)], 40, (9.6*k, 0, 0), 'X', loop=True)
+    for x in (11.4, 12.2, 13.0, 13.8):
+        g['metal'].ring((x*k, 0, 0), 4.3*k, 5.0*k, .35*k, 'X', n=40)
+    for i in range(8):                                                   # tie bolts on the front lip
+        a = 2*math.pi*(i+.5)/8
+        g['steel'].cyl((14.65*k, 4.75*k*math.cos(a), 4.75*k*math.sin(a)), .18*k, .2*k, 'X', n=6)
+    # -- the rotating assembly: recoil carriage, rotor, barrels.
+    rc = g.sub('recoil 1', (9.5*k, 0, 0), 2*k)
+    rc['steel'].cyl((9.7*k, 0, 0), 3.4*k, .9*k, 'X', n=32, bevel=.1*k)    # thrust collar in the socket
+    rot = rc.sub('rotor', (9.5*k, 0, 0), 2*k)
+    rot['metal#hub'].cyl((12.9*k, 0, 0), 3.4*k, 6.0*k, 'X', n=36, bevel=.15*k)
+    rot['dark'].cyl((21.9*k, 0, 0), .95*k, 13.6*k, 'X', n=16)                 # spindle between the barrels
+    rot['steel'].cyl((28.6*k, 0, 0), 1.3*k, .3*k, 'X', n=16, bevel=.05*k)    # its nose cap
+    n, pitch, rad = 6, 2.6, 1.05
+    L, x0 = 12.8, 15.8
+    for i in range(n):
+        a = 2*math.pi*(i+.5)/n
+        y, z = pitch*math.cos(a), pitch*math.sin(a)
+        rot['metal'].lathe([(0, 0), (rad*k, 0), (rad*k, L*k), (rad*.5*k, L*k), (rad*.5*k, (L-1.8)*k),
+                            (0, (L-1.8)*k)], 16, (x0*k, y*k, z*k), 'X')
+        rot['steel'].cyl(((x0+.9)*k, y*k, z*k), 1.25*k, 1.8*k, 'X', n=16, bevel=.1*k)   # chamber
+    for xc, w, R in ((16.4, 1.0, 3.95), (22.2, .8, 3.75), (27.6, 1.1, 3.95)):
+        cl = rot[f'steel#clamp{xc}']
+        cl.cyl((xc*k, 0, 0), R*k, w*k, 'X', n=36, bevel=.12*k)
+        for i in range(n):                                               # scallops between the barrels
+            a = 2*math.pi*i/n
+            cl.cut().cyl((xc*k, R*1.08*k*math.cos(a), R*1.08*k*math.sin(a)), .85*k, 2*w*k, 'X', n=12)
+        if f.near:
+            for i in range(n):                                           # tie bolts between the bores
+                a = 2*math.pi*i/n
+                rot['steel'].cyl(((xc+w/2+.02)*k, 2.9*k*math.cos(a), 2.9*k*math.sin(a)), .16*k, .12*k, 'X', n=6)
+    return [(29.0*k, 0.0, 0.0)]
+
+
+def _hp_harpoonpod(g, f, s, k=1.0):
+    """launcher_m4_2x_hardpoint_base.png (32 x 44 px; the Manticore (P)'s WS 004 / WS 005).
+    Two open launch rails side by side, a Harpoon on each at y -8 and +8 (hardpointOffsets).
+    Each rail is a grey trough from 6 px behind the slot to its front hoop 14 ahead: the
+    channel cut down its length (the sprite's dark channel and its open gap at rows
+    23..25 and at the back legs), tan rail bars along both walls with pale end posts
+    standing past the hoop (rows 18..20), orange marks, windows cut through the outer
+    wall. The dark magazine block bridges both rails behind the slot with the rounds'
+    tails in bores through it; a centre spine with a lifting eye joins the rails ahead
+    (the sprite's arch). The front hoops have round mouths the rounds leave through.
+    Each Harpoon (22 long, centred on its fire point) is its own 'missile k' empty;
+    muzzle anchors at the hoop mouths."""
+    mouths = []
+    for i, sy in enumerate((-1, 1)):
+        yc = sy*8.0
+        pod = g[f'paint#pod{i}']
+        prof = [(-6.0, 1.0), (1.2, 1.0), (1.6, 2.0), (11.4, 2.0), (11.4, 13.0), (1.6, 13.0), (1.2, 15.0),
+                (-6.0, 15.0)]
+        _glacis(pod, tk._ccw([(x*k, sy*y*k) for x, y in prof]), -3.0*k, 1.0*k, .3*k, 1.4*k)
+        pod.cut().box((3.0*k, yc*k, 1.0*k), (20*k, 3.5*k, 5.8*k))            # the channel (floor -1.9)
+        for x in (3.4, 6.2, 9.0):                                           # windows through the outer wall
+            pod.cut().box((x*k, sy*12.5*k, -.6*k), (1.6*k, 2.0*k, 1.4*k))
+        g['dark'].box((3.0*k, yc*k, -1.85*k), (17*k, 3.5*k, .1*k))            # channel liner
+        for x in (-4.0, .2, 5.0, 9.6):                                       # rollers the round rides
+            g['steel'].cyl((x*k, yc*k, -1.6*k), .35*k, 3.4*k, 'Y', n=10)
+        # Tan rail bars along both walls, pale end posts standing past the hoop.
+        for yb in (11.2, 4.0):
+            g['accent'].box((6.4*k, sy*yb*k, 1.65*k), (10.8*k, 1.2*k, .5*k), .08*k)
+            g['plate'].box((14.3*k, sy*yb*k, -.2*k), (1.6*k, 1.4*k, 4.8*k), .12*k)
+            f.bolt_row(g['steel'], (2.0*k, sy*yb*k, 1.92*k), (10.8*k, sy*yb*k, 1.92*k))
+        for x in (2.5, 4.5):                                                 # orange marks on the outer bar
+            g['mark'].box((x*k, sy*11.2*k, 1.92*k), (.7*k, 1.0*k, .06*k))
+        # The front hoop with its round mouth.
+        hoop = g[f'steel#hoop{i}']
+        hoop.box((12.8*k, sy*7.5*k, -.3*k), (2.8*k, 11.0*k, 5.4*k), .15*k)
+        hoop.cut().cyl((12.8*k, yc*k, 0), 2.2*k, 4.0*k, 'X', n=28)
+        g['dark'].ring((13.0*k, yc*k, 0), 2.05*k, 2.22*k, 2.2*k, 'X', n=28)
+        f.bolt_row(g['steel'], (14.22*k, sy*2.8*k, 1.9*k), (14.22*k, sy*12.2*k, 1.9*k), axis='X')
+        mouths.append((14.2*k, yc*k, 0.0))
+        # The loaded Harpoon, tail 12 behind its fire point, fins rolled clear of the walls.
+        m = g.sub(f'missile {i+1}', (-4.0*k, yc*k, 0), 1.5*k)
+        tk._missile(m, f, -4.0*k, yc*k, 0, 22.0*k, 1.2*k, True, roll=math.pi/4)
+        m['glow'].box((15.0*k, yc*k, 1.0*k), (.5*k, .3*k, .25*k))          # seeker window
+    # The magazine block across both rails, the rounds' tails in bores through it.
+    mag = g['accent2#mag']
+    plan = [(-2.4, -15.0), (1.2, -15.0), (1.2, 15.0), (-2.4, 15.0)]
+    _glacis(mag, tk._ccw([(x*k, y*k) for x, y in plan]), -3.0*k, 1.6*k, .5*k, 2.4*k)
+    for sy in (-1, 1):
+        mag.cut().cyl((-.6*k, sy*8.0*k, 0), 2.2*k, 5.0*k, 'X', n=28)
+        mag.cut().box((-.6*k, sy*12.6*k, 2.4*k), (2.0*k, 2.6*k, .6*k))       # loading hatch wells
+        g['steel'].box((-.6*k, sy*12.6*k, 2.12*k), (1.8*k, 2.4*k, .16*k), .04*k)
+        g['dark'].ring((1.0*k, sy*8.0*k, 0), 2.2*k, 2.5*k, .5*k, 'X', n=28)
+        g['mark'].box((-1.9*k, sy*2.5*k, 2.42*k), (.6*k, .9*k, .06*k))
+    f.bolt_row(g['steel'], (-2.0*k, -14.0*k, 2.42*k), (-2.0*k, 14.0*k, 2.42*k), axis='Z')
+    f.weld(g['steel'], (1.25*k, -14.6*k, -1.0*k), (1.25*k, 14.6*k, -1.0*k))
+    # The centre spine between the rails and its lifting eye (the sprite's arch).
+    sp = g['paint#spine']
+    sp.box((7.0*k, 0, -1.5*k), (6.4*k, 4.4*k, 3.0*k), .15*k)
+    sp.cut().box((7.0*k, 0, 0), (4.4*k, 2.4*k, .8*k))
+    g['steel'].ring((7.6*k, 0, .25*k), 1.1*k, 1.7*k, .5*k, 'Z', n=24)
+    g['steel'].box((3.0*k, 0, -2.6*k), (2.0*k, 26.0*k, .8*k), .1*k)          # cross tie under the rails
+    return mouths
+
+
 HARDPOINTS = {
     # The Lasher's stock fit (lasher_Standard): light assault guns in its gun pods,
     # heatseekers (Salamander MRM) in its missile pods. Paints off the sprites: the
@@ -287,6 +456,21 @@ HARDPOINTS = {
                    paints={'paint': (.2, .17, .15), 'plate': (.26, .25, .24), 'accent': (.72, .4, .05),
                            'accent2': (.62, .1, .05), 'mark': (.55, .45, .38)},
                    bay=(-6.2, 14.0, 7.6, -2.9)),
+    # Hound (A) WS 001 (its spine chaingun) and Manticore (P) WS 004 / WS 005 (Harpoon pods).
+
+    # The Hound (A)'s spine gun (WS 001): the rotary cannon's tan
+    # housing, brown drive motor, darker chute and gunmetal barrels.
+    # `bay`: the breech housing and motor sunk; the chute and box ride over the deck.
+    'chaingun': dict(builder=_hp_chaingun,
+                     paints={'paint': (.39, .31, .19), 'accent': (.16, .11, .07), 'plate': (.26, .21, .15),
+                             'metal': (.24, .23, .23), 'accent2': (.5, .36, .14)},
+                     bay=(-9.0, 10.2, 10.6, -5.6)),
+    # Manticore (P) WS 004 / WS 005: grey rails, tan bars, pale posts, dark magazine,
+    # orange marks; the Harpoon's green-grey body.
+    'harpoonpod': dict(builder=_hp_harpoonpod, mcol=(.3, .38, .27),
+                       paints={'paint': (.22, .2, .16), 'accent': (.38, .31, .23), 'plate': (.73, .66, .53),
+                               'accent2': (.16, .13, .1), 'mark': (.49, .22, .04)},
+                       bay=(-6.4, 14.6, 15.4, -3.4)),
 }
 
 

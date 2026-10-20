@@ -216,6 +216,10 @@ def _cut_bay(kit, sid, mount, bay, keep, reach):
         bpy.context.view_layer.update()
         dg = bpy.context.evaluated_depsgraph_get()
         me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        own = next((m for m in me.materials if m is not None), None)
+        for i, m in enumerate(me.materials):     # the cut faces take the part's own finish
+            if m is None:
+                me.materials[i] = own
         old = ob.data
         ob.modifiers.clear()
         ob.data = me
