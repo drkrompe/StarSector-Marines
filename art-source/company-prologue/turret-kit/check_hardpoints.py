@@ -1,0 +1,101 @@
+"""Report fixed mounts that clip their hull; run inside a hull's built .blend.
+
+  blender --background <model>.blend --python check_hardpoints.py [-- --tol 0.15 --json PATH]
+
+A hardpoint from build_hardpoint is the meshes '<prefix> hardpoint <key>' (and its
+'recoil k', 'rotor', 'missile k' groups) under one mount empty. For every vertex of
+every hardpoint mesh this tests whether it lies inside another solid of the ship (an
+odd number of crossings along a ray) deeper than --tol units below that solid's
+surface. Touching the bay it is sunk in is not a clash; passing through a pod wall,
+a frame, the neck or another weapon is. Prints one line per mount and exits non-zero
+when anything clips, so a hull's build can call it. The turrets have their own arc
+sweep (each hull's mounts module); this is the same guarantee for fixed mounts.
+"""
+import argparse
+import json
+import sys
+import bpy
+from mathutils import Vector
+from mathutils.bvhtree import BVHTree
+
+argv = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
+ap = argparse.ArgumentParser()
+ap.add_argument('--tol', type=float, default=.15)
+ap.add_argument('--json', default='')
+args = ap.parse_args(argv)
+
+
+def clashes(tol=.15, scene=None):
+    """{mount name: [(other object, deepest vertex depth, vertices inside), ...]}."""
+    scene = scene or bpy.context.scene
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    mounts = {}
+    for ob in scene.objects:
+        if ob.type == 'MESH' and ' hardpoint ' in ob.name and ob.parent is not None:
+            m = ob.parent
+            mounts.setdefault(m.name, set()).update(m.children_recursive)
+    weapon = set().union(*mounts.values()) if mounts else set()
+    solids = {}
+    for ob in scene.objects:
+        if ob.type != 'MESH' or ob in weapon:
+            continue
+        ev = ob.evaluated_get(dg)
+        me = ev.to_mesh()
+        if me.polygons:
+            ws = [ev.matrix_world @ v.co for v in me.vertices]
+            solids[ob.name] = (Vector(map(min, *ws)), Vector(map(max, *ws)), BVHTree.FromPolygons([ev.matrix_world @ v.co for v in me.vertices],
+                                                   [tuple(p.vertices) for p in me.polygons]))
+        ev.to_mesh_clear()
+    out = {}
+    for mname, parts in sorted(mounts.items()):
+        pts = []
+        for ob in parts:
+            if ob.type == 'MESH':
+                pts += [ob.matrix_world @ v.co for v in ob.evaluated_get(dg).data.vertices]
+        lo = Vector(map(min, *pts)) if pts else None
+        hi = Vector(map(max, *pts)) if pts else None
+        hits = []
+        for name, (slo, shi, t) in solids.items():
+            if any(shi[i] < lo[i] or slo[i] > hi[i] for i in range(3)):
+                continue
+            found, deep = 0, 0.0
+            for p in pts:
+                if any(p[i] < slo[i] or p[i] > shi[i] for i in range(3)):
+                    continue
+                n = t.find_nearest(p)
+                if n[0] is None or n[3] < tol:
+                    continue
+                # inside: odd crossings straight up
+                c, o = 0, p.copy()
+                while True:
+                    h = t.ray_cast(o, Vector((0, 0, 1)), 1e4)
+                    if h[0] is None:
+                        break
+                    c += 1
+                    o = h[0]+Vector((0, 0, 1e-4))
+                    if c > 64:
+                        break
+                if c % 2:
+                    found += 1
+                    deep = max(deep, n[3])
+            if found:
+                hits.append((name, round(deep, 3), found))
+        out[mname] = {'clips': sorted(hits, key=lambda h: -h[1]), 'bounds': [list(lo), list(hi)] if pts else None}
+    return out
+
+
+if __name__ == '__main__':
+    res = clashes(args.tol)
+    bad = 0
+    for m, r in res.items():
+        if r['clips']:
+            bad += 1
+            print(f'CLIP {m}: ' + ', '.join(f'{n} (depth {d}, {c} vertices)' for n, d, c in r['clips'][:8]))
+        else:
+            print(f'OK   {m}: clear of the hull (tolerance {args.tol})')
+    if args.json:
+        with open(args.json, 'w') as fh:
+            json.dump({m: {'clips': r['clips']} for m, r in res.items()}, fh, indent=1)
+    if bad:
+        sys.exit(1)
