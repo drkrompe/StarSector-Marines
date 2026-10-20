@@ -26,6 +26,7 @@ ap.add_argument('--detail', default='near')
 ap.add_argument('--only', default='')
 ap.add_argument('--samples', type=int, default=32)
 ap.add_argument('--half', action='store_true', help='render at 50%% (the render queue light lane)')
+ap.add_argument('--hardpoints', default='', help='also these hardpoints (HARDPOINT_WEAPONS), each on a block cut with its bay')
 ap.add_argument('--no-singles', action='store_true')
 ap.add_argument('--top', action='store_true', help='also orthographic top and side views of each, trained dead ahead, for review_sheet.py')
 args = ap.parse_args(argv)
@@ -63,6 +64,36 @@ for i, w in enumerate(names):
     placed.append((w, Vector((x, y, lift)), r, t))
     print(f'{w}: {len(t["parts"])} objects, '
           f'{sum(len(p.data.polygons) for p in t["parts"])} faces, {len(t["muzzles"])} muzzles')
+
+# Hardpoints: each on its own block of hull with its bay cut out, as a hull seats it.
+hps = [h for h in args.hardpoints.split(',') if h]
+for j, w in enumerate(hps):
+    x, y = ((len(names)+j) % cols)*pitch, -((len(names)+j)//cols)*pitch
+    mount = bpy.data.objects.new(f'Hardpoint {w} mount', None)
+    scene.collection.objects.link(mount)
+    mount.location = (x, y, 4.0)
+    mount.rotation_euler = (0, 0, 0 if args.top else math.radians(-25))
+    h = tk.build_hardpoint(w, f'Hardpoint {w}', mount, MATS, args.mpu, args.detail)
+    x0, x1, hw, fl = h['bay'] or (-6.0, 8.0, 6.0, -3.0)
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    block = bpy.context.object
+    block.name = f'Hardpoint {w} hull block'
+    block.parent = mount
+    block.scale = (x1-x0+8, 2*hw+6, 6.2)
+    block.location = ((x0+x1)/2-4, 0, -4.0+3.1-.5)
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    cut = bpy.context.object
+    cut.name = f'Hardpoint {w} bay cutter'
+    cut.parent = mount
+    cut.scale = (x1-x0+8, 2*hw, 10)
+    cut.location = ((x0+x1)/2+4, 0, fl+5)
+    mod = block.modifiers.new('bay', 'BOOLEAN')
+    mod.operation, mod.object = 'DIFFERENCE', cut
+    cut.hide_render = cut.hide_viewport = True
+    block.data.materials.append(MATS['armour'])
+    placed.append((w, mount.location.copy(), 9.5, h))
+    print(f'{w}: {len(h["parts"])} objects, {sum(len(p.data.polygons) for p in h["parts"])} faces, '
+          f'{len(h["muzzles"])} muzzles')
 
 # A deck under everything.
 bpy.ops.mesh.primitive_plane_add(size=1, location=((cols-1)*pitch/2, -((len(names)+len(hps))//cols)*pitch/2, -.5))
