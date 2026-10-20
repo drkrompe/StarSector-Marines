@@ -25,6 +25,13 @@ public final class CerberusCompanyStart implements Script {
     /** The pooled ship's account: about twenty-two days of board and berth at Kilo Nine. */
     public static final int STARTING_CREDITS = 473;
     public static final int TRAVEL_SUPPLIES = 25;
+    /**
+     * A partly filled tank: the opening's work is all inside Corvus, where travel burns none. It is kept this low so
+     * that selling everything aboard cannot buy a second squad before Relief ({@code SecondSquadAffordabilityTest}).
+     */
+    public static final int STARTING_FUEL = 25;
+    /** Hands aboard beyond the ship's minimum crew. */
+    public static final int SURPLUS_CREW = 5;
 
     @Override public void run() {
         var sector = Global.getSector();
@@ -40,9 +47,9 @@ public final class CerberusCompanyStart implements Script {
         var cargo = fleet.getCargo();
         cargo.clear();
         cargo.getCredits().set(STARTING_CREDITS);
-        cargo.addCrew((int) Math.ceil(ship.getMinCrew()) + 5);
+        cargo.addCrew((int) Math.ceil(ship.getMinCrew()) + SURPLUS_CREW);
         cargo.addSupplies(TRAVEL_SUPPLIES);
-        cargo.addFuel(Math.min(40, cargo.getMaxFuel()));
+        cargo.addFuel(Math.min(STARTING_FUEL, cargo.getMaxFuel()));
         sector.getPersistentData().put(SHIP_KEY, ship.getId());
         FoundingReserve.issue(sector.getPersistentData());
         CompanyPrologue.begin(sector.getPersistentData());
