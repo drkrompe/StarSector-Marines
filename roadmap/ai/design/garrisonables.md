@@ -236,9 +236,10 @@ four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
 out exactly as its control. The defender now
 counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
-Defender command); it launches against the hold, but on the trial ground every
-group broke on it at both garrisons, and the defender's reserve may man its own
-fort's belt only from what it holds above the reserve law's share.
+Defender command); on the trial ground it launched against the hold in six of
+nine at the default garrison and retook the bunker once, before the hold was
+whole, and the defender's reserve may man its own fort's belt only from what it
+holds above the reserve law's share.
 
 ## How it fits what exists
 

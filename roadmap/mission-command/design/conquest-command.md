@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-20 — the fort counter-attack is tuned (reserve of half the pool from first contact, lent to its own belt; floor of two patrols) and measured: it contests but cannot retake; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`); see "A fort the defender loses is counter-attacked in proportion" under Defender command.
+Updated: 2026-10-20 — the fort counter-attack is tuned (reserve of half the pool from first contact, lent to its own belt; floor of two patrols) and measured: it contests and rarely retakes; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`); see "A fort the defender loses is counter-attacked in proportion" under Defender command.
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -559,17 +559,23 @@ counter-attack against holders who cannot be killed falls back, waits, tries
 again and gives the fort up.
 
 On the trial ground (the on-path fort, seeds 41 to 49, the combined-arms force,
-against the same-build control) **it contests the fort but cannot retake it**,
-at either garrison. At the default garrison (four patrols) it launched in two
-battles of nine, two patrols at the twelve it believed the fort took, and both
-broke at a sixth of their strength; the fort was won back in two others, by the
-belt and garrison, against none in the control; nine marine wins and no
-timeouts, as in the control. With ninety militia it launched in all nine, three
-to five patrols (26 strength on the mean), and every push broke at about a third
-of what it launched with; eight marine wins and one timeout against nine and
-none, the fort won back in none against two. The first figures (the reserve
-law's quarter, formed on the fort's alarm, a floor of three patrols) never
-launched at the default garrison and cost two timeouts there.
+against the same-build control, with belt manning by stretches) **it contests
+the fort and, rarely, retakes it**. At the default garrison (four patrols) it
+launched in six battles of nine, every time two patrols at the twelve it
+believed the fort took; one retook the bunker 1,800 ticks after launching with
+eleven of twelve left, while the marines had not yet held the fort whole, and
+five broke at a sixth to a third of their strength. Eight marine wins and one
+timeout, as in the control (the timeouts fell on different seeds: the retake's,
+and one the control lost on its own); the fort was won back whole in none
+against two, marines lost 64 on the mean against 58 and defenders 52 against
+55. With ninety militia it launched in all nine, three to five patrols (30
+strength on the mean), and every push broke at about a third of what it
+launched with; seven wins and two timeouts in both arms, the fort won back
+whole in one against none. The first figures (the reserve law's quarter,
+formed on the fort's alarm, a floor of three patrols) never launched at the
+default garrison and cost two timeouts there. Before belt manning went by
+stretches the same setting launched in two of nine at the default garrison,
+since a whole run's manning drew more of the lent reserve.
 
 What was tried, and why it stands where it does: a larger reserve formed only
 on the alarm still found the pool spent (one launch in nine); forming it at
@@ -578,10 +584,10 @@ the timeouts at the control's, but a reserve of half the pool held from first
 contact starves a small garrison's belt (`reactive-belt` mans nothing), so the
 reserve above the law's share is lent to the fort's own belt, which is what
 takes the default garrison back to two launches. A lower commit share launched
-single patrols; a floor scaled to the garrison came to the same twelve. No
-setting retook the fort with a group: what the defender can raise is a third of
-the marines holding it, and the strength it believes it needs is low because
-the holders are out of sight from the staging cell. Whether the defender should
+single patrols; a floor scaled to the garrison came to the same twelve. A group
+retakes only a fort the marines have not consolidated: what the defender can
+raise is a third of the marines holding it, and the strength it believes it
+needs is low because the holders are out of sight from the staging cell. Whether the defender should
 have the garrison to do it is a question of the garrison, not of this rule.
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
