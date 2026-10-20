@@ -1,20 +1,29 @@
 """Writes the damage-doll line art under mod/graphics/ui/dolls/.
 
-A doll is one SVG holding two elevations side by side, the way MechWarrior draws a
-paper doll: the machine seen from the front (left half, centred on x 60) and from
-behind (right half, centred on x 180). Each location the damage model names is a
-group ``<g id="part-NAME">`` whose shapes fill with ``currentColor``; the renderer
-paints that colour per part from the location's state. Outline and detail strokes
-carry fixed colours. See ``damage-doll.md`` and ``d5-located-armor.md``.
+A doll is one SVG holding two elevations side by side, the way MechWarrior Online
+draws its paper doll: the machine seen from the front (left half, centred on x 60)
+and from behind (right half, centred on x 180). Each location the damage model
+names is a group ``<g id="part-NAME">``; its panels fill and stroke with
+``currentColor``, which the renderer replaces per part with the location's state.
 
-There is no side view. A side's state reads off the parts at that edge of both
-views: a hull's cheeks and running gear, a mech's shoulder and arm. Seen from the
-front the machine's right is on the viewer's left; from behind its left is. The
-renderer writes the ``R FRONT L`` / ``L REAR R`` captions under the views.
+The style is MWO's: flat, angular **panels that tile without overlapping**, each
+pulled in from its neighbours by the same small gap, a bright outline over a dim
+fill, and no ornament. Every panel is drawn as a convex polygon on a shared
+skeleton and then inset by half the gap (``inset``), so two panels that share an
+edge on the skeleton end up a constant distance apart however they are angled.
+A faint fixed outline sits under each part so a location that is not fitted still
+shows its shape when the renderer leaves its colour out.
 
-A mech's back view drops the legs: they are thin, the same from either side, and
-already drawn in front. Shapes are stylised from the shipped sprites' proportions,
-blocky enough to read at the size of a HUD corner.
+There is no side view. A side's state reads off the panels at that edge of both
+views: a hull's sponsons and running gear, a mech's side torso and arm. Seen from
+the front the machine's right is on the viewer's left; from behind its left is.
+The renderer writes the ``R FRONT L`` / ``L REAR R`` captions under the views.
+A mech's back view is its torso alone: legs and arms are the same from behind.
+
+The mechs follow the owner's references (2026-10-20): the Hound is a Locust (a
+pod on long bird legs, gun pods slung beneath), the Sirocco a Catapult (missile
+boxes standing over a narrow torso, bird legs), the Bulwark a Fafnir (a wide,
+squat torso, huge arm cannons, thick short legs).
 
 Run from the repository root:  python art-source/dolls/build_dolls.py
 """
@@ -23,337 +32,291 @@ from pathlib import Path
 
 OUT = Path("mod/graphics/ui/dolls")
 W, H = 240, 170
-LINE = "#dbe5df"
-FILL = ".62"
-SOLID = ".9"   # parts drawn over another part (turrets, pods), so the one beneath does not show through
-GROUND = 148   # where the machines stand; the captions sit beneath, drawn by the renderer
 FRONT_X, BACK_X = 60, 180
+GAP = 2.6            # between neighbouring panels, in viewBox units
+FILL_OPACITY = ".34"
+STROKE = "1.5"
+GHOST = "#dbe5df"    # the faint outline that shows an unfitted location
 
 
-def pts(points):
-    return " ".join(f"{x:g},{y:g}" for x, y in points)
+def inset(points, distance):
+    """A convex polygon pulled in by ``distance`` along every edge."""
+    n = len(points)
+    area = sum(points[i][0] * points[(i + 1) % n][1] - points[(i + 1) % n][0] * points[i][1] for i in range(n))
+    sign = 1 if area > 0 else -1
+    lines = []
+    for i in range(n):
+        (x0, y0), (x1, y1) = points[i], points[(i + 1) % n]
+        dx, dy = x1 - x0, y1 - y0
+        length = (dx * dx + dy * dy) ** .5
+        nx, ny = -dy / length * sign, dx / length * sign
+        lines.append(((x0 + nx * distance, y0 + ny * distance), (dx, dy)))
+    out = []
+    for i in range(n):
+        (p, r), (q, s) = lines[i - 1], lines[i]
+        denom = r[0] * s[1] - r[1] * s[0]
+        if abs(denom) < 1e-9:
+            out.append(q)
+            continue
+        t = ((q[0] - p[0]) * s[1] - (q[1] - p[1]) * s[0]) / denom
+        out.append((p[0] + r[0] * t, p[1] + r[1] * t))
+    return out
 
 
-def poly(points):
-    return f'<polygon points="{pts(points)}"/>'
+def check_convex(points, where):
+    n = len(points)
+    signs = set()
+    for i in range(n):
+        (ax, ay), (bx, by), (cx, cy) = points[i - 1], points[i], points[(i + 1) % n]
+        cross = (bx - ax) * (cy - by) - (by - ay) * (cx - bx)
+        if abs(cross) > 1e-6:
+            signs.add(cross > 0)
+    if len(signs) > 1:
+        raise ValueError(f"panel in {where} is not convex: {points}")
 
 
-def rect(x, y, w, h, rx=0):
-    r = f' rx="{rx:g}"' if rx else ""
-    return f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}"{r}/>'
-
-
-def circle(cx, cy, r):
-    return f'<circle cx="{cx:g}" cy="{cy:g}" r="{r:g}"/>'
-
-
-def ellipse(cx, cy, rx, ry):
-    return f'<ellipse cx="{cx:g}" cy="{cy:g}" rx="{rx:g}" ry="{ry:g}"/>'
-
-
-def line(x1, y1, x2, y2):
-    return f'<line x1="{x1:g}" y1="{y1:g}" x2="{x2:g}" y2="{y2:g}"/>'
-
-
-def dome(cx, base, rx, ry):
-    return (f'<path d="M {cx - rx:g} {base:g} Q {cx - rx:g} {base - ry:g} {cx:g} {base - ry:g} '
-            f'Q {cx + rx:g} {base - ry:g} {cx + rx:g} {base:g} Z"/>')
-
-
-def flip(points, cx):
-    """The same outline mirrored about the vertical line through cx."""
-    return [(2 * cx - x, y) for x, y in points]
+def svg_points(points):
+    return " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
 
 
 class Doll:
-    """Accumulates parts and detail, in drawing order, then writes one SVG."""
-
     def __init__(self, name):
         self.name = name
-        self.body = []
+        self.parts = {}   # location -> list of panels, in drawing order
 
-    def part(self, location, *shapes, opacity=FILL):
-        inner = "".join(shapes)
-        self.body.append(
-            f'<g id="part-{location}" fill="currentColor" fill-opacity="{opacity}" '
-            f'stroke="{LINE}" stroke-width="1.2" stroke-linejoin="round">{inner}</g>')
+    def panel(self, location, points, cx):
+        placed = [(cx + x, y) for x, y in points]
+        check_convex(placed, f"{self.name}/{location}")
+        self.parts.setdefault(location, []).append(inset(placed, GAP / 2))
 
-    def detail(self, *shapes, opacity=".45", width=".8"):
-        inner = "".join(shapes)
-        self.body.append(
-            f'<g fill="none" stroke="{LINE}" stroke-opacity="{opacity}" stroke-width="{width}" '
-            f'stroke-linecap="round" stroke-linejoin="round">{inner}</g>')
+    def pair(self, left, right, points, cx):
+        """A panel authored on the viewer's left, and its mirror on the right."""
+        self.panel(left, points, cx)
+        self.panel(right, [(-x, y) for x, y in reversed(points)], cx)
 
     def write(self):
         OUT.mkdir(parents=True, exist_ok=True)
+        body = []
+        for location, panels in self.parts.items():
+            shapes = "".join(f'<polygon points="{svg_points(p)}"/>' for p in panels)
+            body.append(f'<g fill="none" stroke="{GHOST}" stroke-opacity=".22" stroke-width="1" '
+                        f'stroke-linejoin="miter">{shapes}</g>')
+            body.append(f'<g id="part-{location}" fill="currentColor" fill-opacity="{FILL_OPACITY}" '
+                        f'stroke="currentColor" stroke-width="{STROKE}" stroke-linejoin="miter">{shapes}</g>')
         svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}">'
-               f'<title>{self.name} damage doll</title>'
-               + "".join(self.body) + "</svg>\n")
+               f'<title>{self.name} damage doll</title>' + "".join(body) + "</svg>\n")
         (OUT / f"{self.name}.svg").write_text(svg, encoding="utf-8")
         return self.name
 
 
 def sides(rear):
-    """The locations on the viewer's left and right: from the front the machine's right is on the left."""
+    """Locations on the viewer's (left, right): from the front the machine's right is on the left."""
     return ("LEFT", "RIGHT") if rear else ("RIGHT", "LEFT")
 
 
-VIEWS = ((FRONT_X, False), (BACK_X, True))
+def shoulders(rear):
+    return ("LEFT_SHOULDER", "RIGHT_SHOULDER") if rear else ("RIGHT_SHOULDER", "LEFT_SHOULDER")
+
+
+def views():
+    return ((FRONT_X, False), (BACK_X, True))
+
+
+def octagon(x0, y0, x1, y1, c):
+    return [(x0 + c, y0), (x1 - c, y0), (x1, y0 + c), (x1, y1 - c), (x1 - c, y1), (x0 + c, y1), (x0, y1 - c),
+            (x0, y0 + c)]
 
 
 # -------------------------------------------------------------------- vehicles
+#
+# Every hull shares one skeleton: a turret (when it has one) on top, an upper band
+# of hull deck between two sponsons, and below it the end plate between the
+# running gear. The sponsons are the LEFT and RIGHT plates, so a flank reads at the
+# matching edge of both views; the end plate is FRONT in one view and REAR in the
+# other.
 
-def hull_ends(d, half, drive, deck, cheek, face_style="glacis", hull_band=10):
-    """Both end views of a hull: running gear, the two cheeks, the end plate, the hull band.
-
-    ``half`` is the body's half width, ``deck`` the y of its top deck, ``cheek`` how
-    wide each side cheek shows. ``drive`` is 'track', 'wheel' or 'skirt'.
-    """
-    for cx, rear in VIEWS:
-        vl, vr = sides(rear)
-        end = "REAR" if rear else "FRONT"
-        x0, x1 = cx - half, cx + half
-        if drive == "track":
-            gear_top = GROUND - 36
-            d.part("DRIVE", rect(x0, gear_top, 18, 36, rx=5), rect(x1 - 18, gear_top, 18, 36, rx=5))
-            d.detail(*[line(x0 + 3, gear_top + 6 + i * 6, x0 + 15, gear_top + 6 + i * 6) for i in range(5)],
-                     *[line(x1 - 15, gear_top + 6 + i * 6, x1 - 3, gear_top + 6 + i * 6) for i in range(5)],
-                     opacity=".35")
-            inner0, inner1 = x0 + 18, x1 - 18
-            body_bottom = GROUND - 4
-        elif drive == "wheel":
-            gear_top = GROUND - 30
-            d.part("DRIVE", rect(x0 - 4, gear_top, 15, 30, rx=5), rect(x1 - 11, gear_top, 15, 30, rx=5))
-            d.detail(line(x0 + 3.5, gear_top + 6, x0 + 3.5, GROUND - 6),
-                     line(x1 - 3.5, gear_top + 6, x1 - 3.5, GROUND - 6))
-            inner0, inner1 = x0 + 11, x1 - 11
-            body_bottom = GROUND - 10
-        else:  # skirt
-            gear_top = GROUND - 18
-            d.part("DRIVE", rect(x0 - 6, gear_top, 2 * half + 12, 18, rx=9))
-            d.detail(line(x0 + 4, gear_top + 9, x1 - 4, gear_top + 9), opacity=".35")
-            inner0, inner1 = x0 + cheek, x1 - cheek
-            body_bottom = gear_top
-        # Cheeks: the hull's sides as they show past the end plate, above (or beside) the running gear.
-        cheek_shape = [(x0 - 2, deck + 6), (x0 + cheek, deck), (x0 + cheek, gear_top), (x0 - 2, gear_top)]
-        d.part(vl, poly(cheek_shape))
-        d.part(vr, poly(flip(cheek_shape, cx)))
-        # The hull band along the top of the end: the structure behind the plates.
-        band = deck + hull_band
-        d.part("HULL", rect(x0 + cheek, deck, 2 * (half - cheek), hull_band))
-        a, b = x0 + cheek, x1 - cheek
-        if face_style == "glacis":
-            face = [(a, band), (b, band), (min(b, inner1), body_bottom), (max(a, inner0), body_bottom)]
-        elif face_style == "nose":   # a hover nose: a chevron to the centre
-            face = [(a, band), (b, band), (b - 4, body_bottom), (cx, body_bottom - 4), (a + 4, body_bottom)]
-        else:
-            face = [(a, band), (b, band), (b, body_bottom), (a, body_bottom)]
-        d.part(end, poly(face))
-        if rear:
-            d.detail(*[line(cx - 14, band + 7 + i * 5, cx + 14, band + 7 + i * 5) for i in range(3)])
-        else:
-            d.detail(rect(cx - 6, band + 6, 12, 5, rx=1))
-
-
-def tank(name, muzzle=4.0, screened=False, dozer=False):
+def tank(name, turret_w=24, turret_top=50, heavy=False, screened=False, dozer=False):
     d = Doll(name)
-    half, deck = 46, 88
-    hull_ends(d, half, "track", deck, cheek=20)
-    for cx, rear in VIEWS:
-        if dozer:
-            d.part("TURRET", poly([(cx - 14, deck), (cx - 11, deck - 14), (cx + 11, deck - 14), (cx + 14, deck)]),
-                   opacity=SOLID)
-            if not rear:
-                d.detail(circle(cx, deck - 8, 2.4), width="1.2", opacity=".8")
-            continue
-        shapes = [poly([(cx - 32, deck), (cx - 25, deck - 24), (cx + 25, deck - 26), (cx + 32, deck)])]
-        if screened:
-            shapes.append(ellipse(cx + 12, deck - 28, 9, 4))
-        if not rear:
-            shapes.append(rect(cx - 10, deck - 20, 20, 16, rx=3))   # mantlet
-        d.part("TURRET", *shapes, opacity=SOLID)
+    for cx, rear in views():
+        vl, vr = sides(rear)
+        top = turret_top - (6 if heavy else 0)
+        tw = turret_w + (4 if heavy else 0)
         if rear:
-            d.detail(rect(cx - 16, deck - 18, 32, 10, rx=2))
+            d.panel("TURRET", [(-tw + 3, top + 2), (tw - 3, top + 2), (tw, 76), (-tw, 76)], cx)
         else:
-            d.detail(circle(cx, deck - 12, muzzle), circle(cx, deck - 12, muzzle * .45), width="1.1", opacity=".85")
-    if dozer:
-        # The blade stands in front of everything in the front view.
-        d.part("FRONT", rect(FRONT_X - 52, GROUND - 32, 104, 26, rx=4))
-        d.detail(*[line(FRONT_X - 46, GROUND - 25 + i * 7, FRONT_X + 46, GROUND - 25 + i * 7) for i in range(3)])
+            d.panel("TURRET", [(-tw + 8, top), (tw - 8, top), (tw, top + 12), (tw, 76), (-tw, 76),
+                               (-tw, top + 12)], cx)
+        d.panel("HULL", [(-28, 76), (28, 76), (28, 92), (-28, 92)], cx)
+        out = 56 if screened else 50
+        d.pair(vl, vr, [(-out + 4, 80), (-28, 76), (-28, 92), (-out, 92)], cx)
+        if dozer and not rear:
+            d.pair("DRIVE", "DRIVE", octagon(-50, 92, -34, 120, 3), cx)
+            d.panel("FRONT", [(-34, 92), (34, 92), (34, 120), (-34, 120)], cx)
+            d.panel("FRONT", [(-56, 120), (56, 120), (52, 146), (-52, 146)], cx)
+            continue
+        d.pair("DRIVE", "DRIVE", octagon(-50, 92, -34, 146, 4), cx)
+        if rear:
+            d.panel("REAR", [(-34, 92), (34, 92), (34, 138), (-34, 138)], cx)
+        else:
+            d.panel("FRONT", [(-34, 92), (34, 92), (34, 132), (26, 142), (-26, 142), (-34, 132)], cx)
     return d.write()
 
 
 def apc(name, pods=False):
     d = Doll(name)
-    half, deck = 38, 84
-    hull_ends(d, half, "wheel", deck, cheek=14)
-    for cx, rear in VIEWS:
+    for cx, rear in views():
+        vl, vr = sides(rear)
         if pods:
-            d.part("TURRET", rect(cx - 36, deck - 26, 24, 22, rx=2), rect(cx + 12, deck - 26, 24, 22, rx=2),
-                   opacity=SOLID)
-            if not rear:
-                d.detail(*[circle(cx + sx + c * 7, deck - 20 + r * 7, 2.2)
-                           for sx in (-31, 17) for c in range(3) for r in range(2)])
+            d.pair("TURRET", "TURRET", [(-30, 36), (-2, 36), (-2, 58), (-30, 58)], cx)
         else:
-            d.part("TURRET", poly([(cx - 20, deck), (cx - 16, deck - 16), (cx + 16, deck - 16), (cx + 20, deck)]),
-                   opacity=SOLID)
-            if not rear:
-                d.detail(circle(cx - 7, deck - 9, 2.6), circle(cx + 7, deck - 9, 2.6), width="1.1", opacity=".85")
+            d.panel("TURRET", [(-10, 42), (10, 42), (14, 58), (-14, 58)], cx)
+        d.panel("HULL", [(-34, 58), (34, 58), (40, 68), (-40, 68)], cx)
+        d.pair(vl, vr, [(-46, 72), (-40, 68), (-26, 68), (-26, 110), (-48, 110)], cx)
+        if rear:
+            d.panel("REAR", [(-26, 68), (26, 68), (26, 132), (-26, 132)], cx)
+        else:
+            d.panel("FRONT", [(-26, 68), (26, 68), (26, 124), (18, 134), (-18, 134), (-26, 124)], cx)
+        d.pair("DRIVE", "DRIVE", octagon(-48, 110, -28, 146, 6), cx)
     return d.write()
 
 
-def pickup(name, gun=None, mast=False, cargo=False):
+def pickup(name, gun=None, cargo=False):
     d = Doll(name)
-    half, deck = 36, 102
-    hull_ends(d, half, "wheel", deck, cheek=12, face_style="flat", hull_band=8)
-    for cx, rear in VIEWS:
-        # The cab rises over the bed and reads as the hull; from behind the bed's load shows in front of it.
-        d.part("HULL", poly([(cx - 26, deck), (cx - 22, deck - 26), (cx + 22, deck - 26), (cx + 26, deck)]))
-        d.detail(poly([(cx - 20, deck - 4), (cx - 17, deck - 22), (cx + 17, deck - 22), (cx + 20, deck - 4)]),
-                 opacity=".4")
-        if not rear:
-            d.detail(*[line(cx - 14, deck + 13 + i * 4, cx + 14, deck + 13 + i * 4) for i in range(4)],
-                     circle(cx - 18, deck + 17, 3), circle(cx + 18, deck + 17, 3))
-        if cargo and rear:
-            d.detail(rect(cx - 24, deck - 16, 18, 16, rx=1), rect(cx - 4, deck - 20, 22, 20, rx=1),
-                     opacity=".7")
+    for cx, rear in views():
+        vl, vr = sides(rear)
         if gun == "mg":
-            d.part("TURRET", rect(cx - 2, deck - 40, 4, 14), rect(cx - 12, deck - 46, 24, 8, rx=2), opacity=SOLID)
-            if not rear:
-                d.detail(circle(cx, deck - 42, 2.4), width="1.1", opacity=".85")
+            d.panel("TURRET", [(-5, 46), (5, 46), (5, 56), (-5, 56)], cx)
+            d.panel("TURRET", [(-14, 56), (14, 56), (14, 66), (-14, 66)], cx)
         elif gun == "srm":
-            d.part("TURRET", rect(cx - 20, deck - 46, 40, 20, rx=2), opacity=SOLID)
-            if not rear:
-                d.detail(*[circle(cx - 12 + c * 8, deck - 40 + r * 8, 2.6) for c in range(4) for r in range(2)])
-        if mast:
-            d.detail(line(cx + 10, deck - 26, cx + 10, deck - 50), ellipse(cx + 10, deck - 52, 9, 3),
-                     opacity=".75", width="1.1")
+            d.panel("TURRET", [(-18, 44), (18, 44), (18, 66), (-18, 66)], cx)
+        if cargo and rear:
+            d.panel("HULL", [(-34, 52), (34, 52), (34, 92), (-34, 92)], cx)
+        else:
+            d.panel("HULL", [(-18, 66), (18, 66), (26, 92), (-26, 92)], cx)
+        d.pair(vl, vr, [(-42, 96), (-26, 92), (-26, 110), (-44, 110)], cx)
+        if rear:
+            d.panel("REAR", [(-26, 92), (26, 92), (26, 126), (-26, 126)], cx)
+        else:
+            d.panel("FRONT", [(-26, 92), (26, 92), (26, 122), (-26, 122)], cx)
+        d.pair("DRIVE", "DRIVE", octagon(-44, 110, -28, 146, 5), cx)
     return d.write()
 
 
 def hover(name, gun=True):
     d = Doll(name)
-    half, deck = 48, 100
-    hull_ends(d, half, "skirt", deck, cheek=16, face_style="nose")
-    # The lift fans show from behind.
-    d.detail(circle(BACK_X - 16, deck + 18, 8), circle(BACK_X + 16, deck + 18, 8),
-             line(BACK_X - 22, deck + 18, BACK_X - 10, deck + 18), line(BACK_X + 10, deck + 18, BACK_X + 22, deck + 18))
-    for cx, rear in VIEWS:
+    for cx, rear in views():
+        vl, vr = sides(rear)
         if gun:
-            d.part("TURRET", dome(cx, deck, 18, 16), opacity=SOLID)
-            if not rear:
-                d.detail(circle(cx - 6, deck - 7, 2.4), circle(cx + 6, deck - 7, 2.4), width="1.1", opacity=".85")
+            d.panel("TURRET", [(-9, 66), (9, 66), (12, 80), (-12, 80)], cx)
+        d.panel("HULL", [(-18, 80), (18, 80), (26, 96), (-26, 96)], cx)
+        d.pair(vl, vr, [(-46, 100), (-26, 92), (-26, 120), (-52, 120)], cx)
+        if rear:
+            d.panel("REAR", [(-26, 96), (26, 96), (26, 124), (-26, 124)], cx)
         else:
-            d.detail(rect(cx - 16, deck - 8, 32, 8, rx=2), opacity=".6")
+            d.panel("FRONT", [(-26, 96), (26, 96), (26, 118), (14, 126), (-14, 126), (-26, 118)], cx)
+        d.panel("DRIVE", [(-52, 126), (52, 126), (48, 140), (-48, 140)], cx)
     return d.write()
 
 
 def hauler(name):
     d = Doll(name)
-    half, top = 40, 54
-    for cx, rear in VIEWS:
+    for cx, rear in views():
         vl, vr = sides(rear)
-        x0, x1 = cx - half, cx + half
-        body_bottom = GROUND - 24
-        d.part("DRIVE", rect(x0 - 2, GROUND - 22, 16, 22, rx=4), rect(x1 - 14, GROUND - 22, 16, 22, rx=4))
-        # The container stands taller and wider than the cab: its roof is the hull band, its edges the sides.
-        d.part("HULL", rect(x0, top, 2 * half, 10))
-        d.part(vl, rect(x0, top + 10, 10, body_bottom - top - 10))
-        d.part(vr, rect(x1 - 10, top + 10, 10, body_bottom - top - 10))
+        d.panel("HULL", [(-40, 40), (40, 40), (40, 76), (-40, 76)], cx)
+        d.pair(vl, vr, [(-44, 80), (-26, 76), (-26, 114), (-46, 114)], cx)
         if rear:
-            d.part("REAR", rect(x0 + 10, top + 10, 2 * half - 20, body_bottom - top - 10))
-            d.detail(line(cx, top + 12, cx, body_bottom - 2), line(x0 + 16, top + 14, x0 + 16, body_bottom - 4),
-                     line(x1 - 16, top + 14, x1 - 16, body_bottom - 4), rect(cx - 8, top + 34, 16, 4))
+            d.panel("REAR", [(-26, 76), (26, 76), (26, 132), (-26, 132)], cx)
         else:
-            d.detail(rect(x0 + 10, top + 10, 2 * half - 20, 22), opacity=".35")
-            d.part("FRONT", rect(x0 + 10, top + 32, 2 * half - 20, body_bottom - top - 32))
-            d.detail(rect(cx - 22, top + 38, 44, 18, rx=2),
-                     *[line(cx - 14, top + 64 + i * 4, cx + 14, top + 64 + i * 4) for i in range(3)])
+            d.panel("FRONT", [(-26, 76), (26, 76), (26, 120), (18, 130), (-18, 130), (-26, 120)], cx)
+        d.pair("DRIVE", "DRIVE", octagon(-46, 114, -28, 146, 5), cx)
     return d.write()
 
 
-# ----------------------------------------------------------------------- mechs
+# -------------------------------------------------------------------- mechs
+#
+# Front: head, centre torso, the two side torsos (the shoulder mounts), arms at
+# the outside, legs beneath. Rear: the centre torso's back plate between the side
+# torsos, nothing else.
 
-def mech(name, torso_w, torso_top, torso_bottom, shoulder, head, leg_w, hip_w, arm_w, taper=0, hunch=0):
-    """A walker facing the camera, and from behind with its legs left off.
+def bird_legs(d, cx, hip, knee, ankle, spread, width):
+    """Reverse-jointed legs seen from the front: thigh splayed out, shin back in, a toe."""
+    d.pair("LEGS", "LEGS", [(-width - 2, hip), (-2, hip), (-spread + width, knee), (-spread - 2, knee - 4)], cx)
+    d.pair("LEGS", "LEGS", [(-spread - 2, knee - 4), (-spread + width, knee), (-spread + width - 2, ankle),
+                            (-spread - 4 + width // 2, ankle)], cx)
+    d.pair("LEGS", "LEGS", [(-spread - 10, ankle + 2), (-spread + width + 6, ankle + 2),
+                            (-spread + width + 8, 146), (-spread - 12, 146)], cx)
 
-    ``torso_w`` is the torso's width at the shoulders, ``taper`` how much narrower it
-    is at the waist; ``shoulder`` a pod's (width, height); ``head`` the cockpit's
-    (width, height); ``leg_w`` and ``hip_w`` the legs' thickness and stance; ``arm_w``
-    the forearms'; ``hunch`` sinks the head into the torso (a Hound's low cockpit).
-    """
+
+def hound(name):
+    """A Locust: a wide pod on long bird legs, gun pods slung under its flanks."""
     d = Doll(name)
-    sw, sh = shoulder
-    tw = torso_w / 2
-    waist = tw - taper
-    pod_top = torso_top - sh * .35
-    for cx, rear in VIEWS:
-        vl, vr = sides(rear)
-        torso = [(cx - tw, torso_top + 6), (cx - tw + 6, torso_top), (cx + tw - 6, torso_top), (cx + tw, torso_top + 6),
-                 (cx + waist, torso_bottom), (cx - waist, torso_bottom)]
-        if not rear:
-            # Legs first; the torso stands over their tops.
-            for side in (-1, 1):
-                hx = cx + side * hip_w
-                knee_y = torso_bottom + (GROUND - torso_bottom) * .48
-                thigh = [(hx - leg_w / 2, torso_bottom - 4), (hx + leg_w / 2, torso_bottom - 4),
-                         (hx + leg_w / 2 + side * 2, knee_y), (hx - leg_w / 2 + side * 2, knee_y)]
-                shin = [(hx - leg_w / 2 + side * 2, knee_y + 3), (hx + leg_w / 2 + side * 2, knee_y + 3),
-                        (hx + leg_w / 2 + side * 3, GROUND - 8), (hx - leg_w / 2 + side * 3, GROUND - 8)]
-                foot = rect(hx + side * 3 - leg_w / 2 - 5, GROUND - 8, leg_w + 10, 8, rx=2)
-                d.part("LEGS", poly(thigh), poly(shin), foot, opacity=SOLID)
-                d.detail(circle(hx + side * 2, knee_y + 1.5, 2.6))
-            d.part("TORSO", poly(torso))
-            d.detail(rect(cx - 9, torso_top + 12, 18, 10, rx=2),
-                     *[line(cx - 8, torso_bottom - 14 + i * 4, cx + 8, torso_bottom - 14 + i * 4) for i in range(3)])
-        else:
-            d.part("TORSO_REAR", poly(torso))
-            d.detail(*[line(cx - tw + 10, torso_top + 12 + i * 6, cx + tw - 10, torso_top + 12 + i * 6)
-                       for i in range(4)], rect(cx - 10, torso_bottom - 14, 20, 8, rx=2))
-        # Shoulder pods either side of the torso, high.
-        for side, location in ((-1, vl + "_SHOULDER"), (1, vr + "_SHOULDER")):
-            x = cx - tw - sw + 4 if side < 0 else cx + tw - 4
-            d.part(location, rect(x, pod_top, sw, sh, rx=3), opacity=SOLID)
-            if not rear:
-                cols = max(1, int((sw - 6) / 8))
-                rows = max(1, int((sh - 8) / 8))
-                d.detail(*[circle(x + sw / 2 - (cols - 1) * 4 + c * 8, pod_top + 8 + r * 8, 2.4)
-                           for c in range(cols) for r in range(rows)])
-        if not rear:
-            # The arms mount: a forearm hanging under each shoulder, barrels at the camera.
-            for side in (-1, 1):
-                ax = cx + side * (tw + sw / 2 - 2)
-                arm_top = pod_top + sh - 2
-                d.part("ARMS", rect(ax - arm_w / 2, arm_top, arm_w, 36, rx=3), opacity=SOLID)
-                d.detail(circle(ax, arm_top + 28, arm_w * .28), width="1.1", opacity=".85")
-            hy = torso_top + hunch
-            d.part("HEAD", poly([(cx - head[0] / 2, hy + 2), (cx - head[0] / 2 + 3, hy - head[1]),
-                                 (cx + head[0] / 2 - 3, hy - head[1]), (cx + head[0] / 2, hy + 2)]), opacity=SOLID)
-            d.detail(rect(cx - head[0] / 2 + 4, hy - head[1] + 4, head[0] - 8, 4, rx=1), opacity=".75")
+    for cx, rear in views():
+        sl, sr = shoulders(rear)
+        d.panel("TORSO_REAR" if rear else "TORSO",
+                [(-18, 46), (18, 46), (24, 54), (24, 70), (16, 80), (-16, 80), (-24, 70), (-24, 54)], cx)
+        d.pair(sl, sr, [(-36, 56), (-24, 52), (-24, 72), (-34, 72), (-38, 64)], cx)
+        if rear:
+            continue
+        d.panel("HEAD", [(-10, 36), (10, 36), (14, 46), (-14, 46)], cx)
+        d.pair("ARMS", "ARMS", [(-34, 72), (-24, 72), (-24, 90), (-29, 94), (-34, 90)], cx)
+        bird_legs(d, cx, hip=80, knee=110, ankle=136, spread=24, width=10)
+    return d.write()
+
+
+def sirocco(name):
+    """A Catapult: two missile boxes standing over a narrow torso with a nose cockpit, bird legs."""
+    d = Doll(name)
+    for cx, rear in views():
+        sl, sr = shoulders(rear)
+        d.panel("TORSO_REAR" if rear else "TORSO",
+                [(-16, 50), (16, 50), (20, 58), (20, 84), (10, 94), (-10, 94), (-20, 84), (-20, 58)], cx)
+        d.pair(sl, sr, [(-50, 22), (-24, 28), (-20, 50), (-20, 66), (-48, 66)], cx)
+        if rear:
+            continue
+        d.panel("HEAD", [(-10, 40), (10, 40), (16, 50), (-16, 50)], cx)
+        d.pair("ARMS", "ARMS", [(-42, 66), (-24, 66), (-24, 84), (-34, 90), (-42, 84)], cx)
+        bird_legs(d, cx, hip=94, knee=116, ankle=136, spread=28, width=12)
+    return d.write()
+
+
+def bulwark(name):
+    """A Fafnir: a wide squat torso with a small sunken head, huge arm cannons, thick short legs."""
+    d = Doll(name)
+    for cx, rear in views():
+        sl, sr = shoulders(rear)
+        d.panel("TORSO_REAR" if rear else "TORSO",
+                [(-14, 40), (14, 40), (18, 46), (18, 92), (-18, 92), (-18, 46)], cx)
+        d.pair(sl, sr, [(-38, 46), (-18, 40), (-18, 86), (-38, 86)], cx)
+        if rear:
+            continue
+        d.panel("HEAD", [(-8, 32), (8, 32), (10, 40), (-10, 40)], cx)
+        # The cannons: a shoulder housing, then the long barrel block hanging past the hips.
+        d.pair("ARMS", "ARMS", [(-54, 40), (-38, 44), (-38, 60), (-56, 60)], cx)
+        d.pair("ARMS", "ARMS", [(-56, 60), (-38, 60), (-40, 114), (-50, 118), (-56, 112)], cx)
+        d.pair("LEGS", "LEGS", [(-18, 92), (-2, 92), (-4, 116), (-26, 116), (-26, 100)], cx)
+        d.pair("LEGS", "LEGS", [(-26, 116), (-4, 116), (-6, 136), (-24, 136)], cx)
+        d.pair("LEGS", "LEGS", [(-30, 136), (-2, 136), (-2, 146), (-32, 146)], cx)
     return d.write()
 
 
 def main():
     written = [
         tank("tank"),
-        tank("tank-heavy-gun", muzzle=5.6),
+        tank("tank-heavy-gun", heavy=True),
         tank("tank-screened", screened=True),
-        tank("tank-dozer", dozer=True),
+        tank("tank-dozer", turret_w=16, turret_top=58, dozer=True),
         apc("apc"),
         apc("lrm-carrier", pods=True),
         pickup("technical", gun="mg"),
         pickup("technical-srm", gun="srm"),
         pickup("truck", cargo=True),
-        pickup("scout-car", mast=True),
+        pickup("scout-car"),
         hover("hover-scout"),
         hover("drone-skimmer", gun=False),
         hauler("hauler"),
-        mech("mech-bulwark", torso_w=48, torso_top=44, torso_bottom=88, shoulder=(24, 26), head=(20, 12),
-             leg_w=15, hip_w=13, arm_w=14, taper=4),
-        mech("mech-hound", torso_w=32, torso_top=52, torso_bottom=86, shoulder=(18, 18), head=(16, 10),
-             leg_w=10, hip_w=10, arm_w=10, taper=4, hunch=4),
-        mech("mech-sirocco", torso_w=44, torso_top=48, torso_bottom=86, shoulder=(20, 20), head=(16, 12),
-             leg_w=12, hip_w=11, arm_w=12, taper=12),
+        bulwark("mech-bulwark"),
+        hound("mech-hound"),
+        sirocco("mech-sirocco"),
     ]
     print("wrote", ", ".join(written))
 
