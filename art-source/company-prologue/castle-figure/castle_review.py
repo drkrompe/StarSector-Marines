@@ -36,7 +36,10 @@ W, H = 1920, 1080
 #  camera height m or None for a tenth of the distance above the aim)
 SHEETS = [
     ("01-turnaround-full", 6.4, 0.86, 80, (0, 90, 180, 270), None),
-    ("02-turnaround-head", 1.75, 1.5, 60, (20, 65, 160, 300), None),
+    # The whole head, bun and shoulders in every panel (a panel is 480 px wide: at 1.75 m and
+    # 50 mm it holds 0.56 m across, the bun included in profile), in the head turnaround's
+    # order: front, three-quarter from her right, back, profile from her left.
+    ("02-turnaround-head", 1.75, 1.52, 50, (0, 315, 180, 90), 1.62),
     # bridge_interior_review's 09-castle-from-port-station, in her frame: 1.4 m off her right
     # front, eye 1.69 m up, aimed at 1.46 m.
     ("03-c2-distance", 1.38, 1.46, 24, (280,), 1.69),

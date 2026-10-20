@@ -72,7 +72,7 @@ Engines, HIGH_TECH, angle 180, width 16, Z 0: Engine 1 (-36, 12), Engine 2
 (-40, 0), Engine 3 (-36, -11). Turrets rest at their slot angles; the build
 fails if a rested barrel overlaps the hull (BVH).
 
-Scale (pass 4): 0.75 m per unit
+Scale (pass 4): 0.76 m per unit
 From the shared sizing basis, ../ship_scale.py (option C), never set here:
 METRES_PER_UNIT reads ship_scale.PUBLISHED and geometry.json's 'scale' is
 ship_scale.record('Wolf (P)'). Inputs: 30 crew, 50 cargo, 20 fuel, frigate
@@ -88,8 +88,13 @@ and the top crowned over the spine, highest at the turret, falling fore and
 aft; round 4, "the modules don't feel cohesive": head, neck, main body, aft
 body and engine block are lofted through one plan, one top line and one
 keel line with rounded superellipse sections, the missile pods, outriggers
-and ventral keel faired the same way): measured 40,988 units3, which solves
-0.744 (range 0.722-0.767): 70 m
+and ventral keel faired the same way; round 5, the owner's reading of the ship: the side
+pods became shallow swept missile wings rooted ahead of the drive section and
+angling out to the WS 005 / WS 006 hookups, the body keeping to its core;
+the drive section an octagon ahead of three long octagonal drive cans exposed
+out the back; the bow a faceted wedge tapering to the forward mount. The
+silhouette IoU falls to 0.89 by design): measured 38,649 units3, which solves
+0.759 (range 0.736-0.782): 71 m
 long, 37 m across the pods, about 21 m deep. The roster's
 sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
 ship, so this is 18% under the estimate, outside its +-8%. The owner decides

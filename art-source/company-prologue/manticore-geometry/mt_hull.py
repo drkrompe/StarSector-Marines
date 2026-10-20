@@ -227,15 +227,18 @@ def build(kit):
         plane_cut(glacis, f'{side} glacis rake', (34, s*y, 8.6-drop), facet_normal((1, 0), RAKE))
         kit.hull.append(droop(glacis))
         # Launcher bay (round 5: inset; round 7: not a wedge cut into the
-        # wing). The Harpoon slot sits on the arm's leading edge, so the arm
-        # grows a faceted armoured bay forward round it, its deck flush with the
-        # wing's, its sides and nose in the hull's 30/45 deg vocabulary; the rack
-        # sits down a chamfered recess in it, open forward for the tubes.
+        # wing): an armoured red block in the arm round the Harpoon slot, its
+        # deck flush with the wing's; the rack sits down a chamfered recess in
+        # it, open forward through the leading edge for the tubes.
         # The bay follows the arm's anhedral like the wing (sheared, then bent
         # with the forward hull); the recess floor stays level for the rack.
-        bay = loft_x(kit, f'Hull {side} launcher bay',
-                     [(bx, [(s*ly+yy, zz) for yy, zz in facets(hw, WING_DECK-dt, WING_DECK-10, flat=.75, keel=.5)])
-                      for bx, hw, dt in ((lx+14, 4.5, 3.5), (lx+9, 10.5, 0), (lx-10, 10.5, 0))], kit.red)
+        # Round 8 (owner: the hull should not jut out for the missiles): the bay
+        # ends at the arm's leading edge, its face raked like the leading-edge
+        # armour beside it, so the edge reads as one armoured line.
+        bay = prism(kit, f'Hull {side} launcher bay',
+                    ccw([(33, s*(ly-10.5)), (33, s*(ly+10.5)), (lx-10, s*(ly+10.5)), (lx-10, s*(ly-10.5))]),
+                    section(WING_DECK-9.0, WING_DECK+.6, 4.5, 1.2), kit.red, .12)
+        plane_cut(bay, f'{side} bay face rake', (29, 0, WING_DECK+.6), facet_normal((1, 0), RAKE))
         droop(shear(bay))
         deck = WING_DECK-ldrop
         recess = droop(prism(kit, f'Temporary {side} launcher recess cutter',

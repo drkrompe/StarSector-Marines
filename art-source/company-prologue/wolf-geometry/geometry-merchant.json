@@ -51,11 +51,11 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.75,
+  "metres_per_unit": 0.76,
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 40988,
+      "units3": 38649,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
@@ -91,17 +91,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.744,
+    "solved_metres_per_unit": 0.759,
     "range": {
-      "habitable_273": 0.722,
-      "habitable_328": 0.767
+      "habitable_273": 0.736,
+      "habitable_328": 0.782
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 70.0,
+    "length_m": 71.4,
     "fittings_m": {},
-    "published_metres_per_unit": 0.75,
+    "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 40988,
+      "enclosed_units3": 38649,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -113,11 +113,11 @@
       ]
     },
     "size_m": [
-      73.6,
-      39.3,
-      24.4
+      72.3,
+      39.5,
+      25.5
     ],
-    "person_1_8_m_in_units": 2.4,
+    "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
@@ -134,18 +134,18 @@
   "dimensions": {
     "min": [
       -40.2,
-      -26.18,
+      -25.98,
       -18.0
     ],
     "max": [
-      57.98,
-      26.18,
-      14.57
+      54.91,
+      25.98,
+      15.61
     ],
     "size": [
-      98.18,
-      52.37,
-      32.57
+      95.11,
+      51.97,
+      33.61
     ]
   },
   "weapon_slots": [
@@ -205,7 +205,7 @@
       "location": [
         45,
         0,
-        -4.0
+        -3.6
       ],
       "angle": 0,
       "arc": 5,
@@ -222,7 +222,7 @@
       "location": [
         11,
         20,
-        -3.2
+        -2.2
       ],
       "angle": 0,
       "arc": 5,
@@ -243,7 +243,7 @@
       "location": [
         11,
         -19,
-        -3.2
+        -2.2
       ],
       "angle": 0,
       "arc": 5,
@@ -281,9 +281,13 @@
       "trained": [
         "Turret 1 house dark",
         "Turret 1 house steel",
-        "Turret 1 house accent#shell",
-        "Turret 1 house paint",
+        "Turret 1 house paint#casing",
+        "Turret 1 house paint#arms",
         "Turret 1 house lamp_blue",
+        "Turret 1 house accent#drum",
+        "Turret 1 house steel#hub",
+        "Turret 1 gun accent#breech",
+        "Turret 1 gun steel",
         "Turret 1 gun accent",
         "Turret 1 gun dark",
         "Turret 1 gun lamp_blue"
@@ -381,18 +385,18 @@
       "location": [
         45,
         0,
-        -4.0
+        -3.6
       ],
-      "k": 0.55,
+      "k": 0.42,
       "bay": {
         "x": [
           42.8,
-          49.0
+          55.0
         ],
-        "half_width": 5.3,
+        "half_width": 3.8,
         "z": [
-          -6.8,
-          -0.3999999999999999
+          -6.2,
+          2.4
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -421,7 +425,7 @@
       "location": [
         11,
         20,
-        -3.2
+        -2.2
       ],
       "k": 0.6,
       "bay": null,
@@ -455,7 +459,7 @@
       "location": [
         11,
         -19,
-        -3.2
+        -2.2
       ],
       "k": 0.6,
       "bay": null,
@@ -604,7 +608,7 @@
         0,
         0
       ],
-      "mouth_radius": 3.2,
+      "mouth_radius": 3.52,
       "bell": "Engine 1 aft-facing bell",
       "lip": "Engine 1 mouth lip",
       "throat": "Engine 1 dark throat",
@@ -631,7 +635,7 @@
         0,
         0
       ],
-      "mouth_radius": 3.2,
+      "mouth_radius": 3.52,
       "bell": "Engine 2 aft-facing bell",
       "lip": "Engine 2 mouth lip",
       "throat": "Engine 2 dark throat",
@@ -658,7 +662,7 @@
         0,
         0
       ],
-      "mouth_radius": 3.2,
+      "mouth_radius": 3.52,
       "bell": "Engine 3 aft-facing bell",
       "lip": "Engine 3 mouth lip",
       "throat": "Engine 3 dark throat",
@@ -700,8 +704,8 @@
       "name": "Light port pod tip 1",
       "position": [
         9.5,
-        25.8,
-        0.4
+        25.6,
+        -1.5
       ],
       "colour": "red",
       "role": "port side light (extremity)",
@@ -715,8 +719,8 @@
       "name": "Light starboard pod tip 1",
       "position": [
         9.5,
-        -25.8,
-        0.4
+        -25.6,
+        -1.5
       ],
       "colour": "green",
       "role": "starboard side light (extremity)",
@@ -749,8 +753,8 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 42816,
-    "objects": 166,
+    "triangles": 47218,
+    "objects": 154,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",

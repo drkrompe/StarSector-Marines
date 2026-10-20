@@ -47,7 +47,7 @@ STATES = {
 }
 
 # Flash scale against the Second Wind's small mount (0.65 m/u): the Wolf's units
-# are 0.75 m, so a like-for-like small gun is ~0.87 of it in units.
+# are 0.76 m, so a like-for-like small gun is ~0.86 of it in units.
 SIZE_SCALE = {'SMALL': .7, 'MEDIUM': .95}
 KIND = {'ENERGY': 'energy', 'MISSILE': 'launcher'}
 _slots = {s['id']: s for s in _geom['weapon_slots']}

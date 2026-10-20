@@ -29,7 +29,7 @@ CLASSES = ['crimson', 'grey', 'dark', 'glass']
 FAMILY = {'crimson': 'crimson', 'grey': 'neutral', 'dark': 'neutral', 'glass': 'neutral'}
 # Crimson and grey both sit far from a mid blue.
 BACKGROUND = (70, 110, 170)
-SWATCH_UNITS = 8.0                  # hull units one swatch image spans (6.0 m at 0.75 m/unit)
+SWATCH_UNITS = 8.0                  # hull units one swatch image spans (6.1 m at 0.76 m/unit)
 SWATCH_ORDER = ['crimson', 'grey', 'dark']
 SWATCH_DERIVED = [('glass', 'dark')]
 MEASURED_CLASSES = ['crimson', 'grey', 'dark']
