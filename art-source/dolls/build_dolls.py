@@ -34,6 +34,7 @@ of the hull, as MWO's side torsos carry their weapons.
 Run from the repository root:  python art-source/dolls/build_dolls.py
 """
 
+from math import cos, radians, sin
 from pathlib import Path
 
 OUT = Path("mod/graphics/ui/dolls")
@@ -283,6 +284,12 @@ def bird_leg(d, cx, inner, width):
     d.mirrored("LEGS", "LEGS", points, cx, seams)
 
 
+def arc(cx, cy, r, start, end, steps=4):
+    """Points along a circular corner, in degrees with y down (180 is left, 270 is up)."""
+    return [(cx + r * cos(radians(start + (end - start) * i / steps)),
+             cy + r * sin(radians(start + (end - start) * i / steps))) for i in range(steps + 1)]
+
+
 def tubes(x0, y0, x1, y1, cols, rows):
     """A launcher face: a grid of thin seams, one cell per tube."""
     out = []
@@ -325,10 +332,12 @@ def hound(name):
 
 
 def sirocco(name):
-    """A Catapult: a flat pod in three thirds, a missile box standing on each side third, a cannon under the nose."""
+    """A Catapult: a flat pod in three thirds, a round-topped missile pod on each side third, a cannon under the nose."""
     d = Doll(name)
-    side = [(-12, 80), (-26, 80), (-36, 74), (-38, 62), (-33, 54), (-42, 24), (-18, 28), (-16, 54), (-12, 56)]
-    box = [((-16, 54), (-33, 54))] + tubes(-36, 30, -20, 52, 2, 3)
+    # Each side third carries an upright, round-topped missile pod as one outline.
+    side = ([(-12, 80), (-26, 80), (-36, 74), (-38, 62)] + arc(-32, 32, 6, 180, 270)
+            + arc(-22, 32, 6, 270, 360) + [(-16, 56), (-12, 56)])
+    box = [((-36.5, 56), (-17.5, 56))] + tubes(-36, 28, -18, 54, 2, 3)
     for cx, rear in views():
         sl, sr = shoulders(rear)
         d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (-12, 80)], cx)
