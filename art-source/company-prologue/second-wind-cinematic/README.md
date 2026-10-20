@@ -44,8 +44,9 @@ strings, sounds).
 **Post-cinematic pictures** (`../yard-stills/`, the Nessa character sheet): Y1 yard
 with Nessa's cut-out layered on is in the game. Nessa is Kilo Nine's forewoman, about
 52, text only (Castle relays her). The prologue pages P1, P2, P4, P5, P6 and P8 are
-approved and shipped; P3 (Colossus repaint) awaits the owner, and P7 (cargo billets)
-still needs a new background.
+approved and shipped; P3 (Colossus repaint) awaits the owner. P7 (cargo billets) and Y2
+(berths fitted) were repainted as a before/after pair, awaiting the owner. Not done: a
+picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand-in for her.
 
 **How renders are made and shown.**
 - Compute is tight: no render for a plain fix; one half-size still (`CINE_SCALE=50`) for a look question; only the affected seconds, every 6-12 frames, for motion; full quality only for approved finals.
