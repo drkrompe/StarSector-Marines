@@ -38,7 +38,7 @@ class BattleDirectControlHudTest {
         try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
             assertEquals("FLUX", fixture.status.requireElement("direct-status-flux-label").text());
             assertEquals("98%", fixture.status.requireElement("direct-status-flux-value").text());
-            assertEquals("VENTING - WEAPONS LOCKED", fixture.status.requireElement("direct-status-flux-state").text());
+            assertEquals("VENTING - GUNS LOCKED", fixture.status.requireElement("direct-status-flux-state").text());
             assertTrue(fixture.status.requireElement("direct-status-flux-state").classes().contains("state-alarm"));
             assertEquals("FLUX", fixture.weapons.requireElement("direct-hud-weapon-ARMS-state").text());
             var fill = fixture.status.requireElement("direct-status-flux-fill").box().borderBox();
