@@ -1013,7 +1013,7 @@
   },
   "append": "load both 'MANTICORE (P)' and 'SWFX' in one call; the ship alone works without it"
  },
- "source_commit": "f48e9163f78788dece99a30100b35c2fec2bee09-dirty",
+ "source_commit": "056e05c26493719aefe6f22c001d25451c88d5fc",
  "sources": {
   "blend": "manticore-surface/build/skinned.blend",
   "geometry_json_sha256": "bc55cf6b7ac869b82b3b9176c32a328b6a74b94d6aad7668116b53e120a24f53",
@@ -1028,5 +1028,5 @@
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
  "asset_path": "manticore-cinematic/build/export/manticore-p.blend",
- "asset_sha256": "e7f64cc1376d2baba6d2fd280184e12843846fcdca76b44773fefde5067d4283"
+ "asset_sha256": "f6e00401c82753056472a56eb1fb3bf8096883b3a2994e21821310fc915ad4ec"
 }
