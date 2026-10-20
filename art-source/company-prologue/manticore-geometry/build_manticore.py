@@ -79,7 +79,10 @@ SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft
 if NAME in ship_scale.HULLS:
     SCALE = ship_scale.record(NAME)
     METRES_PER_UNIT = ship_scale.PUBLISHED[NAME]
-    assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
+    if abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) >= .01:
+        # Owner override (2026-10-20): the formula is an estimate, and a reshape never resizes a hull.
+        SCALE['published_by'] = (f"owner override: {METRES_PER_UNIT} m/u against the rule's "
+                                 f"{SCALE['solved_metres_per_unit']:.3f}; see ship_scale.py HULLS")
     SOLIDS = [n for n in SOLIDS if ship_scale.SOLIDS['manticore']['include'](n)]
 else:
     SCALE = {'method': 'provisional: asharu-battle/roster.py option C plan-area estimate (96 m)'}

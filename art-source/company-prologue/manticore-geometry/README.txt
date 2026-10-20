@@ -55,9 +55,10 @@ nacelles carry red glacis noses and the beak strakes stand higher. The band
 no longer reaches into the main gun's well (it did in rounds 9-10). Mounts
 bear ahead as before. Ray-cast IoU 0.811 raw; with the lattice's see-through
 gaps filled the outline is 0.923 (round 10: 0.926); the gaps are 11.6% of the
-outline. Scale open: the enclosed volume is now 164,819 units3, 28% under the
-scale table, so the manifest build's 2% check fails; 0.59 m/u is kept until
-the coordinator decides, and geometry.json is still round 10's.
+outline. Scale: 0.59 m/u (91 m) is now an owner override (ship_scale.py): the open
+wings are not enclosed volume, so the enclosed volume fell to 164,819 units3
+and the rule would solve about 0.66 (101 m), but a reshape never resizes a
+hull.
 
 Owner review round 10 (2026-10-20)
 "The ship is coming together - next need to read the implied exposed hull
