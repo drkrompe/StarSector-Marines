@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-20 — The founding yard is a four-page storybook (bill, runway, road up, ore dust); start funds 473, estimate 4,986, Castle's reserve 4,862 with the pressure test waived. The first Hermes waits for the first-lift lesson after Relief. Live acceptance remains.
+Updated: 2026-10-20 — One story path at every start port; 25 starting fuel and no Galatia Academy stipend, so no second squad before Relief. Live acceptance remains.
 
 ## Outcome
 
@@ -10,7 +10,8 @@ An explicit new-game choice puts the player in command of an unconverted Cerberu
 The illustrated Second Wind prologue introduces the escape from the mining asteroid Harker's Claim, the
 crew's trust in their captain, and Castle's practical plan to fund a new company.
 Castle directs the player to Jangala and Nessa Venn, an old freight colleague now
-working as a yard forewoman, or an accessible fallback port. There the
+working as a yard forewoman. When Jangala is unavailable the course goes to an
+accessible fallback port, but the story stays Jangala's. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
 existing Sabine specialty, squad founding and assignment tutorial, ending at the
@@ -77,12 +78,12 @@ cannot replenish it. Ordinary starts receive no depot.
   available; other dialogs and menus are never replaced. Back/Continue preserve
   progress, while Skip and the final course action finish it permanently. A load
   resumes an opted-in unfinished prologue, but never opts in an established save.
-- Final course, objective text and Intel marker share the accessible destination;
-  Jangala-specific contact and Corvus copy are absent for fallback ports. No port
+- Final course, objective text and Intel marker share the accessible destination
+  and name it; Castle's, Nessa's and Mara's lines say Jangala at every port. No port
   leaves a readable spaceport requirement and an exit instead of a dead button.
 - Castle's memories and the crew's belongings suggest their history; navigation
   instructions stay in the UI and Intel. Nessa's personal yard dialogue belongs
-  only to the original Second Wind conversion on Jangala.
+  to the original Second Wind conversion, at whichever port it is made.
 - Review all eight production pages and the four founding-yard storybook pages
   (`opening-dialogue.md` §2) at 1920x1080 and 100% scale through the
   `company-prologue` snapshot suite. Page 1's Next is the only install; the pages

@@ -30,8 +30,8 @@ public final class CompanyFoundingIntel extends BaseIntelPlugin {
         info.addPara(Strings.get("openingCompanyFoundingIntelCastleCompanyOfficer"), 8);
         info.addPara(Strings.get("openingCompanyFoundingIntelSecondWindCarriedYourCrewOffHarker"), 8);
         var destination = CerberusCompanyStart.destination();
-        if (destination != null && "jangala".equals(destination.getId()))
-            info.addPara(Strings.get("openingCompanyFoundingIntelCastleSContactOnJangalaIsNessa"), 8);
+        if (destination != null)
+            info.addPara(Strings.format("openingCompanyFoundingIntelCastleSContactOnJangalaIsNessa", destination.getName()), 8);
         info.addPara(CerberusCompanyStart.instructions(), 8);
         int reserved = CompanyYard.reservedCredits(CerberusCompanyStart.startingShip());
         if (reserved > 0) info.addPara(Strings.format("openingCompanyFoundingIntelCastleSConversionReserveCreditsHeldOutside", reserved), 8);
