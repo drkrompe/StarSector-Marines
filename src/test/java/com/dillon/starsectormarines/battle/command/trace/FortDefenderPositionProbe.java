@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -9,6 +12,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +75,20 @@ final class FortDefenderPositionProbe {
         /** Garrison squad-samples while the company stands at a fort, and those with no marine within {@link #IDLE_CELLS}. */
         long garrisonWhilePressed;
         long garrisonIdleWhilePressed;
+        /** Garrison orders moved to another stretch of the same run (a shift), and each garrison's last order cell. */
+        int stretchShifts;
+        /** Of the idle garrison samples: the squad holds an actionable contact (in a fight), and its side believes a contact within {@link #IDLE_CELLS}. */
+        long idleInFight;
+        long idleBelievedNear;
+        /** Of the idle garrison samples: the squad has not reached its order's circle yet; and the nearest believed contact, binned by 15 cells (last bin: none). */
+        long idleEnRoute;
+        /** Of those en route, the ones whose order cell has a marine within {@link #IDLE_CELLS}: marching to the fight, not away from it. */
+        long idleEnRouteToFight;
+        final long[] idleNearestBelief = new long[8];
+        /** Dug-in garrison member-samples while the company is at a fort: on a garrison with a marine within {@link #IDLE_CELLS}, and on one without. */
+        long dugInNearFight;
+        long dugInIdle;
+        final Map<Integer, int[]> garrisonCell = new TreeMap<>();
         /** DEFEND_TRACK posts moved between two samples, and moves back to the post held before the last move. */
         int rallyRetargets;
         int rallyFlipBacks;
@@ -154,7 +172,15 @@ final class FortDefenderPositionProbe {
             } else if (squad.faction == Faction.DEFENDER) {
                 tally.rallyPost.remove(squad.id);
             }
+            if (assignment == null || !assignment.isGarrison()) tally.garrisonCell.remove(squad.id);
             if (assignment != null && assignment.isGarrison()) {
+                int[] cell = tally.garrisonCell.put(squad.id, new int[]{assignment.occupyRunId(),
+                        assignment.targetCellX(), assignment.targetCellY()});
+                if (cell != null && cell[0] == assignment.occupyRunId()
+                        && (cell[1] != assignment.targetCellX() || cell[2] != assignment.targetCellY())) {
+                    tally.stretchShifts++;
+                }
+                int focus = 0;
                 if (squad.faction == Faction.DEFENDER && fortPressed) {
                     tally.garrisonWhilePressed++;
                     boolean near = false;
@@ -164,7 +190,32 @@ final class FortDefenderPositionProbe {
                             break;
                         }
                     }
-                    if (!near) tally.garrisonIdleWhilePressed++;
+                    focus = near ? 1 : 2;
+                    if (!near) {
+                        tally.garrisonIdleWhilePressed++;
+                        if (WorldStateBuilder.hasActionableContact(squad, sim)) tally.idleInFight++;
+                        if (Math.max(Math.abs(squad.centroidX - assignment.targetCellX()),
+                                Math.abs(squad.centroidY - assignment.targetCellY())) > assignment.targetRadiusCells()) {
+                            tally.idleEnRoute++;
+                            for (float[] m : marines) {
+                                if (Math.max(Math.abs(m[0] - assignment.targetCellX()), Math.abs(m[1] - assignment.targetCellY())) <= IDLE_CELLS) {
+                                    tally.idleEnRouteToFight++;
+                                    break;
+                                }
+                            }
+                        }
+                        CommanderInfluenceSnapshot picture = sim.peekCommanderInfluence(Faction.DEFENDER);
+                        float nearest = Float.MAX_VALUE;
+                        if (picture != null) {
+                            for (CommanderContact contact : picture.contacts()) {
+                                if (contact.confidence() * contact.strength() < 0.5f) continue;
+                                nearest = Math.min(nearest, Math.max(Math.abs(contact.cellX() - squad.centroidX),
+                                        Math.abs(contact.cellY() - squad.centroidY)));
+                            }
+                        }
+                        if (nearest <= IDLE_CELLS) tally.idleBelievedNear++;
+                        tally.idleNearestBelief[nearest == Float.MAX_VALUE ? 7 : Math.min(6, (int) (nearest / 15))]++;
+                    }
                 }
                 tally.reactiveSquadSamples++;
                 peak[6]++;
@@ -197,6 +248,8 @@ final class FortDefenderPositionProbe {
                     }
                     if (sim.isDugIn(member)) {
                         tally.reactiveDugInMarineSamples++;
+                        if (focus == 1) tally.dugInNearFight++;
+                        if (focus == 2) tally.dugInIdle++;
                         if (line[2] < 0) line[2] = sim.getSimTickIndex();
                         if (episode[2] < 0) episode[2] = sim.getSimTickIndex();
                     }
@@ -349,11 +402,16 @@ final class FortDefenderPositionProbe {
                     entry.getKey(), t.onWorksPositionSamples, t.worksCellsEver.size(), t.onBeltPositionSamples, t.beltCellsEver.size()));
             if (entry.getKey() == Faction.DEFENDER) {
                 out.append(String.format(Locale.ROOT,
-                        "  - DEFENDER garrison focus: garrison squad-samples while the company is at a fort %d, of them with no marine within %d cells %d (%.0f%%);"
+                        "  - DEFENDER garrison focus: garrison squad-samples while the company is at a fort %d, of them with no marine within %d cells %d (%.0f%%; stranded %d (%.0f%%): arrived, or marching to an order cell no marine is that near; in a fight %d, a believed contact that near %d, en route %d (to the fight %d), nearest belief by 15 cells %s); dug-in member-samples near the fight %d, idle %d; stretch shifts %d;"
                                 + " rally post moves %d, back to the post before %d;"
                                 + " marches %d (arrived %d, wiped %d, members lost %d), of them %d ticks or longer %d (arrived %d, wiped %d, members lost %d)%n",
                         t.garrisonWhilePressed, IDLE_CELLS, t.garrisonIdleWhilePressed,
-                        100.0 * t.garrisonIdleWhilePressed / Math.max(1, t.garrisonWhilePressed), t.rallyRetargets, t.rallyFlipBacks,
+                        100.0 * t.garrisonIdleWhilePressed / Math.max(1, t.garrisonWhilePressed),
+                        t.garrisonIdleWhilePressed - t.idleEnRouteToFight,
+                        100.0 * (t.garrisonIdleWhilePressed - t.idleEnRouteToFight) / Math.max(1, t.garrisonWhilePressed),
+                        t.idleInFight,
+                        t.idleBelievedNear, t.idleEnRoute, t.idleEnRouteToFight, Arrays.toString(t.idleNearestBelief), t.dugInNearFight, t.dugInIdle, t.stretchShifts,
+                        t.rallyRetargets, t.rallyFlipBacks,
                         t.marches, t.marchesArrived, t.marchesWiped, t.marchMembersLost, LONG_MARCH_TICKS, t.longMarches,
                         t.longMarchesArrived, t.longMarchesWiped, t.longMarchMembersLost));
             }

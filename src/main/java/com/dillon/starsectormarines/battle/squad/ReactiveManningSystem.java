@@ -15,7 +15,6 @@ import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDef
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveHoldPlaceOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
 import java.util.ArrayList;
@@ -142,7 +141,7 @@ public final class ReactiveManningSystem {
         Place place = places.get(pick);
         ActiveOrder order = place.node != null
                 ? orders.holdFor(squad, place.node, sim)
-                : orders.occupyFor(squad, place.run, place.x, place.y, sim);
+                : orders.occupyFor(squad, pulse.registry.runOf(place.run), place.x, place.y, sim);
         if (order == null) return;
         watch.issued = order;
         watch.status = place.node != null ? Status.HOLDING_BUILDING : Status.MANNING_TRENCH;
@@ -167,7 +166,7 @@ public final class ReactiveManningSystem {
                 : Math.max(Math.abs(sx - place.x), Math.abs(sy - place.y)) <= place.radius;
         boolean breached = false;
         for (CommanderContact contact : pulse.contacts) {
-            if (pulse.inside(place, contact.cellX(), contact.cellY())
+            if (pulse.insideRun(place, contact.cellX(), contact.cellY())
                     && ReactiveWatch.breached(arrived, sx, sy, contact.cellX(), contact.cellY())) {
                 breached = true;
                 break;
@@ -268,7 +267,7 @@ public final class ReactiveManningSystem {
         return ((long) y << 32) | (x & 0xffffffffL);
     }
 
-    /** A place priced this pulse: a run (with {@code run} its current id) or a building ({@code node}). */
+    /** A place priced this pulse: a stretch of a run (with {@code run} its current garrisonable id) or a building ({@code node}). */
     private static final class Place {
         final long key;
         final int run;
@@ -296,10 +295,11 @@ public final class ReactiveManningSystem {
         final CommanderInfluenceSnapshot influence;
         final List<CommanderContact> contacts = new ArrayList<>();
         final GarrisonableRegistry registry;
-        final FightingPositionIndex index;
-        /** Squads holding each run (by current id) or building, from the standing orders of the side. */
+        /** Squads holding each stretch (by current garrisonable id) or building, from the standing orders of the side. */
         final Map<Integer, Set<Integer>> runHolders = new HashMap<>();
         final Map<TacticalNode, Set<Integer>> buildingHolders = new IdentityHashMap<>();
+        /** Stretches a believed contact is within reach of, or {@code null} when places are whole runs. */
+        final Set<Integer> woken;
 
         Pulse(BattleSimulation sim) {
             influence = sim.getCommanderInfluence(Faction.MARINE);
@@ -315,11 +315,26 @@ public final class ReactiveManningSystem {
                     && places.blockSize() == influence.blockSize()
                     && places.blockWidth() == influence.width() && places.blockHeight() == influence.height()
                     ? places : null;
-            index = registry != null ? registry.source() : null;
+            // Over stretches a place is priced only where a believed contact is within the registry's reach of it,
+            // the commander's own rule: the field's spread alone does not press a stretch nobody is near.
+            if (registry != null && registry.stretched()) {
+                woken = new HashSet<>();
+                int size = registry.blockSize();
+                for (CommanderContact contact : contacts) {
+                    int bx = Math.min(registry.blockWidth() - 1, Math.max(0, contact.cellX() / size));
+                    int by = Math.min(registry.blockHeight() - 1, Math.max(0, contact.cellY() / size));
+                    for (int g : registry.near(bx, by)) woken.add(g);
+                }
+            } else {
+                woken = null;
+            }
             for (Map.Entry<Integer, ActiveOrder> entry : mailbox.activeEntries()) {
                 ActiveOrder order = entry.getValue();
                 if (order instanceof ActiveDefendAreaOrder defend && defend.isOccupy()) {
-                    runHolders.computeIfAbsent(defend.occupyRunId(), k -> new HashSet<>()).add(entry.getKey());
+                    // An occupy holds the stretch it was clicked on (the stance clicks a stretch's centre).
+                    int stretch = registry == null ? -1 : registry.idAt(defend.requestedX(), defend.requestedY());
+                    if (stretch < 0 && registry != null) stretch = registry.idAt(defend.destinationX(), defend.destinationY());
+                    if (stretch >= 0) runHolders.computeIfAbsent(stretch, k -> new HashSet<>()).add(entry.getKey());
                 } else if (order instanceof ActiveHoldPlaceOrder hold) {
                     buildingHolders.computeIfAbsent(hold.targetNode(), k -> new HashSet<>()).add(entry.getKey());
                 }
@@ -344,19 +359,27 @@ public final class ReactiveManningSystem {
                     0, node.left, node.top, node.right, node.bottom);
         }
 
-        /** Chebyshev cells from a cell to the run's nearest cell. */
+        /** Chebyshev cells from a cell to the stretch's nearest cell. */
         int runGap(int run, int x, int y) {
             int best = Integer.MAX_VALUE;
-            for (int i = 0, n = index.runSize(run); i < n && best > 0; i++) {
-                best = Math.min(best, Math.max(Math.abs(index.runCellX(run, i) - x),
-                        Math.abs(index.runCellY(run, i) - y)));
+            for (int i = 0, n = registry.size(run); i < n && best > 0; i++) {
+                best = Math.min(best, Math.max(Math.abs(registry.cellX(run, i) - x),
+                        Math.abs(registry.cellY(run, i) - y)));
             }
             return best;
         }
 
+        /** Whether a cell lies inside the place: the building's footprint, or the stretch itself. */
         boolean inside(Place place, int x, int y) {
             if (place.node != null) return ReactiveWatch.gap(x, y, place.left, place.top, place.right, place.bottom) == 0;
             return registry != null && registry.idAt(x, y) == place.run;
+        }
+
+        /** As {@link #inside}, but anywhere on a stretch's whole run: what a breach is read against. */
+        boolean insideRun(Place place, int x, int y) {
+            if (place.node != null || registry == null) return inside(place, x, y);
+            int at = registry.idAt(x, y);
+            return at >= 0 && registry.runOf(at) == registry.runOf(place.run);
         }
 
         /** The place's believed pressure: the highest hostile reading among the influence blocks it covers. */
@@ -364,9 +387,18 @@ public final class ReactiveManningSystem {
             if (influence == null) return 0f;
             float best = 0f;
             if (place.node == null) {
+                if (woken != null && !woken.contains(place.run)) return 0f;
                 int bw = registry.blockWidth();
                 for (int block : registry.coveredBlocks(place.run)) {
                     best = Math.max(best, influence.hostileAt(block % bw, block / bw));
+                }
+                // The commander's own reading: a woken stretch is pressed by belief on its neighbours along the run too.
+                if (woken != null) {
+                    for (int n : registry.neighbours(place.run)) {
+                        for (int block : registry.coveredBlocks(n)) {
+                            best = Math.max(best, influence.hostileAt(block % bw, block / bw));
+                        }
+                    }
                 }
                 return best;
             }

@@ -131,20 +131,26 @@ public final class AttackerHoldsGroundScene implements BehaviorScene {
     private static Layout layout(BattleSimulation sim, int[] centre) {
         Fort fort = sim.forts().forts().get(0);
         GarrisonableRegistry places = sim.garrisonables();
-        // The gate stretch: the run of this fort nearest the field's south edge, the side the main gate faces.
-        int runA = -1;
+        // The gate stretch: of the run of this fort nearest the field's south edge (the side the main gate faces), the
+        // stretch at the run's middle. Runs are measured whole so that the ground the scene stands on does not depend on
+        // how they are cut.
+        GarrisonableRegistry whole = GarrisonableRegistry.build(sim.fightingPositions(), WIDTH, HEIGHT,
+                places.blockSize(), new int[0], false);
+        int run = -1;
         for (int g = 0; g < places.count(); g++) {
-            if (places.fortId(g) != fort.id() || places.size(g) < 6) continue;
-            if (runA < 0 || places.centreY(g) > places.centreY(runA)
-                    || (places.centreY(g) == places.centreY(runA) && places.centreX(g) < places.centreX(runA))) runA = g;
+            int r = places.runOf(g);
+            if (places.fortId(g) != fort.id() || whole.size(r) < 6) continue;
+            if (run < 0 || whole.centreY(r) > whole.centreY(run)
+                    || (whole.centreY(r) == whole.centreY(run) && whole.centreX(r) < whole.centreX(run))) run = r;
         }
-        int[] haltA = outside(sim, places.centreX(runA), places.centreY(runA), centre[0], centre[1]);
+        int runA = places.idAt(whole.centreX(run), whole.centreY(run));
+        int[] haltA = outside(sim, whole.centreX(run), whole.centreY(run), centre[0], centre[1]);
         int[] field = walkable(sim, centre[0] - 70, HEIGHT - 6);
         // The attacker's pool stands where the assault left it, between the works and the gate stretch of the belt it
         // has just taken, within sight of the ground in front of it.
         int[][] poolCells = new int[POOL][];
-        int px = places.centreX(runA);
-        int py = (places.centreY(runA) + centre[1]) / 2;
+        int px = whole.centreX(run);
+        int py = (whole.centreY(run) + centre[1]) / 2;
         for (int i = 0; i < POOL; i++) poolCells[i] = walkable(sim, px - 8 + 3 * i, py);
         return new Layout(runA, haltA, field, poolCells);
     }

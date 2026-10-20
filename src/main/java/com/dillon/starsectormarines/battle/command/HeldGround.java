@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +159,8 @@ final class HeldGround {
         List<Decision> out = new ArrayList<>();
         Set<Integer> releasing = new HashSet<>(director.evaluate(places, field, contactXY, contactCount, held));
         Set<Integer> fallingBack = new HashSet<>(director.fallingBack());
+        Map<Integer, Integer> shiftedTo = new HashMap<>();
+        for (GarrisonDirector.Shift shift : director.shifting()) shiftedTo.put(shift.squadId(), shift.to());
         for (GarrisonDirector.Garrison garrison : held) {
             int id = garrison.squadId();
             Body body = bodies.get(id);
@@ -182,7 +185,9 @@ final class HeldGround {
                 out.add(new Decision(id, Verdict.RELEASE, null));
                 continue;
             }
-            out.add(new Decision(id, Verdict.STAND, runOrder(id, garrison.garrisonable(), places)));
+            // A holder shifting onto the next stretch of its run stands there instead: the same hold, moved along.
+            out.add(new Decision(id, Verdict.STAND,
+                    runOrder(id, shiftedTo.getOrDefault(id, garrison.garrisonable()), places)));
         }
         return out;
     }
@@ -227,7 +232,7 @@ final class HeldGround {
 
     private static ObjectiveAssignment runOrder(int squadId, int place, GarrisonableRegistry places) {
         return ObjectiveAssignment.defendRun(squadId, places.centreX(place), places.centreY(place),
-                places.radius(place), place);
+                places.radius(place), places.runOf(place));
     }
 
     /**
