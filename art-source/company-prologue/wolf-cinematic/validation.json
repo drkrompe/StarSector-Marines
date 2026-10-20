@@ -3,10 +3,10 @@
  "collection": "WOLF_P",
  "root": "WOLF_P | root",
  "effects_collection": "SWFX",
- "objects": 172,
- "meshes": 132,
+ "objects": 175,
+ "meshes": 135,
  "effects_objects": 68,
- "images": 19,
+ "images": 18,
  "passed": true,
  "failed": [],
  "checks": {
@@ -31,22 +31,22 @@
   "images packed": {
    "ok": true,
    "detail": [
-    19,
+    18,
     []
    ]
   },
   "mesh count": {
    "ok": true,
    "detail": [
-    132,
-    132
+    135,
+    135
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    12893,
-    12893
+    14623,
+    14623
    ]
   },
   "three engine anchors at the mouths, pointing aft": {

@@ -211,7 +211,7 @@ HULLS = {
     # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
     # fork, head outriggers, missile pods, armour domes and the engine block (the drive
     # section) are outside SOLIDS.
-    'Wolf (P)': dict(units3=38649, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
+    'Wolf (P)': dict(units3=38763, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=95.1,
                      sprite_px=96),
     # The Phaeton tanker (Asharu convoy): the red tank hull, the machinery strakes along
     # both flanks (pump rooms and pipe galleries), the aft transverse frame and machinery

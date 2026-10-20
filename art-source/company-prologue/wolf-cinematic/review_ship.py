@@ -57,6 +57,10 @@ VIEWS = {
     'stern-quarter': (-130, 26, 128, T0),
     'engine-detail': (-125, 14, 52, Vector((-36, 0, 0))),
     'bow-fire': (60, 22, 90, Vector((30, 4, 2))),
+    # Round 6 close-ups: the prow and bridge, the port launcher head, the port PD turret.
+    'bow-quarter': (42, 20, 54, Vector((42, 0, 1))),
+    'launcher-detail': (38, 24, 26, Vector((12, 20, 4))),
+    'pd-detail': (-40, 30, 30, Vector((-13.6, 12.4, 6))),
 }
 # The close Asharu shot: (azimuth from +X toward +Y, elevation, metres, lens mm).
 SHOTS = {'asharu-s9': (55, 16, 670.0, 28.0)}
