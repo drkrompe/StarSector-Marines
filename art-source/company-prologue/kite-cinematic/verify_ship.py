@@ -1,6 +1,9 @@
 """Structural checks on the exported Kite (P), appended the way a shot appends it.
 
-  blender --background --factory-startup --python verify_ship.py
+  blender --background --factory-startup --python verify_ship.py [-- --dir DIR]
+
+DIR (default this folder) holds the exported kite-p.blend, manifest.json and the
+validation.json this writes.
 
 Appends `KITE (P)` and the optional `SWFX` collection into a factory-empty scene
 and checks, writing validation.json (exit 1 on any failure):
@@ -26,6 +29,8 @@ import bpy
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
+_argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+HERE = Path(_argv[_argv.index('--dir') + 1]).resolve() if '--dir' in _argv else HERE
 man = json.loads((HERE / 'manifest.json').read_text())
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene

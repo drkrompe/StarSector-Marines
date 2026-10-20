@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15af0-b26e-72b3-bd56-18d438a71f07",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15af0-b26e-72b3-bd56-18d438a71f07\\exec-e63e4ec7-b55a-4059-8591-54bdbc06fbcd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapon-icons-grades.raw.png",
+    "sha256": "2ade700b456e7ad1a22605adf2572c78dd3c2dc9c38407f91575648eaf4692e0",
+    "dimensions": [
+      1586,
+      992
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapon-icons-grades.prompt.txt",
+  "promptSha256": "c49632e5ecc6e17608a0e142ff15ec63d230cc3a6ee4bc1b5a57244951818d97",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target; empty canvas stays transparent\nImage 2: Finished standard icon sheet: painting style reference only; not layout\n\nUse case: sketch-to-render. Asset: two grade variants of infantry weapons shown in SIDE PROFILE as armory and inventory icons, for a gritty military dark-science-fiction tactical game, each seen exactly from its left side, muzzle pointing right, flat side view with no perspective.\n\nImage 1 is the authoritative geometry guide and edit target: only two frames are drawn on it (top left and middle right); the rest of the canvas is empty and must stay fully transparent. Reskin these exact two objects, preserving every silhouette, part, proportion and position exactly, with every gap and opening (stock opening, trigger guards, the gap between the rails) left transparent. Do not move, add, merge or remove parts.\n1. (top left) SURPLUS field rifle, an old worn-out issue of the standard rifle: scuffed chipped olive-drab paint over bare grey steel on the receiver, a WOODEN handguard and wooden stock in weathered brown with dark grain, a dull scope with a cracked dusty lens, rust at the joints, a wrap of dirty cloth tape around the barrel. Cheap and tired, clearly lower quality.\n2. (middle right) MASTERWORK railgun marksman rifle: immaculate polished navy-blue and ivory-white enamel with fine engraved brass inlay lines, brass rail braces, two polished black rails with a brighter glowing pale-blue field between them, a long black scope with clear blue glass and a brass ring, an ivory skeleton stock. Pristine, expensive, ceremonial-grade.\n\nImage 2 is the finished standard icon sheet these variants belong to: match its painting style, lighting, edge treatment and level of detail exactly; style reference only, not layout. No cast shadow, no ground, no text, labels, borders or watermark. True transparent background outside every silhouette, including negative spaces. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapon-icons-grades-guide.png",
+      "sha256": "52cdf6adffd1cdbcdc8eb81e8b8eae33918c8ef92dd6b318f31f7a24e7bf2019",
+      "dimensions": [
+        1792,
+        1120
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target; empty canvas stays transparent"
+    },
+    {
+      "path": "art-source\\infantry-weapons\\raw\\infantry-weapon-icons.raw.png",
+      "sha256": "c8948790c7d5db7717b7e168d94d528643a0e931a3e2f5186f4a6f904b70d813",
+      "dimensions": [
+        1586,
+        992
+      ],
+      "mode": "RGBA",
+      "role": "Finished standard icon sheet: painting style reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the exact geometry and layout guide, and Image 2 only as the rendering style reference, with transparent backgrounds and openings.\n"
+  ],
+  "usage": {
+    "input_tokens": 46333,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 650,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.0
+}

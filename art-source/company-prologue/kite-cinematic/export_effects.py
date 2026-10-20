@@ -1,6 +1,9 @@
 """Add the shared VFX kit's effects to the exported Kite (P) as an optional collection.
 
-  blender --background --factory-startup --python export_effects.py
+  blender --background --factory-startup --python export_effects.py [-- --dir DIR]
+
+DIR (default this folder) holds the exported kite-p.blend and its manifest.json, as
+export_ship.py --out wrote them.
 
 Opens kite-p.blend, runs the kit's own `swfx.apply` with this folder's
 hull profile (vfx_hull.py: eight MIDLINE drives, eight RCS nozzles,
@@ -26,7 +29,9 @@ sys.path.insert(0, str(VFX))
 import swfx  # noqa: E402
 import swfx_core  # noqa: E402
 
-BLEND = HERE / 'kite-p.blend'
+_argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+DIR = Path(_argv[_argv.index('--dir') + 1]).resolve() if '--dir' in _argv else HERE
+BLEND = DIR / 'kite-p.blend'
 GROUPS = ('thrusters', 'smoke', 'guns', 'lighting')
 bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 ctx = swfx.apply(state='clean', groups=GROUPS, hull=HERE)
@@ -46,7 +51,7 @@ def summary(rec):
     return rec
 
 
-man_path = HERE / 'manifest.json'
+man_path = DIR / 'manifest.json'
 man = json.loads(man_path.read_text())
 man['effects'] = {
     'collection': swfx_core.ROOT,

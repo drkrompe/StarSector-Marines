@@ -1,6 +1,6 @@
 """Structural checks on the exported Shepherd, appended the way a shot appends it.
 
-  blender --background --factory-startup --python verify_ship.py
+  blender --background --factory-startup --python verify_ship.py [-- --dir DIR]
 
 Appends `SHEPHERD` into a factory-empty scene and checks, writing
 validation.json (exit 1 on any failure):
@@ -25,10 +25,13 @@ import bpy
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
-man = json.loads((HERE / 'manifest.json').read_text())
+# --dir DIR reads and writes the asset, manifest and validation there (default: here).
+_argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+OUT = Path(_argv[_argv.index('--dir') + 1]).resolve() if '--dir' in _argv else HERE
+man = json.loads((OUT / 'manifest.json').read_text())
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
-with bpy.data.libraries.load(str(HERE / man['asset']), link=False) as (src, dst):
+with bpy.data.libraries.load(str(OUT / man['asset']), link=False) as (src, dst):
     dst.collections = [man['append_collection']]
 coll = dst.collections[0]
 scene.collection.children.link(coll)
@@ -131,7 +134,7 @@ check('root moves the ship rigidly', rigid < 1e-3, round(rigid, 6))
 result = {'asset': man['asset'], 'collection': man['append_collection'], 'root': man['root'],
           'objects': len(objs), 'meshes': len(meshes), 'images': len(bpy.data.images),
           'passed': not fails, 'failed': fails, 'checks': checks}
-(HERE / 'validation.json').write_text(json.dumps(result, indent=1) + '\n')
+(OUT / 'validation.json').write_text(json.dumps(result, indent=1) + '\n')
 print('VERIFY', 'PASS' if not fails else f'FAIL {fails}')
 for k, v in checks.items():
     print('  ', 'ok ' if v['ok'] else 'BAD', k, v.get('detail', ''))

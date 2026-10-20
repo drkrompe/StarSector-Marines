@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15aef-4f6b-70e0-9fbc-ef314dea598f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15aef-4f6b-70e0-9fbc-ef314dea598f\\exec-ce65e275-3ba7-41f4-9c41-ac68054cd4b6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\pd-pack\\raw\\pd-pack-icon.raw.png",
+    "sha256": "ea663e654f5f0c2bf4782efdd14a1c859f706e253da2c12242e66181947618f2",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\pd-pack\\pd-pack-icon.prompt.txt",
+  "promptSha256": "8f2776a43cc2873ad41a3f4cc8ef3c518b24661c0d024c062d633d3dc0458038",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target\nImage 2: The same pack as worn: identity, palette and material authority; not layout\n\nUse case: sketch-to-render. Asset: a compact backpack missile launcher for point defence, a miniature vertical launch system worn on a soldier's back, shown as an inventory and armory icon, for a gritty military dark-science-fiction tactical game. It is Hegemony military issue: heavy, utilitarian, low-tech and over-built, like the Hegemony's warships, not sleek corporate technology. Image 1 is the authoritative geometry guide and edit target (1024x1024). Reskin this exact object into a finished painted game sprite, preserving its silhouette and arrangement: the upright rigid pack frame seen from behind with its two dark strap tops, the dark gunmetal launch block on top seen slightly from above with six round launch-tube mouths in two rows, each ringed with an amber light, the yellow-and-black hazard-striped band just under the launch block, one small stubby interceptor missile with a dull grey body and a red-banded nose standing up out of the middle tube of the front row as if just launching, the small sensor dome with an amber lens on its short mast at the top right, the dark exhaust vents down both sides, and the access panel with its amber status strip on the back, all exactly where they are, with all transparent empty space around them. Material: worn dusty khaki-tan painted armour plate with chipped edges showing bare metal, thick rivets and bolts, soot around the tubes, dark gunmetal launch block top, vents and mast, small amber indicator lights with a faint warm glow. No cyan, no blue glow, no white glossy plastic, no olive green. Flat view, no cast shadow, no ground, no exhaust flame, no text, no labels, no watermark, no UI. Genuine transparent background outside the object silhouette. Hand-painted Starsector-like game sprite finish, dark utilitarian science fiction. Change only material, detail and subtle ambient shading, not placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\pd-pack-icon-guide.png",
+      "sha256": "29f11872a3c4abe65d22f68899f1b7f0c54126d7d4f962a83d9fd09153e96649",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target"
+    },
+    {
+      "path": "mod\\graphics\\battle\\fx\\pd-pack.png",
+      "sha256": "284b3919f6946da7c250d64118dc5905b7e8e5460283866d9a0a135e7f267a20",
+      "dimensions": [
+        432,
+        472
+      ],
+      "mode": "RGBA",
+      "role": "The same pack as worn: identity, palette and material authority; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one finished sprite using Image 1 for geometry and Image 2 for materials and wear.\n"
+  ],
+  "usage": {
+    "input_tokens": 40756,
+    "cached_input_tokens": 35072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 472,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.8
+}

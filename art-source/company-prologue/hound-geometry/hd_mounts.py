@@ -11,11 +11,14 @@ the guns are generic ballistic fittings sized by slot, resting at the slot
 angle. Every object is named 'Weapon <slot id> ...' and each slot has an
 anchor empty whose +X points along the slot angle.
 
-Pass 2: WS 001 is a naval medium gun lying in the fork's trough (the
-sprite's light-grey body, cols 35-37 rows 13-30): a breech on a recoil
-slide in a cradle on the trough rails, recoil cylinders, a jacketed barrel
-and a ported muzzle brake level with the tine points, fed by a belt chute
-out of the shielded hold. WS 002 is a small naval turret on a thick bolted
+WS 001 is the shared turret kit's Assault Chaingun hardpoint
+(tk.build_hardpoint('chaingun'), k 0.5) on the empty 'Weapon WS 001 mount',
+sunk in a bay cut out of the fork base and the tine roots: a breech housing,
+drive motor, feed chute and ammunition box, a fixed cooling jacket and the
+six-barrel cluster on 'Weapon WS 001 rotor' inside 'Weapon WS 001 recoil 1';
+its one muzzle ('Weapon WS 001 muzzle anchor 1') is on the cluster axis, level
+just short of the tine points. Both states carry it (it replaced the hull's own naval
+gun and the Hound (P)'s own chaingun, 2026-10-20). WS 002 is a small naval turret on a thick bolted
 barbette (the sprite's ring, about ten pixels across): turret house with a
 sloped glacis and cheek armour, a mantlet on trunnions, an armour skirt
 over the traverse gap, a cupola with vision blocks, a gunner's sight and an
@@ -24,6 +27,8 @@ armoured shutter frame in hazard stripes round a grid of aft-facing tubes,
 some cells capped as spares.
 """
 import math
+import sys
+from pathlib import Path
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
@@ -38,6 +43,7 @@ SLOTS = [
 ]
 ANCHOR_Z = {}
 CLASHES = {}  # slot id -> names of parts its gun overlaps (filled by build)
+METRES_PER_UNIT = .88   # build_hound.METRES_PER_UNIT (the kit sizes its detail in metres)
 
 HOUSE_BASE = [(3.2, -1.5), (3.2, 1.5), (1.9, 2.6), (-2.6, 2.6), (-2.6, -2.6), (1.9, -2.6)]
 HOUSE_ROOF = [(1.0, -1.0), (1.0, 1.0), (.3, 2.0), (-2.3, 2.0), (-2.3, -2.0), (.3, -2.0)]
@@ -82,75 +88,119 @@ def _face_plate(kit, name, quad, out, t, inset, mat, bevel=.04):
     return loft(kit, name, lower, upper, mat, bevel)
 
 
-# --- WS 001: fixed medium gun in the fork ---
+# --- WS 001: the turret kit's chaingun, sunk in a bay in the fork ---
 
-def hardpoint(kit, slot, gun=None):
-    """gun: None for the naval medium gun, else fn(kit, slot, x, y, z, light) that
-    builds a different weapon on the same cradle, breech, mantlet and feed."""
-    x, y = slot['location']
-    z = .4
-    t = slot['id']
-    light = material('Worn light gunmetal', (.36, .37, .38), .7, .45)
-    floor = -1.4+.44  # top of the fork's trough cradle rails
-    # Cradle: the sled riding the trough rails, with cheeks the breech slides in.
-    kit.box(f'Weapon {t} hardpoint housing', (x-8.8, y, floor+.45), (8.4, 3.3, .9), kit.steel, .08)
-    boxes(kit, f'Weapon {t} cradle cheeks', [((x-8.0, y+s*1.5, floor+1.55), (5.6, .3, 1.5)) for s in (-1, 1)], kit.steel, .04)
-    # Recoil slide rails on the cradle, the breech block riding them.
-    boxes(kit, f'Weapon {t} recoil slide', [((x-8.6, y+s*.85, floor+1.0), (7.4, .35, .2)) for s in (-1, 1)], light, .02)
-    kit.box(f'Weapon {t} breech block', (x-8.2, y, z+.35), (3.8, 2.6, 2.3), kit.rust, .12)
-    kit.box(f'Weapon {t} breech ring', (x-6.1, y, z+.2), (.6, 2.2, 2.1), light, .06)
-    kit.box(f'Weapon {t} breech rammer', (x-9.7, y, z+1.75), (2.4, .9, .7), light, .06)
-    # Armoured mantlet block closing the front of the cradle between the
-    # tine roots (the sprite's dark block at rows 12-13), the barrel collar
-    # ahead of it, recoil cylinders above and below.
-    kit.box(f'Weapon {t} gun mantlet', (x-4.0, y, z+.1), (2.8, 4.5, 2.2), kit.steel, .14)
-    bolts(kit, f'Weapon {t} gun mantlet bolts', [(x-4.0+dx, y+dy, z+1.2) for dx in (-.9, .9) for dy in (-1.8, 1.8)],
-          (0, 0, 1), kit.steel, .11, .08)
-    if gun is None:
-        kit.cylinder(f'Weapon {t} recoil sleeve', (x-2.25, y, z), .95, .9, kit.steel, 'X', 12, .06)
-        for name, cx, ln, dz in (('upper', x-4.2, 4.6, 1.25), ('lower', x-3.0, 3.0, -1.15)):
-            kit.cylinder(f'Weapon {t} recoil cylinder {name}', (cx, y, z+dz), .34, ln, light, 'X', 8, .03)
-        # Thick barrel with a jacket and a ported brake; muzzle at the tine points.
-        kit.cylinder(f'Weapon {t} barrel', (x+.6, y, z), .58, 8.4, light, 'X', 12, .03)
-        kit.cylinder(f'Weapon {t} barrel jacket', (x-1.6, y, z), .8, 3.6, kit.steel, 'X', 12, .04)
-        for k, bx in enumerate((x-3.35, x+.15), 1):
-            kit.cylinder(f'Weapon {t} jacket band {k}', (bx, y, z), .9, .3, kit.steel, 'X', 12, .02)
-        brake = kit.box(f'Weapon {t} muzzle brake', (x+4.85, y, z), (1.1, 1.5, 1.25), kit.steel, 0)
-        for px in (x+4.65, x+5.05):
-            boolean(brake, kit.box('Temporary brake port', (px, y, z), (.2, 3, .7), kit.dark, 0))
-        kit.cylinder(f'Weapon {t} muzzle bore', (x+5.41, y, z), .32, .06, kit.dark, 'X', 12, 0)
-    else:  # a different weapon on the same mount (hd_pirate)
-        gun(kit, slot, x, y, z, light)
-    # Belt chute out of the shielded hold into the top of the breech.
-    house = bpy.data.objects.get('Hull shielded hold deckhouse')
-    xa = 18.4
-    if house is not None:
+# The kit's Assault Chaingun hardpoint (turret-kit/turret_hardpoints.py, 'chaingun'),
+# at K hull units per sprite pixel: at k 1 its cooling jacket is 10 units across and
+# the fork's gun gap is 6, so it is built at 0.5, where the jacket (r 2.6) and the
+# barrel clamps (r 2.0) clear the tines, the gussets and the cross bar. Its mount
+# empty sits at MOUNT_X with the axis at AXIS_Z: the housing fills the fork base
+# from the cargo body's front face (X 20.5) forward, and the muzzle (29 px ahead of
+# the mount) is just short of the tine points.
+K = .5
+MOUNT_X = 24.95
+AXIS_Z = .2
+# The bay, in the mount's frame (x0, x1 along the fire line, y0, y1 across it, the
+# floor below the axis; open to the deck): the housing's pit, the drive motor's
+# pocket into the port tine root, and the starboard pocket the feed chute and
+# ammunition box sit in (the starboard tine's root). Margins about 0.2 units.
+BAY = [(-4.45, 5.1, -4.2, 3.8, -2.5),
+       (-3.1, 3.7, 3.6, 5.45, -1.8),
+       (1.55, 4.45, -7.45, -3.9, -.75)]
+
+
+def _cut_bay(kit, sid, mount, box):
+    """Cut a box (mount frame; open to the deck) out of every fork part it reaches,
+    baking the result with its chamfer and merging the boolean's slivers (as
+    lasher-geometry's _cut_bay). Returns the names of the cut parts."""
+    import bmesh
+    x0, x1, y0, y1, floor = box
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    cutter = bpy.context.object
+    cutter.name = f'Temporary bay cutter {sid}'
+    cutter.parent = mount
+    cutter.scale = (x1-x0, y1-y0, 30)
+    cutter.location = ((x0+x1)/2, (y0+y1)/2, floor+15)
+    bpy.context.view_layer.update()
+    corners = [cutter.matrix_world @ Vector(c) for c in cutter.bound_box]
+    lo, hi = Vector(map(min, *corners)), Vector(map(max, *corners))
+    cut = []
+    for ob in list(bpy.context.scene.objects):
+        if ob.type != 'MESH' or ob == cutter or not ob.name.startswith('Fork '):
+            continue
+        bb = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        if any(max(c[i] for c in bb) < lo[i] or min(c[i] for c in bb) > hi[i] for i in range(3)):
+            continue
+        for bm_ in ob.modifiers:
+            if bm_.type == 'BEVEL' and bm_.limit_method == 'ANGLE':
+                bm_.angle_limit = max(bm_.angle_limit, math.radians(65))
+        mod = ob.modifiers.new('bay', 'BOOLEAN')
+        mod.operation, mod.solver, mod.object = 'DIFFERENCE', 'EXACT', cutter
         bpy.context.view_layer.update()
-        ev = house.evaluated_get(bpy.context.evaluated_depsgraph_get())
-        inv = ev.matrix_world.inverted()
-        hit, p, _, _ = ev.ray_cast(inv @ Vector((40, y, 8.8)), (inv.to_3x3() @ Vector((-1, 0, 0))).normalized())
-        if hit:
-            xa = (ev.matrix_world @ p).x
-    # Leaves the deckhouse high so it passes over the hull's coolant loop.
-    a, b = Vector((xa-.9, y, 8.8)), Vector((x-8.6, y, z+1.6))
-    # An elbow: level over the coolant loop at the deckhouse face, then down.
-    m = Vector((20.4, y, 8.1))
+        dg = bpy.context.evaluated_depsgraph_get()
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(1.5), verts=bm.verts, edges=bm.edges)
+        bm.to_mesh(me)
+        bm.free()
+        own = next((m for m in me.materials if m is not None), None)
+        for i, m in enumerate(me.materials):
+            if m is None:
+                me.materials[i] = own
+        old = ob.data
+        ob.modifiers.clear()
+        ob.data = me
+        me.name = old.name
+        if old.users == 0:
+            bpy.data.meshes.remove(old)
+        if not me.polygons:            # wholly inside the bay
+            name = ob.name
+            if ob in kit.hull:
+                kit.hull.remove(ob)
+            bpy.data.objects.remove(ob, do_unlink=True)
+            cut.append(f'{name} (removed)')
+            continue
+        cut.append(ob.name)
+    cm = cutter.data
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    bpy.data.meshes.remove(cm)
+    return cut
 
-    def run(name, a, b):
-        d = (b-a).normalized()
-        n = Vector((d.z, 0, -d.x))  # in the XZ plane, normal to the run
-        sec = lambda c: [c+Vector((0, -.6, 0))-n*.45, c+Vector((0, .6, 0))-n*.45, c+Vector((0, .6, 0))+n*.45, c+Vector((0, -.6, 0))+n*.45]
-        loft(kit, name, sec(a), sec(b), kit.steel, .04)
-        return d, sec
-    run(f'Weapon {t} feed chute', a, m+(m-a).normalized()*.3)
-    d, sec = run(f'Weapon {t} feed chute drop', m, b)
-    kit.box(f'Weapon {t} feed chute elbow', m, (1.1, 1.3, 1.1), light, .06)
-    for k, f in enumerate((.3, .65), 1):
-        c = m.lerp(b, f)
-        loft(kit, f'Weapon {t} feed chute band {k}', [v-d*.15 for v in sec(c)], [v+d*.15 for v in sec(c)], light, 0)
-    ANCHOR_Z[t] = z
-    kit.empty(f'Weapon {t} anchor', (x, y, z), slot['angle'])
-    gun = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(f'Weapon {t}') and 'feed chute' not in o.name]
+
+HARDPOINT_RECORD = {}
+
+
+def hardpoint(kit, slot):
+    """WS 001: the kit's chaingun (tk.build_hardpoint) on 'Weapon WS 001 mount', sunk in
+    a bay cut out of the fork base and the tine roots. The old naval gun's trough
+    fittings ('Fork trough ...') are removed first: the kit housing fills the trough."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+    import turret_kit as tk
+    x, y = slot['location']
+    t = slot['id']
+    for ob in [o for o in bpy.data.objects if o.name.startswith('Fork trough ')]:
+        bpy.data.objects.remove(ob, do_unlink=True)
+    mount = kit.empty(f'Weapon {t} mount', (MOUNT_X, y, AXIS_Z), slot['angle'])
+    mount.empty_display_size = 2
+    mats = {'armour': kit.orange, 'plate': kit.steel, 'steel': kit.steel, 'dark': kit.dark}
+    hp = tk.build_hardpoint('chaingun', f'Weapon {t}', mount, mats, METRES_PER_UNIT, k=K)
+    cut = []
+    for box in BAY:
+        cut += _cut_bay(kit, t, mount, box)
+    bpy.context.view_layer.update()
+    ANCHOR_Z[t] = AXIS_Z
+    kit.empty(f'Weapon {t} anchor', (x, y, AXIS_Z), slot['angle'])
+    muzzle = hp['muzzles'][0]
+    HARDPOINT_RECORD.clear()
+    HARDPOINT_RECORD.update({
+        'slot': t, 'weapon': 'chaingun', 'built_by': 'turret-kit/turret_kit.py build_hardpoint', 'k': K,
+        'mount': mount.name, 'mount_location': [MOUNT_X, y, AXIS_Z],
+        'bay': [list(b) for b in BAY], 'bay_cut_from': sorted(set(cut)),
+        'parts': [o.name for o in hp['parts']], 'moving': [e.name for e in hp['moving']],
+        'kit_muzzles': [m.name for m in hp['muzzles']],
+        'muzzle_location': [round(v, 2) for v in muzzle.matrix_world.translation]})
+    gun = [o for o in hp['parts'] if o.type == 'MESH']
     fork = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith('Fork') and
             ('tine' in o.name or 'cross bar' in o.name or 'gusset' in o.name or 'sensor' in o.name)]
     CLASHES[t] = overlaps(gun, fork)
@@ -331,7 +381,7 @@ def build(kit, guns=None):
     (the Hound (P) state passes hd_pirate.GUNS); None builds the clean ship."""
     for slot in SLOTS:
         fn = {'HARDPOINT': hardpoint, 'TURRET': turret, 'HIDDEN': flare_launcher}[slot['mount']]
-        gun = (guns or {}).get(slot['id'])
+        gun = (guns or {}).get(slot['id']) if slot['mount'] == 'TURRET' else None
         fn(kit, slot) if gun is None else fn(kit, slot, gun)
     for sid, hits in CLASHES.items():
         print(f'CHECK {sid} gun overlap: {hits if hits else "clear"}')

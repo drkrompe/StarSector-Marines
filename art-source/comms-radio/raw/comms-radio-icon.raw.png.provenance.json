@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ae5-8897-7bc3-83b4-0522748d8d79",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ae5-8897-7bc3-83b4-0522748d8d79\\exec-237fa73a-ae69-41a0-bfa3-54b8a4cea401.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\comms-radio\\raw\\comms-radio-icon.raw.png",
+    "sha256": "82d49a416329559997ac5f300909e8f27dc0d251060345392bedcbe0fcea9520",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\comms-radio\\comms-radio-icon.prompt.txt",
+  "promptSha256": "864c22d782edcdc5f81c36124e762b378838809d7379b2ccb493ad30d9e1c52a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target\nImage 2: Palette and material reference only: the same radio as worn; not layout\n\nUse case: sketch-to-render. Asset: a portable military field radio set shown as an inventory and armory icon, for a gritty military dark-science-fiction tactical game. Image 1 is the authoritative geometry guide and edit target (1024x1024). Reskin this exact object into a finished painted game sprite, preserving its silhouette and arrangement: the upright rounded rectangular case, the dark display bezel with a glowing screen and two small readout bars, the two round dial knobs, the tan strap tab, the five-slot speaker grille at the bottom, the round antenna socket at the top right with the long thin whip antenna running up and right to its small tip, and the handset standing at the right on a coiled cord, all exactly where they are, with all transparent empty space around them. Material: it must match the worn field pack it represents (image 2): light-to-mid grey ballistic nylon and grey rubberised casing with lighter worn edges and darker grey seams, pale grey-white webbing for the strap tab, matte dark-grey knobs, antenna and handset, dark-grey coiled cord. Electronic accents are glowing bright blue LED: the display glows pale blue instead of green, the two readout bars are blue, the antenna tip is a small blue light. No olive green, no amber, no green. Slight front three-quarter product-icon view is not wanted: keep it a flat front view with no perspective, no cast shadow, no ground, no text, no labels, no watermark, no UI. Genuine transparent background outside the object silhouette. Hand-painted Starsector-like game sprite finish, dark utilitarian science fiction. Change only material, detail and subtle ambient shading, not placement or silhouette. Image 2 is the same radio as worn in battle: palette and material reference only, not layout.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\comms-radio-icon-guide.png",
+      "sha256": "608a53129038535e2926774750b287db57f8d19b71b94275370c9915a57b8bda",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target"
+    },
+    {
+      "path": "mod\\graphics\\battle\\fx\\comms-radio-pack.png",
+      "sha256": "62d64c1fb458ace74e768c70be0ee4e66bc4617bac96c4ba5810f23116618442",
+      "dimensions": [
+        320,
+        336
+      ],
+      "mode": "RGBA",
+      "role": "Palette and material reference only: the same radio as worn; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the guide’s exact layout with grey worn materials and blue electronics, using the second image only for palette and texture."
+  ],
+  "usage": {
+    "input_tokens": 62739,
+    "cached_input_tokens": 52608,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 762,
+    "reasoning_output_tokens": 31
+  },
+  "elapsedSeconds": 58.6
+}
