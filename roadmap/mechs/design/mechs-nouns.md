@@ -751,10 +751,12 @@ calculation without infantry training multipliers.
 
 The actual posed barrel is the source for both autonomous and manual direct
 fire. A structural obstruction between body and barrel blocks launch, including
-when the rendered muzzle protrudes beyond the obstacle. Ground-direct area
-weapons retain physical terminal-contact detonation and missile interception;
-neither the cursor nor an overshoot manufactures an impact. `ballistics-nouns.md`
-owns their shared contact and arrival law.
+when the rendered muzzle protrudes beyond the obstacle. Manual alignment is the
+torso's, judged from the chassis centre, and the barrels converge on the point.
+A pilot's rockets ground-burst where they are thrown, past nominal range at a
+scatter cost; gun area payloads keep physical terminal-contact detonation, and
+every rocket keeps missile interception. `ballistics-nouns.md` owns their shared
+contact and arrival law.
 
 Manual ownership cancels queued and active one-shot moves for this exact body.
 It excludes the body from autonomous role allocation, doctrine relevance,

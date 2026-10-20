@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -41,6 +42,12 @@ import java.util.Random;
 public class HeavyWeapons {
 
     private static final float SHOT_LIFETIME = 0.15f;
+    /**
+     * A manual aim point nearer the chassis centre than this many hull widths is pushed out to it
+     * along the same bearing, so every barrel converges ahead of its own muzzle rather than on a
+     * point beside or behind it.
+     */
+    static final float MIN_POINT_AIM_HULL_WIDTHS = 1.5f;
 
     private final UnitRosterService roster;
     private final NavigationGrid grid;
@@ -108,7 +115,7 @@ public class HeavyWeapons {
                     if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
                     if (!MechFireGroups.contains(pulled, mount)
                             || !loadout.flux.permits(mount.component.fluxPerTrigger(), false)) continue;
-                    if (firePointRound(controlledId, mount, aim)) {
+                    if (firePointRound(controlledId, mount, aim, true)) {
                         loadout.flux.commit(mount.component.fluxPerTrigger());
                         mount.commitTrigger(0L, aim);
                     }
@@ -131,24 +138,26 @@ public class HeavyWeapons {
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
         if (mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()
                 || !loadout.flux.permits(mount.component.fluxPerTrigger(), true)) return false;
-        if (!fireRoundAtPoint(shooter, mount, aim)) return false;
+        if (!fireRoundAtPoint(shooter, mount, aim, false)) return false;
         loadout.flux.commit(mount.component.fluxPerTrigger());
         mount.commitTrigger(0L, aim);
         return true;
     }
 
-    /** One round at a point: a flat-trajectory mount by its ordinary point round, an arcing one by its scatter. */
-    private boolean fireRoundAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
+    /**
+     * One round at a point: a flat-trajectory mount by its ordinary point round, an arcing one by its scatter.
+     * {@code manual} is a pilot's trigger, whose area rounds burst where they are thrown.
+     */
+    private boolean fireRoundAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim, boolean manual) {
         WeaponDef weapon = mount.weaponDef();
-        if (weapon.arcHeight <= 0f && !weapon.indirectFire) return firePointRound(shooter, mount, aim);
+        if (weapon.arcHeight <= 0f && !weapon.indirectFire) return firePointRound(shooter, mount, aim, manual);
         if (!canFireMechMount(shooter, mount) || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
         World world = roster.world();
         MechLoadoutComponent loadout = world.mechLoadout(shooter);
         float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
-        if (!loadout.isPointAimedAt(aim, world.renderX(shooter), world.renderY(shooter), hipFacing)
-                || !loadout.isPointAimedAt(aim, muzzle.x(), muzzle.y(), hipFacing)) return false;
+        if (!loadout.isPointAimedAt(aim, world.renderX(shooter), world.renderY(shooter), hipFacing)) return false;
         Faction shooterFaction = roster.identity().faction(shooter);
         float distance = RangeFalloff.dist(world.x(shooter), world.y(shooter), aim.x(), aim.y());
         float spread = RangeFalloff.spread(weapon.hitSpread, distance, weapon.range);
@@ -251,25 +260,40 @@ public class HeavyWeapons {
         deliverDirectRound(shooter, weapon, res, fromX, fromY);
     }
 
-    /** Refuses unsupported or physically unaimed triggers before spending a mount resource. */
-    private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim) {
+    /**
+     * Refuses unsupported or physically unaimed triggers before spending a mount resource.
+     *
+     * <p>Alignment is the torso's, judged from the chassis centre: the torso turned onto the point is
+     * what aims every mount on it. Each barrel then fires from its own muzzle at the point, so paired
+     * and shoulder barrels converge on it instead of each needing the point inside its own few degrees,
+     * which a laterally offset muzzle loses at close range. A {@code manual} rocket bursts where it is
+     * thrown ({@link BallisticResolver#resolveGroundBurst}); gun rounds, and every round a pilot did not
+     * aim, keep the bearing-only point contract.
+     */
+    private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim, boolean manual) {
         if (!canFireMechMount(shooter, mount)) return false;
         WeaponDef weapon = mount.weaponDef();
         if (!supportsPointFire(mount)) return false;
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
         float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
-        if (!loadout.isPointAimedAt(aim, roster.world().renderX(shooter),
-                roster.world().renderY(shooter), hipFacing)) return false;
+        float centreX = roster.world().renderX(shooter);
+        float centreY = roster.world().renderY(shooter);
+        if (!loadout.isPointAimedAt(aim, centreX, centreY, hipFacing)) return false;
+        PointFireAim target = withStandoff(aim, centreX, centreY,
+                MIN_POINT_AIM_HULL_WIDTHS * LayeredMechAppearance.hullWidthCells(loadout.variant.renderScale));
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
-        if (!loadout.isPointAimedAt(aim, muzzle.x(), muzzle.y(), hipFacing)) return false;
+        if (!target.validFrom(muzzle.x(), muzzle.y())) return false;
         BallisticResolver.Source source = new BallisticResolver.Source(shooter, muzzle.x(), muzzle.y(),
                 0f, roster.identity().faction(shooter));
         // Mech mounts retain their own accuracy contract; no infantry training or stance factor.
         float spread = RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range);
-        BallisticResolver.Resolution resolution = resolver.resolvePoint(source, aim.x(), aim.y(),
-                weapon.accuracy * sensorAccuracy(loadout), spread, weapon.roundVelocity, weapon.range,
-                weapon.bodyPenetrations, rng);
+        float accuracy = weapon.accuracy * sensorAccuracy(loadout);
+        BallisticResolver.Resolution resolution = manual && bursts(weapon)
+                ? resolver.resolveGroundBurst(source, target.x(), target.y(), accuracy, spread,
+                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng)
+                : resolver.resolvePoint(source, target.x(), target.y(), accuracy, spread,
+                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng);
         roster.telemetry().recordRoundFired(shooter);
         deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y());
         return true;
@@ -463,7 +487,7 @@ public class HeavyWeapons {
                     }
                     // Manual bursts follow the live cursor. A refused release uses its
                     // scheduled slot so blocked barrels cannot retain a stale backlog.
-                    fireRoundAtPoint(u, mount, manual ? aim : mount.burstPointAim);
+                    fireRoundAtPoint(u, mount, manual ? aim : mount.burstPointAim, manual);
                     finishBurstRound(mount);
                     continue;
                 }
@@ -487,6 +511,21 @@ public class HeavyWeapons {
                 finishBurstRound(mount);
             }
         }
+    }
+
+    /** A rocket with a warhead: the rounds a pilot throws at ground rather than along a bearing. */
+    private static boolean bursts(WeaponDef weapon) {
+        return weapon.interceptableProjectile && weapon.aoeRadius > 0f;
+    }
+
+    /** The aim point, pushed out along its bearing from the centre to at least {@code minimum} cells. */
+    static PointFireAim withStandoff(PointFireAim aim, float centreX, float centreY, float minimum) {
+        float dx = aim.x() - centreX;
+        float dy = aim.y() - centreY;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance >= minimum || distance <= 1e-6f) return aim;
+        float scale = minimum / distance;
+        return new PointFireAim(centreX + dx * scale, centreY + dy * scale);
     }
 
     private static void finishBurstRound(MechWeaponMount mount) {
