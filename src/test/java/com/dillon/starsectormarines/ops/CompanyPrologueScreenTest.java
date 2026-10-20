@@ -46,27 +46,44 @@ class CompanyPrologueScreenTest {
     @Test void anotherPortTellsJangalasStoryButNamesItsOwnCourse() {
         var elsewhere = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
         assertTrue(elsewhere.get("narrative").toString().contains("Nessa Venn, Jangala"));
-        assertTrue(elsewhere.get("dialogue").toString().contains("Nessa"));
+        assertTrue(elsewhere.get("dialogue").toString().contains("Greywater Down"));
         assertEquals("Reach Independent Port", elsewhere.get("destination"));
-        assertTrue(elsewhere.get("manifest").toString().contains("17 crew"));
-        var handoff = CompanyPrologueScreen.model(7, "Independent Port", false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
+        assertEquals("Crew 17 / 45 aboard / 473 spendable credits", elsewhere.get("manifest"));
+        var handoff = CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, "Independent Port", false, 17, 473, 4862,
+                () -> {}, () -> {}, () -> {});
+        assertEquals("A WAY TO SURVIVE", handoff.get("title"));
         assertTrue(handoff.get("dialogue").toString().contains("Nessa"));
-        assertEquals("Set course for Independent Port", handoff.get("nextLabel"));
+        assertEquals("Take us to Independent Port.", handoff.get("nextLabel"));
+        assertEquals("Take us to Jangala.", CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, "Jangala",
+                20, 473, 4862, () -> {}, () -> {}, () -> {}).get("nextLabel"));
+    }
+
+    @Test void everyContinueIsTheCommandersOwnLine() {
+        var labels = new HashSet<String>();
+        for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
+            String label = CompanyPrologueScreen.model(page, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {})
+                    .get("nextLabel").toString();
+            assertNotEquals("Continue", label);
+            assertTrue(labels.add(label), "Each page gets its own reply: " + label);
+        }
+        assertEquals("Then go and get some sleep yourself.",
+                CompanyPrologueScreen.model(0, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {}).get("nextLabel"));
     }
 
     @Test void noPortAtAllNeverGivesADisabledExit() {
-        var absent = CompanyPrologueScreen.model(7, null, false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
+        var absent = CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, null, false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
         assertEquals("Take command", absent.get("nextLabel"));
         assertFalse(absent.get("dialogue").toString().contains("null"));
-        assertFalse(absent.get("dialogue").toString().contains("Nessa"));
+        assertEquals("Find a working planetary spaceport", absent.get("destination"));
     }
 
     @Test void jangalaPageSixPromisesTheMemoryOnlyWhileTheArrivalIsAhead() {
         var promised = CompanyPrologueScreen.model(5, "Jangala", true, 20, 473, 4862, () -> {}, () -> {}, () -> {});
-        assertTrue(promised.get("dialogue").toString().contains("tell you on the way down"));
+        assertTrue(promised.get("dialogue").toString().contains("tell you the rest on the way down"));
         assertFalse(promised.get("dialogue").toString().contains("ran ore together"));
         var withheld = CompanyPrologueScreen.model(5, "Jangala", false, 20, 473, 4862, () -> {}, () -> {}, () -> {});
         assertTrue(withheld.get("dialogue").toString().contains("ran ore together"));
+        assertFalse(withheld.get("dialogue").toString().contains("on the way down"));
     }
 
     @Test void allPagesKeepNavigationClickableAt1920x1080And100Percent() throws Exception {
