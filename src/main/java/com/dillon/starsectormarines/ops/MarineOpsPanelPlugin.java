@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BaseCustomUIPanelPlugin;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -45,19 +44,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private PositionAPI position;
     private Runnable dismissDialog;
     private ScreenId lastScreenId;
-    private final OpsMusic music = new OpsMusic(new OpsMusic.Player() {
-        @Override public void suspendDefaultMusic(boolean suspended) {
-            Global.getSoundPlayer().setSuspendDefaultMusicPlayback(suspended);
-        }
-
-        @Override public void play(String track, int fadeOutSecs, int fadeInSecs, boolean loop) {
-            Global.getSoundPlayer().playCustomMusic(fadeOutSecs, fadeInSecs, track, loop);
-        }
-
-        @Override public void stop(int fadeOutSecs) {
-            Global.getSoundPlayer().playCustomMusic(fadeOutSecs, 0, null);
-        }
-    });
+    private final OpsMusic music = new OpsMusic(MenuTheme.shared());
 
     public MarineOpsPanelPlugin(PlanetAPI planet) {
         this(planet, null);

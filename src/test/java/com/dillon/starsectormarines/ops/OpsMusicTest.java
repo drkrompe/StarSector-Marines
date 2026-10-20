@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class OpsMusicTest {
 
     private final List<String> calls = new ArrayList<>();
-    private final OpsMusic music = new OpsMusic(new OpsMusic.Player() {
+    private final MenuTheme theme = new MenuTheme(new MenuTheme.Player() {
         @Override public void suspendDefaultMusic(boolean suspended) {
             calls.add(suspended ? "suspend" : "resume");
         }
@@ -23,8 +23,9 @@ class OpsMusicTest {
             calls.add("stop");
         }
     });
+    private final OpsMusic music = new OpsMusic(theme);
 
-    private static final List<String> START = List.of("suspend", "play " + OpsMusic.INTEL_TRACK);
+    private static final List<String> START = List.of("suspend", "play " + MenuTheme.TRACK);
 
     @Test
     void movingBetweenEveryOrdinaryScreenNeverTouchesTheTrack() {
@@ -51,6 +52,18 @@ class OpsMusicTest {
     void closingTheDialogStopsTheTrackAndGivesTheCampaignItsMusicBack() {
         music.entered(ScreenId.SHIP_VIEW);
         music.closed();
+        music.closed();
+        List<String> expected = new ArrayList<>(START);
+        expected.addAll(List.of("stop", "resume"));
+        assertEquals(expected, calls);
+    }
+
+    @Test
+    void theYardPagesHandTheTrackOnWithoutARestart() {
+        Object yard = new Object();
+        theme.hold(yard);
+        music.entered(ScreenId.COMPANY_HQ);
+        theme.release(yard);
         music.closed();
         List<String> expected = new ArrayList<>(START);
         expected.addAll(List.of("stop", "resume"));

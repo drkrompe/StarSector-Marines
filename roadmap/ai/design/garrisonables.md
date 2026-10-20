@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is built for fort-belt fighting positions, and the player's machine assault on a believed-held garrisonable; other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions and for a player's squads that opt into it, and the player's machine assault on a believed-held garrisonable is built; other kinds, and other sides, remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — owner decisions: attackers hold taken ground, player squads may opt into reactive manning, machines assault garrisons but never man them; the player's machine assault is built.
+Updated: 2026-10-20 — fort-belt reactive manning shipped; owner decisions on attackers, player opt-in and machines; the player's machine assault and the player's opt-in GARRISON stance are built.
 
 ## Why this exists
 
@@ -79,8 +79,10 @@ layer is what a squad falls back to when the one in front of it is lost.
 - **The player's version is manual.** The occupy order is the player assigning
   a garrisonable by hand, and a dragged line order assigns every fighting
   position along a drawn frontage, one fire team per stretch, counting the
-  forward-facing door and window posts of buildings the line crosses. Whether a player's idle squads may opt into reactive
-  manning is opt-in, never a default (see Decided direction). A machine given
+  forward-facing door and window posts of buildings the line crosses. A player's
+  squad may opt into reactive manning with the GARRISON stance, never a default:
+  it mans the pressed places round where it stands, by this doc's laws, and yields
+  to any order the player gives (`ai-nouns.md`, under fighting positions). A machine given
   the same click on a place its side believes is enemy-held assaults it by fire
   from outside instead.
 
@@ -139,6 +141,19 @@ for it to be released the next pulse was the main source of churn. A breach
 that makes a garrison fall back is a believed enemy inside the place near the
 squad, so one at the far end of a long run, or merely beside it, is not.
 
+A track's rally does not swing back to the post it has just left for a few
+pulses (`conquest-nouns.md`). When an area's pressure wavers about its
+threshold, the rally otherwise alternated between the area's staging cell and the
+track's band point, and between a remembered contact's band and an alarmed fort's
+works; each swing was a new route for every rallied squad.
+
+The assignment tier knows nothing of which side it serves. It is given a side's
+own pressure picture, its free squads and its places, and answers which squad
+mans which place and when it stops; the defender commander is its first caller.
+That is the seam the attacking commander will use (see Decided direction). A
+player's opted-in squad answers the same question for itself, one squad and the
+places round it, with the same thresholds (`ReactiveWatch`).
+
 ## How it fits what exists
 
 The defender commander already raises a threatened track and forward band from
@@ -196,6 +211,12 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   orders.
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
+  Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
+  defend area round the squad's anchor, the runs and held buildings on its own
+  side's ground inside it, and the commander's own thresholds applied at squad
+  scope (`ReactiveWatch`). The fun is the delegation: it reads as a squad given a
+  corner to watch, which jumps into the trench or building the enemy leans on and
+  walks back when the pressure passes.
 - **Machines assault garrisons; they never man them.** Mechs and vehicles take
   no posts, but their weapons make them the natural answer to a held place: an
   order onto an enemy-held building or position is an assault by fire — engage
@@ -209,6 +230,17 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 
 ## Open questions
 
+- **A garrison on a stretch the attack has left.** On the trial ground's fort
+  fixtures about half of the samples in which the company stands at a fort
+  find a belt garrison with no marine within thirty cells. The fort's alarm is not
+  what holds it there: letting the alarm's floor follow the attack round the fort,
+  so that only the stretch believed pressed kept it, changed nothing across 28
+  fixtures. A run is the unit of manning and a fort's runs are long, often round
+  a corner of the works, and the influence picture is coarse enough that a run
+  reads pressed while any of it is near the fight. A finer place (a stretch of a
+  run, with its own posts) or a way through the works rather than round them is
+  the likely answer; a garrison stand-to at the work being lost, sent round the
+  walls, was tried and cost more than it saved.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
 - Whether a machine screens a manned place it cannot man (stands beside a
@@ -216,8 +248,6 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 
 ## Stories
 
-- `reactive-garrisons.md` — fort belts become reactively manned from the
-  defender pool, with release and fall back.
 - `compound-prepared-ground.md` — compounds and facilities offer prepared ground
   and building envelopes as garrisonables.
 - `fort-sandbag-damage-art.md` — real art for the placeholder fort sandbag damage

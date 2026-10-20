@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15adc-7380-7920-ace8-e5141e21c130",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15adc-7380-7920-ace8-e5141e21c130\\exec-d85990bd-176a-4a33-a4a0-ce26e1ed5107.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\army-green.raw.png",
+    "sha256": "c586e722dd7e274689093c01b8b53b772831e6cf3c08eab3bf00b22e7acab85b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\army-green.prompt.txt",
+  "promptSha256": "92c6e8b702db3c88779798bc86fc2d14ead9de618009e9eeec59528cae023aec",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: one complete upper-body suit displayed as on an invisible stand, seen from the front: helmet on top, cuirass, pauldrons and upper-arm and forearm plates, down to the belt, with no person inside.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nLegionary line suit: the Hegemony's mass-issued interchangeable line armour. Faded olive-drab and forest-green rounded plates over charcoal, a thick collar ring, broad rounded pauldrons, dull khaki worn edges and small khaki rank flashes, black hardware, dusty seams and campaign wear. The helmet is a plain olive-green dome, matching the overhead helmet. Disciplined, field-serviceable, built for formations far from a depot.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-3-combat.png",
+      "sha256": "68170384df5c9d4d8a347c5c3834d179c037a062db96c0645acf070d21d57391",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\army-green-identity.png",
+      "sha256": "be6b9a2abaca624ae0422d9d5672a7fd36e153f8689f94bec9f0163c81fda981",
+      "dimensions": [
+        1280,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent product render, using Image 1 for presentation and Image 2 for the suit’s identity."
+  ],
+  "usage": {
+    "input_tokens": 39049,
+    "cached_input_tokens": 31360,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 716,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.8
+}

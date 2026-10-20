@@ -9,7 +9,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorFieldFatiguesDescription",
         "tier": 1,
-        "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
+        "iconPath": "graphics/ui/armory/armor-armorless.png"
       },
       "battle": { "appearanceFamily": "ARMORLESS", "armorCapacity": 0.0, "armorRating": 0.0, "moveSpeedMult": 1.08, "incomingAccuracyMult": 0.92 }
     },
@@ -22,7 +22,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorCordonShellDescription",
         "tier": 1,
-        "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
+        "iconPath": "graphics/ui/armory/armor-militia.png"
       },
       "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 3.0, "armorRating": 2.0, "moveSpeedMult": 0.99, "incomingAccuracyMult": 0.99 }
     },
@@ -35,7 +35,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorLashplateHarnessDescription",
         "tier": 1,
-        "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
+        "iconPath": "graphics/ui/armory/armor-outlaw.png"
       },
       "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 5.0, "armorRating": 1.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 1.03 }
     },
@@ -48,7 +48,7 @@
         "tradition": "persean",
         "description": "@gearCatalogArmorCombatDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-charcoal.png"
       },
       "battle": { "appearanceFamily": "CHARCOAL", "armorCapacity": 9.0, "armorRating": 8.0, "moveSpeedMult": 0.96, "incomingAccuracyMult": 0.96 }
     },
@@ -61,7 +61,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorAegisCompositeDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-aegis-composite.png"
       },
       "battle": {
         "appearanceFamily": "AEGIS_COMPOSITE",
@@ -108,7 +108,7 @@
         "tradition": "luddic_church",
         "description": "@gearCatalogArmorPalatineDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-palatine.png"
       },
       "battle": { "appearanceFamily": "PALATINE", "armorCapacity": 8.0, "armorRating": 10.0, "moveSpeedMult": 0.91, "incomingAccuracyMult": 0.98 }
     },
@@ -121,7 +121,7 @@
         "tradition": "sindrian_diktat",
         "description": "@gearCatalogArmorFurnaceLineDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-furnace-line.png"
       },
       "battle": { "appearanceFamily": "FURNACE_LINE", "armorCapacity": 12.0, "armorRating": 7.0, "moveSpeedMult": 0.93, "incomingAccuracyMult": 0.99 }
     },
@@ -134,7 +134,7 @@
         "tradition": "pirates",
         "description": "@gearCatalogArmorReaverDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-reaver.png"
       },
       "battle": { "appearanceFamily": "REAVER", "armorCapacity": 13.0, "armorRating": 5.0, "moveSpeedMult": 0.97, "incomingAccuracyMult": 0.96 }
     },
@@ -147,7 +147,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorScoutDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-blue-scout.png"
       },
       "battle": {
         "appearanceFamily": "BLUE_SCOUT",
@@ -180,7 +180,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorHeavyDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-red-elite.png"
       },
       "battle": {
         "appearanceFamily": "RED_ELITE",
@@ -215,7 +215,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorSpecterHeavyDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-specter-heavy.png"
       },
       "battle": {
         "appearanceFamily": "SPECTER_HEAVY",
@@ -262,7 +262,7 @@
         "tradition": "persean",
         "description": "@gearCatalogArmorBulwarkHeavyDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-bulwark-heavy.png"
       },
       "battle": {
         "appearanceFamily": "BULWARK_HEAVY",
@@ -297,7 +297,7 @@
         "tradition": "knights_of_ludd",
         "description": "@gearCatalogArmorReliquaryHeavyDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-reliquary-heavy.png"
       },
       "battle": {
         "appearanceFamily": "RELIQUARY_HEAVY",
@@ -332,7 +332,7 @@
         "tradition": "lions_guard",
         "description": "@gearCatalogArmorLionsMantleDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-lions-mantle.png"
       },
       "battle": {
         "appearanceFamily": "LIONS_MANTLE",
@@ -367,7 +367,7 @@
         "tradition": "pirates",
         "description": "@gearCatalogArmorFoundryBreakerDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-foundry-breaker.png"
       },
       "battle": {
         "appearanceFamily": "FOUNDRY_BREAKER",
@@ -402,7 +402,7 @@
         "tradition": "pirates",
         "description": "@gearCatalogArmorOutlawDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-outlaw.png"
       },
       "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 7.0, "armorRating": 4.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.94 }
     },
@@ -415,7 +415,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorLineDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-army-green.png"
       },
       "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97,
         "integralSystem": {
@@ -444,7 +444,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorMilitiaDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-militia.png"
       },
       "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96,
         "integralSystem": {
@@ -473,7 +473,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorPathfinderDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-blue-scout.png"
       },
       "battle": {
         "appearanceFamily": "BLUE_SCOUT",
@@ -506,7 +506,7 @@
         "tradition": "persean",
         "description": "@gearCatalogArmorOutriderDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-blue-scout.png"
       },
       "battle": {
         "appearanceFamily": "BLUE_SCOUT",
@@ -539,7 +539,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorRedoubtDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-charcoal.png"
       },
       "battle": {
         "appearanceFamily": "CHARCOAL",
@@ -573,7 +573,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorRiotShellDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-militia.png"
       },
       "battle": {
         "appearanceFamily": "MILITIA",
@@ -608,7 +608,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorPackframeDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-outlaw.png"
       },
       "battle": {
         "appearanceFamily": "OUTLAW",
@@ -641,7 +641,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorArbalestDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-arbalest-heavy.png"
       },
       "battle": {
         "appearanceFamily": "ARBALEST_HEAVY",
@@ -688,7 +688,7 @@
         "tradition": "sindrian_diktat",
         "description": "@gearCatalogArmorVigilDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-furnace-line.png"
       },
       "battle": {
         "appearanceFamily": "FURNACE_LINE",
@@ -723,7 +723,7 @@
         "tradition": "luddic_church",
         "description": "@gearCatalogArmorOrderlyDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+        "iconPath": "graphics/ui/armory/armor-militia.png"
       },
       "battle": {
         "appearanceFamily": "MILITIA",
@@ -756,7 +756,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorCorpsmanDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-army-green.png"
       },
       "battle": {
         "appearanceFamily": "ARMY_GREEN",
@@ -789,7 +789,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorSpecterRecoveredDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-specter-heavy.png"
       },
       "battle": {
         "appearanceFamily": "SPECTER_HEAVY",
@@ -853,7 +853,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorArbalestRecoveredDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-arbalest-heavy.png"
       },
       "battle": {
         "appearanceFamily": "ARBALEST_HEAVY",
@@ -924,7 +924,7 @@
         "tradition": "pirates",
         "description": "@gearCatalogArmorBoardingJackDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+        "iconPath": "graphics/ui/armory/armor-boarding-jack.png"
       },
       "battle": {
         "appearanceFamily": "BOARDING_JACK",
