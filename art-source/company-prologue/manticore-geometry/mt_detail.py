@@ -2,11 +2,10 @@
 
 Read off the sprite at 6-10x (the hull has no lights layer, so glazing and
 heat glow follow its shading and a low-tech destroyer's needs):
-- Wings: two big raised red armour plates a side between the core and the
-  launcher wells (the bright angular plates, rows 45-90), each a slab with
-  its outboard edge falling; a dark trailing-edge strake running down the
-  wing's swept trailing edge, with joints; the gunmetal rib that carries each
-  outer pod (the dark spar from the core to the pod).
+- Wings (round 9): two long red armour panels a side, swept parallel to the
+  trailing edge from the gun nacelle into the core (the bright diagonal plates,
+  rows 55-95), each creased once down its length; a dark strake down the
+  straight swept trailing edge.
 - Sensor domes: the tan bulbs at (5, +-35), on low plinths.
 - Main ring collar: the dark segmented ring round the Mark IX (radius ~20),
   with radial ribs.
@@ -26,6 +25,14 @@ import math
 import bpy
 from mt_kit import boolean, facet_normal, plane_cut, prism, section, sym
 from mt_hull import FALL, RAKE, wing_drop, ccw, droop, shear, BRIDGE_DECK, CORE_DECK, AFT_DECK, MAIN_WELL, WING_DECK
+
+# The port trailing edge (mt_hull.WING, round 9: one straight line): its pod end,
+# the unit vector along it inboard, and the unit normal pointing inboard-forward.
+TE_ROOT = (6.0, 72.5)
+_dx, _dy = -17.5-6.0, 47-72.5
+_ln = math.hypot(_dx, _dy)
+SWEEP_T = (_dx/_ln, _dy/_ln)
+SWEEP_N = (-SWEEP_T[1], SWEEP_T[0])
 
 VIEWPORT_M = (1.0, .8)       # one viewport pane
 BRIDGE_BAND_M = 1.1          # the dome's glazed band height
@@ -62,43 +69,27 @@ def wing_z(y, deck=WING_DECK):
 def build(kit):
     vp = [m/kit.mpu for m in VIEWPORT_M]
     for side, s in (('port', 1), ('starboard', -1)):
-        # --- wing armour plates: raised slabs, outboard edges falling with the deck ---
-        for k, plan in enumerate(([(30, 25.5), (30, 31), (24, 34), (20, 50), (12, 52), (8, 30), (12, 25.5)],
-                                  [(6, 27), (8, 38), (2, 52), (-6, 54), (-14, 46), (-12, 27)],
-                                  [(19, 53.5), (10, 64), (3, 62.5), (-3, 56.5), (4, 53.5)]), 1):
-            pts = ccw([(x, s*y) for x, y in plan])
+        # --- wing armour (round 9, owner: long angular sections): two long red
+        # panels a side, swept parallel to the trailing edge from the gun
+        # nacelle into the core, each with one crease down its length (flat
+        # forward, falling aft); a dark strake down the straight trailing edge. ---
+        def swept(s_lo, s_hi, t0, t1):
+            # A quadrilateral in plan, s inboard of the trailing edge, t along it inboard.
+            return [(TE_ROOT[0]+SWEEP_N[0]*sv+SWEEP_T[0]*tv, s*(TE_ROOT[1]+SWEEP_N[1]*sv+SWEEP_T[1]*tv))
+                    for sv, tv in ((s_lo, t0), (s_hi, t0), (s_hi, t1), (s_lo, t1))]
+        for k, (s_lo, s_hi, t0, t1) in enumerate(((12.5, 19.5, 11, 48), (4.0, 10.0, 12, 31)), 1):
             z0 = WING_DECK-.6   # unsheared; `shear` lays it on the drooping deck
-            plate = shear(prism(kit, f'Hull wing {side} armour plate {k}', pts, section(z0, z0+2.8, .2, 1.0),
-                                kit.red, .12))
-            plane_cut(plate, f'{side} plate {k} outboard fall', (0, s*36, z0+2.8-wing_drop(36)-.3),
-                      facet_normal((0, s), FALL))
-            xf = max(x for x, _ in plan)
-            plane_cut(plate, f'{side} plate {k} forward bevel', (xf-3.5, s*40, z0+2.8), facet_normal((1, -.35*s), RAKE))
-            kit.hull.append(droop(plate))
-        # Leading-edge armour (owner, round 6: angular armour on the arms, after
-        # the Onslaught): a thick red plate along each arm's root leading edge,
-        # its face raked steeply back and its top falling outboard.
-        skirt = prism(kit, f'Hull wing {side} leading armour',
-                      ccw([(42, s*20.5), (35, s*25.5), (32, s*31), (32, s*34), (25, s*34), (25, s*28), (33, s*20.5)]),
-                      section(WING_DECK-7.0, WING_DECK+2.6, 2.0, 1.2), kit.red, .12)
-        plane_cut(skirt, f'{side} skirt forward rake', (33, 0, WING_DECK+2.6), facet_normal((1, 0), RAKE))
-        plane_cut(skirt, f'{side} skirt outboard fall', (0, s*27, WING_DECK+2.6), facet_normal((0, s), FALL))
-        kit.hull.append(droop(shear(skirt)))
-        # Trailing-edge strake: a dark gunmetal band down the swept trailing edge.
-        te = [(8.5, 70.5), (-3, 58.5), (-16, 45.5)]
-        for i in range(len(te)-1):
-            (x0, y0), (x1, y1) = te[i], te[i+1]
-            dx, dy = x1-x0, y1-y0
-            ln = math.hypot(dx, dy)
-            nx, ny = dy/ln*3.2, -dx/ln*3.2  # inboard offset
-            pts = ccw([(x0, s*y0), (x1, s*y1), (x1-nx, s*(y1-ny)), (x0-nx, s*(y0-ny))])
-            zt = WING_DECK
-            droop(shear(prism(kit, f'Hull wing {side} trailing strake {i+1}', pts, section(zt-1.6, zt+.5, .1, .3),
-                        kit.steel, .08)))
-        # Pod spar: the gunmetal rib from the core shoulder to the outer pod.
-        spar = strip(kit, f'Hull wing {side} pod spar', [(18, s*24), (21, s*40), (22, s*54)], 3.4, WING_DECK-.8,
-                     1.9, kit.steel)
-        droop(shear(spar))
+            plate = prism(kit, f'Hull wing {side} armour plate {k}', ccw(swept(s_lo, s_hi, t0, t1)),
+                          section(z0, z0+2.6, .2, .8), kit.red, .12)
+            mid = (s_lo+s_hi)/2
+            cx, cy = TE_ROOT[0]+SWEEP_N[0]*mid, TE_ROOT[1]+SWEEP_N[1]*mid
+            plane_cut(plate, f'{side} plate {k} aft fall', (cx, s*cy, z0+2.6),
+                      facet_normal((-SWEEP_N[0], -s*SWEEP_N[1]), FALL))
+            plane_cut(plate, f'{side} plate {k} outer rake', (cx+SWEEP_T[0]*(t0+2.6), s*(cy+SWEEP_T[1]*(t0+2.6)), z0+2.6),
+                      facet_normal((-SWEEP_T[0], -s*SWEEP_T[1]), RAKE))
+            kit.hull.append(droop(shear(plate)))
+        droop(shear(prism(kit, f'Hull wing {side} trailing strake 1', ccw(swept(0, 3.2, 2, 34)),
+                          section(WING_DECK-1.6, WING_DECK+.5, .1, .3), kit.steel, .08)))
         # Sensor dome on its plinth (the tan bulb at (5, +-35)).
         z = seat(kit, 5, s*35, WING_DECK)
         kit.cylinder(f'Hull wing {side} sensor plinth', (5, s*35, z+.4), 4.6, 1.2, kit.steel, vertices=12, bevel=.1)

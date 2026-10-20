@@ -20,8 +20,9 @@ including its transition back to autonomous play.
   button must remain visible and clickable outside the selected-unit panels.
 - Enter control with strategic panels or retreat confirmation open. Only the
   compact action HUD and world status/crosshair remain; firing across
-  the old panel bounds must work. Pause, resume, and exit through the separate
-  top-right buttons or exit key; All remains beside the Mech weapon groups.
+  the old panel bounds must work. Pause, resume, and exit through the top-right
+  keycap controls, Space, or the exit key; Space must also pause command mode and
+  resume at the earlier speed. All remains beside the Mech weapon groups.
   The strategic view must return with current information and the same selection.
 - Sweep the cursor near and far from the controlled body, across the dead zone,
   and onto UI chrome. Look-ahead should ease without drift or losing the body.

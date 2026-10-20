@@ -1,13 +1,29 @@
-<template props="exitLabel,exitAction,pauseLabel,pauseAction">
-  <div id="direct-actions" class="action-controls" style="background-color: #00000000;">
-    <button id="direct-actions-exit" class="exit console-action" onclick="{exitAction}">{exitLabel}</button>
-    <button id="direct-actions-pause" class="pause console-action" onclick="{pauseAction}">{pauseLabel}</button>
+<template props="exitKey,exitLabel,exitAction,pauseKey,pauseLabel,pauseClasses,pauseAction">
+  <div id="direct-actions" class="action-controls" style="background-color: transparent; background-image: none; border-width: 0px;">
+    <div id="direct-actions-spacer" class="spacer"></div>
+    <button id="direct-actions-exit" class="action action-exit" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{exitAction}">
+      <div id="direct-actions-exit-key" class="keycap keycap-tab">{exitKey}</div>
+      <div id="direct-actions-exit-label" class="action-label">{exitLabel}</div>
+    </button>
+    <button id="direct-actions-pause" class="{pauseClasses}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{pauseAction}">
+      <div id="direct-actions-pause-key" class="keycap keycap-space">{pauseKey}</div>
+      <div id="direct-actions-pause-label" class="action-label">{pauseLabel}</div>
+    </button>
   </div>
 </template>
 
 <style>
-  .action-controls { width: 100%; height: 100%; flex-direction: row; gap: 6px; }
-  .exit, .pause { height: 24px; padding: 0px; text-align: center; border-width: 1px; border-color: #727b79; background-color: #46524a; color: #e4e7df; }
-  .exit { width: 100px; font-family: compact; }
-  .pause { width: 44px; }
+  .action-controls { width: 100%; height: 100%; flex-direction: row; gap: 14px; align-items: center; text-shadow: #000000d9; }
+  .spacer { width: 0px; flex-grow: 1; }
+  .action { height: 22px; padding: 0px 2px; flex-direction: row; gap: 6px; align-items: center; }
+  .keycap { height: 18px; padding: 0px 5px; text-align: center; font-family: heading; color: #e9efe9; border-width: 1px; border-color: #b4c0bab3; background-color: #00000080; }
+  .action-exit { width: 136px; }
+  .action-pause { width: 140px; }
+  .keycap-tab { width: 40px; }
+  .keycap-space { width: 58px; }
+  .action-label { font-family: heading; color: #c3cec9; white-space: nowrap; }
+  .action:hover .action-label { color: #ffffff; }
+  .action:hover .keycap { border-color: #ffffff; }
+  .action-paused .keycap { color: #ffd464; border-color: #ffd464; background-color: #3b301080; }
+  .action-paused .action-label { color: #ffd464; }
 </style>

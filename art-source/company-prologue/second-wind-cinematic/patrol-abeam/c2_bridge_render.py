@@ -1,7 +1,7 @@
 """C2 from Second Wind's bridge, lit: Cycles frames of the pass c2_bridge_blockout.py plans.
 
     python c2_bridge_render.py [--fps 24] [--frames 0,72,192] [--samples 64] [--resume]
-                               [--only A:B] [--out DIR] [--state patched|derelict|...] [--half] [--bulkhead]
+                               [--only A:B] [--out DIR] [--state patched|derelict|...] [--half] [--no-bulkhead]
     python c2_bridge_render.py --movie [--out DIR]     # c2-bridge.mp4 with captions and cues
 
 The motion is the blockout's (`c2_bridge_blockout`: the Legion's track and bank, the
@@ -29,8 +29,8 @@ and lights it:
   It turns at the true orbital rate, aft.
 - One sun, c2_core.SUN at C1's strength, and Jangala's planet-shine from below. No world light:
   the sky holds a procedural star field that only camera rays see.
-- Optional (`--bulkhead`, or C2_BULKHEAD_DETAIL=1; off by default until the owner accepts it):
-  c2_bulkhead's dressing, which frames the slits as windows cut through an armoured bulkhead.
+- c2_bulkhead's dressing, which frames the slits as windows cut through an armoured bulkhead (owner,
+  2026-10-20: in the final). `--no-bulkhead`, or C2_BULKHEAD_DETAIL=0, leaves it out for a control.
 - Inside, the bridge's own practicals (bridge_practicals): the two ceiling lamp strips, a soft
   screen-coloured glow off each console toward its operator, and the overhead amber display's
   spill on the helm seat. They are ship's power, so `--state derelict` has none.
@@ -219,7 +219,7 @@ def launch(argv):
         return
     fps, frames, samples_n, resume, only, out, state = 24.0, None, 64, False, None, OUT, SW_STATE
     half = False
-    bulkhead = os.environ.get("C2_BULKHEAD_DETAIL", "") == "1"
+    bulkhead = os.environ.get("C2_BULKHEAD_DETAIL", "1") != "0"
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -231,7 +231,11 @@ def launch(argv):
             half = True
             i += 1
             continue
-        if a == "--bulkhead":                       # c2_bulkhead's dressing (also C2_BULKHEAD_DETAIL=1)
+        if a == "--no-bulkhead":                    # leave c2_bulkhead's dressing out (also C2_BULKHEAD_DETAIL=0)
+            bulkhead = False
+            i += 1
+            continue
+        if a == "--bulkhead":                       # the default now; kept so older command lines still parse
             bulkhead = True
             i += 1
             continue
@@ -378,7 +382,7 @@ def blender_main(argv):
     sys.path.insert(0, p["sw_dir"])
     import sw_bridge_interior
     sw_bridge_interior.figures(p["sw_mpu"], parent=sw)
-    if p.get("bulkhead"):                           # opt-in until the owner accepts it (c2_bulkhead)
+    if p.get("bulkhead"):                           # c2_bulkhead's dressing; --no-bulkhead leaves it out
         import c2_bulkhead
         print("C2B bulkhead detail: %d objects" % len(c2_bulkhead.build(sw, p["bulkhead_eyes"])))
 

@@ -269,6 +269,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** The drag's cells the preview was last worked out for; a move inside the same cells keeps it. */
     private long linePreviewKey = Long.MIN_VALUE;
     private float speedMultiplier = 1f;
+    /** The speed Space returns to: the last running speed, so a pause at 2x resumes at 2x. */
+    private float resumeSpeed = 1f;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
@@ -348,6 +350,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (attachedSimulation != nextSimulation) {
             exitDirectControl();
             speedMultiplier = 1f;
+            resumeSpeed = 1f;
             attachedSimulation = nextSimulation;
             if (storyNarration != null) storyNarration.stop();
             storySubtitles.detach();
@@ -954,7 +957,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
-                    () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f), this::selectDirectWeapon);
+                    this::togglePause, this::selectDirectWeapon);
         }
         directControlOverlay.attach(position, sim, speedMultiplier);
         if (rangeTrial != null) directControlOverlay.setExitLabelKey("armoryRangeExit");
@@ -1508,6 +1511,15 @@ public class BattleScreen implements Screen, BattleUiContext {
             refreshSelectionChrome();
             return;
         }
+        // Space pauses everywhere on the battle screen. No battle surface takes typed text, so the
+        // key is claimed before any panel can read it as "activate the focused button" and toggle twice.
+        for (InputEventAPI event : events) {
+            if (!event.isConsumed() && event.isKeyDownEvent() && !event.isRepeat()
+                    && event.getEventValue() == Keyboard.KEY_SPACE) {
+                togglePause();
+                event.consume();
+            }
+        }
         boolean controlledAtInputStart = directControlInput.active();
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
@@ -1667,7 +1679,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (manualObjectives != null) manualObjectives.update(0f, sim);
     }
 
+    /** Space and the takeover Pause control: stop the battle, or resume it at the speed it had. */
+    private void togglePause() {
+        setBattleSpeed(speedMultiplier > 0f ? 0f : resumeSpeed);
+    }
+
     private void setBattleSpeed(float requested) {
+        if (speedMultiplier > 0f) resumeSpeed = speedMultiplier;
         speedMultiplier = directControlInput.active()
                 ? directControlInput.speedChanged(requested) : requested;
         if (directControlInput.active()) {

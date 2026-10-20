@@ -636,6 +636,11 @@ public final class UiElement {
         return textColor;
     }
 
+    /** The {@code text-shadow} halo colour, or null when the text draws bare. */
+    public Color textShadow() {
+        return computedStyle == null ? null : computedStyle.textShadow();
+    }
+
     public UiElement onClick(Runnable onClick) {
         this.onClick = onClick;
         return this;

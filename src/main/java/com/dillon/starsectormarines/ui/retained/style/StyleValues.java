@@ -47,6 +47,7 @@ final class StyleValues {
             case GAP, PADDING -> throw new IllegalArgumentException("Shorthands expand in StyleDeclaration");
             case OVERFLOW -> parseOverflow(value);
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> parseColor(value);
+            case TEXT_SHADOW -> value.equalsIgnoreCase("none") ? null : parseColor(value);
             case FONT_FAMILY -> unquote(value);
             case TEXT_ALIGN -> parseTextAlign(value);
             case WHITE_SPACE -> parseWhiteSpace(value);

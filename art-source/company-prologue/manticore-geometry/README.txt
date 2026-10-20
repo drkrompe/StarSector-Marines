@@ -41,6 +41,20 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 9 (2026-10-20)
+"Manticore hull needs long angular hull sections. This reads as bloby with
+the small angular sections." The primary forms are now a few long panels with
+straight creases: head and neck lofted through four and two stations, the
+core one constant section from the gun's step to the engine block; the swept
+trailing edge one straight line; the leading-edge armour and launcher bay one
+red band swept along the whole leading edge from the neck to the gun nacelle
+(the Harpoon recess cut into it); two long red armour panels a side swept
+parallel to the trailing edge, each creased once; three-panel gun nacelles
+with one long flank plate; the bow strake's inboard edge one line. Gone: the
+third wing plate, the leading-edge skirt, the pod spars and nose glacis.
+Silhouette, flush bays, mounts bearing ahead and 0.59 m/u kept (volume 226,129
+units3; ray-cast IoU 0.926 against round 8's 0.927 by the same method).
+
 Owner review round 8 (2026-10-19)
 "I don't like how the hull juts out for the missiles." The launcher bay no
 longer grows forward of the arm: it ends at the leading edge with its face

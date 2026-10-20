@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a159f0-e66e-7920-80bd-e4f8389f1d47",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a159f0-e66e-7920-80bd-e4f8389f1d47\\call_cdd4df8c207e490f90536cefdeacbf1d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\raising-her-v2.gen3.png",
+    "sha256": "f8417b9dc5e64e2f378468c29eff59f4a6cf84b3e2362137ff89d93c18426f69",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\raising-her-v2.gen3.prompt.txt",
+  "promptSha256": "7e56ba8455e8c7633cdc59770431bb745e435e3098de0c02d41a43b3014276e1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The page to edit (generation 2 laid back over the master): keep everything except the two small clean-ups\nImage 2: Plain render of the same ship from the same camera: turret shape only; not lighting or materials\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, as little as possible: two small clean-ups on the freighter's two gun turrets. Keep every other pixel of the image as it is: the dock, rock, figures, lights, the ship's hull, the bridge dome, the big capped round mount on the right, the camera and the composition.\n\n1. The grey-green primer turret mid-deck, in front of the bridge dome, is a small Vulcan point-defence gun: its gun is one short, neat gatling cluster of several stubby barrels bundled round one axis, pointing right, ending in one muzzle ring. Remove the extra loose barrel pieces and the claw-like bits trailing behind and beside the cluster, so the turret reads as one dome with one short barrel bundle. Do not lengthen the barrels.\n2. The dark aft turret at the left, also a Vulcan with its short barrel bundle pointing left, keeps its shape; only remove the small white scribble on its side.\n\nReference 2 is a plain render of the same ship from the same camera, for the turrets' shape only. Same restrained hand-painted realism and light. No new text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-turrets-gen2-composite.png",
+      "sha256": "8fdb14df81c518a86ac5620bc527568d2aebe098417b51cf9d6f7efcc27d6b85",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "The page to edit (generation 2 laid back over the master): keep everything except the two small clean-ups"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-stern-quarter-dc62710dc.png",
+      "sha256": "449b4ba414cf4bff5e7c16aad10660e0855657f5f6c5cbf9b88421c3e7d3bddf",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGB",
+      "role": "Plain render of the same ship from the same camera: turret shape only; not lighting or materials"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen for one precise edit: tidy the mid-deck barrel cluster and remove the aft turret’s white scribble, preserving the rest of the illustration.\n"
+  ],
+  "usage": {
+    "input_tokens": 52500,
+    "cached_input_tokens": 27136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 441,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.3
+}
