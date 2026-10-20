@@ -589,7 +589,7 @@
   {
    "index": 2,
    "slot": "WS 002",
-   "weapon": "vulcan",
+   "weapon": "empty",
    "size": "SMALL",
    "arc_deg": 210.0,
    "pivot": "Turret 2 pivot",
@@ -599,14 +599,68 @@
     18.6
    ],
    "rest_angle_deg": -90.0,
-   "elevation": "Turret 2 elevation",
+   "elevation": null,
+   "elevation_limits_deg": null,
+   "recoil": [],
+   "trained_parts": 0,
+   "fixed_parts": 1,
+   "status": "faded",
+   "present": false,
+   "trainable": false,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
+   "muzzles": []
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "weapon": "empty",
+   "size": "SMALL",
+   "arc_deg": 210.0,
+   "pivot": "Turret 3 pivot",
+   "pivot_at": [
+    41.0,
+    11.0,
+    16.1
+   ],
+   "rest_angle_deg": 30.0,
+   "elevation": null,
+   "elevation_limits_deg": null,
+   "recoil": [],
+   "trained_parts": 0,
+   "fixed_parts": 1,
+   "status": "faded",
+   "present": false,
+   "trainable": false,
+   "seized": false,
+   "jammed": false,
+   "jam_deg": 0.0,
+   "wreck_parts": 0,
+   "muzzles": []
+  },
+  {
+   "index": 4,
+   "slot": "WS 004",
+   "weapon": "vulcan",
+   "size": "MEDIUM",
+   "arc_deg": 290.0,
+   "pivot": "Turret 4 pivot",
+   "pivot_at": [
+    36.0,
+    -16.0,
+    16.6
+   ],
+   "rest_angle_deg": -30.0,
+   "elevation": "Turret 4 elevation",
    "elevation_limits_deg": [
     null,
     null
    ],
    "recoil": [
-    "Turret 2 recoil 1",
-    "Turret 2 recoil 2"
+    "Turret 4 recoil 1",
+    "Turret 4 recoil 2"
    ],
    "trained_parts": 11,
    "fixed_parts": 1,
@@ -620,120 +674,25 @@
    "muzzles": [
     {
      "tag": "barrel 1",
-     "anchor": "Anchor turret 2 barrel 1 muzzle",
+     "anchor": "Anchor turret 4 barrel 1 muzzle",
      "at": [
-      -12.527,
-      -27.636,
-      19.929
+      41.85,
+      -21.141,
+      17.929
      ],
      "axis": [
-      0.0,
-      -1.0,
+      0.866,
+      -0.5,
       0.0
      ]
     },
     {
      "tag": "barrel 2",
-     "anchor": "Anchor turret 2 barrel 2 muzzle",
+     "anchor": "Anchor turret 4 barrel 2 muzzle",
      "at": [
-      -9.473,
-      -27.636,
-      19.929
-     ],
-     "axis": [
-      0.0,
-      -1.0,
-      0.0
-     ]
-    }
-   ]
-  },
-  {
-   "index": 3,
-   "slot": "WS 003",
-   "weapon": "railgun",
-   "size": "SMALL",
-   "arc_deg": 210.0,
-   "pivot": "Turret 3 pivot",
-   "pivot_at": [
-    41.0,
-    11.0,
-    18.3
-   ],
-   "rest_angle_deg": 30.0,
-   "elevation": "Turret 3 elevation",
-   "elevation_limits_deg": [
-    null,
-    null
-   ],
-   "recoil": [
-    "Turret 3 recoil 1"
-   ],
-   "trained_parts": 12,
-   "fixed_parts": 1,
-   "status": "faded",
-   "present": true,
-   "trainable": true,
-   "seized": false,
-   "jammed": false,
-   "jam_deg": 0.0,
-   "wreck_parts": 0,
-   "muzzles": [
-    {
-     "tag": "barrel 1",
-     "anchor": "Anchor turret 3 barrel 1 muzzle",
-     "at": [
-      48.936,
-      15.582,
-      20.011
-     ],
-     "axis": [
-      0.866,
-      0.5,
-      0.0
-     ]
-    }
-   ]
-  },
-  {
-   "index": 4,
-   "slot": "WS 004",
-   "weapon": "heavymauler",
-   "size": "MEDIUM",
-   "arc_deg": 290.0,
-   "pivot": "Turret 4 pivot",
-   "pivot_at": [
-    36.0,
-    -16.0,
-    16.3
-   ],
-   "rest_angle_deg": -30.0,
-   "elevation": "Turret 4 elevation",
-   "elevation_limits_deg": [
-    null,
-    null
-   ],
-   "recoil": [
-    "Turret 4 recoil 1",
-    "Turret 4 recoil 2"
-   ],
-   "trained_parts": 15,
-   "fixed_parts": 1,
-   "status": "faded",
-   "present": true,
-   "trainable": true,
-   "seized": false,
-   "jammed": false,
-   "jam_deg": 0.0,
-   "wreck_parts": 0,
-   "muzzles": [
-    {
-     "tag": "barrel 1",
-     "anchor": "Anchor turret 4 barrel 1 muzzle",
-     "at": [
-      47.486,
-      -22.632,
-      19.071
+      43.377,
+      -18.496,
+      17.929
      ],
      "axis": [
       0.866,
@@ -746,7 +705,7 @@
  ],
  "sparks": [],
  "sparking": [],
- "lamps_lit": 23,
+ "lamps_lit": 22,
  "lamps": [
   {
    "object": "Bridge ceiling lamp",
@@ -986,16 +945,6 @@
     48.12,
     25.3,
     9.4
-   ]
-  },
-  {
-   "object": "Turret 3 house glow",
-   "material": "Turret lamp glow",
-   "lit": true,
-   "at": [
-    39.68,
-    10.24,
-    19.71
    ]
   }
  ],
@@ -2620,8 +2569,8 @@
    },
    {
     "p": [
-     27.702,
-     -8.808,
+     31.387,
+     -9.883,
      15.17
     ],
     "n": [
@@ -2658,8 +2607,8 @@
    },
    {
     "p": [
-     27.702,
-     -8.808,
+     31.387,
+     -9.883,
      15.17
     ],
     "n": [
@@ -2667,7 +2616,7 @@
      0.0,
      1.0
     ],
-    "r": 0.282
+    "r": 0.395
    }
   ],
   "fb-stbd-flank-dent": [
@@ -4000,12 +3949,12 @@
    "centre": [
     23.544,
     -21.548,
-    16.613
+    14.555
    ],
    "extent": [
     9.914,
     2.949,
-    4.255
+    0.14
    ],
    "objects": 3
   },
@@ -4363,28 +4312,28 @@
   "sp-turret-2": {
    "centre": [
     -11.0,
-    -19.733,
-    19.837
+    -20.0,
+    18.913
    ],
    "extent": [
-    7.636,
-    8.782,
-    2.474
+    7.634,
+    7.634,
+    0.625
    ],
    "objects": 4
   },
   "sp-turret-3": {
    "centre": [
-    38.627,
-    9.803,
-    20.366
+    41.0,
+    11.0,
+    16.413
    ],
    "extent": [
-    12.38,
-    13.209,
-    4.132
+    7.634,
+    7.634,
+    0.625
    ],
-   "objects": 6
+   "objects": 4
   },
   "sp-turret-4": {
    "centre": [
@@ -4437,9 +4386,9 @@
   "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
  },
  "left_out_objects": 91,
- "objects": 996,
- "polygons": 182854,
- "baked_meshes": 732,
+ "objects": 974,
+ "polygons": 180340,
+ "baked_meshes": 737,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4487,7 +4436,7 @@
   "group": "SW overlay restored",
   "materials": {
    "base": 77,
-   "repaint": 8,
+   "repaint": 5,
    "steel": 1,
    "torn": 1,
    "weld": 1
@@ -4526,16 +4475,9 @@
    "RCS bell heat-tinted steel",
    "RCS housing gunmetal",
    "Starboard running light",
-   "Turret heavymauler accent 0.0717,0.0704,0.0584",
-   "Turret heavymauler metal 0.1110,0.1104,0.1086",
-   "Turret heavymauler paint 0.1054,0.1041,0.0944",
-   "Turret heavymauler plate 0.3215,0.3185,0.2978",
-   "Turret lamp glow",
-   "Turret railgun accent 0.2145,0.1195,0.0974",
-   "Turret railgun accent2 0.3172,0.3261,0.3350",
-   "Turret railgun paint 0.1587,0.1662,0.1679",
    "Turret steel Engine collars",
    "Turret vulcan metal 0.1107,0.1104,0.1093",
+   "Turret vulcan paint 0.1236,0.0973,0.0737",
    "Turret vulcan plate 0.1401,0.1401,0.1422"
   ],
   "scorch_sites": 0,
@@ -4547,7 +4489,7 @@
  "effects": {
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
-  "objects": 102,
+  "objects": 96,
   "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
   "groups": {
    "thrusters": {
@@ -4566,7 +4508,7 @@
    },
    "guns": {
     "state": "restored",
-    "guns": 6,
+    "guns": 4,
     "shots": 0,
     "built": true
    },
@@ -4578,7 +4520,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
-  "geometry_json_sha256": "9c21785c7b7b7ef22179e24534ed1b28ceea4a73a61fd5f3df8f3f1cc794ee84",
+  "geometry_json_sha256": "9b14ba82861cbb66d9c6752db1f13add4c6f24fa8fb1379e0ff300cf6a84b2a2",
   "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
  },
  "conventions": {
@@ -4589,5 +4531,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "b40954ef481f0b5bf1a41486745bbf6788f221780ecfebd2228d198c08dcf601"
+ "asset_sha256": "56d0de32c02afa4896643ebbd018e67c1f04b6486c09b4a1bb3db94a539bb4cb"
 }
