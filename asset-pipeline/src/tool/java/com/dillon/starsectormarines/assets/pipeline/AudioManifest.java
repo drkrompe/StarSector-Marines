@@ -50,7 +50,7 @@ public record AudioManifest(List<AudioClip> clips) {
     }
 
     /** Optional offline treatment. Omitted means the original clean encoding recipe. */
-    public enum Processing { COMMS, AIR_COMMS, ORBITAL_COMMS, DIALOGUE }
+    public enum Processing { COMMS, AIR_COMMS, ORBITAL_COMMS, DIALOGUE, SHIP_PA }
 
     public record AudioClip(String id, String source, Kind kind, String out, Processing processing) {}
 

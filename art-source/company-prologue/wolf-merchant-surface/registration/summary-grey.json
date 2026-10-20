@@ -1,80 +1,80 @@
 {
  "head-top": {
-  "raw_iou": 0.9815,
+  "raw_iou": 0.9812,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9937,
+  "fitted_iou": 0.9969,
   "scale": [
-   0.99872,
-   0.99785
+   1.00155,
+   1.00408
   ],
   "boundary_p95_px": 1.0
  },
  "fork-top": {
-  "raw_iou": 0.9876,
-  "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9963,
-  "scale": [
-   0.99817,
-   0.99884
-  ],
-  "boundary_p95_px": 1.0
- },
- "engine-top": {
-  "raw_iou": 0.9908,
+  "raw_iou": 0.9779,
   "best_fit": "identity",
-  "fitted_iou": 0.9908,
+  "fitted_iou": 0.9779,
   "scale": [
    1.0,
    1.0
   ],
-  "boundary_p95_px": 1.41
+  "boundary_p95_px": 1.0
+ },
+ "engine-top": {
+  "raw_iou": 0.977,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9911,
+  "scale": [
+   0.99379,
+   1.00554
+  ],
+  "boundary_p95_px": 1.0
  },
  "pod-top-port": {
-  "raw_iou": 0.9974,
+  "raw_iou": 0.9855,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9993,
+  "fitted_iou": 0.9884,
   "scale": [
-   1.00008,
-   1.00127
+   0.99519,
+   1.0118
   ],
   "boundary_p95_px": 1.0
  },
  "engine-side-port": {
-  "raw_iou": 0.996,
-  "best_fit": "bounds_affine",
-  "fitted_iou": 0.9982,
+  "raw_iou": 0.9884,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9991,
   "scale": [
-   1.0,
-   1.00227
+   1.01339,
+   1.00127
   ],
   "boundary_p95_px": 1.0
  },
  "outrigger-side-port": {
-  "raw_iou": 0.9939,
+  "raw_iou": 0.9914,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9954,
+  "fitted_iou": 0.9994,
   "scale": [
-   1.00611,
-   1.00454
+   1.00246,
+   1.00227
   ],
   "boundary_p95_px": 1.0
  },
  "engine-stern": {
-  "raw_iou": 0.9892,
+  "raw_iou": 0.9939,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9942,
+  "fitted_iou": 0.9982,
   "scale": [
-   1.00155,
-   1.00594
+   1.00203,
+   1.00227
   ],
   "boundary_p95_px": 1.0
  },
  "spine-fore": {
-  "raw_iou": 0.9916,
+  "raw_iou": 0.9913,
   "best_fit": "iou_refined_affine",
-  "fitted_iou": 0.9967,
+  "fitted_iou": 0.9978,
   "scale": [
-   0.99715,
+   1.00385,
    1.00454
   ],
   "boundary_p95_px": 1.0

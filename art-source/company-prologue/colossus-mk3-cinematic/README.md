@@ -1,6 +1,6 @@
 # Colossus Mk.III: cinematic asset
 
-Status: ACTIVE (pass 7 built 2026-10-19; owner review next).
+Status: SHIPPED (owner accepted 2026-10-19).
 Written: 2026-10-19
 
 This folder holds source art for cinematics; nothing here ships in the mod. It packs the

@@ -116,21 +116,39 @@ def mount(kit, i, slot):
     others = {o.name: _tree(o, dg) for o in bpy.context.scene.objects
               if o.type == 'MESH' and not o.name.startswith(f'Weapon {sid} ')
               and abs(o.location.x) < 1e6 and (Vector((x, y, 0))-o.matrix_world.translation).length < 200}
-    lift = .2*r
+    # A hardpoint never trains, so it needs no barbette (owner, round 6: no
+    # "hockey pucks" under the Harpoons): its rack stands on the pocket floor.
+    hard = slot['mount'] == 'HARDPOINT'
+    lift = .3 if hard else .2*r
     for _ in range(30):
-        barb = tk.barbette(f'Weapon {sid} barbette', r, lift, _mats(kit), kit.mpu, foot=foot,
-                           location=(x, y, seat))
+        barb = None if hard else tk.barbette(f'Weapon {sid} barbette', r, lift, _mats(kit), kit.mpu, foot=foot,
+                                             location=(x, y, seat))
         pivot = kit.empty(f'Weapon {sid} pivot', (x, y, seat+lift), slot['angle'], size=.6*r, kind='SINGLE_ARROW')
         t = tk.build(weapon, f'Weapon {sid}', pivot, r, _mats(kit), kit.mpu)
-        bad = _clashes(t['parts'], {n: v for n, v in others.items() if n != barb.name and not n.startswith(barb.name)})
+        bad = _clashes(t['parts'], {n: v for n, v in others.items()
+                                    if not barb or (n != barb.name and not n.startswith(barb.name))})
         if not bad:
             break
         print(f'mount {sid}: lift {lift:.2f} clashes {sorted(bad)}')
-        for ob in [barb, pivot]+list(barb.children_recursive)+list(pivot.children_recursive):
+        for ob in [o for o in (barb, pivot) if o]+(list(barb.children_recursive) if barb else [])+list(pivot.children_recursive):
             if ob.name in bpy.data.objects:
                 bpy.data.objects.remove(ob, do_unlink=True)
         lift += .4
-    kit.hull.append(barb)
+    if barb:
+        kit.hull.append(barb)
+    else:
+        # A hardpoint's rack needs no turntable: drop the kit's round house and
+        # lower the rack onto the pocket floor.
+        house = [o for o in t['parts'] if o.name.startswith(f'Weapon {sid} house')]
+        t['parts'] = [o for o in t['parts'] if o not in house]
+        for ob in house:
+            bpy.data.objects.remove(ob, do_unlink=True)
+        bpy.context.view_layer.update()
+        low = min((o.matrix_world @ Vector(c)).z for o in t['parts'] if o.type == 'MESH' for c in o.bound_box)
+        dz = low-(seat+.05)
+        pivot.location.z -= dz
+        lift -= dz
+        bpy.context.view_layer.update()
     pivot['slot'] = sid
     pivot['turret'] = i
     pivot['rest_angle_deg'] = slot['angle']

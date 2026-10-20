@@ -53,13 +53,13 @@ LOADOUT = {'WS 001': 'ioncannon', 'WS 004': 'miningblaster', 'WS 005': 'annihila
 MOUNT_ORDER = ['WS 001', 'WS 004', 'WS 005', 'WS 006']     # VFX mount index i = position + 1
 RING = 5.0            # the sprite's turret ring round WS 001 (rows 39-48)
 LIFT = 1.6            # barbette drum above the deck
-HARDPOINT_K = {'WS 004': .55, 'WS 005': .6, 'WS 006': .6}   # hull units per weapon sprite pixel
-AXIS_Z = {'WS 004': -.5, 'WS 005': -1.8, 'WS 006': -1.8}         # the hardpoints' bore axis height
+HARDPOINT_K = {'WS 004': .42, 'WS 005': .6, 'WS 006': .6}   # hull units per weapon sprite pixel
+AXIS_Z = {'WS 004': -3.6, 'WS 005': -2.2, 'WS 006': -2.2}         # the hardpoints' bore axis height
 # Bays cut round the hardpoints: ((x0, x1) about the slot, half width, (z0, z1) about the
 # axis, hosts). The mining blaster's channel runs through the fork base between the
 # outer tines; its breech is buried in the head. The pods' launchers are set into the
 # pods' faces without a bay: their rears are inside the pod.
-BAYS = {'WS 004': ((-2.2, 4.0), 5.3, (-2.8, 3.6), ('Hull bow fork base',))}
+BAYS = {'WS 004': ((-2.2, 10.0), 3.8, (-2.6, 6.0), ('Hull bow fork base',))}
 # The base hull (the merchant variant): every wolf.ship slot, armed as the vanilla
 # wolf_Assault variant. The kit has no heavy blaster or Harpoon hardpoint yet: the
 # mining blaster and Annihilator pod forms stand in for them (recorded as built_as).

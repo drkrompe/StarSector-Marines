@@ -38,9 +38,9 @@ STILLS = [  # (file, clock, time within the clock, caption)
                            "black flank against Jangala."),
     ("3-stern-rising", "c2", 11.4, "Castle: \"Corridor four, mounts cold...\"  De-orbit burn: the patrol pulls ahead and "
                                    "'climbs' out of the glass, engines toward us."),
-    ("4-entry-glow", "entry", 0.9, "Castle, off channel: \"Well.\"  Heat glow wipes in from the bow side (right); "
+    ("4-entry-glow", "entry", 0.9, "Castle, to the Commander: \"We've got a few days planetside...\"  Heat glow wipes in from the bow side (right); "
                                    "the frame takes the orange."),
-    ("5-entry-cloud", "entry", 2.2, "\"Somebody knows we're here.\"  Cloud wipes over the glow; first soft light "
+    ("5-entry-cloud", "entry", 2.2, "\"...before we'll need to move along, Commander.\"  Cloud wipes over the glow; first soft light "
                                     "in the cabin; C3 opens out of the white."),
 ]
 
@@ -49,11 +49,11 @@ def check_hail():
     """Refuse to compose against timings that have moved since the layout was written."""
     sys.path.insert(0, str(CIN / "arrival-audio"))
     import build_hail_preview as hail
-    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    lines = hail.hail_catalog()
     starts, squelch, _ = hail.timeline(lines)
     opens = [t for kind, t in squelch if kind == "open"]
-    got = {"c2_start": opens[2] - 0.3, "line7": starts[4], "line8": starts[5], "line9": starts[6]}
-    want = {"c2_start": C.C2_START, "line7": C.HAIL["line7"][0], "line8": C.HAIL["line8"][0], "line9": C.HAIL["line9"][0]}
+    got = {"c2_start": opens[2] - 0.3, "line7": starts[4], "line8": starts[5]}
+    want = {"c2_start": C.C2_START, "line7": C.HAIL["line7"][0], "line8": C.HAIL["line8"][0]}
     for k in want:
         if abs(got[k] - want[k]) > 0.02:
             raise SystemExit("Hail timing moved: %s is %.2f, c2_core says %.2f" % (k, got[k], want[k]))

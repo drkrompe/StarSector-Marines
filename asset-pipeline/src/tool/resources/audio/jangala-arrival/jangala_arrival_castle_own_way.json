@@ -1,0 +1,11 @@
+{
+  "requestId": "F3aAGnZaNGNd8PEMnpNl",
+  "characterCost": "54",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "synthesisText": "[quiet, resolute, confident, looking ahead, to one person] Hard part starts now, Commander. From here, we find our own way.",
+  "audioSha256": "076e29fd6c132d6fc2fe297f59bf69f826f2b0293200adfac4299630a0be8fde",
+  "durationSeconds": 4.4,
+  "take": "v4_c5_last_t03",
+  "outputFormat": "mp3_44100_128"
+}

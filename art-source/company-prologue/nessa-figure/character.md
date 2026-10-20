@@ -1,10 +1,12 @@
 # Nessa Venn
 
-Status: DRAFT — character sheet for the owner's review, before her figure and portrait
+Status: ACTIVE — owner's answers applied (2026-10-19)
 Written: 2026-10-19
 
-Nessa owns **Kilo Nine**, the small fenced private yard on the east edge of Greywater
-Down's port on Jangala, where Second Wind lands. She is the first person the company
+Nessa is the forewoman of **Kilo Nine**, the small fenced private yard on the east edge of
+Greywater Down's port on Jangala, where Second Wind lands. She does not own it: the owner
+stays offscreen and unnamed. She is well connected (Castle, Mara, everyone who comes through
+the yard) without running the business. She is the first person the company
 meets on the ground, and she is never explained: Castle's stories and the yard itself
 say who she is. This sheet gathers what the game already says about her and fills in
 what her figure, portrait and the yard pictures need. Where it invents, it says so.
@@ -31,8 +33,8 @@ what her figure, portrait and the yard pictures need. Where it invents, it says 
 
 ## Who she is
 
-**Age 58.** A few years older than Castle (early fifties). Mara is in her early thirties;
-Nessa is the elder by a long way, and half raised her (invented).
+**About 52.** A little older than Castle. Mara is in her early thirties; Nessa is the
+elder sister by about twenty years.
 
 **Build.** 1.72 m, solid and square: broad shoulders, thick forearms, a little heavy
 through the middle, a yard worker's hands with old burn scars on the backs. Stands
@@ -45,23 +47,22 @@ cropped close at the sides, cut for a helmet rather than for looks. No jewellery
 Resting expression is a level, appraising look that could be about to tell you the
 price or tell you no. When she is pleased it shows only at one corner of the mouth.
 
-**Work clothes.** Her mark is a **long ochre-brown canvas work coat**, knee length,
-weathered and scorched at the cuffs, sleeves pushed up; it separates her from her crew
-in grey coveralls and hi-vis. Under it a dark grey work shirt, dark heavy trousers,
-scuffed steel-capped boots. A **biofilter mask**: worn over the face outdoors (the
-biosphere rule), pulled down round her neck indoors and in the portrait. A stylus behind
-one ear. She carries the **estimate on a scratched work slate**, not paper.
+**Work clothes.** Layered and lived-in (owner, 2026-10-19: "just layer them"): work
+coveralls, with a worn canvas coat or utility jacket over them, distinct from the crew's
+grey without being loud. Scuffed steel-capped boots. The **biofilter mask hangs at her
+neck**. A stylus behind one ear. She carries the **estimate on a scratched work slate**,
+not paper. Her portrait (`art-source/portraits/nessa-venn.master.png`) shows one such
+coat; the yard pictures do not pin it, since she is a separate layer there.
 
-**Her yard says.** Small, fenced, private, run tidily on too few parts. Everything is
+**The yard she runs says.** Small, fenced, private, run tidily on too few parts. Everything is
 reused: a derrick over a salvage pile, a scrap heap, a fabrication hall. She mends hulls
 other yards would scrap, and she keeps something from each one. The wall of old pressure
 seals in her office is that habit (invented: one seal per hull she put back together, each
 with a scratched date; Second Wind's goes up with the others).
 
 **History (invented, light).** Hauled ore for twenty years, was the one who could keep a
-tired freighter flying, saved enough to buy a failing yard on Jangala and has kept it
-alive since. Owner now, but still calls herself the forewoman and still does the
-pressure tests.
+tired freighter flying, and came ashore to run the floor of a yard on Jangala. She does the
+pressure tests herself. The owner signs the cheques; she decides what gets mended.
 
 ## How she carries herself
 
@@ -77,27 +78,25 @@ pressure tests.
 
 ## For the pictures
 
-- **Figure (C5 and stills).** MakeHuman, built the way Castle's is: the build above, the
-  long ochre coat, mask on outdoors, arms folded as the cinematic has her; a second pose
-  holding the slate out for Y1.
-- **Portrait.** Same square painted style as Castle's and Mara's, 256 x 256. Three-quarter
-  view, mask down round her neck, coat collar up, warm workshop light, level look.
-- **Y1.** Second Wind in the cradle with the scaffold arms in, her crew at work, Nessa in
-  the foreground with the slate. **Y2.** Berths fitted in the hold, and her wall of seals.
+- **Figure.** `build_nessa.py` is a placement guide only (owner, 2026-10-19: no more 3D
+  character work); ImageGen paints her.
+- **Portrait.** `mod/graphics/portraits/nessa-venn.png`, in Castle's and Mara's style. Shipped but
+  not used yet: no dialogue line is hers (open).
+- **Yard pictures are layered** (owner, 2026-10-19). Y1 and Y2 are painted as backgrounds
+  with no Nessa in them, with room left where she would stand; she is a separate cut-out
+  figure with transparency, composited over the background, so she can change or be left
+  out without repainting the yard. Y1 ships that way (`yard-stills/README.md`).
 
-## Decisions for the owner
+## Open
 
-1. **Her coat.** The first C5 cut and its notes gave her an ochre coat; the current crowd
-   in C5 colours her dark grey. This sheet takes the ochre coat and would recolour C5's
-   walker to match. Ochre, or dark?
-2. **Owner or forewoman.** The intel log calls her "a yard forewoman"; the cinematic calls
-   Kilo Nine her private yard. This sheet makes her the owner who still calls herself
-   forewoman. Keep that, or make her the forewoman of somebody else's yard?
-3. **Her own voice.** Every yard line today is Castle reporting what Nessa said, so there
-   is no line yet where her portrait should replace Castle's. Options: (a) give Nessa one
-   or two lines of her own on the estimate page (for example she says "Talk to her when
-   you've got something that flies. Not before." herself, and hands over the estimate),
-   with her portrait beside them; (b) keep Castle's voice throughout and show Nessa only
-   in the pictures. This sheet recommends (a).
-4. **Age and the sisters.** 58 against Mara's early thirties is a wide gap. Keep it, or
-   bring her down toward Castle's age (about 50)?
+- Her portrait in dialogue, once she has a line of her own.
+- Her wall of old pressure seals has no picture.
+- C5's crowd still draws its own dark-coated stand-in for her.
+
+## Owner's answers (2026-10-19)
+
+1. **Coat.** Layered work clothes, chosen here; no single coat colour is pinned.
+2. **Role.** Forewoman of Kilo Nine, connected but not powerful; the owner is offscreen.
+3. **Voice.** Text only, no new lines: Castle keeps relaying in the post-cinematic yard
+   screens, so her portrait has no line to sit beside yet.
+4. **Age.** About 52.

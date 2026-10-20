@@ -8,10 +8,10 @@
  "duration": 18.375,
  "captions": [
   {
-   "t_in": 1.26,
-   "t_out": 17.11,
+   "t_in": 1.0,
+   "t_out": 8.2,
    "speaker": "castle",
-   "key": "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"
+   "key": "jangalaArrivalCastleYard"
   }
  ],
  "overlays": [],
@@ -24,7 +24,7 @@
   },
   {
    "t": 1.0,
-   "sound": "jangala_arrival_nessa",
+   "sound": "jangala_arrival_castle_yard",
    "volume": 1.0
   }
  ],

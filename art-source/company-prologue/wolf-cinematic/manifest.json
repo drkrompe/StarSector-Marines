@@ -14,23 +14,23 @@
  "bounds_units": [
   [
    -40.2,
-   -26.183,
+   -25.983,
    -18.0
   ],
   [
-   57.98,
-   26.183,
-   11.727
+   54.912,
+   25.983,
+   15.615
   ]
  ],
  "size_m": [
-  74.6,
-  39.8,
-  22.6
+  72.3,
+  39.5,
+  25.5
  ],
- "meshes": 151,
- "polygons": 9075,
- "images": 20,
+ "meshes": 132,
+ "polygons": 12893,
+ "images": 19,
  "engines": [
   {
    "index": 1,
@@ -53,7 +53,7 @@
     0,
     0
    ],
-   "mouth_radius": 3.2,
+   "mouth_radius": 3.52,
    "bell": "Engine 1 aft-facing bell",
    "lip": "Engine 1 mouth lip",
    "throat": "Engine 1 dark throat",
@@ -80,7 +80,7 @@
     0,
     0
    ],
-   "mouth_radius": 3.2,
+   "mouth_radius": 3.52,
    "bell": "Engine 2 aft-facing bell",
    "lip": "Engine 2 mouth lip",
    "throat": "Engine 2 dark throat",
@@ -107,7 +107,7 @@
     0,
     0
    ],
-   "mouth_radius": 3.2,
+   "mouth_radius": 3.52,
    "bell": "Engine 3 aft-facing bell",
    "lip": "Engine 3 mouth lip",
    "throat": "Engine 3 dark throat",
@@ -124,7 +124,7 @@
    "location": [
     11,
     0,
-    7.6
+    10.44
    ],
    "rest_angle_deg": 0,
    "arc_deg": 150,
@@ -135,9 +135,13 @@
    "trained": [
     "Turret 1 house dark",
     "Turret 1 house steel",
-    "Turret 1 house accent#shell",
-    "Turret 1 house paint",
+    "Turret 1 house paint#casing",
+    "Turret 1 house paint#arms",
     "Turret 1 house lamp_blue",
+    "Turret 1 house accent#drum",
+    "Turret 1 house steel#hub",
+    "Turret 1 gun accent#breech",
+    "Turret 1 gun steel",
     "Turret 1 gun accent",
     "Turret 1 gun dark",
     "Turret 1 gun lamp_blue"
@@ -159,18 +163,18 @@
    "location": [
     45,
     0,
-    -0.5
+    -3.6
    ],
-   "k": 0.55,
+   "k": 0.42,
    "bay": {
     "x": [
      42.8,
-     49.0
+     55.0
     ],
-    "half_width": 5.3,
+    "half_width": 3.8,
     "z": [
-     -3.3,
-     3.1
+     -6.2,
+     2.4
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -199,7 +203,7 @@
    "location": [
     11,
     20,
-    -1.8
+    -2.2
    ],
    "k": 0.6,
    "bay": null,
@@ -233,7 +237,7 @@
    "location": [
     11,
     -19,
-    -1.8
+    -2.2
    ],
    "k": 0.6,
    "bay": null,
@@ -336,7 +340,7 @@
    "location": [
     11,
     0,
-    7.6
+    10.44
    ],
    "angle": 0,
    "arc": 150,
@@ -353,7 +357,7 @@
    "location": [
     45,
     0,
-    -0.5
+    -3.6
    ],
    "angle": 0,
    "arc": 5,
@@ -370,7 +374,7 @@
    "location": [
     11,
     20,
-    -1.8
+    -2.2
    ],
    "angle": 0,
    "arc": 5,
@@ -391,7 +395,7 @@
    "location": [
     11,
     -19,
-    -1.8
+    -2.2
    ],
    "angle": 0,
    "arc": 5,
@@ -425,7 +429,7 @@
    "position": [
     26,
     11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -440,7 +444,7 @@
    "position": [
     26,
     -11.5,
-    5.88
+    5.66
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -454,8 +458,8 @@
    "name": "Light port pod tip 1",
    "position": [
     9.5,
-    25.8,
-    0.4
+    25.6,
+    -1.5
    ],
    "colour": "red",
    "role": "port side light (extremity)",
@@ -469,8 +473,8 @@
    "name": "Light starboard pod tip 1",
    "position": [
     9.5,
-    -25.8,
-    0.4
+    -25.6,
+    -1.5
    ],
    "colour": "green",
    "role": "starboard side light (extremity)",
@@ -485,7 +489,7 @@
    "position": [
     -30,
     0,
-    7.85
+    8.67
    ],
    "colour": "white",
    "role": "stern light",
@@ -500,7 +504,7 @@
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "2aacfde2eb7e92edb8b3877fd01114aa5f854d62f584ee06d68ffcd4e1828127"
+  "vfx_hull_sha256": "600c9d91f89462c38f84defdbcf89f3a534543338b1419249659c8888f866d09"
  },
  "state": "clean",
  "engines_running": [
@@ -660,19 +664,19 @@
    {
     "index": 1,
     "side": "port",
-    "radius": 3.2,
+    "radius": 3.52,
     "width": 16
    },
    {
     "index": 2,
     "side": "centre",
-    "radius": 3.2,
+    "radius": 3.52,
     "width": 16
    },
    {
     "index": 3,
     "side": "starboard",
-    "radius": 3.2,
+    "radius": 3.52,
     "width": 16
    }
   ],
@@ -704,5 +708,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "350911d7dd591ab2a8596aa33548e1d0683eb3c3b2b18d7d82329f39e3757746"
+ "asset_sha256": "45dd9e3fe837a2fdd44f0cbbc9f92db7498869d5d7cab528184536cc9f52e607"
 }

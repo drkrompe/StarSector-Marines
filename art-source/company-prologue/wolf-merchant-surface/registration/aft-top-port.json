@@ -1,15 +1,15 @@
 {
  "part": "aft-top-port",
  "sheet": "armour-tops",
- "tile": 3,
+ "tile": 2,
  "tile_size": [
   912,
   513
  ],
- "segmentation_selfcheck_iou_on_guide": 0.9936,
- "raw_iou": 0.994,
+ "segmentation_selfcheck_iou_on_guide": 0.9926,
+ "raw_iou": 0.9908,
  "best_fit": "iou_refined_affine",
- "fitted_iou": 0.9979,
+ "fitted_iou": 0.9968,
  "fits": {
   "identity": {
    "scale": [
@@ -20,40 +20,40 @@
     0.0,
     0.0
    ],
-   "iou": 0.994
+   "iou": 0.9908
   },
   "bounds_affine": {
    "scale": [
-    0.99235,
-    1.00499
+    0.99617,
+    1.0085
    ],
    "offset_px": [
-    3.49,
-    -1.28
+    2.24,
+    -1.68
    ],
-   "iou": 0.993
+   "iou": 0.9935
   },
   "iou_refined_affine": {
    "scale": [
-    0.99835,
-    1.00499
+    0.99817,
+    1.0075
    ],
    "offset_px": [
-    1.49,
-    -0.78
+    1.24,
+    -1.68
    ],
-   "iou": 0.9979
+   "iou": 0.9968
   }
  },
  "boundary_raw_px": {
-  "mean_px": 0.6,
-  "p95_px": 1.0,
-  "max_px": 3.0
+  "mean_px": 0.95,
+  "p95_px": 2.0,
+  "max_px": 2.0
  },
  "boundary_fitted_px": {
-  "mean_px": 0.22,
+  "mean_px": 0.33,
   "p95_px": 1.0,
-  "max_px": 3.0
+  "max_px": 2.0
  },
  "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
 }

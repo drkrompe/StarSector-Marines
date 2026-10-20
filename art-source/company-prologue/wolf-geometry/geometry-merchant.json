@@ -55,7 +55,7 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 38632,
+      "units3": 38649,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
@@ -101,7 +101,7 @@
     "fittings_m": {},
     "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 38632,
+      "enclosed_units3": 38649,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -109,18 +109,13 @@
         "Hull aft body",
         "Hull dorsal spine fore",
         "Hull dorsal spine aft",
-        "Hull ventral keel",
-        "Hull centre hump",
-        "Hull neck port flank",
-        "Hull neck starboard flank",
-        "Hull wing port root",
-        "Hull wing starboard root"
+        "Hull ventral keel"
       ]
     },
     "size_m": [
-      74.6,
-      39.8,
-      24.0
+      72.3,
+      39.5,
+      25.5
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -139,18 +134,18 @@
   "dimensions": {
     "min": [
       -40.2,
-      -26.18,
+      -25.98,
       -18.0
     ],
     "max": [
-      57.98,
-      26.18,
-      13.57
+      54.91,
+      25.98,
+      15.61
     ],
     "size": [
-      98.18,
-      52.37,
-      31.57
+      95.11,
+      51.97,
+      33.61
     ]
   },
   "weapon_slots": [
@@ -159,7 +154,7 @@
       "location": [
         11,
         0,
-        7.6
+        10.44
       ],
       "angle": 0,
       "arc": 150,
@@ -176,7 +171,7 @@
       "location": [
         -13,
         12,
-        8.8
+        9.8
       ],
       "angle": 90,
       "arc": 200,
@@ -193,7 +188,7 @@
       "location": [
         -13,
         -11,
-        8.8
+        9.8
       ],
       "angle": -90,
       "arc": 200,
@@ -210,7 +205,7 @@
       "location": [
         45,
         0,
-        -0.5
+        -3.6
       ],
       "angle": 0,
       "arc": 5,
@@ -227,7 +222,7 @@
       "location": [
         11,
         20,
-        -1.8
+        -2.2
       ],
       "angle": 0,
       "arc": 5,
@@ -248,7 +243,7 @@
       "location": [
         11,
         -19,
-        -1.8
+        -2.2
       ],
       "angle": 0,
       "arc": 5,
@@ -275,7 +270,7 @@
       "location": [
         11,
         0,
-        7.6
+        10.44
       ],
       "rest_angle_deg": 0,
       "arc_deg": 150,
@@ -286,9 +281,13 @@
       "trained": [
         "Turret 1 house dark",
         "Turret 1 house steel",
-        "Turret 1 house accent#shell",
-        "Turret 1 house paint",
+        "Turret 1 house paint#casing",
+        "Turret 1 house paint#arms",
         "Turret 1 house lamp_blue",
+        "Turret 1 house accent#drum",
+        "Turret 1 house steel#hub",
+        "Turret 1 gun accent#breech",
+        "Turret 1 gun steel",
         "Turret 1 gun accent",
         "Turret 1 gun dark",
         "Turret 1 gun lamp_blue"
@@ -309,7 +308,7 @@
       "location": [
         -13,
         12,
-        8.8
+        9.8
       ],
       "rest_angle_deg": 90,
       "arc_deg": 200,
@@ -347,7 +346,7 @@
       "location": [
         -13,
         -11,
-        8.8
+        9.8
       ],
       "rest_angle_deg": -90,
       "arc_deg": 200,
@@ -386,18 +385,18 @@
       "location": [
         45,
         0,
-        -0.5
+        -3.6
       ],
-      "k": 0.55,
+      "k": 0.42,
       "bay": {
         "x": [
           42.8,
-          49.0
+          55.0
         ],
-        "half_width": 5.3,
+        "half_width": 3.8,
         "z": [
-          -3.3,
-          3.1
+          -6.2,
+          2.4
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -426,7 +425,7 @@
       "location": [
         11,
         20,
-        -1.8
+        -2.2
       ],
       "k": 0.6,
       "bay": null,
@@ -460,7 +459,7 @@
       "location": [
         11,
         -19,
-        -1.8
+        -2.2
       ],
       "k": 0.6,
       "bay": null,
@@ -609,7 +608,7 @@
         0,
         0
       ],
-      "mouth_radius": 3.2,
+      "mouth_radius": 3.52,
       "bell": "Engine 1 aft-facing bell",
       "lip": "Engine 1 mouth lip",
       "throat": "Engine 1 dark throat",
@@ -636,7 +635,7 @@
         0,
         0
       ],
-      "mouth_radius": 3.2,
+      "mouth_radius": 3.52,
       "bell": "Engine 2 aft-facing bell",
       "lip": "Engine 2 mouth lip",
       "throat": "Engine 2 dark throat",
@@ -663,7 +662,7 @@
         0,
         0
       ],
-      "mouth_radius": 3.2,
+      "mouth_radius": 3.52,
       "bell": "Engine 3 aft-facing bell",
       "lip": "Engine 3 mouth lip",
       "throat": "Engine 3 dark throat",
@@ -676,7 +675,7 @@
       "position": [
         26,
         11.5,
-        5.88
+        5.66
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -691,7 +690,7 @@
       "position": [
         26,
         -11.5,
-        5.88
+        5.66
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -705,8 +704,8 @@
       "name": "Light port pod tip 1",
       "position": [
         9.5,
-        25.8,
-        0.4
+        25.6,
+        -1.5
       ],
       "colour": "red",
       "role": "port side light (extremity)",
@@ -720,8 +719,8 @@
       "name": "Light starboard pod tip 1",
       "position": [
         9.5,
-        -25.8,
-        0.4
+        -25.6,
+        -1.5
       ],
       "colour": "green",
       "role": "starboard side light (extremity)",
@@ -736,7 +735,7 @@
       "position": [
         -30,
         0,
-        7.85
+        8.67
       ],
       "colour": "white",
       "role": "stern light",
@@ -754,8 +753,8 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 38128,
-    "objects": 171,
+    "triangles": 47218,
+    "objects": 154,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",

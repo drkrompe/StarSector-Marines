@@ -80,8 +80,7 @@ METRES_PER_UNIT = ship_scale.PUBLISHED.get(NAME, .9)
 if SCALE:
     assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
 SOLID_NAMES = ('Hull head', 'Hull neck', 'Hull main body', 'Hull aft body', 'Hull dorsal spine fore',
-               'Hull dorsal spine aft', 'Hull ventral keel', 'Hull centre hump', 'Hull neck port flank',
-               'Hull neck starboard flank', 'Hull wing port root', 'Hull wing starboard root')
+               'Hull dorsal spine aft', 'Hull ventral keel')
 SOLIDS = [n for n in SOLID_NAMES if NAME not in ship_scale.HULLS or ship_scale.SOLIDS['wolf-p']['include'](n)]
 
 parser = argparse.ArgumentParser()

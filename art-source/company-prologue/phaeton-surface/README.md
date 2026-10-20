@@ -1,6 +1,6 @@
 # Phaeton: surfacing
 
-Status: ACTIVE (pass 6 posted for owner review 2026-10-19). The cinematic export is `../phaeton-cinematic/`.
+Status: DONE (accepted 2026-10-19). The cinematic export is `../phaeton-cinematic/`.
 Written: 2026-10-19
 
 The Phaeton tanker's folder for the shared surfacing harness

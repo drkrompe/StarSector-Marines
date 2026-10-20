@@ -24,8 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ArrivalCinematicStringsTest {
     private static final Path MOD = Path.of("mod");
     /** Catalog lines whose words already live under another key; the rule is cinematic_export.caption_key. */
-    private static final Map<String, String> OVERRIDES = Map.of("jangala_arrival_nessa",
-            "openingCompanyPrologueNessaVennWeRanOreTogetherBefore");
+    private static final Map<String, String> OVERRIDES = Map.of();
 
     private static Map<String, String> strings() throws Exception {
         String text = Files.readAllLines(MOD.resolve("data/strings/strings.json")).stream()
@@ -79,6 +78,31 @@ class ArrivalCinematicStringsTest {
             JSONObject line = lines.getJSONObject(i);
             assertEquals(line.getString("text"), strings.get(keyOf(line.getString("id"))), line.getString("id"));
         }
+    }
+
+    /**
+     * Every catalog line, the hail and Castle's lines alike, is cued once across the arrival and
+     * captioned by its own key in the shot that plays it; nothing outside the catalog is captioned.
+     */
+    @Test void everyCatalogLineIsCuedOnceAndCaptionedWhereItPlays() throws Exception {
+        JSONArray lines = new JSONObject(Files.readString(MOD.resolve("data/marines/jangala_arrival_hail.json")))
+                .getJSONArray("lines");
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < lines.length(); i++) ids.add(lines.getJSONObject(i).getString("id"));
+        List<CinematicShot> shots = timelines();
+        List<String> captioned = new ArrayList<>();
+        for (CinematicShot shot : shots) shot.captions().forEach(c -> captioned.add(c.key()));
+        for (String id : ids) {
+            List<CinematicShot> playing = shots.stream()
+                    .filter(s -> s.cues().stream().anyMatch(c -> c.sound().equals(id))).toList();
+            assertEquals(1, playing.size(), id + " is cued in " + playing.size() + " shots");
+            long cues = playing.get(0).cues().stream().filter(c -> c.sound().equals(id)).count();
+            assertEquals(1, cues, id + " is cued more than once");
+            assertTrue(playing.get(0).captions().stream().anyMatch(c -> c.key().equals(keyOf(id))),
+                    playing.get(0).id() + " plays " + id + " without its caption");
+        }
+        List<String> keys = ids.stream().map(ArrivalCinematicStringsTest::keyOf).toList();
+        for (String key : captioned) assertTrue(keys.contains(key), key + " is captioned but is no catalog line");
     }
 
     @Test void everyCaptionIsSpokenBySomeoneTheShotDeclares() throws Exception {

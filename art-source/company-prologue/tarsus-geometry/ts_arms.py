@@ -318,40 +318,47 @@ def wall_fittings(kit, side, s):
 
 
 def bow_drum(kit, side, s):
+    """The bow turret sponson: plated like the arm, with a rust barbette deck plate."""
     n = f'Hull {side} bow drum'
     cx, cy = H.BOW_DRUM_X, H.y(H.BOW_DRUM_REL, s)
-    R, top = H.BOW_DRUM_R, H.BOW_DRUM_DECK
-    crown = H.BOW_DRUM_PROFILE[-1][0]
-    g = Parts()
-    g.tube(cx, cy, 1.8, 2.3, R+1, R+1, 1.5, 48)            # girth groove
-    g.tube(cx, cy, top-.35, top+1, 4.6, 4.6, .45, 40)      # race groove round the barbette
+    N, circ, top = H.DRUM_N, H.BOW_DRUM_CIRC, H.BOW_DRUM_DECK
+    wall0, wall1 = H.BOW_DRUM_KEEL+H.BOW_DRUM_KEEL_C, H.BOW_DRUM_DECK-H.BOW_DRUM_SHOULDER_C
+    top_circ = circ-H.BOW_DRUM_SHOULDER_C/math.cos(math.pi/N)
+
+    def corner(k, r):
+        a = 2*math.pi*(k+.5)/N
+        return cx+r*math.cos(a), cy+r*math.sin(a)
+    g = Parts()                                            # a seam groove round the wall
+    zm = (wall0+wall1)/2
+    for k in range(N):
+        (ax, ay), (bx, by) = corner(k, circ-.3), corner(k+1, circ-.3)
+        (cx1, cy1), (dx, dy) = corner(k+1, circ+1.0), corner(k, circ+1.0)
+        g.slab([(ax, ay, zm-.22), (bx, by, zm-.22), (cx1, cy1, zm-.22), (dx, dy, zm-.22)], (0, 0, .44))
     cut(kit, obj(n), g, kit.dark)
-    Parts().tube(cx, cy, top-.05, top+.5, crown-.1, crown-.1, 1.4, 48).build(kit, f'{n} crown ring', kit.rust)
+    plate_r = 5.9                                          # the sprite's brown disc
+    crown = Parts()
+    crown.slab([(*corner(i, plate_r), top-.05) for i in range(N)], (0, 0, .35))
+    crown.build(kit, f'{n} crown ring', kit.rust, .05)
     bolts = Parts()
-    for i in range(24):
-        a = 2*math.pi*(i+.5)/24
-        bolts.cyl((cx+(crown-.8)*math.cos(a), cy+(crown-.8)*math.sin(a), top+.5), .22, .16, 'Z', 6)
+    for i in range(20):
+        a = 2*math.pi*(i+.5)/20
+        bolts.cyl((cx+(plate_r-.7)*math.cos(a), cy+(plate_r-.7)*math.sin(a), top+.3), .2, .15, 'Z', 6)
     bolts.build(kit, f'{n} crown bolts', kit.steel)
-    ribs = Parts()
-    for i in range(12):                                    # radial casting ribs on the top
-        a = 2*math.pi*i/12
-        c, sn = math.cos(a), math.sin(a)
-        r0, r1, w = 4.9, crown-1.6, .3
-        quad = [(cx+c*r0-sn*w, cy+sn*r0+c*w, top-.05), (cx+c*r1-sn*w, cy+sn*r1+c*w, top-.05),
-                (cx+c*r1+sn*w, cy+sn*r1-c*w, top-.05), (cx+c*r0+sn*w, cy+sn*r0-c*w, top-.05)]
-        ribs.slab(quad, (0, 0, .45))
-    ap = R*math.cos(math.pi/24)                            # apothem of the 24-sided girth
-    z0, z1 = H.BOW_DRUM_PROFILE[1][1], H.BOW_DRUM_PROFILE[2][1]
-    for th in (-60, -30, 0, 30, 60, 90):                   # stiffeners on the exposed girth flats
-        a = math.radians(th)*s
-        c, sn = math.cos(a), math.sin(a)
-        w = .5
-        quad = [(cx+c*(ap-.2)-sn*w, cy+sn*(ap-.2)+c*w, z0+.2), (cx+c*(ap+.5)-sn*w, cy+sn*(ap+.5)+c*w, z0+.2),
-                (cx+c*(ap+.5)+sn*w, cy+sn*(ap+.5)-c*w, z0+.2), (cx+c*(ap-.2)+sn*w, cy+sn*(ap-.2)-c*w, z0+.2)]
-        ribs.slab(quad, (0, 0, z1-z0-.4))
-    ribs.build(kit, f'{n} casting ribs', kit.rust, .04)
-    # A band where the girth meets the chamfered foot.
-    Parts().tube(cx, cy, z0-.2, z0+.6, R+.35, R+.35, .7, 48).build(kit, f'{n} foot band', kit.rust)
+    ribs = Parts()                                         # corner strakes on the exposed corners
+    for k in range(N):
+        a = 2*math.pi*(k+.5)/N
+        if math.cos(a) < -.3 or math.sin(a)*s < -.3:       # skip the inboard / aft corners on the arm
+            continue
+        (px, py), (qx, qy) = corner(k, circ+.08), corner(k, top_circ+.15)
+        ribs.beam((px, py, wall0+.3), (px, py, wall1), .55, .55)
+        ribs.beam((px, py, wall1), (qx, qy, top-.1), .5, .5)
+    ribs.build(kit, f'{n} casting ribs', kit.ochre, .04)
+    band = Parts()                                         # a rust band where the keel chamfer meets the wall
+    for k in range(N):
+        (ax, ay), (bx, by) = corner(k, circ-.2), corner(k+1, circ-.2)
+        (cx1, cy1), (dx, dy) = corner(k+1, circ+.25), corner(k, circ+.25)
+        band.slab([(ax, ay, wall0-.1), (bx, by, wall0-.1), (cx1, cy1, wall0-.1), (dx, dy, wall0-.1)], (0, 0, .7))
+    band.build(kit, f'{n} foot band', kit.rust)
 
 
 def mast(kit, side, s):
@@ -371,11 +378,10 @@ def mast(kit, side, s):
     Parts().box(113.85, 114.15, yy-1.45, yy-1.15, z+2.85, z+3.15).box(
         113.85, 114.15, yy+1.15, yy+1.45, z+2.85, z+3.15).build(kit, f'{n} yard lamps', kit.lamp)
     stubs = Parts()
-    for rel in (17.0, 23.0):
-        r = rel-H.BOW_DRUM_REL
-        x0 = H.BOW_DRUM_X+math.sqrt(H.BOW_DRUM_R**2-r*r)-.8
-        stubs.cyl((x0, H.y(rel, s), 4.5), .3, 113.6-x0, 'X', 8)
-        stubs.box(113.3, 114.1, H.y(rel, s)-.4, H.y(rel, s)+.4, 4.1, 4.9)
+    x0 = H.BOW_DRUM_X+H.sponson_apothem(H.BOW_DRUM_CIRC)-.8       # the sponson's forward flat
+    for rel in (17.5, 24.5):
+        stubs.cyl((x0, H.y(rel, s), 2.0), .3, 113.6-x0, 'X', 8)
+        stubs.box(113.3, 114.1, H.y(rel, s)-.4, H.y(rel, s)+.4, 1.6, 2.4)
     stubs.build(kit, f'{n} stub antennas', kit.steel)
 
 
