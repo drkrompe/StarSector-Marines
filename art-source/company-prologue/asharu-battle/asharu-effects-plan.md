@@ -1,0 +1,259 @@
+Status: DRAFT — work plan for the Asharu effects day (2026-10-21)
+Written: 2026-10-20
+
+# Asharu battle: effects work plan
+
+`asharu-effects.md` is the source. It says what each effect looks like in the game and in the
+cinematic. This plan says how it gets built: workstreams, what each reuses, which shots need it
+first, the light test that proves it, and how the day splits into sessions. There are no full
+renders until the bench has answered the taste questions.
+
+## What already exists
+
+| Asset | Where | Gives us |
+|---|---|---|
+| Shared VFX kit (`SWFX`) | `second-wind-vfx/` | thrusters, guns (flash, light, tracer, puff, brass), launchers (bloom, missile with motor flame and smoke), energy mounts, beams, fire/vent/explosion, shields, lamps |
+| `SWFX` in every Asharu build | each build's `.blend` | the effects collection exported with the ship; the blockout already appends the Phaeton wreck's this way |
+| Shield group | `swfx_shield.py`, `review_shields.py` | FRONT and OMNI shells fitted to the hull; tech colour schemes by rule (`low-tech` red, `midline` blue, `high-tech` blue reference finish); `shield_strength` from vanilla efficiency (thins and drops out in patches when low); 4 hit flashes; `in_arc` for front shields; review strips including flicker |
+| Energy mounts | `swfx_guns.py`; `wolf-cinematic/vfx_hull.py` `ENERGY_COLOURS` | coloured flash, light and thick bolt for ion cannon and mining blaster |
+| Beams | `swfx_beams.py`; `paragon-cinematic/vfx_hull.py` `BEAMS` | vanilla width, colours and charge timings; `clear_line` and `aim` helpers |
+| Turret kit | `turret-kit/` | every gun, launcher box and PD laser on the hulls, with `muzzle anchor <k>` at each bore and cell, and recoil empties |
+| Cook-off | `phaeton-cinematic/`, `swfx_fire.py` | the Phaeton wreck: 22 fires, 6 vents, an 8-blast cook-off driven from `break_frame` (accepted 2026-10-19) |
+| Shield profiles | `colossus-cinematic`, `colossus-mk3-cinematic`, `tarsus-cinematic` `vfx_hull.py` | vanilla FRONT/OMNI shields already declared |
+| Launcher profiles | `manticore`, `falcon`, `kite`, `shepherd`, `wolf` `vfx_hull.py` | missile tubes declared |
+| Blockout placeholders | `battle_blockout.py` | tracers, missiles, blasts, fire, smoke, debris, flares, entry trails: what the key frames draw today |
+
+## Workstreams
+
+Each workstream lists what it reuses, what is genuinely new, and its proof.
+
+### W0 Integration spike (serial, first)
+
+The kit was built for **one hull per file**: one `SWFX controls` object whose knobs drive that
+ship's effects. The Asharu scene places up to a dozen hulls, several of them the same build
+(three Lashers, two Wolves (P)), as collection instances. Instances share one set of knobs, so
+three Lashers would flash in step.
+
+- **Spike:** append two builds' `SWFX` into one scene. Make a second, independent copy of one
+  (a full copy, not an instance). Show that each copy's drivers read its own controls.
+- **Then:** the blockout gains a per-ship effects hook: append `SWFX` with the hull, copy per
+  ship, and key knobs per shot from a small per-shot cue list.
+- **Files:** `battle_blockout.py` (sole owner), a new `asharu-battle/effects_bench.py`.
+- **Bench harness:** loads 1-3 named builds from `build/asharu-battle/builds/`, places them at a
+  test distance against a black sky, applies the kit live with chosen groups, and renders N
+  frames at half size and ≤16 samples. Each workstream adds its tests in its own
+  `bench_<ws>.py` module, so parallel sessions never edit one file.
+- **Done when:** the spike stills show two Lashers firing out of step, and the harness runs one
+  trivial test end to end through the light lane.
+
+### W1 Shields
+
+- **Reuse:** the shield group entire: the fitted shell, FRONT/OMNI, tech schemes by rule,
+  strength, hits, `in_arc`, flicker.
+- **New:**
+  1. `SHIELD` entries for the Lasher (FRONT 210, low tech), Wolf and Wolf (P) (FRONT 150, high
+     tech), Falcon (P) (FRONT 270, midline), Kite (P) (OMNI 150, midline), Manticore (P) (OMNI
+     150, low tech), Phaeton and Shepherd (OMNI 90, low tech). These are data in each hull's
+     `vfx_hull.py`, `SHIELD` block only.
+  2. **Flux load:** a `shield_flux` knob (0-1) that brightens the face toward white and enlarges
+     hit flashes.
+  3. **Overload:** the shell shatters into arcs crawling over the hull, then the lamps stutter
+     (`shield_overload` envelope; arcs reuse the beam core shader).
+  4. **Vent:** `vent` anchors exist in the fire group; a running ship's vent is a short hot
+     shimmer from its radiators, not a fire. Add a `shield_vent` envelope that drops the shield
+     and lights the vent cones.
+- **Files:** `swfx_shield.py`, `review_shields.py`, the `SHIELD` blocks of the hull profiles,
+  `bench_shields.py`.
+- **Proof (light):** a Lasher front shield and a Kite omni at 300 m, 8 frames each: raise, take
+  four hits, flux climbing, overload, vent.
+- **Done when:** the tech colours read correctly by rule, and an overloaded shield is unmistakable
+  at 28 mm (S9b).
+
+### W2 Point defence
+
+- **Reuse:** guns (Vulcan, light MG tracers), beams (`swfx_beams`, vanilla PD laser and LR PD laser
+  colours), and the fire group's explosion at small `size_m` for a missile kill.
+- **New:**
+  1. **Intercept:** a PD source picks missiles from a salvo and kills some short: a tracer stream or
+     beam walks onto the missile, which flashes and its motor dies.
+  2. **Canister flak:** a ring of small bursts around the Manticore.
+  3. **Flares:** white-orange decoys from the flare anchors (the Colossus has them and the kit has
+     no flare effect); a missile peels off to chase one.
+- **Files:** `swfx_pd.py` (new), the `BEAMS` blocks for the Wolf's PD lasers,
+  `bench_pd.py`.
+- **Proof (light):** a four-Harpoon salvo into a Lasher's three light MGs: one or two die short.
+  Then a Swarmer salvo into a PD laser. Then a Hound firing flares.
+- **Done when:** the S5 missile screen reads as the Lashers fighting the salvo, not as random
+  sparks.
+
+### W3 Missiles
+
+- **Reuse:** the launcher group (launch bloom and light, missile body, motor flame, motor smoke)
+  and the tube anchors on the Manticore's Harpoon pods (`Anchor turret 5/6 tube <k> muzzle`).
+- **New:**
+  1. **Curved flight:** the kit flies a missile straight down the line of fire. Add authored
+     curves from the game's numbers: the Harpoon swings wide and curves in, the Swarmer weaves,
+     the Pilum lumbers in and splits, rockets fly straight in a fan of five.
+  2. **Contrails** left in place, thinning out with no drift, in vanilla colours: the Harpoon's
+     blue (100,165,255), and grey smoke for the others.
+  3. **Terminal:** a hit (an explosion at the target's armour or shield) or a kill short (handed
+     to W2).
+- **Files:** `swfx_guns.py` (missile path only), `swfx_missile_paths.py` (new), `bench_missiles.py`.
+- **Proof (light):** a Manticore pod salvo of four Harpoons across a 3 km test lane. 8 frames
+  showing the fan-out, the curve and the convergence, plus one kill short.
+- **Done when:** the salvo reads as Harpoons to a player: blue, curving and converging.
+
+### W4 Cannons and energy weapons
+
+- **Reuse:** gun flash, light and tracer; energy mounts; turret-kit muzzles; beams for PD.
+- **New, per weapon look from `asharu-effects.md`:**
+  - **Manticore main gun:** the build models a Hellbore (the variant says Mark IX). Hellbore in the
+    game: an orange-white slug, glow 255,165,30, a huge flash (50 particles, 0.75 s, 255,120,50).
+    Decide which (taste question 1).
+  - **MG and Vulcan:** burst cadence exact; the Vulcan's twin-barrel zig-zag braid.
+  - **Ion cannon:** the charge-up glow, the jagged bolt, and EMP arcs crawling over the target
+    (shared with W1's overload arcs).
+  - **Mining blaster and heavy blaster:** a white core in a coloured corona that lights the hulls
+    it passes.
+  - **Ammo Feeder:** an amber weapon glow (255,200,0) and the cadence doubled.
+- **Files:** `swfx_guns.py` (gun and energy paths), the `ENERGY_COLOURS`/`BEAMS` blocks of the hull
+  profiles, `bench_guns.py`.
+- **Proof (light):**
+  - the Manticore main gun, one shot;
+  - a Lasher MG burst, then with the Ammo Feeder;
+  - the Wolf's ion cannon on a target, with arcs;
+  - the Wolf (P)'s mining blaster.
+  6 frames each.
+- **Done when:** each reads as its game weapon without a caption.
+
+### W5 Impacts
+
+- **Reuse:** shield hit flashes (W1) and the fire group's small explosion, fire and vent at
+  `size_m`.
+- **New:**
+  1. **Armour hit:** a kinetic spark spray, or an HE orange flash with spall, leaving a glowing
+     pock.
+  2. **Hull breach:** a fire and vent spawned at a runtime empty on the hull, rather than at the
+     builds' scar anchors (the clean builds have none).
+  3. **Debris:** tumbling plate fragments and sparks, to replace the blockout's debris placeholder.
+- **Files:** `swfx_impacts.py` (new), `bench_impacts.py`.
+- **Proof (light):** a Buffalo Mk.II stand-in taking a light MG stream (sparks), then light assault
+  gun HE (flashes), then a breach that starts burning. 8 frames.
+- **Done when:** S6b's "armour soaks it, then she breaks up" reads in two beats.
+
+### W6 The S6 cook-off tie-in
+
+- **Reuse:** the accepted Phaeton wreck and its `break_frame` cook-off, unchanged.
+- **New:** the strike that causes it. The Harpoons from W3 arrive at `break_frame` and the lead
+  Lasher's fire from W4 is visible in the frame, so cause and effect line up. This is scene
+  timing, not new effects.
+- **Files:** `battle_blockout.py` shot cues (through W0's owner).
+- **Proof (light):** the k3 framing at half size and 16 samples, three frames around
+  `break_frame`.
+- **Done when:** the cook-off is caused on screen.
+
+## Shot map, most visible first
+
+| Priority | Shot | Effects |
+|---|---|---|
+| 1 | S9b (28 mm, close) | Falcon front shield under load, then overload; Lasher MGs with Ammo Feeder; armour hits on the open flank; IR pulse broadside; the Lasher burning |
+| 2 | S6 (the cook-off) | Harpoon salvo arriving, Phaeton cook-off, Lasher hit and burning, MG fire |
+| 3 | S5 (85 mm, the opener) | Manticore main gun and Harpoon salvo over 3-4 km, the Lashers' PD screen killing some short |
+| 4 | S6c | Displacer blink, Wolf (P) front shields up under the Mule's fire then down, ion cannon and mining blaster on the Tarsus's drives |
+| 5 | S6b | Ammo Feeder burst, armour soaking hits on the Buffalo Mk.II, breach, break-up |
+| 6 | S6d | chaingun, flares, no shields, drives hit |
+| 7 | S9 | Colossus flares and turrets, a Kite's omni shield driven off |
+| 8 | S7, S8 | boarding cover fire; the Colossus's tug pod shot out, debris |
+| — | S1-S4, S10-S12 | drives and lamps only (already in the builds) |
+
+## Proof jobs: three light-lane jobs
+
+Each job stays under the light lane's 30-minute cap: half size, 16 samples, about 40 frames. Each
+runs `effects_bench.py --tests <list> --samples 16 --half --root {work} --post {machine}`, writing
+to `review/cinematic-asharu-battle/2026-10-21_effects-bench_<machine>`.
+
+| Job | Tests | Machine | Why |
+|---|---|---|---|
+| A | shields (W1), guns and energy (W4) | Windows (RTX 3080, 10 GB) | emissive shells and beams, little volume; fits 10 GB |
+| B | missiles (W3), point defence (W2) | Mac (M5 Max, 48 GB unified) | motor smoke and many lights; volume-heavy |
+| C | impacts (W5), cook-off (W6) | Mac | fire and explosion volumes; the cook-off framing used 7.5 GB at half size on Windows |
+
+A test's job is submitted when its workstream says done. Jobs submitted after the Jangala finals
+are released, per the owner.
+
+## Split into sessions
+
+| Session | Workstream | Files it owns | Machine | Done when |
+|---|---|---|---|---|
+| 1 (first, serial) | W0 integration spike and bench harness | `battle_blockout.py`, `effects_bench.py` | Windows | two copies of one build fire independently; the harness runs one test through the light lane |
+| 2 | W1 shields | `swfx_shield.py`, `review_shields.py`, `SHIELD` blocks, `bench_shields.py` | Windows | job A's shield tests read as specified |
+| 3 | W3 missiles, then W2 point defence | `swfx_missile_paths.py`, `swfx_pd.py`, the missile path in `swfx_guns.py`, `bench_missiles.py`, `bench_pd.py` | Mac | job B shows a curving salvo with kills short |
+| 4 | W4 cannons and energy weapons | `swfx_guns.py` (gun/energy paths), `ENERGY_COLOURS`/`BEAMS` blocks, `bench_guns.py` | Windows | job A's gun tests read as their weapons |
+| 5 | W5 impacts, then W6 cook-off tie-in | `swfx_impacts.py`, `bench_impacts.py`; W6's cues through session 1 | Mac | job C reads in two beats; the cook-off is caused |
+
+- **Serial:**
+  - W0 goes first. Every bench test needs its harness.
+  - W6 needs W3's arrival and W0's cue list.
+  - W2's intercepts need W3's missile paths, which is why one session holds both.
+  - The scene integration of everything (key frames using the kit) is a last serial step on
+    `battle_blockout.py`, owned by session 1.
+- **Shared files:**
+  - Sessions 3 and 4 both touch `swfx_guns.py`, in different paths. Session 3 owns the
+    launcher/missile code; session 4 owns guns and energy. Both merge main before integrating.
+  - The hull profiles' `vfx_hull.py` are split by block: `SHIELD` belongs to session 2; `BEAMS`
+    and `ENERGY_COLOURS` belong to session 4.
+- **Kit compatibility:** `second-wind-vfx` serves other ships too. Every change is opt-in, by new
+  knob or group, and `check_kit.py` passes on the Second Wind unchanged.
+
+## Risks
+
+- **One hull per file (highest).** If per-ship copies of `SWFX` can't keep independent drivers,
+  the scene needs another route: apply the kit per ship at scene time with namespaced controls,
+  or bake effects per ship. W0 exists to find out first.
+- **Render cost.** Every flash and launch is a light, and smoke scatters. A full key frame with
+  a dozen firing ships could cost several times today's render. Measure at the bench, then budget
+  lights per shot.
+- **AgX washing colour to white.** The kit notes strong emitters go white, so tech colours and
+  energy colours must be kept low. This is a check on every test.
+- **Scale.** Game ranges are sprite units, and the scene is kilometres. The order is kept, the
+  numbers aren't; tracer speeds are cinematic (the kit's `gun_muzzle_velocity` note).
+- **10 GB on Windows.** Volume-heavy tests go to the Mac.
+
+## The owner's answers (2026-10-20)
+
+1. **Main gun:** the Hellbore (the turret kit's model, already on the build) is the leaning.
+2. **Shields:**
+   - visible while up (a faint rim, and the direction reads);
+   - opacity tied to hits, with ripple rings spreading along the surface;
+   - raising takes time (the kit's unfold);
+   - collapse: see 5.
+3. **Flashes** linger a little for spectacle.
+4. **Missiles:** guided ones are chase missiles that hunt and curve, which is harder for PD.
+   Torpedoes and rockets fly straight. Launches are cold-ejected, then lit.
+5. **Overload:** the shield is a film of suspended plasma consumed by what it absorbs and
+   replenished by the emitters. Flux thins it: wider ripples, patchy thin spots, soap-film
+   banding, hits leaking through. Overload tears it open from the last hit and it shatters into
+   fading shards. The tech finishes (smooth high tech, rough midline and low tech) are the film's
+   quality.
+
+`asharu-effects.md` carries the full treatment. For W1 this replaces the "brightens toward white"
+flux idea with **thinning**: `shield_flux` drives patchiness, ripple spread and leak-through.
+`shield_overload` is tear, shatter and arcs to the nodes, and recovery repaints from the nodes.
+
+## References (web, 2026-10-20)
+
+- **Shield construction:** a Fresnel rim, a surface pattern, flowing noise, a noise-threshold
+  dissolve with a glowing edge for appear and collapse, and hits as rings whose radius grows with
+  time, measured along the sphere's surface ([pmndrs, Flow shield](https://pmnd.rs/blog/creating-flow-shield);
+  [GameDev.net shader lab](https://gamedev.net/shaderlab/35-energy-shield/);
+  [Godot shield with impacts](https://godotshaders.com/shader/energy-shield-with-impact-effect/)).
+  The kit's four shrinkwrapped hit empties are this ring buffer.
+- **Opacity:** most of a shield's read comes from a Fresnel term on opacity
+  ([Halo shield recreation](https://brendansullivan.artstation.com/projects/nJq6X1)).
+- **Thin-film banding** on a thinning bubble: film thickness drives the colour, near-black below
+  ~100 nm and saturated bands at 200-600 nm. Animate thickness down to sell thinning. Cycles'
+  Principled BSDF has a Thin Film input
+  ([Blender Market thin-film docs](https://superhivemarket.com/products/thin-film/docs)).
+- **Missile launches:** in *The Expanse* missiles are passively ejected before their drives
+  ignite ([The Companion, CQB](https://thecompanion.app/the-expanse-cqb-space-battle/);
+  [Spine VFX breakdown reel](https://digitalproduction.com/2021/05/31/the-expanse-vfx-breakdown/)).

@@ -471,6 +471,10 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 
 ## What the brawl asks of the builds and the effects
 
+The game grounding and the cinematic treatment for every weapon, missile, shield and system are in
+`asharu-effects.md`; how they get built (workstreams, tests, the session split) is in
+`asharu-effects-plan.md`.
+
 This is not an order for new hulls (the owner's rule stands). These are the states and effects the
 new shots draw on:
 

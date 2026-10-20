@@ -1125,7 +1125,7 @@ def kind_engine_bay(d, scar, status):
         d.part(scar, 'sheared bolt', M['cut'], .002).disc(q+m*.72, m, .08, .06, 6)
 
     # The warning light on the housing's aft corner, carried in with it.
-    for ob in d.named('Drive warning light', s):
+    for ob in d.named('Drive warning light', s)+d.named('Drive warning bezel', s):
         lo, hi = d.box(ob)
         if abs(lo.y) < 34:
             continue

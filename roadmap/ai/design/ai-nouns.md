@@ -2175,7 +2175,9 @@ fort's most critical aspect falls, its ground — a turned fort, lost cause or
 not — is the counter-attack's alone. The track response does not rally into it,
 flow does not stage toward it, its belt is not manned and no single squad is sent
 to retake it; the commander retakes it in proportion, as one push, or not at all.
-Its reserve forms behind a fort the defender holds from the battle's first
+The counter-attack is for places, not forts: a lost compound, objective, held
+building or story site is retaken by the same law, and the game is much larger
+than forts (`garrisonables.md`, places not forts). Its reserve forms behind a fort the defender holds from the battle's first
 believed contact, and what it holds above the reserve law's share may man that
 fort's own pressed belt and do nothing else.
 
