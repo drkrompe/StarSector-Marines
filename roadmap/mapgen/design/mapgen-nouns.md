@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — Permanent defense posts are drawn as concrete revetment rings (`road.revetment`), not sandbag rings; sandbags mark field positions; Heavy defense posts include missile AA towers with validated multi-cell foundations; fort power halls and compact utility buildings share full-footprint power and cooling equipment.
+Updated: 2026-10-20 — Ordinary residential lots are always homes; the apartment plan belongs only to gated housing compounds.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -356,8 +356,10 @@ separate bedrooms, cooking/dining and living areas; larger homes divide the rear
 into two bedrooms, and long shallow homes use serial rooms along their long
 axis. Tables, seating, personal storage and work nooks accompany the core room
 fixtures. Beds retain a wall-supported head and clear foot; sofas retain their
-back wall and clear seat edge. Apartment compounds keep their shared halls and
-receive the same richer domestic groups in their existing rooms. Authored
+back wall and clear seat edge. An ordinary residential lot is always a home,
+however large; the apartment plan, with its lobby and shared hall, belongs only to
+gated housing compounds, which receive the same richer domestic groups in their
+existing rooms. Authored
 residential plans label their own spaces and rotate whole furniture arrangements
 with the footprint. Tiny rooms retain compact fallbacks.
 
