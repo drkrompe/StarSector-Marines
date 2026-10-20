@@ -291,11 +291,10 @@ def wing_framework(kit, side, s, wing):
             segs.append(((*te(SPAR_B[1], tv, s), BOTTOM+1.0), (*te(SPAR_B[1], tv+step, s), TOP-1.0), .35, .35))
     cap = [te(SPAR_B[0]-.6, t0, s), te(SPAR_B[1]+.6, t0, s), te(SPAR_B[1]+.6, t1, s), te(SPAR_B[0]-.6, t1, s)]
     droop(shear(slab(kit, f'Hull wing {side} trailing spar cap', cap, TOP-.3, TOP+.4, kit.red)))
-    # Interspaced plating on the spar's outer face: every other panel closed.
-    for k in range(0, 8, 2):
-        ta, tb = t0+1.0+k*step, t0+1.0+(k+1)*step
-        quad = [te(SPAR_B[0]-.1, ta, s), te(SPAR_B[0]-.1, tb, s), te(SPAR_B[0]+.4, tb, s), te(SPAR_B[0]+.4, ta, s)]
-        droop(shear(slab(kit, f'Hull wing {side} spar panel {k//2+1}', quad, BOTTOM+1.0, TOP-1.0, kit.plate)))
+    # The spar's outer face: a continuous web plate over its lower half, the
+    # truss open above it (round 13: alternate closed panels read as windows).
+    quad = [te(SPAR_B[0]-.1, t0, s), te(SPAR_B[0]-.1, t1, s), te(SPAR_B[0]+.4, t1, s), te(SPAR_B[0]+.4, t0, s)]
+    droop(shear(slab(kit, f'Hull wing {side} spar panel 1', quad, BOTTOM+1.0, (TOP+BOTTOM)/2+.5, kit.plate)))
     # Two deep ribs: the red-capped rib out at Y 45 and the root rib at Y 31.
     xa0, xa1 = edge_x(RIB_A)+EDGE_LIP+.5, spar_b_x(RIB_A)
     i_rib(kit, f'Hull wing {side} rib A', RIB_A, xa0, xa1, [(xa0-5.5, 2.0), (xa0-13.0, 2.2), (xa0-20.5, 2.0)], segs, s)
