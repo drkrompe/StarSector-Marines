@@ -8,6 +8,7 @@ lasher.ship are model XY unchanged. Heights are proposed art.
 
 One module per area: ls_hull (bow head, nose cap, spine, wing body,
 nacelles), ls_pods (gun and missile pods), ls_engines (the five drives),
+ls_detail (join fairings, frames and surface detail, seated on the rest),
 ls_mounts (the nine slots: turrets, hardpoints, system anchors), ls_lights
 (running lights); ls_kit holds the shared helpers.
 
@@ -49,8 +50,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import ls_kit, ls_hull, ls_pods, ls_engines, ls_mounts, ls_lights
-for module in (ls_kit, ls_hull, ls_pods, ls_engines, ls_mounts, ls_lights):
+import ls_kit, ls_hull, ls_pods, ls_engines, ls_detail, ls_mounts, ls_lights
+for module in (ls_kit, ls_hull, ls_pods, ls_engines, ls_detail, ls_mounts, ls_lights):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -132,6 +133,7 @@ kit.mpu = METRES_PER_UNIT
 ls_hull.build(kit)
 ls_pods.build(kit)
 ls_engines.build(kit)
+ls_detail.build(kit)
 ls_mounts.build(kit)
 ls_lights.build(kit)
 bpy.context.view_layer.update()
@@ -336,9 +338,10 @@ if not args.no_save:
     manifest_path = OUT/'geometry.json'
     old = json.loads((HERE/'geometry.json').read_text(encoding='utf-8')) if (HERE/'geometry.json').exists() else {}
     manifest = {
-        'status': 'Pass 2 (light) + pass 4 scale: silhouette, sections, slots, drives, anchors, glazing, '
-                  'vents and running lights; one Hegemony base material with light procedural wear. '
-                  'Built for distant formation shots (C1 v2); no interiors, damage or articulation beyond turrets.',
+        'status': 'Pass 2 with the detail and cohesion pass (ls_detail, owner review 2026-10-19) + pass 4 scale: '
+                  'silhouette, sections, slots, drives, anchors, glazing, vents and running lights; join fairings, '
+                  'frames, panels, hatches, grilles and conduits; one base material per class with light '
+                  'procedural wear. No interiors, damage or articulation beyond turrets.',
         'hull': {
             'name': 'Lasher', 'hullId': 'lasher', 'size': 'FRIGATE', 'style': 'LOW_TECH', 'tech': 'Low Tech',
             'designation': 'Frigate',

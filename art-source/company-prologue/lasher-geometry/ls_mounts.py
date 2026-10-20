@@ -58,6 +58,10 @@ def turret(kit, i, slot):
         kit.cylinder(f'Turret {i} gunhouse', (x-.3, y, top+.9), 3.8, 1.8, kit.accent, vertices=8, bevel=.15),
         kit.box(f'Turret {i} mantlet', (x+3.5, y, top+1.0), (1.2, 3.0, 1.4), kit.steel, .1),
     ]
+    parts += [  # roof detail on the gunhouse
+        kit.box(f'Turret {i} roof hatch', (x-1.6, y+1.1, top+1.85), (1.5, 1.5, .25), kit.steel, .06),
+        kit.box(f'Turret {i} sight hood', (x+.6, y-1.9, top+2.0), (1.6, .9, .6), kit.steel, .1),
+    ]
     muzzles = []
     for k, dy in enumerate((.75, -.75), 1):
         parts.append(kit.cylinder(f'Turret {i} barrel {k}', (x+6.4, y+dy, top+1.0), .32, 5.0, kit.steel, 'X', 8, 0))
