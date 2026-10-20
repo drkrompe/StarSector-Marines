@@ -3,8 +3,8 @@
  "collection": "WOLF",
  "root": "WOLF | root",
  "effects_collection": "SWFX",
- "objects": 474,
- "meshes": 407,
+ "objects": 516,
+ "meshes": 435,
  "effects_objects": 80,
  "images": 23,
  "passed": true,
@@ -38,15 +38,15 @@
   "mesh count": {
    "ok": true,
    "detail": [
-    407,
-    407
+    435,
+    435
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    110959,
-    110959
+    110506,
+    110506
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
@@ -73,9 +73,13 @@
    "ok": true,
    "detail": "WOLF control"
   },
-  "gear stows flush and stands on the ground": {
+  "gear: keel shoes and wedge soles on the ground deployed, wedges up the side stowed": {
    "ok": true,
    "detail": []
+  },
+  "gear: every ram stays on its wedge and aims along itself through the swing": {
+   "ok": true,
+   "detail": 3.1e-05
   },
   "four lift thruster anchors point down": {
    "ok": true,
