@@ -41,6 +41,21 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 10 (2026-10-20)
+"The ship is coming together - next need to read the implied exposed hull
+framing and machinery from the sprite and add this detail into the model."
+mt_frames.py lets real structure into recesses cut in the round-9 panels:
+an open channel inboard of each swept trailing edge holding a Warren truss
+(chords, zigzag diagonals, frames); a bay in each engine-block shoulder with a
+banded tank on cradles and feed pipes running aft to the outer drive; framed
+heat-vent bays either side of the engine deck's centreline, glowing at the
+floor; a machinery bay in each gun nacelle's tail with frames and two rams;
+coaming rails and a back beam round each launcher recess. The aft deck's old
+surface ribs and vent plates are gone (now these bays). Round 9 forms,
+silhouette (ray-cast IoU 0.926), mounts and 0.59 m/u kept; the open bays take
+volume out of the measured solids, 224,599 units3 (1.8% under the scale
+table, inside its 2% check).
+
 Owner review round 9 (2026-10-20)
 "Manticore hull needs long angular hull sections. This reads as bloby with
 the small angular sections." The primary forms are now a few long panels with
@@ -176,7 +191,7 @@ brings her closer.
 
 Files
 build_manticore.py (driver), mt_kit.py, mt_hull.py, mt_engines.py,
-mt_detail.py, mt_mounts.py, mt_lights.py (one module per area), compose_review.py (IoU,
+mt_detail.py, mt_frames.py, mt_mounts.py, mt_lights.py (one module per area), compose_review.py (IoU,
 shot extents, review set; Python + Pillow + numpy), geometry.json.
 
 Rebuild from this folder (outputs go to build/manticore/, never tracked)

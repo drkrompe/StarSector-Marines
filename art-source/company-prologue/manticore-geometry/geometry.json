@@ -1,5 +1,5 @@
 {
-  "status": "Review round 9: long angular hull sections (few lofted stations, one swept leading-edge band, long swept wing panels, straight trailing edge); round 8: launcher bays end at the arm leading edge; round 7: launcher bays round the Harpoons, one 30/45 deg angle vocabulary, single nose bend and single anhedral; round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
+  "status": "Review round 10: exposed framing and machinery in recessed bays (trailing-edge trusses, shoulder tank bays with feed pipes, framed heat-vent bays, pod-tail machinery, launcher coamings); round 9: long angular hull sections (few lofted stations, one swept leading-edge band, long swept wing panels, straight trailing edge); round 8: launcher bays end at the arm leading edge; round 7: launcher bays round the Harpoons, one 30/45 deg angle vocabulary, single nose bend and single anhedral; round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
@@ -96,7 +96,7 @@
     },
     "published_metres_per_unit": 0.59,
     "measured_this_build": {
-      "enclosed_units3": 226129,
+      "enclosed_units3": 224599,
       "solids": [
         "Hull bow head",
         "Hull neck",
@@ -851,8 +851,8 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 38254,
-    "objects": 169,
+    "triangles": 41822,
+    "objects": 197,
     "materials": [
       "Manticore bridge glazing",
       "Manticore grey plate",
@@ -1053,12 +1053,12 @@
           "at_x": 19.6
         },
         {
-          "from_deg": 20.25,
+          "from_deg": 21.0,
           "meets": "Weapon WS 000 house paint",
           "at_x": 14.9
         },
         {
-          "from_deg": 21.0,
+          "from_deg": 21.25,
           "meets": "Weapon WS 000 recoil 1 steel",
           "at_x": 14.9
         },
@@ -1096,7 +1096,7 @@
         },
         {
           "bearing_deg": -60,
-          "clear_down_to_deg": -18.5
+          "clear_down_to_deg": -18.0
         },
         {
           "bearing_deg": -50,
@@ -1144,7 +1144,7 @@
         },
         {
           "bearing_deg": 60,
-          "clear_down_to_deg": -18.5
+          "clear_down_to_deg": -18.0
         },
         {
           "bearing_deg": 70,
@@ -1255,12 +1255,12 @@
     }
   ],
   "silhouette": {
-    "iou_raycast": 0.9261,
-    "sprite_uncovered_raycast": 0.0331,
+    "iou_raycast": 0.9263,
+    "sprite_uncovered_raycast": 0.0329,
     "model_outside_sprite_raycast": 0.044,
     "round8_iou_raycast": 0.9269,
     "round8_iou_render": 0.9457,
-    "method": "round 9: vertical ray casts at 4 per unit against sprite alpha (>127); no top render was made (owner render rule). The render-alpha method read 0.9457 for round 8."
+    "method": "rounds 9-10: vertical ray casts at 4 per unit against sprite alpha (>127); no top render was made (owner render rule). The render-alpha method read 0.9457 for round 8."
   },
   "shot_extent_px": {
     "shot-s5-1500m": {

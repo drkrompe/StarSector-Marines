@@ -32,7 +32,8 @@ bpy.ops.wm.open_mainfile(filepath=str(BLEND))
 ctx = swfx.apply(state='clean', groups=GROUPS, hull=HERE)
 a = ctx.anchors
 assert len(a.engines) == 5, [e.index for e in a.engines]
-assert len(a.guns) == 6, [(g.turret, g.tag) for g in a.guns]
+GEOM = json.loads((BLEND.parent / 'geometry.json').read_text(encoding='utf-8'))
+assert len(a.guns) == sum(len(t['muzzles']) for t in GEOM['turrets']), [(g.turret, g.tag) for g in a.guns]
 assert len(a.lamps) == 4, [l.name for l in a.lamps]
 coll = bpy.data.collections[swfx_core.ROOT]
 objs = list(coll.all_objects)
