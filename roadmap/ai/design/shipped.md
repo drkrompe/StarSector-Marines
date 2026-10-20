@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — folded fighting positions and their occupation follow-up.
+Updated: 2026-10-20 — folded reactive garrisons.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `reactive-garrisons.md` | 2026-10-20 | `7e7585780`, `f970d49bd`, `b2df91e40`, `d23998ef6`, `1612a94b8`, `43d9ff227`, `039aeeaeb` and the fold commit; `reactive-belt` scene (quiet, passing attack, breach: all verdicts pass); steady rallies on the trial ground, 56 fixtures against a same-build control: rally swings back to the post just left 106 to 42, defender losses 2,269 to 2,195, marine losses level, defender holds 17 to 18; defender marches of 1,000 ticks or more account for about 1% of defender dead (28 of 2,269 in the control), not pursued | `garrisonables.md` (flow, assignment, steady rallies, open question on a stretch the attack has left); `ai-nouns.md` (belt manning); `conquest-nouns.md` (track rally) |
 | `fighting-position-occupation.md` | 2026-10-13 | occupy order and overlay, Conquest position counts, belt-post structure defence, belt-nest garrisons, destructible fort sandbags; fort control: 20 belt squads hold their trenches dug in | `ai-nouns.md` (occupy, belt garrisons); `mapgen-nouns.md`; `forts.md`; `conquest-nouns.md`; `moddable-tilesets-nouns.md`; fort fixture in `CLAUDE.md` |
 | `fighting-positions.md` | 2026-10-13 | `bd9a60f7b`, `1031d77f8`, `22690feaa` and the fold commit; unit tests plus the five-loop `fighting-position` scene (composure isolation, fill, hold under live fire, overflow) | `ai-nouns.md` (fighting positions); `mapgen-nouns.md` (prepared ground) |
 | `district-patrol-work-budget.md` | 2026-09-27 | `2372adc75`, `de08ea3bb`; 199 focused tests, independently controlled JFR pair and paced eight-mech replay; bounded work verified, not a general tail-latency guarantee | `ai-nouns.md` (optional district waypoints); independent controls and counters in `conquest-tail-profile.md` |

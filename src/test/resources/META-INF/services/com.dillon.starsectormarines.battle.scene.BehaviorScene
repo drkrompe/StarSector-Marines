@@ -98,3 +98,4 @@ com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
 com.dillon.starsectormarines.battle.combat.HardTargetTimeToKillScene
 com.dillon.starsectormarines.battle.vehicle.HoverLineScene
 com.dillon.starsectormarines.battle.vehicle.StrikeSpacingScene
+com.dillon.starsectormarines.battle.command.ReactiveBeltScene
