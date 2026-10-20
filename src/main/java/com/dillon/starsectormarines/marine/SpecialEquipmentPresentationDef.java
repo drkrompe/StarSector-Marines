@@ -17,7 +17,8 @@ public record SpecialEquipmentPresentationDef(
         Deployed deployed,
         LayerClips layerClips,
         Preview preview,
-        HandsetLayer handsetLayer) implements Serializable {
+        HandsetLayer handsetLayer,
+        EquipmentLayerDef packedLayer) implements Serializable {
 
     /** Presentation without a hand-held layer, as every item but a radio authors it. */
     public SpecialEquipmentPresentationDef(String armoryIconPath, String aimSpritePath,
@@ -25,7 +26,22 @@ public record SpecialEquipmentPresentationDef(
                                            Thrown thrown, Field field, Deployed deployed,
                                            LayerClips layerClips, Preview preview) {
         this(armoryIconPath, aimSpritePath, usePose, carrierLayer, thrown, field,
-                deployed, layerClips, preview, null);
+                deployed, layerClips, preview, null, null);
+    }
+
+    /** Presentation without packed art: the carrier layer is all the item draws. */
+    public SpecialEquipmentPresentationDef(String armoryIconPath, String aimSpritePath,
+                                           SpecialUsePose usePose, EquipmentLayerDef carrierLayer,
+                                           Thrown thrown, Field field, Deployed deployed,
+                                           LayerClips layerClips, Preview preview,
+                                           HandsetLayer handsetLayer) {
+        this(armoryIconPath, aimSpritePath, usePose, carrierLayer, thrown, field,
+                deployed, layerClips, preview, handsetLayer, null);
+    }
+
+    /** Key under which an item's packed art is registered beside its carried layer. */
+    public static String packedAssetKey(String equipmentId) {
+        return equipmentId + "#packed";
     }
 
     /**
@@ -138,9 +154,18 @@ public record SpecialEquipmentPresentationDef(
             throw new JSONException("Special equipment '" + equipmentId
                     + "' authors a handset layer without the carrier layer its cord joins");
         }
+        // Stowed on the wearer while not in use, in place of the carrier layer: a
+        // launcher slung across the back reads at a glance where a hidden one cannot.
+        JSONObject packedJson = json.optJSONObject("packedLayer");
+        EquipmentLayerDef packed = packedJson != null
+                ? EquipmentLayerDef.parsePacked(packedJson, equipmentId) : null;
+        if (packed != null && carrier == null) {
+            throw new JSONException("Special equipment '" + equipmentId
+                    + "' authors a packed layer without the carrier layer it stands in for");
+        }
         return new SpecialEquipmentPresentationDef(
                 armoryIcon, aimSprite, usePose, carrier, thrown, field,
-                deployed, layerClips, preview, handset);
+                deployed, layerClips, preview, handset, packed);
     }
 
     private static HandsetLayer parseHandset(JSONObject json, String equipmentId)

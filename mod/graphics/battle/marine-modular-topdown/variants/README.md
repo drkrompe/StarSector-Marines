@@ -28,7 +28,10 @@ all seen from straight overhead, muzzle at the top edge):
 
 - `weapons/rifle.png` — FR-1 field rifle: vented handguard, top optic, solid stock.
 - `weapons/rocket-launcher.png` — olive tube, flared ends, sight housing on the right.
-- `weapons/laser-gun.png` — pulse rifle: three finned heat sinks, green coil and cell.
+- `weapons/rocket-launcher-packed.png` — the same tube capped and strapped, the launcher's
+  `packedLayer`: slung across the back whenever it is not being fired.
+- `weapons/laser-gun.png` — pulse rifle: copper focusing coils between radiator plates, glow
+  only at the lens and two indicators.
 - `weapons/smg.png` — pirate SMG: side magazine jutting left, wire stock.
 - `weapons/dmr.png` — railgun marksman rifle: twin rails, capacitor block, long scope.
 - `weapons/anti-materiel-rifle.png` — ported brake, folded bipod, side box magazine.
