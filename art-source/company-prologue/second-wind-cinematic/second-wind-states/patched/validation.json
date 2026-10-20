@@ -3,8 +3,8 @@
  "asset": "second-wind-patched.blend",
  "collection": "SECOND WIND | patched",
  "root": "SECOND WIND | patched | root",
- "objects": 1169,
- "meshes": 1120,
+ "objects": 1142,
+ "meshes": 1098,
  "images": 41,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1120,
-    1120
+    1098,
+    1098
    ]
   },
   "polygon count": {
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 99,
+    "materials": 98,
     "missing": []
    }
   },
@@ -74,18 +74,18 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 5e-06
+   "detail": 2e-06
   },
   "turret guns elevate": {
    "ok": true,
    "detail": {
-    "err": 2e-06,
+    "err": 4e-06,
     "bad": [],
     "muzzles": {
      "1": 0,
-     "2": 2,
+     "2": 0,
      "3": 0,
-     "4": 1
+     "4": 2
     }
    }
   },

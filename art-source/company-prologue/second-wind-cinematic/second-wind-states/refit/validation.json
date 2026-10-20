@@ -3,8 +3,8 @@
  "asset": "second-wind-refit.blend",
  "collection": "SECOND WIND | refit",
  "root": "SECOND WIND | refit | root",
- "objects": 1112,
- "meshes": 1066,
+ "objects": 1085,
+ "meshes": 1044,
  "images": 41,
  "passed": true,
  "failed": [],
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1066,
-    1066
+    1044,
+    1044
    ]
   },
   "polygon count": {
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 100,
+    "materials": 99,
     "missing": []
    }
   },
@@ -74,18 +74,18 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 5e-06
+   "detail": 2e-06
   },
   "turret guns elevate": {
    "ok": true,
    "detail": {
-    "err": 2e-06,
+    "err": 4e-06,
     "bad": [],
     "muzzles": {
      "1": 0,
-     "2": 2,
+     "2": 0,
      "3": 0,
-     "4": 1
+     "4": 2
     }
    }
   },

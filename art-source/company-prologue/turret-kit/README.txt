@@ -95,7 +95,8 @@ Built from the game's sprites (house='hand')
   Starsector.app/Contents/Resources/Java).
 
 The Cerberus' railgun (house='hand')
-  railgun, the Second Wind's WS 003 (cerberus_Standard). The game draws it as
+  railgun, the Cerberus' stock WS 003 gun (cerberus_Standard; the Second Wind
+  does not fit it). The game draws it as
   one sprite with no gun layer, so the builder splits it: the house is the
   low grey body widest through its middle, a pale silver capacitor bulb on
   the crown, the copper breech block sunk in a well behind it, two pale lugs
@@ -227,8 +228,8 @@ The gauntlet (each turret, against its sprite)
 Users
   legion-geometry (lg_turrets), paragon-geometry (pg_turrets: its Elite fit,
   hull_finish), wolf-geometry (wf_mounts), second-wind-geometry (sw_turrets:
-  its cerberus_Standard fit, wrecked and stripped per condition state by
-  sw_scars_spine). Lasher, Onslaught, Hermes and Hound still use their own
+  two Vulcans and two capped empty housings, wrecked and stripped per
+  condition state by sw_scars_spine). Lasher, Onslaught, Hermes and Hound still use their own
   turret modules; moving one onto the kit is that hull's session's call.
 
 Cinematics hooks

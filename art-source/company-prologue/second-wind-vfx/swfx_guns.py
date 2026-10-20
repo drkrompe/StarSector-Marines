@@ -1,8 +1,8 @@
 """Gun effects for the Second Wind's four turrets.
 
-Its cerberus_Standard fit from the shared turret kit (sw_turrets): Vulcans on
-turrets 1 and 2 ('barrel 1' / 'barrel 2'), the railgun on 3 (an 'energy'
-mount), the heavy mauler on 4. Builds from before 2026-10-20 carried the old
+Its fit from the shared turret kit (sw_turrets): Vulcans on turrets 1 and 4
+('barrel 1' / 'barrel 2'); 2 and 3 are empty housings and fire nothing.
+Builds from before 2026-10-20 carried the old
 gun houses: small mounts 1-3 and the medium twin (turret 4, 'port gun' and
 'starboard gun'), which the tags below still read. Everything rides the gun anchors
 (swfx_anchors.GunAnchor: an empty at the muzzle, local +X along
@@ -1134,7 +1134,7 @@ def review(ctx, out_dir, quick=False):
     left3 = up.cross(x3).normalized()
     cam_a = swfx_core.look_camera(f'{PREFIX} review cam flash', rc, m3 + x3 * 5.0 + left3 * 17.0 + up * 10.0,
                                   m3 - x3 * 3.5 - up * 1.0, lens=50)
-    # (b) turret 4 (the heavy mauler; the old twin's two guns), a burst over the shoulder.
+    # (b) turret 4 (the bow Vulcan; the old twin's two guns), a burst over the shoulder.
     a4p = _anchor(ctx, 4, 'barrel 1') or _anchor(ctx, 4, 'port gun')
     a4s = _anchor(ctx, 4, 'starboard gun') or a4p
     fire(ctx, 4, 104, 14, 3)
