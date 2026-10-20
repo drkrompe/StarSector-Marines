@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15aef-4f7f-7a32-8a61-a27e2fe9c08b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15aef-4f7f-7a32-8a61-a27e2fe9c08b\\exec-bda49447-dc9e-4a22-91b3-9cd362b5c738.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapon-icons.raw.png",
+    "sha256": "c8948790c7d5db7717b7e168d94d528643a0e931a3e2f5186f4a6f904b70d813",
+    "dimensions": [
+      1586,
+      992
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapon-icons.prompt.txt",
+  "promptSha256": "51c8fcf4b1ab5cee18ce0765818e2e3c2a1fcf0510d9530e11e8a3ab41b4dcb2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target\nImage 2: Finished armory icon: painting style reference only; not layout or content\nImage 3: The same weapons from above: palette and material identity only; not layout or camera\n\nUse case: sketch-to-render. Asset: a sheet of five infantry weapons shown in SIDE PROFILE as armory and inventory icons, for a gritty military dark-science-fiction tactical game. Each is seen exactly from its left side, muzzle pointing right, as a flat side view with no perspective.\n\nImage 1 is the authoritative geometry guide and edit target. Reskin these exact five objects into finished painted game icons, preserving every silhouette, part, proportion and position exactly, with every gap and opening (stock cut-outs, trigger guards, the space between the wire stock struts) left transparent. Do not move, add, merge or remove parts; no slings, hands, ground or shadows. Left to right, top to bottom:\n1. Field rifle: tan-olive polymer solid stock and vented handguard, dark gunmetal receiver, black scope with blue glass, black pistol grip and curved box magazine, a pale steel charging lug, matte black barrel, front sight post and flash hider. Reliable, plain, mass-produced.\n2. Pulse laser rifle: gunmetal stock block with a cut-out, white-grey ceramic body, black top optic, a dark power cell under the body, a slim barrel wound with six raised bare COPPER focusing coils over a pale grey radiator plate, a pale ceramic prism emitter. Light used sparingly: only the small lens at the emitter tip and two tiny indicators glow, pale green-cyan, no glowing tubes or tint on the metal.\n3. Pirate submachine gun: worn rust-brown and scratched bare steel receiver, small reflex sight, a black box magazine standing out of the side towards the viewer, perforated shroud with a strip of yellow-and-black hazard tape, folding wire stock of two thin struts. Rough and salvaged.\n4. Railgun marksman rifle: pale grey skeleton stock, navy-blue and off-white capacitor housing with dark bands, long black scope with blue glass, two long black rails with a glowing pale-blue field between them, pale steel braces. Precise, expensive, naval.\n5. Rocket launcher: olive-drab composite tube with black flared muzzle and rear venturi, yellow-and-black hazard bands near both ends, a dark grey sight housing with blue glass on top, black trigger grip, fore grip and shoulder pad below, a pale steel folding front sight.\n\nImage 2 is a finished armory icon from the same game (an anti-materiel rifle): match its painting style, lighting, edge treatment and level of detail exactly; it is style reference only, not layout or content. Image 3 is the same five weapons seen from straight above as battle sprites: palette and material identity reference only, not layout or camera. Flat side view, no perspective, no cast shadow, no ground, no text, labels, numbers, borders or watermark. True transparent background outside every silhouette, including negative spaces. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapon-icons-guide.png",
+      "sha256": "4096e97f1052d289b7586d2fb87b20d467ed553610ca5fadbe05aa063c9fe2f1",
+      "dimensions": [
+        1792,
+        1120
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target"
+    },
+    {
+      "path": "mod\\graphics\\ui\\armory\\special-anti-materiel-rifle.png",
+      "sha256": "de8b7158c66e0288300a901424c067270b6366f0b1c7bc22f04d73584f47651c",
+      "dimensions": [
+        512,
+        341
+      ],
+      "mode": "RGBA",
+      "role": "Finished armory icon: painting style reference only; not layout or content"
+    },
+    {
+      "path": "art-source\\infantry-weapons\\weapon-topdown-reference.png",
+      "sha256": "7de0a87bd3bd6549b195208754f0f8ad280e17006a18f961a64f7afcb4a6c22e",
+      "dimensions": [
+        985,
+        860
+      ],
+      "mode": "RGBA",
+      "role": "The same weapons from above: palette and material identity only; not layout or camera"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the five weapons using Image 1’s exact layout and silhouettes, with the materials and painted finish from your references.\n"
+  ],
+  "usage": {
+    "input_tokens": 45808,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 825,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.7
+}

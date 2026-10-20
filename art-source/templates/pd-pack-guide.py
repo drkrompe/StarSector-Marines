@@ -14,10 +14,10 @@ Palisade gun pod belongs to the other kit.
                           shoulders, so the strap roots are there. A rigid frame carries the launch
                           block -- three by two round hatches, each ringed in amber -- with a small
                           sensor dome between the straps and exhaust vents down both sides.
-  pd-pack-icon-guide.png  1024x1024: the same pack standing upright as an inventory icon, seen from the
-                          back and a little above: the frame with its strap tops, the launch block's
-                          six hatches on its top face, one hatch open with an interceptor's nose
-                          standing out of it, and the sensor dome on a short mast.
+  pd-pack-icon-guide.png  1024x1024: the same pack face as an inventory icon, stood upright and turned a
+                          little so its top edge and side plate show: strap roots, sensor dome, hazard
+                          bands, the three-by-two hatch block and side vents exactly as worn, with one
+                          hatch lid swung open on an interceptor's red-banded nose.
 """
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -59,32 +59,40 @@ def pack():
 
 
 def icon():
+    """The icon is the worn pack's own face, stood upright and turned a little so its depth shows:
+    the same strap roots, sensor dome, hazard bands, three-by-two hatch block and side vents as the
+    sprite on the marine's back, one hatch lid swung open on an interceptor's red-banded nose."""
     S = 1024
     im = Image.new('RGBA', (S, S))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((250, 330, 770, 960), 50, fill='#8f8668')                   # frame face, khaki
-    d.rectangle((320, 300, 410, 400), fill='#2a2f2c')                               # strap tops
-    d.rectangle((610, 300, 700, 400), fill='#2a2f2c')
-    d.polygon([(250, 330), (330, 200), (850, 200), (770, 330)], fill='#5b6266')     # launch block top face, gunmetal
-    for i, cx in enumerate((380, 520, 660)):                                        # back row of hatches
-        d.ellipse((cx - 45, 215, cx + 75, 255), fill=CYAN)
-        d.ellipse((cx - 35, 220, cx + 65, 250), fill='#3a4146')
-    for i, cx in enumerate((330, 470, 610)):                                        # front row of hatches
-        d.ellipse((cx - 50, 270, cx + 80, 315), fill=CYAN)
-        d.ellipse((cx - 40, 276, cx + 70, 309), fill='#3a4146')
-    d.polygon([(495, 290), (525, 120), (555, 290)], fill='#c9d1d6')                 # one interceptor nose out of its tube
-    d.polygon([(510, 160), (525, 120), (540, 160)], fill='#c8402a')                 # red-banded nose
-    d.rectangle((790, 120, 810, 210), fill='#3a4146')                               # sensor mast
-    d.ellipse((760, 70, 840, 150), fill='#5a6268')                                  # sensor dome
-    d.ellipse((785, 95, 815, 125), fill=CYAN)
-    for y in range(440, 900, 80):                                                   # exhaust vents down the side
-        d.rounded_rectangle((270, y, 300, y + 50), 8, fill='#2a2f2c')
-        d.rounded_rectangle((720, y, 750, y + 50), 8, fill='#2a2f2c')
-    for k, x in enumerate(range(260, 760, 36)):                                     # hazard band under the block
-        d.polygon([(x, 345), (x + 18, 345), (x + 36, 375), (x + 18, 375)],
-                  fill='#e8b020' if k % 2 == 0 else '#1d1d1b')
-    d.rounded_rectangle((400, 560, 620, 840), 30, fill='#6f6852')                   # magazine access panel
-    d.rounded_rectangle((430, 590, 460, 810), 10, fill=CYAN)                        # status strip
+    ox, oy = 150, 100                                                               # face origin
+    d.polygon([(ox + 600, oy + 70), (ox + 690, oy + 20), (ox + 690, oy + 760), (ox + 600, oy + 830)],
+              fill='#6f6852')                                                       # side plate, in shade
+    d.polygon([(ox + 70, oy + 20), (ox + 130, oy - 20), (ox + 690, oy - 20), (ox + 640, oy + 20)],
+              fill='#b3aa8a')                                                       # top edge, lit
+    d.rounded_rectangle((ox, oy, ox + 660, oy + 840), 70, fill=FRAME)               # frame face
+    d.rectangle((ox + 80, oy - 30, ox + 180, oy + 90), fill=DARK)                   # strap roots
+    d.rectangle((ox + 480, oy - 30, ox + 580, oy + 90), fill=DARK)
+    d.ellipse((ox + 275, oy + 35, ox + 385, oy + 145), fill='#5a6268')              # sensor dome
+    d.ellipse((ox + 310, oy + 70, ox + 350, oy + 110), fill=CYAN)
+    d.rounded_rectangle((ox + 80, oy + 190, ox + 580, oy + 730), 50, fill='#5b6266')    # launch block
+    for row, cy in enumerate((oy + 330, oy + 580)):
+        for col, cx in enumerate((ox + 180, ox + 330, ox + 480)):
+            if row == 0 and col == 1:
+                hatch(d, cx, cy, 70, lid='#3a4146')                                 # open tube
+                d.ellipse((cx - 34, cy - 34, cx + 34, cy + 34), fill='#c9d1d6')     # interceptor nose
+                d.ellipse((cx - 14, cy - 14, cx + 14, cy + 14), fill='#c8402a')     # red band at the tip
+                d.polygon([(cx - 60, cy - 70), (cx + 60, cy - 70), (cx + 50, cy - 150), (cx - 50, cy - 150)],
+                          fill='#9aa3a9')                                           # lid swung up on its hinge
+            else:
+                hatch(d, cx, cy, 70)
+    for y0 in (oy + 152, oy + 750):                                                 # hazard bands across the frame
+        for k, x in enumerate(range(ox + 40, ox + 630, 40)):
+            d.polygon([(x, y0), (x + 20, y0), (x + 40, y0 + 30), (x + 20, y0 + 30)],
+                      fill='#e8b020' if k % 2 == 0 else '#1d1d1b')
+    for x in (ox + 25, ox + 605):                                                   # exhaust vents
+        for y in range(oy + 240, oy + 700, 70):
+            d.rounded_rectangle((x, y, x + 30, y + 40), 8, fill='#3a4146')
     im.save(OUT / 'pd-pack-icon-guide.png')
 
 
