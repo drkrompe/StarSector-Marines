@@ -2,7 +2,7 @@
  "asset": "phaeton-destroyed.blend",
  "collection": "PHAETON WRECK",
  "root": "PHAETON WRECK | root",
- "objects": 1458,
+ "objects": 1463,
  "meshes": 1404,
  "images": 30,
  "passed": true,
@@ -66,8 +66,18 @@
    "ok": true,
    "detail": 100.0
   },
-  "three explosion anchors": {
-   "ok": true
+  "cook-off: eight explosion anchors in delay order": {
+   "ok": true,
+   "detail": [
+    0.0,
+    0.5,
+    1.2,
+    1.9,
+    2.7,
+    3.4,
+    4.2,
+    5.6
+   ]
   },
   "fire and vent anchors": {
    "ok": true,

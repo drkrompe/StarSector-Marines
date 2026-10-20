@@ -265,7 +265,7 @@ PUBLISHED['Falcon (P)'] = .81
 # external tankage laid on the deck (like the Colossus's underslung pod tanks) and the drive
 # cans are drives: excluded. Fittings: the Kite boarding collar hatch and the dorsal grapple
 # receiver plate the Colossus Mk.III clamps to.
-HULLS['Tarsus'] = dict(units3=291623, crew_max=80, cargo=350, fuel=80, cls='freighter', length_units=188.8,
+HULLS['Tarsus'] = dict(units3=279346, crew_max=80, cargo=350, fuel=80, cls='freighter', length_units=188.8,
                       sprite_px=204, fittings_units={'Kite collar hatch d': [5.2], 'grapple receiver plate d': [5.2]})
 VOLUME_SOURCE['Tarsus'] = 'measured (SOLIDS)'
 PUBLISHED['Tarsus'] = .50

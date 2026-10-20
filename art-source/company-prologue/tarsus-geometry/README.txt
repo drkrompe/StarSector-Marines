@@ -75,10 +75,17 @@ Pass 3 round 1 (owner: "too low poly", "the arms with angles instead of
   drum towers and a lower drive block, as above. The arm grapple receivers
   moved onto the flat inboard strip (rel 19.5).
 
+Pass 3 round 2 (owner: the drums are cylinders, lift the turrets too high and do not
+  belong to the hull): the four drums are turret sponsons in the hull's section
+  language, octagonal in plan with a keel chamfer, a short wall and a broad sloped
+  shoulder, plated ochre like the arms and aft body, with a rust barbette deck plate
+  (the sprite's brown disc) under each turret. Decks: aft 13.0 (was 18.5; aft body
+  10.5), bow 8.0 (was 9.5; level with the raked pod). IoU 0.9575.
+
 Pass 4 (scale): 0.50 m per unit from ship_scale.py option C (solves 0.500,
   range 0.485-0.515): 94 m long, the Colossus's scale. Crew room sizes it
   (80 x 300 m3 of 24,820 m3 of contents). The enclosed volume
-  (ship_scale.SOLIDS['tarsus'], 291,600 units3) is the arms, body, ventral
+  (ship_scale.SOLIDS['tarsus'], 279,300 units3 after round 2; the solve is now 0.507, published 0.50 kept) is the arms, body, ventral
   keel, aft body and castle, four drums, drive block and command module; the
   deck tanks and drive cans are excluded, as the Colossus excludes its pod
   tanks. The round-1 reshape added depth, so the solve fell from 0.51 (96 m).

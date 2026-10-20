@@ -6,8 +6,8 @@
 --face portrait (the default) shapes her face, half-smile and textured skin (castle_face.py);
 --face plain is MakeHuman's default face for her age, in flat colours.
 
---hair mesh (the default) is MakeHuman's short04 cards with a modelled bun; --hair curves grooms
-Blender hair curves instead (grow_curves_hair), a prototype the owner is still choosing between.
+--hair curves (the default) grooms Blender hair curves (grow_curves_hair) after her head
+turnaround; --hair mesh is MakeHuman's short04 cards with a modelled bun, a quick stand-in.
 
 Castle is the company's shipboard operations officer (`art-source/portraits/castle/prompt.txt`):
 a woman in her early fifties, warm pale olive skin, dark brown hair going silver at the
@@ -27,7 +27,7 @@ mannequin convention in `sw_bridge_interior.figures`):
 - the body, eyes, eyebrows, hair and clothes MPFB fits to it, from MakeHuman's own CC0
   system-asset pack (`NOTES` in the review run lists them), each skinned to the rig;
 - what that pack has no piece for, modelled here and parented to bones: the bun, the
-  jacket's stand collar, the earpiece and its boom.
+  jacket's stand collar, the earpiece and its boom (and castle_dress's pockets and belt).
 
 She stands at the console with a little weight on the right leg, and plays her part in C2 as
 the action 'Castle reads back and braces' on C2's frames (frame = C2 seconds x 24): both hands
@@ -40,9 +40,9 @@ the hand is turned to a named finger direction and palm normal. Targets are give
 to measured landmarks of the built body (the ear, the console's top in front of her), so a
 different phenotype keeps her hand on her ear.
 
-Materials are flat colours (diffuse_color for Workbench, the same base colour in a Principled
-BSDF): MPFB's skin and clothes materials reference textures inside one machine's Blender
-profile, and the finish comes from the ImageGen repaint, not from these. The .blend is a
+Her clothes follow her turnaround (`turnaround/`) and are castle_dress.py's: weathered fabrics
+over MakeHuman's own normal and AO maps. Every material also keeps a flat diffuse_color for
+Workbench; the close-shot finish still comes from the ImageGen repaint. The .blend is a
 build output (gitignored); rebuild it, or copy it from Drive (starsector/builds/castle/).
 
 Requires the MPFB extension (2.0.17 tested) and the MakeHuman system-asset pack installed in
@@ -63,9 +63,9 @@ ROOT = "Castle figure root"
 PHENOTYPE = dict(gender=0.0, age=0.71, muscle=0.55, weight=0.52, proportions=0.6, height=0.62,
                  cupsize=0.45, firmness=0.45,
                  race=dict(caucasian=0.72, asian=0.12, african=0.16))      # warm pale olive
-ASSETS = dict(eyes="high-poly.mhclo", eyebrows="eyebrow008.mhclo", eyelashes="eyelashes01.mhclo",
+ASSETS = dict(eyes="high-poly.mhclo", eyebrows="eyebrow001.mhclo", eyelashes="eyelashes01.mhclo",
               hair="short04.mhclo")                    # swept back; the bun is added below
-CLOTHES = ["male_casualsuit02.mhclo", "shoes02.mhclo"]  # long-sleeved top over trousers; boots
+CLOTHES = ["male_casualsuit05.mhclo", "shoes03.mhclo"]  # jacket over a shirt, trousers; laced boots (castle_dress)
 
 COLOURS = {          # linear-ish RGB for Workbench; read against the portrait's palette
     "skin": (0.56, 0.40, 0.31),
@@ -133,36 +133,41 @@ BREATH_S, BREATH_DEG = 3.8, 0.7
 HAIR_ASSETS = "assets/nodes/procedural_hair_node_assets.blend"     # under Blender's datafiles
 HAIR_DENSITY = 7.0e5          # interpolated strands per m2 of scalp
 HAIR_RADIUS = 0.00012         # root radius; the profile tapers to the tip
-HAIRLINE_REACH = 0.012       # scalp is the skin within this of short04's cards
+HAIRLINE_REACH = 0.016       # scalp is the skin within this of short04's cards
 NAPE_DROP = 0.085            # the nape hairline, below eye height (short04 runs to the collar)
 SIDEBURN_DROP = 0.015        # in front of the ear, no scalp below this under eye height
-HAIRLINE_SOFT = (0.15, 0.4, 0.7)   # strand density on the scalp's edge ring and the next two in
-HAIR_LIFT = (0.0015, 0.007)  # off the scalp at the root, and by the bun: volume, not slicked flat
-WOBBLE = 0.0025              # a guide's sideways wander on its way up, for a gathered look
+HAIRLINE_SOFT = (0.03, 0.12, 0.35)   # strand density on the scalp's edge ring and the next two in
+HAIR_LIFT = (0.0012, 0.0075)  # off the scalp at the root, and by the bun: volume, not slicked flat
+WOBBLE = 0.004  
+FRONT_LIFT = 0.012           # extra lift over the front of the head (the sweep back)
+             # a guide's sideways wander on its way up, for a gathered look
 # The bun: up the back of the head at this elevation from the head's centre, its centre this far
 # off the scalp, its half-widths across, up the head and outward (a fist-sized updo).
-BUN_ELEVATION = 14.0
+BUN_ELEVATION = 6.0          # at the back of the head, a little above the ears (profile view)
 BUN_LIFT = 0.03
-BUN_RADII = (0.046, 0.038, 0.034)
-BUN_REACH = 0.05             # scalp guides stop combing and tuck in once this near its centre
-BUN_GUIDES, BUN_COPIES = 240, 12
-# The loose hair: fringe guides rooted over the front of the crown, this deep from the brow and
-# between these x (her right is -x), the share left hanging at the cheek, and wisps at her right
-# and left temple.
+BUN_RADII = (0.052, 0.046, 0.040)    # a loose twisted knot, wider than it is tall (turnaround)
+BUN_REACH = 0.058            # scalp guides stop combing and tuck in once this near its centre
+BUN_GUIDES, BUN_COPIES = 320, 14
+# The loose hair (castle-turnaround-head-v1.png): no fringe, the hair is drawn back off the
+# forehead, with tendrils escaping at both temples (her right, her left) down to the cheek, and a
+# few at the nape. FRINGE_ROOTS > 0 restores the earlier fringe swept to her right.
 FRINGE_DEPTH, FRINGE_X = 0.05, (-0.045, 0.05)
-FRINGE_ROOTS, FRINGE_HANG = 200, 0.3
+FRINGE_ROOTS, FRINGE_HANG = 0, 0.3
 FRINGE_LOW = 0.045            # the fringe stays above this height over eye level (the brow)
-WISPS = (9, 0)
-LOOSE_COPIES = 16
+WISPS = (5, 4)
+WISP_DROP = (0.05, 0.11)      # how far a temple tendril falls
+NAPE_WISPS, NAPE_DROP_W = 3, (0.02, 0.04)
+LOOSE_COPIES = 4
 # Silver at the temples: strands rooted within these distances of either temple are grey,
 # fading out between them; her right temple at this share (the art greys her left most), a
 # share of fringe strands at FRINGE_GREY, and a sprinkle of faintly grey strands everywhere.
-TEMPLE_GREY = (0.006, 0.026)
-TEMPLE_RIGHT = 0.6
+TEMPLE_GREY = (0.004, 0.036)
+TEMPLE_RIGHT = 1.0
+TEMPLE_LEFT = 0.6
 FRINGE_GREY = 0.5
 SALT, SALT_GREY = 0.015, 0.35   # share of stray grey strands elsewhere, and how grey
 MELANIN = dict(dark=0.72, grey=0.10, redness_dark=0.30, redness_grey=0.10)
-HAIR_RGB = dict(dark=(0.028, 0.017, 0.011), grey=(0.21, 0.205, 0.2))   # EEVEE: direct colour
+HAIR_RGB = dict(dark=(0.048, 0.027, 0.015), grey=(0.24, 0.23, 0.22))   # EEVEE: direct colour
 
 
 def _node_mod(ob, group, values):
@@ -481,7 +486,9 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
     # Gathered strands wrapping the core along random arcs.
     coil = []
     for _ in range(BUN_GUIDES):
-        a = Vector((rng.gauss(0, 1), rng.gauss(0, 1), rng.gauss(0, 1))).normalized()
+        # Wound round the knot's own axis (tilted a little each), so the bun reads as a twisted
+        # coil (the turnaround's back view), not a ball of random arcs.
+        a = (axis + Vector((rng.gauss(0, 1), rng.gauss(0, 1), rng.gauss(0, 1))) * 0.35).normalized()
         s0 = a.orthogonal().normalized()
         span = math.radians(rng.uniform(140, 320))
         rf = rng.uniform(1.0, 1.16)
@@ -497,10 +504,12 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
         d = Vector((rng.gauss(0, 1), rng.gauss(0, 1), -abs(rng.gauss(0, 0.6)) - 0.3))
         return on_bun(d, 0.8)
 
+    front_y0 = min(v.y for v in sv)
     guides = []
     for root in sv:
         pts, p, travelled = [root.copy()], root.copy(), 0.0
         reach = (bun_c - root).length
+        front = min(max((front_y0 + 0.06 - root.y) / 0.06, 0.0), 1.0)
         wob = w.cross(Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1)))).normalized()
         phase = rng.uniform(0, 2 * math.pi)
         for _ in range(90):
@@ -514,6 +523,9 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
             travelled += step.length
             f = min(travelled / max(reach, 1e-3), 1.0)
             lift = HAIR_LIFT[0] + (HAIR_LIFT[1] - HAIR_LIFT[0]) * f ** 0.6
+            # Swept back off the forehead with some lift, not plastered: the front's strands rise
+            # early and fall back toward the scalp as they run over the crown.
+            lift += FRONT_LIFT * front * math.sin(min(f * 3.0, 1.0) * math.pi / 2) * (1.0 - f)
             sway = wob * (WOBBLE * math.sin(phase + travelled * 90.0) * min(f * 4, 1.0))
             p = loc + nrm * lift + sway
             pts.append(p.copy())
@@ -576,14 +588,23 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
         loose.append(settle(ctrl, 36, 0.004, 0.007))
     for sign, count in ((-1, WISPS[0]), (1, WISPS[1])):
         t = temple_of(sign)
-        side = [v for v, e in zip(sv, on_edge) if e and v.x * sign > 0.05 and t.y + 0.015 < v.y < t.y + 0.045
-                and eye_z - 0.035 < v.z < eye_z + 0.02]
+        side = [v for v, e in zip(sv, on_edge) if e and v.x * sign > 0.05 and t.y - 0.005 < v.y < t.y + 0.045
+                and eye_z - 0.035 < v.z < eye_z + 0.03]
         for root in rng.sample(side, min(count, len(side))):
-            drop = rng.uniform(0.05, 0.1)
-            ctrl = [root, onto(root + Vector((0, -0.003, -0.02)), 0.003),
-                    onto(root + Vector((0, -0.006, -drop * 0.6)), 0.003),
-                    onto(root + Vector((0, -0.008, -drop)), 0.004)]
-            loose.append(settle(ctrl, 22, 0.003, 0.004))
+            drop = rng.uniform(*WISP_DROP)
+            # A loose wave: the tendril swings in and out of the cheek as it falls.
+            sw = rng.uniform(0.004, 0.009) * sign
+            ctrl = [root, onto(root + Vector((0, -0.004, -0.02)), 0.003),
+                    onto(root + Vector((sw, -0.008, -drop * 0.35)), 0.004),
+                    onto(root + Vector((-sw * 0.5, -0.010, -drop * 0.65)), 0.005),
+                    onto(root + Vector((sw, -0.012, -drop)), 0.006)]
+            loose.append(settle(ctrl, 26, 0.003, 0.005))
+    nape = [v for v, e in zip(sv, on_edge) if e and v.y > centre.y + 0.02 and v.z < eye_z - 0.03]
+    for root in rng.sample(nape, min(NAPE_WISPS, len(nape))):
+        drop = rng.uniform(*NAPE_DROP_W)
+        ctrl = [root, onto(root + Vector((rng.uniform(-0.006, 0.006), 0.004, -drop * 0.5)), 0.003),
+                onto(root + Vector((rng.uniform(-0.01, 0.01), 0.006, -drop)), 0.004)]
+        loose.append(settle(ctrl, 18, 0.003, 0.004))
     fringe = curves_object("Castle hair loose", [[tuple(p) for p in s] for s in loose])
     bun = curves_object("Castle hair bun", coil)
 
@@ -592,8 +613,11 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
     lo, hi = TEMPLE_GREY
 
     def temple_grey(r):
-        side = 1.0 if r.x > 0 else TEMPLE_RIGHT
-        return side * min(max((hi - (Vector((abs(r.x), r.y, r.z)) - temple).length) / (hi - lo), 0.0), 1.0)
+        side = TEMPLE_LEFT if r.x > 0 else TEMPLE_RIGHT
+        fall = min(max((hi - (Vector((abs(r.x), r.y, r.z)) - temple).length) / (hi - lo), 0.0), 1.0)
+        # Streaks, not a band: grey runs in combed locks, some roots dark among them.
+        streak = 0.5 + 0.5 * noise.noise(Vector((r.x * 140.0, r.y * 40.0, r.z * 140.0)))
+        return side * fall * min(1.0, 0.25 + 1.1 * streak)
 
     groom.data.attributes.new("temple", "FLOAT", "CURVE").data.foreach_set(
         "value", [temple_grey(r) for r in sv])
@@ -612,10 +636,12 @@ def grow_curves_hair(body, rig, hair_mesh, eye_z):
     _node_mod(groom, groups["Clump Hair Curves"],
               {"Factor": 0.35, "Shape": 0.3, "Existing Guide Map": False, "Guide Distance": 0.008})
     _node_mod(bun, groups["Duplicate Hair Curves"], {"Amount": BUN_COPIES, "Radius": 0.003})
-    _node_mod(fringe, groups["Duplicate Hair Curves"], {"Amount": LOOSE_COPIES, "Radius": 0.0025})
-    for ob, frizz, wander in ((groom, 0.0008, 0.0012), (bun, 0.0012, 0.0012), (fringe, 0.0012, 0.0015)):
+    _node_mod(fringe, groups["Duplicate Hair Curves"], {"Amount": LOOSE_COPIES, "Radius": 0.0035})
+    # Wavy, a little unruly (the turnaround): more frizz and a slower, larger wander than a
+    # sleek groom.
+    for ob, frizz, wander in ((groom, 0.0011, 0.002), (bun, 0.0022, 0.0028), (fringe, 0.0014, 0.0025)):
         _node_mod(ob, groups["Frizz Hair Curves"], {"Distance": frizz})
-        _node_mod(ob, groups["Hair Curves Noise"], {"Distance": wander, "Scale": 45.0})
+        _node_mod(ob, groups["Hair Curves Noise"], {"Distance": wander, "Scale": 28.0})
         _node_mod(ob, groups["Set Hair Curve Profile"], {"Radius": HAIR_RADIUS, "Shape": 0.5})
         ob.modifiers.new("Grey at the temples", "NODES").node_group = grey
     # Last, as Blender's own hair setup has it: the finished groom rides the posed scalp.
@@ -640,7 +666,7 @@ def blender_main(argv):
     from mathutils import Matrix, Vector
 
     out = Path(argv[argv.index("--out") + 1]) if "--out" in argv else BLEND
-    hair_mode = argv[argv.index("--hair") + 1] if "--hair" in argv else "mesh"
+    hair_mode = argv[argv.index("--hair") + 1] if "--hair" in argv else "curves"
     if hair_mode not in ("mesh", "curves"):
         sys.exit("--hair is mesh (MakeHuman short04 and a modelled bun) or curves (a groom)")
     face_mode = argv[argv.index("--face") + 1] if "--face" in argv else "portrait"
@@ -708,21 +734,18 @@ def blender_main(argv):
         ob.color = ob.data.materials[0].diffuse_color
 
     by_role = {"body": "skin", "high-poly": "eye", "eyebrow": "hair", "eyelashes": "hair",
-               "short04": "hair", "shoes02": "boots", "male_casualsuit02": "jacket"}
+               "short04": "hair", "shoes03": "boots", "male_casualsuit05": "jacket"}
     for o in parts:
         key = "body" if o is body else o.name.split(" ", 1)[1]
         paint(o, next(v for k, v in by_role.items() if key.startswith(k)))
 
-    # The top-and-trousers suit is one mesh: faces below the hem around the hips take the
-    # trousers colour (rest pose, arms hang well outside |x| 0.25).
-    suit = bpy.data.objects["Castle male_casualsuit02"]
+    # The suit (jacket over a shirt, and trousers) is one mesh on one atlas: castle_dress sorts
+    # its faces into jacket, undershirt and trousers and gives each its weathered material.
+    import castle_dress
+    suit = bpy.data.objects["Castle " + castle_dress.SUIT]
     suit.name = "Castle duty jacket and trousers"
-    suit.data.materials.append(flat("trousers"))
-    hem = 0.96
-    for poly in suit.data.polygons:
-        c = poly.center
-        if c.z < hem and abs(c.x) < 0.25:
-            poly.material_index = 1
+    boots = bpy.data.objects["Castle " + castle_dress.BOOTS]
+    boots.name = "Castle work boots"
     if face_mode == "portrait":
         castle_face.dress_face(body, parts)
 
@@ -767,11 +790,26 @@ def blender_main(argv):
             bone_parent(ob, "head")
         bpy.data.objects.remove(hair, do_unlink=True)
 
+    data_dir = Path(AssetService.find_asset_absolute_path(castle_dress.SUIT + ".mhclo", asset_subdir="clothes")).parents[1]
+    counts = castle_dress.dress(bpy, suit, boots, rig, body, data_dir,
+                                lambda op, name, mat, **kw: add(op, name, "jacket", **kw), bone_parent)
+    print("CASTLE suit faces jacket %d, undershirt %d, trousers %d; collars off %d" % tuple(counts), flush=True)
+
     collar = add(bpy.ops.mesh.primitive_cone_add, "duty jacket collar", "jacket", vertices=24,
                  radius1=0.075, radius2=0.066, depth=0.055, end_fill_type="NOTHING",
                  location=(neck_c.x, neck_c.y + 0.008, neck_c.z + 0.012))
     collar.rotation_euler = (math.radians(-8), 0, 0)
-    collar.modifiers.new("Thickness", "SOLIDIFY").thickness = 0.006
+    # A stand collar on a jacket worn open: the ring is cut away across her throat (she faces -Y).
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(collar.data)
+    front = [f for f in bm.faces if f.calc_center_median().y < -0.045]
+    bmesh.ops.delete(bm, geom=front, context="FACES")
+    bm.to_mesh(collar.data)
+    bm.free()
+    collar.data.materials.clear()
+    collar.data.materials.append(bpy.data.materials["Castle duty jacket pieces"])
+    collar.modifiers.new("Thickness", "SOLIDIFY").thickness = 0.007
     bone_parent(collar, "neck01")
 
     cup = add(bpy.ops.mesh.primitive_cylinder_add, "earpiece", "headset", vertices=20,
@@ -915,7 +953,7 @@ def blender_main(argv):
     dg = bpy.context.evaluated_depsgraph_get()
     ev = body.evaluated_get(dg)
     lowest = min((ev.matrix_world @ v.co).z for v in ev.data.vertices)
-    shoes = bpy.data.objects["Castle shoes02"].evaluated_get(dg)
+    shoes = boots.evaluated_get(dg)
     lowest = min(lowest, min((shoes.matrix_world @ v.co).z for v in shoes.data.vertices))
     rig.location.z -= lowest
 

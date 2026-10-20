@@ -44,10 +44,19 @@ AFT_FRONT, AFT_BACK = -20.0, -56.5
 AFT_KEEL, AFT_DECK = -13.0, 10.5
 CASTLE_FRONT, CASTLE_BACK, CASTLE_HALF, CASTLE_DECK = -35.5, -55.0, 20.0, 16.5
 DRUM_X, DRUM_REL, DRUM_R = -41.0, 36.5, 14.5
-# Bow drums: the round castings the forward turrets stand on, closing each arm's nose.
+# Bow drums: the turret sponsons that close each arm's nose.
 BOW_DRUM_X, BOW_DRUM_REL, BOW_DRUM_R = 100.0, 21.0, 10.5
-BOW_DRUM_KEEL, BOW_DRUM_DECK = -6.5, 9.5
-DRUM_KEEL, DRUM_DECK = -14.0, 18.5   # the aft drums stand as towers above the castle
+# Owner, pass 3 round 2: the round drums read as cylinders bolted on, stood the turrets far
+# too high and did not belong to the hull. They are now turret sponsons in the hull's own
+# section language: an octagon in plan (flats fore, aft and outboard), one keel chamfer, a
+# short wall and a broad sloped shoulder up to a small turret deck just above the hull
+# beside them. The plan's circumradius keeps the sprite's round outline's area.
+DRUM_N = 8
+DRUM_CIRC, BOW_DRUM_CIRC = DRUM_R*1.04, BOW_DRUM_R*1.04
+DRUM_KEEL, DRUM_DECK = -13.0, 13.0         # aft body deck 10.5; the castle stands at 16.5
+BOW_DRUM_KEEL, BOW_DRUM_DECK = -6.5, 8.0   # level with the raked arm pod deck beside it
+DRUM_KEEL_C, DRUM_SHOULDER_C = 5.0, 6.0
+BOW_DRUM_KEEL_C, BOW_DRUM_SHOULDER_C = 3.0, 4.0
 # Drive block: the stern machinery the drive units are sunk into, lower than the aft body.
 DRIVE_FRONT, DRIVE_BACK = -52.0, -73.5
 DRIVE_KEEL, DRIVE_DECK = -10.0, 6.5
@@ -71,23 +80,13 @@ def plan(half, sign=None):
     return ccw([(x, y(r, 1)) for x, r in half]+[(x, y(r, -1)) for x, r in reversed(half)])
 
 
-def revolve_z(kit, name, cx, cy, profile, mat, n=24, bevel=.15):
-    """Faceted body of revolution about a vertical axis: profile [(r, z), ...] bottom to top."""
-    verts, faces = [], []
-    m = len(profile)
-    for r, z in profile:
-        verts += [(cx+r*math.cos(2*math.pi*(i+.5)/n), cy+r*math.sin(2*math.pi*(i+.5)/n), z) for i in range(n)]
-    for a in range(m-1):
-        faces += [(a*n+i, a*n+(i+1) % n, (a+1)*n+(i+1) % n, (a+1)*n+i) for i in range(n)]
-    faces += [tuple(reversed(range(n))), tuple(range((m-1)*n, m*n))]
-    return kit.mesh(name, verts, faces, mat, bevel)
+def sponson_plan(cx, cy, circ, n=DRUM_N):
+    """CCW n-gon about (cx, cy), flats facing fore, aft and athwartships."""
+    return [(cx+circ*math.cos(2*math.pi*(i+.5)/n), cy+circ*math.sin(2*math.pi*(i+.5)/n)) for i in range(n)]
 
 
-# Drum castings: a chamfered foot, a straight girth and a chamfered crown, faceted.
-BOW_DRUM_PROFILE = [(BOW_DRUM_R-2.5, BOW_DRUM_KEEL), (BOW_DRUM_R, BOW_DRUM_KEEL+3.0),
-                    (BOW_DRUM_R, BOW_DRUM_DECK-2.5), (BOW_DRUM_R-1.6, BOW_DRUM_DECK)]
-DRUM_PROFILE = [(DRUM_R-3.0, DRUM_KEEL), (DRUM_R, DRUM_KEEL+4.0), (DRUM_R, DRUM_DECK-3.5),
-                (DRUM_R-2.0, DRUM_DECK)]
+def sponson_apothem(circ, n=DRUM_N):
+    return circ*math.cos(math.pi/n)
 
 
 def arm_section(r_out, zs, s):
@@ -106,8 +105,8 @@ def build(kit):
         arm = loft_x(kit, f'Hull {side} arm',
                      [(x, arm_section(r, zs, s)) for x, r, zs in reversed(ARM_STATIONS)], kit.ochre)
         kit.hull.append(arm)
-        kit.hull.append(revolve_z(kit, f'Hull {side} bow drum', BOW_DRUM_X, y(BOW_DRUM_REL, s),
-                                  BOW_DRUM_PROFILE, kit.rust))
+        kit.hull.append(prism(kit, f'Hull {side} bow drum', sponson_plan(BOW_DRUM_X, y(BOW_DRUM_REL, s), BOW_DRUM_CIRC),
+                              section(BOW_DRUM_KEEL, BOW_DRUM_DECK, BOW_DRUM_KEEL_C, BOW_DRUM_SHOULDER_C), kit.ochre))
     body = prism(kit, 'Hull central body',
                  plan([(BODY_FRONT, 42.5), (37.0, 41.0), (33.0, 39.0), (12.0, 39.0), (9.0, 42.5),
                        (BODY_AFT, 42.5)]),
@@ -127,5 +126,5 @@ def build(kit):
                    section(AFT_DECK-2, CASTLE_DECK, 0, 3.5), kit.ochre)
     kit.hull.append(castle)
     for side, s in SIDES:
-        kit.hull.append(revolve_z(kit, f'Hull {side} aft drum', DRUM_X, y(DRUM_REL, s), DRUM_PROFILE,
-                                  kit.rust, n=28))
+        kit.hull.append(prism(kit, f'Hull {side} aft drum', sponson_plan(DRUM_X, y(DRUM_REL, s), DRUM_CIRC),
+                              section(DRUM_KEEL, DRUM_DECK, DRUM_KEEL_C, DRUM_SHOULDER_C), kit.ochre))
