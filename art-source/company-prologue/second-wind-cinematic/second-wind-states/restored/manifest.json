@@ -589,7 +589,7 @@
   {
    "index": 2,
    "slot": "WS 002",
-   "weapon": "empty",
+   "weapon": "vulcan",
    "size": "SMALL",
    "arc_deg": 210.0,
    "pivot": "Turret 2 pivot",
@@ -599,19 +599,54 @@
     18.6
    ],
    "rest_angle_deg": -90.0,
-   "elevation": null,
-   "elevation_limits_deg": null,
-   "recoil": [],
-   "trained_parts": 0,
+   "elevation": "Turret 2 elevation",
+   "elevation_limits_deg": [
+    null,
+    null
+   ],
+   "recoil": [
+    "Turret 2 recoil 1",
+    "Turret 2 recoil 2"
+   ],
+   "trained_parts": 11,
    "fixed_parts": 1,
    "status": "faded",
-   "present": false,
-   "trainable": false,
+   "present": true,
+   "trainable": true,
    "seized": false,
    "jammed": false,
    "jam_deg": 0.0,
    "wreck_parts": 0,
-   "muzzles": []
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 2 barrel 1 muzzle",
+     "at": [
+      -12.527,
+      -27.636,
+      19.929
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 2 barrel 2 muzzle",
+     "at": [
+      -9.473,
+      -27.636,
+      19.929
+     ],
+     "axis": [
+      0.0,
+      -1.0,
+      0.0
+     ]
+    }
+   ]
   },
   {
    "index": 3,
@@ -643,64 +678,29 @@
   {
    "index": 4,
    "slot": "WS 004",
-   "weapon": "vulcan",
+   "weapon": "empty",
    "size": "MEDIUM",
    "arc_deg": 290.0,
    "pivot": "Turret 4 pivot",
    "pivot_at": [
     36.0,
     -16.0,
-    16.6
+    16.3
    ],
    "rest_angle_deg": -30.0,
-   "elevation": "Turret 4 elevation",
-   "elevation_limits_deg": [
-    null,
-    null
-   ],
-   "recoil": [
-    "Turret 4 recoil 1",
-    "Turret 4 recoil 2"
-   ],
-   "trained_parts": 11,
+   "elevation": null,
+   "elevation_limits_deg": null,
+   "recoil": [],
+   "trained_parts": 0,
    "fixed_parts": 1,
    "status": "faded",
-   "present": true,
-   "trainable": true,
+   "present": false,
+   "trainable": false,
    "seized": false,
    "jammed": false,
    "jam_deg": 0.0,
    "wreck_parts": 0,
-   "muzzles": [
-    {
-     "tag": "barrel 1",
-     "anchor": "Anchor turret 4 barrel 1 muzzle",
-     "at": [
-      41.85,
-      -21.141,
-      17.929
-     ],
-     "axis": [
-      0.866,
-      -0.5,
-      0.0
-     ]
-    },
-    {
-     "tag": "barrel 2",
-     "anchor": "Anchor turret 4 barrel 2 muzzle",
-     "at": [
-      43.377,
-      -18.496,
-      17.929
-     ],
-     "axis": [
-      0.866,
-      -0.5,
-      0.0
-     ]
-    }
-   ]
+   "muzzles": []
   }
  ],
  "sparks": [],
@@ -4312,13 +4312,13 @@
   "sp-turret-2": {
    "centre": [
     -11.0,
-    -20.0,
-    18.913
+    -19.733,
+    19.837
    ],
    "extent": [
-    7.634,
-    7.634,
-    0.625
+    7.636,
+    8.782,
+    2.474
    ],
    "objects": 4
   },
@@ -4339,12 +4339,12 @@
    "centre": [
     36.0,
     -16.0,
-    16.415
+    16.49
    ],
    "extent": [
     13.186,
     13.186,
-    0.23
+    0.38
    ],
    "objects": 2
   },
@@ -4386,9 +4386,9 @@
   "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
  },
  "left_out_objects": 91,
- "objects": 974,
- "polygons": 180340,
- "baked_meshes": 737,
+ "objects": 973,
+ "polygons": 180114,
+ "baked_meshes": 736,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4477,7 +4477,6 @@
    "Starboard running light",
    "Turret steel Engine collars",
    "Turret vulcan metal 0.1107,0.1104,0.1093",
-   "Turret vulcan paint 0.1236,0.0973,0.0737",
    "Turret vulcan plate 0.1401,0.1401,0.1422"
   ],
   "scorch_sites": 0,
@@ -4520,7 +4519,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
-  "geometry_json_sha256": "9b14ba82861cbb66d9c6752db1f13add4c6f24fa8fb1379e0ff300cf6a84b2a2",
+  "geometry_json_sha256": "33bac82f487772e2eececaa1763ff1d8d2e740733aa2a4e9a1396c28aa0bd9e9",
   "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
  },
  "conventions": {
@@ -4531,5 +4530,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "56d0de32c02afa4896643ebbd018e67c1f04b6486c09b4a1bb3db94a539bb4cb"
+ "asset_sha256": "62245cc75b09b4e73f2a150af0f87b0450ba35c9edb900d7f00bb329fca87d5b"
 }
