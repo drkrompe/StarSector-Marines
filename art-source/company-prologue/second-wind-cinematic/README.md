@@ -39,6 +39,7 @@ strings, sounds).
 1. Owner review of the joined C4+C5 (half size, with `review/cinematic-c4c5/2026-10-19_mix-castle-v4_windows/01-c4c5-mix.wav`).
 2. Final mix from the owner's score-desk settings.
 3. Final full-quality renders of C1, C2 (lit), C4 and C5. C5's title is laid on Windows by `c5_title.py`.
+   Started 2026-10-19 night: C2 lit on Windows (`c2_bridge_render.py --resume`, about 25 s a frame, output `build/cinematic/c2-bridge/lit/`), C5 then C1 on the Mac (`builds/c5-final/`, `builds/c1-final/` on Drive). C4 waits on the owner's joined check. Entry and C3 need C3's layer build first (`first-open-sky/build/layers/` is a generated input: run the C3 layer and plate scripts, then `compose_entry.py` and `compose_c3.py` at full rate).
 4. Packaging: the in-game C5 composer still builds an 8 s shot and must take the 40 s one; the new voice files need `processAudio`; then re-export every shot (`cinematic_export.py`) and run `ArrivalCinematicStringsTest`.
 
 **Post-cinematic pictures** (`../yard-stills/`, the Nessa character sheet): Y1 yard
