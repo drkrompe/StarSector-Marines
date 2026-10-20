@@ -431,7 +431,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private static FlankedTank flankedTank(Path modRoot) {
         VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         HullTurretSection turret = HullTurretSection.forHull(type);
-        HullLocations locations = HullLocations.forHull(type, turret);
+        HullLocations locations = HullLocations.of(type, turret);
         float hp = type.maxStructure;
         float armor = type.maxArmor;
         var scratch = new DurabilityModel.Resolution();

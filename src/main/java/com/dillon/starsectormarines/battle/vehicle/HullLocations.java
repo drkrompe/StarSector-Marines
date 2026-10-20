@@ -77,7 +77,11 @@ public final class HullLocations {
 
     /** The locations a hull of {@code type} deploys with, or null when the control is off. */
     public static HullLocations forHull(VehicleType type, HullTurretSection turret) {
-        if (!ENABLED) return null;
+        return ENABLED ? of(type, turret) : null;
+    }
+
+    /** {@code type}'s locations whether or not the switch is on: for a fixture that draws them. */
+    public static HullLocations of(VehicleType type, HullTurretSection turret) {
         float turretArmor = turret != null ? turret.maxArmor() : 0f;
         return new HullLocations(type.maxArmor - turretArmor, type.plateArmor(),
                 type.maxStructure * type.driveStructureShare(), type.driveHitShares(), turret);
