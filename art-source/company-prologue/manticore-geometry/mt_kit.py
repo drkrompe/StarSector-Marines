@@ -128,8 +128,11 @@ class Kit:
         self.plate = livery('Manticore grey plate', (.16, .145, .14), vary=.12, grime=.25)
         self.pale = livery('Manticore pale command plating', (.52, .51, .50), vary=.06, grime=.3)
         self.dark = material('Manticore recess', (.025, .022, .02), .4, .6)
-        self.glass = material('Manticore bridge glazing', (.03, .03, .025), .2, .15,
-                              emission=(1.0, .85, .45), strength=4.0)
+        # Round 14 (owner: the lower-deck windows "read as weird rectangle
+        # lights"): dark, glossy glass that reflects the sky, with only a faint
+        # warm interior glow behind it, never a lit panel.
+        self.glass = material('Manticore bridge glazing', (.012, .016, .02), 0, .04,
+                              emission=(1.0, .78, .5), strength=.3)
         self.vent = material('Manticore heat vent glow', (.05, .03, .02), .3, .5,
                              emission=(1.0, .45, .12), strength=2.5)
         self.hull = []  # objects the downward ray-cast seats parts on
@@ -142,6 +145,22 @@ class Kit:
         if bevel:
             b = obj.modifiers.new('Plate edge chamfer', 'BEVEL')
             b.width, b.segments, b.limit_method = bevel, 1, 'ANGLE'
+        return obj
+
+    def smooth(self, obj, bevel=None, segments=3, angle=30):
+        """Round 14: hard edges get a rounded multi-segment chamfer with hardened
+        normals, and every face below `angle` of its neighbour shades smooth, so a
+        curved form reads as curved at a close view instead of as facets."""
+        me = obj.data
+        me.shade_smooth()
+        me.set_sharp_from_angle(angle=math.radians(angle))
+        b = obj.modifiers.get('Plate edge chamfer') or obj.modifiers.new('Plate edge chamfer', 'BEVEL')
+        if bevel:
+            b.width = bevel
+        b.segments, b.limit_method, b.angle_limit = segments, 'ANGLE', math.radians(angle)
+        b.harden_normals = True
+        w = obj.modifiers.new('Weighted normals', 'WEIGHTED_NORMAL')
+        w.keep_sharp = True
         return obj
 
     def box(self, name, loc, dims, mat, bevel=.15):

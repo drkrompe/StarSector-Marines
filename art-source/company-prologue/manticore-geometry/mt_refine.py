@@ -4,7 +4,7 @@ Owner, round 12: "Manti-core looks good. Let's continue with refined detail
 across the hull and command deck." The round-12 forms are accepted; this
 module only lays detail on them, seated by ray-casts on the hull parts and
 sized in true metres (`kit.mpu`), so it reads at a 91 m ship's scale:
-- Command deck: mullions and a sill on the dome's glazing band, a second mast
+- Command deck: (round 14: the glazing's mullions and sill moved to mt_detail) a second mast
   with a radar bar, yards, whip antennas and beacons, two comms dishes on
   pedestals, two roof access hatches aft of the dome, a walkway either side
   of it with 1.1 m rails, and an aft rail.
@@ -91,46 +91,33 @@ def rcs(kit, name, x, y, s, out):
 
 def command_deck(kit, beacon):
     u = 1/kit.mpu
-    # Glazing: mullions down the band and a sill under it (the band, brow and
-    # first mast are mt_detail's).
-    zg, band = BRIDGE_DECK+2.4, 1.1*u
-    arc = [(-1.6-6.5*(1-math.cos(a)), 9*math.sin(a)) for a in [math.radians(d) for d in range(-60, 61, 12)]]
-    segs = []
-    for i, (x, y) in enumerate(arc):
-        a, b = arc[max(i-1, 0)], arc[min(i+1, len(arc)-1)]
-        tx, ty = b[0]-a[0], b[1]-a[1]
-        ln = math.hypot(tx, ty)
-        nx, ny = ty/ln, -tx/ln          # outward (forward) in plan
-        px, py = x+nx*.35, y+ny*.35
-        segs.append(((px, py, zg), (px, py, zg+band), .1, .16))
-    for a, b in zip(arc, arc[1:]):
-        segs.append(((a[0]+.3, a[1], zg+.04), (b[0]+.3, b[1], zg+.04), .16, .12))
-    struts(kit, 'Bridge glazing mullions', segs, kit.steel)
+    # (Round 14: the glazing's mullions and sill are mt_detail's, recessed into the dome.)
     # Roof: a second mast aft with a radar bar and two yards, whip antennas,
     # two comms dishes on pedestals, and a beacon on each mast.
     roof = hit(kit, -15.5, -5)[0].z
-    mast = [((-15.5, -5, roof), (-15.5, -5, roof+7.5), .22, .22, 8),
-            ((-15.5, -7.2, roof+5.0), (-15.5, -2.8, roof+5.0), .08, .08, 6),
-            ((-15.5, -6.6, roof+6.3), (-15.5, -3.4, roof+6.3), .08, .08, 6)]
+    mast = [((-15.5, -5, roof), (-15.5, -5, roof+7.5), .22, .22, 24),
+            ((-15.5, -7.2, roof+5.0), (-15.5, -2.8, roof+5.0), .08, .08, 12),
+            ((-15.5, -6.6, roof+6.3), (-15.5, -3.4, roof+6.3), .08, .08, 12)]
     for x, y in ((-15.5, 7.5), (-5.0, -7.0), (-5.0, 7.0)):
         z = hit(kit, x, y)[0].z
-        mast += [((x, y, z), (x, y, z+.5), .2, .2, 8), ((x, y, z+.5), (x, y, z+4.2), .06, .06, 6)]
-    struts(kit, 'Bridge aft mast and antennas', mast, kit.steel)
+        mast += [((x, y, z), (x, y, z+.5), .2, .2, 24), ((x, y, z+.5), (x, y, z+4.2), .06, .06, 12)]
+    kit.smooth(struts(kit, 'Bridge aft mast and antennas', mast, kit.steel), .02, 2)
     kit.box('Bridge aft mast radar bar', (-15.5, -5, roof+7.75), (.6, 6.0, .45), kit.plate, .05)
     for k, (x, y, z) in enumerate(((-13, 0, hit(kit, -12, 0)[0].z+5.3), (-15.5, -5, roof+8.15)), 1):
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.3, location=(x, y, z))
-        kit.finish(bpy.context.object, f'Bridge mast beacon {k}', beacon)
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=.3, location=(x, y, z))
+        kit.smooth(kit.finish(bpy.context.object, f'Bridge mast beacon {k}', beacon), .01, 1)
     for k, (x, y) in enumerate(((-7.0, -4.0), (-17.0, 4.5)), 1):
         z = hit(kit, x, y)[0].z
-        struts(kit, f'Bridge comms dish {k} pedestal', [((x, y, z), (x, y, z+1.3), .3, .3, 8)], kit.steel)
-        dish = kit.cylinder(f'Bridge comms dish {k}', (x, y, z+1.45), 1.25, .3, kit.plate, vertices=16, bevel=.04)
+        kit.smooth(struts(kit, f'Bridge comms dish {k} pedestal', [((x, y, z), (x, y, z+1.3), .3, .3, 24)], kit.steel), .04, 2)
+        dish = kit.cylinder(f'Bridge comms dish {k}', (x, y, z+1.45), 1.25, .3, kit.plate, vertices=48, bevel=.06)
+        kit.smooth(dish)
         dish.rotation_euler = (math.radians(35)*(1 if y > 0 else -1), math.radians(-20), 0)
     # Roof access hatches aft of the dome, and walkways with rails either side of it.
     r = HATCH_M*u/2
     deck = BRIDGE_DECK
     for k, y in enumerate((5.5, -5.5), 1):
-        kit.cylinder(f'Bridge roof hatch {k} rim', (-22.5, y, deck+.12), r+.2, .3, kit.steel, vertices=16, bevel=.04)
-        kit.cylinder(f'Bridge roof hatch {k} lid', (-22.5, y, deck+.3), r-.05, .16, kit.plate, vertices=16, bevel=.03)
+        kit.smooth(kit.cylinder(f'Bridge roof hatch {k} rim', (-22.5, y, deck+.12), r+.2, .3, kit.steel, vertices=40, bevel=.05), segments=2)
+        kit.smooth(kit.cylinder(f'Bridge roof hatch {k} lid', (-22.5, y, deck+.3), r-.05, .16, kit.plate, vertices=40, bevel=.04), segments=2)
         kit.box(f'Bridge roof hatch {k} hinge', (-22.5-r, y, deck+.32), (.3, 1.0, .25), kit.steel, .02)
     rail_h, pitch = RAIL_M[0]*u, RAIL_M[1]*u
     rails = []
@@ -139,14 +126,14 @@ def command_deck(kit, beacon):
                 kit.dark, 0)
         xs = [-1.5-pitch*k for k in range(int(22/pitch)+1)]
         for x in xs:
-            rails.append(((x, s*13.7, deck), (x, s*13.7, deck+rail_h), .07, .07, 6))
-        rails += [((xs[0], s*13.7, deck+rail_h), (xs[-1], s*13.7, deck+rail_h), .08, .08, 6),
-                  ((xs[0], s*13.7, deck+rail_h/2), (xs[-1], s*13.7, deck+rail_h/2), .06, .06, 6)]
+            rails.append(((x, s*13.7, deck), (x, s*13.7, deck+rail_h), .07, .07, 12))
+        rails += [((xs[0], s*13.7, deck+rail_h), (xs[-1], s*13.7, deck+rail_h), .08, .08, 12),
+                  ((xs[0], s*13.7, deck+rail_h/2), (xs[-1], s*13.7, deck+rail_h/2), .06, .06, 12)]
     ys = [13.7-pitch*k for k in range(int(27.4/pitch)+1)]
     for y in ys:
-        rails.append(((-24.6, y, deck), (-24.6, y, deck+rail_h), .07, .07, 6))
-    rails.append(((-24.6, ys[0], deck+rail_h), (-24.6, ys[-1], deck+rail_h), .08, .08, 6))
-    struts(kit, 'Bridge rails', rails, kit.steel)
+        rails.append(((-24.6, y, deck), (-24.6, y, deck+rail_h), .07, .07, 12))
+    rails.append(((-24.6, ys[0], deck+rail_h), (-24.6, ys[-1], deck+rail_h), .08, .08, 12))
+    kit.smooth(struts(kit, 'Bridge rails', rails, kit.steel), .015, 1)
 
 
 SEAMS = [  # (name, plan points): port side, mirrored; the forms' plate breaks
