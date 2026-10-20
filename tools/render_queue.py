@@ -56,7 +56,7 @@ import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-20.5"
+VERSION = "2026-10-20.6"
 MACHINES = ("mac", "windows")
 LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
@@ -938,7 +938,11 @@ class Runner:
                 w = claim_winner(self.q.claims(jid))
                 if w and w != self.machine:
                     continue
-            cands.append(order_key(job, cfg, resumed=rec is not None))
+            # A job preempted before it had run preempt_min_run_seconds is owed the
+            # rest of that run: it goes back in ahead of any queued earlier-lane job,
+            # so back-to-back light jobs cannot keep a final swapped out.
+            owed = swap_in_for is None and rec is not None and rec.get("why") == "preempted" and                 float(rec.get("last_ran", 0)) < int(cfg.get("preempt_min_run_seconds", 1200))
+            cands.append((0 if owed else 1,) + order_key(job, cfg, resumed=rec is not None))
         for c in sorted(cands):
             jid = c[-1]
             if dry:
@@ -1150,6 +1154,7 @@ class Runner:
             rec["state"] = "stopped"
             self.log(f"{why}: stopped {jid}; it relaunches later and skips finished frames")
         rec["why"] = why
+        rec["last_ran"] = round(time.time() - rec.get("started_epoch", time.time()), 1)
         rec.pop("swap", None)
         self.save()
 
