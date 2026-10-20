@@ -28,7 +28,11 @@ public record AssaultDefenseSnapshot(
         ACTIVE_CONTACT_RESPONSE,
         SUSPECTED_CONTACT_RESPONSE,
         MOBILE_RESERVE_HELD,
-        NO_REACHABLE_AREA
+        NO_REACHABLE_AREA,
+        GARRISONABLE_MAN,
+        GARRISONABLE_STAND,
+        GARRISONABLE_FALL_BACK,
+        GARRISONABLE_ROOMS
     }
 
     public record AreaState(

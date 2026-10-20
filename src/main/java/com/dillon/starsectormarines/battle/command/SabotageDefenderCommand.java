@@ -18,17 +18,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-/** Defender-side named-site security with fixed posts and a bounded mobile reserve. */
+/**
+ * Defender-side named-site security with fixed posts and a bounded mobile reserve. The reserve, and site posts within
+ * reach of their sites, man the garrisonables believed pressure reaches ({@link MissionGarrisons}).
+ */
 public final class SabotageDefenderCommand implements AutonomousMissionCommand<
-        SabotageDefenderCommandFrame, SabotageDefenseSnapshot> {
+        SabotageDefenderCommandFrame, SabotageDefenseSnapshot>, ReactiveDefenceSource {
 
     static final int MAX_RESPONDERS_PER_SITE = 2;
     private static final float BELIEVED_THREAT_THRESHOLD = 0.1f;
 
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private final Map<Integer, Integer> squadSite = new HashMap<>();
+    private final MissionGarrisons garrisons = new MissionGarrisons();
     private volatile SabotageDefenseSnapshot defenseSnapshot =
             SabotageDefenseSnapshot.empty();
 
@@ -47,6 +52,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "sabotage-defender"; }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
 
     @Override
     public CommandPlan<SabotageDefenseSnapshot> plan(
@@ -129,9 +135,12 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
         }
 
         List<CommandProposal> proposals = new ArrayList<>();
+        Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
         for (CommandSquadState squad : candidates) {
             SquadDirective directive = directives.get(squad.squadId());
             if (directive != null) {
+                offers.put(squad.squadId(), MissionGarrisons.Offer.duty(
+                        directive.markerCellX(), directive.markerCellY()));
                 ObjectiveAssignment assignment = ObjectiveAssignment.defendSite(
                         squad.squadId(), directive.markerCellX(),
                         directive.markerCellY());
@@ -145,6 +154,9 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                     ? Reason.ALL_SITES_COMPLETE : Reason.MOBILE_RESERVE_HELD;
             directives.put(squad.squadId(), directive(squad, -1,
                     Role.RESERVE, reason, null, frame));
+            if (reason == Reason.MOBILE_RESERVE_HELD) {
+                offers.put(squad.squadId(), MissionGarrisons.Offer.reserve());
+            }
             squadSite.remove(squad.squadId());
             if (squad.directive() != null
                     && strategyId().equals(squad.directive().issuer())) {
@@ -156,6 +168,19 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
             }
         }
 
+        Map<Integer, MissionGarrisons.Manning> manning = garrisons.plan(frame,
+                frame.garrisonables(), offers, strategyId());
+        if (!manning.isEmpty()) {
+            proposals = new ArrayList<>(MissionGarrisons.rewrite(proposals, manning, frame.squads()));
+            for (MissionGarrisons.Manning m : manning.values()) {
+                SquadDirective was = directives.get(m.squadId());
+                if (was == null) continue;
+                directives.put(m.squadId(), new SquadDirective(m.squadId(),
+                        was.siteIndex(), was.role(),
+                        Reason.valueOf(m.kind().reason()), m.order().kind(),
+                        m.order().targetCellX(), m.order().targetCellY()));
+            }
+        }
         int reserve = candidates.size() - selected.size();
         Phase phase = activeSites.isEmpty() ? Phase.COMPLETE
                 : !threatened.isEmpty() ? Phase.ALARM_RESPONSE

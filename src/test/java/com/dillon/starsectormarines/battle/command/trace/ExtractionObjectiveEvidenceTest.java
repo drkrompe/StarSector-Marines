@@ -208,6 +208,7 @@ class ExtractionObjectiveEvidenceTest {
                 capture.afterAdvance();
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
             ExtractionObjectiveFacts payload = ExtractionObjectiveDisclosure
                     .freezeNeutral(sim).stream()
                     .filter(row -> "EXTRACTION-01".equals(row.payloadId()))
