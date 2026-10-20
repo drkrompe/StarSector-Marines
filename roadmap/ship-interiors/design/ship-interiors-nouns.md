@@ -7,6 +7,8 @@ Written: 2026-08-26
 
 Updated: 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
 
+Earlier 2026-10-20 — the Second Wind is never lost for good: a loss sends her to a yard, and her absence leaves the company away rather than displaced.
+
 Earlier 2026-10-12 — Second Wind reserves four mech berths within its existing hull envelope; individual repairs restore capacity.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
@@ -844,6 +846,22 @@ choosing out of whatever is left rather than re-homed on their behalf. Moving
 them to the next-best hull automatically would turn the loss into a shrug - the
 player would learn their transport had burned by noticing the room looked
 different.
+
+**The Second Wind is never lost for good** (owner, 2026-10-20). She is the
+start's founding hull and the ship the story is written around, so she is the one
+exception to displacement: a company aboard her that loses her is **away**, not
+displaced, and keeps her as its home until she is back. Selling her is undone and
+the price returned; scuttling her is undone and the salvage taken back out of the
+holds; storing her is the player's choice and left alone. Recovery off a held
+field is always offered. A fight she does not come home from - a rout, a declined
+recovery, a wipe - sends her to a yard: the start port while it has one open to
+the company, else the nearest friendly or independent yard. She comes back the
+same ship, with one more d-mod (none once she carries vanilla's five), a bill of a
+quarter of her hull's value and three weeks in the yard, collected by docking
+there. The people and stores aboard her are still settled as for any sinking;
+only the home survives. While she is away the operations screens are closed and
+say where she is and how to get her back. The rule's costs are named in
+`SecondWindKeep`; the campaign side is `SecondWindKeeper`.
 
 **Losing her and letting her go are different, and the company knows which.**
 To a fleet roster both are the same fact: she is not in it any more. To a

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15acd-b8cb-7c41-98ef-79bbffb2522e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15acd-b8cb-7c41-98ef-79bbffb2522e\\exec-bba92da1-58a6-40d5-adc3-510ca4472920.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\manticore-surface\\generated\\sheet-pods.png",
+    "sha256": "eae105d5b30482f99f8eb06c353a38042dbf3e9fc81ba79a73d9d8bb9423f4ee",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\manticore-surface\\prompts\\sheet-pods.prompt.txt",
+  "promptSha256": "1ec029e4fa3071e597e86f3c218eeb298b50766ae0d99a5226008b6f410cbd73",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every tile, shape, outline and gutter stays exactly where it is\nImage 2: Material/finish only: paint colours, wear, seams and bolts; not layout or shapes\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a Manticore: a squat, heavily armoured low-tech destroyer taken by pirates; the port wing-tip gun nacelle and the bow head), each face seen square-on and drawn alone as a shaded shape on a plain flat mid-blue background:\ntop-left: the port gun nacelle's turret deck from above, bow at the top: a grey-brown gunmetal deck with a square recessed hatch near its aft end, edged on its left by a run of red armour coaming plates;\ntop-right: the port gun nacelle's outboard wall seen from the side: a course of tall red armour plates divided by thin seams;\nbottom-left: the port gun nacelle's blunt nose seen from ahead: red armour plates in a chamfered shield shape, divided by thin seams;\nbottom-right: the bow head deck from above, bow at the top: a grey-brown gunmetal deck with a pointed bow, carrying a small red armoured crossbar across its middle.\nINPUT 2 is the SAME ship, already painted in its pirate livery: it is the finish to match. Use its paint colours, its battered, grimy finish, its seam, bolt and weld treatment and its wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the shapes in INPUT 1 as that working hull surface. This image will be cut into its tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep every tile exactly where it is, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap, notch, slot or thin blue line between plates stays plain background blue. Each separate plate stays a separate plate with the same blue gap round it.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of heavy bolt heads just inside the edges of every armour plate, a few flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: the red areas are a hot scarlet enamel over armour plate, the same scarlet as INPUT 2's armour, a little different in shade from plate to plate; they must not be painted grey, brown, white or bare metal; the grey-brown areas are dark, oily brown-grey gunmetal steel, as INPUT 2's structure, bow head and engine block; Do not repaint any part of a shape another colour: no stripes, no differently coloured patches and no repair plates.\n- The ship is a pirate warship kept fighting long past its service life and never properly repaired. Weathering is heavy but even across each whole shape: faded, dirty enamel, fine chips and scuffs worn through to dark bare steel along plate edges and bolt rows, oily grime in the seams, thin soot streaking. No single concentrated area of wear, no large bare patches, no holes, dents, burns, scorch marks, impact damage or repair plates. No lettering, numbers, markings, decals, graffiti, skulls, flames, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\manticore-surface\\guide\\sheet-pods-guide.png",
+      "sha256": "47bf565c5176b71918b20d583b5bde4c3bf9054e87282c5e4fc46fcd5461ef84",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every tile, shape, outline and gutter stays exactly where it is"
+    },
+    {
+      "path": "art-source\\company-prologue\\manticore-surface\\reference\\finish-reference.png",
+      "sha256": "22c148d858fb0e5d0ce2adfcf01713a6bd935ead876bd3e2e592e60e126e4774",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material/finish only: paint colours, wear, seams and bolts; not layout or shapes"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to reskin the four faces, preserving Image 1’s layout and using Image 2 only for the material finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 47692,
+    "cached_input_tokens": 30592,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 705,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.7
+}

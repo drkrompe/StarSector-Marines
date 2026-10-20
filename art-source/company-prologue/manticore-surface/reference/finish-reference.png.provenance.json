@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15acb-3015-7f32-a74e-f554e3dcf961",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15acb-3015-7f32-a74e-f554e3dcf961\\exec-dc4e0cf6-31ae-431e-98b8-f5a34558d0a9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\manticore-surface\\reference\\finish-reference.png",
+    "sha256": "22c148d858fb0e5d0ce2adfcf01713a6bd935ead876bd3e2e592e60e126e4774",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\manticore-surface\\prompts\\finish-reference.prompt.txt",
+  "promptSha256": "7b4f7acbb54f431971c0476cef115be8b4d28faccbb864623fd3e7c773f687c7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact ship, view, outline and every part; repaint it, never move anything\nImage 2: Paint scheme and colours only; not layout, view or pixel style; never copy its markings\n\nUse case: precise-object-edit / texture reskin of a technical 3D render.\nINPUT 1 is a render of a 3D model of one spacecraft, a Manticore: a squat, heavily armoured low-tech destroyer taken by pirates, built like a bird of prey with a drooping armoured beak at the bow, two short downswept wings ending in boxy gun nacelles, an open girder framework behind each wing's armoured leading edge, a large gun turret sunk in a pit amidships, a low command bridge with a pale dome behind it, and a block of five drive cans at the stern. It is seen from above its port bow quarter on a plain flat mid-blue background. Its flat colours mark which material each surface is: bright red on the combat armour (the beak horns, the wings' leading-edge armour bands and plates, the gun nacelles' outer walls, the hull deck and flanks and the bridge's base tier), laid in courses of thick bolted plates with thin dark seams between them; dark brown-grey gunmetal on the structure (the wing framework, the bow head, the neck, the engine block, the drive cans, the turret decks, the seams and bolt heads); mid-grey on small service plates, lids, dishes and fittings; pale grey-white on the command dome and two small sensor domes; near-black in recesses, vents and bays; small dark windows along the bridge.\nINPUT 2 is the game's top-down pixel sprite of this exact ship in its pirate livery: use it ONLY for the paint scheme and colours. Never copy its view, composition or pixel style, and do NOT paint its skull, its yellow flame flashes or any other marking (they are added separately).\n\nRepaint the ship in INPUT 1 as a real, photographed spacecraft hull in that pirate livery. This image fixes the paint, finish and wear standard for the whole model, so:\n- Geometry must not move. Keep the ship exactly where it is, the same size, same silhouette and outline, same camera, every plate, seam, bolt, hatch, turret, vent, mast, dish, window and opening in exactly the same pixels. Do not zoom, crop, shift, rotate or redraw any shape. Background stays the same plain flat mid-blue with no floor, shadow, stars, text or border.\n- Keep every surface's material, in the pirate scheme of INPUT 2: the red becomes a hot scarlet enamel slapped over the armour by a pirate crew, deeper and dirtier than a factory red, a little different in shade from plate to plate; the gunmetal becomes a dark, oily brown-grey steel; the mid-grey stays a dull grey painted steel; the pale dome stays a dirty off-white paint; recesses stay near black; windows and lamps stay as they are. Do not swap or invent colours, stripes, emblems, graffiti or extra patches.\n- Finish: a warship kept fighting by a pirate crew: hard service and battle, never repaired properly. Semi-matte enamel that is faded, chipped and worn through to dark bare steel along exposed plate edges, corners and bolt rows; grime and oily dirt collected in seams and round fittings; soot streaks round the gun mounts and behind the drives; crisp plate seams and heavy bolt heads round every armour plate. Wear covers the whole ship evenly. No holes, dents, burns, scorch damage, shell hits, lettering, numbers or insignia.\n- Lighting: soft, even, nearly shadowless studio light from above, so every material reads at its true colour. No strong specular highlights, no reflections of an environment, no rim light, no dramatic shading.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\manticore-surface\\guide\\reference-guide.png",
+      "sha256": "00a95dae5fbdec526444e1b43ad6b103ba6629b03094bbee675862fd5edcd5a7",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: the exact ship, view, outline and every part; repaint it, never move anything"
+    },
+    {
+      "path": "art-source\\company-prologue\\manticore-surface\\build\\sprite-livery.png",
+      "sha256": "bc644c9308bf472eebc61e7932c9cbe15238c32c9285d2d3e99f9219e702578c",
+      "dimensions": [
+        616,
+        656
+      ],
+      "mode": "RGB",
+      "role": "Paint scheme and colours only; not layout, view or pixel style; never copy its markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the pirate paint and wear while preserving Image 1’s geometry and composition."
+  ],
+  "usage": {
+    "input_tokens": 67449,
+    "cached_input_tokens": 35072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 951,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 62.5
+}
