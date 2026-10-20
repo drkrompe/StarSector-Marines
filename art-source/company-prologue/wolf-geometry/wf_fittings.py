@@ -39,7 +39,8 @@ def _tree(kit):
     if not _TREE:
         dg = bpy.context.evaluated_depsgraph_get()
         verts, polys = [], []
-        for ob in kit.hull:
+        keel = bpy.data.objects.get('Hull ventral keel')     # not a seating host, but it is the underside
+        for ob in kit.hull+([keel] if keel else []):
             ev = ob.evaluated_get(dg)
             me = ev.to_mesh()
             base = len(verts)
@@ -150,10 +151,13 @@ def seams(kit):
             pts = [side(kit, x, z, s) for z in [-9.0+i*.6 for i in range(25)]]
             strip(kit, f'Hull flank frame seam {side_} {k}', pts, .22, .07, d)
     # Across the decks, clear of the spine and the bridge.
+    import wf_kit
     for k, x in enumerate((8.0, 24.0, -12.0, 38.0), 4):
         clear = 6.2 if x > 30 else 4.4
+        # (the merchant's aft turret sponsons start at |Y| 6.6: the joint stops short of them)
+        outer = 6.4 if x < -6 and wf_kit.VARIANT == 'merchant' else 13.8
         for side_, s in SIDES:
-            pts = [down(kit, x, s*(clear+(13.8-clear)*i/14)) for i in range(15)]
+            pts = [down(kit, x, s*(clear+(outer-clear)*i/14)) for i in range(15)]
             strip(kit, f'Hull deck seam {k} {side_}', pts, .22, .07, d)
     # The prow and the bridge roof.
     pts = [down(kit, 48.2, y) for y in [3.9+.2*i for i in range(7)]]
@@ -286,7 +290,7 @@ def sensors_and_docking(kit):
     # Tie-down cleats along the deck edges.
     cleats = []
     for side_, s in SIDES:
-        for x in (27.0, 20.0, 12.0, 4.0, -3.0, -9.5):
+        for x in (27.0, 20.0, 12.0, 4.0, -3.0):
             p, n = down(kit, x, s*13.2)
             if p is None:
                 continue
