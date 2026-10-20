@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15a64-d751-7993-884c-7d05c717c7d0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15a64-d751-7993-884c-7d05c717c7d0\\call_e519bede60a141e88bb1ef5dc2b734ff.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\wolf-merchant-surface\\generated\\sheet-grey-bridge.png",
+    "sha256": "87db1de0ab2aa35ee65550105208ff9b0f0fc55f3c8f6222149bd2612a4755a7",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\wolf-merchant-surface\\prompts\\sheet-grey-bridge.prompt.txt",
+  "promptSha256": "a8706e972b12f172c2e6c4d07502644e81077ab4e5c879f7eca8fcb80fde6fde",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the sheet of faces to paint (layout authority)\nImage 2: INPUT 2: the same ship already painted: the finish to match (material only)\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (an independent Wolf-class frigate, a fast high-tech warship serving as a merchant convoy's escort), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background. Colour key: \"pale\" is a pale cool blue-grey armour enamel; \"grey\" is a warm mid-grey painted machinery steel.\ntop-left: the bridge roof seen from directly above, bow at the top: a long grey armoured roof block with chamfered edges;\ntop-right: the bridge's raked front and the gun hood's face seen from directly ahead: two angled grey face panels above a broad grey hood face;\nbottom-left: the prow's port flank seen from the side, bow to the left: a grey armoured wedge flank with a heavy jaw plate along its upper edge;\nbottom-right: the prow seen from directly ahead: the two grey jaw faces either side of a gap that is background blue, with thin grey stem faces at their feet;\nINPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its clean working finish, its seam, fastener and wear treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or cut-out in a shape stays plain background blue.\n- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of small fasteners, flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.\n- Keep each region's colour: pale areas stay a pale cool blue-grey enamel (not white, not green); grey areas stay warm mid-grey steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches, no repair plates.\n- Wear: a well-run working escort: light and EVEN across each whole shape: faint scuffs on plate edges, a thin film of grime in the seams. No rust, no soot, no scorch marks, no burns, no dents, no holes, no large stains, and no single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\wolf-merchant-surface\\guide\\sheet-grey-bridge-guide.png",
+      "sha256": "874caf9f1921bec1cc0fc3f9cc074e04578642081b426cc17f77cde8bc2c38fe",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the sheet of faces to paint (layout authority)"
+    },
+    {
+      "path": "art-source\\company-prologue\\wolf-merchant-surface\\reference\\finish-reference.png",
+      "sha256": "d849b8aed48d5b60cebe0be0c45e91ac5e73a3355abadb34f845a001133bbd9e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the same ship already painted: the finish to match (material only)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to paint the supplied face sheet, preserving its layout and matching the reference’s steel finish."
+  ],
+  "usage": {
+    "input_tokens": 56557,
+    "cached_input_tokens": 2432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 685,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.5
+}

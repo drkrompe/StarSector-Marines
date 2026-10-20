@@ -38,6 +38,19 @@ public final class MechSections {
 
     private static final int TORSO = MechSection.TORSO.ordinal();
 
+    /**
+     * Whether the torso's armor splits into a front plate and a rear one ({@code TORSO_REAR}).
+     * {@code -Dbattle.mech.torsoRear=false} is the control: one torso plate on every arc.
+     */
+    public static final boolean TORSO_REAR =
+            Boolean.parseBoolean(System.getProperty("battle.mech.torsoRear", "true"));
+
+    /**
+     * The rear plate as a share of the torso's armor, held on top of it: thin, where the reactor and its cooling
+     * sit. The front keeps the whole torso plate, so a mech shot head-on lasts as long as it did.
+     */
+    public static final float REAR_SHARE = .35f;
+
     private final MechBodyPlan plan;
     private final boolean[] fitted = new boolean[MechSection.VALUES.length];
     private final float[] armor = new float[MechSection.VALUES.length];
@@ -46,6 +59,8 @@ public final class MechSections {
     private final float[] maxStructure = new float[MechSection.VALUES.length];
     private final boolean[] destroyed = new boolean[MechSection.VALUES.length];
     private final MechWeaponComponent[] lostMounts = new MechWeaponComponent[MechMountSlot.values().length];
+    private float rearArmor;
+    private float maxRearArmor;
 
     /**
      * Divides the chassis pools as they stand across the sections. Current and maximum values
@@ -72,6 +87,10 @@ public final class MechSections {
             this.armor[i] = armor * share;
             this.maxArmor[i] = maxArmor * share;
         }
+        if (TORSO_REAR) {
+            rearArmor = this.armor[TORSO] * REAR_SHARE;
+            maxRearArmor = this.maxArmor[TORSO] * REAR_SHARE;
+        }
     }
 
     public MechBodyPlan plan() {
@@ -89,6 +108,15 @@ public final class MechSections {
 
     public float maxArmor(MechSection section) {
         return maxArmor[section.ordinal()];
+    }
+
+    /** The torso's rear plate: what a hit from behind meets. Zero under the control. */
+    public float rearArmor() {
+        return rearArmor;
+    }
+
+    public float maxRearArmor() {
+        return maxRearArmor;
     }
 
     public float structure(MechSection section) {
@@ -126,9 +154,16 @@ public final class MechSections {
         return sum;
     }
 
+    /** Armor at full across every section and the rear plate: the chassis ARMOR column's maximum. */
+    public float totalMaxArmor() {
+        float sum = maxRearArmor;
+        for (float a : maxArmor) sum += a;
+        return sum;
+    }
+
     /** Armor left across every section. */
     public float totalArmor() {
-        float sum = 0f;
+        float sum = rearArmor;
         for (float a : armor) sum += a;
         return sum;
     }
@@ -196,12 +231,26 @@ public final class MechSections {
     public void resolve(MechSection section, float damage, float penetration, float mitigationSoak,
                         float armorRating, float torsoRating, float torsoPlate,
                         DurabilityModel.Resolution scratch, Hit out) {
+        resolve(section, damage, penetration, mitigationSoak, armorRating, torsoRating, torsoPlate, false,
+                scratch, out);
+    }
+
+    /**
+     * As above, with {@code fromBehind} choosing the torso's plate: a hit the torso's arcs read as
+     * rear meets the rear plate ({@link #rearArmor()}), every other the front. The torso's structure
+     * is one pool behind both.
+     */
+    public void resolve(MechSection section, float damage, float penetration, float mitigationSoak,
+                        float armorRating, float torsoRating, float torsoPlate, boolean fromBehind,
+                        DurabilityModel.Resolution scratch, Hit out) {
         int i = section.ordinal();
         float torsoBefore = structure[TORSO];
+        boolean rear = fromBehind && TORSO_REAR;
         if (i == TORSO) {
+            float plateBefore = rear ? rearArmor : armor[TORSO];
             DurabilityModel.resolvePlatedInto(damage, penetration, mitigationSoak,
-                    armor[TORSO], torsoRating, torsoPlate, torsoBefore, scratch);
-            armor[TORSO] = Math.max(0f, armor[TORSO] - scratch.armorDamage());
+                    plateBefore, torsoRating, torsoPlate, torsoBefore, scratch);
+            setTorsoArmor(rear, Math.max(0f, plateBefore - scratch.armorDamage()));
             structure[TORSO] = Math.max(0f, torsoBefore - scratch.structureDamage());
             boolean torsoNowDestroyed = torsoBefore > 0f && structure[TORSO] <= 0f;
             if (torsoNowDestroyed) destroyed[TORSO] = true;
@@ -238,11 +287,12 @@ public final class MechSections {
         float torsoArmorDamage = 0f;
         float spill = 0f;
         if (overflow > 0f && torsoBefore > 0f) {
-            DurabilityModel.resolvePlatedInto(overflow, penetration, 0f, armor[TORSO], torsoRating, torsoPlate,
+            float plateBefore = rear ? rearArmor : armor[TORSO];
+            DurabilityModel.resolvePlatedInto(overflow, penetration, 0f, plateBefore, torsoRating, torsoPlate,
                     torsoBefore, scratch);
             torsoArmorDamage = scratch.armorDamage();
             spill = scratch.structureDamage();
-            armor[TORSO] = Math.max(0f, armor[TORSO] - torsoArmorDamage);
+            setTorsoArmor(rear, Math.max(0f, plateBefore - torsoArmorDamage));
             structure[TORSO] = Math.max(0f, torsoBefore - spill);
         }
         boolean sectionNowDestroyed = sectionBefore > 0f && structure[i] <= 0f;
@@ -251,6 +301,11 @@ public final class MechSections {
         if (torsoNowDestroyed) destroyed[TORSO] = true;
         out.set(section, sectionArmorDamage + torsoArmorDamage, onSection, spill, mitigated,
                 sectionNowDestroyed, torsoNowDestroyed);
+    }
+
+    private void setTorsoArmor(boolean rear, float value) {
+        if (rear) rearArmor = value;
+        else armor[TORSO] = value;
     }
 
     /** A frozen copy of the sections, for campaign writeback after the battle. */
@@ -262,6 +317,9 @@ public final class MechSections {
             structureFraction[i] = maxStructure[i] > 0f ? structure[i] / maxStructure[i] : 0f;
             armorFraction[i] = maxArmor[i] > 0f ? armor[i] / maxArmor[i] : 0f;
         }
+        // The campaign keeps one torso plate: the front and rear together.
+        float torsoMax = maxArmor[TORSO] + maxRearArmor;
+        armorFraction[TORSO] = torsoMax > 0f ? (armor[TORSO] + rearArmor) / torsoMax : 0f;
         return new Report(plan.id(), fitted.clone(), structureFraction, armorFraction,
                 destroyed.clone(), lostMounts.clone());
     }

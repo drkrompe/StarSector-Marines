@@ -110,6 +110,33 @@ ship, so this is 18% under the estimate, outside its +-8%. The owner decides
 between this and an override (as the Colossus has). The driver re-measures on every build and
 fails if the union drifts more than 2% from ship_scale.HULLS.
 
+Round 7, the detail pass ("Next it needs plausible detail pass"): wf_fittings.py
+adds, read off both sprites and sized for a 72 m ship: panel seams draped over
+the lofted decks, flanks, prow and bridge roof; deck hatches, a crew door in
+each neck flank (1.0 x 2.2 m) and flank maintenance panels; the bridge's visor,
+glazing frames, comms dish, whip antennas, sensor box and roof hatch; radiator
+wells and heat-exchanger louvres on the drive section; RCS clusters at the bow,
+wing roots and stern; a ventral sensor blister, a neck mast, a ventral docking
+collar with two white docking lights, a white masthead on the bridge mast and
+deck tie-down cleats; conduits along the wing roots; and, on the pirate,
+welded patch plates on the jaws, neck and engine flanks. Nothing on the flanks
+stands outside the plan: RCS blocks are sunk in the skin, panels are flush,
+and fittings sit below the belt. IoU 0.9007 (0.9013 for the round 6 hull
+alone); volume and scale unchanged; the antenna whips raise the overall height
+to 40 units (30.6 m). The new prow, jaws, hood and bridge carry their own
+Codex tiles in each livery (grey sheets 'grey-tops' and 'grey-bridge').
+Finished-model fidelity at the close view (coordinator, round 7): the bake
+shades every hull mesh smooth with sharp creases past 30 degrees and bakes
+area-weighted normals, so lofted and round forms show no facets while chamfers
+and the prow's facets stay crisp; every fitting without a bevel gets a small
+rounded one (the skinned hull objects keep their topology, the turret kit's
+parts are the kit's); round parts have a side-count floor by size; the
+glazing is dark non-emissive glass set back inside a steel frame with a
+mullion between every pane; the dish is a parabolic reflector with feed and
+struts on a hub, trunnion and turntable; masts are tapered and round; every
+lamp is a smooth lens in a bezel turned to the hull. About 58k polygons
+(pirate), 67k (merchant).
+
 Variants
 --variant merchant builds the convoy's own Wolf on the same hull and scale:
 no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
@@ -141,7 +168,7 @@ under starsector/builds/wolf-p/<short-commit>/.
 
 Files
 build_wolf.py (driver), wf_kit.py, wf_hull.py, wf_engines.py, wf_mounts.py,
-wf_lights.py, wf_detail.py (one module per area), compose_review.py (IoU, shot extents,
+wf_lights.py, wf_detail.py, wf_fittings.py (one module per area), compose_review.py (IoU, shot extents,
 review sheet), compare_lineup.py (true-scale lineup against the Hound and
 Colossus), geometry.json (identity, slots, engines, turrets, lamps, scale
 record, asset contract, IoU, shot extents).

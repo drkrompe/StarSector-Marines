@@ -10,4 +10,4 @@ Read `direct-control-nouns.md` before changing these stories.
 | --- | --- | --- |
 | `controlled-marine.md` | LIVE ACCEPTANCE | Enter, play, and leave one exact Marine infantry body with WASD, mouse aim, and primary fire. |
 | `direct-control-live-acceptance.md` | LIVE ACCEPTANCE | Validate feel, AI handback, combat parity, and lifecycle in a real battle before wider availability. |
-| `damage-doll.md` | IN PROGRESS | Line-art side and top doll for mechs and vehicles, each location coloured by its state. |
+| `damage-doll.md` | IN PROGRESS | Line-art front and rear doll for mechs and vehicles, each location coloured by its state; live pass left. |

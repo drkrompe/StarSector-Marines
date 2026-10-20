@@ -27,7 +27,7 @@ import java.util.function.UnaryOperator;
  * they are stripped here before parsing. Every {@code #} in it begins a comment
  * line, so this is a line filter rather than a parser.
  */
-final class ModStrings {
+public final class ModStrings {
 
     private ModStrings() {}
 
@@ -37,7 +37,7 @@ final class ModStrings {
     }
 
     /** The copy lookup for a stated mod root. An unknown key reads as itself. */
-    static UnaryOperator<String> fromDisk(Path modRoot) {
+    public static UnaryOperator<String> fromDisk(Path modRoot) {
         Map<String, String> values = read(modRoot.resolve("data/strings/strings.json"));
         return key -> values.getOrDefault(key, key);
     }

@@ -365,6 +365,7 @@ if not args.no_save:
                               anchor=f"Weapon {s['id']} anchor", muzzles=ls_mounts.MUZZLES.get(s['id'], []))
                          for s in ls_mounts.SLOTS],
         'turrets': ls_mounts.TURRETS,
+        'hardpoints': ls_mounts.HARDPOINT_RECORDS,
         'engines': ls_engines.records(),
         'running_lights': ls_lights.records(),
         'asset': {'file': 'lasher.blend', 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',

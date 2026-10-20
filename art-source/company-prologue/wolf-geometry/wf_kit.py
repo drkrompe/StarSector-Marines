@@ -72,8 +72,9 @@ class Kit:
             self.red = material('Wolf pirate crimson armour', (.30, .045, .04), .2, .55, wear=.25)
         self.steel = material('Wolf grey machinery', (.16, .15, .14), .6, .45, wear=.2)
         self.dark = material('Wolf recess', (.022, .017, .016), .4, .6)
-        self.glass = material('Wolf bridge glazing', (.03, .035, .04), .2, .12,
-                              emission=(.75, .85, 1.0), strength=2.5)
+        # Dark armoured glass: a cool tint and a hard reflection, no glow of its own
+        # (the sprite's white canopy and lit oval are the glass catching the light).
+        self.glass = material('Wolf bridge glazing', (.012, .016, .02), .0, .06)
         self.vent = material('Wolf heat vent glow', (.05, .03, .02), .3, .5,
                              emission=(1.0, .5, .15), strength=3.0)
         self.lamp = material('Wolf hull lamp amber', (.2, .18, .1), 0, .4,
@@ -99,6 +100,9 @@ class Kit:
         return self.finish(obj, name, mat, bevel)
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
+        # Never a visible polygon at the close view: a floor on the side count by size
+        # (the faces are shaded smooth, with the caps kept sharp, when the build bakes).
+        vertices = max(vertices, 16 if radius < .15 else 24 if radius < .6 else 40 if radius < 2.5 else 64)
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':

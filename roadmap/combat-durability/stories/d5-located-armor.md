@@ -2,8 +2,9 @@
 
 > A flanked tank should lose its side, not a share of everything.
 
-Status: PLANNED
+Status: IN PROGRESS — implemented; mech rear plate on, vehicle plates behind a default-off switch awaiting an owner call on the free pincer
 Written: 2026-10-20
+Updated: 2026-10-20 — flank paradox diagnosed: a held flank dies much faster; a free tank reverses out of the pincer and strands the side plates
 
 Read `combat-durability-nouns.md` and `mechs-nouns.md` before implementing this story.
 The damage doll that draws these locations is `damage-doll.md`; the location
@@ -60,11 +61,70 @@ none), structure fraction (or none), destroyed.
 ## Constraints
 
 - Allocation-free and deterministic damage path, as today.
-- `-Dbattle.vehicle.locatedArmor=false` is the control: one hull pool, as today.
+- Sizing: the FRONT plate holds the whole of the old hull pool (and TORSO the
+  whole torso armor), with the side, rear and drive held on top of it, so a
+  machine shot head-on lasts as long as it did. Splitting the old pool instead
+  made every head-on fight about 35% shorter: a broad nerf, not a flank bonus.
+  Damage with no origin meets the FRONT plate and never the drive; letting it
+  pick a plate walked unattributed damage across all four.
+- `-Dbattle.vehicle.locatedArmor` switches vehicle locations; it is **off** by
+  default until the reading below is answered. `-Dbattle.mech.torsoRear=false`
+  is the control for the mech rear plate, which is on.
 - Balance on `armorMatchup` against its own control, including
   `-PdefenderFacing=90|180`, and on the hard-target time-to-kill harness. Total
   armor and structure are unchanged; only where they sit changes.
 - Existing saves need not load (owner, 2026-10-20).
+
+## Reading (armorMatchup, 2026-10-20)
+
+Mean TTK, located / control, eight seeds, breakthrough tank / heavy-gun tank.
+
+**Two Hounds either side of a free tank (`-PattackerSpread=180`): 60.5 / 44.2 s
+and 65.8 / 28.6 s.** Not a reader of the ARMOR column: mech target choice, duel
+band and mount order read the armor *rating* only. A per-hit trace says what
+happens. The tank turns to one Hound and reverses out of the pincer, backing past
+the other, so both Hounds end on its front; in every traced fight the rear plate
+was never hit and the front was always stripped to zero. Every kill goes through
+the front plate, which holds the whole old pool, so the side plates the Hounds
+stripped while the tank turned are spent on top of the control's armor: about
+780 armor chewed against the control's 550. That is located armor working — a
+hull that turns its face spreads the damage — and with the plates held on top of
+the front it makes any fight the hull un-flanks longer than the one-pool control.
+
+**A held flank dies much faster.** With the defending hull's duel driving off
+(`-Dbattle.vehicle.duelRange=false`), so it keeps the facing it was set down
+with, two Hounds kill it from the rear in 14.8 / 29.7 s and 15.2 / 25.5 s, from
+the side in 32.6 / 45.8 s and 33.3 / 48.2 s, and head-on in 57.2 / 67.3 s and
+65.3 / 51.6 s (near parity, as the sizing intends). One Hound or one Bulwark
+loses to either tank on every facing, so those rows time the tank's kill, not the
+hull's.
+
+Two levers measured on the free pincer, neither enough alone:
+
+- Thinner flanks (plates 1 / .25 / .25 / .15): 54.5 and 52.3 s, head-on rows
+  unchanged (the side plates are never reached head-on). The drive pool made no
+  measurable difference.
+- A mech dueling a plated hull stepping to an in-band cell on a weaker face
+  (`MechDuelRange`, experiment, not kept): 57.5 and 58.9 s, within noise. The
+  tank keeps moving, so a step chosen against its present facing is stale by
+  arrival.
+
+Owner call before the default flips — what the free pincer should read:
+
+1. Accept it: a tank that faces its attackers is meant to outlast the one-pool
+   control, and the flank pays only while held. Flip as is, perhaps with the
+   thinner flanks. Multi-attacker fights on tanks get 30–130% longer.
+2. Make side and rear plates windows onto the front pool: a flank hit spends the
+   facing plate and the same armor from the front, so nothing is stranded,
+   head-on stays exact and a stripped side still opens the hull. This breaks the
+   acceptance line that a left-only tank keeps FRONT full.
+3. Hold the pincer by behaviour: attackers that re-establish a flank against a
+   moving hull, or a tank that does not reverse into its second attacker. Real
+   AI work in both duel rules.
+
+Before flipping, the infantry special gate (`TacticalScoring.projectedResolvedDamage`,
+`shouldCommitSpecial`) should read the plate facing the shooter and the hull's own
+structure rather than the summed columns; with plates on it over-reads both.
 
 ## Acceptance
 

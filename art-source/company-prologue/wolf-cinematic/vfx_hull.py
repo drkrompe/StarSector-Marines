@@ -19,7 +19,8 @@ ENERGY_COLOURS are the vanilla glow colours in linear light: ion cannon
 (100, 200, 255), mining blaster (255, 100, 100).
 
 Lamps: the two amber neck lamps the sprite draws (steady, masthead role), the
-red and green pod-tip lights, the white stern light.
+red and green pod-tip lights, the white stern light, and the round 7 fittings'
+white masthead on the bridge mast and two white ventral docking lights.
 """
 import json
 import os
