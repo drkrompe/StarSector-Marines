@@ -42,8 +42,8 @@ final class BattleDirectControlOverlay {
     static final float OCCLUDING_ALPHA = .3f;
     static final String ACTIONS_COMPONENT = "battle-direct-control-actions";
     static final String ACTIONS_COMPONENT_PATH = "data/ui/components/battle/" + ACTIONS_COMPONENT + ".mlx";
-    static final float ACTIONS_WIDTH = 154f;
-    static final float ACTIONS_HEIGHT = 26f;
+    static final float ACTIONS_WIDTH = 312f;
+    static final float ACTIONS_HEIGHT = 24f;
     static final float DOCUMENT_WIDTH = 170f;
     static final float DOCUMENT_HEIGHT = 26f;
     private static final float SELECTION_GAP = 4f;

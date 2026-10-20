@@ -701,7 +701,7 @@ recovery or burst state without claiming legal aim or barrel clearance. A Mech
 offers all direct mounts or one installed hardpoint through buttons and keys
 1–4; indirect mounts are read-only and retain their unavailability in manual
 control. The selection projects the battle-owned session and does not edit
-equipment or AI doctrine. Exit and Pause occupy separate top-right buttons. The
+equipment or AI doctrine. Exit and Pause sit at top right as boxless keycap controls (TAB, SPACE); Space pauses the whole battle screen. The
 world retains health bars, the controlled bracket, and the aim crosshair. When
 world-edge clamping puts the body under a corner panel, that panel fades and
 passes the pointer through instead of moving.

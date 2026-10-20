@@ -63,8 +63,11 @@ final class BattleDirectControlHudModel {
         weaponsProps.put("title", signal("weaponsTitle"));
         groups = reactor.signal(List.of());
         weaponsProps.put("groups", groups);
+        actionsProps.put("exitKey", label("KeyTab"));
         actionsProps.put("exitLabel", signal("exitLabel"));
+        actionsProps.put("pauseKey", label("KeySpace"));
         actionsProps.put("pauseLabel", signal("pauseLabel"));
+        actionsProps.put("pauseClasses", signal("pauseClasses"));
         actionsProps.put("exitAction", exit);
         actionsProps.put("pauseAction", pause);
     }
@@ -114,7 +117,8 @@ final class BattleDirectControlHudModel {
                     ? " background-color: #8a7440;" : ""));
             set("weaponsTitle", label(mech ? "WeaponGroups" : ship ? "ShipSystems" : "Weapons"));
             set("exitLabel", copy.apply(exitLabelKey));
-            set("pauseLabel", copy.apply(paused ? "battleSpeed1x" : "battleSpeedPause"));
+            set("pauseLabel", label(paused ? "Paused" : "Pause"));
+            set("pauseClasses", paused ? "action action-pause action-paused" : "action action-pause");
             List<WeaponGroup> next = mech ? mechGroups(snapshot, selected) : otherGroups(snapshot, ship);
             groups.set(List.copyOf(next));
             StringBuilder key = new StringBuilder(carrier.name()).append(armored).append(stamina)

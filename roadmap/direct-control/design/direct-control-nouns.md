@@ -82,8 +82,11 @@ Marine's STAMINA. A Mech's section doll takes the corner itself and the status
 stands beside it. Filled lengths reflect the exact body's remaining fractions;
 armor depletion empties its bar independently of health, and an armorless body
 has no armor row. A **weapon-groups panel** at bottom right lists equipment under
-the button that fires it (see Mouse buttons and weapon groups). Separate
-top-right buttons provide return-to-command and pause/resume. Both panels size
+the button that fires it (see Mouse buttons and weapon groups). At top right,
+boxless keycap controls read `[TAB] COMMAND` and `[SPACE] PAUSE`, beside the HELP
+tab; while the battle is paused the pause control turns amber and reads PAUSED.
+Space pauses and resumes anywhere on the battle screen, command mode included, and
+resumes at the speed the battle had before the pause. Both panels size
 to their rows and hug the bottom edge, and like the game's own combat HUD they have no box: text and bars float over the battle, and only the selected weapon row carries a wash. Weapon rows distinguish the authored firing
 pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or

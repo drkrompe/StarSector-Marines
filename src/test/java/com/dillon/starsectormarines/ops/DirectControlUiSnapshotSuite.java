@@ -126,6 +126,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 composite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
         artifacts.add(new SnapshotArtifact("active-mech-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
+        artifacts.add(new SnapshotArtifact("active-mech-paused-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, true)));
         artifacts.add(new SnapshotArtifact("mech-sections-states-1920x1080-ui100.png",
                 sectionStates(renderer, context.modRoot())));
         return artifacts;
