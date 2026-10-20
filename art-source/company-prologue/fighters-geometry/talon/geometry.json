@@ -59,13 +59,13 @@
   },
   "parked_check": {
     "feet": [
-      "Hull port runner fore pad",
-      "Hull port runner aft pad",
-      "Hull starboard runner fore pad",
-      "Hull starboard runner aft pad"
+      "Hull port runner fore shoe",
+      "Hull port runner aft shoe",
+      "Hull starboard runner fore shoe",
+      "Hull starboard runner aft shoe"
     ],
     "deck_plane_units": {
-      "z0": -3.1,
+      "z0": -3.096,
       "dz_dx": 0.0,
       "dz_dy": 0.0
     },
@@ -73,9 +73,9 @@
     "stance_roll_deg": 0.0,
     "foot_level_spread_m": 0.0,
     "lowest_other_part": "Hull port runner",
-    "deck_clearance_m": 0.044,
+    "deck_clearance_m": 0.026,
     "lowest_body_part": "Engine 1 collar rib 1",
-    "body_clearance_m": 0.39
+    "body_clearance_m": 0.388
   },
   "sprite": {
     "size": [
@@ -103,7 +103,174 @@
       22.03,
       22.0,
       5.26
+    ],
+    "note": "landed (gear down); flight_* is gear up",
+    "flight_min": [
+      -9.0,
+      -10.0,
+      -2.52
+    ],
+    "flight_max": [
+      13.03,
+      12.0,
+      2.16
+    ],
+    "flight_size": [
+      22.03,
+      22.0,
+      4.68
     ]
+  },
+  "landing_gear": {
+    "control": "Talon control",
+    "knob": "gear_down",
+    "knob_meaning": "0 stowed with the doors shut (flight); 1 deployed, standing on the parked deck",
+    "saved_knob": 0.0,
+    "spans": {
+      "doors": [
+        0.0,
+        0.3
+      ],
+      "legs": [
+        0.25,
+        1.0
+      ],
+      "claws": [
+        0.85,
+        1.0
+      ]
+    },
+    "hinges": [
+      {
+        "name": "Hull port runner fore link hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": -43.048,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port runner carriage hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 43.048,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port runner aft link hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": -43.048,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard runner fore link hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": -43.048,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard runner carriage hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 43.048,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard runner aft link hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": -43.048,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      }
+    ],
+    "units": [
+      {
+        "name": "Hull port runner",
+        "hinges": [
+          "Hull port runner fore link hinge",
+          "Hull port runner aft link hinge"
+        ],
+        "bay_in": [
+          "Hull port skid fairing",
+          "Engine 1 port drive drum",
+          "Hull gun nacelle",
+          "Hull aft body"
+        ],
+        "doors": [],
+        "liners": [
+          "Hull port runner slot liner 1"
+        ],
+        "stowed_floor_z": -2.3
+      },
+      {
+        "name": "Hull starboard runner",
+        "hinges": [
+          "Hull starboard runner fore link hinge",
+          "Hull starboard runner aft link hinge"
+        ],
+        "bay_in": [
+          "Hull starboard skid fairing",
+          "Engine 2 starboard drive drum",
+          "Hull cockpit pod",
+          "Hull aft body"
+        ],
+        "doors": [],
+        "liners": [
+          "Hull starboard runner slot liner 1"
+        ],
+        "stowed_floor_z": -2.3
+      }
+    ],
+    "clash_sweep": {
+      "knobs": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        0.95,
+        1.0
+      ],
+      "clashes": [],
+      "stowed_outside_m": [],
+      "rule": "no moving part through anything but its own bay solids and liners, no leg through its own doors, and stowed every leg vertex between the skin's underside and top"
+    },
+    "pose_reference": "fg_gear.Gear.pose(k); the drivers on each hinge evaluate the same expression",
+    "notes": "Retractable since 2026-10-20 (fg_gear). Each runner hangs on two equal wedge links, a parallelogram, so it stays level: stowed (gear_down 0) the links lie flat and the runner rises 0.43 m and rides 0.17 m forward, its wear shoes flush with the drum keel aft and with the floor of a skid fairing forward, a keel strake under each pod whose trough the runner fills; the upturned toe becomes the fairing's chin. The slot runs on under the drum as a dark strip, and the drums' collar ribs are notched where it crosses them. No doors: the runner's own sole closes the trough. The soles stand where they did at gear_down 1; the runner sole now clears the deck by 2.8 cm on four wear shoes (the old puck pads are gone)."
   },
   "root": {
     "name": "Talon root",
@@ -337,9 +504,9 @@
     }
   },
   "object_count": {
-    "meshes": 102,
-    "empties": 7,
-    "pass2_detail_meshes": 84
+    "meshes": 114,
+    "empties": 14,
+    "pass2_detail_meshes": 96
   },
   "silhouette": {
     "iou": 0.9767,

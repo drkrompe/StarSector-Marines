@@ -1,7 +1,9 @@
-THUNDER | geometry: 149 meshes, 126 pass-2 detail
-detail meeting detail within one fitting: 114 pairs (counted, not listed)
+THUNDER | geometry: 182 meshes, 159 pass-2 detail
+detail meeting detail within one fitting: 160 pairs (counted, not listed)
 detail crossing detail across fittings: 0 pairs
-floating detail (touches nothing): 0
+floating detail (touches nothing): 2
+    Hull port main gear door port
+    Hull starboard main gear door starboard
 body crossing body (pass 1): 28 pairs
     Canopy glass | Hull central fuselage
     Engine 1 aft-facing bell | Engine 1 dark throat
@@ -87,8 +89,20 @@ detail bedded into body (part: body parts it meets):
     Hull lance dorsal grille slat 9: Hull starboard lance
     Hull lance dorsal grille well: Hull starboard lance
     Hull lance tip slot: Hull starboard lance
-    Hull nose gear drag brace: Hull central fuselage, Hull delta wing
-    Hull nose gear strut: Hull central fuselage, Hull delta wing
+    Hull nose gear axle: Hull delta wing
+    Hull nose gear bay liner: Hull central fuselage, Hull delta wing
+    Hull nose gear door port: Hull delta wing
+    Hull nose gear door starboard: Hull delta wing
+    Hull nose gear hinge pin: Hull port gun block
+    Hull nose gear trailing arm: Hull delta wing
+    Hull nose gear trunnion: Hull port gun block
+    Hull nose gear upper sleeve: Hull port gun block
+    Hull nose gear wheel port: Hull delta wing
+    Hull nose gear wheel port hub: Hull delta wing
+    Hull nose gear wheel port hub cap: Hull delta wing
+    Hull nose gear wheel starboard: Hull delta wing
+    Hull nose gear wheel starboard hub: Hull delta wing
+    Hull nose gear wheel starboard hub cap: Hull delta wing
     Hull port flank intake slat 1: Hull delta wing
     Hull port flank intake well: Engine 1 port pod, Hull delta wing
     Hull port gun block vent slat 1: Hull port gun block
@@ -101,17 +115,21 @@ detail bedded into body (part: body parts it meets):
     Hull port inner prong band 1: Hull port inner prong
     Hull port inner prong band 2: Hull port inner prong
     Hull port inner prong cap: Hull port inner prong tip
-    Hull port main gear drag brace: Engine 1 port pod
-    Hull port main gear piston: Engine 1 port pod
-    Hull port main gear strut: Engine 1 port pod
+    Hull port main gear bay liner: Engine 1 port pod
+    Hull port main gear damper: Hull delta wing
+    Hull port main gear door starboard: Engine 1 port pod
+    Hull port main gear trunnion: Hull delta wing
+    Hull port main gear upper sleeve: Hull delta wing
     Hull starboard flank intake slat 1: Hull delta wing
     Hull starboard flank intake slat 2: Hull delta wing
     Hull starboard flank intake slat 3: Hull delta wing
     Hull starboard flank intake slat 4: Hull delta wing
     Hull starboard flank intake well: Engine 2 starboard pod, Hull delta wing
-    Hull starboard main gear drag brace: Engine 2 starboard pod
-    Hull starboard main gear piston: Engine 2 starboard pod
-    Hull starboard main gear strut: Engine 2 starboard pod
+    Hull starboard main gear bay liner: Engine 2 starboard pod
+    Hull starboard main gear damper: Hull delta wing
+    Hull starboard main gear door port: Engine 2 starboard pod
+    Hull starboard main gear trunnion: Hull delta wing
+    Hull starboard main gear upper sleeve: Hull delta wing
     Weapon WS 003 launch cell 1: Hull missile bay recess
     Weapon WS 003 launch cell 1 hatch: Hull missile bay recess
     Weapon WS 003 launch cell 2: Hull missile bay recess
