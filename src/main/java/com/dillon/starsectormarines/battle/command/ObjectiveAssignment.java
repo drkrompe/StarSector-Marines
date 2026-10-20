@@ -194,6 +194,20 @@ public record ObjectiveAssignment(
         return kind == AssignmentKind.DEFEND_AREA && occupyRunId >= 0 && targetRadiusCells >= 1;
     }
 
+    /**
+     * Whether this is a hold of a building scoped to its envelope: a squad sent by a commander to man the windows and
+     * doors of one building as a garrisonable ({@link #holdEnvelope}). Executed as any hold of the node, so the squad
+     * stands to at the apertures under pressure and walks the rooms when they are quiet or entered.
+     */
+    public boolean isEnvelope() {
+        return kind == AssignmentKind.HOLD_NODE && targetNode != null && targetCellX >= 0 && targetRadiusCells >= 1;
+    }
+
+    /** Whether this order mans a garrisonable of either kind: a stretch of a run or a building's envelope. */
+    public boolean mansPlace() {
+        return isGarrison() || isEnvelope();
+    }
+
     /** Sentinel returned by zone-id / objective-id slots when the assignment isn't scoped to them. */
     public static final int UNSCOPED = -1;
 
@@ -277,6 +291,19 @@ public record ObjectiveAssignment(
     public static ObjectiveAssignment holdNode(int squadId, TacticalNode node) {
         return new ObjectiveAssignment(squadId, AssignmentKind.HOLD_NODE,
                 UNSCOPED, node, UNSCOPED, UNSCOPED, UNSCOPED);
+    }
+
+    /**
+     * A commander's order to man a building's envelope as a garrisonable: a hold of {@code node}, carrying the
+     * envelope's centre (a walkable stance cell inside the building) and the circle a squad counts as on it, so the
+     * issuer can find the place again in its registry. Own-force ground, never a hostile position.
+     */
+    public static ObjectiveAssignment holdEnvelope(int squadId, TacticalNode node, int cellX, int cellY,
+                                                   int radiusCells) {
+        if (node == null) throw new IllegalArgumentException("node is required");
+        if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
+        return new ObjectiveAssignment(squadId, AssignmentKind.HOLD_NODE,
+                UNSCOPED, node, UNSCOPED, cellX, cellY, radiusCells);
     }
 
     /** Convenience: objective-scoped rush, optionally with a zone hint for the planner. */

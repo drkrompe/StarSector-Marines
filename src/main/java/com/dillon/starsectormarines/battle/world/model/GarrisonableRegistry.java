@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +32,16 @@ import java.util.TreeSet;
  * blocks of it, so a believed contact in a block wakes only the places it could be pressing. Blocks here are the
  * influence field's blocks ({@code blockSize} cells), so a pressure read is one array lookup per covered block.
  *
+ * <p><b>Envelopes.</b> The second kind: a building's <b>envelope</b>, the windows and doors of one held building, its
+ * posts the interior stance cells its defense frontage derives. Envelopes are numbered after every stretch
+ * ({@link #isEnvelope}), are given by the caller ({@link Envelope}), and answer the same questions a stretch does: a
+ * centre on one of its posts, a circle, covered blocks (its footprint and the ground just outside the walls, which is
+ * what its apertures look onto) and so pressure. Each is its own run for every purpose a run id serves here
+ * ({@link #runOf} is a number past the index's runs), so a believed enemy inside the footprint ({@link #idAt}) is
+ * inside the place. It has no neighbours and fronts no fort. The registry holds the place, not its frontage: which
+ * apertures stand open, which are manned and whether a breach has dissolved the envelope are decided live by the squad
+ * holding it, as for any held building.
+ *
  * <p>See {@code garrisonables.md}.
  */
 public final class GarrisonableRegistry {
@@ -56,11 +68,27 @@ public final class GarrisonableRegistry {
     /** A stretch smaller than this is a remnant and joins its neighbour: fewer cells than a fire team wants. */
     public static final int MIN_STRETCH_CELLS = 6;
 
+    /** Cells past a building's footprint that its envelope's pressure is read over: the ground its apertures look onto. */
+    public static final int ENVELOPE_MARGIN_CELLS = 2;
+    /** Largest radius of the circle an envelope is counted manned within: a large barracks is wider than a stretch. */
+    public static final int MAX_ENVELOPE_RADIUS_CELLS = 16;
+
+    /**
+     * A building offered as a garrisonable: the tactical node holding it and its posts, the stance cells its frontage
+     * derives, as packed {@code x, y} pairs. An envelope with no posts is not offered.
+     */
+    public record Envelope(TacticalNode building, int[] posts) { }
+
     private static final int[] NONE = new int[0];
     private static final int[] DX = {1, -1, 0, 0};
     private static final int[] DY = {0, 0, 1, -1};
 
     private final FightingPositionIndex source;
+    private final List<Envelope> envelopeSource;
+    private final int stretchCount;
+    private final TacticalNode[] building;
+    /** Envelope per cell of a building footprint ({@code y * worldWidth + x}), or -1; {@code null} with no envelopes. */
+    private final int[] envelopeByCell;
     private final boolean stretched;
     private final int worldWidth;
     private final int blockSize;
@@ -81,11 +109,16 @@ public final class GarrisonableRegistry {
     /** Garrisonables within reach of each block (index {@code by * blockWidth + bx}), ascending; {@code null} where none. */
     private final int[][] nearBlock;
 
-    private GarrisonableRegistry(FightingPositionIndex source, boolean stretched, int worldWidth, int blockSize,
-                                 int blockWidth, int blockHeight, int[] centreX, int[] centreY, int[] radius,
-                                 int[] fortId, int[] runOf, int[] size, int[][] covered, int[][] neighbours,
-                                 int[][] cells, int[] byCell, int[][] nearBlock) {
+    private GarrisonableRegistry(FightingPositionIndex source, List<Envelope> envelopeSource, int stretchCount,
+                                 TacticalNode[] building, int[] envelopeByCell, boolean stretched, int worldWidth,
+                                 int blockSize, int blockWidth, int blockHeight, int[] centreX, int[] centreY,
+                                 int[] radius, int[] fortId, int[] runOf, int[] size, int[][] covered,
+                                 int[][] neighbours, int[][] cells, int[] byCell, int[][] nearBlock) {
         this.source = source;
+        this.envelopeSource = envelopeSource;
+        this.stretchCount = stretchCount;
+        this.building = building;
+        this.envelopeByCell = envelopeByCell;
         this.stretched = stretched;
         this.worldWidth = worldWidth;
         this.blockSize = blockSize;
@@ -104,6 +137,22 @@ public final class GarrisonableRegistry {
         this.nearBlock = nearBlock;
     }
 
+    /** {@code false} offers no building envelopes: the control for envelopes as garrisonables. */
+    public static final String ENVELOPES_PROPERTY = "battle.garrison.envelopes";
+
+    private static volatile boolean envelopesEnabled =
+            Boolean.parseBoolean(System.getProperty(ENVELOPES_PROPERTY, "true"));
+
+    /** Whether buildings' envelopes are offered as garrisonables. */
+    public static boolean envelopesEnabled() {
+        return envelopesEnabled;
+    }
+
+    /** Evidence seam: switches envelopes on or off for the rest of this JVM. Restore the previous value in a {@code finally}. */
+    public static void setEnvelopesForEvidence(boolean enabled) {
+        envelopesEnabled = enabled;
+    }
+
     /** Whether runs are cut into stretches; read by builders and by callers whose pricing follows the model. */
     public static boolean stretchesEnabled() {
         return stretchesEnabled;
@@ -116,18 +165,32 @@ public final class GarrisonableRegistry {
 
     /** A registry with no garrisonables, for a battle with no prepared ground. */
     public static GarrisonableRegistry empty(FightingPositionIndex source, int blockSize) {
-        return empty(source, blockSize, stretchesEnabled);
+        return empty(source, blockSize, stretchesEnabled, List.of());
     }
 
-    private static GarrisonableRegistry empty(FightingPositionIndex source, int blockSize, boolean stretched) {
-        return new GarrisonableRegistry(source, stretched, 0, Math.max(1, blockSize), 0, 0, NONE, NONE, NONE,
-                NONE, NONE, NONE, new int[0][], new int[0][], new int[0][], null, new int[0][]);
+    private static GarrisonableRegistry empty(FightingPositionIndex source, int blockSize, boolean stretched,
+                                              List<Envelope> envelopes) {
+        return new GarrisonableRegistry(source, envelopes, 0, new TacticalNode[0], null, stretched, 0,
+                Math.max(1, blockSize), 0, 0, NONE, NONE, NONE, NONE, NONE, NONE, new int[0][], new int[0][],
+                new int[0][], null, new int[0][]);
     }
 
     /** {@link #build(FightingPositionIndex, int, int, int, int[], boolean)} with stretches as the switch says. */
     public static GarrisonableRegistry build(FightingPositionIndex index, int worldWidth, int worldHeight,
                                              int blockSize, int[] forts) {
-        return build(index, worldWidth, worldHeight, blockSize, forts, stretchesEnabled);
+        return build(index, worldWidth, worldHeight, blockSize, forts, stretchesEnabled, List.of());
+    }
+
+    /** As {@link #build(FightingPositionIndex, int, int, int, int[])}, with these buildings' envelopes as well. */
+    public static GarrisonableRegistry build(FightingPositionIndex index, int worldWidth, int worldHeight,
+                                             int blockSize, int[] forts, List<Envelope> envelopes) {
+        return build(index, worldWidth, worldHeight, blockSize, forts, stretchesEnabled, envelopes);
+    }
+
+    /** As the full form, with no envelopes. */
+    public static GarrisonableRegistry build(FightingPositionIndex index, int worldWidth, int worldHeight,
+                                             int blockSize, int[] forts, boolean stretched) {
+        return build(index, worldWidth, worldHeight, blockSize, forts, stretched, List.of());
     }
 
     /**
@@ -139,11 +202,20 @@ public final class GarrisonableRegistry {
      * @param forts       fort centres as packed {@code fortId, x, y} triples; a garrisonable is attributed to the
      *                    nearest centre within {@link #FORT_REACH_CELLS}
      * @param stretched   whether long runs are cut into stretches; {@code false} makes every run one garrisonable
+     * @param envelopes   buildings offered as garrisonables, numbered after every stretch in this order; those with
+     *                    no posts are left out
      */
     public static GarrisonableRegistry build(FightingPositionIndex index, int worldWidth, int worldHeight,
-                                             int blockSize, int[] forts, boolean stretched) {
+                                             int blockSize, int[] forts, boolean stretched, List<Envelope> envelopes) {
         int runs = index.runCount();
-        if (runs == 0) return empty(index, blockSize, stretched);
+        List<Envelope> offered = new ArrayList<>();
+        if (envelopes != null) {
+            for (Envelope envelope : envelopes) {
+                if (envelope != null && envelope.building() != null && envelope.posts() != null
+                        && envelope.posts().length >= 2) offered.add(envelope);
+            }
+        }
+        if (runs == 0 && offered.isEmpty()) return empty(index, blockSize, stretched, envelopes);
         int bw = (worldWidth + blockSize - 1) / blockSize;
         int bh = (worldHeight + blockSize - 1) / blockSize;
 
@@ -203,7 +275,35 @@ public final class GarrisonableRegistry {
             }
         }
 
+        int stretchCount = stretchCells.size();
+        for (Envelope envelope : offered) {
+            int[] posts = envelope.posts();
+            int[] cells = new int[posts.length / 2];
+            for (int i = 0; i < cells.length; i++) cells[i] = posts[2 * i + 1] * worldWidth + posts[2 * i];
+            stretchRun.add(runs + stretchCells.size() - stretchCount);
+            stretchCells.add(cells);
+            touching.add(new TreeSet<>());
+        }
         int count = stretchCells.size();
+        TacticalNode[] buildings = new TacticalNode[count - stretchCount];
+        for (int e = 0; e < buildings.length; e++) buildings[e] = offered.get(e).building();
+        int[] envelopeByCell = null;
+        if (buildings.length > 0) {
+            envelopeByCell = new int[worldWidth * worldHeight];
+            Arrays.fill(envelopeByCell, -1);
+            for (int e = 0; e < buildings.length; e++) {
+                TacticalNode b = buildings[e];
+                for (int y = Math.max(0, b.top); y <= Math.min(worldHeight - 1, b.bottom); y++) {
+                    for (int x = Math.max(0, b.left); x <= Math.min(worldWidth - 1, b.right); x++) {
+                        if (envelopeByCell[y * worldWidth + x] < 0) envelopeByCell[y * worldWidth + x] = stretchCount + e;
+                    }
+                }
+                // A post can stand in the wall line itself (a window recess), outside the node's box: it is still inside.
+                for (int cell : stretchCells.get(stretchCount + e)) {
+                    if (envelopeByCell[cell] < 0) envelopeByCell[cell] = stretchCount + e;
+                }
+            }
+        }
         int[] cx = new int[count];
         int[] cy = new int[count];
         int[] rad = new int[count];
@@ -257,7 +357,24 @@ public final class GarrisonableRegistry {
                     scratch[coveredCount++] = b;
                 }
             }
-            rad[g] = Math.max(MIN_RADIUS_CELLS, Math.min(MAX_RADIUS_CELLS, far));
+            if (g >= stretchCount) {
+                // An envelope's pressure is read over its footprint and the ground its apertures look onto.
+                TacticalNode b = buildings[g - stretchCount];
+                int left = Math.max(0, b.left - ENVELOPE_MARGIN_CELLS);
+                int right = Math.min(worldWidth - 1, b.right + ENVELOPE_MARGIN_CELLS);
+                int top = Math.max(0, b.top - ENVELOPE_MARGIN_CELLS);
+                int bottom = Math.min(worldHeight - 1, b.bottom + ENVELOPE_MARGIN_CELLS);
+                for (int by = Math.min(bh - 1, top / blockSize); by <= Math.min(bh - 1, bottom / blockSize); by++) {
+                    for (int bx = Math.min(bw - 1, left / blockSize); bx <= Math.min(bw - 1, right / blockSize); bx++) {
+                        int block = by * bw + bx;
+                        if (coveredStamp[block] == g) continue;
+                        coveredStamp[block] = g;
+                        scratch[coveredCount++] = block;
+                    }
+                }
+            }
+            rad[g] = g >= stretchCount ? Math.max(MIN_RADIUS_CELLS, Math.min(MAX_ENVELOPE_RADIUS_CELLS, far))
+                    : Math.max(MIN_RADIUS_CELLS, Math.min(MAX_RADIUS_CELLS, far));
             int[] blocks = Arrays.copyOf(scratch, coveredCount);
             Arrays.sort(blocks);
             cov[g] = blocks;
@@ -274,10 +391,11 @@ public final class GarrisonableRegistry {
                     }
                 }
             }
-            fort[g] = fortFor(forts, cx[g], cy[g]);
+            fort[g] = g >= stretchCount ? -1 : fortFor(forts, cx[g], cy[g]);
         }
-        return new GarrisonableRegistry(index, stretched, worldWidth, blockSize, bw, bh, cx, cy, rad, fort, runOf,
-                sizes, cov, adjacent, stretchCells.toArray(new int[0][]), byCell, near);
+        return new GarrisonableRegistry(index, envelopes, stretchCount, buildings, envelopeByCell, stretched,
+                worldWidth, blockSize, bw, bh, cx, cy, rad, fort, runOf, sizes, cov, adjacent,
+                stretchCells.toArray(new int[0][]), byCell, near);
     }
 
     /**
@@ -431,6 +549,43 @@ public final class GarrisonableRegistry {
         return source == index && stretched == stretchesEnabled;
     }
 
+    /** As {@link #isBuiltFrom(FightingPositionIndex)}, and from exactly this list of envelopes. */
+    public boolean isBuiltFrom(FightingPositionIndex index, List<Envelope> envelopes) {
+        return isBuiltFrom(index) && envelopeSource == envelopes;
+    }
+
+    /** How many garrisonables are stretches of runs; envelopes are numbered from here. */
+    public int stretchCount() {
+        return stretchCount;
+    }
+
+    /** Whether this garrisonable is a building's envelope rather than a stretch of a run. */
+    public boolean isEnvelope(int id) {
+        return id >= stretchCount;
+    }
+
+    /** The building whose envelope this garrisonable is, or {@code null} for a stretch. */
+    public TacticalNode building(int id) {
+        return id >= stretchCount ? building[id - stretchCount] : null;
+    }
+
+    /**
+     * The envelope of this building, or -1 when it offers none. A node is the same building as one of the registry's
+     * when it is that node or names the same footprint, since a commander's facts may carry a copy.
+     */
+    public int envelopeOf(TacticalNode node) {
+        if (node == null) return -1;
+        for (int e = 0; e < building.length; e++) if (building[e] == node) return stretchCount + e;
+        for (int e = 0; e < building.length; e++) if (sameBuilding(building[e], node)) return stretchCount + e;
+        return -1;
+    }
+
+    /** Whether two nodes stand for the same building: the same kind on the same footprint. */
+    public static boolean sameBuilding(TacticalNode a, TacticalNode b) {
+        return a == b || a != null && b != null && a.kind == b.kind && a.left == b.left && a.top == b.top
+                && a.right == b.right && a.bottom == b.bottom;
+    }
+
     /** Whether long runs were cut into stretches; {@code false} means every garrisonable is a whole run. */
     public boolean stretched() {
         return stretched;
@@ -444,9 +599,20 @@ public final class GarrisonableRegistry {
         return centreX.length;
     }
 
-    /** The garrisonable (stretch) containing this cell, or -1. */
+    /**
+     * The garrisonable containing this cell, or -1: the stretch the cell is on, else the envelope whose building's
+     * footprint, or one of whose posts, it lies on.
+     */
     public int idAt(int x, int y) {
-        if (byCell == null) return source.runIdAt(x, y);
+        int stretch = stretchAt(x, y);
+        if (stretch >= 0 || envelopeByCell == null) return stretch;
+        if (x < 0 || y < 0 || x >= worldWidth || y * worldWidth + x >= envelopeByCell.length) return -1;
+        return envelopeByCell[y * worldWidth + x];
+    }
+
+    /** The stretch containing this cell, or -1; never an envelope. */
+    public int stretchAt(int x, int y) {
+        if (byCell == null) return stretchCount == 0 ? -1 : source.runIdAt(x, y);
         if (x < 0 || y < 0 || x >= worldWidth || y * worldWidth + x >= byCell.length) return -1;
         return byCell[y * worldWidth + x];
     }
@@ -459,7 +625,10 @@ public final class GarrisonableRegistry {
     public int size(int id) { return size[id]; }
     /** The fort this garrisonable fronts, or -1. */
     public int fortId(int id) { return fortId[id]; }
-    /** The fighting-position run this stretch is part of: the id an order's claims are scoped to. */
+    /**
+     * The fighting-position run this stretch is part of: the id an order's claims are scoped to. For an envelope, a
+     * number past the index's runs that no other place shares: its own run for breach and alarm purposes.
+     */
     public int runOf(int id) { return runOf[id]; }
 
     /** The {@code i}th of the garrisonable's {@link #size} cells, in its run's order. */

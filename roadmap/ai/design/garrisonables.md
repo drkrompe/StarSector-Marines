@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, on both Conquest sides (the defender's own belts and compound aprons, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); building envelopes and other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); the compound perimeter and emplacements remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches); the defender counter-attacks a lost fort in proportion (`conquest-command.md`); compounds offer prepared ground (sandbagged doors) manned like a belt; machines screen the places their side mans.
+Updated: 2026-10-20 — building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks a lost fort in proportion and its reserve lends to its own belt (`conquest-command.md`); compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -31,8 +31,12 @@ expected to arrive:
   story map's dug line, and a compound's **sandbagged door**, the apron laid
   in front of the entrance each compound place is attacked through; garrisoned
   a **stretch** at a time (below);
-- a **building envelope** — the apertures and stance cells the defense frontage
-  already derives (`ai-nouns.md`, frontage and standing to);
+- a **building envelope** — the windows and doors of one building, its posts the
+  interior stance cells its defense frontage derives (built; `ai-nouns.md`,
+  frontage and standing to): every compound place (command post, barracks,
+  armory) and every held place whose shell has a frontage. It is manned by
+  holding the building, so the squad on it stands to at the apertures by the
+  frontage laws and walks the rooms when they are quiet or entered;
 - a **compound perimeter** — the outer envelope at compound scope, which frontage
   also already derives;
 - an **emplacement** — a crewed structure, later and outside this direction's
@@ -59,10 +63,27 @@ fire-team stretch is a different thing: a share of a drawn line, not a place.)
 
 Garrisonables may be **linked into layers**: a belt in front of a fort's works,
 a compound perimeter around its buildings, a building shell around its rooms. A
-layer is what a squad falls back to when the one in front of it is lost.
+layer is what a squad falls back to when the one in front of it is lost. A
+compound place has three: its sandbagged door, the building's envelope behind
+it, and the rooms behind that.
+
+The registry holds the place, never its frontage. Which apertures stand open,
+which are manned and whether a breach has dissolved the envelope are read live
+by the squad holding it, as for any held building; the registry offers each
+building once, against the map as it stands when first asked, so a later breach
+neither renumbers nor drops it.
 
 ## Laws
 
+- **Places, not forts.** The game is much larger than forts (owner,
+  2026-10-20). Every mechanism here is built for places in general —
+  compounds and their objectives, held buildings, compound aprons, trench
+  stretches, capture points, story-mission sites — with a fort as one case
+  among many, and is measured across several missions and mission types, never
+  only on the Conquest fort trial ground. A mechanic that only a fort can use is
+  a gap to close, not a design; a place is valued by what it means to its side,
+  not by being a fort. Retaking a lost place is the counter-attack's
+  (`conquest-command.md`, Defender command), for every kind of place.
 - **Reactive manning.** A garrisonable is manned in proportion to believed
   pressure on it, read from the side's own faction influence, never from hostile
   truth. A quiet garrisonable is empty and its would-be garrison stays in the
@@ -78,7 +99,11 @@ layer is what a squad falls back to when the one in front of it is lost.
   visible.
 - **Declared holds stay held.** A place the mission says must be held — a keep,
   a capture objective's garrison — is born manned as today. Reactivity is for
-  everything else.
+  everything else. A building whose own garrison still stands in it (the
+  defender's born garrison, the squad a captured compound is sent) counts as
+  manned, so pickets before massing sends it a reactive squad only as its
+  second, under the pressure that wants one, and re-garrisons it once that
+  garrison is gone.
 - **Pickets before massing.** Across garrisonables as across apertures: every
   threatened place gets a squad before any gets a second, and the reserve
   yields to that rule rather than outranking it.
@@ -87,7 +112,10 @@ layer is what a squad falls back to when the one in front of it is lost.
   layer in if one is linked; with none, it releases to the commander. A fall
   back is squad-tier movement under an existing assignment, not a new order.
   A breach is read against the whole run, not the stretch: an enemy a few cells
-  along the same trench, past the stretch's end, is inside it.
+  along the same trench, past the stretch's end, is inside it. A building's
+  envelope is breached by a believed enemy in its footprint (or on one of its
+  posts) near the squad; its garrison then holds the rooms, as an area defence
+  inside the building, until the building is quiet or the compound is taken.
 - **Hold the stretch facing the threat.** A place is pressed only where a
   believed contact is within reach of it; the influence field's spread alone,
   which carries a company's weight across most of a fort, presses nothing. A
@@ -215,6 +243,10 @@ counts as pressure:
   would otherwise press it for the rest of the battle.
 - A holder driven off a run the enemy is believed inside falls back to the
   fort's works like one still standing on it.
+- A taken compound's buildings are offered too, and the squad a captured
+  compound is sent to hold it counts as manning its building, so the lane pool
+  re-mans a taken building only once that garrison is gone or the
+  counter-attack presses it hard.
 
 The scene `attacker-holds-ground` plays it on a production fort handed to the
 marines: a quiet belt left empty, a stretch pressed by a counter-attack manned
@@ -236,9 +268,10 @@ four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
 out exactly as its control. The defender now
 counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
-Defender command); with ninety militia it won the fort back once in nine and
-broke on the hold four times, and the hold manned less because the defender no
-longer fed squads into the works one at a time.
+Defender command); on the trial ground it launched against the hold in six of
+nine at the default garrison and retook the bunker once, before the hold was
+whole, and the defender's reserve may man its own fort's belt only from what it
+holds above the reserve law's share.
 
 ## How it fits what exists
 
@@ -248,11 +281,17 @@ A garrisonable inside that band is a better destination for a rally than a
 point on the track: the rallied squad mans it and digs in instead of meeting the
 attack in the open. That is the natural first consumer.
 
-Standing to is already reactive manning of a building envelope by its own
-garrison. Unifying it under garrisonable posts is a later step, taken only once
-fighting-position runs prove the commander-tier half, because frontage carries
-its own laws — what an aperture may open onto, held layers, the breach that
-dissolves an envelope — that must survive the move intact.
+Standing to is reactive manning of a building envelope by the squad holding
+it, and it stays exactly that: the commander tier now decides which squad holds
+which building and when it stops, and the order it gives is the ordinary hold
+of the building, so everything frontage decides is decided where it always was
+— what an aperture may open onto, which layer a squad holds (a compound's
+perimeter first for a squad holding the whole compound, its own shell
+otherwise), the picket on every threatened facing before a second post, the
+reserve, and the breach that dissolves an envelope and hands the fight to the
+room-clearing behaviours. The player's occupy click on a held place and its
+standing to are the same order and unchanged; the GARRISON stance gives that
+order where it used to search held places of its own.
 
 ## Beyond Conquest
 
@@ -273,7 +312,18 @@ held place covers. Three things it shows shape the work ahead:
   behind its gate, and compounds now lay a sandbagged door at each place's
   attack-facing entrance: on five Conquest seeds 98 aprons on 138 compound
   places, where there had been none, and three on Relay Nine where there were
-  none (`compound-prepared-ground.md`).
+  none. The campaign's Conquest of places laid none until it took the same stage
+  (43 on 110 compound places over five fixture seeds with forts; none of them
+  read as a fort's belt).
+- Buildings were garrisonable only through a held place's occupy order. Every
+  held place and compound place whose building has a frontage now offers its
+  envelope: on the five Conquest seeds 110 of 110 compound places, with a median
+  of four posts; on the story maps three to forty each; on the procedural
+  missions every held place — Raid 33 (235 posts), Assault 44 (245), Sabotage
+  36 (209), Extraction 41 (263), civilian rescue 36 (205). What offers none is
+  what has no frontage (a beachhead, the smallest guard posts and bunkers) and
+  the guard posts and gates that keep a garrison of their own
+  (`gradlew.bat garrisonEvidence`, `CompoundEnvelopeEvidence`).
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
@@ -289,8 +339,13 @@ posted to (`HeldPlaces.isUnposted`) is not somewhere the defence lives: defender
 commander's strongpoints, patrol waypoints and the garrison map feature all skip it. A story map with
 no buildings (Missile AA) has none. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
-at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
-consumer.
+at its windows (`ai-nouns.md`, occupy). The second is the GARRISON stance, which
+mans those buildings under pressure by that same order on every such map
+(scene `mission-envelopes`: Raid, Assault, Sabotage, Extraction, civilian
+rescue and a story map). Reactive manning by the AI commanders is Conquest's
+alone so far: the other missions' defenders keep their authored posts and
+alarm responses, and offering envelopes there leaves their battles byte for
+byte as they were.
 
 ## Decided direction
 
@@ -299,9 +354,8 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 - **Attackers hold what they take.** Captured ground is a garrisonable like any
   other: the attacking commander uses the same reactive assignment to man a
   taken belt, trench or building against the counter-attack, not only manual
-  orders. Built for taken fort belts (see Holding taken ground) and for the
-  aprons of taken compounds; building envelopes wait for that kind to reach the
-  tier.
+  orders. Built for taken fort belts (see Holding taken ground), and for the
+  aprons and buildings of taken compounds (scene `taken-compound`).
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
   Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
@@ -382,11 +436,18 @@ the battle and never mans the new ground.
   stretches nearest the works being lost is open.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
+- **Aprons on a Conquest of places.** Two in five compound places there get an
+  apron, against seven in ten on a stock map: the places' circulation roads run
+  close to their doors. Whether to let an apron stand on a circulation road the
+  attack does not use is open.
+- **Mission defenders.** Whether the Raid, Assault, Sabotage and Extraction
+  defenders should man held buildings reactively, as Conquest's does, or keep
+  their authored posts.
+- **Machines and envelopes.** Machines guard the runs their side mans, not the
+  buildings; whether a manned building should draw a machine guard is open.
 
 ## Stories
 
 
-- `compound-prepared-ground.md` — compounds and facilities offer prepared ground
-  and building envelopes as garrisonables.
 - `fort-sandbag-damage-art.md` — real art for the placeholder fort sandbag damage
   states.

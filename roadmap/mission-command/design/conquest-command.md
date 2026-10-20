@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`); see "A fort the defender loses is counter-attacked in proportion" under Defender command.
+Updated: 2026-10-20 — the fort counter-attack is tuned (reserve of half the pool from first contact, lent to its own belt; floor of two patrols) and measured: it contests and rarely retakes; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`); see "A fort the defender loses is counter-attacked in proportion" under Defender command.
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -493,19 +493,33 @@ Which place changed hands last is a claim about order rather than a snapshot, so
 the reinforcement recompute remembers what it saw. A position on no lane keeps
 the band reading, which is what a settlement's guard post has and should have.
 
+**Places, not forts (owner, 2026-10-20).** The game is much larger than forts.
+The counter-attack below is being generalised from a lost fort to any lost or
+losing place worth retaking — a compound, an objective, a held building, a
+story-mission site, a fort as one case — and made informed: it observes what
+holds the place before it commits (`place-counterattack.md`). Nothing here is
+to be built for forts alone or measured only on the fort trial ground.
+
 **A fort the defender loses is counter-attacked in proportion, or not at
 all.** Retaking a lost fort is the structure planner's question (`ai-nouns.md`,
 place alarms), and the answer is one group at a time, the defender's side of
 the attacker's company (`phased-assault.md`) without its foothold, lane shares or
 stamp plan (`FortCounterattack`):
 
-- **The reserve is the counter-attack's.** While a fort of the defender's is
-  alarmed or lost, the reserve law's share of the mobile pool waits at a staging
-  cell behind it: on the line from the keep, short of the fort by the company's
-  staging stand-off and clear of believed contact. It counts as the reserve, not
-  in addition to it, and it is not spent at the fort by manning or staging. That
-  is what leaves the defender anything to counter-attack with: before it, the
-  pool on the trial ground was gone by the time the bunker fell.
+- **The reserve is the counter-attack's.** From the first believed contact of
+  the battle (or a fort's alarm, if that comes first), while a fort of the
+  defender's lies within reach of the keep, half the mobile pool waits at a
+  staging cell behind it: on the line from the keep, short of the fort by the
+  company's staging stand-off and clear of believed contact. It counts as the
+  reserve, not in addition to it, so the track response's pickets come first and
+  what it denies is concentration. A quiet pulse does not end it once the battle
+  has begun. While the fort still holds, what waits above the reserve law's
+  quarter may be lent to man the fort's own pressed belt, and to nothing else: a
+  fort being defended is the reserve's purpose too. That is what leaves the
+  defender anything to counter-attack with. With the law's quarter, formed on
+  the fort's alarm, the trial ground's four-patrol garrison had one patrol left
+  by the time the bunker fell, because the patrols that meet the landing are
+  spent before the fort is alarmed.
 - **A turned fort is nobody else's.** From the moment a fort's most critical
   aspect is held by the enemy (the bunker of a battery fort, the plant of a
   shield fort) its ground, within the company's contact radius of its centre, is
@@ -518,17 +532,19 @@ stamp plan (`FortCounterattack`):
   the keep outranks every fort), the fort must not have been given up, and what
   the side can raise — the reserve and the free patrols, less the reserve law's
   floor of one — must reach a commit share of what the fort is believed to take:
-  three patrols, or as many marines as it believes are at the fort, whichever is
-  more, raised a quarter for each failed attempt. Short of that the reserve keeps
+  two patrols, or as many marines as it believes are at the fort, whichever is
+  more, raised a quarter for each failed attempt. A pool of fewer than two
+  patrols holds no reserve. Short of that the reserve keeps
   waiting, which is how it waits for the attack to move on.
 - **Muster, stage, launch.** Pickets come first: every threatened track has its
   first responder before the group recruits, and the group outranks only
   concentration. Recruits are the nearest free patrols at useful strength; the
   group gathers at the staging cell and is launched as one push, every member on
   the same pulse with the company's massed commit
-  (`DefenceStructureTactics.planMassed`), when what stands there reaches what the
-  fort takes, when everything it could raise has arrived above the commit share,
-  or at a timeout above it. A muster that times out below the share stands down.
+  (`DefenceStructureTactics.planMassed`), when the whole group stands there and
+  reaches what the fort takes, when everything it could raise has arrived above
+  the commit share, or at a timeout above it; a straggler still walking up is
+  waited for. A muster that times out below the share stands down.
 - **Give up.** A launched group worn below a fraction of what it launched with,
   or one that has not won the critical aspect back within a bound, has failed
   (never while its own capture of the aspect is under way: a group is not called
@@ -539,7 +555,10 @@ stamp plan (`FortCounterattack`):
 Belief only: which aspects are lost is an own-force fact about the defender's
 own places, the strength a fort takes is the movers it believes there, and the
 keep's safety is the movers it believes near the keep.
-`-Dbattle.conquest.fortCounterattack=false` is the same-build control. The scene
+`-Dbattle.conquest.fortCounterattack=false` is the same-build control, and the
+figures above are evidence knobs under the same prefix (`reserveShare`,
+`minStrength`, `floorShare`, `commitShare`, `minPoolSquads`, `formOnContact`,
+`lendToBelt`), so a tuning variant is one command from its control. The scene
 `fort-counterattack` plays it on a production fort handed to the marines: a
 quiet fort holds nobody back; a lost one musters to what it believes the fort
 takes, stages and launches together with nobody sent at the fort first; and a
@@ -547,25 +566,36 @@ counter-attack against holders who cannot be killed falls back, waits, tries
 again and gives the fort up.
 
 On the trial ground (the on-path fort, seeds 41 to 49, the combined-arms force,
-against the same-build control) it is a defender of its strength, not a
-script. At the default garrison it never launched: the reserve formed in two
-battles at one squad, and what it could raise never reached three patrols, so
-the fort was left, as the rule says. Leaving the turned fort to it still changed
-those battles, since the patrols the track response and the belt used to feed
-into the lost works now stayed home: seven marine wins and two timeouts against
-nine wins, the objective compound never taken in either timeout, marines losing
-57 on the mean against 52 and defenders 51 against 56. With ninety militia it
-mustered and launched in five of nine, every time three patrols at the
-eighteen it believed the fort took; one retook the bunker 1,875 ticks after
-launching with eleven of eighteen left, in a battle where the marines never held
-the fort whole and ran out of time; four broke at four to six of eighteen and
-fell back; in the other four a believed mover near the keep dissolved the
-reserve before it mustered. Seven marine wins against eight, the fort whole in
-marine hands in eight against nine and won back in one against none, marines
-losing 59 against 56 and defenders 97 against 105; the attacker's hold manned
-its belt less (18 orders against 26), because there was less belt left to man.
-Inside seed noise on who wins; what it buys is a fort that is contested in about
-half the battles that can afford it, and never one fed piecemeal.
+against the same-build control, with belt manning by stretches) **it contests
+the fort and, rarely, retakes it**. At the default garrison (four patrols) it
+launched in six battles of nine, every time two patrols at the twelve it
+believed the fort took; one retook the bunker 1,800 ticks after launching with
+eleven of twelve left, while the marines had not yet held the fort whole, and
+five broke at a sixth to a third of their strength. Eight marine wins and one
+timeout, as in the control (the timeouts fell on different seeds: the retake's,
+and one the control lost on its own); the fort was won back whole in none
+against two, marines lost 64 on the mean against 58 and defenders 52 against
+55. With ninety militia it launched in all nine, three to five patrols (30
+strength on the mean), and every push broke at about a third of what it
+launched with; seven wins and two timeouts in both arms, the fort won back
+whole in one against none. The first figures (the reserve law's quarter,
+formed on the fort's alarm, a floor of three patrols) never launched at the
+default garrison and cost two timeouts there. Before belt manning went by
+stretches the same setting launched in two of nine at the default garrison,
+since a whole run's manning drew more of the lent reserve.
+
+What was tried, and why it stands where it does: a larger reserve formed only
+on the alarm still found the pool spent (one launch in nine); forming it at
+first contact is what launched (eight in nine at the default garrison) and kept
+the timeouts at the control's, but a reserve of half the pool held from first
+contact starves a small garrison's belt (`reactive-belt` mans nothing), so the
+reserve above the law's share is lent to the fort's own belt, which is what
+takes the default garrison back to two launches. A lower commit share launched
+single patrols; a floor scaled to the garrison came to the same twelve. A group
+retakes only a fort the marines have not consolidated: what the defender can
+raise is a third of the marines holding it, and the strength it believes it
+needs is low because the holders are out of sight from the staging cell. Whether the defender should
+have the garrison to do it is a question of the garrison, not of this rule.
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen

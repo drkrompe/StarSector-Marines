@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
+Updated: 2026-10-20 — the counter-attack reserve forms at first contact and lends to its own belt; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2175,6 +2175,11 @@ fort's most critical aspect falls, its ground — a turned fort, lost cause or
 not — is the counter-attack's alone. The track response does not rally into it,
 flow does not stage toward it, its belt is not manned and no single squad is sent
 to retake it; the commander retakes it in proportion, as one push, or not at all.
+The counter-attack is for places, not forts: a lost compound, objective, held
+building or story site is retaken by the same law, and the game is much larger
+than forts (`garrisonables.md`, places not forts). Its reserve forms behind a fort the defender holds from the battle's first
+believed contact, and what it holds above the reserve law's share may man that
+fort's own pressed belt and do nothing else.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
@@ -2196,17 +2201,25 @@ A compound's sandbagged door (`mapgen-nouns.md`, prepared ground) is the same
 kind of place and is manned the same way: its two-man lookout stands behind the
 bags from the first tick and the rest of the apron is empty until the commander
 believes it pressed. It is the layer in front of its building, so a garrison
-driven off it falls back inside the building the apron fronts and holds it as an
-area defence, never released in a fight, until the building has been quiet for a
-while or the marines have taken the compound; then it returns to the pool. A
+driven off it falls back to the building the apron fronts. The building is a
+garrisonable of its own, its envelope (`garrisonables.md`): a pressed building
+is manned by an ordinary hold of it, so its holders stand to at the windows and
+doors by the frontage laws above, and a building whose own born garrison still
+stands in it already counts as manned. An envelope breached by an enemy inside
+hands its holders to the rooms, an area defence inside the building, never
+released in a fight, until the building has been quiet for a while or the
+marines have taken the compound; then it returns to the pool. Apron, envelope
+and rooms are the three layers of a compound place. A
 place fronts a compound when it stands within a few cells of the compound
 building's box and is no fort's belt (`CompoundGround`). The scene
 `compound-apron` plays it: a quiet apron empty, a pressed one manned and dug in,
-a breached garrison inside its barracks.
+a pressed barracks manned and stood to at its windows, a breached apron falling
+back to the barracks, and an entered barracks falling back to its rooms.
 
 The attacker holds what it takes by the same assignment: the belt of a fort it
-has taken, and the apron at the door of a compound it has taken, is manned from its lane pool while it believes a counter-attack near
-it, never from a company or a capture, never more than a quarter of the lane
+has taken, and the apron and buildings of a compound it has taken, is manned from its lane pool while it believes a counter-attack near
+it (a captured compound's own garrison counts as manning its building; scene
+`taken-compound`), never from a company or a capture, never more than a quarter of the lane
 pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
 ground; scene `attacker-holds-ground`).
@@ -2381,7 +2394,9 @@ a squad in it acts only while it carries no player order. It watches a ring the
 size of a defend area round its **anchor** — where it stood when the stance was
 turned on, or when a player order it carried ended — and mans the
 stretch of fighting-position run or held building inside the ring that its side believes
-most pressed, by the commander's own law (`garrisonables.md`): the defender's
+most pressed — a building being any held place or compound building its side
+may enter, offered as a building envelope on every map that publishes held
+places — by the commander's own law (`garrisonables.md`): the defender's
 start and release levels and dwell, never released in a fight, never sent below
 useful strength, a breach near it a fall back with that place left alone for a
 while, belief only. It considers only the side's own ground — nothing inside a
@@ -2396,8 +2411,9 @@ left the squad, so a player can move a squad to a corner and have it watch there
 turning the stance off ends only the order the stance gave. The order bar's card says what the stance is doing
 (watching, manning a trench, holding a building, returning, under orders) and the
 selected squad's watch ring and manned place are drawn on the map. The scene
-`player-reactive-manning` is the acceptance (`ReactiveWatch`,
-`ReactiveManningSystem`).
+`player-reactive-manning` is the acceptance, and `mission-envelopes` plays the
+stance on a held building of each procedural mission's map and a story map
+(`ReactiveWatch`, `ReactiveManningSystem`).
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

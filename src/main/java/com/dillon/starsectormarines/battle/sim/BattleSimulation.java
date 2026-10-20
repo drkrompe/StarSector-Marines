@@ -252,6 +252,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneOccupancy;
+import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -1742,12 +1743,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     private GarrisonableRegistry garrisonableRegistry;
+    /** The tactical map {@link #envelopes} were derived from, and them; rebuilt only when the map instance changes. */
+    private TacticalMap envelopeMap;
+    private List<GarrisonableRegistry.Envelope> envelopes = List.of();
 
     @Override
     public GarrisonableRegistry garrisonables() {
         FightingPositionIndex index = fightingPositions();
+        List<GarrisonableRegistry.Envelope> offered = envelopes();
         GarrisonableRegistry registry = garrisonableRegistry;
-        if (registry != null && registry.isBuiltFrom(index)) return registry;
+        if (registry != null && registry.isBuiltFrom(index, offered)) return registry;
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile != null ? System.nanoTime() : 0L;
         List<Fort> placed = forts.forts();
@@ -1768,10 +1773,48 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             centres[used++] = (int) (sy / n);
         }
         registry = GarrisonableRegistry.build(index, grid.getWidth(), grid.getHeight(),
-                CommanderInfluenceService.BLOCK_SIZE, Arrays.copyOf(centres, used));
+                CommanderInfluenceService.BLOCK_SIZE, Arrays.copyOf(centres, used), offered);
         if (profile != null) profile.record(TickInnerProfile.Bucket.GARRISON_REGISTRY_BUILD, System.nanoTime() - started);
         garrisonableRegistry = registry;
         return registry;
+    }
+
+    /**
+     * The buildings offered as garrisonables (`garrisonables.md`, building envelopes): every compound place and held
+     * place whose own shell has a frontage, its posts the stance cells that frontage derives. Derived once per tactical
+     * map instance, against the map as it stands when first asked, so a later breach does not renumber or drop a place:
+     * the squad holding it reads its frontage live. Before the zone graph exists nothing is offered and nothing is kept.
+     */
+    private List<GarrisonableRegistry.Envelope> envelopes() {
+        TacticalMap map = getTacticalMap();
+        if (!GarrisonableRegistry.envelopesEnabled() || map == null) return List.of();
+        if (map == envelopeMap) return envelopes;
+        if (getZoneGraph() == null || getGrid() == null || getTopology() == null) return List.of();
+        List<GarrisonableRegistry.Envelope> out = new ArrayList<>();
+        for (TacticalNode node : map.all()) {
+            if (!offersEnvelope(node)) continue;
+            List<DefenseFrontage.Aperture> apertures = DefenseFrontage.forStructure(node, this);
+            Set<Long> seen = new HashSet<>();
+            int[] posts = new int[apertures.size() * 2];
+            int n = 0;
+            for (DefenseFrontage.Aperture aperture : apertures) {
+                if (!seen.add(((long) aperture.stanceY() << 32) | (aperture.stanceX() & 0xffffffffL))) continue;
+                posts[n++] = aperture.stanceX();
+                posts[n++] = aperture.stanceY();
+            }
+            if (n > 0) out.add(new GarrisonableRegistry.Envelope(node, Arrays.copyOf(posts, n)));
+        }
+        envelopeMap = map;
+        envelopes = List.copyOf(out);
+        return envelopes;
+    }
+
+    /** The places whose buildings may be garrisonables: a compound's command post, barracks and armory, and a held place. */
+    private static boolean offersEnvelope(TacticalNode node) {
+        return switch (node.kind) {
+            case COMMAND_POST, BARRACKS, ARMORY, INNER_POSITION -> node.right > node.left && node.bottom > node.top;
+            default -> false;
+        };
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }

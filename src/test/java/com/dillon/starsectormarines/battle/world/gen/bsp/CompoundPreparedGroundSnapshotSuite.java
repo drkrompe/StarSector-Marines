@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Compound prepared ground on production-size Conquest maps (`compound-prepared-ground.md`): each sandbag apron a
+ * Compound prepared ground on production-size Conquest maps (`mapgen-nouns.md`, prepared ground): each sandbag apron a
  * compound's lookout stands in, at 1920x1080 and 100% scale, three ways at one framing — the same seed generated with
  * {@code battle.mapgen.compoundPreparedGround} off (the control), with it on, and with it on under the
  * fighting-position layer (the run the apron makes washed green, the lookout's stand cells outlined white). The
