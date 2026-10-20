@@ -138,12 +138,8 @@ ls_mounts.build(kit)
 ls_lights.build(kit)
 bpy.context.view_layer.update()
 
-clash = ls_mounts.clearance(
-    [o.name for o in bpy.data.objects if o.name.startswith('Turret ') and ' barrel ' in o.name
-     and o.type == 'MESH'],
-    [o.name for o in bpy.data.objects if o.type == 'MESH' and (o.name.startswith(('Hull ', 'Pod ')))])
-if clash:
-    raise RuntimeError(f'turret barrels clash at rest: {clash}')
+# The turrets' clash test is ls_mounts.turret's sweep across each whole arc (it lifts a
+# barbette until every trained angle is clear, and fails the build if none is).
 
 
 # --- Bake: every modifier applied, so the asset costs nothing to evaluate. ---
@@ -338,7 +334,8 @@ if not args.no_save:
     manifest_path = OUT/'geometry.json'
     old = json.loads((HERE/'geometry.json').read_text(encoding='utf-8')) if (HERE/'geometry.json').exists() else {}
     manifest = {
-        'status': 'Pass 2 with the detail and cohesion pass (ls_detail, owner review 2026-10-19) + pass 4 scale: '
+        'status': 'Pass 2 with the detail and cohesion pass (ls_detail, accepted 2026-10-20) and turret-kit turrets '
+                  '(lasher_Standard light machine guns, owner 2026-10-20) + pass 4 scale: '
                   'silhouette, sections, slots, drives, anchors, glazing, vents and running lights; join fairings, '
                   'frames, panels, hatches, grilles and conduits; one base material per class with light '
                   'procedural wear. No interiors, damage or articulation beyond turrets.',
@@ -380,8 +377,9 @@ if not args.no_save:
                          'Pod <side> gun|missile ...': 'weapon pods round the hardpoints',
                          'Engine <i> ...': 'drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, '
                                            'drive glow anchor',
-                         'Turret <i> ...': 'barbette and traverse gap (fixed); gunhouse, mantlet, barrels and '
-                                           'Anchor turret <i> barrel <k> muzzle under Turret <i> pivot',
+                         'Turret <i> ...': 'turret kit (../turret-kit): barbette (fixed); house, gun, recoil and '
+                                           'muzzle anchor under Turret <i> pivot (trains about +Z) and Turret <i> '
+                                           'elevation (local Y, negative lifts); Anchor turret <i> barrel 1 muzzle',
                          'Weapon <slot id> ...': 'hardpoint guns and launchers; anchor, and Anchor weapon <slot id> muzzle',
                          'Light <side> <where> <k>': 'running lights; positions, colours and blink in running_lights'},
         'cameras': [{'name': n, 'position': list(p), 'orthographic_scale': s,

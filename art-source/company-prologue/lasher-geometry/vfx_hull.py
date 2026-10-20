@@ -9,9 +9,9 @@ spine's tail (width 16), 2 and 3 the port nacelle's pair, 4 and 5 the
 starboard's (width 8). The build names their empties exactly as the Second
 Wind does (`Engine <i> exhaust anchor`), so the kit reads them through this
 table. All five are LOW_TECH, whose vanilla engine colour is orange
-(engine_styles.json, 255,125,25). Turrets 1-3 are WS 005/006/007, twin small
-ballistic guns resting at their slot angles, with declared muzzles
-(`Anchor turret <i> barrel <k> muzzle`). The hardpoints carry `Anchor weapon
+(engine_styles.json, 255,125,25). Turrets 1-3 are WS 005/006/007, the turret kit's
+light machine guns (lasher_Standard), single-barrelled, resting at their slot
+angles, with declared muzzles (`Anchor turret <i> barrel 1 muzzle`). The hardpoints carry `Anchor weapon
 <slot id> muzzle` empties for a shot that wants them; the kit's gun rigs cover
 the turrets.
 """
@@ -35,7 +35,8 @@ STATES = {
 }
 
 # (x, y, angle, scale, twin) in turret index order: WS 005, WS 006, WS 007.
-MOUNTS = [(t['location'][0], t['location'][1], t['rest_angle_deg'], .6, True) for t in _geom['turrets']]
+MOUNTS = [(t['location'][0], t['location'][1], t['rest_angle_deg'], .6, len(t['muzzles']) > 1)
+          for t in _geom['turrets']]
 DECLARED_MUZZLES = True
 
 COLOURS = {
