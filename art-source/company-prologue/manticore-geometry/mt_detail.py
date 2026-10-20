@@ -63,7 +63,7 @@ WINDOW_Z = CORE_DECK-.75     # window centre on the plinth's wall
 
 def _wall_y(x):
     """The port plinth wall's |y| at x where the windows sit (it widens aft)."""
-    return 15.99-(x+1)*.0223
+    return 15.99-(x+1)*.0223+.3   # round 15: the wall's armour plate stands .3 proud
 
 
 RADAR_M = 3.2               # the bridge search radar's reflector diameter

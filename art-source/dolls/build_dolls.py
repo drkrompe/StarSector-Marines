@@ -24,9 +24,9 @@ Every outline is one damageable location; thinner lines inside it are detail (se
 gun tubes). A leg is one outline, not a stack of panels.
 
 The mechs follow the owner's references (2026-10-20): the Hound is a Locust (a
-pod in three thirds on long bird legs, the chaingun under its nose, one rocket pod
+pod in three thirds on straight, heavy legs, the chaingun under its nose, one rocket pod
 on top), the Sirocco a Catapult (a flat pod whose side thirds carry the missile
-boxes, a cannon under the nose, bird legs), the Bulwark a Fafnir (one wide shell
+boxes, a cannon under the nose, heavy legs), the Bulwark a Fafnir (one wide shell
 with missile pods on its top corners, guns held at the chest, thick short legs).
 A pod's side thirds are its shoulder sections: a shoulder mount lives in its side
 of the hull, as MWO's side torsos carry their weapons.
@@ -34,6 +34,7 @@ of the hull, as MWO's side torsos carry their weapons.
 Run from the repository root:  python art-source/dolls/build_dolls.py
 """
 
+from math import cos, radians, sin
 from pathlib import Path
 
 OUT = Path("mod/graphics/ui/dolls")
@@ -274,15 +275,19 @@ def hauler(name):
 # the outside, legs beneath. Rear: the centre torso's back plate between the side
 # torsos, nothing else.
 
-def bird_leg(d, cx, hip_in, hip_out, knee, ankle, foot):
-    """One reverse-jointed leg as one outline: thigh out to the knee, shin back in, a splayed toe."""
-    kx, ky = knee
-    ax, ay = ankle
-    top = 80
-    points = [(hip_out, top), (hip_in, top), (kx + 10, ky + 2), (ax + 5, ay), (ax + foot, ay + 2),
-              (ax + foot + 2, 146), (ax - foot - 2, 146), (ax - foot, ay + 2), (ax - 5, ay), (kx - 2, ky - 2)]
-    seams = [((kx - 2, ky - 2), (kx + 10, ky + 2)), ((ax - 5, ay), (ax + 5, ay))]
+def bird_leg(d, cx, inner, width, top=80):
+    """One leg as one outline: a straight, heavy column from the hip, a broad knee, a planted foot."""
+    o = inner - width
+    points = [(o, top), (inner, top), (inner + 1, 108), (inner - 1, 134), (inner + 4, 137), (inner + 6, 146),
+              (o - 6, 146), (o - 4, 137), (o + 1, 134), (o - 2, 108)]
+    seams = [((o - 2, 108), (inner + 1, 108)), ((o + 1, 134), (inner - 1, 134))]
     d.mirrored("LEGS", "LEGS", points, cx, seams)
+
+
+def arc(cx, cy, r, start, end, steps=4):
+    """Points along a circular corner, in degrees with y down (180 is left, 270 is up)."""
+    return [(cx + r * cos(radians(start + (end - start) * i / steps)),
+             cy + r * sin(radians(start + (end - start) * i / steps))) for i in range(steps + 1)]
 
 
 def tubes(x0, y0, x1, y1, cols, rows):
@@ -322,29 +327,33 @@ def hound(name):
             continue
         d.panel("HEAD", [(-10, 36), (10, 36), (12, 46), (-12, 46)], cx)
         d.shape("ARMS", [(-7, 78), (7, 78), (5, 90), (-5, 90)], cx, [((-3, 86), (3, 86)), ((0, 80), (0, 90))])
-        bird_leg(d, cx, hip_in=-14, hip_out=-26, knee=(-32, 106), ankle=(-24, 134), foot=8)
+        bird_leg(d, cx, inner=-10, width=16)
     return d.write()
 
 
 def sirocco(name):
-    """A Catapult: a flat pod in three thirds, a missile box standing on each side third, a cannon under the nose."""
+    """A Catapult: a hull much wider than its legs, in three thirds of even depth, a round-topped
+    missile pod standing on each wing and a cannon under the nose. Seen from in front or behind the
+    arrowhead plan does not show: the hull is one level band."""
     d = Doll(name)
-    side = [(-12, 80), (-26, 80), (-36, 74), (-38, 62), (-33, 54), (-42, 24), (-18, 28), (-16, 54), (-12, 56)]
-    box = [((-16, 54), (-33, 54))] + tubes(-36, 30, -20, 52, 2, 3)
+    # Each wing carries an upright, round-topped missile pod as one outline.
+    side = ([(-12, 80), (-47, 80), (-52, 74), (-52, 56), (-46, 56)] + arc(-40, 34, 6, 180, 270)
+            + arc(-30, 34, 6, 270, 360) + [(-24, 56), (-12, 56)])
+    pod = [((-44.5, 56), (-25.5, 56))] + tubes(-44, 30, -26, 54, 2, 3)
     for cx, rear in views():
         sl, sr = shoulders(rear)
         d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (-12, 80)], cx)
-        d.mirrored(sl, sr, side, cx, box)
+        d.mirrored(sl, sr, side, cx, pod)
         if rear:
             continue
         d.panel("HEAD", [(-9, 46), (9, 46), (12, 56), (-12, 56)], cx)
-        d.shape("ARMS", [(-6, 80), (6, 80), (5, 98), (-5, 98)], cx, [((-3, 94), (3, 94)), ((0, 82), (0, 98))])
-        bird_leg(d, cx, hip_in=-16, hip_out=-28, knee=(-36, 108), ankle=(-28, 134), foot=9)
+        d.shape("ARMS", [(-5, 80), (5, 80), (4, 96), (-4, 96)], cx, [((-3, 92), (3, 92)), ((0, 82), (0, 96))])
+        bird_leg(d, cx, inner=-12, width=18, top=84)
     return d.write()
 
 
 def bulwark(name):
-    """A Fafnir: one wide shell with a small sunken head, missile pods on its top corners, guns held at the chest."""
+    """A Fafnir: a broad chest tapering to a narrow waist, a small sunken head, missile pods on its top corners, guns held at the chest."""
     d = Doll(name)
     arm = [(-38, 50), (-38, 84), (-44, 90), (-54, 90), (-56, 84), (-56, 56), (-50, 48)]
     barrels = [((-52, 62), (-52, 88)), ((-46, 62), (-46, 88)), ((-56, 60), (-38, 60))]
@@ -353,8 +362,10 @@ def bulwark(name):
     for cx, rear in views():
         sl, sr = shoulders(rear)
         d.shape("TORSO_REAR" if rear else "TORSO",
-                [(-34, 46), (34, 46), (36, 54), (36, 88), (26, 96), (-26, 96), (-36, 88), (-36, 54)], cx,
-                [((-14, 48), (-14, 94)), ((14, 48), (14, 94))])
+                # A broad chest tapering to a narrow armoured waist: a V, not a barrel.
+                [(-36, 46), (36, 46), (38, 52), (38, 70), (22, 94), (-22, 94), (-38, 70), (-38, 52)], cx,
+                [((-37, 70), (-14, 70)), ((37, 70), (14, 70)), ((-14, 48), (-14, 70)), ((14, 48), (14, 70)),
+                 ((-14, 70), (-8, 92)), ((14, 70), (8, 92))])
         d.mirrored(sl, sr, [(-34, 30), (-12, 30), (-12, 46), (-34, 46)], cx, tubes(-34, 30, -12, 46, 3, 2))
         if rear:
             continue
