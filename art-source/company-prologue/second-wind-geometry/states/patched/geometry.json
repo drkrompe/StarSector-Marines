@@ -212,7 +212,7 @@
       "index": 2,
       "slot": "WS 002",
       "size": "SMALL",
-      "weapon": "empty",
+      "weapon": "vulcan",
       "ring": 4.2,
       "lift": 1.6,
       "seat": 17.0,
@@ -226,22 +226,44 @@
       "arc_deg": 210,
       "pivot": "Turret 2 pivot",
       "fixed": [
-        "Turret 2 barbette",
-        "Turret 2 blanking cap",
-        "Turret 2 blanking cap boss"
+        "Turret 2 barbette"
       ],
       "k": 0.7636,
-      "elevation": null,
+      "elevation": "Turret 2 elevation",
       "trunnion": [
-        -11,
-        -20,
-        18.6
+        -11.0,
+        -23.436,
+        19.929
       ],
-      "elevation_limits": null,
-      "trained": [],
-      "recoil": [],
-      "kit_muzzles": [],
-      "muzzles": []
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "trained": [
+        "Turret 2 house dark",
+        "Turret 2 house paint#dome",
+        "Turret 2 house steel",
+        "Turret 2 house plate",
+        "Turret 2 house paint",
+        "Turret 2 recoil 1 metal",
+        "Turret 2 recoil 1 steel",
+        "Turret 2 recoil 1 dark",
+        "Turret 2 recoil 2 metal",
+        "Turret 2 recoil 2 steel",
+        "Turret 2 recoil 2 dark"
+      ],
+      "recoil": [
+        "Turret 2 recoil 1",
+        "Turret 2 recoil 2"
+      ],
+      "kit_muzzles": [
+        "Turret 2 muzzle anchor 1",
+        "Turret 2 muzzle anchor 2"
+      ],
+      "muzzles": [
+        "Anchor turret 2 barrel 1 muzzle",
+        "Anchor turret 2 barrel 2 muzzle"
+      ]
     },
     {
       "index": 3,
@@ -282,7 +304,7 @@
       "index": 4,
       "slot": "WS 004",
       "size": "MEDIUM",
-      "weapon": "vulcan",
+      "weapon": "empty",
       "ring": 7.0,
       "lift": 1.8,
       "seat": 14.5,
@@ -297,44 +319,21 @@
       "pivot": "Turret 4 pivot",
       "fixed": [
         "Turret 4 barbette",
-        "Turret 4 reducer plate"
+        "Turret 4 blanking cap",
+        "Turret 4 blanking cap boss"
       ],
       "k": 0.7636,
-      "elevation": "Turret 4 elevation",
+      "elevation": null,
       "trunnion": [
-        38.976,
-        -17.718,
-        17.929
+        36,
+        -16,
+        16.3
       ],
-      "elevation_limits": [
-        null,
-        null
-      ],
-      "trained": [
-        "Turret 4 house dark",
-        "Turret 4 house paint#dome",
-        "Turret 4 house steel",
-        "Turret 4 house plate",
-        "Turret 4 house paint",
-        "Turret 4 recoil 1 metal",
-        "Turret 4 recoil 1 steel",
-        "Turret 4 recoil 1 dark",
-        "Turret 4 recoil 2 metal",
-        "Turret 4 recoil 2 steel",
-        "Turret 4 recoil 2 dark"
-      ],
-      "recoil": [
-        "Turret 4 recoil 1",
-        "Turret 4 recoil 2"
-      ],
-      "kit_muzzles": [
-        "Turret 4 muzzle anchor 1",
-        "Turret 4 muzzle anchor 2"
-      ],
-      "muzzles": [
-        "Anchor turret 4 barrel 1 muzzle",
-        "Anchor turret 4 barrel 2 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     }
   ],
   "bay_state": {
@@ -1488,15 +1487,15 @@
         "id": "sp-turret-1",
         "kind": "turret",
         "area": "sw_scars_spine",
-        "status": "open",
-        "note": "Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new Vulcan on an adapter ring in restoration."
+        "status": "patched",
+        "note": "Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the traverse seized; freed, straightened and refitted on a welded adapter ring for the flight; ring painted over in restoration."
       },
       {
         "id": "sp-turret-2",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "patched",
-        "note": "Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a salvage cap in another owner's primer bolted on for the flight; repainted to near match."
+        "note": "Vulcan stripped; a gantry Vulcan from another hull bolted back in its owner's primer; repainted to near match."
       },
       {
         "id": "sp-turret-3",
@@ -1510,7 +1509,7 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "patched",
-        "note": "Vulcan stripped; recovered from the gantry and reinstalled on an adapter ring; ring painted over."
+        "note": "Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a salvage cap bolted on for the flight; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1698,18 +1697,7 @@
       "Aft band louver.001: Scar pod-port-engine-bay",
       "Aft band louver.002: Scar pod-port-engine-bay",
       "Drive warning light: Scar pod-port-engine-bay",
-      "Drive casing armour plate.003: Scar pod-starboard-casing-buckle",
-      "Turret 1 house dark: Scar sp-turret-1",
-      "Turret 1 house paint: Scar sp-turret-1",
-      "Turret 1 house paint#dome: Scar sp-turret-1",
-      "Turret 1 house plate: Scar sp-turret-1",
-      "Turret 1 house steel: Scar sp-turret-1",
-      "Turret 1 recoil 1 dark: Scar sp-turret-1",
-      "Turret 1 recoil 1 metal: Scar sp-turret-1",
-      "Turret 1 recoil 1 steel: Scar sp-turret-1",
-      "Turret 1 recoil 2 dark: Scar sp-turret-1",
-      "Turret 1 recoil 2 metal: Scar sp-turret-1",
-      "Turret 1 recoil 2 steel: Scar sp-turret-1"
+      "Drive casing armour plate.003: Scar pod-starboard-casing-buckle"
     ],
     "overrides": [
       "Drive warning light: Scar dead lamp (pod-port-drive)",
@@ -1720,13 +1708,13 @@
       "Engine 3 aft-facing bell: Drive bell heat (pod-starboard-drive)",
       "Engine 4 dark throat: Drive throat glow (pod-starboard-drive)",
       "Engine 4 aft-facing bell: Drive bell heat (pod-starboard-drive)",
-      "Turret 2 blanking cap: Salvage plate grey-green primer (sp-turret-2)",
-      "Turret 2 blanking cap boss: Salvage plate grey-green primer (sp-turret-2)",
+      "Turret 2 house paint: Salvage plate grey-green primer (sp-turret-2)",
+      "Turret 2 house paint#dome: Salvage plate grey-green primer (sp-turret-2)",
       "RCS bow-stbd stbd nozzle: Salvage plate bare steel (rcs-bow-stbd)",
       "RCS pod-port down nozzle: Salvage plate bare steel (rcs-pod-port)",
       "RCS pod-port up nozzle: Salvage plate bare steel (rcs-pod-port)"
     ],
-    "cut_objects": 107,
+    "cut_objects": 106,
     "sites": {
       "aft-deck-cluster": [
         {

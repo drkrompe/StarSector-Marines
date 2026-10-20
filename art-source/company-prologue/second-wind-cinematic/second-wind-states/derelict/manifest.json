@@ -569,7 +569,7 @@
   {
    "index": 2,
    "slot": "WS 002",
-   "weapon": "empty",
+   "weapon": "vulcan",
    "size": "SMALL",
    "arc_deg": 210.0,
    "pivot": "Turret 2 pivot",
@@ -623,14 +623,14 @@
   {
    "index": 4,
    "slot": "WS 004",
-   "weapon": "vulcan",
+   "weapon": "empty",
    "size": "MEDIUM",
    "arc_deg": 290.0,
    "pivot": "Turret 4 pivot",
    "pivot_at": [
     36.0,
     -16.0,
-    16.6
+    16.3
    ],
    "rest_angle_deg": -30.0,
    "elevation": null,
@@ -4741,15 +4741,15 @@
   "sp-turret-2": {
    "centre": [
     -11.0,
-    -20.0,
-    18.913
+    -22.253,
+    19.827
    ],
    "extent": [
-    7.5,
-    7.5,
-    0.625
+    7.636,
+    13.822,
+    2.494
    ],
-   "objects": 3
+   "objects": 12
   },
   "sp-turret-3": {
    "centre": [
@@ -4766,16 +4766,16 @@
   },
   "sp-turret-4": {
    "centre": [
-    37.319,
-    -16.02,
-    17.687
+    36.0,
+    -16.0,
+    16.613
    ],
    "extent": [
-    15.176,
-    12.554,
-    2.774
+    13.1,
+    13.1,
+    0.625
    ],
-   "objects": 13
+   "objects": 3
   },
   "sp-waist-line-cut": {
    "centre": [
@@ -4849,23 +4849,22 @@
   "Turbopump housing.001": "pod-starboard-pumps",
   "Turbopump vent slot": "pod-port-pumps",
   "Turbopump vent slot.001": "pod-starboard-pumps",
-  "Turret 2 blanking cap": "sp-turret-2",
-  "Turret 2 blanking cap boss": "sp-turret-2",
-  "Turret 4 house dark": "sp-turret-4",
-  "Turret 4 house paint": "sp-turret-4",
-  "Turret 4 house paint#dome": "sp-turret-4",
-  "Turret 4 house plate": "sp-turret-4",
-  "Turret 4 house steel": "sp-turret-4",
-  "Turret 4 recoil 1 dark": "sp-turret-4",
-  "Turret 4 recoil 1 metal": "sp-turret-4",
-  "Turret 4 recoil 1 steel": "sp-turret-4",
-  "Turret 4 recoil 2 dark": "sp-turret-4",
-  "Turret 4 recoil 2 metal": "sp-turret-4",
-  "Turret 4 recoil 2 steel": "sp-turret-4",
-  "Turret 4 reducer plate": "sp-turret-4",
+  "Turret 2 house dark": "sp-turret-2",
+  "Turret 2 house paint": "sp-turret-2",
+  "Turret 2 house paint#dome": "sp-turret-2",
+  "Turret 2 house plate": "sp-turret-2",
+  "Turret 2 house steel": "sp-turret-2",
+  "Turret 2 recoil 1 dark": "sp-turret-2",
+  "Turret 2 recoil 1 metal": "sp-turret-2",
+  "Turret 2 recoil 1 steel": "sp-turret-2",
+  "Turret 2 recoil 2 dark": "sp-turret-2",
+  "Turret 2 recoil 2 metal": "sp-turret-2",
+  "Turret 2 recoil 2 steel": "sp-turret-2",
+  "Turret 4 blanking cap": "sp-turret-4",
+  "Turret 4 blanking cap boss": "sp-turret-4",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 167,
+ "left_out_objects": 166,
  "objects": 1009,
  "polygons": 215975,
  "baked_meshes": 777,
@@ -5004,7 +5003,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-derelict.blend",
-  "geometry_json_sha256": "4c6ab573be1493592173388dde48c89926f441aeb073459e72fe41c6949e4204",
+  "geometry_json_sha256": "fce5ff9eca18f0d678bb7866822352ac82d82b20258f5a06a2db66bdae6108b9",
   "wear_params_sha256": "5572966dbb3381782a6f7f9896a7c3605eddff06edb65ef3a103ba9d1c128bc0"
  },
  "conventions": {
@@ -5015,5 +5014,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "801f04ae7563184b0adc115fe19242d569d04dafe7a8c93adf4e4aad1b2b1b91"
+ "asset_sha256": "c7558076223c55b8a3e269950b62a1f4b8f47246119b617233f7250bc54f2069"
 }
