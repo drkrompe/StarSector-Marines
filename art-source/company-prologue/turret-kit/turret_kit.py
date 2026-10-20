@@ -3034,28 +3034,48 @@ def _hp_miningblaster(g, f, s, k=1.0):
 
 
 def _hp_annihilator(g, f, s, k=1.0):
-    """launcher_annihilator_hardpoint_base.png (20 x 30 px; the Wolf (P)'s WS 005 /
-    WS 006 Annihilator pods). A squat ribbed launcher box from 6 px behind the slot
-    to its face 11 px ahead, wider at the shoulders (+-8) than its rear (+-6),
-    with the five rocket tubes in a row across the face (the .wpn's fire points
-    at y -4..4, 15 px ahead; their angle offsets splay the rockets, not the
-    tubes). Muzzle anchors sit at the tube mouths."""
-    box = g['paint#box']
-    plan = _ccw([(-6.0, -5.6), (1.4, -6.2), (2.6, -8.0), (11.0, -8.0), (11.0, 8.0), (2.6, 8.0), (1.4, 6.2),
-                 (-6.0, 5.6)])
-    box.prism([(x*k, y*k) for x, y in plan], -3.0*k, 2.4*k, .9*k, 3.2*k)
-    for x in (-3.6, -1.6, 4.6, 7.2):                   # the sprite's ribs: grooves across the top
-        box.cut().box((x*k, 0, 3.2*k), (.5*k, 12*k, 1.0*k))
+    """launcher_annihilator_hardpoint_base.png / _turret_base.png (the Wolf's WS 005 /
+    WS 006 Annihilators). A launcher head, not a box (owner, Wolf round 6: "missile
+    pods should use modeled missile turret heads"): the turret sprite's rounded
+    armoured shell, from a rounded magazine cap 7 px behind the slot to its front
+    face 8.4 px ahead, on a fixed mount collar sunk into the hull below it. The face
+    holds the five launch tubes in one bank across the line of fire (the .wpn's fire
+    points, y -4..4 at 15 px), set in a recess between two blast cheeks that run
+    past the tube mouths, and strapped top and bottom. Five raised ribs run fore
+    and aft over the crown (the sprite's five light stripes); trunnion bosses on
+    the flanks; a slotted loading door on the back. The tubes are parallel:
+    the .wpn's angle offsets splay the rockets, not the tubes. Muzzle anchors sit
+    at the tube mouths, in the old order (y -4, -2, 0, 2, 4)."""
+    shell = g['paint#shell']
+    # Fixed collar: a chamfered ring under the shell, its foot sunk into the hull.
+    g['steel#collar'].lathe([(5.4*k, -9.0*k), (5.4*k, -4.4*k), (4.8*k, -3.8*k), (0, -3.8*k)], 40, (-.5*k, 0, 0))
+    rows = [(-7.4, 3.4, -2.6, 1.4), (-7.0, 5.4, -3.2, 2.6), (-5.6, 7.0, -3.6, 3.5), (-2.6, 7.9, -3.6, 4.0),
+            (2.6, 8.2, -3.6, 4.0), (6.2, 7.9, -3.5, 3.5), (7.8, 7.2, -3.2, 2.9), (8.4, 6.6, -2.9, 2.4)]
+    shell.loft_x([(x*k, [(y*k, z*k) for y, z in section(hw, z0, z1, min(3.0, .45*(z1-z0)), .8, 1.4, 3)])
+                  for x, hw, z0, z1 in rows])
+    shell.cut().box((8.2*k, 0, 0), (2.8*k, 12.4*k, 4.0*k))                        # the tube-bank recess
+    g['dark'].box((6.95*k, 0, 0), (.3*k, 12.2*k, 3.8*k))
+    for y in (-4.0, -2.0, 0.0, 2.0, 4.0):                                          # raised crown ribs
+        g['steel'].box((0.0, y*k, 3.95*k), (10.0*k, .7*k, .5*k), .12*k)
     for sy in (1, -1):
-        g['steel'].box((6.6*k, sy*8.25*k, -.2*k), (6.0*k, .6*k, 3.2*k), .1*k)   # side rails
+        cheek = g['paint#cheek']                                                   # blast cheeks
+        plan = [(2.0, 6.0), (10.9, 6.2), (10.9, 7.3), (8.0, 8.4), (2.0, 8.4)]
+        cheek.prism([(x*k, sy*y*k) for x, y in _ccw([(x, sy*y) for x, y in plan])], -2.9*k, 2.2*k, .5*k, 2.9*k)
+        g['steel'].cyl((-.5*k, sy*8.4*k, -.4*k), 1.6*k, 1.0*k, 'Y', n=24, bevel=.15*k)  # trunnion boss
+        g['dark'].cyl((-.5*k, sy*8.95*k, -.4*k), .8*k, .1*k, 'Y', n=16)
     tubes = g['steel#tubes']
     mouths = []
     for y in (-4.0, -2.0, 0.0, 2.0, 4.0):
-        tubes.cyl((11.2*k, y*k, .2*k), .9*k, 1.2*k, 'X', n=16, bevel=.08*k)
-        tubes.cut().cyl((11.6*k, y*k, .2*k), .62*k, 1.6*k, 'X', n=16)
-        g['dark'].cyl((10.9*k, y*k, .2*k), .62*k, .1*k, 'X', n=16)
-        g['mark'].cyl((10.95*k, y*k, .2*k), .4*k, .1*k, 'X', n=12)            # rocket nose in the tube
-        mouths.append((11.8*k, y*k, .2*k))
+        tubes.cyl((8.4*k, y*k, 0), .98*k, 3.8*k, 'X', n=20, bevel=.1*k)
+        tubes.cut().cyl((9.4*k, y*k, 0), .66*k, 2.2*k, 'X', n=16)
+        g['dark'].cyl((8.25*k, y*k, 0), .66*k, .1*k, 'X', n=16)
+        g['mark'].lathe([(.5*k, 0), (.42*k, .5*k), (.18*k, .9*k), (0, 1.05*k)], 12, (8.3*k, y*k, 0), 'X')
+        mouths.append((10.3*k, y*k, 0.0))
+    for z in (1.15, -1.15):                                                        # tube straps
+        g['steel'].box((9.2*k, 0, z*k), (.6*k, 10.8*k, .35*k), .05*k)
+    g['steel'].box((-7.3*k, 0, -.6*k), (.5*k, 6.0*k, 3.0*k), .1*k)                 # loading door
+    for y in (-1.8, -.6, .6, 1.8):                                                 # its vent slots
+        g['dark'].box((-7.56*k, y*k, -.2*k), (.05*k, .6*k, 1.8*k))
     return mouths
 
 

@@ -70,7 +70,7 @@ NAME = 'Manticore (P)'
 # the union of ship_scale.SOLIDS['manticore'] (never the drive cans, turret
 # pods or weapons). Until the hull is in ship_scale.HULLS
 # the build uses the battle roster's plan-area estimate (about 96 m).
-STATUS = ('Review round 10: exposed framing and machinery in recessed bays (trailing-edge trusses, shoulder tank bays with feed pipes, framed heat-vent bays, pod-tail machinery, launcher coamings); round 9: long angular hull sections (few lofted stations, one swept leading-edge band, long swept wing panels, straight trailing edge); round 8: launcher bays end at the arm leading edge; round 7: launcher bays round the Harpoons, one 30/45 deg angle vocabulary, single nose bend and single anhedral; round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
+STATUS = ('Review round 11: open wing framework behind forward glacis armour (main and trailing spars, truss ribs, bracing, conduits, rams), glacis pod noses, higher beak strakes; round 10: exposed framing and machinery in recessed bays (trailing-edge trusses, shoulder tank bays with feed pipes, framed heat-vent bays, pod-tail machinery, launcher coamings); round 9: long angular hull sections (few lofted stations, one swept leading-edge band, long swept wing panels, straight trailing edge); round 8: launcher bays end at the arm leading edge; round 7: launcher bays round the Harpoons, one 30/45 deg angle vocabulary, single nose bend and single anhedral; round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a '
           'low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 '
           'deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + '
           'pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.')
@@ -79,7 +79,10 @@ SOLIDS = ['Hull bow head', 'Hull neck', 'Hull core', 'Hull wing body', 'Hull aft
 if NAME in ship_scale.HULLS:
     SCALE = ship_scale.record(NAME)
     METRES_PER_UNIT = ship_scale.PUBLISHED[NAME]
-    assert abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) < .01, (SCALE['solved_metres_per_unit'], METRES_PER_UNIT)
+    if abs(SCALE['solved_metres_per_unit']-METRES_PER_UNIT) >= .01:
+        # Owner override (2026-10-20): the formula is an estimate, and a reshape never resizes a hull.
+        SCALE['published_by'] = (f"owner override: {METRES_PER_UNIT} m/u against the rule's "
+                                 f"{SCALE['solved_metres_per_unit']:.3f}; see ship_scale.py HULLS")
     SOLIDS = [n for n in SOLIDS if ship_scale.SOLIDS['manticore']['include'](n)]
 else:
     SCALE = {'method': 'provisional: asharu-battle/roster.py option C plan-area estimate (96 m)'}

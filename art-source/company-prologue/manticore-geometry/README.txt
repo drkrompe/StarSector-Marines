@@ -41,6 +41,25 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 11 (2026-10-20)
+"What I see out of the sprite is that the wings besides the front sections are
+exposed structural framework of the wings, with the armor being spent angled
+ahead for combat 'facing' a target." The solid wing now ends just behind the
+leading edge, where each arm's armour band is a thick raked glacis (top 3
+units over the deck, 12.5 deep); behind it each arm is open lattice
+(mt_frames): a main spar girder out to the gun nacelle, a trailing-edge spar
+from the nacelle's tail into the engine block, five truss ribs, X-bracing top
+and bottom and a stringer, three conduits threaded through to the nacelle,
+two rams at its root, and the sensor dome on a platform across two ribs. The
+nacelles carry red glacis noses and the beak strakes stand higher. The band
+no longer reaches into the main gun's well (it did in rounds 9-10). Mounts
+bear ahead as before. Ray-cast IoU 0.811 raw; with the lattice's see-through
+gaps filled the outline is 0.923 (round 10: 0.926); the gaps are 11.6% of the
+outline. Scale: 0.59 m/u (91 m) is now an owner override (ship_scale.py): the open
+wings are not enclosed volume, so the enclosed volume fell to 164,819 units3
+and the rule would solve about 0.66 (101 m), but a reshape never resizes a
+hull.
+
 Owner review round 10 (2026-10-20)
 "The ship is coming together - next need to read the implied exposed hull
 framing and machinery from the sprite and add this detail into the model."

@@ -12,8 +12,12 @@ PARTS = {
     'head-top': dict(members=[('Hull head', (38.0, 4.0, 4.4)), ('Hull port outrigger', (36.0, 13.0, 3.3)),
                               ('Hull starboard outrigger', (36.0, -13.0, 3.3))],
                      dir=UP_Z, up=DOWN_X, cone=.5, what='head and both outriggers from above'),
+    # Round 6 reshaped the prow (deeper, broader, jaws and a gun hood over it): this tile was
+    # generated for the round 5 wedge, so it frames its guide but is not applied; the prow,
+    # jaws and hood take the graded grey swatch until the sheet is regenerated.
     'fork-top': dict(members=[('Hull bow fork base', (46.0, 6.0, 0.5))],
-                     dir=UP_Z, up=DOWN_X, cone=.5, what='bow fork base and outer tines from above'),
+                     dir=UP_Z, up=DOWN_X, cone=.5, what='bow fork base and outer tines from above',
+                     apply_skip=('Hull bow fork base',)),
     'engine-top': dict(members=[('Hull engine block', (-23.0, 0.0, 6.4)), ('Hull dorsal spine aft', (-15.0, 0.0, 5.3))],
                        dir=UP_Z, up=DOWN_X, cone=.5, what='engine block deck and the aft spine'),
     'pod-top-port': dict(members=[('Pod port missile body', (2.0, 18.0, 1.5))], dir=UP_Z, up=DOWN_X, cone=.5,

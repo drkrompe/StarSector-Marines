@@ -28,11 +28,15 @@ against wolf_base.png, which shows the same hull unpainted:
   hatch well (rows 66-68).
 - Engine block (rows 74-94): grey machinery Y +-14..18 carrying the three
   HIGH_TECH drives on its aft face.
+Round 6 (owner: the nose "still feels weak"): the prow is the head's depth
+carried forward with the fork base's breadth, two armoured jaws (the outer
+tines) and a gun hood; the bridge is a raised command deck over the head
+canopy and the neck oval; the merchant's aft turrets sit in faired sponsons.
 """
 import math
 import bmesh
 import bpy
-from wf_kit import facet_normal, plane_cut, prism, section, sym, revolve_x, loft_x
+from wf_kit import boolean, facet_normal, plane_cut, prism, section, sym, revolve_x, loft_x
 
 FORK = sym([(47.5, 9.4), (43, 9.4), (43, 9.0)])
 OUTER_TINE = [(53.8, 6.4), (53.8, 8.6), (51, 10), (44, 10), (44, 5.3), (51, 5.3)]
@@ -53,6 +57,16 @@ AFT = sym([(-5, 11), (-9, 15.5), (-19.5, 15.6), (-21, 13)])
 ENGINE_BLOCK = sym([(-18.5, 16.3), (-21, 15.0), (-23.5, 13.9), (-27, 14.6), (-30, 15.4), (-33.6, 16.6),
                     (-35, 16.0), (-37.3, 13), (-38.6, 10.5), (-38.8, 1)])
 DOME = (-13.6, 12.4, 5.2)            # centre X, |Y|, plan radius of the armour domes
+# The prow (round 6): half-width, deck and keel along X (cosine-eased, as the hull lines).
+PROW_HW = [(42.6, 10.0), (50.5, 9.6), (54.4, 7.4)]
+PROW_TOP = [(42.6, 4.4), (54.4, 1.2)]
+PROW_KEEL = [(42.6, -10.6), (46.5, -10.0), (54.4, -6.4)]
+JAW = [(54.7, 4.6), (54.7, 7.6), (52.0, 10.1), (44.2, 10.4), (44.2, 6.4), (51.0, 5.3)]   # port jaw plan
+# The bridge (round 6): the command deck on the head, its glazed face over the bow gun
+# (the sprite's white canopy, rows 13-16) and its roof running aft into the neck spine.
+# (x, half-width, roof) stations; it stands on the deck from BRIDGE_FLOOR up.
+BRIDGE = [(26.6, 3.4, 9.4), (29.6, 5.2, 10.2), (36.6, 5.8, 10.2), (38.6, 5.6, 9.9), (42.4, 4.4, 6.2)]
+BRIDGE_FLOOR = 2.0
 
 # Heights (proposed art; the game gives none). One keel chamfer, one wall,
 # one shoulder chamfer per section.
@@ -142,9 +156,9 @@ def seat(kit, x, y, fallback):
 # line and one keel line, with rounded superellipse sections, so each module
 # meets the next in the same section and the ship reads as one form. Each
 # module keeps its own object (and name) over its own stretch of X.
-TOP_LINE = [(46, 1.5), (43.6, 3.6), (38, 5.2), (31, 6.6), (24, 7.6), (14, 8.8), (4, 9.0), (-6, 8.4),
+TOP_LINE = [(46, 4.0), (43.6, 4.4), (38, 5.2), (31, 6.6), (24, 7.6), (14, 8.8), (4, 9.0), (-6, 8.4),
             (-14, 7.8), (-21, 7.0), (-30, 5.8), (-39, 4.6)]
-KEEL_LINE = [(46, -5.0), (43.6, -9.0), (38, -11.0), (31, -12.6), (20, -14.0), (6, -14.6), (-8, -14.4),
+KEEL_LINE = [(46, -10.2), (43.6, -10.6), (38, -11.0), (31, -12.6), (20, -14.0), (6, -14.6), (-8, -14.4),
              (-18, -13.8), (-28, -12.8), (-39, -11.2)]
 MODULES = [('Hull head', 31.0, 43.6, 'steel'), ('Hull neck', 16.5, 31.0, 'red'), ('Hull main body', -6.0, 16.5, 'red'),
            ('Hull aft body', -19.5, -6.0, 'red'), ('Hull engine block', -27.0, -19.5, 'steel')]
@@ -245,17 +259,42 @@ def stations(x0, x1, polys, step=1.2):
     return sorted(xs)
 
 
+def octagon_yz(hw, z0, z1, top, bot):
+    """A chamfered YZ section about the centreline: flat floor and roof, vertical walls."""
+    return [(-hw+bot, z0), (hw-bot, z0), (hw, z0+bot), (hw, z1-top), (hw-top, z1), (-hw+top, z1),
+            (-hw, z1-top), (-hw, z0+bot)][::-1]
+
+
 def build(kit):
     red, steel, dark = kit.red, kit.steel, kit.dark
-    # --- Bow fork: the base and its five tines. ---
-    # The bow (owner, round 5): the forward mount tapers the front of the ship - a
-    # faceted wedge from the head to the tip, its centreline channel holding the
-    # WS 004 gun (wf_mounts). The sprite's tines are the wedge's edges and the
-    # gun's prongs.
-    fork = superloft(kit, 'Hull bow fork base', [43.0+i*(54.0-43.0)/10 for i in range(11)],
-                     lambda x: 9.4-5.6*(x-43.0)/11.0, lambda x: 1.6-3.4*(x-43.0)/11.0,
-                     lambda x: -10.0+4.6*(x-43.0)/11.0, steel, n=8, pt=2.0, pb=2.0, mid=.45)
+    # --- Prow (owner, round 6: "that nose - still feels weak"). ---
+    # The head's full depth carried to the bow: a deep faceted prow that keeps the
+    # sprite's breadth (the fork base, Y +-10, rows 8-10) to the outer tines' tips,
+    # its deck raking down and its keel up into a chin, so in profile it is still the
+    # round 5 wedge but about 8 units (6 m) deep at the face rather than 3.6. The
+    # WS 004 gun runs in an open trough on the centreline (wf_mounts), its breech
+    # under an armoured hood, and the sprite's two heavy outer tines are armoured
+    # jaws either side of it, standing proud of the prow deck.
+    fork = superloft(kit, 'Hull bow fork base', [42.6+i*(54.4-42.6)/12 for i in range(13)],
+                     lambda x: line_at(PROW_HW, x), lambda x: line_at(PROW_TOP, x),
+                     lambda x: line_at(PROW_KEEL, x), steel, n=8, pt=2.0, pb=2.0, mid=.5)
+    plane_cut(fork, 'prow stem rake', (54.4, 0, -4.0), (math.cos(math.radians(24)), 0, math.sin(math.radians(24))))
     tines = []
+    for side, s in (('port', 1), ('starboard', -1)):
+        jaw = prism(kit, f'Hull bow {side} jaw', ccw([(x, s*y) for x, y in JAW]), section(-9.4, 4.8, 1.0, .9),
+                    steel)
+        plane_cut(jaw, f'{side} jaw rake', (44.0, 0, 4.8), facet_normal((1, 0), 15))
+        plane_cut(jaw, f'{side} jaw chin', (47.0, 0, -9.4), (math.sin(math.radians(28)), 0,
+                                                                -math.cos(math.radians(28))))
+        plane_cut(jaw, f'{side} jaw bevel', (50.0, s*9.0, 3.4), (0, s*.6, .8))
+        plane_cut(jaw, f'{side} jaw face', (54.7, 0, -3.0), (math.cos(math.radians(20)), 0, math.sin(math.radians(20))))
+        tines.append(jaw)
+    # The gun's hood: an armoured roof over the WS 004 breech where the trough
+    # leaves the head, its face raked, the trough running on out under it.
+    hood = prism(kit, 'Hull bow gun hood', ccw(sym([(47.0, 3.2), (46.0, 4.8), (40.6, 4.8), (40.0, 3.6)])),
+                 section(.8, 6.0, .2, 1.0), steel)
+    plane_cut(hood, 'gun hood face', (44.0, 0, 6.0), facet_normal((1, 0), 58))
+    tines.append(hood)
     # --- Head, outriggers. ---
     plans = [ccw(HEAD), ccw(NECK), ccw(MAIN), ccw(AFT), ccw(ENGINE_BLOCK)]
     top = lambda x: line_at(TOP_LINE, x)
@@ -293,18 +332,21 @@ def build(kit):
         domes.append(dome(kit, f'Hull {side} armour dome', x, s*y, r, z0-.6, 3.4, red))
     if wf_kit.VARIANT == 'merchant':
         # The base hull's aft turret wells (wolf_base.png rows 63-72: round rings
-        # reaching Y +-18, the silhouette the pirate domes keep): a full-depth
-        # armoured drum built into each flank, keel to a level ring deck, so the
-        # WS 002 / WS 003 turrets stand on structure as deep as the hull, not on
-        # its sloping edge.
+        # reaching Y +-18, the silhouette the pirate domes keep). Round 6 (owner: the
+        # PD turrets "read like cylinders and are lifted quite high on the hull"): no
+        # full-depth drums. Each turret stands in a well sunk into a low sponson, a
+        # blister faired into the flank like the hull's own sections, its flat deck level
+        # with the hull deck inboard of the ring, so the turret sits on the hull.
         for side, s in (('port', 1), ('starboard', -1)):
-            zt, zk = line_at(TOP_LINE, x)+.4, line_at(KEEL_LINE, x)+1.0
-            bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=r+.4, depth=zt-zk, location=(x, s*y, (zt+zk)/2))
-            drum = bpy.context.object
-            kit.finish(drum, f'Hull {side} turret foundation', red, .3)
-            ring_z = zt
-            kit.cylinder(f'Hull {side} turret foundation ring', (x, s*y, ring_z+.15), r-.3, .3, steel, 'Z', 24, .08)
-            domes.append(drum)
+            deck = seat(kit, x, s*7.6, AFT_Z[1])
+            R = r+.9
+            xs = [x-R*1.25+2*R*1.25*i/16 for i in range(17)]
+            tub = superloft(kit, f'Hull {side} turret foundation', xs,
+                            lambda xx, R=R: R*max(.25, 1-((xx-x)/(R*1.25))**2)**.5, lambda xx: deck,
+                            lambda xx: deck-9.0, red, yc=s*y, n=28, mid=.78, pt=6.0, pb=2.0)
+            well = kit.cylinder(f'Temporary {side} turret well', (x, s*y, deck), 5.0, 2.0, kit.dark, 'Z', 32, 0)
+            boolean(tub, well)
+            domes.append(tub)
     eng = body['Hull engine block']
 
     # --- Spine: the grey centre structure from the engine block to the head. ---
@@ -316,14 +358,35 @@ def build(kit):
                       section(0, SPINE_TOP-.6, 0, 1.3), steel)
     plane_cut(spine_aft, 'spine aft rake', (-29, 0, SPINE_TOP-.6), facet_normal((-1, 0), 30))
     plane_cut(spine_aft, 'spine aft fore rake', (-4, 0, SPINE_TOP-.6), facet_normal((1, 0), 40))
-    # Bridge canopy on the head's centreline (rows 13-16, the white dome) and the
-    # neck's domed sensor housing (rows 26-30) with its aft canopy (rows 33-34).
-    zc = seat(kit, 39.5, 0, HEAD_Z[1])
-    canopy = dome(kit, 'Hull bridge canopy frame', 39.6, 0, 3.4, zc-.3, 2.0, steel, 12, 3)
-    glass = dome(kit, 'Hull bridge canopy glazing', 40.2, 0, 2.6, zc-.1, 2.0, kit.glass, 12, 3)
-    zs = seat(kit, 26.5, 0, SPINE_TOP)
-    sensor = dome(kit, 'Hull neck sensor dome', 26.5, 0, 3.0, zs-.4, 2.2, steel, 14, 3)
-    kit.hull += [canopy, sensor]
+    # The bridge (owner, round 6: "maybe we can work out bridge being around there").
+    # Both sprites put the ship's glazing forward: the white canopy on the head's
+    # centreline (rows 13-16, X 38-41) right behind the bow gun, and the lit oval on
+    # the neck spine (rows 24-34). The command deck is one raised, faceted block over
+    # that stretch: its face raked forward over the WS 004 hood, a glazed band across
+    # the face and down both flanks, its roof running aft onto the neck spine, where
+    # the sprite's oval is its domed sensor housing. It stays below the WS 001 ion
+    # cannon's line of fire.
+    rows = []
+    for x, hw, roof in BRIDGE:
+        rows.append((x, [(y, z) for y, z in octagon_yz(hw, BRIDGE_FLOOR, roof, 1.5, .6)]))
+    bridge = loft_x(kit, 'Hull bridge', rows, steel, 0)
+    band = loft_x(kit, 'Hull bridge glazing', [(x, [(y*(1+.1/max(abs(y), .1)) if abs(y) > .1 else y, z+.08)
+                                                    for y, z in sec]) for x, sec in rows], kit.glass, 0)
+    slab = kit.box('Temporary bridge glazing slab', (36.4, 0, 8.25), (13.0, 30, 1.5), kit.glass, 0)
+    boolean(band, slab, 'INTERSECT')
+    for y in (-3.0, -1.0, 1.0, 3.0):                       # mullions: the band split into panes
+        cutter = kit.box('Temporary bridge mullion', (41.0, y, 8.2), (6.0, .35, 3.0), kit.glass, 0)
+        boolean(band, cutter)
+    for x in (31.4, 33.8, 36.2):
+        cutter = kit.box('Temporary bridge side mullion', (x, 0, 8.2), (.35, 30, 3.0), kit.glass, 0)
+        boolean(band, cutter)
+    zs = seat(kit, 25.0, 0, SPINE_TOP)
+    sensor = dome(kit, 'Hull neck sensor dome', 25.0, 0, 2.8, zs-.4, 2.0, steel, 14, 3)
+    zr = 10.2
+    roof = dome(kit, 'Hull bridge roof sensor dome', 32.6, 0, 1.9, zr-.3, 1.3, kit.glass, 12, 3)
+    kit.box('Hull bridge roof mast', (30.4, 0, zr+1.2), (.5, .5, 2.6), steel, .05)
+    kit.box('Hull bridge roof mast yard', (30.4, 0, zr+2.1), (.4, 3.6, .3), steel, .05)
+    kit.hull += [bridge, sensor]
     keel_plan = [ccw(sym([(27, 3.2), (24, 5.0), (-16, 5.0), (-20, 3.6)]))]
     keel = superloft(kit, 'Hull ventral keel', stations(-19.8, 26.8, keel_plan, 1.5), lambda x: plan_hw(keel_plan, x),
                      lambda x: line_at(KEEL_LINE, x)+3.0, lambda x: line_at(KEEL_LINE, x)-3.4, steel, n=16, mid=.6)

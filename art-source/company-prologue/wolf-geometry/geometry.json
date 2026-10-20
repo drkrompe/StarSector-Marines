@@ -77,12 +77,12 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 38649,
+      "units3": 38763,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
       "cls": "frigate",
-      "length_units": 94.0,
+      "length_units": 95.1,
       "sprite_px": 96,
       "volume_source": "measured (SOLIDS)"
     },
@@ -113,17 +113,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.759,
+    "solved_metres_per_unit": 0.758,
     "range": {
-      "habitable_273": 0.736,
-      "habitable_328": 0.782
+      "habitable_273": 0.735,
+      "habitable_328": 0.781
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 71.4,
+    "length_m": 72.1,
     "fittings_m": {},
     "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 38649,
+      "enclosed_units3": 38763,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -210,7 +210,7 @@
       "location": [
         11,
         20,
-        -2.2
+        4.63
       ],
       "angle": 0,
       "arc": 5,
@@ -231,7 +231,7 @@
       "location": [
         11,
         -19,
-        -2.2
+        4.57
       ],
       "angle": 0,
       "arc": 5,
@@ -302,13 +302,13 @@
       "k": 0.42,
       "bay": {
         "x": [
-          42.8,
-          55.0
+          43.4,
+          55.5
         ],
-        "half_width": 3.8,
+        "half_width": 3.7,
         "z": [
-          -6.2,
-          2.4
+          -6.5,
+          8.4
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -337,15 +337,17 @@
       "location": [
         11,
         20,
-        -2.2
+        4.63
       ],
       "k": 0.6,
       "bay": null,
       "parts": [
-        "Weapon WS 005 hardpoint paint#box",
-        "Weapon WS 005 hardpoint steel",
-        "Weapon WS 005 hardpoint steel#tubes",
+        "Weapon WS 005 hardpoint paint#shell",
+        "Weapon WS 005 hardpoint steel#collar",
         "Weapon WS 005 hardpoint dark",
+        "Weapon WS 005 hardpoint steel",
+        "Weapon WS 005 hardpoint paint#cheek",
+        "Weapon WS 005 hardpoint steel#tubes",
         "Weapon WS 005 hardpoint mark"
       ],
       "kit_muzzles": [
@@ -371,15 +373,17 @@
       "location": [
         11,
         -19,
-        -2.2
+        4.57
       ],
       "k": 0.6,
       "bay": null,
       "parts": [
-        "Weapon WS 006 hardpoint paint#box",
-        "Weapon WS 006 hardpoint steel",
-        "Weapon WS 006 hardpoint steel#tubes",
+        "Weapon WS 006 hardpoint paint#shell",
+        "Weapon WS 006 hardpoint steel#collar",
         "Weapon WS 006 hardpoint dark",
+        "Weapon WS 006 hardpoint steel",
+        "Weapon WS 006 hardpoint paint#cheek",
+        "Weapon WS 006 hardpoint steel#tubes",
         "Weapon WS 006 hardpoint mark"
       ],
       "kit_muzzles": [
@@ -635,8 +639,8 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 28766,
-    "objects": 132,
+    "triangles": 32754,
+    "objects": 135,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",
@@ -770,10 +774,8 @@
     }
   ],
   "silhouette": {
-    "iou": 0.8915,
-    "sprite_uncovered": 0.0563,
-    "model_outside_sprite": 0.0585,
-    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit; the hardpoint guns (Weapon WS ...) are hidden in the top render: the hull sprite draws no weapons"
+    "iou": 0.9013,
+    "method": "round 6: a downward ray-cast silhouette, 4x4 samples per sprite pixel, against the sprite alpha (>127); the hardpoint guns (Weapon WS ...) are left out: the hull sprite draws no weapons. Round 5, by the top render: 0.8915."
   },
   "shot_extent_px": {
     "shot-670m": {

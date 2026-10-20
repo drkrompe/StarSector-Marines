@@ -28,9 +28,9 @@
   39.5,
   25.5
  ],
- "meshes": 132,
- "polygons": 12893,
- "images": 19,
+ "meshes": 135,
+ "polygons": 14623,
+ "images": 18,
  "engines": [
   {
    "index": 1,
@@ -168,13 +168,13 @@
    "k": 0.42,
    "bay": {
     "x": [
-     42.8,
-     55.0
+     43.4,
+     55.5
     ],
-    "half_width": 3.8,
+    "half_width": 3.7,
     "z": [
-     -6.2,
-     2.4
+     -6.5,
+     8.4
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -203,15 +203,17 @@
    "location": [
     11,
     20,
-    -2.2
+    4.63
    ],
    "k": 0.6,
    "bay": null,
    "parts": [
-    "Weapon WS 005 hardpoint paint#box",
-    "Weapon WS 005 hardpoint steel",
-    "Weapon WS 005 hardpoint steel#tubes",
+    "Weapon WS 005 hardpoint paint#shell",
+    "Weapon WS 005 hardpoint steel#collar",
     "Weapon WS 005 hardpoint dark",
+    "Weapon WS 005 hardpoint steel",
+    "Weapon WS 005 hardpoint paint#cheek",
+    "Weapon WS 005 hardpoint steel#tubes",
     "Weapon WS 005 hardpoint mark"
    ],
    "kit_muzzles": [
@@ -237,15 +239,17 @@
    "location": [
     11,
     -19,
-    -2.2
+    4.57
    ],
    "k": 0.6,
    "bay": null,
    "parts": [
-    "Weapon WS 006 hardpoint paint#box",
-    "Weapon WS 006 hardpoint steel",
-    "Weapon WS 006 hardpoint steel#tubes",
+    "Weapon WS 006 hardpoint paint#shell",
+    "Weapon WS 006 hardpoint steel#collar",
     "Weapon WS 006 hardpoint dark",
+    "Weapon WS 006 hardpoint steel",
+    "Weapon WS 006 hardpoint paint#cheek",
+    "Weapon WS 006 hardpoint steel#tubes",
     "Weapon WS 006 hardpoint mark"
    ],
    "kit_muzzles": [
@@ -374,7 +378,7 @@
    "location": [
     11,
     20,
-    -2.2
+    4.63
    ],
    "angle": 0,
    "arc": 5,
@@ -395,7 +399,7 @@
    "location": [
     11,
     -19,
-    -2.2
+    4.57
    ],
    "angle": 0,
    "arc": 5,
@@ -708,5 +712,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "45dd9e3fe837a2fdd44f0cbbc9f92db7498869d5d7cab528184536cc9f52e607"
+ "asset_sha256": "db279e9927406b074fffca7d0b4f80d7bf1bf40a04f74b6ec470758904d58866"
 }
