@@ -72,7 +72,7 @@ Slots (exactly as shepherd.ship)
   WS 007  TURRET    SMALL BALLISTIC  (-3, -23)   angle -75, arc 200
           -> 'Turret 1 WS 007 ...', trained to -75 above the traverse gap
   WS 008  HARDPOINT SMALL UNIVERSAL  (27, -19)   angle 0, arc 20
-          -> 'Hardpoint 1 WS 008 ...', in the repair gantry's forward bed
+          -> 'Hardpoint 1 WS 008 ...', in the repair gantry's forward well
   WS 003  HIDDEN    SMALL LAUNCH_BAY (-3,19) (12,19) (26,19) angle 0, arc 5
           -> the drone bay: three dorsal openings, one per launch location
 Each mount has '<prefix> pivot' and '<prefix> muzzle' empties.
@@ -153,7 +153,12 @@ offered in this harness)
   Mounts   WS 007 naval turret (barbette, chamfered gun house, trunnions,
            twin barrels with jackets and muzzle brakes, sight, ready box and
            feed), lifted 1 unit so the barrels clear the crossbeam through
-           the whole arc; WS 008 armoured universal hardpoint on the bed.
+           the whole arc. WS 008 (2026-10-20): the shared turret kit's
+           hardpoint for shepherd_Frontier, the Swarmer pack
+           (tk.build_hardpoint at k 0.5 on 'Hardpoint 1 WS 008 pivot'), its
+           well cut to the kit's bay and its housing standing on the bed;
+           '<prefix> muzzle' rides tube 1, '<prefix> muzzle anchor 1-4' the
+           four tubes. check_hardpoints.py: no clips.
 Checks: check_clashes.py (cross-module overlaps: the remaining hits are
 deliberate embedding) and check_turret_arc.py (WS 007 at rest, both arc
 limits and every 10 deg; no clashes), both run inside Blender after a build:

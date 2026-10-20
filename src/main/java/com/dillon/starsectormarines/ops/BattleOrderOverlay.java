@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningService.Status;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -29,6 +31,7 @@ final class BattleOrderOverlay {
     private final Selection selection;
     private final Supplier<Mode> targeting;
     private final Consumer<Mode> toggle;
+    private final Runnable garrison;
     private final BattleOrderOverlayModel model;
     private final BattleOrderShortcuts shortcuts = new BattleOrderShortcuts();
     private UiDocument document;
@@ -38,11 +41,12 @@ final class BattleOrderOverlay {
     private PositionAPI position;
     private boolean visible;
 
-    BattleOrderOverlay(Selection selection, Supplier<Mode> targeting, Consumer<Mode> toggle) {
+    BattleOrderOverlay(Selection selection, Supplier<Mode> targeting, Consumer<Mode> toggle, Runnable garrison) {
         this.selection = selection;
         this.targeting = targeting;
         this.toggle = toggle;
-        model = new BattleOrderOverlayModel(reactor, toggle);
+        this.garrison = garrison;
+        model = new BattleOrderOverlayModel(reactor, toggle, garrison);
     }
 
     void attach(PositionAPI position, BattleSimulation sim, float supportHeight) {
@@ -61,7 +65,8 @@ final class BattleOrderOverlay {
         boolean nextVisible = SquadOrderTargetingPanel.canOrderSquad(sim, selection.getSelectedSquadId());
         if (!nextVisible && visible) detach();
         visible = nextVisible;
-        if (visible) model.update(selection.squadCount(), sim.getSquad(selection.getSelectedSquadId()).isMechSquad(), targeting.get());
+        if (visible) model.update(selection.squadCount(), sim.getSquad(selection.getSelectedSquadId()).isMechSquad(),
+                targeting.get(), stances(sim, selection));
         if (markup == null || position == null) return;
         markup.flush();
         UiViewport next = viewport(position, supportHeight);
@@ -72,6 +77,17 @@ final class BattleOrderOverlay {
             input = new StarsectorUiInputAdapter(document, next);
         }
         document.advance(dt);
+    }
+
+    /** The GARRISON stance of every selected infantry squad, in selection order; mechs take no part. */
+    static List<Status> stances(BattleSimulation sim, Selection selection) {
+        List<Status> out = new ArrayList<>();
+        for (int id : selection.getSelectedSquadIds()) {
+            Squad squad = sim.getSquad(id);
+            if (squad == null || squad.isMechSquad() || squad.isDroneSquad()) continue;
+            out.add(sim.getReactiveManning().view(id).status());
+        }
+        return out;
     }
 
     static UiViewport viewport(PositionAPI position, float supportHeight) {
@@ -87,7 +103,7 @@ final class BattleOrderOverlay {
 
     void processInput(List<InputEventAPI> events) {
         if (events == null) return;
-        shortcuts.process(events, visible, toggle);
+        shortcuts.process(events, visible, toggle, garrison);
         if (!visible || input == null) return;
         List<InputEventAPI> retained = new ArrayList<>();
         for (InputEventAPI event : events) {

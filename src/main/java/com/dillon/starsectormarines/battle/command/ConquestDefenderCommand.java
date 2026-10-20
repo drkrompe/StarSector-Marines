@@ -439,6 +439,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         if (flowOn) {
             planAreas(influence, reactive ? places : null, frame.topology(), frame.perspective(), threats, rallies, held, allSquads);
         }
+        for (Map.Entry<Integer, Rally> entry : rallies.entrySet()) {
+            entry.setValue(steadyRallies.steady(entry.getKey(), entry.getValue(), frame.tick()));
+        }
 
         int mobileReserve = mobileReserveFor(candidates.size());
         int responseBudget = candidates.size() - mobileReserve;
@@ -712,6 +715,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             if (cell != null) rallies.put(track, new Rally(cell[0], cell[1], true));
         }
     }
+
+    /** Keeps each threatened track's rally from swinging back to the post it has just left. */
+    private final SteadyRallies<Rally> steadyRallies = new SteadyRallies<>(new SteadyRallies.Cell<>() {
+        @Override public int x(Rally post) { return post.x; }
+        @Override public int y(Rally post) { return post.y; }
+    });
 
     private CandidateChoice chooseCandidate(List<PlanningSquad> candidates,
                                             Set<Integer> selected,

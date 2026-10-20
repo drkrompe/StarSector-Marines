@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
 import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
+import com.dillon.starsectormarines.ops.MenuTheme;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -150,6 +151,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     @Override
     public void onGameLoad(boolean newGame) {
         LOG.info("Starsector Marines: game loaded (newGame=" + newGame + ")");
+        // A storybook or ops dialog torn down without its dismissal must not leave this
+        // campaign's music suspended under a theme nobody is holding.
+        MenuTheme.shared().reset();
         ensureBridgeIntel();
         // Before the roster: CampaignClock anchors its day counter on CampaignState, and
         // starter-captain creation stamps a day.

@@ -22,13 +22,13 @@ side of that.
   its own floor. The twelve-cell rule is a generation rule for runs, not a law
   for every kind.
 - Publish building envelopes (apertures and stance cells, already derived by
-  frontage) as garrisonables with posts, so the reactive commander in
-  `reactive-garrisons.md` can treat a building shell and a trench as the same
+  frontage) as garrisonables with posts, so the reactive commander of
+  `garrisonables.md` can treat a building shell and a trench as the same
   kind of decision.
 - Keep the authored laws: doors stay open, circulation and vehicle widths
   survive, stand positions never overwrite authored footprints.
 
 ## Depends on
 
-`reactive-garrisons.md` proving the commander-tier half on fort belts first;
-without reactive manning, more garrisonables only means more static garrisons.
+Reactive manning, proven on fort belts first (`garrisonables.md`, shipped
+2026-10-20); without it, more garrisonables only means more static garrisons.

@@ -291,16 +291,74 @@ public final class SquadMoveOrderSystem {
 
     private void activateDefendArea(PendingOrder request, Squad squad,
                                     int[] origin, BattleSimulation sim, int occupyRunId) {
+        activateDefendArea(request.cellX, request.cellY, squad, origin, sim, occupyRunId,
+                occupyRunId >= 0 ? "occupy position" : "defend area");
+    }
+
+    private ActiveDefendAreaOrder activateDefendArea(int cellX, int cellY, Squad squad, int[] origin,
+                                                     BattleSimulation sim, int occupyRunId, String reason) {
         int[] center = ReachableCellResolver.nearest(sim.getGrid(),
-                origin[0], origin[1], request.cellX, request.cellY);
-        if (center == null) return;
+                origin[0], origin[1], cellX, cellY);
+        if (center == null) return null;
         int radius = SquadMoveOrderService.DEFEND_AREA_RADIUS_CELLS;
         ActiveDefendAreaOrder order = new ActiveDefendAreaOrder(
-                request.cellX, request.cellY, center[0], center[1], radius, occupyRunId);
+                cellX, cellY, center[0], center[1], radius, occupyRunId);
         service.activate(squad.id, order);
         issue(squad, ObjectiveAssignment.defendArea(
-                squad.id, center[0], center[1], radius),
-                occupyRunId >= 0 ? "occupy position" : "defend area", sim);
+                squad.id, center[0], center[1], radius), reason, sim);
+        return order;
+    }
+
+    /**
+     * The GARRISON stance's occupy of {@code run}, clicked at ({@code cellX}, {@code cellY}) on the run: the very order
+     * the player's click on that trench gives, under the same lease. Null when the squad may not take it.
+     */
+    ActiveOrder occupyFor(Squad squad, int run, int cellX, int cellY, BattleSimulation sim) {
+        int[] origin = stanceOrigin(squad, AssignmentKind.DEFEND_AREA, sim);
+        if (origin == null) return null;
+        return activateDefendArea(cellX, cellY, squad, origin, sim, run, "garrison: occupy position");
+    }
+
+    /** The GARRISON stance's hold of a held building: the order a click inside it gives. Null when refused. */
+    ActiveOrder holdFor(Squad squad, TacticalNode place, BattleSimulation sim) {
+        int[] origin = stanceOrigin(squad, AssignmentKind.HOLD_NODE, sim);
+        if (origin == null) return null;
+        int placeZone = sim.getZoneGraph().zoneIdAt(place.anchorX, place.anchorY);
+        if (!reachable(origin, placeZone, sim)) return null;
+        ActiveHoldPlaceOrder order = new ActiveHoldPlaceOrder(place.anchorX, place.anchorY,
+                place.anchorX, place.anchorY, place);
+        service.activate(squad.id, order);
+        issue(squad, ObjectiveAssignment.holdNode(squad.id, place), "garrison: hold place", sim);
+        return order;
+    }
+
+    /** The GARRISON stance's walk back to its anchor: an attack move that ends on arrival. Null when refused. */
+    ActiveOrder returnFor(Squad squad, int cellX, int cellY, BattleSimulation sim) {
+        int[] origin = stanceOrigin(squad, AssignmentKind.ATTACK_MOVE, sim);
+        if (origin == null) return null;
+        int[] destination = ReachableCellResolver.nearest(sim.getGrid(), origin[0], origin[1], cellX, cellY);
+        if (destination == null) return null;
+        ActiveMoveOrder order = new ActiveMoveOrder(cellX, cellY, destination[0], destination[1]);
+        service.activate(squad.id, order);
+        issue(squad, ObjectiveAssignment.attackMove(squad.id, destination[0], destination[1]),
+                "garrison: return to watch", sim);
+        return order;
+    }
+
+    /**
+     * Ends {@code order} if it is still the one the squad carries, handing the squad back as any finished player order
+     * does. An order the player has since replaced is not the stance's to end.
+     */
+    void releaseFor(Squad squad, ActiveOrder order, BattleSimulation sim, String reason) {
+        if (order == null || service.activeOrder(squad.id) != order) return;
+        release(squad.id, order, squad, sim, reason);
+    }
+
+    private static int[] stanceOrigin(Squad squad, AssignmentKind kind, BattleSimulation sim) {
+        if (squad.isMechSquad() || validPlayerSquad(squad.id, kind, sim) == null || withdrawing(squad, sim)) {
+            return null;
+        }
+        return origin(squad, sim);
     }
 
     /**
