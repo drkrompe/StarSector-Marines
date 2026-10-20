@@ -30,13 +30,13 @@ manifest.
 
 - **Move the root only.** Every part and anchor descends from it. The model is
   in hull units (+X bow, +Y port, +Z dorsal; one sprite pixel per unit);
-  `metres_per_unit` is 0.76 (on the root and in the manifest): 71 m from
-  bow fork to stern, 37 m across the missile pods, about 21 m deep. A shot in
+  `metres_per_unit` is 0.76 (on the root and in the manifest): 72 m from
+  prow to stern, 37 m across the missile pods, about 21 m deep. A shot in
   metres scales the root by 0.76.
 - **Two variants, one hull.** `wolf-p.blend` (`WOLF_P`, the pirate skin,
   battle wear) and `wolf.blend` (`WOLF`, the convoy's own Wolf: the base hull,
-  no pirate armour, its aft WS 002 / WS 003 PD laser turrets on full-depth
-  drums, an independent pale blue-grey livery, service wear; manifest-merchant.json,
+  no pirate armour, its aft WS 002 / WS 003 PD laser turrets in wells
+  sunk into low faired sponsons, an independent pale blue-grey livery, service wear; manifest-merchant.json,
   validation-merchant.json). `finalize.sh --variant merchant` builds the second.
   The merchant's WS 004 and WS 005 / WS 006 carry the vanilla wolf_Assault
   heavy blaster and Harpoons, built with the mining blaster and Annihilator
@@ -46,8 +46,9 @@ manifest.
 - **Turret.** `Turret 1 pivot` (WS 001, the ion cannon) trains about its local
   Z (rests ahead, arc 150 degrees); `Turret 1 elevation` elevates (negative
   local Y lifts the emitter).
-- **Hardpoints.** `Weapon WS 004 mount` (the mining blaster, the bow claw's
-  middle) and `Weapon WS 005 / WS 006 mount` (the Annihilator pods), fixed,
+- **Hardpoints.** `Weapon WS 004 mount` (the mining blaster, in the prow's trough
+  between its jaws) and `Weapon WS 005 / WS 006 mount` (the Annihilator launcher heads on the
+  wing tips), fixed,
   +X along the bow.
 - **Gun effects.** Kit mounts, in order: 1 ion cannon, 2 mining blaster (both
   `energy`: flash, light and bolt in the weapon's own glow colour, ion blue

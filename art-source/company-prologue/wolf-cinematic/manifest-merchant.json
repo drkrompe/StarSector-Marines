@@ -28,9 +28,9 @@
   39.5,
   25.5
  ],
- "meshes": 154,
- "polygons": 20783,
- "images": 19,
+ "meshes": 155,
+ "polygons": 23143,
+ "images": 18,
  "engines": [
   {
    "index": 1,
@@ -162,7 +162,7 @@
    "location": [
     -13,
     12,
-    9.8
+    7.66
    ],
    "rest_angle_deg": 90,
    "arc_deg": 200,
@@ -200,7 +200,7 @@
    "location": [
     -13,
     -11,
-    9.8
+    7.67
    ],
    "rest_angle_deg": -90,
    "arc_deg": 200,
@@ -244,13 +244,13 @@
    "k": 0.42,
    "bay": {
     "x": [
-     42.8,
-     55.0
+     43.4,
+     55.5
     ],
-    "half_width": 3.8,
+    "half_width": 3.7,
     "z": [
-     -6.2,
-     2.4
+     -6.5,
+     8.4
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -279,15 +279,17 @@
    "location": [
     11,
     20,
-    -2.2
+    4.63
    ],
    "k": 0.6,
    "bay": null,
    "parts": [
-    "Weapon WS 005 hardpoint paint#box",
-    "Weapon WS 005 hardpoint steel",
-    "Weapon WS 005 hardpoint steel#tubes",
+    "Weapon WS 005 hardpoint paint#shell",
+    "Weapon WS 005 hardpoint steel#collar",
     "Weapon WS 005 hardpoint dark",
+    "Weapon WS 005 hardpoint steel",
+    "Weapon WS 005 hardpoint paint#cheek",
+    "Weapon WS 005 hardpoint steel#tubes",
     "Weapon WS 005 hardpoint mark"
    ],
    "kit_muzzles": [
@@ -313,15 +315,17 @@
    "location": [
     11,
     -19,
-    -2.2
+    4.57
    ],
    "k": 0.6,
    "bay": null,
    "parts": [
-    "Weapon WS 006 hardpoint paint#box",
-    "Weapon WS 006 hardpoint steel",
-    "Weapon WS 006 hardpoint steel#tubes",
+    "Weapon WS 006 hardpoint paint#shell",
+    "Weapon WS 006 hardpoint steel#collar",
     "Weapon WS 006 hardpoint dark",
+    "Weapon WS 006 hardpoint steel",
+    "Weapon WS 006 hardpoint paint#cheek",
+    "Weapon WS 006 hardpoint steel#tubes",
     "Weapon WS 006 hardpoint mark"
    ],
    "kit_muzzles": [
@@ -463,7 +467,7 @@
    "location": [
     -13,
     12,
-    9.8
+    7.66
    ],
    "angle": 90,
    "arc": 200,
@@ -480,7 +484,7 @@
    "location": [
     -13,
     -11,
-    9.8
+    7.67
    ],
    "angle": -90,
    "arc": 200,
@@ -514,7 +518,7 @@
    "location": [
     11,
     20,
-    -2.2
+    4.63
    ],
    "angle": 0,
    "arc": 5,
@@ -535,7 +539,7 @@
    "location": [
     11,
     -19,
-    -2.2
+    4.57
    ],
    "angle": 0,
    "arc": 5,
@@ -865,5 +869,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "e65bbed38ba46e836ee42fadf111c172a24dec79723ead26c3b129d543830457"
+ "asset_sha256": "86e8c02cc4a5fbea923030e70ad35475b8ffb09b5b967e29c2585e4a0bb3def1"
 }
