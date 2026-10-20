@@ -25,6 +25,7 @@ ap.add_argument('--mpu', type=float, default=.99)
 ap.add_argument('--detail', default='near')
 ap.add_argument('--only', default='')
 ap.add_argument('--samples', type=int, default=32)
+ap.add_argument('--half', action='store_true', help='render at 50%% (the render queue light lane)')
 ap.add_argument('--no-singles', action='store_true')
 ap.add_argument('--top', action='store_true', help='also orthographic top and side views of each, trained dead ahead, for review_sheet.py')
 args = ap.parse_args(argv)
@@ -34,6 +35,8 @@ OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 studio.setup(scene, args.samples)
+if args.half:
+    scene.render.resolution_percentage = 50
 MATS = studio.hull_mats()
 DECK = studio.material('Deck', (.22, .21, .2), .3, .7)
 
