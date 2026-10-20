@@ -2,11 +2,8 @@
 
 Read off the sprite at 6-10x (the hull has no lights layer, so glazing and
 heat glow follow its shading and a low-tech destroyer's needs):
-- Wings (round 9): two long red armour panels a side, swept parallel to the
-  trailing edge from the gun nacelle into the core (the bright diagonal plates,
-  rows 55-95), each creased once down its length; a dark strake down the
-  straight swept trailing edge.
-- Sensor domes: the tan bulbs at (5, +-35), on low plinths.
+- Wings and sensor domes: (round 11) open framework behind the leading-edge
+  glacis, in mt_frames, the domes on platforms in it.
 - Main ring collar: the dark segmented ring round the Mark IX (radius ~20),
   with radial ribs.
 - Neck: transverse gunmetal ribs across the spine (rows 30-45) between the red
@@ -15,9 +12,8 @@ heat glow follow its shading and a low-tech destroyer's needs):
   flank viewports for the crew decks (low tech: few, small).
 - Command dome: a glazed band across its forward face under a visor brow,
   a sensor mast and dish on its roof.
-- Aft body: longitudinal machinery ribs and two heat-vent wells either side
-  of the centreline (the sprite's dark slatted blocks, rows 125-140), and the
-  canister-flak hatches at the hidden system slots WS 006-009.
+- Aft body: (round 10) its machinery and heat-vent bays are in mt_frames;
+  here, the canister-flak hatches at the hidden system slots WS 006-009.
 Every part is named `Hull ...` or `Bridge ...`, and none crosses the
 silhouette by more than a cell, so the top-view IoU holds.
 """
@@ -69,47 +65,13 @@ def wing_z(y, deck=WING_DECK):
 def build(kit):
     vp = [m/kit.mpu for m in VIEWPORT_M]
     for side, s in (('port', 1), ('starboard', -1)):
-        # --- wing armour (round 9, owner: long angular sections): two long red
-        # panels a side, swept parallel to the trailing edge from the gun
-        # nacelle into the core, each with one crease down its length (flat
-        # forward, falling aft); a dark strake down the straight trailing edge. ---
-        def swept(s_lo, s_hi, t0, t1):
-            # A quadrilateral in plan, s inboard of the trailing edge, t along it inboard.
-            return [(TE_ROOT[0]+SWEEP_N[0]*sv+SWEEP_T[0]*tv, s*(TE_ROOT[1]+SWEEP_N[1]*sv+SWEEP_T[1]*tv))
-                    for sv, tv in ((s_lo, t0), (s_hi, t0), (s_hi, t1), (s_lo, t1))]
-        for k, (s_lo, s_hi, t0, t1) in enumerate(((12.5, 19.5, 11, 48), (4.0, 10.0, 12, 31)), 1):
-            z0 = WING_DECK-.6   # unsheared; `shear` lays it on the drooping deck
-            plate = prism(kit, f'Hull wing {side} armour plate {k}', ccw(swept(s_lo, s_hi, t0, t1)),
-                          section(z0, z0+2.6, .2, .8), kit.red, .12)
-            mid = (s_lo+s_hi)/2
-            cx, cy = TE_ROOT[0]+SWEEP_N[0]*mid, TE_ROOT[1]+SWEEP_N[1]*mid
-            plane_cut(plate, f'{side} plate {k} aft fall', (cx, s*cy, z0+2.6),
-                      facet_normal((-SWEEP_N[0], -s*SWEEP_N[1]), FALL))
-            plane_cut(plate, f'{side} plate {k} outer rake', (cx+SWEEP_T[0]*(t0+2.6), s*(cy+SWEEP_T[1]*(t0+2.6)), z0+2.6),
-                      facet_normal((-SWEEP_T[0], -s*SWEEP_T[1]), RAKE))
-            kit.hull.append(droop(shear(plate)))
-        droop(shear(prism(kit, f'Hull wing {side} trailing strake 1', ccw(swept(0, 3.2, 2, 34)),
-                          section(WING_DECK-1.6, WING_DECK+.5, .1, .3), kit.steel, .08)))
-        # Sensor dome on its plinth (the tan bulb at (5, +-35)).
-        z = seat(kit, 5, s*35, WING_DECK)
-        kit.cylinder(f'Hull wing {side} sensor plinth', (5, s*35, z+.4), 4.6, 1.2, kit.steel, vertices=12, bevel=.1)
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=3.8, location=(5, s*35, z+1.0))
-        dome = bpy.context.object
-        dome.scale.z = .8
-        bpy.ops.object.transform_apply(scale=True)
-        kit.finish(dome, f'Hull wing {side} sensor dome', kit.pale)
+        # (Round 11: the wings behind the glacis are open framework; the sensor
+        # domes stand on platforms in it, mt_frames.)
         # --- crew-deck viewports: one row down each wall of the bridge plinth ---
         for k, x in enumerate((-1, -5, -9, -15, -19), 1):
             for row, z in enumerate((CORE_DECK-.75,)):
                 kit.box(f'Hull core {side} viewport {k}.{row+1}', (x, s*16.35, z), (vp[0], .3, vp[1]), kit.glass, 0)
-        # --- aft body: machinery ribs and heat-vent wells ---
-        for k, y in enumerate((27, 32), 1):
-            kit.box(f'Hull aft {side} machinery rib {k}', (-40, s*y, seat(kit, -40, s*y, AFT_DECK)+.2), (26, 1.4, .9),
-                    kit.steel, .1)
-        zv = seat(kit, -42, s*8, CORE_DECK)
-        kit.box(f'Hull aft {side} heat vent well', (-42, s*8, zv-.15), (10, 5.0, .5), kit.dark, 0)
-        for k, y in enumerate((6.6, 8.0, 9.4), 1):
-            kit.box(f'Hull aft {side} heat vent slat {k}', (-42, s*y, zv+.08), (8.5, .4, .25), kit.vent, 0)
+        # (Round 10: the aft machinery and heat vents are exposed bays in mt_frames.)
         # --- canister-flak hatches at the hidden system slots ---
         for sid, (x, y) in (('WS 007' if s > 0 else 'WS 006', (36, 21)), ('WS 008' if s > 0 else 'WS 009', (-19, 40))):
             z = seat(kit, x, s*y, 5.0)

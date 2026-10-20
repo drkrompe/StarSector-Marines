@@ -41,6 +41,78 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 13 (2026-10-20)
+"Manti-core looks good. Let's continue with refined detail across the hull
+and command deck." Round 12's forms are accepted; mt_refine.py lays detail
+on them, seated by ray-casts and sized in true metres. Command deck: mullions
+and a sill on the glazing band, an aft mast with a radar bar, yards, whips
+and red beacons on both masts, two comms dishes, two 1.2 m roof hatches aft
+of the dome, walkways either side of it with 1.1 m rails on a 1.5 m pitch,
+and an aft rail. Hull: plate seams along the forms (core shoulders and aft
+deck, glacis bands, wing armour, pod collars, beak strakes); eight pirate
+patch plates with weld beads, placed unevenly; 1 x 2 m crew doors on the
+core's flanks into the wing framework, with landings; three deck hatches;
+RCS quads at the bow, the nacelles and the engine block; finned heat
+exchangers on the engine block's shoulders; transfer pipes from each wing
+tank into its shoulder machinery bay. Fixed: the trailing spar's alternating
+closed panels read as windows; its outer face is now one continuous lower
+web. Outline IoU 0.924 with the gaps filled; mounts and seats unchanged;
+0.59 m/u owner override.
+
+Owner review round 12 (2026-10-20)
+"Next less AND thicker framing though - light interspaced plating and
+machinery / tubing. Also the armor should wrap a bit further back, the outline
+of this 'armor' should be visible like it is to me in the sprite." The armour
+edge is read off the sprite's red: a red plate over the solid forward wing
+runs back from the glacis to X 15.5 across each arm and wraps aft along the
+core's flank to X -1.5, its edges chamfered 45 deg so the aft edge is one
+raked line from above and from the side; the solid wing stops 2 units ahead
+of it. Behind it the regular grid is gone: a heavy trailing-edge spar girder
+(red-capped, every other face panel closed), two deep I-girder ribs with
+lightening holes (the outer one, at Y 45, red-capped as the sprite draws it),
+three heavy braces, three partial plates, two big conduits collared at the
+ribs, a banded tank on cradles, a pump with feed pipes, two heavy rams to the
+nacelle and the sensor dome's platform. Fixed: the tank, plinth and dome were
+never lowered with the arm's anhedral (shear read their local coordinates;
+round 11's dome floated). Outline IoU 0.924 with the gaps filled (0.878 raw,
+gaps 4.8% of the outline). Mounts bear ahead. Enclosed volume 176,949 units3,
+recorded in ship_scale.py; 0.59 m/u stays an owner override (the rule would
+solve 0.65).
+
+Owner review round 11 (2026-10-20)
+"What I see out of the sprite is that the wings besides the front sections are
+exposed structural framework of the wings, with the armor being spent angled
+ahead for combat 'facing' a target." The solid wing now ends just behind the
+leading edge, where each arm's armour band is a thick raked glacis (top 3
+units over the deck, 12.5 deep); behind it each arm is open lattice
+(mt_frames): a main spar girder out to the gun nacelle, a trailing-edge spar
+from the nacelle's tail into the engine block, five truss ribs, X-bracing top
+and bottom and a stringer, three conduits threaded through to the nacelle,
+two rams at its root, and the sensor dome on a platform across two ribs. The
+nacelles carry red glacis noses and the beak strakes stand higher. The band
+no longer reaches into the main gun's well (it did in rounds 9-10). Mounts
+bear ahead as before. Ray-cast IoU 0.811 raw; with the lattice's see-through
+gaps filled the outline is 0.923 (round 10: 0.926); the gaps are 11.6% of the
+outline. Scale: 0.59 m/u (91 m) is now an owner override (ship_scale.py): the open
+wings are not enclosed volume, so the enclosed volume fell to 164,819 units3
+and the rule would solve about 0.66 (101 m), but a reshape never resizes a
+hull.
+
+Owner review round 10 (2026-10-20)
+"The ship is coming together - next need to read the implied exposed hull
+framing and machinery from the sprite and add this detail into the model."
+mt_frames.py lets real structure into recesses cut in the round-9 panels:
+an open channel inboard of each swept trailing edge holding a Warren truss
+(chords, zigzag diagonals, frames); a bay in each engine-block shoulder with a
+banded tank on cradles and feed pipes running aft to the outer drive; framed
+heat-vent bays either side of the engine deck's centreline, glowing at the
+floor; a machinery bay in each gun nacelle's tail with frames and two rams;
+coaming rails and a back beam round each launcher recess. The aft deck's old
+surface ribs and vent plates are gone (now these bays). Round 9 forms,
+silhouette (ray-cast IoU 0.926), mounts and 0.59 m/u kept; the open bays take
+volume out of the measured solids, 224,599 units3 (1.8% under the scale
+table, inside its 2% check).
+
 Owner review round 9 (2026-10-20)
 "Manticore hull needs long angular hull sections. This reads as bloby with
 the small angular sections." The primary forms are now a few long panels with
@@ -176,7 +248,7 @@ brings her closer.
 
 Files
 build_manticore.py (driver), mt_kit.py, mt_hull.py, mt_engines.py,
-mt_detail.py, mt_mounts.py, mt_lights.py (one module per area), compose_review.py (IoU,
+mt_detail.py, mt_frames.py, mt_mounts.py, mt_lights.py (one module per area), compose_review.py (IoU,
 shot extents, review set; Python + Pillow + numpy), geometry.json.
 
 Rebuild from this folder (outputs go to build/manticore/, never tracked)

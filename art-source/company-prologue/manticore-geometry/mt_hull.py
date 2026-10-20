@@ -95,6 +95,12 @@ def droop(ob):
     ob.data.update()
     return ob
 LAUNCHER = (32, 43)    # WS 004 / WS 005 hardpoint, port side
+# Round 11 (owner: the armour is spent angled ahead, facing the target): the
+# beak strakes stand higher, each leading edge is a thick raked glacis, the
+# gun nacelles carry glacis noses, and behind that fighting face the wings
+# are open framework (mt_frames).
+HORN_TOP = 12.6
+GLACIS = 12.5          # the leading-edge band's depth back from the edge
 LAUNCHER_WELL_DEPTH = 3.5
 # Round 7 (owner: cohesive angling, not wobbly): one angle vocabulary for the
 # whole hull. Every lofted body's shoulders fall 30 deg and its lower faces 45
@@ -183,9 +189,9 @@ def build(kit):
         # beak, its outboard edge three, so the strake is one long plate.
         horn = prism(kit, f'Hull bow {side} horn', ccw([(88, s*2.5), (81, s*21.5), (67, s*22.5), (60, s*18),
                                                          (43, s*20.5), (43, s*15.5), (86.5, s*3.5)]),
-                     section(-9.0, 11.2, 2.6, .9), kit.red, .15)
-        plane_cut(horn, f'{side} horn outboard fall', (60, s*13, 11.2), facet_normal((0, s), FALL))
-        plane_cut(horn, f'{side} horn beak rake', (80, 0, 11.2), facet_normal((1, 0), RAKE))
+                     section(-9.0, HORN_TOP, 2.6, .9), kit.red, .15)
+        plane_cut(horn, f'{side} horn outboard fall', (60, s*13, HORN_TOP), facet_normal((0, s), FALL))
+        plane_cut(horn, f'{side} horn beak rake', (79, 0, HORN_TOP), facet_normal((1, 0), RAKE))
         n = facet_normal((1, 0), RAKE)
         plane_cut(horn, f'{side} horn chin', (82, 0, -9.0), (n[0], 0, -n[2]))
         kit.hull.append(droop(horn))
@@ -231,19 +237,33 @@ def build(kit):
         plane_cut(flank, f'{side} flank forward rake', (33, s*(y+8), 7.5-drop), facet_normal((1, .4*s), RAKE))
         plane_cut(flank, f'{side} flank aft rake', (9, s*(y+8), 7.5-drop), facet_normal((-1, .4*s), RAKE))
         kit.hull.append(droop(flank))
+        # Round 11: a thick red glacis on the nacelle's nose, ahead of the gun ring.
+        nose = prism(kit, f'Hull {side} pod nose glacis',
+                     ccw([(43, s*y), (35, s*(y+8.5)), (31, s*(y+8.5)), (31, s*(y-8.5)), (35, s*(y-8.5))]),
+                     section(-7.0-drop, 13.0-drop, 2.0, .8), kit.red, .12)
+        plane_cut(nose, f'{side} nose glacis rake', (32, s*y, 13.0-drop), facet_normal((1, 0), 35))
+        for k in (1, -1):
+            plane_cut(nose, f'{side} nose glacis cheek {k}', (36, s*(y+k*5), 13.0-drop), facet_normal((.3, s*k), 40))
+        kit.hull.append(droop(nose))
         # Launcher bay (rounds 5-8: inset, flush with the deck, ending at the
         # leading edge; the rack sits down a recess open forward through it).
         # Round 9 (owner: long sections): the leading-edge armour and the
         # launcher bay are one red band carried along the whole leading edge,
         # from the neck to the gun nacelle, its wall, raked face and top each
         # one panel the arm's length; the Harpoon recess is cut into it.
-        d0, top = -.3, WING_DECK+1.6
+        # Round 11: the band is the arm's fighting face, a glacis rising from a
+        # short chin at the edge to a flat top GLACIS units back.
+        d0, top = -.3, WING_DECK+3.0
         band = sweep(kit, f'Hull {side} launcher bay', [(44.5, s*19.3), (34, s*25), (31, s*31), (31, s*55)],
-                     [(d0, top-4.0), (d0, WING_KEEL+5.0), (d0+4.6, WING_KEEL+.4), (10, WING_KEEL+.4),
-                      (10, top), (d0+4.0, top)], kit.red, s=s)
+                     [(d0, WING_KEEL+6.0), (d0+4.6, WING_KEEL+1.4), (GLACIS, WING_KEEL+1.4), (GLACIS, top),
+                      (d0+10.0, top)], kit.red, s=s)
         plane_cut(band, f'{side} band root rake', (44.5, 0, 4.0), facet_normal((1, 0), 60))
         plane_cut(band, f'{side} band inboard chamfer', (40, s*19, top), facet_normal((0, -s), 45))
         bay = droop(shear(band))
+        # The band's root must stop at the main gun's well (it reached into it, rounds 9-10).
+        r, d = MAIN_WELL
+        boolean(bay, kit.cylinder(f'Temporary {side} band well cutter', (21, 0, CORE_DECK-d-nose_drop(21)), r, 40,
+                                  kit.red, vertices=24))
         deck = WING_DECK-ldrop
         recess = droop(prism(kit, f'Temporary {side} launcher recess cutter',
                        ccw([(lx+40, s*(ly-7.5)), (lx+40, s*(ly+7.5)), (lx-7, s*(ly+7.5)), (lx-7, s*(ly-7.5))]),

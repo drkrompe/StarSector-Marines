@@ -93,9 +93,18 @@ pods became shallow swept missile wings rooted ahead of the drive section and
 angling out to the WS 005 / WS 006 hookups, the body keeping to its core;
 the drive section an octagon ahead of three long octagonal drive cans exposed
 out the back; the bow a faceted wedge tapering to the forward mount. The
-silhouette IoU falls to 0.89 by design): measured 38,649 units3, which solves
-0.759 (range 0.736-0.782): 71 m
-long, 37 m across the pods, about 21 m deep. The roster's
+silhouette IoU falls to 0.89 by design; round 6, "that nose - still feels
+weak", the missile pods want "modeled missile turret heads" and the PD
+turrets "read like cylinders and are lifted quite high": a deep prow that keeps
+the sprite's breadth to the outer tines, raked at the stem with a chin, two
+armoured jaws either side of the WS 004 trough and a hood over its breech; the
+bridge as a raised command deck on the head (glazed face over the bow gun, the
+sprite's white canopy; roof running aft to the neck's sensor dome, the sprite's
+lit oval); kit launcher heads on the wing tips; the merchant's PD turrets in
+wells in low faired sponsons. IoU 0.90): measured 38,763 units3, which solves
+0.758 (range 0.736-0.782), published 0.76: 72 m long (the deeper prow adds a
+unit), 37 m across the wings, about 21 m deep. The bridge is not in SOLIDS, so
+the scale holds while the owner decides 71 m against 86 m. The roster's
 sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
 ship, so this is 18% under the estimate, outside its +-8%. The owner decides
 between this and an override (as the Colossus has). The driver re-measures on every build and
@@ -104,8 +113,8 @@ fails if the union drifts more than 2% from ship_scale.HULLS.
 Variants
 --variant merchant builds the convoy's own Wolf on the same hull and scale:
 no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
-turrets back on full-depth armoured drums built into the aft flanks (the
-base sprite's round wells), its own collection WOLF and asset wolf.blend,
+turrets back in wells sunk into low sponsons faired into the aft flanks (the
+base sprite's round wells; round 6 retired the full-depth drums), its own collection WOLF and asset wolf.blend,
 geometry-merchant.json, the vanilla wolf_Assault loadout (heavy blaster and
 Harpoons drawn with the kit's mining blaster and Annihilator forms for now:
 built_as in the manifest). Its livery is ../wolf-merchant-surface.
