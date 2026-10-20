@@ -120,9 +120,14 @@ the runner):
 - Windows: `%LOCALAPPDATA%\starsector-render-queue\`, started at logon by the
   scheduled task "Starsector render queue" under `pythonw` (hidden). Jobs break
   away from the task's job object, so restarting the runner leaves them running.
-- Mac: `~/render-queue/`, run by the LaunchAgent
-  `com.starsectormarines.renderqueue`
-  (`python3 tools/render_queue.py install --repo ~/workspace/StarSector-Marines`).
+- Mac: `~/render-queue/`, started under `nohup` from an ssh or Terminal
+  session (`python3 tools/render_queue.py install --repo ~/workspace/StarSector-Marines`).
+  A LaunchAgent cannot list `~/Library/CloudStorage` (macOS privacy rules
+  answer "Operation not permitted") unless Python is given Full Disk Access,
+  which is the owner's call, so **after a Mac reboot the runner must be started
+  again** by re-running that install over ssh:
+  `C:/Windows/System32/OpenSSH/ssh.exe -o HostKeyAlias=dillmac.local dillon@192.168.1.97 "cd ~/render-queue && /usr/bin/python3 render_queue.py install"`.
+  `status` shows a stale Mac heartbeat when it is down.
 
 Each runner keeps `machine.json` (Blender path, clone, Drive root) and
 `state.json` locally, and writes only its own `status/`, `done/`, `claims/` and

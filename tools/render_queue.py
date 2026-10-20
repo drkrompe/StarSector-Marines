@@ -1013,9 +1013,16 @@ def cmd_install(args) -> int:
         print(r.stdout.strip() or f"scheduled task '{TASK_NAME}' registered and started")
         return r.returncode
     if args.mode == "nohup":
+        # A LaunchAgent cannot list ~/Library/CloudStorage (TCC: "Operation not
+        # permitted"); a process started from an ssh or Terminal session can.
+        # Running jobs are separate processes and survive the runner's restart.
+        uid = os.getuid()
+        run(["launchctl", "bootout", f"gui/{uid}/{PLIST_LABEL}"], check=False)
+        run(["pkill", "-f", "render-queue/render_queue.py runner"], check=False)
+        time.sleep(2)
         run(["/bin/zsh", "-c", f"nohup /usr/bin/python3 '{local / 'render_queue.py'}' runner "
                                f">> '{local / 'runner.out'}' 2>&1 &!"])
-        print("runner started under nohup (does not survive a reboot)")
+        print("runner started under nohup; after a reboot run install again from ssh or Terminal")
         return 0
     plist = Path.home() / "Library/LaunchAgents" / f"{PLIST_LABEL}.plist"
     plist.write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -1070,7 +1077,8 @@ def main(argv=None) -> int:
     s = sub.add_parser("install", help="install and start this machine's runner")
     s.add_argument("--repo", help="this machine's clone (default: the current repository)")
     s.add_argument("--blender", help="Blender executable for {blender}")
-    s.add_argument("--mode", choices=("launchd", "nohup"), default="launchd", help="macOS only")
+    s.add_argument("--mode", choices=("nohup", "launchd"), default="nohup",
+                   help="macOS only; launchd cannot read the Drive folder without Full Disk Access")
     s.add_argument("--no-service", action="store_true", help="copy files only")
     s.set_defaults(fn=cmd_install)
     s = sub.add_parser("runner")
