@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions, and the player's machine assault on a believed-held garrisonable is built; other kinds, and other sides, remain direction.
+Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones), and the player's machine assault on a believed-held garrisonable is built; other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — fort-belt reactive manning shipped (`reactive-belt` scene, steady rallies, trial-ground figures); owner decisions on attackers, player opt-in and machines; the player's machine assault is built.
+Updated: 2026-10-20 — the attacker holds what it takes (`attacker-holds-ground` scene); fort-belt reactive manning shipped (`reactive-belt` scene, steady rallies, trial-ground figures); owner decisions on attackers, player opt-in and machines; the player's machine assault is built.
 
 ## Why this exists
 
@@ -148,8 +148,37 @@ works; each swing was a new route for every rallied squad.
 The assignment tier knows nothing of which side it serves. It is given a side's
 own pressure picture, its free squads and its places, and answers which squad
 mans which place and when it stops; the defender commander is its first caller.
-That is the seam the attacking commander and a player's opted-in squads will use
-(see Decided direction).
+That is the seam the attacking commander uses, and a player's opted-in squads
+will (see Decided direction).
+
+## Holding taken ground
+
+The attacking commander mans the belt of a fort it **holds** — disclosed to
+it, with no aspect held by a hostile side, which on the attacker is a fort it
+has taken — through the same tier and its laws, from its lane pool and only
+against a believed counter-attack. What differs is what it may spend and what
+counts as pressure:
+
+- **Momentum first.** Only lane squads are offered: never a company, a squad
+  committed to a capture, a named officer's group, a crew, a machine or a
+  demolition squad. At most a quarter of the offered pool holds at once (none
+  when it has fewer than three squads, at least one otherwise), and in the
+  convergence phases every holder is given back to the last push. The arrival
+  bound means only a squad still near the works is sent; one that has moved on
+  up the lane is not recalled. A squad already fighting the counter-attack is
+  sent, since taking the trench is how it fights it, and a holder outranks a
+  muster recruiting.
+- **A counter-attack is a mover.** Only a believed hostile that is not an
+  emplacement wakes a place, and a place is priced only where a believed mover
+  is within reach. The nests an assault leaves standing beside a taken belt
+  would otherwise press it for the rest of the battle.
+- A holder driven off a run the enemy is believed inside falls back to the
+  fort's works like one still standing on it.
+
+The scene `attacker-holds-ground` plays it on a production fort handed to the
+marines: a quiet belt left empty, a stretch pressed by a counter-attack manned
+from the pool within its share, dug in and given back after it passes, and a
+breached holder falling back to the works.
 
 ## How it fits what exists
 
@@ -205,7 +234,8 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 - **Attackers hold what they take.** Captured ground is a garrisonable like any
   other: the attacking commander uses the same reactive assignment to man a
   taken belt, trench or building against the counter-attack, not only manual
-  orders.
+  orders. Built for taken fort belts (see Holding taken ground); runs of no
+  fort and building envelopes wait for those kinds to reach the tier.
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
 - **Machines assault garrisons; they never man them.** Mechs and vehicles take
@@ -238,6 +268,9 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   garrison as its heavy support).
 
 ## Stories
+
+- `attacker-holds-ground.md` — the attacking commander mans a taken fort's belt
+  against the believed counter-attack.
 
 - `compound-prepared-ground.md` — compounds and facilities offer prepared ground
   and building envelopes as garrisonables.

@@ -2174,6 +2174,13 @@ fort: a quiet belt left empty, a pressed stretch manned on the pulse its pressur
 is believed, dug in and given back after the attack passes, and a breached
 garrison falling back to the works.
 
+The attacker holds what it takes by the same assignment: the belt of a fort it
+has taken is manned from its lane pool while it believes a counter-attack near
+it, never from a company or a capture, never more than a quarter of the lane
+pool at once, and never in the convergence phases. Only a believed mover, not a
+nest left standing, presses taken ground (`garrisonables.md`, holding taken
+ground; scene `attacker-holds-ground`).
+
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
 a dug-in damage bonus would count the same ground twice. (A trench covers the
