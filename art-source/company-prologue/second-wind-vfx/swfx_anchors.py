@@ -35,8 +35,8 @@ except Exception:  # pragma: no cover - a renamed table must not stop a shot
     ENGINES = [(-41, 31, 12), (-39, 24, 8), (-39, -24, 8), (-41, -31, 12)]
     BELL_R = {12: 3.9, 8: 2.6}
     MOUNTS = [(-11, 20, 90, 1.0, False), (-11, -20, -90, 1.0, False),
-              (41, 11, 30, 1.0, False, 'energy'), (36, -16, -30, 1.3, False)]
-    ENERGY_COLOURS = {3: (.58, .58, 1.0)}
+              (41, 11, 30, 1.0, False), (36, -16, -30, 1.0, False)]
+    ENERGY_COLOURS = {}
 
 # Another hull's profile (swfx_hull) replaces any of these tables.
 ENGINES = swfx_hull.get('ENGINES', ENGINES)

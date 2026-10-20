@@ -1374,13 +1374,15 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   saves, screenshots, and logs under `build/catalog-smoke/`; use only when a
   live game-runtime acceptance pass is intentionally required.
 - **Blender renders go through the render queue**, not a session's own shell:
-  `python tools/render_queue.py submit job.json [--bundle <commit>]`, then
-  `status [--job <id>]`. The queue is `render-queue/` on the shared Drive; a
-  runner on each machine (Windows scheduled task, Mac LaunchAgent) works through
-  it only while that machine's gate is `run`. The gate is manual and changes
-  only on the owner's word (`gate <machine> run|pause`, coordinator only). Job
-  format, bundles for unpushed commits, and collecting output: the
-  `render-queue` skill.
+  `python tools/render_queue.py submit job.json --commit HEAD`, then
+  `status [--job <id>]`. The queue is `render-queue/` on the shared Drive. A
+  runner on each machine (a Windows scheduled task; nohup on the Mac) runs
+  one job at a time and swaps finals out at a frame boundary for review and
+  light jobs. Gated lanes run only while that machine's gate is `run`. The
+  `light` lane (half size, ≤16 samples) is not gated. The gate is manual and
+  belongs to the render coordinator role, which changes it only on the
+  owner's word. Job format, inputs, and collecting output: the `render-queue`
+  skill.
 
 ### Visual snapshot workflow
 

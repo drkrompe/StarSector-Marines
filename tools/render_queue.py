@@ -4,27 +4,31 @@
 The queue lives on Google Drive (``starsector/render-queue/``). Every file in it
 has exactly one writer, so Drive never sees two machines editing one file:
 
-    config.json              coordinator only: per-machine run/pause gate
+    config.json              render coordinator only: gates, holds, priority overrides
     jobs/<id>.json           the submitting session, written once, never edited
-    inputs/<id>.bundle       the submitting session (git bundle of a session commit)
-    cancel/<id>              the submitting session, to withdraw a job
+    inputs/<id>.bundle       the submitting session (git bundle of an unpushed commit)
+    cancel/<id>              the submitter or the render coordinator
     claims/<id>.<machine>    that machine's runner (``any`` jobs only)
     done/<id>.<machine>      that machine's runner: the job's result
-    status/<machine>.json    that machine's runner: heartbeat and current job
-    log/<machine>.log        that machine's runner
+    status/<machine>.json    that machine's runner: heartbeat, tags, current job, ETA
+    log/<machine>.log        that machine's runner; log/jobs/<id>.<machine>.log per job
     out/<id>/<machine>/      default output copy destination
 
-A runner per machine is installed to a local folder (never run from Drive) and
-polls the queue. It launches each job through its own wrapper process, which
-records the exit status, so a runner restart neither loses nor orphans a job.
-Completion is decided by the job's expected-frames check where one is given.
+Each machine runs exactly one queue job at a time. A runner is installed to a
+local folder (never run from Drive), polls the queue, and launches each job
+through its own wrapper process, which records the exit status, so a runner
+restart neither loses nor orphans a job. Swapping a job out (for a review job,
+or because the gate closed) waits for the frame in progress to land, then stops
+the job cleanly; it is relaunched later and its render skips finished frames.
 
 Commands (``python tools/render_queue.py <command> -h`` for options):
 
-    submit  JOB.json [--bundle COMMIT]   validate and publish a job
-    status  [--job ID]                   queue, gates, heartbeats, results
-    cancel  ID                           withdraw a job
-    gate    MACHINE run|pause            coordinator only, on the owner's word
+    submit  JOB.json [--commit C]        validate and publish a job
+    status  [--job ID] [--json]          per machine: gate, running, ETA, queued
+    cancel  ID                           withdraw a job (submitter or coordinator)
+    gate    MACHINE run|pause            render coordinator, on the owner's word
+    hold / release ID                    render coordinator: keep a job back
+    prioritize ID N                      render coordinator: override priority
     install                              install the runner on this machine
     runner                               the polling loop (started by install)
     wrap    RUN_DIR                      internal: one job's process wrapper
@@ -41,34 +45,58 @@ import glob
 import hashlib
 import json
 import os
-import platform
 import re
 import shutil
 import signal
 import socket
+import statistics
 import subprocess
 import sys
 import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-20.1"
+VERSION = "2026-10-20.2"
 MACHINES = ("mac", "windows")
+LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
+    # The manual gate. Changed only by the render coordinator, on the owner's word.
     "gates": {"windows": "pause", "mac": "pause"},
-    # Order of lanes: an earlier lane always runs first.
-    "lanes": ["review", "final"],
-    # A runnable review job suspends a running final (Windows: kill and restart
-    # later, finished frames are kept; Mac: SIGSTOP/SIGCONT).
+    # Lanes in running order. Lanes listed in ungated_lanes run whatever the gate
+    # says (owner rule: half size, at most 16 samples, or a low-fps low-res clip).
+    "lanes": ["review", "light", "final"],
+    "ungated_lanes": ["light"],
+    # A runnable review or light job swaps a running final out, then back in.
     "preempt": True,
+    # Swap out at a frame boundary: wait for the frame in progress to land, up to
+    # this long, then stop. Jobs without a frames check stop at once.
+    "swap_at_frame_boundary": True,
+    "swap_wait_max_seconds": 420,
+    # Mac swap-out: "stop" (clean stop, relaunch with frame skip) or "freeze"
+    # (SIGSTOP; keeps the swapped-out Blender in memory beside the new one).
+    "mac_swap": "stop",
+    # Run jobs at low CPU priority (Windows BELOW_NORMAL, Mac nice 10) so the
+    # machine stays usable. A job may set "low_priority": false.
+    "low_priority": True,
+    # A light job running longer than this is stopped and failed.
+    "light_max_seconds": 1800,
+    # A busy machine leaves a fresh `any` job this long for an idle one to claim.
+    "any_grace_seconds": 120,
+    # Do not start a job while a background Blender this runner did not start is
+    # running (a hand-started render); frozen (stopped) ones do not count.
+    "block_on_foreign_blender": True,
+    # Render coordinator's queue controls: job ids held back, priority overrides.
+    "held": [],
+    "priority_overrides": {},
     "poll_seconds": 20,
     # How long an `any` claim waits for Drive to sync the other machine's claim.
     "claim_wait_seconds": 90,
-    # Reserved for later; not read yet. The gate is manual for now.
+    # Reserved for later (a night window or idle rule); not read yet.
     "schedule": None,
 }
 IS_WINDOWS = os.name == "nt"
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,80}$")
+HUB_SSH = "C:/Windows/System32/OpenSSH/ssh.exe -o HostKeyAlias=dillmac.local -o ConnectTimeout=10"
 
 
 # ---------------------------------------------------------------- utilities
@@ -140,13 +168,27 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def run(cmd, cwd=None, check=True, timeout=None) -> subprocess.CompletedProcess:
+def run(cmd, cwd=None, check=True, timeout=None, env=None) -> subprocess.CompletedProcess:
     kw = {}
     if IS_WINDOWS:
         kw["creationflags"] = 0x08000000  # CREATE_NO_WINDOW
-    return subprocess.run([str(c) for c in cmd], cwd=cwd, check=check, timeout=timeout,
+    return subprocess.run([str(c) for c in cmd], cwd=cwd, check=check, timeout=timeout, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           universal_newlines=True, **kw)
+
+
+def git_env() -> dict:
+    env = dict(os.environ)
+    if IS_WINDOWS:
+        env["GIT_SSH_COMMAND"] = HUB_SSH
+    return env
+
+
+def fmt_secs(s) -> str:
+    if s is None:
+        return "?"
+    s = int(s)
+    return f"{s // 3600}h{s % 3600 // 60:02d}m" if s >= 3600 else f"{s // 60}m{s % 60:02d}s"
 
 
 class Queue:
@@ -159,7 +201,7 @@ class Queue:
         return p
 
     def config(self) -> dict:
-        cfg = dict(DEFAULT_CONFIG)
+        cfg = json.loads(json.dumps(DEFAULT_CONFIG))
         cfg.update(read_json(self.root / "config.json", {}) or {})
         return cfg
 
@@ -192,6 +234,9 @@ class Queue:
                 out[m] = c
         return out
 
+    def statuses(self) -> dict:
+        return {m: read_json(self.d("status") / f"{m}.json", {}) or {} for m in MACHINES}
+
     def cancelled(self, job_id: str) -> bool:
         return (self.d("cancel") / job_id).exists()
 
@@ -216,6 +261,20 @@ def claim_winner(claims: dict):
     return ordered[0][0]
 
 
+def job_priority(job: dict, cfg: dict) -> int:
+    return int(cfg.get("priority_overrides", {}).get(job["id"], job.get("priority", 0)))
+
+
+def order_key(job: dict, cfg: dict, resumed: bool = False):
+    lanes = cfg.get("lanes", list(LANES))
+    lane = lanes.index(job["lane"]) if job["lane"] in lanes else len(lanes)
+    return (lane, 0 if resumed else 1, -job_priority(job, cfg), job.get("submitted", ""), job["id"])
+
+
+def gate_allows(job: dict, cfg: dict, machine: str) -> bool:
+    return cfg.get("gates", {}).get(machine) == "run" or job.get("lane") in cfg.get("ungated_lanes", [])
+
+
 # ---------------------------------------------------------------- job schema
 
 def validate_job(job: dict) -> list:
@@ -225,12 +284,14 @@ def validate_job(job: dict) -> list:
         errs.append("id: lowercase letters, digits, '.', '_' or '-', 3-81 chars")
     if job.get("machine") not in ("windows", "mac", "any"):
         errs.append("machine: windows | mac | any")
-    if job.get("lane") not in ("review", "final"):
-        errs.append("lane: review | final")
+    if job.get("lane") not in LANES:
+        errs.append("lane: " + " | ".join(LANES))
     if not isinstance(job.get("priority", 0), int):
         errs.append("priority: integer, higher runs first within a lane")
     if not isinstance(job.get("after", []), list):
         errs.append("after: list of job ids")
+    if not isinstance(job.get("requires", []), list):
+        errs.append("requires: list of capability tags")
     cmd = job.get("command")
     if isinstance(cmd, dict):
         if not all(isinstance(v, list) and v for v in cmd.values()) or not set(cmd) <= set(MACHINES):
@@ -242,15 +303,14 @@ def validate_job(job: dict) -> list:
     for i, inp in enumerate(job.get("inputs", [])):
         kind = inp.get("kind")
         if kind == "git":
-            if not re.match(r"^[0-9a-f]{7,40}$", str(inp.get("commit", ""))):
-                errs.append(f"inputs[{i}]: git input needs a commit id")
+            if not re.match(r"^[0-9a-f]{40}$", str(inp.get("commit", ""))):
+                errs.append(f"inputs[{i}]: git input needs the full 40-character commit id")
         elif kind == "drive":
             if not inp.get("from") or not inp.get("to"):
                 errs.append(f"inputs[{i}]: drive input needs from and to")
         else:
             errs.append(f"inputs[{i}]: kind is git | drive")
-    git_inputs = [i for i in job.get("inputs", []) if i.get("kind") == "git"]
-    if len(git_inputs) > 1:
+    if len([i for i in job.get("inputs", []) if i.get("kind") == "git"]) > 1:
         errs.append("inputs: at most one git input (it becomes {checkout})")
     fr = job.get("frames")
     if fr is not None and not (isinstance(fr, dict) and fr.get("dir") and isinstance(fr.get("count"), int)):
@@ -258,14 +318,20 @@ def validate_job(job: dict) -> list:
     for o in job.get("outputs", []):
         if not o.get("from"):
             errs.append("outputs: each needs from (and optional glob, to)")
+        if str(o.get("from", "")).replace("\\", "/").startswith("{drive}"):
+            errs.append("outputs: render to a local folder ({work}, {checkout}) and copy to Drive with 'to'")
     return errs
 
 
-# ---------------------------------------------------------------- submit / status / gate / cancel
+# ---------------------------------------------------------------- submit
 
 def repo_root() -> Path:
-    out = run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()
-    return Path(out)
+    return Path(run(["git", "rev-parse", "--show-toplevel"]).stdout.strip())
+
+
+def hub_reachable() -> bool:
+    r = run(["git", "ls-remote", "--heads", "hub", "main"], check=False, timeout=30, env=git_env())
+    return r.returncode == 0
 
 
 def cmd_submit(args) -> int:
@@ -273,106 +339,205 @@ def cmd_submit(args) -> int:
     job = read_json(Path(args.job))
     if not isinstance(job, dict):
         raise SystemExit(f"{args.job}: not a JSON object")
-    job.setdefault("priority", 0)
-    job.setdefault("after", [])
-    job.setdefault("inputs", [])
-    job.setdefault("env", {})
+    for k, v in (("priority", 0), ("after", []), ("inputs", []), ("env", {}), ("requires", [])):
+        job.setdefault(k, v)
     job["submitted"] = now_iso()
+    job["submitted_epoch"] = time.time()
+    job["submitted_on"] = this_machine()
     job.setdefault("submitted_by", f"{getpass.getuser()}@{socket.gethostname()}")
-    if args.bundle:
-        commit = run(["git", "rev-parse", args.bundle + "^{commit}"]).stdout.strip()
+    if (q.d("jobs") / f"{job.get('id')}.json").exists():
+        raise SystemExit(f"job {job.get('id')} already exists; pick a new id")
+    if args.commit:
+        commit = run(["git", "rev-parse", args.commit + "^{commit}"]).stdout.strip()
         git_in = [i for i in job["inputs"] if i.get("kind") == "git"]
         if not git_in:
             git_in = [{"kind": "git"}]
             job["inputs"].insert(0, git_in[0])
-        git_in[0]["commit"] = commit
+        gi = git_in[0]
+        gi["commit"] = commit
+        run(["git", "fetch", "--quiet", "origin"], check=False, timeout=300)
         on_main = run(["git", "merge-base", "--is-ancestor", commit, "origin/main"], check=False).returncode == 0
+        local_only = job.get("machine") == this_machine()
         if on_main:
-            print(f"{commit[:9]} is on origin/main; no bundle needed")
+            print(f"{commit[:9]} is on origin/main; every machine can check it out")
+        elif local_only:
+            print(f"{commit[:9]} runs on this machine, from this clone; nothing to transport")
+        elif args.via == "hub":
+            if not hub_reachable():
+                raise SystemExit("hub is unreachable from here, so a mac/any job cannot carry an "
+                                 "unpushed commit; pin the job to this machine, or use --via bundle")
+            ref = f"refs/render/{job.get('id')}"
+            run(["git", "push", "--quiet", "hub", f"{commit}:{ref}"], timeout=600, env=git_env())
+            gi["hub_ref"] = ref
+            print(f"pushed {commit[:9]} to hub as {ref}")
         else:
             ref = f"refs/render-queue/{job.get('id')}"
             bundle = q.d("inputs") / f"{job.get('id')}.bundle"
-            if bundle.exists():
-                raise SystemExit(f"{bundle} already exists")
             run(["git", "update-ref", ref, commit])
             try:
                 run(["git", "bundle", "create", str(bundle), ref, "^origin/main"])
             finally:
                 run(["git", "update-ref", "-d", ref], check=False)
-            git_in[0]["bundle"] = f"inputs/{bundle.name}"
-            git_in[0]["bundle_ref"] = ref
+            gi["bundle"] = f"inputs/{bundle.name}"
+            gi["bundle_ref"] = ref
             print(f"bundled {commit[:9]} ^origin/main -> {bundle} ({bundle.stat().st_size} bytes)")
     errs = validate_job(job)
     if errs:
         raise SystemExit("invalid job:\n  " + "\n  ".join(errs))
+    tags = {m: set(st.get("tags", [])) for m, st in q.statuses().items() if st.get("tags")}
+    need = set(job["requires"])
+    fits = [m for m in MACHINES if job["machine"] in (m, "any") and need <= tags.get(m, need)]
+    if not fits:
+        print(f"warning: no machine advertises {sorted(need)} for placement {job['machine']}; "
+              f"known tags: { {m: sorted(t) for m, t in tags.items()} }")
     write_once(q.d("jobs") / f"{job['id']}.json", job)
     print(f"submitted {job['id']} ({job['machine']}, {job['lane']}) -> {q.root / 'jobs'}")
     return 0
 
 
-def describe_state(q: Queue, job: dict, done: dict, statuses: dict) -> str:
-    jid = job["id"]
-    if jid in done:
-        return ", ".join(f"{m}:{r.get('result')}" for m, r in sorted(done[jid].items()))
-    if q.cancelled(jid):
-        return "cancelled (not started)"
+# ---------------------------------------------------------------- status
+
+def queue_view(q: Queue, cfg: dict) -> dict:
+    """Everything the render coordinator needs in one read."""
+    jobs = q.jobs()
+    done = q.done()
+    statuses = q.statuses()
+    active = {}
     for m, st in statuses.items():
         for slot in [st.get("current")] + list(st.get("suspended", [])):
-            if slot and slot.get("id") == jid:
-                prog = slot.get("progress")
-                return f"{slot.get('state')} on {m}" + (f" ({prog})" if prog else "")
-    missing = [a for a in job.get("after", []) if not job_succeeded(done.get(a, {}))]
-    if missing:
-        return "waiting for " + ", ".join(missing)
-    if job["machine"] == "any":
-        w = claim_winner(q.claims(jid))
-        if w:
-            return f"claimed by {w}"
-    return "queued"
+            if slot:
+                active[slot["id"]] = (m, slot)
+    view = {"queue": str(q.root), "machines": {}, "either": [], "blocked": [], "recent": []}
+    for m in MACHINES:
+        st = statuses[m]
+        hb = int(time.time() - st["updated_epoch"]) if st.get("updated_epoch") else None
+        view["machines"][m] = {
+            "gate": cfg["gates"].get(m), "runner": st.get("runner"), "heartbeat_s": hb,
+            "tags": st.get("tags", []), "note": st.get("note"),
+            "running": st.get("current"), "suspended": st.get("suspended", []), "queued": [],
+        }
+    pending = []
+    for jid, job in jobs.items():
+        if jid in done:
+            fin = max(r.get("finished_epoch", 0) for r in done[jid].values())
+            if time.time() - fin < 86400:
+                view["recent"].append({"id": jid, "results": {m: r.get("result") for m, r in done[jid].items()},
+                                       "reason": "; ".join(r.get("reason", "") for r in done[jid].values()),
+                                       "finished": max(r.get("finished", "") for r in done[jid].values())})
+            continue
+        if q.cancelled(jid) or jid in active:
+            continue
+        pending.append(job)
+    pending.sort(key=lambda j: order_key(j, cfg))
+    for job in pending:
+        jid = job["id"]
+        row = {"id": jid, "lane": job["lane"], "priority": job_priority(job, cfg)}
+        missing = [a for a in job.get("after", []) if not job_succeeded(done.get(a, {}))]
+        if jid in cfg.get("held", []):
+            row["why"] = "held by the render coordinator"
+        elif missing:
+            row["why"] = "waiting for " + ", ".join(missing)
+        if "why" in row:
+            row["machine"] = job["machine"]
+            view["blocked"].append(row)
+            continue
+        target = job["machine"]
+        if target == "any":
+            target = claim_winner(q.claims(jid)) or "any"
+        if target == "any":
+            view["either"].append(row)
+        else:
+            if not gate_allows(job, cfg, target):
+                row["why"] = "gate closed"
+            view["machines"][target]["queued"].append(row)
+    view["recent"].sort(key=lambda r: r["finished"])
+    return view
+
+
+def print_view(view: dict) -> None:
+    print(f"queue: {view['queue']}")
+    for m, mv in view["machines"].items():
+        hb = "never seen" if mv["heartbeat_s"] is None else f"heartbeat {mv['heartbeat_s']}s ago"
+        print(f"\n{m}: gate {mv['gate']}, {hb}" + (f", note: {mv['note']}" if mv.get("note") else ""))
+        print(f"  tags: {', '.join(mv['tags']) or '-'}")
+        r = mv["running"]
+        if r:
+            print(f"  running  {r['id']} [{r['lane']}] {r.get('progress') or ''} "
+                  f"{'%.0fs/frame' % r['sec_per_frame'] if r.get('sec_per_frame') else ''} "
+                  f"ETA {fmt_secs(r.get('eta_s')) if r.get('eta_s') is not None else '?'}"
+                  + (f"  swapping out ({r['swap']})" if r.get("swap") else ""))
+        else:
+            print("  running  -")
+        for s in mv["suspended"]:
+            print(f"  swapped  {s['id']} [{s['lane']}] {s.get('progress') or ''} ({s.get('why')})")
+        for row in mv["queued"]:
+            print(f"  queued   {row['id']} [{row['lane']} p{row['priority']}]"
+                  + (f" ({row['why']})" if row.get("why") else ""))
+    if view["either"]:
+        print("\neither machine (unclaimed any):")
+        for row in view["either"]:
+            print(f"  queued   {row['id']} [{row['lane']} p{row['priority']}]")
+    if view["blocked"]:
+        print("\nblocked:")
+        for row in view["blocked"]:
+            print(f"  {row['id']} [{row['lane']}, {row['machine']}] {row['why']}")
+    if view["recent"]:
+        print("\nfinished in the last day:")
+        for row in view["recent"]:
+            res = ", ".join(f"{m}:{r}" for m, r in row["results"].items())
+            print(f"  {row['finished']} {row['id']} {res} - {row['reason'][:90]}")
 
 
 def cmd_status(args) -> int:
     q = Queue(find_drive_root() / "render-queue")
     cfg = q.config()
-    done = q.done()
-    statuses = {m: read_json(q.d("status") / f"{m}.json", {}) or {} for m in MACHINES}
     if args.job:
         job = q.jobs().get(args.job)
         if not job:
             raise SystemExit(f"no job {args.job}")
         print(json.dumps(job, indent=2))
-        print("state:", describe_state(q, job, done, statuses))
-        for m, r in sorted(done.get(args.job, {}).items()):
+        for m, r in sorted(q.done().get(args.job, {}).items()):
             print(f"--- done on {m}")
             print(json.dumps(r, indent=2))
         return 0
-    print(f"queue: {q.root}")
-    for m in MACHINES:
-        st = statuses[m]
-        age = ""
-        if st.get("updated_epoch"):
-            age = f", heartbeat {int(time.time() - st['updated_epoch'])}s ago"
-        cur = st.get("current") or {}
-        cur_s = f", current {cur.get('id')} {cur.get('state')} {cur.get('progress') or ''}" if cur else ""
-        print(f"  {m:8s} gate={cfg['gates'].get(m)} runner={st.get('runner', 'never seen')}{age}{cur_s}")
-    jobs = sorted(q.jobs().values(), key=lambda j: j.get("submitted", ""))
-    if not args.all:
-        jobs = [j for j in jobs if j["id"] not in done or
-                (time.time() - max(r.get("finished_epoch", 0) for r in done[j["id"]].values())) < 86400]
-    for j in jobs:
-        print(f"  {j['id']:40s} {j['machine']:7s} {j['lane']:6s} p{j.get('priority', 0):<3d} "
-              f"{describe_state(q, j, done, statuses)}")
+    view = queue_view(q, cfg)
+    if args.json:
+        print(json.dumps(view, indent=2))
+    else:
+        print_view(view)
     return 0
 
 
-def cmd_gate(args) -> int:
+# ---------------------------------------------------------------- coordinator commands
+
+def edit_config(fn) -> dict:
     q = Queue(find_drive_root() / "render-queue")
-    cfg = read_json(q.root / "config.json", None) or dict(DEFAULT_CONFIG)
-    machines = MACHINES if args.machine == "both" else (args.machine,)
-    for m in machines:
-        cfg.setdefault("gates", {})[m] = args.state
+    cfg = read_json(q.root / "config.json", None) or json.loads(json.dumps(DEFAULT_CONFIG))
+    fn(cfg)
     write_json(q.root / "config.json", cfg)
+    return cfg
+
+
+def cmd_gate(args) -> int:
+    machines = MACHINES if args.machine == "both" else (args.machine,)
+    cfg = edit_config(lambda c: [c.setdefault("gates", {}).__setitem__(m, args.state) for m in machines])
     print("gates:", cfg["gates"])
+    return 0
+
+
+def cmd_hold(args) -> int:
+    def f(c):
+        held = [h for h in c.get("held", []) if h != args.id]
+        if args.cmd == "hold":
+            held.append(args.id)
+        c["held"] = held
+    print("held:", edit_config(f)["held"])
+    return 0
+
+
+def cmd_prioritize(args) -> int:
+    cfg = edit_config(lambda c: c.setdefault("priority_overrides", {}).__setitem__(args.id, args.priority))
+    print("priority overrides:", cfg["priority_overrides"])
     return 0
 
 
@@ -389,7 +554,7 @@ def cmd_cancel(args) -> int:
 
 # ---------------------------------------------------------------- process control
 
-def proc_alive(pid: int) -> bool:
+def proc_alive(pid) -> bool:
     if not pid:
         return False
     if IS_WINDOWS:
@@ -408,30 +573,66 @@ def proc_alive(pid: int) -> bool:
         return False
     except PermissionError:
         return True
-    # A zombie still answers kill(0); ask ps.
     r = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], stdout=subprocess.PIPE, universal_newlines=True)
     return bool(r.stdout.strip()) and not r.stdout.strip().startswith("Z")
 
 
-def kill_tree(pid: int) -> None:
+def process_table() -> list:
+    """[(pid, ppid, stopped, command line)] for every process."""
+    rows = []
+    if IS_WINDOWS:
+        r = run(["powershell", "-NoProfile", "-Command",
+                 "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId)`t$($_.ParentProcessId)`t$($_.CommandLine)\" }"],
+                check=False, timeout=60)
+        for line in r.stdout.splitlines():
+            parts = line.split("\t", 2)
+            if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit():
+                rows.append((int(parts[0]), int(parts[1]), False, parts[2]))
+    else:
+        r = subprocess.run(["ps", "-axo", "pid=,ppid=,stat=,command="], stdout=subprocess.PIPE,
+                           universal_newlines=True)
+        for line in r.stdout.splitlines():
+            parts = line.split(None, 3)
+            if len(parts) == 4:
+                rows.append((int(parts[0]), int(parts[1]), parts[2].startswith("T"), parts[3]))
+    return rows
+
+
+def descendants(table: list, roots) -> set:
+    kids: dict = {}
+    for pid, ppid, _, _ in table:
+        kids.setdefault(ppid, []).append(pid)
+    out, stack = set(), [int(r) for r in roots if r]
+    while stack:
+        p = stack.pop()
+        if p not in out:
+            out.add(p)
+            stack.extend(kids.get(p, []))
+    return out
+
+
+def kill_tree(pid) -> None:
     if not pid:
         return
     if IS_WINDOWS:
         run(["taskkill", "/T", "/F", "/PID", str(pid)], check=False)
-    else:
-        for sig in (signal.SIGCONT, signal.SIGTERM):
-            try:
-                os.killpg(int(pid), sig)
-            except (ProcessLookupError, PermissionError):
-                pass
-        time.sleep(3)
+        return
+    for sig in (signal.SIGCONT, signal.SIGTERM):
         try:
-            os.killpg(int(pid), signal.SIGKILL)
+            os.killpg(int(pid), sig)
         except (ProcessLookupError, PermissionError):
             pass
+    for _ in range(20):
+        if not proc_alive(pid):
+            return
+        time.sleep(0.5)
+    try:
+        os.killpg(int(pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
 
 
-def signal_group(pgid: int, sig) -> None:
+def signal_group(pgid, sig) -> None:
     try:
         os.killpg(int(pgid), sig)
     except (ProcessLookupError, PermissionError):
@@ -482,11 +683,14 @@ def cmd_wrap(args) -> int:
     log.flush()
     env = dict(os.environ)
     env.update(launch.get("env", {}))
+    low = launch.get("low_priority", True)
     kw = {}
     if IS_WINDOWS:
-        kw["creationflags"] = 0x08000000
+        kw["creationflags"] = 0x08000000 | (0x00004000 if low else 0)  # BELOW_NORMAL_PRIORITY_CLASS
     else:
         kw["start_new_session"] = True
+        if low:
+            kw["preexec_fn"] = lambda: os.nice(10)
     start = time.time()
     try:
         child = subprocess.Popen(launch["argv"], cwd=launch["cwd"], env=env, stdin=subprocess.DEVNULL,
@@ -513,7 +717,9 @@ class Runner:
         self.state_path = self.local / "state.json"
         self.state = read_json(self.state_path, {}) or {}
         self.state.setdefault("active", {})  # job_id -> record
+        self.cfg = self.q.config()
         self.awake = None
+        self.note = None
         self.last_status = None
         self.last_status_time = 0.0
 
@@ -524,6 +730,9 @@ class Runner:
     def log(self, msg):
         self.q.log(self.machine, msg)
 
+    def tags(self) -> list:
+        return list(self.settings.get("tags", []))
+
     def placeholders(self, job_id: str, rec: dict) -> dict:
         p = {
             "drive": str(self.drive),
@@ -532,6 +741,7 @@ class Runner:
             "repo": self.settings.get("repo", ""),
             "blender": self.settings.get("blender", "blender"),
             "python": self.settings.get("python", python_console()),
+            "ffmpeg": self.settings.get("ffmpeg", "ffmpeg"),
             "machine": self.machine,
             "job": job_id,
             "work": str(self.local / "work" / job_id),
@@ -554,89 +764,159 @@ class Runner:
 
     # -- the loop
     def loop(self):
-        self.log(f"runner {VERSION} started pid {os.getpid()} python {sys.version.split()[0]}")
+        self.log(f"runner {VERSION} started pid {os.getpid()} python {sys.version.split()[0]} "
+                 f"tags {','.join(self.tags())}")
         while True:
-            cfg = self.q.config()
+            self.cfg = self.q.config()
             try:
-                self.tick(cfg)
+                self.tick()
             except Exception:
                 self.log("tick error: " + traceback.format_exc().replace("\n", " | "))
-            time.sleep(max(5, int(cfg.get("poll_seconds", 20))))
+            swapping = any(r.get("swap") for r in self.state["active"].values())
+            time.sleep(3 if swapping else max(5, int(self.cfg.get("poll_seconds", 20))))
 
-    def tick(self, cfg: dict):
-        gate = cfg.get("gates", {}).get(self.machine, "pause")
+    def tick(self):
+        cfg = self.cfg
         jobs = self.q.jobs()
-        done = self.q.done()
-        self.reap(jobs, done)
+        self.reap(jobs)
         self.handle_cancels(jobs)
-        done = self.q.done()  # reaping may have just written a result
+        done = self.q.done()
+        self.copy_incremental(jobs)
+        self.note = None
         running = self.running_id()
-        if gate != "run":
-            if running:
-                self.suspend(running, "paused")
-            self.set_awake(False)
-            self.publish(cfg, gate, jobs)
-            return
         if running:
-            # Only a review job may interrupt a final; anything else waits its turn,
-            # and an `any` job is not claimed while this machine is busy.
-            cur = self.state["active"][running]
-            if cfg.get("preempt", True) and cur.get("lane") == "final":
-                best = self.pick(cfg, jobs, done, only_lane="review")
-                if best:
-                    self.suspend(running, "preempted")
-                    self.start_or_resume(best, jobs[best])
-        else:
-            best = self.pick(cfg, jobs, done)
+            rec = self.state["active"][running]
+            job = jobs[running]
+            want = self.swap_reason(running, job, rec, jobs, done)
+            if rec.get("swap") and not want:
+                self.log(f"swap-out of {running} called off ({rec['swap']['why']} no longer applies)")
+                rec.pop("swap")
+                self.save()
+            elif want and not rec.get("swap"):
+                self.request_swap(running, job, rec, want)
+            if rec.get("swap"):
+                if self.swap_ready(running, job, rec):
+                    self.suspend(running, rec["swap"]["why"])
+                    running = None
+                else:
+                    self.note = f"waiting for {running}'s frame in progress before swapping it out"
+        if not running:
+            best = self.pick(jobs, done)
             if best:
                 self.start_or_resume(best, jobs[best])
         self.set_awake(self.running_id() is not None)
-        self.publish(cfg, gate, jobs)
+        self.publish(jobs)
 
     def running_id(self):
         for jid, rec in self.state["active"].items():
-            if rec.get("state") == "running":
+            if rec.get("state") in ("running", "preparing"):
                 return jid
         return None
 
-    def pick(self, cfg, jobs, done, only_lane=None):
-        lanes = cfg.get("lanes", ["review", "final"])
+    def swap_reason(self, jid, job, rec, jobs, done):
+        """Why the running job should be swapped out now, or None."""
+        cfg = self.cfg
+        if jid in cfg.get("held", []):
+            return "held"
+        if not gate_allows(job, cfg, self.machine):
+            return "paused"
+        if job["lane"] == "light" and time.time() - rec.get("started_epoch", time.time()) > \
+                int(cfg.get("light_max_seconds", 1800)):
+            return None  # handled by reap as a failure
+        if cfg.get("preempt", True) and job["lane"] == "final":
+            # Not dry: an `any` job is claimed (and its claim wait sat out) while the
+            # final keeps rendering, so the swap itself costs no idle time.
+            if self.pick(jobs, done, swap_in_for=job):
+                return "preempted"
+        return None
+
+    def request_swap(self, jid, job, rec, why):
+        fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
+        rec["swap"] = {"why": why, "since": time.time(),
+                       "frames_at": self.count_frames(fr) if fr else None}
+        self.save()
+        if fr and self.cfg.get("swap_at_frame_boundary", True):
+            self.log(f"{why}: swapping {jid} out after the frame in progress lands "
+                     f"({rec['swap']['frames_at']}/{fr['count']} done)")
+
+    def swap_ready(self, jid, job, rec) -> bool:
+        sw = rec["swap"]
+        if not self.cfg.get("swap_at_frame_boundary", True) or sw.get("frames_at") is None:
+            return True
+        if time.time() - sw["since"] > int(self.cfg.get("swap_wait_max_seconds", 420)):
+            self.log(f"{jid}: no frame landed within swap_wait_max_seconds; stopping mid-frame")
+            return True
+        fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
+        return self.count_frames(fr) > sw["frames_at"]
+
+    def pick(self, jobs, done, swap_in_for=None, dry=False):
+        """The next job to run here. With swap_in_for, only jobs allowed to swap that
+        final out (an earlier lane). dry: report a candidate without claiming it."""
+        cfg = self.cfg
+        lanes = cfg.get("lanes", list(LANES))
+        tags = set(self.tags())
         cands = []
         for jid, job in jobs.items():
             if job.get("machine") not in (self.machine, "any"):
                 continue
-            if only_lane and job.get("lane") != only_lane:
+            rec = self.state["active"].get(jid)
+            if rec and rec.get("state") in ("running", "preparing"):
                 continue
-            if self.state["active"].get(jid, {}).get("state") == "running":
-                continue
+            if swap_in_for is not None:
+                if lanes.index(job["lane"]) >= lanes.index(swap_in_for["lane"]):
+                    continue
+                if job["machine"] == "any" and rec is None and \
+                        time.time() - float(job.get("submitted_epoch", 0)) < int(cfg.get("any_grace_seconds", 120)):
+                    continue  # leave it a moment for an idle machine
             if jid in done and (self.machine in done[jid] or job_succeeded(done[jid])):
                 continue
-            if self.q.cancelled(jid):
+            if self.q.cancelled(jid) or jid in cfg.get("held", []):
+                continue
+            if not gate_allows(job, cfg, self.machine):
+                continue
+            if not set(job.get("requires", [])) <= tags:
                 continue
             if any(not job_succeeded(done.get(a, {})) for a in job.get("after", [])):
                 continue
-            mine = jid in self.state["active"]
-            if job["machine"] == "any" and not mine:
+            if job["machine"] == "any" and rec is None:
                 w = claim_winner(self.q.claims(jid))
                 if w and w != self.machine:
                     continue
-            lane = lanes.index(job["lane"]) if job["lane"] in lanes else len(lanes)
-            cands.append((lane, 0 if mine else 1, -int(job.get("priority", 0)), job.get("submitted", ""), jid))
+            cands.append(order_key(job, cfg, resumed=rec is not None))
         for c in sorted(cands):
             jid = c[-1]
+            if dry:
+                return jid
             if jobs[jid]["machine"] == "any" and jid not in self.state["active"]:
-                if not self.claim(jid, cfg):
+                if not self.claim(jid):
                     continue
+            if jid not in self.state["active"] and self.foreign_blender():
+                return None
             return jid
         return None
 
-    def claim(self, jid, cfg) -> bool:
+    def foreign_blender(self) -> bool:
+        """A background Blender this runner did not start (a hand-started render)."""
+        if not self.cfg.get("block_on_foreign_blender", True):
+            return False
+        table = process_table()
+        ours = descendants(table, [r.get("wrapper") for r in self.state["active"].values()])
+        foreign = [pid for pid, _, stopped, cmd in table
+                   if pid not in ours and not stopped and re.search(r"blender(\.exe)?\b", cmd, re.I)
+                   and re.search(r"\s(-b|--background)\b", cmd)]
+        if foreign:
+            self.note = f"not starting: a Blender this runner did not start is rendering (pid {foreign[0]})"
+            return True
+        return False
+
+    def claim(self, jid) -> bool:
         path = self.q.d("claims") / f"{jid}.{self.machine}"
         if not path.exists():
             write_json(path, {"machine": self.machine, "time": time.time(), "at": now_iso()})
-            wait = int(cfg.get("claim_wait_seconds", 90))
+            wait = int(self.cfg.get("claim_wait_seconds", 90))
             self.log(f"claimed {jid}; waiting {wait}s for the other machine's claim to sync")
-            self.publish(cfg, "run", None, note=f"claiming {jid}")
+            self.note = f"claiming {jid}"
+            self.publish(None)
             time.sleep(wait)
         w = claim_winner(self.q.claims(jid))
         if w != self.machine:
@@ -648,11 +928,12 @@ class Runner:
     # -- job lifecycle
     def start_or_resume(self, jid, job):
         rec = self.state["active"].get(jid)
-        if rec and rec.get("state") == "stopped" and not IS_WINDOWS and proc_alive(rec.get("pgid")):
+        if rec and rec.get("state") == "frozen" and proc_alive(rec.get("pgid")):
             signal_group(rec["pgid"], signal.SIGCONT)
             rec["state"] = "running"
+            rec.pop("why", None)
             self.save()
-            self.log(f"resumed {jid} (SIGCONT)")
+            self.log(f"swapped {jid} back in (SIGCONT)")
             return
         if rec is None or rec.get("state") == "preparing":
             if rec is None:
@@ -667,11 +948,12 @@ class Runner:
             except Exception as e:
                 self.finish(jid, job, rec, "failed", reason=f"input preparation failed: {e}")
                 return
+        elif rec.get("why"):
+            self.log(f"swapping {jid} back in (was {rec['why']})")
         self.launch(jid, job, rec)
 
     def prepare(self, jid, job, rec):
-        work = self.local / "work" / jid
-        work.mkdir(parents=True, exist_ok=True)
+        (self.local / "work" / jid).mkdir(parents=True, exist_ok=True)
         for inp in job.get("inputs", []):
             if inp["kind"] == "git":
                 rec["checkout"] = str(self.checkout(jid, inp))
@@ -684,20 +966,29 @@ class Runner:
     def checkout(self, jid, inp) -> Path:
         repo = Path(self.settings["repo"])
         commit = inp["commit"]
-        run(["git", "-C", repo, "fetch", "--quiet", "origin"], check=False, timeout=600)
-        if inp.get("bundle"):
+
+        def have():
+            return run(["git", "-C", repo, "cat-file", "-e", commit + "^{commit}"], check=False).returncode == 0
+
+        if not have():
+            run(["git", "-C", repo, "fetch", "--quiet", "origin"], check=False, timeout=600)
+        if not have() and inp.get("hub_ref"):
+            run(["git", "-C", repo, "fetch", "--quiet", "hub", f"+{inp['hub_ref']}:{inp['hub_ref']}"],
+                timeout=600, env=git_env())
+        if not have() and inp.get("bundle"):
             bundle = self.q.root / inp["bundle"]
-            ref = inp.get("bundle_ref") or f"refs/render-queue/{jid}"
             v = run(["git", "-C", repo, "bundle", "verify", bundle], check=False)
             if v.returncode != 0:
                 raise RuntimeError("bundle does not verify against this clone: " + v.stdout[-400:])
-            run(["git", "-C", repo, "fetch", "--quiet", bundle, f"{ref}:refs/render-queue/{jid}"], timeout=600)
-        if run(["git", "-C", repo, "cat-file", "-e", commit + "^{commit}"], check=False).returncode != 0:
-            raise RuntimeError(f"commit {commit} is not on origin/main here and the job carries no bundle")
+            run(["git", "-C", repo, "fetch", "--quiet", bundle,
+                 f"{inp.get('bundle_ref')}:refs/render-queue/{jid}"], timeout=600)
+        if not have():
+            raise RuntimeError(f"commit {commit} is not available here (not on origin/main, "
+                               f"no hub ref or bundle reached this clone)")
         dest = repo / ".claude" / "worktrees" / f"rq-{jid}"
         if dest.exists():
             head = run(["git", "-C", dest, "rev-parse", "HEAD"], check=False).stdout.strip()
-            if head.startswith(commit) or commit.startswith(head[:len(commit)]):
+            if head == commit:
                 return dest
             raise RuntimeError(f"{dest} exists at another commit")
         run(["git", "-C", repo, "worktree", "add", "--detach", dest, commit], timeout=600)
@@ -735,6 +1026,9 @@ class Runner:
         pat = fr.get("glob", "*.png")
         return [p for p in d.iterdir() if p.is_file() and fnmatch.fnmatch(p.name, pat)]
 
+    def count_frames(self, fr: dict) -> int:
+        return len([p for p in self.frame_files(fr) if p.stat().st_size > 0])
+
     def launch(self, jid, job, rec):
         ph = self.placeholders(jid, rec)
         fr = self.expand(job.get("frames"), ph)
@@ -751,42 +1045,59 @@ class Runner:
         argv = self.expand(cmd, ph)
         cwd = self.expand(job.get("cwd") or "{work}", ph)
         env = self.expand(job.get("env", {}), ph)
+        extra_path = self.settings.get("path_prepend", [])
+        if extra_path:
+            env["PATH"] = os.pathsep.join(extra_path + [env.get("PATH", os.environ.get("PATH", ""))])
         run_dir = self.local / "run" / jid
         run_dir.mkdir(parents=True, exist_ok=True)
         for stale in ("exit.json", "pid.json"):
             (run_dir / stale).unlink(missing_ok=True)
-        write_json(run_dir / "launch.json", {"argv": argv, "cwd": cwd, "env": env})
+        low = bool(job.get("low_priority", self.cfg.get("low_priority", True)))
+        write_json(run_dir / "launch.json", {"argv": argv, "cwd": cwd, "env": env, "low_priority": low})
         installed = self.local / "render_queue.py"
         script = installed if installed.exists() else Path(__file__).resolve()
         p = spawn_detached([python_gui(), str(script), "wrap", str(run_dir)], run_dir / "wrapper.log")
         rec.update(state="running", wrapper=p.pid, attempts=rec.get("attempts", 0) + 1,
                    started=now_iso(), started_epoch=time.time(), run_dir=str(run_dir))
-        rec.pop("pgid", None)
+        for k in ("pgid", "why", "swap"):
+            rec.pop(k, None)
         self.save()
         shown = " ".join(argv).replace("\n", "\\n")
         self.log(f"launched {jid} attempt {rec['attempts']}: {shown[:300]}")
 
-    def child_info(self, rec):
-        pid = read_json(Path(rec["run_dir"]) / "pid.json", {}) or {}
-        return pid.get("child")
+    def child_pid(self, rec):
+        return (read_json(Path(rec["run_dir"]) / "pid.json", {}) or {}).get("child") if rec.get("run_dir") else None
+
+    def stop_processes(self, rec):
+        """Stop the job's whole process tree and wait until it is gone."""
+        if IS_WINDOWS:
+            kill_tree(rec.get("wrapper"))
+        else:
+            child = self.child_pid(rec)
+            if child:
+                kill_tree(child)
+        for _ in range(60):
+            if not proc_alive(rec.get("wrapper")):
+                return
+            time.sleep(0.5)
+        self.log(f"warning: wrapper {rec.get('wrapper')} still alive after stop")
 
     def suspend(self, jid, why):
         rec = self.state["active"][jid]
-        if IS_WINDOWS:
-            kill_tree(rec.get("wrapper"))
-            rec["state"] = "stopped"
-            self.log(f"{why}: killed {jid} (restarts later; finished frames kept)")
+        if not IS_WINDOWS and self.cfg.get("mac_swap", "stop") == "freeze" and self.child_pid(rec):
+            rec["pgid"] = self.child_pid(rec)
+            signal_group(rec["pgid"], signal.SIGSTOP)
+            rec["state"] = "frozen"
+            self.log(f"{why}: froze {jid} (SIGSTOP)")
         else:
-            child = self.child_info(rec)
-            if child:
-                rec["pgid"] = child
-                signal_group(child, signal.SIGSTOP)
+            self.stop_processes(rec)
             rec["state"] = "stopped"
-            self.log(f"{why}: SIGSTOP {jid}")
+            self.log(f"{why}: stopped {jid}; it relaunches later and skips finished frames")
         rec["why"] = why
+        rec.pop("swap", None)
         self.save()
 
-    def reap(self, jobs, done):
+    def reap(self, jobs):
         for jid, rec in list(self.state["active"].items()):
             job = jobs.get(jid)
             if job is None:
@@ -794,12 +1105,20 @@ class Runner:
                 del self.state["active"][jid]
                 self.save()
                 continue
+            if rec.get("state") == "preparing":
+                # The runner stopped while preparing; prepare again and launch.
+                self.start_or_resume(jid, job)
+                continue
             if rec.get("state") != "running":
                 continue
-            run_dir = Path(rec["run_dir"])
-            ex = read_json(run_dir / "exit.json")
+            ex = read_json(Path(rec["run_dir"]) / "exit.json")
             if ex is not None:
                 self.complete(jid, job, rec, ex)
+            elif job["lane"] == "light" and time.time() - rec.get("started_epoch", time.time()) > \
+                    int(self.cfg.get("light_max_seconds", 1800)):
+                self.stop_processes(rec)
+                self.finish(jid, job, rec, "failed",
+                            reason=f"light job ran past light_max_seconds ({self.cfg.get('light_max_seconds')}s)")
             elif not proc_alive(rec.get("wrapper")) and time.time() - rec.get("started_epoch", 0) > 15:
                 # Wrapper gone without recording an exit: reboot, kill from outside.
                 if rec.get("attempts", 0) >= 3:
@@ -809,11 +1128,10 @@ class Runner:
                     self.launch(jid, job, rec)
 
     def complete(self, jid, job, rec, ex):
-        ph = self.placeholders(jid, rec)
-        fr = self.expand(job.get("frames"), ph)
+        fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
         code = ex.get("exit_code")
         if fr:
-            have = len([p for p in self.frame_files(fr) if p.stat().st_size > 0])
+            have = self.count_frames(fr)
             ok = have >= int(fr["count"])
             reason = f"{have}/{fr['count']} frames, exit {code}"
         else:
@@ -821,23 +1139,38 @@ class Runner:
             reason = f"exit {code}" + (f" ({ex.get('error')})" if ex.get("error") else "")
         self.finish(jid, job, rec, "ok" if ok else "failed", reason=reason, exit_code=code)
 
-    def copy_outputs(self, jid, job, rec) -> list:
+    def output_pairs(self, jid, job, rec):
         ph = self.placeholders(jid, rec)
-        copied = []
         for o in self.expand(job.get("outputs", []), ph):
             src = Path(o["from"])
             dst = Path(o.get("to") or str(self.q.root / "out" / jid / self.machine))
             files = [src] if src.is_file() else sorted(
                 p for p in src.glob(o.get("glob", "*")) if p.is_file()) if src.is_dir() else []
             for f in files:
-                if f.stat().st_size == 0:
-                    continue
-                dst.mkdir(parents=True, exist_ok=True)
-                t = dst / f.name
-                if not (t.exists() and t.stat().st_size == f.stat().st_size):
-                    shutil.copy2(f, t)
-                copied.append(str(t))
+                yield f, dst / f.name
+
+    def copy_outputs(self, jid, job, rec, settle_seconds=0.0) -> list:
+        """Copy, never move. With settle_seconds, only files untouched that long
+        (a frame Blender has finished writing)."""
+        copied = []
+        for f, t in self.output_pairs(jid, job, rec):
+            st = f.stat()
+            if st.st_size == 0 or time.time() - st.st_mtime < settle_seconds:
+                continue
+            if not (t.exists() and t.stat().st_size == st.st_size):
+                t.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, t)
+            copied.append(str(t))
         return copied
+
+    def copy_incremental(self, jobs):
+        for jid, rec in self.state["active"].items():
+            job = jobs.get(jid)
+            if job and rec.get("state") == "running" and job.get("frames") and job.get("copy_incrementally", True):
+                try:
+                    self.copy_outputs(jid, job, rec, settle_seconds=20)
+                except OSError as e:
+                    self.log(f"{jid}: incremental copy failed: {e}")
 
     def finish(self, jid, job, rec, result, reason="", exit_code=None):
         copied, copy_err = [], None
@@ -877,25 +1210,30 @@ class Runner:
         self.log(f"{result} {jid}: {reason}; {len(copied)} file(s) copied")
         del self.state["active"][jid]
         self.save()
-        if result == "ok" and copied and rec.get("checkout") and not job.get("keep_checkout"):
-            self.remove_checkout(jid, rec["checkout"])
+        if result == "ok" and copied and not job.get("keep_checkout"):
+            self.cleanup_inputs(jid, job, rec)
 
-    def remove_checkout(self, jid, checkout):
+    def cleanup_inputs(self, jid, job, rec):
         repo = self.settings.get("repo")
-        r = run(["git", "-C", repo, "worktree", "remove", "--force", checkout], check=False)
+        if rec.get("checkout"):
+            r = run(["git", "-C", repo, "worktree", "remove", "--force", rec["checkout"]], check=False)
+            if r.returncode != 0:
+                self.log(f"could not remove checkout {rec['checkout']}: {r.stdout.strip()[:200]}")
         run(["git", "-C", repo, "update-ref", "-d", f"refs/render-queue/{jid}"], check=False)
-        if r.returncode != 0:
-            self.log(f"could not remove checkout {checkout}: {r.stdout.strip()[:200]}")
+        for inp in job.get("inputs", []):
+            ref = inp.get("hub_ref")
+            if ref:
+                run(["git", "-C", repo, "update-ref", "-d", ref], check=False)
+                r = run(["git", "-C", repo, "push", "--quiet", "hub", f":{ref}"], check=False, timeout=120,
+                        env=git_env())
+                if r.returncode != 0:
+                    self.log(f"could not delete {ref} on hub: {r.stdout.strip()[:200]}")
 
     def handle_cancels(self, jobs):
         for jid, rec in list(self.state["active"].items()):
             if self.q.cancelled(jid):
-                if IS_WINDOWS:
-                    kill_tree(rec.get("wrapper"))
-                else:
-                    child = self.child_info(rec) if rec.get("run_dir") else None
-                    if child:
-                        kill_tree(child)
+                if rec.get("state") in ("running", "frozen"):
+                    self.stop_processes(rec)
                 self.finish(jid, jobs.get(jid, {}), rec, "cancelled", reason="cancel requested")
 
     # -- keep awake while working
@@ -912,30 +1250,42 @@ class Runner:
             self.awake = None
 
     # -- status
-    def progress(self, jid, job, rec):
+    def progress(self, jid, job, rec) -> dict:
         fr = self.expand(job.get("frames"), self.placeholders(jid, rec)) if job else None
         if not fr:
-            return None
-        have = len([p for p in self.frame_files(fr) if p.stat().st_size > 0])
-        return f"{have}/{fr['count']} frames"
+            return {}
+        frames = sorted(p.stat().st_mtime for p in self.frame_files(fr) if p.stat().st_size > 0)
+        have, count = len(frames), int(fr["count"])
+        out = {"progress": f"{have}/{count} frames", "frames_done": have, "frames_total": count}
+        if rec.get("state") == "running":
+            recent = [t for t in frames if t >= rec.get("started_epoch", 0)][-11:]
+            gaps = [b - a for a, b in zip(recent, recent[1:]) if b > a]
+            if gaps:
+                spf = statistics.median(gaps)
+                out["sec_per_frame"] = round(spf, 1)
+                out["eta_s"] = int(max(0, count - have) * spf)
+        return out
 
-    def publish(self, cfg, gate, jobs, note=None):
+    def publish(self, jobs):
         jobs = jobs if jobs is not None else self.q.jobs()
         cur, suspended = None, []
         for jid, rec in self.state["active"].items():
             slot = {"id": jid, "state": rec.get("state"), "lane": rec.get("lane"),
-                    "attempts": rec.get("attempts"), "started": rec.get("started"),
-                    "progress": self.progress(jid, jobs.get(jid), rec)}
+                    "attempts": rec.get("attempts"), "started": rec.get("started")}
+            slot.update(self.progress(jid, jobs.get(jid), rec))
             if rec.get("state") in ("running", "preparing"):
+                if rec.get("swap"):
+                    slot["swap"] = rec["swap"]["why"]
                 cur = slot
             else:
                 slot["why"] = rec.get("why")
                 suspended.append(slot)
-        body = {"machine": self.machine, "gate": gate, "current": cur, "suspended": suspended,
-                "note": note, "runner": f"{VERSION} pid {os.getpid()}", "host": socket.gethostname()}
+        body = {"machine": self.machine, "gate": self.cfg.get("gates", {}).get(self.machine),
+                "current": cur, "suspended": suspended, "note": self.note, "tags": self.tags(),
+                "runner": f"{VERSION} pid {os.getpid()}", "host": socket.gethostname()}
         # Write on change, and every five minutes as a heartbeat.
         if body != self.last_status or time.time() - self.last_status_time > 300:
-            self.last_status = dict(body)
+            self.last_status = json.loads(json.dumps(body))
             self.last_status_time = time.time()
             body.update(updated=now_iso(), updated_epoch=time.time())
             write_json(self.q.d("status") / f"{self.machine}.json", body)
@@ -972,6 +1322,30 @@ TASK_NAME = "Starsector render queue"
 PLIST_LABEL = "com.starsectormarines.renderqueue"
 
 
+def detect_tags(settings: dict) -> list:
+    tags = {"blender"} if Path(settings.get("blender", "")).exists() else set()
+    if IS_WINDOWS:
+        r = run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], check=False) \
+            if shutil.which("nvidia-smi") else None
+        if r and r.returncode == 0 and r.stdout.strip():
+            tags |= {"gpu", "cuda", "optix", "gpu-" + re.sub(r"[^a-z0-9]+", "-", r.stdout.strip().lower()
+                                                            .replace("nvidia geforce ", "")).strip("-")}
+        if Path("C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core").is_dir():
+            tags.add("starsector")
+        if Path("C:/Windows/Fonts/bahnschrift.ttf").exists():
+            tags.add("font-bahnschrift")
+    else:
+        r = run(["sysctl", "-n", "hw.ncpu"], check=False)
+        if r.returncode == 0:
+            tags.add(f"cpu{r.stdout.strip()}")
+        r = run(["sysctl", "-n", "machdep.cpu.brand_string"], check=False)
+        if "Apple" in r.stdout:
+            tags |= {"gpu", "metal", "apple-silicon"}
+    if settings.get("ffmpeg") and Path(settings["ffmpeg"]).exists():
+        tags.add("ffmpeg")
+    return sorted(tags | set(settings.get("extra_tags", [])))
+
+
 def cmd_install(args) -> int:
     local = local_root()
     local.mkdir(parents=True, exist_ok=True)
@@ -986,11 +1360,18 @@ def cmd_install(args) -> int:
     if src != (local / "render_queue.py").resolve():
         shutil.copy2(src, local / "render_queue.py")
     settings = read_json(local / "machine.json", {}) or {}
+    ffmpeg = shutil.which("ffmpeg") or ("/opt/homebrew/bin/ffmpeg" if Path("/opt/homebrew/bin/ffmpeg").exists() else "")
     settings.update({k: v for k, v in {
         "machine": this_machine(), "drive": str(drive), "python": python_console(),
         "repo": args.repo or settings.get("repo") or str(repo_root()),
         "blender": args.blender or settings.get("blender") or default_blender(),
+        "ffmpeg": settings.get("ffmpeg") or ffmpeg,
     }.items() if v})
+    if not IS_WINDOWS:
+        settings.setdefault("path_prepend", ["/opt/homebrew/bin", "/usr/local/bin"])
+    if args.tag:
+        settings["extra_tags"] = sorted(set(settings.get("extra_tags", [])) | set(args.tag))
+    settings["tags"] = detect_tags(settings)
     write_json(local / "machine.json", settings)
     print("installed", local / "render_queue.py", "settings", json.dumps(settings))
     if args.no_service:
@@ -1049,7 +1430,7 @@ def cmd_install(args) -> int:
 def default_blender() -> str:
     if IS_WINDOWS:
         hits = sorted(glob.glob("C:/Program Files/Blender Foundation/Blender */blender.exe"))
-        return hits[-1] if hits else "blender"
+        return hits[-1].replace("\\", "/") if hits else "blender"
     return "/Applications/Blender.app/Contents/MacOS/Blender"
 
 
@@ -1060,23 +1441,33 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd")
     s = sub.add_parser("submit", help="validate and publish a job file")
     s.add_argument("job")
-    s.add_argument("--bundle", metavar="COMMIT",
-                   help="carry this commit as a git bundle (needed unless it is on origin/main)")
+    s.add_argument("--commit", metavar="REV", help="pin this commit as the job's git input")
+    s.add_argument("--via", choices=("bundle", "hub"), default="bundle",
+                   help="how an unpushed commit reaches the other machine (default bundle)")
     s.set_defaults(fn=cmd_submit)
-    s = sub.add_parser("status", help="show gates, runners and jobs")
+    s = sub.add_parser("status", help="per machine: gate, running, ETA, queued")
     s.add_argument("--job")
-    s.add_argument("--all", action="store_true", help="include jobs finished over a day ago")
+    s.add_argument("--json", action="store_true")
     s.set_defaults(fn=cmd_status)
-    s = sub.add_parser("cancel", help="withdraw a job")
+    s = sub.add_parser("cancel", help="withdraw a job (submitter or render coordinator)")
     s.add_argument("id")
     s.set_defaults(fn=cmd_cancel)
-    s = sub.add_parser("gate", help="coordinator only, on the owner's word")
+    s = sub.add_parser("gate", help="render coordinator only, on the owner's word")
     s.add_argument("machine", choices=MACHINES + ("both",))
     s.add_argument("state", choices=("run", "pause"))
     s.set_defaults(fn=cmd_gate)
+    for name in ("hold", "release"):
+        s = sub.add_parser(name, help="render coordinator only")
+        s.add_argument("id")
+        s.set_defaults(fn=cmd_hold)
+    s = sub.add_parser("prioritize", help="render coordinator only: override a job's priority")
+    s.add_argument("id")
+    s.add_argument("priority", type=int)
+    s.set_defaults(fn=cmd_prioritize)
     s = sub.add_parser("install", help="install and start this machine's runner")
     s.add_argument("--repo", help="this machine's clone (default: the current repository)")
     s.add_argument("--blender", help="Blender executable for {blender}")
+    s.add_argument("--tag", action="append", help="extra capability tag (repeatable)")
     s.add_argument("--mode", choices=("nohup", "launchd"), default="nohup",
                    help="macOS only; launchd cannot read the Drive folder without Full Disk Access")
     s.add_argument("--no-service", action="store_true", help="copy files only")

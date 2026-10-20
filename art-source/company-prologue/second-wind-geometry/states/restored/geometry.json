@@ -167,8 +167,11 @@
       ],
       "rest_angle_deg": 90,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 1 pivot",
+      "fixed": [
+        "Turret 1 barbette"
+      ],
+      "k": 0.7636,
       "elevation": "Turret 1 elevation",
       "trunnion": [
         -11.0,
@@ -178,9 +181,6 @@
       "elevation_limits": [
         null,
         null
-      ],
-      "fixed": [
-        "Turret 1 barbette"
       ],
       "trained": [
         "Turret 1 house dark",
@@ -212,7 +212,7 @@
       "index": 2,
       "slot": "WS 002",
       "size": "SMALL",
-      "weapon": "vulcan",
+      "weapon": "empty",
       "ring": 4.2,
       "lift": 1.6,
       "seat": 17.0,
@@ -224,107 +224,65 @@
       ],
       "rest_angle_deg": -90,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 2 pivot",
-      "elevation": "Turret 2 elevation",
-      "trunnion": [
-        -11.0,
-        -23.436,
-        19.929
-      ],
-      "elevation_limits": [
-        null,
-        null
-      ],
       "fixed": [
-        "Turret 2 barbette"
+        "Turret 2 barbette",
+        "Turret 2 blanking cap",
+        "Turret 2 blanking cap boss"
       ],
-      "trained": [
-        "Turret 2 house dark",
-        "Turret 2 house paint#dome",
-        "Turret 2 house steel",
-        "Turret 2 house plate",
-        "Turret 2 house paint",
-        "Turret 2 recoil 1 metal",
-        "Turret 2 recoil 1 steel",
-        "Turret 2 recoil 1 dark",
-        "Turret 2 recoil 2 metal",
-        "Turret 2 recoil 2 steel",
-        "Turret 2 recoil 2 dark"
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        -11,
+        -20,
+        18.6
       ],
-      "recoil": [
-        "Turret 2 recoil 1",
-        "Turret 2 recoil 2"
-      ],
-      "kit_muzzles": [
-        "Turret 2 muzzle anchor 1",
-        "Turret 2 muzzle anchor 2"
-      ],
-      "muzzles": [
-        "Anchor turret 2 barrel 1 muzzle",
-        "Anchor turret 2 barrel 2 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     },
     {
       "index": 3,
       "slot": "WS 003",
       "size": "SMALL",
-      "weapon": "railgun",
+      "weapon": "empty",
       "ring": 4.2,
-      "lift": 3.8,
+      "lift": 1.6,
       "seat": 14.5,
-      "top": 18.3,
+      "top": 16.1,
       "location": [
         41,
         11,
-        18.3
+        16.1
       ],
       "rest_angle_deg": 30,
       "arc_deg": 210,
-      "k": 0.7636,
       "pivot": "Turret 3 pivot",
-      "elevation": "Turret 3 elevation",
-      "trunnion": [
-        41.992,
-        11.573,
-        20.011
-      ],
-      "elevation_limits": [
-        null,
-        null
-      ],
       "fixed": [
-        "Turret 3 barbette"
+        "Turret 3 barbette",
+        "Turret 3 blanking cap",
+        "Turret 3 blanking cap boss"
       ],
-      "trained": [
-        "Turret 3 house dark",
-        "Turret 3 house paint#body",
-        "Turret 3 house accent2",
-        "Turret 3 house steel",
-        "Turret 3 house glow",
-        "Turret 3 house accent#breech",
-        "Turret 3 house accent2#bulb",
-        "Turret 3 recoil 1 accent",
-        "Turret 3 recoil 1 dark",
-        "Turret 3 recoil 1 paint",
-        "Turret 3 recoil 1 accent2",
-        "Turret 3 recoil 1 steel"
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        41,
+        11,
+        16.1
       ],
-      "recoil": [
-        "Turret 3 recoil 1"
-      ],
-      "kit_muzzles": [
-        "Turret 3 muzzle anchor 1"
-      ],
-      "muzzles": [
-        "Anchor turret 3 barrel 1 muzzle"
-      ]
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
     },
     {
       "index": 4,
       "slot": "WS 004",
       "size": "MEDIUM",
-      "weapon": "heavymauler",
+      "weapon": "vulcan",
       "ring": 7.0,
       "lift": 1.8,
       "seat": 14.5,
@@ -336,35 +294,32 @@
       ],
       "rest_angle_deg": -30,
       "arc_deg": 290,
-      "k": 0.7368,
       "pivot": "Turret 4 pivot",
+      "fixed": [
+        "Turret 4 barbette",
+        "Turret 4 reducer plate"
+      ],
+      "k": 0.7636,
       "elevation": "Turret 4 elevation",
       "trunnion": [
-        37.276,
-        -16.737,
-        19.071
+        38.976,
+        -17.718,
+        17.929
       ],
       "elevation_limits": [
         null,
         null
       ],
-      "fixed": [
-        "Turret 4 barbette"
-      ],
       "trained": [
         "Turret 4 house dark",
-        "Turret 4 house paint#body",
-        "Turret 4 house plate",
+        "Turret 4 house paint#dome",
         "Turret 4 house steel",
-        "Turret 4 house accent#flank1",
-        "Turret 4 house accent#flank-1",
-        "Turret 4 house metal",
-        "Turret 4 house metal#brake",
-        "Turret 4 gun steel",
-        "Turret 4 gun plate",
-        "Turret 4 gun dark",
+        "Turret 4 house plate",
+        "Turret 4 house paint",
+        "Turret 4 recoil 1 metal",
         "Turret 4 recoil 1 steel",
         "Turret 4 recoil 1 dark",
+        "Turret 4 recoil 2 metal",
         "Turret 4 recoil 2 steel",
         "Turret 4 recoil 2 dark"
       ],
@@ -373,10 +328,12 @@
         "Turret 4 recoil 2"
       ],
       "kit_muzzles": [
-        "Turret 4 muzzle anchor 1"
+        "Turret 4 muzzle anchor 1",
+        "Turret 4 muzzle anchor 2"
       ],
       "muzzles": [
-        "Anchor turret 4 barrel 1 muzzle"
+        "Anchor turret 4 barrel 1 muzzle",
+        "Anchor turret 4 barrel 2 muzzle"
       ]
     }
   ],
@@ -1434,21 +1391,21 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Vulcan stripped; a gantry Vulcan from another hull bolted back in its owner's primer; repainted to near match."
+        "note": "Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a salvage cap in another owner's primer bolted on for the flight; repainted to near match."
       },
       {
         "id": "sp-turret-3",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Railgun house holed and its rails snapped: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new railgun in restoration."
+        "note": "Empty housing holed through its blanking cap: left. The mount feed torn under it went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new cap in restoration."
       },
       {
         "id": "sp-turret-4",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Heavy mauler stripped; its own gun recovered from the gantry and reinstalled on an adapter ring; ring painted over."
+        "note": "Vulcan stripped; recovered from the gantry and reinstalled on an adapter ring; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1582,12 +1539,10 @@
       "Search radar scanner bar: Scar repaint over Recess and machinery (sp-mast)",
       "Turret 1 house paint: Scar repaint over Turret vulcan paint 0.1236,0.0973,0.0737 (sp-turret-1)",
       "Turret 1 house paint#dome: Scar repaint over Turret vulcan paint 0.1236,0.0973,0.0737 (sp-turret-1)",
-      "Turret 2 house paint: Scar repaint over Turret vulcan paint 0.1236,0.0973,0.0737 (sp-turret-2)",
-      "Turret 2 house paint#dome: Scar repaint over Turret vulcan paint 0.1236,0.0973,0.0737 (sp-turret-2)",
-      "Turret 3 house accent#breech: Scar repaint over Turret railgun accent 0.2145,0.1195,0.0974 (sp-turret-3)",
-      "Turret 3 house accent2: Scar repaint over Turret railgun accent2 0.3172,0.3261,0.3350 (sp-turret-3)",
-      "Turret 3 house accent2#bulb: Scar repaint over Turret railgun accent2 0.3172,0.3261,0.3350 (sp-turret-3)",
-      "Turret 3 house paint#body: Scar repaint over Turret railgun paint 0.1587,0.1662,0.1679 (sp-turret-3)"
+      "Turret 2 blanking cap: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 blanking cap boss: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 3 blanking cap: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 blanking cap boss: Scar repaint over Engine collars (sp-turret-3)"
     ],
     "cut_objects": 82,
     "sites": {
@@ -2819,8 +2774,8 @@
         },
         {
           "p": [
-            27.702,
-            -8.808,
+            31.387,
+            -9.883,
             15.17
           ],
           "n": [
@@ -2857,8 +2812,8 @@
         },
         {
           "p": [
-            27.702,
-            -8.808,
+            31.387,
+            -9.883,
             15.17
           ],
           "n": [
@@ -2866,7 +2821,7 @@
             0.0,
             1.0
           ],
-          "r": 0.282
+          "r": 0.395
         }
       ],
       "fb-stbd-flank-dent": [
