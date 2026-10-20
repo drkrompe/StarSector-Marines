@@ -22,7 +22,8 @@ public final class CerberusCompanyStart implements Script {
     public static final String START_VARIANT_ID = "sm_second_wind_start";
     private static final String DEPOT_KEY = "sm_preparation_depot";
     private static final String DEPOT_ISSUED = "sm_preparation_depot_issued";
-    public static final int STARTING_CREDITS = 500;
+    /** The pooled ship's account: about twenty-two days of board and berth at Kilo Nine. */
+    public static final int STARTING_CREDITS = 473;
     public static final int TRAVEL_SUPPLIES = 25;
 
     @Override public void run() {

@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
+import com.dillon.starsectormarines.campaign.start.FoundingReserve;
+import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -34,22 +38,27 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
         }
         frames.add(frame(loader, renderer, 5, "Independent Port"));
         frames.add(frame(loader, renderer, 7, null));
-        for (Stage stage : Stage.values()) {
-            frames.add(yardFrame(loader, renderer, stage, true, 5000, null));
-            frames.add(yardFrame(loader, renderer, stage, false, 0, null));
-        }
-        frames.add(yardFrame(loader, renderer, Stage.ORDER, false, 0, "The conversion requires 5,000 credits."));
+        for (Stage stage : Stage.values()) frames.add(yardFrame(loader, renderer, stage, true, null));
+        frames.add(yardFrame(loader, renderer, Stage.COST, false, null));
+        frames.add(yardFrame(loader, renderer, Stage.COST, false,
+                Strings.format("openingCompanyYardTheConversionRequiresCredits", MercenaryCompanyConversion.CREDIT_COST)));
         return frames;
     }
+    /**
+     * Jangala frames follow the protected start: Castle's chits pay the bill, and the account is the starting one.
+     * Fallback frames pay from the account: a covered order, and a refused one.
+     */
     private SnapshotArtifact yardFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Stage stage,
-                                       boolean jangala, int reserve, String refusal) {
-        var props = CompanyYardScreen.model(stage, jangala, "Second Wind", reserve > 0 ? 500 : 2500,
+                                       boolean jangala, String refusal) {
+        int reserve = jangala && stage == Stage.COST ? FoundingReserve.CREDITS : 0;
+        int credits = jangala ? CerberusCompanyStart.STARTING_CREDITS : refusal == null ? 6000 : 2500;
+        var props = CompanyYardScreen.model(stage, jangala, "Second Wind", credits,
                 reserve, refusal, null, true, () -> {}, () -> {}, () -> {});
-        return renderFrame(loader, renderer, props, "yard-" + stage.name().toLowerCase()
+        return renderFrame(loader, renderer, props, "yard-" + (stage.ordinal() + 1) + "-" + stage.name().toLowerCase()
                 + (jangala ? "-jangala" : "-fallback") + (refusal == null ? "" : "-refused") + "-100.png");
     }
     private SnapshotArtifact frame(MarkupLoader loader, HeadlessUiRenderer renderer, int page, String port) {
-        var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 473, 4862, () -> {}, () -> {}, () -> {});
         return renderFrame(loader, renderer, props, "page-" + (page + 1) + "-" + (port == null ? "unavailable" : port.replace(' ', '-')) + "-100.png");
     }
     private SnapshotArtifact renderFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Map<String, Object> props, String name) {
