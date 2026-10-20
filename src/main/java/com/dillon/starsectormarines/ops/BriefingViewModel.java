@@ -388,7 +388,10 @@ final class BriefingViewModel {
             boolean employerOnly = DetachmentResolver.hasRequiredTransport(mission, boats);
             schedule = employerOnly ? "Employer lift provided" : "Company lift unavailable";
             tone = employerOnly ? "tone-muted" : "tone-danger";
+            boolean firstFerry = mission.source == MissionSource.STORY
+                    && OpeningOperationKind.fromMission(mission) == OpeningOperationKind.COUNTERATTACK;
             note = employerOnly ? "Employer-provided craft supply this operation's lift."
+                    : firstFerry ? "The depot is the company's first ferry job. Repair our first Hermes on the Boat Deck."
                     : "The company needs at least one boat aboard its host ship to deploy.";
         } else {
             ShuttleType type = boats.get(0).pattern();

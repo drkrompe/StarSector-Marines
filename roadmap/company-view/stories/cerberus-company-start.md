@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-15 — Eight distinct story illustrations and a shared retained founding-yard review, with Cerberus-referenced exterior art and a limited conversion receipt. Live acceptance remains.
+Updated: 2026-10-20 — Preparation no longer repairs the Hermes; the first-lift lesson after Relief draws its stores. Live acceptance remains.
 
 ## Outcome
 
@@ -13,8 +13,8 @@ Castle directs the player to Jangala and Nessa Venn, an old freight colleague no
 working as a yard forewoman, or an accessible fallback port. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
-existing paid-lift, Sabine specialty, squad founding and assignment tutorial, ending
-at the first Jangala contract.
+existing Sabine specialty, squad founding and assignment tutorial, ending at the
+first Jangala contract. The prepaid Hermes waits for the first-lift lesson after Relief.
 
 ## Scope and authority
 
@@ -57,11 +57,11 @@ cannot replenish it. Ordinary starts receive no depot.
 - Opening preparation and Sabine induction have no Later or Escape dismissal.
   Return to campaign remains available for travel or resupply, with the required
   lesson returning on re-entry. Company designation cannot bypass the conversion.
-- Leave before confirming Hermes repair, reopen through both the company shortcut
+- Leave before confirming squad founding, reopen through both the company shortcut
   and the planet menu, and save/reload mid-step. The same stock and incomplete
   order survive. Away from the depot, Castle names its planet and offers a course
-  back; returning restores access without issuing another grant. Repeat for squad
-  founding. Mission-board Barracks and other direct room entrances resume the
+  back; returning restores access without issuing another grant. Repeat for the
+  Hermes repair in the first-lift lesson after Relief. Mission-board Barracks and other direct room entrances resume the
   current required step instead of bypassing it; battle settlement remains unaffected.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
   captain, no automatic company designation or preinstalled conversion.
@@ -84,8 +84,8 @@ cannot replenish it. Ordinary starts receive no depot.
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and
   is visible to actual ship eligibility, deck generation and all room routes.
-- A new start can convert with zero fleet credits and complete the real first
-  Hermes repair and squad founding with empty cargo. Unrelated orders cannot spend
+- A new start can convert with zero fleet credits and complete the real squad
+  founding, and after Relief the first Hermes repair, with empty cargo. Unrelated orders cannot spend
   the protected stock, and neither reserve refills after consumption or reload.
 - Full room/berth evidence on a real Cerberus silhouette; unconverted control stays
   ineligible; compact Mech Lab cannot advertise absent gantries.

@@ -449,41 +449,36 @@ who kept the roster.
 `openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt`
 > The conversion is in. Stay docked at {0}, open Marine operations and name our
 > Cerberus the company's command ship. While we're docked here, the preparation
-> bills draw on our depot stock. Then we repair the first Hermes, settle Sabine's
-> appointment and put her section on the roll.
+> bills draw on our depot stock. Then we settle Sabine's appointment and put her
+> section on the roll.
 
 `openingCerberusCompanyStartOurShipIsHomeNowStayDocked`
 > She's ours now, Commander, properly. Stay docked while we use the prepaid
-> stores: patch the first wrecked Hermes on the Boat Deck, settle Sabine's first
-> specialty in Barracks, then muster her squad in the Armory and put it under her.
-> I'll take you through each order.
+> stores: settle Sabine's first specialty in Barracks, then muster her squad in
+> the Armory and put it under her. I'll take you through each order.
 
 `openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd`
 > Commander, pick our home: a ship with quarters and a boat bay. These stores
-> cover one shuttle, which can make the trip as often as we need, and kit for one
-> full squad. Sabine's appointment is settled, first training point and all.\n\n{0}
+> kit one full squad now and patch one shuttle after Mara's job. Sabine's
+> appointment is settled, first training point and all.\n\n{0}
 
 `openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd`
-> The crew are clearing our quarters and the hangar. When the deck's ready we
-> commission our lift, sit down with Sabine and muster her squad.
-
-`openingCompanyPreparationGuideOurHomeIsReadyComeDownTo`
-> Home's ready. Come down to the Boat Deck and we'll get our first shuttle flying.
+> The crew are clearing our quarters. When they're done we sit down with Sabine
+> and muster her squad.
 
 `openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes`
 > Second Wind came with two wrecked Hermes. We can reach this one; the other's
-> behind the sealed second bay. Let's patch this one for the first contracts.
-
-`openingCompanyPreparationGuideGoodThatBoatIsOursWithA`
-> Good. That boat's ours: a berth on the deck and a bill that's paid. She can make
-> the trip as many times as the squad needs. Plating and drive can wait for money
-> we haven't earned yet. Now, Sabine.
+> behind the sealed second bay. Let's patch this one for the depot job.
 
 `openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks`
-> Our lift's aboard. Come to Barracks; Sabine's waiting.
+> Home's ready. Come to Barracks; Sabine's waiting.
+
+`openingCompanyPreparationGuideTheBoatsCanWait`
+> The boats can wait. Mara's truck takes us up to the checkpoint; we patch a Hermes
+> after that job. Sabine first.
 
 `openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur`
-> We muster the squad once the ship, the lift and the field commander are ready.
+> We muster the squad once the ship and the field commander are ready.
 > Those first.
 
 `openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty`
@@ -496,8 +491,8 @@ who kept the roster.
 > command. Assigning them costs nothing more.
 
 `openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur`
-> Leaving didn't cost us anything, Commander. The rest of the shuttle parts and
-> squad stores are waiting at {0}. They're held ashore, so I can't draw them from
+> Leaving didn't cost us anything, Commander. The rest of our prepaid stores are
+> waiting at {0}. They're held ashore, so I can't draw them from
 > up here. Go back, choose Marine operations in the planet menu, and we'll pick up
 > where we stopped. Don't buy them twice.
 
@@ -505,6 +500,26 @@ who kept the roster.
 > We're a company, Commander, as far as anyone's asking. Mara's signed for our
 > ore dust; her delivery order is waiting in Headquarters. Whatever stores we
 > didn't use stay in the depot for when we're back.
+
+### First lift (after Relief)
+
+Relief needs no boat, so the first Hermes is repaired in Castle's first-lift
+lesson between Relief and Counterattack, the first ferry job. The Boat Deck
+steps reuse the repair and commission lines above.
+
+`lessonFirstLiftTitle` / `lessonFirstLiftHandoff`
+> OUR FIRST LIFT
+>
+> No truck takes us into Mara's depot, Commander. That job needs a boat. The
+> prepaid Hermes parts are ours; come to the Boat Deck and we'll get her flying.
+
+`openingCompanyPreparationGuideTheHermesPartsAreStillWaitingAt`
+> The Hermes parts are still waiting at {0}, Commander. They're held ashore, so I
+> can't draw them from up here. Go back, choose Marine operations in the planet
+> menu, and we'll get her flying.
+
+Counterattack's briefing, with no airworthy boat, adds: "The depot is the
+company's first ferry job. Repair our first Hermes on the Boat Deck."
 
 The conversion line names no figure; the yard page states it. It says "the
 yard", not "Nessa", because a fallback start never meets her.
@@ -523,13 +538,13 @@ about her directly.
 
 `openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters`
 > First, Commander, a ship with quarters and a boat bay. I've counted the stores
-> for our first lift and a full squad. Bring the whole bill aboard before we
-> start, and we'll see this through together.
+> for a full squad, and for our first lift after Mara's job. Bring the whole bill
+> aboard before we start, and we'll see this through together.
 
 `openingOfficerInductionGuideOurPeopleNeedAWayDownAnd`
 > Our people need a way down and a way home. Pick an empty berth and commission
 > its shuttle. One boat can ferry the squad in trips; more boats put them down
-> together. Keep the squad's stores aside for the next step.
+> together.
 
 `openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou`
 > Sabine leads our first formation, Commander. She's been bringing those twelve

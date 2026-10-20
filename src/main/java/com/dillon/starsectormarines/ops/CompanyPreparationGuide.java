@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
+import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
@@ -22,23 +23,36 @@ final class CompanyPreparationGuide {
         return script == null ? null : script.roster();
     }
 
-    /** Leaving the planet closes access to its stores, not the saved consignment or lesson. */
+    /**
+     * Leaving the planet closes access to its stores, not the saved consignment or lesson. The induction draws the
+     * squad's kit there; the first-lift lesson after Relief draws the Hermes parts.
+     */
     static PreparationGuide.Lesson withDepotAccess(MarineRoster roster, PreparationGuide.Lesson lesson,
                                                   Runnable leave) {
-        if (lesson == null || !CompanyPreparation.required(roster)) return lesson;
-        Step step = roster.officerInduction().step(roster);
-        if (step != Step.SHIP && step != Step.LIFT && step != Step.FORMATION) return lesson;
+        if (lesson == null) return lesson;
+        List<FabricationCost.Line> bill;
+        String copy;
+        if (CompanyPreparation.required(roster)) {
+            Step step = roster.officerInduction().step(roster);
+            if (step == Step.SHIP) bill = CompanyPreparation.remainingBill(roster, ShuttleType.HERMES);
+            else if (step == Step.FORMATION) bill = CompanyPreparation.squadBill(roster);
+            else return lesson;
+            copy = "openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur";
+        } else if (CampaignLessons.firstLiftPending(roster)) {
+            bill = CompanyPreparation.boatBill(roster, ShuttleType.HERMES);
+            copy = "openingCompanyPreparationGuideTheHermesPartsAreStillWaitingAt";
+        } else return lesson;
         var depot = CerberusCompanyStart.depot();
         if (depot == null || CerberusCompanyStart.accessibleDepot() != null) return lesson;
         var resources = CampaignFabricationResources.forPreparation();
-        boolean needsLocalStores = CompanyPreparation.remainingBill(roster, ShuttleType.HERMES).stream()
+        boolean needsLocalStores = bill.stream()
                 .anyMatch(line -> resources.available(line.commodityId()) < line.quantity()
                         && depot.available(line.commodityId()) > 0);
         if (!needsLocalStores) return lesson;
         var destination = CerberusCompanyStart.destination();
         String port = destination == null ? depot.marketId() : destination.getName();
         return new PreparationGuide.Lesson(lesson.milestone(), Strings.get("openingCompanyPreparationGuideOurStoresAreStillReserved"),
-                Strings.format("openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur", port),
+                Strings.format(copy, port),
                 List.of("page-nav-return"), destination == null ? Strings.get("openingCompanyPreparationGuideReturn") : Strings.get("openingCompanyPreparationGuideReturnToDepot"), () -> {
                     if (destination != null && Global.getSector() != null)
                         Global.getSector().getCampaignUI().layInCourseForNextStep(destination);
@@ -84,12 +98,11 @@ final class CompanyPreparationGuide {
                 OfficerInductionGuide.line(Step.SHIP, "Sabine Hale").text(),
                 List.of("company-hq-ship"), Strings.get("openingCompanyPreparationGuideChooseShip"), () -> context.goTo(ScreenId.SHIP_TRANSFER));
         boolean waiting = context.shipGettingReady();
-        return new PreparationGuide.Lesson(step == Step.LIFT ? 1 : 2, waiting ? Strings.get("openingCompanyPreparationGuidePreparingOurShip") : Strings.get("openingCompanyPreparationGuideLetSGetTheCompanyReady"),
+        return new PreparationGuide.Lesson(1, waiting ? Strings.get("openingCompanyPreparationGuidePreparingOurShip") : Strings.get("openingCompanyPreparationGuideLetSGetTheCompanyReady"),
                 waiting ? Strings.get("openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd")
-                        : step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideOurHomeIsReadyComeDownTo")
                         : Strings.get("openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks"),
-                List.of(step == Step.LIFT ? "page-nav-boats" : "page-nav-barracks"),
-                step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideBoatDeck") : Strings.get("openingCompanyPreparationGuideMeetSabine"), waiting ? null : context::openOfficerInduction);
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetSabine"),
+                waiting ? null : context::openOfficerInduction);
     }
 
     static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model, MarineOpsContext context) {
@@ -97,19 +110,11 @@ final class CompanyPreparationGuide {
         return boats(roster, model, context::openOfficerInduction);
     }
 
+    /** The boats wait for the depot job; Relief's company rides up on Wayline's truck. */
     static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model, Runnable next) {
         if (!CompanyPreparation.required(roster)) return null;
-        if (roster.officerInduction().step(roster) == Step.LIFT) {
-            boolean building = model.fabricationFocused();
-            return new PreparationGuide.Lesson(1, roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideRepairOurFirstHermes") : Strings.get("openingCompanyPreparationGuideCommissionOurFirstShuttle"),
-                    (roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes") : OfficerInductionGuide.line(Step.LIFT, "Sabine Hale").text())
-                            + (building ? Strings.get("openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe") : Strings.get("openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight"))
-                            + (CerberusCompanyStart.depot() != null ? Strings.get("openingCompanyPreparationGuideOurPrepaidStoresAreAvailableWhileDocked") : ""),
-                    building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
-                            : List.of("boat-list"), null, null);
-        }
-        return new PreparationGuide.Lesson(1, Strings.get("openingCompanyPreparationGuideLiftReady"),
-                Strings.get("openingCompanyPreparationGuideGoodThatBoatIsOursWithA"),
+        return new PreparationGuide.Lesson(1, Strings.get("openingCompanyPreparationGuideOneStepAtATime"),
+                Strings.get("openingCompanyPreparationGuideTheBoatsCanWait"),
                 List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetSabine"), next);
     }
 
@@ -120,11 +125,11 @@ final class CompanyPreparationGuide {
     static PreparationGuide.Lesson armory(MarineRoster roster, Runnable next) {
         if (!CompanyPreparation.required(roster)) return null;
         Step step = roster.officerInduction().step(roster);
-        if (step == Step.SHIP || step == Step.LIFT || step == Step.INTRODUCTION || step == Step.SPECIALTY)
-            return new PreparationGuide.Lesson(step == Step.SHIP ? 0 : step == Step.LIFT ? 1 : 2,
+        if (step == Step.SHIP || step == Step.INTRODUCTION || step == Step.SPECIALTY)
+            return new PreparationGuide.Lesson(step == Step.SHIP ? 0 : 1,
                     Strings.get("openingCompanyPreparationGuideOneStepAtATime"), Strings.get("openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur"),
                     List.of(), Strings.get("openingCompanyPreparationGuideContinue"), next);
-        if (step == Step.FORMATION) return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideMusterOurFirstSquad"),
+        if (step == Step.FORMATION) return new PreparationGuide.Lesson(2, Strings.get("openingCompanyPreparationGuideMusterOurFirstSquad"),
                 Strings.get("openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty"),
                 List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideBarracks"), next);
         return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideAFormationNeedsItsOfficer"),
