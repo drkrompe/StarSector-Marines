@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
@@ -2593,6 +2594,9 @@ public final class BattleSetup {
             MapScale scale = MapScale.forRisk(risk);
             MapResult map = MAP_GEN.generate(scale.width, scale.height,
                     scenarioSeed, null, TargetProfile.NEUTRAL);
+            // A colony is not an objective, but its buildings are still places the player may order held.
+            for (TacticalNode place : HeldPlaces.fromBuildings(map.pointsOfInterest, poi -> Faction.CIVILIAN))
+                map.tacticalMap.add(place);
             Random scenarioRng = new Random(
                     scenarioSeed ^ 0x4155544F4D415445L);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);

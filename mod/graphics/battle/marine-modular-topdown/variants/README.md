@@ -22,16 +22,18 @@ Armor families:
 - `armor/lions-mantle/` â€” conspicuous Lion's Guard prestige heavy armor.
 - `armor/foundry-breaker/` â€” cargo exoframe buried beneath crude welded heavy plate.
 
-Weapons:
+Weapons (geometry-first: `art-source/templates/infantry-weapons-guide.py` owns every
+silhouette, `art-source/infantry-weapons/export.py` writes these at their contract sizes;
+all seen from straight overhead, muzzle at the top edge):
 
-- `weapons/rifle.png`
-- `weapons/rocket-launcher.png` â€” oversized rugged near-future anti-armor launcher.
-- `weapons/laser-gun.png`
-- `weapons/smg.png` â€” compact light-machine-gun silhouette.
-- `weapons/dmr.png` â€” extended precision rail/marksman silhouette.
-- `weapons/anti-materiel-rifle.png` â€” long heavy coil-rifle special-equipment layer.
-- `weapons/grades/surplus/rifle.png` â€” battered field-maintained grade-I exemplar.
-- `weapons/grades/masterwork/dmr.png` â€” fleet-printed grade-IV exemplar.
+- `weapons/rifle.png` — FR-1 field rifle: vented handguard, top optic, solid stock.
+- `weapons/rocket-launcher.png` — olive tube, flared ends, sight housing on the right.
+- `weapons/laser-gun.png` — pulse rifle: three finned heat sinks, green coil and cell.
+- `weapons/smg.png` — pirate SMG: side magazine jutting left, wire stock.
+- `weapons/dmr.png` — railgun marksman rifle: twin rails, capacitor block, long scope.
+- `weapons/anti-materiel-rifle.png` — ported brake, folded bipod, side box magazine.
+- `weapons/grades/surplus/rifle.png` — the rifle frame in worn paint and wood.
+- `weapons/grades/masterwork/dmr.png` — the DMR frame in navy, ivory and brass.
 
 The head is separate from the shoulder/body mass and can rotate independently around its
 center. Each body has an empty helmet socket. Running `art-source/marine-modular-topdown/build_variants.py` writes disposable

@@ -60,6 +60,13 @@ lead, or silhouette-conditioned hit roll. Accuracy, equipment, stance, spread,
 and smoke change the size of a sampled angular error disk before contacts are
 traced. Dispersion and smoke depth are calibrated along the bearing at weapon
 range, so cursor distance cannot improve distant accuracy or shorten flight.
+A player's own cursor on a controlled marine samples a **controlled**
+dispersion: authored spread keeps its full weight, but the abstract accuracy
+figure (tuned as an autonomous hit chance) widens the disk about a third as
+much, and rounds cluster toward the cursor rather than fill the disk evenly.
+Spread therefore carries a weapon's character under manual fire. Automated
+point fire (wall breaching, vehicle turrets, mech mounts) keeps the full-weight,
+evenly filled disk.
 A point round remains live to the same full modeled reach as a stray round;
 all body contacts are incidental and retain ordinary friendly-catch rules.
 Its trigger is allowed toward an obstructed or empty lane: a wall stops the
@@ -163,8 +170,9 @@ leaving modeled reach has no terminal blast. Autonomous fire and a company's
 wall-breach shots are not thrown and keep the terminal-contact rule. Direct SRMs
 remain interceptable in flight, and a surviving payload arrives on the ordinary
 delay.
-Indirect missiles retain their separate targeting contract and cannot be
-triggered through this point-fire adapter.
+A pilot's arcing LRM rack lands on the thrown point plus the same scatter disk,
+with no target-relative hit roll; autonomous and breach indirect fire keep their
+own targeting contract.
 
 ## Obscuration
 
