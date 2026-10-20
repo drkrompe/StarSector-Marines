@@ -39,9 +39,60 @@ strings, sounds).
 1. Owner review of the joined C4+C5 (half size, with `review/cinematic-c4c5/2026-10-19_mix-castle-v4_windows/01-c4c5-mix.wav`).
 2. Final mix from the owner's score-desk settings.
 3. Final full-quality renders of C1, C2 (lit), C4 and C5. C5's title is laid on Windows by `c5_title.py`.
-   Final render state (2026-10-20, 03:00): **C5 done** (Drive `builds/c5-final/9e98802f0/` frames, titled master `builds/c5-final/c5-final-titled-9e98802f0.mp4`). **C2 done** (frames `builds/c2-final/frames/`, movie `builds/c2-final-bridge-9dc05a265.mp4`). **C1 in progress**, split: the Mac renders frames 0-649 (`builds/c1-final/9e98802f0/`), Windows 650-904 in `build/cinematic/c1-corvus/frames/` of the c1-corvus-v2 worktree (copy them into the same Drive folder when done; if a run is stopped mid-frame, delete any 0-byte PNG placeholder before resuming or that frame is skipped); late frames are heavy (2-3 min each), so both halves finish around midday. **C4 waits on the owner's look at the joined C4+C5 check**, then renders on the Mac like C5. Entry and C3 need C3's layer build first (`first-open-sky/build/layers/` is a generated input: run the C3 layer and plate scripts, then `compose_entry.py` and `compose_c3.py` at full rate).
-   **Overnight only** (owner, 2026-10-20): full renders run at night, never during the day. Tonight's queue: (a) whatever is left of C1; (b) **C2 again in full** (8122dc22d put the bridge glass back at the model's own reflection, which changes every frame: `c2_bridge_render.py` to a fresh `--out`, about 4.3 h on Windows, then `--movie`), once the owner has passed the half-size glass still; (c) C4, if the owner has passed the joined C4+C5 check.
+   Final render state (2026-10-20, 03:00): **C5 done** (Drive `builds/c5-final/9e98802f0/` frames, titled master `builds/c5-final/c5-final-titled-9e98802f0.mp4`). **C2 rendered** (frames `builds/c2-final/frames/`, movie `builds/c2-final-bridge-9dc05a265.mp4`) but with the faint glass the owner has since rejected: it is re-rendered overnight (see Overnight renders). **C1 in progress**, split: the Mac renders frames 0-649 (`builds/c1-final/9e98802f0/`), Windows 650-904 in `build/cinematic/c1-corvus/frames/` of the c1-corvus-v2 worktree (copy them into the same Drive folder when done; if a run is stopped mid-frame, delete any 0-byte PNG placeholder before resuming or that frame is skipped); late frames are heavy (2-3 min each), so both halves finish around midday. **C4 waits on the owner's look at the joined C4+C5 check**, then renders on the Mac like C5. Entry and C3 need C3's layer build first (`first-open-sky/build/layers/` is a generated input: run the C3 layer and plate scripts, then `compose_entry.py` and `compose_c3.py` at full rate).
 4. Packaging: the in-game C5 composer still builds an 8 s shot and must take the 40 s one; the new voice files need `processAudio`; then re-export every shot (`cinematic_export.py`) and run `ArrivalCinematicStringsTest`.
+
+## Overnight renders (owner, 2026-10-20)
+
+Full renders run **overnight only**. During the day the GPUs are the owner's: only half-size
+stills for look questions. Every render below can be stopped at any time and resumed later
+without losing finished frames.
+
+**Tonight's queue, in order:**
+
+| # | Shot | Machine | What | Cost |
+|---|---|---|---|---|
+| 1 | C1 650-904 | Windows | Finish the remaining frames (650-788 were done at 10:30). Then copy them into the C1 Drive folder. | 2-3 min a frame |
+| 2 | C1 0-649 | Mac | Finish its half (0-521 done at 10:30). Frames stay in the Mac's `render-c1-9e98802f0` checkout; a watcher copies all 650 to Drive `builds/c1-final/9e98802f0/` once every one exists. | about 200 s a frame, about 7 h left |
+| 3 | C2 | Windows, after 1 | Full re-render: 8122dc22d put the bridge glass back at the model's own reflection, which changes every frame. Render to a fresh folder, keep the old `lit/` until the new one is done, then `--movie`. Only once the owner has passed the half-size glass still (11.5 s). | about 4.3 h at 64 samples |
+| 4 | C4 | Mac, after 2 | Only once the owner has passed the joined C4+C5 check. Renders like C5. | EEVEE, short |
+
+**Pausing and resuming.**
+- *Pause anything on Windows:* stop the Blender process (close its terminal, or
+  `Stop-Process -Name blender` in PowerShell, which stops every Blender on the machine).
+- *Resume C1 on Windows:* delete any 0-byte PNG in `build/cinematic/c1-corvus/frames/` of
+  the c1-corvus-v2 worktree (a 0-byte file is the frame that was in progress; left in place,
+  it is skipped). Then, from `corvus-approach/`:
+  `"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python-exit-code 1 --python c1v2_scene.py -- --final --frames 650:904`.
+  Frames already on disk are skipped.
+- *Resume C2:* rerun the same `c2_bridge_render.py` command with `--resume` and the same
+  `--out`, with `C2_LEGION_ASSET` set. `meta.json` in the output folder lists finished frames.
+  Give `--out` as an **absolute path**: Blender resolves a relative one somewhere else (a
+  half-size check landed in `C:\build\`).
+- *Mac:* scripts in `~/render-jobs/`. `c1-pause.sh` / `c1-resume.sh` freeze and continue
+  Blender mid-frame (nothing lost; it keeps its memory and GPU, and the Mac must not log out
+  or reboot while paused). `c1-stop.sh` kills it; `c1-restart.sh` clears 0-byte placeholders,
+  relaunches `--final --frames 0:649` under caffeinate and restarts the copy watcher (about
+  4 min of setup). Log: `~/render-jobs/c1-final.log`. Or ask the Mac render queue session.
+
+**Ways to render faster.** The estimates below are untested. Measure each one on a single
+half-size still of a heavy frame against the current settings before using it on a final.
+Change settings only between shots, never partway through one, or the two halves won't
+match.
+1. *C1 volumes* (the late frames are slow because of plumes and the planet's air shell):
+   raise `scene.cycles.volume_step_rate` from 1 to 2-4. This is probably the biggest saving
+   on C1; plumes lose a little fine detail.
+2. *Fewer samples with adaptive sampling:* C1 128 -> 64, and C2 64 -> 32, with
+   `adaptive_threshold` around 0.02-0.03. The denoiser hides most of the difference on dark
+   space shots.
+3. *Denoise on the GPU:* C1 uses OpenImageDenoise. Switching to OptiX on Windows, or OIDN on
+   the GPU, takes the denoise step off the CPU.
+4. *Persistent data:* C2 already keeps the scene loaded between frames. C1 doesn't
+   (`use_persistent_data`), so it rebuilds the scene on every frame.
+5. *Fewer light bounces:* space shots get little bounced light. Max bounces around 4-6 and
+   volume bounces 0.
+6. *Last resort:* render at 1600x900 and upscale, or render every second frame of slow
+   stretches and blend between them. Both are visible; ask the owner first.
 
 **Post-cinematic pictures** (`../yard-stills/`, the Nessa character sheet): Y1 yard
 with Nessa's cut-out layered on is in the game. Nessa is Kilo Nine's forewoman, about
