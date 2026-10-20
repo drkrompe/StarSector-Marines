@@ -298,9 +298,34 @@ final class GarrisonDirector {
         return have.getOrDefault(garrisonable, 0) > 0;
     }
 
+    /**
+     * Counts each of these places as manned for the rest of this pulse: buildings their own garrison still stands in.
+     * Call after {@link #evaluate} and before {@link #assign}. Pickets before massing then sends such a place a squad
+     * only as its second, under the pressure that wants one, and a building whose garrison is gone is manned like any
+     * other place.
+     */
+    void heldByOwnGarrison(Iterable<Integer> places) {
+        for (int place : places) have.merge(place, 1, Integer::sum);
+    }
+
     /** Whether the place with this centre cell is held unmanned after a breach; for tests and evidence. */
     boolean lockedOut(int cellX, int cellY) {
         return lockout.containsKey(pack(cellX, cellY));
+    }
+
+    /**
+     * The order that mans a garrisonable: for a stretch, an area defence on its circle with its claims kept to the
+     * stretch's run; for a building's envelope, a hold of the building that carries the envelope's centre and circle, so
+     * the squad stands to at its windows and doors by the frontage laws and walks its rooms when they are quiet or
+     * entered.
+     */
+    static ObjectiveAssignment orderFor(int squadId, int place, GarrisonableRegistry places) {
+        if (places.isEnvelope(place)) {
+            return ObjectiveAssignment.holdEnvelope(squadId, places.building(place), places.centreX(place),
+                    places.centreY(place), places.radius(place));
+        }
+        return ObjectiveAssignment.defendRun(squadId, places.centreX(place), places.centreY(place),
+                places.radius(place), places.runOf(place));
     }
 
     /**

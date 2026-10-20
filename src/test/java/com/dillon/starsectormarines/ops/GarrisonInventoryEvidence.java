@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -136,6 +137,11 @@ class GarrisonInventoryEvidence {
         }
         out.append(String.format("map windows: tagged %d (%d uncovered), edge %d (%d uncovered); FP runs %d (%d uncovered)%n",
                 taggedWindows, taggedUncovered, edgeWindows, edgeUncovered, runCount, runsUncovered));
+        GarrisonableRegistry places = sim.garrisonables();
+        int posts = 0;
+        for (int g = places.stretchCount(); g < places.count(); g++) posts += places.size(g);
+        out.append(String.format("garrisonables: stretches %d, building envelopes %d (%d posts)%n",
+                places.stretchCount(), places.count() - places.stretchCount(), posts));
     }
 
     private static boolean covered(List<TacticalNode> nodes, int x, int y) {

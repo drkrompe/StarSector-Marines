@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.GarrisonDirector.Free;
 import com.dillon.starsectormarines.battle.command.GarrisonDirector.Garrison;
 import com.dillon.starsectormarines.battle.command.GarrisonDirector.Man;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
@@ -23,6 +25,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -715,5 +718,51 @@ class GarrisonDirectorTest {
 
     private int lastBlockReads() {
         return profile.countOf(TickInnerProfile.Bucket.GARRISON_BLOCK_READ);
+    }
+
+    /** The setup's three trenches and a barracks between the first two, whose envelope is place 3. */
+    private void withBarracks() {
+        TacticalNode barracks = new TacticalNode(TacticalNode.Kind.BARRACKS, 47, 24, 40, 20, 55, 30,
+                Faction.DEFENDER, 60, 0);
+        registry = GarrisonableRegistry.build(FightingPositionIndex.build(W, H, props, (x, y) -> true),
+                W, H, BLOCK, new int[0], List.of(new GarrisonableRegistry.Envelope(barracks, new int[]{47, 20, 48, 20})));
+    }
+
+    @Test
+    void aPressedBuildingIsMannedWithAHoldOfItsEnvelope() {
+        withBarracks();
+        assertTrue(registry.isEnvelope(3));
+        pressure(3, GarrisonDirector.START_PRESSURE + 1f);
+        evaluate(List.of(), 3);
+        List<Man> sent = director.assign(patrols(3), always());
+
+        assertEquals(1, sent.size());
+        assertEquals(3, sent.get(0).garrisonable());
+        ObjectiveAssignment order = GarrisonDirector.orderFor(sent.get(0).squadId(), 3, registry);
+        assertTrue(order.isEnvelope() && order.mansPlace() && !order.isGarrison());
+        assertSame(registry.building(3), order.targetNode());
+        assertEquals(3, registry.idAt(order.targetCellX(), order.targetCellY()), "the order finds its place again");
+    }
+
+    @Test
+    void aBuildingItsOwnGarrisonHoldsIsNotSentAPicket() {
+        withBarracks();
+        pressure(3, GarrisonDirector.START_PRESSURE + 1f);
+        evaluate(List.of(), 3);
+        director.heldByOwnGarrison(List.of(3));
+
+        assertTrue(director.isManned(3));
+        assertTrue(director.assign(patrols(3), always()).isEmpty());
+    }
+
+    @Test
+    void anEnemyInsideTheBuildingBreachesItsEnvelope() {
+        withBarracks();
+        pressure(3, GarrisonDirector.START_PRESSURE + 1f);
+        Garrison holder = new Garrison(7, 3, true, true, 6, 47, 21, 6);
+        director.evaluate(registry, pressureField(), new int[]{50, 26}, 1, List.of(holder));
+
+        assertEquals(List.of(7), director.fallingBack());
+        assertTrue(director.lockedOut(registry.centreX(3), registry.centreY(3)));
     }
 }

@@ -18,7 +18,7 @@ import java.util.function.IntPredicate;
 
 /**
  * A side holding ground it has taken (`garrisonables.md`, Decided direction): the fighting-position runs of the forts
- * it holds, and the prepared ground at the doors of compounds it has taken, are manned in answer to its own believed counter-attack pressure, through the same assignment tier the
+ * it holds, and the prepared ground at the doors of compounds it has taken and those compounds' buildings, are manned in answer to its own believed counter-attack pressure, through the same assignment tier the
  * defender's reactive manning uses ({@link GarrisonDirector}) and under the same laws: belief only, hysteresis with a
  * dwell, pickets before massing, the useful-strength floor, an arrival bound, fall back to the fort's works on a breach,
  * release when the pressure passes, candidates found through the registry's block index and a bounded number sent per
@@ -107,7 +107,7 @@ final class HeldGround {
         ObjectiveAssignment order = body.order();
         int cellX;
         int cellY;
-        if (order != null && order.isGarrison()) {
+        if (order != null && order.mansPlace()) {
             cellX = order.targetCellX();
             cellY = order.targetCellY();
             director.adopted(body.squadId());
@@ -237,14 +237,21 @@ final class HeldGround {
         return out;
     }
 
+    /**
+     * Counts these places as manned for the rest of this pulse: taken buildings a garrison of the caller's side already
+     * holds, such as the one a captured compound is sent. Call after {@link #standOrRelease} and before {@link #man}.
+     */
+    void heldByOwnGarrison(Iterable<Integer> places) {
+        director.heldByOwnGarrison(places);
+    }
+
     /** The places the last pulse found pressed to the manning level; for tests and evidence. */
     int[] pressedPlaces() {
         return director.hotPlaces();
     }
 
     private static ObjectiveAssignment runOrder(int squadId, int place, GarrisonableRegistry places) {
-        return ObjectiveAssignment.defendRun(squadId, places.centreX(place), places.centreY(place),
-                places.radius(place), places.runOf(place));
+        return GarrisonDirector.orderFor(squadId, place, places);
     }
 
     /**

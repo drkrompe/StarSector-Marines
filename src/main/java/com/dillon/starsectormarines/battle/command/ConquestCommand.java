@@ -1187,6 +1187,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
             ConquestCommandFacts.Compound compound = CompoundGround.frontedBy(places, place, compounds);
             return compound != null && compound.state() == CompoundService.CompoundState.MARINE_HELD;
         };
+        // A taken building its own garrison holds (the squad a captured compound is sent) is manned already.
+        Set<Integer> ownGarrisoned = new TreeSet<>();
+        for (PlanningSquad squad : allSquads.values()) {
+            ObjectiveAssignment order = squad.assignedObjective;
+            if (squad.aliveMembers <= 0 || squad.machine || order == null || order.kind() != AssignmentKind.HOLD_NODE
+                    || order.isEnvelope()) continue;
+            int envelope = places.envelopeOf(order.targetNode());
+            if (envelope >= 0) ownGarrisoned.add(envelope);
+        }
+        heldGround.heldByOwnGarrison(ownGarrisoned);
         for (HeldGround.Sent man : heldGround.man(places, free, hold.cap - hold.holders, taken, takenCompound,
                 (sx, sy, x, y) -> frame.topology().inBounds(sx, sy) && frame.topology().isWalkable(sx, sy)
                         && (sx == x && sy == y || frame.topology().reachable(sx, sy, x, y)))) {
@@ -3726,7 +3736,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         ObjectiveAssignment old = incumbent.assignment();
         // Taking up or leaving taken ground answers the believed counter-attack, which is new information each way.
         if (reason == AssignmentReason.HOLD_GROUND_MAN || reason == AssignmentReason.HOLD_GROUND_FALL_BACK
-                || (old.isGarrison() && reason != AssignmentReason.HOLD_GROUND_STAND)) {
+                || (old.mansPlace() && reason != AssignmentReason.HOLD_GROUND_STAND)) {
             return CommandStabilityBreak.CONTEXT_INVALIDATED;
         }
         if (squad.commandGroup != null && ConquestGroupCommand.isHold(old)
