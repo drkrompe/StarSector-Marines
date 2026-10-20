@@ -1,6 +1,6 @@
 # Yard storybook page art
 
-Status: DRAFT — awaiting the owner's review (2026-10-20)
+Status: SHIPPED — the four storybook pages in the game (2026-10-20)
 Written: 2026-10-20
 
 One picture per page of the four-page yard storybook that follows the Jangala arrival

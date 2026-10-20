@@ -12,7 +12,10 @@ public final class MercenaryCompanyConversion extends BaseHullMod {
     public static final String ID = "sm_mercenary_company_conversion";
     public static final int EXTRA_BERTHS = 18;
     public static final int CARGO_COST = 25;
-    public static final int CREDIT_COST = 5000;
+    /** Nessa's itemised estimate: materials 3,300, yard time 1,562, pressure test {@link #PRESSURE_TEST}. */
+    public static final int CREDIT_COST = 4986;
+    /** The estimate's pressure-test line, waived when Castle's founding reserve pays (see {@link FoundingReserve}). */
+    public static final int PRESSURE_TEST = 124;
 
     public static boolean compatible(FleetMemberAPI member) {
         return member != null && member.getHullSpec() != null
