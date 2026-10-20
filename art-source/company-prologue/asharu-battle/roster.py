@@ -27,8 +27,8 @@ from starsector_path import GAME_CORE  # noqa: E402
 #   file and manifest (append collection, root, metres per unit, engine anchors), length m.
 #   Drive sources: colossus-cinematic, shepherd builds/5860eae2b, kite-p/a48f8757b,
 #   hound-p/33114de, lasher-independent/7805d3b, hound-independent/1e91821,
-#   falcon-p/0044413fc, wolf-p/cec776a, wolf/cec776a, tarsus/750fb3374 (clean, boarded),
-#   colossus-mk3/005c3b11b.
+#   falcon-p/0044413fc, wolf-p/f60641f63, wolf/f60641f63, tarsus/2e7d396fc (clean, boarded),
+#   colossus-mk3/005c3b11b, phaeton/e9ab52297 (intact, destroyed).
 FINISHED = {
     'colossus': dict(file='colossus.blend', manifest='colossus-manifest.json', length_m=108.5),
     'shepherd': dict(file='shepherd.blend', manifest='shepherd-manifest.json', length_m=67.1),
@@ -37,9 +37,13 @@ FINISHED = {
     'hound-p': dict(file='hound-p-pirate.blend', manifest='hound-p-manifest.json', length_m=60.8),
     'kite-p': dict(file='kite-p.blend', manifest='kite-p-manifest.json', length_m=52.2),
     'falcon-p': dict(file='falcon-p.blend', manifest='falcon-p-manifest.json', length_m=174.4),
-    'wolf-p': dict(file='wolf-p.blend', manifest='wolf-p-manifest.json', length_m=74.6),
-    'wolf': dict(file='wolf.blend', manifest='wolf-manifest.json', length_m=74.6),
+    'wolf-p': dict(file='wolf-p.blend', manifest='wolf-p-manifest.json', length_m=70.0),
+    'wolf': dict(file='wolf.blend', manifest='wolf-manifest.json', length_m=70.0),
     'colossus-mk3': dict(file='colossus-mk3.blend', manifest='colossus-mk3-manifest.json', length_m=109.6),
+    'phaeton': dict(file='phaeton.blend', manifest='phaeton-manifest.json', length_m=76.6),
+    # the wreck carries its own flash, fireball, break-up and fires in its SWFX collection
+    'phaeton-wreck': dict(file='phaeton-destroyed.blend', manifest='phaeton-destroyed-manifest.json', length_m=76.6,
+                          swfx=True),
     'tarsus': dict(file='tarsus.blend', manifest='tarsus-manifest.json', length_m=94.0),
     'tarsus-boarded': dict(file='tarsus-boarded.blend', manifest='tarsus-boarded-manifest.json', length_m=94.0),
 }
@@ -54,7 +58,7 @@ MERCHANT = [
          finished='shepherd'),
     dict(key='tarsus', game='tarsus', name='Tarsus', role='freighter: boarded and taken, the pirate prize', finished='tarsus'),
     dict(key='mule', game='mule', name='Mule', role='armed freighter'),
-    dict(key='phaeton', game='phaeton', name='Phaeton', role='the convoy tanker: hit and destroyed in the opening'),
+    dict(key='phaeton', game='phaeton', name='Phaeton', role='the convoy tanker: hit and destroyed in the opening', finished='phaeton'),
     dict(key='buffalo-a', game='buffalo', name='Buffalo', role='small freighter'),
     dict(key='buffalo-b', game='buffalo', name='Buffalo', role='small freighter'),
     dict(key='dram', game='dram', name='Dram', role='small tanker'),
@@ -69,7 +73,8 @@ PIRATE = [
     dict(key='falcon-p', game='falcon_p.skin', name='Falcon (P)', role='flagship, light cruiser', finished='falcon-p'),
     dict(key='colossus3', game='colossus3', name='Colossus Mk.III', role='prize ship: an armed Colossus come to take the cargo',
          finished='colossus-mk3'),
-    dict(key='manticore-p', game='manticore_pirates.skin', name='Manticore (P)', role='long-range destroyer: breaks the screen'),
+    dict(key='manticore-p', game='manticore_pirates.skin', name='Manticore (P)', role='long-range destroyer: breaks the screen',
+         published_m=91.0),     # ship_scale.py 0.59 m/u (b11042b62); the hull is in review, so a slab stands in
     dict(key='buffalo2-a', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='buffalo2-b', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='wolf-p-a', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),
@@ -132,7 +137,11 @@ def game_spec(game):
                 bays=int(float(row['fighter bays'] or 0)),
                 engines=[dict(location=e['location'], angle=e.get('angle', 180), width=e.get('width', 10),
                               style=e.get('style', 'LOW_TECH'))
-                         for e in ship.get('engineSlots', ())])
+                         for e in ship.get('engineSlots', ())],
+                weapons=[dict(location=w['locations'][:2], angle=w.get('angle', 0), arc=w.get('arc', 0),
+                              mount=w.get('mount', 'TURRET'), type=w.get('type', ''))
+                         for w in ship.get('weaponSlots', ())
+                         if w.get('mount') in ('TURRET', 'HARDPOINT') and w.get('type') not in ('DECORATIVE', 'LAUNCH_BAY')])
 
 
 def option_c(spec, alpha_area_px):

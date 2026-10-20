@@ -135,8 +135,10 @@ KEYFRAMES = {
                 'tanker goes up, Lasher A is burning, and the lead Lasher turns back into the fire and is hit. '
                 'The freighters keep running.',
         camera=dict(loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
+        states={'phaeton': 'phaeton-wreck'},
+        knobs={'phaeton': {'break_frame': {'ago_s': 2.0}}},     # 2 s into the cook-off: tank 1 has just gone
         ships={**{k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')},
-               'lasher-lead': (330, 430, 70, 165, 4, 25, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
+               'lasher-lead': (330, 430, 70, 165, 4, -15, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
                'phaeton': (-350, 300, 20, 8, -4, 30, 0),
                'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
                'wolf-p-a': (-1250, 200, -120, 2, 6, 25, 1), 'wolf-p-b': (-1700, -650, -300, 3, 5, -20, 1),
@@ -144,7 +146,7 @@ KEYFRAMES = {
         fx=[('tracer', 'manticore-p', 'lasher-lead'), ('tracer', 'falcon-p', 'lasher-lead'),
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
-            ('blast', 'phaeton', 55), ('debris', 'phaeton', 70), ('fire_on', 'lasher-a', (-20, 10, 6)),
+            ('fire_on', 'lasher-a', (-20, 10, 6)),
             ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
     'k3b': dict(
@@ -155,7 +157,7 @@ KEYFRAMES = {
         states={'tarsus': 'tarsus-boarded'},
         ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
                'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
-               'wolf-p-b': (-420, 330, 120, -20, 3, -25, 1),
+               'wolf-p-b': (-420, 330, 120, -20, -32, 110, 1),
                'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
                'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)},
         fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-40, 0, 6)),
@@ -169,7 +171,7 @@ KEYFRAMES = {
         camera=dict(loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
         knobs={'colossus3': {'grapples': 0.5}},
         ships={'colossus': (0, 0, 0, 0, -3, 6, .2), 'morrow': (-10, 35, -78, 0, 8, 4, 1),
-               'colossus3': (-60, 70, 175, -4, -8, 4, .6),
+               'colossus3': (-60, 70, 175, -4, -8, 64, .6),
                'kite-p-a': (110, 210, 40, -60, 6, 32, 1),
                'wolf-p-a': (260, 160, 110, -150, 2, -40, 1)},
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
@@ -459,12 +461,14 @@ def blender_main(cfg):
         bpy.context.view_layer.layer_collection.children[coll.name].exclude = True
         return coll
 
-    def append(path, name):
+    def append(path, name, extra=()):
         with bpy.data.libraries.load(str(path), link=False) as (src, dst):
-            dst.collections = [name]
-        coll = dst.collections[0]
-        scene.collection.children.link(coll)
-        return excluded(coll)
+            dst.collections = [name, *extra]
+        colls = list(dst.collections)
+        for coll in colls:
+            scene.collection.children.link(coll)
+            excluded(coll)
+        return colls[0] if not extra else colls
 
     def tinted_copy(coll, rgb, label):
         new = bpy.data.collections.new(coll.name + ' | ' + label)
@@ -508,8 +512,12 @@ def blender_main(cfg):
     def finished(key):
         f = roster.FINISHED[key]
         m = json.loads((INPUTS / f['manifest']).read_text())
-        coll = append(INPUTS / f['file'], m['append_collection'])
-        ctl = m.get('control', {}).get('object')
+        fx = None
+        if f.get('swfx'):     # the build's own effects, instanced at the same root
+            coll, fx = append(INPUTS / f['file'], m['append_collection'], ('SWFX',))
+        else:
+            coll = append(INPUTS / f['file'], m['append_collection'])
+        ctl = m.get('control', {}).get('object') or m.get('break_up', {}).get('controls')
         ctl = next((o for o in coll.all_objects if ctl and o.name.split('.')[0] == ctl), None) or (
             bpy.data.objects.get(ctl) if ctl else None)
         eng = []
@@ -521,8 +529,10 @@ def blender_main(cfg):
                 continue
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
-        knobs = {k['name']: m['control']['saved_pose'].get(k['name'], 0.0) for k in m['control']['knobs']} if ctl else {}
-        return dict(coll=coll, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl, knobs=knobs)
+        knobs = ({k['name']: m['control']['saved_pose'].get(k['name'], 0.0) for k in m['control']['knobs']}
+                 if ctl and 'control' in m else {})
+        return dict(coll=coll, fx=fx, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl,
+                    knobs=knobs)
 
     def standin(game, length_m=None):
         """The sprite's silhouette as a lens-shaped slab in hull units (one sprite px per unit,
@@ -680,6 +690,12 @@ def blender_main(cfg):
         mw = frame_of((x, y, z), hd, pt, rl)
         e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
         link(e, stage)
+        if lib.get('fx') is not None:
+            e2 = bpy.data.objects.new('Ship fx | ' + key, None)
+            e2.instance_type = 'COLLECTION'
+            e2.instance_collection = lib['fx']
+            e2.matrix_world = e.matrix_world
+            link(e2, stage)
         placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'])
         if thr <= 0:
             return
@@ -936,8 +952,11 @@ def blender_main(cfg):
                     for name, rest in lib['knobs'].items():
                         lib['ctl'][name] = rest
             for key, kn in spec.get('knobs', {}).items():
-                lib = hull(members[key])
+                state = spec.get('states', {}).get(key)
+                lib = hull({**members[key], 'finished': state} if state else members[key])
                 for name, val in kn.items():
+                    if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
+                        val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
                     lib['ctl'][name] = val
             if any(lib.get('ctl') is not None for lib in library.values()):
                 scene.frame_set(scene.frame_current)    # drivers read the knobs
@@ -1203,6 +1222,108 @@ def check(frames):
             inside = 0 <= x <= W and 60 <= y <= H - 90
             print(f'   {key:12} ({x:6.0f}, {y:6.0f})  {lengths[key] / z * fpx:5.0f} px  {z:6.0f} m'
                   + ('' if inside else '   OUT'))
+        for kind, a, b, best, tgt_el in bearing(kf):
+            if best is None:
+                verdict = 'no guns known'
+            elif best[0]:
+                verdict = f'bears ({best[2]}, el {best[3]:+.0f}, {best[4]:+.0f} off rest)'
+            else:
+                verdict = f'CANNOT BEAR: target {tgt_el:+.0f} deg off her deck plane, best {best[2]} short by {best[1]:.0f} deg'
+            print(f'   {kind:8} {a:12} -> {b:12} {verdict}')
+
+
+GUN_ELEVATION = (-10.0, 85.0)   # a dorsal turret's reach above (and just below) its own deck plane
+MISSILE_CONE = 90.0              # a guided missile can leave a fixed tube up to this far off its target
+
+
+def _rot(hd, pt, rl):
+    """Local-to-world rotation of a ship spec, the same order as frame_of: Rz(hd) Ry(-pt) Rx(rl)."""
+    def rz(a):
+        c, s = math.cos(a), math.sin(a)
+        return [[c, -s, 0], [s, c, 0], [0, 0, 1]]
+
+    def ry(a):
+        c, s = math.cos(a), math.sin(a)
+        return [[c, 0, s], [0, 1, 0], [-s, 0, c]]
+
+    def rx(a):
+        c, s = math.cos(a), math.sin(a)
+        return [[1, 0, 0], [0, c, -s], [0, s, c]]
+
+    def mul(a, b):
+        return [[sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+    return mul(mul(rz(math.radians(hd)), ry(-math.radians(pt))), rx(math.radians(rl)))
+
+
+def mounts(key, state=None):
+    """A ship's guns in its own frame, metres: (position, rest bearing, arc, kind). Finished hulls
+    from their manifests (dorsal turrets that train in azimuth, fixed hardpoints); stand-ins from
+    the game's weapon slots, laid on the slab's deck."""
+    m = next(r for r in roster.MERCHANT + roster.PIRATE if r['key'] == key)
+    fin = state or m.get('finished')
+    out = []
+    if fin:
+        f = roster.FINISHED[fin]
+        man = json.loads((INPUTS / f['manifest']).read_text())
+        mpu = man['metres_per_unit']
+        rows = man.get('turrets') or []
+        for w in man.get('weapon_slots', []) + man.get('weapons', []):
+            rows.append(w)
+        for t in rows if isinstance(rows, list) else []:
+            at = t.get('pivot_at') or t.get('location') or t.get('at') or (t.get('pivot') or {}).get('at')
+            if at is None:
+                mz = (t.get('muzzles') or [{}])[0]
+                at = mz.get('at') if isinstance(mz, dict) else None
+            if at is None:
+                continue
+            rest = t.get('rest_angle_deg', t.get('angle_deg', t.get('angle', 0)))
+            arc = t.get('arc_deg', t.get('arc', 360))
+            kind = 'hardpoint' if t.get('mount') == 'HARDPOINT' else 'turret'
+            out.append(([v * mpu for v in at] + [0] * (3 - len(at)), rest, arc, kind))
+    else:
+        spec = roster.game_spec(m['game'])
+        _, length_px, _ = roster.sprite_stats(spec['sprite'])
+        mpu = roster.size_row(m)['length_m'] / length_px
+        for w in spec['weapons']:
+            out.append(([w['location'][0] * mpu, w['location'][1] * mpu, 0.0], w['angle'], w['arc'],
+                        'hardpoint' if w['mount'] == 'HARDPOINT' else 'turret'))
+    return out
+
+
+def bearing(kf):
+    """For every shot in a key frame, whether the shooter has a gun that can bear on its target."""
+    spec = KEYFRAMES[kf]
+    ships = spec['ships']
+    states = spec.get('states', {})
+    rows = []
+    for fx in spec.get('fx', []):
+        if fx[0] not in ('tracer', 'missiles') or fx[1] not in ships or fx[2] not in ships:
+            continue
+        a, b = fx[1], fx[2]
+        sa, sb = ships[a], ships[b]
+        R = _rot(*sa[3:6])
+        d = [sb[i] - sa[i] for i in range(3)]
+        loc = [sum(R[j][i] * d[j] for j in range(3)) for i in range(3)]     # world -> shooter frame
+        best = None
+        for pos, rest, arc, kind in mounts(a, states.get(a)):
+            v = [loc[i] - pos[i] for i in range(3)]
+            h = math.hypot(v[0], v[1])
+            el = math.degrees(math.atan2(v[2], h))
+            az = math.degrees(math.atan2(v[1], v[0]))
+            off = (az - rest + 180) % 360 - 180
+            if kind == 'hardpoint':
+                cone = math.degrees(math.acos(max(-1, min(1, v[0] / math.sqrt(h * h + v[2] ** 2)))))
+                ok = cone <= (MISSILE_CONE if fx[0] == 'missiles' else max(arc / 2, 3))
+                miss = cone
+            else:
+                in_az = abs(off) <= arc / 2 or el >= 75
+                ok = in_az and GUN_ELEVATION[0] <= el <= GUN_ELEVATION[1]
+                miss = max(0.0, GUN_ELEVATION[0] - el, abs(off) - arc / 2 if el < 75 else 0)
+            if best is None or (ok, -miss) > (best[0], -best[1]):
+                best = (ok, miss, kind, el, off)
+        tgt_el = math.degrees(math.atan2(loc[2], math.hypot(loc[0], loc[1])))
+        rows.append((fx[0], a, b, best, tgt_el))
+    return rows
 
 
 def main():

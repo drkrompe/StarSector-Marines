@@ -1,8 +1,8 @@
 # Asharu battle: the wreckfall
 
-Status: DRAFT — round 6 blockout (`battle_blockout.py`); pirate and convoy hull builds in progress.
+Status: DRAFT — blockout round 7 in code, not yet rendered (last posted run: round 6). Hull builds nearly all finished.
 Written: 2026-10-19
-Updated: 2026-10-19 — round 6: the Colossus Mk.III is a finished build (awaiting the owner's acceptance), with grapples half down in S8-S9 and the Tarsus truly clamped in S10.
+Updated: 2026-10-19 — round 7: the Phaeton is finished (intact in S1, an eight-blast cook-off in S6); ships roll to bring their dorsal guns to bear; the Mk.III and Falcon (P) are accepted; the Wolf is reshaped (f60641f63).
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -113,23 +113,23 @@ Colossus 108 m, Onslaught 301 m.
 | Colossus | the heavy freighter that falls | 108 m | the reference | **finished** |
 | Shepherd "Morrow" | drone tender, the convoy's repair ship; falls with the Colossus | 67 m | a little longer than a Hound | **finished** (Ko Combine livery) |
 | Tarsus | freighter: boarded and taken, the pirates' prize | 94 m | 0.9 Colossus, much slimmer | **finished**, clean and boarded (drives dead) states |
-| Phaeton | the convoy's tanker, destroyed in the opening | 73 m (est.) | 1.2 Hounds, long and thin | **ordered** (mid-close in S6) |
+| Phaeton | the convoy's tanker, destroyed in the opening | 77 m | 1.24 Hounds, long and thin | **finished** (both states accepted by the owner): destroyed is an eight-blast cook-off over about 6 s |
 | Mule | armed freighter; gets away | 104 m (est.) | about a Colossus | stand-in |
 | Buffalo x2 | small freighters; get away | 58 m (est.) | a Hound | stand-in |
 | Dram | small tanker; gets away | 48 m (est.) | 0.8 Hound | stand-in |
 | Lasher x3 | escort lead and escort frigates | 90 m | 1.5 Hounds | **finished** (independent livery) |
-| Wolf | point escort frigate | 75 m | 1.2 Hounds | **finished** (merchant livery of the Wolf build) |
+| Wolf | point escort frigate | 70 m (size not settled) | 1.15 Hounds | **finished** (merchant livery of the Wolf build) |
 | Hound | rear escort | 61 m | the reference | **finished** (independent livery) |
 
 ### Pirate raiders (11 hulls)
 
 | Hull | Role | Length | Against known ships | Model |
 |---|---|---|---|---|
-| Falcon (P) | flagship, light cruiser | 174 m | 1.6 Colossus; 0.6 Onslaught | **finished** |
-| Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 110 m | the Colossus's twin | **finished**; grapples from stowed to clamped, fitted to the Tarsus |
-| Manticore (P) | long-range destroyer that breaks the screen | 96 m (est.) | 0.9 Colossus | ordered |
+| Falcon (P) | flagship, light cruiser | 174 m | 1.6 Colossus; 0.6 Onslaught | **finished** (accepted by the owner; faded red kept) |
+| Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 110 m | the Colossus's twin | **finished** (accepted by the owner); grapples from stowed to clamped, fitted to the Tarsus |
+| Manticore (P) | long-range destroyer that breaks the screen | 91 m (0.59 m/u; 95 m across the pods) | 0.85 Colossus | hull in owner review; stand-in at its published size |
 | Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
-| Wolf (P) x2 | fast frigates that cut the column | 75 m | 1.2 Hounds | **finished** |
+| Wolf (P) x2 | fast frigates that cut the column | 70 m (size not settled) | 1.15 Hounds | **finished** |
 | Hound (P) x2 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
 | Kite (P) x2 | boarding shuttles | 52 m | 0.9 Hound | **finished** |
 
@@ -138,6 +138,25 @@ Mk.III), plus the Buffalo Mk.II, which pirate fleets field. Left out on purpose:
 phase frigates (a phase ambush is a different film from this one), and the
 Venture Mk.II and Atlas Mk.II, which would make the raid read as a pirate
 armada.
+
+## Gunnery: ships roll to fire
+
+Every hull here carries its guns on its dorsal deck. The turrets train in azimuth only, through
+the arc in the build's manifest (or the game's weapon slot), and reach from just below the
+deck plane (-10 degrees) almost straight up. Fixed hardpoints (missile tubes and the Kite's
+launchers) point along the keel, and a guided missile can leave one up to 90 degrees off its
+target. So a ship firing at something below her deck has to roll or dive to bring her deck to
+bear, and that rolling shapes the fight:
+
+- S6: the lead Lasher banks her deck down onto the Manticore (P) as she turns back.
+- S7: the Wolf (P) makes an inverted gun run over the Tarsus, rolled 110 degrees and nose down.
+- S8-S9: the Colossus Mk.III lies about 64 degrees on her side to bring her broadside down on
+  the Colossus, grapples half-swung, before she rights herself to take the Tarsus instead.
+- The merchants keep upright: the pirates climb at them from below, so the merchants' guns,
+  firing down, are the ones that struggle (the Colossus fires up at the Mk.III easily).
+
+`python battle_blockout.py --check` tests every tracer and missile in every key frame against
+the shooter's real mounts and prints "bears" or "CANNOT BEAR" with how far short it is.
 
 ## Shot list
 
@@ -150,7 +169,7 @@ About 95 seconds. **K** marks a shot with a blockout key frame in the review run
 | S3 | 5 s | Long lens back down at the derelict platform below: dark, stripped. Then drive lights come on in its hangars. | the platform | 135 mm from the convoy's tail |
 | S4 **K** | 6 s | First contact: twelve hulls climbing out of the platform toward the column, drives lit, the desert behind them. | Falcon (P), Wolves, Hounds (P), Kites (P) | 35 mm, off their flank |
 | S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire |
-| S6 **K** | 8 s | The screen breaks: the Phaeton tanker goes up, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy |
+| S6 **K** | 8 s | The screen breaks: the Phaeton tanker is struck in the first 2 s and cooks off through the rest, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy |
 | S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), Wolf (P) | 35 mm, from behind the Tarsus |
 | S8 | 6 s | Close on the Colossus's aft: the port tug pod is shot out, the drives stutter, debris. | Colossus | 50 mm, close |
 | S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. | Colossus, Colossus Mk.III, Morrow | 28 mm, 600 m off her port side |
@@ -163,43 +182,72 @@ deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
 
 ## Hull builds
 
-Orders go to the coordinating session, one per hull (owner, 2026-10-19). The
-owner started orders for the Colossus Mk.III, Kite (P), Wolf (P), Falcon (P),
-Hound (P) state, Manticore (P) and Enforcer. The Enforcer was cut (owner,
-2026-10-19): a finished Lasher leads the escort instead, and the pirates field
-no Enforcer. The Kite (P) and Hound (P) are finished, as are the independent
-liveries of the Lasher and Hound. The Buffalo Mk.II stays a stand-in. Round 2
-added two convoy hulls that are seen close:
+No further hulls are to be ordered from this blockout unless the owner asks
+(owner, 2026-10-19). The Enforcer was cut, and a finished Lasher leads the escort.
+The Mule, Buffalo, Dram and Buffalo Mk.II stay stand-ins, because they are only
+seen at a distance.
 
-- **Tarsus**: the pirates' prize, close in S7 and S10. Detailed, textured and
-  with effects, plus a boarded condition (drives shot out, scorched).
-- **Phaeton**: the tanker destroyed in S6, at mid-close range. Detailed and
-  textured, plus a destroyed condition.
+| Hull | Build (Drive `builds/...`) | Copy into `build/asharu-battle/inputs/` as | State |
+|---|---|---|---|
+| Colossus | `colossus-cinematic` package (`colossus.blend` + manifest) | `colossus.blend`, `colossus-manifest.json` | finished |
+| Shepherd "Morrow" | `shepherd/5860eae2b` | `shepherd.blend`, `shepherd-manifest.json` | finished |
+| Lasher x3 | `lasher-independent/7805d3b` (`lasher.blend`) | `lasher-independent.blend`, `lasher-independent-manifest.json` | finished; awaiting the owner's review |
+| Hound | `hound-independent/1e91821` | `hound-independent-clean.blend`, `hound-independent-manifest.json` | finished; awaiting the owner's review |
+| Hound (P) x2 | `hound-p/33114de` | `hound-p-pirate.blend`, `hound-p-manifest.json` | finished; awaiting the owner's review |
+| Kite (P) x2 | `kite-p/a48f8757b` | `kite-p.blend`, `kite-p-manifest.json` | **accepted** |
+| Falcon (P) | `falcon-p/0044413fc` | `falcon-p.blend`, `falcon-p-manifest.json` | **accepted** |
+| Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3.blend`, `colossus-mk3-manifest.json` | **accepted** |
+| Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton.blend` + `phaeton-manifest.json`; `phaeton-destroyed.blend` + `phaeton-destroyed-manifest.json` | **accepted** (both states, including the eight-blast cook-off) |
+| Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` (both `tarsus.blend`) | `tarsus.blend` + `tarsus-manifest.json`; `tarsus-boarded.blend` + `tarsus-boarded-manifest.json` | finished after the owner's round 2; not yet accepted |
+| Wolf (P) x2, merchant Wolf | `wolf-p/f60641f63`, `wolf/f60641f63` | `wolf-p.blend`, `wolf-p-manifest.json`; `wolf.blend`, `wolf-manifest.json` | finished; size not settled (70 m); a turret clash check may update the build |
+| Manticore (P) | none yet: the hull is in the owner's review | none: a stand-in at its published 91 m (0.59 m/u) | effects pass and Drive build come after acceptance |
 
-The Mule, Buffalo and Dram are distant and stay stand-ins. The merchant Wolf
-takes the Wolf (P) build with a merchant livery. No further hulls are to be
-ordered from this blockout without the owner asking.
+Each manifest is the build folder's `manifest.json`, renamed as shown. When a build changes, update its row here and its `roster.FINISHED` entry.
 
 ## Blockout
 
-`battle_blockout.py` builds the scene in Blender and renders the key frames, two
-roster sheets (from above and broadside, every hull at true relative size) and
-the orbit diagram. Hulls come from `build/asharu-battle/inputs/` (ignored): the
-finished Colossus and Shepherd builds (`colossus-cinematic`,
-`shepherd-cinematic`) and the Drive builds `colossus-mk3/005c3b11b` (grapples
-set per frame through its control knob), `tarsus/750fb3374` (clean in S1-S6,
-boarded in S7 and S10), `falcon-p/0044413fc`, `wolf-p/cec776a`,
-`wolf/cec776a`, `kite-p/a48f8757b`, `hound-p/33114de`,
-`lasher-independent/7805d3b` and `hound-independent/1e91821`, each placed
-through its manifest. A stand-in is the sprite's silhouette raised into a lens
-shape and painted with the sprite. It reads as the right hull at the right size
-and nothing more. Effects (tracers, blasts, drive plumes, entry plasma) are
-placeholders for the VFX kit.
+`battle_blockout.py` builds the scene in Blender. It renders the key frames, two roster sheets (from above and broadside, every hull at true relative size) and the orbit diagram.
 
-`python battle_blockout.py --check` prints where every ship lands in every key
-frame without rendering; `--frames k3b,k5` renders some frames only.
+- **Hulls** are placed through their manifests at each build's own metres per unit.
+- **Condition states are chosen per frame:**
+  - the boarded Tarsus in S7 and S10;
+  - the Phaeton wreck in S6, with its own SWFX effects.
+- **Control knobs are set per frame:**
+  - the Mk.III's grapples: 0.5 in S8-S9, 1.0 in S10;
+  - the Phaeton's `break_frame`: 2 s into the cook-off in S6.
+- **The S10 clamp:** the Tarsus is placed at the Mk.III's `grapples.tarsus_origin_units` through `aboard()`.
+- **Stand-ins** are the sprite's silhouette raised into a lens shape and painted with the sprite. A stand-in reads as the right hull at the right size and nothing more.
+- **Effects** (tracers, placeholder blasts, drive plumes, entry plasma) are placeholders for the VFX kit.
+
+To check a scene without rendering, run `python battle_blockout.py --check`. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
+
+## Where it stands, and the next step
+
+- **Posted:** round 6 (`review/cinematic-asharu-battle/2026-10-19_round6-colossus-mk3_windows`) is the latest run.
+- **Round 7 is in code but not rendered.** It brings:
+  - the accepted Phaeton cook-off in S6;
+  - the rolls that let the guns bear, in S6, S7 and S8-S9;
+  - the reshaped Wolf and the round 2 Tarsus;
+  - the Manticore (P) at 91 m.
+- **Next step:**
+  1. Copy the builds in the table above into `build/asharu-battle/inputs/`.
+  2. Run `--check`; every shot should read "bears".
+  3. Render `--frames k3,k3b,k4,r1,r2 --samples 48`. S6 alone takes over ten minutes, because of the wreck's smoke and fire.
+  4. Post with `--what round7-gunnery-cookoff`, then prune.
+  5. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
 
 ## Open for the owner
+
+- **S10:** with the real clamp, the Tarsus hangs under the Mk.III, and the high camera hides her (and the docked Kite (P)). Either move the camera lower and side-on, or add a close shot of the clamp.
+- **The gunnery staging:**
+  - the lead Lasher banking;
+  - the Wolf (P)'s inverted gun run;
+  - the Mk.III on her side for a broadside before she takes the Tarsus.
+- **Open hull questions:**
+  - the Wolf's size, 70 m;
+  - the Tarsus: 94 m or 106 m, and a faceted body or not;
+  - the Manticore (P) hull review.
+- A short animated pass of S6, to judge the whole cook-off rather than one still.
 
 - Asharu's size, the 250 km orbit and the low sun.
 - The Colossus lost or deliberately dived.
